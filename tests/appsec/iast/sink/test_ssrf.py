@@ -2,8 +2,8 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import bug, context, missing_feature, features
-from ..utils import BaseSinkTest
+from utils import bug, context, missing_feature, features, rfc, weblog
+from ..utils import BaseSinkTest, validate_stack_traces
 
 
 @features.iast_sink_ssrf
@@ -21,7 +21,7 @@ class TestSSRF(BaseSinkTest):
         "python": {"flask-poc": "app.py", "django-poc": "app/urls.py"},
     }
 
-    @bug(context.library < "java@1.14.0", reason="https://github.com/DataDog/dd-trace-java/pull/5172")
+    @bug(context.library < "java@1.14.0", reason="APMRP-360")
     def test_insecure(self):
         super().test_insecure()
 
@@ -34,3 +34,17 @@ class TestSSRF(BaseSinkTest):
     @missing_feature(library="dotnet", reason="Not implemented yet")
     def test_telemetry_metric_instrumented_sink(self):
         super().test_telemetry_metric_instrumented_sink()
+
+
+@rfc(
+    "https://docs.google.com/document/d/1ga7yCKq2htgcwgQsInYZKktV0hNlv4drY9XzSxT-o5U/edit?tab=t.0#heading=h.d0f5wzmlfhat"
+)
+@features.iast_stack_trace
+class TestSSRF_StackTrace:
+    """Validate stack trace generation """
+
+    def setup_stack_trace(self):
+        self.r = weblog.post("/iast/ssrf/test_insecure", data={"url": "https://www.datadoghq.com"})
+
+    def test_stack_trace(self):
+        validate_stack_traces(self.r)

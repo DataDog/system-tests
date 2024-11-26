@@ -3,11 +3,13 @@
 # Copyright 2021 Datadog, Inc.
 
 from utils import features, weblog, interfaces, scenarios, rfc
+from utils.dd_constants import Capabilities
 from tests.appsec.rasp.utils import (
     validate_span_tags,
     validate_stack_traces,
     find_series,
     validate_metric,
+    Base_Rules_Version,
 )
 
 
@@ -152,10 +154,10 @@ class Test_Shi_StackTrace:
 class Test_Shi_Telemetry:
     """Validate Telemetry data on exploit attempts"""
 
-    def setup_ssrf_telemetry(self):
+    def setup_shi_telemetry(self):
         self.r = weblog.get("/rasp/shi", params={"list_dir": "$(cat /etc/passwd 1>&2 ; echo .)"})
 
-    def test_ssrf_telemetry(self):
+    def test_shi_telemetry(self):
         assert self.r.status_code == 403
 
         series_eval = find_series(True, "appsec", "rasp.rule.eval")
@@ -169,3 +171,20 @@ class Test_Shi_Telemetry:
         assert any(validate_metric("rasp.rule.match", "command_injection", s) for s in series_match), [
             s.get("tags") for s in series_match
         ]
+
+
+@rfc("https://docs.google.com/document/d/1gCXU3LvTH9en3Bww0AC2coSJWz1m7HcavZjvMLuDCWg/edit#heading=h.giijrtyn1fdx")
+@features.rasp_shell_injection
+@scenarios.remote_config_mocked_backend_asm_dd
+class Test_Shi_Capability:
+    """Validate that ASM_RASP_SHI (24) capability is sent"""
+
+    def test_shi_capability(self):
+        interfaces.library.assert_rc_capability(Capabilities.ASM_RASP_SHI)
+
+
+@features.rasp_local_file_inclusion
+class Test_Shi_Rules_Version(Base_Rules_Version):
+    """Test shi min rules version"""
+
+    min_version = "1.13.1"

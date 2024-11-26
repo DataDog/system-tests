@@ -21,8 +21,8 @@ class AnyRatio(object):
 
 def _get_spans(test_agent, test_library, child_span_tag=None):
     with test_library:
-        with test_library.start_span(name="parent", service="webserver") as ps:
-            with test_library.start_span(name="child", service="webserver", parent_id=ps.span_id) as cs:
+        with test_library.dd_start_span(name="parent", service="webserver") as ps:
+            with test_library.dd_start_span(name="child", service="webserver", parent_id=ps.span_id) as cs:
                 if child_span_tag:
                     cs.set_meta(child_span_tag, None)
 
@@ -72,15 +72,15 @@ def _assert_sampling_tags(
 @scenarios.parametric
 @features.trace_sampling
 class Test_Sampling_Span_Tags:
-    @bug(library="python", reason="Python sets dm tag on child span")
-    @bug(library="nodejs", reason="NodeJS does not set priority on parent span")
-    @bug(library="ruby", reason="ruby does not set dm tag on first span")
-    @bug(library="dotnet", reason="dotnet does not set dm tag on first span")
-    @bug(library="golang", reason="golang sets priority 2")
-    @bug(library="php", reason="php sets priority 2")
-    @bug(library="java", reason="java sets priority 2")
-    @bug(library="cpp", reason="c++ does not support magic tags")
-    @bug(library="java", reason="java sets dm tag -3")
+    @bug(library="python", reason="APMAPI-737")  # Python sets dm tag on child span
+    @bug(library="nodejs", reason="APMAPI-737")  # NodeJS does not set priority on parent span
+    @bug(library="ruby", reason="APMAPI-737")  # ruby does not set dm tag on first span
+    @bug(library="dotnet", reason="APMAPI-737")  # dotnet does not set dm tag on first span
+    @bug(library="golang", reason="APMAPI-737")  # golang sets priority 2
+    @bug(library="php", reason="APMAPI-737")  # php sets priority 2
+    @bug(library="java", reason="APMAPI-737")  # java sets priority 2
+    @bug(library="cpp", reason="APMAPI-737")  # c++ does not support magic tags
+    @bug(library="java", reason="APMAPI-737")  # java sets dm tag -3
     @pytest.mark.parametrize("library_env", [{"DD_TRACE_SAMPLE_RATE": 1}])
     def test_tags_child_dropped_sst001(self, test_agent, test_library):
         parent_span, child_span, first_span = _get_spans(test_agent, test_library, child_span_tag=MANUAL_DROP_KEY)
@@ -95,13 +95,13 @@ class Test_Sampling_Span_Tags:
             "be set",
         )
 
-    @bug(library="python", reason="Python sets dm tag on child span")
-    @bug(library="ruby", reason="ruby does not set dm tag on first span")
-    @bug(library="dotnet", reason="dotnet does not set dm tag on first span")
-    @bug(library="golang", reason="golang sets dm tag -3 on first span")
-    @bug(library="php", reason="php sets dm tag -3 on first span")
-    @bug(library="java", reason="java sets dm tag -3 on first span")
-    @bug(library="cpp", reason="c++ sets dm tag -3 on first span")
+    @bug(library="python", reason="APMAPI-737")  # Python sets dm tag on child span
+    @bug(library="ruby", reason="APMAPI-737")  # ruby does not set dm tag on first span
+    @bug(library="dotnet", reason="APMAPI-737")  # dotnet does not set dm tag on first span
+    @bug(library="golang", reason="APMAPI-737")  # golang sets dm tag -3 on first span
+    @bug(library="php", reason="APMAPI-737")  # php sets dm tag -3 on first span
+    @bug(library="java", reason="APMAPI-737")  # java sets dm tag -3 on first span
+    @bug(library="cpp", reason="APMAPI-737")  # c++ sets dm tag -3 on first span
     @pytest.mark.parametrize("library_env", [{"DD_TRACE_SAMPLE_RATE": 1}])
     def test_tags_child_kept_sst007(self, test_agent, test_library):
         parent_span, child_span, first_span = _get_spans(test_agent, test_library, child_span_tag=MANUAL_KEEP_KEY)
@@ -116,12 +116,11 @@ class Test_Sampling_Span_Tags:
             "be set",
         )
 
-    @bug(library="python", reason="Python sets dm tag -0")
-    @bug(library="ruby", reason="ruby does not set dm tag on first span")
-    @bug(library="dotnet", reason="dotnet does not set dm tag on first span")
-    @bug(library="cpp", reason="unknown")
-    @bug(library="php", reason="php does not set agent rate tag")
-    @bug(context.library < "nodejs@5.17.0", reason="nodejs sets dm tag -0")  # actual fixed version is not known
+    @bug(library="python", reason="APMAPI-737")  # Python sets dm tag -0
+    @bug(library="ruby", reason="APMAPI-737")  # ruby does not set dm tag on first span
+    @bug(library="dotnet", reason="APMAPI-737")  # dotnet does not set dm tag on first span
+    @bug(library="cpp", reason="APMAPI-737")  # unknown
+    @bug(context.library < "nodejs@5.17.0", reason="APMAPI-737")  # APMRP-360  # actual fixed version is not known
     def test_tags_defaults_sst002(self, test_agent, test_library):
         parent_span, child_span, first_span = _get_spans(test_agent, test_library)
         _assert_sampling_tags(
@@ -137,13 +136,13 @@ class Test_Sampling_Span_Tags:
             "be either set to the default rate or unset",
         )
 
-    @bug(library="python", reason="Python sets dm tag on child span")
-    @bug(library="ruby", reason="ruby does not set dm tag on first span")
-    @bug(library="dotnet", reason="dotnet does not set dm tag on first span")
-    @bug(library="golang", reason="golang sets limit_psr")
-    @bug(library="java", reason="java sets limit_psr")
-    @bug(library="nodejs", reason="nodejs sets limit_psr")
-    @bug(library="cpp", reason="c++ sets limit_psr")
+    @bug(library="python", reason="APMAPI-737")  # Python sets dm tag on child span
+    @bug(library="ruby", reason="APMAPI-737")  # ruby does not set dm tag on first span
+    @bug(library="dotnet", reason="APMAPI-737")  # dotnet does not set dm tag on first span
+    @bug(library="golang", reason="APMAPI-737")  # golang sets limit_psr
+    @bug(library="java", reason="APMAPI-737")  # java sets limit_psr
+    @bug(library="nodejs", reason="APMAPI-737")  # nodejs sets limit_psr
+    @bug(library="cpp", reason="APMAPI-737")  # c++ sets limit_psr
     @pytest.mark.parametrize("library_env", [{"DD_TRACE_SAMPLE_RATE": 1}])
     def test_tags_defaults_rate_1_sst003(self, test_agent, test_library):
         parent_span, child_span, first_span = _get_spans(test_agent, test_library)
@@ -159,14 +158,14 @@ class Test_Sampling_Span_Tags:
             "be set to the given rate, which is 1",
         )
 
-    @bug(library="java", reason="Java sets rate tag 9.9999 on parent span")
-    @bug(library="dotnet", reason="Dotnet sets rate tag 9.9999 on parent span")
-    @bug(library="nodejs", reason="NodeJS does not set dm tag on first span")
-    @bug(library="golang", reason="golang does not set dm tag on first span")
-    @bug(library="python", reason="python does not set dm tag on first span")
-    @bug(library="ruby", reason="ruby does not set dm tag on first span")
-    @bug(library="cpp", reason="c++ does not set dm tag on first span")
-    @bug(library="php", reason="php sets dm tag -1 on first span")
+    @bug(library="java", reason="APMAPI-737")  # Java sets rate tag 9.9999 on parent span
+    @bug(library="dotnet", reason="APMAPI-737")  # Dotnet sets rate tag 9.9999 on parent span
+    @bug(library="nodejs", reason="APMAPI-737")  # NodeJS does not set dm tag on first span
+    @bug(library="golang", reason="APMAPI-737")  # golang does not set dm tag on first span
+    @bug(library="python", reason="APMAPI-737")  # python does not set dm tag on first span
+    @bug(library="ruby", reason="APMAPI-737")  # ruby does not set dm tag on first span
+    @bug(library="cpp", reason="APMAPI-737")  # c++ does not set dm tag on first span
+    @bug(library="php", reason="APMAPI-737")  # php sets dm tag -1 on first span
     @pytest.mark.parametrize("library_env", [{"DD_TRACE_SAMPLE_RATE": 1e-06}])
     def test_tags_defaults_rate_tiny_sst004(self, test_agent, test_library):
         parent_span, child_span, first_span = _get_spans(test_agent, test_library)
@@ -182,13 +181,13 @@ class Test_Sampling_Span_Tags:
             "be set to the given rate",
         )
 
-    @bug(library="python", reason="Python sets dm tag on child span")
-    @bug(library="ruby", reason="ruby does not set dm tag on first span")
-    @bug(library="dotnet", reason="dotnet does not set dm tag on first span")
-    @bug(library="golang", reason="golang sets limit_psr")
-    @bug(library="java", reason="java sets limit_psr")
-    @bug(library="nodejs", reason="nodejs sets limit_psr")
-    @bug(library="cpp", reason="c++ sets limit_psr")
+    @bug(library="python", reason="APMAPI-737")  # Python sets dm tag on child span
+    @bug(library="ruby", reason="APMAPI-737")  # ruby does not set dm tag on first span
+    @bug(library="dotnet", reason="APMAPI-737")  # dotnet does not set dm tag on first span
+    @bug(library="golang", reason="APMAPI-737")  # golang sets limit_psr
+    @bug(library="java", reason="APMAPI-737")  # java sets limit_psr
+    @bug(library="nodejs", reason="APMAPI-737")  # nodejs sets limit_psr
+    @bug(library="cpp", reason="APMAPI-737")  # c++ sets limit_psr
     @pytest.mark.parametrize(
         "library_env", [{"DD_TRACE_SAMPLE_RATE": 1, "DD_TRACE_SAMPLING_RULES": json.dumps([{"sample_rate": 1}])}]
     )
@@ -207,14 +206,14 @@ class Test_Sampling_Span_Tags:
             "be set to the given rule rate, which is 1",
         )
 
-    @bug(library="nodejs", reason="NodeJS does not set dm tag on first span")
-    @bug(library="php", reason="php does not set dm tag on first span")
-    @bug(library="ruby", reason="ruby does not set dm tag on first span")
-    @bug(library="python", reason="python does not set dm tag on first span")
-    @bug(library="cpp", reason="c++ does not set dm tag on first span")
-    @bug(library="java", reason="java does not set dm tag on first span")
-    @bug(library="dotnet", reason="dotnet does not set dm tag on first span")
-    @bug(library="golang", reason="golang sets priority tag 2")
+    @bug(library="nodejs", reason="APMAPI-737")  # NodeJS does not set dm tag on first span
+    @bug(library="php", reason="APMAPI-737")  # php does not set dm tag on first span
+    @bug(library="ruby", reason="APMAPI-737")  # ruby does not set dm tag on first span
+    @bug(library="python", reason="APMAPI-737")  # python does not set dm tag on first span
+    @bug(library="cpp", reason="APMAPI-737")  # c++ does not set dm tag on first span
+    @bug(library="java", reason="APMAPI-737")  # java does not set dm tag on first span
+    @bug(library="dotnet", reason="APMAPI-737")  # dotnet does not set dm tag on first span
+    @bug(library="golang", reason="APMAPI-737")  # golang sets priority tag 2
     @pytest.mark.parametrize(
         "library_env", [{"DD_TRACE_SAMPLE_RATE": 1, "DD_TRACE_SAMPLING_RULES": json.dumps([{"sample_rate": 0}])}]
     )
@@ -233,13 +232,13 @@ class Test_Sampling_Span_Tags:
             "be set to the given rule rate, which is 0",
         )
 
-    @bug(library="golang", reason="golang does not set dm tag")
-    @bug(library="python", reason="python does not set dm tag")
-    @bug(library="dotnet", reason="dotnet does not set dm tag")
-    @bug(library="nodejs", reason="nodejs does not set dm tag")
-    @bug(library="ruby", reason="ruby does not set dm tag")
-    @bug(library="php", reason="php does not set limit_psr")
-    @bug(library="cpp", reason="this test times out with the c++ tracer")
+    @bug(library="golang", reason="APMAPI-737")  # golang does not set dm tag
+    @bug(library="python", reason="APMAPI-737")  # python does not set dm tag
+    @bug(library="dotnet", reason="APMAPI-737")  # dotnet does not set dm tag
+    @bug(library="nodejs", reason="APMAPI-737")  # nodejs does not set dm tag
+    @bug(library="ruby", reason="APMAPI-737")  # ruby does not set dm tag
+    @bug(library="php", reason="APMAPI-737")  # php does not set limit_psr
+    @bug(library="cpp", reason="APMAPI-737")  # this test times out with the c++ tracer
     @pytest.mark.parametrize("library_env", [{"DD_TRACE_SAMPLE_RATE": 1, "DD_TRACE_RATE_LIMIT": 0}])
     def test_tags_defaults_rate_1_and_rate_limit_0_sst008(self, test_agent, test_library):
         parent_span, child_span, first_span = _get_spans(test_agent, test_library)
@@ -256,14 +255,14 @@ class Test_Sampling_Span_Tags:
             "be set to the given sample rate (1), and the limit sample rate tag should be set ",
         )
 
-    @bug(library="golang", reason="golang sets priority tag 2")
-    @bug(library="php", reason="php does not set dm tag")
-    @bug(library="python", reason="python does not set dm tag")
-    @bug(library="dotnet", reason="dotnet does not set dm tag")
-    @bug(library="java", reason="java does not set dm tag")
-    @bug(library="nodejs", reason="nodejs does not set dm tag")
-    @bug(library="ruby", reason="ruby does not set dm tag")
-    @bug(library="cpp", reason="c++ does not set dm tag")
+    @bug(library="golang", reason="APMAPI-737")  # golang sets priority tag 2
+    @bug(library="php", reason="APMAPI-737")  # php does not set dm tag
+    @bug(library="python", reason="APMAPI-737")  # python does not set dm tag
+    @bug(library="dotnet", reason="APMAPI-737")  # dotnet does not set dm tag
+    @bug(library="java", reason="APMAPI-737")  # java does not set dm tag
+    @bug(library="nodejs", reason="APMAPI-737")  # nodejs does not set dm tag
+    @bug(library="ruby", reason="APMAPI-737")  # ruby does not set dm tag
+    @bug(library="cpp", reason="APMAPI-737")  # c++ does not set dm tag
     @pytest.mark.parametrize(
         "library_env",
         [
@@ -290,14 +289,14 @@ class Test_Sampling_Span_Tags:
             "be set to the given sample rate (0), and the limit sample rate tag should be set",
         )
 
-    @bug(library="golang", reason="golang sets dm tag -1")
-    @bug(library="php", reason="php sets dm tag -1")
-    @bug(library="python", reason="python does not set dm tag")
-    @bug(library="dotnet", reason="dotnet does not set dm tag")
-    @bug(library="java", reason="java sets dm tag -1")
-    @bug(library="nodejs", reason="nodejs sets dm tag -0")
-    @bug(library="ruby", reason="ruby does not set dm tag")
-    @bug(library="cpp", reason="c++ sets dm tag -0")
+    @bug(library="golang", reason="APMAPI-737")  # golang sets dm tag -1
+    @bug(library="php", reason="APMAPI-737")  # php sets dm tag -1
+    @bug(library="python", reason="APMAPI-737")  # python does not set dm tag
+    @bug(library="dotnet", reason="APMAPI-737")  # dotnet does not set dm tag
+    @bug(library="java", reason="APMAPI-737")  # java sets dm tag -1
+    @bug(library="nodejs", reason="APMAPI-737")  # nodejs sets dm tag -0
+    @bug(library="ruby", reason="APMAPI-737")  # ruby does not set dm tag
+    @bug(library="cpp", reason="APMAPI-737")  # c++ sets dm tag -0
     @pytest.mark.parametrize(
         "library_env", [{"DD_TRACE_RATE_LIMIT": 3}],
     )
@@ -315,14 +314,14 @@ class Test_Sampling_Span_Tags:
             "and the limit sample rate tag should be set",
         )
 
-    @bug(library="golang", reason="golang sets dm tag -1")
-    @bug(library="php", reason="php sets dm tag -1")
-    @bug(library="python", reason="python does not set dm tag")
-    @bug(library="dotnet", reason="dotnet does not set dm tag")
-    @bug(library="java", reason="java sets dm tag -1")
-    @bug(library="nodejs", reason="nodejs sets dm tag -0")
-    @bug(library="ruby", reason="ruby does not set dm tag")
-    @bug(library="cpp", reason="c++ sets dm tag -0")
+    @bug(library="golang", reason="APMAPI-737")  # golang sets dm tag -1
+    @bug(library="php", reason="APMAPI-737")  # php sets dm tag -1
+    @bug(library="python", reason="APMAPI-737")  # python does not set dm tag
+    @bug(library="dotnet", reason="APMAPI-737")  # dotnet does not set dm tag
+    @bug(library="java", reason="APMAPI-737")  # java sets dm tag -1
+    @bug(library="nodejs", reason="APMAPI-737")  # nodejs sets dm tag -0
+    @bug(library="ruby", reason="APMAPI-737")  # ruby does not set dm tag
+    @bug(library="cpp", reason="APMAPI-737")  # c++ sets dm tag -0
     @pytest.mark.parametrize(
         "library_env", [{"DD_APPSEC_ENABLED": 1}],
     )

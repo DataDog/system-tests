@@ -5,6 +5,7 @@
 from utils import bug
 from utils import context
 from utils import features
+from utils import flaky
 from utils import interfaces
 from utils import remote_config as rc
 from utils import scenarios
@@ -25,10 +26,9 @@ def _send_config(config):
 
 @scenarios.appsec_runtime_activation
 @bug(
-    context.library < "java@1.8.0" and context.appsec_rules_file is not None,
-    reason="ASM_FEATURES was not subscribed when a custom rules file was present",
+    context.library < "java@1.8.0" and context.appsec_rules_file is not None, reason="APMRP-360",
 )
-@bug(context.library == "java@1.6.0", reason="https://github.com/DataDog/dd-trace-java/pull/4614")
+@bug(context.library == "java@1.6.0", reason="APMRP-360")
 @features.changing_rules_using_rc
 class Test_RuntimeActivation:
     """A library should block requests after AppSec is activated via remote config."""

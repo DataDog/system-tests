@@ -1,6 +1,6 @@
 weblog:
     name: test-app-python-container
-    excluded_os_branches: [amazon_linux2_dotnet6, amazon_linux2023_amd64]
+    runtime_version: 3.12
     install: 
       - os_type: linux
         copy_files:

@@ -25,13 +25,14 @@ class Test_StandardTagsMethod:
         self.trace_request = weblog.trace("/waf", data=None)
 
     @irrelevant(library="php", reason="Trace method does not reach php-land")
-    @bug(weblog_variant="spring-boot-payara", reason="This weblog variant is currently not accepting TRACE")
+    @missing_feature(weblog_variant="spring-boot-payara", reason="This weblog variant is currently not accepting TRACE")
     def test_method_trace(self):
         interfaces.library.add_span_tag_validation(request=self.trace_request, tags={"http.method": "TRACE"})
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2490990623/QueryString+-+Sensitive+Data+Obfuscation")
 @features.security_events_metadata
+# Tests for verifying behavior when query string obfuscation is configured can be found in the Test_Config_ObfuscationQueryStringRegexp test classes
 class Test_StandardTagsUrl:
     """Tests to verify that libraries annotate spans with correct http.url tags"""
 
@@ -230,7 +231,6 @@ class Test_StandardTagsClientIp:
         "true-client-ip": PUBLIC_IP,
         "x-client-ip": PUBLIC_IP,
         "forwarded-for": PUBLIC_IP,
-        "x-forwarded": PUBLIC_IP,
         "x-cluster-client-ip": f"10.42.42.42, {PUBLIC_IP}, fe80::1",
     }
     FORWARD_HEADERS_VENDOR = {
@@ -260,10 +260,6 @@ class Test_StandardTagsClientIp:
 
     def _test_client_ip(self, forward_headers):
         for header, _ in forward_headers.items():
-            if header == "x-forwarded":
-                # TODO: Java currently handles X-Forwarded as Forwarded, while other tracers handle it as X-Forwarded-For.
-                # Keeping this case out until it's clear how to handle it.
-                continue
             request = self.requests_without_attack[header]
             meta = self._get_root_span_meta(request)
             assert "http.client_ip" in meta, f"Missing http.client_ip for {header}"
@@ -274,9 +270,8 @@ class Test_StandardTagsClientIp:
         self._setup_with_attack()
 
     @bug(
-        context.library < "java@1.11.0",
-        reason="X-Client-Ip not supported, see https://github.com/DataDog/dd-trace-java/pull/4878",
-    )
+        context.library < "java@1.11.0", reason="APMRP-360"
+    )  # X-Client-Ip not supported, see https://github.com/DataDog/dd-trace-java/pull/4878
     def test_client_ip(self):
         """Test http.client_ip is always reported in the default scenario which has ASM enabled"""
         meta = self._get_root_span_meta(self.request_with_attack)
@@ -288,10 +283,10 @@ class Test_StandardTagsClientIp:
     def setup_client_ip_vendor(self):
         self._setup_without_attack()
 
-    @bug(library="golang", reason="missing cf-connecting-ipv6")
+    @bug(context.library < "golang@1.69.0", reason="APMRP-360")
     @bug(
-        context.library < "java@1.11.0", reason="not supported, see https://github.com/DataDog/dd-trace-java/pull/4878"
-    )
+        context.library < "java@1.11.0", reason="APMRP-360"
+    )  # not supported, see https://github.com/DataDog/dd-trace-java/pull/4878
     def test_client_ip_vendor(self):
         """Test http.client_ip is always reported in the default scenario which has ASM enabled when using vendor headers"""
         self._test_client_ip(self.FORWARD_HEADERS_VENDOR)
@@ -316,7 +311,9 @@ class Test_StandardTagsClientIp:
     @missing_feature(
         context.library < "java@1.19.0", reason="missing fastly-client-ip, cf-connecting-ip, cf-connecting-ipv6"
     )
-    @missing_feature(library="golang", reason="missing fastly-client-ip, cf-connecting-ip, cf-connecting-ipv6")
+    @missing_feature(
+        context.library < "golang@1.69.0", reason="missing fastly-client-ip, cf-connecting-ip, cf-connecting-ipv6"
+    )
     @missing_feature(
         context.library < "nodejs@4.19.0", reason="missing fastly-client-ip, cf-connecting-ip, cf-connecting-ipv6"
     )

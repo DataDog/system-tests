@@ -48,7 +48,7 @@ class Test_Trace_Sampling_Basic:
     def test_trace_sampled_by_trace_sampling_rule_exact_match(self, test_agent, test_library):
         """Test that a trace is sampled by the exact matching trace sampling rule"""
         with test_library:
-            with test_library.start_span(name="web.request", service="webserver") as span:
+            with test_library.dd_start_span(name="web.request", service="webserver") as span:
                 pass
         span = find_only_span(test_agent.wait_for_num_traces(1))
 
@@ -70,12 +70,35 @@ class Test_Trace_Sampling_Basic:
     def test_trace_dropped_by_trace_sampling_rule(self, test_agent, test_library):
         """Test that a trace is dropped by the matching defined trace sampling rule"""
         with test_library:
-            with test_library.start_span(name="web.request", service="webserver") as span:
+            with test_library.dd_start_span(name="web.request", service="webserver") as span:
                 pass
         span = find_only_span(test_agent.wait_for_num_traces(1))
 
         assert span["metrics"].get(SAMPLING_PRIORITY_KEY) == -1
         assert span["metrics"].get(SAMPLING_RULE_PRIORITY_RATE) == 0.0
+
+    @pytest.mark.parametrize(
+        "library_env",
+        [
+            {
+                "DD_TRACE_SAMPLE_RATE": 1,
+                "DD_TRACE_SAMPLING_RULES_FORMAT": "glob",
+                "DD_TRACE_SAMPLING_RULES": json.dumps(
+                    [{"service": "webserver", "resource": "drop-me", "sample_rate": 0}]
+                ),
+            }
+        ],
+    )
+    def test_trace_kept_in_spite_trace_sampling_rule(self, test_agent, test_library):
+        """Test that a trace is being kept with manual.keep depite of the matching defined trace sampling rule"""
+        with test_library:
+            with test_library.dd_start_span(name="web.request", service="webserver") as s1:
+                s1.set_metric("sampling.priority", 2)
+                s1.set_meta("resource.name", "drop-me")
+                pass
+        span = find_only_span(test_agent.wait_for_num_traces(1))
+
+        assert span["metrics"].get(SAMPLING_PRIORITY_KEY) == 2
 
 
 @features.trace_sampling
@@ -115,7 +138,7 @@ class Test_Trace_Sampling_Globs:
     def test_trace_sampled_by_trace_sampling_rule_glob_match(self, test_agent, test_library):
         """Test that a trace is sampled by the glob matching trace sampling rule"""
         with test_library:
-            with test_library.start_span(name="web.request", service="webserver") as span:
+            with test_library.dd_start_span(name="web.request", service="webserver") as span:
                 pass
         span = find_only_span(test_agent.wait_for_num_traces(1))
 
@@ -135,7 +158,7 @@ class Test_Trace_Sampling_Globs:
     def test_trace_dropped_by_trace_sampling_rule(self, test_agent, test_library):
         """Test that a trace is dropped by the matching defined trace sampling rule"""
         with test_library:
-            with test_library.start_span(name="web.request", service="webserver") as span:
+            with test_library.dd_start_span(name="web.request", service="webserver") as span:
                 pass
         span = find_only_span(test_agent.wait_for_num_traces(1))
 
@@ -180,7 +203,7 @@ class Test_Trace_Sampling_Globs_Feb2024_Revision:
     def test_trace_sampled_by_trace_sampling_rule_insensitive_glob_match(self, test_agent, test_library):
         """Test that a trace is sampled by the glob matching trace sampling rule"""
         with test_library:
-            with test_library.start_span(name="web.request", service="webserver") as span:
+            with test_library.dd_start_span(name="web.request", service="webserver") as span:
                 pass
         span = find_only_span(test_agent.wait_for_num_traces(1))
 
@@ -256,7 +279,7 @@ class Test_Trace_Sampling_Resource:
     def test_trace_sampled_by_trace_sampling_rule_exact_match(self, test_agent, test_library):
         """Test that a trace is sampled by the exact matching trace sampling rule"""
         with test_library:
-            with test_library.start_span(name="web.request", service="webserver", resource="/bar") as span:
+            with test_library.dd_start_span(name="web.request", service="webserver", resource="/bar") as span:
                 pass
         span = find_only_span(test_agent.wait_for_num_traces(1))
 
@@ -283,7 +306,7 @@ class Test_Trace_Sampling_Resource:
     def test_trace_dropped_by_trace_sampling_rule(self, test_agent, test_library):
         """Test that a trace is dropped by the matching trace sampling rule"""
         with test_library:
-            with test_library.start_span(name="web.request", service="webserver", resource="/bar") as span:
+            with test_library.dd_start_span(name="web.request", service="webserver", resource="/bar") as span:
                 pass
         span = find_only_span(test_agent.wait_for_num_traces(1))
 
@@ -349,7 +372,7 @@ class Test_Trace_Sampling_Tags:
     def test_trace_sampled_by_trace_sampling_rule_tags(self, test_agent, test_library):
         """Test that a trace is sampled by the matching trace sampling rule"""
         with test_library:
-            with test_library.start_span(name="web.request", service="webserver", resource="/bar") as span:
+            with test_library.dd_start_span(name="web.request", service="webserver", resource="/bar") as span:
                 span.set_meta("tag1", "val1")
                 span.set_meta("tag2", "val2")
         span = find_only_span(test_agent.wait_for_num_traces(1))
@@ -375,7 +398,7 @@ class Test_Trace_Sampling_Tags:
     def test_trace_dropped_by_trace_sampling_rule_tags(self, test_agent, test_library):
         """Test that a trace is dropped by the matching trace sampling rule"""
         with test_library:
-            with test_library.start_span(name="web.request", service="webserver", resource="/bar") as span:
+            with test_library.dd_start_span(name="web.request", service="webserver", resource="/bar") as span:
                 span.set_meta("tag1", "val1")
                 span.set_meta("tag2", "val2")
         span = find_only_span(test_agent.wait_for_num_traces(1))
@@ -423,7 +446,7 @@ class Test_Trace_Sampling_Tags_Feb2024_Revision:
     def test_globs_same_casing(self, test_agent, test_library):
         """Test tag matching with string of matching case"""
         with test_library:
-            with test_library.start_span(name="matching-span", service="test") as span:
+            with test_library.dd_start_span(name="matching-span", service="test") as span:
                 span.set_meta("tag", "foo")
 
         self.assert_matching_span(test_agent, span.trace_id, span.span_id, name="matching-span", service="test")
@@ -436,7 +459,7 @@ class Test_Trace_Sampling_Tags_Feb2024_Revision:
     def test_globs_different_casing(self, test_agent, test_library):
         """Test tag matching with string of matching case"""
         with test_library:
-            with test_library.start_span(name="matching-span", service="test") as span:
+            with test_library.dd_start_span(name="matching-span", service="test") as span:
                 span.set_meta("tag", "foo")
 
         self.assert_matching_span(test_agent, span.trace_id, span.span_id, name="matching-span", service="test")
@@ -445,7 +468,7 @@ class Test_Trace_Sampling_Tags_Feb2024_Revision:
     def test_no_set_support(self, test_agent, test_library):
         """Test verifying that common glob set extension is NOT supported"""
         with test_library:
-            with test_library.start_span(name="matching-span", service="test") as span:
+            with test_library.dd_start_span(name="matching-span", service="test") as span:
                 span.set_meta("tag", "[abc]")
 
         self.assert_matching_span(test_agent, span.trace_id, span.span_id, name="matching-span", service="test")
@@ -454,7 +477,7 @@ class Test_Trace_Sampling_Tags_Feb2024_Revision:
     def test_no_range_support(self, test_agent, test_library):
         """Test verifying that common glob range extension is NOT supported"""
         with test_library:
-            with test_library.start_span(name="matching-span", service="test") as span:
+            with test_library.dd_start_span(name="matching-span", service="test") as span:
                 span.set_meta("tag", "[a-c]")
 
         self.assert_matching_span(test_agent, span.trace_id, span.span_id, name="matching-span", service="test")
@@ -463,7 +486,7 @@ class Test_Trace_Sampling_Tags_Feb2024_Revision:
     def test_regex_special_chars(self, test_agent, test_library):
         """Test verifying that regex special chars doesn't break glob matching"""
         with test_library:
-            with test_library.start_span(name="matching-span", service="test") as span:
+            with test_library.dd_start_span(name="matching-span", service="test") as span:
                 span.set_meta("tag", "^(foo|bar)[]\\$")
 
         self.assert_matching_span(test_agent, span.trace_id, span.span_id, name="matching-span", service="test")
@@ -472,7 +495,7 @@ class Test_Trace_Sampling_Tags_Feb2024_Revision:
     def test_meta_existence(self, test_agent, test_library):
         """Tests that any patterns are equivalent to an existence check for meta"""
         with test_library:
-            with test_library.start_span(name="matching-span", service="test") as span:
+            with test_library.dd_start_span(name="matching-span", service="test") as span:
                 span.set_meta("tag", random.choice(["foo", "bar", "baz", "quux"]))
 
         self.assert_matching_span(test_agent, span.trace_id, span.span_id, name="matching-span", service="test")
@@ -486,7 +509,7 @@ class Test_Trace_Sampling_Tags_Feb2024_Revision:
         """Tests that any patterns are equivalent to an existence check for metrics"""
 
         with test_library:
-            with test_library.start_span(name="matching-span", service="test") as span:
+            with test_library.dd_start_span(name="matching-span", service="test") as span:
                 span.set_metric("tag", tag_value)
 
         self.assert_matching_span(test_agent, span.trace_id, span.span_id, name="matching-span", service="test")
@@ -499,7 +522,7 @@ class Test_Trace_Sampling_Tags_Feb2024_Revision:
     def test_metric_matching(self, test_agent, test_library):
         """Tests that any patterns are equivalent to an existence check for metrics"""
         with test_library:
-            with test_library.start_span(name="matching-span", service="test") as span:
+            with test_library.dd_start_span(name="matching-span", service="test") as span:
                 span.set_metric("tag", 20.0)
 
         self.assert_matching_span(test_agent, span.trace_id, span.span_id, name="matching-span", service="test")
@@ -508,7 +531,7 @@ class Test_Trace_Sampling_Tags_Feb2024_Revision:
     def test_metric_mismatch_non_integer(self, test_agent, test_library):
         """Tests that any non-integer metrics mismatch patterns -- other than any patterns"""
         with test_library:
-            with test_library.start_span(name="mismatching-span", service="test") as span:
+            with test_library.dd_start_span(name="mismatching-span", service="test") as span:
                 span.set_metric("tag", 20.1)
 
         self.assert_mismatching_span(test_agent, span.trace_id, span.span_id, name="mismatching-span", service="test")
@@ -538,7 +561,7 @@ class Test_Trace_Sampling_With_W3C:
         """Test that a trace is sampled by the rule and the sampling decision is locked"""
 
         with test_library:
-            with test_library.start_span(
+            with test_library.dd_start_span(
                 name="web.request", service="webserver", resource="/bar", tags=[["tag0", "val0"]]
             ) as span:
                 # based on the Tag("tag0", "val0") start span option, span sampling would be 'drop',
@@ -548,7 +571,7 @@ class Test_Trace_Sampling_With_W3C:
                 # after new pair of tags was set
                 # based on the Tag("tag1", "val1"), span sampling would be 'keep'
                 span.set_meta("tag1", "val1")
-                headers = {k.lower(): v for k, v in test_library.inject_headers(span.span_id)}
+                headers = {k.lower(): v for k, v in test_library.dd_inject_headers(span.span_id)}
 
                 # based on the Tag("tag2", "val2"), span sampling would be usually 'drop',
                 # but since headers were injected already, the sampling priority won't change

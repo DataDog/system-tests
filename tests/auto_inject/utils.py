@@ -1,4 +1,7 @@
+import json
 import os
+import requests
+import time
 import pytest
 import paramiko
 from utils.tools import logger
@@ -17,8 +20,11 @@ class AutoInjectBaseTest:
             Using the agent installation script we can install different versions of the software (release or beta) in different OS."""
         vm_ip = virtual_machine.get_ip()
         vm_port = virtual_machine.deffault_open_port
-        vm_name = virtual_machine.name
-        request_uuid = None
+        vm_context_url = f"http://{vm_ip}:{vm_port}{virtual_machine.get_deployed_weblog().app_context_url}"
+        header = "----------------------------------------------------------------------"
+        vm_logger(context.scenario.name, virtual_machine.name).info(
+            f"{header} \n {header}  \n  Launching the install for VM: {virtual_machine.name}  \n {header} \n {header}"
+        )
         if virtual_machine.krunvm_config is not None and virtual_machine.krunvm_config.stdin is not None:
             logger.info(
                 f"We are testing on krunvm. The request to the weblog will be done using the stdin (inside the microvm)"
@@ -28,11 +34,9 @@ class AutoInjectBaseTest:
             logger.info(f"Waiting for weblog available [{vm_ip}:{vm_port}]")
             wait_for_port(vm_port, vm_ip, 80.0)
             logger.info(f"[{vm_ip}]: Weblog app is ready!")
-            warmup_weblog(f"http://{vm_ip}:{vm_port}/")
-            logger.info(f"Making a request to weblog [{vm_ip}:{vm_port}]")
-            request_uuid = make_get_request(f"http://{vm_ip}:{vm_port}/")
-
-        logger.info(f"Http request done with uuid: [{request_uuid}] for ip [{vm_ip}]")
+            warmup_weblog(vm_context_url)
+            request_uuid = make_get_request(vm_context_url)
+            logger.info(f"Http request done with uuid: [{request_uuid}] for ip [{vm_ip}]")
         wait_backend_trace_id(request_uuid, 120.0, profile=profile)
 
     def close_channel(self, channel):
@@ -42,7 +46,7 @@ class AutoInjectBaseTest:
         except Exception as e:
             logger.error(f"Error closing the channel: {e}")
 
-    def execute_command(self, virtual_machine, command):
+    def execute_command(self, virtual_machine, command) -> str:
         # Env for the command
         prefix_env = ""
         for key, value in virtual_machine.get_command_environment().items():
@@ -70,6 +74,8 @@ class AutoInjectBaseTest:
                 f"{header} \n  - COMMAND:  \n {header} \n {command} \n\n {header} \n COMMAND OUTPUT \n\n {header} \n {command_output}"
             )
 
+            return command_output
+
     def _test_uninstall_commands(
         self, virtual_machine, stop_weblog_command, start_weblog_command, uninstall_command, install_command
     ):
@@ -96,16 +102,27 @@ class AutoInjectBaseTest:
         self.execute_command(virtual_machine, start_weblog_command)
         logger.info(f"[Uninstall {virtual_machine.name}] Start app done")
 
+        request_uuids = []
         wait_for_port(vm_port, vm_ip, 40.0)
-        warmup_weblog(weblog_url)
-        request_uuid = make_get_request(weblog_url)
-        logger.info(f"Http request done with uuid: [{request_uuid}] for ip [{virtual_machine.name}]")
+        responseJson = warmup_weblog(f"http://{vm_ip}:{vm_port}/")
+        if responseJson is not None:
+            logger.info(f"There is a multicontainer app: {responseJson}")
+            for app in responseJson["apps"]:
+                logger.info(f"Making a request to weblog [http://{vm_ip}:{vm_port}{app['url']}]")
+                request_uuids.append(make_get_request(f"http://{vm_ip}:{vm_port}{app['url']}"))
+        else:
+            logger.info(f"Making a request to weblog [weblog_url]")
+            request_uuids.append(make_get_request(weblog_url))
+
         try:
-            wait_backend_trace_id(request_uuid, 10.0)
-            raise AssertionError("The weblog application is instrumented after uninstall DD software")
+            for request_uuid in request_uuids:
+                logger.info(f"Http request done with uuid: [{request_uuid}] for ip [{vm_ip}]")
+                wait_backend_trace_id(request_uuid, 10.0)
+                raise AssertionError("The weblog application is instrumented after uninstall DD software")
         except TimeoutError:
             # OK there are no traces, the weblog app is not instrumented
             pass
+
         # Kill the app before restore the installation
         logger.info(f"[Uninstall {virtual_machine.name}] Stop app before restore")
         self.execute_command(virtual_machine, stop_weblog_command)
@@ -123,7 +140,10 @@ class AutoInjectBaseTest:
         logger.info(f"Success _test_uninstall for : [{virtual_machine.name}]")
 
     def _test_uninstall(self, virtual_machine):
-
+        header = "----------------------------------------------------------------------"
+        vm_logger(context.scenario.name, virtual_machine.name).info(
+            f"{header} \n {header}  \n  Launching the uninstall for VM: {virtual_machine.name}  \n {header} \n {header}"
+        )
         if context.weblog_variant == f"test-app-{context.scenario.library.library}":  # Host
 
             stop_weblog_command = "sudo systemctl kill -s SIGKILL test-app.service"
@@ -134,23 +154,10 @@ class AutoInjectBaseTest:
             stop_weblog_command = "sudo -E docker-compose -f docker-compose.yml down"
             #   On older Docker versions, the network recreation can hang. The solution is to restart Docker.
             #   https://github.com/docker-archive/classicswarm/issues/1931
-            start_weblog_command = "sudo systemctl restart docker && sudo -E docker-compose -f docker-compose.yml up"
+            start_weblog_command = "sudo systemctl restart docker && sudo -E docker-compose -f docker-compose.yml up --wait --wait-timeout 120"
 
         install_command = "sudo datadog-installer apm instrument"
         uninstall_command = "sudo datadog-installer apm uninstrument"
         self._test_uninstall_commands(
             virtual_machine, stop_weblog_command, start_weblog_command, uninstall_command, install_command
         )
-
-    @pytest.fixture(autouse=True)
-    def do_before_test(self, virtual_machine):
-        if virtual_machine:
-            current_test = os.environ.get("PYTEST_CURRENT_TEST").split(":")[-1].split(" ")[0]
-            start = current_test.find("[")
-            if start != -1:
-                current_test = current_test[: start + 1]
-            header = "----------------------------------------------------------------------"
-            vm_logger(context.scenario.name, virtual_machine.name).info(
-                f"{header} \n {header}  \n  Launching the test {current_test} for VM: {virtual_machine.name}  \n {header} \n {header}"
-            )
-        yield

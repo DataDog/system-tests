@@ -194,7 +194,7 @@ class Test_Telemetry:
                     )
 
     @missing_feature(context.library < "ruby@1.22.0", reason="app-started not sent")
-    @flaky(context.library <= "python@1.20.2", reason="app-started is sent twice")
+    @flaky(context.library <= "python@1.20.2", reason="APMRP-360")
     @irrelevant(library="php", reason="PHP registers 2 telemetry services")
     @features.telemetry_app_started_event
     def test_app_started_sent_exactly_once(self):
@@ -215,6 +215,7 @@ class Test_Telemetry:
 
     @missing_feature(context.library < "ruby@1.22.0", reason="app-started not sent")
     @flaky(library="python", reason="app-started not sent first")
+    @bug(context.library >= "dotnet@3.4.0", reason="APMAPI-728")
     @features.telemetry_app_started_event
     def test_app_started_is_first_message(self):
         """Request type app-started is the first telemetry message or the first message in the first batch"""
@@ -236,10 +237,8 @@ class Test_Telemetry:
                 app_started[0]["request"]["content"]["seq_id"] == min_seq_id
             ), "app-started is not the first message by seq_id"
 
-    @bug(
-        weblog_variant="spring-boot-openliberty", reason="https://datadoghq.atlassian.net/browse/APPSEC-6583",
-    )
-    @bug(weblog_variant="spring-boot-wildfly", reason="Jira missing")
+    @bug(weblog_variant="spring-boot-openliberty", reason="APPSEC-6583")
+    @bug(weblog_variant="spring-boot-wildfly", reason="APPSEC-6583")
     @bug(context.agent_version > "7.53.0", reason="Jira missing")
     def test_proxy_forwarding(self):
         """Test that all telemetry requests sent by library are forwarded correctly by the agent"""
@@ -338,9 +337,10 @@ class Test_Telemetry:
         return delays_by_runtime
 
     @missing_feature(library="cpp", reason="DD_TELEMETRY_HEARTBEAT_INTERVAL not supported")
-    @flaky(context.library <= "java@1.38.1", reason="Telemetry second heartbeat was sent too fast")
-    @flaky(context.library <= "php@0.90", reason="Heartbeats are sometimes sent too slow")
+    @flaky(context.library <= "java@1.38.1", reason="APMRP-360")
+    @flaky(context.library <= "php@0.90", reason="APMRP-360")
     @flaky(library="ruby", reason="APMAPI-226")
+    @flaky(context.library >= "java@1.39.0", reason="APMAPI-723")
     @features.telemetry_heart_beat_collected
     def test_app_heartbeats_delays(self):
         """
@@ -369,7 +369,7 @@ class Test_Telemetry:
     @irrelevant(library="golang")
     @irrelevant(library="python")
     @missing_feature(context.library < "ruby@1.22.0", reason="Telemetry V2 is not implemented yet")
-    @bug(
+    @irrelevant(
         library="java",
         reason="""
         A Java application can be redeployed to the same server for many times (for the same JVM process). 

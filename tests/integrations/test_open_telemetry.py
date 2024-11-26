@@ -62,8 +62,8 @@ class _BaseOtelDbIntegrationTestClass(BaseDbIntegrationsTestClass):
             span = self.get_span_from_agent(request)
             assert span["meta"]["db.connection_string"].strip(), f"Test is failing for {db_operation}"
 
-    @bug(library="python_otel", reason="Open Telemetry doesn't send this span for python but it should do")
-    @bug(library="nodejs_otel", reason="Open Telemetry doesn't send this span for nodejs but it should do")
+    @missing_feature(library="python_otel", reason="Open Telemetry doesn't send this span for python but it should do")
+    @missing_feature(library="nodejs_otel", reason="Open Telemetry doesn't send this span for nodejs but it should do")
     def test_db_operation(self):
         """ The name of the operation being executed """
         for db_operation, request in self.get_requests(excluded_operations=["select_error"]):
@@ -103,8 +103,8 @@ class _BaseOtelDbIntegrationTestClass(BaseDbIntegrationsTestClass):
         # A human readable version of the stack trace
         assert span["meta"]["error.stack"].strip()
 
-    @bug(library="python_otel", reason="https://datadoghq.atlassian.net/browse/OTEL-940")
-    @bug(library="nodejs_otel", reason="https://datadoghq.atlassian.net/browse/OTEL-940")
+    @bug(library="python_otel", reason="OTEL-940")
+    @bug(library="nodejs_otel", reason="OTEL-940")
     def test_obfuscate_query(self):
         """ All queries come out obfuscated from agent """
         for db_operation, request in self.get_requests():
@@ -169,7 +169,7 @@ class Test_MsSql(_BaseOtelDbIntegrationTestClass):
                 "db.mssql.instance_name"
             ].strip(), f"db.mssql.instance_name must not be empty for operation {db_operation}"
 
-    @bug(library="nodejs_otel", reason="We are not generating this span")
+    @missing_feature(library="nodejs_otel", reason="We are not generating this span")
     def test_db_operation(self):
         """ The name of the operation being executed. Mssql and Open Telemetry doesn't report this span when we call to procedure """
         for db_operation, request in self.get_requests(excluded_operations=["select_error", "procedure"]):
@@ -180,7 +180,7 @@ class Test_MsSql(_BaseOtelDbIntegrationTestClass):
                     db_operation.lower() in span["meta"]["db.operation"].lower()
                 ), f"Test is failing for {db_operation}"
 
-    @bug(
+    @missing_feature(
         library="nodejs_otel",
         reason="Resource span is not generating correctly. We find resource value: execsql master",
     )
@@ -194,7 +194,7 @@ class Test_MsSql(_BaseOtelDbIntegrationTestClass):
     def test_db_connection_string(self):
         super().test_db_connection_string()
 
-    @bug(library="nodejs_otel", reason="https://datadoghq.atlassian.net/browse/OTEL-940")
+    @bug(library="nodejs_otel", reason="OTEL-940")
     def test_obfuscate_query(self):
         """ All queries come out obfuscated from agent """
         for db_operation, request in self.get_requests():

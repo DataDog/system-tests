@@ -3,11 +3,13 @@
 # Copyright 2021 Datadog, Inc.
 
 from utils import features, weblog, interfaces, scenarios, rfc, context
+from utils.dd_constants import Capabilities
 from tests.appsec.rasp.utils import (
     validate_span_tags,
     validate_stack_traces,
     find_series,
     validate_metric,
+    Base_Rules_Version,
 )
 
 
@@ -173,3 +175,20 @@ class Test_Sqli_Telemetry:
         assert any(validate_metric("rasp.rule.match", "sql_injection", s) for s in series_match), [
             s.get("tags") for s in series_match
         ]
+
+
+@rfc("https://docs.google.com/document/d/1vmMqpl8STDk7rJnd3YBsa6O9hCls_XHHdsodD61zr_4/edit#heading=h.mshauo3jp6wh")
+@features.rasp_sql_injection
+@scenarios.remote_config_mocked_backend_asm_dd
+class Test_Sqli_Capability:
+    """Validate that ASM_RASP_SQLI (21) capability is sent"""
+
+    def test_sqli_capability(self):
+        interfaces.library.assert_rc_capability(Capabilities.ASM_RASP_SQLI)
+
+
+@features.rasp_local_file_inclusion
+class Test_Sqli_Rules_Version(Base_Rules_Version):
+    """Test Sqli min rules version"""
+
+    min_version = "1.13.2"

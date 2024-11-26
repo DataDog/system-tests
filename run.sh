@@ -117,13 +117,9 @@ function lookup_scenario_group() {
             ;;
     esac
 
-    python+=(
-        -c 'import yaml; import sys; group = sys.argv[1]; groups = yaml.safe_load(sys.stdin.read()); [[print(t) for t in s] if isinstance(s, list) else print(s) for s in groups[group]]'
-    )
+    python+=(utils/scripts/get-scenarios-from-group.py)
 
-    echo "${python[*]}" 1>&2
-
-    cat < scenario_groups.yml | "${python[@]}" "${group}"
+    PYTHONPATH=. "${python[@]}" "${group}"
 }
 
 function upcase() {
@@ -144,7 +140,7 @@ function activate_venv() {
 }
 
 function network_name() {
-    perl -ne '/_NETWORK_NAME = "(.*)"/ and print "$1\n"' utils/_context/containers.py
+    perl -ne '/_DEFAULT_NETWORK_NAME = "(.*)"/ and print "$1\n"' utils/_context/containers.py
 }
 
 function ensure_network() {
@@ -340,10 +336,11 @@ function main() {
         activate_venv
     fi
 
-    python_version=$(python -V 2>&1 | sed -E 's/Python ([0-9]+)\.([0-9]+).*/\1\2/')
-    if [ "$python_version" -lt "312" ]; then
+    local python_version
+    python_version="$(python -V 2>&1 | sed -E 's/Python ([0-9]+)\.([0-9]+).*/\1\2/')"
+    if [[ "$python_version" -lt "312" ]]; then
         echo "⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️⚠️⚠️️️️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️⚠️⚠️️️️⚠️⚠️⚠️️️️⚠️⚠️⚠️️️️⚠️⚠️⚠️️️️⚠️⚠️⚠️️️️⚠️"
-        echo "DEPRECRATION WARNING: your using python3.9 to run system-tests."
+        echo "DEPRECRATION WARNING: you're using python ${python_version} to run system-tests."
         echo "This won't be supported soon. Please install python3.12, then run:"
         echo "> rm -rf venv && ./build.sh -i runner"
         echo "⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️"
@@ -385,6 +382,11 @@ function main() {
                 scenarios+=(LIBRARY_CONF_CUSTOM_HEADER_TAGS)
                 unset "scenarios[${i}]"
                 ;;
+
+            APPSEC_DISABLED)
+                scenarios+=(EVERYTHING_DISABLED)
+                unset "scenarios[${i}]"
+                ;;
         esac
     done
 
@@ -420,6 +422,8 @@ function main() {
         fi
         if [[ "${scenario}" == *_AUTO_INJECTION ]]; then
             pytest_numprocesses=6
+            #https://pytest-xdist.readthedocs.io/en/latest/distribution.html
+            pytest_args+=( '--dist' 'loadgroup' )
         fi
     done
 
@@ -432,7 +436,6 @@ function main() {
     esac
 
     ## run tests
-
     if [[ "${verbosity}" -gt 0 ]]; then
         echo "plan:"
         echo "  mode: ${run_mode}"

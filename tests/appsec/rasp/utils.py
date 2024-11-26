@@ -2,6 +2,8 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
+import json
+
 from utils import interfaces
 
 
@@ -89,3 +91,66 @@ def validate_metric(name, type, metric):
         and f"rule_type:{type}" in metric.get("tags", ())
         and any(s.startswith("waf_version:") for s in metric.get("tags", ()))
     )
+
+
+def validate_metric_tag_version(tag_prefix, min_version, metric):
+    for tag in metric["tags"]:
+        if tag.startswith(tag_prefix + ":"):
+            version_str = tag.split(":")[1]
+            current_version = list(map(int, version_str.split(".")))
+            if current_version >= min_version:
+                return True
+    return False
+
+
+def _load_file(file_path):
+    with open(file_path, "r") as f:
+        return json.load(f)
+
+
+class RC_CONSTANTS:
+    CONFIG_ENABLED = (
+        "datadog/2/ASM_FEATURES/asm_features_activation/config",
+        {"asm": {"enabled": True}},
+    )
+    BLOCK_405 = (
+        "datadog/2/ASM/actions/config",
+        {"actions": [{"id": "block", "parameters": {"status_code": 405, "type": "json"}, "type": "block_request",}]},
+    )
+
+    BLOCK_505 = (
+        "datadog/2/ASM/actions/config",
+        {"actions": [{"id": "block", "parameters": {"status_code": 505, "type": "html"}, "type": "block_request",}]},
+    )
+
+    BLOCK_REDIRECT = (
+        "datadog/2/ASM/actions/config",
+        {
+            "actions": [
+                {
+                    "id": "block",
+                    "parameters": {"location": "http://google.com", "status_code": 302},
+                    "type": "redirect_request",
+                }
+            ]
+        },
+    )
+
+    RULES = (
+        "datadog/2/ASM_DD/rules/config",
+        _load_file("./tests/appsec/rasp/rasp_ruleset.json"),
+    )
+
+
+class Base_Rules_Version:
+    """Test libddwaf version"""
+
+    min_version = "1.13.3"
+
+    def test_min_version(self):
+        """Checks data in waf.init metric to verify waf version"""
+
+        min_version_array = list(map(int, self.min_version.split(".")))
+        series = find_series(True, "appsec", "waf.init")
+        assert series
+        assert any(validate_metric_tag_version("event_rules_version", min_version_array, s) for s in series)

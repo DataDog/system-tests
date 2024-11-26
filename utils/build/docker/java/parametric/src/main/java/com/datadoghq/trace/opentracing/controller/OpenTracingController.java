@@ -14,6 +14,8 @@ import com.datadoghq.trace.opentracing.dto.SpanErrorArgs;
 import com.datadoghq.trace.opentracing.dto.SpanFinishArgs;
 import com.datadoghq.trace.opentracing.dto.SpanInjectHeadersArgs;
 import com.datadoghq.trace.opentracing.dto.SpanInjectHeadersResult;
+import com.datadoghq.trace.opentracing.dto.SpanExtractHeadersArgs;
+import com.datadoghq.trace.opentracing.dto.SpanExtractHeadersResult;
 import com.datadoghq.trace.opentracing.dto.SpanSetMetaArgs;
 import com.datadoghq.trace.opentracing.dto.SpanSetMetricArgs;
 import com.datadoghq.trace.opentracing.dto.SpanSetResourceArgs;
@@ -49,10 +51,12 @@ import java.util.Map;
 public class OpenTracingController implements Closeable {
   private final Tracer tracer;
   private final Map<Long, Span> spans;
+  private final Map<Long, SpanContext> spanContextes;
 
   public OpenTracingController() {
     this.tracer = GlobalTracer.get();
     this.spans = new HashMap<>();
+    this.spanContextes = new HashMap<>();
   }
 
   @PostMapping("start")
@@ -63,28 +67,23 @@ public class OpenTracingController implements Closeable {
       SpanBuilder builder = this.tracer.buildSpan(args.name())
           .withTag(SERVICE_NAME, args.service())
           .withTag(RESOURCE_NAME, args.resource())
-          .withTag(SPAN_TYPE, args.type())
-          .withTag(ORIGIN_KEY, args.origin());
+          .withTag(SPAN_TYPE, args.type());
       // The parent id can be negative since we have a long representing uint64
-      if (args.parentId() != 0) {
-        Span parentSpan = getSpan(args.parentId());
-        if (parentSpan == null) {
-          return StartSpanResult.error();
+      if (args.parentId() != null) {
+        Span span = this.spans.get(args.parentId());
+        SpanContext context = this.spanContextes.get(args.parentId());
+        if (span != null) {
+          builder.asChildOf(span);
+        } else if (context != null) {
+          builder.asChildOf(context);
+        } else {
+          LOGGER.error("Parent span {} does not exist.", args.parentId());
+          StartSpanResult.error();
         }
-        builder.asChildOf(parentSpan);
-      }
-      // Extract propagation headers from args to use them as parent context
-      if (args.headers() != null && !args.headers().isEmpty()) {
-        SpanContext context = this.tracer.extract(TEXT_MAP, TextMapAdapter.fromRequest(args.headers()));
-        builder.asChildOf(context);
       }
       // Apply tags
       if (args.tags() != null && !args.tags().isEmpty()) {
         args.tags().forEach(tag -> builder.withTag(tag.key(), tag.value()));
-      }
-      // Links are not supported as we choose to not support them through OpenTracing API
-      if (args.links() != null && !args.links().isEmpty()) {
-        LOGGER.warn("Span links are unsupported using the OpenTracing API");
       }
       Span span = builder.start();
       // Store span
@@ -171,11 +170,26 @@ public class OpenTracingController implements Closeable {
     return new SpanInjectHeadersResult(emptyList());
   }
 
+  @PostMapping("extract_headers")
+  public SpanExtractHeadersResult extractHeaders(@RequestBody SpanExtractHeadersArgs args) {
+    LOGGER.info("Extract headers context to OT tracer: {}", args);
+    SpanContext context = this.tracer.extract(TEXT_MAP, TextMapAdapter.fromRequest(args.headers()));
+    Long spanId = null;
+    if (context != null) {
+      spanId = DDSpanId.from(context.toSpanId());
+      this.spanContextes.put(spanId, context);
+    }
+    return new SpanExtractHeadersResult(spanId);
+  }
+
   @PostMapping("flush")
   public void flushSpans() {
     LOGGER.info("Flushing OT spans");
     try {
-      ((InternalTracer) datadog.trace.api.GlobalTracer.get()).flush();
+      // Only flush spans when tracing was enabled
+      if (datadog.trace.api.GlobalTracer.get() instanceof InternalTracer) {
+          ((InternalTracer) datadog.trace.api.GlobalTracer.get()).flush();
+      }
       this.spans.clear();
     } catch (Throwable t) {
       LOGGER.error("Uncaught throwable", t);

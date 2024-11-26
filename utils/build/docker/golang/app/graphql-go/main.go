@@ -1,7 +1,16 @@
 package main
 
 import (
+	"context"
+	"encoding/json"
+	"errors"
+	"log"
 	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
+
 	"weblog/internal/common"
 
 	graphqltrace "github.com/DataDog/dd-trace-go/contrib/graphql-go/graphql/v2"
@@ -72,9 +81,43 @@ func main() {
 		w.WriteHeader(http.StatusOK)
 	})
 
-	common.InitDatadog()
+	mux.HandleFunc("/healthcheck", func(w http.ResponseWriter, r *http.Request) {
 
-	panic(http.ListenAndServe(":7777", mux))
+		healthCheck, err := common.GetHealtchCheck()
+		if err != nil {
+			http.Error(w, "Can't get JSON data", http.StatusInternalServerError)
+		}
+
+		jsonData, err := json.Marshal(healthCheck)
+		if err != nil {
+			http.Error(w, "Can't build JSON data", http.StatusInternalServerError)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.Write(jsonData)
+	})
+
+	srv := &http.Server{
+		Addr:    ":7777",
+		Handler: mux,
+	}
+	common.InitDatadog()
+	go func() {
+		if err := srv.ListenAndServe(); !errors.Is(err, http.ErrServerClosed) {
+			log.Fatal(err)
+		}
+	}()
+
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, syscall.SIGTERM)
+	<-c
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	if err := srv.Shutdown(ctx); err != nil {
+		log.Fatalf("HTTP shutdown error: %v", err)
+	}
 }
 
 type user struct {

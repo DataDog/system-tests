@@ -5,14 +5,12 @@ import json
 from typing import Any, Dict, List
 
 import pytest
-from ddapm_test_agent.trace import root_span
 
 from utils import bug, context, features, irrelevant, missing_feature, rfc, scenarios, flaky
-from utils.parametric.spec.remoteconfig import Capabilities
+from utils.dd_constants import Capabilities
 from utils.parametric.spec.trace import (
     Span,
     assert_trace_has_tags,
-    find_only_span,
     find_trace,
     find_first_span_in_trace_payload,
 )
@@ -35,9 +33,9 @@ DEFAULT_ENVVARS = {
 
 
 def send_and_wait_trace(test_library, test_agent, **span_kwargs) -> List[Span]:
-    with test_library.start_span(**span_kwargs) as s1:
+    with test_library.dd_start_span(**span_kwargs) as s1:
         pass
-    test_library.flush()
+    test_library.dd_flush()
     traces = test_agent.wait_for_num_traces(num=1, clear=True, sort_by_start=False)
     return find_trace(traces, s1.trace_id)
 
@@ -135,81 +133,6 @@ ENV_SAMPLING_RULE_RATE = 0.55
 
 @scenarios.parametric
 @features.dynamic_configuration
-class TestDynamicConfigHeaderTags:
-    @parametrize(
-        "library_env",
-        [
-            {
-                **DEFAULT_ENVVARS,
-                "DD_TRACE_HEADER_TAGS": "X-Test-Header:test_header_env,X-Test-Header-2:test_header_env2,Content-Length:content_length_env",
-            },
-        ],
-    )
-    def test_tracing_client_http_header_tags(
-        self, library_env, test_agent, test_library, test_agent_hostname, test_agent_port
-    ):
-        """Ensure the tracing http header tags can be set via RC.
-
-        Testing is done using a http client request RPC and asserting the span tags.
-
-        Requests are made to the test agent.
-        """
-
-        # Test without RC.
-        test_library.http_client_request(
-            method="GET",
-            url=f"http://{test_agent_hostname}:{test_agent_port}",
-            headers=[("X-Test-Header", "test-value"), ("X-Test-Header-2", "test-value-2"), ("Content-Length", "35"),],
-        )
-        trace = test_agent.wait_for_num_traces(num=1, clear=True)
-        span = find_only_span(trace)
-        assert span["meta"]["test_header_env"] == "test-value"
-        assert span["meta"]["test_header_env2"] == "test-value-2"
-        assert int(span["meta"]["content_length_env"]) > 0
-
-        # Set and test with RC.
-        set_and_wait_rc(
-            test_agent,
-            config_overrides={
-                "tracing_header_tags": [
-                    {"header": "X-Test-Header", "tag_name": "test_header_rc"},
-                    {"header": "X-Test-Header-2", "tag_name": "test_header_rc2"},
-                    {"header": "Content-Length", "tag_name": ""},
-                ]
-            },
-        )
-        test_library.http_client_request(
-            method="GET",
-            url=f"http://{test_agent_hostname}:{test_agent_port}",
-            headers=[("X-Test-Header", "test-value"), ("X-Test-Header-2", "test-value-2"), ("Content-Length", "0")],
-        )
-        trace = test_agent.wait_for_num_traces(num=1, clear=True)
-        span = find_only_span(trace)
-        assert span["meta"]["test_header_rc"] == "test-value"
-        assert span["meta"]["test_header_rc2"] == "test-value-2"
-        assert span["meta"]["http.request.headers.content-length"] == "0"
-        assert (
-            span["meta"]["http.response.headers.content-length"] == "14"
-        ), "response content-length header tag value matches the header value set by the server"
-        assert "test_header_env" not in span["meta"]
-        assert "test_header_env2" not in span["meta"]
-
-        # Unset RC.
-        set_and_wait_rc(test_agent, config_overrides={})
-        test_library.http_client_request(
-            method="GET",
-            url=f"http://{test_agent_hostname}:{test_agent_port}",
-            headers=[("X-Test-Header", "test-value"), ("X-Test-Header-2", "test-value-2"), ("Content-Length", "35"),],
-        )
-        trace = test_agent.wait_for_num_traces(num=1, clear=True)
-        span = find_only_span(trace)
-        assert span["meta"]["test_header_env"] == "test-value"
-        assert span["meta"]["test_header_env2"] == "test-value-2"
-        assert int(span["meta"]["content_length_env"]) > 0
-
-
-@scenarios.parametric
-@features.dynamic_configuration
 class TestDynamicConfigTracingEnabled:
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
     def test_capability_tracing_enabled(self, library_env, test_agent, test_library):
@@ -223,7 +146,7 @@ class TestDynamicConfigTracingEnabled:
         trace_enabled_env = library_env.get("DD_TRACE_ENABLED", "true") == "true"
         if trace_enabled_env:
             with test_library:
-                with test_library.start_span("allowed"):
+                with test_library.dd_start_span("allowed"):
                     pass
             test_agent.wait_for_num_traces(num=1, clear=True)
             assert True, (
@@ -238,7 +161,7 @@ class TestDynamicConfigTracingEnabled:
             test_agent.wait_for_telemetry_event("app-client-configuration-change", clear=True)
             test_agent.wait_for_rc_apply_state("APM_TRACING", state=2, clear=True)
         with test_library:
-            with test_library.start_span("disabled"):
+            with test_library.dd_start_span("disabled"):
                 pass
         with pytest.raises(ValueError):
             test_agent.wait_for_num_traces(num=1, clear=True)
@@ -248,7 +171,7 @@ class TestDynamicConfigTracingEnabled:
         "library_env", [{**DEFAULT_ENVVARS}, {**DEFAULT_ENVVARS, "DD_TRACE_ENABLED": "false"},],
     )
     @irrelevant(library="golang")
-    @bug(library="dotnet", reason="With the v3, DD_TRACE_ENABLED=False seems to be ignored")
+    @bug(library="dotnet", reason="APMAPI-862")
     def test_tracing_client_tracing_disable_one_way(self, library_env, test_agent, test_library):
         trace_enabled_env = library_env.get("DD_TRACE_ENABLED", "true") == "true"
 
@@ -259,7 +182,7 @@ class TestDynamicConfigTracingEnabled:
 
         _set_rc(test_agent, _create_rc_config({}))
         with test_library:
-            with test_library.start_span("test"):
+            with test_library.dd_start_span("test"):
                 pass
 
         with pytest.raises(ValueError):
@@ -292,7 +215,7 @@ class TestDynamicConfigV1:
         by the library.
         """
         # Python doesn't start writing telemetry until the first trace.
-        with test_library.start_span("test"):
+        with test_library.dd_start_span("test"):
             pass
         events = test_agent.wait_for_telemetry_event("app-started")
         assert len(events) > 0
@@ -338,7 +261,7 @@ class TestDynamicConfigV1:
     @parametrize(
         "library_env", [{"DD_TRACE_SAMPLE_RATE": r, **DEFAULT_ENVVARS,} for r in ["0.1", "1.0"]],
     )
-    @bug(library="cpp", reason="Trace sampling RC creates another sampler which makes the computation wrong")
+    @bug(library="cpp", reason="APMAPI-863")
     @flaky(context.library >= "dotnet@2.56.0", reason="APMAPI-179")
     def test_trace_sampling_rate_override_env(self, library_env, test_agent, test_library):
         """The RC sampling rate should override the environment variable.
@@ -381,7 +304,7 @@ class TestDynamicConfigV1:
             }
         ],
     )
-    @bug(library="cpp", reason="empty service default to '*'")
+    @bug(library="cpp", reason="APMAPI-864")
     def test_trace_sampling_rate_with_sampling_rules(self, library_env, test_agent, test_library):
         """Ensure that sampling rules still apply when the sample rate is set via remote config."""
         RC_SAMPLING_RULE_RATE = 0.56
@@ -451,7 +374,7 @@ class TestDynamicConfigV1_ServiceTargets:
             ]
         ],
     )
-    @bug(library="nodejs")
+    @bug(library="nodejs", reason="APMAPI-865")
     def test_not_match_service_target(self, library_env, test_agent, test_library):
         """Test that the library reports an erroneous apply_state when the service targeting is not correct.
 
@@ -519,8 +442,8 @@ class TestDynamicConfigV2:
 
         # Ensure tags are applied from the env
         with test_library:
-            with test_library.start_span("test") as span:
-                with test_library.start_span("test2", parent_id=span.span_id):
+            with test_library.dd_start_span("test") as span:
+                with test_library.dd_start_span("test2", parent_id=span.span_id):
                     pass
         traces = test_agent.wait_for_num_traces(num=1, clear=True, sort_by_start=False)
         assert_trace_has_tags(traces[0], expected_local_tags)
@@ -528,8 +451,8 @@ class TestDynamicConfigV2:
         # Ensure local tags are overridden and RC tags applied.
         set_and_wait_rc(test_agent, config_overrides={"tracing_tags": ["rc_key1:val1", "rc_key2:val2"]})
         with test_library:
-            with test_library.start_span("test") as span:
-                with test_library.start_span("test2", parent_id=span.span_id):
+            with test_library.dd_start_span("test") as span:
+                with test_library.dd_start_span("test2", parent_id=span.span_id):
                     pass
         traces = test_agent.wait_for_num_traces(num=1, clear=True, sort_by_start=False)
         assert_trace_has_tags(traces[0], {"rc_key1": "val1", "rc_key2": "val2"})
@@ -537,8 +460,8 @@ class TestDynamicConfigV2:
         # Ensure previous tags are restored.
         set_and_wait_rc(test_agent, config_overrides={})
         with test_library:
-            with test_library.start_span("test") as span:
-                with test_library.start_span("test2", parent_id=span.span_id):
+            with test_library.dd_start_span("test") as span:
+                with test_library.dd_start_span("test2", parent_id=span.span_id):
                     pass
         traces = test_agent.wait_for_num_traces(num=1, clear=True, sort_by_start=False)
         assert_trace_has_tags(traces[0], expected_local_tags)
@@ -583,7 +506,7 @@ class TestDynamicConfigSamplingRules:
             }
         ],
     )
-    @bug(library="ruby", reason="To be investigated")
+    @bug(library="ruby", reason="APMAPI-867")
     def test_trace_sampling_rules_override_env(self, library_env, test_agent, test_library):
         """The RC sampling rules should override the environment variable and decision maker is set appropriately.
 
@@ -649,7 +572,7 @@ class TestDynamicConfigSamplingRules:
         assert span["meta"]["_dd.p.dm"] == "-3"
 
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
-    @bug(library="ruby", reason="To be investigated")
+    @bug(library="ruby", reason="APMAPI-867")
     def test_trace_sampling_rules_override_rate(self, library_env, test_agent, test_library):
         """The RC sampling rules should override the RC sampling rate."""
         RC_SAMPLING_RULE_RATE_CUSTOMER = 0.8
@@ -701,12 +624,9 @@ class TestDynamicConfigSamplingRules:
             }
         ],
     )
-    @bug(
-        context.library == "cpp",
-        reason="JSON tag format in RC differs from the JSON tag format used in DD_TRACE_SAMPLING_RULES",
-    )
-    @bug(context.library == "ruby", reason="RC_SAMPLING_TAGS_RULE_RATE is not respected")
-    @bug(context.library <= "dotnet@2.53.2", reason="Applies rate from local sampling rule when no remote rules match.")
+    @bug(context.library == "cpp", reason="APMAPI-866")
+    @bug(context.library == "ruby", reason="APMAPI-868")
+    @bug(context.library <= "dotnet@2.53.2", reason="APMRP-360")
     @missing_feature(library="python")
     @missing_feature(context.library < "nodejs@5.19.0")
     def test_trace_sampling_rules_with_tags(self, test_agent, test_library):
@@ -822,8 +742,9 @@ class TestDynamicConfigSamplingRules:
         assert "_dd.p.dm" in span["meta"]
         assert span["meta"]["_dd.p.dm"] == "-12"
 
-    @bug(library="cpp", reason="unknown")
-    @bug(library="ruby", reason="To be investigated")
+    @bug(library="cpp", reason="APMAPI-863")
+    @bug(library="ruby", reason="APMAPI-867")
+    @bug(library="python", reason="APMAPI-857")
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
     def test_remote_sampling_rules_retention(self, library_env, test_agent, test_library):
         """Only the last set of sampling rules should be applied"""

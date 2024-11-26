@@ -30,7 +30,7 @@ class Test_Span_Sampling:
         1. a span sampling rule matches
         2. tracer is set to drop the trace manually"""
         with test_library:
-            with test_library.start_span(name="web.request", service="webserver") as span:
+            with test_library.dd_start_span(name="web.request", service="webserver") as span:
                 pass
         span = find_span_in_traces(test_agent.wait_for_num_traces(1), span.trace_id, span.span_id)
 
@@ -51,7 +51,7 @@ class Test_Span_Sampling:
     def test_special_glob_characters_span_sampling_sss002(self, test_agent, test_library):
         """Test span sampling tags are added when a rule with glob patterns with special characters * and ? match"""
         with test_library:
-            with test_library.start_span(name="web.request", service="webserver") as span:
+            with test_library.dd_start_span(name="web.request", service="webserver") as span:
                 pass
 
         span = find_span_in_traces(test_agent.wait_for_num_traces(1), span.trace_id, span.span_id)
@@ -74,7 +74,7 @@ class Test_Span_Sampling:
         2. the tracer is set to drop the span manually
         """
         with test_library:
-            with test_library.start_span(name="web.request", service="webserver") as span:
+            with test_library.dd_start_span(name="web.request", service="webserver") as span:
                 pass
         span = find_span_in_traces(test_agent.wait_for_num_traces(1), span.trace_id, span.span_id)
 
@@ -92,7 +92,7 @@ class Test_Span_Sampling:
         2. the tracer is set to drop the span manually
         """
         with test_library:
-            with test_library.start_span(name="web.request", service="webserver") as span:
+            with test_library.dd_start_span(name="web.request", service="webserver") as span:
                 pass
         span = find_span_in_traces(test_agent.wait_for_num_traces(1), span.trace_id, span.span_id)
         assert span["metrics"].get(SINGLE_SPAN_SAMPLING_RATE) == 1.0
@@ -108,7 +108,7 @@ class Test_Span_Sampling:
         2. the tracer is set to drop the span manually
         """
         with test_library:
-            with test_library.start_span(name="web.request", service="webserver") as span:
+            with test_library.dd_start_span(name="web.request", service="webserver") as span:
                 pass
         span = find_span_in_traces(test_agent.wait_for_num_traces(1), span.trace_id, span.span_id)
         assert span["metrics"].get(SINGLE_SPAN_SAMPLING_RATE) is None
@@ -141,7 +141,7 @@ class Test_Span_Sampling:
         2. that once a rule is matched, we do not try to match against further rules. We do this by assuming that the "sample_rate": 0 of the second rule, if matched against would cause the span to not have span sampling tags.
         """
         with test_library:
-            with test_library.start_span(name="web.request", service="webserver") as span:
+            with test_library.dd_start_span(name="web.request", service="webserver") as span:
                 pass
         span = find_span_in_traces(test_agent.wait_for_num_traces(1), span.trace_id, span.span_id)
         assert span["metrics"].get(SINGLE_SPAN_SAMPLING_RATE) == 1.0
@@ -173,7 +173,7 @@ class Test_Span_Sampling:
         2. that once a rule is matched, we do not try to match against further rules. We do this by assuming that the "sample_rate": 0 of the first rule, will cause the span to not have span sampling tags.
         """
         with test_library:
-            with test_library.start_span(name="web.request", service="webserver") as span:
+            with test_library.dd_start_span(name="web.request", service="webserver") as span:
                 pass
         span = find_span_in_traces(test_agent.wait_for_num_traces(1), span.trace_id, span.span_id)
         assert span["metrics"].get(SINGLE_SPAN_SAMPLING_RATE) is None
@@ -202,7 +202,7 @@ class Test_Span_Sampling:
         trace_span_ids = []
         with test_library:
             for i in range(6):
-                with test_library.start_span(name="web.request", service="webserver") as s1:
+                with test_library.dd_start_span(name="web.request", service="webserver") as s1:
                     pass
                 trace_span_ids.append((s1.trace_id, s1.span_id))
 
@@ -230,7 +230,7 @@ class Test_Span_Sampling:
         time.sleep(2)
         # now span should be kept by rule
         with test_library:
-            with test_library.start_span(name="web.request", service="webserver") as s2:
+            with test_library.dd_start_span(name="web.request", service="webserver") as s2:
                 pass
         span = find_span_in_traces(test_agent.wait_for_num_traces(1, clear=True), s2.trace_id, s2.span_id)
         assert span["metrics"].get(SINGLE_SPAN_SAMPLING_RATE) == 1.0
@@ -256,7 +256,7 @@ class Test_Span_Sampling:
         # make 100 new traces, each with one span
         for i in range(100):
             with test_library:
-                with test_library.start_span(name="web.request", service="webserver"):
+                with test_library.dd_start_span(name="web.request", service="webserver"):
                     pass
         traces = test_agent.wait_for_num_traces(num=100)
         assert len(traces) == 100
@@ -319,7 +319,7 @@ class Test_Span_Sampling:
     def test_keep_span_with_stats_computation_sss010(self, test_agent, test_library):
         """Test when stats computation is enabled and span sampling applied, spans have manual_keep and still sent."""
         with test_library:
-            with test_library.start_span(name="web.request", service="webserver") as s1:
+            with test_library.dd_start_span(name="web.request", service="webserver") as s1:
                 pass
         span = find_span_in_traces(test_agent.wait_for_num_traces(1), s1.trace_id, s1.span_id)
         assert span["metrics"].get(SINGLE_SPAN_SAMPLING_RATE) == 1.0
@@ -334,7 +334,6 @@ class Test_Span_Sampling:
     @missing_feature(
         context.library == "golang", reason="The Go tracer does not have a way to modulate trace sampling once started"
     )
-    @missing_feature(context.library == "php", reason="manual.drop and manual.keep span tags are not implemented.")
     @missing_feature(context.library == "ruby", reason="Issue: does not respect manual.drop or manual.keep span tags")
     @pytest.mark.parametrize(
         "library_env",
@@ -353,7 +352,7 @@ class Test_Span_Sampling:
         Basically, if we have a rule for spans with sample_rate:1.0 we should always keep those spans, either due to trace sampling or span sampling"""
         # This span is set to be dropped by the tracer/user, however it is kept by span sampling
         with test_library:
-            with test_library.start_span(name="web.request", service="webserver") as s1:
+            with test_library.dd_start_span(name="web.request", service="webserver") as s1:
                 s1.set_meta(MANUAL_DROP_KEY, "1")
         span = find_span_in_traces(test_agent.wait_for_num_traces(1, clear=True), s1.trace_id, s1.span_id)
         assert span["metrics"].get(SINGLE_SPAN_SAMPLING_RATE) == 1.0
@@ -363,7 +362,7 @@ class Test_Span_Sampling:
         # This span is sampled by the tracer, not span sampling.
         # Therefore it won't have the span sampling tags, but rather the trace sampling tags.
         with test_library:
-            with test_library.start_span(name="web.request", service="webserver") as s2:
+            with test_library.dd_start_span(name="web.request", service="webserver") as s2:
                 pass
         span = find_span_in_traces(test_agent.wait_for_num_traces(1, clear=True), s2.trace_id, s2.span_id)
 
@@ -391,7 +390,7 @@ class Test_Span_Sampling:
         # This span is sampled by the tracer, not span sampling, which would try to drop the span, so it's still kept because "_sampling_priority_v1" > 0
         # When the trace is kept by trace sampling, span rules are not applied
         with test_library:
-            with test_library.start_span(name="web.request", service="webserver") as s1:
+            with test_library.dd_start_span(name="web.request", service="webserver") as s1:
                 pass
         span = find_span_in_traces(test_agent.wait_for_num_traces(1), s1.trace_id, s1.span_id)
 
@@ -427,11 +426,11 @@ class Test_Span_Sampling:
         trace_and_span_ids = []
         with test_library:
             for i in range(4):
-                with test_library.start_span(name="web.request", service="webserver") as s1:
+                with test_library.dd_start_span(name="web.request", service="webserver") as s1:
                     pass
                 trace_and_span_ids.append((s1.trace_id, s1.span_id))
             for i in range(6):
-                with test_library.start_span(name="web.request2", service="webserver2") as s2:
+                with test_library.dd_start_span(name="web.request2", service="webserver2") as s2:
                     pass
                 trace_and_span_ids.append((s2.trace_id, s2.span_id))
 
@@ -468,7 +467,7 @@ class Test_Span_Sampling:
         time.sleep(2)
         # Now span should be kept by first rule
         with test_library:
-            with test_library.start_span(name="web.request", service="webserver") as s3:
+            with test_library.dd_start_span(name="web.request", service="webserver") as s3:
                 pass
         span = find_span_in_traces(test_agent.wait_for_num_traces(1), s3.trace_id, s3.span_id)
         assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MAX_PER_SEC) == 1
@@ -491,8 +490,8 @@ class Test_Span_Sampling:
         and doesn't affect child spans that are dropped by the tracer sampling mechanism.
         """
         with test_library:
-            with test_library.start_span(name="parent", service="webserver") as ps:
-                with test_library.start_span(name="child", service="webserver", parent_id=ps.span_id) as cs:
+            with test_library.dd_start_span(name="parent", service="webserver") as ps:
+                with test_library.dd_start_span(name="child", service="webserver", parent_id=ps.span_id) as cs:
                     pass
 
         traces = test_agent.wait_for_num_spans(2, clear=True)
@@ -533,8 +532,8 @@ class Test_Span_Sampling:
         and doesn't affect parent spans that are dropped by the tracer sampling mechanism.
         """
         with test_library:
-            with test_library.start_span(name="parent", service="webserver") as ps:
-                with test_library.start_span(name="child", service="webserver", parent_id=ps.span_id) as cs:
+            with test_library.dd_start_span(name="parent", service="webserver") as ps:
+                with test_library.dd_start_span(name="child", service="webserver", parent_id=ps.span_id) as cs:
                     pass
 
         traces = test_agent.wait_for_num_spans(2, clear=True)
@@ -586,7 +585,7 @@ class Test_Span_Sampling:
         assert test_agent.info()["client_drop_p0s"] == True, "Client drop p0s expected to be enabled"
 
         with test_library:
-            with test_library.start_span(name="parent", service="webserver") as s1:
+            with test_library.dd_start_span(name="parent", service="webserver") as s1:
                 pass
 
         # expect the first trace kept by the tracer despite of the active dropping policy because of SSS
@@ -594,8 +593,8 @@ class Test_Span_Sampling:
 
         # the second similar trace is expected to be sampled by SSS and the child span is expected to be dropped on the Tracer side
         with test_library:
-            with test_library.start_span(name="parent", service="webserver") as s2:
-                with test_library.start_span(name="child", service="webserver", parent_id=s2.span_id):
+            with test_library.dd_start_span(name="parent", service="webserver") as s2:
+                with test_library.dd_start_span(name="child", service="webserver", parent_id=s2.span_id):
                     pass
 
         traces = test_agent.wait_for_num_traces(1, clear=True, sort_by_start=False)
@@ -643,8 +642,8 @@ class Test_Span_Sampling:
         assert test_agent.info()["client_drop_p0s"] == True, "Client drop p0s expected to be enabled"
 
         with test_library:
-            with test_library.start_span(name="parent", service="webserver") as ps1:
-                with test_library.start_span(name="child", service="webserver", parent_id=ps1.span_id) as cs1:
+            with test_library.dd_start_span(name="parent", service="webserver") as ps1:
+                with test_library.dd_start_span(name="child", service="webserver", parent_id=ps1.span_id) as cs1:
                     pass
 
         # expect the first trace kept by the tracer despite of the active dropping policy because of SSS
@@ -652,8 +651,8 @@ class Test_Span_Sampling:
 
         # the second similar trace is expected to be sampled by SSS and the child span is expected to be dropped on the Tracer side
         with test_library:
-            with test_library.start_span(name="parent", service="webserver") as ps2:
-                with test_library.start_span(name="child", service="webserver", parent_id=ps2.span_id) as cs2:
+            with test_library.dd_start_span(name="parent", service="webserver") as ps2:
+                with test_library.dd_start_span(name="child", service="webserver", parent_id=ps2.span_id) as cs2:
                     pass
 
         traces = test_agent.wait_for_num_traces(1, clear=True)
@@ -696,7 +695,7 @@ class Test_Span_Sampling:
         assert test_agent.info()["client_drop_p0s"] == True, "Client drop p0s expected to be enabled"
 
         with test_library:
-            with test_library.start_span(name="parent", service="webserver"):
+            with test_library.dd_start_span(name="parent", service="webserver"):
                 pass
 
         if test_library.lang == "java":
@@ -709,8 +708,8 @@ class Test_Span_Sampling:
 
         # the second similar trace is expected to be dropped on the Tracer side
         with test_library:
-            with test_library.start_span(name="parent", service="webserver") as ps:
-                with test_library.start_span(name="child", service="webserver", parent_id=ps.span_id):
+            with test_library.dd_start_span(name="parent", service="webserver") as ps:
+                with test_library.dd_start_span(name="child", service="webserver", parent_id=ps.span_id):
                     pass
 
         traces = test_agent.wait_for_num_traces(0, clear=True)

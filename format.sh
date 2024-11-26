@@ -38,29 +38,28 @@ source venv/bin/activate
 
 echo "Checking Python files..."
 if [ "$COMMAND" == "fix" ]; then
-  black .
+  black --quiet .
 else
   black --check --diff .
 fi
-pylint utils  # pylint does not have a fix mode
 
-# not py, as it's handled by black
-INCLUDE_EXTENSIONS=("*.md" "*.yml" "*.yaml" "*.sh" "*.cs" "*.Dockerfile" "*.java" "*.sql" "*.ts" "*.js" "*.php")
-EXCLUDE_DIRS=("logs*" "*/node_modules/*" "./venv/*" "./utils/build/virtual_machine/*" "./binaries/*")
+echo "Running mypy type checks..."
+if ! mypy --config pyproject.toml; then
+  echo "Mypy type checks failed. Please fix the errors above. 💥 💔 💥"
+  exit 1
+fi
 
-INCLUDE_ARGS=()
-for ext in "${INCLUDE_EXTENSIONS[@]}"; do
-  INCLUDE_ARGS+=(-name "$ext" -o)
-done
-unset 'INCLUDE_ARGS[${#INCLUDE_ARGS[@]}-1]'  # remove last -o
+echo "Running pylint checks..."
+if ! pylint utils; then
+  echo "Pylint checks failed. Please fix the errors above. 💥 💔 💥"
+  exit 1
+fi
 
-EXCLUDE_ARGS=()
-for dir in "${EXCLUDE_DIRS[@]}"; do
-  EXCLUDE_ARGS+=(-not -path "$dir")
-done
-
-echo "Checking tailing whitespaces..."
-FILES="$(find . "${EXCLUDE_ARGS[@]}" \( "${INCLUDE_ARGS[@]}" \) -exec grep -l ' $' {} \;)"
+echo "Checking trailing whitespaces..."
+INCLUDE_PATTERN='.*\.(md|yml|yaml|sh|cs|Dockerfile|java|sql|ts|js|php)$'
+EXCLUDE_PATTERN='utils/build/virtual_machine'
+# Check all files tracked by git, and matching include/exclude patterns
+FILES="$(git ls-files | grep -v -E "$EXCLUDE_PATTERN" | grep -E "$INCLUDE_PATTERN" | while read f ; do grep -l ' $' "$f" || true ; done)"
 
 # shim for sed -i on GNU sed (Linux) and BSD sed (macOS)
 _sed_i() {
@@ -73,14 +72,14 @@ _sed_i() {
 
 if [ "$COMMAND" == "fix" ]; then
   echo "$FILES" | while read file ; do
-    if [ "$FILES" ]; then
+    if [[ -n "$file" ]]; then
       echo "Fixing $file"
       _sed_i 's/  *$//g' "$file"
     fi
   done
 else
   if [ -n "$FILES" ]; then
-    echo "Some tailing white spaces has been found, please fix them 💥 💔 💥"
+    echo "Some trailing white spaces has been found, please fix them 💥 💔 💥"
     echo "$FILES"
     exit 1
   fi

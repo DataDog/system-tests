@@ -1,12 +1,13 @@
-import signal
+import ctypes
 from typing import Dict
 from typing import List
 from typing import Optional
 from typing import Tuple
-from typing import Union
+from typing import Any
 
 import os
 from fastapi import FastAPI
+import opentelemetry.trace
 from pydantic import BaseModel
 
 import opentelemetry
@@ -20,6 +21,8 @@ from opentelemetry.trace.span import TraceState
 from opentelemetry.trace.span import SpanContext as OtelSpanContext
 from opentelemetry.trace import set_span_in_context
 from ddtrace.opentelemetry import TracerProvider
+from opentelemetry.baggage import set_baggage
+from opentelemetry.baggage import get_baggage
 
 import ddtrace
 from ddtrace import Span
@@ -34,7 +37,12 @@ from ddtrace.internal.utils.version import parse_version
 
 
 spans: Dict[int, Span] = {}
+ddcontexts: Dict[int, Context] = {}
 otel_spans: Dict[int, OtelSpan] = {}
+# Store the active span for each tracer in an array to allow for easy global access
+# FastAPI resets the contextvar containing the active span after each request
+active_ddspan = [None]
+active_otel_span = [None]
 app = FastAPI(
     title="APM library test server",
     description="""
@@ -44,21 +52,17 @@ Implement the API specified below to enable your library to run all of the share
 """,
 )
 
+# Ensures the Datadog and OpenTelemetry tracers are interoperable
 opentelemetry.trace.set_tracer_provider(TracerProvider())
-# Replaces the default otel api runtime context with DDRuntimeContext
-# https://github.com/open-telemetry/opentelemetry-python/blob/v1.16.0/opentelemetry-api/src/opentelemetry/context/__init__.py#L53
-os.environ["OTEL_PYTHON_CONTEXT"] = "ddcontextvars_context"
 
 
 class StartSpanArgs(BaseModel):
-    parent_id: int
     name: str
-    service: str
-    type: str
-    resource: str
-    origin: str
-    http_headers: List[Tuple[str, str]]
-    links: List[Dict]
+    parent_id: Optional[int]
+    service: Optional[str]
+    type: Optional[str]
+    resource: Optional[str]
+    span_tags: List[Tuple[str, str]]
 
 
 class StartSpanReturn(BaseModel):
@@ -68,40 +72,21 @@ class StartSpanReturn(BaseModel):
 
 @app.get("/trace/crash")
 def trace_crash() -> None:
-    os.kill(os.getpid(), signal.SIGSEGV.value)
+    ctypes.string_at(0)
 
 
 @app.post("/trace/span/start")
 def trace_span_start(args: StartSpanArgs) -> StartSpanReturn:
-    parent: Union[None, Span, Context]
-    if args.parent_id:
-        parent = spans[args.parent_id]
-    else:
-        parent = None
-
-    if args.origin != "":
-        trace_id = parent.trace_id if parent else None
-        parent_id = parent.span_id if parent else None
-        parent = Context(trace_id=trace_id, span_id=parent_id, dd_origin=args.origin)
-
-    if len(args.http_headers) > 0:
-        headers = {k: v for k, v in args.http_headers}
-        parent = HTTPPropagator.extract(headers)
-
+    parent = spans.get(args.parent_id, ddcontexts.get(args.parent_id))
     span = ddtrace.tracer.start_span(
         args.name, service=args.service, span_type=args.type, resource=args.resource, child_of=parent, activate=True,
     )
-    for link in args.links:
-        link_parent_id = link.get("parent_id", 0)
-        if link_parent_id > 0:  # we have a parent_id to create link instead
-            link_parent = spans[link_parent_id]
-            span.link_span(link_parent.context, link.get("attributes"))
-        else:
-            headers = {k: v for k, v in link["http_headers"]}
-            context = HTTPPropagator.extract(headers)
-            span.link_span(context, link.get("attributes"))
-
+    # TODO: add tags to tracer.start_span
+    for k, v in args.span_tags:
+        span.set_tag(k, v)
     spans[span.span_id] = span
+    # Access the active span from the tracer, this allows us to test tracer's context management
+    active_ddspan[0] = ddtrace.tracer.current_span()
     return StartSpanReturn(span_id=span.span_id, trace_id=span.trace_id,)
 
 
@@ -133,6 +118,8 @@ def trace_config() -> TraceConfigReturn:
             "dd_trace_sample_ignore_parent": None,
             "dd_env": config.env,
             "dd_version": config.version,
+            "dd_trace_rate_limit": str(config._trace_rate_limit),
+            "dd_trace_agent_url": config._trace_agent_url,
         }
     )
 
@@ -141,6 +128,7 @@ def trace_config() -> TraceConfigReturn:
 def trace_span_finish(args: SpanFinishArgs) -> SpanFinishReturn:
     span = spans[args.span_id]
     span.finish()
+    active_ddspan[0] = span._parent
     return SpanFinishReturn()
 
 
@@ -154,11 +142,104 @@ class SpanSetMetaReturn(BaseModel):
     pass
 
 
+class SpanSetBaggageArgs(BaseModel):
+    span_id: int
+    key: str
+    value: str
+
+
+class SpanSetBaggageReturn(BaseModel):
+    pass
+
+
+class SpanGetBaggageArgs(BaseModel):
+    span_id: int
+    key: str
+
+
+class SpanGetBaggageReturn(BaseModel):
+    baggage: str
+
+
+class SpanGetAllBaggageArgs(BaseModel):
+    span_id: int
+
+
+class SpanGetAllBaggageReturn(BaseModel):
+    baggage: dict[str, str]
+
+
+class SpanRemoveBaggageArgs(BaseModel):
+    span_id: int
+    key: str
+
+
+class SpanRemoveBaggageReturn(BaseModel):
+    pass
+
+
+class SpanRemoveAllBaggageArgs(BaseModel):
+    span_id: int
+
+
+class SpanRemoveAllBaggageReturn(BaseModel):
+    pass
+
+
 @app.post("/trace/span/set_meta")
 def trace_span_set_meta(args: SpanSetMetaArgs) -> SpanSetMetaReturn:
     span = spans[args.span_id]
     span.set_tag(args.key, args.value)
     return SpanSetMetaReturn()
+
+
+class SpanSetResourceArgs(BaseModel):
+    span_id: int
+    resource: str
+
+
+class SpanSetResourceReturn(BaseModel):
+    pass
+
+
+@app.post("/trace/span/set_resource")
+def trace_span_set_resouce(args: SpanSetResourceArgs) -> SpanSetResourceReturn:
+    span = spans[args.span_id]
+    span.resource = args.resource
+    return SpanSetResourceReturn()
+
+
+@app.post("/trace/span/set_baggage")
+def trace_set_baggage(args: SpanSetBaggageArgs) -> SpanSetBaggageReturn:
+    span = spans[args.span_id]
+    span.context.set_baggage_item(args.key, args.value)
+    return SpanSetBaggageReturn()
+
+
+@app.get("/trace/span/get_baggage")
+def trace_get_baggage(args: SpanGetBaggageArgs) -> SpanGetBaggageReturn:
+    span = spans[args.span_id]
+    return SpanGetBaggageReturn(baggage=span.context.get_baggage_item(args.key))
+
+
+@app.get("/trace/span/get_all_baggage")
+def trace_get_all_baggage(args: SpanGetAllBaggageArgs) -> SpanGetAllBaggageReturn:
+    span = spans[args.span_id]
+    return SpanGetAllBaggageReturn(baggage=span.context.get_all_baggage_items())
+
+
+@app.post("/trace/span/remove_baggage")
+def trace_remove_baggage(args: SpanRemoveBaggageArgs) -> SpanRemoveBaggageReturn:
+    span = spans[args.span_id]
+    span.context.remove_baggage_item(args.key)
+    return SpanRemoveBaggageReturn()
+
+
+@app.post("/trace/span/remove_all_baggage")
+def trace_remove_all_baggage(args: SpanRemoveAllBaggageArgs) -> SpanRemoveAllBaggageReturn:
+    span = spans[args.span_id]
+    span.context.remove_all_baggage_items()
+    return SpanRemoveBaggageReturn()
 
 
 class SpanSetMetricArgs(BaseModel):
@@ -198,6 +279,23 @@ def trace_span_inject_headers(args: SpanInjectArgs) -> SpanInjectReturn:
     return SpanInjectReturn(http_headers=[(k, v) for k, v in headers.items()])
 
 
+class SpanInjectArgs(BaseModel):
+    http_headers: List[Tuple[str, str]]
+
+
+class SpanExtractReturn(BaseModel):
+    span_id: Optional[int]
+
+
+@app.post("/trace/span/extract_headers")
+def trace_span_extract_headers(args: SpanInjectArgs) -> SpanExtractReturn:
+    headers = {k: v for k, v in args.http_headers}
+    context = HTTPPropagator.extract(headers)
+    if context.span_id:
+        ddcontexts[context.span_id] = context
+    return SpanExtractReturn(span_id=context.span_id)
+
+
 class TraceSpansFlushArgs(BaseModel):
     pass
 
@@ -209,6 +307,8 @@ class TraceSpansFlushReturn(BaseModel):
 @app.post("/trace/span/flush")
 def trace_spans_flush(args: TraceSpansFlushArgs) -> TraceSpansFlushReturn:
     ddtrace.tracer.flush()
+    spans.clear()
+    ddcontexts.clear()
     return TraceSpansFlushReturn()
 
 
@@ -267,51 +367,37 @@ class TraceSpanAddLinkReturn(BaseModel):
 @app.post("/trace/span/add_link")
 def trace_span_add_link(args: TraceSpanAddLinksArgs) -> TraceSpanAddLinkReturn:
     span = spans[args.span_id]
-    linked_span = spans[args.parent_id]
-    span.link_span(linked_span.context, attributes=args.attributes)
+    if args.parent_id in spans:
+        linked_context = spans[args.parent_id].context
+    elif args.parent_id in ddcontexts:
+        linked_context = ddcontexts[args.parent_id]
+    else:
+        raise ValueError(f"Parent span {args.parent_id} not found in {spans.keys()} or {ddcontexts.keys()}")
+    span.link_span(linked_context, attributes=args.attributes)
     return TraceSpanAddLinkReturn()
 
 
-class HttpClientRequestArgs(BaseModel):
-    method: str
-    url: str
-    headers: List[Tuple[str, str]]
-    body: str
+class TraceSpanCurrentReturn(BaseModel):
+    span_id: int
+    trace_id: int
 
 
-class HttpClientRequestReturn(BaseModel):
-    pass
-
-
-@app.post("/http/client/request")
-def http_client_request(args: HttpClientRequestArgs) -> HttpClientRequestReturn:
-    """Creates and finishes a span similar to the ones created during HTTP request/response cycles"""
-    # falcon config doesn't really matter here - any config object with http header tracing enabled will work
-    integration_config = config.falcon
-    request_headers = {k: v for k, v in args.headers}
-    response_headers = {"Content-Length": "14"}
-    with ddtrace.tracer.trace("fake-request") as request_span:
-        set_http_meta(
-            request_span, integration_config, request_headers=request_headers, response_headers=response_headers
-        )
-        spans[request_span.span_id] = request_span
-    # this cache invalidation happens in most web frameworks as a side effect of their multithread design
-    # it's made explicit here to allow test expectations to be precise
-    config.http._reset()
-    config._header_tag_name.invalidate()
-    return HttpClientRequestReturn()
+@app.get("/trace/span/current")
+def trace_span_current() -> TraceSpanCurrentReturn:
+    span_id = 0
+    trace_id = 0
+    if active_ddspan[0]:
+        span_id = active_ddspan[0].span_id
+        trace_id = active_ddspan[0].trace_id
+    return TraceSpanCurrentReturn(span_id=span_id, trace_id=trace_id)
 
 
 class OtelStartSpanArgs(BaseModel):
     name: str
-    parent_id: int
-    span_kind: int
-    service: str = ""  # Not used but defined in protos/apm-test-client.protos
-    resource: str = ""  # Not used but defined in protos/apm-test-client.protos
-    type: str = ""  # Not used but defined in protos/apm-test-client.protos
-    links: List[Dict] = []  # Not used but defined in protos/apm-test-client.protos
-    timestamp: int
-    http_headers: List[Tuple[str, str]]
+    parent_id: Optional[int] = None
+    span_kind: Optional[int] = None
+    timestamp: Optional[int] = None
+    links: List[Dict]
     attributes: dict
 
 
@@ -324,48 +410,20 @@ class OtelStartSpanReturn(BaseModel):
 def otel_start_span(args: OtelStartSpanArgs):
     otel_tracer = opentelemetry.trace.get_tracer(__name__)
 
-    if args.parent_id:
-        parent_span = otel_spans[args.parent_id]
-    elif args.http_headers:
-        headers = {k: v for k, v in args.http_headers}
-        ddcontext = HTTPPropagator.extract(headers)
-        parent_span = OtelNonRecordingSpan(
-            OtelSpanContext(
-                ddcontext.trace_id,
-                ddcontext.span_id,
-                True,
-                TraceFlags.SAMPLED
-                if ddcontext.sampling_priority and ddcontext.sampling_priority > 0
-                else TraceFlags.DEFAULT,
-                TraceState.from_header([ddcontext._tracestate]),
-            )
-        )
-    else:
-        parent_span = None
-
+    parent_span = otel_spans.get(args.parent_id)
     links = []
     for link in args.links:
-        parent_id = link.get("parent_id", 0)
-        if parent_id > 0:
-            span_context = otel_spans[parent_id].get_span_context()
-        else:
-            headers = {k: v for k, v in link["http_headers"]}
-            ddcontext = HTTPPropagator.extract(headers)
-            span_context = OtelSpanContext(
-                ddcontext.trace_id,
-                ddcontext.span_id,
-                True,
-                TraceFlags.SAMPLED
-                if ddcontext.sampling_priority and ddcontext.sampling_priority > 0
-                else TraceFlags.DEFAULT,
-                TraceState.from_header([ddcontext._tracestate]),
-            )
+        parent_id = link["parent_id"]
+        span_context = otel_spans[parent_id].get_span_context()
         links.append(opentelemetry.trace.Link(span_context, link.get("attributes")))
 
-    otel_span = otel_tracer.start_span(
+    # parametric tests expect span kind to be 0 for internal, 1 for server, 2 for client, ....
+    # while parametric tests set 0 for unset, 1 internal, 2 for server, 3 for client, ....
+    span_kind_int = (args.span_kind or 1) - 1
+    with otel_tracer.start_as_current_span(
         args.name,
         context=set_span_in_context(parent_span),
-        kind=SpanKind(args.span_kind),
+        kind=SpanKind(span_kind_int),
         attributes=args.attributes,
         links=links,
         # parametric tests expect timestamps to be set in microseconds (required by go)
@@ -373,7 +431,11 @@ def otel_start_span(args: OtelStartSpanArgs):
         start_time=args.timestamp * 1e3 if args.timestamp else None,
         record_exception=True,
         set_status_on_exception=True,
-    )
+        end_on_exit=False,
+    ) as otel_span:
+        # Store the active span for easy global access. This active span should be equal to the newly created span.
+        active_otel_span[0] = opentelemetry.trace.get_current_span()
+        active_ddspan[0] = ddtrace.tracer.current_span()
 
     ctx = otel_span.get_span_context()
     otel_spans[ctx.span_id] = otel_span
@@ -398,6 +460,25 @@ def otel_add_event(args: OtelAddEventArgs) -> OtelAddEventReturn:
     return OtelAddEventReturn()
 
 
+class OtelSetBaggageArgs(BaseModel):
+    span_id: int
+    key: str
+    value: str
+
+
+class OtelSetBaggageReturn(BaseModel):
+    value: str
+
+
+@app.post("/trace/otel/otel_set_baggage")
+def otel_set_baggage(args: OtelSetBaggageArgs) -> OtelSetBaggageReturn:
+    # span = otel_spans[args.span_id]
+    headers = {}
+    context = set_baggage(args.key, args.value)
+    value = get_baggage(args.key, context)
+    return OtelSetBaggageReturn(value=value)
+
+
 class OtelRecordExceptionReturn(BaseModel):
     pass
 
@@ -417,7 +498,7 @@ def otel_record_exception(args: OtelRecordExceptionArgs) -> OtelRecordExceptionR
 
 class OtelEndSpanArgs(BaseModel):
     id: int
-    timestamp: int
+    timestamp: Optional[int]
 
 
 class OtelEndSpanReturn(BaseModel):
@@ -431,8 +512,27 @@ def otel_end_span(args: OtelEndSpanArgs):
     if st is not None:
         # convert timestamp from microseconds to nanoseconds
         st = st * 1e3
+
+    active_ddspan[0] = span._ddspan._parent
+    active_otel_span[0] = otel_spans.get(active_ddspan[0].span_id) if active_ddspan[0] else None
     span.end(st)
     return OtelEndSpanReturn()
+
+
+class OtelCurrentSpanReturn(BaseModel):
+    span_id: int
+    trace_id: int
+
+
+@app.get("/trace/otel/current_span")
+def otel_current_span():
+    trace_id = 0
+    span_id = 0
+    if active_otel_span[0]:
+        ctx = active_otel_span[0].get_span_context()
+        trace_id = ctx.trace_id
+        span_id = ctx.span_id
+    return OtelCurrentSpanReturn(trace_id=trace_id, span_id=span_id)
 
 
 class OtelFlushSpansArgs(BaseModel):
@@ -448,6 +548,7 @@ def otel_flush_spans(args: OtelFlushSpansArgs):
     ddtrace.tracer.flush()
     spans.clear()
     otel_spans.clear()
+    ddcontexts.clear()
     return OtelFlushSpansReturn(success=True)
 
 

@@ -1,6 +1,6 @@
 weblog:
     name: test-app-nodejs-alpine
-    excluded_os_branches: [amazon_linux2_dotnet6, amazon_linux2023_amd64, centos_7_amd64]
+    runtime_version: 18
     install: 
       - os_type: linux
         copy_files:
@@ -15,5 +15,6 @@ weblog:
 
           - name: copy-nodejs-app-dockerfile
             local_path: utils/build/virtual_machine/weblogs/nodejs/test-app-nodejs-alpine/Dockerfile.template
+            remote_path: Dockerfile.template
 
         remote-command: sh create_and_run_app_container.sh

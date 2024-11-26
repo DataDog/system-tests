@@ -3,12 +3,13 @@ package main
 import (
 	"context"
 	"encoding/binary"
+	"encoding/json"
 	"fmt"
+	"net/http"
 	"strconv"
 	"strings"
 	"time"
 
-	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"
 	otel_trace "go.opentelemetry.io/otel/trace"
 
@@ -16,164 +17,75 @@ import (
 	"github.com/DataDog/dd-trace-go/v2/ddtrace/tracer"
 )
 
-func ConvertKeyValsToAttributes(keyVals map[string]*ListVal) map[string][]attribute.KeyValue {
-	attributes := make([]attribute.KeyValue, 0, len(keyVals))
-	attributesStringified := make([]attribute.KeyValue, 0, len(keyVals))
-	for k, lv := range keyVals {
-		n := len(lv.GetVal())
-		if n == 0 {
-			continue
-		}
-		// all values are represented as slices
-		first := lv.GetVal()[0]
-		switch first.Val.(type) {
-		case *AttrVal_StringVal:
-			inp := make([]string, n)
-			for i, v := range lv.GetVal() {
-				inp[i] = v.GetStringVal()
-			}
-			attributesStringified = append(attributesStringified, attribute.String(k, "["+strings.Join(inp, ", ")+"]"))
-			if len(inp) > 1 {
-				attributes = append(attributes, attribute.StringSlice(k, inp))
-			} else {
-				attributes = append(attributes, attribute.String(k, inp[0]))
-			}
-		case *AttrVal_BoolVal:
-			inp := make([]bool, n)
-			stringifiedInp := make([]string, n)
-			for i, v := range lv.GetVal() {
-				inp[i] = v.GetBoolVal()
-				stringifiedInp[i] = strconv.FormatBool(v.GetBoolVal())
-			}
-			attributesStringified = append(attributesStringified, attribute.String(k, "["+strings.Join(stringifiedInp, ", ")+"]"))
-			if len(inp) > 1 {
-				attributes = append(attributes, attribute.BoolSlice(k, inp))
-			} else {
-				attributes = append(attributes, attribute.Bool(k, inp[0]))
-			}
-		case *AttrVal_DoubleVal:
-			inp := make([]float64, n)
-			stringifiedInp := make([]string, n)
-			for i, v := range lv.GetVal() {
-				inp[i] = v.GetDoubleVal()
-				stringifiedInp[i] = strconv.FormatFloat(v.GetDoubleVal(), 'f', -1, 64)
-			}
-			attributesStringified = append(attributesStringified, attribute.String(k, "["+strings.Join(stringifiedInp, ", ")+"]"))
-			if len(inp) > 1 {
-				attributes = append(attributes, attribute.Float64Slice(k, inp))
-			} else {
-				attributes = append(attributes, attribute.Float64(k, inp[0]))
-			}
-		case *AttrVal_IntegerVal:
-			inp := make([]int64, n)
-			stringifiedInp := make([]string, n)
-			for i, v := range lv.GetVal() {
-				inp[i] = v.GetIntegerVal()
-				stringifiedInp[i] = strconv.FormatInt(v.GetIntegerVal(), 10)
-			}
-			attributesStringified = append(attributesStringified, attribute.String(k, "["+strings.Join(stringifiedInp, ", ")+"]"))
-			if len(inp) > 1 {
-				attributes = append(attributes, attribute.Int64Slice(k, inp))
-			} else {
-				attributes = append(attributes, attribute.Int64(k, inp[0]))
-			}
-		}
+func (s *apmClientServer) otelStartSpanHandler(w http.ResponseWriter, r *http.Request) {
+	var args OtelStartSpanArgs
+	if err := json.NewDecoder(r.Body).Decode(&args); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
 	}
-	return map[string][]attribute.KeyValue{
-		"0": attributes,
-		"1": attributesStringified,
+
+	result, err := s.OtelStartSpan(args)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(result); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 }
 
-func (s *apmClientServer) OtelStartSpan(ctx context.Context, args *OtelStartSpanArgs) (*OtelStartSpanReturn, error) {
+func (s *apmClientServer) OtelStartSpan(args OtelStartSpanArgs) (OtelStartSpanReturn, error) {
 	if s.tracer == nil {
 		s.tracer = s.tp.Tracer("")
 	}
 	var pCtx = context.Background()
 	var ddOpts []tracer.StartSpanOption
-	if pid := args.GetParentId(); pid != 0 {
-		parent, ok := s.otelSpans[pid]
+	if pid := args.ParentId; pid != nil {
+		parent, ok := s.otelSpans[*pid]
 		if ok {
 			pCtx = parent.ctx
 		}
 	}
 	var otelOpts []otel_trace.SpanStartOption
 	if args.SpanKind != nil {
-		otelOpts = append(otelOpts, otel_trace.WithSpanKind(otel_trace.ValidateSpanKind(otel_trace.SpanKind(args.GetSpanKind()))))
+		otelOpts = append(otelOpts, otel_trace.WithSpanKind(otel_trace.ValidateSpanKind(otel_trace.SpanKind(*args.SpanKind))))
 	}
-	if t := args.GetTimestamp(); t != 0 {
-		tm := time.UnixMicro(t)
+	if t := args.Timestamp; t != nil {
+		tm := time.UnixMicro(*t)
 		otelOpts = append(otelOpts, otel_trace.WithTimestamp(tm))
 	}
-	if args.GetAttributes() != nil {
-		otelOpts = append(otelOpts, otel_trace.WithAttributes(ConvertKeyValsToAttributes(args.GetAttributes().KeyVals)["0"]...))
-	}
-	if args.GetHttpHeaders() != nil && len(args.HttpHeaders.HttpHeaders) != 0 {
-		headers := map[string]string{}
-		for _, headerTuple := range args.HttpHeaders.HttpHeaders {
-			k := headerTuple.GetKey()
-			v := headerTuple.GetValue()
-			if k != "" && v != "" {
-				headers[k] = v
-			}
-		}
-		sctx, err := tracer.NewPropagator(nil).Extract(tracer.TextMapCarrier(headers))
-		if err != nil {
-			fmt.Println("failed in StartSpan", err, args.HttpHeaders.HttpHeaders)
-		} else {
-			ddOpts = append(ddOpts, tracer.ChildOf(sctx))
-		}
+	if a := args.Attributes; len(a) > 0 {
+		otelOpts = append(otelOpts, otel_trace.WithAttributes(a.ConvertToAttributes()...))
 	}
 
-	if links := args.GetSpanLinks(); links != nil {
+	if links := args.SpanLinks; links != nil {
 		for _, link := range links {
-			switch from := link.From.(type) {
-			case *SpanLink_ParentId:
-				if _, ok := s.otelSpans[from.ParentId]; ok {
-					otelOpts = append(otelOpts, otel_trace.WithLinks(otel_trace.Link{SpanContext: s.otelSpans[from.ParentId].span.SpanContext(), Attributes: ConvertKeyValsToAttributes(link.GetAttributes().KeyVals)["1"]}))
-				}
-			case *SpanLink_HttpHeaders:
-				headers := map[string]string{}
-				for _, headerTuple := range from.HttpHeaders.HttpHeaders {
-					k := headerTuple.GetKey()
-					v := headerTuple.GetValue()
-					if k != "" && v != "" {
-						headers[k] = v
-					}
-				}
-				extractedContext, _ := tracer.NewPropagator(nil).Extract(tracer.TextMapCarrier(headers))
-				state, _ := otel_trace.ParseTraceState(headers["tracestate"])
-
-				var (
-					traceID otel_trace.TraceID
-					spanID  otel_trace.SpanID
-				)
-				traceID = extractedContext.TraceIDBytes()
-				uint64ToByte(extractedContext.SpanID(), spanID[:])
-				config := otel_trace.SpanContextConfig{
-					TraceID:    traceID,
-					SpanID:     spanID,
-					TraceState: state,
-				}
-				var newCtx = otel_trace.NewSpanContext(config)
-				otelOpts = append(otelOpts, otel_trace.WithLinks(otel_trace.Link{
-					SpanContext: newCtx,
-					Attributes:  ConvertKeyValsToAttributes(link.GetAttributes().KeyVals)["1"],
-				}))
+			if pSpan, ok := s.otelSpans[link.ParentId]; ok {
+				otelOpts = append(otelOpts, otel_trace.WithLinks(otel_trace.Link{SpanContext: pSpan.span.SpanContext(), Attributes: link.Attributes.ConvertToAttributesStringified()}))
+			} else {
+				return OtelStartSpanReturn{}, fmt.Errorf("OtelStartSpan call failed. Failed to generate a link to span with id=%d", link.ParentId)
 			}
-
 		}
 	}
 
 	ctx, span := s.tracer.Start(ddotel.ContextWithStartOptions(pCtx, ddOpts...), args.Name, otelOpts...)
-	hexSpanId := hex2int(span.SpanContext().SpanID().String())
+	hexSpanId, err := hex2int(span.SpanContext().SpanID().String())
+	if err != nil {
+		return OtelStartSpanReturn{}, err
+	}
 	s.otelSpans[hexSpanId] = spanContext{
 		span: span,
 		ctx:  ctx,
 	}
-	return &OtelStartSpanReturn{
+	hexTid, err := hex2int(span.SpanContext().TraceID())
+	if err != nil {
+		return OtelStartSpanReturn{}, err
+	}
+	return OtelStartSpanReturn{
 		SpanId:  hexSpanId,
-		TraceId: hex2int(span.SpanContext().TraceID().String()),
+		TraceId: hexTid,
 	}, nil
 }
 
@@ -181,146 +93,175 @@ func uint64ToByte(n uint64, b []byte) {
 	binary.BigEndian.PutUint64(b, n)
 }
 
-func (s *apmClientServer) OtelEndSpan(ctx context.Context, args *OtelEndSpanArgs) (*OtelEndSpanReturn, error) {
+func (s *apmClientServer) otelEndSpanHandler(w http.ResponseWriter, r *http.Request) {
+	var args OtelEndSpanArgs
+	if err := json.NewDecoder(r.Body).Decode(&args); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	err := s.OtelEndSpan(args)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+}
+
+func (s *apmClientServer) OtelEndSpan(args OtelEndSpanArgs) error {
 	sctx, ok := s.otelSpans[args.Id]
 	if !ok {
-		fmt.Sprintf("OtelEndSpan call failed, span with id=%span not found", args.Id)
+		return fmt.Errorf("OtelEndSpan call failed, span with id=%d not found", args.Id)
 	}
+
 	endOpts := []otel_trace.SpanEndOption{}
-	if t := args.GetTimestamp(); t != 0 {
+	if t := args.Timestamp; t != 0 {
 		tm := time.UnixMicro(t)
 		endOpts = append(endOpts, otel_trace.WithTimestamp(tm))
 	}
+
 	sctx.span.End(endOpts...)
-	return &OtelEndSpanReturn{}, nil
+	return nil
 }
 
-func (s *apmClientServer) OtelSetAttributes(ctx context.Context, args *OtelSetAttributesArgs) (*OtelSetAttributesReturn, error) {
+func (s *apmClientServer) otelSetAttributesHandler(w http.ResponseWriter, r *http.Request) {
+	var args OtelSetAttributesArgs
+	if err := json.NewDecoder(r.Body).Decode(&args); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	err := s.OtelSetAttributes(args)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+}
+
+func (s *apmClientServer) OtelSetAttributes(args OtelSetAttributesArgs) error {
 	sctx, ok := s.otelSpans[args.SpanId]
 	if !ok {
-		fmt.Sprintf("OtelSetAttributes call failed, span with id=%s not found", args.SpanId)
+		return fmt.Errorf("OtelSetAttributes call failed, span with id=%d not found", args.SpanId)
 	}
 	span := sctx.span
-	for k, lv := range args.Attributes.KeyVals {
-		n := len(lv.GetVal())
-		if n == 0 {
-			continue
-		}
-		// all values are represented as slices
-		first := lv.GetVal()[0]
-		switch first.Val.(type) {
-		case *AttrVal_StringVal:
-			inp := make([]string, n)
-			for i, v := range lv.GetVal() {
-				inp[i] = v.GetStringVal()
-			}
-			if len(inp) > 1 {
-				span.SetAttributes(attribute.StringSlice(k, inp))
-			} else {
-				span.SetAttributes(attribute.String(k, inp[0]))
-			}
-		case *AttrVal_BoolVal:
-			inp := make([]bool, n)
-			for i, v := range lv.GetVal() {
-				inp[i] = v.GetBoolVal()
-			}
-			if len(inp) > 1 {
-				span.SetAttributes(attribute.BoolSlice(k, inp))
-			} else {
-				span.SetAttributes(attribute.Bool(k, inp[0]))
-			}
-		case *AttrVal_DoubleVal:
-			inp := make([]float64, n)
-			for i, v := range lv.GetVal() {
-				inp[i] = v.GetDoubleVal()
-			}
-			if len(inp) > 1 {
-				span.SetAttributes(attribute.Float64Slice(k, inp))
-			} else {
-				span.SetAttributes(attribute.Float64(k, inp[0]))
-			}
-		case *AttrVal_IntegerVal:
-			inp := make([]int64, n)
-			for i, v := range lv.GetVal() {
-				inp[i] = v.GetIntegerVal()
-			}
-			if len(inp) > 1 {
-				span.SetAttributes(attribute.Int64Slice(k, inp))
-			} else {
-				span.SetAttributes(attribute.Int64(k, inp[0]))
-			}
-		}
-
-	}
-	return &OtelSetAttributesReturn{}, nil
+	span.SetAttributes(args.Attributes.ConvertToAttributes()...)
+	return nil
 }
 
-func (s *apmClientServer) OtelSetName(ctx context.Context, args *OtelSetNameArgs) (*OtelSetNameReturn, error) {
+func (s *apmClientServer) otelSetNameHandler(w http.ResponseWriter, r *http.Request) {
+	var args OtelSetNameArgs
+	if err := json.NewDecoder(r.Body).Decode(&args); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
 	sctx, ok := s.otelSpans[args.SpanId]
 	if !ok {
-		fmt.Sprintf("OtelSetName call failed, span with id=%span not found", args.SpanId)
+		http.Error(w, fmt.Sprintf("OtelSetName call failed, span with id=%d not found", args.SpanId), http.StatusInternalServerError)
+		return
 	}
 	sctx.span.SetName(args.Name)
-	return &OtelSetNameReturn{}, nil
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
 }
 
-func (s *apmClientServer) OtelFlushSpans(ctx context.Context, args *OtelFlushSpansArgs) (*OtelFlushSpansReturn, error) {
+func (s *apmClientServer) otelFlushSpansHandler(w http.ResponseWriter, r *http.Request) {
+	var args OtelFlushSpansArgs
+	if err := json.NewDecoder(r.Body).Decode(&args); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
 	s.otelSpans = make(map[uint64]spanContext)
 	success := false
 	s.tp.ForceFlush(time.Duration(args.Seconds)*time.Second, func(ok bool) { success = ok })
-	return &OtelFlushSpansReturn{Success: success}, nil
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(&OtelFlushSpansReturn{Success: success}); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
 }
 
-func (s *apmClientServer) OtelFlushTraceStats(context.Context, *OtelFlushTraceStatsArgs) (*OtelFlushTraceStatsReturn, error) {
-	s.otelSpans = make(map[uint64]spanContext)
-	return &OtelFlushTraceStatsReturn{}, nil
-}
-
-func (s *apmClientServer) OtelIsRecording(ctx context.Context, args *OtelIsRecordingArgs) (*OtelIsRecordingReturn, error) {
+func (s *apmClientServer) otelIsRecordingHandler(w http.ResponseWriter, r *http.Request) {
+	var args OtelIsRecordingArgs
+	if err := json.NewDecoder(r.Body).Decode(&args); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
 	sctx, ok := s.otelSpans[args.SpanId]
 	if !ok {
-		fmt.Printf("OtelIsRecording call failed, span with id=%span not found", args.SpanId)
+		http.Error(w, fmt.Sprintf("OtelIsRecording call failed, span with id=%d not found", args.SpanId), http.StatusBadRequest)
+		return
 	}
-	return &OtelIsRecordingReturn{IsRecording: sctx.span.IsRecording()}, nil
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(&OtelIsRecordingReturn{IsRecording: sctx.span.IsRecording()}); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
 }
 
-func (s *apmClientServer) OtelSpanContext(ctx context.Context, args *OtelSpanContextArgs) (*OtelSpanContextReturn, error) {
+func (s *apmClientServer) otelSpanContextHandler(w http.ResponseWriter, r *http.Request) {
+	var args OtelSpanContextArgs
+	if err := json.NewDecoder(r.Body).Decode(&args); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
 	sctx, ok := s.otelSpans[(args.SpanId)]
 	if !ok {
-		fmt.Printf("OtelSpanContext call failed, span with id=%span not found", args.SpanId)
+		http.Error(w, fmt.Sprintf("OtelSpanContext call failed, span with id=%d not found", args.SpanId), http.StatusBadRequest)
+		return
 	}
 	sc := sctx.span.SpanContext()
-	return &OtelSpanContextReturn{
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(&OtelSpanContextReturn{
 		SpanId:     sc.SpanID().String(),
 		TraceId:    sc.TraceID().String(),
 		TraceFlags: sc.TraceFlags().String(),
 		TraceState: sc.TraceState().String(),
 		Remote:     sc.IsRemote(),
-	}, nil
+	}); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
 }
 
-func (s *apmClientServer) OtelAddEvent(ctx context.Context, args *OtelAddEventArgs) (*OtelAddEventReturn, error) {
+func (s *apmClientServer) otelAddEventHandler(w http.ResponseWriter, r *http.Request) {
+	var args OtelAddEventArgs
+	if err := json.NewDecoder(r.Body).Decode(&args); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
 	sctx, ok := s.otelSpans[args.SpanId]
 	if !ok {
-		fmt.Printf("OtelSetStatus call failed, span with id=%d not found", args.SpanId)
+		http.Error(w, fmt.Sprintf("OtelSetStatus call failed, span with id=%d not found", args.SpanId), http.StatusBadRequest)
+		return
 	}
 	span := sctx.span
 	opts := []otel_trace.EventOption{}
-	if args.Timestamp != nil {
+	if args.Timestamp != 0 {
 		// args.Timestamp is represented in microseconds
-		opts = append(opts, otel_trace.WithTimestamp(time.UnixMicro(*args.Timestamp)))
+		opts = append(opts, otel_trace.WithTimestamp(time.UnixMicro(args.Timestamp)))
 	}
-	if args.GetAttributes() != nil {
-		opts = append(opts, otel_trace.WithAttributes(ConvertKeyValsToAttributes(args.GetAttributes().KeyVals)["0"]...))
+	if args.Attributes != nil {
+		opts = append(opts, otel_trace.WithAttributes(args.Attributes.ConvertToAttributes()...))
 	}
 	span.AddEvent(args.Name, opts...)
-	return &OtelAddEventReturn{}, nil
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
 }
 
-func (s *apmClientServer) OtelSetStatus(ctx context.Context, args *OtelSetStatusArgs) (*OtelSetStatusReturn, error) {
+func (s *apmClientServer) otelSetStatusHandler(w http.ResponseWriter, r *http.Request) {
+	var args OtelSetStatusArgs
+	if err := json.NewDecoder(r.Body).Decode(&args); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
 	sctx, ok := s.otelSpans[args.SpanId]
 	if !ok {
-		fmt.Sprintf("OtelSetStatus call failed, span with id=%d not found", args.SpanId)
+		http.Error(w, fmt.Sprintf("OtelSetStatus call failed, span with id=%d not found", args.SpanId), http.StatusBadRequest)
+		return
 	}
 	span := sctx.span
 	switch args.Code {
@@ -331,12 +272,14 @@ func (s *apmClientServer) OtelSetStatus(ctx context.Context, args *OtelSetStatus
 	case "OK":
 		span.SetStatus(codes.Ok, args.Description)
 	default:
-		fmt.Sprintf("Invalid code")
+		http.Error(w, fmt.Sprintf("OtelSetStatus call failed, status has invalid code %v", args.Code), http.StatusBadRequest)
+		return
 	}
-	return &OtelSetStatusReturn{}, nil
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
 }
 
-func hex2int(hexStr string) uint64 {
+func hex2int(hexStr string) (uint64, error) {
 	// remove 0x suffix if found in the input string
 	cleaned := strings.Replace(hexStr, "0x", "", -1)
 	if len(cleaned) > 16 {
@@ -347,7 +290,7 @@ func hex2int(hexStr string) uint64 {
 	// base 16 for hexadecimal
 	result, err := strconv.ParseUint(cleaned, 16, 64)
 	if err != nil {
-		fmt.Printf("Converting hex string to uint64 failed, hex string : %s\n", hexStr)
+		return 0, fmt.Errorf("converting hex string to uint64 failed, hex string : %s", hexStr)
 	}
-	return result
+	return result, nil
 }

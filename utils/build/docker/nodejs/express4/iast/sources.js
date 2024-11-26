@@ -78,6 +78,15 @@ function init (app, tracer) {
     res.send('OK')
   })
 
+  app.get('/iast/source/path_parameter/test/:table', (req, res) => {
+    try {
+      readFileSync(req.params.table)
+    } catch {
+      // do nothing
+    }
+    res.send('OK')
+  })
+
   app.get('/iast/source/cookiename/test', (req, res) => {
     let vulnParam = ''
     Object.keys(req.cookies).forEach((key) => {

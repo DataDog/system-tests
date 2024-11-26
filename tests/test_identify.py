@@ -35,15 +35,11 @@ class Test_Basic:
         # Send a request to the identify endpoint
         self.r = weblog.get("/identify")
 
-    @bug(
-        context.library <= "golang@1.41.0",
-        reason="DD_TRACE_HEADER_TAGS is not working properly, can't correlate request to trace",
-    )
-    @bug(
-        context.library < "nodejs@2.9.0",
-        reason="DD_TRACE_HEADER_TAGS is not working properly, can't correlate request to trace",
-    )
-    @bug(library="ruby", reason="DD_TRACE_HEADER_TAGS is not working properly, can't correlate request to trace")
+    # reason for those three skip was :
+    # DD_TRACE_HEADER_TAGS is not working properly, can't correlate request to trace
+    @bug(context.library <= "golang@1.41.0", reason="APMRP-360")
+    @bug(context.library < "nodejs@2.9.0", reason="APMRP-360")
+    @bug(context.library <= "ruby@2.3.0", reason="APMRP-360")
     def test_identify_tags(self):
         interfaces.library.validate_spans(
             self.r, validate_identify_tags(["id", "name", "email", "session_id", "role", "scope"])

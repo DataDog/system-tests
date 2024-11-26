@@ -2,7 +2,7 @@
 
 import type { Express, NextFunction, Request, Response } from 'express'
 import type { Stats } from 'fs'
-import type { Client as LdapClient, SearchCallbackResponse, SearchOptions } from 'ldapjs'
+import type { Client as LdapClient, SearchCallbackResponse } from 'ldapjs'
 import type { Collection, Db, Document } from 'mongodb'
 
 const { execSync } = require('child_process')
@@ -14,6 +14,7 @@ const mongoSanitize = require('express-mongo-sanitize')
 const { join } = require('path')
 const { Client } = require('pg')
 const { Kafka } = require('kafkajs')
+const pug = require('pug')
 
 const ldap = require('./integrations/ldap')
 
@@ -127,13 +128,18 @@ function initSinkRoutes (app: Express): void {
   })
 
   app.get('/iast/insecure-cookie/test_insecure', (req: Request, res: Response): void => {
-    res.cookie('insecure', 'cookie')
+    res.cookie('insecure', 'cookie', { httpOnly: true, sameSite: true })
     res.send('OK')
   })
 
   app.get('/iast/insecure-cookie/test_secure', (req: Request, res: Response): void => {
     res.setHeader('set-cookie', 'secure=cookie; Secure; HttpOnly; SameSite=Strict')
     res.cookie('secure2', 'value', { secure: true, httpOnly: true, sameSite: true })
+    res.send('OK')
+  })
+
+  app.post('/iast/insecure-cookie/custom_cookie', (req: Request, res: Response): void => {
+    res.cookie(req.body.cookieName, req.body.cookieValue, { httpOnly: true, sameSite: true })
     res.send('OK')
   })
 
@@ -145,13 +151,18 @@ function initSinkRoutes (app: Express): void {
   })
 
   app.get('/iast/no-httponly-cookie/test_insecure', (req: Request, res: Response): void => {
-    res.cookie('no-httponly', 'cookie')
+    res.cookie('no-httponly', 'cookie', { secure: true, sameSite: true })
     res.send('OK')
   })
 
   app.get('/iast/no-httponly-cookie/test_secure', (req: Request, res: Response): void => {
     res.setHeader('set-cookie', 'httponly=cookie; Secure;HttpOnly;SameSite=Strict;')
     res.cookie('httponly2', 'value', { secure: true, httpOnly: true, sameSite: true })
+    res.send('OK')
+  })
+
+  app.post('/iast/no-httponly-cookie/custom_cookie', (req: Request, res: Response): void => {
+    res.cookie(req.body.cookieName, req.body.cookieValue, { secure: true, sameSite: true })
     res.send('OK')
   })
 
@@ -163,13 +174,18 @@ function initSinkRoutes (app: Express): void {
   })
 
   app.get('/iast/no-samesite-cookie/test_insecure', (req: Request, res: Response): void => {
-    res.cookie('nosamesite', 'cookie')
+    res.cookie('nosamesite', 'cookie', { secure: true, httpOnly: true })
     res.send('OK')
   })
 
   app.get('/iast/no-samesite-cookie/test_secure', (req: Request, res: Response): void => {
     res.setHeader('set-cookie', 'samesite=cookie; Secure; HttpOnly; SameSite=Strict')
     res.cookie('samesite2', 'value', { secure: true, httpOnly: true, sameSite: true })
+    res.send('OK')
+  })
+
+  app.post('/iast/no-samesite-cookie/custom_cookie', (req: Request, res: Response): void => {
+    res.cookie(req.body.cookieName, req.body.cookieValue, { secure: true, httpOnly: true })
     res.send('OK')
   })
 
@@ -302,6 +318,40 @@ function initSinkRoutes (app: Express): void {
     res.send(`OK:${token}`)
   })
 
+  app.get('/iast/header_injection/reflected/exclusion', ({ headers, query }: Request, res: Response): void => {
+    const reflectedHeaderName: string = `${query.reflected}`
+    const originHeaderName: string = `${query.origin}`
+    res.setHeader(reflectedHeaderName, `${headers[originHeaderName]}`)
+    res.send('OK')
+  })
+
+  app.get('/iast/header_injection/reflected/no-exclusion', ({ query }: Request, res: Response): void => {
+    // There is a reason for this: to avoid vulnerabilities deduplication,
+    // which caused the non-exclusion test to fail for all tests after the first one,
+    // since they are all in the same location (the hash is calculated based on the location).
+
+    const reflectedHeaderName: string = `${query.reflected}`
+    const originHeaderName: string = `${query.origin}`
+    switch (reflectedHeaderName) {
+      case 'pragma':
+        res.setHeader(reflectedHeaderName, originHeaderName)
+        break
+      case 'transfer-encoding':
+        res.setHeader(reflectedHeaderName, originHeaderName)
+        break
+      case 'content-encoding':
+        res.setHeader(reflectedHeaderName, originHeaderName)
+        break
+      case 'access-control-allow-origin':
+        res.setHeader(reflectedHeaderName, originHeaderName)
+        break
+      default:
+        res.setHeader(reflectedHeaderName, originHeaderName)
+        break
+    }
+    res.send('OK')
+  })
+
   app.post('/iast/header_injection/test_insecure', (req: Request, res: Response): void => {
     res.setHeader('testheader', req.body.test)
     res.send('OK')
@@ -333,11 +383,27 @@ function initSinkRoutes (app: Express): void {
     eval('1+2')
     res.send('OK')
   })
+
+  app.post('/iast/template_injection/test_insecure', (req: Request, res: Response) => {
+    const fn = pug.compile(req.body.template)
+    const html = fn()
+    res.send(`OK:${html}`)
+  })
+
+  app.post('/iast/template_injection/test_secure', (req: Request, res: Response) => {
+    const fn = pug.compile('p Hello!')
+    const html = fn()
+    res.send(`OK:${html}`)
+  })
 }
 
 function initSourceRoutes (app: Express): void {
   app.post('/iast/source/body/test', (req: Request, res: Response): void => {
-    readFileSync(req.body.name)
+    try {
+      readFileSync(req.body.name)
+    } catch {
+      // do nothing
+    }
     res.send('OK')
   })
 
@@ -346,7 +412,11 @@ function initSourceRoutes (app: Express): void {
     Object.keys(req.headers).forEach((key: string): void => {
       vulnParam += key
     })
-    readFileSync(vulnParam)
+    try {
+      readFileSync(vulnParam)
+    } catch {
+      // do nothing
+    }
     res.send('OK')
   })
 
@@ -355,7 +425,11 @@ function initSourceRoutes (app: Express): void {
     Object.keys(req.headers).forEach((key: string): void => {
       vulnParam += req.headers[key]
     })
-    readFileSync(vulnParam)
+    try {
+      readFileSync(vulnParam)
+    } catch {
+      // do nothing
+    }
     res.send('OK')
   })
 
@@ -364,7 +438,11 @@ function initSourceRoutes (app: Express): void {
     Object.keys(req.query).forEach((key: string): void => {
       vulnParam += key
     })
-    readFileSync(vulnParam)
+    try {
+      readFileSync(vulnParam)
+    } catch {
+      // do nothing
+    }
     res.send('OK')
   })
 
@@ -373,7 +451,11 @@ function initSourceRoutes (app: Express): void {
     Object.keys(req.body).forEach((key: string): void => {
       vulnParam += req.body[key]
     })
-    readFileSync(vulnParam)
+    try {
+      readFileSync(vulnParam)
+    } catch {
+      // do nothing
+    }
     res.send('OK')
   })
 
@@ -382,7 +464,20 @@ function initSourceRoutes (app: Express): void {
     Object.keys(req.query).forEach((key: string): void => {
       vulnParam += req.query[key]
     })
-    readFileSync(vulnParam)
+    try {
+      readFileSync(vulnParam)
+    } catch {
+      // do nothing
+    }
+    res.send('OK')
+  })
+
+  app.get('/iast/source/path_parameter/test/:table', (req: Request, res: Response): void => {
+    try {
+      readFileSync(req.params.table)
+    } catch {
+      // do nothing
+    }
     res.send('OK')
   })
 
@@ -391,7 +486,11 @@ function initSourceRoutes (app: Express): void {
     Object.keys(req.cookies).forEach((key: string): void => {
       vulnParam += key
     })
-    readFileSync(vulnParam)
+    try {
+      readFileSync(vulnParam)
+    } catch {
+      // do nothing
+    }
     res.send('OK')
   })
 
@@ -400,7 +499,11 @@ function initSourceRoutes (app: Express): void {
     Object.keys(req.cookies).forEach((key: string): void => {
       vulnParam += req.cookies[key]
     })
-    readFileSync(vulnParam)
+    try {
+      readFileSync(vulnParam)
+    } catch {
+      // do nothing
+    }
     res.send('OK')
   })
 

@@ -22,11 +22,11 @@ class Test_Tracer:
     def test_tracer_span_top_level_attributes(self, test_agent: _TestAgentAPI, test_library: APMLibrary) -> None:
         """Do a simple trace to ensure that the test client is working properly."""
         with test_library:
-            with test_library.start_span(
+            with test_library.dd_start_span(
                 "operation", service="my-webserver", resource="/endpoint", typestr="web"
             ) as parent:
                 parent.set_metric("number", 10)
-                with test_library.start_span("operation.child", parent_id=parent.span_id) as child:
+                with test_library.dd_start_span("operation.child", parent_id=parent.span_id) as child:  # type: ignore
                     child.set_meta("key", "val")
 
         traces = test_agent.wait_for_num_traces(1, sort_by_start=False)
@@ -59,8 +59,8 @@ class Test_TracerSCITagging:
                 in meta._dd.git.repository_url
         """
         with test_library:
-            with test_library.start_span("operation") as parent:
-                with test_library.start_span("operation.child", parent_id=parent.span_id):
+            with test_library.dd_start_span("operation") as parent:
+                with test_library.dd_start_span("operation.child", parent_id=parent.span_id):  # type: ignore
                     pass
 
         traces = test_agent.wait_for_num_traces(1, sort_by_start=False)
@@ -85,8 +85,8 @@ class Test_TracerSCITagging:
                 in meta._dd.git.commit.sha
         """
         with test_library:
-            with test_library.start_span("operation") as parent:
-                with test_library.start_span("operation.child", parent_id=parent.span_id):
+            with test_library.dd_start_span("operation") as parent:
+                with test_library.dd_start_span("operation.child", parent_id=parent.span_id):  # type: ignore
                     pass
 
         traces = test_agent.wait_for_num_traces(1, sort_by_start=False)
@@ -134,7 +134,6 @@ class Test_TracerSCITagging:
             },
         ],
     )
-    @missing_feature(context.library == "golang", reason="golang does not strip credentials yet")
     @missing_feature(context.library == "nodejs", reason="nodejs does not strip credentials yet")
     def test_tracer_repository_url_strip_credentials(
         self, library_env: Dict[str, str], test_agent: _TestAgentAPI, test_library: APMLibrary
@@ -146,8 +145,8 @@ class Test_TracerSCITagging:
                 in meta._dd.git.repository_url, with credentials removed if any
         """
         with test_library:
-            with test_library.start_span("operation") as parent:
-                with test_library.start_span("operation.child", parent_id=parent.span_id):
+            with test_library.dd_start_span("operation") as parent:  # type: ignore
+                with test_library.dd_start_span("operation.child", parent_id=parent.span_id):
                     pass
 
         traces = test_agent.wait_for_num_traces(1, sort_by_start=False)
@@ -170,12 +169,13 @@ class Test_TracerUniversalServiceTagging:
                 The span should use the value of DD_SERVICE for span.service
         """
         with test_library:
-            with test_library.start_span("operation") as root:
+            with test_library.dd_start_span("operation") as root:
                 pass
 
         traces = test_agent.wait_for_num_traces(1, sort_by_start=False)
         trace = find_trace(traces, root.trace_id)
         span = find_root_span(trace)
+        assert span is not None, "Root span not found"
         assert span["name"] == "operation"
         assert span["service"] == library_env["DD_SERVICE"]
 
@@ -189,12 +189,13 @@ class Test_TracerUniversalServiceTagging:
                 The span should have the value of DD_ENV in meta.env
         """
         with test_library:
-            with test_library.start_span("operation") as root:
+            with test_library.dd_start_span("operation") as root:
                 pass
 
         traces = test_agent.wait_for_num_traces(1, sort_by_start=False)
         trace = find_trace(traces, root.trace_id)
 
         span = find_root_span(trace)
+        assert span is not None, "Root span not found"
         assert span["name"] == "operation"
         assert span["meta"]["env"] == library_env["DD_ENV"]
