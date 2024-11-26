@@ -6,4 +6,4 @@ WORKDIR /src
 ADD . /src
 RUN pip install django
 EXPOSE 18080
-CMD python -m django runserver 0.0.0.0:18080
+ENTRYPOINT ["python", "-m", "django", "runserver", "0.0.0.0:18080"]

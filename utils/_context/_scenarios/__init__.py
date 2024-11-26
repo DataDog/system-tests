@@ -258,8 +258,9 @@ class scenarios:
         "APPSEC_RUNTIME_ACTIVATION",
         rc_api_enabled=True,
         appsec_enabled=False,
+        weblog_env={"DD_APPSEC_WAF_TIMEOUT": "10000000", "DD_APPSEC_TRACE_RATE_LIMIT": "10000"},  # 10 seconds
         doc="",
-        scenario_groups=[ScenarioGroup.APPSEC],
+        scenario_groups=[ScenarioGroup.APPSEC, ScenarioGroup.APPSEC_RASP],
     )
 
     appsec_api_security = EndToEndScenario(
@@ -313,7 +314,7 @@ class scenarios:
         doc="""
         Scenario for API Security feature, testing api security sampling rate.
         """,
-        scenario_groups=[ScenarioGroup.APPSEC],
+        scenario_groups=[ScenarioGroup.APPSEC, ScenarioGroup.ESSENTIALS],
     )
 
     appsec_auto_events_extended = EndToEndScenario(
@@ -363,6 +364,29 @@ class scenarios:
         scenario_groups=[ScenarioGroup.APPSEC],
     )
 
+    sca_standalone = EndToEndScenario(
+        "SCA_STANDALONE",
+        weblog_env={
+            "DD_APPSEC_ENABLED": "false",
+            "DD_APPSEC_SCA_ENABLED": "true",
+            "DD_EXPERIMENTAL_APPSEC_STANDALONE_ENABLED": "true",
+            "DD_IAST_ENABLED": "false",
+        },
+        doc="SCA standalone mode (APM opt out)",
+        scenario_groups=[ScenarioGroup.APPSEC],
+    )
+
+    iast_deduplication = EndToEndScenario(
+        "IAST_DEDUPLICATION",
+        weblog_env={
+            "DD_IAST_ENABLED": "true",
+            "DD_IAST_DEDUPLICATION_ENABLED": "true",
+            "DD_IAST_REQUEST_SAMPLING": "100",
+        },
+        doc="Iast scenario with deduplication enabled",
+        scenario_groups=[ScenarioGroup.APPSEC],
+    )
+
     remote_config_mocked_backend_asm_features = EndToEndScenario(
         "REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES",
         rc_api_enabled=True,
@@ -397,7 +421,12 @@ class scenarios:
             remote config. And it's okay not testing custom rule set for dev mode, as in this scenario, rules
             are always coming from remote config.
         """,
-        scenario_groups=[ScenarioGroup.APPSEC, ScenarioGroup.REMOTE_CONFIG, ScenarioGroup.ESSENTIALS],
+        scenario_groups=[
+            ScenarioGroup.APPSEC,
+            ScenarioGroup.APPSEC_RASP,
+            ScenarioGroup.REMOTE_CONFIG,
+            ScenarioGroup.ESSENTIALS,
+        ],
     )
 
     remote_config_mocked_backend_asm_features_nocache = EndToEndScenario(
@@ -714,7 +743,7 @@ class scenarios:
         weblog_volumes={"./tests/appsec/rasp/rasp_ruleset.json": {"bind": "/appsec_rasp_ruleset.json", "mode": "ro"}},
         doc="Enable APPSEC RASP",
         github_workflow="endtoend",
-        scenario_groups=[ScenarioGroup.APPSEC],
+        scenario_groups=[ScenarioGroup.APPSEC, ScenarioGroup.APPSEC_RASP],
     )
 
     external_processing = ExternalProcessingScenario("EXTERNAL_PROCESSING")

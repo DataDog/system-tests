@@ -1,6 +1,6 @@
 from urllib.parse import urlparse
 
-from utils import scenarios, features, context, irrelevant, bug, interfaces, missing_feature
+from utils import scenarios, features, context, irrelevant, bug, interfaces
 from utils import weblog
 from utils.tools import logger, get_rid_from_request
 
@@ -34,6 +34,7 @@ class TestDockerSSIFeatures:
     @bug(condition=context.library == "python", reason="INPLAT-11")
     @irrelevant(context.library == "java" and context.installed_language_runtime < "1.8.0_0")
     @irrelevant(context.library == "php" and context.installed_language_runtime < "7.0")
+    @irrelevant(context.library == "nodejs" and context.installed_language_runtime < "17.0")
     def test_install_supported_runtime(self):
         logger.info(f"Testing Docker SSI installation on supported lang runtime: {context.scenario.library.library}")
         assert self.r.status_code == 200, f"Failed to get response from {context.scenario.weblog_url}"
@@ -69,6 +70,7 @@ class TestDockerSSIFeatures:
     @irrelevant(context.library == "java" and context.installed_language_runtime < "1.8.0_0")
     @irrelevant(context.library == "php" and context.installed_language_runtime < "7.0")
     @irrelevant(context.library == "python" and context.installed_language_runtime < "3.7.0")
+    @irrelevant(context.library == "nodejs" and context.installed_language_runtime < "17.0")
     def test_telemetry(self):
         # There is telemetry data about the auto instrumentation injector. We only validate there is data
         telemetry_autoinject_data = interfaces.test_agent.get_telemetry_for_autoinject()
@@ -92,20 +94,28 @@ class TestDockerSSIFeatures:
 
     @features.ssi_guardrails
     @irrelevant(context.library == "java" and context.installed_language_runtime >= "1.8.0_0")
-    @bug(condition=context.library == "php" and context.installed_language_runtime < "7.0", reason="INPLAT-180")
     @irrelevant(context.library == "php" and context.installed_language_runtime >= "7.0")
-    @bug(condition=context.library == "python" and context.installed_language_runtime < "3.7.0", reason="INPLAT-181")
     @irrelevant(context.library == "python" and context.installed_language_runtime >= "3.7.0")
+    @bug(context.library == "nodejs" and context.installed_language_runtime < "12.17.0", reason="INPLAT-252")
+    @irrelevant(context.library == "nodejs" and context.installed_language_runtime >= "17.0")
     def test_telemetry_abort(self):
         # There is telemetry data about the auto instrumentation injector. We only validate there is data
         telemetry_autoinject_data = interfaces.test_agent.get_telemetry_for_autoinject()
         assert len(telemetry_autoinject_data) >= 1
-        inject_success = False
+        inject_result = None
         for data in telemetry_autoinject_data:
             if data["metric"] == "inject.success":
-                inject_success = True
+                inject_result = True
                 break
-        assert inject_success, "No telemetry data found for inject.success"
+            if data["metric"] == "inject.skip" or data["metric"] == "inject.error":
+                inject_result = False
+                break
+
+        assert inject_result != None, "No telemetry data found for inject.success, inject.skip or inject.error"
+
+        # The injector detected by itself that the version is not supported
+        if inject_result == False:
+            return
 
         # There is telemetry data about the library entrypoint. We only validate there is data
         telemetry_autoinject_data = interfaces.test_agent.get_telemetry_for_autoinject_library_entrypoint()

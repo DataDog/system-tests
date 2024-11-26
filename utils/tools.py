@@ -6,6 +6,8 @@ import logging
 import os
 import re
 import sys
+import socket
+import random
 
 
 class bcolors:
@@ -189,3 +191,17 @@ def nested_lookup(needle: str, heystack, look_in_keys=False, exact_match=False):
         return False
 
     raise TypeError(f"Can't handle type {type(heystack)}")
+
+
+def get_free_port():
+    last_allowed_port = 32000
+    port = random.randint(1100, last_allowed_port - 600)
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    while port <= last_allowed_port:
+        try:
+            sock.bind(("", port))
+            sock.close()
+            return port
+        except OSError:
+            port += 1
+    raise IOError("no free ports")

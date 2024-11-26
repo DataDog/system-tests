@@ -2,7 +2,7 @@
 
 import type { Express, NextFunction, Request, Response } from 'express'
 import type { Stats } from 'fs'
-import type { Client as LdapClient, SearchCallbackResponse, SearchOptions } from 'ldapjs'
+import type { Client as LdapClient, SearchCallbackResponse } from 'ldapjs'
 import type { Collection, Db, Document } from 'mongodb'
 
 const { execSync } = require('child_process')
@@ -14,6 +14,7 @@ const mongoSanitize = require('express-mongo-sanitize')
 const { join } = require('path')
 const { Client } = require('pg')
 const { Kafka } = require('kafkajs')
+const pug = require('pug')
 
 const ldap = require('./integrations/ldap')
 
@@ -381,6 +382,18 @@ function initSinkRoutes (app: Express): void {
     // eslint-disable-next-line no-eval
     eval('1+2')
     res.send('OK')
+  })
+
+  app.post('/iast/template_injection/test_insecure', (req: Request, res: Response) => {
+    const fn = pug.compile(req.body.template)
+    const html = fn()
+    res.send(`OK:${html}`)
+  })
+
+  app.post('/iast/template_injection/test_secure', (req: Request, res: Response) => {
+    const fn = pug.compile('p Hello!')
+    const html = fn()
+    res.send(`OK:${html}`)
   })
 }
 

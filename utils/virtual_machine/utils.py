@@ -45,7 +45,7 @@ def parametrize_virtual_machines(bugs: list[dict] = None):
                         and (not "library" in bug or context.library == bug["library"])
                         and (
                             not "runtime_version" in bug
-                            or vm.get_current_deployed_weblog().runtime_version == bug["runtime_version"]
+                            or vm.get_deployed_weblog().runtime_version == bug["runtime_version"]
                         )
                     ):
                         if "reason" in bug and is_jira_ticket(bug["reason"]):
@@ -79,12 +79,17 @@ def get_tested_apps_vms():
     vms_by_runtime = []
     vms_by_runtime_ids = []
     for vm in getattr(context.scenario, "required_vms", []):
-        deployed_weblogs = vm.get_provision().get_deployed_weblogs()
-        for weblog in deployed_weblogs:
-            vm_by_runtime = deepcopy(vm)
-            vm_by_runtime.set_current_deployed_weblog(weblog)
-            vms_by_runtime.append(vm_by_runtime)
-            vms_by_runtime_ids.append(f"{vm.name}_{weblog.runtime_version}_{weblog.app_type}")
+        deployed_weblog = vm.get_provision().get_deployed_weblog()
+        if deployed_weblog.app_type == "multicontainer":
+            for weblog in deployed_weblog.multicontainer_apps:
+                vm_by_runtime = deepcopy(vm)
+                vm_by_runtime.set_deployed_weblog(weblog)
+                vms_by_runtime.append(vm_by_runtime)
+                vms_by_runtime_ids.append(vm_by_runtime.get_vm_unique_id())
+        else:
+            vms_by_runtime.append(vm)
+            vms_by_runtime_ids.append(vm.get_vm_unique_id())
+
     return vms_by_runtime, vms_by_runtime_ids
 
 
