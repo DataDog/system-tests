@@ -30,7 +30,7 @@ func (s *apmClientServer) startSpanHandler(w http.ResponseWriter, r *http.Reques
 
 	response := StartSpanReturn{
 		SpanId:  span.Context().SpanID(),
-		TraceId: span.Context().TraceID(),
+		TraceId: span.Context().TraceIDLower(),
 	}
 	if err := json.NewEncoder(w).Encode(response); err != nil {
 		http.Error(w, "Failed to encode response: "+err.Error(), http.StatusInternalServerError)
