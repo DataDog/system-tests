@@ -42,9 +42,10 @@ class VirtualMachineProvisioner:
                     continue
 
             # Exclude by vm_only_branch
-            if vm_only_branch and vm.os_branch != vm_only_branch:
-                logger.stdout(f"WARNING: Removed VM [{vm.name}] due to vm_only_branch directive")
-                vms_to_remove.append(vm)
+            if vm_only_branch:
+                if vm.os_branch != vm_only_branch:
+                    logger.stdout(f"WARNING: Removed VM [{vm.name}] due to vm_only_branch directive")
+                    vms_to_remove.append(vm)
                 continue
             # Exclude by vm_only
             if vm_only and vm.name != vm_only:
