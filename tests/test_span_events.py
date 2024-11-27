@@ -2,71 +2,104 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, weblog, interfaces, features
+from utils import context, interfaces, irrelevant, weblog, scenarios, features, rfc
 
+@rfc("https://docs.google.com/document/d/1cVod_VI7Yruq8U9dfMRFJd7npDu-uBpste2IB04GyaQ")
+@features.span_events
+@scenarios.agent_supporting_span_events
+class Test_SpanEvents_WithAgentSupport:
+    """Test that tracers send natively serialized span events if the agent support it"""
 
+    def setup_v07(self):
+        self.r = weblog.get("/add_event")
+
+    @irrelevant(context.library in ["ruby"],reason="Does not support v0.7")
+    def test_v07(self):
+        """The v0.7 format send events as a top-levle `span_events` when the agent supports native serialization"""
+        interfaces.library.assert_trace_exists(self.r)
+
+        span = self._get_span(self.r)
+
+        assert "span_events" in span
+
+    def setup_v04(self):
+        self.r = weblog.get("/add_event")
+
+    @irrelevant(context.library in ["ruby"], reason="Native serialization not supported")
+    def test_v04(self):
+        """The v0.4 format send events as a top-levle `span_events` when the agent supports native serialization"""
+        interfaces.library.assert_trace_exists(self.r)
+
+        span = self._get_span(self.r)
+
+        assert "span_events" in span
+
+    def setup_v05(self):
+        self.r = weblog.get("/add_event")
+
+    @irrelevant(context.library in ["ruby"], reason="Does not support v0.5")
+    def test_v05(self):
+        """The v0.5 format continues to send events as tags"""
+        interfaces.library.assert_trace_exists(self.r)
+
+        meta = self._get_root_span_meta(self.r)
+
+        assert "span_events" in meta
+        assert "events" not in meta
+
+    def _get_root_span_meta(self, request):
+        return self._get_span(request).get("meta", {})
+
+    def _get_span(self, request):
+        root_spans = [s for _, s in interfaces.library.get_root_spans(request=request)]
+        assert len(root_spans) == 1
+        return root_spans
+
+@features.span_events
 @scenarios.agent_not_supporting_span_events
-class Test_SpanEvents:
-    """TODO"""
+class Test_SpanEvents_WithoutAgentSupport:
+    """Test that tracers do not attempt to send natively serialized span events if the agent does not support it"""
 
-    def test_span_events_v04(self):
-        """TODO"""
-        interfaces.agent.assert_use_domain(context.dd_site)
+    def setup_v07(self):
+        self.r = weblog.get("/add_event")
 
-        time0 = 1234567890
-        name0 = "event_name"
-        attributes0 = {
-            "string": "bar",
-            "bool": True,
-            "int": 1,
-            "double": 2.3,
-            "array": ["a", "b", "c"],
-        }
+    @irrelevant(context.library in ["ruby"],reason="Does not support v0.7")
+    def test_v07(self):
+        """The v0.7 format send events as tags when the agent does not support native serialization"""
+        interfaces.library.assert_trace_exists(self.r)
 
-        time1 = 1234567891
-        name1 = "other_event"
-        attributes1 = {
-            "bool": False,
-            "int": 0,
-            "double": 0.0,
-            "array": [5, 6],
-        }
+        meta = self._get_root_span_meta(self.r)
 
-        with test_library:
-            with test_library.start_span(
-                "test",
-                events=[
-                    Event(time_unix_nano=time0, name=name0, attributes=attributes0),
-                    Event(time_unix_nano=time1, name=name1, attributes=attributes1),
-                ],
-            ) as s:
-                pass
+        assert "span_events" not in meta
+        assert "events" in meta
 
-        traces = test_agent.wait_for_num_traces(1)
+    def setup_v04(self):
+        self.r = weblog.get("/add_event")
 
-        trace = find_trace(traces, s.trace_id)
-        assert len(trace) == 1
-        span = find_span(trace, s.span_id)
+    def test_v04(self):
+        """The v0.4 format send events as tags when the agent does not support native serialization"""
+        interfaces.library.assert_trace_exists(self.r)
 
-        span_events = retrieve_events(span)
+        meta = self._get_root_span_meta(self.r)
 
-        assert len(span_events) == 2
+        assert "span_events" not in meta
+        assert "events" in meta
 
-        event = span_events[0]
-        assert event["time_unix_nano"] == time0
-        assert event["name"] == name0
-        assert event["attributes"].get("string") == "bar"
-        assert event["attributes"].get("bool") == True
-        assert event["attributes"].get("int") == 1
-        assert event["attributes"].get("double") == 2.3
-        assert event["attributes"].get("array") == ["a", "b", "c"]
+    def setup_v05(self):
+        self.r = weblog.get("/add_event")
 
-        event = span_events[1]
-        assert event["time_unix_nano"] == time1
-        assert event["name"] == name1
-        assert event["attributes"].get("bool") == False
-        assert event["attributes"].get("int") == 0
-        assert isinstance(event["attributes"].get("int"), int)
-        assert event["attributes"].get("double") == 0.0
-        assert isinstance(event["attributes"].get("double"), float)
-        assert event["attributes"].get("array") == [5, 6]
+    @irrelevant(context.library in ["ruby"], reason="Does not support v0.5")
+    def test_v05(self):
+        """The v0.5 format continues to send events as tags"""
+        interfaces.library.assert_trace_exists(self.r)
+
+        meta = self._get_root_span_meta(self.r)
+
+        assert "span_events" not in meta
+        assert "events" in meta
+
+    def _get_root_span_meta(self, request):
+        root_spans = [s for _, s in interfaces.library.get_root_spans(request=request)]
+        assert len(root_spans) == 1
+        span = root_spans[0]
+        return span.get("meta", {})

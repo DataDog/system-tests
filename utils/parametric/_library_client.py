@@ -118,7 +118,6 @@ class APMLibraryClient:
         resource: Optional[str] = None,
         parent_id: Optional[str] = None,
         typestr: Optional[str] = None,
-        events: Optional[List[Event]],
         tags: Optional[List[Tuple[str, str]]] = None,
     ):
         if context.library == "cpp":
