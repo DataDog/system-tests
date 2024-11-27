@@ -132,7 +132,20 @@ def generate_gitlab_pipeline(language, weblog_name, scenario_name, vms):
             "dependencies": [],
             "script": ["echo 'DONE'"],
         },
+        ".base_job_onboarding_system_tests": {
+            "extends": ".base_job_onboarding",
+            "after_script": [
+                'SCENARIO_SUFIX=$(echo "$SCENARIO" | tr "[:upper:]" "[:lower:]")',
+                'REPORTS_PATH="reports/"',
+                'mkdir -p "$REPORTS_PATH"',
+                'cp -R logs_"${SCENARIO_SUFIX}" $REPORTS_PATH/',
+                'cp logs_"${SCENARIO_SUFIX}"/feature_parity.json "$REPORTS_PATH"/"${SCENARIO_SUFIX}".json',
+                'mv "$REPORTS_PATH"/logs_"${SCENARIO_SUFIX}" "$REPORTS_PATH"/logs_"${TEST_LIBRARY}"_"${ONBOARDING_FILTER_WEBLOG}"_"${SCENARIO_SUFIX}_${DEFAULT_VMS}"',
+            ],
+            "artifacts": {"when": "always", "paths": ["reports/"]},
+        },
     }
+
     if vms:
         pipeline["stages"].append(scenario_name)
 
