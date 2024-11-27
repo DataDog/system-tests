@@ -9,7 +9,12 @@ from utils import context, interfaces, irrelevant, weblog, scenarios, features, 
 @features.span_events
 @scenarios.agent_supporting_span_events
 class Test_SpanEvents_WithAgentSupport:
-    """Test that tracers send natively serialized span events if the agent support it"""
+    """
+    Test that tracers send natively serialized span events if the agent support it.
+
+    Request the Weblog endpoint `/add_event`, which adds a span event (with any name and attributes values)
+    to the request root span.
+    """
 
     def setup_v07(self):
         self.r = weblog.get("/add_event")
@@ -60,7 +65,12 @@ class Test_SpanEvents_WithAgentSupport:
 @features.span_events
 @scenarios.agent_not_supporting_span_events
 class Test_SpanEvents_WithoutAgentSupport:
-    """Test that tracers do not attempt to send natively serialized span events if the agent does not support it"""
+    """
+    Test that tracers do not attempt to send natively serialized span events if the agent does not support it.
+    
+    Request the Weblog endpoint `/add_event`, which adds a span event (with any name and attributes values)
+    to the request root span.
+    """
 
     def setup_v07(self):
         self.r = weblog.get("/add_event")

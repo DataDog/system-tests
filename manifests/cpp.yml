@@ -250,6 +250,7 @@ tests/:
   test_profiling.py:
     Test_Profile: bug (No Content-Disposition, tests do not parse the content correcly)
   test_scrubbing.py: irrelevant
+  test_span_events.py: missing_feature (Weblog `/add_event` not implemented)
   test_standard_tags.py: irrelevant
   test_telemetry.py:
     Test_Log_Generation: missing_feature

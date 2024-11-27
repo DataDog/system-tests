@@ -766,6 +766,7 @@ tests/:
       '*': *ref_3_13_1
       nextjs: missing_feature # nextjs makes some internal requests and we have different tag names
     Test_MetricsStandardTags: *ref_3_13_1
+  test_span_events.py: missing_feature (Weblog `/add_event` not implemented)
   test_standard_tags.py:
     Test_StandardTagsClientIp:
       '*': *ref_3_6_0

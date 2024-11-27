@@ -898,6 +898,7 @@ tests/:
   test_semantic_conventions.py:
     Test_Meta: v1.80.0
     Test_MetaDatadogTags: bug (APMAPI-735)
+  test_span_events.py: missing_feature (Weblog `/add_event` not implemented)
   test_standard_tags.py:
     Test_StandardTagsClientIp: v2.7.0
     Test_StandardTagsMethod: v1.2.1

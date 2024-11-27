@@ -596,6 +596,7 @@ tests/:
     Test_UrlQuery: v1.40.0
   test_semantic_conventions.py:
     Test_Meta: v1.45.0
+  test_span_events.py: missing_feature (Weblog `/add_event` not implemented)
   test_standard_tags.py:
     Test_StandardTagsClientIp: v1.46.0
     Test_StandardTagsMethod: v1.39.0
