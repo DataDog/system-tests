@@ -157,7 +157,6 @@ def generate_gitlab_pipeline(language, weblog_name, scenario_name, vms):
 
         pipeline[scenario_name] = {
             "extends": ".base_job_onboarding_system_tests",
-            "tags": ["runner:$runner"],
             "stage": scenario_name,
             "allow_failure": True,
             "needs": [],
