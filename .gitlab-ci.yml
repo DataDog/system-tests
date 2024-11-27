@@ -1,13 +1,13 @@
 include:
   - remote: https://gitlab-templates.ddbuild.io/libdatadog/include/single-step-instrumentation-tests.yml
 stages:
-  - child_pipelines
-  - ruby_tracer
-  - nodejs_tracer
-  - java_tracer
-  - python_tracer
-  - dotnet_tracer
-  - php_tracer
+  - docker_ssi_pipelines
+  - aws_ssi_pipelines
+  #- nodejs_tracer
+  #- java_tracer
+  #- python_tracer
+  #- dotnet_tracer
+  #- php_tracer
   - stats_results
   - parse_results
   - before_tests
@@ -42,11 +42,49 @@ variables:
       description: "Set the version of the injector to be installed. Use the pipeline id pipeline-${CI_PIPELINE_ID}"
 
 onboarding_nodejs:
-  extends: .base_job_onboarding_system_tests
-  stage: nodejs_tracer
+  extends: .base_job_onboarding
+  stage: aws_ssi_pipelines
   allow_failure: true
-  dependencies: []
-  timeout: 90 minutes
+  needs: []
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule" && ($ONLY_TEST_LIBRARY == "" || $ONLY_TEST_LIBRARY == "nodejs")
+      when: always
+    - when: manual
+  variables:
+    TEST_LIBRARY: "nodejs"
+    ONBOARDING_FILTER_WEBLOG: "test-app-nodejs"
+    SCENARIO: "HOST_AUTO_INJECTION_INSTALL_SCRIPT"
+  script:
+      - ./build.sh -i runner
+      - ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws --report-run-url ${CI_PIPELINE_URL} --report-environment ${ONBOARDING_FILTER_ENV} --vm-default-vms All --vm-gitlab-pipeline
+  after_script:
+    - SCENARIO_SUFIX=$(echo "$SCENARIO" | tr '[:upper:]' '[:lower:]')
+    - cp -R logs_"${SCENARIO_SUFIX}"/gitlab_pipeline.yml .
+  artifacts:
+    paths:
+      - gitlab_pipeline.yml
+
+aws_ssi_pipeline:
+  stage: aws_ssi_pipelines
+  needs: ["onboarding_nodejs"]
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+      when: always
+    - when: manual
+      allow_failure: true
+  variables:
+    PARENT_PIPELINE_SOURCE: $CI_PIPELINE_SOURCE
+  trigger:
+    include:
+      - artifact: gitlab_pipeline.yml
+        job: onboarding_nodejs
+    strategy: depend
+
+.onboarding_nodejs:
+  extends: .base_job_onboarding_system_tests
+  stage: aws_ssi_pipelines
+  allow_failure: true
+  needs: []
   rules:
     - if: $CI_PIPELINE_SOURCE == "schedule" && ($ONLY_TEST_LIBRARY == "" || $ONLY_TEST_LIBRARY == "nodejs")
       when: always
@@ -59,27 +97,21 @@ onboarding_nodejs:
           SCENARIO:
             - HOST_AUTO_INJECTION_INSTALL_SCRIPT
             - HOST_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING
-          DEFAULT_VMS: ["True", "False"]
         - ONBOARDING_FILTER_WEBLOG: [test-app-nodejs-multicontainer]
           SCENARIO:
             - CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT
             - CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING
-          DEFAULT_VMS: ["True", "False"]
         - ONBOARDING_FILTER_WEBLOG: [test-app-nodejs,test-app-nodejs-container]
           SCENARIO: [INSTALLER_AUTO_INJECTION,SIMPLE_AUTO_INJECTION_PROFILING]
-          DEFAULT_VMS: ["True", "False"]
         - ONBOARDING_FILTER_WEBLOG: [test-app-nodejs-16, test-app-nodejs-unsupported-defaults]
           SCENARIO: [INSTALLER_NOT_SUPPORTED_AUTO_INJECTION]
-          DEFAULT_VMS: ["True", "False"]
         - ONBOARDING_FILTER_WEBLOG: [test-app-nodejs]
           SCENARIO: [CHAOS_INSTALLER_AUTO_INJECTION]
-          DEFAULT_VMS: ["True", "False"]
         - ONBOARDING_FILTER_WEBLOG: [test-app-nodejs-multicontainer,test-app-nodejs-esm]
           SCENARIO: [SIMPLE_INSTALLER_AUTO_INJECTION]
-          DEFAULT_VMS: ["True", "False"]
   script:
       - ./build.sh -i runner
-      - timeout 4800s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws --report-run-url ${CI_PIPELINE_URL} --report-environment ${ONBOARDING_FILTER_ENV} --vm-default-vms ${DEFAULT_VMS}
+      - ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws --report-run-url ${CI_PIPELINE_URL} --report-environment ${ONBOARDING_FILTER_ENV} --vm-default-vms All --vm-gitlab-pipeline
 
 onboarding_java:
   extends: .base_job_onboarding_system_tests
@@ -359,7 +391,7 @@ generate_system_tests_images:
 
 generate_docker_ssi_pipeline:
   image: 486234852809.dkr.ecr.us-east-1.amazonaws.com/ci/test-infra-definitions/runner:a58cc31c
-  stage: child_pipelines
+  stage: docker_ssi_pipelines
   tags: ["arch:amd64"]
   needs: []
   script:
@@ -369,7 +401,7 @@ generate_docker_ssi_pipeline:
       - ssi_pipeline.yml
 
 docker_ssi_pipeline:
-  stage: child_pipelines
+  stage: docker_ssi_pipelines
   needs: ["generate_docker_ssi_pipeline"]
   rules:
     - if: $CI_PIPELINE_SOURCE == "schedule"

@@ -118,3 +118,19 @@ def nginx_parser(nginx_config_file):
                                         # convert string to  object
                                         json_object = json.loads(return_args[1].replace("'", '"'))
                                         return json_object["apps"]
+
+
+def generate_gitlab_pipeline(language, weblog_name, scenario_name, vms):
+    pipeline = {
+        "stages": ["dummy"],
+        # A dummy job is necessary for cases where all of the test jobs are manual
+        # The child pipeline shows as failed until at least 1 job is run
+        "dummy": {
+            "image": "registry.ddbuild.io/docker:20.10.13-gbi-focal",
+            "tags": ["arch:amd64"],
+            "stage": "dummy",
+            "dependencies": [],
+            "script": ["echo 'DONE'"],
+        },
+    }
+    return pipeline

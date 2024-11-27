@@ -48,6 +48,10 @@ def pytest_addoption(parser):
     parser.addoption("--vm-only-branch", type=str, action="store", help="Filter to execute only one vm branch")
     parser.addoption("--vm-skip-branches", type=str, action="store", help="Filter exclude vm branches")
     parser.addoption(
+        "--vm-gitlab-pipeline", action="store_true", help="Generate pipeline for Gitlab CI. Not run the tests"
+    )
+
+    parser.addoption(
         "--vm-default-vms",
         type=str,
         action="store",
@@ -266,7 +270,7 @@ def pytest_collection_modifyitems(session, config, items: list[pytest.Item]):
         declared_scenarios[item.nodeid] = declared_scenario
 
         # If we are running scenario with the option sleep, we deselect all
-        if session.config.option.sleep:
+        if session.config.option.sleep or session.config.option.vm_gitlab_pipeline:
             deselected.append(item)
             continue
 
