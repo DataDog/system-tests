@@ -171,7 +171,8 @@ def _collect_item_metadata(item):
         elif result["details"].startswith("bug"):
             result["testDeclaration"] = "bug"
         elif result["details"].startswith("incomplete_test_app"):
-            result["testDeclaration"] = "incompleteTestApp"
+            # TODO: update test declaration to incompleteTestApp (after the FPD is ready to support this type)
+            result["testDeclaration"] = "notImplemented"
         elif result["details"].startswith("missing_feature"):
             result["testDeclaration"] = "notImplemented"
         elif "got empty parameter set" in result["details"]:
