@@ -35,7 +35,7 @@ class Test_Automated_User_Tracking:
             meta = span.get("meta", {})
             assert meta["usr.id"] == "social-security-id"
             assert meta["_dd.appsec.usr.id"] == "social-security-id"
-            assert meta["_dd.appsec.user.collection_mode"] == "ident"
+            assert meta["_dd.appsec.user.collection_mode"] == "identification"
 
     def setup_user_tracking_sdk_overwrite(self):
         self.r_login = weblog.post("/login?auth=local&sdk_event=success&sdk_user=sdkUser", data=login_data(context))
