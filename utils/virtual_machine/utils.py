@@ -153,17 +153,16 @@ def generate_gitlab_pipeline(language, weblog_name, scenario_name, vms):
         pipeline["stages"].append(scenario_name)
 
         for vm in vms:
-            pass
-
-        pipeline[scenario_name] = {
-            "extends": ".base_job_onboarding_system_tests",
-            "stage": scenario_name,
-            "allow_failure": True,
-            "needs": [],
-            "variables": {"TEST_LIBRARY": language, "SCENARIO": scenario_name, "WEBLOG": weblog_name},
-            "script": [
-                "./build.sh -i runner",
-                "./run.sh $SCENARIO --vm-weblog $WEBLOG --vm-env prod --vm-library $TEST_LIBRARY --vm-provider aws --report-run-url ${CI_PIPELINE_URL} --report-environment prod --vm-default-vms All",
-            ],
-        }
+            pipeline[f"${scenario_name}_${vm.name}"] = {
+                "extends": ".base_job_onboarding_system_tests",
+                "stage": scenario_name,
+                "allow_failure": True,
+                "needs": [],
+                "variables": {"TEST_LIBRARY": language, "SCENARIO": scenario_name, "WEBLOG": weblog_name},
+                "script": [
+                    "./build.sh -i runner",
+                    "./run.sh $SCENARIO --vm-weblog $WEBLOG --vm-env prod --vm-library $TEST_LIBRARY --vm-provider aws --report-run-url ${CI_PIPELINE_URL} --report-environment prod --vm-only "
+                    + vm.name,
+                ],
+            }
     return pipeline

@@ -232,6 +232,7 @@ class _VirtualMachineScenario(Scenario):
             config.option.vm_only_branch,
             config.option.vm_skip_branches,
             self.only_default_vms,
+            config.option.vm_only,
         )
         for vm in self.required_vms:
             logger.info(f"Adding provision for {vm.name}")
