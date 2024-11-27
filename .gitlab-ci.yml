@@ -204,7 +204,9 @@ onboarding_ruby:
   extends: .base_job_onboarding_system_tests
   stage: ruby_tracer
   allow_failure: true
-  dependencies: []
+  # Set `needs: []` so we don't have to wait for `child_pipelines` to start
+  # Keep the other jobs with `dependencies: []` so they run in serial based on stage order
+  needs: []
   timeout: 90 minutes
   rules:
     - if: $CI_PIPELINE_SOURCE == "schedule" && ($ONLY_TEST_LIBRARY == "" || $ONLY_TEST_LIBRARY == "ruby")
