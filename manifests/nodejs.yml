@@ -73,6 +73,7 @@ tests/:
         Test_Schema_Request_Cookies: *ref_4_21_0
         Test_Schema_Request_FormUrlEncoded_Body:
           express4: *ref_4_21_0
+          express5: *ref_4_21_0
           express4-typescript: *ref_4_21_0
           nextjs: *ref_5_3_0
         Test_Schema_Request_Headers: *ref_4_21_0
@@ -168,6 +169,7 @@ tests/:
         test_nosql_mongodb_injection.py:
           TestNoSqlMongodbInjection:
             '*': *ref_4_17_0
+            express5: missing_feature
             nextjs: missing_feature
           TestNoSqlMongodbInjection_StackTrace: missing_feature
         test_path_traversal.py:
@@ -253,6 +255,7 @@ tests/:
         test_graphql_resolver.py:
           TestGraphqlResolverArgument:
             '*': *ref_5_4_0
+            express5: missing_feature
             nextjs: irrelevant # nextjs is not related with graphql
         test_header_name.py:
           TestHeaderName: missing_feature
@@ -394,6 +397,7 @@ tests/:
         Test_FullGrpc: missing_feature
         Test_GraphQL:
           '*': *ref_4_22_0
+          express5: missing_feature
           nextjs: irrelevant # nextjs is not related with graphql
         Test_GrpcServerMethod: missing_feature
         Test_Headers: v2.0.0
@@ -459,6 +463,7 @@ tests/:
     test_blocking_addresses.py:
       Test_BlockingGraphqlResolvers:
         '*': *ref_4_22_0
+        express5: missing_feature
         nextjs: irrelevant # nextjs is not related with graphql
       Test_Blocking_client_ip: *ref_3_19_0
       Test_Blocking_request_body:
@@ -574,52 +579,65 @@ tests/:
         Test_Kafka:
           '*': irrelevant
           express4: v0.1 # real version not known
+          express5: v0.1 # real version not known
       test_kinesis.py:
         Test_Kinesis_PROPAGATION_VIA_MESSAGE_ATTRIBUTES:
           '*': irrelevant
           express4: *ref_5_3_0
+          express5: *ref_5_3_0
       test_rabbitmq.py:
         Test_RabbitMQ_Trace_Context_Propagation:
           '*': irrelevant
           express4: v0.1 # real version not known
+          express5: v0.1 # real version not known
       test_sns_to_sqs.py:
         Test_SNS_Propagation:
           '*': irrelevant
           express4: *ref_5_20_0
+          express5: *ref_5_20_0
       test_sqs.py:
         Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS:
           '*': irrelevant
           express4: v0.1 # real version not known
+          express5: v0.1 # real version not known
         Test_SQS_PROPAGATION_VIA_MESSAGE_ATTRIBUTES:
           '*': irrelevant
           express4: v0.1 # real version not known
+          express5: v0.1 # real version not known
     test_db_integrations_sql.py:
       Test_MsSql:
         '*': missing_feature
         express4: v1.0.0
+        express5: v1.0.0
       Test_MySql:
         '*': missing_feature
         express4: v1.0.0
+        express5: v1.0.0
       Test_Postgres:
         '*': missing_feature
         express4: v1.0.0
+        express5: v1.0.0
     test_dbm.py:
       Test_Dbm: missing_feature
       Test_Dbm_Comment_NodeJS_mysql2:
         '*': missing_feature (Missing on weblog)
         express4: *ref_5_13_0
+        express5: *ref_5_13_0
         uds-express4: *ref_5_13_0
       Test_Dbm_Comment_NodeJS_pg:
         '*': missing_feature (Missing on weblog)
         express4: *ref_5_13_0
+        express5: *ref_5_13_0
         uds-express4: *ref_5_13_0
     test_dsm.py:
       Test_DsmContext_Extraction_Base64:
         '*': irrelevant
         express4: *ref_5_6_0
+        express5: *ref_5_6_0
       Test_DsmContext_Injection_Base64:
         '*': irrelevant
         express4: *ref_5_6_0
+        express5: *ref_5_6_0
       Test_DsmHttp: missing_feature
       Test_DsmKafka:
         '*': *ref_5_25_0
@@ -627,31 +645,40 @@ tests/:
       Test_DsmKinesis:
         '*': irrelevant
         express4: *ref_5_2_0
+        express5: *ref_5_2_0
       Test_DsmRabbitmq:
         '*': irrelevant
         express4: *ref_5_3_0
+        express5: *ref_5_3_0
       Test_DsmRabbitmq_FanoutExchange:
         '*': irrelevant
         express4: missing_feature
+        express5: missing_feature
       Test_DsmRabbitmq_TopicExchange:
         '*': irrelevant
         express4: missing_feature
+        express5: missing_feature
       Test_DsmSNS:
         '*': irrelevant
         express4: *ref_5_20_0
+        express5: *ref_5_20_0
       Test_DsmSQS:
         '*': irrelevant
         express4: *ref_5_2_0
+        express5: *ref_5_2_0
       Test_Dsm_Manual_Checkpoint_Inter_Process:
         '*': irrelevant
         express4: *ref_5_20_0
+        express5: *ref_5_20_0
       Test_Dsm_Manual_Checkpoint_Intra_Process:
         '*': irrelevant
         express4: *ref_5_20_0
+        express5: *ref_5_20_0
     test_inferred_proxy.py:
       Test_AWS_API_Gateway_Inferred_Span_Creation:
           '*': irrelevant
           express4: *ref_5_26_0
+          express5: *ref_5_26_0
     test_otel_drop_in.py:
       Test_Otel_Drop_In: missing_feature
   k8s_lib_injection/:

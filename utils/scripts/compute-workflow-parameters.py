@@ -76,7 +76,7 @@ def get_endtoend_weblogs(library):
             "vertx4",
             "uds-spring-boot",
         ],
-        "nodejs": ["express4", "uds-express4", "express4-typescript", "nextjs"],
+        "nodejs": ["express4", "uds-express4", "express4-typescript", "express5", "nextjs"],
         "php": [
             *[f"apache-mod-{v}" for v in ["7.0", "7.1", "7.2", "7.3", "7.4", "8.0", "8.1", "8.2"]],
             *[f"apache-mod-{v}-zts" for v in ["7.0", "7.1", "7.2", "7.3", "7.4", "8.0", "8.1", "8.2"]],

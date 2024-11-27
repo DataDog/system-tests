@@ -16,7 +16,7 @@ class TestWeakCipher(BaseSinkTest):
     data = None
     location_map = {
         "java": "com.datadoghq.system_tests.iast.utils.CryptoExamples",
-        "nodejs": {"express4": "iast/index.js", "express4-typescript": "iast.ts"},
+        "nodejs": {"express4": "iast/index.js", "express5": "iast/index.js", "express4-typescript": "iast.ts"},
     }
     evidence_map = {"nodejs": "des-ede-cbc", "java": "Blowfish"}
 

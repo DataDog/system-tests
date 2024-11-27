@@ -15,7 +15,7 @@ class TestNoSamesiteCookie(BaseSinkTest):
     insecure_endpoint = "/iast/no-samesite-cookie/test_insecure"
     secure_endpoint = "/iast/no-samesite-cookie/test_secure"
     data = {}
-    location_map = {"nodejs": {"express4": "iast/index.js", "express4-typescript": "iast.ts"}}
+    location_map = {"nodejs": {"express4": "iast/index.js", "express5": "iast/index.js", "express4-typescript": "iast.ts"}}
 
     @bug(context.library < "java@1.18.3", reason="APMRP-360")
     def test_secure(self):

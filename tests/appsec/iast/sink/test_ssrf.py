@@ -17,7 +17,7 @@ class TestSSRF(BaseSinkTest):
     data = {"url": "https://www.datadoghq.com"}
     location_map = {
         "java": "com.datadoghq.system_tests.iast.utils.SsrfExamples",
-        "nodejs": {"express4": "iast/index.js", "express4-typescript": "iast.ts"},
+        "nodejs": {"express4": "iast/index.js", "express5": "iast/index.js", "express4-typescript": "iast.ts"},
         "python": {"flask-poc": "app.py", "django-poc": "app/urls.py"},
     }
 

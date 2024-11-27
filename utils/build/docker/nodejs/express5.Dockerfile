@@ -7,7 +7,7 @@ RUN uname -r
 # print versions
 RUN node --version && npm --version && curl --version
 
-COPY utils/build/docker/nodejs/express4 /usr/app
+COPY utils/build/docker/nodejs/express5 /usr/app
 
 WORKDIR /usr/app
 

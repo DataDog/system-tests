@@ -16,7 +16,7 @@ class Test_HardcodedPasswords:
     """Test Hardcoded passwords detection."""
 
     location_map = {
-        "nodejs": {"express4": "iast/index.js", "express4-typescript": "iast.ts", "uds-express4": "iast/index.js"},
+        "nodejs": {"express4": "iast/index.js", "express5": "iast/index.js", "express4-typescript": "iast.ts", "uds-express4": "iast/index.js"},
     }
 
     insecure_request = None
