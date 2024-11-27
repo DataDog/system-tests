@@ -112,11 +112,11 @@ def _should_skip(condition=None, library=None, weblog_variant=None):
     return True
 
 
-def decorator(skip, condition, decorator_type, reason, ensure_jira, callback, function_or_class):
+def decorator(skip, condition, decorator_type, reason, callback, function_or_class):
     if inspect.isclass(function_or_class):
         assert condition is not None, _MANIFEST_ERROR_MESSAGE
 
-    if ensure_jira:
+    if decorator_type in ("bug", "flaky"):
         _ensure_jira_ticket_as_reason(function_or_class, reason)
 
     if not skip:
@@ -130,14 +130,14 @@ def missing_feature(condition=None, library=None, weblog_variant=None, reason=No
     """decorator, allow to mark a test function/class as missing"""
 
     skip = _should_skip(library=library, weblog_variant=weblog_variant, condition=condition)
-    return partial(decorator, skip, condition, "missing_feature", reason, False, _get_expected_failure_item)
+    return partial(decorator, skip, condition, "missing_feature", reason, _get_expected_failure_item)
 
 
 def irrelevant(condition=None, library=None, weblog_variant=None, reason=None):
     """decorator, allow to mark a test function/class as not relevant"""
 
     skip = _should_skip(library=library, weblog_variant=weblog_variant, condition=condition)
-    return partial(decorator, skip, condition, "irrelevant", reason, False, _get_skipped_item)
+    return partial(decorator, skip, condition, "irrelevant", reason, _get_skipped_item)
 
 
 def bug(condition=None, library=None, weblog_variant=None, reason=None):
@@ -147,21 +147,21 @@ def bug(condition=None, library=None, weblog_variant=None, reason=None):
     """
 
     expected_to_fail = _should_skip(library=library, weblog_variant=weblog_variant, condition=condition)
-    return partial(decorator, expected_to_fail, condition, "bug", reason, True, _get_expected_failure_item)
+    return partial(decorator, expected_to_fail, condition, "bug", reason, _get_expected_failure_item)
 
 
 def flaky(condition=None, library=None, weblog_variant=None, reason=None):
     """Decorator, allow to mark a test function/class as a known bug, and skip it"""
 
     skip = _should_skip(library=library, weblog_variant=weblog_variant, condition=condition)
-    return partial(decorator, skip, condition, "flaky", reason, True, _get_skipped_item)
+    return partial(decorator, skip, condition, "flaky", reason, _get_skipped_item)
 
 
 def incomplete_test_app(condition=None, library=None, weblog_variant=None, reason=None):
     """Decorator, allow to mark a test function/class as not compatible with the tested application"""
 
     skip = _should_skip(library=library, weblog_variant=weblog_variant, condition=condition)
-    return partial(decorator, skip, condition, "incomplete_test_app", reason, False, _get_expected_failure_item)
+    return partial(decorator, skip, condition, "incomplete_test_app", reason, _get_expected_failure_item)
 
 
 def released(
