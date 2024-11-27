@@ -4,6 +4,7 @@
 
 from utils import context, interfaces, irrelevant, weblog, scenarios, features, rfc
 
+
 @rfc("https://docs.google.com/document/d/1cVod_VI7Yruq8U9dfMRFJd7npDu-uBpste2IB04GyaQ")
 @features.span_events
 @scenarios.agent_supporting_span_events
@@ -13,7 +14,7 @@ class Test_SpanEvents_WithAgentSupport:
     def setup_v07(self):
         self.r = weblog.get("/add_event")
 
-    @irrelevant(context.library in ["ruby"],reason="Does not support v0.7")
+    @irrelevant(context.library in ["ruby"], reason="Does not support v0.7")
     def test_v07(self):
         """The v0.7 format send events as a top-levle `span_events` when the agent supports native serialization"""
         interfaces.library.assert_trace_exists(self.r)
@@ -55,6 +56,7 @@ class Test_SpanEvents_WithAgentSupport:
         assert len(root_spans) == 1
         return root_spans
 
+
 @features.span_events
 @scenarios.agent_not_supporting_span_events
 class Test_SpanEvents_WithoutAgentSupport:
@@ -63,7 +65,7 @@ class Test_SpanEvents_WithoutAgentSupport:
     def setup_v07(self):
         self.r = weblog.get("/add_event")
 
-    @irrelevant(context.library in ["ruby"],reason="Does not support v0.7")
+    @irrelevant(context.library in ["ruby"], reason="Does not support v0.7")
     def test_v07(self):
         """The v0.7 format send events as tags when the agent does not support native serialization"""
         interfaces.library.assert_trace_exists(self.r)

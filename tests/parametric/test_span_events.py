@@ -102,14 +102,18 @@ class Test_Span_Events:
 
         with test_library:
             with test_library.dd_start_span("test") as s:
-                s.add_event("name", timestamp=123, attributes={
-                    "int": 1,
-                    "invalid_arr1": [1, "a"],
-                    "invalid_arr2": [[1]],
-                    "invalid_int1": 2<<65,
-                    "invalid_int2": -2<<65,
-                    "string": "bar"
-                })
+                s.add_event(
+                    "name",
+                    timestamp=123,
+                    attributes={
+                        "int": 1,
+                        "invalid_arr1": [1, "a"],
+                        "invalid_arr2": [[1]],
+                        "invalid_int1": 2 << 65,
+                        "invalid_int2": -2 << 65,
+                        "string": "bar",
+                    },
+                )
 
         traces = test_agent.wait_for_num_traces(1)
 
