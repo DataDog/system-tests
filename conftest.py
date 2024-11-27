@@ -428,6 +428,12 @@ def pytest_sessionfinish(session, exitstatus):
         except Exception:
             logger.exception("Fail to export export reports", exc_info=True)
 
+    if session.config.option.vm_gitlab_pipeline:
+        NO_TESTS_COLLECTED = 5
+        SUCCESS = 0
+        if exitstatus == NO_TESTS_COLLECTED:
+            session.exitstatus = SUCCESS
+
 
 def export_feature_parity_dashboard(session, data):
 
