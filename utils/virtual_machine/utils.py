@@ -161,7 +161,7 @@ def generate_gitlab_pipeline(language, weblog_name, scenario_name, vms):
                 "variables": {"TEST_LIBRARY": language, "SCENARIO": scenario_name, "WEBLOG": weblog_name},
                 "script": [
                     "./build.sh -i runner",
-                    "./run.sh $SCENARIO --vm-weblog $WEBLOG --vm-env prod --vm-library $TEST_LIBRARY --vm-provider aws --report-run-url ${CI_PIPELINE_URL} --report-environment prod --vm-only "
+                    "./run.sh $SCENARIO --vm-weblog $WEBLOG --vm-env prod --vm-library $TEST_LIBRARY --vm-provider aws --report-run-url ${CI_PIPELINE_URL} --report-environment prod --vm-default-vms All --vm-only "
                     + vm.name,
                 ],
             }
