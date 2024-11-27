@@ -122,6 +122,9 @@ def nginx_parser(nginx_config_file):
 
 def generate_gitlab_pipeline(language, weblog_name, scenario_name, vms):
     pipeline = {
+        "include": [
+            {"remote": "https://gitlab-templates.ddbuild.io/libdatadog/include/single-step-instrumentation-tests.yml"}
+        ],
         "stages": ["dummy"],
         # A dummy job is necessary for cases where all of the test jobs are manual
         # The child pipeline shows as failed until at least 1 job is run
