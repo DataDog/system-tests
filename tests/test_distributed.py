@@ -28,7 +28,7 @@ class Test_DistributedHttp:
         assert "x-datadog-trace-id" not in data["request_headers"]
 
 
-@scenarios.trace_propagation_style_w3c_datadog_b3
+@scenarios.tracing_config_nondefault
 @features.w3c_headers_injection_and_extraction
 class Test_Span_Links_From_Conflicting_Contexts:
     """Verify headers containing conflicting trace context information are added as span links"""
@@ -157,7 +157,7 @@ class Test_Span_Links_From_Conflicting_Contexts:
         assert len(trace) == 0
 
 
-@scenarios.trace_propagation_style_datadog_w3c_b3
+@scenarios.tracing_config_nondefault_2
 @features.w3c_headers_injection_and_extraction
 class Test_Span_Links_From_Conflicting_Contexts_Datadog_Precedence:
     """Verify headers containing conflicting trace context information are added as span links with Datadog headers taking precedence"""
@@ -204,7 +204,7 @@ class Test_Span_Links_From_Conflicting_Contexts_Datadog_Precedence:
         assert link2["trace_id_high"] == 1229782938247303441
 
 
-@scenarios.trace_propagation_style_w3c_datadog_b3
+@scenarios.tracing_config_nondefault
 @features.w3c_headers_injection_and_extraction
 class Test_Span_Links_Flags_From_Conflicting_Contexts:
     """Verify span links created from conflicting header contexts have the correct flags set"""
@@ -244,7 +244,7 @@ class Test_Span_Links_Flags_From_Conflicting_Contexts:
         assert link2["flags"] == 0 | TRACECONTEXT_FLAGS_SET
 
 
-@scenarios.trace_propagation_style_w3c_datadog_b3
+@scenarios.tracing_config_nondefault
 @features.w3c_headers_injection_and_extraction
 class Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts:
     """Verify span links created from conflicting header contexts properly omit the tracestate when conflicting propagator is not W3C"""

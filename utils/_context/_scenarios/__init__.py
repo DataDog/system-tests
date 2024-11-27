@@ -105,26 +105,6 @@ class scenarios:
         doc="Test W3C trace style",
     )
 
-    trace_propagation_style_w3c_datadog_b3 = EndToEndScenario(
-        "TRACE_PROPAGATION_STYLE_W3C_DATADOG_B3",
-        weblog_env={
-            "DD_TRACE_PROPAGATION_STYLE_INJECT": "tracecontext,datadog,b3multi",
-            "DD_TRACE_PROPAGATION_STYLE_EXTRACT": "tracecontext,datadog,b3multi",
-        },
-        doc="Test compound propagation trace style with w3c headers first",
-        scenario_groups=[ScenarioGroup.TRACING_CONFIG, ScenarioGroup.ESSENTIALS],
-    )
-
-    trace_propagation_style_datadog_w3c_b3 = EndToEndScenario(
-        "TRACE_PROPAGATION_STYLE_DATADOG_W3C_B3",
-        weblog_env={
-            "DD_TRACE_PROPAGATION_STYLE_INJECT": "datadog,tracecontext,b3multi",
-            "DD_TRACE_PROPAGATION_STYLE_EXTRACT": "datadog,tracecontext,b3multi",
-        },
-        doc="Test compound propagation trace style with Datadog headers first",
-        scenario_groups=[ScenarioGroup.TRACING_CONFIG, ScenarioGroup.ESSENTIALS],
-    )
-
     # Telemetry scenarios
     telemetry_dependency_loaded_test_for_dependency_collection_disabled = EndToEndScenario(
         "TELEMETRY_DEPENDENCY_LOADED_TEST_FOR_DEPENDENCY_COLLECTION_DISABLED",
@@ -528,6 +508,7 @@ class scenarios:
             "DD_TRACE_KAFKA_ENABLED": "false",  # Using Kafka as is the most common endpoint and integration(missing for PHP).
             "DD_TRACE_KAFKAJS_ENABLED": "false",  # In Node the integration is kafkajs.
             "DD_TRACE_PDO_ENABLED": "false",  # Use PDO for PHP,
+            "DD_TRACE_PROPAGATION_STYLE_EXTRACT": "tracecontext,datadog,b3multi",
         },
         include_kafka=True,
         include_postgres_db=True,
@@ -544,6 +525,7 @@ class scenarios:
             "DD_TRACE_PDO_ENABLED": "true",  # Use PDO for PHP
             "DD_TRACE_CLIENT_IP_HEADER": "custom-ip-header",
             "DD_TRACE_CLIENT_IP_ENABLED": "true",
+            "DD_TRACE_PROPAGATION_STYLE_EXTRACT": "datadog,tracecontext,b3multi",
         },
         include_kafka=True,
         include_postgres_db=True,
