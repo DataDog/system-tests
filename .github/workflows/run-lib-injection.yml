@@ -125,7 +125,7 @@ jobs:
           weblog: ${{ fromJson(needs.compute-matrix.outputs.matrix) }}
           lib_init_image: ${{ fromJson(needs.compute-matrix.outputs.init_image) }}
           exclude:
-            - weblog: '{"name":"dd-djm-spark-test-app", "supported":"true", "skip-profiling":"true", "skip-basic":"true"}'
+            - weblog: {"name":"dd-djm-spark-test-app", "supported":"true", "skip-profiling":"true", "skip-basic":"true"}
       fail-fast: false
     env:
       TEST_LIBRARY: ${{ inputs.library }}
