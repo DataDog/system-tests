@@ -15,10 +15,9 @@ class BaseAutoInjectChaos(base.AutoInjectBaseTest):
         After breaking the installation, we can restart the app
         After restores the installation, the app should be working and sending traces to the backend."""
 
-        vm_ip = virtual_machine.ssh_config.hostname
+        vm_ip = virtual_machine.get_ip()
         vm_port = virtual_machine.deffault_open_port
         weblog_url = f"http://{vm_ip}:{vm_port}/"
-
         # Weblog start command. If it's a ruby tracer, we must to rebuild the app before restart it
         weblog_start_command = "sudo systemctl start test-app.service"
         if context.scenario.library.library in ["ruby", "python", "dotnet"]:
@@ -92,7 +91,7 @@ class TestAutoInjectChaos(BaseAutoInjectChaos):
         bugs=[
             {"vm_branch": "amazon_linux2", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
             {"vm_branch": "centos_7_amd64", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
-            {"vm_branch": "redhat_8_6", "vm_cpu": "arm64", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
+            {"vm_branch": "redhat", "vm_cpu": "arm64", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
         ]
     )
     def test_install_after_ld_preload(self, virtual_machine):
@@ -103,11 +102,10 @@ class TestAutoInjectChaos(BaseAutoInjectChaos):
 
     @parametrize_virtual_machines(
         bugs=[
-            {"weblog_variant": "test-app-dotnet", "reason": "AIT-8620"},
             {"vm_name": "AlmaLinux_8_arm64", "weblog_variant": "test-app-python-alpine", "reason": "APMON-1576"},
             {"vm_branch": "amazon_linux2", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
             {"vm_branch": "centos_7_amd64", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
-            {"vm_branch": "redhat_8_6", "vm_cpu": "arm64", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
+            {"vm_branch": "redhat", "vm_cpu": "arm64", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
         ]
     )
     def test_remove_ld_preload(self, virtual_machine):

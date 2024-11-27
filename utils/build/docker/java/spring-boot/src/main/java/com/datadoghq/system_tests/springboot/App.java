@@ -28,6 +28,7 @@ import datadog.trace.api.interceptor.MutableSpan;
 
 
 import java.nio.charset.StandardCharsets;
+import org.springframework.boot.autoconfigure.r2dbc.R2dbcAutoConfiguration;
 import org.springframework.web.server.ResponseStatusException;
 
 
@@ -114,7 +115,7 @@ import static java.time.temporal.ChronoUnit.SECONDS;
 
 
 @RestController
-@EnableAutoConfiguration
+@EnableAutoConfiguration(exclude = R2dbcAutoConfiguration.class)
 @ComponentScan(basePackages = {"com.datadoghq.system_tests.springboot"})
 public class App {
 
@@ -1082,6 +1083,14 @@ public class App {
                 throw new UnsupportedOperationException("Operation " + operation + " not allowed");
         }
 
+        return "OK";
+    }
+
+    @RequestMapping("/otel_drop_in")
+    public String otelDropInSpan() {
+        // exercise OpenTelemetry's R2DBC support on Java
+        db_sql_integrations("reactive_postgresql", "init");
+        db_sql_integrations("reactive_postgresql", "select");
         return "OK";
     }
 

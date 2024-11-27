@@ -10,6 +10,7 @@ const app = require('express')()
 const axios = require('axios')
 const fs = require('fs')
 const passport = require('passport')
+const crypto = require('crypto')
 
 const iast = require('./iast')
 const dsm = require('./dsm')
@@ -18,6 +19,7 @@ const { spawnSync } = require('child_process')
 const pgsql = require('./integrations/db/postgres')
 const mysql = require('./integrations/db/mysql')
 const mssql = require('./integrations/db/mssql')
+const apiGateway = require('./integrations/api_gateway')
 
 const multer = require('multer')
 const uploadToMemory = multer({ storage: multer.memoryStorage(), limits: { fileSize: 200000 } })
@@ -188,6 +190,12 @@ try {
   dsm.initRoutes(app, tracer)
 } catch (e) {
   console.error('DSM routes initialization has failed', e)
+}
+
+try {
+  apiGateway.initRoutes(app, tracer)
+} catch (e) {
+  console.error('Api Gateway routes initialization has failed', e)
 }
 
 app.get('/kafka/produce', (req, res) => {
@@ -450,6 +458,16 @@ app.get('/flush', (req, res) => {
 
 app.get('/requestdownstream', async (req, res) => {
   try {
+    const resFetch = await axios.get('http://127.0.0.1:7777/returnheaders')
+    return res.json(resFetch.data)
+  } catch (e) {
+    return res.status(500).send(e)
+  }
+})
+
+app.get('/vulnerablerequestdownstream', async (req, res) => {
+  try {
+    crypto.createHash('md5').update('password').digest('hex')
     const resFetch = await axios.get('http://127.0.0.1:7777/returnheaders')
     return res.json(resFetch.data)
   } catch (e) {

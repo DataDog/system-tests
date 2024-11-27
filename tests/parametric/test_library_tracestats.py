@@ -19,10 +19,9 @@ parametrize = pytest.mark.parametrize
 
 def _human_stats(stats: V06StatsAggr) -> str:
     """Return human-readable stats for debugging stat aggregations."""
-    copy = stats.copy()
-    del copy["ErrorSummary"]
-    del copy["OkSummary"]
-    return str(copy)
+    # Create a copy excluding 'ErrorSummary' and 'OkSummary' since TypedDicts don't allow delete
+    filtered_copy = {k: v for k, v in stats.items() if k not in {"ErrorSummary", "OkSummary"}}
+    return str(filtered_copy)
 
 
 def enable_tracestats(sample_rate: Optional[float] = None) -> Any:
@@ -56,7 +55,7 @@ class Test_Library_Tracestats:
                 {error_count, hit_count, ok/error latency distributions, duration}
         """
         with test_library:
-            with test_library.start_span(name="web.request", resource="/users", service="webserver"):
+            with test_library.dd_start_span(name="web.request", resource="/users", service="webserver"):
                 pass
 
         raw_requests = test_agent.requests()
@@ -103,7 +102,7 @@ class Test_Library_Tracestats:
     @missing_feature(context.library == "nodejs", reason="nodejs has not implemented stats computation yet")
     @missing_feature(context.library == "php", reason="php has not implemented stats computation yet")
     @missing_feature(context.library == "ruby", reason="ruby has not implemented stats computation yet")
-    def test_distinct_aggregationkeys_TS003(self, library_env, test_agent, test_library, test_server):
+    def test_distinct_aggregationkeys_TS003(self, library_env, test_agent, test_library):
         """
         When spans are created with a unique set of dimensions
             Each span has stats computed for it and is in its own bucket
@@ -118,49 +117,50 @@ class Test_Library_Tracestats:
 
         with test_library:
             # Baseline
-            with test_library.start_span(
-                name=name, resource=resource, service=service, typestr=type, origin=origin
-            ) as span:
+            with test_library.dd_start_span(name=name, resource=resource, service=service, typestr=type,) as span:
+                span.set_meta(key="_dd.origin", val=origin)
                 span.set_meta(key="http.status_code", val=http_status_code)
 
             # Unique Name
-            with test_library.start_span(
-                name="unique-name", resource=resource, service=service, typestr=type, origin=origin
+            with test_library.dd_start_span(
+                name="unique-name", resource=resource, service=service, typestr=type,
             ) as span:
+                span.set_meta(key="_dd.origin", val=origin)
                 span.set_meta(key="http.status_code", val=http_status_code)
 
             # Unique Resource
-            with test_library.start_span(
-                name=name, resource="unique-resource", service=service, typestr=type, origin=origin
+            with test_library.dd_start_span(
+                name=name, resource="unique-resource", service=service, typestr=type,
             ) as span:
+                span.set_meta(key="_dd.origin", val=origin)
                 span.set_meta(key="http.status_code", val=http_status_code)
 
             # Unique Service
-            with test_library.start_span(
-                name=name, resource=resource, service="unique-service", typestr=type, origin=origin
+            with test_library.dd_start_span(
+                name=name, resource=resource, service="unique-service", typestr=type,
             ) as span:
+                span.set_meta(key="_dd.origin", val=origin)
                 span.set_meta(key="http.status_code", val=http_status_code)
 
             # Unique Type
-            with test_library.start_span(
-                name=name, resource=resource, service=service, typestr="unique-type", origin=origin
+            with test_library.dd_start_span(
+                name=name, resource=resource, service=service, typestr="unique-type",
             ) as span:
+                span.set_meta(key="_dd.origin", val=origin)
                 span.set_meta(key="http.status_code", val=http_status_code)
 
             # Unique Synthetics
-            with test_library.start_span(
-                name=name, resource=resource, service=service, typestr=type, origin="synthetics"
-            ) as span:
+            with test_library.dd_start_span(name=name, resource=resource, service=service, typestr=type,) as span:
+                span.set_meta(key="_dd.origin", val="synthetics")
                 span.set_meta(key="http.status_code", val=http_status_code)
 
             # Unique HTTP Status Code
-            with test_library.start_span(
-                name=name, resource=resource, service=service, typestr=type, origin=origin
-            ) as span:
+            with test_library.dd_start_span(name=name, resource=resource, service=service, typestr=type,) as span:
+                span.set_meta(key="_dd.origin", val=origin)
                 span.set_meta(key="http.status_code", val="400")
 
-        if test_server.lang == "golang":
-            test_library.flush()
+        if test_library.lang == "golang":
+            test_library.dd_flush()
 
         requests = test_agent.v06_stats_requests()
         assert len(requests) == 1, "Exactly one stats request is expected"
@@ -184,24 +184,24 @@ class Test_Library_Tracestats:
     @missing_feature(context.library == "php", reason="php has not implemented stats computation yet")
     @missing_feature(context.library == "ruby", reason="ruby has not implemented stats computation yet")
     @enable_tracestats()
-    def test_measured_spans_TS004(self, library_env, test_agent, test_library, test_server):
+    def test_measured_spans_TS004(self, library_env, test_agent, test_library):
         """
         When spans are marked as measured
             Each has stats computed for it
         """
         with test_library:
-            with test_library.start_span(name="web.request", resource="/users", service="webserver") as span:
+            with test_library.dd_start_span(name="web.request", resource="/users", service="webserver") as span:
                 # Use the same service so these spans are not top-level
-                with test_library.start_span(
+                with test_library.dd_start_span(
                     name="child.op1", resource="", service="webserver", parent_id=span.span_id
                 ) as op1:
                     op1.set_metric(SPAN_MEASURED_KEY, 1)
-                with test_library.start_span(
+                with test_library.dd_start_span(
                     name="child.op2", resource="", service="webserver", parent_id=span.span_id
                 ) as op2:
                     op2.set_metric(SPAN_MEASURED_KEY, 1)
                 # Don't measure this one to ensure no stats are computed
-                with test_library.start_span(
+                with test_library.dd_start_span(
                     name="child.op3", resource="", service="webserver", parent_id=span.span_id
                 ):
                     pass
@@ -226,16 +226,16 @@ class Test_Library_Tracestats:
     @missing_feature(context.library == "php", reason="php has not implemented stats computation yet")
     @missing_feature(context.library == "ruby", reason="ruby has not implemented stats computation yet")
     @enable_tracestats()
-    def test_top_level_TS005(self, library_env, test_agent, test_library, test_server):
+    def test_top_level_TS005(self, library_env, test_agent, test_library):
         """
         When top level (service entry) spans are created
             Each top level span has trace stats computed for it.
         """
         with test_library:
             # Create a top level span.
-            with test_library.start_span(name="web.request", resource="/users", service="webserver") as span:
+            with test_library.dd_start_span(name="web.request", resource="/users", service="webserver") as span:
                 # Create another top level (service entry) span as a child of the web.request span.
-                with test_library.start_span(
+                with test_library.dd_start_span(
                     name="postgres.query", resource="SELECT 1", service="postgres", parent_id=span.span_id
                 ):
                     pass
@@ -276,25 +276,25 @@ class Test_Library_Tracestats:
     @missing_feature(context.library == "php", reason="php has not implemented stats computation yet")
     @missing_feature(context.library == "ruby", reason="ruby has not implemented stats computation yet")
     @enable_tracestats()
-    def test_successes_errors_recorded_separately_TS006(self, library_env, test_agent, test_library, test_server):
+    def test_successes_errors_recorded_separately_TS006(self, library_env, test_agent, test_library):
         """
         When spans are marked as errors
             The errors count is incremented appropriately and the stats are aggregated into the ErrorSummary
         """
         with test_library:
             # Send 2 successes
-            with test_library.start_span(
+            with test_library.dd_start_span(
                 name="web.request", resource="/health-check", service="webserver", typestr="web"
             ):
                 pass
 
-            with test_library.start_span(
+            with test_library.dd_start_span(
                 name="web.request", resource="/health-check", service="webserver", typestr="web"
             ):
                 pass
 
             # Send 1 failure
-            with test_library.start_span(
+            with test_library.dd_start_span(
                 name="web.request", resource="/health-check", service="webserver", typestr="web"
             ) as span:
                 span.set_error(message="Unable to load resources")
@@ -332,14 +332,14 @@ class Test_Library_Tracestats:
     @missing_feature(context.library == "php", reason="php has not implemented stats computation yet")
     @missing_feature(context.library == "ruby", reason="ruby has not implemented stats computation yet")
     @enable_tracestats(sample_rate=0.0)
-    def test_sample_rate_0_TS007(self, library_env, test_agent, test_library, test_server):
+    def test_sample_rate_0_TS007(self, library_env, test_agent, test_library):
         """
         When the sample rate is 0 and trace stats is enabled
             non-P0 traces should be dropped
             trace stats should be produced
         """
         with test_library:
-            with test_library.start_span(name="web.request", resource="/users", service="webserver"):
+            with test_library.dd_start_span(name="web.request", resource="/users", service="webserver"):
                 pass
 
         traces = test_agent.traces()
@@ -366,7 +366,7 @@ class Test_Library_Tracestats:
         with test_library:
             # Create 10 traces to get more data
             for i in range(10):
-                with test_library.start_span(name="web.request", resource="/users", service="webserver"):
+                with test_library.dd_start_span(name="web.request", resource="/users", service="webserver"):
                     pass
 
         traces = test_agent.traces()
@@ -375,6 +375,7 @@ class Test_Library_Tracestats:
         durations: List[int] = []
         for trace in traces:
             span = find_root_span(trace)
+            assert span is not None
             durations.append(span["duration"])
 
         requests = test_agent.v06_stats_requests()
@@ -398,7 +399,7 @@ class Test_Library_Tracestats:
     @missing_feature(context.library == "php", reason="php has not implemented stats computation yet")
     @missing_feature(context.library == "ruby", reason="ruby has not implemented stats computation yet")
     @enable_tracestats()
-    def test_metrics_computed_after_span_finsh_TS009(self, library_env, test_agent, test_library, test_server):
+    def test_metrics_computed_after_span_finsh_TS009(self, library_env, test_agent, test_library):
         """
         When trace stats are computed for traces
             Metrics must be computed after spans are finished, otherwise components of the aggregation key may change after
@@ -412,14 +413,12 @@ class Test_Library_Tracestats:
         origin = "synthetics"
 
         with test_library:
-            with test_library.start_span(
-                name=name, service=service, resource=resource, typestr=type, origin=origin
-            ) as span:
+            with test_library.dd_start_span(name=name, service=service, resource=resource, typestr=type,) as span:
+                span.set_meta(key="_dd.origin", val=origin)
                 span.set_meta(key="http.status_code", val=http_status_code)
 
-            with test_library.start_span(
-                name=name, service=service, resource=resource, typestr=type, origin=origin
-            ) as span2:
+            with test_library.dd_start_span(name=name, service=service, resource=resource, typestr=type,) as span2:
+                span2.set_meta(key="_dd.origin", val=origin)
                 span2.set_meta(key="http.status_code", val=http_status_code)
 
             # Span metrics should be calculated on span finish. Updating aggregation keys (service/resource/status_code/origin/etc.)
@@ -459,9 +458,8 @@ class Test_Library_Tracestats:
             contribution to aggregates.
         """
         with test_library:
-            with test_library.start_span(
-                name="name", service="service", resource="resource", origin="synthetics"
-            ) as span:
+            with test_library.dd_start_span(name="name", service="service", resource="resource") as span:
+                span.set_meta(key="_dd.origin", val="synthetics")
                 span.set_meta(key="http.status_code", val="200")
 
         requests = test_agent.v06_stats_requests()

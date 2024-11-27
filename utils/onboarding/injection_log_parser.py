@@ -26,22 +26,19 @@ def command_injection_skipped(command_line, log_local_path):
             elif last_line_json["msg"] == "not injecting; on user deny list":
                 logger.debug(f"    Command {command_args} was skipped by user defined deny process list")
                 return True
-
-            # Perhaps the command was instrumented or could be skipped by its arguments. Checking
-            elif _get_command_props_values(command_desc, command_args) is True:
-                if last_line_json["msg"] in ["error injecting", "error when parsing", "skipping"] and (
-                    last_line_json["error"].startswith(
-                        (
-                            "skipping due to ignore rules for language",
-                            "error when parsing: skipping due to ignore rules for language",
-                        )
+            elif last_line_json["msg"] in ["error injecting", "error when parsing", "skipping"] and (
+                last_line_json["error"].startswith(
+                    (
+                        "skipping due to ignore rules for language",
+                        "error when parsing: skipping due to ignore rules for language",
                     )
-                ):
-                    logger.info(f"    Command {command_args} was skipped by ignore arguments")
-                    return True
+                )
+            ):
+                logger.info(f"    Command {command_args} was skipped by ignore arguments")
+                return True
+            logger.info(f"    Missing injection deny: {last_line_json}")
+            return False
 
-                logger.info(f"    command {command_args} is found but it was instrumented!")
-                return False
     logger.info(f"    Command {command} was NOT FOUND")
     raise ValueError(f"Command {command} was NOT FOUND")
 
@@ -61,47 +58,6 @@ def _parse_command(command):
             command_args.remove(com)
             continue
         return os.path.basename(com), command_args
-
-
-def _get_command_props_values(command_instrumentation_desc, command_args_check):
-    """ Search into command_instrumentation_desc (lines related with the command on the log file) 
-        The line that contains the command with args should be like this (example for java -help):
-        {
-            "level":"debug",
-            "ts":1,
-            "caller":"xx",
-            "msg":"props values",
-            "props":{
-                "Env":"",
-                "Service":"",
-                "Version":"",
-                "ProcessProps":{
-                    "Path":"/usr/bin/java",
-                    "Args":[
-                        "java",
-                        "-help"
-                    ]
-                },
-                "ContainerProps":{
-                    "Labels":null,
-                    "Name":"",
-                    "ShortName":"",
-                    "Tag":""
-                }
-            }
-            }
-    """
-    for line in command_instrumentation_desc:
-        if "props values" in line:
-            line_json = json.loads(line)
-            command_log_args = line_json["props"]["ProcessProps"]["Args"]
-            command_compared_result = set(command_log_args) & set(command_args_check)
-            is_same_command = len(command_log_args) == len(command_args_check) and len(command_compared_result) == len(
-                command_args_check
-            )
-
-            return is_same_command
-    return False
 
 
 def _get_commands_from_log_file(log_local_path, line_filter):

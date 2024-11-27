@@ -138,7 +138,7 @@
       {
         "function": "weblog.DebuggerController.ExceptionReplayInner",
         "fileName": "/app/DebuggerController.cs",
-        "lineNumber": 168
+        "lineNumber": 154
       },
       {
         "function": "Unknown.lambda_method<scrubbed>",

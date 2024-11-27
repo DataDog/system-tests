@@ -1,11 +1,21 @@
 #!/bin/bash
-# shellcheck disable=SC2116,SC2086
+# shellcheck disable=SC2116,SC2086,SC1091
+
 export DD_APM_INSTRUMENTATION_DEBUG=false
 DD_LANG=$1
 
 if [ "$DD_LANG" == "java" ]; then
     java_version=$(java -version 2>&1)
     runtime_version=$(echo "$java_version" | grep version | awk '{print $3}' | tr -d '"')
+elif [ "$DD_LANG" == "php" ]; then
+    runtime_version=$(php -v | grep -oP 'PHP \K[0-9]+\.[0-9]+\.[0-9]+')
+elif [ "$DD_LANG" == "python" ]; then
+    runtime_version=$(python --version | grep -oP 'Python \K[0-9]+\.[0-9]+\.[0-9]+')
+elif [ "$DD_LANG" == "js" ]; then
+    export NVM_DIR="/root/.nvm"
+    . "$NVM_DIR/nvm.sh"
+
+    runtime_version=$(node --version | tr -d 'v')
 fi
 
 if [ -f /etc/debian_version ] || [ "$DISTRIBUTION" = "Debian" ] || [ "$DISTRIBUTION" = "Ubuntu" ]; then

@@ -12,11 +12,11 @@ from utils.parametric.spec.trace import find_span, find_trace, find_span_in_trac
 @pytest.mark.parametrize("library_env", [{"DD_ENV": "prod"}])
 def test_datadog_spans(library_env, test_library, test_agent):
     with test_library:
-        with test_library.start_span("operation") as s1:
-            with test_library.start_span("operation1", service="hello", parent_id=s1.span_id) as s2:
+        with test_library.dd_start_span("operation") as s1:
+            with test_library.dd_start_span("operation1", service="hello", parent_id=s1.span_id) as s2:
                 pass
 
-        with test_library.start_span("otel_rocks") as os1:
+        with test_library.dd_start_span("otel_rocks") as os1:
             pass
 
     # Waits for 2 traces to be captured and avoids sorting the received spans by start time
@@ -162,12 +162,6 @@ library. Deleting the image will force a rebuild which will resolve the issue.
 docker image rm <library>-test-library
 ```
 
-### Port conflict on 50052
-
-If there is a port conflict with an existing process on the local machine then the default port `50052` can be
-overridden using `APM_LIBRARY_SERVER_PORT`.
-
-
 ### Disable build kit
 
 If logs like
@@ -204,56 +198,16 @@ See the steps below in the HTTP section to run the Python server and view the sp
 
 ### Shared Interface
 
-#### HTTP
+To view the available HTTP endpoints , follow these steps:
 
-We have transitioned to using an HTTP interface, replacing the legacy GRPC interface. To view the available HTTP endpoints , follow these steps:
-
-1. ```
-./utils/scripts/parametric/run_reference_http.sh
-```
-
+1. `./utils/scripts/parametric/run_reference_http.sh`
 2. Navigate to http://localhost:8000/docs in your web browser to access the documentation.
-
 3. You can download the OpenAPI schema from http://localhost:8000/openapi.json. This schema can be imported into tools like [Postman](https://learning.postman.com/docs/integrations/available-integrations/working-with-openAPI/) or other API clients to facilitate development and testing.
 
-#### Legacy GRPC
-**Important:** The legacy GRPC interface will be **deprecated** and no longer in use. All tests will be migrated to use the HTTP interface.
-
-Previously, we used a shared GRPC interface to enable shared testing across different tracers. Each tracer would implement the GRPC interface server, allowing shared tests to be run against the  libraries. The GRPC service definition included methods like StartSpan, FinishSpan, SpanSetMeta, and others, which facilitated span and trace operations.
-
-#### Updating protos for GRPC (will be deprecated)
-
-In order to update the `parametric/protos`, these steps must be followed.
-
-1. Create a virtual environment and activate it:
-```bash
-python3.12 -m venv .venv && source .venv/bin/activate
-```
-
-2. Install the required dependencies:
-```bash
-pip install -r requirements.txt
-```
-
-3. Install `grpcio-tools` (make sure grpcaio is the same version):
-```bash
-pip install grpcio-tools==1.60.1
-```
-
-4. Change directory to `utils/parametric`:
-```console
-cd utils/parametric
-```
-
-5. Run the script to generate the proto files:
-```bash
-./generate_protos.sh
-```
-
-Then you should have updated proto files. This script will generate weird files, you can ignore/delete these.
-
 ### Architecture: How System-tests work
+
 Below is an overview of how the testing architecture is structured:
+
 - Shared Tests in Python: We write shared test cases using Python's pytest framework. These tests are designed to be generic and interact with the tracers through an HTTP interface.
 - HTTP Servers in Docker: For each language tracer, we build and run an HTTP server within a Docker container. These servers expose the required endpoints defined in the OpenAPI schema and handle the tracer-specific logic.
 - [Test Agent](https://github.com/DataDog/dd-apm-test-agent/) in Docker: We start a test agent in a separate Docker container. This agent collects data (such as spans and traces) submitted by the HTTP servers. It serves as a centralized point for aggregating and accessing test data.
@@ -265,6 +219,8 @@ span = find_only_span(test_agent.wait_for_num_traces(1))
 ```
 
 This architecture allows us to ensure that all tracers conform to the same interface and behavior, making it easier to maintain consistency across different languages and implementations.
+
+![image](https://github.com/user-attachments/assets/fc144fc1-95aa-4d50-97c5-cda8fdbcefef)
 
 <img width="869" alt="image" src="https://user-images.githubusercontent.com/6321485/182887064-e241d65c-5e29-451b-a8a8-e8d18328c083.png">
 

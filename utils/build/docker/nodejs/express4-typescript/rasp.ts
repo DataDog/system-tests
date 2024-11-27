@@ -5,6 +5,7 @@ import type { Express, Request, Response } from 'express';
 const http = require('http')
 const pg = require('pg')
 const { statSync } = require('fs')
+const { execSync } = require('child_process')
 
 function initRaspEndpoints (app: Express) {
     const pool = new pg.Pool()
@@ -92,5 +93,36 @@ function initRaspEndpoints (app: Express) {
 
         res.send(result)
     })
+
+    app.get('/rasp/shi', (req: Request, res: Response) => {
+        let result
+        try {
+            result = execSync(`ls ${req.query.list_dir}`)
+        } catch (e: any) {
+            result = e.toString()
+
+            if (e.name === 'DatadogRaspAbortError') {
+                throw e
+            }
+        }
+
+        res.send(result)
+    })
+
+    app.post('/rasp/shi', (req: Request, res: Response) => {
+        let result
+        try {
+            result = execSync(`ls ${req.body.list_dir}`)
+        } catch (e: any) {
+            result = e.toString()
+
+            if (e.name === 'DatadogRaspAbortError') {
+                throw e
+            }
+        }
+
+        res.send(result)
+    })
 }
+
 module.exports = initRaspEndpoints

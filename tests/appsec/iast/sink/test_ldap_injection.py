@@ -2,8 +2,8 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, missing_feature, features
-from ..utils import BaseSinkTest
+from utils import context, missing_feature, features, rfc, weblog
+from ..utils import BaseSinkTest, validate_stack_traces
 
 
 @features.iast_sink_ldap_injection
@@ -28,3 +28,17 @@ class TestLDAPInjection(BaseSinkTest):
     @missing_feature(context.library < "java@1.11.0", reason="Metrics not implemented")
     def test_telemetry_metric_executed_sink(self):
         super().test_telemetry_metric_executed_sink()
+
+
+@rfc(
+    "https://docs.google.com/document/d/1ga7yCKq2htgcwgQsInYZKktV0hNlv4drY9XzSxT-o5U/edit?tab=t.0#heading=h.d0f5wzmlfhat"
+)
+@features.iast_stack_trace
+class TestLDAPInjection_StackTrace:
+    """Validate stack trace generation """
+
+    def setup_stack_trace(self):
+        self.r = weblog.post("/iast/ldapi/test_insecure", data={"username": "ssam", "password": "sammy"})
+
+    def test_stack_trace(self):
+        validate_stack_traces(self.r)

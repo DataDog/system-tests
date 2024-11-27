@@ -11,30 +11,36 @@ class SupportedImages:
     """ All supported images """
 
     def __init__(self) -> None:
+        # Try to set the same name as utils/_context/virtual_machines.py
+        self.UBUNTU_22_AMD64 = DockerImage("Ubuntu_22", "ubuntu:22.04", LINUX_AMD64)
+        self.UBUNTU_22_ARM64 = DockerImage("Ubuntu_22", "ubuntu:22.04", LINUX_ARM64)
+        self.UBUNTU_16_AMD64 = DockerImage("Ubuntu_16", "ubuntu:16.04", LINUX_AMD64)
+        self.UBUNTU_16_ARM64 = DockerImage("Ubuntu_16", "ubuntu:16.04", LINUX_ARM64)
+        self.CENTOS_7_AMD64 = DockerImage("CentOS_7", "centos:7", LINUX_AMD64)
+        self.ORACLELINUX_9_ARM64 = DockerImage("OracleLinux_9", "oraclelinux:9", LINUX_ARM64)
+        self.ORACLELINUX_9_AMD64 = DockerImage("OracleLinux_9", "oraclelinux:9", LINUX_AMD64)
+        self.ORACLELINUX_8_ARM64 = DockerImage("OracleLinux_8_10", "oraclelinux:8.10", LINUX_ARM64)
+        self.ORACLELINUX_8_AMD64 = DockerImage("OracleLinux_8_10", "oraclelinux:8.10", LINUX_AMD64)
 
-        self.UBUNTU_22_AMD64 = DockerImage("ubuntu:22.04", LINUX_AMD64)
-        self.UBUNTU_22_ARM64 = DockerImage("ubuntu:22.04", LINUX_ARM64)
-        self.UBUNTU_16_AMD64 = DockerImage("ubuntu:16.04", LINUX_AMD64)
-        self.UBUNTU_16_ARM64 = DockerImage("ubuntu:16.04", LINUX_ARM64)
-        self.CENTOS_7_AMD64 = DockerImage("centos:7", LINUX_AMD64)
-        self.ORACLELINUX_9_ARM64 = DockerImage("oraclelinux:9", LINUX_ARM64)
-        self.ORACLELINUX_9_AMD64 = DockerImage("oraclelinux:9", LINUX_AMD64)
-        self.ORACLELINUX_8_ARM64 = DockerImage("oraclelinux:8.10", LINUX_ARM64)
-        self.ORACLELINUX_8_AMD64 = DockerImage("oraclelinux:8.10", LINUX_AMD64)
-
-        self.ALMALINUX_9_ARM64 = DockerImage("almalinux:9.4", LINUX_ARM64)
-        self.ALMALINUX_9_AMD64 = DockerImage("almalinux:9.4", LINUX_AMD64)
-        self.ALMALINUX_8_ARM64 = DockerImage("almalinux:8.10", LINUX_ARM64)
-        self.ALMALINUX_8_AMD64 = DockerImage("almalinux:8.10", LINUX_AMD64)
+        self.ALMALINUX_9_ARM64 = DockerImage("AlmaLinux_9", "almalinux:9.4", LINUX_ARM64)
+        self.ALMALINUX_9_AMD64 = DockerImage("AlmaLinux_9", "almalinux:9.4", LINUX_AMD64)
+        self.ALMALINUX_8_ARM64 = DockerImage("AlmaLinux_8", "almalinux:8.10", LINUX_ARM64)
+        self.ALMALINUX_8_AMD64 = DockerImage("AlmaLinux_8", "almalinux:8.10", LINUX_AMD64)
 
         # Currently bugged
         # DockerImage("centos:7", LINUX_ARM64, short_name="centos_7")
         # DockerImage("alpine:3", LINUX_AMD64, short_name="alpine_3"),
         # DockerImage("alpine:3", LINUX_ARM64, short_name="alpine_3"),
-        self.TOMCAT_9_AMD64 = DockerImage("tomcat:9", LINUX_AMD64)
-        self.TOMCAT_9_ARM64 = DockerImage("tomcat:9", LINUX_ARM64)
-        self.WEBSPHERE_AMD64 = DockerImage("icr.io/appcafe/websphere-traditional", LINUX_AMD64)
-        self.JBOSS_AMD64 = DockerImage("quay.io/wildfly/wildfly:26.1.2.Final", LINUX_AMD64)
+        self.TOMCAT_9_AMD64 = DockerImage("Tomcat_9", "tomcat:9", LINUX_AMD64)
+        self.TOMCAT_9_ARM64 = DockerImage("Tomcat_9", "tomcat:9", LINUX_ARM64)
+        self.WEBSPHERE_AMD64 = DockerImage("Websphere", "icr.io/appcafe/websphere-traditional", LINUX_AMD64)
+        self.JBOSS_AMD64 = DockerImage("Wildfly", "quay.io/wildfly/wildfly:26.1.2.Final", LINUX_AMD64)
+
+    def get_internal_name_from_base_image(self, base_image, arch):
+        for image in self.__dict__.values():
+            if image.tag == base_image and image.platform == arch:
+                return image.internal_name
+        raise ValueError(f"Image {base_image} not supported")
 
 
 class JavaRuntimeInstallableVersions:
@@ -65,13 +71,29 @@ class JavaRuntimeInstallableVersions:
 class PHPRuntimeInstallableVersions:
     """ PHP runtime versions that can be installed automatically"""
 
+    PHP56 = RuntimeInstallableVersion("PHP56", "5.6")  # Not supported (EOL runtime)
+    PHP70 = RuntimeInstallableVersion("PHP70", "7.0")
+    PHP71 = RuntimeInstallableVersion("PHP71", "7.1")
+    PHP72 = RuntimeInstallableVersion("PHP72", "7.2")
+    PHP73 = RuntimeInstallableVersion("PHP73", "7.3")
     PHP74 = RuntimeInstallableVersion("PHP74", "7.4")
+    PHP80 = RuntimeInstallableVersion("PHP80", "8.0")
+    PHP81 = RuntimeInstallableVersion("PHP81", "8.1")
+    PHP82 = RuntimeInstallableVersion("PHP82", "8.2")
     PHP83 = RuntimeInstallableVersion("PHP83", "8.3")
 
     @staticmethod
     def get_all_versions():
         return [
+            PHPRuntimeInstallableVersions.PHP56,
+            PHPRuntimeInstallableVersions.PHP70,
+            PHPRuntimeInstallableVersions.PHP71,
+            PHPRuntimeInstallableVersions.PHP72,
+            PHPRuntimeInstallableVersions.PHP73,
             PHPRuntimeInstallableVersions.PHP74,
+            PHPRuntimeInstallableVersions.PHP80,
+            PHPRuntimeInstallableVersions.PHP81,
+            PHPRuntimeInstallableVersions.PHP82,
             PHPRuntimeInstallableVersions.PHP83,
         ]
 
@@ -86,6 +108,7 @@ class PHPRuntimeInstallableVersions:
 class PythonRuntimeInstallableVersions:
     """ Python runtime versions that can be installed automatically"""
 
+    PY36 = RuntimeInstallableVersion("PY36", "3.6.15")  # Not supported (EOL runtime)
     PY37 = RuntimeInstallableVersion("PY37", "3.7.16")
     PY38 = RuntimeInstallableVersion("PY38", "3.8.20")
     PY39 = RuntimeInstallableVersion("PY39", "3.9.20")
@@ -96,6 +119,7 @@ class PythonRuntimeInstallableVersions:
     @staticmethod
     def get_all_versions():
         return [
+            PythonRuntimeInstallableVersions.PY36,
             PythonRuntimeInstallableVersions.PY37,
             PythonRuntimeInstallableVersions.PY38,
             PythonRuntimeInstallableVersions.PY39,
@@ -110,6 +134,51 @@ class PythonRuntimeInstallableVersions:
             if version_check.version == version:
                 return version_check.version_id
         raise ValueError(f"Python version {version} not supported")
+
+
+class JSRuntimeInstallableVersions:
+    """Node.js runtime versions that can be installed automatically"""
+
+    JS1200 = RuntimeInstallableVersion("JS1200", "12.0")
+    JS1222 = RuntimeInstallableVersion("JS1222", "12.22")
+    JS1400 = RuntimeInstallableVersion("JS1400", "14.0")
+    JS1421 = RuntimeInstallableVersion("JS1421", "14.21")
+    JS1600 = RuntimeInstallableVersion("JS1600", "16.0")
+    JS1620 = RuntimeInstallableVersion("JS1620", "16.20")
+    JS1800 = RuntimeInstallableVersion("JS1800", "18.0")
+    JS1820 = RuntimeInstallableVersion("JS1820", "18.20")
+    JS2000 = RuntimeInstallableVersion("JS2000", "20.0")
+    JS2018 = RuntimeInstallableVersion("JS2018", "20.18")
+    JS2200 = RuntimeInstallableVersion("JS2200", "22.0")
+    JS2211 = RuntimeInstallableVersion("JS2211", "22.11")
+    JS2300 = RuntimeInstallableVersion("JS2300", "23.0")
+    JS2303 = RuntimeInstallableVersion("JS2303", "23.3")
+
+    @staticmethod
+    def get_all_versions():
+        return [
+            JSRuntimeInstallableVersions.JS1200,
+            JSRuntimeInstallableVersions.JS1222,
+            JSRuntimeInstallableVersions.JS1400,
+            JSRuntimeInstallableVersions.JS1421,
+            JSRuntimeInstallableVersions.JS1600,
+            JSRuntimeInstallableVersions.JS1620,
+            JSRuntimeInstallableVersions.JS1800,
+            JSRuntimeInstallableVersions.JS1820,
+            JSRuntimeInstallableVersions.JS2000,
+            JSRuntimeInstallableVersions.JS2018,
+            JSRuntimeInstallableVersions.JS2200,
+            JSRuntimeInstallableVersions.JS2211,
+            JSRuntimeInstallableVersions.JS2300,
+            JSRuntimeInstallableVersions.JS2303,
+        ]
+
+    @staticmethod
+    def get_version_id(version):
+        for version_check in JSRuntimeInstallableVersions.get_all_versions():
+            if version_check.version == version:
+                return version_check.version_id
+        raise ValueError(f"Node.js version {version} not supported")
 
 
 # HERE ADD YOUR WEBLOG DEFINITION: SUPPORTED IMAGES AND INSTALABLE RUNTIME VERSIONS
@@ -170,7 +239,14 @@ JBOSS_APP = WeblogDescriptor("jboss-app", "java", [SupportedImages().JBOSS_AMD64
 PHP_APP = WeblogDescriptor(
     "php-app",
     "php",
-    [SupportedImages().UBUNTU_22_AMD64.with_allowed_runtime_versions(PHPRuntimeInstallableVersions.get_all_versions())],
+    [
+        SupportedImages().UBUNTU_22_AMD64.with_allowed_runtime_versions(
+            PHPRuntimeInstallableVersions.get_all_versions()
+        ),
+        SupportedImages().UBUNTU_22_ARM64.with_allowed_runtime_versions(
+            PHPRuntimeInstallableVersions.get_all_versions()
+        ),
+    ],
 )
 
 PY_APP = WeblogDescriptor(
@@ -179,9 +255,31 @@ PY_APP = WeblogDescriptor(
     [
         SupportedImages().UBUNTU_22_ARM64.with_allowed_runtime_versions(
             PythonRuntimeInstallableVersions.get_all_versions()
-        )
+        ),
+    ],
+)
+
+JS_APP = WeblogDescriptor(
+    "js-app",
+    "nodejs",
+    [
+        SupportedImages().UBUNTU_22_AMD64.with_allowed_runtime_versions(
+            JSRuntimeInstallableVersions.get_all_versions()
+        ),
+        SupportedImages().UBUNTU_22_ARM64.with_allowed_runtime_versions(
+            JSRuntimeInstallableVersions.get_all_versions()
+        ),
     ],
 )
 
 # HERE ADD YOUR WEBLOG DEFINITION TO THE LIST
-ALL_WEBLOGS = [JETTY_APP, TOMCAT_APP, JAVA7_APP, WEBSPHERE_APP, JBOSS_APP, PHP_APP, PY_APP]
+ALL_WEBLOGS = [
+    JETTY_APP,
+    TOMCAT_APP,
+    JAVA7_APP,
+    WEBSPHERE_APP,
+    JBOSS_APP,
+    PHP_APP,
+    PY_APP,
+    JS_APP,
+]

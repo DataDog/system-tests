@@ -56,6 +56,9 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
 
         for data in self.get_data(path_filters=paths):
             traces = data["request"]["content"]
+            if not traces:  # may be none
+                continue
+
             for trace in traces:
                 if rid is None:
                     yield data, trace
