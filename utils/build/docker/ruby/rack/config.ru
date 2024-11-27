@@ -258,6 +258,7 @@ class Users
 end
 
 # TODO: This require shouldn't be needed. `SpanEvent` should be loaded by default.
+# TODO: This is likely a bug in the Ruby tracer.
 require 'datadog/tracing/span_event'
 
 # /add_event

@@ -483,6 +483,10 @@ class ImageInfo:
 
 class ProxyContainer(TestedContainer):
     def __init__(self, host_log_folder, rc_api_enabled: bool, meta_structs_disabled: bool, span_events: bool) -> None:
+        """
+        Parameters:
+        span_events: Whether the agent supports the native serialization of span events
+        """
 
         super().__init__(
             image_name="datadog/system-tests:proxy-v1",
