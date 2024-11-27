@@ -56,7 +56,7 @@ onboarding_nodejs:
     SCENARIO: "HOST_AUTO_INJECTION_INSTALL_SCRIPT"
   script:
       - ./build.sh -i runner
-      - ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws --report-run-url ${CI_PIPELINE_URL} --report-environment ${ONBOARDING_FILTER_ENV} --vm-default-vms All --vm-gitlab-pipeline
+      - ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws --vm-default-vms All --vm-gitlab-pipeline
       - echo "DONE"
   after_script:
     - SCENARIO_SUFIX=$(echo "$SCENARIO" | tr '[:upper:]' '[:lower:]')
