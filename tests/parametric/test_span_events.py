@@ -51,21 +51,24 @@ class Test_Span_Events:
         event = span_events[0]
         assert event["time_unix_nano"] == time0 * 1000
         assert event["name"] == name0
-        assert event["attributes"].get("string") == {"type": 0, "string": "bar"}
-        assert event["attributes"].get("bool") == {"type": 1, "bool": True}
-        assert event["attributes"].get("int") == {"type": 2, "int": 1}
-        assert event["attributes"].get("double") == {"type": 3, "double": 2.3}
-        assert event["attributes"].get("array") == {"type": 4, "array": {"type": 0, "string": ["a", "b", "c"]}}
+        assert event["attributes"].get("string") == {"type": 0, "string_value": "bar"}
+        assert event["attributes"].get("bool") == {"type": 1, "bool_value": True}
+        assert event["attributes"].get("int") == {"type": 2, "int_value": 1}
+        assert event["attributes"].get("double") == {"type": 3, "double_value": 2.3}
+        assert event["attributes"].get("array") == {
+            "type": 4,
+            "array_value": {"type": 0, "string_value": ["a", "b", "c"]},
+        }
 
         event = span_events[1]
         assert event["time_unix_nano"] == time1 * 1000
         assert event["name"] == name1
-        assert event["attributes"].get("bool") == {"type": 1, "bool": False}
-        assert event["attributes"].get("int") == {"type": 2, "int": 0}
+        assert event["attributes"].get("bool") == {"type": 1, "bool_value": False}
+        assert event["attributes"].get("int") == {"type": 2, "int_value": 0}
         assert isinstance(event["attributes"].get("int").get("int"), int)
-        assert event["attributes"].get("double") == {"type": 3, "double": 0.0}
+        assert event["attributes"].get("double") == {"type": 3, "double_value": 0.0}
         assert isinstance(event["attributes"].get("double").get("double"), float)
-        assert event["attributes"].get("array") == {"type": 4, "array": {"type": 2, "int": [5, 6]}}
+        assert event["attributes"].get("array") == {"type": 4, "array_value": {"type": 2, "int_value": [5, 6]}}
 
     @pytest.mark.parametrize(
         "library_env", [{"DD_TRACE_API_VERSION": "v0.7"}],
@@ -129,5 +132,5 @@ class Test_Span_Events:
         assert event["name"] == "name"
 
         assert len(event["attributes"]) == 2
-        assert event["attributes"].get("string").get("string") == "bar"
-        assert event["attributes"].get("int").get("int") == 1
+        assert event["attributes"].get("int").get("int_value") == 1
+        assert event["attributes"].get("string").get("string_value") == "bar"
