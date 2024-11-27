@@ -22,6 +22,7 @@ def generate_gitlab_pipeline(languages):
             "image": "486234852809.dkr.ecr.us-east-1.amazonaws.com/ci/test-infra-definitions/runner:a58cc31c",
             "tags": ["arch:amd64"],
             "stage": "parse_docker_ssi_results",
+            "allow_failure": True,
             "rules": [
                 {"if": '$PARENT_PIPELINE_SOURCE == "schedule" && $CI_COMMIT_BRANCH == "main"', "when": "always"},
                 {"when": "manual", "allow_failure": True},
@@ -37,7 +38,7 @@ def generate_gitlab_pipeline(languages):
                 "if [ -e ${filename} ]",
                 "then",
                 'echo "Processing report: ${filename}"',
-                'curl -X POST ${FP_IMPORT_URL} --fail --header "Content-Type: application/json"  --header "FP_API_KEY: ${FP_API_KEY}" --data "@${filename}" --include',
+                'curl -X POST ${FP_IMPORT_URL} --fail --header "Content-Type: application/json"  --header "FP_API_KEY: ${FP_API_KEY}" --data "@${filename}" --include || true',
                 "fi",
                 "done",
                 "done",
