@@ -66,9 +66,11 @@ variables:
       - reports/
 
 .generate_aws_ssi_pipeline:
-  image: 486234852809.dkr.ecr.us-east-1.amazonaws.com/ci/test-infra-definitions/runner:a58cc31c
+  #image: 486234852809.dkr.ecr.us-east-1.amazonaws.com/ci/test-infra-definitions/runner:a58cc31c
+  image: registry.ddbuild.io/ci/libdatadog-build/system-tests:48436362
   stage: aws_ssi_pipelines
-  tags: ["arch:amd64"]
+  #tags: ["arch:amd64"]
+  tags: [ "runner:docker" ]
   script:
       - |
         for folder in reports/logs*/ ; do
