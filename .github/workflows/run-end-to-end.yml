@@ -112,6 +112,9 @@ jobs:
     - name: Run IAST_DEDUPLICATION scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"IAST_DEDUPLICATION"')
       run: ./run.sh IAST_DEDUPLICATION
+    - name: Run IAST_SECURITY_CONTROLS scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"IAST_SECURITY_CONTROLS"')
+      run: ./run.sh IAST_SECURITY_CONTROLS
     - name: Run DEFAULT scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"DEFAULT"')
       run: ./run.sh DEFAULT

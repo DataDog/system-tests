@@ -562,6 +562,11 @@ tests/:
             spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
             vertx3: missing_feature
             vertx4: missing_feature
+      test_security_controls.py:
+        TestSecurityControls:
+          '*': missing_feature (No endpoint implemented)
+          spring-boot: v1.44.0
+          spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
     rasp/:
       test_lfi.py:
         Test_Lfi_BodyJson:
