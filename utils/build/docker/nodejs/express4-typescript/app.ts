@@ -62,6 +62,10 @@ app.get('/api_security/sampling/:status', (req: Request, res: Response) => {
   res.send('Hello!')
 })
 
+app.get('/api_security_sampling/:i', (req: Request, res: Response) => {
+  res.send('OK')
+})
+
 app.get('/params/:value', (req: Request, res: Response) => {
   res.send('OK');
 });

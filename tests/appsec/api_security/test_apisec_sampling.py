@@ -68,7 +68,7 @@ class Test_API_Security_Sampling_Different_Endpoints:
 
     def setup_sampling_delay(self):
         self.request1 = weblog.get("/api_security/sampling/200")
-        self.request2 = weblog.get("/sample_rate_route/1")
+        self.request2 = weblog.get("/api_security_sampling/1")
         self.all_requests = [weblog.get("/api_security/sampling/200") for _ in range(10)]
 
     def test_sampling_delay(self):
@@ -94,8 +94,8 @@ class Test_API_Security_Sampling_Different_Paths:
     def setup_sampling_delay(self):
         # Wait for 10s to avoid other tests calling same endpoints
         time.sleep(10)
-        self.request1 = weblog.get("/sample_rate_route/11")
-        self.all_requests = [weblog.get(f"/sample_rate_route/{i}") for i in range(10)]
+        self.request1 = weblog.get("/api_security_sampling/11")
+        self.all_requests = [weblog.get(f"/api_security_sampling/{i}") for i in range(10)]
 
     def test_sampling_delay(self):
 
@@ -114,7 +114,6 @@ class Test_API_Security_Sampling_Different_Status:
     """Test API Security - Same endpoint and different status"""
 
     def setup_sampling_delay(self):
-        # Wait for 10s to avoid other tests calling same endpoints
         self.request1 = weblog.get("/api_security/sampling/200")
         self.request2 = weblog.get("/api_security/sampling/201")
         self.all_requests = [weblog.get("/api_security/sampling/201") for _ in range(10)]
@@ -143,21 +142,21 @@ class Test_API_Security_Sampling_With_Delay:
     def setup_sampling_delay(self):
         # Wait for 15s to avoid other tests calling same endpoints
         time.sleep(15)
-        self.request1 = weblog.get("/sample_rate_route/30")
-        self.request2 = weblog.get("/sample_rate_route/30")
+        self.request1 = weblog.get("/api_security_sampling/30")
+        self.request2 = weblog.get("/api_security_sampling/30")
         time.sleep(4)  # Delay is set to 3s via the env var DD_API_SECURITY_SAMPLE_DELAY
-        self.request3 = weblog.get("/sample_rate_route/30")
+        self.request3 = weblog.get("/api_security_sampling/30")
 
     def test_sampling_delay(self):
         """can provide request header schema"""
 
         assert self.request1.status_code == 200
-        schema1 = get_schema(self.request1, "req.headers")
-        assert schema1 is not None
-
         assert self.request2.status_code == 200
+
+        schema1 = get_schema(self.request1, "req.headers")
         schema2 = get_schema(self.request2, "req.headers")
-        assert schema2 is None
+
+        assert (schema1 is None) != (schema2 is None), "Expected exactly one request to be sampled"
 
         assert self.request3.status_code == 200
         schema3 = get_schema(self.request3, "req.headers")
