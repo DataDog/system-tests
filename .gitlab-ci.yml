@@ -119,8 +119,7 @@ step1_generate_nodejs_ssi_pipeline:
 
 x_compute_nodejs_scenarios:
   extends: .onboarding_pipeline_base
-  dependencies:
-    - step1_generate_nodejs_ssi_pipeline
+  needs: ["step1_generate_nodejs_ssi_pipeline"]
   variables:
     TEST_LIBRARY: "nodejs"
   parallel:
