@@ -80,7 +80,7 @@ func (s *apmClientServer) spanSetMetaHandler(w http.ResponseWriter, r *http.Requ
 		http.Error(w, "Span not found", http.StatusNotFound)
 		return
 	}
-	span.SetTag(args.Key, args.Value)
+	span.SetTag(args.Key, args.InferredValue())
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
