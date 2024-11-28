@@ -128,16 +128,16 @@ def generate_gitlab_pipeline(language, weblog_name, scenario_name, env, vms):
         "variables": {
             "KUBERNETES_SERVICE_ACCOUNT_OVERWRITE": "system-tests",
             "TEST": "1",
-            "KUBERNETES_CPU_REQUEST": '"6"',
-            "KUBERNETES_CPU_LIMIT": '"6"',
-            "AMI_UPDATE": {"description": '"Set to true to force the update the AMIs used in the system-tests"'},
-            "ONBOARDING_FILTER_ENV": f'"{env}"',
-            "ONLY_TEST_LIBRARY": '""',
+            "KUBERNETES_CPU_REQUEST": "6",
+            "KUBERNETES_CPU_LIMIT": "6",
+            "AMI_UPDATE": {"description": "Set to true to force the update the AMIs used in the system-tests"},
+            "ONBOARDING_FILTER_ENV": f"{env}",
+            "ONLY_TEST_LIBRARY": "",
             "DD_INSTALLER_LIBRARY_VERSION": {
-                "description": '"Set the version of the library to be installed. Use the pipeline id pipeline-${CI_PIPELINE_ID}"'
+                "description": "Set the version of the library to be installed. Use the pipeline id pipeline-${CI_PIPELINE_ID}"
             },
             "DD_INSTALLER_INJECTOR_VERSION": {
-                "description": '"Set the version of the injector to be installed. Use the pipeline id pipeline-${CI_PIPELINE_ID}"'
+                "description": "Set the version of the injector to be installed. Use the pipeline id pipeline-${CI_PIPELINE_ID}"
             },
         },
         "stages": ["dummy"],
@@ -159,11 +159,14 @@ def generate_gitlab_pipeline(language, weblog_name, scenario_name, env, vms):
                 'cp -R logs_"${SCENARIO_SUFIX}" $REPORTS_PATH/',
                 'cp logs_"${SCENARIO_SUFIX}"/feature_parity.json "$REPORTS_PATH"/"${SCENARIO_SUFIX}".json',
                 'mv "$REPORTS_PATH"/logs_"${SCENARIO_SUFIX}" "$REPORTS_PATH"/logs_"${TEST_LIBRARY}"_"${ONBOARDING_FILTER_WEBLOG}"_"${SCENARIO_SUFIX}_${DEFAULT_VMS}"',
-            ].append(_generate_fpd_gitlab_script()),
+            ],
             "artifacts": {"when": "always", "paths": ["reports/"]},
         },
     }
+    # Add FPD push script
+    pipeline[".base_job_onboarding_system_tests"]["after_script"].extend(_generate_fpd_gitlab_script())
 
+    # Generate a job per machine
     if vms:
         pipeline["stages"].append(scenario_name)
 
