@@ -66,11 +66,9 @@ variables:
       - reports/
 
 .generate_aws_ssi_pipeline:
-  #image: 486234852809.dkr.ecr.us-east-1.amazonaws.com/ci/test-infra-definitions/runner:a58cc31c
-  image: registry.ddbuild.io/ci/libdatadog-build/system-tests:48436362
+  image: 486234852809.dkr.ecr.us-east-1.amazonaws.com/ci/test-infra-definitions/runner:a58cc31c
   stage: aws_ssi_pipelines
-  #tags: ["arch:amd64"]
-  tags: [ "runner:docker" ]
+  tags: ["arch:amd64"]
   script:
       - |
         for folder in reports/logs*/ ; do
@@ -106,8 +104,17 @@ variables:
         job: generate_aws_ssi_pipeline
     strategy: depend
 
-onboarding_nodejs:
+generate_nodejs_ssi_pipeline:
+  stage: aws_ssi_pipelines
+  script:
+    - echo ">>>>>>>>>>>>>>> Generating nodejs pipeline >>>>>>>>>>>>>>>"
+  when: manual
+  allow_failure: false
+
+compute_nodejs_scenarios:
   extends: .onboarding_pipeline_base
+  dependencies:
+    - generate_nodejs_ssi_pipeline
   variables:
     TEST_LIBRARY: "nodejs"
   parallel:
@@ -117,23 +124,23 @@ onboarding_nodejs:
             - HOST_AUTO_INJECTION_INSTALL_SCRIPT
             - HOST_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING
 
-generate_nodejs_ssi_pipeline:
+merge_nodejs_ssi_pipeline:
   extends: .generate_aws_ssi_pipeline
-  needs: ["onboarding_nodejs"]
+  needs: ["compute_nodejs_scenarios"]
   dependencies:
-    - onboarding_nodejs
+    - compute_nodejs_scenarios
   artifacts:
     paths:
       - aws_gitlab_pipeline.yml
 
-launch_nodejs_ssi_pipeline:
+exec_nodejs_ssi_pipeline:
   extends: .aws_ssi_pipeline
   stage: aws_ssi_pipelines
-  needs: ["generate_nodejs_ssi_pipeline"]
+  needs: ["merge_nodejs_ssi_pipeline"]
   trigger:
     include:
       - artifact: aws_gitlab_pipeline.yml
-        job: generate_nodejs_ssi_pipeline
+        job: merge_nodejs_ssi_pipeline
     strategy: depend
 
 .onboarding_nodejs:
