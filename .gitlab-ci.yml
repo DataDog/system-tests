@@ -45,11 +45,11 @@ variables:
   extends: .base_job_onboarding
   stage: aws_ssi_pipelines
   allow_failure: true
-  needs: []
-  rules:
-    - if: $CI_PIPELINE_SOURCE == "schedule"
-      when: always
-    - when: manual
+  #needs: []
+  #rules:
+  #  - if: $CI_PIPELINE_SOURCE == "schedule"
+  #    when: always
+  #  - when: manual
   variables:
     TEST_LIBRARY: "nodejs"
     ONBOARDING_FILTER_WEBLOG: "test-app-nodejs"
