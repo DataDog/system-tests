@@ -29,6 +29,7 @@
     "passport-local": "^1.0.0",
     "pg": "^8.8.0",
     "pug": "^3.0.3",
+    "semver": "^7.6.3",
     "sinon": "^17.0.1"
   },
   "devDependencies": {

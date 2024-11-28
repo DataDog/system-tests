@@ -9,6 +9,7 @@ const https = require('https')
 const { MongoClient } = require('mongodb')
 const pug = require('pug')
 const ldap = require('../integrations/ldap')
+const { mongoSanitizeEnabled } = require('../config')
 
 async function initData () {
   const query = readFileSync(join(__dirname, '..', 'resources', 'iast-data.sql')).toString()
@@ -227,9 +228,7 @@ function initRoutes (app, tracer) {
     res.send('<html><body><h1>Test</h1></html>')
   })
 
-  const enableMongoSanitize = parseInt(require('express/package.json').version.split('.')[0]) < 5
-
-  if (enableMongoSanitize) {
+  if (mongoSanitizeEnabled) {
     const mongoSanitize = require('express-mongo-sanitize')
     app.use('/iast/mongodb-nosql-injection/test_secure', mongoSanitize())
   }

@@ -20,6 +20,7 @@ const pgsql = require('./integrations/db/postgres')
 const mysql = require('./integrations/db/mysql')
 const mssql = require('./integrations/db/mssql')
 const apiGateway = require('./integrations/api_gateway')
+const { graphQLEnabled } = require('./config')
 
 const multer = require('multer')
 const uploadToMemory = multer({ storage: multer.memoryStorage(), limits: { fileSize: 200000 } })
@@ -498,19 +499,26 @@ app.get('/set_cookie', (req, res) => {
 
 require('./rasp')(app)
 
-const graphQLEnabled = parseInt(require('express/package.json').version.split('.')[0]) < 5
-
-if (graphQLEnabled) {
-  require('./graphql')(app).then(() => {
+const startServer = () => {
+  return new Promise((resolve) => {
     app.listen(7777, '0.0.0.0', () => {
       tracer.trace('init.service', () => {})
       console.log('listening')
+      resolve()
     })
   })
-} else {
-  // apollo-server do not support Express 5 yet https://github.com/apollographql/apollo-server/issues/7928
-  app.listen(7777, '0.0.0.0', () => {
-    tracer.trace('init.service', () => {})
-    console.log('listening')
-  })
 }
+
+// apollo-server does not support Express 5 yet https://github.com/apollographql/apollo-server/issues/7928
+const initGraphQL = () => {
+  return graphQLEnabled
+    ? require('./graphql')(app)
+    : Promise.resolve()
+}
+
+initGraphQL()
+  .then(startServer)
+  .catch(error => {
+    console.error('Failed to start server:', error)
+    process.exit(1)
+  })
