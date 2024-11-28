@@ -7,13 +7,14 @@ RUN uname -r
 # print versions
 RUN node --version && npm --version && curl --version
 
-COPY utils/build/docker/nodejs/express5 /usr/app
+COPY utils/build/docker/nodejs/express4 /usr/app
 
 WORKDIR /usr/app
 
 ENV NODE_ENV=production
 
 RUN npm install
+RUN npm install "express@^5.0.1"
 
 EXPOSE 7777
 

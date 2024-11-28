@@ -8,7 +8,6 @@ const { execSync } = require('child_process')
 const https = require('https')
 const { MongoClient } = require('mongodb')
 const pug = require('pug')
-const mongoSanitize = require('express-mongo-sanitize')
 const ldap = require('../integrations/ldap')
 
 async function initData () {
@@ -228,7 +227,13 @@ function initRoutes (app, tracer) {
     res.send('<html><body><h1>Test</h1></html>')
   })
 
-  app.use('/iast/mongodb-nosql-injection/test_secure', mongoSanitize())
+  const enableMongoSanitize = parseInt(require('express/package.json').version.split('.')[0]) < 5
+
+  if (enableMongoSanitize) {
+    const mongoSanitize = require('express-mongo-sanitize')
+    app.use('/iast/mongodb-nosql-injection/test_secure', mongoSanitize())
+  }
+
   app.post('/iast/mongodb-nosql-injection/test_secure', async function (req, res) {
     const url = 'mongodb://mongodb:27017/'
     const client = new MongoClient(url)

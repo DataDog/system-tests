@@ -14,6 +14,7 @@ WORKDIR /usr/app
 ENV NODE_ENV=production
 
 RUN npm install
+RUN npm install "express@^4.17.2" "apollo-server-express@^3.13.0" "express-mongo-sanitize@^2.2.0"
 
 EXPOSE 7777
 

@@ -57,7 +57,7 @@ app.post('/waf', uploadToMemory.single('foo'), (req, res) => {
   res.send('Hello\n')
 })
 
-app.all(['/waf', '/waf/*'], (req, res) => {
+app.all(['/waf', '/waf/*name'], (req, res) => {
   res.send('Hello\n')
 })
 
@@ -144,7 +144,7 @@ app.get('/user_login_success_event', (req, res) => {
 app.get('/user_login_failure_event', (req, res) => {
   const userId = req.query.event_user_id || 'system_tests_user'
   let exists = true
-  if (req.query && req.query.hasOwnProperty('event_user_exists')) {
+  if (req.query && 'event_user_exists' in req.query) {
     exists = req.query.event_user_exists.toLowerCase() === 'true'
   }
 
@@ -373,7 +373,7 @@ app.all('/tag_value/:tag_value/:status_code', (req, res) => {
     res.set(k, v)
   }
 
-  res.status(req.params.status_code || 200)
+  res.status(parseInt(req.params.status_code) || 200)
 
   if (req.params.tag_value.startsWith?.('payload_in_response_body') && req.method === 'POST') {
     res.send({ payload: req.body })
@@ -498,9 +498,19 @@ app.get('/set_cookie', (req, res) => {
 
 require('./rasp')(app)
 
-require('./graphql')(app).then(() => {
+const graphQLEnabled = parseInt(require('express/package.json').version.split('.')[0]) < 5
+
+if (graphQLEnabled) {
+  require('./graphql')(app).then(() => {
+    app.listen(7777, '0.0.0.0', () => {
+      tracer.trace('init.service', () => {})
+      console.log('listening')
+    })
+  })
+} else {
+  // apollo-server do not support Express 5 yet https://github.com/apollographql/apollo-server/issues/7928
   app.listen(7777, '0.0.0.0', () => {
     tracer.trace('init.service', () => {})
     console.log('listening')
   })
-})
+}
