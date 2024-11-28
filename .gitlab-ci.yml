@@ -45,11 +45,6 @@ variables:
   extends: .base_job_onboarding
   stage: aws_ssi_pipelines
   allow_failure: true
-  #needs: []
-  #rules:
-  #  - if: $CI_PIPELINE_SOURCE == "schedule"
-  #    when: always
-  #  - when: manual
   variables:
     TEST_LIBRARY: "nodejs"
     ONBOARDING_FILTER_WEBLOG: "test-app-nodejs"
@@ -134,9 +129,9 @@ x_merge_nodejs_ssi_pipeline:
   needs: ["x_compute_nodejs_scenarios"]
   dependencies:
     - x_compute_nodejs_scenarios
-  artifacts:
-    paths:
-      - aws_gitlab_pipeline.yml
+#  artifacts:
+#    paths:
+#      - aws_gitlab_pipeline.yml
 
 step2_exec_nodejs_ssi_pipeline:
   extends: .aws_ssi_pipeline
