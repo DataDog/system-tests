@@ -21,11 +21,17 @@ class Test_library:
             ("/telemetry/proxy/api/v2/apmtelemetry", "$.payload.configuration[]"),
             ("/telemetry/proxy/api/v2/apmtelemetry", "$.payload"),  # APPSEC-52845
             ("/telemetry/proxy/api/v2/apmtelemetry", "$.payload.configuration[].value"),  # APMS-12697
-            ("/debugger/v1/input", "$[].dd.span_id"),  # DEBUG-2743
-            ("/debugger/v1/input", "$[].dd.trace_id"),  # DEBUG-2743
-            ("/debugger/v1/input", "$[].debugger.snapshot.probe.location.lines[]"),  # DEBUG-2743
-            ("/debugger/v1/input", "$[].debugger.snapshot.captures"),  # DEBUG-2743
         ]
+
+        if context.library == "python":  # DEBUG-2743
+            excluded_points.extend(
+                [
+                    ("/debugger/v1/input", "$[].dd.span_id"),
+                    ("/debugger/v1/input", "$[].dd.trace_id"),
+                    ("/debugger/v1/input", "$[].debugger.snapshot.probe.location.lines[]"),
+                    ("/debugger/v1/input", "$[].debugger.snapshot.captures"),
+                ]
+            )
 
         if (
             context.library in ("python@2.16.2", "python@2.16.3")
