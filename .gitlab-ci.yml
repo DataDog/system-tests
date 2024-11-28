@@ -58,7 +58,7 @@ variables:
             if [ -e ${filename} ]
             then
               echo "Processing pipeline: ${filename}"
-              python utils/scripts/merge_gitlab_aws_pipelines.py --input ${filename} --output aws_gitlab_pipeline.yml --env
+              python utils/scripts/merge_gitlab_aws_pipelines.py --input ${filename} --output aws_gitlab_pipeline.yml
             fi
           done
         done

@@ -125,6 +125,21 @@ def generate_gitlab_pipeline(language, weblog_name, scenario_name, env, vms):
         "include": [
             {"remote": "https://gitlab-templates.ddbuild.io/libdatadog/include/single-step-instrumentation-tests.yml"}
         ],
+        "variables": {
+            "KUBERNETES_SERVICE_ACCOUNT_OVERWRITE": "system-tests",
+            "TEST": "1",
+            "KUBERNETES_CPU_REQUEST": '"6"',
+            "KUBERNETES_CPU_LIMIT": '"6"',
+            "AMI_UPDATE": {"description": '"Set to true to force the update the AMIs used in the system-tests"'},
+            "ONBOARDING_FILTER_ENV": f'"{env}"',
+            "ONLY_TEST_LIBRARY": '""',
+            "DD_INSTALLER_LIBRARY_VERSION": {
+                "description": '"Set the version of the library to be installed. Use the pipeline id pipeline-${CI_PIPELINE_ID}"'
+            },
+            "DD_INSTALLER_INJECTOR_VERSION": {
+                "description": '"Set the version of the injector to be installed. Use the pipeline id pipeline-${CI_PIPELINE_ID}"'
+            },
+        },
         "stages": ["dummy"],
         # A dummy job is necessary for cases where all of the test jobs are manual
         # The child pipeline shows as failed until at least 1 job is run
@@ -158,12 +173,7 @@ def generate_gitlab_pipeline(language, weblog_name, scenario_name, env, vms):
                 "stage": scenario_name,
                 "allow_failure": True,
                 "needs": [],
-                "variables": {
-                    "TEST_LIBRARY": language,
-                    "SCENARIO": scenario_name,
-                    "WEBLOG": weblog_name,
-                    "ONBOARDING_FILTER_ENV": env,
-                },
+                "variables": {"TEST_LIBRARY": language, "SCENARIO": scenario_name, "WEBLOG": weblog_name},
                 "script": [
                     "./build.sh -i runner",
                     "./run.sh $SCENARIO --vm-weblog $WEBLOG --vm-env $ONBOARDING_FILTER_ENV --vm-library $TEST_LIBRARY --vm-provider aws --report-run-url $CI_PIPELINE_URL --report-environment $ONBOARDING_FILTER_ENV --vm-default-vms All --vm-only "
