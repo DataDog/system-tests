@@ -41,7 +41,7 @@ variables:
     DD_INSTALLER_INJECTOR_VERSION:
       description: "Set the version of the injector to be installed. Use the pipeline id pipeline-${CI_PIPELINE_ID}"
 
-.onboarding_pipeline_base:
+.compute_aws_scenarios:
   extends: .base_job_onboarding
   stage: aws_ssi_pipelines
   allow_failure: true
@@ -60,7 +60,7 @@ variables:
     paths:
       - reports/
 
-.generate_aws_ssi_pipeline:
+.merge_aws_ssi_pipeline:
   image: 486234852809.dkr.ecr.us-east-1.amazonaws.com/ci/test-infra-definitions/runner:a58cc31c
   stage: aws_ssi_pipelines
   tags: ["arch:amd64"]
@@ -83,9 +83,9 @@ variables:
     paths:
       - aws_gitlab_pipeline.yml
 
-.aws_ssi_pipeline:
+.exec_aws_ssi_pipeline:
   stage: aws_ssi_pipelines
-  needs: ["generate_aws_ssi_pipeline"]
+  needs: ["merge_aws_ssi_pipeline"]
   rules:
     - if: $CI_PIPELINE_SOURCE == "schedule"
       when: always
@@ -96,7 +96,7 @@ variables:
   trigger:
     include:
       - artifact: aws_gitlab_pipeline.yml
-        job: generate_aws_ssi_pipeline
+        job: merge_aws_ssi_pipeline
     strategy: depend
 
 step1_generate_nodejs_ssi_pipeline:
@@ -113,7 +113,7 @@ step1_generate_nodejs_ssi_pipeline:
       allow_failure: true
 
 x_compute_nodejs_scenarios:
-  extends: .onboarding_pipeline_base
+  extends: .compute_aws_scenarios
   needs: ["step1_generate_nodejs_ssi_pipeline"]
   variables:
     TEST_LIBRARY: "nodejs"
@@ -125,17 +125,13 @@ x_compute_nodejs_scenarios:
             - HOST_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING
 
 x_merge_nodejs_ssi_pipeline:
-  extends: .generate_aws_ssi_pipeline
+  extends: .merge_aws_ssi_pipeline
   needs: ["x_compute_nodejs_scenarios"]
   dependencies:
     - x_compute_nodejs_scenarios
-#  artifacts:
-#    paths:
-#      - aws_gitlab_pipeline.yml
 
 step2_exec_nodejs_ssi_pipeline:
-  extends: .aws_ssi_pipeline
-  stage: aws_ssi_pipelines
+  extends: .exec_aws_ssi_pipeline
   needs: ["x_merge_nodejs_ssi_pipeline"]
   trigger:
     include:
