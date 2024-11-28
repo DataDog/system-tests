@@ -16,7 +16,7 @@ def _get_expectation(d):
     raise TypeError(f"Unsupported expectation type: {d}")
 
 
-def _get_span_meta(request, metastruct=False):
+def _get_span_meta(request):
     spans = [span for _, span in interfaces.library.get_root_spans(request=request)]
     assert spans, "No root span found"
     span = spans[0]
@@ -27,6 +27,7 @@ def _get_span_meta(request, metastruct=False):
 
 def get_iast_event(request):
     meta, meta_struct = _get_span_meta(request=request)
+    assert "_dd.iast.json" in meta or "iast" in meta_struct, "No IAST info found tag in span"
     return meta.get("_dd.iast.json") or meta_struct.get("iast")
 
 
@@ -165,22 +166,19 @@ class BaseSinkTestWithoutTelemetry:
     def assert_no_iast_event(request, tested_vulnerability_type=None):
         assert request.status_code == 200, f"Request failed with status code {request.status_code}"
 
-        iast_json = get_iast_event(request=request)
-        assert iast_json is None, f"Unexpected vulnerabilities reported: {iast_json}"
-
-        # for data, _, span in interfaces.library.get_spans(request=request):
-        #     logger.info(f"Looking for IAST events in {data['log_filename']}")
-        #     meta = span.get("meta", {})
-        #     iast_json = meta.get("_dd.iast.json")
-        #     if iast_json is not None:
-        #         if tested_vulnerability_type is None:
-        #             logger.error(json.dumps(iast_json, indent=2))
-        #             raise ValueError("Unexpected vulnerability reported")
-        #         elif iast_json["vulnerabilities"]:
-        #             for vuln in iast_json["vulnerabilities"]:
-        #                 if vuln["type"] == tested_vulnerability_type:
-        #                     logger.error(json.dumps(iast_json, indent=2))
-        #                     raise ValueError(f"Unexpected vulnerability reported: {vuln['type']}")
+        for data, _, span in interfaces.library.get_spans(request=request):
+            logger.info(f"Looking for IAST events in {data['log_filename']}")
+            meta, meta_struct = _get_span_meta(request=request)
+            iast_json = meta.get("_dd.iast.json") if meta else meta_struct.get("iast")
+            if iast_json is not None:
+                if tested_vulnerability_type is None:
+                    logger.error(json.dumps(iast_json, indent=2))
+                    raise ValueError("Unexpected vulnerability reported")
+                elif iast_json["vulnerabilities"]:
+                    for vuln in iast_json["vulnerabilities"]:
+                        if vuln["type"] == tested_vulnerability_type:
+                            logger.error(json.dumps(iast_json, indent=2))
+                            raise ValueError(f"Unexpected vulnerability reported: {vuln['type']}")
 
 
 def validate_stack_traces(request):
@@ -456,5 +454,5 @@ class BaseTestCookieNameFilter:
         assert_iast_vulnerability(request=self.req1, vulnerability_count=1, vulnerability_type=self.vulnerability_type)
         assert_iast_vulnerability(request=self.req2, vulnerability_count=1, vulnerability_type=self.vulnerability_type)
 
-        meta_req3 = _get_span_meta(self.req3)
-        assert "_dd.iast.json" not in meta_req3
+        meta, meta_struct = _get_span_meta(self.req3)
+        assert "_dd.iast.json" not in meta and "iast" not in meta_struct, "No IAST info expected in span"

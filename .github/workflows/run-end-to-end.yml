@@ -242,9 +242,6 @@ jobs:
     - name: Run APPSEC_RASP scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_RASP"')
       run: ./run.sh APPSEC_RASP
-    - name: Run APPSEC_STANDALONE scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_STANDALONE"')
-      run: ./run.sh APPSEC_STANDALONE
     - name: Run APPSEC_META_STRUCT_ENABLED scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_META_STRUCT_ENABLED"')
       run: ./run.sh APPSEC_META_STRUCT_ENABLED

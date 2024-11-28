@@ -419,8 +419,6 @@ tests/:
       Test_Basic:
         '*': v1.1.0-rc2
         fastapi: v2.4.0
-    test_appsec_metastruct.py:
-      Test_SecurityEvent_Metastruct: missing_feature
     test_asm_standalone.py:
       Test_AppSecStandalone_UpstreamPropagation:
         '*': v2.12.3
@@ -528,9 +526,9 @@ tests/:
       Test_Standardization: missing_feature
       Test_StandardizationBlockMode: missing_feature
     test_metastruct.py:
-      Test_SecurityEvents_Appsec_Metastruct_Disabled: missing_feature
+      Test_SecurityEvents_Appsec_Metastruct_Disabled: irrelevant (no fallback will be implemented)
       Test_SecurityEvents_Appsec_Metastruct_Enabled: missing_feature
-      Test_SecurityEvents_Iast_Metastruct_Disabled: missing_feature
+      Test_SecurityEvents_Iast_Metastruct_Disabled: irrelevant (no fallback will be implemented)
       Test_SecurityEvents_Iast_Metastruct_Enabled: missing_feature
     test_rate_limiter.py:
       Test_Main: v2.0.0

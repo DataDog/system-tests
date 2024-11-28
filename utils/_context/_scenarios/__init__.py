@@ -397,7 +397,7 @@ class scenarios:
             """,
         scenario_groups=[ScenarioGroup.APPSEC],
     )
-    
+
     appsec_meta_struct_disabled = EndToEndScenario(
         "APPSEC_META_STRUCT_DISABLED",
         weblog_env={"DD_APPSEC_ENABLED": "true", "DD_IAST_ENABLED": "true"},

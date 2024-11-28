@@ -2,9 +2,10 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import weblog, context, interfaces, bug, missing_feature, scenarios, features
+from utils import weblog, interfaces, rfc, scenarios, features
 
 
+@rfc("https://docs.google.com/document/d/1iWQsOfT6Lg_IFyvQeqry9wVmXOE2Yav0X4MgOTk7mks")
 @features.security_events_metastruct
 class Test_SecurityEvents_Appsec_Metastruct_Enabled:
     """Test to verify that appsec events are correctly set in meta struct when supported by the agent."""
@@ -36,7 +37,7 @@ class Test_SecurityEvents_Iast_Metastruct_Enabled:
 
     def setup_iast_event_use_metastruct(self):
         # Triggers a vulnerability
-        self.r = weblog.get("/set_cookie", data={"name": "metastruct-yes", "value": "yes"})
+        self.r = weblog.get("/set_cookie", params={"name": "metastruct-yes", "value": "yes"})
 
     def test_iast_event_use_metastruct(self):
         spans = [s for _, s in interfaces.library.get_root_spans(request=self.r)]
@@ -59,7 +60,7 @@ class Test_SecurityEvents_Iast_Metastruct_Enabled:
 @features.security_events_metastruct
 @scenarios.appsec_meta_struct_disabled
 class Test_SecurityEvents_Appsec_Metastruct_Disabled:
-    """Test to verify that Appsec events are set in the json tag when meta struct is not supported by the agent."""
+    """Fallback: Test to verify that Appsec events are set in the json tag when meta struct is not supported by the agent."""
 
     def setup_appsec_event_fallback_json(self):
         self.r = weblog.get("/", headers={"User-Agent": "Arachni/v1"})
@@ -85,11 +86,11 @@ class Test_SecurityEvents_Appsec_Metastruct_Disabled:
 @features.security_events_metastruct
 @scenarios.appsec_meta_struct_disabled
 class Test_SecurityEvents_Iast_Metastruct_Disabled:
-    """Test to verify that IAST events are set in the json tag when meta struct is not supported by the agent."""
+    """Fallback: Test to verify that IAST events are set in the json tag when meta struct is not supported by the agent."""
 
     def setup_iast_event_fallback_json(self):
         # Triggers a vulnerability
-        self.r = weblog.get("/set_cookie", data={"name": "metastruct-no", "value": "no"})
+        self.r = weblog.get("/set_cookie", params={"name": "metastruct-no", "value": "no"})
 
     def test_iast_event_fallback_json(self):
         spans = [s for _, s in interfaces.library.get_root_spans(request=self.r)]
