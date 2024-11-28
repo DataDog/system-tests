@@ -20,7 +20,7 @@ const pgsql = require('./integrations/db/postgres')
 const mysql = require('./integrations/db/mysql')
 const mssql = require('./integrations/db/mssql')
 const apiGateway = require('./integrations/api_gateway')
-const { graphQLEnabled } = require('./config')
+const { graphQLEnabled, unnamedWildcard } = require('./config')
 
 const multer = require('multer')
 const uploadToMemory = multer({ storage: multer.memoryStorage(), limits: { fileSize: 200000 } })
@@ -58,7 +58,8 @@ app.post('/waf', uploadToMemory.single('foo'), (req, res) => {
   res.send('Hello\n')
 })
 
-app.all(['/waf', '/waf/*name'], (req, res) => {
+const wafWildcardPath = unnamedWildcard ? '/waf/*' : '/waf/*name'
+app.all(['/waf', wafWildcardPath], (req, res) => {
   res.send('Hello\n')
 })
 
