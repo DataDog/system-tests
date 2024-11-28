@@ -66,6 +66,8 @@ variables:
 
 onboarding_nodejs:
   extends: .onboarding_pipeline_base
+  variables:
+    TEST_LIBRARY: "nodejs"
   parallel:
     matrix:
         - ONBOARDING_FILTER_WEBLOG: [test-app-nodejs]
