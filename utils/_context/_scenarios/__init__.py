@@ -387,16 +387,6 @@ class scenarios:
         scenario_groups=[ScenarioGroup.APPSEC],
     )
 
-    iast_security_controls = EndToEndScenario(
-        "IAST_SECURITY_CONTROLS",
-        weblog_env={
-            "DD_IAST_ENABLED": "true",
-            "DD_IAST_SECURITY_CONTROLS_CONFIGURATION": "SANITIZER:XSS:com.datadoghq.system_tests.iast.utils.SecurityControlUtil:sanitize;SANITIZER:*:com.datadoghq.system_tests.iast.utils.SecurityControlUtil:sanitizeForAllVulns;SANITIZER:*:com.datadoghq.system_tests.iast.utils.SecurityControlUtil:overloadedSanitize:java.lang.String;INPUT_VALIDATOR:XSS:com.datadoghq.system_tests.iast.utils.SecurityControlUtil:validate;INPUT_VALIDATOR:*:com.datadoghq.system_tests.iast.utils.SecurityControlUtil:validateForAllVulns;INPUT_VALIDATOR:*:com.datadoghq.system_tests.iast.utils.SecurityControlUtil:overloadedValidation:java.lang.Object,java.lang.String,java.lang.String:1,2",
-        },
-        doc="Iast scenario with security controls",
-        scenario_groups=[ScenarioGroup.APPSEC],
-    )
-
     remote_config_mocked_backend_asm_features = EndToEndScenario(
         "REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES",
         rc_api_enabled=True,
