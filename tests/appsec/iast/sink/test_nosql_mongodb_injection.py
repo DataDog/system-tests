@@ -17,7 +17,7 @@ class TestNoSqlMongodbInjection(BaseSinkTest):
     secure_endpoint = "/iast/mongodb-nosql-injection/test_secure"
     data = {"key": "somevalue"}
     location_map = {
-        "nodejs": {"express4": "iast/index.js", "express5": "iast/index.js", "express4-typescript": "iast.ts"}
+        "nodejs": {"express4": "iast/index.js", "express4-typescript": "iast.ts", "express5": "iast/index.js"}
     }
 
     @missing_feature(context.library < "java@1.13.0", reason="Not implemented yet")

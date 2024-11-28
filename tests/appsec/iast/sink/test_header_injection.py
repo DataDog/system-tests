@@ -56,7 +56,7 @@ class TestHeaderInjection(BaseSinkTest):
     secure_endpoint = "/iast/header_injection/test_secure"
     data = {"test": "dummyvalue"}
     location_map = {
-        "nodejs": {"express4": "iast/index.js", "express5": "iast/index.js", "express4-typescript": "iast.ts"}
+        "nodejs": {"express4": "iast/index.js", "express4-typescript": "iast.ts", "express5": "iast/index.js"}
     }
 
     @missing_feature(context.library < "java@1.22.0", reason="Metrics not implemented")

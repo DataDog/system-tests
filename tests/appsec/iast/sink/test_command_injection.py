@@ -17,7 +17,7 @@ class TestCommandInjection(BaseSinkTest):
     data = {"cmd": "ls"}
     location_map = {
         "java": "com.datadoghq.system_tests.iast.utils.CmdExamples",
-        "nodejs": {"express4": "iast/index.js", "express5": "iast/index.js", "express4-typescript": "iast.ts"},
+        "nodejs": {"express4": "iast/index.js", "express4-typescript": "iast.ts", "express5": "iast/index.js"},
         "python": {"flask-poc": "app.py", "django-poc": "app/urls.py"},
     }
 

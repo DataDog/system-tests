@@ -41,8 +41,8 @@ class Test_HardcodedSecrets:
         "java": "com.datadoghq.system_tests.springboot.AppSecIast",
         "nodejs": {
             "express4": "iast/index.js",
-            "express5": "iast/index.js",
             "express4-typescript": "iast.ts",
+            "express5": "iast/index.js",
             "uds-express4": "iast/index.js",
         },
     }
@@ -69,8 +69,8 @@ class Test_HardcodedSecretsExtended:
     location_map = {
         "nodejs": {
             "express4": "iast/index.js",
-            "express5": "iast/index.js",
             "express4-typescript": "iast.ts",
+            "express5": "iast/index.js",
             "uds-express4": "iast/index.js",
         },
     }
