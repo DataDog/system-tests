@@ -448,20 +448,25 @@ generate_system_tests_images:
       - ./lib-injection/build/build_lib_injection_images.sh
   when: manual
 
-generate_docker_ssi_pipeline:
+step1_generate_docker_ssi_pipeline:
   image: 486234852809.dkr.ecr.us-east-1.amazonaws.com/ci/test-infra-definitions/runner:a58cc31c
   stage: docker_ssi_pipelines
   tags: ["arch:amd64"]
   needs: []
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+      when: always
+    - when: manual
+      allow_failure: true
   script:
     - python utils/docker_ssi/docker_ssi_matrix_builder.py --format yaml --output-file ssi_pipeline.yml
   artifacts:
     paths:
       - ssi_pipeline.yml
 
-docker_ssi_pipeline:
+step2_exec_docker_ssi_pipeline:
   stage: docker_ssi_pipelines
-  needs: ["generate_docker_ssi_pipeline"]
+  needs: ["step1_generate_docker_ssi_pipeline"]
   rules:
     - if: $CI_PIPELINE_SOURCE == "schedule"
       when: always
@@ -472,5 +477,5 @@ docker_ssi_pipeline:
   trigger:
     include:
       - artifact: ssi_pipeline.yml
-        job: generate_docker_ssi_pipeline
+        job: step1_generate_docker_ssi_pipeline
     strategy: depend
