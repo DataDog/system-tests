@@ -92,6 +92,7 @@ generate_aws_ssi_pipeline:
             fi
           done
         done
+  needs: ["onboarding_nodejs"]
   dependencies:
     - onboarding_nodejs
   artifacts:
