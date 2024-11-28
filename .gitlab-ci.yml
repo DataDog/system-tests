@@ -41,13 +41,13 @@ variables:
     DD_INSTALLER_INJECTOR_VERSION:
       description: "Set the version of the injector to be installed. Use the pipeline id pipeline-${CI_PIPELINE_ID}"
 
-onboarding_nodejs:
+.onboarding_pipeline_base:
   extends: .base_job_onboarding
   stage: aws_ssi_pipelines
   allow_failure: true
   needs: []
   rules:
-    - if: $CI_PIPELINE_SOURCE == "schedule" && ($ONLY_TEST_LIBRARY == "" || $ONLY_TEST_LIBRARY == "nodejs")
+    - if: $CI_PIPELINE_SOURCE == "schedule"
       when: always
     - when: manual
   variables:
@@ -64,9 +64,38 @@ onboarding_nodejs:
     paths:
       - gitlab_pipeline.yml
 
+onboarding_nodejs:
+  extends: .onboarding_pipeline_base
+  parallel:
+    matrix:
+        - ONBOARDING_FILTER_WEBLOG: [test-app-nodejs]
+          SCENARIO:
+            - HOST_AUTO_INJECTION_INSTALL_SCRIPT
+            - HOST_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING
+
+generate_aws_ssi_pipeline:
+  stage: aws_ssi_pipelines
+  script:
+      - |
+        for folder in reports/logs*/ ; do
+          echo "Checking folder: ${folder}"
+          for filename in ./${folder}gitlab_pipeline.yml; do
+            if [ -e ${filename} ]
+            then
+              echo "Processing pipeline: ${filename}"
+              python utils/scripts/merge_gitlab_aws_pipelines.py --input ${filename} --output aws_gitlab_pipeline.yml
+            fi
+          done
+        done
+  dependencies:
+    - onboarding_nodejs
+  artifacts:
+    paths:
+      - aws_gitlab_pipeline.yml
+
 aws_ssi_pipeline:
   stage: aws_ssi_pipelines
-  needs: ["onboarding_nodejs"]
+  needs: ["generate_aws_ssi_pipeline"]
   rules:
     - if: $CI_PIPELINE_SOURCE == "schedule"
       when: always
@@ -76,8 +105,8 @@ aws_ssi_pipeline:
     PARENT_PIPELINE_SOURCE: $CI_PIPELINE_SOURCE
   trigger:
     include:
-      - artifact: gitlab_pipeline.yml
-        job: onboarding_nodejs
+      - artifact: aws_gitlab_pipeline.yml
+        job: generate_aws_ssi_pipeline
     strategy: depend
 
 .onboarding_nodejs:
