@@ -145,7 +145,8 @@ app.get('/user_login_success_event', (req, res) => {
 app.get('/user_login_failure_event', (req, res) => {
   const userId = req.query.event_user_id || 'system_tests_user'
   let exists = true
-  if (req.query && 'event_user_exists' in req.query) {
+  const query = req.query
+  if (query && 'event_user_exists' in query) {
     exists = req.query.event_user_exists.toLowerCase() === 'true'
   }
 
