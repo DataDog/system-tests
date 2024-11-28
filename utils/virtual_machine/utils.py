@@ -120,7 +120,7 @@ def nginx_parser(nginx_config_file):
                                         return json_object["apps"]
 
 
-def generate_gitlab_pipeline(language, weblog_name, scenario_name, vms):
+def generate_gitlab_pipeline(language, weblog_name, scenario_name, env, vms):
     pipeline = {
         "include": [
             {"remote": "https://gitlab-templates.ddbuild.io/libdatadog/include/single-step-instrumentation-tests.yml"}
@@ -144,7 +144,7 @@ def generate_gitlab_pipeline(language, weblog_name, scenario_name, vms):
                 'cp -R logs_"${SCENARIO_SUFIX}" $REPORTS_PATH/',
                 'cp logs_"${SCENARIO_SUFIX}"/feature_parity.json "$REPORTS_PATH"/"${SCENARIO_SUFIX}".json',
                 'mv "$REPORTS_PATH"/logs_"${SCENARIO_SUFIX}" "$REPORTS_PATH"/logs_"${TEST_LIBRARY}"_"${ONBOARDING_FILTER_WEBLOG}"_"${SCENARIO_SUFIX}_${DEFAULT_VMS}"',
-            ],
+            ].append(_generate_fpd_gitlab_script()),
             "artifacts": {"when": "always", "paths": ["reports/"]},
         },
     }
@@ -158,11 +158,36 @@ def generate_gitlab_pipeline(language, weblog_name, scenario_name, vms):
                 "stage": scenario_name,
                 "allow_failure": True,
                 "needs": [],
-                "variables": {"TEST_LIBRARY": language, "SCENARIO": scenario_name, "WEBLOG": weblog_name},
+                "variables": {
+                    "TEST_LIBRARY": language,
+                    "SCENARIO": scenario_name,
+                    "WEBLOG": weblog_name,
+                    "ONBOARDING_FILTER_ENV": env,
+                },
                 "script": [
                     "./build.sh -i runner",
-                    "./run.sh $SCENARIO --vm-weblog $WEBLOG --vm-env prod --vm-library $TEST_LIBRARY --vm-provider aws --report-run-url ${CI_PIPELINE_URL} --report-environment prod --vm-default-vms All --vm-only "
+                    "./run.sh $SCENARIO --vm-weblog $WEBLOG --vm-env $ONBOARDING_FILTER_ENV --vm-library $TEST_LIBRARY --vm-provider aws --report-run-url $CI_PIPELINE_URL --report-environment $ONBOARDING_FILTER_ENV --vm-default-vms All --vm-only "
                     + vm.name,
                 ],
             }
     return pipeline
+
+
+def _generate_fpd_gitlab_script():
+    fpd_push_script = [
+        'if $CI_COMMIT_BRANCH == "robertomonteromiguel/onboarding_parallel_ci"; then',
+        'export FP_IMPORT_URL=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.fp-import-url --with-decryption --query "Parameter.Value" --out text)',
+        'export FP_API_KEY=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.fp-api-key --with-decryption --query "Parameter.Value" --out text)',
+        "for folder in reports/logs*/ ; do",
+        '  echo "Checking folder: ${folder}"',
+        "  for filename in ./${folder}*_feature_parity.json; do",
+        "    if [ -e ${filename} ]",
+        "    then",
+        '      echo "Processing report: ${filename}"',
+        '      #curl -X POST ${FP_IMPORT_URL} --fail --header "Content-Type: application/json" --header "FP_API_KEY: ${FP_API_KEY}" --data "@${filename}" --include',
+        "    fi",
+        "  done",
+        "done",
+        "fi",
+    ]
+    return fpd_push_script
