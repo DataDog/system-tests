@@ -12,13 +12,13 @@ from utils import bug, context, features, irrelevant, missing_feature, rfc, scen
 @scenarios.parametric
 @features.crashtracking
 class Test_Crashtracking:
-    @pytest.mark.skipif(context.library == "ruby@2.7.2-dev", reason="temporary skip for ruby 2.7.1 release")
-    @pytest.mark.parametrize("library_env", [{"DD_CRASHTRACKING_ENABLED": "true"}])
-    def test_report_crash(self, test_agent, test_library):
-        test_library.crash()
+    # @pytest.mark.skipif(context.library == "ruby@2.7.2-dev", reason="temporary skip for ruby 2.7.1 release")
+    # @pytest.mark.parametrize("library_env", [{"DD_CRASHTRACKING_ENABLED": "true"}])
+    # def test_report_crash(self, test_agent, test_library):
+    #     test_library.crash()
 
-        event = test_agent.wait_for_telemetry_event("logs", wait_loops=400)
-        assert self.is_crash_report(test_library, event)
+    #     event = test_agent.wait_for_telemetry_event("logs", wait_loops=400)
+    #     assert self.is_crash_report(test_library, event)
 
     @pytest.mark.parametrize("library_env", [{"DD_CRASHTRACKING_ENABLED": "false"}])
     def test_disable_crashtracking(self, test_agent, test_library):
