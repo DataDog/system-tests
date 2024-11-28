@@ -129,9 +129,9 @@ x_compute_nodejs_scenarios:
 
 x_merge_nodejs_ssi_pipeline:
   extends: .generate_aws_ssi_pipeline
-  needs: ["compute_nodejs_scenarios"]
+  needs: ["x_compute_nodejs_scenarios"]
   dependencies:
-    - compute_nodejs_scenarios
+    - x_compute_nodejs_scenarios
   artifacts:
     paths:
       - aws_gitlab_pipeline.yml
@@ -139,11 +139,11 @@ x_merge_nodejs_ssi_pipeline:
 step2_exec_nodejs_ssi_pipeline:
   extends: .aws_ssi_pipeline
   stage: aws_ssi_pipelines
-  needs: ["merge_nodejs_ssi_pipeline"]
+  needs: ["x_merge_nodejs_ssi_pipeline"]
   trigger:
     include:
       - artifact: aws_gitlab_pipeline.yml
-        job: merge_nodejs_ssi_pipeline
+        job: x_merge_nodejs_ssi_pipeline
     strategy: depend
 
 .onboarding_nodejs:
