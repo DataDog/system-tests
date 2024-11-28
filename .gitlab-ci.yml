@@ -106,10 +106,11 @@ variables:
 
 generate_nodejs_ssi_pipeline:
   stage: aws_ssi_pipelines
+  needs: []
   script:
     - echo ">>>>>>>>>>>>>>> Generating nodejs pipeline >>>>>>>>>>>>>>>"
   when: manual
-  allow_failure: false
+  allow_failure: true
 
 compute_nodejs_scenarios:
   extends: .onboarding_pipeline_base
