@@ -83,7 +83,7 @@ generate_aws_ssi_pipeline:
   script:
       - |
         for folder in reports/logs*/ ; do
-          echo "Checking folder: ${folder}"
+          echo "Checking folder:: ${folder}"
           for filename in ./${folder}gitlab_pipeline.yml; do
             if [ -e ${filename} ]
             then
