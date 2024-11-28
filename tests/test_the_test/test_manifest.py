@@ -57,7 +57,7 @@ def test_content():
     def assert_valid_declaration(declaration):
         assert isinstance(declaration, str)
 
-        if re.match(r"^(bug|flaky|irrelevant|missing_feature)( \(.+\))?$", declaration):
+        if re.match(r"^(bug|flaky|irrelevant|missing_feature|incomplete_test_app)( \(.+\))?$", declaration):
             return
 
         # must be a version declaration or semver spec
