@@ -127,11 +127,11 @@ generate_nodejs_ssi_pipeline:
 launch_nodejs_ssi_pipeline:
   extends: .aws_ssi_pipeline
   stage: aws_ssi_pipelines
-  needs: ["generate_aws_ssi_pipeline"]
+  needs: ["generate_nodejs_ssi_pipeline"]
   trigger:
     include:
       - artifact: aws_gitlab_pipeline.yml
-        job: generate_aws_ssi_pipeline
+        job: generate_nodejs_ssi_pipeline
     strategy: depend
 
 .onboarding_nodejs:
