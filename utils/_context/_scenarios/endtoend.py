@@ -574,12 +574,6 @@ class EndToEndScenario(DockerScenario):
             ),
             _SchemaBug(
                 endpoint="/debugger/v1/diagnostics",
-                data_path="$[].content",
-                condition=context.library > "nodejs@4.48.0",
-                ticket="DEBUG-2864",
-            ),
-            _SchemaBug(
-                endpoint="/debugger/v1/diagnostics",
                 data_path="$[].content[].debugger.diagnostics",
                 condition=context.library == "nodejs",
                 ticket="DEBUG-3245",
@@ -616,12 +610,6 @@ class EndToEndScenario(DockerScenario):
                 data_path="$.payload.configuration[].value",
                 condition=context.library == "golang",
                 ticket="APMS-12697",
-            ),
-            _SchemaBug(
-                endpoint="/api/v2/debugger",
-                data_path="$[].content",
-                condition=context.library > "nodejs@4.46.0",
-                ticket="DEBUG-2864",
             ),
         ]
         self._test_schemas(session, interfaces.agent, agent_bugs)
