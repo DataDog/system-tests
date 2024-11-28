@@ -289,7 +289,7 @@ class _VirtualMachineScenario(Scenario):
                 if key.startswith("datadog-apm-inject") and self._tested_components[key]:
                     self._datadog_apm_inject_version = f"v{self._tested_components[key]}"
                 if key.startswith("datadog-apm-library-") and self._tested_components[key]:
-                    self._library.version = self._tested_components[key]
+                    self._library = LibraryVersion(self._library.library, self._tested_components[key])
                     # We store without the lang sufix
                     self._tested_components["datadog-apm-library"] = self._tested_components[key]
                     del self._tested_components[key]
