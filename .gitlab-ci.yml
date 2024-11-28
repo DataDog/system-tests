@@ -111,13 +111,16 @@ step1_generate_nodejs_ssi_pipeline:
   needs: []
   script:
     - echo ">>>>>>>>>>>>>>> Generating nodejs pipeline >>>>>>>>>>>>>>>"
-  when: manual
-  allow_failure: true
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+      when: always
+    - when: manual
+      allow_failure: true
 
 x_compute_nodejs_scenarios:
   extends: .onboarding_pipeline_base
   dependencies:
-    - generate_nodejs_ssi_pipeline
+    - step1_generate_nodejs_ssi_pipeline
   variables:
     TEST_LIBRARY: "nodejs"
   parallel:
