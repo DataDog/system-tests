@@ -305,6 +305,50 @@ A POST request which will receive the following JSON body:
 
 Where the value for `value` must be used in the vulnerability.
 
+### POST /iast/sc/*
+
+These group of endpoints should trigger vulnerabilities detected by IAST with untrusted data coming from certain sources although the data is validated or sanitized by a configured security control
+
+#### POST /iast/sc/s/xss
+
+A post request using a parameter 'param' with a value that triggers a XSS vulnerability. The value should be sanitized by a sanitizer security control configured for XSS vulnerabilities.
+
+#### POST /sc/s/sqli
+
+A post request using a parameter 'param' with a value that triggers a SQL injection vulnerability. The value should be sanitized by a sanitizer security control that is not configured for SQL injection vulnerabilities.
+
+#### POST /sc/s/all
+
+A post request using a parameter 'param' with a value that triggers a SQL injection vulnerability. The value should be sanitized by a sanitizer security control configured for all vulnerabilities.
+
+#### POST /sc/iv/xss
+
+A post request using a parameter 'param' with a value that triggers a XSS vulnerability. The value should be validated by an input validator security control configured for XSS vulnerabilities.
+
+#### POST /sc/iv/sqli
+
+A post request using a parameter 'param' with a value that triggers a SQL injection vulnerability. The value should be validated by an input validator security control that is not configured for SQL injection vulnerabilities.
+
+#### POST /sc/iv/all
+
+A post request using a parameter 'param' with a value that triggers a SQL injection vulnerability. The value should be validated by an input validator security control configured for all vulnerabilities.
+
+#### POST /sc/iv/overloaded/secure
+
+A post request using two parameters 'user' and 'password' that triggers a SQL injection vulnerability. The values should be validated by an input validator security control with an overloaded method configured for all vulnerabilities.
+
+#### POST /sc/iv/overloaded/insecure
+
+A post request using two parameters 'user' and 'password' that triggers a SQL injection vulnerability. The values should be validated by an input validator security control with an overloaded method configured for other method signature.
+
+#### POST /sc/s/overloaded/secure
+
+A post request using a parameter 'param' with a value that triggers a XSS vulnerability. The value should be sanitized by a sanitizer security control with an overloaded method configured for all vulnerabilities.
+
+#### POST /sc/s/overloaded/insecure
+
+A post request using a parameter 'param' with a value that triggers a XSS vulnerability. The value should be sanitized by a sanitizer security control with an overloaded method configured for other method signature.
+
 ### GET /make_distant_call
 
 This endpoint accept a mandatory parameter `url`. It'll make a call to these url, and should returns a JSON response :

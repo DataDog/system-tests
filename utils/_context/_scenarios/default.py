@@ -2,8 +2,8 @@ from .core import ScenarioGroup
 from .endtoend import EndToEndScenario
 
 
-# TODO : short explaination of the purpose of this value
-# a link to the RFC would be perfect
+# When Security Controls configuration is set, tracers must instrument all the designated methods in the configuration as security controls.
+# RFC(https://docs.google.com/document/d/1j1hp87-2wJnXUGADZxzLnvKJmaF_Gd6ZR1hPS3LVguQ/edit?pli=1&tab=t.0)
 _iast_security_controls_map = {
     "cpp": "TODO",
     "dotnet": "TODO",
