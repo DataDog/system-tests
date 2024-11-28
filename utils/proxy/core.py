@@ -320,7 +320,7 @@ class _RequestLogger:
 
     def _modify_span_flag(self, flow):
         """Modify the agent flag that signals support for native span event serialization"""
-        if flow.request.path == "/v0.7/config" and str(flow.response.status_code) == "200":
+        if flow.request.path == "/info" and str(flow.response.status_code) == "200":
             c = json.loads(flow.response.content)
             c["span_events"] = self.span_events
             flow.response.content = json.dumps(c).encode()
