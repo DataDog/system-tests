@@ -76,7 +76,9 @@ onboarding_nodejs:
             - HOST_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING
 
 generate_aws_ssi_pipeline:
+  image: 486234852809.dkr.ecr.us-east-1.amazonaws.com/ci/test-infra-definitions/runner:a58cc31c
   stage: aws_ssi_pipelines
+  tags: ["arch:amd64"]
   script:
       - |
         for folder in reports/logs*/ ; do
