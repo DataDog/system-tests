@@ -391,7 +391,7 @@ def trace_span_add_link(args: TraceSpanAddLinksArgs) -> TraceSpanAddLinkReturn:
 @app.post("/trace/span/add_event")
 def trace_span_add_event(args: TraceSpanAddEventsArgs) -> TraceSpanAddEventReturn:
     span = spans[args.span_id]
-    span._add_event(args.name, args.attributes, args.timestamp)
+    span.add_event(args.name, args.attributes, args.timestamp)
     return TraceSpanAddEventReturn()
 
 
@@ -436,17 +436,12 @@ def otel_start_span(args: OtelStartSpanArgs):
         span_context = otel_spans[parent_id].get_span_context()
         links.append(opentelemetry.trace.Link(span_context, link.get("attributes")))
 
-    events = []
-    for event in args.events:
-        events.append(opentelemetry.trace.Event(event["name"], event.get("attributes"), event.get("timestamp")))
-
     with otel_tracer.start_as_current_span(
         args.name,
         context=set_span_in_context(parent_span),
         kind=SpanKind(args.span_kind or 0),
         attributes=args.attributes,
         links=links,
-        events=events,
         # parametric tests expect timestamps to be set in microseconds (required by go)
         # but the python implementation sets time nanoseconds.
         start_time=args.timestamp * 1e3 if args.timestamp else None,
@@ -457,6 +452,8 @@ def otel_start_span(args: OtelStartSpanArgs):
         # Store the active span for easy global access. This active span should be equal to the newly created span.
         active_otel_span[0] = opentelemetry.trace.get_current_span()
         active_ddspan[0] = ddtrace.tracer.current_span()
+        for event in args.events:
+            otel_span.add_event(event["name"], event.get("attributes"), event.get("timestamp"))
 
     ctx = otel_span.get_span_context()
     otel_spans[ctx.span_id] = otel_span
@@ -477,7 +474,7 @@ class OtelAddEventArgs(BaseModel):
 @app.post("/trace/otel/add_event")
 def otel_add_event(args: OtelAddEventArgs) -> OtelAddEventReturn:
     span = otel_spans[args.span_id]
-    span._add_event(args.name, args.attributes, args.timestamp)
+    span.add_event(args.name, args.attributes, args.timestamp)
     return OtelAddEventReturn()
 
 
