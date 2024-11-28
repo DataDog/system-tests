@@ -104,15 +104,17 @@ variables:
         job: generate_aws_ssi_pipeline
     strategy: depend
 
-generate_nodejs_ssi_pipeline:
+step1_generate_nodejs_ssi_pipeline:
+  image: 486234852809.dkr.ecr.us-east-1.amazonaws.com/ci/test-infra-definitions/runner:a58cc31c
   stage: aws_ssi_pipelines
+  tags: ["arch:amd64"]
   needs: []
   script:
     - echo ">>>>>>>>>>>>>>> Generating nodejs pipeline >>>>>>>>>>>>>>>"
   when: manual
   allow_failure: true
 
-compute_nodejs_scenarios:
+x_compute_nodejs_scenarios:
   extends: .onboarding_pipeline_base
   dependencies:
     - generate_nodejs_ssi_pipeline
@@ -125,7 +127,7 @@ compute_nodejs_scenarios:
             - HOST_AUTO_INJECTION_INSTALL_SCRIPT
             - HOST_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING
 
-merge_nodejs_ssi_pipeline:
+x_merge_nodejs_ssi_pipeline:
   extends: .generate_aws_ssi_pipeline
   needs: ["compute_nodejs_scenarios"]
   dependencies:
@@ -134,7 +136,7 @@ merge_nodejs_ssi_pipeline:
     paths:
       - aws_gitlab_pipeline.yml
 
-exec_nodejs_ssi_pipeline:
+step2_exec_nodejs_ssi_pipeline:
   extends: .aws_ssi_pipeline
   stage: aws_ssi_pipelines
   needs: ["merge_nodejs_ssi_pipeline"]
