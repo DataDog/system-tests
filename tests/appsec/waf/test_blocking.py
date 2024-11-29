@@ -222,7 +222,7 @@ class Test_CustomBlockingResponse:
     def setup_custom_status_code(self):
         self.r_cst = weblog.get("/waf/", headers={"User-Agent": "Canary/v1"})
 
-    @bug(context.library == "ruby@2.7.1-dev", reason="APPSEC-56056")
+    @bug(context.library >= "ruby@2.7.1-dev", reason="APPSEC-56056")
     def test_custom_status_code(self):
         """Block with a custom HTTP status code"""
         assert self.r_cst.status_code == 401
@@ -230,7 +230,7 @@ class Test_CustomBlockingResponse:
     def setup_custom_redirect(self):
         self.r_cr = weblog.get("/waf/", headers={"User-Agent": "Canary/v2"}, allow_redirects=False)
 
-    @bug(context.library == "ruby@2.7.1-dev", reason="APPSEC-56056")
+    @bug(context.library >= "ruby@2.7.1-dev", reason="APPSEC-56056")
     def test_custom_redirect(self):
         """Block with an HTTP redirection"""
         assert self.r_cr.status_code == 301
@@ -239,7 +239,7 @@ class Test_CustomBlockingResponse:
     def setup_custom_redirect_wrong_status_code(self):
         self.r_cr = weblog.get("/waf/", headers={"User-Agent": "Canary/v3"}, allow_redirects=False)
 
-    @bug(context.library == "ruby@2.7.1-dev", reason="APPSEC-56056")
+    @bug(context.library >= "ruby@2.7.1-dev", reason="APPSEC-56056")
     def test_custom_redirect_wrong_status_code(self):
         """Block with an HTTP redirection but default to 303 status code, because the configured status code is not a valid redirect status code"""
         assert self.r_cr.status_code == 303
