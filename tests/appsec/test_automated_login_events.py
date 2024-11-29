@@ -14,6 +14,29 @@ from utils import scenarios
 from utils import weblog
 
 
+def login_data(context, username, password):
+    """In Rails the parameters are group by scope. In the case of the test the scope is user.
+   The syntax to group parameters in a POST request is scope[parameter]
+   """
+    username_key = "user[username]" if "rails" in context.weblog_variant else "username"
+    password_key = "user[password]" if "rails" in context.weblog_variant else "password"
+    return {username_key: username, password_key: password}
+
+
+USER = "test"
+UUID_USER = "testuuid"
+PASSWORD = "1234"
+INVALID_USER = "invalidUser"
+USER_HASH = "anon_5f31ffaf95946d2dc703ddc96a100de5"
+USERNAME_HASH = "anon_9f86d081884c7d659a2feaa0c55ad015"
+INVALID_USER_HASH = "anon_2141e3bee69f7de45b4f1d8d1f29258a"
+
+BASIC_AUTH_USER_HEADER = "Basic dGVzdDoxMjM0"  # base64(test:1234)
+BASIC_AUTH_USER_UUID_HEADER = "Basic dGVzdHV1aWQ6MTIzNA=="  # base64(testuuid:1234)
+BASIC_AUTH_INVALID_USER_HEADER = "Basic aW52YWxpZFVzZXI6MTIzNA=="  # base64(invalidUser:1234)
+BASIC_AUTH_INVALID_PASSWORD_HEADER = "Basic dGVzdDoxMjM0NQ=="  # base64(test:12345)
+
+
 @rfc("https://docs.google.com/document/d/1-trUpphvyZY7k5ldjhW-MgqWl0xOm7AMEQDJEAZ63_Q/edit#heading=h.8d3o7vtyu1y1")
 @features.user_monitoring
 class Test_Login_Events:
@@ -35,34 +58,8 @@ class Test_Login_Events:
     #     }
     # ]
 
-    @property
-    def username_key(self):
-        """In Rails the parametesr are group by scope. In the case of the test the scope is user.
-        The syntax to group parameters in a POST request is scope[parameter]
-        """
-        return "user[username]" if "rails" in context.weblog_variant else "username"
-
-    @property
-    def password_key(self):
-        """In Rails the parametesr are group by scope. In the case of the test the scope is user.
-        The syntax to group parameters in a POST request is scope[parameter]
-        """
-        return "user[password]" if "rails" in context.weblog_variant else "password"
-
-    USER = "test"
-    UUID_USER = "testuuid"
-    PASSWORD = "1234"
-    INVALID_USER = "invalidUser"
-
-    BASIC_AUTH_USER_HEADER = "Basic dGVzdDoxMjM0"  # base64(test:1234)
-    BASIC_AUTH_USER_UUID_HEADER = "Basic dGVzdHV1aWQ6MTIzNA=="  # base64(testuuid:1234)
-    BASIC_AUTH_INVALID_USER_HEADER = "Basic aW52YWxpZFVzZXI6MTIzNA=="  # base64(invalidUser:1234)
-    BASIC_AUTH_INVALID_PASSWORD_HEADER = "Basic dGVzdDoxMjM0NQ=="  # base64(test:12345)
-
     def setup_login_pii_success_local(self):
-        self.r_pii_success = weblog.post(
-            "/login?auth=local", data={self.username_key: self.USER, self.password_key: self.PASSWORD}
-        )
+        self.r_pii_success = weblog.post("/login?auth=local", data=login_data(context, USER, PASSWORD))
 
     @bug(context.library < "nodejs@4.9.0", reason="APMRP-360")
     @irrelevant(
@@ -79,7 +76,7 @@ class Test_Login_Events:
             assert_priority(span, trace)
 
     def setup_login_pii_success_basic(self):
-        self.r_pii_success = weblog.get("/login?auth=basic", headers={"Authorization": self.BASIC_AUTH_USER_HEADER})
+        self.r_pii_success = weblog.get("/login?auth=basic", headers={"Authorization": BASIC_AUTH_USER_HEADER})
 
     @missing_feature(context.library == "php", reason="Basic auth not implemented")
     @bug(context.library < "nodejs@4.9.0", reason="APMRP-360")
@@ -97,9 +94,7 @@ class Test_Login_Events:
             assert_priority(span, trace)
 
     def setup_login_success_local(self):
-        self.r_success = weblog.post(
-            "/login?auth=local", data={self.username_key: self.UUID_USER, self.password_key: self.PASSWORD}
-        )
+        self.r_success = weblog.post("/login?auth=local", data=login_data(context, UUID_USER, PASSWORD))
 
     def test_login_success_local(self):
         assert self.r_success.status_code == 200
@@ -111,7 +106,7 @@ class Test_Login_Events:
             assert_priority(span, trace)
 
     def setup_login_success_basic(self):
-        self.r_success = weblog.get("/login?auth=basic", headers={"Authorization": self.BASIC_AUTH_USER_UUID_HEADER})
+        self.r_success = weblog.get("/login?auth=basic", headers={"Authorization": BASIC_AUTH_USER_UUID_HEADER})
 
     @missing_feature(context.library == "php", reason="Basic auth not implemented")
     def test_login_success_basic(self):
@@ -124,9 +119,7 @@ class Test_Login_Events:
             assert_priority(span, trace)
 
     def setup_login_wrong_user_failure_local(self):
-        self.r_wrong_user_failure = weblog.post(
-            "/login?auth=local", data={self.username_key: self.INVALID_USER, self.password_key: self.PASSWORD}
-        )
+        self.r_wrong_user_failure = weblog.post("/login?auth=local", data=login_data(context, INVALID_USER, PASSWORD))
 
     @bug(context.library < "nodejs@4.9.0", reason="APMRP-360")
     @missing_feature(weblog_variant="spring-boot-openliberty", reason="weblog returns error 500")
@@ -146,7 +139,7 @@ class Test_Login_Events:
 
     def setup_login_wrong_user_failure_basic(self):
         self.r_wrong_user_failure = weblog.get(
-            "/login?auth=basic", headers={"Authorization": self.BASIC_AUTH_INVALID_USER_HEADER}
+            "/login?auth=basic", headers={"Authorization": BASIC_AUTH_INVALID_USER_HEADER}
         )
 
     @missing_feature(context.library == "php", reason="Basic auth not implemented")
@@ -167,9 +160,7 @@ class Test_Login_Events:
             assert_priority(span, trace)
 
     def setup_login_wrong_password_failure_local(self):
-        self.r_wrong_user_failure = weblog.post(
-            "/login?auth=local", data={self.username_key: self.USER, self.password_key: "12345"}
-        )
+        self.r_wrong_user_failure = weblog.post("/login?auth=local", data=login_data(context, USER, "12345"))
 
     @bug(context.library < "nodejs@4.9.0", reason="APMRP-360")
     @missing_feature(weblog_variant="spring-boot-openliberty", reason="weblog returns error 500")
@@ -189,7 +180,7 @@ class Test_Login_Events:
 
     def setup_login_wrong_password_failure_basic(self):
         self.r_wrong_user_failure = weblog.get(
-            "/login?auth=basic", headers={"Authorization": self.BASIC_AUTH_INVALID_PASSWORD_HEADER}
+            "/login?auth=basic", headers={"Authorization": BASIC_AUTH_INVALID_PASSWORD_HEADER}
         )
 
     @missing_feature(context.library == "php", reason="Basic auth not implemented")
@@ -211,8 +202,7 @@ class Test_Login_Events:
 
     def setup_login_sdk_success_local(self):
         self.r_sdk_success = weblog.post(
-            "/login?auth=local&sdk_event=success&sdk_user=sdkUser",
-            data={self.username_key: self.USER, self.password_key: self.PASSWORD},
+            "/login?auth=local&sdk_event=success&sdk_user=sdkUser", data=login_data(context, USER, PASSWORD),
         )
 
     def test_login_sdk_success_local(self):
@@ -227,8 +217,7 @@ class Test_Login_Events:
 
     def setup_login_sdk_success_basic(self):
         self.r_sdk_success = weblog.get(
-            "/login?auth=basic&sdk_event=success&sdk_user=sdkUser",
-            headers={"Authorization": self.BASIC_AUTH_USER_HEADER},
+            "/login?auth=basic&sdk_event=success&sdk_user=sdkUser", headers={"Authorization": BASIC_AUTH_USER_HEADER},
         )
 
     @missing_feature(context.library == "php", reason="Basic auth not implemented")
@@ -245,7 +234,7 @@ class Test_Login_Events:
     def setup_login_sdk_failure_local(self):
         self.r_sdk_failure = weblog.post(
             "/login?auth=local&sdk_event=failure&sdk_user=sdkUser&sdk_user_exists=true",
-            data={self.username_key: self.INVALID_USER, self.password_key: self.PASSWORD},
+            data=login_data(context, INVALID_USER, PASSWORD),
         )
 
     @missing_feature(weblog_variant="spring-boot-openliberty", reason="weblog returns error 500")
@@ -263,7 +252,7 @@ class Test_Login_Events:
     def setup_login_sdk_failure_basic(self):
         self.r_sdk_failure = weblog.get(
             "/login?auth=basic&sdk_event=failure&sdk_user=sdkUser&sdk_user_exists=true",
-            headers={"Authorization": self.BASIC_AUTH_INVALID_USER_HEADER},
+            headers={"Authorization": BASIC_AUTH_INVALID_USER_HEADER},
         )
 
     @missing_feature(context.library == "php", reason="Basic auth not implemented")
@@ -285,27 +274,6 @@ class Test_Login_Events:
 @features.user_monitoring
 class Test_Login_Events_Extended:
     "Test login success/failure use cases"
-
-    @property
-    def username_key(self):
-        """In Rails the parametesr are group by scope. In the case of the test the scope is user.
-        The syntax to group parameters in a POST request is scope[parameter]
-        """
-        return "user[username]" if "rails" in context.weblog_variant else "username"
-
-    @property
-    def password_key(self):
-        """In Rails the parametesr are group by scope. In the case of the test the scope is user.
-        The syntax to group parameters in a POST request is scope[parameter]
-        """
-        return "user[password]" if "rails" in context.weblog_variant else "password"
-
-    USER = "test"
-    UUID_USER = "testuuid"
-    PASSWORD = "1234"
-
-    BASIC_AUTH_USER_HEADER = "Basic dGVzdDoxMjM0"  # base64(test:1234)
-    BASIC_AUTH_USER_UUID_HEADER = "Basic dGVzdHV1aWQ6MTIzNA=="  # base64(testuuid:1234)
 
     HEADERS = {
         "Accept": "text/html",
@@ -330,9 +298,7 @@ class Test_Login_Events_Extended:
     }
 
     def setup_login_success_local(self):
-        self.r_success = weblog.post(
-            "/login?auth=local", data={self.username_key: self.USER, self.password_key: self.PASSWORD}
-        )
+        self.r_success = weblog.post("/login?auth=local", data=login_data(context, USER, PASSWORD))
 
     def test_login_success_local(self):
         assert self.r_success.status_code == 200
@@ -363,7 +329,7 @@ class Test_Login_Events_Extended:
             assert_priority(span, trace)
 
     def setup_login_success_basic(self):
-        self.r_success = weblog.get("/login?auth=basic", headers={"Authorization": self.BASIC_AUTH_USER_HEADER})
+        self.r_success = weblog.get("/login?auth=basic", headers={"Authorization": BASIC_AUTH_USER_HEADER})
 
     @missing_feature(context.library == "php", reason="Basic auth not implemented")
     def test_login_success_basic(self):
@@ -392,9 +358,7 @@ class Test_Login_Events_Extended:
             assert_priority(span, trace)
 
     def setup_login_wrong_user_failure_local(self):
-        self.r_wrong_user_failure = weblog.post(
-            "/login?auth=local", data={self.username_key: "invalidUser", self.password_key: self.PASSWORD}
-        )
+        self.r_wrong_user_failure = weblog.post("/login?auth=local", data=login_data(context, INVALID_USER, PASSWORD))
 
     @missing_feature(weblog_variant="spring-boot-openliberty", reason="weblog returns error 500")
     def test_login_wrong_user_failure_local(self):
@@ -416,14 +380,14 @@ class Test_Login_Events_Extended:
                 assert meta.get("appsec.events.users.login.failure.usr.username") is None
             elif context.library == "dotnet":
                 # in dotnet if the user doesn't exist, there is no id (generated upon user creation)
-                assert meta["appsec.events.users.login.failure.username"] == "invalidUser"
+                assert meta["appsec.events.users.login.failure.username"] == INVALID_USER
             else:
-                assert meta["appsec.events.users.login.failure.usr.id"] == "invalidUser"
+                assert meta["appsec.events.users.login.failure.usr.id"] == INVALID_USER
             assert_priority(span, trace)
 
     def setup_login_wrong_user_failure_basic(self):
         self.r_wrong_user_failure = weblog.get(
-            "/login?auth=basic", headers={"Authorization": "Basic aW52YWxpZFVzZXI6MTIzNA=="}
+            "/login?auth=basic", headers={"Authorization": BASIC_AUTH_INVALID_USER_HEADER}
         )
 
     @missing_feature(context.library == "php", reason="Basic auth not implemented")
@@ -447,15 +411,13 @@ class Test_Login_Events_Extended:
                 assert meta.get("appsec.events.users.login.failure.usr.username") is None
             elif context.library == "dotnet":
                 # in dotnet if the user doesn't exist, there is no id (generated upon user creation)
-                assert meta["appsec.events.users.login.failure.username"] == "invalidUser"
+                assert meta["appsec.events.users.login.failure.username"] == INVALID_USER
             else:
-                assert meta["appsec.events.users.login.failure.usr.id"] == "invalidUser"
+                assert meta["appsec.events.users.login.failure.usr.id"] == INVALID_USER
             assert_priority(span, trace)
 
     def setup_login_wrong_password_failure_local(self):
-        self.r_wrong_user_failure = weblog.post(
-            "/login?auth=local", data={self.username_key: self.USER, self.password_key: "12345"}
-        )
+        self.r_wrong_user_failure = weblog.post("/login?auth=local", data=login_data(context, USER, "12345"))
 
     @missing_feature(weblog_variant="spring-boot-openliberty", reason="weblog returns error 500")
     def test_login_wrong_password_failure_local(self):
@@ -478,7 +440,9 @@ class Test_Login_Events_Extended:
             assert_priority(span, trace)
 
     def setup_login_wrong_password_failure_basic(self):
-        self.r_wrong_user_failure = weblog.get("/login?auth=basic", headers={"Authorization": "Basic dGVzdDoxMjM0NQ=="})
+        self.r_wrong_user_failure = weblog.get(
+            "/login?auth=basic", headers={"Authorization": BASIC_AUTH_INVALID_PASSWORD_HEADER}
+        )
 
     @missing_feature(context.library == "php", reason="Basic auth not implemented")
     @missing_feature(weblog_variant="spring-boot-openliberty", reason="weblog returns error 500")
@@ -503,8 +467,7 @@ class Test_Login_Events_Extended:
 
     def setup_login_sdk_success_local(self):
         self.r_sdk_success = weblog.post(
-            "/login?auth=local&sdk_event=success&sdk_user=sdkUser",
-            data={self.username_key: self.USER, self.password_key: self.PASSWORD},
+            "/login?auth=local&sdk_event=success&sdk_user=sdkUser", data=login_data(context, USER, PASSWORD),
         )
 
     def test_login_sdk_success_local(self):
@@ -519,8 +482,7 @@ class Test_Login_Events_Extended:
 
     def setup_login_sdk_success_basic(self):
         self.r_sdk_success = weblog.get(
-            "/login?auth=basic&sdk_event=success&sdk_user=sdkUser",
-            headers={"Authorization": self.BASIC_AUTH_USER_HEADER},
+            "/login?auth=basic&sdk_event=success&sdk_user=sdkUser", headers={"Authorization": BASIC_AUTH_USER_HEADER},
         )
 
     @missing_feature(context.library == "php", reason="Basic auth not implemented")
@@ -537,7 +499,7 @@ class Test_Login_Events_Extended:
     def setup_login_sdk_failure_basic(self):
         self.r_sdk_failure = weblog.get(
             "/login?auth=basic&sdk_event=failure&sdk_user=sdkUser&sdk_user_exists=true",
-            headers={"Authorization": "Basic aW52YWxpZFVzZXI6MTIzNA=="},
+            headers={"Authorization": BASIC_AUTH_INVALID_USER_HEADER},
         )
 
     @missing_feature(context.library == "php", reason="Basic auth not implemented")
@@ -556,7 +518,7 @@ class Test_Login_Events_Extended:
     def setup_login_sdk_failure_local(self):
         self.r_sdk_failure = weblog.post(
             "/login?auth=local&sdk_event=failure&sdk_user=sdkUser&sdk_user_exists=true",
-            data={self.username_key: "invalidUser", self.password_key: self.PASSWORD},
+            data=login_data(INVALID_USER, PASSWORD),
         )
 
     @missing_feature(weblog_variant="spring-boot-openliberty", reason="weblog returns error 500")
@@ -573,9 +535,7 @@ class Test_Login_Events_Extended:
 
     def setup_login_success_headers(self):
         self.r_hdr_success = weblog.post(
-            "/login?auth=local",
-            data={self.username_key: self.USER, self.password_key: self.PASSWORD},
-            headers=self.HEADERS,
+            "/login?auth=local", data=login_data(context, USER, PASSWORD), headers=self.HEADERS,
         )
 
     @missing_feature(context.library < "dotnet@3.7.0")
@@ -597,9 +557,7 @@ class Test_Login_Events_Extended:
 
     def setup_login_failure_headers(self):
         self.r_hdr_failure = weblog.post(
-            "/login?auth=local",
-            data={self.username_key: "invalidUser", self.password_key: self.PASSWORD},
-            headers=self.HEADERS,
+            "/login?auth=local", data=login_data(context, INVALID_USER, PASSWORD), headers=self.HEADERS,
         )
 
     @missing_feature(context.library < "dotnet@3.7.0")
@@ -645,34 +603,8 @@ class Test_V2_Login_Events:
     #     }
     # ]
 
-    @property
-    def username_key(self):
-        """In Rails the parametesr are group by scope. In the case of the test the scope is user.
-        The syntax to group parameters in a POST request is scope[parameter]
-        """
-        return "user[username]" if "rails" in context.weblog_variant else "username"
-
-    @property
-    def password_key(self):
-        """In Rails the parametesr are group by scope. In the case of the test the scope is user.
-        The syntax to group parameters in a POST request is scope[parameter]
-        """
-        return "user[password]" if "rails" in context.weblog_variant else "password"
-
-    USER = "test"
-    UUID_USER = "testuuid"
-    PASSWORD = "1234"
-    INVALID_USER = "invalidUser"
-
-    BASIC_AUTH_USER_HEADER = "Basic dGVzdDoxMjM0"  # base64(test:1234)
-    BASIC_AUTH_USER_UUID_HEADER = "Basic dGVzdHV1aWQ6MTIzNA=="  # base64(testuuid:1234)
-    BASIC_AUTH_INVALID_USER_HEADER = "Basic aW52YWxpZFVzZXI6MTIzNA=="  # base64(invalidUser:1234)
-    BASIC_AUTH_INVALID_PASSWORD_HEADER = "Basic dGVzdDoxMjM0NQ=="  # base64(test:12345)
-
     def setup_login_pii_success_local(self):
-        self.r_pii_success = weblog.post(
-            "/login?auth=local", data={self.username_key: self.USER, self.password_key: self.PASSWORD}
-        )
+        self.r_pii_success = weblog.post("/login?auth=local", data=login_data(context, USER, PASSWORD))
 
     def test_login_pii_success_local(self):
         assert self.r_pii_success.status_code == 200
@@ -689,7 +621,7 @@ class Test_V2_Login_Events:
             assert_priority(span, trace)
 
     def setup_login_pii_success_basic(self):
-        self.r_pii_success = weblog.get("/login?auth=basic", headers={"Authorization": self.BASIC_AUTH_USER_HEADER})
+        self.r_pii_success = weblog.get("/login?auth=basic", headers={"Authorization": BASIC_AUTH_USER_HEADER})
 
     @missing_feature(context.library == "php", reason="Basic auth not implemented")
     def test_login_pii_success_basic(self):
@@ -707,9 +639,7 @@ class Test_V2_Login_Events:
             assert_priority(span, trace)
 
     def setup_login_success_local(self):
-        self.r_success = weblog.post(
-            "/login?auth=local", data={self.username_key: self.UUID_USER, self.password_key: self.PASSWORD}
-        )
+        self.r_success = weblog.post("/login?auth=local", data=login_data(context, UUID_USER, PASSWORD))
 
     def test_login_success_local(self):
         assert self.r_success.status_code == 200
@@ -725,7 +655,7 @@ class Test_V2_Login_Events:
             assert_priority(span, trace)
 
     def setup_login_success_basic(self):
-        self.r_success = weblog.get("/login?auth=basic", headers={"Authorization": self.BASIC_AUTH_USER_UUID_HEADER})
+        self.r_success = weblog.get("/login?auth=basic", headers={"Authorization": BASIC_AUTH_USER_UUID_HEADER})
 
     @missing_feature(context.library == "php", reason="Basic auth not implemented")
     def test_login_success_basic(self):
@@ -742,9 +672,7 @@ class Test_V2_Login_Events:
             assert_priority(span, trace)
 
     def setup_login_wrong_user_failure_local(self):
-        self.r_wrong_user_failure = weblog.post(
-            "/login?auth=local", data={self.username_key: self.INVALID_USER, self.password_key: self.PASSWORD}
-        )
+        self.r_wrong_user_failure = weblog.post("/login?auth=local", data=login_data(context, INVALID_USER, PASSWORD))
 
     @irrelevant(
         context.library >= "dotnet@3.7.0", reason="Released v3 with logins from 3.7, now it's ...failure.usr.login"
@@ -758,7 +686,7 @@ class Test_V2_Login_Events:
                 # this assertion is disabled for this library.
                 assert meta["appsec.events.users.login.failure.usr.exists"] == "false"
 
-            assert meta["appsec.events.users.login.failure.usr.id"] == "invalidUser"
+            assert meta["appsec.events.users.login.failure.usr.id"] == INVALID_USER
             assert "appsec.events.users.login.failure.usr.email" not in meta
             assert "appsec.events.users.login.failure.usr.login" not in meta
             assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "identification"
@@ -767,7 +695,7 @@ class Test_V2_Login_Events:
 
     def setup_login_wrong_user_failure_basic(self):
         self.r_wrong_user_failure = weblog.get(
-            "/login?auth=basic", headers={"Authorization": self.BASIC_AUTH_INVALID_USER_HEADER}
+            "/login?auth=basic", headers={"Authorization": BASIC_AUTH_INVALID_USER_HEADER}
         )
 
     @missing_feature(context.library == "php", reason="Basic auth not implemented")
@@ -783,7 +711,7 @@ class Test_V2_Login_Events:
                 # this assertion is disabled for this library.
                 assert meta["appsec.events.users.login.failure.usr.exists"] == "false"
 
-            assert meta["appsec.events.users.login.failure.usr.id"] == "invalidUser"
+            assert meta["appsec.events.users.login.failure.usr.id"] == INVALID_USER
             assert "appsec.events.users.login.failure.usr.email" not in meta
             assert "appsec.events.users.login.failure.usr.login" not in meta
             assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "identification"
@@ -791,9 +719,7 @@ class Test_V2_Login_Events:
             assert_priority(span, trace)
 
     def setup_login_wrong_password_failure_local(self):
-        self.r_wrong_user_failure = weblog.post(
-            "/login?auth=local", data={self.username_key: self.USER, self.password_key: "12345"}
-        )
+        self.r_wrong_user_failure = weblog.post("/login?auth=local", data=login_data(context, USER, "12345"))
 
     @irrelevant(
         context.library >= "dotnet@3.7.0", reason="Released v3 with logins from 3.7, now exists ...failure.usr.login"
@@ -822,7 +748,7 @@ class Test_V2_Login_Events:
 
     def setup_login_wrong_password_failure_basic(self):
         self.r_wrong_user_failure = weblog.get(
-            "/login?auth=basic", headers={"Authorization": self.BASIC_AUTH_INVALID_PASSWORD_HEADER}
+            "/login?auth=basic", headers={"Authorization": BASIC_AUTH_INVALID_PASSWORD_HEADER}
         )
 
     @missing_feature(context.library == "php", reason="Basic auth not implemented")
@@ -852,8 +778,7 @@ class Test_V2_Login_Events:
 
     def setup_login_sdk_success_local(self):
         self.r_sdk_success = weblog.post(
-            "/login?auth=local&sdk_event=success&sdk_user=sdkUser",
-            data={self.username_key: self.USER, self.password_key: self.PASSWORD},
+            "/login?auth=local&sdk_event=success&sdk_user=sdkUser", data=login_data(context, USER, PASSWORD),
         )
 
     def test_login_sdk_success_local(self):
@@ -868,8 +793,7 @@ class Test_V2_Login_Events:
 
     def setup_login_sdk_success_basic(self):
         self.r_sdk_success = weblog.get(
-            "/login?auth=basic&sdk_event=success&sdk_user=sdkUser",
-            headers={"Authorization": self.BASIC_AUTH_USER_HEADER},
+            "/login?auth=basic&sdk_event=success&sdk_user=sdkUser", headers={"Authorization": BASIC_AUTH_USER_HEADER},
         )
 
     @missing_feature(context.library == "php", reason="Basic auth not implemented")
@@ -886,7 +810,7 @@ class Test_V2_Login_Events:
     def setup_login_sdk_failure_local(self):
         self.r_sdk_failure = weblog.post(
             "/login?auth=local&sdk_event=failure&sdk_user=sdkUser&sdk_user_exists=true",
-            data={self.username_key: self.INVALID_USER, self.password_key: self.PASSWORD},
+            data=login_data(context, INVALID_USER, PASSWORD),
         )
 
     def test_login_sdk_failure_local(self):
@@ -903,7 +827,7 @@ class Test_V2_Login_Events:
     def setup_login_sdk_failure_basic(self):
         self.r_sdk_failure = weblog.get(
             "/login?auth=basic&sdk_event=failure&sdk_user=sdkUser&sdk_user_exists=true",
-            headers={"Authorization": self.BASIC_AUTH_INVALID_USER_HEADER},
+            headers={"Authorization": BASIC_AUTH_INVALID_USER_HEADER},
         )
 
     @missing_feature(context.library == "php", reason="Basic auth not implemented")
@@ -928,29 +852,6 @@ class Test_V2_Login_Events_Anon:
     As default mode is identification, this scenario will test anonymization.
     """
 
-    @property
-    def username_key(self):
-        """In Rails the parametesr are group by scope. In the case of the test the scope is user.
-        The syntax to group parameters in a POST request is scope[parameter]
-        """
-        return "user[username]" if "rails" in context.weblog_variant else "username"
-
-    @property
-    def password_key(self):
-        """In Rails the parametesr are group by scope. In the case of the test the scope is user.
-        The syntax to group parameters in a POST request is scope[parameter]
-        """
-        return "user[password]" if "rails" in context.weblog_variant else "password"
-
-    USER = "test"
-    USER_HASH = "anon_5f31ffaf95946d2dc703ddc96a100de5"
-    USERNAME_HASH = "anon_9f86d081884c7d659a2feaa0c55ad015"
-    UUID_USER = "testuuid"
-    PASSWORD = "1234"
-
-    BASIC_AUTH_USER_HEADER = "Basic dGVzdDoxMjM0"  # base64(test:1234)
-    BASIC_AUTH_USER_UUID_HEADER = "Basic dGVzdHV1aWQ6MTIzNA=="  # base64(testuuid:1234)
-
     HEADERS = {
         "Accept": "text/html",
         "Accept-Encoding": "br;q=1.0, gzip;q=0.8, *;q=0.1",
@@ -974,9 +875,7 @@ class Test_V2_Login_Events_Anon:
     }
 
     def setup_login_success_local(self):
-        self.r_success = weblog.post(
-            "/login?auth=local", data={self.username_key: self.USER, self.password_key: self.PASSWORD}
-        )
+        self.r_success = weblog.post("/login?auth=local", data=login_data(context, USER, PASSWORD))
 
     def test_login_success_local(self):
         assert self.r_success.status_code == 200
@@ -984,7 +883,7 @@ class Test_V2_Login_Events_Anon:
             meta = span.get("meta", {})
             assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "anonymization"
             assert meta["appsec.events.users.login.success.track"] == "true"
-            assert meta["usr.id"] == self.USER_HASH
+            assert meta["usr.id"] == USER_HASH
 
             # deprecated
             "appsec.events.users.login.success.username" not in meta
@@ -996,7 +895,7 @@ class Test_V2_Login_Events_Anon:
             assert_priority(span, trace)
 
     def setup_login_success_basic(self):
-        self.r_success = weblog.get("/login?auth=basic", headers={"Authorization": self.BASIC_AUTH_USER_HEADER})
+        self.r_success = weblog.get("/login?auth=basic", headers={"Authorization": BASIC_AUTH_USER_HEADER})
 
     @missing_feature(context.library == "php", reason="Basic auth not implemented")
     def test_login_success_basic(self):
@@ -1005,7 +904,7 @@ class Test_V2_Login_Events_Anon:
             meta = span.get("meta", {})
             assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "anonymization"
             assert meta["appsec.events.users.login.success.track"] == "true"
-            assert meta["usr.id"] == self.USER_HASH
+            assert meta["usr.id"] == USER_HASH
 
             # deprecated
             "appsec.events.users.login.success.username" not in meta
@@ -1017,9 +916,7 @@ class Test_V2_Login_Events_Anon:
             assert_priority(span, trace)
 
     def setup_login_wrong_user_failure_local(self):
-        self.r_wrong_user_failure = weblog.post(
-            "/login?auth=local", data={self.username_key: "invalidUser", self.password_key: self.PASSWORD}
-        )
+        self.r_wrong_user_failure = weblog.post("/login?auth=local", data=login_data(context, INVALID_USER, PASSWORD))
 
     @irrelevant(
         context.library >= "dotnet@3.7.0",
@@ -1034,7 +931,7 @@ class Test_V2_Login_Events_Anon:
             assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "anonymization"
             assert meta["appsec.events.users.login.failure.track"] == "true"
 
-            assert meta["appsec.events.users.login.failure.usr.id"] == "anon_2141e3bee69f7de45b4f1d8d1f29258a"
+            assert meta["appsec.events.users.login.failure.usr.id"] == INVALID_USER_HASH
             assert "appsec.events.users.login.failure.email" not in meta
             assert "appsec.events.users.login.failure.username" not in meta
 
@@ -1042,7 +939,7 @@ class Test_V2_Login_Events_Anon:
 
     def setup_login_wrong_user_failure_basic(self):
         self.r_wrong_user_failure = weblog.get(
-            "/login?auth=basic", headers={"Authorization": "Basic aW52YWxpZFVzZXI6MTIzNA=="}
+            "/login?auth=basic", headers={"Authorization": BASIC_AUTH_INVALID_USER_HEADER}
         )
 
     @missing_feature(context.library == "php", reason="Basic auth not implemented")
@@ -1059,16 +956,14 @@ class Test_V2_Login_Events_Anon:
             assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "anonymization"
             assert meta["appsec.events.users.login.failure.track"] == "true"
 
-            assert meta["appsec.events.users.login.failure.usr.id"] == "anon_2141e3bee69f7de45b4f1d8d1f29258a"
+            assert meta["appsec.events.users.login.failure.usr.id"] == INVALID_USER_HASH
             assert "appsec.events.users.login.failure.email" not in meta
             assert "appsec.events.users.login.failure.username" not in meta
 
             assert_priority(span, trace)
 
     def setup_login_wrong_password_failure_local(self):
-        self.r_wrong_user_failure = weblog.post(
-            "/login?auth=local", data={self.username_key: self.USER, self.password_key: "12345"}
-        )
+        self.r_wrong_user_failure = weblog.post("/login?auth=local", data=login_data(context, USER, "12345"))
 
     def test_login_wrong_password_failure_local(self):
         assert self.r_wrong_user_failure.status_code == 401
@@ -1084,16 +979,18 @@ class Test_V2_Login_Events_Anon:
 
             if context.library == "java":
                 # in case of failure java only has access to the original username sent in the request
-                assert meta["appsec.events.users.login.failure.usr.id"] == self.USERNAME_HASH
+                assert meta["appsec.events.users.login.failure.usr.id"] == USERNAME_HASH
             else:
-                assert meta["appsec.events.users.login.failure.usr.id"] == self.USER_HASH
+                assert meta["appsec.events.users.login.failure.usr.id"] == USER_HASH
             assert "appsec.events.users.login.failure.email" not in meta
             assert "appsec.events.users.login.failure.username" not in meta
 
             assert_priority(span, trace)
 
     def setup_login_wrong_password_failure_basic(self):
-        self.r_wrong_user_failure = weblog.get("/login?auth=basic", headers={"Authorization": "Basic dGVzdDoxMjM0NQ=="})
+        self.r_wrong_user_failure = weblog.get(
+            "/login?auth=basic", headers={"Authorization": BASIC_AUTH_INVALID_PASSWORD_HEADER}
+        )
 
     @missing_feature(context.library == "php", reason="Basic auth not implemented")
     def test_login_wrong_password_failure_basic(self):
@@ -1110,9 +1007,9 @@ class Test_V2_Login_Events_Anon:
 
             if context.library == "java":
                 # in case of failure java only has access to the original username sent in the request
-                assert meta["appsec.events.users.login.failure.usr.id"] == self.USERNAME_HASH
+                assert meta["appsec.events.users.login.failure.usr.id"] == USERNAME_HASH
             else:
-                assert meta["appsec.events.users.login.failure.usr.id"] == self.USER_HASH
+                assert meta["appsec.events.users.login.failure.usr.id"] == USER_HASH
             assert "appsec.events.users.login.failure.email" not in meta
             assert "appsec.events.users.login.failure.username" not in meta
 
@@ -1120,8 +1017,7 @@ class Test_V2_Login_Events_Anon:
 
     def setup_login_sdk_success_local(self):
         self.r_sdk_success = weblog.post(
-            "/login?auth=local&sdk_event=success&sdk_user=sdkUser",
-            data={self.username_key: self.USER, self.password_key: self.PASSWORD},
+            "/login?auth=local&sdk_event=success&sdk_user=sdkUser", data=login_data(context, USER, PASSWORD),
         )
 
     def test_login_sdk_success_local(self):
@@ -1136,8 +1032,7 @@ class Test_V2_Login_Events_Anon:
 
     def setup_login_sdk_success_basic(self):
         self.r_sdk_success = weblog.get(
-            "/login?auth=basic&sdk_event=success&sdk_user=sdkUser",
-            headers={"Authorization": self.BASIC_AUTH_USER_HEADER},
+            "/login?auth=basic&sdk_event=success&sdk_user=sdkUser", headers={"Authorization": BASIC_AUTH_USER_HEADER},
         )
 
     @missing_feature(context.library == "php", reason="Basic auth not implemented")
@@ -1154,7 +1049,7 @@ class Test_V2_Login_Events_Anon:
     def setup_login_sdk_failure_basic(self):
         self.r_sdk_failure = weblog.get(
             "/login?auth=basic&sdk_event=failure&sdk_user=sdkUser&sdk_user_exists=true",
-            headers={"Authorization": "Basic aW52YWxpZFVzZXI6MTIzNA=="},
+            headers={"Authorization": BASIC_AUTH_INVALID_USER_HEADER},
         )
 
     @missing_feature(context.library == "php", reason="Basic auth not implemented")
@@ -1172,7 +1067,7 @@ class Test_V2_Login_Events_Anon:
     def setup_login_sdk_failure_local(self):
         self.r_sdk_failure = weblog.post(
             "/login?auth=local&sdk_event=failure&sdk_user=sdkUser&sdk_user_exists=true",
-            data={self.username_key: "invalidUser", self.password_key: self.PASSWORD},
+            data=login_data(context, INVALID_USER, PASSWORD),
         )
 
     def test_login_sdk_failure_local(self):
@@ -1188,9 +1083,7 @@ class Test_V2_Login_Events_Anon:
 
     def setup_login_success_headers(self):
         self.r_hdr_success = weblog.post(
-            "/login?auth=local",
-            data={self.username_key: self.USER, self.password_key: self.PASSWORD},
-            headers=self.HEADERS,
+            "/login?auth=local", data=login_data(context, USER, PASSWORD), headers=self.HEADERS,
         )
 
     @missing_feature(context.library < "dotnet@3.7.0")
@@ -1209,9 +1102,7 @@ class Test_V2_Login_Events_Anon:
 
     def setup_login_failure_headers(self):
         self.r_hdr_failure = weblog.post(
-            "/login?auth=local",
-            data={self.username_key: "invalidUser", self.password_key: self.PASSWORD},
-            headers=self.HEADERS,
+            "/login?auth=local", data=login_data(context, INVALID_USER, PASSWORD), headers=self.HEADERS,
         )
 
     @missing_feature(context.library < "dotnet@3.7.0")
@@ -1242,8 +1133,6 @@ def assert_priority(span, trace):
 @features.user_monitoring
 @scenarios.appsec_auto_events_rc
 class Test_V2_Login_Events_RC:
-    USER = "test"
-    PASSWORD = "1234"
     # ["disabled", "identification", "anonymization"]
     PAYLOADS = [
         {
@@ -1299,25 +1188,9 @@ class Test_V2_Login_Events_RC:
         },
     ]
 
-    @property
-    def username_key(self):
-        """In Rails the parametesr are group by scope. In the case of the test the scope is user.
-        The syntax to group parameters in a POST request is scope[parameter]
-        """
-        return "user[username]" if "rails" in context.weblog_variant else "username"
-
-    @property
-    def password_key(self):
-        """In Rails the parametesr are group by scope. In the case of the test the scope is user.
-        The syntax to group parameters in a POST request is scope[parameter]
-        """
-        return "user[password]" if "rails" in context.weblog_variant else "password"
-
     def _send_rc_and_execute_request(self, rc_payload):
         config_states = rc.send_state(raw_payload=rc_payload)
-        request = weblog.post(
-            "/login?auth=local", data={self.username_key: self.USER, self.password_key: self.PASSWORD}
-        )
+        request = weblog.post("/login?auth=local", data=login_data(context, USER, PASSWORD))
         return {"config_states": config_states, "request": request}
 
     def _assert_response(self, test, validation):
@@ -1348,3 +1221,538 @@ class Test_V2_Login_Events_RC:
         self._assert_response(self.tests[0], validate_disabled)
         self._assert_response(self.tests[1], validate_iden)
         self._assert_response(self.tests[2], validate_anon)
+
+
+@rfc("https://docs.google.com/document/d/1RT38U6dTTcB-8muiYV4-aVDCsT_XrliyakjtAPyjUpw")
+@features.user_monitoring
+@features.user_id_collection_modes
+class Test_V3_Login_Events:
+    """
+    Test login success/failure use cases
+    By default, mode is identification
+    """
+
+    # User entries in the internal DB:
+    # users = [
+    #     {
+    #         id: 'social-security-id',
+    #         username: 'test',
+    #         password: '1234',
+    #         email: 'testuser@ddog.com'
+    #     },
+    #     {
+    #         id: '591dc126-8431-4d0f-9509-b23318d3dce4',
+    #         username: 'testuuid',
+    #         password: '1234',
+    #         email: 'testuseruuid@ddog.com'
+    #     }
+    # ]
+
+    def setup_login_pii_success_local(self):
+        self.r_pii_success = weblog.post("/login?auth=local", data=login_data(context, USER, PASSWORD))
+
+    def test_login_pii_success_local(self):
+        assert self.r_pii_success.status_code == 200
+        for _, trace, span in interfaces.library.get_spans(request=self.r_pii_success):
+            assert_priority(span, trace)
+            meta = span.get("meta", {})
+
+            # mandatory
+            assert meta["appsec.events.users.login.success.usr.login"] == USER
+            assert meta["_dd.appsec.usr.login"] == USER
+            assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "identification"
+            assert meta["appsec.events.users.login.success.track"] == "true"
+
+            # optional (to review for each library)
+            assert meta["usr.id"] == "social-security-id"
+            assert meta["_dd.appsec.usr.id"] == "social-security-id"
+
+    def setup_login_pii_success_basic(self):
+        self.r_pii_success = weblog.get("/login?auth=basic", headers={"Authorization": BASIC_AUTH_USER_HEADER})
+
+    @missing_feature(context.library == "php", reason="Basic auth not implemented")
+    def test_login_pii_success_basic(self):
+        assert self.r_pii_success.status_code == 200
+        for _, trace, span in interfaces.library.get_spans(request=self.r_pii_success):
+            assert_priority(span, trace)
+            meta = span.get("meta", {})
+
+            # mandatory
+            assert meta["appsec.events.users.login.success.usr.login"] == USER
+            assert meta["_dd.appsec.usr.login"] == USER
+            assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "identification"
+            assert meta["appsec.events.users.login.success.track"] == "true"
+
+            # optional (to review for each library)
+            assert meta["usr.id"] == "social-security-id"
+            assert meta["_dd.appsec.usr.id"] == "social-security-id"
+
+    def setup_login_success_local(self):
+        self.r_success = weblog.post("/login?auth=local", data=login_data(context, UUID_USER, PASSWORD))
+
+    def test_login_success_local(self):
+        assert self.r_success.status_code == 200
+        for _, trace, span in interfaces.library.get_spans(request=self.r_success):
+            assert_priority(span, trace)
+            meta = span.get("meta", {})
+
+            # mandatory
+            assert meta["appsec.events.users.login.success.usr.login"] == UUID_USER
+            assert meta["_dd.appsec.usr.login"] == UUID_USER
+            assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "identification"
+            assert meta["appsec.events.users.login.success.track"] == "true"
+
+            # optional (to review for each library)
+            assert meta["usr.id"] == "591dc126-8431-4d0f-9509-b23318d3dce4"
+            assert meta["_dd.appsec.usr.id"] == "591dc126-8431-4d0f-9509-b23318d3dce4"
+
+    def setup_login_success_basic(self):
+        self.r_success = weblog.get("/login?auth=basic", headers={"Authorization": BASIC_AUTH_USER_UUID_HEADER})
+
+    @missing_feature(context.library == "php", reason="Basic auth not implemented")
+    def test_login_success_basic(self):
+        assert self.r_success.status_code == 200
+        for _, trace, span in interfaces.library.get_spans(request=self.r_success):
+            assert_priority(span, trace)
+            meta = span.get("meta", {})
+
+            # mandatory
+            assert meta["appsec.events.users.login.success.usr.login"] == UUID_USER
+            assert meta["_dd.appsec.usr.login"] == UUID_USER
+            assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "identification"
+            assert meta["appsec.events.users.login.success.track"] == "true"
+
+            # optional (to review for each library)
+            assert meta["usr.id"] == "591dc126-8431-4d0f-9509-b23318d3dce4"
+            assert meta["_dd.appsec.usr.id"] == "591dc126-8431-4d0f-9509-b23318d3dce4"
+
+    def setup_login_wrong_user_failure_local(self):
+        self.r_wrong_user_failure = weblog.post("/login?auth=local", data=login_data(context, INVALID_USER, PASSWORD))
+
+    def test_login_wrong_user_failure_local(self):
+        assert self.r_wrong_user_failure.status_code == 401
+        for _, trace, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
+            assert_priority(span, trace)
+            meta = span.get("meta", {})
+
+            # mandatory
+            assert meta["appsec.events.users.login.failure.usr.login"] == INVALID_USER
+            assert meta["_dd.appsec.usr.login"] == INVALID_USER
+            assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "identification"
+            assert meta["appsec.events.users.login.failure.track"] == "true"
+
+            # optional (to review for each library)
+            assert meta["appsec.events.users.login.failure.usr.exists"] == "false"
+
+    def setup_login_wrong_user_failure_basic(self):
+        self.r_wrong_user_failure = weblog.get(
+            "/login?auth=basic", headers={"Authorization": BASIC_AUTH_INVALID_USER_HEADER}
+        )
+
+    @missing_feature(context.library == "php", reason="Basic auth not implemented")
+    def test_login_wrong_user_failure_basic(self):
+        assert self.r_wrong_user_failure.status_code == 401
+        for _, trace, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
+            assert_priority(span, trace)
+            meta = span.get("meta", {})
+
+            # mandatory
+            assert meta["appsec.events.users.login.failure.usr.login"] == INVALID_USER
+            assert meta["_dd.appsec.usr.login"] == INVALID_USER
+            assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "identification"
+            assert meta["appsec.events.users.login.failure.track"] == "true"
+
+            # optional (to review for each library)
+            assert meta["appsec.events.users.login.failure.usr.exists"] == "false"
+
+    def setup_login_wrong_password_failure_local(self):
+        self.r_wrong_user_failure = weblog.post("/login?auth=local", data=login_data(context, USER, "12345"))
+
+    def test_login_wrong_password_failure_local(self):
+        assert self.r_wrong_user_failure.status_code == 401
+        for _, trace, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
+            assert_priority(span, trace)
+            meta = span.get("meta", {})
+
+            # mandatory
+            assert meta["appsec.events.users.login.failure.usr.login"] == USER
+            assert meta["_dd.appsec.usr.login"] == USER
+            assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "identification"
+            assert meta["appsec.events.users.login.failure.track"] == "true"
+
+            # optional (to review for each library)
+            assert meta["appsec.events.users.login.failure.usr.exists"] == "false"
+            assert meta["appsec.events.users.login.failure.usr.id"] == "social-security-id"
+            assert meta["_dd.appsec.usr.id"] == "social-security-id"
+
+    def setup_login_wrong_password_failure_basic(self):
+        self.r_wrong_user_failure = weblog.get(
+            "/login?auth=basic", headers={"Authorization": BASIC_AUTH_INVALID_PASSWORD_HEADER}
+        )
+
+    @missing_feature(context.library == "php", reason="Basic auth not implemented")
+    def test_login_wrong_password_failure_basic(self):
+        assert self.r_wrong_user_failure.status_code == 401
+        for _, trace, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
+            assert_priority(span, trace)
+            meta = span.get("meta", {})
+
+            # mandatory
+            assert meta["appsec.events.users.login.failure.usr.login"] == USER
+            assert meta["_dd.appsec.usr.login"] == USER
+            assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "identification"
+            assert meta["appsec.events.users.login.failure.track"] == "true"
+
+            # optional (to review for each library)
+            assert meta["appsec.events.users.login.failure.usr.exists"] == "false"
+            assert meta["appsec.events.users.login.failure.usr.id"] == "social-security-id"
+            assert meta["_dd.appsec.usr.id"] == "social-security-id"
+
+    def setup_login_sdk_success_local(self):
+        self.r_sdk_success = weblog.post(
+            "/login?auth=local&sdk_event=success&sdk_user=sdkUser", data=login_data(context, USER, PASSWORD),
+        )
+
+    def test_login_sdk_success_local(self):
+        assert self.r_sdk_success.status_code == 200
+        for _, trace, span in interfaces.library.get_spans(request=self.r_sdk_success):
+            assert_priority(span, trace)
+            meta = span.get("meta", {})
+
+            # mandatory
+            assert meta["appsec.events.users.login.success.usr.login"] == "sdkUser"
+            assert meta["_dd.appsec.usr.login"] == USER
+            assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "identification"
+            assert meta["appsec.events.users.login.success.track"] == "true"
+            assert meta["_dd.appsec.events.users.login.success.sdk"] == "true"
+
+            # optional (to review for each library)
+            assert meta["usr.id"] == "social-security-id"
+            assert meta["_dd.appsec.usr.id"] == "social-security-id"
+
+    def setup_login_sdk_success_basic(self):
+        self.r_sdk_success = weblog.get(
+            "/login?auth=basic&sdk_event=success&sdk_user=sdkUser", headers={"Authorization": BASIC_AUTH_USER_HEADER},
+        )
+
+    @missing_feature(context.library == "php", reason="Basic auth not implemented")
+    def test_login_sdk_success_basic(self):
+        assert self.r_sdk_success.status_code == 200
+        for _, trace, span in interfaces.library.get_spans(request=self.r_sdk_success):
+            assert_priority(span, trace)
+            meta = span.get("meta", {})
+
+            # mandatory
+            assert meta["appsec.events.users.login.success.usr.login"] == "sdkUser"
+            assert meta["_dd.appsec.usr.login"] == USER
+            assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "identification"
+            assert meta["appsec.events.users.login.success.track"] == "true"
+            assert meta["_dd.appsec.events.users.login.success.sdk"] == "true"
+
+            # optional (to review for each library)
+            assert meta["usr.id"] == "social-security-id"
+            assert meta["_dd.appsec.usr.id"] == "social-security-id"
+
+    def setup_login_sdk_failure_local(self):
+        self.r_sdk_failure = weblog.post(
+            "/login?auth=local&sdk_event=failure&sdk_user=sdkUser&sdk_user_exists=true",
+            data=login_data(context, INVALID_USER, PASSWORD),
+        )
+
+    def test_login_sdk_failure_local(self):
+        assert self.r_sdk_failure.status_code == 401
+        for _, trace, span in interfaces.library.get_spans(request=self.r_sdk_failure):
+            assert_priority(span, trace)
+            meta = span.get("meta", {})
+
+            # mandatory
+            assert meta["appsec.events.users.login.failure.usr.login"] == "sdkUser"
+            assert meta["_dd.appsec.usr.login"] == INVALID_USER
+            assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "identification"
+            assert meta["appsec.events.users.login.failure.track"] == "true"
+            assert meta["_dd.appsec.events.users.login.failure.sdk"] == "true"
+            assert meta["appsec.events.users.login.failure.usr.exists"] == "true"
+
+    def setup_login_sdk_failure_basic(self):
+        self.r_sdk_failure = weblog.get(
+            "/login?auth=basic&sdk_event=failure&sdk_user=sdkUser&sdk_user_exists=true",
+            headers={"Authorization": BASIC_AUTH_INVALID_USER_HEADER},
+        )
+
+    @missing_feature(context.library == "php", reason="Basic auth not implemented")
+    def test_login_sdk_failure_basic(self):
+        assert self.r_sdk_failure.status_code == 401
+        for _, trace, span in interfaces.library.get_spans(request=self.r_sdk_failure):
+            assert_priority(span, trace)
+            meta = span.get("meta", {})
+
+            # mandatory
+            assert meta["appsec.events.users.login.failure.usr.login"] == "sdkUser"
+            assert meta["_dd.appsec.usr.login"] == INVALID_USER
+            assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "identification"
+            assert meta["appsec.events.users.login.failure.track"] == "true"
+            assert meta["_dd.appsec.events.users.login.failure.sdk"] == "true"
+            assert meta["appsec.events.users.login.failure.usr.exists"] == "true"
+
+
+@rfc("https://docs.google.com/document/d/1RT38U6dTTcB-8muiYV4-aVDCsT_XrliyakjtAPyjUpw")
+@scenarios.appsec_auto_events_extended
+@features.user_monitoring
+@features.user_id_collection_modes
+class Test_V3_Login_Events_Anon:
+    """Test login success/failure use cases
+    As default mode is identification, this scenario will test anonymization.
+    """
+
+    def setup_login_success_local(self):
+        self.r_success = weblog.post("/login?auth=local", data=login_data(context, USER, PASSWORD))
+
+    def test_login_success_local(self):
+        assert self.r_success.status_code == 200
+        for _, trace, span in interfaces.library.get_spans(request=self.r_success):
+            assert_priority(span, trace)
+            meta = span.get("meta", {})
+
+            # mandatory
+            assert meta["appsec.events.users.login.success.usr.login"] == USERNAME_HASH
+            assert meta["_dd.appsec.usr.login"] == USERNAME_HASH
+            assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "anonymization"
+            assert meta["appsec.events.users.login.success.track"] == "true"
+
+            # optional (to review for each library)
+            assert meta["usr.id"] == "social-security-id"
+            assert meta["_dd.appsec.usr.id"] == "social-security-id"
+
+    def setup_login_success_basic(self):
+        self.r_success = weblog.get("/login?auth=basic", headers={"Authorization": BASIC_AUTH_USER_HEADER})
+
+    @missing_feature(context.library == "php", reason="Basic auth not implemented")
+    def test_login_success_basic(self):
+        assert self.r_success.status_code == 200
+        for _, trace, span in interfaces.library.get_spans(request=self.r_success):
+            assert_priority(span, trace)
+            meta = span.get("meta", {})
+
+            # mandatory
+            assert meta["appsec.events.users.login.success.usr.login"] == USERNAME_HASH
+            assert meta["_dd.appsec.usr.login"] == USERNAME_HASH
+            assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "anonymization"
+            assert meta["appsec.events.users.login.success.track"] == "true"
+
+            # optional (to review for each library)
+            assert meta["usr.id"] == USER_HASH
+            assert meta["_dd.appsec.usr.id"] == USER_HASH
+
+    def setup_login_wrong_user_failure_local(self):
+        self.r_wrong_user_failure = weblog.post("/login?auth=local", data=login_data(context, INVALID_USER, PASSWORD))
+
+    def test_login_wrong_user_failure_local(self):
+        assert self.r_wrong_user_failure.status_code == 401
+        for _, trace, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
+            assert_priority(span, trace)
+            meta = span.get("meta", {})
+
+            # mandatory
+            assert meta["appsec.events.users.login.failure.usr.login"] == INVALID_USER_HASH
+            assert meta["_dd.appsec.usr.login"] == INVALID_USER_HASH
+            assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "anonymization"
+            assert meta["appsec.events.users.login.failure.track"] == "true"
+
+            # optional (to review for each library)
+            assert meta["appsec.events.users.login.failure.usr.exists"] == "false"
+
+    def setup_login_wrong_user_failure_basic(self):
+        self.r_wrong_user_failure = weblog.get(
+            "/login?auth=basic", headers={"Authorization": BASIC_AUTH_INVALID_USER_HEADER}
+        )
+
+    @missing_feature(context.library == "php", reason="Basic auth not implemented")
+    def test_login_wrong_user_failure_basic(self):
+        assert self.r_wrong_user_failure.status_code == 401
+        for _, trace, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
+            assert_priority(span, trace)
+            meta = span.get("meta", {})
+
+            # mandatory
+            assert meta["appsec.events.users.login.failure.usr.login"] == INVALID_USER_HASH
+            assert meta["_dd.appsec.usr.login"] == INVALID_USER_HASH
+            assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "anonymization"
+            assert meta["appsec.events.users.login.failure.track"] == "true"
+
+            # optional (to review for each library)
+            assert meta["appsec.events.users.login.failure.usr.exists"] == "false"
+
+    def setup_login_wrong_password_failure_local(self):
+        self.r_wrong_user_failure = weblog.post("/login?auth=local", data=login_data(context, USER, "12345"))
+
+    def test_login_wrong_password_failure_local(self):
+        assert self.r_wrong_user_failure.status_code == 401
+        for _, trace, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
+            assert_priority(span, trace)
+            meta = span.get("meta", {})
+
+            # mandatory
+            assert meta["appsec.events.users.login.failure.usr.login"] == USERNAME_HASH
+            assert meta["_dd.appsec.usr.login"] == USERNAME_HASH
+            assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "anonymization"
+            assert meta["appsec.events.users.login.failure.track"] == "true"
+
+            # optional (to review for each library)
+            assert meta["appsec.events.users.login.failure.usr.exists"] == "true"
+            assert meta["appsec.events.users.login.failure.usr.id"] == USER_HASH
+            assert meta["_dd.appsec.usr.id"] == USER_HASH
+
+    def setup_login_wrong_password_failure_basic(self):
+        self.r_wrong_user_failure = weblog.get(
+            "/login?auth=basic", headers={"Authorization": BASIC_AUTH_INVALID_PASSWORD_HEADER}
+        )
+
+    @missing_feature(context.library == "php", reason="Basic auth not implemented")
+    def test_login_wrong_password_failure_basic(self):
+        assert self.r_wrong_user_failure.status_code == 401
+        for _, trace, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
+            assert_priority(span, trace)
+            meta = span.get("meta", {})
+
+            # mandatory
+            assert meta["appsec.events.users.login.failure.usr.login"] == USERNAME_HASH
+            assert meta["_dd.appsec.usr.login"] == USERNAME_HASH
+            assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "anonymization"
+            assert meta["appsec.events.users.login.failure.track"] == "true"
+
+            # optional (to review for each library)
+            assert meta["appsec.events.users.login.failure.usr.exists"] == "true"
+            assert meta["appsec.events.users.login.failure.usr.id"] == USER_HASH
+            assert meta["_dd.appsec.usr.id"] == USER_HASH
+
+    def setup_login_sdk_success_local(self):
+        self.r_sdk_success = weblog.post(
+            "/login?auth=local&sdk_event=success&sdk_user=sdkUser", data=login_data(context, USER, PASSWORD),
+        )
+
+    def test_login_sdk_success_local(self):
+        assert self.r_sdk_success.status_code == 200
+        for _, trace, span in interfaces.library.get_spans(request=self.r_sdk_success):
+            assert_priority(span, trace)
+            meta = span.get("meta", {})
+
+            # mandatory
+            assert meta["appsec.events.users.login.success.usr.login"] == "sdkUser"
+            assert meta["_dd.appsec.usr.login"] == USERNAME_HASH
+            assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "anonymization"
+            assert meta["appsec.events.users.login.success.track"] == "true"
+            assert meta["_dd.appsec.events.users.login.success.sdk"] == "true"
+
+            # optional (to review for each library)
+            assert meta["usr.id"] == USER_HASH
+            assert meta["_dd.appsec.usr.id"] == USER_HASH
+
+    def setup_login_sdk_success_basic(self):
+        self.r_sdk_success = weblog.get(
+            "/login?auth=basic&sdk_event=success&sdk_user=sdkUser", headers={"Authorization": BASIC_AUTH_USER_HEADER},
+        )
+
+    @missing_feature(context.library == "php", reason="Basic auth not implemented")
+    def test_login_sdk_success_basic(self):
+        assert self.r_sdk_success.status_code == 200
+        for _, trace, span in interfaces.library.get_spans(request=self.r_sdk_success):
+            assert_priority(span, trace)
+            meta = span.get("meta", {})
+
+            # mandatory
+            assert meta["appsec.events.users.login.success.usr.login"] == "sdkUser"
+            assert meta["_dd.appsec.usr.login"] == USERNAME_HASH
+            assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "anonymization"
+            assert meta["appsec.events.users.login.success.track"] == "true"
+            assert meta["_dd.appsec.events.users.login.success.sdk"] == "true"
+
+            # optional (to review for each library)
+            assert meta["usr.id"] == USER_HASH
+            assert meta["_dd.appsec.usr.id"] == USER_HASH
+
+    def setup_login_sdk_failure_basic(self):
+        self.r_sdk_failure = weblog.get(
+            "/login?auth=basic&sdk_event=failure&sdk_user=sdkUser&sdk_user_exists=true",
+            headers={"Authorization": BASIC_AUTH_INVALID_USER_HEADER},
+        )
+
+    @missing_feature(context.library == "php", reason="Basic auth not implemented")
+    def test_login_sdk_failure_basic(self):
+        assert self.r_sdk_failure.status_code == 401
+        for _, trace, span in interfaces.library.get_spans(request=self.r_sdk_failure):
+            assert_priority(span, trace)
+            meta = span.get("meta", {})
+
+            # mandatory
+            assert meta["appsec.events.users.login.failure.usr.login"] == "sdkUser"
+            assert meta["_dd.appsec.usr.login"] == INVALID_USER_HASH
+            assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "anonymization"
+            assert meta["appsec.events.users.login.failure.track"] == "true"
+            assert meta["_dd.appsec.events.users.login.failure.sdk"] == "true"
+            assert meta["appsec.events.users.login.failure.usr.exists"] == "true"
+
+    def setup_login_sdk_failure_local(self):
+        self.r_sdk_failure = weblog.post(
+            "/login?auth=local&sdk_event=failure&sdk_user=sdkUser&sdk_user_exists=true",
+            data=login_data(context, INVALID_USER, PASSWORD),
+        )
+
+    def test_login_sdk_failure_local(self):
+        assert self.r_sdk_failure.status_code == 401
+        for _, trace, span in interfaces.library.get_spans(request=self.r_sdk_failure):
+            assert_priority(span, trace)
+            meta = span.get("meta", {})
+
+            # mandatory
+            assert meta["appsec.events.users.login.failure.usr.login"] == "sdkUser"
+            assert meta["_dd.appsec.usr.login"] == INVALID_USER_HASH
+            assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "anonymization"
+            assert meta["appsec.events.users.login.failure.track"] == "true"
+            assert meta["_dd.appsec.events.users.login.failure.sdk"] == "true"
+            assert meta["appsec.events.users.login.failure.usr.exists"] == "true"
+
+
+DISABLED = ("datadog/2/ASM_FEATURES/auto-user-instrum/config", {"auto_user_instrum": {"mode": "disabled"}})
+IDENTIFICATION = ("datadog/2/ASM_FEATURES/auto-user-instrum/config", {"auto_user_instrum": {"mode": "identification"}})
+ANONYMIZATION = ("datadog/2/ASM_FEATURES/auto-user-instrum/config", {"auto_user_instrum": {"mode": "anonymization"}})
+
+
+@rfc("https://docs.google.com/document/d/1RT38U6dTTcB-8muiYV4-aVDCsT_XrliyakjtAPyjUpw")
+@features.user_monitoring
+@scenarios.appsec_auto_events_rc
+class Test_V3_Login_Events_RC:
+    def _send_rc_and_execute_request(self, config):
+        config_state = rc.rc_state.set_config(config).apply()
+        request = weblog.post("/login?auth=local", data=login_data(context, USER, PASSWORD))
+        return {"config_state": config_state, "request": request}
+
+    def _assert_response(self, test, validation):
+        config_state, request = test["config_state"], test["request"]
+
+        assert config_state[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
+        assert request.status_code == 200
+
+        spans = [s for _, _, s in interfaces.library.get_spans(request=request)]
+        assert spans, "No spans to validate"
+        for span in spans:
+            meta = span.get("meta", {})
+            validation(meta)
+
+    def setup_rc(self):
+        self.disabled = self._send_rc_and_execute_request(*DISABLED)
+        self.identification = self._send_rc_and_execute_request(*IDENTIFICATION)
+        self.anonymization = self._send_rc_and_execute_request(*ANONYMIZATION)
+
+    def test_rc(self):
+        def validate_disabled(meta):
+            assert "_dd.appsec.events.users.login.success.auto.mode" not in meta
+
+        def validate_anon(meta):
+            assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "anonymization"
+
+        def validate_iden(meta):
+            assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "identification"
+
+        self._assert_response(self.disabled, validate_disabled)
+        self._assert_response(self.identification, validate_iden)
+        self._assert_response(self.anonymization, validate_anon)
