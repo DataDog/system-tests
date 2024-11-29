@@ -1,3 +1,4 @@
+import os
 import pytest
 from utils import context
 from utils._decorators import is_jira_ticket
@@ -166,6 +167,12 @@ def generate_gitlab_pipeline(language, weblog_name, scenario_name, env, vms):
     # Add FPD push script
     pipeline[".base_job_onboarding_system_tests"]["after_script"].extend(_generate_fpd_gitlab_script())
 
+    # if we execute the pipeline manually, we want don't want to run the child jobs by default
+    # if we execute the pipeline by schedule, we want to run the child jobs by default
+    rule_run = {"if": '$CI_PIPELINE_SOURCE == "schedule"', "when": "always"}
+    if os.getenv("CI_PIPELINE_SOURCE", "") == "schedule":
+        rule_run = {"if": '$CI_PIPELINE_SOURCE == "parent_pipeline"', "when": "always"}
+
     # Generate a job per machine
     if vms:
         pipeline["stages"].append(scenario_name)
@@ -178,10 +185,7 @@ def generate_gitlab_pipeline(language, weblog_name, scenario_name, env, vms):
                 "needs": [],
                 "variables": {"TEST_LIBRARY": language, "SCENARIO": scenario_name, "WEBLOG": weblog_name},
                 # Remove rules if you want to run the jobs when you clic on the execute button of the child pipeline
-                "rules": [
-                    {"if": '$CI_PIPELINE_SOURCE == "schedule"', "when": "always"},
-                    {"when": "manual", "allow_failure": True},
-                ],
+                "rules": [rule_run, {"when": "manual", "allow_failure": True},],
                 "script": [
                     "./build.sh -i runner",
                     "./run.sh $SCENARIO --vm-weblog $WEBLOG --vm-env $ONBOARDING_FILTER_ENV --vm-library $TEST_LIBRARY --vm-provider aws --report-run-url $CI_PIPELINE_URL --report-environment $ONBOARDING_FILTER_ENV --vm-default-vms All --vm-only "
