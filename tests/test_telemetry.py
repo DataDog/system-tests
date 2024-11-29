@@ -375,7 +375,6 @@ class Test_Telemetry:
         That means, every new deployment/reload of application will cause reloading classes/dependencies and as the result we will see duplications.
         """,
     )
-    @bug(library="nodejs", reason="unknown")
     def test_app_dependencies_loaded(self):
         """test app-dependencies-loaded requests"""
 
@@ -667,7 +666,7 @@ class Test_DependencyEnable:
 
         for data in interfaces.library.get_telemetry_data():
             if get_request_type(data) == "app-dependencies-loaded":
-                raise Exception("request_type app-dependencies-loaded should not be sent by this tracer")
+                raise ValueError("request_type app-dependencies-loaded should not be sent by this tracer")
 
 
 @features.telemetry_message_batch
@@ -679,14 +678,13 @@ class Test_MessageBatch:
         weblog.get("/enable_integration")
         weblog.get("/enable_product")
 
-    # CPP: false-positive. we send batch message for app-started.
-    @bug(library="nodejs")
+    @bug(library="nodejs", reason="APMAPI-929")
     def test_message_batch_enabled(self):
         """Test that events are sent in message batches"""
-        event_list = []
+        event_list = set()
         for data in interfaces.library.get_telemetry_data(flatten_message_batches=False):
             content = data["request"]["content"]
-            event_list.append(content.get("request_type"))
+            event_list.add(content.get("request_type"))
 
         assert "message-batch" in event_list, f"Expected one or more message-batch events: {event_list}"
 
