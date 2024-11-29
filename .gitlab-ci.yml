@@ -48,8 +48,8 @@ variables:
       - ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws --vm-default-vms All --vm-gitlab-pipeline
   after_script:
     - SCENARIO_SUFIX=$(echo "$SCENARIO" | tr '[:upper:]' '[:lower:]')
-    - mkdir -p reports/logs_"${SCENARIO_SUFIX}"
-    - cp -R logs_"${SCENARIO_SUFIX}"/gitlab_pipeline.yml reports/logs_"${SCENARIO_SUFIX}"/
+    - mkdir -p reports/logs_"${SCENARIO_SUFIX}_${ONBOARDING_FILTER_WEBLOG}"
+    - cp -R logs_"${SCENARIO_SUFIX}"/gitlab_pipeline.yml reports/logs_"${SCENARIO_SUFIX}_${ONBOARDING_FILTER_WEBLOG}"/
   artifacts:
     paths:
       - reports/
