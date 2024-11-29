@@ -53,14 +53,10 @@ allow_no_jira_ticket_for_bugs = [
     # agent    
     "tests/test_schemas.py::Test_Agent.test_agent_schema_telemetry_main_payload",
 
-    # nodejs
-    "tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Tags_Feb2024_Revision.test_globs_different_casing",
-    "tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Tags_Feb2024_Revision.test_metric_matching",
-
-    # nodejs and golang
+    # golang
     "tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Tags_Feb2024_Revision.test_metric_existence",
 
-    # all but cpp
+    # all but cpp/nodejs
     "tests/parametric/test_span_sampling.py::Test_Span_Sampling.test_multi_rule_independent_rate_limiters_sss013",
 
     # cpp, olang, php, ruby , an error was in the deserialize function, probably no issue
