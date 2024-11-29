@@ -31,7 +31,9 @@ def main():
     # and split in stages with not more than 100 jobs
     set_cache_2 = False
     for key in final_pipeline:
-        if "stage" in final_pipeline[key] and final_pipeline[key]["stage"] == "Cache":
+        if "stage" in final_pipeline[key] and (
+            final_pipeline[key]["stage"] == "Cache" or final_pipeline[key]["stage"] == "Cache2"
+        ):
             final_pipeline[key]["stage"] = "Cache2" if set_cache_2 else "Cache"
             set_cache_2 = not set_cache_2
 

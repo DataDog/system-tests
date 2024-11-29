@@ -26,23 +26,19 @@ variables:
     DD_INSTALLER_INJECTOR_VERSION:
       description: "Set the version of the injector to be installed. Use the pipeline id pipeline-${CI_PIPELINE_ID}"
 
-.base_compute_aws_scenarios:
-  #image: 486234852809.dkr.ecr.us-east-1.amazonaws.com/ci/test-infra-definitions/runner:6dd143866d67
-  image: registry.ddbuild.io/ci/libdatadog-build/system-tests:48436362
-  tags: ["arch:arm64"]
-  before_script:
-    - export DD_API_KEY_ONBOARDING=xyz
-    - export DD_APP_KEY_ONBOARDING=xyz
 
 .compute_aws_scenarios:
-  #extends: .base_job_onboarding
-  extends: .base_compute_aws_scenarios
+  image: registry.ddbuild.io/ci/libdatadog-build/system-tests:48436362
+  tags: ["arch:arm64"]
   stage: aws_nodejs_ssi_pipelines
   allow_failure: true
   variables:
     TEST_LIBRARY: "nodejs"
     ONBOARDING_FILTER_WEBLOG: "test-app-nodejs"
     SCENARIO: "HOST_AUTO_INJECTION_INSTALL_SCRIPT"
+  before_script:
+    - export DD_API_KEY_ONBOARDING=xyz
+    - export DD_APP_KEY_ONBOARDING=xyz
   script:
       - ./build.sh -i runner
       - ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws --vm-default-vms All --vm-gitlab-pipeline
