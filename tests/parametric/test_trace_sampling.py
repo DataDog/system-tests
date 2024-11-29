@@ -503,7 +503,7 @@ class Test_Trace_Sampling_Tags_Feb2024_Revision:
     @pytest.mark.parametrize("library_env", [tag_sampling_env("*"), tag_sampling_env("**"), tag_sampling_env("***")])
     @pytest.mark.parametrize("tag_value", [-100, -0.5, 0, 5, 1000])
     @missing_feature(library="cpp", reason="No metric interface")
-    @flaky(library="golang", reason="The test itself is probably flaky")
+    @flaky(library="golang", reason="APMAPI-932")
     @bug(library="nodejs", reason="APMAPI-931")
     def test_metric_existence(self, test_agent, test_library, tag_value):
         """Tests that any patterns are equivalent to an existence check for metrics"""
