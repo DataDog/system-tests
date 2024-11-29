@@ -188,12 +188,41 @@ def generate_gitlab_pipeline(language, weblog_name, scenario_name, env, vms):
                     + vm.name,
                 ],
             }
+    # Cache management for the pipeline
+    pipeline["stages"].append("Cache")
+    pipeline.update(_generate_cache_jobs(language, weblog_name, scenario_name, vms))
+
     return pipeline
+
+
+def _generate_cache_jobs(language, weblog_name, scenario_name, vms):
+    pipeline = {}
+    # Generate a job per machine
+    for vm in vms:
+        pipeline[f"{vm.get_cache_name()}"] = {
+            "extends": ".base_job_onboarding_system_tests",
+            "stage": "Cache",
+            "allow_failure": True,
+            "needs": [],
+            "variables": {
+                "TEST_LIBRARY": language,
+                "SCENARIO": scenario_name,
+                "WEBLOG": weblog_name,
+                "AMI_UPDATE": "true",
+            },
+            # Remove rules if you want to run the jobs when you clic on the execute button of the child pipeline
+            "rules": [{"when": "manual", "allow_failure": True},],
+            "script": [
+                "./build.sh -i runner",
+                "./run.sh $SCENARIO --vm-weblog $WEBLOG --vm-env $ONBOARDING_FILTER_ENV --vm-library $TEST_LIBRARY --vm-provider aws --vm-default-vms All --vm-only "
+                + vm.name,
+            ],
+        }
 
 
 def _generate_fpd_gitlab_script():
     fpd_push_script = [
-        'if [ "$CI_COMMIT_BRANCH" = "robertomonteromiguel/onboarding_parallel_ci"" ]; then',
+        'if [ "$CI_COMMIT_BRANCH" = "robertomonteromiguel/onboarding_parallel_ci" ]; then',
         'export FP_IMPORT_URL=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.fp-import-url --with-decryption --query "Parameter.Value" --out text)',
         'export FP_API_KEY=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.fp-api-key --with-decryption --query "Parameter.Value" --out text)',
         "for folder in reports/logs*/ ; do",
