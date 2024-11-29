@@ -565,12 +565,9 @@ tests/:
       test_security_controls.py:
         TestSecurityControls:
           '*': missing_feature (No endpoint implemented)
-          jersey-grizzly2: v1.44.0
-          spring-boot: v1.44.0
-          resteasy-netty3: v1.44.0
+          play: missing_feature (No endpoint implemented)
+          ratpack: missing_feature (No endpoint implemented)
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-          vertx3: v1.44.0
-          vertx4: v1.44.0
     rasp/:
       test_lfi.py:
         Test_Lfi_BodyJson:
