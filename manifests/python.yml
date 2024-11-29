@@ -452,6 +452,9 @@ tests/:
       Test_V2_Login_Events: v2.11.0
       Test_V2_Login_Events_Anon: v2.11.0
       Test_V2_Login_Events_RC: v2.11.0
+      Test_V3_Login_Events: missing_feature
+      Test_V3_Login_Events_Anon: missing_feature
+      Test_V3_Login_Events_RC: missing_feature
     test_automated_user_and_session_tracking.py:
       Test_Automated_Session_Blocking: missing_feature
       Test_Automated_User_Blocking: missing_feature
