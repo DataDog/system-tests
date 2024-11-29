@@ -36,6 +36,6 @@ class DefaultScenario(EndToEndScenario):
     def configure(self, config):
         super().configure(config)
 
-        self.weblog_container.environment["DD_IAST_SECURITY_CONTROLS_CONFIGURATION"] = _iast_security_controls_map[
-            self.weblog_container.library.library
-        ]
+        library = self.weblog_container.image.env["SYSTEM_TESTS_LIBRARY"]
+        value = _iast_security_controls_map[library]
+        self.weblog_container.environment["DD_IAST_SECURITY_CONTROLS_CONFIGURATION"] = value
