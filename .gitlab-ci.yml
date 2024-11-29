@@ -92,15 +92,18 @@ step1_generate_nodejs_ssi_pipeline:
   needs: []
   script:
     - echo ">>>>>>>>>>>>>>> Generating nodejs pipeline >>>>>>>>>>>>>>>"
+    - echo "ONBOARDING_FILTER_ENV=$ONBOARDING_FILTER_ENV" >> run.env
   rules:
     - if: $CI_PIPELINE_SOURCE == "schedule"
       when: always
     - when: manual
       allow_failure: true
+  artifacts:
+    reports:
+      dotenv: run.env
 
 x_compute_nodejs_scenarios:
   extends: .compute_aws_scenarios
-  needs: ["step1_generate_nodejs_ssi_pipeline"]
   variables:
     TEST_LIBRARY: "nodejs"
   parallel:
@@ -109,6 +112,9 @@ x_compute_nodejs_scenarios:
           SCENARIO:
             - HOST_AUTO_INJECTION_INSTALL_SCRIPT
             - HOST_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING
+  needs:
+    - job: step1_generate_nodejs_ssi_pipeline
+      artifacts: true
 
 x_merge_nodejs_ssi_pipeline:
   extends: .merge_aws_ssi_pipeline
