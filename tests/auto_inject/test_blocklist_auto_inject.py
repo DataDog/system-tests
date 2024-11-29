@@ -205,8 +205,6 @@ class TestAutoInjectBlockListInstallManualHost(_AutoInjectBlockListBaseTest):
             {"vm_branch": "amazon_linux2", "library": "ruby", "reason": "INPLAT-103"},
             {"vm_branch": "centos_7_amd64", "library": "ruby", "reason": "INPLAT-103"},
             {"vm_branch": "redhat", "vm_cpu": "arm64", "library": "ruby", "reason": "INPLAT-103"},
-            {"vm_branch": "ubuntu20_arm64", "weblog_variant": "test-app-python", "reason": "INPLAT-220"},
-            {"vm_branch": "ubuntu20_amd64", "weblog_variant": "test-app-python", "reason": "INPLAT-220"},
         ]
     )
     @irrelevant(
@@ -227,8 +225,6 @@ class TestAutoInjectBlockListInstallManualHost(_AutoInjectBlockListBaseTest):
             {"vm_branch": "amazon_linux2", "library": "ruby", "reason": "INPLAT-103"},
             {"vm_branch": "centos_7_amd64", "library": "ruby", "reason": "INPLAT-103"},
             {"vm_branch": "redhat", "vm_cpu": "arm64", "library": "ruby", "reason": "INPLAT-103"},
-            {"vm_branch": "ubuntu20_arm64", "weblog_variant": "test-app-python", "reason": "INPLAT-220"},
-            {"vm_branch": "ubuntu20_amd64", "weblog_variant": "test-app-python", "reason": "INPLAT-220"},
         ]
     )
     @irrelevant(
@@ -251,8 +247,6 @@ class TestAutoInjectBlockListInstallManualHost(_AutoInjectBlockListBaseTest):
             {"vm_branch": "amazon_linux2", "library": "ruby", "reason": "INPLAT-103"},
             {"vm_branch": "centos_7_amd64", "library": "ruby", "reason": "INPLAT-103"},
             {"vm_branch": "redhat", "vm_cpu": "arm64", "library": "ruby", "reason": "INPLAT-103"},
-            {"vm_branch": "ubuntu20_arm64", "weblog_variant": "test-app-python", "reason": "INPLAT-220"},
-            {"vm_branch": "ubuntu20_amd64", "weblog_variant": "test-app-python", "reason": "INPLAT-220"},
         ]
     )
     @irrelevant(
@@ -285,8 +279,6 @@ class TestAutoInjectBlockListInstallManualHost(_AutoInjectBlockListBaseTest):
             {"vm_branch": "centos_7_amd64", "library": "ruby", "reason": "INPLAT-103"},
             {"vm_branch": "redhat", "vm_cpu": "arm64", "library": "ruby", "reason": "INPLAT-103"},
             {"library": "ruby", "reason": "INPLAT-153"},
-            {"vm_branch": "ubuntu20_arm64", "weblog_variant": "test-app-python", "reason": "INPLAT-220"},
-            {"vm_branch": "ubuntu20_amd64", "weblog_variant": "test-app-python", "reason": "INPLAT-220"},
         ]
     )
     @irrelevant(

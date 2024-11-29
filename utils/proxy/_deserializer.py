@@ -4,6 +4,7 @@
 
 import base64
 import gzip
+import io
 import json
 import logging
 from hashlib import md5
@@ -102,8 +103,8 @@ def deserialize_http_message(path, message, content: bytes, interface, key, expo
 
         return json.loads(content)
 
-    content_type = get_header_value("content-type", message["headers"])
-    content_type = None if content_type is None else content_type.lower()
+    raw_content_type = get_header_value("content-type", message["headers"])
+    content_type = None if raw_content_type is None else raw_content_type.lower()
 
     if not content or len(content) == 0:
         return None
@@ -178,46 +179,35 @@ def deserialize_http_message(path, message, content: bytes, interface, key, expo
 
     if content_type and content_type.startswith("multipart/form-data;"):
         decoded = []
-        for part in MultipartDecoder(content, content_type).parts:
+        for part in MultipartDecoder(content, raw_content_type).parts:
             headers = {k.decode("utf-8"): v.decode("utf-8") for k, v in part.headers.items()}
             item = {"headers": headers}
-            try:
-                item["content"] = part.text
-            except UnicodeDecodeError:
-                item["content"] = part.content
 
-            if headers.get("Content-Type", "").lower().startswith("application/json"):
-                item["content"] = json.loads(item["content"])
+            content_type_part = ""
 
-            elif headers.get("Content-Type", "") == "application/octet-stream":
-                content_disposition = headers.get("Content-Disposition", "")
+            for name in headers:
+                if name.lower() == "content-type":
+                    content_type_part = headers[name].lower()
+                    break
 
-                if not content_disposition.startswith("form-data"):
-                    item["system-tests-error"] = "Unknown content-disposition, please contact #apm-shared-testing"
-                    item["content"] = None
+            if content_type_part.startswith("application/json"):
+                item["content"] = json.loads(part.content)
 
-                else:
-                    meta_data = {}
+            elif content_type_part == "application/gzip":
+                with gzip.GzipFile(fileobj=io.BytesIO(part.content)) as gz_file:
+                    content = gz_file.read()
 
-                    for part in content_disposition.split(";"):
-                        if "=" in part:
-                            key, value = part.split("=", 1)
-                            meta_data[key.strip()] = value.strip()
+                _deserialize_file_in_multipart_form_data(item, headers, export_content_files_to, content)
 
-                    if "filename" not in meta_data:
-                        item[
-                            "system-tests-error"
-                        ] = "Filename not found in content-disposition, please contact #apm-shared-testing"
-                    else:
-                        filename = meta_data["filename"].strip('"')
-                        file_path = f"{export_content_files_to}/{md5(item['content']).hexdigest()}_{filename}"
+            elif content_type_part == "application/octet-stream":
+                _deserialize_file_in_multipart_form_data(item, headers, export_content_files_to, part.content)
 
-                        with open(file_path, "wb") as f:
-                            f.write(item["content"])
+            else:
 
-                        item["system-tests-information"] = "File exported to a separated file"
-                        item["system-tests-file-path"] = file_path
-                        del item["content"]
+                try:
+                    item["content"] = part.text
+                except UnicodeDecodeError:
+                    item["content"] = str(part.content)
 
             decoded.append(item)
 
@@ -227,6 +217,36 @@ def deserialize_http_message(path, message, content: bytes, interface, key, expo
         return content.decode("ascii")
 
     return content
+
+
+def _deserialize_file_in_multipart_form_data(
+    item: dict, headers: dict, export_content_files_to: str, content: bytes
+) -> None:
+    content_disposition = headers.get("Content-Disposition", "")
+
+    if not content_disposition.startswith("form-data"):
+        item["system-tests-error"] = "Unknown content-disposition, please contact #apm-shared-testing"
+        item["content"] = None
+
+    else:
+        meta_data = {}
+
+        for part in content_disposition.split(";"):
+            if "=" in part:
+                key, value = part.split("=", 1)
+                meta_data[key.strip()] = value.strip()
+
+        if "filename" not in meta_data:
+            item["system-tests-error"] = "Filename not found in content-disposition, please contact #apm-shared-testing"
+        else:
+            filename = meta_data["filename"].strip('"')
+            file_path = f"{export_content_files_to}/{md5(content).hexdigest()}_{filename}"
+
+            with open(file_path, "wb") as f:
+                f.write(content)
+
+            item["system-tests-information"] = "File exported to a separated file"
+            item["system-tests-file-path"] = file_path
 
 
 def _deserialized_nested_json_from_trace_payloads(content, interface):

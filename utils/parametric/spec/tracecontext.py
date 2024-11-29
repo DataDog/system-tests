@@ -86,7 +86,7 @@ class Tracestate:
     def __init__(self, *args, **kwds):
         if len(args) == 1 and not kwds:
             if isinstance(args[0], str):
-                self._traits = OrderedDict()
+                self._traits: OrderedDict = OrderedDict()
                 self.from_string(args[0])
                 return
             if isinstance(args[0], Tracestate):

@@ -39,6 +39,8 @@ refs:
   - &ref_5_24_0 '>=5.24.0 || ^4.48.0'
   - &ref_5_25_0 '>=5.25.0 || ^4.49.0'
   - &ref_5_26_0 '>=5.26.0 || ^4.50.0'
+  - &ref_5_27_0 '>=5.27.0 || ^4.51.0'
+  - &ref_5_29_0 '>=5.29.0 || ^4.53.0'
 
 tests/:
   apm_tracing_e2e/:
@@ -286,7 +288,7 @@ tests/:
         Test_Lfi_RC_CustomAction:
           '*': *ref_5_24_0
           nextjs: missing_feature
-        Test_Lfi_Rules_Version: missing_feature
+        Test_Lfi_Rules_Version: *ref_5_26_0
         Test_Lfi_StackTrace:
           '*': *ref_5_24_0
           nextjs: missing_feature
@@ -430,7 +432,8 @@ tests/:
       Test_Basic: v2.0.0
     test_asm_standalone.py:
       Test_AppSecStandalone_UpstreamPropagation: *ref_5_18_0
-      Test_IastStandalone_UpstreamPropagation: missing_feature # was supposed to be released in 5.18.0
+      Test_IastStandalone_UpstreamPropagation: *ref_5_29_0
+      Test_SCAStandalone_Telemetry: *ref_5_18_0
     test_automated_login_events.py:
       Test_Login_Events:
         '*': *ref_4_4_0
@@ -648,7 +651,8 @@ tests/:
       Test_Config_TraceEnabled: *ref_4_3_0
       Test_Config_TraceLogDirectory: missing_feature
       Test_Config_UnifiedServiceTagging: *ref_5_25_0
-    test_crashtracking.py: missing_feature
+    test_crashtracking.py:
+      Test_Crashtracking: *ref_5_27_0
     test_dynamic_configuration.py:
       TestDynamicConfigSamplingRules: *ref_5_16_0
       TestDynamicConfigTracingEnabled: *ref_5_4_0
