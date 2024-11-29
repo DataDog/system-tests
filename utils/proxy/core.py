@@ -299,7 +299,7 @@ class _RequestLogger:
                 self._remove_meta_structs_support(flow)
 
             if self.span_events is not None:
-                self._modify_span_flag(flow)
+                self._modify_span_events_flag(flow)
 
     def _remove_meta_structs_support(self, flow):
         if flow.request.path == "/info" and str(flow.response.status_code) == "200":
@@ -318,8 +318,14 @@ class _RequestLogger:
                 c["endpoints"].append("/v0.7/config")
                 flow.response.content = json.dumps(c).encode()
 
-    def _modify_span_flag(self, flow):
-        """Modify the agent flag that signals support for native span event serialization"""
+    def _modify_span_events_flag(self, flow):
+        """
+        Modify the agent flag that signals support for native span event serialization.
+        There are three possible cases:
+        - Not configured: agent's response is not modified, the real agent behavior is preserved
+        - `true`: agent advertises support for native span events serialization
+        - `false`: agent advertises that it does not support native span events serialization
+        """
         if flow.request.path == "/info" and str(flow.response.status_code) == "200":
             c = json.loads(flow.response.content)
             c["span_events"] = self.span_events
