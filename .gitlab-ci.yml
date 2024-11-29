@@ -92,7 +92,7 @@ step1_generate_nodejs_ssi_pipeline:
   needs: []
   script:
     - echo ">>>>>>>>>>>>>>> Generating nodejs pipeline >>>>>>>>>>>>>>>"
-    - echo "ONBOARDING_FILTER_ENV=$ONBOARDING_FILTER_ENV" >> run.env
+    - echo "FILTER_ENV=$ONBOARDING_FILTER_ENV" >> run.env
   rules:
     - if: $CI_PIPELINE_SOURCE == "schedule"
       when: always
@@ -106,6 +106,8 @@ x_compute_nodejs_scenarios:
   extends: .compute_aws_scenarios
   variables:
     TEST_LIBRARY: "nodejs"
+    #Because sometimes a I don't want to run all pipeline, I only run step1_xx with env filter param
+    ONBOARDING_FILTER_ENV: "$FILTER_ENV"
   parallel:
     matrix:
         - ONBOARDING_FILTER_WEBLOG: [test-app-nodejs]
