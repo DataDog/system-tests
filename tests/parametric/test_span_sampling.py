@@ -402,6 +402,7 @@ class Test_Span_Sampling:
         context.library == "php",
         reason="PHP uses a float to represent the allowance in tokens and thus accepts one more request (given the time elapsed between individual requests)",
     )
+    @flaky(library="cpp", reason="APMAPI-933")
     @pytest.mark.parametrize(
         "library_env",
         [
