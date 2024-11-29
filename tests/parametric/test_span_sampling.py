@@ -398,11 +398,11 @@ class Test_Span_Sampling:
         assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MAX_PER_SEC) is None
         assert span["metrics"].get(SAMPLING_PRIORITY_KEY) > 0
 
-    @flaky(context.library != "cpp", reason="missing JIRA, probably working on some tracers")
     @missing_feature(
         context.library == "php",
         reason="PHP uses a float to represent the allowance in tokens and thus accepts one more request (given the time elapsed between individual requests)",
     )
+    @flaky(library="cpp", reason="APMAPI-933")
     @pytest.mark.parametrize(
         "library_env",
         [
