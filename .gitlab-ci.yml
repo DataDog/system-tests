@@ -114,6 +114,13 @@ step1_generate_nodejs_ssi_pipeline:
     - echo ">>>>>>>>>>>>>>> Generating nodejs pipeline >>>>>>>>>>>>>>>"
     - echo "FILTER_ENV=$ONBOARDING_FILTER_ENV" >> run.env
 
+step1_generate_java_ssi_pipeline:
+  needs: ["step2_exec_nodejs_ssi_pipeline"]
+  extends: .step1_generate_aws_ssi_pipeline
+  script:
+    - echo ">>>>>>>>>>>>>>> Generating java pipeline >>>>>>>>>>>>>>>"
+    - echo "FILTER_ENV=$ONBOARDING_FILTER_ENV" >> run.env
+
 x_compute_nodejs_scenarios:
   extends: .compute_aws_scenarios
   variables:
