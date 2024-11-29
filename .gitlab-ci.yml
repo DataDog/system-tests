@@ -16,8 +16,6 @@ variables:
     # Do not modify this - must be the repository name for Kubernetes gitlab runners to run
     KUBERNETES_SERVICE_ACCOUNT_OVERWRITE: system-tests #helm-charts
     TEST: 1
-    KUBERNETES_CPU_REQUEST: "6"
-    KUBERNETES_CPU_LIMIT: "6"
     AMI_UPDATE:
       description: "Set to true to force the update the AMIs used in the system-tests"
     ONBOARDING_FILTER_ENV: "prod"

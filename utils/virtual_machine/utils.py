@@ -177,6 +177,10 @@ def generate_gitlab_pipeline(language, weblog_name, scenario_name, env, vms):
                 "allow_failure": True,
                 "needs": [],
                 "variables": {"TEST_LIBRARY": language, "SCENARIO": scenario_name, "WEBLOG": weblog_name},
+                "rules": [
+                    {"if": '$CI_PIPELINE_SOURCE == "schedule"', "when": "always"},
+                    {"when": "manual", "allow_failure": True},
+                ],
                 "script": [
                     "./build.sh -i runner",
                     "./run.sh $SCENARIO --vm-weblog $WEBLOG --vm-env $ONBOARDING_FILTER_ENV --vm-library $TEST_LIBRARY --vm-provider aws --report-run-url $CI_PIPELINE_URL --report-environment $ONBOARDING_FILTER_ENV --vm-default-vms All --vm-only "
