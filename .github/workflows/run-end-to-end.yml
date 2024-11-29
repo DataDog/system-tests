@@ -123,7 +123,11 @@ jobs:
         SYSTEM_TESTS_AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
     - name: Run PROFILING scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"PROFILING"')
-      run: ./run.sh PROFILING
+      run: |
+        cat /proc/sys/kernel/perf_event_paranoid
+        sudo sysctl kernel.perf_event_paranoid=1
+        sudo sysctl -p
+        ./run.sh PROFILING
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run TRACE_PROPAGATION_STYLE_W3C scenario
