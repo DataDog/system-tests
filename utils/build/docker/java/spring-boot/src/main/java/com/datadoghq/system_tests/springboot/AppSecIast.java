@@ -380,13 +380,13 @@ public class AppSecIast {
         return "ok";
     }
 
-    @PostMapping("/sc/s/xss")
-    void scSanitizeXSS(final ServletRequest request,  final ServletResponse response) throws IOException {
+    @PostMapping("/sc/s/configured")
+    void scSanitizeConfigured(final ServletRequest request,  final ServletResponse response) throws IOException {
         String sanitized = SecurityControlUtil.sanitize(request.getParameter("param"));
-        xssExamples.insecureXSS(response.getWriter(), sanitized);
+        cmdExamples.insecureCmd(sanitized);
     }
 
-    @PostMapping("/sc/s/sqli")
+    @PostMapping("/sc/s/not-configured")
     Object scSanitizeSqli(final ServletRequest request,  final ServletResponse response) throws IOException {
         String sanitized = SecurityControlUtil.sanitize(request.getParameter("param"));
         return sqlExamples.insecureSql(sanitized, "password");
@@ -398,15 +398,15 @@ public class AppSecIast {
         return sqlExamples.insecureSql(sanitized, "password");
     }
 
-    @PostMapping("/sc/iv/xss")
+    @PostMapping("/sc/iv/configured")
     void scValidateXSS(final ServletRequest request,  final ServletResponse response) throws IOException {
         String param = request.getParameter("param");
         if (SecurityControlUtil.validate(param)) {
-            xssExamples.insecureXSS(response.getWriter(), param);
+            cmdExamples.insecureCmd(param);
         }
     }
 
-    @PostMapping("/sc/iv/sqli")
+    @PostMapping("/sc/iv/not-configured")
     void scValidateSqli(final ServletRequest request,  final ServletResponse response) throws IOException {
         String param = request.getParameter("param");
         if(SecurityControlUtil.validate(param)) {
@@ -443,13 +443,13 @@ public class AppSecIast {
     @PostMapping("/sc/s/overloaded/secure")
     void scSOverloadedSecure(final ServletRequest request,  final ServletResponse response) throws IOException {
         String sanitized = SecurityControlUtil.overloadedSanitize(request.getParameter("param"));
-        xssExamples.insecureXSS(response.getWriter(), sanitized);
+        cmdExamples.insecureCmd(sanitized);
     }
 
     @PostMapping("/sc/s/overloaded/insecure")
     void scSOverloadedInsecure(final ServletRequest request,  final ServletResponse response) throws IOException {
         String sanitized = SecurityControlUtil.overloadedSanitize(request.getParameter("param"), null);
-        xssExamples.insecureXSS(response.getWriter(), sanitized);
+        cmdExamples.insecureCmd(sanitized);
     }
 
 

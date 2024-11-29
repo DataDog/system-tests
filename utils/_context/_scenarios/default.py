@@ -8,7 +8,7 @@ _iast_security_controls_map = {
     "cpp": "TODO",
     "dotnet": "TODO",
     "golang": "TODO",
-    "java": "SANITIZER:XSS:com.datadoghq.system_tests.iast.utils.SecurityControlUtil:sanitize;SANITIZER:*:com.datadoghq.system_tests.iast.utils.SecurityControlUtil:sanitizeForAllVulns;SANITIZER:*:com.datadoghq.system_tests.iast.utils.SecurityControlUtil:overloadedSanitize:java.lang.String;INPUT_VALIDATOR:XSS:com.datadoghq.system_tests.iast.utils.SecurityControlUtil:validate;INPUT_VALIDATOR:*:com.datadoghq.system_tests.iast.utils.SecurityControlUtil:validateForAllVulns;INPUT_VALIDATOR:*:com.datadoghq.system_tests.iast.utils.SecurityControlUtil:overloadedValidation:java.lang.Object,java.lang.String,java.lang.String:1,2",
+    "java": "SANITIZER:COMMAND_INJECTION:com.datadoghq.system_tests.iast.utils.SecurityControlUtil:sanitize;SANITIZER:*:com.datadoghq.system_tests.iast.utils.SecurityControlUtil:sanitizeForAllVulns;SANITIZER:*:com.datadoghq.system_tests.iast.utils.SecurityControlUtil:overloadedSanitize:java.lang.String;INPUT_VALIDATOR:COMMAND_INJECTION:com.datadoghq.system_tests.iast.utils.SecurityControlUtil:validate;INPUT_VALIDATOR:*:com.datadoghq.system_tests.iast.utils.SecurityControlUtil:validateForAllVulns;INPUT_VALIDATOR:*:com.datadoghq.system_tests.iast.utils.SecurityControlUtil:overloadedValidation:java.lang.Object,java.lang.String,java.lang.String:1,2",
     "nodejs": "TODO",
     "php": "TODO",
     "python": "TODO",

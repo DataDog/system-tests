@@ -26,19 +26,19 @@ class TestSecurityControls:
         assert product_enabled, "IAST is not available"
 
     def setup_iast_is_enabled(self):
-        self.check_r = weblog.post("/iast/sc/iv/sqli", data={"param": "param"})
+        self.check_r = weblog.post("/iast/sc/iv/not-configured", data={"param": "param"})
 
     def setup_vulnerability_suppression_with_an_input_validator_configured_for_a_specific_vulnerability(self):
         self.setup_iast_is_enabled()
-        self.r = weblog.post("/iast/sc/iv/xss", data={"param": "param"})
+        self.r = weblog.post("/iast/sc/iv/configured", data={"param": "param"})
 
     def test_vulnerability_suppression_with_an_input_validator_configured_for_a_specific_vulnerability(self):
         self.assert_iast_is_enabled(self.check_r)
-        BaseSinkTest.assert_no_iast_event(self.r, "XSS")
+        BaseSinkTest.assert_no_iast_event(self.r, "COMMAND_INJECTION")
 
     def setup_no_vulnerability_suppression_with_an_input_validator_configured_for_a_different_vulnerability(self):
         self.setup_iast_is_enabled()
-        self.r = weblog.post("/iast/sc/iv/sqli", data={"param": "param"})
+        self.r = weblog.post("/iast/sc/iv/not-configured", data={"param": "param"})
 
     def test_no_vulnerability_suppression_with_an_input_validator_configured_for_a_different_vulnerability(self):
         self.assert_iast_is_enabled(self.check_r)
@@ -82,15 +82,15 @@ class TestSecurityControls:
 
     def setup_vulnerability_suppression_with_a_sanitizer_configured_for_a_specific_vulnerability(self):
         self.setup_iast_is_enabled()
-        self.r = weblog.post("/iast/sc/s/xss", data={"param": "param"})
+        self.r = weblog.post("/iast/sc/s/configured", data={"param": "param"})
 
     def test_vulnerability_suppression_with_a_sanitizer_configured_for_a_specific_vulnerability(self):
         self.assert_iast_is_enabled(self.check_r)
-        BaseSinkTest.assert_no_iast_event(self.r, "XSS")
+        BaseSinkTest.assert_no_iast_event(self.r, "COMMAND_INJECTION")
 
     def setup_no_vulnerability_suppression_with_a_sanitizer_configured_for_a_different_vulnerability(self):
         self.setup_iast_is_enabled()
-        self.r = weblog.post("/iast/sc/s/sqli", data={"param": "param"})
+        self.r = weblog.post("/iast/sc/s/not-configured", data={"param": "param"})
 
     def test_no_vulnerability_suppression_with_a_sanitizer_configured_for_a_different_vulnerability(self):
         self.assert_iast_is_enabled(self.check_r)
@@ -116,7 +116,7 @@ class TestSecurityControls:
         self,
     ):
         self.assert_iast_is_enabled(self.check_r)
-        BaseSinkTest.assert_no_iast_event(self.r, "XSS")
+        BaseSinkTest.assert_no_iast_event(self.r, "COMMAND_INJECTION")
 
     def setup_no_vulnerability_suppression_with_a_sanitizer_configured_for_an_overloaded_method_with_specific_signature(
         self,
@@ -129,5 +129,5 @@ class TestSecurityControls:
     ):
         self.assert_iast_is_enabled(self.check_r)
         assert_iast_vulnerability(
-            request=self.r, vulnerability_count=1, vulnerability_type="XSS",
+            request=self.r, vulnerability_count=1, vulnerability_type="COMMAND_INJECTION",
         )
