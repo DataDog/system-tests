@@ -20,3 +20,13 @@ class ProfilingScenario(EndToEndScenario):
             scenario_groups=[ScenarioGroup.PROFILING],
             require_api_key=True,  # for an unknown reason, /flush on nodejs takes days with a fake key on this scenario
         )
+
+    def configure(self, config):
+        super().configure(config)
+
+        library = self.weblog_container.image.env["SYSTEM_TESTS_LIBRARY"]
+        if library == "dotnet":
+            # https://docs.datadoghq.com/profiler/enabling/dotnet/?tab=linux#enabling-the-profiler
+            self.weblog_container.environment[
+                "LD_PRELOAD"
+            ] = "/opt/datadog/continuousprofiler/Datadog.Linux.ApiWrapper.x64.so"
