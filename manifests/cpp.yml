@@ -246,8 +246,6 @@ tests/:
   test_identify.py: irrelevant
   test_library_conf.py: irrelevant
   test_miscs.py: irrelevant
-  test_profiling.py:
-    Test_Profile: bug (No Content-Disposition, tests do not parse the content correcly)
   test_scrubbing.py: irrelevant
   test_standard_tags.py: irrelevant
   test_telemetry.py:

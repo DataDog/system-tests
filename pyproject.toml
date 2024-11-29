@@ -59,9 +59,6 @@ allow_no_jira_ticket_for_bugs = [
     # all but cpp/nodejs
     "tests/parametric/test_span_sampling.py::Test_Span_Sampling.test_multi_rule_independent_rate_limiters_sss013",
 
-    # cpp, olang, php, ruby , an error was in the deserialize function, probably no issue
-    "tests/test_profiling.py::Test_Profile",
-
     # all, test must be either removed or fixed
     "tests/test_telemetry.py::Test_Telemetry.test_status_ok",
     

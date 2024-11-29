@@ -474,8 +474,6 @@ tests/:
     Test_HeaderTags_Whitespace_Tag: bug (AIT-8308)
     Test_HeaderTags_Whitespace_Val_Long: v2.1.0
     Test_HeaderTags_Whitespace_Val_Short: v2.1.0
-  test_profiling.py:
-    Test_Profile: missing_feature (Not receiving profiles)
   test_scrubbing.py:
     Test_UrlField: v2.29.0
     Test_UrlQuery: v2.13.0

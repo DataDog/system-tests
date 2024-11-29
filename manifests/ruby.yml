@@ -485,8 +485,6 @@ tests/:
     Test_HeaderTags_Whitespace_Tag: bug (AIT-8599)
     Test_HeaderTags_Whitespace_Val_Long: v1.13.0
     Test_HeaderTags_Whitespace_Val_Short: v1.13.0
-  test_profiling.py:
-    Test_Profile: bug (Not receiving profiles)
   test_sampling_rates.py:
     Test_SamplingDecisions: missing_feature (Endpoint /sample_rate_route not implemented)
   test_scrubbing.py:
