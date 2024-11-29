@@ -74,7 +74,7 @@ tests/:
         Test_Schema_Request_FormUrlEncoded_Body:
           express4: *ref_4_21_0
           express4-typescript: *ref_4_21_0
-          express5: *ref_4_21_0
+          express5: *ref_5_29_0
           nextjs: *ref_5_3_0
         Test_Schema_Request_Headers: *ref_4_21_0
         Test_Schema_Request_Json_Body: *ref_4_21_0
@@ -579,17 +579,17 @@ tests/:
         Test_Kafka:
           '*': irrelevant
           express4: v0.1 # real version not known
-          express5: v0.1 # real version not known
+          express5: *ref_5_29_0
       test_kinesis.py:
         Test_Kinesis_PROPAGATION_VIA_MESSAGE_ATTRIBUTES:
           '*': irrelevant
           express4: *ref_5_3_0
-          express5: *ref_5_3_0
+          express5: *ref_5_29_0
       test_rabbitmq.py:
         Test_RabbitMQ_Trace_Context_Propagation:
           '*': irrelevant
           express4: v0.1 # real version not known
-          express5: v0.1 # real version not known
+          express5: *ref_5_29_0 # real version not known
       test_sns_to_sqs.py:
         Test_SNS_Propagation:
           '*': irrelevant
@@ -599,57 +599,58 @@ tests/:
         Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS:
           '*': irrelevant
           express4: v0.1 # real version not known
-          express5: v0.1 # real version not known
+          express5: *ref_5_29_0
         Test_SQS_PROPAGATION_VIA_MESSAGE_ATTRIBUTES:
           '*': irrelevant
           express4: v0.1 # real version not known
-          express5: v0.1 # real version not known
+          express5: *ref_5_29_0
     test_db_integrations_sql.py:
       Test_MsSql:
         '*': missing_feature
         express4: v1.0.0
-        express5: v1.0.0
+        express5: *ref_5_29_0
       Test_MySql:
         '*': missing_feature
         express4: v1.0.0
-        express5: v1.0.0
+        express5: *ref_5_29_0
       Test_Postgres:
         '*': missing_feature
         express4: v1.0.0
-        express5: v1.0.0
+        express5: *ref_5_29_0
     test_dbm.py:
       Test_Dbm: missing_feature
       Test_Dbm_Comment_NodeJS_mysql2:
         '*': missing_feature (Missing on weblog)
         express4: *ref_5_13_0
-        express5: *ref_5_13_0
+        express5: *ref_5_29_0
         uds-express4: *ref_5_13_0
       Test_Dbm_Comment_NodeJS_pg:
         '*': missing_feature (Missing on weblog)
         express4: *ref_5_13_0
-        express5: *ref_5_13_0
+        express5: *ref_5_29_0
         uds-express4: *ref_5_13_0
     test_dsm.py:
       Test_DsmContext_Extraction_Base64:
         '*': irrelevant
         express4: *ref_5_6_0
-        express5: *ref_5_6_0
+        express5: *ref_5_29_0
       Test_DsmContext_Injection_Base64:
         '*': irrelevant
         express4: *ref_5_6_0
-        express5: *ref_5_6_0
+        express5: *ref_5_29_0
       Test_DsmHttp: missing_feature
       Test_DsmKafka:
         '*': *ref_5_25_0
+        express5: *ref_5_29_0
         nextjs: missing_feature (missing endpoint)
       Test_DsmKinesis:
         '*': irrelevant
         express4: *ref_5_2_0
-        express5: *ref_5_2_0
+        express5: *ref_5_29_0
       Test_DsmRabbitmq:
         '*': irrelevant
         express4: *ref_5_3_0
-        express5: *ref_5_3_0
+        express5: *ref_5_29_0
       Test_DsmRabbitmq_FanoutExchange:
         '*': irrelevant
         express4: missing_feature
@@ -661,24 +662,24 @@ tests/:
       Test_DsmSNS:
         '*': irrelevant
         express4: *ref_5_20_0
-        express5: *ref_5_20_0
+        express5: *ref_5_29_0
       Test_DsmSQS:
         '*': irrelevant
         express4: *ref_5_2_0
-        express5: *ref_5_2_0
+        express5: *ref_5_29_0
       Test_Dsm_Manual_Checkpoint_Inter_Process:
         '*': irrelevant
         express4: *ref_5_20_0
-        express5: *ref_5_20_0
+        express5: *ref_5_29_0
       Test_Dsm_Manual_Checkpoint_Intra_Process:
         '*': irrelevant
         express4: *ref_5_20_0
-        express5: *ref_5_20_0
+        express5: *ref_5_29_0
     test_inferred_proxy.py:
       Test_AWS_API_Gateway_Inferred_Span_Creation:
           '*': irrelevant
           express4: *ref_5_26_0
-          express5: *ref_5_26_0
+          express5: *ref_5_29_0
     test_otel_drop_in.py:
       Test_Otel_Drop_In: missing_feature
   k8s_lib_injection/:
@@ -772,10 +773,12 @@ tests/:
     Test_Config_IntegrationEnabled_False:
       '*': *ref_5_25_0
       express4-typescript: irrelevant
+      express5: *ref_5_29_0
       nextjs: irrelevant # nextjs is not related with kafka
     Test_Config_IntegrationEnabled_True:
       '*': *ref_5_25_0
       express4-typescript: irrelevant
+      express5: *ref_5_29_0
       nextjs: irrelevant # nextjs is not related with kafka
     Test_Config_ObfuscationQueryStringRegexp_Configured: *ref_3_0_0
     Test_Config_ObfuscationQueryStringRegexp_Empty: *ref_3_0_0
