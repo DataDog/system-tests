@@ -2048,9 +2048,9 @@ class features:
         return test_object
 
     @staticmethod
-    def host_user_managed_block_list(test_object):
+    def host_block_list(test_object):
         """
-        A way to allow users to specify their own block lists
+        SSI block lists
 
         https://feature-parity.us1.prod.dog/#/?feature=276
         """
