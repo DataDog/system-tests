@@ -45,7 +45,7 @@ def get_graphql_weblogs(library):
         "dotnet": [],
         "golang": ["gqlgen", "graph-gophers", "graphql-go"],
         "java": [],
-        "nodejs": ["express4", "uds-express4", "express4-typescript"],
+        "nodejs": ["express4", "uds-express4", "express4-typescript", "express5"],
         "php": [],
         "python": [],
         "ruby": ["graphql23"],
