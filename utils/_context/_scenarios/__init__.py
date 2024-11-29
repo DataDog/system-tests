@@ -387,17 +387,6 @@ class scenarios:
         scenario_groups=[ScenarioGroup.APPSEC],
     )
 
-    appsec_meta_struct_enabled = EndToEndScenario(
-        "APPSEC_META_STRUCT_ENABLED",
-        weblog_env={"DD_APPSEC_ENABLED": "true", "DD_IAST_ENABLED": "true"},
-        meta_structs_disabled=False,
-        doc="""
-            Appsec tests with support for meta struct enabled in the agent configuration.
-            This scenario is used to trigger different IAST vulnerabilities without disabling deduplication.
-            """,
-        scenario_groups=[ScenarioGroup.APPSEC],
-    )
-
     appsec_meta_struct_disabled = EndToEndScenario(
         "APPSEC_META_STRUCT_DISABLED",
         weblog_env={"DD_APPSEC_ENABLED": "true", "DD_IAST_ENABLED": "true"},
