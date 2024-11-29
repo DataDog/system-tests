@@ -75,9 +75,8 @@ class Test_TraceHeaders:
     @missing_feature(
         context.library == "java" and "spring-boot" not in context.weblog_variant, reason="Missing endpoint"
     )
-    @missing_feature(weblog_variant="spring-boot-3-native", reason="Missing endpoint")
     @missing_feature(
-        context.library == "nodejs" and context.weblog_variant == "spring-boot-3-native", reason="Missing endpoint"
+        context.library == "java" and context.weblog_variant == "spring-boot-3-native", reason="Missing endpoint"
     )
     @missing_feature(context.library == "nodejs" and context.weblog_variant != "express4", reason="Missing endpoint")
     @missing_feature(context.library == "ruby" and context.weblog_variant != "rails70", reason="Missing endpoint")
