@@ -27,6 +27,12 @@ def main():
         # If final file does not exist, just copy the pipeline
         final_pipeline = pipeline
 
+    # Workaround to set cache stage as the last stage
+    if "cache" in final_pipeline["stages"]:
+        final_pipeline["stages"].remove("cache")
+        final_pipeline["stages"].append("cache")
+
+    # Write the final pipeline
     with open(args.output, "w") as f:
         f.write(yaml.dump(final_pipeline, sort_keys=False, default_flow_style=False))
 
