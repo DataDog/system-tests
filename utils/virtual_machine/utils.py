@@ -177,6 +177,7 @@ def generate_gitlab_pipeline(language, weblog_name, scenario_name, env, vms):
                 "allow_failure": True,
                 "needs": [],
                 "variables": {"TEST_LIBRARY": language, "SCENARIO": scenario_name, "WEBLOG": weblog_name},
+                # Remove rules if you want to run the jobs when you clic on the execute button of the child pipeline
                 "rules": [
                     {"if": '$CI_PIPELINE_SOURCE == "schedule"', "when": "always"},
                     {"when": "manual", "allow_failure": True},
@@ -192,7 +193,7 @@ def generate_gitlab_pipeline(language, weblog_name, scenario_name, env, vms):
 
 def _generate_fpd_gitlab_script():
     fpd_push_script = [
-        'if $CI_COMMIT_BRANCH == "robertomonteromiguel/onboarding_parallel_ci"; then',
+        'if "$CI_COMMIT_BRANCH" == "robertomonteromiguel/onboarding_parallel_ci"; then',
         'export FP_IMPORT_URL=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.fp-import-url --with-decryption --query "Parameter.Value" --out text)',
         'export FP_API_KEY=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.fp-api-key --with-decryption --query "Parameter.Value" --out text)',
         "for folder in reports/logs*/ ; do",

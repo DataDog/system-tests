@@ -83,13 +83,13 @@ variables:
         job: merge_aws_ssi_pipeline
     strategy: depend
 
-step1_generate_nodejs_ssi_pipeline:
+.step1_generate_aws_ssi_pipeline:
   image: 486234852809.dkr.ecr.us-east-1.amazonaws.com/ci/test-infra-definitions/runner:a58cc31c
   stage: aws_ssi_pipelines
   tags: ["arch:amd64"]
   needs: []
   script:
-    - echo ">>>>>>>>>>>>>>> Generating nodejs pipeline >>>>>>>>>>>>>>>"
+    - echo ">>>>>>>>>>>>>>> Generating lang pipeline >>>>>>>>>>>>>>>"
     - echo "FILTER_ENV=$ONBOARDING_FILTER_ENV" >> run.env
   rules:
     - if: $CI_PIPELINE_SOURCE == "schedule"
@@ -99,6 +99,12 @@ step1_generate_nodejs_ssi_pipeline:
   artifacts:
     reports:
       dotenv: run.env
+
+step1_generate_nodejs_ssi_pipeline:
+  extends: .step1_generate_aws_ssi_pipeline
+  script:
+    - echo ">>>>>>>>>>>>>>> Generating nodejs pipeline >>>>>>>>>>>>>>>"
+    - echo "FILTER_ENV=$ONBOARDING_FILTER_ENV" >> run.env
 
 x_compute_nodejs_scenarios:
   extends: .compute_aws_scenarios
