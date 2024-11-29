@@ -567,6 +567,7 @@ tests/:
           '*': missing_feature (No endpoint implemented)
           spring-boot: v1.44.0
           vertx3: v1.44.0
+          vertx4: v1.44.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
     rasp/:
       test_lfi.py:
