@@ -29,7 +29,7 @@ variables:
 .base_compute_aws_scenarios:
   #image: 486234852809.dkr.ecr.us-east-1.amazonaws.com/ci/test-infra-definitions/runner:6dd143866d67
   image: registry.ddbuild.io/ci/libdatadog-build/system-tests:48436362
-  tags: ["arch:amd64"]
+  tags: ["arch:arm64"]
   before_script:
     - export DD_API_KEY_ONBOARDING=xyz
     - export DD_APP_KEY_ONBOARDING=xyz
@@ -97,7 +97,7 @@ variables:
   #image: 486234852809.dkr.ecr.us-east-1.amazonaws.com/ci/test-infra-definitions/runner:a58cc31c
   image: registry.ddbuild.io/ci/libdatadog-build/system-tests:48436362
   stage: aws_ssi_pipelines
-  tags: ["arch:amd64"]
+  tags: ["arch:arm64"]
   script:
     - echo ">>>>>>>>>>>>>>> Generating lang pipeline >>>>>>>>>>>>>>>"
     - echo "FILTER_ENV=$ONBOARDING_FILTER_ENV" >> run.env
