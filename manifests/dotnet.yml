@@ -269,6 +269,9 @@ tests/:
       Test_V2_Login_Events: v3.1.0
       Test_V2_Login_Events_Anon: v3.1.0
       Test_V2_Login_Events_RC: v3.1.0
+      Test_V3_Login_Events: missing_feature
+      Test_V3_Login_Events_Anon: missing_feature
+      Test_V3_Login_Events_RC: missing_feature
     test_blocking_addresses.py:
       Test_BlockingGraphqlResolvers: missing_feature
       Test_Blocking_client_ip: v2.27.0
