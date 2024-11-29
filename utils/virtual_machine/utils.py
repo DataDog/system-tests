@@ -218,6 +218,7 @@ def _generate_cache_jobs(language, weblog_name, scenario_name, vms):
                 + vm.name,
             ],
         }
+    return pipeline
 
 
 def _generate_fpd_gitlab_script():
