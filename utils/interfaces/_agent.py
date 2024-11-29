@@ -62,6 +62,9 @@ class AgentInterfaceValidator(ProxyBasedInterfaceValidator):
     def get_profiling_data(self):
         yield from self.get_data(path_filters="/api/v2/profile")
 
+    def validate_profiling(self, validator, success_by_default=False):
+        self.validate(validator, path_filters="/api/v2/profile", success_by_default=success_by_default)
+
     def validate_appsec(self, request, validator):
         for data, payload, chunk, span, appsec_data in self.get_appsec_data(request=request):
             if validator(data, payload, chunk, span, appsec_data):

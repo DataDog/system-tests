@@ -70,12 +70,15 @@ def _get_skipped_item(item, skip_reason):
     return item
 
 
-def _get_expected_failure_item(item, skip_reason):
+def _get_expected_failure_item(item, skip_reason, force_skip: bool = False):
     if inspect.isfunction(item) or inspect.isclass(item):
         if not hasattr(item, "pytestmark"):
             setattr(item, "pytestmark", [])
 
-        item.pytestmark.append(pytest.mark.xfail(reason=skip_reason))
+        if force_skip:
+            item.pytestmark.append(pytest.mark.skip(reason=skip_reason))
+        else:
+            item.pytestmark.append(pytest.mark.xfail(reason=skip_reason))
     else:
         raise ValueError(f"Unexpected skipped object: {item}")
 
@@ -111,7 +114,7 @@ def _should_skip(condition=None, library=None, weblog_variant=None):
     return True
 
 
-def missing_feature(condition: bool = None, library=None, weblog_variant=None, reason=None):
+def missing_feature(condition: bool = None, library=None, weblog_variant=None, reason=None, force_skip: bool = False):
     """decorator, allow to mark a test function/class as missing"""
 
     skip = _should_skip(library=library, weblog_variant=weblog_variant, condition=condition)
@@ -126,7 +129,7 @@ def missing_feature(condition: bool = None, library=None, weblog_variant=None, r
 
         full_reason = "missing_feature" if reason is None else f"missing_feature ({reason})"
 
-        return _get_expected_failure_item(function_or_class, full_reason)
+        return _get_expected_failure_item(function_or_class, full_reason, force_skip=force_skip)
 
     return decorator
 
@@ -150,7 +153,7 @@ def irrelevant(condition=None, library=None, weblog_variant=None, reason=None):
     return decorator
 
 
-def bug(condition=None, library=None, weblog_variant=None, reason=None):
+def bug(condition=None, library=None, weblog_variant=None, reason=None, force_skip: bool = False):
     """
     Decorator, allow to mark a test function/class as an known bug.
     The test is executed, and if it passes, and warning is reported
@@ -169,7 +172,7 @@ def bug(condition=None, library=None, weblog_variant=None, reason=None):
             return function_or_class
 
         full_reason = "bug" if reason is None else f"bug ({reason})"
-        return _get_expected_failure_item(function_or_class, full_reason)
+        return _get_expected_failure_item(function_or_class, full_reason, force_skip=force_skip)
 
     return decorator
 
