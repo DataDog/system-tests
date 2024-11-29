@@ -3,6 +3,7 @@ include:
 stages:
   - docker_ssi_pipelines
   - aws_ssi_pipelines
+  - aws_ssi_pipelines_2
   #- nodejs_tracer
   #- java_tracer
   #- python_tracer
@@ -115,6 +116,7 @@ step1_generate_nodejs_ssi_pipeline:
     - echo "FILTER_ENV=$ONBOARDING_FILTER_ENV" >> run.env
 
 step1_generate_java_ssi_pipeline:
+  stage: aws_ssi_pipelines_2
   dependencies: []
   extends: .step1_generate_aws_ssi_pipeline
   script:
