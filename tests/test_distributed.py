@@ -29,7 +29,11 @@ class Test_DistributedHttp:
 
 @scenarios.tracing_config_nondefault
 @features.w3c_headers_injection_and_extraction
-@bug(context.weblog_variant == "spring-boot-3-native", reason="APMAPI-928", force_skip=True)
+@bug(
+    context.library < "java@1.44.0" and context.weblog_variant == "spring-boot-3-native",
+    reason="APMAPI-928",
+    force_skip=True,
+)
 class Test_Span_Links_From_Conflicting_Contexts:
     """Verify headers containing conflicting trace context information are added as span links"""
 
@@ -159,7 +163,11 @@ class Test_Span_Links_From_Conflicting_Contexts:
 
 @scenarios.tracing_config_nondefault_2
 @features.w3c_headers_injection_and_extraction
-@bug(context.weblog_variant == "spring-boot-3-native", reason="APMAPI-928", force_skip=True)
+@bug(
+    context.library < "java@1.44.0" and context.weblog_variant == "spring-boot-3-native",
+    reason="APMAPI-928",
+    force_skip=True,
+)
 class Test_Span_Links_From_Conflicting_Contexts_Datadog_Precedence:
     """Verify headers containing conflicting trace context information are added as span links with Datadog headers taking precedence"""
 
@@ -207,7 +215,11 @@ class Test_Span_Links_From_Conflicting_Contexts_Datadog_Precedence:
 
 @scenarios.tracing_config_nondefault
 @features.w3c_headers_injection_and_extraction
-@bug(context.weblog_variant == "spring-boot-3-native", reason="APMAPI-928", force_skip=True)
+@bug(
+    context.library < "java@1.44.0" and context.weblog_variant == "spring-boot-3-native",
+    reason="APMAPI-928",
+    force_skip=True,
+)
 class Test_Span_Links_Flags_From_Conflicting_Contexts:
     """Verify span links created from conflicting header contexts have the correct flags set"""
 
@@ -248,7 +260,11 @@ class Test_Span_Links_Flags_From_Conflicting_Contexts:
 
 @scenarios.tracing_config_nondefault
 @features.w3c_headers_injection_and_extraction
-@bug(context.weblog_variant == "spring-boot-3-native", reason="APMAPI-928", force_skip=True)
+@bug(
+    context.library < "java@1.44.0" and context.weblog_variant == "spring-boot-3-native",
+    reason="APMAPI-928",
+    force_skip=True,
+)
 class Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts:
     """Verify span links created from conflicting header contexts properly omit the tracestate when conflicting propagator is not W3C"""
 
