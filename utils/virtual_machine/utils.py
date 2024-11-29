@@ -187,7 +187,7 @@ def generate_gitlab_pipeline(language, weblog_name, scenario_name, env, vms):
                 # Remove rules if you want to run the jobs when you clic on the execute button of the child pipeline
                 "rules": [rule_run, {"when": "manual", "allow_failure": True},],
                 "script": [
-                    "echo 'Running onboarding system tests for env: $ONBOARDING_FILTER_ENV'",
+                    "echo 'Running onboarding system tests for env: ${ONBOARDING_FILTER_ENV}'",
                     #  "./build.sh -i runner",
                     #  "./run.sh $SCENARIO --vm-weblog $WEBLOG --vm-env $ONBOARDING_FILTER_ENV --vm-library $TEST_LIBRARY --vm-provider aws --report-run-url $CI_PIPELINE_URL --report-environment $ONBOARDING_FILTER_ENV --vm-default-vms All --vm-only "
                     #  + vm.name,
