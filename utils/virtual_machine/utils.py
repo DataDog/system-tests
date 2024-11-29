@@ -171,7 +171,7 @@ def generate_gitlab_pipeline(language, weblog_name, scenario_name, env, vms):
         pipeline["stages"].append(scenario_name)
 
         for vm in vms:
-            pipeline[f"{vm.name}_{scenario_name}"] = {
+            pipeline[f"{vm.name}_{weblog_name}_{scenario_name}"] = {
                 "extends": ".base_job_onboarding_system_tests",
                 "stage": scenario_name,
                 "allow_failure": True,

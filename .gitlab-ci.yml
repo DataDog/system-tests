@@ -110,7 +110,7 @@ x_compute_nodejs_scenarios:
   extends: .compute_aws_scenarios
   variables:
     TEST_LIBRARY: "nodejs"
-    #Because sometimes a I don't want to run all pipeline, I only run step1_xx with env filter param
+    #Because sometimes I don't want to run all pipeline, I only run step1_xx with env filter param
     ONBOARDING_FILTER_ENV: "$FILTER_ENV"
   parallel:
     matrix:
@@ -118,6 +118,18 @@ x_compute_nodejs_scenarios:
           SCENARIO:
             - HOST_AUTO_INJECTION_INSTALL_SCRIPT
             - HOST_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING
+        - ONBOARDING_FILTER_WEBLOG: [test-app-nodejs-multicontainer]
+          SCENARIO:
+            - CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT
+            - CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING
+        - ONBOARDING_FILTER_WEBLOG: [test-app-nodejs,test-app-nodejs-container]
+          SCENARIO: [INSTALLER_AUTO_INJECTION,SIMPLE_AUTO_INJECTION_PROFILING]
+        - ONBOARDING_FILTER_WEBLOG: [test-app-nodejs-08, test-app-nodejs-16, test-app-nodejs-unsupported-defaults]
+          SCENARIO: [INSTALLER_NOT_SUPPORTED_AUTO_INJECTION]
+        - ONBOARDING_FILTER_WEBLOG: [test-app-nodejs]
+          SCENARIO: [CHAOS_INSTALLER_AUTO_INJECTION]
+        - ONBOARDING_FILTER_WEBLOG: [test-app-nodejs-multicontainer,test-app-nodejs-esm]
+          SCENARIO: [SIMPLE_INSTALLER_AUTO_INJECTION]
   needs:
     - job: step1_generate_nodejs_ssi_pipeline
       artifacts: true
