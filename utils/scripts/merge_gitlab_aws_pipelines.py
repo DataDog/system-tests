@@ -28,9 +28,17 @@ def main():
         final_pipeline = pipeline
 
     # Workaround to set cache stage as the last stage
+    # and split in stages with not more than 100 jobs
+    set_cache_2 = False
+    for key in final_pipeline:
+        if "stage" in final_pipeline[key] and final_pipeline[key]["stage"] == "Cache":
+            final_pipeline[key]["stage"] = "Cache2" if set_cache_2 else "Cache"
+            set_cache_2 = not set_cache_2
+
     if "Cache" in final_pipeline["stages"]:
         final_pipeline["stages"].remove("Cache")
         final_pipeline["stages"].append("Cache")
+        final_pipeline["stages"].append("Cache2")
 
     # Write the final pipeline
     with open(args.output, "w") as f:
