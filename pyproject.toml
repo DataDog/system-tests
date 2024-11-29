@@ -61,9 +61,6 @@ allow_no_jira_ticket_for_bugs = [
 
     # cpp, olang, php, ruby , an error was in the deserialize function, probably no issue
     "tests/test_profiling.py::Test_Profile",
-
-    # all, test must be either removed or fixed
-    "tests/test_telemetry.py::Test_Telemetry.test_status_ok",
     
     # only legit
     "tests/test_the_test/",
