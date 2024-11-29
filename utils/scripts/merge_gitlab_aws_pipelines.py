@@ -28,9 +28,9 @@ def main():
         final_pipeline = pipeline
 
     # Workaround to set cache stage as the last stage
-    if "cache" in final_pipeline["stages"]:
-        final_pipeline["stages"].remove("cache")
-        final_pipeline["stages"].append("cache")
+    if "Cache" in final_pipeline["stages"]:
+        final_pipeline["stages"].remove("Cache")
+        final_pipeline["stages"].append("Cache")
 
     # Write the final pipeline
     with open(args.output, "w") as f:
