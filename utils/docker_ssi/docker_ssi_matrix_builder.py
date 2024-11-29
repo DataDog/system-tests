@@ -92,7 +92,8 @@ def generate_gitlab_pipeline(languages):
                 "tags": ["runner:$runner"],
                 "stage": language,
                 "allow_failure": True,
-                "dependencies": [],
+                # "dependencies": [],
+                "needs": [],
                 "variables": {"TEST_LIBRARY": language,},
                 "parallel": {"matrix": matrix},
             }

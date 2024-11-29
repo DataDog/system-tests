@@ -2,8 +2,8 @@ include:
   - remote: https://gitlab-templates.ddbuild.io/libdatadog/include/single-step-instrumentation-tests.yml
 stages:
   - docker_ssi_pipelines
-  - aws_ssi_pipelines
-  - aws_ssi_pipelines_2
+  - aws_nodejs_ssi_pipelines
+  - aws_java_ssi_pipelines
   #- nodejs_tracer
   #- java_tracer
   #- python_tracer
@@ -37,7 +37,7 @@ variables:
 .compute_aws_scenarios:
   #extends: .base_job_onboarding
   extends: .base_compute_aws_scenarios
-  stage: aws_ssi_pipelines
+  stage: aws_nodejs_ssi_pipelines
   allow_failure: true
   variables:
     TEST_LIBRARY: "nodejs"
@@ -56,7 +56,7 @@ variables:
 
 .merge_aws_ssi_pipeline:
   image: 486234852809.dkr.ecr.us-east-1.amazonaws.com/ci/test-infra-definitions/runner:a58cc31c
-  stage: aws_ssi_pipelines
+  stage: aws_nodejs_ssi_pipelines
   tags: ["arch:amd64"]
   script:
       - |
@@ -78,7 +78,7 @@ variables:
       - aws_gitlab_pipeline.yml
 
 .exec_aws_ssi_pipeline:
-  stage: aws_ssi_pipelines
+  stage: aws_nodejs_ssi_pipelines
   needs: ["merge_aws_ssi_pipeline"]
   rules:
     - if: $CI_PIPELINE_SOURCE == "schedule"
@@ -94,10 +94,9 @@ variables:
     strategy: depend
 
 .step1_generate_aws_ssi_pipeline:
-  #image: 486234852809.dkr.ecr.us-east-1.amazonaws.com/ci/test-infra-definitions/runner:a58cc31c
-  image: registry.ddbuild.io/ci/libdatadog-build/system-tests:48436362
-  stage: aws_ssi_pipelines
-  tags: ["arch:arm64"]
+  "image": "registry.ddbuild.io/docker:20.10.13-gbi-focal"
+  "tags": ["arch:amd64"]
+  stage: aws_nodejs_ssi_pipelines
   script:
     - echo ">>>>>>>>>>>>>>> Generating lang pipeline >>>>>>>>>>>>>>>"
     - echo "FILTER_ENV=$ONBOARDING_FILTER_ENV" >> run.env
@@ -113,17 +112,11 @@ variables:
 step1_generate_nodejs_ssi_pipeline:
   extends: .step1_generate_aws_ssi_pipeline
   needs: []
-  script:
-    - echo ">>>>>>>>>>>>>>> Generating nodejs pipeline >>>>>>>>>>>>>>>"
-    - echo "FILTER_ENV=$ONBOARDING_FILTER_ENV" >> run.env
 
 step1_generate_java_ssi_pipeline:
-  stage: aws_ssi_pipelines_2
+  stage: aws_java_ssi_pipelines
   dependencies: []
   extends: .step1_generate_aws_ssi_pipeline
-  script:
-    - echo ">>>>>>>>>>>>>>> Generating java pipeline >>>>>>>>>>>>>>>"
-    - echo "FILTER_ENV=$ONBOARDING_FILTER_ENV" >> run.env
 
 x_compute_nodejs_scenarios:
   extends: .compute_aws_scenarios
