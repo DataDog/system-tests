@@ -23,8 +23,8 @@ import (
 
 	"github.com/Shopify/sarama"
 
-	saramatrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/Shopify/sarama"
 	"gopkg.in/DataDog/dd-trace-go.v1/datastreams"
+	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.opentelemetry.io/otel"
@@ -34,17 +34,12 @@ import (
 	oteltrace "go.opentelemetry.io/otel/trace"
 
 	"gopkg.in/DataDog/dd-trace-go.v1/appsec"
-	httptrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/net/http"
 	ddotel "gopkg.in/DataDog/dd-trace-go.v1/ddtrace/opentelemetry"
-	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 	ddtracer "gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
 
 func main() {
-	ddtracer.Start()
-	defer ddtracer.Stop()
-
-	mux := httptrace.NewServeMux()
+	mux := http.NewServeMux()
 
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		// "/" is the default route when the others don't match
@@ -154,9 +149,8 @@ func main() {
 			return
 		}
 
-		client := httptrace.WrapClient(http.DefaultClient)
 		req, _ := http.NewRequestWithContext(r.Context(), http.MethodGet, url, nil)
-		res, err := client.Do(req)
+		res, err := http.DefaultClient.Do(req)
 		if err != nil {
 			log.Fatalln("client.Do", err)
 		}
@@ -285,6 +279,7 @@ func main() {
 		appsec.TrackCustomEvent(r.Context(), name, map[string]string{"metadata0": "value0", "metadata1": "value1"})
 	})
 
+	//orchestrion:ignore
 	mux.HandleFunc("/e2e_otel_span", func(w http.ResponseWriter, r *http.Request) {
 		parentName := r.URL.Query().Get("parentName")
 		childName := r.URL.Query().Get("childName")
@@ -332,6 +327,7 @@ func main() {
 		w.Write([]byte("OK"))
 	})
 
+	//orchestrion:ignore
 	mux.HandleFunc("/e2e_otel_span/mixed_contrib", func(w http.ResponseWriter, r *http.Request) {
 		parentName := r.URL.Query().Get("parentName")
 
@@ -607,8 +603,6 @@ func kafkaProduce(topic, message string) (int32, int64, error) {
 	}
 	defer producer.Close()
 
-	producer = saramatrace.WrapSyncProducer(cfg, producer, saramatrace.WithDataStreams())
-
 	msg := &sarama.ProducerMessage{
 		Topic:     topic,
 		Partition: 0,
@@ -634,7 +628,6 @@ func kafkaConsume(topic string, timeout int64) (string, int, error) {
 	}
 	defer consumer.Close()
 
-	consumer = saramatrace.WrapConsumer(consumer, saramatrace.WithDataStreams())
 	partitionConsumer, err := consumer.ConsumePartition(topic, 0, sarama.OffsetOldest)
 	if err != nil {
 		return "", 0, err

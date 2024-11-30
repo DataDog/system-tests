@@ -9,6 +9,8 @@ COPY utils/build/docker/golang/app/go.mod utils/build/docker/golang/app/go.sum /
 WORKDIR /app
 RUN go mod download && go mod verify
 
+RUN go install github.com/DataDog/orchestrion@main
+
 # copy the app code
 COPY utils/build/docker/golang/app /app
 
@@ -16,7 +18,11 @@ COPY utils/build/docker/golang/app /app
 COPY utils/build/docker/golang/install_ddtrace.sh binaries* /binaries/
 RUN /binaries/install_ddtrace.sh
 
-RUN go build -v -tags appsec -o weblog ./net-http
+ENV DD_ORCHESTRION_IS_GOMOD_VERSION=true
+
+RUN orchestrion pin
+
+RUN orchestrion go build -v -tags appsec -o weblog ./net-http
 
 # ==============================================================================
 
