@@ -96,6 +96,8 @@ variables:
   script:
     - echo ">>>>>>>>>>>>>>> Generating lang pipeline >>>>>>>>>>>>>>>"
     - echo "FILTER_ENV=$ONBOARDING_FILTER_ENV" >> run.env
+    - echo "INSTALLER_LIBRARY_VERSION=${DD_INSTALLER_LIBRARY_VERSION:-''}" >> run.env
+    - echo "INSTALLER_INJECTOR_VERSION=${DD_INSTALLER_INJECTOR_VERSION:-''}" >> run.env
   rules:
     - if: $CI_PIPELINE_SOURCE == "schedule"
       when: always
@@ -116,6 +118,8 @@ x_compute_nodejs_scenarios:
     TEST_LIBRARY: "nodejs"
     #Because sometimes I don't want to run all pipeline, I only run step1_xx with env filter param
     ONBOARDING_FILTER_ENV: "$FILTER_ENV"
+    DD_INSTALLER_LIBRARY_VERSION: "$INSTALLER_LIBRARY_VERSION"
+    DD_INSTALLER_INJECTOR_VERSION: "$INSTALLER_INJECTOR_VERSION"
   parallel:
     matrix:
         - ONBOARDING_FILTER_WEBLOG: [test-app-nodejs]
@@ -138,9 +142,30 @@ x_compute_nodejs_scenarios:
     - job: step1_generate_nodejs_ssi_pipeline
       artifacts: true
 
+x_compute_nodejs_docker_scenarios:
+  image: registry.ddbuild.io/ci/libdatadog-build/system-tests:48436362
+  tags: ["arch:arm64"]
+  stage: aws_nodejs_ssi_pipelines
+  variables:
+    TEST_LIBRARY: "nodejs"
+    #Because sometimes I don't want to run all pipeline, I only run step1_xx with env filter param
+    ONBOARDING_FILTER_ENV: "$FILTER_ENV"
+  script:
+    - python utils/docker_ssi/docker_ssi_matrix_builder.py --language $TEST_LIBRARY --format yaml --output-file gitlab_pipeline.yml
+  needs:
+    - job: step1_generate_nodejs_ssi_pipeline
+      artifacts: true
+  after_script:
+    - SCENARIO_SUFIX="docker_ssi"
+    - mkdir -p reports/logs_"${SCENARIO_SUFIX}"
+    - cp gitlab_pipeline.yml reports/logs_"${SCENARIO_SUFIX}"/
+  artifacts:
+    paths:
+      - reports/
+
 x_merge_nodejs_ssi_pipeline:
   extends: .merge_aws_ssi_pipeline
-  needs: ["x_compute_nodejs_scenarios"]
+  needs: ["x_compute_nodejs_scenarios", "x_compute_nodejs_docker_scenarios"]
   dependencies:
     - x_compute_nodejs_scenarios
 

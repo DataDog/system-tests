@@ -40,6 +40,10 @@ def main():
     if "Cache" in final_pipeline["stages"]:
         final_pipeline["stages"].remove("Cache")
         final_pipeline["stages"].append("Cache")
+    if "Cache2" in final_pipeline["stages"]:
+        final_pipeline["stages"].remove("Cache2")
+        final_pipeline["stages"].append("Cache2")
+    else:
         final_pipeline["stages"].append("Cache2")
 
     # Write the final pipeline
