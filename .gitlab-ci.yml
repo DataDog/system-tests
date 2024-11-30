@@ -168,6 +168,7 @@ x_merge_nodejs_ssi_pipeline:
   needs: ["x_compute_nodejs_scenarios", "x_compute_nodejs_docker_scenarios"]
   dependencies:
     - x_compute_nodejs_scenarios
+    - x_compute_nodejs_docker_scenarios
 
 step2_exec_nodejs_ssi_pipeline:
   extends: .exec_aws_ssi_pipeline
