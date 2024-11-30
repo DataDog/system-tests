@@ -143,8 +143,8 @@ x_compute_nodejs_scenarios:
       artifacts: true
 
 x_compute_nodejs_docker_scenarios:
-  image: registry.ddbuild.io/ci/libdatadog-build/system-tests:48436362
-  tags: ["arch:arm64"]
+  image: 486234852809.dkr.ecr.us-east-1.amazonaws.com/ci/test-infra-definitions/runner:a58cc31c
+  tags: ["arch:amd64"]
   stage: aws_nodejs_ssi_pipelines
   variables:
     TEST_LIBRARY: "nodejs"
