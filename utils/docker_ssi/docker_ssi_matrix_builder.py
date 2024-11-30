@@ -18,32 +18,6 @@ def generate_gitlab_pipeline(languages):
             "dependencies": [],
             "script": ["echo 'DONE'"],
         },
-        "docker_ssi_fpd": {
-            "image": "486234852809.dkr.ecr.us-east-1.amazonaws.com/ci/test-infra-definitions/runner:a58cc31c",
-            "tags": ["arch:amd64"],
-            "stage": "parse_docker_ssi_results",
-            "allow_failure": True,
-            "rules": [
-                {"if": '$PARENT_PIPELINE_SOURCE == "schedule" && $CI_COMMIT_BRANCH == "main"', "when": "always"},
-                {"when": "manual", "allow_failure": True},
-            ],
-            "before_script": [
-                'export FP_IMPORT_URL=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.fp-import-url --with-decryption --query "Parameter.Value" --out text)',
-                'export FP_API_KEY=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.fp-api-key --with-decryption --query "Parameter.Value" --out text)',
-            ],
-            "script": [
-                "for folder in reports/logs*/ ; do",
-                'echo "Checking folder: ${folder}"',
-                "for filename in ./${folder}feature_parity.json; do",
-                "if [ -e ${filename} ]",
-                "then",
-                'echo "Processing report: ${filename}"',
-                'curl -X POST ${FP_IMPORT_URL} --fail --header "Content-Type: application/json"  --header "FP_API_KEY: ${FP_API_KEY}" --data "@${filename}" --include || true',
-                "fi",
-                "done",
-                "done",
-            ],
-        },
         ".base_ssi_job": {
             "image": "registry.ddbuild.io/ci/libdatadog-build/system-tests:48436362",
             "script": [
@@ -69,9 +43,11 @@ def generate_gitlab_pipeline(languages):
             "artifacts": {"when": "always", "paths": ["reports/"]},
         },
     }
+    # Add FPD push script
+    pipeline[".base_ssi_job"]["after_script"].extend(_generate_fpd_gitlab_script())
 
     for language in languages:
-        pipeline["stages"].append(language)
+        pipeline["stages"].append(language if len(languages) > 1 else "DOCKER_SSI")
         matrix = []
 
         filtered = [weblog for weblog in ALL_WEBLOGS if weblog.library == language]
@@ -90,15 +66,34 @@ def generate_gitlab_pipeline(languages):
             pipeline[language] = {
                 "extends": ".base_ssi_job",
                 "tags": ["runner:$runner"],
-                "stage": language,
+                "stage": language if len(languages) > 1 else "DOCKER_SSI",
                 "allow_failure": True,
                 # "dependencies": [],
                 "needs": [],
                 "variables": {"TEST_LIBRARY": language,},
                 "parallel": {"matrix": matrix},
             }
-    pipeline["stages"].append("parse_docker_ssi_results")
     return pipeline
+
+
+def _generate_fpd_gitlab_script():
+    fpd_push_script = [
+        'if [ "$CI_COMMIT_BRANCH" = "robertomonteromiguel/onboarding_parallel_ci" ]; then',
+        'export FP_IMPORT_URL=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.fp-import-url --with-decryption --query "Parameter.Value" --out text)',
+        'export FP_API_KEY=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.fp-api-key --with-decryption --query "Parameter.Value" --out text)',
+        "for folder in reports/logs*/ ; do",
+        '  echo "Checking folder: ${folder}"',
+        "  for filename in ./${folder}feature_parity.json; do",
+        "    if [ -e ${filename} ]",
+        "    then",
+        '      echo "Processing report: ${filename}"',
+        '      #curl -X POST ${FP_IMPORT_URL} --fail --header "Content-Type: application/json" --header "FP_API_KEY: ${FP_API_KEY}" --data "@${filename}" --include',
+        "    fi",
+        "  done",
+        "done",
+        "fi",
+    ]
+    return fpd_push_script
 
 
 def main():

@@ -1,7 +1,6 @@
 include:
   - remote: https://gitlab-templates.ddbuild.io/libdatadog/include/single-step-instrumentation-tests.yml
 stages:
-  - docker_ssi_pipelines
   - aws_nodejs_ssi_pipelines
   - aws_java_ssi_pipelines
   #- nodejs_tracer
@@ -46,6 +45,27 @@ variables:
     - SCENARIO_SUFIX=$(echo "$SCENARIO" | tr '[:upper:]' '[:lower:]')
     - mkdir -p reports/logs_"${SCENARIO_SUFIX}_${ONBOARDING_FILTER_WEBLOG}"
     - cp -R logs_"${SCENARIO_SUFIX}"/gitlab_pipeline.yml reports/logs_"${SCENARIO_SUFIX}_${ONBOARDING_FILTER_WEBLOG}"/
+  artifacts:
+    paths:
+      - reports/
+
+.x_compute_docker_scenarios:
+  image: 486234852809.dkr.ecr.us-east-1.amazonaws.com/ci/test-infra-definitions/runner:a58cc31c
+  tags: ["arch:amd64"]
+  stage: aws_nodejs_ssi_pipelines
+  variables:
+    TEST_LIBRARY: "nodejs"
+    #Because sometimes I don't want to run all pipeline, I only run step1_xx with env filter param
+    ONBOARDING_FILTER_ENV: "$FILTER_ENV"
+  script:
+    - python utils/docker_ssi/docker_ssi_matrix_builder.py --language $TEST_LIBRARY --format yaml --output-file gitlab_pipeline.yml
+  needs:
+    - job: step1_generate_nodejs_ssi_pipeline
+      artifacts: true
+  after_script:
+    - SCENARIO_SUFIX="docker_ssi"
+    - mkdir -p reports/logs_"${SCENARIO_SUFIX}"
+    - cp gitlab_pipeline.yml reports/logs_"${SCENARIO_SUFIX}"/
   artifacts:
     paths:
       - reports/
@@ -143,25 +163,13 @@ x_compute_nodejs_scenarios:
       artifacts: true
 
 x_compute_nodejs_docker_scenarios:
-  image: 486234852809.dkr.ecr.us-east-1.amazonaws.com/ci/test-infra-definitions/runner:a58cc31c
-  tags: ["arch:amd64"]
+  extends: .x_compute_docker_scenarios
   stage: aws_nodejs_ssi_pipelines
   variables:
     TEST_LIBRARY: "nodejs"
-    #Because sometimes I don't want to run all pipeline, I only run step1_xx with env filter param
-    ONBOARDING_FILTER_ENV: "$FILTER_ENV"
-  script:
-    - python utils/docker_ssi/docker_ssi_matrix_builder.py --language $TEST_LIBRARY --format yaml --output-file gitlab_pipeline.yml
   needs:
     - job: step1_generate_nodejs_ssi_pipeline
       artifacts: true
-  after_script:
-    - SCENARIO_SUFIX="docker_ssi"
-    - mkdir -p reports/logs_"${SCENARIO_SUFIX}"
-    - cp gitlab_pipeline.yml reports/logs_"${SCENARIO_SUFIX}"/
-  artifacts:
-    paths:
-      - reports/
 
 x_merge_nodejs_ssi_pipeline:
   extends: .merge_aws_ssi_pipeline
@@ -265,35 +273,3 @@ generate_system_tests_images:
       - ./utils/build/build_python_base_images.sh --push
       - ./lib-injection/build/build_lib_injection_images.sh
   when: manual
-
-step1_generate_docker_ssi_pipeline:
-  image: 486234852809.dkr.ecr.us-east-1.amazonaws.com/ci/test-infra-definitions/runner:a58cc31c
-  stage: docker_ssi_pipelines
-  tags: ["arch:amd64"]
-  needs: []
-  rules:
-    - if: $CI_PIPELINE_SOURCE == "schedule"
-      when: always
-    - when: manual
-      allow_failure: true
-  script:
-    - python utils/docker_ssi/docker_ssi_matrix_builder.py --format yaml --output-file ssi_pipeline.yml
-  artifacts:
-    paths:
-      - ssi_pipeline.yml
-
-step2_exec_docker_ssi_pipeline:
-  stage: docker_ssi_pipelines
-  needs: ["step1_generate_docker_ssi_pipeline"]
-  rules:
-    - if: $CI_PIPELINE_SOURCE == "schedule"
-      when: always
-    - when: manual
-      allow_failure: true
-  variables:
-    PARENT_PIPELINE_SOURCE: $CI_PIPELINE_SOURCE
-  trigger:
-    include:
-      - artifact: ssi_pipeline.yml
-        job: step1_generate_docker_ssi_pipeline
-    strategy: depend
