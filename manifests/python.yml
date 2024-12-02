@@ -26,7 +26,11 @@ tests/:
           uwsgi-poc: v2.6.0
         Test_API_Security_RC_ASM_processor_overrides_and_custom_scanner: irrelevant (waf does not support it yet)
       test_apisec_sampling.py:
-        Test_API_Security_sampling: missing_feature
+        Test_API_Security_Sampling_Different_Endpoints: v2.6.0
+        Test_API_Security_Sampling_Different_Paths: v2.6.0
+        Test_API_Security_Sampling_Different_Status: v2.6.0
+        Test_API_Security_Sampling_Rate: irrelevant (new api security sampling algorithm implemented)
+        Test_API_Security_Sampling_With_Delay: v2.6.0
       test_schemas.py:
         Test_Scanners:
           '*': v2.4.0
