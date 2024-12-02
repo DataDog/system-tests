@@ -102,8 +102,8 @@ variables:
   script:
     - echo ">>>>>>>>>>>>>>> Generating lang pipeline >>>>>>>>>>>>>>>"
     - echo "FILTER_ENV=${ONBOARDING_FILTER_ENV:-prod}" >> run.env
-    - echo "INSTALLER_LIBRARY_VERSION=${DD_INSTALLER_LIBRARY_VERSION:-''}" >> run.env
-    - echo "INSTALLER_INJECTOR_VERSION=${DD_INSTALLER_INJECTOR_VERSION:-''}" >> run.env
+    - echo "INSTALLER_LIBRARY_VERSION=${DD_INSTALLER_LIBRARY_VERSION:- }" >> run.env
+    - echo "INSTALLER_INJECTOR_VERSION=${DD_INSTALLER_INJECTOR_VERSION:- }" >> run.env
   rules:
     - if: $CI_PIPELINE_SOURCE == "schedule"
       when: always
