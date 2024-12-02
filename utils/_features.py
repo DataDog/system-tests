@@ -2268,6 +2268,16 @@ class features:
         return test_object
 
     @staticmethod
+    def security_events_metastruct(test_object):
+        """
+        Appsec meta struct
+
+        https://feature-parity.us1.prod.dog/#/?feature=314
+        """
+        pytest.mark.features(feature_id=314)(test_object)
+        return test_object
+
+    @staticmethod
     def host_auto_installation_script_profiling(test_object):
         """
         Profiling works when enabled through the agent installer script in Host environments
