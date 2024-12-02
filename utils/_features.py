@@ -2185,6 +2185,16 @@ class features:
         return test_object
 
     @staticmethod
+    def iast_source_sql(test_object):
+        """
+        IAST Source: SQL
+
+        https://feature-parity.us1.prod.dog/#/?feature=344
+        """
+        pytest.mark.features(feature_id=344)(test_object)
+        return test_object
+
+    @staticmethod
     def tracing_configuration_consistency(test_object):
         """Enforces standardized behaviors for configurations across the tracing libraries.
 
