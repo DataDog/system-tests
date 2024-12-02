@@ -4,6 +4,7 @@ stages:
   - nodejs_ssi_pipelines
   - java_ssi_pipelines
   - python_ssi_pipelines
+  - php_ssi_pipelines
   - stats_results
   - parse_results
   - before_tests
@@ -250,26 +251,20 @@ x_compute_python_scenarios:
       matrix:
         - ONBOARDING_FILTER_WEBLOG: [test-app-python]
           SCENARIO: [HOST_AUTO_INJECTION_INSTALL_SCRIPT]
-          DEFAULT_VMS: ["True", "False"]
         - ONBOARDING_FILTER_WEBLOG: [test-app-python-container,test-app-python-alpine]
           SCENARIO: [ CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT]
-          DEFAULT_VMS: ["True", "False"]
         - ONBOARDING_FILTER_WEBLOG: [
             test-app-python,
             test-app-python-container,
             test-app-python-alpine
           ]
           SCENARIO: [INSTALLER_AUTO_INJECTION]
-          DEFAULT_VMS: ["True", "False"]
         - ONBOARDING_FILTER_WEBLOG: [test-app-python]
           SCENARIO: [CHAOS_INSTALLER_AUTO_INJECTION]
-          DEFAULT_VMS: ["True", "False"]
         - ONBOARDING_FILTER_WEBLOG: [test-app-python-multicontainer,test-app-python-multialpine]
           SCENARIO: [SIMPLE_INSTALLER_AUTO_INJECTION]
-          DEFAULT_VMS: ["True", "False"]
         - ONBOARDING_FILTER_WEBLOG: [test-app-python-unsupported-defaults,test-app-python-27]
           SCENARIO: [INSTALLER_NOT_SUPPORTED_AUTO_INJECTION]
-          DEFAULT_VMS: ["True", "False"]
   needs:
     - job: step1_generate_python_ssi_pipeline
       artifacts: true
@@ -299,6 +294,62 @@ step2_exec_python_ssi_pipeline:
     include:
       - artifact: aws_gitlab_pipeline.yml
         job: x_merge_python_ssi_pipeline
+    strategy: depend
+
+# ----------- PHP SSI ----------------
+step1_generate_php_ssi_pipeline:
+  stage: php_ssi_pipelines
+  dependencies: []
+  extends: .step1_generate_aws_ssi_pipeline
+
+x_compute_php_scenarios:
+  stage: php_ssi_pipelines
+  extends: .compute_aws_scenarios
+  variables:
+    TEST_LIBRARY: "php"
+  parallel:
+      matrix:
+        - ONBOARDING_FILTER_WEBLOG: [test-app-php]
+          SCENARIO: [HOST_AUTO_INJECTION_INSTALL_SCRIPT]
+        - ONBOARDING_FILTER_WEBLOG: [test-app-php-container-83,test-app-php-alpine]
+          SCENARIO: [CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT]
+        - ONBOARDING_FILTER_WEBLOG: [test-app-php, test-app-php-container-83, test-app-php-alpine]
+          SCENARIO: [INSTALLER_AUTO_INJECTION]
+        - ONBOARDING_FILTER_WEBLOG: [test-app-php]
+          SCENARIO: [CHAOS_INSTALLER_AUTO_INJECTION]
+        - ONBOARDING_FILTER_WEBLOG: [test-app-php-container-56]
+          SCENARIO: [INSTALLER_NOT_SUPPORTED_AUTO_INJECTION]
+        - ONBOARDING_FILTER_WEBLOG: [test-app-php-multicontainer, test-app-php-multialpine]
+          SCENARIO: [SIMPLE_INSTALLER_AUTO_INJECTION]
+  needs:
+    - job: step1_generate_php_ssi_pipeline
+      artifacts: true
+
+x_compute_php_docker_scenarios:
+  extends: .x_compute_docker_scenarios
+  stage: php_ssi_pipelines
+  variables:
+    TEST_LIBRARY: "php"
+  needs:
+    - job: step1_generate_php_ssi_pipeline
+      artifacts: true
+
+x_merge_php_ssi_pipeline:
+  stage: php_ssi_pipelines
+  extends: .merge_aws_ssi_pipeline
+  needs: ["x_compute_php_scenarios", "x_compute_php_docker_scenarios"]
+  dependencies:
+    - x_compute_php_scenarios
+    - x_compute_php_docker_scenarios
+
+step2_exec_php_ssi_pipeline:
+  stage: php_ssi_pipelines
+  extends: .exec_aws_ssi_pipeline
+  needs: ["x_merge_php_ssi_pipeline"]
+  trigger:
+    include:
+      - artifact: aws_gitlab_pipeline.yml
+        job: x_merge_php_ssi_pipeline
     strategy: depend
 
 check_merge_labels:
