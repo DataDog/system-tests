@@ -57,16 +57,16 @@ class Test_Telemetry:
         telemetry_data = list(interfaces.library.get_telemetry_data(flatten_message_batches=False))
 
         if len(telemetry_data) == 0 and not success_by_default:
-            raise Exception("No telemetry data to validate on")
+            raise ValueError("No telemetry data to validate on")
 
         for data in telemetry_data:
             validator(data)
 
-    def validate_agent_telemetry_data(self, validator, success_by_default=False):
-        telemetry_data = list(interfaces.agent.get_telemetry_data())
+    def validate_agent_telemetry_data(self, validator, flatten_message_batches=True, success_by_default=False):
+        telemetry_data = list(interfaces.agent.get_telemetry_data(flatten_message_batches=flatten_message_batches))
 
         if len(telemetry_data) == 0 and not success_by_default:
-            raise Exception("No telemetry data to validate on")
+            raise ValueError("No telemetry data to validate on")
 
         for data in telemetry_data:
             validator(data)
@@ -76,27 +76,22 @@ class Test_Telemetry:
 
         def validator(data):
             if data["request"]["length"] >= 5_000_000:
-                raise Exception(f"Received message size is more than 5MB")
+                raise ValueError("Received message size is more than 5MB")
 
         self.validate_library_telemetry_data(validator)
         self.validate_agent_telemetry_data(validator)
 
-    @flaky(True, reason="Backend is far away from being stable enough")
     def test_status_ok(self):
-        """Test that telemetry requests are successful"""
+        """Test that telemetry requests sent to agent are successful"""
 
         def validator(data):
             response_code = data["response"]["status_code"]
             assert 200 <= response_code < 300, f"Got response code {response_code} in {data['log_filename']}"
 
-        self.validate_agent_telemetry_data(validator)
         self.validate_library_telemetry_data(validator)
 
-    @bug(
-        context.agent_version >= "7.36.0" and context.agent_version < "7.37.0",
-        reason="Version reporting of trace agent is broken in 7.36.x release",
-    )
-    @bug(context.agent_version > "7.53.0", reason="Jira missing")
+    @bug(context.agent_version >= "7.36.0" and context.agent_version < "7.37.0", reason="APMRP-360")
+    @bug(context.agent_version > "7.53.0", reason="APMAPI-926")
     def test_telemetry_proxy_enrichment(self):
         """Test telemetry proxy adds necessary information"""
 
@@ -214,7 +209,6 @@ class Test_Telemetry:
         assert all((count == 1 for count in count_by_runtime_id.values()))
 
     @missing_feature(context.library < "ruby@1.22.0", reason="app-started not sent")
-    @flaky(library="python", reason="app-started not sent first")
     @bug(context.library >= "dotnet@3.4.0", reason="APMAPI-728")
     @features.telemetry_app_started_event
     def test_app_started_is_first_message(self):
@@ -239,20 +233,23 @@ class Test_Telemetry:
 
     @bug(weblog_variant="spring-boot-openliberty", reason="APPSEC-6583")
     @bug(weblog_variant="spring-boot-wildfly", reason="APPSEC-6583")
-    @bug(context.agent_version > "7.53.0", reason="Jira missing")
+    @bug(context.agent_version > "7.53.0", reason="APMAPI-926")
     def test_proxy_forwarding(self):
         """Test that all telemetry requests sent by library are forwarded correctly by the agent"""
 
         def save_data(data, container):
             # payloads are identifed by their seq_id/runtime_id
             if not_onboarding_event(data):
+                assert "seq_id" in data["request"]["content"], f"`seq_id` is missing in {data['log_filename']}"
                 key = data["request"]["content"]["seq_id"], data["request"]["content"]["runtime_id"]
                 container[key] = data
 
         self.validate_library_telemetry_data(
             lambda data: save_data(data, self.library_requests), success_by_default=False
         )
-        self.validate_agent_telemetry_data(lambda data: save_data(data, self.agent_requests), success_by_default=False)
+        self.validate_agent_telemetry_data(
+            lambda data: save_data(data, self.agent_requests), flatten_message_batches=True, success_by_default=False
+        )
 
         # At the end, check that all data are consistent
         for key, agent_data in self.agent_requests.items():
@@ -376,7 +373,6 @@ class Test_Telemetry:
         That means, every new deployment/reload of application will cause reloading classes/dependencies and as the result we will see duplications.
         """,
     )
-    @bug(library="nodejs", reason="unknown")
     def test_app_dependencies_loaded(self):
         """test app-dependencies-loaded requests"""
 
@@ -603,7 +599,7 @@ class Test_TelemetryV2:
 
     @missing_feature(library="cpp")
     @missing_feature(context.library < "ruby@1.22.0", reason="dd-client-library-version missing")
-    @flaky(library="python", reason="library versions do not match due to different origins")
+    @bug(context.library == "python" and context.library.version.prerelease is not None, reason="APMAPI-927")
     def test_telemetry_v2_required_headers(self):
         """Assert library add the relevant headers to telemetry v2 payloads"""
 
@@ -668,7 +664,7 @@ class Test_DependencyEnable:
 
         for data in interfaces.library.get_telemetry_data():
             if get_request_type(data) == "app-dependencies-loaded":
-                raise Exception("request_type app-dependencies-loaded should not be sent by this tracer")
+                raise ValueError("request_type app-dependencies-loaded should not be sent by this tracer")
 
 
 @features.telemetry_message_batch
@@ -680,14 +676,13 @@ class Test_MessageBatch:
         weblog.get("/enable_integration")
         weblog.get("/enable_product")
 
-    # CPP: false-positive. we send batch message for app-started.
-    @bug(library="nodejs")
+    @bug(library="nodejs", reason="APMAPI-929")
     def test_message_batch_enabled(self):
         """Test that events are sent in message batches"""
-        event_list = []
+        event_list = set()
         for data in interfaces.library.get_telemetry_data(flatten_message_batches=False):
             content = data["request"]["content"]
-            event_list.append(content.get("request_type"))
+            event_list.add(content.get("request_type"))
 
         assert "message-batch" in event_list, f"Expected one or more message-batch events: {event_list}"
 

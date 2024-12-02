@@ -10,8 +10,7 @@ tests/:
         Test_API_Security_RC_ASM_DD_processors: missing_feature
         Test_API_Security_RC_ASM_DD_scanners: missing_feature
         Test_API_Security_RC_ASM_processor_overrides_and_custom_scanner: irrelevant (waf does not support it yet)
-      test_apisec_sampling.py:
-        Test_API_Security_sampling: missing_feature
+      test_apisec_sampling.py: missing_feature
       test_schemas.py:
         Test_Scanners: missing_feature
         Test_Schema_Request_Cookies: v0.94.0
@@ -147,8 +146,8 @@ tests/:
         test_uri.py:
           TestURI: missing_feature
     rasp/:
+      test_cmdi.py: missing_feature
       test_lfi.py: missing_feature
-      test_libddwaf.py: missing_feature
       test_shi.py: missing_feature
       test_sqli.py: missing_feature
       test_ssrf.py: missing_feature
@@ -229,6 +228,11 @@ tests/:
       Test_Basic: v0.85.0
     test_logs.py:
       Test_StandardizationBlockMode: missing_feature
+    test_metastruct.py:
+      Test_SecurityEvents_Appsec_Metastruct_Disabled: irrelevant (no fallback will be implemented)
+      Test_SecurityEvents_Appsec_Metastruct_Enabled: missing_feature
+      Test_SecurityEvents_Iast_Metastruct_Disabled: irrelevant (no fallback will be implemented)
+      Test_SecurityEvents_Iast_Metastruct_Enabled: missing_feature
     test_remote_config_rule_changes.py:
       Test_BlockingActionChangesWithRemoteConfig: missing_feature
       Test_UpdateRuleFileWithRemoteConfig: missing_feature (v0.8.0 but lacks telemetry support)

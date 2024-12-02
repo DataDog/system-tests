@@ -28,6 +28,7 @@ jobs:
       matrix: ${{ steps.compute-matrix.outputs.matrix }}
       matrix_supported_langs: ${{ steps.compute-matrix.outputs.matrix_supported_langs }}
       matrix_profiling_supported: ${{ steps.compute-matrix.outputs.matrix_profiling_supported }}
+      matrix_skip_basic: ${{ steps.compute-matrix.outputs.matrix_skip_basic }}
       init_image: ${{ steps.compute-matrix.outputs.init_image }}
     steps:
     - name: Compute matrix
@@ -41,7 +42,9 @@ jobs:
           "cpp": [],
           "dotnet": [{"name":"dd-lib-dotnet-init-test-app","supported":"true"}],
           "golang": [],
-          "java": [{"name":"dd-lib-java-init-test-app","supported":"true"},{"name":"jdk7-app","supported":"false"}],
+          "java": [{"name":"dd-lib-java-init-test-app","supported":"true"},
+                   {"name":"jdk7-app","supported":"false"},
+                   {"name":"dd-djm-spark-test-app", "supported":"true", "skip-profiling":"true", "skip-basic":"true"}],
           "nodejs": [{"name":"sample-app","supported":"true"},{"name":"sample-app-node13","supported":"false"}],
           "php": [],
           "python": [{"name":"dd-lib-python-init-test-django","supported":"true"},
@@ -80,11 +83,14 @@ jobs:
         #Only supported weblog variants
         results_supported_langs = []
         results_profiling_supported = []
+        results_skip_basic = []
         for weblog in weblogs["${{ inputs.library }}"]:
           if weblog["supported"] == "true":
             results_supported_langs.append(weblog["name"])
           if "skip-profiling" not in weblog or weblog["skip-profiling"] != "true":
             results_profiling_supported.append(weblog["name"])
+          if "skip-basic" in weblog and weblog["skip-basic"] == "true":
+            results_skip_basic.append(weblog["name"])
 
         #Use the latest init image for prod version, latest_snapshot init image for dev version
         if "${{ inputs.version }}" == 'prod':
@@ -97,11 +103,13 @@ jobs:
             print(f'init_image={json.dumps(result_init_image)}', file=fh)
             print(f'matrix_supported_langs={json.dumps(results_supported_langs)}', file=fh)
             print(f'matrix_profiling_supported={json.dumps(results_profiling_supported)}', file=fh)
+            print(f'matrix_skip_basic={json.dumps(results_skip_basic)}', file=fh)
 
         print(json.dumps(result, indent=2))
         print(json.dumps(result_init_image, indent=2))
         print(json.dumps(results_supported_langs, indent=2))
         print(json.dumps(results_profiling_supported, indent=2))
+        print(json.dumps(results_skip_basic, indent=2))
 
   lib-injection-init-image-validator:
     if: inputs.library == 'dotnet' || inputs.library == 'java' || inputs.library == 'python' || inputs.library == 'ruby' || inputs.library == 'nodejs'
@@ -116,6 +124,8 @@ jobs:
       matrix:
           weblog: ${{ fromJson(needs.compute-matrix.outputs.matrix) }}
           lib_init_image: ${{ fromJson(needs.compute-matrix.outputs.init_image) }}
+          exclude:
+            - weblog: {"name":"dd-djm-spark-test-app", "supported":"true", "skip-profiling":"true", "skip-basic":"true"}
       fail-fast: false
     env:
       TEST_LIBRARY: ${{ inputs.library }}
@@ -183,7 +193,7 @@ jobs:
       matrix:
         weblog: ${{ fromJson(needs.compute-matrix.outputs.matrix_supported_langs) }}
         lib_init_image: ${{ fromJson(needs.compute-matrix.outputs.init_image) }}
-        cluster_agent_version: ['7.56.2', '7.57.0']
+        cluster_agent_version: ['7.56.2', '7.57.0', '7.59.0']
       fail-fast: false
     env:
       TEST_LIBRARY: ${{ inputs.library }}
@@ -231,12 +241,18 @@ jobs:
 
       - name: Kubernetes lib-injection tests
         id: k8s-lib-injection-tests
+        if: ${{ !contains(fromJson(needs.compute-matrix.outputs.matrix_skip_basic), matrix.weblog) }}
         run: ./run.sh K8S_LIBRARY_INJECTION_BASIC
 
       - name: Kubernetes lib-injection profiling tests
         id: k8s-lib-injection-tests-profiling
         if: ${{ contains(fromJson(needs.compute-matrix.outputs.matrix_profiling_supported), matrix.weblog) }}
         run: ./run.sh K8S_LIBRARY_INJECTION_PROFILING
+
+      - name: Kubernetes lib-injection DJM tests
+        id: k8s-lib-injection-tests-djm
+        if: ${{  matrix.weblog == 'dd-djm-spark-test-app' }}
+        run: ./run.sh K8S_LIBRARY_INJECTION_DJM
 
       - name: Compress logs
         id: compress_logs

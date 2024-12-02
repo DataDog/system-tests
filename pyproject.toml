@@ -47,27 +47,17 @@ allow_no_feature_nodes = [
 ]
 
 allow_no_jira_ticket_for_bugs = [
-    "tests/integrations/test_dbm.py::Test_Dbm.test_trace_payload_service",
     "tests/k8s_lib_injection/test_k8s_init_image_validator.py::TestK8sInitImageValidator.test_valid_weblog_instrumented",
     "tests/k8s_lib_injection/test_k8s_init_image_validator.py::TestK8sInitImageValidatorUnsupported.test_invalid_weblog_not_instrumented",
 
-    "tests/parametric/test_span_sampling.py::Test_Span_Sampling.test_multi_rule_independent_rate_limiters_sss013",
-    "tests/parametric/test_span_sampling.py::Test_Span_Sampling.test_single_rule_rate_limiter_span_sampling_sss008",
-    "tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Tags_Feb2024_Revision.test_globs_different_casing",
-    "tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Tags_Feb2024_Revision.test_metric_existence",
-    "tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Tags_Feb2024_Revision.test_metric_matching",
-    "tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceFeatures.test_tracer_update_sequence",
+    # agent    
     "tests/test_schemas.py::Test_Agent.test_agent_schema_telemetry_main_payload",
-    "tests/test_telemetry.py::Test_Telemetry.test_proxy_forwarding",
-    "tests/test_telemetry.py::Test_MessageBatch.test_message_batch_enabled",
-    "tests/test_telemetry.py::Test_Telemetry.test_app_dependencies_loaded",
-    "tests/test_telemetry.py::Test_Telemetry.test_app_started_is_first_message",
-    "tests/test_telemetry.py::Test_Telemetry.test_status_ok",
-    "tests/test_telemetry.py::Test_Telemetry.test_telemetry_proxy_enrichment",
-    "tests/test_telemetry.py::Test_TelemetryV2.test_telemetry_v2_required_headers",
-    "tests/test_the_test/",
 
+    # cpp, olang, php, ruby , an error was in the deserialize function, probably no issue
     "tests/test_profiling.py::Test_Profile",
+    
+    # only legit
+    "tests/test_the_test/",
 ]
 
 [tool.mypy]

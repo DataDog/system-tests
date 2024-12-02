@@ -289,7 +289,7 @@ class _VirtualMachineScenario(Scenario):
                 if key.startswith("datadog-apm-inject") and self._tested_components[key]:
                     self._datadog_apm_inject_version = f"v{self._tested_components[key]}"
                 if key.startswith("datadog-apm-library-") and self._tested_components[key]:
-                    self._library.version = self._tested_components[key]
+                    self._library = LibraryVersion(self._library.library, self._tested_components[key])
                     # We store without the lang sufix
                     self._tested_components["datadog-apm-library"] = self._tested_components[key]
                     del self._tested_components[key]
@@ -386,7 +386,7 @@ class InstallerAutoInjectionScenario(_VirtualMachineScenario):
             include_ubuntu_21_arm64=True,
             include_ubuntu_22_amd64=True,
             include_ubuntu_22_arm64=True,
-            include_ubuntu_23_04_amd64=True,
+            include_ubuntu_23_04_amd64=False,
             include_ubuntu_23_04_arm64=True,
             include_ubuntu_23_10_amd64=False,
             include_ubuntu_23_10_arm64=True,
