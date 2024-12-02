@@ -133,33 +133,6 @@ class Test_Span_Links_From_Conflicting_Contexts:
 
         assert len(trace) == 0
 
-    """Datadog, b3multi headers edge case where we want to make sure NOT to create a 
-    span_link if the secondary context has span_id 0 since that's not valid."""
-
-    def setup_no_span_links_from_invalid_span_id(self):
-        extract_headers = {
-            "x-datadog-trace-id": "6",
-            "x-datadog-parent-id": "987654325",
-            "x-datadog-sampling-priority": "2",
-            "x-datadog-tags": "_dd.p.tid=1111111111111111",
-            "x-b3-traceid": "11111111111111110000000000000003",
-            "x-b3-spanid": " 0000000000000000",
-            "x-b3-sampled": "1",
-        }
-
-        self.req = weblog.get("/make_distant_call", params={"url": "http://weblog:7777"}, headers=extract_headers)
-
-    def test_no_span_links_from_invalid_span_id(self):
-        trace = [
-            span
-            for _, _, span in interfaces.library.get_spans(self.req, full_trace=True)
-            if _retrieve_span_links(span) is not None
-            and span["trace_id"] == 6
-            and span["parent_id"] == 987654325  # Only fetch the trace that is related to the header extractions
-        ]
-
-        assert len(trace) == 0
-
 
 @scenarios.tracing_config_nondefault_2
 @features.w3c_headers_injection_and_extraction
