@@ -2048,9 +2048,9 @@ class features:
         return test_object
 
     @staticmethod
-    def host_user_managed_block_list(test_object):
+    def host_block_list(test_object):
         """
-        A way to allow users to specify their own block lists
+        SSI block lists
 
         https://feature-parity.us1.prod.dog/#/?feature=276
         """
@@ -2385,6 +2385,16 @@ class features:
         https://feature-parity.us1.prod.dog/#/?feature=318
         """
         pytest.mark.features(feature_id=318)(test_object)
+        return test_object
+
+    @staticmethod
+    def rasp_command_injection(test_object):
+        """
+        Appsec RASP rule : command injection
+
+        https://feature-parity.us1.prod.dog/#/?feature=342
+        """
+        pytest.mark.features(feature_id=342)(test_object)
         return test_object
 
     @staticmethod

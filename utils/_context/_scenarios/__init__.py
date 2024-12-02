@@ -13,6 +13,7 @@ from .integrations import CrossedTracingLibraryScenario, IntegrationsScenario, A
 from .open_telemetry import OpenTelemetryScenario
 from .parametric import ParametricScenario
 from .performance import PerformanceScenario
+from .profiling import ProfilingScenario
 from .test_the_test import TestTheTestScenario
 from .auto_injection import InstallerAutoInjectionScenario, InstallerAutoInjectionScenarioProfiling
 from .k8s_lib_injection import KubernetesScenario, WeblogInjectionScenario
@@ -70,23 +71,7 @@ class scenarios:
         doc="We use the open telemetry library to automatically instrument the weblogs instead of using the DD library. This scenario represents this case in the integration with different external systems, for example the interaction with sql database.",
     )
 
-    profiling = EndToEndScenario(
-        "PROFILING",
-        library_interface_timeout=160,
-        agent_interface_timeout=160,
-        weblog_env={
-            "DD_PROFILING_ENABLED": "true",
-            "DD_PROFILING_UPLOAD_PERIOD": "10",
-            "DD_PROFILING_START_DELAY": "1",
-            # Used within Spring Boot native tests to test profiling without affecting tracing scenarios
-            "USE_NATIVE_PROFILING": "presence",
-            # Reduce noise
-            "DD_INSTRUMENTATION_TELEMETRY_ENABLED": "false",
-        },
-        doc="Test profiling feature. Not included in default scenario because is quite slow",
-        scenario_groups=[ScenarioGroup.PROFILING],
-        require_api_key=True,  # for an unknown reason, /flush on nodejs takes days with a fake key on this scenario
-    )
+    profiling = ProfilingScenario("PROFILING")
 
     sampling = EndToEndScenario(
         "SAMPLING",
@@ -310,7 +295,11 @@ class scenarios:
     appsec_api_security_with_sampling = EndToEndScenario(
         "APPSEC_API_SECURITY_WITH_SAMPLING",
         appsec_enabled=True,
-        weblog_env={"DD_EXPERIMENTAL_API_SECURITY_ENABLED": "true", "DD_API_SECURITY_ENABLED": "true",},
+        weblog_env={
+            "DD_EXPERIMENTAL_API_SECURITY_ENABLED": "true",
+            "DD_API_SECURITY_ENABLED": "true",
+            "DD_API_SECURITY_SAMPLE_DELAY": "3",
+        },
         doc="""
         Scenario for API Security feature, testing api security sampling rate.
         """,

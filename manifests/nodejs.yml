@@ -55,7 +55,19 @@ tests/:
         Test_API_Security_RC_ASM_DD_scanners: *ref_5_3_0
         Test_API_Security_RC_ASM_processor_overrides_and_custom_scanner: irrelevant (waf does not support it yet)
       test_apisec_sampling.py:
-        Test_API_Security_sampling: *ref_4_21_0
+        Test_API_Security_Sampling_Different_Endpoints:
+          '*': *ref_5_27_0
+          nextjs: missing_feature
+        Test_API_Security_Sampling_Different_Paths:
+          '*': *ref_5_27_0
+          nextjs: missing_feature
+        Test_API_Security_Sampling_Different_Status:
+          '*': *ref_5_27_0
+          nextjs: missing_feature
+        Test_API_Security_Sampling_Rate: irrelevant (new api security sampling algorithm implemented)
+        Test_API_Security_Sampling_With_Delay:
+          '*': *ref_5_27_0
+          nextjs: missing_feature
       test_schemas.py:
         Test_Scanners: *ref_4_21_0
         Test_Schema_Request_Cookies: *ref_4_21_0
@@ -273,6 +285,7 @@ tests/:
         test_uri.py:
           TestURI: missing_feature
     rasp/:
+      test_cmdi.py: missing_feature
       test_lfi.py:
         Test_Lfi_BodyJson:
           '*': *ref_5_24_0
@@ -297,8 +310,7 @@ tests/:
         Test_Lfi_UrlQuery:
           '*': *ref_5_24_0
           nextjs: missing_feature
-      test_libddwaf.py:
-        Test_Libddwaf_Version: *ref_5_25_0
+        Test_Lfi_Waf_Version: *ref_5_25_0
       test_shi.py:
         Test_Shi_BodyJson:
           '*': *ref_5_25_0
@@ -317,9 +329,11 @@ tests/:
         Test_Shi_Telemetry:
           '*': *ref_5_25_0
           nextjs: missing_feature
+        Test_Shi_Telemetry_Variant_Tag: missing_feature
         Test_Shi_UrlQuery:
           '*': *ref_5_25_0
           nextjs: missing_feature
+        Test_Shi_Waf_Version: *ref_5_25_0
       test_sqli.py:
         Test_Sqli_BodyJson:
           '*': *ref_5_23_0
@@ -341,6 +355,7 @@ tests/:
         Test_Sqli_UrlQuery:
           '*': *ref_5_23_0
           nextjs: missing_feature
+        Test_Sqli_Waf_Version: *ref_5_25_0
       test_ssrf.py:
         Test_Ssrf_BodyJson:
           '*': *ref_5_20_0
@@ -362,6 +377,7 @@ tests/:
         Test_Ssrf_UrlQuery:
           '*': *ref_5_20_0
           nextjs: missing_feature
+        Test_Ssrf_Waf_Version: *ref_5_25_0
     waf/:
       test_addresses.py:
         Test_BodyJson:

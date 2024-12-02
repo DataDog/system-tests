@@ -28,8 +28,7 @@ tests/:
         Test_API_Security_RC_ASM_DD_processors: missing_feature
         Test_API_Security_RC_ASM_DD_scanners: missing_feature
         Test_API_Security_RC_ASM_processor_overrides_and_custom_scanner: irrelevant (waf does not support it yet)
-      test_apisec_sampling.py:
-        Test_API_Security_sampling: missing_feature
+      test_apisec_sampling.py: missing_feature
       test_schemas.py:
         Test_Scanners:
           '*': v1.31.0
@@ -563,6 +562,7 @@ tests/:
             vertx3: missing_feature
             vertx4: missing_feature
     rasp/:
+      test_cmdi.py: missing_feature
       test_lfi.py:
         Test_Lfi_BodyJson:
           '*': v1.40.0
@@ -605,8 +605,7 @@ tests/:
           '*': v1.40.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
           spring-boot-payara: missing_feature (APPSEC-54966)
-      test_libddwaf.py:
-        Test_Libddwaf_Version:
+        Test_Lfi_Waf_Version:
           '*': v1.40.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
       test_shi.py: irrelevant (Not support in Java)
@@ -664,6 +663,9 @@ tests/:
           spring-boot-payara: missing_feature (APPSEC-54966)
           vertx3: v1.40.0 # issue in context propagation in 1.39.0
           vertx4: v1.40.0 # issue in context propagation in 1.39.0
+        Test_Sqli_Waf_Version:
+          '*': v1.40.0
+          spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
       test_ssrf.py:
         Test_Ssrf_BodyJson:
           '*': v1.39.0
@@ -716,6 +718,9 @@ tests/:
           spring-boot-payara: missing_feature (APPSEC-54966)
           vertx3: missing_feature (APPSEC-55781)
           vertx4: missing_feature (APPSEC-55781)
+        Test_Ssrf_Waf_Version:
+          '*': v1.40.0
+          spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
     waf/:
       test_addresses.py:
         Test_BodyJson:
