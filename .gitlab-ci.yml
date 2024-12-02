@@ -101,7 +101,7 @@ variables:
   stage: nodejs_ssi_pipelines
   script:
     - echo ">>>>>>>>>>>>>>> Generating lang pipeline >>>>>>>>>>>>>>>"
-    - echo "FILTER_ENV=${ONBOARDING_FILTER_ENV:-'prod'}" >> run.env
+    - echo "FILTER_ENV=${ONBOARDING_FILTER_ENV:-prod}" >> run.env
     - echo "INSTALLER_LIBRARY_VERSION=${DD_INSTALLER_LIBRARY_VERSION:-''}" >> run.env
     - echo "INSTALLER_INJECTOR_VERSION=${DD_INSTALLER_INJECTOR_VERSION:-''}" >> run.env
   rules:
