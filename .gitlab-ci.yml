@@ -18,7 +18,7 @@ variables:
     TEST: 1
     AMI_UPDATE:
       description: "Set to true to force the update the AMIs used in the system-tests"
-    ONBOARDING_FILTER_ENV: "prod"
+    ONBOARDING_FILTER_ENV: ""
     ONLY_TEST_LIBRARY: ""
     DD_INSTALLER_LIBRARY_VERSION:
       description: "Set the version of the library to be installed. Use the pipeline id pipeline-${CI_PIPELINE_ID}"
@@ -115,7 +115,7 @@ variables:
   stage: aws_nodejs_ssi_pipelines
   script:
     - echo ">>>>>>>>>>>>>>> Generating lang pipeline >>>>>>>>>>>>>>>"
-    - echo "FILTER_ENV=$ONBOARDING_FILTER_ENV" >> run.env
+    - echo "FILTER_ENV=${ONBOARDING_FILTER_ENV:-'prod'}" >> run.env
     - echo "INSTALLER_LIBRARY_VERSION=${DD_INSTALLER_LIBRARY_VERSION:-''}" >> run.env
     - echo "INSTALLER_INJECTOR_VERSION=${DD_INSTALLER_INJECTOR_VERSION:-''}" >> run.env
   rules:
