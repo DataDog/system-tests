@@ -18,12 +18,12 @@ variables:
     TEST: 1
     AMI_UPDATE:
       description: "Set to true to force the update the AMIs used in the system-tests"
-    ONBOARDING_FILTER_ENV: ""
-    ONLY_TEST_LIBRARY: ""
-    DD_INSTALLER_LIBRARY_VERSION:
-      description: "Set the version of the library to be installed. Use the pipeline id pipeline-${CI_PIPELINE_ID}"
-    DD_INSTALLER_INJECTOR_VERSION:
-      description: "Set the version of the injector to be installed. Use the pipeline id pipeline-${CI_PIPELINE_ID}"
+  #  ONBOARDING_FILTER_ENV: ""
+  #  ONLY_TEST_LIBRARY: ""
+  #  DD_INSTALLER_LIBRARY_VERSION:
+  #    description: "Set the version of the library to be installed. Use the pipeline id pipeline-${CI_PIPELINE_ID}"
+  #  DD_INSTALLER_INJECTOR_VERSION:
+  #    description: "Set the version of the injector to be installed. Use the pipeline id pipeline-${CI_PIPELINE_ID}"
 
 
 .compute_aws_scenarios:
