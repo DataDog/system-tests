@@ -68,7 +68,7 @@ onboarding_nodejs:
         - ONBOARDING_FILTER_WEBLOG: [test-app-nodejs,test-app-nodejs-container]
           SCENARIO: [INSTALLER_AUTO_INJECTION,SIMPLE_AUTO_INJECTION_PROFILING]
           DEFAULT_VMS: ["True", "False"]
-        - ONBOARDING_FILTER_WEBLOG: [test-app-nodejs-16, test-app-nodejs-unsupported-defaults]
+        - ONBOARDING_FILTER_WEBLOG: [test-app-nodejs-08, test-app-nodejs-16, test-app-nodejs-unsupported-defaults]
           SCENARIO: [INSTALLER_NOT_SUPPORTED_AUTO_INJECTION]
           DEFAULT_VMS: ["True", "False"]
         - ONBOARDING_FILTER_WEBLOG: [test-app-nodejs]

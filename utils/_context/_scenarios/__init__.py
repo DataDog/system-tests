@@ -13,6 +13,7 @@ from .integrations import CrossedTracingLibraryScenario, IntegrationsScenario, A
 from .open_telemetry import OpenTelemetryScenario
 from .parametric import ParametricScenario
 from .performance import PerformanceScenario
+from .profiling import ProfilingScenario
 from .test_the_test import TestTheTestScenario
 from .auto_injection import InstallerAutoInjectionScenario, InstallerAutoInjectionScenarioProfiling
 from .k8s_lib_injection import KubernetesScenario, WeblogInjectionScenario
@@ -70,23 +71,7 @@ class scenarios:
         doc="We use the open telemetry library to automatically instrument the weblogs instead of using the DD library. This scenario represents this case in the integration with different external systems, for example the interaction with sql database.",
     )
 
-    profiling = EndToEndScenario(
-        "PROFILING",
-        library_interface_timeout=160,
-        agent_interface_timeout=160,
-        weblog_env={
-            "DD_PROFILING_ENABLED": "true",
-            "DD_PROFILING_UPLOAD_PERIOD": "10",
-            "DD_PROFILING_START_DELAY": "1",
-            # Used within Spring Boot native tests to test profiling without affecting tracing scenarios
-            "USE_NATIVE_PROFILING": "presence",
-            # Reduce noise
-            "DD_INSTRUMENTATION_TELEMETRY_ENABLED": "false",
-        },
-        doc="Test profiling feature. Not included in default scenario because is quite slow",
-        scenario_groups=[ScenarioGroup.PROFILING],
-        require_api_key=True,  # for an unknown reason, /flush on nodejs takes days with a fake key on this scenario
-    )
+    profiling = ProfilingScenario("PROFILING")
 
     sampling = EndToEndScenario(
         "SAMPLING",
@@ -310,7 +295,11 @@ class scenarios:
     appsec_api_security_with_sampling = EndToEndScenario(
         "APPSEC_API_SECURITY_WITH_SAMPLING",
         appsec_enabled=True,
-        weblog_env={"DD_EXPERIMENTAL_API_SECURITY_ENABLED": "true", "DD_API_SECURITY_ENABLED": "true",},
+        weblog_env={
+            "DD_EXPERIMENTAL_API_SECURITY_ENABLED": "true",
+            "DD_API_SECURITY_ENABLED": "true",
+            "DD_API_SECURITY_SAMPLE_DELAY": "3",
+        },
         doc="""
         Scenario for API Security feature, testing api security sampling rate.
         """,
@@ -384,6 +373,14 @@ class scenarios:
             "DD_IAST_REQUEST_SAMPLING": "100",
         },
         doc="Iast scenario with deduplication enabled",
+        scenario_groups=[ScenarioGroup.APPSEC],
+    )
+
+    appsec_meta_struct_disabled = EndToEndScenario(
+        "APPSEC_META_STRUCT_DISABLED",
+        weblog_env={"DD_APPSEC_ENABLED": "true", "DD_IAST_ENABLED": "true"},
+        meta_structs_disabled=True,
+        doc="Appsec tests with support for meta struct disabled in the agent configuration",
         scenario_groups=[ScenarioGroup.APPSEC],
     )
 
@@ -707,6 +704,13 @@ class scenarios:
     k8s_library_injection_basic = KubernetesScenario(
         "K8S_LIBRARY_INJECTION_BASIC",
         doc=" Kubernetes Instrumentation basic scenario",
+        github_workflow="libinjection",
+        scenario_groups=[ScenarioGroup.ALL, ScenarioGroup.LIB_INJECTION],
+    )
+
+    k8s_library_injection_djm = KubernetesScenario(
+        "K8S_LIBRARY_INJECTION_DJM",
+        doc="Kubernetes Instrumentation with Data Jobs Monitoring",
         github_workflow="libinjection",
         scenario_groups=[ScenarioGroup.ALL, ScenarioGroup.LIB_INJECTION],
     )

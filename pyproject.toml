@@ -53,32 +53,8 @@ allow_no_jira_ticket_for_bugs = [
     # agent    
     "tests/test_schemas.py::Test_Agent.test_agent_schema_telemetry_main_payload",
 
-    # cpp
-    "tests/parametric/test_span_sampling.py::Test_Span_Sampling.test_single_rule_rate_limiter_span_sampling_sss008",
-
-    # dotnet
-    "tests/integrations/test_dbm.py::Test_Dbm.test_trace_payload_service",
-
-    # golang
-    "tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceFeatures.test_tracer_update_sequence",
-
-    # nodejs
-    "tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Tags_Feb2024_Revision.test_globs_different_casing",
-    "tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Tags_Feb2024_Revision.test_metric_matching",
-    "tests/test_telemetry.py::Test_MessageBatch.test_message_batch_enabled",
-    "tests/test_telemetry.py::Test_Telemetry.test_app_dependencies_loaded",
-
-    # nodejs and golang
-    "tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Tags_Feb2024_Revision.test_metric_existence",
-
-    # java and cpp
-    "tests/parametric/test_span_sampling.py::Test_Span_Sampling.test_multi_rule_independent_rate_limiters_sss013",
-
-    # cpp, golang, php, ruby, 
+    # cpp, olang, php, ruby , an error was in the deserialize function, probably no issue
     "tests/test_profiling.py::Test_Profile",
-
-    # all, test must be either removed or fixed
-    "tests/test_telemetry.py::Test_Telemetry.test_status_ok",
     
     # only legit
     "tests/test_the_test/",
