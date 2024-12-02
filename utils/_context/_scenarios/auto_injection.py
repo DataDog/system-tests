@@ -254,7 +254,13 @@ class _VirtualMachineScenario(Scenario):
 
         if self.vm_gitlab_pipeline:
             pipeline = generate_gitlab_pipeline(
-                config.option.vm_library, self._weblog, self.name, self._env, self.required_vms
+                config.option.vm_library,
+                self._weblog,
+                self.name,
+                self._env,
+                self.required_vms,
+                os.getenv("DD_INSTALLER_LIBRARY_VERSION", ""),
+                os.getenv("DD_INSTALLER_INJECTOR_VERSION", ""),
             )
             with open(f"{self.host_log_folder}/gitlab_pipeline.yml", "w", encoding="utf-8") as f:
                 json.dump(pipeline, f, ensure_ascii=False, indent=4)

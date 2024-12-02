@@ -121,7 +121,9 @@ def nginx_parser(nginx_config_file):
                                         return json_object["apps"]
 
 
-def generate_gitlab_pipeline(language, weblog_name, scenario_name, env, vms):
+def generate_gitlab_pipeline(
+    language, weblog_name, scenario_name, env, vms, installer_library_version, installer_injector_version
+):
     pipeline = {
         "include": [
             {"remote": "https://gitlab-templates.ddbuild.io/libdatadog/include/single-step-instrumentation-tests.yml"}
@@ -179,13 +181,13 @@ def generate_gitlab_pipeline(language, weblog_name, scenario_name, env, vms):
                     "SCENARIO": scenario_name,
                     "WEBLOG": weblog_name,
                     "ONBOARDING_FILTER_ENV": env,
-                    "ONBOARDING_FILTER_ENV_2": env,
+                    "DD_INSTALLER_LIBRARY_VERSION": installer_library_version,
+                    "DD_INSTALLER_INJECTOR_VERSION": installer_injector_version,
                 },
                 # Remove rules if you want to run the jobs when you clic on the execute button of the child pipeline
                 "rules": [rule_run, {"when": "manual", "allow_failure": True},],
                 "script": [
                     'echo "Running onboarding system tests for env: ${ONBOARDING_FILTER_ENV}"',
-                    'echo "Running onboarding system tests for env2: ${ONBOARDING_FILTER_ENV_2}"',
                     'echo "Running onboarding system tests forr DD_INSTALLER_LIBRARY_VERSION: ${DD_INSTALLER_LIBRARY_VERSION}"',
                     'echo "Running onboarding system tests for DD_INSTALLER_INJECTOR_VERSION: ${DD_INSTALLER_INJECTOR_VERSION}"',
                     #  "./build.sh -i runner",
