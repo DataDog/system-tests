@@ -53,6 +53,7 @@ tests/:
         test_path.py: irrelevant (ASM is not implemented in C++)
         test_path_parameter.py: irrelevant (ASM is not implemented in C++)
         test_uri.py: irrelevant (ASM is not implemented in C++)
+      test_security_controls.py: irrelevant (ASM is not implemented in C++)
     rasp/:
       test_cmdi.py: irrelevant (ASM is not implemented in C++)
       test_lfi.py: irrelevant (ASM is not implemented in C++)

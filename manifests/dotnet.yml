@@ -151,6 +151,8 @@ tests/:
           TestPathParameter: missing_feature
         test_uri.py:
           TestURI: irrelevant
+      test_security_controls.py:
+        TestSecurityControls: missing_feature
     rasp/:
       test_cmdi.py:
         Test_Cmdi_BodyJson: missing_feature

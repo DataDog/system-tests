@@ -239,6 +239,8 @@ tests/:
             uwsgi-poc: v2.13.0
         test_uri.py:
           TestURI: missing_feature
+      test_security_controls.py:
+        TestSecurityControls: missing_feature
     rasp/:
       test_cmdi.py: missing_feature
       test_lfi.py:

@@ -380,6 +380,78 @@ public class AppSecIast {
         return "ok";
     }
 
+    @PostMapping("/sc/s/configured")
+    void scSanitizeConfigured(final ServletRequest request,  final ServletResponse response) throws IOException {
+        String sanitized = SecurityControlUtil.sanitize(request.getParameter("param"));
+        cmdExamples.insecureCmd(sanitized);
+    }
+
+    @PostMapping("/sc/s/not-configured")
+    Object scSanitizeSqli(final ServletRequest request,  final ServletResponse response) throws IOException {
+        String sanitized = SecurityControlUtil.sanitize(request.getParameter("param"));
+        return sqlExamples.insecureSql(sanitized, "password");
+    }
+
+    @PostMapping("/sc/s/all")
+    Object scSanitizeForAllVulns(final ServletRequest request,  final ServletResponse response) throws IOException {
+        String sanitized = SecurityControlUtil.sanitizeForAllVulns(request.getParameter("param"));
+        return sqlExamples.insecureSql(sanitized, "password");
+    }
+
+    @PostMapping("/sc/iv/configured")
+    void scValidateXSS(final ServletRequest request,  final ServletResponse response) throws IOException {
+        String param = request.getParameter("param");
+        if (SecurityControlUtil.validate(param)) {
+            cmdExamples.insecureCmd(param);
+        }
+    }
+
+    @PostMapping("/sc/iv/not-configured")
+    void scValidateSqli(final ServletRequest request,  final ServletResponse response) throws IOException {
+        String param = request.getParameter("param");
+        if(SecurityControlUtil.validate(param)) {
+            sqlExamples.insecureSql(param, "password");
+        }
+    }
+
+    @PostMapping("/sc/iv/all")
+    void scValidateForAllVulns(final ServletRequest request,  final ServletResponse response) throws IOException {
+        String param = request.getParameter("param");
+        if(SecurityControlUtil.validateForAllVulns(param)) {
+            sqlExamples.insecureSql(param, "password");
+        }
+    }
+
+    @PostMapping("/sc/iv/overloaded/secure")
+    void scIVOverloadedSecure(final ServletRequest request,  final ServletResponse response) throws IOException {
+        String user = request.getParameter("user");
+        String pass = request.getParameter("password");
+        if(SecurityControlUtil.overloadedValidation(null, user, pass)) {
+            sqlExamples.insecureSql(user, pass);
+        }
+    }
+
+    @PostMapping("/sc/iv/overloaded/insecure")
+    void scIVOverloadedInsecure(final ServletRequest request,  final ServletResponse response) throws IOException {
+        String user = request.getParameter("user");
+        String pass = request.getParameter("password");
+        if(SecurityControlUtil.overloadedValidation(user, pass)) {
+            sqlExamples.insecureSql(user, pass);
+        }
+    }
+
+    @PostMapping("/sc/s/overloaded/secure")
+    void scSOverloadedSecure(final ServletRequest request,  final ServletResponse response) throws IOException {
+        String sanitized = SecurityControlUtil.overloadedSanitize(request.getParameter("param"));
+        cmdExamples.insecureCmd(sanitized);
+    }
+
+    @PostMapping("/sc/s/overloaded/insecure")
+    void scSOverloadedInsecure(final ServletRequest request,  final ServletResponse response) throws IOException {
+        String sanitized = SecurityControlUtil.overloadedSanitize(request.getParameter("param"), null);
+        cmdExamples.insecureCmd(sanitized);
+    }
+
 
     /**
      * TODO: Ldap is failing to startup in native image this method ensures it's started lazily
