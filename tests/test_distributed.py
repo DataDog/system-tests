@@ -35,7 +35,7 @@ class Test_Synthetics_APM_Datadog:
         self.r = weblog.get(
             "/",
             headers={
-                "x-datadog-trace-id": "123456789",
+                "x-datadog-trace-id": "1234567890",
                 "x-datadog-parent-id": "0",
                 "x-datadog-sampling-priority": "1",
                 "x-datadog-origin": "synthetics",
@@ -48,7 +48,7 @@ class Test_Synthetics_APM_Datadog:
         assert len(spans) == 1, "Agent received the incorrect amount of spans"
 
         span = spans[0]
-        assert span.get("traceID") == "123456789"
+        assert span.get("traceID") == "1234567890"
         assert "parentID" not in span or span.get("parentID") == 0 or span.get("parentID") is None
         assert span.get("meta")[ORIGIN] == "synthetics"
         assert span.get("metrics")[SAMPLING_PRIORITY_KEY] == 1
@@ -57,7 +57,7 @@ class Test_Synthetics_APM_Datadog:
         self.r = weblog.get(
             "/",
             headers={
-                "x-datadog-trace-id": "123456789",
+                "x-datadog-trace-id": "1234567891",
                 "x-datadog-parent-id": "0",
                 "x-datadog-sampling-priority": "1",
                 "x-datadog-origin": "synthetics-browser",
@@ -70,7 +70,7 @@ class Test_Synthetics_APM_Datadog:
         assert len(spans) == 1, "Agent received the incorrect amount of spans"
 
         span = spans[0]
-        assert span.get("traceID") == "123456789"
+        assert span.get("traceID") == "1234567891"
         assert "parentID" not in span or span.get("parentID") == 0 or span.get("parentID") is None
         assert span.get("meta")[ORIGIN] == "synthetics-browser"
         assert span.get("metrics")[SAMPLING_PRIORITY_KEY] == 1
