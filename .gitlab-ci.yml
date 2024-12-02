@@ -1,13 +1,8 @@
 include:
   - remote: https://gitlab-templates.ddbuild.io/libdatadog/include/single-step-instrumentation-tests.yml
 stages:
-  - aws_nodejs_ssi_pipelines
-  - aws_java_ssi_pipelines
-  #- nodejs_tracer
-  #- java_tracer
-  #- python_tracer
-  #- dotnet_tracer
-  #- php_tracer
+  - nodejs_ssi_pipelines
+  - java_ssi_pipelines
   - stats_results
   - parse_results
   - before_tests
@@ -16,20 +11,11 @@ variables:
     # Do not modify this - must be the repository name for Kubernetes gitlab runners to run
     KUBERNETES_SERVICE_ACCOUNT_OVERWRITE: system-tests #helm-charts
     TEST: 1
-    AMI_UPDATE:
-      description: "Set to true to force the update the AMIs used in the system-tests"
-  #  ONBOARDING_FILTER_ENV: ""
-  #  ONLY_TEST_LIBRARY: ""
-  #  DD_INSTALLER_LIBRARY_VERSION:
-  #    description: "Set the version of the library to be installed. Use the pipeline id pipeline-${CI_PIPELINE_ID}"
-  #  DD_INSTALLER_INJECTOR_VERSION:
-  #    description: "Set the version of the injector to be installed. Use the pipeline id pipeline-${CI_PIPELINE_ID}"
-
 
 .compute_aws_scenarios:
   image: registry.ddbuild.io/ci/libdatadog-build/system-tests:48436362
   tags: ["arch:arm64"]
-  stage: aws_nodejs_ssi_pipelines
+  stage: nodejs_ssi_pipelines
   allow_failure: true
   variables:
     TEST_LIBRARY: "nodejs"
@@ -52,7 +38,7 @@ variables:
 .x_compute_docker_scenarios:
   image: 486234852809.dkr.ecr.us-east-1.amazonaws.com/ci/test-infra-definitions/runner:a58cc31c
   tags: ["arch:amd64"]
-  stage: aws_nodejs_ssi_pipelines
+  stage: nodejs_ssi_pipelines
   variables:
     TEST_LIBRARY: "nodejs"
     #Because sometimes I don't want to run all pipeline, I only run step1_xx with env filter param
@@ -72,7 +58,7 @@ variables:
 
 .merge_aws_ssi_pipeline:
   image: 486234852809.dkr.ecr.us-east-1.amazonaws.com/ci/test-infra-definitions/runner:a58cc31c
-  stage: aws_nodejs_ssi_pipelines
+  stage: nodejs_ssi_pipelines
   tags: ["arch:amd64"]
   script:
       - |
@@ -94,7 +80,7 @@ variables:
       - aws_gitlab_pipeline.yml
 
 .exec_aws_ssi_pipeline:
-  stage: aws_nodejs_ssi_pipelines
+  stage: nodejs_ssi_pipelines
   needs: ["merge_aws_ssi_pipeline"]
   rules:
     - if: $CI_PIPELINE_SOURCE == "schedule"
@@ -112,7 +98,7 @@ variables:
 .step1_generate_aws_ssi_pipeline:
   "image": "registry.ddbuild.io/docker:20.10.13-gbi-focal"
   "tags": ["arch:amd64"]
-  stage: aws_nodejs_ssi_pipelines
+  stage: nodejs_ssi_pipelines
   script:
     - echo ">>>>>>>>>>>>>>> Generating lang pipeline >>>>>>>>>>>>>>>"
     - echo "FILTER_ENV=${ONBOARDING_FILTER_ENV:-'prod'}" >> run.env
@@ -127,7 +113,7 @@ variables:
     reports:
       dotenv: run.env
 
-# ----------- Nodejs AWS SSI ----------------
+# ----------- Nodejs SSI ----------------
 step1_generate_nodejs_ssi_pipeline:
   extends: .step1_generate_aws_ssi_pipeline
   needs: []
@@ -164,7 +150,7 @@ x_compute_nodejs_scenarios:
 
 x_compute_nodejs_docker_scenarios:
   extends: .x_compute_docker_scenarios
-  stage: aws_nodejs_ssi_pipelines
+  stage: nodejs_ssi_pipelines
   variables:
     TEST_LIBRARY: "nodejs"
   needs:
@@ -188,14 +174,14 @@ step2_exec_nodejs_ssi_pipeline:
     strategy: depend
 
 
-# ----------- Java AWS SSI ----------------
+# ----------- Java SSI ----------------
 step1_generate_java_ssi_pipeline:
-  stage: aws_java_ssi_pipelines
+  stage: java_ssi_pipelines
   dependencies: []
   extends: .step1_generate_aws_ssi_pipeline
 
 x_compute_java_scenarios:
-  stage: aws_java_ssi_pipelines
+  stage: java_ssi_pipelines
   extends: .compute_aws_scenarios
   variables:
     TEST_LIBRARY: "java"
@@ -223,15 +209,25 @@ x_compute_java_scenarios:
     - job: step1_generate_java_ssi_pipeline
       artifacts: true
 
+x_compute_java_docker_scenarios:
+  extends: .x_compute_docker_scenarios
+  stage: java_ssi_pipelines
+  variables:
+    TEST_LIBRARY: "java"
+  needs:
+    - job: step1_generate_java_ssi_pipeline
+      artifacts: true
+
 x_merge_java_ssi_pipeline:
-  stage: aws_java_ssi_pipelines
+  stage: java_ssi_pipelines
   extends: .merge_aws_ssi_pipeline
-  needs: ["x_compute_java_scenarios"]
+  needs: ["x_compute_java_scenarios", "x_compute_java_docker_scenarios"]
   dependencies:
     - x_compute_java_scenarios
+    - x_compute_java_docker_scenarios
 
 step2_exec_java_ssi_pipeline:
-  stage: aws_java_ssi_pipelines
+  stage: java_ssi_pipelines
   extends: .exec_aws_ssi_pipeline
   needs: ["x_merge_java_ssi_pipeline"]
   trigger:
