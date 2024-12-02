@@ -5,6 +5,8 @@ stages:
   - java_ssi_pipelines
   - python_ssi_pipelines
   - php_ssi_pipelines
+  - dotnet_ssi_pipelines
+  - ruby_ssi_pipelines
   - stats_results
   - parse_results
   - before_tests
@@ -351,6 +353,101 @@ step2_exec_php_ssi_pipeline:
       - artifact: aws_gitlab_pipeline.yml
         job: x_merge_php_ssi_pipeline
     strategy: depend
+
+# ----------- Dotnet SSI ----------------
+step1_generate_dotnet_ssi_pipeline:
+  stage: dotnet_ssi_pipelines
+  dependencies: []
+  extends: .step1_generate_aws_ssi_pipeline
+
+x_compute_dotnet_scenarios:
+  stage: dotnet_ssi_pipelines
+  extends: .compute_aws_scenarios
+  variables:
+    TEST_LIBRARY: "dotnet"
+  parallel:
+      matrix:
+        - ONBOARDING_FILTER_WEBLOG: [test-app-dotnet]
+          SCENARIO:
+            - HOST_AUTO_INJECTION_INSTALL_SCRIPT
+            - HOST_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING
+        - ONBOARDING_FILTER_WEBLOG: [test-app-dotnet-container]
+          SCENARIO:
+            - CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT
+            - CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING
+        - ONBOARDING_FILTER_WEBLOG: [test-app-dotnet,test-app-dotnet-container]
+          SCENARIO: [INSTALLER_AUTO_INJECTION, SIMPLE_AUTO_INJECTION_PROFILING]
+        - ONBOARDING_FILTER_WEBLOG: [test-app-dotnet]
+          SCENARIO: [CHAOS_INSTALLER_AUTO_INJECTION]
+        - ONBOARDING_FILTER_WEBLOG: [test-app-dotnet-multicontainer,test-app-dotnet-multialpine]
+          SCENARIO: [SIMPLE_INSTALLER_AUTO_INJECTION]
+        - ONBOARDING_FILTER_WEBLOG: [test-app-dotnet-unsupported]
+          SCENARIO: [INSTALLER_NOT_SUPPORTED_AUTO_INJECTION]
+  needs:
+    - job: step1_generate_dotnet_ssi_pipeline
+      artifacts: true
+
+x_merge_dotnet_ssi_pipeline:
+  stage: dotnet_ssi_pipelines
+  extends: .merge_aws_ssi_pipeline
+  needs: ["x_compute_dotnet_scenarios"]
+  dependencies:
+    - x_compute_dotnet_scenarios
+
+step2_exec_dotnet_ssi_pipeline:
+  stage: dotnet_ssi_pipelines
+  extends: .exec_aws_ssi_pipeline
+  needs: ["x_merge_dotnet_ssi_pipeline"]
+  trigger:
+    include:
+      - artifact: aws_gitlab_pipeline.yml
+        job: x_merge_dotnet_ssi_pipeline
+    strategy: depend
+
+# ----------- Ruby SSI ----------------
+step1_generate_ruby_ssi_pipeline:
+  stage: ruby_ssi_pipelines
+  dependencies: []
+  extends: .step1_generate_aws_ssi_pipeline
+
+x_compute_ruby_scenarios:
+  stage: ruby_ssi_pipelines
+  extends: .compute_aws_scenarios
+  variables:
+    TEST_LIBRARY: "ruby"
+  parallel:
+      matrix:
+        - ONBOARDING_FILTER_WEBLOG: [test-app-ruby]
+          SCENARIO: [HOST_AUTO_INJECTION_INSTALL_SCRIPT]
+        - ONBOARDING_FILTER_WEBLOG: [test-app-ruby-container]
+          SCENARIO: [ CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT]
+        - ONBOARDING_FILTER_WEBLOG: [test-app-ruby,test-app-ruby-container]
+          SCENARIO: [INSTALLER_AUTO_INJECTION]
+        - ONBOARDING_FILTER_WEBLOG: [test-app-ruby]
+          SCENARIO: [CHAOS_INSTALLER_AUTO_INJECTION]
+        - ONBOARDING_FILTER_WEBLOG: [test-app-ruby-multicontainer]
+          SCENARIO: [SIMPLE_INSTALLER_AUTO_INJECTION]
+  needs:
+    - job: step1_generate_ruby_ssi_pipeline
+      artifacts: true
+
+x_merge_ruby_ssi_pipeline:
+  stage: ruby_ssi_pipelines
+  extends: .merge_aws_ssi_pipeline
+  needs: ["x_compute_ruby_scenarios"]
+  dependencies:
+    - x_compute_ruby_scenarios
+
+step2_exec_ruby_ssi_pipeline:
+  stage: ruby_ssi_pipelines
+  extends: .exec_aws_ssi_pipeline
+  needs: ["x_merge_ruby_ssi_pipeline"]
+  trigger:
+    include:
+      - artifact: aws_gitlab_pipeline.yml
+        job: x_merge_ruby_ssi_pipeline
+    strategy: depend
+
 
 check_merge_labels:
   #Build docker images if it's needed. Check if the PR has the labels associated with the image build.
