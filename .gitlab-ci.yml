@@ -3,6 +3,7 @@ include:
 stages:
   - nodejs_ssi_pipelines
   - java_ssi_pipelines
+  - python_ssi_pipelines
   - stats_results
   - parse_results
   - before_tests
