@@ -187,12 +187,9 @@ def generate_gitlab_pipeline(
                 # Remove rules if you want to run the jobs when you clic on the execute button of the child pipeline
                 "rules": [rule_run, {"when": "manual", "allow_failure": True},],
                 "script": [
-                    'echo "Running onboarding system tests for envvvvvv: ${ONBOARDING_FILTER_ENV}"',
-                    'echo "Running onboarding system tests forr DD_INSTALLER_LIBRARY_VERSION: ${DD_INSTALLER_LIBRARY_VERSION}"',
-                    'echo "Running onboarding system tests for DD_INSTALLER_INJECTOR_VERSION: ${DD_INSTALLER_INJECTOR_VERSION}"',
-                    #  "./build.sh -i runner",
-                    #  "./run.sh $SCENARIO --vm-weblog $WEBLOG --vm-env $ONBOARDING_FILTER_ENV --vm-library $TEST_LIBRARY --vm-provider aws --report-run-url $CI_PIPELINE_URL --report-environment $ONBOARDING_FILTER_ENV --vm-default-vms All --vm-only "
-                    #  + vm.name,
+                    "./build.sh -i runner",
+                    "./run.sh $SCENARIO --vm-weblog $WEBLOG --vm-env $ONBOARDING_FILTER_ENV --vm-library $TEST_LIBRARY --vm-provider aws --report-run-url $CI_PIPELINE_URL --report-environment $ONBOARDING_FILTER_ENV --vm-default-vms All --vm-only "
+                    + vm.name,
                 ],
             }
     # Cache management for the pipeline
