@@ -7,7 +7,9 @@ from utils.tools import logger
 from utils.onboarding.weblog_interface import make_get_request, warmup_weblog
 from utils.onboarding.backend_interface import wait_backend_trace_id
 from utils.onboarding.wait_for_tcp_port import wait_for_port
-from utils import scenarios, features
+from utils import scenarios, features, irrelevant
+
+from tests.k8s_lib_injection.utils import get_dev_agent_traces
 
 
 class _TestAdmisionController:
@@ -18,7 +20,7 @@ class _TestAdmisionController:
         test_k8s_instance.deploy_test_agent()
         test_k8s_instance.deploy_datadog_cluster_agent()
         test_k8s_instance.deploy_weblog_as_pod()
-        traces_json = self._get_dev_agent_traces(test_k8s_instance.k8s_kind_cluster)
+        traces_json = get_dev_agent_traces(test_k8s_instance.k8s_kind_cluster)
         assert len(traces_json) > 0, "No traces found"
         logger.info(f"Test _test_inject_admission_controller finished")
 
@@ -29,7 +31,7 @@ class _TestAdmisionController:
         test_k8s_instance.deploy_test_agent()
         test_k8s_instance.deploy_datadog_cluster_agent(use_uds=True)
         test_k8s_instance.deploy_weblog_as_pod()
-        traces_json = self._get_dev_agent_traces(test_k8s_instance.k8s_kind_cluster)
+        traces_json = get_dev_agent_traces(test_k8s_instance.k8s_kind_cluster)
         assert len(traces_json) > 0, "No traces found"
         logger.info(f"Test test_inject_uds_admission_controller finished")
 
@@ -39,7 +41,7 @@ class _TestAdmisionController:
         )
         test_k8s_instance.deploy_test_agent()
         test_k8s_instance.deploy_weblog_as_pod(with_admission_controller=False)
-        traces_json = self._get_dev_agent_traces(test_k8s_instance.k8s_kind_cluster)
+        traces_json = get_dev_agent_traces(test_k8s_instance.k8s_kind_cluster)
         assert len(traces_json) > 0, "No traces found"
         logger.info(f"Test _test_inject_without_admission_controller finished")
 
@@ -49,22 +51,9 @@ class _TestAdmisionController:
         )
         test_k8s_instance.deploy_test_agent()
         test_k8s_instance.deploy_weblog_as_pod(with_admission_controller=False, use_uds=True)
-        traces_json = self._get_dev_agent_traces(test_k8s_instance.k8s_kind_cluster)
+        traces_json = get_dev_agent_traces(test_k8s_instance.k8s_kind_cluster)
         assert len(traces_json) > 0, "No traces found"
         logger.info(f"Test test_inject_uds_without_admission_controller finished")
-
-    def _get_dev_agent_traces(self, k8s_kind_cluster, retry=10):
-        for _ in range(retry):
-            logger.info(f"[Check traces] Checking traces:")
-            response = requests.get(
-                f"http://{k8s_kind_cluster.cluster_host_name}:{k8s_kind_cluster.get_agent_port()}/test/traces"
-            )
-            traces_json = response.json()
-            if len(traces_json) > 0:
-                logger.debug(f"Test traces response: {traces_json}")
-                return traces_json
-            time.sleep(2)
-        return []
 
 
 # TODO delete or update this scenario to use test agent
@@ -198,5 +187,9 @@ def backend_trace_validator(trace_id, trace_data):
 
 @features.k8s_admission_controller
 @scenarios.k8s_library_injection_basic
+@irrelevant(
+    condition=(context.weblog_variant == "dd-djm-spark-test-app"),
+    reason="djm-spark-test-app web-log variant is not supported in this scenario.",
+)
 class TestAdmisionControllerBasic(_TestAdmisionController):
     pass
