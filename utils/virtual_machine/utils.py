@@ -188,7 +188,7 @@ def generate_gitlab_pipeline(language, weblog_name, scenario_name, env, vms):
                 "rules": [rule_run, {"when": "manual", "allow_failure": True},],
                 "script": [
                     'echo "Running onboarding system tests for env: ${ONBOARDING_FILTER_ENV}"',
-                    'echo "Running onboarding system tests for DD_INSTALLER_LIBRARY_VERSION: ${DD_INSTALLER_LIBRARY_VERSION}"',
+                    'echo "Running onboarding system tests forr DD_INSTALLER_LIBRARY_VERSION: ${DD_INSTALLER_LIBRARY_VERSION}"',
                     'echo "Running onboarding system tests for DD_INSTALLER_INJECTOR_VERSION: ${DD_INSTALLER_INJECTOR_VERSION}"',
                     #  "./build.sh -i runner",
                     #  "./run.sh $SCENARIO --vm-weblog $WEBLOG --vm-env $ONBOARDING_FILTER_ENV --vm-library $TEST_LIBRARY --vm-provider aws --report-run-url $CI_PIPELINE_URL --report-environment $ONBOARDING_FILTER_ENV --vm-default-vms All --vm-only "
