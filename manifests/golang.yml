@@ -160,8 +160,8 @@ tests/:
         test_uri.py:
           TestURI: missing_feature
     rasp/:
+      test_cmdi.py: missing_feature
       test_lfi.py: missing_feature
-      test_libddwaf.py: missing_feature
       test_shi.py: irrelevant (there is no equivalent to system(3) in go)
       test_sqli.py:
         Test_Sqli_BodyJson: v1.66.0
@@ -174,6 +174,7 @@ tests/:
         Test_Sqli_StackTrace: v1.66.0
         Test_Sqli_Telemetry: missing_feature
         Test_Sqli_UrlQuery: v1.66.0
+        Test_Sqli_Waf_Version: missing_feature
       test_ssrf.py:
         Test_Ssrf_BodyJson: v1.65.1
         Test_Ssrf_BodyUrlEncoded: v1.65.1
@@ -185,6 +186,7 @@ tests/:
         Test_Ssrf_StackTrace: v1.65.1
         Test_Ssrf_Telemetry: missing_feature
         Test_Ssrf_UrlQuery: v1.65.1
+        Test_Ssrf_Waf_Version: missing_feature
     waf/:
       test_addresses.py:
         Test_BodyJson: v1.37.0

@@ -2388,6 +2388,16 @@ class features:
         return test_object
 
     @staticmethod
+    def rasp_command_injection(test_object):
+        """
+        Appsec RASP rule : command injection
+
+        https://feature-parity.us1.prod.dog/#/?feature=342
+        """
+        pytest.mark.features(feature_id=342)(test_object)
+        return test_object
+
+    @staticmethod
     def debugger_exception_replay(test_object):
         """
         Exception replay

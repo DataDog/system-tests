@@ -285,6 +285,7 @@ tests/:
         test_uri.py:
           TestURI: missing_feature
     rasp/:
+      test_cmdi.py: missing_feature
       test_lfi.py:
         Test_Lfi_BodyJson:
           '*': *ref_5_24_0
@@ -309,8 +310,7 @@ tests/:
         Test_Lfi_UrlQuery:
           '*': *ref_5_24_0
           nextjs: missing_feature
-      test_libddwaf.py:
-        Test_Libddwaf_Version: *ref_5_25_0
+        Test_Lfi_Waf_Version: *ref_5_25_0
       test_shi.py:
         Test_Shi_BodyJson:
           '*': *ref_5_25_0
@@ -329,9 +329,11 @@ tests/:
         Test_Shi_Telemetry:
           '*': *ref_5_25_0
           nextjs: missing_feature
+        Test_Shi_Telemetry_Variant_Tag: missing_feature
         Test_Shi_UrlQuery:
           '*': *ref_5_25_0
           nextjs: missing_feature
+        Test_Shi_Waf_Version: *ref_5_25_0
       test_sqli.py:
         Test_Sqli_BodyJson:
           '*': *ref_5_23_0
@@ -353,6 +355,7 @@ tests/:
         Test_Sqli_UrlQuery:
           '*': *ref_5_23_0
           nextjs: missing_feature
+        Test_Sqli_Waf_Version: *ref_5_25_0
       test_ssrf.py:
         Test_Ssrf_BodyJson:
           '*': *ref_5_20_0
@@ -374,6 +377,7 @@ tests/:
         Test_Ssrf_UrlQuery:
           '*': *ref_5_20_0
           nextjs: missing_feature
+        Test_Ssrf_Waf_Version: *ref_5_25_0
     waf/:
       test_addresses.py:
         Test_BodyJson:
