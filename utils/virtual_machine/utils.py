@@ -183,7 +183,12 @@ def generate_gitlab_pipeline(language, weblog_name, scenario_name, env, vms):
                 "stage": scenario_name,
                 "allow_failure": True,
                 "needs": [],
-                "variables": {"TEST_LIBRARY": language, "SCENARIO": scenario_name, "WEBLOG": weblog_name},
+                "variables": {
+                    "TEST_LIBRARY": language,
+                    "SCENARIO": scenario_name,
+                    "WEBLOG": weblog_name,
+                    "ONBOARDING_FILTER_ENV": env,
+                },
                 # Remove rules if you want to run the jobs when you clic on the execute button of the child pipeline
                 "rules": [rule_run, {"when": "manual", "allow_failure": True},],
                 "script": [
