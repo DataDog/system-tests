@@ -15,7 +15,7 @@ class Test_AwesomeFeature:
 
 Several key points:
 
-* Each new feature should be defined in [_features.py](/utils/_features.py). This consists of adding a feature in [Feature Parity Dashbaord](https://feature-parity.us1.prod.dog/), get the feature id and copying one of the already added features, changing the name and the feature id in the url, and the feature number. In this case we'd add
+* Each new feature should be defined in [_features.py](/utils/_features.py). This consists of adding a feature in [Feature Parity Dashboard](https://feature-parity.us1.prod.dog/), get the feature id and copying one of the already added features, changing the name and the feature id in the url, and the feature number. In this case we'd add
 
 ```python
 
@@ -30,7 +30,7 @@ Several key points:
         return test_object
 ```
 
-* One class test one feature
+* One class tests one feature
 * One class can have several tests
 * Files can be nested (`tests/test_product/test_stuffs.py::Test_AwesomeFeature`), and how files are organized does not make any difference. Use you common sense, or ask on [slack](https://dd.enterprise.slack.com/archives/C025TJ4RZ8X).
 

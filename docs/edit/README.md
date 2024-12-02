@@ -10,7 +10,7 @@ To make changes, you must be able to run tests locally. Instructions for running
 
 **Note**
 
-For information on contributing to specifically **parametric** tests, see [here](/docs/scenarios/parametric_contributing.md).
+For information on contributing to specifically **parametric** scenario, see [here](/docs/scenarios/parametric_contributing.md).
 
 **Callout**
 
