@@ -21,6 +21,10 @@ variables:
     TEST_LIBRARY: "nodejs"
     ONBOARDING_FILTER_WEBLOG: "test-app-nodejs"
     SCENARIO: "HOST_AUTO_INJECTION_INSTALL_SCRIPT"
+    #Because sometimes I don't want to run all pipeline, I only run step1_xx with env filter param
+    ONBOARDING_FILTER_ENV: "$FILTER_ENV"
+    DD_INSTALLER_LIBRARY_VERSION: "$INSTALLER_LIBRARY_VERSION"
+    DD_INSTALLER_INJECTOR_VERSION: "$INSTALLER_INJECTOR_VERSION"
   before_script:
     - export DD_API_KEY_ONBOARDING=xyz
     - export DD_APP_KEY_ONBOARDING=xyz
@@ -122,10 +126,6 @@ x_compute_nodejs_scenarios:
   extends: .compute_aws_scenarios
   variables:
     TEST_LIBRARY: "nodejs"
-    #Because sometimes I don't want to run all pipeline, I only run step1_xx with env filter param
-    ONBOARDING_FILTER_ENV: "$FILTER_ENV"
-    DD_INSTALLER_LIBRARY_VERSION: "$INSTALLER_LIBRARY_VERSION"
-    DD_INSTALLER_INJECTOR_VERSION: "$INSTALLER_INJECTOR_VERSION"
   parallel:
     matrix:
         - ONBOARDING_FILTER_WEBLOG: [test-app-nodejs]
@@ -185,8 +185,6 @@ x_compute_java_scenarios:
   extends: .compute_aws_scenarios
   variables:
     TEST_LIBRARY: "java"
-    #Because sometimes I don't want to run all pipeline, I only run step1_xx with env filter param
-    ONBOARDING_FILTER_ENV: "$FILTER_ENV"
   parallel:
     matrix:
         - ONBOARDING_FILTER_WEBLOG: [test-app-java]
@@ -234,6 +232,72 @@ step2_exec_java_ssi_pipeline:
     include:
       - artifact: aws_gitlab_pipeline.yml
         job: x_merge_java_ssi_pipeline
+    strategy: depend
+
+# ----------- Python SSI ----------------
+step1_generate_python_ssi_pipeline:
+  stage: python_ssi_pipelines
+  dependencies: []
+  extends: .step1_generate_aws_ssi_pipeline
+
+x_compute_python_scenarios:
+  stage: python_ssi_pipelines
+  extends: .compute_aws_scenarios
+  variables:
+    TEST_LIBRARY: "python"
+  parallel:
+      matrix:
+        - ONBOARDING_FILTER_WEBLOG: [test-app-python]
+          SCENARIO: [HOST_AUTO_INJECTION_INSTALL_SCRIPT]
+          DEFAULT_VMS: ["True", "False"]
+        - ONBOARDING_FILTER_WEBLOG: [test-app-python-container,test-app-python-alpine]
+          SCENARIO: [ CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT]
+          DEFAULT_VMS: ["True", "False"]
+        - ONBOARDING_FILTER_WEBLOG: [
+            test-app-python,
+            test-app-python-container,
+            test-app-python-alpine
+          ]
+          SCENARIO: [INSTALLER_AUTO_INJECTION]
+          DEFAULT_VMS: ["True", "False"]
+        - ONBOARDING_FILTER_WEBLOG: [test-app-python]
+          SCENARIO: [CHAOS_INSTALLER_AUTO_INJECTION]
+          DEFAULT_VMS: ["True", "False"]
+        - ONBOARDING_FILTER_WEBLOG: [test-app-python-multicontainer,test-app-python-multialpine]
+          SCENARIO: [SIMPLE_INSTALLER_AUTO_INJECTION]
+          DEFAULT_VMS: ["True", "False"]
+        - ONBOARDING_FILTER_WEBLOG: [test-app-python-unsupported-defaults,test-app-python-27]
+          SCENARIO: [INSTALLER_NOT_SUPPORTED_AUTO_INJECTION]
+          DEFAULT_VMS: ["True", "False"]
+  needs:
+    - job: step1_generate_python_ssi_pipeline
+      artifacts: true
+
+x_compute_python_docker_scenarios:
+  extends: .x_compute_docker_scenarios
+  stage: python_ssi_pipelines
+  variables:
+    TEST_LIBRARY: "python"
+  needs:
+    - job: step1_generate_python_ssi_pipeline
+      artifacts: true
+
+x_merge_python_ssi_pipeline:
+  stage: python_ssi_pipelines
+  extends: .merge_aws_ssi_pipeline
+  needs: ["x_compute_python_scenarios", "x_compute_python_docker_scenarios"]
+  dependencies:
+    - x_compute_python_scenarios
+    - x_compute_python_docker_scenarios
+
+step2_exec_python_ssi_pipeline:
+  stage: python_ssi_pipelines
+  extends: .exec_aws_ssi_pipeline
+  needs: ["x_merge_python_ssi_pipeline"]
+  trigger:
+    include:
+      - artifact: aws_gitlab_pipeline.yml
+        job: x_merge_python_ssi_pipeline
     strategy: depend
 
 check_merge_labels:
