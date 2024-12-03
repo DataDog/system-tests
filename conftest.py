@@ -49,7 +49,10 @@ def pytest_addoption(parser):
     parser.addoption("--vm-only", type=str, action="store", help="Filter to execute only one vm name")
     parser.addoption("--vm-skip-branches", type=str, action="store", help="Filter exclude vm branches")
     parser.addoption(
-        "--vm-gitlab-pipeline", action="store_true", help="Generate pipeline for Gitlab CI. Not run the tests"
+        "--vm-gitlab-pipeline",
+        type=str,
+        action="store",
+        help="Generate pipeline for Gitlab CI. Not run the tests. Values: one-pipeline, system-tests",
     )
 
     parser.addoption(

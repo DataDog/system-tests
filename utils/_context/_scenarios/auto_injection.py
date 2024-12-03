@@ -261,6 +261,7 @@ class _VirtualMachineScenario(Scenario):
                 self.required_vms,
                 os.getenv("DD_INSTALLER_LIBRARY_VERSION", ""),
                 os.getenv("DD_INSTALLER_INJECTOR_VERSION", ""),
+                "one-pipeline" in self.vm_gitlab_pipeline,
             )
             with open(f"{self.host_log_folder}/gitlab_pipeline.yml", "w", encoding="utf-8") as f:
                 json.dump(pipeline, f, ensure_ascii=False, indent=4)

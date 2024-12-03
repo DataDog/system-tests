@@ -122,7 +122,14 @@ def nginx_parser(nginx_config_file):
 
 
 def generate_gitlab_pipeline(
-    language, weblog_name, scenario_name, env, vms, installer_library_version, installer_injector_version
+    language,
+    weblog_name,
+    scenario_name,
+    env,
+    vms,
+    installer_library_version,
+    installer_injector_version,
+    is_one_pipeline,
 ):
     pipeline = {
         "include": [
@@ -156,6 +163,19 @@ def generate_gitlab_pipeline(
             ],
             "artifacts": {"when": "always", "paths": ["reports/"]},
         },
+        ".base_job_onboarding_one_pipeline": {
+            "extends": ".base_job_onboarding",
+            "after_script": [
+                "cd system-tests",
+                'SCENARIO_SUFIX=$(echo "$SCENARIO" | tr "[:upper:]" "[:lower:]")',
+                'REPORTS_PATH="reports/"',
+                'mkdir -p "$REPORTS_PATH"',
+                'cp -R logs_"${SCENARIO_SUFIX}" $REPORTS_PATH/',
+                'cp logs_"${SCENARIO_SUFIX}"/feature_parity.json "$REPORTS_PATH"/"${SCENARIO_SUFIX}".json',
+                'mv "$REPORTS_PATH"/logs_"${SCENARIO_SUFIX}" "$REPORTS_PATH"/logs_"${TEST_LIBRARY}"_"${ONBOARDING_FILTER_WEBLOG}"_"${SCENARIO_SUFIX}_${DEFAULT_VMS}"',
+            ],
+            "artifacts": {"when": "always", "paths": ["system-tests/reports/"]},
+        },
     }
     # Add FPD push script
     pipeline[".base_job_onboarding_system_tests"]["after_script"].extend(_generate_fpd_gitlab_script())
@@ -172,9 +192,11 @@ def generate_gitlab_pipeline(
 
         for vm in vms:
             pipeline[f"{vm.name}_{weblog_name}_{scenario_name}"] = {
-                "extends": ".base_job_onboarding_system_tests",
+                "extends": ".base_job_onboarding_one_pipeline"
+                if is_one_pipeline
+                else ".base_job_onboarding_system_tests",
                 "stage": scenario_name,
-                "allow_failure": True,
+                "allow_failure": False if is_one_pipeline else True,
                 "needs": [],
                 "variables": {
                     "TEST_LIBRARY": language,
@@ -192,9 +214,17 @@ def generate_gitlab_pipeline(
                     + vm.name,
                 ],
             }
-    # Cache management for the pipeline
-    pipeline["stages"].append("Cache")
-    pipeline.update(_generate_cache_jobs(language, weblog_name, scenario_name, vms))
+            if is_one_pipeline:
+                # If it's a one pipeline, we need to clone the system-tests repo and the job is going to be executed automatically
+                pipeline[f"{vm.name}_{weblog_name}_{scenario_name}"]["rules"] = [{"when": "always"}]
+                pipeline[f"{vm.name}_{weblog_name}_{scenario_name}"]["script"].insert(
+                    0, "git clone https://git@github.com/DataDog/system-tests.git system-tests"
+                )
+                pipeline[f"{vm.name}_{weblog_name}_{scenario_name}"]["script"].insert(1, "cd system-tests")
+            else:
+                # Cache management for the pipeline
+                pipeline["stages"].append("Cache")
+                pipeline.update(_generate_cache_jobs(language, weblog_name, scenario_name, vms))
 
     return pipeline
 
