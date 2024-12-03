@@ -256,7 +256,7 @@ jobs:
 
       - name: Compress logs
         id: compress_logs
-        if: always() && steps.build.outcome == 'success'
+        if: always()
         run: tar -czvf artifact.tar.gz $(ls | grep logs)
 
       - name: Upload artifact
