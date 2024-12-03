@@ -71,14 +71,12 @@
             "diagnostics"
           ]
         },
-        "message": { "type": "string" },
         "service": { "type": "string" },
         "timestamp": { "type": "number" }
       },
       "required": [
         "ddsource",
         "debugger",
-        "message",
         "service"
       ]
     }
