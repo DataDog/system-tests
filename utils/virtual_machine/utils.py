@@ -163,6 +163,19 @@ def generate_gitlab_pipeline(
             ],
             "artifacts": {"when": "always", "paths": ["reports/"]},
         },
+        ".base_job_onboarding_one_pipeline": {
+            "extends": ".base_job_onboarding",
+            "after_script": [
+                "cd system-tests",
+                'SCENARIO_SUFIX=$(echo "$SCENARIO" | tr "[:upper:]" "[:lower:]")',
+                'REPORTS_PATH="reports/"',
+                'mkdir -p "$REPORTS_PATH"',
+                'cp -R logs_"${SCENARIO_SUFIX}" $REPORTS_PATH/',
+                'cp logs_"${SCENARIO_SUFIX}"/feature_parity.json "$REPORTS_PATH"/"${SCENARIO_SUFIX}".json',
+                'mv "$REPORTS_PATH"/logs_"${SCENARIO_SUFIX}" "$REPORTS_PATH"/logs_"${TEST_LIBRARY}"_"${ONBOARDING_FILTER_WEBLOG}"_"${SCENARIO_SUFIX}_${DEFAULT_VMS}"',
+            ],
+            "artifacts": {"when": "always", "paths": ["system-tests/reports/"]},
+        },
     }
     # Add FPD push script
     pipeline[".base_job_onboarding_system_tests"]["after_script"].extend(_generate_fpd_gitlab_script())
@@ -179,7 +192,9 @@ def generate_gitlab_pipeline(
 
         for vm in vms:
             pipeline[f"{vm.name}_{weblog_name}_{scenario_name}"] = {
-                "extends": ".base_job_onboarding_system_tests",
+                "extends": ".base_job_onboarding_one_pipeline"
+                if is_one_pipeline
+                else ".base_job_onboarding_system_tests",
                 "stage": scenario_name,
                 "allow_failure": True,
                 "needs": [],
