@@ -1187,6 +1187,7 @@ tests/:
         akka-http: v1.22.0
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
       Test_StandardizationBlockMode: missing_feature
+    test_metastruct.py: missing_feature
     test_rate_limiter.py:
       Test_Main:
         akka-http: v1.22.0

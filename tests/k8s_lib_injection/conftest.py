@@ -96,9 +96,9 @@ class K8sInstance:
     def deploy_agent(self):
         self.test_agent.deploy_agent()
 
-    def deploy_weblog_as_pod(self, with_admission_controller=True, use_uds=False, env=None):
+    def deploy_weblog_as_pod(self, with_admission_controller=True, use_uds=False, env=None, service_account=None):
         if with_admission_controller:
-            self.test_weblog.install_weblog_pod_with_admission_controller(env=env)
+            self.test_weblog.install_weblog_pod_with_admission_controller(env=env, service_account=service_account)
         else:
             self.test_weblog.install_weblog_pod_without_admission_controller(use_uds, env=env)
 

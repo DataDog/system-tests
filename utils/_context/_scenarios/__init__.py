@@ -376,6 +376,14 @@ class scenarios:
         scenario_groups=[ScenarioGroup.APPSEC],
     )
 
+    appsec_meta_struct_disabled = EndToEndScenario(
+        "APPSEC_META_STRUCT_DISABLED",
+        weblog_env={"DD_APPSEC_ENABLED": "true", "DD_IAST_ENABLED": "true"},
+        meta_structs_disabled=True,
+        doc="Appsec tests with support for meta struct disabled in the agent configuration",
+        scenario_groups=[ScenarioGroup.APPSEC],
+    )
+
     remote_config_mocked_backend_asm_features = EndToEndScenario(
         "REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES",
         rc_api_enabled=True,
@@ -696,6 +704,13 @@ class scenarios:
     k8s_library_injection_basic = KubernetesScenario(
         "K8S_LIBRARY_INJECTION_BASIC",
         doc=" Kubernetes Instrumentation basic scenario",
+        github_workflow="libinjection",
+        scenario_groups=[ScenarioGroup.ALL, ScenarioGroup.LIB_INJECTION],
+    )
+
+    k8s_library_injection_djm = KubernetesScenario(
+        "K8S_LIBRARY_INJECTION_DJM",
+        doc="Kubernetes Instrumentation with Data Jobs Monitoring",
         github_workflow="libinjection",
         scenario_groups=[ScenarioGroup.ALL, ScenarioGroup.LIB_INJECTION],
     )

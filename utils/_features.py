@@ -2268,6 +2268,16 @@ class features:
         return test_object
 
     @staticmethod
+    def security_events_metastruct(test_object):
+        """
+        Appsec meta struct
+
+        https://feature-parity.us1.prod.dog/#/?feature=314
+        """
+        pytest.mark.features(feature_id=314)(test_object)
+        return test_object
+
+    @staticmethod
     def host_auto_installation_script_profiling(test_object):
         """
         Profiling works when enabled through the agent installer script in Host environments
@@ -2496,4 +2506,14 @@ class features:
         https://feature-parity.us1.prod.dog/#/?feature=329
         """
         pytest.mark.features(feature_id=329)(test_object)
+        return test_object
+
+    @staticmethod
+    def djm_ssi_k8s(test_object):
+        """
+        Data Jobs Monitoring: Java lib auto instrumentation for Spark applications on K8s.
+
+        https://feature-parity.us1.prod.dog/#/?feature=342
+        """
+        pytest.mark.features(feature_id=342)(test_object)
         return test_object
