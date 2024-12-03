@@ -260,7 +260,7 @@ def retrieve_span_events(span):
         for json_event in json_events:
             event = {}
 
-            event["time"] = json_event["time"]
+            event["time_unix_nano"] = json_event["time_unix_nano"]
             event["name"] = json_event["name"]
             if "attributes" in json_event:
                 event["attributes"] = json_event["attributes"]
