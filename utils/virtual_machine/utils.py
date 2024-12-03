@@ -196,7 +196,7 @@ def generate_gitlab_pipeline(
                 if is_one_pipeline
                 else ".base_job_onboarding_system_tests",
                 "stage": scenario_name,
-                "allow_failure": True,
+                "allow_failure": False if is_one_pipeline else True,
                 "needs": [],
                 "variables": {
                     "TEST_LIBRARY": language,
