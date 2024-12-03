@@ -1,3 +1,4 @@
+import os
 import pytest
 from utils import context
 from utils._decorators import is_jira_ticket
@@ -118,3 +119,127 @@ def nginx_parser(nginx_config_file):
                                         # convert string to  object
                                         json_object = json.loads(return_args[1].replace("'", '"'))
                                         return json_object["apps"]
+
+
+def generate_gitlab_pipeline(
+    language, weblog_name, scenario_name, env, vms, installer_library_version, installer_injector_version
+):
+    pipeline = {
+        "include": [
+            {"remote": "https://gitlab-templates.ddbuild.io/libdatadog/include/single-step-instrumentation-tests.yml"}
+        ],
+        "variables": {
+            "KUBERNETES_SERVICE_ACCOUNT_OVERWRITE": "system-tests",
+            "TEST": "1",
+            "KUBERNETES_CPU_REQUEST": "6",
+            "KUBERNETES_CPU_LIMIT": "6",
+        },
+        "stages": ["dummy"],
+        # A dummy job is necessary for cases where all of the test jobs are manual
+        # The child pipeline shows as failed until at least 1 job is run
+        "dummy": {
+            "image": "registry.ddbuild.io/docker:20.10.13-gbi-focal",
+            "tags": ["arch:amd64"],
+            "stage": "dummy",
+            "dependencies": [],
+            "script": ["echo 'DONE'"],
+        },
+        ".base_job_onboarding_system_tests": {
+            "extends": ".base_job_onboarding",
+            "after_script": [
+                'SCENARIO_SUFIX=$(echo "$SCENARIO" | tr "[:upper:]" "[:lower:]")',
+                'REPORTS_PATH="reports/"',
+                'mkdir -p "$REPORTS_PATH"',
+                'cp -R logs_"${SCENARIO_SUFIX}" $REPORTS_PATH/',
+                'cp logs_"${SCENARIO_SUFIX}"/feature_parity.json "$REPORTS_PATH"/"${SCENARIO_SUFIX}".json',
+                'mv "$REPORTS_PATH"/logs_"${SCENARIO_SUFIX}" "$REPORTS_PATH"/logs_"${TEST_LIBRARY}"_"${ONBOARDING_FILTER_WEBLOG}"_"${SCENARIO_SUFIX}_${DEFAULT_VMS}"',
+            ],
+            "artifacts": {"when": "always", "paths": ["reports/"]},
+        },
+    }
+    # Add FPD push script
+    pipeline[".base_job_onboarding_system_tests"]["after_script"].extend(_generate_fpd_gitlab_script())
+
+    # if we execute the pipeline manually, we want don't want to run the child jobs by default
+    # if we execute the pipeline by schedule, we want to run the child jobs by default
+    rule_run = {"if": '$CI_PIPELINE_SOURCE == "schedule"', "when": "always"}
+    if os.getenv("CI_PIPELINE_SOURCE", "") == "schedule":
+        rule_run = {"if": '$CI_PIPELINE_SOURCE == "parent_pipeline"', "when": "always"}
+
+    # Generate a job per machine
+    if vms:
+        pipeline["stages"].append(scenario_name)
+
+        for vm in vms:
+            pipeline[f"{vm.name}_{weblog_name}_{scenario_name}"] = {
+                "extends": ".base_job_onboarding_system_tests",
+                "stage": scenario_name,
+                "allow_failure": True,
+                "needs": [],
+                "variables": {
+                    "TEST_LIBRARY": language,
+                    "SCENARIO": scenario_name,
+                    "WEBLOG": weblog_name,
+                    "ONBOARDING_FILTER_ENV": env,
+                    "DD_INSTALLER_LIBRARY_VERSION": installer_library_version,
+                    "DD_INSTALLER_INJECTOR_VERSION": installer_injector_version,
+                },
+                # Remove rules if you want to run the jobs when you clic on the execute button of the child pipeline
+                "rules": [rule_run, {"when": "manual", "allow_failure": True},],
+                "script": [
+                    "./build.sh -i runner",
+                    "./run.sh $SCENARIO --vm-weblog $WEBLOG --vm-env $ONBOARDING_FILTER_ENV --vm-library $TEST_LIBRARY --vm-provider aws --report-run-url $CI_PIPELINE_URL --report-environment $ONBOARDING_FILTER_ENV --vm-default-vms All --vm-only "
+                    + vm.name,
+                ],
+            }
+    # Cache management for the pipeline
+    pipeline["stages"].append("Cache")
+    pipeline.update(_generate_cache_jobs(language, weblog_name, scenario_name, vms))
+
+    return pipeline
+
+
+def _generate_cache_jobs(language, weblog_name, scenario_name, vms):
+    pipeline = {}
+    # Generate a job per machine
+    for vm in vms:
+        pipeline[f"{vm.get_cache_name()}"] = {
+            "extends": ".base_job_onboarding_system_tests",
+            "stage": "Cache",
+            "allow_failure": True,
+            "needs": [],
+            "variables": {
+                "TEST_LIBRARY": language,
+                "SCENARIO": scenario_name,
+                "WEBLOG": weblog_name,
+                "AMI_UPDATE": "true",
+            },
+            # Remove rules if you want to run the jobs when you clic on the execute button of the child pipeline
+            "rules": [{"when": "manual", "allow_failure": True},],
+            "script": [
+                "./build.sh -i runner",
+                "./run.sh $SCENARIO --vm-weblog $WEBLOG --vm-env $ONBOARDING_FILTER_ENV --vm-library $TEST_LIBRARY --vm-provider aws --vm-default-vms All --vm-only "
+                + vm.name,
+            ],
+        }
+    return pipeline
+
+
+def _generate_fpd_gitlab_script():
+    fpd_push_script = [
+        'if [ "$CI_COMMIT_BRANCH" = "main" ]; then',
+        'export FP_IMPORT_URL=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.fp-import-url --with-decryption --query "Parameter.Value" --out text)',
+        'export FP_API_KEY=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.fp-api-key --with-decryption --query "Parameter.Value" --out text)',
+        "for folder in reports/logs*/ ; do",
+        '  echo "Checking folder: ${folder}"',
+        "  for filename in ./${folder}*_feature_parity.json; do",
+        "    if [ -e ${filename} ]",
+        "    then",
+        '      echo "Processing report: ${filename}"',
+        '      curl -X POST ${FP_IMPORT_URL} --fail --header "Content-Type: application/json" --header "FP_API_KEY: ${FP_API_KEY}" --data "@${filename}" --include',
+        "    fi",
+        "  done",
+        "done",
+        "fi",
+    ]
+    return fpd_push_script
