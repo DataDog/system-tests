@@ -51,11 +51,11 @@ def otel_tracer
 end
 
 OTEL_SPAN_KIND = {
-  1 => :internal,
-  2 => :server,
-  3 => :client,
-  4 => :producer,
-  5 => :consumer
+  0 => :internal,
+  1 => :server,
+  2 => :client,
+  3 => :producer,
+  4 => :consumer
 }
 
 # Ensure output is always flushed, to prevent a forced shutdown from losing all logs.
@@ -718,7 +718,7 @@ class MyApp
     js = JSON.parse(req.body.read)
     args = OtelStartSpanArgs.new(js)
 
-    if args.parent_id != 0
+    if args.parent_id
       parent_span = OTEL_SPANS[args.parent_id]
       parent_context = OpenTelemetry::Trace.context_with_span(parent_span)
     end

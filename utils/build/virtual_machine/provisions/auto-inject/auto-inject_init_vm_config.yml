@@ -29,19 +29,19 @@
     lsb_release=/etc/lsb-release
     must_update_repositories="false"
     if [ -e "$lsb_release" ]; then
-      if grep -q 'Ubuntu 21.04' "$lsb_release"; then
-        must_update_repositories="true"
-    elif grep -q 'Ubuntu 23.10' "$lsb_release"; then
-        #Why this works for arm machine but not for amd64?
-        must_update_repositories="true"
-    fi
-    fi
-    if [ "$(. /etc/os-release && echo "$VERSION_CODENAME")" = "buster" ]; then
-      echo "Configuring debian 10 repositories"
-      sudo sed -i -r 's/cdn-aws.deb.debian.org/archive.debian.org/g' /etc/apt/sources.list
-      echo 'apt_preserve_sources_list: true' | sudo tee -a /etc/cloud/cloud.cfg
-      sudo apt-get update
-    fi
+      if grep -q 'Ubuntu 21' "$lsb_release"; then
+          must_update_repositories="true"
+      elif grep -q 'Ubuntu 23' "$lsb_release"; then
+          #Why this works for arm machine but not for amd64?
+          must_update_repositories="true"
+      fi
+      if [ "$(. /etc/os-release && echo "$VERSION_CODENAME")" = "buster" ]; then
+        echo "Configuring debian 10 repositories"
+        sudo sed -i -r 's/cdn-aws.deb.debian.org/archive.debian.org/g' /etc/apt/sources.list
+        echo 'apt_preserve_sources_list: true' | sudo tee -a /etc/cloud/cloud.cfg
+        sudo apt-get update
+      fi
+    fi 
     if [ "$must_update_repositories" == "true" ]; then
         echo "Configuring archive ubuntu repositories"
         sudo sed -i -r 's/ports.ubuntu.com/old-releases.ubuntu.com/g' /etc/apt/sources.list 

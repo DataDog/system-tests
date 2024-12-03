@@ -86,6 +86,27 @@ The following text may be written to the body of the response:
 Hello world!\n
 ```
 
+### GET /api_security/sampling/%i
+
+This endpoint is used for API security sampling and must accept a parameter `i` as an integer.
+
+The response body may contain the following text:
+
+```
+Hello!\n
+```
+
+### GET /api_security_sampling/%i
+
+This endpoint is used in conjunction with `GET /api_security/sampling/%i` for API security sampling and must accept a parameter `i` as an integer.
+
+The response body may contain the following text:
+
+```
+OK\n
+```
+
+
 ### GET /spans
 
 The endpoint may accept two query string parameters:
@@ -245,6 +266,14 @@ This endpoint should set a cookie with empty cookie value without SameSite=Stric
 ### POST /iast/no-samesite-cookie/custom_cookie
 
 This endpoint should set a cookie with the name and value coming from the request body (using the cookieName and cookieValue properties), with all security flags except SameSite=Strict, to detect only the NO_SAMESITE_COOKIE vulnerability.
+
+### GET /iast/header_injection/reflected/exclusion
+
+This endpoint should set the header whose name comes in the `reflected` field of the query string, with the reflected value of another header whose name comes in the `origin` field of the query string.
+
+### GET /iast/header_injection/reflected/no-exclusion
+
+Same behaviour as `/iast/header_injection/reflected/exclusion` but with separate specific cases to obtain a different vulnerability location to avoid deduplication.
 
 ### \[GET, POST\] /iast/source/*
 

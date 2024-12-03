@@ -190,6 +190,18 @@ def sample_rate(i):
     return "OK"
 
 
+@app.route("/api_security_sampling/<i>")
+def api_security_sampling(i):
+    return "OK"
+
+
+@app.route(
+    "/api_security/sampling/<int:status_code>", methods=["GET"],
+)
+def api_security_sampling_status(*args, **kwargs):
+    return Response("Hello!", status=kwargs["status_code"])
+
+
 _TRACK_CUSTOM_APPSEC_EVENT_NAME = "system_tests_appsec_event"
 
 
@@ -1322,9 +1334,19 @@ def return_headers(*args, **kwargs):
     return jsonify(headers)
 
 
+@app.route("/vulnerablerequestdownstream", methods=["GET", "POST", "OPTIONS"])
+@app.route("/vulnerablerequestdownstream/", methods=["GET", "POST", "OPTIONS"])
+def vulnerable_request_downstream():
+    weak_hash()
+    # Propagate the received headers to the downstream service
+    http = urllib3.PoolManager()
+    # Sending a GET request and getting back response as HTTPResponse object.
+    response = http.request("GET", "http://localhost:7777/returnheaders")
+    return Response(response.data)
+
+
 @app.route("/mock_s3/put_object", methods=["GET", "POST", "OPTIONS"])
 def s3_put_object():
-
     bucket = flask_request.args.get("bucket")
     key = flask_request.args.get("key")
     body: str = flask_request.args.get("key")

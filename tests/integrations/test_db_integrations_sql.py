@@ -230,7 +230,7 @@ class Test_Postgres(_BaseDatadogDbIntegrationTestClass):
 
     db_service = "postgresql"
 
-    @bug(library="nodejs", reason="the value of this span should be 'postgresql' instead of  'postgres' ")
+    @bug(library="nodejs", reason="APMAPI-913")
     @irrelevant(library="python", reason="Python is using the correct span: db.system")
     def test_db_type(self):
         super().test_db_type()

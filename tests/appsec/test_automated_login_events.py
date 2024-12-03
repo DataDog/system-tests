@@ -577,7 +577,7 @@ class Test_Login_Events_Extended:
             headers=self.HEADERS,
         )
 
-    @missing_feature(library="dotnet")
+    @missing_feature(context.library < "dotnet@3.7.0")
     @missing_feature(context.library < "nodejs@5.18.0")
     @missing_feature(library="php")
     @missing_feature(library="ruby")
@@ -601,7 +601,7 @@ class Test_Login_Events_Extended:
             headers=self.HEADERS,
         )
 
-    @missing_feature(library="dotnet")
+    @missing_feature(context.library < "dotnet@3.7.0")
     @missing_feature(context.library < "nodejs@5.18.0")
     @missing_feature(library="php")
     @missing_feature(library="ruby")
@@ -745,6 +745,9 @@ class Test_V2_Login_Events:
             "/login?auth=local", data={self.username_key: self.INVALID_USER, self.password_key: self.PASSWORD}
         )
 
+    @irrelevant(
+        context.library >= "dotnet@3.7.0", reason="Released v3 with logins from 3.7, now it's ...failure.usr.login"
+    )
     def test_login_wrong_user_failure_local(self):
         assert self.r_wrong_user_failure.status_code == 401
         for _, trace, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
@@ -767,6 +770,9 @@ class Test_V2_Login_Events:
         )
 
     @missing_feature(context.library == "php", reason="Basic auth not implemented")
+    @irrelevant(
+        context.library >= "dotnet@3.7.0", reason="Released v3 with logins from 3.7, now it's ...failure.usr.login"
+    )
     def test_login_wrong_user_failure_basic(self):
         assert self.r_wrong_user_failure.status_code == 401
         for _, trace, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
@@ -788,6 +794,9 @@ class Test_V2_Login_Events:
             "/login?auth=local", data={self.username_key: self.USER, self.password_key: "12345"}
         )
 
+    @irrelevant(
+        context.library >= "dotnet@3.7.0", reason="Released v3 with logins from 3.7, now exists ...failure.usr.login"
+    )
     def test_login_wrong_password_failure_local(self):
         assert self.r_wrong_user_failure.status_code == 401
         for _, trace, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
@@ -816,6 +825,9 @@ class Test_V2_Login_Events:
         )
 
     @missing_feature(context.library == "php", reason="Basic auth not implemented")
+    @irrelevant(
+        context.library >= "dotnet@3.7.0", reason="Released v3 with logins from 3.7, now exists ...failure.usr.login"
+    )
     def test_login_wrong_password_failure_basic(self):
         assert self.r_wrong_user_failure.status_code == 401
         for _, trace, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
@@ -1008,6 +1020,10 @@ class Test_V2_Login_Events_Anon:
             "/login?auth=local", data={self.username_key: "invalidUser", self.password_key: self.PASSWORD}
         )
 
+    @irrelevant(
+        context.library >= "dotnet@3.7.0",
+        reason="Released v3 with logins from 3.7, now login reported when user exists is false",
+    )
     def test_login_wrong_user_failure_local(self):
         assert self.r_wrong_user_failure.status_code == 401
         for _, trace, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
@@ -1029,6 +1045,10 @@ class Test_V2_Login_Events_Anon:
         )
 
     @missing_feature(context.library == "php", reason="Basic auth not implemented")
+    @irrelevant(
+        context.library >= "dotnet@3.7.0",
+        reason="Released v3 with logins from 3.7, now login reported when user exists is false",
+    )
     def test_login_wrong_user_failure_basic(self):
         assert self.r_wrong_user_failure.status_code == 401
         for _, trace, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
@@ -1172,7 +1192,7 @@ class Test_V2_Login_Events_Anon:
             headers=self.HEADERS,
         )
 
-    @missing_feature(library="dotnet")
+    @missing_feature(context.library < "dotnet@3.7.0")
     def test_login_success_headers(self):
         # Validate that all relevant headers are included on user login success on extended mode
 
@@ -1193,7 +1213,7 @@ class Test_V2_Login_Events_Anon:
             headers=self.HEADERS,
         )
 
-    @missing_feature(library="dotnet")
+    @missing_feature(context.library < "dotnet@3.7.0")
     def test_login_failure_headers(self):
         # Validate that all relevant headers are included on user login failure on extended mode
 

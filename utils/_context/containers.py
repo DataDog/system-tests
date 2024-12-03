@@ -20,7 +20,8 @@ from utils.tools import logger
 from utils import interfaces
 from utils.k8s_lib_injection.k8s_weblog import K8sWeblog
 
-_FAKE_DD_API_KEY = "fakekey"
+# fake key of length 32
+_FAKE_DD_API_KEY = "0123456789abcdef0123456789abcdef"
 
 
 @lru_cache
@@ -41,6 +42,9 @@ def _get_client():
             return docker.DockerClient(base_url=endpoint)
         except:
             pass
+
+        if "Error while fetching server API version: ('Connection aborted.'" in str(e):
+            pytest.exit("Connection refused to docker daemon, is it running?", 1)
 
         raise e
 

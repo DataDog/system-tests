@@ -36,7 +36,7 @@ public abstract class ApmTestApiOtel : ApmTestApi
         ActivityContext? remoteParentContext = null;
 
         // try getting parent context from parent id (local parent)
-        if (requestBodyObject!.TryGetValue("parent_id", out var parentId))
+        if (requestBodyObject!.TryGetValue("parent_id", out var parentId) && parentId is not null)
         {
             var stringParentId = parentId.ToString();
 
@@ -56,32 +56,32 @@ public abstract class ApmTestApiOtel : ApmTestApi
         }
 
         DateTimeOffset startTime = default;
-        if (requestBodyObject.TryGetValue("timestamp", out var timestamp) &&  Convert.ToInt64(timestamp) is long timestampInMicroseconds && timestampInMicroseconds > 0)
+        if (requestBodyObject.TryGetValue("timestamp", out var timestamp) && timestamp is not null)
         {
-            startTime = new DateTime(1970, 1, 1) + TimeSpan.FromMicroseconds(timestampInMicroseconds);
+            startTime = new DateTime(1970, 1, 1) + TimeSpan.FromMicroseconds(Convert.ToInt64(timestamp));
         }
 
         var parentContext = localParentContext ?? remoteParentContext ?? default;
 
         var kind = ActivityKind.Internal;
 
-        if (requestBodyObject.TryGetValue("span_kind", out var spanKind))
+        if (requestBodyObject.TryGetValue("span_kind", out var spanKind) && spanKind is not null)
         {
             switch (Convert.ToInt64(spanKind))
             {
-                case 1:
+                case 0:
                     kind = ActivityKind.Internal;
                     break;
-                case 2:
+                case 1:
                     kind = ActivityKind.Server;
                     break;
-                case 3:
+                case 2:
                     kind = ActivityKind.Client;
                     break;
-                case 4:
+                case 3:
                     kind = ActivityKind.Producer;
                     break;
-                case 5:
+                case 4:
                     kind = ActivityKind.Consumer;
                     break;
                 default:

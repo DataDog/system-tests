@@ -47,64 +47,23 @@ allow_no_feature_nodes = [
 ]
 
 allow_no_jira_ticket_for_bugs = [
-    "tests/apm_tracing_e2e/test_otel.py::Test_Otel_Span.test_datadog_otel_span",
-    "tests/appsec/iast/source/test_body.py::TestRequestBody.test_source_reported",
-    "tests/appsec/iast/source/test_parameter_value.py::TestParameterValue.test_source_post_reported",
-    "tests/appsec/test_blocking_addresses.py::Test_Blocking_request_method.test_blocking_before",
-    "tests/appsec/test_rate_limiter.py::Test_Main.test_main",
-    "tests/appsec/test_traces.py::Test_AppSecEventSpanTags.test_header_collection",
-    "tests/appsec/test_user_blocking_full_denylist.py::Test_UserBlocking_FullDenylist.test_blocking_test",
-    "tests/appsec/waf/test_rules.py::Test_SQLI.test_sqli3",
-    "tests/auto_inject/test_auto_inject_install.py::TestContainerAutoInjectInstallScript.test_install",
-    "tests/auto_inject/test_auto_inject_install.py::TestInstallerAutoInjectManual.test_install_uninstall",
-    "tests/auto_inject/test_auto_inject_install.py::TestSimpleInstallerAutoInjectManual.test_install",
-    "tests/integrations/test_db_integrations_sql.py::Test_Postgres.test_db_type",
-    "tests/integrations/test_dbm.py::Test_Dbm.test_trace_payload_service",
-    "tests/integrations/test_open_telemetry.py::_BaseOtelDbIntegrationTestClass.test_db_operation",
-    "tests/integrations/test_open_telemetry.py::Test_MsSql.test_db_operation",
-    "tests/integrations/test_open_telemetry.py::Test_MsSql.test_resource",
     "tests/k8s_lib_injection/test_k8s_init_image_validator.py::TestK8sInitImageValidator.test_valid_weblog_instrumented",
     "tests/k8s_lib_injection/test_k8s_init_image_validator.py::TestK8sInitImageValidatorUnsupported.test_invalid_weblog_not_instrumented",
 
-    "tests/parametric/test_headers_precedence.py::Test_Headers_Precedence.test_headers_precedence_propagationstyle_default_tracecontext_datadog",
-    "tests/parametric/test_headers_precedence.py::Test_Headers_Precedence.test_headers_precedence_propagationstyle_tracecontext_last_extract_first_true_correctly_propagates_tracestate",
-    "tests/parametric/test_headers_tracestate_dd.py::Test_Headers_Tracestate_DD.test_headers_tracestate_dd_evicts_32_or_greater_list_members",
-    "tests/parametric/test_headers_tracestate_dd.py::Test_Headers_Tracestate_DD.test_headers_tracestate_dd_keeps_32_or_fewer_list_members",
-    "tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods.test_otel_span_started_with_link_from_other_spans",
-    "tests/parametric/test_partial_flushing.py::Test_Partial_Flushing.test_partial_flushing_one_span_default",
-    "tests/parametric/test_span_sampling.py::Test_Span_Sampling.test_multi_rule_independent_rate_limiters_sss013",
-    "tests/parametric/test_span_sampling.py::Test_Span_Sampling.test_single_rule_rate_limiter_span_sampling_sss008",
-    "tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Tags_Feb2024_Revision.test_globs_different_casing",
-    "tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Tags_Feb2024_Revision.test_metric_existence",
-    "tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Tags_Feb2024_Revision.test_metric_matching",
-    "tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceFeatures.test_tracer_update_sequence",
-    "tests/stats/test_miscs.py::Test_Miscs.test_request_headers",
+    # agent    
     "tests/test_schemas.py::Test_Agent.test_agent_schema_telemetry_main_payload",
-    "tests/test_semantic_conventions.py::Test_Meta.test_meta_component_tag",
-    "tests/test_semantic_conventions.py::Test_Meta.test_meta_http_url",
-    "tests/test_semantic_conventions.py::Test_Meta.test_meta_language_tag",
-    "tests/test_semantic_conventions.py::Test_Meta.test_meta_runtime_id_tag",
-    "tests/test_semantic_conventions.py::Test_Meta.test_meta_span_kind",
-    "tests/test_standard_tags.py::Test_StandardTagsClientIp.test_client_ip",
-    "tests/test_standard_tags.py::Test_StandardTagsClientIp.test_client_ip_vendor",
-    "tests/test_standard_tags.py::Test_StandardTagsMethod.test_method_trace",
-    "tests/test_telemetry.py::Test_Telemetry.test_proxy_forwarding",
-    "tests/test_telemetry.py::Test_MessageBatch.test_message_batch_enabled",
-    "tests/test_telemetry.py::Test_Telemetry.test_app_dependencies_loaded",
-    "tests/test_telemetry.py::Test_Telemetry.test_app_heartbeats_delays",
-    "tests/test_telemetry.py::Test_Telemetry.test_app_started_is_first_message",
-    "tests/test_telemetry.py::Test_Telemetry.test_status_ok",
-    "tests/test_telemetry.py::Test_Telemetry.test_telemetry_proxy_enrichment",
-    "tests/test_telemetry.py::Test_TelemetryV2.test_telemetry_v2_required_headers",
-    "tests/test_the_test/",
 
+    # cpp, olang, php, ruby , an error was in the deserialize function, probably no issue
     "tests/test_profiling.py::Test_Profile",
-    "tests/parametric/test_config_consistency.py::Test_Config_TraceLogDirectory",
+    
+    # only legit
+    "tests/test_the_test/",
 ]
 
 [tool.mypy]
 files = ["utils/parametric", "tests/parametric"]
 ignore_missing_imports = true
+check_untyped_defs = true
 disable_error_code = ["no-redef"]
 exclude = 'utils/parametric/_library_client\.py|^(?!utils/parametric|tests/parametric).*$'
 follow_imports = "skip"

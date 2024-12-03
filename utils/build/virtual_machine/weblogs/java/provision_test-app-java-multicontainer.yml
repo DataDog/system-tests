@@ -31,7 +31,8 @@ lang_variant:
 weblog:
     name: test-app-java-multicontainer
     nginx_config: utils/build/virtual_machine/weblogs/java/test-app-java-multicontainer/nginx.conf
-    install:
+    exact_os_branches: [ubuntu24]
+    install: 
       - os_type: linux
         copy_files:
           - name: copy-multicontainer-run-script

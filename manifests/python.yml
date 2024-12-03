@@ -26,7 +26,11 @@ tests/:
           uwsgi-poc: v2.6.0
         Test_API_Security_RC_ASM_processor_overrides_and_custom_scanner: irrelevant (waf does not support it yet)
       test_apisec_sampling.py:
-        Test_API_Security_sampling: missing_feature
+        Test_API_Security_Sampling_Different_Endpoints: v2.6.0
+        Test_API_Security_Sampling_Different_Paths: v2.6.0
+        Test_API_Security_Sampling_Different_Status: v2.6.0
+        Test_API_Security_Sampling_Rate: irrelevant (new api security sampling algorithm implemented)
+        Test_API_Security_Sampling_With_Delay: v2.6.0
       test_schemas.py:
         Test_Scanners:
           '*': v2.4.0
@@ -236,6 +240,7 @@ tests/:
         test_uri.py:
           TestURI: missing_feature
     rasp/:
+      test_cmdi.py: missing_feature
       test_lfi.py:
         Test_Lfi_BodyJson: v2.10.0
         Test_Lfi_BodyUrlEncoded: v2.10.0
@@ -244,12 +249,11 @@ tests/:
         Test_Lfi_Mandatory_SpanTags: v2.10.0
         Test_Lfi_Optional_SpanTags: v2.10.0
         Test_Lfi_RC_CustomAction: v2.14.0
-        Test_Lfi_Rules_Version: missing_feature (waiting for 1.13.3 security rule file)
+        Test_Lfi_Rules_Version: v2.18.0.dev
         Test_Lfi_StackTrace: v2.10.0
         Test_Lfi_Telemetry: v2.10.0
         Test_Lfi_UrlQuery: v2.10.0
-      test_libddwaf.py:
-        Test_Libddwaf_Version: v2.15.0
+        Test_Lfi_Waf_Version: v2.15.0
       test_shi.py:
         Test_Shi_BodyJson: v2.11.0-rc2
         Test_Shi_BodyUrlEncoded: v2.11.0-rc2
@@ -260,7 +264,9 @@ tests/:
         Test_Shi_Rules_Version: v2.15.0
         Test_Shi_StackTrace: v2.11.0-rc2
         Test_Shi_Telemetry: v2.11.0-rc2
+        Test_Shi_Telemetry_Variant_Tag: missing_feature
         Test_Shi_UrlQuery: v2.11.0-rc2
+        Test_Shi_Waf_Version: v2.15.0
       test_sqli.py:
         Test_Sqli_BodyJson: v2.10.0
         Test_Sqli_BodyUrlEncoded: v2.10.0
@@ -272,6 +278,7 @@ tests/:
         Test_Sqli_StackTrace: v2.10.0
         Test_Sqli_Telemetry: v2.10.0
         Test_Sqli_UrlQuery: v2.10.0
+        Test_Sqli_Waf_Version: v2.15.0
       test_ssrf.py:
         Test_Ssrf_BodyJson: v2.10.0
         Test_Ssrf_BodyUrlEncoded: v2.10.0
@@ -283,6 +290,7 @@ tests/:
         Test_Ssrf_StackTrace: v2.10.0
         Test_Ssrf_Telemetry: v2.10.0
         Test_Ssrf_UrlQuery: v2.10.0
+        Test_Ssrf_Waf_Version: v2.15.0
     waf/:
       test_addresses.py:
         Test_BodyJson:
@@ -422,8 +430,9 @@ tests/:
     test_asm_standalone.py:
       Test_AppSecStandalone_UpstreamPropagation:
         '*': v2.12.3
-        uwsgi-poc: flaky (APPSEC-55222)
-      Test_IastStandalone_UpstreamPropagation: missing_feature
+        uwsgi-poc: v2.17.1
+      Test_IastStandalone_UpstreamPropagation:
+        '*': v2.18.0.dev
       Test_SCAStandalone_Telemetry: missing_feature
     test_automated_login_events.py:
       Test_Login_Events: irrelevant (was v2.10.0 but will be replaced by V2)
@@ -524,6 +533,11 @@ tests/:
     test_logs.py:
       Test_Standardization: missing_feature
       Test_StandardizationBlockMode: missing_feature
+    test_metastruct.py:
+      Test_SecurityEvents_Appsec_Metastruct_Disabled: irrelevant (no fallback will be implemented)
+      Test_SecurityEvents_Appsec_Metastruct_Enabled: missing_feature
+      Test_SecurityEvents_Iast_Metastruct_Disabled: irrelevant (no fallback will be implemented)
+      Test_SecurityEvents_Iast_Metastruct_Enabled: missing_feature
     test_rate_limiter.py:
       Test_Main: v2.0.0
     test_remote_config_rule_changes.py:

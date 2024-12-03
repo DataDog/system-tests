@@ -34,6 +34,7 @@ lang_variant:
 
 weblog:
     name: test-app-java-alpine
+    excluded_os_names: [Ubuntu_23_04_arm64]
     runtime_version: 11
     install:
       - os_type: linux

@@ -5,9 +5,11 @@ import base64
 import copy
 import json
 import time
+from typing import Any
 import uuid
 
 import pytest
+from typing import List, Optional
 
 from utils.telemetry_utils import TelemetryUtils
 from utils import context, scenarios, rfc, features, missing_feature, bug
@@ -70,7 +72,7 @@ class Test_Defaults:
     )
     @missing_feature(context.library <= "python@2.16.0", reason="Reports configurations with unexpected names")
     def test_library_settings(self, library_env, test_agent, test_library):
-        with test_library.start_span("test"):
+        with test_library.dd_start_span("test"):
             pass
         event = test_agent.wait_for_telemetry_event("app-started", wait_loops=400)
         configuration = event["payload"]["configuration"]
@@ -143,25 +145,27 @@ class Test_Consistent_Configs:
     )
     @missing_feature(context.library <= "python@2.16.0", reason="Reports configurations with unexpected names")
     def test_library_settings(self, library_env, test_agent, test_library):
-        with test_library.start_span("test"):
+        with test_library.dd_start_span("test"):
             pass
         event = test_agent.wait_for_telemetry_event("app-started", wait_loops=400)
         configuration = event["payload"]["configuration"]
         configuration_by_name = {item["name"]: item for item in configuration}
 
         # # Check that the tags name match the expected value
-        assert configuration_by_name.get("DD_ENV").get("value") == "dev"
-        assert configuration_by_name.get("DD_SERVICE").get("value") == "service_test"
-        assert configuration_by_name.get("DD_VERSION").get("value") == "5.2.0"
-        assert configuration_by_name.get("DD_TRACE_RATE_LIMIT").get("value") == "10"
+        assert configuration_by_name.get("DD_ENV", {}).get("value") == "dev"
+        assert configuration_by_name.get("DD_SERVICE", {}).get("value") == "service_test"
+        assert configuration_by_name.get("DD_VERSION", {}).get("value") == "5.2.0"
+        assert configuration_by_name.get("DD_TRACE_RATE_LIMIT", {}).get("value") == "10"
         assert (
-            configuration_by_name.get("DD_TRACE_HEADER_TAGS").get("value") == "User-Agent:my-user-agent,Content-Type."
+            configuration_by_name.get("DD_TRACE_HEADER_TAGS", {}).get("value")
+            == "User-Agent:my-user-agent,Content-Type."
         )
-        assert configuration_by_name.get("DD_TRACE_ENABLED").get("value") == True
+        assert configuration_by_name.get("DD_TRACE_ENABLED", {}).get("value") is True
         assert (
-            configuration_by_name.get("DD_TRACE_OBFUSCATION_QUERY_STRING_REGEXP").get("value") == r"\d{3}-\d{2}-\d{4}"
+            configuration_by_name.get("DD_TRACE_OBFUSCATION_QUERY_STRING_REGEXP", {}).get("value")
+            == r"\d{3}-\d{2}-\d{4}"
         )
-        assert configuration_by_name.get("DD_TRACE_CLIENT_IP_HEADER").get("value") == "random-header-name"
+        assert configuration_by_name.get("DD_TRACE_CLIENT_IP_HEADER", {}).get("value") == "random-header-name"
 
     @pytest.mark.parametrize(
         "library_env",
@@ -178,17 +182,17 @@ class Test_Consistent_Configs:
     @missing_feature(context.library == "nodejs", reason="Not implemented")
     @missing_feature(context.library <= "python@2.16.0", reason="Reports configurations with unexpected names")
     def test_library_settings_2(self, library_env, test_agent, test_library):
-        with test_library.start_span("test"):
+        with test_library.dd_start_span("test"):
             pass
         event = test_agent.wait_for_telemetry_event("app-started", wait_loops=400)
         configuration = event["payload"]["configuration"]
         configuration_by_name = {item["name"]: item for item in configuration}
 
-        assert configuration_by_name.get("DD_TRACE_LOG_DIRECTORY").get("value") == "/some/temporary/directory"
-        assert configuration_by_name.get("DD_TRACE_HTTP_CLIENT_ERROR_STATUSES").get("value") == "200-250"
-        assert configuration_by_name.get("DD_TRACE_HTTP_SERVER_ERROR_STATUSES").get("value") == "250-200"
+        assert configuration_by_name.get("DD_TRACE_LOG_DIRECTORY", {}).get("value") == "/some/temporary/directory"
+        assert configuration_by_name.get("DD_TRACE_HTTP_CLIENT_ERROR_STATUSES", {}).get("value") == "200-250"
+        assert configuration_by_name.get("DD_TRACE_HTTP_SERVER_ERROR_STATUSES", {}).get("value") == "250-200"
         assert (
-            configuration_by_name.get("DD_TRACE_HTTP_CLIENT_TAG_QUERY_STRING").get("value") == False
+            configuration_by_name.get("DD_TRACE_HTTP_CLIENT_TAG_QUERY_STRING", {}).get("value") is False
         )  # No telemetry received, tested with Python and Java(also tried: DD_HTTP_CLIENT_TAG_QUERY_STRING)
 
 
@@ -219,7 +223,7 @@ class Test_Environment:
     )
     @missing_feature(context.library <= "python@2.16.0", reason="Reports configurations with unexpected names")
     def test_library_settings(self, library_env, test_agent, test_library):
-        with test_library.start_span("test"):
+        with test_library.dd_start_span("test"):
             pass
         event = test_agent.wait_for_telemetry_event("app-started", wait_loops=400)
         configuration = event["payload"]["configuration"]
@@ -273,7 +277,7 @@ class Test_Environment:
     @missing_feature(context.library == "ruby", reason="Not implemented")
     @missing_feature(context.library == "php", reason="Not implemented")
     @missing_feature(context.library == "cpp", reason="Not implemented")
-    @missing_feature(context.library == "python", reason="Not implemented")
+    @missing_feature(context.library < "python@2.18.0.dev", reason="Not implemented")
     @pytest.mark.parametrize(
         "library_env",
         [
@@ -304,48 +308,63 @@ class Test_Environment:
         ],
     )
     def test_telemetry_otel_env_hiding(self, library_env, test_agent, test_library):
-        with test_library.start_span("test"):
+        with test_library.dd_start_span("test"):
             pass
         event = test_agent.wait_for_telemetry_event("generate-metrics", wait_loops=400)
         payload = event["payload"]
         assert event["request_type"] == "generate-metrics"
 
         metrics = payload["series"]
-
         assert payload["namespace"] == "tracers"
-
         otelHiding = [s for s in metrics if s["metric"] == "otel.env.hiding"]
-        otelInvalid = [s for s in metrics if s["metric"] == "otel.env.invalid"]
+        assert not [s for s in metrics if s["metric"] == "otel.env.invalid"]
 
-        assert len(otelHiding) == 9
-        assert len(otelInvalid) == 0
+        if context.library == "nodejs":
+            ddlog_config = "dd_trace_log_level"
+        elif context.library == "python":
+            ddlog_config = "dd_trace_debug"
+        else:
+            ddlog_config = "dd_log_level"
 
-        expected_tags = [
-            ["config_datadog:dd_trace_log_level", "config_opentelemetry:otel_log_level"]
-            if context.library == "nodejs"
-            else ["config_datadog:dd_log_level", "config_opentelemetry:otel_log_level"],
-            ["config_datadog:dd_trace_propagation_style", "config_opentelemetry:otel_propagators"],
-            ["config_datadog:dd_service", "config_opentelemetry:otel_service_name"],
-            ["config_datadog:dd_trace_sample_rate", "config_opentelemetry:otel_traces_sampler"],
-            ["config_datadog:dd_trace_sample_rate", "config_opentelemetry:otel_traces_sampler_arg"],
-            ["config_datadog:dd_trace_enabled", "config_opentelemetry:otel_traces_exporter"],
-            ["config_datadog:dd_runtime_metrics_enabled", "config_opentelemetry:otel_metrics_exporter"],
-            ["config_datadog:dd_tags", "config_opentelemetry:otel_resource_attributes"],
-            ["config_datadog:dd_trace_otel_enabled", "config_opentelemetry:otel_sdk_disabled"],
+        if context.library == "python":
+            otelsampler_config = "otel_traces_sampler"
+        else:
+            otelsampler_config = "otel_traces_sampler_arg"
+
+        dd_to_otel_mapping: List[List[Optional[str]]] = [
+            ["dd_trace_propagation_style", "otel_propagators"],
+            ["dd_service", "otel_service_name"],
+            ["dd_trace_sample_rate", "otel_traces_sampler"],
+            ["dd_trace_enabled", "otel_traces_exporter"],
+            ["dd_runtime_metrics_enabled", "otel_metrics_exporter"],
+            ["dd_tags", "otel_resource_attributes"],
+            ["dd_trace_otel_enabled", "otel_sdk_disabled"],
+            [ddlog_config, "otel_log_level"],
+            ["dd_trace_sample_rate", otelsampler_config],
         ]
 
-        for expected in expected_tags:
-            assert any(all(tag in metric["tags"] for tag in expected) for metric in otelHiding)
-
-        for metric in otelHiding:
-            assert metric["points"][0][1] == 1
+        for dd_config, otel_config in dd_to_otel_mapping:
+            for metric in otelHiding:
+                if (
+                    f"config_datadog:{dd_config}" in metric["tags"]
+                    and f"config_opentelemetry:{otel_config}" in metric["tags"]
+                ):
+                    assert metric["points"][0][1] == 1
+                    break
+            else:
+                assert (
+                    False
+                ), f"Could not find a metric with {dd_config} and {otel_config} in otelHiding metrics: {otelHiding}"
 
     @missing_feature(context.library == "dotnet", reason="Not implemented")
     @missing_feature(context.library == "java", reason="Not implemented")
     @missing_feature(context.library == "ruby", reason="Not implemented")
     @missing_feature(context.library == "php", reason="Not implemented")
     @missing_feature(context.library == "cpp", reason="Not implemented")
-    @missing_feature(context.library == "python", reason="Not implemented")
+    @missing_feature(context.library < "python@2.18.0.dev", reason="Not implemented")
+    @missing_feature(
+        context.library == "nodejs", reason="does not collect otel_env.invalid metrics for otel_resource_attributes"
+    )
     @pytest.mark.parametrize(
         "library_env",
         [
@@ -363,12 +382,13 @@ class Test_Environment:
                 "OTEL_PROPAGATORS": "foo",
                 "OTEL_LOGS_EXPORTER": "foo",
                 "DD_TRACE_OTEL_ENABLED": None,
+                "DD_TRACE_DEBUG": None,
                 "OTEL_SDK_DISABLED": "foo",
             }
         ],
     )
     def test_telemetry_otel_env_invalid(self, library_env, test_agent, test_library):
-        with test_library.start_span("test"):
+        with test_library.dd_start_span("test"):
             pass
         event = test_agent.wait_for_telemetry_event("generate-metrics", wait_loops=400)
         payload = event["payload"]
@@ -378,30 +398,43 @@ class Test_Environment:
 
         assert payload["namespace"] == "tracers"
 
-        otelHiding = [s for s in metrics if s["metric"] == "otel.env.hiding"]
-        otelInvalid = [s for s in metrics if s["metric"] == "otel.env.invalid"]
+        otel_invalid = [s for s in metrics if s["metric"] == "otel.env.invalid"]
 
-        assert len(otelHiding) == 0
-        assert len(otelInvalid) == 8
+        if context.library == "nodejs":
+            ddlog_config = "dd_trace_log_level"
+        elif context.library == "python":
+            ddlog_config = "dd_trace_debug"
+        else:
+            ddlog_config = "dd_log_level"
 
-        expected_invalid_tags = [
-            ["config_datadog:dd_trace_log_level", "config_opentelemetry:otel_log_level"]
-            if context.library == "nodejs"
-            else ["config_datadog:dd_log_level", "config_opentelemetry:otel_log_level"],
-            ["config_datadog:dd_trace_propagation_style", "config_opentelemetry:otel_propagators"],
-            ["config_datadog:dd_trace_sample_rate", "config_opentelemetry:otel_traces_sampler"],
-            ["config_datadog:dd_trace_sample_rate", "config_opentelemetry:otel_traces_sampler_arg"],
-            ["config_datadog:dd_trace_enabled", "config_opentelemetry:otel_traces_exporter"],
-            ["config_datadog:dd_runtime_metrics_enabled", "config_opentelemetry:otel_metrics_exporter"],
-            ["config_datadog:dd_trace_otel_enabled", "config_opentelemetry:otel_sdk_disabled"],
-            ["config_opentelemetry:otel_logs_exporter"],
+        if context.library == "python":
+            otelsampler_config = "otel_traces_sampler"
+        else:
+            otelsampler_config = "otel_traces_sampler_arg"
+
+        dd_to_otel_mapping: List[List[Optional[str]]] = [
+            ["dd_trace_propagation_style", "otel_propagators"],
+            ["dd_trace_sample_rate", "otel_traces_sampler"],
+            ["dd_trace_enabled", "otel_traces_exporter"],
+            ["dd_runtime_metrics_enabled", "otel_metrics_exporter"],
+            ["dd_tags", "otel_resource_attributes"],
+            ["dd_trace_otel_enabled", "otel_sdk_disabled"],
+            [ddlog_config, "otel_log_level"],
+            ["dd_trace_sample_rate", otelsampler_config],
+            [None, "otel_logs_exporter"],
         ]
 
-        for expected in expected_invalid_tags:
-            assert any(all(tag in metric["tags"] for tag in expected) for metric in otelInvalid)
-
-        for metric in otelInvalid:
-            assert metric["points"][0][1] == 1
+        for dd_config, otel_config in dd_to_otel_mapping:
+            for metric in otel_invalid:
+                if (
+                    dd_config is None or f"config_datadog:{dd_config}" in metric["tags"]
+                ) and f"config_opentelemetry:{otel_config}" in metric["tags"]:
+                    assert metric["points"][0][1] == 1
+                    break
+            else:
+                assert (
+                    False
+                ), f"Could not find a metric with {dd_config} and {otel_config} in otel_invalid metrics: {otel_invalid}"
 
 
 DEFAULT_ENVVARS = {
@@ -438,7 +471,7 @@ class Test_TelemetryInstallSignature:
         """
 
         # Some libraries require a first span for telemetry to be emitted.
-        with test_library.start_span("first_span"):
+        with test_library.dd_start_span("first_span"):
             pass
 
         test_agent.wait_for_telemetry_event("app-started", wait_loops=400)
@@ -482,7 +515,7 @@ class Test_TelemetryInstallSignature:
         """
 
         # Some libraries require a first span for telemetry to be emitted.
-        with test_library.start_span("first_span"):
+        with test_library.dd_start_span("first_span"):
             pass
 
         test_agent.wait_for_telemetry_event("app-started")
@@ -521,7 +554,7 @@ class Test_TelemetrySCAEnvVar:
 
     @staticmethod
     def get_app_started_configuration_by_name(test_agent, test_library):
-        with test_library.start_span("first_span"):
+        with test_library.dd_start_span("first_span"):
             pass
 
         test_agent.wait_for_telemetry_event("app-started", wait_loops=400)

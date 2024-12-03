@@ -86,6 +86,16 @@ async def sample_rate(i):
     return "OK"
 
 
+@app.get("/api_security_sampling/{i}", response_class=PlainTextResponse)
+async def api_security_sampling(i):
+    return "OK"
+
+
+@app.get("/api_security/sampling/{status_code}", response_class=PlainTextResponse)
+async def api_security_sampling_status(status_code: int = 200):
+    return PlainTextResponse("Hello!", status_code=status_code)
+
+
 @app.get("/waf", response_class=PlainTextResponse)
 @app.post("/waf", response_class=PlainTextResponse)
 @app.options("/waf", response_class=PlainTextResponse)
@@ -783,6 +793,20 @@ def create_extra_service(serviceName: str = ""):
 @app.post("/requestdownstream/", response_class=PlainTextResponse)
 @app.options("/requestdownstream/", response_class=PlainTextResponse)
 def request_downstream():
+    http_ = urllib3.PoolManager()
+    # Sending a GET request and getting back response as HTTPResponse object.
+    response = http_.request("GET", "http://localhost:7777/returnheaders")
+    return response.data
+
+
+@app.get("/vulnerablerequestdownstream", response_class=PlainTextResponse)
+@app.post("/vulnerablerequestdownstream", response_class=PlainTextResponse)
+@app.options("/vulnerablerequestdownstream", response_class=PlainTextResponse)
+@app.get("/vulnerablerequestdownstream/", response_class=PlainTextResponse)
+@app.post("/vulnerablerequestdownstream/", response_class=PlainTextResponse)
+@app.options("/vulnerablerequestdownstream/", response_class=PlainTextResponse)
+def vulnerable_request_downstream():
+    weak_hash()
     http_ = urllib3.PoolManager()
     # Sending a GET request and getting back response as HTTPResponse object.
     response = http_.request("GET", "http://localhost:7777/returnheaders")

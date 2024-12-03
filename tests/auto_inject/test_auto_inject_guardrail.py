@@ -11,12 +11,7 @@ from utils.virtual_machine.utils import parametrize_virtual_machines
 class TestLanguageVersionNotSupported:
     """ Test for not supported auto injection. We only check the app is working, although the auto injection is not performed."""
 
-    @parametrize_virtual_machines(
-        bugs=[
-            {"vm_name": "Ubuntu_20_amd64", "runtime_version": "10.19.0", "reason": "INPLAT-186"},
-            {"vm_name": "Ubuntu_20_arm64", "runtime_version": "10.19.0", "reason": "INPLAT-186"},
-        ]
-    )
+    @parametrize_virtual_machines()
     def test_app_working(self, virtual_machine):
         """ Test app is working."""
         vm_ip = virtual_machine.get_ip()
