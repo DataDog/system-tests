@@ -295,7 +295,11 @@ class scenarios:
     appsec_api_security_with_sampling = EndToEndScenario(
         "APPSEC_API_SECURITY_WITH_SAMPLING",
         appsec_enabled=True,
-        weblog_env={"DD_EXPERIMENTAL_API_SECURITY_ENABLED": "true", "DD_API_SECURITY_ENABLED": "true",},
+        weblog_env={
+            "DD_EXPERIMENTAL_API_SECURITY_ENABLED": "true",
+            "DD_API_SECURITY_ENABLED": "true",
+            "DD_API_SECURITY_SAMPLE_DELAY": "3",
+        },
         doc="""
         Scenario for API Security feature, testing api security sampling rate.
         """,
@@ -369,6 +373,14 @@ class scenarios:
             "DD_IAST_REQUEST_SAMPLING": "100",
         },
         doc="Iast scenario with deduplication enabled",
+        scenario_groups=[ScenarioGroup.APPSEC],
+    )
+
+    appsec_meta_struct_disabled = EndToEndScenario(
+        "APPSEC_META_STRUCT_DISABLED",
+        weblog_env={"DD_APPSEC_ENABLED": "true", "DD_IAST_ENABLED": "true"},
+        meta_structs_disabled=True,
+        doc="Appsec tests with support for meta struct disabled in the agent configuration",
         scenario_groups=[ScenarioGroup.APPSEC],
     )
 
@@ -692,6 +704,13 @@ class scenarios:
     k8s_library_injection_basic = KubernetesScenario(
         "K8S_LIBRARY_INJECTION_BASIC",
         doc=" Kubernetes Instrumentation basic scenario",
+        github_workflow="libinjection",
+        scenario_groups=[ScenarioGroup.ALL, ScenarioGroup.LIB_INJECTION],
+    )
+
+    k8s_library_injection_djm = KubernetesScenario(
+        "K8S_LIBRARY_INJECTION_DJM",
+        doc="Kubernetes Instrumentation with Data Jobs Monitoring",
         github_workflow="libinjection",
         scenario_groups=[ScenarioGroup.ALL, ScenarioGroup.LIB_INJECTION],
     )
