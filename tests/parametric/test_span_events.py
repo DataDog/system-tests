@@ -21,17 +21,15 @@ class Test_Span_Events:
             "bool": True,
             "int": 1,
             "double": 2.3,
-            "array": ["a", "b", "c"],
+            "str_arr": ["a", "b", "c"],
+            "bool_arr": [True, False],
+            "int_arr": [5, 6],
+            "double_arr": [1.1, 2.2],
         }
 
         time1 = 123451
         name1 = "other_event"
-        attributes1 = {
-            "bool": False,
-            "int": 0,
-            "double": 0.0,
-            "array": [5, 6],
-        }
+        attributes1 = {"bool": False, "int": 0, "double": 0.0}
 
         with test_library:
             with test_library.otel_start_span("test") as s:
@@ -55,9 +53,22 @@ class Test_Span_Events:
         assert event["attributes"].get("bool") == {"type": 1, "bool_value": True}
         assert event["attributes"].get("int") == {"type": 2, "int_value": 1}
         assert event["attributes"].get("double") == {"type": 3, "double_value": 2.3}
-        assert event["attributes"].get("array") == {
+
+        assert event["attributes"].get("str_arr") == {
             "type": 4,
             "array_value": {"type": 0, "string_value": ["a", "b", "c"]},
+        }
+        assert event["attributes"].get("bool_arr") == {
+            "type": 4,
+            "array_value": {"type": 1, "bool_value": [True, False]},
+        }
+        assert event["attributes"].get("int_arr") == {
+            "type": 4,
+            "array_value": {"type": 2, "int_value": [5, 6]},
+        }
+        assert event["attributes"].get("double_arr") == {
+            "type": 4,
+            "array_value": {"type": 3, "double_value": [1.1, 2.2]},
         }
 
         event = span_events[1]
@@ -68,13 +79,12 @@ class Test_Span_Events:
         assert isinstance(event["attributes"].get("int").get("int"), int)
         assert event["attributes"].get("double") == {"type": 3, "double_value": 0.0}
         assert isinstance(event["attributes"].get("double").get("double"), float)
-        assert event["attributes"].get("array") == {"type": 4, "array_value": {"type": 2, "int_value": [5, 6]}}
 
     @pytest.mark.parametrize(
         "library_env", [{"DD_TRACE_API_VERSION": "v0.7"}],
     )
     def test_span_with_event_v07(self, library_env, test_agent, test_library):
-        """Test adding a span event in the v0.4 and v0.5, which support the native attribute representation.
+        """Test adding a span event in the v0.7 format, which support the native attribute representation.
         """
 
         self._test_span_with_event(library_env, test_agent, test_library, lambda span: span["span_events"])
@@ -83,7 +93,7 @@ class Test_Span_Events:
         "library_env", [{"DD_TRACE_API_VERSION": "v0.4"}],
     )
     def test_span_with_event_v04(self, library_env, test_agent, test_library):
-        """Test adding a span event in the v0.4 and v0.5, which support the native attribute representation.
+        """Test adding a span event in the v0.4 format, which support the native attribute representation.
         """
 
         self._test_span_with_event(library_env, test_agent, test_library, lambda span: span["span_events"])
