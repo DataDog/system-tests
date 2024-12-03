@@ -227,7 +227,7 @@ def _generate_cache_jobs(language, weblog_name, scenario_name, vms):
 
 def _generate_fpd_gitlab_script():
     fpd_push_script = [
-        'if [ "$CI_COMMIT_BRANCH" = "robertomonteromiguel/onboarding_parallel_ci" ]; then',
+        'if [ "$CI_COMMIT_BRANCH" = "main" ]; then',
         'export FP_IMPORT_URL=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.fp-import-url --with-decryption --query "Parameter.Value" --out text)',
         'export FP_API_KEY=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.fp-api-key --with-decryption --query "Parameter.Value" --out text)',
         "for folder in reports/logs*/ ; do",
@@ -236,7 +236,7 @@ def _generate_fpd_gitlab_script():
         "    if [ -e ${filename} ]",
         "    then",
         '      echo "Processing report: ${filename}"',
-        '      #curl -X POST ${FP_IMPORT_URL} --fail --header "Content-Type: application/json" --header "FP_API_KEY: ${FP_API_KEY}" --data "@${filename}" --include',
+        '      curl -X POST ${FP_IMPORT_URL} --fail --header "Content-Type: application/json" --header "FP_API_KEY: ${FP_API_KEY}" --data "@${filename}" --include',
         "    fi",
         "  done",
         "done",
