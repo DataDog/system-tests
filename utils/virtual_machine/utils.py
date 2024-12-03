@@ -122,7 +122,14 @@ def nginx_parser(nginx_config_file):
 
 
 def generate_gitlab_pipeline(
-    language, weblog_name, scenario_name, env, vms, installer_library_version, installer_injector_version
+    language,
+    weblog_name,
+    scenario_name,
+    env,
+    vms,
+    installer_library_version,
+    installer_injector_version,
+    is_one_pipeline,
 ):
     pipeline = {
         "include": [
@@ -192,6 +199,14 @@ def generate_gitlab_pipeline(
                     + vm.name,
                 ],
             }
+            if is_one_pipeline:
+                # If it's a one pipeline, we need to clone the system-tests repo and the job is going to be executed automatically
+                pipeline[f"{vm.name}_{weblog_name}_{scenario_name}"]["rules"] = []
+                pipeline[f"{vm.name}_{weblog_name}_{scenario_name}"]["script"].insert(
+                    0, "git clone https://git@github.com/DataDog/system-tests.git system-tests"
+                )
+                pipeline[f"{vm.name}_{weblog_name}_{scenario_name}"]["script"].insert(1, "cd system-tests")
+
     # Cache management for the pipeline
     pipeline["stages"].append("Cache")
     pipeline.update(_generate_cache_jobs(language, weblog_name, scenario_name, vms))
