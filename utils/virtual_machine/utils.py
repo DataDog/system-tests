@@ -206,10 +206,10 @@ def generate_gitlab_pipeline(
                     0, "git clone https://git@github.com/DataDog/system-tests.git system-tests"
                 )
                 pipeline[f"{vm.name}_{weblog_name}_{scenario_name}"]["script"].insert(1, "cd system-tests")
-
-    # Cache management for the pipeline
-    pipeline["stages"].append("Cache")
-    pipeline.update(_generate_cache_jobs(language, weblog_name, scenario_name, vms))
+            else:
+                # Cache management for the pipeline
+                pipeline["stages"].append("Cache")
+                pipeline.update(_generate_cache_jobs(language, weblog_name, scenario_name, vms))
 
     return pipeline
 
