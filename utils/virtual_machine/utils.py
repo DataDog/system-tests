@@ -201,7 +201,7 @@ def generate_gitlab_pipeline(
             }
             if is_one_pipeline:
                 # If it's a one pipeline, we need to clone the system-tests repo and the job is going to be executed automatically
-                pipeline[f"{vm.name}_{weblog_name}_{scenario_name}"]["rules"] = []
+                pipeline[f"{vm.name}_{weblog_name}_{scenario_name}"]["rules"] = [{"when": "always"}]
                 pipeline[f"{vm.name}_{weblog_name}_{scenario_name}"]["script"].insert(
                     0, "git clone https://git@github.com/DataDog/system-tests.git system-tests"
                 )
