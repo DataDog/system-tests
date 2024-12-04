@@ -36,6 +36,11 @@ public abstract class ApmTestApi
     private static readonly Type TracerManagerType = Type.GetType("Datadog.Trace.TracerManager, Datadog.Trace", throwOnError: true)!;
     private static readonly Type GlobalSettingsType = Type.GetType("Datadog.Trace.Configuration.GlobalSettings, Datadog.Trace", throwOnError: true)!;
     private static readonly Type ImmutableTracerSettingsType = Type.GetType("Datadog.Trace.Configuration.ImmutableTracerSettings, Datadog.Trace", throwOnError: true)!;
+    private static readonly Type SpanContextPropagatorType = Type.GetType("Datadog.Trace.Propagators.SpanContextPropagator, Datadog.Trace", throwOnError: true)!;
+    private static readonly Type PropagationContextType = Type.GetType("Datadog.Trace.Propagators.PropagationContext, Datadog.Trace", throwOnError: true)!;
+
+    // Duck types
+    private static readonly Type IDuckType = Type.GetType("Datadog.Trace.DuckTyping.IDuckType, Datadog.Trace", throwOnError: true)!;
 
     // Propagator types
     internal static readonly Type W3CTraceContextPropagatorType = Type.GetType("Datadog.Trace.Propagators.W3CTraceContextPropagator, Datadog.Trace", throwOnError: true)!;
@@ -51,6 +56,7 @@ public abstract class ApmTestApi
     internal static readonly FieldInfo GetStatsAggregator = AgentWriterType.GetField("_statsAggregator", BindingFlags.Instance | BindingFlags.NonPublic)!;
     private static readonly PropertyInfo SpanContext = SpanType.GetProperty("Context", BindingFlags.Instance | BindingFlags.NonPublic)!;
     private static readonly PropertyInfo Origin = SpanContextType.GetProperty("Origin", BindingFlags.Instance | BindingFlags.NonPublic)!;
+    private static readonly PropertyInfo GetSpanContextPropagatorInstance = SpanContextPropagatorType.GetProperty("Instance", BindingFlags.Static | BindingFlags.Public)!;
 
     internal static readonly PropertyInfo SamplingPriority = SpanContextType.GetProperty("SamplingPriority", BindingFlags.Instance | BindingFlags.NonPublic)!;
     internal static readonly PropertyInfo RawTraceId = SpanContextType.GetProperty("RawTraceId", BindingFlags.Instance | BindingFlags.NonPublic)!;
@@ -62,16 +68,29 @@ public abstract class ApmTestApi
     internal static readonly PropertyInfo GetTracerInstance = TracerType.GetProperty("Instance", BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public)!;
     internal static readonly PropertyInfo GetTracerSettings = TracerType.GetProperty("Settings", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public)!;
     internal static readonly PropertyInfo GetDebugEnabled = GlobalSettingsType.GetProperty("DebugEnabled", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public)!;
+    internal static readonly FieldInfo GetPropagationContextLinks = PropagationContextType.GetField("Links", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public)!;
+    internal static readonly PropertyInfo GetDuckTypeInstance = IDuckType.GetProperty("Instance", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public)!;
 
     // Propagator methods
     internal static readonly MethodInfo W3CTraceContextCreateTraceStateHeader = W3CTraceContextPropagatorType.GetMethod("CreateTraceStateHeader", BindingFlags.Static | BindingFlags.NonPublic)!;
+    internal static readonly MethodInfo SpanContextPropagatorExtractWithFunc = SpanContextPropagatorType.GetMethods(BindingFlags.Instance | BindingFlags.Public)
+                                                                                                        .Single(mi => mi.Name == "Extract"
+                                                                                                                      && mi.IsGenericMethodDefinition
+                                                                                                                      && mi.GetParameters().Length == 2
+                                                                                                                      && mi.GetGenericArguments().Length == 1
+                                                                                                                      && mi.GetParameters()[0].ParameterType == mi.GetGenericArguments()[0])
+                                                                                                        .MakeGenericMethod(typeof(string[][]));
+
+    // Span methods
+    internal static readonly MethodInfo AddSpanLink = SpanType.GetMethod("AddSpanLink", BindingFlags.Instance | BindingFlags.NonPublic)!;
 
     // StatsAggregator flush methods
     private static readonly MethodInfo StatsAggregatorDisposeAsync = StatsAggregatorType.GetMethod("DisposeAsync", BindingFlags.Instance | BindingFlags.Public)!;
     private static readonly MethodInfo StatsAggregatorFlush = StatsAggregatorType.GetMethod("Flush", BindingFlags.Instance | BindingFlags.NonPublic)!;
 
     private static readonly Dictionary<ulong, ISpan> Spans = new();
-    private static readonly Dictionary<ulong, Datadog.Trace.ISpanContext> DDContexts = new();
+    private static readonly Dictionary<ulong, PropagationContext> DDContexts = new();
+    private static readonly Random RNG = new();
 
     internal static ILogger<ApmTestApi>? _logger;
 
@@ -109,13 +128,15 @@ public abstract class ApmTestApi
             FinishOnClose = false,
         };
 
+        System.Collections.IEnumerable? links = null;
         if (parsedDictionary!.TryGetValue("parent_id", out var parentId) && parentId is not null)
         {
             var longParentId = Convert.ToUInt64(parentId);
             if(Spans.TryGetValue(longParentId, out var parentSpan)) {
                 creationSettings.Parent = parentSpan.Context;
             } else if (DDContexts.TryGetValue(longParentId, out var ddContext)) {
-                creationSettings.Parent = ddContext;
+                creationSettings.Parent = ddContext.SpanContext;
+                links = ddContext.Links;
             } else {
                 throw new Exception($"Parent span with id {longParentId} not found");
             }
@@ -148,6 +169,14 @@ public abstract class ApmTestApi
                 var value = (string?)tag[1];
 
                 span.SetTag(key, value);
+            }
+        }
+
+        if (links is not null)
+        {
+            foreach (var link in links)
+            {
+                AddSpanLink.Invoke(GetDuckTypeInstance.GetValue(span), new object[] { link });
             }
         }
 
@@ -219,12 +248,41 @@ public abstract class ApmTestApi
             getter: GetHeaderValues
         );
 
+        if (GetSpanContextPropagatorInstance is null)
+        {
+            throw new NullReferenceException("GetSpanContextPropagatorInstance is null");
+        }
+
+        if (SpanContextPropagatorExtractWithFunc is null)
+        {
+            throw new NullReferenceException("SpanContextPropagatorExtractWithFunc is null");
+        }
+
+        // Invoke our internal SpanContextPropagator.Extract<TCarrier>(TCarrier carrier, Func<TCarrier, string, IEnumerable<string?>> getter) => PropagationContext
+        // because we do not publicly expose the API's that return the PropagationContext type (which now includes a field of SpanLink's)
+        var spanContextPropagator = GetSpanContextPropagatorInstance.GetValue(null);
+        var automaticPropagationContext = SpanContextPropagatorExtractWithFunc.Invoke(spanContextPropagator, new object[] { headersList.ToObject<string[][]>()!, GetHeaderValues });
+
+        UInt64 spanId = default;
         String extractedSpanId = null;
         if (extractedContext is not null)
         {
-            DDContexts[extractedContext.SpanId] = extractedContext;
+            spanId = extractedContext.SpanId;
             extractedSpanId = extractedContext.SpanId.ToString();
         }
+        else
+        {
+            // In this case, generate a new 64-bit ID for tracking this call
+            do
+            {
+                spanId = NextUInt64(RNG);
+                extractedSpanId = spanId.ToString();
+            }
+            while (DDContexts.ContainsKey(spanId));
+        }
+
+        var propagationContext = new PropagationContext(extractedContext, GetPropagationContextLinks.GetValue(automaticPropagationContext) as System.Collections.IEnumerable);
+        DDContexts[spanId] = propagationContext;
 
         return JsonConvert.SerializeObject(new
         {
@@ -365,5 +423,12 @@ public abstract class ApmTestApi
         var keyFound = parsedDictionary!.TryGetValue(keyToFind, out var foundValue);
 
         return keyFound ? foundValue! : String.Empty;
+    }
+
+    internal static UInt64 NextUInt64(Random rnd)
+    {
+        var buffer = new byte[sizeof(UInt64)];
+        rnd.NextBytes(buffer);
+        return BitConverter.ToUInt64(buffer, 0);
     }
 }
