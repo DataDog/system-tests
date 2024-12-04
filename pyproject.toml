@@ -47,9 +47,6 @@ allow_no_feature_nodes = [
 ]
 
 allow_no_jira_ticket_for_bugs = [
-
-    # agent
-    "tests/test_schemas.py::Test_Agent.test_agent_schema_telemetry_main_payload",
 ]
 
 [tool.mypy]
