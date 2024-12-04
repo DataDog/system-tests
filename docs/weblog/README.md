@@ -86,6 +86,27 @@ The following text may be written to the body of the response:
 Hello world!\n
 ```
 
+### GET /api_security/sampling/%i
+
+This endpoint is used for API security sampling and must accept a parameter `i` as an integer.
+
+The response body may contain the following text:
+
+```
+Hello!\n
+```
+
+### GET /api_security_sampling/%i
+
+This endpoint is used in conjunction with `GET /api_security/sampling/%i` for API security sampling and must accept a parameter `i` as an integer.
+
+The response body may contain the following text:
+
+```
+OK\n
+```
+
+
 ### GET /spans
 
 The endpoint may accept two query string parameters:

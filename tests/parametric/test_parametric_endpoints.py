@@ -501,12 +501,12 @@ class Test_Parametric_OtelSpan_Start:
                 pass
 
             with test_library.otel_start_span(
-                "otel_start_span_child",
-                1730393556000000,
-                SpanKind.SERVER,
-                s1.span_id,
-                [Link(parent_id=s2.span_id, attributes={"link.key": "value"})],
-                {"attr_key": "value"},
+                name="otel_start_span_child",
+                timestamp=1730393556000000,
+                span_kind=SpanKind.SERVER,
+                parent_id=s1.span_id,
+                links=[Link(parent_id=s2.span_id, attributes={"link.key": "value"})],
+                attributes={"attr_key": "value"},
             ) as s3:
                 pass
 

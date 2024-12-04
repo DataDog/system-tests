@@ -1,4 +1,4 @@
-Whether it's adding a new test or modifying an existing test, a moderate amount of effort will be required. The instructions below cater to end-to-end tests, refer to [placeholder] (TODO: LINK to parametric_contributing.md) for parametric-specific instructions.
+Whether it's adding a new test or modifying an existing test, a moderate amount of effort will be required. The instructions below cater to end-to-end tests, refer to [the parametric contributing doc](/docs/scenarios/parametric_contributing.md)for parametric-specific instructions.
 
 Once the changes are complete, post them in a PR.
 

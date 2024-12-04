@@ -70,6 +70,9 @@ class HttpResponse:
     def serialize(self) -> dict:
         return self._data | {"__class__": "HttpResponse"}
 
+    def __repr__(self) -> str:
+        return f"HttpResponse(status_code:{self.status_code}, headers:{self.headers}, text:{self.text})"
+
 
 class _Weblog:
     def __init__(self):

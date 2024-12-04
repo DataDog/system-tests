@@ -123,7 +123,11 @@ jobs:
         SYSTEM_TESTS_AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
     - name: Run PROFILING scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"PROFILING"')
-      run: ./run.sh PROFILING
+      run: |
+        cat /proc/sys/kernel/perf_event_paranoid
+        sudo sysctl kernel.perf_event_paranoid=1
+        sudo sysctl -p
+        ./run.sh PROFILING
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run TRACE_PROPAGATION_STYLE_W3C scenario
@@ -178,6 +182,12 @@ jobs:
     - name: Run REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD_NOCACHE scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD_NOCACHE"')
       run: ./run.sh REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD_NOCACHE
+    - name: Run AGENT_SUPPORTING_SPAN_EVENTS scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, 'AGENT_SUPPORTING_SPAN_EVENTS') && (inputs.library != 'ruby' || matrix.weblog == 'rack')
+      run: ./run.sh AGENT_SUPPORTING_SPAN_EVENTS
+    - name: Run AGENT_NOT_SUPPORTING_SPAN_EVENTS scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, 'AGENT_NOT_SUPPORTING_SPAN_EVENTS') && (inputs.library != 'ruby' || matrix.weblog == 'rack')
+      run: ./run.sh AGENT_NOT_SUPPORTING_SPAN_EVENTS
     - name: Run APPSEC_MISSING_RULES scenario
       # C++ 1.2.0 freeze when the rules file is missing
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_MISSING_RULES"') && inputs.library != 'cpp'
@@ -242,6 +252,9 @@ jobs:
     - name: Run APPSEC_RASP scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_RASP"')
       run: ./run.sh APPSEC_RASP
+    - name: Run APPSEC_META_STRUCT_DISABLED scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_META_STRUCT_DISABLED"')
+      run: ./run.sh APPSEC_META_STRUCT_DISABLED
     - name: Run SAMPLING scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"SAMPLING"')
       run: ./run.sh SAMPLING

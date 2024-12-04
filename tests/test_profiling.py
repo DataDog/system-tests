@@ -32,31 +32,29 @@ class Test_Profile:
 
     def test_library(self):
         """ All profiling libraries payload have start and end fields"""
-        requests = list(interfaces.library.get_profiling_data())
-        self._check_requests(requests)
+        interfaces.library.validate_profiling(self._validate_data)
 
     def setup_agent(self):
         self._common_setup()
 
     def test_agent(self):
         """ All profiling agent payload have recording-start and recording-end fields"""
-        requests = list(interfaces.agent.get_profiling_data())
-        self._check_requests(requests)
+        interfaces.agent.validate_profiling(self._validate_data)
 
-    def _check_requests(self, requests):
-        assert len(requests) > 0, "No profiling requests"
+    @staticmethod
+    def _validate_data(data):
+        content = data["request"]["content"]
 
-        # Requests are multipart, and content is a list
-        requests = [r["request"]["content"] for r in requests]
-        requests = [r for r in requests if isinstance(r, list)]
-        # Flatten list
-        requests = [r for sublist in requests for r in sublist]
+        for part in content:
+            headers = {k.lower(): v for k, v in part["headers"].items()}
+            if 'name="event"' in headers.get("content-disposition", ""):
+                part_content = part["content"]
 
-        requests = [r for r in requests if 'name="event"' in r["headers"].get("Content-Disposition", "")]
-        assert len(requests) > 0, "No profiling event requests"
-        for req in requests:
-            content = req["content"]
-            assert "start" in content, "No start field"
-            assert "end" in content, "No end field"
-            assert re.fullmatch(TIMESTAMP_PATTERN, content["start"])
-            assert re.fullmatch(TIMESTAMP_PATTERN, content["end"])
+                assert "start" in part_content, "No start field"
+                assert "end" in part_content, "No end field"
+                assert re.fullmatch(TIMESTAMP_PATTERN, part_content["start"])
+                assert re.fullmatch(TIMESTAMP_PATTERN, part_content["end"])
+
+                return True
+
+        raise ValueError("No profiling event requests")

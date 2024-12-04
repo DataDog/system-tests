@@ -190,6 +190,18 @@ def sample_rate(i):
     return "OK"
 
 
+@app.route("/api_security_sampling/<i>")
+def api_security_sampling(i):
+    return "OK"
+
+
+@app.route(
+    "/api_security/sampling/<int:status_code>", methods=["GET"],
+)
+def api_security_sampling_status(*args, **kwargs):
+    return Response("Hello!", status=kwargs["status_code"])
+
+
 _TRACK_CUSTOM_APPSEC_EVENT_NAME = "system_tests_appsec_event"
 
 

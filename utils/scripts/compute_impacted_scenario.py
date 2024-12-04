@@ -160,6 +160,8 @@ def main():
                     r"utils/_context/_scenarios/integrations\.py": ScenarioGroup.INTEGRATIONS.value,
                     #### Docker SSI case
                     r"utils/docker_ssi/.*": ScenarioGroup.DOCKER_SSI.value,
+                    ### Profiling case
+                    r"utils/_context/_scenarios/profiling\.py": ScenarioGroup.PROFILING.value,
                     ### else, run all
                     r"utils/.*": ScenarioGroup.ALL.value,
                     ## few files with no effect

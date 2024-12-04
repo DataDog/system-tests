@@ -184,7 +184,7 @@ class Test_RemoteConfigurationUpdateSequenceFeatures(RemoteConfigurationFieldsBa
         context.library >= "java@1.4.0" and context.agent_version < "1.8.0" and context.appsec_rules_file is not None,
         reason="APMRP-360",  # ASM_FEATURES was not subscribed when a custom rules file was present
     )
-    @bug(library="golang", reason="missing update file datadog/2/ASM_FEATURES/ASM_FEATURES-third/config")
+    @bug(library="golang", reason="APPSEC-56064")
     @bug(context.library < "java@1.13.0", reason="APMRP-360")
     def test_tracer_update_sequence(self):
         """test update sequence, based on a scenario mocked in the proxy"""

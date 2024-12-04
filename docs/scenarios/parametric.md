@@ -50,10 +50,10 @@ def test_datadog_spans(library_env, test_library, test_agent):
 ```
 
 - This test case runs against all the APM libraries and is parameterized with two different environments specifying two different values of the environment variable `DD_ENV`.
-- The test case creates a new span and sets a tag on it using the shared GRPC/HTTP interface.
-- The implementations of the GRPC/HTTP interface, by language, are in `utils/build/docker/<lang>/parametric`.
+- `test_library.dd_start_span` creates a new span using the shared HTTP interface.
+- The request is sent to a HTTP server by language. Implementations can be found in `utils/build/docker/<lang>/parametric`. More information in [Http Server Implementations](#http-server-implementations).
 - Data is flushed to the test agent after the with test_library block closes.
-- Data is retrieved using the `test_agent` fixture and asserted on.
+- Data (usually traces) are retrieved using the `test_agent` fixture and we assert that they look the way we'd expect.
 
 
 ## Usage
@@ -93,7 +93,7 @@ TEST_LIBRARY=dotnet ./run.sh PARAMETRIC -k test_metrics_
 Tests can be aborted using CTRL-C but note that containers maybe still be running and will have to be shut down.
 
 ### Running the tests for a custom tracer
-To run tests against custom tracers, refer to the [Binaries Documentation](../execute/binaries.md)
+To run tests against custom tracer builds, refer to the [Binaries Documentation](../execute/binaries.md)
 
 #### After Testing with a Custom Tracer:
 Note: Most of the ways to run system-tests with a custom tracer version involve modifying the binaries directory. Modifying the binaries will alter the tracer version used across your local computer. Once you're done testing with the custom tracer, ensure you **remove** it. For example for Python:
@@ -199,19 +199,23 @@ See the steps below in the HTTP section to run the Python server and view the sp
 ### Shared Interface
 
 To view the available HTTP endpoints , follow these steps:
+Note: These are based off of the Python tracer's http server which should be held as the standard example interface across implementations.
+
 
 1. `./utils/scripts/parametric/run_reference_http.sh`
 2. Navigate to http://localhost:8000/docs in your web browser to access the documentation.
 3. You can download the OpenAPI schema from http://localhost:8000/openapi.json. This schema can be imported into tools like [Postman](https://learning.postman.com/docs/integrations/available-integrations/working-with-openAPI/) or other API clients to facilitate development and testing.
+
+Not all endpoint implementations per language are up to spec with regards to their parameters and return values. To view endpoints that are not up to spec, see the [feature parity board](https://feature-parity.us1.prod.dog/#/?runDateFilter=7d&feature=339)
 
 ### Architecture: How System-tests work
 
 Below is an overview of how the testing architecture is structured:
 
 - Shared Tests in Python: We write shared test cases using Python's pytest framework. These tests are designed to be generic and interact with the tracers through an HTTP interface.
-- HTTP Servers in Docker: For each language tracer, we build and run an HTTP server within a Docker container. These servers expose the required endpoints defined in the OpenAPI schema and handle the tracer-specific logic.
+- [HTTP Servers in Docker](#http-server-implementations): For each language tracer, we build and run an HTTP server within a Docker container. These servers expose the required endpoints defined in the OpenAPI schema and handle the tracer-specific logic.
 - [Test Agent](https://github.com/DataDog/dd-apm-test-agent/) in Docker: We start a test agent in a separate Docker container. This agent collects data (such as spans and traces) submitted by the HTTP servers. It serves as a centralized point for aggregating and accessing test data.
-- Test Execution: The Python test cases use an HTTP client to communicate with the servers. The servers generate data based on the interactions, which is then sent to the test agent. The tests can query the test agent to retrieve  data (usually traces) and perform assertions to verify correct behavior.
+- Test Execution: The Python test cases use a [HTTP client](/utils/parametric/_library_client.py) to communicate with the servers. The servers generate data based on the interactions, which is then sent to the test agent. The tests can query the test agent to retrieve data (often traces) and perform assertions to verify correct behavior.
 
 An example of how to get a span from the test agent:
 ```python
@@ -219,6 +223,23 @@ span = find_only_span(test_agent.wait_for_num_traces(1))
 ```
 
 This architecture allows us to ensure that all tracers conform to the same interface and behavior, making it easier to maintain consistency across different languages and implementations.
+
+#### Http Server Implementations
+
+The http server implementations for each tracer can be found at the following locations:
+*Note:* For some languages there is both an Otel and a Datadog server. This is simply to separate the available Otel endpoints from the available Datadog endpoints that can be hit by the client. If a language only has a single server, then both endpoints for Otel and Datadog exist there.
+
+* [Python](/utils/build/docker/python/parametric/apm_test_client/server.py)
+* [Ruby](utils/build/docker/ruby/parametric/server.rb)
+* [Php](utils/build/docker/php/parametric/server.php)
+* [Nodejs](utils/build/docker/nodejs/parametric/server.js)
+* [Java Datadog](utils/build/docker/java/parametric/src/main/java/com/datadoghq/trace/opentracing/controller/OpenTracingController.java)
+* [Java Otel](utils/build/docker/java/parametric/src/main/java/com/datadoghq/trace/opentelemetry/controller/OpenTelemetryController.java)
+* [Dotnet Datadog](utils/build/docker/dotnet/parametric/Endpoints/ApmTestApi.cs)
+* [Dotnet Otel](utils/build/docker/dotnet/parametric/Endpoints/ApmTestApiOtel.cs)
+* [Go Datadog](utils/build/docker/golang/parametric/main.go)
+* [Go Otel](utils/build/docker/golang/parametric/otel.go)
+
 
 ![image](https://github.com/user-attachments/assets/fc144fc1-95aa-4d50-97c5-cda8fdbcefef)
 

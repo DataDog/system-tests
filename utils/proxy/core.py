@@ -72,6 +72,9 @@ class _RequestLogger:
         self.rc_api_enabled = os.environ.get("SYSTEM_TESTS_RC_API_ENABLED") == "True"
         self.span_meta_structs_disabled = os.environ.get("SYSTEM_TESTS_AGENT_SPAN_META_STRUCTS_DISABLED") == "True"
 
+        span_events = os.environ.get("SYSTEM_TESTS_AGENT_SPAN_EVENTS")
+        self.span_events = True if span_events == "True" else (False if span_events == "False" else None)
+
         self.rc_api_command = None
 
         # mimic the old API
@@ -295,6 +298,9 @@ class _RequestLogger:
             if self.span_meta_structs_disabled:
                 self._remove_meta_structs_support(flow)
 
+            if self.span_events is not None:
+                self._modify_span_events_flag(flow)
+
     def _remove_meta_structs_support(self, flow):
         if flow.request.path == "/info" and str(flow.response.status_code) == "200":
             c = json.loads(flow.response.content)
@@ -311,6 +317,19 @@ class _RequestLogger:
                 logger.info("    => Overwriting /info response to include /v0.7/config")
                 c["endpoints"].append("/v0.7/config")
                 flow.response.content = json.dumps(c).encode()
+
+    def _modify_span_events_flag(self, flow):
+        """
+        Modify the agent flag that signals support for native span event serialization.
+        There are three possible cases:
+        - Not configured: agent's response is not modified, the real agent behavior is preserved
+        - `true`: agent advertises support for native span events serialization
+        - `false`: agent advertises that it does not support native span events serialization
+        """
+        if flow.request.path == "/info" and str(flow.response.status_code) == "200":
+            c = json.loads(flow.response.content)
+            c["span_events"] = self.span_events
+            flow.response.content = json.dumps(c).encode()
 
 
 def start_proxy() -> None:

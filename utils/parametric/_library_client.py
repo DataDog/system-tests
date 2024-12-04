@@ -1,4 +1,5 @@
 # pylint: disable=E1101
+# pylint: disable=too-many-lines
 import contextlib
 import time
 import urllib.parse
@@ -33,6 +34,12 @@ class SpanResponse(TypedDict):
 
 class Link(TypedDict):
     parent_id: int
+    attributes: dict
+
+
+class Event(TypedDict):
+    time_unix_nano: int
+    name: str
     attributes: dict
 
 
@@ -191,6 +198,12 @@ class APMLibraryClient:
             json={"span_id": span_id, "parent_id": parent_id, "attributes": attributes or {},},
         )
 
+    def span_add_event(self, span_id: int, name: str, timestamp: int, attributes: dict = None):
+        self._session.post(
+            self._url("/trace/span/add_event"),
+            json={"span_id": span_id, "name": name, "timestamp": timestamp, "attributes": attributes or {},},
+        )
+
     def span_get_baggage(self, span_id: int, key: str) -> str:
         resp = self._session.get(self._url("/trace/span/get_baggage"), json={"span_id": span_id, "key": key,},)
         resp = resp.json()
@@ -224,6 +237,7 @@ class APMLibraryClient:
         span_kind: Optional[SpanKind],
         parent_id: Optional[int],
         links: Optional[List[Link]],
+        events: Optional[List[Event]],
         attributes: Optional[dict],
     ) -> StartSpanResponse:
         resp = self._session.post(
@@ -234,6 +248,7 @@ class APMLibraryClient:
                 "parent_id": parent_id,
                 "span_kind": span_kind.value if span_kind is not None else None,
                 "links": links or [],
+                "events": events or [],
                 "attributes": attributes or {},
             },
         ).json()
@@ -457,6 +472,7 @@ class APMLibrary:
         span_kind: Optional[SpanKind] = None,
         parent_id: Optional[int] = None,
         links: Optional[List[Link]] = None,
+        events: Optional[List[Event]] = None,
         attributes: Optional[dict] = None,
         end_on_exit: bool = True,
     ) -> Generator[_TestOtelSpan, None, None]:
@@ -466,6 +482,7 @@ class APMLibrary:
             span_kind=span_kind,
             parent_id=parent_id,
             links=links,
+            events=events if events is not None else [],
             attributes=attributes,
         )
         span = _TestOtelSpan(self._client, resp["span_id"], resp["trace_id"])

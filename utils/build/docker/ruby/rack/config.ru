@@ -257,6 +257,21 @@ class Users
   end
 end
 
+# TODO: This require shouldn't be needed. `SpanEvent` should be loaded by default.
+# TODO: This is likely a bug in the Ruby tracer.
+require 'datadog/tracing/span_event'
+
+# /add_event
+class AddEvent
+  def self.run(request)
+    Datadog::Tracing.active_span.span_events << Datadog::Tracing::SpanEvent.new(
+                'span.event', attributes: { string: 'value', int: 1 }
+              )
+
+    [200, { 'Content-Type' => 'application/json' }, ['Event added']]
+  end
+end
+
 # any other route
 class NotFound
   def self.run
@@ -299,6 +314,8 @@ app = proc do |env|
     TagValue.run(request)
   elsif request.path.include?('/users')
     Users.run(request)
+  elsif request.path == '/add_event'
+    AddEvent.run(request)
   else
     NotFound.run
   end

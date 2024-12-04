@@ -7,7 +7,6 @@ from subprocess import run
 import time
 from functools import lru_cache
 from threading import RLock, Thread
-from time import sleep
 
 import docker
 from docker.errors import APIError, DockerException
@@ -20,7 +19,8 @@ from utils.tools import logger
 from utils import interfaces
 from utils.k8s_lib_injection.k8s_weblog import K8sWeblog
 
-_FAKE_DD_API_KEY = "fakekey"
+# fake key of length 32
+_FAKE_DD_API_KEY = "0123456789abcdef0123456789abcdef"
 
 
 @lru_cache
@@ -482,7 +482,11 @@ class ImageInfo:
 
 
 class ProxyContainer(TestedContainer):
-    def __init__(self, host_log_folder, rc_api_enabled: bool, meta_structs_disabled: bool) -> None:
+    def __init__(self, host_log_folder, rc_api_enabled: bool, meta_structs_disabled: bool, span_events: bool) -> None:
+        """
+        Parameters:
+        span_events: Whether the agent supports the native serialization of span events
+        """
 
         super().__init__(
             image_name="datadog/system-tests:proxy-v1",
@@ -495,6 +499,7 @@ class ProxyContainer(TestedContainer):
                 "SYSTEM_TESTS_HOST_LOG_FOLDER": host_log_folder,
                 "SYSTEM_TESTS_RC_API_ENABLED": str(rc_api_enabled),
                 "SYSTEM_TESTS_AGENT_SPAN_META_STRUCTS_DISABLED": str(meta_structs_disabled),
+                "SYSTEM_TESTS_AGENT_SPAN_EVENTS": str(span_events),
             },
             working_dir="/app",
             volumes={
@@ -540,6 +545,12 @@ class AgentContainer(TestedContainer):
         )
 
         self.agent_version = ""
+
+    def configure(self, replay):
+        super().configure(replay)
+
+        if len(self.environment["DD_API_KEY"]) != 32:
+            logger.stdout("⚠️⚠️⚠️ DD_API_KEY is not 32 characters long, agent startup may be unstable")
 
     def get_image_list(self, library: str, weblog: str) -> list[str]:
         try:

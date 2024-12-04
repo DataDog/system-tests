@@ -2048,9 +2048,9 @@ class features:
         return test_object
 
     @staticmethod
-    def host_user_managed_block_list(test_object):
+    def host_block_list(test_object):
         """
-        A way to allow users to specify their own block lists
+        SSI block lists
 
         https://feature-parity.us1.prod.dog/#/?feature=276
         """
@@ -2268,6 +2268,16 @@ class features:
         return test_object
 
     @staticmethod
+    def security_events_metastruct(test_object):
+        """
+        Appsec meta struct
+
+        https://feature-parity.us1.prod.dog/#/?feature=314
+        """
+        pytest.mark.features(feature_id=314)(test_object)
+        return test_object
+
+    @staticmethod
     def host_auto_installation_script_profiling(test_object):
         """
         Profiling works when enabled through the agent installer script in Host environments
@@ -2388,6 +2398,16 @@ class features:
         return test_object
 
     @staticmethod
+    def rasp_command_injection(test_object):
+        """
+        Appsec RASP rule : command injection
+
+        https://feature-parity.us1.prod.dog/#/?feature=342
+        """
+        pytest.mark.features(feature_id=342)(test_object)
+        return test_object
+
+    @staticmethod
     def debugger_exception_replay(test_object):
         """
         Exception replay
@@ -2486,4 +2506,14 @@ class features:
         https://feature-parity.us1.prod.dog/#/?feature=329
         """
         pytest.mark.features(feature_id=329)(test_object)
+        return test_object
+
+    @staticmethod
+    def djm_ssi_k8s(test_object):
+        """
+        Data Jobs Monitoring: Java lib auto instrumentation for Spark applications on K8s.
+
+        https://feature-parity.us1.prod.dog/#/?feature=342
+        """
+        pytest.mark.features(feature_id=342)(test_object)
         return test_object

@@ -9,7 +9,15 @@ class VirtualMachineProvisioner:
     """ Manages the provision parser for the virtual machines."""
 
     def remove_unsupported_machines(
-        self, library_name, weblog, required_vms, vm_provider_id, vm_only_branch, vm_skip_branches, only_default_vms
+        self,
+        library_name,
+        weblog,
+        required_vms,
+        vm_provider_id,
+        vm_only_branch,
+        vm_skip_branches,
+        only_default_vms,
+        vm_only,
     ):
         """ Remove unsupported machines based on the provision file, weblog, provider_id and local testing parameter: vm_only_branch  """
 
@@ -36,6 +44,11 @@ class VirtualMachineProvisioner:
             # Exclude by vm_only_branch
             if vm_only_branch and vm.os_branch != vm_only_branch:
                 logger.stdout(f"WARNING: Removed VM [{vm.name}] due to vm_only_branch directive")
+                vms_to_remove.append(vm)
+                continue
+            # Exclude by vm_only
+            if vm_only and vm.name != vm_only:
+                logger.stdout(f"WARNING: Removed VM [{vm.name}] due to vm_only directive")
                 vms_to_remove.append(vm)
                 continue
             # Exclude by vm_skip_branches
