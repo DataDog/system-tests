@@ -47,8 +47,6 @@ allow_no_feature_nodes = [
 ]
 
 allow_no_jira_ticket_for_bugs = [
-    "tests/k8s_lib_injection/test_k8s_init_image_validator.py::TestK8sInitImageValidator.test_valid_weblog_instrumented",
-    "tests/k8s_lib_injection/test_k8s_init_image_validator.py::TestK8sInitImageValidatorUnsupported.test_invalid_weblog_not_instrumented",
 
     # agent    
     "tests/test_schemas.py::Test_Agent.test_agent_schema_telemetry_main_payload",
