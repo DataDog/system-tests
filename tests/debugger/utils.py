@@ -172,7 +172,11 @@ class _Base_Debugger_Test:
 
         all_probes_installed = False
 
-        log_number = int(re.search(r"/(\d+)__", data["log_filename"]).group(1))
+        log_filename_found = re.search(r"/(\d+)__", data["log_filename"])
+        if not log_filename_found:
+            return False
+        
+        log_number = int(log_filename_found.group(1))
         if log_number > _Base_Debugger_Test._last_read:
             _Base_Debugger_Test._last_read = log_number
 
