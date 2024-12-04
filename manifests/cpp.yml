@@ -99,9 +99,7 @@ tests/:
     test_debugger_pii.py:
       Test_Debugger_PII_Redaction: irrelevant
     test_debugger_probe_snapshot.py:
-      Test_Debugger_Line_Probe_Snaphots: irrelevant
-      Test_Debugger_Method_Probe_Snaphots: irrelevant
-      Test_Debugger_Mix_Log_Probe: irrelevant
+      Test_Debugger_Probe_Snaphots: irrelevant
     test_debugger_probe_status.py:
       Test_Debugger_Probe_Statuses: irrelevant
   integrations/:
