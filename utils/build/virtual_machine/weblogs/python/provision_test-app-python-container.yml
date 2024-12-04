@@ -1,7 +1,8 @@
 weblog:
     name: test-app-python-container
     runtime_version: 3.12
-    install: 
+    excluded_os_branches: [debian10]
+    install:
       - os_type: linux
         copy_files:
           - name: copy-container-run-script
