@@ -8,15 +8,21 @@ from docker_ssi_definitions import ALL_WEBLOGS
 
 def generate_gitlab_pipeline(languages):
     pipeline = {
-        "stages": ["dummy"],
+        "stages": ["configure"],
         # A dummy job is necessary for cases where all of the test jobs are manual
         # The child pipeline shows as failed until at least 1 job is run
-        "dummy": {
-            "image": "registry.ddbuild.io/docker:20.10.13-gbi-focal",
+        "configure": {
+            "image": "486234852809.dkr.ecr.us-east-1.amazonaws.com/ci/test-infra-definitions/runner:6dd143866d67",
             "tags": ["arch:amd64"],
-            "stage": "dummy",
+            "stage": "configure",
             "dependencies": [],
-            "script": ["echo 'DONE'"],
+            "script": [
+                'export FP_IMPORT_URL=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.fp-import-url --with-decryption --query "Parameter.Value" --out text)',
+                'export FP_API_KEY=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.fp-api-key --with-decryption --query "Parameter.Value" --out text)',
+                'echo "FP_IMPORT_URL=${FP_IMPORT_URL}" >> fpd.env',
+                'echo "FP_API_KEY=${FP_API_KEY}" >> fpd.env',
+            ],
+            "artifacts": {"reports": {"dotenv": "fpd.env"}},
         },
         ".base_ssi_job": {
             "image": "registry.ddbuild.io/ci/libdatadog-build/system-tests:48436362",
@@ -40,6 +46,7 @@ def generate_gitlab_pipeline(languages):
                 'cleaned_runtime=$(echo "$installable_runtime" | tr -cd "[:alnum:]_")',
                 'mv "$REPORTS_PATH"/logs_"${SCENARIO_SUFIX}" "$REPORTS_PATH"/logs_"${TEST_LIBRARY}"_"${weblog}"_"${SCENARIO_SUFIX}_${cleaned_base_image}_${cleaned_arch}_${cleaned_runtime}"',
             ],
+            "needs": [{"job": "configure", "artifacts": True}],
             "artifacts": {"when": "always", "paths": ["reports/"]},
         },
     }
@@ -68,8 +75,6 @@ def generate_gitlab_pipeline(languages):
                 "tags": ["runner:$runner"],
                 "stage": language if len(languages) > 1 else "DOCKER_SSI",
                 "allow_failure": True,
-                # "dependencies": [],
-                "needs": [],
                 "variables": {"TEST_LIBRARY": language,},
                 "parallel": {"matrix": matrix},
             }
@@ -78,16 +83,14 @@ def generate_gitlab_pipeline(languages):
 
 def _generate_fpd_gitlab_script():
     fpd_push_script = [
-        'if [ "$CI_COMMIT_BRANCH" = "main" ]; then',
-        'export FP_IMPORT_URL=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.fp-import-url --with-decryption --query "Parameter.Value" --out text)',
-        'export FP_API_KEY=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.fp-api-key --with-decryption --query "Parameter.Value" --out text)',
+        'if [ "$CI_COMMIT_BRANCH" = "robertomonteromiguel/docker_ssi_fix_fpd" ]; then',
         "for folder in reports/logs*/ ; do",
         '  echo "Checking folder: ${folder}"',
         "  for filename in ./${folder}feature_parity.json; do",
         "    if [ -e ${filename} ]",
         "    then",
-        '      echo "Processing report: ${filename}"',
-        '      curl -X POST ${FP_IMPORT_URL} --fail --header "Content-Type: application/json" --header "FP_API_KEY: ${FP_API_KEY}" --data "@${filename}" --include',
+        '      echo "Processing report: ${filename}- FPD URL: ${FP_IMPORT_URL}"',
+        '      #curl -X POST ${FP_IMPORT_URL} --fail --header "Content-Type: application/json" --header "FP_API_KEY: ${FP_API_KEY}" --data "@${filename}" --include',
         "    fi",
         "  done",
         "done",
