@@ -294,17 +294,29 @@ tests/:
           TestURI: missing_feature
     rasp/:
       test_cmdi.py:
-        Test_Cmdi_BodyJson: missing_feature
-        Test_Cmdi_BodyUrlEncoded: missing_feature
+        Test_Cmdi_BodyJson:
+          '*': *ref_5_29_0
+          nextjs: missing_feature
+        Test_Cmdi_BodyUrlEncoded:
+          '*': *ref_5_29_0
+          nextjs: missing_feature
         Test_Cmdi_BodyXml: missing_feature
-        Test_Cmdi_Capability: missing_feature
-        Test_Cmdi_Mandatory_SpanTags: missing_feature
-        Test_Cmdi_Optional_SpanTags: missing_feature
-        Test_Cmdi_Rules_Version: *ref_5_26_0
-        Test_Cmdi_StackTrace: missing_feature
-        Test_Cmdi_Telemetry: missing_feature
-        Test_Cmdi_Telemetry_Variant_Tag: missing_feature
-        Test_Cmdi_UrlQuery: missing_feature
+        Test_Cmdi_Capability: *ref_5_29_0
+        Test_Cmdi_Mandatory_SpanTags: *ref_5_29_0
+        Test_Cmdi_Optional_SpanTags: *ref_5_29_0
+        Test_Cmdi_Rules_Version: *ref_5_29_0
+        Test_Cmdi_StackTrace:
+          '*': *ref_5_29_0
+          nextjs: missing_feature
+        Test_Cmdi_Telemetry:
+          '*': *ref_5_29_0
+          nextjs: missing_feature
+        Test_Cmdi_Telemetry_Variant_Tag:
+          '*': *ref_5_29_0
+          nextjs: missing_feature
+        Test_Cmdi_UrlQuery:
+          '*': *ref_5_29_0
+          nextjs: missing_feature
         Test_Cmdi_Waf_Version: *ref_5_26_0
       test_lfi.py:
         Test_Lfi_BodyJson:
@@ -359,7 +371,7 @@ tests/:
           '*': *ref_5_25_0
           express5: *ref_5_29_0 # test uses express blocking
           nextjs: missing_feature
-        Test_Shi_Telemetry_Variant_Tag: missing_feature
+        Test_Shi_Telemetry_Variant_Tag: missing_feature # edit here
         Test_Shi_UrlQuery:
           '*': *ref_5_25_0
           express5: *ref_5_29_0
