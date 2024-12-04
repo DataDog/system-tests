@@ -52,9 +52,6 @@ allow_no_jira_ticket_for_bugs = [
 
     # agent    
     "tests/test_schemas.py::Test_Agent.test_agent_schema_telemetry_main_payload",
-
-    # cpp, olang, php, ruby , an error was in the deserialize function, probably no issue
-    "tests/test_profiling.py::Test_Profile",
     
     # only legit
     "tests/test_the_test/",

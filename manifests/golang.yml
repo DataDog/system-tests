@@ -601,8 +601,6 @@ tests/:
     Test_HeaderTags_Whitespace_Tag: v1.53.0
     Test_HeaderTags_Whitespace_Val_Long: v1.53.0
     Test_HeaderTags_Whitespace_Val_Short: v1.53.0
-  test_profiling.py:
-    Test_Profile: bug (Not receiving profiles)
   test_scrubbing.py:
     Test_UrlQuery: v1.40.0
   test_semantic_conventions.py:
