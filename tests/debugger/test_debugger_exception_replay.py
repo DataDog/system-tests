@@ -136,7 +136,13 @@ class Test_Debugger_Exception_Replay(debugger._Base_Debugger_Test):
                                 value[meta_key] = "<scrubbed>"
                                 continue
 
-                            if meta_key in ["http.request.headers.user-agent", "http.useragent", "thread.name", "network.client.ip", "http.client_ip"]:
+                            if meta_key in [
+                                "http.request.headers.user-agent",
+                                "http.useragent",
+                                "thread.name",
+                                "network.client.ip",
+                                "http.client_ip",
+                            ]:
                                 value[meta_key] = "<scrubbed>"
                                 continue
 
