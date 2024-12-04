@@ -7,7 +7,6 @@ from subprocess import run
 import time
 from functools import lru_cache
 from threading import RLock, Thread
-from time import sleep
 
 import docker
 from docker.errors import APIError, DockerException
@@ -546,6 +545,12 @@ class AgentContainer(TestedContainer):
         )
 
         self.agent_version = ""
+
+    def configure(self, replay):
+        super().configure(replay)
+
+        if len(self.environment["DD_API_KEY"]) != 32:
+            logger.stdout("⚠️⚠️⚠️ DD_API_KEY is not 32 characters long, agent startup may be unstable")
 
     def get_image_list(self, library: str, weblog: str) -> list[str]:
         try:
