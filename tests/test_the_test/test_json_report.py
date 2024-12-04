@@ -84,7 +84,7 @@ class Test_Json_Report:
         """the skip reason must be the closest to the test method"""
         test = self.get_test_fp("Test_Mock2::test_skipped")
         assert test["testDeclaration"] == "bug"
-        assert test["details"] == "bug (local reason)"
+        assert test["details"] == "bug (FAKE-002)"
 
     def test_xpassed(self):
         test = self.get_test_fp("Test_BugClass::test_xpassed_method")
@@ -130,8 +130,8 @@ class Test_Json_Report:
     def test_logs(self):
         assert f"DEBUG    {BASE_PATH}::Test_IrrelevantClass::test_method => irrelevant => skipped\n" in self.logs
         assert f"DEBUG    {BASE_PATH}::Test_Class::test_irrelevant_method => irrelevant => skipped\n" in self.logs
-        assert f"DEBUG    {BASE_PATH}::Test_FlakyClass::test_method => flaky => skipped\n" in self.logs
-        assert f"DEBUG    {BASE_PATH}::Test_Class::test_flaky_method => flaky => skipped\n" in self.logs
+        assert f"DEBUG    {BASE_PATH}::Test_FlakyClass::test_method => flaky (FAKE-001) => skipped\n" in self.logs
+        assert f"DEBUG    {BASE_PATH}::Test_Class::test_flaky_method => flaky (FAKE-001) => skipped\n" in self.logs
 
 
 @scenarios.mock_the_test
@@ -154,15 +154,15 @@ class Test_Mock:
 
 
 @scenarios.mock_the_test
-@bug(True, reason="global reason")
+@bug(True, reason="FAKE-001")
 class Test_Mock2:
-    @bug(True, reason="local reason")
+    @bug(True, reason="FAKE-002")
     def test_skipped(self):
         raise ValueError("Should not be executed")
 
 
 @scenarios.mock_the_test
-@bug(True)
+@bug(True, reason="FAKE-001")
 class Test_BugClass:
     def test_xpassed_method(self):
         """This test will be reported as xpassed"""
@@ -185,11 +185,11 @@ class Test_IrrelevantClass:
     def test_method(self):
         raise ValueError("Should not be executed")
 
-    @flaky(True)
+    @flaky(True, reason="FAKE-001")
     def test_flaky_method_in_irrelevant_class(self):
         raise ValueError("Should not be executed")
 
-    @bug(True)
+    @bug(True, reason="FAKE-001")
     def test_bug_method_in_irrelevant_class(self):
         raise ValueError("Should not be executed")
 
@@ -200,12 +200,12 @@ class Test_Class:
     def test_irrelevant_method(self):
         raise ValueError("Should not be executed")
 
-    @flaky(True)
+    @flaky(True, reason="FAKE-001")
     def test_flaky_method(self):
         raise ValueError("Should not be executed")
 
     @irrelevant(condition=False)
-    @flaky(condition=False)
+    @flaky(condition=False, reason="FAKE-001")
     def test_good_method(self):
         pass
 
@@ -220,7 +220,7 @@ class Test_Class:
         raise ValueError("Should not be executed")
 
 
-@flaky(True)
+@flaky(True, reason="FAKE-001")
 @scenarios.mock_the_test
 class Test_FlakyClass:
     def test_method(self):
