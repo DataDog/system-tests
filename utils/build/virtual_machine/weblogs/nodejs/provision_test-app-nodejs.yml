@@ -19,7 +19,6 @@ lang_variant:
         os_distro: rpm
         os_branch: centos_8_amd64
         remote-command: |
-          bbalbab
           #one of the default method for centos 8
           #https://www.digitalocean.com/community/tutorials/how-to-install-node-js-on-centos-8
           sudo dnf -y module enable nodejs:20

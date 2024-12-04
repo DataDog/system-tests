@@ -221,10 +221,7 @@ def generate_gitlab_pipeline(
                     0, "git clone https://git@github.com/DataDog/system-tests.git system-tests"
                 )
                 pipeline[f"{vm.name}_{weblog_name}_{scenario_name}"]["script"].insert(1, "cd system-tests")
-                pipeline[f"{vm.name}_{weblog_name}_{scenario_name}"]["script"].insert(
-                    2, "git checkout robertomonteromiguel/onboarding_check_failures"
-                )
-                
+
         if not is_one_pipeline:
             # Cache management for the system-tests pipeline
             pipeline["stages"].append("Cache")

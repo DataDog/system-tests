@@ -638,7 +638,7 @@ class Centos8amd64(_VirtualMachine):
             os_distro="rpm",
             os_branch="centos_8_amd64",
             os_cpu="amd64",
-            default_vm=True,
+            default_vm=False,
             **kwargs,
         )
 
