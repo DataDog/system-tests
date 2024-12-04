@@ -8,13 +8,11 @@ from docker_ssi_definitions import ALL_WEBLOGS
 
 def generate_gitlab_pipeline(languages):
     pipeline = {
-        "stages": ["configure"],
-        # A dummy job is necessary for cases where all of the test jobs are manual
-        # The child pipeline shows as failed until at least 1 job is run
+        "stages": ["DOCKER_SSI"],
         "configure": {
             "image": "486234852809.dkr.ecr.us-east-1.amazonaws.com/ci/test-infra-definitions/runner:6dd143866d67",
             "tags": ["arch:amd64"],
-            "stage": "configure",
+            "stage": "DOCKER_SSI",
             "dependencies": [],
             "script": [
                 'export FP_IMPORT_URL=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.fp-import-url --with-decryption --query "Parameter.Value" --out text)',
