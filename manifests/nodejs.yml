@@ -756,6 +756,9 @@ tests/:
     Test_Config_UnifiedServiceTagging_Default: *ref_5_25_0
   test_distributed.py:
     Test_DistributedHttp: missing_feature
+    Test_Synthetics_APM_Datadog:
+      '*': *ref_5_25_0
+      nextjs: bug (APMAPI-939) # the nextjs weblog application changes the sampling priority from 1.0 to 2.0
   test_identify.py:
     Test_Basic: v2.4.0
     Test_Propagate: *ref_3_2_0

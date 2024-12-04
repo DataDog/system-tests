@@ -586,6 +586,7 @@ tests/:
     Test_LibraryHeaders: v1.60.0.dev0
   test_distributed.py:
     Test_DistributedHttp: missing_feature
+    Test_Synthetics_APM_Datadog: bug (APMAPI-901) # the incoming headers are considered invalid
   test_identify.py:
     Test_Basic: v1.37.0
     Test_Propagate: v1.48.0-rc.1
