@@ -23,8 +23,8 @@ import (
 
 	"github.com/Shopify/sarama"
 
-	saramatrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/Shopify/sarama"
-	"gopkg.in/DataDog/dd-trace-go.v1/datastreams"
+	saramatrace "github.com/DataDog/dd-trace-go/contrib/Shopify/sarama/v2"
+	"github.com/DataDog/dd-trace-go/v2/datastreams"
 
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.opentelemetry.io/otel"
@@ -33,11 +33,11 @@ import (
 	"go.opentelemetry.io/otel/trace"
 	oteltrace "go.opentelemetry.io/otel/trace"
 
-	"gopkg.in/DataDog/dd-trace-go.v1/appsec"
-	httptrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/net/http"
-	ddotel "gopkg.in/DataDog/dd-trace-go.v1/ddtrace/opentelemetry"
-	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
-	ddtracer "gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
+	httptrace "github.com/DataDog/dd-trace-go/contrib/net/http/v2"
+	"github.com/DataDog/dd-trace-go/v2/appsec"
+	ddotel "github.com/DataDog/dd-trace-go/v2/ddtrace/opentelemetry"
+	"github.com/DataDog/dd-trace-go/v2/ddtrace/tracer"
+	ddtracer "github.com/DataDog/dd-trace-go/v2/ddtrace/tracer"
 )
 
 func main() {
