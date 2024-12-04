@@ -181,6 +181,25 @@ class JSRuntimeInstallableVersions:
         raise ValueError(f"Node.js version {version} not supported")
 
 
+class DotnetRuntimeInstallableVersions:
+    """ Python runtime versions that can be installed automatically"""
+
+    DOTNET90 = RuntimeInstallableVersion("DOTNET90", "9.0.100")
+
+    @staticmethod
+    def get_all_versions():
+        return [
+            DotnetRuntimeInstallableVersions.DOTNET90,
+        ]
+
+    @staticmethod
+    def get_version_id(version):
+        for version_check in DotnetRuntimeInstallableVersions.get_all_versions():
+            if version_check.version == version:
+                return version_check.version_id
+        raise ValueError(f".NET version {version} not supported")
+
+
 # HERE ADD YOUR WEBLOG DEFINITION: SUPPORTED IMAGES AND INSTALABLE RUNTIME VERSIONS
 # Maybe a weblog app contains preinstalled language runtime, in this case we define the weblog without runtime version
 JETTY_APP = WeblogDescriptor(
@@ -272,6 +291,16 @@ JS_APP = WeblogDescriptor(
     ],
 )
 
+DOTNET_APP = WeblogDescriptor(
+    "dotnet-app",
+    "dotnet",
+    [
+        SupportedImages().UBUNTU_22_AMD64.with_allowed_runtime_versions(
+            DotnetRuntimeInstallableVersions.get_all_versions()
+        ),        
+    ],
+)
+
 # HERE ADD YOUR WEBLOG DEFINITION TO THE LIST
 ALL_WEBLOGS = [
     JETTY_APP,
@@ -282,4 +311,5 @@ ALL_WEBLOGS = [
     PHP_APP,
     PY_APP,
     JS_APP,
+    DOTNET_APP,
 ]
