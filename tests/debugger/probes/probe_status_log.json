@@ -3,6 +3,7 @@
     "language": "",
     "type": "",
     "id": "loga0cf2-meth-45cf-9f39-591received",
+    "version": 0,
     "where": {
       "typeName": "NotReallyExists",
       "methodName": "SomeMethod",
@@ -14,6 +15,7 @@
     "language": "",
     "type": "",
     "id": "loga0cf2-meth-45cf-9f39-59installed",
+    "version": 0,
     "where": {
       "typeName": "ACTUAL_TYPE_NAME",
       "methodName": "LogProbe",
@@ -25,6 +27,7 @@
     "language": "",
     "type": "",
     "id": "loga0cf2-line-45cf-9f39-59installed",
+    "version": 0,
     "where": {
       "typeName": null,
       "sourceFile": "ACTUAL_SOURCE_FILE",
