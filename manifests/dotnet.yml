@@ -347,9 +347,7 @@ tests/:
     test_debugger_pii.py:
       Test_Debugger_PII_Redaction: v2.50.0
     test_debugger_probe_snapshot.py:
-      Test_Debugger_Line_Probe_Snaphots: v2.53.0
-      Test_Debugger_Method_Probe_Snaphots: v2.53.0
-      Test_Debugger_Mix_Log_Probe: v2.53.0
+      Test_Debugger_Probe_Snaphots: v2.53.0
     test_debugger_probe_status.py:
       Test_Debugger_Probe_Statuses: v2.53.0
   integrations/:
