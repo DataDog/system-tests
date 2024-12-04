@@ -196,7 +196,7 @@ def generate_gitlab_pipeline(
                 if is_one_pipeline
                 else ".base_job_onboarding_system_tests",
                 "stage": scenario_name,
-                "allow_failure": False if is_one_pipeline else True,
+                "allow_failure": False,
                 "needs": [],
                 "variables": {
                     "TEST_LIBRARY": language,
@@ -210,7 +210,7 @@ def generate_gitlab_pipeline(
                 "rules": [rule_run, {"when": "manual", "allow_failure": True},],
                 "script": [
                     "./build.sh -i runner",
-                    "./run.sh $SCENARIO --vm-weblog $WEBLOG --vm-env $ONBOARDING_FILTER_ENV --vm-library $TEST_LIBRARY --vm-provider aws --report-run-url $CI_PIPELINE_URL --report-environment $ONBOARDING_FILTER_ENV --vm-default-vms All --vm-only "
+                    "timeout 3000 ./run.sh $SCENARIO --vm-weblog $WEBLOG --vm-env $ONBOARDING_FILTER_ENV --vm-library $TEST_LIBRARY --vm-provider aws --report-run-url $CI_PIPELINE_URL --report-environment $ONBOARDING_FILTER_ENV --vm-default-vms All --vm-only "
                     + vm.name,
                 ],
             }
@@ -221,10 +221,11 @@ def generate_gitlab_pipeline(
                     0, "git clone https://git@github.com/DataDog/system-tests.git system-tests"
                 )
                 pipeline[f"{vm.name}_{weblog_name}_{scenario_name}"]["script"].insert(1, "cd system-tests")
-            else:
-                # Cache management for the pipeline
-                pipeline["stages"].append("Cache")
-                pipeline.update(_generate_cache_jobs(language, weblog_name, scenario_name, vms))
+
+        if not is_one_pipeline:
+            # Cache management for the system-tests pipeline
+            pipeline["stages"].append("Cache")
+            pipeline.update(_generate_cache_jobs(language, weblog_name, scenario_name, vms))
 
     return pipeline
 
