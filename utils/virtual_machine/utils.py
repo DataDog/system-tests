@@ -210,7 +210,7 @@ def generate_gitlab_pipeline(
                 "rules": [rule_run, {"when": "manual", "allow_failure": True},],
                 "script": [
                     "./build.sh -i runner",
-                    "./run.sh $SCENARIO --vm-weblog $WEBLOG --vm-env $ONBOARDING_FILTER_ENV --vm-library $TEST_LIBRARY --vm-provider aws --report-run-url $CI_PIPELINE_URL --report-environment $ONBOARDING_FILTER_ENV --vm-default-vms All --vm-only "
+                    "timeout 3000 ./run.sh $SCENARIO --vm-weblog $WEBLOG --vm-env $ONBOARDING_FILTER_ENV --vm-library $TEST_LIBRARY --vm-provider aws --report-run-url $CI_PIPELINE_URL --report-environment $ONBOARDING_FILTER_ENV --vm-default-vms All --vm-only "
                     + vm.name,
                 ],
             }
