@@ -138,7 +138,14 @@ class _RequestLogger:
 
         self.original_ports[flow.id] = flow.request.port
 
-        if flow.request.port in (PORT_WEBLOG, PORT_PYTHON_BUDDY, PORT_NODEJS_BUDDY, PORT_JAVA_BUDDY, PORT_RUBY_BUDDY, PORT_GOLANG_BUDDY):
+        if flow.request.port in (
+            PORT_WEBLOG,
+            PORT_PYTHON_BUDDY,
+            PORT_NODEJS_BUDDY,
+            PORT_JAVA_BUDDY,
+            PORT_RUBY_BUDDY,
+            PORT_GOLANG_BUDDY,
+        ):
 
             if flow.request.headers.get("dd-protocol") == "otlp":
                 # OTLP ingestion
@@ -191,7 +198,7 @@ class _RequestLogger:
                 port = self.original_ports[flow.id]
                 if port == PORT_WEBLOG:
                     interface = "library"
-                # elif port == 80:  # UDS mode  # REALLY ? 
+                # elif port == 80:  # UDS mode  # REALLY ?
                 #     interface = "library"
                 elif port == PORT_NODEJS_BUDDY:
                     interface = "nodejs_buddy"
