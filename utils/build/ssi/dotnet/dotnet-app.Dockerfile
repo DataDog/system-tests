@@ -6,7 +6,6 @@ WORKDIR /app
 COPY lib-injection/build/docker/dotnet/dd-lib-dotnet-init-test-app/ .
 
 RUN dotnet restore
-COPY . .
 RUN dotnet build -c Release
 
 EXPOSE 18080
