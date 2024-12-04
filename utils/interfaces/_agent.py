@@ -89,6 +89,12 @@ class AgentInterfaceValidator(ProxyBasedInterfaceValidator):
                 else:
                     yield data
 
+    def assert_trace_exists(self, request):
+        for _, _ in self.get_spans(request=request):
+            return
+
+        raise ValueError(f"No trace has been found for request {get_rid_from_request(request)}")
+
     def assert_headers_presence(self, path_filter, request_headers=(), response_headers=(), check_condition=None):
         validator = HeadersPresenceValidator(request_headers, response_headers, check_condition)
         self.validate(validator, path_filters=path_filter, success_by_default=True)

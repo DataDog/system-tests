@@ -1,4 +1,8 @@
+from functools import partial
 import os
+
+from docker.models.networks import Network
+
 from utils._context.library_version import LibraryVersion, Version
 
 from utils._context.containers import (
@@ -91,6 +95,8 @@ class KubernetesScenario(Scenario):
 class WeblogInjectionScenario(Scenario):
     """Scenario that runs APM test agent """
 
+    _network: Network = None
+
     def __init__(self, name, doc, github_workflow=None, scenario_groups=None) -> None:
         super().__init__(name, doc=doc, github_workflow=github_workflow, scenario_groups=scenario_groups)
 
@@ -117,13 +123,16 @@ class WeblogInjectionScenario(Scenario):
         for container in self._required_containers:
             container.configure(self.replay)
 
+    def _create_network(self):
+        self._network = create_network()
+
     def get_warmups(self):
         warmups = super().get_warmups()
 
         warmups.append(create_network)
         warmups.append(create_inject_volume)
         for container in self._required_containers:
-            warmups.append(container.start)
+            warmups.append(partial(container.start, self._network))
 
         return warmups
 

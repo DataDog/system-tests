@@ -19,6 +19,7 @@ from .auto_injection import InstallerAutoInjectionScenario, InstallerAutoInjecti
 from .k8s_lib_injection import KubernetesScenario, WeblogInjectionScenario
 from .docker_ssi import DockerSSIScenario
 from .external_processing import ExternalProcessingScenario
+from .ipv6 import Ipv6Scenario
 
 update_environ_with_local_env()
 
@@ -765,6 +766,8 @@ class scenarios:
     )
 
     external_processing = ExternalProcessingScenario("EXTERNAL_PROCESSING")
+
+    ipv6 = Ipv6Scenario("IPV6")
 
 
 def get_all_scenarios() -> list[Scenario]:

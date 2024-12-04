@@ -1,6 +1,8 @@
 import os
 import pytest
 
+from docker.models.networks import Network
+from docker.types import IPAMConfig, IPAMPool
 from watchdog.observers.polling import PollingObserver
 from watchdog.events import FileSystemEventHandler
 
@@ -16,9 +18,9 @@ from utils._context.containers import (
     RabbitMqContainer,
     MySqlContainer,
     MsSqlServerContainer,
-    create_network,
     BuddyContainer,
     TestedContainer,
+    _get_client as get_docker_client,
 )
 
 from utils.tools import logger
@@ -29,12 +31,15 @@ from .core import Scenario, ScenarioGroup
 class DockerScenario(Scenario):
     """Scenario that tests docker containers"""
 
+    _network: Network = None
+
     def __init__(
         self,
         name,
         github_workflow,
         doc,
         scenario_groups=None,
+        enable_ipv6: bool = False,
         use_proxy=True,
         rc_api_enabled=False,
         meta_structs_disabled=False,
@@ -50,6 +55,7 @@ class DockerScenario(Scenario):
         super().__init__(name, doc=doc, github_workflow=github_workflow, scenario_groups=scenario_groups)
 
         self.use_proxy = use_proxy
+        self.enable_ipv6 = enable_ipv6
         self.rc_api_enabled = rc_api_enabled
         self.meta_structs_disabled = False
         self.span_events = span_events
@@ -134,12 +140,32 @@ class DockerScenario(Scenario):
 
         observer.start()
 
+    def _create_network(self) -> None:
+        name = "system-tests-ipv6" if self.enable_ipv6 else "system-tests-ipv4"
+
+        for network in get_docker_client().networks.list(names=[name,]):
+            self._network = network
+            logger.debug(f"Network {name} still exists")
+            return
+
+        logger.debug(f"Create network {name}")
+
+        if self.enable_ipv6:
+            self._network = get_docker_client().networks.create(
+                name=name,
+                driver="bridge",
+                options={"com.docker.network.enable_ipv6": "true"},
+                ipam=IPAMConfig(driver="default", pool_configs=[IPAMPool(subnet="2001:db8:1::/64")]),
+            )
+        else:
+            get_docker_client().networks.create(name, check_duplicate=True)
+
     def get_warmups(self):
         warmups = super().get_warmups()
 
         if not self.replay:
             warmups.append(lambda: logger.stdout("Starting containers..."))
-            warmups.append(create_network)
+            warmups.append(self._create_network)
             warmups.append(self._start_containers)
 
         for container in self._required_containers:
@@ -151,7 +177,7 @@ class DockerScenario(Scenario):
         threads = []
 
         for container in self._required_containers:
-            threads.append(container.async_start())
+            threads.append(container.async_start(self._network))
 
         for thread in threads:
             thread.join()
@@ -180,6 +206,7 @@ class EndToEndScenario(DockerScenario):
         weblog_env=None,
         weblog_volumes=None,
         agent_env=None,
+        enable_ipv6: bool = False,
         tracer_sampling_rate=None,
         appsec_enabled=True,
         additional_trace_header_tags=(),
@@ -211,6 +238,7 @@ class EndToEndScenario(DockerScenario):
             doc=doc,
             github_workflow=github_workflow,
             scenario_groups=scenario_groups,
+            enable_ipv6=enable_ipv6,
             use_proxy=use_proxy,
             rc_api_enabled=rc_api_enabled,
             meta_structs_disabled=meta_structs_disabled,

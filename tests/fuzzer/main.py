@@ -48,15 +48,15 @@ def main():
 
     logger = get_logger(use_stdout=True)
 
-    create_network()
+    network = create_network()
 
     agent = AgentContainer(host_log_folder="logs_fuzzer", use_proxy=False)
     agent.configure(False)
-    agent.start()
+    agent.start(network)
 
     weblog = WeblogContainer(host_log_folder="logs_fuzzer", use_proxy=False)
     weblog.configure(False)
-    weblog.start()
+    weblog.start(network)
 
     Fuzzer(
         corpus=args.corpus,
