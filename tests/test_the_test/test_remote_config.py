@@ -20,6 +20,7 @@ def test_debugger_command_one_probe():
         {
             "language": "",
             "id": "log170aa-acda-4453-9111-1478a6method",
+            "type": "LOG_PROBE",
             "where": {"typeName": "ACTUAL_TYPE_NAME", "methodName": "Pii", "sourceFile": None},
             "evaluateAt": "EXIT",
             "captureSnapshot": True,
