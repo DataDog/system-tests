@@ -46,9 +46,6 @@ allow_no_feature_nodes = [
     "tests/test_the_test/",  # Not a real test
 ]
 
-allow_no_jira_ticket_for_bugs = [
-]
-
 [tool.mypy]
 files = ["utils/parametric", "tests/parametric"]
 ignore_missing_imports = true

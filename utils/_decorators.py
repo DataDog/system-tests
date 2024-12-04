@@ -7,15 +7,11 @@ import semantic_version as semver
 
 from utils._context.core import context
 
-# bug: APPSEC-51509
-
 _jira_ticket_pattern = re.compile(r"([A-Z]{3,}-\d+)(, [A-Z]{3,}-\d+)*")
-
-_allow_no_jira_ticket_for_bugs: list[str] = []
 
 
 def configure(config: pytest.Config):
-    _allow_no_jira_ticket_for_bugs.extend(config.inicfg["allow_no_jira_ticket_for_bugs"])
+    pass  # nothing to do right now
 
 
 # semver module offers two spec engine :
@@ -49,10 +45,6 @@ def _ensure_jira_ticket_as_reason(item, reason: str):
             nodeid = f"{rel_path}::{item.__name__}"
         else:
             nodeid = f"{rel_path}::{item.__qualname__}"
-
-        for allowed_nodeid in _allow_no_jira_ticket_for_bugs:
-            if nodeid.startswith(allowed_nodeid):
-                return
 
         pytest.exit(f"Please set a jira ticket for {nodeid}, instead of reason: {reason}", 1)
 
