@@ -427,6 +427,7 @@ tests/:
       Test_Parametric_OtelSpan_Set_Name: bug (APMAPI-778) # updates the operation name of the span not the resource name
       Test_Parametric_Otel_Baggage: missing_feature (otel baggage endpoints are not implemented)
       Test_Parametric_Otel_Current_Span: missing_feature (otel current span endpoint are not implemented)
+    test_span_events.py: missing_feature
     test_span_links.py: missing_feature
     test_telemetry.py:
       Test_Consistent_Configs: missing_feature
@@ -506,6 +507,7 @@ tests/:
     Test_UrlQuery: v2.13.0
   test_semantic_conventions.py:
     Test_MetricsStandardTags: v2.6.0
+  test_span_events.py: missing_feature (Weblog `/add_event` not implemented)
   test_standard_tags.py:
     Test_StandardTagsClientIp: v2.26.0
     Test_StandardTagsMethod: v2.0.0

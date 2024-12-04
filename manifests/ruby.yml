@@ -412,6 +412,7 @@ tests/:
       Test_Partial_Flushing: missing_feature
     test_sampling_delegation.py:
       Test_Decisionless_Extraction: v2.4.0
+    test_span_events.py: missing_feature
     test_span_links.py:
       Test_Span_Links: v2.0.0
     test_telemetry.py:

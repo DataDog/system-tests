@@ -249,6 +249,26 @@ def retrieve_span_links(span):
         return links
 
 
+def retrieve_span_events(span):
+    if span.get("span_events") is not None:
+        return span["span_events"]
+
+    if span["meta"].get("events") is not None:
+        # Convert span_events tags into msgpack v0.4 format
+        json_events = json.loads(span["meta"].get("events"))
+        events = []
+        for json_event in json_events:
+            event = {}
+
+            event["time_unix_nano"] = json_event["time_unix_nano"]
+            event["name"] = json_event["name"]
+            if "attributes" in json_event:
+                event["attributes"] = json_event["attributes"]
+
+            events.append(event)
+        return events
+
+
 def id_to_int(value: Union[str, int]) -> int:
     """Convert an id from hex or a base 10 string to an integer."""
     try:

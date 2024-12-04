@@ -691,6 +691,7 @@ tests/:
       Test_Parametric_Otel_Current_Span: missing_feature (otel baggage endpoints are not implemented)
     test_partial_flushing.py:
       Test_Partial_Flushing: bug (APMLP-270)
+    test_span_events.py: missing_feature
     test_span_links.py:
       Test_Span_Links: *ref_5_3_0
     test_telemetry.py:
@@ -782,6 +783,7 @@ tests/:
       '*': *ref_3_13_1
       nextjs: missing_feature # nextjs makes some internal requests and we have different tag names
     Test_MetricsStandardTags: *ref_3_13_1
+  test_span_events.py: missing_feature (Weblog `/add_event` not implemented)
   test_standard_tags.py:
     Test_StandardTagsClientIp:
       '*': *ref_3_6_0

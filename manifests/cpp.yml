@@ -198,6 +198,7 @@ tests/:
       Test_Partial_Flushing: missing_feature
     test_sampling_delegation.py:
       Test_Decisionless_Extraction: missing_feature (parametric app does not support trace/span/extract endpoint)
+    test_span_events.py: missing_feature
     test_span_links.py: missing_feature
     test_telemetry.py:
       Test_Consistent_Configs: missing_feature
@@ -250,6 +251,7 @@ tests/:
   test_profiling.py:
     Test_Profile: bug (No Content-Disposition, tests do not parse the content correcly)
   test_scrubbing.py: irrelevant
+  test_span_events.py: missing_feature (Weblog `/add_event` not implemented)
   test_standard_tags.py: irrelevant
   test_telemetry.py:
     Test_Log_Generation: missing_feature
