@@ -516,7 +516,7 @@ class ProxyContainer(TestedContainer):
                 f"./{host_log_folder}/interfaces/": {"bind": f"/app/{host_log_folder}/interfaces", "mode": "rw",},
                 "./utils/": {"bind": "/app/utils/", "mode": "ro"},
             },
-            ports={"11111/tcp": ("127.0.0.1", 11111)},
+            ports={"9000/tcp": ("127.0.0.1", 9000)},
             command="python utils/proxy/core.py",
         )
 
@@ -537,8 +537,8 @@ class AgentContainer(TestedContainer):
         )
 
         if use_proxy:
-            environment["DD_PROXY_HTTPS"] = "http://proxy:8126"
-            environment["DD_PROXY_HTTP"] = "http://proxy:8126"
+            environment["DD_PROXY_HTTPS"] = "http://proxy:9100"
+            environment["DD_PROXY_HTTP"] = "http://proxy:9100"
 
         super().__init__(
             image_name="system_tests/agent",
@@ -727,10 +727,10 @@ class WeblogContainer(TestedContainer):
         if use_proxy:
             # set the tracer to send data to runner (it will forward them to the agent)
             base_environment["DD_AGENT_HOST"] = "proxy"
-            base_environment["DD_TRACE_AGENT_PORT"] = 8126
+            base_environment["DD_TRACE_AGENT_PORT"] = 9001
         else:
             base_environment["DD_AGENT_HOST"] = "agent"
-            base_environment["DD_TRACE_AGENT_PORT"] = 8127
+            base_environment["DD_TRACE_AGENT_PORT"] = 9001
 
         # overwrite values with those set in the scenario
         environment = base_environment | (environment or {})
@@ -1189,7 +1189,7 @@ class ExternalProcessingContainer(TestedContainer):
             image_name=image,
             name="extproc",
             host_log_folder=host_log_folder,
-            environment={"DD_APPSEC_ENABLED": "true", "DD_AGENT_HOST": "proxy", "DD_TRACE_AGENT_PORT": 8126,},
+            environment={"DD_APPSEC_ENABLED": "true", "DD_AGENT_HOST": "proxy", "DD_TRACE_AGENT_PORT": 9001,},
             healthcheck={"test": "wget -qO- http://localhost:80/", "retries": 10,},
         )
 

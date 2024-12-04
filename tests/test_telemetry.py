@@ -478,11 +478,11 @@ class Test_Telemetry:
         """Assert that default and other configurations that are applied upon start time are sent with the app-started event"""
         test_configuration = {
             "dotnet": {},
-            "nodejs": {"hostname": "proxy", "port": 8126, "appsec.enabled": True},
+            "nodejs": {"hostname": "proxy", "port": 9001, "appsec.enabled": True},
             # to-do :need to add configuration keys once python bug is fixed
             "python": {},
-            "cpp": {"trace_agent_port": 8126},
-            "java": {"trace_agent_port": 8126, "telemetry_heartbeat_interval": 2},
+            "cpp": {"trace_agent_port": 9001},
+            "java": {"trace_agent_port": 9001, "telemetry_heartbeat_interval": 2},
             "ruby": {"DD_AGENT_TRANSPORT": "TCP"},
         }
         configuration_map = test_configuration[context.library.library]

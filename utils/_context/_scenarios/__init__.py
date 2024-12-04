@@ -56,7 +56,7 @@ class scenarios:
         "OTEL_INTEGRATIONS",
         weblog_env={
             "OTEL_EXPORTER_OTLP_PROTOCOL": "http/protobuf",
-            "OTEL_EXPORTER_OTLP_ENDPOINT": "http://proxy:8126",
+            "OTEL_EXPORTER_OTLP_ENDPOINT": "http://proxy:9001",
             "OTEL_EXPORTER_OTLP_TRACES_HEADERS": "dd-protocol=otlp,dd-otlp-path=agent",
             "OTEL_INTEGRATIONS_TEST": True,
         },

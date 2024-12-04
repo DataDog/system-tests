@@ -31,7 +31,7 @@ def _post(path: str, payload) -> None:
     else:
         domain = "localhost"
 
-    requests.post(f"http://{domain}:11111{path}", data=json.dumps(payload), timeout=30)
+    requests.post(f"http://{domain}:9000{path}", data=json.dumps(payload), timeout=30)
 
 
 RC_VERSION = "_ci_global_version"

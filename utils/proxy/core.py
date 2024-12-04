@@ -18,6 +18,15 @@ logger = logging.getLogger(__name__)
 
 SIMPLE_TYPES = (bool, int, float, type(None))
 
+# the proxy determine the origin of the request based on the port
+PORT_DIRECT_INTERACTION = 9000
+PORT_WEBLOG = 9001
+PORT_NODEJS_BUDDY = 9002
+PORT_JAVA_BUDDY = 9003
+PORT_RUBY_BUDDY = 9004
+PORT_GOLANG_BUDDY = 9005
+PORT_PYTHON_BUDDY = 9006
+PORT_AGENT = 9100
 
 messages_counts = defaultdict(int)
 
@@ -109,7 +118,7 @@ class _RequestLogger:
 
         logger.info(f"{flow.request.method} {flow.request.pretty_url}")
 
-        if flow.request.port == 11111:
+        if flow.request.port == PORT_DIRECT_INTERACTION:
             if not self.rc_api_enabled:
                 flow.response = self.get_error_response(b"RC API is not enabled")
             else:
@@ -129,8 +138,7 @@ class _RequestLogger:
 
         self.original_ports[flow.id] = flow.request.port
 
-        if flow.request.host in ("proxy", "localhost"):
-            # tracer is the only container that uses the proxy directly
+        if flow.request.port in (PORT_WEBLOG, PORT_PYTHON_BUDDY, PORT_NODEJS_BUDDY, PORT_JAVA_BUDDY, PORT_RUBY_BUDDY, PORT_GOLANG_BUDDY):
 
             if flow.request.headers.get("dd-protocol") == "otlp":
                 # OTLP ingestion
@@ -168,7 +176,7 @@ class _RequestLogger:
         return request.host == "agent"
 
     def response(self, flow):
-        if flow.request.port == 11111:
+        if flow.request.port == PORT_DIRECT_INTERACTION:
             return
 
         try:
@@ -181,20 +189,20 @@ class _RequestLogger:
                 interface = "open_telemetry"
             elif self.request_is_from_tracer(flow.request):
                 port = self.original_ports[flow.id]
-                if port == 8126:
+                if port == PORT_WEBLOG:
                     interface = "library"
-                elif port == 80:  # UDS mode
-                    interface = "library"
-                elif port == 9001:
-                    interface = "python_buddy"
-                elif port == 9002:
+                # elif port == 80:  # UDS mode  # REALLY ? 
+                #     interface = "library"
+                elif port == PORT_NODEJS_BUDDY:
                     interface = "nodejs_buddy"
-                elif port == 9003:
+                elif port == PORT_JAVA_BUDDY:
                     interface = "java_buddy"
-                elif port == 9004:
+                elif port == PORT_RUBY_BUDDY:
                     interface = "ruby_buddy"
-                elif port == 9005:
+                elif port == PORT_GOLANG_BUDDY:
                     interface = "golang_buddy"
+                elif port == PORT_PYTHON_BUDDY:
+                    interface = "python_buddy"
                 else:
                     raise ValueError(f"Unknown port provenance for {flow.request}: {port}")
             else:
@@ -334,15 +342,16 @@ class _RequestLogger:
 
 def start_proxy() -> None:
 
-    # the port is used to make the distinction between weblogs (See CROSSED_TRACING_LIBRARIES scenario)
+    # the port is used to know the origin of the request
     modes = [
-        "regular@8126",  # base weblog
-        "regular@9001",  # python_buddy
-        "regular@9002",  # nodejs_buddy
-        "regular@9003",  # java_buddy
-        "regular@9004",  # ruby_buddy
-        "regular@9005",  # golang_buddy
-        "regular@11111",  # RC payload API
+        f"regular@{PORT_DIRECT_INTERACTION}",  # RC payload API
+        f"regular@{PORT_WEBLOG}",  # weblog
+        f"regular@{PORT_NODEJS_BUDDY}",  # nodejs_buddy
+        f"regular@{PORT_JAVA_BUDDY}",  # java_buddy
+        f"regular@{PORT_RUBY_BUDDY}",  # ruby_buddy
+        f"regular@{PORT_GOLANG_BUDDY}",  # golang_buddy
+        f"regular@{PORT_PYTHON_BUDDY}",  # python_buddy
+        f"regular@{PORT_AGENT}",  # agent
     ]
 
     loop = asyncio.new_event_loop()
