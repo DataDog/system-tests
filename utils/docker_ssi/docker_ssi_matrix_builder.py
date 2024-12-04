@@ -81,14 +81,14 @@ def generate_gitlab_pipeline(languages):
 
 def _generate_fpd_gitlab_script():
     fpd_push_script = [
-        'if [ "$CI_COMMIT_BRANCH" = "robertomonteromiguel/docker_ssi_fix_fpd" ]; then',
+        'if [ "$CI_COMMIT_BRANCH" = "main" ]; then',
         "for folder in reports/logs*/ ; do",
         '  echo "Checking folder: ${folder}"',
         "  for filename in ./${folder}feature_parity.json; do",
         "    if [ -e ${filename} ]",
         "    then",
-        '      echo "Processing report: ${filename}- FPD URL: ${FP_IMPORT_URL}"',
-        '      #curl -X POST ${FP_IMPORT_URL} --fail --header "Content-Type: application/json" --header "FP_API_KEY: ${FP_API_KEY}" --data "@${filename}" --include',
+        '      echo "Processing report: ${filename}"',
+        '      curl -X POST ${FP_IMPORT_URL} --fail --header "Content-Type: application/json" --header "FP_API_KEY: ${FP_API_KEY}" --data "@${filename}" --include',
         "    fi",
         "  done",
         "done",
