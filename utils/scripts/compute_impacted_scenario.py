@@ -162,6 +162,8 @@ def main():
                     r"utils/docker_ssi/.*": ScenarioGroup.DOCKER_SSI.value,
                     ### Profiling case
                     r"utils/_context/_scenarios/profiling\.py": ScenarioGroup.PROFILING.value,
+                    ### IPv6
+                    # r"utils/_context/_scenarios/ipv6\.py":  # TODO
                     ### else, run all
                     r"utils/.*": ScenarioGroup.ALL.value,
                     ## few files with no effect
