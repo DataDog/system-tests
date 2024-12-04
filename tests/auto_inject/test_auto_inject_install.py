@@ -184,3 +184,7 @@ class TestSimpleInstallerAutoInjectManual(base.AutoInjectBaseTest):
         logger.info(
             f"Done test_install for : [{virtual_machine.name}][{virtual_machine.get_deployed_weblog().runtime_version}]"
         )
+
+    def test_install2(self, virtual_machine):
+        logger.info(f"Launching test_install for : [{virtual_machine.name}]...")
+        assert 1 == 2
