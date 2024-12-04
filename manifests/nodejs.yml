@@ -285,7 +285,8 @@ tests/:
         test_uri.py:
           TestURI: missing_feature
     rasp/:
-      test_cmdi.py: missing_feature
+      test_cmdi.py:
+        '*': *ref_5_24_0
       test_lfi.py:
         Test_Lfi_BodyJson:
           '*': *ref_5_24_0
