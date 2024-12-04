@@ -33,15 +33,6 @@ class _BaseTestK8sInitImageValidator:
 class TestK8sInitImageValidator(_BaseTestK8sInitImageValidator):
     """ Validate that the weblog is instrumented automatically when the lang version is supported."""
 
-    # Disable the prod test because of the incident 29739
-    # @bug(
-    #    condition=os.getenv("LIB_INIT_IMAGE", "").endswith("latest") and context.library.library == "nodejs",
-    #    reason="Rolled back the latest tag. Basically, serverless-init had some docs that specified an exact folder layout for .Net and nodejs init containers. We rolled back the tag while we worked on a longer term solution",
-    # )
-    # @bug(
-    #    condition=os.getenv("LIB_INIT_IMAGE", "").endswith("latest") and context.library.library == "ruby",
-    #    reason="the folder layout is not datadog-init/package yet",
-    # )
     def test_valid_weblog_instrumented(self):
         logger.info("Launching test test_weblog_instrumented")
         self._check_weblog_running()
@@ -55,7 +46,7 @@ class TestK8sInitImageValidator(_BaseTestK8sInitImageValidator):
 class TestK8sInitImageValidatorUnsupported(_BaseTestK8sInitImageValidator):
     """ Validate that if the weblog lang version is not supported we don't instrument the app but the app it's still working."""
 
-    # @bug(library="nodejs", reason="Not implemented yet. Tracer breaks the app")
+    @bug(library="nodejs", reason="APMRP-361")
     def test_invalid_weblog_not_instrumented(self):
         logger.info(f"Launching test test_invalid_weblog_not_instrumented {context.library}")
         self._check_weblog_running()
