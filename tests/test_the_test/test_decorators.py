@@ -55,7 +55,7 @@ logger.addHandler(handler)
 
 class Test_Class:
     @irrelevant(condition=False)
-    @flaky(condition=False)
+    @flaky(condition=False, reason="FAKE-001")
     def test_good_method(self):
         pass
 

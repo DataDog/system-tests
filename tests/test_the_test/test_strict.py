@@ -15,7 +15,7 @@ class Test_StrictMode:
 
 
 @scenarios.mock_the_test
-@bug(True)
+@bug(True, reason="FAKE-001")
 def test_strict_bug():
     assert True, "Bug fixed"
 
