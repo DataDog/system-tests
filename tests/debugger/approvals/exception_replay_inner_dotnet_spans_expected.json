@@ -21,7 +21,7 @@
       "error.msg": "Outer exception",
       "error.stack": "System.Exception: Outer exception\n ---> System.Exception: Inner exception\n   at weblog.DebuggerController.ExceptionReplayInner()<scrubbed>",
       "error.type": "System.Exception",
-      "http.client_ip": "192.168.65.1",
+      "http.client_ip": "<scrubbed>",
       "http.method": "GET",
       "http.request.headers.host": "localhost:7777",
       "http.request.headers.user-agent": "<scrubbed>",
@@ -32,7 +32,7 @@
       "key1": "val1",
       "key2": "val2",
       "language": "dotnet",
-      "network.client.ip": "192.168.65.1",
+      "network.client.ip": "<scrubbed>",
       "runtime-id": "<scrubbed>",
       "span.kind": "server",
       "version": "<scrubbed>"

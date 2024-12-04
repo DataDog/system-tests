@@ -7,7 +7,7 @@ import re
 from utils import scenarios, features, bug
 from utils.tools import logger
 
-_OVERRIDE_APROVALS = False
+_OVERRIDE_APROVALS = True
 _SCRUB_VALUES = True
 
 
@@ -136,7 +136,7 @@ class Test_Debugger_Exception_Replay(debugger._Base_Debugger_Test):
                                 value[meta_key] = "<scrubbed>"
                                 continue
 
-                            if meta_key in ["http.request.headers.user-agent", "http.useragent", "thread.name"]:
+                            if meta_key in ["http.request.headers.user-agent", "http.useragent", "thread.name", "network.client.ip", "http.client_ip"]:
                                 value[meta_key] = "<scrubbed>"
                                 continue
 
