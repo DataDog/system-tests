@@ -9,6 +9,5 @@ RUN dotnet restore
 RUN dotnet build -c Release
 
 ENV ASPNETCORE_URLS=http://+:18080
-ENV DD_CRASHTRACKING_ENABLED=0
 EXPOSE 18080
 CMD [ "dotnet", "run", "-c", "Release" ]
