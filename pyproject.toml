@@ -271,26 +271,19 @@ ignore = [
 ]
 "utils/otel_validators/validator_trace.py" = ["FBT001"]
 "utils/{parametric/*,_context/_scenarios/parametric.py}" = [
-    "UP007",
-    "UP006",
-    "SIM103",
     "C417",
-    "TRY004",
     "PGH003",
-    "UP035",
-    "FBT001",
-    "RUF013",
-    "TD006",
+    "PTH103",
+    "PTH109",
+    "PTH207",
     "S110",
-    "SIM105",
-
     "S603",
     "S607",
-    "PTH207",
-    "PTH103",
+    "SIM103",
+    "SIM105",
+    "TRY004",
     "UP031",
-    "PTH109",
-    "RET504",
+    "UP035",
 ]
 "utils/{_context/_scenarios/docker_ssi.py,docker_ssi/docker_ssi_matrix_builder.py,docker_ssi/docker_ssi_matrix_utils.py}" = [
     "PLR2004",

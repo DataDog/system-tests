@@ -1,6 +1,7 @@
 import contextlib
 import dataclasses
-from typing import Dict, List, Literal, Union, Generator, TextIO
+from typing import Dict, List, Literal, Union, TextIO
+from collections.abc import Generator
 
 import json
 import glob
@@ -65,15 +66,15 @@ class APMLibraryTestServer:
     container_name: str
     container_tag: str
     container_img: str
-    container_cmd: List[str]
+    container_cmd: list[str]
     container_build_dir: str
     container_build_context: str = "."
 
     container_port: int = 8080
     host_port: int = None  # Will be assigned by get_host_port()
 
-    env: Dict[str, str] = dataclasses.field(default_factory=dict)
-    volumes: Dict[str, str] = dataclasses.field(default_factory=dict)
+    env: dict[str, str] = dataclasses.field(default_factory=dict)
+    volumes: dict[str, str] = dataclasses.field(default_factory=dict)
 
     container: Container = None
 
@@ -287,12 +288,12 @@ class ParametricScenario(Scenario):
         self,
         image: str,
         name: str,
-        env: Dict[str, str],
-        volumes: Dict[str, str],
+        env: dict[str, str],
+        volumes: dict[str, str],
         network: str,
         host_port: int,
         container_port: int,
-        command: List[str],
+        command: list[str],
         log_file: TextIO,
     ) -> Generator[Container, None, None]:
 
