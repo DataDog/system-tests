@@ -244,7 +244,7 @@ tests/:
         Test_Cmdi_BodyJson: missing_feature
         Test_Cmdi_BodyUrlEncoded: missing_feature
         Test_Cmdi_BodyXml: missing_feature
-        Test_Cmdi_Capability: missing_featurec
+        Test_Cmdi_Capability: missing_feature
         Test_Cmdi_Mandatory_SpanTags: missing_feature
         Test_Cmdi_Optional_SpanTags: missing_feature
         Test_Cmdi_Rules_Version: v2.18.0.dev
