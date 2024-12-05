@@ -702,7 +702,7 @@ class RedHat90arm64(_VirtualMachine):
             os_distro="rpm",
             os_branch="redhat",
             os_cpu="arm64",
-            default_vm=True,
+            default_vm=False,
             **kwargs,
         )
 

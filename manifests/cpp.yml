@@ -54,8 +54,8 @@ tests/:
         test_path_parameter.py: irrelevant (ASM is not implemented in C++)
         test_uri.py: irrelevant (ASM is not implemented in C++)
     rasp/:
+      test_cmdi.py: irrelevant (ASM is not implemented in C++)
       test_lfi.py: irrelevant (ASM is not implemented in C++)
-      test_libddwaf.py: irrelevant (ASM is not implemented in C++)
       test_shi.py: irrelevant (ASM is not implemented in C++)
       test_sqli.py: irrelevant (ASM is not implemented in C++)
       test_ssrf.py: irrelevant (ASM is not implemented in C++)
@@ -80,6 +80,7 @@ tests/:
     test_identify.py: irrelevant (ASM is not implemented in C++)
     test_ip_blocking_full_denylist.py: irrelevant (ASM is not implemented in C++)
     test_logs.py: irrelevant (ASM is not implemented in C++)
+    test_metastruct.py: irrelevant (ASM is not implemented in C++)
     test_rate_limiter.py: irrelevant (ASM is not implemented in C++)
     test_remote_config_rule_changes.py: irrelevant (ASM is not implemented in C++)
     test_reports.py: irrelevant (ASM is not implemented in C++)
@@ -197,6 +198,7 @@ tests/:
       Test_Partial_Flushing: missing_feature
     test_sampling_delegation.py:
       Test_Decisionless_Extraction: missing_feature (parametric app does not support trace/span/extract endpoint)
+    test_span_events.py: missing_feature
     test_span_links.py: missing_feature
     test_telemetry.py:
       Test_Consistent_Configs: missing_feature
@@ -250,9 +252,8 @@ tests/:
   test_identify.py: irrelevant
   test_library_conf.py: irrelevant
   test_miscs.py: irrelevant
-  test_profiling.py:
-    Test_Profile: bug (No Content-Disposition, tests do not parse the content correcly)
   test_scrubbing.py: irrelevant
+  test_span_events.py: missing_feature (Weblog `/add_event` not implemented)
   test_standard_tags.py: irrelevant
   test_telemetry.py:
     Test_Log_Generation: missing_feature
