@@ -1,6 +1,7 @@
 using Datadog.Trace;
 using System.Reflection;
-using Newtonsoft.Json;
+using System.Runtime.CompilerServices;
+using System.Text.Json;
 
 namespace ApmTestApi.Endpoints;
 
@@ -70,21 +71,6 @@ public abstract class ApmTestApi
 
     internal static ILogger<ApmTestApi>? _logger;
 
-    private static IEnumerable<string> GetHeaderValues(string[][] headersList, string key)
-    {
-        var values = new List<string>();
-
-        foreach (var kvp in headersList)
-        {
-            if (kvp.Length == 2 && string.Equals(key, kvp[0], StringComparison.OrdinalIgnoreCase))
-            {
-                values.Add(kvp[1]);
-            }
-        }
-
-        return values.AsReadOnly();
-    }
-
     private static async Task StopTracer()
     {
         await Tracer.Instance.ForceFlushAsync();
@@ -92,117 +78,99 @@ public abstract class ApmTestApi
 
     private static async Task<string> StartSpan(HttpRequest request)
     {
-        var headerRequestBody = await new StreamReader(request.Body).ReadToEndAsync();
-        var parsedDictionary = JsonConvert.DeserializeObject<Dictionary<string, object?>>(headerRequestBody);
-
-        _logger?.LogInformation("StartSpan: {HeaderRequestBody}", headerRequestBody);
+        var requestJson = await ParseJsonAsync(request.Body);
 
         var creationSettings = new SpanCreationSettings
         {
-            FinishOnClose = false,
+            Parent = FindSpanContext(requestJson, "parent_id")
         };
 
-        if (parsedDictionary!.TryGetValue("parent_id", out var parentId) && parentId is not null)
-        {
-            var longParentId = Convert.ToUInt64(parentId);
-
-            if (Spans.TryGetValue(longParentId, out var parentSpan))
-            {
-                creationSettings.Parent = parentSpan.Context;
-            }
-            else if (DDContexts.TryGetValue(longParentId, out var ddContext))
-            {
-                creationSettings.Parent = ddContext;
-            }
-            else
-            {
-                throw new Exception($"Parent span with id {longParentId} not found");
-            }
-        }
-
-        parsedDictionary.TryGetValue("name", out var name);
-        using var scope = Tracer.Instance.StartActive(operationName: name!.ToString()!, creationSettings);
+        var operationName = requestJson.GetPropertyAsString("name");
+        using var scope = Tracer.Instance.StartActive(operationName!, creationSettings);
         var span = scope.Span;
 
-        if (parsedDictionary.TryGetValue("service", out var service) && service is not null)
+        if (requestJson.GetPropertyAsString("service") is { } service)
         {
-            span.ServiceName = service.ToString();
+            span.ServiceName = service;
         }
 
-        if (parsedDictionary.TryGetValue("resource", out var resource) && resource is not null)
+        if (requestJson.GetPropertyAsString("resource") is { } resource)
         {
-            span.ResourceName = resource.ToString();
+            span.ResourceName = resource;
         }
 
-        if (parsedDictionary.TryGetValue("type", out var type) && type is not null)
+        if (requestJson.GetPropertyAsString("type") is { } type)
         {
-            span.Type = type.ToString();
+            span.Type = type;
         }
 
-        if (parsedDictionary.TryGetValue("span_tags", out var tagsToken) && tagsToken is not null)
+        if (requestJson.GetPropertyAs("span_tags", JsonValueKind.Object) is { } tags)
         {
-            foreach (var tag in (Newtonsoft.Json.Linq.JArray)tagsToken)
+            foreach (var tag in tags.EnumerateObject())
             {
-                var key = (string)tag[0]!;
-                var value = (string?)tag[1];
-
-                span.SetTag(key, value);
+                span.SetTag(tag.Name, tag.Value.GetString());
             }
         }
 
         Spans[span.SpanId] = span;
 
-        return JsonConvert.SerializeObject(new
+        return JsonSerializer.Serialize(new
         {
-            span_id = span.SpanId.ToString(),
-            trace_id = span.TraceId.ToString(),
+            span_id = span.SpanId,
+            trace_id = span.TraceId,
         });
     }
 
     private static async Task SpanSetMeta(HttpRequest request)
     {
-        var headerBodyDictionary = await new StreamReader(request.Body).ReadToEndAsync();
-        var parsedDictionary = JsonConvert.DeserializeObject<Dictionary<string, string>>(headerBodyDictionary);
-        parsedDictionary!.TryGetValue("span_id", out var id);
-        parsedDictionary.TryGetValue("key", out var key);
-        parsedDictionary.TryGetValue("value", out var value);
+        var requestJson = await ParseJsonAsync(request.Body);
 
-        var span = Spans[Convert.ToUInt64(id)];
-        span.SetTag(key!, value);
+        var span = FindSpan(requestJson);
+        var key = requestJson.GetPropertyAsString("key");
+        var value = requestJson.GetPropertyAsString("value");
+
+        if (key is null)
+        {
+            throw new InvalidOperationException("key not found in request json.");
+        }
+
+        span.SetTag(key, value);
     }
 
     private static async Task SpanSetMetric(HttpRequest request)
     {
-        var headerBodyDictionary = await new StreamReader(request.Body).ReadToEndAsync();
-        var parsedDictionary = JsonConvert.DeserializeObject<Dictionary<string, string>>(headerBodyDictionary)!;
-        parsedDictionary.TryGetValue("span_id", out var id);
-        parsedDictionary.TryGetValue("key", out var key);
-        parsedDictionary.TryGetValue("value", out var value);
+        var requestJson = await ParseJsonAsync(request.Body);
 
-        var span = Spans[Convert.ToUInt64(id)];
-        span.SetTag(key!, Convert.ToDouble(value));
+        var span = FindSpan(requestJson);
+        var key = requestJson.GetPropertyAsString("key");
+        var value = requestJson.GetPropertyAsString("value");
+
+        if (key is null)
+        {
+            throw new InvalidOperationException("key not found in request json.");
+        }
+
+        span.SetTag(key, value);
     }
 
     private static async Task SpanSetError(HttpRequest request)
     {
-        var span = Spans[Convert.ToUInt64(await FindBodyKeyValueAsync(request, "span_id"))];
+        var requestJson = await ParseJsonAsync(request.Body);
+
+        var span = FindSpan(requestJson);
         span.Error = true;
 
-        var type = await FindBodyKeyValueAsync(request, "type");
-        var message = await FindBodyKeyValueAsync(request, "message");
-        var stack = await FindBodyKeyValueAsync(request, "stack");
-
-        if (!string.IsNullOrEmpty(type))
+        if (requestJson.GetPropertyAsString("type") is { } type)
         {
             span.SetTag(Tags.ErrorType, type);
         }
 
-        if (!string.IsNullOrEmpty(message))
+        if (requestJson.GetPropertyAsString("message") is { } message)
         {
             span.SetTag(Tags.ErrorMsg, message);
         }
 
-        if (!string.IsNullOrEmpty(stack))
+        if (requestJson.GetPropertyAsString("stack") is { } stack)
         {
             span.SetTag(Tags.ErrorStack, stack);
         }
@@ -210,49 +178,48 @@ public abstract class ApmTestApi
 
     private static async Task<string> ExtractHeaders(HttpRequest request)
     {
-        var headerRequestBody = await new StreamReader(request.Body).ReadToEndAsync();
-        var parsedDictionary = JsonConvert.DeserializeObject<Dictionary<string, Object>>(headerRequestBody);
-        var headersList = (Newtonsoft.Json.Linq.JArray)parsedDictionary!["http_headers"];
-        var extractedContext = _spanContextExtractor.Extract(
-            headersList.ToObject<string[][]>()!,
-            getter: GetHeaderValues
-        );
+        var requestJson = await ParseJsonAsync(request.Body);
 
-        string? extractedSpanId = null;
+        var headers = EnumerateArray(requestJson.GetProperty("http_headers"))
+                      .GroupBy(kvp => kvp.Key, kvp => kvp.Value)
+                      .ToDictionary(g => g.Key, g => g.ToList());
+
+        var extractedContext = _spanContextExtractor.Extract(headers, (dict, key) => dict[key]);
+
         if (extractedContext is not null)
         {
             DDContexts[extractedContext.SpanId] = extractedContext;
-            extractedSpanId = extractedContext.SpanId.ToString();
         }
 
-        return JsonConvert.SerializeObject(new
+        return JsonSerializer.Serialize(new
         {
-            span_id = extractedSpanId
+            span_id = extractedContext?.SpanId
         });
+
+        static IEnumerable<KeyValuePair<string, string>> EnumerateArray(JsonElement array)
+        {
+            foreach (var item in array.EnumerateArray())
+            {
+                var key = item[0].GetString();
+                var value = item[1].GetString();
+                yield return new KeyValuePair<string, string>(key!, value!);
+            }
+        }
     }
 
     private static async Task<string> InjectHeaders(HttpRequest request)
     {
+        var requestJson = await ParseJsonAsync(request.Body);
+
+        var span = FindSpan(requestJson);
         var httpHeaders = new List<string[]>();
 
-        var spanId = await FindBodyKeyValueAsync(request, "span_id");
+        _spanContextInjector.Inject(
+            httpHeaders,
+            (headers, key, value) => headers.Add([key, value]),
+            span.Context);
 
-        if (!string.IsNullOrEmpty(spanId) && Spans.TryGetValue(Convert.ToUInt64(spanId), out var span))
-        {
-            // Define a function to set headers in HttpRequestHeaders
-            static void Setter(List<string[]> headers, string key, string value) =>
-                headers.Add([key, value]);
-
-            Console.WriteLine(JsonConvert.SerializeObject(new
-            {
-                HttpHeaders = httpHeaders
-            }));
-
-            // Invoke SpanContextPropagator.Inject with the HttpRequestHeaders
-            _spanContextInjector.Inject(httpHeaders, Setter, span.Context);
-        }
-
-        return JsonConvert.SerializeObject(new
+        return JsonSerializer.Serialize(new
         {
             http_headers = httpHeaders
         });
@@ -260,7 +227,8 @@ public abstract class ApmTestApi
 
     private static async Task FinishSpan(HttpRequest request)
     {
-        var span = Spans[Convert.ToUInt64(await FindBodyKeyValueAsync(request, "span_id"))];
+        var requestJson = await ParseJsonAsync(request.Body);
+        var span = FindSpan(requestJson);
         span.Finish();
     }
 
@@ -305,7 +273,7 @@ public abstract class ApmTestApi
             // { "dd_trace_sample_ignore_parent", "null" }, // Not supported
         };
 
-        return JsonConvert.SerializeObject(new
+        return JsonSerializer.Serialize(new
         {
             config
         });
@@ -320,6 +288,7 @@ public abstract class ApmTestApi
 
         await Tracer.Instance.ForceFlushAsync();
         Spans.Clear();
+        DDContexts.Clear();
         ApmTestApiOtel.Activities.Clear();
     }
 
@@ -354,12 +323,54 @@ public abstract class ApmTestApi
         }
     }
 
-    private static async Task<string> FindBodyKeyValueAsync(HttpRequest httpRequest, string keyToFind)
+    private static ISpan FindSpan(JsonElement json, string key = "span_id")
     {
-        var headerBodyDictionary = await new StreamReader(httpRequest.Body).ReadToEndAsync();
-        var parsedDictionary = JsonConvert.DeserializeObject<Dictionary<string, string>>(headerBodyDictionary);
-        var keyFound = parsedDictionary!.TryGetValue(keyToFind, out var foundValue);
+        var spanId = json.GetPropertyAsUInt64(key);
 
-        return keyFound ? foundValue! : string.Empty;
+        if (spanId is null)
+        {
+            _logger?.LogError("Required {key} not found in request json.", key);
+            throw new InvalidOperationException($"Required {key} not found in request json.");
+        }
+
+        if (Spans.TryGetValue(spanId.Value, out var span))
+        {
+            return span;
+        }
+
+        throw new InvalidOperationException($"Span not found with span_id: {spanId}");
+    }
+
+    private static ISpanContext FindSpanContext(JsonElement json, string key = "span_id")
+    {
+        var spanId = json.GetPropertyAsUInt64(key);
+
+        if (spanId is null)
+        {
+            _logger?.LogError("Required {key} not found in request json.", key);
+            throw new InvalidOperationException($"Required {key} not found in request json.");
+        }
+
+        if (Spans.TryGetValue(spanId.Value, out var span))
+        {
+            return span.Context;
+        }
+
+        if (DDContexts.TryGetValue(spanId.Value, out var spanContext))
+        {
+            return spanContext;
+        }
+
+        throw new InvalidOperationException($"Span not found with span_id: {spanId}");
+    }
+
+    private static async Task<JsonElement> ParseJsonAsync(Stream stream, [CallerMemberName] string? caller = null)
+    {
+        // https://learn.microsoft.com/en-us/dotnet/standard/serialization/system-text-json/use-dom#jsondocument-is-idisposable
+        using var jsonDoc = await JsonDocument.ParseAsync(stream);
+        var root = jsonDoc.RootElement.Clone();
+
+        _logger?.LogInformation("Handler called. {handler} {HttpRequest.Body}", caller, root);
+        return root;
     }
 }
