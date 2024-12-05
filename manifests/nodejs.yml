@@ -80,10 +80,12 @@ tests/:
         Test_Schema_Request_Json_Body: *ref_4_21_0
         Test_Schema_Request_Path_Parameters:
           '*': *ref_4_21_0
+          express5: *ref_5_29_0
           nextjs: missing_feature
         Test_Schema_Request_Query_Parameters: *ref_4_21_0
         Test_Schema_Response_Body:
           '*': *ref_5_3_0
+          express5: *ref_5_29_0
           nextjs: missing_feature
         Test_Schema_Response_Body_env_var: missing_feature
         Test_Schema_Response_Headers: *ref_4_21_0
@@ -115,18 +117,23 @@ tests/:
         test_header_injection.py:
           TestHeaderInjection:
             '*': *ref_4_21_0
+            express5: *ref_5_29_0
             nextjs: missing_feature
           TestHeaderInjectionExclusionAccessControlAllow:
             '*': *ref_5_26_0
+            express5: *ref_5_29_0
             nextjs: missing_feature
           TestHeaderInjectionExclusionContentEncoding:
             '*': *ref_5_26_0
+            express5: *ref_5_29_0
             nextjs: missing_feature
           TestHeaderInjectionExclusionPragma:
             '*': *ref_5_26_0
+            express5: *ref_5_29_0
             nextjs: missing_feature
           TestHeaderInjectionExclusionTransferEncoding:
             '*': *ref_5_26_0
+            express5: *ref_5_29_0
             nextjs: missing_feature
           TestHeaderInjection_StackTrace: missing_feature
         test_hsts_missing_header.py:
@@ -278,6 +285,7 @@ tests/:
         test_parameter_value.py:
           TestParameterValue:
             '*': *ref_3_19_0
+            express5: *ref_5_29_0
             nextjs: missing_feature
         test_path.py:
           TestPath: missing_feature
@@ -292,9 +300,11 @@ tests/:
       test_lfi.py:
         Test_Lfi_BodyJson:
           '*': *ref_5_24_0
+          express5: *ref_5_29_0
           nextjs: missing_feature
         Test_Lfi_BodyUrlEncoded:
           '*': *ref_5_24_0
+          express5: *ref_5_29_0
           nextjs: missing_feature
         Test_Lfi_BodyXml: missing_feature
         Test_Lfi_Capability: *ref_5_24_0
@@ -302,24 +312,30 @@ tests/:
         Test_Lfi_Optional_SpanTags: *ref_5_24_0
         Test_Lfi_RC_CustomAction:
           '*': *ref_5_24_0
+          express5: *ref_5_29_0
           nextjs: missing_feature
         Test_Lfi_Rules_Version: *ref_5_26_0
         Test_Lfi_StackTrace:
           '*': *ref_5_24_0
+          express5: *ref_5_29_0
           nextjs: missing_feature
         Test_Lfi_Telemetry:
           '*': *ref_5_24_0
+          express5: *ref_5_29_0
           nextjs: missing_feature
         Test_Lfi_UrlQuery:
           '*': *ref_5_24_0
+          express5: *ref_5_29_0
           nextjs: missing_feature
         Test_Lfi_Waf_Version: *ref_5_25_0
       test_shi.py:
         Test_Shi_BodyJson:
           '*': *ref_5_25_0
+          express5: *ref_5_29_0
           nextjs: missing_feature
         Test_Shi_BodyUrlEncoded:
           '*': *ref_5_25_0
+          express5: *ref_5_29_0
           nextjs: missing_feature
         Test_Shi_BodyXml: missing_feature
         Test_Shi_Capability: *ref_5_25_0
@@ -328,21 +344,26 @@ tests/:
         Test_Shi_Rules_Version: *ref_5_24_0
         Test_Shi_StackTrace:
           '*': *ref_5_25_0
+          express5: *ref_5_29_0
           nextjs: missing_feature
         Test_Shi_Telemetry:
           '*': *ref_5_25_0
+          express5: *ref_5_29_0
           nextjs: missing_feature
         Test_Shi_Telemetry_Variant_Tag: missing_feature
         Test_Shi_UrlQuery:
           '*': *ref_5_25_0
+          express5: *ref_5_29_0
           nextjs: missing_feature
         Test_Shi_Waf_Version: *ref_5_25_0
       test_sqli.py:
         Test_Sqli_BodyJson:
           '*': *ref_5_23_0
+          express5: *ref_5_29_0
           nextjs: missing_feature
         Test_Sqli_BodyUrlEncoded:
           '*': *ref_5_23_0
+          express5: *ref_5_29_0
           nextjs: missing_feature
         Test_Sqli_BodyXml: missing_feature
         Test_Sqli_Capability: *ref_5_23_0
@@ -351,12 +372,15 @@ tests/:
         Test_Sqli_Rules_Version: *ref_5_25_0
         Test_Sqli_StackTrace:
           '*': *ref_5_23_0
+          express5: *ref_5_29_0
           nextjs: missing_feature
         Test_Sqli_Telemetry:
           '*': *ref_5_23_0
+          express5: *ref_5_29_0
           nextjs: missing_feature
         Test_Sqli_UrlQuery:
           '*': *ref_5_23_0
+          express5: *ref_5_29_0
           nextjs: missing_feature
         Test_Sqli_Waf_Version: *ref_5_25_0
       test_ssrf.py:
@@ -373,12 +397,15 @@ tests/:
         Test_Ssrf_Rules_Version: *ref_5_25_0
         Test_Ssrf_StackTrace:
           '*': *ref_5_20_0
+          express5: *ref_5_29_0
           nextjs: missing_feature
         Test_Ssrf_Telemetry:
           '*': *ref_5_22_0
+          express5: *ref_5_29_0
           nextjs: missing_feature
         Test_Ssrf_UrlQuery:
           '*': *ref_5_20_0
+          express5: *ref_5_29_0
           nextjs: missing_feature
         Test_Ssrf_Waf_Version: *ref_5_25_0
     waf/:
@@ -403,6 +430,7 @@ tests/:
         Test_Headers: v2.0.0
         Test_PathParams:
           '*': v2.0.0
+          express5: *ref_5_29_0
           nextjs: missing_feature
         Test_ResponseStatus: v2.0.0
         Test_UrlQuery:
@@ -479,9 +507,11 @@ tests/:
       Test_Blocking_request_method: *ref_3_19_0
       Test_Blocking_request_path_params:
         '*': *ref_5_24_0
+        express5: *ref_5_29_0
         nextjs: missing_feature
       Test_Blocking_request_query:
         '*': *ref_3_19_0
+        express5: *ref_5_29_0
         nextjs: missing_feature
       Test_Blocking_request_uri: *ref_3_19_0
       Test_Blocking_response_headers: *ref_5_17_0
@@ -491,6 +521,7 @@ tests/:
         nextjs: missing_feature
       Test_Suspicious_Request_Blocking:
         '*': *ref_5_24_0
+        express5: *ref_5_29_0
         nextjs: missing_feature
     test_client_ip.py:
       Test_StandardTagsClientIp: *ref_3_6_0
@@ -539,6 +570,7 @@ tests/:
     test_request_blocking.py:
       Test_AppSecRequestBlocking:
         '*': *ref_3_19_0
+        express5: *ref_5_29_0
         nextjs: missing_feature (can not block by query param in nextjs yet)
     test_runtime_activation.py:
       Test_RuntimeActivation: *ref_3_9_0
