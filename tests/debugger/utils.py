@@ -358,7 +358,7 @@ class _Base_Debugger_Test:
             span_hash = {}
 
             span_decoration_line_key = None
-            if self.get_tracer()["language"] == "dotnet":
+            if self.get_tracer()["language"] == "dotnet" or self.get_tracer()["language"] == "python":
                 span_decoration_line_key = "_dd.di.SpanDecorationArgsAndLocals.probe_id"
             else:
                 span_decoration_line_key = "_dd.di.spandecorationargsandlocals.probe_id"
