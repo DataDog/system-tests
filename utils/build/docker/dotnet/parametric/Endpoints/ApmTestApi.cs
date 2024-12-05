@@ -17,10 +17,10 @@ public abstract class ApmTestApi
         app.MapGet("/trace/crash", Crash);
         app.MapGet("/trace/config", GetTracerConfig);
         app.MapPost("/trace/tracer/stop", StopTracer);
+
         app.MapPost("/trace/span/start", StartSpan);
         app.MapPost("/trace/span/inject_headers", InjectHeaders);
         app.MapPost("/trace/span/extract_headers", ExtractHeaders);
-
         app.MapPost("/trace/span/error", SpanSetError);
         app.MapPost("/trace/span/set_meta", SpanSetMeta);
         app.MapPost("/trace/span/set_metric", SpanSetMetric);
@@ -274,7 +274,7 @@ public abstract class ApmTestApi
         return "Failed to crash";
     }
 
-    private static string GetTracerConfig(HttpRequest request)
+    private static string GetTracerConfig()
     {
         var tracerSettings = Tracer.Instance.Settings;
         var internalTracer = GetTracerInstance.GetValue(null);
