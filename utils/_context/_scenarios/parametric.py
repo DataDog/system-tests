@@ -1,12 +1,13 @@
 import contextlib
 import dataclasses
-from typing import Dict, List, Literal, Union, TextIO
+from typing import TextIO
 from collections.abc import Generator
 
 import json
 import glob
 from functools import lru_cache
 import os
+from pathlib import Path
 import shutil
 import subprocess
 
@@ -213,7 +214,7 @@ class ParametricScenario(Scenario):
         apm_test_server_definition: APMLibraryTestServer = self.apm_test_server_definition
 
         log_path = f"{self.host_log_folder}/outputs/docker_build_log.log"
-        os.makedirs(os.path.dirname(log_path), exist_ok=True)
+        Path.mkdir(os.path.dirname(log_path), exist_ok=True, parents=True)
 
         # Write dockerfile to the build directory
         # Note that this needs to be done as the context cannot be
@@ -341,7 +342,7 @@ class ParametricScenario(Scenario):
 
 def _get_base_directory():
     """Workaround until the parametric tests are fully migrated"""
-    current_directory = os.getcwd()
+    current_directory = Path.cwd()
     return f"{current_directory}/.." if current_directory.endswith("parametric") else current_directory
 
 

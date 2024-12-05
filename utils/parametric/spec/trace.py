@@ -4,8 +4,6 @@ Tracing constants, data structures and helper methods.
 These are used to specify, test and work with trace data and protocols.
 """
 import json
-from typing import Dict
-from typing import List
 from typing import Optional
 from typing import TypedDict
 from typing import Union

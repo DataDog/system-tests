@@ -3,7 +3,7 @@
 import contextlib
 import time
 import urllib.parse
-from typing import List, Optional, Tuple, TypedDict, Union, Dict
+from typing import Optional, TypedDict, Union
 from collections.abc import Generator
 
 from docker.models.containers import Container

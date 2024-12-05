@@ -136,7 +136,7 @@ class Tracestate:
         return self
 
     def to_string(self):
-        return ",".join(map(lambda key: key + "=" + self[key], self._traits))
+        return ",".join(key + "=" + self[key] for key in self._traits)
 
     def split(self, char=","):
         ts = self.to_string()
