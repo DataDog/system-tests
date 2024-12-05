@@ -35,3 +35,6 @@ CMD ./app.sh
 COPY utils/build/docker/nodejs/install_ddtrace.sh binaries* /binaries/
 RUN /binaries/install_ddtrace.sh
 ENV DD_TRACE_HEADER_TAGS=user-agent
+
+# docker build -f utils/build/docker/nodejs/express4.Dockerfile -t test .
+# docker run -ti -p 7777:7777 test
