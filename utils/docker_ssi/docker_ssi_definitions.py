@@ -297,7 +297,43 @@ DOTNET_APP = WeblogDescriptor(
     [
         SupportedImages().UBUNTU_22_AMD64.with_allowed_runtime_versions(
             DotnetRuntimeInstallableVersions.get_all_versions()
-        ),        
+        ),
+        SupportedImages().UBUNTU_22_ARM64.with_allowed_runtime_versions(
+            DotnetRuntimeInstallableVersions.get_all_versions()
+        ),
+        SupportedImages().UBUNTU_16_AMD64.with_allowed_runtime_versions(
+            DotnetRuntimeInstallableVersions.get_all_versions()
+        ),
+        SupportedImages().UBUNTU_16_ARM64.with_allowed_runtime_versions(
+            DotnetRuntimeInstallableVersions.get_all_versions()
+        ),
+        SupportedImages().CENTOS_7_AMD64.with_allowed_runtime_versions(
+            JSRuntimeInstallableVersions.get_all_versions()
+        ),
+        SupportedImages().ORACLELINUX_8_AMD64.with_allowed_runtime_versions(
+            DotnetRuntimeInstallableVersions.get_all_versions()
+        ),
+        SupportedImages().ORACLELINUX_8_ARM64.with_allowed_runtime_versions(
+            DotnetRuntimeInstallableVersions.get_all_versions()
+        ),
+        SupportedImages().ORACLELINUX_9_AMD64.with_allowed_runtime_versions(
+            DotnetRuntimeInstallableVersions.get_all_versions()
+        ),
+        SupportedImages().ORACLELINUX_9_ARM64.with_allowed_runtime_versions(
+            DotnetRuntimeInstallableVersions.get_all_versions()
+        ),
+        SupportedImages().ALMALINUX_8_AMD64.with_allowed_runtime_versions(
+            DotnetRuntimeInstallableVersions.get_all_versions()
+        ),
+        SupportedImages().ALMALINUX_8_ARM64.with_allowed_runtime_versions(
+            DotnetRuntimeInstallableVersions.get_all_versions()
+        ),
+        SupportedImages().ALMALINUX_9_AMD64.with_allowed_runtime_versions(
+            DotnetRuntimeInstallableVersions.get_all_versions()
+        ),
+        SupportedImages().ALMALINUX_9_ARM64.with_allowed_runtime_versions(
+            DotnetRuntimeInstallableVersions.get_all_versions()
+        ),
     ],
 )
 
