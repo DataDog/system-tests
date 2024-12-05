@@ -3,7 +3,8 @@
 import contextlib
 import time
 import urllib.parse
-from typing import Generator, List, Optional, Tuple, TypedDict, Union, Dict
+from typing import Optional, TypedDict, Union
+from collections.abc import Generator
 
 from docker.models.containers import Container
 import pytest
@@ -91,8 +92,7 @@ class APMLibraryClient:
         try:
             self._session.get(self._url("/trace/crash"))
         except:
-            # Expected
-            pass
+            logger.info("Expected exception when calling /trace/crash")
 
     def container_exec_run(self, command: str) -> tuple[bool, str]:
         try:
@@ -118,7 +118,7 @@ class APMLibraryClient:
         resource: Optional[str] = None,
         parent_id: Optional[str] = None,
         typestr: Optional[str] = None,
-        tags: Optional[List[Tuple[str, str]]] = None,
+        tags: Optional[list[tuple[str, str]]] = None,
     ):
         if context.library == "cpp":
             # TODO: Update the cpp parametric app to accept null values for unset parameters
@@ -216,11 +216,11 @@ class APMLibraryClient:
 
     def trace_inject_headers(self, span_id):
         resp = self._session.post(self._url("/trace/span/inject_headers"), json={"span_id": span_id},)
-        # todo: translate json into list within list
+        # TODO: translate json into list within list
         # so server.xx do not have to
         return resp.json()["http_headers"]
 
-    def trace_extract_headers(self, http_headers: List[Tuple[str, str]]):
+    def trace_extract_headers(self, http_headers: list[tuple[str, str]]):
         resp = self._session.post(self._url("/trace/span/extract_headers"), json={"http_headers": http_headers})
         return resp.json()["span_id"]
 
@@ -236,8 +236,8 @@ class APMLibraryClient:
         timestamp: Optional[int],
         span_kind: Optional[SpanKind],
         parent_id: Optional[int],
-        links: Optional[List[Link]],
-        events: Optional[List[Event]],
+        links: Optional[list[Link]],
+        events: Optional[list[Event]],
         attributes: Optional[dict],
     ) -> StartSpanResponse:
         resp = self._session.post(
@@ -308,7 +308,7 @@ class APMLibraryClient:
         resp = resp.json()
         return resp["value"]
 
-    def config(self) -> Dict[str, Optional[str]]:
+    def config(self) -> dict[str, Optional[str]]:
         resp = self._session.get(self._url("/trace/config")).json()
         config_dict = resp["config"]
         return {
@@ -446,7 +446,7 @@ class APMLibrary:
         resource: Optional[str] = None,
         parent_id: Optional[str] = None,
         typestr: Optional[str] = None,
-        tags: Optional[List[Tuple[str, str]]] = None,
+        tags: Optional[list[tuple[str, str]]] = None,
     ) -> Generator[_TestSpan, None, None]:
         resp = self._client.trace_start_span(
             name=name, service=service, resource=resource, parent_id=parent_id, typestr=typestr, tags=tags,
@@ -471,8 +471,8 @@ class APMLibrary:
         timestamp: Optional[int] = None,
         span_kind: Optional[SpanKind] = None,
         parent_id: Optional[int] = None,
-        links: Optional[List[Link]] = None,
-        events: Optional[List[Event]] = None,
+        links: Optional[list[Link]] = None,
+        events: Optional[list[Event]] = None,
         attributes: Optional[dict] = None,
         end_on_exit: bool = True,
     ) -> Generator[_TestOtelSpan, None, None]:
@@ -499,16 +499,16 @@ class APMLibrary:
     def otel_is_recording(self, span_id: int) -> bool:
         return self._client.otel_is_recording(span_id)
 
-    def dd_inject_headers(self, span_id) -> List[Tuple[str, str]]:
+    def dd_inject_headers(self, span_id) -> list[tuple[str, str]]:
         return self._client.trace_inject_headers(span_id)
 
-    def dd_extract_headers(self, http_headers: List[Tuple[str, str]]) -> int:
+    def dd_extract_headers(self, http_headers: list[tuple[str, str]]) -> int:
         return self._client.trace_extract_headers(http_headers)
 
     def otel_set_baggage(self, span_id: int, key: str, value: str):
         return self._client.otel_set_baggage(span_id, key, value)
 
-    def config(self) -> Dict[str, Optional[str]]:
+    def config(self) -> dict[str, Optional[str]]:
         return self._client.config()
 
     def dd_current_span(self) -> Union[_TestSpan, None]:

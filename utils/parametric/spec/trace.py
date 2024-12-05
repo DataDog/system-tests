@@ -4,8 +4,6 @@ Tracing constants, data structures and helper methods.
 These are used to specify, test and work with trace data and protocols.
 """
 import json
-from typing import Dict
-from typing import List
 from typing import Optional
 from typing import TypedDict
 from typing import Union
@@ -84,14 +82,14 @@ class V06StatsAggr(TypedDict):
 class V06StatsBucket(TypedDict):
     Start: int
     Duration: int
-    Stats: List[V06StatsAggr]
+    Stats: list[V06StatsAggr]
 
 
 class V06StatsPayload(TypedDict):
     Hostname: Optional[str]
     Env: Optional[str]
     Version: Optional[str]
-    Stats: List[V06StatsBucket]
+    Stats: list[V06StatsBucket]
 
 
 def _v06_store_from_proto(proto: StorePb) -> CollapsingLowestDenseStore:
@@ -118,9 +116,9 @@ def _v06_sketch_from_proto(proto: DDSketchPb) -> BaseDDSketch:
 
 def decode_v06_stats(data: bytes) -> V06StatsPayload:
     payload = msgpack.unpackb(data)
-    stats_buckets: List[V06StatsBucket] = []
+    stats_buckets: list[V06StatsBucket] = []
     for raw_bucket in payload["Stats"]:
-        stats: List[V06StatsAggr] = []
+        stats: list[V06StatsAggr] = []
         for raw_stats in raw_bucket["Stats"]:
             ok_summary = DDSketchPb()
             ok_summary.ParseFromString(raw_stats["OkSummary"])
@@ -152,7 +150,7 @@ def decode_v06_stats(data: bytes) -> V06StatsPayload:
     )
 
 
-def find_trace(traces: List[Trace], trace_id: int) -> Trace:
+def find_trace(traces: list[Trace], trace_id: int) -> Trace:
     """Return the trace from `traces` that match a `trace_id`."""
     # TODO: Ensure all parametric applications return uint64 trace ids (not strings or bigints)
     trace_id = ((1 << 64) - 1) & id_to_int(trace_id)  # Use 64-bit trace id
@@ -175,13 +173,13 @@ def find_span(trace: Trace, span_id: int) -> Span:
     raise AssertionError(f"Span with id={span_id} not found. Trace={trace}")
 
 
-def find_span_in_traces(traces: List[Trace], trace_id: int, span_id: int) -> Span:
+def find_span_in_traces(traces: list[Trace], trace_id: int, span_id: int) -> Span:
     """Return a span from a list of traces by `trace_id` and `span_id`."""
     trace = find_trace(traces, trace_id)
     return find_span(trace, span_id)
 
 
-def find_only_span(traces: List[Trace]) -> Span:
+def find_only_span(traces: list[Trace]) -> Span:
     """Return the only span in a list of traces. Raises an error if there are no traces or more than one span."""
     assert len(traces) == 1, traces
     assert len(traces[0]) == 1, traces[0]
@@ -208,14 +206,14 @@ def span_has_no_parent(span: Span) -> bool:
     return "parent_id" not in span or span.get("parent_id") == 0 or span.get("parent_id") is None
 
 
-def assert_span_has_tags(span: Span, tags: Dict[str, Union[int, str, float, bool]]):
+def assert_span_has_tags(span: Span, tags: dict[str, Union[int, str, float, bool]]):
     """Assert that the span has the given tags."""
     for key, value in tags.items():
         assert key in span.get("meta", {}), f"Span missing expected tag {key}={value}"
         assert span.get("meta", {}).get(key) == value, f"Span incorrect tag value for {key}={value}"
 
 
-def assert_trace_has_tags(trace: Trace, tags: Dict[str, Union[int, str, float, bool]]):
+def assert_trace_has_tags(trace: Trace, tags: dict[str, Union[int, str, float, bool]]):
     """Assert that the trace has the given tags."""
     for span in trace:
         assert_span_has_tags(span, tags)
@@ -271,10 +269,13 @@ def retrieve_span_events(span):
 
 def id_to_int(value: Union[str, int]) -> int:
     """Convert an id from hex or a base 10 string to an integer."""
+    if isinstance(value, int):
+        return value
+
     try:
         # This is a best effort to convert hex span/trace id to an integer.
         # This is temporary solution until all parametric applications return trace/span ids
         # as stringified integers (ids will be stringified to workaround percision issues in some languages)
         return int(value)
     except ValueError:
-        return int(value, 16)  # type: ignore
+        return int(value, 16)
