@@ -1,6 +1,7 @@
-from utils import scenarios, weblog, interfaces
+from utils import scenarios, weblog, interfaces, features
 
 
+@features.not_reported  # TODO
 @scenarios.ipv6
 class Test_Basic:
     def setup_main(self):
