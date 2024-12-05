@@ -36,7 +36,7 @@ fi
 
 source venv/bin/activate
 
-echo "Checking Python files..."
+echo "Running black formatter..."
 if [ "$COMMAND" == "fix" ]; then
   black --quiet .
 else
@@ -50,6 +50,11 @@ if ! mypy --config pyproject.toml; then
 fi
 
 echo "Running ruff checks..."
+if ! which ruff > /dev/null; then
+  echo "ruff is not installed, installing it (ETA 5s)"
+  ./build.sh -i runner > /dev/null
+fi
+
 if [ "$COMMAND" == "fix" ]; then
   ruff_args="--fix"
 else
