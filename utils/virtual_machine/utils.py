@@ -249,7 +249,7 @@ def _generate_cache_jobs(language, weblog_name, scenario_name, vms):
             "rules": [{"when": "manual", "allow_failure": True},],
             "script": [
                 "./build.sh -i runner",
-                "./run.sh $SCENARIO --vm-weblog $WEBLOG --vm-env $ONBOARDING_FILTER_ENV --vm-library $TEST_LIBRARY --vm-provider aws --vm-default-vms All --vm-only "
+                "./run.sh $SCENARIO --vm-weblog $WEBLOG --vm-env prod --vm-library $TEST_LIBRARY --vm-provider aws --vm-default-vms All --vm-only "
                 + vm.name,
             ],
         }
