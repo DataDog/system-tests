@@ -18,10 +18,10 @@ public abstract class ApmTestApi
         app.MapGet("/trace/crash", Crash);
         app.MapGet("/trace/config", GetTracerConfig);
         app.MapPost("/trace/tracer/stop", StopTracer);
+
         app.MapPost("/trace/span/start", StartSpan);
         app.MapPost("/trace/span/inject_headers", InjectHeaders);
         app.MapPost("/trace/span/extract_headers", ExtractHeaders);
-
         app.MapPost("/trace/span/error", SpanSetError);
         app.MapPost("/trace/span/set_meta", SpanSetMeta);
         app.MapPost("/trace/span/set_metric", SpanSetMetric);
@@ -40,7 +40,7 @@ public abstract class ApmTestApi
     private static readonly Type StatsAggregatorType = Type.GetType("Datadog.Trace.Agent.StatsAggregator, Datadog.Trace", throwOnError: true)!;
 
     // Accessors for internal properties/fields accessors
-    private static readonly PropertyInfo GetGlobalSettingsInstance  = GlobalSettingsType.GetProperty("Instance", BindingFlags.Static | BindingFlags.NonPublic)!;
+    private static readonly PropertyInfo GetGlobalSettingsInstance = GlobalSettingsType.GetProperty("Instance", BindingFlags.Static | BindingFlags.NonPublic)!;
     private static readonly PropertyInfo GetTracerManager = TracerType.GetProperty("TracerManager", BindingFlags.Instance | BindingFlags.NonPublic)!;
     private static readonly MethodInfo GetAgentWriter = TracerManagerType.GetProperty("AgentWriter", BindingFlags.Instance | BindingFlags.Public)!.GetGetMethod()!;
     private static readonly FieldInfo GetStatsAggregator = AgentWriterType.GetField("_statsAggregator", BindingFlags.Instance | BindingFlags.NonPublic)!;
@@ -60,12 +60,13 @@ public abstract class ApmTestApi
 
     internal static ILogger<ApmTestApi>? _logger;
 
-    internal static readonly SpanContextInjector _spanContextInjector = new();
-    internal static readonly SpanContextExtractor _spanContextExtractor = new();
+    private static readonly SpanContextInjector _spanContextInjector = new();
+    private static readonly SpanContextExtractor _spanContextExtractor = new();
 
     internal static IEnumerable<string> GetHeaderValues(string[][] headersList, string key)
     {
-        List<string> values = new List<string>();
+        var values = new List<string>();
+
         foreach (var kvp in headersList)
         {
             if (kvp.Length == 2 && string.Equals(key, kvp[0], StringComparison.OrdinalIgnoreCase))
@@ -77,7 +78,7 @@ public abstract class ApmTestApi
         return values.AsReadOnly();
     }
 
-    public static async Task StopTracer()
+    private static async Task StopTracer()
     {
         await Tracer.Instance.ForceFlushAsync();
     }
@@ -97,11 +98,16 @@ public abstract class ApmTestApi
         if (parsedDictionary!.TryGetValue("parent_id", out var parentId) && parentId is not null)
         {
             var longParentId = Convert.ToUInt64(parentId);
-            if(Spans.TryGetValue(longParentId, out var parentSpan)) {
+            if (Spans.TryGetValue(longParentId, out var parentSpan))
+            {
                 creationSettings.Parent = parentSpan.Context;
-            } else if (DDContexts.TryGetValue(longParentId, out var ddContext)) {
+            }
+            else if (DDContexts.TryGetValue(longParentId, out var ddContext))
+            {
                 creationSettings.Parent = ddContext;
-            } else {
+            }
+            else
+            {
                 throw new Exception($"Parent span with id {longParentId} not found");
             }
         }
@@ -120,7 +126,7 @@ public abstract class ApmTestApi
             span.ResourceName = resource.ToString();
         }
 
-        if (parsedDictionary.TryGetValue("type", out var type)  && type is not null)
+        if (parsedDictionary.TryGetValue("type", out var type) && type is not null)
         {
             span.Type = type.ToString();
         }
@@ -252,10 +258,7 @@ public abstract class ApmTestApi
 
     private static string Crash(HttpRequest request)
     {
-        var thread = new Thread(() =>
-        {
-            throw new BadImageFormatException("Expected");
-        });
+        var thread = new Thread(() => throw new BadImageFormatException("Expected"));
 
         thread.Start();
         thread.Join();
@@ -263,7 +266,7 @@ public abstract class ApmTestApi
         return "Failed to crash";
     }
 
-    private static string GetTracerConfig(HttpRequest request)
+    private static string GetTracerConfig()
     {
         var tracerSettings = Tracer.Instance.Settings;
         var internalTracer = GetTracerInstance.GetValue(null);
