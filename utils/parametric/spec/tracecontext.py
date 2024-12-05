@@ -108,7 +108,7 @@ class Tracestate:
 
     def __setitem__(self, key, value):
         if not isinstance(key, str):
-            raise ValueError("key must be an instance of str")
+            raise TypeError("key must be an instance of str")
         if not re.match(self._KEY_VALIDATION_RE, key):
             raise ValueError("illegal key provided")
         if not isinstance(value, str):

@@ -55,7 +55,7 @@ def _get_client() -> docker.DockerClient:
             ).stdout.strip()
             return docker.DockerClient(base_url=endpoint)
         except:
-            pass
+            logger.exception("No more success with docker contexts")
 
         raise e
 
@@ -238,7 +238,7 @@ class ParametricScenario(Scenario):
                 dockf_path,
                 apm_test_server_definition.container_build_context,
             ]
-            log_file.write("running %r in %r\n" % (" ".join(cmd), root_path))
+            log_file.write(f"running {cmd} in {root_path}\n")
             log_file.flush()
 
             env = os.environ.copy()
@@ -382,8 +382,8 @@ def node_library_factory() -> APMLibraryTestServer:
             path = f.read().strip(" \r\n")
             source = os.path.join(_get_base_directory(), path)
             volumes[os.path.abspath(source)] = "/volumes/dd-trace-js"
-    except Exception:
-        pass
+    except FileNotFoundError:
+        logger.info("No local dd-trace-js found, do not mount any volume")
 
     return APMLibraryTestServer(
         lang="nodejs",
