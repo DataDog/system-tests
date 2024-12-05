@@ -49,9 +49,15 @@ if ! mypy --config pyproject.toml; then
   exit 1
 fi
 
-echo "Running pylint checks..."
-if ! pylint utils; then
-  echo "Pylint checks failed. Please fix the errors above. 💥 💔 💥"
+echo "Running ruff checks..."
+if [ "$COMMAND" == "fix" ]; then
+  ruff_args="--fix"
+else
+  ruff_args=""
+fi
+
+if ! ruff check $ruff_args; then
+  echo "ruff checks failed. Please fix the errors above. 💥 💔 💥"
   exit 1
 fi
 

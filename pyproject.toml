@@ -54,38 +54,349 @@ disable_error_code = ["no-redef"]
 exclude = 'utils/parametric/_library_client\.py|^(?!utils/parametric|tests/parametric).*$'
 follow_imports = "skip"
 
-[tool.pylint]
-init-hook='import sys; sys.path.append(".")'
-max-line-length = 120
-disable = [
-    "missing-module-docstring",
-    "missing-class-docstring",
-    "missing-function-docstring",
-    "fixme",
-    "raise-missing-from",
-    "invalid-name",
-    "import-outside-toplevel",
-    "logging-fstring-interpolation",
-    "broad-except",
-    "too-few-public-methods",
-    "too-many-arguments",
-    "too-many-branches,",
-    "bare-except",
-    "too-many-instance-attributes",
-    "too-many-locals",
-    "too-many-public-methods",
-    "too-many-nested-blocks",
-    "too-many-return-statements",
-    "duplicate-code",
-    "abstract-method",
-    "inconsistent-return-statements", # because lot of validator function returns nothing
-    "unused-argument", # pain, as there are some function that MUST have a prototype. TODO...
-    "attribute-defined-outside-init",
-    "no-name-in-module",  # full of bug
-    "import-error",  # full of bug
+[tool.ruff]
+exclude = ["tests/", "utils/build/", "lib-injection/", "manifests/"]
+line-length = 120
+indent-width = 4
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["ALL"]
+
+ignore = [
+    ### TODO : remove those ignores
+    # missing-type-annotation, the ONE to remove !!
+    "ANN001",
+    "ANN002",
+    "ANN003",
+    "ANN201",
+    "ANN202",
+    "ANN205",
+    "ANN206",
+    "ARG001",  # unused function argument
+    "ARG002",  # unused method argument
+    "ARG005",  # unused lambda argument
+    "B010",    # wat is zat?
+    "BLE001",  # TBD
+    "C901",    # code complexity, TBD
+    "COM819",
+    "D200",
+    "D210",    # docstring format
+    "D202",    # docstring format
+    "D208",    # docstring format
+    "D205",    # docstring format
+    "D209",    # docstring format
+    "D401",    # docstring format
+    "D403",    # docstring format
+    "D404",    # docstring format
+    "D410",    # docstring format
+    "D411",    # docstring format
+    "D413",    # docstring format
+    "D212",    # docstring format
+    "D417",    # docstring format
+    "E501",    # line too long
+    "E722",    # TBD
+    "E741",
+    "F401",    # easy
+    "FBT001",
+    "FBT002",  # Boolean default positional argument, TBD
+    "FURB129",
+    "INP001",  # implicit package
+    "N801",    # easy
+    "N806",
+    "PERF401",
+    "PIE810",
+    "PLR0911", # too many return, may be replaced by a higher default value
+    "PLR0912", # Too many branches
+    "PLR0913", # too many arguments, may be replaced by a higher default value
+    "PLR0915", # too many statements, may be replaced by a higher default value
+    "PLR1714",
+    "PLR2004",
+    "PLR5501",
+    "PTH100",
+    "PTH102",
+    "PTH110",
+    "PTH113",
+    "PTH116",
+    "PTH118",
+    "PTH119",
+    "PTH120",
+    "PTH122",
+    "PTH123",  # `open()` should be replaced by `Path.open()`
+    "RET503",
+    "RET504",
+    "RUF012",
+    "RUF013",
+    "RUF015",  # yes, definitly
+    "S202",
+    "S507",
+    "SIM102",
+    "SIM108",
+    "SIM110",  # TBD
+    "SIM114",
+    "SIM401",  # code quality, TBD
+    "SLF001",
+    "TRY002",
+    "TRY003",  # this is a full project to enable this
+    "TRY201",
+    "TRY300",
+    "UP007",
+    "UP015",
+    "UP024",
+    "UP038",   # we really want this? TBD
+    "W291",    # trailing whitespace, easy one
+    "W293",
+
+
+    ### Ignores that will be kept for the entire project
+    "ANN204", # missing-return-type-special-method
+    "COM812", # ruff format recommend ignoring this
+    "D100",   # Missing docstring in public module
+    "D101",   # Missing docstring in public class
+    "D102",   # Missing docstring in public method
+    "D103",   # Missing docstring in public function
+    "D104",   # Missing docstring in public package
+    "D105",   # Missing docstring in magic method
+    "D107",   # Missing docstring in `__init__`
+    "D203",   # cause a warning  
+    "D211",   # no-blank-line-before-class
+    "D213",   # multi-line-summary-second-line
+    "D400",   # First line should end with a period
+    "D415",   # First line should end with a period
+    "EM101",  # Exception must not use a string literal => painful
+    "EM102",  # Exception must not use an f-string => painful
+    "ERA001", # Found commented-out code
+    "FIX001", # Fixme found
+    "FIX002", # Fixme found
+    "G004",   # allow logging with f-string
+    "I001",   # Import block is un-sorted or un-formatted
+    "ISC001", # ruff format recommend ignoring this
+    "S101",   # we allow assert!  
+    "S311",   # Standard pseudo-random generators are not suitable for cryptographic purposes -> it's testing
+    "S324",   # testing, it's fine
+    "TD001",  # todo found
+    "TD002",  # todo found
+    "TD003",  # todo found
+    "TD004",  # todo found
+
 ]
-ignore-paths = [
+
+# TODO : remove those ignores
+[tool.ruff.lint.per-file-ignores]
+"utils/_context/containers.py" = [
+    "D406",
+    "D407",
+    "D417",
+    "F841",
+    "FBT001",
+    "FIX003",
+    "PLW2901",
+    "PTH101",
+    "PTH109",
+    "RET505",
+    "RUF012",
+    "S104",
+    "S106",
+    "S110",
+    "S113",
+    "S603",
+    "S607",
 ]
-generated-members = [
-    "(ok_summary|err_summary)\\.mapping",
+"utils/grpc/weblog_pb2_grpc.py" = ["ALL"]  # keep this one, it's a generated file
+"utils/grpc/weblog_pb2.py" = ["ALL"]       # keep this one, it's a generated file
+"utils/interfaces/*" = [
+    "A001",
+    "E713",
+    "FBT001",
+    "FBT003",
+    "PLR5501",
+    "PLW2901",
+    "PTH109",
+    "PTH112",
+    "RET502",
+    "RET504",
+    "RSE102",
+    "RUF010",
+    "RUF012",
+    "RUF013",
+    "S201",
+    "SIM102",
+    "SIM103",
+    "SIM118",
+    "T201",
+    "TRY203",
+    "UP011",
+    "UP034",
+]
+"utils/{k8s_lib_injection/*,_context/_scenarios/k8s_lib_injection.py}" = [
+    "D207",
+    "SIM115",
+    "S603",
+    "DTZ005",
+    "RET505",
+    "TRY301",
+    "B006",
+    "SIM108",
+    "RET508",
+    "B007",
+    "E712",
+    "F541",
+    "TRY400",
+    "N818",
+    "UP004",
+    "PTH109",
+    "UP032",
+    "EM103",
+    "B904",
+    "PTH108",
+    "A002",
+    "E401",
+    "RUF012",
+    "G002",
+    "UP031",
+    "F541"
+]
+
+"utils/onboarding/*" = [
+    "DTZ006",
+    "DTZ005",
+    "UP017",
+    "N806",
+    "FBT001",
+    "S507",
+    "PTH102",
+    "PLR2044",
+    "N803",
+    "RET505",
+]
+"utils/otel_validators/validator_trace.py" = ["FBT001"]
+"utils/{parametric/*,_context/_scenarios/parametric.py}" = [
+    "UP007",
+    "UP006",
+    "SIM103",
+    "C417",
+    "TRY004",
+    "PGH003",
+    "UP035",
+    "FBT001",
+    "RUF013",
+    "TD006",
+    "S110",
+    "SIM105",
+
+    "S603",
+    "S607",
+    "PTH207",
+    "PTH103",
+    "UP031",
+    "PTH109",
+    "RET504",
+]
+"utils/{_context/_scenarios/docker_ssi.py,docker_ssi/docker_ssi_matrix_builder.py,docker_ssi/docker_ssi_matrix_utils.py}" = [
+    "PLR2004",
+    "SIM210",
+    "RET504",
+    "RET505",
+    "SIM108",
+    "T201",
+]
+"utils/_context/_scenarios/__init__.py" = ["T201"]
+"utils/scripts/*" = [
+    "T201",    # allow prints here
+    "PLW2901", # to be corrected
+    "SIM115",  # to be corrected
+    "PLR2004", # to be corrected
+    "S314",
+    "RUF013",
+    "B007",
+    "Q003",
+    "F541",
+    "S113",
+    "A002",
+    "PLR1711",
+    "SIM910",
+    "C405",
+    "RUF010",
+    "PLR1704",
+]
+"utils/proxy/*" = [
+    "S104",    # to be transfered in the line
+    "DTZ006",  # to be corrected
+    "PLR5501", # to be corrected
+    "G202",    # to be corrected
+    "PLC0206", # to be corrected
+    "S307",    # to be corrected
+    "RET505",  # to be corrected
+    "UP034",   # to be corrected
+    "T201",    # to be corrected
+    "C416",    # to be corrected
+]
+"utils/scripts/push-metrics.py" = [
+    "UP017", # to be corrected
+]
+"utils/scripts/update_features.py" = ["ALL"] # file must be deleted
+"utils/telemetry_utils.py" = ["N806", "RUF012"] # to be corrected
+"utils/tools.py" = ["T201", "PLW2901"] # to be transfered in the line
+"conftest.py" = [
+    "SLF001", # to be transfered in the line
+    "N806",   # to be corrected
+]
+"utils/waf_rules.py" = ["N801"]
+"utils/virtual_machine/*" = [
+    "A002",
+    "ANN002",
+    "ANN201",
+    "ARG001",
+    "ARG002",
+    "C901",
+    "E712",
+    "E731",
+    "F541",
+    "E713",
+    "EM102",
+    "PLR0912",
+    "PLR0915",
+    "PLR1714",
+    "PLW1510",
+    "PTH112",
+    "PTH113",
+    "PTH116",
+    "PTH118",
+    "PTH119",
+    "RET503",
+    "RET504",
+    "RET508",
+    "RET505",
+    "RUF013",
+    "S506",
+    "S603",
+    "SIM102",
+    "SIM113",
+    "SIM300",
+    "UP008",
+    "UP015",
+    "UP031",
+    "UP024",
+
+    "BLE001",
+    "D207",
+    "F401",
+    "F811",
+    "F841",
+    "N802",
+    "N803",
+    "N806",
+    "PERF401",
+    "PLR2004",
+    "PTH101",
+    "PTH102",
+    "PTH109",
+    "S103",
+    "S113",
+    "S311",
+    "S602",
+    "SIM103",
+    "SIM115",
+    "SLF001",
+    "TRY002",
 ]
