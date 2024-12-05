@@ -179,7 +179,7 @@ static string GetZombies(HttpRequest request)
 
 
 app.MapGet("/", () => "Hello World!");
-app.MapGet("/crashme", CrashMe); 
+app.MapGet("/crashme", CrashMe);
 app.MapGet("/fork_and_crash", ForkAndCrash);
 app.MapGet("/child_pids", GetChildPids);
 app.MapGet("/zombies", GetZombies);

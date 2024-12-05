@@ -17,7 +17,7 @@ elif [ "$DD_LANG" == "js" ]; then
 
     runtime_version=$(node --version | tr -d 'v')
 elif [ "$DD_LANG" == "dotnet" ]; then
-    runtime_version=$(dotnet --version)    
+    runtime_version=$(dotnet --version)
 fi
 
 if [ -f /etc/debian_version ] || [ "$DISTRIBUTION" = "Debian" ] || [ "$DISTRIBUTION" = "Ubuntu" ]; then
