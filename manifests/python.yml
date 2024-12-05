@@ -250,8 +250,8 @@ tests/:
         Test_Cmdi_Rules_Version: v2.18.0.dev
         Test_Cmdi_StackTrace: missing_feature
         Test_Cmdi_Telemetry: missing_feature
-        Test_Cmdi_UrlQuery: missing_feature
         Test_Cmdi_Telemetry_Variant_Tag: missing_feature
+        Test_Cmdi_UrlQuery: missing_feature
         Test_Cmdi_Waf_Version: v2.18.0.dev
       test_lfi.py:
         Test_Lfi_BodyJson: v2.10.0
