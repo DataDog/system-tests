@@ -10,7 +10,7 @@ class FakeContainer(_TestedContainer):
         super().__init__(name=name, image_name=name, host_log_folder="logs_test_the_test")
         self._test_events = events if events is not None else []
 
-    def start(self):
+    def start(self, network):
         self._test_events.append(f"start {self.name}")
         self.healthy = True
 

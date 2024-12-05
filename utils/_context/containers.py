@@ -11,6 +11,7 @@ from threading import RLock, Thread
 import docker
 from docker.errors import APIError, DockerException
 from docker.models.containers import Container
+from docker.models.networks import Network
 import pytest
 import requests
 
@@ -52,13 +53,13 @@ _DEFAULT_NETWORK_NAME = "system-tests_default"
 _NETWORK_NAME = "bridge" if "GITLAB_CI" in os.environ else _DEFAULT_NETWORK_NAME
 
 
-def create_network():
-    for _ in _get_client().networks.list(names=[_NETWORK_NAME,]):
+def create_network() -> Network:
+    for network in _get_client().networks.list(names=[_NETWORK_NAME,]):
         logger.debug(f"Network {_NETWORK_NAME} still exists")
-        return
+        return network
 
     logger.debug(f"Create network {_NETWORK_NAME}")
-    _get_client().networks.create(_NETWORK_NAME, check_duplicate=True)
+    return _get_client().networks.create(_NETWORK_NAME, check_duplicate=True)
 
 
 _VOLUME_INJECTOR_NAME = "volume-inject"
@@ -71,7 +72,7 @@ def create_inject_volume():
 
 
 class TestedContainer:
-    _container: Container
+    _container: Container = None
 
     # https://docker-py.readthedocs.io/en/stable/containers.html
     def __init__(
@@ -146,8 +147,14 @@ class TestedContainer:
             logger.debug(f"Kill old container {self.container_name}")
             old_container.remove(force=True)
 
-    def start(self) -> Container:
+    def start(self, network: Network) -> Container:
         """ Start the actual underlying Docker container directly """
+
+        if self._container:
+            # container is already started, some scenarios actively starts some containers
+            # before calling async_start()
+            return
+
         if old_container := self.get_existing_container():
             if self.allow_old_container:
                 self._container = old_container
@@ -170,7 +177,7 @@ class TestedContainer:
             environment=self.environment,
             # auto_remove=True,
             detach=True,
-            network=_NETWORK_NAME,
+            network=network.name,
             **self.kwargs,
         )
 
@@ -178,17 +185,18 @@ class TestedContainer:
         if self.healthy:
             self.warmup()
 
-    def async_start(self) -> Thread:
+    def async_start(self, network: Network) -> Thread:
         """ Start the container and its dependencies in a thread with circular dependency detection """
         self.check_circular_dependencies([])
 
-        return self._async_start_recursive()
+        return self._async_start_recursive(network)
 
-    def network_ip(self) -> str:
+    def network_ip(self, network: Network) -> str:
         logger.debug("NetworksSettings: {self._container.attrs['NetworkSettings']}")
 
         # NetworkSettings.Networks.bridge.IPAddress
-        return self._container.attrs["NetworkSettings"]["Networks"][_NETWORK_NAME]["IPAddress"]
+        self._container.reload()
+        return self._container.attrs["NetworkSettings"]["Networks"][network.name]["IPAddress"]
 
     def check_circular_dependencies(self, seen: list):
         """ Check if the container has a circular dependency """
@@ -201,18 +209,20 @@ class TestedContainer:
         for dependency in self.depends_on:
             dependency.check_circular_dependencies(list(seen))
 
-    def _async_start_recursive(self):
+    def _async_start_recursive(self, network: Network):
         """ Recursive version of async_start for circular dependency detection """
         with self._starting_lock:
             if self._starting_thread is None:
-                self._starting_thread = Thread(target=self._start_with_dependencies, name=f"start_{self.name}")
+                self._starting_thread = Thread(
+                    target=self._start_with_dependencies, name=f"start_{self.name}", kwargs={"network": network}
+                )
                 self._starting_thread.start()
 
         return self._starting_thread
 
-    def _start_with_dependencies(self):
+    def _start_with_dependencies(self, network: Network):
         """ Start all dependencies of a container and then start the container """
-        threads = [dependency._async_start_recursive() for dependency in self.depends_on]
+        threads = [dependency._async_start_recursive(network) for dependency in self.depends_on]
 
         for thread in threads:
             thread.join()
@@ -224,7 +234,7 @@ class TestedContainer:
         # this function is executed in a thread
         # the main thread will take care of the exception
         try:
-            self.start()
+            self.start(network)
         except Exception as e:
             logger.exception(f"Error while starting {self.name}: {e}")
             self.healthy = False
@@ -506,7 +516,7 @@ class ProxyContainer(TestedContainer):
                 f"./{host_log_folder}/interfaces/": {"bind": f"/app/{host_log_folder}/interfaces", "mode": "rw",},
                 "./utils/": {"bind": "/app/utils/", "mode": "ro"},
             },
-            ports={"11111/tcp": ("127.0.0.1", 11111)},
+            ports={"9000/tcp": ("127.0.0.1", 9000)},
             command="python utils/proxy/core.py",
         )
 
@@ -527,8 +537,8 @@ class AgentContainer(TestedContainer):
         )
 
         if use_proxy:
-            environment["DD_PROXY_HTTPS"] = "http://proxy:8126"
-            environment["DD_PROXY_HTTP"] = "http://proxy:8126"
+            environment["DD_PROXY_HTTPS"] = "http://proxy:9100"
+            environment["DD_PROXY_HTTP"] = "http://proxy:9100"
 
         super().__init__(
             image_name="system_tests/agent",
@@ -717,10 +727,10 @@ class WeblogContainer(TestedContainer):
         if use_proxy:
             # set the tracer to send data to runner (it will forward them to the agent)
             base_environment["DD_AGENT_HOST"] = "proxy"
-            base_environment["DD_TRACE_AGENT_PORT"] = 8126
+            base_environment["DD_TRACE_AGENT_PORT"] = 9001
         else:
             base_environment["DD_AGENT_HOST"] = "agent"
-            base_environment["DD_TRACE_AGENT_PORT"] = 8127
+            base_environment["DD_TRACE_AGENT_PORT"] = 9001
 
         # overwrite values with those set in the scenario
         environment = base_environment | (environment or {})
@@ -1044,7 +1054,7 @@ class OpenTelemetryCollectorContainer(TestedContainer):
         logger.stdout(f"{self._otel_host}:{self._otel_port} never answered to healthcheck request")
         return False
 
-    def start(self) -> Container:
+    def start(self, network: Network) -> Container:
         # _otel_config_host_path is mounted in the container, and depending on umask,
         # it might have no read permissions for other users, which is required within
         # the container. So set them here.
@@ -1052,7 +1062,7 @@ class OpenTelemetryCollectorContainer(TestedContainer):
         new_mode = prev_mode | stat.S_IROTH
         if prev_mode != new_mode:
             os.chmod(self._otel_config_host_path, new_mode)
-        return super().start()
+        return super().start(network)
 
 
 class APMTestAgentContainer(TestedContainer):
@@ -1179,7 +1189,7 @@ class ExternalProcessingContainer(TestedContainer):
             image_name=image,
             name="extproc",
             host_log_folder=host_log_folder,
-            environment={"DD_APPSEC_ENABLED": "true", "DD_AGENT_HOST": "proxy", "DD_TRACE_AGENT_PORT": 8126,},
+            environment={"DD_APPSEC_ENABLED": "true", "DD_AGENT_HOST": "proxy", "DD_TRACE_AGENT_PORT": 9001,},
             healthcheck={"test": "wget -qO- http://localhost:80/", "retries": 10,},
         )
 
