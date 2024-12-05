@@ -245,11 +245,11 @@ def _generate_cache_jobs(language, weblog_name, scenario_name, vms):
                 "WEBLOG": weblog_name,
                 "AMI_UPDATE": "true",
             },
-            # Remove rules if you want to run the jobs when you clic on the execute button of the child pipeline
+            # Remove rules if you want to run the jobs when you clic on the execute button of the child pipeline.
             "rules": [{"when": "manual", "allow_failure": True},],
             "script": [
                 "./build.sh -i runner",
-                "./run.sh $SCENARIO --vm-weblog $WEBLOG --vm-env $ONBOARDING_FILTER_ENV --vm-library $TEST_LIBRARY --vm-provider aws --vm-default-vms All --vm-only "
+                "./run.sh $SCENARIO --vm-weblog $WEBLOG --vm-env prod --vm-library $TEST_LIBRARY --vm-provider aws --vm-default-vms All --vm-only "
                 + vm.name,
             ],
         }
