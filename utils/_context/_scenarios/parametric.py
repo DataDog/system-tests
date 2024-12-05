@@ -340,10 +340,8 @@ class ParametricScenario(Scenario):
             container.remove(force=True)
 
 
-def _get_base_directory():
-    """Workaround until the parametric tests are fully migrated"""
-    current_directory = Path.cwd()
-    return f"{current_directory}/.." if current_directory.endswith("parametric") else current_directory
+def _get_base_directory() -> str:
+    return str(Path.cwd())
 
 
 def python_library_factory() -> APMLibraryTestServer:
