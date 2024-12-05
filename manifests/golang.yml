@@ -568,7 +568,7 @@ tests/:
     Test_Config_ClientIPHeader_Configured: v1.60.0
     Test_Config_ClientIPHeader_Precedence: v1.69.0
     Test_Config_ClientTagQueryString_Configured: missing_feature (supports DD_TRACE_HTTP_URL_QUERY_STRING_DISABLED)
-    Test_Config_ClientTagQueryString_Empty: v1.60.0
+    Test_Config_ClientTagQueryString_Empty: bug (APMAPI-966) # DD_TRACE_HTTP_CLIENT_TAG_QUERY_STRING is disabled by default
     Test_Config_HttpClientErrorStatuses_Default: v1.69.0
     Test_Config_HttpClientErrorStatuses_FeatureFlagCustom: v1.69.0
     Test_Config_HttpServerErrorStatuses_Default: v1.67.0
