@@ -308,7 +308,7 @@ DOTNET_APP = WeblogDescriptor(
             DotnetRuntimeInstallableVersions.get_all_versions()
         ),
         SupportedImages().CENTOS_7_AMD64.with_allowed_runtime_versions(
-            JSRuntimeInstallableVersions.get_all_versions()
+            DotnetRuntimeInstallableVersions.get_all_versions()
         ),
         SupportedImages().ORACLELINUX_8_AMD64.with_allowed_runtime_versions(
             DotnetRuntimeInstallableVersions.get_all_versions()
