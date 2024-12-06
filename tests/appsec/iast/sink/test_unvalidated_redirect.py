@@ -19,7 +19,7 @@ def _expected_location():
         if context.weblog_variant == "vertx4":
             return "com.datadoghq.vertx4.iast.routes.IastSinkRouteProvider"
     if context.library.library == "nodejs":
-        if context.weblog_variant == "express4":
+        if context.weblog_variant in ("express4", "express5"):
             return "iast/index.js"
         if context.weblog_variant == "express4-typescript":
             return "iast.ts"

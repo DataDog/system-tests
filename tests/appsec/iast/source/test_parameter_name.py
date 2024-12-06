@@ -21,7 +21,10 @@ class TestParameterName(BaseSourceTest):
 
     setup_source_post_reported = BaseSourceTest.setup_source_reported
 
-    @missing_feature(weblog_variant="express4", reason="Tainted as request body")
+    @missing_feature(
+        context.library == "nodejs" and context.weblog_variant in ["express4", "express5"],
+        reason="Tainted as request body",
+    )
     @bug(weblog_variant="resteasy-netty3", reason="APPSEC-55687")
     @bug(library="python", reason="APPSEC-55689")
     @missing_feature(library="dotnet", reason="Tainted as request body")
@@ -37,7 +40,10 @@ class TestParameterName(BaseSourceTest):
         """ for use case where only one is reported, we want to keep a test on the one reported """
         self.validate_request_reported(self.requests["GET"])
 
-    @missing_feature(weblog_variant="express4", reason="Tainted as request body")
+    @missing_feature(
+        context.library == "nodejs" and context.weblog_variant in ["express4", "express5"],
+        reason="Tainted as request body",
+    )
     @bug(context.library < "java@1.40.0" and context.weblog_variant == "jersey-grizzly2", reason="APPSEC-55387")
     @bug(weblog_variant="resteasy-netty3", reason="APPSEC-55687")
     @bug(library="python", reason="APPSEC-55689")
