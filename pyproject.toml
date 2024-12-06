@@ -191,6 +191,7 @@ ignore = [
 [tool.ruff.lint.per-file-ignores]
 "utils/grpc/weblog_pb2_grpc.py" = ["ALL"]  # keep this one, it's a generated file
 "utils/grpc/weblog_pb2.py" = ["ALL"]       # keep this one, it's a generated file
+"utils/scripts/*" = ["T201"]
 "utils/interfaces/*" = [
     "A001",
     "E713",
@@ -265,28 +266,6 @@ ignore = [
     "SIM108",
     "T201",
 ]
-"utils/scripts/*" = [
-    "T201",    # allow prints here
-    "PLW2901", # to be corrected
-    "SIM115",  # to be corrected
-    "PLR2004", # to be corrected
-    "S314",
-    "RUF013",
-    "B007",
-    "Q003",
-    "F541",
-    "S113",
-    "A002",
-    "PLR1711",
-    "SIM910",
-    "C405",
-    "RUF010",
-    "PLR1704",
-]
-"utils/scripts/push-metrics.py" = [
-    "UP017", # to be corrected
-]
-"utils/scripts/update_features.py" = ["ALL"] # file must be deleted
 "utils/telemetry_utils.py" = ["N806", "RUF012"] # to be corrected
 "utils/waf_rules.py" = ["N801"]
 "utils/virtual_machine/*" = [

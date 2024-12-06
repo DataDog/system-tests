@@ -8,7 +8,7 @@ from utils._context._scenarios import ScenarioGroup
 
 class Result:
     def __init__(self) -> None:
-        self.scenarios = set(["DEFAULT"])  # always run the default scenario
+        self.scenarios = {"DEFAULT"}  # always run the default scenario
         self.scenarios_groups = set()
 
     def add_scenario(self, scenario: str):
