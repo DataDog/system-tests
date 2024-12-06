@@ -113,8 +113,8 @@ def get_opentelemetry_weblogs(library):
 def main(language: str, scenarios: str, groups: str):
     scenario_map = get_github_workflow_map(scenarios.split(","), groups.split(","))
 
-    for github_workflow, scenarios in scenario_map.items():
-        print(f"{github_workflow}_scenarios={json.dumps(scenarios)}")
+    for github_workflow, scenario_list in scenario_map.items():
+        print(f"{github_workflow}_scenarios={json.dumps(scenario_list)}")
 
     endtoend_weblogs = get_endtoend_weblogs(language)
     print(f"endtoend_weblogs={json.dumps(endtoend_weblogs)}")
@@ -126,7 +126,7 @@ def main(language: str, scenarios: str, groups: str):
     print(f"opentelemetry_weblogs={json.dumps(opentelemetry_weblogs)}")
 
     _experimental_parametric_job_count = int(os.environ.get("_EXPERIMENTAL_PARAMETRIC_JOB_COUNT", "1"))
-    print(f"_experimental_parametric_job_matrix={str(list(range(1, _experimental_parametric_job_count + 1)))}")
+    print(f"_experimental_parametric_job_matrix={list(range(1, _experimental_parametric_job_count + 1))!s}")
 
 
 if __name__ == "__main__":

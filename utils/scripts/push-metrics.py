@@ -1,6 +1,6 @@
 # Successfully installed datadog_api_client-2.24.1
 
-from datetime import datetime, timezone
+from datetime import datetime, timezone, UTC
 
 import requests
 
@@ -28,10 +28,7 @@ def main():
     data = requests.get("https://dd-feature-parity.azurewebsites.net/statistics", timeout=10)
     values = flatten(data.json())
 
-    series = [
-        Series(metric=name, points=[Point([(datetime.now(timezone.utc)).timestamp(), value]),],)
-        for name, value in values
-    ]
+    series = [Series(metric=name, points=[Point([(datetime.now(UTC)).timestamp(), value]),],) for name, value in values]
 
     configuration = Configuration(host="datad0g.com")
     with ApiClient(configuration) as api_client:
