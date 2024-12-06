@@ -162,6 +162,8 @@ def main():
                     r"utils/docker_ssi/.*": ScenarioGroup.DOCKER_SSI.value,
                     ### Profiling case
                     r"utils/_context/_scenarios/profiling\.py": ScenarioGroup.PROFILING.value,
+                    ### otel weblog
+                    r"utils/build/docker/nodejs_otel/.*": ScenarioGroup.OPEN_TELEMETRY.value,
                     ### else, run all
                     r"utils/.*": ScenarioGroup.ALL.value,
                     ## few files with no effect
