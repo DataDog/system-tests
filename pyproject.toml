@@ -163,6 +163,8 @@ ignore = [
     "D211",   # no-blank-line-before-class
     "D213",   # multi-line-summary-second-line
     "D400",   # First line should end with a period
+    "D406",   # we are not using numpy convention for docstrings
+    "D407",   # we are not using reStructuredText for docstrings
     "D415",   # First line should end with a period
     "EM101",  # Exception must not use a string literal => painful
     "EM102",  # Exception must not use an f-string => painful
@@ -187,25 +189,6 @@ ignore = [
 
 # TODO : remove those ignores
 [tool.ruff.lint.per-file-ignores]
-"utils/_context/containers.py" = [
-    "D406",
-    "D407",
-    "D417",
-    "F841",
-    "FBT001",
-    "FIX003",
-    "PLW2901",
-    "PTH101",
-    "PTH109",
-    "RET505",
-    "RUF012",
-    "S104",
-    "S106",
-    "S110",
-    "S113",
-    "S603",
-    "S607",
-]
 "utils/grpc/weblog_pb2_grpc.py" = ["ALL"]  # keep this one, it's a generated file
 "utils/grpc/weblog_pb2.py" = ["ALL"]       # keep this one, it's a generated file
 "utils/interfaces/*" = [
@@ -282,7 +265,6 @@ ignore = [
     "SIM108",
     "T201",
 ]
-"utils/_context/_scenarios/__init__.py" = ["T201"]
 "utils/scripts/*" = [
     "T201",    # allow prints here
     "PLW2901", # to be corrected
@@ -301,28 +283,11 @@ ignore = [
     "RUF010",
     "PLR1704",
 ]
-"utils/proxy/*" = [
-    "S104",    # to be transfered in the line
-    "DTZ006",  # to be corrected
-    "PLR5501", # to be corrected
-    "G202",    # to be corrected
-    "PLC0206", # to be corrected
-    "S307",    # to be corrected
-    "RET505",  # to be corrected
-    "UP034",   # to be corrected
-    "T201",    # to be corrected
-    "C416",    # to be corrected
-]
 "utils/scripts/push-metrics.py" = [
     "UP017", # to be corrected
 ]
 "utils/scripts/update_features.py" = ["ALL"] # file must be deleted
 "utils/telemetry_utils.py" = ["N806", "RUF012"] # to be corrected
-"utils/tools.py" = ["T201", "PLW2901"] # to be transfered in the line
-"conftest.py" = [
-    "SLF001", # to be transfered in the line
-    "N806",   # to be corrected
-]
 "utils/waf_rules.py" = ["N801"]
 "utils/virtual_machine/*" = [
     "A002",

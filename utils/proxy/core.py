@@ -3,7 +3,7 @@ from collections import defaultdict
 import json
 import logging
 import os
-from datetime import datetime
+from datetime import datetime, UTC
 
 from mitmproxy import master, options, http
 from mitmproxy.addons import errorcheck, default_addons
@@ -220,7 +220,7 @@ class _RequestLogger:
                 "host": flow.request.host,
                 "port": flow.request.port,
                 "request": {
-                    "timestamp_start": datetime.fromtimestamp(flow.request.timestamp_start).isoformat(),
+                    "timestamp_start": datetime.fromtimestamp(flow.request.timestamp_start, tz=UTC).isoformat(),
                     "headers": list(flow.request.headers.items()),
                     "length": len(flow.request.content) if flow.request.content else 0,
                 },
@@ -347,7 +347,7 @@ def start_proxy() -> None:
 
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
-    opts = options.Options(mode=modes, listen_host="0.0.0.0", confdir="utils/proxy/.mitmproxy")
+    opts = options.Options(mode=modes, listen_host="0.0.0.0", confdir="utils/proxy/.mitmproxy")  # noqa: S104
     proxy = master.Master(opts, event_loop=loop)
     proxy.addons.add(*default_addons())
     proxy.addons.add(errorcheck.ErrorCheck())
