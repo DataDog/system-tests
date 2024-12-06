@@ -791,7 +791,7 @@ def _main():
         for scenario in get_all_scenarios()
     }
 
-    print(json.dumps(data, indent=2))
+    print(json.dumps(data, indent=2))  # noqa: T201
 
 
 if __name__ == "__main__":
