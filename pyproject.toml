@@ -189,33 +189,9 @@ ignore = [
 
 # TODO : remove those ignores
 [tool.ruff.lint.per-file-ignores]
-"utils/grpc/weblog_pb2_grpc.py" = ["ALL"]  # keep this one, it's a generated file
-"utils/grpc/weblog_pb2.py" = ["ALL"]       # keep this one, it's a generated file
-"utils/scripts/*" = ["T201"]
-"utils/interfaces/*" = [
-    "A001",
-    "E713",
-    "FBT001",
-    "FBT003",
-    "PLR5501",
-    "PLW2901",
-    "PTH109",
-    "PTH112",
-    "RET502",
-    "RET504",
-    "RSE102",
-    "RUF010",
-    "RUF012",
-    "RUF013",
-    "S201",
-    "SIM102",
-    "SIM103",
-    "SIM118",
-    "T201",
-    "TRY203",
-    "UP011",
-    "UP034",
-]
+"utils/grpc/weblog_pb2_grpc.py" = ["ALL"]   # keep this one, it's a generated file
+"utils/grpc/weblog_pb2.py" = ["ALL"]        # keep this one, it's a generated file
+"utils/scripts/*" = ["T201"]                # allow print statements in scripts folder
 "utils/{k8s_lib_injection/*,_context/_scenarios/k8s_lib_injection.py}" = [
     "D207",
     "SIM115",
@@ -257,7 +233,6 @@ ignore = [
     "N803",
     "RET505",
 ]
-"utils/otel_validators/validator_trace.py" = ["FBT001"]
 "utils/{_context/_scenarios/docker_ssi.py,docker_ssi/docker_ssi_matrix_builder.py,docker_ssi/docker_ssi_matrix_utils.py}" = [
     "PLR2004",
     "SIM210",
@@ -266,8 +241,6 @@ ignore = [
     "SIM108",
     "T201",
 ]
-"utils/telemetry_utils.py" = ["N806", "RUF012"] # to be corrected
-"utils/waf_rules.py" = ["N801"]
 "utils/virtual_machine/*" = [
     "A002",
     "ANN002",
