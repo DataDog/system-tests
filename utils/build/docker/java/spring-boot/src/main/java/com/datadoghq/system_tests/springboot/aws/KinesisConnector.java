@@ -16,6 +16,7 @@ import software.amazon.awssdk.services.kinesis.model.PutRecordRequest;
 import software.amazon.awssdk.services.kinesis.model.PutRecordResponse;
 import software.amazon.awssdk.services.kinesis.model.GetRecordsRequest;
 import software.amazon.awssdk.services.kinesis.model.GetRecordsResponse;
+import software.amazon.awssdk.services.kinesis.model.GetShardIteratorRequest;
 import software.amazon.awssdk.services.kinesis.model.Record;
 import software.amazon.awssdk.services.kinesis.model.ShardIteratorType;
 import software.amazon.awssdk.auth.credentials.EnvironmentVariableCredentialsProvider;
@@ -61,7 +62,7 @@ public class KinesisConnector {
             // System.out.println("[Kinesis] Kinesis Stream status: " + streamStatus);
         } catch (Exception e) {
             System.err.println("[Kinesis] Failed to create Kinesis stream with following error: " + e.getLocalizedMessage());
-            throw e;
+            // throw e;
         }
     }
 
@@ -81,13 +82,13 @@ public class KinesisConnector {
         return thread;
     }
 
-    public Thread startConsumingMessages(int timeout, String message) throws Exception {
+    public Thread startConsumingMessages(int timeout, String message, String sequenceNumber, String shardId) throws Exception {
         Thread thread = new Thread("KinesisConsume") {
             public void run() {
                 boolean recordFound = false;
                 while (!recordFound) {
                     try {
-                        recordFound = consumeMessageWithoutNewThread(timeout, message);
+                        recordFound = consumeMessageWithoutNewThread(timeout, message, sequenceNumber, shardId);
                     } catch (Exception e) {
                         System.err.println("[Kinesis] Failed to consume message in thread...");
                         System.err.println("[Kinesis] Error consuming: " + e);
@@ -100,7 +101,7 @@ public class KinesisConnector {
         return thread;
     }
 
-    public void produceMessageWithoutNewThread(String message) throws Exception {
+    public PutRecordResponse produceMessageWithoutNewThread(String message) throws Exception {
         KinesisClient kinesisClient = this.createKinesisClient();
         createKinesisStream(kinesisClient, this.stream, true);
 
@@ -124,15 +125,17 @@ public class KinesisConnector {
                     .build();
                 PutRecordResponse putRecordResponse = kinesisClient.putRecord(putRecordRequest);
                 System.out.println("[Kinesis] Kinesis record sequence number: " + putRecordResponse.sequenceNumber());
-                break;
+                return putRecordResponse;
             } catch (Exception e) {
                 System.err.println("[Kinesis] Error trying to produce, will retry: " + e);
                 Thread.sleep(1000); // Wait 1 second before checking again
+                return null;
             }
         }
+        return null;
     }
 
-    public boolean consumeMessageWithoutNewThread(int timeout, String message) throws Exception {
+    public boolean consumeMessageWithoutNewThread(int timeout, String message, String sequenceNumber, String shardId) throws Exception {
         KinesisClient kinesisClient = this.createKinesisClient();
 
         long startTime = System.currentTimeMillis();
@@ -153,7 +156,16 @@ public class KinesisConnector {
                     continue;
                 }
 
-                String shardIterator = kinesisClient.getShardIterator(r -> r.streamName(this.stream).shardId("shardId-000000000000").shardIteratorType(ShardIteratorType.TRIM_HORIZON)).shardIterator();
+                // Create a GetShardIteratorRequest
+                GetShardIteratorRequest getShardIteratorRequest = GetShardIteratorRequest.builder()
+                    .streamName(this.stream)
+                    .shardId(shardId)
+                    .startingSequenceNumber(sequenceNumber) // Use startingSequenceNumber instead of sequenceNumber
+                    .shardIteratorType(ShardIteratorType.AT_SEQUENCE_NUMBER)
+                    .build();
+
+                // Get the shard iterator
+                String shardIterator = kinesisClient.getShardIterator(getShardIteratorRequest).shardIterator();
 
                 GetRecordsRequest getRecordsRequest = GetRecordsRequest.builder()
                     .shardIterator(shardIterator)
