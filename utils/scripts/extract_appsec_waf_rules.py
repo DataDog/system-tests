@@ -6,13 +6,13 @@ from collections import defaultdict
 import requests
 
 
-def to_camel_case(input):
-    return "".join(ele.title() for ele in input.split("_"))
+def to_camel_case(str_input):
+    return "".join(ele.title() for ele in str_input.split("_"))
 
 
 URL = "https://raw.githubusercontent.com/DataDog/appsec-event-rules/main/build/recommended.json"
 
-data = requests.get(URL).json()
+data = requests.get(URL, timeout=10).json()
 
 version = data["version"]
 
@@ -49,7 +49,7 @@ with open("utils/interfaces/_library/appsec_data.py", "w") as f:
 
     f.write("\n\nrule_id_to_type = {\n")
     for key, rules in result.items():
-        for name, rule in rules.items():
+        for rule in rules.values():
             rule_id = rule["id"]
             f.write(f'    "{rule_id}": "{key}",\n')
     f.write("}\n")

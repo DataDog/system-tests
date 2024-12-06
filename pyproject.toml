@@ -208,6 +208,7 @@ ignore = [
 ]
 "utils/grpc/weblog_pb2_grpc.py" = ["ALL"]  # keep this one, it's a generated file
 "utils/grpc/weblog_pb2.py" = ["ALL"]       # keep this one, it's a generated file
+"utils/scripts/*" = ["T201"]
 "utils/interfaces/*" = [
     "A001",
     "E713",
@@ -283,24 +284,6 @@ ignore = [
     "T201",
 ]
 "utils/_context/_scenarios/__init__.py" = ["T201"]
-"utils/scripts/*" = [
-    "T201",    # allow prints here
-    "PLW2901", # to be corrected
-    "SIM115",  # to be corrected
-    "PLR2004", # to be corrected
-    "S314",
-    "RUF013",
-    "B007",
-    "Q003",
-    "F541",
-    "S113",
-    "A002",
-    "PLR1711",
-    "SIM910",
-    "C405",
-    "RUF010",
-    "PLR1704",
-]
 "utils/proxy/*" = [
     "S104",    # to be transfered in the line
     "DTZ006",  # to be corrected
@@ -313,10 +296,6 @@ ignore = [
     "T201",    # to be corrected
     "C416",    # to be corrected
 ]
-"utils/scripts/push-metrics.py" = [
-    "UP017", # to be corrected
-]
-"utils/scripts/update_features.py" = ["ALL"] # file must be deleted
 "utils/telemetry_utils.py" = ["N806", "RUF012"] # to be corrected
 "utils/tools.py" = ["T201", "PLW2901"] # to be transfered in the line
 "conftest.py" = [

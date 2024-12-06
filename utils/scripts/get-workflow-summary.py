@@ -56,8 +56,7 @@ def main(repo_slug: str, run_id: int) -> None:
 
         for step_name, items in failing_steps.items():
             print(f"❌ **Failures for `{step_name}`**\n")
-            items = sorted(items, key=lambda x: x[0]["name"])
-            for job, step in items:
+            for job, step in sorted(items, key=lambda x: x[0]["name"]):
                 url = job["html_url"]
                 print(f"* [{job['name']}]({url}#step:{step['number']})")
 

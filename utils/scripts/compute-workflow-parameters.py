@@ -113,8 +113,8 @@ def get_opentelemetry_weblogs(library):
 def main(language: str, scenarios: str, groups: str):
     scenario_map = get_github_workflow_map(scenarios.split(","), groups.split(","))
 
-    for github_workflow, scenarios in scenario_map.items():
-        print(f"{github_workflow}_scenarios={json.dumps(scenarios)}")
+    for github_workflow, scenario_list in scenario_map.items():
+        print(f"{github_workflow}_scenarios={json.dumps(scenario_list)}")
 
     endtoend_weblogs = get_endtoend_weblogs(language)
     print(f"endtoend_weblogs={json.dumps(endtoend_weblogs)}")
