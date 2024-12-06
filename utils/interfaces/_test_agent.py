@@ -91,9 +91,19 @@ class _TestAgentInterfaceValidator(InterfaceValidator):
 
     def get_crash_reports(self):
         logger.debug("Try to find telemetry data related to crash reports")
-        return [
-            p
-            for t in self.get_telemetry_logs()
-            for p in t["payload"]
-            if "signame" in p.get("tags", "") or "signum" in p.get("tags", "")
-        ]
+        crash_reports = []
+
+        for t in self.get_telemetry_logs():
+            payload = t["payload"]
+
+            # If payload is a list, iterate through its items
+            if isinstance(payload, list):
+                crash_reports.extend(
+                    p for p in payload if "signame" in p.get("tags", "") or "signum" in p.get("tags", "")
+                )
+            # If payload is a single object, check it directly
+            elif isinstance(payload, dict):
+                if "signame" in payload.get("tags", "") or "signum" in payload.get("tags", ""):
+                    crash_reports.append(payload)
+
+        return crash_reports
