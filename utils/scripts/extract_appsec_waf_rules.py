@@ -28,7 +28,7 @@ for event in data[rules_key]:
     except KeyError:
         print(event)
 
-HEADER = f"""# Unless explicitly stated otherwise all files in this repository are licensed under the the Apache License Version 2.0.
+HEADER = """# Unless explicitly stated otherwise all files in this repository are licensed under the the Apache License Version 2.0.
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
@@ -42,7 +42,7 @@ with open("utils/waf_rules.py", "w") as f:
     for key, rules in result.items():
         f.write(f"\n\nclass {key}:\n")
         for name, rule in rules.items():
-            f.write(f"    {name} = \"{rule['id']}\"  # {rule['name']}\n")
+            f.write(f'    {name} = "{rule['id']}"  # {rule['name']}\n')
 
 with open("utils/interfaces/_library/appsec_data.py", "w") as f:
     f.write(HEADER)

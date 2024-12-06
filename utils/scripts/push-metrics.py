@@ -1,6 +1,6 @@
 # Successfully installed datadog_api_client-2.24.1
 
-from datetime import datetime, timezone
+from datetime import datetime, timezone, UTC
 
 import requests
 
@@ -29,7 +29,7 @@ def main():
     values = flatten(data.json())
 
     series = [
-        Series(metric=name, points=[Point([(datetime.now(timezone.utc)).timestamp(), value]),],)
+        Series(metric=name, points=[Point([(datetime.now(UTC)).timestamp(), value]),],)
         for name, value in values
     ]
 

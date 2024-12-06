@@ -126,7 +126,7 @@ def main(language: str, scenarios: str, groups: str):
     print(f"opentelemetry_weblogs={json.dumps(opentelemetry_weblogs)}")
 
     _experimental_parametric_job_count = int(os.environ.get("_EXPERIMENTAL_PARAMETRIC_JOB_COUNT", "1"))
-    print(f"_experimental_parametric_job_matrix={str(list(range(1, _experimental_parametric_job_count + 1)))}")
+    print(f"_experimental_parametric_job_matrix={list(range(1, _experimental_parametric_job_count + 1))!s}")
 
 
 if __name__ == "__main__":
