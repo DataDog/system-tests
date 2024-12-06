@@ -32,7 +32,7 @@ class DockerImage:
 
 
 class WeblogDescriptor:
-    """ Encapsulates information of the weblog: name, library and 
+    """ Encapsulates information of the weblog: name, library and
         supported images with the supported installable runtime versions """
 
     # see utils._features to check ids

@@ -5,9 +5,9 @@
 import os
 from pathlib import Path
 
-from flask import Flask, send_from_directory, request, render_template
-from utils.interfaces._schemas_validators import _get_schemas_store, _get_schemas_filenames
-from json_schema_for_humans.generate import generate_from_schema, generate_from_filename
+from flask import Flask, render_template
+from utils.interfaces._schemas_validators import _get_schemas_store
+from json_schema_for_humans.generate import generate_from_schema
 from json_schema_for_humans.generation_configuration import GenerationConfiguration
 import json_schema_for_humans
 

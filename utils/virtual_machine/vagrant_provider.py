@@ -42,7 +42,7 @@ class VagrantProvider(VmProvider):
 
     def _set_vagrant_configuration(self, vm):
         """ Makes some configuration on the vagrant files
-        These configurations are relative to the provider and to port forwarding (for weblog) and port for ssh 
+        These configurations are relative to the provider and to port forwarding (for weblog) and port for ssh
         TODO Support for different vagrant providers. Currently only support for qemu
         """
 
@@ -58,7 +58,7 @@ class VagrantProvider(VmProvider):
                 qe.machine = "q35"
                 qe.cpu = "max"
                 qe.smp = "cpus=8,sockets=1,cores=8,threads=1"
-                qe.net_device = "virtio-net-pci"       
+                qe.net_device = "virtio-net-pci"
             """
         port_configuration = f"""
         config.vm.network "forwarded_port", guest: 5985, host: {vm.deffault_open_port}
@@ -170,7 +170,7 @@ class VagrantCommander(Commander):
 class MySFTPClient(paramiko.SFTPClient):
     def put_dir(self, source, target):
         """ Uploads the contents of the source directory to the target path. The
-            target directory needs to exists. All subdirectories in source are 
+            target directory needs to exists. All subdirectories in source are
             created under target.
         """
         for item in os.listdir(source):

@@ -1,7 +1,4 @@
 import time
-import os
-import json
-import base64
 
 from kubernetes import client, watch
 
@@ -9,8 +6,6 @@ from utils.k8s_lib_injection.k8s_command_utils import (
     helm_add_repo,
     helm_install_chart,
     execute_command_sync,
-    path_clusterrole,
-    kubectl_apply,
 )
 from utils.k8s_lib_injection.k8s_logger import k8s_logger
 

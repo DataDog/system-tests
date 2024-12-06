@@ -1,5 +1,4 @@
-import time, datetime
-from kubernetes import client, config, watch
+from kubernetes import client, watch
 from utils.k8s_lib_injection.k8s_logger import k8s_logger
 
 

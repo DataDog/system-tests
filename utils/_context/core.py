@@ -8,7 +8,7 @@ import json
 
 
 class _Context:
-    """ 
+    """
         Context is an helper class that exposes scenario properties
         Those properties may be used in decorators, and thus, should always exists, even if the current
         scenario does not define them.

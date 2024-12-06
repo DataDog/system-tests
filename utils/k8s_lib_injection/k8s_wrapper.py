@@ -1,6 +1,4 @@
-import time
-from kubernetes import client, config, watch
-from utils.tools import logger
+from kubernetes import client, config
 from retry import retry
 
 

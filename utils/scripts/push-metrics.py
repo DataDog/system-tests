@@ -1,6 +1,6 @@
 # Successfully installed datadog_api_client-2.24.1
 
-from datetime import datetime, timezone, UTC
+from datetime import datetime, UTC
 
 import requests
 

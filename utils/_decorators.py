@@ -229,12 +229,7 @@ def released(
 
             assert declaration != "?"  # ensure there is no more ? in version declaration
 
-            if (
-                declaration.startswith("missing_feature")
-                or declaration.startswith("flaky")
-                or declaration.startswith("bug")
-                or declaration.startswith("irrelevant")
-            ):
+            if declaration.startswith(("missing_feature", "bug", "flaky", "irrelevant")):
                 return declaration
 
             # declaration must be now a version number
