@@ -3,6 +3,9 @@ FROM public.ecr.aws/docker/library/python:3.12
 ENV PYTHONUNBUFFERED 1
 ENV DJANGO_SETTINGS_MODULE django_app
 WORKDIR /src
+
+RUN apt-get update && apt-get install -y strace
+
 ADD . /src
 RUN pip install django
 EXPOSE 18080

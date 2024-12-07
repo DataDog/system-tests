@@ -1,10 +1,13 @@
 import os
+import shutil
 import signal
 import subprocess
 import sys
+import threading
 import time
+import traceback
 
-from django.http import HttpResponse
+from django.http import HttpResponse, FileResponse
 from django.urls import path
 
 
@@ -20,6 +23,33 @@ ROOT_URLCONF = os.path.basename(filepath)
 DEBUG = False
 SECRET_KEY = "fdsfdasfa"
 ALLOWED_HOSTS = ["*"]
+
+# Path for the `strace` output file
+STRACE_OUTPUT_FILE = "/tmp/strace_output.log"
+MAX_RESPONSE_SIZE = 100 * 1024
+strace_process = None
+
+# Function to run `strace` in a background thread
+def start_strace():
+    global strace_process
+    pid = os.getpid()
+    cmd = ["strace", "-f", "-o", STRACE_OUTPUT_FILE, "-p", str(pid)]
+    try:
+        strace_process = subprocess.Popen(cmd)
+        strace_process.wait()  # Wait for the strace process to finish
+    except Exception as e:
+        print(f"Error running strace: {e}", file=sys.stderr)
+
+
+# Start the `strace` thread
+def start_strace_thread():
+    thread = threading.Thread(target=start_strace, daemon=True)
+    thread.start()
+
+
+# Trigger the strace thread on app startup
+start_strace_thread()
+
 
 
 def index(request):
@@ -56,12 +86,19 @@ def child_pids(request):
                 status_path = f"/proc/{pid}/status"
                 try:
                     with open(status_path, "r") as status_file:
+                        ppid = None
+                        name = None
                         for line in status_file:
                             if line.startswith("PPid:"):
                                 ppid = int(line.split()[1])
-                                if ppid == current_pid:
-                                    child_pids.append(pid)
+                            if line.startswith("Name:"):
+                                name = line.split()[1]
+                            if ppid is not None and name is not None:
                                 break
+
+                        # Check if the process is a child and not named "strace"
+                        if ppid == current_pid and name != "strace":
+                            child_pids.append(pid)
                 except (FileNotFoundError, PermissionError):
                     # Process might have terminated or we don't have permission
                     continue
@@ -109,10 +146,62 @@ def zombies(request):
         return HttpResponse(f"Error: {str(e)}", status=500, content_type="text/plain")
 
 
+def kill_strace(request):
+    try:
+        # Iterate through all processes in /proc
+        for pid in os.listdir("/proc"):
+            if pid.isdigit():  # Ensure the entry is a PID directory
+                try:
+                    # Read the process name from /proc/<pid>/comm
+                    with open(f"/proc/{pid}/comm", "r") as comm_file:
+                        process_name = comm_file.read().strip()
+
+                    # Check if the process is `strace`
+                    if process_name == "strace":
+                        print(f"Killing strace process with PID: {pid}")
+                        os.kill(int(pid), signal.SIGTERM)  # Send SIGTERM to the process
+                except (FileNotFoundError, ProcessLookupError, PermissionError):
+                    # Ignore processes that no longer exist or are inaccessible
+                    continue
+
+        return HttpResponse(f"strace processes terminated successfully.", content_type="text/plain")
+    except Exception as e:
+        # Capture the full traceback
+        error_details = traceback.format_exc()
+        return HttpResponse(
+            f"An error occurred:\n\n{error_details}", 
+            content_type="text/plain", 
+            status=500
+        )
+
+def download_strace(request):
+    try:
+        if os.path.exists(STRACE_OUTPUT_FILE):
+            original_file_size = os.path.getsize(STRACE_OUTPUT_FILE)
+
+            with open(STRACE_OUTPUT_FILE, "r") as f:
+                content = f.read()
+
+            response_content = f"File size: {original_file_size} bytes\n\n{content}"
+            return HttpResponse(response_content, content_type="text/plain")
+        else:
+            return HttpResponse("Strace file not found.", status=404, content_type="text/plain")
+    except Exception as e:
+        # Capture the full traceback
+        error_details = traceback.format_exc()
+        return HttpResponse(
+            f"An error occurred:\n\n{error_details}", 
+            content_type="text/plain", 
+            status=500
+        )
+
+
 urlpatterns = [
     path("", index),
     path("crashme", crashme),
     path("fork_and_crash", fork_and_crash),
     path("child_pids", child_pids),
     path("zombies", zombies),
+    path("download_strace", download_strace),
+    path("kill_strace", kill_strace),
 ]
