@@ -550,6 +550,8 @@ tests/:
         test_path_parameter.py:
           TestPathParameter:
             '*': missing_feature
+        test_sql_row.py:
+          TestSqlRow: missing_feature
         test_uri.py:
           TestURI:
             '*': v1.23.0
