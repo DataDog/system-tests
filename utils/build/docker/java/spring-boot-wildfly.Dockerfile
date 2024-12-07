@@ -5,7 +5,7 @@ COPY ./utils/build/docker/java/iast-common/src /iast-common/src
 WORKDIR /app
 
 COPY ./utils/build/docker/java/spring-boot/pom.xml .
-RUN mkdir /maven && mvn -Dmaven.repo.local=/maven -Pwildfly -B dependency:go-offline
+RUN mkdir /maven && mvn -Dmaven.repo.local=/maven -Pwildfly -B -DincludeScope=compile dependency:go-offline
 
 COPY ./utils/build/docker/java/spring-boot/src ./src
 RUN mvn -Dmaven.repo.local=/maven -Pwildfly package

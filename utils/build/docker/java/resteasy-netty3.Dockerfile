@@ -5,7 +5,7 @@ COPY ./utils/build/docker/java/iast-common/src /iast-common/src
 WORKDIR /app
 
 COPY ./utils/build/docker/java/resteasy-netty3/pom.xml .
-RUN mkdir /maven && mvn -Dmaven.repo.local=/maven -B dependency:go-offline
+RUN mkdir /maven && mvn -Dmaven.repo.local=/maven -B -DincludeScope=compile dependency:go-offline
 
 COPY ./utils/build/docker/java/resteasy-netty3/src ./src
 RUN mvn -Dmaven.repo.local=/maven package
