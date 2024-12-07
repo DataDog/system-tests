@@ -251,15 +251,18 @@ class Test_HeaderTags_DynamicConfig:
         id = hash(json.dumps(config))
         return f"datadog/2/APM_TRACING/{id}/config", config
 
+
 @scenarios.default
 class Test_ExtractBehavior_Default:
     def setup_main(self):
         self.r = weblog.get(
-            "/",
+            "/make_distant_call",
+            params={"url": "http://weblog:7777/"},
             headers={
                 "x-datadog-trace-id": "1",
                 "x-datadog-parent-id": "1",
                 "x-datadog-tags": "_dd.p.tid=1111111111111111,_dd.p.dm=-4",
+                "baggage": "key1=value1",
             },
         )
 
@@ -268,20 +271,33 @@ class Test_ExtractBehavior_Default:
         spans = interfaces.agent.get_spans_list(self.r)
         assert len(spans) == 1, "Agent received the incorrect amount of spans"
 
+        # Test the extracted span context
         span = spans[0]
         assert span.get("traceID") == "1"
         assert span.get("parentID") == "1"
         assert "spanLinks" not in span or len(span["spanLinks"]) == 0
 
+        # Test the next outbound span context
+        assert self.r.status_code == 200
+        data = json.loads(self.r.text)
+        assert data is not None
+
+        assert data["request_headers"]["x-datadog-trace-id"] == "1"
+        assert "_dd.p.tid=1111111111111111" in data["request_headers"]["x-datadog-tags"]
+        assert "key1=value1" in data["request_headers"]["baggage"]
+
+
 @scenarios.tracing_config_nondefault
 class Test_ExtractBehavior_Restart:
     def setup_main(self):
         self.r = weblog.get(
-            "/",
+            "/make_distant_call",
+            params={"url": "http://weblog:7777/"},
             headers={
                 "x-datadog-trace-id": "1",
                 "x-datadog-parent-id": "1",
                 "x-datadog-tags": "_dd.p.tid=1111111111111111,_dd.p.dm=-4",
+                "baggage": "key1=value1",
             },
         )
 
@@ -290,25 +306,39 @@ class Test_ExtractBehavior_Restart:
         spans = interfaces.agent.get_spans_list(self.r)
         assert len(spans) == 1, "Agent received the incorrect amount of spans"
 
+        # Test the extracted span context
         span = spans[0]
         assert span.get("traceID") != "1"
         assert span.get("parentID") is None
 
+        # Test the extracted span link
         assert len(span.get("spanLinks")) == 1
         link = span.get("spanLinks")[0]
         assert link["traceID"] == "1"
         assert link["spanID"] == "1"
         assert link["traceIDHigh"] == "1229782938247303441"
 
+        # Test the next outbound span context
+        assert self.r.status_code == 200
+        data = json.loads(self.r.text)
+        assert data is not None
+
+        assert data["request_headers"]["x-datadog-trace-id"] != "1"
+        assert "_dd.p.tid=1111111111111111" not in data["request_headers"]["x-datadog-tags"]
+        assert "key1=value1" in data["request_headers"]["baggage"]
+
+
 @scenarios.tracing_config_nondefault_2
 class Test_ExtractBehavior_Ignore:
     def setup_main(self):
         self.r = weblog.get(
-            "/",
+            "/make_distant_call",
+            params={"url": "http://weblog:7777/"},
             headers={
                 "x-datadog-trace-id": "1",
                 "x-datadog-parent-id": "1",
                 "x-datadog-tags": "_dd.p.tid=1111111111111111,_dd.p.dm=-4",
+                "baggage": "key1=value1",
             },
         )
 
@@ -317,7 +347,63 @@ class Test_ExtractBehavior_Ignore:
         spans = interfaces.agent.get_spans_list(self.r)
         assert len(spans) == 1, "Agent received the incorrect amount of spans"
 
+        # Test the local span context
         span = spans[0]
         assert span.get("traceID") != "1"
         assert span.get("parentID") is None
         assert "spanLinks" not in span or len(span.get("spanLinks")) == 0
+
+        # Test the next outbound span context
+        assert self.r.status_code == 200
+        data = json.loads(self.r.text)
+        assert data is not None
+
+        assert data["request_headers"]["x-datadog-trace-id"] != "1"
+        assert "_dd.p.tid=1111111111111111" not in data["request_headers"]["x-datadog-tags"]
+        assert "baggage" not in data["request_headers"]
+
+
+@scenarios.tracing_config_nondefault_3
+class Test_ExtractBehavior_Restart_With_Extract_First:
+    def setup_main(self):
+        self.r = weblog.get(
+            "/make_distant_call",
+            params={"url": "http://weblog:7777/"},
+            headers={
+                "x-datadog-trace-id": "1",
+                "x-datadog-parent-id": "1",
+                "x-datadog-tags": "_dd.p.tid=1111111111111111,_dd.p.dm=-4",
+                "traceparent": "00-12345678901234567890123456789012-1234567890123456-01",
+                "baggage": "key1=value1",
+            },
+        )
+
+    def test_main(self):
+        interfaces.library.assert_trace_exists(self.r)
+        spans = interfaces.agent.get_spans_list(self.r)
+        assert len(spans) == 1, "Agent received the incorrect amount of spans"
+
+        # Test the extracted span context
+        span = spans[0]
+        assert span.get("traceID") != "1"
+        assert span.get("parentID") is None
+
+        # Test the extracted span link
+        # When DD_TRACE_PROPAGATION_EXTRACT_FIRST=true, no conflicting
+        # trace contexts are found because header parsing stops after the first
+        # valid trace context. As a result, there is only one span link,
+        # which corresponds to the incoming trace context.
+        assert len(span.get("spanLinks")) == 1
+        link = span.get("spanLinks")[0]
+        assert link["traceID"] == "1"
+        assert link["spanID"] == "1"
+        assert link["traceIDHigh"] == "1229782938247303441"
+
+        # Test the next outbound span context
+        assert self.r.status_code == 200
+        data = json.loads(self.r.text)
+        assert data is not None
+
+        assert data["request_headers"]["x-datadog-trace-id"] != "1"
+        assert "_dd.p.tid=1111111111111111" not in data["request_headers"]["x-datadog-tags"]
+        assert "key1=value1" in data["request_headers"]["baggage"]

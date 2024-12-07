@@ -521,6 +521,8 @@ class _Scenarios:
         weblog_env={
             "DD_TRACE_HTTP_CLIENT_TAG_QUERY_STRING": "false",
             "DD_TRACE_CLIENT_IP_HEADER": "custom-ip-header",
+            "DD_TRACE_PROPAGATION_BEHAVIOR_EXTRACT": "restart",
+            "DD_TRACE_PROPAGATION_EXTRACT_FIRST": "true",
         },
         appsec_enabled=False,
         doc="",
