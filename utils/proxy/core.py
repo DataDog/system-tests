@@ -73,7 +73,7 @@ class _RequestLogger:
         self.span_meta_structs_disabled = os.environ.get("SYSTEM_TESTS_AGENT_SPAN_META_STRUCTS_DISABLED") == "True"
 
         span_events = os.environ.get("SYSTEM_TESTS_AGENT_SPAN_EVENTS")
-        self.span_events = True if span_events == "True" else (False if span_events == "False" else None)
+        self.span_events = False if span_events == "False" else True
 
         self.rc_api_command = None
 
@@ -298,8 +298,7 @@ class _RequestLogger:
             if self.span_meta_structs_disabled:
                 self._remove_meta_structs_support(flow)
 
-            if self.span_events is not None:
-                self._modify_span_events_flag(flow)
+            self._modify_span_events_flag(flow)
 
     def _remove_meta_structs_support(self, flow):
         if flow.request.path == "/info" and str(flow.response.status_code) == "200":
