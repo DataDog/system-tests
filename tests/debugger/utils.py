@@ -10,7 +10,7 @@ import uuid
 
 from packaging import version
 
-from utils import interfaces
+from utils import interfaces, weblog
 from utils.tools import logger
 from utils.dd_constants import RemoteConfigApplyState as ApplyState
 
@@ -112,6 +112,15 @@ class _Base_Debugger_Test:
     rc_state = None
     installed_ids = set()
     all_probes_installed = False
+
+    def initialize_weblog_remote_config(self):
+        if get_tracer()["language"] == "ruby":
+            # Ruby tracer initializes remote configuration client from
+            # middleware that is only invoked during request processing.
+            # Therefore, we need to issue a request to the application for
+            # remote config to start.
+            response = weblog.get("/debugger/init")
+            assert response.status_code == 200
 
     def wait_for_all_probes_installed(self, data):
         def _all_probes_installed(self, probes_map):
