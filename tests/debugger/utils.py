@@ -10,7 +10,7 @@ import uuid
 
 from packaging import version
 
-from utils import interfaces, remote_config, weblog
+from utils import interfaces, remote_config, weblog, context
 from utils.tools import logger
 from utils.dd_constants import RemoteConfigApplyState as ApplyState
 
@@ -43,7 +43,7 @@ def extract_probe_ids(probes):
 
 
 def _get_path(test_name, suffix):
-    filename = test_name + "_" + _Base_Debugger_Test.tracer["language"] + "_" + suffix + ".json"
+    filename = test_name + "_" + context.library + "_" + suffix + ".json"
     path = os.path.join(_CUR_DIR, "approvals", filename)
     return path
 
@@ -266,30 +266,27 @@ class _Base_Debugger_Test:
         self._collect_spans()
 
     def _collect_probe_diagnostics(self):
-        def _read_data(self):
-            tracer = self.get_tracer()
-
-            tracer_version = version.parse(re.sub(r"[^0-9.].*$", "", tracer["tracer_version"]))
-            if tracer["language"] == "java":
-                if tracer_version > version.parse("1.27.0"):
+        def _read_data():
+            if context.library == "java":
+                if context.library.version > "1.27.0":
                     path = _DEBUGGER_PATH
                 else:
                     path = _LOGS_PATH
-            elif tracer["language"] == "dotnet":
-                if tracer_version > version.parse("2.49.0"):
+            elif context.library == "dotnet":
+                if context.library.version > "2.49.0":
                     path = _DEBUGGER_PATH
                 else:
                     path = _LOGS_PATH
-            elif tracer["language"] == "python":
+            elif context.library == "python":
                 path = _DEBUGGER_PATH
-            elif tracer["language"] == "ruby":
+            elif context.library == "ruby":
                 path = _DEBUGGER_PATH
             else:
                 path = _LOGS_PATH
 
             return list(interfaces.agent.get_data(path))
 
-        all_data = _read_data(self)
+        all_data = _read_data()
         self.probe_diagnostics = self._process_diagnostics_data(all_data)
 
     def _process_diagnostics_data(self, datas):
@@ -391,13 +388,11 @@ class _Base_Debugger_Test:
 
     def get_tracer(self):
         if not _Base_Debugger_Test.tracer:
-            config = list(interfaces.library.get_data(_CONFIG_PATH))
 
-            if config:
-                _Base_Debugger_Test.tracer = config[0]["request"]["content"]["client"]["client_tracer"]
-            else:
-                logger.error("Config was not found")
-                _Base_Debugger_Test.tracer = {"language": "not_defined", "tracer_version": "v0.0.0"}
+            _Base_Debugger_Test.tracer = {
+                "language": str(context.library).split("@")[0],
+                "tracer_version": str(context.library.version),
+            }
 
         return _Base_Debugger_Test.tracer
 
