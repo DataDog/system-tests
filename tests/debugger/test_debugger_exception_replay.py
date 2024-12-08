@@ -7,7 +7,7 @@ import re
 from utils import scenarios, features, bug
 from utils.tools import logger
 
-_OVERRIDE_APROVALS = True
+_OVERRIDE_APROVALS = False
 _SCRUB_VALUES = True
 
 
