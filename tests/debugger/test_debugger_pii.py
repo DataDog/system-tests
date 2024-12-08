@@ -6,7 +6,6 @@ import tests.debugger.utils as debugger
 
 from utils import (
     scenarios,
-    interfaces,
     features,
     bug,
     missing_feature,
