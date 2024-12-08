@@ -43,7 +43,7 @@ def extract_probe_ids(probes):
 
 
 def _get_path(test_name, suffix):
-    filename = test_name + "_" + context.library + "_" + suffix + ".json"
+    filename = test_name + "_" + _Base_Debugger_Test.tracer["language"] + "_" + suffix + ".json"
     path = os.path.join(_CUR_DIR, "approvals", filename)
     return path
 
