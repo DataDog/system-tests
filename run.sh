@@ -451,6 +451,21 @@ function main() {
     fi
 
     for scenario in "${scenarios[@]}"; do
+        #TODO SCENARIO WAS REMOVED, TEMPORARY FIX TILL CI IS FIXED
+        if [[ "${scenario}" == DEBUGGER_METHOD_PROBES_SNAPSHOT ]]; then
+            echo "${scenario} was removed, skipping."
+            continue
+        fi
+        if [[ "${scenario}" == DEBUGGER_LINE_PROBES_SNAPSHOT ]]; then
+            echo "${scenario} was removed, skipping."
+            continue
+        fi
+        if [[ "${scenario}" == DEBUGGER_MIX_LOG_PROBE ]]; then
+            echo "${scenario} was removed, skipping."
+            continue
+        fi
+        ####
+
         run_scenario "${dry}" "${run_mode}" "${scenario}" "${pytest_args[@]}"
     done
 }
