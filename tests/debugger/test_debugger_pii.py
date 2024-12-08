@@ -213,7 +213,7 @@ class Test_Debugger_PII_Redaction(debugger._Base_Debugger_Test):
     def setup_pii_redaction_line_full(self):
         self._setup(line_probe=True)
 
-    @missing_feature(context.library != "ruby", reason="Tests not implemented yet.")
+    @missing_feature(context.library != "ruby", reason="Ruby DI does not provide the functionality required for the test.")
     def pii_redaction_line_full(self):
         self._assert(REDACTED_KEYS, REDACTED_TYPES)
 
