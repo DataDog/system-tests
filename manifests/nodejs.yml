@@ -96,7 +96,7 @@ tests/:
           TestCodeInjection:
             '*': *ref_5_20_0
             nextjs: missing_feature
-          TestCodeInjection_StackTrace:  missing_feature
+          TestCodeInjection_StackTrace: missing_feature
         test_command_injection.py:
           TestCommandInjection:
             '*': *ref_3_11_0
@@ -729,10 +729,10 @@ tests/:
         #express5: *ref_5_29_0
     test_inferred_proxy.py:
       Test_AWS_API_Gateway_Inferred_Span_Creation:
-          '*': irrelevant
-          express4: *ref_5_26_0
-          express5: *ref_5_26_0
-          #express5: *ref_5_29_0
+        '*': irrelevant
+        express4: *ref_5_26_0
+        express5: *ref_5_26_0
+        #express5: *ref_5_29_0
     test_otel_drop_in.py:
       Test_Otel_Drop_In: missing_feature
   k8s_lib_injection/:
@@ -767,7 +767,7 @@ tests/:
       Test_Parametric_DDTrace_Crash: missing_feature (crash endpoint is not implemented)
       Test_Parametric_DDTrace_Current_Span: missing_feature (otel current_span endpoint is not supported)
       Test_Parametric_OtelSpan_Set_Name: bug (APMAPI-778) # set_name endpoint should set the resource name on a span (not the operation name)
-      Test_Parametric_OtelSpan_Start: bug (APMAPI-778)  # The expected span.kind tag is not set
+      Test_Parametric_OtelSpan_Start: bug (APMAPI-778) # The expected span.kind tag is not set
       Test_Parametric_Otel_Baggage: missing_feature (baggage is not supported)
       Test_Parametric_Otel_Current_Span: missing_feature (otel baggage endpoints are not implemented)
     test_partial_flushing.py:
