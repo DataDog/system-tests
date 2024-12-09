@@ -68,8 +68,12 @@ public class TraceController {
         configMap.put("dd_trace_debug", isDebugEnabled.invoke(configObject).toString());
         configMap.put("dd_trace_otel_enabled", isTraceOtelEnabled.invoke(instrumenterConfigObject).toString());
         configMap.put("dd_trace_agent_url", getAgentUrl.invoke(configObject).toString());
-        configMap.put("dd_dogstatsd_host", getJmxFetchStatsdHost.invoke(configObject).toString());
         // configMap.put("dd_trace_sample_ignore_parent", Config.get());
+
+        Object dogstatsdHost = getJmxFetchStatsdHost.invoke(configObject);
+        if (dogstatsdHost != null){
+          configMap.put("dd_dogstatsd_host", getJmxFetchStatsdHost.invoke(configObject).toString());
+        }
 
         Object sampleRate = getTraceSampleRate.invoke(configObject);
         if (sampleRate instanceof Double) {
