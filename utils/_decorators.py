@@ -1,7 +1,6 @@
 import inspect
 import os
 import re
-from functools import partial
 
 import pytest
 import semantic_version as semver
@@ -107,31 +106,65 @@ def _should_skip(condition=None, library=None, weblog_variant=None):
     return True
 
 
-def decorator(skip, condition, decorator_type, reason, callback, function_or_class):
-    if inspect.isclass(function_or_class):
-        assert condition is not None, _MANIFEST_ERROR_MESSAGE
-
-    if decorator_type in ("bug", "flaky"):
-        _ensure_jira_ticket_as_reason(function_or_class, reason)
-
-    if not skip:
-        return function_or_class
-
-    full_reason = decorator_type if reason is None else f"{decorator_type} ({reason})"
-    return callback(function_or_class, full_reason)
-
-
-def missing_feature(condition=None, library=None, weblog_variant=None, reason=None, force_skip: bool = False):
+def missing_feature(condition: bool = None, library=None, weblog_variant=None, reason=None, force_skip: bool = False):
     """decorator, allow to mark a test function/class as missing"""
-    skip = force_skip or _should_skip(library=library, weblog_variant=weblog_variant, condition=condition)
-    return partial(decorator, skip, condition, "missing_feature", reason, _get_expected_failure_item)
+
+    skip = _should_skip(library=library, weblog_variant=weblog_variant, condition=condition)
+
+    def decorator(function_or_class):
+
+        if inspect.isclass(function_or_class):
+            assert condition is not None or (library is None and weblog_variant is None), _MANIFEST_ERROR_MESSAGE
+
+        if not skip:
+            return function_or_class
+
+        full_reason = "missing_feature" if reason is None else f"missing_feature ({reason})"
+
+        return _get_expected_failure_item(function_or_class, full_reason, force_skip=force_skip)
+
+    return decorator
+
+
+def incomplete_test_app(
+    condition: bool = None, library=None, weblog_variant=None, reason=None, force_skip: bool = False
+):
+    """decorator, marks tests that rely on endpoints in test apps that are incomplete or missing"""
+
+    skip = _should_skip(library=library, weblog_variant=weblog_variant, condition=condition)
+
+    def decorator(function_or_class):
+
+        if inspect.isclass(function_or_class):
+            assert condition is not None or (library is None and weblog_variant is None), _MANIFEST_ERROR_MESSAGE
+
+        if not skip:
+            return function_or_class
+
+        full_reason = "incomplete_test_app" if reason is None else f"incomplete_test_app ({reason})"
+
+        return _get_expected_failure_item(function_or_class, full_reason, force_skip=force_skip)
+
+    return decorator
 
 
 def irrelevant(condition=None, library=None, weblog_variant=None, reason=None):
     """decorator, allow to mark a test function/class as not relevant"""
 
     skip = _should_skip(library=library, weblog_variant=weblog_variant, condition=condition)
-    return partial(decorator, skip, condition, "irrelevant", reason, _get_skipped_item)
+
+    def decorator(function_or_class):
+
+        if inspect.isclass(function_or_class):
+            assert condition is not None, _MANIFEST_ERROR_MESSAGE
+
+        if not skip:
+            return function_or_class
+
+        full_reason = "irrelevant" if reason is None else f"irrelevant ({reason})"
+        return _get_skipped_item(function_or_class, full_reason)
+
+    return decorator
 
 
 def bug(condition=None, library=None, weblog_variant=None, reason=None, force_skip: bool = False):
@@ -140,22 +173,43 @@ def bug(condition=None, library=None, weblog_variant=None, reason=None, force_sk
     The test is executed, and if it passes, and warning is reported
     """
 
-    expected_to_fail = force_skip or _should_skip(library=library, weblog_variant=weblog_variant, condition=condition)
-    return partial(decorator, expected_to_fail, condition, "bug", reason, _get_expected_failure_item)
+    expected_to_fail = _should_skip(library=library, weblog_variant=weblog_variant, condition=condition)
+
+    def decorator(function_or_class):
+
+        if inspect.isclass(function_or_class):
+            assert condition is not None, _MANIFEST_ERROR_MESSAGE
+
+        _ensure_jira_ticket_as_reason(function_or_class, reason)
+
+        if not expected_to_fail:
+            return function_or_class
+
+        full_reason = "bug" if reason is None else f"bug ({reason})"
+        return _get_expected_failure_item(function_or_class, full_reason, force_skip=force_skip)
+
+    return decorator
 
 
 def flaky(condition=None, library=None, weblog_variant=None, reason=None):
     """Decorator, allow to mark a test function/class as a known bug, and skip it"""
 
     skip = _should_skip(library=library, weblog_variant=weblog_variant, condition=condition)
-    return partial(decorator, skip, condition, "flaky", reason, _get_skipped_item)
 
+    def decorator(function_or_class):
 
-def incomplete_test_app(condition=None, library=None, weblog_variant=None, reason=None):
-    """Decorator, allow to mark a test function/class as not compatible with the tested application"""
+        if inspect.isclass(function_or_class):
+            assert condition is not None, _MANIFEST_ERROR_MESSAGE
 
-    skip = _should_skip(library=library, weblog_variant=weblog_variant, condition=condition)
-    return partial(decorator, skip, condition, "incomplete_test_app", reason, _get_expected_failure_item)
+        _ensure_jira_ticket_as_reason(function_or_class, reason)
+
+        if not skip:
+            return function_or_class
+
+        full_reason = "flaky" if reason is None else f"flaky ({reason})"
+        return _get_skipped_item(function_or_class, full_reason)
+
+    return decorator
 
 
 def released(
