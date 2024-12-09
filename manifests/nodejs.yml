@@ -177,7 +177,7 @@ tests/:
         test_nosql_mongodb_injection.py:
           TestNoSqlMongodbInjection:
             '*': *ref_4_17_0
-            #express5: missing_feature should work
+            express5: missing_feature # express-mongo-sanitize is not yet compatible with express5
             nextjs: missing_feature
           TestNoSqlMongodbInjection_StackTrace: missing_feature
         test_path_traversal.py:
