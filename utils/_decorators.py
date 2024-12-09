@@ -8,15 +8,11 @@ import semantic_version as semver
 
 from utils._context.core import context
 
-# bug: APPSEC-51509
-
 _jira_ticket_pattern = re.compile(r"([A-Z]{3,}-\d+)(, [A-Z]{3,}-\d+)*")
-
-_allow_no_jira_ticket_for_bugs: list[str] = []
 
 
 def configure(config: pytest.Config):
-    _allow_no_jira_ticket_for_bugs.extend(config.inicfg["allow_no_jira_ticket_for_bugs"])
+    pass  # nothing to do right now
 
 
 # semver module offers two spec engine :
@@ -51,10 +47,6 @@ def _ensure_jira_ticket_as_reason(item, reason: str):
         else:
             nodeid = f"{rel_path}::{item.__qualname__}"
 
-        for allowed_nodeid in _allow_no_jira_ticket_for_bugs:
-            if nodeid.startswith(allowed_nodeid):
-                return
-
         pytest.exit(f"Please set a jira ticket for {nodeid}, instead of reason: {reason}", 1)
 
 
@@ -71,12 +63,15 @@ def _get_skipped_item(item, skip_reason):
     return item
 
 
-def _get_expected_failure_item(item, skip_reason):
+def _get_expected_failure_item(item, skip_reason, force_skip: bool = False):
     if inspect.isfunction(item) or inspect.isclass(item):
         if not hasattr(item, "pytestmark"):
             setattr(item, "pytestmark", [])
 
-        item.pytestmark.append(pytest.mark.xfail(reason=skip_reason))
+        if force_skip:
+            item.pytestmark.append(pytest.mark.skip(reason=skip_reason))
+        else:
+            item.pytestmark.append(pytest.mark.xfail(reason=skip_reason))
     else:
         raise ValueError(f"Unexpected skipped object: {item}")
 
@@ -126,10 +121,9 @@ def decorator(skip, condition, decorator_type, reason, callback, function_or_cla
     return callback(function_or_class, full_reason)
 
 
-def missing_feature(condition=None, library=None, weblog_variant=None, reason=None):
+def missing_feature(condition=None, library=None, weblog_variant=None, reason=None, force_skip: bool = False):
     """decorator, allow to mark a test function/class as missing"""
-
-    skip = _should_skip(library=library, weblog_variant=weblog_variant, condition=condition)
+    skip = force_skip or _should_skip(library=library, weblog_variant=weblog_variant, condition=condition)
     return partial(decorator, skip, condition, "missing_feature", reason, _get_expected_failure_item)
 
 
@@ -140,13 +134,13 @@ def irrelevant(condition=None, library=None, weblog_variant=None, reason=None):
     return partial(decorator, skip, condition, "irrelevant", reason, _get_skipped_item)
 
 
-def bug(condition=None, library=None, weblog_variant=None, reason=None):
+def bug(condition=None, library=None, weblog_variant=None, reason=None, force_skip: bool = False):
     """
     Decorator, allow to mark a test function/class as an known bug.
     The test is executed, and if it passes, and warning is reported
     """
 
-    expected_to_fail = _should_skip(library=library, weblog_variant=weblog_variant, condition=condition)
+    expected_to_fail = force_skip or _should_skip(library=library, weblog_variant=weblog_variant, condition=condition)
     return partial(decorator, expected_to_fail, condition, "bug", reason, _get_expected_failure_item)
 
 
@@ -203,13 +197,7 @@ def released(
 
             assert declaration != "?"  # ensure there is no more ? in version declaration
 
-            if (
-                declaration.startswith("missing_feature")
-                or declaration.startswith("flaky")
-                or declaration.startswith("bug")
-                or declaration.startswith("irrelevant")
-                or declaration.startswith("incomplete_test_app")
-            ):
+            if declaration.startswith(("missing_feature", "bug", "flaky", "irrelevant", "incomplete_test_app")):
                 return declaration
 
             # declaration must be now a version number

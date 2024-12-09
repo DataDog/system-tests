@@ -49,7 +49,10 @@ func (s *apmClientServer) OtelStartSpan(args OtelStartSpanArgs) (OtelStartSpanRe
 	}
 	var otelOpts []otel_trace.SpanStartOption
 	if args.SpanKind != nil {
-		otelOpts = append(otelOpts, otel_trace.WithSpanKind(otel_trace.ValidateSpanKind(otel_trace.SpanKind(*args.SpanKind))))
+		// SpanKindUnspecified is not supported by the parametric interface.
+		// SpanKind needs to be remapped (incremented by 1) to match the expected value golang value. 
+		// https://github.com/open-telemetry/opentelemetry-go/blob/e98ef1bfdb4cc413a019ebdb64988e17bb331942/trace/span.go#L120
+		otelOpts = append(otelOpts, otel_trace.WithSpanKind(otel_trace.ValidateSpanKind(otel_trace.SpanKind(*args.SpanKind + 1))))
 	}
 	if t := args.Timestamp; t != nil {
 		tm := time.UnixMicro(*t)

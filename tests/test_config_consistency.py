@@ -4,6 +4,7 @@
 
 import json
 from utils import weblog, interfaces, scenarios, features, rfc, irrelevant, context, bug, missing_feature
+from utils.tools import logger
 
 
 @scenarios.default
@@ -85,6 +86,7 @@ class Test_Config_ObfuscationQueryStringRegexp_Empty:
 
     @bug(context.library == "java", reason="APMAPI-770")
     @missing_feature(context.library == "nodejs", reason="Node only obfuscates queries on the server side")
+    @missing_feature(context.library == "golang", reason="Go only obfuscates queries on the server side")
     def test_query_string_obfuscation_empty_client(self):
         spans = [s for _, _, s in interfaces.library.get_spans(request=self.r, full_trace=True)]
         client_span = _get_span_by_tags(spans, tags={"http.url": "http://weblog:7777/?key=monkey"})
@@ -261,27 +263,44 @@ class Test_Config_ClientIPHeader_Precedence:
 
     def test_ip_headers_precedence(self):
         # Ensures that at least one span stores each ip header in the http.client_ip tag
-        # Note - system tests may obfuscate the actual ip address, we may need to update the test to take this into account
+        # Note - system tests may obfuscate the actual ip address, we may need to update
+        # the test to take this into account.
         assert len(self.requests) == len(self.IP_HEADERS), "Number of requests and ip headers do not match, check setup"
-        for i in range(len(self.IP_HEADERS)):
+        for i, header in enumerate(self.IP_HEADERS):
             req = self.requests[i]
-            ip = self.IP_HEADERS[i][1]
-            trace = [span for _, _, span in interfaces.library.get_spans(req, full_trace=True)]
+            header_name, ip = header
+
+            assert req.status_code == 200, f"Request with {header} is not succesful"
+
+            logger.info(f"Checking request with header {header_name}={ip}")
+
             if ip.startswith("for="):
                 ip = ip[4:]
+
+            trace = [span for _, _, span in interfaces.library.get_spans(req, full_trace=True)]
             expected_tags = {"http.client_ip": ip}
             assert _get_span_by_tags(trace, expected_tags), f"Span with tags {expected_tags} not found in {trace}"
 
 
 def _get_span_by_tags(spans, tags):
+    logger.info(f"Try to find span with metag tags {tags}")
+
     for span in spans:
         # Avoids retrieving the client span by the operation/resource name, this value varies between languages
         # Use the expected tags to identify the span
         for k, v in tags.items():
-            if span["meta"].get(k) != v:
+            meta = span["meta"]
+
+            if k not in meta:
+                logger.debug(f"Span {span['span_id']} does not have tag {k}")
+            elif meta[k] != v:
+                logger.debug(f"Span {span['span_id']} has tag {k}={meta[k]} instead of {v}")
                 break
         else:
+            logger.info(f"Span found: {span['span_id']}")
             return span
+
+    logger.warning("No span with those tags has been found")
     return {}
 
 

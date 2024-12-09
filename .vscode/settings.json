@@ -6,5 +6,7 @@
         "tests",
         "--replay"
     ],
-    "python.testing.pytestEnabled": true
+    "python.testing.pytestEnabled": true,
+    "ruff.enable": true,
+    "pylint.ignorePatterns": ["*"]
 }

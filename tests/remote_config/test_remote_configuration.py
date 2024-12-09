@@ -178,13 +178,13 @@ class Test_RemoteConfigurationUpdateSequenceFeatures(RemoteConfigurationFieldsBa
 
         remote_config.send_sequential_commands(payloads)
 
-    @bug(context.library == "python@1.9.2")
+    @bug(context.library == "python@1.9.2", reason="APMRP-360")
     @bug(context.weblog_variant == "spring-boot-openliberty", reason="APPSEC-6721")
     @bug(
         context.library >= "java@1.4.0" and context.agent_version < "1.8.0" and context.appsec_rules_file is not None,
-        reason="ASM_FEATURES was not subscribed when a custom rules file was present",
+        reason="APMRP-360",  # ASM_FEATURES was not subscribed when a custom rules file was present
     )
-    @bug(library="golang", reason="missing update file datadog/2/ASM_FEATURES/ASM_FEATURES-third/config")
+    @bug(library="golang", reason="APPSEC-56064")
     @bug(context.library < "java@1.13.0", reason="APMRP-360")
     def test_tracer_update_sequence(self):
         """test update sequence, based on a scenario mocked in the proxy"""

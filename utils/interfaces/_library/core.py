@@ -56,6 +56,9 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
 
         for data in self.get_data(path_filters=paths):
             traces = data["request"]["content"]
+            if not traces:  # may be none
+                continue
+
             for trace in traces:
                 if rid is None:
                     yield data, trace
@@ -368,6 +371,9 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
 
     def get_profiling_data(self):
         yield from self.get_data(path_filters="/profiling/v1/input")
+
+    def validate_profiling(self, validator, success_by_default=False):
+        self.validate(validator, path_filters="/profiling/v1/input", success_by_default=success_by_default)
 
     def assert_trace_exists(self, request, span_type=None):
         for _, _, span in self.get_spans(request=request):
