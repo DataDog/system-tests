@@ -217,6 +217,10 @@ tests/:
       Test_V2_Login_Events: missing_feature
       Test_V2_Login_Events_Anon: missing_feature
       Test_V2_Login_Events_RC: missing_feature
+    test_automated_user_and_session_tracking.py:
+      Test_Automated_Session_Blocking: missing_feature
+      Test_Automated_User_Blocking: missing_feature
+      Test_Automated_User_Tracking: missing_feature
     test_blocking_addresses.py:
       Test_BlockingGraphqlResolvers: v2.3.1-dev
       Test_Blocking_client_ip: v1.0.0
