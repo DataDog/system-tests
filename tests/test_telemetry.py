@@ -603,9 +603,9 @@ class Test_TelemetryV2:
         Assert that config telemetry is handled properly by telemetry intake
 
         ⚠️ Did this test just fail? Read here! ⚠️
-        Some files are manually copied from dd-go from/to the following paths using tests/telemetry-intake/update.sh
+        Some files are manually copied from dd-go from/to the following paths using tests/telemetry_intake/update.sh
         from: https://github.com/DataDog/dd-go/blob/prod/trace/apps/tracer-telemetry-intake/telemetry-payload/static/
-        to: tests/telemetry-intake/static
+        to: tests/telemetry_intake/static
 
         If this test fails, it means that a telemetry key was found in config telemetry that does not
         exist in any of the files listed above in dd-go
@@ -634,7 +634,7 @@ class Test_TelemetryV2:
             return keys
 
         def load_telemetry_json(filename):
-            with open(f"tests/telemetry-intake/static/{filename}.json", encoding="utf-8") as fh:
+            with open(f"tests/telemetry_intake/static/{filename}.json", encoding="utf-8") as fh:
                 return json.load(fh)
 
         config_norm_rules = load_telemetry_json("config_norm_rules")
