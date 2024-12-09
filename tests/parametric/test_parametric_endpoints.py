@@ -290,6 +290,8 @@ class Test_Parametric_DDTrace_Config:
                 "dd_version",
                 "dd_trace_agent_url",
                 "dd_trace_rate_limit",
+                "dd_dogstatsd_host",
+                "dd_dogstatsd_port",
             ]
 
 
