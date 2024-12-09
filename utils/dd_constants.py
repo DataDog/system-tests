@@ -1,6 +1,6 @@
 from enum import IntEnum
-from opentelemetry.trace import SpanKind  # pylint: disable=W0611
-from opentelemetry.trace import StatusCode  # pylint: disable=W0611
+from opentelemetry.trace import SpanKind  # noqa: F401
+from opentelemetry.trace import StatusCode  # noqa: F401
 
 
 # Key used in the metrics map to indicate tracer sampling priority

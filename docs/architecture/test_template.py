@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import weblog, interfaces, context, irrelevant
+from utils import weblog, interfaces
 
 # *ATTENTION*: Copy this file to the tests folder, modify, and rename with a prefix of `test_` to enable your new tests
 

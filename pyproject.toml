@@ -98,15 +98,12 @@ ignore = [
     "E501",    # line too long
     "E722",    # TBD
     "E741",
-    "F401",    # easy
     "FBT001",
     "FBT002",  # Boolean default positional argument, TBD
-    "FURB129",
     "INP001",  # implicit package
     "N801",    # easy
     "N806",
-    "PERF401",
-    "PIE810",
+    "PERF401", # TBD, the "good" code can be harder to read
     "PLR0911", # too many return, may be replaced by a higher default value
     "PLR0912", # Too many branches
     "PLR0913", # too many arguments, may be replaced by a higher default value
@@ -145,8 +142,6 @@ ignore = [
     "UP015",
     "UP024",
     "UP038",   # we really want this? TBD
-    "W291",    # trailing whitespace, easy one
-    "W293",
 
 
     ### Ignores that will be kept for the entire project
