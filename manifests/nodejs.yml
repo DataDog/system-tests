@@ -81,12 +81,12 @@ tests/:
         Test_Schema_Request_Json_Body: *ref_4_21_0
         Test_Schema_Request_Path_Parameters:
           '*': *ref_4_21_0
-          #express5: *ref_5_29_0
+          express5: *ref_5_29_0
           nextjs: missing_feature
         Test_Schema_Request_Query_Parameters: *ref_4_21_0
         Test_Schema_Response_Body:
           '*': *ref_5_3_0
-          #express5: *ref_5_29_0 # sampling uses path params
+          express5: *ref_5_29_0
           nextjs: missing_feature
         Test_Schema_Response_Body_env_var: missing_feature
         Test_Schema_Response_Headers: *ref_4_21_0
