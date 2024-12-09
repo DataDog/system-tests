@@ -41,8 +41,7 @@ RC_STATE = "_ci_state"
 def send_state(
     raw_payload, *, wait_for_acknowledged_status: bool = True, state_version: int = -1
 ) -> dict[str, dict[str, Any]]:
-    """
-    Sends a remote config payload to the library and waits for the config to be applied.
+    """Sends a remote config payload to the library and waits for the config to be applied.
     Then returns a dictionary with the state of each requested file as returned by the library.
 
     The dictionary keys are the IDs from the files that can be extracted from the path,
@@ -315,8 +314,7 @@ class ClientConfig:
 
 
 class _RemoteConfigState:
-    """
-    https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph
+    """https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph
     https://github.com/DataDog/datadog-agent/blob/main/pkg/proto/datadog/remoteconfig/remoteconfig.proto#L180
     """
 
