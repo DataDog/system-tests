@@ -605,7 +605,7 @@ class AmazonLinux2022arm64(_VirtualMachine):
             os_distro="rpm",
             os_branch="amazon_linux2022",
             os_cpu="arm64",
-            default_vm=False,
+            default_vm=True,
             **kwargs,
         )
 
@@ -702,7 +702,7 @@ class RedHat90arm64(_VirtualMachine):
             os_distro="rpm",
             os_branch="redhat",
             os_cpu="arm64",
-            default_vm=True,
+            default_vm=False,
             **kwargs,
         )
 

@@ -20,7 +20,7 @@ def from_payload(payload):
 
     for config_name in payload.get("client_configs", []):
         target = targets["signed"]["targets"][config_name]
-        raw_config = configs.get(config_name, None)
+        raw_config = configs.get(config_name)
 
         config = result.add_client_config(config_name, raw_config, target["custom"]["v"])
 
@@ -68,7 +68,6 @@ def main(filename):
         # print(json.dumps(item, indent=2))
         # print("-" * 120)
         # print(json.dumps(command.to_payload(deserialized=True), indent=2))
-    return
 
 
 if __name__ == "__main__":

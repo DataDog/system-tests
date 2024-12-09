@@ -46,7 +46,15 @@ def pytest_addoption(parser):
     parser.addoption("--vm-env", type=str, action="store", help="Set virtual machine environment")
     parser.addoption("--vm-provider", type=str, action="store", help="Set provider for VMs")
     parser.addoption("--vm-only-branch", type=str, action="store", help="Filter to execute only one vm branch")
+    parser.addoption("--vm-only", type=str, action="store", help="Filter to execute only one vm name")
     parser.addoption("--vm-skip-branches", type=str, action="store", help="Filter exclude vm branches")
+    parser.addoption(
+        "--vm-gitlab-pipeline",
+        type=str,
+        action="store",
+        help="Generate pipeline for Gitlab CI. Not run the tests. Values: one-pipeline, system-tests",
+    )
+
     parser.addoption(
         "--vm-default-vms",
         type=str,
@@ -170,6 +178,8 @@ def _collect_item_metadata(item):
             result["testDeclaration"] = "flaky"
         elif result["details"].startswith("bug"):
             result["testDeclaration"] = "bug"
+        elif result["details"].startswith("incomplete_test_app"):
+            result["testDeclaration"] = "incompleteTestApp"
         elif result["details"].startswith("missing_feature"):
             result["testDeclaration"] = "notImplemented"
         elif "got empty parameter set" in result["details"]:
@@ -206,13 +216,13 @@ def pytest_pycollect_makemodule(module_path, parent):
     nodeid = str(module_path.relative_to(module_path.cwd()))
 
     if nodeid in manifests and library in manifests[nodeid]:
-        declaration = manifests[nodeid][library]
+        declaration: str = manifests[nodeid][library]
 
         logger.info(f"Manifest declaration found for {nodeid}: {declaration}")
 
         mod: pytest.Module = pytest.Module.from_parent(parent, path=module_path)
 
-        if declaration.startswith("irrelevant") or declaration.startswith("flaky"):
+        if declaration.startswith(("irrelevant", "flaky")):
             mod.add_marker(pytest.mark.skip(reason=declaration))
             logger.debug(f"Module {nodeid} is skipped by manifest file because {declaration}")
         else:
@@ -266,7 +276,7 @@ def pytest_collection_modifyitems(session, config, items: list[pytest.Item]):
         declared_scenarios[item.nodeid] = declared_scenario
 
         # If we are running scenario with the option sleep, we deselect all
-        if session.config.option.sleep:
+        if session.config.option.sleep or session.config.option.vm_gitlab_pipeline:
             deselected.append(item)
             continue
 
@@ -423,6 +433,12 @@ def pytest_sessionfinish(session, exitstatus):
             export_feature_parity_dashboard(session, data)
         except Exception:
             logger.exception("Fail to export export reports", exc_info=True)
+
+    if session.config.option.vm_gitlab_pipeline:
+        NO_TESTS_COLLECTED = 5
+        SUCCESS = 0
+        if exitstatus == NO_TESTS_COLLECTED:
+            session.exitstatus = SUCCESS
 
 
 def export_feature_parity_dashboard(session, data):

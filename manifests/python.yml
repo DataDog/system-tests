@@ -26,7 +26,11 @@ tests/:
           uwsgi-poc: v2.6.0
         Test_API_Security_RC_ASM_processor_overrides_and_custom_scanner: irrelevant (waf does not support it yet)
       test_apisec_sampling.py:
-        Test_API_Security_sampling: missing_feature
+        Test_API_Security_Sampling_Different_Endpoints: v2.6.0
+        Test_API_Security_Sampling_Different_Paths: v2.6.0
+        Test_API_Security_Sampling_Different_Status: v2.6.0
+        Test_API_Security_Sampling_Rate: irrelevant (new api security sampling algorithm implemented)
+        Test_API_Security_Sampling_With_Delay: v2.6.0
       test_schemas.py:
         Test_Scanners:
           '*': v2.4.0
@@ -236,6 +240,19 @@ tests/:
         test_uri.py:
           TestURI: missing_feature
     rasp/:
+      test_cmdi.py:
+        Test_Cmdi_BodyJson: missing_feature
+        Test_Cmdi_BodyUrlEncoded: missing_feature
+        Test_Cmdi_BodyXml: missing_feature
+        Test_Cmdi_Capability: missing_feature
+        Test_Cmdi_Mandatory_SpanTags: missing_feature
+        Test_Cmdi_Optional_SpanTags: missing_feature
+        Test_Cmdi_Rules_Version: v2.18.0.dev
+        Test_Cmdi_StackTrace: missing_feature
+        Test_Cmdi_Telemetry: missing_feature
+        Test_Cmdi_Telemetry_Variant_Tag: missing_feature
+        Test_Cmdi_UrlQuery: missing_feature
+        Test_Cmdi_Waf_Version: v2.18.0.dev
       test_lfi.py:
         Test_Lfi_BodyJson: v2.10.0
         Test_Lfi_BodyUrlEncoded: v2.10.0
@@ -248,8 +265,7 @@ tests/:
         Test_Lfi_StackTrace: v2.10.0
         Test_Lfi_Telemetry: v2.10.0
         Test_Lfi_UrlQuery: v2.10.0
-      test_libddwaf.py:
-        Test_Libddwaf_Version: v2.15.0
+        Test_Lfi_Waf_Version: v2.15.0
       test_shi.py:
         Test_Shi_BodyJson: v2.11.0-rc2
         Test_Shi_BodyUrlEncoded: v2.11.0-rc2
@@ -260,7 +276,9 @@ tests/:
         Test_Shi_Rules_Version: v2.15.0
         Test_Shi_StackTrace: v2.11.0-rc2
         Test_Shi_Telemetry: v2.11.0-rc2
+        Test_Shi_Telemetry_Variant_Tag: missing_feature
         Test_Shi_UrlQuery: v2.11.0-rc2
+        Test_Shi_Waf_Version: v2.15.0
       test_sqli.py:
         Test_Sqli_BodyJson: v2.10.0
         Test_Sqli_BodyUrlEncoded: v2.10.0
@@ -272,6 +290,7 @@ tests/:
         Test_Sqli_StackTrace: v2.10.0
         Test_Sqli_Telemetry: v2.10.0
         Test_Sqli_UrlQuery: v2.10.0
+        Test_Sqli_Waf_Version: v2.15.0
       test_ssrf.py:
         Test_Ssrf_BodyJson: v2.10.0
         Test_Ssrf_BodyUrlEncoded: v2.10.0
@@ -283,6 +302,7 @@ tests/:
         Test_Ssrf_StackTrace: v2.10.0
         Test_Ssrf_Telemetry: v2.10.0
         Test_Ssrf_UrlQuery: v2.10.0
+        Test_Ssrf_Waf_Version: v2.15.0
     waf/:
       test_addresses.py:
         Test_BodyJson:
@@ -525,6 +545,11 @@ tests/:
     test_logs.py:
       Test_Standardization: missing_feature
       Test_StandardizationBlockMode: missing_feature
+    test_metastruct.py:
+      Test_SecurityEvents_Appsec_Metastruct_Disabled: irrelevant (no fallback will be implemented)
+      Test_SecurityEvents_Appsec_Metastruct_Enabled: missing_feature
+      Test_SecurityEvents_Iast_Metastruct_Disabled: irrelevant (no fallback will be implemented)
+      Test_SecurityEvents_Iast_Metastruct_Enabled: missing_feature
     test_rate_limiter.py:
       Test_Main: v2.0.0
     test_remote_config_rule_changes.py:
@@ -786,6 +811,7 @@ tests/:
       Test_Decisionless_Extraction: v2.8.0
     test_sampling_span_tags.py:
       Test_Sampling_Span_Tags: v2.8.0
+    test_span_events.py: missing_feature
     test_span_links.py:
       Test_Span_Links: v2.3.0
     test_span_sampling.py:
@@ -867,6 +893,10 @@ tests/:
     Test_DistributedHttp:
       '*': missing_feature (Missing on weblog)
       flask-poc: v1.5.0-rc2 # actual version unknown
+    Test_Span_Links_Flags_From_Conflicting_Contexts: v2.17.0
+    Test_Span_Links_From_Conflicting_Contexts: v2.17.0
+    Test_Span_Links_From_Conflicting_Contexts_Datadog_Precedence: v2.17.0
+    Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts: v2.17.0
   test_identify.py:
     Test_Basic: v1.5.0-rc1
     Test_Propagate: v1.9.0
@@ -897,6 +927,7 @@ tests/:
   test_semantic_conventions.py:
     Test_Meta: v1.80.0
     Test_MetaDatadogTags: bug (APMAPI-735)
+  test_span_events.py: missing_feature (Weblog `/add_event` not implemented)
   test_standard_tags.py:
     Test_StandardTagsClientIp: v2.7.0
     Test_StandardTagsMethod: v1.2.1

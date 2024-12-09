@@ -2,6 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
+from ast import literal_eval
 import base64
 import gzip
 import io
@@ -103,29 +104,27 @@ def deserialize_http_message(path, message, content: bytes, interface, key, expo
 
         return json.loads(content)
 
-    content_type = get_header_value("content-type", message["headers"])
-    content_type = None if content_type is None else content_type.lower()
+    raw_content_type = get_header_value("content-type", message["headers"])
+    content_type = None if raw_content_type is None else raw_content_type.lower()
 
     if not content or len(content) == 0:
         return None
 
-    if content_type and any((mime_type in content_type for mime_type in ("application/json", "text/json"))):
+    if content_type and any(mime_type in content_type for mime_type in ("application/json", "text/json")):
         return json_load()
 
     if path == "/v0.7/config":  # Kyle, please add content-type header :)
         if key == "response" and message["status_code"] == 404:
             return content.decode(encoding="utf-8")
-        else:
-            return json_load()
+
+        return json_load()
 
     if interface == "library" and path == "/info":
         if key == "response":
             return json_load()
-        else:
-            if not content:
-                return None
-            else:
-                return content
+
+        # replace zero length strings/bytes by None
+        return content if content else None
 
     if content_type in ("application/msgpack", "application/msgpack, application/msgpack") or (path == "/v0.6/stats"):
         result = msgpack.unpackb(content, unicode_errors="replace", strict_map_key=False)
@@ -152,7 +151,7 @@ def deserialize_http_message(path, message, content: bytes, interface, key, expo
 
     if content_type == "application/x-protobuf":
         # Raw data can be either a str like "b'\n\x\...'" or bytes
-        content = eval(content) if isinstance(content, str) else content
+        content = literal_eval(content) if isinstance(content, str) else content
         assert isinstance(content, bytes)
         dd_protocol = get_header_value("dd-protocol", message["headers"])
         if dd_protocol == "otlp" and "traces" in path:
@@ -179,25 +178,35 @@ def deserialize_http_message(path, message, content: bytes, interface, key, expo
 
     if content_type and content_type.startswith("multipart/form-data;"):
         decoded = []
-        for part in MultipartDecoder(content, content_type).parts:
+        for part in MultipartDecoder(content, raw_content_type).parts:
             headers = {k.decode("utf-8"): v.decode("utf-8") for k, v in part.headers.items()}
             item = {"headers": headers}
-            try:
-                item["content"] = part.text
-            except UnicodeDecodeError:
-                item["content"] = part.content
 
-            if headers.get("Content-Type", "").lower().startswith("application/json"):
-                item["content"] = json.loads(item["content"])
+            content_type_part = ""
 
-            elif headers.get("Content-Type", "") == "application/gzip":
+            for name, value in headers.items():
+                if name.lower() == "content-type":
+                    content_type_part = value.lower()
+                    break
+
+            if content_type_part.startswith("application/json"):
+                item["content"] = json.loads(part.content)
+
+            elif content_type_part == "application/gzip":
                 with gzip.GzipFile(fileobj=io.BytesIO(part.content)) as gz_file:
                     content = gz_file.read()
 
                 _deserialize_file_in_multipart_form_data(item, headers, export_content_files_to, content)
 
-            elif headers.get("Content-Type", "") == "application/octet-stream":
+            elif content_type_part == "application/octet-stream":
                 _deserialize_file_in_multipart_form_data(item, headers, export_content_files_to, part.content)
+
+            else:
+
+                try:
+                    item["content"] = part.text
+                except UnicodeDecodeError:
+                    item["content"] = str(part.content)
 
             decoded.append(item)
 
@@ -237,7 +246,6 @@ def _deserialize_file_in_multipart_form_data(
 
             item["system-tests-information"] = "File exported to a separated file"
             item["system-tests-file-path"] = file_path
-            del item["content"]
 
 
 def _deserialized_nested_json_from_trace_payloads(content, interface):
@@ -298,7 +306,7 @@ def deserialize(data, key, content, interface, export_content_files_to: str):
             data["path"], data[key], content, interface, key, export_content_files_to
         )
     except:
-        logger.exception(f"Error while deserializing {data['log_filename']}", exc_info=True)
+        logger.exception(f"Error while deserializing {data['log_filename']}")
         data[key]["raw_content"] = str(content)
         data[key]["traceback"] = str(traceback.format_exc())
 

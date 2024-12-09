@@ -3,17 +3,17 @@
 # Copyright 2021 Datadog, Inc.
 
 import os
-import json
+from pathlib import Path
 
-from flask import Flask, send_from_directory, request, render_template
-from utils.interfaces._schemas_validators import _get_schemas_store, _get_schemas_filenames
-from json_schema_for_humans.generate import generate_from_schema, generate_from_filename
+from flask import Flask, render_template
+from utils.interfaces._schemas_validators import _get_schemas_store
+from json_schema_for_humans.generate import generate_from_schema
 from json_schema_for_humans.generation_configuration import GenerationConfiguration
 import json_schema_for_humans
 
 
 static_folder = os.path.join(json_schema_for_humans.__path__[0], "templates/js")
-template_folder = os.path.join(os.getcwd(), "utils/interfaces/schemas")
+template_folder = os.path.join(str(Path.cwd()), "utils/interfaces/schemas")
 
 app = Flask(__name__, static_url_path="/static", static_folder=static_folder, template_folder=template_folder)
 
@@ -26,12 +26,12 @@ def default():
 
     data = {"schemas": []}
 
-    for id, schema in store.items():
+    for schema_id, schema in store.items():
         # skip some schemas
-        if not id.endswith("request.json") and not "title" in schema:
+        if not schema_id.endswith("request.json") and "title" not in schema:
             continue
 
-        doc_path = id.replace(".json", ".html")
+        doc_path = schema_id.replace(".json", ".html")
         # doc_path = doc_path[len("utils/interfaces/schemas"):]
         # filename = filename[len("utils/interfaces/schemas"):]
 
@@ -52,4 +52,4 @@ def documentation(path):
 
 
 if __name__ == "__main__":
-    app.run(port=8080, debug=True)
+    app.run(port=8080, debug=True)  # noqa: S201

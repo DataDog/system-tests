@@ -3,7 +3,7 @@ import json
 import copy
 from utils._context.library_version import LibraryVersion
 from utils.tools import logger
-from utils.virtual_machine.utils import get_tested_apps_vms
+from utils.virtual_machine.utils import get_tested_apps_vms, generate_gitlab_pipeline
 
 from utils._context.virtual_machines import (
     Ubuntu20amd64,
@@ -221,6 +221,8 @@ class _VirtualMachineScenario(Scenario):
             raise ValueError(
                 f"Invalid value for --vm-default-vms: {self.only_default_vms}. Use 'All', 'True' or 'False'"
             )
+        # Pipeline generation mode. No run tests, no start vms
+        self.vm_gitlab_pipeline = config.option.vm_gitlab_pipeline
 
         provisioner.remove_unsupported_machines(
             self._library.library,
@@ -230,6 +232,7 @@ class _VirtualMachineScenario(Scenario):
             config.option.vm_only_branch,
             config.option.vm_skip_branches,
             self.only_default_vms,
+            config.option.vm_only,
         )
         for vm in self.required_vms:
             logger.info(f"Adding provision for {vm.name}")
@@ -248,6 +251,20 @@ class _VirtualMachineScenario(Scenario):
             vm.add_agent_env(self.agent_env)
             vm.add_app_env(self.app_env)
         self.vm_provider.configure(self.required_vms)
+
+        if self.vm_gitlab_pipeline:
+            pipeline = generate_gitlab_pipeline(
+                config.option.vm_library,
+                self._weblog,
+                self.name,
+                self._env,
+                self.required_vms,
+                os.getenv("DD_INSTALLER_LIBRARY_VERSION", ""),
+                os.getenv("DD_INSTALLER_INJECTOR_VERSION", ""),
+                "one-pipeline" in self.vm_gitlab_pipeline,
+            )
+            with open(f"{self.host_log_folder}/gitlab_pipeline.yml", "w", encoding="utf-8") as f:
+                json.dump(pipeline, f, ensure_ascii=False, indent=4)
 
     def _check_test_environment(self):
         """Check if the test environment is correctly set"""
@@ -268,15 +285,15 @@ class _VirtualMachineScenario(Scenario):
 
     def get_warmups(self):
         warmups = super().get_warmups()
+        if not self.vm_gitlab_pipeline:
+            if self.is_main_worker:
+                warmups.append(lambda: logger.terminal.write_sep("=", "Provisioning Virtual Machines", bold=True))
+                warmups.append(self.vm_provider.stack_up)
 
-        if self.is_main_worker:
-            warmups.append(lambda: logger.terminal.write_sep("=", "Provisioning Virtual Machines", bold=True))
-            warmups.append(self.vm_provider.stack_up)
+            warmups.append(self.fill_context)
 
-        warmups.append(self.fill_context)
-
-        if self.is_main_worker:
-            warmups.append(self.print_installed_components)
+            if self.is_main_worker:
+                warmups.append(self.print_installed_components)
 
         return warmups
 
@@ -289,7 +306,7 @@ class _VirtualMachineScenario(Scenario):
                 if key.startswith("datadog-apm-inject") and self._tested_components[key]:
                     self._datadog_apm_inject_version = f"v{self._tested_components[key]}"
                 if key.startswith("datadog-apm-library-") and self._tested_components[key]:
-                    self._library.version = self._tested_components[key]
+                    self._library = LibraryVersion(self._library.library, self._tested_components[key])
                     # We store without the lang sufix
                     self._tested_components["datadog-apm-library"] = self._tested_components[key]
                     del self._tested_components[key]
@@ -298,7 +315,7 @@ class _VirtualMachineScenario(Scenario):
                     del self._tested_components[key]
 
     def close_targets(self):
-        if self.is_main_worker:
+        if self.is_main_worker and not self.vm_gitlab_pipeline:
             logger.info("Destroying virtual machines")
             self.vm_provider.stack_destroy()
 
@@ -386,7 +403,7 @@ class InstallerAutoInjectionScenario(_VirtualMachineScenario):
             include_ubuntu_21_arm64=True,
             include_ubuntu_22_amd64=True,
             include_ubuntu_22_arm64=True,
-            include_ubuntu_23_04_amd64=True,
+            include_ubuntu_23_04_amd64=False,
             include_ubuntu_23_04_arm64=True,
             include_ubuntu_23_10_amd64=False,
             include_ubuntu_23_10_arm64=True,
@@ -415,8 +432,8 @@ class InstallerAutoInjectionScenario(_VirtualMachineScenario):
             include_redhat_7_9_amd64=True,
             include_redhat_8_amd64=True,
             include_redhat_8_arm64=True,
-            include_redhat_9_amd64=False,
-            include_redhat_9_arm64=False,
+            include_redhat_9_amd64=True,
+            include_redhat_9_arm64=True,
             include_fedora_36_amd64=False,
             include_fedora_36_arm64=False,
             include_fedora_37_amd64=False,
@@ -426,7 +443,7 @@ class InstallerAutoInjectionScenario(_VirtualMachineScenario):
 
 
 class InstallerAutoInjectionScenarioProfiling(_VirtualMachineScenario):
-    """ As Profiling is not included in GA (2024/11) we reduce the number of VMS to speed up the execution 
+    """ As Profiling is not included in GA (2024/11) we reduce the number of VMS to speed up the execution
     Until we fix the performance problems on the AWS architecture and speed up the tests"""
 
     def __init__(

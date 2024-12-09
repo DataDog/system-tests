@@ -279,7 +279,7 @@ def trace_span_inject_headers(args: SpanInjectArgs) -> SpanInjectReturn:
     return SpanInjectReturn(http_headers=[(k, v) for k, v in headers.items()])
 
 
-class SpanInjectArgs(BaseModel):
+class SpanExtractArgs(BaseModel):
     http_headers: List[Tuple[str, str]]
 
 
@@ -288,7 +288,7 @@ class SpanExtractReturn(BaseModel):
 
 
 @app.post("/trace/span/extract_headers")
-def trace_span_extract_headers(args: SpanInjectArgs) -> SpanExtractReturn:
+def trace_span_extract_headers(args: SpanExtractArgs) -> SpanExtractReturn:
     headers = {k: v for k, v in args.http_headers}
     context = HTTPPropagator.extract(headers)
     if context.span_id:
@@ -360,7 +360,18 @@ class TraceSpanAddLinksArgs(BaseModel):
     attributes: dict
 
 
+class TraceSpanAddEventsArgs(BaseModel):
+    span_id: int
+    name: str
+    timestamp: int
+    attributes: dict
+
+
 class TraceSpanAddLinkReturn(BaseModel):
+    pass
+
+
+class TraceSpanAddEventReturn(BaseModel):
     pass
 
 
@@ -375,6 +386,13 @@ def trace_span_add_link(args: TraceSpanAddLinksArgs) -> TraceSpanAddLinkReturn:
         raise ValueError(f"Parent span {args.parent_id} not found in {spans.keys()} or {ddcontexts.keys()}")
     span.link_span(linked_context, attributes=args.attributes)
     return TraceSpanAddLinkReturn()
+
+
+@app.post("/trace/span/add_event")
+def trace_span_add_event(args: TraceSpanAddEventsArgs) -> TraceSpanAddEventReturn:
+    span = spans[args.span_id]
+    span.add_event(args.name, args.attributes, args.timestamp)
+    return TraceSpanAddEventReturn()
 
 
 class TraceSpanCurrentReturn(BaseModel):
@@ -398,6 +416,7 @@ class OtelStartSpanArgs(BaseModel):
     span_kind: Optional[int] = None
     timestamp: Optional[int] = None
     links: List[Dict]
+    events: List[Dict]
     attributes: dict
 
 
@@ -417,13 +436,10 @@ def otel_start_span(args: OtelStartSpanArgs):
         span_context = otel_spans[parent_id].get_span_context()
         links.append(opentelemetry.trace.Link(span_context, link.get("attributes")))
 
-    # parametric tests expect span kind to be 0 for internal, 1 for server, 2 for client, ....
-    # while parametric tests set 0 for unset, 1 internal, 2 for server, 3 for client, ....
-    span_kind_int = (args.span_kind or 1) - 1
     with otel_tracer.start_as_current_span(
         args.name,
         context=set_span_in_context(parent_span),
-        kind=SpanKind(span_kind_int),
+        kind=SpanKind(args.span_kind or 0),
         attributes=args.attributes,
         links=links,
         # parametric tests expect timestamps to be set in microseconds (required by go)
@@ -436,6 +452,8 @@ def otel_start_span(args: OtelStartSpanArgs):
         # Store the active span for easy global access. This active span should be equal to the newly created span.
         active_otel_span[0] = opentelemetry.trace.get_current_span()
         active_ddspan[0] = ddtrace.tracer.current_span()
+        for event in args.events:
+            otel_span.add_event(event["name"], event.get("attributes"), event.get("timestamp"))
 
     ctx = otel_span.get_span_context()
     otel_spans[ctx.span_id] = otel_span
