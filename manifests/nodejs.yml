@@ -286,14 +286,14 @@ tests/:
         test_parameter_value.py:
           TestParameterValue:
             '*': *ref_3_19_0
-            #express5: *ref_5_29_0
+            express5: *ref_5_29_0
             nextjs: missing_feature
         test_path.py:
           TestPath: missing_feature
         test_path_parameter.py:
           TestPathParameter:
             '*': *ref_4_4_0
-            #express5: *ref_5_29_0
+            express5: *ref_5_29_0
             nextjs: missing_feature
         test_uri.py:
           TestURI: missing_feature
@@ -432,7 +432,7 @@ tests/:
         Test_Headers: v2.0.0
         Test_PathParams:
           '*': v2.0.0
-          #express5: *ref_5_29_0
+          express5: *ref_5_29_0
           nextjs: missing_feature
         Test_ResponseStatus: v2.0.0
         Test_UrlQuery:
@@ -509,11 +509,11 @@ tests/:
       Test_Blocking_request_method: *ref_3_19_0
       Test_Blocking_request_path_params:
         '*': *ref_5_24_0
-        #express5: *ref_5_29_0
+        express5: *ref_5_29_0
         nextjs: missing_feature
       Test_Blocking_request_query:
         '*': *ref_3_19_0
-        #express5: *ref_5_29_0
+        express5: *ref_5_29_0
         nextjs: missing_feature
       Test_Blocking_request_uri: *ref_3_19_0
       Test_Blocking_response_headers: *ref_5_17_0
@@ -523,7 +523,7 @@ tests/:
         nextjs: missing_feature
       Test_Suspicious_Request_Blocking:
         '*': *ref_5_24_0
-        #express5: *ref_5_29_0 # test uses querystring and path params
+        express5: *ref_5_29_0 # test uses querystring and path params
         nextjs: missing_feature
     test_client_ip.py:
       Test_StandardTagsClientIp: *ref_3_6_0
@@ -572,7 +572,7 @@ tests/:
     test_request_blocking.py:
       Test_AppSecRequestBlocking:
         '*': *ref_3_19_0
-        #express5: *ref_5_29_0 # test uses querystring
+        express5: *ref_5_29_0 # test uses querystring
         nextjs: missing_feature (can not block by query param in nextjs yet)
     test_runtime_activation.py:
       Test_RuntimeActivation: *ref_3_9_0
