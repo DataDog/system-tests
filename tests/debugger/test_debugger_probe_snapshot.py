@@ -129,7 +129,6 @@ class Test_Debugger_Mix_Log_Probe(base._Base_Debugger_Test):
         interfaces.agent.wait_for(self.wait_for_all_probes_installed, timeout=30)
         self.weblog_responses = [weblog.get("/debugger/mix/asd/1")]
 
-    @bug(library="python", reason="DEBUG-2710")
     def test_mix_probe(self):
         self.assert_all_states_not_error()
         self.assert_all_probes_are_installed()
