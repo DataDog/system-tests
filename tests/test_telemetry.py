@@ -643,7 +643,7 @@ class Test_TelemetryV2:
 
         lang_configs = {}
         for lang in ["dotnet", "go", "jvm", "nodejs", "php", "python", "ruby"]:
-            lang_configs[lang] = load_telemetry_json(lang + "config_rules")
+            lang_configs[lang] = load_telemetry_json(lang + "_config_rules")
 
         for data in interfaces.library.get_telemetry_data(flatten_message_batches=True):
             if not is_v2_payload(data):
