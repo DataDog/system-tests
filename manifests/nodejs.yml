@@ -292,6 +292,7 @@ tests/:
         test_path_parameter.py:
           TestPathParameter:
             '*': *ref_4_4_0
+            express5: *ref_5_29_0
             nextjs: missing_feature
         test_uri.py:
           TestURI: missing_feature
