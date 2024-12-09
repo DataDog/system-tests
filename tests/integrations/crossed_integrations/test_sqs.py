@@ -2,10 +2,8 @@ from __future__ import annotations
 import json
 
 from utils.buddies import python_buddy, java_buddy
-from utils import interfaces, scenarios, weblog, missing_feature, features, context, irrelevant
+from utils import interfaces, scenarios, weblog, missing_feature, features, context
 from utils.tools import logger
-
-from tests.integrations.utils import delete_sqs_queue
 
 
 class _Test_SQS:
@@ -22,7 +20,12 @@ class _Test_SQS:
         logger.debug(f"Trying to find traces with span kind: {span_kind} and queue: {queue} in {interface}")
         manual_span_found = False
 
+        traces = []
         for data, trace in interface.get_traces():
+            traces.append(trace)
+
+        # reverse the list of traces to get the last trace (since we may have had several AWS consume calls to get our desired message)
+        for trace in reversed(traces):
             # we iterate the trace backwards to deal with the case of JS "aws.response" callback spans, which are similar for this test and test_sns_to_sqs.
             # Instead, we look for the custom span created after the "aws.response" span
             for span in reversed(trace):
@@ -53,7 +56,6 @@ class _Test_SQS:
 
                 if operation.lower() != span["meta"].get("aws.operation", "").lower():
                     continue
-
                 elif operation.lower() == "receivemessage" and span["meta"].get("language", "") == "javascript":
                     # for nodejs we propagate from aws.response span which does not have the queue included on the span
                     if span["resource"] != "aws.response":
@@ -91,22 +93,17 @@ class _Test_SQS:
         send request A to weblog : this request will produce a sqs message
         send request B to library buddy, this request will consume sqs message
         """
-        try:
-            message = (
-                "[crossed_integrations/sqs.py][SQS] Hello from SQS "
-                f"[{context.library.library} weblog->{self.buddy_interface.name}] test produce: {self.unique_id}"
-            )
+        message = (
+            "[crossed_integrations/sqs.py][SQS] Hello from SQS "
+            f"[{context.library.library} weblog->{self.buddy_interface.name}] test produce: {self.unique_id}"
+        )
 
-            self.production_response = weblog.get(
-                "/sqs/produce", params={"queue": self.WEBLOG_TO_BUDDY_QUEUE, "message": message}, timeout=60
-            )
-            self.consume_response = self.buddy.get(
-                "/sqs/consume",
-                params={"queue": self.WEBLOG_TO_BUDDY_QUEUE, "timeout": 60, "message": message},
-                timeout=61,
-            )
-        finally:
-            delete_sqs_queue(self.WEBLOG_TO_BUDDY_QUEUE)
+        self.production_response = weblog.get(
+            "/sqs/produce", params={"queue": self.WEBLOG_TO_BUDDY_QUEUE, "message": message}, timeout=60
+        )
+        self.consume_response = self.buddy.get(
+            "/sqs/consume", params={"queue": self.WEBLOG_TO_BUDDY_QUEUE, "timeout": 60, "message": message}, timeout=61,
+        )
 
     def test_produce(self):
         """Check that a message produced to sqs is correctly ingested by a Datadog tracer"""
@@ -158,22 +155,17 @@ class _Test_SQS:
         request A: GET /library_buddy/produce_sqs_message
         request B: GET /weblog/consume_sqs_message
         """
-        try:
-            message = (
-                "[crossed_integrations/test_sqs.py][SQS] Hello from SQS "
-                f"[{self.buddy_interface.name}->{context.library.library} weblog] test consume: {self.unique_id}"
-            )
+        message = (
+            "[crossed_integrations/test_sqs.py][SQS] Hello from SQS "
+            f"[{self.buddy_interface.name}->{context.library.library} weblog] test consume: {self.unique_id}"
+        )
 
-            self.production_response = self.buddy.get(
-                "/sqs/produce", params={"queue": self.BUDDY_TO_WEBLOG_QUEUE, "message": message}, timeout=60
-            )
-            self.consume_response = weblog.get(
-                "/sqs/consume",
-                params={"queue": self.BUDDY_TO_WEBLOG_QUEUE, "timeout": 60, "message": message},
-                timeout=61,
-            )
-        finally:
-            delete_sqs_queue(self.BUDDY_TO_WEBLOG_QUEUE)
+        self.production_response = self.buddy.get(
+            "/sqs/produce", params={"queue": self.BUDDY_TO_WEBLOG_QUEUE, "message": message}, timeout=60
+        )
+        self.consume_response = weblog.get(
+            "/sqs/consume", params={"queue": self.BUDDY_TO_WEBLOG_QUEUE, "timeout": 60, "message": message}, timeout=61,
+        )
 
     def test_consume(self):
         """Check that a message by an app instrumented by a Datadog tracer is correctly ingested"""
@@ -234,21 +226,19 @@ class _Test_SQS:
         return producer_span, consumer_span
 
 
+# @scenarios.crossed_tracing_libraries
+# @features.aws_sqs_span_creationcontext_propagation_via_message_attributes_with_dd_trace
+# class Test_SQS_PROPAGATION_VIA_MESSAGE_ATTRIBUTES(_Test_SQS):
+#     buddy_interface = interfaces.python_buddy
+#     buddy = python_buddy
+
+#     unique_id = scenarios.crossed_tracing_libraries.unique_id
+
+#     WEBLOG_TO_BUDDY_QUEUE = f"SQS_propagation_via_msg_attributes_weblog_to_buddy"
+#     BUDDY_TO_WEBLOG_QUEUE = f"SQS_propagation_via_msg_attributes_buddy_to_weblog"
+
+
 @scenarios.crossed_tracing_libraries
-@irrelevant(True, reason="AWS Tests are not currently stable.")
-@features.aws_sqs_span_creationcontext_propagation_via_message_attributes_with_dd_trace
-class Test_SQS_PROPAGATION_VIA_MESSAGE_ATTRIBUTES(_Test_SQS):
-    buddy_interface = interfaces.python_buddy
-    buddy = python_buddy
-
-    unique_id = scenarios.crossed_tracing_libraries.unique_id
-
-    WEBLOG_TO_BUDDY_QUEUE = f"SQS_propagation_via_msg_attributes_weblog_to_buddy_{unique_id}"
-    BUDDY_TO_WEBLOG_QUEUE = f"SQS_propagation_via_msg_attributes_buddy_to_weblog_{unique_id}"
-
-
-@scenarios.crossed_tracing_libraries
-@irrelevant(True, reason="AWS Tests are not currently stable.")
 @features.aws_sqs_span_creationcontext_propagation_via_xray_header_with_dd_trace
 class Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS(_Test_SQS):
     buddy_interface = interfaces.java_buddy
@@ -256,8 +246,8 @@ class Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS(_Test_SQS):
 
     unique_id = scenarios.crossed_tracing_libraries.unique_id
 
-    WEBLOG_TO_BUDDY_QUEUE = f"SQS_propagation_via_xray_headers_weblog_to_buddy_{unique_id}"
-    BUDDY_TO_WEBLOG_QUEUE = f"SQS_propagation_via_xray_headers_buddy_to_weblog_{unique_id}"
+    WEBLOG_TO_BUDDY_QUEUE = f"SQS_propagation_via_xray_headers_weblog_to_buddy"
+    BUDDY_TO_WEBLOG_QUEUE = f"SQS_propagation_via_xray_headers_buddy_to_weblog"
 
     @missing_feature(
         library="nodejs",
