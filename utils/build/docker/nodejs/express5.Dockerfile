@@ -14,7 +14,7 @@ WORKDIR /usr/app
 ENV NODE_ENV=production
 
 RUN npm install
-RUN npm install "express@4.17.2" "apollo-server-express@3.13.0" "express-mongo-sanitize@2.2.0"
+RUN npm install "express@5.0.1"
 
 EXPOSE 7777
 
@@ -24,15 +24,12 @@ ENV PGDATABASE=system_tests_dbname
 ENV PGHOST=postgres
 ENV PGPORT=5433
 
-ENV DD_APM_RECEIVER_SOCKET=/var/run/datadog/apm.socket
-ENV UDS_WEBLOG=1
-
 ENV DD_DATA_STREAMS_ENABLED=true
 
 # docker startup
 COPY utils/build/docker/nodejs/app.sh app.sh
+RUN chmod +x app.sh
 RUN printf 'node app.js' >> app.sh
-COPY utils/build/docker/set-uds-transport.sh set-uds-transport.sh
 CMD ./app.sh
 
 COPY utils/build/docker/nodejs/install_ddtrace.sh binaries* /binaries/
