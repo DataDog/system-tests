@@ -34,8 +34,8 @@ def update_environ_with_local_env():
     try:
         with open(".env", "r", encoding="utf-8") as f:
             logger.debug("Found a .env file")
-            for line in f:
-                line = line.strip(" \t\n")
+            for raw_line in f:
+                line = raw_line.strip(" \t\n")
                 line = re.sub(r"(.*)#.$", r"\1", line)
                 line = re.sub(r"^(export +)(.*)$", r"\2", line)
                 if "=" in line:
@@ -64,7 +64,7 @@ def stdout(self, message, *args, **kws):
         else:
             # at this point, the logger may not yet be configured with the pytest terminal
             # so directly print in stdout
-            print(message)
+            print(message)  # noqa: T201
 
 
 logging.Logger.stdout = stdout

@@ -9,7 +9,7 @@ def exclude_telemetry_logs_filter(line):
 
 
 def command_injection_skipped(command_line, log_local_path):
-    """ From parsed log, search on the list of logged commands 
+    """ From parsed log, search on the list of logged commands
     if one command has been skipped from the instrumentation"""
     command, command_args = _parse_command(command_line)
     logger.debug(f"- Checking command: {command_args}")

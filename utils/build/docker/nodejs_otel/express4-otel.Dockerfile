@@ -32,6 +32,7 @@ ENV OTEL_BSP_SCHEDULE_DELAY=200
 RUN npm install --save @opentelemetry/api
 RUN npm install --save @opentelemetry/auto-instrumentations-node
 RUN npm install @opentelemetry/instrumentation-mysql2
+RUN npm install @opentelemetry/otlp-exporter-base
 RUN npm install --save opentelemetry-instrumentation-mssql
 
 # docker startup

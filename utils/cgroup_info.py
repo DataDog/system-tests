@@ -3,7 +3,6 @@
 # Copyright 2021 Datadog, Inc.
 
 import re
-from typing import Optional
 import attr
 
 

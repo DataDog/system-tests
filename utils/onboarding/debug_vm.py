@@ -5,8 +5,8 @@ from utils.tools import logger
 
 
 def extract_logs_to_file(logs_data, log_folder):
-    """ extract logs to different files. 
-    The logs_data is a string results of executing the command: 
+    """ extract logs to different files.
+    The logs_data is a string results of executing the command:
      find /var/log -type f -name "*.log"| xargs tail -n +1 """
 
     output_file = None
