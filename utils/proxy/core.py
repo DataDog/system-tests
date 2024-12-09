@@ -73,7 +73,7 @@ class _RequestLogger:
         self.span_meta_structs_disabled = os.environ.get("SYSTEM_TESTS_AGENT_SPAN_META_STRUCTS_DISABLED") == "True"
 
         span_events = os.environ.get("SYSTEM_TESTS_AGENT_SPAN_EVENTS")
-        self.span_events = False if span_events == "False" else True
+        self.span_events = span_events != "False"
 
         self.rc_api_command = None
 
