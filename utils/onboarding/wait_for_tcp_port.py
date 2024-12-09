@@ -1,5 +1,4 @@
-"""
-MIT License
+"""MIT License
 Copyright (c) 2017 Michał Bultrowicz
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -24,12 +23,15 @@ import time
 
 def wait_for_port(port: int, host: str = "localhost", timeout: float = 5.0):
     """Wait until a port starts accepting TCP connections.
+
     Args:
         port: Port number.
         host: Host address on which the port should exist.
         timeout: In seconds. How long to wait before raising errors.
+
     Raises:
         TimeoutError: The port isn't accepting connection after time specified in `timeout`.
+
     """
     start_time = time.perf_counter()
     while True:

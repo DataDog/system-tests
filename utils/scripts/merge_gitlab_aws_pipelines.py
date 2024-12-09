@@ -9,12 +9,12 @@ def main():
     parser.add_argument("--output", required=True, type=str, help="final gitlab pipeline")
 
     args = parser.parse_args()
-    with open(args.input, "r") as f:
+    with open(args.input) as f:
         pipeline = yaml.safe_load(f)
 
     if os.path.exists(args.output):
         # If final file exists, merge the stages and jobs
-        with open(args.output, "r") as f:
+        with open(args.output) as f:
             final_pipeline = yaml.safe_load(f)
             for stage in pipeline["stages"]:
                 if stage not in final_pipeline["stages"]:

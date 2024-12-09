@@ -77,24 +77,15 @@ ignore = [
     "ARG001",  # unused function argument
     "ARG002",  # unused method argument
     "ARG005",  # unused lambda argument
-    "B010",    # wat is zat?
     "BLE001",  # TBD
     "C901",    # code complexity, TBD
-    "COM819",
+    "COM819",  # no extra comma, TBD
     "D200",
-    "D210",    # docstring format
-    "D202",    # docstring format
-    "D208",    # docstring format
     "D205",    # docstring format
-    "D209",    # docstring format
     "D401",    # docstring format
-    "D403",    # docstring format
     "D404",    # docstring format
     "D410",    # docstring format
-    "D411",    # docstring format
-    "D413",    # docstring format
-    "D212",    # docstring format
-    "D417",    # docstring format
+    "D417",    
     "E501",    # line too long
     "E722",    # TBD
     "E741",
@@ -110,7 +101,6 @@ ignore = [
     "PLR0915", # too many statements, may be replaced by a higher default value
     "PLR1714",
     "PLR2004",
-    "PLR5501",
     "PTH100",
     "PTH102",
     "PTH110",
@@ -131,7 +121,6 @@ ignore = [
     "SIM102",
     "SIM108",
     "SIM110",  # TBD
-    "SIM114",
     "SIM401",  # code quality, TBD
     "SLF001",
     "TRY002",
@@ -139,8 +128,6 @@ ignore = [
     "TRY201",
     "TRY300",
     "UP007",
-    "UP015",
-    "UP024",
     "UP038",   # we really want this? TBD
 
 
@@ -154,6 +141,7 @@ ignore = [
     "D104",   # Missing docstring in public package
     "D105",   # Missing docstring in magic method
     "D107",   # Missing docstring in `__init__`
+    "D202",   # blank line after docstring
     "D203",   # cause a warning  
     "D211",   # no-blank-line-before-class
     "D213",   # multi-line-summary-second-line

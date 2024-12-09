@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-""" This file contains base class used to validate interfaces """
+"""This file contains base class used to validate interfaces"""
 
 import json
 from os import listdir
@@ -46,7 +46,7 @@ class InterfaceValidator:
 
 
 class ProxyBasedInterfaceValidator(InterfaceValidator):
-    """ Interfaces based on proxy container """
+    """Interfaces based on proxy container"""
 
     def __init__(self, name):
         super().__init__(name)
@@ -75,7 +75,7 @@ class ProxyBasedInterfaceValidator(InterfaceValidator):
 
             logger.debug(f"Ingesting {src_path}")
 
-            with open(src_path, "r", encoding="utf-8") as f:
+            with open(src_path, encoding="utf-8") as f:
                 try:
                     data = json.load(f)
                 except json.decoder.JSONDecodeError:
@@ -95,7 +95,7 @@ class ProxyBasedInterfaceValidator(InterfaceValidator):
         time.sleep(timeout)
 
     def check_deserialization_errors(self):
-        """ Verify that all proxy deserialization are successful """
+        """Verify that all proxy deserialization are successful"""
 
         for data in self._data_list:
             filename = data["log_filename"]
@@ -113,7 +113,7 @@ class ProxyBasedInterfaceValidator(InterfaceValidator):
             file_path = join(self.log_folder, filename)
             if isfile(file_path):
 
-                with open(file_path, "r", encoding="utf-8") as f:
+                with open(file_path, encoding="utf-8") as f:
                     data = json.load(f)
 
                 self._append_data(data)
@@ -213,10 +213,9 @@ class ProxyBasedInterfaceValidator(InterfaceValidator):
         assert not has_error, f"Schema validation failed for {self.name}"
 
     def assert_request_header(self, path, header_name_pattern: str, header_value_pattern: str) -> None:
-        """
-            Assert that a header, and its value are present in all requests for a given path
-            header_name_pattern: a regular expression to match the header name (lower case)
-            header_value_pattern: a regular expression to match the header value
+        """Assert that a header, and its value are present in all requests for a given path
+        header_name_pattern: a regular expression to match the header name (lower case)
+        header_value_pattern: a regular expression to match the header value
         """
 
         data_found = False

@@ -139,7 +139,7 @@ class AWSPulumiProvider(VmProvider):
             )
 
     def _get_cached_amis(self, vms):
-        """ Get all the cached AMIs for the VMs """
+        """Get all the cached AMIs for the VMs"""
         names_filter_to_check = []
         cached_amis = []
         # Create search filter if vm is not marked as skip_cache or update_cache
@@ -168,7 +168,7 @@ class AWSPulumiProvider(VmProvider):
         return cached_amis
 
     def _configure_cached_amis(self, vms):
-        """ Configure the cached AMIs for the VMs """
+        """Configure the cached AMIs for the VMs"""
         before_time = time.time()
         cached_amis = self._get_cached_amis(vms)
         for vm in vms:
@@ -204,7 +204,7 @@ class AWSPulumiProvider(VmProvider):
         logger.info(f"Time cache for AMIs: {time.time() - before_time}")
 
     def _get_ec2_tags(self, vm):
-        """ Build the ec2 tags for the VM """
+        """Build the ec2 tags for the VM"""
         tags = {"Name": vm.name, "CI": "system-tests"}
 
         if os.getenv("CI_PROJECT_NAME") is not None:
@@ -220,8 +220,9 @@ class AWSPulumiProvider(VmProvider):
 
     @retry(delay=10, tries=30)
     def _check_running_instances(self):
-        """ Check the number of running instances in the AWS account
-       if there are more than 500 instances, we will wait until they are destroyed """
+        """Check the number of running instances in the AWS account
+       if there are more than 500 instances, we will wait until they are destroyed
+        """
 
         ec2_ids = self._print_running_instances()
         if len(ec2_ids) > 700:
@@ -229,7 +230,7 @@ class AWSPulumiProvider(VmProvider):
             raise Exception("Too many ec2 instances running")
 
     def _print_running_instances(self):
-        """ Print the instances created by system-tests and still running in the AWS account """
+        """Print the instances created by system-tests and still running in the AWS account"""
 
         instances = aws.ec2.get_instances(instance_tags={"CI": "system-tests",}, instance_state_names=["running"])
 
@@ -241,7 +242,7 @@ class AWSPulumiProvider(VmProvider):
         return instances.ids
 
     def _check_available_cached_amis(self):
-        """ Print the AMI Caches availables in the AWS account and created by system-tests """
+        """Print the AMI Caches availables in the AWS account and created by system-tests"""
         try:
             logger.info(f"AWS Listing available ami caches with system-tests tag")
             ami_existing = aws.ec2.get_ami_ids(
@@ -264,7 +265,7 @@ class AWSPulumiProvider(VmProvider):
 
 class AWSCommander(Commander):
     def create_cache(self, vm, server, last_task):
-        """ Create a cache : Create an AMI from the server current status."""
+        """Create a cache : Create an AMI from the server current status."""
         ami_name = vm.get_cache_name()
         # Ok. All third party software is installed, let's create the ami to reuse it in the future
         logger.stdout(f"Creating AMI with name [{ami_name}] from instance ")
@@ -448,7 +449,7 @@ class PulumiSSH:
 
 
 class DatadogEventSender:
-    """ Send events to Datadog ddev organization """
+    """Send events to Datadog ddev organization"""
 
     def __init__(self):
         self.ddev_api_key = os.getenv("DDEV_API_KEY")

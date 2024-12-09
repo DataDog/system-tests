@@ -20,7 +20,7 @@ def _ensure_cluster():
     k8s_kind_cluster.configure_networking(docker_in_docker="GITLAB_CI" in os.environ)
 
     kind_data = ""
-    with open("utils/k8s_lib_injection/resources/kind-config-template.yaml", "r") as file:
+    with open("utils/k8s_lib_injection/resources/kind-config-template.yaml") as file:
         kind_data = file.read()
 
     kind_data = kind_data.replace("$$AGENT_PORT$$", str(k8s_kind_cluster.agent_port))

@@ -6,8 +6,9 @@ from retry import retry
 
 
 def execute_command(command, timeout=None, logfile=None, subprocess_env=None):
-    """call shell-command and either return its output or kill it
-  if it doesn't normally exit within timeout seconds and return None"""
+    """Call shell-command and either return its output or kill it
+  if it doesn't normally exit within timeout seconds and return None
+    """
     applied_timeout = 90
     if timeout is not None:
         applied_timeout = timeout
@@ -57,7 +58,7 @@ def execute_command(command, timeout=None, logfile=None, subprocess_env=None):
 
 
 def _clean_secrets(data_to_clean):
-    """ Clean secrets from the output."""
+    """Clean secrets from the output."""
     if context.scenario.api_key and context.scenario.app_key:
         data_to_clean = data_to_clean.replace(context.scenario.api_key, "DD_API_KEY").replace(
             context.scenario.app_key, "DD_APP_KEY"
@@ -67,7 +68,7 @@ def _clean_secrets(data_to_clean):
 
 @retry(delay=1, tries=5)
 def execute_command_sync(command, k8s_kind_cluster, timeout=None, logfile=None):
-    """ Execute a command in the k8s cluster, but we use a lock to change the context of kubectl."""
+    """Execute a command in the k8s cluster, but we use a lock to change the context of kubectl."""
 
     with KubectlLock():
         execute_command(f"kubectl config use-context {k8s_kind_cluster.context_name}", logfile=logfile)
@@ -89,7 +90,7 @@ def helm_install_chart(k8s_kind_cluster, name, chart, set_dict={}, value_file=No
     # Copy and replace cluster name in the value file
     custom_value_file = None
     if value_file:
-        with open(value_file, "r") as file:
+        with open(value_file) as file:
             value_data = file.read()
 
         value_data = value_data.replace("$$CLUSTER_NAME$$", str(k8s_kind_cluster.cluster_name))
@@ -120,14 +121,14 @@ def helm_install_chart(k8s_kind_cluster, name, chart, set_dict={}, value_file=No
 
 
 def path_clusterrole(k8s_kind_cluster):
-    """ This is a hack until the patching permission is added in the official helm chart."""
+    """This is a hack until the patching permission is added in the official helm chart."""
     with KubectlLock():
         execute_command(f"kubectl config use-context {k8s_kind_cluster.context_name}")
         execute_command("sh utils/k8s_lib_injection/resources/operator/scripts/path_clusterrole.sh")
 
 
 def kubectl_apply(k8s_kind_cluster, file):
-    """ Apply template in a cluster."""
+    """Apply template in a cluster."""
     with KubectlLock():
         execute_command(f"kubectl config use-context {k8s_kind_cluster.context_name}")
         execute_command("kubectl apply -f " + file)

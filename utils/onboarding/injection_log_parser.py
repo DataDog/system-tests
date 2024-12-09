@@ -9,8 +9,9 @@ def exclude_telemetry_logs_filter(line):
 
 
 def command_injection_skipped(command_line, log_local_path):
-    """ From parsed log, search on the list of logged commands
-    if one command has been skipped from the instrumentation"""
+    """From parsed log, search on the list of logged commands
+    if one command has been skipped from the instrumentation
+    """
     command, command_args = _parse_command(command_line)
     logger.debug(f"- Checking command: {command_args}")
     for command_desc in _get_commands_from_log_file(log_local_path, exclude_telemetry_logs_filter):
@@ -61,7 +62,7 @@ def _parse_command(command):
 
 
 def _get_commands_from_log_file(log_local_path, line_filter):
-    """ From instrumentation log file, extract all commands parsed by dd-injection (the log level should be DEBUG)  """
+    """From instrumentation log file, extract all commands parsed by dd-injection (the log level should be DEBUG)"""
 
     store_as_command = False
     command_lines = []

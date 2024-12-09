@@ -77,7 +77,7 @@ class Scenario:
         Path(path).mkdir(parents=True, exist_ok=True)
 
     def __call__(self, test_object):
-        """handles @scenarios.scenario_name"""
+        """Handles @scenarios.scenario_name"""
 
         # Check that no scenario has been already declared
         for marker in getattr(test_object, "pytestmark", []):
@@ -117,7 +117,7 @@ class Scenario:
         self.configure(config)
 
     def pytest_sessionstart(self, session):
-        """called at the very begining of the process"""
+        """Called at the very begining of the process"""
 
         logger.terminal.write_sep("=", "test context", bold=True)
 
@@ -139,10 +139,10 @@ class Scenario:
         ]
 
     def post_setup(self):
-        """called after test setup"""
+        """Called after test setup"""
 
     def close_targets(self):
-        """called at the end of the process"""
+        """Called at the end of the process"""
 
     @property
     def host_log_folder(self):

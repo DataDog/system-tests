@@ -134,7 +134,7 @@ def pytest_configure(config):
 def pytest_sessionstart(session):
 
     # get the terminal to allow logging directly in stdout
-    setattr(logger, "terminal", session.config.pluginmanager.get_plugin("terminalreporter"))
+    logger.terminal = session.config.pluginmanager.get_plugin("terminalreporter")
 
     # if only collect tests, do not start the scenario
     if not session.config.option.collectonly:
@@ -162,11 +162,7 @@ def _collect_item_metadata(item):
 
         if skip_reason is not None:
             # if any irrelevant declaration exists, it is the one we need to expose
-            if skip_reason.startswith("irrelevant"):
-                result["details"] = skip_reason
-
-            # otherwise, we keep the first one we found
-            elif result["details"] is None:
+            if skip_reason.startswith("irrelevant") or result["details"] is None:
                 result["details"] = skip_reason
 
     if result["details"]:
@@ -255,7 +251,7 @@ def pytest_pycollect_makeitem(collector, name, obj):
 
 
 def pytest_collection_modifyitems(session, config, items: list[pytest.Item]):
-    """unselect items that are not included in the current scenario"""
+    """Unselect items that are not included in the current scenario"""
 
     logger.debug("pytest_collection_modifyitems")
 
