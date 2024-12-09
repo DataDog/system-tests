@@ -17,6 +17,7 @@ __all__ = [
     "context",
     "features",
     "flaky",
+    "incomplete_test_app",
     "interfaces",
     "irrelevant",
     "missing_feature",
