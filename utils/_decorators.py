@@ -113,6 +113,13 @@ def missing_feature(condition=None, library=None, weblog_variant=None, reason=No
     return partial(decorator, skip, force_skip, condition, "missing_feature", reason, _get_expected_failure_item)
 
 
+def incomplete_test_app(condition=None, library=None, weblog_variant=None, reason=None):
+    """Decorator, allow to mark a test function/class as not compatible with the tested application"""
+    skip = _should_skip(library=library, weblog_variant=weblog_variant, condition=condition)
+    noxfail = False
+    return partial(decorator, skip, noxfail, condition, "incomplete_test_app", reason, _get_expected_failure_item)
+
+
 def irrelevant(condition=None, library=None, weblog_variant=None, reason=None):
     """decorator, allow to mark a test function/class as not relevant"""
     skip = _should_skip(library=library, weblog_variant=weblog_variant, condition=condition)
@@ -136,13 +143,6 @@ def flaky(condition=None, library=None, weblog_variant=None, reason=None):
     skip = _should_skip(library=library, weblog_variant=weblog_variant, condition=condition)
     noxfail = True
     return partial(decorator, skip, noxfail, condition, "flaky", reason, _get_expected_failure_item)
-
-
-def incomplete_test_app(condition=None, library=None, weblog_variant=None, reason=None):
-    """Decorator, allow to mark a test function/class as not compatible with the tested application"""
-    skip = _should_skip(library=library, weblog_variant=weblog_variant, condition=condition)
-    noxfail = False
-    return partial(decorator, skip, noxfail, condition, "incomplete_test_app", reason, _get_expected_failure_item)
 
 
 def released(
