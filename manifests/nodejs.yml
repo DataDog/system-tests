@@ -122,19 +122,19 @@ tests/:
             nextjs: missing_feature
           TestHeaderInjectionExclusionAccessControlAllow:
             '*': *ref_5_26_0
-            #express5: *ref_5_29_0 # test uses querystring
+            express5: *ref_5_29_0 # test uses querystring
             nextjs: missing_feature
           TestHeaderInjectionExclusionContentEncoding:
             '*': *ref_5_26_0
-            #express5: *ref_5_29_0 # test uses querystring
+            express5: *ref_5_29_0 # test uses querystring
             nextjs: missing_feature
           TestHeaderInjectionExclusionPragma:
             '*': *ref_5_26_0
-            #express5: *ref_5_29_0 # test uses querystring
+            express5: *ref_5_29_0 # test uses querystring
             nextjs: missing_feature
           TestHeaderInjectionExclusionTransferEncoding:
             '*': *ref_5_26_0
-            #express5: *ref_5_29_0 # test uses querystring
+            express5: *ref_5_29_0 # test uses querystring
             nextjs: missing_feature
           TestHeaderInjection_StackTrace: missing_feature
         test_hsts_missing_header.py:
