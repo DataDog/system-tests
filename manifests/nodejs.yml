@@ -302,11 +302,11 @@ tests/:
       test_lfi.py:
         Test_Lfi_BodyJson:
           '*': *ref_5_24_0
-          #express5: *ref_5_29_0 # test uses blocking
+          express5: *ref_5_29_0 # test uses express blocking
           nextjs: missing_feature
         Test_Lfi_BodyUrlEncoded:
           '*': *ref_5_24_0
-          #express5: *ref_5_29_0 # test uses blocking
+          express5: *ref_5_29_0 # test uses express blocking
           nextjs: missing_feature
         Test_Lfi_BodyXml: missing_feature
         Test_Lfi_Capability: *ref_5_24_0
@@ -314,30 +314,30 @@ tests/:
         Test_Lfi_Optional_SpanTags: *ref_5_24_0
         Test_Lfi_RC_CustomAction:
           '*': *ref_5_24_0
-          #express5: *ref_5_29_0 should work
+          express5: *ref_5_29_0 # test uses express blocking
           nextjs: missing_feature
         Test_Lfi_Rules_Version: *ref_5_26_0
         Test_Lfi_StackTrace:
           '*': *ref_5_24_0
-          #express5: *ref_5_29_0 # test uses blocking
+          express5: *ref_5_29_0 # test uses express blocking
           nextjs: missing_feature
         Test_Lfi_Telemetry:
           '*': *ref_5_24_0
-          #express5: *ref_5_29_0 # test uses blocking
+          express5: *ref_5_29_0 # test uses express blocking
           nextjs: missing_feature
         Test_Lfi_UrlQuery:
           '*': *ref_5_24_0
-          #express5: *ref_5_29_0 # test uses blocking
+          express5: *ref_5_29_0 # test uses express blocking
           nextjs: missing_feature
         Test_Lfi_Waf_Version: *ref_5_25_0
       test_shi.py:
         Test_Shi_BodyJson:
           '*': *ref_5_25_0
-          #express5: *ref_5_29_0 # test uses blocking
+          express5: *ref_5_29_0 # test uses express blocking
           nextjs: missing_feature
         Test_Shi_BodyUrlEncoded:
           '*': *ref_5_25_0
-          #express5: *ref_5_29_0 # test uses blocking
+          express5: *ref_5_29_0 # test uses express blocking
           nextjs: missing_feature
         Test_Shi_BodyXml: missing_feature
         Test_Shi_Capability: *ref_5_25_0
@@ -346,26 +346,26 @@ tests/:
         Test_Shi_Rules_Version: *ref_5_24_0
         Test_Shi_StackTrace:
           '*': *ref_5_25_0
-          #express5: *ref_5_29_0 # test uses blocking
+          express5: *ref_5_29_0 # test uses express blocking
           nextjs: missing_feature
         Test_Shi_Telemetry:
           '*': *ref_5_25_0
-          #express5: *ref_5_29_0 # test uses blocking
+          express5: *ref_5_29_0 # test uses express blocking
           nextjs: missing_feature
         Test_Shi_Telemetry_Variant_Tag: missing_feature
         Test_Shi_UrlQuery:
           '*': *ref_5_25_0
-          #express5: *ref_5_29_0 # test uses blocking
+          express5: *ref_5_29_0 # test uses express blocking
           nextjs: missing_feature
         Test_Shi_Waf_Version: *ref_5_25_0
       test_sqli.py:
         Test_Sqli_BodyJson:
           '*': *ref_5_23_0
-          #express5: *ref_5_29_0 # test uses blocking
+          express5: *ref_5_29_0 # test uses express blocking
           nextjs: missing_feature
         Test_Sqli_BodyUrlEncoded:
           '*': *ref_5_23_0
-          #express5: *ref_5_29_0 # test uses blocking
+          express5: *ref_5_29_0 # test uses express blocking
           nextjs: missing_feature
         Test_Sqli_BodyXml: missing_feature
         Test_Sqli_Capability: *ref_5_23_0
@@ -374,15 +374,15 @@ tests/:
         Test_Sqli_Rules_Version: *ref_5_25_0
         Test_Sqli_StackTrace:
           '*': *ref_5_23_0
-          #express5: *ref_5_29_0 # test uses blocking
+          express5: *ref_5_29_0 # test uses express blocking
           nextjs: missing_feature
         Test_Sqli_Telemetry:
           '*': *ref_5_23_0
-          #express5: *ref_5_29_0 # test uses blocking
+          express5: *ref_5_29_0 # test uses express blocking
           nextjs: missing_feature
         Test_Sqli_UrlQuery:
           '*': *ref_5_23_0
-          #express5: *ref_5_29_0 # test uses blocking
+          express5: *ref_5_29_0 # test uses express blocking
           nextjs: missing_feature
         Test_Sqli_Waf_Version: *ref_5_25_0
       test_ssrf.py:
@@ -399,15 +399,15 @@ tests/:
         Test_Ssrf_Rules_Version: *ref_5_25_0
         Test_Ssrf_StackTrace:
           '*': *ref_5_20_0
-          #express5: *ref_5_29_0 # cannot block without express5 instrumentation
+          express5: *ref_5_29_0 # test uses express blocking
           nextjs: missing_feature
         Test_Ssrf_Telemetry:
           '*': *ref_5_22_0
-          #express5: *ref_5_29_0 # cannot block without express5 instrumentation
+          express5: *ref_5_29_0 # test uses express blocking
           nextjs: missing_feature
         Test_Ssrf_UrlQuery:
           '*': *ref_5_20_0
-          #express5: *ref_5_29_0 # cannot block without express5 instrumentation
+          express5: *ref_5_29_0 # test uses express blocking
           nextjs: missing_feature
         Test_Ssrf_Waf_Version: *ref_5_25_0
     waf/:
