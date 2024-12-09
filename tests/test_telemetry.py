@@ -620,7 +620,7 @@ class Test_TelemetryV2:
         Once dd-go is updated, you can copy over the files to this repo and merge them in as part of your changes
         """
 
-        def get_keys_in_dot_notation(obj, parent_key=''):
+        def get_keys_in_dot_notation(obj, parent_key=""):
             keys = []
 
             for key, value in obj.items():
@@ -632,7 +632,6 @@ class Test_TelemetryV2:
                     keys.append(full_key)
 
             return keys
-
 
         def load_telemetry_json(filename):
             with open(f"tests/telemetry-intake/static/{filename}.json", encoding="utf-8") as fh:
@@ -647,30 +646,29 @@ class Test_TelemetryV2:
             lang_configs[lang] = load_telemetry_json(lang + "config_rules")
 
         for data in interfaces.library.get_telemetry_data(flatten_message_batches=True):
-                if not is_v2_payload(data):
-                    continue
-                if get_request_type(data) == "app-started":
-                    language_name = data["request"]["content"]["application"]["language_name"]
-                    lang_config = lang_configs[language_name]
+            if not is_v2_payload(data):
+                continue
+            if get_request_type(data) == "app-started":
+                language_name = data["request"]["content"]["application"]["language_name"]
+                lang_config = lang_configs[language_name]
 
-                    allowed_config_keys = config_norm_rules.keys() + lang_config["normalization_rules"].keys()
-                    blocked_config_key_prefixes = config_prefix_block_list + lang_config["prefix_block_list"]
-                    config_aggregation_prefixes = config_aggregation_list.keys() + lang_config["reduce_rules"].keys()
+                allowed_config_keys = config_norm_rules.keys() + lang_config["normalization_rules"].keys()
+                blocked_config_key_prefixes = config_prefix_block_list + lang_config["prefix_block_list"]
+                config_aggregation_prefixes = config_aggregation_list.keys() + lang_config["reduce_rules"].keys()
 
-                    def find_missing_keys(key):
-                        is_allowed = key in allowed_config_keys
-                        is_blocked = any(key.startswith(prefix) for prefix in blocked_config_key_prefixes)
-                        is_reduced = any(key.startswith(prefix) for prefix in config_aggregation_prefixes)
+                def find_missing_keys(key):
+                    is_allowed = key in allowed_config_keys
+                    is_blocked = any(key.startswith(prefix) for prefix in blocked_config_key_prefixes)
+                    is_reduced = any(key.startswith(prefix) for prefix in config_aggregation_prefixes)
 
-                        return not is_allowed and not is_blocked and not is_reduced
+                    return not is_allowed and not is_blocked and not is_reduced
 
-                    configuration = data["request"]["content"]["payload"]["configuration"]
-                    library_config_keys = sorted(get_keys_in_dot_notation(configuration))
+                configuration = data["request"]["content"]["payload"]["configuration"]
+                library_config_keys = sorted(get_keys_in_dot_notation(configuration))
 
-                    missing_config_keys = filter(lambda key: find_missing_keys(key), library_config_keys)
+                missing_config_keys = filter(lambda key: find_missing_keys(key), library_config_keys)
 
-                    assert(missing_config_keys is [], "Found unexpected config keys")
-
+                assert (missing_config_keys is [], "Found unexpected config keys")
 
     @missing_feature(library="cpp")
     @missing_feature(context.library < "ruby@1.22.0", reason="dd-client-library-version missing")
