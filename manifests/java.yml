@@ -1438,6 +1438,7 @@ tests/:
       TestAdmisionControllerProfiling: v1.39.0
   parametric/:
     test_config_consistency.py:
+      Test_Config_Dogstatsd: missing_feature (default hostname is inconsistent)
       Test_Config_RateLimit: v1.41.1
       Test_Config_TraceAgentURL: v1.41.1
       Test_Config_TraceEnabled: v1.39.0
