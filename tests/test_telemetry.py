@@ -620,19 +620,6 @@ class Test_TelemetryV2:
         Once dd-go is updated, you can copy over the files to this repo and merge them in as part of your changes
         """
 
-        def get_keys_in_dot_notation(obj, parent_key=""):
-            keys = []
-
-            for key, value in obj.items():
-                full_key = f"{parent_key}.{key}" if parent_key else str(key)
-
-                if isinstance(value, dict):
-                    keys.extend(get_keys_in_dot_notation(value, full_key))
-                else:
-                    keys.append(full_key)
-
-            return keys
-
         def load_telemetry_json(filename):
             with open(f"tests/telemetry_intake/static/{filename}.json", encoding="utf-8") as fh:
                 return json.load(fh)
@@ -667,7 +654,7 @@ class Test_TelemetryV2:
                     return not is_allowed and not is_blocked and not is_reduced
 
                 configuration = data["request"]["content"]["payload"]["configuration"]
-                library_config_keys = sorted(get_keys_in_dot_notation(configuration))
+                library_config_keys = sorted([config["name"] for config in configuration if "name" in config])
 
                 missing_config_keys = filter(lambda key: find_missing_keys(key), library_config_keys)
 
