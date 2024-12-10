@@ -25,6 +25,7 @@ sudo docker volume ls
 
 echo "**************** Pulling docker images ****************"
 sudo docker pull 669783387624.dkr.ecr.us-east-1.amazonaws.com/dockerhub/library/php:5.6-cli
+sudo docker pull 669783387624.dkr.ecr.us-east-1.amazonaws.com/dockerhub/library/alpine:3.21
 sudo docker pull 669783387624.dkr.ecr.us-east-1.amazonaws.com/dockerhub/library/nginx:1.27.3
 sudo docker pull 669783387624.dkr.ecr.us-east-1.amazonaws.com/dockerhub/paketobuildpacks/builder-jammy-java-tiny:0.0.11
 sudo docker pull 669783387624.dkr.ecr.us-east-1.amazonaws.com/dockerhub/paketobuildpacks/run-jammy-tiny:0.2.55
