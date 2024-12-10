@@ -126,6 +126,28 @@ def missing_feature(condition: bool = None, library=None, weblog_variant=None, r
     return decorator
 
 
+def incomplete_test_app(
+    condition: bool = None, library=None, weblog_variant=None, reason=None, force_skip: bool = False
+):
+    """decorator, marks tests that rely on endpoints in test apps that are incomplete or missing"""
+
+    skip = _should_skip(library=library, weblog_variant=weblog_variant, condition=condition)
+
+    def decorator(function_or_class):
+
+        if inspect.isclass(function_or_class):
+            assert condition is not None or (library is None and weblog_variant is None), _MANIFEST_ERROR_MESSAGE
+
+        if not skip:
+            return function_or_class
+
+        full_reason = "incomplete_test_app" if reason is None else f"incomplete_test_app ({reason})"
+
+        return _get_expected_failure_item(function_or_class, full_reason, force_skip=force_skip)
+
+    return decorator
+
+
 def irrelevant(condition=None, library=None, weblog_variant=None, reason=None):
     """decorator, allow to mark a test function/class as not relevant"""
 
@@ -229,7 +251,7 @@ def released(
 
             assert declaration != "?"  # ensure there is no more ? in version declaration
 
-            if declaration.startswith(("missing_feature", "bug", "flaky", "irrelevant")):
+            if declaration.startswith(("missing_feature", "bug", "flaky", "irrelevant", "incomplete_test_app")):
                 return declaration
 
             # declaration must be now a version number

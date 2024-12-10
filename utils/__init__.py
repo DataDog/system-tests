@@ -6,7 +6,7 @@
 from utils._weblog import weblog
 from utils._context.core import context
 from utils._context._scenarios import scenarios
-from utils._decorators import bug, irrelevant, missing_feature, rfc, flaky
+from utils._decorators import bug, irrelevant, missing_feature, rfc, flaky, incomplete_test_app
 from utils import interfaces, _remote_config as remote_config
 from utils.interfaces._core import ValidationError
 from utils._features import features
@@ -17,6 +17,7 @@ __all__ = [
     "context",
     "features",
     "flaky",
+    "incomplete_test_app",
     "interfaces",
     "irrelevant",
     "missing_feature",
