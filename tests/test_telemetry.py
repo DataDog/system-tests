@@ -650,11 +650,12 @@ class Test_TelemetryV2:
                 continue
             if get_request_type(data) == "app-started":
                 language_name = data["request"]["content"]["application"]["language_name"]
-                lang_config = lang_configs[language_name]
 
-                allowed_config_keys = config_norm_rules.keys() + lang_config["normalization_rules"].keys()
-                blocked_config_key_prefixes = config_prefix_block_list + lang_config["prefix_block_list"]
-                config_aggregation_prefixes = config_aggregation_list.keys() + lang_config["reduce_rules"].keys()
+                lang_config = lang_configs.get(language_name) or {}
+
+                allowed_config_keys = [*config_norm_rules] + [*(lang_config.get("normalization_rules") or {})]
+                blocked_config_key_prefixes = [*config_prefix_block_list] + [*(lang_config.get("prefix_block_list") or {})]
+                config_aggregation_prefixes = [*config_aggregation_list] + [*(lang_config.get("reduce_rules") or {})]
 
                 def find_missing_keys(key):
                     is_allowed = key in allowed_config_keys
