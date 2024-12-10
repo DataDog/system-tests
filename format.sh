@@ -36,13 +36,6 @@ fi
 
 source venv/bin/activate
 
-echo "Running ruff formatter..."
-if [ "$COMMAND" == "fix" ]; then
-  ruff format
-else
-  ruff format --check --diff
-fi
-
 echo "Running mypy type checks..."
 if ! mypy --config pyproject.toml; then
   echo "Mypy type checks failed. Please fix the errors above. 💥 💔 💥"
@@ -53,6 +46,13 @@ echo "Running ruff checks..."
 if ! which ruff > /dev/null; then
   echo "ruff is not installed, installing it (ETA 5s)"
   ./build.sh -i runner > /dev/null
+fi
+
+echo "Running ruff formatter..."
+if [ "$COMMAND" == "fix" ]; then
+  ruff format
+else
+  ruff format --check --diff
 fi
 
 if [ "$COMMAND" == "fix" ]; then
