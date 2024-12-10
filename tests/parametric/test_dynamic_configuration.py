@@ -199,6 +199,7 @@ def reverse_case(s):
 @rfc("https://docs.google.com/document/d/1SVD0zbbAAXIsobbvvfAEXipEUO99R9RMsosftfe9jx0")
 @scenarios.parametric
 @features.dynamic_configuration
+@features.adaptive_sampling
 class TestDynamicConfigV1:
     """Tests covering the v1 release of the dynamic configuration feature.
 
@@ -351,6 +352,7 @@ class TestDynamicConfigV1:
 @rfc("https://docs.google.com/document/d/1SVD0zbbAAXIsobbvvfAEXipEUO99R9RMsosftfe9jx0")
 @scenarios.parametric
 @features.dynamic_configuration
+@features.adaptive_sampling
 class TestDynamicConfigV1_ServiceTargets:
     """Tests covering the Service Target matching of the dynamic configuration feature.
 
@@ -431,6 +433,7 @@ class TestDynamicConfigV1_ServiceTargets:
 @rfc("https://docs.google.com/document/d/1V4ZBsTsRPv8pAVG5WCmONvl33Hy3gWdsulkYsE4UZgU/edit")
 @scenarios.parametric
 @features.dynamic_configuration
+@features.adaptive_sampling
 class TestDynamicConfigV2:
     @parametrize(
         "library_env", [{**DEFAULT_ENVVARS}, {**DEFAULT_ENVVARS, "DD_TAGS": "key1:val1,key2:val2"},],
@@ -491,6 +494,7 @@ class TestDynamicConfigV2:
 
 @scenarios.parametric
 @features.dynamic_configuration
+@features.adaptive_sampling
 class TestDynamicConfigSamplingRules:
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
     def test_capability_tracing_sample_rules(self, library_env, test_agent, test_library):
