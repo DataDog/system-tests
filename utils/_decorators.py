@@ -53,7 +53,7 @@ def _ensure_jira_ticket_as_reason(item, reason: str):
 def _get_expected_failure_item(item, skip_reason, skip_test):
     if inspect.isfunction(item) or inspect.isclass(item):
         if not hasattr(item, "pytestmark"):
-            setattr(item, "pytestmark", [])
+            item.pytestmark = []
 
         if skip_test:
             item.pytestmark.append(pytest.mark.skip(reason=skip_reason))
@@ -128,8 +128,7 @@ def irrelevant(condition=None, library=None, weblog_variant=None, reason=None):
 
 
 def bug(condition=None, library=None, weblog_variant=None, reason=None, force_skip: bool = False):
-    """
-    Decorator, allow to mark a test function/class as an known bug.
+    """Decorator, allow to mark a test function/class as an known bug.
     The test is executed, and if it passes, and warning is reported
     """
     expected_to_fail = _expected_to_fail(library=library, weblog_variant=weblog_variant, condition=condition)
@@ -189,9 +188,8 @@ def released(
             if declaration.startswith("v"):
                 if tested_version >= declaration:
                     return None
-            else:
-                if semver.Version(str(tested_version)) in CustomSpec(declaration):
-                    return None
+            elif semver.Version(str(tested_version)) in CustomSpec(declaration):
+                return None
 
             return (
                 f"missing_feature for {component_name}: "
@@ -245,7 +243,7 @@ def rfc(link):
 
 
 def _resolve_declaration(released_declaration):
-    """ if the declaration is a dict, resolve it regarding the tested weblog """
+    """If the declaration is a dict, resolve it regarding the tested weblog"""
     if isinstance(released_declaration, str):
         return released_declaration
 

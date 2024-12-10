@@ -49,7 +49,7 @@ class _LogsInterfaceValidator(InterfaceValidator):
             logger.info(f"For {self}, reading {filename}")
             log_count = 0
             try:
-                with open(filename, "r", encoding="utf-8") as f:
+                with open(filename, encoding="utf-8") as f:
                     buffer = []
                     for raw_line in f:
                         line = raw_line

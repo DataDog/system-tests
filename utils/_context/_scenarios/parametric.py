@@ -25,7 +25,7 @@ from .core import Scenario, ScenarioGroup
 
 
 def _fail(message):
-    """ Used to mak a test as failed """
+    """Used to mak a test as failed"""
     logger.error(message)
     raise Failed(message, pytrace=False) from None
 
@@ -104,7 +104,7 @@ class ParametricScenario(Scenario):
         def deserialize(self):
             result = {}
             for ctx_filename in glob.glob(f"{self.outer_inst.host_log_folder}/*_context.json"):
-                with open(ctx_filename, "r") as f:
+                with open(ctx_filename) as f:
                     fileContent = f.read()
                     # Remove last carriage return and the last comma. Wrap into json array.
                     all_params = json.loads(f"[{fileContent[:-2]}]")
@@ -185,7 +185,7 @@ class ParametricScenario(Scenario):
         _get_client().images.pull(self.TEST_AGENT_IMAGE)
 
     def _clean_containers(self):
-        """ some containers may still exists from previous unfinished sessions """
+        """Some containers may still exists from previous unfinished sessions"""
 
         for container in _get_client().containers.list(all=True):
             if "test-client" in container.name or "test-agent" in container.name or "test-library" in container.name:
@@ -194,7 +194,7 @@ class ParametricScenario(Scenario):
                 container.remove(force=True)
 
     def _clean_networks(self):
-        """ some network may still exists from previous unfinished sessions """
+        """Some network may still exists from previous unfinished sessions"""
         logger.info("Removing unused network")
         _get_client().networks.prune()
         logger.info("Removing unused network done")
@@ -274,7 +274,7 @@ class ParametricScenario(Scenario):
 
     @staticmethod
     def get_host_port(worker_id: str, base_port: int) -> int:
-        """ deterministic port allocation for each worker """
+        """Deterministic port allocation for each worker"""
 
         if worker_id == "master":  # xdist disabled
             return base_port

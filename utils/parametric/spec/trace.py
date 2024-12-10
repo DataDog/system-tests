@@ -1,5 +1,4 @@
-"""
-Tracing constants, data structures and helper methods.
+"""Tracing constants, data structures and helper methods.
 
 These are used to specify, test and work with trace data and protocols.
 """

@@ -14,7 +14,7 @@ def main():
     for x in os.listdir("."):
         if x.startswith("logs") and os.path.isfile(f"{x}/report.json"):
             result[x] = collections.defaultdict(int)
-            with open(f"{x}/report.json", "r") as f:
+            with open(f"{x}/report.json") as f:
                 data = json.load(f)
             for test in data["tests"]:
                 outcome = "skipped" if test["metadata"]["details"] is not None else test["outcome"]
