@@ -72,10 +72,7 @@ tests/:
         Test_Scanners: *ref_4_21_0
         Test_Schema_Request_Cookies: *ref_4_21_0
         Test_Schema_Request_FormUrlEncoded_Body:
-          express4: *ref_4_21_0
-          express4-typescript: *ref_4_21_0
-          express5: *ref_4_21_0
-          #express5: *ref_5_29_0
+          '*': *ref_4_21_0
           nextjs: *ref_5_3_0
         Test_Schema_Request_Headers: *ref_4_21_0
         Test_Schema_Request_Json_Body: *ref_4_21_0
@@ -118,7 +115,6 @@ tests/:
         test_header_injection.py:
           TestHeaderInjection:
             '*': *ref_4_21_0
-            #express5: *ref_5_29_0 # test uses querystring
             nextjs: missing_feature
           TestHeaderInjectionExclusionAccessControlAllow:
             '*': *ref_5_26_0
