@@ -50,12 +50,12 @@ def _ensure_jira_ticket_as_reason(item, reason: str):
         pytest.exit(f"Please set a jira ticket for {nodeid}, instead of reason: {reason}", 1)
 
 
-def _get_expected_failure_item(item, skip_reason, skip_test):
+def _get_expected_failure_item(item, skip_reason, force_skip):
     if inspect.isfunction(item) or inspect.isclass(item):
         if not hasattr(item, "pytestmark"):
             item.pytestmark = []
 
-        if skip_test:
+        if force_skip:
             item.pytestmark.append(pytest.mark.skip(reason=skip_reason))
         else:
             item.pytestmark.append(pytest.mark.xfail(reason=skip_reason))
@@ -94,7 +94,7 @@ def _expected_to_fail(condition=None, library=None, weblog_variant=None):
     return True
 
 
-def decorator(expected_to_fail, skip_test, condition, decorator_type, reason, function_or_class):
+def decorator(expected_to_fail, force_skip, condition, decorator_type, reason, function_or_class):
     if inspect.isclass(function_or_class):
         assert condition is not None, _MANIFEST_ERROR_MESSAGE
 
@@ -104,7 +104,7 @@ def decorator(expected_to_fail, skip_test, condition, decorator_type, reason, fu
     full_reason = decorator_type if reason is None else f"{decorator_type} ({reason})"
     if not expected_to_fail:
         return function_or_class
-    return _get_expected_failure_item(function_or_class, full_reason, skip_test)
+    return _get_expected_failure_item(function_or_class, full_reason, force_skip)
 
 
 def missing_feature(condition=None, library=None, weblog_variant=None, reason=None, force_skip: bool = False):
@@ -116,15 +116,15 @@ def missing_feature(condition=None, library=None, weblog_variant=None, reason=No
 def incomplete_test_app(condition=None, library=None, weblog_variant=None, reason=None):
     """Decorator, allow to mark a test function/class as not compatible with the tested application"""
     expected_to_fail = _expected_to_fail(library=library, weblog_variant=weblog_variant, condition=condition)
-    skip_test = False
-    return partial(decorator, expected_to_fail, skip_test, condition, "incomplete_test_app", reason)
+    force_skip = False
+    return partial(decorator, expected_to_fail, force_skip, condition, "incomplete_test_app", reason)
 
 
 def irrelevant(condition=None, library=None, weblog_variant=None, reason=None):
     """decorator, allow to mark a test function/class as not relevant"""
     expected_to_fail = _expected_to_fail(library=library, weblog_variant=weblog_variant, condition=condition)
-    skip_test = True
-    return partial(decorator, expected_to_fail, skip_test, condition, "irrelevant", reason)
+    force_skip = True
+    return partial(decorator, expected_to_fail, force_skip, condition, "irrelevant", reason)
 
 
 def bug(condition=None, library=None, weblog_variant=None, reason=None, force_skip: bool = False):
@@ -138,8 +138,8 @@ def bug(condition=None, library=None, weblog_variant=None, reason=None, force_sk
 def flaky(condition=None, library=None, weblog_variant=None, reason=None):
     """Decorator, allow to mark a test function/class as a known bug, and skip it"""
     expected_to_fail = _expected_to_fail(library=library, weblog_variant=weblog_variant, condition=condition)
-    skip_test = True
-    return partial(decorator, expected_to_fail, skip_test, condition, "flaky", reason)
+    force_skip = True
+    return partial(decorator, expected_to_fail, force_skip, condition, "flaky", reason)
 
 
 def released(
@@ -219,16 +219,16 @@ def released(
             for reason in skip_reasons:
                 if reason.startswith("flaky"):
                     _ensure_jira_ticket_as_reason(test_class, reason[7:-1])
-                    return _get_expected_failure_item(test_class, reason, skip_test=True)
+                    return _get_expected_failure_item(test_class, reason, force_skip=True)
 
                 if reason.startswith("irrelevant"):
-                    return _get_expected_failure_item(test_class, reason, skip_test=True)
+                    return _get_expected_failure_item(test_class, reason, force_skip=True)
 
                 # Otherwise, it's either bug, or missing_feature. Take the first one
                 if reason.startswith("bug"):
                     _ensure_jira_ticket_as_reason(test_class, reason[5:-1])
 
-                return _get_expected_failure_item(test_class, reason, skip_test=False)
+                return _get_expected_failure_item(test_class, reason, force_skip=False)
 
         return test_class
 
