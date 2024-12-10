@@ -71,6 +71,15 @@ class _Base_Debugger_Test:
     rc_state = None
     weblog_responses = []
 
+    def initialize_weblog_remote_config(self):
+        if self.get_tracer()["language"] == "ruby":
+            # Ruby tracer initializes remote configuration client from
+            # middleware that is only invoked during request processing.
+            # Therefore, we need to issue a request to the application for
+            # remote config to start.
+            response = weblog.get("/debugger/init")
+            assert response.status_code == 200
+
     ###### set #####
     def set_probes(self, probes):
         def _enrich_probes(probes):

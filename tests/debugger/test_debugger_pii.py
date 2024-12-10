@@ -116,6 +116,8 @@ REDACTED_TYPES = ["customPii"]
 class Test_Debugger_PII_Redaction(debugger._Base_Debugger_Test):
     ############ setup ############
     def _setup(self, line_probe=False):
+        self.initialize_weblog_remote_config()
+
         if line_probe:
             probes = debugger.read_probes("pii_line")
         else:

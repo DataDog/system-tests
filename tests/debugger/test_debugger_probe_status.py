@@ -14,6 +14,8 @@ class Test_Debugger_Probe_Statuses(debugger._Base_Debugger_Test):
 
     ############ setup ############
     def _setup(self, probes_name: str):
+        self.initialize_weblog_remote_config()
+
         ### prepare probes
         probes = debugger.read_probes(probes_name)
         self.set_probes(probes)
