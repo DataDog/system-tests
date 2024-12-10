@@ -25,7 +25,7 @@ update_environ_with_local_env()
 class scenarios:
     @staticmethod
     def all_endtoend_scenarios(test_object):
-        """particular use case where a klass applies on all scenarios"""
+        """Particular use case where a klass applies on all scenarios"""
 
         # Check that no scenario has been already declared
         for marker in getattr(test_object, "pytestmark", []):
@@ -497,8 +497,6 @@ class scenarios:
             "DD_TRACE_HTTP_SERVER_ERROR_STATUSES": "200-201,202",
             "DD_TRACE_OBFUSCATION_QUERY_STRING_REGEXP": r"ssn=\d{3}-\d{2}-\d{4}",
             "DD_TRACE_CLIENT_IP_ENABLED": "true",
-            # disable ASM to test non asm client ip tagging
-            "DD_APPSEC_ENABLED": "false",
             "DD_TRACE_HTTP_CLIENT_ERROR_STATUSES": "200-201,202",
             "DD_SERVICE": "service_test",
             "DD_TRACE_KAFKA_ENABLED": "false",  # Using Kafka as is the most common endpoint and integration(missing for PHP).
@@ -506,6 +504,8 @@ class scenarios:
             "DD_TRACE_PDO_ENABLED": "false",  # Use PDO for PHP,
             "DD_TRACE_PROPAGATION_STYLE_EXTRACT": "tracecontext,datadog,b3multi",
         },
+        appsec_enabled=False,  # disable ASM to test non asm client ip tagging
+        iast_enabled=False,
         include_kafka=True,
         include_postgres_db=True,
         doc="",
@@ -550,30 +550,12 @@ class scenarios:
         scenario_groups=[ScenarioGroup.DEBUGGER],
     )
 
-    debugger_method_probes_snapshot = EndToEndScenario(
-        "DEBUGGER_METHOD_PROBES_SNAPSHOT",
-        rc_api_enabled=True,
-        weblog_env={"DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1", "DD_REMOTE_CONFIG_ENABLED": "true",},
-        library_interface_timeout=30,
-        doc="Test scenario for checking if debugger successfully generates snapshots for specific method probes",
-        scenario_groups=[ScenarioGroup.DEBUGGER],
-    )
-
-    debugger_line_probes_snapshot = EndToEndScenario(
-        "DEBUGGER_LINE_PROBES_SNAPSHOT",
-        rc_api_enabled=True,
-        weblog_env={"DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1", "DD_REMOTE_CONFIG_ENABLED": "true",},
-        library_interface_timeout=30,
-        doc="Test scenario for checking if debugger successfully generates snapshots for specific line probes",
-        scenario_groups=[ScenarioGroup.DEBUGGER],
-    )
-
-    debugger_mix_log_probe = EndToEndScenario(
-        "DEBUGGER_MIX_LOG_PROBE",
+    debugger_probes_snapshot = EndToEndScenario(
+        "DEBUGGER_PROBES_SNAPSHOT",
         rc_api_enabled=True,
         weblog_env={"DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1", "DD_REMOTE_CONFIG_ENABLED": "true",},
         library_interface_timeout=5,
-        doc="Set both method and line probes at the same code",
+        doc="Test scenario for checking if debugger successfully generates snapshots for probes",
         scenario_groups=[ScenarioGroup.DEBUGGER],
     )
 

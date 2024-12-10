@@ -112,18 +112,17 @@ class _RequestLogger:
         if flow.request.port == 11111:
             if not self.rc_api_enabled:
                 flow.response = self.get_error_response(b"RC API is not enabled")
+            elif flow.request.path == "/unique_command":
+                logger.info("Store RC command to mock")
+                self.rc_api_command = flow.request.content
+                flow.response = http.Response.make(200, b"Ok")
+            elif flow.request.path == "/sequential_commands":
+                logger.info("Reset mocked RC sequential commands")
+                self.rc_api_sequential_commands = json.loads(flow.request.content)
+                self.rc_api_runtime_ids_request_count = defaultdict(int)
+                flow.response = http.Response.make(200, b"Ok")
             else:
-                if flow.request.path == "/unique_command":
-                    logger.info("Store RC command to mock")
-                    self.rc_api_command = flow.request.content
-                    flow.response = http.Response.make(200, b"Ok")
-                elif flow.request.path == "/sequential_commands":
-                    logger.info("Reset mocked RC sequential commands")
-                    self.rc_api_sequential_commands = json.loads(flow.request.content)
-                    self.rc_api_runtime_ids_request_count = defaultdict(int)
-                    flow.response = http.Response.make(200, b"Ok")
-                else:
-                    flow.response = http.Response.make(404, b"Not found")
+                flow.response = http.Response.make(404, b"Not found")
 
             return
 
@@ -181,9 +180,7 @@ class _RequestLogger:
                 interface = "open_telemetry"
             elif self.request_is_from_tracer(flow.request):
                 port = self.original_ports[flow.id]
-                if port == 8126:
-                    interface = "library"
-                elif port == 80:  # UDS mode
+                if port == 8126 or port == 80:
                     interface = "library"
                 elif port == 9001:
                     interface = "python_buddy"
@@ -318,8 +315,7 @@ class _RequestLogger:
                 flow.response.content = json.dumps(c).encode()
 
     def _modify_span_events_flag(self, flow):
-        """
-        Modify the agent flag that signals support for native span event serialization.
+        """Modify the agent flag that signals support for native span event serialization.
         There are three possible cases:
         - Not configured: agent's response is not modified, the real agent behavior is preserved
         - `true`: agent advertises support for native span events serialization
