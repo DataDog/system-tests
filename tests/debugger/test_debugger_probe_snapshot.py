@@ -57,6 +57,7 @@ class Test_Debugger_Probe_Snaphots(debugger._Base_Debugger_Test):
         self._setup("probe_snapshot_span_method", "/debugger/span")
 
     @bug(library="python", reason="DEBUG-2708, DEBUG-2709")
+    @irrelevant(context.library == "ruby", reason="Not yet implemented")
     def test_span_method_probe_snaphots(self):
         self._assert()
         self._validate_spans()
