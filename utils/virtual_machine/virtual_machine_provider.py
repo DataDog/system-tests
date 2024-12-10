@@ -38,7 +38,7 @@ class VmProvider:
         self.vms = required_vms
 
     def stack_up(self):
-        """ Each provider should implement the method that start up all the machines. 
+        """ Each provider should implement the method that start up all the machines.
         After each machine is up, you will call the install_provision method for each machine. """
         raise NotImplementedError
 
@@ -47,7 +47,7 @@ class VmProvider:
         raise NotImplementedError
 
     def install_provision(self, vm, server, server_connection):
-        """ 
+        """
         This method orchestrate the provision installation for a machine
         Vm object contains the provision for the machine.
         The provision structure must satisfy the class utils/virtual_machine/virtual_machine_provisioner.py#Provision
@@ -127,7 +127,7 @@ class VmProvider:
             )
 
     def _remote_install(self, server_connection, vm, last_task, installation, logger_name=None, output_callback=None):
-        """ Manages a installation. 
+        """ Manages a installation.
         The installation must satisfy the class utils/virtual_machine/virtual_machine_provisioner.py#Installation """
         local_command = None
         command_environment = vm.get_command_environment()
@@ -218,15 +218,15 @@ class Commander:
     """ Run commands on the VMs. Each provider should implement this class."""
 
     def create_cache(self, vm, server, last_task):
-        """ Create a cache from existing server. 
-            Use vm.get_cache_name() to get the cache name. 
+        """ Create a cache from existing server.
+            Use vm.get_cache_name() to get the cache name.
             Server is the started server to create the cache from.
             Use last_task to depend on the last executed task.
             Return the current task executed."""
         return last_task
 
     def execute_local_command(self, local_command_id, local_command, env, last_task, logger_name):
-        """ Execute a local command in the current machine. 
+        """ Execute a local command in the current machine.
             Env contain environment variables to be used in the command.
             logger_name is the name of the logger to use to store the output of the command.
             Use last_task to depend on the last executed task.
@@ -234,7 +234,7 @@ class Commander:
         raise NotImplementedError
 
     def copy_file(self, id, local_path, remote_path, connection, last_task, vm=None):
-        """ Copy a file from local to remote. 
+        """ Copy a file from local to remote.
             Use last_task to depend on the last executed task.
             Return the current task executed."""
         raise NotImplementedError
@@ -242,7 +242,7 @@ class Commander:
     def remote_command(
         self, id, remote_command, connection, last_task, logger_name, output_callback=None, populate_env=True
     ):
-        """ Execute a command in the remote server. 
+        """ Execute a command in the remote server.
             Use last_task to depend on the last executed task.
             logger_name is the name of the logger to use to store the output of the command.
             output_callback is a function to be called with the output of the command.

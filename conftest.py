@@ -178,6 +178,8 @@ def _collect_item_metadata(item):
             result["testDeclaration"] = "flaky"
         elif result["details"].startswith("bug"):
             result["testDeclaration"] = "bug"
+        elif result["details"].startswith("incomplete_test_app"):
+            result["testDeclaration"] = "incompleteTestApp"
         elif result["details"].startswith("missing_feature"):
             result["testDeclaration"] = "notImplemented"
         elif "got empty parameter set" in result["details"]:
@@ -214,13 +216,13 @@ def pytest_pycollect_makemodule(module_path, parent):
     nodeid = str(module_path.relative_to(module_path.cwd()))
 
     if nodeid in manifests and library in manifests[nodeid]:
-        declaration = manifests[nodeid][library]
+        declaration: str = manifests[nodeid][library]
 
         logger.info(f"Manifest declaration found for {nodeid}: {declaration}")
 
         mod: pytest.Module = pytest.Module.from_parent(parent, path=module_path)
 
-        if declaration.startswith("irrelevant") or declaration.startswith("flaky"):
+        if declaration.startswith(("irrelevant", "flaky")):
             mod.add_marker(pytest.mark.skip(reason=declaration))
             logger.debug(f"Module {nodeid} is skipped by manifest file because {declaration}")
         else:

@@ -21,7 +21,7 @@ def get_environ():
 
     try:
         with open(".env", "r", encoding="utf-8") as f:
-            lines = [l.replace("export ", "").strip().split("=") for l in f.readlines() if l.strip()]
+            lines = [l.replace("export ", "").strip().split("=") for l in f if l.strip()]
             environ = {**environ, **dict(lines)}
     except FileNotFoundError:
         pass

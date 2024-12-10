@@ -747,7 +747,7 @@ class WeblogContainer(TestedContainer):
 
         pattern = re.compile(r"FROM\s+(?P<image_name>[^ ]+)")
         with open(dockerfile, "r", encoding="utf-8") as f:
-            for line in f.readlines():
+            for line in f:
                 if match := pattern.match(line):
                     result.append(match.group("image_name"))
 
@@ -761,7 +761,7 @@ class WeblogContainer(TestedContainer):
         pattern = re.compile(r"^FROM\s+(?P<image_name>[^\s]+)")
         arg_pattern = re.compile(r"^ARG\s+(?P<arg_name>[^\s]+)\s*=\s*(?P<arg_value>[^\s]+)")
         with open(f"utils/build/docker/{library}/{weblog}.Dockerfile", "r", encoding="utf-8") as f:
-            for line in f.readlines():
+            for line in f:
                 if match := arg_pattern.match(line):
                     args[match.group("arg_name")] = match.group("arg_value")
 
