@@ -661,7 +661,8 @@ class Test_TelemetryV2:
 
                 missing_config_keys = [*filter(lambda key: find_missing_keys(key), library_config_keys)]
 
-                assert len(missing_config_keys) == 0, "Found unexpected config keys"
+                # This may create a fairly large test output, but it makes the output more actionable
+                assert len(missing_config_keys) == 0, f"Found unexpected config telemetry keys {missing_config_keys}"
 
     @missing_feature(library="cpp")
     @missing_feature(context.library < "ruby@1.22.0", reason="dd-client-library-version missing")
