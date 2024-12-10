@@ -654,7 +654,9 @@ class Test_TelemetryV2:
                 lang_config = lang_configs.get(language_name) or {}
 
                 allowed_config_keys = [*config_norm_rules] + [*(lang_config.get("normalization_rules") or {})]
-                blocked_config_key_prefixes = [*config_prefix_block_list] + [*(lang_config.get("prefix_block_list") or {})]
+                blocked_config_key_prefixes = [*config_prefix_block_list] + [
+                    *(lang_config.get("prefix_block_list") or {})
+                ]
                 config_aggregation_prefixes = [*config_aggregation_list] + [*(lang_config.get("reduce_rules") or {})]
 
                 def find_missing_keys(key):
