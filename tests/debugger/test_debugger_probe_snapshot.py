@@ -92,7 +92,6 @@ class Test_Debugger_Probe_Snaphots(debugger._Base_Debugger_Test):
     def setup_mix_probe(self):
         self._setup("probe_snapshot_log_mixed", "/debugger/mix/asd/1")
 
-    @bug(library="python", reason="DEBUG-2710")
     def test_mix_probe(self):
         self._assert()
         self._validate_snapshots()
