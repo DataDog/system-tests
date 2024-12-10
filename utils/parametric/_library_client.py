@@ -18,7 +18,7 @@ from utils.tools import logger
 
 
 def _fail(message):
-    """ Used to mak a test as failed """
+    """Used to mak a test as failed"""
     logger.error(message)
     raise Failed(message, pytrace=False) from None
 

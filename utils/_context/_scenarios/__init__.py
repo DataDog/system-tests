@@ -25,7 +25,7 @@ update_environ_with_local_env()
 class scenarios:
     @staticmethod
     def all_endtoend_scenarios(test_object):
-        """particular use case where a klass applies on all scenarios"""
+        """Particular use case where a klass applies on all scenarios"""
 
         # Check that no scenario has been already declared
         for marker in getattr(test_object, "pytestmark", []):

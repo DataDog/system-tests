@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-""" AppSec validators """
+"""AppSec validators"""
 
 from collections import Counter
 from utils.interfaces._library.appsec_data import rule_id_to_type
