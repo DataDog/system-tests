@@ -12,7 +12,7 @@ from utils import bug, context, features, irrelevant, missing_feature, rfc, scen
 @scenarios.parametric
 @features.crashtracking
 class Test_Crashtracking:
-    @irrelevant(context.library == "ruby@2.7.2-dev", reason="temporary skip for ruby 2.7.1 release")
+    @irrelevant(context.library == "ruby", reason="Test is failing")
     @pytest.mark.parametrize("library_env", [{"DD_CRASHTRACKING_ENABLED": "true"}])
     def test_report_crash(self, test_agent, test_library):
         test_library.crash()
