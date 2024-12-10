@@ -641,13 +641,16 @@ class Test_TelemetryV2:
                 lang_config = lang_configs.get(language_name) or {}
 
                 allowed_config_keys = [*config_norm_rules] + [*(lang_config.get("normalization_rules") or {})]
+                allowed_config_values = [*config_norm_rules.values()] + [
+                    *((lang_config.get("normalization_rules") or {}).values())
+                ]
                 blocked_config_key_prefixes = [*config_prefix_block_list] + [
                     *(lang_config.get("prefix_block_list") or {})
                 ]
                 config_aggregation_prefixes = [*config_aggregation_list] + [*(lang_config.get("reduce_rules") or {})]
 
                 def find_missing_keys(key):
-                    is_allowed = key in allowed_config_keys
+                    is_allowed = key in allowed_config_keys or key in allowed_config_values
                     is_blocked = any(key.startswith(prefix) for prefix in blocked_config_key_prefixes)
                     is_reduced = any(key.startswith(prefix) for prefix in config_aggregation_prefixes)
 
