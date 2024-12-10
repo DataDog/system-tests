@@ -20,6 +20,9 @@ cd "$TEMP_DIR" || exit 1
 git sparse-checkout init --cone
 git sparse-checkout set "$SUBDIR"
 
+# This file should not exist in the output
+rm "$SUBDIR/_format.py"
+
 # Create the target directory structure
 mkdir -p "$TARGET_DIR"
 
