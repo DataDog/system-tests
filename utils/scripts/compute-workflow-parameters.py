@@ -95,7 +95,6 @@ def get_endtoend_weblogs(library):
 
 
 def get_opentelemetry_weblogs(library):
-
     weblogs = {
         "cpp": [],
         "dotnet": [],

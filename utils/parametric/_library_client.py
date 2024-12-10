@@ -152,39 +152,25 @@ class APMLibraryClient:
         return SpanResponse(span_id=resp_json["span_id"], trace_id=resp_json["trace_id"])
 
     def finish_span(self, span_id: int) -> None:
-        self._session.post(
-            self._url("/trace/span/finish"), json={"span_id": span_id},
-        )
+        self._session.post(self._url("/trace/span/finish"), json={"span_id": span_id})
 
     def span_set_resource(self, span_id: int, resource: str) -> None:
-        self._session.post(
-            self._url("/trace/span/set_resource"), json={"span_id": span_id, "resource": resource},
-        )
+        self._session.post(self._url("/trace/span/set_resource"), json={"span_id": span_id, "resource": resource})
 
     def span_set_meta(self, span_id: int, key: str, value) -> None:
-        self._session.post(
-            self._url("/trace/span/set_meta"), json={"span_id": span_id, "key": key, "value": value},
-        )
+        self._session.post(self._url("/trace/span/set_meta"), json={"span_id": span_id, "key": key, "value": value})
 
     def span_set_baggage(self, span_id: int, key: str, value: str) -> None:
-        self._session.post(
-            self._url("/trace/span/set_baggage"), json={"span_id": span_id, "key": key, "value": value},
-        )
+        self._session.post(self._url("/trace/span/set_baggage"), json={"span_id": span_id, "key": key, "value": value})
 
     def span_remove_baggage(self, span_id: int, key: str) -> None:
-        self._session.post(
-            self._url("/trace/span/remove_baggage"), json={"span_id": span_id, "key": key},
-        )
+        self._session.post(self._url("/trace/span/remove_baggage"), json={"span_id": span_id, "key": key})
 
     def span_remove_all_baggage(self, span_id: int) -> None:
-        self._session.post(
-            self._url("/trace/span/remove_all_baggage"), json={"span_id": span_id},
-        )
+        self._session.post(self._url("/trace/span/remove_all_baggage"), json={"span_id": span_id})
 
     def span_set_metric(self, span_id: int, key: str, value: float) -> None:
-        self._session.post(
-            self._url("/trace/span/set_metric"), json={"span_id": span_id, "key": key, "value": value},
-        )
+        self._session.post(self._url("/trace/span/set_metric"), json={"span_id": span_id, "key": key, "value": value})
 
     def span_set_error(self, span_id: int, typestr: str, message: str, stack: str) -> None:
         self._session.post(
@@ -449,7 +435,7 @@ class APMLibrary:
         tags: Optional[list[tuple[str, str]]] = None,
     ) -> Generator[_TestSpan, None, None]:
         resp = self._client.trace_start_span(
-            name=name, service=service, resource=resource, parent_id=parent_id, typestr=typestr, tags=tags,
+            name=name, service=service, resource=resource, parent_id=parent_id, typestr=typestr, tags=tags
         )
         span = _TestSpan(self._client, resp["span_id"], resp["trace_id"])
         yield span

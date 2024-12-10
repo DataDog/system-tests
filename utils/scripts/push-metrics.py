@@ -34,7 +34,7 @@ def main():
     with ApiClient(configuration) as api_client:
         api_instance = MetricsApi(api_client)
         response = api_instance.submit_metrics(
-            content_encoding=MetricContentEncoding.DEFLATE, body=MetricsPayload(series=series),
+            content_encoding=MetricContentEncoding.DEFLATE, body=MetricsPayload(series=series)
         )
 
         print(response)

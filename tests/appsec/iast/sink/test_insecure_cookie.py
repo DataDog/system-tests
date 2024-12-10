@@ -53,7 +53,7 @@ class TestInsecureCookieNameFilter(BaseTestCookieNameFilter):
 )
 @features.iast_stack_trace
 class TestInsecureCookie_StackTrace:
-    """Validate stack trace generation """
+    """Validate stack trace generation"""
 
     def setup_stack_trace(self):
         self.r = weblog.get("/iast/insecure-cookie/test_insecure")

@@ -65,7 +65,6 @@ _VOLUME_INJECTOR_NAME = "volume-inject"
 
 
 def create_inject_volume():
-
     logger.debug(f"Create volume {_VOLUME_INJECTOR_NAME}")
     _get_client().volumes.create(_VOLUME_INJECTOR_NAME)
 
@@ -112,7 +111,6 @@ class TestedContainer:
         return [self.image.name]
 
     def configure(self, replay):
-
         if not replay:
             self.stop_previous_container()
 
@@ -514,7 +512,6 @@ class ProxyContainer(TestedContainer):
 
 class AgentContainer(TestedContainer):
     def __init__(self, host_log_folder, use_proxy=True, environment=None) -> None:
-
         environment = environment or {}
         environment.update(
             {
@@ -661,7 +658,6 @@ class WeblogContainer(TestedContainer):
         use_proxy=True,
         volumes=None,
     ) -> None:
-
         from utils import weblog
 
         self.port = weblog.port
@@ -877,7 +873,7 @@ class PostgresContainer(SqlDbTestedContainer):
 class MongoContainer(TestedContainer):
     def __init__(self, host_log_folder) -> None:
         super().__init__(
-            image_name="mongo:latest", name="mongodb", host_log_folder=host_log_folder, allow_old_container=True,
+            image_name="mongo:latest", name="mongodb", host_log_folder=host_log_folder, allow_old_container=True
         )
 
 
@@ -1103,7 +1099,6 @@ class MountInjectionVolume(TestedContainer):
 
 class WeblogInjectionInitContainer(TestedContainer):
     def __init__(self, host_log_folder) -> None:
-
         super().__init__(
             image_name="docker.io/library/weblog-injection:latest",
             name="weblog-injection-init",
@@ -1124,7 +1119,6 @@ class WeblogInjectionInitContainer(TestedContainer):
 
 class DockerSSIContainer(TestedContainer):
     def __init__(self, host_log_folder) -> None:
-
         super().__init__(
             image_name="docker.io/library/weblog-injection:latest",
             name="weblog-injection",
@@ -1154,7 +1148,6 @@ class DummyServerContainer(TestedContainer):
 
 class EnvoyContainer(TestedContainer):
     def __init__(self, host_log_folder) -> None:
-
         from utils import weblog
 
         super().__init__(

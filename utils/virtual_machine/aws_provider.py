@@ -151,7 +151,7 @@ class AWSPulumiProvider(VmProvider):
         if len(names_filter_to_check) > 0:
             # Check for existing ami cache for the vms
             ami_existing = aws.ec2.get_ami_ids(
-                filters=[aws.ec2.GetAmiIdsFilterArgs(name="name", values=names_filter_to_check)], owners=["self"],
+                filters=[aws.ec2.GetAmiIdsFilterArgs(name="name", values=names_filter_to_check)], owners=["self"]
             )
             # We found some cached AMIsm let's check the details: status, expiration, etc
             for ami in ami_existing.ids:
@@ -221,7 +221,7 @@ class AWSPulumiProvider(VmProvider):
     @retry(delay=10, tries=30)
     def _check_running_instances(self):
         """Check the number of running instances in the AWS account
-       if there are more than 500 instances, we will wait until they are destroyed
+        if there are more than 500 instances, we will wait until they are destroyed
         """
 
         ec2_ids = self._print_running_instances()
@@ -246,7 +246,7 @@ class AWSPulumiProvider(VmProvider):
         try:
             logger.info(f"AWS Listing available ami caches with system-tests tag")
             ami_existing = aws.ec2.get_ami_ids(
-                filters=[aws.ec2.GetAmiIdsFilterArgs(name="tag:CI", values=["system-tests"])], owners=["self"],
+                filters=[aws.ec2.GetAmiIdsFilterArgs(name="tag:CI", values=["system-tests"])], owners=["self"]
             )
             for ami in ami_existing.ids:
                 # Latest ami details
@@ -456,7 +456,6 @@ class DatadogEventSender:
         self.ci_project_name = os.getenv("CI_PROJECT_NAME")
 
     def sendEventToDatadog(self, title, message, tags):
-
         if not self.ddev_api_key:
             logger.error("Datadog API key not found to send event to ddev organization. Skipping event.")
             return

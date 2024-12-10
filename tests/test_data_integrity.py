@@ -3,6 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 """Misc checks around data integrity during components' lifetime"""
+
 import string
 from utils import weblog, interfaces, context, bug, rfc, missing_feature, features
 from utils.tools import logger

@@ -57,7 +57,12 @@ indent-width = 4
 target-version = "py312"
 
 [tool.ruff.format]
-exclude = ["venv/", "utils/grpc/weblog_pb2_grpc.py", "utils/grpc/weblog_pb2.py", "parametric/apps"]
+exclude = [
+    "venv/", 
+    "utils/grpc/weblog_pb2_grpc.py", 
+    "utils/grpc/weblog_pb2.py", "parametric/apps", 
+    "lib-injection/build/docker/python/dd-lib-python-init-test-protobuf-old/addressbook_pb2.py"
+]
 quote-style = "double"
 indent-style = "space"
 # skip-magic-trailing-comma = false

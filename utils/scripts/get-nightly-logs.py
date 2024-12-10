@@ -9,9 +9,7 @@ import zipfile
 import requests
 
 
-logging.basicConfig(
-    level=logging.DEBUG, format="%(levelname)-5s %(message)s",
-)
+logging.basicConfig(level=logging.DEBUG, format="%(levelname)-5s %(message)s")
 
 logging.getLogger("urllib3").setLevel(logging.WARNING)
 
@@ -40,7 +38,6 @@ def is_included(params: list[str], artifact_name: str) -> bool:
 
 
 def get_artifacts(session: requests.Session, repo_slug: str, workflow_file: str, run_id: int | None):
-
     if run_id is None:
         data = get_json(
             session,
@@ -56,7 +53,6 @@ def get_artifacts(session: requests.Session, repo_slug: str, workflow_file: str,
     artifacts = []
 
     for page in range(1, 10):
-
         items = get_json(session, workflow_run["artifacts_url"], params={"per_page": 100, "page": page})
 
         if len(items["artifacts"]) == 0:
@@ -68,7 +64,6 @@ def get_artifacts(session: requests.Session, repo_slug: str, workflow_file: str,
 
 
 def download_artifact(session: requests.Session, artifact: dict, output_dir: str = None):
-
     logging.info("Downloading artifact: %s", artifact["name"])
     response = session.get(artifact["archive_download_url"], timeout=60)
     response.raise_for_status()

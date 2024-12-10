@@ -35,7 +35,7 @@ class TestNoSqlMongodbInjection(BaseSinkTest):
 )
 @features.iast_stack_trace
 class TestNoSqlMongodbInjection_StackTrace:
-    """Validate stack trace generation """
+    """Validate stack trace generation"""
 
     def setup_stack_trace(self):
         self.r = weblog.post("/iast/mongodb-nosql-injection/test_insecure", data={"key": "somevalue"})

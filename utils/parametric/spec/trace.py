@@ -2,6 +2,7 @@
 
 These are used to specify, test and work with trace data and protocols.
 """
+
 import json
 from typing import Optional
 from typing import TypedDict
@@ -59,6 +60,7 @@ SAMPLING_DECISION_MAKER_KEY = "_dd.p.dm"
 SAMPLING_AGENT_PRIORITY_RATE = "_dd.agent_psr"
 SAMPLING_RULE_PRIORITY_RATE = "_dd.rule_psr"
 SAMPLING_LIMIT_PRIORITY_RATE = "_dd.limit_psr"
+
 
 # Note that class attributes are golang style to match the payload.
 class V06StatsAggr(TypedDict):
@@ -145,7 +147,7 @@ def decode_v06_stats(data: bytes) -> V06StatsPayload:
         stats_buckets.append(bucket)
 
     return V06StatsPayload(
-        Hostname=payload.get("Hostname"), Env=payload.get("Env"), Version=payload.get("Version"), Stats=stats_buckets,
+        Hostname=payload.get("Hostname"), Env=payload.get("Env"), Version=payload.get("Version"), Stats=stats_buckets
     )
 
 

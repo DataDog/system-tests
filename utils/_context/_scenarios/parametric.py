@@ -208,7 +208,6 @@ class ParametricScenario(Scenario):
         return f"parametric-{self.library.library}"
 
     def _build_apm_test_server_image(self) -> str:
-
         logger.stdout("Build tested container...")
 
         apm_test_server_definition: APMLibraryTestServer = self.apm_test_server_definition
@@ -224,7 +223,6 @@ class ParametricScenario(Scenario):
             f.write(apm_test_server_definition.container_img)
 
         with open(log_path, "w+", encoding="utf-8") as log_file:
-
             # Build the container
             docker = shutil.which("docker")
             root_path = ".."
@@ -297,7 +295,6 @@ class ParametricScenario(Scenario):
         command: list[str],
         log_file: TextIO,
     ) -> Generator[Container, None, None]:
-
         # Convert volumes to the format expected by the docker-py API
         fixed_volumes = {}
         for key, value in volumes.items():

@@ -82,7 +82,7 @@ class Test_HardcodedSecretsExtended:
 )
 @features.iast_stack_trace
 class Test_HardcodedSecrets_StackTrace:
-    """Validate stack trace generation """
+    """Validate stack trace generation"""
 
     def setup_stack_trace(self):
         self.r = weblog.get("/iast/hardcoded_secrets/test_insecure")

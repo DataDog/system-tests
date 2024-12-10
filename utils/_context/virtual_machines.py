@@ -185,7 +185,6 @@ class _VirtualMachine:
         return f"{self.get_log_folder()}/virtual_machine_{self.name}.log"
 
     def add_provision(self, provision):
-
         self._vm_provision = provision
 
     def get_provision(self):

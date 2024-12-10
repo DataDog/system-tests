@@ -1,5 +1,4 @@
 class TelemetryUtils:
-
     test_loaded_dependencies = {
         "dotnet": {"NodaTime": False},
         "nodejs": {"glob": False},
