@@ -145,7 +145,7 @@ class Test_Debugger_PII_Redaction(debugger._Base_Debugger_Test):
 
         for probe_id in self.probe_ids:
             base = self.probe_snapshots[probe_id][0]
-            snapshot = base.get("debugger", {}).get("snapshot") or base['debugger.snapshot']
+            snapshot = base.get("debugger", {}).get("snapshot") or base["debugger.snapshot"]
 
             for field_name in should_redact_field_names:
                 if line_probe:
@@ -181,7 +181,7 @@ class Test_Debugger_PII_Redaction(debugger._Base_Debugger_Test):
 
         for probe_id in self.probe_ids:
             base = self.probe_snapshots[probe_id][0]
-            snapshot = base.get("debugger", {}).get("snapshot") or base['debugger.snapshot']
+            snapshot = base.get("debugger", {}).get("snapshot") or base["debugger.snapshot"]
 
             for type_name in should_redact_types:
                 if line_probe:
