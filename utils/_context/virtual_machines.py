@@ -137,13 +137,13 @@ class _VirtualMachine:
         self.ssh_config.hostname = ip
 
     def get_ip(self):
-        """ If we run the tests using xdist we lost the ip address of the VM. We can recover it from the logs"""
+        """If we run the tests using xdist we lost the ip address of the VM. We can recover it from the logs"""
         if not self.ssh_config.hostname:
             self._load_ip_from_logs()
         return self.ssh_config.hostname
 
     def _load_runtime_from_logs(self):
-        """ Load the runtime version from the test_components.log """
+        """Load the runtime version from the test_components.log"""
         vms_tested_components_file = f"{context.scenario.host_log_folder}/tested_components.log"
         if os.path.isfile(vms_tested_components_file):
             # Get the machine ip
@@ -164,11 +164,11 @@ class _VirtualMachine:
                     break
 
     def _load_ip_from_logs(self):
-        """ Load the ip address from the logs"""
+        """Load the ip address from the logs"""
         vms_desc_file = f"{context.scenario.host_log_folder}/vms_desc.log"
         logger.info(f"Loading ip for {self.name} from {vms_desc_file}")
         if os.path.isfile(vms_desc_file):
-            with open(vms_desc_file, "r") as f:
+            with open(vms_desc_file) as f:
                 for line in f:
                     if self.name in line:
                         self.ssh_config.hostname = line.split(":")[1]
@@ -202,11 +202,11 @@ class _VirtualMachine:
         self.tested_components = json.loads(components_json.replace("'", '"'))
 
     def set_vm_logs(self, vm_logs):
-        """ Extract /var/log/ files to a folder in the host machine """
+        """Extract /var/log/ files to a folder in the host machine"""
         extract_logs_to_file(vm_logs, self.get_log_folder())
 
     def get_cache_name(self):
-        """ Generate a unique name for the  cache.
+        """Generate a unique name for the  cache.
         use: vm name + provision name + weblog id + hash of the cacheable installations
         We geneate the hash from cacheable steps content. If we modify the step scripts
         the hash will change and the cache will be regenerated.
@@ -235,7 +235,7 @@ class _VirtualMachine:
         return full_cache_name
 
     def get_command_environment(self):
-        """ This environment will be injected as environment variables for all launched remote commands """
+        """This environment will be injected as environment variables for all launched remote commands"""
         command_env = {}
         for key, value in self.get_provision().env.items():
             command_env["DD_" + key] = value
@@ -605,7 +605,7 @@ class AmazonLinux2022arm64(_VirtualMachine):
             os_distro="rpm",
             os_branch="amazon_linux2022",
             os_cpu="arm64",
-            default_vm=False,
+            default_vm=True,
             **kwargs,
         )
 
@@ -702,7 +702,7 @@ class RedHat90arm64(_VirtualMachine):
             os_distro="rpm",
             os_branch="redhat",
             os_cpu="arm64",
-            default_vm=True,
+            default_vm=False,
             **kwargs,
         )
 

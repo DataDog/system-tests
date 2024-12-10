@@ -1,4 +1,6 @@
 from enum import IntEnum
+from opentelemetry.trace import SpanKind  # noqa: F401
+from opentelemetry.trace import StatusCode  # noqa: F401
 
 
 # Key used in the metrics map to indicate tracer sampling priority
@@ -27,7 +29,7 @@ PYTHON_RELEASE_GA_1_1 = "1.5.0rc1.dev"
 
 
 class RemoteConfigApplyState(IntEnum):
-    """ https://docs.google.com/document/d/1bUVtEpXNTkIGvLxzkNYCxQzP2X9EK9HMBLHWXr_5KLM/edit#heading=h.vy1jegxy7cuc """
+    """https://docs.google.com/document/d/1bUVtEpXNTkIGvLxzkNYCxQzP2X9EK9HMBLHWXr_5KLM/edit#heading=h.vy1jegxy7cuc"""
 
     UNKNOWN = 0
     UNACKNOWLEDGED = 1
@@ -61,42 +63,4 @@ class Capabilities(IntEnum):
     ASM_SESSION_FINGERPRINT = 33
     ASM_NETWORK_FINGERPRINT = 34
     ASM_HEADER_FINGERPRINT = 35
-
-
-class SpanKind(IntEnum):
-    """Specifies additional details on how this span relates to its parent span.
-    """
-
-    #: Default value. Indicates that the span is used internally in the
-    # application.
-    INTERNAL = 1
-
-    #: Indicates that the span describes an operation that handles a remote
-    # request.
-    SERVER = 2
-
-    #: Indicates that the span describes a request to some remote service.
-    CLIENT = 3
-
-    #: Indicates that the span describes a producer sending a message to a
-    #: broker. Unlike client and server, there is usually no direct critical
-    #: path latency relationship between producer and consumer spans.
-    PRODUCER = 4
-
-    #: Indicates that the span describes a consumer receiving a message from a
-    #: broker. Unlike client and server, there is usually no direct critical
-    #: path latency relationship between producer and consumer spans.
-    CONSUMER = 5
-
-
-class StatusCode(IntEnum):
-    """Represents the canonical set of status codes of a finished Span."""
-
-    UNSET = 0
-    """The default status."""
-
-    OK = 1
-    """The operation has been validated by an Application developer or Operator to have completed successfully."""
-
-    ERROR = 2
-    """The operation contains an error."""
+    ASM_RASP_CMDI = 37

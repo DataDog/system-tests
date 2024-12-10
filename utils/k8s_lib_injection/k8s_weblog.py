@@ -1,5 +1,4 @@
-import time, datetime
-from kubernetes import client, config, watch
+from kubernetes import client, watch
 from utils.k8s_lib_injection.k8s_logger import k8s_logger
 
 
@@ -36,9 +35,10 @@ class K8sWeblog:
         self.k8s_wrapper = k8s_wrapper
         self.logger = k8s_logger(self.output_folder, self.test_name, "k8s_logger")
 
-    def _get_base_weblog_pod(self, env=None):
-        """ Installs a target app for manual library injection testing.
-            It returns when the app pod is ready."""
+    def _get_base_weblog_pod(self, env=None, service_account=None):
+        """Installs a target app for manual library injection testing.
+        It returns when the app pod is ready.
+        """
 
         self.logger.info(
             "[Deploy weblog] Creating weblog pod configuration. weblog_variant_image: [%s], library: [%s], library_init_image: [%s]"
@@ -106,15 +106,15 @@ class K8sWeblog:
 
         containers.append(container1)
 
-        pod_spec = client.V1PodSpec(containers=containers)
+        pod_spec = client.V1PodSpec(containers=containers, service_account=service_account)
 
         pod_body = client.V1Pod(api_version="v1", kind="Pod", metadata=pod_metadata, spec=pod_spec)
         self.logger.info("[Deploy weblog] Weblog pod configuration done.")
         return pod_body
 
-    def install_weblog_pod_with_admission_controller(self, env=None):
+    def install_weblog_pod_with_admission_controller(self, env=None, service_account=None):
         self.logger.info("[Deploy weblog] Installing weblog pod using admission controller")
-        pod_body = self._get_base_weblog_pod(env=env)
+        pod_body = self._get_base_weblog_pod(env=env, service_account=service_account)
         self.k8s_wrapper.create_namespaced_pod(body=pod_body)
         self.logger.info("[Deploy weblog] Weblog pod using admission controller created. Waiting for it to be ready!")
         self.wait_for_weblog_ready_by_label_app("my-app", timeout=200)
@@ -204,7 +204,7 @@ class K8sWeblog:
             raise Exception("[Deploy weblog] Weblog not created")
 
     def export_debug_info(self):
-        """ Extracts debug info from the k8s weblog app and logs it to the specified folder."""
+        """Extracts debug info from the k8s weblog app and logs it to the specified folder."""
 
         # check weblog describe pod
         try:

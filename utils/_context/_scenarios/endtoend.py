@@ -38,6 +38,7 @@ class DockerScenario(Scenario):
         use_proxy=True,
         rc_api_enabled=False,
         meta_structs_disabled=False,
+        span_events=True,
         include_postgres_db=False,
         include_cassandra_db=False,
         include_mongo_db=False,
@@ -51,6 +52,7 @@ class DockerScenario(Scenario):
         self.use_proxy = use_proxy
         self.rc_api_enabled = rc_api_enabled
         self.meta_structs_disabled = False
+        self.span_events = span_events
 
         if not self.use_proxy and self.rc_api_enabled:
             raise ValueError("rc_api_enabled requires use_proxy")
@@ -63,6 +65,7 @@ class DockerScenario(Scenario):
                 host_log_folder=self.host_log_folder,
                 rc_api_enabled=rc_api_enabled,
                 meta_structs_disabled=meta_structs_disabled,
+                span_events=span_events,
             )
 
             self._required_containers.append(self.proxy_container)
@@ -179,12 +182,14 @@ class EndToEndScenario(DockerScenario):
         agent_env=None,
         tracer_sampling_rate=None,
         appsec_enabled=True,
+        iast_enabled=True,
         additional_trace_header_tags=(),
         library_interface_timeout=None,
         agent_interface_timeout=5,
         use_proxy=True,
         rc_api_enabled=False,
         meta_structs_disabled=False,
+        span_events=True,
         backend_interface_timeout=0,
         include_postgres_db=False,
         include_cassandra_db=False,
@@ -210,6 +215,7 @@ class EndToEndScenario(DockerScenario):
             use_proxy=use_proxy,
             rc_api_enabled=rc_api_enabled,
             meta_structs_disabled=meta_structs_disabled,
+            span_events=span_events,
             include_postgres_db=include_postgres_db,
             include_cassandra_db=include_cassandra_db,
             include_mongo_db=include_mongo_db,
@@ -247,6 +253,7 @@ class EndToEndScenario(DockerScenario):
             environment=weblog_env,
             tracer_sampling_rate=tracer_sampling_rate,
             appsec_enabled=appsec_enabled,
+            iast_enabled=iast_enabled,
             additional_trace_header_tags=additional_trace_header_tags,
             use_proxy=use_proxy,
             volumes=weblog_volumes,

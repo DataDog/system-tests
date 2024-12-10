@@ -1,7 +1,4 @@
 import time
-import os
-import json
-import base64
 
 from kubernetes import client, watch
 
@@ -9,14 +6,12 @@ from utils.k8s_lib_injection.k8s_command_utils import (
     helm_add_repo,
     helm_install_chart,
     execute_command_sync,
-    path_clusterrole,
-    kubectl_apply,
 )
 from utils.k8s_lib_injection.k8s_logger import k8s_logger
 
 
 class K8sDatadog:
-    def __init__(self, output_folder, test_name, api_key=None, app_key=None, real_agent_image=None):
+    def __init__(self, output_folder, test_name, api_key=None, app_key=None):
         self.k8s_kind_cluster = None
         self.output_folder = output_folder
         self.test_name = test_name
@@ -24,7 +19,6 @@ class K8sDatadog:
         self.k8s_wrapper = None
         self._api_key = api_key
         self._app_key = app_key
-        self.real_agent_image = real_agent_image
 
     def configure(self, k8s_kind_cluster, k8s_wrapper):
         self.k8s_kind_cluster = k8s_kind_cluster
@@ -32,45 +26,8 @@ class K8sDatadog:
         self.logger = k8s_logger(self.output_folder, self.test_name, "k8s_logger")
         self.logger.info(f"K8sDatadog configured with cluster: {self.k8s_kind_cluster.cluster_name}")
 
-    def deploy_agent(self):
-        """ Installs the real agent daemonset using previously download datadog-agent-apm template.
-        Following this doc: https://docs.datadoghq.com/containers/guide/kubernetes_daemonset/?tab=tcp"""
-        self.logger.info(
-            f"[Real agent] Deploying Datadog test agent on the cluster: {self.k8s_kind_cluster.cluster_name}"
-        )
-        agent_data = ""
-        with open("utils/k8s_lib_injection/resources/datadog-agent-apm.yaml", "r") as file:
-            agent_data = file.read()
-
-        if self.real_agent_image:
-            agent_data = agent_data.replace("gcr.io/datadoghq/agent:7.45.0", self.real_agent_image)
-
-        agent_config = f"{self.output_folder}/{self.k8s_kind_cluster.cluster_name}_datadog-agent-apm.yaml"
-
-        with open(agent_config, "w") as fp:
-            fp.write(agent_data)
-            fp.seek(0)
-        self.logger.info("[real agent] Creating agent")
-        kubectl_apply(
-            self.k8s_kind_cluster,
-            "https://raw.githubusercontent.com/DataDog/datadog-agent/master/Dockerfiles/manifests/rbac/clusterrole.yaml",
-        )
-        kubectl_apply(
-            self.k8s_kind_cluster,
-            "https://raw.githubusercontent.com/DataDog/datadog-agent/master/Dockerfiles/manifests/rbac/serviceaccount.yaml",
-        )
-        kubectl_apply(
-            self.k8s_kind_cluster,
-            "https://raw.githubusercontent.com/DataDog/datadog-agent/master/Dockerfiles/manifests/rbac/clusterrolebinding.yaml",
-        )
-
-        kubectl_apply(self.k8s_kind_cluster, agent_config)
-        self.logger.info("[real agent] Agent created. Waiting for the agent to be ready")
-        self.wait_for_test_agent()
-        self.logger.info("[real agent] Daemonset created")
-
     def deploy_test_agent(self):
-        """ Installs the test agent pod."""
+        """Installs the test agent pod."""
 
         self.logger.info(
             f"[Test agent] Deploying Datadog test agent on the cluster: {self.k8s_kind_cluster.cluster_name}"
@@ -141,8 +98,9 @@ class K8sDatadog:
         self.logger.info("[Test agent] Daemonset created")
 
     def deploy_datadog_cluster_agent(self, use_uds=False, features={}, cluster_agent_tag=None):
-        """ Installs the Datadog Cluster Agent via helm for manual library injection testing.
-            It returns when the Cluster Agent pod is ready."""
+        """Installs the Datadog Cluster Agent via helm for manual library injection testing.
+        It returns when the Cluster Agent pod is ready.
+        """
 
         self.logger.info("[Deploy datadog cluster] Deploying Datadog Cluster Agent with Admission Controler")
 
@@ -170,7 +128,7 @@ class K8sDatadog:
         self._wait_for_operator_ready()
 
     def wait_for_test_agent(self):
-        """ Waits for the test agent to be ready."""
+        """Waits for the test agent to be ready."""
         daemonset_created = False
         daemonset_status = None
         # Wait for the daemonset to be created
@@ -238,8 +196,9 @@ class K8sDatadog:
         time.sleep(5)
 
     def export_debug_info(self):
-        """ Exports debug information for the test agent and the operator.
-        We shouldn't raise any exception here, we just log the errors."""
+        """Exports debug information for the test agent and the operator.
+        We shouldn't raise any exception here, we just log the errors.
+        """
 
         # Get all pods
         ret = self.k8s_wrapper.list_namespaced_pod("default", watch=False)

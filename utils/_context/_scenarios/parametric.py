@@ -1,11 +1,13 @@
 import contextlib
 import dataclasses
-from typing import Dict, List, Literal, Union, Generator, TextIO
+from typing import TextIO
+from collections.abc import Generator
 
 import json
 import glob
 from functools import lru_cache
 import os
+from pathlib import Path
 import shutil
 import subprocess
 
@@ -23,7 +25,7 @@ from .core import Scenario, ScenarioGroup
 
 
 def _fail(message):
-    """ Used to mak a test as failed """
+    """Used to mak a test as failed"""
     logger.error(message)
     raise Failed(message, pytrace=False) from None
 
@@ -53,7 +55,7 @@ def _get_client() -> docker.DockerClient:
             ).stdout.strip()
             return docker.DockerClient(base_url=endpoint)
         except:
-            pass
+            logger.exception("No more success with docker contexts")
 
         raise e
 
@@ -65,15 +67,15 @@ class APMLibraryTestServer:
     container_name: str
     container_tag: str
     container_img: str
-    container_cmd: List[str]
+    container_cmd: list[str]
     container_build_dir: str
     container_build_context: str = "."
 
     container_port: int = 8080
     host_port: int = None  # Will be assigned by get_host_port()
 
-    env: Dict[str, str] = dataclasses.field(default_factory=dict)
-    volumes: Dict[str, str] = dataclasses.field(default_factory=dict)
+    env: dict[str, str] = dataclasses.field(default_factory=dict)
+    volumes: dict[str, str] = dataclasses.field(default_factory=dict)
 
     container: Container = None
 
@@ -102,7 +104,7 @@ class ParametricScenario(Scenario):
         def deserialize(self):
             result = {}
             for ctx_filename in glob.glob(f"{self.outer_inst.host_log_folder}/*_context.json"):
-                with open(ctx_filename, "r") as f:
+                with open(ctx_filename) as f:
                     fileContent = f.read()
                     # Remove last carriage return and the last comma. Wrap into json array.
                     all_params = json.loads(f"[{fileContent[:-2]}]")
@@ -183,7 +185,7 @@ class ParametricScenario(Scenario):
         _get_client().images.pull(self.TEST_AGENT_IMAGE)
 
     def _clean_containers(self):
-        """ some containers may still exists from previous unfinished sessions """
+        """Some containers may still exists from previous unfinished sessions"""
 
         for container in _get_client().containers.list(all=True):
             if "test-client" in container.name or "test-agent" in container.name or "test-library" in container.name:
@@ -192,7 +194,7 @@ class ParametricScenario(Scenario):
                 container.remove(force=True)
 
     def _clean_networks(self):
-        """ some network may still exists from previous unfinished sessions """
+        """Some network may still exists from previous unfinished sessions"""
         logger.info("Removing unused network")
         _get_client().networks.prune()
         logger.info("Removing unused network done")
@@ -212,7 +214,7 @@ class ParametricScenario(Scenario):
         apm_test_server_definition: APMLibraryTestServer = self.apm_test_server_definition
 
         log_path = f"{self.host_log_folder}/outputs/docker_build_log.log"
-        os.makedirs(os.path.dirname(log_path), exist_ok=True)
+        Path.mkdir(os.path.dirname(log_path), exist_ok=True, parents=True)
 
         # Write dockerfile to the build directory
         # Note that this needs to be done as the context cannot be
@@ -236,7 +238,7 @@ class ParametricScenario(Scenario):
                 dockf_path,
                 apm_test_server_definition.container_build_context,
             ]
-            log_file.write("running %r in %r\n" % (" ".join(cmd), root_path))
+            log_file.write(f"running {cmd} in {root_path}\n")
             log_file.flush()
 
             env = os.environ.copy()
@@ -272,7 +274,7 @@ class ParametricScenario(Scenario):
 
     @staticmethod
     def get_host_port(worker_id: str, base_port: int) -> int:
-        """ deterministic port allocation for each worker """
+        """Deterministic port allocation for each worker"""
 
         if worker_id == "master":  # xdist disabled
             return base_port
@@ -287,12 +289,12 @@ class ParametricScenario(Scenario):
         self,
         image: str,
         name: str,
-        env: Dict[str, str],
-        volumes: Dict[str, str],
+        env: dict[str, str],
+        volumes: dict[str, str],
         network: str,
         host_port: int,
         container_port: int,
-        command: List[str],
+        command: list[str],
         log_file: TextIO,
     ) -> Generator[Container, None, None]:
 
@@ -338,10 +340,8 @@ class ParametricScenario(Scenario):
             container.remove(force=True)
 
 
-def _get_base_directory():
-    """Workaround until the parametric tests are fully migrated"""
-    current_directory = os.getcwd()
-    return f"{current_directory}/.." if current_directory.endswith("parametric") else current_directory
+def _get_base_directory() -> str:
+    return str(Path.cwd())
 
 
 def python_library_factory() -> APMLibraryTestServer:
@@ -380,8 +380,8 @@ def node_library_factory() -> APMLibraryTestServer:
             path = f.read().strip(" \r\n")
             source = os.path.join(_get_base_directory(), path)
             volumes[os.path.abspath(source)] = "/volumes/dd-trace-js"
-    except Exception:
-        pass
+    except FileNotFoundError:
+        logger.info("No local dd-trace-js found, do not mount any volume")
 
     return APMLibraryTestServer(
         lang="nodejs",

@@ -9,6 +9,7 @@ from typing import Any
 import uuid
 
 import pytest
+from typing import List, Optional
 
 from utils.telemetry_utils import TelemetryUtils
 from utils import context, scenarios, rfc, features, missing_feature, bug
@@ -276,7 +277,7 @@ class Test_Environment:
     @missing_feature(context.library == "ruby", reason="Not implemented")
     @missing_feature(context.library == "php", reason="Not implemented")
     @missing_feature(context.library == "cpp", reason="Not implemented")
-    @missing_feature(context.library == "python", reason="Not implemented")
+    @missing_feature(context.library < "python@2.18.0.dev", reason="Not implemented")
     @pytest.mark.parametrize(
         "library_env",
         [
@@ -314,41 +315,56 @@ class Test_Environment:
         assert event["request_type"] == "generate-metrics"
 
         metrics = payload["series"]
-
         assert payload["namespace"] == "tracers"
-
         otelHiding = [s for s in metrics if s["metric"] == "otel.env.hiding"]
-        otelInvalid = [s for s in metrics if s["metric"] == "otel.env.invalid"]
+        assert not [s for s in metrics if s["metric"] == "otel.env.invalid"]
 
-        assert len(otelHiding) == 9
-        assert len(otelInvalid) == 0
+        if context.library == "nodejs":
+            ddlog_config = "dd_trace_log_level"
+        elif context.library == "python":
+            ddlog_config = "dd_trace_debug"
+        else:
+            ddlog_config = "dd_log_level"
 
-        expected_tags = [
-            ["config_datadog:dd_trace_log_level", "config_opentelemetry:otel_log_level"]
-            if context.library == "nodejs"
-            else ["config_datadog:dd_log_level", "config_opentelemetry:otel_log_level"],
-            ["config_datadog:dd_trace_propagation_style", "config_opentelemetry:otel_propagators"],
-            ["config_datadog:dd_service", "config_opentelemetry:otel_service_name"],
-            ["config_datadog:dd_trace_sample_rate", "config_opentelemetry:otel_traces_sampler"],
-            ["config_datadog:dd_trace_sample_rate", "config_opentelemetry:otel_traces_sampler_arg"],
-            ["config_datadog:dd_trace_enabled", "config_opentelemetry:otel_traces_exporter"],
-            ["config_datadog:dd_runtime_metrics_enabled", "config_opentelemetry:otel_metrics_exporter"],
-            ["config_datadog:dd_tags", "config_opentelemetry:otel_resource_attributes"],
-            ["config_datadog:dd_trace_otel_enabled", "config_opentelemetry:otel_sdk_disabled"],
+        if context.library == "python":
+            otelsampler_config = "otel_traces_sampler"
+        else:
+            otelsampler_config = "otel_traces_sampler_arg"
+
+        dd_to_otel_mapping: List[List[Optional[str]]] = [
+            ["dd_trace_propagation_style", "otel_propagators"],
+            ["dd_service", "otel_service_name"],
+            ["dd_trace_sample_rate", "otel_traces_sampler"],
+            ["dd_trace_enabled", "otel_traces_exporter"],
+            ["dd_runtime_metrics_enabled", "otel_metrics_exporter"],
+            ["dd_tags", "otel_resource_attributes"],
+            ["dd_trace_otel_enabled", "otel_sdk_disabled"],
+            [ddlog_config, "otel_log_level"],
+            ["dd_trace_sample_rate", otelsampler_config],
         ]
 
-        for expected in expected_tags:
-            assert any(all(tag in metric["tags"] for tag in expected) for metric in otelHiding)
-
-        for metric in otelHiding:
-            assert metric["points"][0][1] == 1
+        for dd_config, otel_config in dd_to_otel_mapping:
+            for metric in otelHiding:
+                if (
+                    f"config_datadog:{dd_config}" in metric["tags"]
+                    and f"config_opentelemetry:{otel_config}" in metric["tags"]
+                ):
+                    assert metric["points"][0][1] == 1
+                    break
+            else:
+                assert (
+                    False
+                ), f"Could not find a metric with {dd_config} and {otel_config} in otelHiding metrics: {otelHiding}"
 
     @missing_feature(context.library == "dotnet", reason="Not implemented")
     @missing_feature(context.library == "java", reason="Not implemented")
     @missing_feature(context.library == "ruby", reason="Not implemented")
     @missing_feature(context.library == "php", reason="Not implemented")
     @missing_feature(context.library == "cpp", reason="Not implemented")
-    @missing_feature(context.library == "python", reason="Not implemented")
+    @missing_feature(context.library < "python@2.18.0.dev", reason="Not implemented")
+    @missing_feature(
+        context.library == "nodejs", reason="does not collect otel_env.invalid metrics for otel_resource_attributes"
+    )
     @pytest.mark.parametrize(
         "library_env",
         [
@@ -366,6 +382,7 @@ class Test_Environment:
                 "OTEL_PROPAGATORS": "foo",
                 "OTEL_LOGS_EXPORTER": "foo",
                 "DD_TRACE_OTEL_ENABLED": None,
+                "DD_TRACE_DEBUG": None,
                 "OTEL_SDK_DISABLED": "foo",
             }
         ],
@@ -381,30 +398,43 @@ class Test_Environment:
 
         assert payload["namespace"] == "tracers"
 
-        otelHiding = [s for s in metrics if s["metric"] == "otel.env.hiding"]
-        otelInvalid = [s for s in metrics if s["metric"] == "otel.env.invalid"]
+        otel_invalid = [s for s in metrics if s["metric"] == "otel.env.invalid"]
 
-        assert len(otelHiding) == 0
-        assert len(otelInvalid) == 8
+        if context.library == "nodejs":
+            ddlog_config = "dd_trace_log_level"
+        elif context.library == "python":
+            ddlog_config = "dd_trace_debug"
+        else:
+            ddlog_config = "dd_log_level"
 
-        expected_invalid_tags = [
-            ["config_datadog:dd_trace_log_level", "config_opentelemetry:otel_log_level"]
-            if context.library == "nodejs"
-            else ["config_datadog:dd_log_level", "config_opentelemetry:otel_log_level"],
-            ["config_datadog:dd_trace_propagation_style", "config_opentelemetry:otel_propagators"],
-            ["config_datadog:dd_trace_sample_rate", "config_opentelemetry:otel_traces_sampler"],
-            ["config_datadog:dd_trace_sample_rate", "config_opentelemetry:otel_traces_sampler_arg"],
-            ["config_datadog:dd_trace_enabled", "config_opentelemetry:otel_traces_exporter"],
-            ["config_datadog:dd_runtime_metrics_enabled", "config_opentelemetry:otel_metrics_exporter"],
-            ["config_datadog:dd_trace_otel_enabled", "config_opentelemetry:otel_sdk_disabled"],
-            ["config_opentelemetry:otel_logs_exporter"],
+        if context.library == "python":
+            otelsampler_config = "otel_traces_sampler"
+        else:
+            otelsampler_config = "otel_traces_sampler_arg"
+
+        dd_to_otel_mapping: List[List[Optional[str]]] = [
+            ["dd_trace_propagation_style", "otel_propagators"],
+            ["dd_trace_sample_rate", "otel_traces_sampler"],
+            ["dd_trace_enabled", "otel_traces_exporter"],
+            ["dd_runtime_metrics_enabled", "otel_metrics_exporter"],
+            ["dd_tags", "otel_resource_attributes"],
+            ["dd_trace_otel_enabled", "otel_sdk_disabled"],
+            [ddlog_config, "otel_log_level"],
+            ["dd_trace_sample_rate", otelsampler_config],
+            [None, "otel_logs_exporter"],
         ]
 
-        for expected in expected_invalid_tags:
-            assert any(all(tag in metric["tags"] for tag in expected) for metric in otelInvalid)
-
-        for metric in otelInvalid:
-            assert metric["points"][0][1] == 1
+        for dd_config, otel_config in dd_to_otel_mapping:
+            for metric in otel_invalid:
+                if (
+                    dd_config is None or f"config_datadog:{dd_config}" in metric["tags"]
+                ) and f"config_opentelemetry:{otel_config}" in metric["tags"]:
+                    assert metric["points"][0][1] == 1
+                    break
+            else:
+                assert (
+                    False
+                ), f"Could not find a metric with {dd_config} and {otel_config} in otel_invalid metrics: {otel_invalid}"
 
 
 DEFAULT_ENVVARS = {

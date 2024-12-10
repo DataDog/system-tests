@@ -9,7 +9,9 @@ from tests.appsec.rasp.utils import (
     validate_stack_traces,
     find_series,
     validate_metric,
+    validate_metric_variant,
     Base_Rules_Version,
+    Base_WAF_Version,
 )
 
 
@@ -173,6 +175,31 @@ class Test_Shi_Telemetry:
         ]
 
 
+@rfc("https://docs.google.com/document/d/1DDWy3frMXDTAbk-BfnZ1FdRwuPx6Pl7AWyR4zjqRFZw")
+@features.rasp_shell_injection
+@scenarios.appsec_rasp
+class Test_Shi_Telemetry_Variant_Tag:
+    """Validate Telemetry data variant tag on exploit attempts"""
+
+    def setup_shi_telemetry(self):
+        self.r = weblog.get("/rasp/shi", params={"list_dir": "$(cat /etc/passwd 1>&2 ; echo .)"})
+
+    def test_shi_telemetry(self):
+        assert self.r.status_code == 403
+
+        series_eval = find_series(True, "appsec", "rasp.rule.eval")
+        assert series_eval
+        assert any(validate_metric_variant("rasp.rule.eval", "command_injection", "shell", s) for s in series_eval), [
+            s.get("tags") for s in series_eval
+        ]
+
+        series_match = find_series(True, "appsec", "rasp.rule.match")
+        assert series_match
+        assert any(validate_metric_variant("rasp.rule.match", "command_injection", "shell", s) for s in series_match), [
+            s.get("tags") for s in series_match
+        ]
+
+
 @rfc("https://docs.google.com/document/d/1gCXU3LvTH9en3Bww0AC2coSJWz1m7HcavZjvMLuDCWg/edit#heading=h.giijrtyn1fdx")
 @features.rasp_shell_injection
 @scenarios.remote_config_mocked_backend_asm_dd
@@ -188,3 +215,10 @@ class Test_Shi_Rules_Version(Base_Rules_Version):
     """Test shi min rules version"""
 
     min_version = "1.13.1"
+
+
+@features.rasp_local_file_inclusion
+class Test_Shi_Waf_Version(Base_WAF_Version):
+    """Test shi WAF version"""
+
+    min_version = "1.20.1"
