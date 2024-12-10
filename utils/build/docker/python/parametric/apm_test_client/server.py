@@ -120,6 +120,8 @@ def trace_config() -> TraceConfigReturn:
             "dd_version": config.version,
             "dd_trace_rate_limit": str(config._trace_rate_limit),
             "dd_trace_agent_url": config._trace_agent_url,
+            "dd_dogstatsd_host": config._stats_agent_hostname,
+            "dd_dogstatsd_port": config._stats_agent_port,
         }
     )
 
