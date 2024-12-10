@@ -531,7 +531,11 @@ class scenarios:
     )
     tracing_config_nondefault_3 = EndToEndScenario(
         "TRACING_CONFIG_NONDEFAULT_3",
-        weblog_env={"DD_TRACE_HTTP_CLIENT_TAG_QUERY_STRING": "false"},
+        weblog_env={
+            "DD_TRACE_HTTP_CLIENT_TAG_QUERY_STRING": "false",
+            "DD_TRACE_CLIENT_IP_ENABLED": "false",
+            "DD_TRACE_CLIENT_IP_HEADER": "custom-ip-header",
+        },
         doc="",
         scenario_groups=[ScenarioGroup.TRACING_CONFIG],
     )
