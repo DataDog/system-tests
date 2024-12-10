@@ -36,11 +36,11 @@ fi
 
 source venv/bin/activate
 
-echo "Running black formatter..."
+echo "Running ruff formatter..."
 if [ "$COMMAND" == "fix" ]; then
-  black --quiet .
+  ruff format
 else
-  black --check --diff .
+  ruff format --check --diff
 fi
 
 echo "Running mypy type checks..."
