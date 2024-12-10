@@ -143,7 +143,8 @@ class Test_Debugger_PII_Redaction(debugger._Base_Debugger_Test):
         not_found = list(set(should_redact_field_names))
 
         for probe_id in self.probe_ids:
-            snapshot = self.probe_snapshots[probe_id][0]["debugger"]["snapshot"]
+            base = self.probe_snapshots[probe_id][0]
+            snapshot = base.get("debugger", {}).get("snapshot") or base['debugger.snapshot']
 
             for field_name in should_redact_field_names:
                 if line_probe:
@@ -178,7 +179,8 @@ class Test_Debugger_PII_Redaction(debugger._Base_Debugger_Test):
         not_redacted = []
 
         for probe_id in self.probe_ids:
-            snapshot = self.probe_snapshots[probe_id][0]["debugger"]["snapshot"]
+            base = self.probe_snapshots[probe_id][0]
+            snapshot = base.get("debugger", {}).get("snapshot") or base['debugger.snapshot']
 
             for type_name in should_redact_types:
                 if line_probe:
@@ -218,7 +220,7 @@ class Test_Debugger_PII_Redaction(debugger._Base_Debugger_Test):
         context.library != "ruby", reason="Ruby DI does not provide the functionality required for the test."
     )
     def test_pii_redaction_line_full(self):
-        self._assert(REDACTED_KEYS, REDACTED_TYPES)
+        self._assert(REDACTED_KEYS, REDACTED_TYPES, line_probe=True)
 
     ############ old versions ############
     def filter(keys_to_filter):
