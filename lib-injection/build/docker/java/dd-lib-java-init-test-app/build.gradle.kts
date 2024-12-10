@@ -34,10 +34,6 @@ val dockerImageTag: String by project
 tasks.named<BootBuildImage>("bootBuildImage") {
     imageName = "${resolvedDockerImageRepo}:${dockerImageTag}"
 
-    // Builder and runner copied to ghcr.io to avoid docker.io rate limits
-    // alternative was to rebuild buildpacks directly which is a bit overkill
-    // skopeo copy --all docker://docker.io/paketobuildpacks/builder-jammy-java-tiny:0.0.11 docker://ghcr.io/datadog/system-tests/java-paketobuildpacks-builder:0.0.11
-    // skopeo copy --all docker://docker.io/paketobuildpacks/run-jammy-tiny:0.2.55 docker://ghcr.io/datadog/system-tests/java-paketobuildpacks-runner:0.2.55
-    builder = "ghcr.io/datadog/system-tests/java-paketobuildpacks-builder:0.0.11"
-    runImage = "ghcr.io/datadog/system-tests/java-paketobuildpacks-runner:0.2.55"
+    builder = "669783387624.dkr.ecr.us-east-1.amazonaws.com/dockerhub/paketobuildpacks/builder-jammy-java-tiny:0.0.11"
+    runImage = "669783387624.dkr.ecr.us-east-1.amazonaws.com/dockerhub/paketobuildpacks/run-jammy-tiny:0.2.55"
 }
