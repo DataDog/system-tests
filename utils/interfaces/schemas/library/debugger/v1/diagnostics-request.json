@@ -11,50 +11,76 @@
         }
       },
       "content": {
-        "type": "array",
-        "items": {
-          "type": "object",
-          "properties": {
-            "ddsource": { "type": "string" },
-            "debugger": { 
-              "type": "object",
-              "properties": {
-                "diagnostics" : {
-                  "type": "object",
-                  "properties": {
-                    "probeId": { "type": "string" },
-                    "probeVersion": { "type": "number" },
-                    "runtimeId": { "type": "string" },
-                    "status": { "enum": ["RECEIVED", "INSTALLED", "EMITTING", "ERROR", "BLOCKED"] }
-                  },
-                  "required": [
-                    "probeId",
-                    "probeVersion",
-                    "runtimeId",
-                    "status"
-                  ]
-                }
-              },
-              "required": [
-                "diagnostics"
-              ]
+        "allOf": [
+          {
+            "if": {
+              "type": "object"
             },
-            "message": { "type": "string" },
-            "service": { "type": "string" },
-            "timestamp": { "type": "number" }
+            "then": {
+              "type": "object",
+              "$ref": "#/$defs/diagnosticsObject"
+            }
           },
-          "required": [
-            "ddsource",
-            "debugger",
-            "message",
-            "service"
-          ]
-        }
+          {
+            "if": {
+              "type": "array"
+            },
+            "then": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/diagnosticsObject"
+              }
+            }
+          },
+          {
+            "type": ["object", "array"]
+          }
+        ]
       }
     },
     "required": [
       "headers",
       "content"
     ]
+  },
+  "$defs": {
+    "diagnosticsObject": {
+      "type": "object",
+      "properties": {
+        "ddsource": { "type": "string" },
+        "debugger": {
+          "type": "object",
+          "properties": {
+            "diagnostics" : {
+              "type": "object",
+              "properties": {
+                "probeId": { "type": "string" },
+                "probeVersion": { "type": "number" },
+                "runtimeId": { "type": "string" },
+                "status": { "enum": ["RECEIVED", "INSTALLED", "EMITTING", "ERROR", "BLOCKED"] }
+              },
+              "required": [
+                "probeId",
+                "probeVersion",
+                "runtimeId",
+                "status"
+              ]
+            }
+          },
+          "required": [
+            "diagnostics"
+          ]
+        },
+        "message": { "type": "string" },
+        "service": { "type": "string" },
+        "timestamp": { "type": "number" }
+      },
+      "required": [
+        "ddsource",
+        "debugger",
+        "message",
+        "service"
+      ]
+    }
   }
 }
