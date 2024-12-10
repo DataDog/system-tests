@@ -218,7 +218,7 @@ class Test_Debugger_PII_Redaction(debugger._Base_Debugger_Test):
     @missing_feature(
         context.library != "ruby", reason="Ruby DI does not provide the functionality required for the test."
     )
-    def pii_redaction_line_full(self):
+    def test_pii_redaction_line_full(self):
         self._assert(REDACTED_KEYS, REDACTED_TYPES)
 
     ############ old versions ############
