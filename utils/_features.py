@@ -2269,8 +2269,7 @@ class features:
 
     @staticmethod
     def adaptive_sampling(test_object):
-        """
-        Adaptive sampling rules + RC
+        """Adaptive sampling rules + RC
 
         https://feature-parity.us1.prod.dog/#/?feature=346
         """
