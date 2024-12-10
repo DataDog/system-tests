@@ -53,7 +53,7 @@ _NETWORK_NAME = "bridge" if "GITLAB_CI" in os.environ else _DEFAULT_NETWORK_NAME
 
 
 def create_network():
-    for _ in _get_client().networks.list(names=[_NETWORK_NAME,]):
+    for _ in _get_client().networks.list(names=[_NETWORK_NAME]):
         logger.debug(f"Network {_NETWORK_NAME} still exists")
         return
 
@@ -193,7 +193,7 @@ class TestedContainer:
     def check_circular_dependencies(self, seen: list):
         """Check if the container has a circular dependency"""
         if self in seen:
-            dependencies = " -> ".join([s.name for s in seen] + [self.name,])
+            dependencies = " -> ".join([s.name for s in seen] + [self.name])
             raise RuntimeError(f"Circular dependency detected between containers: {dependencies}")
 
         seen.append(self)
@@ -504,7 +504,7 @@ class ProxyContainer(TestedContainer):
             },
             working_dir="/app",
             volumes={
-                f"./{host_log_folder}/interfaces/": {"bind": f"/app/{host_log_folder}/interfaces", "mode": "rw",},
+                f"./{host_log_folder}/interfaces/": {"bind": f"/app/{host_log_folder}/interfaces", "mode": "rw"},
                 "./utils/": {"bind": "/app/utils/", "mode": "ro"},
             },
             ports={"11111/tcp": ("127.0.0.1", 11111)},
@@ -856,7 +856,7 @@ class PostgresContainer(SqlDbTestedContainer):
             image_name="postgres:alpine",
             name="postgres",
             host_log_folder=host_log_folder,
-            healthcheck={"test": "pg_isready -q -U postgres -d system_tests_dbname", "retries": 30,},
+            healthcheck={"test": "pg_isready -q -U postgres -d system_tests_dbname", "retries": 30},
             user="postgres",
             environment={"POSTGRES_PASSWORD": "password", "PGPORT": "5433"},
             volumes={
@@ -903,7 +903,7 @@ class KafkaContainer(TestedContainer):
             },
             allow_old_container=True,
             healthcheck={
-                "test": ["CMD-SHELL", "/opt/kafka/bin/kafka-topics.sh --bootstrap-server 127.0.0.1:9092 --list",],
+                "test": ["CMD-SHELL", "/opt/kafka/bin/kafka-topics.sh --bootstrap-server 127.0.0.1:9092 --list"],
                 "start_period": 1 * 1_000_000_000,
                 "interval": 1 * 1_000_000_000,
                 "timeout": 1 * 1_000_000_000,
@@ -1024,7 +1024,7 @@ class OpenTelemetryCollectorContainer(TestedContainer):
             name="collector",
             command="--config=/etc/otelcol-config.yml",
             environment={},
-            volumes={self._otel_config_host_path: {"bind": "/etc/otelcol-config.yml", "mode": "ro",}},
+            volumes={self._otel_config_host_path: {"bind": "/etc/otelcol-config.yml", "mode": "ro"}},
             host_log_folder=host_log_folder,
             ports={"13133/tcp": ("0.0.0.0", 13133)},  # noqa: S104
         )
@@ -1074,7 +1074,7 @@ class APMTestAgentContainer(TestedContainer):
             },
             ports={agent_port: ("127.0.0.1", agent_port)},
             allow_old_container=False,
-            volumes={f"./{host_log_folder}/interfaces/test_agent_socket": {"bind": "/var/run/datadog/", "mode": "rw",}},
+            volumes={f"./{host_log_folder}/interfaces/test_agent_socket": {"bind": "/var/run/datadog/", "mode": "rw"}},
         )
 
 
@@ -1085,7 +1085,7 @@ class MountInjectionVolume(TestedContainer):
             name=name,
             host_log_folder=host_log_folder,
             command="/bin/true",
-            volumes={_VOLUME_INJECTOR_NAME: {"bind": "/datadog-init/package", "mode": "rw"},},
+            volumes={_VOLUME_INJECTOR_NAME: {"bind": "/datadog-init/package", "mode": "rw"}},
         )
 
     def _lib_init_image(self, lib_init_image):
@@ -1110,7 +1110,7 @@ class WeblogInjectionInitContainer(TestedContainer):
             host_log_folder=host_log_folder,
             ports={"18080": ("127.0.0.1", 8080)},
             allow_old_container=True,
-            volumes={_VOLUME_INJECTOR_NAME: {"bind": "/datadog-lib", "mode": "rw"},},
+            volumes={_VOLUME_INJECTOR_NAME: {"bind": "/datadog-lib", "mode": "rw"}},
         )
 
     def set_environment_for_library(self, library):
@@ -1130,10 +1130,10 @@ class DockerSSIContainer(TestedContainer):
             name="weblog-injection",
             host_log_folder=host_log_folder,
             ports={"18080": ("127.0.0.1", 18080), "8080": ("127.0.0.1", 8080), "9080": ("127.0.0.1", 9080)},
-            healthcheck={"test": "sh /healthcheck.sh", "retries": 60,},
+            healthcheck={"test": "sh /healthcheck.sh", "retries": 60},
             allow_old_container=False,
             environment={"DD_DEBUG": "true", "DD_TRACE_SAMPLE_RATE": 1, "DD_TELEMETRY_METRICS_INTERVAL_SECONDS": "0.5"},
-            volumes={f"./{host_log_folder}/interfaces/test_agent_socket": {"bind": "/var/run/datadog/", "mode": "rw",}},
+            volumes={f"./{host_log_folder}/interfaces/test_agent_socket": {"bind": "/var/run/datadog/", "mode": "rw"}},
         )
 
     def get_env(self, env_var):
@@ -1148,7 +1148,7 @@ class DummyServerContainer(TestedContainer):
             image_name="jasonrm/dummy-server:latest",
             name="http-app",
             host_log_folder=host_log_folder,
-            healthcheck={"test": "wget http://localhost:8080", "retries": 10,},
+            healthcheck={"test": "wget http://localhost:8080", "retries": 10},
         )
 
 
@@ -1161,7 +1161,7 @@ class EnvoyContainer(TestedContainer):
             image_name="envoyproxy/envoy:v1.31-latest",
             name="envoy",
             host_log_folder=host_log_folder,
-            volumes={"./tests/external_processing/envoy.yaml": {"bind": "/etc/envoy/envoy.yaml", "mode": "ro",}},
+            volumes={"./tests/external_processing/envoy.yaml": {"bind": "/etc/envoy/envoy.yaml", "mode": "ro"}},
             ports={"80": ("127.0.0.1", weblog.port)},
             # healthcheck={"test": "wget http://localhost:9901/ready", "retries": 10,},  # no wget on envoy
         )
@@ -1181,8 +1181,8 @@ class ExternalProcessingContainer(TestedContainer):
             image_name=image,
             name="extproc",
             host_log_folder=host_log_folder,
-            environment={"DD_APPSEC_ENABLED": "true", "DD_AGENT_HOST": "proxy", "DD_TRACE_AGENT_PORT": 8126,},
-            healthcheck={"test": "wget -qO- http://localhost:80/", "retries": 10,},
+            environment={"DD_APPSEC_ENABLED": "true", "DD_AGENT_HOST": "proxy", "DD_TRACE_AGENT_PORT": 8126},
+            healthcheck={"test": "wget -qO- http://localhost:80/", "retries": 10},
         )
 
     def post_start(self):

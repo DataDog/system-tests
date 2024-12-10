@@ -369,7 +369,7 @@ class Ubuntu22arm64(_VirtualMachine):
         super().__init__(
             "Ubuntu_22_arm64",
             aws_config=_AWSConfig(ami_id="ami-016485166ec7fa705", ami_instance_type="t4g.medium", user="ubuntu"),
-            vagrant_config=_VagrantConfig(box_name="perk/ubuntu-2204-arm64",),
+            vagrant_config=_VagrantConfig(box_name="perk/ubuntu-2204-arm64"),
             krunvm_config=_KrunVmConfig(oci_image_name="docker.io/library/ubuntu_datadog:22"),
             os_type="linux",
             os_distro="deb",

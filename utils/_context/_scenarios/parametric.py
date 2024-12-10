@@ -270,7 +270,7 @@ class ParametricScenario(Scenario):
     def create_docker_network(self, test_id: str) -> Network:
         docker_network_name = f"{_NETWORK_PREFIX}_{test_id}"
 
-        return _get_client().networks.create(name=docker_network_name, driver="bridge",)
+        return _get_client().networks.create(name=docker_network_name, driver="bridge")
 
     @staticmethod
     def get_host_port(worker_id: str, base_port: int) -> int:

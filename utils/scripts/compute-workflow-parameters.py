@@ -130,7 +130,7 @@ def main(language: str, scenarios: str, groups: str):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(prog="get-github-parameters", description="Get scenarios and weblog to run",)
+    parser = argparse.ArgumentParser(prog="get-github-parameters", description="Get scenarios and weblog to run")
     parser.add_argument(
         "language",
         type=str,

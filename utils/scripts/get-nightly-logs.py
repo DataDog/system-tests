@@ -112,7 +112,7 @@ def main(
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(prog="grep-nightly-logs", description="Get logs artifact from nighty jobs",)
+    parser = argparse.ArgumentParser(prog="grep-nightly-logs", description="Get logs artifact from nighty jobs")
     parser.add_argument("-r", "--run-id", type=int, help="The run id of the nightly job", required=False)
     parser.add_argument("params", type=str, nargs="+", help="Keys in artifact name")
     args = parser.parse_args()

@@ -151,13 +151,13 @@ class AWSPulumiProvider(VmProvider):
         if len(names_filter_to_check) > 0:
             # Check for existing ami cache for the vms
             ami_existing = aws.ec2.get_ami_ids(
-                filters=[aws.ec2.GetAmiIdsFilterArgs(name="name", values=names_filter_to_check,)], owners=["self"],
+                filters=[aws.ec2.GetAmiIdsFilterArgs(name="name", values=names_filter_to_check)], owners=["self"],
             )
             # We found some cached AMIsm let's check the details: status, expiration, etc
             for ami in ami_existing.ids:
                 # Latest ami details
                 ami_recent = aws.ec2.get_ami(
-                    filters=[aws.ec2.GetAmiIdsFilterArgs(name="image-id", values=[ami],)],
+                    filters=[aws.ec2.GetAmiIdsFilterArgs(name="image-id", values=[ami])],
                     owners=["self"],
                     most_recent=True,
                 )
@@ -232,7 +232,7 @@ class AWSPulumiProvider(VmProvider):
     def _print_running_instances(self):
         """Print the instances created by system-tests and still running in the AWS account"""
 
-        instances = aws.ec2.get_instances(instance_tags={"CI": "system-tests",}, instance_state_names=["running"])
+        instances = aws.ec2.get_instances(instance_tags={"CI": "system-tests"}, instance_state_names=["running"])
 
         logger.info(f"AWS Listing running instances with system-tests tag")
         for instance_id in instances.ids:
@@ -246,12 +246,12 @@ class AWSPulumiProvider(VmProvider):
         try:
             logger.info(f"AWS Listing available ami caches with system-tests tag")
             ami_existing = aws.ec2.get_ami_ids(
-                filters=[aws.ec2.GetAmiIdsFilterArgs(name="tag:CI", values=["system-tests"],)], owners=["self"],
+                filters=[aws.ec2.GetAmiIdsFilterArgs(name="tag:CI", values=["system-tests"])], owners=["self"],
             )
             for ami in ami_existing.ids:
                 # Latest ami details
                 ami_recent = aws.ec2.get_ami(
-                    filters=[aws.ec2.GetAmiIdsFilterArgs(name="image-id", values=[ami],)],
+                    filters=[aws.ec2.GetAmiIdsFilterArgs(name="image-id", values=[ami])],
                     owners=["self"],
                     most_recent=True,
                 )

@@ -99,7 +99,7 @@ def main(
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(prog="grep-nightly-logs", description="Grep into nightly logs to find a pattern",)
+    parser = argparse.ArgumentParser(prog="grep-nightly-logs", description="Grep into nightly logs to find a pattern")
     parser.add_argument(
         "--language",
         "-l",
