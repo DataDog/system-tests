@@ -232,6 +232,24 @@ class Test_Config_ClientIPHeader_Configured:
         assert _get_span_by_tags(trace, expected_tags), f"Span with tags {expected_tags} not found in {trace}"
 
 
+@scenarios.tracing_config_nondefault_3
+@features.tracing_configuration_consistency
+class Test_Config_ClientIPHeaderEnabled_False:
+    """Verify headers containing ips are not tagged when DD_TRACE_CLIENT_IP_ENABLED=false
+    and DD_TRACE_CLIENT_IP_HEADER=custom-ip-header"""
+
+    def setup_ip_headers_sent_in_one_request(self):
+        self.req = weblog.get(
+            "/make_distant_call", params={"url": "http://weblog:7777"}, headers={"custom-ip-header": "5.6.7.9"}
+        )
+
+    def test_ip_headers_sent_in_one_request(self):
+        trace = [span for _, _, span in interfaces.library.get_spans(self.req, full_trace=True)]
+        print(trace)
+        expected_tags = {"http.client_ip": "5.6.7.9"}
+        assert _get_span_by_tags(trace, expected_tags) == {}
+
+
 @scenarios.tracing_config_nondefault
 @features.tracing_configuration_consistency
 class Test_Config_ClientIPHeader_Precedence:
