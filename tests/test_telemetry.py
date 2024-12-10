@@ -618,11 +618,17 @@ class Test_TelemetryV2:
         4) (Discouraged) Add a language-specific rule to <lang>_config_rules.json
 
         Once dd-go is updated, you can copy over the files to this repo and merge them in as part of your changes
+        This can be done by running the following from the src root
+
+        Usage: ./tests/telemetry_intake/update.sh
         """
 
         def load_telemetry_json(filename):
             with open(f"tests/telemetry_intake/static/{filename}.json", encoding="utf-8") as fh:
                 return json.load(fh)
+
+        def lowercase_all(lst: list[str]):
+            return [x.lower() for x in lst]
 
         config_norm_rules = load_telemetry_json("config_norm_rules")
         config_prefix_block_list = load_telemetry_json("config_prefix_block_list")
@@ -649,17 +655,26 @@ class Test_TelemetryV2:
                 ]
                 config_aggregation_prefixes = [*config_aggregation_list] + [*(lang_config.get("reduce_rules") or {})]
 
-                def find_missing_keys(key):
-                    is_allowed = key in allowed_config_keys or key in allowed_config_values
-                    is_blocked = any(key.startswith(prefix) for prefix in blocked_config_key_prefixes)
-                    is_reduced = any(key.startswith(prefix) for prefix in config_aggregation_prefixes)
-
-                    return not is_allowed and not is_blocked and not is_reduced
-
                 configuration = data["request"]["content"]["payload"]["configuration"]
                 library_config_keys = sorted([config["name"] for config in configuration if "name" in config])
 
-                missing_config_keys = [*filter(lambda key: find_missing_keys(key), library_config_keys)]
+                def find_missing_keys_case_insensitive(key):
+                    lower_key = key.lower()
+                    is_allowed = lower_key in lowercase_all(allowed_config_keys) or lower_key in lowercase_all(
+                        allowed_config_values
+                    )
+                    is_blocked = any(
+                        lower_key.startswith(prefix) for prefix in lowercase_all(blocked_config_key_prefixes)
+                    )
+                    is_reduced = any(
+                        lower_key.startswith(prefix) for prefix in lowercase_all(config_aggregation_prefixes)
+                    )
+
+                    return not is_allowed and not is_blocked and not is_reduced
+
+                missing_config_keys = [
+                    *filter(lambda key: find_missing_keys_case_insensitive(key), library_config_keys)
+                ]
 
                 # This may create a fairly large test output, but it makes the output more actionable
                 assert len(missing_config_keys) == 0, f"Found unexpected config telemetry keys {missing_config_keys}"

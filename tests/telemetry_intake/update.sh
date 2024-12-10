@@ -2,11 +2,10 @@
 
 # Define variables
 REPO_URL="https://github.com/DataDog/dd-go.git"
-TARGET_DIR="$(PWD)/static"
+SCRIPT_DIR=$(dirname "$(realpath "$0")")
+TARGET_DIR="$SCRIPT_DIR/static"
 SUBDIR="trace/apps/tracer-telemetry-intake/telemetry-payload/static/"
 BRANCH="prod"  # Specify the branch to fetch
-
-echo "$TARGET_DIR"
 
 # Create a temporary directory for cloning
 TEMP_DIR=$(mktemp -d)
