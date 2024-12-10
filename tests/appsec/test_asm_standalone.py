@@ -1,5 +1,5 @@
 import json
-
+import time
 from requests.structures import CaseInsensitiveDict
 
 from utils.telemetry_utils import TelemetryUtils
@@ -710,6 +710,8 @@ class Test_SCAStandalone_Telemetry:
 
     def setup_app_dependencies_loaded(self):
         self.r = weblog.get("/load_dependency")
+        METRIC_FLUSH_INTERVAL = 10  # This is constant by design
+        time.sleep(METRIC_FLUSH_INTERVAL * 7)
 
     @missing_feature(context.library == "nodejs" and context.weblog_variant == "nextjs")
     def test_app_dependencies_loaded(self):
