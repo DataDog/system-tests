@@ -160,8 +160,6 @@ def send_sequential_commands(commands: list[dict], wait_for_all_command: bool = 
 
 
 def build_debugger_command(probes: list, version: int):
-    library_name = context.scenario.library.library
-
     def _json_to_base64(json_object):
         json_string = json.dumps(json_object).encode("utf-8")
         base64_string = base64.b64encode(json_string).decode("utf-8")
@@ -169,18 +167,6 @@ def build_debugger_command(probes: list, version: int):
 
     def _sha256(value):
         return hashlib.sha256(base64.b64decode(value)).hexdigest()
-
-    def _get_probe_type(probe_id):
-        if probe_id.startswith("log"):
-            return "logProbe"
-        if probe_id.startswith("metric"):
-            return "metricProbe"
-        if probe_id.startswith("span"):
-            return "spanProbe"
-        if probe_id.startswith("decor"):
-            return "spanDecorationProbe"
-
-        return "not_supported"
 
     rcm = {"targets": "", "target_files": [], "client_configs": []}
 
@@ -210,45 +196,12 @@ def build_debugger_command(probes: list, version: int):
             target = {"custom": {"v": 1}, "hashes": {"sha256": ""}, "length": 0}
             target_file = {"path": "", "raw": ""}
 
-            probe["language"] = library_name
-
-            if probe["where"]["typeName"] == "ACTUAL_TYPE_NAME":
-                if library_name == "dotnet":
-                    probe["where"]["typeName"] = "weblog.DebuggerController"
-                elif library_name == "java":
-                    probe["where"]["typeName"] = "DebuggerController"
-                    probe["where"]["methodName"] = (
-                        probe["where"]["methodName"][0].lower() + probe["where"]["methodName"][1:]
-                    )
-                elif library_name == "python":
-                    probe["where"]["typeName"] = "debugger_controller"
-                    probe["where"]["methodName"] = re.sub(
-                        r"([a-z])([A-Z])", r"\1_\2", probe["where"]["methodName"]
-                    ).lower()
-                elif library_name == "ruby":
-                    probe["where"]["typeName"] = "DebuggerController"
-                    probe["where"]["methodName"] = re.sub(
-                        r"([a-z])([A-Z])", r"\1_\2", probe["where"]["methodName"]
-                    ).lower()
-            elif probe["where"]["sourceFile"] == "ACTUAL_SOURCE_FILE":
-                if library_name == "dotnet":
-                    probe["where"]["sourceFile"] = "DebuggerController.cs"
-                elif library_name == "java":
-                    probe["where"]["sourceFile"] = "DebuggerController.java"
-                elif library_name == "python":
-                    probe["where"]["sourceFile"] = "debugger_controller.py"
-                elif library_name == "ruby":
-                    probe["where"]["sourceFile"] = "debugger_controller.rb"
-
-            logger.debug(f"RC probe is:\n{json.dumps(probe, indent=2)}")
-            probe_type = _get_probe_type(probe["id"])
-            probe["type"] = re.sub(r"(?<!^)(?=[A-Z])", "_", probe_type).upper()
             probe_64 = _json_to_base64(probe)
-
-            path = "datadog/2/LIVE_DEBUGGING/" + probe_type + "_" + probe["id"] + "/config"
-
             target["hashes"]["sha256"] = _sha256(probe_64)
             target["length"] = len(json.dumps(probe).encode("utf-8"))
+
+            probe_path = re.sub(r"_([a-z])", lambda match: match.group(1).upper(), probe["type"].lower())
+            path = "datadog/2/LIVE_DEBUGGING/" + probe_path + "_" + probe["id"] + "/config"
             signed["signed"]["targets"][path] = target
 
             target_file["path"] = path

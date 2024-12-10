@@ -550,30 +550,12 @@ class scenarios:
         scenario_groups=[ScenarioGroup.DEBUGGER],
     )
 
-    debugger_method_probes_snapshot = EndToEndScenario(
-        "DEBUGGER_METHOD_PROBES_SNAPSHOT",
-        rc_api_enabled=True,
-        weblog_env={"DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1", "DD_REMOTE_CONFIG_ENABLED": "true",},
-        library_interface_timeout=30,
-        doc="Test scenario for checking if debugger successfully generates snapshots for specific method probes",
-        scenario_groups=[ScenarioGroup.DEBUGGER],
-    )
-
-    debugger_line_probes_snapshot = EndToEndScenario(
-        "DEBUGGER_LINE_PROBES_SNAPSHOT",
-        rc_api_enabled=True,
-        weblog_env={"DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1", "DD_REMOTE_CONFIG_ENABLED": "true",},
-        library_interface_timeout=30,
-        doc="Test scenario for checking if debugger successfully generates snapshots for specific line probes",
-        scenario_groups=[ScenarioGroup.DEBUGGER],
-    )
-
-    debugger_mix_log_probe = EndToEndScenario(
-        "DEBUGGER_MIX_LOG_PROBE",
+    debugger_probes_snapshot = EndToEndScenario(
+        "DEBUGGER_PROBES_SNAPSHOT",
         rc_api_enabled=True,
         weblog_env={"DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1", "DD_REMOTE_CONFIG_ENABLED": "true",},
         library_interface_timeout=5,
-        doc="Set both method and line probes at the same code",
+        doc="Test scenario for checking if debugger successfully generates snapshots for probes",
         scenario_groups=[ScenarioGroup.DEBUGGER],
     )
 
