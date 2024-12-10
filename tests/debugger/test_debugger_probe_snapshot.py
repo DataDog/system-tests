@@ -4,7 +4,7 @@
 
 import tests.debugger.utils as debugger
 
-from utils import scenarios, features, bug, missing_feature, context
+from utils import scenarios, features, bug, missing_feature, context, irrelevant
 
 
 @features.debugger
@@ -12,6 +12,8 @@ from utils import scenarios, features, bug, missing_feature, context
 class Test_Debugger_Probe_Snaphots(debugger._Base_Debugger_Test):
     ############ setup ############
     def _setup(self, probes_name: str, request_path: str):
+        self.initialize_weblog_remote_config()
+
         ### prepare probes
         probes = debugger.read_probes(probes_name)
         self.set_probes(probes)
@@ -55,6 +57,7 @@ class Test_Debugger_Probe_Snaphots(debugger._Base_Debugger_Test):
         self._setup("probe_snapshot_span_method", "/debugger/span")
 
     @bug(library="python", reason="DEBUG-2708, DEBUG-2709")
+    @irrelevant(context.library == "ruby", reason="Not yet implemented")
     def test_span_method_probe_snaphots(self):
         self._assert()
         self._validate_spans()
@@ -64,7 +67,7 @@ class Test_Debugger_Probe_Snaphots(debugger._Base_Debugger_Test):
         self._setup("probe_snapshot_span_decoration_method", "/debugger/span-decoration/asd/1")
 
     @bug(library="python", reason="DEBUG-2708, DEBUG-2709")
-    @missing_feature(context.library == "ruby", reason="Not yet implemented")
+    @irrelevant(context.library == "ruby", reason="Not yet implemented")
     def test_span_decoration_method_probe_snaphots(self):
         self._assert()
         self._validate_spans()
@@ -82,7 +85,7 @@ class Test_Debugger_Probe_Snaphots(debugger._Base_Debugger_Test):
     def setup_span_decoration_line_probe_snaphots(self):
         self._setup("probe_snapshot_span_decoration_line", "/debugger/span-decoration/asd/1")
 
-    @missing_feature(context.library == "ruby", reason="Not yet implemented")
+    @irrelevant(context.library == "ruby", reason="Not yet implemented")
     def test_span_decoration_line_probe_snaphots(self):
         self._assert()
         self._validate_spans()
