@@ -5,7 +5,7 @@ REPO_URL="https://github.com/DataDog/dd-go.git"
 SCRIPT_DIR=$(dirname "$(realpath "$0")")
 TARGET_DIR="$SCRIPT_DIR/static"
 SUBDIR="trace/apps/tracer-telemetry-intake/telemetry-payload/static/"
-BRANCH="prod"  # Specify the branch to fetch
+BRANCH="bm1549/handle-missing-configs"  # This should ALWAYS be "prod" in master. Please revert changes before merging
 
 # Create a temporary directory for cloning
 TEMP_DIR=$(mktemp -d)

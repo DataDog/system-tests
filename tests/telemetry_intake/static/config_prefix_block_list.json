@@ -8,6 +8,7 @@
     "dd_profiling_apikey",
     "N/A",
     "DD_API_KEY",
+    "api_key",
     "DD_APPLICATION_KEY",
     "DD_TRACE_HttpMessageHandler_",
     "DD_HttpMessageHandler_",
@@ -228,6 +229,7 @@
     "trace.yii_enabled",
     "trace.yii_analytics_enabled",
     "trace.yii_analytics_sample_rate",
+    "DD_PROFILING__FORCE_LEGACY_EXPORTER",
     "trace.zendframework_enabled",
     "trace.zendframework_analytics_enabled",
     "trace.zendframework_analytics_sample_rate",
@@ -239,5 +241,6 @@
     "trace.magento_analytics_sample_rate",
     "trace.exec_enabled",
     "trace.exec_analytics_enabled",
+    "dependencies_available",
     "trace.exec_analytics_sample_rate"
 ]
