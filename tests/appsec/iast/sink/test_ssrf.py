@@ -41,7 +41,7 @@ class TestSSRF(BaseSinkTest):
 )
 @features.iast_stack_trace
 class TestSSRF_StackTrace:
-    """Validate stack trace generation """
+    """Validate stack trace generation"""
 
     def setup_stack_trace(self):
         self.r = weblog.post("/iast/ssrf/test_insecure", data={"url": "https://www.datadoghq.com"})

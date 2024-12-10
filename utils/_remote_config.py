@@ -133,7 +133,6 @@ def send_sequential_commands(commands: list[dict], wait_for_all_command: bool = 
 
     def all_payload_sent(data):
         if data["path"] == "/v0.7/config":
-
             # wait for N successful responses, +1 for the ACK request from the lib
             for count in counts_by_runtime_id.values():
                 if count >= len(commands):

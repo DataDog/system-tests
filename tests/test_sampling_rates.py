@@ -11,7 +11,7 @@ from utils.tools import logger
 
 
 def priority_should_be_kept(sampling_priority):
-    """ Returns if a given sampling priority means its trace has to be kept.
+    """Returns if a given sampling priority means its trace has to be kept.
 
     See https://datadoghq.atlassian.net/wiki/spaces/APM/pages/2564915820/Trace+Ingestion+Mechanisms
     """
@@ -27,7 +27,7 @@ def trace_should_be_kept(sampling_rate, trace_id):
     Reference algorithm described in the priority sampling RFC
     https://github.com/DataDog/architecture/blob/master/rfcs/apm/integrations/priority-sampling/rfc.md
     """
-    MODULO = 2 ** 64
+    MODULO = 2**64
     KNUTH_FACTOR = 1111111111111111111
 
     return ((trace_id * KNUTH_FACTOR) % MODULO) <= (sampling_rate * MODULO)
@@ -61,9 +61,7 @@ class Test_SamplingRates:
             self.paths.append(p)
             weblog.get(p)
 
-    @bug(
-        context.library > "nodejs@3.14.1" and context.library < "nodejs@4.8.0", reason="APMRP-360",
-    )
+    @bug(context.library > "nodejs@3.14.1" and context.library < "nodejs@4.8.0", reason="APMRP-360")
     @bug(context.library < "nodejs@5.17.0", reason="APMRP-360")  # fixed version is not known
     @flaky(context.weblog_variant == "spring-boot-3-native", reason="APMAPI-736")
     @flaky(library="golang", reason="APMAPI-736")
@@ -165,17 +163,15 @@ class Test_SamplingDecisions:
     def setup_sampling_decision_added(self):
         seed(1)  # stay deterministic
 
-        self.traces = [{"trace_id": randint(1, 2 ** 64 - 1), "parent_id": randint(1, 2 ** 64 - 1)} for _ in range(20)]
+        self.traces = [{"trace_id": randint(1, 2**64 - 1), "parent_id": randint(1, 2**64 - 1)} for _ in range(20)]
 
         for trace in self.traces:
             weblog.get(
                 f"/sample_rate_route/{self.next_request_id()}",
-                headers={"x-datadog-trace-id": str(trace["trace_id"]), "x-datadog-parent-id": str(trace["parent_id"]),},
+                headers={"x-datadog-trace-id": str(trace["trace_id"]), "x-datadog-parent-id": str(trace["parent_id"])},
             )
 
-    @bug(
-        context.library > "nodejs@3.14.1" and context.library < "nodejs@4.8.0", reason="APMRP-360",
-    )
+    @bug(context.library > "nodejs@3.14.1" and context.library < "nodejs@4.8.0", reason="APMRP-360")
     def test_sampling_decision_added(self):
         """Verify that the distributed traces without sampling decisions have a sampling decision added"""
 
@@ -208,7 +204,7 @@ class Test_SamplingDecisions:
         seed(0)  # stay deterministic
 
         self.traces_determinism = [
-            {"trace_id": randint(1, 2 ** 64 - 1), "parent_id": randint(1, 2 ** 64 - 1)} for _ in range(20)
+            {"trace_id": randint(1, 2**64 - 1), "parent_id": randint(1, 2**64 - 1)} for _ in range(20)
         ]
 
         # Send requests with the same trace and parent id twice
@@ -286,7 +282,7 @@ class Test_SamplingDecisions:
             # Each request hits a different URL to help troubleshooting, it isn't required for the test.
             req = weblog.get(
                 f"/sample_rate_route/{self.next_request_id()}",
-                headers={"x-datadog-trace-id": str(trace_id), "x-datadog-parent-id": str(parent_id),},
+                headers={"x-datadog-trace-id": str(trace_id), "x-datadog-parent-id": str(parent_id)},
             )
             # Map request results so that the test can validate them.
             self.requests_expected_decision.append((req, sampling_decision))

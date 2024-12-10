@@ -129,8 +129,7 @@ class Scenario:
             self.close_targets()
             raise
 
-    def configure(self, config):
-        ...
+    def configure(self, config): ...
 
     def get_warmups(self):
         return [

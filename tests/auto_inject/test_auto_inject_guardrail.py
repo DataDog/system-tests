@@ -9,11 +9,11 @@ from utils.virtual_machine.utils import parametrize_virtual_machines
 @features.host_guardrail
 @scenarios.installer_not_supported_auto_injection
 class TestLanguageVersionNotSupported:
-    """ Test for not supported auto injection. We only check the app is working, although the auto injection is not performed."""
+    """Test for not supported auto injection. We only check the app is working, although the auto injection is not performed."""
 
     @parametrize_virtual_machines()
     def test_app_working(self, virtual_machine):
-        """ Test app is working."""
+        """Test app is working."""
         vm_ip = virtual_machine.get_ip()
         vm_port = virtual_machine.deffault_open_port
         vm_name = virtual_machine.name

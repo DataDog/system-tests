@@ -23,7 +23,7 @@ class TestXSS(BaseSinkTestWithoutTelemetry):
 )
 @features.iast_stack_trace
 class TestXSS_StackTrace:
-    """Validate stack trace generation """
+    """Validate stack trace generation"""
 
     def setup_stack_trace(self):
         self.r = weblog.post("/iast/xss/test_insecure", data={"param": "param"})

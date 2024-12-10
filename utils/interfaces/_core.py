@@ -68,7 +68,6 @@ class ProxyBasedInterfaceValidator(InterfaceValidator):
             Path(self.log_folder + "/files").mkdir(parents=True, exist_ok=True)
 
     def ingest_file(self, src_path):
-
         with self._lock:
             if src_path in self._ingested_files:
                 return
@@ -108,11 +107,9 @@ class ProxyBasedInterfaceValidator(InterfaceValidator):
                 pytest.exit(reason=f"Unexpected error while deserialize {filename}:\n {traceback}", returncode=1)
 
     def load_data_from_logs(self):
-
         for filename in sorted(listdir(self.log_folder)):
             file_path = join(self.log_folder, filename)
             if isfile(file_path):
-
                 with open(file_path, encoding="utf-8") as f:
                     data = json.load(f)
 
@@ -123,7 +120,6 @@ class ProxyBasedInterfaceValidator(InterfaceValidator):
         self._data_list.append(data)
 
     def get_data(self, path_filters=None):
-
         if path_filters is not None:
             if isinstance(path_filters, str):
                 path_filters = [path_filters]
@@ -156,7 +152,6 @@ class ProxyBasedInterfaceValidator(InterfaceValidator):
             raise ValueError("Test has not been validated by any data")
 
     def wait_for(self, wait_for_function, timeout):
-
         if self.replay:
             return
 

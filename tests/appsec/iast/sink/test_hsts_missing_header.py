@@ -32,7 +32,7 @@ class Test_HstsMissingHeader(BaseSinkTest):
 )
 @features.iast_stack_trace
 class Test_HstsMissingHeader_StackTrace:
-    """Validate stack trace generation """
+    """Validate stack trace generation"""
 
     def setup_stack_trace(self):
         self.r = weblog.get("/iast/hstsmissing/test_insecure", headers={"X-Forwarded-Proto": "https"})

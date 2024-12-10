@@ -202,7 +202,6 @@ class EndToEndScenario(DockerScenario):
         include_buddies=False,
         require_api_key=False,
     ) -> None:
-
         scenario_groups = [ScenarioGroup.ALL, ScenarioGroup.END_TO_END, ScenarioGroup.TRACER_RELEASE] + (
             scenario_groups or []
         )
@@ -399,7 +398,6 @@ class EndToEndScenario(DockerScenario):
         interfaces.library_dotnet_managed.load_data()
 
     def _wait_and_stop_containers(self):
-
         if self.replay:
             logger.terminal.write_sep("-", "Load all data from logs")
             logger.terminal.flush()

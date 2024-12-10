@@ -13,15 +13,15 @@ from utils.tools import logger
 
 
 class BaseDbIntegrationsTestClass:
-    """ define a setup function that perform a request to the weblog for each operation: select, update... """
+    """define a setup function that perform a request to the weblog for each operation: select, update..."""
 
     db_service = None
     requests = {}
 
     def _setup(self):
-        """ 
-            Make request to weblog for each operation: select, update... 
-            those requests will be permored only one time for the entire test run
+        """
+        Make request to weblog for each operation: select, update...
+        those requests will be permored only one time for the entire test run
         """
 
         assert self.db_service is not None, "db_service must be defined"
@@ -175,7 +175,7 @@ def delete_aws_resource(
 ):
     """
     Generalized function to delete AWS resources.
-    
+
     :param delete_callable: A callable to delete the AWS resource.
     :param resource_identifier: The identifier of the resource (e.g., QueueUrl, TopicArn, StreamName).
     :param resource_type: The type of the resource (e.g., SQS, SNS, Kinesis).
@@ -279,7 +279,7 @@ def fnv1_64(data):
     """
     Returns the 64 bit FNV-1 hash value for the given data.
     """
-    return fnv(data, FNV1_64_INIT, FNV_64_PRIME, 2 ** 64)
+    return fnv(data, FNV1_64_INIT, FNV_64_PRIME, 2**64)
 
 
 def compute_dsm_hash(parent_hash, tags):

@@ -125,12 +125,12 @@ class RC_CONSTANTS:
     )
     BLOCK_405 = (
         "datadog/2/ASM/actions/config",
-        {"actions": [{"id": "block", "parameters": {"status_code": 405, "type": "json"}, "type": "block_request",}]},
+        {"actions": [{"id": "block", "parameters": {"status_code": 405, "type": "json"}, "type": "block_request"}]},
     )
 
     BLOCK_505 = (
         "datadog/2/ASM/actions/config",
-        {"actions": [{"id": "block", "parameters": {"status_code": 505, "type": "html"}, "type": "block_request",}]},
+        {"actions": [{"id": "block", "parameters": {"status_code": 505, "type": "html"}, "type": "block_request"}]},
     )
 
     BLOCK_REDIRECT = (

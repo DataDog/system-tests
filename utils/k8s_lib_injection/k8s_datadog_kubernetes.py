@@ -121,7 +121,7 @@ class K8sDatadog:
         # Add the cluster agent tag version
         features["clusterAgent.image.tag"] = cluster_agent_tag
         helm_install_chart(
-            self.k8s_kind_cluster, "datadog", "datadog/datadog", value_file=operator_file, set_dict=features,
+            self.k8s_kind_cluster, "datadog", "datadog/datadog", value_file=operator_file, set_dict=features
         )
 
         self.logger.info("[Deploy datadog cluster] Waiting for the cluster to be ready")

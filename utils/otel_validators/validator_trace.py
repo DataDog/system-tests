@@ -4,6 +4,7 @@ import json
 import dictdiffer
 from utils.tools import logger
 
+
 # Validates traces from Agent, Collector and Backend intake OTLP ingestion paths are consistent
 def validate_all_traces(
     traces_agent: list[dict], traces_intake: list[dict], traces_collector: list[dict], use_128_bits_trace_id: bool

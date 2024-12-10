@@ -19,7 +19,6 @@ def _build(version):
 
 class Version(version_module.Version):
     def __init__(self, version=None, major=None, minor=None, patch=None, prerelease=None, build=None):
-
         if version is not None:
             # remove any leading "v"
             if version.startswith("v"):
@@ -87,11 +86,11 @@ class LibraryVersion:
                 base = r"\d+\.\d+\.\d+"
                 prerelease = r"[\w\d+]+"
                 build = r"[a-f0-9]+"
-                if re.match(fr"{base}[\. ]{prerelease}[\. ]{build}", version):
-                    version = re.sub(fr"({base})[\. ]({prerelease})[\. ]({build})", r"\1-\2+\3", version)
-                elif re.match(fr"{base}[\. ]{build}", version):
+                if re.match(rf"{base}[\. ]{prerelease}[\. ]{build}", version):
+                    version = re.sub(rf"({base})[\. ]({prerelease})[\. ]({build})", r"\1-\2+\3", version)
+                elif re.match(rf"{base}[\. ]{build}", version):
                     version = re.sub(rf"({base})[\. ]({build})", r"\1+\2", version)
-                elif re.match(fr"{base}[\. ]{prerelease}", version):
+                elif re.match(rf"{base}[\. ]{prerelease}", version):
                     version = re.sub(rf"({base})[\. ]({prerelease})", r"\1-\2", version)
 
             elif library == "libddwaf":
@@ -157,7 +156,6 @@ class LibraryVersion:
             raise TypeError(f"Can't compare LibraryVersion to type {type(other)}")
 
         if "@" in other:
-
             library, version = other.split("@", 1)
             self.add_known_version(library=library, version=version)
 

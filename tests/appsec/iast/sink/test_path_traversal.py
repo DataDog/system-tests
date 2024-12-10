@@ -41,7 +41,7 @@ class TestPathTraversal(BaseSinkTest):
 )
 @features.iast_stack_trace
 class TestPathTraversal_StackTrace:
-    """Validate stack trace generation """
+    """Validate stack trace generation"""
 
     def setup_stack_trace(self):
         self.r = weblog.post("/iast/path_traversal/test_insecure", data={"path": "/var/log"})

@@ -27,7 +27,7 @@ class TestWeakRandomness(BaseSinkTestWithoutTelemetry):
 )
 @features.iast_stack_trace
 class TestWeakRandomness_StackTrace:
-    """Validate stack trace generation """
+    """Validate stack trace generation"""
 
     def setup_stack_trace(self):
         self.r = weblog.get("/iast/weak_randomness/test_insecure")

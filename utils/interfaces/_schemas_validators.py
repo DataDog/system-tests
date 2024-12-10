@@ -108,7 +108,7 @@ class SchemaValidator:
             return []
 
         return [
-            SchemaError(interface_name=self.interface, endpoint=path, error=error, data=data,)
+            SchemaError(interface_name=self.interface, endpoint=path, error=error, data=data)
             for error in validator.iter_errors(data["request"]["content"])
         ]
 

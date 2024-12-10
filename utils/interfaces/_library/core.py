@@ -97,14 +97,12 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
     def get_appsec_events(self, request=None, full_trace=False):
         for data, trace, span in self.get_spans(request=request, full_trace=full_trace):
             if "appsec" in span.get("meta_struct", {}):
-
                 if request:  # do not spam log if all data are sent to the validator
                     logger.debug(f"Try to find relevant appsec data in {data['log_filename']}; span #{span['span_id']}")
 
                 appsec_data = span["meta_struct"]["appsec"]
                 yield data, trace, span, appsec_data
             elif "_dd.appsec.json" in span.get("meta", {}):
-
                 if request:  # do not spam log if all data are sent to the validator
                     logger.debug(f"Try to find relevant appsec data in {data['log_filename']}; span #{span['span_id']}")
 
@@ -120,7 +118,6 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
             events = data["request"]["content"]["events"]
             for event in events:
                 if "trace" in event["context"] and "span" in event["context"]:
-
                     if rid is None:
                         yield data, event
                     else:
@@ -140,7 +137,6 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
 
                         for user_agent in user_agents:
                             if get_rid_from_user_agent(user_agent) == rid:
-
                                 if request:  # do not spam log if all data are sent to the validator
                                     logger.debug(f"Try to find relevant appsec data in {data['log_filename']}")
 
@@ -198,7 +194,6 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
     def validate_appsec(
         self, request=None, validator=None, success_by_default=False, legacy_validator=None, full_trace=False
     ):
-
         if validator:
             for _, _, span, appsec_data in self.get_appsec_events(request=request, full_trace=full_trace):
                 if validator(span, appsec_data):
@@ -324,7 +319,7 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
         validator = _ReportedHeader(header_name)
 
         self.validate_appsec(
-            request, validator=validator.validate, legacy_validator=validator.validate_legacy, success_by_default=False,
+            request, validator=validator.validate, legacy_validator=validator.validate_legacy, success_by_default=False
         )
 
     def add_traces_validation(self, validator, success_by_default=False):

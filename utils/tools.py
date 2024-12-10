@@ -29,7 +29,6 @@ def get_log_formatter():
 
 
 def update_environ_with_local_env():
-
     # dynamically load .env file in environ if exists, it allow users to keep their conf via env vars
     try:
         with open(".env", encoding="utf-8") as f:
@@ -53,7 +52,6 @@ logging.addLevelName(DEBUG_LEVEL_STDOUT, "STDOUT")
 
 
 def stdout(self, message, *args, **kws):
-
     if self.isEnabledFor(DEBUG_LEVEL_STDOUT):
         # Yes, logger takes its '*args' as 'args'.
         self._log(DEBUG_LEVEL_STDOUT, message, args, **kws)  # pylint: disable=protected-access
@@ -115,7 +113,6 @@ def get_rid_from_request(request):
 
 
 def get_rid_from_span(span):
-
     if not isinstance(span, dict):
         logger.error(f"Span should be an object, not {type(span)}")
         return None

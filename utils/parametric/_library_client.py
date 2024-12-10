@@ -152,39 +152,25 @@ class APMLibraryClient:
         return SpanResponse(span_id=resp_json["span_id"], trace_id=resp_json["trace_id"])
 
     def finish_span(self, span_id: int) -> None:
-        self._session.post(
-            self._url("/trace/span/finish"), json={"span_id": span_id,},
-        )
+        self._session.post(self._url("/trace/span/finish"), json={"span_id": span_id})
 
     def span_set_resource(self, span_id: int, resource: str) -> None:
-        self._session.post(
-            self._url("/trace/span/set_resource"), json={"span_id": span_id, "resource": resource,},
-        )
+        self._session.post(self._url("/trace/span/set_resource"), json={"span_id": span_id, "resource": resource})
 
     def span_set_meta(self, span_id: int, key: str, value) -> None:
-        self._session.post(
-            self._url("/trace/span/set_meta"), json={"span_id": span_id, "key": key, "value": value,},
-        )
+        self._session.post(self._url("/trace/span/set_meta"), json={"span_id": span_id, "key": key, "value": value})
 
     def span_set_baggage(self, span_id: int, key: str, value: str) -> None:
-        self._session.post(
-            self._url("/trace/span/set_baggage"), json={"span_id": span_id, "key": key, "value": value,},
-        )
+        self._session.post(self._url("/trace/span/set_baggage"), json={"span_id": span_id, "key": key, "value": value})
 
     def span_remove_baggage(self, span_id: int, key: str) -> None:
-        self._session.post(
-            self._url("/trace/span/remove_baggage"), json={"span_id": span_id, "key": key,},
-        )
+        self._session.post(self._url("/trace/span/remove_baggage"), json={"span_id": span_id, "key": key})
 
     def span_remove_all_baggage(self, span_id: int) -> None:
-        self._session.post(
-            self._url("/trace/span/remove_all_baggage"), json={"span_id": span_id,},
-        )
+        self._session.post(self._url("/trace/span/remove_all_baggage"), json={"span_id": span_id})
 
     def span_set_metric(self, span_id: int, key: str, value: float) -> None:
-        self._session.post(
-            self._url("/trace/span/set_metric"), json={"span_id": span_id, "key": key, "value": value,},
-        )
+        self._session.post(self._url("/trace/span/set_metric"), json={"span_id": span_id, "key": key, "value": value})
 
     def span_set_error(self, span_id: int, typestr: str, message: str, stack: str) -> None:
         self._session.post(
@@ -195,17 +181,17 @@ class APMLibraryClient:
     def span_add_link(self, span_id: int, parent_id: int, attributes: dict = None):
         self._session.post(
             self._url("/trace/span/add_link"),
-            json={"span_id": span_id, "parent_id": parent_id, "attributes": attributes or {},},
+            json={"span_id": span_id, "parent_id": parent_id, "attributes": attributes or {}},
         )
 
     def span_add_event(self, span_id: int, name: str, timestamp: int, attributes: dict = None):
         self._session.post(
             self._url("/trace/span/add_event"),
-            json={"span_id": span_id, "name": name, "timestamp": timestamp, "attributes": attributes or {},},
+            json={"span_id": span_id, "name": name, "timestamp": timestamp, "attributes": attributes or {}},
         )
 
     def span_get_baggage(self, span_id: int, key: str) -> str:
-        resp = self._session.get(self._url("/trace/span/get_baggage"), json={"span_id": span_id, "key": key,},)
+        resp = self._session.get(self._url("/trace/span/get_baggage"), json={"span_id": span_id, "key": key})
         resp = resp.json()
         return resp["baggage"]
 
@@ -215,7 +201,7 @@ class APMLibraryClient:
         return resp["baggage"]
 
     def trace_inject_headers(self, span_id):
-        resp = self._session.post(self._url("/trace/span/inject_headers"), json={"span_id": span_id},)
+        resp = self._session.post(self._url("/trace/span/inject_headers"), json={"span_id": span_id})
         # TODO: translate json into list within list
         # so server.xx do not have to
         return resp.json()["http_headers"]
@@ -449,7 +435,7 @@ class APMLibrary:
         tags: Optional[list[tuple[str, str]]] = None,
     ) -> Generator[_TestSpan, None, None]:
         resp = self._client.trace_start_span(
-            name=name, service=service, resource=resource, parent_id=parent_id, typestr=typestr, tags=tags,
+            name=name, service=service, resource=resource, parent_id=parent_id, typestr=typestr, tags=tags
         )
         span = _TestSpan(self._client, resp["span_id"], resp["trace_id"])
         yield span
@@ -457,7 +443,7 @@ class APMLibrary:
 
     def dd_extract_headers_and_make_child_span(self, name, http_headers):
         parent_id = self.dd_extract_headers(http_headers=http_headers)
-        return self.dd_start_span(name=name, parent_id=parent_id,)
+        return self.dd_start_span(name=name, parent_id=parent_id)
 
     def dd_make_child_span_and_get_headers(self, headers):
         with self.dd_extract_headers_and_make_child_span("name", headers) as span:

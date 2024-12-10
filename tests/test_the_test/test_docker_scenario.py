@@ -20,7 +20,6 @@ class FakeContainer(_TestedContainer):
 
 @scenarios.test_the_test
 def test_main():
-
     events = []
 
     class FakeScenario(DockerScenario):
@@ -69,7 +68,7 @@ def test_recursive():
 
 @scenarios.test_the_test
 def test_recursive_2():
-    """ more complex """
+    """more complex"""
 
     class FakeScenario(DockerScenario):
         def __init__(self) -> None:

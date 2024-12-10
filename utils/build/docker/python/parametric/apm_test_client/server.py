@@ -79,7 +79,7 @@ def trace_crash() -> None:
 def trace_span_start(args: StartSpanArgs) -> StartSpanReturn:
     parent = spans.get(args.parent_id, ddcontexts.get(args.parent_id))
     span = ddtrace.tracer.start_span(
-        args.name, service=args.service, span_type=args.type, resource=args.resource, child_of=parent, activate=True,
+        args.name, service=args.service, span_type=args.type, resource=args.resource, child_of=parent, activate=True
     )
     # TODO: add tags to tracer.start_span
     for k, v in args.span_tags:
@@ -87,7 +87,7 @@ def trace_span_start(args: StartSpanArgs) -> StartSpanReturn:
     spans[span.span_id] = span
     # Access the active span from the tracer, this allows us to test tracer's context management
     active_ddspan[0] = ddtrace.tracer.current_span()
-    return StartSpanReturn(span_id=span.span_id, trace_id=span.trace_id,)
+    return StartSpanReturn(span_id=span.span_id, trace_id=span.trace_id)
 
 
 class SpanFinishArgs(BaseModel):

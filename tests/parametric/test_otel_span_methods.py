@@ -18,7 +18,7 @@ from utils import bug, features, missing_feature, irrelevant, flaky, context, sc
 #   DD_TRACE_OTEL_ENABLED=true is required in some tracers (.NET, Python?)
 #   CORECLR_ENABLE_PROFILING=1 is required in .NET to enable auto-instrumentation
 pytestmark = pytest.mark.parametrize(
-    "library_env", [{"DD_TRACE_OTEL_ENABLED": "true", "CORECLR_ENABLE_PROFILING": "1"}],
+    "library_env", [{"DD_TRACE_OTEL_ENABLED": "true", "CORECLR_ENABLE_PROFILING": "1"}]
 )
 
 
@@ -31,7 +31,7 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library == "python", reason="New operation name mapping not yet implemented")
     def test_otel_start_span(self, test_agent, test_library):
         """
-            - Start/end a span with start and end options
+        - Start/end a span with start and end options
         """
 
         with test_library:
@@ -59,7 +59,7 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library == "python", reason="New operation name mapping not yet implemented")
     def test_otel_set_service_name(self, test_agent, test_library):
         """
-            - Update the service name on a span
+        - Update the service name on a span
         """
         with test_library:
             with test_library.otel_start_span("parent_span", span_kind=SpanKind.INTERNAL) as parent:
@@ -82,9 +82,9 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library < "dotnet@2.53.0", reason="Implemented in 2.53.0")
     def test_otel_set_attribute_remapping_httpresponsestatuscode(self, test_agent, test_library):
         """
-            - May 2024 update to OTel API RFC requires implementations to remap
-              OTEL Span attribute 'http.response.status_code' to DD Span tag 'http.status_code'.
-              This solves an issue with trace metrics when using the OTel API.
+        - May 2024 update to OTel API RFC requires implementations to remap
+          OTEL Span attribute 'http.response.status_code' to DD Span tag 'http.status_code'.
+          This solves an issue with trace metrics when using the OTel API.
         """
         with test_library:
             with test_library.otel_start_span("operation") as span:
@@ -107,10 +107,10 @@ class Test_Otel_Span_Methods:
     @irrelevant(context.library == "dotnet", reason="Does not support automatic status code remapping to meta")
     def test_otel_set_attribute_remapping_httpstatuscode(self, test_agent, test_library):
         """
-            - May 2024 update to OTel API RFC requires implementations to remap
-              OTEL Span attribute 'http.response.status_code' to DD Span tag 'http.status_code'.
-              This test ensures that the original OTEL Span attribute 'http.status_code'
-              is also set as DD Span tag 'http.status_code'
+        - May 2024 update to OTel API RFC requires implementations to remap
+          OTEL Span attribute 'http.response.status_code' to DD Span tag 'http.status_code'.
+          This test ensures that the original OTEL Span attribute 'http.status_code'
+          is also set as DD Span tag 'http.status_code'
         """
         with test_library:
             with test_library.otel_start_span("operation") as span:
@@ -134,13 +134,13 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library == "python", reason="New operation name mapping not yet implemented")
     def test_otel_set_attributes_different_types_legacy(self, test_agent, test_library):
         """
-            - Set attributes of multiple types for an otel span
-            This tests legacy behavior. The new behavior is tested in
-            test_otel_set_attributes_different_types_with_array_encoding
+        - Set attributes of multiple types for an otel span
+        This tests legacy behavior. The new behavior is tested in
+        test_otel_set_attributes_different_types_with_array_encoding
         """
         start_time = int(time.time())
         with test_library:
-            with test_library.otel_start_span("operation", span_kind=SpanKind.PRODUCER, timestamp=start_time,) as span:
+            with test_library.otel_start_span("operation", span_kind=SpanKind.PRODUCER, timestamp=start_time) as span:
                 span.set_attributes({"str_val": "val"})
                 span.set_attributes({"str_val_empty": ""})
                 span.set_attributes({"bool_val": True})
@@ -217,11 +217,11 @@ class Test_Otel_Span_Methods:
     )
     def test_otel_set_attributes_different_types_with_array_encoding(self, test_agent, test_library):
         """
-            - Set attributes of multiple types for an otel span
+        - Set attributes of multiple types for an otel span
         """
         start_time = int(time.time())
         with test_library:
-            with test_library.otel_start_span("operation", span_kind=SpanKind.PRODUCER, timestamp=start_time,) as span:
+            with test_library.otel_start_span("operation", span_kind=SpanKind.PRODUCER, timestamp=start_time) as span:
                 span.set_attributes({"str_val": "val"})
                 span.set_attributes({"str_val_empty": ""})
                 span.set_attributes({"bool_val": True})
@@ -359,12 +359,12 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library == "python", reason="New operation name mapping not yet implemented")
     def test_otel_set_span_status_error(self, test_agent, test_library):
         """
-            This test verifies that setting the status of a span
-            behaves accordingly to the Otel API spec
-            (https://opentelemetry.io/docs/reference/specification/trace/api/#set-status)
-            By checking the following:
-            1. attempts to set the value of `Unset` are ignored
-            2. description must only be used with `Error` value
+        This test verifies that setting the status of a span
+        behaves accordingly to the Otel API spec
+        (https://opentelemetry.io/docs/reference/specification/trace/api/#set-status)
+        By checking the following:
+        1. attempts to set the value of `Unset` are ignored
+        2. description must only be used with `Error` value
 
         """
         with test_library:
@@ -387,13 +387,13 @@ class Test_Otel_Span_Methods:
     )
     def test_otel_set_span_status_ok(self, test_agent, test_library):
         """
-            This test verifies that setting the status of a span
-            behaves accordingly to the Otel API spec
-            (https://opentelemetry.io/docs/reference/specification/trace/api/#set-status)
-            By checking the following:
-            1. attempts to set the value of `Unset` are ignored
-            3. setting the status to `Ok` is final and will override any
-                prior or future status values
+        This test verifies that setting the status of a span
+        behaves accordingly to the Otel API spec
+        (https://opentelemetry.io/docs/reference/specification/trace/api/#set-status)
+        By checking the following:
+        1. attempts to set the value of `Unset` are ignored
+        3. setting the status to `Ok` is final and will override any
+            prior or future status values
         """
         with test_library:
             with test_library.otel_start_span(name="ok_span", span_kind=SpanKind.INTERNAL) as span:
@@ -410,9 +410,9 @@ class Test_Otel_Span_Methods:
     @bug(context.library < "ruby@2.2.0", reason="APMRP-360")
     def test_otel_get_span_context(self, test_agent, test_library):
         """
-            This test verifies retrieving the span context of a span
-            accordingly to the Otel API spec
-            (https://opentelemetry.io/docs/reference/specification/trace/api/#get-context)
+        This test verifies retrieving the span context of a span
+        accordingly to the Otel API spec
+        (https://opentelemetry.io/docs/reference/specification/trace/api/#get-context)
         """
         with test_library:
             with test_library.otel_start_span(name="op1", end_on_exit=False) as parent:
@@ -450,8 +450,8 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library == "python", reason="Not implemented")
     def test_otel_set_attributes_separately(self, test_agent, test_library):
         """
-            This test verifies that setting attributes separately
-            behaves accordingly to the naming conventions
+        This test verifies that setting attributes separately
+        behaves accordingly to the naming conventions
         """
         with test_library:
             with test_library.otel_start_span(name="operation", span_kind=SpanKind.CLIENT) as span:
@@ -513,8 +513,7 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library < "ruby@2.0.0", reason="Not implemented")
     @missing_feature(context.library == "php", reason="Not implemented, does not break out arrays into dot notation")
     def test_otel_span_link_attribute_handling(self, test_agent, test_library):
-        """Test that span links implementations correctly handle attributes according to spec.
-        """
+        """Test that span links implementations correctly handle attributes according to spec."""
         with test_library:
             with test_library.otel_start_span("span1") as s1:
                 s1.end_span()
@@ -557,8 +556,7 @@ class Test_Otel_Span_Methods:
     @bug(context.library == "ruby", reason="APMAPI-917")
     @missing_feature(context.library < "php@0.97.0", reason="Implemented in 0.97.0")
     def test_otel_span_started_with_link_from_other_spans(self, test_agent, test_library):
-        """Test adding a span link from a span to another span.
-        """
+        """Test adding a span link from a span to another span."""
         with test_library:
             with test_library.otel_start_span("root", end_on_exit=False) as parent:
                 parent.end_span()
@@ -655,7 +653,7 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library == "python", reason="Not implemented")
     def test_otel_span_reserved_attributes_overrides(self, test_agent, test_library):
         """
-            Tests that the reserved attributes will override expected values
+        Tests that the reserved attributes will override expected values
         """
         with test_library:
             with test_library.otel_start_span("otel_span_name", span_kind=SpanKind.SERVER) as span:
@@ -690,13 +688,13 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library == "python", reason="Not implemented")
     @pytest.mark.parametrize(
         "analytics_event_value,expected_metric_value",
-        [("true", 1), ("TRUE", 1), ("True", 1), ("false", 0), ("False", 0), ("FALSE", 0), (True, 1), (False, 0),],
+        [("true", 1), ("TRUE", 1), ("True", 1), ("false", 0), ("False", 0), ("FALSE", 0), (True, 1), (False, 0)],
     )
     def test_otel_span_basic_reserved_attributes_overrides_analytics_event(
         self, analytics_event_value: Union[bool, str], expected_metric_value: Union[int, None], test_agent, test_library
     ):
         """
-            Tests the analytics.event reserved attribute override with basic inputs
+        Tests the analytics.event reserved attribute override with basic inputs
         """
         run_otel_span_reserved_attributes_overrides_analytics_event(
             analytics_event_value=analytics_event_value,
@@ -722,14 +720,14 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library == "python", reason="Not implemented")
     @missing_feature(context.library == "python_http", reason="Not implemented")
     @pytest.mark.parametrize(
-        "analytics_event_value,expected_metric_value", [("something-else", None), ("fAlse", None), ("trUe", None),],
+        "analytics_event_value,expected_metric_value", [("something-else", None), ("fAlse", None), ("trUe", None)]
     )
     def test_otel_span_strict_reserved_attributes_overrides_analytics_event(
         self, analytics_event_value: Union[bool, str], expected_metric_value: Union[int, None], test_agent, test_library
     ):
         """
-            Tests that the analytics.event reserved attribute override doesn't set the _dd1.sr.eausr metric
-            for inputs that aren't accepted by strconv.ParseBool
+        Tests that the analytics.event reserved attribute override doesn't set the _dd1.sr.eausr metric
+        for inputs that aren't accepted by strconv.ParseBool
         """
         run_otel_span_reserved_attributes_overrides_analytics_event(
             analytics_event_value=analytics_event_value,
@@ -745,13 +743,13 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library == "python", reason="Not implemented")
     @missing_feature(context.library == "python_http", reason="Not implemented")
     @pytest.mark.parametrize(
-        "analytics_event_value,expected_metric_value", [("t", 1), ("T", 1), ("f", 0), ("F", 0), ("1", 1), ("0", 0),],
+        "analytics_event_value,expected_metric_value", [("t", 1), ("T", 1), ("f", 0), ("F", 0), ("1", 1), ("0", 0)]
     )
     def test_otel_span_extended_reserved_attributes_overrides_analytics_event(
         self, analytics_event_value: Union[bool, str], expected_metric_value: Union[int, None], test_agent, test_library
     ):
         """
-            Tests that the analytics.event reserved attribute override accepts Go's strconv.ParseBool additional values
+        Tests that the analytics.event reserved attribute override accepts Go's strconv.ParseBool additional values
         """
         run_otel_span_reserved_attributes_overrides_analytics_event(
             analytics_event_value=analytics_event_value,
@@ -770,7 +768,7 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library < "python@2.9.0", reason="Not implemented")
     def test_otel_add_event_meta_serialization(self, test_agent, test_library):
         """
-            Tests the Span.AddEvent API and its serialization into the meta tag 'events'
+        Tests the Span.AddEvent API and its serialization into the meta tag 'events'
         """
         # Since timestamps may not be standardized across languages, use microseconds as the input
         # and nanoseconds as the output (this is the format expected in the OTLP trace protocol)
@@ -823,8 +821,8 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library < "python@2.9.0", reason="Not implemented")
     def test_otel_record_exception_does_not_set_error(self, test_agent, test_library):
         """
-            Tests the Span.RecordException API (requires Span.AddEvent API support)
-            and its serialization into the Datadog error tags and the 'events' tag
+        Tests the Span.RecordException API (requires Span.AddEvent API support)
+        and its serialization into the Datadog error tags and the 'events' tag
         """
         with test_library:
             with test_library.otel_start_span("operation") as span:
@@ -843,8 +841,8 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library < "python@2.9.0", reason="Not implemented")
     def test_otel_record_exception_meta_serialization(self, test_agent, test_library):
         """
-            Tests the Span.RecordException API (requires Span.AddEvent API support)
-            and its serialization into the Datadog error tags and the 'events' tag
+        Tests the Span.RecordException API (requires Span.AddEvent API support)
+        and its serialization into the Datadog error tags and the 'events' tag
         """
         with test_library:
             with test_library.otel_start_span("operation") as span:
@@ -891,8 +889,8 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library < "python@2.9.0", reason="Not implemented")
     def test_otel_record_exception_attributes_serialization(self, test_agent, test_library):
         """
-            Tests the Span.RecordException API (requires Span.AddEvent API support)
-            and its serialization into the Datadog error tags and the 'events' tag
+        Tests the Span.RecordException API (requires Span.AddEvent API support)
+        and its serialization into the Datadog error tags and the 'events' tag
         """
         with test_library:
             with test_library.otel_start_span("operation") as span:
@@ -938,8 +936,8 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library < "python@2.9.0", reason="Not implemented")
     def test_otel_record_exception_sets_all_error_tracking_tags(self, test_agent, test_library):
         """
-            Tests the Span.RecordException API (requires Span.AddEvent API support)
-            and its serialization into the Datadog error tags and the 'events' tag
+        Tests the Span.RecordException API (requires Span.AddEvent API support)
+        and its serialization into the Datadog error tags and the 'events' tag
         """
         with test_library:
             with test_library.otel_start_span("operation") as span:

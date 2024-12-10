@@ -21,9 +21,7 @@ class TestSqlInjection(BaseSinkTest):
         "python": {"flask-poc": "app.py", "django-poc": "app/urls.py"},
     }
 
-    @bug(
-        context.library < "nodejs@5.3.0", weblog_variant="express4-typescript", reason="APMRP-360",
-    )
+    @bug(context.library < "nodejs@5.3.0", weblog_variant="express4-typescript", reason="APMRP-360")
     def test_insecure(self):
         super().test_insecure()
 
@@ -48,7 +46,7 @@ class TestSqlInjection(BaseSinkTest):
 )
 @features.iast_stack_trace
 class TestSqlInjection_StackTrace:
-    """Validate stack trace generation """
+    """Validate stack trace generation"""
 
     def setup_stack_trace(self):
         self.r = weblog.post("/iast/sqli/test_insecure", data={"username": "shaquille_oatmeal", "password": "123456"})

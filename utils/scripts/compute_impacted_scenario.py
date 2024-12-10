@@ -100,7 +100,6 @@ def main():
             modified_files = [line.strip() for line in f]
 
         for file in modified_files:
-
             if file.startswith("tests/"):
                 if file.startswith("tests/auto_inject"):
                     # Nothing to do, onboarding test run on gitlab nightly or manually

@@ -71,8 +71,8 @@ class Test_Fingerprinting_Endpoint:
     endpoint_fingerprint_regex = r"http-[^-]*-[^-]*-[^-]*-[^-]*"
 
     def setup_fingerprinting_endpoint(self):
-        self.r = weblog.post("tag_value/value/200?x=3", data={"x": "this_is_not_an_attack"}, headers=ARACHNI_HEADERS,)
-        self.n = weblog.post("tag_value/value/200?x=3", data={"x": "this_is_not_an_attack"},)
+        self.r = weblog.post("tag_value/value/200?x=3", data={"x": "this_is_not_an_attack"}, headers=ARACHNI_HEADERS)
+        self.n = weblog.post("tag_value/value/200?x=3", data={"x": "this_is_not_an_attack"})
 
     def test_fingerprinting_endpoint(self):
         assert self.r.status_code == 200
@@ -93,7 +93,7 @@ class Test_Fingerprinting_Session:
     def setup_session(self):
         self.r_create_session = weblog.get("session/new")
         self.cookies = self.r_create_session.cookies
-        self.r_user = weblog.get("session/user?sdk_user=sdkUser", cookies=self.cookies,)
+        self.r_user = weblog.get("session/user?sdk_user=sdkUser", cookies=self.cookies)
 
     def test_session(self):
         assert self.r_create_session.status_code == 200

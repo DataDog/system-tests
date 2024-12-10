@@ -25,10 +25,12 @@ def hello_world():
 
 @app.route("/healthcheck")
 def healthcheck():
-
     return {
         "status": "ok",
-        "library": {"language": "python_otel", "version": otel_version,},
+        "library": {
+            "language": "python_otel",
+            "version": otel_version,
+        },
     }
 
 

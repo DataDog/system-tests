@@ -2,8 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-"""This files will validate data flow between agent and backend
-"""
+"""This files will validate data flow between agent and backend"""
 
 import threading
 import copy
@@ -25,7 +24,6 @@ class AgentInterfaceValidator(ProxyBasedInterfaceValidator):
         return super().ingest_file(src_path)
 
     def get_appsec_data(self, request):
-
         rid = get_rid_from_request(request)
 
         for data in self.get_data(path_filters="/api/v0.2/traces"):

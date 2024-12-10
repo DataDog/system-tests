@@ -117,7 +117,7 @@ class AsmStandalone_UpstreamPropagation_Base:
 
             # Some tracers use true while others use yes
             assert any(
-                ["Datadog-Client-Computed-Stats", trueish,] in data["request"]["headers"] for trueish in ["yes", "true"]
+                ["Datadog-Client-Computed-Stats", trueish] in data["request"]["headers"] for trueish in ["yes", "true"]
             )
             spans_checked += 1
 
@@ -161,7 +161,7 @@ class AsmStandalone_UpstreamPropagation_Base:
 
             # Some tracers use true while others use yes
             assert any(
-                ["Datadog-Client-Computed-Stats", trueish,] in data["request"]["headers"] for trueish in ["yes", "true"]
+                ["Datadog-Client-Computed-Stats", trueish] in data["request"]["headers"] for trueish in ["yes", "true"]
             )
             spans_checked += 1
 
@@ -205,7 +205,7 @@ class AsmStandalone_UpstreamPropagation_Base:
 
             # Some tracers use true while others use yes
             assert any(
-                ["Datadog-Client-Computed-Stats", trueish,] in data["request"]["headers"] for trueish in ["yes", "true"]
+                ["Datadog-Client-Computed-Stats", trueish] in data["request"]["headers"] for trueish in ["yes", "true"]
             )
             spans_checked += 1
 
@@ -249,7 +249,7 @@ class AsmStandalone_UpstreamPropagation_Base:
 
             # Some tracers use true while others use yes
             assert any(
-                ["Datadog-Client-Computed-Stats", trueish,] in data["request"]["headers"] for trueish in ["yes", "true"]
+                ["Datadog-Client-Computed-Stats", trueish] in data["request"]["headers"] for trueish in ["yes", "true"]
             )
             spans_checked += 1
 
@@ -292,7 +292,7 @@ class AsmStandalone_UpstreamPropagation_Base:
 
             # Some tracers use true while others use yes
             assert any(
-                ["Datadog-Client-Computed-Stats", trueish,] in data["request"]["headers"] for trueish in ["yes", "true"]
+                ["Datadog-Client-Computed-Stats", trueish] in data["request"]["headers"] for trueish in ["yes", "true"]
             )
             spans_checked += 1
 
@@ -336,7 +336,7 @@ class AsmStandalone_UpstreamPropagation_Base:
 
             # Some tracers use true while others use yes
             assert any(
-                ["Datadog-Client-Computed-Stats", trueish,] in data["request"]["headers"] for trueish in ["yes", "true"]
+                ["Datadog-Client-Computed-Stats", trueish] in data["request"]["headers"] for trueish in ["yes", "true"]
             )
             spans_checked += 1
 
@@ -380,7 +380,7 @@ class AsmStandalone_UpstreamPropagation_Base:
 
             # Some tracers use true while others use yes
             assert any(
-                ["Datadog-Client-Computed-Stats", trueish,] in data["request"]["headers"] for trueish in ["yes", "true"]
+                ["Datadog-Client-Computed-Stats", trueish] in data["request"]["headers"] for trueish in ["yes", "true"]
             )
             spans_checked += 1
 
@@ -423,7 +423,7 @@ class AsmStandalone_UpstreamPropagation_Base:
 
             # Some tracers use true while others use yes
             assert any(
-                ["Datadog-Client-Computed-Stats", trueish,] in data["request"]["headers"] for trueish in ["yes", "true"]
+                ["Datadog-Client-Computed-Stats", trueish] in data["request"]["headers"] for trueish in ["yes", "true"]
             )
             spans_checked += 1
 
@@ -466,7 +466,7 @@ class AsmStandalone_UpstreamPropagation_Base:
 
             # Some tracers use true while others use yes
             assert any(
-                ["Datadog-Client-Computed-Stats", trueish,] in data["request"]["headers"] for trueish in ["yes", "true"]
+                ["Datadog-Client-Computed-Stats", trueish] in data["request"]["headers"] for trueish in ["yes", "true"]
             )
             spans_checked += 1
 
@@ -507,7 +507,7 @@ class AsmStandalone_UpstreamPropagation_Base:
 
             # Some tracers use true while others use yes
             assert any(
-                ["Datadog-Client-Computed-Stats", trueish,] in data["request"]["headers"] for trueish in ["yes", "true"]
+                ["Datadog-Client-Computed-Stats", trueish] in data["request"]["headers"] for trueish in ["yes", "true"]
             )
             spans_checked += 1
 
@@ -548,7 +548,7 @@ class AsmStandalone_UpstreamPropagation_Base:
 
             # Some tracers use true while others use yes
             assert any(
-                ["Datadog-Client-Computed-Stats", trueish,] in data["request"]["headers"] for trueish in ["yes", "true"]
+                ["Datadog-Client-Computed-Stats", trueish] in data["request"]["headers"] for trueish in ["yes", "true"]
             )
             spans_checked += 1
 
@@ -589,7 +589,7 @@ class AsmStandalone_UpstreamPropagation_Base:
 
             # Some tracers use true while others use yes
             assert any(
-                ["Datadog-Client-Computed-Stats", trueish,] in data["request"]["headers"] for trueish in ["yes", "true"]
+                ["Datadog-Client-Computed-Stats", trueish] in data["request"]["headers"] for trueish in ["yes", "true"]
             )
             spans_checked += 1
 

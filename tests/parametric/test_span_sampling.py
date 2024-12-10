@@ -84,7 +84,7 @@ class Test_Span_Sampling:
 
     @missing_feature(context.library == "ruby", reason="Issue: _dd.span_sampling.max_per_second is always set in Ruby")
     @pytest.mark.parametrize(
-        "library_env", [{"DD_SPAN_SAMPLING_RULES": json.dumps([{"service": "webserver"}]), "DD_TRACE_SAMPLE_RATE": 0}],
+        "library_env", [{"DD_SPAN_SAMPLING_RULES": json.dumps([{"service": "webserver"}]), "DD_TRACE_SAMPLE_RATE": 0}]
     )
     def test_single_rule_only_service_pattern_match_span_sampling_sss004(self, test_agent, test_library):
         """Test span sampling tags are added when both:

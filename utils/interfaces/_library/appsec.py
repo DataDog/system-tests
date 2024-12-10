@@ -13,7 +13,6 @@ class _WafAttack:
     def __init__(
         self, rule=None, pattern=None, patterns=None, value=None, address=None, key_path=None, span_validator=None
     ):
-
         # rule can be a rule id, or a rule type
         if rule is None:
             self.rule_id = None

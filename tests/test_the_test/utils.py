@@ -4,9 +4,7 @@ import os
 from utils.tools import logger
 
 
-def run_system_tests(
-    scenario="MOCK_THE_TEST", test_path=None, verbose=False, forced_test=None, xfail_strict=False,
-):
+def run_system_tests(scenario="MOCK_THE_TEST", test_path=None, verbose=False, forced_test=None, xfail_strict=False):
     cmd = ["./run.sh"]
 
     if scenario:

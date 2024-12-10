@@ -10,13 +10,12 @@ from utils.parametric.spec.trace import SAMPLING_PRIORITY_KEY, ORIGIN
 @scenarios.trace_propagation_style_w3c
 @features.w3c_headers_injection_and_extraction
 class Test_DistributedHttp:
-    """ Verify behavior of http clients and distributed traces """
+    """Verify behavior of http clients and distributed traces"""
 
     def setup_main(self):
         self.r = weblog.get("/make_distant_call", params={"url": "http://weblog:7777"})
 
     def test_main(self):
-
         interfaces.library.assert_trace_exists(self.r)
 
         assert self.r.status_code == 200

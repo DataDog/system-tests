@@ -23,7 +23,6 @@ store_config = GenerationConfiguration()
 
 @app.route("/", methods=["GET"])
 def default():
-
     data = {"schemas": []}
 
     for schema_id, schema in store.items():
