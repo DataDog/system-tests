@@ -12,6 +12,8 @@ from utils import scenarios, features, bug, missing_feature, context
 class Test_Debugger_Probe_Snaphots(debugger._Base_Debugger_Test):
     ############ setup ############
     def _setup(self, probes_name: str, request_path: str):
+        self.initialize_weblog_remote_config()
+
         ### prepare probes
         probes = debugger.read_probes(probes_name)
         self.set_probes(probes)
