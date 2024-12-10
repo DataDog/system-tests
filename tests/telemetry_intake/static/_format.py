@@ -1,7 +1,8 @@
 import os
 import json
 
-def get_dot_notation_keys(obj, parent_key='', result=None):
+
+def get_dot_notation_keys(obj, parent_key="", result=None):
     if result is None:
         result = []
 
@@ -13,6 +14,7 @@ def get_dot_notation_keys(obj, parent_key='', result=None):
             result.append(new_key)
 
     return result
+
 
 def validate_duplicate_keys(filename, data):
     """
@@ -44,6 +46,7 @@ def validate_duplicate_keys(filename, data):
 def validate(filename, data):
     validate_duplicate_keys(filename, data)
 
+
 def main():
     config_dir = os.path.dirname(os.path.abspath(__file__))
 
@@ -62,6 +65,7 @@ def main():
                 print(f"JSON invalid: {filename}")
             except Exception as e:
                 print(f"Error processing {filename}: {e}")
+
 
 if __name__ == "__main__":
     """
