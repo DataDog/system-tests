@@ -914,14 +914,7 @@ tests/:
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
       Test_SCAStandalone_Telemetry:
         '*': v1.36.0
-        akka-http: missing_feature (endpoints not implemented)
-        jersey-grizzly2: missing_feature (endpoints not implemented)
-        play: missing_feature (endpoints not implemented)
-        ratpack: missing_feature (endpoints not implemented)
-        resteasy-netty3: missing_feature (endpoints not implemented)
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-        vertx3: missing_feature (endpoints not implemented)
-        vertx4: missing_feature (endpoints not implemented)
     test_automated_login_events.py:
       Test_Login_Events: irrelevant (was v1.36.0 but will be replaced by V2)
       Test_Login_Events_Extended: irrelevant (was v1.36.0 but will be replaced by V2)
