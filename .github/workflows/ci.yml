@@ -56,6 +56,7 @@ jobs:
     uses: ./.github/workflows/compute-impacted-libraries.yml
 
   get_dev_artifacts:
+    if: false
     needs:
     - impacted_libraries
     strategy:
@@ -166,6 +167,27 @@ jobs:
         DD_API_KEY: ${{ secrets.DD_CI_API_KEY }}
         DD_APP_KEY: ${{ secrets.DD_CI_APP_KEY }}
 
+  tmp-run:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+    - name: Install runner
+      uses: ./.github/actions/install_runner
+    - name: Build proxy image
+      if: inputs.build_proxy_image
+      run: ./build.sh -i proxy
+    - name: Build agent
+      run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh -i agent
+    - name: Build weblog
+      id: build
+      run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh -i weblog
+    - name: Run IPV6 scenario
+      run: |
+        # echo '{"ipv6": true, "fixed-cidr-v6": "2001:db8:1::/64"}' | sudo tee /etc/docker/daemon.json
+        # sudo systemctl restart docker
+        ./run.sh IPV6
+
   tmp-test:
     runs-on: ubuntu-latest
     steps:
@@ -180,7 +202,7 @@ jobs:
       #     sudo systemctl restart docker
       #     # sleep 5
       #     # sudo systemctl status docker
-          
+
       - name: Create Docker Network with IPv6
         run: |
           docker network create \
