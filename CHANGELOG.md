@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+
+### 2024-11 (207 PR merged)
+
+* 2024-11-22 [Docker SSI: report data to FPD](https://github.com/DataDog/system-tests/pull/3525) by @robertomonteromiguel
+* 2024-11-21 [adding mypy checks](https://github.com/DataDog/system-tests/pull/3488) by @rachelyangdog
+* 2024-11-18 [[ruby] Add Rails 7.2 and Rails 8.0 weblogs](https://github.com/DataDog/system-tests/pull/3471) by @vpellan
+* 2024-11-13 [Use a unique way to define scenario groups #3400](https://github.com/DataDog/system-tests/pull/3451) by @cbeauchesne
+* 2024-11-18 [Test for zombie processes in crashtracking](https://github.com/DataDog/system-tests/pull/3364) by @kevingosse
+* 2024-11-04 [Fix parametric instability at container start](https://github.com/DataDog/system-tests/pull/3359) by @cbeauchesne
+* 2024-11-06 [parametric: Adds a feature to track the parity for parametric endpoints](https://github.com/DataDog/system-tests/pull/3345) by @mabdinur
+* 2024-11-04 [[golang] Migrate Parametric app from grpc to http](https://github.com/DataDog/system-tests/pull/3332) by @mtoffl01
+
+
 ### 2024-10 (176 PR merged)
 
 * Lot of work done on SSI/onboarding by @robertomonteromiguel and @emmettbutler

@@ -1320,7 +1320,7 @@ tests/:
         spring-boot-wildfly: v1.38.0
         uds-spring-boot: v1.33.0
     test_debugger_probe_snapshot.py:
-      Test_Debugger_Line_Probe_Snaphots:
+      Test_Debugger_Probe_Snaphots:
         '*': missing_feature
         spring-boot:  v1.33.0
         spring-boot-jetty: v1.38.0
@@ -1329,16 +1329,6 @@ tests/:
         spring-boot-undertow: v1.38.0
         spring-boot-wildfly: v1.38.0
         uds-spring-boot: v1.33.0
-      Test_Debugger_Method_Probe_Snaphots:
-        '*': missing_feature
-        spring-boot: v1.33.0
-        spring-boot-jetty: v1.38.0
-        spring-boot-openliberty: v1.38.0
-        spring-boot-payara: v1.38.0
-        spring-boot-undertow: v1.38.0
-        spring-boot-wildfly: v1.38.0
-        uds-spring-boot: v0.1
-      Test_Debugger_Mix_Log_Probe:
         '*': missing_feature
         spring-boot: v1.38.0
         spring-boot-jetty: v1.38.0
@@ -1565,6 +1555,10 @@ tests/:
     Test_LibraryHeaders: v1.29.0
   test_distributed.py:
     Test_DistributedHttp: missing_feature
+    Test_Span_Links_Flags_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
+    Test_Span_Links_From_Conflicting_Contexts: v1.43.0
+    Test_Span_Links_From_Conflicting_Contexts_Datadog_Precedence: v1.43.0
+    Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
   test_identify.py:
     Test_Basic: missing_feature
     Test_Propagate: missing_feature

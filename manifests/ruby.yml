@@ -298,9 +298,7 @@ tests/:
     test_debugger_pii.py:
       Test_Debugger_PII_Redaction: missing_feature (feature not implented)
     test_debugger_probe_snapshot.py:
-      Test_Debugger_Line_Probe_Snaphots: missing_feature (feature not implented)
-      Test_Debugger_Method_Probe_Snaphots: missing_feature (feature not implented)
-      Test_Debugger_Mix_Log_Probe: missing_feature (feature not implented)
+      Test_Debugger_Probe_Snaphots: missing_feature (feature not implented)
     test_debugger_probe_status.py:
       Test_Debugger_Probe_Statuses: missing_feature (feature not implented)
   integrations/:
@@ -407,7 +405,6 @@ tests/:
       Test_Parametric_OtelSpan_Set_Name: bug (APMAPI-778) # set_name endpoint should set the resource name on a span (not the operation name)
       Test_Parametric_Otel_Baggage: missing_feature (otel baggage is not supported)
       Test_Parametric_Otel_Current_Span: missing_feature (current span endpoint is not supported)
-    test_otel_api_interoperability.py: missing_feature
     test_partial_flushing.py: # Not configurable in a standard way
       Test_Partial_Flushing: missing_feature
     test_sampling_delegation.py:
@@ -475,6 +472,10 @@ tests/:
     Test_Config_UnifiedServiceTagging_Default: v2.0.0
   test_distributed.py:
     Test_DistributedHttp: missing_feature
+    Test_Span_Links_Flags_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
+    Test_Span_Links_From_Conflicting_Contexts: missing_feature
+    Test_Span_Links_From_Conflicting_Contexts_Datadog_Precedence: missing_feature
+    Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
   test_identify.py:
     Test_Basic: v1.0.0
     Test_Propagate: missing_feature
@@ -490,6 +491,8 @@ tests/:
     Test_HeaderTags_Whitespace_Tag: bug (AIT-8599)
     Test_HeaderTags_Whitespace_Val_Long: v1.13.0
     Test_HeaderTags_Whitespace_Val_Short: v1.13.0
+  test_profiling.py:
+    Test_Profile: missing_feature (temporary fix, scenario not working on dd-trace-rb CI)
   test_sampling_rates.py:
     Test_SamplingDecisions: missing_feature (Endpoint /sample_rate_route not implemented)
   test_scrubbing.py:

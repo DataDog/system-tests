@@ -86,6 +86,7 @@ class Test_Config_ObfuscationQueryStringRegexp_Empty:
 
     @bug(context.library == "java", reason="APMAPI-770")
     @missing_feature(context.library == "nodejs", reason="Node only obfuscates queries on the server side")
+    @missing_feature(context.library == "golang", reason="Go only obfuscates queries on the server side")
     def test_query_string_obfuscation_empty_client(self):
         spans = [s for _, _, s in interfaces.library.get_spans(request=self.r, full_trace=True)]
         client_span = _get_span_by_tags(spans, tags={"http.url": "http://weblog:7777/?key=monkey"})

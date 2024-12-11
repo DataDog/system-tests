@@ -133,7 +133,7 @@ class Test_Telemetry:
         """Test that messages are sent sequentially"""
 
         MAX_OUT_OF_ORDER_LAG = 0.3  # s
-        FMT = "%Y-%m-%dT%H:%M:%S.%f"
+        FMT = "%Y-%m-%dT%H:%M:%S.%f%z"
 
         telemetry_data = list(interfaces.library.get_telemetry_data(flatten_message_batches=False))
         if len(telemetry_data) == 0:
@@ -296,7 +296,7 @@ class Test_Telemetry:
             The value is a list of delay observed on this runtime id
         """
 
-        fmt = "%Y-%m-%dT%H:%M:%S.%f"
+        fmt = "%Y-%m-%dT%H:%M:%S.%f%z"
 
         telemetry_data = list(interfaces.library.get_telemetry_data())
         heartbeats_by_runtime = defaultdict(list)
@@ -338,6 +338,7 @@ class Test_Telemetry:
     @flaky(context.library <= "php@0.90", reason="APMRP-360")
     @flaky(library="ruby", reason="APMAPI-226")
     @flaky(context.library >= "java@1.39.0", reason="APMAPI-723")
+    @bug(context.library > "php@1.5.1", reason="APMAPI-971")
     @features.telemetry_heart_beat_collected
     def test_app_heartbeats_delays(self):
         """

@@ -22,7 +22,7 @@ from .core import Scenario
 
 
 class KubernetesScenario(Scenario):
-    """ Scenario that tests kubernetes lib injection """
+    """Scenario that tests kubernetes lib injection"""
 
     def __init__(self, name, doc, github_workflow=None, scenario_groups=None, api_key=None, app_key=None) -> None:
         super().__init__(name, doc=doc, github_workflow=github_workflow, scenario_groups=scenario_groups)
@@ -59,7 +59,7 @@ class KubernetesScenario(Scenario):
         logger.info("K8s Lib Injection environment configured")
 
     def get_library_version(self):
-        """ Extract library version from the init image. """
+        """Extract library version from the init image."""
 
         logger.info("Get lib init tracer version")
         lib_init_docker_image = get_docker_client().images.pull(self._library_init_image)
@@ -93,7 +93,7 @@ class KubernetesScenario(Scenario):
 
 
 class WeblogInjectionScenario(Scenario):
-    """Scenario that runs APM test agent """
+    """Scenario that runs APM test agent"""
 
     _network: Network = None
 

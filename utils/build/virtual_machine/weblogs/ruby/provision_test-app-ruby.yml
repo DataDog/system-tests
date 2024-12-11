@@ -43,6 +43,7 @@ weblog:
     #Ubuntu_18_amd64, ubuntu 20: installation fails
     #rhel_7_amd64 skipping (instrumentation) due to ignore rules for language ruby: Unsupported host architecture 
     excluded_os_branches: [ubuntu18_amd64,ubuntu20_amd64, ubuntu20_arm64, oracle_linux, alma_linux, fedora, debian, rhel_7_amd64]
+    excluded_os_names: [RedHat_9_0_amd64, RedHat_9_0_arm64]
     install:
       - os_type: linux
 

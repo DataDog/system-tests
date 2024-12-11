@@ -41,7 +41,7 @@ def _get_client():
             ).stdout.strip()
             return docker.DockerClient(base_url=endpoint)
         except:
-            pass
+            logger.exception("Fail to get docker client with context")
 
         if "Error while fetching server API version: ('Connection aborted.'" in str(e):
             pytest.exit("Connection refused to docker daemon, is it running?", 1)
@@ -88,7 +88,7 @@ class TestedContainer:
         **kwargs,
     ) -> None:
         self.name = name
-        self.host_project_dir = os.environ.get("SYSTEM_TESTS_HOST_PROJECT_DIR", os.getcwd())
+        self.host_project_dir = os.environ.get("SYSTEM_TESTS_HOST_PROJECT_DIR", str(Path.cwd()))
         self.host_log_folder = host_log_folder
         self.allow_old_container = allow_old_container
 
@@ -109,7 +109,7 @@ class TestedContainer:
         self.stdout_interface = stdout_interface
 
     def get_image_list(self, library: str, weblog: str) -> list[str]:
-        """ returns the image list that will be loaded to be able to run/build the container """
+        """Returns the image list that will be loaded to be able to run/build the container"""
         return [self.image.name]
 
     def configure(self, replay):
@@ -148,7 +148,7 @@ class TestedContainer:
             old_container.remove(force=True)
 
     def start(self, network: Network) -> Container:
-        """ Start the actual underlying Docker container directly """
+        """Start the actual underlying Docker container directly"""
 
         if self._container:
             # container is already started, some scenarios actively starts some containers
@@ -186,7 +186,7 @@ class TestedContainer:
             self.warmup()
 
     def async_start(self, network: Network) -> Thread:
-        """ Start the container and its dependencies in a thread with circular dependency detection """
+        """Start the container and its dependencies in a thread with circular dependency detection"""
         self.check_circular_dependencies([])
 
         return self._async_start_recursive(network)
@@ -199,7 +199,7 @@ class TestedContainer:
         return self._container.attrs["NetworkSettings"]["Networks"][network.name]["IPAddress"]
 
     def check_circular_dependencies(self, seen: list):
-        """ Check if the container has a circular dependency """
+        """Check if the container has a circular dependency"""
         if self in seen:
             dependencies = " -> ".join([s.name for s in seen] + [self.name,])
             raise RuntimeError(f"Circular dependency detected between containers: {dependencies}")
@@ -210,7 +210,7 @@ class TestedContainer:
             dependency.check_circular_dependencies(list(seen))
 
     def _async_start_recursive(self, network: Network):
-        """ Recursive version of async_start for circular dependency detection """
+        """Recursive version of async_start for circular dependency detection"""
         with self._starting_lock:
             if self._starting_thread is None:
                 self._starting_thread = Thread(
@@ -221,7 +221,7 @@ class TestedContainer:
         return self._starting_thread
 
     def _start_with_dependencies(self, network: Network):
-        """ Start all dependencies of a container and then start the container """
+        """Start all dependencies of a container and then start the container"""
         threads = [dependency._async_start_recursive(network) for dependency in self.depends_on]
 
         for thread in threads:
@@ -240,10 +240,10 @@ class TestedContainer:
             self.healthy = False
 
     def warmup(self):
-        """ if some stuff must be done after healthcheck """
+        """If some stuff must be done after healthcheck"""
 
     def post_start(self):
-        """ if some stuff must be done after the container is started """
+        """If some stuff must be done after the container is started"""
 
     @property
     def healthcheck_log_file(self):
@@ -259,19 +259,18 @@ class TestedContainer:
             if exit_code != 0:
                 logger.stdout(f"Healthcheck failed for {self.name}:\n{output}")
                 return False
-            else:
-                logger.info(f"Healthcheck successful for {self.name}")
+
+            logger.info(f"Healthcheck successful for {self.name}")
 
         return True
 
     def execute_command(
         self, test, retries=10, interval=1_000_000_000, start_period=0, timeout=1_000_000_000
     ) -> tuple[int, str]:
-        """
-            Execute a command inside a container. Useful for healthcheck and warmups.
-            test is a command to be executed, interval, timeout and start_period are in us (microseconds)
-            This function does not raise any exception, it returns a tuple with the exit code and the output
-            The exit code is 0 (success) or any other integer (failure)
+        """Execute a command inside a container. Useful for healthcheck and warmups.
+        test is a command to be executed, interval, timeout and start_period are in us (microseconds)
+        This function does not raise any exception, it returns a tuple with the exit code and the output
+        The exit code is 0 (success) or any other integer (failure)
         """
 
         cmd = test
@@ -328,10 +327,12 @@ class TestedContainer:
         host_pwd = self.host_project_dir
 
         result = {}
-        for k, v in self.kwargs["volumes"].items():
-            if k.startswith("./"):
-                k = f"{host_pwd}{k[1:]}"
-            result[k] = v
+        for host_path, container_path in self.kwargs["volumes"].items():
+            if host_path.startswith("./"):
+                corrected_host_path = f"{host_pwd}{host_path[1:]}"
+                result[corrected_host_path] = container_path
+            else:
+                result[host_path] = container_path
 
         self.kwargs["volumes"] = result
 
@@ -377,8 +378,9 @@ class TestedContainer:
             ("stdout", self._container.logs(stdout=True, stderr=False)),
             ("stderr", self._container.logs(stdout=False, stderr=True)),
         )
-        for output_name, output in data:
+        for output_name, raw_output in data:
             filename = f"{self.log_folder_path}/{output_name}.log"
+            output = raw_output
             for key in keys:
                 output = output.replace(key, b"<redacted>")
             with open(filename, "wb") as f:
@@ -402,12 +404,11 @@ class TestedContainer:
                 # collect logs before removing
                 self.collect_logs()
                 self._container.remove(force=True)
-            except Exception as e:
+            except:
                 # Sometimes, the container does not exists.
                 # We can safely ignore this, because if it's another issue
                 # it will be killed at startup
-
-                pass
+                logger.info(f"Fail to remove container {self.name}")
 
         if self.stdout_interface is not None:
             self.stdout_interface.load_data()
@@ -473,7 +474,7 @@ class ImageInfo:
         self._init_from_attrs(self._image.attrs)
 
     def load_from_logs(self, dir_path):
-        with open(f"{dir_path}/image.json", encoding="utf-8", mode="r") as f:
+        with open(f"{dir_path}/image.json", encoding="utf-8") as f:
             attrs = json.load(f)
 
         self._init_from_attrs(attrs)
@@ -493,9 +494,9 @@ class ImageInfo:
 
 class ProxyContainer(TestedContainer):
     def __init__(self, host_log_folder, rc_api_enabled: bool, meta_structs_disabled: bool, span_events: bool) -> None:
-        """
-        Parameters:
+        """Parameters:
         span_events: Whether the agent supports the native serialization of span events
+
         """
 
         super().__init__(
@@ -564,7 +565,7 @@ class AgentContainer(TestedContainer):
 
     def get_image_list(self, library: str, weblog: str) -> list[str]:
         try:
-            with open("binaries/agent-image", "r", encoding="utf-8") as f:
+            with open("binaries/agent-image", encoding="utf-8") as f:
                 return [
                     f.read().strip(),
                 ]
@@ -575,7 +576,7 @@ class AgentContainer(TestedContainer):
             ]
 
     def post_start(self):
-        with open(self.healthcheck_log_file, mode="r", encoding="utf-8") as f:
+        with open(self.healthcheck_log_file, encoding="utf-8") as f:
             data = json.load(f)
 
         self.agent_version = LibraryVersion("agent", data["version"]).version
@@ -678,16 +679,6 @@ class WeblogContainer(TestedContainer):
         volumes = {} if volumes is None else volumes
         volumes[f"./{host_log_folder}/docker/weblog/logs/"] = {"bind": "/var/log/system-tests", "mode": "rw"}
 
-        try:
-            with open("./binaries/nodejs-load-from-local", encoding="utf-8") as f:
-                path = f.read().strip(" \r\n")
-                volumes[os.path.abspath(path)] = {
-                    "bind": "/volumes/dd-trace-js",
-                    "mode": "ro",
-                }
-        except Exception:
-            pass
-
         base_environment = {
             # Datadog setup
             "DD_SERVICE": "weblog",
@@ -764,22 +755,22 @@ class WeblogContainer(TestedContainer):
         result = []
 
         pattern = re.compile(r"FROM\s+(?P<image_name>[^ ]+)")
-        with open(dockerfile, "r", encoding="utf-8") as f:
-            for line in f.readlines():
+        with open(dockerfile, encoding="utf-8") as f:
+            for line in f:
                 if match := pattern.match(line):
                     result.append(match.group("image_name"))
 
         return result
 
     def get_image_list(self, library: str, weblog: str) -> list[str]:
-        """ parse the Dockerfile and extract all images reference in a FROM section """
+        """Parse the Dockerfile and extract all images reference in a FROM section"""
         result = []
         args = {}
 
         pattern = re.compile(r"^FROM\s+(?P<image_name>[^\s]+)")
         arg_pattern = re.compile(r"^ARG\s+(?P<arg_name>[^\s]+)\s*=\s*(?P<arg_value>[^\s]+)")
-        with open(f"utils/build/docker/{library}/{weblog}.Dockerfile", "r", encoding="utf-8") as f:
-            for line in f.readlines():
+        with open(f"utils/build/docker/{library}/{weblog}.Dockerfile", encoding="utf-8") as f:
+            for line in f:
                 if match := arg_pattern.match(line):
                     args[match.group("arg_name")] = match.group("arg_value")
 
@@ -814,12 +805,23 @@ class WeblogContainer(TestedContainer):
 
         self.appsec_rules_file = (self.image.env | self.environment).get("DD_APPSEC_RULES", None)
 
+        if library == "nodejs":
+            try:
+                with open("./binaries/nodejs-load-from-local", encoding="utf-8") as f:
+                    path = f.read().strip(" \r\n")
+                    self.kwargs["volumes"][os.path.abspath(path)] = {
+                        "bind": "/volumes/dd-trace-js",
+                        "mode": "ro",
+                    }
+            except Exception:
+                logger.info("No local dd-trace-js found")
+
     def post_start(self):
         from utils import weblog
 
         logger.debug(f"Docker host is {weblog.domain}")
 
-        with open(self.healthcheck_log_file, mode="r", encoding="utf-8") as f:
+        with open(self.healthcheck_log_file, encoding="utf-8") as f:
             data = json.load(f)
             lib = data["library"]
 
@@ -854,8 +856,8 @@ class WeblogContainer(TestedContainer):
         return 2
 
     def request(self, method, url, **kwargs):
-        """ perform an HTTP request on the weblog, must NOT be used for tests """
-        return requests.request(method, f"http://localhost:{self.port}{url}", **kwargs)
+        """Perform an HTTP request on the weblog, must NOT be used for tests"""
+        return requests.request(method, f"http://localhost:{self.port}{url}", **kwargs)  # noqa: S113
 
 
 class PostgresContainer(SqlDbTestedContainer):
@@ -876,7 +878,7 @@ class PostgresContainer(SqlDbTestedContainer):
             stdout_interface=interfaces.postgres,
             dd_integration_service="postgresql",
             db_user="system_tests_user",
-            db_password="system_tests",
+            db_password="system_tests",  # noqa: S106
             db_host="postgres",
             db_instance="system_tests_dbname",
         )
@@ -977,7 +979,7 @@ class MySqlContainer(SqlDbTestedContainer):
             healthcheck={"test": "/healthcheck.sh", "retries": 60},
             dd_integration_service="mysql",
             db_user="mysqldb",
-            db_password="mysqldb",
+            db_password="mysqldb",  # noqa: S106
             db_host="mysqldb",
             db_instance="mysql_dbname",
         )
@@ -988,7 +990,7 @@ class MsSqlServerContainer(SqlDbTestedContainer):
         self.data_mssql = f"./{host_log_folder}/data-mssql"
 
         healthcheck = {
-            # XXX: Using 127.0.0.1 here instead of localhost to avoid using IPv6 in some systems.
+            # Using 127.0.0.1 here instead of localhost to avoid using IPv6 in some systems.
             # -C : trust self signed certificates
             "test": '/opt/mssql-tools18/bin/sqlcmd -S 127.0.0.1 -U sa -P "yourStrong(!)Password" -Q "SELECT 1" -b -C',
             "retries": 20,
@@ -1007,7 +1009,7 @@ class MsSqlServerContainer(SqlDbTestedContainer):
             healthcheck=healthcheck,
             dd_integration_service="mssql",
             db_user="SA",
-            db_password="yourStrong(!)Password",
+            db_password="yourStrong(!)Password",  # noqa: S106
             db_host="mssql",
             db_instance="master",
         )
@@ -1034,7 +1036,7 @@ class OpenTelemetryCollectorContainer(TestedContainer):
             environment={},
             volumes={self._otel_config_host_path: {"bind": "/etc/otelcol-config.yml", "mode": "ro",}},
             host_log_folder=host_log_folder,
-            ports={"13133/tcp": ("0.0.0.0", 13133)},
+            ports={"13133/tcp": ("0.0.0.0", 13133)},  # noqa: S104
         )
 
     # Override wait_for_health because we cannot do docker exec for container opentelemetry-collector-contrib
@@ -1061,7 +1063,7 @@ class OpenTelemetryCollectorContainer(TestedContainer):
         prev_mode = os.stat(self._otel_config_host_path).st_mode
         new_mode = prev_mode | stat.S_IROTH
         if prev_mode != new_mode:
-            os.chmod(self._otel_config_host_path, new_mode)
+            Path(self._otel_config_host_path).chmod(new_mode)
         return super().start(network)
 
 
@@ -1145,7 +1147,7 @@ class DockerSSIContainer(TestedContainer):
         )
 
     def get_env(self, env_var):
-        """Get env variables from the container """
+        """Get env variables from the container"""
         env = self.image.env | self.environment
         return env.get(env_var)
 
@@ -1180,7 +1182,7 @@ class ExternalProcessingContainer(TestedContainer):
 
     def __init__(self, host_log_folder) -> None:
         try:
-            with open("binaries/golang-service-extensions-callout-image", "r", encoding="utf-8") as f:
+            with open("binaries/golang-service-extensions-callout-image", encoding="utf-8") as f:
                 image = f.read().strip()
         except FileNotFoundError:
             image = "ghcr.io/datadog/dd-trace-go/service-extensions-callout:latest"
@@ -1194,7 +1196,7 @@ class ExternalProcessingContainer(TestedContainer):
         )
 
     def post_start(self):
-        with open(self.healthcheck_log_file, mode="r", encoding="utf-8") as f:
+        with open(self.healthcheck_log_file, encoding="utf-8") as f:
             data = json.load(f)
             lib = data["library"]
 

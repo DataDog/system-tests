@@ -8,7 +8,7 @@ except ImportError:
 
 
 class SupportedImages:
-    """ All supported images """
+    """All supported images"""
 
     def __init__(self) -> None:
         # Try to set the same name as utils/_context/virtual_machines.py
@@ -44,7 +44,7 @@ class SupportedImages:
 
 
 class JavaRuntimeInstallableVersions:
-    """ Java runtime versions that can be installed automatically"""
+    """Java runtime versions that can be installed automatically"""
 
     JAVA_22 = RuntimeInstallableVersion("JAVA_22", "22.0.2-zulu")
     JAVA_21 = RuntimeInstallableVersion("JAVA_21", "21.0.4-zulu")
@@ -69,7 +69,7 @@ class JavaRuntimeInstallableVersions:
 
 
 class PHPRuntimeInstallableVersions:
-    """ PHP runtime versions that can be installed automatically"""
+    """PHP runtime versions that can be installed automatically"""
 
     PHP56 = RuntimeInstallableVersion("PHP56", "5.6")  # Not supported (EOL runtime)
     PHP70 = RuntimeInstallableVersion("PHP70", "7.0")
@@ -106,7 +106,7 @@ class PHPRuntimeInstallableVersions:
 
 
 class PythonRuntimeInstallableVersions:
-    """ Python runtime versions that can be installed automatically"""
+    """Python runtime versions that can be installed automatically"""
 
     PY36 = RuntimeInstallableVersion("PY36", "3.6.15")  # Not supported (EOL runtime)
     PY37 = RuntimeInstallableVersion("PY37", "3.7.16")
@@ -179,6 +179,25 @@ class JSRuntimeInstallableVersions:
             if version_check.version == version:
                 return version_check.version_id
         raise ValueError(f"Node.js version {version} not supported")
+
+
+class DotnetRuntimeInstallableVersions:
+    """Python runtime versions that can be installed automatically"""
+
+    DOTNET70 = RuntimeInstallableVersion("DOTNET70", "7.0.410")
+
+    @staticmethod
+    def get_all_versions():
+        return [
+            DotnetRuntimeInstallableVersions.DOTNET70,
+        ]
+
+    @staticmethod
+    def get_version_id(version):
+        for version_check in DotnetRuntimeInstallableVersions.get_all_versions():
+            if version_check.version == version:
+                return version_check.version_id
+        raise ValueError(f".NET version {version} not supported")
 
 
 # HERE ADD YOUR WEBLOG DEFINITION: SUPPORTED IMAGES AND INSTALABLE RUNTIME VERSIONS
@@ -272,6 +291,46 @@ JS_APP = WeblogDescriptor(
     ],
 )
 
+DOTNET_APP = WeblogDescriptor(
+    "dotnet-app",
+    "dotnet",
+    [
+        SupportedImages().UBUNTU_22_AMD64.with_allowed_runtime_versions(
+            DotnetRuntimeInstallableVersions.get_all_versions()
+        ),
+        SupportedImages().UBUNTU_22_ARM64.with_allowed_runtime_versions(
+            DotnetRuntimeInstallableVersions.get_all_versions()
+        ),
+        SupportedImages().UBUNTU_16_AMD64.with_allowed_runtime_versions(
+            DotnetRuntimeInstallableVersions.get_all_versions()
+        ),
+        SupportedImages().ORACLELINUX_8_AMD64.with_allowed_runtime_versions(
+            DotnetRuntimeInstallableVersions.get_all_versions()
+        ),
+        SupportedImages().ORACLELINUX_8_ARM64.with_allowed_runtime_versions(
+            DotnetRuntimeInstallableVersions.get_all_versions()
+        ),
+        SupportedImages().ORACLELINUX_9_AMD64.with_allowed_runtime_versions(
+            DotnetRuntimeInstallableVersions.get_all_versions()
+        ),
+        SupportedImages().ORACLELINUX_9_ARM64.with_allowed_runtime_versions(
+            DotnetRuntimeInstallableVersions.get_all_versions()
+        ),
+        SupportedImages().ALMALINUX_8_AMD64.with_allowed_runtime_versions(
+            DotnetRuntimeInstallableVersions.get_all_versions()
+        ),
+        SupportedImages().ALMALINUX_8_ARM64.with_allowed_runtime_versions(
+            DotnetRuntimeInstallableVersions.get_all_versions()
+        ),
+        SupportedImages().ALMALINUX_9_AMD64.with_allowed_runtime_versions(
+            DotnetRuntimeInstallableVersions.get_all_versions()
+        ),
+        SupportedImages().ALMALINUX_9_ARM64.with_allowed_runtime_versions(
+            DotnetRuntimeInstallableVersions.get_all_versions()
+        ),
+    ],
+)
+
 # HERE ADD YOUR WEBLOG DEFINITION TO THE LIST
 ALL_WEBLOGS = [
     JETTY_APP,
@@ -282,4 +341,5 @@ ALL_WEBLOGS = [
     PHP_APP,
     PY_APP,
     JS_APP,
+    DOTNET_APP,
 ]

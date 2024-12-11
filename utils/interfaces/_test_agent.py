@@ -17,20 +17,17 @@ class _TestAgentInterfaceValidator(InterfaceValidator):
 
         logger.debug("Collecting data from test agent")
         client = agent_client.TestAgentClient(base_url=f"http://{agent_host}:{agent_port}")
-        try:
-            self._data_traces_list = client.traces(clear=False)
-            if self._data_traces_list:
-                pathlib.Path(f"{interface_folder}/00_traces.json").write_text(
-                    json.dumps(self._data_traces_list, indent=2), encoding="utf-8"
-                )
+        self._data_traces_list = client.traces(clear=False)
+        if self._data_traces_list:
+            pathlib.Path(f"{interface_folder}/00_traces.json").write_text(
+                json.dumps(self._data_traces_list, indent=2), encoding="utf-8"
+            )
 
-            self._data_telemetry_list = client.telemetry(clear=False)
-            if self._data_telemetry_list:
-                pathlib.Path(f"{interface_folder}/00_telemetry.json").write_text(
-                    json.dumps(self._data_telemetry_list, indent=2), encoding="utf-8"
-                )
-        except ValueError as e:
-            raise e
+        self._data_telemetry_list = client.telemetry(clear=False)
+        if self._data_telemetry_list:
+            pathlib.Path(f"{interface_folder}/00_telemetry.json").write_text(
+                json.dumps(self._data_telemetry_list, indent=2), encoding="utf-8"
+            )
 
     def get_traces(self, request=None):
         rid = get_rid_from_request(request)
@@ -91,9 +88,19 @@ class _TestAgentInterfaceValidator(InterfaceValidator):
 
     def get_crash_reports(self):
         logger.debug("Try to find telemetry data related to crash reports")
-        return [
-            p
-            for t in self.get_telemetry_logs()
-            for p in t["payload"]
-            if "signame" in p.get("tags", "") or "signum" in p.get("tags", "")
-        ]
+        crash_reports = []
+
+        for t in self.get_telemetry_logs():
+            payload = t["payload"]
+
+            # If payload is a list, iterate through its items
+            if isinstance(payload, list):
+                crash_reports.extend(
+                    p for p in payload if "signame" in p.get("tags", "") or "signum" in p.get("tags", "")
+                )
+            # If payload is a single object, check it directly
+            elif isinstance(payload, dict):
+                if "signame" in payload.get("tags", "") or "signum" in payload.get("tags", ""):
+                    crash_reports.append(payload)
+
+        return crash_reports

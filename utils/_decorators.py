@@ -7,15 +7,11 @@ import semantic_version as semver
 
 from utils._context.core import context
 
-# bug: APPSEC-51509
-
 _jira_ticket_pattern = re.compile(r"([A-Z]{3,}-\d+)(, [A-Z]{3,}-\d+)*")
-
-_allow_no_jira_ticket_for_bugs: list[str] = []
 
 
 def configure(config: pytest.Config):
-    _allow_no_jira_ticket_for_bugs.extend(config.inicfg["allow_no_jira_ticket_for_bugs"])
+    pass  # nothing to do right now
 
 
 # semver module offers two spec engine :
@@ -50,17 +46,13 @@ def _ensure_jira_ticket_as_reason(item, reason: str):
         else:
             nodeid = f"{rel_path}::{item.__qualname__}"
 
-        for allowed_nodeid in _allow_no_jira_ticket_for_bugs:
-            if nodeid.startswith(allowed_nodeid):
-                return
-
         pytest.exit(f"Please set a jira ticket for {nodeid}, instead of reason: {reason}", 1)
 
 
 def _get_skipped_item(item, skip_reason):
     if inspect.isfunction(item) or inspect.isclass(item):
         if not hasattr(item, "pytestmark"):
-            setattr(item, "pytestmark", [])
+            item.pytestmark = []
 
         item.pytestmark.append(pytest.mark.skip(reason=skip_reason))
 
@@ -73,7 +65,7 @@ def _get_skipped_item(item, skip_reason):
 def _get_expected_failure_item(item, skip_reason, force_skip: bool = False):
     if inspect.isfunction(item) or inspect.isclass(item):
         if not hasattr(item, "pytestmark"):
-            setattr(item, "pytestmark", [])
+            item.pytestmark = []
 
         if force_skip:
             item.pytestmark.append(pytest.mark.skip(reason=skip_reason))
@@ -134,6 +126,28 @@ def missing_feature(condition: bool = None, library=None, weblog_variant=None, r
     return decorator
 
 
+def incomplete_test_app(
+    condition: bool = None, library=None, weblog_variant=None, reason=None, force_skip: bool = False
+):
+    """decorator, marks tests that rely on endpoints in test apps that are incomplete or missing"""
+
+    skip = _should_skip(library=library, weblog_variant=weblog_variant, condition=condition)
+
+    def decorator(function_or_class):
+
+        if inspect.isclass(function_or_class):
+            assert condition is not None or (library is None and weblog_variant is None), _MANIFEST_ERROR_MESSAGE
+
+        if not skip:
+            return function_or_class
+
+        full_reason = "incomplete_test_app" if reason is None else f"incomplete_test_app ({reason})"
+
+        return _get_expected_failure_item(function_or_class, full_reason, force_skip=force_skip)
+
+    return decorator
+
+
 def irrelevant(condition=None, library=None, weblog_variant=None, reason=None):
     """decorator, allow to mark a test function/class as not relevant"""
 
@@ -154,8 +168,7 @@ def irrelevant(condition=None, library=None, weblog_variant=None, reason=None):
 
 
 def bug(condition=None, library=None, weblog_variant=None, reason=None, force_skip: bool = False):
-    """
-    Decorator, allow to mark a test function/class as an known bug.
+    """Decorator, allow to mark a test function/class as an known bug.
     The test is executed, and if it passes, and warning is reported
     """
 
@@ -237,21 +250,15 @@ def released(
 
             assert declaration != "?"  # ensure there is no more ? in version declaration
 
-            if (
-                declaration.startswith("missing_feature")
-                or declaration.startswith("flaky")
-                or declaration.startswith("bug")
-                or declaration.startswith("irrelevant")
-            ):
+            if declaration.startswith(("missing_feature", "bug", "flaky", "irrelevant", "incomplete_test_app")):
                 return declaration
 
             # declaration must be now a version number
             if declaration.startswith("v"):
                 if tested_version >= declaration:
                     return None
-            else:
-                if semver.Version(str(tested_version)) in CustomSpec(declaration):
-                    return None
+            elif semver.Version(str(tested_version)) in CustomSpec(declaration):
+                return None
 
             return (
                 f"missing_feature for {component_name}: "
@@ -305,7 +312,7 @@ def rfc(link):
 
 
 def _resolve_declaration(released_declaration):
-    """ if the declaration is a dict, resolve it regarding the tested weblog """
+    """If the declaration is a dict, resolve it regarding the tested weblog"""
     if isinstance(released_declaration, str):
         return released_declaration
 

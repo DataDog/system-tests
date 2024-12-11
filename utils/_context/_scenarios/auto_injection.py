@@ -432,8 +432,8 @@ class InstallerAutoInjectionScenario(_VirtualMachineScenario):
             include_redhat_7_9_amd64=True,
             include_redhat_8_amd64=True,
             include_redhat_8_arm64=True,
-            include_redhat_9_amd64=False,
-            include_redhat_9_arm64=False,
+            include_redhat_9_amd64=True,
+            include_redhat_9_arm64=True,
             include_fedora_36_amd64=False,
             include_fedora_36_arm64=False,
             include_fedora_37_amd64=False,
@@ -443,8 +443,9 @@ class InstallerAutoInjectionScenario(_VirtualMachineScenario):
 
 
 class InstallerAutoInjectionScenarioProfiling(_VirtualMachineScenario):
-    """ As Profiling is not included in GA (2024/11) we reduce the number of VMS to speed up the execution 
-    Until we fix the performance problems on the AWS architecture and speed up the tests"""
+    """As Profiling is not included in GA (2024/11) we reduce the number of VMS to speed up the execution
+    Until we fix the performance problems on the AWS architecture and speed up the tests
+    """
 
     def __init__(
         self,

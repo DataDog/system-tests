@@ -423,9 +423,7 @@ tests/:
     test_debugger_pii.py:
       Test_Debugger_PII_Redaction: missing_feature (feature not implented)
     test_debugger_probe_snapshot.py:
-      Test_Debugger_Line_Probe_Snaphots: missing_feature (feature not implented)
-      Test_Debugger_Method_Probe_Snaphots: missing_feature (feature not implented)
-      Test_Debugger_Mix_Log_Probe: missing_feature (feature not implented)
+      Test_Debugger_Probe_Snaphots: missing_feature (feature not implented)
     test_debugger_probe_status.py:
       Test_Debugger_Probe_Statuses: missing_feature (feature not implented)
   integrations/:
@@ -568,7 +566,7 @@ tests/:
     Test_Config_ClientIPHeader_Configured: v1.60.0
     Test_Config_ClientIPHeader_Precedence: v1.69.0
     Test_Config_ClientTagQueryString_Configured: missing_feature (supports DD_TRACE_HTTP_URL_QUERY_STRING_DISABLED)
-    Test_Config_ClientTagQueryString_Empty: v1.60.0
+    Test_Config_ClientTagQueryString_Empty: bug (APMAPI-966) # DD_TRACE_HTTP_CLIENT_TAG_QUERY_STRING is disabled by default
     Test_Config_HttpClientErrorStatuses_Default: v1.69.0
     Test_Config_HttpClientErrorStatuses_FeatureFlagCustom: v1.69.0
     Test_Config_HttpServerErrorStatuses_Default: v1.67.0
@@ -586,6 +584,11 @@ tests/:
     Test_LibraryHeaders: v1.60.0.dev0
   test_distributed.py:
     Test_DistributedHttp: missing_feature
+    Test_Span_Links_Flags_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
+    Test_Span_Links_From_Conflicting_Contexts: missing_feature
+    Test_Span_Links_From_Conflicting_Contexts_Datadog_Precedence: missing_feature
+    Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
+    Test_Synthetics_APM_Datadog: bug (APMAPI-901) # the incoming headers are considered invalid
   test_identify.py:
     Test_Basic: v1.37.0
     Test_Propagate: v1.48.0-rc.1

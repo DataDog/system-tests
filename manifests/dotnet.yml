@@ -347,9 +347,7 @@ tests/:
     test_debugger_pii.py:
       Test_Debugger_PII_Redaction: v2.50.0
     test_debugger_probe_snapshot.py:
-      Test_Debugger_Line_Probe_Snaphots: v2.53.0
-      Test_Debugger_Method_Probe_Snaphots: v2.53.0
-      Test_Debugger_Mix_Log_Probe: v2.53.0
+      Test_Debugger_Probe_Snaphots: v2.53.0
     test_debugger_probe_status.py:
       Test_Debugger_Probe_Statuses: v2.53.0
   integrations/:
@@ -485,6 +483,10 @@ tests/:
     Test_LibraryHeaders: v2.46.0
   test_distributed.py:
     Test_DistributedHttp: missing_feature
+    Test_Span_Links_Flags_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
+    Test_Span_Links_From_Conflicting_Contexts: missing_feature
+    Test_Span_Links_From_Conflicting_Contexts_Datadog_Precedence: missing_feature
+    Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
   test_identify.py:
     Test_Basic: v2.7.0
     Test_Propagate: v2.27.0
@@ -492,12 +494,12 @@ tests/:
   test_library_conf.py:
     Test_HeaderTags: v2.27.0
     Test_HeaderTags_Colon_Leading: v2.1.0
-    Test_HeaderTags_Colon_Trailing: bug (AIT-8600)
+    Test_HeaderTags_Colon_Trailing: v3.0.0
     Test_HeaderTags_DynamicConfig: missing_feature
     Test_HeaderTags_Long: v2.1.0
     Test_HeaderTags_Short: v2.1.0
     Test_HeaderTags_Whitespace_Header: v2.1.0
-    Test_HeaderTags_Whitespace_Tag: bug (AIT-8308)
+    Test_HeaderTags_Whitespace_Tag: v3.0.0
     Test_HeaderTags_Whitespace_Val_Long: v2.1.0
     Test_HeaderTags_Whitespace_Val_Short: v2.1.0
   test_profiling.py:

@@ -261,9 +261,7 @@ tests/:
     test_debugger_pii.py:
       Test_Debugger_PII_Redaction: irrelevant
     test_debugger_probe_snapshot.py:
-      Test_Debugger_Line_Probe_Snaphots: irrelevant
-      Test_Debugger_Method_Probe_Snaphots: irrelevant
-      Test_Debugger_Mix_Log_Probe: irrelevant
+      Test_Debugger_Probe_Snaphots: irrelevant
     test_debugger_probe_status.py:
       Test_Debugger_Probe_Statuses: irrelevant
   integrations/:
@@ -405,6 +403,10 @@ tests/:
     Test_Config_UnifiedServiceTagging_Default: v1.4.0
   test_distributed.py:
     Test_DistributedHttp: missing_feature
+    Test_Span_Links_Flags_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
+    Test_Span_Links_From_Conflicting_Contexts: missing_feature
+    Test_Span_Links_From_Conflicting_Contexts_Datadog_Precedence: missing_feature
+    Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
   test_identify.py:
     Test_Basic: v0.85.0
     Test_Propagate: v0.85.0
