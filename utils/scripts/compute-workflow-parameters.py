@@ -18,6 +18,7 @@ def get_github_workflow_map(scenarios, scenarios_groups):
 
     for scenario in get_all_scenarios():
         if not scenario.github_workflow:
+            scenarios[scenario.name] = True  # won't be executed, but it exists
             continue
 
         if scenario.github_workflow not in result:
