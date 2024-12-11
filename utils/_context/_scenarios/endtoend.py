@@ -154,10 +154,10 @@ class DockerScenario(Scenario):
             self._network = get_docker_client().networks.create(
                 name=name,
                 driver="bridge",
-                options={"com.docker.network.enable_ipv6": "true"},
+                enable_ipv6=True,
                 ipam=IPAMConfig(driver="default", pool_configs=[IPAMPool(subnet="2001:db8:1::/64")]),
             )
-            assert self._network.attrs["EnableIPv6"] is True
+            assert self._network.attrs["EnableIPv6"] is True, self._network.attrs
         else:
             get_docker_client().networks.create(name, check_duplicate=True)
 
