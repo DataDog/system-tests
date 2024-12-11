@@ -8,23 +8,27 @@ from docker_ssi_definitions import ALL_WEBLOGS
 
 def generate_gitlab_pipeline(languages):
     pipeline = {
-        "stages": ["dummy"],
-        # A dummy job is necessary for cases where all of the test jobs are manual
-        # The child pipeline shows as failed until at least 1 job is run
-        "dummy": {
-            "image": "registry.ddbuild.io/docker:20.10.13-gbi-focal",
+        "stages": ["DOCKER_SSI"],
+        "configure": {
+            "image": "486234852809.dkr.ecr.us-east-1.amazonaws.com/ci/test-infra-definitions/runner:6dd143866d67",
             "tags": ["arch:amd64"],
-            "stage": "dummy",
-            "needs": [],
-            "script": ["echo 'DONE'"],
+            "stage": "DOCKER_SSI",
+            "dependencies": [],
+            "script": [
+                'export FP_IMPORT_URL=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.fp-import-url --with-decryption --query "Parameter.Value" --out text)',
+                'export FP_API_KEY=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.fp-api-key --with-decryption --query "Parameter.Value" --out text)',
+                'echo "FP_IMPORT_URL=${FP_IMPORT_URL}" >> fpd.env',
+                'echo "FP_API_KEY=${FP_API_KEY}" >> fpd.env',
+            ],
+            "artifacts": {"reports": {"dotenv": "fpd.env"}},
         },
         ".base_ssi_job": {
             "image": "registry.ddbuild.io/ci/libdatadog-build/system-tests:48436362",
-            "needs": [],
             "script": [
                 "./build.sh -i runner",
                 "source venv/bin/activate",
-                'timeout 2700s ./run.sh DOCKER_SSI --ssi-weblog "$weblog" --ssi-library "$TEST_LIBRARY" --ssi-base-image "$base_image" --ssi-arch "$arch" --ssi-installable-runtime "$installable_runtime"',
+                "echo 'Running SSI tests'",
+                'timeout 2700s ./run.sh DOCKER_SSI --ssi-weblog "$weblog" --ssi-library "$TEST_LIBRARY" --ssi-base-image "$base_image" --ssi-arch "$arch" --ssi-installable-runtime "$installable_runtime" --report-run-url ${CI_PIPELINE_URL} --report-environment prod',
             ],
             "rules": [
                 {"if": '$PARENT_PIPELINE_SOURCE == "schedule"', "when": "always"},
@@ -40,12 +44,15 @@ def generate_gitlab_pipeline(languages):
                 'cleaned_runtime=$(echo "$installable_runtime" | tr -cd "[:alnum:]_")',
                 'mv "$REPORTS_PATH"/logs_"${SCENARIO_SUFIX}" "$REPORTS_PATH"/logs_"${TEST_LIBRARY}"_"${weblog}"_"${SCENARIO_SUFIX}_${cleaned_base_image}_${cleaned_arch}_${cleaned_runtime}"',
             ],
+            "needs": [{"job": "configure", "artifacts": True}],
             "artifacts": {"when": "always", "paths": ["reports/"]},
         },
     }
+    # Add FPD push script
+    pipeline[".base_ssi_job"]["after_script"].extend(_generate_fpd_gitlab_script())
 
     for language in languages:
-        pipeline["stages"].append(language)
+        pipeline["stages"].append(language if len(languages) > 1 else "DOCKER_SSI")
         matrix = []
 
         filtered = [weblog for weblog in ALL_WEBLOGS if weblog.library == language]
@@ -60,17 +67,34 @@ def generate_gitlab_pipeline(languages):
                     test["runner"] = "docker-arm"
                 test.pop("unique_name", None)
                 matrix.append(test)
-
         if matrix:
             pipeline[language] = {
                 "extends": ".base_ssi_job",
                 "tags": ["runner:$runner"],
-                "stage": language,
+                "stage": language if len(languages) > 1 else "DOCKER_SSI",
+                "allow_failure": True,
                 "variables": {"TEST_LIBRARY": language,},
                 "parallel": {"matrix": matrix},
             }
-
     return pipeline
+
+
+def _generate_fpd_gitlab_script():
+    fpd_push_script = [
+        'if [ "$CI_COMMIT_BRANCH" = "main" ]; then',
+        "for folder in reports/logs*/ ; do",
+        '  echo "Checking folder: ${folder}"',
+        "  for filename in ./${folder}feature_parity.json; do",
+        "    if [ -e ${filename} ]",
+        "    then",
+        '      echo "Processing report: ${filename}"',
+        '      curl -X POST ${FP_IMPORT_URL} --fail --header "Content-Type: application/json" --header "FP_API_KEY: ${FP_API_KEY}" --data "@${filename}" --include',
+        "    fi",
+        "  done",
+        "done",
+        "fi",
+    ]
+    return fpd_push_script
 
 
 def main():

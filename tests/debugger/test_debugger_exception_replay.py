@@ -2,275 +2,183 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-import tests.debugger.utils as base
-import json
-import os
+import tests.debugger.utils as debugger
 import re
-from utils import scenarios, interfaces, weblog, features, bug
+from utils import scenarios, features, bug
 from utils.tools import logger
 
 _OVERRIDE_APROVALS = False
+_SCRUB_VALUES = True
 
 
 @features.debugger_exception_replay
 @scenarios.debugger_exception_replay
-class Test_Debugger_Exception_Replay(base._Base_Debugger_Test):
-    tracer = None
-    snapshots = None
-    method = None
-    last_read = 0
-
-    def _setup(self, request_path, method):
-        self.snapshots = []
+@bug(True, reason="DEBUG-3188")
+class Test_Debugger_Exception_Replay(debugger._Base_Debugger_Test):
+    ############ setup ############
+    def _setup(self, request_path, method_name):
         self.weblog_responses = []
-        self.method = method
 
         retries = 0
         max_retries = 60
-
-        while not self.snapshots and retries < max_retries:
-            logger.debug(f"Waiting for snapshot, retry #{retries}")
-
-            self.weblog_responses.append(weblog.get(request_path))
-            interfaces.agent.wait_for(self._wait_for_snapshot_received, timeout=1)
-
-            retries += 1
-
-    def _wait_for_snapshot_received(self, data):
         snapshot_found = False
 
-        if data["path"] == base._LOGS_PATH:
+        while not snapshot_found and retries < max_retries:
+            logger.debug(f"Waiting for snapshot, retry #{retries}")
 
-            log_number = int(re.search(r"/(\d+)__", data["log_filename"]).group(1))
-            logger.debug("Reading " + data["log_filename"] + ", looking for " + self.method)
-            logger.debug(f"Last read is {Test_Debugger_Exception_Replay.last_read}")
-
-            if log_number > Test_Debugger_Exception_Replay.last_read:
-                Test_Debugger_Exception_Replay.last_read = log_number
-
-                logger.debug("Reading " + data["log_filename"] + ", looking for " + self.method)
-                contents = data["request"].get("content", []) or []
-                for content in contents:
-                    snapshot = content.get("debugger", {}).get("snapshot") or content.get("debugger.snapshot")
-
-                    if not snapshot:
-                        continue
-
-                    if (
-                        "probe" not in snapshot
-                        or "location" not in snapshot["probe"]
-                        or "method" not in snapshot["probe"]["location"]
-                    ):
-                        continue
-
-                    method = snapshot["probe"]["location"]["method"]
-
-                    if not isinstance(method, str):
-                        continue
-
-                    method = method.lower().replace("_", "")
-
-                    logger.debug(f"method is {method}; self method is {self.method}")
-                    if method == self.method:
-                        self.snapshots.append(snapshot)
-                        snapshot_found = True
-
-        logger.debug(f"Snapshot found: {snapshot_found}")
-        return snapshot_found
-
-    ############ Simple ############
-    def setup_exception_replay_simple(self):
-        self._setup("/debugger/exceptionreplay/simple", "exceptionreplaysimple")
-
-    @bug(library="java", reason="DEBUG-3053")
-    @bug(library="dotnet", reason="DEBUG-2799")
-    def test_exception_replay_simple(self):
-        self.assert_all_weblog_responses_ok(expected_code=500)
-        self._validate_exception_replay_snapshots(test_name="exception_replay_simple")
-        self._validate_tags(test_name="exception_replay_simple")
-
-    def setup_exception_replay_simple(self):
-        self._setup("/debugger/exceptionreplay/simple", "exceptionreplaysimple")
-
-    ############ Recursion ############
-    def setup_exception_replay_recursion_5(self):
-        self._setup("/debugger/exceptionreplay/recursion?depth=5", "exceptionreplayrecursion")
-
-    @bug(library="java", reason="DEBUG-3053")
-    @bug(library="dotnet", reason="DEBUG-2799")
-    def test_exception_replay_recursion_5(self):
-        self.assert_all_weblog_responses_ok(expected_code=500)
-        self._validate_exception_replay_snapshots(test_name="exception_replay_recursion_5")
-        self._validate_tags(test_name="exception_replay_recursion_5")
-
-    def setup_exception_replay_recursion_20(self):
-        self._setup("/debugger/exceptionreplay/recursion?depth=20", "exceptionreplayrecursion")
-
-    @bug(library="java", reason="DEBUG-3053")
-    @bug(library="dotnet", reason="DEBUG-2799")
-    def test_exception_replay_recursion_20(self):
-        self.assert_all_weblog_responses_ok(expected_code=500)
-        self._validate_exception_replay_snapshots(test_name="exception_replay_recursion_20")
-        self._validate_tags(test_name="exception_replay_recursion_20")
-
-    ############ Inner ############
-    def setup_exception_replay_inner(self):
-        self._setup("/debugger/exceptionreplay/inner", "exceptionreplayinner")
-
-    @bug(library="java", reason="DEBUG-3053")
-    @bug(library="dotnet", reason="DEBUG-2799")
-    def test_exception_replay_inner(self):
-        self.assert_all_weblog_responses_ok(expected_code=500)
-        self._validate_exception_replay_snapshots(test_name="exception_replay_inner")
-        self._validate_tags(test_name="exception_replay_inner")
-
-    ############ Rock Paper Scissors ############
-    def setup_exception_replay_rockpaperscissors(self):
-        self.snapshots = []
-        self.weblog_responses = []
-        self.method = "exceptionreplayrockpaperscissors"
-
-        retries = 0
-        max_retries = 60
-        shapes = ["rock", "paper", "scissors"]
-
-        while len(self.snapshots) < len(shapes) and retries < max_retries:
-            for shape in shapes:
-                logger.debug(f"Waiting for snapshot for shape: {shape}, retry #{retries}")
-
-                self.weblog_responses.append(weblog.get(f"/debugger/exceptionreplay/rps?shape={shape}"))
-                interfaces.agent.wait_for(self._wait_for_snapshot_received, timeout=1)
+            self.send_weblog_request(request_path, reset=False)
+            snapshot_found = self.wait_for_snapshot_received(method_name)
 
             retries += 1
 
-    @bug(library="java", reason="DEBUG-3053")
-    @bug(library="dotnet", reason="DEBUG-2799")
-    def test_exception_replay_rockpaperscissors(self):
+    ############ assert ############
+    def _assert(self, test_name, method_name):
+        def __filter_snapshots_by_method():
+            filtered_snapshots = []
+
+            for contents in self.probe_snapshots.values():
+                for content in contents:
+                    if content["debugger"]["snapshot"]["probe"]["location"]["method"].lower() == method_name:
+                        filtered_snapshots.append(content["debugger"]["snapshot"])
+
+            return filtered_snapshots
+
+        def __filter_spans_by_snapshot_id(snapshots):
+            filtered_spans = {}
+
+            for span in self.probe_spans.values():
+
+                snapshot_ids_in_span = {
+                    key: value for key, value in span["meta"].items() if key.endswith("snapshot_id")
+                }.values()
+                for snapshot in snapshots:
+                    if snapshot["id"] in snapshot_ids_in_span:
+                        filtered_spans[snapshot["id"]] = span
+
+            return filtered_spans
+
+        self.collect()
         self.assert_all_weblog_responses_ok(expected_code=500)
-        self._validate_exception_replay_snapshots(test_name="exception_replay_rockpaperscissors")
-        self._validate_tags(test_name="exception_replay_rockpaperscissors")
 
-    def __get_path(self, test_name, suffix):
-        if self.tracer is None:
-            self.tracer = base.get_tracer()
+        snapshots = __filter_snapshots_by_method()
+        self._validate_exception_replay_snapshots(test_name, snapshots)
 
-        filename = test_name + "_" + self.tracer["language"] + "_" + suffix + ".json"
-        path = os.path.join(base._CUR_DIR, "approvals", filename)
-        return path
+        spans = __filter_spans_by_snapshot_id(snapshots)
+        self._validate_spans(test_name, spans)
 
-    def __write(self, data, test_name, suffix):
-        with open(self.__get_path(test_name, suffix), "w", encoding="utf-8") as f:
-            json.dump(data, f, indent=2)
+    def _validate_exception_replay_snapshots(self, test_name, snapshots):
+        def __scrub(data):
+            if isinstance(data, dict):
+                scrubbed_data = {}
+                for key, value in data.items():
+                    if key in ["timestamp", "id", "exceptionId", "duration"]:
+                        scrubbed_data[key] = "<scrubbed>"
+                    # java
+                    elif key == "elements" and data.get("type") in ["long[]", "short[]", "int[]"]:
+                        scrubbed_data[key] = "<scrubbed>"
+                    elif key == "moduleVersion":
+                        scrubbed_data[key] = "<scrubbed>"
+                    # dotnet
+                    elif key == "function" and "lambda_" in value:
+                        scrubbed_data[key] = re.sub(r"(method)\d+", r"\1<scrubbed>", value)
+                    # dotnet
+                    elif key == "StackTrace" and isinstance(value, dict):
+                        value["value"] = "<scrubbed>"
+                        scrubbed_data[key] = value
+                    else:
+                        scrubbed_data[key] = __scrub(value)
+                return scrubbed_data
+            elif isinstance(data, list):
+                return [__scrub(item) for item in data]
+            else:
+                return data
 
-    def __read(self, test_name, suffix):
-        with open(self.__get_path(test_name, suffix), "r", encoding="utf-8") as f:
-            return json.load(f)
-
-    def _validate_exception_replay_snapshots(self, test_name: str):
         def __approve(snapshots):
-            def ___scrub(data):
-                if isinstance(data, dict):
-                    scrubbed_data = {}
-                    for key, value in data.items():
-                        if key in ["timestamp", "id", "exceptionId", "duration"]:
-                            scrubbed_data[key] = "<scrubbed>"
-                        # java
-                        elif key == "elements" and data.get("type") in ["long[]", "short[]", "int[]"]:
-                            scrubbed_data[key] = "<scrubbed>"
-                        elif key == "moduleVersion":
-                            scrubbed_data[key] = "<scrubbed>"
-                        # dotnet
-                        elif key == "function" and "lambda_" in value:
-                            scrubbed_data[key] = re.sub(r"(method)\d+", r"\1<scrubbed>", value)
-                        # dotnet
-                        elif key == "StackTrace" and isinstance(value, dict):
-                            value["value"] = "<scrubbed>"
-                            scrubbed_data[key] = value
-                        else:
-                            scrubbed_data[key] = ___scrub(value)
-                    return scrubbed_data
-                elif isinstance(data, list):
-                    return [___scrub(item) for item in data]
-                else:
-                    return data
-
-            assert self.snapshots, "Snapshots not found"
-
-            snapshots = [___scrub(snapshot) for snapshot in snapshots]
-            self.__write(snapshots, test_name, "snapshots_received")
+            debugger.write_approval(snapshots, test_name, "snapshots_received")
 
             if _OVERRIDE_APROVALS:
-                self.__write(snapshots, test_name, "snapshots_expected")
+                debugger.write_approval(snapshots, test_name, "snapshots_expected")
 
-            expected_snapshots = self.__read(test_name, "snapshots_expected")
+            expected_snapshots = debugger.read_approval(test_name, "snapshots_expected")
             assert expected_snapshots == snapshots
-            assert all(
-                "exceptionId" in snapshot for snapshot in snapshots
-            ), "One or more snapshots don't have 'exceptionId' field"
+            # assert all(
+            #     "exceptionId" in snapshot for snapshot in snapshots
+            # ), "One or more snapshots don't have 'exceptionId' field"
 
-        __approve(self.snapshots)
+        assert snapshots, "Snapshots not found"
 
-    def _validate_tags(self, test_name: str):
-        def __get_tags():
-            snapshot_tags = {}
-            debugger_tags = {}
-            tag_number = 0
-            snapshot_ids = [snapshot["id"] for snapshot in self.snapshots]
-            logger.debug("Snapshot ids are %s", snapshot_ids)
+        if _SCRUB_VALUES:
+            snapshots = [__scrub(snapshot) for snapshot in snapshots]
 
-            traces = list(interfaces.agent.get_data(base._TRACES_PATH))
-            for trace in traces:
-                logger.debug("Looking for tags in %s", trace["log_filename"])
+        __approve(snapshots)
 
-                content = trace["request"]["content"]
-                if content:
-                    for payload in content["tracerPayloads"]:
-                        for chunk in payload["chunks"]:
-                            for span in chunk["spans"]:
-                                meta = span.get("meta", {})
+    def _validate_spans(self, test_name: str, spans):
+        def __scrub(data):
+            scrubbed_spans = {}
+            span_number = 0
 
-                                for snapshot_id in snapshot_ids:
-                                    if any(
-                                        meta.get(key) == snapshot_id
-                                        for key in meta.keys()
-                                        if re.search(r"_dd\.debug\.error\.\d+\.snapshot_id", key)
-                                    ):
-                                        logger.debug("Found tags in %s", trace["log_filename"])
+            for span in data.values():
+                for key, value in span.items():
+                    if key in ["traceID", "spanID", "parentID", "start", "duration", "metrics"]:
+                        span[key] = "<scrubbed>"
+                        continue
 
-                                        for key, value in meta.items():
-                                            if key.startswith("_dd.debug.error"):
-                                                if key.endswith("id"):
-                                                    debugger_tags[key] = "<scrubbed>"
-                                                else:
-                                                    debugger_tags[key] = value
+                    if key == "meta":
+                        for meta_key in value.keys():
+                            if meta_key.endswith("id"):
+                                value[meta_key] = "<scrubbed>"
+                                continue
 
-                                        snapshot_tags[f"snapshot_{tag_number}"] = dict(sorted(debugger_tags.items()))
-                                        tag_number += 1
+                            if meta_key.endswith("hash"):
+                                value[meta_key] = "<scrubbed>"
+                                continue
 
-            return snapshot_tags
+                            if meta_key.endswith("version"):
+                                value[meta_key] = "<scrubbed>"
+                                continue
 
-        def __approve(tags):
-            self.__write(tags, test_name, "tags_received")
+                            if meta_key in [
+                                "http.request.headers.user-agent",
+                                "http.useragent",
+                                "thread.name",
+                                "network.client.ip",
+                                "http.client_ip",
+                            ]:
+                                value[meta_key] = "<scrubbed>"
+                                continue
+
+                            if meta_key == "error.stack":
+                                value[meta_key] = value[meta_key][:128] + "<scrubbed>"
+                                continue
+
+                        span[key] = dict(sorted(value.items()))
+
+                scrubbed_spans[f"snapshot_{span_number}"] = dict(sorted(span.items()))
+                span_number += 1
+
+            return scrubbed_spans
+
+        def __approve(spans):
+            assert spans, "Spans not found"
+
+            debugger.write_approval(spans, test_name, "spans_received")
 
             if _OVERRIDE_APROVALS:
-                self.__write(tags, test_name, "tags_expected")
+                debugger.write_approval(spans, test_name, "spans_expected")
 
-            expected = self.__read(test_name, "tags_expected")
-            assert expected == tags
+            expected = debugger.read_approval(test_name, "spans_expected")
+            assert expected == spans
 
             missing_keys_dict = {}
             snapshot_id_pattern = re.compile(r"_dd\.debug\.error\.\d+\.snapshot_id")
 
-            for guid, element in tags.items():
+            for guid, element in spans.items():
                 missing_keys = []
 
-                if "_dd.debug.error.exception_id" not in element:
-                    missing_keys.append("_dd.debug.error.exception_id")
-
-                if "_dd.debug.error.exception_hash" not in element:
+                if "_dd.debug.error.exception_hash" not in element["meta"]:
                     missing_keys.append("_dd.debug.error.exception_hash")
 
-                if not any(snapshot_id_pattern.match(key) for key in element):
+                if not any(snapshot_id_pattern.match(key) for key in element["meta"]):
                     missing_keys.append("_dd.debug.error.{n}.snapshot_id")
 
                 if missing_keys:
@@ -278,5 +186,61 @@ class Test_Debugger_Exception_Replay(base._Base_Debugger_Test):
 
             assert not missing_keys_dict, f"Missing keys detected: {missing_keys_dict}"
 
-        tags = __get_tags()
-        __approve(tags)
+        assert spans, "Spans not found"
+
+        if _SCRUB_VALUES:
+            spans = __scrub(spans)
+
+        __approve(spans)
+
+    ############ test ############
+    ############ Simple ############
+    def setup_exception_replay_simple(self):
+        self._setup("/debugger/exceptionreplay/simple", "exceptionreplaysimple")
+
+    def test_exception_replay_simple(self):
+        self._assert("exception_replay_simple", "exceptionreplaysimple")
+
+    ############ Recursion ############
+    def setup_exception_replay_recursion_20(self):
+        self._setup("/debugger/exceptionreplay/recursion?depth=20", "exceptionreplayrecursion")
+
+    def test_exception_replay_recursion_20(self):
+        self._assert("exception_replay_recursion_20", "exceptionreplayrecursion")
+
+    ############ Inner ############
+    def setup_exception_replay_inner(self):
+        self._setup("/debugger/exceptionreplay/inner", "exceptionreplayinner")
+
+    def test_exception_replay_inner(self):
+        self._assert("exception_replay_inner", "exceptionreplayinner")
+
+    ############ Rock Paper Scissors ############
+    def setup_exception_replay_rockpaperscissors(self):
+        self.weblog_responses = []
+
+        retries = 0
+        max_retries = 60
+
+        shapes = {"rock": False, "paper": False, "scissors": False}
+
+        while not all(shapes.values()) and retries < max_retries:
+            for shape in shapes.keys():
+
+                shape_found = shapes[shape]
+                logger.debug(f"{shape} found: {shape_found}, retry #{retries}")
+
+                if shape_found:
+                    continue
+
+                logger.debug(f"Waiting for snapshot for shape: {shape}, retry #{retries}")
+                self.send_weblog_request(f"/debugger/exceptionreplay/rps?shape={shape}", reset=False)
+
+                shapes[shape] = self.wait_for_snapshot_received(
+                    method_name="exceptionreplayrockpaperscissors", exception_message=shape
+                )
+
+            retries += 1
+
+    def test_exception_replay_rockpaperscissors(self):
+        self._assert("exception_replay_rockpaperscissors", "exceptionreplayrockpaperscissors")

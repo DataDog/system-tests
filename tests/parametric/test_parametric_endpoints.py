@@ -16,8 +16,8 @@ from utils.parametric.spec.trace import find_span_in_traces
 from utils.parametric.spec.trace import retrieve_span_links
 from utils.parametric.spec.trace import find_only_span
 from utils import irrelevant, bug, scenarios, features, context
-from utils.dd_constants import SpanKind
-from utils.dd_constants import StatusCode
+from opentelemetry.trace import SpanKind
+from opentelemetry.trace import StatusCode
 from utils.parametric._library_client import Link
 
 
@@ -501,12 +501,12 @@ class Test_Parametric_OtelSpan_Start:
                 pass
 
             with test_library.otel_start_span(
-                "otel_start_span_child",
-                1730393556000000,
-                SpanKind.SERVER,
-                s1.span_id,
-                [Link(parent_id=s2.span_id, attributes={"link.key": "value"})],
-                {"attr_key": "value"},
+                name="otel_start_span_child",
+                timestamp=1730393556000000,
+                span_kind=SpanKind.SERVER,
+                parent_id=s1.span_id,
+                links=[Link(parent_id=s2.span_id, attributes={"link.key": "value"})],
+                attributes={"attr_key": "value"},
             ) as s3:
                 pass
 

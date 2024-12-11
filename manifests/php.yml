@@ -10,8 +10,7 @@ tests/:
         Test_API_Security_RC_ASM_DD_processors: missing_feature
         Test_API_Security_RC_ASM_DD_scanners: missing_feature
         Test_API_Security_RC_ASM_processor_overrides_and_custom_scanner: irrelevant (waf does not support it yet)
-      test_apisec_sampling.py:
-        Test_API_Security_sampling: missing_feature
+      test_apisec_sampling.py: missing_feature
       test_schemas.py:
         Test_Scanners: missing_feature
         Test_Schema_Request_Cookies: v0.94.0
@@ -147,8 +146,8 @@ tests/:
         test_uri.py:
           TestURI: missing_feature
     rasp/:
+      test_cmdi.py: missing_feature
       test_lfi.py: missing_feature
-      test_libddwaf.py: missing_feature
       test_shi.py: missing_feature
       test_sqli.py: missing_feature
       test_ssrf.py: missing_feature
@@ -229,6 +228,11 @@ tests/:
       Test_Basic: v0.85.0
     test_logs.py:
       Test_StandardizationBlockMode: missing_feature
+    test_metastruct.py:
+      Test_SecurityEvents_Appsec_Metastruct_Disabled: irrelevant (no fallback will be implemented)
+      Test_SecurityEvents_Appsec_Metastruct_Enabled: missing_feature
+      Test_SecurityEvents_Iast_Metastruct_Disabled: irrelevant (no fallback will be implemented)
+      Test_SecurityEvents_Iast_Metastruct_Enabled: missing_feature
     test_remote_config_rule_changes.py:
       Test_BlockingActionChangesWithRemoteConfig: missing_feature
       Test_UpdateRuleFileWithRemoteConfig: missing_feature (v0.8.0 but lacks telemetry support)
@@ -257,9 +261,7 @@ tests/:
     test_debugger_pii.py:
       Test_Debugger_PII_Redaction: irrelevant
     test_debugger_probe_snapshot.py:
-      Test_Debugger_Line_Probe_Snaphots: irrelevant
-      Test_Debugger_Method_Probe_Snaphots: irrelevant
-      Test_Debugger_Mix_Log_Probe: irrelevant
+      Test_Debugger_Probe_Snaphots: irrelevant
     test_debugger_probe_status.py:
       Test_Debugger_Probe_Statuses: irrelevant
   integrations/:
@@ -345,6 +347,7 @@ tests/:
         (The sampling priority chosen when the trace was extracted without a
         sampling decision is not consistent with the tracer's configuration.
         See <https://github.com/DataDog/system-tests/actions/runs/7629296312/job/20782699614?pr=2005>.)
+    test_span_events.py: missing_feature
     test_span_links.py: missing_feature
     test_telemetry.py:
       Test_Consistent_Configs: missing_feature
@@ -400,6 +403,10 @@ tests/:
     Test_Config_UnifiedServiceTagging_Default: v1.4.0
   test_distributed.py:
     Test_DistributedHttp: missing_feature
+    Test_Span_Links_Flags_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
+    Test_Span_Links_From_Conflicting_Contexts: missing_feature
+    Test_Span_Links_From_Conflicting_Contexts_Datadog_Precedence: missing_feature
+    Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
   test_identify.py:
     Test_Basic: v0.85.0
     Test_Propagate: v0.85.0
@@ -416,13 +423,14 @@ tests/:
     Test_HeaderTags_Whitespace_Val_Long: v1.5.0
     Test_HeaderTags_Whitespace_Val_Short: v0.74.0
   test_profiling.py:
-    Test_Profile: bug (Not receiving profiles)
+    Test_Profile: missing_feature (profiling seems not to be activated)
   test_sampling_rates.py:
     Test_SamplingDecisions: v0.71.0
   test_scrubbing.py:
     Test_UrlQuery: v0.76.0
   test_semantic_conventions.py:
     Test_MetricsStandardTags: v0.83.1
+  test_span_events.py: missing_feature (Weblog `/add_event` not implemented)
   test_standard_tags.py:
     Test_StandardTagsMethod: v0.75.0
     Test_StandardTagsRoute: missing_feature

@@ -40,6 +40,7 @@ refs:
   - &ref_5_25_0 '>=5.25.0 || ^4.49.0'
   - &ref_5_26_0 '>=5.26.0 || ^4.50.0'
   - &ref_5_27_0 '>=5.27.0 || ^4.51.0'
+  - &ref_5_29_0 '>=5.29.0 || ^4.53.0' # express 5 support
 
 tests/:
   apm_tracing_e2e/:
@@ -54,22 +55,35 @@ tests/:
         Test_API_Security_RC_ASM_DD_scanners: *ref_5_3_0
         Test_API_Security_RC_ASM_processor_overrides_and_custom_scanner: irrelevant (waf does not support it yet)
       test_apisec_sampling.py:
-        Test_API_Security_sampling: *ref_4_21_0
+        Test_API_Security_Sampling_Different_Endpoints:
+          '*': *ref_5_27_0
+          nextjs: missing_feature
+        Test_API_Security_Sampling_Different_Paths:
+          '*': *ref_5_27_0
+          nextjs: missing_feature
+        Test_API_Security_Sampling_Different_Status:
+          '*': *ref_5_27_0
+          nextjs: missing_feature
+        Test_API_Security_Sampling_Rate: irrelevant (new api security sampling algorithm implemented)
+        Test_API_Security_Sampling_With_Delay:
+          '*': *ref_5_27_0
+          nextjs: missing_feature
       test_schemas.py:
         Test_Scanners: *ref_4_21_0
         Test_Schema_Request_Cookies: *ref_4_21_0
         Test_Schema_Request_FormUrlEncoded_Body:
-          express4: *ref_4_21_0
-          express4-typescript: *ref_4_21_0
+          '*': *ref_4_21_0
           nextjs: *ref_5_3_0
         Test_Schema_Request_Headers: *ref_4_21_0
         Test_Schema_Request_Json_Body: *ref_4_21_0
         Test_Schema_Request_Path_Parameters:
           '*': *ref_4_21_0
+          express5: *ref_5_29_0
           nextjs: missing_feature
         Test_Schema_Request_Query_Parameters: *ref_4_21_0
         Test_Schema_Response_Body:
           '*': *ref_5_3_0
+          express5: *ref_5_29_0
           nextjs: missing_feature
         Test_Schema_Response_Body_env_var: missing_feature
         Test_Schema_Response_Headers: *ref_4_21_0
@@ -79,7 +93,7 @@ tests/:
           TestCodeInjection:
             '*': *ref_5_20_0
             nextjs: missing_feature
-          TestCodeInjection_StackTrace:  missing_feature
+          TestCodeInjection_StackTrace: missing_feature
         test_command_injection.py:
           TestCommandInjection:
             '*': *ref_3_11_0
@@ -104,15 +118,19 @@ tests/:
             nextjs: missing_feature
           TestHeaderInjectionExclusionAccessControlAllow:
             '*': *ref_5_26_0
+            express5: *ref_5_29_0 # test uses querystring
             nextjs: missing_feature
           TestHeaderInjectionExclusionContentEncoding:
             '*': *ref_5_26_0
+            express5: *ref_5_29_0 # test uses querystring
             nextjs: missing_feature
           TestHeaderInjectionExclusionPragma:
             '*': *ref_5_26_0
+            express5: *ref_5_29_0 # test uses querystring
             nextjs: missing_feature
           TestHeaderInjectionExclusionTransferEncoding:
             '*': *ref_5_26_0
+            express5: *ref_5_29_0 # test uses querystring
             nextjs: missing_feature
           TestHeaderInjection_StackTrace: missing_feature
         test_hsts_missing_header.py:
@@ -155,6 +173,7 @@ tests/:
         test_nosql_mongodb_injection.py:
           TestNoSqlMongodbInjection:
             '*': *ref_4_17_0
+            express5: missing_feature # express-mongo-sanitize is not yet compatible with express5
             nextjs: missing_feature
           TestNoSqlMongodbInjection_StackTrace: missing_feature
         test_path_traversal.py:
@@ -240,6 +259,7 @@ tests/:
         test_graphql_resolver.py:
           TestGraphqlResolverArgument:
             '*': *ref_5_4_0
+            express5: missing_feature # graphql not yet compatible with express5
             nextjs: irrelevant # nextjs is not related with graphql
         test_header_name.py:
           TestHeaderName: missing_feature
@@ -262,22 +282,27 @@ tests/:
         test_parameter_value.py:
           TestParameterValue:
             '*': *ref_3_19_0
+            express5: *ref_5_29_0
             nextjs: missing_feature
         test_path.py:
           TestPath: missing_feature
         test_path_parameter.py:
           TestPathParameter:
             '*': *ref_4_4_0
+            express5: *ref_5_29_0
             nextjs: missing_feature
         test_uri.py:
           TestURI: missing_feature
     rasp/:
+      test_cmdi.py: missing_feature
       test_lfi.py:
         Test_Lfi_BodyJson:
           '*': *ref_5_24_0
+          express5: *ref_5_29_0
           nextjs: missing_feature
         Test_Lfi_BodyUrlEncoded:
           '*': *ref_5_24_0
+          express5: *ref_5_29_0
           nextjs: missing_feature
         Test_Lfi_BodyXml: missing_feature
         Test_Lfi_Capability: *ref_5_24_0
@@ -285,25 +310,30 @@ tests/:
         Test_Lfi_Optional_SpanTags: *ref_5_24_0
         Test_Lfi_RC_CustomAction:
           '*': *ref_5_24_0
+          express5: *ref_5_29_0
           nextjs: missing_feature
-        Test_Lfi_Rules_Version: missing_feature
+        Test_Lfi_Rules_Version: *ref_5_26_0
         Test_Lfi_StackTrace:
           '*': *ref_5_24_0
+          express5: *ref_5_29_0 # test uses express blocking
           nextjs: missing_feature
         Test_Lfi_Telemetry:
           '*': *ref_5_24_0
+          express5: *ref_5_29_0 # test uses express blocking
           nextjs: missing_feature
         Test_Lfi_UrlQuery:
           '*': *ref_5_24_0
+          express5: *ref_5_29_0
           nextjs: missing_feature
-      test_libddwaf.py:
-        Test_Libddwaf_Version: *ref_5_25_0
+        Test_Lfi_Waf_Version: *ref_5_25_0
       test_shi.py:
         Test_Shi_BodyJson:
           '*': *ref_5_25_0
+          express5: *ref_5_29_0
           nextjs: missing_feature
         Test_Shi_BodyUrlEncoded:
           '*': *ref_5_25_0
+          express5: *ref_5_29_0
           nextjs: missing_feature
         Test_Shi_BodyXml: missing_feature
         Test_Shi_Capability: *ref_5_25_0
@@ -312,19 +342,26 @@ tests/:
         Test_Shi_Rules_Version: *ref_5_24_0
         Test_Shi_StackTrace:
           '*': *ref_5_25_0
+          express5: *ref_5_29_0 # test uses express blocking
           nextjs: missing_feature
         Test_Shi_Telemetry:
           '*': *ref_5_25_0
+          express5: *ref_5_29_0 # test uses express blocking
           nextjs: missing_feature
+        Test_Shi_Telemetry_Variant_Tag: missing_feature
         Test_Shi_UrlQuery:
           '*': *ref_5_25_0
+          express5: *ref_5_29_0
           nextjs: missing_feature
+        Test_Shi_Waf_Version: *ref_5_25_0
       test_sqli.py:
         Test_Sqli_BodyJson:
           '*': *ref_5_23_0
+          express5: *ref_5_29_0
           nextjs: missing_feature
         Test_Sqli_BodyUrlEncoded:
           '*': *ref_5_23_0
+          express5: *ref_5_29_0
           nextjs: missing_feature
         Test_Sqli_BodyXml: missing_feature
         Test_Sqli_Capability: *ref_5_23_0
@@ -333,13 +370,17 @@ tests/:
         Test_Sqli_Rules_Version: *ref_5_25_0
         Test_Sqli_StackTrace:
           '*': *ref_5_23_0
+          express5: *ref_5_29_0 # test uses express blocking
           nextjs: missing_feature
         Test_Sqli_Telemetry:
           '*': *ref_5_23_0
+          express5: *ref_5_29_0 # test uses express blocking
           nextjs: missing_feature
         Test_Sqli_UrlQuery:
           '*': *ref_5_23_0
+          express5: *ref_5_29_0
           nextjs: missing_feature
+        Test_Sqli_Waf_Version: *ref_5_25_0
       test_ssrf.py:
         Test_Ssrf_BodyJson:
           '*': *ref_5_20_0
@@ -354,13 +395,17 @@ tests/:
         Test_Ssrf_Rules_Version: *ref_5_25_0
         Test_Ssrf_StackTrace:
           '*': *ref_5_20_0
+          express5: *ref_5_29_0 # test uses querystring
           nextjs: missing_feature
         Test_Ssrf_Telemetry:
           '*': *ref_5_22_0
+          express5: *ref_5_29_0 # test uses querystring
           nextjs: missing_feature
         Test_Ssrf_UrlQuery:
           '*': *ref_5_20_0
+          express5: *ref_5_29_0
           nextjs: missing_feature
+        Test_Ssrf_Waf_Version: *ref_5_25_0
     waf/:
       test_addresses.py:
         Test_BodyJson:
@@ -377,11 +422,13 @@ tests/:
         Test_FullGrpc: missing_feature
         Test_GraphQL:
           '*': *ref_4_22_0
+          express5: missing_feature # graphql not yet compatible with express5
           nextjs: irrelevant # nextjs is not related with graphql
         Test_GrpcServerMethod: missing_feature
         Test_Headers: v2.0.0
         Test_PathParams:
           '*': v2.0.0
+          express5: *ref_5_29_0
           nextjs: missing_feature
         Test_ResponseStatus: v2.0.0
         Test_UrlQuery:
@@ -427,10 +474,8 @@ tests/:
       Test_Basic: v2.0.0
     test_asm_standalone.py:
       Test_AppSecStandalone_UpstreamPropagation: *ref_5_18_0
-      Test_IastStandalone_UpstreamPropagation: missing_feature # was supposed to be released in 5.18.0
-      Test_SCAStandalone_Telemetry:
-        '*': *ref_5_18_0
-        nextjs: missing_feature
+      Test_IastStandalone_UpstreamPropagation: *ref_5_29_0
+      Test_SCAStandalone_Telemetry: *ref_5_18_0
     test_automated_login_events.py:
       Test_Login_Events:
         '*': *ref_4_4_0
@@ -444,6 +489,7 @@ tests/:
     test_blocking_addresses.py:
       Test_BlockingGraphqlResolvers:
         '*': *ref_4_22_0
+        express5: missing_feature # graphql not yet compatible with express5
         nextjs: irrelevant # nextjs is not related with graphql
       Test_Blocking_client_ip: *ref_3_19_0
       Test_Blocking_request_body:
@@ -459,9 +505,11 @@ tests/:
       Test_Blocking_request_method: *ref_3_19_0
       Test_Blocking_request_path_params:
         '*': *ref_5_24_0
+        express5: *ref_5_29_0
         nextjs: missing_feature
       Test_Blocking_request_query:
         '*': *ref_3_19_0
+        express5: *ref_5_29_0
         nextjs: missing_feature
       Test_Blocking_request_uri: *ref_3_19_0
       Test_Blocking_response_headers: *ref_5_17_0
@@ -471,6 +519,7 @@ tests/:
         nextjs: missing_feature
       Test_Suspicious_Request_Blocking:
         '*': *ref_5_24_0
+        express5: *ref_5_29_0 # test uses querystring and path params
         nextjs: missing_feature
     test_client_ip.py:
       Test_StandardTagsClientIp: *ref_3_6_0
@@ -505,6 +554,7 @@ tests/:
     test_logs.py:
       Test_Standardization: missing_feature
       Test_StandardizationBlockMode: missing_feature
+    test_metastruct.py: missing_feature
     test_rate_limiter.py:
       Test_Main: v2.0.0
     test_remote_config_rule_changes.py:
@@ -518,6 +568,7 @@ tests/:
     test_request_blocking.py:
       Test_AppSecRequestBlocking:
         '*': *ref_3_19_0
+        express5: *ref_5_29_0 # test uses querystring
         nextjs: missing_feature (can not block by query param in nextjs yet)
     test_runtime_activation.py:
       Test_RuntimeActivation: *ref_3_9_0
@@ -547,9 +598,7 @@ tests/:
     test_debugger_pii.py:
       Test_Debugger_PII_Redaction: missing_feature (feature not implented)
     test_debugger_probe_snapshot.py:
-      Test_Debugger_Line_Probe_Snaphots: missing_feature (feature not implented)
-      Test_Debugger_Method_Probe_Snaphots: missing_feature (feature not implented)
-      Test_Debugger_Mix_Log_Probe: missing_feature (feature not implented)
+      Test_Debugger_Probe_Snaphots: missing_feature (feature not implented)
     test_debugger_probe_status.py:
       Test_Debugger_Probe_Statuses: missing_feature (feature not implented)
   integrations/:
@@ -558,52 +607,65 @@ tests/:
         Test_Kafka:
           '*': irrelevant
           express4: v0.1 # real version not known
+          express5: v0.1 # real version not known
       test_kinesis.py:
         Test_Kinesis_PROPAGATION_VIA_MESSAGE_ATTRIBUTES:
           '*': irrelevant
           express4: *ref_5_3_0
+          express5: *ref_5_3_0
       test_rabbitmq.py:
         Test_RabbitMQ_Trace_Context_Propagation:
           '*': irrelevant
           express4: v0.1 # real version not known
+          express5: v0.1 # real version not known
       test_sns_to_sqs.py:
         Test_SNS_Propagation:
           '*': irrelevant
           express4: *ref_5_20_0
+          express5: *ref_5_20_0
       test_sqs.py:
         Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS:
           '*': irrelevant
           express4: v0.1 # real version not known
+          express5: v0.1 # real version not known
         Test_SQS_PROPAGATION_VIA_MESSAGE_ATTRIBUTES:
           '*': irrelevant
           express4: v0.1 # real version not known
+          express5: v0.1 # real version not known
     test_db_integrations_sql.py:
       Test_MsSql:
         '*': missing_feature
         express4: v1.0.0
+        express5: v1.0.0
       Test_MySql:
         '*': missing_feature
         express4: v1.0.0
+        express5: v1.0.0
       Test_Postgres:
         '*': missing_feature
         express4: v1.0.0
+        express5: v1.0.0
     test_dbm.py:
       Test_Dbm: missing_feature
       Test_Dbm_Comment_NodeJS_mysql2:
         '*': missing_feature (Missing on weblog)
         express4: *ref_5_13_0
+        express5: *ref_5_13_0
         uds-express4: *ref_5_13_0
       Test_Dbm_Comment_NodeJS_pg:
         '*': missing_feature (Missing on weblog)
         express4: *ref_5_13_0
+        express5: *ref_5_13_0
         uds-express4: *ref_5_13_0
     test_dsm.py:
       Test_DsmContext_Extraction_Base64:
         '*': irrelevant
         express4: *ref_5_6_0
+        express5: *ref_5_6_0
       Test_DsmContext_Injection_Base64:
         '*': irrelevant
         express4: *ref_5_6_0
+        express5: *ref_5_6_0
       Test_DsmHttp: missing_feature
       Test_DsmKafka:
         '*': *ref_5_25_0
@@ -611,31 +673,40 @@ tests/:
       Test_DsmKinesis:
         '*': irrelevant
         express4: *ref_5_2_0
+        express5: *ref_5_2_0
       Test_DsmRabbitmq:
         '*': irrelevant
         express4: *ref_5_3_0
+        express5: *ref_5_3_0
       Test_DsmRabbitmq_FanoutExchange:
         '*': irrelevant
         express4: missing_feature
+        express5: missing_feature
       Test_DsmRabbitmq_TopicExchange:
         '*': irrelevant
         express4: missing_feature
+        express5: missing_feature
       Test_DsmSNS:
         '*': irrelevant
         express4: *ref_5_20_0
+        express5: *ref_5_20_0
       Test_DsmSQS:
         '*': irrelevant
         express4: *ref_5_2_0
+        express5: *ref_5_2_0
       Test_Dsm_Manual_Checkpoint_Inter_Process:
         '*': irrelevant
         express4: *ref_5_20_0
+        express5: *ref_5_20_0
       Test_Dsm_Manual_Checkpoint_Intra_Process:
         '*': irrelevant
         express4: *ref_5_20_0
+        express5: *ref_5_20_0
     test_inferred_proxy.py:
       Test_AWS_API_Gateway_Inferred_Span_Creation:
-          '*': irrelevant
-          express4: *ref_5_26_0
+        '*': irrelevant
+        express4: *ref_5_26_0
+        express5: *ref_5_26_0
     test_otel_drop_in.py:
       Test_Otel_Drop_In: missing_feature
   k8s_lib_injection/:
@@ -670,11 +741,12 @@ tests/:
       Test_Parametric_DDTrace_Crash: missing_feature (crash endpoint is not implemented)
       Test_Parametric_DDTrace_Current_Span: missing_feature (otel current_span endpoint is not supported)
       Test_Parametric_OtelSpan_Set_Name: bug (APMAPI-778) # set_name endpoint should set the resource name on a span (not the operation name)
-      Test_Parametric_OtelSpan_Start: bug (APMAPI-778)  # The expected span.kind tag is not set
+      Test_Parametric_OtelSpan_Start: bug (APMAPI-778) # The expected span.kind tag is not set
       Test_Parametric_Otel_Baggage: missing_feature (baggage is not supported)
       Test_Parametric_Otel_Current_Span: missing_feature (otel baggage endpoints are not implemented)
     test_partial_flushing.py:
       Test_Partial_Flushing: bug (APMLP-270)
+    test_span_events.py: missing_feature
     test_span_links.py:
       Test_Span_Links: *ref_5_3_0
     test_telemetry.py:
@@ -739,6 +811,13 @@ tests/:
     Test_Config_UnifiedServiceTagging_Default: *ref_5_25_0
   test_distributed.py:
     Test_DistributedHttp: missing_feature
+    Test_Span_Links_Flags_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
+    Test_Span_Links_From_Conflicting_Contexts: v5.27.0
+    Test_Span_Links_From_Conflicting_Contexts_Datadog_Precedence: v5.27.0
+    Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
+    Test_Synthetics_APM_Datadog:
+      '*': *ref_5_25_0
+      nextjs: bug (APMAPI-939) # the nextjs weblog application changes the sampling priority from 1.0 to 2.0
   test_identify.py:
     Test_Basic: v2.4.0
     Test_Propagate: *ref_3_2_0
@@ -766,6 +845,7 @@ tests/:
       '*': *ref_3_13_1
       nextjs: missing_feature # nextjs makes some internal requests and we have different tag names
     Test_MetricsStandardTags: *ref_3_13_1
+  test_span_events.py: missing_feature (Weblog `/add_event` not implemented)
   test_standard_tags.py:
     Test_StandardTagsClientIp:
       '*': *ref_3_6_0

@@ -3,7 +3,7 @@ from collections import defaultdict
 import json
 import logging
 import os
-from datetime import datetime
+from datetime import datetime, UTC
 
 from mitmproxy import master, options, http
 from mitmproxy.addons import errorcheck, default_addons
@@ -72,6 +72,9 @@ class _RequestLogger:
         self.rc_api_enabled = os.environ.get("SYSTEM_TESTS_RC_API_ENABLED") == "True"
         self.span_meta_structs_disabled = os.environ.get("SYSTEM_TESTS_AGENT_SPAN_META_STRUCTS_DISABLED") == "True"
 
+        span_events = os.environ.get("SYSTEM_TESTS_AGENT_SPAN_EVENTS")
+        self.span_events = True if span_events == "True" else (False if span_events == "False" else None)
+
         self.rc_api_command = None
 
         # mimic the old API
@@ -109,18 +112,17 @@ class _RequestLogger:
         if flow.request.port == 11111:
             if not self.rc_api_enabled:
                 flow.response = self.get_error_response(b"RC API is not enabled")
+            elif flow.request.path == "/unique_command":
+                logger.info("Store RC command to mock")
+                self.rc_api_command = flow.request.content
+                flow.response = http.Response.make(200, b"Ok")
+            elif flow.request.path == "/sequential_commands":
+                logger.info("Reset mocked RC sequential commands")
+                self.rc_api_sequential_commands = json.loads(flow.request.content)
+                self.rc_api_runtime_ids_request_count = defaultdict(int)
+                flow.response = http.Response.make(200, b"Ok")
             else:
-                if flow.request.path == "/unique_command":
-                    logger.info("Store RC command to mock")
-                    self.rc_api_command = flow.request.content
-                    flow.response = http.Response.make(200, b"Ok")
-                elif flow.request.path == "/sequential_commands":
-                    logger.info("Reset mocked RC sequential commands")
-                    self.rc_api_sequential_commands = json.loads(flow.request.content)
-                    self.rc_api_runtime_ids_request_count = defaultdict(int)
-                    flow.response = http.Response.make(200, b"Ok")
-                else:
-                    flow.response = http.Response.make(404, b"Not found")
+                flow.response = http.Response.make(404, b"Not found")
 
             return
 
@@ -178,9 +180,7 @@ class _RequestLogger:
                 interface = "open_telemetry"
             elif self.request_is_from_tracer(flow.request):
                 port = self.original_ports[flow.id]
-                if port == 8126:
-                    interface = "library"
-                elif port == 80:  # UDS mode
+                if port == 8126 or port == 80:
                     interface = "library"
                 elif port == 9001:
                     interface = "python_buddy"
@@ -217,7 +217,7 @@ class _RequestLogger:
                 "host": flow.request.host,
                 "port": flow.request.port,
                 "request": {
-                    "timestamp_start": datetime.fromtimestamp(flow.request.timestamp_start).isoformat(),
+                    "timestamp_start": datetime.fromtimestamp(flow.request.timestamp_start, tz=UTC).isoformat(),
                     "headers": list(flow.request.headers.items()),
                     "length": len(flow.request.content) if flow.request.content else 0,
                 },
@@ -295,6 +295,9 @@ class _RequestLogger:
             if self.span_meta_structs_disabled:
                 self._remove_meta_structs_support(flow)
 
+            if self.span_events is not None:
+                self._modify_span_events_flag(flow)
+
     def _remove_meta_structs_support(self, flow):
         if flow.request.path == "/info" and str(flow.response.status_code) == "200":
             c = json.loads(flow.response.content)
@@ -312,6 +315,18 @@ class _RequestLogger:
                 c["endpoints"].append("/v0.7/config")
                 flow.response.content = json.dumps(c).encode()
 
+    def _modify_span_events_flag(self, flow):
+        """Modify the agent flag that signals support for native span event serialization.
+        There are three possible cases:
+        - Not configured: agent's response is not modified, the real agent behavior is preserved
+        - `true`: agent advertises support for native span events serialization
+        - `false`: agent advertises that it does not support native span events serialization
+        """
+        if flow.request.path == "/info" and str(flow.response.status_code) == "200":
+            c = json.loads(flow.response.content)
+            c["span_events"] = self.span_events
+            flow.response.content = json.dumps(c).encode()
+
 
 def start_proxy() -> None:
 
@@ -328,7 +343,7 @@ def start_proxy() -> None:
 
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
-    opts = options.Options(mode=modes, listen_host="0.0.0.0", confdir="utils/proxy/.mitmproxy")
+    opts = options.Options(mode=modes, listen_host="0.0.0.0", confdir="utils/proxy/.mitmproxy")  # noqa: S104
     proxy = master.Master(opts, event_loop=loop)
     proxy.addons.add(*default_addons())
     proxy.addons.add(errorcheck.ErrorCheck())

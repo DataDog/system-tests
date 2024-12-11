@@ -20,6 +20,7 @@ const pgsql = require('./integrations/db/postgres')
 const mysql = require('./integrations/db/mysql')
 const mssql = require('./integrations/db/mssql')
 const apiGateway = require('./integrations/api_gateway')
+const { graphQLEnabled, unnamedWildcard } = require('./config')
 
 const multer = require('multer')
 const uploadToMemory = multer({ storage: multer.memoryStorage(), limits: { fileSize: 200000 } })
@@ -57,11 +58,21 @@ app.post('/waf', uploadToMemory.single('foo'), (req, res) => {
   res.send('Hello\n')
 })
 
-app.all(['/waf', '/waf/*'], (req, res) => {
+const wafWildcardPath = unnamedWildcard ? '/waf/*' : '/waf/*name'
+app.all(['/waf', wafWildcardPath], (req, res) => {
   res.send('Hello\n')
 })
 
 app.get('/sample_rate_route/:i', (req, res) => {
+  res.send('OK')
+})
+
+app.get('/api_security/sampling/:status', (req, res) => {
+  res.status(parseInt(req.params.status) || 200)
+  res.send('Hello!')
+})
+
+app.get('/api_security_sampling/:i', (req, res) => {
   res.send('OK')
 })
 
@@ -135,7 +146,8 @@ app.get('/user_login_success_event', (req, res) => {
 app.get('/user_login_failure_event', (req, res) => {
   const userId = req.query.event_user_id || 'system_tests_user'
   let exists = true
-  if (req.query && req.query.hasOwnProperty('event_user_exists')) {
+  const query = req.query
+  if (query && 'event_user_exists' in query) {
     exists = req.query.event_user_exists.toLowerCase() === 'true'
   }
 
@@ -364,7 +376,7 @@ app.all('/tag_value/:tag_value/:status_code', (req, res) => {
     res.set(k, v)
   }
 
-  res.status(req.params.status_code || 200)
+  res.status(parseInt(req.params.status_code) || 200)
 
   if (req.params.tag_value.startsWith?.('payload_in_response_body') && req.method === 'POST') {
     res.send({ payload: req.body })
@@ -489,9 +501,26 @@ app.get('/set_cookie', (req, res) => {
 
 require('./rasp')(app)
 
-require('./graphql')(app).then(() => {
-  app.listen(7777, '0.0.0.0', () => {
-    tracer.trace('init.service', () => {})
-    console.log('listening')
+const startServer = () => {
+  return new Promise((resolve) => {
+    app.listen(7777, '0.0.0.0', () => {
+      tracer.trace('init.service', () => {})
+      console.log('listening')
+      resolve()
+    })
   })
-})
+}
+
+// apollo-server does not support Express 5 yet https://github.com/apollographql/apollo-server/issues/7928
+const initGraphQL = () => {
+  return graphQLEnabled
+    ? require('./graphql')(app)
+    : Promise.resolve()
+}
+
+initGraphQL()
+  .then(startServer)
+  .catch(error => {
+    console.error('Failed to start server:', error)
+    process.exit(1)
+  })

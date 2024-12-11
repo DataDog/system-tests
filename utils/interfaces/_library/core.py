@@ -34,7 +34,7 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
 
     ################################################################
     def wait_for_remote_config_request(self, timeout=30):
-        """ Used in setup functions, wait for a request oremote config endpoint with a non-empty client_config """
+        """Used in setup functions, wait for a request oremote config endpoint with a non-empty client_config"""
 
         def wait_function(data):
             if data["path"] == "/v0.7/config":
@@ -56,6 +56,9 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
 
         for data in self.get_data(path_filters=paths):
             traces = data["request"]["content"]
+            if not traces:  # may be none
+                continue
+
             for trace in traces:
                 if rid is None:
                     yield data, trace
@@ -369,6 +372,9 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
     def get_profiling_data(self):
         yield from self.get_data(path_filters="/profiling/v1/input")
 
+    def validate_profiling(self, validator, success_by_default=False):
+        self.validate(validator, path_filters="/profiling/v1/input", success_by_default=success_by_default)
+
     def assert_trace_exists(self, request, span_type=None):
         for _, _, span in self.get_spans(request=request):
             if span_type is None or span.get("type") == span_type:
@@ -380,9 +386,8 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
         self.validate(validator, success_by_default=success_by_default, path_filters=r"/v\d+.\d+/config")
 
     def assert_rc_apply_state(self, product: str, config_id: str, apply_state: RemoteConfigApplyState) -> None:
-        """
-            Check that all config_id/product have the expected apply_state returned by the library
-            Very simplified version of the assert_rc_targets_version_states
+        """Check that all config_id/product have the expected apply_state returned by the library
+        Very simplified version of the assert_rc_targets_version_states
 
         """
         found = False
@@ -412,9 +417,8 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
         assert found, f"Capability {capability.name} not found"
 
     def assert_rc_targets_version_states(self, targets_version: int, config_states: list) -> None:
-        """
-            check that for a given targets_version, the config states is the one expected
-            EXPERIMENTAL (is it the good testing API ?)
+        """Check that for a given targets_version, the config states is the one expected
+        EXPERIMENTAL (is it the good testing API ?)
         """
         found = False
         for data in self.get_data(path_filters="/v0.7/config"):

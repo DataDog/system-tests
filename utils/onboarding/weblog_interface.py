@@ -28,13 +28,14 @@ def warmup_weblog(app_url):
 
 
 def make_internal_get_request(stdin_file, vm_port):
-    """ This method is exclusively for testing through KrunVm microVM. 
-    It is used to make a request to the weblog application inside the VM, using stdin file"""
+    """This method is exclusively for testing through KrunVm microVM.
+    It is used to make a request to the weblog application inside the VM, using stdin file
+    """
 
     generated_uuid = str(randint(1, 100000000000000000))
     timeout = 80
     script_to_run = f"""#!/bin/bash
-echo "Requesting weblog..." 
+echo "Requesting weblog..."
 URL="http://localhost:{vm_port}/"
 TIMEOUT={timeout}
 TRACE_ID={generated_uuid}
