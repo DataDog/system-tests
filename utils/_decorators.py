@@ -2,6 +2,7 @@ import inspect
 import os
 import re
 from functools import partial
+import enum
 
 import pytest
 import semantic_version as semver
@@ -13,6 +14,14 @@ _jira_ticket_pattern = re.compile(r"([A-Z]{3,}-\d+)(, [A-Z]{3,}-\d+)*")
 
 def configure(config: pytest.Config):
     pass  # nothing to do right now
+
+
+class DecoratorType(enum.Enum):
+    BUG = "bug"
+    FLAKY = "flaky"
+    IRRELEVANT = "irrelevant"
+    MISSING_FEATURE = "missing_feature"
+    INCOMPLETE_TEST_APP = "incomplete_test_app"
 
 
 # semver module offers two spec engine :
@@ -50,15 +59,12 @@ def _ensure_jira_ticket_as_reason(item, reason: str):
         pytest.exit(f"Please set a jira ticket for {nodeid}, instead of reason: {reason}", 1)
 
 
-def _get_expected_failure_item(item, skip_reason, force_skip):
+def _add_pytest_marker(item, reason, marker):
     if inspect.isfunction(item) or inspect.isclass(item):
         if not hasattr(item, "pytestmark"):
             item.pytestmark = []
 
-        if force_skip:
-            item.pytestmark.append(pytest.mark.skip(reason=skip_reason))
-        else:
-            item.pytestmark.append(pytest.mark.xfail(reason=skip_reason))
+        item.pytestmark.append(marker(reason=reason))
     else:
         raise ValueError(f"Unexpected skipped object: {item}")
 
@@ -94,52 +100,50 @@ def _expected_to_fail(condition=None, library=None, weblog_variant=None):
     return True
 
 
-def decorator(expected_to_fail, force_skip, condition, decorator_type, reason, function_or_class):
-    if inspect.isclass(function_or_class):
-        assert condition is not None, _MANIFEST_ERROR_MESSAGE
+def _decorator(marker, decorator_type, condition, library, weblog_variant, reason, function_or_class):
+    expected_to_fail = _expected_to_fail(library=library, weblog_variant=weblog_variant, condition=condition)
 
-    if decorator_type in ("bug", "flaky"):
+    if inspect.isclass(function_or_class):
+        assert condition is not None or (library is None and weblog_variant is None), _MANIFEST_ERROR_MESSAGE
+
+    if decorator_type in (DecoratorType.BUG, DecoratorType.FLAKY):
         _ensure_jira_ticket_as_reason(function_or_class, reason)
 
-    full_reason = decorator_type if reason is None else f"{decorator_type} ({reason})"
+    full_reason = decorator_type.value if reason is None else f"{decorator_type.value} ({reason})"
     if not expected_to_fail:
         return function_or_class
-    return _get_expected_failure_item(function_or_class, full_reason, force_skip)
+    return _add_pytest_marker(function_or_class, full_reason, marker)
 
 
 def missing_feature(condition=None, library=None, weblog_variant=None, reason=None, force_skip: bool = False):
     """decorator, allow to mark a test function/class as missing"""
-    expected_to_fail = _expected_to_fail(library=library, weblog_variant=weblog_variant, condition=condition)
-    return partial(decorator, expected_to_fail, force_skip, condition, "missing_feature", reason)
+    marker = pytest.mark.skip if force_skip else pytest.mark.xfail
+    return partial(_decorator, marker, DecoratorType.MISSING_FEATURE, condition, library, weblog_variant, reason)
 
 
 def incomplete_test_app(condition=None, library=None, weblog_variant=None, reason=None):
     """Decorator, allow to mark a test function/class as not compatible with the tested application"""
-    expected_to_fail = _expected_to_fail(library=library, weblog_variant=weblog_variant, condition=condition)
-    force_skip = False
-    return partial(decorator, expected_to_fail, force_skip, condition, "incomplete_test_app", reason)
+    return partial(
+        _decorator, pytest.mark.xfail, DecoratorType.INCOMPLETE_TEST_APP, condition, library, weblog_variant, reason
+    )
 
 
 def irrelevant(condition=None, library=None, weblog_variant=None, reason=None):
     """decorator, allow to mark a test function/class as not relevant"""
-    expected_to_fail = _expected_to_fail(library=library, weblog_variant=weblog_variant, condition=condition)
-    force_skip = True
-    return partial(decorator, expected_to_fail, force_skip, condition, "irrelevant", reason)
+    return partial(_decorator, pytest.mark.skip, DecoratorType.IRRELEVANT, condition, library, weblog_variant, reason)
 
 
 def bug(condition=None, library=None, weblog_variant=None, reason=None, force_skip: bool = False):
     """Decorator, allow to mark a test function/class as an known bug.
     The test is executed, and if it passes, and warning is reported
     """
-    expected_to_fail = _expected_to_fail(library=library, weblog_variant=weblog_variant, condition=condition)
-    return partial(decorator, expected_to_fail, force_skip, condition, "bug", reason)
+    marker = pytest.mark.skip if force_skip else pytest.mark.xfail
+    return partial(_decorator, marker, DecoratorType.BUG, condition, library, weblog_variant, reason)
 
 
 def flaky(condition=None, library=None, weblog_variant=None, reason=None):
     """Decorator, allow to mark a test function/class as a known bug, and skip it"""
-    expected_to_fail = _expected_to_fail(library=library, weblog_variant=weblog_variant, condition=condition)
-    force_skip = True
-    return partial(decorator, expected_to_fail, force_skip, condition, "flaky", reason)
+    return partial(_decorator, pytest.mark.skip, DecoratorType.FLAKY, condition, library, weblog_variant, reason)
 
 
 def released(
@@ -219,16 +223,16 @@ def released(
             for reason in skip_reasons:
                 if reason.startswith("flaky"):
                     _ensure_jira_ticket_as_reason(test_class, reason[7:-1])
-                    return _get_expected_failure_item(test_class, reason, force_skip=True)
+                    return _add_pytest_marker(test_class, reason, pytest.mark.skip)
 
                 if reason.startswith("irrelevant"):
-                    return _get_expected_failure_item(test_class, reason, force_skip=True)
+                    return _add_pytest_marker(test_class, reason, pytest.mark.skip)
 
                 # Otherwise, it's either bug, or missing_feature. Take the first one
                 if reason.startswith("bug"):
                     _ensure_jira_ticket_as_reason(test_class, reason[5:-1])
 
-                return _get_expected_failure_item(test_class, reason, force_skip=False)
+                return _add_pytest_marker(test_class, reason, pytest.mark.xfail)
 
         return test_class
 
