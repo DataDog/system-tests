@@ -454,6 +454,7 @@ tests/:
       Test_V2_Login_Events_RC: v2.11.0
       Test_V3_Login_Events: missing_feature
       Test_V3_Login_Events_Anon: missing_feature
+      Test_V3_Login_Events_Blocking: missing_feature
       Test_V3_Login_Events_RC: missing_feature
     test_blocking_addresses.py:
       Test_BlockingGraphqlResolvers: missing_feature
