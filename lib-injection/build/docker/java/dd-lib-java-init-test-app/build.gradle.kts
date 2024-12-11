@@ -1,6 +1,7 @@
 import org.springframework.boot.gradle.tasks.bundling.BootBuildImage
 import software.amazon.awssdk.services.ecr.EcrClient
 import software.amazon.awssdk.services.ecr.model.AuthorizationData
+import java.util.Base64
 
 buildscript {
     repositories {
@@ -58,11 +59,11 @@ tasks.named<BootBuildImage>("bootBuildImage") {
         // Setup authentication
         // https://stackoverflow.com/questions/65320552/publish-docker-images-using-spring-boot-plugin-without-credentials/76898025#76898025
         val ecrClient = EcrClient.builder().build()
-        String base64Token = ecrClient
+        val base64Token = ecrClient
                     .getAuthorizationToken()
                     .authorizationData()[0]
                     .authorizationToken()
-        String[] auth = new String( base64Token.decodeBase64() ).split(":", 2)
+        val auth = String(Base64.getDecoder().decode(base64Token)).split(":")
 
         docker {
             builderRegistry {
