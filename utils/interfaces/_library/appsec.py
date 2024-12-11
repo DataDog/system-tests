@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-""" AppSec validators """
+"""AppSec validators"""
 
 from collections import Counter
 from utils.interfaces._library.appsec_data import rule_id_to_type
@@ -112,11 +112,9 @@ class _WafAttack:
             elif self.address and self.key_path and (self.address, self.key_path) not in full_addresses:
                 logger.info(f"saw {full_addresses}, expecting {(self.address, self.key_path)}")
 
-            elif self.span_validator and not self.span_validator(span, appsec_data):
-                return False  # validator should output the reason for the failure
-
             else:
-                return True
+                # validator should output the reason for the failure
+                return not (self.span_validator and not self.span_validator(span, appsec_data))
 
     def validate_legacy(self, event):
         event_version = event.get("event_version", "0.1.0")
@@ -158,13 +156,13 @@ class _ReportedHeader:
         self.header_name = header_name.lower()
 
     def validate_legacy(self, event):
-        headers = [n.lower() for n in event["context"]["http"]["request"]["headers"].keys()]
+        headers = [n.lower() for n in event["context"]["http"]["request"]["headers"]]
         assert self.header_name in headers, f"header {self.header_name} not reported"
 
         return True
 
     def validate(self, span, appsec_data):
-        headers = [n.lower() for n in span["meta"].keys() if n.startswith("http.request.headers.")]
+        headers = [n.lower() for n in span["meta"] if n.startswith("http.request.headers.")]
         assert f"http.request.headers.{self.header_name}" in headers, f"header {self.header_name} not reported"
 
         return True

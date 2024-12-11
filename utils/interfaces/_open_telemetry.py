@@ -2,8 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-"""
-This files will validate data flow between agent and backend
+"""This files will validate data flow between agent and backend
 """
 
 import threading
@@ -13,7 +12,7 @@ from utils.interfaces._core import ProxyBasedInterfaceValidator
 
 
 class OpenTelemetryInterfaceValidator(ProxyBasedInterfaceValidator):
-    """ Validated communication between open telemetry and datadog backend"""
+    """Validated communication between open telemetry and datadog backend"""
 
     def __init__(self):
         super().__init__("open_telemetry")

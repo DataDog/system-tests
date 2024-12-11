@@ -15,7 +15,7 @@ def _get_unique_id(replay: bool, host_log_folder: str) -> str:
     replay_file = f"{host_log_folder}/unique_id.txt"
 
     if replay:
-        with open(replay_file, "r", encoding="utf-8") as f:
+        with open(replay_file, encoding="utf-8") as f:
             unique_id = f.read()
     else:
         # pick a statistically unique id for the scenario
@@ -59,7 +59,7 @@ class AWSIntegrationsScenario(EndToEndScenario):
 🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫
                                 ⚠️⚠️⚠️⚠️⚠️⚠️⚠️  AWS Authentication Error  ⚠️⚠️⚠️⚠️⚠️⚠️⚠️
 
-    It seems that your AWS authentication is not set up correctly. 
+    It seems that your AWS authentication is not set up correctly.
     Please take the following actions:
 
     🔑 With `aws-vault` setup:
@@ -67,11 +67,11 @@ class AWSIntegrationsScenario(EndToEndScenario):
         To enter an authenticated shell session that sets temp AWS credentials in your shell environment:
         👉 `aws-vault login sso-sandbox-account-admin --`
         👉 `[your system-test command]`
-                or 
-        
+                or
+
         To run ONLY the system tests command with auth: (temp AWS credentials are not set in shell environment)
         👉 `aws-vault login sso-sandbox-account-admin -- [your system-test command]`
-    
+
 
     🔧 Or to first set up `aws-vault` / `aws-cli`, please visit:
         🔗 [AWS CLI Config Setup & Update Guide]

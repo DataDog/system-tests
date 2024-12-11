@@ -38,11 +38,25 @@ import (
 	ddotel "github.com/DataDog/dd-trace-go/v2/ddtrace/opentelemetry"
 	"github.com/DataDog/dd-trace-go/v2/ddtrace/tracer"
 	ddtracer "github.com/DataDog/dd-trace-go/v2/ddtrace/tracer"
+	"github.com/DataDog/dd-trace-go/v2/profiler"
 )
 
 func main() {
 	ddtracer.Start()
 	defer ddtracer.Stop()
+
+	err := profiler.Start(
+		profiler.WithService("weblog"),
+		profiler.WithEnv("system-tests"),
+		profiler.WithVersion("1.0"),
+		profiler.WithTags(),
+		profiler.WithProfileTypes(profiler.CPUProfile, profiler.HeapProfile),
+	)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer profiler.Stop()
 
 	mux := httptrace.NewServeMux()
 

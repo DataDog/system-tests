@@ -2,13 +2,13 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-"""
-Usage:
-    PYTHONPATH=. python utils/interfaces/_schemas_validators.py
+"""Usage:
+PYTHONPATH=. python utils/interfaces/_schemas_validators.py
 """
 
 from dataclasses import dataclass
 import os
+from pathlib import Path
 import json
 import re
 import functools
@@ -37,9 +37,9 @@ def _get_schemas_filenames():
                     yield os.path.join(root, f)
 
 
-@functools.lru_cache()
+@functools.lru_cache
 def _get_schemas_store():
-    """returns a dict with all defined schemas"""
+    """Returns a dict with all defined schemas"""
 
     store = {}
 
@@ -57,7 +57,7 @@ def _get_schemas_store():
     return store
 
 
-@functools.lru_cache()
+@functools.lru_cache
 def _get_schema_validator(schema_id):
     store = _get_schemas_store()
 
@@ -116,7 +116,7 @@ class SchemaValidator:
 def _main():
     for interface in ("agent", "library"):
         validator = SchemaValidator(interface)
-        folders = [folder for folder in os.listdir(".") if os.path.isdir(folder) and folder.startswith("logs")]
+        folders = [folder for folder in os.listdir(".") if Path(folder).is_dir() and folder.startswith("logs")]
         for folder in folders:
             path = f"{folder}/interfaces/{interface}"
 
@@ -129,7 +129,7 @@ def _main():
 
                 if "request" in data and data["request"]["length"] != 0:
                     for error in validator.get_errors(data):
-                        print(error.message)
+                        print(error.message)  # noqa: T201
 
 
 if __name__ == "__main__":

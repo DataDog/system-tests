@@ -16,6 +16,8 @@ elif [ "$DD_LANG" == "js" ]; then
     . "$NVM_DIR/nvm.sh"
 
     runtime_version=$(node --version | tr -d 'v')
+elif [ "$DD_LANG" == "dotnet" ]; then
+    runtime_version=$(dotnet --version)
 fi
 
 if [ -f /etc/debian_version ] || [ "$DISTRIBUTION" = "Debian" ] || [ "$DISTRIBUTION" = "Ubuntu" ]; then

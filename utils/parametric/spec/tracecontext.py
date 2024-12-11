@@ -108,11 +108,11 @@ class Tracestate:
 
     def __setitem__(self, key, value):
         if not isinstance(key, str):
-            raise ValueError("key must be an instance of str")
+            raise TypeError("key must be an instance of str")
         if not re.match(self._KEY_VALIDATION_RE, key):
             raise ValueError("illegal key provided")
         if not isinstance(value, str):
-            raise ValueError("value must be an instance of str")
+            raise TypeError("value must be an instance of str")
         if not re.match(self._VALUE_VALIDATION_RE, value):
             raise ValueError("illegal value provided")
         self._traits[key] = value
@@ -136,7 +136,7 @@ class Tracestate:
         return self
 
     def to_string(self):
-        return ",".join(map(lambda key: key + "=" + self[key], self._traits))
+        return ",".join(key + "=" + self[key] for key in self._traits)
 
     def split(self, char=","):
         ts = self.to_string()
@@ -152,9 +152,7 @@ class Tracestate:
         if len(self.to_string()) > 512:
             return False
         # there can be a maximum of 32 list-members in a list
-        if len(self) > 32:
-            return False
-        return True
+        return not len(self) > 32
 
     def pop(self):
         return self._traits.popitem()

@@ -12,7 +12,7 @@ def junit_modifyreport(json_report, junit_report_path, junit_properties):
     """Add extra information to auto generated JUnit xml file"""
 
     # Open XML Junit report
-    junit_report = ET.parse(junit_report_path)
+    junit_report = ET.parse(junit_report_path)  # noqa: S314
     # get root element
     junit_report_root = junit_report.getroot()
     for test in json_report["tests"]:

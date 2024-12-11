@@ -3,7 +3,7 @@ import json
 from requests.structures import CaseInsensitiveDict
 
 from utils.telemetry_utils import TelemetryUtils
-from utils import context, weblog, interfaces, scenarios, features, rfc, bug, flaky
+from utils import context, weblog, interfaces, scenarios, features, rfc, bug, flaky, missing_feature
 
 
 class AsmStandalone_UpstreamPropagation_Base:
@@ -64,7 +64,7 @@ class AsmStandalone_UpstreamPropagation_Base:
     def assert_product_is_enabled(request, product):
         product_enabled = False
         tags = "_dd.iast.json" if product == "iast" else "_dd.appsec.json"
-        meta_struct_key = "vulnerability" if product == "iast" else "appsec"
+        meta_struct_key = "iast" if product == "iast" else "appsec"
         for data, trace, span in interfaces.library.get_spans(request=request):
             # Check if the product is enabled in meta
             meta = span["meta"]
@@ -711,6 +711,7 @@ class Test_SCAStandalone_Telemetry:
     def setup_app_dependencies_loaded(self):
         self.r = weblog.get("/load_dependency")
 
+    @missing_feature(context.library == "nodejs" and context.weblog_variant == "nextjs")
     def test_app_dependencies_loaded(self):
         self.assert_standalone_is_enabled(self.r)
 

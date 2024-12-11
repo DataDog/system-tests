@@ -18,12 +18,11 @@ class _SeqIdLatencyValidation:
         if seq_id > self.max_seq_id:
             self.max_seq_id = seq_id
             self.received_max_time = now
-        else:
-            if self.received_max_time is not None and (now - self.received_max_time) > self.MAX_OUT_OF_ORDER_LAG:
-                raise ValueError(
-                    f"Received message with seq_id {seq_id} to far more than"
-                    f"100ms after message with seq_id {self.max_seq_id}"
-                )
+        elif self.received_max_time is not None and (now - self.received_max_time) > self.MAX_OUT_OF_ORDER_LAG:
+            raise ValueError(
+                f"Received message with seq_id {seq_id} to far more than"
+                f"100ms after message with seq_id {self.max_seq_id}"
+            )
 
 
 class _NoSkippedSeqId:

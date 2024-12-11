@@ -2,8 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-"""
-This files will validate data flow between agent and backend
+"""This files will validate data flow between agent and backend
 """
 
 import threading
@@ -61,6 +60,9 @@ class AgentInterfaceValidator(ProxyBasedInterfaceValidator):
 
     def get_profiling_data(self):
         yield from self.get_data(path_filters="/api/v2/profile")
+
+    def validate_profiling(self, validator, success_by_default=False):
+        self.validate(validator, path_filters="/api/v2/profile", success_by_default=success_by_default)
 
     def validate_appsec(self, request, validator):
         for data, payload, chunk, span, appsec_data in self.get_appsec_data(request=request):
@@ -131,9 +133,7 @@ class AgentInterfaceValidator(ProxyBasedInterfaceValidator):
             for payload in content:
                 for chunk in payload["chunks"]:
                     for span in chunk["spans"]:
-                        if rid is None:
-                            yield data, span
-                        elif get_rid_from_span(span) == rid:
+                        if rid is None or get_rid_from_span(span) == rid:
                             yield data, span
 
     def get_spans_list(self, request):
@@ -155,7 +155,5 @@ class AgentInterfaceValidator(ProxyBasedInterfaceValidator):
             for client_stats_payload in client_stats_payloads:
                 for client_stats_buckets in client_stats_payload["Stats"]:
                     for client_grouped_stat in client_stats_buckets["Stats"]:
-                        if resource == "":
-                            yield client_grouped_stat
-                        elif client_grouped_stat["Resource"] == resource:
+                        if resource == "" or client_grouped_stat["Resource"] == resource:
                             yield client_grouped_stat
