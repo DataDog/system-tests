@@ -45,16 +45,15 @@ tasks.withType<Test> {
 val dockerImageRepo: String? by project
 val resolvedDockerImageRepo: String = dockerImageRepo ?: "docker.io/" + System.getenv("DOCKER_USERNAME") + "/dd-lib-java-init-test-app"
 val dockerImageTag: String by project
+val useDockerProxy: String? by project
+
 tasks.named<BootBuildImage>("bootBuildImage") {
     imageName = "${resolvedDockerImageRepo}:${dockerImageTag}"
 
-    if (System.getenv("DD_VM_NAME") == null) {
+    if (useDockerProxy == null) {
         builder = "paketobuildpacks/builder-jammy-java-tiny:0.0.11"
         runImage = "paketobuildpacks/run-jammy-tiny:0.2.55"
-        println("Not using mirror: " + System.getenv("DD_VM_NAME"))
     } else {
-        println("Using mirror")
-
         // Use dockerhub mirror
         builder = "669783387624.dkr.ecr.us-east-1.amazonaws.com/dockerhub/paketobuildpacks/builder-jammy-java-tiny:0.0.11"
         runImage = "669783387624.dkr.ecr.us-east-1.amazonaws.com/dockerhub/paketobuildpacks/run-jammy-tiny:0.2.55"

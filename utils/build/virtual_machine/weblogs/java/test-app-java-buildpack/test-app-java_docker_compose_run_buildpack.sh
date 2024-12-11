@@ -29,7 +29,7 @@ sudo docker pull 669783387624.dkr.ecr.us-east-1.amazonaws.com/dockerhub/paketobu
 
 echo "**************** BUILDING BUILDPACK *****************" 
 sudo ./gradlew build
-sudo ./gradlew -PdockerImageRepo=system-tests/local -PdockerImageTag=latest clean bootBuildImage
+sudo ./gradlew -PdockerImageRepo=system-tests/local -PdockerImageTag=latest -PuseDockerProxy=true clean bootBuildImage
 
 echo "**************** RUN SERVICES*****************" 
 if [ -f docker-compose-agent-prod.yml ]; then
