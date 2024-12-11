@@ -311,6 +311,7 @@ def _get_span_by_tags(spans, tags):
 
             if k not in meta:
                 logger.debug(f"Span {span['span_id']} does not have tag {k}")
+                break
             elif meta[k] != v:
                 logger.debug(f"Span {span['span_id']} has tag {k}={meta[k]} instead of {v}")
                 break

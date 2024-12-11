@@ -734,7 +734,7 @@ tests/:
     test_stats.py:
       Test_Client_Stats: missing_feature
   test_config_consistency.py:
-    Test_Config_ClientIPHeaderEnabled_False: missing_feature
+    Test_Config_ClientIPHeaderEnabled_False: *ref_5_27_0
     Test_Config_ClientIPHeader_Configured: *ref_3_13_0
     Test_Config_ClientIPHeader_Precedence: *ref_3_19_0
     Test_Config_ClientTagQueryString_Configured: missing_feature (adding query string to http.url is not supported)

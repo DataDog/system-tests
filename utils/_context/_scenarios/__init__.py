@@ -534,6 +534,8 @@ class scenarios:
         weblog_env={
             "DD_TRACE_HTTP_CLIENT_TAG_QUERY_STRING": "false",
             "DD_TRACE_CLIENT_IP_HEADER": "custom-ip-header",
+            # disable ASM to test non asm client ip tagging
+            "DD_APPSEC_ENABLED": "false",
         },
         doc="",
         scenario_groups=[ScenarioGroup.TRACING_CONFIG],

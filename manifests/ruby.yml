@@ -454,7 +454,7 @@ tests/:
     test_stats.py:
       Test_Client_Stats: missing_feature
   test_config_consistency.py:
-    Test_Config_ClientIPHeaderEnabled_False: missing_feature
+    Test_Config_ClientIPHeaderEnabled_False: v2.8.0
     Test_Config_ClientIPHeader_Configured: v2.3.0
     Test_Config_ClientIPHeader_Precedence: v2.3.0
     Test_Config_ClientTagQueryString_Configured: missing_feature (does not support redacting query string via envar)
