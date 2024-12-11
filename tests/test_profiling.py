@@ -4,7 +4,7 @@
 
 """Misc checks around data integrity during components' lifetime"""
 import re
-from utils import weblog, interfaces, scenarios, features, bug, context
+from utils import weblog, interfaces, scenarios, features
 
 
 TIMESTAMP_PATTERN = re.compile(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,9})?Z")
@@ -13,7 +13,6 @@ TIMESTAMP_PATTERN = re.compile(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,9}
 @features.profiling
 @features.dd_profiling_enabled
 @scenarios.profiling
-@bug(context.library >= "python@2.18.0-dev", reason="PROF-11018")
 class Test_Profile:
     """ Basic testing of profiling """
 
