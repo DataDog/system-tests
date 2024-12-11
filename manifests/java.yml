@@ -960,6 +960,7 @@ tests/:
         vertx4: missing_feature (login endpoints not implemented)
       Test_V3_Login_Events: missing_feature
       Test_V3_Login_Events_Anon: missing_feature
+      Test_V3_Login_Events_Blocking: missing_feature
       Test_V3_Login_Events_RC: missing_feature
     test_automated_user_and_session_tracking.py:
       Test_Automated_Session_Blocking: missing_feature

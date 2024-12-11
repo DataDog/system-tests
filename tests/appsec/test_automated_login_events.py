@@ -27,9 +27,12 @@ USER = "test"
 UUID_USER = "testuuid"
 PASSWORD = "1234"
 INVALID_USER = "invalidUser"
+NEW_USER = "testnew"
 USER_HASH = "anon_5f31ffaf95946d2dc703ddc96a100de5"
 USERNAME_HASH = "anon_9f86d081884c7d659a2feaa0c55ad015"
 INVALID_USER_HASH = "anon_2141e3bee69f7de45b4f1d8d1f29258a"
+NEW_USER_HASH = "anon_6724757d2d9a8113ec9ec57003bf7b3e"
+NEW_USERNAME_HASH = "anon_3de740d12dc67b5b1db699424c130847"
 
 BASIC_AUTH_USER_HEADER = "Basic dGVzdDoxMjM0"  # base64(test:1234)
 BASIC_AUTH_USER_UUID_HEADER = "Basic dGVzdHV1aWQ6MTIzNA=="  # base64(testuuid:1234)
@@ -1247,6 +1250,16 @@ class Test_V3_Login_Events:
     #         email: 'testuseruuid@ddog.com'
     #     }
     # ]
+    #
+    # These users can be created with signup events:
+    # users = [
+    #     {
+    #         id: 'new-user',
+    #         username: 'testnew',
+    #         password: '1234',
+    #         email: 'testnewuser@ddog.com'
+    #     }
+    # ]
 
     def setup_login_pii_success_local(self):
         self.r_pii_success = weblog.post("/login?auth=local", data=login_data(context, USER, PASSWORD))
@@ -1494,6 +1507,25 @@ class Test_V3_Login_Events:
             assert meta["_dd.appsec.events.users.login.failure.sdk"] == "true"
             assert meta["appsec.events.users.login.failure.usr.exists"] == "true"
 
+    def setup_signup_local(self):
+        self.r_success = weblog.post("/signup", data=login_data(context, NEW_USER, PASSWORD))
+
+    def test_signup_local(self):
+        assert self.r_success.status_code == 200
+        for _, trace, span in interfaces.library.get_spans(request=self.r_success):
+            assert_priority(span, trace)
+            meta = span.get("meta", {})
+
+            # mandatory
+            assert meta["appsec.events.users.signup.usr.login"] == NEW_USER
+            assert meta["_dd.appsec.usr.login"] == NEW_USER
+            assert meta["_dd.appsec.events.users.signup.auto.mode"] == "anonymization"
+            assert meta["appsec.events.users.signup.track"] == "true"
+
+            # optional (to review for each library)
+            assert meta["appsec.events.users.signup.usr.id"] == "new-user"
+            assert meta["_dd.appsec.usr.id"] == "new-user"
+
 
 @rfc("https://docs.google.com/document/d/1RT38U6dTTcB-8muiYV4-aVDCsT_XrliyakjtAPyjUpw")
 @scenarios.appsec_auto_events_extended
@@ -1711,6 +1743,25 @@ class Test_V3_Login_Events_Anon:
             assert meta["_dd.appsec.events.users.login.failure.sdk"] == "true"
             assert meta["appsec.events.users.login.failure.usr.exists"] == "true"
 
+    def setup_signup_local(self):
+        self.r_success = weblog.post("/signup", data=login_data(context, NEW_USER, PASSWORD))
+
+    def test_signup_local(self):
+        assert self.r_success.status_code == 200
+        for _, trace, span in interfaces.library.get_spans(request=self.r_success):
+            assert_priority(span, trace)
+            meta = span.get("meta", {})
+
+            # mandatory
+            assert meta["appsec.events.users.signup.usr.login"] == NEW_USERNAME_HASH
+            assert meta["_dd.appsec.usr.login"] == NEW_USERNAME_HASH
+            assert meta["_dd.appsec.events.users.signup.auto.mode"] == "anonymization"
+            assert meta["appsec.events.users.signup.track"] == "true"
+
+            # optional (to review for each library)
+            assert meta["appsec.events.users.signup.usr.id"] == NEW_USER_HASH
+            assert meta["_dd.appsec.usr.id"] == NEW_USER_HASH
+
 
 DISABLED = ("datadog/2/ASM_FEATURES/auto-user-instrum/config", {"auto_user_instrum": {"mode": "disabled"}})
 IDENTIFICATION = ("datadog/2/ASM_FEATURES/auto-user-instrum/config", {"auto_user_instrum": {"mode": "identification"}})
@@ -1756,3 +1807,82 @@ class Test_V3_Login_Events_RC:
         self._assert_response(self.disabled, validate_disabled)
         self._assert_response(self.identification, validate_iden)
         self._assert_response(self.anonymization, validate_anon)
+
+
+CONFIG_ENABLED = (
+    "datadog/2/ASM_FEATURES/asm_features_activation/config",
+    {"asm": {"enabled": True}},
+)
+
+BLOCK_USER = (
+    "datadog/2/ASM_DD/rules/config",
+    {
+        "version": "2.1",
+        "metadata": {"rules_version": "1.2.6"},
+        "rules": [
+            {
+                "id": "block-users",
+                "name": "Block User Addresses",
+                "tags": {"type": "block_user", "category": "security_response"},
+                "conditions": [
+                    {
+                        "parameters": {"inputs": [{"address": "usr.login"}], "data": "blocked_users"},
+                        "operator": "exact_match",
+                    }
+                ],
+                "transformers": [],
+                "on_match": ["block"],
+            }
+        ],
+        "rules_data": [
+            {
+                "id": "blocked_users",
+                "type": "data_with_expiration",
+                "data": [{"value": "social-security-id", "expiration": 0}, {"value": "sdkUser", "expiration": 0}],
+            },
+        ],
+    },
+)
+
+
+@rfc("https://docs.google.com/document/d/1RT38U6dTTcB-8muiYV4-aVDCsT_XrliyakjtAPyjUpw")
+@features.user_monitoring
+@scenarios.appsec_runtime_activation
+class Test_V3_Login_Events_Blocking:
+    def setup_login_event_blocking_auto(self):
+        rc.rc_state.reset().apply()
+
+        self.config_state_1 = rc.rc_state.set_config(*CONFIG_ENABLED).apply()
+        self.r_login = weblog.post("/login?auth=local", data=login_data(context, USER, PASSWORD))
+
+        self.config_state_2 = rc.rc_state.set_config(*BLOCK_USER).apply()
+        self.r_login_blocked = weblog.post("/login?auth=local", data=login_data(context, USER, PASSWORD))
+
+    def test_login_event_blocking_auto(self):
+        assert self.config_state_1[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
+        assert self.r_login.status_code == 200
+
+        assert self.config_state_2[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
+        interfaces.library.assert_waf_attack(self.r_login_blocked, rule="block-users")
+        assert self.r_login_blocked.status_code == 403
+
+    def setup_login_event_blocking_sdk(self):
+        rc.rc_state.reset().apply()
+
+        self.config_state_1 = rc.rc_state.set_config(*CONFIG_ENABLED).apply()
+        self.r_login = weblog.post(
+            "/login?auth=local&sdk_event=success&sdk_user=sdkUser", data=login_data(context, UUID_USER, PASSWORD)
+        )
+
+        self.config_state_2 = rc.rc_state.set_config(*BLOCK_USER).apply()
+        self.r_login_blocked = weblog.post(
+            "/login?auth=local&sdk_event=success&sdk_user=sdkUser", data=login_data(context, UUID_USER, PASSWORD)
+        )
+
+    def test_login_event_blocking_sdk(self):
+        assert self.config_state_1[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
+        assert self.r_login.status_code == 200
+
+        assert self.config_state_2[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
+        interfaces.library.assert_waf_attack(self.r_login_blocked, rule="block-users")
+        assert self.r_login_blocked.status_code == 403

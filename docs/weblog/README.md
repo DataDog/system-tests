@@ -610,11 +610,22 @@ Body fields accepted in POST method:
 - `password`: password for the user.
 
 It also supports HTTP authentication by using GET method and the authorization header.
-Additionally both methods support the following query parameters to use the sdk functions along with the authentication framework:
+Additionally, both methods support the following query parameters to use the sdk functions along with the authentication framework:
 - `sdk_event`: login event type: `success` or `failure`.
 - `sdk_user`: user id to be used in the sdk call.
 - `sdk_mail`: user's mail to be used in the sdk call.
-- `sdk_user_exists`: `true` of `false` to indicate wether the current user exists and populate the corresponding tag.
+- `sdk_user_exists`: `true` of `false` to indicate whether the current user exists and populate the corresponding tag.
+
+### \[POST\] /signup
+This endpoint is used to create a new user.
+Body fields accepted in POST method:
+- `username`: the login name for the user.
+- `password`: password for the user.
+
+Additionally, the method supports the following query parameters to use the sdk functions along with the authentication framework:
+- `sdk_event`: login event type: `signup`.
+- `sdk_user`: user id to be used in the sdk call.
+- `sdk_mail`: user's mail to be used in the sdk call.
 
 ### GET /debugger
 These endpoints are used for the Dynamic Instrumentation tests.
