@@ -63,10 +63,10 @@ def pii():
 
 @debugger_blueprint.route("/expression", methods=["GET"])
 def expression():
-    input_value = request.args.get("inputValue", type=str)
-    test_struct = ExpressionTestStruct()
-    local_value = len(input_value)
-    return f"Great success number {local_value}"
+    inputValue = request.args.get("inputValue", type=str)
+    testStruct = ExpressionTestStruct()
+    localValue = len(inputValue)
+    return f"Great success number {localValue}"
 
 
 @debugger_blueprint.route("/expression/exception", methods=["GET"])
@@ -76,20 +76,21 @@ def expression_exception():
 
 @debugger_blueprint.route("/expression/operators", methods=["GET"])
 def expression_operators():
-    int_value = request.args.get("intValue", type=int)
-    float_value = request.args.get("floatValue", type=float)
-    str_value = request.args.get("strValue", type=str)
+    intValue = request.args.get("intValue", type=int)
+    floatValue = request.args.get("floatValue", type=float)
+    strValue = request.args.get("strValue", type=str)
+    pii = Pii()
 
-    return f"Int value {int_value}. Float value {float_value}. String value is {str_value}."
+    return f"Int value {intValue}. Float value {floatValue}. String value is {strValue}."
 
 
 @debugger_blueprint.route("/expression/strings", methods=["GET"])
 def string_operations():
-    str_value = request.args.get("strValue", type=str)
-    empty_string = request.args.get("emptyString", default="")
-    null_string = request.args.get("nullString")
+    strValue = request.args.get("strValue", type=str)
+    emptyString = request.args.get("emptyString", default="")
+    nullString = request.args.get("nullString")
 
-    return f"strValue {str_value}. emptyString {empty_string}. {null_string}."
+    return f"strValue {strValue}. emptyString {emptyString}. {nullString}."
 
 
 @debugger_blueprint.route("/expression/collections", methods=["GET"])
@@ -121,8 +122,12 @@ def collection_operations():
 
 @debugger_blueprint.route("/expression/null", methods=["GET"])
 def nulls():
-    int_value = request.args.get("intValue", type=int)
-    str_value = request.args.get("strValue")
-    pii = None
+    intValue = request.args.get("intValue", type=int)
+    strValue = request.args.get("strValue", type = str)
+    boolValue = request.args.get("boolValue", type=bool)
 
-    return f"Pii is null {pii is None}. intValue is null {int_value is None}. strValue is null {str_value is None}."
+    pii = None
+    if boolValue:
+        pii = Pii()
+
+    return f"Pii is null {pii is None}. intValue is null {intValue is None}. strValue is null {strValue is None}."
