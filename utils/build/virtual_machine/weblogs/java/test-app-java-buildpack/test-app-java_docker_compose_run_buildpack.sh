@@ -21,11 +21,7 @@ sudo docker images
 echo "**************** Docker containers *****************" 
 sudo docker ps -a
 echo "**************** Docker volumes *****************" 
-sudo docker volume ls 
-
-echo "**************** Pulling docker images ****************"
-sudo docker pull 669783387624.dkr.ecr.us-east-1.amazonaws.com/dockerhub/paketobuildpacks/builder-jammy-java-tiny:0.0.11
-sudo docker pull 669783387624.dkr.ecr.us-east-1.amazonaws.com/dockerhub/paketobuildpacks/run-jammy-tiny:0.2.55
+sudo docker volume ls
 
 echo "**************** BUILDING BUILDPACK *****************" 
 sudo ./gradlew build
