@@ -165,3 +165,31 @@ jobs:
       env:
         DD_API_KEY: ${{ secrets.DD_CI_API_KEY }}
         DD_APP_KEY: ${{ secrets.DD_CI_APP_KEY }}
+
+  tmp-test:
+    runs-on: ubuntu-latest
+    steps:
+      # - name: Enable IPv6 for Docker
+      #   run: |
+      #     sudo mkdir -p /etc/docker
+      #     echo '{
+      #       "experimental": true,
+      #       "ipv6": true,
+      #       "fixed-cidr-v6": "2001:db8:1::/64"
+      #     }' | sudo tee /etc/docker/daemon.json
+      #     sudo systemctl restart docker
+      #     # sleep 5
+      #     # sudo systemctl status docker
+          
+      - name: Create Docker Network with IPv6
+        run: |
+          docker network create \
+            --driver bridge \
+            --ipv6 \
+            --subnet=2001:db8:2::/64 \
+            my_ipv6_network
+
+      - name: Verify Network
+        run: |
+          docker network inspect my_ipv6_network
+

@@ -107,11 +107,6 @@ class DockerScenario(Scenario):
         ]
 
     def configure(self, config):
-        if self.enable_ipv6:
-            infos = get_docker_client().info()
-            if not infos.get("IPv6", False):
-                pytest.exit("IPv6 is not enabled on the docker daemon", 1)
-
         for container in reversed(self._required_containers):
             container.configure(self.replay)
 
@@ -162,6 +157,7 @@ class DockerScenario(Scenario):
                 options={"com.docker.network.enable_ipv6": "true"},
                 ipam=IPAMConfig(driver="default", pool_configs=[IPAMPool(subnet="2001:db8:1::/64")]),
             )
+            assert self._network.attrs["EnableIPv6"] is True
         else:
             get_docker_client().networks.create(name, check_duplicate=True)
 
