@@ -85,7 +85,6 @@ class Test_Debugger_Probe_Statuses(debugger._Base_Debugger_Test):
         self._setup("probe_status_span")
 
     @missing_feature(context.library == "ruby", reason="Not yet implemented")
-    
     def test_probe_status_span(self):
         self._assert()
 
@@ -96,6 +95,5 @@ class Test_Debugger_Probe_Statuses(debugger._Base_Debugger_Test):
     @bug(context.library == "python@2.16.0", reason="DEBUG-3127")
     @bug(context.library == "python@2.16.1", reason="DEBUG-3127")
     @missing_feature(context.library == "ruby", reason="Not yet implemented")
-
     def test_probe_status_spandecoration(self):
         self._assert()
