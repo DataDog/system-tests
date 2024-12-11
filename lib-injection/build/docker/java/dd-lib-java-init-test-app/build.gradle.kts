@@ -1,7 +1,6 @@
 import org.springframework.boot.gradle.tasks.bundling.BootBuildImage
 import software.amazon.awssdk.services.ecr.EcrClient
 import software.amazon.awssdk.services.ecr.model.AuthorizationData
-import java.util.Base64
 
 buildscript {
     repositories {
@@ -57,22 +56,18 @@ tasks.named<BootBuildImage>("bootBuildImage") {
         runImage = "669783387624.dkr.ecr.us-east-1.amazonaws.com/dockerhub/paketobuildpacks/run-jammy-tiny:0.2.55"
 
         // Setup authentication
-        val authData: Provider<AuthorizationData> = providers.provider {
-            val ecrClient = EcrClient.builder().build()
-            val authorizationData = ecrClient
+        // https://stackoverflow.com/questions/65320552/publish-docker-images-using-spring-boot-plugin-without-credentials/76898025#76898025
+        val ecrClient = EcrClient.builder().build()
+        String base64Token = ecrClient
                     .getAuthorizationToken()
                     .authorizationData()[0]
-            return@provider authorizationData
-        }
-
-        val decodedEcrToken: Provider<String> = authData.map { String(Base64.getDecoder().decode(it.authorizationToken())) }
-        val registryUsername: Provider<String> = decodedEcrToken.map { it.split(":")[0] }
-        val registryPassword: Provider<String> = decodedEcrToken.map { it.split(":")[1] }
+                    .authorizationToken()
+        String[] auth = new String( base64Token.decodeBase64() ).split(":", 2)
 
         docker {
             builderRegistry {
-                username.set(registryUsername)
-                password.set(registryPassword)
+                username = auth[0]
+                password = auth[1]
             }
         }
     }
