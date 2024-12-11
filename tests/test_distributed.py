@@ -5,6 +5,7 @@
 import json
 from utils import weblog, interfaces, scenarios, features, bug, context
 from utils.parametric.spec.trace import SAMPLING_PRIORITY_KEY, ORIGIN
+from utils.tools import logger
 
 
 @scenarios.trace_propagation_style_w3c
@@ -212,7 +213,7 @@ class Test_Span_Links_Flags_From_Conflicting_Contexts:
         self.req = weblog.get("/make_distant_call", params={"url": "http://weblog:7777"}, headers=extract_headers)
 
     def test_span_links_flags_from_conflicting_contexts(self):
-        trace = [
+        spans = [
             span
             for _, _, span in interfaces.library.get_spans(self.req, full_trace=True)
             if _retrieve_span_links(span) is not None
@@ -220,8 +221,11 @@ class Test_Span_Links_Flags_From_Conflicting_Contexts:
             and span["parent_id"] == 987654321  # Only fetch the trace that is related to the header extractions
         ]
 
-        assert len(trace) == 1
-        span = trace[0]
+        if len(spans) != 1:
+            logger.error(json.dumps(spans, indent=2))
+            raise ValueError(f"Expected 1 span, got {len(spans)}")
+
+        span = spans[0]
         span_links = _retrieve_span_links(span)
         assert len(span_links) == 2
         link1 = span_links[0]
@@ -254,7 +258,7 @@ class Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts:
         self.req = weblog.get("/make_distant_call", params={"url": "http://weblog:7777"}, headers=extract_headers)
 
     def test_span_links_omit_tracestate_from_conflicting_contexts(self):
-        trace = [
+        spans = [
             span
             for _, _, span in interfaces.library.get_spans(self.req, full_trace=True)
             if _retrieve_span_links(span) is not None
@@ -262,8 +266,11 @@ class Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts:
             and span["parent_id"] == 987654321  # Only fetch the trace that is related to the header extractions
         ]
 
-        assert len(trace) == 1
-        span = trace[0]
+        if len(spans) != 1:
+            logger.error(json.dumps(spans, indent=2))
+            raise ValueError(f"Expected 1 span, got {len(spans)}")
+
+        span = spans[0]
         links = _retrieve_span_links(span)
         assert len(links) == 1
         link1 = links[0]
