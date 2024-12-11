@@ -13,6 +13,7 @@ _SCRUB_VALUES = True
 
 @features.debugger_exception_replay
 @scenarios.debugger_exception_replay
+@bug(True, reason="DEBUG-3188")
 class Test_Debugger_Exception_Replay(debugger._Base_Debugger_Test):
     ############ setup ############
     def _setup(self, request_path, method_name):
