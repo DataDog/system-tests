@@ -16,7 +16,7 @@ class Ipv6Scenario(EndToEndScenario):
     def _start_containers(self):
         self.proxy_container.start(self._network)
 
-        agent_container_ip = self.proxy_container.network_ip(self._network)
+        agent_container_ip = self.proxy_container.network_ipv6(self._network)
         logger.stdout(f"Lib is configured with DD_AGENT_HOST: {agent_container_ip}")
 
         self.weblog_container.environment["DD_AGENT_HOST"] = agent_container_ip

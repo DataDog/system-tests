@@ -185,6 +185,10 @@ class TestedContainer:
         if self.healthy:
             self.warmup()
 
+        self._container.reload()
+        with open(f"{self.log_folder_path}/container.json", "w", encoding="utf-8") as f:
+            json.dump(self._container.attrs, f, indent=2)
+
     def async_start(self, network: Network) -> Thread:
         """Start the container and its dependencies in a thread with circular dependency detection"""
         self.check_circular_dependencies([])
@@ -192,11 +196,18 @@ class TestedContainer:
         return self._async_start_recursive(network)
 
     def network_ip(self, network: Network) -> str:
-        logger.debug("NetworksSettings: {self._container.attrs['NetworkSettings']}")
+        logger.debug(f"NetworksSettings: {self._container.attrs['NetworkSettings']}")
 
         # NetworkSettings.Networks.bridge.IPAddress
         self._container.reload()
         return self._container.attrs["NetworkSettings"]["Networks"][network.name]["IPAddress"]
+
+    def network_ipv6(self, network: Network) -> str:
+        logger.debug(f"NetworksSettings: {self._container.attrs['NetworkSettings']}")
+
+        # NetworkSettings.Networks.bridge.IPAddress
+        self._container.reload()
+        return self._container.attrs["NetworkSettings"]["Networks"][network.name]["GlobalIPv6Address"]
 
     def check_circular_dependencies(self, seen: list):
         """Check if the container has a circular dependency"""
