@@ -59,7 +59,6 @@ class TestHostAutoInjectInstallScriptProfiling(base.AutoInjectBaseTest):
 @features.container_auto_installation_script
 @scenarios.container_auto_injection_install_script
 class TestContainerAutoInjectInstallScript(base.AutoInjectBaseTest):
-    @flaky(weblog_variant="test-app-java-buildpack", reason="APMON-1595")
     @parametrize_virtual_machines(
         bugs=[{"vm_name": "AlmaLinux_8_arm64", "weblog_variant": "test-app-python-alpine", "reason": "APMON-1576"}]
     )
@@ -146,7 +145,6 @@ class TestInstallerAutoInjectManual(base.AutoInjectBaseTest):
     # Note: uninstallation of a single installer package is not available today
     #  on the installer. As we can't only uninstall the injector, we are skipping
     #  the uninstall test today
-    @flaky(weblog_variant="test-app-java-buildpack", reason="APMON-1595")
     @parametrize_virtual_machines(
         bugs=[
             {"vm_name": "AlmaLinux_8_arm64", "weblog_variant": "test-app-python-alpine", "reason": "APMON-1576"},
@@ -167,7 +165,6 @@ class TestInstallerAutoInjectManual(base.AutoInjectBaseTest):
 @features.installer_auto_instrumentation
 @scenarios.simple_installer_auto_injection
 class TestSimpleInstallerAutoInjectManual(base.AutoInjectBaseTest):
-    @flaky(weblog_variant="test-app-java-buildpack", reason="APMON-1595")
     @parametrize_virtual_machines(
         bugs=[
             {"vm_name": "AlmaLinux_8_arm64", "weblog_variant": "test-app-python-alpine", "reason": "APMON-1576"},
