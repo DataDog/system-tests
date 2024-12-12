@@ -710,13 +710,12 @@ class Test_SCAStandalone_Telemetry:
 
     def setup_app_dependencies_loaded(self):
         self.r = weblog.get("/load_dependency")
-        if context.library == "java" and context.weblog_variant == "spring-boot":
-            # Wait for at least 7 metric flushes, i.e. 70s as the java tracer analyze one jar per second, and we have many jars
-            METRIC_FLUSH_INTERVAL = 10  # This is constant by design
-            time.sleep(METRIC_FLUSH_INTERVAL * 7)
 
     @missing_feature(context.library == "nodejs" and context.weblog_variant == "nextjs")
-    @irrelevant(context.library == "java" and context.weblog_variant != "spring-boot")
+    @irrelevant(
+        condition=context.library == "java" and context.weblog_variant != "spring-boot",
+        reason="No need to test in more than one variant",
+    )
     def test_app_dependencies_loaded(self):
         self.assert_standalone_is_enabled(self.r)
 
