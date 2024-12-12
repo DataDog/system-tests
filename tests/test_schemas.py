@@ -25,7 +25,6 @@ class Test_library:
             ("/debugger/v1/input", "$[].dd.trace_id"),  # DEBUG-2743
             ("/debugger/v1/input", "$[].debugger.snapshot.probe.location.lines[]"),  # DEBUG-2743
             ("/debugger/v1/input", "$[].debugger.snapshot.captures"),  # DEBUG-2743
-            ("/debugger/v1/diagnostics", "$[].content"),  # DEBUG-2864
         ]
 
         if (
@@ -43,10 +42,6 @@ class Test_library:
     )
     def test_python_debugger_line_number(self):
         interfaces.library.assert_schema_point("/debugger/v1/input", "$[].debugger.snapshot.stack[].lineNumber")
-
-    @bug(context.library > "nodejs@4.48.0", reason="DEBUG-2864")
-    def test_library_diagnostics_content(self):
-        interfaces.library.assert_schema_point("/debugger/v1/diagnostics", "$[].content")
 
     @bug(context.library == "python", reason="DEBUG-2743")
     def test_library_schema_debugger(self):
@@ -86,13 +81,8 @@ class Test_Agent:
                 ("/api/v2/apmtelemetry", "$.payload"),  # APPSEC-52845
                 ("/api/v2/apmtelemetry", "$"),  # the main payload sent by the agent may be an array i/o an object
                 ("/api/v2/apmtelemetry", "$.payload.configuration[].value"),  # APMS-12697
-                ("/api/v2/debugger", "$[].content"),  # DEBUG-2864
             ]
         )
-
-    @bug(context.library > "nodejs@4.46.0", reason="DEBUG-2864")  # and 5.22.0
-    def test_library_diagnostics_content(self):
-        interfaces.library.assert_schema_point("/api/v2/debugger", "$[].content")
 
     @bug(context.library >= "nodejs@2.27.1", reason="APPSEC-52805")
     @irrelevant(context.scenario is scenarios.crossed_tracing_libraries, reason="APPSEC-52805")
