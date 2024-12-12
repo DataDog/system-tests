@@ -84,7 +84,7 @@
         "flush_on_exit",
         "max_goroutines_wait",
         "mutex_profile_fraction",
-        "num_customer_profiler_label_keys",
+        "num_custom_profiler_label_keys",
         "profile_period",
         "profile_period",
         "upload_timeout",
