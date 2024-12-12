@@ -70,7 +70,7 @@ tests/:
           TestCommandInjection:
             '*': v2.10.0
             fastapi: v2.15.0
-          TestCommandInjection_StackTrace: missing_feature
+          TestCommandInjection_StackTrace: v2.19.0.dev
         test_hardcoded_passwords.py:
           Test_HardcodedPasswords: missing_feature
           Test_HardcodedPasswords_StackTrace: missing_feature
@@ -86,7 +86,7 @@ tests/:
           TestHeaderInjectionExclusionContentEncoding: missing_feature
           TestHeaderInjectionExclusionPragma: missing_feature
           TestHeaderInjectionExclusionTransferEncoding: missing_feature
-          TestHeaderInjection_StackTrace: missing_feature
+          TestHeaderInjection_StackTrace: v2.19.0.dev
         test_hsts_missing_header.py:
           Test_HstsMissingHeader: missing_feature
           Test_HstsMissingHeader_StackTrace: missing_feature
@@ -121,7 +121,7 @@ tests/:
           TestPathTraversal:
             '*': v2.10.0
             fastapi: v2.15.0
-          TestPathTraversal_StackTrace: missing_feature
+          TestPathTraversal_StackTrace: v2.19.0.dev
         test_reflection_injection.py:
           TestReflectionInjection: missing_feature
           TestReflectionInjection_StackTrace: missing_feature
@@ -132,12 +132,12 @@ tests/:
             flask-poc: v1.18.0
             pylons: missing_feature
             python3.12: v1.18.0
-          TestSqlInjection_StackTrace: missing_feature
+          TestSqlInjection_StackTrace: v2.19.0.dev
         test_ssrf.py:
           TestSSRF:
             '*': v2.10.0
             fastapi: v2.15.0
-          TestSSRF_StackTrace: missing_feature
+          TestSSRF_StackTrace: v2.19.0.dev
         test_template_injection.py:
           TestTemplateInjection: missing_feature
         test_trust_boundary_violation.py:
@@ -158,17 +158,17 @@ tests/:
           TestWeakCipher:
             '*': v1.18.0
             fastapi: v2.15.0
-          TestWeakCipher_StackTrace: missing_feature
+          TestWeakCipher_StackTrace: v2.19.0.dev
         test_weak_hash.py:
           TestDeduplication:
             '*': v1.18.0
           TestWeakHash:
             '*': v1.18.0
-          TestWeakHash_StackTrace: missing_feature
+          TestWeakHash_StackTrace: v2.19.0.dev
         test_weak_randomness.py:
           TestWeakRandomness:
             '*': v2.0.0
-          TestWeakRandomness_StackTrace: missing_feature
+          TestWeakRandomness_StackTrace: v2.19.0.dev
         test_xcontent_sniffing.py:
           Test_XContentSniffing: missing_feature
           Test_XContentSniffing_StackTrace: missing_feature
