@@ -9,7 +9,7 @@ from utils.parametric.spec.trace import find_span, find_trace
 @rfc("https://docs.google.com/document/d/1cVod_VI7Yruq8U9dfMRFJd7npDu-uBpste2IB04GyaQ")
 @scenarios.parametric
 @features.span_events
-@missing_feature(True, reason="Agent does not advertise native span events serialization support yet")
+@missing_feature(reason="Agent does not advertise native span events serialization support yet")
 class Test_Span_Events:
     def _test_span_with_event(self, _library_env, test_agent, test_library, retrieve_events):
         """Test adding a span event, with attributes, to an active span.
