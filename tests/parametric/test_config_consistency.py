@@ -5,7 +5,7 @@ Test configuration consistency for features across supported APM SDKs.
 from urllib.parse import urlparse
 import pytest
 from utils import scenarios, features, context, bug, missing_feature, irrelevant, flaky
-from utils.parametric.spec.trace import find_span_in_traces
+from utils.parametric.spec.trace import find_span_in_traces, assert_trace_has_tags
 
 parametrize = pytest.mark.parametrize
 
@@ -229,3 +229,17 @@ class Test_Config_RateLimit:
         assert any(
             trace[0]["metrics"]["_sampling_priority_v1"] == -1 for trace in traces
         ), "Expected at least one trace to be rate-limited with sampling priority -1."
+
+
+@scenarios.parametric
+@features.tracing_configuration_consistency
+class Test_Config_Tags:
+    @parametrize("library_env", [{"DD_TAGS": "key1:value1,key2:value2"}])
+    def test_default_trace_rate_limit(self, library_env, test_agent, test_library):
+        expected_local_tags = {}
+        if "DD_TAGS" in library_env:
+            expected_local_tags = dict([p.split(":") for p in library_env["DD_TAGS"].split(",")])
+
+        with test_library as t:
+            resp = t.config()
+        print("resp: ", resp)
