@@ -234,7 +234,9 @@ class Test_Config_RateLimit:
 @scenarios.parametric
 @features.tracing_configuration_consistency
 class Test_Config_Dogstatsd:
-    @parametrize("library_env", [{}])
+    @parametrize(
+        "library_env", [{"DD_AGENT_HOST": "localhost"}]
+    )  # Adding DD_AGENT_HOST because some SDKs use DD_AGENT_HOST to set the dogstatsd host if unspecified
     def test_dogstatsd_default(self, library_env, test_agent, test_library):
         with test_library as t:
             resp = t.config()
