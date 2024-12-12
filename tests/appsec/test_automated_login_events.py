@@ -1226,6 +1226,11 @@ class Test_V2_Login_Events_RC:
         self._assert_response(self.tests[2], validate_anon)
 
 
+libs_without_user_id = {}
+libs_without_user_exist = {}
+libs_without_user_id_on_failure = {}
+
+
 @rfc("https://docs.google.com/document/d/1RT38U6dTTcB-8muiYV4-aVDCsT_XrliyakjtAPyjUpw")
 @features.user_monitoring
 @features.user_id_collection_modes
@@ -1277,8 +1282,9 @@ class Test_V3_Login_Events:
             assert meta["appsec.events.users.login.success.track"] == "true"
 
             # optional (to review for each library)
-            assert meta["usr.id"] == "social-security-id"
-            assert meta["_dd.appsec.usr.id"] == "social-security-id"
+            if context.library not in libs_without_user_id:
+                assert meta["usr.id"] == "social-security-id"
+                assert meta["_dd.appsec.usr.id"] == "social-security-id"
 
     def setup_login_pii_success_basic(self):
         self.r_pii_success = weblog.get("/login?auth=basic", headers={"Authorization": BASIC_AUTH_USER_HEADER})
@@ -1297,8 +1303,9 @@ class Test_V3_Login_Events:
             assert meta["appsec.events.users.login.success.track"] == "true"
 
             # optional (to review for each library)
-            assert meta["usr.id"] == "social-security-id"
-            assert meta["_dd.appsec.usr.id"] == "social-security-id"
+            if context.library not in libs_without_user_id:
+                assert meta["usr.id"] == "social-security-id"
+                assert meta["_dd.appsec.usr.id"] == "social-security-id"
 
     def setup_login_success_local(self):
         self.r_success = weblog.post("/login?auth=local", data=login_data(context, UUID_USER, PASSWORD))
@@ -1316,8 +1323,9 @@ class Test_V3_Login_Events:
             assert meta["appsec.events.users.login.success.track"] == "true"
 
             # optional (to review for each library)
-            assert meta["usr.id"] == "591dc126-8431-4d0f-9509-b23318d3dce4"
-            assert meta["_dd.appsec.usr.id"] == "591dc126-8431-4d0f-9509-b23318d3dce4"
+            if context.library not in libs_without_user_id:
+                assert meta["usr.id"] == "591dc126-8431-4d0f-9509-b23318d3dce4"
+                assert meta["_dd.appsec.usr.id"] == "591dc126-8431-4d0f-9509-b23318d3dce4"
 
     def setup_login_success_basic(self):
         self.r_success = weblog.get("/login?auth=basic", headers={"Authorization": BASIC_AUTH_USER_UUID_HEADER})
@@ -1336,8 +1344,9 @@ class Test_V3_Login_Events:
             assert meta["appsec.events.users.login.success.track"] == "true"
 
             # optional (to review for each library)
-            assert meta["usr.id"] == "591dc126-8431-4d0f-9509-b23318d3dce4"
-            assert meta["_dd.appsec.usr.id"] == "591dc126-8431-4d0f-9509-b23318d3dce4"
+            if context.library not in libs_without_user_id:
+                assert meta["usr.id"] == "591dc126-8431-4d0f-9509-b23318d3dce4"
+                assert meta["_dd.appsec.usr.id"] == "591dc126-8431-4d0f-9509-b23318d3dce4"
 
     def setup_login_wrong_user_failure_local(self):
         self.r_wrong_user_failure = weblog.post("/login?auth=local", data=login_data(context, INVALID_USER, PASSWORD))
@@ -1355,7 +1364,8 @@ class Test_V3_Login_Events:
             assert meta["appsec.events.users.login.failure.track"] == "true"
 
             # optional (to review for each library)
-            assert meta["appsec.events.users.login.failure.usr.exists"] == "false"
+            if context.library not in libs_without_user_exist:
+                assert meta["appsec.events.users.login.failure.usr.exists"] == "false"
 
     def setup_login_wrong_user_failure_basic(self):
         self.r_wrong_user_failure = weblog.get(
@@ -1376,7 +1386,8 @@ class Test_V3_Login_Events:
             assert meta["appsec.events.users.login.failure.track"] == "true"
 
             # optional (to review for each library)
-            assert meta["appsec.events.users.login.failure.usr.exists"] == "false"
+            if context.library not in libs_without_user_exist:
+                assert meta["appsec.events.users.login.failure.usr.exists"] == "false"
 
     def setup_login_wrong_password_failure_local(self):
         self.r_wrong_user_failure = weblog.post("/login?auth=local", data=login_data(context, USER, "12345"))
@@ -1394,9 +1405,12 @@ class Test_V3_Login_Events:
             assert meta["appsec.events.users.login.failure.track"] == "true"
 
             # optional (to review for each library)
-            assert meta["appsec.events.users.login.failure.usr.exists"] == "false"
-            assert meta["appsec.events.users.login.failure.usr.id"] == "social-security-id"
-            assert meta["_dd.appsec.usr.id"] == "social-security-id"
+            if context.library not in libs_without_user_exist:
+                assert meta["appsec.events.users.login.failure.usr.exists"] == "true"
+
+            if context.library not in libs_without_user_id_on_failure:
+                assert meta["appsec.events.users.login.failure.usr.id"] == "social-security-id"
+                assert meta["_dd.appsec.usr.id"] == "social-security-id"
 
     def setup_login_wrong_password_failure_basic(self):
         self.r_wrong_user_failure = weblog.get(
@@ -1417,9 +1431,12 @@ class Test_V3_Login_Events:
             assert meta["appsec.events.users.login.failure.track"] == "true"
 
             # optional (to review for each library)
-            assert meta["appsec.events.users.login.failure.usr.exists"] == "false"
-            assert meta["appsec.events.users.login.failure.usr.id"] == "social-security-id"
-            assert meta["_dd.appsec.usr.id"] == "social-security-id"
+            if context.library not in libs_without_user_exist:
+                assert meta["appsec.events.users.login.failure.usr.exists"] == "true"
+
+            if context.library not in libs_without_user_id_on_failure:
+                assert meta["appsec.events.users.login.failure.usr.id"] == "social-security-id"
+                assert meta["_dd.appsec.usr.id"] == "social-security-id"
 
     def setup_login_sdk_success_local(self):
         self.r_sdk_success = weblog.post(
@@ -1440,8 +1457,9 @@ class Test_V3_Login_Events:
             assert meta["_dd.appsec.events.users.login.success.sdk"] == "true"
 
             # optional (to review for each library)
-            assert meta["usr.id"] == "social-security-id"
-            assert meta["_dd.appsec.usr.id"] == "social-security-id"
+            if context.library not in libs_without_user_id:
+                assert meta["usr.id"] == "social-security-id"
+                assert meta["_dd.appsec.usr.id"] == "social-security-id"
 
     def setup_login_sdk_success_basic(self):
         self.r_sdk_success = weblog.get(
@@ -1463,8 +1481,9 @@ class Test_V3_Login_Events:
             assert meta["_dd.appsec.events.users.login.success.sdk"] == "true"
 
             # optional (to review for each library)
-            assert meta["usr.id"] == "social-security-id"
-            assert meta["_dd.appsec.usr.id"] == "social-security-id"
+            if context.library not in libs_without_user_id:
+                assert meta["usr.id"] == "social-security-id"
+                assert meta["_dd.appsec.usr.id"] == "social-security-id"
 
     def setup_login_sdk_failure_local(self):
         self.r_sdk_failure = weblog.post(
@@ -1523,8 +1542,9 @@ class Test_V3_Login_Events:
             assert meta["appsec.events.users.signup.track"] == "true"
 
             # optional (to review for each library)
-            assert meta["appsec.events.users.signup.usr.id"] == "new-user"
-            assert meta["_dd.appsec.usr.id"] == "new-user"
+            if context.library not in libs_without_user_id:
+                assert meta["appsec.events.users.signup.usr.id"] == "new-user"
+                assert meta["_dd.appsec.usr.id"] == "new-user"
 
 
 @rfc("https://docs.google.com/document/d/1RT38U6dTTcB-8muiYV4-aVDCsT_XrliyakjtAPyjUpw")
@@ -1552,8 +1572,9 @@ class Test_V3_Login_Events_Anon:
             assert meta["appsec.events.users.login.success.track"] == "true"
 
             # optional (to review for each library)
-            assert meta["usr.id"] == "social-security-id"
-            assert meta["_dd.appsec.usr.id"] == "social-security-id"
+            if context.library not in libs_without_user_id:
+                assert meta["usr.id"] == "social-security-id"
+                assert meta["_dd.appsec.usr.id"] == "social-security-id"
 
     def setup_login_success_basic(self):
         self.r_success = weblog.get("/login?auth=basic", headers={"Authorization": BASIC_AUTH_USER_HEADER})
@@ -1572,8 +1593,9 @@ class Test_V3_Login_Events_Anon:
             assert meta["appsec.events.users.login.success.track"] == "true"
 
             # optional (to review for each library)
-            assert meta["usr.id"] == USER_HASH
-            assert meta["_dd.appsec.usr.id"] == USER_HASH
+            if context.library not in libs_without_user_id:
+                assert meta["usr.id"] == USER_HASH
+                assert meta["_dd.appsec.usr.id"] == USER_HASH
 
     def setup_login_wrong_user_failure_local(self):
         self.r_wrong_user_failure = weblog.post("/login?auth=local", data=login_data(context, INVALID_USER, PASSWORD))
@@ -1591,7 +1613,8 @@ class Test_V3_Login_Events_Anon:
             assert meta["appsec.events.users.login.failure.track"] == "true"
 
             # optional (to review for each library)
-            assert meta["appsec.events.users.login.failure.usr.exists"] == "false"
+            if context.library not in libs_without_user_exist:
+                assert meta["appsec.events.users.login.failure.usr.exists"] == "false"
 
     def setup_login_wrong_user_failure_basic(self):
         self.r_wrong_user_failure = weblog.get(
@@ -1612,7 +1635,8 @@ class Test_V3_Login_Events_Anon:
             assert meta["appsec.events.users.login.failure.track"] == "true"
 
             # optional (to review for each library)
-            assert meta["appsec.events.users.login.failure.usr.exists"] == "false"
+            if context.library not in libs_without_user_exist:
+                assert meta["appsec.events.users.login.failure.usr.exists"] == "false"
 
     def setup_login_wrong_password_failure_local(self):
         self.r_wrong_user_failure = weblog.post("/login?auth=local", data=login_data(context, USER, "12345"))
@@ -1630,9 +1654,12 @@ class Test_V3_Login_Events_Anon:
             assert meta["appsec.events.users.login.failure.track"] == "true"
 
             # optional (to review for each library)
-            assert meta["appsec.events.users.login.failure.usr.exists"] == "true"
-            assert meta["appsec.events.users.login.failure.usr.id"] == USER_HASH
-            assert meta["_dd.appsec.usr.id"] == USER_HASH
+            if context.library not in libs_without_user_exist:
+                assert meta["appsec.events.users.login.failure.usr.exists"] == "true"
+
+            if context.library not in libs_without_user_id_on_failure:
+                assert meta["appsec.events.users.login.failure.usr.id"] == USER_HASH
+                assert meta["_dd.appsec.usr.id"] == USER_HASH
 
     def setup_login_wrong_password_failure_basic(self):
         self.r_wrong_user_failure = weblog.get(
@@ -1653,9 +1680,12 @@ class Test_V3_Login_Events_Anon:
             assert meta["appsec.events.users.login.failure.track"] == "true"
 
             # optional (to review for each library)
-            assert meta["appsec.events.users.login.failure.usr.exists"] == "true"
-            assert meta["appsec.events.users.login.failure.usr.id"] == USER_HASH
-            assert meta["_dd.appsec.usr.id"] == USER_HASH
+            if context.library not in libs_without_user_exist:
+                assert meta["appsec.events.users.login.failure.usr.exists"] == "true"
+
+            if context.library not in libs_without_user_id_on_failure:
+                assert meta["appsec.events.users.login.failure.usr.id"] == USER_HASH
+                assert meta["_dd.appsec.usr.id"] == USER_HASH
 
     def setup_login_sdk_success_local(self):
         self.r_sdk_success = weblog.post(
@@ -1676,8 +1706,9 @@ class Test_V3_Login_Events_Anon:
             assert meta["_dd.appsec.events.users.login.success.sdk"] == "true"
 
             # optional (to review for each library)
-            assert meta["usr.id"] == USER_HASH
-            assert meta["_dd.appsec.usr.id"] == USER_HASH
+            if context.library not in libs_without_user_id:
+                assert meta["usr.id"] == USER_HASH
+                assert meta["_dd.appsec.usr.id"] == USER_HASH
 
     def setup_login_sdk_success_basic(self):
         self.r_sdk_success = weblog.get(
@@ -1699,8 +1730,9 @@ class Test_V3_Login_Events_Anon:
             assert meta["_dd.appsec.events.users.login.success.sdk"] == "true"
 
             # optional (to review for each library)
-            assert meta["usr.id"] == USER_HASH
-            assert meta["_dd.appsec.usr.id"] == USER_HASH
+            if context.library not in libs_without_user_id:
+                assert meta["usr.id"] == USER_HASH
+                assert meta["_dd.appsec.usr.id"] == USER_HASH
 
     def setup_login_sdk_failure_basic(self):
         self.r_sdk_failure = weblog.get(
@@ -1759,8 +1791,9 @@ class Test_V3_Login_Events_Anon:
             assert meta["appsec.events.users.signup.track"] == "true"
 
             # optional (to review for each library)
-            assert meta["appsec.events.users.signup.usr.id"] == NEW_USER_HASH
-            assert meta["_dd.appsec.usr.id"] == NEW_USER_HASH
+            if context.library not in libs_without_user_id:
+                assert meta["appsec.events.users.signup.usr.id"] == NEW_USER_HASH
+                assert meta["_dd.appsec.usr.id"] == NEW_USER_HASH
 
 
 DISABLED = ("datadog/2/ASM_FEATURES/auto-user-instrum/config", {"auto_user_instrum": {"mode": "disabled"}})
@@ -1773,7 +1806,7 @@ ANONYMIZATION = ("datadog/2/ASM_FEATURES/auto-user-instrum/config", {"auto_user_
 @scenarios.appsec_auto_events_rc
 class Test_V3_Login_Events_RC:
     def _send_rc_and_execute_request(self, config):
-        config_state = rc.rc_state.set_config(config).apply()
+        config_state = rc.rc_state.set_config(*config).apply()
         request = weblog.post("/login?auth=local", data=login_data(context, USER, PASSWORD))
         return {"config_state": config_state, "request": request}
 
@@ -1790,9 +1823,9 @@ class Test_V3_Login_Events_RC:
             validation(meta)
 
     def setup_rc(self):
-        self.disabled = self._send_rc_and_execute_request(*DISABLED)
-        self.identification = self._send_rc_and_execute_request(*IDENTIFICATION)
-        self.anonymization = self._send_rc_and_execute_request(*ANONYMIZATION)
+        self.disabled = self._send_rc_and_execute_request(DISABLED)
+        self.identification = self._send_rc_and_execute_request(IDENTIFICATION)
+        self.anonymization = self._send_rc_and_execute_request(ANONYMIZATION)
 
     def test_rc(self):
         def validate_disabled(meta):
