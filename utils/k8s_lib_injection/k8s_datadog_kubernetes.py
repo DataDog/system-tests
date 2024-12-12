@@ -1,7 +1,4 @@
 import time
-import os
-import json
-import base64
 
 from kubernetes import client, watch
 
@@ -9,8 +6,6 @@ from utils.k8s_lib_injection.k8s_command_utils import (
     helm_add_repo,
     helm_install_chart,
     execute_command_sync,
-    path_clusterrole,
-    kubectl_apply,
 )
 from utils.k8s_lib_injection.k8s_logger import k8s_logger
 
@@ -32,7 +27,7 @@ class K8sDatadog:
         self.logger.info(f"K8sDatadog configured with cluster: {self.k8s_kind_cluster.cluster_name}")
 
     def deploy_test_agent(self):
-        """ Installs the test agent pod."""
+        """Installs the test agent pod."""
 
         self.logger.info(
             f"[Test agent] Deploying Datadog test agent on the cluster: {self.k8s_kind_cluster.cluster_name}"
@@ -103,8 +98,9 @@ class K8sDatadog:
         self.logger.info("[Test agent] Daemonset created")
 
     def deploy_datadog_cluster_agent(self, use_uds=False, features={}, cluster_agent_tag=None):
-        """ Installs the Datadog Cluster Agent via helm for manual library injection testing.
-            It returns when the Cluster Agent pod is ready."""
+        """Installs the Datadog Cluster Agent via helm for manual library injection testing.
+        It returns when the Cluster Agent pod is ready.
+        """
 
         self.logger.info("[Deploy datadog cluster] Deploying Datadog Cluster Agent with Admission Controler")
 
@@ -132,7 +128,7 @@ class K8sDatadog:
         self._wait_for_operator_ready()
 
     def wait_for_test_agent(self):
-        """ Waits for the test agent to be ready."""
+        """Waits for the test agent to be ready."""
         daemonset_created = False
         daemonset_status = None
         # Wait for the daemonset to be created
@@ -200,8 +196,9 @@ class K8sDatadog:
         time.sleep(5)
 
     def export_debug_info(self):
-        """ Exports debug information for the test agent and the operator.
-        We shouldn't raise any exception here, we just log the errors."""
+        """Exports debug information for the test agent and the operator.
+        We shouldn't raise any exception here, we just log the errors.
+        """
 
         # Get all pods
         ret = self.k8s_wrapper.list_namespaced_pod("default", watch=False)

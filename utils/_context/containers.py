@@ -108,7 +108,7 @@ class TestedContainer:
         self.stdout_interface = stdout_interface
 
     def get_image_list(self, library: str, weblog: str) -> list[str]:
-        """ returns the image list that will be loaded to be able to run/build the container """
+        """Returns the image list that will be loaded to be able to run/build the container"""
         return [self.image.name]
 
     def configure(self, replay):
@@ -147,7 +147,7 @@ class TestedContainer:
             old_container.remove(force=True)
 
     def start(self) -> Container:
-        """ Start the actual underlying Docker container directly """
+        """Start the actual underlying Docker container directly"""
         if old_container := self.get_existing_container():
             if self.allow_old_container:
                 self._container = old_container
@@ -179,7 +179,7 @@ class TestedContainer:
             self.warmup()
 
     def async_start(self) -> Thread:
-        """ Start the container and its dependencies in a thread with circular dependency detection """
+        """Start the container and its dependencies in a thread with circular dependency detection"""
         self.check_circular_dependencies([])
 
         return self._async_start_recursive()
@@ -191,7 +191,7 @@ class TestedContainer:
         return self._container.attrs["NetworkSettings"]["Networks"][_NETWORK_NAME]["IPAddress"]
 
     def check_circular_dependencies(self, seen: list):
-        """ Check if the container has a circular dependency """
+        """Check if the container has a circular dependency"""
         if self in seen:
             dependencies = " -> ".join([s.name for s in seen] + [self.name,])
             raise RuntimeError(f"Circular dependency detected between containers: {dependencies}")
@@ -202,7 +202,7 @@ class TestedContainer:
             dependency.check_circular_dependencies(list(seen))
 
     def _async_start_recursive(self):
-        """ Recursive version of async_start for circular dependency detection """
+        """Recursive version of async_start for circular dependency detection"""
         with self._starting_lock:
             if self._starting_thread is None:
                 self._starting_thread = Thread(target=self._start_with_dependencies, name=f"start_{self.name}")
@@ -211,7 +211,7 @@ class TestedContainer:
         return self._starting_thread
 
     def _start_with_dependencies(self):
-        """ Start all dependencies of a container and then start the container """
+        """Start all dependencies of a container and then start the container"""
         threads = [dependency._async_start_recursive() for dependency in self.depends_on]
 
         for thread in threads:
@@ -230,10 +230,10 @@ class TestedContainer:
             self.healthy = False
 
     def warmup(self):
-        """ if some stuff must be done after healthcheck """
+        """If some stuff must be done after healthcheck"""
 
     def post_start(self):
-        """ if some stuff must be done after the container is started """
+        """If some stuff must be done after the container is started"""
 
     @property
     def healthcheck_log_file(self):
@@ -257,11 +257,10 @@ class TestedContainer:
     def execute_command(
         self, test, retries=10, interval=1_000_000_000, start_period=0, timeout=1_000_000_000
     ) -> tuple[int, str]:
-        """
-            Execute a command inside a container. Useful for healthcheck and warmups.
-            test is a command to be executed, interval, timeout and start_period are in us (microseconds)
-            This function does not raise any exception, it returns a tuple with the exit code and the output
-            The exit code is 0 (success) or any other integer (failure)
+        """Execute a command inside a container. Useful for healthcheck and warmups.
+        test is a command to be executed, interval, timeout and start_period are in us (microseconds)
+        This function does not raise any exception, it returns a tuple with the exit code and the output
+        The exit code is 0 (success) or any other integer (failure)
         """
 
         cmd = test
@@ -465,7 +464,7 @@ class ImageInfo:
         self._init_from_attrs(self._image.attrs)
 
     def load_from_logs(self, dir_path):
-        with open(f"{dir_path}/image.json", encoding="utf-8", mode="r") as f:
+        with open(f"{dir_path}/image.json", encoding="utf-8") as f:
             attrs = json.load(f)
 
         self._init_from_attrs(attrs)
@@ -485,9 +484,9 @@ class ImageInfo:
 
 class ProxyContainer(TestedContainer):
     def __init__(self, host_log_folder, rc_api_enabled: bool, meta_structs_disabled: bool, span_events: bool) -> None:
-        """
-        Parameters:
+        """Parameters:
         span_events: Whether the agent supports the native serialization of span events
+
         """
 
         super().__init__(
@@ -556,7 +555,7 @@ class AgentContainer(TestedContainer):
 
     def get_image_list(self, library: str, weblog: str) -> list[str]:
         try:
-            with open("binaries/agent-image", "r", encoding="utf-8") as f:
+            with open("binaries/agent-image", encoding="utf-8") as f:
                 return [
                     f.read().strip(),
                 ]
@@ -567,7 +566,7 @@ class AgentContainer(TestedContainer):
             ]
 
     def post_start(self):
-        with open(self.healthcheck_log_file, mode="r", encoding="utf-8") as f:
+        with open(self.healthcheck_log_file, encoding="utf-8") as f:
             data = json.load(f)
 
         self.agent_version = LibraryVersion("agent", data["version"]).version
@@ -746,22 +745,22 @@ class WeblogContainer(TestedContainer):
         result = []
 
         pattern = re.compile(r"FROM\s+(?P<image_name>[^ ]+)")
-        with open(dockerfile, "r", encoding="utf-8") as f:
-            for line in f.readlines():
+        with open(dockerfile, encoding="utf-8") as f:
+            for line in f:
                 if match := pattern.match(line):
                     result.append(match.group("image_name"))
 
         return result
 
     def get_image_list(self, library: str, weblog: str) -> list[str]:
-        """ parse the Dockerfile and extract all images reference in a FROM section """
+        """Parse the Dockerfile and extract all images reference in a FROM section"""
         result = []
         args = {}
 
         pattern = re.compile(r"^FROM\s+(?P<image_name>[^\s]+)")
         arg_pattern = re.compile(r"^ARG\s+(?P<arg_name>[^\s]+)\s*=\s*(?P<arg_value>[^\s]+)")
-        with open(f"utils/build/docker/{library}/{weblog}.Dockerfile", "r", encoding="utf-8") as f:
-            for line in f.readlines():
+        with open(f"utils/build/docker/{library}/{weblog}.Dockerfile", encoding="utf-8") as f:
+            for line in f:
                 if match := arg_pattern.match(line):
                     args[match.group("arg_name")] = match.group("arg_value")
 
@@ -812,7 +811,7 @@ class WeblogContainer(TestedContainer):
 
         logger.debug(f"Docker host is {weblog.domain}")
 
-        with open(self.healthcheck_log_file, mode="r", encoding="utf-8") as f:
+        with open(self.healthcheck_log_file, encoding="utf-8") as f:
             data = json.load(f)
             lib = data["library"]
 
@@ -847,7 +846,7 @@ class WeblogContainer(TestedContainer):
         return 2
 
     def request(self, method, url, **kwargs):
-        """ perform an HTTP request on the weblog, must NOT be used for tests """
+        """Perform an HTTP request on the weblog, must NOT be used for tests"""
         return requests.request(method, f"http://localhost:{self.port}{url}", **kwargs)  # noqa: S113
 
 
@@ -1138,7 +1137,7 @@ class DockerSSIContainer(TestedContainer):
         )
 
     def get_env(self, env_var):
-        """Get env variables from the container """
+        """Get env variables from the container"""
         env = self.image.env | self.environment
         return env.get(env_var)
 
@@ -1173,7 +1172,7 @@ class ExternalProcessingContainer(TestedContainer):
 
     def __init__(self, host_log_folder) -> None:
         try:
-            with open("binaries/golang-service-extensions-callout-image", "r", encoding="utf-8") as f:
+            with open("binaries/golang-service-extensions-callout-image", encoding="utf-8") as f:
                 image = f.read().strip()
         except FileNotFoundError:
             image = "ghcr.io/datadog/dd-trace-go/service-extensions-callout:latest"
@@ -1187,7 +1186,7 @@ class ExternalProcessingContainer(TestedContainer):
         )
 
     def post_start(self):
-        with open(self.healthcheck_log_file, mode="r", encoding="utf-8") as f:
+        with open(self.healthcheck_log_file, encoding="utf-8") as f:
             data = json.load(f)
             lib = data["library"]
 

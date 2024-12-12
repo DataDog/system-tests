@@ -1,5 +1,4 @@
-import time, datetime
-from kubernetes import client, config, watch
+from kubernetes import client, watch
 from utils.k8s_lib_injection.k8s_logger import k8s_logger
 
 
@@ -37,8 +36,9 @@ class K8sWeblog:
         self.logger = k8s_logger(self.output_folder, self.test_name, "k8s_logger")
 
     def _get_base_weblog_pod(self, env=None, service_account=None):
-        """ Installs a target app for manual library injection testing.
-            It returns when the app pod is ready."""
+        """Installs a target app for manual library injection testing.
+        It returns when the app pod is ready.
+        """
 
         self.logger.info(
             "[Deploy weblog] Creating weblog pod configuration. weblog_variant_image: [%s], library: [%s], library_init_image: [%s]"
@@ -204,7 +204,7 @@ class K8sWeblog:
             raise Exception("[Deploy weblog] Weblog not created")
 
     def export_debug_info(self):
-        """ Extracts debug info from the k8s weblog app and logs it to the specified folder."""
+        """Extracts debug info from the k8s weblog app and logs it to the specified folder."""
 
         # check weblog describe pod
         try:

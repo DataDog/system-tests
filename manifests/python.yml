@@ -598,17 +598,7 @@ tests/:
         uds-flask: v2.11.0
         uwsgi-poc: v2.11.0
     test_debugger_probe_snapshot.py:
-      Test_Debugger_Line_Probe_Snaphots:
-        '*': missing_feature
-        flask-poc: v2.11.0
-        uds-flask: v2.11.0
-        uwsgi-poc: v2.11.0
-      Test_Debugger_Method_Probe_Snaphots:
-        '*': missing_feature
-        flask-poc: v2.11.0
-        uds-flask: v2.11.0
-        uwsgi-poc: v2.11.0
-      Test_Debugger_Mix_Log_Probe:
+      Test_Debugger_Probe_Snaphots:
         '*': missing_feature
         flask-poc: v2.11.0
         uds-flask: v2.11.0

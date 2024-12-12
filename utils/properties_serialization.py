@@ -44,9 +44,8 @@ class _PropertiesDecoder(json.JSONDecoder):
 
 
 class SetupProperties:
-    """ 
-        This class will store all properties initialized by setup function, and dump =them into a file
-        In replay mode, it will restore then to the good instance 
+    """This class will store all properties initialized by setup function, and dump =them into a file
+    In replay mode, it will restore then to the good instance
     """
 
     def __init__(self):
@@ -89,7 +88,7 @@ class SetupProperties:
     def load(self, host_log_folder: str):
         filename = f"{host_log_folder}/setup_properties.json"
         try:
-            with open(filename, "r", encoding="utf-8") as f:
+            with open(filename, encoding="utf-8") as f:
                 self._store = json.load(f, cls=_PropertiesDecoder)
         except FileNotFoundError:
             pytest.exit(f"{filename} does not exists. Did you run the tests without any INTERNALERROR output?")

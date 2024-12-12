@@ -2,34 +2,60 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-import tests.debugger.utils as base
+import tests.debugger.utils as debugger
 import re, json
-from utils import scenarios, interfaces, weblog, features, remote_config as rc, bug, context
+from utils import scenarios, features, bug, context
 
 
 @features.debugger_expression_language
 @scenarios.debugger_expression_language
-class Test_Debugger_Expression_Language(base._Base_Debugger_Test):
-    version = 0
+class Test_Debugger_Expression_Language(debugger._Base_Debugger_Test):
     message_map = {}
-    tracer = None
 
+    ############ setup ############
     def _setup(self, probes, request_path):
-        self.installed_ids = set()
-        self.expected_probe_ids = base.extract_probe_ids(probes)
+        self.set_probes(probes)
+        self.send_rc_probes()
+        self.wait_for_all_probes_installed()
+        self.send_weblog_request(request_path)
+        self.wait_for_all_probes_emitting()
 
-        Test_Debugger_Expression_Language.version += 1
-        self.rc_state = rc.send_debugger_command(probes=probes, version=Test_Debugger_Expression_Language.version)
+    ############ assert ############
+    def _assert(self, expected_response: int):
 
-        interfaces.agent.wait_for(self.wait_for_all_probes_installed, timeout=30)
-        self.weblog_responses = [weblog.get(request_path)]
+        self.collect()
 
-    def _assert(self, expected_code: int = 200):
-        self.assert_all_states_not_error()
+        self.assert_rc_state_not_error()
         self.assert_all_probes_are_installed()
-        self.assert_all_weblog_responses_ok(expected_code)
+        self.assert_all_weblog_responses_ok(expected_response)
         self._validate_expression_language_messages(self.message_map)
 
+    def _validate_expression_language_messages(self, expected_message_map):
+        not_found_ids = set(self.probe_ids)
+        error_messages = []
+
+        for probe_id, snapshots in self.probe_snapshots.items():
+            for snapshot in snapshots:
+                if probe_id in expected_message_map:
+                    not_found_ids.remove(probe_id)
+
+                    if not re.search(expected_message_map[probe_id], snapshot["message"]):
+                        error_messages.append(
+                            f"Message for probe id {probe_id} is wrong. \n Expected: {expected_message_map[probe_id]}. \n Found: {snapshot['message']}."
+                        )
+
+                        evaluation_errors = snapshot["debugger"]["snapshot"].get("evaluationErrors", [])
+                        for error in evaluation_errors:
+                            error_messages.append(
+                                f" Evaluation error in probe id {probe_id}: {error['expr']} - {error['message']}\n"
+                            )
+
+        not_found_list = "\n".join(not_found_ids)
+        assert not error_messages, "Errors occurred during validation:\n" + "\n".join(error_messages)
+        assert not not_found_ids, f"The following probes were not found:\n{not_found_list}"
+
+    ############ test ############
+    ############ access variables ############
     def setup_expression_language_access_variables(self):
 
         message_map, probes = self._create_expression_probes(
@@ -68,8 +94,9 @@ class Test_Debugger_Expression_Language(base._Base_Debugger_Test):
         self._setup(probes, "/debugger/expression?inputValue=asd")
 
     def test_expression_language_access_variables(self):
-        self._assert()
+        self._assert(expected_response=200)
 
+    ############ access exception ############
     def setup_expression_language_access_exception(self):
         message_map, probes = self._create_expression_probes(
             methodName="ExpressionException",
@@ -80,8 +107,9 @@ class Test_Debugger_Expression_Language(base._Base_Debugger_Test):
         self._setup(probes, "/debugger/expression/exception")
 
     def test_expression_language_access_exception(self):
-        self._assert(expected_code=500)
+        self._assert(expected_response=500)
 
+    ############ comparison operators ############
     def setup_expression_language_comparison_operators(self):
         message_map, probes = self._create_expression_probes(
             methodName="ExpressionOperators",
@@ -140,8 +168,9 @@ class Test_Debugger_Expression_Language(base._Base_Debugger_Test):
         self._setup(probes, "/debugger/expression/operators?intValue=5&floatValue=3.14&strValue=haha")
 
     def test_expression_language_comparison_operators(self):
-        self._assert()
+        self._assert(expected_response=200)
 
+    ############ intance of ############
     def setup_expression_language_instance_of(self):
         message_map, probes = self._create_expression_probes(
             methodName="ExpressionOperators",
@@ -186,8 +215,9 @@ class Test_Debugger_Expression_Language(base._Base_Debugger_Test):
 
     @bug(library="dotnet", reason="DEBUG-2530")
     def test_expression_language_instance_of(self):
-        self._assert()
+        self._assert(expected_response=200)
 
+    ############ logical operators ############
     def setup_expression_language_logical_operators(self):
 
         message_map, probes = self._create_expression_probes(
@@ -223,8 +253,9 @@ class Test_Debugger_Expression_Language(base._Base_Debugger_Test):
 
     @bug(context.library >= "dotnet@3.5.0", reason="DEBUG-3115")
     def test_expression_language_logical_operators(self):
-        self._assert()
+        self._assert(expected_response=200)
 
+    ############ string operations ############
     def setup_expression_language_string_operations(self):
 
         message_map, probes = self._create_expression_probes(
@@ -269,8 +300,9 @@ class Test_Debugger_Expression_Language(base._Base_Debugger_Test):
 
     @bug(library="dotnet", reason="DEBUG-2560")
     def test_expression_language_string_operations(self):
-        self._assert()
+        self._assert(expected_response=200)
 
+    ############ collection operations ############
     def setup_expression_language_collection_operations(self):
         message_map, probes = self._create_expression_probes(
             methodName="CollectionOperations",
@@ -461,10 +493,10 @@ class Test_Debugger_Expression_Language(base._Base_Debugger_Test):
         self._setup(probes, "/debugger/expression/collections")
 
     @bug(library="dotnet", reason="DEBUG-2602")
-    @bug(library="java", reason="DEBUG-3131")
     def test_expression_language_collection_operations(self):
-        self._assert()
+        self._assert(expected_response=200)
 
+    ############ nulls ############
     def setup_expression_language_nulls_true(self):
         message_map, probes = self._create_expression_probes(
             methodName="Nulls",
@@ -480,7 +512,7 @@ class Test_Debugger_Expression_Language(base._Base_Debugger_Test):
 
     @bug(library="dotnet", reason="DEBUG-2618")
     def test_expression_language_nulls_true(self):
-        self._assert()
+        self._assert(expected_response=200)
 
     def setup_expression_language_nulls_false(self):
         message_map, probes = self._create_expression_probes(
@@ -498,15 +530,14 @@ class Test_Debugger_Expression_Language(base._Base_Debugger_Test):
 
     @bug(library="dotnet", reason="DEBUG-2618")
     def test_expression_language_nulls_false(self):
-        self._assert()
+        self._assert(expected_response=200)
 
+    ############ helpers ############
     def _get_type(self, value_type):
-        if self.tracer is None:
-            tracer = base.get_tracer()
 
         intance_type = ""
 
-        if tracer["language"] == "dotnet":
+        if self.get_tracer()["language"] == "dotnet":
             if value_type == "int":
                 intance_type = "System.Int32"
             elif value_type == "float":
@@ -517,7 +548,7 @@ class Test_Debugger_Expression_Language(base._Base_Debugger_Test):
                 intance_type = "weblog.DebuggerController"
             else:
                 intance_type = value_type
-        elif tracer["language"] == "java":
+        elif self.get_tracer()["language"] == "java":
             if value_type == "int":
                 intance_type = "java.lang.Integer"
             elif value_type == "float":
@@ -533,10 +564,7 @@ class Test_Debugger_Expression_Language(base._Base_Debugger_Test):
         return intance_type
 
     def _get_hash_value_property_name(self):
-        if Test_Debugger_Expression_Language.tracer is None:
-            Test_Debugger_Expression_Language.tracer = base.get_tracer()
-
-        if Test_Debugger_Expression_Language.tracer["language"] == "dotnet":
+        if self.get_tracer()["language"] == "dotnet":
             return "Value"
         else:
             return "value"
@@ -554,8 +582,8 @@ class Test_Debugger_Expression_Language(base._Base_Debugger_Test):
             else:
                 expected_result = str(expected_result)
 
-            probe = base.read_probes("expression_probe_base")[0]
-            probe["id"] = base.generate_probe_id("log")
+            probe = debugger.read_probes("expression_probe_base")[0]
+            probe["id"] = debugger.generate_probe_id("log")
             probe["where"]["methodName"] = methodName
             probe["segments"] = Segment().add_str(message).add_dsl(dsl).to_dict()
             probes.append(probe)
@@ -563,37 +591,6 @@ class Test_Debugger_Expression_Language(base._Base_Debugger_Test):
             expected_message_map[probe["id"]] = message + expected_result
 
         return expected_message_map, probes
-
-    def _validate_expression_language_messages(self, expected_message_map):
-        agent_logs_endpoint_requests = list(interfaces.agent.get_data(path_filters="/api/v2/logs"))
-
-        not_found_ids = set(self.expected_probe_ids)
-        error_messages = []
-
-        for request in agent_logs_endpoint_requests:
-            content = request["request"]["content"]
-
-            if content:
-                for content in content:
-                    probe_id = content["debugger"]["snapshot"]["probe"]["id"]
-
-                    if probe_id in expected_message_map:
-                        not_found_ids.remove(probe_id)
-
-                        if not re.search(expected_message_map[probe_id], content["message"]):
-                            error_messages.append(
-                                f"Message for probe id {probe_id} is wrong. \n Expected: {expected_message_map[probe_id]}. \n Found: {content['message']}."
-                            )
-
-                            evaluation_errors = content["debugger"]["snapshot"].get("evaluationErrors", [])
-                            for error in evaluation_errors:
-                                error_messages.append(
-                                    f" Evaluation error in probe id {probe_id}: {error['expr']} - {error['message']}\n"
-                                )
-
-        not_found_list = "\n".join(not_found_ids)
-        assert not error_messages, "Errors occurred during validation:\n" + "\n".join(error_messages)
-        assert not not_found_ids, f"The following probes were not found:\n{not_found_list}"
 
 
 class Segment:

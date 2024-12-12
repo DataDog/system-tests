@@ -6,9 +6,9 @@ from copy import deepcopy
 
 
 def parametrize_virtual_machines(bugs: list[dict] = None):
-    """ You can set multiple bugs for a single test case. 
-    If you want to set a bug for a specific VM, you can set the vm_name or vm_cpu or weblog_variant in the bug dictionary (using one or more fields). 
-    ie: 
+    """You can set multiple bugs for a single test case.
+    If you want to set a bug for a specific VM, you can set the vm_name or vm_cpu or weblog_variant in the bug dictionary (using one or more fields).
+    ie:
     - Marks as bug for vm with name "vm1" and weblog_variant "app1"
     *     @parametrize_virtual_machines(bugs=[{"vm_name":"vm1", "weblog_variant":"app1", "reason": "APMON-1576"}])
     - Marks as bug for vm with cpu type "amd64" and weblog_variant "app1"
@@ -73,7 +73,7 @@ def parametrize_virtual_machines(bugs: list[dict] = None):
 
 
 def get_tested_apps_vms():
-    """ This method is a workaround for multicontainer apps. We are going duplicate the machines for each runtime inside of docker compose.
+    """This method is a workaround for multicontainer apps. We are going duplicate the machines for each runtime inside of docker compose.
     This means, if I have a multicontainer app with 3 containers (runtimes) running on 1 vm, I will have 3 machines with the same configuration but with different runtimes.
     NOTE: On AWS we only run 1 vm. We duplicate the vms for test isolation.
     """
@@ -95,8 +95,9 @@ def get_tested_apps_vms():
 
 
 def nginx_parser(nginx_config_file):
-    """ This function is used to parse the nginx config file and return the apps in the return block of the location block of the server block of the http block. 
-    TODO: Improve this uggly code """
+    """This function is used to parse the nginx config file and return the apps in the return block of the location block of the server block of the http block.
+    TODO: Improve this uggly code
+    """
     import crossplane
     import json
 

@@ -443,8 +443,9 @@ class InstallerAutoInjectionScenario(_VirtualMachineScenario):
 
 
 class InstallerAutoInjectionScenarioProfiling(_VirtualMachineScenario):
-    """ As Profiling is not included in GA (2024/11) we reduce the number of VMS to speed up the execution 
-    Until we fix the performance problems on the AWS architecture and speed up the tests"""
+    """As Profiling is not included in GA (2024/11) we reduce the number of VMS to speed up the execution
+    Until we fix the performance problems on the AWS architecture and speed up the tests
+    """
 
     def __init__(
         self,

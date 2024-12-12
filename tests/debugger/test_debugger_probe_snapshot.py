@@ -2,196 +2,98 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-import tests.debugger.utils as base
+import tests.debugger.utils as debugger
 
-from utils import scenarios, interfaces, weblog, features, remote_config as rc, bug, missing_feature, context
+from utils import scenarios, features, bug, missing_feature, context
 
 
 @features.debugger
-@scenarios.debugger_method_probes_snapshot
-class Test_Debugger_Method_Probe_Snaphots(base._Base_Debugger_Test):
-    def setup_log_method_probe_snaphots(self):
-        probes = base.read_probes("probe_snapshot_log_method")
-        self.expected_probe_ids = base.extract_probe_ids(probes)
-        self.rc_state = rc.send_debugger_command(probes, version=1)
+@scenarios.debugger_probes_snapshot
+class Test_Debugger_Probe_Snaphots(debugger._Base_Debugger_Test):
+    ############ setup ############
+    def _setup(self, probes_name: str, request_path: str):
+        ### prepare probes
+        probes = debugger.read_probes(probes_name)
+        self.set_probes(probes)
 
-        interfaces.agent.wait_for(self.wait_for_all_probes_installed, timeout=30)
-        self.weblog_responses = [
-            weblog.get("/debugger/log"),
-        ]
+        ### send requests
+        self.send_rc_probes()
+        self.wait_for_all_probes_installed()
+        self.send_weblog_request(request_path)
+        self.wait_for_all_probes_emitting()
+
+    ########### assert ############
+    def _assert(self):
+        self.collect()
+
+        ### assert
+        self.assert_rc_state_not_error()
+        self.assert_all_probes_are_installed()
+        self.assert_all_weblog_responses_ok()
+
+    def _validate_snapshots(self):
+        for expected_snapshot in self.probe_ids:
+            if expected_snapshot not in self.probe_snapshots:
+                raise ValueError("Snapshot " + expected_snapshot + " was not received.")
+
+    def _validate_spans(self):
+        for expected_trace in self.probe_ids:
+            if expected_trace not in self.probe_spans:
+                raise ValueError("Trace " + expected_trace + " was not received.")
+
+    ########### method ############
+    ### log probe ###
+    def setup_log_method_probe_snaphots(self):
+        self._setup("probe_snapshot_log_method", "/debugger/log")
 
     @bug(library="python", reason="DEBUG-2708, DEBUG-2709")
     def test_log_method_probe_snaphots(self):
-        self.assert_all_states_not_error()
-        self.assert_all_probes_are_installed()
-        self.assert_all_weblog_responses_ok()
+        self._assert()
+        self._validate_snapshots()
 
-        expected_snapshots = ["log170aa-acda-4453-9111-1478a6method"]
-
-        _validate_snapshots(expected_snapshots)
-
+    ### span probe ###
     def setup_span_method_probe_snaphots(self):
-        probes = base.read_probes("probe_snapshot_span_method")
-        self.expected_probe_ids = base.extract_probe_ids(probes)
-        self.rc_state = rc.send_debugger_command(probes, version=1)
-
-        interfaces.agent.wait_for(self.wait_for_all_probes_installed, timeout=30)
-        self.weblog_responses = [
-            weblog.get("/debugger/span"),
-        ]
+        self._setup("probe_snapshot_span_method", "/debugger/span")
 
     @bug(library="python", reason="DEBUG-2708, DEBUG-2709")
-    @missing_feature(context.library == "ruby", reason="Not yet implemented")
     def test_span_method_probe_snaphots(self):
-        self.assert_all_states_not_error()
-        self.assert_all_probes_are_installed()
-        self.assert_all_weblog_responses_ok()
+        self._assert()
+        self._validate_spans()
 
-        expected_spans = ["span70aa-acda-4453-9111-1478a6method"]
-
-        _validate_spans(expected_spans)
-
+    ### span decoration probe ###
     def setup_span_decoration_method_probe_snaphots(self):
-        probes = base.read_probes("probe_snapshot_span_decoration_method")
-        self.expected_probe_ids = base.extract_probe_ids(probes)
-        self.rc_state = rc.send_debugger_command(probes, version=1)
-
-        interfaces.agent.wait_for(self.wait_for_all_probes_installed, timeout=30)
-        self.weblog_responses = [
-            weblog.get("/debugger/span-decoration/asd/1"),
-        ]
+        self._setup("probe_snapshot_span_decoration_method", "/debugger/span-decoration/asd/1")
 
     @bug(library="python", reason="DEBUG-2708, DEBUG-2709")
     @missing_feature(context.library == "ruby", reason="Not yet implemented")
     def test_span_decoration_method_probe_snaphots(self):
-        self.assert_all_states_not_error()
-        self.assert_all_probes_are_installed()
-        self.assert_all_weblog_responses_ok()
+        self._assert()
+        self._validate_spans()
 
-        expected_spans = ["decor0aa-acda-4453-9111-1478a6method"]
-
-        _validate_spans(expected_spans)
-
-
-@features.debugger
-@scenarios.debugger_line_probes_snapshot
-class Test_Debugger_Line_Probe_Snaphots(base._Base_Debugger_Test):
+    ########### line ############
+    ### log probe ###
     def setup_log_line_probe_snaphots(self):
-        probes = base.read_probes("probe_snapshot_log_line")
-        self.expected_probe_ids = base.extract_probe_ids(probes)
-        self.rc_state = rc.send_debugger_command(probes, version=1)
-
-        interfaces.agent.wait_for(self.wait_for_all_probes_installed, timeout=30)
-
-        self.weblog_responses = [
-            weblog.get("/debugger/log"),
-        ]
+        self._setup("probe_snapshot_log_line", "/debugger/log")
 
     def test_log_line_probe_snaphots(self):
-        self.assert_all_states_not_error()
-        self.assert_all_probes_are_installed()
-        self.assert_all_weblog_responses_ok()
+        self._assert()
+        self._validate_snapshots()
 
-        expected_snapshots = ["log170aa-acda-4453-9111-1478a697line"]
-
-        _validate_snapshots(expected_snapshots)
-
+    ### span decoration probe ###
     def setup_span_decoration_line_probe_snaphots(self):
-        probes = base.read_probes("probe_snapshot_span_decoration_line")
-        self.expected_probe_ids = base.extract_probe_ids(probes)
-        self.rc_state = rc.send_debugger_command(probes, version=1)
-
-        interfaces.agent.wait_for(self.wait_for_all_probes_installed, timeout=30)
-
-        self.weblog_responses = [
-            weblog.get("/debugger/span-decoration/asd/1"),
-        ]
+        self._setup("probe_snapshot_span_decoration_line", "/debugger/span-decoration/asd/1")
 
     @missing_feature(context.library == "ruby", reason="Not yet implemented")
     def test_span_decoration_line_probe_snaphots(self):
-        self.assert_all_states_not_error()
-        self.assert_all_probes_are_installed()
-        self.assert_all_weblog_responses_ok()
+        self._assert()
+        self._validate_spans()
 
-        expected_spans = ["decor0aa-acda-4453-9111-1478a697line"]
-
-        _validate_spans(expected_spans)
-
-
-@features.debugger
-@scenarios.debugger_mix_log_probe
-class Test_Debugger_Mix_Log_Probe(base._Base_Debugger_Test):
+    ########### mix ############
+    ### mix log probe ###
     def setup_mix_probe(self):
-        probes = base.read_probes("probe_snapshot_log_mixed")
-        self.expected_probe_ids = base.extract_probe_ids(probes)
-        self.rc_state = rc.send_debugger_command(probes, version=1)
-
-        interfaces.agent.wait_for(self.wait_for_all_probes_installed, timeout=30)
-        self.weblog_responses = [weblog.get("/debugger/mix/asd/1")]
+        self._setup("probe_snapshot_log_mixed", "/debugger/mix/asd/1")
 
     @bug(library="python", reason="DEBUG-2710")
     def test_mix_probe(self):
-        self.assert_all_states_not_error()
-        self.assert_all_probes_are_installed()
-        self.assert_all_weblog_responses_ok()
-
-        expected_snapshots = [
-            "logfb5a-1974-4cdb-b1dd-77dba2method",
-            "logfb5a-1974-4cdb-b1dd-77dba2f1line",
-        ]
-
-        _validate_snapshots(expected_snapshots)
-
-
-def _validate_snapshots(expected_snapshots):
-    def __get_snapshot_map():
-        agent_logs_endpoint_requests = list(interfaces.agent.get_data(base._LOGS_PATH))
-        snapshot_hash = {}
-
-        for request in agent_logs_endpoint_requests:
-            content = request["request"]["content"]
-            if content:
-                for item in content:
-                    snapshot = item.get("debugger", {}).get("snapshot") or item.get("debugger.snapshot")
-                    if snapshot:
-
-                        probe_id = snapshot["probe"]["id"]
-                        snapshot_hash[probe_id] = snapshot
-
-        return snapshot_hash
-
-    def check_snapshot(expected_id, snapshot_status_map):
-        if expected_id not in snapshot_status_map:
-            raise ValueError("Snapshot " + expected_id + " was not received.")
-
-    snapshot_map = __get_snapshot_map()
-    for expected_snapshot in expected_snapshots:
-        check_snapshot(expected_snapshot, snapshot_map)
-
-
-def _validate_spans(expected_spans):
-    def __get_span_map():
-        agent_logs_endpoint_requests = list(interfaces.agent.get_data(base._TRACES_PATH))
-        span_hash = {}
-        for request in agent_logs_endpoint_requests:
-            content = request["request"]["content"]
-            if content:
-                for payload in content["tracerPayloads"]:
-                    for chunk in payload["chunks"]:
-                        for span in chunk["spans"]:
-                            if span["name"] == "dd.dynamic.span":
-                                span_hash[span["meta"]["debugger.probeid"]] = span
-                            else:
-                                for key, value in span["meta"].items():
-                                    if key.startswith("_dd.di"):
-                                        span_hash[value] = span["meta"][key.split(".")[2]]
-
-        return span_hash
-
-    def check_trace(expected_id, trace_map):
-        if expected_id not in trace_map:
-            raise ValueError("Trace " + expected_id + " was not received.")
-
-    span_map = __get_span_map()
-    for expected_trace in expected_spans:
-        check_trace(expected_trace, span_map)
+        self._assert()
+        self._validate_snapshots()

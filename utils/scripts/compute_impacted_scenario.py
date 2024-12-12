@@ -66,7 +66,7 @@ def main():
 
         # this file is generated with
         # ./run.sh MOCK_THE_TEST --collect-only --scenario-report
-        with open("logs_mock_the_test/scenarios.json", "r", encoding="utf-8") as f:
+        with open("logs_mock_the_test/scenarios.json", encoding="utf-8") as f:
             scenario_map = json.load(f)
 
         modified_nodeids = set()
@@ -96,8 +96,8 @@ def main():
         #   git fetch origin ${{ github.event.pull_request.base.sha || github.sha }}
         #   git diff --name-only HEAD ${{ github.event.pull_request.base.sha || github.sha }} >> modified_files.txt
 
-        with open("modified_files.txt", "r", encoding="utf-8") as f:
-            modified_files = [line.strip() for line in f.readlines()]
+        with open("modified_files.txt", encoding="utf-8") as f:
+            modified_files = [line.strip() for line in f]
 
         for file in modified_files:
 
@@ -105,7 +105,7 @@ def main():
                 if file.startswith("tests/auto_inject"):
                     # Nothing to do, onboarding test run on gitlab nightly or manually
                     pass
-                elif file.endswith("/utils.py") or file.endswith("/conftest.py"):
+                elif file.endswith(("/utils.py", "/conftest.py")):
                     # particular use case for modification in tests/ of a file utils.py or conftest.py
                     # in that situation, takes all scenarios executed in tests/<path>/
 
