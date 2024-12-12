@@ -84,7 +84,7 @@ class Test_Debugger_Exception_Replay(debugger._Base_Debugger_Test):
         def __scrub_java(key, value, parent):
             runtime = ("jdk.", "org.", "java")
 
-            def skip_runtime(value, skip_condition, del_filename = None):
+            def skip_runtime(value, skip_condition, del_filename=None):
                 scrubbed = []
 
                 for entry in value:
@@ -95,30 +95,32 @@ class Test_Debugger_Exception_Replay(debugger._Base_Debugger_Test):
                     # filenames in stacktraces are unreliable due to potential data races during retransformation.
                     if del_filename and del_filename(entry):
                         del entry["fileName"]
-                    
+
                     scrubbed.append(__scrub(entry))
 
-                scrubbed.append({"<runtime>" : "<scrubbed>"})
+                scrubbed.append({"<runtime>": "<scrubbed>"})
 
                 return scrubbed
-                
+
             if key == "elements":
                 if parent.get("type") in ["long[]", "short[]", "int[]"]:
                     return "<scrubbed>"
-                
+
                 if parent["type"] == "java.lang.Object[]":
                     return skip_runtime(value, lambda e: "value" in e and e["value"].startswith(runtime))
-                
+
                 if parent["type"] == "java.lang.StackTraceElement[]":
                     return skip_runtime(value, lambda e: e["fields"]["declaringClass"]["value"].startswith(runtime))
-                
+
                 return __scrub(value)
-                
+
             elif key == "moduleVersion":
                 return "<scrubbed>"
             elif key in ["stacktrace", "stack"]:
-                return skip_runtime(value, lambda e: "function" in e and e["function"].startswith(runtime), lambda e: "fileName" in e)
-            
+                return skip_runtime(
+                    value, lambda e: "function" in e and e["function"].startswith(runtime), lambda e: "fileName" in e
+                )
+
             return __scrub(value)
 
         def __scrub_dotnet(key, value, parent):
@@ -137,7 +139,7 @@ class Test_Debugger_Exception_Replay(debugger._Base_Debugger_Test):
 
                     scrubbed.append(__scrub(entry))
 
-                scrubbed.append({"<runtime>" : "<scrubbed>"})
+                scrubbed.append({"<runtime>": "<scrubbed>"})
                 return scrubbed
             return __scrub(value)
 
