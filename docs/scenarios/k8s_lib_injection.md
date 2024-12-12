@@ -10,10 +10,10 @@
       - [Prerequisites](#Prerequisites)
       - [Configure tested components versions](#Configure-tested-components-versions)
       - [Execute a test scenario](#Execute-a-test-scenario)
-
-
-4. [How to develop a test case](#third-example)
-5. [ How to debug your kubernetes environment and tests results](#fourth-examplehttpwwwfourthexamplecom)
+4. [How to develop a test case](#How-to-develop-a-test-case)
+    * [Folders and Files structure](#Folders-and-Files-structure)
+    * [Implement a new test case](#Implement-a-new-test-case)
+5. [How to debug your kubernetes environment and tests results](#How-to-debug-your-kubernetes-environment-and-tests-results)
 
 ## Overall
 
@@ -275,8 +275,14 @@ The following image ilustrates the DJM scenario:
 
 ![DJM Scenario](../lib-injection/k8s_djm.png "DJM Scenario")
 
+## How to develop a test case
 
-## Folders and Files structure
+To develop a new test case in the K8s Library injection tests, you need to know:
+
+- The project folder structure.
+- The parameters that you will recive in your test case (Parametrized test)
+
+### Folders and Files structure
 
 The following picture shows the main directories for the k8s lib injection tests:
 
@@ -301,7 +307,7 @@ The folders and files shown in the figure above are as follows:
     - Extract weblog debug information.
   * **k8s_command_utils.py:** Command line utils to lauch the Helm Chart commands and others shell commands.
 
-## Test development
+### Implement a new test case
 
 All test cases for K8s will run on an isolated Kubernetes environment. For each test case we are going to start up a Kubernetes Cluster. In this way we can run the tests in parallel.
 Each test case will receive a "test_k8s_instance" object with these main properties loaded:
@@ -329,33 +335,47 @@ The "test_k8s_instance" also contains some basic methods, that you can use direc
 
 Feel free to use the methods listed above or use the methods encapsulated in both "k8s_datadog_cluster_agent" and "k8s_weblog" or directly use the Kubernates Python Client to manipulate the Kunernates cluster components.
 
-An example of a Kubernetes test that uses all the APIs:
+An example of a Kubernetes test:
 
 ```python
+
+from tests.k8s_lib_injection.utils import get_dev_agent_traces
+
 @features.k8s_admission_controller
-@scenarios.k8s_lib_injection
+@scenarios.k8s_library_injection_basic
 class TestExample:
     def test_example(self, test_k8s_instance):
+        logger.info(
+            f"Test config: Weblog - [{test_k8s_instance.k8s_kind_cluster.get_weblog_port()}] Agent - [{test_k8s_instance.k8s_kind_cluster.get_agent_port()}]"
+        )
         #Deploy test agent
-        test_agent = test_k8s_instance.deploy_test_agent()
-        #Deploy admission controller
-        test_agent.deploy_operator_manual()
+        test_k8s_instance.deploy_test_agent()
+        #Deploy cluster agent with admission controller
+        test_k8s_instance.deploy_datadog_cluster_agent()
         #Deploy weblog
         test_k8s_instance.deploy_weblog_as_pod()
         #Check that app was auto instrumented
-        response = requests.get(f"http://localhost:{test_k8s_instance.k8s_kind_cluster.agent_port}/test/traces")
-        traces_json = response.json()
+        traces_json = get_dev_agent_traces(test_k8s_instance.k8s_kind_cluster)
         assert len(traces_json) > 0, "No traces found"
-        #Use Kubernetes python client to check how many pods have been created
-        v1 = client.CoreV1Api(api_client=config.new_client_from_config(context=self.k8s_kind_cluster.context_name))
-        ret = v1.list_namespaced_pod(namespace="default", watch=False)
-        assert len(ret.items) > 2, "Incorrect number of pods"
+```
+You can also add environment variables to your pod, for example:
+
+```python
+    test_k8s_instance.deploy_weblog_as_pod(
+      env={"DD_PROFILING_UPLOAD_PERIOD": "10", "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500"}
+    )
 ```
 
-# How to debug your kubernetes environment and tests results
+Or you can activate DD features from the Cluster agent:
+
+```python
+    test_k8s_instance.deploy_datadog_cluster_agent(features={"datadog.profiling.enabled": "auto"})
+```
+
+## How to debug your kubernetes environment and tests results
 
 In the testing kubernetes scenarios, multiple components are involved and sometimes can be painfull to debug a failure. Even more so when running all tests in parallel.
-You can find a folder named "logs_k8s_lib_injection" with separe folder per test case.
+You can find a folder named "logs_[scenario name]" with a separe folder per test case.
 In the following image you can see the log folder content:
 
 ![Log folder structure](../lib-injection/k8s_lib_injections_log_folders.png "Log folder structure")
