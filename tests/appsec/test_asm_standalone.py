@@ -710,6 +710,10 @@ class Test_SCAStandalone_Telemetry:
 
     def setup_app_dependencies_loaded(self):
         self.r = weblog.get("/load_dependency")
+        if context.library == "java" and context.weblog_variant == "spring-boot":
+            # Wait for at least 2 metric flushes, i.e. 20s
+            METRIC_FLUSH_INTERVAL = 10  # This is constant by design
+            time.sleep(METRIC_FLUSH_INTERVAL * 2)
 
     @missing_feature(context.library == "nodejs" and context.weblog_variant == "nextjs")
     @irrelevant(
