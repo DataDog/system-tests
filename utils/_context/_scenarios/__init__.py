@@ -359,7 +359,7 @@ class scenarios:
             "DD_APPSEC_SCA_ENABLED": "true",
             "DD_EXPERIMENTAL_APPSEC_STANDALONE_ENABLED": "true",
             "DD_IAST_ENABLED": "false",
-            "DD_APPSEC_DEPENDENCY_RESOLUTION_PERIOD_MILLIS": "1",
+            "DD_TELEMETRY_DEPENDENCY_RESOLUTION_PERIOD_MILLIS": "1",
         },
         doc="SCA standalone mode (APM opt out)",
         scenario_groups=[ScenarioGroup.APPSEC],
