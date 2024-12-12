@@ -27,6 +27,7 @@
         "dogstatsd_addr": "dogstatsd_url",
         "dogstatsd_url": "dogstatsd_url",
         "enabled": "trace_enabled",
+        "endpoint_count_enabled": "endpoint_count_enabled",
         "env": "env",
         "execution_trace_enabled": "execution_trace_enabled",
         "execution_trace_period": "execution_trace_period",
@@ -34,8 +35,12 @@
         "global_tag_version": "version",
         "goarch": "go_goarch",
         "goos": "go_goos",
+        "goroutine_profile_enabled": "profiling_goroutine_enabled",
+        "goroutine_wait_profile_enabled": "profiling_goroutine_wait_enabled",
+        "heap_profile_enabled": "profiling_heap_enabled",
         "hostname": "agent_hostname",
         "lambda_mode": "lambda_mode",
+        "mutex_profile_enabled": "profiling_mutex_enabled",
         "orchestrion_enabled": "orchestrion_enabled",
         "orchestrion_version": "orchestrion_version",
         "peerServiceMapping": "trace_peer_service_mapping",
@@ -71,7 +76,20 @@
         "waf_healthy": "appsec_waf_healthy",
         "waf_supports_target": "appsec_waf_supports_target"
     },
-    "prefix_block_list": [],
+    "prefix_block_list": [
+        "agentless",
+        "block_",
+        "cpu_",
+        "delta_profiles",
+        "flush_on_exit",
+        "max_goroutines_wait",
+        "mutex_profile_fraction",
+        "num_customer_profiler_label_keys",
+        "profile_period",
+        "profile_period",
+        "upload_timeout",
+        "upload_timeout"
+    ],
     "redaction_list": [],
     "reduce_rules": {}
 }
