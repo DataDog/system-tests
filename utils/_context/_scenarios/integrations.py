@@ -15,7 +15,7 @@ def _get_unique_id(replay: bool, host_log_folder: str) -> str:
     replay_file = f"{host_log_folder}/unique_id.txt"
 
     if replay:
-        with open(replay_file, "r", encoding="utf-8") as f:
+        with open(replay_file, encoding="utf-8") as f:
             unique_id = f.read()
     else:
         # pick a statistically unique id for the scenario

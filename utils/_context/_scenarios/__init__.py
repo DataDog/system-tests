@@ -25,7 +25,7 @@ update_environ_with_local_env()
 class scenarios:
     @staticmethod
     def all_endtoend_scenarios(test_object):
-        """particular use case where a klass applies on all scenarios"""
+        """Particular use case where a klass applies on all scenarios"""
 
         # Check that no scenario has been already declared
         for marker in getattr(test_object, "pytestmark", []):
@@ -498,8 +498,6 @@ class scenarios:
             "DD_TRACE_HTTP_SERVER_ERROR_STATUSES": "200-201,202",
             "DD_TRACE_OBFUSCATION_QUERY_STRING_REGEXP": r"ssn=\d{3}-\d{2}-\d{4}",
             "DD_TRACE_CLIENT_IP_ENABLED": "true",
-            # disable ASM to test non asm client ip tagging
-            "DD_APPSEC_ENABLED": "false",
             "DD_TRACE_HTTP_CLIENT_ERROR_STATUSES": "200-201,202",
             "DD_SERVICE": "service_test",
             "DD_TRACE_KAFKA_ENABLED": "false",  # Using Kafka as is the most common endpoint and integration(missing for PHP).
@@ -507,6 +505,8 @@ class scenarios:
             "DD_TRACE_PDO_ENABLED": "false",  # Use PDO for PHP,
             "DD_TRACE_PROPAGATION_STYLE_EXTRACT": "tracecontext,datadog,b3multi",
         },
+        appsec_enabled=False,  # disable ASM to test non asm client ip tagging
+        iast_enabled=False,
         include_kafka=True,
         include_postgres_db=True,
         doc="",
