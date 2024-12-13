@@ -117,7 +117,7 @@ def request_downstream(request, *args, **kwargs):
     http = urllib3.PoolManager()
     # Sending a GET request and getting back response as HTTPResponse object.
     response = http.request("GET", "http://localhost:7777/returnheaders")
-    time.sleep(0.2) # Small sleep to reduce flakyness
+    time.sleep(0.2)  # Small sleep to reduce flakyness
     return HttpResponse(response.data)
 
 
@@ -128,7 +128,7 @@ def vulnerable_request_downstream(request, *args, **kwargs):
     http = urllib3.PoolManager()
     # Sending a GET request and getting back response as HTTPResponse object.
     response = http.request("GET", "http://localhost:7777/returnheaders")
-    time.sleep(0.2) # Small sleep to reduce flakyness
+    time.sleep(0.2)  # Small sleep to reduce flakyness
     return HttpResponse(response.data)
 
 
