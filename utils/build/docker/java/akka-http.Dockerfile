@@ -1,5 +1,7 @@
 FROM maven:3.8-jdk-11 as build
 
+ENV JAVA_TOOL_OPTIONS="-Djava.net.preferIPv4Stack=true"
+
 RUN apt-get update && \
 	apt-get install -y libarchive-tools
 
