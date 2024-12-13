@@ -114,12 +114,12 @@ class Test_Headers_Precedence:
 
             # 2) Only tracecontext headers
             headers2 = test_library.dd_make_child_span_and_get_headers(
-                [["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],]
+                [["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"]]
             )
 
             # 3) Only tracecontext headers, includes existing tracestate
             headers3 = test_library.dd_make_child_span_and_get_headers(
-                [["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"], ["tracestate", "foo=1"],],
+                [["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"], ["tracestate", "foo=1"]],
             )
 
             # 4) Both tracecontext and Datadog headers
@@ -232,12 +232,12 @@ class Test_Headers_Precedence:
 
             # 2) Only tracecontext headers
             headers2 = test_library.dd_make_child_span_and_get_headers(
-                [["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],]
+                [["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"]]
             )
 
             # 3) Only tracecontext headers, includes existing tracestate
             headers3 = test_library.dd_make_child_span_and_get_headers(
-                [["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"], ["tracestate", "foo=1"],],
+                [["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"], ["tracestate", "foo=1"]]
             )
 
             # 4) Both tracecontext and Datadog headers
@@ -369,12 +369,12 @@ class Test_Headers_Precedence:
 
             # 2) Only tracecontext headers
             headers2 = test_library.dd_make_child_span_and_get_headers(
-                [["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],]
+                [["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"]]
             )
 
             # 3) Only tracecontext headers, includes existing tracestate
             headers3 = test_library.dd_make_child_span_and_get_headers(
-                [["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"], ["tracestate", "foo=1"],],
+                [["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"], ["tracestate", "foo=1"]]
             )
 
             # 4) Both tracecontext and Datadog headers
@@ -496,12 +496,12 @@ class Test_Headers_Precedence:
 
             # 2) Only tracecontext headers
             headers2 = test_library.dd_make_child_span_and_get_headers(
-                [["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],]
+                [["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"]]
             )
 
             # 3) Only tracecontext headers, includes existing tracestate
             headers3 = test_library.dd_make_child_span_and_get_headers(
-                [["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"], ["tracestate", "foo=1"],],
+                [["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"], ["tracestate", "foo=1"]]
             )
 
             # 4) Both tracecontext and Datadog headers

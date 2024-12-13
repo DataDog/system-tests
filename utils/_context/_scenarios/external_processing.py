@@ -49,18 +49,15 @@ class ExternalProcessingScenario(DockerScenario):
         # base: latest/v*.*.*
 
     def configure(self, config):
-
         super().configure(config)
 
         interfaces.library.configure(self.host_log_folder, self.replay)
         interfaces.agent.configure(self.host_log_folder, self.replay)
 
     def _start_interfaces_watchdog(self, _=None):
-
         super()._start_interfaces_watchdog([interfaces.library, interfaces.agent])
 
     def _wait_for_app_readiness(self):
-
         logger.debug("Wait for app readiness")
 
         if not interfaces.library.ready.wait(40):
@@ -87,7 +84,6 @@ class ExternalProcessingScenario(DockerScenario):
             self.close_targets()
 
     def _wait_and_stop_containers(self):
-
         if self.replay:
             logger.terminal.write_sep("-", "Load all data from logs")
             logger.terminal.flush()

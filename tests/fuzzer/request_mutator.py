@@ -27,7 +27,7 @@ def _clean_string(item, allowed=None, forbidden=None):
 
 def _random_number():
     _integers = [
-        -(2 ** 64) - 1,
+        -(2**64) - 1,
         -1025,
         -100000,
         1025,
@@ -35,7 +35,7 @@ def _random_number():
         1,
         -1,
         100000,
-        2 ** 64 + 1,
+        2**64 + 1,
         0.0,
         0.1,
         3.14,
@@ -288,7 +288,7 @@ class RequestMutator:
     )
 
     payload_values = (
-        [None, "", 0, -1, 2 ** 64 + 1, True, False]
+        [None, "", 0, -1, 2**64 + 1, True, False]
         + data.blns
         + [
             "ok",
@@ -320,7 +320,6 @@ class RequestMutator:
     invalid_header_keys = tuple()
 
     def __init__(self, no_mutation=False):
-
         self.methods = tuple(method for method in self.methods if method not in self.invalid_methods)
 
         self.invalid_header_keys = tuple(key.lower() for key in self.invalid_header_keys)
@@ -491,7 +490,7 @@ class RequestMutator:
             return _get_string_from_list(self.user_agents, self.header_characters, min_length=1)
 
         if key == "content-length":
-            return str(random.choice((-1, 0, 1, 12, 2 ** 32, "nan")))
+            return str(random.choice((-1, 0, 1, 12, 2**32, "nan")))
 
         if key == "content-type":
             return self._get_random_content_type()
@@ -530,7 +529,12 @@ class RequestMutator:
         if not allow_nested:
             return random.choice(self.payload_values)
 
-        return random.choice(({self.get_payload_key(): self.get_payload_value()}, [self.get_payload_value()],))
+        return random.choice(
+            (
+                {self.get_payload_key(): self.get_payload_value()},
+                [self.get_payload_value()],
+            )
+        )
 
     ################################
     def clean_request(self, request):
@@ -554,7 +558,10 @@ class RequestMutator:
             request["headers"] = [[k, v] for k, v in request["headers"] if k.lower() not in self.invalid_header_keys]
 
             request["headers"] = [
-                [_clean_string(k, allowed=self.header_characters), _clean_string(v, allowed=self.header_characters),]
+                [
+                    _clean_string(k, allowed=self.header_characters),
+                    _clean_string(v, allowed=self.header_characters),
+                ]
                 for k, v in request["headers"]
             ]
 
@@ -731,7 +738,6 @@ class PhpRequestMutator(RequestMutator):
 
 
 def get_mutator(no_mutation, weblog):
-
     if weblog.weblog_variant == "basic-sinatra":
         mutator = SinatraRequestMutator(no_mutation=no_mutation)
 

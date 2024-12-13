@@ -36,7 +36,6 @@ def is_jira_ticket(reason: str):
 
 
 def _ensure_jira_ticket_as_reason(item, reason: str):
-
     if not is_jira_ticket(reason):
         path = inspect.getfile(item)
         rel_path = os.path.relpath(path)
@@ -112,7 +111,6 @@ def missing_feature(condition: bool = None, library=None, weblog_variant=None, r
     skip = _should_skip(library=library, weblog_variant=weblog_variant, condition=condition)
 
     def decorator(function_or_class):
-
         if inspect.isclass(function_or_class):
             assert condition is not None or (library is None and weblog_variant is None), _MANIFEST_ERROR_MESSAGE
 
@@ -134,7 +132,6 @@ def incomplete_test_app(
     skip = _should_skip(library=library, weblog_variant=weblog_variant, condition=condition)
 
     def decorator(function_or_class):
-
         if inspect.isclass(function_or_class):
             assert condition is not None or (library is None and weblog_variant is None), _MANIFEST_ERROR_MESSAGE
 
@@ -154,7 +151,6 @@ def irrelevant(condition=None, library=None, weblog_variant=None, reason=None):
     skip = _should_skip(library=library, weblog_variant=weblog_variant, condition=condition)
 
     def decorator(function_or_class):
-
         if inspect.isclass(function_or_class):
             assert condition is not None, _MANIFEST_ERROR_MESSAGE
 
@@ -175,7 +171,6 @@ def bug(condition=None, library=None, weblog_variant=None, reason=None, force_sk
     expected_to_fail = _should_skip(library=library, weblog_variant=weblog_variant, condition=condition)
 
     def decorator(function_or_class):
-
         if inspect.isclass(function_or_class):
             assert condition is not None, _MANIFEST_ERROR_MESSAGE
 
@@ -196,7 +191,6 @@ def flaky(condition=None, library=None, weblog_variant=None, reason=None):
     skip = _should_skip(library=library, weblog_variant=weblog_variant, condition=condition)
 
     def decorator(function_or_class):
-
         if inspect.isclass(function_or_class):
             assert condition is not None, _MANIFEST_ERROR_MESSAGE
 

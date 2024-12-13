@@ -12,8 +12,7 @@ from utils.parametric.spec.trace import find_span, find_trace
 @missing_feature(reason="Agent does not advertise native span events serialization support yet")
 class Test_Span_Events:
     def _test_span_with_event(self, _library_env, test_agent, test_library, retrieve_events):
-        """Test adding a span event, with attributes, to an active span.
-        """
+        """Test adding a span event, with attributes, to an active span."""
         time0 = 123450
         name0 = "event_name"
         attributes0 = {
@@ -80,21 +79,15 @@ class Test_Span_Events:
         assert event["attributes"].get("double") == {"type": 3, "double_value": 0.0}
         assert isinstance(event["attributes"].get("double").get("double"), float)
 
-    @pytest.mark.parametrize(
-        "library_env", [{"DD_TRACE_API_VERSION": "v0.7"}],
-    )
+    @pytest.mark.parametrize("library_env", [{"DD_TRACE_API_VERSION": "v0.7"}])
     def test_span_with_event_v07(self, library_env, test_agent, test_library):
-        """Test adding a span event in the v0.7 format, which support the native attribute representation.
-        """
+        """Test adding a span event in the v0.7 format, which support the native attribute representation."""
 
         self._test_span_with_event(library_env, test_agent, test_library, lambda span: span["span_events"])
 
-    @pytest.mark.parametrize(
-        "library_env", [{"DD_TRACE_API_VERSION": "v0.4"}],
-    )
+    @pytest.mark.parametrize("library_env", [{"DD_TRACE_API_VERSION": "v0.4"}])
     def test_span_with_event_v04(self, library_env, test_agent, test_library):
-        """Test adding a span event in the v0.4 format, which support the native attribute representation.
-        """
+        """Test adding a span event in the v0.4 format, which support the native attribute representation."""
 
         self._test_span_with_event(library_env, test_agent, test_library, lambda span: span["span_events"])
 

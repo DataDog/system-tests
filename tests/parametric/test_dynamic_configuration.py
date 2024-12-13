@@ -1,6 +1,7 @@
 """
 Test the dynamic configuration via Remote Config (RC) feature of the APM libraries.
 """
+
 import json
 from typing import Any, Dict, List
 
@@ -64,9 +65,7 @@ def _set_rc(test_agent, config: Dict[str, Any]) -> None:
     cfg_id = hash(json.dumps(config))
 
     config["id"] = str(cfg_id)
-    test_agent.set_remote_config(
-        path="datadog/2/APM_TRACING/%s/config" % cfg_id, payload=config,
-    )
+    test_agent.set_remote_config(path="datadog/2/APM_TRACING/%s/config" % cfg_id, payload=config)
 
 
 def _create_rc_config(config_overrides: Dict[str, Any]) -> Dict:
@@ -86,9 +85,7 @@ def set_and_wait_rc(test_agent, config_overrides: Dict[str, Any]) -> Dict:
     _set_rc(test_agent, rc_config)
 
     # Wait for both the telemetry event and the RC apply status.
-    test_agent.wait_for_telemetry_event(
-        "app-client-configuration-change", clear=True,
-    )
+    test_agent.wait_for_telemetry_event("app-client-configuration-change", clear=True)
     return test_agent.wait_for_rc_apply_state("APM_TRACING", state=2, clear=True)
 
 
@@ -139,9 +136,7 @@ class TestDynamicConfigTracingEnabled:
         """Ensure the RC request contains the tracing enabled capability."""
         test_agent.wait_for_rc_capabilities([Capabilities.APM_TRACING_ENABLED])
 
-    @parametrize(
-        "library_env", [{**DEFAULT_ENVVARS}, {**DEFAULT_ENVVARS, "DD_TRACE_ENABLED": "false"},],
-    )
+    @parametrize("library_env", [{**DEFAULT_ENVVARS}, {**DEFAULT_ENVVARS, "DD_TRACE_ENABLED": "false"}])
     def test_tracing_client_tracing_enabled(self, library_env, test_agent, test_library):
         trace_enabled_env = library_env.get("DD_TRACE_ENABLED", "true") == "true"
         if trace_enabled_env:
@@ -167,9 +162,7 @@ class TestDynamicConfigTracingEnabled:
             test_agent.wait_for_num_traces(num=1, clear=True)
         assert True, "no traces are sent after RC response with tracing_enabled: false"
 
-    @parametrize(
-        "library_env", [{**DEFAULT_ENVVARS}, {**DEFAULT_ENVVARS, "DD_TRACE_ENABLED": "false"},],
-    )
+    @parametrize("library_env", [{**DEFAULT_ENVVARS}, {**DEFAULT_ENVVARS, "DD_TRACE_ENABLED": "false"}])
     @irrelevant(library="golang")
     @bug(library="dotnet", reason="APMAPI-862")
     def test_tracing_client_tracing_disable_one_way(self, library_env, test_agent, test_library):
@@ -246,22 +239,16 @@ class TestDynamicConfigV1:
 
         # Create a remote config entry, wait for the configuration change telemetry event to be received
         # and then create a new trace to assert the configuration has been applied.
-        set_and_wait_rc(
-            test_agent, config_overrides={"tracing_sampling_rate": 0.5,},
-        )
+        set_and_wait_rc(test_agent, config_overrides={"tracing_sampling_rate": 0.5})
         trace = send_and_wait_trace(test_library, test_agent, name="test")
         assert_sampling_rate(trace, 0.5)
 
         # Unset the RC sample rate to ensure the default setting is used.
-        set_and_wait_rc(
-            test_agent, config_overrides={"tracing_sampling_rate": None,},
-        )
+        set_and_wait_rc(test_agent, config_overrides={"tracing_sampling_rate": None})
         trace = send_and_wait_trace(test_library, test_agent, name="test")
         assert_sampling_rate(trace, DEFAULT_SAMPLE_RATE)
 
-    @parametrize(
-        "library_env", [{"DD_TRACE_SAMPLE_RATE": r, **DEFAULT_ENVVARS,} for r in ["0.1", "1.0"]],
-    )
+    @parametrize("library_env", [{"DD_TRACE_SAMPLE_RATE": r, **DEFAULT_ENVVARS} for r in ["0.1", "1.0"]])
     @bug(library="cpp", reason="APMAPI-863")
     @flaky(context.library >= "dotnet@2.56.0", reason="APMAPI-179")
     def test_trace_sampling_rate_override_env(self, library_env, test_agent, test_library):
@@ -335,9 +322,9 @@ class TestDynamicConfigV1:
     @parametrize(
         "library_env",
         [
-            {"DD_TRACE_LOGS_INJECTION": "true", **DEFAULT_ENVVARS,},
-            {"DD_TRACE_LOGS_INJECTION": "false", **DEFAULT_ENVVARS,},
-            {**DEFAULT_ENVVARS,},
+            {"DD_TRACE_LOGS_INJECTION": "true", **DEFAULT_ENVVARS},
+            {"DD_TRACE_LOGS_INJECTION": "false", **DEFAULT_ENVVARS},
+            {**DEFAULT_ENVVARS},
         ],
     )
     def test_log_injection_enabled(self, library_env, test_agent, test_library):
@@ -435,9 +422,7 @@ class TestDynamicConfigV1_ServiceTargets:
 @features.dynamic_configuration
 @features.adaptive_sampling
 class TestDynamicConfigV2:
-    @parametrize(
-        "library_env", [{**DEFAULT_ENVVARS}, {**DEFAULT_ENVVARS, "DD_TAGS": "key1:val1,key2:val2"},],
-    )
+    @parametrize("library_env", [{**DEFAULT_ENVVARS}, {**DEFAULT_ENVVARS, "DD_TAGS": "key1:val1,key2:val2"}])
     def test_tracing_client_tracing_tags(self, library_env, test_agent, test_library):
         expected_local_tags = {}
         if "DD_TAGS" in library_env:

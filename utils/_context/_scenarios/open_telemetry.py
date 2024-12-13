@@ -74,7 +74,6 @@ class OpenTelemetryScenario(DockerScenario):
         self._require_api_key = require_api_key
 
     def configure(self, config):
-
         super().configure(config)
         self._check_env_vars()
         dd_site = os.environ.get("DD_SITE", "datad0g.com")
@@ -127,7 +126,6 @@ class OpenTelemetryScenario(DockerScenario):
         return warmups
 
     def _wait_for_app_readiness(self):
-
         if self.use_proxy:
             logger.debug("Wait for app readiness")
 
@@ -136,7 +134,6 @@ class OpenTelemetryScenario(DockerScenario):
             logger.debug("Open telemetry ready")
 
     def post_setup(self):
-
         if self.use_proxy:
             self._wait_interface(interfaces.open_telemetry, 5)
             self._wait_interface(interfaces.backend, self.backend_interface_timeout)
@@ -152,7 +149,6 @@ class OpenTelemetryScenario(DockerScenario):
         interface.wait(timeout)
 
     def _check_env_vars(self):
-
         if self._require_api_key and "DD_API_KEY" not in os.environ:
             pytest.exit("DD_API_KEY is required for this scenario", 1)
 

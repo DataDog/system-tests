@@ -2,8 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-"""This files will validate data flow between agent and backend
-"""
+"""This files will validate data flow between agent and backend"""
 
 import threading
 

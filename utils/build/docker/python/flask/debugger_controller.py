@@ -93,7 +93,7 @@ def string_operations():
 
 
 @debugger_blueprint.route("/expression/collections", methods=["GET"])
-def collections_operations():
+def collection_operations():
     factory = CollectionFactory()
 
     a0 = factory.get_collection(0, "array")

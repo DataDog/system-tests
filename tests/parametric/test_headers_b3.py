@@ -66,8 +66,7 @@ class Test_Headers_B3:
     @missing_feature(context.library > "ruby@1.99.0", reason="Missing for 2.x")
     @missing_feature(context.library == "cpp", reason="format of DD_TRACE_PROPAGATION_STYLE_EXTRACT not supported")
     def test_headers_b3_extract_invalid(self, test_agent, test_library):
-        """Ensure that invalid b3 distributed tracing headers are not extracted.
-        """
+        """Ensure that invalid b3 distributed tracing headers are not extracted."""
         with test_library:
             test_library.dd_make_child_span_and_get_headers([["b3", "0-0-1"]])
 
@@ -80,8 +79,7 @@ class Test_Headers_B3:
     @missing_feature(context.library > "ruby@1.99.0", reason="Missing for 2.x")
     @missing_feature(context.library == "cpp", reason="format of DD_TRACE_PROPAGATION_STYLE_EXTRACT not supported")
     def test_headers_b3_inject_valid(self, test_agent, test_library):
-        """Ensure that b3 distributed tracing headers are injected properly.
-        """
+        """Ensure that b3 distributed tracing headers are injected properly."""
         with test_library:
             headers = test_library.dd_make_child_span_and_get_headers([])
 
