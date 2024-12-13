@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import features, weblog, interfaces, scenarios, rfc
+from utils import features, weblog, interfaces, scenarios, rfc, bug
 from utils import remote_config as rc
 from utils.dd_constants import Capabilities
 from tests.appsec.rasp.utils import (
