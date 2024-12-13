@@ -66,12 +66,19 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Get target branch
+        uses: ./.github/actions/get_target_branch
+        id: get-target-branch
+        with:
+          body: ${{ github.event.pull_request.body }}
       - name: Get library artifact
         run: ./utils/scripts/load-binary.sh ${{ matrix.library }}
-
+        env:
+          TARGET_BRANCH: "${{ steps.get-target-branch.outputs.target-branch }}"
+        
       - name: Get agent artifact
         run: ./utils/scripts/load-binary.sh agent
-
+        
       # ### appsec-event-rules is now a private repo. The GH_TOKEN provided can't read private repos.
       # ### skipping this, waiting for a proper solution
       # - name: Load WAF rules

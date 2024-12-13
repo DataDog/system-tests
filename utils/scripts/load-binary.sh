@@ -214,8 +214,11 @@ elif [ "$TARGET" = "agent" ]; then
 
 elif [ "$TARGET" = "nodejs" ]; then
     assert_version_is_dev
+
+    TARGET_BRANCH="${TARGET_BRANCH:-master}"
     # NPM builds the package, so we put a trigger file that tells install script to get package from github#master
-    echo "DataDog/dd-trace-js#master" > nodejs-load-from-npm
+    echo "Using \"$TARGET_BRANCH\" target branch"
+    echo "DataDog/dd-trace-js#$TARGET_BRANCH" > nodejs-load-from-npm
 
 elif [ "$TARGET" = "waf_rule_set_v1" ]; then
     exit 1
