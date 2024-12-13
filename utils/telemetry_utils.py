@@ -2,7 +2,7 @@ class TelemetryUtils:
     test_loaded_dependencies = {
         "dotnet": {"NodaTime": False},
         "nodejs": {"glob": False},
-        "java": {"httpclient": False},
+        "java": {"org.apache.httpcomponents:httpclient": False},
         "ruby": {"bundler": False},
     }
 
