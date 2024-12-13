@@ -16,7 +16,9 @@ class TestNoSqlMongodbInjection(BaseSinkTest):
     insecure_endpoint = "/iast/mongodb-nosql-injection/test_insecure"
     secure_endpoint = "/iast/mongodb-nosql-injection/test_secure"
     data = {"key": "somevalue"}
-    location_map = {"nodejs": {"express4": "iast/index.js", "express4-typescript": "iast.ts"}}
+    location_map = {
+        "nodejs": {"express4": "iast/index.js", "express4-typescript": "iast.ts", "express5": "iast/index.js"}
+    }
 
     @missing_feature(context.library < "java@1.13.0", reason="Not implemented yet")
     @missing_feature(library="python", reason="Not implemented yet")
@@ -35,7 +37,7 @@ class TestNoSqlMongodbInjection(BaseSinkTest):
 )
 @features.iast_stack_trace
 class TestNoSqlMongodbInjection_StackTrace:
-    """Validate stack trace generation """
+    """Validate stack trace generation"""
 
     def setup_stack_trace(self):
         self.r = weblog.post("/iast/mongodb-nosql-injection/test_insecure", data={"key": "somevalue"})

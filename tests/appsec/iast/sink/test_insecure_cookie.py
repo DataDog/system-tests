@@ -15,7 +15,9 @@ class TestInsecureCookie(BaseSinkTest):
     insecure_endpoint = "/iast/insecure-cookie/test_insecure"
     secure_endpoint = "/iast/insecure-cookie/test_secure"
     data = {}
-    location_map = {"nodejs": {"express4": "iast/index.js", "express4-typescript": "iast.ts"}}
+    location_map = {
+        "nodejs": {"express4": "iast/index.js", "express4-typescript": "iast.ts", "express5": "iast/index.js"}
+    }
 
     @bug(context.library < "java@1.18.3", reason="APMRP-360")
     def test_secure(self):
@@ -53,7 +55,7 @@ class TestInsecureCookieNameFilter(BaseTestCookieNameFilter):
 )
 @features.iast_stack_trace
 class TestInsecureCookie_StackTrace:
-    """Validate stack trace generation """
+    """Validate stack trace generation"""
 
     def setup_stack_trace(self):
         self.r = weblog.get("/iast/insecure-cookie/test_insecure")

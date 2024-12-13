@@ -1,6 +1,7 @@
 """
 Test the tracer flare feature of the APM libraries.
 """
+
 import json
 import zipfile
 from base64 import b64decode

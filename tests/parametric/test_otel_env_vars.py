@@ -156,7 +156,7 @@ class Test_Otel_Env_Vars:
         assert float(resp["dd_trace_sample_rate"]) == 1.0
 
     @pytest.mark.parametrize(
-        "library_env", [{"OTEL_TRACES_SAMPLER": "parentbased_always_off", "DD_TRACE_OTEL_ENABLED": "true"}],
+        "library_env", [{"OTEL_TRACES_SAMPLER": "parentbased_always_off", "DD_TRACE_OTEL_ENABLED": "true"}]
     )
     def test_otel_traces_parentbased_off(self, test_agent, test_library):
         with test_library as t:
@@ -178,9 +178,7 @@ class Test_Otel_Env_Vars:
             resp = t.config()
         assert float(resp["dd_trace_sample_rate"]) == 0.1
 
-    @pytest.mark.parametrize(
-        "library_env", [{"OTEL_TRACES_EXPORTER": "none", "DD_TRACE_OTEL_ENABLED": "true"}],
-    )
+    @pytest.mark.parametrize("library_env", [{"OTEL_TRACES_EXPORTER": "none", "DD_TRACE_OTEL_ENABLED": "true"}])
     def test_otel_traces_exporter_none(self, test_agent, test_library):
         with test_library as t:
             resp = t.config()

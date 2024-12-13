@@ -182,6 +182,7 @@ class EndToEndScenario(DockerScenario):
         agent_env=None,
         tracer_sampling_rate=None,
         appsec_enabled=True,
+        iast_enabled=True,
         additional_trace_header_tags=(),
         library_interface_timeout=None,
         agent_interface_timeout=5,
@@ -201,7 +202,6 @@ class EndToEndScenario(DockerScenario):
         include_buddies=False,
         require_api_key=False,
     ) -> None:
-
         scenario_groups = [ScenarioGroup.ALL, ScenarioGroup.END_TO_END, ScenarioGroup.TRACER_RELEASE] + (
             scenario_groups or []
         )
@@ -252,6 +252,7 @@ class EndToEndScenario(DockerScenario):
             environment=weblog_env,
             tracer_sampling_rate=tracer_sampling_rate,
             appsec_enabled=appsec_enabled,
+            iast_enabled=iast_enabled,
             additional_trace_header_tags=additional_trace_header_tags,
             use_proxy=use_proxy,
             volumes=weblog_volumes,
@@ -397,7 +398,6 @@ class EndToEndScenario(DockerScenario):
         interfaces.library_dotnet_managed.load_data()
 
     def _wait_and_stop_containers(self):
-
         if self.replay:
             logger.terminal.write_sep("-", "Load all data from logs")
             logger.terminal.flush()

@@ -37,8 +37,7 @@ def enable_none_invalid() -> Any:
 class Test_Headers_None:
     @enable_none()
     def test_headers_none_extract(self, test_agent, test_library):
-        """Ensure that no distributed tracing headers are extracted.
-        """
+        """Ensure that no distributed tracing headers are extracted."""
         with test_library:
             test_library.dd_make_child_span_and_get_headers(
                 [

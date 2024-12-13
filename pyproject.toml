@@ -5,10 +5,6 @@ version = '0.0.1'
 [tool.setuptools]
 packages = ["tests", "utils", "manifests"]
 
-[tool.black]
-line-length = 120
-exclude = "(venv/|utils/grpc/weblog_pb2_grpc.py|utils/grpc/weblog_pb2.py|parametric/apps)"
-
 [tool.pytest.ini_options]
 addopts = "--json-report --json-report-indent=2 --color=yes --no-header --junitxml=reportJunit.xml -r Xf"
 testpaths = [
@@ -56,10 +52,23 @@ follow_imports = "skip"
 # enable_error_code = ["ignore-without-code"]
 
 [tool.ruff]
-exclude = ["tests/", "utils/build/", "lib-injection/", "manifests/"]
 line-length = 120
 indent-width = 4
 target-version = "py312"
+
+[tool.ruff.format]
+exclude = [
+    "venv/", 
+    "utils/grpc/weblog_pb2_grpc.py", 
+    "utils/grpc/weblog_pb2.py", "parametric/apps", 
+    "lib-injection/build/docker/python/dd-lib-python-init-test-protobuf-old/addressbook_pb2.py"
+]
+quote-style = "double"
+indent-style = "space"
+# skip-magic-trailing-comma = false
+# line-ending = "auto"
+# docstring-code-format = false
+# docstring-code-line-length = "dynamic"
 
 [tool.ruff.lint]
 select = ["ALL"]
@@ -77,24 +86,14 @@ ignore = [
     "ARG001",  # unused function argument
     "ARG002",  # unused method argument
     "ARG005",  # unused lambda argument
-    "B010",    # wat is zat?
     "BLE001",  # TBD
     "C901",    # code complexity, TBD
-    "COM819",
     "D200",
-    "D210",    # docstring format
-    "D202",    # docstring format
-    "D208",    # docstring format
     "D205",    # docstring format
-    "D209",    # docstring format
     "D401",    # docstring format
-    "D403",    # docstring format
     "D404",    # docstring format
     "D410",    # docstring format
-    "D411",    # docstring format
-    "D413",    # docstring format
-    "D212",    # docstring format
-    "D417",    # docstring format
+    "D417",    
     "E501",    # line too long
     "E722",    # TBD
     "E741",
@@ -110,7 +109,6 @@ ignore = [
     "PLR0915", # too many statements, may be replaced by a higher default value
     "PLR1714",
     "PLR2004",
-    "PLR5501",
     "PTH100",
     "PTH102",
     "PTH110",
@@ -131,7 +129,6 @@ ignore = [
     "SIM102",
     "SIM108",
     "SIM110",  # TBD
-    "SIM114",
     "SIM401",  # code quality, TBD
     "SLF001",
     "TRY002",
@@ -139,8 +136,6 @@ ignore = [
     "TRY201",
     "TRY300",
     "UP007",
-    "UP015",
-    "UP024",
     "UP038",   # we really want this? TBD
 
 
@@ -154,6 +149,7 @@ ignore = [
     "D104",   # Missing docstring in public package
     "D105",   # Missing docstring in magic method
     "D107",   # Missing docstring in `__init__`
+    "D202",   # blank line after docstring
     "D203",   # cause a warning  
     "D211",   # no-blank-line-before-class
     "D213",   # multi-line-summary-second-line
@@ -184,6 +180,10 @@ ignore = [
 
 # TODO : remove those ignores
 [tool.ruff.lint.per-file-ignores]
+"tests/*" = ["ALL"]
+"utils/build/*"  = ["ALL"]
+"lib-injection/*" = ["ALL"]
+"manifests/*"  = ["ALL"]
 "utils/grpc/weblog_pb2_grpc.py" = ["ALL"]   # keep this one, it's a generated file
 "utils/grpc/weblog_pb2.py" = ["ALL"]        # keep this one, it's a generated file
 "utils/scripts/*" = ["T201"]                # allow print statements in scripts folder

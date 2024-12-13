@@ -6,7 +6,7 @@ from copy import deepcopy
 
 
 def parametrize_virtual_machines(bugs: list[dict] = None):
-    """ You can set multiple bugs for a single test case.
+    """You can set multiple bugs for a single test case.
     If you want to set a bug for a specific VM, you can set the vm_name or vm_cpu or weblog_variant in the bug dictionary (using one or more fields).
     ie:
     - Marks as bug for vm with name "vm1" and weblog_variant "app1"
@@ -73,7 +73,7 @@ def parametrize_virtual_machines(bugs: list[dict] = None):
 
 
 def get_tested_apps_vms():
-    """ This method is a workaround for multicontainer apps. We are going duplicate the machines for each runtime inside of docker compose.
+    """This method is a workaround for multicontainer apps. We are going duplicate the machines for each runtime inside of docker compose.
     This means, if I have a multicontainer app with 3 containers (runtimes) running on 1 vm, I will have 3 machines with the same configuration but with different runtimes.
     NOTE: On AWS we only run 1 vm. We duplicate the vms for test isolation.
     """
@@ -95,8 +95,9 @@ def get_tested_apps_vms():
 
 
 def nginx_parser(nginx_config_file):
-    """ This function is used to parse the nginx config file and return the apps in the return block of the location block of the server block of the http block.
-    TODO: Improve this uggly code """
+    """This function is used to parse the nginx config file and return the apps in the return block of the location block of the server block of the http block.
+    TODO: Improve this uggly code
+    """
     import crossplane
     import json
 
@@ -207,7 +208,7 @@ def generate_gitlab_pipeline(
                     "DD_INSTALLER_INJECTOR_VERSION": installer_injector_version,
                 },
                 # Remove rules if you want to run the jobs when you clic on the execute button of the child pipeline
-                "rules": [rule_run, {"when": "manual", "allow_failure": True},],
+                "rules": [rule_run, {"when": "manual", "allow_failure": True}],
                 "script": [
                     "./build.sh -i runner",
                     "timeout 3000 ./run.sh $SCENARIO --vm-weblog $WEBLOG --vm-env $ONBOARDING_FILTER_ENV --vm-library $TEST_LIBRARY --vm-provider aws --report-run-url $CI_PIPELINE_URL --report-environment $ONBOARDING_FILTER_ENV --vm-default-vms All --vm-only "
@@ -246,7 +247,7 @@ def _generate_cache_jobs(language, weblog_name, scenario_name, vms):
                 "AMI_UPDATE": "true",
             },
             # Remove rules if you want to run the jobs when you clic on the execute button of the child pipeline.
-            "rules": [{"when": "manual", "allow_failure": True},],
+            "rules": [{"when": "manual", "allow_failure": True}],
             "script": [
                 "./build.sh -i runner",
                 "./run.sh $SCENARIO --vm-weblog $WEBLOG --vm-env prod --vm-library $TEST_LIBRARY --vm-provider aws --vm-default-vms All --vm-only "

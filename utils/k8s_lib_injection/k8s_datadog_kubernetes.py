@@ -27,7 +27,7 @@ class K8sDatadog:
         self.logger.info(f"K8sDatadog configured with cluster: {self.k8s_kind_cluster.cluster_name}")
 
     def deploy_test_agent(self):
-        """ Installs the test agent pod."""
+        """Installs the test agent pod."""
 
         self.logger.info(
             f"[Test agent] Deploying Datadog test agent on the cluster: {self.k8s_kind_cluster.cluster_name}"
@@ -98,8 +98,9 @@ class K8sDatadog:
         self.logger.info("[Test agent] Daemonset created")
 
     def deploy_datadog_cluster_agent(self, use_uds=False, features={}, cluster_agent_tag=None):
-        """ Installs the Datadog Cluster Agent via helm for manual library injection testing.
-            It returns when the Cluster Agent pod is ready."""
+        """Installs the Datadog Cluster Agent via helm for manual library injection testing.
+        It returns when the Cluster Agent pod is ready.
+        """
 
         self.logger.info("[Deploy datadog cluster] Deploying Datadog Cluster Agent with Admission Controler")
 
@@ -120,14 +121,14 @@ class K8sDatadog:
         # Add the cluster agent tag version
         features["clusterAgent.image.tag"] = cluster_agent_tag
         helm_install_chart(
-            self.k8s_kind_cluster, "datadog", "datadog/datadog", value_file=operator_file, set_dict=features,
+            self.k8s_kind_cluster, "datadog", "datadog/datadog", value_file=operator_file, set_dict=features
         )
 
         self.logger.info("[Deploy datadog cluster] Waiting for the cluster to be ready")
         self._wait_for_operator_ready()
 
     def wait_for_test_agent(self):
-        """ Waits for the test agent to be ready."""
+        """Waits for the test agent to be ready."""
         daemonset_created = False
         daemonset_status = None
         # Wait for the daemonset to be created
@@ -195,8 +196,9 @@ class K8sDatadog:
         time.sleep(5)
 
     def export_debug_info(self):
-        """ Exports debug information for the test agent and the operator.
-        We shouldn't raise any exception here, we just log the errors."""
+        """Exports debug information for the test agent and the operator.
+        We shouldn't raise any exception here, we just log the errors.
+        """
 
         # Get all pods
         ret = self.k8s_wrapper.list_namespaced_pod("default", watch=False)

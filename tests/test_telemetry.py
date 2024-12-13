@@ -102,7 +102,7 @@ class Test_Telemetry:
             check_condition=not_onboarding_event,
         )
         header_match_validator = HeadersMatchValidator(
-            request_headers={"via": r"trace-agent 7\..+"}, response_headers=(), check_condition=not_onboarding_event,
+            request_headers={"via": r"trace-agent 7\..+"}, response_headers=(), check_condition=not_onboarding_event
         )
 
         self.validate_agent_telemetry_data(header_presence_validator)
@@ -112,16 +112,14 @@ class Test_Telemetry:
     def test_telemetry_message_has_datadog_container_id(self):
         """Test telemetry messages contain datadog-container-id"""
         interfaces.agent.assert_headers_presence(
-            path_filter=INTAKE_TELEMETRY_PATH, request_headers=["datadog-container-id"],
+            path_filter=INTAKE_TELEMETRY_PATH, request_headers=["datadog-container-id"]
         )
 
     @missing_feature(library="cpp")
     def test_telemetry_message_required_headers(self):
         """Test telemetry messages contain required headers"""
 
-        interfaces.agent.assert_headers_presence(
-            path_filter=INTAKE_TELEMETRY_PATH, request_headers=["dd-api-key"],
-        )
+        interfaces.agent.assert_headers_presence(path_filter=INTAKE_TELEMETRY_PATH, request_headers=["dd-api-key"])
         interfaces.library.assert_headers_presence(
             path_filter=AGENT_TELEMETRY_PATH,
             request_headers=["dd-telemetry-api-version", "dd-telemetry-request-type"],
@@ -291,10 +289,10 @@ class Test_Telemetry:
 
     @staticmethod
     def _get_heartbeat_delays_by_runtime() -> dict:
-        """ 
-            Returns a dict where :
-            The key is the runtime id
-            The value is a list of delay observed on this runtime id
+        """
+        Returns a dict where :
+        The key is the runtime id
+        The value is a list of delay observed on this runtime id
         """
 
         fmt = "%Y-%m-%dT%H:%M:%S.%f%z"
@@ -309,7 +307,6 @@ class Test_Telemetry:
         delays_by_runtime = {}
 
         for runtime_id, heartbeats in heartbeats_by_runtime.items():
-
             assert len(heartbeats) > 2, f"No enough telemetry messages to check delays for runtime id {runtime_id}"
 
             logger.debug(f"Heartbeats for runtime {runtime_id}:")
@@ -339,12 +336,13 @@ class Test_Telemetry:
     @flaky(context.library <= "php@0.90", reason="APMRP-360")
     @flaky(library="ruby", reason="APMAPI-226")
     @flaky(context.library >= "java@1.39.0", reason="APMAPI-723")
+    @bug(context.library > "php@1.5.1", reason="APMAPI-971")
     @features.telemetry_heart_beat_collected
     def test_app_heartbeats_delays(self):
         """
-            Check for telemetry heartbeat are not sent too fast/slow, regarding DD_TELEMETRY_HEARTBEAT_INTERVAL
-            There are a lot of reason for individual heartbeats to be sent too slow/fast, and the subsequent ones
-            to be sent too fast/slow so the RFC says that it must not drift. So we will check the average delay
+        Check for telemetry heartbeat are not sent too fast/slow, regarding DD_TELEMETRY_HEARTBEAT_INTERVAL
+        There are a lot of reason for individual heartbeats to be sent too slow/fast, and the subsequent ones
+        to be sent too fast/slow so the RFC says that it must not drift. So we will check the average delay
         """
 
         delays_by_runtime = self._get_heartbeat_delays_by_runtime()
@@ -471,9 +469,7 @@ class Test_Telemetry:
 
         self.validate_library_telemetry_data(validator=validator, success_by_default=True)
 
-    @missing_feature(
-        context.library in ("golang", "php"), reason="Telemetry is not implemented yet. ",
-    )
+    @missing_feature(context.library in ("golang", "php"), reason="Telemetry is not implemented yet.")
     @missing_feature(context.library < "ruby@1.22.0", reason="Telemetry V2 is not implemented yet")
     def test_app_started_client_configuration(self):
         """Assert that default and other configurations that are applied upon start time are sent with the app-started event"""
@@ -935,6 +931,4 @@ class Test_TelemetrySCAEnvVar:
                 found = True
                 break
 
-        assert (
-            found
-        ), f"No telemetry found for {target_service_name} on {target_request_type} with configuration appsec.sca_enabled"
+        assert found, f"No telemetry found for {target_service_name} on {target_request_type} with configuration appsec.sca_enabled"

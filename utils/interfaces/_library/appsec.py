@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-""" AppSec validators """
+"""AppSec validators"""
 
 from collections import Counter
 from utils.interfaces._library.appsec_data import rule_id_to_type
@@ -13,7 +13,6 @@ class _WafAttack:
     def __init__(
         self, rule=None, pattern=None, patterns=None, value=None, address=None, key_path=None, span_validator=None
     ):
-
         # rule can be a rule id, or a rule type
         if rule is None:
             self.rule_id = None

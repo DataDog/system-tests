@@ -2,9 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-"""
-This files will validate data flow between agent and backend
-"""
+"""This files will validate data flow between agent and backend"""
 
 import threading
 import copy
@@ -26,7 +24,6 @@ class AgentInterfaceValidator(ProxyBasedInterfaceValidator):
         return super().ingest_file(src_path)
 
     def get_appsec_data(self, request):
-
         rid = get_rid_from_request(request)
 
         for data in self.get_data(path_filters="/api/v0.2/traces"):
@@ -134,9 +131,7 @@ class AgentInterfaceValidator(ProxyBasedInterfaceValidator):
             for payload in content:
                 for chunk in payload["chunks"]:
                     for span in chunk["spans"]:
-                        if rid is None:
-                            yield data, span
-                        elif get_rid_from_span(span) == rid:
+                        if rid is None or get_rid_from_span(span) == rid:
                             yield data, span
 
     def get_spans_list(self, request):
@@ -158,7 +153,5 @@ class AgentInterfaceValidator(ProxyBasedInterfaceValidator):
             for client_stats_payload in client_stats_payloads:
                 for client_stats_buckets in client_stats_payload["Stats"]:
                     for client_grouped_stat in client_stats_buckets["Stats"]:
-                        if resource == "":
-                            yield client_grouped_stat
-                        elif client_grouped_stat["Resource"] == resource:
+                        if resource == "" or client_grouped_stat["Resource"] == resource:
                             yield client_grouped_stat

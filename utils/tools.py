@@ -29,10 +29,9 @@ def get_log_formatter():
 
 
 def update_environ_with_local_env():
-
     # dynamically load .env file in environ if exists, it allow users to keep their conf via env vars
     try:
-        with open(".env", "r", encoding="utf-8") as f:
+        with open(".env", encoding="utf-8") as f:
             logger.debug("Found a .env file")
             for raw_line in f:
                 line = raw_line.strip(" \t\n")
@@ -53,7 +52,6 @@ logging.addLevelName(DEBUG_LEVEL_STDOUT, "STDOUT")
 
 
 def stdout(self, message, *args, **kws):
-
     if self.isEnabledFor(DEBUG_LEVEL_STDOUT):
         # Yes, logger takes its '*args' as 'args'.
         self._log(DEBUG_LEVEL_STDOUT, message, args, **kws)  # pylint: disable=protected-access
@@ -115,7 +113,6 @@ def get_rid_from_request(request):
 
 
 def get_rid_from_span(span):
-
     if not isinstance(span, dict):
         logger.error(f"Span should be an object, not {type(span)}")
         return None
@@ -165,7 +162,7 @@ def get_rid_from_user_agent(user_agent):
 
 
 def nested_lookup(needle: str, heystack, look_in_keys=False, exact_match=False):
-    """ look for needle in heystack, heystack can be a dict or an array """
+    """Look for needle in heystack, heystack can be a dict or an array"""
 
     if isinstance(heystack, str):
         return (needle == heystack) if exact_match else (needle in heystack)
@@ -204,4 +201,4 @@ def get_free_port():
             return port
         except OSError:
             port += 1
-    raise IOError("no free ports")
+    raise OSError("no free ports")

@@ -39,7 +39,12 @@ class Test_HardcodedSecrets:
 
     location_map = {
         "java": "com.datadoghq.system_tests.springboot.AppSecIast",
-        "nodejs": {"express4": "iast/index.js", "express4-typescript": "iast.ts", "uds-express4": "iast/index.js"},
+        "nodejs": {
+            "express4": "iast/index.js",
+            "express4-typescript": "iast.ts",
+            "express5": "iast/index.js",
+            "uds-express4": "iast/index.js",
+        },
     }
 
     insecure_request = None
@@ -62,7 +67,12 @@ class Test_HardcodedSecretsExtended:
     """Test Hardcoded secrets extended detection."""
 
     location_map = {
-        "nodejs": {"express4": "iast/index.js", "express4-typescript": "iast.ts", "uds-express4": "iast/index.js"},
+        "nodejs": {
+            "express4": "iast/index.js",
+            "express4-typescript": "iast.ts",
+            "express5": "iast/index.js",
+            "uds-express4": "iast/index.js",
+        },
     }
 
     def setup_hardcoded_secrets_extended_exec(self):
@@ -82,7 +92,7 @@ class Test_HardcodedSecretsExtended:
 )
 @features.iast_stack_trace
 class Test_HardcodedSecrets_StackTrace:
-    """Validate stack trace generation """
+    """Validate stack trace generation"""
 
     def setup_stack_trace(self):
         self.r = weblog.get("/iast/hardcoded_secrets/test_insecure")

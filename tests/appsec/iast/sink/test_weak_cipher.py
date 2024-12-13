@@ -16,7 +16,7 @@ class TestWeakCipher(BaseSinkTest):
     data = None
     location_map = {
         "java": "com.datadoghq.system_tests.iast.utils.CryptoExamples",
-        "nodejs": {"express4": "iast/index.js", "express4-typescript": "iast.ts"},
+        "nodejs": {"express4": "iast/index.js", "express4-typescript": "iast.ts", "express5": "iast/index.js"},
     }
     evidence_map = {"nodejs": "des-ede-cbc", "java": "Blowfish"}
 
@@ -39,7 +39,7 @@ class TestWeakCipher(BaseSinkTest):
 )
 @features.iast_stack_trace
 class TestWeakCipher_StackTrace:
-    """Validate stack trace generation """
+    """Validate stack trace generation"""
 
     def setup_stack_trace(self):
         self.r = weblog.get("/iast/insecure_cipher/test_insecure_algorithm")

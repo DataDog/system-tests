@@ -9,7 +9,7 @@ def get_environ():
     environ = {**os.environ}
 
     try:
-        with open(".env", "r", encoding="utf-8") as f:
+        with open(".env", encoding="utf-8") as f:
             lines = [l.replace("export ", "").strip().split("=") for l in f if l.strip()]
             environ = {**environ, **dict(lines)}
     except FileNotFoundError:
@@ -35,7 +35,6 @@ def get_jobs(session, repo_slug: str, run_id: int) -> list:
 
 
 def main(repo_slug: str, run_id: int) -> None:
-
     environ = get_environ()
 
     with requests.Session() as session:

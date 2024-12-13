@@ -25,7 +25,7 @@ update_environ_with_local_env()
 class scenarios:
     @staticmethod
     def all_endtoend_scenarios(test_object):
-        """particular use case where a klass applies on all scenarios"""
+        """Particular use case where a klass applies on all scenarios"""
 
         # Check that no scenario has been already declared
         for marker in getattr(test_object, "pytestmark", []):
@@ -111,19 +111,19 @@ class scenarios:
 
     telemetry_log_generation_disabled = EndToEndScenario(
         "TELEMETRY_LOG_GENERATION_DISABLED",
-        weblog_env={"DD_TELEMETRY_LOGS_COLLECTION_ENABLED": "false",},
+        weblog_env={"DD_TELEMETRY_LOGS_COLLECTION_ENABLED": "false"},
         doc="Test env var `DD_TELEMETRY_LOGS_COLLECTION_ENABLED=false`",
         scenario_groups=[ScenarioGroup.TELEMETRY],
     )
     telemetry_metric_generation_disabled = EndToEndScenario(
         "TELEMETRY_METRIC_GENERATION_DISABLED",
-        weblog_env={"DD_TELEMETRY_METRICS_ENABLED": "false",},
+        weblog_env={"DD_TELEMETRY_METRICS_ENABLED": "false"},
         doc="Test env var `DD_TELEMETRY_METRICS_ENABLED=false`",
         scenario_groups=[ScenarioGroup.TELEMETRY],
     )
     telemetry_metric_generation_enabled = EndToEndScenario(
         "TELEMETRY_METRIC_GENERATION_ENABLED",
-        weblog_env={"DD_TELEMETRY_METRICS_ENABLED": "true",},
+        weblog_env={"DD_TELEMETRY_METRICS_ENABLED": "true"},
         doc="Test env var `DD_TELEMETRY_METRICS_ENABLED=true`",
         scenario_groups=[ScenarioGroup.TELEMETRY],
     )
@@ -266,7 +266,7 @@ class scenarios:
 
     appsec_api_security_rc = EndToEndScenario(
         "APPSEC_API_SECURITY_RC",
-        weblog_env={"DD_EXPERIMENTAL_API_SECURITY_ENABLED": "true", "DD_API_SECURITY_SAMPLE_DELAY": "0.0",},
+        weblog_env={"DD_EXPERIMENTAL_API_SECURITY_ENABLED": "true", "DD_API_SECURITY_SAMPLE_DELAY": "0.0"},
         rc_api_enabled=True,
         doc="""
             Scenario to test API Security Remote config
@@ -387,7 +387,7 @@ class scenarios:
         "REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES",
         rc_api_enabled=True,
         appsec_enabled=False,
-        weblog_env={"DD_REMOTE_CONFIGURATION_ENABLED": "true",},
+        weblog_env={"DD_REMOTE_CONFIGURATION_ENABLED": "true"},
         doc="",
         scenario_groups=[ScenarioGroup.APPSEC, ScenarioGroup.REMOTE_CONFIG, ScenarioGroup.ESSENTIALS],
     )
@@ -408,7 +408,7 @@ class scenarios:
     remote_config_mocked_backend_asm_dd = EndToEndScenario(
         "REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD",
         rc_api_enabled=True,
-        weblog_env={"DD_APPSEC_RULES": None,},
+        weblog_env={"DD_APPSEC_RULES": None},
         doc="""
             The spec says that if DD_APPSEC_RULES is defined, then rules won't be loaded from remote config.
             In this scenario, we use remote config. By the spec, whem remote config is available, rules file
@@ -428,7 +428,7 @@ class scenarios:
     remote_config_mocked_backend_asm_features_nocache = EndToEndScenario(
         "REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES_NOCACHE",
         rc_api_enabled=True,
-        weblog_env={"DD_APPSEC_ENABLED": "false", "DD_REMOTE_CONFIGURATION_ENABLED": "true",},
+        weblog_env={"DD_APPSEC_ENABLED": "false", "DD_REMOTE_CONFIGURATION_ENABLED": "true"},
         doc="",
         scenario_groups=[ScenarioGroup.APPSEC, ScenarioGroup.REMOTE_CONFIG],
     )
@@ -457,7 +457,7 @@ class scenarios:
     apm_tracing_e2e = EndToEndScenario("APM_TRACING_E2E", backend_interface_timeout=5, doc="")
     apm_tracing_e2e_otel = EndToEndScenario(
         "APM_TRACING_E2E_OTEL",
-        weblog_env={"DD_TRACE_OTEL_ENABLED": "true",},
+        weblog_env={"DD_TRACE_OTEL_ENABLED": "true"},
         backend_interface_timeout=5,
         require_api_key=True,
         doc="",
@@ -489,7 +489,7 @@ class scenarios:
         doc="Scenario with custom headers for DD_TRACE_HEADER_TAGS that libraries should reject",
     )
 
-    tracing_config_empty = EndToEndScenario("TRACING_CONFIG_EMPTY", weblog_env={}, doc="",)
+    tracing_config_empty = EndToEndScenario("TRACING_CONFIG_EMPTY", weblog_env={}, doc="")
 
     tracing_config_nondefault = EndToEndScenario(
         "TRACING_CONFIG_NONDEFAULT",
@@ -497,8 +497,6 @@ class scenarios:
             "DD_TRACE_HTTP_SERVER_ERROR_STATUSES": "200-201,202",
             "DD_TRACE_OBFUSCATION_QUERY_STRING_REGEXP": r"ssn=\d{3}-\d{2}-\d{4}",
             "DD_TRACE_CLIENT_IP_ENABLED": "true",
-            # disable ASM to test non asm client ip tagging
-            "DD_APPSEC_ENABLED": "false",
             "DD_TRACE_HTTP_CLIENT_ERROR_STATUSES": "200-201,202",
             "DD_SERVICE": "service_test",
             "DD_TRACE_KAFKA_ENABLED": "false",  # Using Kafka as is the most common endpoint and integration(missing for PHP).
@@ -506,6 +504,8 @@ class scenarios:
             "DD_TRACE_PDO_ENABLED": "false",  # Use PDO for PHP,
             "DD_TRACE_PROPAGATION_STYLE_EXTRACT": "tracecontext,datadog,b3multi",
         },
+        appsec_enabled=False,  # disable ASM to test non asm client ip tagging
+        iast_enabled=False,
         include_kafka=True,
         include_postgres_db=True,
         doc="",
@@ -550,30 +550,12 @@ class scenarios:
         scenario_groups=[ScenarioGroup.DEBUGGER],
     )
 
-    debugger_method_probes_snapshot = EndToEndScenario(
-        "DEBUGGER_METHOD_PROBES_SNAPSHOT",
+    debugger_probes_snapshot = EndToEndScenario(
+        "DEBUGGER_PROBES_SNAPSHOT",
         rc_api_enabled=True,
-        weblog_env={"DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1", "DD_REMOTE_CONFIG_ENABLED": "true",},
-        library_interface_timeout=30,
-        doc="Test scenario for checking if debugger successfully generates snapshots for specific method probes",
-        scenario_groups=[ScenarioGroup.DEBUGGER],
-    )
-
-    debugger_line_probes_snapshot = EndToEndScenario(
-        "DEBUGGER_LINE_PROBES_SNAPSHOT",
-        rc_api_enabled=True,
-        weblog_env={"DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1", "DD_REMOTE_CONFIG_ENABLED": "true",},
-        library_interface_timeout=30,
-        doc="Test scenario for checking if debugger successfully generates snapshots for specific line probes",
-        scenario_groups=[ScenarioGroup.DEBUGGER],
-    )
-
-    debugger_mix_log_probe = EndToEndScenario(
-        "DEBUGGER_MIX_LOG_PROBE",
-        rc_api_enabled=True,
-        weblog_env={"DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1", "DD_REMOTE_CONFIG_ENABLED": "true",},
+        weblog_env={"DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1", "DD_REMOTE_CONFIG_ENABLED": "true"},
         library_interface_timeout=5,
-        doc="Set both method and line probes at the same code",
+        doc="Test scenario for checking if debugger successfully generates snapshots for probes",
         scenario_groups=[ScenarioGroup.DEBUGGER],
     )
 
@@ -594,7 +576,7 @@ class scenarios:
     debugger_expression_language = EndToEndScenario(
         "DEBUGGER_EXPRESSION_LANGUAGE",
         rc_api_enabled=True,
-        weblog_env={"DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1", "DD_REMOTE_CONFIG_ENABLED": "true",},
+        weblog_env={"DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1", "DD_REMOTE_CONFIG_ENABLED": "true"},
         library_interface_timeout=5,
         doc="Check expression language",
         scenario_groups=[ScenarioGroup.DEBUGGER],

@@ -25,7 +25,7 @@ from .core import Scenario, ScenarioGroup
 
 
 def _fail(message):
-    """ Used to mak a test as failed """
+    """Used to mak a test as failed"""
     logger.error(message)
     raise Failed(message, pytrace=False) from None
 
@@ -104,7 +104,7 @@ class ParametricScenario(Scenario):
         def deserialize(self):
             result = {}
             for ctx_filename in glob.glob(f"{self.outer_inst.host_log_folder}/*_context.json"):
-                with open(ctx_filename, "r") as f:
+                with open(ctx_filename) as f:
                     fileContent = f.read()
                     # Remove last carriage return and the last comma. Wrap into json array.
                     all_params = json.loads(f"[{fileContent[:-2]}]")
@@ -185,7 +185,7 @@ class ParametricScenario(Scenario):
         _get_client().images.pull(self.TEST_AGENT_IMAGE)
 
     def _clean_containers(self):
-        """ some containers may still exists from previous unfinished sessions """
+        """Some containers may still exists from previous unfinished sessions"""
 
         for container in _get_client().containers.list(all=True):
             if "test-client" in container.name or "test-agent" in container.name or "test-library" in container.name:
@@ -194,7 +194,7 @@ class ParametricScenario(Scenario):
                 container.remove(force=True)
 
     def _clean_networks(self):
-        """ some network may still exists from previous unfinished sessions """
+        """Some network may still exists from previous unfinished sessions"""
         logger.info("Removing unused network")
         _get_client().networks.prune()
         logger.info("Removing unused network done")
@@ -208,7 +208,6 @@ class ParametricScenario(Scenario):
         return f"parametric-{self.library.library}"
 
     def _build_apm_test_server_image(self) -> str:
-
         logger.stdout("Build tested container...")
 
         apm_test_server_definition: APMLibraryTestServer = self.apm_test_server_definition
@@ -224,7 +223,6 @@ class ParametricScenario(Scenario):
             f.write(apm_test_server_definition.container_img)
 
         with open(log_path, "w+", encoding="utf-8") as log_file:
-
             # Build the container
             docker = shutil.which("docker")
             root_path = ".."
@@ -270,11 +268,11 @@ class ParametricScenario(Scenario):
     def create_docker_network(self, test_id: str) -> Network:
         docker_network_name = f"{_NETWORK_PREFIX}_{test_id}"
 
-        return _get_client().networks.create(name=docker_network_name, driver="bridge",)
+        return _get_client().networks.create(name=docker_network_name, driver="bridge")
 
     @staticmethod
     def get_host_port(worker_id: str, base_port: int) -> int:
-        """ deterministic port allocation for each worker """
+        """Deterministic port allocation for each worker"""
 
         if worker_id == "master":  # xdist disabled
             return base_port
@@ -297,7 +295,6 @@ class ParametricScenario(Scenario):
         command: list[str],
         log_file: TextIO,
     ) -> Generator[Container, None, None]:
-
         # Convert volumes to the format expected by the docker-py API
         fixed_volumes = {}
         for key, value in volumes.items():

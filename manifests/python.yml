@@ -598,17 +598,7 @@ tests/:
         uds-flask: v2.11.0
         uwsgi-poc: v2.11.0
     test_debugger_probe_snapshot.py:
-      Test_Debugger_Line_Probe_Snaphots:
-        '*': missing_feature
-        flask-poc: v2.11.0
-        uds-flask: v2.11.0
-        uwsgi-poc: v2.11.0
-      Test_Debugger_Method_Probe_Snaphots:
-        '*': missing_feature
-        flask-poc: v2.11.0
-        uds-flask: v2.11.0
-        uwsgi-poc: v2.11.0
-      Test_Debugger_Mix_Log_Probe:
+      Test_Debugger_Probe_Snaphots:
         '*': missing_feature
         flask-poc: v2.11.0
         uds-flask: v2.11.0
@@ -761,6 +751,7 @@ tests/:
     test_128_bit_traceids.py:
       Test_128_Bit_Traceids: v2.6.0
     test_config_consistency.py:
+      Test_Config_Dogstatsd: missing_feature
       Test_Config_RateLimit: v2.15.0
       Test_Config_TraceAgentURL: v2.0.0
       Test_Config_TraceEnabled: v2.12.2

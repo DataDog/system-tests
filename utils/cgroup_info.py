@@ -17,8 +17,7 @@ def get_container_id(infos):
 
 @attr.s(slots=True)
 class _CGroupInfo:
-    """
-    CGroup class for container information parsed from a group cgroup file.
+    """CGroup class for container information parsed from a group cgroup file.
 
     This class is cloned from dd-trace-py implementation and serves as reference implementation
     for container id extraction.
@@ -38,14 +37,13 @@ class _CGroupInfo:
     TASK_PATTERN = r"[0-9a-f]{32}-\d+"
 
     LINE_RE = re.compile(r"^(\d+):([^:]*):(.+)$")
-    POD_RE = re.compile(fr"pod({UUID_SOURCE_PATTERN})(?:\.slice)?$")
-    CONTAINER_RE = re.compile(fr"(?:.+)?({UUID_SOURCE_PATTERN}|{CONTAINER_SOURCE_PATTERN}|{TASK_PATTERN})(?:\.scope)?$")
+    POD_RE = re.compile(rf"pod({UUID_SOURCE_PATTERN})(?:\.slice)?$")
+    CONTAINER_RE = re.compile(rf"(?:.+)?({UUID_SOURCE_PATTERN}|{CONTAINER_SOURCE_PATTERN}|{TASK_PATTERN})(?:\.scope)?$")
 
     @classmethod
     def from_line(cls, line):
         # type: (str) -> Optional[_CGroupInfo]
-        """
-        Parse a new :class:`CGroupInfo` from the provided line
+        """Parse a new :class:`CGroupInfo` from the provided line
         :param line: A line from a cgroup file (e.g. /proc/self/cgroup) to parse information from
         :type line: str
         :returns: A :class:`CGroupInfo` object with all parsed data, if the line is valid, otherwise `None`

@@ -15,7 +15,7 @@ def _get_unique_id(replay: bool, host_log_folder: str) -> str:
     replay_file = f"{host_log_folder}/unique_id.txt"
 
     if replay:
-        with open(replay_file, "r", encoding="utf-8") as f:
+        with open(replay_file, encoding="utf-8") as f:
             unique_id = f.read()
     else:
         # pick a statistically unique id for the scenario
@@ -115,14 +115,10 @@ class AWSIntegrationsScenario(EndToEndScenario):
 
     def _check_aws_variables(self):
         if not os.environ.get("SYSTEM_TESTS_AWS_ACCESS_KEY_ID") and not os.environ.get("AWS_ACCESS_KEY_ID"):
-            pytest.exit(
-                f"\n    Error while starting {self.name}\n" + self.AWS_BAD_CREDENTIALS_MSG, 1,
-            )
+            pytest.exit(f"\n    Error while starting {self.name}\n" + self.AWS_BAD_CREDENTIALS_MSG, 1)
 
         if not os.environ.get("SYSTEM_TESTS_AWS_SECRET_ACCESS_KEY") and not os.environ.get("AWS_ACCESS_KEY_ID"):
-            pytest.exit(
-                f"\n    Error while starting {self.name}\n" + self.AWS_BAD_CREDENTIALS_MSG, 1,
-            )
+            pytest.exit(f"\n    Error while starting {self.name}\n" + self.AWS_BAD_CREDENTIALS_MSG, 1)
 
 
 class CrossedTracingLibraryScenario(EndToEndScenario):

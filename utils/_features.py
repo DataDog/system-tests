@@ -4,8 +4,7 @@ import pytest
 
 
 class features:
-    """
-    Data source is https://dd-feature-parity.azurewebsites.net/Import/Features
+    """Data source is https://dd-feature-parity.azurewebsites.net/Import/Features
 
     run this command to get new features:
 
@@ -16,16 +15,13 @@ class features:
 
     @staticmethod
     def not_reported(test_object):
-        """
-        Use this fake feature to not report a test to feature parity dashboard
-        """
+        """Use this fake feature to not report a test to feature parity dashboard"""
         pytest.mark.features(feature_id=-1)(test_object)
         return test_object
 
     @staticmethod
     def add_metadata_globally_to_all_spans_dd_tags(test_object):
-        """
-        Add Metadata globally to all spans (DD_TAGS)
+        """Add Metadata globally to all spans (DD_TAGS)
 
         https://feature-parity.us1.prod.dog/#/?feature=1
         """
@@ -34,8 +30,7 @@ class features:
 
     @staticmethod
     def change_agent_hostname_dd_agent_host(test_object):
-        """
-        Change Agent hostname (DD_AGENT_HOST)
+        """Change Agent hostname (DD_AGENT_HOST)
 
         https://feature-parity.us1.prod.dog/#/?feature=2
         """
@@ -44,8 +39,7 @@ class features:
 
     @staticmethod
     def add_metadata_to_spans_via_tags_dd_trace_analytics_enabled(test_object):
-        """
-        Add metadata to spans via tags (DD_TRACE_ANALYTICS_ENABLED)
+        """Add metadata to spans via tags (DD_TRACE_ANALYTICS_ENABLED)
 
         https://feature-parity.us1.prod.dog/#/?feature=3
         """
@@ -54,8 +48,7 @@ class features:
 
     @staticmethod
     def trace_search_automatic_config(test_object):
-        """
-        Trace Search - automatic config
+        """Trace Search - automatic config
 
         https://feature-parity.us1.prod.dog/#/?feature=4
         """
@@ -64,8 +57,7 @@ class features:
 
     @staticmethod
     def manual_trace_id_injection_into_logs(test_object):
-        """
-        Manual Trace-ID injection into Logs
+        """Manual Trace-ID injection into Logs
 
         https://feature-parity.us1.prod.dog/#/?feature=5
         """
@@ -74,8 +66,7 @@ class features:
 
     @staticmethod
     def unix_domain_sockets_support_for_traces(test_object):
-        """
-        Unix Domain Sockets support for traces
+        """Unix Domain Sockets support for traces
 
         https://feature-parity.us1.prod.dog/#/?feature=6
         """
@@ -91,8 +82,7 @@ class features:
 
     @staticmethod
     def unix_domain_sockets_automatic_detection(test_object):
-        """
-        Unix Domain Sockets automatic detection
+        """Unix Domain Sockets automatic detection
 
         https://feature-parity.us1.prod.dog/#/?feature=7
         """
@@ -101,8 +91,7 @@ class features:
 
     @staticmethod
     def twl_customer_controls_ingestion_dd_trace_sampling_rules(test_object):
-        """
-        TwL - Customer Controls Ingestion (DD_TRACE_SAMPLING RULES)
+        """TwL - Customer Controls Ingestion (DD_TRACE_SAMPLING RULES)
 
         https://feature-parity.us1.prod.dog/#/?feature=8
         """
@@ -111,8 +100,7 @@ class features:
 
     @staticmethod
     def synthetic_apm_http_header_span_tag_x_datadog_origin(test_object):
-        """
-        Synthetic APM (http header ▶ span tag) (x-datadog-origin))
+        """Synthetic APM (http header ▶ span tag) (x-datadog-origin))
 
         https://feature-parity.us1.prod.dog/#/?feature=9
         """
@@ -121,8 +109,7 @@ class features:
 
     @staticmethod
     def log_tracer_status_at_startup(test_object):
-        """
-        Log Tracer status at startup
+        """Log Tracer status at startup
 
         https://feature-parity.us1.prod.dog/#/?feature=10
         """
@@ -131,8 +118,7 @@ class features:
 
     @staticmethod
     def fargate_14_tagging_support(test_object):
-        """
-        Fargate 1.4 Tagging Support
+        """Fargate 1.4 Tagging Support
 
         https://feature-parity.us1.prod.dog/#/?feature=11
         """
@@ -141,8 +127,7 @@ class features:
 
     @staticmethod
     def container_tagging(test_object):
-        """
-        Container tagging
+        """Container tagging
 
         https://feature-parity.us1.prod.dog/#/?feature=12
         """
@@ -151,8 +136,7 @@ class features:
 
     @staticmethod
     def b3_headers_propagation(test_object):
-        """
-        B3 headers injection and extraction
+        """B3 headers injection and extraction
 
         https://feature-parity.us1.prod.dog/#/?feature=13
         """
@@ -161,8 +145,7 @@ class features:
 
     @staticmethod
     def unix_domain_sockets_support_for_metrics(test_object):
-        """
-        Unix Domain Sockets support for metrics
+        """Unix Domain Sockets support for metrics
 
         https://feature-parity.us1.prod.dog/#/?feature=14
         """
@@ -171,8 +154,7 @@ class features:
 
     @staticmethod
     def support_ddmeasured(test_object):
-        """
-        Support _dd.measured
+        """Support _dd.measured
 
         https://feature-parity.us1.prod.dog/#/?feature=15
         """
@@ -181,8 +163,7 @@ class features:
 
     @staticmethod
     def dd_service_mapping(test_object):
-        """
-        DD_SERVICE_MAPPING
+        """DD_SERVICE_MAPPING
 
         https://feature-parity.us1.prod.dog/#/?feature=16
         """
@@ -191,8 +172,7 @@ class features:
 
     @staticmethod
     def datadog_managed_dogstatsd_client(test_object):
-        """
-        Datadog managed Dogstatsd client
+        """Datadog managed Dogstatsd client
 
         https://feature-parity.us1.prod.dog/#/?feature=17
         """
@@ -201,8 +181,7 @@ class features:
 
     @staticmethod
     def http_headers_as_tags_dd_trace_header_tags(test_object):
-        """
-        HTTP Headers as Tags (DD_TRACE_HEADER_TAGS)
+        """HTTP Headers as Tags (DD_TRACE_HEADER_TAGS)
 
         https://feature-parity.us1.prod.dog/#/?feature=18
         """
@@ -211,8 +190,7 @@ class features:
 
     @staticmethod
     def dd_profiling_enabled(test_object):
-        """
-        DD_PROFILING_ENABLED
+        """DD_PROFILING_ENABLED
 
         https://feature-parity.us1.prod.dog/#/?feature=19
         """
@@ -221,8 +199,7 @@ class features:
 
     @staticmethod
     def dogstatsd_unified_service_tagging(test_object):
-        """
-        Dogstatsd unified service tagging
+        """Dogstatsd unified service tagging
 
         https://feature-parity.us1.prod.dog/#/?feature=20
         """
@@ -231,8 +208,7 @@ class features:
 
     @staticmethod
     def trace_log_exporting_for_aws_lambda(test_object):
-        """
-        Trace Log Exporting for AWS Lambda
+        """Trace Log Exporting for AWS Lambda
 
         https://feature-parity.us1.prod.dog/#/?feature=21
         """
@@ -241,8 +217,7 @@ class features:
 
     @staticmethod
     def runtime_id_in_span_metadata_for_service_entry_spans(test_object):
-        """
-        Runtime-id in span metadata for service entry spans
+        """Runtime-id in span metadata for service entry spans
 
         https://feature-parity.us1.prod.dog/#/?feature=22
         """
@@ -251,8 +226,7 @@ class features:
 
     @staticmethod
     def partial_flush(test_object):
-        """
-        Partial flush
+        """Partial flush
 
         https://feature-parity.us1.prod.dog/#/?feature=23
         """
@@ -261,8 +235,7 @@ class features:
 
     @staticmethod
     def partial_flush_on_by_default(test_object):
-        """
-        Partial flush on by default
+        """Partial flush on by default
 
         https://feature-parity.us1.prod.dog/#/?feature=24
         """
@@ -271,8 +244,7 @@ class features:
 
     @staticmethod
     def automatic_trace_id_injection_into_logs(test_object):
-        """
-        Automatic Trace-id injection into Logs
+        """Automatic Trace-id injection into Logs
 
         https://feature-parity.us1.prod.dog/#/?feature=25
         """
@@ -281,8 +253,7 @@ class features:
 
     @staticmethod
     def mapping_http_status_codes_to_errors(test_object):
-        """
-        Mapping HTTP status codes to errors
+        """Mapping HTTP status codes to errors
 
         https://feature-parity.us1.prod.dog/#/?feature=26
         """
@@ -291,8 +262,7 @@ class features:
 
     @staticmethod
     def log_pipelines_updated_for_log_injection(test_object):
-        """
-        Log Pipelines updated for log injection
+        """Log Pipelines updated for log injection
 
         https://feature-parity.us1.prod.dog/#/?feature=27
         """
@@ -301,8 +271,7 @@ class features:
 
     @staticmethod
     def inject_service_env_version_into_logs(test_object):
-        """
-        Inject service, env, version into logs
+        """Inject service, env, version into logs
 
         https://feature-parity.us1.prod.dog/#/?feature=28
         """
@@ -311,8 +280,7 @@ class features:
 
     @staticmethod
     def top_level_detection_in_tracer(test_object):
-        """
-        Top-level detection in tracer
+        """Top-level detection in tracer
 
         https://feature-parity.us1.prod.dog/#/?feature=29
         """
@@ -321,8 +289,7 @@ class features:
 
     @staticmethod
     def use_sampling_priorities_2_1_in_rules_based_sampler(test_object):
-        """
-        Use sampling priorities +2/-1 in rules-based sampler
+        """Use sampling priorities +2/-1 in rules-based sampler
 
         https://feature-parity.us1.prod.dog/#/?feature=30
         """
@@ -331,8 +298,7 @@ class features:
 
     @staticmethod
     def trace_annotation(test_object):
-        """
-        Trace Annotation
+        """Trace Annotation
 
         https://feature-parity.us1.prod.dog/#/?feature=31
         """
@@ -341,8 +307,7 @@ class features:
 
     @staticmethod
     def runtime_metrics(test_object):
-        """
-        Runtime metrics
+        """Runtime metrics
 
         https://feature-parity.us1.prod.dog/#/?feature=32
         """
@@ -351,8 +316,7 @@ class features:
 
     @staticmethod
     def logs_throttling(test_object):
-        """
-        Logs Throttling
+        """Logs Throttling
 
         https://feature-parity.us1.prod.dog/#/?feature=33
         """
@@ -361,8 +325,7 @@ class features:
 
     @staticmethod
     def post_processing_traces(test_object):
-        """
-        Post-Processing Traces
+        """Post-Processing Traces
 
         https://feature-parity.us1.prod.dog/#/?feature=34
         """
@@ -371,8 +334,7 @@ class features:
 
     @staticmethod
     def span_baggage_item(test_object):
-        """
-        Span Baggage item
+        """Span Baggage item
 
         https://feature-parity.us1.prod.dog/#/?feature=35
         """
@@ -381,8 +343,7 @@ class features:
 
     @staticmethod
     def tracer_health_metrics(test_object):
-        """
-        Tracer Health Metrics
+        """Tracer Health Metrics
 
         https://feature-parity.us1.prod.dog/#/?feature=36
         """
@@ -391,8 +352,7 @@ class features:
 
     @staticmethod
     def kafka_tracing(test_object):
-        """
-        Kafka Tracing
+        """Kafka Tracing
 
         https://feature-parity.us1.prod.dog/#/?feature=37
         """
@@ -401,8 +361,7 @@ class features:
 
     @staticmethod
     def numeric_tags_for_trace_search_analytics_step_1(test_object):
-        """
-        Numeric tags for Trace Search/Analytics (step 1)
+        """Numeric tags for Trace Search/Analytics (step 1)
 
         https://feature-parity.us1.prod.dog/#/?feature=38
         """
@@ -411,8 +370,7 @@ class features:
 
     @staticmethod
     def grpc_integration_tags(test_object):
-        """
-        gRPC integration tags
+        """GRPC integration tags
 
         https://feature-parity.us1.prod.dog/#/?feature=39
         """
@@ -421,8 +379,7 @@ class features:
 
     @staticmethod
     def dd_trace_config_file(test_object):
-        """
-        DD_TRACE_CONFIG_FILE
+        """DD_TRACE_CONFIG_FILE
 
         https://feature-parity.us1.prod.dog/#/?feature=40
         """
@@ -431,8 +388,7 @@ class features:
 
     @staticmethod
     def dd_trace_methods(test_object):
-        """
-        DD_TRACE_METHODS
+        """DD_TRACE_METHODS
 
         https://feature-parity.us1.prod.dog/#/?feature=41
         """
@@ -441,8 +397,7 @@ class features:
 
     @staticmethod
     def dd_tags_space_separated_tags(test_object):
-        """
-        DD_TAGS space-separated tags
+        """DD_TAGS space-separated tags
 
         https://feature-parity.us1.prod.dog/#/?feature=42
         """
@@ -451,8 +406,7 @@ class features:
 
     @staticmethod
     def report_tracer_drop_rate_ddtracer_kr(test_object):
-        """
-        Report tracer drop rate (_dd.tracer_kr)
+        """Report tracer drop rate (_dd.tracer_kr)
 
         https://feature-parity.us1.prod.dog/#/?feature=43
         """
@@ -461,8 +415,7 @@ class features:
 
     @staticmethod
     def obfuscation_of_pii_from_web_span_resource_names(test_object):
-        """
-        Obfuscation of PII from web span resource names
+        """Obfuscation of PII from web span resource names
 
         https://feature-parity.us1.prod.dog/#/?feature=44
         """
@@ -471,8 +424,7 @@ class features:
 
     @staticmethod
     def windows_named_pipe_support_for_traces(test_object):
-        """
-        Windows named pipe support for traces
+        """Windows named pipe support for traces
 
         https://feature-parity.us1.prod.dog/#/?feature=45
         """
@@ -481,8 +433,7 @@ class features:
 
     @staticmethod
     def setting_to_rename_service_by_tag_split_by_tag(test_object):
-        """
-        Setting to rename service by tag (split-by-tag)
+        """Setting to rename service by tag (split-by-tag)
 
         https://feature-parity.us1.prod.dog/#/?feature=46
         """
@@ -491,8 +442,7 @@ class features:
 
     @staticmethod
     def collect_application_version_information(test_object):
-        """
-        Collect application version information
+        """Collect application version information
 
         https://feature-parity.us1.prod.dog/#/?feature=47
         """
@@ -501,8 +451,7 @@ class features:
 
     @staticmethod
     def ensure_that_sampling_is_consistent_across_languages(test_object):
-        """
-        Ensure that sampling is consistent across languages
+        """Ensure that sampling is consistent across languages
 
         https://feature-parity.us1.prod.dog/#/?feature=48
         """
@@ -511,8 +460,7 @@ class features:
 
     @staticmethod
     def user_troubleshooting_tool(test_object):
-        """
-        User Troubleshooting Tool
+        """User Troubleshooting Tool
 
         https://feature-parity.us1.prod.dog/#/?feature=49
         """
@@ -521,8 +469,7 @@ class features:
 
     @staticmethod
     def option_to_remap_apm_error_response_severity_eg_404_to_error(test_object):
-        """
-        Option to remap APM error response severity (e.g. 404 to error)
+        """Option to remap APM error response severity (e.g. 404 to error)
 
         https://feature-parity.us1.prod.dog/#/?feature=50
         """
@@ -531,8 +478,7 @@ class features:
 
     @staticmethod
     def obfuscation_of_httpurl_span_tag(test_object):
-        """
-        Obfuscation of http.url span tag
+        """Obfuscation of http.url span tag
 
         https://feature-parity.us1.prod.dog/#/?feature=51
         """
@@ -541,8 +487,7 @@ class features:
 
     @staticmethod
     def dd_trace_report_hostname(test_object):
-        """
-        DD_TRACE_REPORT_HOSTNAME
+        """DD_TRACE_REPORT_HOSTNAME
 
         https://feature-parity.us1.prod.dog/#/?feature=52
         """
@@ -551,8 +496,7 @@ class features:
 
     @staticmethod
     def windows_named_pipe_support_for_metrics(test_object):
-        """
-        Windows named pipe support for metrics
+        """Windows named pipe support for metrics
 
         https://feature-parity.us1.prod.dog/#/?feature=53
         """
@@ -561,8 +505,7 @@ class features:
 
     @staticmethod
     def ensure_consistent_http_client_integration_tags(test_object):
-        """
-        Ensure consistent HTTP client integration tags
+        """Ensure consistent HTTP client integration tags
 
         https://feature-parity.us1.prod.dog/#/?feature=54
         """
@@ -571,8 +514,7 @@ class features:
 
     @staticmethod
     def aws_sdk_integration_tags(test_object):
-        """
-        AWS SDK Integration Tags
+        """AWS SDK Integration Tags
 
         https://feature-parity.us1.prod.dog/#/?feature=55
         """
@@ -581,8 +523,7 @@ class features:
 
     @staticmethod
     def dont_set_username_tag_because_its_pii(test_object):
-        """
-        Don't set username tag because it's PII
+        """Don't set username tag because it's PII
 
         https://feature-parity.us1.prod.dog/#/?feature=56
         """
@@ -591,8 +532,7 @@ class features:
 
     @staticmethod
     def trace_client_app_tagging(test_object):
-        """
-        Trace Client App Tagging
+        """Trace Client App Tagging
 
         https://feature-parity.us1.prod.dog/#/?feature=57
         """
@@ -601,8 +541,7 @@ class features:
 
     @staticmethod
     def client_split_by_domain_service_host(test_object):
-        """
-        Client Split by domain/service/host
+        """Client Split by domain/service/host
 
         https://feature-parity.us1.prod.dog/#/?feature=58
         """
@@ -611,8 +550,7 @@ class features:
 
     @staticmethod
     def horizontal_propagation_of_x_datadog_tags_between_services(test_object):
-        """
-        Horizontal propagation of `x-datadog-tags` between services
+        """Horizontal propagation of `x-datadog-tags` between services
 
         https://feature-parity.us1.prod.dog/#/?feature=59
         """
@@ -621,8 +559,7 @@ class features:
 
     @staticmethod
     def vertical_propagation_of_x_datadog_tags_onto_each_chunk_root_span(test_object):
-        """
-        Vertical propagation of `x-datadog-tags` onto each chunk root span.
+        """Vertical propagation of `x-datadog-tags` onto each chunk root span.
 
         https://feature-parity.us1.prod.dog/#/?feature=60
         """
@@ -631,8 +568,7 @@ class features:
 
     @staticmethod
     def creation_and_propagation_of_ddpdm(test_object):
-        """
-        Creation and propagation of `_dd.p.dm`
+        """Creation and propagation of `_dd.p.dm`
 
         https://feature-parity.us1.prod.dog/#/?feature=61
         """
@@ -641,8 +577,7 @@ class features:
 
     @staticmethod
     def client_side_stats_supported(test_object):
-        """
-        Client side stats supported
+        """Client side stats supported
 
         https://feature-parity.us1.prod.dog/#/?feature=62
         """
@@ -651,8 +586,7 @@ class features:
 
     @staticmethod
     def client_side_stats_on_by_default(test_object):
-        """
-        Client side stats on by default
+        """Client side stats on by default
 
         https://feature-parity.us1.prod.dog/#/?feature=63
         """
@@ -661,8 +595,7 @@ class features:
 
     @staticmethod
     def instrumentation_telemetry_enabled_by_default(test_object):
-        """
-        Instrumentation Telemetry enabled by default
+        """Instrumentation Telemetry enabled by default
 
         https://feature-parity.us1.prod.dog/#/?feature=64
         """
@@ -671,8 +604,7 @@ class features:
 
     @staticmethod
     def dd_instrumentation_telemetry_enabled_supported(test_object):
-        """
-        DD_INSTRUMENTATION_TELEMETRY_ENABLED supported
+        """DD_INSTRUMENTATION_TELEMETRY_ENABLED supported
 
         https://feature-parity.us1.prod.dog/#/?feature=65
         """
@@ -681,8 +613,7 @@ class features:
 
     @staticmethod
     def app_environment_collected(test_object):
-        """
-        App environment collected
+        """App environment collected
 
         https://feature-parity.us1.prod.dog/#/?feature=66
         """
@@ -691,8 +622,7 @@ class features:
 
     @staticmethod
     def dependencies_collected(test_object):
-        """
-        Dependencies collected
+        """Dependencies collected
 
         https://feature-parity.us1.prod.dog/#/?feature=67
         """
@@ -701,8 +631,7 @@ class features:
 
     @staticmethod
     def integrations_enabled_collected(test_object):
-        """
-        Integrations enabled collected
+        """Integrations enabled collected
 
         https://feature-parity.us1.prod.dog/#/?feature=68
         """
@@ -711,8 +640,7 @@ class features:
 
     @staticmethod
     def tracer_configurations_collected(test_object):
-        """
-        Tracer Configurations collected
+        """Tracer Configurations collected
 
         https://feature-parity.us1.prod.dog/#/?feature=69
         """
@@ -721,8 +649,7 @@ class features:
 
     @staticmethod
     def telemetry_heart_beat_collected(test_object):
-        """
-        Heart beat collected
+        """Heart beat collected
 
         https://feature-parity.us1.prod.dog/#/?feature=70
         """
@@ -731,8 +658,7 @@ class features:
 
     @staticmethod
     def app_close_collected(test_object):
-        """
-        App close collected
+        """App close collected
 
         https://feature-parity.us1.prod.dog/#/?feature=71
         """
@@ -741,8 +667,7 @@ class features:
 
     @staticmethod
     def redacted_error_logs_collected(test_object):
-        """
-        Redacted Error Logs collected
+        """Redacted Error Logs collected
 
         https://feature-parity.us1.prod.dog/#/?feature=72
         """
@@ -751,8 +676,7 @@ class features:
 
     @staticmethod
     def telemetry_metrics_collected(test_object):
-        """
-        Metrics collected
+        """Metrics collected
 
         https://feature-parity.us1.prod.dog/#/?feature=73
         """
@@ -761,8 +685,7 @@ class features:
 
     @staticmethod
     def telemetry_api_v2_implemented(test_object):
-        """
-        API V2 Implemented
+        """API V2 Implemented
 
         https://feature-parity.us1.prod.dog/#/?feature=74
         """
@@ -771,8 +694,7 @@ class features:
 
     @staticmethod
     def app_client_configuration_change_event(test_object):
-        """
-        app-client-configuration-change event
+        """app-client-configuration-change event
 
         https://feature-parity.us1.prod.dog/#/?feature=75
         """
@@ -781,8 +703,7 @@ class features:
 
     @staticmethod
     def app_product_change_event(test_object):
-        """
-        app-product-change event
+        """app-product-change event
 
         https://feature-parity.us1.prod.dog/#/?feature=76
         """
@@ -791,8 +712,7 @@ class features:
 
     @staticmethod
     def app_extended_heartbeat_event(test_object):
-        """
-        app-extended-heartbeat event
+        """app-extended-heartbeat event
 
         https://feature-parity.us1.prod.dog/#/?feature=77
         """
@@ -801,8 +721,7 @@ class features:
 
     @staticmethod
     def telemetry_message_batch(test_object):
-        """
-        message-batch
+        """message-batch
 
         https://feature-parity.us1.prod.dog/#/?feature=78
         """
@@ -811,8 +730,7 @@ class features:
 
     @staticmethod
     def telemetry_app_started_event(test_object):
-        """
-        app-started changes
+        """app-started changes
 
         https://feature-parity.us1.prod.dog/#/?feature=79
         """
@@ -821,8 +739,7 @@ class features:
 
     @staticmethod
     def dd_telemetry_dependency_collection_enabled_supported(test_object):
-        """
-        DD_TELEMETRY_DEPENDENCY_COLLECTION_ENABLED supported
+        """DD_TELEMETRY_DEPENDENCY_COLLECTION_ENABLED supported
 
         https://feature-parity.us1.prod.dog/#/?feature=80
         """
@@ -831,8 +748,7 @@ class features:
 
     @staticmethod
     def additional_http_headers_supported(test_object):
-        """
-        Additional HTTP Headers supported
+        """Additional HTTP Headers supported
 
         https://feature-parity.us1.prod.dog/#/?feature=81
         """
@@ -841,8 +757,7 @@ class features:
 
     @staticmethod
     def remote_config_object_supported(test_object):
-        """
-        remote-config object supported
+        """remote-config object supported
 
         https://feature-parity.us1.prod.dog/#/?feature=82
         """
@@ -851,8 +766,7 @@ class features:
 
     @staticmethod
     def w3c_headers_injection_and_extraction(test_object):
-        """
-        W3C headers injection and extraction
+        """W3C headers injection and extraction
 
         https://feature-parity.us1.prod.dog/#/?feature=83
         """
@@ -861,8 +775,7 @@ class features:
 
     @staticmethod
     def otel_api(test_object):
-        """
-        OTel API
+        """OTel API
 
         https://feature-parity.us1.prod.dog/#/?feature=84
         """
@@ -871,8 +784,7 @@ class features:
 
     @staticmethod
     def trace_id_128_bit_generation_propagation(test_object):
-        """
-        128-bit trace id generation + propagation
+        """128-bit trace id generation + propagation
 
         https://feature-parity.us1.prod.dog/#/?feature=85
         """
@@ -881,8 +793,7 @@ class features:
 
     @staticmethod
     def span_events(test_object):
-        """
-        Span Events
+        """Span Events
 
         https://feature-parity.us1.prod.dog/#/?feature=86
         """
@@ -891,8 +802,7 @@ class features:
 
     @staticmethod
     def span_links(test_object):
-        """
-        Span Links
+        """Span Links
 
         https://feature-parity.us1.prod.dog/#/?feature=87
         """
@@ -901,8 +811,7 @@ class features:
 
     @staticmethod
     def client_ip_adress_collection_dd_trace_client_ip_enabled(test_object):
-        """
-        Client IP adress collection (DD_TRACE_CLIENT_IP_ENABLED)
+        """Client IP adress collection (DD_TRACE_CLIENT_IP_ENABLED)
 
         https://feature-parity.us1.prod.dog/#/?feature=88
         """
@@ -911,8 +820,7 @@ class features:
 
     @staticmethod
     def host_auto_instrumentation(test_object):
-        """
-        Host auto-instrumentation
+        """Host auto-instrumentation
 
         https://feature-parity.us1.prod.dog/#/?feature=89
         """
@@ -921,8 +829,7 @@ class features:
 
     @staticmethod
     def container_auto_instrumentation(test_object):
-        """
-        Container auto-instrumentation
+        """Container auto-instrumentation
 
         https://feature-parity.us1.prod.dog/#/?feature=90
         """
@@ -931,8 +838,7 @@ class features:
 
     @staticmethod
     def collect_http_post_data_and_headers(test_object):
-        """
-        Collect HTTP Post Data and Headers
+        """Collect HTTP Post Data and Headers
 
         https://feature-parity.us1.prod.dog/#/?feature=94
         """
@@ -941,8 +847,7 @@ class features:
 
     @staticmethod
     def weak_hash_vulnerability_detection(test_object):
-        """
-        Weak hash vulnerability detection
+        """Weak hash vulnerability detection
 
         https://feature-parity.us1.prod.dog/#/?feature=96
         """
@@ -951,8 +856,7 @@ class features:
 
     @staticmethod
     def db_integrations(test_object):
-        """
-        DB Integrations
+        """DB Integrations
 
         https://feature-parity.us1.prod.dog/#/?feature=98
         """
@@ -961,8 +865,7 @@ class features:
 
     @staticmethod
     def weak_cipher_detection(test_object):
-        """
-        Weak cipher detection
+        """Weak cipher detection
 
         https://feature-parity.us1.prod.dog/#/?feature=100
         """
@@ -971,8 +874,7 @@ class features:
 
     @staticmethod
     def threats_alpha_preview(test_object):
-        """
-        Threats Alpha Preview
+        """Threats Alpha Preview
 
         https://feature-parity.us1.prod.dog/#/?feature=110
         """
@@ -981,8 +883,7 @@ class features:
 
     @staticmethod
     def procedure_to_debug_install(test_object):
-        """
-        Procedure to debug install
+        """Procedure to debug install
 
         https://feature-parity.us1.prod.dog/#/?feature=113
         """
@@ -991,8 +892,7 @@ class features:
 
     @staticmethod
     def security_events_metadata(test_object):
-        """
-        Security Events Metadata
+        """Security Events Metadata
 
         https://feature-parity.us1.prod.dog/#/?feature=124
         """
@@ -1001,8 +901,7 @@ class features:
 
     @staticmethod
     def appsec_rate_limiter(test_object):
-        """
-        Rate limiter
+        """Rate limiter
 
         https://feature-parity.us1.prod.dog/#/?feature=134
         """
@@ -1011,8 +910,7 @@ class features:
 
     @staticmethod
     def support_in_app_waf_metrics_report(test_object):
-        """
-        Support In-App WAF metrics report
+        """Support In-App WAF metrics report
 
         https://feature-parity.us1.prod.dog/#/?feature=140
         """
@@ -1021,8 +919,7 @@ class features:
 
     @staticmethod
     def user_monitoring(test_object):
-        """
-        User Monitoring
+        """User Monitoring
 
         https://feature-parity.us1.prod.dog/#/?feature=141
         """
@@ -1031,8 +928,7 @@ class features:
 
     @staticmethod
     def serialize_waf_rules_without_limiting_their_sizes(test_object):
-        """
-        Serialize WAF rules without limiting their sizes
+        """Serialize WAF rules without limiting their sizes
 
         https://feature-parity.us1.prod.dog/#/?feature=142
         """
@@ -1041,8 +937,7 @@ class features:
 
     @staticmethod
     def threats_configuration(test_object):
-        """
-        Threats Configuration
+        """Threats Configuration
 
         https://feature-parity.us1.prod.dog/#/?feature=143
         """
@@ -1051,8 +946,7 @@ class features:
 
     @staticmethod
     def sensitive_data_obfuscation(test_object):
-        """
-        Sensitive Data Obfuscation
+        """Sensitive Data Obfuscation
 
         https://feature-parity.us1.prod.dog/#/?feature=144
         """
@@ -1061,8 +955,7 @@ class features:
 
     @staticmethod
     def propagation_of_user_id_rfc(test_object):
-        """
-        Propagation of user Id RFC
+        """Propagation of user Id RFC
 
         https://feature-parity.us1.prod.dog/#/?feature=146
         """
@@ -1071,8 +964,7 @@ class features:
 
     @staticmethod
     def appsec_onboarding(test_object):
-        """
-        Onboarding
+        """Onboarding
 
         https://feature-parity.us1.prod.dog/#/?feature=154
         """
@@ -1081,8 +973,7 @@ class features:
 
     @staticmethod
     def changing_rules_using_rc(test_object):
-        """
-        Changing rules using RC
+        """Changing rules using RC
 
         https://feature-parity.us1.prod.dog/#/?feature=157
         """
@@ -1091,8 +982,7 @@ class features:
 
     @staticmethod
     def appsec_shell_execution_tracing(test_object):
-        """
-        Shell execution tracing
+        """Shell execution tracing
 
         https://feature-parity.us1.prod.dog/#/?feature=158
         """
@@ -1101,8 +991,7 @@ class features:
 
     @staticmethod
     def custom_business_logic_events(test_object):
-        """
-        Custom Business Logic Events
+        """Custom Business Logic Events
 
         https://feature-parity.us1.prod.dog/#/?feature=161
         """
@@ -1111,8 +1000,7 @@ class features:
 
     @staticmethod
     def graphql_threats_detection(test_object):
-        """
-        GraphQL Threats Detection
+        """GraphQL Threats Detection
 
         https://feature-parity.us1.prod.dog/#/?feature=162
         """
@@ -1121,8 +1009,7 @@ class features:
 
     @staticmethod
     def iast_sink_sql_injection(test_object):
-        """
-        IAST Sink: SQL Injection
+        """IAST Sink: SQL Injection
 
         https://feature-parity.us1.prod.dog/#/?feature=165
         """
@@ -1131,8 +1018,7 @@ class features:
 
     @staticmethod
     def iast_sink_code_injection(test_object):
-        """
-        IAST Sink: Code Injection
+        """IAST Sink: Code Injection
 
         https://feature-parity.us1.prod.dog/#/?feature=315
         """
@@ -1141,8 +1027,7 @@ class features:
 
     @staticmethod
     def iast_sink_command_injection(test_object):
-        """
-        IAST Sink: Command Injection
+        """IAST Sink: Command Injection
 
         https://feature-parity.us1.prod.dog/#/?feature=166
         """
@@ -1151,8 +1036,7 @@ class features:
 
     @staticmethod
     def iast_sink_path_traversal(test_object):
-        """
-        IAST Sink: Path Traversal
+        """IAST Sink: Path Traversal
 
         https://feature-parity.us1.prod.dog/#/?feature=167
         """
@@ -1161,8 +1045,7 @@ class features:
 
     @staticmethod
     def iast_sink_ldap_injection(test_object):
-        """
-        IAST Sink: LDAP Injection
+        """IAST Sink: LDAP Injection
 
         https://feature-parity.us1.prod.dog/#/?feature=168
         """
@@ -1171,8 +1054,7 @@ class features:
 
     @staticmethod
     def iast_sink_header_injection(test_object):
-        """
-        IAST Sink: Header Injection
+        """IAST Sink: Header Injection
 
         https://feature-parity.us1.prod.dog/#/?feature=203
         """
@@ -1181,8 +1063,7 @@ class features:
 
     @staticmethod
     def iast_sink_template_injection(test_object):
-        """
-        IAST Sink: Template Injection
+        """IAST Sink: Template Injection
 
         https://feature-parity.us1.prod.dog/#/?feature=330
         """
@@ -1191,8 +1072,7 @@ class features:
 
     @staticmethod
     def iast_source_request_parameter_value(test_object):
-        """
-        IAST Source: Request Parameter Value
+        """IAST Source: Request Parameter Value
 
         https://feature-parity.us1.prod.dog/#/?feature=169
         """
@@ -1201,8 +1081,7 @@ class features:
 
     @staticmethod
     def iast_source_request_parameter_name(test_object):
-        """
-        IAST Source: Request Parameter Name
+        """IAST Source: Request Parameter Name
 
         https://feature-parity.us1.prod.dog/#/?feature=170
         """
@@ -1211,8 +1090,7 @@ class features:
 
     @staticmethod
     def iast_source_header_value(test_object):
-        """
-        IAST Source: Header Value
+        """IAST Source: Header Value
 
         https://feature-parity.us1.prod.dog/#/?feature=171
         """
@@ -1221,8 +1099,7 @@ class features:
 
     @staticmethod
     def iast_source_header_name(test_object):
-        """
-        IAST Source: Header Name
+        """IAST Source: Header Name
 
         https://feature-parity.us1.prod.dog/#/?feature=172
         """
@@ -1231,8 +1108,7 @@ class features:
 
     @staticmethod
     def iast_source_cookie_value(test_object):
-        """
-        IAST Source: Cookie Value
+        """IAST Source: Cookie Value
 
         https://feature-parity.us1.prod.dog/#/?feature=173
         """
@@ -1241,8 +1117,7 @@ class features:
 
     @staticmethod
     def iast_source_cookie_name(test_object):
-        """
-        IAST Source: Cookie Name
+        """IAST Source: Cookie Name
 
         https://feature-parity.us1.prod.dog/#/?feature=174
         """
@@ -1251,8 +1126,7 @@ class features:
 
     @staticmethod
     def iast_source_body(test_object):
-        """
-        IAST Source: Body
+        """IAST Source: Body
 
         https://feature-parity.us1.prod.dog/#/?feature=175
         """
@@ -1261,8 +1135,7 @@ class features:
 
     @staticmethod
     def iast_source_kafka_key(test_object):
-        """
-        IAST Source: Kafka message key
+        """IAST Source: Kafka message key
 
         https://feature-parity.us1.prod.dog/#/?feature=277
         """
@@ -1271,8 +1144,7 @@ class features:
 
     @staticmethod
     def iast_source_kafka_value(test_object):
-        """
-        IAST Source: Kafka message value
+        """IAST Source: Kafka message value
 
         https://feature-parity.us1.prod.dog/#/?feature=278
         """
@@ -1281,8 +1153,7 @@ class features:
 
     @staticmethod
     def iast_graphql_resolver_argument(test_object):
-        """
-        IAST Source: Graphql resolver argument
+        """IAST Source: Graphql resolver argument
 
         https://feature-parity.us1.prod.dog/#/?feature=281
         """
@@ -1291,8 +1162,7 @@ class features:
 
     @staticmethod
     def grpc_threats_management(test_object):
-        """
-        gRPC Threats Management
+        """GRPC Threats Management
 
         https://feature-parity.us1.prod.dog/#/?feature=176
         """
@@ -1301,8 +1171,7 @@ class features:
 
     @staticmethod
     def waf_telemetry(test_object):
-        """
-        WAF Telemetry
+        """WAF Telemetry
 
         https://feature-parity.us1.prod.dog/#/?feature=178
         """
@@ -1311,8 +1180,7 @@ class features:
 
     @staticmethod
     def kafkaspan_creationcontext_propagation_with_dd_trace(test_object):
-        """
-        [Kafka][Span Creation][Context Propagation] with dd-trace
+        """[Kafka][Span Creation][Context Propagation] with dd-trace
         https://feature-parity.us1.prod.dog/#/?feature=192
         """
         pytest.mark.features(feature_id=192)(test_object)
@@ -1320,8 +1188,7 @@ class features:
 
     @staticmethod
     def open_tracing_api(test_object):
-        """
-        Open Tracing API
+        """Open Tracing API
 
         https://feature-parity.us1.prod.dog/#/?feature=196
         """
@@ -1330,8 +1197,7 @@ class features:
 
     @staticmethod
     def custom_tracing_api(test_object):
-        """
-        Custom Tracing API
+        """Custom Tracing API
 
         https://feature-parity.us1.prod.dog/#/?feature=197
         """
@@ -1340,8 +1206,7 @@ class features:
 
     @staticmethod
     def iast_sink_hardcoded_passwords(test_object):
-        """
-        IAST sink: Hardcoded passwords detection
+        """IAST sink: Hardcoded passwords detection
 
         https://feature-parity.us1.prod.dog/#/?feature=290
         """
@@ -1350,8 +1215,7 @@ class features:
 
     @staticmethod
     def iast_sink_hardcoded_secrets(test_object):
-        """
-        IAST sink: Hardcoded secrets detection
+        """IAST sink: Hardcoded secrets detection
 
         https://feature-parity.us1.prod.dog/#/?feature=198
         """
@@ -1360,8 +1224,7 @@ class features:
 
     @staticmethod
     def appsec_request_blocking(test_object):
-        """
-        Request Blocking
+        """Request Blocking
 
         https://feature-parity.us1.prod.dog/#/?feature=199
         """
@@ -1370,8 +1233,7 @@ class features:
 
     @staticmethod
     def appsec_response_blocking(test_object):
-        """
-        Response Blocking
+        """Response Blocking
 
         https://feature-parity.us1.prod.dog/#/?feature=200
         """
@@ -1380,8 +1242,7 @@ class features:
 
     @staticmethod
     def appsec_blocking_action(test_object):
-        """
-        Blocking Action
+        """Blocking Action
 
         https://feature-parity.us1.prod.dog/#/?feature=201
         """
@@ -1390,8 +1251,7 @@ class features:
 
     @staticmethod
     def appsec_client_ip_blocking(test_object):
-        """
-        Client IP Blocking
+        """Client IP Blocking
 
         https://feature-parity.us1.prod.dog/#/?feature=202
         """
@@ -1400,8 +1260,7 @@ class features:
 
     @staticmethod
     def appsec_header_injection(test_object):
-        """
-        Header Injection
+        """Header Injection
 
         https://feature-parity.us1.prod.dog/#/?feature=203
         """
@@ -1410,8 +1269,7 @@ class features:
 
     @staticmethod
     def api_security_schemas(test_object):
-        """
-        Schema extraction for API Security
+        """Schema extraction for API Security
 
         https://feature-parity.us1.prod.dog/#/?feature=204
         """
@@ -1420,8 +1278,7 @@ class features:
 
     @staticmethod
     def span_links_through_datadog_api(test_object):
-        """
-        Span links (through Datadog API)
+        """Span links (through Datadog API)
 
         https://feature-parity.us1.prod.dog/#/?feature=205
         """
@@ -1430,8 +1287,7 @@ class features:
 
     @staticmethod
     def cassandra_support(test_object):
-        """
-        Cassandra support
+        """Cassandra support
 
         https://feature-parity.us1.prod.dog/#/?feature=206
         """
@@ -1440,8 +1296,7 @@ class features:
 
     @staticmethod
     def mysql_support(test_object):
-        """
-        MySQL Support
+        """MySQL Support
 
         https://feature-parity.us1.prod.dog/#/?feature=207
         """
@@ -1450,8 +1305,7 @@ class features:
 
     @staticmethod
     def mssql_support(test_object):
-        """
-        MySQL Support
+        """MySQL Support
 
         https://feature-parity.us1.prod.dog/#/?feature=225
         """
@@ -1460,8 +1314,7 @@ class features:
 
     @staticmethod
     def postgres_support(test_object):
-        """
-        PostGres Support
+        """PostGres Support
 
         https://feature-parity.us1.prod.dog/#/?feature=208
         """
@@ -1470,8 +1323,7 @@ class features:
 
     @staticmethod
     def database_monitoring_correlation(test_object):
-        """
-        Database Monitoring correlation
+        """Database Monitoring correlation
 
         https://feature-parity.us1.prod.dog/#/?feature=209
         """
@@ -1480,8 +1332,7 @@ class features:
 
     @staticmethod
     def datastreams_monitoring_support_for_http(test_object):
-        """
-        DataStreams Monitoring support for Http
+        """DataStreams Monitoring support for Http
 
         https://feature-parity.us1.prod.dog/#/?feature=210
         """
@@ -1490,8 +1341,7 @@ class features:
 
     @staticmethod
     def debugger(test_object):
-        """
-        Debugger
+        """Debugger
 
         https://feature-parity.us1.prod.dog/#/?feature=211
         """
@@ -1500,8 +1350,7 @@ class features:
 
     @staticmethod
     def datastreams_monitoring_support_for_kafka(test_object):
-        """
-        DataStreams Monitoring support for Kafka
+        """DataStreams Monitoring support for Kafka
 
         https://feature-parity.us1.prod.dog/#/?feature=212
         """
@@ -1510,8 +1359,7 @@ class features:
 
     @staticmethod
     def datastreams_monitoring_support_for_rabbitmq(test_object):
-        """
-        DataStreams Monitoring support for RabbitMQ
+        """DataStreams Monitoring support for RabbitMQ
 
         https://feature-parity.us1.prod.dog/#/?feature=213
         """
@@ -1520,8 +1368,7 @@ class features:
 
     @staticmethod
     def datastreams_monitoring_support_for_rabbitmq_fanout(test_object):
-        """
-        DataStreams Monitoring support for RabbitMQ - Fanout
+        """DataStreams Monitoring support for RabbitMQ - Fanout
 
         https://feature-parity.us1.prod.dog/#/?feature=214
         """
@@ -1530,8 +1377,7 @@ class features:
 
     @staticmethod
     def datastreams_monitoring_support_for_rabbitmq_topicexchange(test_object):
-        """
-        DataStreams Monitoring support for RabbitMq - TopicExchange
+        """DataStreams Monitoring support for RabbitMq - TopicExchange
 
         https://feature-parity.us1.prod.dog/#/?feature=215
         """
@@ -1540,8 +1386,7 @@ class features:
 
     @staticmethod
     def mongo_support(test_object):
-        """
-        Mongo Support
+        """Mongo Support
 
         https://feature-parity.us1.prod.dog/#/?feature=216
         """
@@ -1550,8 +1395,7 @@ class features:
 
     @staticmethod
     def otel_mysql_support(test_object):
-        """
-        OTEL MySql Support
+        """OTEL MySql Support
 
         https://feature-parity.us1.prod.dog/#/?feature=217
         """
@@ -1560,8 +1404,7 @@ class features:
 
     @staticmethod
     def otel_mssql_support(test_object):
-        """
-        OTEL MySql Support
+        """OTEL MySql Support
 
         https://feature-parity.us1.prod.dog/#/?feature=226
         """
@@ -1570,8 +1413,7 @@ class features:
 
     @staticmethod
     def otel_postgres_support(test_object):
-        """
-        OTEL PostGres Support
+        """OTEL PostGres Support
 
         https://feature-parity.us1.prod.dog/#/?feature=218
         """
@@ -1580,8 +1422,7 @@ class features:
 
     @staticmethod
     def sql_support(test_object):
-        """
-        Sql support
+        """Sql support
 
         https://feature-parity.us1.prod.dog/#/?feature=219
         """
@@ -1590,8 +1431,7 @@ class features:
 
     @staticmethod
     def dynamic_configuration(test_object):
-        """
-        Dynamic Configuration
+        """Dynamic Configuration
 
         https://feature-parity.us1.prod.dog/#/?feature=220
         """
@@ -1600,8 +1440,7 @@ class features:
 
     @staticmethod
     def datadog_headers_propagation(test_object):
-        """
-        Datadog headers propagation
+        """Datadog headers propagation
 
         https://feature-parity.us1.prod.dog/#/?feature=221
         """
@@ -1610,8 +1449,7 @@ class features:
 
     @staticmethod
     def single_span_sampling(test_object):
-        """
-        Single Span Sampling
+        """Single Span Sampling
 
         https://feature-parity.us1.prod.dog/#/?feature=222
         """
@@ -1620,8 +1458,7 @@ class features:
 
     @staticmethod
     def tracer_flare(test_object):
-        """
-        Tracer Flare
+        """Tracer Flare
 
         https://feature-parity.us1.prod.dog/#/?feature=223
         """
@@ -1630,8 +1467,7 @@ class features:
 
     @staticmethod
     def profiling(test_object):
-        """
-        Profiling
+        """Profiling
 
         https://feature-parity.us1.prod.dog/#/?feature=224
         """
@@ -1640,8 +1476,7 @@ class features:
 
     @staticmethod
     def trace_sampling(test_object):
-        """
-        Profiling
+        """Profiling
 
         https://feature-parity.us1.prod.dog/#/?feature=227
         """
@@ -1650,8 +1485,7 @@ class features:
 
     @staticmethod
     def telemetry_instrumentation(test_object):
-        """
-        Instrumentation telemetry
+        """Instrumentation telemetry
 
         https://feature-parity.us1.prod.dog/#/?feature=229
         """
@@ -1660,8 +1494,7 @@ class features:
 
     @staticmethod
     def appsec_logs(test_object):
-        """
-        Appsec Logs
+        """Appsec Logs
 
         https://feature-parity.us1.prod.dog/#/?feature=230
         """
@@ -1670,8 +1503,7 @@ class features:
 
     @staticmethod
     def appsec_miscs_internals(test_object):
-        """
-        Appsec Miscs Internals
+        """Appsec Miscs Internals
 
         https://feature-parity.us1.prod.dog/#/?feature=231
         """
@@ -1680,8 +1512,7 @@ class features:
 
     @staticmethod
     def appsec_scrubbing(test_object):
-        """
-        Appsec Scrubbing
+        """Appsec Scrubbing
 
         https://feature-parity.us1.prod.dog/#/?feature=232
         """
@@ -1690,8 +1521,7 @@ class features:
 
     @staticmethod
     def appsec_standard_tags_client_ip(test_object):
-        """
-        Appsec Standard Tags: client IP
+        """Appsec Standard Tags: client IP
 
         https://feature-parity.us1.prod.dog/#/?feature=233
         """
@@ -1700,8 +1530,7 @@ class features:
 
     @staticmethod
     def waf_features(test_object):
-        """
-        WAF features
+        """WAF features
 
         https://feature-parity.us1.prod.dog/#/?feature=234
         """
@@ -1710,8 +1539,7 @@ class features:
 
     @staticmethod
     def waf_rules(test_object):
-        """
-        WAF rules
+        """WAF rules
 
         https://feature-parity.us1.prod.dog/#/?feature=235
         """
@@ -1720,8 +1548,7 @@ class features:
 
     @staticmethod
     def iast_sink_hsts_missing_header(test_object):
-        """
-        IAST Sink: HSTS missing header
+        """IAST Sink: HSTS missing header
 
         https://feature-parity.us1.prod.dog/#/?feature=236
         """
@@ -1730,8 +1557,7 @@ class features:
 
     @staticmethod
     def iast_sink_http_only_cookie(test_object):
-        """
-        IAST Sink: HTTP only cookie
+        """IAST Sink: HTTP only cookie
 
         https://feature-parity.us1.prod.dog/#/?feature=237
         """
@@ -1740,8 +1566,7 @@ class features:
 
     @staticmethod
     def iast_sink_insecure_cookie(test_object):
-        """
-        IAST Sink: Insecure cookie
+        """IAST Sink: Insecure cookie
 
         https://feature-parity.us1.prod.dog/#/?feature=238
         """
@@ -1750,8 +1575,7 @@ class features:
 
     @staticmethod
     def iast_sink_samesite_cookie(test_object):
-        """
-        IAST Sink: SameSite cookie
+        """IAST Sink: SameSite cookie
 
         https://feature-parity.us1.prod.dog/#/?feature=240
         """
@@ -1760,8 +1584,7 @@ class features:
 
     @staticmethod
     def iast_sink_ssrf(test_object):
-        """
-        IAST Sink: SSRF
+        """IAST Sink: SSRF
 
         https://feature-parity.us1.prod.dog/#/?feature=241
         """
@@ -1770,8 +1593,7 @@ class features:
 
     @staticmethod
     def iast_sink_trustboundaryviolation(test_object):
-        """
-        IAST Sink: TrustBoundaryViolation
+        """IAST Sink: TrustBoundaryViolation
 
         https://feature-parity.us1.prod.dog/#/?feature=242
         """
@@ -1780,8 +1602,7 @@ class features:
 
     @staticmethod
     def iast_sink_unvalidatedforward(test_object):
-        """
-        IAST Sink: UnvalidatedForward
+        """IAST Sink: UnvalidatedForward
 
         https://feature-parity.us1.prod.dog/#/?feature=243
         """
@@ -1790,8 +1611,7 @@ class features:
 
     @staticmethod
     def iast_sink_unvalidatedheader(test_object):
-        """
-        IAST Sink: UnvalidatedHeader
+        """IAST Sink: UnvalidatedHeader
 
         https://feature-parity.us1.prod.dog/#/?feature=244
         """
@@ -1800,8 +1620,7 @@ class features:
 
     @staticmethod
     def iast_sink_unvalidatedredirect(test_object):
-        """
-        IAST Sink: UnvalidatedRedirect
+        """IAST Sink: UnvalidatedRedirect
 
         https://feature-parity.us1.prod.dog/#/?feature=245
         """
@@ -1810,8 +1629,7 @@ class features:
 
     @staticmethod
     def iast_sink_weakrandomness(test_object):
-        """
-        IAST Sink: WeakRandomness
+        """IAST Sink: WeakRandomness
 
         https://feature-parity.us1.prod.dog/#/?feature=246
         """
@@ -1820,8 +1638,7 @@ class features:
 
     @staticmethod
     def iast_sink_xcontentsniffing(test_object):
-        """
-        IAST Sink: XContentSniffing
+        """IAST Sink: XContentSniffing
 
         https://feature-parity.us1.prod.dog/#/?feature=247
         """
@@ -1830,8 +1647,7 @@ class features:
 
     @staticmethod
     def iast_sink_xpathinjection(test_object):
-        """
-        IAST Sink: XPathInjection
+        """IAST Sink: XPathInjection
 
         https://feature-parity.us1.prod.dog/#/?feature=248
         """
@@ -1840,8 +1656,7 @@ class features:
 
     @staticmethod
     def iast_sink_xss(test_object):
-        """
-        IAST Sink: XSS
+        """IAST Sink: XSS
 
         https://feature-parity.us1.prod.dog/#/?feature=249
         """
@@ -1850,8 +1665,7 @@ class features:
 
     @staticmethod
     def iast_source_multipart(test_object):
-        """
-        IAST Source: Multipart
+        """IAST Source: Multipart
 
         https://feature-parity.us1.prod.dog/#/?feature=250
         """
@@ -1860,8 +1674,7 @@ class features:
 
     @staticmethod
     def iast_source_path(test_object):
-        """
-        IAST Source: Path
+        """IAST Source: Path
 
         https://feature-parity.us1.prod.dog/#/?feature=251
         """
@@ -1870,8 +1683,7 @@ class features:
 
     @staticmethod
     def iast_source_uri(test_object):
-        """
-        IAST Source: URI
+        """IAST Source: URI
 
         https://feature-parity.us1.prod.dog/#/?feature=252
         """
@@ -1880,8 +1692,7 @@ class features:
 
     @staticmethod
     def iast_sink_mongodb_injection(test_object):
-        """
-        IAST Sink: MongoDB injection
+        """IAST Sink: MongoDB injection
 
         https://feature-parity.us1.prod.dog/#/?feature=253
         """
@@ -1890,8 +1701,7 @@ class features:
 
     @staticmethod
     def appsec_user_blocking(test_object):
-        """
-        User blocking
+        """User blocking
 
         https://feature-parity.us1.prod.dog/#/?feature=254
         """
@@ -1900,8 +1710,7 @@ class features:
 
     @staticmethod
     def decisionless_extraction(test_object):
-        """
-        Sampling behavior when extracted trace context does not convey a sampling decision
+        """Sampling behavior when extracted trace context does not convey a sampling decision
         https://feature-parity.us1.prod.dog/#/?feature=261
         """
         pytest.mark.features(feature_id=261)(test_object)
@@ -1909,8 +1718,7 @@ class features:
 
     @staticmethod
     def semantic_core_validations(test_object):
-        """
-        Semantic Core Validations
+        """Semantic Core Validations
 
         https://feature-parity.us1.prod.dog/#/?feature=262
         """
@@ -1919,8 +1727,7 @@ class features:
 
     @staticmethod
     def aws_sqs_span_creationcontext_propagation_via_xray_header_with_dd_trace(test_object):
-        """
-        [AWS-SQS][Span Creation][Context Propagation][AWS X-Ray] with dd-trace
+        """[AWS-SQS][Span Creation][Context Propagation][AWS X-Ray] with dd-trace
 
         https://feature-parity.us1.prod.dog/#/?feature=263
         """
@@ -1929,8 +1736,7 @@ class features:
 
     @staticmethod
     def aws_sqs_span_creationcontext_propagation_via_message_attributes_with_dd_trace(test_object):
-        """
-        [AWS-SQS][Span Creation][Context Propagation][AWS Message Attributes] with dd-trace
+        """[AWS-SQS][Span Creation][Context Propagation][AWS Message Attributes] with dd-trace
 
         https://feature-parity.us1.prod.dog/#/?feature=264
         """
@@ -1939,8 +1745,7 @@ class features:
 
     @staticmethod
     def agent_remote_configuration(test_object):
-        """
-        Agent supports remote configuration
+        """Agent supports remote configuration
 
         https://feature-parity.us1.prod.dog/#/?feature=265
         """
@@ -1949,8 +1754,7 @@ class features:
 
     @staticmethod
     def data_integrity(test_object):
-        """
-        Data integrity
+        """Data integrity
 
         https://feature-parity.us1.prod.dog/#/?feature=266
         """
@@ -1959,8 +1763,7 @@ class features:
 
     @staticmethod
     def library_scrubbing(test_object):
-        """
-        Library scrubbing
+        """Library scrubbing
 
         https://feature-parity.us1.prod.dog/#/?feature=267
         """
@@ -1969,8 +1772,7 @@ class features:
 
     @staticmethod
     def datastreams_monitoring_support_for_sqs(test_object):
-        """
-        DataStreams Monitoring support for AWS SQS
+        """DataStreams Monitoring support for AWS SQS
 
         https://feature-parity.us1.prod.dog/#/?feature=268
         """
@@ -1979,8 +1781,7 @@ class features:
 
     @staticmethod
     def api_security_configuration(test_object):
-        """
-        Schema extraction for API Security
+        """Schema extraction for API Security
 
         https://feature-parity.us1.prod.dog/#/?feature=269
         """
@@ -1989,8 +1790,7 @@ class features:
 
     @staticmethod
     def rabbitmq_span_creationcontext_propagation_with_dd_trace(test_object):
-        """
-        [RabbitMQ][Span Creation][Context Propagation] with dd-trace
+        """[RabbitMQ][Span Creation][Context Propagation] with dd-trace
 
         https://feature-parity.us1.prod.dog/#/?feature=270
         """
@@ -1999,8 +1799,7 @@ class features:
 
     @staticmethod
     def aws_sns_span_creationcontext_propagation_via_message_attributes_with_dd_trace(test_object):
-        """
-        [AWS-SNS][Span Creation][Context Propagation] with dd-trace
+        """[AWS-SNS][Span Creation][Context Propagation] with dd-trace
 
         https://feature-parity.us1.prod.dog/#/?feature=271
         """
@@ -2009,8 +1808,7 @@ class features:
 
     @staticmethod
     def datastreams_monitoring_support_for_sns(test_object):
-        """
-        DataStreams Monitoring support for AWS SNS
+        """DataStreams Monitoring support for AWS SNS
 
         https://feature-parity.us1.prod.dog/#/?feature=273
         """
@@ -2019,8 +1817,7 @@ class features:
 
     @staticmethod
     def iast_sink_insecure_auth_protocol(test_object):
-        """
-        IAST Sink: Insecure auth protocol
+        """IAST Sink: Insecure auth protocol
 
         https://feature-parity.us1.prod.dog/#/?feature=272
         """
@@ -2029,8 +1826,7 @@ class features:
 
     @staticmethod
     def container_auto_installation_script(test_object):
-        """
-        Agent installation script should allow us to install auto-injection software for containers
+        """Agent installation script should allow us to install auto-injection software for containers
 
         https://feature-parity.us1.prod.dog/#/?feature=274
         """
@@ -2039,8 +1835,7 @@ class features:
 
     @staticmethod
     def host_auto_installation_script(test_object):
-        """
-        Agent installation script should allow us to install auto-injection software for hosts
+        """Agent installation script should allow us to install auto-injection software for hosts
 
         https://feature-parity.us1.prod.dog/#/?feature=275
         """
@@ -2049,8 +1844,7 @@ class features:
 
     @staticmethod
     def host_block_list(test_object):
-        """
-        SSI block lists
+        """SSI block lists
 
         https://feature-parity.us1.prod.dog/#/?feature=276
         """
@@ -2059,8 +1853,7 @@ class features:
 
     @staticmethod
     def aws_kinesis_span_creationcontext_propagation_via_message_attributes_with_dd_trace(test_object):
-        """
-        [AWS-Kinesis][Span Creation][Context Propagation] with dd-trace
+        """[AWS-Kinesis][Span Creation][Context Propagation] with dd-trace
 
         https://feature-parity.us1.prod.dog/#/?feature=280
         """
@@ -2069,8 +1862,7 @@ class features:
 
     @staticmethod
     def datastreams_monitoring_support_for_base64_encoding(test_object):
-        """
-        DataStreams Monitoring support for V2 Base64 Encoding using dd-pathway-ctx/dd-pathway-ctx-base64
+        """DataStreams Monitoring support for V2 Base64 Encoding using dd-pathway-ctx/dd-pathway-ctx-base64
 
         https://feature-parity.us1.prod.dog/#/?feature=284
         """
@@ -2079,8 +1871,7 @@ class features:
 
     @staticmethod
     def datastreams_monitoring_support_context_injection_base64(test_object):
-        """
-        Datastreams Monitoring support for V2 Base64 Encoding injection using dd-pathway-ctx-base64
+        """Datastreams Monitoring support for V2 Base64 Encoding injection using dd-pathway-ctx-base64
 
         https://feature-parity.us1.prod.dog/#/?feature=287
         """
@@ -2089,8 +1880,7 @@ class features:
 
     @staticmethod
     def datastreams_monitoring_support_for_kinesis(test_object):
-        """
-        DataStreams Monitoring support for AWS Kinesis
+        """DataStreams Monitoring support for AWS Kinesis
 
         https://feature-parity.us1.prod.dog/#/?feature=282
         """
@@ -2099,8 +1889,7 @@ class features:
 
     @staticmethod
     def iast_sink_reflection_injection(test_object):
-        """
-        IAST Sink: Reflection Injection
+        """IAST Sink: Reflection Injection
 
         https://feature-parity.us1.prod.dog/#/?feature=279
         """
@@ -2109,8 +1898,7 @@ class features:
 
     @staticmethod
     def embeded_git_reference(test_object):
-        """
-        Embedding Git references to build artifacts
+        """Embedding Git references to build artifacts
 
         https://feature-parity.us1.prod.dog/#/?feature=286
         """
@@ -2119,8 +1907,7 @@ class features:
 
     @staticmethod
     def k8s_admission_controller(test_object):
-        """
-        Auto inject the tracer library for k8s enviroments using admission controller
+        """Auto inject the tracer library for k8s enviroments using admission controller
 
         https://feature-parity.us1.prod.dog/#/?feature=288
         """
@@ -2129,8 +1916,7 @@ class features:
 
     @staticmethod
     def f_otel_interoperability(test_object):
-        """
-        OTel Interoperability
+        """OTel Interoperability
 
         https://feature-parity.us1.prod.dog/#/?feature=289
         """
@@ -2139,8 +1925,7 @@ class features:
 
     @staticmethod
     def debugger_pii_redaction(test_object):
-        """
-        PII Redaction
+        """PII Redaction
 
         https://feature-parity.us1.prod.dog/#/?feature=291
         """
@@ -2149,8 +1934,7 @@ class features:
 
     @staticmethod
     def installer_auto_instrumentation(test_object):
-        """
-        Installer auto-instrumentation
+        """Installer auto-instrumentation
 
         https://feature-parity.us1.prod.dog/#/?feature=292
         """
@@ -2159,8 +1943,7 @@ class features:
 
     @staticmethod
     def rasp_local_file_inclusion(test_object):
-        """
-        Appsec RASP rule : local file inclusion
+        """Appsec RASP rule : local file inclusion
 
         https://feature-parity.us1.prod.dog/#/?feature=293
         """
@@ -2169,8 +1952,7 @@ class features:
 
     @staticmethod
     def rasp_server_side_request_forgery(test_object):
-        """
-        Appsec RASP rule : server-side request forgery
+        """Appsec RASP rule : server-side request forgery
 
         https://feature-parity.us1.prod.dog/#/?feature=294
         """
@@ -2179,8 +1961,7 @@ class features:
 
     @staticmethod
     def rasp_sql_injection(test_object):
-        """
-        Appsec RASP rule : SQL injection
+        """Appsec RASP rule : SQL injection
 
         https://feature-parity.us1.prod.dog/#/?feature=295
         """
@@ -2189,8 +1970,7 @@ class features:
 
     @staticmethod
     def database_monitoring_support(test_object):
-        """
-        DBM: Database Monitoring is supported by an integration
+        """DBM: Database Monitoring is supported by an integration
 
         https://feature-parity.us1.prod.dog/#/?feature=296
         """
@@ -2199,8 +1979,7 @@ class features:
 
     @staticmethod
     def rasp_stack_trace(test_object):
-        """
-        Appsec RASP: Stack Trace
+        """Appsec RASP: Stack Trace
 
         https://feature-parity.us1.prod.dog/#/?feature=297
         """
@@ -2209,8 +1988,7 @@ class features:
 
     @staticmethod
     def rasp_span_tags(test_object):
-        """
-        Appsec RASP: Span Tags
+        """Appsec RASP: Span Tags
 
         https://feature-parity.us1.prod.dog/#/?feature=298
         """
@@ -2219,8 +1997,7 @@ class features:
 
     @staticmethod
     def debugger_expression_language(test_object):
-        """
-        Expression Language
+        """Expression Language
 
         https://feature-parity.us1.prod.dog/#/?feature=303
         """
@@ -2229,8 +2006,7 @@ class features:
 
     @staticmethod
     def auto_instrumentation_profiling(test_object):
-        """
-        auto-instrumentation with profiling
+        """auto-instrumentation with profiling
 
         https://feature-parity.us1.prod.dog/#/?feature=302
         """
@@ -2239,8 +2015,7 @@ class features:
 
     @staticmethod
     def appsec_standalone(test_object):
-        """
-        Appsec Standalone Billing
+        """Appsec Standalone Billing
 
         https://feature-parity.us1.prod.dog/#/?feature=305
         """
@@ -2249,8 +2024,7 @@ class features:
 
     @staticmethod
     def iast_standalone(test_object):
-        """
-        Iast Standalone Billing
+        """Iast Standalone Billing
 
         https://feature-parity.us1.prod.dog/#/?feature=319
         """
@@ -2259,8 +2033,7 @@ class features:
 
     @staticmethod
     def sca_standalone(test_object):
-        """
-        SCA Standalone Billing
+        """SCA Standalone Billing
 
         https://feature-parity.us1.prod.dog/#/?feature=320
         """
@@ -2269,8 +2042,7 @@ class features:
 
     @staticmethod
     def security_events_metastruct(test_object):
-        """
-        Appsec meta struct
+        """Appsec meta struct
 
         https://feature-parity.us1.prod.dog/#/?feature=314
         """
@@ -2279,8 +2051,7 @@ class features:
 
     @staticmethod
     def host_auto_installation_script_profiling(test_object):
-        """
-        Profiling works when enabled through the agent installer script in Host environments
+        """Profiling works when enabled through the agent installer script in Host environments
 
         https://feature-parity.us1.prod.dog/#/?feature=306
         """
@@ -2289,8 +2060,7 @@ class features:
 
     @staticmethod
     def container_auto_installation_script_profiling(test_object):
-        """
-        Profiling works when enabled through the agent installer script in Container environments
+        """Profiling works when enabled through the agent installer script in Container environments
 
         https://feature-parity.us1.prod.dog/#/?feature=307
         """
@@ -2299,8 +2069,7 @@ class features:
 
     @staticmethod
     def container_auto_instrumentation_profiling(test_object):
-        """
-        Profiling works when manually enabled with library injection in Container environments
+        """Profiling works when manually enabled with library injection in Container environments
 
         https://feature-parity.us1.prod.dog/#/?feature=310
         """
@@ -2309,8 +2078,7 @@ class features:
 
     @staticmethod
     def host_guardrail(test_object):
-        """
-        When in SSI, bail out if our version of language is incompatible.
+        """When in SSI, bail out if our version of language is incompatible.
 
         https://feature-parity.us1.prod.dog/#/?feature=308
         """
@@ -2319,8 +2087,7 @@ class features:
 
     @staticmethod
     def container_guardrail(test_object):
-        """
-        When in SSI, bail out if our version of language is incompatible or container is incompatible.
+        """When in SSI, bail out if our version of language is incompatible or container is incompatible.
 
         https://feature-parity.us1.prod.dog/#/?feature=309
         """
@@ -2329,8 +2096,7 @@ class features:
 
     @staticmethod
     def datastreams_monitoring_support_for_manual_checkpoints(test_object):
-        """
-        Ensure DSM Manual Checkpointing API is satisfied
+        """Ensure DSM Manual Checkpointing API is satisfied
 
         https://feature-parity.us1.prod.dog/#/?feature=327
         """
@@ -2339,8 +2105,7 @@ class features:
 
     @staticmethod
     def suspicious_attacker_blocking(test_object):
-        """
-        Threats: request blocking on suspicious attacker
+        """Threats: request blocking on suspicious attacker
 
         https://feature-parity.us1.prod.dog/#/?feature=311
         """
@@ -2349,8 +2114,7 @@ class features:
 
     @staticmethod
     def user_id_collection_modes(test_object):
-        """
-        Threats: User ID collection modes
+        """Threats: User ID collection modes
 
         https://feature-parity.us1.prod.dog/#/?feature=312
         """
@@ -2359,8 +2123,7 @@ class features:
 
     @staticmethod
     def fingerprinting(test_object):
-        """
-        Threats: Requests Fingerprinting
+        """Threats: Requests Fingerprinting
 
         https://feature-parity.us1.prod.dog/#/?feature=313
         """
@@ -2369,8 +2132,7 @@ class features:
 
     @staticmethod
     def iast_sink_untrusted_deserialization(test_object):
-        """
-        IAST Sink: Untrusted Deserialization
+        """IAST Sink: Untrusted Deserialization
 
         https://feature-parity.us1.prod.dog/#/?feature=316
         """
@@ -2379,8 +2141,7 @@ class features:
 
     @staticmethod
     def crashtracking(test_object):
-        """
-        Crashtracking
+        """Crashtracking
 
         https://feature-parity.us1.prod.dog/#/?feature=317
         """
@@ -2389,8 +2150,7 @@ class features:
 
     @staticmethod
     def rasp_shell_injection(test_object):
-        """
-        Appsec RASP rule : shell injection
+        """Appsec RASP rule : shell injection
 
         https://feature-parity.us1.prod.dog/#/?feature=318
         """
@@ -2399,8 +2159,7 @@ class features:
 
     @staticmethod
     def rasp_command_injection(test_object):
-        """
-        Appsec RASP rule : command injection
+        """Appsec RASP rule : command injection
 
         https://feature-parity.us1.prod.dog/#/?feature=345
         """
@@ -2409,8 +2168,7 @@ class features:
 
     @staticmethod
     def debugger_exception_replay(test_object):
-        """
-        Exception replay
+        """Exception replay
 
         https://feature-parity.us1.prod.dog/#/?feature=321
         """
@@ -2419,8 +2177,7 @@ class features:
 
     @staticmethod
     def iast_source_path_parameter(test_object):
-        """
-        IAST Source: URI
+        """IAST Source: URI
 
         https://feature-parity.us1.prod.dog/#/?feature=324
         """
@@ -2429,8 +2186,7 @@ class features:
 
     @staticmethod
     def tracing_configuration_consistency(test_object):
-        """
-        Enforces standardized behaviors for configurations across the tracing libraries.
+        """Enforces standardized behaviors for configurations across the tracing libraries.
 
         https://feature-parity.us1.prod.dog/#/?feature=325
         """
@@ -2439,8 +2195,7 @@ class features:
 
     @staticmethod
     def ssi_guardrails(test_object):
-        """
-        Docker ssi guardrails
+        """Docker ssi guardrails
 
         https://feature-parity.us1.prod.dog/#/?feature=322
         """
@@ -2449,8 +2204,7 @@ class features:
 
     @staticmethod
     def ssi_crashtracking(test_object):
-        """
-        Docker ssi crashtracking
+        """Docker ssi crashtracking
 
         https://feature-parity.us1.prod.dog/#/?feature=340
         """
@@ -2459,8 +2213,7 @@ class features:
 
     @staticmethod
     def ssi_service_naming(test_object):
-        """
-        Docker ssi service naming feature
+        """Docker ssi service naming feature
 
         https://feature-parity.us1.prod.dog/#/?feature=326
         """
@@ -2469,8 +2222,7 @@ class features:
 
     @staticmethod
     def serverless_span_pointers(test_object):
-        """
-        Serverless : Span Pointers are correctly incorporated in spans
+        """Serverless : Span Pointers are correctly incorporated in spans
 
         https://feature-parity.us1.prod.dog/#/?feature=328
         """
@@ -2479,8 +2231,7 @@ class features:
 
     @staticmethod
     def aws_api_gateway_inferred_span_creation(test_object):
-        """
-        AWS Api Gateway: Tests that API Gateway inferred span creation works as expected
+        """AWS Api Gateway: Tests that API Gateway inferred span creation works as expected
 
         https://feature-parity.us1.prod.dog/#/?feature=341
         """
@@ -2490,8 +2241,7 @@ class features:
 
     @staticmethod
     def parametric_endpoint_parity(test_object):
-        """
-        Enforces standardized behaviors for configurations across the tracing libraries.
+        """Enforces standardized behaviors for configurations across the tracing libraries.
 
         https://feature-parity.us1.prod.dog/#/?feature=339
         """
@@ -2500,8 +2250,7 @@ class features:
 
     @staticmethod
     def iast_stack_trace(test_object):
-        """
-        IAST: Stack Trace
+        """IAST: Stack Trace
 
         https://feature-parity.us1.prod.dog/#/?feature=329
         """
@@ -2510,8 +2259,7 @@ class features:
 
     @staticmethod
     def djm_ssi_k8s(test_object):
-        """
-        Data Jobs Monitoring: Java lib auto instrumentation for Spark applications on K8s.
+        """Data Jobs Monitoring: Java lib auto instrumentation for Spark applications on K8s.
 
         https://feature-parity.us1.prod.dog/#/?feature=342
         """

@@ -15,9 +15,9 @@ from threading import Timer
 
 class AutoInjectBaseTest:
     def _test_install(self, virtual_machine, profile: bool = False):
-        """ We can easily install agent and lib injection software from agent installation script. Given a  sample application we can enable tracing using local environment variables.
-            After starting application we can see application HTTP requests traces in the backend.
-            Using the agent installation script we can install different versions of the software (release or beta) in different OS."""
+        """We can easily install agent and lib injection software from agent installation script. Given a  sample application we can enable tracing using local environment variables.
+        After starting application we can see application HTTP requests traces in the backend.
+        Using the agent installation script we can install different versions of the software (release or beta) in different OS."""
         vm_ip = virtual_machine.get_ip()
         vm_port = virtual_machine.deffault_open_port
         vm_context_url = f"http://{vm_ip}:{vm_port}{virtual_machine.get_deployed_weblog().app_context_url}"
@@ -79,7 +79,7 @@ class AutoInjectBaseTest:
     def _test_uninstall_commands(
         self, virtual_machine, stop_weblog_command, start_weblog_command, uninstall_command, install_command
     ):
-        """ We can unistall the auto injection software. We can start the app again
+        """We can unistall the auto injection software. We can start the app again
         The weblog app should work but no sending traces to the backend.
         We can reinstall the auto inject software. The weblog app should be instrumented
         and reporting traces to the backend."""
@@ -145,7 +145,6 @@ class AutoInjectBaseTest:
             f"{header} \n {header}  \n  Launching the uninstall for VM: {virtual_machine.name}  \n {header} \n {header}"
         )
         if context.weblog_variant == f"test-app-{context.scenario.library.library}":  # Host
-
             stop_weblog_command = "sudo systemctl kill -s SIGKILL test-app.service"
             start_weblog_command = "sudo systemctl start test-app.service"
             if context.scenario.library.library in ["ruby", "python", "dotnet"]:

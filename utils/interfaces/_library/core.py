@@ -34,7 +34,7 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
 
     ################################################################
     def wait_for_remote_config_request(self, timeout=30):
-        """ Used in setup functions, wait for a request oremote config endpoint with a non-empty client_config """
+        """Used in setup functions, wait for a request oremote config endpoint with a non-empty client_config"""
 
         def wait_function(data):
             if data["path"] == "/v0.7/config":
@@ -97,14 +97,12 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
     def get_appsec_events(self, request=None, full_trace=False):
         for data, trace, span in self.get_spans(request=request, full_trace=full_trace):
             if "appsec" in span.get("meta_struct", {}):
-
                 if request:  # do not spam log if all data are sent to the validator
                     logger.debug(f"Try to find relevant appsec data in {data['log_filename']}; span #{span['span_id']}")
 
                 appsec_data = span["meta_struct"]["appsec"]
                 yield data, trace, span, appsec_data
             elif "_dd.appsec.json" in span.get("meta", {}):
-
                 if request:  # do not spam log if all data are sent to the validator
                     logger.debug(f"Try to find relevant appsec data in {data['log_filename']}; span #{span['span_id']}")
 
@@ -120,7 +118,6 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
             events = data["request"]["content"]["events"]
             for event in events:
                 if "trace" in event["context"] and "span" in event["context"]:
-
                     if rid is None:
                         yield data, event
                     else:
@@ -140,7 +137,6 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
 
                         for user_agent in user_agents:
                             if get_rid_from_user_agent(user_agent) == rid:
-
                                 if request:  # do not spam log if all data are sent to the validator
                                     logger.debug(f"Try to find relevant appsec data in {data['log_filename']}")
 
@@ -198,7 +194,6 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
     def validate_appsec(
         self, request=None, validator=None, success_by_default=False, legacy_validator=None, full_trace=False
     ):
-
         if validator:
             for _, _, span, appsec_data in self.get_appsec_events(request=request, full_trace=full_trace):
                 if validator(span, appsec_data):
@@ -324,7 +319,7 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
         validator = _ReportedHeader(header_name)
 
         self.validate_appsec(
-            request, validator=validator.validate, legacy_validator=validator.validate_legacy, success_by_default=False,
+            request, validator=validator.validate, legacy_validator=validator.validate_legacy, success_by_default=False
         )
 
     def add_traces_validation(self, validator, success_by_default=False):
@@ -386,9 +381,8 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
         self.validate(validator, success_by_default=success_by_default, path_filters=r"/v\d+.\d+/config")
 
     def assert_rc_apply_state(self, product: str, config_id: str, apply_state: RemoteConfigApplyState) -> None:
-        """
-            Check that all config_id/product have the expected apply_state returned by the library
-            Very simplified version of the assert_rc_targets_version_states
+        """Check that all config_id/product have the expected apply_state returned by the library
+        Very simplified version of the assert_rc_targets_version_states
 
         """
         found = False
@@ -418,9 +412,8 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
         assert found, f"Capability {capability.name} not found"
 
     def assert_rc_targets_version_states(self, targets_version: int, config_states: list) -> None:
-        """
-            check that for a given targets_version, the config states is the one expected
-            EXPERIMENTAL (is it the good testing API ?)
+        """Check that for a given targets_version, the config states is the one expected
+        EXPERIMENTAL (is it the good testing API ?)
         """
         found = False
         for data in self.get_data(path_filters="/v0.7/config"):

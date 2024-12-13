@@ -11,7 +11,7 @@ def _expected_location():
         return "com.datadoghq.system_tests.iast.utils.CryptoExamples"
 
     if context.library.library == "nodejs":
-        if context.weblog_variant == "express4":
+        if context.weblog_variant in ("express4", "express5"):
             return "iast/index.js"
         if context.weblog_variant == "express4-typescript":
             return "iast.ts"
@@ -62,7 +62,7 @@ class TestWeakHash(BaseSinkTest):
 )
 @features.iast_stack_trace
 class TestWeakHash_StackTrace:
-    """Validate stack trace generation """
+    """Validate stack trace generation"""
 
     def setup_stack_trace(self):
         self.r = weblog.get("/iast/insecure_hashing/test_md5_algorithm")
