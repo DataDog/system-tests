@@ -16,7 +16,7 @@ def configure(config: pytest.Config):
     pass  # nothing to do right now
 
 
-class DecoratorType(enum.Enum):
+class _DecoratorType(enum.StrEnum):
     BUG = "bug"
     FLAKY = "flaky"
     IRRELEVANT = "irrelevant"
@@ -106,7 +106,7 @@ def _decorator(marker, decorator_type, condition, library, weblog_variant, reaso
     if inspect.isclass(function_or_class):
         assert condition is not None or (library is None and weblog_variant is None), _MANIFEST_ERROR_MESSAGE
 
-    if decorator_type in (DecoratorType.BUG, DecoratorType.FLAKY):
+    if decorator_type in (_DecoratorType.BUG, _DecoratorType.FLAKY):
         _ensure_jira_ticket_as_reason(function_or_class, reason)
 
     full_reason = decorator_type.value if reason is None else f"{decorator_type.value} ({reason})"
@@ -118,19 +118,19 @@ def _decorator(marker, decorator_type, condition, library, weblog_variant, reaso
 def missing_feature(condition=None, library=None, weblog_variant=None, reason=None, force_skip: bool = False):
     """decorator, allow to mark a test function/class as missing"""
     marker = pytest.mark.skip if force_skip else pytest.mark.xfail
-    return partial(_decorator, marker, DecoratorType.MISSING_FEATURE, condition, library, weblog_variant, reason)
+    return partial(_decorator, marker, _DecoratorType.MISSING_FEATURE, condition, library, weblog_variant, reason)
 
 
 def incomplete_test_app(condition=None, library=None, weblog_variant=None, reason=None):
     """Decorator, allow to mark a test function/class as not compatible with the tested application"""
     return partial(
-        _decorator, pytest.mark.xfail, DecoratorType.INCOMPLETE_TEST_APP, condition, library, weblog_variant, reason
+        _decorator, pytest.mark.xfail, _DecoratorType.INCOMPLETE_TEST_APP, condition, library, weblog_variant, reason
     )
 
 
 def irrelevant(condition=None, library=None, weblog_variant=None, reason=None):
     """decorator, allow to mark a test function/class as not relevant"""
-    return partial(_decorator, pytest.mark.skip, DecoratorType.IRRELEVANT, condition, library, weblog_variant, reason)
+    return partial(_decorator, pytest.mark.skip, _DecoratorType.IRRELEVANT, condition, library, weblog_variant, reason)
 
 
 def bug(condition=None, library=None, weblog_variant=None, reason=None, force_skip: bool = False):
@@ -138,12 +138,12 @@ def bug(condition=None, library=None, weblog_variant=None, reason=None, force_sk
     The test is executed, and if it passes, and warning is reported
     """
     marker = pytest.mark.skip if force_skip else pytest.mark.xfail
-    return partial(_decorator, marker, DecoratorType.BUG, condition, library, weblog_variant, reason)
+    return partial(_decorator, marker, _DecoratorType.BUG, condition, library, weblog_variant, reason)
 
 
 def flaky(condition=None, library=None, weblog_variant=None, reason=None):
     """Decorator, allow to mark a test function/class as a known bug, and skip it"""
-    return partial(_decorator, pytest.mark.skip, DecoratorType.FLAKY, condition, library, weblog_variant, reason)
+    return partial(_decorator, pytest.mark.skip, _DecoratorType.FLAKY, condition, library, weblog_variant, reason)
 
 
 def released(
