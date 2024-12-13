@@ -377,11 +377,7 @@ class scenarios:
 
     appsec_meta_struct_disabled = EndToEndScenario(
         "APPSEC_META_STRUCT_DISABLED",
-        weblog_env={
-            "DD_APPSEC_ENABLED": "true",
-            "DD_IAST_ENABLED": "true",
-            "DD_IAST_REQUEST_SAMPLING": "100",
-        },
+        weblog_env={"DD_APPSEC_ENABLED": "true", "DD_IAST_ENABLED": "true", "DD_IAST_REQUEST_SAMPLING": "100",},
         meta_structs_disabled=True,
         doc="Appsec tests with support for meta struct disabled in the agent configuration",
         scenario_groups=[ScenarioGroup.APPSEC],
