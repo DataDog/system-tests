@@ -39,6 +39,27 @@ BASIC_AUTH_USER_UUID_HEADER = "Basic dGVzdHV1aWQ6MTIzNA=="  # base64(testuuid:12
 BASIC_AUTH_INVALID_USER_HEADER = "Basic aW52YWxpZFVzZXI6MTIzNA=="  # base64(invalidUser:1234)
 BASIC_AUTH_INVALID_PASSWORD_HEADER = "Basic dGVzdDoxMjM0NQ=="  # base64(test:12345)
 
+HEADERS = {
+    "Accept": "text/html",
+    "Accept-Encoding": "br;q=1.0, gzip;q=0.8, *;q=0.1",
+    "Accept-Language": "en-GB, *;q=0.5",
+    "Content-Language": "en-GB",
+    "Content-Length": "0",
+    "Content-Type": "application/x-www-form-urlencoded; charset=utf-8",
+    # removed because the request is not using this encoding to make the request and makes the test fail
+    # "Content-Encoding": "deflate, gzip",
+    "Host": "127.0.0.1:1234",
+    "User-Agent": "Benign User Agent 1.0",
+    "X-Forwarded-For": "42.42.42.42, 43.43.43.43",
+    "X-Client-IP": "42.42.42.42, 43.43.43.43",
+    "X-Real-IP": "42.42.42.42, 43.43.43.43",
+    "X-Forwarded": "42.42.42.42, 43.43.43.43",
+    "X-Cluster-Client-IP": "42.42.42.42, 43.43.43.43",
+    "Forwarded-For": "42.42.42.42, 43.43.43.43",
+    "Forwarded": "42.42.42.42, 43.43.43.43",
+    "Via": "42.42.42.42, 43.43.43.43",
+    "True-Client-IP": "42.42.42.42, 43.43.43.43",
+}
 
 @rfc("https://docs.google.com/document/d/1-trUpphvyZY7k5ldjhW-MgqWl0xOm7AMEQDJEAZ63_Q/edit#heading=h.8d3o7vtyu1y1")
 @features.user_monitoring
@@ -278,28 +299,6 @@ class Test_Login_Events:
 class Test_Login_Events_Extended:
     "Test login success/failure use cases"
 
-    HEADERS = {
-        "Accept": "text/html",
-        "Accept-Encoding": "br;q=1.0, gzip;q=0.8, *;q=0.1",
-        "Accept-Language": "en-GB, *;q=0.5",
-        "Content-Language": "en-GB",
-        "Content-Length": "0",
-        "Content-Type": "application/x-www-form-urlencoded; charset=utf-8",
-        # removed because the request is not using this encoding to make the request and makes the test fail
-        # "Content-Encoding": "deflate, gzip",
-        "Host": "127.0.0.1:1234",
-        "User-Agent": "Benign User Agent 1.0",
-        "X-Forwarded-For": "42.42.42.42, 43.43.43.43",
-        "X-Client-IP": "42.42.42.42, 43.43.43.43",
-        "X-Real-IP": "42.42.42.42, 43.43.43.43",
-        "X-Forwarded": "42.42.42.42, 43.43.43.43",
-        "X-Cluster-Client-IP": "42.42.42.42, 43.43.43.43",
-        "Forwarded-For": "42.42.42.42, 43.43.43.43",
-        "Forwarded": "42.42.42.42, 43.43.43.43",
-        "Via": "42.42.42.42, 43.43.43.43",
-        "True-Client-IP": "42.42.42.42, 43.43.43.43",
-    }
-
     def setup_login_success_local(self):
         self.r_success = weblog.post("/login?auth=local", data=login_data(context, USER, PASSWORD))
 
@@ -538,7 +537,7 @@ class Test_Login_Events_Extended:
 
     def setup_login_success_headers(self):
         self.r_hdr_success = weblog.post(
-            "/login?auth=local", data=login_data(context, USER, PASSWORD), headers=self.HEADERS,
+            "/login?auth=local", data=login_data(context, USER, PASSWORD), headers=HEADERS,
         )
 
     @missing_feature(context.library < "dotnet@3.7.0")
@@ -552,7 +551,7 @@ class Test_Login_Events_Extended:
             if span.get("parent_id") not in (0, None):
                 return
 
-            for header in self.HEADERS:
+            for header in HEADERS:
                 assert f"http.request.headers.{header.lower()}" in span["meta"], f"Can't find {header} in span's meta"
             return True
 
@@ -560,7 +559,7 @@ class Test_Login_Events_Extended:
 
     def setup_login_failure_headers(self):
         self.r_hdr_failure = weblog.post(
-            "/login?auth=local", data=login_data(context, INVALID_USER, PASSWORD), headers=self.HEADERS,
+            "/login?auth=local", data=login_data(context, INVALID_USER, PASSWORD), headers=HEADERS,
         )
 
     @missing_feature(context.library < "dotnet@3.7.0")
@@ -574,7 +573,7 @@ class Test_Login_Events_Extended:
             if span.get("parent_id") not in (0, None):
                 return
 
-            for header in self.HEADERS:
+            for header in HEADERS:
                 assert f"http.request.headers.{header.lower()}" in span["meta"], f"Can't find {header} in span's meta"
             return True
 
@@ -855,28 +854,6 @@ class Test_V2_Login_Events_Anon:
     As default mode is identification, this scenario will test anonymization.
     """
 
-    HEADERS = {
-        "Accept": "text/html",
-        "Accept-Encoding": "br;q=1.0, gzip;q=0.8, *;q=0.1",
-        "Accept-Language": "en-GB, *;q=0.5",
-        "Content-Language": "en-GB",
-        "Content-Length": "0",
-        "Content-Type": "application/x-www-form-urlencoded; charset=utf-8",
-        # removed because the request is not using this encoding to make the request and makes the test fail
-        # "Content-Encoding": "deflate, gzip",
-        "Host": "127.0.0.1:1234",
-        "User-Agent": "Benign User Agent 1.0",
-        "X-Forwarded-For": "42.42.42.42, 43.43.43.43",
-        "X-Client-IP": "42.42.42.42, 43.43.43.43",
-        "X-Real-IP": "42.42.42.42, 43.43.43.43",
-        "X-Forwarded": "42.42.42.42, 43.43.43.43",
-        "X-Cluster-Client-IP": "42.42.42.42, 43.43.43.43",
-        "Forwarded-For": "42.42.42.42, 43.43.43.43",
-        "Forwarded": "42.42.42.42, 43.43.43.43",
-        "Via": "42.42.42.42, 43.43.43.43",
-        "True-Client-IP": "42.42.42.42, 43.43.43.43",
-    }
-
     def setup_login_success_local(self):
         self.r_success = weblog.post("/login?auth=local", data=login_data(context, USER, PASSWORD))
 
@@ -1086,7 +1063,7 @@ class Test_V2_Login_Events_Anon:
 
     def setup_login_success_headers(self):
         self.r_hdr_success = weblog.post(
-            "/login?auth=local", data=login_data(context, USER, PASSWORD), headers=self.HEADERS,
+            "/login?auth=local", data=login_data(context, USER, PASSWORD), headers=HEADERS,
         )
 
     @missing_feature(context.library < "dotnet@3.7.0")
@@ -1097,7 +1074,7 @@ class Test_V2_Login_Events_Anon:
             if span.get("parent_id") not in (0, None):
                 return
 
-            for header in self.HEADERS:
+            for header in HEADERS:
                 assert f"http.request.headers.{header.lower()}" in span["meta"], f"Can't find {header} in span's meta"
             return True
 
@@ -1105,7 +1082,7 @@ class Test_V2_Login_Events_Anon:
 
     def setup_login_failure_headers(self):
         self.r_hdr_failure = weblog.post(
-            "/login?auth=local", data=login_data(context, INVALID_USER, PASSWORD), headers=self.HEADERS,
+            "/login?auth=local", data=login_data(context, INVALID_USER, PASSWORD), headers=HEADERS,
         )
 
     @missing_feature(context.library < "dotnet@3.7.0")
@@ -1116,7 +1093,7 @@ class Test_V2_Login_Events_Anon:
             if span.get("parent_id") not in (0, None):
                 return
 
-            for header in self.HEADERS:
+            for header in HEADERS:
                 assert f"http.request.headers.{header.lower()}" in span["meta"], f"Can't find {header} in span's meta"
             return True
 
@@ -1266,49 +1243,8 @@ class Test_V3_Login_Events:
     #     }
     # ]
 
-    def setup_login_pii_success_local(self):
-        self.r_pii_success = weblog.post("/login?auth=local", data=login_data(context, USER, PASSWORD))
-
-    def test_login_pii_success_local(self):
-        assert self.r_pii_success.status_code == 200
-        for _, trace, span in interfaces.library.get_spans(request=self.r_pii_success):
-            assert_priority(span, trace)
-            meta = span.get("meta", {})
-
-            # mandatory
-            assert meta["appsec.events.users.login.success.usr.login"] == USER
-            assert meta["_dd.appsec.usr.login"] == USER
-            assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "identification"
-            assert meta["appsec.events.users.login.success.track"] == "true"
-
-            # optional (to review for each library)
-            if context.library not in libs_without_user_id:
-                assert meta["usr.id"] == "social-security-id"
-                assert meta["_dd.appsec.usr.id"] == "social-security-id"
-
-    def setup_login_pii_success_basic(self):
-        self.r_pii_success = weblog.get("/login?auth=basic", headers={"Authorization": BASIC_AUTH_USER_HEADER})
-
-    @missing_feature(context.library == "php", reason="Basic auth not implemented")
-    def test_login_pii_success_basic(self):
-        assert self.r_pii_success.status_code == 200
-        for _, trace, span in interfaces.library.get_spans(request=self.r_pii_success):
-            assert_priority(span, trace)
-            meta = span.get("meta", {})
-
-            # mandatory
-            assert meta["appsec.events.users.login.success.usr.login"] == USER
-            assert meta["_dd.appsec.usr.login"] == USER
-            assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "identification"
-            assert meta["appsec.events.users.login.success.track"] == "true"
-
-            # optional (to review for each library)
-            if context.library not in libs_without_user_id:
-                assert meta["usr.id"] == "social-security-id"
-                assert meta["_dd.appsec.usr.id"] == "social-security-id"
-
     def setup_login_success_local(self):
-        self.r_success = weblog.post("/login?auth=local", data=login_data(context, UUID_USER, PASSWORD))
+        self.r_success = weblog.post("/login?auth=local", data=login_data(context, USER, PASSWORD))
 
     def test_login_success_local(self):
         assert self.r_success.status_code == 200
@@ -1317,18 +1253,18 @@ class Test_V3_Login_Events:
             meta = span.get("meta", {})
 
             # mandatory
-            assert meta["appsec.events.users.login.success.usr.login"] == UUID_USER
-            assert meta["_dd.appsec.usr.login"] == UUID_USER
+            assert meta["appsec.events.users.login.success.usr.login"] == USER
+            assert meta["_dd.appsec.usr.login"] == USER
             assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "identification"
             assert meta["appsec.events.users.login.success.track"] == "true"
 
             # optional (to review for each library)
             if context.library not in libs_without_user_id:
-                assert meta["usr.id"] == "591dc126-8431-4d0f-9509-b23318d3dce4"
-                assert meta["_dd.appsec.usr.id"] == "591dc126-8431-4d0f-9509-b23318d3dce4"
+                assert meta["usr.id"] == "social-security-id"
+                assert meta["_dd.appsec.usr.id"] == "social-security-id"
 
     def setup_login_success_basic(self):
-        self.r_success = weblog.get("/login?auth=basic", headers={"Authorization": BASIC_AUTH_USER_UUID_HEADER})
+        self.r_success = weblog.get("/login?auth=basic", headers={"Authorization": BASIC_AUTH_USER_HEADER})
 
     @missing_feature(context.library == "php", reason="Basic auth not implemented")
     def test_login_success_basic(self):
@@ -1338,15 +1274,15 @@ class Test_V3_Login_Events:
             meta = span.get("meta", {})
 
             # mandatory
-            assert meta["appsec.events.users.login.success.usr.login"] == UUID_USER
-            assert meta["_dd.appsec.usr.login"] == UUID_USER
+            assert meta["appsec.events.users.login.success.usr.login"] == USER
+            assert meta["_dd.appsec.usr.login"] == USER
             assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "identification"
             assert meta["appsec.events.users.login.success.track"] == "true"
 
             # optional (to review for each library)
             if context.library not in libs_without_user_id:
-                assert meta["usr.id"] == "591dc126-8431-4d0f-9509-b23318d3dce4"
-                assert meta["_dd.appsec.usr.id"] == "591dc126-8431-4d0f-9509-b23318d3dce4"
+                assert meta["usr.id"] == "social-security-id"
+                assert meta["_dd.appsec.usr.id"] == "social-security-id"
 
     def setup_login_wrong_user_failure_local(self):
         self.r_wrong_user_failure = weblog.post("/login?auth=local", data=login_data(context, INVALID_USER, PASSWORD))
