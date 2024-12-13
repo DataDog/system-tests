@@ -299,7 +299,7 @@ def _parse_dd_tags(tags):
             result.append((key, value))
     return result
 
-  
+
 @scenarios.parametric
 @features.tracing_configuration_consistency
 class Test_Config_Dogstatsd:
