@@ -294,7 +294,19 @@ tests/:
         test_uri.py:
           TestURI: missing_feature
     rasp/:
-      test_cmdi.py: missing_feature
+      test_cmdi.py:
+        Test_Cmdi_BodyJson: missing_feature
+        Test_Cmdi_BodyUrlEncoded: missing_feature
+        Test_Cmdi_BodyXml: missing_feature
+        Test_Cmdi_Capability: missing_feature
+        Test_Cmdi_Mandatory_SpanTags: missing_feature
+        Test_Cmdi_Optional_SpanTags: missing_feature
+        Test_Cmdi_Rules_Version: *ref_5_26_0
+        Test_Cmdi_StackTrace: missing_feature
+        Test_Cmdi_Telemetry: missing_feature
+        Test_Cmdi_Telemetry_Variant_Tag: missing_feature
+        Test_Cmdi_UrlQuery: missing_feature
+        Test_Cmdi_Waf_Version: *ref_5_26_0
       test_lfi.py:
         Test_Lfi_BodyJson:
           '*': *ref_5_24_0
@@ -554,7 +566,13 @@ tests/:
     test_logs.py:
       Test_Standardization: missing_feature
       Test_StandardizationBlockMode: missing_feature
-    test_metastruct.py: missing_feature
+    test_metastruct.py:
+      Test_SecurityEvents_Appsec_Metastruct_Enabled: missing_feature
+      Test_SecurityEvents_Appsec_Metastruct_Disabled:
+        '*': v2.2.0
+        nextjs: *ref_4_17_0
+      Test_SecurityEvents_Iast_Metastruct_Enabled: missing_feature
+      Test_SecurityEvents_Iast_Metastruct_Disabled: missing_feature
     test_rate_limiter.py:
       Test_Main: v2.0.0
     test_remote_config_rule_changes.py:
