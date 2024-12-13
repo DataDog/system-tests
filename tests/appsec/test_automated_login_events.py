@@ -16,8 +16,8 @@ from utils import weblog
 
 def login_data(context, username, password):
     """In Rails the parameters are group by scope. In the case of the test the scope is user.
-   The syntax to group parameters in a POST request is scope[parameter]
-   """
+    The syntax to group parameters in a POST request is scope[parameter]
+    """
     username_key = "user[username]" if "rails" in context.weblog_variant else "username"
     password_key = "user[password]" if "rails" in context.weblog_variant else "password"
     return {username_key: username, password_key: password}
@@ -60,6 +60,7 @@ HEADERS = {
     "Via": "42.42.42.42, 43.43.43.43",
     "True-Client-IP": "42.42.42.42, 43.43.43.43",
 }
+
 
 @rfc("https://docs.google.com/document/d/1-trUpphvyZY7k5ldjhW-MgqWl0xOm7AMEQDJEAZ63_Q/edit#heading=h.8d3o7vtyu1y1")
 @features.user_monitoring
@@ -226,7 +227,8 @@ class Test_Login_Events:
 
     def setup_login_sdk_success_local(self):
         self.r_sdk_success = weblog.post(
-            "/login?auth=local&sdk_event=success&sdk_user=sdkUser", data=login_data(context, USER, PASSWORD),
+            "/login?auth=local&sdk_event=success&sdk_user=sdkUser",
+            data=login_data(context, USER, PASSWORD),
         )
 
     def test_login_sdk_success_local(self):
@@ -241,7 +243,8 @@ class Test_Login_Events:
 
     def setup_login_sdk_success_basic(self):
         self.r_sdk_success = weblog.get(
-            "/login?auth=basic&sdk_event=success&sdk_user=sdkUser", headers={"Authorization": BASIC_AUTH_USER_HEADER},
+            "/login?auth=basic&sdk_event=success&sdk_user=sdkUser",
+            headers={"Authorization": BASIC_AUTH_USER_HEADER},
         )
 
     @missing_feature(context.library == "php", reason="Basic auth not implemented")
@@ -469,7 +472,8 @@ class Test_Login_Events_Extended:
 
     def setup_login_sdk_success_local(self):
         self.r_sdk_success = weblog.post(
-            "/login?auth=local&sdk_event=success&sdk_user=sdkUser", data=login_data(context, USER, PASSWORD),
+            "/login?auth=local&sdk_event=success&sdk_user=sdkUser",
+            data=login_data(context, USER, PASSWORD),
         )
 
     def test_login_sdk_success_local(self):
@@ -484,7 +488,8 @@ class Test_Login_Events_Extended:
 
     def setup_login_sdk_success_basic(self):
         self.r_sdk_success = weblog.get(
-            "/login?auth=basic&sdk_event=success&sdk_user=sdkUser", headers={"Authorization": BASIC_AUTH_USER_HEADER},
+            "/login?auth=basic&sdk_event=success&sdk_user=sdkUser",
+            headers={"Authorization": BASIC_AUTH_USER_HEADER},
         )
 
     @missing_feature(context.library == "php", reason="Basic auth not implemented")
@@ -537,7 +542,9 @@ class Test_Login_Events_Extended:
 
     def setup_login_success_headers(self):
         self.r_hdr_success = weblog.post(
-            "/login?auth=local", data=login_data(context, USER, PASSWORD), headers=HEADERS,
+            "/login?auth=local",
+            data=login_data(context, USER, PASSWORD),
+            headers=HEADERS,
         )
 
     @missing_feature(context.library < "dotnet@3.7.0")
@@ -559,7 +566,9 @@ class Test_Login_Events_Extended:
 
     def setup_login_failure_headers(self):
         self.r_hdr_failure = weblog.post(
-            "/login?auth=local", data=login_data(context, INVALID_USER, PASSWORD), headers=HEADERS,
+            "/login?auth=local",
+            data=login_data(context, INVALID_USER, PASSWORD),
+            headers=HEADERS,
         )
 
     @missing_feature(context.library < "dotnet@3.7.0")
@@ -780,7 +789,8 @@ class Test_V2_Login_Events:
 
     def setup_login_sdk_success_local(self):
         self.r_sdk_success = weblog.post(
-            "/login?auth=local&sdk_event=success&sdk_user=sdkUser", data=login_data(context, USER, PASSWORD),
+            "/login?auth=local&sdk_event=success&sdk_user=sdkUser",
+            data=login_data(context, USER, PASSWORD),
         )
 
     def test_login_sdk_success_local(self):
@@ -795,7 +805,8 @@ class Test_V2_Login_Events:
 
     def setup_login_sdk_success_basic(self):
         self.r_sdk_success = weblog.get(
-            "/login?auth=basic&sdk_event=success&sdk_user=sdkUser", headers={"Authorization": BASIC_AUTH_USER_HEADER},
+            "/login?auth=basic&sdk_event=success&sdk_user=sdkUser",
+            headers={"Authorization": BASIC_AUTH_USER_HEADER},
         )
 
     @missing_feature(context.library == "php", reason="Basic auth not implemented")
@@ -997,7 +1008,8 @@ class Test_V2_Login_Events_Anon:
 
     def setup_login_sdk_success_local(self):
         self.r_sdk_success = weblog.post(
-            "/login?auth=local&sdk_event=success&sdk_user=sdkUser", data=login_data(context, USER, PASSWORD),
+            "/login?auth=local&sdk_event=success&sdk_user=sdkUser",
+            data=login_data(context, USER, PASSWORD),
         )
 
     def test_login_sdk_success_local(self):
@@ -1012,7 +1024,8 @@ class Test_V2_Login_Events_Anon:
 
     def setup_login_sdk_success_basic(self):
         self.r_sdk_success = weblog.get(
-            "/login?auth=basic&sdk_event=success&sdk_user=sdkUser", headers={"Authorization": BASIC_AUTH_USER_HEADER},
+            "/login?auth=basic&sdk_event=success&sdk_user=sdkUser",
+            headers={"Authorization": BASIC_AUTH_USER_HEADER},
         )
 
     @missing_feature(context.library == "php", reason="Basic auth not implemented")
@@ -1063,7 +1076,9 @@ class Test_V2_Login_Events_Anon:
 
     def setup_login_success_headers(self):
         self.r_hdr_success = weblog.post(
-            "/login?auth=local", data=login_data(context, USER, PASSWORD), headers=HEADERS,
+            "/login?auth=local",
+            data=login_data(context, USER, PASSWORD),
+            headers=HEADERS,
         )
 
     @missing_feature(context.library < "dotnet@3.7.0")
@@ -1082,7 +1097,9 @@ class Test_V2_Login_Events_Anon:
 
     def setup_login_failure_headers(self):
         self.r_hdr_failure = weblog.post(
-            "/login?auth=local", data=login_data(context, INVALID_USER, PASSWORD), headers=HEADERS,
+            "/login?auth=local",
+            data=login_data(context, INVALID_USER, PASSWORD),
+            headers=HEADERS,
         )
 
     @missing_feature(context.library < "dotnet@3.7.0")
@@ -1376,7 +1393,8 @@ class Test_V3_Login_Events:
 
     def setup_login_sdk_success_local(self):
         self.r_sdk_success = weblog.post(
-            "/login?auth=local&sdk_event=success&sdk_user=sdkUser", data=login_data(context, USER, PASSWORD),
+            "/login?auth=local&sdk_event=success&sdk_user=sdkUser",
+            data=login_data(context, USER, PASSWORD),
         )
 
     def test_login_sdk_success_local(self):
@@ -1399,7 +1417,8 @@ class Test_V3_Login_Events:
 
     def setup_login_sdk_success_basic(self):
         self.r_sdk_success = weblog.get(
-            "/login?auth=basic&sdk_event=success&sdk_user=sdkUser", headers={"Authorization": BASIC_AUTH_USER_HEADER},
+            "/login?auth=basic&sdk_event=success&sdk_user=sdkUser",
+            headers={"Authorization": BASIC_AUTH_USER_HEADER},
         )
 
     @missing_feature(context.library == "php", reason="Basic auth not implemented")
@@ -1481,6 +1500,48 @@ class Test_V3_Login_Events:
             if context.library not in libs_without_user_id:
                 assert meta["appsec.events.users.signup.usr.id"] == "new-user"
                 assert meta["_dd.appsec.usr.id"] == "new-user"
+
+    def setup_login_success_headers(self):
+        self.r_hdr_success = weblog.post(
+            "/login?auth=local",
+            data=login_data(context, USER, PASSWORD),
+            headers=HEADERS,
+        )
+
+    @missing_feature(context.library < "dotnet@3.7.0")
+    def test_login_success_headers(self):
+        # Validate that all relevant headers are included on user login success on extended mode
+
+        def validate_login_success_headers(span):
+            if span.get("parent_id") not in (0, None):
+                return
+
+            for header in HEADERS:
+                assert f"http.request.headers.{header.lower()}" in span["meta"], f"Can't find {header} in span's meta"
+            return True
+
+        interfaces.library.validate_spans(self.r_hdr_success, validate_login_success_headers)
+
+    def setup_login_failure_headers(self):
+        self.r_hdr_failure = weblog.post(
+            "/login?auth=local",
+            data=login_data(context, INVALID_USER, PASSWORD),
+            headers=HEADERS,
+        )
+
+    @missing_feature(context.library < "dotnet@3.7.0")
+    def test_login_failure_headers(self):
+        # Validate that all relevant headers are included on user login failure on extended mode
+
+        def validate_login_failure_headers(span):
+            if span.get("parent_id") not in (0, None):
+                return
+
+            for header in HEADERS:
+                assert f"http.request.headers.{header.lower()}" in span["meta"], f"Can't find {header} in span's meta"
+            return True
+
+        interfaces.library.validate_spans(self.r_hdr_failure, validate_login_failure_headers)
 
 
 @rfc("https://docs.google.com/document/d/1RT38U6dTTcB-8muiYV4-aVDCsT_XrliyakjtAPyjUpw")
@@ -1625,7 +1686,8 @@ class Test_V3_Login_Events_Anon:
 
     def setup_login_sdk_success_local(self):
         self.r_sdk_success = weblog.post(
-            "/login?auth=local&sdk_event=success&sdk_user=sdkUser", data=login_data(context, USER, PASSWORD),
+            "/login?auth=local&sdk_event=success&sdk_user=sdkUser",
+            data=login_data(context, USER, PASSWORD),
         )
 
     def test_login_sdk_success_local(self):
@@ -1648,7 +1710,8 @@ class Test_V3_Login_Events_Anon:
 
     def setup_login_sdk_success_basic(self):
         self.r_sdk_success = weblog.get(
-            "/login?auth=basic&sdk_event=success&sdk_user=sdkUser", headers={"Authorization": BASIC_AUTH_USER_HEADER},
+            "/login?auth=basic&sdk_event=success&sdk_user=sdkUser",
+            headers={"Authorization": BASIC_AUTH_USER_HEADER},
         )
 
     @missing_feature(context.library == "php", reason="Basic auth not implemented")
