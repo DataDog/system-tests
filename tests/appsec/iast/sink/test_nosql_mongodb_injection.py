@@ -20,6 +20,12 @@ class TestNoSqlMongodbInjection(BaseSinkTest):
         "nodejs": {"express4": "iast/index.js", "express4-typescript": "iast.ts", "express5": "iast/index.js"}
     }
 
+    @missing_feature(
+        context.weblog_variant == "express5", reason="express-mongo-sanitize is not yet compatible with express5"
+    )
+    def test_secure(self):
+        super().test_secure()
+
     @missing_feature(context.library < "java@1.13.0", reason="Not implemented yet")
     @missing_feature(library="python", reason="Not implemented yet")
     @missing_feature(library="dotnet", reason="Not implemented yet")
