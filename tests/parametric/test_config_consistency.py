@@ -4,8 +4,8 @@ Test configuration consistency for features across supported APM SDKs.
 
 from urllib.parse import urlparse
 import pytest
-from utils import scenarios, features, context, bug, missing_feature, irrelevant, flaky
-from utils.parametric.spec.trace import find_span_in_traces, assert_trace_has_tags
+from utils import scenarios, features, context, missing_feature, irrelevant, flaky
+from utils.parametric.spec.trace import find_span_in_traces, find_only_span
 
 parametrize = pytest.mark.parametrize
 
@@ -234,12 +234,17 @@ class Test_Config_RateLimit:
 @scenarios.parametric
 @features.tracing_configuration_consistency
 class Test_Config_Tags:
-    @parametrize("library_env", [{"DD_TAGS": "key1:value1,key2:value2"}])
+    @parametrize("library_env", [{"DD_TAGS": "key1:value1,key2:value2"}, {"DD_TAGS": "key1:value1 key2:value2"}])
     def test_default_trace_rate_limit(self, library_env, test_agent, test_library):
-        expected_local_tags = {}
+        expected_local_tags = []
+        print("library_env: ", library_env)
         if "DD_TAGS" in library_env:
             expected_local_tags = dict([p.split(":") for p in library_env["DD_TAGS"].split(",")])
-
-        with test_library as t:
-            resp = t.config()
-        print("resp: ", resp)
+        with test_library:
+            with test_library.dd_start_span(name="comma-separated-tags"):
+                pass
+        span = find_only_span(test_agent.wait_for_num_traces(1))
+        print(expected_local_tags)
+        for k, v in expected_local_tags:
+            assert k in span["meta"]
+            assert span["meta"][k] == v
