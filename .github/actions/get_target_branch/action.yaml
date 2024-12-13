@@ -17,4 +17,4 @@ runs:
       if: ${{ contains(inputs.body, '"TARGET_BRANCH:"') }}
       shell: bash
       run: |
-        echo "target-branch=$(echo ${{ inputs.body }} | grep -oP '(?<=TARGET_BRANCH:).*' | tr -s ' ')" >> $GITHUB_OUTPUT
+        echo "target-branch=$(echo ${{ inputs.body }} | grep -oP '(?<=TARGET_BRANCH:).*' | tr -d ' ')" >> $GITHUB_OUTPUT
