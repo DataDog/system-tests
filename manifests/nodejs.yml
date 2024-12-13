@@ -710,6 +710,7 @@ tests/:
       TestAdmisionControllerProfiling: *ref_5_22_0
   parametric/:
     test_config_consistency.py:
+      Test_Config_Dogstatsd: *ref_5_29_0
       Test_Config_RateLimit: *ref_5_25_0
       Test_Config_TraceAgentURL: *ref_5_25_0
       Test_Config_TraceEnabled: *ref_4_3_0

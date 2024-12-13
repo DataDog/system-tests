@@ -312,6 +312,8 @@ class APMLibraryClient:
             "dd_version": config_dict.get("dd_version", None),
             "dd_trace_agent_url": config_dict.get("dd_trace_agent_url", None),
             "dd_trace_rate_limit": config_dict.get("dd_trace_rate_limit", None),
+            "dd_dogstatsd_host": config_dict.get("dd_dogstatsd_host", None),
+            "dd_dogstatsd_port": config_dict.get("dd_dogstatsd_port", None),
         }
 
     def otel_current_span(self) -> Union[SpanResponse, None]:
