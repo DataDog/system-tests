@@ -320,7 +320,6 @@ class AsmStandalone_UpstreamPropagation_Base:
             },
         )
 
-    @flaky(library="python", reason="APPSEC-55222")  # _dd.apm.enabled missing in metrics
     def test_no_upstream_appsec_propagation__with_asm_event__is_kept_with_priority_2__from_0(self):
         spans_checked = 0
         tested_meta = {"_dd.p.appsec": "1"}
@@ -605,7 +604,6 @@ class AsmStandalone_UpstreamPropagation_Base:
 @rfc("https://docs.google.com/document/d/12NBx-nD-IoQEMiCRnJXneq4Be7cbtSc6pJLOFUWTpNE/edit")
 @features.appsec_standalone
 @scenarios.appsec_standalone
-@flaky(context.library >= "python@2.18.0+dev", reason="APPSEC-56142")
 class Test_AppSecStandalone_UpstreamPropagation(AsmStandalone_UpstreamPropagation_Base):
     """APPSEC correctly propagates AppSec events in distributing tracing."""
 
