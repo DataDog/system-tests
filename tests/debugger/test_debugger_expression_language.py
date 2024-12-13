@@ -22,7 +22,6 @@ class Test_Debugger_Expression_Language(debugger._Base_Debugger_Test):
 
     ############ assert ############
     def _assert(self, expected_response: int):
-
         self.collect()
 
         self.assert_rc_state_not_error()
