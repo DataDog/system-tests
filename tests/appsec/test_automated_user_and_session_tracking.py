@@ -32,8 +32,8 @@ PASSWORD = "1234"
 
 def login_data(context, user, password):
     """In Rails the parameters are group by scope. In the case of the test the scope is user.
-   The syntax to group parameters in a POST request is scope[parameter]
-   """
+    The syntax to group parameters in a POST request is scope[parameter]
+    """
     username_key = "user[username]" if "rails" in context.weblog_variant else "username"
     password_key = "user[password]" if "rails" in context.weblog_variant else "password"
     return {username_key: user, password_key: password}
@@ -44,7 +44,10 @@ def login_data(context, user, password):
 class Test_Automated_User_Tracking:
     def setup_user_tracking_auto(self):
         self.r_login = weblog.post("/login?auth=local", data=login_data(context, USER, PASSWORD))
-        self.r_home = weblog.get("/", cookies=self.r_login.cookies,)
+        self.r_home = weblog.get(
+            "/",
+            cookies=self.r_login.cookies,
+        )
 
     def test_user_tracking_auto(self):
         assert self.r_login.status_code == 200
@@ -117,7 +120,10 @@ class Test_Automated_User_Blocking:
         self.r_login = weblog.post("/login?auth=local", data=login_data(context, USER, PASSWORD))
 
         self.config_state_2 = rc.rc_state.set_config(*BLOCK_USER).apply()
-        self.r_home_blocked = weblog.get("/", cookies=self.r_login.cookies,)
+        self.r_home_blocked = weblog.get(
+            "/",
+            cookies=self.r_login.cookies,
+        )
 
     def test_user_blocking_auto(self):
         assert self.config_state_1[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
@@ -167,7 +173,9 @@ BLOCK_SESSION = (
                 "on_match": ["block"],
             }
         ],
-        "rules_data": [{"id": "blocked_sessions", "type": "data_with_expiration", "data": []},],
+        "rules_data": [
+            {"id": "blocked_sessions", "type": "data_with_expiration", "data": []},
+        ],
     },
 )
 
@@ -185,7 +193,10 @@ class Test_Automated_Session_Blocking:
 
         BLOCK_SESSION[1]["rules_data"][0]["data"].append({"value": self.session_id, "expiration": 0})
         self.config_state_2 = rc.rc_state.set_config(*BLOCK_SESSION).apply()
-        self.r_home_blocked = weblog.get("/", cookies=self.r_create_session.cookies,)
+        self.r_home_blocked = weblog.get(
+            "/",
+            cookies=self.r_create_session.cookies,
+        )
 
     def test_session_blocking(self):
         assert self.config_state_1[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
