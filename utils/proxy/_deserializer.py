@@ -46,10 +46,10 @@ def _parse_as_unsigned_int(value, size_in_bits):
         return value
 
     # Asserts that the unsigned is either a no bigger than the size in bits
-    assert -(2 ** size_in_bits - 1) <= value <= 2 ** size_in_bits - 1
+    assert -(2**size_in_bits - 1) <= value <= 2**size_in_bits - 1
 
     # Take two's complement of the number if negative
-    return value if value >= 0 else (-value ^ (2 ** size_in_bits - 1)) + 1
+    return value if value >= 0 else (-value ^ (2**size_in_bits - 1)) + 1
 
 
 def _decode_unsigned_int_traces(content):
@@ -203,7 +203,6 @@ def deserialize_http_message(path, message, content: bytes, interface, key, expo
                 _deserialize_file_in_multipart_form_data(item, headers, export_content_files_to, part.content)
 
             else:
-
                 try:
                     item["content"] = part.text
                 except UnicodeDecodeError:
@@ -265,7 +264,6 @@ def _deserialized_nested_json_from_trace_payloads(content, interface):
 
 
 def _deserialize_meta(span):
-
     meta = span.get("meta", {})
 
     keys = ("_dd.appsec.json", "_dd.iast.json")
@@ -301,7 +299,6 @@ def _convert_bytes_values(item, path=""):
 
 
 def deserialize(data, key, content, interface, export_content_files_to: str):
-
     try:
         data[key]["content"] = deserialize_http_message(
             data["path"], data[key], content, interface, key, export_content_files_to

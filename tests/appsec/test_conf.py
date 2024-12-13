@@ -13,7 +13,7 @@ TELEMETRY_REQUEST_TYPE_GENERATE_METRICS = "generate-metrics"
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2355333252/Environment+Variables")
 @features.threats_configuration
 class Test_ConfigurationVariables:
-    """ Configuration environment variables """
+    """Configuration environment variables"""
 
     SECRET = "This-value-is-secret"
 
@@ -24,7 +24,7 @@ class Test_ConfigurationVariables:
         self.r_enabled = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1"})
 
     def test_enabled(self):
-        """ test DD_APPSEC_ENABLED = true """
+        """test DD_APPSEC_ENABLED = true"""
         interfaces.library.assert_waf_attack(self.r_enabled)
 
     def setup_disabled(self):
@@ -33,7 +33,7 @@ class Test_ConfigurationVariables:
     @irrelevant(library="ruby", weblog_variant="rack", reason="it's not possible to auto instrument with rack")
     @scenarios.everything_disabled
     def test_disabled(self):
-        """ test DD_APPSEC_ENABLED = false """
+        """test DD_APPSEC_ENABLED = false"""
         interfaces.library.assert_no_appsec_event(self.r_disabled)
 
     def setup_appsec_rules(self):
@@ -41,7 +41,7 @@ class Test_ConfigurationVariables:
 
     @scenarios.appsec_custom_rules
     def test_appsec_rules(self):
-        """ test DD_APPSEC_RULES = custom rules file """
+        """test DD_APPSEC_RULES = custom rules file"""
         interfaces.library.assert_waf_attack(self.r_appsec_rules, pattern="dedicated-value-for-testing-purpose")
 
     def setup_waf_timeout(self):
@@ -55,7 +55,7 @@ class Test_ConfigurationVariables:
     @missing_feature(context.library == "java" and context.weblog_variant == "spring-boot-wildfly")
     @scenarios.appsec_low_waf_timeout
     def test_waf_timeout(self):
-        """ test DD_APPSEC_WAF_TIMEOUT = low value """
+        """test DD_APPSEC_WAF_TIMEOUT = low value"""
         interfaces.library.assert_no_appsec_event(self.r_waf_timeout)
 
     def setup_obfuscation_parameter_key(self):
@@ -65,7 +65,7 @@ class Test_ConfigurationVariables:
     @missing_feature(context.library < f"python@{PYTHON_RELEASE_GA_1_1}")
     @scenarios.appsec_custom_obfuscation
     def test_obfuscation_parameter_key(self):
-        """ test DD_APPSEC_OBFUSCATION_PARAMETER_KEY_REGEXP """
+        """test DD_APPSEC_OBFUSCATION_PARAMETER_KEY_REGEXP"""
 
         def validate_appsec_span_tags(span, appsec_data):  # pylint: disable=unused-argument
             assert not nested_lookup(
@@ -83,7 +83,7 @@ class Test_ConfigurationVariables:
     @missing_feature(context.library < f"python@{PYTHON_RELEASE_GA_1_1}")
     @scenarios.appsec_custom_obfuscation
     def test_obfuscation_parameter_value(self):
-        """ test DD_APPSEC_OBFUSCATION_PARAMETER_VALUE_REGEXP """
+        """test DD_APPSEC_OBFUSCATION_PARAMETER_VALUE_REGEXP"""
 
         def validate_appsec_span_tags(span, appsec_data):  # pylint: disable=unused-argument
             assert not nested_lookup(

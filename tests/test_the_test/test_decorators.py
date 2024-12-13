@@ -21,7 +21,6 @@ def is_skipped(item, reason):
     else:
         for mark in item.pytestmark:
             if mark.name in ("skip", "xfail"):
-
                 if mark.kwargs["reason"] == reason:
                     print(f"Found expected {mark} for {item}")
                     return True
@@ -70,8 +69,7 @@ class Test_Metadata:
         with pytest.raises(ValueError):
 
             @missing_feature(library="not a lib")
-            def test_method():
-                ...
+            def test_method(): ...
 
 
 class Test_Skips:
