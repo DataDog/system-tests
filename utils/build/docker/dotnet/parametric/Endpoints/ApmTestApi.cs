@@ -65,10 +65,10 @@ public abstract class ApmTestApi
     private static readonly Dictionary<ulong, ISpan> Spans = new();
     private static readonly Dictionary<ulong, ISpanContext> DDContexts = new();
 
-    internal static ILogger<ApmTestApi>? _logger;
-
     private static readonly SpanContextInjector _spanContextInjector = new();
     private static readonly SpanContextExtractor _spanContextExtractor = new();
+
+    internal static ILogger<ApmTestApi>? _logger;
 
     private static IEnumerable<string> GetHeaderValues(string[][] headersList, string key)
     {
