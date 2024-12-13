@@ -78,7 +78,7 @@ def plot():
             data = json.load(f)["memory"]
 
         x = [d[0] for d in data]
-        y = [d[1] / (1024 ** 2) for d in data]
+        y = [d[1] / (1024**2) for d in data]
 
         axis.plot(x, y, label=label)
 

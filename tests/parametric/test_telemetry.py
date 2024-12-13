@@ -1,6 +1,7 @@
 """
 Test the telemetry that should be emitted from the library.
 """
+
 import base64
 import copy
 import json
@@ -581,17 +582,15 @@ class Test_TelemetrySCAEnvVar:
     @pytest.mark.parametrize(
         "library_env, specific_libraries_support, outcome_value",
         [
-            ({**DEFAULT_ENVVARS, "DD_APPSEC_SCA_ENABLED": "true",}, False, True,),
-            ({**DEFAULT_ENVVARS, "DD_APPSEC_SCA_ENABLED": "True",}, ("python", "golang"), True,),
-            ({**DEFAULT_ENVVARS, "DD_APPSEC_SCA_ENABLED": "1",}, ("python", "golang"), True,),
-            ({**DEFAULT_ENVVARS, "DD_APPSEC_SCA_ENABLED": "false",}, False, False,),
-            ({**DEFAULT_ENVVARS, "DD_APPSEC_SCA_ENABLED": "False",}, ("python", "golang"), False,),
-            ({**DEFAULT_ENVVARS, "DD_APPSEC_SCA_ENABLED": "0",}, ("python", "golang"), False,),
+            ({**DEFAULT_ENVVARS, "DD_APPSEC_SCA_ENABLED": "true"}, False, True),
+            ({**DEFAULT_ENVVARS, "DD_APPSEC_SCA_ENABLED": "True"}, ("python", "golang"), True),
+            ({**DEFAULT_ENVVARS, "DD_APPSEC_SCA_ENABLED": "1"}, ("python", "golang"), True),
+            ({**DEFAULT_ENVVARS, "DD_APPSEC_SCA_ENABLED": "false"}, False, False),
+            ({**DEFAULT_ENVVARS, "DD_APPSEC_SCA_ENABLED": "False"}, ("python", "golang"), False),
+            ({**DEFAULT_ENVVARS, "DD_APPSEC_SCA_ENABLED": "0"}, ("python", "golang"), False),
         ],
     )
-    @missing_feature(
-        context.library <= "python@2.16.0", reason="Converts boolean values to strings",
-    )
+    @missing_feature(context.library <= "python@2.16.0", reason="Converts boolean values to strings")
     def test_telemetry_sca_enabled_propagated(
         self, library_env, specific_libraries_support, outcome_value, test_agent, test_library
     ):

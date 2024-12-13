@@ -498,6 +498,7 @@ tests/:
       Test_Otel_Drop_In: missing_feature
   parametric/:
     test_config_consistency.py:
+      Test_Config_Dogstatsd: missing_feature
       Test_Config_RateLimit: v1.67.0
       Test_Config_Tags: v1.70.1
       Test_Config_TraceAgentURL: v1.70.0-dev
@@ -564,6 +565,7 @@ tests/:
           Test_MultipartUpload: missing_feature
           Test_PutObject: missing_feature
   test_config_consistency.py:
+    Test_Config_ClientIPHeaderEnabled_False: v1.70.1
     Test_Config_ClientIPHeader_Configured: v1.60.0
     Test_Config_ClientIPHeader_Precedence: v1.69.0
     Test_Config_ClientTagQueryString_Configured: missing_feature (supports DD_TRACE_HTTP_URL_QUERY_STRING_DISABLED)

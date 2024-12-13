@@ -173,7 +173,6 @@ tests/:
         test_nosql_mongodb_injection.py:
           TestNoSqlMongodbInjection:
             '*': *ref_4_17_0
-            express5: missing_feature # express-mongo-sanitize is not yet compatible with express5
             nextjs: missing_feature
           TestNoSqlMongodbInjection_StackTrace: missing_feature
         test_path_traversal.py:
@@ -294,7 +293,19 @@ tests/:
         test_uri.py:
           TestURI: missing_feature
     rasp/:
-      test_cmdi.py: missing_feature
+      test_cmdi.py:
+        Test_Cmdi_BodyJson: missing_feature
+        Test_Cmdi_BodyUrlEncoded: missing_feature
+        Test_Cmdi_BodyXml: missing_feature
+        Test_Cmdi_Capability: missing_feature
+        Test_Cmdi_Mandatory_SpanTags: missing_feature
+        Test_Cmdi_Optional_SpanTags: missing_feature
+        Test_Cmdi_Rules_Version: *ref_5_26_0
+        Test_Cmdi_StackTrace: missing_feature
+        Test_Cmdi_Telemetry: missing_feature
+        Test_Cmdi_Telemetry_Variant_Tag: missing_feature
+        Test_Cmdi_UrlQuery: missing_feature
+        Test_Cmdi_Waf_Version: *ref_5_26_0
       test_lfi.py:
         Test_Lfi_BodyJson:
           '*': *ref_5_24_0
@@ -477,15 +488,11 @@ tests/:
       Test_IastStandalone_UpstreamPropagation: *ref_5_29_0
       Test_SCAStandalone_Telemetry: *ref_5_18_0
     test_automated_login_events.py:
-      Test_Login_Events:
-        '*': *ref_4_4_0
-        nextjs: missing_feature
-      Test_Login_Events_Extended:
-        '*': *ref_4_4_0
-        nextjs: missing_feature
-      Test_V2_Login_Events: missing_feature
-      Test_V2_Login_Events_Anon: missing_feature
-      Test_V2_Login_Events_RC: missing_feature
+      Test_Login_Events: irrelevant
+      Test_Login_Events_Extended: irrelevant
+      Test_V2_Login_Events: irrelevant
+      Test_V2_Login_Events_Anon: irrelevant
+      Test_V2_Login_Events_RC: irrelevant
     test_blocking_addresses.py:
       Test_BlockingGraphqlResolvers:
         '*': *ref_4_22_0
@@ -554,7 +561,11 @@ tests/:
     test_logs.py:
       Test_Standardization: missing_feature
       Test_StandardizationBlockMode: missing_feature
-    test_metastruct.py: missing_feature
+    test_metastruct.py:
+      Test_SecurityEvents_Appsec_Metastruct_Disabled: v2.2.0
+      Test_SecurityEvents_Appsec_Metastruct_Enabled: missing_feature
+      Test_SecurityEvents_Iast_Metastruct_Disabled: missing_feature
+      Test_SecurityEvents_Iast_Metastruct_Enabled: missing_feature
     test_rate_limiter.py:
       Test_Main: v2.0.0
     test_remote_config_rule_changes.py:
@@ -714,6 +725,7 @@ tests/:
       TestAdmisionControllerProfiling: *ref_5_22_0
   parametric/:
     test_config_consistency.py:
+      Test_Config_Dogstatsd: *ref_5_29_0
       Test_Config_RateLimit: *ref_5_25_0
       Test_Config_Tags: missing_feature
       Test_Config_TraceAgentURL: *ref_5_25_0
@@ -790,6 +802,7 @@ tests/:
     test_stats.py:
       Test_Client_Stats: missing_feature
   test_config_consistency.py:
+    Test_Config_ClientIPHeaderEnabled_False: *ref_5_27_0
     Test_Config_ClientIPHeader_Configured: *ref_3_13_0
     Test_Config_ClientIPHeader_Precedence: *ref_3_19_0
     Test_Config_ClientTagQueryString_Configured: missing_feature (adding query string to http.url is not supported)

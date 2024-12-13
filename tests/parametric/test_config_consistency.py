@@ -298,3 +298,34 @@ def _parse_dd_tags(tags):
         if key:
             result.append((key, value))
     return result
+
+  
+@scenarios.parametric
+@features.tracing_configuration_consistency
+class Test_Config_Dogstatsd:
+    @parametrize(
+        "library_env", [{"DD_AGENT_HOST": "localhost"}]
+    )  # Adding DD_AGENT_HOST because some SDKs use DD_AGENT_HOST to set the dogstatsd host if unspecified
+    def test_dogstatsd_default(self, library_env, test_agent, test_library):
+        with test_library as t:
+            resp = t.config()
+        assert resp["dd_dogstatsd_host"] == "localhost"
+        assert resp["dd_dogstatsd_port"] == "8125"
+
+    @parametrize("library_env", [{"DD_DOGSTATSD_HOST": "192.168.10.1"}])
+    def test_dogstatsd_custom_ip_address(self, library_env, test_agent, test_library):
+        with test_library as t:
+            resp = t.config()
+        assert resp["dd_dogstatsd_host"] == "192.168.10.1"
+
+    @parametrize("library_env", [{"DD_DOGSTATSD_HOST": "randomname"}])
+    def test_dogstatsd_custom_hostname(self, library_env, test_agent, test_library):
+        with test_library as t:
+            resp = t.config()
+        assert resp["dd_dogstatsd_host"] == "randomname"
+
+    @parametrize("library_env", [{"DD_DOGSTATSD_PORT": "8150"}])
+    def test_dogstatsd_custom_port(self, library_env, test_agent, test_library):
+        with test_library as t:
+            resp = t.config()
+        assert resp["dd_dogstatsd_port"] == "8150"

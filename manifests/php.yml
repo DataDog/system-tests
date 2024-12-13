@@ -307,6 +307,7 @@ tests/:
     test_128_bit_traceids.py:
       Test_128_Bit_Traceids: v0.84.0
     test_config_consistency.py:
+      Test_Config_Dogstatsd: missing_feature
       Test_Config_RateLimit: v1.5.0
       Test_Config_Tags: missing_feature
       Test_Config_TraceAgentURL: v1.4.0
@@ -388,6 +389,7 @@ tests/:
     test_stats.py:
       Test_Client_Stats: missing_feature
   test_config_consistency.py:
+    Test_Config_ClientIPHeaderEnabled_False: v1.5.1
     Test_Config_ClientIPHeader_Configured: v1.4.0
     Test_Config_ClientIPHeader_Precedence: v1.4.0
     Test_Config_ClientTagQueryString_Configured: missing_feature (supports dd_trace_http_url_query_param_allowed instead)
