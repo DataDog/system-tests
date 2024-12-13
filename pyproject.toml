@@ -5,10 +5,6 @@ version = '0.0.1'
 [tool.setuptools]
 packages = ["tests", "utils", "manifests"]
 
-[tool.black]
-line-length = 120
-exclude = "(venv/|utils/grpc/weblog_pb2_grpc.py|utils/grpc/weblog_pb2.py|parametric/apps)"
-
 [tool.pytest.ini_options]
 addopts = "--json-report --json-report-indent=2 --color=yes --no-header --junitxml=reportJunit.xml -r Xf"
 testpaths = [
@@ -56,10 +52,23 @@ follow_imports = "skip"
 # enable_error_code = ["ignore-without-code"]
 
 [tool.ruff]
-exclude = ["tests/", "utils/build/", "lib-injection/", "manifests/"]
 line-length = 120
 indent-width = 4
 target-version = "py312"
+
+[tool.ruff.format]
+exclude = [
+    "venv/", 
+    "utils/grpc/weblog_pb2_grpc.py", 
+    "utils/grpc/weblog_pb2.py", "parametric/apps", 
+    "lib-injection/build/docker/python/dd-lib-python-init-test-protobuf-old/addressbook_pb2.py"
+]
+quote-style = "double"
+indent-style = "space"
+# skip-magic-trailing-comma = false
+# line-ending = "auto"
+# docstring-code-format = false
+# docstring-code-line-length = "dynamic"
 
 [tool.ruff.lint]
 select = ["ALL"]
@@ -79,7 +88,6 @@ ignore = [
     "ARG005",  # unused lambda argument
     "BLE001",  # TBD
     "C901",    # code complexity, TBD
-    "COM819",  # no extra comma, TBD
     "D200",
     "D205",    # docstring format
     "D401",    # docstring format
@@ -172,6 +180,10 @@ ignore = [
 
 # TODO : remove those ignores
 [tool.ruff.lint.per-file-ignores]
+"tests/*" = ["ALL"]
+"utils/build/*"  = ["ALL"]
+"lib-injection/*" = ["ALL"]
+"manifests/*"  = ["ALL"]
 "utils/grpc/weblog_pb2_grpc.py" = ["ALL"]   # keep this one, it's a generated file
 "utils/grpc/weblog_pb2.py" = ["ALL"]        # keep this one, it's a generated file
 "utils/scripts/*" = ["T201"]                # allow print statements in scripts folder

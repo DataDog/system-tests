@@ -62,9 +62,9 @@ class TestAdmisionControllerProfiling:
     """Test profiling activation with the admission controller."""
 
     def _check_profiling_request_sent(self, k8s_kind_cluster, timeout=90):
-        """ Use test agent profiling endpoint to check if the profiling data has been sent by the injectect library. 
+        """Use test agent profiling endpoint to check if the profiling data has been sent by the injectect library.
         Checks the request made to the profiling endpoint (/profiling/v1/input).
-        The profiling post data can take between 12 and 90 seconds (12 if the library supports both env vars, 90 if it supports neither. """
+        The profiling post data can take between 12 and 90 seconds (12 if the library supports both env vars, 90 if it supports neither."""
         mustend = time.time() + timeout
         while time.time() < mustend:
             response = requests.get(

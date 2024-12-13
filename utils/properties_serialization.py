@@ -63,7 +63,6 @@ class SetupProperties:
 
     @staticmethod
     def _get_properties(instance) -> dict:
-
         properties = {
             name: getattr(instance, name)
             for name in dir(instance)

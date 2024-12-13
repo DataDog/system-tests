@@ -47,7 +47,6 @@ class Test_Debugger_Exception_Replay(debugger._Base_Debugger_Test):
             filtered_spans = {}
 
             for span in self.probe_spans.values():
-
                 snapshot_ids_in_span = {
                     key: value for key, value in span["meta"].items() if key.endswith("snapshot_id")
                 }.values()
@@ -226,7 +225,6 @@ class Test_Debugger_Exception_Replay(debugger._Base_Debugger_Test):
 
         while not all(shapes.values()) and retries < max_retries:
             for shape in shapes.keys():
-
                 shape_found = shapes[shape]
                 logger.debug(f"{shape} found: {shape_found}, retry #{retries}")
 

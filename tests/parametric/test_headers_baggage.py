@@ -34,7 +34,7 @@ class Test_Headers_Baggage:
         """Ensure baggage is enabled as a default setting and that it does not interfere with Datadog headers."""
         with test_library:
             headers = test_library.dd_make_child_span_and_get_headers(
-                [["x-datadog-trace-id", "123456789"], ["x-datadog-parent-id", "987654321"], ["baggage", "foo=bar"],],
+                [["x-datadog-trace-id", "123456789"], ["x-datadog-parent-id", "987654321"], ["baggage", "foo=bar"]]
             )
 
         span = find_only_span(test_agent.wait_for_num_traces(1))
@@ -62,7 +62,7 @@ class Test_Headers_Baggage:
         """Ensure that baggage headers are not injected when baggage is disabled and does not interfere with other headers."""
         with test_library:
             headers = test_library.dd_make_child_span_and_get_headers(
-                [["x-datadog-trace-id", "123456789"], ["x-datadog-parent-id", "987654321"], ["baggage", "foo=bar"],],
+                [["x-datadog-trace-id", "123456789"], ["x-datadog-parent-id", "987654321"], ["baggage", "foo=bar"]]
             )
 
         span = find_only_span(test_agent.wait_for_num_traces(1))
@@ -191,13 +191,13 @@ class Test_Headers_Baggage:
     def test_baggage_malformed_headers_D013(self, test_library):
         """Ensure that malformed baggage headers are handled properly. Unable to use get_baggage functions because it does not return anything"""
         with test_library:
-            headers = test_library.dd_make_child_span_and_get_headers([["baggage", "=no-key"]],)
+            headers = test_library.dd_make_child_span_and_get_headers([["baggage", "=no-key"]])
 
             assert "baggage" not in headers.keys()
 
     def test_baggage_malformed_headers_D014(self, test_library):
         with test_library:
-            headers = test_library.dd_make_child_span_and_get_headers([["baggage", "no-value="]],)
+            headers = test_library.dd_make_child_span_and_get_headers([["baggage", "no-value="]])
 
             assert "baggage" not in headers.keys()
 
@@ -226,11 +226,11 @@ class Test_Headers_Baggage:
     def test_baggageheader_maxbytes_inject_D017(self, test_library):
         """Ensure that baggage headers are not injected when the total byte size of the baggage exceeds the maximum size."""
         max_bytes = 8192
-        with test_library.dd_start_span(name="test_baggageheader_maxbytes_inject_D017",) as span:
+        with test_library.dd_start_span(name="test_baggageheader_maxbytes_inject_D017") as span:
             baggage_items = {
-                "key1": "a" * ((max_bytes // 3)),
-                "key2": "b" * ((max_bytes // 3)),
-                "key3": "c" * ((max_bytes // 3)),
+                "key1": "a" * (max_bytes // 3),
+                "key2": "b" * (max_bytes // 3),
+                "key3": "c" * (max_bytes // 3),
                 "key4": "d",
             }
             for key, value in baggage_items.items():

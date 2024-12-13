@@ -22,7 +22,6 @@ class Test_Debugger_Expression_Language(debugger._Base_Debugger_Test):
 
     ############ assert ############
     def _assert(self, expected_response: int):
-
         self.collect()
 
         self.assert_rc_state_not_error()
@@ -57,15 +56,14 @@ class Test_Debugger_Expression_Language(debugger._Base_Debugger_Test):
     ############ test ############
     ############ access variables ############
     def setup_expression_language_access_variables(self):
-
         message_map, probes = self._create_expression_probes(
             methodName="Expression",
             expressions=[
-                ["Accessing input", "asd", Dsl("ref", "inputValue"),],
-                ["Accessing return", ".*Great success number 3", Dsl("ref", "@return"),],
-                ["Accessing local", 3, Dsl("ref", "localValue"),],
-                ["Accessing complex object int", 1, Dsl("getmember", [Dsl("ref", "testStruct"), "IntValue"]),],
-                ["Accessing complex object double", 1.1, Dsl("getmember", [Dsl("ref", "testStruct"), "DoubleValue"]),],
+                ["Accessing input", "asd", Dsl("ref", "inputValue")],
+                ["Accessing return", ".*Great success number 3", Dsl("ref", "@return")],
+                ["Accessing local", 3, Dsl("ref", "localValue")],
+                ["Accessing complex object int", 1, Dsl("getmember", [Dsl("ref", "testStruct"), "IntValue"])],
+                ["Accessing complex object double", 1.1, Dsl("getmember", [Dsl("ref", "testStruct"), "DoubleValue"])],
                 [
                     "Accessing complex object string",
                     "one",
@@ -86,7 +84,7 @@ class Test_Debugger_Expression_Language(debugger._Base_Debugger_Test):
                     2,
                     Dsl("index", [Dsl("getmember", [Dsl("ref", "testStruct"), "Dictionary"]), "two"]),
                 ],
-                ["Accessing duration", r"\d+(\.\d+)?", Dsl("ref", "@duration"),],
+                ["Accessing duration", r"\d+(\.\d+)?", Dsl("ref", "@duration")],
             ],
         )
 
@@ -100,7 +98,7 @@ class Test_Debugger_Expression_Language(debugger._Base_Debugger_Test):
     def setup_expression_language_access_exception(self):
         message_map, probes = self._create_expression_probes(
             methodName="ExpressionException",
-            expressions=[["Accessing exception", ".*Hello from exception", Dsl("ref", "@exception"),],],
+            expressions=[["Accessing exception", ".*Hello from exception", Dsl("ref", "@exception")]],
         )
 
         self.message_map = message_map
@@ -219,7 +217,6 @@ class Test_Debugger_Expression_Language(debugger._Base_Debugger_Test):
 
     ############ logical operators ############
     def setup_expression_language_logical_operators(self):
-
         message_map, probes = self._create_expression_probes(
             methodName="ExpressionOperators",
             expressions=[
@@ -233,7 +230,7 @@ class Test_Debugger_Expression_Language(debugger._Base_Debugger_Test):
                     True,
                     Dsl("or", [Dsl("eq", [Dsl("ref", "intValue"), 1]), Dsl("eq", [Dsl("ref", "strValue"), "haha"])]),
                 ],
-                ["not intValue ne 10", True, Dsl("not", Dsl("ne", [Dsl("ref", "intValue"), 5])),],
+                ["not intValue ne 10", True, Dsl("not", Dsl("ne", [Dsl("ref", "intValue"), 5]))],
                 [
                     "intValue eq 5 and strValue ne haha",
                     False,
@@ -244,7 +241,7 @@ class Test_Debugger_Expression_Language(debugger._Base_Debugger_Test):
                     False,
                     Dsl("or", [Dsl("eq", [Dsl("ref", "intValue"), 1]), Dsl("eq", [Dsl("ref", "strValue"), "hoho"])]),
                 ],
-                ["not intValue eq 10", False, Dsl("not", Dsl("eq", [Dsl("ref", "intValue"), 5])),],
+                ["not intValue eq 10", False, Dsl("not", Dsl("eq", [Dsl("ref", "intValue"), 5]))],
             ],
         )
 
@@ -257,7 +254,6 @@ class Test_Debugger_Expression_Language(debugger._Base_Debugger_Test):
 
     ############ string operations ############
     def setup_expression_language_string_operations(self):
-
         message_map, probes = self._create_expression_probes(
             methodName="StringOperations",
             expressions=[
@@ -276,7 +272,7 @@ class Test_Debugger_Expression_Language(debugger._Base_Debugger_Test):
                 ["strValue startsWith very", True, Dsl("startsWith", [Dsl("ref", "strValue"), "very"])],
                 ["strValue startsWith foo", False, Dsl("startsWith", [Dsl("ref", "strValue"), "foo"])],
                 ["emptyString startsWith empty", True, Dsl("startsWith", [Dsl("ref", "emptyString"), ""])],
-                ["emptyString startsWith some", False, Dsl("startsWith", [Dsl("ref", "emptyString"), "some"]),],
+                ["emptyString startsWith some", False, Dsl("startsWith", [Dsl("ref", "emptyString"), "some"])],
                 ##### endsWith
                 ["strValue endsWith ring", True, Dsl("endsWith", [Dsl("ref", "strValue"), "ring"])],
                 ["strValue endsWith foo", False, Dsl("endsWith", [Dsl("ref", "strValue"), "foo"])],
@@ -534,7 +530,6 @@ class Test_Debugger_Expression_Language(debugger._Base_Debugger_Test):
 
     ############ helpers ############
     def _get_type(self, value_type):
-
         intance_type = ""
 
         if self.get_tracer()["language"] == "dotnet":

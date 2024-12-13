@@ -33,7 +33,7 @@ class Test_TrustBoundaryViolation(BaseSinkTest):
 )
 @features.iast_stack_trace
 class Test_TrustBoundaryViolation_StackTrace:
-    """Validate stack trace generation """
+    """Validate stack trace generation"""
 
     def setup_stack_trace(self):
         self.r = weblog.get(

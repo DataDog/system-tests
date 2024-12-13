@@ -10,13 +10,12 @@ from utils.tools import logger
 @scenarios.default
 @features.tracing_configuration_consistency
 class Test_Config_HttpServerErrorStatuses_Default:
-    """ Verify behavior of http clients and distributed traces """
+    """Verify behavior of http clients and distributed traces"""
 
     def setup_status_code_400(self):
         self.r = weblog.get("/status?code=400")
 
     def test_status_code_400(self):
-
         assert self.r.status_code == 400
 
         interfaces.library.assert_trace_exists(self.r)
@@ -44,7 +43,7 @@ class Test_Config_HttpServerErrorStatuses_Default:
 @scenarios.tracing_config_nondefault
 @features.tracing_configuration_consistency
 class Test_Config_HttpServerErrorStatuses_FeatureFlagCustom:
-    """ Verify behavior of http clients and distributed traces """
+    """Verify behavior of http clients and distributed traces"""
 
     def setup_status_code_200(self):
         self.r = weblog.get("/status?code=200")
@@ -79,7 +78,7 @@ class Test_Config_HttpServerErrorStatuses_FeatureFlagCustom:
 @scenarios.tracing_config_nondefault_2
 @features.tracing_configuration_consistency
 class Test_Config_ObfuscationQueryStringRegexp_Empty:
-    """ Verify behavior when set to empty string """
+    """Verify behavior when set to empty string"""
 
     def setup_query_string_obfuscation_empty_client(self):
         self.r = weblog.get("/make_distant_call", params={"url": "http://weblog:7777/?key=monkey"})
@@ -110,14 +109,14 @@ class Test_Config_ObfuscationQueryStringRegexp_Configured:
 
     def test_query_string_obfuscation_configured(self):
         interfaces.library.add_span_tag_validation(
-            self.r, tags={"http.url": r"^.*/\?<redacted>$"}, value_as_regular_expression=True,
+            self.r, tags={"http.url": r"^.*/\?<redacted>$"}, value_as_regular_expression=True
         )
 
 
 @scenarios.default
 @features.tracing_configuration_consistency
 class Test_Config_HttpClientErrorStatuses_Default:
-    """ Verify behavior of http clients """
+    """Verify behavior of http clients"""
 
     def setup_status_code_400(self):
         self.r = weblog.get("/make_distant_call", params={"url": "http://weblog:7777/status?code=400"})
@@ -153,7 +152,7 @@ class Test_Config_HttpClientErrorStatuses_Default:
 @scenarios.tracing_config_nondefault
 @features.tracing_configuration_consistency
 class Test_Config_HttpClientErrorStatuses_FeatureFlagCustom:
-    """ Verify behavior of http clients """
+    """Verify behavior of http clients"""
 
     def setup_status_code_200(self):
         self.r = weblog.get("/make_distant_call", params={"url": "http://weblog:7777/status?code=200"})
@@ -252,7 +251,7 @@ class Test_Config_ClientIPHeaderEnabled_False:
 @scenarios.tracing_config_nondefault
 @features.tracing_configuration_consistency
 class Test_Config_ClientIPHeader_Precedence:
-    """Verify headers containing ips are tagged when DD_TRACE_CLIENT_IP_ENABLED=true 
+    """Verify headers containing ips are tagged when DD_TRACE_CLIENT_IP_ENABLED=true
     and headers are used to set http.client_ip in order of precedence"""
 
     # Supported ip headers in order of precedence
@@ -325,7 +324,7 @@ def _get_span_by_tags(spans, tags):
 @scenarios.tracing_config_nondefault
 @features.tracing_configuration_consistency
 class Test_Config_UnifiedServiceTagging_CustomService:
-    """ Verify behavior of http clients and distributed traces """
+    """Verify behavior of http clients and distributed traces"""
 
     def setup_specified_service_name(self):
         self.r = weblog.get("/")
@@ -345,7 +344,7 @@ class Test_Config_UnifiedServiceTagging_CustomService:
 @scenarios.default
 @features.tracing_configuration_consistency
 class Test_Config_UnifiedServiceTagging_Default:
-    """ Verify behavior of http clients and distributed traces """
+    """Verify behavior of http clients and distributed traces"""
 
     def setup_default_service_name(self):
         self.r = weblog.get("/")
@@ -363,7 +362,7 @@ class Test_Config_UnifiedServiceTagging_Default:
 @scenarios.tracing_config_nondefault
 @features.tracing_configuration_consistency
 class Test_Config_IntegrationEnabled_False:
-    """ Verify behavior of integrations automatic spans """
+    """Verify behavior of integrations automatic spans"""
 
     def setup_integration_enabled_false(self):
         # PHP does not have a kafka integration
@@ -392,7 +391,7 @@ class Test_Config_IntegrationEnabled_False:
 @scenarios.tracing_config_nondefault_2
 @features.tracing_configuration_consistency
 class Test_Config_IntegrationEnabled_True:
-    """ Verify behavior of integrations automatic spans """
+    """Verify behavior of integrations automatic spans"""
 
     def setup_integration_enabled_true(self):
         # PHP does not have a kafka integration

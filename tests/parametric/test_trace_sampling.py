@@ -112,7 +112,7 @@ class Test_Trace_Sampling_Globs:
                 "DD_TRACE_SAMPLE_RATE": 0,
                 "DD_TRACE_SAMPLING_RULES_FORMAT": "glob",
                 "DD_TRACE_SAMPLING_RULES": json.dumps(
-                    [{"service": "web.non-matching*", "sample_rate": 0}, {"service": "web*", "sample_rate": 1},]
+                    [{"service": "web.non-matching*", "sample_rate": 0}, {"service": "web*", "sample_rate": 1}]
                 ),
             },
             {
@@ -177,7 +177,7 @@ class Test_Trace_Sampling_Globs_Feb2024_Revision:
                 "DD_TRACE_SAMPLE_RATE": 0,
                 "DD_TRACE_SAMPLING_RULES_FORMAT": "glob",
                 "DD_TRACE_SAMPLING_RULES": json.dumps(
-                    [{"service": "web.non-matching*", "sample_rate": 0}, {"service": "web*", "sample_rate": 1},]
+                    [{"service": "web.non-matching*", "sample_rate": 0}, {"service": "web*", "sample_rate": 1}]
                 ),
             },
             {
@@ -222,7 +222,7 @@ class Test_Trace_Sampling_Resource:
                 "DD_TRACE_SAMPLE_RATE": 0,
                 "DD_TRACE_SAMPLING_RULES_FORMAT": "glob",
                 "DD_TRACE_SAMPLING_RULES": json.dumps(
-                    [{"resource": "/bar.non-matching", "sample_rate": 0}, {"resource": "/?ar", "sample_rate": 1},]
+                    [{"resource": "/bar.non-matching", "sample_rate": 0}, {"resource": "/?ar", "sample_rate": 1}]
                 ),
             },
             {
