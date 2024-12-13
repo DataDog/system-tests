@@ -521,7 +521,7 @@ class Test_Login_Events_Extended:
     def setup_login_sdk_failure_local(self):
         self.r_sdk_failure = weblog.post(
             "/login?auth=local&sdk_event=failure&sdk_user=sdkUser&sdk_user_exists=true",
-            data=login_data(INVALID_USER, PASSWORD),
+            data=login_data(context, INVALID_USER, PASSWORD),
         )
 
     @missing_feature(weblog_variant="spring-boot-openliberty", reason="weblog returns error 500")
@@ -1226,9 +1226,9 @@ class Test_V2_Login_Events_RC:
         self._assert_response(self.tests[2], validate_anon)
 
 
-libs_without_user_id = {}
-libs_without_user_exist = {}
-libs_without_user_id_on_failure = {}
+libs_without_user_id = []
+libs_without_user_exist = []
+libs_without_user_id_on_failure = []
 
 
 @rfc("https://docs.google.com/document/d/1RT38U6dTTcB-8muiYV4-aVDCsT_XrliyakjtAPyjUpw")
@@ -1458,7 +1458,7 @@ class Test_V3_Login_Events:
 
             # optional (to review for each library)
             if context.library not in libs_without_user_id:
-                assert meta["usr.id"] == "social-security-id"
+                assert meta["usr.id"] == "sdkUser"
                 assert meta["_dd.appsec.usr.id"] == "social-security-id"
 
     def setup_login_sdk_success_basic(self):
@@ -1482,7 +1482,7 @@ class Test_V3_Login_Events:
 
             # optional (to review for each library)
             if context.library not in libs_without_user_id:
-                assert meta["usr.id"] == "social-security-id"
+                assert meta["usr.id"] == "sdkUser"
                 assert meta["_dd.appsec.usr.id"] == "social-security-id"
 
     def setup_login_sdk_failure_local(self):
