@@ -70,7 +70,7 @@ jobs:
         uses: ./.github/actions/get_target_branch
         id: get-target-branch
         with:
-          body: ${{ github.event.pull_request.body }}
+          text: ${{ github.event.pull_request.title }}
       - name: Get library artifact
         run: ./utils/scripts/load-binary.sh ${{ matrix.library }}
         env:

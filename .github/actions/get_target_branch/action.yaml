@@ -1,7 +1,7 @@
 name: Get_target_branch
 description: "Gets target branch from the PR description"
 inputs:
-  body:
+  text:
     description: "Text from which to extract the target branch"
     required: true
 outputs:
@@ -14,7 +14,7 @@ runs:
   steps:
     - name: Extract target branch
       id: extract
-      if: ${{ contains(inputs.body, 'TARGET_BRANCH:') }}
+      if: ${{ contains(inputs.text, '[branch:') }}
       shell: bash
       run: |
-        echo "target-branch=$(echo "${{ inputs.body }}" | grep -oP '(?<=TARGET_BRANCH:).*' | tr -d ' ')" >> $GITHUB_OUTPUT
+        echo "target-branch=$(echo "${{ inputs.text }}" | grep -oP '(?<=[branch:).*' | tr -d ' ' | tr -d ']')" >> $GITHUB_OUTPUT
