@@ -1439,6 +1439,7 @@ tests/:
   parametric/:
     test_config_consistency.py:
       Test_Config_RateLimit: v1.41.1
+      Test_Config_Tags: missing_feature
       Test_Config_TraceAgentURL: v1.41.1
       Test_Config_TraceEnabled: v1.39.0
       Test_Config_TraceLogDirectory: missing_feature

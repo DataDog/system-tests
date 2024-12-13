@@ -308,6 +308,7 @@ tests/:
       Test_128_Bit_Traceids: v0.84.0
     test_config_consistency.py:
       Test_Config_RateLimit: v1.5.0
+      Test_Config_Tags: missing_feature
       Test_Config_TraceAgentURL: v1.4.0
       Test_Config_TraceEnabled: v1.3.0 # Unknown initial version
       Test_Config_TraceLogDirectory: missing_feature

@@ -231,11 +231,27 @@ class Test_Config_RateLimit:
         ), "Expected at least one trace to be rate-limited with sampling priority -1."
 
 
+def tag_scenarios():
+    env1: dict = {"DD_TAGS": "key1:value1,key2:value2"}
+    env2: dict = {"DD_TAGS": "key1:value1 key2:value2"}
+    env3: dict = {"DD_TAGS": "env:test aKey:aVal bKey:bVal cKey:"}
+    env4: dict = {"DD_TAGS": "env:test,aKey:aVal,bKey:bVal,cKey:"}
+    env5: dict = {"DD_TAGS": "env:test,aKey:aVal bKey:bVal cKey:"}
+    env6: dict = {"DD_TAGS": "env:test     bKey :bVal dKey: dVal cKey:"}
+    env7: dict = {"DD_TAGS": "env :test, aKey : aVal bKey:bVal cKey:"}
+    env8: dict = {"DD_TAGS": "env:keyWithA:Semicolon bKey:bVal cKey"}
+    env9: dict = {"DD_TAGS": "env:keyWith:  , ,   Lots:Of:Semicolons "}
+    env10: dict = {"DD_TAGS": "a:b,c,d"}
+    env11: dict = {"DD_TAGS": "a,1"}
+    env12: dict = {"DD_TAGS": "a:b:c:d"}
+    return parametrize("library_env", [env1, env2, env3, env4, env5, env6, env7, env8, env9, env10, env11, env12])
+
+
 @scenarios.parametric
 @features.tracing_configuration_consistency
-class Test_Config_Tags_Basic_Parsing:
-    @parametrize("library_env", [{"DD_TAGS": "key1:value1,key2:value2"}, {"DD_TAGS": "key1:value1 key2:value2"}])
-    def test_default_trace_rate_limit(self, library_env, test_agent, test_library):
+class Test_Config_Tags:
+    @tag_scenarios()
+    def test_comma_space_tag_separation(self, library_env, test_agent, test_library):
         expected_local_tags = []
         if "DD_TAGS" in library_env:
             expected_local_tags = _parse_dd_tags(library_env["DD_TAGS"])
@@ -247,30 +263,38 @@ class Test_Config_Tags_Basic_Parsing:
             assert k in span["meta"]
             assert span["meta"][k] == v
 
-@scenarios.parametric
-@features.tracing_configuration_consistency
-class Test_Config_Tags_Basic_Parsing:
-    @parametrize("library_env", [{"DD_TAGS": "service:random-service2,env:dev2,version:1.2.4", "DD_ENV": "dev", "DD_VERSION": "5.2.0", "DD_SERVICE": "random-service"}])
-    def test_default_trace_rate_limit(self, library_env, test_agent, test_library):
-        expected_local_tags = []
+    @parametrize(
+        "library_env",
+        [
+            {
+                "DD_TAGS": "service:random-service2,env:dev2,version:1.2.4",
+                "DD_ENV": "dev",
+                "DD_VERSION": "5.2.0",
+                "DD_SERVICE": "random-service",
+            }
+        ],
+    )
+    def test_dd_service_override(self, library_env, test_agent, test_library):
         with test_library:
             with test_library.dd_start_span(name="sample_span"):
                 pass
         span = find_only_span(test_agent.wait_for_num_traces(1))
-        print(span)
-        assert span["service"] == "random-service2"
-        assert 'env' in span["meta"]
-        assert span["meta"]['env'] == 'dev'
-        assert 'version' in span["meta"]
-        assert span["meta"]['version'] == '5.2.0'
+        assert span["service"] == "random-service"
+        assert "env" in span["meta"]
+        assert span["meta"]["env"] == "dev"
+        assert "version" in span["meta"]
+        assert span["meta"]["version"] == "5.2.0"
 
 
 def _parse_dd_tags(tags):
     result = []
-
-    pairs = tags.replace(',', ' ').split()
-    for pair in pairs:
-        key, value = pair.split(':')
-        result.append((key, value))
-    
+    key_value_pairs = tags.split(",") if "," in tags else tags.split()  # First try to split by comma, then by space
+    for pair in key_value_pairs:
+        if ":" in pair:
+            key, value = pair.split(":", 1)
+        else:
+            key, value = pair, ""
+        key, value = key.strip(), value.strip()
+        if key:
+            result.append((key, value))
     return result
