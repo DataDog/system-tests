@@ -477,15 +477,11 @@ tests/:
       Test_IastStandalone_UpstreamPropagation: *ref_5_29_0
       Test_SCAStandalone_Telemetry: *ref_5_18_0
     test_automated_login_events.py:
-      Test_Login_Events:
-        '*': *ref_4_4_0
-        nextjs: missing_feature
-      Test_Login_Events_Extended:
-        '*': *ref_4_4_0
-        nextjs: missing_feature
-      Test_V2_Login_Events: missing_feature
-      Test_V2_Login_Events_Anon: missing_feature
-      Test_V2_Login_Events_RC: missing_feature
+      Test_Login_Events: irrelevant
+      Test_Login_Events_Extended: irrelevant
+      Test_V2_Login_Events: irrelevant
+      Test_V2_Login_Events_Anon: irrelevant
+      Test_V2_Login_Events_RC: irrelevant
     test_blocking_addresses.py:
       Test_BlockingGraphqlResolvers:
         '*': *ref_4_22_0
