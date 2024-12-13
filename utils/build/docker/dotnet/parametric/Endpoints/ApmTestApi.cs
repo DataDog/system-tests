@@ -46,7 +46,7 @@ public abstract class ApmTestApi
     private static readonly Type StatsAggregatorType = Type.GetType("Datadog.Trace.Agent.StatsAggregator, Datadog.Trace", throwOnError: true)!;
 
     // Accessors for internal properties/fields accessors
-    private static readonly PropertyInfo GetGlobalSettingsInstance  = GlobalSettingsType.GetProperty("Instance", BindingFlags.Static | BindingFlags.NonPublic)!;
+    private static readonly PropertyInfo GetGlobalSettingsInstance = GlobalSettingsType.GetProperty("Instance", BindingFlags.Static | BindingFlags.NonPublic)!;
     private static readonly PropertyInfo GetTracerManager = TracerType.GetProperty("TracerManager", BindingFlags.Instance | BindingFlags.NonPublic)!;
     private static readonly MethodInfo GetAgentWriter = TracerManagerType.GetProperty("AgentWriter", BindingFlags.Instance | BindingFlags.Public)!.GetGetMethod()!;
     private static readonly FieldInfo GetStatsAggregator = AgentWriterType.GetField("_statsAggregator", BindingFlags.Instance | BindingFlags.NonPublic)!;
@@ -63,7 +63,7 @@ public abstract class ApmTestApi
     private static readonly MethodInfo StatsAggregatorFlush = StatsAggregatorType.GetMethod("Flush", BindingFlags.Instance | BindingFlags.NonPublic)!;
 
     private static readonly Dictionary<ulong, ISpan> Spans = new();
-    private static readonly Dictionary<ulong, Datadog.Trace.ISpanContext> DDContexts = new();
+    private static readonly Dictionary<ulong, ISpanContext> DDContexts = new();
 
     internal static ILogger<ApmTestApi>? _logger;
 
@@ -72,7 +72,8 @@ public abstract class ApmTestApi
 
     private static IEnumerable<string> GetHeaderValues(string[][] headersList, string key)
     {
-        List<string> values = new List<string>();
+        var values = new List<string>();
+
         foreach (var kvp in headersList)
         {
             if (kvp.Length == 2 && string.Equals(key, kvp[0], StringComparison.OrdinalIgnoreCase))
@@ -104,11 +105,17 @@ public abstract class ApmTestApi
         if (parsedDictionary!.TryGetValue("parent_id", out var parentId) && parentId is not null)
         {
             var longParentId = Convert.ToUInt64(parentId);
-            if(Spans.TryGetValue(longParentId, out var parentSpan)) {
+
+            if (Spans.TryGetValue(longParentId, out var parentSpan))
+            {
                 creationSettings.Parent = parentSpan.Context;
-            } else if (DDContexts.TryGetValue(longParentId, out var ddContext)) {
+            }
+            else if (DDContexts.TryGetValue(longParentId, out var ddContext))
+            {
                 creationSettings.Parent = ddContext;
-            } else {
+            }
+            else
+            {
                 throw new Exception($"Parent span with id {longParentId} not found");
             }
         }
@@ -127,7 +134,7 @@ public abstract class ApmTestApi
             span.ResourceName = resource.ToString();
         }
 
-        if (parsedDictionary.TryGetValue("type", out var type)  && type is not null)
+        if (parsedDictionary.TryGetValue("type", out var type) && type is not null)
         {
             span.Type = type.ToString();
         }
@@ -230,11 +237,11 @@ public abstract class ApmTestApi
 
         var spanId = await FindBodyKeyValueAsync(request, "span_id");
 
-        if (!string.IsNullOrEmpty(spanId as string) && Spans.TryGetValue(Convert.ToUInt64(spanId), out var span))
+        if (!string.IsNullOrEmpty(spanId) && Spans.TryGetValue(Convert.ToUInt64(spanId), out var span))
         {
             // Define a function to set headers in HttpRequestHeaders
             static void Setter(List<string[]> headers, string key, string value) =>
-                headers.Add(new string[] { key, value });
+                headers.Add([key, value]);
 
             Console.WriteLine(JsonConvert.SerializeObject(new
             {
@@ -259,10 +266,7 @@ public abstract class ApmTestApi
 
     private static string Crash(HttpRequest request)
     {
-        var thread = new Thread(() =>
-        {
-            throw new BadImageFormatException("Expected");
-        });
+        var thread = new Thread(() => throw new BadImageFormatException("Expected"));
 
         thread.Start();
         thread.Join();
@@ -303,7 +307,7 @@ public abstract class ApmTestApi
 
         return JsonConvert.SerializeObject(new
         {
-            config = config
+            config
         });
     }
 
@@ -356,6 +360,6 @@ public abstract class ApmTestApi
         var parsedDictionary = JsonConvert.DeserializeObject<Dictionary<string, string>>(headerBodyDictionary);
         var keyFound = parsedDictionary!.TryGetValue(keyToFind, out var foundValue);
 
-        return keyFound ? foundValue! : String.Empty;
+        return keyFound ? foundValue! : string.Empty;
     }
 }
