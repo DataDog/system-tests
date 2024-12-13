@@ -188,14 +188,14 @@ class Test_Sqli_Capability:
         interfaces.library.assert_rc_capability(Capabilities.ASM_RASP_SQLI)
 
 
-@features.rasp_local_file_inclusion
+@features.rasp_sql_injection
 class Test_Sqli_Rules_Version(Base_Rules_Version):
     """Test Sqli min rules version"""
 
     min_version = "1.13.2"
 
 
-@features.rasp_local_file_inclusion
+@features.rasp_sql_injection
 class Test_Sqli_Waf_Version(Base_WAF_Version):
     """Test sqli WAF version"""
 

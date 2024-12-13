@@ -210,14 +210,14 @@ class Test_Shi_Capability:
         interfaces.library.assert_rc_capability(Capabilities.ASM_RASP_SHI)
 
 
-@features.rasp_local_file_inclusion
+@features.rasp_shell_injection
 class Test_Shi_Rules_Version(Base_Rules_Version):
     """Test shi min rules version"""
 
     min_version = "1.13.1"
 
 
-@features.rasp_local_file_inclusion
+@features.rasp_shell_injection
 class Test_Shi_Waf_Version(Base_WAF_Version):
     """Test shi WAF version"""
 

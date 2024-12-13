@@ -196,14 +196,14 @@ class Test_Ssrf_Capability:
         interfaces.library.assert_rc_capability(Capabilities.ASM_RASP_SSRF)
 
 
-@features.rasp_local_file_inclusion
+@features.rasp_server_side_request_forgery
 class Test_Ssrf_Rules_Version(Base_Rules_Version):
     """Test ssrf min rules version"""
 
     min_version = "1.13.2"
 
 
-@features.rasp_local_file_inclusion
+@features.rasp_server_side_request_forgery
 class Test_Ssrf_Waf_Version(Base_WAF_Version):
     """Test ssrf WAF version"""
 

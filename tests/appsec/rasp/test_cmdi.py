@@ -175,7 +175,7 @@ class Test_Cmdi_Telemetry:
 
 
 @rfc("https://docs.google.com/document/d/1DDWy3frMXDTAbk-BfnZ1FdRwuPx6Pl7AWyR4zjqRFZw")
-@features.rasp_shell_injection
+@features.rasp_command_injection
 @scenarios.appsec_rasp
 class Test_Cmdi_Telemetry_Variant_Tag:
     """Validate Telemetry data variant tag on exploit attempts"""
@@ -216,7 +216,7 @@ class Test_Cmdi_Rules_Version(Base_Rules_Version):
     min_version = "1.13.3"
 
 
-@features.rasp_local_file_inclusion
+@features.rasp_command_injection
 class Test_Cmdi_Waf_Version(Base_WAF_Version):
     """Test cmdi WAF version"""
 
