@@ -239,7 +239,7 @@ class Test_Config_Tags:
         expected_local_tags = []
         print("library_env: ", library_env)
         if "DD_TAGS" in library_env:
-            expected_local_tags = dict([p.split(":") for p in library_env["DD_TAGS"].split(",")])
+            expected_local_tags = _parse_dd_tags(library_env["DD_TAGS"])
         with test_library:
             with test_library.dd_start_span(name="comma-separated-tags"):
                 pass
@@ -248,3 +248,13 @@ class Test_Config_Tags:
         for k, v in expected_local_tags:
             assert k in span["meta"]
             assert span["meta"][k] == v
+
+def _parse_dd_tags(tags):
+    result = []
+
+    pairs = tags.replace(',', ' ').split()
+    for pair in pairs:
+        key, value = pair.split(':')
+        result.append((key, value))
+    
+    return result
