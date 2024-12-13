@@ -18,9 +18,11 @@ class Test_Debugger_Expression_Language(debugger._Base_Debugger_Test):
         self.send_rc_probes()
         self.wait_for_all_probes_installed()
         self.send_weblog_request(request_path)
+        self.wait_for_all_probes_emitting()
 
     ############ assert ############
     def _assert(self, expected_response: int):
+
         self.collect()
 
         self.assert_rc_state_not_error()
@@ -32,20 +34,21 @@ class Test_Debugger_Expression_Language(debugger._Base_Debugger_Test):
         not_found_ids = set(self.probe_ids)
         error_messages = []
 
-        for probe_id, snapshot in self.probe_snapshots.items():
-            if probe_id in expected_message_map:
-                not_found_ids.remove(probe_id)
+        for probe_id, snapshots in self.probe_snapshots.items():
+            for snapshot in snapshots:
+                if probe_id in expected_message_map:
+                    not_found_ids.remove(probe_id)
 
-                if not re.search(expected_message_map[probe_id], snapshot[0]["message"]):
-                    error_messages.append(
-                        f"Message for probe id {probe_id} is wrong. \n Expected: {expected_message_map[probe_id]}. \n Found: {snapshot['message']}."
-                    )
-
-                    evaluation_errors = snapshot["debugger"]["snapshot"].get("evaluationErrors", [])
-                    for error in evaluation_errors:
+                    if not re.search(expected_message_map[probe_id], snapshot["message"]):
                         error_messages.append(
-                            f" Evaluation error in probe id {probe_id}: {error['expr']} - {error['message']}\n"
+                            f"Message for probe id {probe_id} is wrong. \n Expected: {expected_message_map[probe_id]}. \n Found: {snapshot['message']}."
                         )
+
+                        evaluation_errors = snapshot["debugger"]["snapshot"].get("evaluationErrors", [])
+                        for error in evaluation_errors:
+                            error_messages.append(
+                                f" Evaluation error in probe id {probe_id}: {error['expr']} - {error['message']}\n"
+                            )
 
         not_found_list = "\n".join(not_found_ids)
         assert not error_messages, "Errors occurred during validation:\n" + "\n".join(error_messages)
@@ -487,7 +490,6 @@ class Test_Debugger_Expression_Language(debugger._Base_Debugger_Test):
         self._setup(probes, "/debugger/expression/collections")
 
     @bug(library="dotnet", reason="DEBUG-2602")
-    @bug(library="java", reason="DEBUG-3131")
     def test_expression_language_collection_operations(self):
         self._assert(expected_response=200)
 

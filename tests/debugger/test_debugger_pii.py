@@ -125,6 +125,7 @@ class Test_Debugger_PII_Redaction(debugger._Base_Debugger_Test):
         self.send_rc_probes()
         self.wait_for_all_probes_installed()
         self.send_weblog_request("/debugger/pii")
+        self.wait_for_all_probes_emitting()
 
     ############ assert ############
     def _assert(self, redacted_keys, redacted_types, line_probe=False):
