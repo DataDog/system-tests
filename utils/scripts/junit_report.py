@@ -28,9 +28,7 @@ def junit_modifyreport(json_report, junit_report_path, junit_properties):
         skip_reason = test["metadata"]["details"]
         error_trace = ""
 
-        _create_testcase_results(
-            junit_report_root, classname, testcasename, outcome, skip_reason, error_trace,
-        )
+        _create_testcase_results(junit_report_root, classname, testcasename, outcome, skip_reason, error_trace)
 
     for testsuite in junit_report_root.findall("testsuite"):
         # Test suite name will be the scanario name
@@ -47,9 +45,7 @@ def junit_modifyreport(json_report, junit_report_path, junit_properties):
     junit_report.write(junit_report_path)
 
 
-def _create_testcase_results(
-    junit_xml_root, testclass_name, testcase_name, outcome, skip_reason, error_trace,
-):
+def _create_testcase_results(junit_xml_root, testclass_name, testcase_name, outcome, skip_reason, error_trace):
     testcase = junit_xml_root.find(f"testsuite/testcase[@classname='{testclass_name}'][@name='{testcase_name}']")
     if testcase is not None:
         # Change name att because CI Visibility uses identifier: testsuite+name

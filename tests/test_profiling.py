@@ -3,6 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 """Misc checks around data integrity during components' lifetime"""
+
 import re
 from utils import weblog, interfaces, scenarios, features
 
@@ -14,11 +15,10 @@ TIMESTAMP_PATTERN = re.compile(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,9}
 @features.dd_profiling_enabled
 @scenarios.profiling
 class Test_Profile:
-    """ Basic testing of profiling """
+    """Basic testing of profiling"""
 
     @staticmethod
     def _common_setup():
-
         if hasattr(Test_Profile, "_is_set_up"):
             return
 
@@ -31,14 +31,14 @@ class Test_Profile:
         self._common_setup()
 
     def test_library(self):
-        """ All profiling libraries payload have start and end fields"""
+        """All profiling libraries payload have start and end fields"""
         interfaces.library.validate_profiling(self._validate_data)
 
     def setup_agent(self):
         self._common_setup()
 
     def test_agent(self):
-        """ All profiling agent payload have recording-start and recording-end fields"""
+        """All profiling agent payload have recording-start and recording-end fields"""
         interfaces.agent.validate_profiling(self._validate_data)
 
     @staticmethod

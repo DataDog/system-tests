@@ -368,7 +368,6 @@ class _Base_Debugger_Test:
                     for payload in content["tracerPayloads"]:
                         for chunk in payload["chunks"]:
                             for span in chunk["spans"]:
-
                                 is_span_decoration_method = span["name"] == "dd.dynamic.span"
                                 if is_span_decoration_method:
                                     span_hash[span["meta"]["debugger.probeid"]] = span
@@ -390,7 +389,6 @@ class _Base_Debugger_Test:
 
     def get_tracer(self):
         if not _Base_Debugger_Test.tracer:
-
             _Base_Debugger_Test.tracer = {
                 "language": str(context.library).split("@")[0],
                 "tracer_version": str(context.library.version),

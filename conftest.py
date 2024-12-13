@@ -90,15 +90,14 @@ def pytest_addoption(parser):
 
     # report data to feature parity dashboard
     parser.addoption(
-        "--report-run-url", type=str, action="store", default=None, help="URI of the run who produced the report",
+        "--report-run-url", type=str, action="store", default=None, help="URI of the run who produced the report"
     )
     parser.addoption(
-        "--report-environment", type=str, action="store", default=None, help="The environment the test is run under",
+        "--report-environment", type=str, action="store", default=None, help="The environment the test is run under"
     )
 
 
 def pytest_configure(config):
-
     if not config.option.force_dd_trace_debug and os.environ.get("SYSTEM_TESTS_FORCE_DD_TRACE_DEBUG") == "true":
         config.option.force_dd_trace_debug = True
 
@@ -132,7 +131,6 @@ def pytest_configure(config):
 
 # Called at the very begening
 def pytest_sessionstart(session):
-
     # get the terminal to allow logging directly in stdout
     logger.terminal = session.config.pluginmanager.get_plugin("terminalreporter")
 
@@ -148,7 +146,6 @@ def pytest_sessionstart(session):
 
 # called when each test item is collected
 def _collect_item_metadata(item):
-
     result = {
         "details": None,
         "testDeclaration": None,
@@ -202,7 +199,6 @@ def _get_skip_reason_from_marker(marker):
 
 
 def pytest_pycollect_makemodule(module_path, parent):
-
     # As now, declaration only works for tracers at module level
 
     library = context.scenario.library.library
@@ -230,9 +226,7 @@ def pytest_pycollect_makemodule(module_path, parent):
 
 @pytest.hookimpl(tryfirst=True)
 def pytest_pycollect_makeitem(collector, name, obj):
-
     if collector.istestclass(obj, name):
-
         if obj is None:
             message = f"""{collector.nodeid} is not properly collected.
             You may have forgotten to return a value in a decorator like @features"""
@@ -309,7 +303,6 @@ def _item_is_skipped(item):
 
 
 def pytest_collection_finish(session: pytest.Session):
-
     if session.config.option.collectonly:
         return
 
@@ -328,7 +321,6 @@ def pytest_collection_finish(session: pytest.Session):
 
     last_item_file = ""
     for item in session.items:
-
         if _item_is_skipped(item):
             continue
 
@@ -383,7 +375,6 @@ def pytest_runtest_call(item):
 
 @pytest.hookimpl(optionalhook=True)
 def pytest_json_runtest_metadata(item, call):
-
     if call.when != "setup":
         return {}
 
@@ -391,7 +382,6 @@ def pytest_json_runtest_metadata(item, call):
 
 
 def pytest_json_modifyreport(json_report):
-
     try:
         # add usefull data for reporting
         json_report["context"] = context.serialize()
@@ -403,7 +393,6 @@ def pytest_json_modifyreport(json_report):
 
 
 def pytest_sessionfinish(session, exitstatus):
-
     logger.info("Executing pytest_sessionfinish")
 
     context.scenario.close_targets()
@@ -416,14 +405,14 @@ def pytest_sessionfinish(session, exitstatus):
     if context.scenario.is_main_worker:
         with open(f"{context.scenario.host_log_folder}/known_versions.json", "w", encoding="utf-8") as f:
             json.dump(
-                {library: sorted(versions) for library, versions in LibraryVersion.known_versions.items()}, f, indent=2,
+                {library: sorted(versions) for library, versions in LibraryVersion.known_versions.items()}, f, indent=2
             )
 
         data = session.config._json_report.report  # pylint: disable=protected-access
 
         try:
             junit_modifyreport(
-                data, session.config.option.xmlpath, junit_properties=context.scenario.get_junit_properties(),
+                data, session.config.option.xmlpath, junit_properties=context.scenario.get_junit_properties()
             )
 
             export_feature_parity_dashboard(session, data)
@@ -438,7 +427,6 @@ def pytest_sessionfinish(session, exitstatus):
 
 
 def export_feature_parity_dashboard(session, data):
-
     tests = [convert_test_to_feature_parity_model(test) for test in data["tests"]]
 
     result = {

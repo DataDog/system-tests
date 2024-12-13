@@ -6,6 +6,7 @@ Avoid using those endpoints in the parametric tests.
 When in doubt refer to the python implementation as the source of truth via
 the OpenAPI schema: https://github.com/DataDog/system-tests/blob/44281005e9d2ddec680f31b2813eb90af831c0fc/docs/scenarios/parametric.md#shared-interface
 """
+
 import json
 import pytest
 import time
@@ -46,7 +47,7 @@ class Test_Parametric_DDSpan_Start:
 
             # To test proper parenting behavior
             with test_library.dd_start_span(
-                "child", "myservice", "myresource", s1.span_id, "web", tags=[("hello", "monkeys"), ("num", "1")],
+                "child", "myservice", "myresource", s1.span_id, "web", tags=[("hello", "monkeys"), ("num", "1")]
             ) as s2:
                 pass
 
@@ -290,6 +291,8 @@ class Test_Parametric_DDTrace_Config:
                 "dd_version",
                 "dd_trace_agent_url",
                 "dd_trace_rate_limit",
+                "dd_dogstatsd_host",
+                "dd_dogstatsd_port",
             ]
 
 
@@ -376,9 +379,7 @@ class Test_Parametric_DDTrace_Flush:
 
 @scenarios.parametric
 @features.parametric_endpoint_parity
-@pytest.mark.parametrize(
-    "library_env", [{"DD_TRACE_PROPAGATION_HTTP_BAGGAGE_ENABLED": "true"}],
-)
+@pytest.mark.parametrize("library_env", [{"DD_TRACE_PROPAGATION_HTTP_BAGGAGE_ENABLED": "true"}])
 class Test_Parametric_DDTrace_Baggage:
     def test_set_baggage(self, test_agent, test_library):
         """
