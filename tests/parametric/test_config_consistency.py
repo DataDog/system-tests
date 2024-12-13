@@ -233,21 +233,37 @@ class Test_Config_RateLimit:
 
 @scenarios.parametric
 @features.tracing_configuration_consistency
-class Test_Config_Tags:
+class Test_Config_Tags_Basic_Parsing:
     @parametrize("library_env", [{"DD_TAGS": "key1:value1,key2:value2"}, {"DD_TAGS": "key1:value1 key2:value2"}])
     def test_default_trace_rate_limit(self, library_env, test_agent, test_library):
         expected_local_tags = []
-        print("library_env: ", library_env)
         if "DD_TAGS" in library_env:
             expected_local_tags = _parse_dd_tags(library_env["DD_TAGS"])
         with test_library:
-            with test_library.dd_start_span(name="comma-separated-tags"):
+            with test_library.dd_start_span(name="sample_span"):
                 pass
         span = find_only_span(test_agent.wait_for_num_traces(1))
-        print(expected_local_tags)
         for k, v in expected_local_tags:
             assert k in span["meta"]
             assert span["meta"][k] == v
+
+@scenarios.parametric
+@features.tracing_configuration_consistency
+class Test_Config_Tags_Basic_Parsing:
+    @parametrize("library_env", [{"DD_TAGS": "service:random-service2,env:dev2,version:1.2.4", "DD_ENV": "dev", "DD_VERSION": "5.2.0", "DD_SERVICE": "random-service"}])
+    def test_default_trace_rate_limit(self, library_env, test_agent, test_library):
+        expected_local_tags = []
+        with test_library:
+            with test_library.dd_start_span(name="sample_span"):
+                pass
+        span = find_only_span(test_agent.wait_for_num_traces(1))
+        print(span)
+        assert span["service"] == "random-service2"
+        assert 'env' in span["meta"]
+        assert span["meta"]['env'] == 'dev'
+        assert 'version' in span["meta"]
+        assert span["meta"]['version'] == '5.2.0'
+
 
 def _parse_dd_tags(tags):
     result = []
