@@ -32,6 +32,11 @@ on:
         default: false
         required: false
         type: boolean
+      build_java_base_images:
+        description: "Shall we build java base images for tests on java tracer"
+        default: false
+        required: false
+        type: boolean
       build_buddies_images:
         description: "Shall we build buddies images"
         default: false
@@ -78,6 +83,10 @@ jobs:
       if: inputs.library == 'python' && inputs.build_python_base_images
       run: |
         ./utils/build/build_python_base_images.sh
+    - name: Build java's weblog base images
+      if: inputs.library == 'java' && inputs.build_java_base_images
+      run: |
+        ./utils/build/build_java_base_images.sh
     - name: Build buddies weblog images
       if: inputs.build_buddies_images
       run: ./utils/build/build_tracer_buddies.sh

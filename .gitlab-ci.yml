@@ -480,5 +480,6 @@ generate_system_tests_images:
       -  echo $GH_TOKEN | docker login ghcr.io -u publisher --password-stdin
       - ./utils/build/build_tracer_buddies.sh --push
       - ./utils/build/build_python_base_images.sh --push
+      - ./utils/build/build_java_base_images.sh --push
       - ./lib-injection/build/build_lib_injection_images.sh
   when: manual
