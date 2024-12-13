@@ -405,7 +405,7 @@ These are the main important log/data files:
 
 ## How to debug your kubernetes environment at runtime
 
-So far there is no parameter that allows to keep the kubernetes cluster alive after launching the tests. But we can make some temporary tweaks to do that. 
+So far there is no parameter that allows to keep the kubernetes cluster alive after launching the tests. But we can make some temporary tweaks to do that.
 
 You only need to comment the line that stops the cluster after the test case. You can do this here:
 https://github.com/DataDog/system-tests/blob/fd8766cd45687d2be4b858df611435da7f41c6d6/tests/k8s_lib_injection/conftest.py#L43C5-L43C17
@@ -434,5 +434,5 @@ def test_k8s_instance(request):
     logger.info("K8sInstance destroyed")
 ```
 
-Although it is not very practical, we recommend to run only one test, commenting the rest of the methods/tests case the tests class. 
-For example, if you want to debug at runtime the k8s profiling scenario, we recommend to keep only one test case in the class "TestAdmisionControllerProfiling" (you can skip a test method adding the character "_" before the method name) https://github.com/DataDog/system-tests/blob/fd8766cd45687d2be4b858df611435da7f41c6d6/tests/k8s_lib_injection/test_k8s_manual_inject.py#L79 
+Although it is not very practical, we recommend to run only one test, commenting the rest of the methods/tests case the tests class.
+For example, if you want to debug at runtime the k8s profiling scenario, we recommend to keep only one test case in the class "TestAdmisionControllerProfiling" (you can skip a test method adding the character "_" before the method name) https://github.com/DataDog/system-tests/blob/fd8766cd45687d2be4b858df611435da7f41c6d6/tests/k8s_lib_injection/test_k8s_manual_inject.py#L79
