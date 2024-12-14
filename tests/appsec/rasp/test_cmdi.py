@@ -65,7 +65,7 @@ class Test_Cmdi_BodyXml:
     """Shell Injection through an xml body parameter"""
 
     def setup_cmdi_post_xml(self):
-        data = "<?xml version='1.0' encoding='utf-8'?><command>/bin/evilCommand</command>"
+        data = "<?xml version='1.0' encoding='utf-8'?><command><cmd>/bin/evilCommand</cmd></command>"
         self.r = weblog.post("/rasp/cmdi", data=data, headers={"Content-Type": "application/xml"})
 
     def test_cmdi_post_xml(self):
@@ -89,7 +89,7 @@ class Test_Cmdi_BodyJson:
 
     def setup_cmdi_post_json(self):
         """AppSec detects attacks in JSON body values"""
-        self.r = weblog.post("/rasp/cmdi", json={"command": "/bin/evilCommand"})
+        self.r = weblog.post("/rasp/cmdi", json={"command": ["/bin/evilCommand"]})
 
     def test_cmdi_post_json(self):
         assert self.r.status_code == 403
@@ -192,7 +192,7 @@ class Test_Cmdi_Telemetry_Variant_Tag:
 
         series_match = find_series(True, "appsec", "rasp.rule.match")
         assert series_match
-        assert any(validate_metric_variant("rasp.rule.match", "command_injection", "shell", s) for s in series_match), [
+        assert any(validate_metric_variant("rasp.rule.match", "command_injection", "exec", s) for s in series_match), [
             s.get("tags") for s in series_match
         ]
 
