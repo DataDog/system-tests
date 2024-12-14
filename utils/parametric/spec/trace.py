@@ -2,6 +2,7 @@
 
 These are used to specify, test and work with trace data and protocols.
 """
+
 import json
 from typing import Optional
 from typing import TypedDict
@@ -60,6 +61,7 @@ SAMPLING_AGENT_PRIORITY_RATE = "_dd.agent_psr"
 SAMPLING_RULE_PRIORITY_RATE = "_dd.rule_psr"
 SAMPLING_LIMIT_PRIORITY_RATE = "_dd.limit_psr"
 
+
 # Note that class attributes are golang style to match the payload.
 class V06StatsAggr(TypedDict):
     """Stats aggregation data structure used in the v0.6/stats protocol."""
@@ -110,7 +112,7 @@ def _v06_sketch_from_proto(proto: DDSketchPb) -> BaseDDSketch:
     mapping = KeyMappingProto.from_proto(proto.mapping)
     store = _v06_store_from_proto(proto.positiveValues)
     negative_store = _v06_store_from_proto(proto.negativeValues)
-    return BaseDDSketch(mapping=mapping, store=store, negative_store=negative_store, zero_count=proto.zeroCount,)
+    return BaseDDSketch(mapping=mapping, store=store, negative_store=negative_store, zero_count=proto.zeroCount)
 
 
 def decode_v06_stats(data: bytes) -> V06StatsPayload:
@@ -141,11 +143,11 @@ def decode_v06_stats(data: bytes) -> V06StatsPayload:
             if ok_summary.mapping.gamma > 1:
                 stats.append(stat)
 
-        bucket = V06StatsBucket(Start=raw_bucket["Start"], Duration=raw_bucket["Duration"], Stats=stats,)
+        bucket = V06StatsBucket(Start=raw_bucket["Start"], Duration=raw_bucket["Duration"], Stats=stats)
         stats_buckets.append(bucket)
 
     return V06StatsPayload(
-        Hostname=payload.get("Hostname"), Env=payload.get("Env"), Version=payload.get("Version"), Stats=stats_buckets,
+        Hostname=payload.get("Hostname"), Env=payload.get("Env"), Version=payload.get("Version"), Stats=stats_buckets
     )
 
 

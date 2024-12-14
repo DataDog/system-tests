@@ -912,7 +912,16 @@ tests/:
       Test_IastStandalone_UpstreamPropagation:
         '*': v1.36.0
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-      Test_SCAStandalone_Telemetry: missing_feature
+      Test_SCAStandalone_Telemetry:
+        '*': v1.45.0
+        akka-http: missing_feature (endpoints not implemented)
+        jersey-grizzly2: missing_feature (endpoints not implemented)
+        play: missing_feature (endpoints not implemented)
+        ratpack: missing_feature (endpoints not implemented)
+        resteasy-netty3: missing_feature (endpoints not implemented)
+        spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+        vertx3: missing_feature (endpoints not implemented)
+        vertx4: missing_feature (endpoints not implemented)
     test_automated_login_events.py:
       Test_Login_Events: irrelevant (was v1.36.0 but will be replaced by V2)
       Test_Login_Events_Extended: irrelevant (was v1.36.0 but will be replaced by V2)
@@ -953,6 +962,10 @@ tests/:
       Test_V3_Login_Events_Anon: missing_feature
       Test_V3_Login_Events_Blocking: missing_feature
       Test_V3_Login_Events_RC: missing_feature
+    test_automated_user_and_session_tracking.py:
+      Test_Automated_Session_Blocking: missing_feature
+      Test_Automated_User_Blocking: missing_feature
+      Test_Automated_User_Tracking: missing_feature
     test_blocking_addresses.py:
       Test_BlockingGraphqlResolvers: missing_feature
       Test_Blocking_client_ip:
@@ -1442,6 +1455,7 @@ tests/:
       TestAdmisionControllerProfiling: v1.39.0
   parametric/:
     test_config_consistency.py:
+      Test_Config_Dogstatsd: missing_feature (default hostname is inconsistent)
       Test_Config_RateLimit: v1.41.1
       Test_Config_TraceAgentURL: v1.41.1
       Test_Config_TraceEnabled: v1.39.0
@@ -1523,6 +1537,7 @@ tests/:
       Test_Mock: v0.0.99
       Test_NotReleased: missing_feature
   test_config_consistency.py:
+    Test_Config_ClientIPHeaderEnabled_False: v1.43.0
     Test_Config_ClientIPHeader_Configured: missing_feature
     Test_Config_ClientIPHeader_Precedence: missing_feature (does not support x-forwarded header)
     Test_Config_ClientTagQueryString_Configured:

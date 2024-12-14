@@ -211,6 +211,10 @@ tests/:
       Test_V3_Login_Events_Anon: missing_feature
       Test_V3_Login_Events_Blocking: missing_feature
       Test_V3_Login_Events_RC: missing_feature
+    test_automated_user_and_session_tracking.py:
+      Test_Automated_Session_Blocking: missing_feature
+      Test_Automated_User_Blocking: missing_feature
+      Test_Automated_User_Tracking: missing_feature
     test_blocking_addresses.py:
       Test_BlockingGraphqlResolvers: missing_feature
       Test_Blocking_request_body: irrelevant (Php does not accept url encoded entries without key)
@@ -311,6 +315,7 @@ tests/:
     test_128_bit_traceids.py:
       Test_128_Bit_Traceids: v0.84.0
     test_config_consistency.py:
+      Test_Config_Dogstatsd: missing_feature
       Test_Config_RateLimit: v1.5.0
       Test_Config_TraceAgentURL: v1.4.0
       Test_Config_TraceEnabled: v1.3.0 # Unknown initial version
@@ -391,6 +396,7 @@ tests/:
     test_stats.py:
       Test_Client_Stats: missing_feature
   test_config_consistency.py:
+    Test_Config_ClientIPHeaderEnabled_False: v1.5.1
     Test_Config_ClientIPHeader_Configured: v1.4.0
     Test_Config_ClientIPHeader_Precedence: v1.4.0
     Test_Config_ClientTagQueryString_Configured: missing_feature (supports dd_trace_http_url_query_param_allowed instead)

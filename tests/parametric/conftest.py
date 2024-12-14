@@ -77,7 +77,7 @@ def apm_test_server(request, library_env, test_id):
 
     new_env.update(apm_test_server_image.env)
     yield dataclasses.replace(
-        apm_test_server_image, container_name=f"{apm_test_server_image.container_name}-{test_id}", env=new_env,
+        apm_test_server_image, container_name=f"{apm_test_server_image.container_name}-{test_id}", env=new_env
     )
 
 
@@ -124,13 +124,11 @@ class _TestAgentAPI:
         return json
 
     def set_remote_config(self, path, payload):
-        resp = self._session.post(
-            self._url("/test/session/responses/config/path"), json={"path": path, "msg": payload,},
-        )
+        resp = self._session.post(self._url("/test/session/responses/config/path"), json={"path": path, "msg": payload})
         assert resp.status_code == 202
 
     def get_remote_config(self):
-        resp = self._session.get(self._url("/v0.7/config"),)
+        resp = self._session.get(self._url("/v0.7/config"))
         resp_json = resp.json()
         list = []
         if resp_json and resp_json["target_files"]:
@@ -146,7 +144,7 @@ class _TestAgentAPI:
         current_rc = self.get_remote_config()
         current_rc.append({"path": path, "msg": payload})
         remote_config_payload = self._build_config_path_response(current_rc)
-        resp = self._session.post(self._url("/test/session/responses/config"), remote_config_payload,)
+        resp = self._session.post(self._url("/test/session/responses/config"), remote_config_payload)
         assert resp.status_code == 202
 
     @staticmethod
@@ -512,7 +510,7 @@ def docker_network(test_id: str) -> Generator[str, None, None]:
 
 @pytest.fixture
 def test_agent_port() -> int:
-    """ returns the port exposed inside the agent container """
+    """returns the port exposed inside the agent container"""
     return 8126
 
 
@@ -578,7 +576,6 @@ def test_agent(
         log_file=test_agent_log_file,
         network=docker_network,
     ):
-
         client = _TestAgentAPI(base_url=f"http://localhost:{host_port}", pytest_request=request)
         time.sleep(0.2)  # intial wait time, the trace agent takes 200ms to start
         for _ in range(100):
@@ -624,7 +621,6 @@ def test_library(
     apm_test_server: APMLibraryTestServer,
     test_server_log_file: TextIO,
 ) -> Generator[APMLibrary, None, None]:
-
     env = {
         "DD_TRACE_DEBUG": "true",
         "DD_TRACE_AGENT_URL": f"http://{test_agent_container_name}:{test_agent_port}",

@@ -30,8 +30,8 @@ class Test_Cmdi_UrlQuery:
             self.r,
             "rasp-932-110",
             {
-                "resource": {"address": "server.sys.exec.cmd", "value": "/bin/evilCommand",},
-                "params": {"address": "server.request.query", "value": "/bin/evilCommand",},
+                "resource": {"address": "server.sys.exec.cmd", "value": "/bin/evilCommand"},
+                "params": {"address": "server.request.query", "value": "/bin/evilCommand"},
             },
         )
 
@@ -52,8 +52,8 @@ class Test_Cmdi_BodyUrlEncoded:
             self.r,
             "rasp-932-110",
             {
-                "resource": {"address": "server.sys.exec.cmd", "value": "/bin/evilCommand",},
-                "params": {"address": "server.request.body", "value": "/bin/evilCommand",},
+                "resource": {"address": "server.sys.exec.cmd", "value": "/bin/evilCommand"},
+                "params": {"address": "server.request.body", "value": "/bin/evilCommand"},
             },
         )
 
@@ -75,8 +75,8 @@ class Test_Cmdi_BodyXml:
             self.r,
             "rasp-932-110",
             {
-                "resource": {"address": "server.sys.exec.cmd", "value": "/bin/evilCommand",},
-                "params": {"address": "server.request.body", "value": "/bin/evilCommand",},
+                "resource": {"address": "server.sys.exec.cmd", "value": "/bin/evilCommand"},
+                "params": {"address": "server.request.body", "value": "/bin/evilCommand"},
             },
         )
 
@@ -98,8 +98,8 @@ class Test_Cmdi_BodyJson:
             self.r,
             "rasp-932-110",
             {
-                "resource": {"address": "server.sys.exec.cmd", "value": "/bin/evilCommand",},
-                "params": {"address": "server.request.body", "value": "/bin/evilCommand",},
+                "resource": {"address": "server.sys.exec.cmd", "value": "/bin/evilCommand"},
+                "params": {"address": "server.request.body", "value": "/bin/evilCommand"},
             },
         )
 
@@ -129,9 +129,7 @@ class Test_Cmdi_Optional_SpanTags:
         self.r = weblog.get("/rasp/cmdi", params={"command": "/bin/evilCommand"})
 
     def test_cmdi_span_tags(self):
-        validate_span_tags(
-            self.r, expected_metrics=["_dd.appsec.rasp.duration_ext", "_dd.appsec.rasp.rule.eval",],
-        )
+        validate_span_tags(self.r, expected_metrics=["_dd.appsec.rasp.duration_ext", "_dd.appsec.rasp.rule.eval"])
 
 
 @rfc("https://docs.google.com/document/d/1DDWy3frMXDTAbk-BfnZ1FdRwuPx6Pl7AWyR4zjqRFZw")

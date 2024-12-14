@@ -18,7 +18,7 @@ CONFIG_ENABLED = (
 )
 BLOCK_405 = (
     "datadog/2/ASM/actions/config",
-    {"actions": [{"id": "block_custom", "parameters": {"status_code": 405, "type": "auto"}, "type": "block_request",}]},
+    {"actions": [{"id": "block_custom", "parameters": {"status_code": 405, "type": "auto"}, "type": "block_request"}]},
 )
 
 EXCLUSIONS = (
@@ -31,7 +31,7 @@ EXCLUSIONS = (
                 "conditions": [
                     {
                         "operator": "ip_match",
-                        "parameters": {"data": "suspicious_ips_data_id", "inputs": [{"address": "http.client_ip"}],},
+                        "parameters": {"data": "suspicious_ips_data_id", "inputs": [{"address": "http.client_ip"}]},
                     }
                 ],
             }
@@ -43,14 +43,14 @@ EXCLUSION_DATA = (
     "datadog/2/ASM_DATA/exclusions_data/config",
     {
         "exclusion_data": [
-            {"id": "suspicious_ips_data_id", "type": "ip_with_expiration", "data": [{"value": "34.65.27.85"}],}
+            {"id": "suspicious_ips_data_id", "type": "ip_with_expiration", "data": [{"value": "34.65.27.85"}]}
         ]
     },
 )
 
 BLOCK_416 = (
     "datadog/2/ASM/actions/config",
-    {"actions": [{"id": "block_custom", "parameters": {"status_code": 416, "type": "auto"}, "type": "block_request",}]},
+    {"actions": [{"id": "block_custom", "parameters": {"status_code": 416, "type": "auto"}, "type": "block_request"}]},
 )
 
 HEADERS_ATTACKER = {

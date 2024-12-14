@@ -221,6 +221,10 @@ tests/:
       Test_V3_Login_Events_Anon: missing_feature
       Test_V3_Login_Events_Blocking: missing_feature
       Test_V3_Login_Events_RC: missing_feature
+    test_automated_user_and_session_tracking.py:
+      Test_Automated_Session_Blocking: missing_feature
+      Test_Automated_User_Blocking: missing_feature
+      Test_Automated_User_Tracking: missing_feature
     test_blocking_addresses.py:
       Test_BlockingGraphqlResolvers: v2.3.1-dev
       Test_Blocking_client_ip: v1.0.0
@@ -380,6 +384,7 @@ tests/:
       TestAdmisionControllerProfiling: missing_feature
   parametric/:
     test_config_consistency.py:
+      Test_Config_Dogstatsd: missing_feature
       Test_Config_RateLimit: v2.0.0
       Test_Config_TraceAgentURL: v2.5.0
       Test_Config_TraceEnabled: v2.0.0
@@ -456,6 +461,7 @@ tests/:
     test_stats.py:
       Test_Client_Stats: missing_feature
   test_config_consistency.py:
+    Test_Config_ClientIPHeaderEnabled_False: v2.8.0
     Test_Config_ClientIPHeader_Configured: v2.3.0
     Test_Config_ClientIPHeader_Precedence: v2.3.0
     Test_Config_ClientTagQueryString_Configured: missing_feature (does not support redacting query string via envar)

@@ -273,6 +273,10 @@ tests/:
       Test_V3_Login_Events_Anon: missing_feature
       Test_V3_Login_Events_Blocking: missing_feature
       Test_V3_Login_Events_RC: missing_feature
+    test_automated_user_and_session_tracking.py:
+      Test_Automated_Session_Blocking: missing_feature
+      Test_Automated_User_Blocking: missing_feature
+      Test_Automated_User_Tracking: missing_feature
     test_blocking_addresses.py:
       Test_BlockingGraphqlResolvers: missing_feature
       Test_Blocking_client_ip: v2.27.0
@@ -397,6 +401,7 @@ tests/:
       TestAdmisionControllerProfiling: missing_feature
   parametric/:
     test_config_consistency.py:
+      Test_Config_Dogstatsd: missing_feature (does not support hostname)
       Test_Config_RateLimit: v3.4.1
       Test_Config_TraceAgentURL: v3.4.1
       Test_Config_TraceEnabled: v3.3.0
@@ -469,6 +474,7 @@ tests/:
     test_miscs.py:
       Test_Miscs: missing_feature
   test_config_consistency.py:
+    Test_Config_ClientIPHeaderEnabled_False: v3.6.1
     Test_Config_ClientIPHeader_Configured: v3.4.1
     Test_Config_ClientIPHeader_Precedence: v3.4.1
     Test_Config_ClientTagQueryString_Configured: missing_feature (configuration DNE)

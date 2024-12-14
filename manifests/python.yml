@@ -456,6 +456,10 @@ tests/:
       Test_V3_Login_Events_Anon: missing_feature
       Test_V3_Login_Events_Blocking: missing_feature
       Test_V3_Login_Events_RC: missing_feature
+    test_automated_user_and_session_tracking.py:
+      Test_Automated_Session_Blocking: missing_feature
+      Test_Automated_User_Blocking: missing_feature
+      Test_Automated_User_Tracking: missing_feature
     test_blocking_addresses.py:
       Test_BlockingGraphqlResolvers: missing_feature
       Test_Blocking_client_ip:
@@ -755,6 +759,7 @@ tests/:
     test_128_bit_traceids.py:
       Test_128_Bit_Traceids: v2.6.0
     test_config_consistency.py:
+      Test_Config_Dogstatsd: missing_feature
       Test_Config_RateLimit: v2.15.0
       Test_Config_TraceAgentURL: v2.0.0
       Test_Config_TraceEnabled: v2.12.2
@@ -863,6 +868,7 @@ tests/:
     test_miscs.py:
       Test_Miscs: missing_feature
   test_config_consistency.py:
+    Test_Config_ClientIPHeaderEnabled_False: v2.17.3
     Test_Config_ClientIPHeader_Configured: v2.12.0
     Test_Config_ClientIPHeader_Precedence: v2.12.0
     Test_Config_ClientTagQueryString_Configured: v2.15.0

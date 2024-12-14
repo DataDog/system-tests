@@ -73,7 +73,7 @@ def generate_gitlab_pipeline(languages):
                 "tags": ["runner:$runner"],
                 "stage": language if len(languages) > 1 else "DOCKER_SSI",
                 "allow_failure": True,
-                "variables": {"TEST_LIBRARY": language,},
+                "variables": {"TEST_LIBRARY": language},
                 "parallel": {"matrix": matrix},
             }
     return pipeline

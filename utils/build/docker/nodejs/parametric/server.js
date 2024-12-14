@@ -289,7 +289,9 @@ app.get('/trace/config', (req, res) => {
       'dd_env': config?.tags?.env !== undefined ? `${config.tags.env}` : 'null',
       'dd_version': config?.tags?.version !== undefined ? `${config.tags.version}` : 'null',
       'dd_trace_agent_url': config?.url !== undefined ? `${config.url.href}` : 'null',
-      'dd_trace_rate_limit': config?.sampler?.rateLimit !== undefined ? `${config?.sampler?.rateLimit}` :'null'
+      'dd_trace_rate_limit': config?.sampler?.rateLimit !== undefined ? `${config?.sampler?.rateLimit}` : 'null',
+      'dd_dogstatsd_host': config?.dogstatsd?.hostname !== undefined ? `${config.dogstatsd.hostname}` : 'null',
+      'dd_dogstatsd_port': config?.dogstatsd?.port !== undefined ? `${config.dogstatsd.port}` : 'null',
     }
   });
 });

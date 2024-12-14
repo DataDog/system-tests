@@ -127,7 +127,6 @@ class _Base_Debugger_Test:
 
         self.probe_definitions = _enrich_probes(probes)
         self.probe_ids = _extract_probe_ids(probes)
-        self._installed_ids = set()
 
     ###### send #####
     _rc_version = 0
@@ -147,51 +146,54 @@ class _Base_Debugger_Test:
 
     ###### wait for #####
     _last_read = 0
-    _installed_ids = set()
 
     def wait_for_all_probes_installed(self, timeout=30):
-        interfaces.agent.wait_for(self._wait_for_all_probes_installed, timeout=timeout)
+        interfaces.agent.wait_for(lambda data: self._wait_for_all_probes(data, status="INSTALLED"), timeout=timeout)
 
-    def _wait_for_all_probes_installed(self, data):
-        def _check_all_probes_installed(self, probe_diagnostics):
-            logger.debug(f"Waiting for these probes to be installed: {self.probe_ids}")
+    def wait_for_all_probes_emitting(self, timeout=30):
+        interfaces.agent.wait_for(lambda data: self._wait_for_all_probes(data, status="EMITTING"), timeout=timeout)
+
+    def _wait_for_all_probes(self, data, status):
+        found_ids = set()
+
+        def _check_all_probes_status(probe_diagnostics, status):
+            logger.debug(f"Waiting for these probes to be {status}: {self.probe_ids}")
 
             for expected_id in self.probe_ids:
                 if expected_id in probe_diagnostics:
-                    status = probe_diagnostics[expected_id]["status"]
+                    probe_status = probe_diagnostics[expected_id]["status"]
 
-                    logger.debug(f"Probe {expected_id} observed status is {status}")
-                    if status == "INSTALLED":
-                        self._installed_ids.add(expected_id)
+                    logger.debug(f"Probe {expected_id} observed status is {probe_status}")
+                    if probe_status == status or probe_status == "ERROR":
+                        found_ids.add(expected_id)
 
-            if set(self.probe_ids).issubset(self._installed_ids):
-                logger.debug(f"Succes: found all probes")
+            if set(self.probe_ids).issubset(found_ids):
+                logger.debug(f"Success: all probes are {status}")
                 return True
 
             return False
 
-        all_probes_installed = False
+        all_probes_ready = False
 
         log_filename_found = re.search(r"/(\d+)__", data["log_filename"])
         if not log_filename_found:
             return False
 
         log_number = int(log_filename_found.group(1))
-        if log_number > _Base_Debugger_Test._last_read:
+        if log_number >= _Base_Debugger_Test._last_read:
             _Base_Debugger_Test._last_read = log_number
 
-            if data["path"] == _DEBUGGER_PATH or data["path"] == _LOGS_PATH:
+        if data["path"] in [_DEBUGGER_PATH, _LOGS_PATH]:
+            probe_diagnostics = self._process_diagnostics_data([data])
+            logger.debug(probe_diagnostics)
 
-                probe_diagnostics = self._process_diagnostics_data([data])
-                logger.debug(probe_diagnostics)
+            if not probe_diagnostics:
+                logger.debug("Probes diagnostics is empty")
+                return False
 
-                if not probe_diagnostics:
-                    logger.debug("Probes diagnostics is empty")
-                    return False
+            all_probes_ready = _check_all_probes_status(probe_diagnostics, status)
 
-                all_probes_installed = _check_all_probes_installed(self, probe_diagnostics)
-
-        return all_probes_installed
+        return all_probes_ready
 
     _method_name = None
     _exception_message = None
@@ -366,7 +368,6 @@ class _Base_Debugger_Test:
                     for payload in content["tracerPayloads"]:
                         for chunk in payload["chunks"]:
                             for span in chunk["spans"]:
-
                                 is_span_decoration_method = span["name"] == "dd.dynamic.span"
                                 if is_span_decoration_method:
                                     span_hash[span["meta"]["debugger.probeid"]] = span
@@ -388,7 +389,6 @@ class _Base_Debugger_Test:
 
     def get_tracer(self):
         if not _Base_Debugger_Test.tracer:
-
             _Base_Debugger_Test.tracer = {
                 "language": str(context.library).split("@")[0],
                 "tracer_version": str(context.library.version),

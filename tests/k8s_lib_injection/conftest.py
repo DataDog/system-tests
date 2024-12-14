@@ -87,7 +87,7 @@ class K8sInstance:
             logger.error(f"Error destroying cluster: {e}. Ignoring failure...")
 
     def deploy_datadog_cluster_agent(self, use_uds=False, features=None):
-        """ Deploys datadog cluster agent with admission controller and given features."""
+        """Deploys datadog cluster agent with admission controller and given features."""
         self.test_agent.deploy_datadog_cluster_agent(features=features, cluster_agent_tag=self.cluster_agent_tag)
 
     def deploy_test_agent(self):

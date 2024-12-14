@@ -20,6 +20,7 @@ class Test_Debugger_Probe_Snaphots(debugger._Base_Debugger_Test):
         self.send_rc_probes()
         self.wait_for_all_probes_installed()
         self.send_weblog_request(request_path)
+        self.wait_for_all_probes_emitting()
 
     ########### assert ############
     def _assert(self):
