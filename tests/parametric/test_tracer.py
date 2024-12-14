@@ -4,6 +4,7 @@ from utils.parametric.spec.trace import find_trace
 from utils.parametric.spec.trace import find_span
 from utils.parametric.spec.trace import find_first_span_in_trace_payload
 from utils.parametric.spec.trace import find_root_span
+from utils.tools import logger
 from utils import missing_feature, context, rfc, scenarios, features, bug
 
 from .conftest import _TestAgentAPI
@@ -159,27 +160,28 @@ class Test_TracerSCITagging:
 
         assert first_span["meta"]["_dd.git.repository_url"] == library_env["expected_repo_url"]
 
-    @pytest.mark.parametrize(
+    @bug(library="golang", reason="DEBUG-2977")
+    @parametrize(
         "library_env",
         [
             {
-                "DD_GIT_COMMIT_SHA": "a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0",
+                "DD_GIT_COMMIT_SHA": "a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2",
                 "DD_GIT_REPOSITORY_URL": "https://github.com/Datadog/system-tests",
             }
         ],
     )
-    @bug(library="golang", reason="DEBUG-2977")
-    @bug(library="java", reason="DEBUG-2978")    
     def test_git_metadata_is_sent_to_instrumentation_telemetry(self, library_env, test_agent, test_library):
-
         event = test_agent.wait_for_telemetry_event("app-started", wait_loops=400)
+        logger.info(f"Full event: {event}")
         configuration = event["payload"]["configuration"]
-        configuration_by_name = {item["name"]: item for item in configuration}
+        configuration_by_name = {item["name"]: item["value"] for item in configuration}
 
-        assert configuration_by_name.get("DD_GIT_COMMIT_SHA").get("value") == "a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0"
-        assert configuration_by_name.get("DD_GIT_REPOSITORY_URL").get("value") == "https://github.com/Datadog/system-tests"
+        logger.info(f"Configuration by name: {configuration_by_name}")
+        assert configuration_by_name["DD_GIT_COMMIT_SHA"] == "a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2"
+        assert configuration_by_name["DD_GIT_REPOSITORY_URL"] == "https://github.com/Datadog/system-tests"
 
-    @pytest.mark.parametrize(
+    @bug(library="golang", reason="DEBUG-2975")
+    @parametrize(
         "library_env",
         [
             {
@@ -189,8 +191,6 @@ class Test_TracerSCITagging:
             }
         ],
     )
-    @bug(library="golang", reason="DEBUG-2975")    
-    @bug(library="php", reason="DEBUG-2976")
     def test_git_metadata_is_sent_to_remote_config(self, library_env, test_agent, test_library):
         """
         Test that git commit SHA and repository URL are included in the remote config request when set via the DD_GIT_COMMIT_SHA and DD_GIT_REPOSITORY_URL environment variables
