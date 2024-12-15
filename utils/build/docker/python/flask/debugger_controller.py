@@ -123,7 +123,7 @@ def collection_operations():
 @debugger_blueprint.route("/expression/null", methods=["GET"])
 def nulls():
     intValue = request.args.get("intValue", type=int)
-    strValue = request.args.get("strValue", type = str)
+    strValue = request.args.get("strValue", type=str)
     boolValue = request.args.get("boolValue", type=bool)
 
     pii = None

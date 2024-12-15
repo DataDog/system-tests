@@ -313,7 +313,7 @@ class Test_Debugger_Expression_Language(debugger._Base_Debugger_Test):
     ## at the app there are 3 types of collections are created - array, list and hash.
     ## the number at the end of variable means the length of the collection
     ## all collection are filled with incremented number values (e.g at the [0] = 0; [1] = 1)
-    
+
     def setup_expression_language_collection_operations(self):
         message_map, probes = self._create_expression_probes(
             methodName="CollectionOperations",
@@ -382,7 +382,7 @@ class Test_Debugger_Expression_Language(debugger._Base_Debugger_Test):
     @bug(library="dotnet", reason="DEBUG-2602")
     def test_expression_language_collection_operations(self):
         self._assert(expected_response=200)
-        
+
     def setup_expression_language_hash_operations(self):
         message_map, probes = self._create_expression_probes(
             methodName="CollectionOperations",
