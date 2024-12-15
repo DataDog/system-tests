@@ -7,13 +7,12 @@ import re
 from utils import scenarios, features, bug
 from utils.tools import logger
 
-_OVERRIDE_APROVALS = False
+_OVERRIDE_APROVALS = True
 _SCRUB_VALUES = True
 
 
 @features.debugger_exception_replay
 @scenarios.debugger_exception_replay
-@bug(True, reason="DEBUG-3188")
 class Test_Debugger_Exception_Replay(debugger._Base_Debugger_Test):
     ############ setup ############
     def _setup(self, request_path, method_name):
@@ -72,25 +71,87 @@ class Test_Debugger_Exception_Replay(debugger._Base_Debugger_Test):
                 for key, value in data.items():
                     if key in ["timestamp", "id", "exceptionId", "duration"]:
                         scrubbed_data[key] = "<scrubbed>"
-                    # java
-                    elif key == "elements" and data.get("type") in ["long[]", "short[]", "int[]"]:
-                        scrubbed_data[key] = "<scrubbed>"
-                    elif key == "moduleVersion":
-                        scrubbed_data[key] = "<scrubbed>"
-                    # dotnet
-                    elif key == "function" and "lambda_" in value:
-                        scrubbed_data[key] = re.sub(r"(method)\d+", r"\1<scrubbed>", value)
-                    # dotnet
-                    elif key == "StackTrace" and isinstance(value, dict):
-                        value["value"] = "<scrubbed>"
-                        scrubbed_data[key] = value
                     else:
-                        scrubbed_data[key] = __scrub(value)
+                        scrubbed_data[key] = scrub_language(key, value, data)
+
                 return scrubbed_data
             elif isinstance(data, list):
                 return [__scrub(item) for item in data]
             else:
                 return data
+
+        def __scrub_java(key, value, parent):
+            runtime = ("jdk.", "org.", "java")
+
+            def skip_runtime(value, skip_condition, del_filename=None):
+                scrubbed = []
+
+                for entry in value:
+                    # skip inner runtime methods from stack traces since they are not relevant to debugger
+                    if skip_condition(entry):
+                        continue
+
+                    # filenames in stacktraces are unreliable due to potential data races during retransformation.
+                    if del_filename and del_filename(entry):
+                        del entry["fileName"]
+
+                    scrubbed.append(__scrub(entry))
+
+                scrubbed.append({"<runtime>": "<scrubbed>"})
+
+                return scrubbed
+
+            if key == "elements":
+                if parent.get("type") in ["long[]", "short[]", "int[]"]:
+                    return "<scrubbed>"
+
+                if parent["type"] == "java.lang.Object[]":
+                    return skip_runtime(value, lambda e: "value" in e and e["value"].startswith(runtime))
+
+                if parent["type"] == "java.lang.StackTraceElement[]":
+                    return skip_runtime(value, lambda e: e["fields"]["declaringClass"]["value"].startswith(runtime))
+
+                return __scrub(value)
+
+            elif key == "moduleVersion":
+                return "<scrubbed>"
+            elif key in ["stacktrace", "stack"]:
+                return skip_runtime(
+                    value, lambda e: "function" in e and e["function"].startswith(runtime), lambda e: "fileName" in e
+                )
+
+            return __scrub(value)
+
+        def __scrub_dotnet(key, value, parent):
+            if key == "StackTrace" and isinstance(value, dict):
+                value["value"] = "<scrubbed>"
+                return value
+            elif key in ["stacktrace", "stack"]:
+                scrubbed = []
+                for entry in value:
+                    # skip inner runtime methods from stack traces since they are not relevant to debugger
+                    if entry["function"].startswith(("Microsoft", "System")):
+                        continue
+
+                    if "lambda_" in entry["function"]:
+                        return re.sub(r"(lambda_method)\d+", r"\1<scrubbed>", entry["function"])
+
+                    scrubbed.append(__scrub(entry))
+
+                scrubbed.append({"<runtime>": "<scrubbed>"})
+                return scrubbed
+            return __scrub(value)
+
+        def __scrub_none(key, value, parent):
+            return __scrub(value)
+
+        scrub_language = None
+        if self.get_tracer()["language"] == "java":
+            scrub_language = __scrub_java
+        elif self.get_tracer()["language"] == "dotnet":
+            scrub_language = __scrub_dotnet
+        else:
+            scrub_language = __scrub_none
 
         def __approve(snapshots):
             debugger.write_approval(snapshots, test_name, "snapshots_received")
@@ -195,21 +256,21 @@ class Test_Debugger_Exception_Replay(debugger._Base_Debugger_Test):
     ############ test ############
     ############ Simple ############
     def setup_exception_replay_simple(self):
-        self._setup("/debugger/exceptionreplay/simple", "exceptionreplaysimple")
+        self._setup("/exceptionreplay/simple", "exceptionreplaysimple")
 
     def test_exception_replay_simple(self):
         self._assert("exception_replay_simple", "exceptionreplaysimple")
 
     ############ Recursion ############
     def setup_exception_replay_recursion_20(self):
-        self._setup("/debugger/exceptionreplay/recursion?depth=20", "exceptionreplayrecursion")
+        self._setup("/exceptionreplay/recursion?depth=20", "exceptionreplayrecursion")
 
     def test_exception_replay_recursion_20(self):
         self._assert("exception_replay_recursion_20", "exceptionreplayrecursion")
 
     ############ Inner ############
     def setup_exception_replay_inner(self):
-        self._setup("/debugger/exceptionreplay/inner", "exceptionreplayinner")
+        self._setup("/exceptionreplay/inner", "exceptionreplayinner")
 
     def test_exception_replay_inner(self):
         self._assert("exception_replay_inner", "exceptionreplayinner")
@@ -232,7 +293,7 @@ class Test_Debugger_Exception_Replay(debugger._Base_Debugger_Test):
                     continue
 
                 logger.debug(f"Waiting for snapshot for shape: {shape}, retry #{retries}")
-                self.send_weblog_request(f"/debugger/exceptionreplay/rps?shape={shape}", reset=False)
+                self.send_weblog_request(f"/exceptionreplay/rps?shape={shape}", reset=False)
 
                 shapes[shape] = self.wait_for_snapshot_received(
                     method_name="exceptionreplayrockpaperscissors", exception_message=shape
