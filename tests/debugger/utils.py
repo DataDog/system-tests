@@ -212,25 +212,25 @@ class _Base_Debugger_Test:
 
         return all_probes_ready
 
-    _method_name = None
     _exception_message = None
     _snapshot_found = False
 
-    def wait_for_snapshot_received(self, method_name, exception_message=None, timeout=1):
-        self._method_name = method_name
+    def wait_for_exception_snapshot_received(self, exception_message=None):
         self._exception_message = exception_message
         self._snapshot_found = False
+
+        if self.get_tracer()["language"] == "python":
+            # for python snapshot is generated on the first exception, so we can wait a bit longer, to reduce snapshot duplicates
+            timeout = 5
+        else:
+            timeout = 1
 
         interfaces.agent.wait_for(self._wait_for_snapshot_received, timeout=timeout)
         return self._snapshot_found
 
     def _wait_for_snapshot_received(self, data):
-        # log_number = int(re.search(r"/(\d+)__", data["log_filename"]).group(1))
-        # if log_number >= self._last_read:
-        #     self._last_read = log_number
-
         if data["path"] == _LOGS_PATH:
-            logger.debug("Reading " + data["log_filename"] + ", looking for " + self._method_name)
+            logger.debug("Reading " + data["log_filename"] + ", looking for " + self._exception_message)
             contents = data["request"].get("content", []) or []
 
             logger.debug("len is")
@@ -239,39 +239,17 @@ class _Base_Debugger_Test:
             for content in contents:
                 snapshot = content.get("debugger", {}).get("snapshot") or content.get("debugger.snapshot")
 
-                if not snapshot:
+                if not snapshot or "probe" not in snapshot:
                     continue
 
-                if (
-                    "probe" not in snapshot
-                    or "location" not in snapshot["probe"]
-                    or "method" not in snapshot["probe"]["location"]
-                ):
-                    continue
+                exception_message = self.get_exception_message(snapshot)
 
-                method = snapshot["probe"]["location"]["method"]
+                logger.debug("Exception message is " + exception_message)
+                logger.debug("Self Exception message is " + self._exception_message)
 
-                if not isinstance(method, str):
-                    continue
-
-                method = method.lower().replace("_", "")
-                logger.debug("Found method " + method)
-
-                if method == self._method_name:
-                    if self._exception_message:
-                        exception_message = snapshot["captures"]["return"]["throwable"]["message"].lower()
-                        logger.debug("Exception message is " + exception_message)
-                        logger.debug("Self Exception message is " + self._exception_message)
-
-                        found = re.search(self._exception_message, exception_message)
-                        logger.debug(found)
-
-                        if re.search(self._exception_message, exception_message):
-                            self._snapshot_found = True
-                            break
-                    else:
-                        self._snapshot_found = True
-                        break
+                if self._exception_message in exception_message:
+                    self._snapshot_found = True
+                    break
 
         logger.debug(f"Snapshot found: {self._snapshot_found}")
         return self._snapshot_found
@@ -417,6 +395,12 @@ class _Base_Debugger_Test:
         if self.setup_failures:
             assert "\n".join(self.setup_failures) is None
 
+    def get_exception_message(self, snapshot):
+        if self.get_tracer()["language"] == "python":
+            return next(iter(snapshot["captures"]["lines"].values()))["throwable"]["message"].lower()
+        else:
+            return snapshot["captures"]["return"]["throwable"]["message"].lower()
+
     ###### assert #####
     def assert_rc_state_not_error(self):
         assert self.rc_state, "RC states are empty"
@@ -450,5 +434,4 @@ class _Base_Debugger_Test:
         assert len(self.weblog_responses) > 0, "No responses available."
 
         for respone in self.weblog_responses:
-            logger.debug(f"Response is {respone.text}")
             assert respone.status_code == expected_code
