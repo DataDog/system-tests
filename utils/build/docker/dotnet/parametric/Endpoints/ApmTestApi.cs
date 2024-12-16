@@ -60,12 +60,12 @@ public abstract class ApmTestApi
 
     // static state
     private static readonly Dictionary<ulong, ISpan> Spans = new();
-    private static readonly Dictionary<ulong, ISpanContext> DDContexts = new();
+    private static readonly Dictionary<ulong, ISpanContext> SpanContexts = new();
     private static ILogger<ApmTestApi>? _logger;
 
     // stateless singletons
-    private static readonly SpanContextInjector _spanContextInjector = new();
-    private static readonly SpanContextExtractor _spanContextExtractor = new();
+    private static readonly SpanContextInjector SpanContextInjector = new();
+    private static readonly SpanContextExtractor SpanContextExtractor = new();
 
 
     private static async Task StopTracer()
@@ -181,11 +181,11 @@ public abstract class ApmTestApi
                       .GroupBy(kvp => kvp.Key, kvp => kvp.Value)
                       .ToDictionary(g => g.Key, g => g.ToList());
 
-        var extractedContext = _spanContextExtractor.Extract(headers, (dict, key) => dict[key]);
+        var extractedContext = SpanContextExtractor.Extract(headers, (dict, key) => dict[key]);
 
         if (extractedContext is not null)
         {
-            DDContexts[extractedContext.SpanId] = extractedContext;
+            SpanContexts[extractedContext.SpanId] = extractedContext;
         }
 
         return JsonSerializer.Serialize(new
@@ -211,7 +211,7 @@ public abstract class ApmTestApi
         var span = FindSpan(requestJson);
         var httpHeaders = new List<string[]>();
 
-        _spanContextInjector.Inject(
+        SpanContextInjector.Inject(
             httpHeaders,
             (headers, key, value) => headers.Add([key, value]),
             span.Context);
@@ -285,7 +285,7 @@ public abstract class ApmTestApi
 
         await Tracer.Instance.ForceFlushAsync();
         Spans.Clear();
-        DDContexts.Clear();
+        SpanContexts.Clear();
         ApmTestApiOtel.ClearActivities();
     }
 
@@ -353,7 +353,7 @@ public abstract class ApmTestApi
             return span.Context;
         }
 
-        if (DDContexts.TryGetValue(spanId.Value, out var spanContext))
+        if (SpanContexts.TryGetValue(spanId.Value, out var spanContext))
         {
             return spanContext;
         }
