@@ -81,7 +81,7 @@ public abstract class ApmTestApi
 
         var creationSettings = new SpanCreationSettings
         {
-            Parent = FindSpanContext(requestJson, "parent_id")
+            Parent = FindSpanContext(requestJson, required: false, "parent_id")
         };
 
         var operationName = requestJson.GetPropertyAsString("name");
@@ -337,15 +337,20 @@ public abstract class ApmTestApi
             return span;
         }
 
-        throw new InvalidOperationException($"Span not found with span_id: {spanId}");
+        throw new InvalidOperationException($"Span not found with span id: {spanId}");
     }
 
-    private static ISpanContext FindSpanContext(JsonElement json, string key = "span_id")
+    private static ISpanContext? FindSpanContext(JsonElement json, bool required, string key = "span_id")
     {
         var spanId = json.GetPropertyAsUInt64(key);
 
         if (spanId is null)
         {
+            if (!required)
+            {
+                return null;
+            }
+
             _logger?.LogError("Required {key} not found in request json.", key);
             throw new InvalidOperationException($"Required {key} not found in request json.");
         }
@@ -360,7 +365,12 @@ public abstract class ApmTestApi
             return spanContext;
         }
 
-        throw new InvalidOperationException($"Span not found with span_id: {spanId}");
+        if (required)
+        {
+            throw new InvalidOperationException($"Span not found with span id: {spanId}");
+        }
+
+        return null;
     }
 
     private static async Task<JsonElement> ParseJsonAsync(Stream stream, [CallerMemberName] string? caller = null)
