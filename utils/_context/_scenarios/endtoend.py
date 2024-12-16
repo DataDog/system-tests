@@ -166,7 +166,7 @@ class DockerScenario(Scenario):
             )
             assert self._network.attrs["EnableIPv6"] is True, self._network.attrs
         else:
-            get_docker_client().networks.create(name, check_duplicate=True)
+            self._network = get_docker_client().networks.create(name, check_duplicate=True)
 
     def get_warmups(self):
         warmups = super().get_warmups()
@@ -398,8 +398,9 @@ class EndToEndScenario(DockerScenario):
 
     def _set_weblog_domain(self):
         if self.enable_ipv6:
-            from utils import weblog
+            from utils import weblog  # TODO better interface
 
+            # TODO : check if mac => not supported (or keep localhost ? )
             weblog.domain = self.weblog_container.network_ip(self._network)
 
     def get_warmups(self):
