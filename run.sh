@@ -411,6 +411,11 @@ function main() {
       done
     fi
 
+    # Enable ddtrace plugin when running in GitLab CI
+    if [[ -n "${GITLAB_CI:-}" ]]; then
+        pytest_args+=( '--ddtrace' )
+    fi
+
     # evaluate max pytest number of process for K8s_lib_injection
     for scenario in "${scenarios[@]}"; do
         #TODO DELETE WHEN THE SCENARIO IS REMOVED. REPLACED BY K8S_LIBRARY_INJECTION
