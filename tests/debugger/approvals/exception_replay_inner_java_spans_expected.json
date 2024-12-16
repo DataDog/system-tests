@@ -23,7 +23,7 @@
     "metrics": "<scrubbed>",
     "name": "spring.handler",
     "parentID": "<scrubbed>",
-    "resource": "DebuggerController.exceptionReplayInner",
+    "resource": "ExceptionReplayController.exceptionReplayInner",
     "service": "weblog",
     "spanID": "<scrubbed>",
     "start": "<scrubbed>",

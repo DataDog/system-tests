@@ -310,6 +310,10 @@ tests/:
       Test_V2_Login_Events: missing_feature
       Test_V2_Login_Events_Anon: missing_feature
       Test_V2_Login_Events_RC: missing_feature
+    test_automated_user_and_session_tracking.py:
+      Test_Automated_Session_Blocking: missing_feature
+      Test_Automated_User_Blocking: missing_feature
+      Test_Automated_User_Tracking: missing_feature
     test_blocking_addresses.py:
       Test_BlockingGraphqlResolvers: missing_feature
       Test_Blocking_client_ip: v1.51.0
@@ -564,6 +568,7 @@ tests/:
           Test_MultipartUpload: missing_feature
           Test_PutObject: missing_feature
   test_config_consistency.py:
+    Test_Config_ClientIPHeaderEnabled_False: v1.70.1
     Test_Config_ClientIPHeader_Configured: v1.60.0
     Test_Config_ClientIPHeader_Precedence: v1.69.0
     Test_Config_ClientTagQueryString_Configured: missing_feature (supports DD_TRACE_HTTP_URL_QUERY_STRING_DISABLED)

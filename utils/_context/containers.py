@@ -940,7 +940,7 @@ class CassandraContainer(TestedContainer):
 class RabbitMqContainer(TestedContainer):
     def __init__(self, host_log_folder) -> None:
         super().__init__(
-            image_name="rabbitmq:3-management-alpine",
+            image_name="rabbitmq:3.12-management-alpine",
             name="rabbitmq",
             host_log_folder=host_log_folder,
             allow_old_container=True,
