@@ -63,6 +63,8 @@ jobs:
         library: ${{ fromJson(needs.impacted_libraries.outputs.impacted_libraries) }}
       fail-fast: false
     runs-on: ubuntu-latest
+    outputs:
+      target-branch: ${{ steps.get-target-branch.outputs.target-branch }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -91,7 +93,7 @@ jobs:
           path: binaries/
 
   system_tests:
-    name: System Tests
+    name: System Tests ${{ needs.get_dev_artifacts.outputs.target-branch != '' && format('({0} branch)', needs.get_dev_artifacts.outputs.target-branch) || '' }}
     needs:
     - lint
     - test_the_test
