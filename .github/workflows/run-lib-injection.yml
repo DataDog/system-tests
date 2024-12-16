@@ -50,8 +50,7 @@ jobs:
           "python": [{"name":"dd-lib-python-init-test-django","supported":"true"},
                      {"name":"dd-lib-python-init-test-django-gunicorn", "supported":"true"},
                      {"name":"dd-lib-python-init-test-django-gunicorn-alpine","supported":"true"},
-                     {"name":"
-                     -lib-python-init-test-django-preinstalled","supported":"true","skip-profiling":"true"},
+                     {"name":"dd-lib-python-init-test-django-preinstalled","supported":"true","skip-profiling":"true"},
                      {"name":"dd-lib-python-init-test-django-unsupported-package-force","supported":"true"},
                      {"name":"dd-lib-python-init-test-django-uvicorn","supported":"true"},
                      {"name":"dd-lib-python-init-test-protobuf-old","supported":"true"}],
