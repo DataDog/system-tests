@@ -488,7 +488,6 @@ k8s_java:
   image: registry.ddbuild.io/ci/libdatadog-build/system-tests:48436362
   tags: [ "runner:docker" ]
   stage: k8s_lib_injection
-  needs: [ create-multiarch-lib-injection-image ]
   rules:
     - if: $CI_PIPELINE_SOURCE == "schedule"
       when: always
