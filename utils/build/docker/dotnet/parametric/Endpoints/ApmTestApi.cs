@@ -179,9 +179,10 @@ public abstract class ApmTestApi
     {
         var requestJson = await ParseJsonAsync(request.Body);
 
-        var headers = EnumerateArray(requestJson.GetProperty("http_headers"))
-                      .GroupBy(kvp => kvp.Key, kvp => kvp.Value)
-                      .ToDictionary(g => g.Key, g => g.ToList());
+        var headers = requestJson.GetProperty("http_headers")
+                                 .EnumerateArray()
+                                 .GroupBy(kvp => kvp[0].ToString(), kvp => kvp[1].ToString())
+                                 .ToDictionary(g => g.Key, g => g.ToList());
 
         var extractedContext = SpanContextExtractor.Extract(headers, (dict, key) => dict[key]);
 
@@ -194,16 +195,6 @@ public abstract class ApmTestApi
         {
             span_id = extractedContext?.SpanId
         });
-
-        static IEnumerable<KeyValuePair<string, string>> EnumerateArray(JsonElement array)
-        {
-            foreach (var item in array.EnumerateArray())
-            {
-                var key = item[0].GetString();
-                var value = item[1].GetString();
-                yield return new KeyValuePair<string, string>(key!, value!);
-            }
-        }
     }
 
     private static async Task<string> InjectHeaders(HttpRequest request)
