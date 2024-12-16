@@ -144,7 +144,7 @@ class DockerScenario(Scenario):
     def _create_network(self) -> None:
         name = "system-tests-ipv6" if self.enable_ipv6 else "system-tests-ipv4"
 
-        for network in get_docker_client().networks.list(names=[name,]):
+        for network in get_docker_client().networks.list(names=[name]):
             self._network = network
             logger.debug(f"Network {name} still exists")
             return

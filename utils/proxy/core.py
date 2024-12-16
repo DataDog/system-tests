@@ -144,7 +144,6 @@ class _RequestLogger:
             PORT_RUBY_BUDDY,
             PORT_GOLANG_BUDDY,
         ):
-
             if flow.request.headers.get("dd-protocol") == "otlp":
                 # OTLP ingestion
                 otlp_path = flow.request.headers.get("dd-otlp-path")
@@ -346,7 +345,6 @@ class _RequestLogger:
 
 
 def start_proxy() -> None:
-
     # the port is used to know the origin of the request
     modes = [
         f"regular@{PORT_DIRECT_INTERACTION}",  # RC payload API
