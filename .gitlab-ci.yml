@@ -509,7 +509,7 @@ k8s_java:
     - ./run.sh ${K8S_SCENARIO} --k8s-library ${TEST_LIBRARY} --k8s-weblog ${K8S_WEBLOG} --k8s-weblog-img ghcr.io/datadog/system-tests/dd-djm-spark-test-app:latest --k8s-lib-init-img ${K8S_LIB_INIT_IMG} --k8s-cluster-version ${K8S_CLUSTER_VERSION}
   after_script:
     - mkdir -p reports
-    - cp -R /system-tests/logs_*/ reports/
+    - cp -R logs_*/ reports/
     - kind delete clusters --all || true
   artifacts:
     when: always
