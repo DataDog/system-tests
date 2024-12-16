@@ -20,6 +20,7 @@ class Test_Debugger_Probe_Snaphots(debugger._Base_Debugger_Test):
         self.send_rc_probes()
         self.wait_for_all_probes_installed()
         self.send_weblog_request(request_path)
+        self.wait_for_all_probes_emitting()
 
     ########### assert ############
     def _assert(self):
@@ -45,7 +46,6 @@ class Test_Debugger_Probe_Snaphots(debugger._Base_Debugger_Test):
     def setup_log_method_probe_snaphots(self):
         self._setup("probe_snapshot_log_method", "/debugger/log")
 
-    @bug(library="python", reason="DEBUG-2708, DEBUG-2709")
     def test_log_method_probe_snaphots(self):
         self._assert()
         self._validate_snapshots()
@@ -54,7 +54,6 @@ class Test_Debugger_Probe_Snaphots(debugger._Base_Debugger_Test):
     def setup_span_method_probe_snaphots(self):
         self._setup("probe_snapshot_span_method", "/debugger/span")
 
-    @bug(library="python", reason="DEBUG-2708, DEBUG-2709")
     def test_span_method_probe_snaphots(self):
         self._assert()
         self._validate_spans()
@@ -63,7 +62,6 @@ class Test_Debugger_Probe_Snaphots(debugger._Base_Debugger_Test):
     def setup_span_decoration_method_probe_snaphots(self):
         self._setup("probe_snapshot_span_decoration_method", "/debugger/span-decoration/asd/1")
 
-    @bug(library="python", reason="DEBUG-2708, DEBUG-2709")
     @missing_feature(context.library == "ruby", reason="Not yet implemented")
     def test_span_decoration_method_probe_snaphots(self):
         self._assert()
@@ -92,7 +90,6 @@ class Test_Debugger_Probe_Snaphots(debugger._Base_Debugger_Test):
     def setup_mix_probe(self):
         self._setup("probe_snapshot_log_mixed", "/debugger/mix/asd/1")
 
-    @bug(library="python", reason="DEBUG-2710")
     def test_mix_probe(self):
         self._assert()
         self._validate_snapshots()

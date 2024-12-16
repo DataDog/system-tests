@@ -105,7 +105,6 @@ class BaseSinkTestWithoutTelemetry:
         return _get_expectation(self.evidence_map)
 
     def setup_insecure(self):
-
         # optimize by attaching requests to the class object, to avoid calling it several times. We can't attach them
         # to self, and we need to attach the request on class object, as there are one class instance by test case
 
@@ -138,7 +137,6 @@ class BaseSinkTestWithoutTelemetry:
         self.test_insecure()
 
     def setup_secure(self):
-
         # optimize by attaching requests to the class object, to avoid calling it several times. We can't attach them
         # to self, and we need to attach the request on class object, as there are one class instance by test case
 
@@ -182,7 +180,6 @@ class BaseSinkTestWithoutTelemetry:
 
 
 def validate_stack_traces(request):
-
     spans = [span for _, span in interfaces.library.get_root_spans(request=request)]
     assert spans, "No root span found"
     span = spans[0]

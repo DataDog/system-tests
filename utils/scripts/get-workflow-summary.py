@@ -35,7 +35,6 @@ def get_jobs(session, repo_slug: str, run_id: int) -> list:
 
 
 def main(repo_slug: str, run_id: int) -> None:
-
     environ = get_environ()
 
     with requests.Session() as session:

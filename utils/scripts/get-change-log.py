@@ -21,7 +21,6 @@ for month in sorted(data, reverse=True):
 
     print(f"\n\n### {month} ({len(prs)} PR merged)\n")
     for pr in prs:
-
         pr["merged_at"] = pr["merged_at"][:10]
         pr["author"] = pr["user"]["login"]
         print("* {merged_at} [{title}]({html_url}) by @{author}".format(**pr))

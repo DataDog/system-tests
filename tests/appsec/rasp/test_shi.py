@@ -31,8 +31,8 @@ class Test_Shi_UrlQuery:
             self.r,
             "rasp-932-100",
             {
-                "resource": {"address": "server.sys.shell.cmd", "value": "ls $(cat /etc/passwd 1>&2 ; echo .)",},
-                "params": {"address": "server.request.query", "value": "$(cat /etc/passwd 1>&2 ; echo .)",},
+                "resource": {"address": "server.sys.shell.cmd", "value": "ls $(cat /etc/passwd 1>&2 ; echo .)"},
+                "params": {"address": "server.request.query", "value": "$(cat /etc/passwd 1>&2 ; echo .)"},
             },
         )
 
@@ -53,8 +53,8 @@ class Test_Shi_BodyUrlEncoded:
             self.r,
             "rasp-932-100",
             {
-                "resource": {"address": "server.sys.shell.cmd", "value": "ls $(cat /etc/passwd 1>&2 ; echo .)",},
-                "params": {"address": "server.request.body", "value": "$(cat /etc/passwd 1>&2 ; echo .)",},
+                "resource": {"address": "server.sys.shell.cmd", "value": "ls $(cat /etc/passwd 1>&2 ; echo .)"},
+                "params": {"address": "server.request.body", "value": "$(cat /etc/passwd 1>&2 ; echo .)"},
             },
         )
 
@@ -76,8 +76,8 @@ class Test_Shi_BodyXml:
             self.r,
             "rasp-932-100",
             {
-                "resource": {"address": "server.sys.shell.cmd", "value": "ls $(cat /etc/passwd 1>&2 ; echo .)",},
-                "params": {"address": "server.request.body", "value": "$(cat /etc/passwd 1>&2 ; echo .)",},
+                "resource": {"address": "server.sys.shell.cmd", "value": "ls $(cat /etc/passwd 1>&2 ; echo .)"},
+                "params": {"address": "server.request.body", "value": "$(cat /etc/passwd 1>&2 ; echo .)"},
             },
         )
 
@@ -99,8 +99,8 @@ class Test_Shi_BodyJson:
             self.r,
             "rasp-932-100",
             {
-                "resource": {"address": "server.sys.shell.cmd", "value": "ls $(cat /etc/passwd 1>&2 ; echo .)",},
-                "params": {"address": "server.request.body", "value": "$(cat /etc/passwd 1>&2 ; echo .)",},
+                "resource": {"address": "server.sys.shell.cmd", "value": "ls $(cat /etc/passwd 1>&2 ; echo .)"},
+                "params": {"address": "server.request.body", "value": "$(cat /etc/passwd 1>&2 ; echo .)"},
             },
         )
 
@@ -130,9 +130,7 @@ class Test_Shi_Optional_SpanTags:
         self.r = weblog.get("/rasp/shi", params={"list_dir": "$(cat /etc/passwd 1>&2 ; echo .)"})
 
     def test_shi_span_tags(self):
-        validate_span_tags(
-            self.r, expected_metrics=["_dd.appsec.rasp.duration_ext", "_dd.appsec.rasp.rule.eval",],
-        )
+        validate_span_tags(self.r, expected_metrics=["_dd.appsec.rasp.duration_ext", "_dd.appsec.rasp.rule.eval"])
 
 
 @rfc("https://docs.google.com/document/d/1vmMqpl8STDk7rJnd3YBsa6O9hCls_XHHdsodD61zr_4/edit#heading=h.enmf90juqidf")

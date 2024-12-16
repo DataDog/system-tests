@@ -62,7 +62,6 @@ class _BackendInterfaceValidator(ProxyBasedInterfaceValidator):
         self._init_rid_to_library_trace_ids()
 
     def _init_rid_to_library_trace_ids(self):
-
         # Map each request ID to the spans created and submitted during that request call.
         for _, span in self.library_interface.get_root_spans():
             rid = get_rid_from_span(span)
@@ -224,7 +223,7 @@ class _BackendInterfaceValidator(ProxyBasedInterfaceValidator):
             "path": path,
             "query": query,
             "request": {"content": json_payload},
-            "response": {"status_code": r.status_code, "content": r.content, "headers": dict(r.headers),},
+            "response": {"status_code": r.status_code, "content": r.content, "headers": dict(r.headers)},
             "log_filename": f"{self.log_folder}/{self.message_count:03d}_{path.replace('/', '_')}.json",
         }
         self.message_count += 1
@@ -271,7 +270,6 @@ class _BackendInterfaceValidator(ProxyBasedInterfaceValidator):
         )
 
     def _wait_for_request_traces(self, rid, retries=5, sleep_interval_multiplier=2.0):
-
         trace_ids = self._get_trace_ids(rid)
         logger.info(
             f"Waiting for {len(trace_ids)} traces to become available from request {rid} with {retries} retries..."
@@ -290,7 +288,6 @@ class _BackendInterfaceValidator(ProxyBasedInterfaceValidator):
         return trace
 
     def _wait_for_event_platform_spans(self, query_filter, limit, retries=5, sleep_interval_multiplier=2.0):
-
         logger.info(
             f"Waiting until spans (non-empty response) become available with "
             f"query '{query_filter}' with {retries} retries..."
@@ -324,7 +321,7 @@ class _BackendInterfaceValidator(ProxyBasedInterfaceValidator):
 
         request_data = {
             "list": {
-                "search": {"query": f"env:system-tests {query_filter}",},
+                "search": {"query": f"env:system-tests {query_filter}"},
                 "indexes": ["trace-search"],
                 "time": {
                     # 30 min of window should be plenty

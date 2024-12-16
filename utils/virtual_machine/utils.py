@@ -208,7 +208,7 @@ def generate_gitlab_pipeline(
                     "DD_INSTALLER_INJECTOR_VERSION": installer_injector_version,
                 },
                 # Remove rules if you want to run the jobs when you clic on the execute button of the child pipeline
-                "rules": [rule_run, {"when": "manual", "allow_failure": True},],
+                "rules": [rule_run, {"when": "manual", "allow_failure": True}],
                 "script": [
                     "./build.sh -i runner",
                     "timeout 3000 ./run.sh $SCENARIO --vm-weblog $WEBLOG --vm-env $ONBOARDING_FILTER_ENV --vm-library $TEST_LIBRARY --vm-provider aws --report-run-url $CI_PIPELINE_URL --report-environment $ONBOARDING_FILTER_ENV --vm-default-vms All --vm-only "
@@ -247,7 +247,7 @@ def _generate_cache_jobs(language, weblog_name, scenario_name, vms):
                 "AMI_UPDATE": "true",
             },
             # Remove rules if you want to run the jobs when you clic on the execute button of the child pipeline.
-            "rules": [{"when": "manual", "allow_failure": True},],
+            "rules": [{"when": "manual", "allow_failure": True}],
             "script": [
                 "./build.sh -i runner",
                 "./run.sh $SCENARIO --vm-weblog $WEBLOG --vm-env prod --vm-library $TEST_LIBRARY --vm-provider aws --vm-default-vms All --vm-only "

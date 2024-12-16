@@ -111,19 +111,19 @@ class scenarios:
 
     telemetry_log_generation_disabled = EndToEndScenario(
         "TELEMETRY_LOG_GENERATION_DISABLED",
-        weblog_env={"DD_TELEMETRY_LOGS_COLLECTION_ENABLED": "false",},
+        weblog_env={"DD_TELEMETRY_LOGS_COLLECTION_ENABLED": "false"},
         doc="Test env var `DD_TELEMETRY_LOGS_COLLECTION_ENABLED=false`",
         scenario_groups=[ScenarioGroup.TELEMETRY],
     )
     telemetry_metric_generation_disabled = EndToEndScenario(
         "TELEMETRY_METRIC_GENERATION_DISABLED",
-        weblog_env={"DD_TELEMETRY_METRICS_ENABLED": "false",},
+        weblog_env={"DD_TELEMETRY_METRICS_ENABLED": "false"},
         doc="Test env var `DD_TELEMETRY_METRICS_ENABLED=false`",
         scenario_groups=[ScenarioGroup.TELEMETRY],
     )
     telemetry_metric_generation_enabled = EndToEndScenario(
         "TELEMETRY_METRIC_GENERATION_ENABLED",
-        weblog_env={"DD_TELEMETRY_METRICS_ENABLED": "true",},
+        weblog_env={"DD_TELEMETRY_METRICS_ENABLED": "true"},
         doc="Test env var `DD_TELEMETRY_METRICS_ENABLED=true`",
         scenario_groups=[ScenarioGroup.TELEMETRY],
     )
@@ -266,7 +266,7 @@ class scenarios:
 
     appsec_api_security_rc = EndToEndScenario(
         "APPSEC_API_SECURITY_RC",
-        weblog_env={"DD_EXPERIMENTAL_API_SECURITY_ENABLED": "true", "DD_API_SECURITY_SAMPLE_DELAY": "0.0",},
+        weblog_env={"DD_EXPERIMENTAL_API_SECURITY_ENABLED": "true", "DD_API_SECURITY_SAMPLE_DELAY": "0.0"},
         rc_api_enabled=True,
         doc="""
             Scenario to test API Security Remote config
@@ -359,6 +359,7 @@ class scenarios:
             "DD_APPSEC_SCA_ENABLED": "true",
             "DD_EXPERIMENTAL_APPSEC_STANDALONE_ENABLED": "true",
             "DD_IAST_ENABLED": "false",
+            "DD_TELEMETRY_DEPENDENCY_RESOLUTION_PERIOD_MILLIS": "1",
         },
         doc="SCA standalone mode (APM opt out)",
         scenario_groups=[ScenarioGroup.APPSEC],
@@ -387,7 +388,7 @@ class scenarios:
         "REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES",
         rc_api_enabled=True,
         appsec_enabled=False,
-        weblog_env={"DD_REMOTE_CONFIGURATION_ENABLED": "true",},
+        weblog_env={"DD_REMOTE_CONFIGURATION_ENABLED": "true"},
         doc="",
         scenario_groups=[ScenarioGroup.APPSEC, ScenarioGroup.REMOTE_CONFIG, ScenarioGroup.ESSENTIALS],
     )
@@ -408,7 +409,7 @@ class scenarios:
     remote_config_mocked_backend_asm_dd = EndToEndScenario(
         "REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD",
         rc_api_enabled=True,
-        weblog_env={"DD_APPSEC_RULES": None,},
+        weblog_env={"DD_APPSEC_RULES": None},
         doc="""
             The spec says that if DD_APPSEC_RULES is defined, then rules won't be loaded from remote config.
             In this scenario, we use remote config. By the spec, whem remote config is available, rules file
@@ -428,7 +429,7 @@ class scenarios:
     remote_config_mocked_backend_asm_features_nocache = EndToEndScenario(
         "REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES_NOCACHE",
         rc_api_enabled=True,
-        weblog_env={"DD_APPSEC_ENABLED": "false", "DD_REMOTE_CONFIGURATION_ENABLED": "true",},
+        weblog_env={"DD_APPSEC_ENABLED": "false", "DD_REMOTE_CONFIGURATION_ENABLED": "true"},
         doc="",
         scenario_groups=[ScenarioGroup.APPSEC, ScenarioGroup.REMOTE_CONFIG],
     )
@@ -457,7 +458,7 @@ class scenarios:
     apm_tracing_e2e = EndToEndScenario("APM_TRACING_E2E", backend_interface_timeout=5, doc="")
     apm_tracing_e2e_otel = EndToEndScenario(
         "APM_TRACING_E2E_OTEL",
-        weblog_env={"DD_TRACE_OTEL_ENABLED": "true",},
+        weblog_env={"DD_TRACE_OTEL_ENABLED": "true"},
         backend_interface_timeout=5,
         require_api_key=True,
         doc="",
@@ -489,7 +490,7 @@ class scenarios:
         doc="Scenario with custom headers for DD_TRACE_HEADER_TAGS that libraries should reject",
     )
 
-    tracing_config_empty = EndToEndScenario("TRACING_CONFIG_EMPTY", weblog_env={}, doc="",)
+    tracing_config_empty = EndToEndScenario("TRACING_CONFIG_EMPTY", weblog_env={}, doc="")
 
     tracing_config_nondefault = EndToEndScenario(
         "TRACING_CONFIG_NONDEFAULT",
@@ -530,7 +531,11 @@ class scenarios:
     )
     tracing_config_nondefault_3 = EndToEndScenario(
         "TRACING_CONFIG_NONDEFAULT_3",
-        weblog_env={"DD_TRACE_HTTP_CLIENT_TAG_QUERY_STRING": "false"},
+        weblog_env={
+            "DD_TRACE_HTTP_CLIENT_TAG_QUERY_STRING": "false",
+            "DD_TRACE_CLIENT_IP_HEADER": "custom-ip-header",
+        },
+        appsec_enabled=False,
         doc="",
         scenario_groups=[ScenarioGroup.TRACING_CONFIG],
     )
@@ -553,7 +558,7 @@ class scenarios:
     debugger_probes_snapshot = EndToEndScenario(
         "DEBUGGER_PROBES_SNAPSHOT",
         rc_api_enabled=True,
-        weblog_env={"DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1", "DD_REMOTE_CONFIG_ENABLED": "true",},
+        weblog_env={"DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1", "DD_REMOTE_CONFIG_ENABLED": "true"},
         library_interface_timeout=5,
         doc="Test scenario for checking if debugger successfully generates snapshots for probes",
         scenario_groups=[ScenarioGroup.DEBUGGER],
@@ -576,7 +581,7 @@ class scenarios:
     debugger_expression_language = EndToEndScenario(
         "DEBUGGER_EXPRESSION_LANGUAGE",
         rc_api_enabled=True,
-        weblog_env={"DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1", "DD_REMOTE_CONFIG_ENABLED": "true",},
+        weblog_env={"DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1", "DD_REMOTE_CONFIG_ENABLED": "true"},
         library_interface_timeout=5,
         doc="Check expression language",
         scenario_groups=[ScenarioGroup.DEBUGGER],

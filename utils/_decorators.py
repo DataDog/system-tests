@@ -46,7 +46,6 @@ def is_jira_ticket(reason: str):
 
 
 def _ensure_jira_ticket_as_reason(item, reason: str):
-
     if not is_jira_ticket(reason):
         path = inspect.getfile(item)
         rel_path = os.path.relpath(path)

@@ -616,29 +616,11 @@ Additionally both methods support the following query parameters to use the sdk 
 - `sdk_mail`: user's mail to be used in the sdk call.
 - `sdk_user_exists`: `true` of `false` to indicate wether the current user exists and populate the corresponding tag.
 
-### GET /debugger
-These endpoints are used for the Dynamic Instrumentation tests.
-
-#### GET /debugger/log
-This endpoint will be used to validate the log probe.
-
-#### GET /debugger/metric
-This endpoint will be used to validate the metric probe.
-
-#### GET /debugger/span
-This endpoint will be used to validate the span probe.
-
-#### GET /debugger/span-decoration
-This endpoint will be used to validate the span decoration probe.
-
-#### GET /debugger/pii
-This endpoint will be used to validate Dynamic Instrumentation pii redaction feature.
-
-#### GET /expression/*
-These endpoints will be used to validate Dynamic Instrumentation expression language feature.
+### GET /debugger/*
+These endpoints are used for the `Dynamic Instrumentation` tests.
 
 #### GET /exceptionreplay/*
-These endpoints will be used to validate Dynamic Instrumentation exception replay feature.
+These endpoints will be used for `Exception Replay` tests.
 
 ### GET /createextraservice
 should rename the trace service, creating a "fake" service
@@ -784,6 +766,12 @@ This endpoint get a `name` and a `value` form the query string, and adds a heade
 ### \[GET\] /session/new
 
 This endpoint is the initial endpoint used to test session fingerprints, consequently it must initialize a new session and the web client should be able to deal with the persistence mechanism (e.g. cookies).
+
+Returns the identifier of the created session id. Example :
+
+```text
+c377db41-b664-4e30-af57-5df2e803bec7
+```
 
 Examples:
 - `GET`: `/session/new`
