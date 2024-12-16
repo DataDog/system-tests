@@ -172,11 +172,15 @@ elif [ "$TARGET" = "dotnet" ]; then
 elif [ "$TARGET" = "python" ]; then
     assert_version_is_dev
 
-    echo "git+https://github.com/DataDog/dd-trace-py.git" > python-load-from-pip
+    TARGET_BRANCH="${TARGET_BRANCH:-main}"
+    echo "git+https://github.com/DataDog/dd-trace-py.git@$TARGET_BRANCH" > python-load-from-pip
+    echo "Using $(cat python-load-from-pip)"
 
 elif [ "$TARGET" = "ruby" ]; then
     assert_version_is_dev
-    echo "gem 'datadog', require: 'datadog/auto_instrument', git: 'https://github.com/Datadog/dd-trace-rb.git'" > ruby-load-from-bundle-add
+
+    TARGET_BRANCH="${TARGET_BRANCH:-master}"
+    echo "gem 'datadog', require: 'datadog/auto_instrument', git: 'https://github.com/Datadog/dd-trace-rb.git', branch: '$TARGET_BRANCH'" > ruby-load-from-bundle-add
     echo "Using $(cat ruby-load-from-bundle-add)"
 elif [ "$TARGET" = "php" ]; then
     rm -rf *.tar.gz
@@ -217,8 +221,8 @@ elif [ "$TARGET" = "nodejs" ]; then
 
     TARGET_BRANCH="${TARGET_BRANCH:-master}"
     # NPM builds the package, so we put a trigger file that tells install script to get package from github#master
-    echo "Using \"$TARGET_BRANCH\" target branch"
     echo "DataDog/dd-trace-js#$TARGET_BRANCH" > nodejs-load-from-npm
+    echo "Using $(cat nodejs-load-from-npm)"
 
 elif [ "$TARGET" = "waf_rule_set_v1" ]; then
     exit 1
