@@ -3,7 +3,6 @@
     "language": "",
     "type": "",
     "id": "span0cf2-meth-45cf-9f39-591received",
-    "version": 0,
     "where": {
       "typeName": "NotReallyExists",
       "methodName": "SomeMethod",
@@ -15,7 +14,6 @@
     "language": "",
     "type": "",
     "id": "span0cf2-meth-45cf-9f39-59installed",
-    "version": 0,
     "where": {
       "typeName": "ACTUAL_TYPE_NAME",
       "methodName": "SpanProbe",
