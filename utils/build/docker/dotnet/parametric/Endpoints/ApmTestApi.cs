@@ -113,7 +113,7 @@ public abstract class ApmTestApi
 
         Spans[span.SpanId] = span;
 
-        return JsonSerializer.Serialize(new
+        return SerializeResult(new
         {
             span_id = span.SpanId.ToString(),
             trace_id = span.TraceId.ToString(),
@@ -191,7 +191,7 @@ public abstract class ApmTestApi
             SpanContexts[extractedContext.SpanId] = extractedContext;
         }
 
-        return JsonSerializer.Serialize(new
+        return SerializeResult(new
         {
             span_id = extractedContext?.SpanId
         });
@@ -209,7 +209,7 @@ public abstract class ApmTestApi
             (headers, key, value) => headers.Add([key, value]),
             span.Context);
 
-        return JsonSerializer.Serialize(new
+        return SerializeResult(new
         {
             http_headers = httpHeaders
         });
@@ -263,7 +263,7 @@ public abstract class ApmTestApi
             // { "dd_trace_sample_ignore_parent", "null" }, // Not supported
         };
 
-        return JsonSerializer.Serialize(new
+        return SerializeResult(new
         {
             config
         });
@@ -372,5 +372,12 @@ public abstract class ApmTestApi
 
         _logger?.LogInformation("Handler {handler} called with {HttpRequest.Body}", caller, root);
         return root;
+    }
+
+    protected static string SerializeResult(object value, [CallerMemberName] string? caller = null)
+    {
+        var json = JsonSerializer.Serialize(value);
+        _logger?.LogInformation("Handler {handler} returning {JsonResult}", caller, json);
+        return json;
     }
 }
