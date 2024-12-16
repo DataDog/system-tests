@@ -36,6 +36,7 @@ jobs:
   parametric:
     runs-on:
       group: "APM Larger Runners"
+    if: ${{ inputs.binaries_artifact == '' || inputs.library != 'dotnet' }}  # .NET is broken in main
     strategy:
       fail-fast: false
       matrix:

@@ -18,6 +18,7 @@ def get_github_workflow_map(scenarios, scenarios_groups):
 
     for scenario in get_all_scenarios():
         if not scenario.github_workflow:
+            scenarios[scenario.name] = True  # won't be executed, but it exists
             continue
 
         if scenario.github_workflow not in result:
@@ -95,7 +96,6 @@ def get_endtoend_weblogs(library):
 
 
 def get_opentelemetry_weblogs(library):
-
     weblogs = {
         "cpp": [],
         "dotnet": [],
@@ -130,7 +130,7 @@ def main(language: str, scenarios: str, groups: str):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(prog="get-github-parameters", description="Get scenarios and weblog to run",)
+    parser = argparse.ArgumentParser(prog="get-github-parameters", description="Get scenarios and weblog to run")
     parser.add_argument(
         "language",
         type=str,

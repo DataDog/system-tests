@@ -61,11 +61,10 @@ class Test_Headers_B3multi:
 
     @enable_b3multi()
     def test_headers_b3multi_extract_invalid(self, test_agent, test_library):
-        """Ensure that invalid b3multi distributed tracing headers are not extracted.
-        """
+        """Ensure that invalid b3multi distributed tracing headers are not extracted."""
         with test_library:
             headers = test_library.dd_make_child_span_and_get_headers(
-                [["x-b3-traceid", "0"], ["x-b3-spanid", "0"], ["x-b3-sampled", "1"],]
+                [["x-b3-traceid", "0"], ["x-b3-spanid", "0"], ["x-b3-sampled", "1"]]
             )
 
         span = find_only_span(test_agent.wait_for_num_traces(1))
@@ -75,8 +74,7 @@ class Test_Headers_B3multi:
 
     @enable_b3multi()
     def test_headers_b3multi_inject_valid(self, test_agent, test_library):
-        """Ensure that b3multi distributed tracing headers are injected properly.
-        """
+        """Ensure that b3multi distributed tracing headers are injected properly."""
         with test_library:
             headers = test_library.dd_make_child_span_and_get_headers([])
 
@@ -124,7 +122,7 @@ class Test_Headers_B3multi:
         """
         with test_library:
             headers = test_library.dd_make_child_span_and_get_headers(
-                [["x-b3-traceid", "0"], ["x-b3-spanid", "0"], ["x-b3-sampled", "1"],]
+                [["x-b3-traceid", "0"], ["x-b3-spanid", "0"], ["x-b3-sampled", "1"]]
             )
 
         span = find_only_span(test_agent.wait_for_num_traces(1))

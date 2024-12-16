@@ -62,7 +62,7 @@ class Test_SpanEvents_WithAgentSupport:
 class Test_SpanEvents_WithoutAgentSupport:
     """
     Test that tracers do not attempt to send natively serialized span events if the agent does not support it.
-    
+
     Request the Weblog endpoint `/add_event`, which adds a span event (with any name and attributes values)
     to the request root span.
     """

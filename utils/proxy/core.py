@@ -115,7 +115,6 @@ class _RequestLogger:
         return http.Response.make(400, message)
 
     def request(self, flow: Flow):
-
         logger.info(f"{flow.request.method} {flow.request.pretty_url}")
 
         if flow.request.port == PORT_DIRECT_INTERACTION:
@@ -285,7 +284,6 @@ class _RequestLogger:
                 self._add_rc_capabilities_in_info_request(flow)
 
                 if flow.request.path == "/v0.7/config":
-
                     # mimic the default response from the agent
                     flow.response.status_code = 200
                     flow.response.content = b"{}"

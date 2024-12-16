@@ -23,7 +23,7 @@ class TestXPathInjection(BaseSinkTestWithoutTelemetry):
 )
 @features.iast_stack_trace
 class TestXPathInjection_StackTrace:
-    """Validate stack trace generation """
+    """Validate stack trace generation"""
 
     def setup_stack_trace(self):
         self.r = weblog.post("/iast/xpathi/test_insecure", data={"expression": "expression"})

@@ -1,3 +1,4 @@
+import json
 from collections import defaultdict
 from datetime import datetime, timedelta
 import time
@@ -101,7 +102,7 @@ class Test_Telemetry:
             check_condition=not_onboarding_event,
         )
         header_match_validator = HeadersMatchValidator(
-            request_headers={"via": r"trace-agent 7\..+"}, response_headers=(), check_condition=not_onboarding_event,
+            request_headers={"via": r"trace-agent 7\..+"}, response_headers=(), check_condition=not_onboarding_event
         )
 
         self.validate_agent_telemetry_data(header_presence_validator)
@@ -111,16 +112,14 @@ class Test_Telemetry:
     def test_telemetry_message_has_datadog_container_id(self):
         """Test telemetry messages contain datadog-container-id"""
         interfaces.agent.assert_headers_presence(
-            path_filter=INTAKE_TELEMETRY_PATH, request_headers=["datadog-container-id"],
+            path_filter=INTAKE_TELEMETRY_PATH, request_headers=["datadog-container-id"]
         )
 
     @missing_feature(library="cpp")
     def test_telemetry_message_required_headers(self):
         """Test telemetry messages contain required headers"""
 
-        interfaces.agent.assert_headers_presence(
-            path_filter=INTAKE_TELEMETRY_PATH, request_headers=["dd-api-key"],
-        )
+        interfaces.agent.assert_headers_presence(path_filter=INTAKE_TELEMETRY_PATH, request_headers=["dd-api-key"])
         interfaces.library.assert_headers_presence(
             path_filter=AGENT_TELEMETRY_PATH,
             request_headers=["dd-telemetry-api-version", "dd-telemetry-request-type"],
@@ -290,10 +289,10 @@ class Test_Telemetry:
 
     @staticmethod
     def _get_heartbeat_delays_by_runtime() -> dict:
-        """ 
-            Returns a dict where :
-            The key is the runtime id
-            The value is a list of delay observed on this runtime id
+        """
+        Returns a dict where :
+        The key is the runtime id
+        The value is a list of delay observed on this runtime id
         """
 
         fmt = "%Y-%m-%dT%H:%M:%S.%f%z"
@@ -308,7 +307,6 @@ class Test_Telemetry:
         delays_by_runtime = {}
 
         for runtime_id, heartbeats in heartbeats_by_runtime.items():
-
             assert len(heartbeats) > 2, f"No enough telemetry messages to check delays for runtime id {runtime_id}"
 
             logger.debug(f"Heartbeats for runtime {runtime_id}:")
@@ -342,9 +340,9 @@ class Test_Telemetry:
     @features.telemetry_heart_beat_collected
     def test_app_heartbeats_delays(self):
         """
-            Check for telemetry heartbeat are not sent too fast/slow, regarding DD_TELEMETRY_HEARTBEAT_INTERVAL
-            There are a lot of reason for individual heartbeats to be sent too slow/fast, and the subsequent ones
-            to be sent too fast/slow so the RFC says that it must not drift. So we will check the average delay
+        Check for telemetry heartbeat are not sent too fast/slow, regarding DD_TELEMETRY_HEARTBEAT_INTERVAL
+        There are a lot of reason for individual heartbeats to be sent too slow/fast, and the subsequent ones
+        to be sent too fast/slow so the RFC says that it must not drift. So we will check the average delay
         """
 
         delays_by_runtime = self._get_heartbeat_delays_by_runtime()
@@ -471,9 +469,7 @@ class Test_Telemetry:
 
         self.validate_library_telemetry_data(validator=validator, success_by_default=True)
 
-    @missing_feature(
-        context.library in ("golang", "php"), reason="Telemetry is not implemented yet. ",
-    )
+    @missing_feature(context.library in ("golang", "php"), reason="Telemetry is not implemented yet.")
     @missing_feature(context.library < "ruby@1.22.0", reason="Telemetry V2 is not implemented yet")
     def test_app_started_client_configuration(self):
         """Assert that default and other configurations that are applied upon start time are sent with the app-started event"""
@@ -597,6 +593,104 @@ class Test_TelemetryV2:
                 assert (
                     "appsec" in products
                 ), "Product information is not accurately reported by telemetry on app-started event"
+
+    @bug(library="java", reason="APMAPI-969")
+    def test_config_telemetry_completeness(self):
+        """
+        Assert that config telemetry is handled properly by telemetry intake
+
+        ⚠️ Did this test just fail? Read here! ⚠️
+        Some files are manually copied from dd-go from/to the following paths using tests/telemetry_intake/update.sh
+        from: https://github.com/DataDog/dd-go/blob/prod/trace/apps/tracer-telemetry-intake/telemetry-payload/static/
+        to: tests/telemetry_intake/static
+
+        If this test fails, it means that a telemetry key was found in config telemetry that does not
+        exist in any of the files listed above in dd-go
+        The impact is that telemetry will not be reported to the Datadog backend won't be unusable
+
+        To fix this, you must update dd-go to either
+        1) Add an exact config key to match config_norm_rules.json
+        2) Add a prefix that matches the config keys to config_prefix_block_list.json
+        3) Add a prefix rule that fits an existing prefix to config_aggregation_list.json
+        4) (Discouraged) Add a language-specific rule to <lang>_config_rules.json
+
+        Once dd-go is updated, you can copy over the files to this repo and merge them in as part of your changes
+        This can be done by running the following from the src root
+
+        Usage: ./tests/telemetry_intake/update.sh
+        """
+
+        def lowercase_obj(obj):
+            if isinstance(obj, dict):
+                return {k.lower() if isinstance(k, str) else k: lowercase_obj(v) for k, v in obj.items()}
+            elif isinstance(obj, list):
+                return [lowercase_obj(item) for item in obj]
+            elif isinstance(obj, str):
+                return obj.lower()
+            else:
+                return obj
+
+        def load_telemetry_json(filename):
+            with open(f"tests/telemetry_intake/static/{filename}.json", encoding="utf-8") as fh:
+                return lowercase_obj(json.load(fh))
+
+        def get_all_keys_and_values(*objs):
+            result = []
+            for obj in objs:
+                if obj is not None:
+                    if isinstance(obj, dict):
+                        result.extend(list(obj.keys()))
+                        result.extend(list(obj.values()))
+                    elif isinstance(obj, list):
+                        result.extend(obj)
+                    else:
+                        logger.error(f"Unexpected type in concat: {type(obj).__name__}")
+            return result
+
+        def is_key_accepted_by_telemetry(key, allowed_keys, allowed_prefixes):
+            lower_key = key.lower()
+            is_allowed_key = lower_key in allowed_keys
+            is_allowed_prefix = any(lower_key.startswith(prefix) for prefix in allowed_prefixes)
+
+            return is_allowed_key or is_allowed_prefix
+
+        config_norm_rules = load_telemetry_json("config_norm_rules")
+        config_prefix_block_list = load_telemetry_json("config_prefix_block_list")
+        config_aggregation_list = load_telemetry_json("config_aggregation_list")
+
+        lang_configs = {}
+        for lang in ["dotnet", "go", "jvm", "nodejs", "php", "python", "ruby"]:
+            lang_configs[lang] = load_telemetry_json(lang + "_config_rules")
+
+        for data in interfaces.library.get_telemetry_data(flatten_message_batches=True):
+            if not is_v2_payload(data):
+                continue
+            if get_request_type(data) in ["app-started", "app-client-configuration-change"]:
+                language_name = data["request"]["content"]["application"]["language_name"]
+
+                lang_config = lang_configs.get(language_name, {})
+
+                norm_rules = lang_config.get("normalization_rules", {})
+                exact_keys = get_all_keys_and_values(config_norm_rules, norm_rules)
+
+                prefix_keys = get_all_keys_and_values(
+                    config_prefix_block_list,
+                    lang_config.get("prefix_block_list", {}),
+                    config_aggregation_list,
+                    lang_config.get("reduce_rules", {}),
+                )
+
+                configuration = data["request"]["content"]["payload"]["configuration"]
+                library_config_keys = sorted([config["name"] for config in configuration if "name" in config])
+
+                missing_config_keys = [
+                    key for key in library_config_keys if not is_key_accepted_by_telemetry(key, exact_keys, prefix_keys)
+                ]
+
+                # This may create a fairly large test output, but it makes the output more actionable
+                if len(missing_config_keys) != 0:
+                    logger.error(json.dumps(missing_config_keys, indent=2))
+                    raise ValueError("Found unexpected config telemetry keys")
 
     @missing_feature(library="cpp")
     @missing_feature(context.library < "ruby@1.22.0", reason="dd-client-library-version missing")
@@ -837,6 +931,4 @@ class Test_TelemetrySCAEnvVar:
                 found = True
                 break
 
-        assert (
-            found
-        ), f"No telemetry found for {target_service_name} on {target_request_type} with configuration appsec.sca_enabled"
+        assert found, f"No telemetry found for {target_service_name} on {target_request_type} with configuration appsec.sca_enabled"

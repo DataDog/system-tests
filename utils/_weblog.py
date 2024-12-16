@@ -192,7 +192,6 @@ class _Weblog:
         return res
 
     def grpc(self, string_value, streaming=False):
-
         rid = "".join(random.choices(string.ascii_uppercase, k=36))
 
         # We cannot set the user agent for each request. For now, start a new channel for each query

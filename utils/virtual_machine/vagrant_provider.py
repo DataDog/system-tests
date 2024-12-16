@@ -101,7 +101,6 @@ class VagrantCommander(Commander):
         return last_task
 
     def copy_file(self, id, local_path, remote_path, connection, last_task, vm=None):
-
         SCPClient(connection.get_transport()).put(local_path, remote_path)
         return last_task
 
@@ -117,7 +116,6 @@ class VagrantCommander(Commander):
         output_callback=None,
         populate_env=True,
     ):
-
         logger.debug(f"Running remote-command with installation id: {installation_id}")
 
         # Workaround with env variables and paramiko :-(
