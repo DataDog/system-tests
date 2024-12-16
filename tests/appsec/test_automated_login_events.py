@@ -1846,7 +1846,7 @@ CONFIG_ENABLED = (
     {"asm": {"enabled": True}},
 )
 
-BLOCK_USER = (
+BLOCK_USER_RULE = (
     "datadog/2/ASM_DD/rules/config",
     {
         "version": "2.1",
@@ -1866,6 +1866,12 @@ BLOCK_USER = (
                 "on_match": ["block"],
             }
         ],
+    },
+)
+
+BLOCK_USER_DATA = (
+    "datadog/2/ASM_DATA/blocked_users/config",
+    {
         "rules_data": [
             {
                 "id": "blocked_users",
@@ -1887,7 +1893,8 @@ class Test_V3_Login_Events_Blocking:
         self.config_state_1 = rc.rc_state.set_config(*CONFIG_ENABLED).apply()
         self.r_login = weblog.post("/login?auth=local", data=login_data(context, USER, PASSWORD))
 
-        self.config_state_2 = rc.rc_state.set_config(*BLOCK_USER).apply()
+        self.config_state_2 = rc.rc_state.set_config(*BLOCK_USER_RULE).apply()
+        self.config_state_3 = rc.rc_state.set_config(*BLOCK_USER_DATA).apply()
         self.r_login_blocked = weblog.post("/login?auth=local", data=login_data(context, USER, PASSWORD))
 
     def test_login_event_blocking_auto(self):
@@ -1895,6 +1902,7 @@ class Test_V3_Login_Events_Blocking:
         assert self.r_login.status_code == 200
 
         assert self.config_state_2[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
+        assert self.config_state_3[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
         interfaces.library.assert_waf_attack(self.r_login_blocked, rule="block-users")
         assert self.r_login_blocked.status_code == 403
 
@@ -1906,7 +1914,8 @@ class Test_V3_Login_Events_Blocking:
             "/login?auth=local&sdk_event=success&sdk_user=sdkUser", data=login_data(context, UUID_USER, PASSWORD)
         )
 
-        self.config_state_2 = rc.rc_state.set_config(*BLOCK_USER).apply()
+        self.config_state_2 = rc.rc_state.set_config(*BLOCK_USER_RULE).apply()
+        self.config_state_3 = rc.rc_state.set_config(*BLOCK_USER_DATA).apply()
         self.r_login_blocked = weblog.post(
             "/login?auth=local&sdk_event=success&sdk_user=sdkUser", data=login_data(context, UUID_USER, PASSWORD)
         )
@@ -1916,5 +1925,6 @@ class Test_V3_Login_Events_Blocking:
         assert self.r_login.status_code == 200
 
         assert self.config_state_2[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
+        assert self.config_state_3[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
         interfaces.library.assert_waf_attack(self.r_login_blocked, rule="block-users")
         assert self.r_login_blocked.status_code == 403
