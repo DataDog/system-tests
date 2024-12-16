@@ -156,7 +156,13 @@ class DockerScenario(Scenario):
                 name=name,
                 driver="bridge",
                 enable_ipv6=True,
-                ipam=IPAMConfig(driver="default", pool_configs=[IPAMPool(subnet="2001:db8:1::/64")]),
+                ipam=IPAMConfig(
+                    driver="default",
+                    pool_configs=[
+                        IPAMPool(subnet="2001:db8:1::/64"),
+                        IPAMPool(subnet="192.168.1.0/24"),  # needed on linux host, to acces weblog for host
+                    ],
+                ),
             )
             assert self._network.attrs["EnableIPv6"] is True, self._network.attrs
         else:
