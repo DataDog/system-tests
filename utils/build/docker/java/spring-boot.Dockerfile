@@ -1,14 +1,12 @@
-FROM maven:3.9-eclipse-temurin-11 as build
-
-COPY ./utils/build/docker/java/iast-common/src /iast-common/src
+FROM datadog/system-tests:spring-boot.base-v0 as build
 
 WORKDIR /app
 
-COPY ./utils/build/docker/java/spring-boot/pom.xml .
-RUN mkdir /maven && mvn -Dmaven.repo.local=/maven -B dependency:go-offline
-
+COPY ./utils/build/docker/java/iast-common/src /iast-common/src
 COPY ./utils/build/docker/java/spring-boot/src ./src
-RUN mvn -Dmaven.repo.local=/maven package
+
+# TODO: is this line download stuff? if yes, include it in base image
+RUN mvn -Dmaven.repo.local=/maven package  
 
 COPY ./utils/build/docker/java/install_*.sh binaries* /binaries/
 RUN /binaries/install_ddtrace.sh

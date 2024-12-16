@@ -21,10 +21,11 @@ if [[ $CI_COMMIT_MESSAGE =~ ($PR_PATTERN) ]]; then
 
     is_build_buddies=$(echo "$PR_DATA" | jq -c '.[] | select(.name | contains("build-buddies-images"))');
     is_build_python_base_images=$(echo "$PR_DATA" | jq -c '.[] | select(.name | contains("build-python-base-images"))');
+    is_build_java_base_images=$(echo "$PR_DATA" | jq -c '.[] | select(.name | contains("build-java-base-images"))');
     #Disable build lib injection until problems with the java app are fixed
     is_build_lib_injection_app_images=$(echo "$PR_DATA" | jq -c '.[] | select(.name | contains("build-lib-injection-app-images"))');
 
-    if [ -z "$is_build_buddies" ] && [ -z "$is_build_python_base_images" ] && [ -z "$is_build_lib_injection_app_images" ]
+    if [ -z "$is_build_buddies" ] && [ -z "$is_build_python_base_images" ] && [ -z "$is_build_java_base_images" ] && [ -z "$is_build_lib_injection_app_images" ]
     then
         echo "The PR $PR_NUMBER doesn't contain any docker build label "
         exit 0
@@ -49,6 +50,16 @@ if [[ $CI_COMMIT_MESSAGE =~ ($PR_PATTERN) ]]; then
         echo "The PR $PR_NUMBER contains the 'build-python-base-images' label. Launching the images generation process "
         ./utils/build/build_python_base_images.sh --push
         echo "------------- The python base images have been built and pushed ------------- "
+    fi
+
+    #BUILD JAVA BASE IMAGES
+    if [ -z "$is_build_java_base_images" ]
+    then
+        echo "The PR $PR_NUMBER doesn't contain the 'build-java-base-images' label "
+    else
+        echo "The PR $PR_NUMBER contains the 'build-java-base-images' label. Launching the images generation process "
+        ./utils/build/build_java_base_images.sh --push
+        echo "------------- The java base images have been built and pushed ------------- "
     fi
 
     #BUILD LIB INJECTION IMAGES

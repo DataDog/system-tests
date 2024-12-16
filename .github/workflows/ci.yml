@@ -112,6 +112,7 @@ jobs:
       binaries_artifact: ${{ matrix.version == 'dev' && format('binaries_dev_{0}', matrix.library) || '' }}
       ci_environment: ${{ matrix.version }}
       build_python_base_images: ${{ contains(github.event.pull_request.labels.*.name, 'build-python-base-images') }}
+      build_java_base_images: ${{ contains(github.event.pull_request.labels.*.name, 'build-java-base-images') }}
       build_buddies_images: ${{ contains(github.event.pull_request.labels.*.name, 'build-buddies-images') }}
       build_proxy_image: ${{ contains(github.event.pull_request.labels.*.name, 'build-proxy-image') }}
       build_lib_injection_app_images: ${{ contains(github.event.pull_request.labels.*.name, 'build-lib-injection-app-images') }}

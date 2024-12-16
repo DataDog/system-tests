@@ -31,6 +31,11 @@ on:
         default: false
         required: false
         type: boolean
+      build_java_base_images:
+        description: "Shall we build java base images for tests on java tracer"
+        default: false
+        required: false
+        type: boolean
       build_buddies_images:
         description: "Shall we build buddies images"
         default: false
@@ -115,6 +120,7 @@ jobs:
     secrets: inherit
     with:
       library: ${{ inputs.library }}
+      build_java_base_images: ${{ inputs.build_java_base_images }}
       build_python_base_images: ${{ inputs.build_python_base_images }}
       build_buddies_images: ${{ inputs.build_buddies_images }}
       build_proxy_image: ${{ inputs.build_proxy_image }}
