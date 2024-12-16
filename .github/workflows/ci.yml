@@ -236,7 +236,7 @@ jobs:
         run: echo "::set-output name=ip::$(docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $(docker ps -q))"
 
       - name: Curl it
-        run: curl -g http://[$(echo "${{ steps.get-ip.outputs.ip }}")]:3000
+        run: curl -g http://$(echo "${{ steps.get-ip.outputs.ip }}"):3000
 
       - name : curl it
         run: curl -g http://[::1]:3000
