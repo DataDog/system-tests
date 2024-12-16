@@ -1877,7 +1877,7 @@ BLOCK_USER_RULE = (
                 ],
                 "transformers": [],
                 "on_match": ["block"],
-            }
+            },
         ],
     },
 )
