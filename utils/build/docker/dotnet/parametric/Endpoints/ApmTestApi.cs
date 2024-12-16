@@ -7,7 +7,7 @@ namespace ApmTestApi.Endpoints;
 
 public abstract class ApmTestApi
 {
-    public static void MapApmTraceEndpoints(WebApplication app, ILogger<ApmTestApi> logger)
+    public static void MapApmTraceEndpoints(WebApplication app, ILogger logger)
     {
         _logger = logger;
         // TODO: Remove when the Tracer sets the correct results in the SpanContextPropagator.Instance getter
@@ -29,8 +29,8 @@ public abstract class ApmTestApi
         app.MapPost("/trace/span/flush", FlushSpans);
     }
 
-    private static readonly Assembly DatadogTraceAssembly = Assembly.Load("Datadog.Trace");
     private const BindingFlags CommonBindingFlags = BindingFlags.Instance | BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public;
+    private static readonly Assembly DatadogTraceAssembly = Assembly.Load("Datadog.Trace");
 
     private static Type GetType(string name) => DatadogTraceAssembly.GetType(name, throwOnError: true)!;
 
@@ -63,7 +63,7 @@ public abstract class ApmTestApi
     // static state
     private static readonly Dictionary<ulong, ISpan> Spans = new();
     private static readonly Dictionary<ulong, ISpanContext> SpanContexts = new();
-    private static ILogger<ApmTestApi>? _logger;
+    private static ILogger? _logger;
 
     // stateless singletons
     private static readonly SpanContextInjector SpanContextInjector = new();
