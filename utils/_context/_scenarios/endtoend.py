@@ -396,6 +396,12 @@ class EndToEndScenario(DockerScenario):
             [interfaces.library, interfaces.agent] + [container.interface for container in self.buddies]
         )
 
+    def _set_weblog_domain(self):
+        if self.enable_ipv6:
+            from utils import weblog
+
+            weblog.domain = self.weblog_container.network_ip(self._network)
+
     def get_warmups(self):
         warmups = super().get_warmups()
 
@@ -403,6 +409,7 @@ class EndToEndScenario(DockerScenario):
             warmups.insert(1, self._start_interface_watchdog)
             warmups.append(self._get_weblog_system_info)
             warmups.append(self._wait_for_app_readiness)
+            warmups.append(self._set_weblog_domain)
 
         return warmups
 

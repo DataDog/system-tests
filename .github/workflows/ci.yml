@@ -238,8 +238,5 @@ jobs:
       - name: Curl it
         run: curl -g http://$(echo "${{ steps.get-ip.outputs.ip }}"):3000
 
-      - name : curl it
-        run: curl -g http://[::1]:3000
-        # run: curl http://localhost:3000
 
 # docker run --network my_ipv6_network -p 3000:3000 -d lipanski/docker-static-website:latest
