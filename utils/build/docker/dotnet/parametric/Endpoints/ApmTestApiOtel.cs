@@ -358,7 +358,7 @@ public abstract class ApmTestApiOtel : ApmTestApi
     }
 
     // Helper methods:
-    private static async Task<Dictionary<string, object>> DeserializeRequestObjectAsync(Stream requestBody)
+    private static async Task<Dictionary<string, object?>> DeserializeRequestObjectAsync(Stream requestBody)
     {
         var headerRequestBody = await new StreamReader(requestBody).ReadToEndAsync();
         return JsonConvert.DeserializeObject<Dictionary<string, object>>(headerRequestBody)!;
