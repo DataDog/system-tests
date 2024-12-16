@@ -72,6 +72,7 @@ class DockerScenario(Scenario):
                 rc_api_enabled=rc_api_enabled,
                 meta_structs_disabled=meta_structs_disabled,
                 span_events=span_events,
+                enable_ipv6=enable_ipv6,
             )
 
             self._required_containers.append(self.proxy_container)
