@@ -32,17 +32,19 @@ public abstract class ApmTestApi
     private static readonly Assembly DatadogTraceAssembly = Assembly.Load("Datadog.Trace");
     private const BindingFlags CommonBindingFlags = BindingFlags.Instance | BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public;
 
+    private static Type GetType(string name) => DatadogTraceAssembly.GetType(name, throwOnError: true)!;
+
     // reflected types
-    private static readonly Type TracerType = DatadogTraceAssembly.GetType("Datadog.Trace.Tracer", throwOnError: true)!;
-    private static readonly Type TracerManagerType = DatadogTraceAssembly.GetType("Datadog.Trace.TracerManager", throwOnError: true)!;
-    private static readonly Type GlobalSettingsType = DatadogTraceAssembly.GetType("Datadog.Trace.Configuration.GlobalSettings", throwOnError: true)!;
-    private static readonly Type AgentWriterType = DatadogTraceAssembly.GetType("Datadog.Trace.Agent.AgentWriter", throwOnError: true)!;
-    private static readonly Type StatsAggregatorType = DatadogTraceAssembly.GetType("Datadog.Trace.Agent.StatsAggregator", throwOnError: true)!;
+    private static readonly Type TracerType = GetType("Datadog.Trace.Tracer");
+    private static readonly Type TracerManagerType = GetType("Datadog.Trace.TracerManager");
+    private static readonly Type GlobalSettingsType = GetType("Datadog.Trace.Configuration.GlobalSettings");
+    private static readonly Type AgentWriterType = GetType("Datadog.Trace.Agent.AgentWriter");
+    private static readonly Type StatsAggregatorType = GetType("Datadog.Trace.Agent.StatsAggregator");
 
     // ImmutableTracerSettings was removed in 3.7.0
     private static readonly Type TracerSettingsType = DatadogTraceAssembly.GetName().Version <= new Version(3, 6, 1, 0) ?
-        DatadogTraceAssembly.GetType("Datadog.Trace.Configuration.ImmutableTracerSettings", throwOnError: true)! :
-        DatadogTraceAssembly.GetType("Datadog.Trace.Configuration.TracerSettings", throwOnError: true)!;
+        GetType("Datadog.Trace.Configuration.ImmutableTracerSettings") :
+        GetType("Datadog.Trace.Configuration.TracerSettings");
 
     // reflected members
     private static readonly PropertyInfo GetGlobalSettingsInstance = GlobalSettingsType.GetProperty("Instance", CommonBindingFlags)!;
@@ -55,8 +57,8 @@ public abstract class ApmTestApi
     private static readonly PropertyInfo GetTracerInstance = TracerType.GetProperty("Instance", CommonBindingFlags)!;
     private static readonly PropertyInfo GetTracerSettings = TracerType.GetProperty("Settings", CommonBindingFlags)!;
     private static readonly PropertyInfo GetDebugEnabled = GlobalSettingsType.GetProperty("DebugEnabled", CommonBindingFlags)!;
-    private static readonly MethodInfo StatsAggregatorDisposeAsync = StatsAggregatorType.GetMethod("DisposeAsync", BindingFlags.Instance | BindingFlags.Public)!;
-    private static readonly MethodInfo StatsAggregatorFlush = StatsAggregatorType.GetMethod("Flush", BindingFlags.Instance | BindingFlags.NonPublic)!;
+    private static readonly MethodInfo StatsAggregatorDisposeAsync = StatsAggregatorType.GetMethod("DisposeAsync", CommonBindingFlags)!;
+    private static readonly MethodInfo StatsAggregatorFlush = StatsAggregatorType.GetMethod("Flush", CommonBindingFlags)!;
 
     // static state
     private static readonly Dictionary<ulong, ISpan> Spans = new();
