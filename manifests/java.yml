@@ -566,15 +566,24 @@ tests/:
         Test_Cmdi_UrlQuery:
           '*': v1.45.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+          spring-boot-payara: missing_feature (APPSEC-54966)
         Test_Cmdi_BodyUrlEncoded:
           '*': v1.45.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+          spring-boot-payara: missing_feature (APPSEC-54966)
         Test_Cmdi_BodyXml:
           '*': v1.45.0
+          jersey-grizzly2: missing_feature (returns 200 instead of 403)
+          resteasy-netty3: missing_feature (returns 200 instead of 403)
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+          spring-boot-payara: missing_feature (APPSEC-54966)
+          vertx3: missing_feature (APPSEC-55788)
+          vertx4: missing_feature (APPSEC-55786)
         Test_Cmdi_BodyJson:
           '*': v1.45.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+          spring-boot-payara: missing_feature (APPSEC-54966)
+          vertx4: missing_feature (APPSEC-55785)
         Test_Cmdi_Mandatory_SpanTags:
           '*': v1.45.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
@@ -584,12 +593,15 @@ tests/:
         Test_Cmdi_StackTrace:
           '*': v1.45.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+          spring-boot-payara: missing_feature (APPSEC-54966)
         Test_Cmdi_Telemetry:
           '*': v1.45.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+          spring-boot-payara: missing_feature (APPSEC-54966)
         Test_Cmdi_Telemetry_Variant_Tag:
           '*': v1.45.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+          spring-boot-payara: missing_feature (APPSEC-54966)
         Test_Cmdi_Capability:
           '*': v1.45.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
@@ -642,15 +654,22 @@ tests/:
         Test_Shi_UrlQuery:
           '*': v1.45.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+          spring-boot-payara: missing_feature (APPSEC-54966)
         Test_Shi_BodyUrlEncoded:
             '*': v1.45.0
             spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+            spring-boot-payara: missing_feature (APPSEC-54966)
         Test_Shi_BodyXml:
             '*': v1.45.0
             spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+            spring-boot-payara: missing_feature (APPSEC-54966)
+            vertx3: missing_feature (APPSEC-55788)
+            vertx4: missing_feature (APPSEC-55786)
         Test_Shi_BodyJson:
             '*': v1.45.0
             spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+            spring-boot-payara: missing_feature (APPSEC-54966)
+            vertx4: missing_feature (APPSEC-55785)
         Test_Shi_Mandatory_SpanTags:
             '*': v1.45.0
             spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
@@ -660,12 +679,15 @@ tests/:
         Test_Shi_StackTrace:
             '*': v1.45.0
             spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+            spring-boot-payara: missing_feature (APPSEC-54966)
         Test_Shi_Telemetry:
             '*': v1.45.0
             spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+            spring-boot-payara: missing_feature (APPSEC-54966)
         Test_Shi_Telemetry_Variant_Tag:
             '*': v1.45.0
             spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+            spring-boot-payara: missing_feature (APPSEC-54966)
         Test_Shi_Capability:
             '*': v1.45.0
             spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
