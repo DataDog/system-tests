@@ -76,6 +76,7 @@ public class DebuggerController {
 
     @GetMapping("/expression/operators")
     public String expressionOperators(@RequestParam int intValue, @RequestParam float floatValue, @RequestParam String strValue) {
+        PiiBase pii = new Pii();
         return "Int value " + intValue + ". Float value " + floatValue + ". String value is " + strValue + ".";
     }
 
@@ -114,11 +115,18 @@ public class DebuggerController {
     @GetMapping("/expression/null")
      public String nulls(
             @RequestParam(required = false) Integer intValue,
-            @RequestParam(required = false) String strValue) {
+            @RequestParam(required = false) String strValue,
+            @RequestParam(required = false) Boolean boolValue
+            ) {
+
         PiiBase pii = null;
 
-        return "Pii is null " + (pii == null) +
-                ". intValue is null " + (intValue == null) +
-                ". strValue is null " + (strValue == null) + ".";
+        if (Boolean.TRUE.equals(boolValue)) {
+            pii = new Pii();
+        }
+
+        return "Pii is null: " + (pii == null) +
+            ". intValue is null: " + (intValue == null) +
+            ". strValue is null: " + (strValue == null) + ".";
     }
 }

@@ -83,9 +83,11 @@ namespace weblog
 
         [HttpGet("expression/operators")]
         [Consumes("application/json", "application/xml")]
-        public IActionResult ExpressionOperators(int intValue, float floatValue, string strValue)
+        public async Task<IActionResult> ExpressionOperators(int intValue, float floatValue, string strValue)
         {
-            return Content($"Int value {intValue}. Float value {floatValue}. String value {strValue}");
+            PiiBase? pii = await Task.FromResult<PiiBase>(new Pii());
+            var piiValue = pii?.TestValue;
+            return Content($"Int value {intValue}. Float value {floatValue}. String value {strValue}. Pii value {piiValue}");
         }
 
         [HttpGet("expression/strings")]
@@ -114,9 +116,14 @@ namespace weblog
 
         [HttpGet("expression/null")]
         [Consumes("application/json", "application/xml")]
-        public async Task<IActionResult> Nulls(int? intValue = null, string strValue = null)
+        public async Task<IActionResult> Nulls(int? intValue = null, string strValue = null, bool? boolValue = null)
         {
-            PiiBase? pii = await Task.FromResult<PiiBase>(null);
+            PiiBase pii = null;
+            if (boolValue == true)
+            {
+                pii = await Task.FromResult<PiiBase>(null);
+            }
+
             return Content($"Pii is null {pii is null}. intValue is null {intValue is null}. strValue is null {strValue is null}.");
         }
     }
