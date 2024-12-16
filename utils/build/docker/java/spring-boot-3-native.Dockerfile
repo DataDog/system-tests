@@ -28,7 +28,13 @@ RUN /opt/apache-maven-3.8.6/bin/mvn -Pnative,without-profiling native:compile
 
 FROM ubuntu
 
-RUN apt-get update && apt-get install -y curl
+COPY ./utils/build/docker/pin_ubuntu_snapshot.sh /
+RUN /pin_ubuntu_snapshot.sh
+RUN set -eux;\
+    /bin/sh /pin_ubuntu_snapshot.sh;\
+    apt-get update;\
+    apt-get install -y curl;\
+    apt-get clean
 
 WORKDIR /app
 COPY --from=agent /binaries/SYSTEM_TESTS_LIBRARY_VERSION SYSTEM_TESTS_LIBRARY_VERSION
