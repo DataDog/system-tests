@@ -70,7 +70,7 @@ class _Base_Debugger_Test:
 
     rc_state = None
     weblog_responses = []
-    
+
     setup_failures = []
 
     def initialize_weblog_remote_config(self):
@@ -83,7 +83,10 @@ class _Base_Debugger_Test:
             if response.status_code != 200:
                 # This should fail the test immediately but the failure is
                 # reported after all of the setup and the test are attempted
-                self.setup_failures.append("Failed to get /debugger/init: expected status code: 200, actual status code: %d" % (response.status_code))
+                self.setup_failures.append(
+                    "Failed to get /debugger/init: expected status code: 200, actual status code: %d"
+                    % (response.status_code)
+                )
 
     ###### set #####
     def set_probes(self, probes):
