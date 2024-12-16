@@ -30,8 +30,14 @@ class Test_Cmdi_UrlQuery:
             self.r,
             "rasp-932-110",
             {
-                "resource": {"address": "server.sys.exec.cmd", "value": 'sh "-c" "cat /etc/passwd 1>&2"',},
-                "params": {"address": "server.request.query", "value": "cat /etc/passwd 1>&2",},
+                "resource": {
+                    "address": "server.sys.exec.cmd",
+                    "value": 'sh "-c" "cat /etc/passwd 1>&2"',
+                },
+                "params": {
+                    "address": "server.request.query",
+                    "value": "cat /etc/passwd 1>&2",
+                },
             },
         )
 
@@ -52,8 +58,14 @@ class Test_Cmdi_BodyUrlEncoded:
             self.r,
             "rasp-932-110",
             {
-                "resource": {"address": "server.sys.exec.cmd", "value": 'sh "-c" "cat /etc/passwd 1>&2"',},
-                "params": {"address": "server.request.body", "value": "cat /etc/passwd 1>&2",},
+                "resource": {
+                    "address": "server.sys.exec.cmd",
+                    "value": 'sh "-c" "cat /etc/passwd 1>&2"',
+                },
+                "params": {
+                    "address": "server.request.body",
+                    "value": "cat /etc/passwd 1>&2",
+                },
             },
         )
 
@@ -75,8 +87,14 @@ class Test_Cmdi_BodyXml:
             self.r,
             "rasp-932-110",
             {
-                "resource": {"address": "server.sys.exec.cmd", "value": 'sh "-c" "cat /etc/passwd 1>&2"',},
-                "params": {"address": "server.request.body", "value": "cat /etc/passwd 1>&2",},
+                "resource": {
+                    "address": "server.sys.exec.cmd",
+                    "value": 'sh "-c" "cat /etc/passwd 1>&2"',
+                },
+                "params": {
+                    "address": "server.request.body",
+                    "value": "cat /etc/passwd 1>&2",
+                },
             },
         )
 
@@ -98,8 +116,14 @@ class Test_Cmdi_BodyJson:
             self.r,
             "rasp-932-110",
             {
-                "resource": {"address": "server.sys.exec.cmd", "value": 'sh "-c" "cat /etc/passwd 1>&2"',},
-                "params": {"address": "server.request.body", "value": "cat /etc/passwd 1>&2",},
+                "resource": {
+                    "address": "server.sys.exec.cmd",
+                    "value": 'sh "-c" "cat /etc/passwd 1>&2"',
+                },
+                "params": {
+                    "address": "server.request.body",
+                    "value": "cat /etc/passwd 1>&2",
+                },
             },
         )
 

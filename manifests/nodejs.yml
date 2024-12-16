@@ -371,7 +371,9 @@ tests/:
           '*': *ref_5_25_0
           express5: *ref_5_29_0 # test uses express blocking
           nextjs: missing_feature
-        Test_Shi_Telemetry_Variant_Tag: missing_feature # edit here
+        Test_Shi_Telemetry_Variant_Tag:
+          '*': *ref_5_29_0
+          nextjs: missing_feature
         Test_Shi_UrlQuery:
           '*': *ref_5_25_0
           express5: *ref_5_29_0
