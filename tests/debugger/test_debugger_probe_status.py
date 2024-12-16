@@ -45,9 +45,7 @@ class Test_Debugger_Probe_Statuses(debugger._Base_Debugger_Test):
                 return f"Probe {expected_id} was not received."
 
             actual_status = self.probe_diagnostics[expected_id]["status"]
-            if actual_status != expected_status and not (
-                expected_status == "INSTALLED" and actual_status == "EMITTING"
-            ):
+            if actual_status != expected_status:
                 return f"Received probe {expected_id} with status {actual_status}. Expected {expected_status}"
 
             return None
