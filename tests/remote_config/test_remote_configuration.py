@@ -276,6 +276,7 @@ class Test_RemoteConfigurationUpdateSequenceLiveDebugging(RemoteConfigurationFie
         remote_config.send_sequential_commands(payloads)
 
     @bug(context.library < "java@1.13.0", reason="APMRP-360")
+    @bug(context.library == "python", reason="DEBUG-3243")
     def test_tracer_update_sequence(self):
         """test update sequence, based on a scenario mocked in the proxy"""
 
