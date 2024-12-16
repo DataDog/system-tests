@@ -50,7 +50,7 @@ class K8sWeblog:
             "[Deploy weblog] Creating weblog pod configuration. weblog_variant_image: [%s], library: [%s], library_init_image: [%s]"
             % (self.app_image, self.library, self.library_init_image)
         )
-
+        library_lib = "js" if self.library == "nodejs" else self.library
         pod_metadata = client.V1ObjectMeta(
             name="my-app",
             namespace="default",
@@ -61,7 +61,7 @@ class K8sWeblog:
                 "tags.datadoghq.com/service": "my-app",
                 "tags.datadoghq.com/version": "local",
             },
-            annotations={f"admission.datadoghq.com/{self.library}-lib.custom-image": f"{self.library_init_image}"},
+            annotations={f"admission.datadoghq.com/{library_lib}-lib.custom-image": f"{self.library_init_image}"},
         )
 
         containers = []
