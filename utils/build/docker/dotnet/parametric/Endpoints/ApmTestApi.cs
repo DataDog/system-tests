@@ -278,7 +278,7 @@ public abstract class ApmTestApi
         });
     }
 
-    internal static async Task FlushSpans()
+    protected static async Task FlushSpans()
     {
         if (Tracer.Instance is null)
         {
@@ -291,7 +291,7 @@ public abstract class ApmTestApi
         ApmTestApiOtel.ClearActivities();
     }
 
-    internal static async Task FlushTraceStats()
+    protected static async Task FlushTraceStats()
     {
         if (GetTracerManager is null)
         {
@@ -373,13 +373,13 @@ public abstract class ApmTestApi
         return null;
     }
 
-    private static async Task<JsonElement> ParseJsonAsync(Stream stream, [CallerMemberName] string? caller = null)
+    protected static async Task<JsonElement> ParseJsonAsync(Stream stream, [CallerMemberName] string? caller = null)
     {
         // https://learn.microsoft.com/en-us/dotnet/standard/serialization/system-text-json/use-dom#jsondocument-is-idisposable
         using var jsonDoc = await JsonDocument.ParseAsync(stream);
         var root = jsonDoc.RootElement.Clone();
 
-        _logger?.LogInformation("Handler called. {handler} {HttpRequest.Body}", caller, root);
+        _logger?.LogInformation("Handler {handler} called with {HttpRequest.Body}", caller, root);
         return root;
     }
 }
