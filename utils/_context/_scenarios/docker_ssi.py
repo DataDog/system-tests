@@ -1,4 +1,3 @@
-from functools import partial
 import json
 import time
 import os
@@ -113,13 +112,15 @@ class DockerSSIScenario(Scenario):
     def _create_network(self):
         self._network = create_network()
 
+    def _start_containers(self):
+        for container in self._required_containers:
+            container.start(self._network)
+
     def get_warmups(self):
         warmups = super().get_warmups()
 
         warmups.append(self._create_network)
-
-        for container in self._required_containers:
-            warmups.append(partial(container.start, self._network))
+        warmups.append(self._start_containers)
 
         if "GITLAB_CI" in os.environ:
             warmups.append(self.fix_gitlab_network)

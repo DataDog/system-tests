@@ -126,13 +126,16 @@ class WeblogInjectionScenario(Scenario):
     def _create_network(self):
         self._network = create_network()
 
+    def _start_containers(self):
+        for container in self._required_containers:
+            container.start(self._network)
+
     def get_warmups(self):
         warmups = super().get_warmups()
 
-        warmups.append(create_network)
+        warmups.append(self._create_network)
         warmups.append(create_inject_volume)
-        for container in self._required_containers:
-            warmups.append(partial(container.start, self._network))
+        warmups.append(self._start_containers)
 
         return warmups
 

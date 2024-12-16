@@ -104,9 +104,11 @@ def main():
                 if file.startswith("tests/auto_inject"):
                     # Nothing to do, onboarding test run on gitlab nightly or manually
                     pass
-                elif file.endswith(("/utils.py", "/conftest.py")):
+                elif file.endswith(("/utils.py", "/conftest.py", ".json")):
                     # particular use case for modification in tests/ of a file utils.py or conftest.py
                     # in that situation, takes all scenarios executed in tests/<path>/
+
+                    # same for any json file
 
                     folder = "/".join(file.split("/")[:-1]) + "/"  # python trickery to remove last element
 

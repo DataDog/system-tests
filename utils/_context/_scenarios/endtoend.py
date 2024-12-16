@@ -4,6 +4,7 @@ import pytest
 
 from docker.models.networks import Network
 from docker.types import IPAMConfig, IPAMPool
+
 from watchdog.observers.polling import PollingObserver
 from watchdog.events import FileSystemEventHandler
 

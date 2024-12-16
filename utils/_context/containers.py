@@ -193,19 +193,13 @@ class TestedContainer:
 
         return self._async_start_recursive(network)
 
-    def network_ip(self, network: Network) -> str:
-        logger.debug(f"NetworksSettings: {self._container.attrs['NetworkSettings']}")
-
-        # NetworkSettings.Networks.bridge.IPAddress
-        self._container.reload()
-        return self._container.attrs["NetworkSettings"]["Networks"][network.name]["IPAddress"]
-
     def network_ipv6(self, network: Network) -> str:
-        logger.debug(f"NetworksSettings: {self._container.attrs['NetworkSettings']}")
-
-        # NetworkSettings.Networks.bridge.IPAddress
         self._container.reload()
         return self._container.attrs["NetworkSettings"]["Networks"][network.name]["GlobalIPv6Address"]
+
+    def network_ip(self, network: Network) -> str:
+        self._container.reload()
+        return self._container.attrs["NetworkSettings"]["Networks"][network.name]["IPAddress"]
 
     def check_circular_dependencies(self, seen: list):
         """Check if the container has a circular dependency"""
