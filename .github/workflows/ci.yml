@@ -92,6 +92,18 @@ jobs:
           name: binaries_dev_${{ matrix.library }}
           path: binaries/
 
+  fail-if-target-branch:
+    name: Check if target branch is specified
+    needs:
+      - get_dev_artifacts
+    if: needs.get_dev_artifacts.outputs.target-branch != ''
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fail if PR title contains a target branch
+        run: |
+          echo "This PR can't be merged, due to the title specifying a target branch"
+          exit 1
+
   system_tests:
     name: System Tests ${{ needs.get_dev_artifacts.outputs.target-branch != '' && format('({0} branch)', needs.get_dev_artifacts.outputs.target-branch) || '' }}
     needs:
