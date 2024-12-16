@@ -10,6 +10,7 @@ stages:
   - stats_results
   - parse_results
   - before_tests
+  - k8s_lib_injection
 
 variables:
     # Do not modify this - must be the repository name for Kubernetes gitlab runners to run
@@ -482,3 +483,40 @@ generate_system_tests_images:
       - ./utils/build/build_python_base_images.sh --push
       - ./lib-injection/build/build_lib_injection_images.sh
   when: manual
+
+k8s_java:
+  image: registry.ddbuild.io/ci/libdatadog-build/system-tests:48436362
+  tags: [ "runner:docker" ]
+  stage: k8s_lib_injection
+  needs: [ create-multiarch-lib-injection-image ]
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+      when: always
+    - when: manual
+  variables:
+    TEST_LIBRARY: "java"
+    K8S_LIB_INIT_IMG_PROD: "gcr.io/datadoghq/dd-lib-java-init:latest"
+    K8S_LIB_INIT_IMG_DEV: "ghcr.io/datadog/dd-trace-java/dd-lib-java-init:latest_snapshot"
+
+  parallel:
+      matrix:
+        - K8S_WEBLOG: [dd-djm-spark-test-app ]
+          K8S_WEBLOG_IMG: [ghcr.io/datadog/system-tests/dd-djm-spark-test-app:latest]
+          K8S_SCENARIO: [K8S_LIB_INJECTION_SPARK_DJM]
+          K8S_LIB_INIT_IMG: [$K8S_LIB_INIT_IMG_PROD, $K8S_LIB_INIT_IMG_DEV]
+          K8S-CLUSTER_VERSION: ['7.56.2', '7.57.0', '7.59.0']
+
+  script:
+    - ./build.sh -i runner # rebuild runner in case there were changes
+    - source venv/bin/activate
+    - python --version
+    - pip freeze
+    - ./run.sh ${K8S_SCENARIO} --k8s-library ${TEST_LIBRARY} --k8s-weblog ${K8S_WEBLOG} --k8s-weblog-img ghcr.io/datadog/system-tests/dd-djm-spark-test-app:latest --k8s-lib-init-img ${K8S_LIB_INIT_IMG} --k8s-cluster-version ${K8S-CLUSTER_VERSION}
+  after_script:
+    - mkdir -p reports
+    - cp -R /system-tests/logs_*/ reports/
+    - kind delete clusters --all || true
+  artifacts:
+    when: always
+    paths:
+      - reports/

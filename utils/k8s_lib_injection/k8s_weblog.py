@@ -30,16 +30,22 @@ class K8sWeblog:
         self.logger = None
         self.k8s_wrapper = None
 
-    def configure(self, k8s_kind_cluster, k8s_wrapper):
+    def configure(self, k8s_kind_cluster, k8s_wrapper, weblog_env=None, dd_cluster_uds=None, service_account=None):
         self.k8s_kind_cluster = k8s_kind_cluster
         self.k8s_wrapper = k8s_wrapper
+        self.weblog_env = weblog_env
+        self.dd_cluster_uds = dd_cluster_uds
+        self.dd_service_account = service_account
         self.logger = k8s_logger(self.output_folder, self.test_name, "k8s_logger")
 
     def _get_base_weblog_pod(self, env=None, service_account=None):
         """Installs a target app for manual library injection testing.
         It returns when the app pod is ready.
         """
-
+        if self.weblog_env is not None:
+            env = self.weblog_env
+        if self.dd_service_account is not None:
+            service_account = self.dd_service_account
         self.logger.info(
             "[Deploy weblog] Creating weblog pod configuration. weblog_variant_image: [%s], library: [%s], library_init_image: [%s]"
             % (self.app_image, self.library, self.library_init_image)
@@ -114,12 +120,18 @@ class K8sWeblog:
 
     def install_weblog_pod_with_admission_controller(self, env=None, service_account=None):
         self.logger.info("[Deploy weblog] Installing weblog pod using admission controller")
+        if self.weblog_env is not None:
+            env = self.weblog_env
+        if self.dd_service_account is not None:
+            service_account = self.dd_service_account
         pod_body = self._get_base_weblog_pod(env=env, service_account=service_account)
         self.k8s_wrapper.create_namespaced_pod(body=pod_body)
         self.logger.info("[Deploy weblog] Weblog pod using admission controller created. Waiting for it to be ready!")
         self.wait_for_weblog_ready_by_label_app("my-app", timeout=200)
 
-    def install_weblog_pod_without_admission_controller(self, use_uds, env=None):
+    def install_weblog_pod_without_admission_controller(self, use_uds=False, env=None):
+        if self.dd_cluster_uds is not None:
+            use_uds = self.dd_cluster_uds
         pod_body = self._get_base_weblog_pod()
         pod_body.spec.init_containers = []
         init_container1 = client.V1Container(
