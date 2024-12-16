@@ -1493,7 +1493,7 @@ class Test_V3_Login_Events:
             # mandatory
             assert meta["appsec.events.users.signup.usr.login"] == NEW_USER
             assert meta["_dd.appsec.usr.login"] == NEW_USER
-            assert meta["_dd.appsec.events.users.signup.auto.mode"] == "anonymization"
+            assert meta["_dd.appsec.events.users.signup.auto.mode"] == "identification"
             assert meta["appsec.events.users.signup.track"] == "true"
 
             # optional (to review for each library)
@@ -1570,8 +1570,8 @@ class Test_V3_Login_Events_Anon:
 
             # optional (to review for each library)
             if context.library not in libs_without_user_id:
-                assert meta["usr.id"] == "social-security-id"
-                assert meta["_dd.appsec.usr.id"] == "social-security-id"
+                assert meta["usr.id"] == USER_HASH
+                assert meta["_dd.appsec.usr.id"] == USER_HASH
 
     def setup_login_success_basic(self):
         self.r_success = weblog.get("/login?auth=basic", headers={"Authorization": BASIC_AUTH_USER_HEADER})
@@ -1705,7 +1705,7 @@ class Test_V3_Login_Events_Anon:
 
             # optional (to review for each library)
             if context.library not in libs_without_user_id:
-                assert meta["usr.id"] == USER_HASH
+                assert meta["usr.id"] == "sdkUser"
                 assert meta["_dd.appsec.usr.id"] == USER_HASH
 
     def setup_login_sdk_success_basic(self):
@@ -1730,7 +1730,7 @@ class Test_V3_Login_Events_Anon:
 
             # optional (to review for each library)
             if context.library not in libs_without_user_id:
-                assert meta["usr.id"] == USER_HASH
+                assert meta["usr.id"] == "sdkUser"
                 assert meta["_dd.appsec.usr.id"] == USER_HASH
 
     def setup_login_sdk_failure_basic(self):
