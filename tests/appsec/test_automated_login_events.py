@@ -1960,7 +1960,7 @@ class Test_V3_Login_Events_Blocking:
         )
 
         self.config_state_2 = rc.rc_state.set_config(*BLOCK_USER_RULE).apply()
-        self.config_state_3 = rc.rc_state.set_config(*BLOCK_USER_DATA).apply()
+        self.config_state_3 = rc.rc_state.set_config(*BLOCK_USER_ID).apply()
         self.r_login_blocked = weblog.post(
             "/login?auth=local&sdk_event=success&sdk_user=sdkUser", data=login_data(context, UUID_USER, PASSWORD)
         )
@@ -1971,5 +1971,5 @@ class Test_V3_Login_Events_Blocking:
 
         assert self.config_state_2[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
         assert self.config_state_3[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
-        interfaces.library.assert_waf_attack(self.r_login_blocked, rule="block-users")
+        interfaces.library.assert_waf_attack(self.r_login_blocked, rule="block-user-id")
         assert self.r_login_blocked.status_code == 403
