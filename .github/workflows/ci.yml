@@ -181,12 +181,25 @@ jobs:
       run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh -i agent
     - name: Build weblog
       id: build
-      run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh -i weblog
+      run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh python -i weblog
     - name: Run IPV6 scenario
       run: |
         # echo '{"ipv6": true, "fixed-cidr-v6": "2001:db8:1::/64"}' | sudo tee /etc/docker/daemon.json
         # sudo systemctl restart docker
         ./run.sh IPV6
+    - name: Run DEFAULT scenario
+      run: |
+        ./run.sh
+    - name: Compress logs
+      id: compress_logs
+      if: always() && steps.build.outcome == 'success'
+      run: tar -czvf artifact.tar.gz $(ls | grep logs)
+    - name: Upload artifact
+      if: always() && steps.compress_logs.outcome == 'success'
+      uses: actions/upload-artifact@v4
+      with:
+        name: logs_ipv6_test
+        path: artifact.tar.gz
 
   tmp-test:
     runs-on: ubuntu-latest
