@@ -146,7 +146,7 @@ class K8sWeblog:
         pod_body.spec.init_containers.append(init_container1)
         pod_body.spec.containers[0].env.append(client.V1EnvVar(name="DD_LOGS_INJECTION", value="true"))
         # Env vars for manual injection. Each library has its own env vars
-        for lang_env_vars in K8sWeblog.manual_injection_props[self.library]:
+        for lang_env_vars in K8sWeblog.manual_injection_props["js" if self.library == "nodejs" else self.library]:
             pod_body.spec.containers[0].env.append(
                 client.V1EnvVar(name=lang_env_vars["name"], value=lang_env_vars["value"])
             )
