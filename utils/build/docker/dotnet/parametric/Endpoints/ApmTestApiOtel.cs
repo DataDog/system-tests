@@ -8,11 +8,14 @@ namespace ApmTestApi.Endpoints;
 
 public abstract class ApmTestApiOtel : ApmTestApi
 {
-    internal static readonly ActivitySource ApmTestApiActivitySource = new("ApmTestApi");
-    internal static readonly Dictionary<ulong, Activity> Activities = new();
+    private static readonly ActivitySource ApmTestApiActivitySource = new("ApmTestApi");
+    private static readonly Dictionary<ulong, Activity> Activities = new();
+    private static ILogger<ApmTestApiOtel>? _logger;
 
-    public static void MapApmOtelEndpoints(WebApplication app)
+    public static void MapApmOtelEndpoints(WebApplication app, ILogger<ApmTestApiOtel> logger)
     {
+        _logger = logger;
+
         app.MapPost("/trace/otel/start_span", OtelStartSpan);
         app.MapPost("/trace/otel/end_span", OtelEndSpan);
         app.MapPost("/trace/otel/flush", OtelFlushSpans);
@@ -464,5 +467,10 @@ public abstract class ApmTestApiOtel : ApmTestApi
         }
 
         return tags;
+    }
+
+    public static void ClearActivities()
+    {
+        Activities.Clear();
     }
 }

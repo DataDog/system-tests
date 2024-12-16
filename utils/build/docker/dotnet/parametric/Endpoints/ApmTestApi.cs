@@ -65,11 +65,11 @@ public abstract class ApmTestApi
 
     private static readonly Dictionary<ulong, ISpan> Spans = new();
     private static readonly Dictionary<ulong, ISpanContext> DDContexts = new();
+    private static ILogger<ApmTestApi>? _logger;
 
     private static readonly SpanContextInjector _spanContextInjector = new();
     private static readonly SpanContextExtractor _spanContextExtractor = new();
 
-    internal static ILogger<ApmTestApi>? _logger;
 
     private static async Task StopTracer()
     {
@@ -289,7 +289,7 @@ public abstract class ApmTestApi
         await Tracer.Instance.ForceFlushAsync();
         Spans.Clear();
         DDContexts.Clear();
-        ApmTestApiOtel.Activities.Clear();
+        ApmTestApiOtel.ClearActivities();
     }
 
     internal static async Task FlushTraceStats()
