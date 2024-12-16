@@ -70,6 +70,8 @@ class _Base_Debugger_Test:
 
     rc_state = None
     weblog_responses = []
+    
+    setup_failures = []
 
     def initialize_weblog_remote_config(self):
         if self.get_tracer()["language"] == "ruby":
@@ -78,7 +80,10 @@ class _Base_Debugger_Test:
             # Therefore, we need to issue a request to the application for
             # remote config to start.
             response = weblog.get("/debugger/init")
-            assert response.status_code == 200
+            if response.status_code != 200:
+                # This should fail the test immediately but the failure is
+                # reported after all of the setup and the test are attempted
+                self.setup_failures.append("Failed to get /debugger/init: expected status code: 200, actual status code: %d" % (response.status_code))
 
     ###### set #####
     def set_probes(self, probes):
@@ -404,6 +409,10 @@ class _Base_Debugger_Test:
             }
 
         return _Base_Debugger_Test.tracer
+
+    def assert_setup_ok(self):
+        if self.setup_failures:
+            assert "\n".join(self.setup_failures) is None
 
     ###### assert #####
     def assert_rc_state_not_error(self):

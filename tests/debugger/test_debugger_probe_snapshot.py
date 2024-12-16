@@ -29,6 +29,7 @@ class Test_Debugger_Probe_Snaphots(debugger._Base_Debugger_Test):
         self.collect()
 
         ### assert
+        self.assert_setup_ok()
         self.assert_rc_state_not_error()
         self.assert_all_probes_are_installed()
         self.assert_all_weblog_responses_ok()

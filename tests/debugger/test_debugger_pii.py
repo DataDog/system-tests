@@ -132,6 +132,7 @@ class Test_Debugger_PII_Redaction(debugger._Base_Debugger_Test):
     ############ assert ############
     def _assert(self, redacted_keys, redacted_types, line_probe=False):
         self.collect()
+        self.assert_setup_ok()
         self.assert_rc_state_not_error()
         self.assert_all_probes_are_installed()
         self.assert_all_weblog_responses_ok()

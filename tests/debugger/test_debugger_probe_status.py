@@ -35,6 +35,7 @@ class Test_Debugger_Probe_Statuses(debugger._Base_Debugger_Test):
     def _assert(self):
         self.collect()
 
+        self.assert_setup_ok()
         self.assert_rc_state_not_error()
         self._validate_diagnostics()
 
