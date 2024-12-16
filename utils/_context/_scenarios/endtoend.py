@@ -182,7 +182,7 @@ class EndToEndScenario(DockerScenario):
         agent_env=None,
         tracer_sampling_rate=None,
         appsec_enabled=True,
-        iast_enabled=True,
+        iast_enabled=False,
         additional_trace_header_tags=(),
         library_interface_timeout=None,
         agent_interface_timeout=5,
