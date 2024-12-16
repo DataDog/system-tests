@@ -115,8 +115,8 @@ public abstract class ApmTestApi
 
         return JsonSerializer.Serialize(new
         {
-            span_id = span.SpanId,
-            trace_id = span.TraceId,
+            span_id = span.SpanId.ToString(),
+            trace_id = span.TraceId.ToString(),
         });
     }
 
