@@ -484,7 +484,7 @@ generate_system_tests_images:
       - ./lib-injection/build/build_lib_injection_images.sh
   when: manual
 
-k8s_java:
+.k8s_lib_injection_base:
   image: registry.ddbuild.io/ci/libdatadog-build/system-tests:48436362
   tags: [ "runner:docker" ]
   stage: k8s_lib_injection
@@ -493,19 +493,12 @@ k8s_java:
       when: always
     - when: manual
   variables:
-    TEST_LIBRARY: "java"
-  parallel:
-      matrix:
-        - K8S_WEBLOG: [dd-djm-spark-test-app ]
-          K8S_WEBLOG_IMG: [ghcr.io/datadog/system-tests/dd-djm-spark-test-app:latest]
-          K8S_SCENARIO: [K8S_LIB_INJECTION_SPARK_DJM]
-          K8S_LIB_INIT_IMG: ["gcr.io/datadoghq/dd-lib-java-init:latest", "ghcr.io/datadog/dd-trace-java/dd-lib-java-init:latest_snapshot"]
-          K8S_CLUSTER_VERSION: ['7.56.2', '7.57.0', '7.59.0']
-        - K8S_WEBLOG: [dd-lib-java-init-test-app]
-          K8S_WEBLOG_IMG: [ghcr.io/datadog/system-tests/dd-lib-java-init-test-app:latest]
-          K8S_SCENARIO: [K8S_LIB_INJECTION, K8S_LIB_INJECTION_UDS, K8S_LIB_INJECTION_NO_AC, K8S_LIB_INJECTION_NO_AC_UDS, K8S_LIB_INJECTION_PROFILING_DISABLED, K8S_LIB_INJECTION_PROFILING_ENABLED, K8S_LIB_INJECTION_PROFILING_OVERRIDE]
-          K8S_LIB_INIT_IMG: ["gcr.io/datadoghq/dd-lib-java-init:latest", "ghcr.io/datadog/dd-trace-java/dd-lib-java-init:latest_snapshot"]
-          K8S_CLUSTER_VERSION: ['7.56.2', '7.57.0', '7.59.0']
+    TEST_LIBRARY: "xyz"
+    K8S_WEBLOG: "xyz"
+    K8S_WEBLOG_IMG: "xyz"
+    K8S_SCENARIO: "xyz"
+    K8S_LIB_INIT_IMG: "xyz"
+    K8S_CLUSTER_VERSION: "xyz"
   script:
     - ./build.sh -i runner # rebuild runner in case there were changes
     - source venv/bin/activate
@@ -520,3 +513,21 @@ k8s_java:
     when: always
     paths:
       - reports/
+
+
+k8s_java:
+  extends: .k8s_lib_injection_base
+  variables:
+    TEST_LIBRARY: "java"
+  parallel:
+      matrix:
+        - K8S_WEBLOG: [dd-djm-spark-test-app ]
+          K8S_WEBLOG_IMG: [ghcr.io/datadog/system-tests/dd-djm-spark-test-app:latest]
+          K8S_SCENARIO: [K8S_LIB_INJECTION_SPARK_DJM]
+          K8S_LIB_INIT_IMG: ["gcr.io/datadoghq/dd-lib-java-init:latest", "ghcr.io/datadog/dd-trace-java/dd-lib-java-init:latest_snapshot"]
+          K8S_CLUSTER_VERSION: ['7.56.2', '7.57.0', '7.59.0']
+        - K8S_WEBLOG: [dd-lib-java-init-test-app]
+          K8S_WEBLOG_IMG: [ghcr.io/datadog/system-tests/dd-lib-java-init-test-app:latest]
+          K8S_SCENARIO: [K8S_LIB_INJECTION, K8S_LIB_INJECTION_UDS, K8S_LIB_INJECTION_NO_AC, K8S_LIB_INJECTION_NO_AC_UDS, K8S_LIB_INJECTION_PROFILING_DISABLED, K8S_LIB_INJECTION_PROFILING_ENABLED, K8S_LIB_INJECTION_PROFILING_OVERRIDE]
+          K8S_LIB_INIT_IMG: ["gcr.io/datadoghq/dd-lib-java-init:latest", "ghcr.io/datadog/dd-trace-java/dd-lib-java-init:latest_snapshot"]
+          K8S_CLUSTER_VERSION: ['7.56.2', '7.57.0', '7.59.0']
