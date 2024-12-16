@@ -113,6 +113,8 @@ class K8sDatadog:
             use_uds = self.dd_cluster_uds
         if self.dd_cluster_feature is not None:
             features = self.dd_cluster_feature
+        if self.k8s_cluster_version is not None:
+            cluster_agent_tag = self.k8s_cluster_version
 
         operator_file = "utils/k8s_lib_injection/resources/operator/operator-helm-values.yaml"
         if use_uds:
@@ -129,6 +131,7 @@ class K8sDatadog:
         else:
             features = datadog_keys
         # Add the cluster agent tag version
+        features["clusterAgent.image.tag"] = cluster_agent_tag
         helm_install_chart(
             self.k8s_kind_cluster, "datadog", "datadog/datadog", value_file=operator_file, set_dict=features
         )
