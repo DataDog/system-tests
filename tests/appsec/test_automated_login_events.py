@@ -1853,12 +1853,25 @@ BLOCK_USER_RULE = (
         "metadata": {"rules_version": "1.2.6"},
         "rules": [
             {
-                "id": "block-users",
-                "name": "Block User Addresses",
+                "id": "block-user-id",
+                "name": "Block User IDs",
                 "tags": {"type": "block_user", "category": "security_response"},
                 "conditions": [
                     {
-                        "parameters": {"inputs": [{"address": "usr.login"}], "data": "blocked_users"},
+                        "parameters": {"inputs": [{"address": "usr.id"}], "data": "blocked_user_id"},
+                        "operator": "exact_match",
+                    }
+                ],
+                "transformers": [],
+                "on_match": ["block"],
+            },
+            {
+                "id": "block-user-login",
+                "name": "Block User Logins",
+                "tags": {"type": "block_user", "category": "security_response"},
+                "conditions": [
+                    {
+                        "parameters": {"inputs": [{"address": "usr.login"}], "data": "blocked_user_login"},
                         "operator": "exact_match",
                     }
                 ],
@@ -1869,14 +1882,27 @@ BLOCK_USER_RULE = (
     },
 )
 
-BLOCK_USER_DATA = (
-    "datadog/2/ASM_DATA/blocked_users/config",
+BLOCK_USER_ID = (
+    "datadog/2/ASM_DATA/blocked_user_id/config",
     {
         "rules_data": [
             {
-                "id": "blocked_users",
+                "id": "blocked_user_id",
                 "type": "data_with_expiration",
                 "data": [{"value": "social-security-id", "expiration": 0}, {"value": "sdkUser", "expiration": 0}],
+            },
+        ],
+    },
+)
+
+BLOCK_USER_LOGIN = (
+    "datadog/2/ASM_DATA/blocked_user_login/config",
+    {
+        "rules_data": [
+            {
+                "id": "blocked_user_login",
+                "type": "data_with_expiration",
+                "data": [{"value": "test", "expiration": 0}, {"value": "sdkUser", "expiration": 0}],
             },
         ],
     },
@@ -1887,23 +1913,42 @@ BLOCK_USER_DATA = (
 @features.user_monitoring
 @scenarios.appsec_runtime_activation
 class Test_V3_Login_Events_Blocking:
-    def setup_login_event_blocking_auto(self):
+    def setup_login_event_blocking_auto_id(self):
         rc.rc_state.reset().apply()
 
         self.config_state_1 = rc.rc_state.set_config(*CONFIG_ENABLED).apply()
         self.r_login = weblog.post("/login?auth=local", data=login_data(context, USER, PASSWORD))
 
         self.config_state_2 = rc.rc_state.set_config(*BLOCK_USER_RULE).apply()
-        self.config_state_3 = rc.rc_state.set_config(*BLOCK_USER_DATA).apply()
+        self.config_state_3 = rc.rc_state.set_config(*BLOCK_USER_ID).apply()
         self.r_login_blocked = weblog.post("/login?auth=local", data=login_data(context, USER, PASSWORD))
 
-    def test_login_event_blocking_auto(self):
+    def test_login_event_blocking_auto_id(self):
         assert self.config_state_1[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
         assert self.r_login.status_code == 200
 
         assert self.config_state_2[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
         assert self.config_state_3[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
-        interfaces.library.assert_waf_attack(self.r_login_blocked, rule="block-users")
+        interfaces.library.assert_waf_attack(self.r_login_blocked, rule="block-user-id")
+        assert self.r_login_blocked.status_code == 403
+
+    def setup_login_event_blocking_auto_login(self):
+        rc.rc_state.reset().apply()
+
+        self.config_state_1 = rc.rc_state.set_config(*CONFIG_ENABLED).apply()
+        self.r_login = weblog.post("/login?auth=local", data=login_data(context, USER, PASSWORD))
+
+        self.config_state_2 = rc.rc_state.set_config(*BLOCK_USER_RULE).apply()
+        self.config_state_3 = rc.rc_state.set_config(*BLOCK_USER_LOGIN).apply()
+        self.r_login_blocked = weblog.post("/login?auth=local", data=login_data(context, USER, PASSWORD))
+
+    def test_login_event_blocking_auto_login(self):
+        assert self.config_state_1[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
+        assert self.r_login.status_code == 200
+
+        assert self.config_state_2[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
+        assert self.config_state_3[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
+        interfaces.library.assert_waf_attack(self.r_login_blocked, rule="block-user-login")
         assert self.r_login_blocked.status_code == 403
 
     def setup_login_event_blocking_sdk(self):
