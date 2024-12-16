@@ -9,9 +9,9 @@ public abstract class ApmTestApiOtel : ApmTestApi
 {
     private static readonly ActivitySource ApmTestApiActivitySource = new("ApmTestApi");
     private static readonly Dictionary<ulong, Activity> Activities = new();
-    private static ILogger<ApmTestApiOtel>? _logger;
+    private static ILogger? _logger;
 
-    public static void MapApmOtelEndpoints(WebApplication app, ILogger<ApmTestApiOtel> logger)
+    public static void MapApmOtelEndpoints(WebApplication app, ILogger logger)
     {
         _logger = logger;
 
