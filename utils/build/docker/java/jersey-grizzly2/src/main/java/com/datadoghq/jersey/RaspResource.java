@@ -18,8 +18,6 @@ import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlRootElement;
 import jakarta.xml.bind.annotation.XmlValue;
 import jakarta.xml.bind.annotation.XmlElement;
-import jakarta.xml.bind.annotation.XmlElementWrapper;
-
 
 import java.io.File;
 import java.net.MalformedURLException;
@@ -252,7 +250,6 @@ public class RaspResource {
     @XmlAccessorType(XmlAccessType.FIELD)
     public static class CommandDTO {
         @JsonbProperty("command")
-        @XmlElementWrapper(name = "command")
         @XmlElement(name = "cmd")
         private String[] command;
 

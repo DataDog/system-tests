@@ -573,8 +573,6 @@ tests/:
           spring-boot-payara: missing_feature (APPSEC-54966)
         Test_Cmdi_BodyXml:
           '*': v1.45.0
-          jersey-grizzly2: missing_feature (returns 200 instead of 403)
-          resteasy-netty3: missing_feature (returns 200 instead of 403)
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
           spring-boot-payara: missing_feature (APPSEC-54966)
           vertx3: missing_feature (APPSEC-55788)

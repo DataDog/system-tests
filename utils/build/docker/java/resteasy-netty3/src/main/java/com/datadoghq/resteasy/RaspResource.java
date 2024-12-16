@@ -17,6 +17,7 @@ import javax.ws.rs.core.MediaType;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlValue;
 import java.sql.CallableStatement;
 import java.sql.Connection;
@@ -244,6 +245,7 @@ public class RaspResource {
     @XmlAccessorType(XmlAccessType.FIELD)
     public static class CommandDTO {
         @JsonProperty("command")
+        @XmlElement(name = "cmd")
         private String[] command;
 
         public String[] getCommand() {
