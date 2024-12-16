@@ -225,6 +225,12 @@ jobs:
             my_ipv6_network
 
       - name: Verify Network
-        run: |
-          docker network inspect my_ipv6_network
+        run: docker network inspect my_ipv6_network
 
+      - name: Run simple http server
+        run: docker run --network my_ipv6_network -p 3000:3000 -d lipanski/docker-static-website:latest
+
+      - name : curl it
+        run: curl http://localhost:3000
+
+# docker run --network my_ipv6_network -p 3000:3000 -d lipanski/docker-static-website:latest
