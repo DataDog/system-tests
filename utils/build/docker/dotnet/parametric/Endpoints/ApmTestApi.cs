@@ -82,7 +82,8 @@ public abstract class ApmTestApi
 
         var creationSettings = new SpanCreationSettings
         {
-            Parent = FindSpanContext(requestJson, "parent_id", required: false)
+            Parent = FindSpanContext(requestJson, "parent_id", required: false),
+            FinishOnClose = false,
         };
 
         var operationName = requestJson.GetPropertyAsString("name");
