@@ -1,7 +1,7 @@
 from utils import scenarios, weblog, interfaces, features
 
 
-@features.not_reported  # TODO
+@features.agent_host_ipv6
 @scenarios.ipv6
 class Test_Basic:
     def setup_main(self):
