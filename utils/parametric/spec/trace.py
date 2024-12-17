@@ -224,48 +224,52 @@ def retrieve_span_links(span):
     if span.get("span_links") is not None:
         return span["span_links"]
 
-    if span["meta"].get("_dd.span_links") is not None:
-        # Convert span_links tags into msgpack v0.4 format
-        json_links = json.loads(span["meta"].get("_dd.span_links"))
-        links = []
-        for json_link in json_links:
-            link = {}
-            link["trace_id"] = int(json_link["trace_id"][-16:], base=16)
-            link["span_id"] = int(json_link["span_id"], base=16)
-            if len(json_link["trace_id"]) > 16:
-                link["trace_id_high"] = int(json_link["trace_id"][:16], base=16)
-            if "attributes" in json_link:
-                link["attributes"] = json_link.get("attributes")
-            if "tracestate" in json_link:
-                link["tracestate"] = json_link.get("tracestate")
-            elif "trace_state" in json_link:
-                link["tracestate"] = json_link.get("trace_state")
-            if "flags" in json_link:
-                link["flags"] = json_link.get("flags") | TRACECONTEXT_FLAGS_SET
-            else:
-                link["flags"] = 0
-            links.append(link)
-        return links
+    if span["meta"].get("_dd.span_links") is None:
+        return None
+
+    # Convert span_links tags into msgpack v0.4 format
+    json_links = json.loads(span["meta"].get("_dd.span_links"))
+    links = []
+    for json_link in json_links:
+        link = {}
+        link["trace_id"] = int(json_link["trace_id"][-16:], base=16)
+        link["span_id"] = int(json_link["span_id"], base=16)
+        if len(json_link["trace_id"]) > 16:
+            link["trace_id_high"] = int(json_link["trace_id"][:16], base=16)
+        if "attributes" in json_link:
+            link["attributes"] = json_link.get("attributes")
+        if "tracestate" in json_link:
+            link["tracestate"] = json_link.get("tracestate")
+        elif "trace_state" in json_link:
+            link["tracestate"] = json_link.get("trace_state")
+        if "flags" in json_link:
+            link["flags"] = json_link.get("flags") | TRACECONTEXT_FLAGS_SET
+        else:
+            link["flags"] = 0
+        links.append(link)
+    return links
 
 
 def retrieve_span_events(span):
     if span.get("span_events") is not None:
         return span["span_events"]
 
-    if span["meta"].get("events") is not None:
-        # Convert span_events tags into msgpack v0.4 format
-        json_events = json.loads(span["meta"].get("events"))
-        events = []
-        for json_event in json_events:
-            event = {}
+    if span["meta"].get("events") is None:
+        return None
 
-            event["time_unix_nano"] = json_event["time_unix_nano"]
-            event["name"] = json_event["name"]
-            if "attributes" in json_event:
-                event["attributes"] = json_event["attributes"]
+    # Convert span_events tags into msgpack v0.4 format
+    json_events = json.loads(span["meta"].get("events"))
+    events = []
+    for json_event in json_events:
+        event = {}
 
-            events.append(event)
-        return events
+        event["time_unix_nano"] = json_event["time_unix_nano"]
+        event["name"] = json_event["name"]
+        if "attributes" in json_event:
+            event["attributes"] = json_event["attributes"]
+
+        events.append(event)
+    return events
 
 
 def id_to_int(value: Union[str, int]) -> int:

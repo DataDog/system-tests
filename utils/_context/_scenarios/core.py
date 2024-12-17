@@ -100,7 +100,8 @@ class Scenario:
             # * at very first command
             # * then once per worker
 
-            # the issue is that _create_log_subfolder() remove the folder if it exists, then create it. This scenario is then possible :
+            # the issue is that _create_log_subfolder() remove the folder if it exists, then create it.
+            # This scenario is then possible :
             # 1. some worker A creates logs/
             # 2. another worker B removes it
             # 3. worker A want to create logs/tests.log -> boom

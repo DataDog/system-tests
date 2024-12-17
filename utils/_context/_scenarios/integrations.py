@@ -45,7 +45,10 @@ class IntegrationsScenario(EndToEndScenario):
             include_mysql_db=True,
             include_sqlserver=True,
             include_otel_drop_in=True,
-            doc="Spawns tracer, agent, and a full set of database. Test the integrations of those databases with tracers",
+            doc=(
+                "Spawns tracer, agent, and a full set of database. "
+                "Test the integrations of those databases with tracers"
+            ),
             scenario_groups=[ScenarioGroup.INTEGRATIONS, ScenarioGroup.APPSEC, ScenarioGroup.ESSENTIALS],
         )
 
