@@ -72,7 +72,10 @@ def pytest_addoption(parser):
         "--ssi-installable-runtime",
         type=str,
         action="store",
-        help="Set the language runtime to install on the docker base image.Empty if we don't want to install any runtime",
+        help=(
+            """Set the language runtime to install on the docker base image. """
+            """Empty if we don't want to install any runtime"""
+        ),
     )
     parser.addoption("--ssi-push-base-images", "-P", action="store_true", help="Push docker ssi base images")
     parser.addoption("--ssi-force-build", "-B", action="store_true", help="Force build ssi base images")
@@ -207,21 +210,23 @@ def pytest_pycollect_makemodule(module_path, parent):
 
     nodeid = str(module_path.relative_to(module_path.cwd()))
 
-    if nodeid in manifests and library in manifests[nodeid]:
-        declaration: str = manifests[nodeid][library]
+    if nodeid not in manifests or library not in manifests[nodeid]:
+        return None
 
-        logger.info(f"Manifest declaration found for {nodeid}: {declaration}")
+    declaration: str = manifests[nodeid][library]
 
-        mod: pytest.Module = pytest.Module.from_parent(parent, path=module_path)
+    logger.info(f"Manifest declaration found for {nodeid}: {declaration}")
 
-        if declaration.startswith(("irrelevant", "flaky")):
-            mod.add_marker(pytest.mark.skip(reason=declaration))
-            logger.debug(f"Module {nodeid} is skipped by manifest file because {declaration}")
-        else:
-            mod.add_marker(pytest.mark.xfail(reason=declaration))
-            logger.debug(f"Module {nodeid} is xfailed by manifest file because {declaration}")
+    mod: pytest.Module = pytest.Module.from_parent(parent, path=module_path)
 
-        return mod
+    if declaration.startswith(("irrelevant", "flaky")):
+        mod.add_marker(pytest.mark.skip(reason=declaration))
+        logger.debug(f"Module {nodeid} is skipped by manifest file because {declaration}")
+    else:
+        mod.add_marker(pytest.mark.xfail(reason=declaration))
+        logger.debug(f"Module {nodeid} is xfailed by manifest file because {declaration}")
+
+    return mod
 
 
 @pytest.hookimpl(tryfirst=True)

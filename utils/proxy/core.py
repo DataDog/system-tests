@@ -10,6 +10,7 @@ from mitmproxy.addons import errorcheck, default_addons
 from mitmproxy.flow import Error as FlowError, Flow
 
 from _deserializer import deserialize
+from ports import ProxyPorts
 
 # prevent permission issues on file created by the proxy when the host is linux
 os.umask(0)
@@ -17,16 +18,6 @@ os.umask(0)
 logger = logging.getLogger(__name__)
 
 SIMPLE_TYPES = (bool, int, float, type(None))
-
-# the proxy determine the origin of the request based on the port
-PORT_DIRECT_INTERACTION = 9000
-PORT_WEBLOG = 9001
-PORT_NODEJS_BUDDY = 9002
-PORT_JAVA_BUDDY = 9003
-PORT_RUBY_BUDDY = 9004
-PORT_GOLANG_BUDDY = 9005
-PORT_PYTHON_BUDDY = 9006
-PORT_AGENT = 9100
 
 messages_counts = defaultdict(int)
 
@@ -73,16 +64,11 @@ class _RequestLogger:
 
         self.host_log_folder = os.environ.get("SYSTEM_TESTS_HOST_LOG_FOLDER", "logs")
 
-        # request -> original port
-        # as the port is overwritten at request stage, we loose it on response stage
-        # this property will keep it
-        self.original_ports = {}
-
         self.rc_api_enabled = os.environ.get("SYSTEM_TESTS_RC_API_ENABLED") == "True"
         self.span_meta_structs_disabled = os.environ.get("SYSTEM_TESTS_AGENT_SPAN_META_STRUCTS_DISABLED") == "True"
 
         span_events = os.environ.get("SYSTEM_TESTS_AGENT_SPAN_EVENTS")
-        self.span_events = True if span_events == "True" else (False if span_events == "False" else None)
+        self.span_events = span_events != "False"
 
         self.rc_api_command = None
 
@@ -115,9 +101,12 @@ class _RequestLogger:
         return http.Response.make(400, message)
 
     def request(self, flow: Flow):
-        logger.info(f"{flow.request.method} {flow.request.pretty_url}")
+        # sockname is the local address (host, port) we received this connection on.
+        port = flow.client_conn.sockname[1]
 
-        if flow.request.port == PORT_DIRECT_INTERACTION:
+        logger.info(f"{flow.request.method} {flow.request.pretty_url}, using proxy port {port}")
+
+        if port == ProxyPorts.proxy_commands:
             if not self.rc_api_enabled:
                 flow.response = self.get_error_response(b"RC API is not enabled")
             elif flow.request.path == "/unique_command":
@@ -134,45 +123,45 @@ class _RequestLogger:
 
             return
 
-        self.original_ports[flow.id] = flow.request.port
-
-        if flow.request.port in (
-            PORT_WEBLOG,
-            PORT_PYTHON_BUDDY,
-            PORT_NODEJS_BUDDY,
-            PORT_JAVA_BUDDY,
-            PORT_RUBY_BUDDY,
-            PORT_GOLANG_BUDDY,
-        ):
-            if flow.request.headers.get("dd-protocol") == "otlp":
-                # OTLP ingestion
-                otlp_path = flow.request.headers.get("dd-otlp-path")
-                if otlp_path == "agent":
-                    flow.request.host = "agent"
-                    flow.request.port = 4318
-                    flow.request.scheme = "http"
-                elif otlp_path == "collector":
-                    flow.request.host = "system-tests-collector"
-                    flow.request.port = 4318
-                    flow.request.scheme = "http"
-                elif otlp_path == "intake-traces":
-                    flow.request.host = "trace.agent." + os.environ.get("DD_SITE", "datad0g.com")
-                    flow.request.port = 443
-                    flow.request.scheme = "https"
-                elif otlp_path == "intake-metrics":
-                    flow.request.host = "api." + os.environ.get("DD_SITE", "datad0g.com")
-                    flow.request.port = 443
-                    flow.request.scheme = "https"
-                elif otlp_path == "intake-logs":
-                    flow.request.host = "http-intake.logs." + os.environ.get("DD_SITE", "datad0g.com")
-                    flow.request.port = 443
-                    flow.request.scheme = "https"
-                else:
-                    raise Exception(f"Unknown OTLP ingestion path {otlp_path}")
-            else:
-                flow.request.host, flow.request.port = "agent", 8127
+        # if flow.request.headers.get("dd-protocol") == "otlp":
+        if port == ProxyPorts.open_telemetry_weblog:
+            # OTLP ingestion
+            otlp_path = flow.request.headers.get("dd-otlp-path")
+            if otlp_path == "agent":
+                flow.request.host = "agent"
+                flow.request.port = 4318
                 flow.request.scheme = "http"
+            elif otlp_path == "collector":
+                flow.request.host = "system-tests-collector"
+                flow.request.port = 4318
+                flow.request.scheme = "http"
+            elif otlp_path == "intake-traces":
+                flow.request.host = "trace.agent." + os.environ.get("DD_SITE", "datad0g.com")
+                flow.request.port = 443
+                flow.request.scheme = "https"
+            elif otlp_path == "intake-metrics":
+                flow.request.host = "api." + os.environ.get("DD_SITE", "datad0g.com")
+                flow.request.port = 443
+                flow.request.scheme = "https"
+            elif otlp_path == "intake-logs":
+                flow.request.host = "http-intake.logs." + os.environ.get("DD_SITE", "datad0g.com")
+                flow.request.port = 443
+                flow.request.scheme = "https"
+            else:
+                raise Exception(f"Unknown OTLP ingestion path {otlp_path}")
 
+            logger.info(f"    => reverse proxy to {flow.request.pretty_url}")
+
+        elif port in (
+            ProxyPorts.python_buddy,
+            ProxyPorts.nodejs_buddy,
+            ProxyPorts.java_buddy,
+            ProxyPorts.ruby_buddy,
+            ProxyPorts.golang_buddy,
+            ProxyPorts.weblog,
+        ):
+            flow.request.host, flow.request.port = "agent", 8127
+            flow.request.scheme = "http"
             logger.info(f"    => reverse proxy to {flow.request.pretty_url}")
 
     @staticmethod
@@ -180,7 +169,10 @@ class _RequestLogger:
         return request.host == "agent"
 
     def response(self, flow):
-        if flow.request.port == PORT_DIRECT_INTERACTION:
+        # sockname is the local address (host, port) we received this connection on.
+        port = flow.client_conn.sockname[1]
+
+        if port == ProxyPorts.proxy_commands:
             return
 
         try:
@@ -189,30 +181,24 @@ class _RequestLogger:
             self._modify_response(flow)
 
             # get the interface name
-            if flow.request.headers.get("dd-protocol") == "otlp":
+            if port == ProxyPorts.open_telemetry_weblog:
                 interface = "open_telemetry"
-            elif self.request_is_from_tracer(flow.request):
-                port = self.original_ports[flow.id]
-                if port == PORT_WEBLOG:
-                    interface = "library"
-                # elif port == 80:  # UDS mode  # REALLY ?
-                #     interface = "library"
-                elif port == PORT_PYTHON_BUDDY:
-                    interface = "python_buddy"
-                elif port == PORT_NODEJS_BUDDY:
-                    interface = "nodejs_buddy"
-                elif port == PORT_JAVA_BUDDY:
-                    interface = "java_buddy"
-                elif port == PORT_RUBY_BUDDY:
-                    interface = "ruby_buddy"
-                elif port == PORT_GOLANG_BUDDY:
-                    interface = "golang_buddy"
-                elif port == PORT_PYTHON_BUDDY:
-                    interface = "python_buddy"
-                else:
-                    raise ValueError(f"Unknown port provenance for {flow.request}: {port}")
-            else:
+            elif port == ProxyPorts.weblog:
+                interface = "library"
+            elif port == ProxyPorts.python_buddy:
+                interface = "python_buddy"
+            elif port == ProxyPorts.nodejs_buddy:
+                interface = "nodejs_buddy"
+            elif port == ProxyPorts.java_buddy:
+                interface = "java_buddy"
+            elif port == ProxyPorts.ruby_buddy:
+                interface = "ruby_buddy"
+            elif port == ProxyPorts.golang_buddy:
+                interface = "golang_buddy"
+            elif port == ProxyPorts.agent:  # HTTPS port, as the agent use the proxy with HTTP_PROXY env var
                 interface = "agent"
+            else:
+                raise ValueError(f"Unknown port provenance for {flow.request}: {port}")
 
             # extract url info
             if "?" in flow.request.path:
@@ -311,8 +297,7 @@ class _RequestLogger:
             if self.span_meta_structs_disabled:
                 self._remove_meta_structs_support(flow)
 
-            if self.span_events is not None:
-                self._modify_span_events_flag(flow)
+            self._modify_span_events_flag(flow)
 
     def _remove_meta_structs_support(self, flow):
         if flow.request.path == "/info" and str(flow.response.status_code) == "200":
@@ -345,16 +330,18 @@ class _RequestLogger:
 
 
 def start_proxy() -> None:
-    # the port is used to know the origin of the request
+    # the port is used to make the distinction between provenance
+    # not that backend is not needed as it's used with HTTP_PROXY
     modes = [
-        f"regular@{PORT_DIRECT_INTERACTION}",  # RC payload API
-        f"regular@{PORT_WEBLOG}",  # weblog
-        f"regular@{PORT_NODEJS_BUDDY}",  # nodejs_buddy
-        f"regular@{PORT_JAVA_BUDDY}",  # java_buddy
-        f"regular@{PORT_RUBY_BUDDY}",  # ruby_buddy
-        f"regular@{PORT_GOLANG_BUDDY}",  # golang_buddy
-        f"regular@{PORT_PYTHON_BUDDY}",  # python_buddy
-        f"regular@{PORT_AGENT}",  # agent
+        f"regular@{ProxyPorts.proxy_commands}",  # RC payload API
+        f"regular@{ProxyPorts.weblog}",  # base weblog
+        f"regular@{ProxyPorts.python_buddy}",  # python_buddy
+        f"regular@{ProxyPorts.nodejs_buddy}",  # nodejs_buddy
+        f"regular@{ProxyPorts.java_buddy}",  # java_buddy
+        f"regular@{ProxyPorts.ruby_buddy}",  # ruby_buddy
+        f"regular@{ProxyPorts.golang_buddy}",  # golang_buddy
+        f"regular@{ProxyPorts.open_telemetry_weblog}",  # Open telemetry weblog
+        f"regular@{ProxyPorts.agent}",  # from agent to backend
     ]
 
     loop = asyncio.new_event_loop()

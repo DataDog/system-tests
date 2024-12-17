@@ -85,7 +85,9 @@ class ParametricScenario(Scenario):
     apm_test_server_definition: APMLibraryTestServer
 
     class PersistentParametricTestConf(dict):
-        """Parametric tests are executed in multiple thread, we need a mechanism to persist each parametrized_tests_metadata on a file"""
+        """Parametric tests are executed in multiple thread, we need a mechanism to persist
+        each parametrized_tests_metadata on a file
+        """
 
         def __init__(self, outer_inst):
             self.outer_inst = outer_inst
@@ -510,7 +512,8 @@ def java_library_factory():
     java_appdir = os.path.join("utils", "build", "docker", "java", "parametric")
     java_absolute_appdir = os.path.join(_get_base_directory(), java_appdir)
 
-    # Create the relative path and substitute the Windows separator, to allow running the Docker build on Windows machines
+    # Create the relative path and substitute the Windows separator,
+    # to allow running the Docker build on Windows machines.
     java_reldir = java_appdir.replace("\\", "/")
 
     # TODO : use official install_ddtrace.sh

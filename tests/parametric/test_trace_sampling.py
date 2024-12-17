@@ -9,6 +9,7 @@ from utils import rfc, scenarios, missing_feature, flaky, features, bug
 
 
 @features.trace_sampling
+@features.adaptive_sampling
 @scenarios.parametric
 @rfc("https://docs.google.com/document/d/1HRbi1DrBjL_KGeONrPgH7lblgqSLGlV5Ox1p4RL97xM/")
 class Test_Trace_Sampling_Basic:
@@ -102,6 +103,7 @@ class Test_Trace_Sampling_Basic:
 
 
 @features.trace_sampling
+@features.adaptive_sampling
 @scenarios.parametric
 @rfc("https://docs.google.com/document/d/1S9pufnJjrsxH6pRbpigdYFwA5JjSdZ6iLZ-9E7PoAic/")
 class Test_Trace_Sampling_Globs:
@@ -167,6 +169,7 @@ class Test_Trace_Sampling_Globs:
 
 
 @features.trace_sampling
+@features.adaptive_sampling
 @scenarios.parametric
 @rfc("https://docs.google.com/document/d/1S9pufnJjrsxH6pRbpigdYFwA5JjSdZ6iLZ-9E7PoAic/")
 class Test_Trace_Sampling_Globs_Feb2024_Revision:
@@ -212,6 +215,7 @@ class Test_Trace_Sampling_Globs_Feb2024_Revision:
 
 
 @features.trace_sampling
+@features.adaptive_sampling
 @scenarios.parametric
 @rfc("https://docs.google.com/document/d/1S9pufnJjrsxH6pRbpigdYFwA5JjSdZ6iLZ-9E7PoAic/")
 class Test_Trace_Sampling_Resource:
@@ -315,6 +319,7 @@ class Test_Trace_Sampling_Resource:
 
 
 @features.trace_sampling
+@features.adaptive_sampling
 @scenarios.parametric
 @rfc("https://docs.google.com/document/d/1S9pufnJjrsxH6pRbpigdYFwA5JjSdZ6iLZ-9E7PoAic/")
 class Test_Trace_Sampling_Tags:
@@ -418,6 +423,7 @@ def tag_sampling_env(tag_glob_pattern):
 @scenarios.parametric
 @rfc("https://docs.google.com/document/d/1S9pufnJjrsxH6pRbpigdYFwA5JjSdZ6iLZ-9E7PoAic/")
 @features.trace_sampling
+@features.adaptive_sampling
 class Test_Trace_Sampling_Tags_Feb2024_Revision:
     def assert_matching_span(self, test_agent, trace_id, span_id, **kwargs):
         matching_span = find_span_in_traces(test_agent.wait_for_num_traces(1), trace_id, span_id)
@@ -540,6 +546,7 @@ class Test_Trace_Sampling_Tags_Feb2024_Revision:
 @scenarios.parametric
 @rfc("https://docs.google.com/document/d/1S9pufnJjrsxH6pRbpigdYFwA5JjSdZ6iLZ-9E7PoAic/")
 @features.trace_sampling
+@features.adaptive_sampling
 class Test_Trace_Sampling_With_W3C:
     @pytest.mark.parametrize(
         "library_env",

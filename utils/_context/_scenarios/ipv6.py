@@ -1,15 +1,15 @@
 from utils.tools import logger
 
-from .core import ScenarioGroup
+# from .core import ScenarioGroup
 from .endtoend import EndToEndScenario
 
 
-class Ipv6Scenario(EndToEndScenario):
+class IPV6Scenario(EndToEndScenario):
     def __init__(self, name) -> None:
         super().__init__(
             name,
             enable_ipv6=True,
-            scenario_groups=[ScenarioGroup.ESSENTIALS, ScenarioGroup.TRACER_RELEASE],
+            # scenario_groups=[ScenarioGroup.ESSENTIALS, ScenarioGroup.TRACER_RELEASE],
             doc="Test the agent/lib communication using an IPv6 address",
         )
 

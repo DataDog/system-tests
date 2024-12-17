@@ -473,13 +473,16 @@ class Test_Telemetry:
     @missing_feature(context.library < "ruby@1.22.0", reason="Telemetry V2 is not implemented yet")
     def test_app_started_client_configuration(self):
         """Assert that default and other configurations that are applied upon start time are sent with the app-started event"""
+
+        trace_agent_port = scenarios.default.weblog_container.trace_agent_port
+
         test_configuration = {
             "dotnet": {},
-            "nodejs": {"hostname": "proxy", "port": 9001, "appsec.enabled": True},
+            "nodejs": {"hostname": "proxy", "port": trace_agent_port, "appsec.enabled": True},
             # to-do :need to add configuration keys once python bug is fixed
             "python": {},
-            "cpp": {"trace_agent_port": 9001},
-            "java": {"trace_agent_port": 9001, "telemetry_heartbeat_interval": 2},
+            "cpp": {"trace_agent_port": trace_agent_port},
+            "java": {"trace_agent_port": trace_agent_port, "telemetry_heartbeat_interval": 2},
             "ruby": {"DD_AGENT_TRANSPORT": "TCP"},
         }
         configuration_map = test_configuration[context.library.library]
