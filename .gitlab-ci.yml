@@ -489,8 +489,8 @@ generate_system_tests_images:
   tags: [ "runner:docker" ]
   stage: k8s_lib_injection
   rules:
-    - if: $CI_PIPELINE_SOURCE == "schedule"
-      when: always
+    #- if: $CI_PIPELINE_SOURCE == "schedule"
+    #  when: always
     - when: manual
   variables:
     TEST_LIBRARY: "xyz"
