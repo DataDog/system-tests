@@ -4,7 +4,8 @@ from enum import IntEnum
 class ProxyPorts(IntEnum):
     """Proxy port are used by the proxy to determine the provenance of the request"""
 
-    proxy_commands = 8000
+    proxy_commands = 11111
+
     weblog = 8126
     open_telemetry_weblog = 8127
 
