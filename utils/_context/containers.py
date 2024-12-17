@@ -11,6 +11,7 @@ from threading import RLock, Thread
 import docker
 from docker.errors import APIError, DockerException
 from docker.models.containers import Container
+from docker.models.networks import Network
 import pytest
 import requests
 
@@ -52,13 +53,13 @@ _DEFAULT_NETWORK_NAME = "system-tests_default"
 _NETWORK_NAME = "bridge" if "GITLAB_CI" in os.environ else _DEFAULT_NETWORK_NAME
 
 
-def create_network():
-    for _ in _get_client().networks.list(names=[_NETWORK_NAME]):
+def create_network() -> Network:
+    for network in _get_client().networks.list(names=[_NETWORK_NAME]):
         logger.debug(f"Network {_NETWORK_NAME} still exists")
-        return
+        return network
 
     logger.debug(f"Create network {_NETWORK_NAME}")
-    _get_client().networks.create(_NETWORK_NAME, check_duplicate=True)
+    return _get_client().networks.create(_NETWORK_NAME, check_duplicate=True)
 
 
 _VOLUME_INJECTOR_NAME = "volume-inject"
@@ -136,6 +137,8 @@ class TestedContainer:
                 logger.debug(f"Container {self.container_name} found")
                 return container
 
+        return None
+
     def stop_previous_container(self):
         if self.allow_old_container:
             return
@@ -144,7 +147,7 @@ class TestedContainer:
             logger.debug(f"Kill old container {self.container_name}")
             old_container.remove(force=True)
 
-    def start(self) -> Container:
+    def start(self, network: Network) -> Container:
         """Start the actual underlying Docker container directly"""
         if old_container := self.get_existing_container():
             if self.allow_old_container:
@@ -168,7 +171,7 @@ class TestedContainer:
             environment=self.environment,
             # auto_remove=True,
             detach=True,
-            network=_NETWORK_NAME,
+            network=network.name,
             **self.kwargs,
         )
 
@@ -176,17 +179,15 @@ class TestedContainer:
         if self.healthy:
             self.warmup()
 
-    def async_start(self) -> Thread:
+    def async_start(self, network: Network) -> Thread:
         """Start the container and its dependencies in a thread with circular dependency detection"""
         self.check_circular_dependencies([])
 
-        return self._async_start_recursive()
+        return self._async_start_recursive(network)
 
-    def network_ip(self) -> str:
-        logger.debug("NetworksSettings: {self._container.attrs['NetworkSettings']}")
-
-        # NetworkSettings.Networks.bridge.IPAddress
-        return self._container.attrs["NetworkSettings"]["Networks"][_NETWORK_NAME]["IPAddress"]
+    def network_ip(self, network: Network) -> str:
+        self._container.reload()
+        return self._container.attrs["NetworkSettings"]["Networks"][network.name]["IPAddress"]
 
     def check_circular_dependencies(self, seen: list):
         """Check if the container has a circular dependency"""
@@ -199,18 +200,20 @@ class TestedContainer:
         for dependency in self.depends_on:
             dependency.check_circular_dependencies(list(seen))
 
-    def _async_start_recursive(self):
+    def _async_start_recursive(self, network: Network):
         """Recursive version of async_start for circular dependency detection"""
         with self._starting_lock:
             if self._starting_thread is None:
-                self._starting_thread = Thread(target=self._start_with_dependencies, name=f"start_{self.name}")
+                self._starting_thread = Thread(
+                    target=self._start_with_dependencies, name=f"start_{self.name}", kwargs={"network": network}
+                )
                 self._starting_thread.start()
 
         return self._starting_thread
 
-    def _start_with_dependencies(self):
+    def _start_with_dependencies(self, network: Network):
         """Start all dependencies of a container and then start the container"""
-        threads = [dependency._async_start_recursive() for dependency in self.depends_on]
+        threads = [dependency._async_start_recursive(network) for dependency in self.depends_on]
 
         for thread in threads:
             thread.join()
@@ -222,7 +225,7 @@ class TestedContainer:
         # this function is executed in a thread
         # the main thread will take care of the exception
         try:
-            self.start()
+            self.start(network)
         except Exception as e:
             logger.exception(f"Error while starting {self.name}: {e}")
             self.healthy = False
@@ -642,7 +645,7 @@ class WeblogContainer(TestedContainer):
         "signatures": [
             {
                 "keyid": "ed7672c9a24abda78872ee32ee71c7cb1d5235e8db4ecbf1ca28b9c50eb75d9e",
-                "sig": "d7e24828d1d3104e48911860a13dd6ad3f4f96d45a9ea28c4a0f04dbd3ca6c205ed406523c6c4cacfb7ebba68f7e122e42746d1c1a83ffa89c8bccb6f7af5e06",
+                "sig": "d7e24828d1d3104e48911860a13dd6ad3f4f96d45a9ea28c4a0f04dbd3ca6c205ed406523c6c4cacfb7ebba68f7e122e42746d1c1a83ffa89c8bccb6f7af5e06",  # noqa: E501
             }
         ],
     }
@@ -916,7 +919,7 @@ class KafkaContainer(TestedContainer):
         commands = [
             f"/opt/kafka/bin/kafka-topics.sh --create {kafka_options}",
             f'bash -c "echo hello | /opt/kafka/bin/kafka-console-producer.sh {kafka_options}"',
-            f"/opt/kafka/bin/kafka-console-consumer.sh {kafka_options} --max-messages 1 --group testgroup1 --from-beginning",
+            f"/opt/kafka/bin/kafka-console-consumer.sh {kafka_options} --max-messages 1 --group testgroup1 --from-beginning",  # noqa: E501
         ]
 
         for command in commands:
@@ -1042,7 +1045,7 @@ class OpenTelemetryCollectorContainer(TestedContainer):
         logger.stdout(f"{self._otel_host}:{self._otel_port} never answered to healthcheck request")
         return False
 
-    def start(self) -> Container:
+    def start(self, network: Network) -> Container:
         # _otel_config_host_path is mounted in the container, and depending on umask,
         # it might have no read permissions for other users, which is required within
         # the container. So set them here.
@@ -1050,7 +1053,7 @@ class OpenTelemetryCollectorContainer(TestedContainer):
         new_mode = prev_mode | stat.S_IROTH
         if prev_mode != new_mode:
             Path(self._otel_config_host_path).chmod(new_mode)
-        return super().start()
+        return super().start(network)
 
 
 class APMTestAgentContainer(TestedContainer):

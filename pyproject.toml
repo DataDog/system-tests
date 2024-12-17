@@ -93,8 +93,7 @@ ignore = [
     "D401",    # docstring format
     "D404",    # docstring format
     "D410",    # docstring format
-    "D417",    
-    "E501",    # line too long
+    "D417",
     "E722",    # TBD
     "E741",
     "FBT001",
@@ -119,11 +118,9 @@ ignore = [
     "PTH120",
     "PTH122",
     "PTH123",  # `open()` should be replaced by `Path.open()`
-    "RET503",
     "RET504",
     "RUF012",
     "RUF013",
-    "RUF015",  # yes, definitly
     "S202",
     "S507",
     "SIM102",
@@ -192,6 +189,7 @@ ignore = [
     "SIM115",
     "S603",
     "DTZ005",
+    "E501",    # line too long
     "RET505",
     "TRY301",
     "B006",
@@ -219,6 +217,7 @@ ignore = [
 "utils/onboarding/*" = [
     "DTZ006",
     "DTZ005",
+    "E501",    # line too long
     "UP017",
     "N806",
     "FBT001",
@@ -230,6 +229,7 @@ ignore = [
 ]
 "utils/{_context/_scenarios/docker_ssi.py,docker_ssi/docker_ssi_matrix_builder.py,docker_ssi/docker_ssi_matrix_utils.py}" = [
     "PLR2004",
+    "E501",    # line too long
     "SIM210",
     "RET504",
     "RET505",
@@ -245,6 +245,7 @@ ignore = [
     "C901",
     "E712",
     "E731",
+    "E501",    # line too long
     "F541",
     "E713",
     "EM102",

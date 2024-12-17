@@ -67,7 +67,11 @@ class scenarios:
         include_rabbitmq=True,
         include_mysql_db=True,
         include_sqlserver=True,
-        doc="We use the open telemetry library to automatically instrument the weblogs instead of using the DD library. This scenario represents this case in the integration with different external systems, for example the interaction with sql database.",
+        doc=(
+            "We use the open telemetry library to automatically instrument the weblogs instead of using the DD library."
+            "This scenario represents this case in the integration with different external systems, for example the "
+            "interaction with sql database."
+        ),
     )
 
     profiling = ProfilingScenario("PROFILING")
@@ -242,6 +246,7 @@ class scenarios:
         "APPSEC_RUNTIME_ACTIVATION",
         rc_api_enabled=True,
         appsec_enabled=False,
+        iast_enabled=False,
         weblog_env={"DD_APPSEC_WAF_TIMEOUT": "10000000", "DD_APPSEC_TRACE_RATE_LIMIT": "10000"},  # 10 seconds
         doc="",
         scenario_groups=[ScenarioGroup.APPSEC, ScenarioGroup.APPSEC_RASP],
@@ -466,7 +471,9 @@ class scenarios:
     apm_tracing_e2e_single_span = EndToEndScenario(
         "APM_TRACING_E2E_SINGLE_SPAN",
         weblog_env={
-            "DD_SPAN_SAMPLING_RULES": '[{"service": "weblog", "name": "*single_span_submitted", "sample_rate": 1.0, "max_per_second": 50}]',
+            "DD_SPAN_SAMPLING_RULES": json.dumps(
+                [{"service": "weblog", "name": "*single_span_submitted", "sample_rate": 1.0, "max_per_second": 50}]
+            ),
             "DD_TRACE_SAMPLE_RATE": "0",
         },
         backend_interface_timeout=5,
@@ -500,7 +507,7 @@ class scenarios:
             "DD_TRACE_CLIENT_IP_ENABLED": "true",
             "DD_TRACE_HTTP_CLIENT_ERROR_STATUSES": "200-201,202",
             "DD_SERVICE": "service_test",
-            "DD_TRACE_KAFKA_ENABLED": "false",  # Using Kafka as is the most common endpoint and integration(missing for PHP).
+            "DD_TRACE_KAFKA_ENABLED": "false",  # most common endpoint and integration (missing for PHP).
             "DD_TRACE_KAFKAJS_ENABLED": "false",  # In Node the integration is kafkajs.
             "DD_TRACE_PDO_ENABLED": "false",  # Use PDO for PHP,
             "DD_TRACE_PROPAGATION_STYLE_EXTRACT": "tracecontext,datadog,b3multi",
@@ -570,7 +577,7 @@ class scenarios:
         weblog_env={
             "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1",
             "DD_REMOTE_CONFIG_ENABLED": "true",
-            "DD_DYNAMIC_INSTRUMENTATION_REDACTED_TYPES": "weblog.Models.Debugger.CustomPii,com.datadoghq.system_tests.springboot.CustomPii,CustomPii",
+            "DD_DYNAMIC_INSTRUMENTATION_REDACTED_TYPES": "weblog.Models.Debugger.CustomPii,com.datadoghq.system_tests.springboot.CustomPii,CustomPii",  # noqa: E501
             "DD_DYNAMIC_INSTRUMENTATION_REDACTED_IDENTIFIERS": "customidentifier1,customidentifier2",
         },
         library_interface_timeout=5,
@@ -628,7 +635,10 @@ class scenarios:
 
     chaos_installer_auto_injection = InstallerAutoInjectionScenario(
         "CHAOS_INSTALLER_AUTO_INJECTION",
-        " Onboarding Host Single Step Instrumentation scenario. Machines with previous ld.so.preload entries. Perform chaos testing",
+        doc=(
+            "Onboarding Host Single Step Instrumentation scenario. "
+            "Machines with previous ld.so.preload entries. Perform chaos testing"
+        ),
         vm_provision="auto-inject-ld-preload",
         scenario_groups=[ScenarioGroup.ONBOARDING],
         github_workflow="libinjection",
@@ -647,7 +657,10 @@ class scenarios:
     )
     host_auto_injection_install_script_profiling = InstallerAutoInjectionScenarioProfiling(
         "HOST_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING",
-        "Onboarding Host Single Step Instrumentation scenario using agent auto install script with profiling activating by the installation process",
+        doc=(
+            "Onboarding Host Single Step Instrumentation scenario using agent "
+            "auto install script with profiling activating by the installation process"
+        ),
         vm_provision="host-auto-inject-install-script",
         agent_env={"DD_PROFILING_ENABLED": "auto"},
         app_env={"DD_PROFILING_UPLOAD_PERIOD": "10", "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500"},
@@ -683,7 +696,10 @@ class scenarios:
 
     local_auto_injection_install_script = InstallerAutoInjectionScenario(
         "LOCAL_AUTO_INJECTION_INSTALL_SCRIPT",
-        "Tobe executed locally with krunvm. Installs all the software fron agent installation script, and the replace the apm-library with the uploaded tar file from binaries",
+        doc=(
+            "To be executed locally with krunvm. Installs all the software fron agent installation script, "
+            "and the replace the apm-library with the uploaded tar file from binaries"
+        ),
         vm_provision="local-auto-inject-install-script",
         scenario_groups=[ScenarioGroup.ONBOARDING],
         github_workflow="libinjection",
@@ -736,13 +752,6 @@ class scenarios:
         doc="Enable APPSEC RASP",
         github_workflow="endtoend",
         scenario_groups=[ScenarioGroup.APPSEC, ScenarioGroup.APPSEC_RASP],
-    )
-
-    agent_supporting_span_events = EndToEndScenario(
-        "AGENT_SUPPORTING_SPAN_EVENTS",
-        span_events=True,
-        doc="The trace agent supports Span Events as a top-level span field",
-        scenario_groups=[ScenarioGroup.INTEGRATIONS],
     )
 
     agent_not_supporting_span_events = EndToEndScenario(

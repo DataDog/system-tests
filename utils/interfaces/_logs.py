@@ -279,6 +279,8 @@ class _LogPresence:
             logger.debug(f"For {self}, found {data['message']}")
             return True
 
+        return None
+
 
 class _LogAbsence:
     def __init__(self, pattern, allowed_patterns=None):
