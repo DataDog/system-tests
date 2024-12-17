@@ -123,7 +123,7 @@ function initRaspEndpoints (app) {
   app.get('/rasp/cmdi', (req, res) => {
     let result
     try {
-      result = execFileSync([req.query.command])
+      result = execFileSync(req.query.command)
     } catch (e) {
       result = e.toString()
 
@@ -138,7 +138,7 @@ function initRaspEndpoints (app) {
   app.post('/rasp/cmdi', (req, res) => {
     let result
     try {
-      result = execFileSync([req.body.command])
+      result = execFileSync(req.body.command)
     } catch (e) {
       result = e.toString()
 

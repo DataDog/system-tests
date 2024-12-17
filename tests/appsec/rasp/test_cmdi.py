@@ -18,7 +18,7 @@ from tests.appsec.rasp.utils import (
 @features.rasp_command_injection
 @scenarios.appsec_rasp
 class Test_Cmdi_UrlQuery:
-    """Shell Injection through query parameters"""
+    """Command Injection through query parameters"""
 
     def setup_cmdi_get(self):
         self.r = weblog.get("/rasp/cmdi", params={"command": "/usr/bin/reboot -f"})
@@ -46,7 +46,7 @@ class Test_Cmdi_UrlQuery:
 @features.rasp_command_injection
 @scenarios.appsec_rasp
 class Test_Cmdi_BodyUrlEncoded:
-    """Shell Injection through a url-encoded body parameter"""
+    """Command Injection through a url-encoded body parameter"""
 
     def setup_cmdi_post_urlencoded(self):
         self.r = weblog.post("/rasp/cmdi", data={"command": "/usr/bin/reboot -f"})
@@ -74,7 +74,7 @@ class Test_Cmdi_BodyUrlEncoded:
 @features.rasp_command_injection
 @scenarios.appsec_rasp
 class Test_Cmdi_BodyXml:
-    """Shell Injection through an xml body parameter"""
+    """Command Injection through an xml body parameter"""
 
     def setup_cmdi_post_xml(self):
         data = "<?xml version='1.0' encoding='utf-8'?><command>/usr/bin/reboot -f</command>"
@@ -103,7 +103,7 @@ class Test_Cmdi_BodyXml:
 @features.rasp_command_injection
 @scenarios.appsec_rasp
 class Test_Cmdi_BodyJson:
-    """Shell Injection through a json body parameter"""
+    """Command Injection through a json body parameter"""
 
     def setup_cmdi_post_json(self):
         """AppSec detects attacks in JSON body values"""
@@ -197,7 +197,7 @@ class Test_Cmdi_Telemetry:
 
 
 @rfc("https://docs.google.com/document/d/1DDWy3frMXDTAbk-BfnZ1FdRwuPx6Pl7AWyR4zjqRFZw")
-@features.rasp_shell_injection
+@features.rasp_command_injection
 @scenarios.appsec_rasp
 class Test_Cmdi_Telemetry_Variant_Tag:
     """Validate Telemetry data variant tag on exploit attempts"""
