@@ -242,6 +242,7 @@ class scenarios:
         "APPSEC_RUNTIME_ACTIVATION",
         rc_api_enabled=True,
         appsec_enabled=False,
+        iast_enabled=False,
         weblog_env={"DD_APPSEC_WAF_TIMEOUT": "10000000", "DD_APPSEC_TRACE_RATE_LIMIT": "10000"},  # 10 seconds
         doc="",
         scenario_groups=[ScenarioGroup.APPSEC, ScenarioGroup.APPSEC_RASP],
@@ -785,13 +786,6 @@ class scenarios:
         doc="Enable APPSEC RASP",
         github_workflow="endtoend",
         scenario_groups=[ScenarioGroup.APPSEC, ScenarioGroup.APPSEC_RASP],
-    )
-
-    agent_supporting_span_events = EndToEndScenario(
-        "AGENT_SUPPORTING_SPAN_EVENTS",
-        span_events=True,
-        doc="The trace agent supports Span Events as a top-level span field",
-        scenario_groups=[ScenarioGroup.INTEGRATIONS],
     )
 
     agent_not_supporting_span_events = EndToEndScenario(
