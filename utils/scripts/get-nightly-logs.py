@@ -28,7 +28,7 @@ def get_environ():
 
 
 def get_json(session: requests.Session, url: str, params=None, timeout: int = 30):
-    response = session.get(url, params=params, timeout=30)
+    response = session.get(url, params=params, timeout=timeout)
     response.raise_for_status()
     return response.json()
 

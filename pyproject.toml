@@ -83,7 +83,6 @@ ignore = [
     "ANN202",
     "ANN205",
     "ANN206",
-    "ARG001",  # unused function argument
     "ARG002",  # unused method argument
     "ARG005",  # unused lambda argument
     "BLE001",  # TBD
