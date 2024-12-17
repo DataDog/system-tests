@@ -16,6 +16,7 @@ class Test_library:
         # send some requests to be sure to trigger events
         weblog.get("/waf", params={"key": "\n :"})
 
+    @bug(context.library == "nodejs", reason="DEBUG-3245")
     def test_library_schema_full(self):
         excluded_points = [
             ("/telemetry/proxy/api/v2/apmtelemetry", "$.payload.configuration[]"),
