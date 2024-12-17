@@ -617,7 +617,7 @@ Additionally, both methods support the following query parameters to use the sdk
 - `sdk_user_exists`: `true` of `false` to indicate whether the current user exists and populate the corresponding tag.
 
 ### \[POST\] /signup
-This endpoint is used to create a new user.
+This endpoint is used to create a new user. Do not keep the user in memory for later use, only call the framework method to pretend to do so.
 Body fields accepted in POST method:
 - `username`: the login name for the user.
 - `password`: password for the user.
