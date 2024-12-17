@@ -16,6 +16,7 @@ import pytest
 import requests
 
 from utils._context.library_version import LibraryVersion
+from utils.proxy.ports import ProxyPorts
 from utils.tools import logger
 from utils import interfaces
 from utils.k8s_lib_injection.k8s_weblog import K8sWeblog
@@ -484,6 +485,8 @@ class ImageInfo:
 
 
 class ProxyContainer(TestedContainer):
+    command_host_port = 11111  # Which port exposed to host to sent proxy commands
+
     def __init__(self, host_log_folder, rc_api_enabled: bool, meta_structs_disabled: bool, span_events: bool) -> None:
         """Parameters:
         span_events: Whether the agent supports the native serialization of span events
@@ -508,7 +511,7 @@ class ProxyContainer(TestedContainer):
                 f"./{host_log_folder}/interfaces/": {"bind": f"/app/{host_log_folder}/interfaces", "mode": "rw"},
                 "./utils/": {"bind": "/app/utils/", "mode": "ro"},
             },
-            ports={"11111/tcp": ("127.0.0.1", 11111)},
+            ports={f"{ProxyPorts.proxy_commands}/tcp": ("127.0.0.1", self.command_host_port)},
             command="python utils/proxy/core.py",
         )
 
@@ -528,8 +531,8 @@ class AgentContainer(TestedContainer):
         )
 
         if use_proxy:
-            environment["DD_PROXY_HTTPS"] = "http://proxy:8126"
-            environment["DD_PROXY_HTTP"] = "http://proxy:8126"
+            environment["DD_PROXY_HTTPS"] = f"http://proxy:{ProxyPorts.agent}"
+            environment["DD_PROXY_HTTP"] = f"http://proxy:{ProxyPorts.agent}"
 
         super().__init__(
             image_name="system_tests/agent",
@@ -584,13 +587,13 @@ class AgentContainer(TestedContainer):
 
 
 class BuddyContainer(TestedContainer):
-    def __init__(self, name, image_name, host_log_folder, proxy_port, environment) -> None:
+    def __init__(self, name, image_name, host_log_folder, host_port, trace_agent_port, environment) -> None:
         super().__init__(
             name=name,
             image_name=image_name,
             host_log_folder=host_log_folder,
             healthcheck={"test": "curl --fail --silent --show-error --max-time 2 localhost:7777", "retries": 60},
-            ports={"7777/tcp": proxy_port},  # not the proxy port
+            ports={"7777/tcp": host_port},
             environment={
                 **environment,
                 "DD_SERVICE": name,
@@ -598,7 +601,7 @@ class BuddyContainer(TestedContainer):
                 "DD_VERSION": "1.0.0",
                 # "DD_TRACE_DEBUG": "true",
                 "DD_AGENT_HOST": "proxy",
-                "DD_TRACE_AGENT_PORT": proxy_port,
+                "DD_TRACE_AGENT_PORT": trace_agent_port,
             },
         )
 
@@ -707,10 +710,10 @@ class WeblogContainer(TestedContainer):
         if use_proxy:
             # set the tracer to send data to runner (it will forward them to the agent)
             base_environment["DD_AGENT_HOST"] = "proxy"
-            base_environment["DD_TRACE_AGENT_PORT"] = 8126
+            base_environment["DD_TRACE_AGENT_PORT"] = self.trace_agent_port
         else:
             base_environment["DD_AGENT_HOST"] = "agent"
-            base_environment["DD_TRACE_AGENT_PORT"] = 8127
+            base_environment["DD_TRACE_AGENT_PORT"] = self.trace_agent_port
 
         # overwrite values with those set in the scenario
         environment = base_environment | (environment or {})
@@ -738,6 +741,10 @@ class WeblogContainer(TestedContainer):
 
         self.weblog_variant = ""
         self._library: LibraryVersion = None
+
+    @property
+    def trace_agent_port(self):
+        return ProxyPorts.weblog
 
     @staticmethod
     def _get_image_list_from_dockerfile(dockerfile) -> list[str]:

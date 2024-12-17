@@ -74,6 +74,7 @@ class HttpResponse:
         return f"HttpResponse(status_code:{self.status_code}, headers:{self.headers}, text:{self.text})"
 
 
+# TODO : this should be build by weblog container
 class _Weblog:
     def __init__(self):
         if "SYSTEM_TESTS_WEBLOG_PORT" in os.environ:

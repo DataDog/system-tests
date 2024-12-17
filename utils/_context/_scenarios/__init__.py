@@ -3,6 +3,7 @@ import json
 import pytest
 
 from utils._context.header_tag_vars import VALID_CONFIGS, INVALID_CONFIGS
+from utils.proxy.ports import ProxyPorts
 from utils.tools import update_environ_with_local_env
 
 from .core import Scenario, ScenarioGroup
@@ -18,6 +19,7 @@ from .auto_injection import InstallerAutoInjectionScenario, InstallerAutoInjecti
 from .k8s_lib_injection import KubernetesScenario, WeblogInjectionScenario
 from .docker_ssi import DockerSSIScenario
 from .external_processing import ExternalProcessingScenario
+from .ipv6 import IPV6Scenario
 
 update_environ_with_local_env()
 
@@ -54,7 +56,7 @@ class scenarios:
         "OTEL_INTEGRATIONS",
         weblog_env={
             "OTEL_EXPORTER_OTLP_PROTOCOL": "http/protobuf",
-            "OTEL_EXPORTER_OTLP_ENDPOINT": "http://proxy:8126",
+            "OTEL_EXPORTER_OTLP_ENDPOINT": f"http://proxy:{ProxyPorts.open_telemetry_weblog}",
             "OTEL_EXPORTER_OTLP_TRACES_HEADERS": "dd-protocol=otlp,dd-otlp-path=agent",
             "OTEL_INTEGRATIONS_TEST": True,
         },
@@ -762,6 +764,7 @@ class scenarios:
     )
 
     external_processing = ExternalProcessingScenario("EXTERNAL_PROCESSING")
+    ipv6 = IPV6Scenario("IPV6")
 
 
 def get_all_scenarios() -> list[Scenario]:
