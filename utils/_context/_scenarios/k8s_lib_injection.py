@@ -63,6 +63,25 @@ class K8sScenario(Scenario):
 
         self.print_context()
 
+        # Prepare kubernetes datadog and the weblog handler
+        self.test_agent = K8sDatadog(self.host_log_folder, "")
+        self.test_agent.configure(
+            default_kind_cluster,
+            K8sWrapper(default_kind_cluster),
+            dd_cluster_feature=self.dd_cluster_feature,
+            dd_cluster_uds=self.use_uds,
+            k8s_cluster_version=self.k8s_cluster_version,
+        )
+        self.test_weblog = K8sWeblog(
+            self.k8s_weblog_img, self.library.library, self.k8s_lib_init_img, self.host_log_folder, ""
+        )
+        self.test_weblog.configure(
+            default_kind_cluster,
+            K8sWrapper(default_kind_cluster),
+            weblog_env=self.weblog_env,
+            dd_cluster_uds=self.use_uds,
+        )
+
     def print_context(self):
         logger.stdout(f"K8s Weblog: {self.k8s_weblog}")
         logger.stdout(f"K8s Weblog image: {self.k8s_weblog_img}")
@@ -83,24 +102,6 @@ class K8sScenario(Scenario):
 
     def get_warmups(self):
         warmups = super().get_warmups()
-        self.test_agent = K8sDatadog(self.host_log_folder, "")
-        self.test_agent.configure(
-            default_kind_cluster,
-            K8sWrapper(default_kind_cluster),
-            dd_cluster_feature=self.dd_cluster_feature,
-            dd_cluster_uds=self.use_uds,
-            k8s_cluster_version=self.k8s_cluster_version,
-        )
-        self.test_weblog = K8sWeblog(
-            self.k8s_weblog_img, self.library.library, self.k8s_lib_init_img, self.host_log_folder, ""
-        )
-        self.test_weblog.configure(
-            default_kind_cluster,
-            K8sWrapper(default_kind_cluster),
-            weblog_env=self.weblog_env,
-            dd_cluster_uds=self.use_uds,
-        )
-
         warmups.append(lambda: logger.terminal.write_sep("=", "Starting Kubernetes Kind Cluster", bold=True))
         warmups.append(create_cluster)
         warmups.append(self.test_agent.deploy_test_agent)
@@ -163,8 +164,6 @@ class K8sSparkScenario(K8sScenario):
     def configure(self, config):
         super().configure(config)
         self.weblog_env["LIB_INIT_IMAGE"] = self.k8s_lib_init_img
-
-    def get_warmups(self):
         self.test_agent = K8sDatadog(self.host_log_folder, "")
         self.test_agent.configure(
             default_kind_cluster,
@@ -183,6 +182,8 @@ class K8sSparkScenario(K8sScenario):
             dd_cluster_uds=self.use_uds,
             service_account="spark",
         )
+
+    def get_warmups(self):
         warmups = []
         warmups.append(lambda: logger.terminal.write_sep("=", "Starting Kubernetes Kind Cluster", bold=True))
         warmups.append(create_cluster)
