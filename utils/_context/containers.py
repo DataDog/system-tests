@@ -509,7 +509,7 @@ class ProxyContainer(TestedContainer):
                 f"./{host_log_folder}/interfaces/": {"bind": f"/app/{host_log_folder}/interfaces", "mode": "rw"},
                 "./utils/": {"bind": "/app/utils/", "mode": "ro"},
             },
-            ports={f"{self.command_host_port}/tcp": ("127.0.0.1", ProxyPorts.proxy_commands)},
+            ports={f"{ProxyPorts.proxy_commands}/tcp": ("127.0.0.1", self.command_host_port)},
             command="python utils/proxy/core.py",
         )
 
