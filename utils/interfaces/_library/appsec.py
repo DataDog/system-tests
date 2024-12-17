@@ -164,7 +164,7 @@ class _ReportedHeader:
 
         return True
 
-    def validate(self, span, appsec_data):
+    def validate(self, span, appsec_data):  # noqa: ARG002
         headers = [n.lower() for n in span["meta"] if n.startswith("http.request.headers.")]
         assert f"http.request.headers.{self.header_name}" in headers, f"header {self.header_name} not reported"
 

@@ -83,11 +83,8 @@ ignore = [
     "ANN202",
     "ANN205",
     "ANN206",
-    "ARG002",  # unused method argument
-    "ARG005",  # unused lambda argument
-    "BLE001",  # TBD
+    "BLE001",  # Do not catch blind exception: `Exception`, big project to enable this
     "C901",    # code complexity, TBD
-    "D200",
     "D205",    # docstring format
     "D401",    # docstring format
     "D404",    # docstring format
@@ -234,6 +231,9 @@ ignore = [
     "RET505",
     "SIM108",
     "T201",
+]
+"utils/_context/virtual_machines.py" = [
+    "ARG002",  # unused method argument
 ]
 "utils/virtual_machine/*" = [
     "A002",

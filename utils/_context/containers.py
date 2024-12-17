@@ -107,7 +107,7 @@ class TestedContainer:
         self._starting_thread = None
         self.stdout_interface = stdout_interface
 
-    def get_image_list(self, library: str, weblog: str) -> list[str]:
+    def get_image_list(self, library: str, weblog: str) -> list[str]:  # noqa: ARG002
         """Returns the image list that will be loaded to be able to run/build the container"""
         return [self.image.name]
 
@@ -255,13 +255,13 @@ class TestedContainer:
 
         return True
 
-    def execute_command(
-        self, test, retries=10, interval=1_000_000_000, start_period=0, timeout=1_000_000_000
-    ) -> tuple[int, str]:
+    def execute_command(self, test, retries=10, interval=1_000_000_000, start_period=0) -> tuple[int, str]:
         """Execute a command inside a container. Useful for healthcheck and warmups.
         test is a command to be executed, interval, timeout and start_period are in us (microseconds)
         This function does not raise any exception, it returns a tuple with the exit code and the output
         The exit code is 0 (success) or any other integer (failure)
+
+        Note that timeout is not supported by the docker SDK
         """
 
         cmd = test
@@ -271,7 +271,6 @@ class TestedContainer:
             cmd = cmd[1]
 
         interval = interval / 1_000_000_000
-        # timeout = timeout / 1_000_000_000
         start_period = start_period / 1_000_000_000
 
         if start_period:
@@ -553,7 +552,7 @@ class AgentContainer(TestedContainer):
         if len(self.environment["DD_API_KEY"]) != 32:
             logger.stdout("⚠️⚠️⚠️ DD_API_KEY is not 32 characters long, agent startup may be unstable")
 
-    def get_image_list(self, library: str, weblog: str) -> list[str]:
+    def get_image_list(self, library: str, weblog: str) -> list[str]:  # noqa: ARG002
         try:
             with open("binaries/agent-image", encoding="utf-8") as f:
                 return [
@@ -905,7 +904,7 @@ class KafkaContainer(TestedContainer):
                 "test": ["CMD-SHELL", "/opt/kafka/bin/kafka-topics.sh --bootstrap-server 127.0.0.1:9092 --list"],
                 "start_period": 1 * 1_000_000_000,
                 "interval": 1 * 1_000_000_000,
-                "timeout": 1 * 1_000_000_000,
+                # "timeout": 1 * 1_000_000_000,
                 "retries": 30,
             },
         )
