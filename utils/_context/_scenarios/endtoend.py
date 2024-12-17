@@ -7,6 +7,7 @@ from watchdog.observers.polling import PollingObserver
 from watchdog.events import FileSystemEventHandler
 
 from utils import interfaces
+from utils.buddies import BuddyHostPorts
 from utils.proxy.ports import ProxyPorts
 from utils._context.containers import (
     WeblogContainer,
@@ -286,13 +287,17 @@ class EndToEndScenario(DockerScenario):
         self.buddies: list[BuddyContainer] = []
 
         if include_buddies:
-            # so far, only python, nodejs, java, ruby and golang are supported
+            # so far, only python, nodejs, java, ruby and golang are supported.
+            # This list contains :
+            # 1. the language
+            # 2. the trace agent port where the buddy connect to the agent
+            # 3. and the host port where the buddy is accessible
             supported_languages = [
-                ("python", ProxyPorts.python_buddy),
-                ("nodejs", ProxyPorts.nodejs_buddy),
-                ("java", ProxyPorts.java_buddy),
-                ("ruby", ProxyPorts.ruby_buddy),
-                ("golang", ProxyPorts.golang_buddy),
+                ("python", ProxyPorts.python_buddy, BuddyHostPorts.python),
+                ("nodejs", ProxyPorts.nodejs_buddy, BuddyHostPorts.nodejs),
+                ("java", ProxyPorts.java_buddy, BuddyHostPorts.java),
+                ("ruby", ProxyPorts.ruby_buddy, BuddyHostPorts.ruby),
+                ("golang", ProxyPorts.golang_buddy, BuddyHostPorts.golang),
             ]
 
             self.buddies += [
@@ -300,10 +305,11 @@ class EndToEndScenario(DockerScenario):
                     f"{language}_buddy",
                     f"datadog/system-tests:{language}_buddy-v1",
                     self.host_log_folder,
+                    host_port=host_port,
                     trace_agent_port=trace_agent_port,
                     environment=weblog_env,
                 )
-                for language, trace_agent_port in supported_languages
+                for language, trace_agent_port, host_port in supported_languages
             ]
 
             for buddy in self.buddies:

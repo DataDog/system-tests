@@ -585,13 +585,13 @@ class AgentContainer(TestedContainer):
 
 
 class BuddyContainer(TestedContainer):
-    def __init__(self, name, image_name, host_log_folder, trace_agent_port, environment) -> None:
+    def __init__(self, name, image_name, host_log_folder, host_port, trace_agent_port, environment) -> None:
         super().__init__(
             name=name,
             image_name=image_name,
             host_log_folder=host_log_folder,
             healthcheck={"test": "curl --fail --silent --show-error --max-time 2 localhost:7777", "retries": 60},
-            # ports={"7777/tcp": proxy_port},  # not the proxy port
+            ports={"7777/tcp": host_port},
             environment={
                 **environment,
                 "DD_SERVICE": name,
