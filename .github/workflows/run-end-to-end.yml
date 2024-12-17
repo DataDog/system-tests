@@ -100,13 +100,6 @@ jobs:
     - name: Build weblog
       id: build
       run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh ${{ inputs.library }} -i weblog -w ${{ matrix.weblog }}
-    - name: Run IPV6 scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"IPV6"')
-      run: |
-        echo '{"ipv6": true, "fixed-cidr-v6": "2001:db8:1::/64"}' | sudo tee /etc/docker/daemon.json
-        sudo systemctl restart docker
-        docker info
-        ./run.sh IPV6
 
     - name: Run APPSEC_STANDALONE scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_STANDALONE"')
@@ -123,6 +116,9 @@ jobs:
     - name: Run DEFAULT scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"DEFAULT"')
       run: ./run.sh DEFAULT
+    - name: Run IPV6 scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"IPV6"')
+      run: ./run.sh IPV6
     - name: Run CROSSED_TRACING_LIBRARIES scenario
       if: always() && steps.build.outcome == 'success' && matrix.weblog != 'python3.12' && contains(inputs.scenarios, '"CROSSED_TRACING_LIBRARIES"')
       run: ./run.sh CROSSED_TRACING_LIBRARIES
