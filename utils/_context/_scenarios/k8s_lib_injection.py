@@ -24,8 +24,7 @@ from utils._context.containers import (
 )
 
 from utils.tools import logger
-
-from .core import Scenario
+from .core import Scenario, ScenarioGroup
 
 
 class K8sScenario(Scenario):
@@ -35,14 +34,17 @@ class K8sScenario(Scenario):
         self,
         name,
         doc,
-        github_workflow=None,
-        scenario_groups=None,
         use_uds=False,
         with_admission_controller=True,
         weblog_env={},
         dd_cluster_feature={},
     ) -> None:
-        super().__init__(name, doc=doc, github_workflow=github_workflow, scenario_groups=scenario_groups)
+        super().__init__(
+            name,
+            doc=doc,
+            github_workflow="libinjection",
+            scenario_groups=[ScenarioGroup.ALL, ScenarioGroup.LIB_INJECTION],
+        )
         self.use_uds = use_uds
         self.with_admission_controller = with_admission_controller
         self.weblog_env = weblog_env
