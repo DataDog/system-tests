@@ -143,8 +143,6 @@ class K8sSparkScenario(K8sScenario):
         self,
         name,
         doc,
-        github_workflow=None,
-        scenario_groups=None,
         use_uds=False,
         with_admission_controller=True,
         weblog_env={},
@@ -153,8 +151,6 @@ class K8sSparkScenario(K8sScenario):
         super().__init__(
             name,
             doc=doc,
-            github_workflow=github_workflow,
-            scenario_groups=scenario_groups,
             use_uds=use_uds,
             with_admission_controller=with_admission_controller,
             weblog_env=weblog_env,
