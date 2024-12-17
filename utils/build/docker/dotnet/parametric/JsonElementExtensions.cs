@@ -7,7 +7,7 @@ public static class JsonElementExtensions
 {
     public static string? GetPropertyAsString(this JsonElement element, string propertyName)
     {
-        if (element.TryGetProperty(propertyName, out var property) && property.ValueKind == JsonValueKind.String)
+        if (element.GetPropertyAs(propertyName, JsonValueKind.String) is { } property)
         {
             return property.GetString();
         }
@@ -17,7 +17,7 @@ public static class JsonElementExtensions
 
     public static ulong? GetPropertyAsUInt64(this JsonElement element, string propertyName)
     {
-        if (element.TryGetProperty(propertyName, out var property))
+        if (element.GetPropertyAs(propertyName, JsonValueKind.Number) is { } property)
         {
             return property.GetUInt64();
         }
@@ -27,7 +27,7 @@ public static class JsonElementExtensions
 
     public static double? GetPropertyAsDouble(this JsonElement element, string propertyName)
     {
-        if (element.TryGetProperty(propertyName, out var property))
+        if (element.GetPropertyAs(propertyName, JsonValueKind.Number) is { } property)
         {
             return property.GetDouble();
         }
