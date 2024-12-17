@@ -70,9 +70,10 @@ public abstract class ApmTestApi
     private static readonly SpanContextExtractor SpanContextExtractor = new();
 
 
-    private static async Task StopTracer()
+    private static async Task<string> StopTracer()
     {
         await Tracer.Instance.ForceFlushAsync();
+        return Result();
     }
 
     private static async Task<string> StartSpan(HttpRequest request)
@@ -81,7 +82,7 @@ public abstract class ApmTestApi
 
         var creationSettings = new SpanCreationSettings
         {
-            Parent = FindSpanContext(requestJson, required: false, "parent_id")
+            Parent = FindSpanContext(requestJson, "parent_id", required: false)
         };
 
         var operationName = requestJson.GetPropertyAsString("name");
@@ -113,7 +114,7 @@ public abstract class ApmTestApi
 
         Spans[span.SpanId] = span;
 
-        return SerializeResult(new
+        return Result(new
         {
             span_id = span.SpanId.ToString(),
             trace_id = span.TraceId.ToString(),
@@ -134,6 +135,7 @@ public abstract class ApmTestApi
         }
 
         span.SetTag(key, value);
+        _logger?.LogInformation("Set string span attribute {key}:{value} on span {spanId}.", key, value, span.SpanId);
     }
 
     private static async Task SpanSetMetric(HttpRequest request)
@@ -150,6 +152,7 @@ public abstract class ApmTestApi
         }
 
         span.SetTag(key, value);
+        _logger?.LogInformation("Set numeric span attribute {key}:{value} on span {spanId}.", key, value, span.SpanId);
     }
 
     private static async Task SpanSetError(HttpRequest request)
@@ -191,7 +194,7 @@ public abstract class ApmTestApi
             SpanContexts[extractedContext.SpanId] = extractedContext;
         }
 
-        return SerializeResult(new
+        return Result(new
         {
             span_id = extractedContext?.SpanId
         });
@@ -209,7 +212,7 @@ public abstract class ApmTestApi
             (headers, key, value) => headers.Add([key, value]),
             span.Context);
 
-        return SerializeResult(new
+        return Result(new
         {
             http_headers = httpHeaders
         });
@@ -220,6 +223,8 @@ public abstract class ApmTestApi
         var requestJson = await ParseJsonAsync(request.Body);
         var span = FindSpan(requestJson);
         span.Finish();
+
+        _logger?.LogInformation("Finished span {spanId}.", span.SpanId);
     }
 
     private static string Crash(HttpRequest request)
@@ -229,7 +234,8 @@ public abstract class ApmTestApi
         thread.Start();
         thread.Join();
 
-        return "Failed to crash";
+        _logger?.LogInformation("Failed to crash");
+        return Result("Failed to crash");
     }
 
     private static string GetTracerConfig()
@@ -263,7 +269,7 @@ public abstract class ApmTestApi
             // { "dd_trace_sample_ignore_parent", "null" }, // Not supported
         };
 
-        return SerializeResult(new
+        return Result(new
         {
             config
         });
@@ -319,8 +325,8 @@ public abstract class ApmTestApi
 
         if (!ulong.TryParse(spanIdString, out var spanId))
         {
-            _logger?.LogError("Required {key} not found in request json.", key);
-            throw new InvalidOperationException($"Required {key} not found in request json.");
+            _logger?.LogError("Required {key}:{value} not valid in request json.", key, spanIdString);
+            throw new InvalidOperationException($"Required {key}:{spanIdString} not valid in request json.");
         }
 
         if (Spans.TryGetValue(spanId, out var span))
@@ -328,37 +334,39 @@ public abstract class ApmTestApi
             return span;
         }
 
+        _logger?.LogError("Span not found with span id: {spanId}.", spanIdString);
         throw new InvalidOperationException($"Span not found with span id: {spanId}");
     }
 
-    private static ISpanContext? FindSpanContext(JsonElement json, bool required, string key = "span_id")
+    private static ISpanContext? FindSpanContext(JsonElement json, string key = "span_id", bool required = true)
     {
-        var spanId = json.GetPropertyAsUInt64(key);
+        var spanIdString = json.GetPropertyAsString(key);
 
-        if (spanId is null)
+        if (!ulong.TryParse(spanIdString, out var spanId))
         {
             if (!required)
             {
                 return null;
             }
 
-            _logger?.LogError("Required {key} not found in request json.", key);
-            throw new InvalidOperationException($"Required {key} not found in request json.");
+            _logger?.LogError("Required {key}:{value} not valid in request json.", key, spanIdString);
+            throw new InvalidOperationException($"Required {key}:{spanIdString} not valid in request json.");
         }
 
-        if (Spans.TryGetValue(spanId.Value, out var span))
+        if (Spans.TryGetValue(spanId, out var span))
         {
             return span.Context;
         }
 
-        if (SpanContexts.TryGetValue(spanId.Value, out var spanContext))
+        if (SpanContexts.TryGetValue(spanId, out var spanContext))
         {
             return spanContext;
         }
 
         if (required)
         {
-            throw new InvalidOperationException($"Span not found with span id: {spanId}");
+            _logger?.LogError("Span or SpanContext not found with span id: {spanId}.", spanIdString);
+            throw new InvalidOperationException($"Span or SpanContext not found with span id: {spanId}");
         }
 
         return null;
@@ -370,14 +378,26 @@ public abstract class ApmTestApi
         using var jsonDoc = await JsonDocument.ParseAsync(stream);
         var root = jsonDoc.RootElement.Clone();
 
-        _logger?.LogInformation("Handler {handler} called with {HttpRequest.Body}", caller, root);
+        _logger?.LogInformation("Handler {handler} called with {HttpRequest.Body}.", caller, root);
         return root;
     }
 
-    protected static string SerializeResult(object value, [CallerMemberName] string? caller = null)
+    protected static string Result(object? value = null, [CallerMemberName] string? caller = null)
     {
-        var json = JsonSerializer.Serialize(value);
-        _logger?.LogInformation("Handler {handler} returning {JsonResult}", caller, json);
-        return json;
+        switch (value)
+        {
+            case null:
+                _logger?.LogInformation("Handler {handler} finished.", caller);
+                return string.Empty;
+            case string s:
+                _logger?.LogInformation("Handler {handler} returning \"{message}\".", caller, s);
+                return s;
+            default:
+            {
+                var json = JsonSerializer.Serialize(value);
+                _logger?.LogInformation("Handler {handler} returning {JsonResult}", caller, json);
+                return json;
+            }
+        }
     }
 }
