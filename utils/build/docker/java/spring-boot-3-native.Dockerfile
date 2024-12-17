@@ -28,9 +28,9 @@ COPY --from=agent /dd-tracer/dd-java-agent.jar .
 RUN /opt/apache-maven-3.8.6/bin/mvn -Pnative,with-profiling native:compile
 RUN /opt/apache-maven-3.8.6/bin/mvn -Pnative,without-profiling native:compile
 
-FROM ubuntu
-
-RUN apt-get update && apt-get install -y curl
+# Just use something small with glibc and curl. ubuntu:22.04 ships no curl, rockylinux:9 does.
+# This avoids apt-get update/install, which leads to flakiness on mirror upgrades.
+FROM rockylinux:9
 
 WORKDIR /app
 COPY --from=agent /binaries/SYSTEM_TESTS_LIBRARY_VERSION SYSTEM_TESTS_LIBRARY_VERSION
