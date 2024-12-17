@@ -3,6 +3,7 @@ import json
 import pytest
 
 from utils._context.header_tag_vars import VALID_CONFIGS, INVALID_CONFIGS
+from utils.proxy.ports import ProxyPorts
 from utils.tools import update_environ_with_local_env
 
 from .core import Scenario, ScenarioGroup
@@ -54,7 +55,7 @@ class scenarios:
         "OTEL_INTEGRATIONS",
         weblog_env={
             "OTEL_EXPORTER_OTLP_PROTOCOL": "http/protobuf",
-            "OTEL_EXPORTER_OTLP_ENDPOINT": "http://proxy:8126",
+            "OTEL_EXPORTER_OTLP_ENDPOINT": f"http://proxy:{ProxyPorts.open_telemetry_weblog}",
             "OTEL_EXPORTER_OTLP_TRACES_HEADERS": "dd-protocol=otlp,dd-otlp-path=agent",
             "OTEL_INTEGRATIONS_TEST": True,
         },

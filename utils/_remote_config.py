@@ -17,6 +17,7 @@ from utils._context.core import context
 from utils.dd_constants import RemoteConfigApplyState as ApplyState
 from utils.interfaces import library
 from utils.tools import logger
+from utils._context.containers import ProxyContainer
 
 
 def _post(path: str, payload) -> None:
@@ -31,7 +32,7 @@ def _post(path: str, payload) -> None:
     else:
         domain = "localhost"
 
-    requests.post(f"http://{domain}:11111{path}", data=json.dumps(payload), timeout=30)
+    requests.post(f"http://{domain}:{ProxyContainer.command_host_port}{path}", data=json.dumps(payload), timeout=30)
 
 
 RC_VERSION = "_ci_global_version"

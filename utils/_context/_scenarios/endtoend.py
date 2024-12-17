@@ -7,6 +7,7 @@ from watchdog.observers.polling import PollingObserver
 from watchdog.events import FileSystemEventHandler
 
 from utils import interfaces
+from utils.proxy.ports import ProxyPorts
 from utils._context.containers import (
     WeblogContainer,
     AgentContainer,
@@ -286,17 +287,23 @@ class EndToEndScenario(DockerScenario):
 
         if include_buddies:
             # so far, only python, nodejs, java, ruby and golang are supported
-            supported_languages = [("python", 9001), ("nodejs", 9002), ("java", 9003), ("ruby", 9004), ("golang", 9005)]
+            supported_languages = [
+                ("python", ProxyPorts.python_buddy),
+                ("nodejs", ProxyPorts.nodejs_buddy),
+                ("java", ProxyPorts.java_buddy),
+                ("ruby", ProxyPorts.ruby_buddy),
+                ("golang", ProxyPorts.golang_buddy),
+            ]
 
             self.buddies += [
                 BuddyContainer(
                     f"{language}_buddy",
                     f"datadog/system-tests:{language}_buddy-v1",
                     self.host_log_folder,
-                    proxy_port=port,
+                    trace_agent_port=trace_agent_port,
                     environment=weblog_env,
                 )
-                for language, port in supported_languages
+                for language, trace_agent_port in supported_languages
             ]
 
             for buddy in self.buddies:
