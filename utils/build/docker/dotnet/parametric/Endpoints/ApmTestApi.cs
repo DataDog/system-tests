@@ -329,13 +329,13 @@ public abstract class ApmTestApi
             throw new InvalidOperationException($"Required {key}:{spanIdString} not valid in request json.");
         }
 
-        if (Spans.TryGetValue(spanId, out var span))
+        if (!Spans.TryGetValue(spanId, out var span))
         {
-            return span;
+            _logger?.LogError("Span not found with span id: {spanId}.", spanIdString);
+            throw new InvalidOperationException($"Span not found with span id: {spanId}");
         }
 
-        _logger?.LogError("Span not found with span id: {spanId}.", spanIdString);
-        throw new InvalidOperationException($"Span not found with span id: {spanId}");
+        return span;
     }
 
     private static ISpanContext? FindSpanContext(JsonElement json, string key = "span_id", bool required = true)
@@ -344,13 +344,13 @@ public abstract class ApmTestApi
 
         if (!ulong.TryParse(spanIdString, out var spanId))
         {
-            if (!required)
+            if (required)
             {
-                return null;
+                _logger?.LogError("Required {key}:{value} not valid in request json.", key, spanIdString);
+                throw new InvalidOperationException($"Required {key}:{spanIdString} not valid in request json.");
             }
 
-            _logger?.LogError("Required {key}:{value} not valid in request json.", key, spanIdString);
-            throw new InvalidOperationException($"Required {key}:{spanIdString} not valid in request json.");
+            return null;
         }
 
         if (Spans.TryGetValue(spanId, out var span))
