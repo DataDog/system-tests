@@ -60,6 +60,8 @@ def _parse_command(command):
             continue
         return os.path.basename(com), command_args
 
+    return None, None
+
 
 def _get_commands_from_log_file(log_local_path, line_filter):
     """From instrumentation log file, extract all commands parsed by dd-injection (the log level should be DEBUG)"""
