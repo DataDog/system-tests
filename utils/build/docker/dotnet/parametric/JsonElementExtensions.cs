@@ -19,12 +19,7 @@ public static class JsonElementExtensions
     {
         if (element.TryGetProperty(propertyName, out var property))
         {
-            return property.ValueKind switch
-            {
-                JsonValueKind.Number => property.GetUInt64(),
-                JsonValueKind.String => ulong.TryParse(property.GetString(), out var value) ? value : null,
-                _ => null
-            };
+            return property.GetUInt64();
         }
 
         return null;
@@ -34,12 +29,7 @@ public static class JsonElementExtensions
     {
         if (element.TryGetProperty(propertyName, out var property))
         {
-            return property.ValueKind switch
-            {
-                JsonValueKind.Number => property.GetDouble(),
-                JsonValueKind.String => double.TryParse(property.GetString(), out var value) ? value : null,
-                _ => null
-            };
+            return property.GetDouble();
         }
 
         return null;

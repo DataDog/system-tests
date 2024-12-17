@@ -142,7 +142,7 @@ public abstract class ApmTestApi
 
         var span = FindSpan(requestJson);
         var key = requestJson.GetPropertyAsString("key");
-        var value = requestJson.GetPropertyAsString("value");
+        var value = requestJson.GetPropertyAsDouble("value");
 
         if (key is null)
         {
