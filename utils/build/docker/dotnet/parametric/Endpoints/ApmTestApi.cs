@@ -129,9 +129,9 @@ public abstract class ApmTestApi
         var key = requestJson.GetPropertyAsString("key");
         var value = requestJson.GetPropertyAsString("value");
 
-        if (key is null)
+        if (key is null || value is null)
         {
-            throw new InvalidOperationException("key not found in request json.");
+            throw new InvalidOperationException("key or value not found in request json.");
         }
 
         span.SetTag(key, value);
@@ -146,9 +146,9 @@ public abstract class ApmTestApi
         var key = requestJson.GetPropertyAsString("key");
         var value = requestJson.GetPropertyAsDouble("value");
 
-        if (key is null)
+        if (key is null || value is null)
         {
-            throw new InvalidOperationException("key not found in request json.");
+            throw new InvalidOperationException("key or value not found in request json.");
         }
 
         span.SetTag(key, value);
