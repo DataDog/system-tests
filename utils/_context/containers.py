@@ -137,6 +137,8 @@ class TestedContainer:
                 logger.debug(f"Container {self.container_name} found")
                 return container
 
+        return None
+
     def stop_previous_container(self):
         if self.allow_old_container:
             return
@@ -643,7 +645,7 @@ class WeblogContainer(TestedContainer):
         "signatures": [
             {
                 "keyid": "ed7672c9a24abda78872ee32ee71c7cb1d5235e8db4ecbf1ca28b9c50eb75d9e",
-                "sig": "d7e24828d1d3104e48911860a13dd6ad3f4f96d45a9ea28c4a0f04dbd3ca6c205ed406523c6c4cacfb7ebba68f7e122e42746d1c1a83ffa89c8bccb6f7af5e06",
+                "sig": "d7e24828d1d3104e48911860a13dd6ad3f4f96d45a9ea28c4a0f04dbd3ca6c205ed406523c6c4cacfb7ebba68f7e122e42746d1c1a83ffa89c8bccb6f7af5e06",  # noqa: E501
             }
         ],
     }
@@ -917,7 +919,7 @@ class KafkaContainer(TestedContainer):
         commands = [
             f"/opt/kafka/bin/kafka-topics.sh --create {kafka_options}",
             f'bash -c "echo hello | /opt/kafka/bin/kafka-console-producer.sh {kafka_options}"',
-            f"/opt/kafka/bin/kafka-console-consumer.sh {kafka_options} --max-messages 1 --group testgroup1 --from-beginning",
+            f"/opt/kafka/bin/kafka-console-consumer.sh {kafka_options} --max-messages 1 --group testgroup1 --from-beginning",  # noqa: E501
         ]
 
         for command in commands:

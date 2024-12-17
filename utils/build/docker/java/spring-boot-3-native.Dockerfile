@@ -2,16 +2,13 @@ FROM ghcr.io/graalvm/native-image-community:21.0.0 as build
 
 ENV JAVA_TOOL_OPTIONS="-Djava.net.preferIPv4Stack=true"
 
-# Install maven
-RUN curl https://archive.apache.org/dist/maven/maven-3/3.8.6/binaries/apache-maven-3.8.6-bin.tar.gz --output /opt/maven.tar.gz && \
-	tar xzvf /opt/maven.tar.gz --directory /opt && \
-	rm /opt/maven.tar.gz
+COPY --from=maven:3.9.9-eclipse-temurin-17 /usr/share/maven /usr/share/maven
 
 WORKDIR /app
 
 # Copy application sources and cache dependencies
 COPY ./utils/build/docker/java/spring-boot-3-native/pom.xml .
-RUN /opt/apache-maven-3.8.6/bin/mvn -P native -B dependency:go-offline
+RUN /usr/share/maven/bin/mvn -P native -B dependency:go-offline
 COPY ./utils/build/docker/java/spring-boot-3-native/src ./src
 
 # Install tracer
@@ -19,8 +16,8 @@ COPY ./utils/build/docker/java/install_ddtrace.sh binaries* /binaries/
 RUN /binaries/install_ddtrace.sh
 
 # Build native application
-RUN /opt/apache-maven-3.8.6/bin/mvn -Pnative,with-profiling native:compile
-RUN /opt/apache-maven-3.8.6/bin/mvn -Pnative,without-profiling native:compile
+RUN /usr/share/maven/bin/mvn -Pnative,with-profiling native:compile
+RUN /usr/share/maven/bin/mvn -Pnative,without-profiling native:compile
 
 # Just use something small with glibc and curl. ubuntu:22.04 ships no curl, rockylinux:9 does.
 # This avoids apt-get update/install, which leads to flakiness on mirror upgrades.
