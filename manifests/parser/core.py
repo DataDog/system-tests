@@ -11,7 +11,6 @@ def _flatten(base, obj):
     if base.endswith(".py"):
         base += "::"
     for key, value in obj.items():
-
         if isinstance(value, str):
             yield f"{base}{key}", value
         elif isinstance(value, dict):
@@ -22,7 +21,6 @@ def _flatten(base, obj):
 
 
 def _load_file(file):
-
     try:
         with open(file, encoding="utf-8") as f:
             data = yaml.safe_load(f)

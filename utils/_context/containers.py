@@ -11,6 +11,7 @@ from threading import RLock, Thread
 import docker
 from docker.errors import APIError, DockerException
 from docker.models.containers import Container
+from docker.models.networks import Network
 import pytest
 import requests
 
@@ -52,20 +53,19 @@ _DEFAULT_NETWORK_NAME = "system-tests_default"
 _NETWORK_NAME = "bridge" if "GITLAB_CI" in os.environ else _DEFAULT_NETWORK_NAME
 
 
-def create_network():
-    for _ in _get_client().networks.list(names=[_NETWORK_NAME,]):
+def create_network() -> Network:
+    for network in _get_client().networks.list(names=[_NETWORK_NAME]):
         logger.debug(f"Network {_NETWORK_NAME} still exists")
-        return
+        return network
 
     logger.debug(f"Create network {_NETWORK_NAME}")
-    _get_client().networks.create(_NETWORK_NAME, check_duplicate=True)
+    return _get_client().networks.create(_NETWORK_NAME, check_duplicate=True)
 
 
 _VOLUME_INJECTOR_NAME = "volume-inject"
 
 
 def create_inject_volume():
-
     logger.debug(f"Create volume {_VOLUME_INJECTOR_NAME}")
     _get_client().volumes.create(_VOLUME_INJECTOR_NAME)
 
@@ -112,7 +112,6 @@ class TestedContainer:
         return [self.image.name]
 
     def configure(self, replay):
-
         if not replay:
             self.stop_previous_container()
 
@@ -146,7 +145,7 @@ class TestedContainer:
             logger.debug(f"Kill old container {self.container_name}")
             old_container.remove(force=True)
 
-    def start(self) -> Container:
+    def start(self, network: Network) -> Container:
         """Start the actual underlying Docker container directly"""
         if old_container := self.get_existing_container():
             if self.allow_old_container:
@@ -170,7 +169,7 @@ class TestedContainer:
             environment=self.environment,
             # auto_remove=True,
             detach=True,
-            network=_NETWORK_NAME,
+            network=network.name,
             **self.kwargs,
         )
 
@@ -178,22 +177,20 @@ class TestedContainer:
         if self.healthy:
             self.warmup()
 
-    def async_start(self) -> Thread:
+    def async_start(self, network: Network) -> Thread:
         """Start the container and its dependencies in a thread with circular dependency detection"""
         self.check_circular_dependencies([])
 
-        return self._async_start_recursive()
+        return self._async_start_recursive(network)
 
-    def network_ip(self) -> str:
-        logger.debug("NetworksSettings: {self._container.attrs['NetworkSettings']}")
-
-        # NetworkSettings.Networks.bridge.IPAddress
-        return self._container.attrs["NetworkSettings"]["Networks"][_NETWORK_NAME]["IPAddress"]
+    def network_ip(self, network: Network) -> str:
+        self._container.reload()
+        return self._container.attrs["NetworkSettings"]["Networks"][network.name]["IPAddress"]
 
     def check_circular_dependencies(self, seen: list):
         """Check if the container has a circular dependency"""
         if self in seen:
-            dependencies = " -> ".join([s.name for s in seen] + [self.name,])
+            dependencies = " -> ".join([s.name for s in seen] + [self.name])
             raise RuntimeError(f"Circular dependency detected between containers: {dependencies}")
 
         seen.append(self)
@@ -201,18 +198,20 @@ class TestedContainer:
         for dependency in self.depends_on:
             dependency.check_circular_dependencies(list(seen))
 
-    def _async_start_recursive(self):
+    def _async_start_recursive(self, network: Network):
         """Recursive version of async_start for circular dependency detection"""
         with self._starting_lock:
             if self._starting_thread is None:
-                self._starting_thread = Thread(target=self._start_with_dependencies, name=f"start_{self.name}")
+                self._starting_thread = Thread(
+                    target=self._start_with_dependencies, name=f"start_{self.name}", kwargs={"network": network}
+                )
                 self._starting_thread.start()
 
         return self._starting_thread
 
-    def _start_with_dependencies(self):
+    def _start_with_dependencies(self, network: Network):
         """Start all dependencies of a container and then start the container"""
-        threads = [dependency._async_start_recursive() for dependency in self.depends_on]
+        threads = [dependency._async_start_recursive(network) for dependency in self.depends_on]
 
         for thread in threads:
             thread.join()
@@ -224,7 +223,7 @@ class TestedContainer:
         # this function is executed in a thread
         # the main thread will take care of the exception
         try:
-            self.start()
+            self.start(network)
         except Exception as e:
             logger.exception(f"Error while starting {self.name}: {e}")
             self.healthy = False
@@ -504,7 +503,7 @@ class ProxyContainer(TestedContainer):
             },
             working_dir="/app",
             volumes={
-                f"./{host_log_folder}/interfaces/": {"bind": f"/app/{host_log_folder}/interfaces", "mode": "rw",},
+                f"./{host_log_folder}/interfaces/": {"bind": f"/app/{host_log_folder}/interfaces", "mode": "rw"},
                 "./utils/": {"bind": "/app/utils/", "mode": "ro"},
             },
             ports={"11111/tcp": ("127.0.0.1", 11111)},
@@ -514,7 +513,6 @@ class ProxyContainer(TestedContainer):
 
 class AgentContainer(TestedContainer):
     def __init__(self, host_log_folder, use_proxy=True, environment=None) -> None:
-
         environment = environment or {}
         environment.update(
             {
@@ -661,7 +659,6 @@ class WeblogContainer(TestedContainer):
         use_proxy=True,
         volumes=None,
     ) -> None:
-
         from utils import weblog
 
         self.port = weblog.port
@@ -856,7 +853,7 @@ class PostgresContainer(SqlDbTestedContainer):
             image_name="postgres:alpine",
             name="postgres",
             host_log_folder=host_log_folder,
-            healthcheck={"test": "pg_isready -q -U postgres -d system_tests_dbname", "retries": 30,},
+            healthcheck={"test": "pg_isready -q -U postgres -d system_tests_dbname", "retries": 30},
             user="postgres",
             environment={"POSTGRES_PASSWORD": "password", "PGPORT": "5433"},
             volumes={
@@ -877,7 +874,7 @@ class PostgresContainer(SqlDbTestedContainer):
 class MongoContainer(TestedContainer):
     def __init__(self, host_log_folder) -> None:
         super().__init__(
-            image_name="mongo:latest", name="mongodb", host_log_folder=host_log_folder, allow_old_container=True,
+            image_name="mongo:latest", name="mongodb", host_log_folder=host_log_folder, allow_old_container=True
         )
 
 
@@ -903,7 +900,7 @@ class KafkaContainer(TestedContainer):
             },
             allow_old_container=True,
             healthcheck={
-                "test": ["CMD-SHELL", "/opt/kafka/bin/kafka-topics.sh --bootstrap-server 127.0.0.1:9092 --list",],
+                "test": ["CMD-SHELL", "/opt/kafka/bin/kafka-topics.sh --bootstrap-server 127.0.0.1:9092 --list"],
                 "start_period": 1 * 1_000_000_000,
                 "interval": 1 * 1_000_000_000,
                 "timeout": 1 * 1_000_000_000,
@@ -944,7 +941,7 @@ class CassandraContainer(TestedContainer):
 class RabbitMqContainer(TestedContainer):
     def __init__(self, host_log_folder) -> None:
         super().__init__(
-            image_name="rabbitmq:3-management-alpine",
+            image_name="rabbitmq:3.12-management-alpine",
             name="rabbitmq",
             host_log_folder=host_log_folder,
             allow_old_container=True,
@@ -1024,7 +1021,7 @@ class OpenTelemetryCollectorContainer(TestedContainer):
             name="collector",
             command="--config=/etc/otelcol-config.yml",
             environment={},
-            volumes={self._otel_config_host_path: {"bind": "/etc/otelcol-config.yml", "mode": "ro",}},
+            volumes={self._otel_config_host_path: {"bind": "/etc/otelcol-config.yml", "mode": "ro"}},
             host_log_folder=host_log_folder,
             ports={"13133/tcp": ("0.0.0.0", 13133)},  # noqa: S104
         )
@@ -1046,7 +1043,7 @@ class OpenTelemetryCollectorContainer(TestedContainer):
         logger.stdout(f"{self._otel_host}:{self._otel_port} never answered to healthcheck request")
         return False
 
-    def start(self) -> Container:
+    def start(self, network: Network) -> Container:
         # _otel_config_host_path is mounted in the container, and depending on umask,
         # it might have no read permissions for other users, which is required within
         # the container. So set them here.
@@ -1054,7 +1051,7 @@ class OpenTelemetryCollectorContainer(TestedContainer):
         new_mode = prev_mode | stat.S_IROTH
         if prev_mode != new_mode:
             Path(self._otel_config_host_path).chmod(new_mode)
-        return super().start()
+        return super().start(network)
 
 
 class APMTestAgentContainer(TestedContainer):
@@ -1074,7 +1071,7 @@ class APMTestAgentContainer(TestedContainer):
             },
             ports={agent_port: ("127.0.0.1", agent_port)},
             allow_old_container=False,
-            volumes={f"./{host_log_folder}/interfaces/test_agent_socket": {"bind": "/var/run/datadog/", "mode": "rw",}},
+            volumes={f"./{host_log_folder}/interfaces/test_agent_socket": {"bind": "/var/run/datadog/", "mode": "rw"}},
         )
 
 
@@ -1085,7 +1082,7 @@ class MountInjectionVolume(TestedContainer):
             name=name,
             host_log_folder=host_log_folder,
             command="/bin/true",
-            volumes={_VOLUME_INJECTOR_NAME: {"bind": "/datadog-init/package", "mode": "rw"},},
+            volumes={_VOLUME_INJECTOR_NAME: {"bind": "/datadog-init/package", "mode": "rw"}},
         )
 
     def _lib_init_image(self, lib_init_image):
@@ -1103,14 +1100,13 @@ class MountInjectionVolume(TestedContainer):
 
 class WeblogInjectionInitContainer(TestedContainer):
     def __init__(self, host_log_folder) -> None:
-
         super().__init__(
             image_name="docker.io/library/weblog-injection:latest",
             name="weblog-injection-init",
             host_log_folder=host_log_folder,
             ports={"18080": ("127.0.0.1", 8080)},
             allow_old_container=True,
-            volumes={_VOLUME_INJECTOR_NAME: {"bind": "/datadog-lib", "mode": "rw"},},
+            volumes={_VOLUME_INJECTOR_NAME: {"bind": "/datadog-lib", "mode": "rw"}},
         )
 
     def set_environment_for_library(self, library):
@@ -1124,16 +1120,15 @@ class WeblogInjectionInitContainer(TestedContainer):
 
 class DockerSSIContainer(TestedContainer):
     def __init__(self, host_log_folder) -> None:
-
         super().__init__(
             image_name="docker.io/library/weblog-injection:latest",
             name="weblog-injection",
             host_log_folder=host_log_folder,
             ports={"18080": ("127.0.0.1", 18080), "8080": ("127.0.0.1", 8080), "9080": ("127.0.0.1", 9080)},
-            healthcheck={"test": "sh /healthcheck.sh", "retries": 60,},
+            healthcheck={"test": "sh /healthcheck.sh", "retries": 60},
             allow_old_container=False,
             environment={"DD_DEBUG": "true", "DD_TRACE_SAMPLE_RATE": 1, "DD_TELEMETRY_METRICS_INTERVAL_SECONDS": "0.5"},
-            volumes={f"./{host_log_folder}/interfaces/test_agent_socket": {"bind": "/var/run/datadog/", "mode": "rw",}},
+            volumes={f"./{host_log_folder}/interfaces/test_agent_socket": {"bind": "/var/run/datadog/", "mode": "rw"}},
         )
 
     def get_env(self, env_var):
@@ -1148,20 +1143,19 @@ class DummyServerContainer(TestedContainer):
             image_name="jasonrm/dummy-server:latest",
             name="http-app",
             host_log_folder=host_log_folder,
-            healthcheck={"test": "wget http://localhost:8080", "retries": 10,},
+            healthcheck={"test": "wget http://localhost:8080", "retries": 10},
         )
 
 
 class EnvoyContainer(TestedContainer):
     def __init__(self, host_log_folder) -> None:
-
         from utils import weblog
 
         super().__init__(
             image_name="envoyproxy/envoy:v1.31-latest",
             name="envoy",
             host_log_folder=host_log_folder,
-            volumes={"./tests/external_processing/envoy.yaml": {"bind": "/etc/envoy/envoy.yaml", "mode": "ro",}},
+            volumes={"./tests/external_processing/envoy.yaml": {"bind": "/etc/envoy/envoy.yaml", "mode": "ro"}},
             ports={"80": ("127.0.0.1", weblog.port)},
             # healthcheck={"test": "wget http://localhost:9901/ready", "retries": 10,},  # no wget on envoy
         )
@@ -1181,8 +1175,8 @@ class ExternalProcessingContainer(TestedContainer):
             image_name=image,
             name="extproc",
             host_log_folder=host_log_folder,
-            environment={"DD_APPSEC_ENABLED": "true", "DD_AGENT_HOST": "proxy", "DD_TRACE_AGENT_PORT": 8126,},
-            healthcheck={"test": "wget -qO- http://localhost:80/", "retries": 10,},
+            environment={"DD_APPSEC_ENABLED": "true", "DD_AGENT_HOST": "proxy", "DD_TRACE_AGENT_PORT": 8126},
+            healthcheck={"test": "wget -qO- http://localhost:80/", "retries": 10},
         )
 
     def post_start(self):

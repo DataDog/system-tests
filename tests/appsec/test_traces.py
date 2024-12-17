@@ -108,11 +108,11 @@ class Test_AppSecEventSpanTags:
         for span in spans:
             if span.get("type") in valid_appsec_span_types:
                 continue
-            assert "_dd.appsec.enabled" not in span.get(
-                "metrics", {}
+            assert (
+                "_dd.appsec.enabled" not in span.get("metrics", {})
             ), f"_dd.appsec.enabled should be present only when span type is any of {', '.join(valid_appsec_span_types)}"
-            assert "_dd.runtime_family" not in span.get(
-                "meta", {}
+            assert (
+                "_dd.runtime_family" not in span.get("meta", {})
             ), f"_dd.runtime_family should be present only when span type is any of {', '.join(valid_appsec_span_types)}"
 
 
@@ -276,11 +276,10 @@ class Test_CollectRespondHeaders:
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2186870984/HTTP+header+collection")
 @features.security_events_metadata
 class Test_CollectDefaultRequestHeader:
-
     HEADERS = ["User-Agent", "Accept", "Content-Type"]
 
     def setup_collect_default_request_headers(self):
-        self.r = weblog.get("/headers", headers={header: "myHeaderValue" for header in self.HEADERS},)
+        self.r = weblog.get("/headers", headers={header: "myHeaderValue" for header in self.HEADERS})
 
     def test_collect_default_request_headers(self):
         """

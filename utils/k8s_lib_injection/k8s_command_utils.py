@@ -7,7 +7,7 @@ from retry import retry
 
 def execute_command(command, timeout=None, logfile=None, subprocess_env=None):
     """Call shell-command and either return its output or kill it
-  if it doesn't normally exit within timeout seconds and return None
+    if it doesn't normally exit within timeout seconds and return None
     """
     applied_timeout = 90
     if timeout is not None:
@@ -77,7 +77,6 @@ def execute_command_sync(command, k8s_kind_cluster, timeout=None, logfile=None):
 
 @retry(delay=1, tries=5)
 def helm_add_repo(name, url, k8s_kind_cluster, update=False):
-
     with KubectlLock():
         execute_command(f"kubectl config use-context {k8s_kind_cluster.context_name}")
         execute_command(f"helm repo add {name} {url}")

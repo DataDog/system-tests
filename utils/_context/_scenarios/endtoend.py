@@ -1,6 +1,8 @@
 import os
 import pytest
 
+from docker.models.networks import Network
+
 from watchdog.observers.polling import PollingObserver
 from watchdog.events import FileSystemEventHandler
 
@@ -16,9 +18,9 @@ from utils._context.containers import (
     RabbitMqContainer,
     MySqlContainer,
     MsSqlServerContainer,
-    create_network,
     BuddyContainer,
     TestedContainer,
+    _get_client as get_docker_client,
 )
 
 from utils.tools import logger
@@ -28,6 +30,8 @@ from .core import Scenario, ScenarioGroup
 
 class DockerScenario(Scenario):
     """Scenario that tests docker containers"""
+
+    _network: Network = None
 
     def __init__(
         self,
@@ -134,12 +138,22 @@ class DockerScenario(Scenario):
 
         observer.start()
 
+    def _create_network(self) -> None:
+        name = "system-tests_default"
+
+        for network in get_docker_client().networks.list(names=[name]):
+            logger.debug(f"Network {name} still exists")
+            self._network = network
+            return
+
+        self._network = get_docker_client().networks.create(name, check_duplicate=True)
+
     def get_warmups(self):
         warmups = super().get_warmups()
 
         if not self.replay:
             warmups.append(lambda: logger.stdout("Starting containers..."))
-            warmups.append(create_network)
+            warmups.append(self._create_network)
             warmups.append(self._start_containers)
 
         for container in self._required_containers:
@@ -151,7 +165,7 @@ class DockerScenario(Scenario):
         threads = []
 
         for container in self._required_containers:
-            threads.append(container.async_start())
+            threads.append(container.async_start(self._network))
 
         for thread in threads:
             thread.join()
@@ -202,7 +216,6 @@ class EndToEndScenario(DockerScenario):
         include_buddies=False,
         require_api_key=False,
     ) -> None:
-
         scenario_groups = [ScenarioGroup.ALL, ScenarioGroup.END_TO_END, ScenarioGroup.TRACER_RELEASE] + (
             scenario_groups or []
         )
@@ -399,7 +412,6 @@ class EndToEndScenario(DockerScenario):
         interfaces.library_dotnet_managed.load_data()
 
     def _wait_and_stop_containers(self):
-
         if self.replay:
             logger.terminal.write_sep("-", "Load all data from logs")
             logger.terminal.flush()

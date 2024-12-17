@@ -73,7 +73,7 @@ class _RequestLogger:
         self.span_meta_structs_disabled = os.environ.get("SYSTEM_TESTS_AGENT_SPAN_META_STRUCTS_DISABLED") == "True"
 
         span_events = os.environ.get("SYSTEM_TESTS_AGENT_SPAN_EVENTS")
-        self.span_events = True if span_events == "True" else (False if span_events == "False" else None)
+        self.span_events = span_events != "False"
 
         self.rc_api_command = None
 
@@ -106,7 +106,6 @@ class _RequestLogger:
         return http.Response.make(400, message)
 
     def request(self, flow: Flow):
-
         logger.info(f"{flow.request.method} {flow.request.pretty_url}")
 
         if flow.request.port == 11111:
@@ -266,7 +265,6 @@ class _RequestLogger:
                 self._add_rc_capabilities_in_info_request(flow)
 
                 if flow.request.path == "/v0.7/config":
-
                     # mimic the default response from the agent
                     flow.response.status_code = 200
                     flow.response.content = b"{}"
@@ -295,8 +293,7 @@ class _RequestLogger:
             if self.span_meta_structs_disabled:
                 self._remove_meta_structs_support(flow)
 
-            if self.span_events is not None:
-                self._modify_span_events_flag(flow)
+            self._modify_span_events_flag(flow)
 
     def _remove_meta_structs_support(self, flow):
         if flow.request.path == "/info" and str(flow.response.status_code) == "200":
@@ -329,7 +326,6 @@ class _RequestLogger:
 
 
 def start_proxy() -> None:
-
     # the port is used to make the distinction between weblogs (See CROSSED_TRACING_LIBRARIES scenario)
     modes = [
         "regular@8126",  # base weblog

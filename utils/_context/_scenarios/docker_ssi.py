@@ -4,6 +4,7 @@ import os
 
 import docker
 from docker.errors import BuildError
+from docker.models.networks import Network
 
 import utils.tools
 from utils import context, interfaces
@@ -25,6 +26,8 @@ from .core import Scenario
 
 class DockerSSIScenario(Scenario):
     """Scenario test the ssi installer on a docker environment and runs APM test agent"""
+
+    _network: Network = None
 
     def __init__(self, name, doc, scenario_groups=None) -> None:
         super().__init__(name, doc=doc, github_workflow="dockerssi", scenario_groups=scenario_groups)
@@ -106,13 +109,18 @@ class DockerSSIScenario(Scenario):
                 logger.error("Failed to configure container ", e)
                 logger.stdout("ERROR configuring container. check log file for more details")
 
+    def _create_network(self):
+        self._network = create_network()
+
+    def _start_containers(self):
+        for container in self._required_containers:
+            container.start(self._network)
+
     def get_warmups(self):
         warmups = super().get_warmups()
 
-        warmups.append(create_network)
-
-        for container in self._required_containers:
-            warmups.append(container.start)
+        warmups.append(self._create_network)
+        warmups.append(self._start_containers)
 
         if "GITLAB_CI" in os.environ:
             warmups.append(self.fix_gitlab_network)
@@ -121,9 +129,9 @@ class DockerSSIScenario(Scenario):
 
     def fix_gitlab_network(self):
         old_weblog_url = self.weblog_url
-        self.weblog_url = self.weblog_url.replace("localhost", self._weblog_injection.network_ip())
+        self.weblog_url = self.weblog_url.replace("localhost", self._weblog_injection.network_ip(self._network))
         logger.debug(f"GITLAB_CI: Rewrote weblog url from {old_weblog_url} to {self.weblog_url}")
-        self.agent_host = self._agent_container.network_ip()
+        self.agent_host = self._agent_container.network_ip(self._network)
         logger.debug(f"GITLAB_CI: Set agent host to {self.agent_host}")
 
     def close_targets(self):

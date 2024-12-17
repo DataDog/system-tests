@@ -452,6 +452,10 @@ tests/:
       Test_V2_Login_Events: v2.11.0
       Test_V2_Login_Events_Anon: v2.11.0
       Test_V2_Login_Events_RC: v2.11.0
+    test_automated_user_and_session_tracking.py:
+      Test_Automated_Session_Blocking: missing_feature
+      Test_Automated_User_Blocking: missing_feature
+      Test_Automated_User_Tracking: missing_feature
     test_blocking_addresses.py:
       Test_BlockingGraphqlResolvers: missing_feature
       Test_Blocking_client_ip:
@@ -590,7 +594,11 @@ tests/:
     test_debugger_exception_replay.py:
       Test_Debugger_Exception_Replay: missing_feature
     test_debugger_expression_language.py:
-      Test_Debugger_Expression_Language: bug (DEBUG-2898)
+      Test_Debugger_Expression_Language:
+        '*': missing_feature
+        flask-poc: v2.11.0
+        uds-flask: v2.11.0
+        uwsgi-poc: v2.11.0
     test_debugger_pii.py:
       Test_Debugger_PII_Redaction:
         '*': missing_feature
@@ -751,7 +759,9 @@ tests/:
     test_128_bit_traceids.py:
       Test_128_Bit_Traceids: v2.6.0
     test_config_consistency.py:
+      Test_Config_Dogstatsd: missing_feature
       Test_Config_RateLimit: v2.15.0
+      Test_Config_Tags: missing_feature
       Test_Config_TraceAgentURL: v2.0.0
       Test_Config_TraceEnabled: v2.12.2
       Test_Config_TraceLogDirectory: missing_feature
@@ -859,6 +869,7 @@ tests/:
     test_miscs.py:
       Test_Miscs: missing_feature
   test_config_consistency.py:
+    Test_Config_ClientIPHeaderEnabled_False: v2.17.3
     Test_Config_ClientIPHeader_Configured: v2.12.0
     Test_Config_ClientIPHeader_Precedence: v2.12.0
     Test_Config_ClientTagQueryString_Configured: v2.15.0

@@ -316,7 +316,6 @@ class Provision:
     def get_deployed_weblog(self):
         """Usually we have only one weblog deployed in the VM. But in some cases(multicontainer) we can have multiple weblogs deployed."""
         if not self.deployed_weblog:
-
             # App on Container/Alpine
             if self.weblog_installation and self.weblog_installation.version:
                 self.deployed_weblog = _DeployedWeblog(

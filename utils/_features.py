@@ -15,8 +15,7 @@ class features:
 
     @staticmethod
     def not_reported(test_object):
-        """Use this fake feature to not report a test to feature parity dashboard
-        """
+        """Use this fake feature to not report a test to feature parity dashboard"""
         pytest.mark.features(feature_id=-1)(test_object)
         return test_object
 
@@ -2265,4 +2264,13 @@ class features:
         https://feature-parity.us1.prod.dog/#/?feature=342
         """
         pytest.mark.features(feature_id=342)(test_object)
+        return test_object
+
+    @staticmethod
+    def adaptive_sampling(test_object):
+        """Adaptive sampling rules + RC
+
+        https://feature-parity.us1.prod.dog/#/?feature=346
+        """
+        pytest.mark.features(feature_id=346)(test_object)
         return test_object

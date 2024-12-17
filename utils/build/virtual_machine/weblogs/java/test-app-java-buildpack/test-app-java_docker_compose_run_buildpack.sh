@@ -10,6 +10,8 @@ sudo chmod -R 755 *
 
 rm -rf Dockerfile || true
 
+sudo systemctl start docker # Start docker service if it's not started
+
 echo "**************** Docker system df *****************" 
 sudo docker system df
 echo "**************** Disk usage *****************" 
@@ -19,11 +21,11 @@ sudo docker images
 echo "**************** Docker containers *****************" 
 sudo docker ps -a
 echo "**************** Docker volumes *****************" 
-sudo docker volume ls 
+sudo docker volume ls
 
 echo "**************** BUILDING BUILDPACK *****************" 
 sudo ./gradlew build
-sudo ./gradlew -PdockerImageRepo=system-tests/local -PdockerImageTag=latest clean bootBuildImage
+sudo ./gradlew -PdockerImageRepo=system-tests/local -PdockerImageTag=latest -PuseDockerProxy=true clean bootBuildImage
 
 echo "**************** RUN SERVICES*****************" 
 if [ -f docker-compose-agent-prod.yml ]; then

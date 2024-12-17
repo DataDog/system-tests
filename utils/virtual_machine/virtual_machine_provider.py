@@ -150,7 +150,6 @@ class VmProvider:
         # Copy files from local to remote if we need
         if installation.copy_files:
             for file_to_copy in installation.copy_files:
-
                 # If we don't use remote_path, the remote_path will be a default remote user home
                 if file_to_copy.remote_path:
                     remote_path = file_to_copy.remote_path
