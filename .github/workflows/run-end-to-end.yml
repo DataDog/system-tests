@@ -176,9 +176,6 @@ jobs:
     - name: Run REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES_NOCACHE scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES_NOCACHE"')
       run: ./run.sh REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES_NOCACHE
-    - name: Run REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING_NOCACHE scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING_NOCACHE"')
-      run: ./run.sh REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING_NOCACHE
     - name: Run REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD_NOCACHE scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD_NOCACHE"')
       run: ./run.sh REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD_NOCACHE
