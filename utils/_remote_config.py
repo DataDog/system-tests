@@ -52,11 +52,13 @@ def send_state(
     2. else if not acknowledged, the last config state received
     3. if no config state received, then a hardcoded one with apply_state=UNKNOWN
 
-    Arguments:
-        wait_for_acknowledge_status
+    Args:
+        raw_payload:
+            The raw payload to send to the library.
+        wait_for_acknowledged_status:
             If True, waits for the config to be acknowledged by the library.
             Else, only wait for the next request sent to /v0.7/config
-        state_version
+        state_version:
             The version of the global state.
             It should be larger than previous versions if you want to apply a new config.
 

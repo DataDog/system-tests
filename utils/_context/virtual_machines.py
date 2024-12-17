@@ -234,7 +234,7 @@ class _VirtualMachine:
         return full_cache_name
 
     def get_command_environment(self):
-        """This environment will be injected as environment variables for all launched remote commands"""
+        """Get the environment that will be injected as environment variables for all launched remote commands"""
         command_env = {}
         for key, value in self.get_provision().env.items():
             command_env["DD_" + key] = value
