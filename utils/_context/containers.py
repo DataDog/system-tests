@@ -410,6 +410,7 @@ class SqlDbTestedContainer(TestedContainer):
     def __init__(
         self,
         name,
+        *,
         image_name,
         host_log_folder,
         environment=None,
@@ -519,7 +520,7 @@ class ProxyContainer(TestedContainer):
 
 
 class AgentContainer(TestedContainer):
-    def __init__(self, host_log_folder, use_proxy=True, environment=None) -> None:
+    def __init__(self, host_log_folder, *, use_proxy=True, environment=None) -> None:
         environment = environment or {}
         environment.update(
             {
@@ -658,6 +659,7 @@ class WeblogContainer(TestedContainer):
     def __init__(
         self,
         host_log_folder,
+        *,
         environment=None,
         tracer_sampling_rate=None,
         appsec_enabled=True,

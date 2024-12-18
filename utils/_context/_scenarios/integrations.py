@@ -87,6 +87,7 @@ class AWSIntegrationsScenario(EndToEndScenario):
     def __init__(
         self,
         name="INTEGRATIONS_AWS",
+        *,
         doc="Spawns tracer, and agent. Test AWS integrations.",
         include_kafka=False,
         include_rabbitmq=False,

@@ -257,7 +257,7 @@ class ClientConfig:
     def raw_deserialized(self):
         return json.loads(self.raw_decoded)
 
-    def get_target_file(self, deserialized=False):
+    def get_target_file(self, *, deserialized=False):
         return {"path": self.path, "raw": self.raw_deserialized if deserialized else self.raw}
 
     def get_target(self):
@@ -322,7 +322,7 @@ class _RemoteConfigState:
         self.targets.clear()
         return self
 
-    def serialize_targets(self, deserialized=False):
+    def serialize_targets(self, *, deserialized=False):
         result = {
             "signed": {
                 "_type": "targets",
@@ -337,7 +337,7 @@ class _RemoteConfigState:
 
         return _json_to_base64(result) if not deserialized else result
 
-    def to_payload(self, deserialized=False):
+    def to_payload(self, *, deserialized=False):
         result = {"targets": self.serialize_targets(deserialized=deserialized)}
 
         target_files = [

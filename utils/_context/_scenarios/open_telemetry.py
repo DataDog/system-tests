@@ -26,6 +26,7 @@ class OpenTelemetryScenario(DockerScenario):
     def __init__(
         self,
         name,
+        *,
         doc,
         weblog_env=None,
         include_agent=True,

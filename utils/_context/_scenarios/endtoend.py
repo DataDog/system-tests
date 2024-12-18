@@ -38,6 +38,7 @@ class DockerScenario(Scenario):
     def __init__(
         self,
         name,
+        *,
         github_workflow,
         doc,
         scenario_groups=None,
@@ -190,6 +191,7 @@ class EndToEndScenario(DockerScenario):
     def __init__(
         self,
         name,
+        *,
         doc,
         github_workflow="endtoend",
         scenario_groups=None,
