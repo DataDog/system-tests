@@ -116,7 +116,7 @@ class Test_Cmdi_BodyJson:
                 },
                 "params": {
                     "address": "server.request.body",
-                    "value": "/usr/bin/rebootXXX",
+                    "value": "/usr/bin/reboot",
                 },
             },
         )
