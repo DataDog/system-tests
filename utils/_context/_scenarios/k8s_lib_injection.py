@@ -129,11 +129,12 @@ class K8sScenario(Scenario):
 
     @property
     def k8s_cluster_agent_version(self):
-        return (
-            self.k8s_cluster_version
-            if self.k8s_cluster_version and self.k8s_cluster_agent_version.startswith("v")
-            else ("v" + self.k8s_cluster_version)
-        )
+        # return (
+        #    self.k8s_cluster_version
+        #    if self.k8s_cluster_version and self.k8s_cluster_agent_version.startswith("v")
+        #    else ("v" + self.k8s_cluster_version)
+        # )
+        return Version(self.k8s_cluster_version)
 
     @property
     def components(self):
