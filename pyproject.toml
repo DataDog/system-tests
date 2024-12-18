@@ -85,8 +85,8 @@ ignore = [
     "ANN206",
     "BLE001",  # Do not catch blind exception: `Exception`, big project to enable this
     "C901",    # code complexity, TBD
-    "E722",    # TBD
-    "E741",
+    "E722",    # bare except, big project to enable this
+    # "E741",
     "FBT001",
     "FBT002",  # Boolean default positional argument, TBD
     "INP001",  # implicit package
