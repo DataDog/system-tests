@@ -2186,8 +2186,7 @@ class features:
 
     @staticmethod
     def iast_source_sql(test_object):
-        """
-        IAST Source: SQL
+        """IAST Source: SQL
 
         https://feature-parity.us1.prod.dog/#/?feature=344
         """
