@@ -31,10 +31,3 @@ else
 
     tar xzf $(ls datadog-dotnet-apm*.tar.gz) -C /opt/datadog
 fi
-
-# use 'strings' command from 'binutils' package to extract assembly version
-version=$(strings /opt/datadog/net6.0/Datadog.Trace.dll | egrep '^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$')
-echo "${version:0:-2}" > /app/SYSTEM_TESTS_LIBRARY_VERSION
-
-echo "dd-trace version: $(cat /app/SYSTEM_TESTS_LIBRARY_VERSION)"
-

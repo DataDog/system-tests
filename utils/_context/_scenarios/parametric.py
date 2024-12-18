@@ -160,7 +160,7 @@ class ParametricScenario(Scenario):
             self._clean_networks()
 
         # https://github.com/DataDog/system-tests/issues/2799
-        if library in ("nodejs", "python", "golang", "ruby"):
+        if library in ("nodejs", "python", "golang", "ruby", "dotnet"):
             output = _get_client().containers.run(
                 self.apm_test_server_definition.container_tag,
                 remove=True,
@@ -454,14 +454,11 @@ def dotnet_library_factory():
         container_name="dotnet-test-api",
         container_tag="dotnet8_0-test-api",
         container_img=f"""
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build-app
 WORKDIR /app
 
 # `binutils` is required by 'install_ddtrace.sh' to call 'strings' command
 RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y binutils
-
-COPY utils/build/docker/dotnet/install_ddtrace.sh binaries/ /binaries/
-RUN /binaries/install_ddtrace.sh
 
 # dotnet restore
 COPY {dotnet_reldir}/ApmTestApi.csproj {dotnet_reldir}/nuget.config ./
@@ -470,6 +467,14 @@ RUN dotnet restore "./ApmTestApi.csproj"
 # dotnet publish
 COPY {dotnet_reldir} ./
 RUN dotnet publish --no-restore -c Release -o out
+
+##################
+
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build-version-tool
+WORKDIR /app
+
+COPY {dotnet_reldir}/../GetAssemblyVersion ./
+RUN dotnet publish -c Release -o out
 
 ##################
 
@@ -492,12 +497,18 @@ ENV DD_TRACE_AspNetCore_ENABLED=false
 ENV DD_TRACE_Process_ENABLED=false
 ENV DD_TRACE_OTEL_ENABLED=false
 
+# copy custom tool used to get library version (built above)
+COPY utils/build/docker/dotnet/parametric/system_tests_library_version.sh ./
+COPY --from=build-version-tool /app/out /app
 
-COPY --from=build /app/out /app
-COPY --from=build /app/SYSTEM_TESTS_LIBRARY_VERSION /app/SYSTEM_TESTS_LIBRARY_VERSION
-COPY --from=build /opt/datadog /opt/datadog
+# copy the dotnet app (built above)
+COPY --from=build-app /app/out /app
+
+# install dd-trace-dotnet
+COPY utils/build/docker/dotnet/install_ddtrace.sh binaries/ /binaries/
+RUN /binaries/install_ddtrace.sh
+
 RUN mkdir /parametric-tracer-logs
-
 CMD ["./ApmTestApi"]
 """,
         container_cmd=[],
