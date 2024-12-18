@@ -232,10 +232,7 @@ class Test_Debugger_Exception_Replay(debugger._Base_Debugger_Test):
 
             scrubbed_spans = {}
 
-            spans = [
-                {k: scrub_span(k, v) for k, v in span.items()}
-                for span in data.values()
-            ]
+            spans = [{k: scrub_span(k, v) for k, v in span.items()} for span in data.values()]
             sorted_spans = sorted(spans, key=lambda x: x["meta"]["error.type"])
 
             # Assign scrubbed spans with unique snapshot labels
