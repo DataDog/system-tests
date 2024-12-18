@@ -281,13 +281,13 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
     def assert_waf_attack(
         self,
         request,
-        *,
         rule=None,
         pattern=None,
         value=None,
         address=None,
         patterns=None,
         key_path=None,
+        *,
         full_trace=False,
         span_validator=None,
     ):
