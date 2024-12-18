@@ -374,7 +374,9 @@ class Test_ExtractBehavior_Restart:
         assert span.get("traceID") != "1"
         assert span.get("parentID") is None
 
-        # Test the extracted span links: One span link for the incoming (Datadog trace context) plus one per conflicting trace context
+        # Test the extracted span links: One span link for the incoming (Datadog trace context).
+        # In the case that span links are generated for conflicting trace contexts, those span links
+        # are not included in the new trace context
         assert len(span.get("spanLinks")) == 1
 
         # Assert the Datadog (restarted) span link
@@ -397,8 +399,8 @@ class Test_ExtractBehavior_Restart:
             "/make_distant_call",
             params={"url": "http://weblog:7777/"},
             headers={
-                "x-datadog-trace-id": "3",
-                "x-datadog-parent-id": "3",
+                "x-datadog-trace-id": "1",
+                "x-datadog-parent-id": "1",
                 "x-datadog-sampling-priority": "2",
                 "x-datadog-tags": "_dd.p.tid=1111111111111111,_dd.p.dm=-4",
                 "traceparent": "00-12345678901234567890123456789012-1234567890123456-01",
@@ -416,37 +418,27 @@ class Test_ExtractBehavior_Restart:
 
         # Test the extracted span context
         span = spans[0]
-        assert span.get("traceID") != "2" and span.get("traceID") != "8687463697196027922" and span.get("traceID") != "3689348814741910323"
+        assert span.get("traceID") != "1" and span.get("traceID") != "8687463697196027922" and span.get("traceID") != "3689348814741910323"
         assert span.get("parentID") is None
 
-        # Test the extracted span links: One span link for the incoming (Datadog trace context) plus one per conflicting trace context
-        assert len(span.get("spanLinks")) == 3
+        # Test the extracted span links: One span link for the incoming (Datadog trace context).
+        # In the case that span links are generated for conflicting trace contexts, those span links
+        # are not included in the new trace context
+        assert len(span.get("spanLinks")) == 1
 
         # Assert the Datadog (restarted) span link
         link = span.get("spanLinks")[0]
-        assert link["traceID"] == "2"
-        assert link["spanID"] == "2"
+        assert link["traceID"] == "1"
+        assert link["spanID"] == "1"
         assert link["traceIDHigh"] == "1229782938247303441"
-
-        # Assert the W3C Trace Context (conflicting trace context) span link
-        link = span.get("spanLinks")[1]
-        assert link["traceID"] == "8687463697196027922" # int(0x7890123456789012)
-        assert link["spanID"] == "1311768467284833366" # int (0x1234567890123456)
-        assert link["traceIDHigh"] == "1311768467284833366" # int(0x1234567890123456)
-
-        # Assert the b3 (conflicting trace context) span link
-        link = span.get("spanLinks")[2]
-        assert link["traceID"] == "3689348814741910323" # int(0x3333333333333333)
-        assert link["spanID"] == "4919131752989213764" # int (0x4444444444444444)
-        assert link["traceIDHigh"] == "2459565876494606882" # int(0x2222222222222222)
 
         # Test the next outbound span context
         assert self.r.status_code == 200
         data = json.loads(self.r.text)
         assert data is not None
 
-        assert data["request_headers"]["x-datadog-trace-id"] == "2"
-        assert "_dd.p.tid=1111111111111111" in data["request_headers"]["x-datadog-tags"]
+        assert data["request_headers"]["x-datadog-trace-id"] != "1"
+        assert "_dd.p.tid=1111111111111111" not in data["request_headers"]["x-datadog-tags"]
         assert "key1=value1" in data["request_headers"]["baggage"]
 
 
@@ -514,7 +506,7 @@ class Test_ExtractBehavior_Ignore:
 
         # Test the local span context
         span = spans[0]
-        assert span.get("traceID") != "2" and span.get("traceID") != "8687463697196027922" and span.get("traceID") != "3689348814741910323"
+        assert span.get("traceID") != "1" and span.get("traceID") != "8687463697196027922" and span.get("traceID") != "3689348814741910323"
         assert span.get("parentID") is None
         assert "spanLinks" not in span or len(span.get("spanLinks")) == 0
 
@@ -540,7 +532,7 @@ class Test_ExtractBehavior_Restart_With_Extract_First:
                 "x-datadog-sampling-priority": "2",
                 "x-datadog-tags": "_dd.p.tid=1111111111111111,_dd.p.dm=-4",
                 "traceparent": "00-11111111111111110000000000000001-0000000000000001-01",
-                "tracestate": "dd=s:1;t.dm:-4,foo=1",
+                "tracestate": "dd=s:2;t.dm:-4,foo=1",
                 "x-b3-traceid": "11111111111111110000000000000001",
                 "x-b3-spanid": "0000000000000001",
                 "x-b3-sampled": "1",
@@ -558,13 +550,12 @@ class Test_ExtractBehavior_Restart_With_Extract_First:
         assert span.get("traceID") != "1"
         assert span.get("parentID") is None
 
-        # Test the extracted span links: One span link for the incoming (Datadog trace context)
-        # When DD_TRACE_PROPAGATION_EXTRACT_FIRST=true, no conflicting
-        # trace contexts are found because header parsing stops after the first
-        # valid trace context. As a result, there is only one span link,
-        # which corresponds to the incoming trace context.
+        # Test the extracted span links: One span link for the incoming (Datadog trace context).
+        # In the case that span links are generated for conflicting trace contexts, those span links
+        # are not included in the new trace context
         assert len(span.get("spanLinks")) == 1
 
+        # Assert the Datadog (restarted) span link
         link = span.get("spanLinks")[0]
         assert link["traceID"] == "1"
         assert link["spanID"] == "1"
@@ -606,12 +597,12 @@ class Test_ExtractBehavior_Restart_With_Extract_First:
         assert span.get("traceID") != "1" and span.get("traceID") != "8687463697196027922" and span.get("traceID") != "3689348814741910323"
         assert span.get("parentID") is None
 
-        # Test the extracted span links: One span link for the incoming (Datadog trace context)
-        # When DD_TRACE_PROPAGATION_EXTRACT_FIRST=true, no conflicting
-        # trace contexts are found because header parsing stops after the first
-        # valid trace context. As a result, there is only one span link,
-        # which corresponds to the incoming trace context.
+        # Test the extracted span links: One span link for the incoming (Datadog trace context).
+        # In the case that span links are generated for conflicting trace contexts, those span links
+        # are not included in the new trace context
         assert len(span.get("spanLinks")) == 1
+
+        # Assert the Datadog (restarted) span link
         link = span.get("spanLinks")[0]
         assert link["traceID"] == "1"
         assert link["spanID"] == "1"
