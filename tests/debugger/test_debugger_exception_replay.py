@@ -261,6 +261,9 @@ class Test_Debugger_Exception_Replay(debugger._Base_Debugger_Test):
                 if not any("error.type" for key in element["meta"]):
                     missing_keys.append("error.type")
 
+                if not any(key in element["meta"] for key in ["error.msg", "error.message"]):
+                    missing_keys.append("error.type and either msg or message")
+
                 if missing_keys:
                     missing_keys_dict[guid] = missing_keys
 
