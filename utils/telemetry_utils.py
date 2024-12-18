@@ -4,6 +4,7 @@ class TelemetryUtils:
         "nodejs": {"glob": False},
         "java": {"org.apache.httpcomponents:httpclient": False},
         "ruby": {"bundler": False},
+        "python": {"requests": False},
     }
 
     @staticmethod
