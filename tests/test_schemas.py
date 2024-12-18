@@ -16,7 +16,6 @@ class Test_library:
         # send some requests to be sure to trigger events
         weblog.get("/waf", params={"key": "\n :"})
 
-    @bug(context.library == "nodejs", reason="DEBUG-3245")
     def test_library_schema_full(self):
         excluded_points = [
             ("/telemetry/proxy/api/v2/apmtelemetry", "$.payload.configuration[]"),
@@ -30,6 +29,9 @@ class Test_library:
             and context.scenario is scenarios.debugger_expression_language
         ):
             excluded_points.append(("/debugger/v1/input", "$[].debugger.snapshot.stack[].lineNumber"))
+
+        if (context.library == "nodejs"):
+            excluded_points.append(("/debugger/v1/diagnostics", "$[].content[].debugger.diagnostics"))  # DEBUG-3245
 
         interfaces.library.assert_schema_points(excluded_points)
 
