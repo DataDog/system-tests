@@ -172,35 +172,35 @@ namespace weblog
         [HttpPost("cmdi/test_insecure")]
         public IActionResult test_insecure_cmdI([FromForm] RequestData data)
         {
-            try
-            {
-                if (!string.IsNullOrEmpty(data.cmd))
-                {
-                    var result = Process.Start(data.cmd);
-                    return Content("Process launched: " + result.ProcessName);
-                }
-                else
-                {
-                    return BadRequest("No file was provided");
-                }
-            }
-            catch
-            {
-                return StatusCode(500, "Error launching process.");
-            }
+            return ExecuteCommandInternal(data.cmd, false);
         }
 
         [HttpPost("cmdi/test_secure")]
         public IActionResult test_secure_cmdI([FromForm] RequestData data)
         {
+            return ExecuteCommandInternal("ls", false);
+        }
+        
+        private IActionResult ExecuteCommandInternal(string commandLine, bool useShell = true)
+        {
             try
             {
-                var result = Process.Start("ls");
-                return Content("Process launched: " + result.ProcessName);
+                if (!string.IsNullOrEmpty(commandLine))
+                {
+                    ProcessStartInfo startInfo = new ProcessStartInfo();
+                    startInfo.FileName = commandLine;
+                    startInfo.UseShellExecute = useShell;
+                    var result = Process.Start(startInfo);
+                    return Content($"Process launched.");
+                }
+                else
+                {
+                    return Content("No process name was provided");
+                }
             }
-            catch
+            catch (Exception)
             {
-                return StatusCode(500, "Error launching process.");
+                return Content("Non existing file.");
             }
         }
 
