@@ -22,7 +22,7 @@ chown root:adm "${LOGS_APACHE[@]}"
 #sed -i 's/MaxSpareServers.*/MaxSpareServers 1/' /etc/apache2/mods-enabled/mpm_prefork.conf
 
 export _DD_DEBUG_SIDECAR_LOG_METHOD=file:///var/log/system-tests/sidecar.log
-export _DD_SHARED_LIB_DEBUG=1
+export _DD_SHARED_LIB_DEBUG=0
 export -p | sed 's@declare -x@export@' | tee /dev/stderr >> /etc/apache2/envvars
 
 service apache2 start
