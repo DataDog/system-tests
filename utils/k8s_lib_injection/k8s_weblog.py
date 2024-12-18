@@ -120,7 +120,7 @@ class K8sWeblog:
         self.wait_for_weblog_ready_by_label_app("my-app", timeout=200)
 
     def install_weblog_pod_without_admission_controller(self, use_uds, env=None):
-        pod_body = self._get_base_weblog_pod()
+        pod_body = self._get_base_weblog_pod(env=env)
         pod_body.spec.init_containers = []
         init_container1 = client.V1Container(
             command=["sh", "copy-lib.sh", "/datadog-lib"],

@@ -22,7 +22,7 @@ class K8sWrapper:
 
     @retry(delay=1, tries=5)
     def create_namespaced_daemon_set(self, namespace="default", body=None):
-        self.apps_api().create_namespaced_daemon_set(namespace="default", body=body)
+        self.apps_api().create_namespaced_daemon_set(namespace=namespace, body=body)
 
     @retry(delay=1, tries=5)
     def read_namespaced_daemon_set_status(self, name=None, namespace="default"):

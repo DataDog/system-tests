@@ -111,7 +111,7 @@ class DockerScenario(Scenario):
             for image_name in container.get_image_list(library, weblog)
         ]
 
-    def configure(self, config):
+    def configure(self, config):  # noqa: ARG002
         for container in reversed(self._required_containers):
             container.configure(self.replay)
 

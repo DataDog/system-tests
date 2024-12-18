@@ -276,7 +276,7 @@ def released(
     return wrapper
 
 
-def rfc(link):
+def rfc(link):  # noqa: ARG001
     def wrapper(item):
         return item
 

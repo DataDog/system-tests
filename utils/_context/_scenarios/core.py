@@ -118,7 +118,7 @@ class Scenario:
 
         self.configure(config)
 
-    def pytest_sessionstart(self, session):
+    def pytest_sessionstart(self, session):  # noqa: ARG002
         """Called at the very begining of the process"""
 
         logger.terminal.write_sep("=", "test context", bold=True)
