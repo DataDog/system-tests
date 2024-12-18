@@ -229,6 +229,8 @@ build() {
                 --progress=plain \
                 ${DOCKER_PLATFORM_ARGS} \
                 -f ${DOCKERFILE} \
+                --label "system-tests-library=${TEST_LIBRARY}" \
+                --label "system-tests-weblog-variant=${WEBLOG_VARIANT}" \
                 -t system_tests/weblog \
                 $CACHE_TO \
                 $CACHE_FROM \
@@ -259,8 +261,6 @@ build() {
                 --load \
                 --progress=plain \
                 ${DOCKER_PLATFORM_ARGS} \
-                --build-arg SYSTEM_TESTS_LIBRARY="$TEST_LIBRARY" \
-                --build-arg SYSTEM_TESTS_WEBLOG_VARIANT="$WEBLOG_VARIANT" \
                 -f utils/build/docker/set-system-tests-weblog-env.Dockerfile \
                 -t system_tests/weblog \
                 .

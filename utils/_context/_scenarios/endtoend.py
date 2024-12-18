@@ -348,7 +348,7 @@ class EndToEndScenario(DockerScenario):
             container.interface = getattr(interfaces, container.name)
             container.interface.configure(self.host_log_folder, self.replay)
 
-        library = self.weblog_container.image.env["SYSTEM_TESTS_LIBRARY"]
+        library = self.weblog_container.image.labels["system-tests-library"]
 
         if self.library_interface_timeout is None:
             if library == "java":
