@@ -333,7 +333,7 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
         if not success_by_default:
             raise ValueError("No span validates this test")
 
-    def validate_spans(self, request=None, validator=None, success_by_default=False, full_trace: bool = False):
+    def validate_spans(self, request=None, validator=None, success_by_default=False, *, full_trace: bool = False):
         for _, _, span in self.get_spans(request=request, full_trace=full_trace):
             try:
                 if validator(span):

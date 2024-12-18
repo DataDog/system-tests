@@ -114,7 +114,7 @@ def _decorator(function_or_class, marker, decorator_type, condition, library, we
     return _add_pytest_marker(function_or_class, full_reason, marker)
 
 
-def missing_feature(condition=None, library=None, weblog_variant=None, reason=None, force_skip: bool = False):
+def missing_feature(condition=None, library=None, weblog_variant=None, reason=None, *, force_skip: bool = False):
     """decorator, allow to mark a test function/class as missing"""
     marker = pytest.mark.skip if force_skip else pytest.mark.xfail
     return partial(
@@ -154,7 +154,7 @@ def irrelevant(condition=None, library=None, weblog_variant=None, reason=None):
     )
 
 
-def bug(condition=None, library=None, weblog_variant=None, reason=None, force_skip: bool = False):
+def bug(condition=None, library=None, weblog_variant=None, reason=None, *, force_skip: bool = False):
     """Decorator, allow to mark a test function/class as an known bug.
     The test is executed, and if it passes, and warning is reported
     """

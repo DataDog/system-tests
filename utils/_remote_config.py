@@ -125,7 +125,7 @@ def send_state(
     return current_states
 
 
-def send_sequential_commands(commands: list[dict], wait_for_all_command: bool = True) -> None:
+def send_sequential_commands(commands: list[dict], *, wait_for_all_command: bool = True) -> None:
     """DEPRECATED"""
 
     if len(commands) == 0:
