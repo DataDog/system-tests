@@ -27,3 +27,6 @@
 /manifests/php.yml @DataDog/apm-php @DataDog/asm-php
 /manifests/python.yml @DataDog/apm-python @DataDog/asm-python
 /manifests/ruby.yml @DataDog/ruby-guild @DataDog/asm-ruby
+
+# Allows everyone to easily make changes
+/tests/telemetry_intake/static/ @DataDog/apm-ecosystems
