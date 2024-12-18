@@ -17,7 +17,7 @@ The impact is that these **configs are not visible** in Metabase, REDAPL, or any
 #### Runbook
 
 1. Check the test failure to see exactly which configs are missing
-2. Add config normalization rules [here](https://github.com/DataDog/dd-go/tree/prod/trace/apps/tracer-telemetry-intake/telemetry-payload/static/) following the existing pattern 
+2. Add config normalization rules [here](https://github.com/DataDog/dd-go/tree/prod/trace/apps/tracer-telemetry-intake/telemetry-payload/static/) following the existing pattern
    1. This can be merged with any review from [@apm-ecosystems](https://github.com/orgs/DataDog/teams/apm-ecosystems)
 3. After merging, update system-tests by running [update.sh](/tests/telemetry_intake/update.sh)
    1. This can be run from the root by running `./tests/telemetry_intake/update.sh`
