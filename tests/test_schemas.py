@@ -30,7 +30,7 @@ class Test_library:
         ):
             excluded_points.append(("/debugger/v1/input", "$[].debugger.snapshot.stack[].lineNumber"))
 
-        if (context.library == "nodejs"):
+        if context.library == "nodejs":
             excluded_points.append(("/debugger/v1/diagnostics", "$[].content[].debugger.diagnostics"))  # DEBUG-3245
 
         interfaces.library.assert_schema_points(excluded_points)
