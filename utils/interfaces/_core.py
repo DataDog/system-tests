@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-"""This file contains base class used to validate interfaces"""
+"""Contains base class used to validate interfaces"""
 
 import json
 from os import listdir

@@ -28,7 +28,7 @@ class KubernetesScenario(Scenario):
         self.api_key = api_key
         self.app_key = app_key
 
-    def configure(self, config):
+    def configure(self, config):  # noqa: ARG002
         # TODO get variables from config like --k8s-lib-init-image (Warning! impacts on the tracers pipelines!)
         assert "TEST_LIBRARY" in os.environ, "TEST_LIBRARY is not set"
         assert "WEBLOG_VARIANT" in os.environ, "WEBLOG_VARIANT is not set"
@@ -109,7 +109,7 @@ class WeblogInjectionScenario(Scenario):
         self._required_containers.append(APMTestAgentContainer(host_log_folder=self.host_log_folder))
         self._required_containers.append(self._weblog_injection)
 
-    def configure(self, config):
+    def configure(self, config):  # noqa: ARG002
         assert "TEST_LIBRARY" in os.environ, "TEST_LIBRARY must be set: java,python,nodejs,dotnet,ruby"
         self._library = LibraryVersion(os.getenv("TEST_LIBRARY"), "0.0")
 

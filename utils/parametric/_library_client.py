@@ -326,7 +326,7 @@ class APMLibraryClient:
 
 
 class _TestSpan:
-    def __init__(self, client: APMLibraryClient, span_id: int, trace_id: int, parent_id: int = 0):
+    def __init__(self, client: APMLibraryClient, span_id: int, trace_id: int):
         self._client = client
         self.span_id = span_id
         self.trace_id = trace_id
