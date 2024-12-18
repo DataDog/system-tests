@@ -16,7 +16,7 @@ from .performance import PerformanceScenario
 from .profiling import ProfilingScenario
 from .test_the_test import TestTheTestScenario
 from .auto_injection import InstallerAutoInjectionScenario, InstallerAutoInjectionScenarioProfiling
-from .k8s_lib_injection import KubernetesScenario, WeblogInjectionScenario
+from .k8s_lib_injection import KubernetesScenario, WeblogInjectionScenario, K8sScenario, K8sSparkScenario
 from .docker_ssi import DockerSSIScenario
 from .external_processing import ExternalProcessingScenario
 from .ipv6 import IPV6Scenario
@@ -740,6 +740,45 @@ class scenarios:
         github_workflow="libinjection",
         scenario_groups=[ScenarioGroup.ALL, ScenarioGroup.LIB_INJECTION],
     )
+
+    k8s_lib_injection = K8sScenario("K8S_LIB_INJECTION", doc="Kubernetes lib injection with admission controller")
+    k8s_lib_injection_uds = K8sScenario(
+        "K8S_LIB_INJECTION_UDS",
+        doc="Kubernetes lib injection with admission controller and uds",
+        use_uds=True,
+    )
+    k8s_lib_injection_no_ac = K8sScenario(
+        "K8S_LIB_INJECTION_NO_AC",
+        doc="Kubernetes lib injection without admission controller",
+        with_admission_controller=False,
+    )
+    k8s_lib_injection_no_ac_uds = K8sScenario(
+        "K8S_LIB_INJECTION_NO_AC_UDS",
+        doc="Kubernetes lib injection without admission controller and UDS",
+        with_admission_controller=False,
+        use_uds=True,
+    )
+    k8s_lib_injection_profiling_disabled = K8sScenario(
+        "K8S_LIB_INJECTION_PROFILING_DISABLED",
+        doc="Kubernetes lib injection with admission controller and profiling disabled by default",
+        weblog_env={"DD_PROFILING_UPLOAD_PERIOD": "10", "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500"},
+    )
+    k8s_lib_injection_profiling_enabled = K8sScenario(
+        "K8S_LIB_INJECTION_PROFILING_ENABLED",
+        doc="Kubernetes lib injection with admission controller and profiling enaabled by cluster config",
+        weblog_env={"DD_PROFILING_UPLOAD_PERIOD": "10", "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500"},
+        dd_cluster_feature={"datadog.profiling.enabled": "auto"},
+    )
+    k8s_lib_injection_profiling_override = K8sScenario(
+        "K8S_LIB_INJECTION_PROFILING_OVERRIDE",
+        doc="Kubernetes lib injection with admission controller and profiling enaabled overriting cluster config",
+        weblog_env={"DD_PROFILING_UPLOAD_PERIOD": "10", "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500"},
+        dd_cluster_feature={
+            "clusterAgent.env[0].name": "DD_ADMISSION_CONTROLLER_AUTO_INSTRUMENTATION_PROFILING_ENABLED",
+            "clusterAgent.env[0].value": "auto",
+        },
+    )
+    k8s_lib_injection_spark_djm = K8sSparkScenario("K8S_LIB_INJECTION_SPARK_DJM", doc="Kubernetes lib injection DJM")
 
     docker_ssi = DockerSSIScenario(
         "DOCKER_SSI",
