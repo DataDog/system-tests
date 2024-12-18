@@ -139,13 +139,12 @@ function activate_venv() {
     source venv/bin/activate
 }
 
-function network_name() {
-    perl -ne '/_DEFAULT_NETWORK_NAME = "(.*)"/ and print "$1\n"' utils/_context/containers.py
-}
-
 function ensure_network() {
     local network_name
-    network_name="$(network_name)"
+
+    # limited support of docker mode: it can't control test targets, so going for the most common use case
+    # reminder : this mode is unofficial and not supported (for the exact reason it can't control test targets...)
+    network_name="system-tests-ipv4"
 
     if docker network ls | grep -q "${network_name}"; then
         : # network exists
@@ -184,7 +183,7 @@ function run_scenario() {
 
             cmd+=(
               docker run
-              --network system-tests_default
+              --network system-tests-ipv4
               --rm -i
             )
             if [ -t 1 ]; then
