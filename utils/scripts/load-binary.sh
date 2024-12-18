@@ -11,7 +11,7 @@
 # Binaries sources:
 #
 # * Agent:  Docker hub datadog/agent-dev:master-py3
-# * Golang: gopkg.in/DataDog/dd-trace-go.v1@main
+# * Golang: github.com/DataDog/dd-trace-go/v2@main
 # * .NET:   ghcr.io/datadog/dd-trace-dotnet
 # * Java:   ghcr.io/datadog/dd-trace-java
 # * PHP:    ghcr.io/datadog/dd-trace-php
@@ -192,10 +192,19 @@ elif [ "$TARGET" = "golang" ]; then
     assert_version_is_dev
     rm -rf golang-load-from-go-get
 
-    # COMMIT_ID=$(curl -s 'https://api.github.com/repos/DataDog/dd-trace-go/branches/main' | jq -r .commit.sha)
+    # TODO(darccio): remove @$ref on v2 release
+    COMMIT_ID=$(curl --silent https://api.github.com/repos/DataDog/dd-trace-go/branches/dario.castane/v2-dev | jq --raw-output '.commit.sha')
+    [[ -z "$COMMIT_ID" ]] && COMMIT_ID=v2-dev
+    [[ "$COMMIT_ID" = "null" ]] && COMMIT_ID=v2-dev
 
-    echo "Using gopkg.in/DataDog/dd-trace-go.v1@main"
-    echo "gopkg.in/DataDog/dd-trace-go.v1@main" > golang-load-from-go-get
+    echo "Using github.com/DataDog/dd-trace-go/v2@$COMMIT_ID"
+    echo "github.com/DataDog/dd-trace-go/v2@$COMMIT_ID" > golang-load-from-go-get
+    echo "github.com/DataDog/dd-trace-go/contrib/IBM/sarama/v2@$COMMIT_ID" >> golang-load-from-go-get
+    echo "github.com/DataDog/dd-trace-go/contrib/gin-gonic/gin/v2@$COMMIT_ID" >> golang-load-from-go-get
+    echo "github.com/DataDog/dd-trace-go/contrib/go-chi/chi.v5/v2@$COMMIT_ID" >> golang-load-from-go-get
+    echo "github.com/DataDog/dd-trace-go/contrib/google.golang.org/grpc/v2@$COMMIT_ID" >> golang-load-from-go-get
+    echo "github.com/DataDog/dd-trace-go/contrib/labstack/echo.v4/v2@$COMMIT_ID" >> golang-load-from-go-get
+    echo "github.com/DataDog/dd-trace-go/contrib/net/http/v2@$COMMIT_ID" >> golang-load-from-go-get
 
     echo "Using ghcr.io/datadog/dd-trace-go/service-extensions-callout:dev"
     echo "ghcr.io/datadog/dd-trace-go/service-extensions-callout:dev" > golang-service-extensions-callout-image
