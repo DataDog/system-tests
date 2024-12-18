@@ -2,7 +2,7 @@
 
 const { Kafka } = require('kafkajs')
 const { readFileSync } = require('fs')
-const {Client} = require("pg");
+const { Client } = require('pg')
 
 function init (app, tracer) {
   app.post('/iast/source/body/test', (req, res) => {
