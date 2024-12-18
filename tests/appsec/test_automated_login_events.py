@@ -1982,7 +1982,7 @@ class Test_V3_Login_Events_Blocking:
 @rfc("https://docs.google.com/document/d/1RT38U6dTTcB-8muiYV4-aVDCsT_XrliyakjtAPyjUpw")
 @features.user_monitoring
 @scenarios.remote_config_mocked_backend_asm_dd
-class Test_Auto_User_Instrum_Mode_Capability:
+class Test_V3_Auto_User_Instrum_Mode_Capability:
     """Validate that ASM_AUTO_USER_INSTRUM_MODE (31) capability is sent"""
 
     def test_capability_auto_user_instrum_mode(self):

@@ -958,6 +958,7 @@ tests/:
         spring-boot-openliberty: missing_feature (weblog returns error 500)
         vertx3: missing_feature (login endpoints not implemented)
         vertx4: missing_feature (login endpoints not implemented)
+      Test_V3_Auto_User_Instrum_Mode_Capability: missing_feature
       Test_V3_Login_Events: missing_feature
       Test_V3_Login_Events_Anon: missing_feature
       Test_V3_Login_Events_Blocking: missing_feature
