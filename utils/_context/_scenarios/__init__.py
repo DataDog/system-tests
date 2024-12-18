@@ -805,6 +805,12 @@ class scenarios:
     external_processing = ExternalProcessingScenario("EXTERNAL_PROCESSING")
     ipv6 = IPV6Scenario("IPV6")
 
+    runtime_metrics = EndToEndScenario(
+        "RUNTIME_METRICS",
+        runtime_metrics_enabled=True,
+        doc="Test runtime metrics",
+    )
+
 
 def get_all_scenarios() -> list[Scenario]:
     result = []
