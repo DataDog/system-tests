@@ -15,9 +15,10 @@ import (
 	httptrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/net/http"
 )
 
-func Requestdownstream(w http.ResponseWriter, _ *http.Request) {
-	client := httptrace.WrapClient(http.DefaultClient)
+func Requestdownstream(w http.ResponseWriter, r *http.Request) {
+	client := httptrace.WrapClient(http.DefaultClient, httptrace.RTWithPropagation(true))
 	req, _ := http.NewRequest(http.MethodGet, "http://127.0.0.1:7777/returnheaders", nil)
+	req = req.WithContext(r.Context())
 	res, err := client.Do(req)
 	if err != nil {
 		log.Fatal(err)
@@ -31,14 +32,9 @@ func Returnheaders(w http.ResponseWriter, r *http.Request) {
 	for key, values := range r.Header {
 		headerStrStrMap[key] = strings.Join(values, ",")
 	}
-	jsonData, err := json.Marshal(headerStrStrMap)
-	if err != nil {
-		w.WriteHeader(500)
-		w.Write([]byte("failed to convert headers to JSON"))
-		return
-	}
 
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	_, _ = w.Write(jsonData)
+	if err := json.NewEncoder(w).Encode(headerStrStrMap); err != nil {
+		panic(err)
+	}
 }
