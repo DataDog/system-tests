@@ -250,21 +250,6 @@ build() {
                     .
             fi
 
-            # The library version is needed as an env var, and as the runner is executed before the weblog
-            # this value need to be present in the image, in order to be inspected. The point here is that
-            # ENV command in a Dockerfile can be the result of a command, it must either an hardcoded value
-            # or an arg. So we use this 2-step trick to get it.
-            # If anybody has an idea to achieve this in a cleanest way ...
-
-            docker buildx build \
-                --build-arg BUILDKIT_INLINE_CACHE=1 \
-                --load \
-                --progress=plain \
-                ${DOCKER_PLATFORM_ARGS} \
-                -f utils/build/docker/set-system-tests-weblog-env.Dockerfile \
-                -t system_tests/weblog \
-                .
-
         else
             echo "Don't know how to build $IMAGE_NAME"
             exit 1

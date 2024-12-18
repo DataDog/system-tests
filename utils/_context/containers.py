@@ -736,6 +736,7 @@ class WeblogContainer(TestedContainer):
             ports={"7777/tcp": self.port, "7778/tcp": weblog._grpc_port},
             stdout_interface=interfaces.library_stdout,
             local_image_only=True,
+            command="./app.sh",
         )
 
         self.tracer_sampling_rate = tracer_sampling_rate
