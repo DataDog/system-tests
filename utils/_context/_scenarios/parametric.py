@@ -457,6 +457,9 @@ def dotnet_library_factory():
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build-app
 WORKDIR /app
 
+# Opt-out of .NET SDK CLI telemetry
+ENV DOTNET_CLI_TELEMETRY_OPTOUT=1
+
 # dotnet restore
 COPY {dotnet_reldir}/ApmTestApi.csproj {dotnet_reldir}/nuget.config ./
 RUN dotnet restore "./ApmTestApi.csproj"
@@ -470,6 +473,9 @@ RUN dotnet publish --no-restore -c Release -o out
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build-version-tool
 WORKDIR /app
 
+# Opt-out of .NET SDK CLI telemetry
+ENV DOTNET_CLI_TELEMETRY_OPTOUT=1
+
 COPY {dotnet_reldir}/../GetAssemblyVersion ./
 RUN dotnet publish -c Release -o out
 
@@ -477,6 +483,12 @@ RUN dotnet publish -c Release -o out
 
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
 WORKDIR /app
+
+RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y curl
+
+# install dd-trace-dotnet (must be done before setting LD_PRELOAD)
+COPY utils/build/docker/dotnet/install_ddtrace.sh binaries/ /binaries/
+RUN /binaries/install_ddtrace.sh
 
 # Opt-out of .NET SDK CLI telemetry (prevent unexpected http client spans)
 ENV DOTNET_CLI_TELEMETRY_OPTOUT=1
@@ -500,10 +512,6 @@ COPY --from=build-version-tool /app/out /app
 
 # copy the dotnet app (built above)
 COPY --from=build-app /app/out /app
-
-# install dd-trace-dotnet
-COPY utils/build/docker/dotnet/install_ddtrace.sh binaries/ /binaries/
-RUN /binaries/install_ddtrace.sh
 
 RUN mkdir /parametric-tracer-logs
 CMD ["./ApmTestApi"]
