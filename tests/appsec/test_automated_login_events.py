@@ -12,6 +12,7 @@ from utils import remote_config as rc
 from utils import rfc
 from utils import scenarios
 from utils import weblog
+from utils.dd_constants import Capabilities
 
 
 def login_data(context, username, password):
@@ -1734,14 +1735,13 @@ class Test_V3_Login_Events_Anon:
                 assert meta["usr.id"] == "sdkUser"
                 assert meta["_dd.appsec.usr.id"] == USER_HASH
 
-    def setup_login_sdk_failure_basic(self):
-        self.r_sdk_failure = weblog.get(
-            "/login?auth=basic&sdk_event=failure&sdk_user=sdkUser&sdk_user_exists=true",
-            headers={"Authorization": BASIC_AUTH_INVALID_USER_HEADER},
+    def setup_login_sdk_failure_local(self):
+        self.r_sdk_failure = weblog.post(
+            "/login?auth=local&sdk_event=failure&sdk_user=sdkUser&sdk_user_exists=true",
+            data=login_data(context, INVALID_USER, PASSWORD),
         )
 
-    @missing_feature(context.library == "php", reason="Basic auth not implemented")
-    def test_login_sdk_failure_basic(self):
+    def test_login_sdk_failure_local(self):
         assert self.r_sdk_failure.status_code == 401
         for _, trace, span in interfaces.library.get_spans(request=self.r_sdk_failure):
             assert_priority(span, trace)
@@ -1755,13 +1755,14 @@ class Test_V3_Login_Events_Anon:
             assert meta["_dd.appsec.events.users.login.failure.sdk"] == "true"
             assert meta["appsec.events.users.login.failure.usr.exists"] == "true"
 
-    def setup_login_sdk_failure_local(self):
-        self.r_sdk_failure = weblog.post(
-            "/login?auth=local&sdk_event=failure&sdk_user=sdkUser&sdk_user_exists=true",
-            data=login_data(context, INVALID_USER, PASSWORD),
+    def setup_login_sdk_failure_basic(self):
+        self.r_sdk_failure = weblog.get(
+            "/login?auth=basic&sdk_event=failure&sdk_user=sdkUser&sdk_user_exists=true",
+            headers={"Authorization": BASIC_AUTH_INVALID_USER_HEADER},
         )
 
-    def test_login_sdk_failure_local(self):
+    @missing_feature(context.library == "php", reason="Basic auth not implemented")
+    def test_login_sdk_failure_basic(self):
         assert self.r_sdk_failure.status_code == 401
         for _, trace, span in interfaces.library.get_spans(request=self.r_sdk_failure):
             assert_priority(span, trace)
@@ -1976,3 +1977,13 @@ class Test_V3_Login_Events_Blocking:
         assert self.config_state_3[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
         interfaces.library.assert_waf_attack(self.r_login_blocked, rule="block-user-id")
         assert self.r_login_blocked.status_code == 403
+
+
+@rfc("https://docs.google.com/document/d/1RT38U6dTTcB-8muiYV4-aVDCsT_XrliyakjtAPyjUpw")
+@features.user_monitoring
+@scenarios.remote_config_mocked_backend_asm_dd
+class Test_Auto_User_Instrum_Mode_Capability:
+    """Validate that ASM_AUTO_USER_INSTRUM_MODE (31) capability is sent"""
+
+    def test_capability_auto_user_instrum_mode(self):
+        interfaces.library.assert_rc_capability(Capabilities.ASM_AUTO_USER_INSTRUM_MODE)
