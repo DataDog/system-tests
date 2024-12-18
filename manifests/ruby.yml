@@ -376,6 +376,10 @@ tests/:
     test_otel_drop_in.py:
       Test_Otel_Drop_In: missing_feature
   k8s_lib_injection/:
+    test_k8s_lib_injection_profiling.py:
+      TestK8sLibInjectioProfilingClusterEnabled: missing_feature
+      TestK8sLibInjectioProfilingClusterOverride: missing_feature
+      TestK8sLibInjectioProfilingDisabledByDefault: missing_feature
     test_k8s_manual_inject.py:
       TestAdmisionControllerProfiling: missing_feature
   parametric/:
