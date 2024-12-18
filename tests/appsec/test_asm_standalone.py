@@ -102,7 +102,6 @@ class AsmStandalone_UpstreamPropagation_Base:
             },
         )
 
-
     def test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_minus_1(self):
         self.assert_product_is_enabled(self.check_r, self.tested_product)
         spans_checked = 0
