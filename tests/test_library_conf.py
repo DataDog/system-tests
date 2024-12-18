@@ -254,19 +254,25 @@ class Test_HeaderTags_DynamicConfig:
 
 @scenarios.default
 class Test_ExtractBehavior_Default:
-    def setup_main(self):
+    def setup_single_tracecontext(self):
         self.r = weblog.get(
             "/make_distant_call",
             params={"url": "http://weblog:7777/"},
             headers={
                 "x-datadog-trace-id": "1",
                 "x-datadog-parent-id": "1",
+                "x-datadog-sampling-priority": "2",
                 "x-datadog-tags": "_dd.p.tid=1111111111111111,_dd.p.dm=-4",
+                "traceparent": "00-11111111111111110000000000000001-0000000000000001-01",
+                "tracestate": "dd=s:2;t.dm:-4,foo=1",
+                "x-b3-traceid": "11111111111111110000000000000001",
+                "x-b3-spanid": "0000000000000001",
+                "x-b3-sampled": "1",
                 "baggage": "key1=value1",
             },
         )
 
-    def test_main(self):
+    def test_single_tracecontext(self):
         interfaces.library.assert_trace_exists(self.r)
         spans = interfaces.agent.get_spans_list(self.r)
         assert len(spans) == 1, "Agent received the incorrect amount of spans"
@@ -286,22 +292,79 @@ class Test_ExtractBehavior_Default:
         assert "_dd.p.tid=1111111111111111" in data["request_headers"]["x-datadog-tags"]
         assert "key1=value1" in data["request_headers"]["baggage"]
 
+    def setup_multiple_tracecontexts(self):
+        self.r = weblog.get(
+            "/make_distant_call",
+            params={"url": "http://weblog:7777/"},
+            headers={
+                "x-datadog-trace-id": "2",
+                "x-datadog-parent-id": "2",
+                "x-datadog-sampling-priority": "2",
+                "x-datadog-tags": "_dd.p.tid=1111111111111111,_dd.p.dm=-4",
+                "traceparent": "00-12345678901234567890123456789012-1234567890123456-01",
+                "x-b3-traceid": "22222222222222223333333333333333",
+                "x-b3-spanid": "4444444444444444",
+                "x-b3-sampled": "1",
+                "baggage": "key1=value1",
+            },
+        )
+
+    def test_multiple_tracecontexts(self):
+        interfaces.library.assert_trace_exists(self.r)
+        spans = interfaces.agent.get_spans_list(self.r)
+        assert len(spans) == 1, "Agent received the incorrect amount of spans"
+
+        # Test the extracted span context
+        span = spans[0]
+        assert span.get("traceID") == "2"
+        assert span.get("parentID") == "2"
+
+        # Test the extracted span links: One span link per conflicting trace context
+        assert len(span.get("spanLinks")) == 2
+
+        # Assert the W3C Trace Context (conflicting trace context) span link
+        link = span.get("spanLinks")[0]
+        assert link["traceID"] == "8687463697196027922" # int(0x7890123456789012)
+        assert link["spanID"] == "1311768467284833366" # int (0x1234567890123456)
+        assert link["traceIDHigh"] == "1311768467284833366" # int(0x1234567890123456)
+
+        # Assert the b3 (conflicting trace context) span link
+        link = span.get("spanLinks")[1]
+        assert link["traceID"] == "3689348814741910323" # int(0x3333333333333333)
+        assert link["spanID"] == "4919131752989213764" # int (0x4444444444444444)
+        assert link["traceIDHigh"] == "2459565876494606882" # int(0x2222222222222222)
+
+        # Test the next outbound span context
+        assert self.r.status_code == 200
+        data = json.loads(self.r.text)
+        assert data is not None
+
+        assert data["request_headers"]["x-datadog-trace-id"] == "2"
+        assert "_dd.p.tid=1111111111111111" in data["request_headers"]["x-datadog-tags"]
+        assert "key1=value1" in data["request_headers"]["baggage"]
+
 
 @scenarios.tracing_config_nondefault
 class Test_ExtractBehavior_Restart:
-    def setup_main(self):
+    def setup_single_tracecontext(self):
         self.r = weblog.get(
             "/make_distant_call",
             params={"url": "http://weblog:7777/"},
             headers={
                 "x-datadog-trace-id": "1",
                 "x-datadog-parent-id": "1",
+                "x-datadog-sampling-priority": "2",
                 "x-datadog-tags": "_dd.p.tid=1111111111111111,_dd.p.dm=-4",
+                "traceparent": "00-11111111111111110000000000000001-0000000000000001-01",
+                "tracestate": "dd=s:2;t.dm:-4,foo=1",
+                "x-b3-traceid": "11111111111111110000000000000001",
+                "x-b3-spanid": "0000000000000001",
+                "x-b3-sampled": "1",
                 "baggage": "key1=value1",
             },
         )
 
-    def test_main(self):
+    def test_single_tracecontext(self):
         interfaces.library.assert_trace_exists(self.r)
         spans = interfaces.agent.get_spans_list(self.r)
         assert len(spans) == 1, "Agent received the incorrect amount of spans"
@@ -311,8 +374,10 @@ class Test_ExtractBehavior_Restart:
         assert span.get("traceID") != "1"
         assert span.get("parentID") is None
 
-        # Test the extracted span link
+        # Test the extracted span links: One span link for the incoming (Datadog trace context) plus one per conflicting trace context
         assert len(span.get("spanLinks")) == 1
+
+        # Assert the Datadog (restarted) span link
         link = span.get("spanLinks")[0]
         assert link["traceID"] == "1"
         assert link["spanID"] == "1"
@@ -327,22 +392,85 @@ class Test_ExtractBehavior_Restart:
         assert "_dd.p.tid=1111111111111111" not in data["request_headers"]["x-datadog-tags"]
         assert "key1=value1" in data["request_headers"]["baggage"]
 
+    def setup_multiple_tracecontexts(self):
+        self.r = weblog.get(
+            "/make_distant_call",
+            params={"url": "http://weblog:7777/"},
+            headers={
+                "x-datadog-trace-id": "3",
+                "x-datadog-parent-id": "3",
+                "x-datadog-sampling-priority": "2",
+                "x-datadog-tags": "_dd.p.tid=1111111111111111,_dd.p.dm=-4",
+                "traceparent": "00-12345678901234567890123456789012-1234567890123456-01",
+                "x-b3-traceid": "22222222222222223333333333333333",
+                "x-b3-spanid": "4444444444444444",
+                "x-b3-sampled": "1",
+                "baggage": "key1=value1",
+            },
+        )
+
+    def test_multiple_tracecontexts(self):
+        interfaces.library.assert_trace_exists(self.r)
+        spans = interfaces.agent.get_spans_list(self.r)
+        assert len(spans) == 1, "Agent received the incorrect amount of spans"
+
+        # Test the extracted span context
+        span = spans[0]
+        assert span.get("traceID") != "2" and span.get("traceID") != "8687463697196027922" and span.get("traceID") != "3689348814741910323"
+        assert span.get("parentID") is None
+
+        # Test the extracted span links: One span link for the incoming (Datadog trace context) plus one per conflicting trace context
+        assert len(span.get("spanLinks")) == 3
+
+        # Assert the Datadog (restarted) span link
+        link = span.get("spanLinks")[0]
+        assert link["traceID"] == "2"
+        assert link["spanID"] == "2"
+        assert link["traceIDHigh"] == "1229782938247303441"
+
+        # Assert the W3C Trace Context (conflicting trace context) span link
+        link = span.get("spanLinks")[1]
+        assert link["traceID"] == "8687463697196027922" # int(0x7890123456789012)
+        assert link["spanID"] == "1311768467284833366" # int (0x1234567890123456)
+        assert link["traceIDHigh"] == "1311768467284833366" # int(0x1234567890123456)
+
+        # Assert the b3 (conflicting trace context) span link
+        link = span.get("spanLinks")[2]
+        assert link["traceID"] == "3689348814741910323" # int(0x3333333333333333)
+        assert link["spanID"] == "4919131752989213764" # int (0x4444444444444444)
+        assert link["traceIDHigh"] == "2459565876494606882" # int(0x2222222222222222)
+
+        # Test the next outbound span context
+        assert self.r.status_code == 200
+        data = json.loads(self.r.text)
+        assert data is not None
+
+        assert data["request_headers"]["x-datadog-trace-id"] == "2"
+        assert "_dd.p.tid=1111111111111111" in data["request_headers"]["x-datadog-tags"]
+        assert "key1=value1" in data["request_headers"]["baggage"]
+
 
 @scenarios.tracing_config_nondefault_2
 class Test_ExtractBehavior_Ignore:
-    def setup_main(self):
+    def setup_single_tracecontext(self):
         self.r = weblog.get(
             "/make_distant_call",
             params={"url": "http://weblog:7777/"},
             headers={
                 "x-datadog-trace-id": "1",
                 "x-datadog-parent-id": "1",
+                "x-datadog-sampling-priority": "2",
                 "x-datadog-tags": "_dd.p.tid=1111111111111111,_dd.p.dm=-4",
+                "traceparent": "00-11111111111111110000000000000001-0000000000000001-01",
+                "tracestate": "dd=s:1;t.dm:-4,foo=1",
+                "x-b3-traceid": "11111111111111110000000000000001",
+                "x-b3-spanid": "0000000000000001",
+                "x-b3-sampled": "1",
                 "baggage": "key1=value1",
             },
         )
 
-    def test_main(self):
+    def test_single_tracecontext(self):
         interfaces.library.assert_trace_exists(self.r)
         spans = interfaces.agent.get_spans_list(self.r)
         assert len(spans) == 1, "Agent received the incorrect amount of spans"
@@ -362,23 +490,65 @@ class Test_ExtractBehavior_Ignore:
         assert "_dd.p.tid=1111111111111111" not in data["request_headers"]["x-datadog-tags"]
         assert "baggage" not in data["request_headers"]
 
+    def setup_multiple_tracecontexts(self):
+        self.r = weblog.get(
+            "/make_distant_call",
+            params={"url": "http://weblog:7777/"},
+            headers={
+                "x-datadog-trace-id": "2",
+                "x-datadog-parent-id": "2",
+                "x-datadog-sampling-priority": "2",
+                "x-datadog-tags": "_dd.p.tid=1111111111111111,_dd.p.dm=-4",
+                "traceparent": "00-12345678901234567890123456789012-1234567890123456-01",
+                "x-b3-traceid": "22222222222222223333333333333333",
+                "x-b3-spanid": "4444444444444444",
+                "x-b3-sampled": "1",
+                "baggage": "key1=value1",
+            },
+        )
+
+    def test_multiple_tracecontexts(self):
+        interfaces.library.assert_trace_exists(self.r)
+        spans = interfaces.agent.get_spans_list(self.r)
+        assert len(spans) == 1, "Agent received the incorrect amount of spans"
+
+        # Test the local span context
+        span = spans[0]
+        assert span.get("traceID") != "2" and span.get("traceID") != "8687463697196027922" and span.get("traceID") != "3689348814741910323"
+        assert span.get("parentID") is None
+        assert "spanLinks" not in span or len(span.get("spanLinks")) == 0
+
+        # Test the next outbound span context
+        assert self.r.status_code == 200
+        data = json.loads(self.r.text)
+        assert data is not None
+
+        assert data["request_headers"]["x-datadog-trace-id"] != "2"
+        assert "_dd.p.tid=1111111111111111" not in data["request_headers"]["x-datadog-tags"]
+        assert "baggage" not in data["request_headers"]
+
 
 @scenarios.tracing_config_nondefault_3
 class Test_ExtractBehavior_Restart_With_Extract_First:
-    def setup_main(self):
+    def setup_single_tracecontext(self):
         self.r = weblog.get(
             "/make_distant_call",
             params={"url": "http://weblog:7777/"},
             headers={
                 "x-datadog-trace-id": "1",
                 "x-datadog-parent-id": "1",
+                "x-datadog-sampling-priority": "2",
                 "x-datadog-tags": "_dd.p.tid=1111111111111111,_dd.p.dm=-4",
-                "traceparent": "00-12345678901234567890123456789012-1234567890123456-01",
+                "traceparent": "00-11111111111111110000000000000001-0000000000000001-01",
+                "tracestate": "dd=s:1;t.dm:-4,foo=1",
+                "x-b3-traceid": "11111111111111110000000000000001",
+                "x-b3-spanid": "0000000000000001",
+                "x-b3-sampled": "1",
                 "baggage": "key1=value1",
             },
         )
 
-    def test_main(self):
+    def test_single_tracecontext(self):
         interfaces.library.assert_trace_exists(self.r)
         spans = interfaces.agent.get_spans_list(self.r)
         assert len(spans) == 1, "Agent received the incorrect amount of spans"
@@ -388,7 +558,55 @@ class Test_ExtractBehavior_Restart_With_Extract_First:
         assert span.get("traceID") != "1"
         assert span.get("parentID") is None
 
-        # Test the extracted span link
+        # Test the extracted span links: One span link for the incoming (Datadog trace context)
+        # When DD_TRACE_PROPAGATION_EXTRACT_FIRST=true, no conflicting
+        # trace contexts are found because header parsing stops after the first
+        # valid trace context. As a result, there is only one span link,
+        # which corresponds to the incoming trace context.
+        assert len(span.get("spanLinks")) == 1
+
+        link = span.get("spanLinks")[0]
+        assert link["traceID"] == "1"
+        assert link["spanID"] == "1"
+        assert link["traceIDHigh"] == "1229782938247303441"
+
+        # Test the next outbound span context
+        assert self.r.status_code == 200
+        data = json.loads(self.r.text)
+        assert data is not None
+
+        assert data["request_headers"]["x-datadog-trace-id"] != "1"
+        assert "_dd.p.tid=1111111111111111" not in data["request_headers"]["x-datadog-tags"]
+        assert "key1=value1" in data["request_headers"]["baggage"]
+
+    def setup_multiple_tracecontexts(self):
+        self.r = weblog.get(
+            "/make_distant_call",
+            params={"url": "http://weblog:7777/"},
+            headers={
+                "x-datadog-trace-id": "1",
+                "x-datadog-parent-id": "1",
+                "x-datadog-sampling-priority": "2",
+                "x-datadog-tags": "_dd.p.tid=1111111111111111,_dd.p.dm=-4",
+                "traceparent": "00-12345678901234567890123456789012-1234567890123456-01",
+                "x-b3-traceid": "22222222222222223333333333333333",
+                "x-b3-spanid": "4444444444444444",
+                "x-b3-sampled": "1",
+                "baggage": "key1=value1",
+            },
+        )
+
+    def test_multiple_tracecontexts(self):
+        interfaces.library.assert_trace_exists(self.r)
+        spans = interfaces.agent.get_spans_list(self.r)
+        assert len(spans) == 1, "Agent received the incorrect amount of spans"
+
+        # Test the extracted span context
+        span = spans[0]
+        assert span.get("traceID") != "1" and span.get("traceID") != "8687463697196027922" and span.get("traceID") != "3689348814741910323"
+        assert span.get("parentID") is None
+
+        # Test the extracted span links: One span link for the incoming (Datadog trace context)
         # When DD_TRACE_PROPAGATION_EXTRACT_FIRST=true, no conflicting
         # trace contexts are found because header parsing stops after the first
         # valid trace context. As a result, there is only one span link,
