@@ -28,7 +28,7 @@ def get_environ():
 
 
 def get_json(session: requests.Session, url: str, params=None, timeout: int = 30):
-    response = session.get(url, params=params, timeout=30)
+    response = session.get(url, params=params, timeout=timeout)
     response.raise_for_status()
     return response.json()
 
@@ -75,7 +75,7 @@ def download_artifact(session: requests.Session, artifact: dict, output_dir: str
     for file in os.listdir(output_dir):
         if file.endswith(".tar.gz") and os.path.isfile(os.path.join(output_dir, file)):
             with tarfile.open(os.path.join(output_dir, file), "r:gz") as t:
-                t.extractall(output_dir, filter=lambda tar_info, path: tar_info)
+                t.extractall(output_dir, filter=lambda tar_info, _: tar_info)
 
 
 def main(

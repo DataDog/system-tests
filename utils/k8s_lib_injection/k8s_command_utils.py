@@ -124,7 +124,7 @@ def helm_install_chart(k8s_kind_cluster, name, chart, set_dict={}, value_file=No
 
 
 def path_clusterrole(k8s_kind_cluster):
-    """This is a hack until the patching permission is added in the official helm chart."""
+    """Hack until the patching permission is added in the official helm chart."""
     with KubectlLock():
         execute_command(f"kubectl config use-context {k8s_kind_cluster.context_name}")
         execute_command("sh utils/k8s_lib_injection/resources/operator/scripts/path_clusterrole.sh")

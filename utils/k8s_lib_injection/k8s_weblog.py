@@ -132,7 +132,7 @@ class K8sWeblog:
     def install_weblog_pod_without_admission_controller(self, use_uds=False, env=None):
         if self.dd_cluster_uds is not None:
             use_uds = self.dd_cluster_uds
-        pod_body = self._get_base_weblog_pod()
+        pod_body = self._get_base_weblog_pod(env=env)
         pod_body.spec.init_containers = []
         init_container1 = client.V1Container(
             command=["sh", "copy-lib.sh", "/datadog-lib"],

@@ -115,6 +115,8 @@ class _WafAttack:
                 # validator should output the reason for the failure
                 return not (self.span_validator and not self.span_validator(span, appsec_data))
 
+        return None
+
     def validate_legacy(self, event):
         event_version = event.get("event_version", "0.1.0")
         parameters = self._get_parameters(event)
@@ -149,6 +151,8 @@ class _WafAttack:
         else:
             return True
 
+        return False
+
 
 class _ReportedHeader:
     def __init__(self, header_name):
@@ -160,7 +164,7 @@ class _ReportedHeader:
 
         return True
 
-    def validate(self, span, appsec_data):
+    def validate(self, span, appsec_data):  # noqa: ARG002
         headers = [n.lower() for n in span["meta"] if n.startswith("http.request.headers.")]
         assert f"http.request.headers.{self.header_name}" in headers, f"header {self.header_name} not reported"
 

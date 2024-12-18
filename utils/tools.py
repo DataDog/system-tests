@@ -108,7 +108,7 @@ def get_rid_from_request(request):
     if request is None:
         return None
 
-    user_agent = [v for k, v in request.request.headers.items() if k.lower() == "user-agent"][0]
+    user_agent = next(v for k, v in request.request.headers.items() if k.lower() == "user-agent")
     return user_agent[-36:]
 
 

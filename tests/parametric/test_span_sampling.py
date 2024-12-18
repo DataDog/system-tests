@@ -195,6 +195,7 @@ class Test_Span_Sampling:
             }
         ],
     )
+    @flaky(library="java", reason="APMAPI-978")
     def test_single_rule_rate_limiter_span_sampling_sss008(self, test_agent, test_library):
         """Test span sampling tags are added until rate limit hit, then need to wait for tokens to reset"""
         # generate three traces before requesting them to avoid timing issues
