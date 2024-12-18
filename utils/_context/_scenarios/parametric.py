@@ -457,9 +457,6 @@ def dotnet_library_factory():
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build-app
 WORKDIR /app
 
-# `binutils` is required by 'install_ddtrace.sh' to call 'strings' command
-RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y binutils
-
 # dotnet restore
 COPY {dotnet_reldir}/ApmTestApi.csproj {dotnet_reldir}/nuget.config ./
 RUN dotnet restore "./ApmTestApi.csproj"
