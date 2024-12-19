@@ -424,12 +424,13 @@ class EndToEndScenario(DockerScenario):
             if sys.platform == "linux":
                 # on Linux, with ipv6 mode, we can't use localhost anymore for a reason I ignore
                 # To fix, we use the container ipv4 address as weblog doamin, as it's accessible from host
-
                 weblog.domain = self.weblog_container.network_ip(self._network)
+                logger.info(f"Linux => Using Container IPv6 address [{weblog.domain}] as weblog domain")
+
             elif sys.platform == "darwin":
                 # on Mac, this ipv4 address can't be used, because container IP are not accessible from host
                 # as they are on an network intermal to the docker VM. But we can still use localhost.
-                ...
+                logger.info("Mac => Using localhost as weblog domain")
             else:
                 pytest.exit(f"Unsupported platform {sys.platform} with ipv6 enabled", 1)
 
