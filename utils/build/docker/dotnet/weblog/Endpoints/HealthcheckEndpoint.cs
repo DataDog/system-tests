@@ -11,7 +11,7 @@ namespace weblog
         {
             routeBuilder.MapGet("/healthcheck", async context =>
             {
-                var version = Assembly.Load("Datadog.Trace").GetName().Version?.ToString(4);
+                var version = Assembly.Load("Datadog.Trace").GetName().Version?.ToString(3);
 
                 var data = new
                 {
