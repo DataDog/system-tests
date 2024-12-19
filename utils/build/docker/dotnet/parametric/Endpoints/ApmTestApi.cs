@@ -188,7 +188,7 @@ public abstract class ApmTestApi
                                  .GroupBy(kvp => kvp[0].ToString(), kvp => kvp[1].ToString())
                                  .ToDictionary(g => g.Key, g => g.ToList());
 
-        var extractedContext = SpanContextExtractor.Extract(headers, (dict, key) => dict[key]);
+        var extractedContext = SpanContextExtractor.Extract(headers, (dict, key) => dict.GetValueOrDefault(key) ?? []);
 
         if (extractedContext is not null)
         {
