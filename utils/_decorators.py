@@ -49,11 +49,7 @@ def _ensure_jira_ticket_as_reason(item, reason: str):
     if not is_jira_ticket(reason):
         path = inspect.getfile(item)
         rel_path = os.path.relpath(path)
-
-        if inspect.isclass(item):
-            nodeid = f"{rel_path}::{item.__name__}"
-        else:
-            nodeid = f"{rel_path}::{item.__qualname__}"
+        nodeid = f"{rel_path}::{item.__name__ if inspect.isclass(item) else item.__qualname__}"
 
         pytest.exit(f"Please set a jira ticket for {nodeid}, instead of reason: {reason}", 1)
 

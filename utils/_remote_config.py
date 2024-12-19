@@ -25,10 +25,7 @@ def _post(path: str, payload) -> None:
         domain = os.environ["SYSTEM_TESTS_PROXY_HOST"]
     elif "DOCKER_HOST" in os.environ:
         m = re.match(r"(?:ssh:|tcp:|fd:|)//(?:[^@]+@|)([^:]+)", os.environ["DOCKER_HOST"])
-        if m is not None:
-            domain = m.group(1)
-        else:
-            domain = "localhost"
+        domain = m.group(1) if m is not None else "localhost"
     else:
         domain = "localhost"
 

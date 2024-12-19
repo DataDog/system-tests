@@ -109,7 +109,6 @@ ignore = [
     "RUF012",
     "S202",
     "SIM102",
-    "SIM108",
     "SIM110",  # TBD
     "SIM401",  # code quality, TBD
     "SLF001",
