@@ -82,7 +82,7 @@ public abstract class ApmTestApi
 
         var creationSettings = new SpanCreationSettings
         {
-            Parent = FindSpanContext(requestJson, "parent_id", required: false) ?? SpanContext.None,
+            Parent = FindParentSpanContext(requestJson) ?? SpanContext.None,
             FinishOnClose = false,
         };
 
@@ -112,7 +112,7 @@ public abstract class ApmTestApi
             span.Type = type.GetString();
         }
 
-        if (requestJson.TryGetProperty("span_tags", out var tags))
+        if (requestJson.TryGetProperty("span_tags", out var tags) && tags.ValueKind != JsonValueKind.Null)
         {
             foreach (var tag in tags.EnumerateArray())
             {
@@ -325,9 +325,16 @@ public abstract class ApmTestApi
         return span;
     }
 
-    private static ISpanContext? FindSpanContext(JsonElement json, string key = "span_id", bool required = true)
+    private static ISpanContext? FindParentSpanContext(JsonElement json, string key = "parent_id")
     {
-        var spanId = json.GetProperty(key).GetUInt64();
+        var jsonProperty = json.GetProperty(key);
+
+        if (jsonProperty.ValueKind == JsonValueKind.Null)
+        {
+            return null;
+        }
+
+        var spanId = jsonProperty.GetUInt64();
 
         if (Spans.TryGetValue(spanId, out var span))
         {
@@ -339,14 +346,8 @@ public abstract class ApmTestApi
             return spanContext;
         }
 
-        if (required)
-        {
-            _logger?.LogError("Span or SpanContext not found with span id: {spanId}.", spanId);
-            throw new InvalidOperationException($"Span or SpanContext not found with span id: {spanId}");
-        }
-
-        return null;
-    }
+        _logger?.LogError("Span or SpanContext not found with span id: {spanId}.", spanId);
+        throw new InvalidOperationException($"Span or SpanContext not found with span id: {spanId}");    }
 
     protected static async Task<JsonElement> ParseJsonAsync(Stream stream, [CallerMemberName] string? caller = null)
     {
