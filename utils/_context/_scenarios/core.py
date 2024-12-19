@@ -65,7 +65,7 @@ class Scenario:
         for group in self.scenario_groups:
             assert group in ScenarioGroup, f"Invalid scenario group {group} for {self.name}: {group}"
 
-    def _create_log_subfolder(self, subfolder, remove_if_exists=False):
+    def _create_log_subfolder(self, subfolder, *, remove_if_exists=False):
         if self.replay:
             return
 

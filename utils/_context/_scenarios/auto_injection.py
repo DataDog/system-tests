@@ -57,6 +57,7 @@ class _VirtualMachineScenario(Scenario):
     def __init__(
         self,
         name,
+        *,
         github_workflow,
         doc,
         vm_provision=None,
