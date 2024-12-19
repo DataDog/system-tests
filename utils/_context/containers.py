@@ -533,6 +533,8 @@ class ProxyContainer(TestedContainer):
 
 
 class AgentContainer(TestedContainer):
+    apm_receiver_port: int = 8126
+
     def __init__(self, host_log_folder, use_proxy=True, environment=None) -> None:
         environment = environment or {}
         environment.update(
@@ -540,7 +542,7 @@ class AgentContainer(TestedContainer):
                 "DD_ENV": "system-tests",
                 "DD_HOSTNAME": "test",
                 "DD_SITE": self.dd_site,
-                "DD_APM_RECEIVER_PORT": self.agent_port,
+                "DD_APM_RECEIVER_PORT": self.apm_receiver_port,
                 "DD_DOGSTATSD_PORT": "8125",
                 "DD_API_KEY": os.environ.get("DD_API_KEY", _FAKE_DD_API_KEY),
             }
@@ -556,10 +558,9 @@ class AgentContainer(TestedContainer):
             host_log_folder=host_log_folder,
             environment=environment,
             healthcheck={
-                "test": f"curl --fail --silent --show-error --max-time 2 http://localhost:{self.agent_port}/info",
+                "test": f"curl --fail --silent --show-error --max-time 2 http://localhost:{self.apm_receiver_port}/info",
                 "retries": 60,
             },
-            ports={self.agent_port: f"{self.agent_port}/tcp"},
             stdout_interface=interfaces.agent_stdout,
             local_image_only=True,
         )
@@ -596,10 +597,6 @@ class AgentContainer(TestedContainer):
     @property
     def dd_site(self):
         return os.environ.get("DD_SITE", "datad0g.com")
-
-    @property
-    def agent_port(self):
-        return 8127
 
 
 class BuddyContainer(TestedContainer):
@@ -729,7 +726,7 @@ class WeblogContainer(TestedContainer):
             base_environment["DD_TRACE_AGENT_PORT"] = self.trace_agent_port
         else:
             base_environment["DD_AGENT_HOST"] = "agent"
-            base_environment["DD_TRACE_AGENT_PORT"] = self.trace_agent_port
+            base_environment["DD_TRACE_AGENT_PORT"] = AgentContainer.apm_receiver_port
 
         # overwrite values with those set in the scenario
         environment = base_environment | (environment or {})

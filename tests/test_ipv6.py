@@ -8,5 +8,4 @@ class Test_Basic:
         self.r = weblog.get("/")
 
     def test_main(self):
-        interfaces.library.assert_trace_exists(self.r)
         interfaces.agent.assert_trace_exists(self.r)

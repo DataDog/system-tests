@@ -225,7 +225,8 @@ class EndToEndScenario(DockerScenario):
         additional_trace_header_tags=(),
         library_interface_timeout=None,
         agent_interface_timeout=5,
-        use_proxy=True,
+        use_proxy_for_weblog: bool = True,
+        use_proxy_for_agent: bool = True,
         rc_api_enabled=False,
         meta_structs_disabled=False,
         span_events=True,
@@ -251,7 +252,7 @@ class EndToEndScenario(DockerScenario):
             github_workflow=github_workflow,
             scenario_groups=scenario_groups,
             enable_ipv6=enable_ipv6,
-            use_proxy=use_proxy,
+            use_proxy=use_proxy_for_agent or use_proxy_for_weblog,
             rc_api_enabled=rc_api_enabled,
             meta_structs_disabled=meta_structs_disabled,
             span_events=span_events,
@@ -264,13 +265,16 @@ class EndToEndScenario(DockerScenario):
             include_sqlserver=include_sqlserver,
         )
 
+        self._use_proxy_for_agent = use_proxy_for_agent
+        self._use_proxy_for_weblog = use_proxy_for_weblog
+
         self._require_api_key = require_api_key
 
         self.agent_container = AgentContainer(
-            host_log_folder=self.host_log_folder, use_proxy=use_proxy, environment=agent_env
+            host_log_folder=self.host_log_folder, use_proxy=use_proxy_for_agent, environment=agent_env
         )
 
-        if self.use_proxy:
+        if use_proxy_for_agent:
             self.agent_container.depends_on.append(self.proxy_container)
 
         weblog_env = dict(weblog_env) if weblog_env else {}
@@ -294,7 +298,7 @@ class EndToEndScenario(DockerScenario):
             appsec_enabled=appsec_enabled,
             iast_enabled=iast_enabled,
             additional_trace_header_tags=additional_trace_header_tags,
-            use_proxy=use_proxy,
+            use_proxy=use_proxy_for_weblog,
             volumes=weblog_volumes,
         )
 
@@ -439,7 +443,7 @@ class EndToEndScenario(DockerScenario):
         return warmups
 
     def _wait_for_app_readiness(self):
-        if self.use_proxy:
+        if self._use_proxy_for_weblog:
             logger.debug("Wait for app readiness")
 
             if not interfaces.library.ready.wait(40):
@@ -453,6 +457,7 @@ class EndToEndScenario(DockerScenario):
 
                 logger.debug(f"{container.name} ready")
 
+        if self._use_proxy_for_agent:
             if not interfaces.agent.ready.wait(40):
                 raise Exception("Datadog agent not ready")
             logger.debug("Agent ready")
@@ -482,7 +487,7 @@ class EndToEndScenario(DockerScenario):
 
             interfaces.backend.load_data_from_logs()
 
-        elif self.use_proxy:
+        else:
             self._wait_interface(interfaces.library, self.library_interface_timeout)
 
             if self.library in ("nodejs",):

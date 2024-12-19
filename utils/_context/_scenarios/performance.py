@@ -6,7 +6,9 @@ from .endtoend import EndToEndScenario
 
 class PerformanceScenario(EndToEndScenario):
     def __init__(self, name, doc) -> None:
-        super().__init__(name, doc=doc, appsec_enabled=self.appsec_enabled, use_proxy=False)
+        super().__init__(
+            name, doc=doc, appsec_enabled=self.appsec_enabled, use_proxy_for_agent=False, use_proxy_for_weblog=False
+        )
 
     @property
     def appsec_enabled(self):
