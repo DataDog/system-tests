@@ -442,30 +442,40 @@ require('./auth')(app, passport, tracer)
 app.get('/flush', (req, res) => {
   // doesn't have a callback :(
   // tracer._tracer?._dataStreamsProcessor?.writer?.flush?.()
+  console.log(111)
   tracer.dogstatsd?.flush?.()
+  console.log(222)
   tracer._pluginManager?._pluginsByName?.openai?.metrics?.flush?.()
+  console.log(333)
 
   // does have a callback :)
   const promises = []
 
+  console.log(444)
   const { profiler } = require('dd-trace/packages/dd-trace/src/profiling/')
+  console.log(555)
   if (profiler?._collect) {
+    console.log(555555)
     promises.push(profiler._collect('on_shutdown'))
   }
+  console.log(666)
 
   if (tracer._tracer?._exporter?._writer?.flush) {
-    promises.push(promisify((err) => tracer._tracer._exporter._writer.flush(err)))
+    promises.push(promisify((err) => {tracer._tracer._exporter._writer.flush(err); console.log('_tracer._exporter')}))
   }
+  console.log(777)
 
   if (tracer._pluginManager?._pluginsByName?.openai?.logger?.flush) {
-    promises.push(promisify((err) => tracer._pluginManager._pluginsByName.openai.logger.flush(err)))
+    promises.push(promisify((err) => {tracer._pluginManager._pluginsByName.openai.logger.flush(err); console.log('_pluginsByName.openai')}))
   }
+  console.log(888)
 
   Promise.all(promises).then(() => {
     res.status(200).send('OK')
   }).catch((err) => {
     res.status(500).send(err)
   })
+  console.log(999)
 })
 
 app.get('/requestdownstream', async (req, res) => {
