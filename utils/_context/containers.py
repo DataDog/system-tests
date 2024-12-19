@@ -449,6 +449,7 @@ class ImageInfo:
         # True if the image is only available locally and can't be loaded from any hub
 
         self.env = None
+        self.labels: dict[str, str] = {}
         self.name = image_name
         self.local_image_only = local_image_only
 
@@ -477,6 +478,8 @@ class ImageInfo:
             key, value = var.split("=", 1)
             if value:
                 self.env[key] = value
+
+        self.labels = attrs["Config"]["Labels"]
 
     def save_image_info(self, dir_path):
         with open(f"{dir_path}/image.json", encoding="utf-8", mode="w") as f:
@@ -733,6 +736,7 @@ class WeblogContainer(TestedContainer):
             ports={"7777/tcp": self.port, "7778/tcp": weblog._grpc_port},
             stdout_interface=interfaces.library_stdout,
             local_image_only=True,
+            command="./app.sh",
         )
 
         self.tracer_sampling_rate = tracer_sampling_rate
@@ -782,11 +786,11 @@ class WeblogContainer(TestedContainer):
     def configure(self, replay):
         super().configure(replay)
 
-        self.weblog_variant = self.image.env.get("SYSTEM_TESTS_WEBLOG_VARIANT", None)
+        self.weblog_variant = self.image.labels["system-tests-weblog-variant"]
 
         _set_aws_auth_environment(self)
 
-        library = self.image.env["SYSTEM_TESTS_LIBRARY"]
+        library = self.image.labels["system-tests-library"]
 
         if library in ("cpp", "dotnet", "java", "python"):
             self.environment["DD_TRACE_HEADER_TAGS"] = "user-agent:http.request.headers.user-agent"
