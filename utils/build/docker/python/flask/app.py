@@ -73,6 +73,7 @@ from ddtrace.data_streams import set_consume_checkpoint
 from ddtrace.data_streams import set_produce_checkpoint
 
 from debugger_controller import debugger_blueprint
+from exception_replay_controller import exception_replay_blueprint
 
 # Patch kombu and urllib3 since they are not patched automatically
 ddtrace.patch_all(kombu=True, urllib3=True)
@@ -111,6 +112,7 @@ app = Flask(__name__)
 app.secret_key = "SECRET_FOR_TEST"
 app.config["SESSION_TYPE"] = "memcached"
 app.register_blueprint(debugger_blueprint)
+app.register_blueprint(exception_replay_blueprint)
 login_manager = LoginManager()
 login_manager.login_view = "login"
 login_manager.init_app(app)
