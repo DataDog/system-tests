@@ -110,7 +110,6 @@ ignore = [
     "S202",
     "SIM102",
     "SIM110",  # TBD
-    "SLF001",
     "TRY002",
     "TRY003",  # this is a full project to enable this
     "TRY201",
@@ -181,6 +180,7 @@ ignore = [
     "DTZ005",
     "E501",    # line too long
     "FBT002",  # Boolean default positional argument
+    "SLF001",
     "RET505",
     "TRY301",
     "B006",

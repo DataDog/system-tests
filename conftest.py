@@ -421,7 +421,7 @@ def pytest_sessionfinish(session, exitstatus):
                 {library: sorted(versions) for library, versions in LibraryVersion.known_versions.items()}, f, indent=2
             )
 
-        data = session.config._json_report.report  # pylint: disable=protected-access
+        data = session.config._json_report.report  # noqa: SLF001
 
         try:
             junit_modifyreport(
