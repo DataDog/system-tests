@@ -1579,6 +1579,7 @@ tests/:
     Test_Basic: missing_feature
     Test_Propagate: missing_feature
     Test_Propagate_Legacy: missing_feature
+  test_ipv6.py: missing_feature (APMAPI-869)
   test_library_conf.py:
     Test_HeaderTags: missing_feature
     Test_HeaderTags_Colon_Leading: v0.102.0

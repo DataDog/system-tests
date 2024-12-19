@@ -2274,3 +2274,12 @@ class features:
         """
         pytest.mark.features(feature_id=346)(test_object)
         return test_object
+
+    @staticmethod
+    def agent_host_ipv6(test_object):
+        """DD_AGENT_HOST supports an IPv6 address
+
+        https://feature-parity.us1.prod.dog/#/?feature=347
+        """
+        pytest.mark.features(feature_id=347)(test_object)
+        return test_object
