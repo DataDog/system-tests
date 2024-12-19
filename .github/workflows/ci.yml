@@ -93,7 +93,7 @@ jobs:
           path: binaries/
 
   fail-if-target-branch:
-    name: Check if target branch is specified
+    name: Fail if target branch is specified
     needs:
       - get_dev_artifacts
     if: needs.get_dev_artifacts.outputs.target-branch != ''

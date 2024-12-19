@@ -18,7 +18,9 @@ This workflow can validate any system-tests PR, as long as it modifies only the 
 ### Target branch selection
 `dev` version uses `main/master` branch by default but, in the case of some libraries (nodejs, python and ruby), it is possible to configure the CI to use a target branch.
 
-If PR's title includes `[branch:branch_name_to_test]` the workflow will use `branch_name_to_test` instead of `main/master` branch.
+If PR's title includes `[target_library@branch_name_to_test]` the workflow will use `branch_name_to_test` instead of `main/master` branch.
 
-As a security measure, the "Check if target branch is specified" job always fails if a target branch is selected.
+At the moment, it is not possible to run the CI for all libraries in a particular branch but it is limited to the target library indicated in the title.
+
+As a security measure, the "Fail if target branch is specified" job always fails if a target branch is selected.
 
