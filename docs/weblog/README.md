@@ -324,7 +324,9 @@ A POST request which will receive the following JSON body:
 {"name": "table", "value": "user"}
 ```
 
-Where the value for `value` must be used in the vulnerability.
+#### GET /iast/source/sql/test
+
+An empty GET request that will execute two database queries, one to get a username and another to do a vulnerable SELECT using the obtained username.
 
 ### GET /make_distant_call
 

@@ -507,6 +507,29 @@ function initSourceRoutes (app: Express): void {
     res.send('OK')
   })
 
+  app.get('/iast/source/sql/test', async (req: Request, res: Response) => {
+    const client = new Client()
+
+    try {
+      await client.connect()
+
+      const sql = 'SELECT * FROM IAST_USER'
+      const queryResult = await client.query(`${sql} WHERE USERNAME = 'shaquille_oatmeal'`)
+
+      const username = queryResult.rows[0].username
+
+      await client.query(`${sql} WHERE USERNAME = '${username}'`)
+
+      res.send('OK')
+    } catch (err) {
+      console.error('error', err)
+
+      res.status(500).json({ message: 'Error on request ' + err })
+    } finally {
+      client.end()
+    }
+  })
+
   function getKafka () {
     return new Kafka({
       clientId: 'my-app-iast',

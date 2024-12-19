@@ -2,6 +2,7 @@
 
 const { Kafka } = require('kafkajs')
 const { readFileSync } = require('fs')
+const { Client } = require('pg')
 
 function init (app, tracer) {
   app.post('/iast/source/body/test', (req, res) => {
@@ -111,6 +112,29 @@ function init (app, tracer) {
       // do nothing
     }
     res.send('OK')
+  })
+
+  app.get('/iast/source/sql/test', async (req, res) => {
+    const client = new Client()
+
+    try {
+      await client.connect()
+
+      const sql = 'SELECT * FROM IAST_USER'
+      const queryResult = await client.query(`${sql} WHERE USERNAME = 'shaquille_oatmeal'`)
+
+      const username = queryResult.rows[0].username
+
+      await client.query(`${sql} WHERE USERNAME = '${username}'`)
+
+      res.send('OK')
+    } catch (err) {
+      console.error('error', err)
+
+      res.status(500).json({ message: 'Error on request ' + err })
+    } finally {
+      client.end()
+    }
   })
 
   function getKafka () {
