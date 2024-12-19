@@ -25,7 +25,7 @@ class Test_Debugger_Expression_Language(debugger._Base_Debugger_Test):
         self.collect()
 
         self.assert_rc_state_not_error()
-        self.assert_all_probes_are_installed()
+        self.assert_all_probes_are_emitting()
         self.assert_all_weblog_responses_ok(expected_response)
         self._validate_expression_language_messages(self.message_map)
 

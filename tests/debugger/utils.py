@@ -8,8 +8,6 @@ import os
 import os.path
 import uuid
 
-from packaging import version
-
 from utils import interfaces, remote_config, weblog, context
 from utils.tools import logger
 from utils.dd_constants import RemoteConfigApplyState as ApplyState
@@ -177,18 +175,24 @@ class _Base_Debugger_Test:
             logger.debug(f"Waiting for these probes to be {status}: {self.probe_ids}")
 
             for expected_id in self.probe_ids:
-                if expected_id in probe_diagnostics:
-                    probe_status = probe_diagnostics[expected_id]["status"]
+                if expected_id not in probe_diagnostics:
+                    continue
 
-                    logger.debug(f"Probe {expected_id} observed status is {probe_status}")
-                    if probe_status == status or probe_status == "ERROR":
+                probe_status = probe_diagnostics[expected_id]["status"]
+                logger.debug(f"Probe {expected_id} observed status is {probe_status}")
+
+                if probe_status == status or probe_status == "ERROR":
+                    found_ids.add(expected_id)
+                    continue
+
+                if self.get_tracer()["language"] == "dotnet" and status == "INSTALLED":
+                    probe = next(p for p in self.probe_definitions if p["id"] == expected_id)
+                    # EMITTING is not implemented for dotnet span probe
+                    if probe["type"] == "SPAN_PROBE":
                         found_ids.add(expected_id)
+                        continue
 
-            if set(self.probe_ids).issubset(found_ids):
-                logger.debug(f"Success: all probes are {status}")
-                return True
-
-            return False
+            return set(self.probe_ids).issubset(found_ids)
 
         all_probes_ready = False
 
@@ -438,13 +442,30 @@ class _Base_Debugger_Test:
 
         assert not errors, "\n".join(errors)
 
-    def assert_all_probes_are_installed(self):
+    def assert_all_probes_are_emitting(self):
         expected = self.probe_ids
         received = extract_probe_ids(self.probe_diagnostics)
 
-        missing_probes = set(expected) - set(received)
-        if missing_probes:
-            assert not missing_probes, f"Not all probes are installed. Missing ids: {', '.join(missing_probes)}"
+        assert set(expected) <= set(
+            received
+        ), f"Not all probes were received. Missing ids: {', '.join(set(expected) - set(received))}"
+
+        errors = {}
+        for probe_id in self.probe_ids:
+            status = self.probe_diagnostics[probe_id]["status"]
+
+            if status == "EMITTING":
+                continue
+
+            if self.get_tracer()["language"] == "dotnet" and status == "INSTALLED":
+                probe = next(p for p in self.probe_definitions if p["id"] == probe_id)
+                # EMITTING is not implemented for dotnet span probe
+                if probe["type"] == "SPAN_PROBE":
+                    continue
+
+            errors[probe_id] = status
+
+        assert not errors, f"The following probes are not emitting: {errors}"
 
     def assert_all_weblog_responses_ok(self, expected_code=200):
         assert len(self.weblog_responses) > 0, "No responses available."
