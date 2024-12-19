@@ -53,9 +53,9 @@ public class AppSecAuthenticationFilter extends AbstractAuthenticationProcessing
         if (sdkEvent != null) {
             String sdkUser = request.getParameter("sdk_user");
             boolean sdkUserExists = Boolean.parseBoolean(request.getParameter("sdk_user_exists"));
-            authentication = new AppSecSdkToken(username, password, sdkEvent, sdkUser, sdkUserExists);
+            authentication = new AppSecToken(username, password, sdkEvent, sdkUser, sdkUserExists);
         } else {
-            authentication = new AppSecSdkToken(username, password);
+            authentication = new AppSecToken(username, password);
         }
         return this.getAuthenticationManager().authenticate(authentication);
     }
