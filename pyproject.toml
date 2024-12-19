@@ -89,7 +89,6 @@ ignore = [
     "BLE001",  # Do not catch blind exception: `Exception`, big project to enable this
     "C901",    # code complexity, TBD
     "E722",    # bare except, big project to enable this
-    "N801",    # easy
     "N806",
     "PERF401", # TBD, the "good" code can be harder to read
     "PLR0911", # too many return, may be replaced by a higher default value
@@ -175,6 +174,7 @@ ignore = [
     "T201"     # allow print statements in scripts folder
 ]
 "utils/interfaces/schemas/serve_doc.py" = ["INP001"] # this is not a package
+"utils/waf_rules.py" = ["N801"]  # generated file
 # TODO : remove those ignores
 "manifests/*"  = ["ALL"]
 "tests/*" = ["ALL"]
@@ -237,6 +237,7 @@ ignore = [
 "utils/_context/virtual_machines.py" = [
     "ARG002",  # unused method argument
     "FBT002",  # Boolean default positional argument
+    "N801",    # class naming
 ]
 "utils/virtual_machine/*" = [
     "A002",
