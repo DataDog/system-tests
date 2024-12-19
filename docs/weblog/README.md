@@ -765,7 +765,7 @@ This endpoint is used to test for command injection attacks by executing a comma
 The chosen operation must be injected with the `GET` or `POST` parameter.
 
 Query parameters and body fields required in the `GET` and `POST` method:
-- `command`: containing the string to be executed as a command.
+- `command`: containing string or an array of strings to be executed as a command.
 
 The endpoint should support the following content types in the `POST` method:
 - `application/x-www-form-urlencoded`
@@ -778,8 +778,8 @@ system("$command");
 ```
 
 Examples:
-- `GET`: `/rasp/cmdi?command=/usr/bin/reboot -f
-- `POST`: `{"command": "/usr/bin/reboot -f"}`
+- `GET`: `/rasp/cmdi?command=/usr/bin/touch /tmp/passwd
+- `POST`: `{"command": ["/usr/bin/touch", "/tmp/passwd"]}`
 
 ### \[GET\] /set_cookie
 

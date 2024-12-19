@@ -21,7 +21,7 @@ class Test_Cmdi_UrlQuery:
     """Command Injection through query parameters"""
 
     def setup_cmdi_get(self):
-        self.r = weblog.get("/rasp/cmdi", params={"command": "/usr/bin/reboot -f"})
+        self.r = weblog.get("/rasp/cmdi", params={"command": "/usr/bin/touch /tmp/passwd"})
 
     def test_cmdi_get(self):
         assert self.r.status_code == 403
@@ -32,11 +32,11 @@ class Test_Cmdi_UrlQuery:
             {
                 "resource": {
                     "address": "server.sys.exec.cmd",
-                    "value": "/usr/bin/reboot -f",
+                    "value": "/usr/bin/touch /tmp/passwd",
                 },
                 "params": {
                     "address": "server.request.query",
-                    "value": "/usr/bin/reboot -f",
+                    "value": "/usr/bin/touch /tmp/passwd",
                 },
             },
         )
@@ -49,7 +49,7 @@ class Test_Cmdi_BodyUrlEncoded:
     """Command Injection through a url-encoded body parameter"""
 
     def setup_cmdi_post_urlencoded(self):
-        self.r = weblog.post("/rasp/cmdi", data={"command": "/usr/bin/reboot -f"})
+        self.r = weblog.post("/rasp/cmdi", data={"command": "/usr/bin/touch /tmp/passwd"})
 
     def test_cmdi_post_urlencoded(self):
         assert self.r.status_code == 403
@@ -60,11 +60,11 @@ class Test_Cmdi_BodyUrlEncoded:
             {
                 "resource": {
                     "address": "server.sys.exec.cmd",
-                    "value": "/usr/bin/reboot -f",
+                    "value": "/usr/bin/touch /tmp/passwd",
                 },
                 "params": {
                     "address": "server.request.body",
-                    "value": "/usr/bin/reboot -f",
+                    "value": "/usr/bin/touch /tmp/passwd",
                 },
             },
         )
@@ -77,7 +77,9 @@ class Test_Cmdi_BodyXml:
     """Command Injection through an xml body parameter"""
 
     def setup_cmdi_post_xml(self):
-        data = "<?xml version='1.0' encoding='utf-8'?><command>/usr/bin/reboot -f</command>"
+        data = (
+            "<?xml version='1.0' encoding='utf-8'?><command><cmd>/usr/bin/touch</cmd><cmd>/tmp/passwd</cmd></command>"
+        )
         self.r = weblog.post("/rasp/cmdi", data=data, headers={"Content-Type": "application/xml"})
 
     def test_cmdi_post_xml(self):
@@ -87,14 +89,8 @@ class Test_Cmdi_BodyXml:
             self.r,
             "rasp-932-110",
             {
-                "resource": {
-                    "address": "server.sys.exec.cmd",
-                    "value": "/usr/bin/reboot -f",
-                },
-                "params": {
-                    "address": "server.request.body",
-                    "value": "/usr/bin/reboot -f",
-                },
+                "resource": {"address": "server.sys.exec.cmd", "value": '/usr/bin/touch "/tmp/passwd"'},
+                "params": {"address": "server.request.body", "value": "/usr/bin/touch"},
             },
         )
 
@@ -107,7 +103,7 @@ class Test_Cmdi_BodyJson:
 
     def setup_cmdi_post_json(self):
         """AppSec detects attacks in JSON body values"""
-        self.r = weblog.post("/rasp/cmdi", json={"command": "/usr/bin/reboot -f"})
+        self.r = weblog.post("/rasp/cmdi", json={"command": ["/usr/bin/touch", "/tmp/passwd"]})
 
     def test_cmdi_post_json(self):
         assert self.r.status_code == 403
@@ -118,11 +114,11 @@ class Test_Cmdi_BodyJson:
             {
                 "resource": {
                     "address": "server.sys.exec.cmd",
-                    "value": "/usr/bin/reboot -f",
+                    "value": '/usr/bin/touch "/tmp/passwd"',
                 },
                 "params": {
                     "address": "server.request.body",
-                    "value": "/usr/bin/reboot -f",
+                    "value": "/usr/bin/touch",
                 },
             },
         )
@@ -136,7 +132,7 @@ class Test_Cmdi_Mandatory_SpanTags:
     """Validate span tag generation on exploit attempts"""
 
     def setup_cmdi_span_tags(self):
-        self.r = weblog.get("/rasp/cmdi", params={"command": "/usr/bin/reboot -f"})
+        self.r = weblog.get("/rasp/cmdi", params={"command": "/usr/bin/touch /tmp/passwd"})
 
     def test_cmdi_span_tags(self):
         validate_span_tags(self.r, expected_metrics=["_dd.appsec.rasp.duration"])
@@ -150,7 +146,7 @@ class Test_Cmdi_Optional_SpanTags:
     """Validate span tag generation on exploit attempts"""
 
     def setup_cmdi_span_tags(self):
-        self.r = weblog.get("/rasp/cmdi", params={"command": "/usr/bin/reboot -f"})
+        self.r = weblog.get("/rasp/cmdi", params={"command": "/usr/bin/touch /tmp/passwd"})
 
     def test_cmdi_span_tags(self):
         validate_span_tags(self.r, expected_metrics=["_dd.appsec.rasp.duration_ext", "_dd.appsec.rasp.rule.eval"])
@@ -164,7 +160,7 @@ class Test_Cmdi_StackTrace:
     """Validate stack trace generation on exploit attempts"""
 
     def setup_cmdi_stack_trace(self):
-        self.r = weblog.get("/rasp/cmdi", params={"command": "/usr/bin/reboot -f"})
+        self.r = weblog.get("/rasp/cmdi", params={"command": "/usr/bin/touch /tmp/passwd"})
 
     def test_cmdi_stack_trace(self):
         assert self.r.status_code == 403
@@ -178,7 +174,7 @@ class Test_Cmdi_Telemetry:
     """Validate Telemetry data on exploit attempts"""
 
     def setup_cmdi_telemetry(self):
-        self.r = weblog.get("/rasp/cmdi", params={"command": "/usr/bin/reboot -f"})
+        self.r = weblog.get("/rasp/cmdi", params={"command": "/usr/bin/touch /tmp/passwd"})
 
     def test_cmdi_telemetry(self):
         assert self.r.status_code == 403
@@ -203,7 +199,7 @@ class Test_Cmdi_Telemetry_Variant_Tag:
     """Validate Telemetry data variant tag on exploit attempts"""
 
     def setup_cmdi_telemetry(self):
-        self.r = weblog.get("/rasp/cmdi", params={"command": "/usr/bin/reboot -f"})
+        self.r = weblog.get("/rasp/cmdi", params={"command": "/usr/bin/touch /tmp/passwd"})
 
     def test_cmdi_telemetry(self):
         assert self.r.status_code == 403
