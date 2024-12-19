@@ -86,26 +86,32 @@ public abstract class ApmTestApi
             FinishOnClose = false,
         };
 
-        var operationName = requestJson.GetPropertyAsString("name");
-        using var scope = Tracer.Instance.StartActive(operationName!, creationSettings);
+        string? operationName = null;
+
+        if (requestJson.TryGetProperty("name", out var nameProperty))
+        {
+            operationName = nameProperty.GetString();
+        }
+
+        using var scope = Tracer.Instance.StartActive(operationName ?? "", creationSettings);
         var span = scope.Span;
 
-        if (requestJson.GetPropertyAsString("service") is { } service)
+        if (requestJson.TryGetProperty("service", out var service))
         {
-            span.ServiceName = service;
+            span.ServiceName = service.GetString();
         }
 
-        if (requestJson.GetPropertyAsString("resource") is { } resource)
+        if (requestJson.TryGetProperty("resource", out var resource))
         {
-            span.ResourceName = resource;
+            span.ResourceName = resource.GetString();
         }
 
-        if (requestJson.GetPropertyAsString("type") is { } type)
+        if (requestJson.TryGetProperty("type", out var type))
         {
-            span.Type = type;
+            span.Type = type.GetString();
         }
 
-        if (requestJson.GetPropertyAs("span_tags", JsonValueKind.Object) is { } tags)
+        if (requestJson.TryGetProperty("span_tags", out var tags))
         {
             foreach (var tag in tags.EnumerateArray())
             {
@@ -125,15 +131,13 @@ public abstract class ApmTestApi
     private static async Task SpanSetMeta(HttpRequest request)
     {
         var requestJson = await ParseJsonAsync(request.Body);
-
         var span = FindSpan(requestJson);
-        var key = requestJson.GetPropertyAsString("key");
-        var value = requestJson.GetPropertyAsString("value");
 
-        if (key is null || value is null)
-        {
-            throw new InvalidOperationException("key or value not found in request json.");
-        }
+        var key = requestJson.GetProperty("key").GetString() ??
+                  throw new InvalidOperationException("key is null in request json.");
+
+        var value = requestJson.GetProperty("value").GetString() ??
+                    throw new InvalidOperationException("value is null in request json.");
 
         span.SetTag(key, value);
         _logger?.LogInformation("Set string span attribute {key}:{value} on span {spanId}.", key, value, span.SpanId);
@@ -142,15 +146,12 @@ public abstract class ApmTestApi
     private static async Task SpanSetMetric(HttpRequest request)
     {
         var requestJson = await ParseJsonAsync(request.Body);
-
         var span = FindSpan(requestJson);
-        var key = requestJson.GetPropertyAsString("key");
-        var value = requestJson.GetPropertyAsDouble("value");
 
-        if (key is null || value is null)
-        {
-            throw new InvalidOperationException("key or value not found in request json.");
-        }
+        var key = requestJson.GetProperty("key").GetString() ??
+                  throw new InvalidOperationException("key is null in request json.");
+
+        var value = requestJson.GetProperty("value").GetDouble();
 
         span.SetTag(key, value);
         _logger?.LogInformation("Set numeric span attribute {key}:{value} on span {spanId}.", key, value, span.SpanId);
@@ -161,22 +162,14 @@ public abstract class ApmTestApi
         var requestJson = await ParseJsonAsync(request.Body);
 
         var span = FindSpan(requestJson);
+        var type = requestJson.GetProperty("type").GetString();
+        var message = requestJson.GetProperty("message").GetString();
+        var stack = requestJson.GetProperty("stack").GetString();
+
         span.Error = true;
-
-        if (requestJson.GetPropertyAsString("type") is { } type)
-        {
-            span.SetTag(Tags.ErrorType, type);
-        }
-
-        if (requestJson.GetPropertyAsString("message") is { } message)
-        {
-            span.SetTag(Tags.ErrorMsg, message);
-        }
-
-        if (requestJson.GetPropertyAsString("stack") is { } stack)
-        {
-            span.SetTag(Tags.ErrorStack, stack);
-        }
+        span.SetTag(Tags.ErrorType, type);
+        span.SetTag(Tags.ErrorMsg, message);
+        span.SetTag(Tags.ErrorStack, stack);
     }
 
     private static async Task<string> ExtractHeaders(HttpRequest request)
@@ -322,7 +315,7 @@ public abstract class ApmTestApi
 
     private static ISpan FindSpan(JsonElement json, string key = "span_id")
     {
-        var spanIdString = json.GetPropertyAsString(key);
+        var spanIdString = json.GetProperty(key).GetString();
 
         if (!ulong.TryParse(spanIdString, out var spanId))
         {
@@ -341,28 +334,22 @@ public abstract class ApmTestApi
 
     private static ISpanContext? FindSpanContext(JsonElement json, string key = "span_id", bool required = true)
     {
-        if (json.GetPropertyAsUInt64(key) is { } spanId)
+        var spanId = json.GetProperty(key).GetUInt64();
+
+        if (Spans.TryGetValue(spanId, out var span))
         {
-            if (Spans.TryGetValue(spanId, out var span))
-            {
-                return span.Context;
-            }
-
-            if (SpanContexts.TryGetValue(spanId, out var spanContext))
-            {
-                return spanContext;
-            }
-
-            if (required)
-            {
-                _logger?.LogError("Span or SpanContext not found with span id: {spanId}.", spanId);
-                throw new InvalidOperationException($"Span or SpanContext not found with span id: {spanId}");
-            }
+            return span.Context;
         }
-        else if (required)
+
+        if (SpanContexts.TryGetValue(spanId, out var spanContext))
         {
-            _logger?.LogError("Required {key} not found or not a valid UInt64 in request json.", key);
-            throw new InvalidOperationException($"Required {key} not found or not a valid UInt64 in request json.");
+            return spanContext;
+        }
+
+        if (required)
+        {
+            _logger?.LogError("Span or SpanContext not found with span id: {spanId}.", spanId);
+            throw new InvalidOperationException($"Span or SpanContext not found with span id: {spanId}");
         }
 
         return null;
