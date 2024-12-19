@@ -534,6 +534,7 @@ class ProxyContainer(TestedContainer):
 
 class AgentContainer(TestedContainer):
     apm_receiver_port: int = 8127
+    dogstatsd_port: int = 8125
 
     def __init__(self, host_log_folder, use_proxy=True, environment=None) -> None:
         environment = environment or {}
@@ -543,7 +544,7 @@ class AgentContainer(TestedContainer):
                 "DD_HOSTNAME": "test",
                 "DD_SITE": self.dd_site,
                 "DD_APM_RECEIVER_PORT": self.apm_receiver_port,
-                "DD_DOGSTATSD_PORT": "8125",
+                "DD_DOGSTATSD_PORT": self.dogstatsd_port,
                 "DD_API_KEY": os.environ.get("DD_API_KEY", _FAKE_DD_API_KEY),
             }
         )
