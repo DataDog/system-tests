@@ -10,7 +10,7 @@ from threading import RLock, Thread
 
 import docker
 from docker.errors import APIError, DockerException
-from docker.models.containers import Container
+from docker.models.containers import Container, ExecResult
 from docker.models.networks import Network
 import pytest
 import requests
@@ -195,7 +195,7 @@ class TestedContainer:
         """Start the container and its dependencies in a thread with circular dependency detection"""
         self.check_circular_dependencies([])
 
-        return self._async_start_recursive(network)
+        return self.async_start_recursive(network)
 
     def network_ipv6(self, network: Network) -> str:
         self._container.reload()
@@ -216,7 +216,7 @@ class TestedContainer:
         for dependency in self.depends_on:
             dependency.check_circular_dependencies(list(seen))
 
-    def _async_start_recursive(self, network: Network):
+    def async_start_recursive(self, network: Network):
         """Recursive version of async_start for circular dependency detection"""
         with self._starting_lock:
             if self._starting_thread is None:
@@ -229,7 +229,7 @@ class TestedContainer:
 
     def _start_with_dependencies(self, network: Network):
         """Start all dependencies of a container and then start the container"""
-        threads = [dependency._async_start_recursive(network) for dependency in self.depends_on]
+        threads = [dependency.async_start_recursive(network) for dependency in self.depends_on]
 
         for thread in threads:
             thread.join()
@@ -270,6 +270,9 @@ class TestedContainer:
             logger.info(f"Healthcheck successful for {self.name}")
 
         return True
+
+    def exec_run(self, cmd: str, *, demux: bool = False) -> ExecResult:
+        return self._container.exec_run(cmd, demux=demux)
 
     def execute_command(self, test, retries=10, interval=1_000_000_000, start_period=0) -> tuple[int, str]:
         """Execute a command inside a container. Useful for healthcheck and warmups.
@@ -357,8 +360,8 @@ class TestedContainer:
                 pytest.exit(f"Container {self.name} is not healthy, please check logs", 1)
 
     def collect_logs(self):
-        TAIL_LIMIT = 50
-        SEP = "=" * 30
+        TAIL_LIMIT = 50  # noqa: N806
+        SEP = "=" * 30  # noqa: N806
 
         keys = []
         if os.environ.get("DD_API_KEY"):
@@ -692,7 +695,11 @@ class WeblogContainer(TestedContainer):
     ) -> None:
         from utils import weblog
 
-        self.port = weblog.port
+        self.host_port = weblog.port
+        self.container_port = 7777
+
+        self.host_grpc_port = weblog.grpc_port
+        self.container_grpc_port = 7778
 
         volumes = {} if volumes is None else volumes
         volumes[f"./{host_log_folder}/docker/weblog/logs/"] = {"bind": "/var/log/system-tests", "mode": "rw"}
@@ -754,10 +761,13 @@ class WeblogContainer(TestedContainer):
             # This is worse than the line above though prevents mmap bugs locally
             security_opt=["seccomp=unconfined"],
             healthcheck={
-                "test": f"curl --fail --silent --show-error --max-time 2 localhost:{self.port}/healthcheck",
+                "test": f"curl --fail --silent --show-error --max-time 2 localhost:{self.container_port}/healthcheck",
                 "retries": 60,
             },
-            ports={"7777/tcp": self.port, "7778/tcp": weblog._grpc_port},
+            ports={
+                f"{self.host_port}/tcp": self.container_port,
+                f"{self.host_grpc_port}/tcp": self.container_grpc_port,
+            },
             stdout_interface=interfaces.library_stdout,
             local_image_only=True,
             command="./app.sh",

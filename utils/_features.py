@@ -3,7 +3,7 @@
 import pytest
 
 
-class features:
+class _Features:
     """Data source is https://dd-feature-parity.azurewebsites.net/Import/Features
 
     run this command to get new features:
@@ -2283,3 +2283,6 @@ class features:
         """
         pytest.mark.features(feature_id=347)(test_object)
         return test_object
+
+
+features = _Features()
