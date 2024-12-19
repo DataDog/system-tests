@@ -1221,9 +1221,9 @@ class Test_V2_Login_Events_RC:
         self._assert_response(self.tests[2], validate_anon)
 
 
-libs_without_user_id = []
-libs_without_user_exist = ["nodejs"]
-libs_without_user_id_on_failure = ["nodejs"]
+libs_without_user_id = ["java"]
+libs_without_user_exist = ["nodejs", "java"]
+libs_without_user_id_on_failure = ["nodejs", "java"]
 
 
 @rfc("https://docs.google.com/document/d/1RT38U6dTTcB-8muiYV4-aVDCsT_XrliyakjtAPyjUpw")
