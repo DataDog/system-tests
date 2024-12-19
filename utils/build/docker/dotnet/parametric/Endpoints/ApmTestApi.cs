@@ -123,8 +123,8 @@ public abstract class ApmTestApi
 
         return Result(new
         {
-            span_id = span.SpanId.ToString(),
-            trace_id = span.TraceId.ToString(),
+            span_id = span.SpanId,
+            trace_id = span.TraceId,
         });
     }
 
