@@ -13,8 +13,12 @@ public class CmdExamples {
         Runtime.getRuntime().addShutdownHook(new Thread(taskExecutor::shutdown));
     }
 
-    public String insecureCmd(final String... cmd) {
+    public String insecureCmd(final String cmd) {
         return withProcess(() -> Runtime.getRuntime().exec(cmd));
+    }
+
+    public String insecureCmd(final String[] arrayCmd) {
+        return withProcess(() -> Runtime.getRuntime().exec(arrayCmd));
     }
 
     private String withProcess(final Operation<Process> op) {
