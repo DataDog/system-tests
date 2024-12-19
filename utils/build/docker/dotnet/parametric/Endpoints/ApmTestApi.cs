@@ -82,7 +82,7 @@ public abstract class ApmTestApi
 
         var creationSettings = new SpanCreationSettings
         {
-            Parent = FindParentSpanContext(requestJson) ?? SpanContext.None,
+            Parent = FindParentSpanContext(requestJson),
             FinishOnClose = false,
         };
 
