@@ -111,8 +111,6 @@ ignore = [
     "SIM102",
     "SIM110",  # TBD
     "TRY003",  # this is a full project to enable this
-    "TRY300",
-    "UP007",
     "UP038",   # we really want this? TBD
 
 
@@ -154,6 +152,7 @@ ignore = [
     "TD002",  # todo found
     "TD003",  # todo found
     "TD004",  # todo found
+    "TRY300", # not always obvious
 
 ]
 
