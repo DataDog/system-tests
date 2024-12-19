@@ -111,7 +111,6 @@ ignore = [
     "SIM102",
     "SIM110",  # TBD
     "TRY003",  # this is a full project to enable this
-    "UP038",   # we really want this? TBD
 
 
     ### Ignores that will be kept for the entire project
@@ -153,6 +152,7 @@ ignore = [
     "TD003",  # todo found
     "TD004",  # todo found
     "TRY300", # not always obvious
+    "UP038",  # not a big fan
 
 ]
 
@@ -166,7 +166,6 @@ ignore = [
 "utils/interfaces/schemas/serve_doc.py" = ["INP001"] # this is not a package
 "utils/waf_rules.py" = ["N801"]  # generated file
 # TODO : remove those ignores
-"manifests/*"  = ["ALL"]
 "tests/*" = ["ALL"]
 "utils/build/*"  = ["ALL"]
 "lib-injection/*" = ["ALL"]
