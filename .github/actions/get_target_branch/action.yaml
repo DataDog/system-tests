@@ -21,4 +21,4 @@ runs:
           branch="${branch:1}"
           branch="${branch::-1}"
           echo "target-branch=${branch}" >> $GITHUB_OUTPUT
-        if
+        fi
