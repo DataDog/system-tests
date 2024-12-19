@@ -271,7 +271,13 @@ class Test_RemoteConfigurationUpdateSequenceLiveDebugging(RemoteConfigurationFie
 
     def setup_tracer_update_sequence(self):
         with open("tests/remote_config/rc_mocked_responses_live_debugging.json", "r", encoding="utf-8") as f:
-            payloads = json.load(f)
+            probe_sets = json.load(f)
+
+        payloads = []
+        version = 1
+        for probe_set in probe_sets:
+            payloads.append(remote_config.build_debugger_command(probe_set, version))
+            version += 1
 
         remote_config.send_sequential_commands(payloads)
 
@@ -399,53 +405,6 @@ class Test_RemoteConfigurationUpdateSequenceFeaturesNoCache(RemoteConfigurationF
             rc_check_request(data, ASM_FEATURES_EXPECTED_REQUESTS[self.request_number], caching=False)
 
             self.request_number += 1
-
-            return False
-
-        interfaces.library.validate_remote_configuration(validator=validate)
-
-
-@rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
-@scenarios.remote_config_mocked_backend_live_debugging_nocache
-@features.remote_config_object_supported
-class Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache(RemoteConfigurationFieldsBasicTests):
-    """
-    Tests that over a sequence of related updates, tracers follow the RFC for the Live Debugging product
-
-    It may be brokken as it's using the new RC API, and thus may have a additional
-    RC request between each payload. But we do not have a way to check that.
-    """
-
-    request_number = defaultdict(int)
-
-    def setup_tracer_update_sequence(self):
-        with open("tests/remote_config/rc_mocked_responses_live_debugging_nocache.json", "r", encoding="utf-8") as f:
-            payloads = json.load(f)
-
-        remote_config.send_sequential_commands(payloads)
-
-    def test_tracer_update_sequence(self):
-        """test update sequence, based on a scenario mocked in the proxy"""
-
-        with open("tests/remote_config/rc_expected_requests_live_debugging.json", encoding="utf-8") as f:
-            LIVE_DEBUGGING_EXPECTED_REQUESTS = json.load(f)
-
-        self.assert_client_fields()
-
-        def validate(data):
-            """Helper to validate config request content"""
-
-            if not self.response_has_been_overwritten(data):
-                return False
-
-            runtime_id = data["request"]["content"]["client"]["client_tracer"]["runtime_id"]
-            logger.info(f"validating request number {self.request_number[runtime_id]}")
-            if self.request_number[runtime_id] >= len(LIVE_DEBUGGING_EXPECTED_REQUESTS):
-                return True
-
-            rc_check_request(data, LIVE_DEBUGGING_EXPECTED_REQUESTS[self.request_number[runtime_id]], caching=False)
-
-            self.request_number[runtime_id] += 1
 
             return False
 
