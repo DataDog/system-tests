@@ -1,11 +1,10 @@
 import subprocess, datetime, os, time, signal, shlex
 from utils.tools import logger
 from utils import context
-from utils.k8s_lib_injection.k8s_sync_kubectl import KubectlLock
 from retry import retry
 
 
-def execute_command(command, timeout=None, logfile=None, subprocess_env=None):
+def execute_command(command, timeout=None, logfile=None, subprocess_env=None, quiet=False):
     """Call shell-command and either return its output or kill it
     if it doesn't normally exit within timeout seconds and return None
     """
@@ -43,7 +42,10 @@ def execute_command(command, timeout=None, logfile=None, subprocess_env=None):
         if not logfile:
             output = process.stdout.read()
             output = str(output, "utf-8")
-            logger.debug(f"Command: {_clean_secrets(command)} \n {_clean_secrets(output)}")
+            if not quiet:
+                logger.debug(f"Command: {_clean_secrets(command)} \n {_clean_secrets(output)}")
+            else:
+                logger.info(f"Command: {_clean_secrets(command)}")
             if process.returncode != 0:
                 output_error = process.stderr.read()
                 logger.debug(f"Command: {_clean_secrets(command)} \n {_clean_secrets(output_error)}")
@@ -71,67 +73,44 @@ def _clean_secrets(data_to_clean):
 
 
 @retry(delay=1, tries=5)
-def execute_command_sync(command, k8s_kind_cluster, timeout=None, logfile=None):
-    """Execute a command in the k8s cluster, but we use a lock to change the context of kubectl."""
-
-    with KubectlLock():
-        execute_command(f"kubectl config use-context {k8s_kind_cluster.context_name}", logfile=logfile)
-        execute_command(command, timeout=timeout, logfile=logfile)
-
-
-@retry(delay=1, tries=5)
-def helm_add_repo(name, url, k8s_kind_cluster, update=False):
-    with KubectlLock():
-        execute_command(f"kubectl config use-context {k8s_kind_cluster.context_name}")
-        execute_command(f"helm repo add {name} {url}")
-        if update:
-            execute_command(f"helm repo update")
+def helm_add_repo(name, url, k8s_cluster_info, update=False):
+    # TODO RMM remove config use-context?????
+    execute_command(f"kubectl config use-context {k8s_cluster_info.context_name}")
+    execute_command(f"helm repo add {name} {url}")
+    if update:
+        execute_command(f"helm repo update")
 
 
 @retry(delay=1, tries=5)
-def helm_install_chart(k8s_kind_cluster, name, chart, set_dict={}, value_file=None, upgrade=False):
+def helm_install_chart(k8s_cluster_info, name, chart, set_dict={}, value_file=None, upgrade=False):
     # Copy and replace cluster name in the value file
     custom_value_file = None
     if value_file:
         with open(value_file) as file:
             value_data = file.read()
 
-        value_data = value_data.replace("$$CLUSTER_NAME$$", str(k8s_kind_cluster.cluster_name))
+        value_data = value_data.replace("$$CLUSTER_NAME$$", str(k8s_cluster_info.cluster_name))
 
-        custom_value_file = f"{context.scenario.host_log_folder}/{k8s_kind_cluster.cluster_name}_help_values.yaml"
+        custom_value_file = f"{context.scenario.host_log_folder}/{k8s_cluster_info.cluster_name}_help_values.yaml"
 
         with open(custom_value_file, "w") as fp:
             fp.write(value_data)
             fp.seek(0)
 
-    with KubectlLock():
-        execute_command(f"kubectl config use-context {k8s_kind_cluster.context_name}")
-        set_str = ""
-        if set_dict:
-            for key, value in set_dict.items():
-                set_str += f" --set {key}={value}"
+    # TODO RMM remove config use-context?????
+    execute_command(f"kubectl config use-context {k8s_cluster_info.context_name}")
+    set_str = ""
+    if set_dict:
+        for key, value in set_dict.items():
+            set_str += f" --set {key}={value}"
 
-        command = f"helm install {name} --debug --wait {set_str} {chart}"
+    command = f"helm install {name} --debug --wait {set_str} {chart}"
+    if upgrade:
+        command = f"helm upgrade {name} --debug --install --wait {set_str} {chart}"
+    if custom_value_file:
+        # command = f"helm install {name} --wait {set_str} -f {value_file} {chart}"#
+        command = f"helm install {name} {set_str} --debug -f {custom_value_file} {chart}"
         if upgrade:
-            command = f"helm upgrade {name} --debug --install --wait {set_str} {chart}"
-        if custom_value_file:
-            # command = f"helm install {name} --wait {set_str} -f {value_file} {chart}"#
-            command = f"helm install {name} {set_str} --debug -f {custom_value_file} {chart}"
-            if upgrade:
-                command = f"helm upgrade {name} {set_str} --debug --install -f {custom_value_file} {chart}"
-        execute_command("kubectl config current-context")
-        execute_command(command, timeout=90)
-
-
-def path_clusterrole(k8s_kind_cluster):
-    """Hack until the patching permission is added in the official helm chart."""
-    with KubectlLock():
-        execute_command(f"kubectl config use-context {k8s_kind_cluster.context_name}")
-        execute_command("sh utils/k8s_lib_injection/resources/operator/scripts/path_clusterrole.sh")
-
-
-def kubectl_apply(k8s_kind_cluster, file):
-    """Apply template in a cluster."""
-    with KubectlLock():
-        execute_command(f"kubectl config use-context {k8s_kind_cluster.context_name}")
-        execute_command("kubectl apply -f " + file)
+            command = f"helm upgrade {name} {set_str} --debug --install -f {custom_value_file} {chart}"
+    execute_command("kubectl config current-context")
+    execute_command(command, timeout=90, quiet=True)  # To many tracers to show in the logs
