@@ -3,7 +3,7 @@
     [
         {
             "id": "33a64d99-fbed-5eab-bb10-80735405c09b",
-            "type": "metric",
+            "type": "METRIC_PROBE",
             "created": 1605093071.000000000,
             "language": "",
             "veriosn": 0,
@@ -23,7 +23,7 @@
     [
         {
             "id": "33a64d99-fbed-5eab-bb10-80735405c09b",
-            "type": "metric",
+            "type": "METRIC_PROBE",
             "created": 1605093071.000000000,
             "language": "",
             "veriosn": 1,
@@ -44,7 +44,7 @@
     [
         {
             "id": "33a64d99-fbed-5eab-bb10-80735405c09b",
-            "type": "metric",
+            "type": "METRIC_PROBE",
             "created": 1605093071.000000000,
             "language": "",
             "veriosn": 0,
@@ -62,7 +62,7 @@
         },
         {
             "id": "22953c88-eadc-4f9a-aa0f-7f6243f4bf8a",
-            "type": "log",
+            "type": "LOG_PROBE",
             "created": 1605093071.000000000,
             "language": "",
             "veriosn": 0,
@@ -77,7 +77,7 @@
     [
         {
             "id": "33a64d99-fbed-5eab-bb10-80735405c09b",
-            "type": "metric",
+            "type": "METRIC_PROBE",
             "created": 1605093071.000000000,
             "language": "",
             "veriosn": 0,
@@ -95,7 +95,7 @@
         },
         {
             "id": "kepf0cf2-9top-45cf-9f39-59installed",
-            "type": "span",
+            "type": "SPAN_PROBE",
             "language": "",
             "where": {
                 "typeName": "target",
@@ -107,7 +107,7 @@
     [
         {
             "id": "33a64d99-fbed-5eab-bb10-80735405c09b",
-            "type": "metric",
+            "type": "METRIC_PROBE",
             "created": 1605093071.000000000,
             "language": "",
             "veriosn": 0,
@@ -125,7 +125,7 @@
         },
         {
             "id": "22953c88-eadc-4f9a-aa0f-7f6243f4bf8a",
-            "type": "log",
+            "type": "LOG_PROBE",
             "created": 1605093071.000000000,
             "language": "",
             "veriosn": 0,
@@ -138,7 +138,7 @@
         },
         {
             "id": "kepf0cf2-9top-45cf-9f39-59installed",
-            "type": "span",
+            "type": "SPAN_PROBE",
             "language": "",
             "where": {
                 "typeName": "target",
@@ -150,7 +150,7 @@
     [
         {
             "id": "33a64d99-fbed-5eab-bb10-80735405c09b",
-            "type": "metric",
+            "type": "METRIC_PROBE",
             "created": 1605093071.000000000,
             "language": "",
             "veriosn": 0,
@@ -168,7 +168,7 @@
         },
         {
             "id": "22953c88-eadc-4f9a-aa0f-7f6243f4bf8a",
-            "type": "log",
+            "type": "LOG_PROBE",
             "created": 1605093071.000000000,
             "language": "",
             "veriosn": 0,
@@ -183,7 +183,7 @@
     [
         {
             "id": "33a64d99-fbed-5eab-bb10-80735405c09b",
-            "type": "metric",
+            "type": "METRIC_PROBE",
             "created": 1605093071.000000000,
             "language": "",
             "veriosn": 0,
@@ -201,7 +201,7 @@
         },
         {
             "id": "22953c88-eadc-4f9a-aa0f-7f6243f4bf8a",
-            "type": "log",
+            "type": "LOG_PROBE",
             "created": 1605093071.000000000,
             "language": "",
             "veriosn": 0,

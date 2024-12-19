@@ -26,10 +26,9 @@
 				"targets_version": 2,
 				"config_states": [
 					{
-						"id": "metric_33a64d99-fbed-5eab-bb10-80735405c09b",
+						"id": "metricProbe_33a64d99-fbed-5eab-bb10-80735405c09b",
 						"version": 1,
-						"product": "LIVE_DEBUGGING",
-						"apply_state": 2
+						"product": "LIVE_DEBUGGING"
 					}
 				],
 				"has_error": false,
@@ -38,12 +37,12 @@
 		},
 		"cached_target_files": [
 			{
-				"path": "datadog/2/LIVE_DEBUGGING/metric_33a64d99-fbed-5eab-bb10-80735405c09b/config",
-				"length": 310,
+				"path": "datadog/2/LIVE_DEBUGGING/metricProbe_33a64d99-fbed-5eab-bb10-80735405c09b/config",
+				"length": 316,
 				"hashes": [
 					{
 						"algorithm": "sha256",
-						"hash": "e1fc49aaa7dfda97a06d3cf7cbd1ac021b4858b5ba8380eda2e487b66c0ade63"
+						"hash": "bbbaf6ac0011c040d5c15287f461b0b7fd39552958d546e9b41c8c07442634da"
 					}
 				]
 			}
@@ -57,10 +56,9 @@
 				"targets_version": 3,
 				"config_states": [
 					{
-						"id": "metric_33a64d99-fbed-5eab-bb10-80735405c09b",
+						"id": "metricProbe_33a64d99-fbed-5eab-bb10-80735405c09b",
 						"version": 1,
-						"product": "LIVE_DEBUGGING",
-						"apply_state": 2
+						"product": "LIVE_DEBUGGING"
 					}
 				],
 				"has_error": false,
@@ -69,12 +67,12 @@
 		},
 		"cached_target_files": [
 			{
-				"path": "datadog/2/LIVE_DEBUGGING/metric_33a64d99-fbed-5eab-bb10-80735405c09b/config",
-				"length": 315,
+				"path": "datadog/2/LIVE_DEBUGGING/metricProbe_33a64d99-fbed-5eab-bb10-80735405c09b/config",
+				"length": 321,
 				"hashes": [
 					{
 						"algorithm": "sha256",
-						"hash": "f395e3f81a671253af7fac597dce4548a05088c0d4a09e26217bb2b6313c2626"
+						"hash": "4180218218444e1e126a4e4ec41a475b89813d27537fba5c92662fe3510b951d"
 					}
 				]
 			}
@@ -98,16 +96,14 @@
 				"targets_version": 5,
 				"config_states": [
 					{
-						"id": "metric_33a64d99-fbed-5eab-bb10-80735405c09b",
+						"id": "metricProbe_33a64d99-fbed-5eab-bb10-80735405c09b",
 						"version": 1,
-						"product": "LIVE_DEBUGGING",
-						"apply_state": 2
+						"product": "LIVE_DEBUGGING"
 					},
 					{
-						"id": "log_22953c88-eadc-4f9a-aa0f-7f6243f4bf8a",
+						"id": "logProbe_22953c88-eadc-4f9a-aa0f-7f6243f4bf8a",
 						"version": 1,
-						"product": "LIVE_DEBUGGING",
-						"apply_state": 2
+						"product": "LIVE_DEBUGGING"
 					}
 				],
 				"has_error": false,
@@ -116,22 +112,22 @@
 		},
 		"cached_target_files": [
 			{
-				"path": "datadog/2/LIVE_DEBUGGING/metric_33a64d99-fbed-5eab-bb10-80735405c09b/config",
-				"length": 310,
+				"path": "datadog/2/LIVE_DEBUGGING/metricProbe_33a64d99-fbed-5eab-bb10-80735405c09b/config",
+				"length": 316,
 				"hashes": [
 					{
 						"algorithm": "sha256",
-						"hash": "e1fc49aaa7dfda97a06d3cf7cbd1ac021b4858b5ba8380eda2e487b66c0ade63"
+						"hash": "bbbaf6ac0011c040d5c15287f461b0b7fd39552958d546e9b41c8c07442634da"
 					}
 				]
 			},
 			{
-				"path": "datadog/2/LIVE_DEBUGGING/log_22953c88-eadc-4f9a-aa0f-7f6243f4bf8a/config",
-				"length": 203,
+				"path": "datadog/2/LIVE_DEBUGGING/logProbe_22953c88-eadc-4f9a-aa0f-7f6243f4bf8a/config",
+				"length": 209,
 				"hashes": [
 					{
 						"algorithm": "sha256",
-						"hash": "23821a6ebf7650af50305b41babd85edc1e249287b0f2c7ac1efb28f3f0ccf85"
+						"hash": "aec211179c64eff2acbeec327a6fb2866350882bddb9fed066cdbb3423ceffd0"
 					}
 				]
 			}
@@ -145,16 +141,14 @@
 				"targets_version": 6,
 				"config_states": [
 					{
-						"id": "metric_33a64d99-fbed-5eab-bb10-80735405c09b",
+						"id": "metricProbe_33a64d99-fbed-5eab-bb10-80735405c09b",
 						"version": 1,
-						"product": "LIVE_DEBUGGING",
-						"apply_state": 2
+						"product": "LIVE_DEBUGGING"
 					},
 					{
-						"id": "span_kepf0cf2-9top-45cf-9f39-59installed",
+						"id": "spanProbe_kepf0cf2-9top-45cf-9f39-59installed",
 						"version": 1,
-						"product": "LIVE_DEBUGGING",
-						"apply_state": 2
+						"product": "LIVE_DEBUGGING"
 					}
 				],
 				"has_error": false,
@@ -163,22 +157,22 @@
 		},
 		"cached_target_files": [
 			{
-				"path": "datadog/2/LIVE_DEBUGGING/metric_33a64d99-fbed-5eab-bb10-80735405c09b/config",
-				"length": 310,
+				"path": "datadog/2/LIVE_DEBUGGING/metricProbe_33a64d99-fbed-5eab-bb10-80735405c09b/config",
+				"length": 316,
 				"hashes": [
 					{
 						"algorithm": "sha256",
-						"hash": "e1fc49aaa7dfda97a06d3cf7cbd1ac021b4858b5ba8380eda2e487b66c0ade63"
+						"hash": "bbbaf6ac0011c040d5c15287f461b0b7fd39552958d546e9b41c8c07442634da"
 					}
 				]
 			},
 			{
-				"path": "datadog/2/LIVE_DEBUGGING/span_kepf0cf2-9top-45cf-9f39-59installed/config",
-				"length": 158,
+				"path": "datadog/2/LIVE_DEBUGGING/spanProbe_kepf0cf2-9top-45cf-9f39-59installed/config",
+				"length": 164,
 				"hashes": [
 					{
 						"algorithm": "sha256",
-						"hash": "118b9877780fc1177df54881a02d7f01d10a8c97f25805374e1c2f41890fd905"
+						"hash": "8e897cbaccc2d604fbd5f4c910512e9c5d2ac7fee1f984929bf93e596d7a7461"
 					}
 				]
 			}
@@ -192,22 +186,19 @@
 				"targets_version": 7,
 				"config_states": [
 					{
-						"id": "span_kepf0cf2-9top-45cf-9f39-59installed",
+						"id": "spanProbe_kepf0cf2-9top-45cf-9f39-59installed",
 						"version": 1,
-						"product": "LIVE_DEBUGGING",
-						"apply_state": 2
+						"product": "LIVE_DEBUGGING"
 					},
 					{
-						"id": "metric_33a64d99-fbed-5eab-bb10-80735405c09b",
+						"id": "metricProbe_33a64d99-fbed-5eab-bb10-80735405c09b",
 						"version": 1,
-						"product": "LIVE_DEBUGGING",
-						"apply_state": 2
+						"product": "LIVE_DEBUGGING"
 					},
 					{
-						"id": "log_22953c88-eadc-4f9a-aa0f-7f6243f4bf8a",
+						"id": "logProbe_22953c88-eadc-4f9a-aa0f-7f6243f4bf8a",
 						"version": 1,
-						"product": "LIVE_DEBUGGING",
-						"apply_state": 2
+						"product": "LIVE_DEBUGGING"
 					}
 				],
 				"has_error": false,
@@ -216,32 +207,32 @@
 		},
 		"cached_target_files": [
 			{
-				"path": "datadog/2/LIVE_DEBUGGING/span_kepf0cf2-9top-45cf-9f39-59installed/config",
-				"length": 158,
+				"path": "datadog/2/LIVE_DEBUGGING/spanProbe_kepf0cf2-9top-45cf-9f39-59installed/config",
+				"length": 164,
 				"hashes": [
 					{
 						"algorithm": "sha256",
-						"hash": "118b9877780fc1177df54881a02d7f01d10a8c97f25805374e1c2f41890fd905"
+						"hash": "8e897cbaccc2d604fbd5f4c910512e9c5d2ac7fee1f984929bf93e596d7a7461"
 					}
 				]
 			},
 			{
-				"path": "datadog/2/LIVE_DEBUGGING/metric_33a64d99-fbed-5eab-bb10-80735405c09b/config",
-				"length": 315,
+				"path": "datadog/2/LIVE_DEBUGGING/metricProbe_33a64d99-fbed-5eab-bb10-80735405c09b/config",
+				"length": 321,
 				"hashes": [
 					{
 						"algorithm": "sha256",
-						"hash": "41d151b02e162072d6af44d6661ce74fbec07f11eed8de12c926958838616c66"
+						"hash": "3712620153e0f4d41f03ca93fc8618b9f6714918a1f117cf110f25e6131eef52"
 					}
 				]
 			},
 			{
-				"path": "datadog/2/LIVE_DEBUGGING/log_22953c88-eadc-4f9a-aa0f-7f6243f4bf8a/config",
-				"length": 203,
+				"path": "datadog/2/LIVE_DEBUGGING/logProbe_22953c88-eadc-4f9a-aa0f-7f6243f4bf8a/config",
+				"length": 209,
 				"hashes": [
 					{
 						"algorithm": "sha256",
-						"hash": "23821a6ebf7650af50305b41babd85edc1e249287b0f2c7ac1efb28f3f0ccf85"
+						"hash": "aec211179c64eff2acbeec327a6fb2866350882bddb9fed066cdbb3423ceffd0"
 					}
 				]
 			}
@@ -255,16 +246,14 @@
 				"targets_version": 8,
 				"config_states": [
 					{
-						"id": "metric_33a64d99-fbed-5eab-bb10-80735405c09b",
+						"id": "metricProbe_33a64d99-fbed-5eab-bb10-80735405c09b",
 						"version": 1,
-						"product": "LIVE_DEBUGGING",
-						"apply_state": 2
+						"product": "LIVE_DEBUGGING"
 					},
 					{
-						"id": "log_22953c88-eadc-4f9a-aa0f-7f6243f4bf8a",
+						"id": "logProbe_22953c88-eadc-4f9a-aa0f-7f6243f4bf8a",
 						"version": 1,
-						"product": "LIVE_DEBUGGING",
-						"apply_state": 2
+						"product": "LIVE_DEBUGGING"
 					}
 				],
 				"has_error": false,
@@ -273,22 +262,22 @@
 		},
 		"cached_target_files": [
 			{
-				"path": "datadog/2/LIVE_DEBUGGING/metric_33a64d99-fbed-5eab-bb10-80735405c09b/config",
-				"length": 310,
+				"path": "datadog/2/LIVE_DEBUGGING/metricProbe_33a64d99-fbed-5eab-bb10-80735405c09b/config",
+				"length": 316,
 				"hashes": [
 					{
 						"algorithm": "sha256",
-						"hash": "e1fc49aaa7dfda97a06d3cf7cbd1ac021b4858b5ba8380eda2e487b66c0ade63"
+						"hash": "bbbaf6ac0011c040d5c15287f461b0b7fd39552958d546e9b41c8c07442634da"
 					}
 				]
 			},
 			{
-				"path": "datadog/2/LIVE_DEBUGGING/log_22953c88-eadc-4f9a-aa0f-7f6243f4bf8a/config",
-				"length": 203,
+				"path": "datadog/2/LIVE_DEBUGGING/logProbe_22953c88-eadc-4f9a-aa0f-7f6243f4bf8a/config",
+				"length": 209,
 				"hashes": [
 					{
 						"algorithm": "sha256",
-						"hash": "23821a6ebf7650af50305b41babd85edc1e249287b0f2c7ac1efb28f3f0ccf85"
+						"hash": "aec211179c64eff2acbeec327a6fb2866350882bddb9fed066cdbb3423ceffd0"
 					}
 				]
 			}
@@ -302,16 +291,14 @@
 				"targets_version": 9,
 				"config_states": [
 					{
-						"id": "metric_33a64d99-fbed-5eab-bb10-80735405c09b",
+						"id": "metricProbe_33a64d99-fbed-5eab-bb10-80735405c09b",
 						"version": 1,
-						"product": "LIVE_DEBUGGING",
-						"apply_state": 2
+						"product": "LIVE_DEBUGGING"
 					},
 					{
-						"id": "log_22953c88-eadc-4f9a-aa0f-7f6243f4bf8a",
+						"id": "logProbe_22953c88-eadc-4f9a-aa0f-7f6243f4bf8a",
 						"version": 1,
-						"product": "LIVE_DEBUGGING",
-						"apply_state": 2
+						"product": "LIVE_DEBUGGING"
 					}
 				],
 				"has_error": false,
@@ -320,22 +307,22 @@
 		},
 		"cached_target_files": [
 			{
-				"path": "datadog/2/LIVE_DEBUGGING/metric_33a64d99-fbed-5eab-bb10-80735405c09b/config",
-				"length": 310,
+				"path": "datadog/2/LIVE_DEBUGGING/metricProbe_33a64d99-fbed-5eab-bb10-80735405c09b/config",
+				"length": 316,
 				"hashes": [
 					{
 						"algorithm": "sha256",
-						"hash": "e1fc49aaa7dfda97a06d3cf7cbd1ac021b4858b5ba8380eda2e487b66c0ade63"
+						"hash": "bbbaf6ac0011c040d5c15287f461b0b7fd39552958d546e9b41c8c07442634da"
 					}
 				]
 			},
 			{
-				"path": "datadog/2/LIVE_DEBUGGING/log_22953c88-eadc-4f9a-aa0f-7f6243f4bf8a/config",
-				"length": 203,
+				"path": "datadog/2/LIVE_DEBUGGING/logProbe_22953c88-eadc-4f9a-aa0f-7f6243f4bf8a/config",
+				"length": 209,
 				"hashes": [
 					{
 						"algorithm": "sha256",
-						"hash": "23821a6ebf7650af50305b41babd85edc1e249287b0f2c7ac1efb28f3f0ccf85"
+						"hash": "aec211179c64eff2acbeec327a6fb2866350882bddb9fed066cdbb3423ceffd0"
 					}
 				]
 			}
@@ -349,16 +336,14 @@
 				"targets_version": 9,
 				"config_states": [
 					{
-						"id": "metric_33a64d99-fbed-5eab-bb10-80735405c09b",
+						"id": "metricProbe_33a64d99-fbed-5eab-bb10-80735405c09b",
 						"version": 1,
-						"product": "LIVE_DEBUGGING",
-						"apply_state": 2
+						"product": "LIVE_DEBUGGING"
 					},
 					{
-						"id": "log_22953c88-eadc-4f9a-aa0f-7f6243f4bf8a",
+						"id": "logProbe_22953c88-eadc-4f9a-aa0f-7f6243f4bf8a",
 						"version": 1,
-						"product": "LIVE_DEBUGGING",
-						"apply_state": 2
+						"product": "LIVE_DEBUGGING"
 					}
 				],
 				"has_error": false,
@@ -367,22 +352,22 @@
 		},
 		"cached_target_files": [
 			{
-				"path": "datadog/2/LIVE_DEBUGGING/metric_33a64d99-fbed-5eab-bb10-80735405c09b/config",
-				"length": 310,
+				"path": "datadog/2/LIVE_DEBUGGING/metricProbe_33a64d99-fbed-5eab-bb10-80735405c09b/config",
+				"length": 316,
 				"hashes": [
 					{
 						"algorithm": "sha256",
-						"hash": "e1fc49aaa7dfda97a06d3cf7cbd1ac021b4858b5ba8380eda2e487b66c0ade63"
+						"hash": "bbbaf6ac0011c040d5c15287f461b0b7fd39552958d546e9b41c8c07442634da"
 					}
 				]
 			},
 			{
-				"path": "datadog/2/LIVE_DEBUGGING/log_22953c88-eadc-4f9a-aa0f-7f6243f4bf8a/config",
-				"length": 203,
+				"path": "datadog/2/LIVE_DEBUGGING/logProbe_22953c88-eadc-4f9a-aa0f-7f6243f4bf8a/config",
+				"length": 209,
 				"hashes": [
 					{
 						"algorithm": "sha256",
-						"hash": "23821a6ebf7650af50305b41babd85edc1e249287b0f2c7ac1efb28f3f0ccf85"
+						"hash": "aec211179c64eff2acbeec327a6fb2866350882bddb9fed066cdbb3423ceffd0"
 					}
 				]
 			}
