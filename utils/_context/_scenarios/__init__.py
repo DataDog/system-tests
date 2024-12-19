@@ -16,7 +16,7 @@ from .performance import PerformanceScenario
 from .profiling import ProfilingScenario
 from .test_the_test import TestTheTestScenario
 from .auto_injection import InstallerAutoInjectionScenario, InstallerAutoInjectionScenarioProfiling
-from .k8s_lib_injection import KubernetesScenario, WeblogInjectionScenario, K8sScenario, K8sSparkScenario
+from .k8s_lib_injection import WeblogInjectionScenario, K8sScenario, K8sSparkScenario
 from .docker_ssi import DockerSSIScenario
 from .external_processing import ExternalProcessingScenario
 from .ipv6 import IPV6Scenario
@@ -707,26 +707,6 @@ class scenarios:
         github_workflow="libinjection",
     )
 
-    k8s_library_injection_basic = KubernetesScenario(
-        "K8S_LIBRARY_INJECTION_BASIC",
-        doc=" Kubernetes Instrumentation basic scenario",
-        github_workflow="libinjection",
-        scenario_groups=[ScenarioGroup.ALL, ScenarioGroup.LIB_INJECTION],
-    )
-
-    k8s_library_injection_djm = KubernetesScenario(
-        "K8S_LIBRARY_INJECTION_DJM",
-        doc="Kubernetes Instrumentation with Data Jobs Monitoring",
-        github_workflow="libinjection",
-        scenario_groups=[ScenarioGroup.ALL, ScenarioGroup.LIB_INJECTION],
-    )
-
-    k8s_library_injection_profiling = KubernetesScenario(
-        "K8S_LIBRARY_INJECTION_PROFILING",
-        doc=" Kubernetes auto instrumentation, profiling activation",
-        github_workflow="libinjection",
-        scenario_groups=[ScenarioGroup.ALL, ScenarioGroup.LIB_INJECTION],
-    )
     lib_injection_validation = WeblogInjectionScenario(
         "LIB_INJECTION_VALIDATION",
         doc="Validates the init images without kubernetes enviroment",

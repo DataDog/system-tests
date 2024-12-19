@@ -1,6 +1,7 @@
 import os
 from utils.tools import logger
 from utils.k8s_lib_injection.k8s_command_utils import execute_command
+from kubernetes import client, config
 
 
 class K8sClusterProvider:
@@ -8,13 +9,16 @@ class K8sClusterProvider:
 
     def __init__(self, is_local_managed=False):
         self.is_local_managed = is_local_managed
+        self._cluster_info = None
 
     def configure(self):
         pass
 
     def get_cluster_info(self):
         """It should return a K8sClusterInfo object with the cluster information"""
-        raise NotImplementedError
+        if self._cluster_info is None:
+            raise ValueError("Cluster not configured")
+        return self._cluster_info
 
     def ensure_cluster(self):
         """All local managed clusters should be created here"""
@@ -26,6 +30,13 @@ class K8sClusterProvider:
         if self.is_local_managed:
             raise NotImplementedError
         logger.info("Using an external K8s cluster: Remember to clean up the resources!!")
+
+    def create_spak_service_account(self):
+        """Create service account for launching spark application in k8s"""
+        execute_command(f"kubectl create serviceaccount spark")
+        execute_command(
+            f"kubectl create clusterrolebinding spark-role --clusterrole=edit --serviceaccount=default:spark --namespace=default"
+        )
 
 
 class K8sClusterInfo:
@@ -39,6 +50,7 @@ class K8sClusterInfo:
         self.internal_weblog_port = None
         self.docker_in_docker = False
         self.cluster_template = cluster_template
+        self._kubeconfig_initialized = False
 
     def configure_networking(
         self,
@@ -64,29 +76,67 @@ class K8sClusterInfo:
             return self.internal_weblog_port
         return self.weblog_port
 
+    def _configure_kubeconfig(self):
+        try:
+            config.load_kube_config()
+            logger.info(f"kube config loaded")
+            self._kubeconfig_initialized = True
+        except Exception as e:
+            logger.error(f"Error loading kube config: {e}")
+            raise e
+
+    def core_v1_api(self):
+        """Provides de CoreV1Api object (from kubernetes python api) to interact with the k8s cluster"""
+        if not self._kubeconfig_initialized:
+            self._configure_kubeconfig()
+        return client.CoreV1Api(api_client=config.new_client_from_config(context=self.context_name))
+
+    def apps_api(self):
+        """Provides de AppsV1Api object (from kubernetes python api) to interact with the k8s cluster"""
+        if not self._kubeconfig_initialized:
+            self._configure_kubeconfig()
+        return client.AppsV1Api(api_client=config.new_client_from_config(context=self.context_name))
+
+
+class K8sMiniKubeClusterProvider(K8sClusterProvider):
+    """Provider for kind k8s clusters"""
+
+    def __init__(self):
+        super().__init__(is_local_managed=True)
+
+    def configure(self):
+        self._cluster_info = K8sClusterInfo(cluster_name="minikube", context_name="minikube")
+        self._cluster_info.configure_networking(docker_in_docker="GITLAB_CI" in os.environ)
+
+    def ensure_cluster(self):
+        logger.info("Ensuring MiniKube cluster")
+        execute_command("minikube start --extra-config=apiserver.service-node-port-range=8100-18081")
+        execute_command("minikube status")
+        # Set the cluster host name/minikube ip. We need to start the cluster first
+        self._cluster_info.cluster_host_name = execute_command("minikube ip").strip()
+        logger.info(f"Cluster host name: {self._cluster_info.cluster_host_name}")
+
+    def destroy_cluster(self):
+        logger.info("Destroying MiniKube cluster")
+        execute_command("minikube delete")
+
 
 class K8sKindClusterProvider(K8sClusterProvider):
     """Provider for kind k8s clusters"""
 
     def __init__(self):
         super().__init__(is_local_managed=True)
-        self.cluster_info = None
 
     def configure(self):
-        self.cluster_info = K8sClusterInfo(
+        self._cluster_info = K8sClusterInfo(
             cluster_name="lib-injection-testing",
             context_name="kind-lib-injection-testing",
             cluster_template="utils/k8s_lib_injection/resources/kind-config-template.yaml",
         )
-        self.cluster_info.configure_networking(docker_in_docker="GITLAB_CI" in os.environ)
-
-    def get_cluster_info(self):
-        if self.cluster_info is None:
-            raise ValueError("Cluster not configured")
-
-        return self.cluster_info
+        self._cluster_info.configure_networking(docker_in_docker="GITLAB_CI" in os.environ)
 
     def ensure_cluster(self):
+        logger.info("Ensuring kind cluster")
         kind_command = f"kind create cluster --image=kindest/node:v1.25.3@sha256:f52781bc0d7a19fb6c405c2af83abfeb311f130707a0e219175677e366cc45d1 --name {self.get_cluster_info().cluster_name} --config {self.get_cluster_info().cluster_template} --wait 1m"
 
         if "GITLAB_CI" in os.environ:
@@ -100,10 +150,9 @@ class K8sKindClusterProvider(K8sClusterProvider):
             execute_command(kind_command)
 
     def destroy_cluster(self):
-        if self.is_local_managed:
-            raise NotImplementedError
-
-        logger.info("Using an external K8s cluster: Remember to clean up the resources!! ")
+        logger.info("Destroying kind cluster")
+        execute_command(f"kind delete cluster --name {self.get_cluster_info().cluster_name}")
+        execute_command(f"docker rm -f {self.get_cluster_info().cluster_name}-control-plane")
 
     def _setup_kind_in_gitlab(self):
         # The build runs in a docker container:
