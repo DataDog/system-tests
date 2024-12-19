@@ -315,17 +315,11 @@ public abstract class ApmTestApi
 
     private static ISpan FindSpan(JsonElement json, string key = "span_id")
     {
-        var spanIdString = json.GetProperty(key).GetString();
-
-        if (!ulong.TryParse(spanIdString, out var spanId))
-        {
-            _logger?.LogError("Required {key}:{value} not valid in request json.", key, spanIdString);
-            throw new InvalidOperationException($"Required {key}:{spanIdString} not valid in request json.");
-        }
+        var spanId = json.GetProperty(key).GetUInt64();
 
         if (!Spans.TryGetValue(spanId, out var span))
         {
-            _logger?.LogError("Span not found with span id: {spanId}.", spanIdString);
+            _logger?.LogError("Span not found with span id: {spanId}.", spanId);
             throw new InvalidOperationException($"Span not found with span id: {spanId}");
         }
 
