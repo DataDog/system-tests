@@ -2,6 +2,8 @@ package com.datadoghq.vertx3.rasp;
 
 import static io.vertx.core.http.HttpMethod.POST;
 
+import com.datadoghq.system_tests.iast.utils.CmdExamples;
+
 import io.netty.buffer.ByteBufInputStream;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.ext.web.Router;
@@ -33,12 +35,19 @@ public class RaspRouteProvider implements Consumer<Router> {
 
     private static final String FILE = "file";
 
+    private static final String LIST_DIR = "list_dir";
+
+    private static final String COMMAND = "command";
+
     private static final String DOMAIN = "domain";
 
     private final DataSource dataSource;
 
+    private final CmdExamples cmdExamples;
+
     public RaspRouteProvider(final DataSource dataSource) {
         this.dataSource = dataSource;
+        this.cmdExamples= new CmdExamples();
     }
 
     @Override
@@ -50,6 +59,21 @@ public class RaspRouteProvider implements Consumer<Router> {
         router.route().path("/rasp/lfi").consumes("application/xml").blockingHandler(rc -> executeLfi(rc, parseFileXml(rc.getBody()).getFile()));
         router.route().path("/rasp/lfi").consumes("application/json").blockingHandler(rc -> executeLfi(rc, rc.getBodyAsJson().getString(FILE)));
         router.route().path("/rasp/lfi").blockingHandler(rc -> executeLfi(rc, rc.request().getParam(FILE)));
+        router.route().path("/rasp/shi").consumes("application/xml").blockingHandler(rc -> executeShi(rc, parseListDirXml(rc.getBody()).getCmd()));
+        router.route().path("/rasp/shi").consumes("application/json").blockingHandler(rc -> executeShi(rc, rc.getBodyAsJson().getString(LIST_DIR)));
+        router.route().path("/rasp/shi").blockingHandler(rc -> executeShi(rc, rc.request().getParam(LIST_DIR)));
+        router.route().path("/rasp/cmdi").consumes("application/xml").blockingHandler(rc -> executeCmdi(rc, parseCommandXml(rc.getBody()).getCommand()));
+        router.route().path("/rasp/cmdi").consumes("application/json").blockingHandler(rc -> {
+            var jsonArray = rc.getBodyAsJson().getJsonArray(COMMAND);
+            String[] commandArray = jsonArray.stream()
+                    .map(Object::toString)
+                    .toArray(String[]::new);
+            executeCmdi(rc, commandArray);
+        });
+        router.route().path("/rasp/cmdi").blockingHandler(rc -> {
+            String[] commandArray = rc.request().getParam(COMMAND).split(",");
+            executeCmdi(rc, commandArray);
+        });
         router.route().path("/rasp/ssrf").consumes("application/xml").blockingHandler(rc -> executeUrl(rc, parseDomainXml(rc.getBody()).getDomain()));
         router.route().path("/rasp/ssrf").consumes("application/json").blockingHandler(rc -> executeUrl(rc, rc.getBodyAsJson().getString(FILE)));
         router.route().path("/rasp/ssrf").blockingHandler(rc -> executeUrl(rc, rc.request().getParam(FILE)));
@@ -74,6 +98,18 @@ public class RaspRouteProvider implements Consumer<Router> {
         new File(file);
         rc.response().end("OK");
     }
+
+    private void executeShi(final RoutingContext rc, final String cmd) {
+        cmdExamples.insecureCmd(cmd);
+        rc.response().end("OK");
+    }
+
+    private void executeCmdi(final RoutingContext rc, final String[] arrayCmd) {
+        cmdExamples.insecureCmd(arrayCmd);
+        rc.response().end("OK");
+    }
+
+
 
     private static void executeUrl(final RoutingContext rc, String urlString) {
         try {
@@ -109,6 +145,26 @@ public class RaspRouteProvider implements Consumer<Router> {
             JAXBContext jc = JAXBContext.newInstance(FileDTO.class);
             Unmarshaller unmarshaller = jc.createUnmarshaller();
             return (FileDTO) unmarshaller.unmarshal(new ByteBufInputStream(buffer.getByteBuf()));
+        } catch (JAXBException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private ListDirDTO parseListDirXml(final Buffer buffer) {
+        try {
+            JAXBContext jc = JAXBContext.newInstance(ListDirDTO.class);
+            Unmarshaller unmarshaller = jc.createUnmarshaller();
+            return (ListDirDTO) unmarshaller.unmarshal(new ByteBufInputStream(buffer.getByteBuf()));
+        } catch (JAXBException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private CommandDTO parseCommandXml(final Buffer buffer) {
+        try {
+            JAXBContext jc = JAXBContext.newInstance(CommandDTO.class);
+            Unmarshaller unmarshaller = jc.createUnmarshaller();
+            return (CommandDTO) unmarshaller.unmarshal(new ByteBufInputStream(buffer.getByteBuf()));
         } catch (JAXBException e) {
             throw new RuntimeException(e);
         }
@@ -169,6 +225,35 @@ public class RaspRouteProvider implements Consumer<Router> {
 
         public void setDomain(String domain) {
             this.domain = domain;
+        }
+    }
+
+    @XmlRootElement(name = "list_dir")
+    @XmlAccessorType(XmlAccessType.FIELD)
+    public static class ListDirDTO {
+        @XmlValue
+        private String cmd;
+
+        public String getCmd() {
+            return cmd;
+        }
+
+        public void setCmd(String cmd) {
+            this.cmd = cmd;
+        }
+    }
+
+    @XmlRootElement(name = "command")
+    @XmlAccessorType(XmlAccessType.FIELD)
+    public static class CommandDTO {
+        private String[] command;
+
+        public String[] getCommand() {
+            return command;
+        }
+
+        public void setCommand(String[] command) {
+            this.command = command;
         }
     }
 }
