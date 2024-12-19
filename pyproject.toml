@@ -107,7 +107,6 @@ ignore = [
     "PTH122",
     "PTH123",  # `open()` should be replaced by `Path.open()`
     "RUF012",
-    "RUF013",
     "S202",
     "S507",
     "SIM102",

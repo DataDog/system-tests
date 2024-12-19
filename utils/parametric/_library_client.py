@@ -178,13 +178,13 @@ class APMLibraryClient:
             json={"span_id": span_id, "type": typestr, "message": message, "stack": stack},
         )
 
-    def span_add_link(self, span_id: int, parent_id: int, attributes: dict = None):
+    def span_add_link(self, span_id: int, parent_id: int, attributes: dict | None = None):
         self._session.post(
             self._url("/trace/span/add_link"),
             json={"span_id": span_id, "parent_id": parent_id, "attributes": attributes or {}},
         )
 
-    def span_add_event(self, span_id: int, name: str, timestamp: int, attributes: dict = None):
+    def span_add_event(self, span_id: int, name: str, timestamp: int, attributes: dict | None = None):
         self._session.post(
             self._url("/trace/span/add_event"),
             json={"span_id": span_id, "name": name, "timestamp": timestamp, "attributes": attributes or {}},
@@ -358,7 +358,7 @@ class _TestSpan:
     def set_error(self, typestr: str = "", message: str = "", stack: str = ""):
         self._client.span_set_error(self.span_id, typestr, message, stack)
 
-    def add_link(self, parent_id: int, attributes: dict = None):
+    def add_link(self, parent_id: int, attributes: dict | None = None):
         self._client.span_add_link(self.span_id, parent_id, attributes)
 
     def finish(self):
