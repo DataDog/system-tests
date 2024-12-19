@@ -12,19 +12,13 @@ outputs:
 runs:
   using: composite
   steps:
-    - name: Check title
-      id: check-title
-      shell: bash
-      run: |
-        if [[ ${{ inputs.text }} =~ [java|dotnet|python|ruby|php|golang|cpp|agent|nodejs)@.+?\] ]]; then
-            echo "match=true" >> $GITHUB_OUTPUT
-        fi
     - name: Extract target branch
       id: extract
-      if: steps.check-title.outputs.match == 'true'
       shell: bash
       run: |
         branch=$(echo "${{ inputs.text }}" | grep -ioP '(?<=\[java|dotnet|python|ruby|php|golang|cpp|agent|nodejs)@.+?\]' | tr -d '[:space:]')
-        branch="${branch:1}"
-        branch="${branch::-1}"
-        echo "target-branch=${branch}" >> $GITHUB_OUTPUT
+        if [[ ${#branch} > 0 ]]; then
+          branch="${branch:1}"
+          branch="${branch::-1}"
+          echo "target-branch=${branch}" >> $GITHUB_OUTPUT
+        if
