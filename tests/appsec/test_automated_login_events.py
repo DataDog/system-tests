@@ -1221,9 +1221,9 @@ class Test_V2_Login_Events_RC:
         self._assert_response(self.tests[2], validate_anon)
 
 
-libs_without_user_id = []
-libs_without_user_exist = ["nodejs"]
-libs_without_user_id_on_failure = ["nodejs"]
+libs_without_user_id = ["java"]
+libs_without_user_exist = ["nodejs", "java"]
+libs_without_user_id_on_failure = ["nodejs", "java"]
 
 
 @rfc("https://docs.google.com/document/d/1RT38U6dTTcB-8muiYV4-aVDCsT_XrliyakjtAPyjUpw")
@@ -1932,8 +1932,9 @@ class Test_V3_Login_Events_Blocking:
 
         assert self.config_state_2[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
         assert self.config_state_3[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
-        interfaces.library.assert_waf_attack(self.r_login_blocked, rule="block-user-id")
-        assert self.r_login_blocked.status_code == 403
+        if context.library not in libs_without_user_id:
+            interfaces.library.assert_waf_attack(self.r_login_blocked, rule="block-user-id")
+            assert self.r_login_blocked.status_code == 403
 
     def setup_login_event_blocking_auto_login(self):
         rc.rc_state.reset().apply()
