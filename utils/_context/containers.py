@@ -878,10 +878,6 @@ class WeblogContainer(TestedContainer):
     def telemetry_heartbeat_interval(self):
         return 2
 
-    def request(self, method, url, **kwargs):
-        """Perform an HTTP request on the weblog, must NOT be used for tests"""
-        return requests.request(method, f"http://localhost:{self.port}{url}", **kwargs)  # noqa: S113
-
 
 class PostgresContainer(SqlDbTestedContainer):
     def __init__(self, host_log_folder) -> None:

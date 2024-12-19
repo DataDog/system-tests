@@ -491,9 +491,11 @@ class EndToEndScenario(DockerScenario):
             self._wait_interface(interfaces.library, self.library_interface_timeout)
 
             if self.library in ("nodejs",):
+                from utils import weblog  # TODO better interface
+
                 # for weblogs who supports it, call the flush endpoint
                 try:
-                    r = self.weblog_container.request("GET", "/flush", timeout=10)
+                    r = weblog.get("/flush", timeout=10)
                     assert r.status_code == 200
                 except:
                     self.weblog_container.healthy = False
