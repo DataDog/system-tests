@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using Datadog.Trace;
 using System.Reflection;
 using System.Runtime.CompilerServices;
