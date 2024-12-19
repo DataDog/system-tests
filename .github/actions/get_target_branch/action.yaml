@@ -20,5 +20,5 @@ runs:
         if [ -n "$branch" ]; then
           branch="${branch:1}"
           branch="${branch::-1}"
-          echo "target-branch=${branch}" >> $GITHUB_OUTPUT
         fi
+        echo "target-branch=${branch}" >> $GITHUB_OUTPUT
