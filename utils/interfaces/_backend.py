@@ -88,15 +88,15 @@ class _BackendInterfaceValidator(ProxyBasedInterfaceValidator):
         """
 
         rid = get_rid_from_request(request)
-        tracesData = list(self._wait_for_request_traces(rid))
-        traces = [self._extract_trace_from_backend_response(data["response"]) for data in tracesData]
+        traces_data = list(self._wait_for_request_traces(rid))
+        traces = [self._extract_trace_from_backend_response(data["response"]) for data in traces_data]
         assert (
             len(traces) >= min_traces_len
         ), f"We only found {len(traces)} traces in the library (tracers), but we expected {min_traces_len}!"
         return traces
 
     def assert_otlp_trace_exist(
-        self, request: requests.Request, dd_trace_id: str, dd_api_key: str = None, dd_app_key: str = None
+        self, request: requests.Request, dd_trace_id: str, dd_api_key: str | None = None, dd_app_key: str | None = None
     ) -> dict:
         """Attempts to fetch from the backend, ALL the traces that the OpenTelemetry SDKs sent to Datadog
         during the execution of the given request.

@@ -17,17 +17,19 @@ class _SpanTagValidator:
         self.value_as_regular_expression = value_as_regular_expression
 
     def __call__(self, span):
-        for tagKey in self.tags:
-            if tagKey not in span["meta"]:
-                raise ValueError(f"{tagKey} tag not found in span's meta")
+        for tag_key in self.tags:
+            if tag_key not in span["meta"]:
+                raise ValueError(f"{tag_key} tag not found in span's meta")
 
-            expectValue = self.tags[tagKey]
-            actualValue = span["meta"][tagKey]
+            expect_value = self.tags[tag_key]
+            actual_value = span["meta"][tag_key]
 
             if self.value_as_regular_expression:
-                if not re.compile(expectValue).fullmatch(actualValue):
-                    raise ValueError(f'{tagKey} tag value is "{actualValue}", and should match regex "{expectValue}"')
-            elif expectValue != actualValue:
-                raise ValueError(f'{tagKey} tag in span\'s meta should be "{expectValue}", not "{actualValue}"')
+                if not re.compile(expect_value).fullmatch(actual_value):
+                    raise ValueError(
+                        f'{tag_key} tag value is "{actual_value}", and should match regex "{expect_value}"'
+                    )
+            elif expect_value != actual_value:
+                raise ValueError(f'{tag_key} tag in span\'s meta should be "{expect_value}", not "{actual_value}"')
 
         return True

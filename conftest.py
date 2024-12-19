@@ -421,7 +421,7 @@ def pytest_sessionfinish(session, exitstatus):
                 {library: sorted(versions) for library, versions in LibraryVersion.known_versions.items()}, f, indent=2
             )
 
-        data = session.config._json_report.report  # pylint: disable=protected-access
+        data = session.config._json_report.report  # noqa: SLF001
 
         try:
             junit_modifyreport(
@@ -433,8 +433,8 @@ def pytest_sessionfinish(session, exitstatus):
             logger.exception("Fail to export export reports", exc_info=True)
 
     if session.config.option.vm_gitlab_pipeline:
-        NO_TESTS_COLLECTED = 5
-        SUCCESS = 0
+        NO_TESTS_COLLECTED = 5  # noqa: N806
+        SUCCESS = 0  # noqa: N806
         if exitstatus == NO_TESTS_COLLECTED:
             session.exitstatus = SUCCESS
 

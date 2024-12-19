@@ -369,7 +369,7 @@ class EndToEndScenario(DockerScenario):
 
     def _get_weblog_system_info(self):
         try:
-            code, (stdout, stderr) = self.weblog_container._container.exec_run("uname -a", demux=True)
+            code, (stdout, stderr) = self.weblog_container.exec_run("uname -a", demux=True)
             if code or stdout is None:
                 message = f"Failed to get weblog system info: [{code}] {stderr.decode()} {stdout.decode()}"
             else:

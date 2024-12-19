@@ -24,7 +24,7 @@ from .ipv6 import IPV6Scenario
 update_environ_with_local_env()
 
 
-class scenarios:
+class _Scenarios:
     @staticmethod
     def all_endtoend_scenarios(test_object):
         """Particular use case where a klass applies on all scenarios"""
@@ -807,6 +807,9 @@ class scenarios:
 
     external_processing = ExternalProcessingScenario("EXTERNAL_PROCESSING")
     ipv6 = IPV6Scenario("IPV6")
+
+
+scenarios = _Scenarios()
 
 
 def get_all_scenarios() -> list[Scenario]:
