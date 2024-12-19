@@ -161,7 +161,7 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
                     yield data
 
     def get_telemetry_metric_series(self, namespace, metric):
-        relevantSeries = []
+        relevant_series = []
         for data in self.get_telemetry_data():
             content = data["request"]["content"]
             if content.get("request_type") != "generate-metrics":
@@ -174,8 +174,8 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
                 # Inject here the computed namespace considering the fallback. This simplifies later assertions.
                 series["_computed_namespace"] = computed_namespace
                 if computed_namespace == namespace and series["metric"] == metric:
-                    relevantSeries.append(series)
-        return relevantSeries
+                    relevant_series.append(series)
+        return relevant_series
 
     ############################################################
 

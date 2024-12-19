@@ -107,9 +107,9 @@ class ParametricScenario(Scenario):
             result = {}
             for ctx_filename in glob.glob(f"{self.outer_inst.host_log_folder}/*_context.json"):
                 with open(ctx_filename) as f:
-                    fileContent = f.read()
+                    file_content = f.read()
                     # Remove last carriage return and the last comma. Wrap into json array.
-                    all_params = json.loads(f"[{fileContent[:-2]}]")
+                    all_params = json.loads(f"[{file_content[:-2]}]")
                     # Change from array to unique dict
                     for d in all_params:
                         result.update(d)
@@ -449,7 +449,7 @@ def dotnet_library_factory():
     dotnet_appdir = os.path.join("utils", "build", "docker", "dotnet", "parametric")
     dotnet_absolute_appdir = os.path.join(_get_base_directory(), dotnet_appdir)
     dotnet_reldir = dotnet_appdir.replace("\\", "/")
-    server = APMLibraryTestServer(
+    return APMLibraryTestServer(
         lang="dotnet",
         container_name="dotnet-test-api",
         container_tag="dotnet8_0-test-api",
@@ -504,8 +504,6 @@ CMD ["./ApmTestApi"]
         container_build_dir=dotnet_absolute_appdir,
         container_build_context=_get_base_directory(),
     )
-
-    return server
 
 
 def java_library_factory():
