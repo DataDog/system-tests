@@ -506,7 +506,13 @@ class ProxyContainer(TestedContainer):
     command_host_port = 11111  # Which port exposed to host to sent proxy commands
 
     def __init__(
-        self, *, host_log_folder, rc_api_enabled: bool, meta_structs_disabled: bool, span_events: bool, enable_ipv6: bool
+        self,
+        *,
+        host_log_folder,
+        rc_api_enabled: bool,
+        meta_structs_disabled: bool,
+        span_events: bool,
+        enable_ipv6: bool,
     ) -> None:
         """Parameters:
         span_events: Whether the agent supports the native serialization of span events
