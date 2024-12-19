@@ -1,23 +1,13 @@
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build-app
 WORKDIR /app
-
-# `binutils` is required by 'install_ddtrace.sh' to call 'strings' command
-RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y binutils
-
-COPY utils/build/docker/dotnet/install_ddtrace.sh binaries/ /binaries/
-RUN /binaries/install_ddtrace.sh
 
 # dotnet restore
 COPY utils/build/docker/dotnet/weblog/app.csproj app.csproj
-
-RUN DDTRACE_VERSION=$(cat /app/SYSTEM_TESTS_LIBRARY_VERSION | sed -n -E "s/.*([0-9]+.[0-9]+.[0-9]+).*/\1/p") \
-    dotnet restore
+RUN dotnet restore
 
 # dotnet publish
 COPY utils/build/docker/dotnet/weblog/* .
-
-RUN DDTRACE_VERSION=$(cat /app/SYSTEM_TESTS_LIBRARY_VERSION | sed -n -E "s/.*([0-9]+.[0-9]+.[0-9]+).*/\1/p") \
-    dotnet publish --no-restore -c Release -f net8.0 -o out
+RUN dotnet publish --no-restore -c Release -f net8.0 -o out
 
 #########
 
@@ -25,6 +15,10 @@ FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
 WORKDIR /app
 
 RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y curl
+
+# install dd-trace-dotnet (must be done before setting LD_PRELOAD)
+COPY utils/build/docker/dotnet/install_ddtrace.sh binaries/ /binaries/
+RUN /binaries/install_ddtrace.sh
 
 # Enable Datadog .NET SDK
 ENV CORECLR_ENABLE_PROFILING=1
@@ -46,9 +40,8 @@ ENV COMPlus_DbgEnableMiniDump=1
 # - MiniDumpWithPrivateReadWriteMemory is 2
 ENV COMPlus_DbgMiniDumpType=2
 
-COPY --from=build /app/out .
-COPY --from=build /app/SYSTEM_TESTS_*_VERSION /app/
-COPY --from=build /opt/datadog /opt/datadog
+# copy the dotnet app (built above)
+COPY --from=build-app /app/out .
 
 COPY utils/build/docker/dotnet/weblog/app.sh app.sh
 CMD [ "./app.sh" ]
