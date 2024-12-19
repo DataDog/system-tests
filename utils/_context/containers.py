@@ -47,7 +47,7 @@ def _get_client():
         if "Error while fetching server API version: ('Connection aborted.'" in str(e):
             pytest.exit("Connection refused to docker daemon, is it running?", 1)
 
-        raise e
+        raise
 
 
 _DEFAULT_NETWORK_NAME = "system-tests_default"

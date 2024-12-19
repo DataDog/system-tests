@@ -326,8 +326,6 @@ def pytest_collection_finish(session: pytest.Session):
         except KeyboardInterrupt:  # catching ctrl+C
             context.scenario.close_targets()
             return
-        except Exception as e:
-            raise e
 
     if session.config.option.replay:
         setup_properties.load(context.scenario.host_log_folder)

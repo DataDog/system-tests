@@ -9,7 +9,6 @@ import os
 import re
 import time
 from typing import Any
-from typing import Optional
 
 import requests
 
@@ -286,7 +285,7 @@ class _RemoteConfigState:
     ]
     _uniq = True
 
-    def __init__(self, expires: Optional[str] = None) -> None:
+    def __init__(self, expires: str | None = None) -> None:
         if _RemoteConfigState._uniq:
             _RemoteConfigState._uniq = False
         else:

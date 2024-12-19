@@ -4,9 +4,7 @@ These are used to specify, test and work with trace data and protocols.
 """
 
 import json
-from typing import Optional
 from typing import TypedDict
-from typing import Union
 
 from ddapm_test_agent.trace import Span
 from ddapm_test_agent.trace import Trace
@@ -87,9 +85,9 @@ class V06StatsBucket(TypedDict):
 
 
 class V06StatsPayload(TypedDict):
-    Hostname: Optional[str]
-    Env: Optional[str]
-    Version: Optional[str]
+    Hostname: str | None
+    Env: str | None
+    Version: str | None
     Stats: list[V06StatsBucket]
 
 
@@ -194,7 +192,7 @@ def find_first_span_in_trace_payload(trace: Trace) -> Span:
     return trace[0]
 
 
-def find_root_span(trace: Trace) -> Optional[Span]:
+def find_root_span(trace: Trace) -> Span | None:
     """Return the root span of the trace or None if no root span is found."""
     for span in trace:
         if not span.get("parent_id"):
@@ -207,14 +205,14 @@ def span_has_no_parent(span: Span) -> bool:
     return "parent_id" not in span or span.get("parent_id") == 0 or span.get("parent_id") is None
 
 
-def assert_span_has_tags(span: Span, tags: dict[str, Union[int, str, float, bool]]):
+def assert_span_has_tags(span: Span, tags: dict[str, int | str | float | bool]):
     """Assert that the span has the given tags."""
     for key, value in tags.items():
         assert key in span.get("meta", {}), f"Span missing expected tag {key}={value}"
         assert span.get("meta", {}).get(key) == value, f"Span incorrect tag value for {key}={value}"
 
 
-def assert_trace_has_tags(trace: Trace, tags: dict[str, Union[int, str, float, bool]]):
+def assert_trace_has_tags(trace: Trace, tags: dict[str, int | str | float | bool]):
     """Assert that the trace has the given tags."""
     for span in trace:
         assert_span_has_tags(span, tags)
@@ -272,7 +270,7 @@ def retrieve_span_events(span):
     return events
 
 
-def id_to_int(value: Union[str, int]) -> int:
+def id_to_int(value: str | int) -> int:
     """Convert an id from hex or a base 10 string to an integer."""
     if isinstance(value, int):
         return value
