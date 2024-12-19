@@ -533,7 +533,7 @@ class ProxyContainer(TestedContainer):
 
 
 class AgentContainer(TestedContainer):
-    apm_receiver_port: int = 8126
+    apm_receiver_port: int = 8127
 
     def __init__(self, host_log_folder, use_proxy=True, environment=None) -> None:
         environment = environment or {}
