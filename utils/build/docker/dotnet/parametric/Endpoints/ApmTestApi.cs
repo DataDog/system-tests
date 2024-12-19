@@ -197,7 +197,6 @@ public abstract class ApmTestApi
     private static async Task<string> InjectHeaders(HttpRequest request)
     {
         var requestJson = await ParseJsonAsync(request.Body);
-
         var span = FindSpan(requestJson);
         var httpHeaders = new List<string[]>();
 
@@ -224,7 +223,6 @@ public abstract class ApmTestApi
     private static string Crash(HttpRequest request)
     {
         var thread = new Thread(() => throw new BadImageFormatException("Expected"));
-
         thread.Start();
         thread.Join();
 
