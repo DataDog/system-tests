@@ -110,7 +110,6 @@ ignore = [
     "S202",
     "SIM102",
     "SIM110",  # TBD
-    "SIM401",  # code quality, TBD
     "SLF001",
     "TRY002",
     "TRY003",  # this is a full project to enable this
@@ -268,6 +267,7 @@ ignore = [
     "SIM102",
     "SIM113",
     "SIM300",
+    "SIM401",  # code quality, TBD
     "UP008",
     "UP015",
     "UP031",
