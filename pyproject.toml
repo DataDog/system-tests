@@ -108,7 +108,6 @@ ignore = [
     "PTH123",  # `open()` should be replaced by `Path.open()`
     "RUF012",
     "S202",
-    "S507",
     "SIM102",
     "SIM108",
     "SIM110",  # TBD
@@ -235,6 +234,7 @@ ignore = [
     "ARG002",  # unused method argument
     "FBT002",  # Boolean default positional argument
     "N801",    # class naming
+    "S507",    # Paramiko call with policy set to automatically trust the unknown host key
 ]
 "utils/virtual_machine/*" = [
     "A002",
