@@ -518,9 +518,6 @@ function initSourceRoutes (app: Express): void {
 
       const username = queryResult.rows[0].username
 
-      console.log('username', username)
-      console.log('queryResult.rows', JSON.stringify(queryResult.rows, null, 2))
-
       await client.query(`${sql} WHERE USERNAME = '${username}'`)
 
       res.send('OK')
