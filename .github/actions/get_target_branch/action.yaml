@@ -17,7 +17,7 @@ runs:
       shell: bash
       run: |
         branch=$(echo "${{ inputs.text }}" | grep -ioP '(?<=\[java|dotnet|python|ruby|php|golang|cpp|agent|nodejs)@.+?\]' | tr -d '[:space:]')
-        if [[ ${#branch} > 0 ]]; then
+        if [ "${#branch}" -gt "0" ]; then
           branch="${branch:1}"
           branch="${branch::-1}"
           echo "target-branch=${branch}" >> $GITHUB_OUTPUT
