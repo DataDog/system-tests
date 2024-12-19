@@ -27,6 +27,7 @@ class K8sClusterProvider:
         logger.info("Using an external K8s cluster")
 
     def destroy_cluster(self):
+        # TODO RMM review sleep mode failures on get cluter logs
         if self.is_local_managed:
             raise NotImplementedError
         logger.info("Using an external K8s cluster: Remember to clean up the resources!!")
@@ -110,11 +111,8 @@ class K8sMiniKubeClusterProvider(K8sClusterProvider):
 
     def ensure_cluster(self):
         logger.info("Ensuring MiniKube cluster")
-        execute_command("minikube start --extra-config=apiserver.service-node-port-range=8100-18081")
+        execute_command("minikube start --driver docker --ports 18080:18080 --ports 8126:8126")
         execute_command("minikube status")
-        # Set the cluster host name/minikube ip. We need to start the cluster first
-        self._cluster_info.cluster_host_name = execute_command("minikube ip").strip()
-        logger.info(f"Cluster host name: {self._cluster_info.cluster_host_name}")
 
     def destroy_cluster(self):
         logger.info("Destroying MiniKube cluster")
