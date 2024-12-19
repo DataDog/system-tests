@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Datadog.Trace;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -126,6 +127,7 @@ public abstract class ApmTestApi
         {
             span_id = span.SpanId,
             trace_id = span.TraceId,
+            trace_id_128 = span.GetTag("trace.id")
         });
     }
 
