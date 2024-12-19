@@ -30,21 +30,27 @@ class K8sWeblog:
         self.logger = None
         self.k8s_wrapper = None
 
-    def configure(self, k8s_kind_cluster, k8s_wrapper):
+    def configure(self, k8s_kind_cluster, k8s_wrapper, weblog_env=None, dd_cluster_uds=None, service_account=None):
         self.k8s_kind_cluster = k8s_kind_cluster
         self.k8s_wrapper = k8s_wrapper
+        self.weblog_env = weblog_env
+        self.dd_cluster_uds = dd_cluster_uds
+        self.dd_service_account = service_account
         self.logger = k8s_logger(self.output_folder, self.test_name, "k8s_logger")
 
     def _get_base_weblog_pod(self, env=None, service_account=None):
         """Installs a target app for manual library injection testing.
         It returns when the app pod is ready.
         """
-
+        if self.weblog_env is not None:
+            env = self.weblog_env
+        if self.dd_service_account is not None:
+            service_account = self.dd_service_account
         self.logger.info(
             "[Deploy weblog] Creating weblog pod configuration. weblog_variant_image: [%s], library: [%s], library_init_image: [%s]"
             % (self.app_image, self.library, self.library_init_image)
         )
-
+        library_lib = "js" if self.library == "nodejs" else self.library
         pod_metadata = client.V1ObjectMeta(
             name="my-app",
             namespace="default",
@@ -55,7 +61,7 @@ class K8sWeblog:
                 "tags.datadoghq.com/service": "my-app",
                 "tags.datadoghq.com/version": "local",
             },
-            annotations={f"admission.datadoghq.com/{self.library}-lib.custom-image": f"{self.library_init_image}"},
+            annotations={f"admission.datadoghq.com/{library_lib}-lib.custom-image": f"{self.library_init_image}"},
         )
 
         containers = []
@@ -114,13 +120,19 @@ class K8sWeblog:
 
     def install_weblog_pod_with_admission_controller(self, env=None, service_account=None):
         self.logger.info("[Deploy weblog] Installing weblog pod using admission controller")
+        if self.weblog_env is not None:
+            env = self.weblog_env
+        if self.dd_service_account is not None:
+            service_account = self.dd_service_account
         pod_body = self._get_base_weblog_pod(env=env, service_account=service_account)
         self.k8s_wrapper.create_namespaced_pod(body=pod_body)
         self.logger.info("[Deploy weblog] Weblog pod using admission controller created. Waiting for it to be ready!")
         self.wait_for_weblog_ready_by_label_app("my-app", timeout=200)
 
-    def install_weblog_pod_without_admission_controller(self, use_uds, env=None):
-        pod_body = self._get_base_weblog_pod()
+    def install_weblog_pod_without_admission_controller(self, use_uds=False, env=None):
+        if self.dd_cluster_uds is not None:
+            use_uds = self.dd_cluster_uds
+        pod_body = self._get_base_weblog_pod(env=env)
         pod_body.spec.init_containers = []
         init_container1 = client.V1Container(
             command=["sh", "copy-lib.sh", "/datadog-lib"],
@@ -134,7 +146,7 @@ class K8sWeblog:
         pod_body.spec.init_containers.append(init_container1)
         pod_body.spec.containers[0].env.append(client.V1EnvVar(name="DD_LOGS_INJECTION", value="true"))
         # Env vars for manual injection. Each library has its own env vars
-        for lang_env_vars in K8sWeblog.manual_injection_props[self.library]:
+        for lang_env_vars in K8sWeblog.manual_injection_props["js" if self.library == "nodejs" else self.library]:
             pod_body.spec.containers[0].env.append(
                 client.V1EnvVar(name=lang_env_vars["name"], value=lang_env_vars["value"])
             )

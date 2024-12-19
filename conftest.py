@@ -19,7 +19,7 @@ from utils._decorators import released, configure as configure_decorators
 from utils.properties_serialization import SetupProperties
 
 # Monkey patch JSON-report plugin to avoid noise in report
-JSONReport.pytest_terminal_summary = lambda *args, **kwargs: None
+JSONReport.pytest_terminal_summary = lambda *args, **kwargs: None  # noqa: ARG005
 
 # pytest does not keep a trace of deselected items, so we keep it in a global variable
 _deselected_items = []
@@ -39,6 +39,14 @@ def pytest_addoption(parser):
 
     parser.addoption("--force-dd-trace-debug", action="store_true", help="Set DD_TRACE_DEBUG to true")
     parser.addoption("--force-dd-iast-debug", action="store_true", help="Set DD_IAST_DEBUG_ENABLED to true")
+    # k8s scenarios mandatory parameters
+    parser.addoption("--k8s-weblog", type=str, action="store", help="Set weblog to deploy on k8s")
+    parser.addoption("--k8s-library", type=str, action="store", help="Set language to test")
+    parser.addoption(
+        "--k8s-lib-init-img", type=str, action="store", help="Set tracers init image on the docker registry"
+    )
+    parser.addoption("--k8s-weblog-img", type=str, action="store", help="Set test app image on the docker registry")
+    parser.addoption("--k8s-cluster-version", type=str, action="store", help="Set the datadog agent version")
 
     # Onboarding scenarios mandatory parameters
     parser.addoption("--vm-weblog", type=str, action="store", help="Set virtual machine weblog")
@@ -72,7 +80,10 @@ def pytest_addoption(parser):
         "--ssi-installable-runtime",
         type=str,
         action="store",
-        help="Set the language runtime to install on the docker base image.Empty if we don't want to install any runtime",
+        help=(
+            """Set the language runtime to install on the docker base image. """
+            """Empty if we don't want to install any runtime"""
+        ),
     )
     parser.addoption("--ssi-push-base-images", "-P", action="store_true", help="Push docker ssi base images")
     parser.addoption("--ssi-force-build", "-B", action="store_true", help="Force build ssi base images")
@@ -207,21 +218,23 @@ def pytest_pycollect_makemodule(module_path, parent):
 
     nodeid = str(module_path.relative_to(module_path.cwd()))
 
-    if nodeid in manifests and library in manifests[nodeid]:
-        declaration: str = manifests[nodeid][library]
+    if nodeid not in manifests or library not in manifests[nodeid]:
+        return None
 
-        logger.info(f"Manifest declaration found for {nodeid}: {declaration}")
+    declaration: str = manifests[nodeid][library]
 
-        mod: pytest.Module = pytest.Module.from_parent(parent, path=module_path)
+    logger.info(f"Manifest declaration found for {nodeid}: {declaration}")
 
-        if declaration.startswith(("irrelevant", "flaky")):
-            mod.add_marker(pytest.mark.skip(reason=declaration))
-            logger.debug(f"Module {nodeid} is skipped by manifest file because {declaration}")
-        else:
-            mod.add_marker(pytest.mark.xfail(reason=declaration))
-            logger.debug(f"Module {nodeid} is xfailed by manifest file because {declaration}")
+    mod: pytest.Module = pytest.Module.from_parent(parent, path=module_path)
 
-        return mod
+    if declaration.startswith(("irrelevant", "flaky")):
+        mod.add_marker(pytest.mark.skip(reason=declaration))
+        logger.debug(f"Module {nodeid} is skipped by manifest file because {declaration}")
+    else:
+        mod.add_marker(pytest.mark.xfail(reason=declaration))
+        logger.debug(f"Module {nodeid} is xfailed by manifest file because {declaration}")
+
+    return mod
 
 
 @pytest.hookimpl(tryfirst=True)

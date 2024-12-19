@@ -3,6 +3,7 @@ import json
 import pytest
 
 from utils._context.header_tag_vars import VALID_CONFIGS, INVALID_CONFIGS
+from utils.proxy.ports import ProxyPorts
 from utils.tools import update_environ_with_local_env
 
 from .core import Scenario, ScenarioGroup
@@ -15,9 +16,10 @@ from .performance import PerformanceScenario
 from .profiling import ProfilingScenario
 from .test_the_test import TestTheTestScenario
 from .auto_injection import InstallerAutoInjectionScenario, InstallerAutoInjectionScenarioProfiling
-from .k8s_lib_injection import KubernetesScenario, WeblogInjectionScenario
+from .k8s_lib_injection import KubernetesScenario, WeblogInjectionScenario, K8sScenario, K8sSparkScenario
 from .docker_ssi import DockerSSIScenario
 from .external_processing import ExternalProcessingScenario
+from .ipv6 import IPV6Scenario
 
 update_environ_with_local_env()
 
@@ -54,7 +56,7 @@ class scenarios:
         "OTEL_INTEGRATIONS",
         weblog_env={
             "OTEL_EXPORTER_OTLP_PROTOCOL": "http/protobuf",
-            "OTEL_EXPORTER_OTLP_ENDPOINT": "http://proxy:8126",
+            "OTEL_EXPORTER_OTLP_ENDPOINT": f"http://proxy:{ProxyPorts.open_telemetry_weblog}",
             "OTEL_EXPORTER_OTLP_TRACES_HEADERS": "dd-protocol=otlp,dd-otlp-path=agent",
             "OTEL_INTEGRATIONS_TEST": True,
         },
@@ -67,7 +69,11 @@ class scenarios:
         include_rabbitmq=True,
         include_mysql_db=True,
         include_sqlserver=True,
-        doc="We use the open telemetry library to automatically instrument the weblogs instead of using the DD library. This scenario represents this case in the integration with different external systems, for example the interaction with sql database.",
+        doc=(
+            "We use the open telemetry library to automatically instrument the weblogs instead of using the DD library."
+            "This scenario represents this case in the integration with different external systems, for example the "
+            "interaction with sql database."
+        ),
     )
 
     profiling = ProfilingScenario("PROFILING")
@@ -138,6 +144,9 @@ class scenarios:
     appsec_corrupted_rules = EndToEndScenario(
         "APPSEC_CORRUPTED_RULES",
         weblog_env={"DD_APPSEC_RULES": "/appsec_corrupted_rules.yml"},
+        weblog_volumes={
+            "./tests/appsec/appsec_corrupted_rules.json": {"bind": "/appsec_corrupted_rules.json", "mode": "ro"}
+        },
         doc="Test corrupted appsec rules file",
         scenario_groups=[ScenarioGroup.APPSEC],
     )
@@ -242,6 +251,7 @@ class scenarios:
         "APPSEC_RUNTIME_ACTIVATION",
         rc_api_enabled=True,
         appsec_enabled=False,
+        iast_enabled=False,
         weblog_env={"DD_APPSEC_WAF_TIMEOUT": "10000000", "DD_APPSEC_TRACE_RATE_LIMIT": "10000"},  # 10 seconds
         doc="",
         scenario_groups=[ScenarioGroup.APPSEC, ScenarioGroup.APPSEC_RASP],
@@ -466,7 +476,9 @@ class scenarios:
     apm_tracing_e2e_single_span = EndToEndScenario(
         "APM_TRACING_E2E_SINGLE_SPAN",
         weblog_env={
-            "DD_SPAN_SAMPLING_RULES": '[{"service": "weblog", "name": "*single_span_submitted", "sample_rate": 1.0, "max_per_second": 50}]',
+            "DD_SPAN_SAMPLING_RULES": json.dumps(
+                [{"service": "weblog", "name": "*single_span_submitted", "sample_rate": 1.0, "max_per_second": 50}]
+            ),
             "DD_TRACE_SAMPLE_RATE": "0",
         },
         backend_interface_timeout=5,
@@ -500,7 +512,7 @@ class scenarios:
             "DD_TRACE_CLIENT_IP_ENABLED": "true",
             "DD_TRACE_HTTP_CLIENT_ERROR_STATUSES": "200-201,202",
             "DD_SERVICE": "service_test",
-            "DD_TRACE_KAFKA_ENABLED": "false",  # Using Kafka as is the most common endpoint and integration(missing for PHP).
+            "DD_TRACE_KAFKA_ENABLED": "false",  # most common endpoint and integration (missing for PHP).
             "DD_TRACE_KAFKAJS_ENABLED": "false",  # In Node the integration is kafkajs.
             "DD_TRACE_PDO_ENABLED": "false",  # Use PDO for PHP,
             "DD_TRACE_PROPAGATION_STYLE_EXTRACT": "tracecontext,datadog,b3multi",
@@ -531,7 +543,11 @@ class scenarios:
     )
     tracing_config_nondefault_3 = EndToEndScenario(
         "TRACING_CONFIG_NONDEFAULT_3",
-        weblog_env={"DD_TRACE_HTTP_CLIENT_TAG_QUERY_STRING": "false"},
+        weblog_env={
+            "DD_TRACE_HTTP_CLIENT_TAG_QUERY_STRING": "false",
+            "DD_TRACE_CLIENT_IP_HEADER": "custom-ip-header",
+        },
+        appsec_enabled=False,
         doc="",
         scenario_groups=[ScenarioGroup.TRACING_CONFIG],
     )
@@ -566,7 +582,7 @@ class scenarios:
         weblog_env={
             "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1",
             "DD_REMOTE_CONFIG_ENABLED": "true",
-            "DD_DYNAMIC_INSTRUMENTATION_REDACTED_TYPES": "weblog.Models.Debugger.CustomPii,com.datadoghq.system_tests.springboot.CustomPii,CustomPii",
+            "DD_DYNAMIC_INSTRUMENTATION_REDACTED_TYPES": "weblog.Models.Debugger.CustomPii,com.datadoghq.system_tests.springboot.CustomPii,CustomPii",  # noqa: E501
             "DD_DYNAMIC_INSTRUMENTATION_REDACTED_IDENTIFIERS": "customidentifier1,customidentifier2",
         },
         library_interface_timeout=5,
@@ -624,7 +640,10 @@ class scenarios:
 
     chaos_installer_auto_injection = InstallerAutoInjectionScenario(
         "CHAOS_INSTALLER_AUTO_INJECTION",
-        " Onboarding Host Single Step Instrumentation scenario. Machines with previous ld.so.preload entries. Perform chaos testing",
+        doc=(
+            "Onboarding Host Single Step Instrumentation scenario. "
+            "Machines with previous ld.so.preload entries. Perform chaos testing"
+        ),
         vm_provision="auto-inject-ld-preload",
         scenario_groups=[ScenarioGroup.ONBOARDING],
         github_workflow="libinjection",
@@ -643,7 +662,10 @@ class scenarios:
     )
     host_auto_injection_install_script_profiling = InstallerAutoInjectionScenarioProfiling(
         "HOST_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING",
-        "Onboarding Host Single Step Instrumentation scenario using agent auto install script with profiling activating by the installation process",
+        doc=(
+            "Onboarding Host Single Step Instrumentation scenario using agent "
+            "auto install script with profiling activating by the installation process"
+        ),
         vm_provision="host-auto-inject-install-script",
         agent_env={"DD_PROFILING_ENABLED": "auto"},
         app_env={"DD_PROFILING_UPLOAD_PERIOD": "10", "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500"},
@@ -679,7 +701,10 @@ class scenarios:
 
     local_auto_injection_install_script = InstallerAutoInjectionScenario(
         "LOCAL_AUTO_INJECTION_INSTALL_SCRIPT",
-        "Tobe executed locally with krunvm. Installs all the software fron agent installation script, and the replace the apm-library with the uploaded tar file from binaries",
+        doc=(
+            "To be executed locally with krunvm. Installs all the software fron agent installation script, "
+            "and the replace the apm-library with the uploaded tar file from binaries"
+        ),
         vm_provision="local-auto-inject-install-script",
         scenario_groups=[ScenarioGroup.ONBOARDING],
         github_workflow="libinjection",
@@ -719,6 +744,45 @@ class scenarios:
         scenario_groups=[ScenarioGroup.ALL, ScenarioGroup.LIB_INJECTION],
     )
 
+    k8s_lib_injection = K8sScenario("K8S_LIB_INJECTION", doc="Kubernetes lib injection with admission controller")
+    k8s_lib_injection_uds = K8sScenario(
+        "K8S_LIB_INJECTION_UDS",
+        doc="Kubernetes lib injection with admission controller and uds",
+        use_uds=True,
+    )
+    k8s_lib_injection_no_ac = K8sScenario(
+        "K8S_LIB_INJECTION_NO_AC",
+        doc="Kubernetes lib injection without admission controller",
+        with_admission_controller=False,
+    )
+    k8s_lib_injection_no_ac_uds = K8sScenario(
+        "K8S_LIB_INJECTION_NO_AC_UDS",
+        doc="Kubernetes lib injection without admission controller and UDS",
+        with_admission_controller=False,
+        use_uds=True,
+    )
+    k8s_lib_injection_profiling_disabled = K8sScenario(
+        "K8S_LIB_INJECTION_PROFILING_DISABLED",
+        doc="Kubernetes lib injection with admission controller and profiling disabled by default",
+        weblog_env={"DD_PROFILING_UPLOAD_PERIOD": "10", "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500"},
+    )
+    k8s_lib_injection_profiling_enabled = K8sScenario(
+        "K8S_LIB_INJECTION_PROFILING_ENABLED",
+        doc="Kubernetes lib injection with admission controller and profiling enaabled by cluster config",
+        weblog_env={"DD_PROFILING_UPLOAD_PERIOD": "10", "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500"},
+        dd_cluster_feature={"datadog.profiling.enabled": "auto"},
+    )
+    k8s_lib_injection_profiling_override = K8sScenario(
+        "K8S_LIB_INJECTION_PROFILING_OVERRIDE",
+        doc="Kubernetes lib injection with admission controller and profiling enaabled overriting cluster config",
+        weblog_env={"DD_PROFILING_UPLOAD_PERIOD": "10", "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500"},
+        dd_cluster_feature={
+            "clusterAgent.env[0].name": "DD_ADMISSION_CONTROLLER_AUTO_INSTRUMENTATION_PROFILING_ENABLED",
+            "clusterAgent.env[0].value": "auto",
+        },
+    )
+    k8s_lib_injection_spark_djm = K8sSparkScenario("K8S_LIB_INJECTION_SPARK_DJM", doc="Kubernetes lib injection DJM")
+
     docker_ssi = DockerSSIScenario(
         "DOCKER_SSI",
         doc="Validates the installer and the ssi on a docker environment",
@@ -734,13 +798,6 @@ class scenarios:
         scenario_groups=[ScenarioGroup.APPSEC, ScenarioGroup.APPSEC_RASP],
     )
 
-    agent_supporting_span_events = EndToEndScenario(
-        "AGENT_SUPPORTING_SPAN_EVENTS",
-        span_events=True,
-        doc="The trace agent supports Span Events as a top-level span field",
-        scenario_groups=[ScenarioGroup.INTEGRATIONS],
-    )
-
     agent_not_supporting_span_events = EndToEndScenario(
         "AGENT_NOT_SUPPORTING_SPAN_EVENTS",
         span_events=False,
@@ -749,6 +806,7 @@ class scenarios:
     )
 
     external_processing = ExternalProcessingScenario("EXTERNAL_PROCESSING")
+    ipv6 = IPV6Scenario("IPV6")
 
     runtime_metrics = EndToEndScenario(
         "RUNTIME_METRICS",

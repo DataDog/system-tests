@@ -44,7 +44,7 @@ class _PropertiesDecoder(json.JSONDecoder):
 
 
 class SetupProperties:
-    """This class will store all properties initialized by setup function, and dump =them into a file
+    """Store all properties initialized by setup function, and dump =them into a file
     In replay mode, it will restore then to the good instance
     """
 

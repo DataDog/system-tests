@@ -326,7 +326,7 @@ class APMLibraryClient:
 
 
 class _TestSpan:
-    def __init__(self, client: APMLibraryClient, span_id: int, trace_id: int, parent_id: int = 0):
+    def __init__(self, client: APMLibraryClient, span_id: int, trace_id: int):
         self._client = client
         self.span_id = span_id
         self.trace_id = trace_id
@@ -462,6 +462,7 @@ class APMLibrary:
         links: Optional[list[Link]] = None,
         events: Optional[list[Event]] = None,
         attributes: Optional[dict] = None,
+        *,
         end_on_exit: bool = True,
     ) -> Generator[_TestOtelSpan, None, None]:
         resp = self._client.otel_trace_start_span(

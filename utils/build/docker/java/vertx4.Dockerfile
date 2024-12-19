@@ -1,7 +1,6 @@
 FROM maven:3.6-jdk-11 as build
 
-RUN apt-get update && \
-	apt-get install -y libarchive-tools
+ENV JAVA_TOOL_OPTIONS="-Djava.net.preferIPv4Stack=true"
 
 COPY ./utils/build/docker/java/iast-common/src /iast-common/src
 

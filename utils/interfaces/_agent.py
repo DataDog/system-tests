@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-"""This files will validate data flow between agent and backend"""
+"""Validate data flow between agent and backend"""
 
 import threading
 import copy
@@ -59,7 +59,7 @@ class AgentInterfaceValidator(ProxyBasedInterfaceValidator):
     def get_profiling_data(self):
         yield from self.get_data(path_filters="/api/v2/profile")
 
-    def validate_profiling(self, validator, success_by_default=False):
+    def validate_profiling(self, validator, *, success_by_default=False):
         self.validate(validator, path_filters="/api/v2/profile", success_by_default=success_by_default)
 
     def validate_appsec(self, request, validator):
@@ -69,7 +69,7 @@ class AgentInterfaceValidator(ProxyBasedInterfaceValidator):
 
         raise ValueError("No data validate this test")
 
-    def get_telemetry_data(self, flatten_message_batches=True):
+    def get_telemetry_data(self, *, flatten_message_batches=True):
         all_data = self.get_data(path_filters="/api/v2/apmtelemetry")
         if flatten_message_batches:
             yield from all_data
@@ -94,7 +94,7 @@ class AgentInterfaceValidator(ProxyBasedInterfaceValidator):
         validator = HeadersMatchValidator(request_headers, response_headers, check_condition)
         self.validate(validator, path_filters=path_filter, success_by_default=True)
 
-    def validate_telemetry(self, validator=None, success_by_default=False):
+    def validate_telemetry(self, validator=None, *, success_by_default=False):
         def validator_skip_onboarding_event(data):
             if data["request"]["content"].get("request_type") == "apm-onboarding-event":
                 return None
@@ -106,7 +106,7 @@ class AgentInterfaceValidator(ProxyBasedInterfaceValidator):
             path_filters="/api/v2/apmtelemetry",
         )
 
-    def add_traces_validation(self, validator, success_by_default=False):
+    def add_traces_validation(self, validator, *, success_by_default=False):
         self.validate(
             validator=validator, success_by_default=success_by_default, path_filters=r"/api/v0\.[1-9]+/traces"
         )

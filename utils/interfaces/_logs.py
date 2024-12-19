@@ -94,7 +94,7 @@ class _LogsInterfaceValidator(InterfaceValidator):
     def get_data(self):
         yield from self._data_list
 
-    def validate(self, validator, success_by_default=False):
+    def validate(self, validator, *, success_by_default=False):
         for data in self.get_data():
             try:
                 if validator(data) is True:
@@ -278,6 +278,8 @@ class _LogPresence:
 
             logger.debug(f"For {self}, found {data['message']}")
             return True
+
+        return None
 
 
 class _LogAbsence:

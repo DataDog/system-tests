@@ -83,22 +83,9 @@ ignore = [
     "ANN202",
     "ANN205",
     "ANN206",
-    "ARG001",  # unused function argument
-    "ARG002",  # unused method argument
-    "ARG005",  # unused lambda argument
-    "BLE001",  # TBD
+    "BLE001",  # Do not catch blind exception: `Exception`, big project to enable this
     "C901",    # code complexity, TBD
-    "D200",
-    "D205",    # docstring format
-    "D401",    # docstring format
-    "D404",    # docstring format
-    "D410",    # docstring format
-    "D417",    
-    "E501",    # line too long
-    "E722",    # TBD
-    "E741",
-    "FBT001",
-    "FBT002",  # Boolean default positional argument, TBD
+    "E722",    # bare except, big project to enable this
     "INP001",  # implicit package
     "N801",    # easy
     "N806",
@@ -119,11 +106,9 @@ ignore = [
     "PTH120",
     "PTH122",
     "PTH123",  # `open()` should be replaced by `Path.open()`
-    "RET503",
     "RET504",
     "RUF012",
     "RUF013",
-    "RUF015",  # yes, definitly
     "S202",
     "S507",
     "SIM102",
@@ -151,9 +136,11 @@ ignore = [
     "D107",   # Missing docstring in `__init__`
     "D202",   # blank line after docstring
     "D203",   # cause a warning  
+    "D205",   # PEP 257 : blank line after first docstring line
     "D211",   # no-blank-line-before-class
     "D213",   # multi-line-summary-second-line
     "D400",   # First line should end with a period
+    "D401",   # PEP 257 : blank line after first docstring line
     "D406",   # we are not using numpy convention for docstrings
     "D407",   # we are not using reStructuredText for docstrings
     "D415",   # First line should end with a period
@@ -192,6 +179,8 @@ ignore = [
     "SIM115",
     "S603",
     "DTZ005",
+    "E501",    # line too long
+    "FBT002",  # Boolean default positional argument
     "RET505",
     "TRY301",
     "B006",
@@ -219,6 +208,8 @@ ignore = [
 "utils/onboarding/*" = [
     "DTZ006",
     "DTZ005",
+    "E501",    # line too long
+    "FBT002",  # Boolean default positional argument
     "UP017",
     "N806",
     "FBT001",
@@ -230,11 +221,16 @@ ignore = [
 ]
 "utils/{_context/_scenarios/docker_ssi.py,docker_ssi/docker_ssi_matrix_builder.py,docker_ssi/docker_ssi_matrix_utils.py}" = [
     "PLR2004",
+    "E501",    # line too long
     "SIM210",
     "RET504",
     "RET505",
     "SIM108",
     "T201",
+]
+"utils/_context/virtual_machines.py" = [
+    "ARG002",  # unused method argument
+    "FBT002",  # Boolean default positional argument
 ]
 "utils/virtual_machine/*" = [
     "A002",
@@ -245,6 +241,8 @@ ignore = [
     "C901",
     "E712",
     "E731",
+    "E501",    # line too long
+    "FBT002",  # Boolean default positional argument
     "F541",
     "E713",
     "EM102",
