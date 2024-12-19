@@ -30,10 +30,19 @@ public class SnsConnector {
     }
 
     private static SnsClient createSnsClient() {
-        SnsClient snsClient = SnsClient.builder()
+        SnsClient.Builder builder = SnsClient.builder()
             .region(Region.US_EAST_1)
-            .credentialsProvider(EnvironmentVariableCredentialsProvider.create())
-            .build();
+            .credentialsProvider(EnvironmentVariableCredentialsProvider.create());
+
+        // Read the SYSTEM_TESTS_AWS_URL environment variable
+        String systemTestsAwsUrl = System.getenv("SYSTEM_TESTS_AWS_URL");
+
+        // Only override endpoint if SYSTEM_TESTS_AWS_URL is set
+        if (systemTestsAwsUrl != null && !systemTestsAwsUrl.isEmpty()) {
+            builder.endpointOverride(URI.create(systemTestsAwsUrl));
+        }
+        
+        SnsClient snsclient = builder.build();
         return snsClient;
     }
 

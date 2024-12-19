@@ -1,6 +1,8 @@
 const AWS = require('aws-sdk')
 const tracer = require('dd-trace')
 
+const HOST = process.env.SYSTEM_TESTS_AWS_URL ?? 'https://sqs.us-east-1.amazonaws.com/601427279990'
+
 const sqsProduce = (queue, message) => {
   // Create an SQS client
   const sqs = new AWS.SQS()
@@ -18,7 +20,7 @@ const sqsProduce = (queue, message) => {
         // Send messages to the queue
         const produce = () => {
           sqs.sendMessage({
-            QueueUrl: `https://sqs.us-east-1.amazonaws.com/601427279990/${queue}`,
+            QueueUrl: `${HOST}/${queue}`,
             MessageBody: messageToSend
           }, (err, data) => {
             if (err) {
@@ -43,7 +45,7 @@ const sqsConsume = async (queue, timeout, expectedMessage) => {
   // Create an SQS client
   const sqs = new AWS.SQS()
 
-  const queueUrl = `https://sqs.us-east-1.amazonaws.com/601427279990/${queue}`
+  const queueUrl = `${HOST}/${queue}`
   console.log(`[SQS] Looking for message: ${expectedMessage} in queue: ${queue}`)
   return new Promise((resolve, reject) => {
     let messageFound = false

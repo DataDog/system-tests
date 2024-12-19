@@ -216,6 +216,7 @@ class EndToEndScenario(DockerScenario):
         include_rabbitmq=False,
         include_mysql_db=False,
         include_sqlserver=False,
+        include_localstack=False,
         include_otel_drop_in=False,
         include_buddies=False,
         require_api_key=False,

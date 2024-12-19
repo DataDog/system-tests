@@ -420,7 +420,9 @@ public class App {
         @RequestParam(required = true) String queue,
         @RequestParam(required = true) String message
     ) {
-        SqsConnector sqs = new SqsConnector(queue);
+        String systemTestsAwsUrl = System.getenv("SYSTEM_TESTS_AWS_URL");
+        
+        SqsConnector sqs = new SqsConnector(queue, systemTestsAwsUrl);
         try {
             sqs.produceMessageWithoutNewThread(message);
         } catch (Exception e) {
@@ -437,7 +439,9 @@ public class App {
         @RequestParam(required = false) Integer timeout,
         @RequestParam(required = true) String message
     ) {
-        SqsConnector sqs = new SqsConnector(queue);
+        String systemTestsAwsUrl = System.getenv("SYSTEM_TESTS_AWS_URL");
+
+        SqsConnector sqs = new SqsConnector(queue, systemTestsAwsUrl);
         if (timeout == null) timeout = 60;
         boolean consumed = false;
         try {
@@ -456,8 +460,10 @@ public class App {
         @RequestParam(required = true) String topic,
         @RequestParam(required = true) String message
     ) {
+        String systemTestsAwsUrl = System.getenv("SYSTEM_TESTS_AWS_URL");
+
         SnsConnector sns = new SnsConnector(topic);
-        SqsConnector sqs = new SqsConnector(queue);
+        SqsConnector sqs = new SqsConnector(queue, systemTestsAwsUrl);
         try {
             sns.produceMessageWithoutNewThread(message, sqs);
         } catch (Exception e) {
@@ -474,7 +480,9 @@ public class App {
         @RequestParam(required = false) Integer timeout,
         @RequestParam(required = true) String message
     ) {
-        SqsConnector sqs = new SqsConnector(queue);
+        String systemTestsAwsUrl = System.getenv("SYSTEM_TESTS_AWS_URL");
+
+        SqsConnector sqs = new SqsConnector(queue, systemTestsAwsUrl);
         if (timeout == null) timeout = 60;
         boolean consumed = false;
         try {
@@ -639,7 +647,9 @@ public class App {
                 return "failed to start consuming message";
             }
         } else if ("sqs".equals(integration)) {
-            SqsConnector sqs = new SqsConnector(queue);
+            String systemTestsAwsUrl = System.getenv("SYSTEM_TESTS_AWS_URL");
+
+            SqsConnector sqs = new SqsConnector(queue, systemTestsAwsUrl);
             try {
                 Thread produceThread = sqs.startProducingMessage(message);
                 produceThread.join(this.PRODUCE_CONSUME_THREAD_TIMEOUT);
@@ -657,8 +667,10 @@ public class App {
                 return "[SQS] failed to start consuming message";
             }
         } else if ("sns".equals(integration)) {
+            String systemTestsAwsUrl = System.getenv("SYSTEM_TESTS_AWS_URL");
+
             SnsConnector sns = new SnsConnector(topic);
-            SqsConnector sqs = new SqsConnector(queue);
+            SqsConnector sqs = new SqsConnector(queue, systemTestsAwsUrl);
             try {
                 Thread produceThread = sns.startProducingMessage(message, sqs);
                 produceThread.join(this.PRODUCE_CONSUME_THREAD_TIMEOUT);
