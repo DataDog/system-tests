@@ -493,6 +493,19 @@ tests/:
       Test_V2_Login_Events: irrelevant
       Test_V2_Login_Events_Anon: irrelevant
       Test_V2_Login_Events_RC: irrelevant
+      Test_V3_Auto_User_Instrum_Mode_Capability: *ref_5_29_0
+      Test_V3_Login_Events:
+          '*': *ref_5_29_0
+          nextjs: missing_feature
+      Test_V3_Login_Events_Anon:
+          '*': *ref_5_29_0
+          nextjs: missing_feature
+      Test_V3_Login_Events_Blocking:
+          '*': *ref_5_29_0
+          nextjs: missing_feature
+      Test_V3_Login_Events_RC:
+          '*': *ref_5_29_0
+          nextjs: missing_feature
     test_automated_user_and_session_tracking.py:
       Test_Automated_Session_Blocking: missing_feature
       Test_Automated_User_Blocking: missing_feature
