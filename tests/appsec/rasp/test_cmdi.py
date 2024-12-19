@@ -49,7 +49,7 @@ class Test_Cmdi_BodyUrlEncoded:
     """Command Injection through a url-encoded body parameter"""
 
     def setup_cmdi_post_urlencoded(self):
-        self.r = weblog.post("/rasp/cmdi", data={"command": ["/usr/bin/reboot", "-f"]})
+        self.r = weblog.post("/rasp/cmdi", data={"command": "/usr/bin/reboot -f"})
 
     def test_cmdi_post_urlencoded(self):
         assert self.r.status_code == 403
@@ -60,11 +60,11 @@ class Test_Cmdi_BodyUrlEncoded:
             {
                 "resource": {
                     "address": "server.sys.exec.cmd",
-                    "value": '/usr/bin/reboot "-f"',
+                    "value": "/usr/bin/reboot -f",
                 },
                 "params": {
                     "address": "server.request.body",
-                    "value": "/usr/bin/reboot",
+                    "value": "/usr/bin/reboot -f",
                 },
             },
         )

@@ -78,7 +78,7 @@ class RaspController @Inject()(cc: MessagesControllerComponents, res: Resources)
       case AnyContentAsJson(data) =>
         (data \ "command").as[Array[String]]
       case AnyContentAsXml(data) =>
-        (data \\ "command").map(_.text).toArray
+        (data \\ "cmd").map(_.text).toArray
       case _ =>
         request.queryString("command").toArray
     }

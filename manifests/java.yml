@@ -565,15 +565,18 @@ tests/:
       test_cmdi.py:
         Test_Cmdi_BodyJson:
           '*': v1.45.0
+          akka-http: missing_feature (APPSEC-56196)
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
           spring-boot-payara: missing_feature (APPSEC-54966)
           vertx4: missing_feature (APPSEC-55785)
         Test_Cmdi_BodyUrlEncoded:
           '*': v1.45.0
+          akka-http: missing_feature (APPSEC-56196)
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
           spring-boot-payara: missing_feature (APPSEC-54966)
         Test_Cmdi_BodyXml:
           '*': v1.45.0
+          akka-http: missing_feature (APPSEC-55780)
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
           spring-boot-payara: missing_feature (APPSEC-54966)
           vertx3: missing_feature (APPSEC-55788)
@@ -596,14 +599,17 @@ tests/:
           spring-boot-payara: missing_feature (APPSEC-54966)
         Test_Cmdi_Telemetry:
           '*': v1.45.0
+          akka-http: missing_feature (APPSEC-56196)
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
           spring-boot-payara: missing_feature (APPSEC-54966)
         Test_Cmdi_Telemetry_Variant_Tag:
           '*': v1.45.0
+          akka-http: missing_feature (APPSEC-56196)
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
           spring-boot-payara: missing_feature (APPSEC-54966)
         Test_Cmdi_UrlQuery:
           '*': v1.45.0
+          akka-http: missing_feature (APPSEC-56196)
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
           spring-boot-payara: missing_feature (APPSEC-54966)
         Test_Cmdi_Waf_Version:
@@ -666,6 +672,7 @@ tests/:
           spring-boot-payara: missing_feature (APPSEC-54966)
         Test_Shi_BodyXml:
           '*': v1.45.0
+          akka-http: missing_feature (APPSEC-55780)
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
           spring-boot-payara: missing_feature (APPSEC-54966)
           vertx3: missing_feature (APPSEC-55788)
