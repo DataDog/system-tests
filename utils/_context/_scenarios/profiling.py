@@ -24,7 +24,7 @@ class ProfilingScenario(EndToEndScenario):
     def configure(self, config):
         super().configure(config)
 
-        library = self.weblog_container.image.env["SYSTEM_TESTS_LIBRARY"]
+        library = self.weblog_container.image.labels["system-tests-library"]
         if library == "dotnet":
             # https://docs.datadoghq.com/profiler/enabling/dotnet/?tab=linux#enabling-the-profiler
             self.weblog_container.environment["LD_PRELOAD"] = (

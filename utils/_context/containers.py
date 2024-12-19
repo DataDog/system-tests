@@ -79,9 +79,10 @@ class TestedContainer:
         self,
         name,
         image_name,
-        host_log_folder,
+        *,
+        host_log_folder: str,
         environment=None,
-        allow_old_container=False,
+        allow_old_container: bool = False,
         healthcheck=None,
         stdout_interface=None,
         local_image_only: bool = False,
@@ -423,6 +424,7 @@ class SqlDbTestedContainer(TestedContainer):
     def __init__(
         self,
         name,
+        *,
         image_name,
         host_log_folder,
         environment=None,
@@ -458,11 +460,12 @@ class SqlDbTestedContainer(TestedContainer):
 class ImageInfo:
     """data on docker image. data comes from `docker inspect`"""
 
-    def __init__(self, image_name: str, local_image_only: bool):
+    def __init__(self, image_name: str, *, local_image_only: bool):
         # local_image_only: boolean
         # True if the image is only available locally and can't be loaded from any hub
 
         self.env = None
+        self.labels: dict[str, str] = {}
         self.name = image_name
         self.local_image_only = local_image_only
 
@@ -492,6 +495,8 @@ class ImageInfo:
             if value:
                 self.env[key] = value
 
+        self.labels = attrs["Config"]["Labels"]
+
     def save_image_info(self, dir_path):
         with open(f"{dir_path}/image.json", encoding="utf-8", mode="w") as f:
             json.dump(self._image.attrs, f, indent=2)
@@ -501,7 +506,7 @@ class ProxyContainer(TestedContainer):
     command_host_port = 11111  # Which port exposed to host to sent proxy commands
 
     def __init__(
-        self, host_log_folder, rc_api_enabled: bool, meta_structs_disabled: bool, span_events: bool, enable_ipv6: bool
+        self, *, host_log_folder, rc_api_enabled: bool, meta_structs_disabled: bool, span_events: bool, enable_ipv6: bool
     ) -> None:
         """Parameters:
         span_events: Whether the agent supports the native serialization of span events
@@ -536,7 +541,7 @@ class AgentContainer(TestedContainer):
     apm_receiver_port: int = 8127
     dogstatsd_port: int = 8125
 
-    def __init__(self, host_log_folder, use_proxy=True, environment=None) -> None:
+    def __init__(self, host_log_folder, *, use_proxy=True, environment=None) -> None:
         environment = environment or {}
         environment.update(
             {
@@ -670,6 +675,7 @@ class WeblogContainer(TestedContainer):
     def __init__(
         self,
         host_log_folder,
+        *,
         environment=None,
         tracer_sampling_rate=None,
         appsec_enabled=True,
@@ -748,6 +754,7 @@ class WeblogContainer(TestedContainer):
             ports={"7777/tcp": self.port, "7778/tcp": weblog._grpc_port},
             stdout_interface=interfaces.library_stdout,
             local_image_only=True,
+            command="./app.sh",
         )
 
         self.tracer_sampling_rate = tracer_sampling_rate
@@ -797,11 +804,11 @@ class WeblogContainer(TestedContainer):
     def configure(self, replay):
         super().configure(replay)
 
-        self.weblog_variant = self.image.env.get("SYSTEM_TESTS_WEBLOG_VARIANT", None)
+        self.weblog_variant = self.image.labels["system-tests-weblog-variant"]
 
         _set_aws_auth_environment(self)
 
-        library = self.image.env["SYSTEM_TESTS_LIBRARY"]
+        library = self.image.labels["system-tests-library"]
 
         if library in ("cpp", "dotnet", "java", "python"):
             self.environment["DD_TRACE_HEADER_TAGS"] = "user-agent:http.request.headers.user-agent"

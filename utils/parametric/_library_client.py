@@ -462,6 +462,7 @@ class APMLibrary:
         links: Optional[list[Link]] = None,
         events: Optional[list[Event]] = None,
         attributes: Optional[dict] = None,
+        *,
         end_on_exit: bool = True,
     ) -> Generator[_TestOtelSpan, None, None]:
         resp = self._client.otel_trace_start_span(
