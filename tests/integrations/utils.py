@@ -206,10 +206,15 @@ def delete_aws_resource(
             raise
 
 
+SQS_URL = os.getenv("SYSTEM_TESTS_AWS_URL", "https://sqs.us-east-1.amazonaws.com/601427279990")
+SNS_URL = os.getenv("SYSTEM_TESTS_AWS_URL", "https://sns.us-east-1.amazonaws.com/601427279990")
+KINESIS_URL = os.getenv("SYSTEM_TESTS_AWS_URL", "https://kinesis.us-east-1.amazonaws.com/601427279990")
+
+
 def delete_sqs_queue(queue_name):
     try:
-        queue_url = f"https://sqs.us-east-1.amazonaws.com/601427279990/{queue_name}"
-        sqs_client = _get_aws_session().client("sqs")
+        queue_url = f"{SQS_URL}/{queue_name}"
+        sqs_client = _get_aws_session().client("sqs", endpoint_url=SQS_URL)
         delete_callable = lambda url: sqs_client.delete_queue(QueueUrl=url)
         get_callable = lambda url: sqs_client.get_queue_attributes(QueueUrl=url)
         delete_aws_resource(
@@ -231,7 +236,7 @@ def delete_sqs_queue(queue_name):
 def delete_sns_topic(topic_name):
     try:
         topic_arn = f"arn:aws:sns:us-east-1:601427279990:{topic_name}"
-        sns_client = _get_aws_session().client("sns")
+        sns_client = _get_aws_session().client("sns", endpoint_url=SNS_URL)
         get_callable = lambda arn: sns_client.get_topic_attributes(TopicArn=arn)
         delete_callable = lambda arn: sns_client.delete_topic(TopicArn=arn)
         delete_aws_resource(delete_callable, topic_arn, "SNS Topic", "NotFound", get_callable=get_callable)
@@ -246,7 +251,7 @@ def delete_sns_topic(topic_name):
 
 def delete_kinesis_stream(stream_name):
     try:
-        kinesis_client = _get_aws_session().client("kinesis")
+        kinesis_client = _get_aws_session().client("kinesis", endpoint_url=KINESIS_URL)
         delete_callable = lambda name: kinesis_client.delete_stream(StreamName=name, EnforceConsumerDeletion=True)
         delete_aws_resource(delete_callable, stream_name, "Kinesis Stream", "ResourceNotFoundException")
     except botocore.exceptions.ClientError as e:

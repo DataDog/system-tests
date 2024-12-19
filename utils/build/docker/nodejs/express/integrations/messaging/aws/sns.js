@@ -4,6 +4,8 @@ const tracer = require('dd-trace')
 let TopicArn
 let QueueUrl
 
+const HOST = process.env.SYSTEM_TESTS_AWS_URL ?? 'https://sns.us-east-1.amazonaws.com/601427279990'
+
 const snsPublish = (queue, topic, message) => {
   // Create an SQS client
   const sns = new AWS.SNS()
@@ -26,7 +28,7 @@ const snsPublish = (queue, topic, message) => {
           reject(err)
         }
 
-        QueueUrl = `https://sqs.us-east-1.amazonaws.com/601427279990/${queue}`
+        QueueUrl = `${HOST}/${queue}`
 
         sqs.getQueueAttributes({ QueueUrl, AttributeNames: ['All'] }, (err, data) => {
           if (err) {
@@ -104,7 +106,7 @@ const snsConsume = async (queue, timeout, expectedMessage) => {
   // Create an SQS client
   const sqs = new AWS.SQS()
 
-  const queueUrl = `https://sqs.us-east-1.amazonaws.com/601427279990/${queue}`
+  const queueUrl = `${HOST}/${queue}`
 
   return new Promise((resolve, reject) => {
     let messageFound = false

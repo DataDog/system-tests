@@ -1,7 +1,11 @@
 import logging
+import os
 import time
 
 import boto3
+
+
+HOST = os.getenv("SYSTEM_TESTS_AWS_URL", "https://sqs.us-east-1.amazonaws.com/601427279990")
 
 
 def sqs_produce(queue, message, timeout=60):
@@ -10,7 +14,7 @@ def sqs_produce(queue, message, timeout=60):
     """
 
     # Create an SQS client
-    sqs = boto3.client("sqs", region_name="us-east-1")
+    sqs = boto3.client("sqs", region_name="us-east-1", endpoint_url=HOST)
 
     start = time.time()
     queue_created = False
@@ -49,7 +53,7 @@ def sqs_consume(queue, expectedMessage, timeout=60):
     The goal of this function is to trigger sqs consumer calls
     """
     # Create an SQS client
-    sqs = boto3.client("sqs", region_name="us-east-1")
+    sqs = boto3.client("sqs", region_name="us-east-1", endpoint_url=HOST)
 
     consumed_message = None
     start_time = time.time()
