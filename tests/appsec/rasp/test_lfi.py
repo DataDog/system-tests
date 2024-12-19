@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import features, weblog, interfaces, scenarios, rfc
+from utils import features, weblog, interfaces, scenarios, rfc, bug
 from utils import remote_config as rc
 from utils.dd_constants import Capabilities
 from tests.appsec.rasp.utils import (
@@ -130,6 +130,7 @@ class Test_Lfi_Optional_SpanTags:
     def setup_lfi_span_tags(self):
         self.r = weblog.get("/rasp/lfi", params={"file": "../etc/passwd"})
 
+    @bug(library="php", reason="APPSEC-54761")
     def test_lfi_span_tags(self):
         validate_span_tags(self.r, expected_metrics=["_dd.appsec.rasp.duration_ext", "_dd.appsec.rasp.rule.eval"])
 
