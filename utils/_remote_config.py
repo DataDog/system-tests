@@ -170,8 +170,7 @@ def send_sequential_commands(commands: list[dict], *, wait_for_all_command: bool
 def build_debugger_command(probes: list, version: int):
     def _json_to_base64(json_object):
         json_string = json.dumps(json_object).encode("utf-8")
-        base64_string = base64.b64encode(json_string).decode("utf-8")
-        return base64_string
+        return base64.b64encode(json_string).decode("utf-8")
 
     def _sha256(value):
         return hashlib.sha256(base64.b64decode(value)).hexdigest()
@@ -229,8 +228,7 @@ def send_debugger_command(probes: list, version: int) -> dict:
 
 def _json_to_base64(json_object):
     json_string = json.dumps(json_object, indent=2).encode("utf-8")
-    base64_string = base64.b64encode(json_string).decode("utf-8")
-    return base64_string
+    return base64.b64encode(json_string).decode("utf-8")
 
 
 class ClientConfig:

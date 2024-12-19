@@ -449,7 +449,7 @@ def dotnet_library_factory():
     dotnet_appdir = os.path.join("utils", "build", "docker", "dotnet", "parametric")
     dotnet_absolute_appdir = os.path.join(_get_base_directory(), dotnet_appdir)
     dotnet_reldir = dotnet_appdir.replace("\\", "/")
-    server = APMLibraryTestServer(
+    return APMLibraryTestServer(
         lang="dotnet",
         container_name="dotnet-test-api",
         container_tag="dotnet8_0-test-api",
@@ -504,8 +504,6 @@ CMD ["./ApmTestApi"]
         container_build_dir=dotnet_absolute_appdir,
         container_build_context=_get_base_directory(),
     )
-
-    return server
 
 
 def java_library_factory():
