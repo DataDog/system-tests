@@ -44,7 +44,7 @@ func main() {
 		log.Fatal(err)
 	}
 	defer profiler.Stop()
-	
+
 	r := gin.New()
 	r.Use(gintrace.Middleware("weblog"))
 
@@ -243,6 +243,9 @@ func main() {
 	r.Any("/rasp/lfi", ginHandleFunc(rasp.LFI))
 	r.Any("/rasp/ssrf", ginHandleFunc(rasp.SSRF))
 	r.Any("/rasp/sqli", ginHandleFunc(rasp.SQLi))
+
+	r.Any("/requestdownstream", ginHandleFunc(common.Requestdownstream))
+	r.Any("/returnheaders", ginHandleFunc(common.Returnheaders))
 
 	srv := &http.Server{
 		Addr:    ":7777",
