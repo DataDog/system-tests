@@ -96,17 +96,18 @@ public abstract class ApmTestApi
         using var scope = Tracer.Instance.StartActive(operationName ?? "", creationSettings);
         var span = scope.Span;
 
-        if (requestJson.TryGetProperty("service", out var service))
+        if (requestJson.TryGetProperty("service", out var service) && service.ValueKind != JsonValueKind.Null)
         {
+            // TODO: setting service name to null causes an exception when the span is closed
             span.ServiceName = service.GetString();
         }
 
-        if (requestJson.TryGetProperty("resource", out var resource))
+        if (requestJson.TryGetProperty("resource", out var resource) && service.ValueKind != JsonValueKind.Null)
         {
             span.ResourceName = resource.GetString();
         }
 
-        if (requestJson.TryGetProperty("type", out var type))
+        if (requestJson.TryGetProperty("type", out var type) && type.ValueKind != JsonValueKind.Null)
         {
             span.Type = type.GetString();
         }
