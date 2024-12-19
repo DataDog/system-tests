@@ -110,9 +110,7 @@ ignore = [
     "S202",
     "SIM102",
     "SIM110",  # TBD
-    "TRY002",
     "TRY003",  # this is a full project to enable this
-    "TRY201",
     "TRY300",
     "UP007",
     "UP038",   # we really want this? TBD
@@ -174,6 +172,8 @@ ignore = [
 "utils/build/*"  = ["ALL"]
 "lib-injection/*" = ["ALL"]
 "utils/{k8s_lib_injection/*,_context/_scenarios/k8s_lib_injection.py}" = [
+    "TRY201",
+    "TRY002",
     "D207",
     "SIM115",
     "S603",
