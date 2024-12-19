@@ -88,8 +88,8 @@ class _BackendInterfaceValidator(ProxyBasedInterfaceValidator):
         """
 
         rid = get_rid_from_request(request)
-        tracesData = list(self._wait_for_request_traces(rid))
-        traces = [self._extract_trace_from_backend_response(data["response"]) for data in tracesData]
+        traces_data = list(self._wait_for_request_traces(rid))
+        traces = [self._extract_trace_from_backend_response(data["response"]) for data in traces_data]
         assert (
             len(traces) >= min_traces_len
         ), f"We only found {len(traces)} traces in the library (tracers), but we expected {min_traces_len}!"

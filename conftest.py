@@ -433,8 +433,8 @@ def pytest_sessionfinish(session, exitstatus):
             logger.exception("Fail to export export reports", exc_info=True)
 
     if session.config.option.vm_gitlab_pipeline:
-        NO_TESTS_COLLECTED = 5
-        SUCCESS = 0
+        NO_TESTS_COLLECTED = 5  # noqa: N806
+        SUCCESS = 0  # noqa: N806
         if exitstatus == NO_TESTS_COLLECTED:
             session.exitstatus = SUCCESS
 

@@ -343,8 +343,8 @@ class TestedContainer:
                 pytest.exit(f"Container {self.name} is not healthy, please check logs", 1)
 
     def collect_logs(self):
-        TAIL_LIMIT = 50
-        SEP = "=" * 30
+        TAIL_LIMIT = 50  # noqa: N806
+        SEP = "=" * 30  # noqa: N806
 
         keys = []
         if os.environ.get("DD_API_KEY"):
