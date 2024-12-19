@@ -82,7 +82,7 @@ public abstract class ApmTestApi
 
         var creationSettings = new SpanCreationSettings
         {
-            Parent = FindSpanContext(requestJson, "parent_id", required: false),
+            Parent = FindSpanContext(requestJson, "parent_id", required: false) ?? SpanContext.None,
             FinishOnClose = false,
         };
 
@@ -341,33 +341,28 @@ public abstract class ApmTestApi
 
     private static ISpanContext? FindSpanContext(JsonElement json, string key = "span_id", bool required = true)
     {
-        var spanIdString = json.GetPropertyAsString(key);
-
-        if (!ulong.TryParse(spanIdString, out var spanId))
+        if (json.GetPropertyAsUInt64(key) is { } spanId)
         {
-            if (required)
+            if (Spans.TryGetValue(spanId, out var span))
             {
-                _logger?.LogError("Required {key}:{value} not valid in request json.", key, spanIdString);
-                throw new InvalidOperationException($"Required {key}:{spanIdString} not valid in request json.");
+                return span.Context;
             }
 
-            return null;
-        }
+            if (SpanContexts.TryGetValue(spanId, out var spanContext))
+            {
+                return spanContext;
+            }
 
-        if (Spans.TryGetValue(spanId, out var span))
-        {
-            return span.Context;
+            if (required)
+            {
+                _logger?.LogError("Span or SpanContext not found with span id: {spanId}.", spanId);
+                throw new InvalidOperationException($"Span or SpanContext not found with span id: {spanId}");
+            }
         }
-
-        if (SpanContexts.TryGetValue(spanId, out var spanContext))
+        else if (required)
         {
-            return spanContext;
-        }
-
-        if (required)
-        {
-            _logger?.LogError("Span or SpanContext not found with span id: {spanId}.", spanIdString);
-            throw new InvalidOperationException($"Span or SpanContext not found with span id: {spanId}");
+            _logger?.LogError("Required {key} not found or not a valid UInt64 in request json.", key);
+            throw new InvalidOperationException($"Required {key} not found or not a valid UInt64 in request json.");
         }
 
         return null;
