@@ -71,6 +71,9 @@ indent-style = "space"
 # docstring-code-line-length = "dynamic"
 
 [tool.ruff.lint]
+exclude = [ 
+    "docs/*",
+]
 select = ["ALL"]
 
 ignore = [
@@ -86,7 +89,6 @@ ignore = [
     "BLE001",  # Do not catch blind exception: `Exception`, big project to enable this
     "C901",    # code complexity, TBD
     "E722",    # bare except, big project to enable this
-    "INP001",  # implicit package
     "N801",    # easy
     "N806",
     "PERF401", # TBD, the "good" code can be harder to read
@@ -165,15 +167,19 @@ ignore = [
 
 ]
 
-# TODO : remove those ignores
 [tool.ruff.lint.per-file-ignores]
+"utils/grpc/weblog_pb2_grpc.py" = ["ALL"]
+"utils/grpc/weblog_pb2.py" = ["ALL"]
+"utils/scripts/*" = [
+    "INP001",  # this is not a package
+    "T201"     # allow print statements in scripts folder
+]
+"utils/interfaces/schemas/serve_doc.py" = ["INP001"] # this is not a package
+# TODO : remove those ignores
+"manifests/*"  = ["ALL"]
 "tests/*" = ["ALL"]
 "utils/build/*"  = ["ALL"]
 "lib-injection/*" = ["ALL"]
-"manifests/*"  = ["ALL"]
-"utils/grpc/weblog_pb2_grpc.py" = ["ALL"]   # keep this one, it's a generated file
-"utils/grpc/weblog_pb2.py" = ["ALL"]        # keep this one, it's a generated file
-"utils/scripts/*" = ["T201"]                # allow print statements in scripts folder
 "utils/{k8s_lib_injection/*,_context/_scenarios/k8s_lib_injection.py}" = [
     "D207",
     "SIM115",
