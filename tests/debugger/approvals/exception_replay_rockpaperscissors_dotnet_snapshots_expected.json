@@ -9,78 +9,6 @@
           }
         },
         "throwable": {
-          "message": "Rock exception",
-          "type": "weblog.Models.Debugger.ExceptionReplayRock",
-          "stacktrace": "Unknown.lambda_method<scrubbed>"
-        },
-        "locals": {
-          "@exception": {
-            "type": "ExceptionReplayRock",
-            "value": "ExceptionReplayRock",
-            "fields": {
-              "Message": {
-                "type": "String",
-                "value": "Rock exception"
-              },
-              "InnerException": {
-                "type": "Exception",
-                "isNull": "true"
-              },
-              "HelpLink": {
-                "type": "String",
-                "isNull": "true"
-              },
-              "Source": {
-                "type": "String",
-                "value": "app"
-              },
-              "HResult": {
-                "type": "Int32",
-                "value": "-2146233088"
-              },
-              "StackTrace": {
-                "type": "String",
-                "value": "<scrubbed>"
-              }
-            }
-          }
-        },
-        "arguments": {
-          "shape": {
-            "type": "String",
-            "value": "rock"
-          },
-          "this": {
-            "type": "ExceptionReplayController",
-            "value": "ExceptionReplayController"
-          }
-        }
-      }
-    },
-    "probe": {
-      "id": "<scrubbed>",
-      "version": 1,
-      "location": {
-        "method": "ExceptionReplayRockPaperScissors",
-        "type": "weblog.ExceptionReplayController"
-      }
-    },
-    "stack": "Unknown.lambda_method<scrubbed>",
-    "id": "<scrubbed>",
-    "timestamp": "<scrubbed>",
-    "duration": "<scrubbed>",
-    "language": "dotnet"
-  },
-  {
-    "captures": {
-      "return": {
-        "staticFields": {
-          "Empty": {
-            "type": "EmptyResult",
-            "value": "EmptyResult"
-          }
-        },
-        "throwable": {
           "message": "Paper exception",
           "type": "weblog.Models.Debugger.ExceptionReplayPaper",
           "stacktrace": "Unknown.lambda_method<scrubbed>"
@@ -121,6 +49,78 @@
           "shape": {
             "type": "String",
             "value": "paper"
+          },
+          "this": {
+            "type": "ExceptionReplayController",
+            "value": "ExceptionReplayController"
+          }
+        }
+      }
+    },
+    "probe": {
+      "id": "<scrubbed>",
+      "version": 1,
+      "location": {
+        "method": "ExceptionReplayRockPaperScissors",
+        "type": "weblog.ExceptionReplayController"
+      }
+    },
+    "stack": "Unknown.lambda_method<scrubbed>",
+    "id": "<scrubbed>",
+    "timestamp": "<scrubbed>",
+    "duration": "<scrubbed>",
+    "language": "dotnet"
+  },
+  {
+    "captures": {
+      "return": {
+        "staticFields": {
+          "Empty": {
+            "type": "EmptyResult",
+            "value": "EmptyResult"
+          }
+        },
+        "throwable": {
+          "message": "Rock exception",
+          "type": "weblog.Models.Debugger.ExceptionReplayRock",
+          "stacktrace": "Unknown.lambda_method<scrubbed>"
+        },
+        "locals": {
+          "@exception": {
+            "type": "ExceptionReplayRock",
+            "value": "ExceptionReplayRock",
+            "fields": {
+              "Message": {
+                "type": "String",
+                "value": "Rock exception"
+              },
+              "InnerException": {
+                "type": "Exception",
+                "isNull": "true"
+              },
+              "HelpLink": {
+                "type": "String",
+                "isNull": "true"
+              },
+              "Source": {
+                "type": "String",
+                "value": "app"
+              },
+              "HResult": {
+                "type": "Int32",
+                "value": "-2146233088"
+              },
+              "StackTrace": {
+                "type": "String",
+                "value": "<scrubbed>"
+              }
+            }
+          }
+        },
+        "arguments": {
+          "shape": {
+            "type": "String",
+            "value": "rock"
           },
           "this": {
             "type": "ExceptionReplayController",
