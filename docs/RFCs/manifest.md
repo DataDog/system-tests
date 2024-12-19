@@ -135,7 +135,7 @@ tests/:
 
     "skipped_declaration": {
       "type": "string",
-      "pattern": "^(bug|flaky|irrelevant|missing_feature)( \\(.+\\))?$"
+      "pattern": "^(bug|flaky|irrelevant|missing_feature|incomplete_test_app)( \\(.+\\))?$"
     }
   }
 }
