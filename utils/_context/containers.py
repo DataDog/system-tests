@@ -79,9 +79,10 @@ class TestedContainer:
         self,
         name,
         image_name,
-        host_log_folder,
+        *,
+        host_log_folder: str,
         environment=None,
-        allow_old_container=False,
+        allow_old_container: bool = False,
         healthcheck=None,
         stdout_interface=None,
         local_image_only: bool = False,
@@ -409,6 +410,7 @@ class SqlDbTestedContainer(TestedContainer):
     def __init__(
         self,
         name,
+        *,
         image_name,
         host_log_folder,
         environment=None,
@@ -444,7 +446,7 @@ class SqlDbTestedContainer(TestedContainer):
 class ImageInfo:
     """data on docker image. data comes from `docker inspect`"""
 
-    def __init__(self, image_name: str, local_image_only: bool):
+    def __init__(self, image_name: str, *, local_image_only: bool):
         # local_image_only: boolean
         # True if the image is only available locally and can't be loaded from any hub
 
@@ -489,7 +491,9 @@ class ImageInfo:
 class ProxyContainer(TestedContainer):
     command_host_port = 11111  # Which port exposed to host to sent proxy commands
 
-    def __init__(self, host_log_folder, rc_api_enabled: bool, meta_structs_disabled: bool, span_events: bool) -> None:
+    def __init__(
+        self, *, host_log_folder, rc_api_enabled: bool, meta_structs_disabled: bool, span_events: bool
+    ) -> None:
         """Parameters:
         span_events: Whether the agent supports the native serialization of span events
 
@@ -519,7 +523,7 @@ class ProxyContainer(TestedContainer):
 
 
 class AgentContainer(TestedContainer):
-    def __init__(self, host_log_folder, use_proxy=True, environment=None) -> None:
+    def __init__(self, host_log_folder, *, use_proxy=True, environment=None) -> None:
         environment = environment or {}
         environment.update(
             {
@@ -658,6 +662,7 @@ class WeblogContainer(TestedContainer):
     def __init__(
         self,
         host_log_folder,
+        *,
         environment=None,
         tracer_sampling_rate=None,
         appsec_enabled=True,

@@ -68,7 +68,7 @@ def stdout(self, message, *args, **kws):
 logging.Logger.stdout = stdout
 
 
-def get_logger(name="tests", use_stdout=False):
+def get_logger(name="tests", *, use_stdout=False):
     result = logging.getLogger(name)
 
     logging.getLogger("requests").setLevel(logging.WARNING)
@@ -161,7 +161,7 @@ def get_rid_from_user_agent(user_agent):
     return match.group(1)
 
 
-def nested_lookup(needle: str, heystack, look_in_keys=False, exact_match=False):
+def nested_lookup(needle: str, heystack, *, look_in_keys=False, exact_match=False):
     """Look for needle in heystack, heystack can be a dict or an array"""
 
     if isinstance(heystack, str):

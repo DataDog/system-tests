@@ -85,10 +85,7 @@ ignore = [
     "ANN206",
     "BLE001",  # Do not catch blind exception: `Exception`, big project to enable this
     "C901",    # code complexity, TBD
-    "E722",    # TBD
-    "E741",
-    "FBT001",
-    "FBT002",  # Boolean default positional argument, TBD
+    "E722",    # bare except, big project to enable this
     "INP001",  # implicit package
     "N801",    # easy
     "N806",
@@ -183,6 +180,7 @@ ignore = [
     "S603",
     "DTZ005",
     "E501",    # line too long
+    "FBT002",  # Boolean default positional argument
     "RET505",
     "TRY301",
     "B006",
@@ -211,6 +209,7 @@ ignore = [
     "DTZ006",
     "DTZ005",
     "E501",    # line too long
+    "FBT002",  # Boolean default positional argument
     "UP017",
     "N806",
     "FBT001",
@@ -231,6 +230,7 @@ ignore = [
 ]
 "utils/_context/virtual_machines.py" = [
     "ARG002",  # unused method argument
+    "FBT002",  # Boolean default positional argument
 ]
 "utils/virtual_machine/*" = [
     "A002",
@@ -242,6 +242,7 @@ ignore = [
     "E712",
     "E731",
     "E501",    # line too long
+    "FBT002",  # Boolean default positional argument
     "F541",
     "E713",
     "EM102",
