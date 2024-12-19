@@ -107,9 +107,9 @@ public abstract class ApmTestApi
 
         if (requestJson.GetPropertyAs("span_tags", JsonValueKind.Object) is { } tags)
         {
-            foreach (var tag in tags.EnumerateObject())
+            foreach (var tag in tags.EnumerateArray())
             {
-                span.SetTag(tag.Name, tag.Value.GetString());
+                span.SetTag(tag[0].GetString()!, tag[1].GetString());
             }
         }
 
