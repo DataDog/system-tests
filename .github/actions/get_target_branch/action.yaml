@@ -16,7 +16,7 @@ runs:
       id: extract
       shell: bash
       run: |
-        branch=$(echo "${{ inputs.text }}" | grep -ioP '(?<=\[java|dotnet|python|ruby|php|golang|cpp|agent|nodejs)@.+?\]' | tr -d '[:space:]')
+        branch=$(echo "${{ inputs.text }}" | grep -ioP '(?<=\[java|dotnet|python|ruby|php|golang|cpp|agent|nodejs)@.+?\]' | tr -d '[:space:]' || true)
         if [ -n "$branch" ]; then
           branch="${branch:1}"
           branch="${branch::-1}"
