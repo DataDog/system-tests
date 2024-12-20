@@ -37,7 +37,7 @@ def get_header_value(name, headers):
 
 
 def _parse_as_unsigned_int(value, size_in_bits):
-    """This is necessary because some fields in spans are decribed as a 64 bits unsigned integers, but
+    """Some fields in spans are decribed as a 64 bits unsigned integers, but
     java, and other languages only supports signed integer. As such, they might send trace ids as negative
     number if >2**63 -1. The agent parses it signed and interpret the bytes as unsigned. See
     https://github.com/DataDog/datadog-agent/blob/778855c6c31b13f9235a42b758a1f7c8ab7039e5/pkg/trace/pb/decoder_bytes.go#L181-L196
@@ -46,10 +46,10 @@ def _parse_as_unsigned_int(value, size_in_bits):
         return value
 
     # Asserts that the unsigned is either a no bigger than the size in bits
-    assert -(2 ** size_in_bits - 1) <= value <= 2 ** size_in_bits - 1
+    assert -(2**size_in_bits - 1) <= value <= 2**size_in_bits - 1
 
     # Take two's complement of the number if negative
-    return value if value >= 0 else (-value ^ (2 ** size_in_bits - 1)) + 1
+    return value if value >= 0 else (-value ^ (2**size_in_bits - 1)) + 1
 
 
 def _decode_unsigned_int_traces(content):
@@ -203,7 +203,6 @@ def deserialize_http_message(path, message, content: bytes, interface, key, expo
                 _deserialize_file_in_multipart_form_data(item, headers, export_content_files_to, part.content)
 
             else:
-
                 try:
                     item["content"] = part.text
                 except UnicodeDecodeError:
@@ -265,7 +264,6 @@ def _deserialized_nested_json_from_trace_payloads(content, interface):
 
 
 def _deserialize_meta(span):
-
     meta = span.get("meta", {})
 
     keys = ("_dd.appsec.json", "_dd.iast.json")
@@ -301,7 +299,6 @@ def _convert_bytes_values(item, path=""):
 
 
 def deserialize(data, key, content, interface, export_content_files_to: str):
-
     try:
         data[key]["content"] = deserialize_http_message(
             data["path"], data[key], content, interface, key, export_content_files_to

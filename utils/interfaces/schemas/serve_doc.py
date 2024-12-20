@@ -23,7 +23,6 @@ store_config = GenerationConfiguration()
 
 @app.route("/", methods=["GET"])
 def default():
-
     data = {"schemas": []}
 
     for schema_id, schema in store.items():
@@ -46,9 +45,7 @@ def documentation(path):
 
     doc = generate_from_schema(path, store, config=store_config)
     doc = doc.replace("schema_doc.css", "/static/schema_doc.css")
-    doc = doc.replace("schema_doc.min.js", "/static/schema_doc.min.js")
-
-    return doc
+    return doc.replace("schema_doc.min.js", "/static/schema_doc.min.js")
 
 
 if __name__ == "__main__":

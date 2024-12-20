@@ -78,7 +78,6 @@ class _LogsInterfaceValidator(InterfaceValidator):
         logger.debug(f"Load data for log interface {self.name}")
 
         for log_line in self._read():
-
             parsed = {}
             for parser in self._parsers:
                 m = parser.match(log_line)
@@ -95,8 +94,7 @@ class _LogsInterfaceValidator(InterfaceValidator):
     def get_data(self):
         yield from self._data_list
 
-    def validate(self, validator, success_by_default=False):
-
+    def validate(self, validator, *, success_by_default=False):
         for data in self.get_data():
             try:
                 if validator(data) is True:
@@ -281,6 +279,8 @@ class _LogPresence:
             logger.debug(f"For {self}, found {data['message']}")
             return True
 
+        return None
+
 
 class _LogAbsence:
     def __init__(self, pattern, allowed_patterns=None):
@@ -290,7 +290,6 @@ class _LogAbsence:
 
     def check(self, data):
         if self.pattern.search(data["raw"]):
-
             for pattern in self.allowed_patterns:
                 if pattern.search(data["raw"]):
                     return

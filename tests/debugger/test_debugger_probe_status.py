@@ -14,11 +14,14 @@ class Test_Debugger_Probe_Statuses(debugger._Base_Debugger_Test):
 
     ############ setup ############
     def _setup(self, probes_name: str):
+        self.initialize_weblog_remote_config()
+
         ### prepare probes
         probes = debugger.read_probes(probes_name)
         self.set_probes(probes)
 
         ### set expected
+        self.expected_diagnostics = {}
         for probe in self.probe_definitions:
             if probe["id"].endswith("installed"):
                 self.expected_diagnostics[probe["id"]] = "INSTALLED"
@@ -32,6 +35,7 @@ class Test_Debugger_Probe_Statuses(debugger._Base_Debugger_Test):
     def _assert(self):
         self.collect()
 
+        self.assert_setup_ok()
         self.assert_rc_state_not_error()
         self._validate_diagnostics()
 
@@ -41,9 +45,7 @@ class Test_Debugger_Probe_Statuses(debugger._Base_Debugger_Test):
                 return f"Probe {expected_id} was not received."
 
             actual_status = self.probe_diagnostics[expected_id]["status"]
-            if actual_status != expected_status and not (
-                expected_status == "INSTALLED" and actual_status == "EMITTING"
-            ):
+            if actual_status != expected_status:
                 return f"Received probe {expected_id} with status {actual_status}. Expected {expected_status}"
 
             return None

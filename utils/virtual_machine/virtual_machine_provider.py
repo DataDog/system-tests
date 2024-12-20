@@ -49,7 +49,7 @@ class VmProvider:
         raise NotImplementedError
 
     def install_provision(self, vm, server, server_connection):
-        """This method orchestrate the provision installation for a machine
+        """Orchestrate the provision installation for a machine
         Vm object contains the provision for the machine.
         The provision structure must satisfy the class utils/virtual_machine/virtual_machine_provisioner.py#Provision
         This is a common method for all providers
@@ -150,7 +150,6 @@ class VmProvider:
         # Copy files from local to remote if we need
         if installation.copy_files:
             for file_to_copy in installation.copy_files:
-
                 # If we don't use remote_path, the remote_path will be a default remote user home
                 if file_to_copy.remote_path:
                     remote_path = file_to_copy.remote_path

@@ -85,7 +85,9 @@ class ParametricScenario(Scenario):
     apm_test_server_definition: APMLibraryTestServer
 
     class PersistentParametricTestConf(dict):
-        """Parametric tests are executed in multiple thread, we need a mechanism to persist each parametrized_tests_metadata on a file"""
+        """Parametric tests are executed in multiple thread, we need a mechanism to persist
+        each parametrized_tests_metadata on a file
+        """
 
         def __init__(self, outer_inst):
             self.outer_inst = outer_inst
@@ -105,9 +107,9 @@ class ParametricScenario(Scenario):
             result = {}
             for ctx_filename in glob.glob(f"{self.outer_inst.host_log_folder}/*_context.json"):
                 with open(ctx_filename) as f:
-                    fileContent = f.read()
+                    file_content = f.read()
                     # Remove last carriage return and the last comma. Wrap into json array.
-                    all_params = json.loads(f"[{fileContent[:-2]}]")
+                    all_params = json.loads(f"[{file_content[:-2]}]")
                     # Change from array to unique dict
                     for d in all_params:
                         result.update(d)
@@ -208,7 +210,6 @@ class ParametricScenario(Scenario):
         return f"parametric-{self.library.library}"
 
     def _build_apm_test_server_image(self) -> str:
-
         logger.stdout("Build tested container...")
 
         apm_test_server_definition: APMLibraryTestServer = self.apm_test_server_definition
@@ -224,7 +225,6 @@ class ParametricScenario(Scenario):
             f.write(apm_test_server_definition.container_img)
 
         with open(log_path, "w+", encoding="utf-8") as log_file:
-
             # Build the container
             docker = shutil.which("docker")
             root_path = ".."
@@ -270,7 +270,7 @@ class ParametricScenario(Scenario):
     def create_docker_network(self, test_id: str) -> Network:
         docker_network_name = f"{_NETWORK_PREFIX}_{test_id}"
 
-        return _get_client().networks.create(name=docker_network_name, driver="bridge",)
+        return _get_client().networks.create(name=docker_network_name, driver="bridge")
 
     @staticmethod
     def get_host_port(worker_id: str, base_port: int) -> int:
@@ -297,7 +297,6 @@ class ParametricScenario(Scenario):
         command: list[str],
         log_file: TextIO,
     ) -> Generator[Container, None, None]:
-
         # Convert volumes to the format expected by the docker-py API
         fixed_volumes = {}
         for key, value in volumes.items():
@@ -450,7 +449,7 @@ def dotnet_library_factory():
     dotnet_appdir = os.path.join("utils", "build", "docker", "dotnet", "parametric")
     dotnet_absolute_appdir = os.path.join(_get_base_directory(), dotnet_appdir)
     dotnet_reldir = dotnet_appdir.replace("\\", "/")
-    server = APMLibraryTestServer(
+    return APMLibraryTestServer(
         lang="dotnet",
         container_name="dotnet-test-api",
         container_tag="dotnet8_0-test-api",
@@ -506,14 +505,13 @@ CMD ["./ApmTestApi"]
         container_build_context=_get_base_directory(),
     )
 
-    return server
-
 
 def java_library_factory():
     java_appdir = os.path.join("utils", "build", "docker", "java", "parametric")
     java_absolute_appdir = os.path.join(_get_base_directory(), java_appdir)
 
-    # Create the relative path and substitute the Windows separator, to allow running the Docker build on Windows machines
+    # Create the relative path and substitute the Windows separator,
+    # to allow running the Docker build on Windows machines.
     java_reldir = java_appdir.replace("\\", "/")
 
     # TODO : use official install_ddtrace.sh

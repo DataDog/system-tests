@@ -19,8 +19,8 @@ from tests.k8s_lib_injection.utils import get_dev_agent_traces
     reason="Data Jobs Monitoring tests are only applicable when using dd-djm-spark-test-app web-log variant.",
 )
 class TestK8sDJMWithSSI:
-    """ This test case validates java lib injection for Data Jobs Monitoring on k8s.
-    The tracer is injected using admission controller via annotations on submitted Spark application. 
+    """This test case validates java lib injection for Data Jobs Monitoring on k8s.
+    The tracer is injected using admission controller via annotations on submitted Spark application.
     We then use the dev test agent to check if the Spark application is instrumented.
     """
 

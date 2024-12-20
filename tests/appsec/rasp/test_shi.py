@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import features, weblog, interfaces, scenarios, rfc
+from utils import features, weblog, interfaces, scenarios, rfc, context
 from utils.dd_constants import Capabilities
 from tests.appsec.rasp.utils import (
     validate_span_tags,
@@ -15,10 +15,18 @@ from tests.appsec.rasp.utils import (
 )
 
 
+class Test_Shi_Base:
+    def get_shell_value(self):
+        # This is a workaround for java as command injection is not supporting String commands yet, we need to use the shell injection heuristics
+        if context.library == "java":
+            return "$(cat /etc/passwd 1>&2 ; echo .)"
+        return "ls $(cat /etc/passwd 1>&2 ; echo .)"
+
+
 @rfc("https://docs.google.com/document/d/1gCXU3LvTH9en3Bww0AC2coSJWz1m7HcavZjvMLuDCWg/edit#heading=h.giijrtyn1fdx")
 @features.rasp_shell_injection
 @scenarios.appsec_rasp
-class Test_Shi_UrlQuery:
+class Test_Shi_UrlQuery(Test_Shi_Base):
     """Shell Injection through query parameters"""
 
     def setup_shi_get(self):
@@ -31,8 +39,8 @@ class Test_Shi_UrlQuery:
             self.r,
             "rasp-932-100",
             {
-                "resource": {"address": "server.sys.shell.cmd", "value": "ls $(cat /etc/passwd 1>&2 ; echo .)",},
-                "params": {"address": "server.request.query", "value": "$(cat /etc/passwd 1>&2 ; echo .)",},
+                "resource": {"address": "server.sys.shell.cmd", "value": self.get_shell_value()},
+                "params": {"address": "server.request.query", "value": "$(cat /etc/passwd 1>&2 ; echo .)"},
             },
         )
 
@@ -40,7 +48,7 @@ class Test_Shi_UrlQuery:
 @rfc("https://docs.google.com/document/d/1gCXU3LvTH9en3Bww0AC2coSJWz1m7HcavZjvMLuDCWg/edit#heading=h.giijrtyn1fdx")
 @features.rasp_shell_injection
 @scenarios.appsec_rasp
-class Test_Shi_BodyUrlEncoded:
+class Test_Shi_BodyUrlEncoded(Test_Shi_Base):
     """Shell Injection through a url-encoded body parameter"""
 
     def setup_shi_post_urlencoded(self):
@@ -53,8 +61,8 @@ class Test_Shi_BodyUrlEncoded:
             self.r,
             "rasp-932-100",
             {
-                "resource": {"address": "server.sys.shell.cmd", "value": "ls $(cat /etc/passwd 1>&2 ; echo .)",},
-                "params": {"address": "server.request.body", "value": "$(cat /etc/passwd 1>&2 ; echo .)",},
+                "resource": {"address": "server.sys.shell.cmd", "value": self.get_shell_value()},
+                "params": {"address": "server.request.body", "value": "$(cat /etc/passwd 1>&2 ; echo .)"},
             },
         )
 
@@ -62,7 +70,7 @@ class Test_Shi_BodyUrlEncoded:
 @rfc("https://docs.google.com/document/d/1gCXU3LvTH9en3Bww0AC2coSJWz1m7HcavZjvMLuDCWg/edit#heading=h.giijrtyn1fdx")
 @features.rasp_shell_injection
 @scenarios.appsec_rasp
-class Test_Shi_BodyXml:
+class Test_Shi_BodyXml(Test_Shi_Base):
     """Shell Injection through an xml body parameter"""
 
     def setup_shi_post_xml(self):
@@ -76,8 +84,8 @@ class Test_Shi_BodyXml:
             self.r,
             "rasp-932-100",
             {
-                "resource": {"address": "server.sys.shell.cmd", "value": "ls $(cat /etc/passwd 1>&2 ; echo .)",},
-                "params": {"address": "server.request.body", "value": "$(cat /etc/passwd 1>&2 ; echo .)",},
+                "resource": {"address": "server.sys.shell.cmd", "value": self.get_shell_value()},
+                "params": {"address": "server.request.body", "value": "$(cat /etc/passwd 1>&2 ; echo .)"},
             },
         )
 
@@ -85,7 +93,7 @@ class Test_Shi_BodyXml:
 @rfc("https://docs.google.com/document/d/1gCXU3LvTH9en3Bww0AC2coSJWz1m7HcavZjvMLuDCWg/edit#heading=h.giijrtyn1fdx")
 @features.rasp_shell_injection
 @scenarios.appsec_rasp
-class Test_Shi_BodyJson:
+class Test_Shi_BodyJson(Test_Shi_Base):
     """Shell Injection through a json body parameter"""
 
     def setup_shi_post_json(self):
@@ -99,8 +107,8 @@ class Test_Shi_BodyJson:
             self.r,
             "rasp-932-100",
             {
-                "resource": {"address": "server.sys.shell.cmd", "value": "ls $(cat /etc/passwd 1>&2 ; echo .)",},
-                "params": {"address": "server.request.body", "value": "$(cat /etc/passwd 1>&2 ; echo .)",},
+                "resource": {"address": "server.sys.shell.cmd", "value": self.get_shell_value()},
+                "params": {"address": "server.request.body", "value": "$(cat /etc/passwd 1>&2 ; echo .)"},
             },
         )
 
@@ -130,9 +138,7 @@ class Test_Shi_Optional_SpanTags:
         self.r = weblog.get("/rasp/shi", params={"list_dir": "$(cat /etc/passwd 1>&2 ; echo .)"})
 
     def test_shi_span_tags(self):
-        validate_span_tags(
-            self.r, expected_metrics=["_dd.appsec.rasp.duration_ext", "_dd.appsec.rasp.rule.eval",],
-        )
+        validate_span_tags(self.r, expected_metrics=["_dd.appsec.rasp.duration_ext", "_dd.appsec.rasp.rule.eval"])
 
 
 @rfc("https://docs.google.com/document/d/1vmMqpl8STDk7rJnd3YBsa6O9hCls_XHHdsodD61zr_4/edit#heading=h.enmf90juqidf")

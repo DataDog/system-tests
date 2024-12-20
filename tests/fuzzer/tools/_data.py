@@ -9,7 +9,6 @@ from tests.fuzzer.tools._tools import cached_property
 
 class _Data:
     def __init__(self):
-
         self.header_valid_list = "!#$%&'*+-.0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ^_`abcdefghijklmnopqrstuvwxyz|~"
 
     @cached_property

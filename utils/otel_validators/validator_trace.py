@@ -4,18 +4,19 @@ import json
 import dictdiffer
 from utils.tools import logger
 
+
 # Validates traces from Agent, Collector and Backend intake OTLP ingestion paths are consistent
 def validate_all_traces(
-    traces_agent: list[dict], traces_intake: list[dict], traces_collector: list[dict], use_128_bits_trace_id: bool
+    traces_agent: list[dict], traces_intake: list[dict], traces_collector: list[dict], *, use_128_bits_trace_id: bool
 ):
-    spans_agent = validate_trace(traces_agent, use_128_bits_trace_id)
-    spans_intake = validate_trace(traces_intake, use_128_bits_trace_id)
-    spans_collector = validate_trace(traces_collector, use_128_bits_trace_id)
+    spans_agent = validate_trace(traces_agent, use_128_bits_trace_id=use_128_bits_trace_id)
+    spans_intake = validate_trace(traces_intake, use_128_bits_trace_id=use_128_bits_trace_id)
+    spans_collector = validate_trace(traces_collector, use_128_bits_trace_id=use_128_bits_trace_id)
     validate_spans_from_all_paths(spans_agent, spans_intake, spans_collector)
 
 
 # Validates fields that we know the values upfront for one single trace from an OTLP ingestion path
-def validate_trace(traces: list[dict], use_128_bits_trace_id: bool) -> tuple:
+def validate_trace(traces: list[dict], *, use_128_bits_trace_id: bool) -> tuple:
     server_span = None
     message_span = None
     for trace in traces:
@@ -23,7 +24,7 @@ def validate_trace(traces: list[dict], use_128_bits_trace_id: bool) -> tuple:
         assert len(spans) == 1
         for item in spans.items():
             span = item[1]
-            validate_common_tags(span, use_128_bits_trace_id)
+            validate_common_tags(span, use_128_bits_trace_id=use_128_bits_trace_id)
             if span["type"] == "web":
                 server_span = span
             elif span["type"] == "custom":
@@ -36,7 +37,7 @@ def validate_trace(traces: list[dict], use_128_bits_trace_id: bool) -> tuple:
     return (server_span, message_span)
 
 
-def validate_common_tags(span: dict, use_128_bits_trace_id: bool):
+def validate_common_tags(span: dict, *, use_128_bits_trace_id: bool):
     assert span["parent_id"] == "0"
     assert span["service"] == "otel-system-tests-spring-boot"
     expected_meta = {
@@ -45,10 +46,10 @@ def validate_common_tags(span: dict, use_128_bits_trace_id: bool):
         "otel.library.name": "com.datadoghq.springbootnative",
     }
     assert expected_meta.items() <= span["meta"].items()
-    validate_trace_id(span, use_128_bits_trace_id)
+    validate_trace_id(span, use_128_bits_trace_id=use_128_bits_trace_id)
 
 
-def validate_trace_id(span: dict, use_128_bits_trace_id: bool):
+def validate_trace_id(span: dict, *, use_128_bits_trace_id: bool):
     dd_trace_id = int(span["trace_id"], base=10)
     otel_trace_id = int(span["meta"]["otel.trace_id"], base=16)
     if use_128_bits_trace_id:

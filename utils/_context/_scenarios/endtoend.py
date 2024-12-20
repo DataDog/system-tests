@@ -1,10 +1,14 @@
 import os
 import pytest
 
+from docker.models.networks import Network
+
 from watchdog.observers.polling import PollingObserver
 from watchdog.events import FileSystemEventHandler
 
 from utils import interfaces
+from utils.buddies import BuddyHostPorts
+from utils.proxy.ports import ProxyPorts
 from utils._context.containers import (
     WeblogContainer,
     AgentContainer,
@@ -16,9 +20,9 @@ from utils._context.containers import (
     RabbitMqContainer,
     MySqlContainer,
     MsSqlServerContainer,
-    create_network,
     BuddyContainer,
     TestedContainer,
+    _get_client as get_docker_client,
 )
 
 from utils.tools import logger
@@ -29,9 +33,12 @@ from .core import Scenario, ScenarioGroup
 class DockerScenario(Scenario):
     """Scenario that tests docker containers"""
 
+    _network: Network = None
+
     def __init__(
         self,
         name,
+        *,
         github_workflow,
         doc,
         scenario_groups=None,
@@ -100,7 +107,7 @@ class DockerScenario(Scenario):
             for image_name in container.get_image_list(library, weblog)
         ]
 
-    def configure(self, config):
+    def configure(self, config):  # noqa: ARG002
         for container in reversed(self._required_containers):
             container.configure(self.replay)
 
@@ -134,12 +141,22 @@ class DockerScenario(Scenario):
 
         observer.start()
 
+    def _create_network(self) -> None:
+        name = "system-tests_default"
+
+        for network in get_docker_client().networks.list(names=[name]):
+            logger.debug(f"Network {name} still exists")
+            self._network = network
+            return
+
+        self._network = get_docker_client().networks.create(name, check_duplicate=True)
+
     def get_warmups(self):
         warmups = super().get_warmups()
 
         if not self.replay:
             warmups.append(lambda: logger.stdout("Starting containers..."))
-            warmups.append(create_network)
+            warmups.append(self._create_network)
             warmups.append(self._start_containers)
 
         for container in self._required_containers:
@@ -151,7 +168,7 @@ class DockerScenario(Scenario):
         threads = []
 
         for container in self._required_containers:
-            threads.append(container.async_start())
+            threads.append(container.async_start(self._network))
 
         for thread in threads:
             thread.join()
@@ -174,6 +191,7 @@ class EndToEndScenario(DockerScenario):
     def __init__(
         self,
         name,
+        *,
         doc,
         github_workflow="endtoend",
         scenario_groups=None,
@@ -202,7 +220,6 @@ class EndToEndScenario(DockerScenario):
         include_buddies=False,
         require_api_key=False,
     ) -> None:
-
         scenario_groups = [ScenarioGroup.ALL, ScenarioGroup.END_TO_END, ScenarioGroup.TRACER_RELEASE] + (
             scenario_groups or []
         )
@@ -272,18 +289,29 @@ class EndToEndScenario(DockerScenario):
         self.buddies: list[BuddyContainer] = []
 
         if include_buddies:
-            # so far, only python, nodejs, java, ruby and golang are supported
-            supported_languages = [("python", 9001), ("nodejs", 9002), ("java", 9003), ("ruby", 9004), ("golang", 9005)]
+            # so far, only python, nodejs, java, ruby and golang are supported.
+            # This list contains :
+            # 1. the language
+            # 2. the trace agent port where the buddy connect to the agent
+            # 3. and the host port where the buddy is accessible
+            supported_languages = [
+                ("python", ProxyPorts.python_buddy, BuddyHostPorts.python),
+                ("nodejs", ProxyPorts.nodejs_buddy, BuddyHostPorts.nodejs),
+                ("java", ProxyPorts.java_buddy, BuddyHostPorts.java),
+                ("ruby", ProxyPorts.ruby_buddy, BuddyHostPorts.ruby),
+                ("golang", ProxyPorts.golang_buddy, BuddyHostPorts.golang),
+            ]
 
             self.buddies += [
                 BuddyContainer(
                     f"{language}_buddy",
                     f"datadog/system-tests:{language}_buddy-v1",
                     self.host_log_folder,
-                    proxy_port=port,
+                    host_port=host_port,
+                    trace_agent_port=trace_agent_port,
                     environment=weblog_env,
                 )
-                for language, port in supported_languages
+                for language, trace_agent_port, host_port in supported_languages
             ]
 
             for buddy in self.buddies:
@@ -322,7 +350,7 @@ class EndToEndScenario(DockerScenario):
             container.interface = getattr(interfaces, container.name)
             container.interface.configure(self.host_log_folder, self.replay)
 
-        library = self.weblog_container.image.env["SYSTEM_TESTS_LIBRARY"]
+        library = self.weblog_container.image.labels["system-tests-library"]
 
         if self.library_interface_timeout is None:
             if library == "java":
@@ -341,7 +369,7 @@ class EndToEndScenario(DockerScenario):
 
     def _get_weblog_system_info(self):
         try:
-            code, (stdout, stderr) = self.weblog_container._container.exec_run("uname -a", demux=True)
+            code, (stdout, stderr) = self.weblog_container.exec_run("uname -a", demux=True)
             if code or stdout is None:
                 message = f"Failed to get weblog system info: [{code}] {stderr.decode()} {stdout.decode()}"
             else:
@@ -399,7 +427,6 @@ class EndToEndScenario(DockerScenario):
         interfaces.library_dotnet_managed.load_data()
 
     def _wait_and_stop_containers(self):
-
         if self.replay:
             logger.terminal.write_sep("-", "Load all data from logs")
             logger.terminal.flush()

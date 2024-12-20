@@ -185,7 +185,6 @@ class _VirtualMachine:
         return f"{self.get_log_folder()}/virtual_machine_{self.name}.log"
 
     def add_provision(self, provision):
-
         self._vm_provision = provision
 
     def get_provision(self):
@@ -235,7 +234,7 @@ class _VirtualMachine:
         return full_cache_name
 
     def get_command_environment(self):
-        """This environment will be injected as environment variables for all launched remote commands"""
+        """Get the environment that will be injected as environment variables for all launched remote commands"""
         command_env = {}
         for key, value in self.get_provision().env.items():
             command_env["DD_" + key] = value
@@ -274,7 +273,8 @@ class _VirtualMachine:
                 app_env_values += f"{key}={value} "
             command_env["DD_APP_ENV"] = app_env_values
         else:
-            # Containers are taking the generated file with this, and we need some value to be present to avoid failures like:
+            # Containers are taking the generated file with this, and we need some value to be present to avoid
+            # failures like:
             # failed to read /home/ubuntu/scenario_app.env: line 1: unexpected character "'" in variable name "''"
             command_env["DD_APP_ENV"] = "foo=bar"
 
@@ -369,7 +369,7 @@ class Ubuntu22arm64(_VirtualMachine):
         super().__init__(
             "Ubuntu_22_arm64",
             aws_config=_AWSConfig(ami_id="ami-016485166ec7fa705", ami_instance_type="t4g.medium", user="ubuntu"),
-            vagrant_config=_VagrantConfig(box_name="perk/ubuntu-2204-arm64",),
+            vagrant_config=_VagrantConfig(box_name="perk/ubuntu-2204-arm64"),
             krunvm_config=_KrunVmConfig(oci_image_name="docker.io/library/ubuntu_datadog:22"),
             os_type="linux",
             os_distro="deb",

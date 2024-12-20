@@ -105,7 +105,6 @@ class BaseSinkTestWithoutTelemetry:
         return _get_expectation(self.evidence_map)
 
     def setup_insecure(self):
-
         # optimize by attaching requests to the class object, to avoid calling it several times. We can't attach them
         # to self, and we need to attach the request on class object, as there are one class instance by test case
 
@@ -138,7 +137,6 @@ class BaseSinkTestWithoutTelemetry:
         self.test_insecure()
 
     def setup_secure(self):
-
         # optimize by attaching requests to the class object, to avoid calling it several times. We can't attach them
         # to self, and we need to attach the request on class object, as there are one class instance by test case
 
@@ -182,7 +180,6 @@ class BaseSinkTestWithoutTelemetry:
 
 
 def validate_stack_traces(request):
-
     spans = [span for _, span in interfaces.library.get_root_spans(request=request)]
     assert spans, "No root span found"
     span = spans[0]
@@ -227,10 +224,17 @@ def validate_stack_traces(request):
     locationFrame = None
     for frame in stack_trace["frames"]:
         # We are looking for the frame that corresponds to the location of the vulnerability, we will need to update this to cover all tracers
+        # currently support: Java, Python
         if (
-            location["path"] in frame["class_name"]
-            and location["method"] in frame["function"]
-            and location["line"] == frame["line"]
+            stack_trace["language"] == "java"
+            and (
+                location["path"] in frame["class_name"]
+                and location["method"] in frame["function"]
+                and location["line"] == frame["line"]
+            )
+        ) or (
+            stack_trace["language"] == "python"
+            and (frame.get("file", "").endswith(location["path"]) and location["line"] == frame["line"])
         ):
             locationFrame = frame
     assert locationFrame is not None, "location not found in stack trace"

@@ -10,7 +10,7 @@ class FakeContainer(_TestedContainer):
         super().__init__(name=name, image_name=name, host_log_folder="logs_test_the_test")
         self._test_events = events if events is not None else []
 
-    def start(self):
+    def start(self, network):
         self._test_events.append(f"start {self.name}")
         self.healthy = True
 
@@ -20,7 +20,6 @@ class FakeContainer(_TestedContainer):
 
 @scenarios.test_the_test
 def test_main():
-
     events = []
 
     class FakeScenario(DockerScenario):
@@ -69,7 +68,7 @@ def test_recursive():
 
 @scenarios.test_the_test
 def test_recursive_2():
-    """ more complex """
+    """more complex"""
 
     class FakeScenario(DockerScenario):
         def __init__(self) -> None:

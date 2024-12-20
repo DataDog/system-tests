@@ -35,7 +35,7 @@ class TestLDAPInjection(BaseSinkTest):
 )
 @features.iast_stack_trace
 class TestLDAPInjection_StackTrace:
-    """Validate stack trace generation """
+    """Validate stack trace generation"""
 
     def setup_stack_trace(self):
         self.r = weblog.post("/iast/ldapi/test_insecure", data={"username": "ssam", "password": "sammy"})

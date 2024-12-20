@@ -550,6 +550,8 @@ tests/:
         test_path_parameter.py:
           TestPathParameter:
             '*': missing_feature
+        test_sql_row.py:
+          TestSqlRow: missing_feature
         test_uri.py:
           TestURI:
             '*': v1.23.0
@@ -562,7 +564,59 @@ tests/:
             vertx3: missing_feature
             vertx4: missing_feature
     rasp/:
-      test_cmdi.py: missing_feature
+      test_cmdi.py:
+        Test_Cmdi_BodyJson:
+          '*': v1.45.0
+          akka-http: missing_feature (APPSEC-56196)
+          spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+          spring-boot-payara: missing_feature (APPSEC-54966)
+          vertx4: missing_feature (APPSEC-55785)
+        Test_Cmdi_BodyUrlEncoded:
+          '*': v1.45.0
+          akka-http: missing_feature (APPSEC-56196)
+          spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+          spring-boot-payara: missing_feature (APPSEC-54966)
+        Test_Cmdi_BodyXml:
+          '*': v1.45.0
+          akka-http: missing_feature (APPSEC-55780)
+          spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+          spring-boot-payara: missing_feature (APPSEC-54966)
+          vertx3: missing_feature (APPSEC-55788)
+          vertx4: missing_feature (APPSEC-55786)
+        Test_Cmdi_Capability:
+          '*': v1.45.0
+          spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+        Test_Cmdi_Mandatory_SpanTags:
+          '*': v1.45.0
+          spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+        Test_Cmdi_Optional_SpanTags:
+            '*': v1.45.0
+            spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+        Test_Cmdi_Rules_Version:
+          '*': v1.45.0
+          spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+        Test_Cmdi_StackTrace:
+          '*': v1.45.0
+          spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+          spring-boot-payara: missing_feature (APPSEC-54966)
+        Test_Cmdi_Telemetry:
+          '*': v1.45.0
+          akka-http: missing_feature (APPSEC-56196)
+          spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+          spring-boot-payara: missing_feature (APPSEC-54966)
+        Test_Cmdi_Telemetry_Variant_Tag:
+          '*': v1.45.0
+          akka-http: missing_feature (APPSEC-56196)
+          spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+          spring-boot-payara: missing_feature (APPSEC-54966)
+        Test_Cmdi_UrlQuery:
+          '*': v1.45.0
+          akka-http: missing_feature (APPSEC-56196)
+          spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+          spring-boot-payara: missing_feature (APPSEC-54966)
+        Test_Cmdi_Waf_Version:
+          '*': v1.45.0
+          spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
       test_lfi.py:
         Test_Lfi_BodyJson:
           '*': v1.40.0
@@ -608,7 +662,54 @@ tests/:
         Test_Lfi_Waf_Version:
           '*': v1.40.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-      test_shi.py: irrelevant (Not support in Java)
+      test_shi.py:
+        Test_Shi_BodyJson:
+            '*': v1.45.0
+            spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+            spring-boot-payara: missing_feature (APPSEC-54966)
+            vertx4: missing_feature (APPSEC-55785)
+        Test_Shi_BodyUrlEncoded:
+          '*': v1.45.0
+          spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+          spring-boot-payara: missing_feature (APPSEC-54966)
+        Test_Shi_BodyXml:
+          '*': v1.45.0
+          akka-http: missing_feature (APPSEC-55780)
+          spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+          spring-boot-payara: missing_feature (APPSEC-54966)
+          vertx3: missing_feature (APPSEC-55788)
+          vertx4: missing_feature (APPSEC-55786)
+        Test_Shi_Capability:
+          '*': v1.45.0
+          spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+        Test_Shi_Mandatory_SpanTags:
+            '*': v1.45.0
+            spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+        Test_Shi_Optional_SpanTags:
+            '*': v1.45.0
+            spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+        Test_Shi_Rules_Version:
+            '*': v1.45.0
+            spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+        Test_Shi_StackTrace:
+          '*': v1.45.0
+          spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+          spring-boot-payara: missing_feature (APPSEC-54966)
+        Test_Shi_Telemetry:
+          '*': v1.45.0
+          spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+          spring-boot-payara: missing_feature (APPSEC-54966)
+        Test_Shi_Telemetry_Variant_Tag:
+          '*': v1.45.0
+          spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+          spring-boot-payara: missing_feature (APPSEC-54966)
+        Test_Shi_UrlQuery:
+          '*': v1.45.0
+          spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+          spring-boot-payara: missing_feature (APPSEC-54966)
+        Test_Shi_Waf_Version:
+            '*': v1.45.0
+            spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
       # SQLi was introduced in v1.38.0 (with RASP disabled by default, but was flaky)
       test_sqli.py:
         Test_Sqli_BodyJson:
@@ -912,7 +1013,16 @@ tests/:
       Test_IastStandalone_UpstreamPropagation:
         '*': v1.36.0
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-      Test_SCAStandalone_Telemetry: missing_feature
+      Test_SCAStandalone_Telemetry:
+        '*': v1.45.0
+        akka-http: missing_feature (endpoints not implemented)
+        jersey-grizzly2: missing_feature (endpoints not implemented)
+        play: missing_feature (endpoints not implemented)
+        ratpack: missing_feature (endpoints not implemented)
+        resteasy-netty3: missing_feature (endpoints not implemented)
+        spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+        vertx3: missing_feature (endpoints not implemented)
+        vertx4: missing_feature (endpoints not implemented)
     test_automated_login_events.py:
       Test_Login_Events: irrelevant (was v1.36.0 but will be replaced by V2)
       Test_Login_Events_Extended: irrelevant (was v1.36.0 but will be replaced by V2)
@@ -949,6 +1059,25 @@ tests/:
         spring-boot-openliberty: missing_feature (weblog returns error 500)
         vertx3: missing_feature (login endpoints not implemented)
         vertx4: missing_feature (login endpoints not implemented)
+      Test_V3_Auto_User_Instrum_Mode_Capability:
+        '*': missing_feature
+        spring-boot-3-native: flaky (APMAPI-979)
+      Test_V3_Login_Events:
+        '*': missing_feature
+        spring-boot-3-native: flaky (APMAPI-979)
+      Test_V3_Login_Events_Anon:
+        '*': missing_feature
+        spring-boot-3-native: flaky (APMAPI-979)
+      Test_V3_Login_Events_Blocking:
+        '*': missing_feature
+        spring-boot-3-native: flaky (APMAPI-979)
+      Test_V3_Login_Events_RC:
+        '*': missing_feature
+        spring-boot-3-native: flaky (APMAPI-979)
+    test_automated_user_and_session_tracking.py:
+      Test_Automated_Session_Blocking: missing_feature
+      Test_Automated_User_Blocking: missing_feature
+      Test_Automated_User_Tracking: missing_feature
     test_blocking_addresses.py:
       Test_BlockingGraphqlResolvers: missing_feature
       Test_Blocking_client_ip:
@@ -1438,7 +1567,9 @@ tests/:
       TestAdmisionControllerProfiling: v1.39.0
   parametric/:
     test_config_consistency.py:
+      Test_Config_Dogstatsd: missing_feature (default hostname is inconsistent)
       Test_Config_RateLimit: v1.41.1
+      Test_Config_Tags: missing_feature
       Test_Config_TraceAgentURL: v1.41.1
       Test_Config_TraceEnabled: v1.39.0
       Test_Config_TraceLogDirectory: missing_feature
@@ -1519,6 +1650,7 @@ tests/:
       Test_Mock: v0.0.99
       Test_NotReleased: missing_feature
   test_config_consistency.py:
+    Test_Config_ClientIPHeaderEnabled_False: v1.43.0
     Test_Config_ClientIPHeader_Configured: missing_feature
     Test_Config_ClientIPHeader_Precedence: missing_feature (does not support x-forwarded header)
     Test_Config_ClientTagQueryString_Configured:

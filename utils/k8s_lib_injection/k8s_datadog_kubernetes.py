@@ -20,10 +20,15 @@ class K8sDatadog:
         self._api_key = api_key
         self._app_key = app_key
 
-    def configure(self, k8s_kind_cluster, k8s_wrapper):
+    def configure(
+        self, k8s_kind_cluster, k8s_wrapper, dd_cluster_feature=None, dd_cluster_uds=None, k8s_cluster_version=None
+    ):
         self.k8s_kind_cluster = k8s_kind_cluster
         self.k8s_wrapper = k8s_wrapper
         self.logger = k8s_logger(self.output_folder, self.test_name, "k8s_logger")
+        self.dd_cluster_feature = dd_cluster_feature
+        self.dd_cluster_uds = dd_cluster_uds
+        self.k8s_cluster_version = k8s_cluster_version
         self.logger.info(f"K8sDatadog configured with cluster: {self.k8s_kind_cluster.cluster_name}")
 
     def deploy_test_agent(self):
@@ -104,6 +109,13 @@ class K8sDatadog:
 
         self.logger.info("[Deploy datadog cluster] Deploying Datadog Cluster Agent with Admission Controler")
 
+        if self.dd_cluster_uds is not None:
+            use_uds = self.dd_cluster_uds
+        if self.dd_cluster_feature is not None:
+            features = self.dd_cluster_feature
+        if self.k8s_cluster_version is not None:
+            cluster_agent_tag = self.k8s_cluster_version
+
         operator_file = "utils/k8s_lib_injection/resources/operator/operator-helm-values.yaml"
         if use_uds:
             self.logger.info("[Deploy datadog cluster] Using UDS")
@@ -121,7 +133,7 @@ class K8sDatadog:
         # Add the cluster agent tag version
         features["clusterAgent.image.tag"] = cluster_agent_tag
         helm_install_chart(
-            self.k8s_kind_cluster, "datadog", "datadog/datadog", value_file=operator_file, set_dict=features,
+            self.k8s_kind_cluster, "datadog", "datadog/datadog", value_file=operator_file, set_dict=features
         )
 
         self.logger.info("[Deploy datadog cluster] Waiting for the cluster to be ready")

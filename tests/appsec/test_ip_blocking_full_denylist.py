@@ -24,9 +24,7 @@ class Test_AppSecIPBlockingFullDenylist(BaseFullDenyListTest):
         self.blocked_requests = [weblog.get(headers={"X-Forwarded-For": ip}) for ip in self.blocked_ips]
 
     @missing_feature(weblog_variant="spring-boot" and context.library < "java@0.111.0")
-    @bug(
-        context.library >= "java@1.22.0" and context.library < "java@1.35.0", reason="APMRP-360",
-    )
+    @bug(context.library >= "java@1.22.0" and context.library < "java@1.35.0", reason="APMRP-360")
     def test_blocked_ips(self):
         """test blocked ips are enforced"""
 

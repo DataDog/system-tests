@@ -44,7 +44,7 @@ class _PropertiesDecoder(json.JSONDecoder):
 
 
 class SetupProperties:
-    """This class will store all properties initialized by setup function, and dump =them into a file
+    """Store all properties initialized by setup function, and dump =them into a file
     In replay mode, it will restore then to the good instance
     """
 
@@ -63,7 +63,6 @@ class SetupProperties:
 
     @staticmethod
     def _get_properties(instance) -> dict:
-
         properties = {
             name: getattr(instance, name)
             for name in dir(instance)
