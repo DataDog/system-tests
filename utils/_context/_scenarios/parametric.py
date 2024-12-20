@@ -40,7 +40,7 @@ _NETWORK_PREFIX = "apm_shared_tests_network"
 def _get_client() -> docker.DockerClient:
     try:
         return docker.DockerClient.from_env()
-    except DockerException as e:
+    except DockerException:
         # Failed to start the default Docker client... Let's see if we have
         # better luck with docker contexts...
         try:
@@ -57,7 +57,7 @@ def _get_client() -> docker.DockerClient:
         except:
             logger.exception("No more success with docker contexts")
 
-        raise e
+        raise
 
 
 @dataclasses.dataclass

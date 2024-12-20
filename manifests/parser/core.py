@@ -36,8 +36,7 @@ def _load_file(file):
 
 @lru_cache
 def load(base_dir="manifests/"):
-    """
-    Returns a dict of nodeid, value are another dict where the key is the component
+    """Returns a dict of nodeid, value are another dict where the key is the component
     and the value the declaration. It is meant to sent directly the value of a nodeid to @released.
 
     Data example:
@@ -78,7 +77,7 @@ def load(base_dir="manifests/"):
 def assert_key_order(obj: dict, path=""):
     last_key = "/"
 
-    for key in obj:
+    for key, value in obj.items():
         if last_key.endswith("/") and not key.endswith("/"):  # transition from folder fo files, nothing to do
             pass
         elif not last_key.endswith("/") and key.endswith("/"):  # folder must be before files
@@ -86,8 +85,8 @@ def assert_key_order(obj: dict, path=""):
         else:  # otherwise, it must be sorted
             assert last_key < key, f"Order is not respected at {path} ({last_key} < {key})"
 
-        if isinstance(obj[key], dict):
-            assert_key_order(obj[key], f"{path}.{key}")
+        if isinstance(value, dict):
+            assert_key_order(value, f"{path}.{key}")
 
         last_key = key
 

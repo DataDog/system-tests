@@ -404,7 +404,7 @@ class EndToEndScenario(DockerScenario):
             logger.debug("Wait for app readiness")
 
             if not interfaces.library.ready.wait(40):
-                raise Exception("Library not ready")
+                raise ValueError("Library not ready")
 
             logger.debug("Library ready")
 
@@ -415,7 +415,7 @@ class EndToEndScenario(DockerScenario):
                 logger.debug(f"{container.name} ready")
 
             if not interfaces.agent.ready.wait(40):
-                raise Exception("Datadog agent not ready")
+                raise ValueError("Datadog agent not ready")
             logger.debug("Agent ready")
 
     def post_setup(self):

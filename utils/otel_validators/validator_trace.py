@@ -30,7 +30,7 @@ def validate_trace(traces: list[dict], *, use_128_bits_trace_id: bool) -> tuple:
             elif span["type"] == "custom":
                 message_span = span
             else:
-                raise Exception("Unexpected span ", span)
+                raise ValueError("Unexpected span ", span)
     validate_server_span(server_span)
     validate_message_span(message_span)
     validate_span_link(server_span, message_span)

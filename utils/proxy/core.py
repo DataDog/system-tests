@@ -149,7 +149,7 @@ class _RequestLogger:
                 flow.request.port = 443
                 flow.request.scheme = "https"
             else:
-                raise Exception(f"Unknown OTLP ingestion path {otlp_path}")
+                raise ValueError(f"Unknown OTLP ingestion path {otlp_path}")
 
             logger.info(f"    => reverse proxy to {flow.request.pretty_url}")
 
