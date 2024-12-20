@@ -2,6 +2,7 @@
     {
         "language": "",
         "id": "",
+        "version": 0,
         "where": {
             "typeName": "ACTUAL_TYPE_NAME",
             "methodName": "",
