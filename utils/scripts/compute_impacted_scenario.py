@@ -48,7 +48,7 @@ class Result:
                 self.add_scenario_group(ScenarioGroup.LIB_INJECTION.value)
             if "run-docker-ssi-scenarios" in labels:
                 self.add_scenario_group(ScenarioGroup.DOCKER_SSI.value)
-            if "run-external-processing-scenario" in labels:
+            if "run-external-processing-scenarios" in labels:
                 self.add_scenario_group(ScenarioGroup.EXTERNAL_PROCESSING.value)
 
 
