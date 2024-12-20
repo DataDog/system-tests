@@ -266,9 +266,6 @@ class Test_ExtractBehavior_Default:
                 "x-datadog-tags": "_dd.p.tid=1111111111111111,_dd.p.dm=-4",
                 "traceparent": "00-11111111111111110000000000000001-0000000000000001-01",
                 "tracestate": "dd=s:2;t.dm:-4,foo=1",
-                "x-b3-traceid": "11111111111111110000000000000001",
-                "x-b3-spanid": "0000000000000001",
-                "x-b3-sampled": "1",
                 "baggage": "key1=value1",
             },
         )
@@ -303,9 +300,6 @@ class Test_ExtractBehavior_Default:
                 "x-datadog-sampling-priority": "2",
                 "x-datadog-tags": "_dd.p.tid=1111111111111111,_dd.p.dm=-4",
                 "traceparent": "00-12345678901234567890123456789012-1234567890123456-01",
-                "x-b3-traceid": "22222222222222223333333333333333",
-                "x-b3-spanid": "4444444444444444",
-                "x-b3-sampled": "1",
                 "baggage": "key1=value1",
             },
         )
@@ -321,7 +315,7 @@ class Test_ExtractBehavior_Default:
         assert span.get("parentID") == "2"
 
         # Test the extracted span links: One span link per conflicting trace context
-        assert len(span.get("spanLinks")) == 2
+        assert len(span.get("spanLinks")) == 1
 
         # Assert the W3C Trace Context (conflicting trace context) span link
         link = span.get("spanLinks")[0]
@@ -329,13 +323,6 @@ class Test_ExtractBehavior_Default:
         assert link["spanID"] == "1311768467284833366" # int (0x1234567890123456)
         assert link["traceIDHigh"] == "1311768467284833366" # int(0x1234567890123456)
         assert link["attributes"] == {"reason": "terminated_context", "context_headers": "tracecontext"}
-
-        # Assert the b3 (conflicting trace context) span link
-        link = span.get("spanLinks")[1]
-        assert link["traceID"] == "3689348814741910323" # int(0x3333333333333333)
-        assert link["spanID"] == "4919131752989213764" # int (0x4444444444444444)
-        assert link["traceIDHigh"] == "2459565876494606882" # int(0x2222222222222222)
-        assert link["attributes"] == {"reason": "terminated_context", "context_headers": "b3multi"}
 
         # Test the next outbound span context
         assert self.r.status_code == 200

@@ -28,7 +28,7 @@ class Test_DistributedHttp:
         assert "x-datadog-trace-id" not in data["request_headers"]
 
 
-@scenarios.default
+@scenarios.tracing_config_nondefault
 @features.w3c_headers_injection_and_extraction
 @bug(
     context.library < "java@1.44.0" and context.weblog_variant == "spring-boot-3-native",
@@ -135,7 +135,7 @@ class Test_Span_Links_From_Conflicting_Contexts:
         assert len(trace) == 0
 
 
-@scenarios.default
+@scenarios.tracing_config_nondefault
 @features.w3c_headers_injection_and_extraction
 @bug(
     context.library < "java@1.44.0" and context.weblog_variant == "spring-boot-3-native",
@@ -235,7 +235,7 @@ class Test_Span_Links_Flags_From_Conflicting_Contexts:
         assert link2["flags"] == 0 | TRACECONTEXT_FLAGS_SET
 
 
-@scenarios.default
+@scenarios.tracing_config_nondefault
 @features.w3c_headers_injection_and_extraction
 @bug(
     context.library < "java@1.44.0" and context.weblog_variant == "spring-boot-3-native",
