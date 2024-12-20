@@ -173,8 +173,11 @@ class K8sEKSRemoteClusterProvider(K8sClusterProvider):
         try:
             # Update context name
             arn, cluster_context = execute_command("kubectl config current-context").split("/")
-            self._cluster_info.context_name = cluster_context.strip()
-            # self._cluster_info.context_name="roberto.montero@datadoghq.com@lib-injection-testing-eks-sandbox.us-east-1.eksctl.io"
+            current_context_name = cluster_context.strip()
+            ##CONTEXT NAME SHOULD BE: user@email.com@lib-injection-testing-eks-sandbox.us-east-1.eksctl.io to get cluster name working
+            self._cluster_info.context_name = execute_command(
+                "kubectl config get-contexts |  awk '{if ($1 ~ \"@" + current_context_name + "\") print $1}'"
+            )
             logger.info("Configuring k8s cluster api connection, for context: " + self._cluster_info.context_name)
 
             # Update cluster name
@@ -218,8 +221,8 @@ class K8sEKSRemoteClusterProvider(K8sClusterProvider):
             raise e
 
     def get_token(self, cluster_name):
-        # cluster_min_name = cluster_name.split(".")[0]
-        token = execute_command(f"aws-iam-authenticator token -i {cluster_name} --token-only")
+        cluster_min_name = cluster_name.split(".")[0]
+        token = execute_command(f"aws-iam-authenticator token -i {cluster_min_name} --token-only")
         token = token.strip()
         # TODO RMM remove this leak
         logger.info("Token: " + token)

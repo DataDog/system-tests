@@ -5,11 +5,11 @@ import argparse
 
 def generate_gitlab_pipeline(languages):
     pipeline = {
-        "stages": ["k8s_lib_injection"],
+        "stages": ["K8S_LIB_INJECTION"],
         ".k8s_lib_injection_base": {
             "image": "registry.ddbuild.io/ci/libdatadog-build/system-tests:48436362",
             "tags": ["runner:docker"],
-            "stage": "k8s_lib_injection",
+            "stage": "K8S_LIB_INJECTION",
             "script": [
                 "./build.sh -i runner",
                 "source venv/bin/activate",

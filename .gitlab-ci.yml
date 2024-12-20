@@ -10,7 +10,7 @@ stages:
   - stats_results
   - parse_results
   - before_tests
-  #- k8s_lib_injection
+  - k8s_lib_injection
 
 variables:
     # Do not modify this - must be the repository name for Kubernetes gitlab runners to run
@@ -545,7 +545,7 @@ generate_system_tests_images:
     paths:
       - reports/
 
-.k8s_java:
+k8s_java_2:
   extends: .k8s_lib_injection_base
   variables:
     TEST_LIBRARY: "java"
@@ -562,7 +562,7 @@ generate_system_tests_images:
           K8S_LIB_INIT_IMG: ["gcr.io/datadoghq/dd-lib-java-init:latest", "ghcr.io/datadog/dd-trace-java/dd-lib-java-init:latest_snapshot"]
           K8S_CLUSTER_VERSION: ['7.56.2', '7.57.0', '7.59.0']
 
-.k8s_dotnet:
+k8s_dotnet_2:
   extends: .k8s_lib_injection_base
   variables:
     TEST_LIBRARY: "dotnet"
@@ -574,7 +574,7 @@ generate_system_tests_images:
           K8S_LIB_INIT_IMG: ["gcr.io/datadoghq/dd-lib-dotnet-init:latest", "ghcr.io/datadog/dd-trace-dotnet/dd-lib-dotnet-init:latest_snapshot"]
           K8S_CLUSTER_VERSION: ['7.56.2', '7.57.0', '7.59.0']
 
-.k8s_nodejs:
+k8s_nodejs_2:
   extends: .k8s_lib_injection_base
   variables:
     TEST_LIBRARY: "nodejs"
@@ -586,7 +586,7 @@ generate_system_tests_images:
           K8S_LIB_INIT_IMG: ["gcr.io/datadoghq/dd-lib-js-init:latest", "ghcr.io/datadog/dd-trace-js/dd-lib-js-init:latest_snapshot"]
           K8S_CLUSTER_VERSION: ['7.56.2', '7.57.0', '7.59.0']
 
-.k8s_python:
+k8s_python_2:
   extends: .k8s_lib_injection_base
   variables:
     TEST_LIBRARY: "python"
@@ -628,7 +628,7 @@ generate_system_tests_images:
           K8S_LIB_INIT_IMG: ["gcr.io/datadoghq/dd-lib-python-init:latest", "ghcr.io/datadog/dd-trace-py/dd-lib-python-init:latest_snapshot"]
           K8S_CLUSTER_VERSION: ['7.56.2', '7.57.0', '7.59.0']
 
-.k8s_ruby:
+k8s_ruby_2:
   extends: .k8s_lib_injection_base
   variables:
     TEST_LIBRARY: "ruby"
