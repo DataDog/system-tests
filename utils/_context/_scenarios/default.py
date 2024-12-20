@@ -11,7 +11,6 @@ class DefaultScenario(EndToEndScenario):
                 "DD_TRACE_STATS_COMPUTATION_ENABLED": "1",
                 "DD_TRACE_FEATURES": "discovery",
                 "DD_TRACE_COMPUTE_STATS": "true",
-                "DD_TRACE_PROPAGATION_STYLE_EXTRACT": "datadog,tracecontext,b3multi,baggage",
                 "SOME_SECRET_ENV": "leaked-env-var",  # used for test that env var are not leaked
             },
             agent_env={"SOME_SECRET_ENV": "leaked-env-var"},
