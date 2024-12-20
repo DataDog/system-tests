@@ -43,7 +43,9 @@ class TestSecurityControls:
     def test_no_vulnerability_suppression_with_an_input_validator_configured_for_a_different_vulnerability(self):
         self.assert_iast_is_enabled(self.check_r)
         assert_iast_vulnerability(
-            request=self.r, vulnerability_count=1, vulnerability_type="SQL_INJECTION",
+            request=self.r,
+            vulnerability_count=1,
+            vulnerability_type="SQL_INJECTION",
         )
 
     def setup_vulnerability_suppression_with_an_input_validator_configured_for_all_vulnerabilities(self):
@@ -77,7 +79,9 @@ class TestSecurityControls:
     ):
         self.assert_iast_is_enabled(self.check_r)
         assert_iast_vulnerability(
-            request=self.r, vulnerability_count=1, vulnerability_type="SQL_INJECTION",
+            request=self.r,
+            vulnerability_count=1,
+            vulnerability_type="SQL_INJECTION",
         )
 
     def setup_vulnerability_suppression_with_a_sanitizer_configured_for_a_specific_vulnerability(self):
@@ -95,7 +99,9 @@ class TestSecurityControls:
     def test_no_vulnerability_suppression_with_a_sanitizer_configured_for_a_different_vulnerability(self):
         self.assert_iast_is_enabled(self.check_r)
         assert_iast_vulnerability(
-            request=self.r, vulnerability_count=1, vulnerability_type="SQL_INJECTION",
+            request=self.r,
+            vulnerability_count=1,
+            vulnerability_type="SQL_INJECTION",
         )
 
     def setup_vulnerability_suppression_with_a_sanitizer_configured_for_all_vulnerabilities(self):
@@ -129,5 +135,7 @@ class TestSecurityControls:
     ):
         self.assert_iast_is_enabled(self.check_r)
         assert_iast_vulnerability(
-            request=self.r, vulnerability_count=1, vulnerability_type="COMMAND_INJECTION",
+            request=self.r,
+            vulnerability_count=1,
+            vulnerability_type="COMMAND_INJECTION",
         )
