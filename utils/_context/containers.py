@@ -1206,25 +1206,42 @@ class EnvoyContainer(TestedContainer):
 class ExternalProcessingContainer(TestedContainer):
     library: LibraryVersion
 
-    def __init__(self, host_log_folder) -> None:
+    def __init__(
+        self,
+        host_log_folder,
+        env=None,
+        volumes=None,
+        *,
+        rc_api_enabled=False,
+    ) -> None:
         try:
             with open("binaries/golang-service-extensions-callout-image", encoding="utf-8") as f:
                 image = f.read().strip()
         except FileNotFoundError:
             image = "ghcr.io/datadog/dd-trace-go/service-extensions-callout:latest"
 
+        environment = {
+            "DD_APPSEC_ENABLED": "true",
+            "DD_SERVICE": "service_test",
+            "DD_AGENT_HOST": "proxy",
+            "DD_TRACE_AGENT_PORT": 8126,
+            "DD_APPSEC_WAF_TIMEOUT": "1s",
+        }
+
+        if env:
+            environment.update(env)
+
         super().__init__(
             image_name=image,
             name="extproc",
             host_log_folder=host_log_folder,
-            environment={
-                "DD_APPSEC_ENABLED": "true",
-                "DD_SERVICE": "service_test",
-                "DD_AGENT_HOST": "proxy",
-                "DD_TRACE_AGENT_PORT": ProxyPorts.weblog,
-                "DD_APPSEC_WAF_TIMEOUT": "1s",
+            volumes=volumes,
+            rc_api_enabled=rc_api_enabled,
+            environment=environment,
+            healthcheck={
+                "test": "wget -qO- http://localhost:80/",
+                "retries": 10,
             },
-            healthcheck={"test": "wget -qO- http://localhost:80/", "retries": 10,},
         )
 
     def post_start(self):

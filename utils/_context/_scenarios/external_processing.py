@@ -9,18 +9,31 @@ from .endtoend import DockerScenario, ScenarioGroup
 
 
 class ExternalProcessingScenario(DockerScenario):
-    def __init__(self, name):
+    def __init__(
+        self,
+        name,
+        doc,
+        extproc_env=None,
+        extproc_volumes=None,
+        *,
+        rc_api_enabled=False,
+    ) -> None:
         super().__init__(
             name,
-            doc="Envoy + external processing",
+            doc=doc,
             github_workflow="externalprocessing",
             scenario_groups=[ScenarioGroup.END_TO_END, ScenarioGroup.EXTERNAL_PROCESSING],
             use_proxy=True,
-            rc_api_enabled=True,
+            rc_api_enabled=rc_api_enabled,
         )
 
         self._agent_container = AgentContainer(self.host_log_folder)
-        self._external_processing_container = ExternalProcessingContainer(self.host_log_folder)
+        self._external_processing_container = ExternalProcessingContainer(
+            self.host_log_folder,
+            env=extproc_env,
+            volumes=extproc_volumes,
+            rc_api_enabled=rc_api_enabled,
+        )
         self._envoy_container = EnvoyContainer(self.host_log_folder)
         self._http_app_container = DummyServerContainer(self.host_log_folder)
 
