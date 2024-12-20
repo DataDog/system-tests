@@ -106,25 +106,21 @@ class _Test_SNS:
         send request A to weblog : this request will produce a sns message
         send request B to library buddy, this request will consume sns message
         """
-        try:
-            message = (
-                "[crossed_integrations/test_sns_to_sqs.py][SNS] Hello from SNS "
-                f"[{context.library.library} weblog->{self.buddy_interface.name}] test produce at {self.unique_id}"
-            )
+        message = (
+            "[crossed_integrations/test_sns_to_sqs.py][SNS] Hello from SNS "
+            f"[{context.library.library} weblog->{self.buddy_interface.name}] test produce at {self.unique_id}"
+        )
 
-            self.production_response = weblog.get(
-                "/sns/produce",
-                params={"queue": self.WEBLOG_TO_BUDDY_QUEUE, "topic": self.WEBLOG_TO_BUDDY_TOPIC, "message": message},
-                timeout=60,
-            )
-            self.consume_response = self.buddy.get(
-                "/sns/consume",
-                params={"queue": self.WEBLOG_TO_BUDDY_QUEUE, "timeout": 60, "message": message},
-                timeout=61,
-            )
-        finally:
-            delete_sns_topic(self.WEBLOG_TO_BUDDY_TOPIC)
-            delete_sqs_queue(self.WEBLOG_TO_BUDDY_QUEUE)
+        self.production_response = weblog.get(
+            "/sns/produce",
+            params={"queue": self.WEBLOG_TO_BUDDY_QUEUE, "topic": self.WEBLOG_TO_BUDDY_TOPIC, "message": message},
+            timeout=60,
+        )
+        self.consume_response = self.buddy.get(
+            "/sns/consume",
+            params={"queue": self.WEBLOG_TO_BUDDY_QUEUE, "timeout": 60, "message": message},
+            timeout=61,
+        )
 
     def test_produce(self):
         """Check that a message produced to sns is correctly ingested by a Datadog tracer"""
@@ -171,25 +167,21 @@ class _Test_SNS:
         request A: GET /library_buddy/produce_sns_message
         request B: GET /weblog/consume_sns_message
         """
-        try:
-            message = (
-                "[crossed_integrations/test_sns_to_sqs.py][SNS] Hello from SNS "
-                f"[{self.buddy_interface.name}->{context.library.library} weblog] test consume at {self.unique_id}"
-            )
+        message = (
+            "[crossed_integrations/test_sns_to_sqs.py][SNS] Hello from SNS "
+            f"[{self.buddy_interface.name}->{context.library.library} weblog] test consume at {self.unique_id}"
+        )
 
-            self.production_response = self.buddy.get(
-                "/sns/produce",
-                params={"queue": self.BUDDY_TO_WEBLOG_QUEUE, "topic": self.BUDDY_TO_WEBLOG_TOPIC, "message": message},
-                timeout=60,
-            )
-            self.consume_response = weblog.get(
-                "/sns/consume",
-                params={"queue": self.BUDDY_TO_WEBLOG_QUEUE, "timeout": 60, "message": message},
-                timeout=61,
-            )
-        finally:
-            delete_sns_topic(self.BUDDY_TO_WEBLOG_TOPIC)
-            delete_sqs_queue(self.BUDDY_TO_WEBLOG_QUEUE)
+        self.production_response = self.buddy.get(
+            "/sns/produce",
+            params={"queue": self.BUDDY_TO_WEBLOG_QUEUE, "topic": self.BUDDY_TO_WEBLOG_TOPIC, "message": message},
+            timeout=60,
+        )
+        self.consume_response = weblog.get(
+            "/sns/consume",
+            params={"queue": self.BUDDY_TO_WEBLOG_QUEUE, "timeout": 60, "message": message},
+            timeout=61,
+        )
 
     def test_consume(self):
         """Check that a message by an app instrumented by a Datadog tracer is correctly ingested"""
