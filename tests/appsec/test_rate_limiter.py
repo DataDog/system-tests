@@ -41,7 +41,6 @@ class Test_Main:
     @bug(
         context.library > "nodejs@3.14.1" and context.library < "nodejs@4.8.0", reason="APMRP-360"
     )  # _sampling_priority_v1 is missing
-    @bug(context.library > "php@1.5.1", reason="APPSEC-56172")
     def test_main(self):
         """send requests for 10 seconds, check that only 10-ish traces are sent, as rate limiter is set to 1/s"""
 
