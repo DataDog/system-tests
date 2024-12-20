@@ -752,6 +752,7 @@ tests/:
       TestDynamicConfigSamplingRules: *ref_5_16_0
       TestDynamicConfigTracingEnabled: *ref_5_4_0
       TestDynamicConfigV1: *ref_4_11_0
+      TestDynamicConfigV1_EmptyServiceTargets: *ref_5_4_0
       TestDynamicConfigV1_ServiceTargets: *ref_5_4_0
       TestDynamicConfigV2: *ref_4_23_0
     test_headers_baggage.py:
