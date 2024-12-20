@@ -187,7 +187,7 @@ class Test_Span_Links_From_Conflicting_Contexts_Datadog_Precedence:
         assert link2["trace_id_high"] == 1229782938247303441
 
 
-@scenarios.default
+@scenarios.tracing_config_nondefault
 @features.w3c_headers_injection_and_extraction
 @bug(
     context.library < "java@1.44.0" and context.weblog_variant == "spring-boot-3-native",
