@@ -7,6 +7,7 @@ import software.amazon.awssdk.services.sqs.model.GetQueueAttributesResponse;
 import software.amazon.awssdk.services.sqs.model.QueueAttributeName;
 import software.amazon.awssdk.services.sqs.model.SetQueueAttributesRequest;
 import software.amazon.awssdk.services.sns.SnsClient;
+import software.amazon.awssdk.services.sns.SnsClientBuilder;
 import software.amazon.awssdk.services.sns.model.CreateTopicRequest;
 import software.amazon.awssdk.services.sns.model.CreateTopicResponse;
 import software.amazon.awssdk.services.sns.model.PublishRequest;
@@ -30,7 +31,7 @@ public class SnsConnector {
     }
 
     private static SnsClient createSnsClient() {
-        SnsClient.Builder builder = SnsClient.builder()
+        SnsClientBuilder builder = SnsClient.builder()
             .region(Region.US_EAST_1)
             .credentialsProvider(EnvironmentVariableCredentialsProvider.create());
 
@@ -42,7 +43,7 @@ public class SnsConnector {
             builder.endpointOverride(URI.create(systemTestsAwsUrl));
         }
 
-        SnsClient snsclient = builder.build();
+        SnsClient snsClient = builder.build();
         return snsClient;
     }
 

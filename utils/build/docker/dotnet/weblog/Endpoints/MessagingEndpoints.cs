@@ -135,15 +135,16 @@ public class MessagingEndpoints : ISystemTestEndpoint
     {
         string awsUrl = Environment.GetEnvironmentVariable("SYSTEM_TESTS_AWS_URL");
 
+        IAmazonSQS sqsClient;
         if (!string.IsNullOrEmpty(awsUrl))
         {
             // If SYSTEM_TESTS_AWS_URL is set, use it for ServiceURL
-            return new AmazonSQSClient(new AmazonSQSConfig { ServiceURL = awsUrl });
+            sqsClient = new AmazonSQSClient(new AmazonSQSConfig { ServiceURL = awsUrl });
         }
         else
         {
             // If SYSTEM_TESTS_AWS_URL is not set, create a default client
-            return new AmazonSQSClient();
+            sqsClient = new AmazonSQSClient();
         }
         var responseCreate = await sqsClient.CreateQueueAsync(queue);
         var qUrl = responseCreate.QueueUrl;
@@ -157,15 +158,16 @@ public class MessagingEndpoints : ISystemTestEndpoint
 
         string awsUrl = Environment.GetEnvironmentVariable("SYSTEM_TESTS_AWS_URL");
 
+        IAmazonSQS sqsClient;
         if (!string.IsNullOrEmpty(awsUrl))
         {
             // If SYSTEM_TESTS_AWS_URL is set, use it for ServiceURL
-            return new AmazonSQSClient(new AmazonSQSConfig { ServiceURL = awsUrl });
+            sqsClient = new AmazonSQSClient(new AmazonSQSConfig { ServiceURL = awsUrl });
         }
         else
         {
             // If SYSTEM_TESTS_AWS_URL is not set, create a default client
-            return new AmazonSQSClient();
+            sqsClient = new AmazonSQSClient();
         }
         var responseCreate = await sqsClient.CreateQueueAsync(queue);
         var qUrl = responseCreate.QueueUrl;
