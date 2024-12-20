@@ -346,9 +346,6 @@ class Test_ExtractBehavior_Restart:
                 "x-datadog-tags": "_dd.p.tid=1111111111111111,_dd.p.dm=-4",
                 "traceparent": "00-11111111111111110000000000000001-0000000000000001-01",
                 "tracestate": "dd=s:2;t.dm:-4,foo=1",
-                "x-b3-traceid": "11111111111111110000000000000001",
-                "x-b3-spanid": "0000000000000001",
-                "x-b3-sampled": "1",
                 "baggage": "key1=value1",
             },
         )
@@ -394,9 +391,6 @@ class Test_ExtractBehavior_Restart:
                 "x-datadog-sampling-priority": "2",
                 "x-datadog-tags": "_dd.p.tid=1111111111111111,_dd.p.dm=-4",
                 "traceparent": "00-12345678901234567890123456789012-1234567890123456-01",
-                "x-b3-traceid": "22222222222222223333333333333333",
-                "x-b3-spanid": "4444444444444444",
-                "x-b3-sampled": "1",
                 "baggage": "key1=value1",
             },
         )
@@ -446,9 +440,6 @@ class Test_ExtractBehavior_Ignore:
                 "x-datadog-tags": "_dd.p.tid=1111111111111111,_dd.p.dm=-4",
                 "traceparent": "00-11111111111111110000000000000001-0000000000000001-01",
                 "tracestate": "dd=s:1;t.dm:-4,foo=1",
-                "x-b3-traceid": "11111111111111110000000000000001",
-                "x-b3-spanid": "0000000000000001",
-                "x-b3-sampled": "1",
                 "baggage": "key1=value1",
             },
         )
@@ -483,9 +474,6 @@ class Test_ExtractBehavior_Ignore:
                 "x-datadog-sampling-priority": "2",
                 "x-datadog-tags": "_dd.p.tid=1111111111111111,_dd.p.dm=-4",
                 "traceparent": "00-12345678901234567890123456789012-1234567890123456-01",
-                "x-b3-traceid": "22222222222222223333333333333333",
-                "x-b3-spanid": "4444444444444444",
-                "x-b3-sampled": "1",
                 "baggage": "key1=value1",
             },
         )
@@ -524,9 +512,6 @@ class Test_ExtractBehavior_Restart_With_Extract_First:
                 "x-datadog-tags": "_dd.p.tid=1111111111111111,_dd.p.dm=-4",
                 "traceparent": "00-11111111111111110000000000000001-0000000000000001-01",
                 "tracestate": "dd=s:2;t.dm:-4,foo=1",
-                "x-b3-traceid": "11111111111111110000000000000001",
-                "x-b3-spanid": "0000000000000001",
-                "x-b3-sampled": "1",
                 "baggage": "key1=value1",
             },
         )
@@ -572,9 +557,6 @@ class Test_ExtractBehavior_Restart_With_Extract_First:
                 "x-datadog-sampling-priority": "2",
                 "x-datadog-tags": "_dd.p.tid=1111111111111111,_dd.p.dm=-4",
                 "traceparent": "00-12345678901234567890123456789012-1234567890123456-01",
-                "x-b3-traceid": "22222222222222223333333333333333",
-                "x-b3-spanid": "4444444444444444",
-                "x-b3-sampled": "1",
                 "baggage": "key1=value1",
             },
         )
