@@ -137,7 +137,7 @@ class CrossedTracingLibraryScenario(EndToEndScenario):
             include_kafka=True,
             include_buddies=True,
             include_rabbitmq=True,
-            include_localstack=True
+            include_localstack=True,
             doc="Spawns a buddy for each supported language of APM, requires AWS authentication.",
             weblog_env={
                 "SYSTEM_TESTS_AWS_URL": "http://localstack-main:4566"
