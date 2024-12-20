@@ -45,7 +45,7 @@ class IntegrationsScenario(EndToEndScenario):
             include_rabbitmq=True,
             include_mysql_db=True,
             include_sqlserver=True,
-            include_localstack=True
+            include_localstack=True,
             include_otel_drop_in=True,
             doc=(
                 "Spawns tracer, agent, and a full set of database. "
