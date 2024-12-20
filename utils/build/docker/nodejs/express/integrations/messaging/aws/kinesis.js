@@ -7,7 +7,7 @@ const kinesisProduce = (stream, message, partitionKey = '1', timeout = 60000) =>
   // Create a Kinesis client
   const kinesis = new AWS.Kinesis({
     region: 'us-east-1',
-    endpoint: HOST,
+    endpoint: HOST
   })
 
   message = JSON.stringify({ message })
@@ -71,7 +71,7 @@ const kinesisConsume = (stream, timeout = 60000, message, sequenceNumber) => {
   // Create a Kinesis client
   const kinesis = new AWS.Kinesis({
     region: 'us-east-1',
-    endpoint: HOST,
+    endpoint: HOST
   })
 
   console.log(`[Kinesis] Looking for the following message for stream: ${stream}: ${message}`)
