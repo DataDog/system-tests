@@ -268,6 +268,9 @@ func main() {
 	r.Any("/rasp/ssrf", echoHandleFunc(rasp.SSRF))
 	r.Any("/rasp/sqli", echoHandleFunc(rasp.SQLi))
 
+	r.Any("/requestdownstream", echoHandleFunc(common.Requestdownstream))
+	r.Any("/returnheaders", echoHandleFunc(common.Returnheaders))
+
 	common.InitDatadog()
 	go grpc.ListenAndServe()
 	go func() {
