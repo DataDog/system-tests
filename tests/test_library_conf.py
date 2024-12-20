@@ -6,6 +6,7 @@ from utils import weblog, interfaces, scenarios, features
 from utils._context.header_tag_vars import *
 from utils import remote_config as rc
 import json
+import pprint
 
 
 # basic / legacy tests, just tests user-agent can be received as a tag
@@ -327,12 +328,14 @@ class Test_ExtractBehavior_Default:
         assert link["traceID"] == "8687463697196027922" # int(0x7890123456789012)
         assert link["spanID"] == "1311768467284833366" # int (0x1234567890123456)
         assert link["traceIDHigh"] == "1311768467284833366" # int(0x1234567890123456)
+        assert link["attributes"] == {"reason": "terminated_context", "context_headers": "tracecontext"}
 
         # Assert the b3 (conflicting trace context) span link
         link = span.get("spanLinks")[1]
         assert link["traceID"] == "3689348814741910323" # int(0x3333333333333333)
         assert link["spanID"] == "4919131752989213764" # int (0x4444444444444444)
         assert link["traceIDHigh"] == "2459565876494606882" # int(0x2222222222222222)
+        assert link["attributes"] == {"reason": "terminated_context", "context_headers": "b3multi"}
 
         # Test the next outbound span context
         assert self.r.status_code == 200
@@ -384,6 +387,7 @@ class Test_ExtractBehavior_Restart:
         assert link["traceID"] == "1"
         assert link["spanID"] == "1"
         assert link["traceIDHigh"] == "1229782938247303441"
+        assert link["attributes"] == {"reason": "propagation_behavior_extract=restart", "context_headers": "datadog"}
 
         # Test the next outbound span context
         assert self.r.status_code == 200
@@ -431,6 +435,7 @@ class Test_ExtractBehavior_Restart:
         assert link["traceID"] == "1"
         assert link["spanID"] == "1"
         assert link["traceIDHigh"] == "1229782938247303441"
+        assert link["attributes"] == {"reason": "propagation_behavior_extract=restart", "context_headers": "datadog"}
 
         # Test the next outbound span context
         assert self.r.status_code == 200
@@ -560,6 +565,7 @@ class Test_ExtractBehavior_Restart_With_Extract_First:
         assert link["traceID"] == "1"
         assert link["spanID"] == "1"
         assert link["traceIDHigh"] == "1229782938247303441"
+        assert link["attributes"] == {"reason": "propagation_behavior_extract=restart", "context_headers": "datadog"}
 
         # Test the next outbound span context
         assert self.r.status_code == 200
