@@ -41,12 +41,12 @@ public class KinesisConnector {
 
         // Read the SYSTEM_TESTS_AWS_URL environment variable
         String systemTestsAwsUrl = System.getenv("SYSTEM_TESTS_AWS_URL");
-        
+
         // Only override endpoint if SYSTEM_TESTS_AWS_URL is set
         if (systemTestsAwsUrl != null && !systemTestsAwsUrl.isEmpty()) {
             builder.endpointOverride(URI.create(systemTestsAwsUrl));
         }
-        
+
         KinesisClient kinesisClient = builder.build();
         return kinesisClient;
     }

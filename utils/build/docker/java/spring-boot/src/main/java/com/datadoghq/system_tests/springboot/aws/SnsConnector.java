@@ -41,7 +41,7 @@ public class SnsConnector {
         if (systemTestsAwsUrl != null && !systemTestsAwsUrl.isEmpty()) {
             builder.endpointOverride(URI.create(systemTestsAwsUrl));
         }
-        
+
         SnsClient snsclient = builder.build();
         return snsClient;
     }

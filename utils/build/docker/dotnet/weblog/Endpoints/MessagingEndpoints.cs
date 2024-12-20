@@ -154,7 +154,7 @@ public class MessagingEndpoints : ISystemTestEndpoint
     private static async Task<bool> SqsConsume(string queue, TimeSpan timeout, string message)
     {
         Console.WriteLine($"consuming one message from SQS queue {queue} in max {(int)timeout.TotalSeconds} seconds");
-        
+
         string awsUrl = Environment.GetEnvironmentVariable("SYSTEM_TESTS_AWS_URL");
 
         if (!string.IsNullOrEmpty(awsUrl))

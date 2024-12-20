@@ -241,6 +241,7 @@ class EndToEndScenario(DockerScenario):
             include_rabbitmq=include_rabbitmq,
             include_mysql_db=include_mysql_db,
             include_sqlserver=include_sqlserver,
+            include_localstack=include_localstack,
         )
 
         self._require_api_key = require_api_key

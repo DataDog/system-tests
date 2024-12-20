@@ -36,7 +36,7 @@ class IntegrationsScenario(EndToEndScenario):
                 "AWS_ACCESS_KEY_ID": "my-access-key",
                 "AWS_SECRET_ACCESS_KEY": "my-access-key",
                 "DD_TRACE_INFERRED_PROXY_SERVICES_ENABLED": "true",
-                "SYSTEM_TESTS_AWS_URL": "http://localstack-main:4566"
+                "SYSTEM_TESTS_AWS_URL": "http://localstack-main:4566",
             },
             include_postgres_db=True,
             include_cassandra_db=True,
@@ -94,7 +94,7 @@ class AWSIntegrationsScenario(EndToEndScenario):
         include_kafka=False,
         include_rabbitmq=False,
         include_buddies=False,
-        include_localstack=True
+        include_localstack=True,
     ) -> None:
         super().__init__(
             name,
@@ -102,7 +102,7 @@ class AWSIntegrationsScenario(EndToEndScenario):
                 "DD_TRACE_API_VERSION": "v0.4",
                 "AWS_ACCESS_KEY_ID": "my-access-key",
                 "AWS_SECRET_ACCESS_KEY": "my-access-key",
-                "SYSTEM_TESTS_AWS_URL": "http://localstack-main:4566"
+                "SYSTEM_TESTS_AWS_URL": "http://localstack-main:4566",
             },
             doc=doc,
             include_kafka=include_kafka,
@@ -140,7 +140,7 @@ class CrossedTracingLibraryScenario(EndToEndScenario):
             include_localstack=True,
             doc="Spawns a buddy for each supported language of APM, requires AWS authentication.",
             weblog_env={
-                "SYSTEM_TESTS_AWS_URL": "http://localstack-main:4566"
+                "SYSTEM_TESTS_AWS_URL": "http://localstack-main:4566",
             },
         )
         self.unique_id = None

@@ -421,7 +421,7 @@ public class App {
         @RequestParam(required = true) String message
     ) {
         String systemTestsAwsUrl = System.getenv("SYSTEM_TESTS_AWS_URL");
-        
+
         SqsConnector sqs = new SqsConnector(queue, systemTestsAwsUrl);
         try {
             sqs.produceMessageWithoutNewThread(message);
