@@ -178,12 +178,23 @@ public abstract class ApmTestApi
     {
         var requestJson = await ParseJsonAsync(request.Body);
 
-        var headers = requestJson.GetProperty("http_headers")
+        var headersList = requestJson.GetProperty("http_headers")
                                  .EnumerateArray()
-                                 .GroupBy(kvp => kvp[0].ToString(), kvp => kvp[1].ToString())
-                                 .ToDictionary(g => g.Key, g => g.ToList());
+                                 .GroupBy(pair => pair[0].ToString(), kvp => kvp[1].ToString())
+                                 .Select(g => KeyValuePair.Create(g.Key, g.ToList()));
 
-        var extractedContext = SpanContextExtractor.Extract(headers, (dict, key) => dict.GetValueOrDefault(key) ?? []);
+        // There's a test for case-insensitive header names, so use a case-insensitive comparer.
+        // (Yeah, the test is only testing this code, not the tracer itself)
+        // tests/parametric/test_headers_tracecontext.py
+        //   Test_Headers_Tracecontext
+        //     test_traceparent_header_name_valid_casing
+        var headersDictionary = new Dictionary<string, List<string>>(headersList, StringComparer.OrdinalIgnoreCase);
+
+        // TODO: returning null causes an exception when the extractor tried to iterate over the headers
+        var extractedContext = SpanContextExtractor.Extract(
+            headersDictionary,
+            (dict, key) =>
+                dict.GetValueOrDefault(key) ?? []);
 
         if (extractedContext is not null)
         {
