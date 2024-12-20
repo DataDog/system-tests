@@ -384,6 +384,30 @@ class TestDynamicConfigV1_ServiceTargets:
         assert cfg_state["apply_state"] == 3
         assert cfg_state["apply_error"] != ""
 
+    @parametrize(
+        "library_env",
+        [
+            {
+                **DEFAULT_ENVVARS,
+                # Override env to be empty
+                "DD_ENV": "",
+            }
+        ],
+    )
+    def test_not_match_service_target_empty_env(self, library_env, test_agent, test_library):
+        """
+        Test that the library reports a non-erroneous apply_state when the service targeting is correct but differ in case.
+        """
+        _set_rc(test_agent, _default_config(TEST_SERVICE, TEST_ENV))
+
+        rc_args = {}
+        if context.library == "cpp":
+            # C++ make RC requests every second -> update is a bit slower to propagate.
+            rc_args["wait_loops"] = 1000
+
+        cfg_state = test_agent.wait_for_rc_apply_state("APM_TRACING", state=2, **rc_args)
+        assert cfg_state["apply_state"] == 2
+
     @missing_feature(
         context.library in ["golang", "cpp"], reason="Tracer does case-sensitive checks for service and env"
     )
