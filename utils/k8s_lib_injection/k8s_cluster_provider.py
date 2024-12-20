@@ -143,6 +143,7 @@ class K8sEKSRemoteClusterProvider(K8sClusterProvider):
     """Provider for remote EKS k8s clusters. The remote cluster should be already running
     and the kubeconfig should be available in the environment and the context should be set
     Remember to execute the scenario using aws-vault
+    https://datadoghq.atlassian.net/wiki/spaces/TS/pages/2295038121/Creating+EKS+Cluster+Sandboxes
     """
 
     def __init__(self):
@@ -170,32 +171,56 @@ class K8sEKSRemoteClusterProvider(K8sClusterProvider):
     def configure_cluster_api_connection(self):
         """Configure the k8s cluster api connection"""
         try:
-            # config.load_kube_config()
-            # aws-vault exec sso-sandbox-account-admin -- aws-iam-authenticator token -i montero2Sandbox --token-only
-            # https://stackoverflow.com/questions/52586181/aws-eks-authenticate-kubernetes-python-lib-from-inside-a-pod
+            # Update context name
+            arn, cluster_context = execute_command("kubectl config current-context").split("/")
+            self._cluster_info.context_name = cluster_context
+            # self._cluster_info.context_name="roberto.montero@datadoghq.com@lib-injection-testing-eks-sandbox.us-east-1.eksctl.io"
+            logger.info("Configuring k8s cluster api connection, for context: " + self._cluster_info.context_name)
+
+            # Update cluster name
+            self._cluster_info.cluster_name = execute_command(
+                "kubectl config view -o jsonpath=\"{.contexts[?(@.name=='"
+                + self._cluster_info.context_name
+                + "')].context.cluster}\""
+            ).strip()
+            # self._cluster_info.cluster_name="lib-injection-testing-eks-sandbox.us-east-1.eksctl.io"
+            logger.info("Configuring k8s cluster api connection, for cluster: " + self._cluster_info.cluster_name)
+
+            # We need to external IP to access to the test agent and the weblog (You should open manually the ports 8126 and 18080 in the aws security group before)
+            self._cluster_info.cluster_host_name = execute_command(
+                "aws-vault exec sso-sandbox-account-admin -- kubectl get nodes --output jsonpath=\"{.items[0].status.addresses[?(@.type=='ExternalIP')].address}\""
+            )
+            logger.info(
+                "Configuring k8s cluster api connection, for cluster host name: " + self._cluster_info.cluster_host_name
+            )
+
             token = self.get_token(self._cluster_info.cluster_name)
+
             configuration = client.Configuration()
-            # aws-vault exec sso-sandbox-account-admin -- kubectl config view --minify --output jsonpath="{.clusters[*].cluster.server}"
+
+            # Set Cluster endpoint
             cluster_server_endpoint = execute_command(
                 'kubectl config view --minify --output jsonpath="{.clusters[*].cluster.server}"'
             )
             logger.info(f"Cluster server endpoint: {cluster_server_endpoint}")
+
             configuration.host = cluster_server_endpoint
             configuration.verify_ssl = False
-            configuration.debug = True
+            configuration.debug = False  # Set true if you need more info (related with connection to the k8s cluster)
             configuration.api_key["authorization"] = "Bearer " + token
             configuration.assert_hostname = True
             configuration.verify_ssl = False
             client.Configuration.set_default(configuration)
             logger.info(f"kube config loaded")
+
         except Exception as e:
             logger.error(f"Error loading kube config: {e}")
             raise e
 
     def get_token(self, cluster_name):
-        token = execute_command(
-            f"aws-vault exec sso-sandbox-account-admin -- aws-iam-authenticator token -i {cluster_name} --token-only"
-        )
+        # cluster_min_name = cluster_name.split(".")[0]
+        token = execute_command(f"aws-iam-authenticator token -i {cluster_name} --token-only")
+        token = token.strip()
         # TODO RMM remove this leak
         logger.info("Token: " + token)
         return token
