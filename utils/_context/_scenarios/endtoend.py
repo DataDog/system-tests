@@ -22,6 +22,7 @@ from utils._context.containers import (
     MsSqlServerContainer,
     BuddyContainer,
     TestedContainer,
+    LocalstackContainer,
     _get_client as get_docker_client,
 )
 
@@ -53,6 +54,7 @@ class DockerScenario(Scenario):
         include_rabbitmq=False,
         include_mysql_db=False,
         include_sqlserver=False,
+        include_localstack=False,
     ) -> None:
         super().__init__(name, doc=doc, github_workflow=github_workflow, scenario_groups=scenario_groups)
 
@@ -97,6 +99,9 @@ class DockerScenario(Scenario):
 
         if include_sqlserver:
             self._supporting_containers.append(MsSqlServerContainer(host_log_folder=self.host_log_folder))
+
+        if include_localstack:
+            self._supporting_containers.append(LocalstackContainer(host_log_folder=self.host_log_folder))
 
         self._required_containers.extend(self._supporting_containers)
 
