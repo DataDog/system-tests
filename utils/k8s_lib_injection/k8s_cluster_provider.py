@@ -173,7 +173,7 @@ class K8sEKSRemoteClusterProvider(K8sClusterProvider):
         try:
             # Update context name
             arn, cluster_context = execute_command("kubectl config current-context").split("/")
-            self._cluster_info.context_name = cluster_context
+            self._cluster_info.context_name = cluster_context.strip()
             # self._cluster_info.context_name="roberto.montero@datadoghq.com@lib-injection-testing-eks-sandbox.us-east-1.eksctl.io"
             logger.info("Configuring k8s cluster api connection, for context: " + self._cluster_info.context_name)
 
@@ -188,7 +188,7 @@ class K8sEKSRemoteClusterProvider(K8sClusterProvider):
 
             # We need to external IP to access to the test agent and the weblog (You should open manually the ports 8126 and 18080 in the aws security group before)
             self._cluster_info.cluster_host_name = execute_command(
-                "aws-vault exec sso-sandbox-account-admin -- kubectl get nodes --output jsonpath=\"{.items[0].status.addresses[?(@.type=='ExternalIP')].address}\""
+                "kubectl get nodes --output jsonpath=\"{.items[0].status.addresses[?(@.type=='ExternalIP')].address}\""
             )
             logger.info(
                 "Configuring k8s cluster api connection, for cluster host name: " + self._cluster_info.cluster_host_name

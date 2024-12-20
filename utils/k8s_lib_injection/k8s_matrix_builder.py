@@ -33,7 +33,7 @@ def generate_gitlab_pipeline(languages):
     }
 
     for language in languages:
-        pipeline[language] = {
+        pipeline["k8s_" + language] = {
             "extends": ".k8s_lib_injection_base",
             "variables": {"TEST_LIBRARY": language},
             "parallel": {
@@ -107,7 +107,7 @@ def generate_gitlab_pipeline(languages):
 
 
 def _generate_fpd_gitlab_script():
-    fpd_push_script = [
+    return [
         'if [ "$CI_COMMIT_BRANCH" = "main" ]; then',
         "for folder in reports/logs*/ ; do",
         '  echo "Checking folder: ${folder}"',
@@ -121,7 +121,7 @@ def _generate_fpd_gitlab_script():
         "done",
         "fi",
     ]
-    return fpd_push_script
+    # return fpd_push_script
 
 
 def main():
