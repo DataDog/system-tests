@@ -242,6 +242,19 @@ class K8sKindClusterProvider(K8sClusterProvider):
             cluster_template="utils/k8s_lib_injection/resources/kind-config-template.yaml",
         )
 
+    def configure_networking(self):
+        """Configure the networking properties for the cluster"""
+
+        if self._cluster_info is None:
+            raise ValueError("Cluster not configured")
+
+        self._cluster_info.docker_in_docker = "GITLAB_CI" in os.environ
+        self._cluster_info.agent_port = 8127
+        self._cluster_info.weblog_port = 18081
+        self._cluster_info.internal_agent_port = 8126
+        self._cluster_info.internal_weblog_port = 18080
+        self._cluster_info.cluster_host_name = "localhost"
+
     def ensure_cluster(self):
         logger.info("Ensuring kind cluster")
         kind_command = f"kind create cluster --image=kindest/node:v1.25.3@sha256:f52781bc0d7a19fb6c405c2af83abfeb311f130707a0e219175677e366cc45d1 --name {self.get_cluster_info().cluster_name} --config {self.get_cluster_info().cluster_template} --wait 1m"
