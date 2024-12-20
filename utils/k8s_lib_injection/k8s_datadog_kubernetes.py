@@ -26,7 +26,7 @@ class K8sDatadog:
         """Installs the test agent pod."""
 
         logger.info(f"[Test agent] Deploying Datadog test agent on the cluster: {self.k8s_cluster_info.cluster_name}")
-        # TODO RMM SET PORTS FROM CLUSTER INFO
+
         container = client.V1Container(
             name="trace-agent",
             image="ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:latest",
@@ -153,9 +153,9 @@ class K8sDatadog:
                 logger.info("Datadog test agent started!")
                 break
 
-    # TODO RMM rename this method
     @retry(delay=1, tries=5)
     def list_namespaced_pod(self, namespace, **kwargs):
+        """Necessary to retry the list_namespaced_pod call in case of error (used by watch stream)"""
         return self.k8s_cluster_info.core_v1_api().list_namespaced_pod(namespace, **kwargs)
 
     def _wait_for_operator_ready(self, namespace):

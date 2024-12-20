@@ -4,6 +4,21 @@ from utils.k8s_lib_injection.k8s_command_utils import execute_command
 from kubernetes import client, config
 
 
+class K8sProviderFactory:
+    """Use the correct provider specified by Id"""
+
+    def get_provider(self, provider_id):
+        logger.info(f"Using {provider_id} provider")
+        if provider_id == "kind":
+            return K8sKindClusterProvider()
+        elif provider_id == "minikube":
+            return K8sMiniKubeClusterProvider()
+        elif provider_id == "eksremote":
+            return K8sEKSRemoteClusterProvider()
+        else:
+            raise ValueError("Not supported provided", provider_id)
+
+
 class K8sClusterProvider:
     """Common interface for all the providers that will be used to create the k8s cluster."""
 
@@ -12,7 +27,13 @@ class K8sClusterProvider:
         self._cluster_info = None
 
     def configure(self):
-        pass
+        self.configure_cluster()
+        self.configure_networking()
+        # self.configure_cluster_api_connection()
+
+    def configure_cluster(self):
+        """Configure the cluster properties"""
+        raise NotImplementedError
 
     def get_cluster_info(self):
         """It should return a K8sClusterInfo object with the cluster information"""
@@ -20,11 +41,35 @@ class K8sClusterProvider:
             raise ValueError("Cluster not configured")
         return self._cluster_info
 
+    def configure_networking(self):
+        """Configure the networking properties for the cluster"""
+
+        if self._cluster_info is None:
+            raise ValueError("Cluster not configured")
+
+        self._cluster_info.docker_in_docker = "GITLAB_CI" in os.environ
+        self._cluster_info.agent_port = 8126
+        self._cluster_info.weblog_port = 18080
+        self._cluster_info.internal_agent_port = 8126
+        self._cluster_info.internal_weblog_port = 18080
+        self._cluster_info.cluster_host_name = "localhost"
+
+    def configure_cluster_api_connection(self):
+        """Configure the k8s cluster api connection"""
+        try:
+            config.load_kube_config()
+        except Exception as e:
+            logger.error(f"Error loading kube config: {e}")
+            raise e
+
     def ensure_cluster(self):
         """All local managed clusters should be created here"""
         if self.is_local_managed:
             raise NotImplementedError
-        logger.info("Using an external K8s cluster")
+        logger.info(
+            "Using an external K8s cluster. It should be already running. We are configuring the connection to it."
+        )
+        self.configure_cluster_api_connection()
 
     def destroy_cluster(self):
         # TODO RMM review sleep mode failures on get cluter logs
@@ -41,31 +86,16 @@ class K8sClusterProvider:
 
 
 class K8sClusterInfo:
-    def __init__(self, cluster_name=None, context_name=None, cluster_host_name="localhost", cluster_template=None):
+    def __init__(self, cluster_name=None, context_name=None, cluster_template=None):
         self.cluster_name = cluster_name
         self.context_name = context_name
-        self.cluster_host_name = cluster_host_name
+        self.cluster_host_name = None
         self.agent_port = None
         self.weblog_port = None
         self.internal_agent_port = None
         self.internal_weblog_port = None
         self.docker_in_docker = False
         self.cluster_template = cluster_template
-        self._kubeconfig_initialized = False
-
-    def configure_networking(
-        self,
-        docker_in_docker=False,
-        agent_port=8126,
-        weblog_port=18080,
-        internal_agent_port=8126,
-        internal_weblog_port=18080,
-    ):
-        self.docker_in_docker = docker_in_docker
-        self.agent_port = agent_port
-        self.weblog_port = weblog_port
-        self.internal_agent_port = internal_agent_port
-        self.internal_weblog_port = internal_weblog_port
 
     def get_agent_port(self):
         if self.docker_in_docker:
@@ -77,46 +107,98 @@ class K8sClusterInfo:
             return self.internal_weblog_port
         return self.weblog_port
 
-    def _configure_kubeconfig(self):
-        try:
-            config.load_kube_config()
-            logger.info(f"kube config loaded")
-            self._kubeconfig_initialized = True
-        except Exception as e:
-            logger.error(f"Error loading kube config: {e}")
-            raise e
-
     def core_v1_api(self):
         """Provides de CoreV1Api object (from kubernetes python api) to interact with the k8s cluster"""
-        if not self._kubeconfig_initialized:
-            self._configure_kubeconfig()
-        return client.CoreV1Api(api_client=config.new_client_from_config(context=self.context_name))
+        # return client.CoreV1Api(api_client=config.new_client_from_config(context=self.context_name))
+        return client.CoreV1Api()
 
     def apps_api(self):
         """Provides de AppsV1Api object (from kubernetes python api) to interact with the k8s cluster"""
-        if not self._kubeconfig_initialized:
-            self._configure_kubeconfig()
-        return client.AppsV1Api(api_client=config.new_client_from_config(context=self.context_name))
+        # return client.AppsV1Api(api_client=config.new_client_from_config(context=self.context_name))
+        return client.AppsV1Api()
 
 
 class K8sMiniKubeClusterProvider(K8sClusterProvider):
-    """Provider for kind k8s clusters"""
+    """Provider for Minikube k8s clusters"""
 
     def __init__(self):
         super().__init__(is_local_managed=True)
 
-    def configure(self):
+    def configure_cluster(self):
         self._cluster_info = K8sClusterInfo(cluster_name="minikube", context_name="minikube")
-        self._cluster_info.configure_networking(docker_in_docker="GITLAB_CI" in os.environ)
 
     def ensure_cluster(self):
         logger.info("Ensuring MiniKube cluster")
         execute_command("minikube start --driver docker --ports 18080:18080 --ports 8126:8126")
         execute_command("minikube status")
+        # We need to configure the api after create the cluster
+        self.configure_cluster_api_connection()
 
     def destroy_cluster(self):
         logger.info("Destroying MiniKube cluster")
         execute_command("minikube delete")
+
+
+class K8sEKSRemoteClusterProvider(K8sClusterProvider):
+    """Provider for remote EKS k8s clusters. The remote cluster should be already running
+    and the kubeconfig should be available in the environment and the context should be set
+    Remember to execute the scenario using aws-vault
+    """
+
+    def __init__(self):
+        super().__init__(is_local_managed=False)
+
+    def configure_cluster(self):
+        self._cluster_info = K8sClusterInfo(
+            cluster_name="montero2Sandbox.us-east-1.eksctl.io",
+            context_name="roberto.montero@datadoghq.com@montero2Sandbox.us-east-1.eksctl.io",
+        )
+
+    def configure_networking(self):
+        """Configure the networking properties for the cluster"""
+
+        if self._cluster_info is None:
+            raise ValueError("Cluster not configured")
+
+        self._cluster_info.docker_in_docker = "GITLAB_CI" in os.environ
+        self._cluster_info.agent_port = 8126
+        self._cluster_info.weblog_port = 18080
+        self._cluster_info.internal_agent_port = 8126
+        self._cluster_info.internal_weblog_port = 18080
+        self._cluster_info.cluster_host_name = "54.237.242.72"
+
+    def configure_cluster_api_connection(self):
+        """Configure the k8s cluster api connection"""
+        try:
+            # config.load_kube_config()
+            # aws-vault exec sso-sandbox-account-admin -- aws-iam-authenticator token -i montero2Sandbox --token-only
+            # https://stackoverflow.com/questions/52586181/aws-eks-authenticate-kubernetes-python-lib-from-inside-a-pod
+            token = self.get_token(self._cluster_info.cluster_name)
+            configuration = client.Configuration()
+            # aws-vault exec sso-sandbox-account-admin -- kubectl config view --minify --output jsonpath="{.clusters[*].cluster.server}"
+            cluster_server_endpoint = execute_command(
+                'kubectl config view --minify --output jsonpath="{.clusters[*].cluster.server}"'
+            )
+            logger.info(f"Cluster server endpoint: {cluster_server_endpoint}")
+            configuration.host = cluster_server_endpoint
+            configuration.verify_ssl = False
+            configuration.debug = True
+            configuration.api_key["authorization"] = "Bearer " + token
+            configuration.assert_hostname = True
+            configuration.verify_ssl = False
+            client.Configuration.set_default(configuration)
+            logger.info(f"kube config loaded")
+        except Exception as e:
+            logger.error(f"Error loading kube config: {e}")
+            raise e
+
+    def get_token(self, cluster_name):
+        token = execute_command(
+            f"aws-vault exec sso-sandbox-account-admin -- aws-iam-authenticator token -i {cluster_name} --token-only"
+        )
+        # TODO RMM remove this leak
+        logger.info("Token: " + token)
+        return token
 
 
 class K8sKindClusterProvider(K8sClusterProvider):
@@ -125,13 +207,12 @@ class K8sKindClusterProvider(K8sClusterProvider):
     def __init__(self):
         super().__init__(is_local_managed=True)
 
-    def configure(self):
+    def configure_cluster(self):
         self._cluster_info = K8sClusterInfo(
             cluster_name="lib-injection-testing",
             context_name="kind-lib-injection-testing",
             cluster_template="utils/k8s_lib_injection/resources/kind-config-template.yaml",
         )
-        self._cluster_info.configure_networking(docker_in_docker="GITLAB_CI" in os.environ)
 
     def ensure_cluster(self):
         logger.info("Ensuring kind cluster")
@@ -146,6 +227,9 @@ class K8sKindClusterProvider(K8sClusterProvider):
             self._setup_kind_in_gitlab()
         else:
             execute_command(kind_command)
+
+        # We need to configure the api after create the cluster
+        self.configure_cluster_api_connection()
 
     def destroy_cluster(self):
         logger.info("Destroying kind cluster")

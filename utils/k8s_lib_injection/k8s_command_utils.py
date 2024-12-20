@@ -74,8 +74,7 @@ def _clean_secrets(data_to_clean):
 
 @retry(delay=1, tries=5)
 def helm_add_repo(name, url, k8s_cluster_info, update=False):
-    # TODO RMM remove config use-context?????
-    execute_command(f"kubectl config use-context {k8s_cluster_info.context_name}")
+    logger.info(f"Adding helm repo {name} with url {url} for cluster {k8s_cluster_info.cluster_name}")
     execute_command(f"helm repo add {name} {url}")
     if update:
         execute_command(f"helm repo update")
@@ -97,8 +96,6 @@ def helm_install_chart(k8s_cluster_info, name, chart, set_dict={}, value_file=No
             fp.write(value_data)
             fp.seek(0)
 
-    # TODO RMM remove config use-context?????
-    execute_command(f"kubectl config use-context {k8s_cluster_info.context_name}")
     set_str = ""
     if set_dict:
         for key, value in set_dict.items():
@@ -108,9 +105,8 @@ def helm_install_chart(k8s_cluster_info, name, chart, set_dict={}, value_file=No
     if upgrade:
         command = f"helm upgrade {name} --debug --install --wait {set_str} {chart}"
     if custom_value_file:
-        # command = f"helm install {name} --wait {set_str} -f {value_file} {chart}"#
         command = f"helm install {name} {set_str} --debug -f {custom_value_file} {chart}"
         if upgrade:
             command = f"helm upgrade {name} {set_str} --debug --install -f {custom_value_file} {chart}"
     execute_command("kubectl config current-context")
-    execute_command(command, timeout=90, quiet=True)  # To many tracers to show in the logs
+    execute_command(command, timeout=90, quiet=True)  # Too many traces to show in the logs

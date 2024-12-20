@@ -6,7 +6,7 @@ from utils._context.library_version import LibraryVersion, Version
 
 from utils.k8s_lib_injection.k8s_datadog_kubernetes import K8sDatadog
 from utils.k8s_lib_injection.k8s_weblog import K8sWeblog
-from utils.k8s_lib_injection.k8s_cluster_provider import K8sMiniKubeClusterProvider
+from utils.k8s_lib_injection.k8s_cluster_provider import K8sProviderFactory
 from utils._context.containers import (
     create_network,
     # SqlDbTestedContainer,
@@ -50,7 +50,8 @@ class K8sScenario(Scenario):
         # These are the tested components: dd_cluser_agent_version, weblog image, library_init_version
         self.k8s_weblog = config.option.k8s_weblog
         self.k8s_weblog_img = config.option.k8s_weblog_img
-        self.k8s_provider_name = config.option.k8s_provider
+        # By default we are going to use kind cluster provider
+        self.k8s_provider_name = config.option.k8s_provider if config.option.k8s_provider else "kind"
         self._library = LibraryVersion(
             config.option.k8s_library, self.extract_library_version(config.option.k8s_lib_init_img)
         )
@@ -59,7 +60,7 @@ class K8sScenario(Scenario):
         self._tested_components["cluster_agent"] = self.k8s_cluster_version
 
         # Configure the K8s cluster provider
-        self.k8s_cluster_provider = K8sMiniKubeClusterProvider()  # K8sKindClusterProvider()
+        self.k8s_cluster_provider = K8sProviderFactory().get_provider(self.k8s_provider_name)
         self.k8s_cluster_provider.configure()
         self.print_context()
 

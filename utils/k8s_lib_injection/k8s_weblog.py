@@ -56,7 +56,7 @@ class K8sWeblog:
             },
             annotations={f"admission.datadoghq.com/{library_lib}-lib.custom-image": f"{self.library_init_image}"},
         )
-        # TODO RMM ports ????????
+
         containers = []
         # Set the default environment variables for all pods
         default_pod_env = [
@@ -204,9 +204,9 @@ class K8sWeblog:
             logger.error(f"[Deploy weblog] weblog logs: {pod_logs}")
             raise Exception("[Deploy weblog] Weblog not created")
 
-    # TODO RMM rename this method
     @retry(delay=1, tries=5)
     def list_namespaced_pod(self, namespace, **kwargs):
+        """Necessary to retry the list_namespaced_pod call in case of error (used by watch stream)"""
         return self.k8s_cluster_info.core_v1_api().list_namespaced_pod(namespace, **kwargs)
 
     def export_debug_info(self, namespace="default"):
