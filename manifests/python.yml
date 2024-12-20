@@ -239,6 +239,8 @@ tests/:
             flask-poc: v2.13.0
             uds-flask: v2.13.0
             uwsgi-poc: v2.13.0
+        test_sql_row.py:
+          TestSqlRow: missing_feature
         test_uri.py:
           TestURI: missing_feature
     rasp/:
@@ -454,6 +456,11 @@ tests/:
       Test_V2_Login_Events: v2.11.0
       Test_V2_Login_Events_Anon: v2.11.0
       Test_V2_Login_Events_RC: v2.11.0
+      Test_V3_Auto_User_Instrum_Mode_Capability: missing_feature
+      Test_V3_Login_Events: missing_feature
+      Test_V3_Login_Events_Anon: missing_feature
+      Test_V3_Login_Events_Blocking: missing_feature
+      Test_V3_Login_Events_RC: missing_feature
     test_automated_user_and_session_tracking.py:
       Test_Automated_Session_Blocking: missing_feature
       Test_Automated_User_Blocking: missing_feature

@@ -63,7 +63,7 @@ def get_artifacts(session: requests.Session, repo_slug: str, workflow_file: str,
     return artifacts
 
 
-def download_artifact(session: requests.Session, artifact: dict, output_dir: str = None):
+def download_artifact(session: requests.Session, artifact: dict, output_dir: str | None = None):
     logging.info("Downloading artifact: %s", artifact["name"])
     response = session.get(artifact["archive_download_url"], timeout=60)
     response.raise_for_status()

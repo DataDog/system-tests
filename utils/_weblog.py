@@ -18,7 +18,7 @@ from utils.tools import logger
 import utils.grpc.weblog_pb2_grpc as grpcapi
 
 # monkey patching header validation in requests module, as we want to be able to send anything to weblog
-requests.utils._validate_header_part = lambda *args, **kwargs: None  # noqa: ARG005
+requests.utils._validate_header_part = lambda *args, **kwargs: None  # noqa: ARG005, SLF001
 
 
 class ResponseEncoder(json.JSONEncoder):
@@ -83,9 +83,9 @@ class _Weblog:
             self.port = 7777
 
         if "SYSTEM_TESTS_WEBLOG_GRPC_PORT" in os.environ:
-            self._grpc_port = int(os.environ["SYSTEM_TESTS_WEBLOG_GRPC_PORT"])
+            self.grpc_port = int(os.environ["SYSTEM_TESTS_WEBLOG_GRPC_PORT"])
         else:
-            self._grpc_port = 7778
+            self.grpc_port = 7778
 
         if "SYSTEM_TESTS_WEBLOG_HOST" in os.environ:
             self.domain = os.environ["SYSTEM_TESTS_WEBLOG_HOST"]
@@ -199,7 +199,7 @@ class _Weblog:
         # We cannot set the user agent for each request. For now, start a new channel for each query
         _grpc_client = grpcapi.WeblogStub(
             grpc.insecure_channel(
-                f"{self.domain}:{self._grpc_port}",
+                f"{self.domain}:{self.grpc_port}",
                 options=(("grpc.enable_http_proxy", 0), ("grpc.primary_user_agent", f"system_tests rid/{rid}")),
             )
         )

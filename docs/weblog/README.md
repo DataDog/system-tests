@@ -324,7 +324,9 @@ A POST request which will receive the following JSON body:
 {"name": "table", "value": "user"}
 ```
 
-Where the value for `value` must be used in the vulnerability.
+#### GET /iast/source/sql/test
+
+An empty GET request that will execute two database queries, one to get a username and another to do a vulnerable SELECT using the obtained username.
 
 ### GET /make_distant_call
 
@@ -610,11 +612,22 @@ Body fields accepted in POST method:
 - `password`: password for the user.
 
 It also supports HTTP authentication by using GET method and the authorization header.
-Additionally both methods support the following query parameters to use the sdk functions along with the authentication framework:
+Additionally, both methods support the following query parameters to use the sdk functions along with the authentication framework:
 - `sdk_event`: login event type: `success` or `failure`.
 - `sdk_user`: user id to be used in the sdk call.
 - `sdk_mail`: user's mail to be used in the sdk call.
-- `sdk_user_exists`: `true` of `false` to indicate wether the current user exists and populate the corresponding tag.
+- `sdk_user_exists`: `true` of `false` to indicate whether the current user exists and populate the corresponding tag.
+
+### \[POST\] /signup
+This endpoint is used to create a new user. Do not keep the user in memory for later use, only call the framework method to pretend to do so.
+Body fields accepted in POST method:
+- `username`: the login name for the user.
+- `password`: password for the user.
+
+Additionally, the method supports the following query parameters to use the sdk functions along with the authentication framework:
+- `sdk_event`: login event type: `signup`.
+- `sdk_user`: user id to be used in the sdk call.
+- `sdk_mail`: user's mail to be used in the sdk call.
 
 ### GET /debugger/*
 These endpoints are used for the `Dynamic Instrumentation` tests.
