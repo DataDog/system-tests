@@ -75,7 +75,7 @@ jobs:
       # ### appsec-event-rules is now a private repo. The GH_TOKEN provided can't read private repos.
       # ### skipping this, waiting for a proper solution
       # - name: Load WAF rules
-      #   if: matrix.version == 'dev'
+      #   if: matrix.ci_environment == 'dev'
       #   run: ./utils/scripts/load-binary.sh waf_rule_set
       #   env:
       #     GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -96,7 +96,7 @@ jobs:
     strategy:
       matrix:
         library: ${{ fromJson(needs.impacted_libraries.outputs.impacted_libraries) }}
-        version:
+        ci_environment:
         - prod
         - dev
       fail-fast: false
@@ -109,13 +109,13 @@ jobs:
       library: ${{ matrix.library }}
       scenarios: ${{ needs.scenarios.outputs.scenarios }}
       scenarios_groups: ${{ needs.scenarios.outputs.scenarios_groups }}
-      binaries_artifact: ${{ matrix.version == 'dev' && format('binaries_dev_{0}', matrix.library) || '' }}
-      ci_environment: ${{ matrix.version }}
+      binaries_artifact: ${{ matrix.ci_environment == 'dev' && format('binaries_dev_{0}', matrix.library) || '' }}
+      ci_environment: ${{ matrix.ci_environment }}
       build_python_base_images: ${{ contains(github.event.pull_request.labels.*.name, 'build-python-base-images') }}
       build_buddies_images: ${{ contains(github.event.pull_request.labels.*.name, 'build-buddies-images') }}
       build_proxy_image: ${{ contains(github.event.pull_request.labels.*.name, 'build-proxy-image') }}
       build_lib_injection_app_images: ${{ contains(github.event.pull_request.labels.*.name, 'build-lib-injection-app-images') }}
-      _experimental_parametric_job_count: ${{ matrix.version == 'dev' && 2 || 1 }}  # test both use cases
+      _experimental_parametric_job_count: ${{ matrix.ci_environment == 'dev' && 2 || 1 }}  # test both use cases
 
   system_tests_docker_mode:
     name: Ruby Docker Mode
