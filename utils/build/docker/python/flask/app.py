@@ -7,6 +7,7 @@ import random
 import subprocess
 import sys
 import threading
+import time
 import urllib.request
 
 import boto3
@@ -1336,6 +1337,7 @@ def request_downstream():
     http = urllib3.PoolManager()
     # Sending a GET request and getting back response as HTTPResponse object.
     response = http.request("GET", "http://localhost:7777/returnheaders")
+    time.sleep(0.5)  # Small sleep to reduce flakyness
     return Response(response.data)
 
 
@@ -1356,6 +1358,7 @@ def vulnerable_request_downstream():
     http = urllib3.PoolManager()
     # Sending a GET request and getting back response as HTTPResponse object.
     response = http.request("GET", "http://localhost:7777/returnheaders")
+    time.sleep(0.5)  # Small sleep to reduce flakyness
     return Response(response.data)
 
 
