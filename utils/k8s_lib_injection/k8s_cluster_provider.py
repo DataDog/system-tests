@@ -1,4 +1,5 @@
 import os
+import subprocess
 from utils.tools import logger
 from utils.k8s_lib_injection.k8s_command_utils import execute_command
 from kubernetes import client, config
@@ -166,27 +167,29 @@ class K8sEKSRemoteClusterProvider(K8sClusterProvider):
         self._cluster_info.weblog_port = 18080
         self._cluster_info.internal_agent_port = 8126
         self._cluster_info.internal_weblog_port = 18080
-        self._cluster_info.cluster_host_name = "54.237.242.72"
+        self._cluster_info.cluster_host_name = None
 
     def configure_cluster_api_connection(self):
         """Configure the k8s cluster api connection"""
         try:
             # Update context name
+            # Current context name is like: "arn:aws:eks:us-east-1:601427279990:cluster/lib-injection-testing-eks-sandbox"
+            # I only take "lib-injection-testing-eks-sandbox"
             arn, cluster_context = execute_command("kubectl config current-context").split("/")
             current_context_name = cluster_context.strip()
-            ##CONTEXT NAME SHOULD BE: user@email.com@lib-injection-testing-eks-sandbox.us-east-1.eksctl.io to get cluster name working
-            self._cluster_info.context_name = execute_command(
+
+            ##weird: There is other context like: user@email.com@lib-injection-testing-eks-sandbox.us-east-1.eksctl.io
+            self._cluster_info.context_name = self.execute_piped_command(
                 "kubectl config get-contexts |  awk '{if ($1 ~ \"@" + current_context_name + "\") print $1}'"
             )
             logger.info("Configuring k8s cluster api connection, for context: " + self._cluster_info.context_name)
 
-            # Update cluster name
+            # Update cluster name. Like: "lib-injection-testing-eks-sandbox.us-east-1.eksctl.io"
             self._cluster_info.cluster_name = execute_command(
                 "kubectl config view -o jsonpath=\"{.contexts[?(@.name=='"
                 + self._cluster_info.context_name
                 + "')].context.cluster}\""
             ).strip()
-            # self._cluster_info.cluster_name="lib-injection-testing-eks-sandbox.us-east-1.eksctl.io"
             logger.info("Configuring k8s cluster api connection, for cluster: " + self._cluster_info.cluster_name)
 
             # We need to external IP to access to the test agent and the weblog (You should open manually the ports 8126 and 18080 in the aws security group before)
@@ -220,12 +223,17 @@ class K8sEKSRemoteClusterProvider(K8sClusterProvider):
             logger.error(f"Error loading kube config: {e}")
             raise e
 
+    def execute_piped_command(self, command):
+        # awk_comm = 'kubectl config get-contexts |  awk \'{if ($1 ~ "@lib-injection-testing-eks-sandbox") print $1}\''
+        p2 = subprocess.Popen(command, stdout=subprocess.PIPE, shell=True)  # noqa: S602
+        res, err = p2.communicate()
+        return res.decode("utf-8").strip()
+
     def get_token(self, cluster_name):
+        # From cluster name like: "lib-injection-testing-eks-sandbox.us-east-1.eksctl.io" I only take "lib-injection-testing-eks-sandbox"
         cluster_min_name = cluster_name.split(".")[0]
         token = execute_command(f"aws-iam-authenticator token -i {cluster_min_name} --token-only")
         token = token.strip()
-        # TODO RMM remove this leak
-        logger.info("Token: " + token)
         return token
 
 
@@ -249,10 +257,10 @@ class K8sKindClusterProvider(K8sClusterProvider):
             raise ValueError("Cluster not configured")
 
         self._cluster_info.docker_in_docker = "GITLAB_CI" in os.environ
-        self._cluster_info.agent_port = 8127
-        self._cluster_info.weblog_port = 18081
-        self._cluster_info.internal_agent_port = 8126
-        self._cluster_info.internal_weblog_port = 18080
+        self._cluster_info.agent_port = 8126
+        self._cluster_info.weblog_port = 18080
+        self._cluster_info.internal_agent_port = 8127
+        self._cluster_info.internal_weblog_port = 18081
         self._cluster_info.cluster_host_name = "localhost"
 
     def ensure_cluster(self):

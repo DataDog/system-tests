@@ -5,8 +5,8 @@ nodes:
     # port forward 80 on the host to 80 on this node
     extraPortMappings:
       # agent port
-      - containerPort: 8126
-        hostPort: 8127
+      - containerPort: 8127
+        hostPort: 8126
         # optional: set the bind address on the host
         # 0.0.0.0 is the current default
         listenAddress: "127.0.0.1"
@@ -14,8 +14,8 @@ nodes:
         # TCP is the default
         protocol: TCP
       # app port
-      - containerPort: 18080
-        hostPort: 18081
+      - containerPort: 18081
+        hostPort: 18080
         # optional: set the bind address on the host
         # 0.0.0.0 is the current default
         listenAddress: "127.0.0.1"
