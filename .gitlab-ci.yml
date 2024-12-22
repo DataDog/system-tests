@@ -16,6 +16,24 @@ variables:
     KUBERNETES_SERVICE_ACCOUNT_OVERWRITE: system-tests #helm-charts
     TEST: 1
 
+.step1_generate_aws_ssi_pipeline:
+  "image": "registry.ddbuild.io/docker:20.10.13-gbi-focal"
+  "tags": ["arch:amd64"]
+  stage: nodejs_ssi_pipelines
+  script:
+    - echo ">>>>>>>>>>>>>>> Generating lang pipeline >>>>>>>>>>>>>>>"
+    - echo "FILTER_ENV=${ONBOARDING_FILTER_ENV:-prod}" >> run.env
+    - echo "INSTALLER_LIBRARY_VERSION=${DD_INSTALLER_LIBRARY_VERSION:- }" >> run.env
+    - echo "INSTALLER_INJECTOR_VERSION=${DD_INSTALLER_INJECTOR_VERSION:- }" >> run.env
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+      when: always
+    - when: manual
+      allow_failure: true
+  artifacts:
+    reports:
+      dotenv: run.env
+
 .compute_aws_scenarios:
   image: registry.ddbuild.io/ci/libdatadog-build/system-tests:48436362
   tags: ["arch:arm64"]
@@ -73,7 +91,7 @@ variables:
     #Because sometimes I don't want to run all pipeline, I only run step1_xx with env filter param
     ONBOARDING_FILTER_ENV: "$FILTER_ENV"
   script:
-    - python utils/k8s_lib_injection/k8s_matrix_builder.py --language $TEST_LIBRARY --format yaml --output-file gitlab_pipeline.yml
+    - python utils/k8s_lib_injection/k8s_matrix_builder.py --language $TEST_LIBRARY --format yaml --output-file gitlab_pipeline.yml --env $ONBOARDING_FILTER_ENV
   needs:
     - job: step1_generate_nodejs_ssi_pipeline
       artifacts: true
@@ -124,30 +142,12 @@ variables:
         job: merge_aws_ssi_pipeline
     strategy: depend
 
-.step1_generate_aws_ssi_pipeline:
-  "image": "registry.ddbuild.io/docker:20.10.13-gbi-focal"
-  "tags": ["arch:amd64"]
-  stage: nodejs_ssi_pipelines
-  script:
-    - echo ">>>>>>>>>>>>>>> Generating lang pipeline >>>>>>>>>>>>>>>"
-    - echo "FILTER_ENV=${ONBOARDING_FILTER_ENV:-prod}" >> run.env
-    - echo "INSTALLER_LIBRARY_VERSION=${DD_INSTALLER_LIBRARY_VERSION:- }" >> run.env
-    - echo "INSTALLER_INJECTOR_VERSION=${DD_INSTALLER_INJECTOR_VERSION:- }" >> run.env
-  rules:
-    - if: $CI_PIPELINE_SOURCE == "schedule"
-      when: always
-    - when: manual
-      allow_failure: true
-  artifacts:
-    reports:
-      dotenv: run.env
-
 # ----------- Nodejs SSI ----------------
 step1_generate_nodejs_ssi_pipeline:
   extends: .step1_generate_aws_ssi_pipeline
   needs: []
 
-x_compute_nodejs_scenarios:
+x_compute_nodejs_aws_scenarios:
   extends: .compute_aws_scenarios
   variables:
     TEST_LIBRARY: "nodejs"
@@ -182,12 +182,22 @@ x_compute_nodejs_docker_scenarios:
     - job: step1_generate_nodejs_ssi_pipeline
       artifacts: true
 
+x_compute_nodejs_k8s_scenarios:
+  extends: .x_compute_k8s_scenarios
+  stage: nodejs_ssi_pipelines
+  variables:
+    TEST_LIBRARY: "nodejs"
+  needs:
+    - job: step1_generate_nodejs_ssi_pipeline
+      artifacts: true
+
 x_merge_nodejs_ssi_pipeline:
   extends: .merge_aws_ssi_pipeline
-  needs: ["x_compute_nodejs_scenarios", "x_compute_nodejs_docker_scenarios"]
+  needs: ["x_compute_nodejs_aws_scenarios", "x_compute_nodejs_docker_scenarios", "x_compute_nodejs_k8s_scenarios"]
   dependencies:
-    - x_compute_nodejs_scenarios
+    - x_compute_nodejs_aws_scenarios
     - x_compute_nodejs_docker_scenarios
+    - x_compute_nodejs_k8s_scenarios
 
 step2_exec_nodejs_ssi_pipeline:
   extends: .exec_aws_ssi_pipeline
@@ -205,7 +215,7 @@ step1_generate_java_ssi_pipeline:
   dependencies: []
   extends: .step1_generate_aws_ssi_pipeline
 
-x_compute_java_scenarios:
+x_compute_java_aws_scenarios:
   stage: java_ssi_pipelines
   extends: .compute_aws_scenarios
   variables:
@@ -253,9 +263,9 @@ x_compute_java_k8s_scenarios:
 x_merge_java_ssi_pipeline:
   stage: java_ssi_pipelines
   extends: .merge_aws_ssi_pipeline
-  needs: ["x_compute_java_scenarios", "x_compute_java_docker_scenarios", "x_compute_java_k8s_scenarios"]
+  needs: ["x_compute_java_aws_scenarios", "x_compute_java_docker_scenarios", "x_compute_java_k8s_scenarios"]
   dependencies:
-    - x_compute_java_scenarios
+    - x_compute_java_aws_scenarios
     - x_compute_java_docker_scenarios
     - x_compute_java_k8s_scenarios
 
@@ -275,7 +285,7 @@ step1_generate_python_ssi_pipeline:
   dependencies: []
   extends: .step1_generate_aws_ssi_pipeline
 
-x_compute_python_scenarios:
+x_compute_python_aws_scenarios:
   stage: python_ssi_pipelines
   extends: .compute_aws_scenarios
   variables:
@@ -311,13 +321,23 @@ x_compute_python_docker_scenarios:
     - job: step1_generate_python_ssi_pipeline
       artifacts: true
 
+x_compute_python_k8s_scenarios:
+  extends: .x_compute_k8s_scenarios
+  stage: python_ssi_pipelines
+  variables:
+    TEST_LIBRARY: "python"
+  needs:
+    - job: step1_generate_python_ssi_pipeline
+      artifacts: true
+
 x_merge_python_ssi_pipeline:
   stage: python_ssi_pipelines
   extends: .merge_aws_ssi_pipeline
-  needs: ["x_compute_python_scenarios", "x_compute_python_docker_scenarios"]
+  needs: ["x_compute_python_aws_scenarios", "x_compute_python_docker_scenarios", "x_compute_python_k8s_scenarios"]
   dependencies:
-    - x_compute_python_scenarios
+    - x_compute_python:aws_scenarios
     - x_compute_python_docker_scenarios
+    - x_compute_python_k8s_scenarios
 
 step2_exec_python_ssi_pipeline:
   stage: python_ssi_pipelines
@@ -335,7 +355,7 @@ step1_generate_php_ssi_pipeline:
   dependencies: []
   extends: .step1_generate_aws_ssi_pipeline
 
-x_compute_php_scenarios:
+x_compute_php_aws_scenarios:
   stage: php_ssi_pipelines
   extends: .compute_aws_scenarios
   variables:
@@ -370,9 +390,9 @@ x_compute_php_docker_scenarios:
 x_merge_php_ssi_pipeline:
   stage: php_ssi_pipelines
   extends: .merge_aws_ssi_pipeline
-  needs: ["x_compute_php_scenarios", "x_compute_php_docker_scenarios"]
+  needs: ["x_compute_php_aws_scenarios", "x_compute_php_docker_scenarios"]
   dependencies:
-    - x_compute_php_scenarios
+    - x_compute_php_aws_scenarios
     - x_compute_php_docker_scenarios
 
 step2_exec_php_ssi_pipeline:
@@ -391,7 +411,7 @@ step1_generate_dotnet_ssi_pipeline:
   dependencies: []
   extends: .step1_generate_aws_ssi_pipeline
 
-x_compute_dotnet_scenarios:
+x_compute_dotnet_aws_scenarios:
   stage: dotnet_ssi_pipelines
   extends: .compute_aws_scenarios
   variables:
@@ -418,12 +438,22 @@ x_compute_dotnet_scenarios:
     - job: step1_generate_dotnet_ssi_pipeline
       artifacts: true
 
+x_compute_dotnet_k8s_scenarios:
+  extends: .x_compute_k8s_scenarios
+  stage: dotnet_ssi_pipelines
+  variables:
+    TEST_LIBRARY: "dotnet"
+  needs:
+    - job: step1_generate_dotnet_ssi_pipeline
+      artifacts: true
+
 x_merge_dotnet_ssi_pipeline:
   stage: dotnet_ssi_pipelines
   extends: .merge_aws_ssi_pipeline
-  needs: ["x_compute_dotnet_scenarios"]
+  needs: ["x_compute_dotnet_aws_scenarios", "x_compute_dotnet_k8s_scenarios"]
   dependencies:
-    - x_compute_dotnet_scenarios
+    - x_compute_dotnet_aws_scenarios
+    - x_compute_dotnet_k8s_scenarios
 
 step2_exec_dotnet_ssi_pipeline:
   stage: dotnet_ssi_pipelines
@@ -441,7 +471,7 @@ step1_generate_ruby_ssi_pipeline:
   dependencies: []
   extends: .step1_generate_aws_ssi_pipeline
 
-x_compute_ruby_scenarios:
+x_compute_ruby_aws_scenarios:
   stage: ruby_ssi_pipelines
   extends: .compute_aws_scenarios
   variables:
@@ -462,12 +492,22 @@ x_compute_ruby_scenarios:
     - job: step1_generate_ruby_ssi_pipeline
       artifacts: true
 
+x_compute_ruby_k8s_scenarios:
+  extends: .x_compute_k8s_scenarios
+  stage: ruby_ssi_pipelines
+  variables:
+    TEST_LIBRARY: "ruby"
+  needs:
+    - job: step1_generate_ruby_ssi_pipeline
+      artifacts: true
+
 x_merge_ruby_ssi_pipeline:
   stage: ruby_ssi_pipelines
   extends: .merge_aws_ssi_pipeline
-  needs: ["x_compute_ruby_scenarios"]
+  needs: ["x_compute_ruby_aws_scenarios", "x_compute_ruby_k8s_scenarios"]
   dependencies:
-    - x_compute_ruby_scenarios
+    - x_compute_ruby_aws_scenarios
+    - x_compute_ruby_k8s_scenarios
 
 step2_exec_ruby_ssi_pipeline:
   stage: ruby_ssi_pipelines

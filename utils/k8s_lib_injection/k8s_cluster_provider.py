@@ -233,8 +233,7 @@ class K8sEKSRemoteClusterProvider(K8sClusterProvider):
         # From cluster name like: "lib-injection-testing-eks-sandbox.us-east-1.eksctl.io" I only take "lib-injection-testing-eks-sandbox"
         cluster_min_name = cluster_name.split(".")[0]
         token = execute_command(f"aws-iam-authenticator token -i {cluster_min_name} --token-only")
-        token = token.strip()
-        return token
+        return token.strip()
 
 
 class K8sKindClusterProvider(K8sClusterProvider):
