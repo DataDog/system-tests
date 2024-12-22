@@ -41,3 +41,20 @@ def exception_replay_rps():
     elif shape == "scissors":
         raise ExceptionReplayScissors()
     return "No exception"
+
+
+def deep_function_c():
+    raise Exception("multiple stack frames exception")
+
+
+def deep_function_b():
+    return deep_function_c()
+
+
+def deep_function_a():
+    return deep_function_b()
+
+
+@exception_replay_blueprint.route("/multiframe", methods=["GET"])
+def exception_replay_multiframe():
+    return deep_function_a()

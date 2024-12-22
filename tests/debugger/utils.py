@@ -219,15 +219,9 @@ class _Base_Debugger_Test:
     _exception_message = None
     _snapshot_found = False
 
-    def wait_for_exception_snapshot_received(self, exception_message=None):
+    def wait_for_exception_snapshot_received(self, exception_message, timeout):
         self._exception_message = exception_message
         self._snapshot_found = False
-
-        if self.get_tracer()["language"] == "python":
-            # for python snapshot is generated on the first exception, so we can wait a bit longer, to reduce snapshot duplicates
-            timeout = 5
-        else:
-            timeout = 1
 
         interfaces.agent.wait_for(self._wait_for_snapshot_received, timeout=timeout)
         return self._snapshot_found

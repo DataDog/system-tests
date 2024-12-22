@@ -17,6 +17,10 @@ def get_env_bool(env_var_name, default=False):
 _OVERRIDE_APROVALS = get_env_bool("DI_OVERRIDE_APPROVALS")
 _SKIP_SCRUB = get_env_bool("DI_SKIP_SCRUB")
 
+_max_retries = 2
+_timeout_first = 5
+_timeout_next = 30
+
 
 @features.debugger_exception_replay
 @scenarios.debugger_exception_replay
@@ -26,14 +30,15 @@ class Test_Debugger_Exception_Replay(debugger._Base_Debugger_Test):
         self.weblog_responses = []
 
         retries = 0
-        max_retries = 20
+        timeout = _timeout_first
         snapshot_found = False
 
-        while not snapshot_found and retries < max_retries:
+        while not snapshot_found and retries < _max_retries:
             logger.debug(f"Waiting for snapshot, retry #{retries}")
 
             self.send_weblog_request(request_path, reset=False)
-            snapshot_found = self.wait_for_exception_snapshot_received(exception_message)
+            snapshot_found = self.wait_for_exception_snapshot_received(exception_message, timeout)
+            timeout = _timeout_next
 
             retries += 1
 
@@ -309,11 +314,11 @@ class Test_Debugger_Exception_Replay(debugger._Base_Debugger_Test):
         self.weblog_responses = []
 
         retries = 0
-        max_retries = 60
+        timeout = _timeout_first
 
         shapes = {"rock": False, "paper": False, "scissors": False}
 
-        while not all(shapes.values()) and retries < max_retries:
+        while not all(shapes.values()) and retries < _max_retries:
             for shape in shapes.keys():
                 shape_found = shapes[shape]
                 logger.debug(f"{shape} found: {shape_found}, retry #{retries}")
@@ -324,7 +329,8 @@ class Test_Debugger_Exception_Replay(debugger._Base_Debugger_Test):
                 logger.debug(f"Waiting for snapshot for shape: {shape}, retry #{retries}")
                 self.send_weblog_request(f"/exceptionreplay/rps?shape={shape}", reset=False)
 
-                shapes[shape] = self.wait_for_exception_snapshot_received(shape)
+                shapes[shape] = self.wait_for_exception_snapshot_received(shape, timeout)
+                timeout = _timeout_next
 
             retries += 1
 
@@ -332,3 +338,12 @@ class Test_Debugger_Exception_Replay(debugger._Base_Debugger_Test):
     @bug(context.library == "python", reason="DEBUG-3257")
     def test_exception_replay_rockpaperscissors(self):
         self._assert("exception_replay_rockpaperscissors", ["rock", "paper", "scissors"])
+
+    ############ Multiple Stack Frames ############
+    def setup_exception_replay_multiframe(self):
+        self._setup("/exceptionreplay/multiframe", "multiple stack frames exception")
+
+    @bug(context.library == "dotnet", reason="DEBUG-2799")
+    @bug(context.library == "python", reason="DEBUG-3257")
+    def test_exception_replay_multiframe(self):
+        self._assert("exception_replay_multiframe", ["multiple stack frames exception"])
