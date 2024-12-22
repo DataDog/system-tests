@@ -335,7 +335,7 @@ x_merge_python_ssi_pipeline:
   extends: .merge_aws_ssi_pipeline
   needs: ["x_compute_python_aws_scenarios", "x_compute_python_docker_scenarios", "x_compute_python_k8s_scenarios"]
   dependencies:
-    - x_compute_python:aws_scenarios
+    - x_compute_python_aws_scenarios
     - x_compute_python_docker_scenarios
     - x_compute_python_k8s_scenarios
 
