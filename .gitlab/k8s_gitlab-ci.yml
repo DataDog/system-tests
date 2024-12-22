@@ -4,10 +4,12 @@ stages:
   image: registry.ddbuild.io/ci/libdatadog-build/system-tests:48436362
   tags: [ "runner:docker" ]
   stage: K8S_LIB_INJECTION
+  allow_failure: false
   rules:
-    - if: $CI_PIPELINE_SOURCE == "schedule"
-      when: always
-    - when: manual
+  - if: $CI_PIPELINE_SOURCE == "parent_pipeline"
+    when: always
+  - when: manual
+    allow_failure: true
   variables:
     TEST_LIBRARY: "xyz"
     K8S_WEBLOG: "xyz"

@@ -257,10 +257,10 @@ class K8sKindClusterProvider(K8sClusterProvider):
             raise ValueError("Cluster not configured")
 
         self._cluster_info.docker_in_docker = "GITLAB_CI" in os.environ
-        self._cluster_info.agent_port = 8126
-        self._cluster_info.weblog_port = 18080
-        self._cluster_info.internal_agent_port = 8127
-        self._cluster_info.internal_weblog_port = 18081
+        self._cluster_info.agent_port = 8127
+        self._cluster_info.weblog_port = 18081
+        self._cluster_info.internal_agent_port = 8126
+        self._cluster_info.internal_weblog_port = 18080
         self._cluster_info.cluster_host_name = "localhost"
 
     def ensure_cluster(self):
