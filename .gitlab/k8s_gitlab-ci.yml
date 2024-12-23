@@ -59,6 +59,8 @@ configure_env:
   - if: $CI_PIPELINE_SOURCE == "schedule"
   #- if: $PARENT_PIPELINE_SOURCE == "schedule"
     when: always
+  - if: $PARENT_PIPELINE_SOURCE == "schedule"
+    when: always
   - when: manual
     allow_failure: true
   script:
