@@ -9,7 +9,7 @@
           }
         },
         "throwable": {
-          "message": "Recursion exception",
+          "message": "recursion exception depth 20",
           "type": "System.Exception",
           "stacktrace": "Unknown.lambda_method<scrubbed>"
         },
@@ -20,7 +20,7 @@
             "fields": {
               "Message": {
                 "type": "String",
-                "value": "Recursion exception"
+                "value": "recursion exception depth 20"
               },
               "InnerException": {
                 "type": "Exception",
@@ -46,7 +46,11 @@
           }
         },
         "arguments": {
-          "depth": {
+          "originalDepth": {
+            "type": "Int32",
+            "value": "20"
+          },
+          "currentDepth": {
             "type": "Int32",
             "value": "20"
           },
@@ -61,7 +65,7 @@
       "id": "<scrubbed>",
       "version": 1,
       "location": {
-        "method": "ExceptionReplayRecursion",
+        "method": "exceptionReplayRecursionHelper",
         "type": "weblog.ExceptionReplayController"
       }
     },
@@ -85,15 +89,15 @@
           }
         },
         "throwable": {
-          "message": "Recursion exception",
+          "message": "recursion exception depth 20",
           "type": "System.Exception",
           "stacktrace": [
             {
-              "function": "weblog.ExceptionReplayController.ExceptionReplayRecursion",
+              "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
               "lineNumber": 0
             },
             {
-              "function": "weblog.ExceptionReplayController.ExceptionReplayRecursion",
+              "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
               "lineNumber": 0
             },
             {
@@ -108,7 +112,7 @@
             "fields": {
               "Message": {
                 "type": "String",
-                "value": "Recursion exception"
+                "value": "recursion exception depth 20"
               },
               "InnerException": {
                 "type": "Exception",
@@ -134,7 +138,11 @@
           }
         },
         "arguments": {
-          "depth": {
+          "originalDepth": {
+            "type": "Int32",
+            "value": "20"
+          },
+          "currentDepth": {
             "type": "Int32",
             "value": "0"
           },
@@ -149,7 +157,7 @@
       "id": "<scrubbed>",
       "version": 1,
       "location": {
-        "method": "ExceptionReplayRecursion",
+        "method": "exceptionReplayRecursionHelper",
         "type": "weblog.ExceptionReplayController"
       }
     },
@@ -169,19 +177,19 @@
           }
         },
         "throwable": {
-          "message": "Recursion exception",
+          "message": "recursion exception depth 20",
           "type": "System.Exception",
           "stacktrace": [
             {
-              "function": "weblog.ExceptionReplayController.ExceptionReplayRecursion",
+              "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
               "lineNumber": 0
             },
             {
-              "function": "weblog.ExceptionReplayController.ExceptionReplayRecursion",
+              "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
               "lineNumber": 0
             },
             {
-              "function": "weblog.ExceptionReplayController.ExceptionReplayRecursion",
+              "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
               "lineNumber": 0
             },
             {
@@ -196,7 +204,7 @@
             "fields": {
               "Message": {
                 "type": "String",
-                "value": "Recursion exception"
+                "value": "recursion exception depth 20"
               },
               "InnerException": {
                 "type": "Exception",
@@ -222,7 +230,11 @@
           }
         },
         "arguments": {
-          "depth": {
+          "originalDepth": {
+            "type": "Int32",
+            "value": "20"
+          },
+          "currentDepth": {
             "type": "Int32",
             "value": "1"
           },
@@ -237,7 +249,7 @@
       "id": "<scrubbed>",
       "version": 1,
       "location": {
-        "method": "ExceptionReplayRecursion",
+        "method": "exceptionReplayRecursionHelper",
         "type": "weblog.ExceptionReplayController"
       }
     },
@@ -257,23 +269,23 @@
           }
         },
         "throwable": {
-          "message": "Recursion exception",
+          "message": "recursion exception depth 20",
           "type": "System.Exception",
           "stacktrace": [
             {
-              "function": "weblog.ExceptionReplayController.ExceptionReplayRecursion",
+              "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
               "lineNumber": 0
             },
             {
-              "function": "weblog.ExceptionReplayController.ExceptionReplayRecursion",
+              "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
               "lineNumber": 0
             },
             {
-              "function": "weblog.ExceptionReplayController.ExceptionReplayRecursion",
+              "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
               "lineNumber": 0
             },
             {
-              "function": "weblog.ExceptionReplayController.ExceptionReplayRecursion",
+              "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
               "lineNumber": 0
             },
             {
@@ -288,7 +300,7 @@
             "fields": {
               "Message": {
                 "type": "String",
-                "value": "Recursion exception"
+                "value": "recursion exception depth 20"
               },
               "InnerException": {
                 "type": "Exception",
@@ -314,7 +326,11 @@
           }
         },
         "arguments": {
-          "depth": {
+          "originalDepth": {
+            "type": "Int32",
+            "value": "20"
+          },
+          "currentDepth": {
             "type": "Int32",
             "value": "2"
           },
@@ -329,7 +345,7 @@
       "id": "<scrubbed>",
       "version": 1,
       "location": {
-        "method": "ExceptionReplayRecursion",
+        "method": "exceptionReplayRecursionHelper",
         "type": "weblog.ExceptionReplayController"
       }
     },
@@ -349,27 +365,27 @@
           }
         },
         "throwable": {
-          "message": "Recursion exception",
+          "message": "recursion exception depth 20",
           "type": "System.Exception",
           "stacktrace": [
             {
-              "function": "weblog.ExceptionReplayController.ExceptionReplayRecursion",
+              "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
               "lineNumber": 0
             },
             {
-              "function": "weblog.ExceptionReplayController.ExceptionReplayRecursion",
+              "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
               "lineNumber": 0
             },
             {
-              "function": "weblog.ExceptionReplayController.ExceptionReplayRecursion",
+              "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
               "lineNumber": 0
             },
             {
-              "function": "weblog.ExceptionReplayController.ExceptionReplayRecursion",
+              "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
               "lineNumber": 0
             },
             {
-              "function": "weblog.ExceptionReplayController.ExceptionReplayRecursion",
+              "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
               "lineNumber": 0
             },
             {
@@ -384,7 +400,7 @@
             "fields": {
               "Message": {
                 "type": "String",
-                "value": "Recursion exception"
+                "value": "recursion exception depth 20"
               },
               "InnerException": {
                 "type": "Exception",
@@ -410,7 +426,11 @@
           }
         },
         "arguments": {
-          "depth": {
+          "originalDepth": {
+            "type": "Int32",
+            "value": "20"
+          },
+          "currentDepth": {
             "type": "Int32",
             "value": "3"
           },
@@ -425,7 +445,691 @@
       "id": "<scrubbed>",
       "version": 1,
       "location": {
-        "method": "ExceptionReplayRecursion",
+        "method": "exceptionReplayRecursionHelper",
+        "type": "weblog.ExceptionReplayController"
+      }
+    },
+    "stack": "Unknown.lambda_method<scrubbed>",
+    "id": "<scrubbed>",
+    "timestamp": "<scrubbed>",
+    "duration": "<scrubbed>",
+    "language": "dotnet"
+  },
+  {
+    "captures": {
+      "return": {
+        "staticFields": {
+          "Empty": {
+            "type": "EmptyResult",
+            "value": "EmptyResult"
+          }
+        },
+        "throwable": {
+          "message": "recursion exception depth 20",
+          "type": "System.Exception",
+          "stacktrace": [
+            {
+              "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
+              "lineNumber": 0
+            },
+            {
+              "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
+              "lineNumber": 0
+            },
+            {
+              "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
+              "lineNumber": 0
+            },
+            {
+              "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
+              "lineNumber": 0
+            },
+            {
+              "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
+              "lineNumber": 0
+            },
+            {
+              "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
+              "lineNumber": 0
+            },
+            {
+              "<runtime>": "<scrubbed>"
+            }
+          ]
+        },
+        "locals": {
+          "@exception": {
+            "type": "Exception",
+            "value": "Exception",
+            "fields": {
+              "Message": {
+                "type": "String",
+                "value": "recursion exception depth 20"
+              },
+              "InnerException": {
+                "type": "Exception",
+                "isNull": "true"
+              },
+              "HelpLink": {
+                "type": "String",
+                "isNull": "true"
+              },
+              "Source": {
+                "type": "String",
+                "value": "app"
+              },
+              "HResult": {
+                "type": "Int32",
+                "value": "-2146233088"
+              },
+              "StackTrace": {
+                "type": "String",
+                "value": "<scrubbed>"
+              }
+            }
+          }
+        },
+        "arguments": {
+          "originalDepth": {
+            "type": "Int32",
+            "value": "20"
+          },
+          "currentDepth": {
+            "type": "Int32",
+            "value": "4"
+          },
+          "this": {
+            "type": "ExceptionReplayController",
+            "value": "ExceptionReplayController"
+          }
+        }
+      }
+    },
+    "probe": {
+      "id": "<scrubbed>",
+      "version": 1,
+      "location": {
+        "method": "exceptionReplayRecursionHelper",
+        "type": "weblog.ExceptionReplayController"
+      }
+    },
+    "stack": "Unknown.lambda_method<scrubbed>",
+    "id": "<scrubbed>",
+    "timestamp": "<scrubbed>",
+    "duration": "<scrubbed>",
+    "language": "dotnet"
+  },
+  {
+    "captures": {
+      "return": {
+        "staticFields": {
+          "Empty": {
+            "type": "EmptyResult",
+            "value": "EmptyResult"
+          }
+        },
+        "throwable": {
+          "message": "recursion exception depth 20",
+          "type": "System.Exception",
+          "stacktrace": [
+            {
+              "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
+              "lineNumber": 0
+            },
+            {
+              "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
+              "lineNumber": 0
+            },
+            {
+              "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
+              "lineNumber": 0
+            },
+            {
+              "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
+              "lineNumber": 0
+            },
+            {
+              "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
+              "lineNumber": 0
+            },
+            {
+              "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
+              "lineNumber": 0
+            },
+            {
+              "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
+              "lineNumber": 0
+            },
+            {
+              "<runtime>": "<scrubbed>"
+            }
+          ]
+        },
+        "locals": {
+          "@exception": {
+            "type": "Exception",
+            "value": "Exception",
+            "fields": {
+              "Message": {
+                "type": "String",
+                "value": "recursion exception depth 20"
+              },
+              "InnerException": {
+                "type": "Exception",
+                "isNull": "true"
+              },
+              "HelpLink": {
+                "type": "String",
+                "isNull": "true"
+              },
+              "Source": {
+                "type": "String",
+                "value": "app"
+              },
+              "HResult": {
+                "type": "Int32",
+                "value": "-2146233088"
+              },
+              "StackTrace": {
+                "type": "String",
+                "value": "<scrubbed>"
+              }
+            }
+          }
+        },
+        "arguments": {
+          "originalDepth": {
+            "type": "Int32",
+            "value": "20"
+          },
+          "currentDepth": {
+            "type": "Int32",
+            "value": "5"
+          },
+          "this": {
+            "type": "ExceptionReplayController",
+            "value": "ExceptionReplayController"
+          }
+        }
+      }
+    },
+    "probe": {
+      "id": "<scrubbed>",
+      "version": 1,
+      "location": {
+        "method": "exceptionReplayRecursionHelper",
+        "type": "weblog.ExceptionReplayController"
+      }
+    },
+    "stack": "Unknown.lambda_method<scrubbed>",
+    "id": "<scrubbed>",
+    "timestamp": "<scrubbed>",
+    "duration": "<scrubbed>",
+    "language": "dotnet"
+  },
+  {
+    "captures": {
+      "return": {
+        "staticFields": {
+          "Empty": {
+            "type": "EmptyResult",
+            "value": "EmptyResult"
+          }
+        },
+        "throwable": {
+          "message": "recursion exception depth 20",
+          "type": "System.Exception",
+          "stacktrace": [
+            {
+              "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
+              "lineNumber": 0
+            },
+            {
+              "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
+              "lineNumber": 0
+            },
+            {
+              "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
+              "lineNumber": 0
+            },
+            {
+              "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
+              "lineNumber": 0
+            },
+            {
+              "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
+              "lineNumber": 0
+            },
+            {
+              "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
+              "lineNumber": 0
+            },
+            {
+              "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
+              "lineNumber": 0
+            },
+            {
+              "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
+              "lineNumber": 0
+            },
+            {
+              "<runtime>": "<scrubbed>"
+            }
+          ]
+        },
+        "locals": {
+          "@exception": {
+            "type": "Exception",
+            "value": "Exception",
+            "fields": {
+              "Message": {
+                "type": "String",
+                "value": "recursion exception depth 20"
+              },
+              "InnerException": {
+                "type": "Exception",
+                "isNull": "true"
+              },
+              "HelpLink": {
+                "type": "String",
+                "isNull": "true"
+              },
+              "Source": {
+                "type": "String",
+                "value": "app"
+              },
+              "HResult": {
+                "type": "Int32",
+                "value": "-2146233088"
+              },
+              "StackTrace": {
+                "type": "String",
+                "value": "<scrubbed>"
+              }
+            }
+          }
+        },
+        "arguments": {
+          "originalDepth": {
+            "type": "Int32",
+            "value": "20"
+          },
+          "currentDepth": {
+            "type": "Int32",
+            "value": "6"
+          },
+          "this": {
+            "type": "ExceptionReplayController",
+            "value": "ExceptionReplayController"
+          }
+        }
+      }
+    },
+    "probe": {
+      "id": "<scrubbed>",
+      "version": 1,
+      "location": {
+        "method": "exceptionReplayRecursionHelper",
+        "type": "weblog.ExceptionReplayController"
+      }
+    },
+    "stack": "Unknown.lambda_method<scrubbed>",
+    "id": "<scrubbed>",
+    "timestamp": "<scrubbed>",
+    "duration": "<scrubbed>",
+    "language": "dotnet"
+  },
+  {
+    "captures": {
+      "return": {
+        "staticFields": {
+          "Empty": {
+            "type": "EmptyResult",
+            "value": "EmptyResult"
+          }
+        },
+        "throwable": {
+          "message": "recursion exception depth 20",
+          "type": "System.Exception",
+          "stacktrace": [
+            {
+              "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
+              "lineNumber": 0
+            },
+            {
+              "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
+              "lineNumber": 0
+            },
+            {
+              "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
+              "lineNumber": 0
+            },
+            {
+              "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
+              "lineNumber": 0
+            },
+            {
+              "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
+              "lineNumber": 0
+            },
+            {
+              "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
+              "lineNumber": 0
+            },
+            {
+              "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
+              "lineNumber": 0
+            },
+            {
+              "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
+              "lineNumber": 0
+            },
+            {
+              "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
+              "lineNumber": 0
+            },
+            {
+              "<runtime>": "<scrubbed>"
+            }
+          ]
+        },
+        "locals": {
+          "@exception": {
+            "type": "Exception",
+            "value": "Exception",
+            "fields": {
+              "Message": {
+                "type": "String",
+                "value": "recursion exception depth 20"
+              },
+              "InnerException": {
+                "type": "Exception",
+                "isNull": "true"
+              },
+              "HelpLink": {
+                "type": "String",
+                "isNull": "true"
+              },
+              "Source": {
+                "type": "String",
+                "value": "app"
+              },
+              "HResult": {
+                "type": "Int32",
+                "value": "-2146233088"
+              },
+              "StackTrace": {
+                "type": "String",
+                "value": "<scrubbed>"
+              }
+            }
+          }
+        },
+        "arguments": {
+          "originalDepth": {
+            "type": "Int32",
+            "value": "20"
+          },
+          "currentDepth": {
+            "type": "Int32",
+            "value": "7"
+          },
+          "this": {
+            "type": "ExceptionReplayController",
+            "value": "ExceptionReplayController"
+          }
+        }
+      }
+    },
+    "probe": {
+      "id": "<scrubbed>",
+      "version": 1,
+      "location": {
+        "method": "exceptionReplayRecursionHelper",
+        "type": "weblog.ExceptionReplayController"
+      }
+    },
+    "stack": "Unknown.lambda_method<scrubbed>",
+    "id": "<scrubbed>",
+    "timestamp": "<scrubbed>",
+    "duration": "<scrubbed>",
+    "language": "dotnet"
+  },
+  {
+    "captures": {
+      "return": {
+        "staticFields": {
+          "Empty": {
+            "type": "EmptyResult",
+            "value": "EmptyResult"
+          }
+        },
+        "throwable": {
+          "message": "recursion exception depth 20",
+          "type": "System.Exception",
+          "stacktrace": [
+            {
+              "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
+              "lineNumber": 0
+            },
+            {
+              "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
+              "lineNumber": 0
+            },
+            {
+              "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
+              "lineNumber": 0
+            },
+            {
+              "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
+              "lineNumber": 0
+            },
+            {
+              "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
+              "lineNumber": 0
+            },
+            {
+              "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
+              "lineNumber": 0
+            },
+            {
+              "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
+              "lineNumber": 0
+            },
+            {
+              "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
+              "lineNumber": 0
+            },
+            {
+              "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
+              "lineNumber": 0
+            },
+            {
+              "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
+              "lineNumber": 0
+            },
+            {
+              "<runtime>": "<scrubbed>"
+            }
+          ]
+        },
+        "locals": {
+          "@exception": {
+            "type": "Exception",
+            "value": "Exception",
+            "fields": {
+              "Message": {
+                "type": "String",
+                "value": "recursion exception depth 20"
+              },
+              "InnerException": {
+                "type": "Exception",
+                "isNull": "true"
+              },
+              "HelpLink": {
+                "type": "String",
+                "isNull": "true"
+              },
+              "Source": {
+                "type": "String",
+                "value": "app"
+              },
+              "HResult": {
+                "type": "Int32",
+                "value": "-2146233088"
+              },
+              "StackTrace": {
+                "type": "String",
+                "value": "<scrubbed>"
+              }
+            }
+          }
+        },
+        "arguments": {
+          "originalDepth": {
+            "type": "Int32",
+            "value": "20"
+          },
+          "currentDepth": {
+            "type": "Int32",
+            "value": "8"
+          },
+          "this": {
+            "type": "ExceptionReplayController",
+            "value": "ExceptionReplayController"
+          }
+        }
+      }
+    },
+    "probe": {
+      "id": "<scrubbed>",
+      "version": 1,
+      "location": {
+        "method": "exceptionReplayRecursionHelper",
+        "type": "weblog.ExceptionReplayController"
+      }
+    },
+    "stack": "Unknown.lambda_method<scrubbed>",
+    "id": "<scrubbed>",
+    "timestamp": "<scrubbed>",
+    "duration": "<scrubbed>",
+    "language": "dotnet"
+  },
+  {
+    "captures": {
+      "return": {
+        "staticFields": {
+          "Empty": {
+            "type": "EmptyResult",
+            "value": "EmptyResult"
+          }
+        },
+        "throwable": {
+          "message": "recursion exception depth 20",
+          "type": "System.Exception",
+          "stacktrace": [
+            {
+              "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
+              "lineNumber": 0
+            },
+            {
+              "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
+              "lineNumber": 0
+            },
+            {
+              "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
+              "lineNumber": 0
+            },
+            {
+              "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
+              "lineNumber": 0
+            },
+            {
+              "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
+              "lineNumber": 0
+            },
+            {
+              "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
+              "lineNumber": 0
+            },
+            {
+              "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
+              "lineNumber": 0
+            },
+            {
+              "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
+              "lineNumber": 0
+            },
+            {
+              "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
+              "lineNumber": 0
+            },
+            {
+              "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
+              "lineNumber": 0
+            },
+            {
+              "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
+              "lineNumber": 0
+            },
+            {
+              "<runtime>": "<scrubbed>"
+            }
+          ]
+        },
+        "locals": {
+          "@exception": {
+            "type": "Exception",
+            "value": "Exception",
+            "fields": {
+              "Message": {
+                "type": "String",
+                "value": "recursion exception depth 20"
+              },
+              "InnerException": {
+                "type": "Exception",
+                "isNull": "true"
+              },
+              "HelpLink": {
+                "type": "String",
+                "isNull": "true"
+              },
+              "Source": {
+                "type": "String",
+                "value": "app"
+              },
+              "HResult": {
+                "type": "Int32",
+                "value": "-2146233088"
+              },
+              "StackTrace": {
+                "type": "String",
+                "value": "<scrubbed>"
+              }
+            }
+          }
+        },
+        "arguments": {
+          "originalDepth": {
+            "type": "Int32",
+            "value": "20"
+          },
+          "currentDepth": {
+            "type": "Int32",
+            "value": "9"
+          },
+          "this": {
+            "type": "ExceptionReplayController",
+            "value": "ExceptionReplayController"
+          }
+        }
+      }
+    },
+    "probe": {
+      "id": "<scrubbed>",
+      "version": 1,
+      "location": {
+        "method": "exceptionReplayRecursionHelper",
         "type": "weblog.ExceptionReplayController"
       }
     },

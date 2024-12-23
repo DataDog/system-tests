@@ -9,7 +9,7 @@
       "location": {
         "file": "/app/exception_replay_controller.py",
         "lines": [
-          "60"
+          "59"
         ]
       }
     },
@@ -18,7 +18,7 @@
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_multiframe",
-        "lineNumber": 60
+        "lineNumber": 59
       },
       {
         "<runtime>": "<scrubbed>"
@@ -26,7 +26,7 @@
     ],
     "captures": {
       "lines": {
-        "60": {
+        "59": {
           "arguments": {},
           "locals": {
             "@exception": {
@@ -42,22 +42,22 @@
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_multiframe",
-                "lineNumber": 60
+                "lineNumber": 59
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "deep_function_a",
-                "lineNumber": 55
+                "lineNumber": 54
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "deep_function_b",
-                "lineNumber": 51
+                "lineNumber": 50
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "deep_function_c",
-                "lineNumber": 47
+                "lineNumber": 46
               },
               {
                 "<runtime>": "<scrubbed>"
@@ -80,7 +80,7 @@
       "location": {
         "file": "/app/exception_replay_controller.py",
         "lines": [
-          "55"
+          "54"
         ]
       }
     },
@@ -89,12 +89,12 @@
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "deep_function_a",
-        "lineNumber": 55
+        "lineNumber": 54
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_multiframe",
-        "lineNumber": 60
+        "lineNumber": 59
       },
       {
         "<runtime>": "<scrubbed>"
@@ -102,7 +102,7 @@
     ],
     "captures": {
       "lines": {
-        "55": {
+        "54": {
           "arguments": {},
           "locals": {
             "@exception": {
@@ -118,22 +118,22 @@
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_multiframe",
-                "lineNumber": 60
+                "lineNumber": 59
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "deep_function_a",
-                "lineNumber": 55
+                "lineNumber": 54
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "deep_function_b",
-                "lineNumber": 51
+                "lineNumber": 50
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "deep_function_c",
-                "lineNumber": 47
+                "lineNumber": 46
               },
               {
                 "<runtime>": "<scrubbed>"
@@ -156,7 +156,7 @@
       "location": {
         "file": "/app/exception_replay_controller.py",
         "lines": [
-          "51"
+          "50"
         ]
       }
     },
@@ -165,17 +165,17 @@
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "deep_function_b",
-        "lineNumber": 51
+        "lineNumber": 50
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "deep_function_a",
-        "lineNumber": 55
+        "lineNumber": 54
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_multiframe",
-        "lineNumber": 60
+        "lineNumber": 59
       },
       {
         "<runtime>": "<scrubbed>"
@@ -183,7 +183,7 @@
     ],
     "captures": {
       "lines": {
-        "51": {
+        "50": {
           "arguments": {},
           "locals": {
             "@exception": {
@@ -199,22 +199,22 @@
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_multiframe",
-                "lineNumber": 60
+                "lineNumber": 59
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "deep_function_a",
-                "lineNumber": 55
+                "lineNumber": 54
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "deep_function_b",
-                "lineNumber": 51
+                "lineNumber": 50
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "deep_function_c",
-                "lineNumber": 47
+                "lineNumber": 46
               },
               {
                 "<runtime>": "<scrubbed>"
@@ -237,7 +237,7 @@
       "location": {
         "file": "/app/exception_replay_controller.py",
         "lines": [
-          "47"
+          "46"
         ]
       }
     },
@@ -246,22 +246,22 @@
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "deep_function_c",
-        "lineNumber": 47
+        "lineNumber": 46
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "deep_function_b",
-        "lineNumber": 51
+        "lineNumber": 50
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "deep_function_a",
-        "lineNumber": 55
+        "lineNumber": 54
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_multiframe",
-        "lineNumber": 60
+        "lineNumber": 59
       },
       {
         "<runtime>": "<scrubbed>"
@@ -269,7 +269,7 @@
     ],
     "captures": {
       "lines": {
-        "47": {
+        "46": {
           "arguments": {},
           "locals": {
             "@exception": {
@@ -285,22 +285,22 @@
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_multiframe",
-                "lineNumber": 60
+                "lineNumber": 59
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "deep_function_a",
-                "lineNumber": 55
+                "lineNumber": 54
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "deep_function_b",
-                "lineNumber": 51
+                "lineNumber": 50
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "deep_function_c",
-                "lineNumber": 47
+                "lineNumber": 46
               },
               {
                 "<runtime>": "<scrubbed>"
