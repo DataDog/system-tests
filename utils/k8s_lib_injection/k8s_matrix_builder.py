@@ -13,7 +13,7 @@ def generate_gitlab_pipeline(languages, env):
 
     result_pipeline["stages"] = pipeline_data["stages"]
     result_pipeline[".k8s_lib_injection_base"] = pipeline_data[".k8s_lib_injection_base"]
-
+    result_pipeline["configure_env"] = pipeline_data["configure_env"]
     for language in languages:
         if pipeline_data["k8s_" + language] is not None:
             # Select the job based on the language
