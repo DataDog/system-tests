@@ -82,16 +82,21 @@ namespace weblog
             return ExecuteCommandInternal(data.Command, false);
         }
 
-        public class CmdiJsonModel 
+        public class CmdiJsonModel
         {
             public List<string>? Command { get; set; }
         }
-        
+
         [HttpPost("cmdi")]
         [Consumes("application/json")]
         public IActionResult cmdiPostJson([FromBody] CmdiJsonModel data)
         {
-            return ExecuteCommandInternal(data.Command[0] + " " + data.Command[1], false);
+            string command = "";
+            foreach (var item in data?.Command)
+            {
+                command += item + " ";
+            }
+            return ExecuteCommandInternal(command, false);
         }
 
         private IActionResult ExecuteCommandInternal(string commandLine, bool useShell = true)
