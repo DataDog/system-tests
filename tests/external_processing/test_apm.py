@@ -5,7 +5,7 @@ from tests import test_semantic_conventions as base_semantic_conventions
 from utils import weblog, interfaces, scenarios, features
 
 
-@features.not_reported  # it's just a POC. We'll need to figure out how we want to see results in FPD
+@features.envoy_external_processing
 @scenarios.external_processing
 class Test_ExternalProcessing_Tracing:
     def setup_correct_span_structure(self):
@@ -22,19 +22,19 @@ class Test_ExternalProcessing_Tracing:
             assert span["meta"]["http.host"] == "localhost:7777"
 
 
-@features.not_reported
+@features.envoy_external_processing
 @scenarios.external_processing
 class Test_ExternalProcessing_APM_UrlQuery(base_scrubbing.Test_UrlQuery):
     pass
 
 
-@features.not_reported
+@features.envoy_external_processing
 @scenarios.external_processing
 class Test_ExternalProcessing_APM_EnvVar(base_scrubbing.Test_EnvVar):
     pass
 
 
-@features.not_reported
+@features.envoy_external_processing
 @scenarios.external_processing
 class Test_ExternalProcessing_APM_Config_UnifiedServiceTagging_CustomService(
     base_config_consistency.Test_Config_UnifiedServiceTagging_CustomService
@@ -42,38 +42,38 @@ class Test_ExternalProcessing_APM_Config_UnifiedServiceTagging_CustomService(
     pass
 
 
-@features.not_reported
+@features.envoy_external_processing
 @scenarios.external_processing
 class Test_ExternalProcessing_APM_StandardTagsMethod(base_standard_tags.Test_StandardTagsMethod):
     pass
 
 
-@features.not_reported
+@features.envoy_external_processing
 @scenarios.external_processing
 class Test_ExternalProcessing_APM_StandardTagsUrl(base_standard_tags.Test_StandardTagsUrl):
     pass
 
 
-@features.not_reported
+@features.envoy_external_processing
 @scenarios.external_processing
 class Test_ExternalProcessing_APM_StandardTagsUserAgent(base_standard_tags.Test_StandardTagsUserAgent):
     pass
 
 
-@features.not_reported
+@features.envoy_external_processing
 @scenarios.external_processing
 class Test_ExternalProcessing_APM_StandardTagsClientIp(base_standard_tags.Test_StandardTagsClientIp):
     pass
 
 
-@features.not_reported
+@features.envoy_external_processing
 @scenarios.external_processing
 class Test_ExternalProcessing_APM_Meta(base_semantic_conventions.Test_Meta):
     def test_meta_component_tag(self):
         pass
 
 
-@features.not_reported
+@features.envoy_external_processing
 @scenarios.external_processing
 class Test_ExternalProcessing_APM_MetricsStandardTags(base_semantic_conventions.Test_MetricsStandardTags):
     pass
