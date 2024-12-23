@@ -11,7 +11,7 @@ from tests.appsec import test_versions as base_versions
 # Not tested because the test need appsec to be disabled at first (and in the scenario it's DD_APPSEC_ENABLED=1 at the start): Suspicious Attacker Blocking
 
 
-@features.not_reported
+@features.envoy_external_processing
 @scenarios.external_processing
 class Test_ExternalProcessing_ASM_AppSecIPBlockingFullDenylist(
     base_ip_blocking_full_denylist.Test_AppSecIPBlockingFullDenylist
@@ -19,49 +19,49 @@ class Test_ExternalProcessing_ASM_AppSecIPBlockingFullDenylist(
     pass
 
 
-@features.not_reported
+@features.envoy_external_processing
 @scenarios.external_processing
 class Test_ExternalProcessing_ASM_Alpha_Basic(base_alpha.Test_Basic):
     pass
 
 
-@features.not_reported
+@features.envoy_external_processing
 @scenarios.external_processing
 class Test_ExternalProcessing_ASM_Events(base_versions.Test_Events):
     pass
 
 
-@features.not_reported
+@features.envoy_external_processing
 @scenarios.external_processing
 class Test_ExternalProcessing_ASM_RequestHeaders(base_reports.Test_RequestHeaders):
     pass
 
 
-@features.not_reported
+@features.envoy_external_processing
 @scenarios.external_processing
 class Test_ExternalProcessing_ASM_TagsFromRule(base_reports.Test_TagsFromRule):
     pass
 
 
-@features.not_reported
+@features.envoy_external_processing
 @scenarios.external_processing
 class Test_ExternalProcessing_ASM_ExtraTagsFromRule(base_reports.Test_ExtraTagsFromRule):
     pass
 
 
-@features.not_reported
+@features.envoy_external_processing
 @scenarios.external_processing
 class Test_ExternalProcessing_ASM_AttackTimestamp(base_reports.Test_AttackTimestamp):
     pass
 
 
-@features.not_reported
+@features.envoy_external_processing
 @scenarios.external_processing
 class Test_ExternalProcessing_ASM_RetainTraces(base_traces.Test_RetainTraces):
     pass
 
 
-@features.not_reported
+@features.envoy_external_processing
 @scenarios.external_processing
 class Test_ExternalProcessing_ASM_AppSecEventSpanTags(base_traces.Test_AppSecEventSpanTags):
     @irrelevant(True, reason="Irrelevant tag set for golang")
@@ -69,13 +69,13 @@ class Test_ExternalProcessing_ASM_AppSecEventSpanTags(base_traces.Test_AppSecEve
         pass
 
 
-@features.not_reported
+@features.envoy_external_processing
 @scenarios.external_processing
 class Test_ExternalProcessing_ASM_AppSecObfuscator(base_traces.Test_AppSecObfuscator):
     pass
 
 
-@features.not_reported
+@features.envoy_external_processing
 @scenarios.external_processing
 class Test_ExternalProcessing_ASM_CollectRespondHeaders(base_traces.Test_CollectRespondHeaders):
     @missing_feature(True, reason="The endpoint /headers is not implemented in the weblog")
@@ -83,13 +83,13 @@ class Test_ExternalProcessing_ASM_CollectRespondHeaders(base_traces.Test_Collect
         pass
 
 
-@features.not_reported
+@features.envoy_external_processing
 @scenarios.external_processing
 class Test_ExternalProcessing_ASM_CollectDefaultRequestHeader(base_traces.Test_CollectDefaultRequestHeader):
     pass
 
 
-@features.not_reported
+@features.envoy_external_processing
 @scenarios.external_processing
 class Test_ExternalProcessing_ASM_ExternalWafRequestsIdentification(base_traces.Test_ExternalWafRequestsIdentification):
     pass
