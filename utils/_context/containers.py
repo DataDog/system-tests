@@ -1224,7 +1224,7 @@ class ExternalProcessingContainer(TestedContainer):
             "DD_APPSEC_ENABLED": "true",
             "DD_SERVICE": "service_test",
             "DD_AGENT_HOST": "proxy",
-            "DD_TRACE_AGENT_PORT": 8126,
+            "DD_TRACE_AGENT_PORT": ProxyPorts.weblog,
             "DD_APPSEC_WAF_TIMEOUT": "1s",
         }
 

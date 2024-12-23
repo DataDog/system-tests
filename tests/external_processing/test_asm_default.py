@@ -1,4 +1,4 @@
-from utils import scenarios, features, irrelevant
+from utils import scenarios, features, irrelevant, missing_feature
 from tests.appsec import test_ip_blocking_full_denylist as base_ip_blocking_full_denylist
 from tests.appsec import test_alpha as base_alpha
 from tests.appsec import test_reports as base_reports
@@ -78,7 +78,7 @@ class Test_ExternalProcessing_ASM_AppSecObfuscator(base_traces.Test_AppSecObfusc
 @features.not_reported
 @scenarios.external_processing
 class Test_ExternalProcessing_ASM_CollectRespondHeaders(base_traces.Test_CollectRespondHeaders):
-    @irrelevant(True, reason="The endpoint /headers is not implemented in the weblog")
+    @missing_feature(True, reason="The endpoint /headers is not implemented in the weblog")
     def test_header_collection(self):
         pass
 
