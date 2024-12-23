@@ -67,8 +67,13 @@ namespace weblog
         [Consumes("application/xml")]
         public IActionResult cmdiPostXml([FromBody] Command data)
         {
-            var arguments = data?.Cmd.GetRange(1, data.Cmd.Count - 1);
-            return ExecuteCommandInternal( data?.Cmd[0], false, arguments);
+            List<string> arguments = null;
+            if (data is not null && data.Cmd is not null && data.Cmd.Count > 1)
+            {
+                arguments = data.Cmd.GetRange(1, data.Cmd.Count - 1);
+            }
+
+            return ExecuteCommandInternal(data?.Cmd[0], false, arguments);
         }
 
         [HttpPost("cmdi")]
@@ -87,7 +92,12 @@ namespace weblog
         [Consumes("application/json")]
         public IActionResult cmdiPostJson([FromBody] CmdiJsonModel data)
         {
-            var arguments = data?.Command.GetRange(1, data.Command.Count - 1);
+            List<string> arguments = null;
+            if (data is not null && data.Command is not null && data.Command.Count > 1)
+            {
+                arguments = data.Command.GetRange(1, data.Command.Count - 1);
+            }
+
             return ExecuteCommandInternal(data?.Command[0], false, arguments);
         }
 
