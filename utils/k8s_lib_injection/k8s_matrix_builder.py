@@ -5,7 +5,6 @@ import argparse
 
 def generate_gitlab_pipeline(languages, env):
     """Take k8s pipeline file and generate a pipeline for the specified languages"""
-    print(f"Generating pipeline for languages {languages} and env {env}")
     result_pipeline = {}
     pipeline_file = f".gitlab/k8s_gitlab-ci.yml"
     pipeline_data = None
