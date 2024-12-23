@@ -459,7 +459,6 @@ tests/:
       Test_RemoteConfigurationUpdateSequenceFeatures: v2.15.0
       Test_RemoteConfigurationUpdateSequenceFeaturesNoCache: irrelevant (cache is implemented)
       Test_RemoteConfigurationUpdateSequenceLiveDebugging: v2.15.0
-      Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache: irrelevant (cache is implemented)
   serverless/:
     span_pointers/:
       aws/:
@@ -498,6 +497,7 @@ tests/:
     Test_Basic: v2.7.0
     Test_Propagate: v2.27.0
     Test_Propagate_Legacy: v2.26.0
+  test_ipv6.py: missing_feature (APMAPI-869)
   test_library_conf.py:
     Test_HeaderTags: v2.27.0
     Test_HeaderTags_Colon_Leading: v2.1.0

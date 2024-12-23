@@ -772,6 +772,28 @@ Examples:
 - `GET`: `/rasp/shi?list_dir=$(cat /etc/passwd 1>&2 ; echo .)
 - `POST`: `{"list_dir": "$(cat /etc/passwd 1>&2 ; echo .)"}`
 
+### \[GET,POST\] /rasp/cmdi
+
+This endpoint is used to test for command injection attacks by executing a command without launching a shell.
+The chosen operation must be injected with the `GET` or `POST` parameter.
+
+Query parameters and body fields required in the `GET` and `POST` method:
+- `command`: containing string or an array of strings to be executed as a command.
+
+The endpoint should support the following content types in the `POST` method:
+- `application/x-www-form-urlencoded`
+- `application/xml`
+- `application/json`
+
+The chosen operation must use the file as provided, without any alterations, e.g.:
+```
+system("$command");
+```
+
+Examples:
+- `GET`: `/rasp/cmdi?command=/usr/bin/touch /tmp/passwd
+- `POST`: `{"command": ["/usr/bin/touch", "/tmp/passwd"]}`
+
 ### \[GET\] /set_cookie
 
 This endpoint get a `name` and a `value` form the query string, and adds a header `Set-Cookie` with `{name}={value}` as header value in the HTTP response

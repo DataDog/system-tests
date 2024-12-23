@@ -69,5 +69,28 @@ namespace weblog
 
             return Content("No exception");
         }
+
+        private void DeepFunctionC()
+        {
+            throw new System.Exception("Multiple stack frames exception");
+        }
+
+        private void DeepFunctionB()
+        {
+            DeepFunctionC();
+        }
+
+        private void DeepFunctionA()
+        {
+            DeepFunctionB();
+        }
+
+        [HttpGet("multiframe")]
+        [Consumes("application/json", "application/xml")]
+        public IActionResult ExceptionReplayMultiframe()
+        {
+            DeepFunctionA();
+            return Content("Should not reach here");
+        }
     }
 }
