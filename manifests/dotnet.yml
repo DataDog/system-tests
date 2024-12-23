@@ -153,9 +153,9 @@ tests/:
           TestURI: irrelevant
     rasp/:
       test_cmdi.py:
-        Test_Cmdi_BodyJson: missing_feature
+        Test_Cmdi_BodyJson: v3.7.0
         Test_Cmdi_BodyUrlEncoded: v3.7.0
-        Test_Cmdi_BodyXml: missing_feature
+        Test_Cmdi_BodyXml: v3.7.0
         Test_Cmdi_Capability: v3.7.0
         Test_Cmdi_Mandatory_SpanTags: v3.7.0
         Test_Cmdi_Optional_SpanTags: v3.7.0

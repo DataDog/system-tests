@@ -67,12 +67,8 @@ namespace weblog
         [Consumes("application/xml")]
         public IActionResult cmdiPostXml([FromBody] Command data)
         {
-            string command = "";
-            foreach (var item in data?.Cmd)
-            {
-                command += item + " ";
-            }
-            return ExecuteCommandInternal(command, false);
+            var arguments = data?.Cmd.GetRange(1, data.Cmd.Count - 1);
+            return ExecuteCommandInternal( data?.Cmd[0], false, arguments);
         }
 
         [HttpPost("cmdi")]
@@ -91,15 +87,11 @@ namespace weblog
         [Consumes("application/json")]
         public IActionResult cmdiPostJson([FromBody] CmdiJsonModel data)
         {
-            string command = "";
-            foreach (var item in data?.Command)
-            {
-                command += item + " ";
-            }
-            return ExecuteCommandInternal(command, false);
+            var arguments = data?.Command.GetRange(1, data.Command.Count - 1);
+            return ExecuteCommandInternal(data?.Command[0], false, arguments);
         }
 
-        private IActionResult ExecuteCommandInternal(string commandLine, bool useShell = true)
+        private IActionResult ExecuteCommandInternal(string commandLine, bool useShell = true, List<string>? argumentList = null)
         {
             try
             {
@@ -108,6 +100,15 @@ namespace weblog
                     ProcessStartInfo startInfo = new ProcessStartInfo();
                     startInfo.FileName = commandLine;
                     startInfo.UseShellExecute = useShell;
+
+                    if (argumentList is not null)
+                    {
+                        foreach (var argument in argumentList)
+                        {
+                            startInfo.ArgumentList.Add(argument);
+                        }
+                    }
+
                     var result = Process.Start(startInfo);
                     return Content($"Process launched.");
                 }
