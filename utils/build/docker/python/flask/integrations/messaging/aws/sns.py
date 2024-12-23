@@ -8,6 +8,7 @@ import boto3
 
 SNS_HOST = os.getenv("SYSTEM_TESTS_AWS_URL", "https://sns.us-east-1.amazonaws.com/601427279990")
 SQS_HOST = os.getenv("SYSTEM_TESTS_AWS_URL", "https://sqs.us-east-1.amazonaws.com/601427279990")
+AWS_ACCT = '000000000000' if 'localstack' in SQS_HOST else '601427279990'
 
 
 def sns_produce(queue, topic, message):
@@ -72,7 +73,7 @@ def sns_consume(queue, expectedMessage, timeout=60):
 
     while not consumed_message and time.time() - start_time < timeout:
         try:
-            response = sqs.receive_message(QueueUrl=f"https://sqs.us-east-1.amazonaws.com/601427279990/{queue}")
+            response = sqs.receive_message(QueueUrl=f"https://sqs.us-east-1.amazonaws.com/{AWS_ACCT}/{queue}")
             if response and "Messages" in response:
                 for message in response["Messages"]:
                     print("[SNS->SQS] Consumed: ")

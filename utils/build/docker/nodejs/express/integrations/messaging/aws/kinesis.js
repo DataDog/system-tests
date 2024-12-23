@@ -1,13 +1,13 @@
 const AWS = require('aws-sdk')
 const tracer = require('dd-trace')
 
-const HOST = process.env.SYSTEM_TESTS_AWS_URL ?? 'https://kinesis.us-east-1.amazonaws.com/601427279990'
+const { AWS_HOST } = require('./shared')
 
 const kinesisProduce = (stream, message, partitionKey = '1', timeout = 60000) => {
   // Create a Kinesis client
   const kinesis = new AWS.Kinesis({
     region: 'us-east-1',
-    endpoint: HOST
+    endpoint: AWS_HOST
   })
 
   message = JSON.stringify({ message })
@@ -71,7 +71,7 @@ const kinesisConsume = (stream, timeout = 60000, message, sequenceNumber) => {
   // Create a Kinesis client
   const kinesis = new AWS.Kinesis({
     region: 'us-east-1',
-    endpoint: HOST
+    endpoint: AWS_HOST
   })
 
   console.log(`[Kinesis] Looking for the following message for stream: ${stream}: ${message}`)

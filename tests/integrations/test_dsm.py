@@ -4,6 +4,7 @@
 
 import base64
 import json
+import os
 
 from tests.integrations.utils import (
     compute_dsm_hash,
@@ -22,6 +23,16 @@ DSM_CONSUMER_GROUP = "testgroup1"
 # RabbitMQ Specific
 DSM_EXCHANGE = "dsm-system-tests-exchange"
 DSM_ROUTING_KEY = "dsm-system-tests-routing-key"
+
+# AWS Specific
+AWS_HOST = os.getenv('SYSTEM_TESTS_AWS_URL', "")
+
+# TO DO CHECK RUNNER ENV FOR A SYSTEM TESTS AWS ENV INDICATING IF AWS TESTS IS LOCAL OR REMOTE
+
+# If the AWS host points to localstack, we are using local AWS mocking, else assume the real account
+LOCAL_AWS_ACCT = '000000000000' #if 'localstack' in AWS_HOST else "601427279990"
+AWS_ACCT = LOCAL_AWS_ACCT #if 'localstack' in AWS_HOST else "601427279990"
+AWS_TESTING = 'local' if LOCAL_AWS_ACCT == AWS_ACCT else 'remote'
 
 # AWS Kinesis Specific
 DSM_STREAM = "dsm-system-tests-stream"
@@ -344,7 +355,7 @@ class Test_DsmSNS:
     def test_dsm_sns(self):
         assert self.r.text == "ok"
 
-        topic = self.topic if context.library.library == "java" else f"arn:aws:sns:us-east-1:601427279990:{self.topic}"
+        topic = self.topic if context.library.library == "java" else f"arn:aws:sns:us-east-1:{AWS_ACCT}:{self.topic}"
 
         hash_inputs = {
             "default": {
@@ -352,8 +363,8 @@ class Test_DsmSNS:
                 "tags_in": ("direction:in", f"topic:{self.queue}", "type:sqs"),
             },
             "nodejs": {
-                "producer": 15466202493380574985,
-                "consumer": 9372735371403270535,
+                "producer": 15466202493380574985 if AWS_TESTING == 'remote' else 3703335291192845713,
+                "consumer": 9372735371403270535 if AWS_TESTING == 'remote' else 797339341876345963,
                 "tags_out": ("direction:out", f"topic:{topic}", "type:sns"),
                 "tags_in": ("direction:in", f"topic:{self.queue}", "type:sqs"),
             },
@@ -401,7 +412,7 @@ class Test_DsmKinesis:
     def test_dsm_kinesis(self):
         assert self.r.text == "ok"
 
-        stream_arn = f"arn:aws:kinesis:us-east-1:601427279990:stream/{self.stream}"
+        stream_arn = f"arn:aws:kinesis:us-east-1:{AWS_ACCT}:stream/{self.stream}"
 
         hash_inputs = {
             "default": {
