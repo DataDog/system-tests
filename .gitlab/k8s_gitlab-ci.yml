@@ -1,12 +1,13 @@
 stages:
   - K8S_LIB_INJECTION
+
 .k8s_lib_injection_base:
   image: registry.ddbuild.io/ci/libdatadog-build/system-tests:48436362
   tags: [ "runner:docker" ]
   stage: K8S_LIB_INJECTION
   allow_failure: false
   rules:
-  - if: $CI_PIPELINE_SOURCE == "parent_pipeline"
+  - if: $PARENT_PIPELINE_SOURCE == "schedule"
     when: always
   - when: manual
     allow_failure: true
@@ -39,10 +40,30 @@ stages:
         done
       done
       fi
+  needs:
+    - job: configure_env
+      artifacts: true
   artifacts:
     when: always
     paths:
       - reports/
+
+configure_env:
+  image: 486234852809.dkr.ecr.us-east-1.amazonaws.com/ci/test-infra-definitions/runner:6dd143866d67
+  tags:
+  - arch:amd64
+  stage: K8S_LIB_INJECTION
+  dependencies: []
+  script:
+  - export FP_IMPORT_URL=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.fp-import-url
+    --with-decryption --query "Parameter.Value" --out text)
+  - export FP_API_KEY=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.fp-api-key
+    --with-decryption --query "Parameter.Value" --out text)
+  - echo "FP_IMPORT_URL=${FP_IMPORT_URL}" >> fpd.env
+  - echo "FP_API_KEY=${FP_API_KEY}" >> fpd.env
+  artifacts:
+    reports:
+      dotenv: fpd.env
 
 k8s_java:
   extends: .k8s_lib_injection_base

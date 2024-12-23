@@ -64,6 +64,9 @@ class K8sScenario(Scenario):
         self.k8s_cluster_provider.configure()
         self.print_context()
 
+        # is it on sleep mode?
+        self._sleep_mode = config.option.sleep
+
         # Prepare kubernetes datadog (manages the dd_cluster_agent and test_agent) and the weblog handler
         self.test_agent = K8sDatadog(self.host_log_folder)
         self.test_agent.configure(
@@ -111,6 +114,10 @@ class K8sScenario(Scenario):
         return warmups
 
     def close_targets(self):
+        if self._sleep_mode:
+            logger.info("Sleep mode enabled, not extracting debug cluster")
+            self.k8s_cluster_provider.destroy_cluster()
+            return
         logger.info("K8sInstance Exporting debug info")
         self.test_agent.export_debug_info(namespace="default")
         self.test_weblog.export_debug_info(namespace="default")
