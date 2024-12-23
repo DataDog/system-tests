@@ -1,13 +1,21 @@
 const AWS = require('aws-sdk')
 const tracer = require('dd-trace')
 
+const { AWS_HOST, AWS_ACCT } = require('./shared')
+
 let TopicArn
 let QueueUrl
 
 const snsPublish = (queue, topic, message) => {
   // Create an SQS client
-  const sns = new AWS.SNS()
-  const sqs = new AWS.SQS()
+  const sns = new AWS.SNS({
+    region: 'us-east-1',
+    endpoint: AWS_HOST
+  })
+  const sqs = new AWS.SQS({
+    region: 'us-east-1',
+    endpoint: AWS_HOST
+  })
 
   const messageToSend = message ?? 'Hello from SNS JavaScript injection'
 
@@ -20,13 +28,15 @@ const snsPublish = (queue, topic, message) => {
 
       TopicArn = data.TopicArn
 
-      sqs.createQueue({ QueueName: queue }, (err) => {
+      sqs.createQueue({ QueueName: queue }, (err, data) => {
         if (err) {
           console.log(err)
           reject(err)
         }
 
-        QueueUrl = `https://sqs.us-east-1.amazonaws.com/601427279990/${queue}`
+        console.log(data)
+
+        QueueUrl = `${AWS_HOST}/${AWS_ACCT}/${queue}`
 
         sqs.getQueueAttributes({ QueueUrl, AttributeNames: ['All'] }, (err, data) => {
           if (err) {
@@ -34,6 +44,8 @@ const snsPublish = (queue, topic, message) => {
             reject(err)
           }
 
+          console.log('sns data')
+          console.log(data)
           const QueueArn = data.Attributes.QueueArn
 
           const policy = {
@@ -102,9 +114,12 @@ const snsPublish = (queue, topic, message) => {
 
 const snsConsume = async (queue, timeout, expectedMessage) => {
   // Create an SQS client
-  const sqs = new AWS.SQS()
+  const sqs = new AWS.SQS({
+    region: 'us-east-1',
+    endpoint: AWS_HOST
+  })
 
-  const queueUrl = `https://sqs.us-east-1.amazonaws.com/601427279990/${queue}`
+  const queueUrl = `${AWS_HOST}/${AWS_ACCT}/${queue}`
 
   return new Promise((resolve, reject) => {
     let messageFound = false

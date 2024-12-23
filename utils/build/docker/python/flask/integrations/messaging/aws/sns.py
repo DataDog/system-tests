@@ -1,8 +1,14 @@
 import json
 import logging
+import os
 import time
 
 import boto3
+
+
+SNS_HOST = os.getenv("SYSTEM_TESTS_AWS_URL", "https://sns.us-east-1.amazonaws.com/601427279990")
+SQS_HOST = os.getenv("SYSTEM_TESTS_AWS_URL", "https://sqs.us-east-1.amazonaws.com/601427279990")
+AWS_ACCT = "000000000000" if "localstack" in SQS_HOST else "601427279990"
 
 
 def sns_produce(queue, topic, message):
@@ -10,8 +16,8 @@ def sns_produce(queue, topic, message):
     The goal of this function is to trigger sqs producer calls
     """
     # Create an SQS client
-    sqs = boto3.client("sqs", region_name="us-east-1")
-    sns = boto3.client("sns", region_name="us-east-1")
+    sqs = boto3.client("sqs", region_name="us-east-1", endpoint_url=SNS_HOST)
+    sns = boto3.client("sns", region_name="us-east-1", endpoint_url=SQS_HOST)
 
     try:
         topic = sns.create_topic(Name=topic)
@@ -60,14 +66,14 @@ def sns_consume(queue, expectedMessage, timeout=60):
     """
 
     # Create an SQS client
-    sqs = boto3.client("sqs", region_name="us-east-1")
+    sqs = boto3.client("sqs", region_name="us-east-1", endpoint_url=SQS_HOST)
 
     consumed_message = None
     start_time = time.time()
 
     while not consumed_message and time.time() - start_time < timeout:
         try:
-            response = sqs.receive_message(QueueUrl=f"https://sqs.us-east-1.amazonaws.com/601427279990/{queue}")
+            response = sqs.receive_message(QueueUrl=f"https://sqs.us-east-1.amazonaws.com/{AWS_ACCT}/{queue}")
             if response and "Messages" in response:
                 for message in response["Messages"]:
                     print("[SNS->SQS] Consumed: ")
