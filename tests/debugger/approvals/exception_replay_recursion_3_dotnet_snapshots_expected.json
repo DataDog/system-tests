@@ -9,23 +9,27 @@
           }
         },
         "throwable": {
-          "message": "Multiple stack frames exception",
+          "message": "recursion exception depth 3",
           "type": "System.Exception",
           "stacktrace": [
             {
-              "function": "weblog.ExceptionReplayController.DeepFunctionC",
+              "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
               "lineNumber": 0
             },
             {
-              "function": "weblog.ExceptionReplayController.DeepFunctionB",
+              "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
               "lineNumber": 0
             },
             {
-              "function": "weblog.ExceptionReplayController.DeepFunctionA",
+              "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
               "lineNumber": 0
             },
             {
-              "function": "weblog.ExceptionReplayController.ExceptionReplayMultiframe",
+              "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
+              "lineNumber": 0
+            },
+            {
+              "function": "Datadog.Trace.ClrProfiler.AutoInstrumentation.AspNetCore.BlockingMiddleware+<Invoke><scrubbed>",
               "lineNumber": 0
             },
             {
@@ -40,7 +44,7 @@
             "fields": {
               "Message": {
                 "type": "String",
-                "value": "Multiple stack frames exception"
+                "value": "recursion exception depth 3"
               },
               "InnerException": {
                 "type": "Exception",
@@ -66,6 +70,14 @@
           }
         },
         "arguments": {
+          "originalDepth": {
+            "type": "Int32",
+            "value": "3"
+          },
+          "currentDepth": {
+            "type": "Int32",
+            "value": "3"
+          },
           "this": {
             "type": "ExceptionReplayController",
             "value": "ExceptionReplayController"
@@ -77,15 +89,122 @@
       "id": "<scrubbed>",
       "version": 1,
       "location": {
-        "method": "ExceptionReplayMultiframe",
+        "method": "exceptionReplayRecursionHelper",
         "type": "weblog.ExceptionReplayController"
       }
     },
     "stack": [
       {
-        "function": "weblog.ExceptionReplayController.ExceptionReplayMultiframe",
+        "<runtime>": "<scrubbed>"
+      }
+    ],
+    "id": "<scrubbed>",
+    "timestamp": "<scrubbed>",
+    "duration": "<scrubbed>",
+    "language": "dotnet"
+  },
+  {
+    "captures": {
+      "return": {
+        "staticFields": {
+          "Empty": {
+            "type": "EmptyResult",
+            "value": "EmptyResult"
+          }
+        },
+        "throwable": {
+          "message": "recursion exception depth 3",
+          "type": "System.Exception",
+          "stacktrace": [
+            {
+              "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
+              "lineNumber": 0
+            },
+            {
+              "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
+              "lineNumber": 0
+            },
+            {
+              "<runtime>": "<scrubbed>"
+            }
+          ]
+        },
+        "locals": {
+          "@exception": {
+            "type": "Exception",
+            "value": "Exception",
+            "fields": {
+              "Message": {
+                "type": "String",
+                "value": "recursion exception depth 3"
+              },
+              "InnerException": {
+                "type": "Exception",
+                "isNull": "true"
+              },
+              "HelpLink": {
+                "type": "String",
+                "isNull": "true"
+              },
+              "Source": {
+                "type": "String",
+                "value": "app"
+              },
+              "HResult": {
+                "type": "Int32",
+                "value": "-2146233088"
+              },
+              "StackTrace": {
+                "type": "String",
+                "value": "<scrubbed>"
+              }
+            }
+          }
+        },
+        "arguments": {
+          "originalDepth": {
+            "type": "Int32",
+            "value": "3"
+          },
+          "currentDepth": {
+            "type": "Int32",
+            "value": "0"
+          },
+          "this": {
+            "type": "ExceptionReplayController",
+            "value": "ExceptionReplayController"
+          }
+        }
+      }
+    },
+    "probe": {
+      "id": "<scrubbed>",
+      "version": 1,
+      "location": {
+        "method": "exceptionReplayRecursionHelper",
+        "type": "weblog.ExceptionReplayController"
+      }
+    },
+    "stack": [
+      {
+        "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
         "fileName": "/app/ExceptionReplayController.cs",
-        "lineNumber": 98
+        "lineNumber": 38
+      },
+      {
+        "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
+        "fileName": "/app/ExceptionReplayController.cs",
+        "lineNumber": 38
+      },
+      {
+        "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
+        "fileName": "/app/ExceptionReplayController.cs",
+        "lineNumber": 38
+      },
+      {
+        "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
+        "fileName": "/app/ExceptionReplayController.cs",
+        "lineNumber": 38
       },
       {
         "function": "Datadog.Trace.ClrProfiler.AutoInstrumentation.AspNetCore.BlockingMiddleware+<Invoke><scrubbed>",
@@ -114,15 +233,19 @@
           }
         },
         "throwable": {
-          "message": "Multiple stack frames exception",
+          "message": "recursion exception depth 3",
           "type": "System.Exception",
           "stacktrace": [
             {
-              "function": "weblog.ExceptionReplayController.DeepFunctionC",
+              "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
               "lineNumber": 0
             },
             {
-              "function": "weblog.ExceptionReplayController.DeepFunctionB",
+              "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
+              "lineNumber": 0
+            },
+            {
+              "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
               "lineNumber": 0
             },
             {
@@ -137,7 +260,7 @@
             "fields": {
               "Message": {
                 "type": "String",
-                "value": "Multiple stack frames exception"
+                "value": "recursion exception depth 3"
               },
               "InnerException": {
                 "type": "Exception",
@@ -163,6 +286,14 @@
           }
         },
         "arguments": {
+          "originalDepth": {
+            "type": "Int32",
+            "value": "3"
+          },
+          "currentDepth": {
+            "type": "Int32",
+            "value": "1"
+          },
           "this": {
             "type": "ExceptionReplayController",
             "value": "ExceptionReplayController"
@@ -174,30 +305,25 @@
       "id": "<scrubbed>",
       "version": 1,
       "location": {
-        "method": "DeepFunctionC",
+        "method": "exceptionReplayRecursionHelper",
         "type": "weblog.ExceptionReplayController"
       }
     },
     "stack": [
       {
-        "function": "weblog.ExceptionReplayController.DeepFunctionC",
+        "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
         "fileName": "/app/ExceptionReplayController.cs",
-        "lineNumber": 80
+        "lineNumber": 38
       },
       {
-        "function": "weblog.ExceptionReplayController.DeepFunctionB",
+        "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
         "fileName": "/app/ExceptionReplayController.cs",
-        "lineNumber": 86
+        "lineNumber": 38
       },
       {
-        "function": "weblog.ExceptionReplayController.DeepFunctionA",
+        "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
         "fileName": "/app/ExceptionReplayController.cs",
-        "lineNumber": 91
-      },
-      {
-        "function": "weblog.ExceptionReplayController.ExceptionReplayMultiframe",
-        "fileName": "/app/ExceptionReplayController.cs",
-        "lineNumber": 98
+        "lineNumber": 38
       },
       {
         "function": "Datadog.Trace.ClrProfiler.AutoInstrumentation.AspNetCore.BlockingMiddleware+<Invoke><scrubbed>",
@@ -226,19 +352,27 @@
           }
         },
         "throwable": {
-          "message": "Multiple stack frames exception",
+          "message": "recursion exception depth 3",
           "type": "System.Exception",
           "stacktrace": [
             {
-              "function": "weblog.ExceptionReplayController.DeepFunctionC",
+              "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
               "lineNumber": 0
             },
             {
-              "function": "weblog.ExceptionReplayController.DeepFunctionB",
+              "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
               "lineNumber": 0
             },
             {
-              "function": "weblog.ExceptionReplayController.DeepFunctionA",
+              "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
+              "lineNumber": 0
+            },
+            {
+              "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
+              "lineNumber": 0
+            },
+            {
+              "function": "Datadog.Trace.ClrProfiler.AutoInstrumentation.AspNetCore.BlockingMiddleware+<Invoke><scrubbed>",
               "lineNumber": 0
             },
             {
@@ -253,7 +387,7 @@
             "fields": {
               "Message": {
                 "type": "String",
-                "value": "Multiple stack frames exception"
+                "value": "recursion exception depth 3"
               },
               "InnerException": {
                 "type": "Exception",
@@ -279,6 +413,14 @@
           }
         },
         "arguments": {
+          "originalDepth": {
+            "type": "Int32",
+            "value": "3"
+          },
+          "currentDepth": {
+            "type": "Int32",
+            "value": "3"
+          },
           "this": {
             "type": "ExceptionReplayController",
             "value": "ExceptionReplayController"
@@ -290,144 +432,11 @@
       "id": "<scrubbed>",
       "version": 1,
       "location": {
-        "method": "DeepFunctionB",
+        "method": "exceptionReplayRecursionHelper",
         "type": "weblog.ExceptionReplayController"
       }
     },
     "stack": [
-      {
-        "function": "weblog.ExceptionReplayController.DeepFunctionB",
-        "fileName": "/app/ExceptionReplayController.cs",
-        "lineNumber": 86
-      },
-      {
-        "function": "weblog.ExceptionReplayController.DeepFunctionA",
-        "fileName": "/app/ExceptionReplayController.cs",
-        "lineNumber": 91
-      },
-      {
-        "function": "weblog.ExceptionReplayController.ExceptionReplayMultiframe",
-        "fileName": "/app/ExceptionReplayController.cs",
-        "lineNumber": 98
-      },
-      {
-        "function": "Datadog.Trace.ClrProfiler.AutoInstrumentation.AspNetCore.BlockingMiddleware+<Invoke><scrubbed>",
-        "lineNumber": 0
-      },
-      {
-        "function": "Datadog.Trace.ClrProfiler.AutoInstrumentation.AspNetCore.BlockingMiddleware.Invoke",
-        "lineNumber": 0
-      },
-      {
-        "<runtime>": "<scrubbed>"
-      }
-    ],
-    "id": "<scrubbed>",
-    "timestamp": "<scrubbed>",
-    "duration": "<scrubbed>",
-    "language": "dotnet"
-  },
-  {
-    "captures": {
-      "return": {
-        "staticFields": {
-          "Empty": {
-            "type": "EmptyResult",
-            "value": "EmptyResult"
-          }
-        },
-        "throwable": {
-          "message": "Multiple stack frames exception",
-          "type": "System.Exception",
-          "stacktrace": [
-            {
-              "function": "weblog.ExceptionReplayController.DeepFunctionC",
-              "lineNumber": 0
-            },
-            {
-              "function": "weblog.ExceptionReplayController.DeepFunctionB",
-              "lineNumber": 0
-            },
-            {
-              "function": "weblog.ExceptionReplayController.DeepFunctionA",
-              "lineNumber": 0
-            },
-            {
-              "function": "weblog.ExceptionReplayController.ExceptionReplayMultiframe",
-              "lineNumber": 0
-            },
-            {
-              "<runtime>": "<scrubbed>"
-            }
-          ]
-        },
-        "locals": {
-          "@exception": {
-            "type": "Exception",
-            "value": "Exception",
-            "fields": {
-              "Message": {
-                "type": "String",
-                "value": "Multiple stack frames exception"
-              },
-              "InnerException": {
-                "type": "Exception",
-                "isNull": "true"
-              },
-              "HelpLink": {
-                "type": "String",
-                "isNull": "true"
-              },
-              "Source": {
-                "type": "String",
-                "value": "app"
-              },
-              "HResult": {
-                "type": "Int32",
-                "value": "-2146233088"
-              },
-              "StackTrace": {
-                "type": "String",
-                "value": "<scrubbed>"
-              }
-            }
-          }
-        },
-        "arguments": {
-          "this": {
-            "type": "ExceptionReplayController",
-            "value": "ExceptionReplayController"
-          }
-        }
-      }
-    },
-    "probe": {
-      "id": "<scrubbed>",
-      "version": 1,
-      "location": {
-        "method": "DeepFunctionA",
-        "type": "weblog.ExceptionReplayController"
-      }
-    },
-    "stack": [
-      {
-        "function": "weblog.ExceptionReplayController.DeepFunctionA",
-        "fileName": "/app/ExceptionReplayController.cs",
-        "lineNumber": 91
-      },
-      {
-        "function": "weblog.ExceptionReplayController.ExceptionReplayMultiframe",
-        "fileName": "/app/ExceptionReplayController.cs",
-        "lineNumber": 98
-      },
-      {
-        "function": "Datadog.Trace.ClrProfiler.AutoInstrumentation.AspNetCore.BlockingMiddleware+<Invoke><scrubbed>",
-        "lineNumber": 0
-      },
-      {
-        "function": "Datadog.Trace.ClrProfiler.AutoInstrumentation.AspNetCore.BlockingMiddleware.Invoke",
-        "lineNumber": 0
-      },
       {
         "<runtime>": "<scrubbed>"
       }

@@ -9,7 +9,7 @@
       "location": {
         "file": "/app/exception_replay_controller.py",
         "lines": [
-          "41"
+          "40"
         ]
       }
     },
@@ -17,8 +17,8 @@
     "stack": [
       {
         "fileName": "/app/exception_replay_controller.py",
-        "function": "exception_replay_rps",
-        "lineNumber": 41
+        "function": "exceptionReplayRps",
+        "lineNumber": 40
       },
       {
         "<runtime>": "<scrubbed>"
@@ -26,7 +26,7 @@
     ],
     "captures": {
       "lines": {
-        "41": {
+        "40": {
           "arguments": {},
           "locals": {
             "shape": {
@@ -45,8 +45,8 @@
             "stacktrace": [
               {
                 "fileName": "/app/exception_replay_controller.py",
-                "function": "exception_replay_rps",
-                "lineNumber": 41
+                "function": "exceptionReplayRps",
+                "lineNumber": 40
               },
               {
                 "<runtime>": "<scrubbed>"
@@ -69,7 +69,7 @@
       "location": {
         "file": "/app/exception_replay_controller.py",
         "lines": [
-          "39"
+          "38"
         ]
       }
     },
@@ -77,8 +77,8 @@
     "stack": [
       {
         "fileName": "/app/exception_replay_controller.py",
-        "function": "exception_replay_rps",
-        "lineNumber": 39
+        "function": "exceptionReplayRps",
+        "lineNumber": 38
       },
       {
         "<runtime>": "<scrubbed>"
@@ -86,7 +86,7 @@
     ],
     "captures": {
       "lines": {
-        "39": {
+        "38": {
           "arguments": {},
           "locals": {
             "shape": {
@@ -105,8 +105,8 @@
             "stacktrace": [
               {
                 "fileName": "/app/exception_replay_controller.py",
-                "function": "exception_replay_rps",
-                "lineNumber": 39
+                "function": "exceptionReplayRps",
+                "lineNumber": 38
               },
               {
                 "<runtime>": "<scrubbed>"
@@ -129,7 +129,7 @@
       "location": {
         "file": "/app/exception_replay_controller.py",
         "lines": [
-          "43"
+          "42"
         ]
       }
     },
@@ -137,8 +137,8 @@
     "stack": [
       {
         "fileName": "/app/exception_replay_controller.py",
-        "function": "exception_replay_rps",
-        "lineNumber": 43
+        "function": "exceptionReplayRps",
+        "lineNumber": 42
       },
       {
         "<runtime>": "<scrubbed>"
@@ -146,7 +146,7 @@
     ],
     "captures": {
       "lines": {
-        "43": {
+        "42": {
           "arguments": {},
           "locals": {
             "shape": {
@@ -165,8 +165,8 @@
             "stacktrace": [
               {
                 "fileName": "/app/exception_replay_controller.py",
-                "function": "exception_replay_rps",
-                "lineNumber": 43
+                "function": "exceptionReplayRps",
+                "lineNumber": 42
               },
               {
                 "<runtime>": "<scrubbed>"

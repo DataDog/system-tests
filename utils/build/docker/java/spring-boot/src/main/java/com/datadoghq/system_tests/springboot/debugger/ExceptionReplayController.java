@@ -15,10 +15,14 @@ public class ExceptionReplayController {
 
     @GetMapping("/recursion")
     public String exceptionReplayRecursion(@RequestParam(required = true) Integer depth) {
-        if (depth > 0) {
-            return exceptionReplayRecursion(depth - 1);
+        return exceptionReplayRecursionHelper(depth, depth);
+    }
+
+    private String exceptionReplayRecursionHelper(Integer originalDepth, Integer currentDepth) {
+        if (currentDepth > 0) {
+            return exceptionReplayRecursionHelper(originalDepth, currentDepth - 1);
         } else {
-            throw new ResponseStatusException(org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR, "Recursion exception");
+            throw new ResponseStatusException(org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR, "recursion exception depth " + originalDepth);
         }
     }
 

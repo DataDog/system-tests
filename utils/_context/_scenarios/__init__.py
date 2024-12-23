@@ -578,8 +578,8 @@ class _Scenarios:
         weblog_env={
             "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1",
             "DD_REMOTE_CONFIG_ENABLED": "true",
-            "DD_EXCEPTION_REPLAY_ENABLED": "true",
             "DD_EXCEPTION_DEBUGGING_ENABLED": "true",
+            "DD_EXCEPTION_REPLAY_CAPTURE_MAX_FRAMES": "10",
         },
         library_interface_timeout=5,
         doc="Check exception replay",

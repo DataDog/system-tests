@@ -9,69 +9,9 @@
           }
         },
         "throwable": {
-          "message": "recursion exception depth 20",
+          "message": "recursion exception depth 5",
           "type": "System.Exception",
           "stacktrace": [
-            {
-              "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
-              "lineNumber": 0
-            },
-            {
-              "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
-              "lineNumber": 0
-            },
-            {
-              "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
-              "lineNumber": 0
-            },
-            {
-              "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
-              "lineNumber": 0
-            },
-            {
-              "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
-              "lineNumber": 0
-            },
-            {
-              "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
-              "lineNumber": 0
-            },
-            {
-              "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
-              "lineNumber": 0
-            },
-            {
-              "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
-              "lineNumber": 0
-            },
-            {
-              "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
-              "lineNumber": 0
-            },
-            {
-              "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
-              "lineNumber": 0
-            },
-            {
-              "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
-              "lineNumber": 0
-            },
-            {
-              "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
-              "lineNumber": 0
-            },
-            {
-              "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
-              "lineNumber": 0
-            },
-            {
-              "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
-              "lineNumber": 0
-            },
-            {
-              "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
-              "lineNumber": 0
-            },
             {
               "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
               "lineNumber": 0
@@ -112,7 +52,7 @@
             "fields": {
               "Message": {
                 "type": "String",
-                "value": "recursion exception depth 20"
+                "value": "recursion exception depth 5"
               },
               "InnerException": {
                 "type": "Exception",
@@ -140,11 +80,11 @@
         "arguments": {
           "originalDepth": {
             "type": "Int32",
-            "value": "20"
+            "value": "5"
           },
           "currentDepth": {
             "type": "Int32",
-            "value": "20"
+            "value": "5"
           },
           "this": {
             "type": "ExceptionReplayController",
@@ -181,7 +121,7 @@
           }
         },
         "throwable": {
-          "message": "recursion exception depth 20",
+          "message": "recursion exception depth 5",
           "type": "System.Exception",
           "stacktrace": [
             {
@@ -204,7 +144,7 @@
             "fields": {
               "Message": {
                 "type": "String",
-                "value": "recursion exception depth 20"
+                "value": "recursion exception depth 5"
               },
               "InnerException": {
                 "type": "Exception",
@@ -232,7 +172,7 @@
         "arguments": {
           "originalDepth": {
             "type": "Int32",
-            "value": "20"
+            "value": "5"
           },
           "currentDepth": {
             "type": "Int32",
@@ -285,81 +225,6 @@
         "lineNumber": 38
       },
       {
-        "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
-        "fileName": "/app/ExceptionReplayController.cs",
-        "lineNumber": 38
-      },
-      {
-        "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
-        "fileName": "/app/ExceptionReplayController.cs",
-        "lineNumber": 38
-      },
-      {
-        "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
-        "fileName": "/app/ExceptionReplayController.cs",
-        "lineNumber": 38
-      },
-      {
-        "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
-        "fileName": "/app/ExceptionReplayController.cs",
-        "lineNumber": 38
-      },
-      {
-        "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
-        "fileName": "/app/ExceptionReplayController.cs",
-        "lineNumber": 38
-      },
-      {
-        "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
-        "fileName": "/app/ExceptionReplayController.cs",
-        "lineNumber": 38
-      },
-      {
-        "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
-        "fileName": "/app/ExceptionReplayController.cs",
-        "lineNumber": 38
-      },
-      {
-        "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
-        "fileName": "/app/ExceptionReplayController.cs",
-        "lineNumber": 38
-      },
-      {
-        "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
-        "fileName": "/app/ExceptionReplayController.cs",
-        "lineNumber": 38
-      },
-      {
-        "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
-        "fileName": "/app/ExceptionReplayController.cs",
-        "lineNumber": 38
-      },
-      {
-        "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
-        "fileName": "/app/ExceptionReplayController.cs",
-        "lineNumber": 38
-      },
-      {
-        "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
-        "fileName": "/app/ExceptionReplayController.cs",
-        "lineNumber": 38
-      },
-      {
-        "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
-        "fileName": "/app/ExceptionReplayController.cs",
-        "lineNumber": 38
-      },
-      {
-        "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
-        "fileName": "/app/ExceptionReplayController.cs",
-        "lineNumber": 38
-      },
-      {
-        "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
-        "fileName": "/app/ExceptionReplayController.cs",
-        "lineNumber": 38
-      },
-      {
         "function": "Datadog.Trace.ClrProfiler.AutoInstrumentation.AspNetCore.BlockingMiddleware+<Invoke><scrubbed>",
         "lineNumber": 0
       },
@@ -386,7 +251,7 @@
           }
         },
         "throwable": {
-          "message": "recursion exception depth 20",
+          "message": "recursion exception depth 5",
           "type": "System.Exception",
           "stacktrace": [
             {
@@ -413,7 +278,7 @@
             "fields": {
               "Message": {
                 "type": "String",
-                "value": "recursion exception depth 20"
+                "value": "recursion exception depth 5"
               },
               "InnerException": {
                 "type": "Exception",
@@ -441,7 +306,7 @@
         "arguments": {
           "originalDepth": {
             "type": "Int32",
-            "value": "20"
+            "value": "5"
           },
           "currentDepth": {
             "type": "Int32",
@@ -489,81 +354,6 @@
         "lineNumber": 38
       },
       {
-        "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
-        "fileName": "/app/ExceptionReplayController.cs",
-        "lineNumber": 38
-      },
-      {
-        "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
-        "fileName": "/app/ExceptionReplayController.cs",
-        "lineNumber": 38
-      },
-      {
-        "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
-        "fileName": "/app/ExceptionReplayController.cs",
-        "lineNumber": 38
-      },
-      {
-        "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
-        "fileName": "/app/ExceptionReplayController.cs",
-        "lineNumber": 38
-      },
-      {
-        "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
-        "fileName": "/app/ExceptionReplayController.cs",
-        "lineNumber": 38
-      },
-      {
-        "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
-        "fileName": "/app/ExceptionReplayController.cs",
-        "lineNumber": 38
-      },
-      {
-        "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
-        "fileName": "/app/ExceptionReplayController.cs",
-        "lineNumber": 38
-      },
-      {
-        "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
-        "fileName": "/app/ExceptionReplayController.cs",
-        "lineNumber": 38
-      },
-      {
-        "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
-        "fileName": "/app/ExceptionReplayController.cs",
-        "lineNumber": 38
-      },
-      {
-        "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
-        "fileName": "/app/ExceptionReplayController.cs",
-        "lineNumber": 38
-      },
-      {
-        "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
-        "fileName": "/app/ExceptionReplayController.cs",
-        "lineNumber": 38
-      },
-      {
-        "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
-        "fileName": "/app/ExceptionReplayController.cs",
-        "lineNumber": 38
-      },
-      {
-        "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
-        "fileName": "/app/ExceptionReplayController.cs",
-        "lineNumber": 38
-      },
-      {
-        "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
-        "fileName": "/app/ExceptionReplayController.cs",
-        "lineNumber": 38
-      },
-      {
-        "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
-        "fileName": "/app/ExceptionReplayController.cs",
-        "lineNumber": 38
-      },
-      {
         "function": "Datadog.Trace.ClrProfiler.AutoInstrumentation.AspNetCore.BlockingMiddleware+<Invoke><scrubbed>",
         "lineNumber": 0
       },
@@ -590,7 +380,7 @@
           }
         },
         "throwable": {
-          "message": "recursion exception depth 20",
+          "message": "recursion exception depth 5",
           "type": "System.Exception",
           "stacktrace": [
             {
@@ -621,7 +411,7 @@
             "fields": {
               "Message": {
                 "type": "String",
-                "value": "recursion exception depth 20"
+                "value": "recursion exception depth 5"
               },
               "InnerException": {
                 "type": "Exception",
@@ -649,7 +439,7 @@
         "arguments": {
           "originalDepth": {
             "type": "Int32",
-            "value": "20"
+            "value": "5"
           },
           "currentDepth": {
             "type": "Int32",
@@ -692,81 +482,6 @@
         "lineNumber": 38
       },
       {
-        "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
-        "fileName": "/app/ExceptionReplayController.cs",
-        "lineNumber": 38
-      },
-      {
-        "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
-        "fileName": "/app/ExceptionReplayController.cs",
-        "lineNumber": 38
-      },
-      {
-        "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
-        "fileName": "/app/ExceptionReplayController.cs",
-        "lineNumber": 38
-      },
-      {
-        "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
-        "fileName": "/app/ExceptionReplayController.cs",
-        "lineNumber": 38
-      },
-      {
-        "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
-        "fileName": "/app/ExceptionReplayController.cs",
-        "lineNumber": 38
-      },
-      {
-        "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
-        "fileName": "/app/ExceptionReplayController.cs",
-        "lineNumber": 38
-      },
-      {
-        "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
-        "fileName": "/app/ExceptionReplayController.cs",
-        "lineNumber": 38
-      },
-      {
-        "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
-        "fileName": "/app/ExceptionReplayController.cs",
-        "lineNumber": 38
-      },
-      {
-        "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
-        "fileName": "/app/ExceptionReplayController.cs",
-        "lineNumber": 38
-      },
-      {
-        "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
-        "fileName": "/app/ExceptionReplayController.cs",
-        "lineNumber": 38
-      },
-      {
-        "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
-        "fileName": "/app/ExceptionReplayController.cs",
-        "lineNumber": 38
-      },
-      {
-        "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
-        "fileName": "/app/ExceptionReplayController.cs",
-        "lineNumber": 38
-      },
-      {
-        "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
-        "fileName": "/app/ExceptionReplayController.cs",
-        "lineNumber": 38
-      },
-      {
-        "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
-        "fileName": "/app/ExceptionReplayController.cs",
-        "lineNumber": 38
-      },
-      {
-        "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
-        "fileName": "/app/ExceptionReplayController.cs",
-        "lineNumber": 38
-      },
-      {
         "function": "Datadog.Trace.ClrProfiler.AutoInstrumentation.AspNetCore.BlockingMiddleware+<Invoke><scrubbed>",
         "lineNumber": 0
       },
@@ -793,7 +508,7 @@
           }
         },
         "throwable": {
-          "message": "recursion exception depth 20",
+          "message": "recursion exception depth 5",
           "type": "System.Exception",
           "stacktrace": [
             {
@@ -817,6 +532,14 @@
               "lineNumber": 0
             },
             {
+              "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
+              "lineNumber": 0
+            },
+            {
+              "function": "Datadog.Trace.ClrProfiler.AutoInstrumentation.AspNetCore.BlockingMiddleware+<Invoke><scrubbed>",
+              "lineNumber": 0
+            },
+            {
               "<runtime>": "<scrubbed>"
             }
           ]
@@ -828,7 +551,7 @@
             "fields": {
               "Message": {
                 "type": "String",
-                "value": "recursion exception depth 20"
+                "value": "recursion exception depth 5"
               },
               "InnerException": {
                 "type": "Exception",
@@ -856,11 +579,11 @@
         "arguments": {
           "originalDepth": {
             "type": "Int32",
-            "value": "20"
+            "value": "5"
           },
           "currentDepth": {
             "type": "Int32",
-            "value": "3"
+            "value": "5"
           },
           "this": {
             "type": "ExceptionReplayController",
@@ -878,104 +601,6 @@
       }
     },
     "stack": [
-      {
-        "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
-        "fileName": "/app/ExceptionReplayController.cs",
-        "lineNumber": 38
-      },
-      {
-        "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
-        "fileName": "/app/ExceptionReplayController.cs",
-        "lineNumber": 38
-      },
-      {
-        "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
-        "fileName": "/app/ExceptionReplayController.cs",
-        "lineNumber": 38
-      },
-      {
-        "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
-        "fileName": "/app/ExceptionReplayController.cs",
-        "lineNumber": 38
-      },
-      {
-        "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
-        "fileName": "/app/ExceptionReplayController.cs",
-        "lineNumber": 38
-      },
-      {
-        "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
-        "fileName": "/app/ExceptionReplayController.cs",
-        "lineNumber": 38
-      },
-      {
-        "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
-        "fileName": "/app/ExceptionReplayController.cs",
-        "lineNumber": 38
-      },
-      {
-        "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
-        "fileName": "/app/ExceptionReplayController.cs",
-        "lineNumber": 38
-      },
-      {
-        "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
-        "fileName": "/app/ExceptionReplayController.cs",
-        "lineNumber": 38
-      },
-      {
-        "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
-        "fileName": "/app/ExceptionReplayController.cs",
-        "lineNumber": 38
-      },
-      {
-        "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
-        "fileName": "/app/ExceptionReplayController.cs",
-        "lineNumber": 38
-      },
-      {
-        "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
-        "fileName": "/app/ExceptionReplayController.cs",
-        "lineNumber": 38
-      },
-      {
-        "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
-        "fileName": "/app/ExceptionReplayController.cs",
-        "lineNumber": 38
-      },
-      {
-        "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
-        "fileName": "/app/ExceptionReplayController.cs",
-        "lineNumber": 38
-      },
-      {
-        "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
-        "fileName": "/app/ExceptionReplayController.cs",
-        "lineNumber": 38
-      },
-      {
-        "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
-        "fileName": "/app/ExceptionReplayController.cs",
-        "lineNumber": 38
-      },
-      {
-        "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
-        "fileName": "/app/ExceptionReplayController.cs",
-        "lineNumber": 38
-      },
-      {
-        "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
-        "fileName": "/app/ExceptionReplayController.cs",
-        "lineNumber": 38
-      },
-      {
-        "function": "Datadog.Trace.ClrProfiler.AutoInstrumentation.AspNetCore.BlockingMiddleware+<Invoke><scrubbed>",
-        "lineNumber": 0
-      },
-      {
-        "function": "Datadog.Trace.ClrProfiler.AutoInstrumentation.AspNetCore.BlockingMiddleware.Invoke",
-        "lineNumber": 0
-      },
       {
         "<runtime>": "<scrubbed>"
       }

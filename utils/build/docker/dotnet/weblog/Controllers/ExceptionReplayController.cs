@@ -22,15 +22,20 @@ namespace weblog
 
         [HttpGet("recursion")]
         [Consumes("application/json", "application/xml")]
-        public IActionResult ExceptionReplayRecursion(int depth)
+        public IActionResult exceptionReplayRecursion(int depth)
         {
-            if (depth > 0)
+            return exceptionReplayRecursionHelper(depth, depth);
+        }
+
+        private IActionResult exceptionReplayRecursionHelper(int originalDepth, int currentDepth)
+        {
+            if (currentDepth > 0)
             {
-                return ExceptionReplayRecursion(depth - 1);
+                return exceptionReplayRecursionHelper(originalDepth, currentDepth - 1);
             }
             else
             {
-                throw new System.Exception("Recursion exception");
+                throw new System.Exception($"recursion exception depth {originalDepth}");
             }
         }
 
