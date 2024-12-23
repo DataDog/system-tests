@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Data.Sqlite;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data.SqlClient;
 using System.Diagnostics;
@@ -56,17 +57,22 @@ namespace weblog
         }
 
         [XmlRoot("command")]
-        public class CmdiModel
+        public class Command
         {
-            [XmlText]
-            public string Value { get; set; }
+            [XmlElement("cmd")]
+            public List<string> Cmd { get; set; }
         }
 
         [HttpPost("cmdi")]
         [Consumes("application/xml")]
-        public IActionResult cmdiPostXml([FromBody] CmdiModel data)
+        public IActionResult cmdiPostXml([FromBody] Command data)
         {
-            return ExecuteCommandInternal(data.Value, false);
+            string command = "";
+            foreach (var item in data?.Cmd)
+            {
+                command += item + " ";
+            }
+            return ExecuteCommandInternal(command, false);
         }
 
         [HttpPost("cmdi")]
@@ -76,11 +82,16 @@ namespace weblog
             return ExecuteCommandInternal(data.Command, false);
         }
 
+        public class CmdiJsonModel 
+        {
+            public List<string>? Command { get; set; }
+        }
+        
         [HttpPost("cmdi")]
         [Consumes("application/json")]
-        public IActionResult cmdiPostJson([FromBody] Model data)
+        public IActionResult cmdiPostJson([FromBody] CmdiJsonModel data)
         {
-            return ExecuteCommandInternal(data.Command, false);
+            return ExecuteCommandInternal(data.Command[0] + " " + data.Command[1], false);
         }
 
         private IActionResult ExecuteCommandInternal(string commandLine, bool useShell = true)
@@ -102,7 +113,7 @@ namespace weblog
             }
             catch (Win32Exception)
             {
-                return Content("Non existing file.");
+                return Content("Non existing file:" + commandLine);
             }
         }
 
