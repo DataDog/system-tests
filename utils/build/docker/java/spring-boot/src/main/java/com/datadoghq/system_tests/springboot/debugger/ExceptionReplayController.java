@@ -46,4 +46,22 @@ public class ExceptionReplayController {
 
         return "No exception";
     }
+
+    private void deepFunctionC() {
+        throw new ResponseStatusException(org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR, "multiple stack frames exception");
+    }
+
+    private void deepFunctionB() {
+        deepFunctionC();
+    }
+
+    private void deepFunctionA() {
+        deepFunctionB();
+    }
+
+    @GetMapping("/multiframe")
+    public Void exceptionReplayMultiframe() {
+        deepFunctionA();
+        return null;
+    }
 }
