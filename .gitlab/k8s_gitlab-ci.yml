@@ -54,6 +54,11 @@ configure_env:
   - arch:amd64
   stage: K8S_LIB_INJECTION
   dependencies: []
+  rules:
+  - if: $PARENT_PIPELINE_SOURCE == "schedule"
+    when: always
+  - when: manual
+    allow_failure: true
   script:
   - export FP_IMPORT_URL=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.fp-import-url
     --with-decryption --query "Parameter.Value" --out text)
