@@ -461,7 +461,6 @@ tests/:
       Test_RemoteConfigurationUpdateSequenceFeatures: v1.13.0
       Test_RemoteConfigurationUpdateSequenceFeaturesNoCache: missing_feature
       Test_RemoteConfigurationUpdateSequenceLiveDebugging: v1.13.0
-      Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache: missing_feature
   serverless/:
     span_pointers/:
       aws/:

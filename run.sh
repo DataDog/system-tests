@@ -459,6 +459,10 @@ function main() {
             echo "${scenario} was removed, skipping."
             continue
         fi
+        if [[ "${scenario}" == REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING_NOCACHE ]]; then
+            echo "${scenario} was removed, skipping."
+            continue
+        fi
         ####
 
         run_scenario "${dry}" "${run_mode}" "${scenario}" "${pytest_args[@]}"

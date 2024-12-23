@@ -1632,7 +1632,6 @@ tests/:
       Test_RemoteConfigurationUpdateSequenceLiveDebugging:
         '*': v1.4.0
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-      Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache: irrelevant (cache is implemented)
   serverless/:
     span_pointers/:
       aws/:

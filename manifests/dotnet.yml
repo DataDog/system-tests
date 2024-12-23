@@ -466,7 +466,6 @@ tests/:
       Test_RemoteConfigurationUpdateSequenceFeatures: v2.15.0
       Test_RemoteConfigurationUpdateSequenceFeaturesNoCache: irrelevant (cache is implemented)
       Test_RemoteConfigurationUpdateSequenceLiveDebugging: v2.15.0
-      Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache: irrelevant (cache is implemented)
   serverless/:
     span_pointers/:
       aws/:
