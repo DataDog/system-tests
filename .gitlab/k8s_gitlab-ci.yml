@@ -6,11 +6,11 @@ stages:
   tags: [ "runner:docker" ]
   stage: K8S_LIB_INJECTION
   allow_failure: false
-  rules:
-  - if: $PARENT_PIPELINE_SOURCE == "schedule"
-    when: always
-  - when: manual
-    allow_failure: true
+  #rules:
+  #- if: $PARENT_PIPELINE_SOURCE == "schedule"
+  #  when: always
+  #- when: manual
+  #  allow_failure: true
   variables:
     TEST_LIBRARY: "xyz"
     K8S_WEBLOG: "xyz"
@@ -54,8 +54,10 @@ configure_env:
   - arch:amd64
   stage: K8S_LIB_INJECTION
   dependencies: []
+  allow_failure: false
   rules:
-  - if: $PARENT_PIPELINE_SOURCE == "schedule"
+  - if: $CI_PIPELINE_SOURCE == "schedule"
+  #- if: $PARENT_PIPELINE_SOURCE == "schedule"
     when: always
   - when: manual
     allow_failure: true
