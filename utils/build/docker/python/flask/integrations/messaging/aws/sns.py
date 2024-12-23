@@ -8,7 +8,7 @@ import boto3
 
 SNS_HOST = os.getenv("SYSTEM_TESTS_AWS_URL", "https://sns.us-east-1.amazonaws.com/601427279990")
 SQS_HOST = os.getenv("SYSTEM_TESTS_AWS_URL", "https://sqs.us-east-1.amazonaws.com/601427279990")
-AWS_ACCT = '000000000000' if 'localstack' in SQS_HOST else '601427279990'
+AWS_ACCT = "000000000000" if "localstack" in SQS_HOST else "601427279990"
 
 
 def sns_produce(queue, topic, message):

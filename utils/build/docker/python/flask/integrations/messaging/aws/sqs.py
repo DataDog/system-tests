@@ -6,7 +6,8 @@ import boto3
 
 
 HOST = os.getenv("SYSTEM_TESTS_AWS_URL", "https://sqs.us-east-1.amazonaws.com/601427279990")
-AWS_ACCT = '000000000000' if 'localstack' in HOST else '601427279990'
+AWS_ACCT = "000000000000" if "localstack" in HOST else "601427279990"
+
 
 def sqs_produce(queue, message, timeout=60):
     """
