@@ -19,7 +19,6 @@ logger = logging.getLogger(__name__)
 
 SIMPLE_TYPES = (bool, int, float, type(None))
 
-
 messages_counts = defaultdict(int)
 
 
@@ -347,7 +346,8 @@ def start_proxy() -> None:
 
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
-    opts = options.Options(mode=modes, listen_host="0.0.0.0", confdir="utils/proxy/.mitmproxy")  # noqa: S104
+    listen_host = "::" if os.environ.get("SYSTEM_TESTS_IPV6") == "True" else "0.0.0.0"  # noqa: S104
+    opts = options.Options(mode=modes, listen_host=listen_host, confdir="utils/proxy/.mitmproxy")
     proxy = master.Master(opts, event_loop=loop)
     proxy.addons.add(*default_addons())
     proxy.addons.add(errorcheck.ErrorCheck())

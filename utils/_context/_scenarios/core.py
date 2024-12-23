@@ -16,6 +16,7 @@ class ScenarioGroup(Enum):
     END_TO_END = "end-to-end"
     GRAPHQL = "graphql"
     INTEGRATIONS = "integrations"
+    IPV6 = "ipv6"
     LIB_INJECTION = "lib-injection"
     OPEN_TELEMETRY = "open-telemetry"
     PARAMETRIC = "parametric"

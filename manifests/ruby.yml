@@ -504,6 +504,7 @@ tests/:
     Test_Basic: v1.0.0
     Test_Propagate: missing_feature
     Test_Propagate_Legacy: missing_feature
+  test_ipv6.py: missing_feature (APMAPI-869)
   test_library_conf.py:
     Test_HeaderTags: v1.13.0
     Test_HeaderTags_Colon_Leading: v1.13.0

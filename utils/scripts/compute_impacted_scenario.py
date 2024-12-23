@@ -163,6 +163,8 @@ def main():
                     r"utils/docker_ssi/.*": ScenarioGroup.DOCKER_SSI.value,
                     ### Profiling case
                     r"utils/_context/_scenarios/profiling\.py": ScenarioGroup.PROFILING.value,
+                    ### IPv6
+                    r"utils/_context/_scenarios/ipv6\.py": ScenarioGroup.IPV6.value,
                     ### otel weblog
                     r"utils/build/docker/nodejs_otel/.*": ScenarioGroup.OPEN_TELEMETRY.value,
                     ### else, run all
