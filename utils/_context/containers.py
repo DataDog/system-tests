@@ -611,6 +611,7 @@ class BuddyContainer(TestedContainer):
                 # "DD_TRACE_DEBUG": "true",
                 "DD_AGENT_HOST": "proxy",
                 "DD_TRACE_AGENT_PORT": trace_agent_port,
+                "SYSTEM_TESTS_AWS_URL": "http://localstack-main:4566"
             },
         )
 
