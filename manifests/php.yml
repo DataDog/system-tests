@@ -225,6 +225,7 @@ tests/:
         Test_Lfi_BodyXml: v1.6.0
         Test_Lfi_Mandatory_SpanTags: v1.6.0
         Test_Lfi_Optional_SpanTags: v1.6.0
+        Test_Lfi_RC_CustomAction: missing_feature
         Test_Lfi_StackTrace: v1.6.0
         Test_Lfi_Telemetry: missing_feature
         Test_Lfi_UrlQuery: v1.6.0
