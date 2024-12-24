@@ -155,18 +155,18 @@ tests/:
           TestURI: irrelevant
     rasp/:
       test_cmdi.py:
-        Test_Cmdi_BodyJson: missing_feature
-        Test_Cmdi_BodyUrlEncoded: missing_feature
-        Test_Cmdi_BodyXml: missing_feature
-        Test_Cmdi_Capability: missing_feature
-        Test_Cmdi_Mandatory_SpanTags: missing_feature
-        Test_Cmdi_Optional_SpanTags: missing_feature
-        Test_Cmdi_Rules_Version: missing_feature
-        Test_Cmdi_StackTrace: missing_feature
-        Test_Cmdi_Telemetry: missing_feature
-        Test_Cmdi_Telemetry_Variant_Tag: missing_feature
-        Test_Cmdi_UrlQuery: missing_feature
-        Test_Cmdi_Waf_Version: missing_feature
+        Test_Cmdi_BodyJson: v3.7.0
+        Test_Cmdi_BodyUrlEncoded: v3.7.0
+        Test_Cmdi_BodyXml: v3.7.0
+        Test_Cmdi_Capability: v3.7.0
+        Test_Cmdi_Mandatory_SpanTags: v3.7.0
+        Test_Cmdi_Optional_SpanTags: v3.7.0
+        Test_Cmdi_Rules_Version: v3.7.0
+        Test_Cmdi_StackTrace: v3.7.0
+        Test_Cmdi_Telemetry: v3.7.0
+        Test_Cmdi_Telemetry_Variant_Tag: v3.7.0
+        Test_Cmdi_UrlQuery: v3.7.0
+        Test_Cmdi_Waf_Version: v3.7.0
       test_lfi.py:
         Test_Lfi_BodyJson: v2.51.0
         Test_Lfi_BodyUrlEncoded: v2.51.0
@@ -175,7 +175,7 @@ tests/:
         Test_Lfi_Mandatory_SpanTags: v2.52.0
         Test_Lfi_Optional_SpanTags: v2.52.0
         Test_Lfi_RC_CustomAction: missing_feature
-        Test_Lfi_Rules_Version: missing_feature
+        Test_Lfi_Rules_Version: v3.7.0
         Test_Lfi_StackTrace: v2.51.0
         Test_Lfi_Telemetry: v2.51.0
         Test_Lfi_UrlQuery: v2.51.0
@@ -190,7 +190,7 @@ tests/:
         Test_Shi_Rules_Version: v3.5.0
         Test_Shi_StackTrace: v3.2.0
         Test_Shi_Telemetry: v3.3.0
-        Test_Shi_Telemetry_Variant_Tag: missing_feature
+        Test_Shi_Telemetry_Variant_Tag: v3.7.0
         Test_Shi_UrlQuery: v3.2.0
         Test_Shi_Waf_Version: v3.4.1
       test_sqli.py:
