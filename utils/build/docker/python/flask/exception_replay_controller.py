@@ -1,5 +1,6 @@
 from flask import Blueprint, request, abort
 from debugger.exception_replay import ExceptionReplayPaper, ExceptionReplayRock, ExceptionReplayScissors
+import asyncio
 
 exception_replay_blueprint = Blueprint("exceptionreplay", __name__, url_prefix="/exceptionreplay")
 
@@ -58,3 +59,12 @@ def deep_function_a():
 @exception_replay_blueprint.route("/multiframe", methods=["GET"])
 def exception_replay_multiframe():
     return deep_function_a()
+
+
+async def _async_throw():
+    raise Exception("async exception")
+
+
+@exception_replay_blueprint.route("/async", methods=["GET"])
+async def exception_replay_async():
+    return await _async_throw()

@@ -9,7 +9,7 @@
       "location": {
         "file": "/app/exception_replay_controller.py",
         "lines": [
-          "16"
+          "17"
         ]
       }
     },
@@ -18,7 +18,7 @@
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion",
-        "lineNumber": 16
+        "lineNumber": 17
       },
       {
         "<runtime>": "<scrubbed>"
@@ -26,7 +26,7 @@
     ],
     "captures": {
       "lines": {
-        "16": {
+        "17": {
           "arguments": {},
           "locals": {
             "depth": {
@@ -46,107 +46,107 @@
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion",
-                "lineNumber": 16
+                "lineNumber": 17
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 23
+                "lineNumber": 24
               },
               {
                 "<runtime>": "<scrubbed>"
@@ -169,7 +169,7 @@
       "location": {
         "file": "/app/exception_replay_controller.py",
         "lines": [
-          "21"
+          "22"
         ]
       }
     },
@@ -178,12 +178,12 @@
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion",
-        "lineNumber": 16
+        "lineNumber": 17
       },
       {
         "<runtime>": "<scrubbed>"
@@ -191,7 +191,7 @@
     ],
     "captures": {
       "lines": {
-        "21": {
+        "22": {
           "arguments": {
             "depth": {
               "type": "int",
@@ -212,107 +212,107 @@
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion",
-                "lineNumber": 16
+                "lineNumber": 17
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 23
+                "lineNumber": 24
               },
               {
                 "<runtime>": "<scrubbed>"
@@ -335,7 +335,7 @@
       "location": {
         "file": "/app/exception_replay_controller.py",
         "lines": [
-          "21"
+          "22"
         ]
       }
     },
@@ -344,17 +344,17 @@
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion",
-        "lineNumber": 16
+        "lineNumber": 17
       },
       {
         "<runtime>": "<scrubbed>"
@@ -362,7 +362,7 @@
     ],
     "captures": {
       "lines": {
-        "21": {
+        "22": {
           "arguments": {
             "depth": {
               "type": "int",
@@ -383,107 +383,107 @@
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion",
-                "lineNumber": 16
+                "lineNumber": 17
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 23
+                "lineNumber": 24
               },
               {
                 "<runtime>": "<scrubbed>"
@@ -506,7 +506,7 @@
       "location": {
         "file": "/app/exception_replay_controller.py",
         "lines": [
-          "21"
+          "22"
         ]
       }
     },
@@ -515,22 +515,22 @@
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion",
-        "lineNumber": 16
+        "lineNumber": 17
       },
       {
         "<runtime>": "<scrubbed>"
@@ -538,7 +538,7 @@
     ],
     "captures": {
       "lines": {
-        "21": {
+        "22": {
           "arguments": {
             "depth": {
               "type": "int",
@@ -559,107 +559,107 @@
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion",
-                "lineNumber": 16
+                "lineNumber": 17
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 23
+                "lineNumber": 24
               },
               {
                 "<runtime>": "<scrubbed>"
@@ -682,7 +682,7 @@
       "location": {
         "file": "/app/exception_replay_controller.py",
         "lines": [
-          "21"
+          "22"
         ]
       }
     },
@@ -691,27 +691,27 @@
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion",
-        "lineNumber": 16
+        "lineNumber": 17
       },
       {
         "<runtime>": "<scrubbed>"
@@ -719,7 +719,7 @@
     ],
     "captures": {
       "lines": {
-        "21": {
+        "22": {
           "arguments": {
             "depth": {
               "type": "int",
@@ -740,107 +740,107 @@
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion",
-                "lineNumber": 16
+                "lineNumber": 17
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 23
+                "lineNumber": 24
               },
               {
                 "<runtime>": "<scrubbed>"
@@ -863,7 +863,7 @@
       "location": {
         "file": "/app/exception_replay_controller.py",
         "lines": [
-          "21"
+          "22"
         ]
       }
     },
@@ -872,32 +872,32 @@
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion",
-        "lineNumber": 16
+        "lineNumber": 17
       },
       {
         "<runtime>": "<scrubbed>"
@@ -905,7 +905,7 @@
     ],
     "captures": {
       "lines": {
-        "21": {
+        "22": {
           "arguments": {
             "depth": {
               "type": "int",
@@ -926,107 +926,107 @@
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion",
-                "lineNumber": 16
+                "lineNumber": 17
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 23
+                "lineNumber": 24
               },
               {
                 "<runtime>": "<scrubbed>"
@@ -1049,7 +1049,7 @@
       "location": {
         "file": "/app/exception_replay_controller.py",
         "lines": [
-          "21"
+          "22"
         ]
       }
     },
@@ -1058,37 +1058,37 @@
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion",
-        "lineNumber": 16
+        "lineNumber": 17
       },
       {
         "<runtime>": "<scrubbed>"
@@ -1096,7 +1096,7 @@
     ],
     "captures": {
       "lines": {
-        "21": {
+        "22": {
           "arguments": {
             "depth": {
               "type": "int",
@@ -1117,107 +1117,107 @@
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion",
-                "lineNumber": 16
+                "lineNumber": 17
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 23
+                "lineNumber": 24
               },
               {
                 "<runtime>": "<scrubbed>"
@@ -1240,7 +1240,7 @@
       "location": {
         "file": "/app/exception_replay_controller.py",
         "lines": [
-          "21"
+          "22"
         ]
       }
     },
@@ -1249,42 +1249,42 @@
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion",
-        "lineNumber": 16
+        "lineNumber": 17
       },
       {
         "<runtime>": "<scrubbed>"
@@ -1292,7 +1292,7 @@
     ],
     "captures": {
       "lines": {
-        "21": {
+        "22": {
           "arguments": {
             "depth": {
               "type": "int",
@@ -1313,107 +1313,107 @@
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion",
-                "lineNumber": 16
+                "lineNumber": 17
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 23
+                "lineNumber": 24
               },
               {
                 "<runtime>": "<scrubbed>"
@@ -1436,7 +1436,7 @@
       "location": {
         "file": "/app/exception_replay_controller.py",
         "lines": [
-          "21"
+          "22"
         ]
       }
     },
@@ -1445,47 +1445,47 @@
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion",
-        "lineNumber": 16
+        "lineNumber": 17
       },
       {
         "<runtime>": "<scrubbed>"
@@ -1493,7 +1493,7 @@
     ],
     "captures": {
       "lines": {
-        "21": {
+        "22": {
           "arguments": {
             "depth": {
               "type": "int",
@@ -1514,107 +1514,107 @@
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion",
-                "lineNumber": 16
+                "lineNumber": 17
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 23
+                "lineNumber": 24
               },
               {
                 "<runtime>": "<scrubbed>"
@@ -1637,7 +1637,7 @@
       "location": {
         "file": "/app/exception_replay_controller.py",
         "lines": [
-          "21"
+          "22"
         ]
       }
     },
@@ -1646,52 +1646,52 @@
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion",
-        "lineNumber": 16
+        "lineNumber": 17
       },
       {
         "<runtime>": "<scrubbed>"
@@ -1699,7 +1699,7 @@
     ],
     "captures": {
       "lines": {
-        "21": {
+        "22": {
           "arguments": {
             "depth": {
               "type": "int",
@@ -1720,107 +1720,107 @@
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion",
-                "lineNumber": 16
+                "lineNumber": 17
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 23
+                "lineNumber": 24
               },
               {
                 "<runtime>": "<scrubbed>"
@@ -1843,7 +1843,7 @@
       "location": {
         "file": "/app/exception_replay_controller.py",
         "lines": [
-          "21"
+          "22"
         ]
       }
     },
@@ -1852,57 +1852,57 @@
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion",
-        "lineNumber": 16
+        "lineNumber": 17
       },
       {
         "<runtime>": "<scrubbed>"
@@ -1910,7 +1910,7 @@
     ],
     "captures": {
       "lines": {
-        "21": {
+        "22": {
           "arguments": {
             "depth": {
               "type": "int",
@@ -1931,107 +1931,107 @@
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion",
-                "lineNumber": 16
+                "lineNumber": 17
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 23
+                "lineNumber": 24
               },
               {
                 "<runtime>": "<scrubbed>"
@@ -2054,7 +2054,7 @@
       "location": {
         "file": "/app/exception_replay_controller.py",
         "lines": [
-          "21"
+          "22"
         ]
       }
     },
@@ -2063,62 +2063,62 @@
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion",
-        "lineNumber": 16
+        "lineNumber": 17
       },
       {
         "<runtime>": "<scrubbed>"
@@ -2126,7 +2126,7 @@
     ],
     "captures": {
       "lines": {
-        "21": {
+        "22": {
           "arguments": {
             "depth": {
               "type": "int",
@@ -2147,107 +2147,107 @@
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion",
-                "lineNumber": 16
+                "lineNumber": 17
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 23
+                "lineNumber": 24
               },
               {
                 "<runtime>": "<scrubbed>"
@@ -2270,7 +2270,7 @@
       "location": {
         "file": "/app/exception_replay_controller.py",
         "lines": [
-          "21"
+          "22"
         ]
       }
     },
@@ -2279,67 +2279,67 @@
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion",
-        "lineNumber": 16
+        "lineNumber": 17
       },
       {
         "<runtime>": "<scrubbed>"
@@ -2347,7 +2347,7 @@
     ],
     "captures": {
       "lines": {
-        "21": {
+        "22": {
           "arguments": {
             "depth": {
               "type": "int",
@@ -2368,107 +2368,107 @@
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion",
-                "lineNumber": 16
+                "lineNumber": 17
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 23
+                "lineNumber": 24
               },
               {
                 "<runtime>": "<scrubbed>"
@@ -2491,7 +2491,7 @@
       "location": {
         "file": "/app/exception_replay_controller.py",
         "lines": [
-          "21"
+          "22"
         ]
       }
     },
@@ -2500,72 +2500,72 @@
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion",
-        "lineNumber": 16
+        "lineNumber": 17
       },
       {
         "<runtime>": "<scrubbed>"
@@ -2573,7 +2573,7 @@
     ],
     "captures": {
       "lines": {
-        "21": {
+        "22": {
           "arguments": {
             "depth": {
               "type": "int",
@@ -2594,107 +2594,107 @@
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion",
-                "lineNumber": 16
+                "lineNumber": 17
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 23
+                "lineNumber": 24
               },
               {
                 "<runtime>": "<scrubbed>"
@@ -2717,7 +2717,7 @@
       "location": {
         "file": "/app/exception_replay_controller.py",
         "lines": [
-          "21"
+          "22"
         ]
       }
     },
@@ -2726,77 +2726,77 @@
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion",
-        "lineNumber": 16
+        "lineNumber": 17
       },
       {
         "<runtime>": "<scrubbed>"
@@ -2804,7 +2804,7 @@
     ],
     "captures": {
       "lines": {
-        "21": {
+        "22": {
           "arguments": {
             "depth": {
               "type": "int",
@@ -2825,107 +2825,107 @@
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion",
-                "lineNumber": 16
+                "lineNumber": 17
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 23
+                "lineNumber": 24
               },
               {
                 "<runtime>": "<scrubbed>"
@@ -2948,7 +2948,7 @@
       "location": {
         "file": "/app/exception_replay_controller.py",
         "lines": [
-          "21"
+          "22"
         ]
       }
     },
@@ -2957,82 +2957,82 @@
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion",
-        "lineNumber": 16
+        "lineNumber": 17
       },
       {
         "<runtime>": "<scrubbed>"
@@ -3040,7 +3040,7 @@
     ],
     "captures": {
       "lines": {
-        "21": {
+        "22": {
           "arguments": {
             "depth": {
               "type": "int",
@@ -3061,107 +3061,107 @@
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion",
-                "lineNumber": 16
+                "lineNumber": 17
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 23
+                "lineNumber": 24
               },
               {
                 "<runtime>": "<scrubbed>"
@@ -3184,7 +3184,7 @@
       "location": {
         "file": "/app/exception_replay_controller.py",
         "lines": [
-          "21"
+          "22"
         ]
       }
     },
@@ -3193,87 +3193,87 @@
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion",
-        "lineNumber": 16
+        "lineNumber": 17
       },
       {
         "<runtime>": "<scrubbed>"
@@ -3281,7 +3281,7 @@
     ],
     "captures": {
       "lines": {
-        "21": {
+        "22": {
           "arguments": {
             "depth": {
               "type": "int",
@@ -3302,107 +3302,107 @@
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion",
-                "lineNumber": 16
+                "lineNumber": 17
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 23
+                "lineNumber": 24
               },
               {
                 "<runtime>": "<scrubbed>"
@@ -3425,7 +3425,7 @@
       "location": {
         "file": "/app/exception_replay_controller.py",
         "lines": [
-          "21"
+          "22"
         ]
       }
     },
@@ -3434,92 +3434,92 @@
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion",
-        "lineNumber": 16
+        "lineNumber": 17
       },
       {
         "<runtime>": "<scrubbed>"
@@ -3527,7 +3527,7 @@
     ],
     "captures": {
       "lines": {
-        "21": {
+        "22": {
           "arguments": {
             "depth": {
               "type": "int",
@@ -3548,107 +3548,107 @@
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion",
-                "lineNumber": 16
+                "lineNumber": 17
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 23
+                "lineNumber": 24
               },
               {
                 "<runtime>": "<scrubbed>"
@@ -3671,7 +3671,7 @@
       "location": {
         "file": "/app/exception_replay_controller.py",
         "lines": [
-          "21"
+          "22"
         ]
       }
     },
@@ -3680,97 +3680,97 @@
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion",
-        "lineNumber": 16
+        "lineNumber": 17
       },
       {
         "<runtime>": "<scrubbed>"
@@ -3778,7 +3778,7 @@
     ],
     "captures": {
       "lines": {
-        "21": {
+        "22": {
           "arguments": {
             "depth": {
               "type": "int",
@@ -3799,107 +3799,107 @@
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion",
-                "lineNumber": 16
+                "lineNumber": 17
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 23
+                "lineNumber": 24
               },
               {
                 "<runtime>": "<scrubbed>"
@@ -3922,7 +3922,7 @@
       "location": {
         "file": "/app/exception_replay_controller.py",
         "lines": [
-          "21"
+          "22"
         ]
       }
     },
@@ -3931,102 +3931,102 @@
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion",
-        "lineNumber": 16
+        "lineNumber": 17
       },
       {
         "<runtime>": "<scrubbed>"
@@ -4034,7 +4034,7 @@
     ],
     "captures": {
       "lines": {
-        "21": {
+        "22": {
           "arguments": {
             "depth": {
               "type": "int",
@@ -4055,107 +4055,107 @@
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion",
-                "lineNumber": 16
+                "lineNumber": 17
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 23
+                "lineNumber": 24
               },
               {
                 "<runtime>": "<scrubbed>"
@@ -4178,7 +4178,7 @@
       "location": {
         "file": "/app/exception_replay_controller.py",
         "lines": [
-          "23"
+          "24"
         ]
       }
     },
@@ -4187,107 +4187,107 @@
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 23
+        "lineNumber": 24
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion_helper",
-        "lineNumber": 21
+        "lineNumber": 22
       },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_recursion",
-        "lineNumber": 16
+        "lineNumber": 17
       },
       {
         "<runtime>": "<scrubbed>"
@@ -4295,7 +4295,7 @@
     ],
     "captures": {
       "lines": {
-        "23": {
+        "24": {
           "arguments": {
             "depth": {
               "type": "int",
@@ -4316,107 +4316,107 @@
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion",
-                "lineNumber": 16
+                "lineNumber": 17
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 21
+                "lineNumber": 22
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_recursion_helper",
-                "lineNumber": 23
+                "lineNumber": 24
               },
               {
                 "<runtime>": "<scrubbed>"

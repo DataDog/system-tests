@@ -20,7 +20,7 @@
           "stacktrace": [
             {
               "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.exceptionReplaySimple",
-              "lineNumber": 12
+              "lineNumber": 13
             },
             {
               "function": "datadog.trace.instrumentation.springweb.HandlerMappingResourceNameFilter.doFilterInternal",
@@ -49,7 +49,7 @@
     "stack": [
       {
         "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.exceptionReplaySimple",
-        "lineNumber": 12
+        "lineNumber": 13
       },
       {
         "function": "datadog.trace.instrumentation.springweb.HandlerMappingResourceNameFilter.doFilterInternal",
@@ -82,7 +82,7 @@
           "stacktrace": [
             {
               "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.exceptionReplaySimple",
-              "lineNumber": 12
+              "lineNumber": 13
             },
             {
               "function": "datadog.trace.instrumentation.springweb.HandlerMappingResourceNameFilter.doFilterInternal",
@@ -111,7 +111,7 @@
     "stack": [
       {
         "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.exceptionReplaySimple",
-        "lineNumber": 12
+        "lineNumber": 13
       },
       {
         "function": "datadog.trace.instrumentation.springweb.HandlerMappingResourceNameFilter.doFilterInternal",

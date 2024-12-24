@@ -9,7 +9,7 @@
       "location": {
         "file": "/app/exception_replay_controller.py",
         "lines": [
-          "31"
+          "32"
         ]
       }
     },
@@ -18,7 +18,7 @@
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_inner",
-        "lineNumber": 31
+        "lineNumber": 32
       },
       {
         "<runtime>": "<scrubbed>"
@@ -26,7 +26,7 @@
     ],
     "captures": {
       "lines": {
-        "31": {
+        "32": {
           "arguments": {},
           "locals": {
             "ex": {
@@ -46,7 +46,7 @@
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_inner",
-                "lineNumber": 31
+                "lineNumber": 32
               },
               {
                 "<runtime>": "<scrubbed>"
