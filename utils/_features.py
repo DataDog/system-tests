@@ -2293,5 +2293,14 @@ class _Features:
         pytest.mark.features(feature_id=347)(test_object)
         return test_object
 
+    @staticmethod
+    def envoy_external_processing(test_object):
+        """Support for Envoy External Processing
+
+        https://feature-parity.us1.prod.dog/#/?feature=350
+        """
+        pytest.mark.features(feature_id=350)(test_object)
+        return test_object
+
 
 features = _Features()
