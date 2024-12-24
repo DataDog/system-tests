@@ -28,7 +28,7 @@ stages:
     mkdir -p reports
     cp -R logs_*/ reports/
     kind delete clusters --all || true
-    if [ "$CI_COMMIT_BRANCH" = "main" ]; then
+    if [ "$CI_COMMIT_BRANCH" = "robertomonteromiguel/k8s_tests_revamp" ]; then
       for folder in reports/logs*/ ; do
         echo "Checking folder: ${folder}"
          for filename in ./${folder}feature_parity.json; do
