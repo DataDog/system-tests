@@ -41,6 +41,7 @@ refs:
   - &ref_5_26_0 '>=5.26.0 || ^4.50.0'
   - &ref_5_27_0 '>=5.27.0 || ^4.51.0'
   - &ref_5_29_0 '>=5.29.0 || ^4.53.0' # express 5 support
+  - &ref_5_31_0 '>=5.31.0 || ^4.55.0'
 
 tests/:
   apm_tracing_e2e/:
@@ -495,21 +496,21 @@ tests/:
       Test_V2_Login_Events_RC: irrelevant
       Test_V3_Auto_User_Instrum_Mode_Capability: *ref_5_29_0
       Test_V3_Login_Events:
-          '*': *ref_5_29_0
-          nextjs: missing_feature
+        '*': *ref_5_29_0
+        nextjs: missing_feature
       Test_V3_Login_Events_Anon:
-          '*': *ref_5_29_0
-          nextjs: missing_feature
+        '*': *ref_5_29_0
+        nextjs: missing_feature
       Test_V3_Login_Events_Blocking:
-          '*': *ref_5_29_0
-          nextjs: missing_feature
+        '*': *ref_5_29_0
+        nextjs: missing_feature
       Test_V3_Login_Events_RC:
-          '*': *ref_5_29_0
-          nextjs: missing_feature
+        '*': *ref_5_29_0
+        nextjs: missing_feature
     test_automated_user_and_session_tracking.py:
-      Test_Automated_Session_Blocking: missing_feature
-      Test_Automated_User_Blocking: missing_feature
-      Test_Automated_User_Tracking: missing_feature
+      Test_Automated_Session_Blocking: *ref_5_31_0
+      Test_Automated_User_Blocking: *ref_5_31_0
+      Test_Automated_User_Tracking: *ref_5_31_0
     test_blocking_addresses.py:
       Test_BlockingGraphqlResolvers:
         '*': *ref_4_22_0
