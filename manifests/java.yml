@@ -551,7 +551,16 @@ tests/:
           TestPathParameter:
             '*': missing_feature
         test_sql_row.py:
-          TestSqlRow: missing_feature
+          TestSqlRow:
+            '*': v1.45.0
+            akka-http: missing_feature
+            jersey-grizzly2: missing_feature
+            play: missing_feature
+            ratpack: missing_feature
+            resteasy-netty3: missing_feature
+            spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+            vertx3: missing_feature
+            vertx4: missing_feature
         test_uri.py:
           TestURI:
             '*': v1.23.0
