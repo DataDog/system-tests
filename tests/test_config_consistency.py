@@ -9,6 +9,7 @@ from utils.tools import logger
 
 # get the default log output
 stdout = interfaces.library_stdout if context.library != "dotnet" else interfaces.library_dotnet_managed
+runtime_metrics = {"nodejs": "runtime.node.mem.heap_total"}
 
 @scenarios.default
 @features.tracing_configuration_consistency
@@ -503,3 +504,27 @@ class Test_Config_LogInjection_128Bit_TradeId_Disabled:
                 dd = message.get("dd")
                 trace_id = dd.get("trace_id")
                 assert re.match(r'^\d+$', trace_id), f"Invalid 64-bit trace_id: {trace_id}"
+
+@rfc("https://docs.google.com/document/d/1kI-gTAKghfcwI7YzKhqRv2ExUstcHqADIWA4-TZ387o/edit#heading=h.8v16cioi7qxp")
+@scenarios.runtime_metrics_enabled
+@features.tracing_configuration_consistency
+class Test_RuntimeMetrics_Enabled:
+    # This test verifies runtime metrics from the Node.js tracer. It will need to evolve to support assertion on metrics from other tracers
+    def test_main(self):
+        data = list(interfaces.library.get_data("/dogstatsd/v2/proxy"))[0]
+        lines = data['request']['content'].split('\n')
+        metric_found = False
+        for line in lines:
+            if runtime_metrics["nodejs"] in line:
+                metric_found = True
+                break
+        assert metric_found, f'The metric {runtime_metrics["nodejs"]} was not found in any line'
+
+@rfc("https://docs.google.com/document/d/1kI-gTAKghfcwI7YzKhqRv2ExUstcHqADIWA4-TZ387o/edit#heading=h.8v16cioi7qxp")
+@scenarios.tracing_config_nondefault
+@features.tracing_configuration_consistency
+class Test_RuntimeMetrics_Disabled:
+    # test that by default runtime metrics are disabled
+    def test_main(self):
+        data = list(interfaces.library.get_data("/dogstatsd/v2/proxy"))
+        assert len(data) == 0

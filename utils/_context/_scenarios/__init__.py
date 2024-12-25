@@ -764,11 +764,8 @@ class _Scenarios:
     external_processing = ExternalProcessingScenario("EXTERNAL_PROCESSING")
     ipv6 = IPV6Scenario("IPV6")
 
-
-scenarios = _Scenarios()
-
-    runtime_metrics = EndToEndScenario(
-        "RUNTIME_METRICS",
+    runtime_metrics_enabled = EndToEndScenario(
+        "RUNTIME_METRICS_ENABLED",
         runtime_metrics_enabled=True,
         doc="Test runtime metrics",
     )
