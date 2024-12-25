@@ -505,6 +505,7 @@ class scenarios:
             "DD_TRACE_KAFKAJS_ENABLED": "false",  # In Node the integration is kafkajs.
             "DD_TRACE_PDO_ENABLED": "false",  # Use PDO for PHP,
             "DD_TRACE_PROPAGATION_STYLE_EXTRACT": "tracecontext,datadog,b3multi",
+            "DD_LOGS_INJECTION": "true",
         },
         include_kafka=True,
         include_postgres_db=True,
@@ -522,6 +523,8 @@ class scenarios:
             "DD_TRACE_CLIENT_IP_HEADER": "custom-ip-header",
             "DD_TRACE_CLIENT_IP_ENABLED": "true",
             "DD_TRACE_PROPAGATION_STYLE_EXTRACT": "datadog,tracecontext,b3multi",
+            "DD_LOGS_INJECTION": "true",
+            "DD_TRACE_128_BIT_TRACEID_LOGGING_ENABLED": "false",
         },
         include_kafka=True,
         include_postgres_db=True,
