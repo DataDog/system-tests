@@ -293,17 +293,19 @@ class Test_Debugger_Exception_Replay(debugger._Base_Debugger_Test):
 
     def _validate_recursion_snapshots(self, snapshots, depth):
         # Extract depth from test name and validate snapshot count
-        assert len(snapshots) == depth + 1, f"Expected {depth + 1} snapshots for recursion depth {depth}, got {len(snapshots)}"
+        assert (
+            len(snapshots) == depth + 1
+        ), f"Expected {depth + 1} snapshots for recursion depth {depth}, got {len(snapshots)}"
 
         entry_method = "exceptionReplayRecursion"
         helper_method = "exceptionReplayRecursionHelper"
         is_dotnet = self.get_tracer()["language"] == "dotnet"
-        
+
         def get_frames(snapshot):
             if is_dotnet:
                 return snapshot.get("captures", {}).get("return", {}).get("throwable", {}).get("stacktrace", [])
             return snapshot.get("stack", [])
-            
+
         found_top = False
         found_lowest = False
 
