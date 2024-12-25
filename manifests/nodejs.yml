@@ -836,6 +836,10 @@ tests/:
     Test_Config_ObfuscationQueryStringRegexp_Empty: *ref_3_0_0
     Test_Config_UnifiedServiceTagging_CustomService: *ref_5_25_0
     Test_Config_UnifiedServiceTagging_Default: *ref_5_25_0
+    Test_Config_LogInjection_True: *ref_5_25_0
+    Test_Config_LogInjection_False: *ref_5_25_0
+    Test_Config_LogInjection_128Bit_TradeId_Enabled: *ref_5_25_0
+    Test_Config_LogInjection_128Bit_TradeId_Disabled: *ref_5_25_0
   test_distributed.py:
     Test_DistributedHttp: missing_feature
     Test_Span_Links_Flags_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)

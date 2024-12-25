@@ -2,10 +2,13 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2022 Datadog, Inc.
 
+import re
 import json
 from utils import weblog, interfaces, scenarios, features, rfc, irrelevant, context, bug, missing_feature
 from utils.tools import logger
 
+# get the default log output
+stdout = interfaces.library_stdout if context.library != "dotnet" else interfaces.library_dotnet_managed
 
 @scenarios.default
 @features.tracing_configuration_consistency
@@ -415,3 +418,88 @@ class Test_Config_IntegrationEnabled_True:
             assert list(
                 filter(lambda span: "kafka.produce" in span.get("name"), spans)
             ), f"No kafka.produce span found in trace: {spans}"
+
+@rfc("https://docs.google.com/document/d/1kI-gTAKghfcwI7YzKhqRv2ExUstcHqADIWA4-TZ387o/edit#heading=h.8v16cioi7qxp")
+@scenarios.tracing_config_nondefault
+@features.tracing_configuration_consistency
+class Test_Config_LogInjection_True:
+    """ Verify behavior of integrations automatic spans """
+
+    def setup_log_injection_true(self):
+        self.r = weblog.get("/log/library")
+
+    def test_log_injection_true(self):
+        assert self.r.status_code == 200
+        pattern = r'"dd":\{"trace_id":"[^"]+","span_id":"\d+","service":"[^"]+","version":"[^"]+","env":"[^"]+"\},"msg":"This is an info message"'
+        stdout.assert_presence(pattern)
+
+@rfc("https://docs.google.com/document/d/1kI-gTAKghfcwI7YzKhqRv2ExUstcHqADIWA4-TZ387o/edit#heading=h.8v16cioi7qxp")
+@scenarios.tracing_config_nondefault_2
+@features.tracing_configuration_consistency
+class Test_Config_LogInjection_False:
+    def setup_log_injection_false(self):
+        self.r = weblog.get("/log/library")
+
+    def test_log_injection_false(self):
+        assert self.r.status_code == 200
+        pattern = r'"dd":\{"trace_id":"[^"]+","span_id":"\d+","service":"[^"]+","version":"[^"]+","env":"[^"]+"\},"msg":"^"]+"'
+        stdout.assert_absence(pattern)
+
+
+@rfc("https://docs.google.com/document/d/1kI-gTAKghfcwI7YzKhqRv2ExUstcHqADIWA4-TZ387o/edit#heading=h.8v16cioi7qxp")
+@scenarios.tracing_config_nondefault
+@features.tracing_configuration_consistency
+class Test_LogInjection_True:
+    def setup_log_injection_true(self):
+        self.r = weblog.get("/log/library")
+
+    def test_log_injection_true(self):
+        assert self.r.status_code == 200
+        pattern = r'"dd":\{"trace_id":"[^"]+","span_id":"\d+","service":"[^"]+","version":"[^"]+","env":"[^"]+"\},"msg":"This is an info message"'
+        stdout.assert_presence(pattern)
+
+
+@rfc("https://docs.google.com/document/d/1kI-gTAKghfcwI7YzKhqRv2ExUstcHqADIWA4-TZ387o/edit#heading=h.8v16cioi7qxp")
+@scenarios.tracing_config_nondefault
+@features.tracing_configuration_consistency
+class Test_Config_LogInjection_128Bit_TradeId_Enabled:
+    def setup_log_injection_128bit_traceid_enabled(self):
+        self.r = weblog.get("/log/library")
+
+    def test_log_injection_128bit_traceid_enabled(self):
+        assert self.r.status_code == 200
+        for data in stdout.get_data():
+            json_string = json.dumps(data)
+            parsed_data = json.loads(json_string)
+            message = {}
+            try:
+                message = json.loads(parsed_data.get("message"))
+            except:
+                pass
+            if message and isinstance(message, dict) and message.get("dd"):
+                dd = message.get("dd")
+                trace_id = dd.get("trace_id")
+                print(69, dd.get("span_id"))
+                assert re.match(r'^[0-9a-f]{32}$', trace_id), f"Invalid 128-bit trace_id: {trace_id}"
+
+@rfc("https://docs.google.com/document/d/1kI-gTAKghfcwI7YzKhqRv2ExUstcHqADIWA4-TZ387o/edit#heading=h.8v16cioi7qxp")
+@scenarios.tracing_config_nondefault_2
+@features.tracing_configuration_consistency
+class Test_Config_LogInjection_128Bit_TradeId_Disabled:
+    def setup_log_injection_128bit_traceid_disabled(self):
+        self.r = weblog.get("/log/library")
+
+    def test_log_injection_128bit_traceid_disabled(self):
+        assert self.r.status_code == 200
+        for data in stdout.get_data():
+            json_string = json.dumps(data)
+            parsed_data = json.loads(json_string)
+            message = {}
+            try:
+                message = json.loads(parsed_data.get("message"))
+            except:
+                pass
+            if message and isinstance(message, dict) and message.get("dd"):
+                dd = message.get("dd")
+                trace_id = dd.get("trace_id")
+                assert re.match(r'^\d+$', trace_id), f"Invalid 64-bit trace_id: {trace_id}"
