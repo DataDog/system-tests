@@ -1,5 +1,7 @@
 FROM maven:3.9-eclipse-temurin-11 as build
 
+ENV JAVA_TOOL_OPTIONS="-Djava.net.preferIPv4Stack=true"
+
 COPY ./utils/build/docker/java/iast-common/src /iast-common/src
 
 WORKDIR /app

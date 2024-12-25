@@ -3,6 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 """Misc checks around data integrity during components' lifetime"""
+
 import string
 from utils import weblog, interfaces, context, bug, rfc, missing_feature, features
 from utils.tools import logger
@@ -78,7 +79,10 @@ class Test_TraceHeaders:
     @missing_feature(
         context.library == "java" and context.weblog_variant == "spring-boot-3-native", reason="Missing endpoint"
     )
-    @missing_feature(context.library == "nodejs" and context.weblog_variant != "express4", reason="Missing endpoint")
+    @missing_feature(
+        context.library == "nodejs" and context.weblog_variant not in ["express4", "express5"],
+        reason="Missing endpoint",
+    )
     @missing_feature(context.library == "ruby" and context.weblog_variant != "rails70", reason="Missing endpoint")
     def test_trace_header_container_tags(self):
         """Datadog-Container-ID header value is right in all traces submitted to the agent"""

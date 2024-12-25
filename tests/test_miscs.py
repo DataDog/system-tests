@@ -7,7 +7,7 @@ from utils import weblog, interfaces, features
 
 @features.unix_domain_sockets_support_for_traces
 class Test_Basic:
-    """ Make sure the spans endpoint is successful """
+    """Make sure the spans endpoint is successful"""
 
     def setup_spans_generation(self):
         self.r = weblog.get("/spans")

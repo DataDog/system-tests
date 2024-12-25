@@ -1,4 +1,18 @@
 import org.springframework.boot.gradle.tasks.bundling.BootBuildImage
+import software.amazon.awssdk.services.ecr.EcrClient
+import software.amazon.awssdk.services.ecr.model.AuthorizationData
+import java.util.Base64
+
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath(platform("software.amazon.awssdk:bom:2.20.121"))
+        classpath("software.amazon.awssdk:ecr")
+        classpath("software.amazon.awssdk:sts") // sts is required to use roleArn in aws profiles
+    }
+}
 
 plugins {
     id("org.springframework.boot") version "2.7.2"
@@ -31,23 +45,33 @@ tasks.withType<Test> {
 val dockerImageRepo: String? by project
 val resolvedDockerImageRepo: String = dockerImageRepo ?: "docker.io/" + System.getenv("DOCKER_USERNAME") + "/dd-lib-java-init-test-app"
 val dockerImageTag: String by project
-tasks.named<BootBuildImage>("bootBuildImage") {
-    val arch = System.getProperty("os.arch")
-    imageName = "${resolvedDockerImageRepo}:${dockerImageTag}"
-    //if (arch == "aarch64"){
-    //   builder = "dashaun/builder:tiny"
-    //   environment.set("BP_DATADOG_ENABLED","true")
-    //}
+val useDockerProxy: String? by project
 
-    //TODO Change to use images from gcr.io to aboud docker hub rate limits
-    //There is a bug: https://github.com/paketo-buildpacks/adoptium/issues/401
-    //buildpacks = listOf(
-    //    "gcr.io/paketo-buildpacks/adoptium:latest",
-    //     "urn:cnb:builder:paketo-buildpacks/java"
-	//"urn:cnb:builder:paketo-buildpacks/java",
-	//"gcr.io/paketo-buildpacks/new-relic",
-    //"gcr.io/paketo-buildpacks/builder:base",
-    //"gcr.io/paketo-buildpacks/run:base-cnb",
-    //"gcr.io/paketo-buildpacks/adoptium:11.2.3"
-    //)
+tasks.named<BootBuildImage>("bootBuildImage") {
+    imageName = "${resolvedDockerImageRepo}:${dockerImageTag}"
+
+    if (useDockerProxy == null) {
+        builder = "paketobuildpacks/builder-jammy-java-tiny:0.0.11"
+        runImage = "paketobuildpacks/run-jammy-tiny:0.2.55"
+    } else {
+        // Use dockerhub mirror
+        builder = "669783387624.dkr.ecr.us-east-1.amazonaws.com/dockerhub/paketobuildpacks/builder-jammy-java-tiny:0.0.11"
+        runImage = "669783387624.dkr.ecr.us-east-1.amazonaws.com/dockerhub/paketobuildpacks/run-jammy-tiny:0.2.55"
+
+        // Setup authentication
+        // https://stackoverflow.com/questions/65320552/publish-docker-images-using-spring-boot-plugin-without-credentials/76898025#76898025
+        val ecrClient = EcrClient.builder().build()
+        val base64Token = ecrClient
+                    .getAuthorizationToken()
+                    .authorizationData()[0]
+                    .authorizationToken()
+        val auth = String(Base64.getDecoder().decode(base64Token)).split(":")
+
+        docker {
+            builderRegistry {
+                username = auth[0]
+                password = auth[1]
+            }
+        }
+    }
 }

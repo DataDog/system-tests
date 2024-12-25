@@ -33,9 +33,7 @@ def enable_tracestats(sample_rate: Optional[float] = None) -> Any:
         env["DD_TRACE_FEATURES"] = "discovery"
     if sample_rate is not None:
         assert 0 <= sample_rate <= 1.0
-        env.update(
-            {"DD_TRACE_SAMPLE_RATE": str(sample_rate),}
-        )
+        env.update({"DD_TRACE_SAMPLE_RATE": str(sample_rate)})
     return parametrize("library_env", [env])
 
 
@@ -117,45 +115,45 @@ class Test_Library_Tracestats:
 
         with test_library:
             # Baseline
-            with test_library.dd_start_span(name=name, resource=resource, service=service, typestr=type,) as span:
+            with test_library.dd_start_span(name=name, resource=resource, service=service, typestr=type) as span:
                 span.set_meta(key="_dd.origin", val=origin)
                 span.set_meta(key="http.status_code", val=http_status_code)
 
             # Unique Name
             with test_library.dd_start_span(
-                name="unique-name", resource=resource, service=service, typestr=type,
+                name="unique-name", resource=resource, service=service, typestr=type
             ) as span:
                 span.set_meta(key="_dd.origin", val=origin)
                 span.set_meta(key="http.status_code", val=http_status_code)
 
             # Unique Resource
             with test_library.dd_start_span(
-                name=name, resource="unique-resource", service=service, typestr=type,
+                name=name, resource="unique-resource", service=service, typestr=type
             ) as span:
                 span.set_meta(key="_dd.origin", val=origin)
                 span.set_meta(key="http.status_code", val=http_status_code)
 
             # Unique Service
             with test_library.dd_start_span(
-                name=name, resource=resource, service="unique-service", typestr=type,
+                name=name, resource=resource, service="unique-service", typestr=type
             ) as span:
                 span.set_meta(key="_dd.origin", val=origin)
                 span.set_meta(key="http.status_code", val=http_status_code)
 
             # Unique Type
             with test_library.dd_start_span(
-                name=name, resource=resource, service=service, typestr="unique-type",
+                name=name, resource=resource, service=service, typestr="unique-type"
             ) as span:
                 span.set_meta(key="_dd.origin", val=origin)
                 span.set_meta(key="http.status_code", val=http_status_code)
 
             # Unique Synthetics
-            with test_library.dd_start_span(name=name, resource=resource, service=service, typestr=type,) as span:
+            with test_library.dd_start_span(name=name, resource=resource, service=service, typestr=type) as span:
                 span.set_meta(key="_dd.origin", val="synthetics")
                 span.set_meta(key="http.status_code", val=http_status_code)
 
             # Unique HTTP Status Code
-            with test_library.dd_start_span(name=name, resource=resource, service=service, typestr=type,) as span:
+            with test_library.dd_start_span(name=name, resource=resource, service=service, typestr=type) as span:
                 span.set_meta(key="_dd.origin", val=origin)
                 span.set_meta(key="http.status_code", val="400")
 
@@ -391,8 +389,9 @@ class Test_Library_Tracestats:
         assert web_stats["Duration"] == sum(durations), "Stats duration should match the span duration exactly"
         for quantile in (0.5, 0.75, 0.95, 0.99, 1):
             assert web_stats["OkSummary"].get_quantile_value(quantile) == pytest.approx(
-                numpy.quantile(np_duration, quantile), rel=0.01,
-            ), ("Quantile mismatch for quantile %r" % quantile)
+                numpy.quantile(np_duration, quantile),
+                rel=0.01,
+            ), "Quantile mismatch for quantile %r" % quantile
 
     @missing_feature(context.library == "cpp", reason="cpp has not implemented stats computation yet")
     @missing_feature(context.library == "nodejs", reason="nodejs has not implemented stats computation yet")
@@ -413,11 +412,11 @@ class Test_Library_Tracestats:
         origin = "synthetics"
 
         with test_library:
-            with test_library.dd_start_span(name=name, service=service, resource=resource, typestr=type,) as span:
+            with test_library.dd_start_span(name=name, service=service, resource=resource, typestr=type) as span:
                 span.set_meta(key="_dd.origin", val=origin)
                 span.set_meta(key="http.status_code", val=http_status_code)
 
-            with test_library.dd_start_span(name=name, service=service, resource=resource, typestr=type,) as span2:
+            with test_library.dd_start_span(name=name, service=service, resource=resource, typestr=type) as span2:
                 span2.set_meta(key="_dd.origin", val=origin)
                 span2.set_meta(key="http.status_code", val=http_status_code)
 

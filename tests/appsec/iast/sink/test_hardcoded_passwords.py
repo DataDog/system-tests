@@ -16,7 +16,12 @@ class Test_HardcodedPasswords:
     """Test Hardcoded passwords detection."""
 
     location_map = {
-        "nodejs": {"express4": "iast/index.js", "express4-typescript": "iast.ts", "uds-express4": "iast/index.js"},
+        "nodejs": {
+            "express4": "iast/index.js",
+            "express4-typescript": "iast.ts",
+            "express5": "iast/index.js",
+            "uds-express4": "iast/index.js",
+        },
     }
 
     insecure_request = None
@@ -59,7 +64,7 @@ class Test_HardcodedPasswords:
 )
 @features.iast_stack_trace
 class Test_HardcodedPasswords_StackTrace:
-    """Validate stack trace generation """
+    """Validate stack trace generation"""
 
     def setup_stack_trace(self):
         self.r = weblog.get("/iast/hardcoded_passwords/test_insecure")

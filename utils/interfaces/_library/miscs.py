@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-""" Misc validations """
+"""Misc validations"""
 
 import re
 
@@ -27,8 +27,7 @@ class _SpanTagValidator:
             if self.value_as_regular_expression:
                 if not re.compile(expectValue).fullmatch(actualValue):
                     raise ValueError(f'{tagKey} tag value is "{actualValue}", and should match regex "{expectValue}"')
-            else:
-                if expectValue != actualValue:
-                    raise ValueError(f'{tagKey} tag in span\'s meta should be "{expectValue}", not "{actualValue}"')
+            elif expectValue != actualValue:
+                raise ValueError(f'{tagKey} tag in span\'s meta should be "{expectValue}", not "{actualValue}"')
 
         return True

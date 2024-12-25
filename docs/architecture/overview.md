@@ -185,8 +185,6 @@ It is a web application that exposes consistent endpoints across all implementat
 
 If you are introducing a new Dockerfile, or looking to modify an existing one, remember that they are built using this convention in arguments: `./utils/build/docker/{language}/{dockerfile-prefix}.Dockerfile`.
 
-All application containers share final layers applied via this file: `./utils/build/docker/set-system-tests-weblog-env.Dockerfile`
-
 The shared application docker file is a good place to add any configuration needed across languages and variants.
 
 ## Application Proxy Container

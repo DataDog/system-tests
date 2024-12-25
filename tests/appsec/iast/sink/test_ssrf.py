@@ -17,7 +17,7 @@ class TestSSRF(BaseSinkTest):
     data = {"url": "https://www.datadoghq.com"}
     location_map = {
         "java": "com.datadoghq.system_tests.iast.utils.SsrfExamples",
-        "nodejs": {"express4": "iast/index.js", "express4-typescript": "iast.ts"},
+        "nodejs": {"express4": "iast/index.js", "express4-typescript": "iast.ts", "express5": "iast/index.js"},
         "python": {"flask-poc": "app.py", "django-poc": "app/urls.py"},
     }
 
@@ -41,7 +41,7 @@ class TestSSRF(BaseSinkTest):
 )
 @features.iast_stack_trace
 class TestSSRF_StackTrace:
-    """Validate stack trace generation """
+    """Validate stack trace generation"""
 
     def setup_stack_trace(self):
         self.r = weblog.post("/iast/ssrf/test_insecure", data={"url": "https://www.datadoghq.com"})

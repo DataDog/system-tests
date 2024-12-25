@@ -8,7 +8,6 @@ pytestmark = pytest.mark.scenario("TEST_THE_TEST")
 
 
 def test_version_comparizon():
-
     v = Version("1.0")
 
     assert v == "1.0"
@@ -38,7 +37,6 @@ def test_version_comparizon():
 
 
 def test_ruby_version():
-
     v = LibraryVersion("ruby", "0.53.0.appsec.180045")
     assert str(v.version) == "0.53.1-appsec+180045"
 
@@ -59,7 +57,6 @@ def test_ruby_version():
 
 
 def test_library_version_comparizon():
-
     assert LibraryVersion("x", "1.31.1") < "x@1.34.1"
     assert "x@1.31.1" < LibraryVersion("x", "v1.34.1")
     assert LibraryVersion("x", "1.31.1") < LibraryVersion("x", "v1.34.1")
@@ -93,7 +90,6 @@ def test_spec():
 
 
 def test_version_serialization():
-
     assert LibraryVersion("cpp", "v1.3.1") == "cpp@1.3.1"
 
     v = LibraryVersion("libddwaf", "* libddwaf (1.0.14.1.0.beta1)")
@@ -114,7 +110,6 @@ def test_version_serialization():
 
 
 def test_agent_version():
-
     v = LibraryVersion("agent", "7.54.0-installer-0.0.7+git.106.b0943ad")
     assert v == "agent@7.54.0-installer-0.0.7+git.106.b0943ad"
 
@@ -128,7 +123,6 @@ def test_in_operator():
 
 
 def test_library_version():
-
     v = LibraryVersion("p")
     assert v == "p"
     assert v != "u"

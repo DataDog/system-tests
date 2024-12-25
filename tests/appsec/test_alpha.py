@@ -7,13 +7,13 @@ from utils import context, weblog, interfaces, missing_feature, bug, features
 
 @features.threats_alpha_preview
 class Test_Basic:
-    """ Detect attacks on raw URI and headers with default rules """
+    """Detect attacks on raw URI and headers with default rules"""
 
     def setup_uri(self):
         self.r_uri = weblog.get("/waf/0x5c0x2e0x2e0x2f")
 
     def test_uri(self):
-        """ Via server.request.uri.raw """
+        """Via server.request.uri.raw"""
         # Note: we do not check the returned key_path nor rule_id for the alpha version
         interfaces.library.assert_waf_attack(self.r_uri, pattern="0x5c0x2e0x2e0x2f", address="server.request.uri.raw")
 
@@ -23,7 +23,7 @@ class Test_Basic:
 
     @bug(context.library == "python@1.1.0", reason="APMRP-360")
     def test_headers(self):
-        """ Via server.request.headers.no_cookies """
+        """Via server.request.headers.no_cookies"""
         # Note: we do not check the returned key_path nor rule_id for the alpha version
         address = "server.request.headers.no_cookies"
         pattern = "../"
@@ -35,7 +35,7 @@ class Test_Basic:
         self.r_headers_2 = weblog.get("/waf/", cookies={"Cookie": "../../../secret.txt"})
 
     def test_no_cookies(self):
-        """ Address server.request.headers.no_cookies should not include cookies. """
+        """Address server.request.headers.no_cookies should not include cookies."""
         # Relying on rule crs-930-110, test the following LFI attack is caught
         # on server.request.headers.no_cookies and then retry it with the cookies
         # to validate that cookies are properly excluded from server.request.headers.no_cookies.

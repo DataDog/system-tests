@@ -413,10 +413,6 @@ function main() {
 
     # evaluate max pytest number of process for K8s_lib_injection
     for scenario in "${scenarios[@]}"; do
-        #TODO DELETE WHEN THE SCENARIO IS REMOVED. REPLACED BY K8S_LIBRARY_INJECTION
-        if [[ "${scenario}" == K8S_LIB_INJECTION_* ]]; then
-            pytest_numprocesses=$(nproc)
-        fi
         if [[ "${scenario}" == K8S_LIBRARY_INJECTION_* ]]; then
             pytest_numprocesses=$(nproc)
         fi
@@ -451,6 +447,21 @@ function main() {
     fi
 
     for scenario in "${scenarios[@]}"; do
+        #TODO SCENARIO WAS REMOVED, TEMPORARY FIX TILL CI IS FIXED
+        if [[ "${scenario}" == DEBUGGER_METHOD_PROBES_SNAPSHOT ]]; then
+            echo "${scenario} was removed, skipping."
+            continue
+        fi
+        if [[ "${scenario}" == DEBUGGER_LINE_PROBES_SNAPSHOT ]]; then
+            echo "${scenario} was removed, skipping."
+            continue
+        fi
+        if [[ "${scenario}" == DEBUGGER_MIX_LOG_PROBE ]]; then
+            echo "${scenario} was removed, skipping."
+            continue
+        fi
+        ####
+
         run_scenario "${dry}" "${run_mode}" "${scenario}" "${pytest_args[@]}"
     done
 }

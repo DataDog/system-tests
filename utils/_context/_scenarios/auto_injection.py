@@ -57,6 +57,7 @@ class _VirtualMachineScenario(Scenario):
     def __init__(
         self,
         name,
+        *,
         github_workflow,
         doc,
         vm_provision=None,
@@ -311,7 +312,8 @@ class _VirtualMachineScenario(Scenario):
                     self._tested_components["datadog-apm-library"] = self._tested_components[key]
                     del self._tested_components[key]
                 if key.startswith("glibc"):
-                    # We will all the glibc versions in the feature parity report, due to each machine can have a different version
+                    # We will all the glibc versions in the feature parity report, due to each machine can have a
+                    # different version
                     del self._tested_components[key]
 
     def close_targets(self):
@@ -443,8 +445,9 @@ class InstallerAutoInjectionScenario(_VirtualMachineScenario):
 
 
 class InstallerAutoInjectionScenarioProfiling(_VirtualMachineScenario):
-    """ As Profiling is not included in GA (2024/11) we reduce the number of VMS to speed up the execution
-    Until we fix the performance problems on the AWS architecture and speed up the tests"""
+    """As Profiling is not included in GA (2024/11) we reduce the number of VMS to speed up the execution
+    Until we fix the performance problems on the AWS architecture and speed up the tests
+    """
 
     def __init__(
         self,

@@ -9,7 +9,6 @@ from tests.fuzzer.html_parser import extract_requests
 
 
 class RequestGenerator:
-
     corpus_max_size = 10000  # How many valid requests do we save ?
     corpus_request_max_size = 10000  # do not save valid requests bigger than this
 
@@ -67,7 +66,6 @@ class RequestGenerator:
 
     #############################
     async def feedback(self, request, response, base_url):
-
         endpoint = request["method"], request["path"]
 
         if response.status == 404 and not self.not_found_response_is_parsed:

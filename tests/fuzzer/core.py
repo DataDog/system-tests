@@ -177,11 +177,13 @@ class Fuzzer:
         while not self.finished:
             try:
                 session = aiohttp.ClientSession(
-                    loop=self.loop, connector=aiohttp.UnixConnector(path="/var/run/docker.sock"),
+                    loop=self.loop,
+                    connector=aiohttp.UnixConnector(path="/var/run/docker.sock"),
                 )
 
                 async with session.request(
-                    url="http://localhost/containers/system-tests_weblog_1/stats", method="GET",
+                    url="http://localhost/containers/system-tests_weblog_1/stats",
+                    method="GET",
                 ) as resp:
                     async for line in resp.content:
                         if self.finished:
@@ -274,7 +276,6 @@ class Fuzzer:
             self.loop.stop()
 
     async def _process(self, session, request):
-
         resp = None
         request_timestamp = datetime.now()
         self.systematic_exporter(request)
@@ -283,13 +284,15 @@ class Fuzzer:
             args = dict(request)
             args["url"] = URL(self.base_url + args.pop("path"), encoded=True)
             async with session.request(**args) as resp:
-
                 # if str(resp.status) == "500":
                 #     open("logs/500.html", "w").write(await resp.text())
                 #     self.finished = True
 
                 await self.update_metrics(
-                    str(resp.status), request, request_timestamp, response=resp,
+                    str(resp.status),
+                    request,
+                    request_timestamp,
+                    response=resp,
                 )
 
                 try:
@@ -332,7 +335,6 @@ class Fuzzer:
         return result
 
     async def update_metrics(self, status, request, request_timestamp, response=None):
-
         ellapsed = (datetime.now() - request_timestamp).total_seconds()
 
         byte_count = len(request["path"])

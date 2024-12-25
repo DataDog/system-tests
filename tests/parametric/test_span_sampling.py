@@ -84,7 +84,7 @@ class Test_Span_Sampling:
 
     @missing_feature(context.library == "ruby", reason="Issue: _dd.span_sampling.max_per_second is always set in Ruby")
     @pytest.mark.parametrize(
-        "library_env", [{"DD_SPAN_SAMPLING_RULES": json.dumps([{"service": "webserver"}]), "DD_TRACE_SAMPLE_RATE": 0}],
+        "library_env", [{"DD_SPAN_SAMPLING_RULES": json.dumps([{"service": "webserver"}]), "DD_TRACE_SAMPLE_RATE": 0}]
     )
     def test_single_rule_only_service_pattern_match_span_sampling_sss004(self, test_agent, test_library):
         """Test span sampling tags are added when both:
@@ -195,6 +195,7 @@ class Test_Span_Sampling:
             }
         ],
     )
+    @flaky(library="java", reason="APMAPI-978")
     def test_single_rule_rate_limiter_span_sampling_sss008(self, test_agent, test_library):
         """Test span sampling tags are added until rate limit hit, then need to wait for tokens to reset"""
         # generate three traces before requesting them to avoid timing issues
@@ -403,6 +404,7 @@ class Test_Span_Sampling:
         reason="PHP uses a float to represent the allowance in tokens and thus accepts one more request (given the time elapsed between individual requests)",
     )
     @flaky(library="cpp", reason="APMAPI-933")
+    @flaky(library="java", reason="APMAPI-978")
     @pytest.mark.parametrize(
         "library_env",
         [

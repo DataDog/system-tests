@@ -182,9 +182,6 @@ jobs:
     - name: Run REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD_NOCACHE scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD_NOCACHE"')
       run: ./run.sh REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD_NOCACHE
-    - name: Run AGENT_SUPPORTING_SPAN_EVENTS scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, 'AGENT_SUPPORTING_SPAN_EVENTS') && (inputs.library != 'ruby' || matrix.weblog == 'rack')
-      run: ./run.sh AGENT_SUPPORTING_SPAN_EVENTS
     - name: Run AGENT_NOT_SUPPORTING_SPAN_EVENTS scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, 'AGENT_NOT_SUPPORTING_SPAN_EVENTS') && (inputs.library != 'ruby' || matrix.weblog == 'rack')
       run: ./run.sh AGENT_NOT_SUPPORTING_SPAN_EVENTS
@@ -276,15 +273,9 @@ jobs:
     - name: Run DEBUGGER_PROBES_STATUS scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"DEBUGGER_PROBES_STATUS"')
       run: ./run.sh DEBUGGER_PROBES_STATUS
-    - name: Run DEBUGGER_METHOD_PROBES_SNAPSHOT scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"DEBUGGER_METHOD_PROBES_SNAPSHOT"')
-      run: ./run.sh DEBUGGER_METHOD_PROBES_SNAPSHOT
-    - name: Run DEBUGGER_LINE_PROBES_SNAPSHOT scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"DEBUGGER_LINE_PROBES_SNAPSHOT"')
-      run: ./run.sh DEBUGGER_LINE_PROBES_SNAPSHOT
-    - name: Run DEBUGGER_MIX_LOG_PROBE scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"DEBUGGER_MIX_LOG_PROBE"')
-      run: ./run.sh DEBUGGER_MIX_LOG_PROBE
+    - name: Run DEBUGGER_PROBES_SNAPSHOT scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"DEBUGGER_PROBES_SNAPSHOT"')
+      run: ./run.sh DEBUGGER_PROBES_SNAPSHOT
     - name: Run DEBUGGER_PII_REDACTION scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"DEBUGGER_PII_REDACTION"')
       run: ./run.sh DEBUGGER_PII_REDACTION

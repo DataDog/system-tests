@@ -17,7 +17,7 @@ class TestLDAPInjection(BaseSinkTest):
     data = {"username": "ssam", "password": "sammy"}
     location_map = {
         "java": "com.datadoghq.system_tests.iast.utils.LDAPExamples",
-        "nodejs": {"express4": "iast/index.js", "express4-typescript": "iast.ts"},
+        "nodejs": {"express4": "iast/index.js", "express4-typescript": "iast.ts", "express5": "iast/index.js"},
     }
 
     @missing_feature(context.library < "java@1.9.0", reason="Metrics not implemented")
@@ -35,7 +35,7 @@ class TestLDAPInjection(BaseSinkTest):
 )
 @features.iast_stack_trace
 class TestLDAPInjection_StackTrace:
-    """Validate stack trace generation """
+    """Validate stack trace generation"""
 
     def setup_stack_trace(self):
         self.r = weblog.post("/iast/ldapi/test_insecure", data={"username": "ssam", "password": "sammy"})

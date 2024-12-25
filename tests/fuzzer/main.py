@@ -12,7 +12,6 @@ from tests.fuzzer.core import Fuzzer
 
 
 def main():
-
     context.scenario = scenarios.fuzzer
 
     parser = argparse.ArgumentParser(description="Send a bunch of requests to an url.")
@@ -20,14 +19,26 @@ def main():
     parser.add_argument("corpus", nargs="?", type=str, help="Base corpus", default="tests/fuzzer/corpus")
 
     parser.add_argument(
-        "--concurrent", "-c", type=int, help="How many concurrent requests run", default=8,
+        "--concurrent",
+        "-c",
+        type=int,
+        help="How many concurrent requests run",
+        default=8,
     )
     parser.add_argument(
-        "--dump", "-d", type=str, help="Save request with this HTTP status", default="500,501",
+        "--dump",
+        "-d",
+        type=str,
+        help="Save request with this HTTP status",
+        default="500,501",
     )
     parser.add_argument("--export", "-e", help="Export all requests in a dump", action="store_true")
     parser.add_argument(
-        "--report_frequency", "-f", type=int, help="Report frequency (default 1s)", default=1,
+        "--report_frequency",
+        "-f",
+        type=int,
+        help="Report frequency (default 1s)",
+        default=1,
     )
     parser.add_argument("--request_count", "-n", type=int, help="How many request to send", default=None)
     parser.add_argument("--port", "-p", type=str, help="Port to request", default="7777")
@@ -48,15 +59,15 @@ def main():
 
     logger = get_logger(use_stdout=True)
 
-    create_network()
+    network = create_network()
 
     agent = AgentContainer(host_log_folder="logs_fuzzer", use_proxy=False)
     agent.configure(False)
-    agent.start()
+    agent.start(network)
 
     weblog = WeblogContainer(host_log_folder="logs_fuzzer", use_proxy=False)
     weblog.configure(False)
-    weblog.start()
+    weblog.start(network)
 
     Fuzzer(
         corpus=args.corpus,

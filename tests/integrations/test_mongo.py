@@ -9,7 +9,7 @@ from utils import weblog, interfaces, context, missing_feature, scenarios, featu
 @missing_feature(condition=context.library != "java", reason="Endpoint is not implemented on weblog")
 @scenarios.integrations
 class Test_Mongo:
-    """ Verify that a mongodb span is created """
+    """Verify that a mongodb span is created"""
 
     def setup_main(self):
         self.r = weblog.get("/trace/mongo")

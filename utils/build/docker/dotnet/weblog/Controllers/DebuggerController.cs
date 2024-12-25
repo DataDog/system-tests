@@ -83,9 +83,11 @@ namespace weblog
 
         [HttpGet("expression/operators")]
         [Consumes("application/json", "application/xml")]
-        public IActionResult ExpressionOperators(int intValue, float floatValue, string strValue)
+        public async Task<IActionResult> ExpressionOperators(int intValue, float floatValue, string strValue)
         {
-            return Content($"Int value {intValue}. Float value {floatValue}. String value {strValue}");
+            PiiBase? pii = await Task.FromResult<PiiBase>(new Pii());
+            var piiValue = pii?.TestValue;
+            return Content($"Int value {intValue}. Float value {floatValue}. String value {strValue}. Pii value {piiValue}");
         }
 
         [HttpGet("expression/strings")]
@@ -114,67 +116,15 @@ namespace weblog
 
         [HttpGet("expression/null")]
         [Consumes("application/json", "application/xml")]
-        public async Task<IActionResult> Nulls(int? intValue = null, string strValue = null)
+        public async Task<IActionResult> Nulls(int? intValue = null, string strValue = null, bool? boolValue = null)
         {
-            PiiBase? pii = await Task.FromResult<PiiBase>(null);
+            PiiBase pii = null;
+            if (boolValue == true)
+            {
+                pii = await Task.FromResult<PiiBase>(null);
+            }
+
             return Content($"Pii is null {pii is null}. intValue is null {intValue is null}. strValue is null {strValue is null}.");
-        }
-
-        [HttpGet("exceptionreplay/simple")]
-        [Consumes("application/json", "application/xml")]
-        public IActionResult ExceptionReplaySimple()
-        {
-            throw new System.Exception("Simple exception");
-        }
-
-        [HttpGet("exceptionreplay/recursion")]
-        [Consumes("application/json", "application/xml")]
-        public IActionResult ExceptionReplayRecursion(int depth)
-        {
-            if (depth > 0)
-            {
-                return ExceptionReplayRecursion(depth - 1);
-            }
-            else
-            {
-                throw new System.Exception("Recursion exception");
-            }
-        }
-
-        [HttpGet("exceptionreplay/inner")]
-        [Consumes("application/json", "application/xml")]
-        public IActionResult ExceptionReplayInner()
-        {
-            try
-            {
-                throw new System.Exception("Inner exception");
-            }
-            catch (System.Exception ex)
-            {
-                throw new System.Exception("Outer exception", ex);
-            }
-        }
-
-        [HttpGet("exceptionreplay/rps")]
-        [Consumes("application/json", "application/xml")]
-        public IActionResult ExceptionReplayRockPaperScissors(string shape)
-        {
-            if (shape == "rock")
-            {
-                throw new ExceptionReplayRock();
-            }
-
-            if (shape == "paper")
-            {
-                throw new ExceptionReplayPaper();
-            }
-
-            if (shape == "scissors")
-            {
-                throw new ExceptionReplayScissors();
-            }
-
-            return Content("No exception");
         }
     }
 }

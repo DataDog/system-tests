@@ -56,7 +56,7 @@ class _TestAgentInterfaceValidator(InterfaceValidator):
     def get_crashlog_for_runtime(self, runtime_id):
         logger.debug(f"Try to find a crashlog related to runtime-id {runtime_id}")
         assert runtime_id is not None, "Runtime ID not found"
-        return [l for l in self.get_telemetry_logs() if l["runtime_id"] == runtime_id]
+        return [log for log in self.get_telemetry_logs() if log["runtime_id"] == runtime_id]
 
     def get_telemetry_for_autoinject(self):
         logger.debug("Try to find telemetry data related to autoinject")

@@ -28,13 +28,13 @@ def main():
     data = requests.get("https://dd-feature-parity.azurewebsites.net/statistics", timeout=10)
     values = flatten(data.json())
 
-    series = [Series(metric=name, points=[Point([(datetime.now(UTC)).timestamp(), value]),],) for name, value in values]
+    series = [Series(metric=name, points=[Point([(datetime.now(UTC)).timestamp(), value])]) for name, value in values]
 
     configuration = Configuration(host="datad0g.com")
     with ApiClient(configuration) as api_client:
         api_instance = MetricsApi(api_client)
         response = api_instance.submit_metrics(
-            content_encoding=MetricContentEncoding.DEFLATE, body=MetricsPayload(series=series),
+            content_encoding=MetricContentEncoding.DEFLATE, body=MetricsPayload(series=series)
         )
 
         print(response)

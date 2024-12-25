@@ -339,7 +339,7 @@ class Test_RemoteConfigurationUpdateSequenceASMDD(RemoteConfigurationFieldsBasic
             ASM_DD_EXPECTED_REQUESTS = json.load(f)
 
         def validate(data):
-            """ Helper to validate config request content """
+            """Helper to validate config request content"""
 
             if not self.response_has_been_overwritten(data):
                 return False
@@ -362,12 +362,12 @@ class Test_RemoteConfigurationUpdateSequenceASMDD(RemoteConfigurationFieldsBasic
 @features.appsec_onboarding
 class Test_RemoteConfigurationUpdateSequenceFeaturesNoCache(RemoteConfigurationFieldsBasicTests):
     """
-        Tests that over a sequence of related updates, tracers follow the RFC for the Features product
-        This test is not relevant for all tracers but C++ and ruby (missing feature). It may be never used
-        if those languages directly implements  cache feature.
+    Tests that over a sequence of related updates, tracers follow the RFC for the Features product
+    This test is not relevant for all tracers but C++ and ruby (missing feature). It may be never used
+    if those languages directly implements  cache feature.
 
-        It may be brokken as it's using the new RC API, and thus may have a additional
-        RC request between each payload. But we do not have a way to check that.
+    It may be brokken as it's using the new RC API, and thus may have a additional
+    RC request between each payload. But we do not have a way to check that.
     """
 
     request_number = 0
@@ -410,10 +410,10 @@ class Test_RemoteConfigurationUpdateSequenceFeaturesNoCache(RemoteConfigurationF
 @features.remote_config_object_supported
 class Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache(RemoteConfigurationFieldsBasicTests):
     """
-        Tests that over a sequence of related updates, tracers follow the RFC for the Live Debugging product
-    
-        It may be brokken as it's using the new RC API, and thus may have a additional
-        RC request between each payload. But we do not have a way to check that.
+    Tests that over a sequence of related updates, tracers follow the RFC for the Live Debugging product
+
+    It may be brokken as it's using the new RC API, and thus may have a additional
+    RC request between each payload. But we do not have a way to check that.
     """
 
     request_number = defaultdict(int)
@@ -457,9 +457,9 @@ class Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache(RemoteConfigura
 @features.remote_config_object_supported
 class Test_RemoteConfigurationUpdateSequenceASMDDNoCache(RemoteConfigurationFieldsBasicTests):
     """Tests that over a sequence of related updates, tracers follow the RFC for the ASM DD product
-    
-        It may be brokken as it's using the new RC API, and thus may have a additional
-        RC request between each payload. But we do not have a way to check that.
+
+    It may be brokken as it's using the new RC API, and thus may have a additional
+    RC request between each payload. But we do not have a way to check that.
     """
 
     request_number = 0

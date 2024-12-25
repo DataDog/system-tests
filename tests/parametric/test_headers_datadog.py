@@ -32,8 +32,7 @@ class Test_Headers_Datadog:
         assert span["metrics"].get(SAMPLING_PRIORITY_KEY) == 2
 
     def test_distributed_headers_extract_datadog_invalid_D002(self, test_agent, test_library):
-        """Ensure that invalid Datadog distributed tracing headers are not extracted.
-        """
+        """Ensure that invalid Datadog distributed tracing headers are not extracted."""
         with test_library:
             headers = test_library.dd_make_child_span_and_get_headers(
                 [
@@ -53,8 +52,7 @@ class Test_Headers_Datadog:
         assert span["metrics"].get(SAMPLING_PRIORITY_KEY) != 2
 
     def test_distributed_headers_inject_datadog_D003(self, test_agent, test_library):
-        """Ensure that Datadog distributed tracing headers are injected properly.
-        """
+        """Ensure that Datadog distributed tracing headers are injected properly."""
         with test_library:
             headers = test_library.dd_make_child_span_and_get_headers([])
 

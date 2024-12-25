@@ -2,9 +2,8 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-"""
-Usage:
-    PYTHONPATH=. python utils/interfaces/_schemas_validators.py
+"""Usage:
+PYTHONPATH=. python utils/interfaces/_schemas_validators.py
 """
 
 from dataclasses import dataclass
@@ -40,7 +39,7 @@ def _get_schemas_filenames():
 
 @functools.lru_cache
 def _get_schemas_store():
-    """returns a dict with all defined schemas"""
+    """Returns a dict with all defined schemas"""
 
     store = {}
 
@@ -109,7 +108,7 @@ class SchemaValidator:
             return []
 
         return [
-            SchemaError(interface_name=self.interface, endpoint=path, error=error, data=data,)
+            SchemaError(interface_name=self.interface, endpoint=path, error=error, data=data)
             for error in validator.iter_errors(data["request"]["content"])
         ]
 

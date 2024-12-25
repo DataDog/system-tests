@@ -1,4 +1,5 @@
 """Setup the app application"""
+
 import logging
 
 from app.config.environment import load_environment

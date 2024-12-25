@@ -47,7 +47,7 @@ class Test_Headers_Tracestate_DD:
 
             # 3) Sampled = 1, tracestate[dd][s] is not present
             headers3 = test_library.dd_make_child_span_and_get_headers(
-                [["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],]
+                [["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"]]
             )
 
             # 4) Sampled = 1, tracestate[dd][s] <= 0
@@ -68,7 +68,7 @@ class Test_Headers_Tracestate_DD:
 
             # 6) Sampled = 0, tracestate[dd][s] is not present
             headers6 = test_library.dd_make_child_span_and_get_headers(
-                [["traceparent", "00-12345678901234567890123456789012-1234567890123456-00"],]
+                [["traceparent", "00-12345678901234567890123456789012-1234567890123456-00"]]
             )
 
             # 7) Sampled = 0, tracestate[dd][s] <= 0
@@ -591,7 +591,7 @@ class Test_Headers_Tracestate_DD:
 
             # 4) Input: No tracestate string
             headers4 = test_library.dd_make_child_span_and_get_headers(
-                [["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],],
+                [["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"]],
             )
 
         # 1) Input: 32 list-members with 'dd' at the end of the tracestate string
