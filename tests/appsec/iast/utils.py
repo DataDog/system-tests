@@ -244,7 +244,7 @@ def validate_stack_traces(request):
                 and location["line"] == frame["line"]
             )
         ) or (
-            stack_trace["language"] == "python"
+            stack_trace["language"] in ("python", "nodejs")
             and (frame.get("file", "").endswith(location["path"]) and location["line"] == frame["line"])
         ):
             locationFrame = frame
