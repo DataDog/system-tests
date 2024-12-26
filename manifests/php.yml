@@ -143,6 +143,8 @@ tests/:
           TestPath: missing_feature
         test_path_parameter.py:
           TestPathParameter: missing_feature
+        test_sql_row.py:
+          TestSqlRow: missing_feature
         test_uri.py:
           TestURI: missing_feature
     rasp/:
@@ -384,7 +386,6 @@ tests/:
       Test_RemoteConfigurationUpdateSequenceASMDDNoCache: irrelevant (cache is implemented)
       Test_RemoteConfigurationUpdateSequenceFeaturesNoCache: irrelevant (cache is implemented)
       Test_RemoteConfigurationUpdateSequenceLiveDebugging: missing_feature
-      Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache: missing_feature
   serverless/:
     span_pointers/:
       aws/:
@@ -442,7 +443,7 @@ tests/:
     Test_UrlQuery: v0.76.0
   test_semantic_conventions.py:
     Test_MetricsStandardTags: v0.83.1
-  test_span_events.py: missing_feature (Weblog `/add_event` not implemented)
+  test_span_events.py: incomplete_test_app (Weblog `/add_event` not implemented)
   test_standard_tags.py:
     Test_StandardTagsMethod: v0.75.0
     Test_StandardTagsRoute: missing_feature

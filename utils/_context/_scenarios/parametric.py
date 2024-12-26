@@ -40,7 +40,7 @@ _NETWORK_PREFIX = "apm_shared_tests_network"
 def _get_client() -> docker.DockerClient:
     try:
         return docker.DockerClient.from_env()
-    except DockerException as e:
+    except DockerException:
         # Failed to start the default Docker client... Let's see if we have
         # better luck with docker contexts...
         try:
@@ -57,7 +57,7 @@ def _get_client() -> docker.DockerClient:
         except:
             logger.exception("No more success with docker contexts")
 
-        raise e
+        raise
 
 
 @dataclasses.dataclass
@@ -107,9 +107,9 @@ class ParametricScenario(Scenario):
             result = {}
             for ctx_filename in glob.glob(f"{self.outer_inst.host_log_folder}/*_context.json"):
                 with open(ctx_filename) as f:
-                    fileContent = f.read()
+                    file_content = f.read()
                     # Remove last carriage return and the last comma. Wrap into json array.
-                    all_params = json.loads(f"[{fileContent[:-2]}]")
+                    all_params = json.loads(f"[{file_content[:-2]}]")
                     # Change from array to unique dict
                     for d in all_params:
                         result.update(d)
@@ -160,7 +160,7 @@ class ParametricScenario(Scenario):
             self._clean_networks()
 
         # https://github.com/DataDog/system-tests/issues/2799
-        if library in ("nodejs", "python", "golang", "ruby"):
+        if library in ("nodejs", "python", "golang", "ruby", "dotnet"):
             output = _get_client().containers.run(
                 self.apm_test_server_definition.container_tag,
                 remove=True,
@@ -449,19 +449,16 @@ def dotnet_library_factory():
     dotnet_appdir = os.path.join("utils", "build", "docker", "dotnet", "parametric")
     dotnet_absolute_appdir = os.path.join(_get_base_directory(), dotnet_appdir)
     dotnet_reldir = dotnet_appdir.replace("\\", "/")
-    server = APMLibraryTestServer(
+    return APMLibraryTestServer(
         lang="dotnet",
         container_name="dotnet-test-api",
         container_tag="dotnet8_0-test-api",
         container_img=f"""
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build-app
 WORKDIR /app
 
-# `binutils` is required by 'install_ddtrace.sh' to call 'strings' command
-RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y binutils
-
-COPY utils/build/docker/dotnet/install_ddtrace.sh binaries/ /binaries/
-RUN /binaries/install_ddtrace.sh
+# Opt-out of .NET SDK CLI telemetry
+ENV DOTNET_CLI_TELEMETRY_OPTOUT=1
 
 # dotnet restore
 COPY {dotnet_reldir}/ApmTestApi.csproj {dotnet_reldir}/nuget.config ./
@@ -473,8 +470,25 @@ RUN dotnet publish --no-restore -c Release -o out
 
 ##################
 
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build-version-tool
+WORKDIR /app
+
+# Opt-out of .NET SDK CLI telemetry
+ENV DOTNET_CLI_TELEMETRY_OPTOUT=1
+
+COPY {dotnet_reldir}/../GetAssemblyVersion ./
+RUN dotnet publish -c Release -o out
+
+##################
+
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
 WORKDIR /app
+
+RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y curl
+
+# install dd-trace-dotnet (must be done before setting LD_PRELOAD)
+COPY utils/build/docker/dotnet/install_ddtrace.sh binaries/ /binaries/
+RUN /binaries/install_ddtrace.sh
 
 # Opt-out of .NET SDK CLI telemetry (prevent unexpected http client spans)
 ENV DOTNET_CLI_TELEMETRY_OPTOUT=1
@@ -492,20 +506,20 @@ ENV DD_TRACE_AspNetCore_ENABLED=false
 ENV DD_TRACE_Process_ENABLED=false
 ENV DD_TRACE_OTEL_ENABLED=false
 
+# copy custom tool used to get library version (built above)
+COPY utils/build/docker/dotnet/parametric/system_tests_library_version.sh ./
+COPY --from=build-version-tool /app/out /app
 
-COPY --from=build /app/out /app
-COPY --from=build /app/SYSTEM_TESTS_LIBRARY_VERSION /app/SYSTEM_TESTS_LIBRARY_VERSION
-COPY --from=build /opt/datadog /opt/datadog
+# copy the dotnet app (built above)
+COPY --from=build-app /app/out /app
+
 RUN mkdir /parametric-tracer-logs
-
 CMD ["./ApmTestApi"]
 """,
         container_cmd=[],
         container_build_dir=dotnet_absolute_appdir,
         container_build_context=_get_base_directory(),
     )
-
-    return server
 
 
 def java_library_factory():

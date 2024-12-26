@@ -71,6 +71,9 @@ indent-style = "space"
 # docstring-code-line-length = "dynamic"
 
 [tool.ruff.lint]
+exclude = [ 
+    "docs/*",
+]
 select = ["ALL"]
 
 ignore = [
@@ -86,9 +89,6 @@ ignore = [
     "BLE001",  # Do not catch blind exception: `Exception`, big project to enable this
     "C901",    # code complexity, TBD
     "E722",    # bare except, big project to enable this
-    "INP001",  # implicit package
-    "N801",    # easy
-    "N806",
     "PERF401", # TBD, the "good" code can be harder to read
     "PLR0911", # too many return, may be replaced by a higher default value
     "PLR0912", # Too many branches
@@ -106,22 +106,11 @@ ignore = [
     "PTH120",
     "PTH122",
     "PTH123",  # `open()` should be replaced by `Path.open()`
-    "RET504",
     "RUF012",
-    "RUF013",
     "S202",
-    "S507",
     "SIM102",
-    "SIM108",
     "SIM110",  # TBD
-    "SIM401",  # code quality, TBD
-    "SLF001",
-    "TRY002",
     "TRY003",  # this is a full project to enable this
-    "TRY201",
-    "TRY300",
-    "UP007",
-    "UP038",   # we really want this? TBD
 
 
     ### Ignores that will be kept for the entire project
@@ -162,25 +151,34 @@ ignore = [
     "TD002",  # todo found
     "TD003",  # todo found
     "TD004",  # todo found
+    "TRY300", # not always obvious
+    "UP038",  # not a big fan
 
 ]
 
-# TODO : remove those ignores
 [tool.ruff.lint.per-file-ignores]
+"utils/grpc/weblog_pb2_grpc.py" = ["ALL"]
+"utils/grpc/weblog_pb2.py" = ["ALL"]
+"utils/scripts/*" = [
+    "INP001",  # this is not a package
+    "T201"     # allow print statements in scripts folder
+]
+"utils/interfaces/schemas/serve_doc.py" = ["INP001"] # this is not a package
+"utils/waf_rules.py" = ["N801"]  # generated file
+# TODO : remove those ignores
 "tests/*" = ["ALL"]
 "utils/build/*"  = ["ALL"]
 "lib-injection/*" = ["ALL"]
-"manifests/*"  = ["ALL"]
-"utils/grpc/weblog_pb2_grpc.py" = ["ALL"]   # keep this one, it's a generated file
-"utils/grpc/weblog_pb2.py" = ["ALL"]        # keep this one, it's a generated file
-"utils/scripts/*" = ["T201"]                # allow print statements in scripts folder
 "utils/{k8s_lib_injection/*,_context/_scenarios/k8s_lib_injection.py}" = [
+    "TRY201",
+    "TRY002",
     "D207",
     "SIM115",
     "S603",
     "DTZ005",
     "E501",    # line too long
     "FBT002",  # Boolean default positional argument
+    "SLF001",
     "RET505",
     "TRY301",
     "B006",
@@ -231,6 +229,8 @@ ignore = [
 "utils/_context/virtual_machines.py" = [
     "ARG002",  # unused method argument
     "FBT002",  # Boolean default positional argument
+    "N801",    # class naming
+    "S507",    # Paramiko call with policy set to automatically trust the unknown host key
 ]
 "utils/virtual_machine/*" = [
     "A002",
@@ -265,6 +265,7 @@ ignore = [
     "SIM102",
     "SIM113",
     "SIM300",
+    "SIM401",  # code quality, TBD
     "UP008",
     "UP015",
     "UP031",
