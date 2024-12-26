@@ -1,5 +1,6 @@
 'use strict'
 
+const passport = require('passport')
 const { Strategy: LocalStrategy } = require('passport-local')
 const { BasicStrategy } = require('passport-http')
 
@@ -18,7 +19,7 @@ const users = [
   }
 ]
 
-module.exports = function (app, passport, tracer) {
+module.exports = function (app, tracer) {
   app.use(passport.initialize())
   app.use(passport.session())
 
