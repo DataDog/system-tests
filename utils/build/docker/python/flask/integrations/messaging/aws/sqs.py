@@ -26,6 +26,7 @@ def sqs_produce(queue, message, timeout=60):
             data = sqs.create_queue(QueueName=queue)
             queue_created = True
             logging.info(data)
+            logging.info(data.get("QueueUrl"))
             logging.info(f"Created SQS Queue with name: {queue}")
         except Exception as e:
             exc = e
@@ -56,13 +57,14 @@ def sqs_consume(queue, expectedMessage, timeout=60):
     """
     # Create an SQS client
     sqs = boto3.client("sqs", region_name="us-east-1", endpoint_url=HOST)
+    response = sqs.get_queue_url(QueueName=queue)
 
     consumed_message = None
     start_time = time.time()
 
     while not consumed_message and time.time() - start_time < timeout:
         try:
-            response = sqs.receive_message(QueueUrl=f"https://sqs.us-east-1.amazonaws.com/{AWS_ACCT}/{queue}")
+            response = sqs.receive_message(QueueUrl=response.get("QueueUrl"))
             if response and "Messages" in response:
                 for message in response["Messages"]:
                     if message["Body"] == expectedMessage:
