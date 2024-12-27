@@ -9,6 +9,7 @@ from utils import remote_config as rc
 from utils import rfc
 from utils import scenarios
 from utils import weblog
+from utils import missing_feature
 
 # User entries in the internal DB:
 # users = [
@@ -143,6 +144,7 @@ class Test_Automated_User_Blocking:
             "/login?auth=local&sdk_event=success&sdk_user=sdkUser", data=login_data(context, UUID_USER, PASSWORD)
         )
 
+    @missing_feature(context.library == "nodejs", reason="Blocking through the SDK is not supported")
     def test_user_blocking_sdk(self):
         assert self.config_state_1[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
         assert self.config_state_2[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
