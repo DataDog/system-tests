@@ -527,7 +527,7 @@ tests/:
         '*': *ref_5_29_0
         nextjs: missing_feature
     test_automated_user_and_session_tracking.py:
-      Test_Automated_Session_Blocking: *ref_5_31_0
+      Test_Automated_Session_Blocking: missing_feature
       Test_Automated_User_Blocking: *ref_5_31_0
       Test_Automated_User_Tracking: *ref_5_31_0
     test_blocking_addresses.py:
