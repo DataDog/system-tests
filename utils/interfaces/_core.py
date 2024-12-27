@@ -132,7 +132,7 @@ class ProxyBasedInterfaceValidator(InterfaceValidator):
 
             yield data
 
-    def validate(self, validator, path_filters=None, success_by_default=False):
+    def validate(self, validator, path_filters=None, *, success_by_default=False):
         for data in self.get_data(path_filters=path_filters):
             try:
                 if validator(data) is True:

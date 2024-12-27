@@ -13,11 +13,11 @@ class TelemetryUtils:
 
     @staticmethod
     def get_dd_appsec_sca_enabled_str(library):
-        DD_APPSEC_SCA_ENABLED = "DD_APPSEC_SCA_ENABLED"
+        result = "DD_APPSEC_SCA_ENABLED"
         if library == "java":
-            DD_APPSEC_SCA_ENABLED = "appsec_sca_enabled"
+            result = "appsec_sca_enabled"
         elif library == "nodejs":
-            DD_APPSEC_SCA_ENABLED = "appsec.sca.enabled"
+            result = "appsec.sca.enabled"
         elif library in ("php", "ruby"):
-            DD_APPSEC_SCA_ENABLED = "appsec.sca_enabled"
-        return DD_APPSEC_SCA_ENABLED
+            result = "appsec.sca_enabled"
+        return result

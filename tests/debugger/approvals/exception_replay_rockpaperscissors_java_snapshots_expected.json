@@ -10,204 +10,6 @@
         "arguments": {
           "shape": {
             "type": "java.lang.String",
-            "value": "rock"
-          },
-          "this": {
-            "type": "com.datadoghq.system_tests.springboot.ExceptionReplayController",
-            "fields": {}
-          }
-        },
-        "locals": {},
-        "staticFields": {},
-        "throwable": {
-          "message": "Rock exception",
-          "stacktrace": [
-            {
-              "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.exceptionReplayRockPaperScissors",
-              "lineNumber": 36
-            },
-            {
-              "function": "datadog.trace.instrumentation.springweb.HandlerMappingResourceNameFilter.doFilterInternal",
-              "lineNumber": 50
-            },
-            {
-              "<runtime>": "<scrubbed>"
-            }
-          ],
-          "type": "com.datadoghq.system_tests.springboot.ExceptionReplayRock"
-        }
-      }
-    },
-    "exceptionId": "<scrubbed>",
-    "id": "<scrubbed>",
-    "language": "java",
-    "probe": {
-      "id": "<scrubbed>",
-      "version": 0,
-      "location": {
-        "lines": [],
-        "method": "exceptionReplayRockPaperScissors",
-        "type": "com.datadoghq.system_tests.springboot.ExceptionReplayController"
-      }
-    },
-    "stack": [
-      {
-        "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.exceptionReplayRockPaperScissors",
-        "lineNumber": 47
-      },
-      {
-        "function": "datadog.trace.instrumentation.springweb.HandlerMappingResourceNameFilter.doFilterInternal",
-        "lineNumber": 50
-      },
-      {
-        "<runtime>": "<scrubbed>"
-      }
-    ],
-    "timestamp": "<scrubbed>"
-  },
-  {
-    "captures": {
-      "entry": {
-        "arguments": {},
-        "locals": {},
-        "staticFields": {}
-      },
-      "return": {
-        "arguments": {
-          "shape": {
-            "type": "java.lang.String",
-            "value": "rock"
-          },
-          "this": {
-            "type": "com.datadoghq.system_tests.springboot.ExceptionReplayController",
-            "fields": {}
-          }
-        },
-        "locals": {},
-        "staticFields": {},
-        "throwable": {
-          "message": "Rock exception",
-          "stacktrace": [
-            {
-              "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.exceptionReplayRockPaperScissors",
-              "lineNumber": 36
-            },
-            {
-              "function": "datadog.trace.instrumentation.springweb.HandlerMappingResourceNameFilter.doFilterInternal",
-              "lineNumber": 50
-            },
-            {
-              "<runtime>": "<scrubbed>"
-            }
-          ],
-          "type": "com.datadoghq.system_tests.springboot.ExceptionReplayRock"
-        }
-      }
-    },
-    "exceptionId": "<scrubbed>",
-    "id": "<scrubbed>",
-    "language": "java",
-    "probe": {
-      "id": "<scrubbed>",
-      "version": 0,
-      "location": {
-        "lines": [],
-        "method": "exceptionReplayRockPaperScissors",
-        "type": "com.datadoghq.system_tests.springboot.ExceptionReplayController"
-      }
-    },
-    "stack": [
-      {
-        "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.exceptionReplayRockPaperScissors",
-        "lineNumber": 47
-      },
-      {
-        "function": "datadog.trace.instrumentation.springweb.HandlerMappingResourceNameFilter.doFilterInternal",
-        "lineNumber": 50
-      },
-      {
-        "<runtime>": "<scrubbed>"
-      }
-    ],
-    "timestamp": "<scrubbed>"
-  },
-  {
-    "captures": {
-      "entry": {
-        "arguments": {},
-        "locals": {},
-        "staticFields": {}
-      },
-      "return": {
-        "arguments": {
-          "shape": {
-            "type": "java.lang.String",
-            "value": "rock"
-          },
-          "this": {
-            "type": "com.datadoghq.system_tests.springboot.ExceptionReplayController",
-            "fields": {}
-          }
-        },
-        "locals": {},
-        "staticFields": {},
-        "throwable": {
-          "message": "Rock exception",
-          "stacktrace": [
-            {
-              "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.exceptionReplayRockPaperScissors",
-              "lineNumber": 36
-            },
-            {
-              "function": "datadog.trace.instrumentation.springweb.HandlerMappingResourceNameFilter.doFilterInternal",
-              "lineNumber": 50
-            },
-            {
-              "<runtime>": "<scrubbed>"
-            }
-          ],
-          "type": "com.datadoghq.system_tests.springboot.ExceptionReplayRock"
-        }
-      }
-    },
-    "exceptionId": "<scrubbed>",
-    "id": "<scrubbed>",
-    "language": "java",
-    "probe": {
-      "id": "<scrubbed>",
-      "version": 0,
-      "location": {
-        "lines": [],
-        "method": "exceptionReplayRockPaperScissors",
-        "type": "com.datadoghq.system_tests.springboot.ExceptionReplayController"
-      }
-    },
-    "stack": [
-      {
-        "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.exceptionReplayRockPaperScissors",
-        "lineNumber": 47
-      },
-      {
-        "function": "datadog.trace.instrumentation.springweb.HandlerMappingResourceNameFilter.doFilterInternal",
-        "lineNumber": 50
-      },
-      {
-        "<runtime>": "<scrubbed>"
-      }
-    ],
-    "timestamp": "<scrubbed>"
-  },
-  {
-    "captures": {
-      "entry": {
-        "arguments": {},
-        "locals": {},
-        "staticFields": {}
-      },
-      "return": {
-        "arguments": {
-          "shape": {
-            "type": "java.lang.String",
             "value": "paper"
           },
           "this": {
@@ -365,6 +167,204 @@
             }
           ],
           "type": "com.datadoghq.system_tests.springboot.ExceptionReplayPaper"
+        }
+      }
+    },
+    "exceptionId": "<scrubbed>",
+    "id": "<scrubbed>",
+    "language": "java",
+    "probe": {
+      "id": "<scrubbed>",
+      "version": 0,
+      "location": {
+        "lines": [],
+        "method": "exceptionReplayRockPaperScissors",
+        "type": "com.datadoghq.system_tests.springboot.ExceptionReplayController"
+      }
+    },
+    "stack": [
+      {
+        "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.exceptionReplayRockPaperScissors",
+        "lineNumber": 47
+      },
+      {
+        "function": "datadog.trace.instrumentation.springweb.HandlerMappingResourceNameFilter.doFilterInternal",
+        "lineNumber": 50
+      },
+      {
+        "<runtime>": "<scrubbed>"
+      }
+    ],
+    "timestamp": "<scrubbed>"
+  },
+  {
+    "captures": {
+      "entry": {
+        "arguments": {},
+        "locals": {},
+        "staticFields": {}
+      },
+      "return": {
+        "arguments": {
+          "shape": {
+            "type": "java.lang.String",
+            "value": "rock"
+          },
+          "this": {
+            "type": "com.datadoghq.system_tests.springboot.ExceptionReplayController",
+            "fields": {}
+          }
+        },
+        "locals": {},
+        "staticFields": {},
+        "throwable": {
+          "message": "Rock exception",
+          "stacktrace": [
+            {
+              "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.exceptionReplayRockPaperScissors",
+              "lineNumber": 36
+            },
+            {
+              "function": "datadog.trace.instrumentation.springweb.HandlerMappingResourceNameFilter.doFilterInternal",
+              "lineNumber": 50
+            },
+            {
+              "<runtime>": "<scrubbed>"
+            }
+          ],
+          "type": "com.datadoghq.system_tests.springboot.ExceptionReplayRock"
+        }
+      }
+    },
+    "exceptionId": "<scrubbed>",
+    "id": "<scrubbed>",
+    "language": "java",
+    "probe": {
+      "id": "<scrubbed>",
+      "version": 0,
+      "location": {
+        "lines": [],
+        "method": "exceptionReplayRockPaperScissors",
+        "type": "com.datadoghq.system_tests.springboot.ExceptionReplayController"
+      }
+    },
+    "stack": [
+      {
+        "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.exceptionReplayRockPaperScissors",
+        "lineNumber": 47
+      },
+      {
+        "function": "datadog.trace.instrumentation.springweb.HandlerMappingResourceNameFilter.doFilterInternal",
+        "lineNumber": 50
+      },
+      {
+        "<runtime>": "<scrubbed>"
+      }
+    ],
+    "timestamp": "<scrubbed>"
+  },
+  {
+    "captures": {
+      "entry": {
+        "arguments": {},
+        "locals": {},
+        "staticFields": {}
+      },
+      "return": {
+        "arguments": {
+          "shape": {
+            "type": "java.lang.String",
+            "value": "rock"
+          },
+          "this": {
+            "type": "com.datadoghq.system_tests.springboot.ExceptionReplayController",
+            "fields": {}
+          }
+        },
+        "locals": {},
+        "staticFields": {},
+        "throwable": {
+          "message": "Rock exception",
+          "stacktrace": [
+            {
+              "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.exceptionReplayRockPaperScissors",
+              "lineNumber": 36
+            },
+            {
+              "function": "datadog.trace.instrumentation.springweb.HandlerMappingResourceNameFilter.doFilterInternal",
+              "lineNumber": 50
+            },
+            {
+              "<runtime>": "<scrubbed>"
+            }
+          ],
+          "type": "com.datadoghq.system_tests.springboot.ExceptionReplayRock"
+        }
+      }
+    },
+    "exceptionId": "<scrubbed>",
+    "id": "<scrubbed>",
+    "language": "java",
+    "probe": {
+      "id": "<scrubbed>",
+      "version": 0,
+      "location": {
+        "lines": [],
+        "method": "exceptionReplayRockPaperScissors",
+        "type": "com.datadoghq.system_tests.springboot.ExceptionReplayController"
+      }
+    },
+    "stack": [
+      {
+        "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.exceptionReplayRockPaperScissors",
+        "lineNumber": 47
+      },
+      {
+        "function": "datadog.trace.instrumentation.springweb.HandlerMappingResourceNameFilter.doFilterInternal",
+        "lineNumber": 50
+      },
+      {
+        "<runtime>": "<scrubbed>"
+      }
+    ],
+    "timestamp": "<scrubbed>"
+  },
+  {
+    "captures": {
+      "entry": {
+        "arguments": {},
+        "locals": {},
+        "staticFields": {}
+      },
+      "return": {
+        "arguments": {
+          "shape": {
+            "type": "java.lang.String",
+            "value": "rock"
+          },
+          "this": {
+            "type": "com.datadoghq.system_tests.springboot.ExceptionReplayController",
+            "fields": {}
+          }
+        },
+        "locals": {},
+        "staticFields": {},
+        "throwable": {
+          "message": "Rock exception",
+          "stacktrace": [
+            {
+              "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.exceptionReplayRockPaperScissors",
+              "lineNumber": 36
+            },
+            {
+              "function": "datadog.trace.instrumentation.springweb.HandlerMappingResourceNameFilter.doFilterInternal",
+              "lineNumber": 50
+            },
+            {
+              "<runtime>": "<scrubbed>"
+            }
+          ],
+          "type": "com.datadoghq.system_tests.springboot.ExceptionReplayRock"
         }
       }
     },

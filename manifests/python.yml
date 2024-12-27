@@ -239,6 +239,8 @@ tests/:
             flask-poc: v2.13.0
             uds-flask: v2.13.0
             uwsgi-poc: v2.13.0
+        test_sql_row.py:
+          TestSqlRow: missing_feature
         test_uri.py:
           TestURI: missing_feature
     rasp/:
@@ -454,6 +456,11 @@ tests/:
       Test_V2_Login_Events: v2.11.0
       Test_V2_Login_Events_Anon: v2.11.0
       Test_V2_Login_Events_RC: v2.11.0
+      Test_V3_Auto_User_Instrum_Mode_Capability: missing_feature
+      Test_V3_Login_Events: missing_feature
+      Test_V3_Login_Events_Anon: missing_feature
+      Test_V3_Login_Events_Blocking: missing_feature
+      Test_V3_Login_Events_RC: missing_feature
     test_automated_user_and_session_tracking.py:
       Test_Automated_Session_Blocking: missing_feature
       Test_Automated_User_Blocking: missing_feature
@@ -594,7 +601,11 @@ tests/:
       Test_Events: v0.58.5
   debugger/:
     test_debugger_exception_replay.py:
-      Test_Debugger_Exception_Replay: missing_feature
+      Test_Debugger_Exception_Replay:
+        '*': missing_feature
+        flask-poc: v2.11.0
+        uds-flask: v2.11.0
+        uwsgi-poc: v2.11.0
     test_debugger_expression_language.py:
       Test_Debugger_Expression_Language:
         '*': missing_feature
@@ -781,7 +792,7 @@ tests/:
     test_headers_b3multi.py:
       Test_Headers_B3multi: v2.8.0
     test_headers_baggage.py:
-      Test_Headers_Baggage: missing_feature
+      Test_Headers_Baggage: v2.16.0
     test_headers_datadog.py:
       Test_Headers_Datadog: v2.8.0
     test_headers_none.py:
@@ -806,7 +817,7 @@ tests/:
       Test_Otel_Tracer: v2.8.0
     test_parametric_endpoints.py:
       Test_Parametric_DDTrace_Baggage: v2.16.0
-      Test_Parametric_Otel_Baggage: v2.15.0
+      Test_Parametric_Otel_Baggage: v2.16.0
     test_partial_flushing.py:
       Test_Partial_Flushing: flaky (APMAPI-734)
     test_sampling_delegation.py:
@@ -846,7 +857,6 @@ tests/:
       Test_RemoteConfigurationUpdateSequenceFeatures: v1.7.4
       Test_RemoteConfigurationUpdateSequenceFeaturesNoCache: irrelevant (cache is implemented)
       Test_RemoteConfigurationUpdateSequenceLiveDebugging: v2.8.0
-      Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache: missing_feature
   serverless/:
     span_pointers/:
       aws/:
@@ -930,7 +940,7 @@ tests/:
   test_semantic_conventions.py:
     Test_Meta: v1.80.0
     Test_MetaDatadogTags: bug (APMAPI-735)
-  test_span_events.py: missing_feature (Weblog `/add_event` not implemented)
+  test_span_events.py: incomplete_test_app (Weblog `/add_event` not implemented)
   test_standard_tags.py:
     Test_StandardTagsClientIp: v2.7.0
     Test_StandardTagsMethod: v1.2.1
