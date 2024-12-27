@@ -440,7 +440,6 @@ require('./auth')(app, passport, tracer)
 
 // try to flush as much stuff as possible from the library
 app.get('/flush', (req, res) => {
-  // TODO make a try catch here
   // doesn't have a callback :(
   // tracer._tracer?._dataStreamsProcessor?.writer?.flush?.()
   tracer.dogstatsd?.flush?.()
@@ -449,10 +448,12 @@ app.get('/flush', (req, res) => {
   // does have a callback :)
   const promises = []
 
-  const { profiler } = require('dd-trace/packages/dd-trace/src/profiling/')
-  if (profiler?._collect) {
-    promises.push(profiler._collect('on_shutdown'))
-  }
+  try {
+    const { profiler } = require('dd-trace/packages/dd-trace/src/profiling/')
+    if (profiler?._collect) {
+      promises.push(profiler._collect('on_shutdown'))
+    }
+  } catch {}
 
   if (tracer._tracer?._exporter?._writer?.flush) {
     promises.push(promisify((err) => tracer._tracer._exporter._writer.flush(err)))
