@@ -154,10 +154,13 @@ class Test_Trace_Sampling_Globs:
                 "DD_TRACE_SAMPLE_RATE": 0,
                 "DD_TRACE_SAMPLING_RULES_FORMAT": "glob",
                 "DD_TRACE_SAMPLING_RULES": json.dumps(
-                    [{"name": "wEb.rEquEst", "sample_rate": 1},]
+                    [
+                        {"name": "wEb.rEquEst", "sample_rate": 1},
+                    ]
                 ),
             },
-            {   "DD_TRACE_SAMPLE_RATE": 0,
+            {
+                "DD_TRACE_SAMPLE_RATE": 0,
                 "DD_TRACE_SAMPLING_RULES": json.dumps([{"service": "wEbSerVer", "sample_rate": 1}]),
             },
             {
@@ -165,17 +168,19 @@ class Test_Trace_Sampling_Globs:
                 "DD_TRACE_SAMPLING_RULES_FORMAT": "glob",
                 "DD_TRACE_SAMPLING_RULES": json.dumps([{"resource": "/rAnDom", "sample_rate": 1}]),
             },
-            {   
+            {
                 "DD_TRACE_SAMPLE_RATE": 0,
                 "DD_TRACE_SAMPLING_RULES_FORMAT": "glob",
                 "DD_TRACE_SAMPLING_RULES": json.dumps([{"tags": {"key": "vAlUe"}, "sample_rate": 1}]),
-            }
+            },
         ],
     )
     def test_field_case_insensitivity(self, test_agent, test_library):
         """Test span sampling tags are added when a rule with glob patterns with special characters * and ? match"""
         with test_library:
-            with test_library.dd_start_span(name="web.request", service="webserver", resource="/random", tags=[("key", "value")]) as span:
+            with test_library.dd_start_span(
+                name="web.request", service="webserver", resource="/random", tags=[("key", "value")]
+            ) as span:
                 pass
 
         span = find_only_span(test_agent.wait_for_num_traces(1))
@@ -189,7 +194,9 @@ class Test_Trace_Sampling_Globs:
             {
                 "DD_TRACE_SAMPLE_RATE": 0,
                 "DD_TRACE_SAMPLING_RULES": json.dumps(
-                    [{"name": "wEb.*", "sample_rate": 1},]
+                    [
+                        {"name": "wEb.*", "sample_rate": 1},
+                    ]
                 ),
             }
         ],
@@ -197,7 +204,9 @@ class Test_Trace_Sampling_Globs:
     def test_trace_sampling_rules_format_not_needed(self, test_agent, test_library):
         """Glob should work by default without specifying the format"""
         with test_library:
-            with test_library.dd_start_span(name="web.request", service="webserver", resource="/random", tags=[("key", "value")]) as span:
+            with test_library.dd_start_span(
+                name="web.request", service="webserver", resource="/random", tags=[("key", "value")]
+            ) as span:
                 pass
 
         span = find_only_span(test_agent.wait_for_num_traces(1))
