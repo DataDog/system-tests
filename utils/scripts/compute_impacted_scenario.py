@@ -66,7 +66,7 @@ def main():
 
         # this file is generated with
         # ./run.sh MOCK_THE_TEST --collect-only --scenario-report
-        with open("logs_mock_the_test/scenarios.json", "r", encoding="utf-8") as f:
+        with open("logs_mock_the_test/scenarios.json", encoding="utf-8") as f:
             scenario_map = json.load(f)
 
         modified_nodeids = set()
@@ -96,18 +96,19 @@ def main():
         #   git fetch origin ${{ github.event.pull_request.base.sha || github.sha }}
         #   git diff --name-only HEAD ${{ github.event.pull_request.base.sha || github.sha }} >> modified_files.txt
 
-        with open("modified_files.txt", "r", encoding="utf-8") as f:
+        with open("modified_files.txt", encoding="utf-8") as f:
             modified_files = [line.strip() for line in f]
 
         for file in modified_files:
-
             if file.startswith("tests/"):
                 if file.startswith("tests/auto_inject"):
                     # Nothing to do, onboarding test run on gitlab nightly or manually
                     pass
-                elif file.endswith(("/utils.py", "/conftest.py")):
+                elif file.endswith(("/utils.py", "/conftest.py", ".json")):
                     # particular use case for modification in tests/ of a file utils.py or conftest.py
                     # in that situation, takes all scenarios executed in tests/<path>/
+
+                    # same for any json file
 
                     folder = "/".join(file.split("/")[:-1]) + "/"  # python trickery to remove last element
 
@@ -162,6 +163,8 @@ def main():
                     r"utils/docker_ssi/.*": ScenarioGroup.DOCKER_SSI.value,
                     ### Profiling case
                     r"utils/_context/_scenarios/profiling\.py": ScenarioGroup.PROFILING.value,
+                    ### IPv6
+                    r"utils/_context/_scenarios/ipv6\.py": ScenarioGroup.IPV6.value,
                     ### otel weblog
                     r"utils/build/docker/nodejs_otel/.*": ScenarioGroup.OPEN_TELEMETRY.value,
                     ### else, run all

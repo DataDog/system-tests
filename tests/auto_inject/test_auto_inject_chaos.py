@@ -10,7 +10,7 @@ from utils.virtual_machine.utils import parametrize_virtual_machines
 
 class BaseAutoInjectChaos(base.AutoInjectBaseTest):
     def _test_removing_things(self, virtual_machine, evil_command):
-        """ Test break the installation and restore it.
+        """Test break the installation and restore it.
         After breaking the installation, the app should be still working (but no sending traces to the backend).
         After breaking the installation, we can restart the app
         After restores the installation, the app should be working and sending traces to the backend."""
@@ -95,7 +95,7 @@ class TestAutoInjectChaos(BaseAutoInjectChaos):
         ]
     )
     def test_install_after_ld_preload(self, virtual_machine):
-        """ We added entries to the ld.so.preload. After that, we can install the dd software and the app should be instrumented."""
+        """We added entries to the ld.so.preload. After that, we can install the dd software and the app should be instrumented."""
         logger.info(f"Launching test_install for : [{virtual_machine.name}]...")
         self._test_install(virtual_machine)
         logger.info(f"Done test_install for : [{virtual_machine.name}]")

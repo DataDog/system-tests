@@ -19,7 +19,7 @@ from utils._decorators import released, configure as configure_decorators
 from utils.properties_serialization import SetupProperties
 
 # Monkey patch JSON-report plugin to avoid noise in report
-JSONReport.pytest_terminal_summary = lambda *args, **kwargs: None
+JSONReport.pytest_terminal_summary = lambda *args, **kwargs: None  # noqa: ARG005
 
 # pytest does not keep a trace of deselected items, so we keep it in a global variable
 _deselected_items = []
@@ -39,6 +39,14 @@ def pytest_addoption(parser):
 
     parser.addoption("--force-dd-trace-debug", action="store_true", help="Set DD_TRACE_DEBUG to true")
     parser.addoption("--force-dd-iast-debug", action="store_true", help="Set DD_IAST_DEBUG_ENABLED to true")
+    # k8s scenarios mandatory parameters
+    parser.addoption("--k8s-weblog", type=str, action="store", help="Set weblog to deploy on k8s")
+    parser.addoption("--k8s-library", type=str, action="store", help="Set language to test")
+    parser.addoption(
+        "--k8s-lib-init-img", type=str, action="store", help="Set tracers init image on the docker registry"
+    )
+    parser.addoption("--k8s-weblog-img", type=str, action="store", help="Set test app image on the docker registry")
+    parser.addoption("--k8s-cluster-version", type=str, action="store", help="Set the datadog agent version")
 
     # Onboarding scenarios mandatory parameters
     parser.addoption("--vm-weblog", type=str, action="store", help="Set virtual machine weblog")
@@ -72,7 +80,10 @@ def pytest_addoption(parser):
         "--ssi-installable-runtime",
         type=str,
         action="store",
-        help="Set the language runtime to install on the docker base image.Empty if we don't want to install any runtime",
+        help=(
+            """Set the language runtime to install on the docker base image. """
+            """Empty if we don't want to install any runtime"""
+        ),
     )
     parser.addoption("--ssi-push-base-images", "-P", action="store_true", help="Push docker ssi base images")
     parser.addoption("--ssi-force-build", "-B", action="store_true", help="Force build ssi base images")
@@ -90,15 +101,14 @@ def pytest_addoption(parser):
 
     # report data to feature parity dashboard
     parser.addoption(
-        "--report-run-url", type=str, action="store", default=None, help="URI of the run who produced the report",
+        "--report-run-url", type=str, action="store", default=None, help="URI of the run who produced the report"
     )
     parser.addoption(
-        "--report-environment", type=str, action="store", default=None, help="The environment the test is run under",
+        "--report-environment", type=str, action="store", default=None, help="The environment the test is run under"
     )
 
 
 def pytest_configure(config):
-
     if not config.option.force_dd_trace_debug and os.environ.get("SYSTEM_TESTS_FORCE_DD_TRACE_DEBUG") == "true":
         config.option.force_dd_trace_debug = True
 
@@ -132,9 +142,8 @@ def pytest_configure(config):
 
 # Called at the very begening
 def pytest_sessionstart(session):
-
     # get the terminal to allow logging directly in stdout
-    setattr(logger, "terminal", session.config.pluginmanager.get_plugin("terminalreporter"))
+    logger.terminal = session.config.pluginmanager.get_plugin("terminalreporter")
 
     # if only collect tests, do not start the scenario
     if not session.config.option.collectonly:
@@ -148,7 +157,6 @@ def pytest_sessionstart(session):
 
 # called when each test item is collected
 def _collect_item_metadata(item):
-
     result = {
         "details": None,
         "testDeclaration": None,
@@ -162,11 +170,7 @@ def _collect_item_metadata(item):
 
         if skip_reason is not None:
             # if any irrelevant declaration exists, it is the one we need to expose
-            if skip_reason.startswith("irrelevant"):
-                result["details"] = skip_reason
-
-            # otherwise, we keep the first one we found
-            elif result["details"] is None:
+            if skip_reason.startswith("irrelevant") or result["details"] is None:
                 result["details"] = skip_reason
 
     if result["details"]:
@@ -206,7 +210,6 @@ def _get_skip_reason_from_marker(marker):
 
 
 def pytest_pycollect_makemodule(module_path, parent):
-
     # As now, declaration only works for tracers at module level
 
     library = context.scenario.library.library
@@ -215,28 +218,28 @@ def pytest_pycollect_makemodule(module_path, parent):
 
     nodeid = str(module_path.relative_to(module_path.cwd()))
 
-    if nodeid in manifests and library in manifests[nodeid]:
-        declaration: str = manifests[nodeid][library]
+    if nodeid not in manifests or library not in manifests[nodeid]:
+        return None
 
-        logger.info(f"Manifest declaration found for {nodeid}: {declaration}")
+    declaration: str = manifests[nodeid][library]
 
-        mod: pytest.Module = pytest.Module.from_parent(parent, path=module_path)
+    logger.info(f"Manifest declaration found for {nodeid}: {declaration}")
 
-        if declaration.startswith(("irrelevant", "flaky")):
-            mod.add_marker(pytest.mark.skip(reason=declaration))
-            logger.debug(f"Module {nodeid} is skipped by manifest file because {declaration}")
-        else:
-            mod.add_marker(pytest.mark.xfail(reason=declaration))
-            logger.debug(f"Module {nodeid} is xfailed by manifest file because {declaration}")
+    mod: pytest.Module = pytest.Module.from_parent(parent, path=module_path)
 
-        return mod
+    if declaration.startswith(("irrelevant", "flaky")):
+        mod.add_marker(pytest.mark.skip(reason=declaration))
+        logger.debug(f"Module {nodeid} is skipped by manifest file because {declaration}")
+    else:
+        mod.add_marker(pytest.mark.xfail(reason=declaration))
+        logger.debug(f"Module {nodeid} is xfailed by manifest file because {declaration}")
+
+    return mod
 
 
 @pytest.hookimpl(tryfirst=True)
 def pytest_pycollect_makeitem(collector, name, obj):
-
     if collector.istestclass(obj, name):
-
         if obj is None:
             message = f"""{collector.nodeid} is not properly collected.
             You may have forgotten to return a value in a decorator like @features"""
@@ -257,7 +260,7 @@ def pytest_pycollect_makeitem(collector, name, obj):
 
 
 def pytest_collection_modifyitems(session, config, items: list[pytest.Item]):
-    """unselect items that are not included in the current scenario"""
+    """Unselect items that are not included in the current scenario"""
 
     logger.debug("pytest_collection_modifyitems")
 
@@ -313,7 +316,6 @@ def _item_is_skipped(item):
 
 
 def pytest_collection_finish(session: pytest.Session):
-
     if session.config.option.collectonly:
         return
 
@@ -324,15 +326,12 @@ def pytest_collection_finish(session: pytest.Session):
         except KeyboardInterrupt:  # catching ctrl+C
             context.scenario.close_targets()
             return
-        except Exception as e:
-            raise e
 
     if session.config.option.replay:
         setup_properties.load(context.scenario.host_log_folder)
 
     last_item_file = ""
     for item in session.items:
-
         if _item_is_skipped(item):
             continue
 
@@ -387,7 +386,6 @@ def pytest_runtest_call(item):
 
 @pytest.hookimpl(optionalhook=True)
 def pytest_json_runtest_metadata(item, call):
-
     if call.when != "setup":
         return {}
 
@@ -395,7 +393,6 @@ def pytest_json_runtest_metadata(item, call):
 
 
 def pytest_json_modifyreport(json_report):
-
     try:
         # add usefull data for reporting
         json_report["context"] = context.serialize()
@@ -407,7 +404,6 @@ def pytest_json_modifyreport(json_report):
 
 
 def pytest_sessionfinish(session, exitstatus):
-
     logger.info("Executing pytest_sessionfinish")
 
     context.scenario.close_targets()
@@ -420,14 +416,14 @@ def pytest_sessionfinish(session, exitstatus):
     if context.scenario.is_main_worker:
         with open(f"{context.scenario.host_log_folder}/known_versions.json", "w", encoding="utf-8") as f:
             json.dump(
-                {library: sorted(versions) for library, versions in LibraryVersion.known_versions.items()}, f, indent=2,
+                {library: sorted(versions) for library, versions in LibraryVersion.known_versions.items()}, f, indent=2
             )
 
-        data = session.config._json_report.report  # pylint: disable=protected-access
+        data = session.config._json_report.report  # noqa: SLF001
 
         try:
             junit_modifyreport(
-                data, session.config.option.xmlpath, junit_properties=context.scenario.get_junit_properties(),
+                data, session.config.option.xmlpath, junit_properties=context.scenario.get_junit_properties()
             )
 
             export_feature_parity_dashboard(session, data)
@@ -435,14 +431,13 @@ def pytest_sessionfinish(session, exitstatus):
             logger.exception("Fail to export export reports", exc_info=True)
 
     if session.config.option.vm_gitlab_pipeline:
-        NO_TESTS_COLLECTED = 5
-        SUCCESS = 0
+        NO_TESTS_COLLECTED = 5  # noqa: N806
+        SUCCESS = 0  # noqa: N806
         if exitstatus == NO_TESTS_COLLECTED:
             session.exitstatus = SUCCESS
 
 
 def export_feature_parity_dashboard(session, data):
-
     tests = [convert_test_to_feature_parity_model(test) for test in data["tests"]]
 
     result = {

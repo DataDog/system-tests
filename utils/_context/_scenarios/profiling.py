@@ -24,12 +24,12 @@ class ProfilingScenario(EndToEndScenario):
     def configure(self, config):
         super().configure(config)
 
-        library = self.weblog_container.image.env["SYSTEM_TESTS_LIBRARY"]
+        library = self.weblog_container.image.labels["system-tests-library"]
         if library == "dotnet":
             # https://docs.datadoghq.com/profiler/enabling/dotnet/?tab=linux#enabling-the-profiler
-            self.weblog_container.environment[
-                "LD_PRELOAD"
-            ] = "/opt/datadog/continuousprofiler/Datadog.Linux.ApiWrapper.x64.so"
+            self.weblog_container.environment["LD_PRELOAD"] = (
+                "/opt/datadog/continuousprofiler/Datadog.Linux.ApiWrapper.x64.so"
+            )
         elif library == "python":
             # https://ddtrace.readthedocs.io/en/stable/configuration.html#DD_PROFILING_STACK_V2_ENABLED
             # profiling is known to be unstable on python3.11, and this value is here to fix that

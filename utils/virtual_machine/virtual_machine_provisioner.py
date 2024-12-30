@@ -6,7 +6,7 @@ from utils.virtual_machine.utils import nginx_parser
 
 
 class VirtualMachineProvisioner:
-    """ Manages the provision parser for the virtual machines."""
+    """Manages the provision parser for the virtual machines."""
 
     def remove_unsupported_machines(
         self,
@@ -19,7 +19,7 @@ class VirtualMachineProvisioner:
         only_default_vms,
         vm_only,
     ):
-        """ Remove unsupported machines based on the provision file, weblog, provider_id and local testing parameter: vm_only_branch  """
+        """Remove unsupported machines based on the provision file, weblog, provider_id and local testing parameter: vm_only_branch"""
 
         weblog_provision_file = f"utils/build/virtual_machine/weblogs/{library_name}/provision_{weblog}.yml"
         config_data = None
@@ -119,7 +119,7 @@ class VirtualMachineProvisioner:
                 required_vms.remove(vm)
 
     def get_provision(self, library_name, env, weblog, vm_provision_name, os_type, os_distro, os_branch, os_cpu):
-        """ Parse the provision files (main provision file and weblog provision file) and return a Provision object"""
+        """Parse the provision files (main provision file and weblog provision file) and return a Provision object"""
 
         YamlIncludeConstructor.add_to_loader_class(loader_class=yaml.FullLoader, base_dir=".")
         provision = Provision(vm_provision_name)
@@ -301,7 +301,7 @@ class _DeployedWeblog:
 
 
 class Provision:
-    """ Contains all the information about the provision that it will be launched on the vm 1"""
+    """Contains all the information about the provision that it will be launched on the vm 1"""
 
     def __init__(self, provision_name):
         self.provision_name = provision_name
@@ -314,9 +314,8 @@ class Provision:
         self.deployed_weblog = None
 
     def get_deployed_weblog(self):
-        """ Usually we have only one weblog deployed in the VM. But in some cases(multicontainer) we can have multiple weblogs deployed."""
+        """Usually we have only one weblog deployed in the VM. But in some cases(multicontainer) we can have multiple weblogs deployed."""
         if not self.deployed_weblog:
-
             # App on Container/Alpine
             if self.weblog_installation and self.weblog_installation.version:
                 self.deployed_weblog = _DeployedWeblog(
@@ -361,7 +360,7 @@ class Provision:
 
 
 class Intallation:
-    """ Generic installation object. It can be a installation, lang_variant installation or weblog installation."""
+    """Generic installation object. It can be a installation, lang_variant installation or weblog installation."""
 
     def __init__(self):
         self.id = False
@@ -375,7 +374,7 @@ class Intallation:
         self.copy_files = []
 
     def __repr__(self):
-        """ We use this method to calculate the hash of the object (cache)"""
+        """We use this method to calculate the hash of the object (cache)"""
         return (
             self.id
             + "_"
@@ -397,7 +396,7 @@ class CopyFile:
         self.name = name
 
     def __repr__(self):
-        """ We use this method to calculate the hash of the object (cache)"""
+        """We use this method to calculate the hash of the object (cache)"""
         return (
             (self.remote_path or "")
             + "_"

@@ -8,7 +8,7 @@ except ImportError:
 
 
 class SupportedImages:
-    """ All supported images """
+    """All supported images"""
 
     def __init__(self) -> None:
         # Try to set the same name as utils/_context/virtual_machines.py
@@ -44,7 +44,7 @@ class SupportedImages:
 
 
 class JavaRuntimeInstallableVersions:
-    """ Java runtime versions that can be installed automatically"""
+    """Java runtime versions that can be installed automatically"""
 
     JAVA_22 = RuntimeInstallableVersion("JAVA_22", "22.0.2-zulu")
     JAVA_21 = RuntimeInstallableVersion("JAVA_21", "21.0.4-zulu")
@@ -69,7 +69,7 @@ class JavaRuntimeInstallableVersions:
 
 
 class PHPRuntimeInstallableVersions:
-    """ PHP runtime versions that can be installed automatically"""
+    """PHP runtime versions that can be installed automatically"""
 
     PHP56 = RuntimeInstallableVersion("PHP56", "5.6")  # Not supported (EOL runtime)
     PHP70 = RuntimeInstallableVersion("PHP70", "7.0")
@@ -106,7 +106,7 @@ class PHPRuntimeInstallableVersions:
 
 
 class PythonRuntimeInstallableVersions:
-    """ Python runtime versions that can be installed automatically"""
+    """Python runtime versions that can be installed automatically"""
 
     PY36 = RuntimeInstallableVersion("PY36", "3.6.15")  # Not supported (EOL runtime)
     PY37 = RuntimeInstallableVersion("PY37", "3.7.16")
@@ -182,7 +182,7 @@ class JSRuntimeInstallableVersions:
 
 
 class DotnetRuntimeInstallableVersions:
-    """ Python runtime versions that can be installed automatically"""
+    """Python runtime versions that can be installed automatically"""
 
     DOTNET70 = RuntimeInstallableVersion("DOTNET70", "7.0.410")
 

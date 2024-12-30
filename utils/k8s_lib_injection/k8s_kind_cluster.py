@@ -8,19 +8,19 @@ from utils import context
 
 def ensure_cluster():
     try:
-        return _ensure_cluster()
+        k8s_kind_cluster = K8sKindCluster()
+        return _ensure_cluster(k8s_kind_cluster)
     except Exception as e:
         # It's difficult, but sometimes the cluster is not created correctly, releated to the ports conflicts
         logger.error(f"Error ensuring cluster: {e}. trying again.")
-        return _ensure_cluster()
+        return _ensure_cluster(k8s_kind_cluster)
 
 
-def _ensure_cluster():
-    k8s_kind_cluster = K8sKindCluster()
+def _ensure_cluster(k8s_kind_cluster):
     k8s_kind_cluster.configure_networking(docker_in_docker="GITLAB_CI" in os.environ)
 
     kind_data = ""
-    with open("utils/k8s_lib_injection/resources/kind-config-template.yaml", "r") as file:
+    with open("utils/k8s_lib_injection/resources/kind-config-template.yaml") as file:
         kind_data = file.read()
 
     kind_data = kind_data.replace("$$AGENT_PORT$$", str(k8s_kind_cluster.agent_port))
@@ -110,3 +110,28 @@ class K8sKindCluster:
         if self.docker_in_docker:
             return self.internal_weblog_port
         return self.weblog_port
+
+
+default_kind_cluster = K8sKindCluster()
+
+
+def create_cluster():
+    try:
+        return _ensure_cluster(default_kind_cluster)
+    except Exception as e:
+        # It's difficult, but sometimes the cluster is not created correctly, releated to the ports conflicts
+        logger.error(f"Error ensuring cluster: {e}. trying again.")
+        return _ensure_cluster(default_kind_cluster)
+
+
+def delete_cluster():
+    destroy_cluster(default_kind_cluster)
+
+
+def create_spak_service_account():
+    """Create service account for launching spark application in k8s"""
+    execute_command_sync(f"kubectl create serviceaccount spark", default_kind_cluster)
+    execute_command_sync(
+        f"kubectl create clusterrolebinding spark-role --clusterrole=edit --serviceaccount=default:spark --namespace=default",
+        default_kind_cluster,
+    )

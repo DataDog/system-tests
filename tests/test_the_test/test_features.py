@@ -26,7 +26,6 @@ def test_not_reported():
 
 @scenarios.test_the_test
 def test_all_class_has_feature_decorator(session, deselected_items):
-
     allow_no_feature_nodes = session.config.inicfg["allow_no_feature_nodes"]
     processed_nodes = set()
     shouldfail = False

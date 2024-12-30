@@ -8,8 +8,6 @@ import os
 import os.path
 import uuid
 
-from packaging import version
-
 from utils import interfaces, remote_config, weblog, context
 from utils.tools import logger
 from utils.dd_constants import RemoteConfigApplyState as ApplyState
@@ -71,6 +69,23 @@ class _Base_Debugger_Test:
     rc_state = None
     weblog_responses = []
 
+    setup_failures = []
+
+    def initialize_weblog_remote_config(self):
+        if self.get_tracer()["language"] == "ruby":
+            # Ruby tracer initializes remote configuration client from
+            # middleware that is only invoked during request processing.
+            # Therefore, we need to issue a request to the application for
+            # remote config to start.
+            response = weblog.get("/debugger/init")
+            if response.status_code != 200:
+                # This should fail the test immediately but the failure is
+                # reported after all of the setup and the test are attempted
+                self.setup_failures.append(
+                    "Failed to get /debugger/init: expected status code: 200, actual status code: %d"
+                    % (response.status_code)
+                )
+
     ###### set #####
     def set_probes(self, probes):
         def _enrich_probes(probes):
@@ -127,7 +142,6 @@ class _Base_Debugger_Test:
 
         self.probe_definitions = _enrich_probes(probes)
         self.probe_ids = _extract_probe_ids(probes)
-        self._installed_ids = set()
 
     ###### send #####
     _rc_version = 0
@@ -147,58 +161,65 @@ class _Base_Debugger_Test:
 
     ###### wait for #####
     _last_read = 0
-    _installed_ids = set()
 
     def wait_for_all_probes_installed(self, timeout=30):
-        interfaces.agent.wait_for(self._wait_for_all_probes_installed, timeout=timeout)
+        interfaces.agent.wait_for(lambda data: self._wait_for_all_probes(data, status="INSTALLED"), timeout=timeout)
 
-    def _wait_for_all_probes_installed(self, data):
-        def _check_all_probes_installed(self, probe_diagnostics):
-            logger.debug(f"Waiting for these probes to be installed: {self.probe_ids}")
+    def wait_for_all_probes_emitting(self, timeout=30):
+        interfaces.agent.wait_for(lambda data: self._wait_for_all_probes(data, status="EMITTING"), timeout=timeout)
+
+    def _wait_for_all_probes(self, data, status):
+        found_ids = set()
+
+        def _check_all_probes_status(probe_diagnostics, status):
+            logger.debug(f"Waiting for these probes to be {status}: {self.probe_ids}")
 
             for expected_id in self.probe_ids:
-                if expected_id in probe_diagnostics:
-                    status = probe_diagnostics[expected_id]["status"]
+                if expected_id not in probe_diagnostics:
+                    continue
 
-                    logger.debug(f"Probe {expected_id} observed status is {status}")
-                    if status == "INSTALLED":
-                        self._installed_ids.add(expected_id)
+                probe_status = probe_diagnostics[expected_id]["status"]
+                logger.debug(f"Probe {expected_id} observed status is {probe_status}")
 
-            if set(self.probe_ids).issubset(self._installed_ids):
-                logger.debug(f"Succes: found all probes")
-                return True
+                if probe_status == status or probe_status == "ERROR":
+                    found_ids.add(expected_id)
+                    continue
 
-            return False
+                if self.get_tracer()["language"] == "dotnet" and status == "INSTALLED":
+                    probe = next(p for p in self.probe_definitions if p["id"] == expected_id)
+                    # EMITTING is not implemented for dotnet span probe
+                    if probe["type"] == "SPAN_PROBE":
+                        found_ids.add(expected_id)
+                        continue
 
-        all_probes_installed = False
+            return set(self.probe_ids).issubset(found_ids)
+
+        all_probes_ready = False
 
         log_filename_found = re.search(r"/(\d+)__", data["log_filename"])
         if not log_filename_found:
             return False
 
         log_number = int(log_filename_found.group(1))
-        if log_number > _Base_Debugger_Test._last_read:
+        if log_number >= _Base_Debugger_Test._last_read:
             _Base_Debugger_Test._last_read = log_number
 
-            if data["path"] == _DEBUGGER_PATH or data["path"] == _LOGS_PATH:
+        if data["path"] in [_DEBUGGER_PATH, _LOGS_PATH]:
+            probe_diagnostics = self._process_diagnostics_data([data])
+            logger.debug(probe_diagnostics)
 
-                probe_diagnostics = self._process_diagnostics_data([data])
-                logger.debug(probe_diagnostics)
+            if not probe_diagnostics:
+                logger.debug("Probes diagnostics is empty")
+                return False
 
-                if not probe_diagnostics:
-                    logger.debug("Probes diagnostics is empty")
-                    return False
+            all_probes_ready = _check_all_probes_status(probe_diagnostics, status)
 
-                all_probes_installed = _check_all_probes_installed(self, probe_diagnostics)
+        return all_probes_ready
 
-        return all_probes_installed
-
-    _method_name = None
     _exception_message = None
     _snapshot_found = False
 
-    def wait_for_snapshot_received(self, method_name, exception_message=None, timeout=1):
-        self._method_name = method_name
+    def wait_for_exception_snapshot_received(self, exception_message, timeout):
         self._exception_message = exception_message
         self._snapshot_found = False
 
@@ -206,12 +227,8 @@ class _Base_Debugger_Test:
         return self._snapshot_found
 
     def _wait_for_snapshot_received(self, data):
-        # log_number = int(re.search(r"/(\d+)__", data["log_filename"]).group(1))
-        # if log_number >= self._last_read:
-        #     self._last_read = log_number
-
         if data["path"] == _LOGS_PATH:
-            logger.debug("Reading " + data["log_filename"] + ", looking for " + self._method_name)
+            logger.debug("Reading " + data["log_filename"] + ", looking for " + self._exception_message)
             contents = data["request"].get("content", []) or []
 
             logger.debug("len is")
@@ -220,39 +237,17 @@ class _Base_Debugger_Test:
             for content in contents:
                 snapshot = content.get("debugger", {}).get("snapshot") or content.get("debugger.snapshot")
 
-                if not snapshot:
+                if not snapshot or "probe" not in snapshot:
                     continue
 
-                if (
-                    "probe" not in snapshot
-                    or "location" not in snapshot["probe"]
-                    or "method" not in snapshot["probe"]["location"]
-                ):
-                    continue
+                exception_message = self.get_exception_message(snapshot)
 
-                method = snapshot["probe"]["location"]["method"]
+                logger.debug("Exception message is " + exception_message)
+                logger.debug("Self Exception message is " + self._exception_message)
 
-                if not isinstance(method, str):
-                    continue
-
-                method = method.lower().replace("_", "")
-                logger.debug("Found method " + method)
-
-                if method == self._method_name:
-                    if self._exception_message:
-                        exception_message = snapshot["captures"]["return"]["throwable"]["message"].lower()
-                        logger.debug("Exception message is " + exception_message)
-                        logger.debug("Self Exception message is " + self._exception_message)
-
-                        found = re.search(self._exception_message, exception_message)
-                        logger.debug(found)
-
-                        if re.search(self._exception_message, exception_message):
-                            self._snapshot_found = True
-                            break
-                    else:
-                        self._snapshot_found = True
-                        break
+                if self._exception_message in exception_message:
+                    self._snapshot_found = True
+                    break
 
         logger.debug(f"Snapshot found: {self._snapshot_found}")
         return self._snapshot_found
@@ -366,7 +361,6 @@ class _Base_Debugger_Test:
                     for payload in content["tracerPayloads"]:
                         for chunk in payload["chunks"]:
                             for span in chunk["spans"]:
-
                                 is_span_decoration_method = span["name"] == "dd.dynamic.span"
                                 if is_span_decoration_method:
                                     span_hash[span["meta"]["debugger.probeid"]] = span
@@ -388,13 +382,22 @@ class _Base_Debugger_Test:
 
     def get_tracer(self):
         if not _Base_Debugger_Test.tracer:
-
             _Base_Debugger_Test.tracer = {
                 "language": str(context.library).split("@")[0],
                 "tracer_version": str(context.library.version),
             }
 
         return _Base_Debugger_Test.tracer
+
+    def assert_setup_ok(self):
+        if self.setup_failures:
+            assert "\n".join(self.setup_failures) is None
+
+    def get_exception_message(self, snapshot):
+        if self.get_tracer()["language"] == "python":
+            return next(iter(snapshot["captures"]["lines"].values()))["throwable"]["message"].lower()
+        else:
+            return snapshot["captures"]["return"]["throwable"]["message"].lower()
 
     ###### assert #####
     def assert_rc_state_not_error(self):
@@ -417,17 +420,33 @@ class _Base_Debugger_Test:
 
         assert not errors, "\n".join(errors)
 
-    def assert_all_probes_are_installed(self):
+    def assert_all_probes_are_emitting(self):
         expected = self.probe_ids
         received = extract_probe_ids(self.probe_diagnostics)
 
-        missing_probes = set(expected) - set(received)
-        if missing_probes:
-            assert not missing_probes, f"Not all probes are installed. Missing ids: {', '.join(missing_probes)}"
+        assert set(expected) <= set(
+            received
+        ), f"Not all probes were received. Missing ids: {', '.join(set(expected) - set(received))}"
+
+        errors = {}
+        for probe_id in self.probe_ids:
+            status = self.probe_diagnostics[probe_id]["status"]
+
+            if status == "EMITTING":
+                continue
+
+            if self.get_tracer()["language"] == "dotnet" and status == "INSTALLED":
+                probe = next(p for p in self.probe_definitions if p["id"] == probe_id)
+                # EMITTING is not implemented for dotnet span probe
+                if probe["type"] == "SPAN_PROBE":
+                    continue
+
+            errors[probe_id] = status
+
+        assert not errors, f"The following probes are not emitting: {errors}"
 
     def assert_all_weblog_responses_ok(self, expected_code=200):
         assert len(self.weblog_responses) > 0, "No responses available."
 
         for respone in self.weblog_responses:
-            logger.debug(f"Response is {respone.text}")
             assert respone.status_code == expected_code

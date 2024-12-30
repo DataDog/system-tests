@@ -4,6 +4,8 @@ import static com.datadoghq.resteasy.Main.DATA_SOURCE;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import com.datadoghq.system_tests.iast.utils.CmdExamples;
+
 import javax.ws.rs.Consumes;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
@@ -15,6 +17,7 @@ import javax.ws.rs.core.MediaType;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlValue;
 import java.sql.CallableStatement;
 import java.sql.Connection;
@@ -28,6 +31,8 @@ import java.net.URLConnection;
 @Path("/rasp")
 @Produces(MediaType.TEXT_PLAIN)
 public class RaspResource {
+
+    private final CmdExamples cmdExamples = new CmdExamples();
 
     @GET
     @Path("/sqli")
@@ -68,6 +73,46 @@ public class RaspResource {
     }
 
     @GET
+    @Path("/cmdi")
+    public String cmdiGet(@QueryParam("command") final String[] command) throws Exception {
+        return execCmdi(command);
+    }
+
+    @POST
+    @Path("/cmdi")
+    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    public String cmdiPost(@FormParam("command") final String[] command) throws Exception {
+        return execCmdi(command);
+    }
+
+    @POST
+    @Path("/cmdi")
+    @Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON} )
+    public String ssrfBody(final CommandDTO dto) throws Exception {
+        return execCmdi(dto.getCommand());
+    }
+
+    @GET
+    @Path("/shi")
+    public String shiGet(@QueryParam("list_dir") final String command) throws Exception {
+        return execShi(command);
+    }
+
+    @POST
+    @Path("/shi")
+    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    public String shiPost(@FormParam("list_dir") final String command) throws Exception {
+        return execShi(command);
+    }
+
+    @POST
+    @Path("/shi")
+    @Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON} )
+    public String shiBody(final ListDirDTO dto) throws Exception {
+        return execShi(dto.getCmd());
+    }
+
+    @GET
     @Path("/ssrf")
     public String ssrfGet(@QueryParam("domain") final String domain) throws Exception {
         return executeUrl(domain);
@@ -101,6 +146,16 @@ public class RaspResource {
 
     private String executeLfi(final String file) throws Exception {
         new File(file);
+        return "OK";
+    }
+
+    private String execShi(final String cmd)  {
+        cmdExamples.insecureCmd(cmd);
+        return "OK";
+    }
+
+    private String execCmdi(final String[] arrayCmd)  {
+        cmdExamples.insecureCmd(arrayCmd);
         return "OK";
     }
 
@@ -167,6 +222,38 @@ public class RaspResource {
 
         public void setDomain(String domain) {
             this.domain = domain;
+        }
+    }
+
+    @XmlRootElement(name = "list_dir")
+    @XmlAccessorType(XmlAccessType.FIELD)
+    public static class ListDirDTO {
+        @JsonProperty("list_dir")
+        @XmlValue
+        private String cmd;
+
+        public String getCmd() {
+            return cmd;
+        }
+
+        public void setCmd(String cmd) {
+            this.cmd = cmd;
+        }
+    }
+
+    @XmlRootElement(name = "command")
+    @XmlAccessorType(XmlAccessType.FIELD)
+    public static class CommandDTO {
+        @JsonProperty("command")
+        @XmlElement(name = "cmd")
+        private String[] command;
+
+        public String[] getCommand() {
+            return command;
+        }
+
+        public void setCommand(String[] command) {
+            this.command = command;
         }
     }
 }

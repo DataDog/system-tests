@@ -53,6 +53,8 @@ public class TraceController {
         Method getLogLevel = configClass.getMethod("getLogLevel");
         Method getAgentUrl = configClass.getMethod("getAgentUrl");
         Method getTraceRateLimit = configClass.getMethod("getTraceRateLimit");
+        Method getJmxFetchStatsdPort = configClass.getMethod("getJmxFetchStatsdPort");
+        Method getJmxFetchStatsdHost = configClass.getMethod("getJmxFetchStatsdHost");
 
         Method isTraceOtelEnabled = instrumenterConfigClass.getMethod("isTraceOtelEnabled");
 
@@ -68,6 +70,11 @@ public class TraceController {
         configMap.put("dd_trace_agent_url", getAgentUrl.invoke(configObject).toString());
         // configMap.put("dd_trace_sample_ignore_parent", Config.get());
 
+        Object dogstatsdHost = getJmxFetchStatsdHost.invoke(configObject);
+        if (dogstatsdHost != null){
+          configMap.put("dd_dogstatsd_host", getJmxFetchStatsdHost.invoke(configObject).toString());
+        }
+
         Object sampleRate = getTraceSampleRate.invoke(configObject);
         if (sampleRate instanceof Double) {
             configMap.put("dd_trace_sample_rate", String.valueOf((Double)sampleRate));
@@ -76,6 +83,11 @@ public class TraceController {
         Object rateLimit = getTraceRateLimit.invoke(configObject);
         if (rateLimit instanceof Integer) {
           configMap.put("dd_trace_rate_limit", Integer.toString((int)rateLimit));
+        }
+
+        Object statsPort = getJmxFetchStatsdPort.invoke(configObject);
+        if (statsPort instanceof Integer) {
+          configMap.put("dd_dogstatsd_port", Integer.toString((int)statsPort));
         }
 
         Object globalTags = getGlobalTags.invoke(configObject);

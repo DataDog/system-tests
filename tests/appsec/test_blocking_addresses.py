@@ -377,7 +377,7 @@ class Test_Blocking_request_body:
         self.setup_blocking()
         # raw body are never parsed
         self.rm_req_nonblock1 = weblog.post(
-            "/waf", data=b'\x00{"value3": "bsldhkuqwgervf"}\xFF', headers={"content-type": "application/octet-stream"}
+            "/waf", data=b'\x00{"value3": "bsldhkuqwgervf"}\xff', headers={"content-type": "application/octet-stream"}
         )
         self.rm_req_nonblock2 = weblog.post("/waf", data={"good": "value"})
 
@@ -617,9 +617,7 @@ class Test_BlockingGraphqlResolvers:
     def test_request_block_attack(self):
         assert self.r_attack.status_code == (
             # We don't change the status code in Ruby
-            200
-            if context.library == "ruby"
-            else 403
+            200 if context.library == "ruby" else 403
         )
         for _, span in interfaces.library.get_root_spans(request=self.r_attack):
             meta = span.get("meta", {})
@@ -660,9 +658,7 @@ class Test_BlockingGraphqlResolvers:
         # We don't change the status code
         assert self.r_attack.status_code == (
             # We don't change the status code in Ruby
-            200
-            if context.library == "ruby"
-            else 403
+            200 if context.library == "ruby" else 403
         )
         for _, span in interfaces.library.get_root_spans(request=self.r_attack):
             meta = span.get("meta", {})

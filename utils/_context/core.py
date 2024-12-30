@@ -8,10 +8,9 @@ import json
 
 
 class _Context:
-    """
-        Context is an helper class that exposes scenario properties
-        Those properties may be used in decorators, and thus, should always exists, even if the current
-        scenario does not define them.
+    """Context is an helper class that exposes scenario properties
+    Those properties may be used in decorators, and thus, should always exists, even if the current
+    scenario does not define them.
     """
 
     scenario = None  # will be set by pytest_configure
@@ -95,8 +94,9 @@ class _Context:
         # TODO all components inside of components node
         result |= self.components
 
-        # If a test is parametrized, it could contain specific data for each test. This node will contain this data associated with test id
-        # If we are on multi thread environment we need to store this data on a file. We should deserialize json data (extract data from file)
+        # If a test is parametrized, it could contain specific data for each test. This node will contain this data
+        # associated with test id. If we are on multi thread environment we need to store this data on a file.
+        # We should deserialize json data (extract data from file)
         if self.parametrized_tests_metadata:
             try:
                 result["parametrized_tests_metadata"] = self.parametrized_tests_metadata.deserialize()

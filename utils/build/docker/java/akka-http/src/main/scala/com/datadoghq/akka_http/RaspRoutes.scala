@@ -7,6 +7,7 @@ import akka.http.scaladsl.server.Route
 import akka.http.scaladsl.unmarshalling.{FromEntityUnmarshaller, Unmarshaller}
 import com.datadoghq.akka_http.Resources.dataSource
 import com.fasterxml.jackson.annotation.JsonProperty
+import com.datadoghq.system_tests.iast.utils._
 
 import java.io.File
 import java.net.{MalformedURLException, URL, URLConnection}
@@ -28,11 +29,25 @@ object RaspRoutes {
       .forContentTypes(MediaTypes.`application/json`)
   }
 
+  private final val mapListDirJsonUnmarshaller: Unmarshaller[HttpEntity, ListDirDTO] = {
+    Jackson.unmarshaller(classOf[ListDirDTO])
+      .asScala
+      .forContentTypes(MediaTypes.`application/json`)
+  }
+
+  private final val mapCommandJsonUnmarshaller: Unmarshaller[HttpEntity, CommandDTO] = {
+    Jackson.unmarshaller(classOf[CommandDTO])
+      .asScala
+      .forContentTypes(MediaTypes.`application/json`)
+  }
+
   private final val mapDomainJsonUnmarshaller: Unmarshaller[HttpEntity, DomainDTO] = {
     Jackson.unmarshaller(classOf[DomainDTO])
       .asScala
       .forContentTypes(MediaTypes.`application/json`)
   }
+
+  private val cmdExamples = new CmdExamples()
 
   val route: Route = pathPrefix("rasp") {
     pathPrefix("sqli") {
@@ -67,6 +82,38 @@ object RaspRoutes {
               } ~ entity(as[FileDTO]) { file =>
               complete(executeFli(file.file))
             }
+          }
+      } ~
+      pathPrefix("shi") {
+        get {
+          parameter("list_dir") { cmd =>
+            complete(executeShi(cmd))
+          }
+        } ~
+          post {
+            formFieldMap { fields: Map[String, String] =>
+              complete(executeShi(fields("list_dir")))
+            } ~
+              entity(Unmarshaller.messageUnmarshallerFromEntityUnmarshaller(mapListDirJsonUnmarshaller)) { listDir =>
+                complete(executeShi(listDir.cmd))
+              } ~ entity(as[ListDirDTO]) { listDir =>
+              complete(executeShi(listDir.cmd))
+            }
+          }
+      } ~
+      pathPrefix("cmdi") {
+        get {
+          parameter("command") { cmd =>
+            complete(executeShi(cmd))
+          }
+        } ~
+          post {
+            formFieldMap { fields: Map[String, String] =>
+              complete(executeCmdi(fields("command").split(" ")))
+            } ~
+              entity(as[CommandDTO]) { command =>
+                complete(executeCmdi(command.command))
+              }
           }
       } ~
       pathPrefix("ssrf") {
@@ -107,6 +154,24 @@ object RaspRoutes {
       FileDTO(file)
     }
 
+  case class ListDirDTO(@JsonProperty("list_dir") cmd: String) {}
+
+  implicit val listDirXmlUnmarshaller: FromEntityUnmarshaller[ListDirDTO] =
+    Unmarshaller.stringUnmarshaller.forContentTypes(MediaTypes.`text/xml`, MediaTypes.`application/xml`).map { string =>
+      val xmlData: Elem = XML.loadString(string)
+      val cmd = xmlData.text
+      ListDirDTO(cmd)
+    }
+
+  case class CommandDTO(@JsonProperty("command") command: Array[String]) {}
+
+  implicit val commandXmlUnmarshaller: FromEntityUnmarshaller[CommandDTO] =
+    Unmarshaller.stringUnmarshaller.forContentTypes(MediaTypes.`text/xml`, MediaTypes.`application/xml`).map { string =>
+      val xmlData: Elem = XML.loadString(string)
+      val command = (xmlData \\ "command").map(_.text).toArray
+      CommandDTO(command)
+    }
+
   case class DomainDTO(@JsonProperty("domain") domain: String) {}
 
   implicit val domainXmlUnmarshaller: FromEntityUnmarshaller[DomainDTO] =
@@ -132,6 +197,16 @@ object RaspRoutes {
   private def executeFli(file: String): Try[String] = {
     new File(file)
     Try("ok")
+  }
+
+  private def executeShi(cmd: String): String = {
+    cmdExamples.insecureCmd(cmd)
+    "OK"
+  }
+
+  private def executeCmdi(arrayCmd: Array[String]): String = {
+    cmdExamples.insecureCmd(arrayCmd)
+    "OK"
   }
 
 

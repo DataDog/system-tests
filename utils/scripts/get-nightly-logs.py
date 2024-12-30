@@ -9,9 +9,7 @@ import zipfile
 import requests
 
 
-logging.basicConfig(
-    level=logging.DEBUG, format="%(levelname)-5s %(message)s",
-)
+logging.basicConfig(level=logging.DEBUG, format="%(levelname)-5s %(message)s")
 
 logging.getLogger("urllib3").setLevel(logging.WARNING)
 
@@ -20,8 +18,8 @@ def get_environ():
     environ = {**os.environ}
 
     try:
-        with open(".env", "r", encoding="utf-8") as f:
-            lines = [l.replace("export ", "").strip().split("=") for l in f if l.strip()]
+        with open(".env", encoding="utf-8") as f:
+            lines = [line.replace("export ", "").strip().split("=") for line in f if line.strip()]
             environ = {**environ, **dict(lines)}
     except FileNotFoundError:
         pass
@@ -30,7 +28,7 @@ def get_environ():
 
 
 def get_json(session: requests.Session, url: str, params=None, timeout: int = 30):
-    response = session.get(url, params=params, timeout=30)
+    response = session.get(url, params=params, timeout=timeout)
     response.raise_for_status()
     return response.json()
 
@@ -40,7 +38,6 @@ def is_included(params: list[str], artifact_name: str) -> bool:
 
 
 def get_artifacts(session: requests.Session, repo_slug: str, workflow_file: str, run_id: int | None):
-
     if run_id is None:
         data = get_json(
             session,
@@ -56,7 +53,6 @@ def get_artifacts(session: requests.Session, repo_slug: str, workflow_file: str,
     artifacts = []
 
     for page in range(1, 10):
-
         items = get_json(session, workflow_run["artifacts_url"], params={"per_page": 100, "page": page})
 
         if len(items["artifacts"]) == 0:
@@ -67,8 +63,7 @@ def get_artifacts(session: requests.Session, repo_slug: str, workflow_file: str,
     return artifacts
 
 
-def download_artifact(session: requests.Session, artifact: dict, output_dir: str = None):
-
+def download_artifact(session: requests.Session, artifact: dict, output_dir: str | None = None):
     logging.info("Downloading artifact: %s", artifact["name"])
     response = session.get(artifact["archive_download_url"], timeout=60)
     response.raise_for_status()
@@ -80,7 +75,7 @@ def download_artifact(session: requests.Session, artifact: dict, output_dir: str
     for file in os.listdir(output_dir):
         if file.endswith(".tar.gz") and os.path.isfile(os.path.join(output_dir, file)):
             with tarfile.open(os.path.join(output_dir, file), "r:gz") as t:
-                t.extractall(output_dir, filter=lambda tar_info, path: tar_info)
+                t.extractall(output_dir, filter=lambda tar_info, _: tar_info)
 
 
 def main(
@@ -112,7 +107,7 @@ def main(
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(prog="grep-nightly-logs", description="Get logs artifact from nighty jobs",)
+    parser = argparse.ArgumentParser(prog="grep-nightly-logs", description="Get logs artifact from nighty jobs")
     parser.add_argument("-r", "--run-id", type=int, help="The run id of the nightly job", required=False)
     parser.add_argument("params", type=str, nargs="+", help="Keys in artifact name")
     args = parser.parse_args()

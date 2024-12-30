@@ -324,7 +324,9 @@ A POST request which will receive the following JSON body:
 {"name": "table", "value": "user"}
 ```
 
-Where the value for `value` must be used in the vulnerability.
+#### GET /iast/source/sql/test
+
+An empty GET request that will execute two database queries, one to get a username and another to do a vulnerable SELECT using the obtained username.
 
 ### GET /make_distant_call
 
@@ -610,35 +612,28 @@ Body fields accepted in POST method:
 - `password`: password for the user.
 
 It also supports HTTP authentication by using GET method and the authorization header.
-Additionally both methods support the following query parameters to use the sdk functions along with the authentication framework:
+Additionally, both methods support the following query parameters to use the sdk functions along with the authentication framework:
 - `sdk_event`: login event type: `success` or `failure`.
 - `sdk_user`: user id to be used in the sdk call.
 - `sdk_mail`: user's mail to be used in the sdk call.
-- `sdk_user_exists`: `true` of `false` to indicate wether the current user exists and populate the corresponding tag.
+- `sdk_user_exists`: `true` of `false` to indicate whether the current user exists and populate the corresponding tag.
 
-### GET /debugger
-These endpoints are used for the Dynamic Instrumentation tests.
+### \[POST\] /signup
+This endpoint is used to create a new user. Do not keep the user in memory for later use, only call the framework method to pretend to do so.
+Body fields accepted in POST method:
+- `username`: the login name for the user.
+- `password`: password for the user.
 
-#### GET /debugger/log
-This endpoint will be used to validate the log probe.
+Additionally, the method supports the following query parameters to use the sdk functions along with the authentication framework:
+- `sdk_event`: login event type: `signup`.
+- `sdk_user`: user id to be used in the sdk call.
+- `sdk_mail`: user's mail to be used in the sdk call.
 
-#### GET /debugger/metric
-This endpoint will be used to validate the metric probe.
-
-#### GET /debugger/span
-This endpoint will be used to validate the span probe.
-
-#### GET /debugger/span-decoration
-This endpoint will be used to validate the span decoration probe.
-
-#### GET /debugger/pii
-This endpoint will be used to validate Dynamic Instrumentation pii redaction feature.
-
-#### GET /expression/*
-These endpoints will be used to validate Dynamic Instrumentation expression language feature.
+### GET /debugger/*
+These endpoints are used for the `Dynamic Instrumentation` tests.
 
 #### GET /exceptionreplay/*
-These endpoints will be used to validate Dynamic Instrumentation exception replay feature.
+These endpoints will be used for `Exception Replay` tests.
 
 ### GET /createextraservice
 should rename the trace service, creating a "fake" service
@@ -777,6 +772,28 @@ Examples:
 - `GET`: `/rasp/shi?list_dir=$(cat /etc/passwd 1>&2 ; echo .)
 - `POST`: `{"list_dir": "$(cat /etc/passwd 1>&2 ; echo .)"}`
 
+### \[GET,POST\] /rasp/cmdi
+
+This endpoint is used to test for command injection attacks by executing a command without launching a shell.
+The chosen operation must be injected with the `GET` or `POST` parameter.
+
+Query parameters and body fields required in the `GET` and `POST` method:
+- `command`: containing string or an array of strings to be executed as a command.
+
+The endpoint should support the following content types in the `POST` method:
+- `application/x-www-form-urlencoded`
+- `application/xml`
+- `application/json`
+
+The chosen operation must use the file as provided, without any alterations, e.g.:
+```
+system("$command");
+```
+
+Examples:
+- `GET`: `/rasp/cmdi?command=/usr/bin/touch /tmp/passwd
+- `POST`: `{"command": ["/usr/bin/touch", "/tmp/passwd"]}`
+
 ### \[GET\] /set_cookie
 
 This endpoint get a `name` and a `value` form the query string, and adds a header `Set-Cookie` with `{name}={value}` as header value in the HTTP response
@@ -784,6 +801,12 @@ This endpoint get a `name` and a `value` form the query string, and adds a heade
 ### \[GET\] /session/new
 
 This endpoint is the initial endpoint used to test session fingerprints, consequently it must initialize a new session and the web client should be able to deal with the persistence mechanism (e.g. cookies).
+
+Returns the identifier of the created session id. Example :
+
+```text
+c377db41-b664-4e30-af57-5df2e803bec7
+```
 
 Examples:
 - `GET`: `/session/new`

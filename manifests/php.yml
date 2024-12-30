@@ -143,6 +143,8 @@ tests/:
           TestPath: missing_feature
         test_path_parameter.py:
           TestPathParameter: missing_feature
+        test_sql_row.py:
+          TestSqlRow: missing_feature
         test_uri.py:
           TestURI: missing_feature
     rasp/:
@@ -198,7 +200,7 @@ tests/:
       test_telemetry.py:
         Test_TelemetryMetrics: missing_feature
     test_asm_standalone.py:
-      Test_AppSecStandalone_UpstreamPropagation: missing_feature
+      Test_AppSecStandalone_UpstreamPropagation: v1.6.0
       Test_IastStandalone_UpstreamPropagation: missing_feature
       Test_SCAStandalone_Telemetry: missing_feature
     test_automated_login_events.py:
@@ -207,6 +209,15 @@ tests/:
       Test_V2_Login_Events: v1.3.0-dev
       Test_V2_Login_Events_Anon: v1.3.0-dev
       Test_V2_Login_Events_RC: missing_feature
+      Test_V3_Auto_User_Instrum_Mode_Capability: missing_feature
+      Test_V3_Login_Events: missing_feature
+      Test_V3_Login_Events_Anon: missing_feature
+      Test_V3_Login_Events_Blocking: missing_feature
+      Test_V3_Login_Events_RC: missing_feature
+    test_automated_user_and_session_tracking.py:
+      Test_Automated_Session_Blocking: missing_feature
+      Test_Automated_User_Blocking: missing_feature
+      Test_Automated_User_Tracking: missing_feature
     test_blocking_addresses.py:
       Test_BlockingGraphqlResolvers: missing_feature
       Test_Blocking_request_body: irrelevant (Php does not accept url encoded entries without key)
@@ -307,7 +318,9 @@ tests/:
     test_128_bit_traceids.py:
       Test_128_Bit_Traceids: v0.84.0
     test_config_consistency.py:
+      Test_Config_Dogstatsd: missing_feature
       Test_Config_RateLimit: v1.5.0
+      Test_Config_Tags: missing_feature
       Test_Config_TraceAgentURL: v1.4.0
       Test_Config_TraceEnabled: v1.3.0 # Unknown initial version
       Test_Config_TraceLogDirectory: missing_feature
@@ -373,7 +386,6 @@ tests/:
       Test_RemoteConfigurationUpdateSequenceASMDDNoCache: irrelevant (cache is implemented)
       Test_RemoteConfigurationUpdateSequenceFeaturesNoCache: irrelevant (cache is implemented)
       Test_RemoteConfigurationUpdateSequenceLiveDebugging: missing_feature
-      Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache: missing_feature
   serverless/:
     span_pointers/:
       aws/:
@@ -387,6 +399,7 @@ tests/:
     test_stats.py:
       Test_Client_Stats: missing_feature
   test_config_consistency.py:
+    Test_Config_ClientIPHeaderEnabled_False: v1.5.1
     Test_Config_ClientIPHeader_Configured: v1.4.0
     Test_Config_ClientIPHeader_Precedence: v1.4.0
     Test_Config_ClientTagQueryString_Configured: missing_feature (supports dd_trace_http_url_query_param_allowed instead)
@@ -430,7 +443,7 @@ tests/:
     Test_UrlQuery: v0.76.0
   test_semantic_conventions.py:
     Test_MetricsStandardTags: v0.83.1
-  test_span_events.py: missing_feature (Weblog `/add_event` not implemented)
+  test_span_events.py: incomplete_test_app (Weblog `/add_event` not implemented)
   test_standard_tags.py:
     Test_StandardTagsMethod: v0.75.0
     Test_StandardTagsRoute: missing_feature

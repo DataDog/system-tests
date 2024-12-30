@@ -41,7 +41,7 @@ class VagrantProvider(VmProvider):
             self.install_provision(vm, None, client)
 
     def _set_vagrant_configuration(self, vm):
-        """ Makes some configuration on the vagrant files
+        """Makes some configuration on the vagrant files
         These configurations are relative to the provider and to port forwarding (for weblog) and port for ssh
         TODO Support for different vagrant providers. Currently only support for qemu
         """
@@ -101,7 +101,6 @@ class VagrantCommander(Commander):
         return last_task
 
     def copy_file(self, id, local_path, remote_path, connection, last_task, vm=None):
-
         SCPClient(connection.get_transport()).put(local_path, remote_path)
         return last_task
 
@@ -117,7 +116,6 @@ class VagrantCommander(Commander):
         output_callback=None,
         populate_env=True,
     ):
-
         logger.debug(f"Running remote-command with installation id: {installation_id}")
 
         # Workaround with env variables and paramiko :-(
@@ -169,9 +167,9 @@ class VagrantCommander(Commander):
 
 class MySFTPClient(paramiko.SFTPClient):
     def put_dir(self, source, target):
-        """ Uploads the contents of the source directory to the target path. The
-            target directory needs to exists. All subdirectories in source are
-            created under target.
+        """Uploads the contents of the source directory to the target path. The
+        target directory needs to exists. All subdirectories in source are
+        created under target.
         """
         for item in os.listdir(source):
             if os.path.isfile(os.path.join(source, item)):
@@ -181,7 +179,7 @@ class MySFTPClient(paramiko.SFTPClient):
                 self.put_dir(os.path.join(source, item), "%s/%s" % (target, item))
 
     def mkdir(self, path, mode=511, ignore_existing=False):
-        """ Augments mkdir by adding an option to not fail if the folder exists  """
+        """Augments mkdir by adding an option to not fail if the folder exists"""
         try:
             super(MySFTPClient, self).mkdir(path, mode)
         except IOError:

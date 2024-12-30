@@ -53,7 +53,7 @@ def get_python_code(command: RemoteConfigCommand):
 
 
 def main(filename):
-    with open(filename, "r", encoding="utf-8") as f:
+    with open(filename, encoding="utf-8") as f:
         data = json.load(f)
 
     for item in data:

@@ -56,7 +56,7 @@ public class App {
         if (isAgentEnabled()) {
             spanExporters.add(
                 OtlpHttpSpanExporter.builder()
-                    .setEndpoint("http://proxy:8126/v1/traces")
+                    .setEndpoint("http://proxy:8127/v1/traces")  // port is defined in utils/proxy/ports.py
                     .addHeader("dd-protocol", "otlp")
                     .addHeader("dd-otlp-path", "agent")
                     .build());
@@ -64,7 +64,7 @@ public class App {
         if (isIntakeEnabled()) {
             spanExporters.add(
                 OtlpHttpSpanExporter.builder()
-                    .setEndpoint("http://proxy:8126/api/v0.2/traces")  // send to the proxy first
+                    .setEndpoint("http://proxy:8127/api/v0.2/traces")  // port is defined in utils/proxy/ports.py
                     .addHeader("dd-protocol", "otlp")
                     .addHeader("dd-api-key", System.getenv("DD_API_KEY"))
                     .addHeader("dd-otlp-path", "intake-traces")
@@ -74,7 +74,7 @@ public class App {
         if (isCollectorEnabled()) {
             spanExporters.add(
                 OtlpHttpSpanExporter.builder()
-                    .setEndpoint("http://proxy:8126/v1/traces")
+                    .setEndpoint("http://proxy:8127/v1/traces")  // port is defined in utils/proxy/ports.py
                     .addHeader("dd-protocol", "otlp")
                     .addHeader("dd-otlp-path", "collector")
                     .build());
@@ -99,7 +99,7 @@ public class App {
         if (isAgentEnabled()) {
             metricExporters.add(
                     OtlpHttpMetricExporter.builder()
-                            .setEndpoint("http://proxy:8126/v1/metrics")
+                            .setEndpoint("http://proxy:8127/v1/metrics")  // port is defined in utils/proxy/ports.py
                             .addHeader("dd-protocol", "otlp")
                             .addHeader("dd-otlp-path", "agent")
                             .setAggregationTemporalitySelector(AggregationTemporalitySelector.deltaPreferred())
@@ -108,7 +108,7 @@ public class App {
         if (isIntakeEnabled()) {
             metricExporters.add(
                     OtlpHttpMetricExporter.builder()
-                            .setEndpoint("http://proxy:8126/api/intake/otlp/v1/metrics")  // send to the proxy first
+                            .setEndpoint("http://proxy:8127/api/intake/otlp/v1/metrics")  // port is defined in utils/proxy/ports.py
                             .addHeader("dd-protocol", "otlp")
                             .addHeader("dd-api-key", System.getenv("DD_API_KEY"))
                             .addHeader("dd-otlp-path", "intake-metrics")
@@ -119,7 +119,7 @@ public class App {
         if (isCollectorEnabled()) {
             metricExporters.add(
                     OtlpHttpMetricExporter.builder()
-                            .setEndpoint("http://proxy:8126/v1/metrics")
+                            .setEndpoint("http://proxy:8127/v1/metrics")  // port is defined in utils/proxy/ports.py
                             .addHeader("dd-protocol", "otlp")
                             .addHeader("dd-otlp-path", "collector")
                             .setAggregationTemporalitySelector(AggregationTemporalitySelector.deltaPreferred())
@@ -139,7 +139,7 @@ public class App {
         if (isAgentEnabled()) {
             logRecordExporters.add(
                     OtlpHttpLogRecordExporter.builder()
-                            .setEndpoint("http://proxy:8126/v1/logs")
+                            .setEndpoint("http://proxy:8127/v1/logs")  // port is defined in utils/proxy/ports.py
                             .addHeader("dd-protocol", "otlp")
                             .addHeader("dd-otlp-path", "agent")
                             .build());
@@ -147,7 +147,7 @@ public class App {
         if (isIntakeEnabled()) {
             logRecordExporters.add(
                     OtlpHttpLogRecordExporter.builder()
-                            .setEndpoint("http://proxy:8126/api/v2/logs")
+                            .setEndpoint("http://proxy:8127/api/v2/logs")  // port is defined in utils/proxy/ports.py
                             .addHeader("dd-protocol", "otlp")
                             .addHeader("dd-api-key", System.getenv("DD_API_KEY"))
                             .addHeader("dd-otlp-path", "intake-logs")
@@ -159,7 +159,7 @@ public class App {
         if (isCollectorEnabled()) {
             logRecordExporters.add(
                     OtlpHttpLogRecordExporter.builder()
-                            .setEndpoint("http://proxy:8126/v1/logs")
+                            .setEndpoint("http://proxy:8127/v1/logs")  // port is defined in utils/proxy/ports.py
                             .addHeader("dd-protocol", "otlp")
                             .addHeader("dd-otlp-path", "collector")
                             .build());

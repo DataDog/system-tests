@@ -38,7 +38,7 @@ class Test_API_Security_Sampling_Rate:
             weblog.get(
                 f"/tag_value/api_match_AS001/200?{''.join(random.choices(string.ascii_letters, k=16))}={random.randint(1<<31, (1<<32)-1)}"
             )
-            for _ in range(self.N ** 2)
+            for _ in range(self.N**2)
         ]
 
     @irrelevant(
@@ -72,7 +72,6 @@ class Test_API_Security_Sampling_Different_Endpoints:
         self.all_requests = [weblog.get("/api_security/sampling/200") for _ in range(10)]
 
     def test_sampling_delay(self):
-
         assert self.request1.status_code == 200
         schema1 = get_schema(self.request1, "req.headers")
         assert schema1 is not None
@@ -98,7 +97,6 @@ class Test_API_Security_Sampling_Different_Paths:
         self.all_requests = [weblog.get(f"/api_security_sampling/{i}") for i in range(10)]
 
     def test_sampling_delay(self):
-
         assert self.request1.status_code == 200
         schema1 = get_schema(self.request1, "req.headers")
         assert schema1 is not None
