@@ -350,15 +350,16 @@ Opcionally you can set extra parameters to filter the type of tests that you wil
 The 'onboarding' tests can be executed in the same way as we executed system-tests scenarios.
 The currently supported scenarios are the following:
 
-* **HOST_AUTO_INJECTION:** Onboarding Host Single Step Instrumentation scenario
-* **SIMPLE_HOST_AUTO_INJECTION:** Onboarding Host Single Step Instrumentation scenario (minimal test scenario)
-* **SIMPLE_HOST_AUTO_INJECTION_PROFILING:** Onboarding Host Single Step Instrumentation profiling scenario (minimal test scenario)
-* **HOST_AUTO_INJECTION_BLOCK_LIST:** Onboarding Host Single Step Instrumentation scenario: Test user defined blocking lists
+* **SIMPLE_INSTALLER_AUTO_INJECTION:** The onboarding minimal scenario. The test makes a request to deployed weblog application and then check that the instrumentation traces are sending to the backend.
+* **INSTALLER_AUTO_INJECTION:** Inlcudes the minimal scenario assertions but adding other assertions like the uninstall process or the block list commands tests.
+* **INSTALLER_NOT_SUPPORTED_AUTO_INJECTION:** Onboarding Single Step Instrumentation scenario for not supported runtime language versions. After install the SSI software this scenario checks that the application is not auto instrumented (because the runtime version is not supported), but continues working.
+* **CHAOS_INSTALLER_AUTO_INJECTION:** Onboarding Host Single Step Instrumentation scenario.
+* **SIMPLE_AUTO_INJECTION_PROFILING:** Onboarding Single Step Instrumentation scenario with profiling activated by the app env var
+* **HOST_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING:** Onboarding Host Single Step Instrumentation scenario using agent auto install script with profiling activating by the installation process
+* **CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING:** Onboarding Container Single Step Instrumentation profiling scenario using agent auto install script
 * **HOST_AUTO_INJECTION_INSTALL_SCRIPT:** Onboarding Host Single Step Instrumentation scenario using agent auto install script
-* **HOST_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING:** Onboarding Host Single Step Instrumentation scenario using agent auto install script with enabling profiling
-* **CONTAINER_AUTO_INJECTION:** Onboarding Container Single Step Instrumentation scenario
-* **SIMPLE_CONTAINER_AUTO_INJECTION:** Onboarding Container Single Step Instrumentation scenario (minimal test scenario)
 * **CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT:** Onboarding Container Single Step Instrumentation scenario using agent auto install script
+
 
 The 'onboarding' tests scenarios requiered three mandatory parameters:
 
