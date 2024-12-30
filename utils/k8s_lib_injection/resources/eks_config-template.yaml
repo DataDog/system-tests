@@ -4,8 +4,8 @@ metadata:
   name: lib-injection-testing-eks-sandbox
   region: us-east-1
   tags:
-    user: Roberto.Montero
-    team: technical-support-engineer
+    user: system-tests
+    team: APM reliability
 managedNodeGroups:
   - name: standard
     instanceType: t3.medium

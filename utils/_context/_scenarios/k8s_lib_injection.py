@@ -93,13 +93,18 @@ class K8sScenario(Scenario):
     def extract_library_version(self, library_init_image):
         """Pull the library init image and extract the version of the library"""
         logger.info("Get lib init tracer version")
-        lib_init_docker_image = get_docker_client().images.pull(library_init_image)
-        result = get_docker_client().containers.run(
-            image=lib_init_docker_image, command=f"cat /datadog-init/package/version", remove=True
-        )
-        version = result.decode("utf-8")
-        logger.info(f"Library version: {version}")
-        return version
+        try:
+            lib_init_docker_image = get_docker_client().images.pull(library_init_image)
+            result = get_docker_client().containers.run(
+                image=lib_init_docker_image, command=f"cat /datadog-init/package/version", remove=True
+            )
+            version = result.decode("utf-8")
+            logger.info(f"Library version: {version}")
+            return version
+        except Exception as e:
+            logger.error(f"Failed to extract library version: {e}")
+            logger.error(f"The library init imaged tried to pull is: {library_init_image}")
+            raise ValueError(f"Failed to pull and extract library version: {e}")
 
     def get_warmups(self):
         warmups = super().get_warmups()
