@@ -9,7 +9,6 @@ const { promisify } = require('util')
 const app = require('express')()
 const axios = require('axios')
 const fs = require('fs')
-const passport = require('passport')
 const crypto = require('crypto')
 
 const iast = require('./iast')
@@ -37,7 +36,15 @@ app.use(require('body-parser').json())
 app.use(require('body-parser').urlencoded({ extended: true }))
 app.use(require('express-xml-bodyparser')())
 app.use(require('cookie-parser')())
+app.use(require('express-session')({
+  secret: 'secret',
+  resave: false,
+  rolling: true,
+  saveUninitialized: true
+}))
 iast.initMiddlewares(app)
+
+require('./auth')(app, tracer)
 
 app.get('/', (req, res) => {
   console.log('Received a request')
@@ -435,8 +442,6 @@ app.get('/createextraservice', (req, res) => {
 })
 
 iast.initRoutes(app, tracer)
-
-require('./auth')(app, passport, tracer)
 
 // try to flush as much stuff as possible from the library
 app.get('/flush', (req, res) => {
