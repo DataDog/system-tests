@@ -99,6 +99,12 @@ BLOCK_USER = (
                 "on_match": ["block"],
             }
         ],
+    },
+)
+
+BLOCK_USER_DATA = (
+    "datadog/2/ASM_DATA/blocked_users/config",
+    {
         "rules_data": [
             {
                 "id": "blocked_users",
@@ -121,6 +127,7 @@ class Test_Automated_User_Blocking:
         self.r_login = weblog.post("/login?auth=local", data=login_data(context, USER, PASSWORD))
 
         self.config_state_2 = rc.rc_state.set_config(*BLOCK_USER).apply()
+        self.config_state_3 = rc.rc_state.set_config(*BLOCK_USER_DATA).apply()
         self.r_home_blocked = weblog.get(
             "/",
             cookies=self.r_login.cookies,
@@ -131,6 +138,7 @@ class Test_Automated_User_Blocking:
         assert self.r_login.status_code == 200
 
         assert self.config_state_2[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
+        assert self.config_state_3[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
         interfaces.library.assert_waf_attack(self.r_home_blocked, rule="block-users")
         assert self.r_home_blocked.status_code == 403
 
@@ -139,6 +147,7 @@ class Test_Automated_User_Blocking:
 
         self.config_state_1 = rc.rc_state.set_config(*CONFIG_ENABLED).apply()
         self.config_state_2 = rc.rc_state.set_config(*BLOCK_USER).apply()
+        self.config_state_3 = rc.rc_state.set_config(*BLOCK_USER_DATA).apply()
         self.r_login = weblog.post("/login?auth=local", data=login_data(context, UUID_USER, PASSWORD))
         self.r_login_blocked = weblog.post(
             "/login?auth=local&sdk_event=success&sdk_user=sdkUser", data=login_data(context, UUID_USER, PASSWORD)
@@ -148,6 +157,7 @@ class Test_Automated_User_Blocking:
     def test_user_blocking_sdk(self):
         assert self.config_state_1[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
         assert self.config_state_2[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
+        assert self.config_state_3[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
 
         assert self.r_login.status_code == 200
 
@@ -175,6 +185,12 @@ BLOCK_SESSION = (
                 "on_match": ["block"],
             }
         ],
+    },
+)
+
+BLOCK_SESSION_DATA = (
+    "datadog/2/ASM_DATA/blocked_sessions/config",
+    {
         "rules_data": [
             {"id": "blocked_sessions", "type": "data_with_expiration", "data": []},
         ],
@@ -193,8 +209,9 @@ class Test_Automated_Session_Blocking:
         self.r_create_session = weblog.get("/session/new")
         self.session_id = self.r_create_session.text
 
-        BLOCK_SESSION[1]["rules_data"][0]["data"].append({"value": self.session_id, "expiration": 0})
+        BLOCK_SESSION_DATA[1]["rules_data"][0]["data"].append({"value": self.session_id, "expiration": 0})
         self.config_state_2 = rc.rc_state.set_config(*BLOCK_SESSION).apply()
+        self.config_state_3 = rc.rc_state.set_config(*BLOCK_SESSION_DATA).apply()
         self.r_home_blocked = weblog.get(
             "/",
             cookies=self.r_create_session.cookies,
@@ -205,5 +222,6 @@ class Test_Automated_Session_Blocking:
         assert self.r_create_session.status_code == 200
 
         assert self.config_state_2[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
+        assert self.config_state_3[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
         interfaces.library.assert_waf_attack(self.r_home_blocked, pattern=self.session_id, rule="block-sessions")
         assert self.r_home_blocked.status_code == 403
