@@ -13,9 +13,9 @@ class ExternalProcessingScenario(DockerScenario):
         self,
         name,
         doc,
+        *,
         extproc_env=None,
         extproc_volumes=None,
-        *,
         rc_api_enabled=False,
     ) -> None:
         super().__init__(
