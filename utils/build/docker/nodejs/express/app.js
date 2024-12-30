@@ -453,7 +453,9 @@ app.get('/flush', (req, res) => {
     if (profiler?._collect) {
       promises.push(profiler._collect('on_shutdown'))
     }
-  } catch {}
+  } catch (err) {
+    console.error('Unable to flush profiler:', err)
+  }
 
   if (tracer._tracer?._exporter?._writer?.flush) {
     promises.push(promisify((err) => tracer._tracer._exporter._writer.flush(err)))
