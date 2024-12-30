@@ -168,6 +168,3 @@ class Scenario:
 
     def __str__(self) -> str:
         return f"Scenario '{self.name}'"
-
-    def is_part_of(self, declared_scenario):
-        return self.name == declared_scenario

@@ -363,9 +363,6 @@ class EndToEndScenario(DockerScenario):
         self.backend_interface_timeout = backend_interface_timeout
         self.library_interface_timeout = library_interface_timeout
 
-    def is_part_of(self, declared_scenario):
-        return declared_scenario in (self.name, "EndToEndScenario")
-
     def configure(self, config):
         super().configure(config)
 
