@@ -2,6 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
+from enum import StrEnum
 import logging
 import os
 import re
@@ -10,7 +11,7 @@ import socket
 import random
 
 
-class bcolors:
+class ShColors(StrEnum):
     CYAN = "\033[96m"
     MAGENTA = "\033[95m"
     BLUE = "\033[94m"
@@ -68,7 +69,7 @@ def stdout(self, message, *args, **kws):
 logging.Logger.stdout = stdout
 
 
-def get_logger(name="tests", use_stdout=False):
+def get_logger(name="tests", *, use_stdout=False):
     result = logging.getLogger(name)
 
     logging.getLogger("requests").setLevel(logging.WARNING)
@@ -86,19 +87,19 @@ def get_logger(name="tests", use_stdout=False):
 
 
 def o(message):
-    return f"{bcolors.OKGREEN}{message}{bcolors.ENDC}"
+    return f"{ShColors.OKGREEN}{message}{ShColors.ENDC}"
 
 
 def w(message):
-    return f"{bcolors.YELLOW}{message}{bcolors.ENDC}"
+    return f"{ShColors.YELLOW}{message}{ShColors.ENDC}"
 
 
 def m(message):
-    return f"{bcolors.BLUE}{message}{bcolors.ENDC}"
+    return f"{ShColors.BLUE}{message}{ShColors.ENDC}"
 
 
 def e(message):
-    return f"{bcolors.RED}{message}{bcolors.ENDC}"
+    return f"{ShColors.RED}{message}{ShColors.ENDC}"
 
 
 logger = get_logger()
@@ -161,7 +162,7 @@ def get_rid_from_user_agent(user_agent):
     return match.group(1)
 
 
-def nested_lookup(needle: str, heystack, look_in_keys=False, exact_match=False):
+def nested_lookup(needle: str, heystack, *, look_in_keys=False, exact_match=False):
     """Look for needle in heystack, heystack can be a dict or an array"""
 
     if isinstance(heystack, str):

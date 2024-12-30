@@ -14,17 +14,13 @@ import (
 )
 
 type DatadogInformations struct {
-	Language                string `json:"language"`
-	Version                 string `json:"version"`
+	Language string `json:"language"`
+	Version  string `json:"version"`
 }
 
 type HealtchCheck struct {
 	Status  string              `json:"status"`
 	Library DatadogInformations `json:"library"`
-}
-
-func init() {
-	// os.Setenv("DD_TRACE_DEBUG", "true")
 }
 
 func InitDatadog() {
@@ -90,7 +86,7 @@ func GetDatadogInformations() (DatadogInformations, error) {
 	}
 
 	return DatadogInformations{
-		Language:                "golang",
-		Version:                 string(tracerVersion),
+		Language: "golang",
+		Version:  string(tracerVersion),
 	}, nil
 }

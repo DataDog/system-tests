@@ -16,6 +16,7 @@ class ScenarioGroup(Enum):
     END_TO_END = "end-to-end"
     GRAPHQL = "graphql"
     INTEGRATIONS = "integrations"
+    IPV6 = "ipv6"
     LIB_INJECTION = "lib-injection"
     OPEN_TELEMETRY = "open-telemetry"
     PARAMETRIC = "parametric"
@@ -65,7 +66,7 @@ class Scenario:
         for group in self.scenario_groups:
             assert group in ScenarioGroup, f"Invalid scenario group {group} for {self.name}: {group}"
 
-    def _create_log_subfolder(self, subfolder, remove_if_exists=False):
+    def _create_log_subfolder(self, subfolder, *, remove_if_exists=False):
         if self.replay:
             return
 

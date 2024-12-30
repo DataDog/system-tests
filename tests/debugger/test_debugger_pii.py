@@ -134,7 +134,7 @@ class Test_Debugger_PII_Redaction(debugger._Base_Debugger_Test):
         self.collect()
         self.assert_setup_ok()
         self.assert_rc_state_not_error()
-        self.assert_all_probes_are_installed()
+        self.assert_all_probes_are_emitting()
         self.assert_all_weblog_responses_ok()
 
         self._validate_pii_keyword_redaction(redacted_keys, line_probe)

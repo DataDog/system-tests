@@ -1,5 +1,6 @@
 package controllers
 
+import com.datadoghq.system_tests.iast.utils._
 import play.api.mvc._
 import resources.Resources
 
@@ -11,6 +12,8 @@ import scala.util.Using
 
 @Singleton
 class RaspController @Inject()(cc: MessagesControllerComponents, res: Resources) extends AbstractController(cc) {
+
+  private val cmdExamples = new CmdExamples()
 
   def sqli = Action { request =>
     val userId = request.body match {
@@ -54,6 +57,34 @@ class RaspController @Inject()(cc: MessagesControllerComponents, res: Resources)
     Results.Ok(executeUrl(domain))
   }
 
+  def shi = Action { request =>
+    val cmd = request.body match {
+      case AnyContentAsFormUrlEncoded(data) =>
+        data("list_dir").head
+      case AnyContentAsJson(data) =>
+        (data \ "list_dir").as[String]
+      case AnyContentAsXml(data) =>
+        data.text
+      case _ =>
+        request.queryString("list_dir").head
+    }
+    Results.Ok(executeShi(cmd))
+  }
+
+  def cmdi = Action { request =>
+    val command = request.body match {
+      case AnyContentAsFormUrlEncoded(data) =>
+        data("command").toArray
+      case AnyContentAsJson(data) =>
+        (data \ "command").as[Array[String]]
+      case AnyContentAsXml(data) =>
+        (data \\ "cmd").map(_.text).toArray
+      case _ =>
+        request.queryString("command").toArray
+    }
+    Results.Ok(executeCmdi(command))
+  }
+
   private def executeSql(userId: String): String = {
     Using(res.dataSource.getConnection()) { conn =>
       val stmt = conn.createStatement()
@@ -68,6 +99,16 @@ class RaspController @Inject()(cc: MessagesControllerComponents, res: Resources)
 
   private def executeLfi(file: String): String = {
     new File(file)
+    "OK"
+  }
+
+  private def executeShi(cmd: String): String = {
+    cmdExamples.insecureCmd(cmd)
+    "OK"
+  }
+
+  private def executeCmdi(arrayCmd: Array[String]): String = {
+    cmdExamples.insecureCmd(arrayCmd)
     "OK"
   }
 

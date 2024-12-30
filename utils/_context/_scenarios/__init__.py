@@ -24,7 +24,7 @@ from .ipv6 import IPV6Scenario
 update_environ_with_local_env()
 
 
-class scenarios:
+class _Scenarios:
     @staticmethod
     def all_endtoend_scenarios(test_object):
         """Particular use case where a klass applies on all scenarios"""
@@ -144,6 +144,9 @@ class scenarios:
     appsec_corrupted_rules = EndToEndScenario(
         "APPSEC_CORRUPTED_RULES",
         weblog_env={"DD_APPSEC_RULES": "/appsec_corrupted_rules.yml"},
+        weblog_volumes={
+            "./tests/appsec/appsec_corrupted_rules.json": {"bind": "/appsec_corrupted_rules.json", "mode": "ro"}
+        },
         doc="Test corrupted appsec rules file",
         scenario_groups=[ScenarioGroup.APPSEC],
     )
@@ -439,18 +442,6 @@ class scenarios:
         weblog_env={"DD_APPSEC_ENABLED": "false", "DD_REMOTE_CONFIGURATION_ENABLED": "true"},
         doc="",
         scenario_groups=[ScenarioGroup.APPSEC, ScenarioGroup.REMOTE_CONFIG],
-    )
-
-    remote_config_mocked_backend_live_debugging_nocache = EndToEndScenario(
-        "REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING_NOCACHE",
-        rc_api_enabled=True,
-        weblog_env={
-            "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1",
-            "DD_DEBUGGER_ENABLED": "1",
-            "DD_REMOTE_CONFIG_ENABLED": "true",
-        },
-        doc="",
-        scenario_groups=[ScenarioGroup.REMOTE_CONFIG],
     )
 
     remote_config_mocked_backend_asm_dd_nocache = EndToEndScenario(
@@ -784,6 +775,9 @@ class scenarios:
 
     external_processing = ExternalProcessingScenario("EXTERNAL_PROCESSING")
     ipv6 = IPV6Scenario("IPV6")
+
+
+scenarios = _Scenarios()
 
 
 def get_all_scenarios() -> list[Scenario]:
