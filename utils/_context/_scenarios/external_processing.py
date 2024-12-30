@@ -14,7 +14,7 @@ class ExternalProcessingScenario(DockerScenario):
         name,
         doc,
         extproc_env=None,
-        extproc_volumes={},
+        extproc_volumes=None,
         *,
         rc_api_enabled=False,
     ) -> None:
