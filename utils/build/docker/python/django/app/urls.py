@@ -611,6 +611,34 @@ def view_iast_header_injection_secure(request):
     return response
 
 
+@csrf_exempt
+def view_iast_code_injection_insecure(request):
+    code_string = request.POST.get("code")
+    _ = eval(code_string)
+    return HttpResponse("OK", status=200)
+
+
+@csrf_exempt
+def view_iast_code_injection_secure(request):
+    import operator
+
+    def safe_eval(expr):
+        ops = {
+            "+": operator.add,
+            "-": operator.sub,
+            "*": operator.mul,
+            "/": operator.truediv,
+        }
+        if len(expr) != 3 or expr[1] not in ops:
+            raise ValueError("Invalid expression")
+        a, op, b = expr
+        return ops[op](float(a), float(b))
+
+    code_string = request.POST.get("code")
+    _ = safe_eval(code_string)
+    return HttpResponse("OK", status=200)
+
+
 def make_distant_call(request):
     # curl localhost:7777/make_distant_call?url=http%3A%2F%2Fweblog%3A7777 | jq
 
@@ -901,6 +929,8 @@ urlpatterns = [
     path("iast/source/path/test", view_iast_source_path),
     path("iast/source/path_parameter/test/<str:table>", view_iast_source_path_parameter),
     path("iast/header_injection/test_secure", view_iast_header_injection_secure),
+    path("iast/code_injection/test_insecure", view_iast_code_injection_insecure),
+    path("iast/code_injection/test_secure", view_iast_code_injection_secure),
     path("iast/header_injection/test_insecure", view_iast_header_injection_insecure),
     path("make_distant_call", make_distant_call),
     path("user_login_success_event", track_user_login_success_event),

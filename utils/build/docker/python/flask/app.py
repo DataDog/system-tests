@@ -1105,6 +1105,36 @@ def view_iast_header_injection_secure():
     return resp
 
 
+@app.route("/iast/code_injection/test_insecure", methods=["POST"])
+def view_iast_code_injection_insecure():
+    code_string = flask_request.form["code"]
+    _ = eval(code_string)
+    resp = Response("OK")
+    return resp
+
+
+@app.route("/iast/code_injection/test_secure", methods=["POST"])
+def view_iast_code_injection_secure():
+    import operator
+
+    def safe_eval(expr):
+        ops = {
+            "+": operator.add,
+            "-": operator.sub,
+            "*": operator.mul,
+            "/": operator.truediv,
+        }
+        if len(expr) != 3 or expr[1] not in ops:
+            raise ValueError("Invalid expression")
+        a, op, b = expr
+        return ops[op](float(a), float(b))
+
+    code_string = flask_request.form["code"]
+    _ = safe_eval(code_string)
+    resp = Response("OK")
+    return resp
+
+
 _TRACK_METADATA = {
     "metadata0": "value0",
     "metadata1": "value1",
