@@ -765,7 +765,7 @@ class _Scenarios:
     )
 
     external_processing_blocking = ExternalProcessingScenario(
-        name="EXTERNAL_PROCESSING",
+        name="EXTERNAL_PROCESSING_BLOCKING",
         doc="Envoy + external processing + blocking rule file",
         extproc_env={"DD_APPSEC_RULES": "/appsec_blocking_rule.json"},
         extproc_volumes={"./tests/appsec/blocking_rule.json": {"bind": "/appsec_blocking_rule.json", "mode": "ro"}},

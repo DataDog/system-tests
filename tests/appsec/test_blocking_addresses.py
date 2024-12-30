@@ -213,6 +213,10 @@ class Test_Blocking_request_path_params:
         # query parameters are not a part of path parameters
         self.rm_req_nonblock = weblog.get("/waf/noharm?value=AiKfOeRcvG45")
 
+    @missing_feature(
+        context.scenario is scenarios.external_processing_blocking,
+        reason="The endpoint /param is not implemented in the weblog (from the test_blocking test)",
+    )
     def test_non_blocking(self):
         """Test if requests that should not be blocked are not blocked"""
         self.test_blocking()
