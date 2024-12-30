@@ -1,6 +1,8 @@
+from dataclasses import dataclass
 import os
 import sys
 import pytest
+from _pytest.reports import TestReport
 
 from docker.models.networks import Network
 from docker.types import IPAMConfig, IPAMPool
@@ -8,7 +10,8 @@ from docker.types import IPAMConfig, IPAMPool
 from watchdog.observers.polling import PollingObserver
 from watchdog.events import FileSystemEventHandler
 
-from utils import interfaces
+from utils import interfaces, context
+from utils.interfaces._core import ProxyBasedInterfaceValidator
 from utils.buddies import BuddyHostPorts
 from utils.proxy.ports import ProxyPorts
 from utils._context.containers import (
@@ -30,6 +33,14 @@ from utils._context.containers import (
 from utils.tools import logger
 
 from .core import Scenario, ScenarioGroup
+
+
+@dataclass
+class _SchemaBug:
+    endpoint: str
+    data_path: str
+    condition: bool
+    ticket: str
 
 
 class DockerScenario(Scenario):
@@ -195,6 +206,9 @@ class DockerScenario(Scenario):
         for container in self._required_containers:
             if container.healthy is False:
                 pytest.exit(f"Container {container.name} can't be started", 1)
+
+    def pytest_sessionfinish(self, session, exitstatus):  # noqa: ARG002
+        self.close_targets()
 
     def close_targets(self):
         for container in reversed(self._required_containers):
@@ -523,6 +537,100 @@ class EndToEndScenario(DockerScenario):
         logger.terminal.flush()
 
         interface.wait(timeout)
+
+    def pytest_sessionfinish(self, session, exitstatus):
+        library_bugs = [
+            _SchemaBug(
+                endpoint="/telemetry/proxy/api/v2/apmtelemetry",
+                data_path="$.payload.configuration[]",
+                condition=context.library >= "nodejs@2.27.1",
+                ticket="APPSEC-52805",
+            ),
+            _SchemaBug(
+                endpoint="/telemetry/proxy/api/v2/apmtelemetry",
+                data_path="$.payload",
+                condition=context.library < "python@v2.9.0.dev",
+                ticket="APPSEC-52845",
+            ),
+            _SchemaBug(
+                endpoint="/telemetry/proxy/api/v2/apmtelemetry",
+                data_path="$.payload.configuration[].value",
+                condition=context.library == "golang",
+                ticket="APMS-12697",
+            ),
+            _SchemaBug(
+                endpoint="/debugger/v1/diagnostics",
+                data_path="$[].content",
+                condition=context.library > "nodejs@4.48.0",
+                ticket="DEBUG-2864",
+            ),
+            _SchemaBug(
+                endpoint="/debugger/v1/input",
+                data_path="$[].debugger.snapshot.stack[].lineNumber",
+                condition=context.library in ("python@2.16.2", "python@2.16.3")
+                and self.name == "DEBUGGER_EXPRESSION_LANGUAGE",
+                ticket="APMRP-360",
+            ),
+        ]
+        self._test_schemas(session, interfaces.library, library_bugs)
+
+        agent_bugs = [
+            _SchemaBug(
+                endpoint="/api/v2/apmtelemetry",
+                data_path="$.payload.configuration[]",
+                condition=context.library >= "nodejs@2.27.1",
+                ticket="APPSEC-52805",
+            ),
+            _SchemaBug(
+                endpoint="/api/v2/apmtelemetry",
+                data_path="$.payload",
+                condition=context.library < "python@v2.9.0.dev",
+                ticket="APPSEC-52845",
+            ),
+            _SchemaBug(
+                endpoint="/api/v2/apmtelemetry", data_path="$", condition=True, ticket="???"
+            ),  # the main payload sent by the agent may be an array i/o an object
+            _SchemaBug(
+                endpoint="/api/v2/apmtelemetry",
+                data_path="$.payload.configuration[].value",
+                condition=context.library == "golang",
+                ticket="APMS-12697",
+            ),
+            _SchemaBug(
+                endpoint="/api/v2/debugger",
+                data_path="$[].content",
+                condition=context.library > "nodejs@4.46.0",
+                ticket="DEBUG-2864",
+            ),
+        ]
+        self._test_schemas(session, interfaces.agent, agent_bugs)
+
+        return super().pytest_sessionfinish(session, exitstatus)
+
+    def _test_schemas(self, session, interface: ProxyBasedInterfaceValidator, known_bugs: list[_SchemaBug]) -> None:
+        long_repr = []
+
+        excluded_points = {(bug.endpoint, bug.data_path) for bug in known_bugs if bug.condition}
+
+        for error in interface.get_schemas_errors():
+            if (error.endpoint, error.data_path) not in excluded_points:
+                long_repr.append(f"* {error.message}")
+
+        if len(long_repr) != 0:
+            report = TestReport(
+                f"{os.path.relpath(__file__)}::{self.__class__.__name__}::_test_schemas",
+                (f"{interface.name} Schema Validation", 12, f"{interface.name}'s schema validation"),
+                {},
+                "failed",
+                "\n".join(long_repr),
+                "call",
+            )
+
+            if "error" not in logger.terminal.stats:
+                logger.terminal.stats["error"] = []
+
+            logger.terminal.stats["error"].append(report)
+            session.exitstatus = pytest.ExitCode.TESTS_FAILED
 
     @property
     def dd_site(self):
