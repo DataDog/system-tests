@@ -14,7 +14,7 @@ class ExternalProcessingScenario(DockerScenario):
         name,
         doc,
         extproc_env=None,
-        extproc_volumes=None,
+        extproc_volumes={},
         *,
         rc_api_enabled=False,
     ) -> None:
@@ -32,7 +32,6 @@ class ExternalProcessingScenario(DockerScenario):
             self.host_log_folder,
             env=extproc_env,
             volumes=extproc_volumes,
-            rc_api_enabled=rc_api_enabled,
         )
         self._envoy_container = EnvoyContainer(self.host_log_folder)
         self._http_app_container = DummyServerContainer(self.host_log_folder)

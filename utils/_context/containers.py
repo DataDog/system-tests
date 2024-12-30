@@ -1199,7 +1199,7 @@ class EnvoyContainer(TestedContainer):
             host_log_folder=host_log_folder,
             volumes={"./tests/external_processing/envoy.yaml": {"bind": "/etc/envoy/envoy.yaml", "mode": "ro"}},
             ports={"80": ("127.0.0.1", weblog.port)},
-            # healthcheck={"test": "wget http://localhost:9901/ready", "retries": 10,},  # no wget on envoy
+            healthcheck={"test": "/bin/bash -c \"exec 3<>/dev/tcp/127.0.0.1/80 || exit 1; echo -e 'GET / HTTP/1.1\nHost: system-tests\r\n\r\n' >&3; cat <&3 | grep -q '200'\"", "retries": 10,},  # no wget on envoy
         )
 
 
@@ -1209,10 +1209,8 @@ class ExternalProcessingContainer(TestedContainer):
     def __init__(
         self,
         host_log_folder,
-        env=None,
-        volumes=None,
-        *,
-        rc_api_enabled=False,
+        env,
+        volumes,
     ) -> None:
         try:
             with open("binaries/golang-service-extensions-callout-image", encoding="utf-8") as f:
@@ -1236,7 +1234,6 @@ class ExternalProcessingContainer(TestedContainer):
             name="extproc",
             host_log_folder=host_log_folder,
             volumes=volumes,
-            rc_api_enabled=rc_api_enabled,
             environment=environment,
             healthcheck={
                 "test": "wget -qO- http://localhost:80/",
