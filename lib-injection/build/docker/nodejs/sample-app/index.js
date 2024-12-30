@@ -12,7 +12,7 @@ function crashme(req, res) {
 
     res.writeHead(200, { 'Content-Type': 'text/plain' });
     res.end('Crashing process ' + process.pid);
-  }, 2000); // Add a delay before crashing otherwise the telemetry forwarder leaves a zombie behind
+  }, 2000); // Add a delay before crashing otherwise the telemetry forwarder leaves a zombie behind.
 }
 
 function forkAndCrash(req, res) {
