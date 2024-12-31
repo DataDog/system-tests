@@ -286,7 +286,7 @@ def pytest_collection_modifyitems(session, config, items: list[pytest.Item]):
             deselected.append(item)
             continue
 
-        if context.scenario.is_part_of(declared_scenarios):
+        if context.scenario.name in declared_scenarios:
             logger.info(f"{item.nodeid} is included in {context.scenario}")
             selected.append(item)
 
@@ -409,7 +409,7 @@ def pytest_json_modifyreport(json_report):
 def pytest_sessionfinish(session, exitstatus):
     logger.info("Executing pytest_sessionfinish")
 
-    context.scenario.close_targets()
+    context.scenario.pytest_sessionfinish(session, exitstatus)
 
     if session.config.option.collectonly or session.config.option.replay:
         return

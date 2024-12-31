@@ -134,6 +134,9 @@ class DockerSSIScenario(Scenario):
         self.agent_host = self._agent_container.network_ip(self._network)
         logger.debug(f"GITLAB_CI: Set agent host to {self.agent_host}")
 
+    def pytest_sessionfinish(self, session, exitstatus):  # noqa: ARG002
+        self.close_targets()
+
     def close_targets(self):
         for container in reversed(self._required_containers):
             try:
