@@ -92,5 +92,17 @@ namespace weblog
             DeepFunctionA();
             return Content("Should not reach here");
         }
+
+        private async Task<IActionResult> AsyncThrow()
+        {
+            throw new System.Exception("Async exception");
+        }
+
+        [HttpGet("async")]
+        [Consumes("application/json", "application/xml")]
+        public async Task<IActionResult> ExceptionReplayAsync()
+        {
+            return await AsyncThrow();
+        }
     }
 }

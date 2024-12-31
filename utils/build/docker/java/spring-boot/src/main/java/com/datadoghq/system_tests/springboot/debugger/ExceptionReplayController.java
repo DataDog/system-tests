@@ -3,6 +3,7 @@ package com.datadoghq.system_tests.springboot;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.http.MediaType;
+import java.util.concurrent.CompletableFuture;
 
 @RestController
 @RequestMapping("/exceptionreplay")
@@ -63,5 +64,16 @@ public class ExceptionReplayController {
     public Void exceptionReplayMultiframe() {
         deepFunctionA();
         return null;
+    }
+
+    private CompletableFuture<Void> asyncThrow() {
+        return CompletableFuture.supplyAsync(() -> {
+            throw new ResponseStatusException(org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR, "Async exception");
+        });
+    }
+
+    @GetMapping("/async")
+    public CompletableFuture<Void> exceptionReplayAsync() {
+        return asyncThrow();
     }
 }
