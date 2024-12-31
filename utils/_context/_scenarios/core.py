@@ -80,11 +80,6 @@ class Scenario:
     def __call__(self, test_object):
         """Handles @scenarios.scenario_name"""
 
-        # Check that no scenario has been already declared
-        for marker in getattr(test_object, "pytestmark", []):
-            if marker.name == "scenario":
-                raise ValueError(f"Error on {test_object}: You can declare only one scenario")
-
         pytest.mark.scenario(self.name)(test_object)
 
         return test_object
