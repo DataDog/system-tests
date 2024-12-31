@@ -42,7 +42,6 @@ class DockerSSIScenario(Scenario):
         self._required_containers.append(self._agent_container)
         self._required_containers.append(self._weblog_injection)
         self.weblog_url = "http://localhost:18080"
-        self._tested_components = {}
         # scenario configuration that is going to be reported in the final report
         self._configuration = {"app_type": "docker_ssi"}
 
@@ -158,23 +157,23 @@ class DockerSSIScenario(Scenario):
         self.configuration["arch"] = self._arch.replace("linux/", "")
 
         for key in json_tested_components:
-            self._tested_components[key] = json_tested_components[key].lstrip(" ")
+            self.components[key] = json_tested_components[key].lstrip(" ")
             if key == "weblog_url" and json_tested_components[key]:
                 self.weblog_url = json_tested_components[key].lstrip(" ")
                 continue
             if key == "runtime_version" and json_tested_components[key]:
                 self._installed_language_runtime = Version(json_tested_components[key].lstrip(" "))
                 # Runtime version is stored as configuration not as dependency
-                del self._tested_components[key]
+                del self.components[key]
                 self.configuration["runtime_version"] = f"{self._installed_language_runtime}"
             if key.startswith("datadog-apm-inject") and json_tested_components[key]:
                 self._datadog_apm_inject_version = f"v{json_tested_components[key].lstrip(' ')}"
-            if key.startswith("datadog-apm-library-") and self._tested_components[key]:
+            if key.startswith("datadog-apm-library-") and self.components[key]:
                 library_version_number = json_tested_components[key].lstrip(" ")
                 self._libray_version = LibraryVersion(self._library, library_version_number)
                 # We store without the lang sufix
-                self._tested_components["datadog-apm-library"] = self._tested_components[key]
-                del self._tested_components[key]
+                self.components["datadog-apm-library"] = self.components[key]
+                del self.components[key]
 
     def print_installed_components(self):
         logger.stdout("Installed components")
@@ -203,10 +202,6 @@ class DockerSSIScenario(Scenario):
     @property
     def installed_language_runtime(self):
         return self._installed_language_runtime
-
-    @property
-    def components(self):
-        return self._tested_components
 
     @property
     def weblog_variant(self):
