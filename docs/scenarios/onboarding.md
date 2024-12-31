@@ -1,13 +1,11 @@
 1. [Overall](#Overall)
-
    * [Library Injection testing scenarios](#Library-Injection-testing-scenarios)
    * [Knowledge concepts](#Knowledge-concepts)
-     - [Define a Virtual Machine scenario](#Define-a-Virtual-Machine-scenario)
+     - [Virtual Machine scenario](#Virtual-Machine-scenario)
      - [Virtual Machine](#Virtual-Machine)
      - [Provision](#Provision)
      - [Provider](#Provider)
 2. [Run the tests](#Run-the-tests)
-
    * [Prerequisites](#Prerequisites)
      - [AWS](#AWS)
      - [Vagrant](#Vagrant)
@@ -15,10 +13,11 @@
      - [System-tests requirements](#System-tests-requirements)
    * [Configure the environment variables](#Configure-the-environment-variables)
    * [Run the scenario](#run-the-scenario)
-3. [How to develop a test case](#How-to-develop-a-test-case)
-
+3. [How to develop tests](#How-to-develop-a-test-case)
    * [Folders and Files structure](#Folders-and-Files-structure)
-   * [Implement a new test case](#Implement-a-new-test-case)
+   * [Create a new provision](#Create-a-new-provision)
+   * [Create a new weblog](#Create-a-new-weblog)
+   * [Create a new test case](#Create-a-new-test-case)
 4. [How to debug your environment and tests results](#How-to-debug-your-kubernetes-environment-and-tests-results)
 5. [How to debug a virtual machine at runtime](#How-to-debug-your-kubernetes-environment-at-runtime)
 
@@ -55,7 +54,9 @@ We need to know some terms:
 * **Provider:** It refers to the integration of system-tests with the different technologies that allow interacting with virtual machines. These can be executed locally using software such as vmware, virtual box... or executed in the cloud using services such as Google Cloud or AWS.
 * **Tests:** Set of tests to run against a virtual machine. For example, we can make remote HTTP requests to an installed web application during the provisioning process or we can connect to it via SSH to execute different commands to check that the installed software provision is running correctly.
 
-### Define a Virtual Machine scenario
+![SSI tests architecture](../lib-injection/onboarding_overview.png "SSI tests architecture")
+
+### Virtual Machine scenario
 
 You can create your own VirtualMachine scenario, extending the common interface `_VirtualMachineScenario`, and specifing the allowed machines and the default provision.
 In the following code you can see how we define a new VirtualMachine Scenario, setting the VMs that you want to run:
@@ -304,10 +305,10 @@ The common interface that implemets all the existing providers is: `utils/virtua
 
 To run the onboarding test scenarios, we will use the following utilities:
 
-* AWS as the infrastructure provider: We are testing onboarding installation scenarios on different types of machines and OS. AWS Cli must be configured on your computer in order to launch EC2 instances automatically.
-* Vagrant as the infrastructure local provider: For local executions, we can use Vagrant instead of AWS EC2 instances.
-* Pulumi as the orchestrator of this test infrastructure: Pulumi's open source infrastructure as code SDK enables you to create, deploy, and manage infrastructure on any cloud, using your favorite languages.
-* Pytest as testing tool (Python): System-tests is built on Pytest.
+* **AWS as the infrastructure provider:** We are testing onboarding installation scenarios on different types of machines and OS. AWS Cli must be configured on your computer in order to launch EC2 instances automatically.
+* **Vagrant as the infrastructure local provider**: For local executions, we can use Vagrant instead of AWS EC2 instances.
+* **Pulumi as the orchestrator of this test infrastructure:** Pulumi's open source infrastructure as code SDK enables you to create, deploy, and manage infrastructure on any cloud, using your favorite languages.
+* **Pytest as testing tool (Python):** System-tests is built on Pytest.
 
 ### AWS
 
@@ -354,7 +355,6 @@ Once the key has been created, you can use it configuring the following environm
 - **ONBOARDING_AWS_INFRA_KEYPAIR_NAME:** Set key pair name to ssh connect to the remote machines.
 - **ONBOARDING_AWS_INFRA_KEY_PATH:** Local absolute path to your keir-pair file (pem file).
 
-
 ## Run the scenario
 
 The 'onboarding' tests can be executed in the same way as we executed system-tests scenarios.
@@ -387,3 +387,40 @@ export DD_API_KEY_ONBOARDING=apikey
 export DD_APP_KEY_ONBOARDING=appkey
 ./run.sh SIMPLE_INSTALLER_AUTO_INJECTION --vm-weblog test-app-nodejs --vm-env dev --vm-library nodejs --vm-provider aws --vm-only Ubuntu_22_amd64
 ```
+
+# How to develop tests
+
+Developing new tests might involve one or several operations:
+
+* **Implement a new provision/scenario:** You need a custom provision or extra steps. For example, in addition to the SSI software you want to install a  several linux services to check if these services can interfere on the weblog auto injection.
+* **Add a new weblog:** You want to add a new weblog to be tested in the previously existing scenario.
+* **Add a new test case:** You want to add new assertions against the existing scenarios and weblogs.
+
+## Folders and Files structure
+
+To develop a new test case in the K8s Library injection tests, you need to know about the project folder structure.
+The following picture shows the main directories for the SSI tests:
+
+![Folder structure](../lib-injection/ssi_lib_injections_folders.png "Folder structure")
+
+* **lib-injection/build/docker:** This folder contains the sample applications source code.
+* **tests/auto_inject:** All tests cases are stored on this folder.
+* **utils/_context/scenarios/**: In this folder you can find the SSI Lib injection scenario definition.
+* **utils/_context/virtual_machines.py:** The virtual machine definition file.
+* **utils/build/virtual_machine/provisions/:** Provisions associated to the scenario.
+* **utils/build/virtual_machine/weblogs/:** Provisions associated to the weblogs.
+* **utils/onboarding:** Utilities that are used from the test cases. For example, make a request to the weblog or make queries to the backend in order to find the generated instrumentation traces.
+* **utils/virtual_machine/:** The core implementation of this test framework. For example, the provider implementation, the pulumi wrapper or the provision files parser.
+* **.gitlab-ci.yml:** These tests are launched on GitLab.
+
+## Create a new provision
+
+To develop a
+
+## Create a new weblog
+
+To develop a
+
+## Create a new test case
+
+To develop a
