@@ -2,44 +2,74 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-import tests.debugger.utils as base
+import tests.debugger.utils as debugger
 import re, json
-from utils import scenarios, interfaces, weblog, features, remote_config as rc, bug, context
+from utils import scenarios, features, bug, missing_feature, context
 
 
 @features.debugger_expression_language
 @scenarios.debugger_expression_language
-class Test_Debugger_Expression_Language(base._Base_Debugger_Test):
-    version = 0
+class Test_Debugger_Expression_Language(debugger._Base_Debugger_Test):
     message_map = {}
-    tracer = None
 
+    ############ setup ############
     def _setup(self, probes, request_path):
-        self.installed_ids = set()
-        self.expected_probe_ids = base.extract_probe_ids(probes)
+        self.set_probes(probes)
+        self.send_rc_probes()
+        self.wait_for_all_probes_installed()
+        self.send_weblog_request(request_path)
+        self.wait_for_all_probes_emitting()
 
-        Test_Debugger_Expression_Language.version += 1
-        self.rc_state = rc.send_debugger_command(probes=probes, version=Test_Debugger_Expression_Language.version)
+    ############ assert ############
+    def _assert(self, expected_response: int):
+        self.collect()
 
-        interfaces.agent.wait_for(self.wait_for_all_probes_installed, timeout=30)
-        self.weblog_responses = [weblog.get(request_path)]
-
-    def _assert(self, expected_code: int = 200):
-        self.assert_all_states_not_error()
-        self.assert_all_probes_are_installed()
-        self.assert_all_weblog_responses_ok(expected_code)
+        self.assert_rc_state_not_error()
+        self.assert_all_probes_are_emitting()
+        self.assert_all_weblog_responses_ok(expected_response)
         self._validate_expression_language_messages(self.message_map)
 
-    def setup_expression_language_access_variables(self):
+    def _validate_expression_language_messages(self, expected_message_map):
+        not_found_ids = set(self.probe_ids)
+        error_messages = []
 
+        for probe_id, snapshots in self.probe_snapshots.items():
+            for snapshot in snapshots:
+                if probe_id in expected_message_map:
+                    not_found_ids.remove(probe_id)
+
+                    if not re.search(expected_message_map[probe_id], snapshot["message"]):
+                        error_messages.append(
+                            f"Message for probe id {probe_id} is wrong. \n Expected: {expected_message_map[probe_id]}. \n Found: {snapshot['message']}."
+                        )
+
+                        evaluation_errors = snapshot["debugger"]["snapshot"].get("evaluationErrors", [])
+                        for error in evaluation_errors:
+                            error_messages.append(
+                                f" Evaluation error in probe id {probe_id}: {error['expr']} - {error['message']}\n"
+                            )
+
+                        evaluation_errors = snapshot["debugger"]["snapshot"].get("evaluationErrors", [])
+                        for error in evaluation_errors:
+                            error_messages.append(
+                                f" Evaluation error in probe id {probe_id}: {error['expr']} - {error['message']}\n"
+                            )
+
+        not_found_list = "\n".join(not_found_ids)
+        assert not error_messages, "Errors occurred during validation:\n" + "\n".join(error_messages)
+        assert not not_found_ids, f"The following probes were not found:\n{not_found_list}"
+
+    ############ test ############
+    ############ access variables ############
+    def setup_expression_language_access_variables(self):
         message_map, probes = self._create_expression_probes(
             methodName="Expression",
             expressions=[
-                ["Accessing input", "asd", Dsl("ref", "inputValue"),],
-                ["Accessing return", ".*Great success number 3", Dsl("ref", "@return"),],
-                ["Accessing local", 3, Dsl("ref", "localValue"),],
-                ["Accessing complex object int", 1, Dsl("getmember", [Dsl("ref", "testStruct"), "IntValue"]),],
-                ["Accessing complex object double", 1.1, Dsl("getmember", [Dsl("ref", "testStruct"), "DoubleValue"]),],
+                ["Accessing input", "asd", Dsl("ref", "inputValue")],
+                ["Accessing return", ".*Great success number 3", Dsl("ref", "@return")],
+                ["Accessing local", 3, Dsl("ref", "localValue")],
+                ["Accessing complex object int", 1, Dsl("getmember", [Dsl("ref", "testStruct"), "IntValue"])],
+                ["Accessing complex object double", 1.1, Dsl("getmember", [Dsl("ref", "testStruct"), "DoubleValue"])],
                 [
                     "Accessing complex object string",
                     "one",
@@ -60,7 +90,7 @@ class Test_Debugger_Expression_Language(base._Base_Debugger_Test):
                     2,
                     Dsl("index", [Dsl("getmember", [Dsl("ref", "testStruct"), "Dictionary"]), "two"]),
                 ],
-                ["Accessing duration", r"\d+(\.\d+)?", Dsl("ref", "@duration"),],
+                ["Accessing duration", r"\d+(\.\d+)?", Dsl("ref", "@duration")],
             ],
         )
 
@@ -68,20 +98,22 @@ class Test_Debugger_Expression_Language(base._Base_Debugger_Test):
         self._setup(probes, "/debugger/expression?inputValue=asd")
 
     def test_expression_language_access_variables(self):
-        self._assert()
+        self._assert(expected_response=200)
 
+    ############ access exception ############
     def setup_expression_language_access_exception(self):
         message_map, probes = self._create_expression_probes(
             methodName="ExpressionException",
-            expressions=[["Accessing exception", ".*Hello from exception", Dsl("ref", "@exception"),],],
+            expressions=[["Accessing exception", ".*Hello from exception", Dsl("ref", "@exception")]],
         )
 
         self.message_map = message_map
         self._setup(probes, "/debugger/expression/exception")
 
     def test_expression_language_access_exception(self):
-        self._assert(expected_code=500)
+        self._assert(expected_response=500)
 
+    ############ comparison operators ############
     def setup_expression_language_comparison_operators(self):
         message_map, probes = self._create_expression_probes(
             methodName="ExpressionOperators",
@@ -100,7 +132,7 @@ class Test_Debugger_Expression_Language(base._Base_Debugger_Test):
                 ["intValue ne 5", False, Dsl("ne", [Dsl("ref", "intValue"), 5])],
                 ["intValue le 0", False, Dsl("le", [Dsl("ref", "intValue"), 0])],
                 ["intValue ge 10", False, Dsl("ge", [Dsl("ref", "intValue"), 10])],
-                ["floatValue ne 0", True, Dsl("ne", [Dsl("ref", "floatValue"), 3.14])],
+                ["floatValue ne 0", True, Dsl("ne", [Dsl("ref", "floatValue"), 0])],
                 ["floatValue ne 0.1", True, Dsl("ne", [Dsl("ref", "floatValue"), 0.1])],
                 ["floatValue lt 10", True, Dsl("lt", [Dsl("ref", "floatValue"), 10])],
                 ["floatValue lt 10.10", True, Dsl("lt", [Dsl("ref", "floatValue"), 10.10])],
@@ -140,8 +172,9 @@ class Test_Debugger_Expression_Language(base._Base_Debugger_Test):
         self._setup(probes, "/debugger/expression/operators?intValue=5&floatValue=3.14&strValue=haha")
 
     def test_expression_language_comparison_operators(self):
-        self._assert()
+        self._assert(expected_response=200)
 
+    ############ intance of ############
     def setup_expression_language_instance_of(self):
         message_map, probes = self._create_expression_probes(
             methodName="ExpressionOperators",
@@ -158,9 +191,14 @@ class Test_Debugger_Expression_Language(base._Base_Debugger_Test):
                     Dsl("instanceof", [Dsl("ref", "strValue"), self._get_type("string")]),
                 ],
                 [
-                    "this instanceof controller",
+                    "pii instanceof pii",
                     True,
-                    Dsl("instanceof", [Dsl("ref", "this"), self._get_type("controller")]),
+                    Dsl("instanceof", [Dsl("ref", "pii"), self._get_type("pii")]),
+                ],
+                [
+                    "pii instanceof pii base",
+                    True,
+                    Dsl("instanceof", [Dsl("ref", "pii"), self._get_type("pii")]),
                 ],
                 [
                     "intValue instanceof float",
@@ -177,7 +215,7 @@ class Test_Debugger_Expression_Language(base._Base_Debugger_Test):
                     False,
                     Dsl("instanceof", [Dsl("ref", "strValue"), self._get_type("float")]),
                 ],
-                ["this instanceof string", False, Dsl("instanceof", [Dsl("ref", "this"), self._get_type("string")])],
+                ["pii instanceof string", False, Dsl("instanceof", [Dsl("ref", "pii"), self._get_type("string")])],
             ],
         )
 
@@ -186,10 +224,10 @@ class Test_Debugger_Expression_Language(base._Base_Debugger_Test):
 
     @bug(library="dotnet", reason="DEBUG-2530")
     def test_expression_language_instance_of(self):
-        self._assert()
+        self._assert(expected_response=200)
 
+    ############ logical operators ############
     def setup_expression_language_logical_operators(self):
-
         message_map, probes = self._create_expression_probes(
             methodName="ExpressionOperators",
             expressions=[
@@ -203,7 +241,7 @@ class Test_Debugger_Expression_Language(base._Base_Debugger_Test):
                     True,
                     Dsl("or", [Dsl("eq", [Dsl("ref", "intValue"), 1]), Dsl("eq", [Dsl("ref", "strValue"), "haha"])]),
                 ],
-                ["not intValue ne 10", True, Dsl("not", Dsl("ne", [Dsl("ref", "intValue"), 5])),],
+                ["not intValue ne 10", True, Dsl("not", Dsl("ne", [Dsl("ref", "intValue"), 5]))],
                 [
                     "intValue eq 5 and strValue ne haha",
                     False,
@@ -214,7 +252,7 @@ class Test_Debugger_Expression_Language(base._Base_Debugger_Test):
                     False,
                     Dsl("or", [Dsl("eq", [Dsl("ref", "intValue"), 1]), Dsl("eq", [Dsl("ref", "strValue"), "hoho"])]),
                 ],
-                ["not intValue eq 10", False, Dsl("not", Dsl("eq", [Dsl("ref", "intValue"), 5])),],
+                ["not intValue eq 10", False, Dsl("not", Dsl("eq", [Dsl("ref", "intValue"), 5]))],
             ],
         )
 
@@ -223,10 +261,10 @@ class Test_Debugger_Expression_Language(base._Base_Debugger_Test):
 
     @bug(context.library >= "dotnet@3.5.0", reason="DEBUG-3115")
     def test_expression_language_logical_operators(self):
-        self._assert()
+        self._assert(expected_response=200)
 
+    ############ string operations ############
     def setup_expression_language_string_operations(self):
-
         message_map, probes = self._create_expression_probes(
             methodName="StringOperations",
             expressions=[
@@ -245,7 +283,7 @@ class Test_Debugger_Expression_Language(base._Base_Debugger_Test):
                 ["strValue startsWith very", True, Dsl("startsWith", [Dsl("ref", "strValue"), "very"])],
                 ["strValue startsWith foo", False, Dsl("startsWith", [Dsl("ref", "strValue"), "foo"])],
                 ["emptyString startsWith empty", True, Dsl("startsWith", [Dsl("ref", "emptyString"), ""])],
-                ["emptyString startsWith some", False, Dsl("startsWith", [Dsl("ref", "emptyString"), "some"]),],
+                ["emptyString startsWith some", False, Dsl("startsWith", [Dsl("ref", "emptyString"), "some"])],
                 ##### endsWith
                 ["strValue endsWith ring", True, Dsl("endsWith", [Dsl("ref", "strValue"), "ring"])],
                 ["strValue endsWith foo", False, Dsl("endsWith", [Dsl("ref", "strValue"), "foo"])],
@@ -269,15 +307,17 @@ class Test_Debugger_Expression_Language(base._Base_Debugger_Test):
 
     @bug(library="dotnet", reason="DEBUG-2560")
     def test_expression_language_string_operations(self):
-        self._assert()
+        self._assert(expected_response=200)
+
+    ############ collection operations ############
+    ## at the app there are 3 types of collections are created - array, list and hash.
+    ## the number at the end of variable means the length of the collection
+    ## all collection are filled with incremented number values (e.g at the [0] = 0; [1] = 1)
 
     def setup_expression_language_collection_operations(self):
         message_map, probes = self._create_expression_probes(
             methodName="CollectionOperations",
             expressions=[
-                ### at the app there are 3 types of collections are created - array, list and hash.
-                ### the number at the end of variable means the length of the collection
-                ### all collection are filled with incremented number values (e.g at the [0] = 0; [1] = 1)
                 ##### len
                 ["Array0 len", 0, Dsl("len", Dsl("ref", "a0"))],
                 ["Array1 len", 1, Dsl("len", Dsl("ref", "a1"))],
@@ -285,13 +325,9 @@ class Test_Debugger_Expression_Language(base._Base_Debugger_Test):
                 ["List0 len", 0, Dsl("len", Dsl("ref", "l0"))],
                 ["List1 len", 1, Dsl("len", Dsl("ref", "l1"))],
                 ["List5 len", 5, Dsl("len", Dsl("ref", "l5"))],
-                ["Hash0 len", 0, Dsl("len", Dsl("ref", "h0"))],
-                ["Hash1 len", 1, Dsl("len", Dsl("ref", "h1"))],
-                ["Hash5 len", 5, Dsl("len", Dsl("ref", "h5"))],
                 ##### index
                 ["Array5 index 4", 4, Dsl("index", [Dsl("ref", "a5"), 4])],
                 ["List5 index 4", 4, Dsl("index", [Dsl("ref", "l5"), 4])],
-                ["Hash5 index 4", 4, Dsl("index", [Dsl("ref", "h5"), 4])],
                 ##### any
                 ["Array0 any gt 1", False, Dsl("any", [Dsl("ref", "a0"), Dsl("gt", [Dsl("ref", "@it"), 1])])],
                 ["Array1 any gt 1", False, Dsl("any", [Dsl("ref", "a1"), Dsl("gt", [Dsl("ref", "@it"), 1])])],
@@ -299,6 +335,68 @@ class Test_Debugger_Expression_Language(base._Base_Debugger_Test):
                 ["List0 any gt 1", False, Dsl("any", [Dsl("ref", "l0"), Dsl("gt", [Dsl("ref", "@it"), 1])])],
                 ["List1 any gt 1", False, Dsl("any", [Dsl("ref", "l1"), Dsl("gt", [Dsl("ref", "@it"), 1])])],
                 ["List5 any gt 1", True, Dsl("any", [Dsl("ref", "l5"), Dsl("gt", [Dsl("ref", "@it"), 1])])],
+                ##### all
+                ["Array0 all ge 0", True, Dsl("all", [Dsl("ref", "a0"), Dsl("ge", [Dsl("ref", "@it"), 0])])],
+                ["Array1 all ge 0", True, Dsl("all", [Dsl("ref", "a1"), Dsl("ge", [Dsl("ref", "@it"), 0])])],
+                ["Array5 all ge 1", False, Dsl("all", [Dsl("ref", "a5"), Dsl("ge", [Dsl("ref", "@it"), 1])])],
+                ["List0 all ge 0", True, Dsl("all", [Dsl("ref", "l0"), Dsl("ge", [Dsl("ref", "@it"), 0])])],
+                ["List1 all ge 0", True, Dsl("all", [Dsl("ref", "l1"), Dsl("ge", [Dsl("ref", "@it"), 0])])],
+                ["List5 all ge 1", False, Dsl("all", [Dsl("ref", "l5"), Dsl("ge", [Dsl("ref", "@it"), 1])])],
+                ##### filter
+                [
+                    "Array0 len filter lt 2",
+                    0,
+                    Dsl("len", Dsl("filter", [Dsl("ref", "a0"), Dsl("lt", [Dsl("ref", "@it"), 2])])),
+                ],
+                [
+                    "Array1 len filter lt 2",
+                    1,
+                    Dsl("len", Dsl("filter", [Dsl("ref", "a1"), Dsl("lt", [Dsl("ref", "@it"), 2])])),
+                ],
+                [
+                    "Array5 len filter lt 2",
+                    2,
+                    Dsl("len", Dsl("filter", [Dsl("ref", "a5"), Dsl("lt", [Dsl("ref", "@it"), 2])])),
+                ],
+                [
+                    "List0 len filter lt 2",
+                    0,
+                    Dsl("len", Dsl("filter", [Dsl("ref", "l0"), Dsl("lt", [Dsl("ref", "@it"), 2])])),
+                ],
+                [
+                    "List1 len filter lt 2",
+                    1,
+                    Dsl("len", Dsl("filter", [Dsl("ref", "l1"), Dsl("lt", [Dsl("ref", "@it"), 2])])),
+                ],
+                [
+                    "List5 len filter lt 2",
+                    2,
+                    Dsl("len", Dsl("filter", [Dsl("ref", "l5"), Dsl("lt", [Dsl("ref", "@it"), 2])])),
+                ],
+            ],
+        )
+
+        self.message_map = message_map
+        self._setup(probes, "/debugger/expression/collections")
+
+    @bug(library="dotnet", reason="DEBUG-2602")
+    def test_expression_language_collection_operations(self):
+        self._assert(expected_response=200)
+
+    def setup_expression_language_hash_operations(self):
+        message_map, probes = self._create_expression_probes(
+            methodName="CollectionOperations",
+            expressions=[
+                ## at the app there are 3 types of collections are created - array, list and hash.
+                ## the number at the end of variable means the length of the collection
+                ## all collection are filled with incremented number values (e.g at the [0] = 0; [1] = 1)
+                #### len
+                ["Hash0 len", 0, Dsl("len", Dsl("ref", "h0"))],
+                ["Hash1 len", 1, Dsl("len", Dsl("ref", "h1"))],
+                ["Hash5 len", 5, Dsl("len", Dsl("ref", "h5"))],
+                ##### index
+                ["Hash5 index 4", 4, Dsl("index", [Dsl("ref", "h5"), 4])],
+                ##### any
                 [
                     "Hash0 any gt 1",
                     False,
@@ -333,12 +431,6 @@ class Test_Debugger_Expression_Language(base._Base_Debugger_Test):
                     ),
                 ],
                 ##### all
-                ["Array0 all ge 0", True, Dsl("all", [Dsl("ref", "a0"), Dsl("ge", [Dsl("ref", "@it"), 0])])],
-                ["Array1 all ge 0", True, Dsl("all", [Dsl("ref", "a1"), Dsl("ge", [Dsl("ref", "@it"), 0])])],
-                ["Array5 all ge 1", False, Dsl("all", [Dsl("ref", "a5"), Dsl("ge", [Dsl("ref", "@it"), 1])])],
-                ["List0 all ge 0", True, Dsl("all", [Dsl("ref", "l0"), Dsl("ge", [Dsl("ref", "@it"), 0])])],
-                ["List1 all ge 0", True, Dsl("all", [Dsl("ref", "l1"), Dsl("ge", [Dsl("ref", "@it"), 0])])],
-                ["List5 all ge 1", False, Dsl("all", [Dsl("ref", "l5"), Dsl("ge", [Dsl("ref", "@it"), 1])])],
                 [
                     "Hash0 all ge 0",
                     True,
@@ -373,36 +465,6 @@ class Test_Debugger_Expression_Language(base._Base_Debugger_Test):
                     ),
                 ],
                 ##### filter
-                [
-                    "Array0 len filter lt 2",
-                    0,
-                    Dsl("len", Dsl("filter", [Dsl("ref", "a0"), Dsl("lt", [Dsl("ref", "@it"), 2])])),
-                ],
-                [
-                    "Array1 len filter lt 2",
-                    1,
-                    Dsl("len", Dsl("filter", [Dsl("ref", "a1"), Dsl("lt", [Dsl("ref", "@it"), 2])])),
-                ],
-                [
-                    "Array5 len filter lt 2",
-                    2,
-                    Dsl("len", Dsl("filter", [Dsl("ref", "a5"), Dsl("lt", [Dsl("ref", "@it"), 2])])),
-                ],
-                [
-                    "List0 len filter lt 2",
-                    0,
-                    Dsl("len", Dsl("filter", [Dsl("ref", "l0"), Dsl("lt", [Dsl("ref", "@it"), 2])])),
-                ],
-                [
-                    "List1 len filter lt 2",
-                    1,
-                    Dsl("len", Dsl("filter", [Dsl("ref", "l1"), Dsl("lt", [Dsl("ref", "@it"), 2])])),
-                ],
-                [
-                    "List5 len filter lt 2",
-                    2,
-                    Dsl("len", Dsl("filter", [Dsl("ref", "l5"), Dsl("lt", [Dsl("ref", "@it"), 2])])),
-                ],
                 [
                     "Hash0 len filter lt 2",
                     0,
@@ -461,10 +523,11 @@ class Test_Debugger_Expression_Language(base._Base_Debugger_Test):
         self._setup(probes, "/debugger/expression/collections")
 
     @bug(library="dotnet", reason="DEBUG-2602")
-    @bug(library="java", reason="DEBUG-3131")
-    def test_expression_language_collection_operations(self):
-        self._assert()
+    @missing_feature(library="python", reason="DEBUG-3240")
+    def test_expression_language_hash_operations(self):
+        self._assert(expected_response=200)
 
+    ############ nulls ############
     def setup_expression_language_nulls_true(self):
         message_map, probes = self._create_expression_probes(
             methodName="Nulls",
@@ -480,63 +543,73 @@ class Test_Debugger_Expression_Language(base._Base_Debugger_Test):
 
     @bug(library="dotnet", reason="DEBUG-2618")
     def test_expression_language_nulls_true(self):
-        self._assert()
+        self._assert(expected_response=200)
 
     def setup_expression_language_nulls_false(self):
         message_map, probes = self._create_expression_probes(
-            methodName="ExpressionOperators",
+            methodName="Nulls",
             expressions=[
                 ["intValue eq null", False, Dsl("eq", [Dsl("ref", "intValue"), None])],
-                ["floatValue eq null", False, Dsl("eq", [Dsl("ref", "floatValue"), None])],
                 ["strValue eq null", False, Dsl("eq", [Dsl("ref", "strValue"), None])],
-                ["this eq null", False, Dsl("eq", [Dsl("ref", "this"), None])],
+                ["pii eq null", False, Dsl("eq", [Dsl("ref", "pii"), None])],
             ],
         )
 
         self.message_map = message_map
-        self._setup(probes, "/debugger/expression/operators?intValue=5&floatValue=3.14&strValue=haha")
+        self._setup(probes, "/debugger/expression/null?intValue=5&strValue=haha&boolValue=true")
 
     @bug(library="dotnet", reason="DEBUG-2618")
     def test_expression_language_nulls_false(self):
-        self._assert()
+        self._assert(expected_response=200)
 
+    ############ helpers ############
     def _get_type(self, value_type):
-        if self.tracer is None:
-            tracer = base.get_tracer()
+        instance_type = ""
 
-        intance_type = ""
-
-        if tracer["language"] == "dotnet":
+        if self.get_tracer()["language"] == "dotnet":
             if value_type == "int":
-                intance_type = "System.Int32"
+                instance_type = "System.Int32"
             elif value_type == "float":
-                intance_type = "System.Single"
+                instance_type = "System.Single"
             elif value_type == "string":
-                intance_type = "System.String"
-            elif value_type == "controller":
-                intance_type = "weblog.DebuggerController"
+                instance_type = "System.String"
+            elif value_type == "pii":
+                instance_type = "weblog.Models.Debugger.Pii"
+            elif value_type == "pii_base":
+                instance_type = "weblog.Models.Debugger.PiiBase"
             else:
-                intance_type = value_type
-        elif tracer["language"] == "java":
+                instance_type = value_type
+        elif self.get_tracer()["language"] == "java":
             if value_type == "int":
-                intance_type = "java.lang.Integer"
+                instance_type = "java.lang.Integer"
             elif value_type == "float":
-                intance_type = "java.lang.Float"
+                instance_type = "java.lang.Float"
             elif value_type == "string":
-                intance_type = "java.lang.String"
-            elif value_type == "controller":
-                intance_type = "com.datadoghq.system_tests.springboot.DebuggerController"
+                instance_type = "java.lang.String"
+            elif value_type == "pii":
+                instance_type = "com.datadoghq.system_tests.springboot.PiiBase"
             else:
-                intance_type = value_type
+                instance_type = value_type
+        elif self.get_tracer()["language"] == "python":
+            if value_type == "int":
+                instance_type = "int"
+            elif value_type == "float":
+                instance_type = "float"
+            elif value_type == "string":
+                instance_type = "str"
+            elif value_type == "pii":
+                instance_type = "debugger.pii.Pii"
+            elif value_type == "pii":
+                instance_type = "debugger.pii.PiiBase"
+            else:
+                instance_type = value_type
         else:
-            intance_type = value_type
-        return intance_type
+            instance_type = value_type
+
+        return instance_type
 
     def _get_hash_value_property_name(self):
-        if Test_Debugger_Expression_Language.tracer is None:
-            Test_Debugger_Expression_Language.tracer = base.get_tracer()
-
-        if Test_Debugger_Expression_Language.tracer["language"] == "dotnet":
+        if self.get_tracer()["language"] == "dotnet":
             return "Value"
         else:
             return "value"
@@ -551,11 +624,13 @@ class Test_Debugger_Expression_Language(base._Base_Debugger_Test):
 
             if isinstance(expected_result, bool):
                 expected_result = "[Tt]rue" if expected_result else "[Ff]alse"
+            elif isinstance(expected_result, str) and expected_result and expected_result != "":
+                expected_result = f"[']?{expected_result}[']?"
             else:
                 expected_result = str(expected_result)
 
-            probe = base.read_probes("expression_probe_base")[0]
-            probe["id"] = base.generate_probe_id("log")
+            probe = debugger.read_probes("expression_probe_base")[0]
+            probe["id"] = debugger.generate_probe_id("log")
             probe["where"]["methodName"] = methodName
             probe["segments"] = Segment().add_str(message).add_dsl(dsl).to_dict()
             probes.append(probe)
@@ -563,37 +638,6 @@ class Test_Debugger_Expression_Language(base._Base_Debugger_Test):
             expected_message_map[probe["id"]] = message + expected_result
 
         return expected_message_map, probes
-
-    def _validate_expression_language_messages(self, expected_message_map):
-        agent_logs_endpoint_requests = list(interfaces.agent.get_data(path_filters="/api/v2/logs"))
-
-        not_found_ids = set(self.expected_probe_ids)
-        error_messages = []
-
-        for request in agent_logs_endpoint_requests:
-            content = request["request"]["content"]
-
-            if content:
-                for content in content:
-                    probe_id = content["debugger"]["snapshot"]["probe"]["id"]
-
-                    if probe_id in expected_message_map:
-                        not_found_ids.remove(probe_id)
-
-                        if not re.search(expected_message_map[probe_id], content["message"]):
-                            error_messages.append(
-                                f"Message for probe id {probe_id} is wrong. \n Expected: {expected_message_map[probe_id]}. \n Found: {content['message']}."
-                            )
-
-                            evaluation_errors = content["debugger"]["snapshot"].get("evaluationErrors", [])
-                            for error in evaluation_errors:
-                                error_messages.append(
-                                    f" Evaluation error in probe id {probe_id}: {error['expr']} - {error['message']}\n"
-                                )
-
-        not_found_list = "\n".join(not_found_ids)
-        assert not error_messages, "Errors occurred during validation:\n" + "\n".join(error_messages)
-        assert not not_found_ids, f"The following probes were not found:\n{not_found_list}"
 
 
 class Segment:

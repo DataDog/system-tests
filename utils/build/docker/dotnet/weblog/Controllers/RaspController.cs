@@ -2,6 +2,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Data.Sqlite;
 using System;
+using System.Collections.Generic;
+using System.ComponentModel;
 using System.Data.SqlClient;
 using System.Diagnostics;
 using System.Xml.Serialization;
@@ -46,25 +48,91 @@ namespace weblog
         public IActionResult shiPostJson([FromBody] Model data)
         {
             return ExecuteCommandInternal("ls " + data.List_dir);
-        }		
-		
-		private IActionResult ExecuteCommandInternal(string commandLine)
-        {
-            if (!string.IsNullOrEmpty(commandLine))
-            {
-                ProcessStartInfo startInfo = new ProcessStartInfo();
-                startInfo.FileName = commandLine;
-                startInfo.UseShellExecute = true;
-                var result = Process.Start(startInfo);
+        }
 
-                return Content($"Process launched.");
-            }
-            else
+        [HttpGet("cmdi")]
+        public IActionResult cmdiGet(string command)
+        {
+            return ExecuteCommandInternal(command, false);
+        }
+
+        [XmlRoot("command")]
+        public class Command
+        {
+            [XmlElement("cmd")]
+            public List<string> Cmd { get; set; }
+        }
+
+        [HttpPost("cmdi")]
+        [Consumes("application/xml")]
+        public IActionResult cmdiPostXml([FromBody] Command data)
+        {
+            List<string> arguments = null;
+            if (data is not null && data.Cmd is not null && data.Cmd.Count > 1)
             {
-                return Content("No process name was provided");
+                arguments = data.Cmd.GetRange(1, data.Cmd.Count - 1);
+            }
+
+            return ExecuteCommandInternal(data?.Cmd[0], false, arguments);
+        }
+
+        [HttpPost("cmdi")]
+        [Consumes("application/x-www-form-urlencoded")]
+        public IActionResult cmdiPostForm([FromForm] Model data)
+        {
+            return ExecuteCommandInternal(data.Command, false);
+        }
+
+        public class CmdiJsonModel
+        {
+            public List<string>? Command { get; set; }
+        }
+
+        [HttpPost("cmdi")]
+        [Consumes("application/json")]
+        public IActionResult cmdiPostJson([FromBody] CmdiJsonModel data)
+        {
+            List<string> arguments = null;
+            if (data is not null && data.Command is not null && data.Command.Count > 1)
+            {
+                arguments = data.Command.GetRange(1, data.Command.Count - 1);
+            }
+
+            return ExecuteCommandInternal(data?.Command[0], false, arguments);
+        }
+
+        private IActionResult ExecuteCommandInternal(string commandLine, bool useShell = true, List<string>? argumentList = null)
+        {
+            try
+            {
+                if (!string.IsNullOrEmpty(commandLine))
+                {
+                    ProcessStartInfo startInfo = new ProcessStartInfo();
+                    startInfo.FileName = commandLine;
+                    startInfo.UseShellExecute = useShell;
+
+                    if (argumentList is not null)
+                    {
+                        foreach (var argument in argumentList)
+                        {
+                            startInfo.ArgumentList.Add(argument);
+                        }
+                    }
+
+                    var result = Process.Start(startInfo);
+                    return Content($"Process launched.");
+                }
+                else
+                {
+                    return Content("No process name was provided");
+                }
+            }
+            catch (Win32Exception)
+            {
+                return Content("Non existing file:" + commandLine);
             }
         }
-		
+
         [HttpGet("lfi")]
         public IActionResult lfiGet(string file)
         {
@@ -73,7 +141,7 @@ namespace weblog
                 var result = System.IO.File.ReadAllText(file);
                 return Content(result);
             }
-            catch (System.IO.FileNotFoundException ex)
+            catch (System.IO.FileNotFoundException)
             {
                 return Content("File not found");
             }
@@ -147,18 +215,18 @@ namespace weblog
             var result = new System.Net.Http.HttpClient().GetStringAsync(("http://" + data.Domain)).Result;
             return Content(result);
         }
-		
+
         [HttpGet("sqli")]
         public IActionResult SqliGet(string user_id)
         {
-			if (!string.IsNullOrEmpty(user_id))
-			{
-				return Content(SqlQuery(user_id));
-			}
-			else
-			{
-				return BadRequest("No params provided");
-			}
+            if (!string.IsNullOrEmpty(user_id))
+            {
+                return Content(SqlQuery(user_id));
+            }
+            else
+            {
+                return BadRequest("No params provided");
+            }
         }
 
         [XmlRoot("user_id")]
@@ -186,29 +254,29 @@ namespace weblog
         [Consumes("application/x-www-form-urlencoded")]
         public IActionResult SqliPostForm([FromForm] Model data)
         {
-			if (!string.IsNullOrEmpty(data.User_id))
-			{
-				return Content(SqlQuery(data.User_id));
-			}
-			else
-			{
-				return BadRequest("No params provided");
-			}
+            if (!string.IsNullOrEmpty(data.User_id))
+            {
+                return Content(SqlQuery(data.User_id));
+            }
+            else
+            {
+                return BadRequest("No params provided");
+            }
         }
 
 
-		[HttpPost("sqli")]
+        [HttpPost("sqli")]
         [Consumes("application/json")]
         public IActionResult SqliPostJson([FromBody] Model data)
         {
-			if (!string.IsNullOrEmpty(data.User_id))
-			{
-				return Content(SqlQuery(data.User_id));
-			}
-			else
-			{
-				return BadRequest("No params provided");
-			}
+            if (!string.IsNullOrEmpty(data.User_id))
+            {
+                return Content(SqlQuery(data.User_id));
+            }
+            else
+            {
+                return BadRequest("No params provided");
+            }
         }
 
         private string SqlQuery(string user)

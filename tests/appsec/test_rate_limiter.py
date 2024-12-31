@@ -10,9 +10,7 @@ from utils.tools import logger
 
 
 @rfc("https://docs.google.com/document/d/1X64XQOk3N-aS_F0bJuZLkUiJqlYneDxo_b8WnkfFy_0")
-@bug(
-    context.library in ("nodejs@3.2.0", "nodejs@2.15.0"), weblog_variant="express4", reason="APPSEC-5427",
-)
+@bug(context.library in ("nodejs@3.2.0", "nodejs@2.15.0"), weblog_variant="express4", reason="APPSEC-5427")
 @scenarios.appsec_rate_limiter
 @features.appsec_rate_limiter
 class Test_Main:
@@ -23,9 +21,9 @@ class Test_Main:
 
     def setup_main(self):
         """
-            Make 5 requests per second, for 10 seconds.
+        Make 5 requests per second, for 10 seconds.
 
-            The test may be flaky if all requests takes more than 200ms, but it's very unlikely
+        The test may be flaky if all requests takes more than 200ms, but it's very unlikely
         """
         self.requests = []
 

@@ -7,7 +7,7 @@ RUN uname -r
 # print versions
 RUN node --version && npm --version && curl --version
 
-COPY utils/build/docker/nodejs/express4 /usr/app
+COPY utils/build/docker/nodejs/express /usr/app
 #overwrite app.js
 COPY utils/build/docker/nodejs_otel/express4-otel /usr/app
 
@@ -16,6 +16,7 @@ WORKDIR /usr/app
 ENV NODE_ENV=production
 
 RUN npm install
+RUN npm install "express@4.17.2" "apollo-server-express@3.13.0" "express-mongo-sanitize@2.2.0"
 
 EXPOSE 7777
 
@@ -31,6 +32,7 @@ ENV OTEL_BSP_SCHEDULE_DELAY=200
 RUN npm install --save @opentelemetry/api
 RUN npm install --save @opentelemetry/auto-instrumentations-node
 RUN npm install @opentelemetry/instrumentation-mysql2
+RUN npm install @opentelemetry/otlp-exporter-base
 RUN npm install --save opentelemetry-instrumentation-mssql
 
 # docker startup

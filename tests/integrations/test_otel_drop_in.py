@@ -8,7 +8,7 @@ from utils import weblog, interfaces, scenarios, features
 @features.f_otel_interoperability
 @scenarios.integrations
 class Test_Otel_Drop_In:
-    """ Verify telemetry data for OpenTelemetry drop-in support """
+    """Verify telemetry data for OpenTelemetry drop-in support"""
 
     def exercise_otel_drop_in(self):
         self.r = weblog.get("/otel_drop_in")

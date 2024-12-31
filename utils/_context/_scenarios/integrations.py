@@ -8,14 +8,14 @@ from .core import ScenarioGroup
 from .endtoend import EndToEndScenario
 
 
-def _get_unique_id(replay: bool, host_log_folder: str) -> str:
+def _get_unique_id(host_log_folder: str, *, replay: bool) -> str:
     # as this Id will be used to get data published in AWS, it must be unique
     # and to be able to be used in replay mode, it must be saved in a file
 
     replay_file = f"{host_log_folder}/unique_id.txt"
 
     if replay:
-        with open(replay_file, "r", encoding="utf-8") as f:
+        with open(replay_file, encoding="utf-8") as f:
             unique_id = f.read()
     else:
         # pick a statistically unique id for the scenario
@@ -45,13 +45,16 @@ class IntegrationsScenario(EndToEndScenario):
             include_mysql_db=True,
             include_sqlserver=True,
             include_otel_drop_in=True,
-            doc="Spawns tracer, agent, and a full set of database. Test the integrations of those databases with tracers",
+            doc=(
+                "Spawns tracer, agent, and a full set of database. "
+                "Test the integrations of those databases with tracers"
+            ),
             scenario_groups=[ScenarioGroup.INTEGRATIONS, ScenarioGroup.APPSEC, ScenarioGroup.ESSENTIALS],
         )
 
     def configure(self, config):
         super().configure(config)
-        self.unique_id = _get_unique_id(self.replay, self.host_log_folder)
+        self.unique_id = _get_unique_id(self.host_log_folder, replay=self.replay)
 
 
 class AWSIntegrationsScenario(EndToEndScenario):
@@ -59,7 +62,7 @@ class AWSIntegrationsScenario(EndToEndScenario):
 🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫
                                 ⚠️⚠️⚠️⚠️⚠️⚠️⚠️  AWS Authentication Error  ⚠️⚠️⚠️⚠️⚠️⚠️⚠️
 
-    It seems that your AWS authentication is not set up correctly. 
+    It seems that your AWS authentication is not set up correctly.
     Please take the following actions:
 
     🔑 With `aws-vault` setup:
@@ -67,11 +70,11 @@ class AWSIntegrationsScenario(EndToEndScenario):
         To enter an authenticated shell session that sets temp AWS credentials in your shell environment:
         👉 `aws-vault login sso-sandbox-account-admin --`
         👉 `[your system-test command]`
-                or 
-        
+                or
+
         To run ONLY the system tests command with auth: (temp AWS credentials are not set in shell environment)
         👉 `aws-vault login sso-sandbox-account-admin -- [your system-test command]`
-    
+
 
     🔧 Or to first set up `aws-vault` / `aws-cli`, please visit:
         🔗 [AWS CLI Config Setup & Update Guide]
@@ -84,6 +87,7 @@ class AWSIntegrationsScenario(EndToEndScenario):
     def __init__(
         self,
         name="INTEGRATIONS_AWS",
+        *,
         doc="Spawns tracer, and agent. Test AWS integrations.",
         include_kafka=False,
         include_rabbitmq=False,
@@ -111,18 +115,14 @@ class AWSIntegrationsScenario(EndToEndScenario):
         super().configure(config)
         if not self.replay:
             self._check_aws_variables()
-        self.unique_id = _get_unique_id(self.replay, self.host_log_folder)
+        self.unique_id = _get_unique_id(self.host_log_folder, replay=self.replay)
 
     def _check_aws_variables(self):
         if not os.environ.get("SYSTEM_TESTS_AWS_ACCESS_KEY_ID") and not os.environ.get("AWS_ACCESS_KEY_ID"):
-            pytest.exit(
-                f"\n    Error while starting {self.name}\n" + self.AWS_BAD_CREDENTIALS_MSG, 1,
-            )
+            pytest.exit(f"\n    Error while starting {self.name}\n" + self.AWS_BAD_CREDENTIALS_MSG, 1)
 
         if not os.environ.get("SYSTEM_TESTS_AWS_SECRET_ACCESS_KEY") and not os.environ.get("AWS_ACCESS_KEY_ID"):
-            pytest.exit(
-                f"\n    Error while starting {self.name}\n" + self.AWS_BAD_CREDENTIALS_MSG, 1,
-            )
+            pytest.exit(f"\n    Error while starting {self.name}\n" + self.AWS_BAD_CREDENTIALS_MSG, 1)
 
 
 class CrossedTracingLibraryScenario(EndToEndScenario):
@@ -138,4 +138,4 @@ class CrossedTracingLibraryScenario(EndToEndScenario):
 
     def configure(self, config):
         super().configure(config)
-        self.unique_id = _get_unique_id(self.replay, self.host_log_folder)
+        self.unique_id = _get_unique_id(self.host_log_folder, replay=self.replay)

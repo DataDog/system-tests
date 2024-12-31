@@ -1,11 +1,13 @@
 import contextlib
 import dataclasses
-from typing import Dict, List, Literal, Union, Generator, TextIO
+from typing import TextIO
+from collections.abc import Generator
 
 import json
 import glob
 from functools import lru_cache
 import os
+from pathlib import Path
 import shutil
 import subprocess
 
@@ -23,7 +25,7 @@ from .core import Scenario, ScenarioGroup
 
 
 def _fail(message):
-    """ Used to mak a test as failed """
+    """Used to mak a test as failed"""
     logger.error(message)
     raise Failed(message, pytrace=False) from None
 
@@ -38,7 +40,7 @@ _NETWORK_PREFIX = "apm_shared_tests_network"
 def _get_client() -> docker.DockerClient:
     try:
         return docker.DockerClient.from_env()
-    except DockerException as e:
+    except DockerException:
         # Failed to start the default Docker client... Let's see if we have
         # better luck with docker contexts...
         try:
@@ -53,9 +55,9 @@ def _get_client() -> docker.DockerClient:
             ).stdout.strip()
             return docker.DockerClient(base_url=endpoint)
         except:
-            pass
+            logger.exception("No more success with docker contexts")
 
-        raise e
+        raise
 
 
 @dataclasses.dataclass
@@ -65,15 +67,15 @@ class APMLibraryTestServer:
     container_name: str
     container_tag: str
     container_img: str
-    container_cmd: List[str]
+    container_cmd: list[str]
     container_build_dir: str
     container_build_context: str = "."
 
     container_port: int = 8080
     host_port: int = None  # Will be assigned by get_host_port()
 
-    env: Dict[str, str] = dataclasses.field(default_factory=dict)
-    volumes: Dict[str, str] = dataclasses.field(default_factory=dict)
+    env: dict[str, str] = dataclasses.field(default_factory=dict)
+    volumes: dict[str, str] = dataclasses.field(default_factory=dict)
 
     container: Container = None
 
@@ -83,7 +85,9 @@ class ParametricScenario(Scenario):
     apm_test_server_definition: APMLibraryTestServer
 
     class PersistentParametricTestConf(dict):
-        """Parametric tests are executed in multiple thread, we need a mechanism to persist each parametrized_tests_metadata on a file"""
+        """Parametric tests are executed in multiple thread, we need a mechanism to persist
+        each parametrized_tests_metadata on a file
+        """
 
         def __init__(self, outer_inst):
             self.outer_inst = outer_inst
@@ -102,10 +106,10 @@ class ParametricScenario(Scenario):
         def deserialize(self):
             result = {}
             for ctx_filename in glob.glob(f"{self.outer_inst.host_log_folder}/*_context.json"):
-                with open(ctx_filename, "r") as f:
-                    fileContent = f.read()
+                with open(ctx_filename) as f:
+                    file_content = f.read()
                     # Remove last carriage return and the last comma. Wrap into json array.
-                    all_params = json.loads(f"[{fileContent[:-2]}]")
+                    all_params = json.loads(f"[{file_content[:-2]}]")
                     # Change from array to unique dict
                     for d in all_params:
                         result.update(d)
@@ -156,7 +160,7 @@ class ParametricScenario(Scenario):
             self._clean_networks()
 
         # https://github.com/DataDog/system-tests/issues/2799
-        if library in ("nodejs", "python", "golang", "ruby"):
+        if library in ("nodejs", "python", "golang", "ruby", "dotnet"):
             output = _get_client().containers.run(
                 self.apm_test_server_definition.container_tag,
                 remove=True,
@@ -183,7 +187,7 @@ class ParametricScenario(Scenario):
         _get_client().images.pull(self.TEST_AGENT_IMAGE)
 
     def _clean_containers(self):
-        """ some containers may still exists from previous unfinished sessions """
+        """Some containers may still exists from previous unfinished sessions"""
 
         for container in _get_client().containers.list(all=True):
             if "test-client" in container.name or "test-agent" in container.name or "test-library" in container.name:
@@ -192,7 +196,7 @@ class ParametricScenario(Scenario):
                 container.remove(force=True)
 
     def _clean_networks(self):
-        """ some network may still exists from previous unfinished sessions """
+        """Some network may still exists from previous unfinished sessions"""
         logger.info("Removing unused network")
         _get_client().networks.prune()
         logger.info("Removing unused network done")
@@ -206,13 +210,12 @@ class ParametricScenario(Scenario):
         return f"parametric-{self.library.library}"
 
     def _build_apm_test_server_image(self) -> str:
-
         logger.stdout("Build tested container...")
 
         apm_test_server_definition: APMLibraryTestServer = self.apm_test_server_definition
 
         log_path = f"{self.host_log_folder}/outputs/docker_build_log.log"
-        os.makedirs(os.path.dirname(log_path), exist_ok=True)
+        Path.mkdir(os.path.dirname(log_path), exist_ok=True, parents=True)
 
         # Write dockerfile to the build directory
         # Note that this needs to be done as the context cannot be
@@ -222,7 +225,6 @@ class ParametricScenario(Scenario):
             f.write(apm_test_server_definition.container_img)
 
         with open(log_path, "w+", encoding="utf-8") as log_file:
-
             # Build the container
             docker = shutil.which("docker")
             root_path = ".."
@@ -236,7 +238,7 @@ class ParametricScenario(Scenario):
                 dockf_path,
                 apm_test_server_definition.container_build_context,
             ]
-            log_file.write("running %r in %r\n" % (" ".join(cmd), root_path))
+            log_file.write(f"running {cmd} in {root_path}\n")
             log_file.flush()
 
             env = os.environ.copy()
@@ -268,11 +270,11 @@ class ParametricScenario(Scenario):
     def create_docker_network(self, test_id: str) -> Network:
         docker_network_name = f"{_NETWORK_PREFIX}_{test_id}"
 
-        return _get_client().networks.create(name=docker_network_name, driver="bridge",)
+        return _get_client().networks.create(name=docker_network_name, driver="bridge")
 
     @staticmethod
     def get_host_port(worker_id: str, base_port: int) -> int:
-        """ deterministic port allocation for each worker """
+        """Deterministic port allocation for each worker"""
 
         if worker_id == "master":  # xdist disabled
             return base_port
@@ -287,15 +289,14 @@ class ParametricScenario(Scenario):
         self,
         image: str,
         name: str,
-        env: Dict[str, str],
-        volumes: Dict[str, str],
+        env: dict[str, str],
+        volumes: dict[str, str],
         network: str,
         host_port: int,
         container_port: int,
-        command: List[str],
+        command: list[str],
         log_file: TextIO,
     ) -> Generator[Container, None, None]:
-
         # Convert volumes to the format expected by the docker-py API
         fixed_volumes = {}
         for key, value in volumes.items():
@@ -338,10 +339,8 @@ class ParametricScenario(Scenario):
             container.remove(force=True)
 
 
-def _get_base_directory():
-    """Workaround until the parametric tests are fully migrated"""
-    current_directory = os.getcwd()
-    return f"{current_directory}/.." if current_directory.endswith("parametric") else current_directory
+def _get_base_directory() -> str:
+    return str(Path.cwd())
 
 
 def python_library_factory() -> APMLibraryTestServer:
@@ -380,8 +379,8 @@ def node_library_factory() -> APMLibraryTestServer:
             path = f.read().strip(" \r\n")
             source = os.path.join(_get_base_directory(), path)
             volumes[os.path.abspath(source)] = "/volumes/dd-trace-js"
-    except Exception:
-        pass
+    except FileNotFoundError:
+        logger.info("No local dd-trace-js found, do not mount any volume")
 
     return APMLibraryTestServer(
         lang="nodejs",
@@ -450,19 +449,16 @@ def dotnet_library_factory():
     dotnet_appdir = os.path.join("utils", "build", "docker", "dotnet", "parametric")
     dotnet_absolute_appdir = os.path.join(_get_base_directory(), dotnet_appdir)
     dotnet_reldir = dotnet_appdir.replace("\\", "/")
-    server = APMLibraryTestServer(
+    return APMLibraryTestServer(
         lang="dotnet",
         container_name="dotnet-test-api",
         container_tag="dotnet8_0-test-api",
         container_img=f"""
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build-app
 WORKDIR /app
 
-# `binutils` is required by 'install_ddtrace.sh' to call 'strings' command
-RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y binutils
-
-COPY utils/build/docker/dotnet/install_ddtrace.sh binaries/ /binaries/
-RUN /binaries/install_ddtrace.sh
+# Opt-out of .NET SDK CLI telemetry
+ENV DOTNET_CLI_TELEMETRY_OPTOUT=1
 
 # dotnet restore
 COPY {dotnet_reldir}/ApmTestApi.csproj {dotnet_reldir}/nuget.config ./
@@ -474,8 +470,25 @@ RUN dotnet publish --no-restore -c Release -o out
 
 ##################
 
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build-version-tool
+WORKDIR /app
+
+# Opt-out of .NET SDK CLI telemetry
+ENV DOTNET_CLI_TELEMETRY_OPTOUT=1
+
+COPY {dotnet_reldir}/../GetAssemblyVersion ./
+RUN dotnet publish -c Release -o out
+
+##################
+
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
 WORKDIR /app
+
+RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y curl
+
+# install dd-trace-dotnet (must be done before setting LD_PRELOAD)
+COPY utils/build/docker/dotnet/install_ddtrace.sh binaries/ /binaries/
+RUN /binaries/install_ddtrace.sh
 
 # Opt-out of .NET SDK CLI telemetry (prevent unexpected http client spans)
 ENV DOTNET_CLI_TELEMETRY_OPTOUT=1
@@ -493,12 +506,14 @@ ENV DD_TRACE_AspNetCore_ENABLED=false
 ENV DD_TRACE_Process_ENABLED=false
 ENV DD_TRACE_OTEL_ENABLED=false
 
+# copy custom tool used to get library version (built above)
+COPY utils/build/docker/dotnet/parametric/system_tests_library_version.sh ./
+COPY --from=build-version-tool /app/out /app
 
-COPY --from=build /app/out /app
-COPY --from=build /app/SYSTEM_TESTS_LIBRARY_VERSION /app/SYSTEM_TESTS_LIBRARY_VERSION
-COPY --from=build /opt/datadog /opt/datadog
+# copy the dotnet app (built above)
+COPY --from=build-app /app/out /app
+
 RUN mkdir /parametric-tracer-logs
-
 CMD ["./ApmTestApi"]
 """,
         container_cmd=[],
@@ -506,14 +521,13 @@ CMD ["./ApmTestApi"]
         container_build_context=_get_base_directory(),
     )
 
-    return server
-
 
 def java_library_factory():
     java_appdir = os.path.join("utils", "build", "docker", "java", "parametric")
     java_absolute_appdir = os.path.join(_get_base_directory(), java_appdir)
 
-    # Create the relative path and substitute the Windows separator, to allow running the Docker build on Windows machines
+    # Create the relative path and substitute the Windows separator,
+    # to allow running the Docker build on Windows machines.
     java_reldir = java_appdir.replace("\\", "/")
 
     # TODO : use official install_ddtrace.sh

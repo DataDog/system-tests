@@ -18,6 +18,7 @@ def get_github_workflow_map(scenarios, scenarios_groups):
 
     for scenario in get_all_scenarios():
         if not scenario.github_workflow:
+            scenarios[scenario.name] = True  # won't be executed, but it exists
             continue
 
         if scenario.github_workflow not in result:
@@ -45,7 +46,7 @@ def get_graphql_weblogs(library):
         "dotnet": [],
         "golang": ["gqlgen", "graph-gophers", "graphql-go"],
         "java": [],
-        "nodejs": ["express4", "uds-express4", "express4-typescript"],
+        "nodejs": ["express4", "uds-express4", "express4-typescript", "express5"],
         "php": [],
         "python": [],
         "ruby": ["graphql23"],
@@ -76,7 +77,7 @@ def get_endtoend_weblogs(library):
             "vertx4",
             "uds-spring-boot",
         ],
-        "nodejs": ["express4", "uds-express4", "express4-typescript", "nextjs"],
+        "nodejs": ["express4", "uds-express4", "express4-typescript", "express5", "nextjs"],
         "php": [
             *[f"apache-mod-{v}" for v in ["7.0", "7.1", "7.2", "7.3", "7.4", "8.0", "8.1", "8.2"]],
             *[f"apache-mod-{v}-zts" for v in ["7.0", "7.1", "7.2", "7.3", "7.4", "8.0", "8.1", "8.2"]],
@@ -95,7 +96,6 @@ def get_endtoend_weblogs(library):
 
 
 def get_opentelemetry_weblogs(library):
-
     weblogs = {
         "cpp": [],
         "dotnet": [],
@@ -113,8 +113,8 @@ def get_opentelemetry_weblogs(library):
 def main(language: str, scenarios: str, groups: str):
     scenario_map = get_github_workflow_map(scenarios.split(","), groups.split(","))
 
-    for github_workflow, scenarios in scenario_map.items():
-        print(f"{github_workflow}_scenarios={json.dumps(scenarios)}")
+    for github_workflow, scenario_list in scenario_map.items():
+        print(f"{github_workflow}_scenarios={json.dumps(scenario_list)}")
 
     endtoend_weblogs = get_endtoend_weblogs(language)
     print(f"endtoend_weblogs={json.dumps(endtoend_weblogs)}")
@@ -126,11 +126,11 @@ def main(language: str, scenarios: str, groups: str):
     print(f"opentelemetry_weblogs={json.dumps(opentelemetry_weblogs)}")
 
     _experimental_parametric_job_count = int(os.environ.get("_EXPERIMENTAL_PARAMETRIC_JOB_COUNT", "1"))
-    print(f"_experimental_parametric_job_matrix={str(list(range(1, _experimental_parametric_job_count + 1)))}")
+    print(f"_experimental_parametric_job_matrix={list(range(1, _experimental_parametric_job_count + 1))!s}")
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(prog="get-github-parameters", description="Get scenarios and weblog to run",)
+    parser = argparse.ArgumentParser(prog="get-github-parameters", description="Get scenarios and weblog to run")
     parser.add_argument(
         "language",
         type=str,

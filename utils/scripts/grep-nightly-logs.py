@@ -6,9 +6,7 @@ import re
 import requests
 
 
-logging.basicConfig(
-    level=logging.DEBUG, format="%(levelname)-5s %(message)s",
-)
+logging.basicConfig(level=logging.DEBUG, format="%(levelname)-5s %(message)s")
 
 logging.getLogger("urllib3").setLevel(logging.WARNING)
 
@@ -17,8 +15,8 @@ def get_environ():
     environ = {**os.environ}
 
     try:
-        with open(".env", "r", encoding="utf-8") as f:
-            lines = [l.replace("export ", "").strip().split("=") for l in f.readlines() if l.strip()]
+        with open(".env", encoding="utf-8") as f:
+            lines = [line.replace("export ", "").strip().split("=") for line in f if line.strip()]
             environ = {**environ, **dict(lines)}
     except FileNotFoundError:
         pass
@@ -74,7 +72,7 @@ def main(
 
             for job in jobs["jobs"]:
                 job_name = job["name"]
-                if "artifact" in job_name or language not in job_name:
+                if "artifact" in job_name or (language and language not in job_name):
                     continue
 
                 if job["conclusion"] != "failure":
@@ -99,9 +97,10 @@ def main(
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(prog="grep-nightly-logs", description="Grep into nightly logs to find a pattern",)
+    parser = argparse.ArgumentParser(prog="grep-nightly-logs", description="Grep into nightly logs to find a pattern")
     parser.add_argument(
-        "language",
+        "--language",
+        "-l",
         type=str,
         help="One of the supported Datadog languages",
         choices=["cpp", "dotnet", "python", "ruby", "golang", "java", "nodejs", "php"],
@@ -114,7 +113,7 @@ if __name__ == "__main__":
         default="DataDog/system-tests-dashboard",
     )
     parser.add_argument(
-        "--workflow-file", "-w", type=str, help="Yml file name for the nightly workflow", default="nightly.yml",
+        "--workflow-file", "-w", type=str, help="Yml file name for the nightly workflow", default="nightly.yml"
     )
     parser.add_argument("pattern", type=str, help="Exact pattern to search for in the logs")
     args = parser.parse_args()

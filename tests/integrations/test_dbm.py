@@ -41,7 +41,7 @@ class Test_Dbm:
                         weblog.get("/dbm", params={"integration": "mysql"}),
                         weblog.get("/dbm", params={"integration": "sqlclient"}),
                     ]
-                ),
+                )
         elif self.library_name == "php":
             self.requests = [
                 weblog.get("/dbm", params={"integration": "pdo-pgsql"}),
@@ -52,7 +52,7 @@ class Test_Dbm:
                         weblog.get("/dbm", params={"integration": "mysqli"}),
                         weblog.get("/dbm", params={"integration": "pdo-mysql"}),
                     ]
-                ),
+                )
 
     def _get_db_span(self, response):
         assert response.status_code == 200, f"Request: {context.scenario.name} wasn't successful."
@@ -105,7 +105,7 @@ class Test_Dbm:
     setup_trace_payload_service = weblog_trace_payload
 
     @scenarios.default
-    @flaky(context.library >= "dotnet@2.54.0", reason="Trace is sometimes not reported")
+    @flaky(context.library >= "dotnet@2.54.0", reason="APMAPI-930")
     def test_trace_payload_service(self):
         assert self.requests, "No requests to validate"
         self._assert_spans_are_untagged()
@@ -126,7 +126,7 @@ class Test_Dbm:
 
 
 class _Test_Dbm_Comment:
-    """ Verify DBM comment for given integration """
+    """Verify DBM comment for given integration"""
 
     integration = None
     operation = None

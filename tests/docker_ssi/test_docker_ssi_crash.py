@@ -31,7 +31,7 @@ class TestDockerSSICrash:
         self.r = TestDockerSSICrash._r
 
     @features.ssi_crashtracking
-    @bug(condition=context.library not in ("python", "nodejs"), reason="INPLAT-11")
+    @bug(condition=context.library not in ("python", "nodejs", "dotnet"), reason="INPLAT-11")
     @irrelevant(context.library == "python" and context.installed_language_runtime < "3.7.0")
     @irrelevant(context.library == "nodejs" and context.installed_language_runtime < "17.0")
     def test_crash(self):

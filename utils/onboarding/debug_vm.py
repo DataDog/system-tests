@@ -5,9 +5,10 @@ from utils.tools import logger
 
 
 def extract_logs_to_file(logs_data, log_folder):
-    """ extract logs to different files. 
-    The logs_data is a string results of executing the command: 
-     find /var/log -type f -name "*.log"| xargs tail -n +1 """
+    """Extract logs to different files.
+    The logs_data is a string results of executing the command:
+     find /var/log -type f -name "*.log"| xargs tail -n +1
+    """
 
     output_file = None
     for line in logs_data.splitlines():
@@ -22,7 +23,7 @@ def extract_logs_to_file(logs_data, log_folder):
 
 
 def debug_info_ssh(vm_name, ip, user, pem_file, log_folder):
-    """ Using SSH connects to VM and extract VM status information """
+    """Using SSH connects to VM and extract VM status information"""
 
     try:
         logger.info(f"Extracting debug information from machine {ip}")
@@ -59,13 +60,13 @@ def _print_env_variables(sshClient, file_to_write):
 
 
 def _print_running_processes(sshClient, file_to_write):
-    """ Processes running on the machine """
+    """Processes running on the machine"""
     _, stdout, _ = sshClient.exec_command("ps -fea")
     _write_to_debug_file(stdout, file_to_write)
 
 
 def _print_directories_permissions(sshClient, file_to_write):
-    """ List datadog directories permission """
+    """List datadog directories permission"""
     permissions_command = """for dir in ` sudo find / -name "*datadog*" -type d -maxdepth 3`; do
                 echo ".:: Folder: $dir ::."
                 sudo ls -la $dir

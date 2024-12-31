@@ -19,7 +19,7 @@ def _expected_location():
         if context.weblog_variant == "vertx4":
             return "com.datadoghq.vertx4.iast.routes.IastSinkRouteProvider"
     if context.library.library == "nodejs":
-        if context.weblog_variant == "express4":
+        if context.weblog_variant in ("express4", "express5"):
             return "iast/index.js"
         if context.weblog_variant == "express4-typescript":
             return "iast.ts"
@@ -73,7 +73,7 @@ class TestUnvalidatedHeader(BaseSinkTestWithoutTelemetry):
 )
 @features.iast_stack_trace
 class TestUnvalidatedRedirect_StackTrace:
-    """Validate stack trace generation """
+    """Validate stack trace generation"""
 
     def setup_stack_trace(self):
         self.r = weblog.post(
@@ -90,7 +90,7 @@ class TestUnvalidatedRedirect_StackTrace:
 )
 @features.iast_stack_trace
 class TestUnvalidatedHeader_StackTrace:
-    """Validate stack trace generation """
+    """Validate stack trace generation"""
 
     def setup_stack_trace(self):
         self.r = weblog.post(

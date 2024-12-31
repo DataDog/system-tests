@@ -26,7 +26,7 @@ class _LogsInterfaceValidator(InterfaceValidator):
         self._data_list = []
 
     def _get_files(self):
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def _clean_line(self, line):
         return line
@@ -49,9 +49,10 @@ class _LogsInterfaceValidator(InterfaceValidator):
             logger.info(f"For {self}, reading {filename}")
             log_count = 0
             try:
-                with open(filename, "r", encoding="utf-8") as f:
+                with open(filename, encoding="utf-8") as f:
                     buffer = []
-                    for line in f:
+                    for raw_line in f:
+                        line = raw_line
                         if line.endswith("\n"):
                             line = line[:-1]  # remove tailing \n
                         line = self._clean_line(line)
@@ -77,7 +78,6 @@ class _LogsInterfaceValidator(InterfaceValidator):
         logger.debug(f"Load data for log interface {self.name}")
 
         for log_line in self._read():
-
             parsed = {}
             for parser in self._parsers:
                 m = parser.match(log_line)
@@ -94,8 +94,7 @@ class _LogsInterfaceValidator(InterfaceValidator):
     def get_data(self):
         yield from self._data_list
 
-    def validate(self, validator, success_by_default=False):
-
+    def validate(self, validator, *, success_by_default=False):
         for data in self.get_data():
             try:
                 if validator(data) is True:
@@ -266,19 +265,21 @@ class _LogPresence:
         if "message" in data and self.pattern.search(data["message"]):
             for key, extra_pattern in self.extra_conditions.items():
                 if key not in data:
-                    logger.info(f"For {self}, {repr(self.pattern.pattern)} was found, but [{key}] field is missing")
+                    logger.info(f"For {self}, {self.pattern.pattern!r} was found, but [{key}] field is missing")
                     logger.info(f"-> Log line is {data['message']}")
-                    return
+                    return None
 
                 if not extra_pattern.search(data[key]):
                     logger.info(
-                        f"For {self}, {repr(self.pattern.pattern)} was found, but condition on [{key}] failed: "
+                        f"For {self}, {self.pattern.pattern!r} was found, but condition on [{key}] failed: "
                         f"'{extra_pattern.pattern}' != '{data[key]}'"
                     )
-                    return
+                    return None
 
             logger.debug(f"For {self}, found {data['message']}")
             return True
+
+        return None
 
 
 class _LogAbsence:
@@ -289,7 +290,6 @@ class _LogAbsence:
 
     def check(self, data):
         if self.pattern.search(data["raw"]):
-
             for pattern in self.allowed_patterns:
                 if pattern.search(data["raw"]):
                     return
@@ -307,11 +307,11 @@ class Test:
         context.scenario = scenarios.default
 
         i = _PostgresStdout()
-        i.configure(scenarios.default.host_log_folder, True)
+        i.configure(scenarios.default.host_log_folder, replay=True)
         i.load_data()
 
         for item in i.get_data():
-            print(item)
+            print(item)  # noqa: T201
 
 
 if __name__ == "__main__":

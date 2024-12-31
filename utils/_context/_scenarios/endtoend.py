@@ -1,10 +1,16 @@
 import os
+import sys
 import pytest
+
+from docker.models.networks import Network
+from docker.types import IPAMConfig, IPAMPool
 
 from watchdog.observers.polling import PollingObserver
 from watchdog.events import FileSystemEventHandler
 
 from utils import interfaces
+from utils.buddies import BuddyHostPorts
+from utils.proxy.ports import ProxyPorts
 from utils._context.containers import (
     WeblogContainer,
     AgentContainer,
@@ -16,9 +22,9 @@ from utils._context.containers import (
     RabbitMqContainer,
     MySqlContainer,
     MsSqlServerContainer,
-    create_network,
     BuddyContainer,
     TestedContainer,
+    _get_client as get_docker_client,
 )
 
 from utils.tools import logger
@@ -29,15 +35,20 @@ from .core import Scenario, ScenarioGroup
 class DockerScenario(Scenario):
     """Scenario that tests docker containers"""
 
+    _network: Network = None
+
     def __init__(
         self,
         name,
+        *,
         github_workflow,
         doc,
         scenario_groups=None,
+        enable_ipv6: bool = False,
         use_proxy=True,
         rc_api_enabled=False,
         meta_structs_disabled=False,
+        span_events=True,
         include_postgres_db=False,
         include_cassandra_db=False,
         include_mongo_db=False,
@@ -49,8 +60,10 @@ class DockerScenario(Scenario):
         super().__init__(name, doc=doc, github_workflow=github_workflow, scenario_groups=scenario_groups)
 
         self.use_proxy = use_proxy
+        self.enable_ipv6 = enable_ipv6
         self.rc_api_enabled = rc_api_enabled
         self.meta_structs_disabled = False
+        self.span_events = span_events
 
         if not self.use_proxy and self.rc_api_enabled:
             raise ValueError("rc_api_enabled requires use_proxy")
@@ -63,6 +76,8 @@ class DockerScenario(Scenario):
                 host_log_folder=self.host_log_folder,
                 rc_api_enabled=rc_api_enabled,
                 meta_structs_disabled=meta_structs_disabled,
+                span_events=span_events,
+                enable_ipv6=enable_ipv6,
             )
 
             self._required_containers.append(self.proxy_container)
@@ -97,7 +112,7 @@ class DockerScenario(Scenario):
             for image_name in container.get_image_list(library, weblog)
         ]
 
-    def configure(self, config):
+    def configure(self, config):  # noqa: ARG002
         for container in reversed(self._required_containers):
             container.configure(self.replay)
 
@@ -131,12 +146,36 @@ class DockerScenario(Scenario):
 
         observer.start()
 
+    def _create_network(self) -> None:
+        name = "system-tests-ipv6" if self.enable_ipv6 else "system-tests-ipv4"
+
+        for network in get_docker_client().networks.list(names=[name]):
+            self._network = network
+            logger.debug(f"Network {name} still exists")
+            return
+
+        logger.debug(f"Create network {name}")
+
+        if self.enable_ipv6:
+            self._network = get_docker_client().networks.create(
+                name=name,
+                driver="bridge",
+                enable_ipv6=True,
+                ipam=IPAMConfig(
+                    driver="default",
+                    pool_configs=[IPAMPool(subnet="2001:db8:1::/64")],
+                ),
+            )
+            assert self._network.attrs["EnableIPv6"] is True, self._network.attrs
+        else:
+            self._network = get_docker_client().networks.create(name, check_duplicate=True)
+
     def get_warmups(self):
         warmups = super().get_warmups()
 
         if not self.replay:
             warmups.append(lambda: logger.stdout("Starting containers..."))
-            warmups.append(create_network)
+            warmups.append(self._create_network)
             warmups.append(self._start_containers)
 
         for container in self._required_containers:
@@ -148,7 +187,7 @@ class DockerScenario(Scenario):
         threads = []
 
         for container in self._required_containers:
-            threads.append(container.async_start())
+            threads.append(container.async_start(self._network))
 
         for thread in threads:
             thread.join()
@@ -171,20 +210,25 @@ class EndToEndScenario(DockerScenario):
     def __init__(
         self,
         name,
+        *,
         doc,
         github_workflow="endtoend",
         scenario_groups=None,
         weblog_env=None,
         weblog_volumes=None,
         agent_env=None,
+        enable_ipv6: bool = False,
         tracer_sampling_rate=None,
         appsec_enabled=True,
+        iast_enabled=True,
         additional_trace_header_tags=(),
         library_interface_timeout=None,
         agent_interface_timeout=5,
-        use_proxy=True,
+        use_proxy_for_weblog: bool = True,
+        use_proxy_for_agent: bool = True,
         rc_api_enabled=False,
         meta_structs_disabled=False,
+        span_events=True,
         backend_interface_timeout=0,
         include_postgres_db=False,
         include_cassandra_db=False,
@@ -197,7 +241,6 @@ class EndToEndScenario(DockerScenario):
         include_buddies=False,
         require_api_key=False,
     ) -> None:
-
         scenario_groups = [ScenarioGroup.ALL, ScenarioGroup.END_TO_END, ScenarioGroup.TRACER_RELEASE] + (
             scenario_groups or []
         )
@@ -207,9 +250,11 @@ class EndToEndScenario(DockerScenario):
             doc=doc,
             github_workflow=github_workflow,
             scenario_groups=scenario_groups,
-            use_proxy=use_proxy,
+            enable_ipv6=enable_ipv6,
+            use_proxy=use_proxy_for_agent or use_proxy_for_weblog,
             rc_api_enabled=rc_api_enabled,
             meta_structs_disabled=meta_structs_disabled,
+            span_events=span_events,
             include_postgres_db=include_postgres_db,
             include_cassandra_db=include_cassandra_db,
             include_mongo_db=include_mongo_db,
@@ -219,13 +264,16 @@ class EndToEndScenario(DockerScenario):
             include_sqlserver=include_sqlserver,
         )
 
+        self._use_proxy_for_agent = use_proxy_for_agent
+        self._use_proxy_for_weblog = use_proxy_for_weblog
+
         self._require_api_key = require_api_key
 
         self.agent_container = AgentContainer(
-            host_log_folder=self.host_log_folder, use_proxy=use_proxy, environment=agent_env
+            host_log_folder=self.host_log_folder, use_proxy=use_proxy_for_agent, environment=agent_env
         )
 
-        if self.use_proxy:
+        if use_proxy_for_agent:
             self.agent_container.depends_on.append(self.proxy_container)
 
         weblog_env = dict(weblog_env) if weblog_env else {}
@@ -247,8 +295,9 @@ class EndToEndScenario(DockerScenario):
             environment=weblog_env,
             tracer_sampling_rate=tracer_sampling_rate,
             appsec_enabled=appsec_enabled,
+            iast_enabled=iast_enabled,
             additional_trace_header_tags=additional_trace_header_tags,
-            use_proxy=use_proxy,
+            use_proxy=use_proxy_for_weblog,
             volumes=weblog_volumes,
         )
 
@@ -265,18 +314,29 @@ class EndToEndScenario(DockerScenario):
         self.buddies: list[BuddyContainer] = []
 
         if include_buddies:
-            # so far, only python, nodejs, java, ruby and golang are supported
-            supported_languages = [("python", 9001), ("nodejs", 9002), ("java", 9003), ("ruby", 9004), ("golang", 9005)]
+            # so far, only python, nodejs, java, ruby and golang are supported.
+            # This list contains :
+            # 1. the language
+            # 2. the trace agent port where the buddy connect to the agent
+            # 3. and the host port where the buddy is accessible
+            supported_languages = [
+                ("python", ProxyPorts.python_buddy, BuddyHostPorts.python),
+                ("nodejs", ProxyPorts.nodejs_buddy, BuddyHostPorts.nodejs),
+                ("java", ProxyPorts.java_buddy, BuddyHostPorts.java),
+                ("ruby", ProxyPorts.ruby_buddy, BuddyHostPorts.ruby),
+                ("golang", ProxyPorts.golang_buddy, BuddyHostPorts.golang),
+            ]
 
             self.buddies += [
                 BuddyContainer(
                     f"{language}_buddy",
                     f"datadog/system-tests:{language}_buddy-v1",
                     self.host_log_folder,
-                    proxy_port=port,
+                    host_port=host_port,
+                    trace_agent_port=trace_agent_port,
                     environment=weblog_env,
                 )
-                for language, port in supported_languages
+                for language, trace_agent_port, host_port in supported_languages
             ]
 
             for buddy in self.buddies:
@@ -315,7 +375,7 @@ class EndToEndScenario(DockerScenario):
             container.interface = getattr(interfaces, container.name)
             container.interface.configure(self.host_log_folder, self.replay)
 
-        library = self.weblog_container.image.env["SYSTEM_TESTS_LIBRARY"]
+        library = self.weblog_container.image.labels["system-tests-library"]
 
         if self.library_interface_timeout is None:
             if library == "java":
@@ -334,7 +394,7 @@ class EndToEndScenario(DockerScenario):
 
     def _get_weblog_system_info(self):
         try:
-            code, (stdout, stderr) = self.weblog_container._container.exec_run("uname -a", demux=True)
+            code, (stdout, stderr) = self.weblog_container.exec_run("uname -a", demux=True)
             if code or stdout is None:
                 message = f"Failed to get weblog system info: [{code}] {stderr.decode()} {stdout.decode()}"
             else:
@@ -354,6 +414,23 @@ class EndToEndScenario(DockerScenario):
             [interfaces.library, interfaces.agent] + [container.interface for container in self.buddies]
         )
 
+    def _set_weblog_domain(self):
+        if self.enable_ipv6:
+            from utils import weblog  # TODO better interface
+
+            if sys.platform == "linux":
+                # on Linux, with ipv6 mode, we can't use localhost anymore for a reason I ignore
+                # To fix, we use the container ipv4 address as weblog doamin, as it's accessible from host
+                weblog.domain = self.weblog_container.network_ip(self._network)
+                logger.info(f"Linux => Using Container IPv6 address [{weblog.domain}] as weblog domain")
+
+            elif sys.platform == "darwin":
+                # on Mac, this ipv4 address can't be used, because container IP are not accessible from host
+                # as they are on an network intermal to the docker VM. But we can still use localhost.
+                logger.info("Mac => Using localhost as weblog domain")
+            else:
+                pytest.exit(f"Unsupported platform {sys.platform} with ipv6 enabled", 1)
+
     def get_warmups(self):
         warmups = super().get_warmups()
 
@@ -361,15 +438,16 @@ class EndToEndScenario(DockerScenario):
             warmups.insert(1, self._start_interface_watchdog)
             warmups.append(self._get_weblog_system_info)
             warmups.append(self._wait_for_app_readiness)
+            warmups.append(self._set_weblog_domain)
 
         return warmups
 
     def _wait_for_app_readiness(self):
-        if self.use_proxy:
+        if self._use_proxy_for_weblog:
             logger.debug("Wait for app readiness")
 
             if not interfaces.library.ready.wait(40):
-                raise Exception("Library not ready")
+                raise ValueError("Library not ready")
 
             logger.debug("Library ready")
 
@@ -379,8 +457,9 @@ class EndToEndScenario(DockerScenario):
 
                 logger.debug(f"{container.name} ready")
 
+        if self._use_proxy_for_agent:
             if not interfaces.agent.ready.wait(40):
-                raise Exception("Datadog agent not ready")
+                raise ValueError("Datadog agent not ready")
             logger.debug("Agent ready")
 
     def post_setup(self):
@@ -392,7 +471,6 @@ class EndToEndScenario(DockerScenario):
         interfaces.library_dotnet_managed.load_data()
 
     def _wait_and_stop_containers(self):
-
         if self.replay:
             logger.terminal.write_sep("-", "Load all data from logs")
             logger.terminal.flush()
@@ -409,13 +487,15 @@ class EndToEndScenario(DockerScenario):
 
             interfaces.backend.load_data_from_logs()
 
-        elif self.use_proxy:
+        else:
             self._wait_interface(interfaces.library, self.library_interface_timeout)
 
             if self.library in ("nodejs",):
+                from utils import weblog  # TODO better interface
+
                 # for weblogs who supports it, call the flush endpoint
                 try:
-                    r = self.weblog_container.request("GET", "/flush", timeout=10)
+                    r = weblog.get("/flush", timeout=10)
                     assert r.status_code == 200
                 except:
                     self.weblog_container.healthy = False

@@ -4,6 +4,7 @@ import os
 
 import docker
 from docker.errors import BuildError
+from docker.models.networks import Network
 
 import utils.tools
 from utils import context, interfaces
@@ -24,7 +25,9 @@ from .core import Scenario
 
 
 class DockerSSIScenario(Scenario):
-    """Scenario test the ssi installer on a docker environment and runs APM test agent """
+    """Scenario test the ssi installer on a docker environment and runs APM test agent"""
+
+    _network: Network = None
 
     def __init__(self, name, doc, scenario_groups=None) -> None:
         super().__init__(name, doc=doc, github_workflow="dockerssi", scenario_groups=scenario_groups)
@@ -106,13 +109,18 @@ class DockerSSIScenario(Scenario):
                 logger.error("Failed to configure container ", e)
                 logger.stdout("ERROR configuring container. check log file for more details")
 
+    def _create_network(self):
+        self._network = create_network()
+
+    def _start_containers(self):
+        for container in self._required_containers:
+            container.start(self._network)
+
     def get_warmups(self):
         warmups = super().get_warmups()
 
-        warmups.append(create_network)
-
-        for container in self._required_containers:
-            warmups.append(container.start)
+        warmups.append(self._create_network)
+        warmups.append(self._start_containers)
 
         if "GITLAB_CI" in os.environ:
             warmups.append(self.fix_gitlab_network)
@@ -121,9 +129,9 @@ class DockerSSIScenario(Scenario):
 
     def fix_gitlab_network(self):
         old_weblog_url = self.weblog_url
-        self.weblog_url = self.weblog_url.replace("localhost", self._weblog_injection.network_ip())
+        self.weblog_url = self.weblog_url.replace("localhost", self._weblog_injection.network_ip(self._network))
         logger.debug(f"GITLAB_CI: Rewrote weblog url from {old_weblog_url} to {self.weblog_url}")
-        self.agent_host = self._agent_container.network_ip()
+        self.agent_host = self._agent_container.network_ip(self._network)
         logger.debug(f"GITLAB_CI: Set agent host to {self.agent_host}")
 
     def close_targets(self):
@@ -140,7 +148,7 @@ class DockerSSIScenario(Scenario):
         self.ssi_image_builder.push_base_image()
 
     def fill_context(self, json_tested_components):
-        """ After extract the components from the weblog, fill the context with the data """
+        """After extract the components from the weblog, fill the context with the data"""
 
         image_internal_name = SupportedImages().get_internal_name_from_base_image(self._base_image, self._arch)
         self.configuration["os"] = image_internal_name
@@ -211,7 +219,7 @@ class DockerSSIScenario(Scenario):
 
 
 class DockerSSIImageBuilder:
-    """ Manages the docker image building for the SSI scenario """
+    """Manages the docker image building for the SSI scenario"""
 
     def __init__(
         self, base_weblog, base_image, library, arch, installable_runtime, push_base_images, force_build
@@ -240,7 +248,7 @@ class DockerSSIImageBuilder:
         self.ssi_all_docker_tag = f"ssi_all_{self.docker_tag}"
 
     def build_weblog(self):
-        """ Manages the build process of the weblog image """
+        """Manages the build process of the weblog image"""
         if not self.exist_base_image() or self._push_base_images or self._force_build:
             # Build the base image
             self.build_lang_deps_image()
@@ -253,7 +261,7 @@ class DockerSSIImageBuilder:
         )
 
     def exist_base_image(self):
-        """ Check if the base image is available in the docker registry """
+        """Check if the base image is available in the docker registry"""
         try:
             get_docker_client().images.pull(self._docker_registry_tag)
             logger.info("Base image found on the registry")
@@ -263,7 +271,7 @@ class DockerSSIImageBuilder:
             return False
 
     def push_base_image(self):
-        """ Push the base image to the docker registry. Base image contains: lang (if it's needed) and ssi installer (only with the installer, without ssi autoinject )"""
+        """Push the base image to the docker registry. Base image contains: lang (if it's needed) and ssi installer (only with the installer, without ssi autoinject )"""
         if self.should_push_base_images:
             logger.stdout(f"Pushing base image to the registry: {self._docker_registry_tag}")
             try:
@@ -275,7 +283,7 @@ class DockerSSIImageBuilder:
                 logger.exception(f"Failed to push docker image: {e}")
 
     def get_base_docker_tag(self):
-        """ Resolves and format the docker tag for the base image """
+        """Resolves and format the docker tag for the base image"""
         runtime = (
             resolve_runtime_version(self._library, self._installable_runtime) + "_" if self._installable_runtime else ""
         )
@@ -288,10 +296,11 @@ class DockerSSIImageBuilder:
         )
 
     def build_lang_deps_image(self):
-        """ Build the lang image. Install the language runtime on the base image.
+        """Build the lang image. Install the language runtime on the base image.
         We also install some linux deps for the ssi installer
         If there is not runtime installation requirement, we install only the linux deps
-        Base lang contains the scrit to install the runtime and the script to install dependencies """
+        Base lang contains the scrit to install the runtime and the script to install dependencies
+        """
         dockerfile_template = None
         try:
             if self._installable_runtime:
@@ -324,10 +333,10 @@ class DockerSSIImageBuilder:
             logger.stdout("ERROR building docker file. check log file for more details")
             logger.exception(f"Failed to build docker image: {e}")
             self.print_docker_build_logs(f"Error building docker file [{dockerfile_template}]", e.build_log)
-            raise e
+            raise
 
     def build_ssi_installer_image(self):
-        """ Build the ssi installer image. Install only the ssi installer on the image """
+        """Build the ssi installer image. Install only the ssi installer on the image"""
         try:
             logger.stdout(
                 f"[tag:{self.ssi_installer_docker_tag}]Installing DD installer on base image [{self.docker_tag}]."
@@ -347,11 +356,12 @@ class DockerSSIImageBuilder:
             logger.stdout("ERROR building docker file. check log file for more details")
             logger.exception(f"Failed to build docker image: {e}")
             self.print_docker_build_logs("Error building installer docker file", e.build_log)
-            raise e
+            raise
 
     def build_weblog_image(self, ssi_installer_docker_tag):
-        """ Build the final weblog image. Uses base ssi installer image, install
-        the full ssi (to perform the auto inject) and build the weblog image """
+        """Build the final weblog image. Uses base ssi installer image, install
+        the full ssi (to perform the auto inject) and build the weblog image
+        """
 
         weblog_docker_tag = "weblog-injection:latest"
         logger.stdout(f"Building docker final weblog image with tag: {weblog_docker_tag}")
@@ -386,12 +396,13 @@ class DockerSSIImageBuilder:
             logger.stdout("ERROR building docker file. check log file for more details")
             logger.exception(f"Failed to build docker image: {e}")
             self.print_docker_build_logs("Error building weblog", e.build_log)
-            raise e
+            raise
 
     def tested_components(self):
-        """ Extract weblog versions of lang runtime, agent, installer, tracer.
+        """Extract weblog versions of lang runtime, agent, installer, tracer.
         Also extracts the weblog url env variable
-        Return json with the data"""
+        Return json with the data
+        """
         logger.info("Weblog extract tested components")
         result = get_docker_client().containers.run(
             image=self._weblog_docker_image, command=f"/tested_components.sh {self.dd_lang}", remove=True
@@ -400,7 +411,7 @@ class DockerSSIImageBuilder:
         return json.loads(result.decode("utf-8").replace("'", '"'))
 
     def print_docker_build_logs(self, image_tag, build_logs):
-        """ Print the docker build logs to docker_build.log file """
+        """Print the docker build logs to docker_build.log file"""
         scenario_name = context.scenario.name
         vm_logger(scenario_name, "docker_build").info("***************************************************************")
         vm_logger(scenario_name, "docker_build").info(f"    Building docker image with tag: {image_tag}   ")
@@ -412,7 +423,7 @@ class DockerSSIImageBuilder:
                     vm_logger(scenario_name, "docker_build").info(line)
 
     def print_docker_push_logs(self, image_tag, push_logs):
-        """ Print the docker push logs to docker_push.log file """
+        """Print the docker push logs to docker_push.log file"""
         scenario_name = context.scenario.name
         vm_logger(scenario_name, "docker_push").info("***************************************************************")
         vm_logger(scenario_name, "docker_push").info(f"    Push docker image with tag: {image_tag}   ")

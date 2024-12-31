@@ -11,7 +11,11 @@ tests/:
         Test_API_Security_RC_ASM_DD_scanners: v2.50.0
         Test_API_Security_RC_ASM_processor_overrides_and_custom_scanner: irrelevant (waf does not support it yet)
       test_apisec_sampling.py:
-        Test_API_Security_sampling: v2.46.0
+        Test_API_Security_Sampling_Different_Endpoints: missing_feature
+        Test_API_Security_Sampling_Different_Paths: missing_feature
+        Test_API_Security_Sampling_Different_Status: missing_feature
+        Test_API_Security_Sampling_Rate: v2.46.0
+        Test_API_Security_Sampling_With_Delay: missing_feature
       test_schemas.py:
         Test_Scanners: v2.46.0
         Test_Schema_Request_Cookies: v2.46.0
@@ -145,9 +149,24 @@ tests/:
           TestPath: v2.39.0
         test_path_parameter.py:
           TestPathParameter: missing_feature
+        test_sql_row.py:
+          TestSqlRow: missing_feature
         test_uri.py:
           TestURI: irrelevant
     rasp/:
+      test_cmdi.py:
+        Test_Cmdi_BodyJson: v3.7.0
+        Test_Cmdi_BodyUrlEncoded: v3.7.0
+        Test_Cmdi_BodyXml: v3.7.0
+        Test_Cmdi_Capability: v3.7.0
+        Test_Cmdi_Mandatory_SpanTags: v3.7.0
+        Test_Cmdi_Optional_SpanTags: v3.7.0
+        Test_Cmdi_Rules_Version: v3.7.0
+        Test_Cmdi_StackTrace: v3.7.0
+        Test_Cmdi_Telemetry: v3.7.0
+        Test_Cmdi_Telemetry_Variant_Tag: v3.7.0
+        Test_Cmdi_UrlQuery: v3.7.0
+        Test_Cmdi_Waf_Version: v3.7.0
       test_lfi.py:
         Test_Lfi_BodyJson: v2.51.0
         Test_Lfi_BodyUrlEncoded: v2.51.0
@@ -156,12 +175,11 @@ tests/:
         Test_Lfi_Mandatory_SpanTags: v2.52.0
         Test_Lfi_Optional_SpanTags: v2.52.0
         Test_Lfi_RC_CustomAction: missing_feature
-        Test_Lfi_Rules_Version: missing_feature
+        Test_Lfi_Rules_Version: v3.7.0
         Test_Lfi_StackTrace: v2.51.0
         Test_Lfi_Telemetry: v2.51.0
         Test_Lfi_UrlQuery: v2.51.0
-      test_libddwaf.py:
-        Test_Libddwaf_Version: v3.4.1
+        Test_Lfi_Waf_Version: v3.4.1
       test_shi.py:
         Test_Shi_BodyJson: v3.2.0
         Test_Shi_BodyUrlEncoded: v3.2.0
@@ -172,7 +190,9 @@ tests/:
         Test_Shi_Rules_Version: v3.5.0
         Test_Shi_StackTrace: v3.2.0
         Test_Shi_Telemetry: v3.3.0
+        Test_Shi_Telemetry_Variant_Tag: v3.7.0
         Test_Shi_UrlQuery: v3.2.0
+        Test_Shi_Waf_Version: v3.4.1
       test_sqli.py:
         Test_Sqli_BodyJson: v2.54.0
         Test_Sqli_BodyUrlEncoded: v2.54.0
@@ -184,6 +204,7 @@ tests/:
         Test_Sqli_StackTrace: v2.54.0
         Test_Sqli_Telemetry: v2.54.0
         Test_Sqli_UrlQuery: v2.54.0
+        Test_Sqli_Waf_Version: v3.4.1
       test_ssrf.py:
         Test_Ssrf_BodyJson: v2.51.0
         Test_Ssrf_BodyUrlEncoded: v2.51.0
@@ -195,6 +216,7 @@ tests/:
         Test_Ssrf_StackTrace: v2.51.0
         Test_Ssrf_Telemetry: v2.51.0
         Test_Ssrf_UrlQuery: v2.51.0
+        Test_Ssrf_Waf_Version: v3.4.1
     waf/:
       test_addresses.py:
         Test_BodyJson: v2.8.0
@@ -242,13 +264,22 @@ tests/:
     test_asm_standalone.py:
       Test_AppSecStandalone_UpstreamPropagation: v2.55.0
       Test_IastStandalone_UpstreamPropagation: v2.55.0
-      Test_SCAStandalone_Telemetry: missing_feature
+      Test_SCAStandalone_Telemetry: v2.55.0
     test_automated_login_events.py:
       Test_Login_Events: irrelevant (was v2.53.0 but will be replaced by V2)
       Test_Login_Events_Extended: irrelevant (was v2.53.0 but will be replaced by V2)
       Test_V2_Login_Events: v3.1.0
       Test_V2_Login_Events_Anon: v3.1.0
       Test_V2_Login_Events_RC: v3.1.0
+      Test_V3_Auto_User_Instrum_Mode_Capability: missing_feature
+      Test_V3_Login_Events: missing_feature
+      Test_V3_Login_Events_Anon: missing_feature
+      Test_V3_Login_Events_Blocking: missing_feature
+      Test_V3_Login_Events_RC: missing_feature
+    test_automated_user_and_session_tracking.py:
+      Test_Automated_Session_Blocking: missing_feature
+      Test_Automated_User_Blocking: missing_feature
+      Test_Automated_User_Tracking: missing_feature
     test_blocking_addresses.py:
       Test_BlockingGraphqlResolvers: missing_feature
       Test_Blocking_client_ip: v2.27.0
@@ -286,6 +317,11 @@ tests/:
       Test_AppSecIPBlockingFullDenylist: v2.16.0
     test_logs.py:
       Test_StandardizationBlockMode: missing_feature
+    test_metastruct.py:
+      Test_SecurityEvents_Appsec_Metastruct_Disabled: v3.7.0
+      Test_SecurityEvents_Appsec_Metastruct_Enabled: v3.7.0
+      Test_SecurityEvents_Iast_Metastruct_Disabled: v3.7.0
+      Test_SecurityEvents_Iast_Metastruct_Enabled: v3.7.0
     test_rate_limiter.py:
       Test_Main: v2.6.0
     test_remote_config_rule_changes.py:
@@ -322,9 +358,7 @@ tests/:
     test_debugger_pii.py:
       Test_Debugger_PII_Redaction: v2.50.0
     test_debugger_probe_snapshot.py:
-      Test_Debugger_Line_Probe_Snaphots: v2.53.0
-      Test_Debugger_Method_Probe_Snaphots: v2.53.0
-      Test_Debugger_Mix_Log_Probe: v2.53.0
+      Test_Debugger_Probe_Snaphots: v2.53.0
     test_debugger_probe_status.py:
       Test_Debugger_Probe_Statuses: v2.53.0
   integrations/:
@@ -370,7 +404,9 @@ tests/:
       TestAdmisionControllerProfiling: missing_feature
   parametric/:
     test_config_consistency.py:
+      Test_Config_Dogstatsd: missing_feature (does not support hostname)
       Test_Config_RateLimit: v3.4.1
+      Test_Config_Tags: missing_feature
       Test_Config_TraceAgentURL: v3.4.1
       Test_Config_TraceEnabled: v3.3.0
       Test_Config_TraceLogDirectory: v3.3.0
@@ -393,15 +429,16 @@ tests/:
     test_otel_tracer.py:
       Test_Otel_Tracer: v2.8.0
     test_parametric_endpoints.py:
-      Test_Parametric_DDSpan_Add_Link: missing_feature (add_link parametric endpoint is not implemented)
+      Test_Parametric_DDSpan_Add_Link: incomplete_test_app (add_link parametric endpoint is not implemented)
       Test_Parametric_DDSpan_Set_Error: bug (APMAPI-778) # Set error endpoint does not set the error.type tag on spans
-      Test_Parametric_DDSpan_Set_Resource: missing_feature (set_resource parametric endpoint is not implemented)
-      Test_Parametric_DDTrace_Baggage: missing_feature (baggage endpoints are not implemented)
-      Test_Parametric_DDTrace_Current_Span: missing_feature (otel current span endpoint is not implemented)
+      Test_Parametric_DDSpan_Set_Resource: incomplete_test_app (set_resource parametric endpoint is not implemented)
+      Test_Parametric_DDTrace_Baggage: incomplete_test_app (baggage endpoints are not implemented)
+      Test_Parametric_DDTrace_Current_Span: incomplete_test_app (current span endpoint is not implemented)
       Test_Parametric_OtelSpan_Is_Recording: bug (APMAPI-778) # parametric endpoint attempts to retrieve spans by the `id` instead of `span_id`
       Test_Parametric_OtelSpan_Set_Name: bug (APMAPI-778) # updates the operation name of the span not the resource name
-      Test_Parametric_Otel_Baggage: missing_feature (otel baggage endpoints are not implemented)
-      Test_Parametric_Otel_Current_Span: missing_feature (otel current span endpoint are not implemented)
+      Test_Parametric_Otel_Baggage: incomplete_test_app (otel baggage endpoints are not implemented)
+      Test_Parametric_Otel_Current_Span: incomplete_test_app (otel current span endpoint are not implemented)
+    test_span_events.py: missing_feature
     test_span_links.py: missing_feature
     test_telemetry.py:
       Test_Consistent_Configs: missing_feature
@@ -429,7 +466,6 @@ tests/:
       Test_RemoteConfigurationUpdateSequenceFeatures: v2.15.0
       Test_RemoteConfigurationUpdateSequenceFeaturesNoCache: irrelevant (cache is implemented)
       Test_RemoteConfigurationUpdateSequenceLiveDebugging: v2.15.0
-      Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache: irrelevant (cache is implemented)
   serverless/:
     span_pointers/:
       aws/:
@@ -441,6 +477,7 @@ tests/:
     test_miscs.py:
       Test_Miscs: missing_feature
   test_config_consistency.py:
+    Test_Config_ClientIPHeaderEnabled_False: v3.6.1
     Test_Config_ClientIPHeader_Configured: v3.4.1
     Test_Config_ClientIPHeader_Precedence: v3.4.1
     Test_Config_ClientTagQueryString_Configured: missing_feature (configuration DNE)
@@ -459,28 +496,36 @@ tests/:
     Test_LibraryHeaders: v2.46.0
   test_distributed.py:
     Test_DistributedHttp: missing_feature
+    Test_Span_Links_Flags_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
+    Test_Span_Links_From_Conflicting_Contexts: missing_feature
+    Test_Span_Links_From_Conflicting_Contexts_Datadog_Precedence: missing_feature
+    Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
   test_identify.py:
     Test_Basic: v2.7.0
     Test_Propagate: v2.27.0
     Test_Propagate_Legacy: v2.26.0
+  test_ipv6.py: missing_feature (APMAPI-869)
   test_library_conf.py:
     Test_HeaderTags: v2.27.0
     Test_HeaderTags_Colon_Leading: v2.1.0
-    Test_HeaderTags_Colon_Trailing: bug (AIT-8600)
+    Test_HeaderTags_Colon_Trailing: v3.0.0
     Test_HeaderTags_DynamicConfig: missing_feature
     Test_HeaderTags_Long: v2.1.0
     Test_HeaderTags_Short: v2.1.0
     Test_HeaderTags_Whitespace_Header: v2.1.0
-    Test_HeaderTags_Whitespace_Tag: bug (AIT-8308)
+    Test_HeaderTags_Whitespace_Tag: v3.0.0
     Test_HeaderTags_Whitespace_Val_Long: v2.1.0
     Test_HeaderTags_Whitespace_Val_Short: v2.1.0
   test_profiling.py:
-    Test_Profile: missing_feature (Not receiving profiles)
+    Test_Profile:
+      "*": v1.0  # real version not known
+      uds: missing_feature (to be confirmed)
   test_scrubbing.py:
     Test_UrlField: v2.29.0
     Test_UrlQuery: v2.13.0
   test_semantic_conventions.py:
     Test_MetricsStandardTags: v2.6.0
+  test_span_events.py: incomplete_test_app (Weblog `/add_event` not implemented)
   test_standard_tags.py:
     Test_StandardTagsClientIp: v2.26.0
     Test_StandardTagsMethod: v2.0.0

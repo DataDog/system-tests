@@ -26,7 +26,11 @@ tests/:
           uwsgi-poc: v2.6.0
         Test_API_Security_RC_ASM_processor_overrides_and_custom_scanner: irrelevant (waf does not support it yet)
       test_apisec_sampling.py:
-        Test_API_Security_sampling: missing_feature
+        Test_API_Security_Sampling_Different_Endpoints: v2.6.0
+        Test_API_Security_Sampling_Different_Paths: v2.6.0
+        Test_API_Security_Sampling_Different_Status: v2.6.0
+        Test_API_Security_Sampling_Rate: irrelevant (new api security sampling algorithm implemented)
+        Test_API_Security_Sampling_With_Delay: v2.6.0
       test_schemas.py:
         Test_Scanners:
           '*': v2.4.0
@@ -66,7 +70,7 @@ tests/:
           TestCommandInjection:
             '*': v2.10.0
             fastapi: v2.15.0
-          TestCommandInjection_StackTrace: missing_feature
+          TestCommandInjection_StackTrace: v2.19.0.dev
         test_hardcoded_passwords.py:
           Test_HardcodedPasswords: missing_feature
           Test_HardcodedPasswords_StackTrace: missing_feature
@@ -82,7 +86,9 @@ tests/:
           TestHeaderInjectionExclusionContentEncoding: missing_feature
           TestHeaderInjectionExclusionPragma: missing_feature
           TestHeaderInjectionExclusionTransferEncoding: missing_feature
-          TestHeaderInjection_StackTrace: missing_feature
+          TestHeaderInjection_StackTrace:
+            '*': v2.19.0.dev
+            fastapi: missing_feature
         test_hsts_missing_header.py:
           Test_HstsMissingHeader: missing_feature
           Test_HstsMissingHeader_StackTrace: missing_feature
@@ -117,7 +123,7 @@ tests/:
           TestPathTraversal:
             '*': v2.10.0
             fastapi: v2.15.0
-          TestPathTraversal_StackTrace: missing_feature
+          TestPathTraversal_StackTrace: v2.19.0.dev
         test_reflection_injection.py:
           TestReflectionInjection: missing_feature
           TestReflectionInjection_StackTrace: missing_feature
@@ -128,12 +134,12 @@ tests/:
             flask-poc: v1.18.0
             pylons: missing_feature
             python3.12: v1.18.0
-          TestSqlInjection_StackTrace: missing_feature
+          TestSqlInjection_StackTrace: v2.19.0.dev
         test_ssrf.py:
           TestSSRF:
             '*': v2.10.0
             fastapi: v2.15.0
-          TestSSRF_StackTrace: missing_feature
+          TestSSRF_StackTrace: v2.19.0.dev
         test_template_injection.py:
           TestTemplateInjection: missing_feature
         test_trust_boundary_violation.py:
@@ -154,17 +160,17 @@ tests/:
           TestWeakCipher:
             '*': v1.18.0
             fastapi: v2.15.0
-          TestWeakCipher_StackTrace: missing_feature
+          TestWeakCipher_StackTrace: v2.19.0.dev
         test_weak_hash.py:
           TestDeduplication:
             '*': v1.18.0
           TestWeakHash:
             '*': v1.18.0
-          TestWeakHash_StackTrace: missing_feature
+          TestWeakHash_StackTrace: v2.19.0.dev
         test_weak_randomness.py:
           TestWeakRandomness:
             '*': v2.0.0
-          TestWeakRandomness_StackTrace: missing_feature
+          TestWeakRandomness_StackTrace: v2.19.0.dev
         test_xcontent_sniffing.py:
           Test_XContentSniffing: missing_feature
           Test_XContentSniffing_StackTrace: missing_feature
@@ -233,9 +239,24 @@ tests/:
             flask-poc: v2.13.0
             uds-flask: v2.13.0
             uwsgi-poc: v2.13.0
+        test_sql_row.py:
+          TestSqlRow: missing_feature
         test_uri.py:
           TestURI: missing_feature
     rasp/:
+      test_cmdi.py:
+        Test_Cmdi_BodyJson: missing_feature
+        Test_Cmdi_BodyUrlEncoded: missing_feature
+        Test_Cmdi_BodyXml: missing_feature
+        Test_Cmdi_Capability: missing_feature
+        Test_Cmdi_Mandatory_SpanTags: missing_feature
+        Test_Cmdi_Optional_SpanTags: missing_feature
+        Test_Cmdi_Rules_Version: v2.18.0.dev
+        Test_Cmdi_StackTrace: missing_feature
+        Test_Cmdi_Telemetry: missing_feature
+        Test_Cmdi_Telemetry_Variant_Tag: missing_feature
+        Test_Cmdi_UrlQuery: missing_feature
+        Test_Cmdi_Waf_Version: v2.18.0.dev
       test_lfi.py:
         Test_Lfi_BodyJson: v2.10.0
         Test_Lfi_BodyUrlEncoded: v2.10.0
@@ -248,8 +269,7 @@ tests/:
         Test_Lfi_StackTrace: v2.10.0
         Test_Lfi_Telemetry: v2.10.0
         Test_Lfi_UrlQuery: v2.10.0
-      test_libddwaf.py:
-        Test_Libddwaf_Version: v2.15.0
+        Test_Lfi_Waf_Version: v2.15.0
       test_shi.py:
         Test_Shi_BodyJson: v2.11.0-rc2
         Test_Shi_BodyUrlEncoded: v2.11.0-rc2
@@ -260,7 +280,9 @@ tests/:
         Test_Shi_Rules_Version: v2.15.0
         Test_Shi_StackTrace: v2.11.0-rc2
         Test_Shi_Telemetry: v2.11.0-rc2
+        Test_Shi_Telemetry_Variant_Tag: missing_feature
         Test_Shi_UrlQuery: v2.11.0-rc2
+        Test_Shi_Waf_Version: v2.15.0
       test_sqli.py:
         Test_Sqli_BodyJson: v2.10.0
         Test_Sqli_BodyUrlEncoded: v2.10.0
@@ -272,6 +294,7 @@ tests/:
         Test_Sqli_StackTrace: v2.10.0
         Test_Sqli_Telemetry: v2.10.0
         Test_Sqli_UrlQuery: v2.10.0
+        Test_Sqli_Waf_Version: v2.15.0
       test_ssrf.py:
         Test_Ssrf_BodyJson: v2.10.0
         Test_Ssrf_BodyUrlEncoded: v2.10.0
@@ -283,6 +306,7 @@ tests/:
         Test_Ssrf_StackTrace: v2.10.0
         Test_Ssrf_Telemetry: v2.10.0
         Test_Ssrf_UrlQuery: v2.10.0
+        Test_Ssrf_Waf_Version: v2.15.0
     waf/:
       test_addresses.py:
         Test_BodyJson:
@@ -425,13 +449,22 @@ tests/:
         uwsgi-poc: v2.17.1
       Test_IastStandalone_UpstreamPropagation:
         '*': v2.18.0.dev
-      Test_SCAStandalone_Telemetry: missing_feature
+      Test_SCAStandalone_Telemetry: v2.19.0.dev
     test_automated_login_events.py:
       Test_Login_Events: irrelevant (was v2.10.0 but will be replaced by V2)
       Test_Login_Events_Extended: irrelevant (was v2.10.0 but will be replaced by V2)
       Test_V2_Login_Events: v2.11.0
       Test_V2_Login_Events_Anon: v2.11.0
       Test_V2_Login_Events_RC: v2.11.0
+      Test_V3_Auto_User_Instrum_Mode_Capability: missing_feature
+      Test_V3_Login_Events: missing_feature
+      Test_V3_Login_Events_Anon: missing_feature
+      Test_V3_Login_Events_Blocking: missing_feature
+      Test_V3_Login_Events_RC: missing_feature
+    test_automated_user_and_session_tracking.py:
+      Test_Automated_Session_Blocking: missing_feature
+      Test_Automated_User_Blocking: missing_feature
+      Test_Automated_User_Tracking: missing_feature
     test_blocking_addresses.py:
       Test_BlockingGraphqlResolvers: missing_feature
       Test_Blocking_client_ip:
@@ -525,6 +558,11 @@ tests/:
     test_logs.py:
       Test_Standardization: missing_feature
       Test_StandardizationBlockMode: missing_feature
+    test_metastruct.py:
+      Test_SecurityEvents_Appsec_Metastruct_Disabled: irrelevant (no fallback will be implemented)
+      Test_SecurityEvents_Appsec_Metastruct_Enabled: missing_feature
+      Test_SecurityEvents_Iast_Metastruct_Disabled: irrelevant (no fallback will be implemented)
+      Test_SecurityEvents_Iast_Metastruct_Enabled: missing_feature
     test_rate_limiter.py:
       Test_Main: v2.0.0
     test_remote_config_rule_changes.py:
@@ -563,9 +601,17 @@ tests/:
       Test_Events: v0.58.5
   debugger/:
     test_debugger_exception_replay.py:
-      Test_Debugger_Exception_Replay: missing_feature
+      Test_Debugger_Exception_Replay:
+        '*': missing_feature
+        flask-poc: v2.11.0
+        uds-flask: v2.11.0
+        uwsgi-poc: v2.11.0
     test_debugger_expression_language.py:
-      Test_Debugger_Expression_Language: bug (DEBUG-2898)
+      Test_Debugger_Expression_Language:
+        '*': missing_feature
+        flask-poc: v2.11.0
+        uds-flask: v2.11.0
+        uwsgi-poc: v2.11.0
     test_debugger_pii.py:
       Test_Debugger_PII_Redaction:
         '*': missing_feature
@@ -573,17 +619,7 @@ tests/:
         uds-flask: v2.11.0
         uwsgi-poc: v2.11.0
     test_debugger_probe_snapshot.py:
-      Test_Debugger_Line_Probe_Snaphots:
-        '*': missing_feature
-        flask-poc: v2.11.0
-        uds-flask: v2.11.0
-        uwsgi-poc: v2.11.0
-      Test_Debugger_Method_Probe_Snaphots:
-        '*': missing_feature
-        flask-poc: v2.11.0
-        uds-flask: v2.11.0
-        uwsgi-poc: v2.11.0
-      Test_Debugger_Mix_Log_Probe:
+      Test_Debugger_Probe_Snaphots:
         '*': missing_feature
         flask-poc: v2.11.0
         uds-flask: v2.11.0
@@ -736,7 +772,9 @@ tests/:
     test_128_bit_traceids.py:
       Test_128_Bit_Traceids: v2.6.0
     test_config_consistency.py:
+      Test_Config_Dogstatsd: missing_feature
       Test_Config_RateLimit: v2.15.0
+      Test_Config_Tags: missing_feature
       Test_Config_TraceAgentURL: v2.0.0
       Test_Config_TraceEnabled: v2.12.2
       Test_Config_TraceLogDirectory: missing_feature
@@ -754,7 +792,7 @@ tests/:
     test_headers_b3multi.py:
       Test_Headers_B3multi: v2.8.0
     test_headers_baggage.py:
-      Test_Headers_Baggage: missing_feature
+      Test_Headers_Baggage: v2.16.0
     test_headers_datadog.py:
       Test_Headers_Datadog: v2.8.0
     test_headers_none.py:
@@ -779,13 +817,14 @@ tests/:
       Test_Otel_Tracer: v2.8.0
     test_parametric_endpoints.py:
       Test_Parametric_DDTrace_Baggage: v2.16.0
-      Test_Parametric_Otel_Baggage: v2.15.0
+      Test_Parametric_Otel_Baggage: v2.16.0
     test_partial_flushing.py:
       Test_Partial_Flushing: flaky (APMAPI-734)
     test_sampling_delegation.py:
       Test_Decisionless_Extraction: v2.8.0
     test_sampling_span_tags.py:
       Test_Sampling_Span_Tags: v2.8.0
+    test_span_events.py: missing_feature
     test_span_links.py:
       Test_Span_Links: v2.3.0
     test_span_sampling.py:
@@ -818,7 +857,6 @@ tests/:
       Test_RemoteConfigurationUpdateSequenceFeatures: v1.7.4
       Test_RemoteConfigurationUpdateSequenceFeaturesNoCache: irrelevant (cache is implemented)
       Test_RemoteConfigurationUpdateSequenceLiveDebugging: v2.8.0
-      Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache: missing_feature
   serverless/:
     span_pointers/:
       aws/:
@@ -843,6 +881,7 @@ tests/:
     test_miscs.py:
       Test_Miscs: missing_feature
   test_config_consistency.py:
+    Test_Config_ClientIPHeaderEnabled_False: v2.17.3
     Test_Config_ClientIPHeader_Configured: v2.12.0
     Test_Config_ClientIPHeader_Precedence: v2.12.0
     Test_Config_ClientTagQueryString_Configured: v2.15.0
@@ -867,6 +906,10 @@ tests/:
     Test_DistributedHttp:
       '*': missing_feature (Missing on weblog)
       flask-poc: v1.5.0-rc2 # actual version unknown
+    Test_Span_Links_Flags_From_Conflicting_Contexts: v2.17.0
+    Test_Span_Links_From_Conflicting_Contexts: v2.17.0
+    Test_Span_Links_From_Conflicting_Contexts_Datadog_Precedence: v2.17.0
+    Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts: v2.17.0
   test_identify.py:
     Test_Basic: v1.5.0-rc1
     Test_Propagate: v1.9.0
@@ -897,6 +940,7 @@ tests/:
   test_semantic_conventions.py:
     Test_Meta: v1.80.0
     Test_MetaDatadogTags: bug (APMAPI-735)
+  test_span_events.py: incomplete_test_app (Weblog `/add_event` not implemented)
   test_standard_tags.py:
     Test_StandardTagsClientIp: v2.7.0
     Test_StandardTagsMethod: v1.2.1

@@ -87,18 +87,15 @@ class K8sInstance:
             logger.error(f"Error destroying cluster: {e}. Ignoring failure...")
 
     def deploy_datadog_cluster_agent(self, use_uds=False, features=None):
-        """ Deploys datadog cluster agent with admission controller and given features."""
+        """Deploys datadog cluster agent with admission controller and given features."""
         self.test_agent.deploy_datadog_cluster_agent(features=features, cluster_agent_tag=self.cluster_agent_tag)
 
     def deploy_test_agent(self):
         self.test_agent.deploy_test_agent()
 
-    def deploy_agent(self):
-        self.test_agent.deploy_agent()
-
-    def deploy_weblog_as_pod(self, with_admission_controller=True, use_uds=False, env=None):
+    def deploy_weblog_as_pod(self, with_admission_controller=True, use_uds=False, env=None, service_account=None):
         if with_admission_controller:
-            self.test_weblog.install_weblog_pod_with_admission_controller(env=env)
+            self.test_weblog.install_weblog_pod_with_admission_controller(env=env, service_account=service_account)
         else:
             self.test_weblog.install_weblog_pod_without_admission_controller(use_uds, env=env)
 

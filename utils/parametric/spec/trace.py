@@ -1,14 +1,10 @@
-"""
-Tracing constants, data structures and helper methods.
+"""Tracing constants, data structures and helper methods.
 
 These are used to specify, test and work with trace data and protocols.
 """
+
 import json
-from typing import Dict
-from typing import List
-from typing import Optional
 from typing import TypedDict
-from typing import Union
 
 from ddapm_test_agent.trace import Span
 from ddapm_test_agent.trace import Trace
@@ -63,6 +59,7 @@ SAMPLING_AGENT_PRIORITY_RATE = "_dd.agent_psr"
 SAMPLING_RULE_PRIORITY_RATE = "_dd.rule_psr"
 SAMPLING_LIMIT_PRIORITY_RATE = "_dd.limit_psr"
 
+
 # Note that class attributes are golang style to match the payload.
 class V06StatsAggr(TypedDict):
     """Stats aggregation data structure used in the v0.6/stats protocol."""
@@ -84,14 +81,14 @@ class V06StatsAggr(TypedDict):
 class V06StatsBucket(TypedDict):
     Start: int
     Duration: int
-    Stats: List[V06StatsAggr]
+    Stats: list[V06StatsAggr]
 
 
 class V06StatsPayload(TypedDict):
-    Hostname: Optional[str]
-    Env: Optional[str]
-    Version: Optional[str]
-    Stats: List[V06StatsBucket]
+    Hostname: str | None
+    Env: str | None
+    Version: str | None
+    Stats: list[V06StatsBucket]
 
 
 def _v06_store_from_proto(proto: StorePb) -> CollapsingLowestDenseStore:
@@ -113,14 +110,14 @@ def _v06_sketch_from_proto(proto: DDSketchPb) -> BaseDDSketch:
     mapping = KeyMappingProto.from_proto(proto.mapping)
     store = _v06_store_from_proto(proto.positiveValues)
     negative_store = _v06_store_from_proto(proto.negativeValues)
-    return BaseDDSketch(mapping=mapping, store=store, negative_store=negative_store, zero_count=proto.zeroCount,)
+    return BaseDDSketch(mapping=mapping, store=store, negative_store=negative_store, zero_count=proto.zeroCount)
 
 
 def decode_v06_stats(data: bytes) -> V06StatsPayload:
     payload = msgpack.unpackb(data)
-    stats_buckets: List[V06StatsBucket] = []
+    stats_buckets: list[V06StatsBucket] = []
     for raw_bucket in payload["Stats"]:
-        stats: List[V06StatsAggr] = []
+        stats: list[V06StatsAggr] = []
         for raw_stats in raw_bucket["Stats"]:
             ok_summary = DDSketchPb()
             ok_summary.ParseFromString(raw_stats["OkSummary"])
@@ -144,15 +141,15 @@ def decode_v06_stats(data: bytes) -> V06StatsPayload:
             if ok_summary.mapping.gamma > 1:
                 stats.append(stat)
 
-        bucket = V06StatsBucket(Start=raw_bucket["Start"], Duration=raw_bucket["Duration"], Stats=stats,)
+        bucket = V06StatsBucket(Start=raw_bucket["Start"], Duration=raw_bucket["Duration"], Stats=stats)
         stats_buckets.append(bucket)
 
     return V06StatsPayload(
-        Hostname=payload.get("Hostname"), Env=payload.get("Env"), Version=payload.get("Version"), Stats=stats_buckets,
+        Hostname=payload.get("Hostname"), Env=payload.get("Env"), Version=payload.get("Version"), Stats=stats_buckets
     )
 
 
-def find_trace(traces: List[Trace], trace_id: int) -> Trace:
+def find_trace(traces: list[Trace], trace_id: int) -> Trace:
     """Return the trace from `traces` that match a `trace_id`."""
     # TODO: Ensure all parametric applications return uint64 trace ids (not strings or bigints)
     trace_id = ((1 << 64) - 1) & id_to_int(trace_id)  # Use 64-bit trace id
@@ -175,13 +172,13 @@ def find_span(trace: Trace, span_id: int) -> Span:
     raise AssertionError(f"Span with id={span_id} not found. Trace={trace}")
 
 
-def find_span_in_traces(traces: List[Trace], trace_id: int, span_id: int) -> Span:
+def find_span_in_traces(traces: list[Trace], trace_id: int, span_id: int) -> Span:
     """Return a span from a list of traces by `trace_id` and `span_id`."""
     trace = find_trace(traces, trace_id)
     return find_span(trace, span_id)
 
 
-def find_only_span(traces: List[Trace]) -> Span:
+def find_only_span(traces: list[Trace]) -> Span:
     """Return the only span in a list of traces. Raises an error if there are no traces or more than one span."""
     assert len(traces) == 1, traces
     assert len(traces[0]) == 1, traces[0]
@@ -195,7 +192,7 @@ def find_first_span_in_trace_payload(trace: Trace) -> Span:
     return trace[0]
 
 
-def find_root_span(trace: Trace) -> Optional[Span]:
+def find_root_span(trace: Trace) -> Span | None:
     """Return the root span of the trace or None if no root span is found."""
     for span in trace:
         if not span.get("parent_id"):
@@ -208,14 +205,14 @@ def span_has_no_parent(span: Span) -> bool:
     return "parent_id" not in span or span.get("parent_id") == 0 or span.get("parent_id") is None
 
 
-def assert_span_has_tags(span: Span, tags: Dict[str, Union[int, str, float, bool]]):
+def assert_span_has_tags(span: Span, tags: dict[str, int | str | float | bool]):
     """Assert that the span has the given tags."""
     for key, value in tags.items():
         assert key in span.get("meta", {}), f"Span missing expected tag {key}={value}"
         assert span.get("meta", {}).get(key) == value, f"Span incorrect tag value for {key}={value}"
 
 
-def assert_trace_has_tags(trace: Trace, tags: Dict[str, Union[int, str, float, bool]]):
+def assert_trace_has_tags(trace: Trace, tags: dict[str, int | str | float | bool]):
     """Assert that the trace has the given tags."""
     for span in trace:
         assert_span_has_tags(span, tags)
@@ -225,36 +222,63 @@ def retrieve_span_links(span):
     if span.get("span_links") is not None:
         return span["span_links"]
 
-    if span["meta"].get("_dd.span_links") is not None:
-        # Convert span_links tags into msgpack v0.4 format
-        json_links = json.loads(span["meta"].get("_dd.span_links"))
-        links = []
-        for json_link in json_links:
-            link = {}
-            link["trace_id"] = int(json_link["trace_id"][-16:], base=16)
-            link["span_id"] = int(json_link["span_id"], base=16)
-            if len(json_link["trace_id"]) > 16:
-                link["trace_id_high"] = int(json_link["trace_id"][:16], base=16)
-            if "attributes" in json_link:
-                link["attributes"] = json_link.get("attributes")
-            if "tracestate" in json_link:
-                link["tracestate"] = json_link.get("tracestate")
-            elif "trace_state" in json_link:
-                link["tracestate"] = json_link.get("trace_state")
-            if "flags" in json_link:
-                link["flags"] = json_link.get("flags") | TRACECONTEXT_FLAGS_SET
-            else:
-                link["flags"] = 0
-            links.append(link)
-        return links
+    if span["meta"].get("_dd.span_links") is None:
+        return None
+
+    # Convert span_links tags into msgpack v0.4 format
+    json_links = json.loads(span["meta"].get("_dd.span_links"))
+    links = []
+    for json_link in json_links:
+        link = {}
+        link["trace_id"] = int(json_link["trace_id"][-16:], base=16)
+        link["span_id"] = int(json_link["span_id"], base=16)
+        if len(json_link["trace_id"]) > 16:
+            link["trace_id_high"] = int(json_link["trace_id"][:16], base=16)
+        if "attributes" in json_link:
+            link["attributes"] = json_link.get("attributes")
+        if "tracestate" in json_link:
+            link["tracestate"] = json_link.get("tracestate")
+        elif "trace_state" in json_link:
+            link["tracestate"] = json_link.get("trace_state")
+        if "flags" in json_link:
+            link["flags"] = json_link.get("flags") | TRACECONTEXT_FLAGS_SET
+        else:
+            link["flags"] = 0
+        links.append(link)
+    return links
 
 
-def id_to_int(value: Union[str, int]) -> int:
+def retrieve_span_events(span):
+    if span.get("span_events") is not None:
+        return span["span_events"]
+
+    if span["meta"].get("events") is None:
+        return None
+
+    # Convert span_events tags into msgpack v0.4 format
+    json_events = json.loads(span["meta"].get("events"))
+    events = []
+    for json_event in json_events:
+        event = {}
+
+        event["time_unix_nano"] = json_event["time_unix_nano"]
+        event["name"] = json_event["name"]
+        if "attributes" in json_event:
+            event["attributes"] = json_event["attributes"]
+
+        events.append(event)
+    return events
+
+
+def id_to_int(value: str | int) -> int:
     """Convert an id from hex or a base 10 string to an integer."""
+    if isinstance(value, int):
+        return value
+
     try:
         # This is a best effort to convert hex span/trace id to an integer.
         # This is temporary solution until all parametric applications return trace/span ids
         # as stringified integers (ids will be stringified to workaround percision issues in some languages)
         return int(value)
     except ValueError:
-        return int(value, 16)  # type: ignore
+        return int(value, 16)

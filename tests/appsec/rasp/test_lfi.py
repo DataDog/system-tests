@@ -12,6 +12,7 @@ from tests.appsec.rasp.utils import (
     validate_metric,
     RC_CONSTANTS,
     Base_Rules_Version,
+    Base_WAF_Version,
 )
 
 
@@ -130,9 +131,7 @@ class Test_Lfi_Optional_SpanTags:
         self.r = weblog.get("/rasp/lfi", params={"file": "../etc/passwd"})
 
     def test_lfi_span_tags(self):
-        validate_span_tags(
-            self.r, expected_metrics=["_dd.appsec.rasp.duration_ext", "_dd.appsec.rasp.rule.eval",],
-        )
+        validate_span_tags(self.r, expected_metrics=["_dd.appsec.rasp.duration_ext", "_dd.appsec.rasp.rule.eval"])
 
 
 @rfc("https://docs.google.com/document/d/1vmMqpl8STDk7rJnd3YBsa6O9hCls_XHHdsodD61zr_4/edit#heading=h.enmf90juqidf")
@@ -267,3 +266,10 @@ class Test_Lfi_Rules_Version(Base_Rules_Version):
     """Test lfi min rules version"""
 
     min_version = "1.13.3"
+
+
+@features.rasp_local_file_inclusion
+class Test_Lfi_Waf_Version(Base_WAF_Version):
+    """Test lfi WAF version"""
+
+    min_version = "1.20.1"

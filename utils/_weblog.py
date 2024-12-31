@@ -18,7 +18,7 @@ from utils.tools import logger
 import utils.grpc.weblog_pb2_grpc as grpcapi
 
 # monkey patching header validation in requests module, as we want to be able to send anything to weblog
-requests.utils._validate_header_part = lambda *args, **kwargs: None  # pylint: disable=protected-access
+requests.utils._validate_header_part = lambda *args, **kwargs: None  # noqa: ARG005, SLF001
 
 
 class ResponseEncoder(json.JSONEncoder):
@@ -70,7 +70,11 @@ class HttpResponse:
     def serialize(self) -> dict:
         return self._data | {"__class__": "HttpResponse"}
 
+    def __repr__(self) -> str:
+        return f"HttpResponse(status_code:{self.status_code}, headers:{self.headers}, text:{self.text})"
 
+
+# TODO : this should be build by weblog container
 class _Weblog:
     def __init__(self):
         if "SYSTEM_TESTS_WEBLOG_PORT" in os.environ:
@@ -79,9 +83,9 @@ class _Weblog:
             self.port = 7777
 
         if "SYSTEM_TESTS_WEBLOG_GRPC_PORT" in os.environ:
-            self._grpc_port = int(os.environ["SYSTEM_TESTS_WEBLOG_GRPC_PORT"])
+            self.grpc_port = int(os.environ["SYSTEM_TESTS_WEBLOG_GRPC_PORT"])
         else:
-            self._grpc_port = 7778
+            self.grpc_port = 7778
 
         if "SYSTEM_TESTS_WEBLOG_HOST" in os.environ:
             self.domain = os.environ["SYSTEM_TESTS_WEBLOG_HOST"]
@@ -107,6 +111,7 @@ class _Weblog:
         self,
         method,
         path="/",
+        *,
         params=None,
         data=None,
         headers=None,
@@ -188,14 +193,13 @@ class _Weblog:
 
         return res
 
-    def grpc(self, string_value, streaming=False):
-
+    def grpc(self, string_value, *, streaming=False):
         rid = "".join(random.choices(string.ascii_uppercase, k=36))
 
         # We cannot set the user agent for each request. For now, start a new channel for each query
         _grpc_client = grpcapi.WeblogStub(
             grpc.insecure_channel(
-                f"{self.domain}:{self._grpc_port}",
+                f"{self.domain}:{self.grpc_port}",
                 options=(("grpc.enable_http_proxy", 0), ("grpc.primary_user_agent", f"system_tests rid/{rid}")),
             )
         )

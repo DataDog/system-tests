@@ -16,7 +16,7 @@ class TestCodeInjection(BaseSinkTest):
     secure_endpoint = "/iast/code_injection/test_secure"
     data = {"code": "1+2"}
     location_map = {
-        "nodejs": {"express4": "iast/index.js", "express4-typescript": "iast.ts"},
+        "nodejs": {"express4": "iast/index.js", "express4-typescript": "iast.ts", "express5": "iast/index.js"},
     }
 
     @missing_feature(library="nodejs", reason="Instrumented metric not implemented")

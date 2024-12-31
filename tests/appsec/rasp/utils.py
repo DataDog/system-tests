@@ -93,6 +93,16 @@ def validate_metric(name, type, metric):
     )
 
 
+def validate_metric_variant(name, type, variant, metric):
+    return (
+        metric.get("metric") == name
+        and metric.get("type") == "count"
+        and f"rule_type:{type}" in metric.get("tags", ())
+        and f"rule_variant:{variant}" in metric.get("tags", ())
+        and any(s.startswith("waf_version:") for s in metric.get("tags", ()))
+    )
+
+
 def validate_metric_tag_version(tag_prefix, min_version, metric):
     for tag in metric["tags"]:
         if tag.startswith(tag_prefix + ":"):
@@ -115,12 +125,12 @@ class RC_CONSTANTS:
     )
     BLOCK_405 = (
         "datadog/2/ASM/actions/config",
-        {"actions": [{"id": "block", "parameters": {"status_code": 405, "type": "json"}, "type": "block_request",}]},
+        {"actions": [{"id": "block", "parameters": {"status_code": 405, "type": "json"}, "type": "block_request"}]},
     )
 
     BLOCK_505 = (
         "datadog/2/ASM/actions/config",
-        {"actions": [{"id": "block", "parameters": {"status_code": 505, "type": "html"}, "type": "block_request",}]},
+        {"actions": [{"id": "block", "parameters": {"status_code": 505, "type": "html"}, "type": "block_request"}]},
     )
 
     BLOCK_REDIRECT = (
@@ -154,3 +164,17 @@ class Base_Rules_Version:
         series = find_series(True, "appsec", "waf.init")
         assert series
         assert any(validate_metric_tag_version("event_rules_version", min_version_array, s) for s in series)
+
+
+class Base_WAF_Version:
+    """Test libddwaf version"""
+
+    min_version = "1.20.1"
+
+    def test_min_version(self):
+        """Checks data in waf.init metric to verify waf version"""
+
+        min_version_array = list(map(int, self.min_version.split(".")))
+        series = find_series(True, "appsec", "waf.init")
+        assert series
+        assert any(validate_metric_tag_version("waf_version", min_version_array, s) for s in series)

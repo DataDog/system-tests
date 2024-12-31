@@ -10,6 +10,7 @@ from tests.appsec.rasp.utils import (
     find_series,
     validate_metric,
     Base_Rules_Version,
+    Base_WAF_Version,
 )
 
 
@@ -33,8 +34,8 @@ class Test_Ssrf_UrlQuery:
             self.r,
             "rasp-934-100",
             {
-                "resource": {"address": "server.io.net.url", "value": expected_http_value,},
-                "params": {"address": "server.request.query", "value": "169.254.169.254",},
+                "resource": {"address": "server.io.net.url", "value": expected_http_value},
+                "params": {"address": "server.request.query", "value": "169.254.169.254"},
             },
         )
 
@@ -59,8 +60,14 @@ class Test_Ssrf_BodyUrlEncoded:
             self.r,
             "rasp-934-100",
             {
-                "resource": {"address": "server.io.net.url", "value": expected_http_value,},
-                "params": {"address": "server.request.body", "value": "169.254.169.254",},
+                "resource": {
+                    "address": "server.io.net.url",
+                    "value": expected_http_value,
+                },
+                "params": {
+                    "address": "server.request.body",
+                    "value": "169.254.169.254",
+                },
             },
         )
 
@@ -82,8 +89,14 @@ class Test_Ssrf_BodyXml:
             self.r,
             "rasp-934-100",
             {
-                "resource": {"address": "server.io.net.url", "value": "http://169.254.169.254",},
-                "params": {"address": "server.request.body", "value": "169.254.169.254",},
+                "resource": {
+                    "address": "server.io.net.url",
+                    "value": "http://169.254.169.254",
+                },
+                "params": {
+                    "address": "server.request.body",
+                    "value": "169.254.169.254",
+                },
             },
         )
 
@@ -109,8 +122,14 @@ class Test_Ssrf_BodyJson:
             self.r,
             "rasp-934-100",
             {
-                "resource": {"address": "server.io.net.url", "value": expected_http_value,},
-                "params": {"address": "server.request.body", "value": "169.254.169.254",},
+                "resource": {
+                    "address": "server.io.net.url",
+                    "value": expected_http_value,
+                },
+                "params": {
+                    "address": "server.request.body",
+                    "value": "169.254.169.254",
+                },
             },
         )
 
@@ -141,7 +160,11 @@ class Test_Ssrf_Optional_SpanTags:
 
     def test_ssrf_span_tags(self):
         validate_span_tags(
-            self.r, expected_metrics=["_dd.appsec.rasp.duration_ext", "_dd.appsec.rasp.rule.eval",],
+            self.r,
+            expected_metrics=[
+                "_dd.appsec.rasp.duration_ext",
+                "_dd.appsec.rasp.rule.eval",
+            ],
         )
 
 
@@ -200,3 +223,10 @@ class Test_Ssrf_Rules_Version(Base_Rules_Version):
     """Test ssrf min rules version"""
 
     min_version = "1.13.2"
+
+
+@features.rasp_local_file_inclusion
+class Test_Ssrf_Waf_Version(Base_WAF_Version):
+    """Test ssrf WAF version"""
+
+    min_version = "1.20.1"

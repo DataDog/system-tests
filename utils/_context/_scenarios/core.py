@@ -16,6 +16,7 @@ class ScenarioGroup(Enum):
     END_TO_END = "end-to-end"
     GRAPHQL = "graphql"
     INTEGRATIONS = "integrations"
+    IPV6 = "ipv6"
     LIB_INJECTION = "lib-injection"
     OPEN_TELEMETRY = "open-telemetry"
     PARAMETRIC = "parametric"
@@ -65,7 +66,7 @@ class Scenario:
         for group in self.scenario_groups:
             assert group in ScenarioGroup, f"Invalid scenario group {group} for {self.name}: {group}"
 
-    def _create_log_subfolder(self, subfolder, remove_if_exists=False):
+    def _create_log_subfolder(self, subfolder, *, remove_if_exists=False):
         if self.replay:
             return
 
@@ -77,7 +78,7 @@ class Scenario:
         Path(path).mkdir(parents=True, exist_ok=True)
 
     def __call__(self, test_object):
-        """handles @scenarios.scenario_name"""
+        """Handles @scenarios.scenario_name"""
 
         # Check that no scenario has been already declared
         for marker in getattr(test_object, "pytestmark", []):
@@ -100,7 +101,8 @@ class Scenario:
             # * at very first command
             # * then once per worker
 
-            # the issue is that _create_log_subfolder() remove the folder if it exists, then create it. This scenario is then possible :
+            # the issue is that _create_log_subfolder() remove the folder if it exists, then create it.
+            # This scenario is then possible :
             # 1. some worker A creates logs/
             # 2. another worker B removes it
             # 3. worker A want to create logs/tests.log -> boom
@@ -116,8 +118,8 @@ class Scenario:
 
         self.configure(config)
 
-    def pytest_sessionstart(self, session):
-        """called at the very begining of the process"""
+    def pytest_sessionstart(self, session):  # noqa: ARG002
+        """Called at the very begining of the process"""
 
         logger.terminal.write_sep("=", "test context", bold=True)
 
@@ -129,8 +131,7 @@ class Scenario:
             self.close_targets()
             raise
 
-    def configure(self, config):
-        ...
+    def configure(self, config): ...
 
     def get_warmups(self):
         return [
@@ -139,10 +140,10 @@ class Scenario:
         ]
 
     def post_setup(self):
-        """called after test setup"""
+        """Called after test setup"""
 
     def close_targets(self):
-        """called at the end of the process"""
+        """Called at the end of the process"""
 
     @property
     def host_log_folder(self):

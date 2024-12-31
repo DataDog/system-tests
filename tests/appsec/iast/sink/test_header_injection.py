@@ -27,7 +27,7 @@ class _BaseTestHeaderInjectionReflectedExclusion:
 
     def test_no_exclusion(self):
         assert_iast_vulnerability(
-            request=self.no_exclusion_request, vulnerability_count=1, vulnerability_type="HEADER_INJECTION",
+            request=self.no_exclusion_request, vulnerability_count=1, vulnerability_type="HEADER_INJECTION"
         )
 
     def setup_exclusion(self):
@@ -55,7 +55,9 @@ class TestHeaderInjection(BaseSinkTest):
     insecure_endpoint = "/iast/header_injection/test_insecure"
     secure_endpoint = "/iast/header_injection/test_secure"
     data = {"test": "dummyvalue"}
-    location_map = {"nodejs": {"express4": "iast/index.js", "express4-typescript": "iast.ts"}}
+    location_map = {
+        "nodejs": {"express4": "iast/index.js", "express4-typescript": "iast.ts", "express5": "iast/index.js"}
+    }
 
     @missing_feature(context.library < "java@1.22.0", reason="Metrics not implemented")
     @missing_feature(library="dotnet", reason="Not implemented yet")
@@ -72,7 +74,7 @@ class TestHeaderInjection(BaseSinkTest):
 )
 @features.iast_stack_trace
 class TestHeaderInjection_StackTrace:
-    """Validate stack trace generation """
+    """Validate stack trace generation"""
 
     def setup_stack_trace(self):
         self.r = weblog.post("/iast/header_injection/test_insecure", data={"test": "dummyvalue"})

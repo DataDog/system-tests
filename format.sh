@@ -36,22 +36,33 @@ fi
 
 source venv/bin/activate
 
-echo "Checking Python files..."
-if [ "$COMMAND" == "fix" ]; then
-  black --quiet .
-else
-  black --check --diff .
-fi
-
 echo "Running mypy type checks..."
 if ! mypy --config pyproject.toml; then
   echo "Mypy type checks failed. Please fix the errors above. 💥 💔 💥"
   exit 1
 fi
 
-echo "Running pylint checks..."
-if ! pylint utils; then
-  echo "Pylint checks failed. Please fix the errors above. 💥 💔 💥"
+echo "Running ruff checks..."
+if ! which ruff > /dev/null; then
+  echo "ruff is not installed, installing it (ETA 5s)"
+  ./build.sh -i runner > /dev/null
+fi
+
+echo "Running ruff formatter..."
+if [ "$COMMAND" == "fix" ]; then
+  ruff format
+else
+  ruff format --check --diff
+fi
+
+if [ "$COMMAND" == "fix" ]; then
+  ruff_args="--fix"
+else
+  ruff_args=""
+fi
+
+if ! ruff check $ruff_args; then
+  echo "ruff checks failed. Please fix the errors above. 💥 💔 💥"
   exit 1
 fi
 

@@ -1,6 +1,6 @@
 from enum import IntEnum
-from opentelemetry.trace import SpanKind  # pylint: disable=W0611
-from opentelemetry.trace import StatusCode  # pylint: disable=W0611
+from opentelemetry.trace import SpanKind  # noqa: F401
+from opentelemetry.trace import StatusCode  # noqa: F401
 
 
 # Key used in the metrics map to indicate tracer sampling priority
@@ -29,7 +29,7 @@ PYTHON_RELEASE_GA_1_1 = "1.5.0rc1.dev"
 
 
 class RemoteConfigApplyState(IntEnum):
-    """ https://docs.google.com/document/d/1bUVtEpXNTkIGvLxzkNYCxQzP2X9EK9HMBLHWXr_5KLM/edit#heading=h.vy1jegxy7cuc """
+    """https://docs.google.com/document/d/1bUVtEpXNTkIGvLxzkNYCxQzP2X9EK9HMBLHWXr_5KLM/edit#heading=h.vy1jegxy7cuc"""
 
     UNKNOWN = 0
     UNACKNOWLEDGED = 1
@@ -59,7 +59,9 @@ class Capabilities(IntEnum):
     ASM_RASP_SSRF = 23
     ASM_RASP_SHI = 24
     APM_TRACING_SAMPLE_RULES = 29
+    ASM_AUTO_USER_INSTRUM_MODE = 31
     ASM_ENDPOINT_FINGERPRINT = 32
     ASM_SESSION_FINGERPRINT = 33
     ASM_NETWORK_FINGERPRINT = 34
     ASM_HEADER_FINGERPRINT = 35
+    ASM_RASP_CMDI = 37

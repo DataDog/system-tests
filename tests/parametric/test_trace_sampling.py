@@ -9,6 +9,7 @@ from utils import rfc, scenarios, missing_feature, flaky, features, bug
 
 
 @features.trace_sampling
+@features.adaptive_sampling
 @scenarios.parametric
 @rfc("https://docs.google.com/document/d/1HRbi1DrBjL_KGeONrPgH7lblgqSLGlV5Ox1p4RL97xM/")
 class Test_Trace_Sampling_Basic:
@@ -102,6 +103,7 @@ class Test_Trace_Sampling_Basic:
 
 
 @features.trace_sampling
+@features.adaptive_sampling
 @scenarios.parametric
 @rfc("https://docs.google.com/document/d/1S9pufnJjrsxH6pRbpigdYFwA5JjSdZ6iLZ-9E7PoAic/")
 class Test_Trace_Sampling_Globs:
@@ -112,7 +114,7 @@ class Test_Trace_Sampling_Globs:
                 "DD_TRACE_SAMPLE_RATE": 0,
                 "DD_TRACE_SAMPLING_RULES_FORMAT": "glob",
                 "DD_TRACE_SAMPLING_RULES": json.dumps(
-                    [{"service": "web.non-matching*", "sample_rate": 0}, {"service": "web*", "sample_rate": 1},]
+                    [{"service": "web.non-matching*", "sample_rate": 0}, {"service": "web*", "sample_rate": 1}]
                 ),
             },
             {
@@ -167,6 +169,7 @@ class Test_Trace_Sampling_Globs:
 
 
 @features.trace_sampling
+@features.adaptive_sampling
 @scenarios.parametric
 @rfc("https://docs.google.com/document/d/1S9pufnJjrsxH6pRbpigdYFwA5JjSdZ6iLZ-9E7PoAic/")
 class Test_Trace_Sampling_Globs_Feb2024_Revision:
@@ -177,7 +180,7 @@ class Test_Trace_Sampling_Globs_Feb2024_Revision:
                 "DD_TRACE_SAMPLE_RATE": 0,
                 "DD_TRACE_SAMPLING_RULES_FORMAT": "glob",
                 "DD_TRACE_SAMPLING_RULES": json.dumps(
-                    [{"service": "web.non-matching*", "sample_rate": 0}, {"service": "web*", "sample_rate": 1},]
+                    [{"service": "web.non-matching*", "sample_rate": 0}, {"service": "web*", "sample_rate": 1}]
                 ),
             },
             {
@@ -212,6 +215,7 @@ class Test_Trace_Sampling_Globs_Feb2024_Revision:
 
 
 @features.trace_sampling
+@features.adaptive_sampling
 @scenarios.parametric
 @rfc("https://docs.google.com/document/d/1S9pufnJjrsxH6pRbpigdYFwA5JjSdZ6iLZ-9E7PoAic/")
 class Test_Trace_Sampling_Resource:
@@ -222,7 +226,7 @@ class Test_Trace_Sampling_Resource:
                 "DD_TRACE_SAMPLE_RATE": 0,
                 "DD_TRACE_SAMPLING_RULES_FORMAT": "glob",
                 "DD_TRACE_SAMPLING_RULES": json.dumps(
-                    [{"resource": "/bar.non-matching", "sample_rate": 0}, {"resource": "/?ar", "sample_rate": 1},]
+                    [{"resource": "/bar.non-matching", "sample_rate": 0}, {"resource": "/?ar", "sample_rate": 1}]
                 ),
             },
             {
@@ -315,6 +319,7 @@ class Test_Trace_Sampling_Resource:
 
 
 @features.trace_sampling
+@features.adaptive_sampling
 @scenarios.parametric
 @rfc("https://docs.google.com/document/d/1S9pufnJjrsxH6pRbpigdYFwA5JjSdZ6iLZ-9E7PoAic/")
 class Test_Trace_Sampling_Tags:
@@ -418,6 +423,7 @@ def tag_sampling_env(tag_glob_pattern):
 @scenarios.parametric
 @rfc("https://docs.google.com/document/d/1S9pufnJjrsxH6pRbpigdYFwA5JjSdZ6iLZ-9E7PoAic/")
 @features.trace_sampling
+@features.adaptive_sampling
 class Test_Trace_Sampling_Tags_Feb2024_Revision:
     def assert_matching_span(self, test_agent, trace_id, span_id, **kwargs):
         matching_span = find_span_in_traces(test_agent.wait_for_num_traces(1), trace_id, span_id)
@@ -455,7 +461,7 @@ class Test_Trace_Sampling_Tags_Feb2024_Revision:
         "library_env",
         [tag_sampling_env("Foo"), tag_sampling_env("Fo*"), tag_sampling_env("F??"), tag_sampling_env("?O*")],
     )
-    @bug(library="nodejs")
+    @bug(library="nodejs", reason="APMAPI-931")
     def test_globs_different_casing(self, test_agent, test_library):
         """Test tag matching with string of matching case"""
         with test_library:
@@ -503,8 +509,8 @@ class Test_Trace_Sampling_Tags_Feb2024_Revision:
     @pytest.mark.parametrize("library_env", [tag_sampling_env("*"), tag_sampling_env("**"), tag_sampling_env("***")])
     @pytest.mark.parametrize("tag_value", [-100, -0.5, 0, 5, 1000])
     @missing_feature(library="cpp", reason="No metric interface")
-    @flaky(library="golang", reason="The test itself is probably flaky")
-    @bug(library="nodejs", reason="When tag_value==0, SAMPLING_PRIORITY_KEY is -1.0 instead of 0")
+    @flaky(library="golang", reason="APMAPI-932")
+    @bug(library="nodejs", reason="APMAPI-931")
     def test_metric_existence(self, test_agent, test_library, tag_value):
         """Tests that any patterns are equivalent to an existence check for metrics"""
 
@@ -518,7 +524,7 @@ class Test_Trace_Sampling_Tags_Feb2024_Revision:
         "library_env", [tag_sampling_env("20"), tag_sampling_env("2*"), tag_sampling_env("2?"), tag_sampling_env("*")]
     )
     @missing_feature(library="cpp", reason="No metric interface")
-    @bug(library="nodejs")
+    @bug(library="nodejs", reason="APMAPI-931")
     def test_metric_matching(self, test_agent, test_library):
         """Tests that any patterns are equivalent to an existence check for metrics"""
         with test_library:
@@ -540,6 +546,7 @@ class Test_Trace_Sampling_Tags_Feb2024_Revision:
 @scenarios.parametric
 @rfc("https://docs.google.com/document/d/1S9pufnJjrsxH6pRbpigdYFwA5JjSdZ6iLZ-9E7PoAic/")
 @features.trace_sampling
+@features.adaptive_sampling
 class Test_Trace_Sampling_With_W3C:
     @pytest.mark.parametrize(
         "library_env",

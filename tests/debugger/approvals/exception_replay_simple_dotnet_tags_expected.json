@@ -1,9 +1,0 @@
-{
-  "snapshot_0": {
-    "_dd.debug.error.0.frame_data.class_name": "DebuggerController",
-    "_dd.debug.error.0.frame_data.function": "ExceptionReplaySimple",
-    "_dd.debug.error.0.snapshot_id": "<scrubbed>",
-    "_dd.debug.error.exception_hash": "46c496e3-5dc4-34a7-b05e-535314b24025",
-    "_dd.debug.error.exception_id": "<scrubbed>"
-  }
-}

@@ -10,6 +10,7 @@ from tests.appsec.rasp.utils import (
     find_series,
     validate_metric,
     Base_Rules_Version,
+    Base_WAF_Version,
 )
 
 
@@ -29,7 +30,7 @@ class Test_Sqli_UrlQuery:
             self.r,
             "rasp-942-100",
             {
-                "resource": {"address": "server.db.statement", "value": "SELECT * FROM users WHERE id=? OR ? = ? --'",},
+                "resource": {"address": "server.db.statement", "value": "SELECT * FROM users WHERE id=? OR ? = ? --'"},
                 "params": {"address": "server.request.query", "value": "' OR 1 = 1 --"},
                 "db_type": {"address": "server.db.system"},
             },
@@ -52,7 +53,7 @@ class Test_Sqli_BodyUrlEncoded:
             self.r,
             "rasp-942-100",
             {
-                "resource": {"address": "server.db.statement", "value": "SELECT * FROM users WHERE id=? OR ? = ? --'",},
+                "resource": {"address": "server.db.statement", "value": "SELECT * FROM users WHERE id=? OR ? = ? --'"},
                 "params": {"address": "server.request.body", "value": "' OR 1 = 1 --"},
                 "db_type": {"address": "server.db.system"},
             },
@@ -76,7 +77,7 @@ class Test_Sqli_BodyXml:
             self.r,
             "rasp-942-100",
             {
-                "resource": {"address": "server.db.statement", "value": "SELECT * FROM users WHERE id=? OR ? = ? --'",},
+                "resource": {"address": "server.db.statement", "value": "SELECT * FROM users WHERE id=? OR ? = ? --'"},
                 "params": {"address": "server.request.body", "value": "' OR 1 = 1 --"},
                 "db_type": {"address": "server.db.system"},
             },
@@ -100,7 +101,7 @@ class Test_Sqli_BodyJson:
             self.r,
             "rasp-942-100",
             {
-                "resource": {"address": "server.db.statement", "value": "SELECT * FROM users WHERE id=? OR ? = ? --'",},
+                "resource": {"address": "server.db.statement", "value": "SELECT * FROM users WHERE id=? OR ? = ? --'"},
                 "params": {"address": "server.request.body", "value": "' OR 1 = 1 --"},
                 "db_type": {"address": "server.db.system"},
             },
@@ -132,9 +133,7 @@ class Test_Sqli_Optional_SpanTags:
         self.r = weblog.get("/rasp/sqli", params={"user_id": "' OR 1 = 1 --"})
 
     def test_sqli_span_tags(self):
-        validate_span_tags(
-            self.r, expected_metrics=["_dd.appsec.rasp.duration_ext", "_dd.appsec.rasp.rule.eval",],
-        )
+        validate_span_tags(self.r, expected_metrics=["_dd.appsec.rasp.duration_ext", "_dd.appsec.rasp.rule.eval"])
 
 
 @rfc("https://docs.google.com/document/d/1vmMqpl8STDk7rJnd3YBsa6O9hCls_XHHdsodD61zr_4/edit#heading=h.enmf90juqidf")
@@ -192,3 +191,10 @@ class Test_Sqli_Rules_Version(Base_Rules_Version):
     """Test Sqli min rules version"""
 
     min_version = "1.13.2"
+
+
+@features.rasp_local_file_inclusion
+class Test_Sqli_Waf_Version(Base_WAF_Version):
+    """Test sqli WAF version"""
+
+    min_version = "1.20.1"
