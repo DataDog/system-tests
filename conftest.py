@@ -273,7 +273,10 @@ def pytest_collection_modifyitems(session, config, items: list[pytest.Item]):
         return (x[1] for x in self.iter_markers_with_node(name=name) if x[1].name not in ("skip", "skipif", "xfail"))
 
     for item in items:
-        scenario_markers = list(item.iter_markers("scenario"))
+        # if the item has explicit scenario markers, we use them
+        # otherwise we use markers declared on its parents
+        own_markers = [marker for marker in item.own_markers if marker.name == "scenario"]
+        scenario_markers = own_markers if len(own_markers) != 0 else list(item.iter_markers("scenario"))
         if len(scenario_markers) == 0:
             declared_scenarios = ["DEFAULT"]
         else:
