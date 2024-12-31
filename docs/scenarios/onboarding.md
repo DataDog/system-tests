@@ -398,7 +398,7 @@ Developing new tests might involve one or several operations:
 
 ## Folders and Files structure
 
-To develop a new test case in the K8s Library injection tests, you need to know about the project folder structure.
+To develop a new test case in the SSI Library injection tests, you need to know about the project folder structure.
 The following picture shows the main directories for the SSI tests:
 
 ![Folder structure](../lib-injection/ssi_lib_injections_folders.png "Folder structure")
@@ -415,12 +415,126 @@ The following picture shows the main directories for the SSI tests:
 
 ## Create a new provision
 
-To develop a
+If you want to create a new machine provision, first you need to define a new scenario and associate it with a new provision. For example (`utils/_context/_scenarios/__init__.py`):
+
+```python
+    my_custom_scenario= InstallerAutoInjectionScenario(
+        "MY_CUSTOM_SCENARIO",
+        "A very simple example",
+        vm_provision="my_provision"
+    )
+```
+
+We should define the provision. Let's create a folder named: `utils/build/virtual_machine/provisions/my_provision` and add the file `provision.yml`:
+
+```yaml
+
+# Optional: Load the environment variables
+init-environment:
+  #This variables will be populated as env variables in all commands for each provision installation
+  - env: dev
+    MY_VAR: DEV_VAR
+  - env: prod
+    MY_VAR: PROD_VAR
+    agent_dist_channel: stable
+    agent_major_version: "7"
+
+# Mandatory: Scripts to extract the installed/tested components
+tested_components:
+  install:
+    - os_type: linux
+      remote-command: |
+          echo "{'test_component':'1.0.0'}"
+
+
+# Mandatory: Steps to provision VM
+provision_steps:
+  - my-custom-step
+
+my-custom-step:
+  cache: false
+  install:
+    - os_type: linux
+      remote-command: echo "Hey! Hello $MY_VAR!"
+```
+
+This scenario provision will be installed when you run the scenario:
+
+```bash
+export ONBOARDING_AWS_INFRA_SUBNET_ID=subnet-xyz
+export ONBOARDING_AWS_INFRA_SECURITY_GROUPS_ID=sg-xyz
+./run.sh MY_CUSTOM_SCENARIO --vm-weblog test-app-nodejs --vm-env dev --vm-library nodejs --vm-provider aws --vm-only Ubuntu_22_amd64
+```
 
 ## Create a new weblog
 
-To develop a
+You can add more weblogs to the existing scenarios. You must follow some rules:
+
+* The weblog provision is located in the folder: `utils/build/virtual_machine/weblogs/LANG`
+* The weblog provision is localted in the file: `provision_WEBLOG_NAME.yml`
+* There are two types of weblogs, host based apps and containerized apps.
+* The weblog provision contains two main sections:
+  * lang_variant: Optional. If you are creating a host based app, you must install the language runtime before.
+  * weblog: The weblog provision. Copy files and configuration, compile and run as service.
+* If you ar creating a host based app, you should run the app as system service called: *test-app-service*.
+
+This is an example of Java app running on host. We called the weblog as `my_custom_app`, we define the file `provision_my_custom_app.yml` in `utils/build/virtual_machine/weblogs/java` folder:
+
+```yaml
+lang_variant:
+    name: DefaultJDK
+    version: default
+    cache: true
+    install:
+
+      - os_type: linux
+        os_distro: deb
+        remote-command: sudo apt-get -y update && sudo apt-get -y install default-jdk
+
+      - os_type: linux
+        os_distro: rpm
+        remote-command: sudo sudo dnf -y install java-devel || sudo yum -y install java-devel
+
+weblog:
+    name: my_custom_app
+    install:
+      - os_type: linux
+
+        copy_files:
+          - name: copy-service
+            local_path: utils/build/virtual_machine/weblogs/common/test-app.service
+
+          - name: copy-service-run-script
+            local_path: utils/build/virtual_machine/weblogs/common/create_and_run_app_service.sh
+
+          - name: copy-compile-weblog-script
+            local_path: utils/build/virtual_machine/weblogs/java/test-app-java/compile_app.sh
+
+          - name: copy-run-weblog-script
+            local_path: utils/build/virtual_machine/weblogs/java/test-app-java/test-app-java_run.sh
+
+          - name: copy-java-app
+            local_path: lib-injection/build/docker/java/jetty-app
+
+        remote-command: sh test-app-java_run.sh
+```
+
+You can run this weblog:
+
+```bash
+export ONBOARDING_AWS_INFRA_SUBNET_ID=subnet-xyz
+export ONBOARDING_AWS_INFRA_SECURITY_GROUPS_ID=sg-xyz
+./run.sh MY_CUSTOM_SCENARIO --vm-weblog my_custom_app --vm-env dev --vm-library java --vm-provider aws --vm-only Ubuntu_22_amd64
+```
 
 ## Create a new test case
 
 To develop a
+
+# How to debug your environment and tests results
+
+aaaa
+
+# How to debug a virtual machine at runtime
+
+dasfsf
