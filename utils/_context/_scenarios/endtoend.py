@@ -575,7 +575,8 @@ class EndToEndScenario(DockerScenario):
             _SchemaBug(
                 endpoint="/api/v2/apmtelemetry",
                 data_path="$.payload.configuration[]",
-                condition=context.library >= "nodejs@2.27.1",
+                condition=context.library >= "nodejs@2.27.1"
+                or self.name in ("CROSSED_TRACING_LIBRARIES", "GRAPHQL_APPSEC"),
                 ticket="APPSEC-52805",
             ),
             _SchemaBug(
