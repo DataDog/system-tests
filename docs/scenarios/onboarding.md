@@ -1,4 +1,4 @@
-1. [Datadog Library Injection testing](#Datadog-Library-Injection-testing)
+1. [Overall](#Overall)
 
    * [Library Injection testing scenarios](#Library-Injection-testing-scenarios)
    * [Knowledge concepts](#Knowledge-concepts)
@@ -19,10 +19,10 @@
 
    * [Folders and Files structure](#Folders-and-Files-structure)
    * [Implement a new test case](#Implement-a-new-test-case)
-4. [How to debug your kubernetes environment and tests results](#How-to-debug-your-kubernetes-environment-and-tests-results)
-5. [How to debug your kubernetes environment at runtime](#How-to-debug-your-kubernetes-environment-at-runtime)
+4. [How to debug your environment and tests results](#How-to-debug-your-kubernetes-environment-and-tests-results)
+5. [How to debug a virtual machine at runtime](#How-to-debug-your-kubernetes-environment-at-runtime)
 
-# Datadog Library Injection testing
+# Overall
 
 Similarly to Library Injection in Kubernetes environments via the admission controller, Library injection simplifies the APM onboarding experience for customers deploying Java, NodeJS, .NET and Ruby applications in VMs and docker environments.
 
@@ -57,14 +57,11 @@ We need to know some terms:
 
 ### Define a Virtual Machine scenario
 
-You can create your own VirtualMachine scenario, specifing the allowed machines and the default provision-
+You can create your own VirtualMachine scenario, extending the common interface `_VirtualMachineScenario`, and specifing the allowed machines and the default provision.
 In the following code you can see how we define a new VirtualMachine Scenario, setting the VMs that you want to run:
 
 ```Python
 class InstallerAutoInjectionScenarioProfiling(_VirtualMachineScenario):
-    """As Profiling is not included in GA (2024/11) we reduce the number of VMS to speed up the execution
-    Until we fix the performance problems on the AWS architecture and speed up the tests
-    """
 
     def __init__(
         self,
@@ -76,7 +73,7 @@ class InstallerAutoInjectionScenarioProfiling(_VirtualMachineScenario):
         scenario_groups=None,
         github_workflow=None,
     ) -> None:
-        # Force full tracing without limits
+        # Specific configuration for the weblogs deployed using this scenario
         app_env_defaults = {
             "DD_TRACE_RATE_LIMIT": "1000000000000",
             "DD_TRACE_SAMPLING_RULES": "'[{\"sample_rate\":1}]'",
@@ -108,8 +105,21 @@ class InstallerAutoInjectionScenarioProfiling(_VirtualMachineScenario):
 
 ### Virtual Machine
 
-The Virtual Machines are defined in utils/_context/virtual_machines.py.
-There are some  predefined machines. For example:
+The Virtual Machines properties:
+
+* There are defined in `utils/_context/virtual_machines.py`.
+* The id/name must be unique.
+* Each machine must extend the interface: `_VirtualMachine`.
+* There are some fields to configure the machine depends of the selected provider:
+  * **aws_config:** Mandatory. AWS configuration: ami ID, instance type, user. The AMI id must exist on your AWS account.
+  * **vagrant_config:** Optional. Vagrant image to be used.
+  * **krunvm_config:** Optional. Docker image to be used with the Krumvn provider (deprecated).
+* There are some fields, that allow us to categorize the machine:
+  * **os_type:** Operating System type. Usually set to Linux. But it might be Windows or Mac.
+  * **os_distro:** Refers to Linux distribution or package manager type. Usually "deb" or "rpm".
+  * **os_branch:** Open field, to categorize the machine.
+  * **os_cpu:** Architecture: amd64 or arm64.
+  * **default_vm:** Field that allow us to split or group the machine as default or not default. Related with the CI policies.
 
 ```Python
 class Ubuntu22amd64(_VirtualMachine):
@@ -128,19 +138,22 @@ class Ubuntu22amd64(_VirtualMachine):
         )
 ```
 
-### Provision
+Provision
 
 We call provision to the configurations applied or the software installed on the machines included in the scenario.
 
 Some properties of the provisions in system-tests are as follows:
 
-* They are defined in the Yaml files.
-* They Yaml file will be located in the folder: utils/build/virtual_machine/provisions/<provision_name>
-* The installation of the Weblog (weblog provision) is also defined on Yaml files, but will be located in a different folder: utils/build/virtual_machine/weblogs/<lang>/<weblog_name>
+* There are defined in the Yaml files.
+* There are two types of provisions:
+  * **Scenario provision:** Configuration and installations to prepare the environment. For example, install docker and install the Datadog SSI software.
+  * **Weblog provision:** Steps and configurations to deploy the weblog/ sample application.
+* In a test execution the both types of provisions are involved (We allways set by the command line the scenario name and the weblog name).
+* They Yaml file is located in the folder: `utils/build/virtual_machine/provisions/[provision_name]` , using the file name `provision.yml`
+* The installation of the Weblog (weblog provision) is also defined on Yaml files, but is located in a different folder, `utils/build/virtual_machine/weblogs/[lang]/`. It uses the file name `provision_[weblog].yml`.
 * Each provision is different, therefore, different installation steps may be defined.
-* All provisions may define their own installation steps, but they must contain some mandatory definition steps. For example, all provisions will have to define a step that extracts  the names and versions of installed components we want to test.
+* All provisions may define their own installation steps, but they must contain some mandatory definition steps. For example, all provisions will have to define a step that extracts the names and versions of installed components we want to test.
 * The same provision must be able to be installed on different operating systems and architectures.
-* The selection of the provision to install in a virtual machine, is the responsibility of the python code that can be found at utils/virtual_machine/virtual_machine_provisioner.py
 
 This is an example of provision file:
 
@@ -215,7 +228,7 @@ install-agent:
 
 Some of the sections listed above are detailed as follows:
 
-* **init-environment:** They are variables that will be loaded depending on the execution environment (env=dev or env=prod). These variables will be populated in all commands executed on the machines.
+* **init-environment:** They are variables that will be loaded depending on the execution environment (env=dev or env=prod). **These variables will be populated in all commands executed on the machines**.
 * **tested_components:** This is a mandatory field. We should extract the components that we are testing. The result of the command should be a json string. As you can see the install section could be split by “os_type“ and “os_distro“ fields. You could define a command for all the machines or you could define commands by the machine type. The details of the "installation" field are explained later.
 * **provision_steps:** In this section you must define the steps for the whole installation. In this case we have three steps:
   * init-config: Represent a step that will run the same command for all types of the linux machines.
@@ -282,8 +295,8 @@ We currently support two providers:
 * **Pulumi AWS:** Using Pulumi AWS we can create and manage EC2 instances.
 * **Vagrant:** Vagrant enables users to create and configure lightweight, reproducible, and portable development local environments (Beta feature).
 
-We can find the developed providers in the folder: utils/virtual_machine.
-We can select the correct provider for out configured environment using the factory located on utils/virtual_machine/virtual_machine_provider.py.
+We can find the available providers in the folder: `utils/virtual_machine.`
+The common interface that implemets all the existing providers is: `utils/virtual_machine/virtual_machine_provider.py`.
 
 # Run the tests
 
@@ -321,7 +334,7 @@ Please install and configure as described in the [following documentation](https
 All system-tests assertions and utilities are based on python and pytests. You need to prepare this environment before run the tests:
 
 - Python and pytests environment as described: [configure python and pytests for system-tests](../../README.md#requirements).
-- Ensure that requirements.txt is loaded (you can run "./build.sh -i runner")
+- Ensure that requirements.txt is loaded (you can run "`./build.sh -i runner`")
 - AWS Cli is configured
 - Pulumi environment configured as described: [Get started with Pulumi](https://www.pulumi.com/docs/get-started/)
   - Execute "pulumi login" local step: [Pulumi login](https://www.pulumi.com/docs/reference/cli/pulumi_login/).
@@ -341,9 +354,6 @@ Once the key has been created, you can use it configuring the following environm
 - **ONBOARDING_AWS_INFRA_KEYPAIR_NAME:** Set key pair name to ssh connect to the remote machines.
 - **ONBOARDING_AWS_INFRA_KEY_PATH:** Local absolute path to your keir-pair file (pem file).
 
-Opcionally you can set extra parameters to filter the type of tests that you will execute:
-
-- **ONBOARDING_FILTER_OS_DISTRO:** Test only on a machine type (for instance 'deb' or 'rpm')
 
 ## Run the scenario
 
@@ -351,23 +361,29 @@ The 'onboarding' tests can be executed in the same way as we executed system-tes
 The currently supported scenarios are the following:
 
 * **SIMPLE_INSTALLER_AUTO_INJECTION:** The onboarding minimal scenario. The test makes a request to deployed weblog application and then check that the instrumentation traces are sending to the backend.
-* **INSTALLER_AUTO_INJECTION:** Inlcudes the minimal scenario assertions but adding other assertions like the uninstall process or the block list commands tests.
+* **INSTALLER_AUTO_INJECTION:** Inlcudes the minimal scenario assertions but adding other assertions like the uninstall process or the block list commands tests.  For the containerized app, the agent will run on host, and the app in a docker container.
 * **INSTALLER_NOT_SUPPORTED_AUTO_INJECTION:** Onboarding Single Step Instrumentation scenario for not supported runtime language versions. After install the SSI software this scenario checks that the application is not auto instrumented (because the runtime version is not supported), but continues working.
-* **CHAOS_INSTALLER_AUTO_INJECTION:** Onboarding Host Single Step Instrumentation scenario.
-* **SIMPLE_AUTO_INJECTION_PROFILING:** Onboarding Single Step Instrumentation scenario with profiling activated by the app env var
+* **CHAOS_INSTALLER_AUTO_INJECTION:** Checks the SSI after performing actions that are not recommended. For example, delete installation folder and others. The system must be recoverable.
+* **SIMPLE_AUTO_INJECTION_PROFILING:** Onboarding Single Step Instrumentation scenario with profiling activated by the environment variables on the sample application.
 * **HOST_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING:** Onboarding Host Single Step Instrumentation scenario using agent auto install script with profiling activating by the installation process
-* **CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING:** Onboarding Container Single Step Instrumentation profiling scenario using agent auto install script
-* **HOST_AUTO_INJECTION_INSTALL_SCRIPT:** Onboarding Host Single Step Instrumentation scenario using agent auto install script
-* **CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT:** Onboarding Container Single Step Instrumentation scenario using agent auto install script
+* **CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING:** Onboarding Container Single Step Instrumentation profiling scenario using agent auto installation script.
+* **HOST_AUTO_INJECTION_INSTALL_SCRIPT:** Onboarding Host Single Step Instrumentation scenario using agent auto installation script.
+* **CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT:** Onboarding Container Single Step Instrumentation scenario using agent auto installation script. The agent and the app will run on a separate containers.
 
+The 'onboarding' tests scenarios required these mandatory parameters:
 
-The 'onboarding' tests scenarios requiered three mandatory parameters:
-
-- **--vm-library:** Configure language to test (currently supported languages are: java, python, nodejs, dotnet)
+- **--vm-library:** Configure language to test (currently supported languages are: java, python, nodejs, dotnet, php)
 - **--vm-env:** Configure origin of the software: dev (beta software) or prod (releases)
-- **--vm-weblog:** Configure weblog to tests
+- **--vm-weblog:** Configure weblog name to tests. The provision file should exist: `utils/build/virtual_machine/weblogs/LANG/provision_WEBLOG-NAME.yml`
 - **--vm-provider:** Default "aws"
+- **--vm-only:** The virtual machine name, where we'll install the scenario provision. You can find all the allowed Virtual Machines: `utils/_context/virtual_machines.py`
 
 The following line shows an example of command line to run the tests:
 
-- './run.sh SIMPLE_HOST_AUTO_INJECTION --vm-weblog test-app-nodejs --vm-env dev --vm-library nodejs --vm-provider aws'
+```bash
+export ONBOARDING_AWS_INFRA_SUBNET_ID=subnet-xyz
+export ONBOARDING_AWS_INFRA_SECURITY_GROUPS_ID=sg-xyz
+export DD_API_KEY_ONBOARDING=apikey
+export DD_APP_KEY_ONBOARDING=appkey
+./run.sh SIMPLE_INSTALLER_AUTO_INJECTION --vm-weblog test-app-nodejs --vm-env dev --vm-library nodejs --vm-provider aws --vm-only Ubuntu_22_amd64
+```
