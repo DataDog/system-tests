@@ -10,8 +10,10 @@ from .utils import BaseFullDenyListTest
 
 @rfc("https://docs.google.com/document/d/1GUd8p7HBp9gP0a6PZmDY26dpGrS1Ztef9OYdbK3Vq3M/edit")
 @bug("nodejs@3.16.0" < context.library < "nodejs@3.18.0", reason="APMRP-360")
-@scenarios.appsec_blocking_full_denylist
 @features.appsec_client_ip_blocking
+@features.envoy_external_processing
+@scenarios.appsec_blocking_full_denylist
+@scenarios.external_processing
 class Test_AppSecIPBlockingFullDenylist(BaseFullDenyListTest):
     """A library should block requests from up to 2500 different blocked IP addresses."""
 
