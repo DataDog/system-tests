@@ -1,7 +1,3 @@
-from tests import test_scrubbing as base_scrubbing
-from tests import test_config_consistency as base_config_consistency
-from tests import test_standard_tags as base_standard_tags
-from tests import test_semantic_conventions as base_semantic_conventions
 from utils import weblog, interfaces, scenarios, features
 
 
@@ -20,60 +16,3 @@ class Test_ExternalProcessing_Tracing:
             assert span["meta"]["span.kind"] == "server"
             assert span["meta"]["http.url"] == "http://localhost:7777/"
             assert span["meta"]["http.host"] == "localhost:7777"
-
-
-@features.envoy_external_processing
-@scenarios.external_processing
-class Test_ExternalProcessing_APM_UrlQuery(base_scrubbing.Test_UrlQuery):
-    pass
-
-
-@features.envoy_external_processing
-@scenarios.external_processing
-class Test_ExternalProcessing_APM_EnvVar(base_scrubbing.Test_EnvVar):
-    pass
-
-
-@features.envoy_external_processing
-@scenarios.external_processing
-class Test_ExternalProcessing_APM_Config_UnifiedServiceTagging_CustomService(
-    base_config_consistency.Test_Config_UnifiedServiceTagging_CustomService
-):
-    pass
-
-
-@features.envoy_external_processing
-@scenarios.external_processing
-class Test_ExternalProcessing_APM_StandardTagsMethod(base_standard_tags.Test_StandardTagsMethod):
-    pass
-
-
-@features.envoy_external_processing
-@scenarios.external_processing
-class Test_ExternalProcessing_APM_StandardTagsUrl(base_standard_tags.Test_StandardTagsUrl):
-    pass
-
-
-@features.envoy_external_processing
-@scenarios.external_processing
-class Test_ExternalProcessing_APM_StandardTagsUserAgent(base_standard_tags.Test_StandardTagsUserAgent):
-    pass
-
-
-@features.envoy_external_processing
-@scenarios.external_processing
-class Test_ExternalProcessing_APM_StandardTagsClientIp(base_standard_tags.Test_StandardTagsClientIp):
-    pass
-
-
-@features.envoy_external_processing
-@scenarios.external_processing
-class Test_ExternalProcessing_APM_Meta(base_semantic_conventions.Test_Meta):
-    def test_meta_component_tag(self):
-        pass
-
-
-@features.envoy_external_processing
-@scenarios.external_processing
-class Test_ExternalProcessing_APM_MetricsStandardTags(base_semantic_conventions.Test_MetricsStandardTags):
-    pass
