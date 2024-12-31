@@ -12,7 +12,7 @@ class TestUntrustedDeserialization(BaseSinkTest):
 
     vulnerability_type = "UNTRUSTED_DESERIALIZATION"
     http_method = "GET"
-    insecure_endpoint = '/iast/untrusted_deserialization/test_insecure?name=example'
+    insecure_endpoint = "/iast/untrusted_deserialization/test_insecure?name=example"
     secure_endpoint = "/iast/untrusted_deserialization/test_secure"
     location_map = {
         "java": "com.datadoghq.system_tests.iast.utils.DeserializationExamples",
