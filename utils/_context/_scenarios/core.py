@@ -118,6 +118,8 @@ class Scenario:
 
         self.configure(config)
 
+    def configure(self, config): ...
+
     def pytest_sessionstart(self, session):  # noqa: ARG002
         """Called at the very begining of the process"""
 
@@ -131,8 +133,6 @@ class Scenario:
             self.close_targets()
             raise
 
-    def configure(self, config): ...
-
     def get_warmups(self):
         return [
             lambda: logger.stdout(f"Scenario: {self.name}"),
@@ -142,7 +142,10 @@ class Scenario:
     def post_setup(self):
         """Called after test setup"""
 
-    def close_targets(self):
+    def pytest_sessionfinish(self, session, exitstatus):
+        """Called at the end of the process"""
+
+    def close_targets(self):  # TODO remove this method
         """Called at the end of the process"""
 
     @property
@@ -165,6 +168,3 @@ class Scenario:
 
     def __str__(self) -> str:
         return f"Scenario '{self.name}'"
-
-    def is_part_of(self, declared_scenario):
-        return self.name == declared_scenario
