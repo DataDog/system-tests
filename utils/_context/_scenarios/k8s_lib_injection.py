@@ -112,6 +112,9 @@ class K8sScenario(Scenario):
             warmups.append(self.test_weblog.install_weblog_pod_without_admission_controller)
         return warmups
 
+    def pytest_sessionfinish(self, session, exitstatus):  # noqa: ARG002
+        self.close_targets()
+
     def close_targets(self):
         logger.info("K8sInstance Exporting debug info")
         self.test_agent.export_debug_info()
@@ -313,6 +316,9 @@ class WeblogInjectionScenario(Scenario):
         warmups.append(self._start_containers)
 
         return warmups
+
+    def pytest_sessionfinish(self, session, exitstatus):  # noqa: ARG002
+        self.close_targets()
 
     def close_targets(self):
         for container in reversed(self._required_containers):

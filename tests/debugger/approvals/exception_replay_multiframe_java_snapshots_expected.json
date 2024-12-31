@@ -20,19 +20,19 @@
           "stacktrace": [
             {
               "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.deepFunctionC",
-              "lineNumber": 51
+              "lineNumber": 52
             },
             {
               "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.deepFunctionB",
-              "lineNumber": 55
+              "lineNumber": 56
             },
             {
               "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.deepFunctionA",
-              "lineNumber": 59
+              "lineNumber": 60
             },
             {
               "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.exceptionReplayMultiframe",
-              "lineNumber": 64
+              "lineNumber": 65
             },
             {
               "function": "datadog.trace.instrumentation.springweb.HandlerMappingResourceNameFilter.doFilterInternal",
@@ -61,19 +61,19 @@
     "stack": [
       {
         "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.deepFunctionC",
-        "lineNumber": 51
+        "lineNumber": 52
       },
       {
         "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.deepFunctionB",
-        "lineNumber": 55
+        "lineNumber": 56
       },
       {
         "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.deepFunctionA",
-        "lineNumber": 59
+        "lineNumber": 60
       },
       {
         "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.exceptionReplayMultiframe",
-        "lineNumber": 64
+        "lineNumber": 65
       },
       {
         "function": "datadog.trace.instrumentation.springweb.HandlerMappingResourceNameFilter.doFilterInternal",
@@ -106,19 +106,19 @@
           "stacktrace": [
             {
               "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.deepFunctionC",
-              "lineNumber": 51
+              "lineNumber": 52
             },
             {
               "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.deepFunctionB",
-              "lineNumber": 55
+              "lineNumber": 56
             },
             {
               "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.deepFunctionA",
-              "lineNumber": 59
+              "lineNumber": 60
             },
             {
               "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.exceptionReplayMultiframe",
-              "lineNumber": 64
+              "lineNumber": 65
             },
             {
               "function": "datadog.trace.instrumentation.springweb.HandlerMappingResourceNameFilter.doFilterInternal",
@@ -147,19 +147,19 @@
     "stack": [
       {
         "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.deepFunctionC",
-        "lineNumber": 51
+        "lineNumber": 52
       },
       {
         "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.deepFunctionB",
-        "lineNumber": 55
+        "lineNumber": 56
       },
       {
         "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.deepFunctionA",
-        "lineNumber": 59
+        "lineNumber": 60
       },
       {
         "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.exceptionReplayMultiframe",
-        "lineNumber": 64
+        "lineNumber": 65
       },
       {
         "function": "datadog.trace.instrumentation.springweb.HandlerMappingResourceNameFilter.doFilterInternal",
@@ -192,19 +192,19 @@
           "stacktrace": [
             {
               "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.deepFunctionC",
-              "lineNumber": 51
+              "lineNumber": 52
             },
             {
               "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.deepFunctionB",
-              "lineNumber": 55
+              "lineNumber": 56
             },
             {
               "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.deepFunctionA",
-              "lineNumber": 59
+              "lineNumber": 60
             },
             {
               "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.exceptionReplayMultiframe",
-              "lineNumber": 64
+              "lineNumber": 65
             },
             {
               "function": "datadog.trace.instrumentation.springweb.HandlerMappingResourceNameFilter.doFilterInternal",
@@ -233,15 +233,15 @@
     "stack": [
       {
         "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.deepFunctionB",
-        "lineNumber": 56
+        "lineNumber": 57
       },
       {
         "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.deepFunctionA",
-        "lineNumber": 59
+        "lineNumber": 60
       },
       {
         "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.exceptionReplayMultiframe",
-        "lineNumber": 64
+        "lineNumber": 65
       },
       {
         "function": "datadog.trace.instrumentation.springweb.HandlerMappingResourceNameFilter.doFilterInternal",
@@ -274,19 +274,19 @@
           "stacktrace": [
             {
               "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.deepFunctionC",
-              "lineNumber": 51
+              "lineNumber": 52
             },
             {
               "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.deepFunctionB",
-              "lineNumber": 55
+              "lineNumber": 56
             },
             {
               "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.deepFunctionA",
-              "lineNumber": 59
+              "lineNumber": 60
             },
             {
               "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.exceptionReplayMultiframe",
-              "lineNumber": 64
+              "lineNumber": 65
             },
             {
               "function": "datadog.trace.instrumentation.springweb.HandlerMappingResourceNameFilter.doFilterInternal",
@@ -315,15 +315,15 @@
     "stack": [
       {
         "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.deepFunctionB",
-        "lineNumber": 56
+        "lineNumber": 57
       },
       {
         "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.deepFunctionA",
-        "lineNumber": 59
+        "lineNumber": 60
       },
       {
         "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.exceptionReplayMultiframe",
-        "lineNumber": 64
+        "lineNumber": 65
       },
       {
         "function": "datadog.trace.instrumentation.springweb.HandlerMappingResourceNameFilter.doFilterInternal",
@@ -356,19 +356,19 @@
           "stacktrace": [
             {
               "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.deepFunctionC",
-              "lineNumber": 51
+              "lineNumber": 52
             },
             {
               "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.deepFunctionB",
-              "lineNumber": 55
+              "lineNumber": 56
             },
             {
               "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.deepFunctionA",
-              "lineNumber": 59
+              "lineNumber": 60
             },
             {
               "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.exceptionReplayMultiframe",
-              "lineNumber": 64
+              "lineNumber": 65
             },
             {
               "function": "datadog.trace.instrumentation.springweb.HandlerMappingResourceNameFilter.doFilterInternal",
@@ -397,11 +397,11 @@
     "stack": [
       {
         "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.deepFunctionA",
-        "lineNumber": 60
+        "lineNumber": 61
       },
       {
         "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.exceptionReplayMultiframe",
-        "lineNumber": 64
+        "lineNumber": 65
       },
       {
         "function": "datadog.trace.instrumentation.springweb.HandlerMappingResourceNameFilter.doFilterInternal",
@@ -434,19 +434,19 @@
           "stacktrace": [
             {
               "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.deepFunctionC",
-              "lineNumber": 51
+              "lineNumber": 52
             },
             {
               "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.deepFunctionB",
-              "lineNumber": 55
+              "lineNumber": 56
             },
             {
               "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.deepFunctionA",
-              "lineNumber": 59
+              "lineNumber": 60
             },
             {
               "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.exceptionReplayMultiframe",
-              "lineNumber": 64
+              "lineNumber": 65
             },
             {
               "function": "datadog.trace.instrumentation.springweb.HandlerMappingResourceNameFilter.doFilterInternal",
@@ -475,11 +475,11 @@
     "stack": [
       {
         "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.deepFunctionA",
-        "lineNumber": 60
+        "lineNumber": 61
       },
       {
         "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.exceptionReplayMultiframe",
-        "lineNumber": 64
+        "lineNumber": 65
       },
       {
         "function": "datadog.trace.instrumentation.springweb.HandlerMappingResourceNameFilter.doFilterInternal",

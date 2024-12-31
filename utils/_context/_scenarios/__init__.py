@@ -1,7 +1,5 @@
 import json
 
-import pytest
-
 from utils._context.header_tag_vars import VALID_CONFIGS, INVALID_CONFIGS
 from utils.proxy.ports import ProxyPorts
 from utils.tools import update_environ_with_local_env
@@ -25,19 +23,6 @@ update_environ_with_local_env()
 
 
 class _Scenarios:
-    @staticmethod
-    def all_endtoend_scenarios(test_object):
-        """Particular use case where a klass applies on all scenarios"""
-
-        # Check that no scenario has been already declared
-        for marker in getattr(test_object, "pytestmark", []):
-            if marker.name == "scenario":
-                raise ValueError(f"Error on {test_object}: You can declare only one scenario")
-
-        pytest.mark.scenario("EndToEndScenario")(test_object)
-
-        return test_object
-
     todo = Scenario("TODO", doc="scenario that skips tests not yet executed", github_workflow=None)
     test_the_test = TestTheTestScenario("TEST_THE_TEST", doc="Small scenario that check system-tests internals")
     mock_the_test = TestTheTestScenario("MOCK_THE_TEST", doc="Mock scenario that check system-tests internals")

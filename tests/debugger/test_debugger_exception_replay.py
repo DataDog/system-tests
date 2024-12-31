@@ -5,7 +5,7 @@
 import tests.debugger.utils as debugger
 import os
 import re
-from utils import scenarios, features, bug, context
+from utils import scenarios, features, bug, context, flaky
 from utils.tools import logger
 
 
@@ -141,18 +141,23 @@ class Test_Debugger_Exception_Replay(debugger._Base_Debugger_Test):
             return __scrub(value)
 
         def __scrub_dotnet(key, value, parent):
-            if key == "StackTrace" and isinstance(value, dict):
+            if key == "Id":
+                return "<scrubbed>"
+            elif key == "StackTrace" and isinstance(value, dict):
                 value["value"] = "<scrubbed>"
+                return value
+            elif key == "function":
+                if "lambda_" in value:
+                    value = re.sub(r"(lambda_method)\d+", r"\1<scrubbed>", value)
+                if re.search(r"<[^>]+>", value):
+                    value = re.sub(r"(.*>)(.*)", r"\1<scrubbed>", value)
                 return value
             elif key in ["stacktrace", "stack"]:
                 scrubbed = []
                 for entry in value:
                     # skip inner runtime methods from stack traces since they are not relevant to debugger
-                    if entry["function"].startswith(("Microsoft", "System")):
+                    if entry["function"].startswith(("Microsoft", "System", "Unknown")):
                         continue
-
-                    if "lambda_" in entry["function"]:
-                        return re.sub(r"(lambda_method)\d+", r"\1<scrubbed>", entry["function"])
 
                     scrubbed.append(__scrub(entry))
 
@@ -347,3 +352,13 @@ class Test_Debugger_Exception_Replay(debugger._Base_Debugger_Test):
     @bug(context.library == "python", reason="DEBUG-3257")
     def test_exception_replay_multiframe(self):
         self._assert("exception_replay_multiframe", ["multiple stack frames exception"])
+
+    ############ Async ############
+    def setup_exception_replay_async(self):
+        self._setup("/exceptionreplay/async", "async exception")
+
+    @bug(context.library == "dotnet", reason="DEBUG-2799")
+    @flaky(context.library == "dotnet", reason="DEBUG-3281")
+    @bug(context.library == "python", reason="DEBUG-3257")
+    def test_exception_replay_async(self):
+        self._assert("exception_replay_async", ["async exception"])

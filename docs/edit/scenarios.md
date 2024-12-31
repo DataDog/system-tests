@@ -30,7 +30,7 @@ class CustomScenario(Scenario):
     def post_setup(self):
         """ called after setup functions, and before test functions """
 
-    def close_targets(self):
+    def pytest_sessionfinish(self, session, exitstatus):
         """ Clean what need to be cleaned at the end of the test session """
 ```
 

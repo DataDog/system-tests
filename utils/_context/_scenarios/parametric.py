@@ -536,7 +536,7 @@ def java_library_factory():
         container_name="java-test-client",
         container_tag="java-test-client",
         container_img=f"""
-FROM maven:3.9.2-eclipse-temurin-17
+FROM maven:3-eclipse-temurin-21
 WORKDIR /client
 RUN mkdir ./tracer
 COPY {java_reldir}/src src

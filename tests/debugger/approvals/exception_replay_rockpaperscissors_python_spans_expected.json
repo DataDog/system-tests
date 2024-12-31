@@ -5,7 +5,7 @@
     "meta": {
       "_dd.debug.error.8.file": "/app/exception_replay_controller.py",
       "_dd.debug.error.8.function": "exception_replay_rps",
-      "_dd.debug.error.8.line": "40",
+      "_dd.debug.error.8.line": "41",
       "_dd.debug.error.8.snapshot_id": "<scrubbed>",
       "_dd.debug.error.exception_id": "<scrubbed>",
       "component": "flask",
@@ -32,7 +32,7 @@
     "meta": {
       "_dd.debug.error.8.file": "/app/exception_replay_controller.py",
       "_dd.debug.error.8.function": "exception_replay_rps",
-      "_dd.debug.error.8.line": "38",
+      "_dd.debug.error.8.line": "39",
       "_dd.debug.error.8.snapshot_id": "<scrubbed>",
       "_dd.debug.error.exception_id": "<scrubbed>",
       "component": "flask",
@@ -59,7 +59,7 @@
     "meta": {
       "_dd.debug.error.8.file": "/app/exception_replay_controller.py",
       "_dd.debug.error.8.function": "exception_replay_rps",
-      "_dd.debug.error.8.line": "42",
+      "_dd.debug.error.8.line": "43",
       "_dd.debug.error.8.snapshot_id": "<scrubbed>",
       "_dd.debug.error.exception_id": "<scrubbed>",
       "component": "flask",

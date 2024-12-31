@@ -78,10 +78,7 @@ class SchemaError:
 
     @property
     def message(self):
-        return (
-            f"{self.error.message} on instance {self.error.json_path} in {self.endpoint}. Please check "
-            + self.data["log_filename"]
-        )
+        return f"{self.data['log_filename']}: {self.error.message} on instance {self.error.json_path}"
 
     @property
     def data_path(self):

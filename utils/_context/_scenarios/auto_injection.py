@@ -316,6 +316,9 @@ class _VirtualMachineScenario(Scenario):
                     # different version
                     del self._tested_components[key]
 
+    def pytest_sessionfinish(self, session, exitstatus):  # noqa: ARG002
+        self.close_targets()
+
     def close_targets(self):
         if self.is_main_worker and not self.vm_gitlab_pipeline:
             logger.info("Destroying virtual machines")
