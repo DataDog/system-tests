@@ -124,6 +124,9 @@ class DockerScenario(Scenario):
         ]
 
     def configure(self, config):  # noqa: ARG002
+        docker_info = get_docker_client().info()
+        self.components["docker.Cgroup"] = docker_info.get("CgroupVersion", None)
+
         for container in reversed(self._required_containers):
             container.configure(self.replay)
 
@@ -442,6 +445,10 @@ class EndToEndScenario(DockerScenario):
             else:
                 pytest.exit(f"Unsupported platform {sys.platform} with ipv6 enabled", 1)
 
+    def _set_components(self):
+        self.components["agent"] = self.agent_version
+        self.components["library"] = self.library.version
+
     def get_warmups(self):
         warmups = super().get_warmups()
 
@@ -450,6 +457,7 @@ class EndToEndScenario(DockerScenario):
             warmups.append(self._get_weblog_system_info)
             warmups.append(self._wait_for_app_readiness)
             warmups.append(self._set_weblog_domain)
+            warmups.append(self._set_components)
 
         return warmups
 
@@ -677,10 +685,3 @@ class EndToEndScenario(DockerScenario):
         result["dd_tags[systest.suite.context.appsec_rules_file]"] = self.weblog_container.appsec_rules_file
 
         return result
-
-    @property
-    def components(self):
-        return {
-            "agent": self.agent_version,
-            "library": self.library.version,
-        }

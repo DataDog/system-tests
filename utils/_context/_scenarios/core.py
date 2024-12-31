@@ -56,6 +56,9 @@ class Scenario:
 
         self.scenario_groups = list(set(self.scenario_groups))  # removes duplicates
 
+        # key value pair of what is actually tested
+        self.components: dict[str, str] = {}
+
         # if xdist is used, this property will be set to false for sub workers
         self.is_main_worker: bool = True
 
@@ -146,10 +149,6 @@ class Scenario:
     @property
     def host_log_folder(self):
         return "logs" if self.name == "DEFAULT" else f"logs_{self.name.lower()}"
-
-    @property
-    def components(self):
-        return {}
 
     @property
     def parametrized_tests_metadata(self):
