@@ -444,18 +444,6 @@ class _Scenarios:
         scenario_groups=[ScenarioGroup.APPSEC, ScenarioGroup.REMOTE_CONFIG],
     )
 
-    remote_config_mocked_backend_live_debugging_nocache = EndToEndScenario(
-        "REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING_NOCACHE",
-        rc_api_enabled=True,
-        weblog_env={
-            "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1",
-            "DD_DEBUGGER_ENABLED": "1",
-            "DD_REMOTE_CONFIG_ENABLED": "true",
-        },
-        doc="",
-        scenario_groups=[ScenarioGroup.REMOTE_CONFIG],
-    )
-
     remote_config_mocked_backend_asm_dd_nocache = EndToEndScenario(
         "REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD_NOCACHE",
         rc_api_enabled=True,
