@@ -44,8 +44,6 @@ class Result:
                 self.add_scenario_group(ScenarioGroup.PARAMETRIC.value)
             if "run-graphql-scenarios" in labels:
                 self.add_scenario_group(ScenarioGroup.GRAPHQL.value)
-            if "run-libinjection-scenarios" in labels:
-                self.add_scenario_group(ScenarioGroup.LIB_INJECTION.value)
             if "run-docker-ssi-scenarios" in labels:
                 self.add_scenario_group(ScenarioGroup.DOCKER_SSI.value)
 
@@ -140,6 +138,8 @@ def main():
                     r"\.github/workflows/run-graphql\.yml": ScenarioGroup.GRAPHQL.value,
                     r"\.github/workflows/run-open-telemetry\.yml": ScenarioGroup.OPEN_TELEMETRY.value,
                     r"\.github/.*": None,  # nothing to do??
+                    ## .gitlab folder
+                    r"\.gitlab/k8s_gitlab-ci.yml": ScenarioGroup.LIB_INJECTION.value,
                     ## utils/ folder
                     r"utils/interfaces/schemas.*": ScenarioGroup.END_TO_END.value,
                     r"utils/_context/_scenarios/open_telemetry\.py": ScenarioGroup.OPEN_TELEMETRY.value,
@@ -147,6 +147,9 @@ def main():
                     r"utils/scripts/get-nightly-logs\.py": None,
                     #### Default scenario
                     r"utils/_context/_scenarios/default\.py": None,  # the default scenario is always executed
+                    #### K8s lib injection
+                    r"utils/k8s_lib_injection.*": ScenarioGroup.LIB_INJECTION.value,
+                    r"lib-injection.*": ScenarioGroup.LIB_INJECTION.value,
                     #### Onboarding cases
                     r"utils/onboarding.*": None,
                     r"utils/virtual_machine.*": None,

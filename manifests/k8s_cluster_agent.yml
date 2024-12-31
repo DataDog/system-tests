@@ -4,5 +4,3 @@ tests/:
       TestK8sLibInjectioProfilingClusterEnabled: v7.57.0
       TestK8sLibInjectioProfilingClusterOverride: v7.57.0
       TestK8sLibInjectioProfilingDisabledByDefault: v7.57.0
-    test_k8s_manual_inject.py:
-      TestAdmisionControllerProfiling: v7.57.0
