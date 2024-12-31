@@ -267,23 +267,26 @@ def pytest_collection_modifyitems(session, config, items: list[pytest.Item]):
     selected = []
     deselected = []
 
-    declared_scenarios = {}
+    all_declared_scenarios = {}
 
     def iter_markers(self, name=None):
         return (x[1] for x in self.iter_markers_with_node(name=name) if x[1].name not in ("skip", "skipif", "xfail"))
 
     for item in items:
         scenario_markers = list(item.iter_markers("scenario"))
-        declared_scenario = scenario_markers[0].args[0] if len(scenario_markers) != 0 else "DEFAULT"
+        if len(scenario_markers) == 0:
+            declared_scenarios = ["DEFAULT"]
+        else:
+            declared_scenarios = [marker.args[0] for marker in scenario_markers]
 
-        declared_scenarios[item.nodeid] = declared_scenario
+        all_declared_scenarios[item.nodeid] = declared_scenarios
 
         # If we are running scenario with the option sleep, we deselect all
         if session.config.option.sleep or session.config.option.vm_gitlab_pipeline:
             deselected.append(item)
             continue
 
-        if context.scenario.is_part_of(declared_scenario):
+        if context.scenario.is_part_of(declared_scenarios):
             logger.info(f"{item.nodeid} is included in {context.scenario}")
             selected.append(item)
 
@@ -304,7 +307,7 @@ def pytest_collection_modifyitems(session, config, items: list[pytest.Item]):
 
     if config.option.scenario_report:
         with open(f"{context.scenario.host_log_folder}/scenarios.json", "w", encoding="utf-8") as f:
-            json.dump(declared_scenarios, f, indent=2)
+            json.dump(all_declared_scenarios, f, indent=2)
 
 
 def pytest_deselected(items):
