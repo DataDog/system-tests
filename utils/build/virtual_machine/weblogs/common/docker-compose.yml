@@ -6,3 +6,5 @@ services:
     image: system-tests/local:latest
     ports:
       - 5985:18080 
+    cap_add:
+      - SYS_PTRACE
