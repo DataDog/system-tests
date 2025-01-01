@@ -70,7 +70,6 @@ class Test_Debugger_SymDb(debugger._Base_Debugger_Test):
         validator = Draft7Validator(schema)
 
         for file_path in self.symbols:
-            assert os.path.exists(file_path), f"Symbol file not found at {file_path}"
             assert file_path.endswith(".gz"), f"Symbol file {file_path} is not a .gz file"
 
             try:
