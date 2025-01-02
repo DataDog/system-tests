@@ -2,11 +2,10 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-import os
 import gzip
 import json
 import tests.debugger.utils as debugger
-from utils import features, scenarios
+from utils import features, scenarios, bug, context
 from utils import remote_config as rc
 from jsonschema import Draft7Validator
 
@@ -89,5 +88,6 @@ class Test_Debugger_SymDb(debugger._Base_Debugger_Test):
     def setup_symdb_upload(self):
         self._setup()
 
+    @bug(context.library == "dotnet", reason="DEBUG-3298")
     def test_symdb_upload(self):
         self._assert()

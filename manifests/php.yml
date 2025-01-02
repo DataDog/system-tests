@@ -277,6 +277,8 @@ tests/:
       Test_Debugger_Probe_Snaphots: irrelevant
     test_debugger_probe_status.py:
       Test_Debugger_Probe_Statuses: irrelevant
+    test_debugger_symdb.py:
+      Test_Debugger_SymDb: irrelevant
   integrations/:
     crossed_integrations/:
       test_kafka.py:
