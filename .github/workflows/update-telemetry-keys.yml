@@ -5,6 +5,10 @@ on:
   repository_dispatch:
     types:
       - dd-go-commit
+  pull_request:
+    branches:
+    - '**'
+
 
 jobs:
   main:
@@ -15,6 +19,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: ./tests/telemetry_intake/update.sh
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v7
         with:
