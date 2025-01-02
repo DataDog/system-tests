@@ -6,26 +6,25 @@ exception_replay_blueprint = Blueprint("exceptionreplay", __name__, url_prefix="
 
 
 @exception_replay_blueprint.route("/simple", methods=["GET"])
-def exception_replay_simple():
+def exceptionReplaySimple():
     raise Exception("simple exception")
 
 
 @exception_replay_blueprint.route("/recursion", methods=["GET"])
-def exception_replay_recursion():
+def exceptionReplayRecursion():
     depth = request.args.get("depth", type=int)
+    return exceptionReplayRecursionHelper(depth, depth)
 
-    return exception_replay_recursion_helper(depth - 1)
 
-
-def exception_replay_recursion_helper(depth):
-    if depth > 0:
-        return exception_replay_recursion_helper(depth - 1)
+def exceptionReplayRecursionHelper(originalDepth, currentDepth):
+    if currentDepth > 0:
+        return exceptionReplayRecursionHelper(originalDepth, currentDepth - 1)
     else:
-        raise Exception("recursion exception")
+        raise Exception(f"recursion exception depth {originalDepth}")
 
 
 @exception_replay_blueprint.route("/inner", methods=["GET"])
-def exception_replay_inner():
+def exceptionReplayInner():
     try:
         raise Exception("inner exception")
     except Exception as ex:
@@ -33,7 +32,7 @@ def exception_replay_inner():
 
 
 @exception_replay_blueprint.route("/rps", methods=["GET"])
-def exception_replay_rps():
+def exceptionReplayRps():
     shape = request.args.get("shape", default="20", type=str)
     if shape == "rock":
         raise ExceptionReplayRock()

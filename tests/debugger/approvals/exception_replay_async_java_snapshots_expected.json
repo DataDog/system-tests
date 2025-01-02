@@ -15,7 +15,7 @@
           "stacktrace": [
             {
               "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.lambda$asyncThrow$0",
-              "lineNumber": 71
+              "lineNumber": 75
             },
             {
               "<runtime>": "<scrubbed>"
@@ -40,7 +40,7 @@
     "stack": [
       {
         "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.lambda$asyncThrow$0",
-        "lineNumber": 71
+        "lineNumber": 75
       },
       {
         "<runtime>": "<scrubbed>"
@@ -64,7 +64,7 @@
           "stacktrace": [
             {
               "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.lambda$asyncThrow$0",
-              "lineNumber": 71
+              "lineNumber": 75
             },
             {
               "<runtime>": "<scrubbed>"
@@ -89,7 +89,7 @@
     "stack": [
       {
         "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.lambda$asyncThrow$0",
-        "lineNumber": 71
+        "lineNumber": 75
       },
       {
         "<runtime>": "<scrubbed>"

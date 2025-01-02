@@ -9,7 +9,7 @@
       "location": {
         "file": "/app/exception_replay_controller.py",
         "lines": [
-          "70"
+          "69"
         ]
       }
     },
@@ -18,7 +18,7 @@
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "exception_replay_async",
-        "lineNumber": 70
+        "lineNumber": 69
       },
       {
         "<runtime>": "<scrubbed>"
@@ -26,7 +26,7 @@
     ],
     "captures": {
       "lines": {
-        "70": {
+        "69": {
           "arguments": {},
           "locals": {
             "@exception": {
@@ -42,12 +42,12 @@
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_async",
-                "lineNumber": 70
+                "lineNumber": 69
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "_async_throw",
-                "lineNumber": 65
+                "lineNumber": 64
               },
               {
                 "<runtime>": "<scrubbed>"
@@ -70,7 +70,7 @@
       "location": {
         "file": "/app/exception_replay_controller.py",
         "lines": [
-          "65"
+          "64"
         ]
       }
     },
@@ -79,7 +79,7 @@
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "_async_throw",
-        "lineNumber": 65
+        "lineNumber": 64
       },
       {
         "<runtime>": "<scrubbed>"
@@ -87,7 +87,7 @@
     ],
     "captures": {
       "lines": {
-        "65": {
+        "64": {
           "arguments": {},
           "locals": {
             "@exception": {
@@ -103,12 +103,12 @@
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "exception_replay_async",
-                "lineNumber": 70
+                "lineNumber": 69
               },
               {
                 "fileName": "/app/exception_replay_controller.py",
                 "function": "_async_throw",
-                "lineNumber": 65
+                "lineNumber": 64
               },
               {
                 "<runtime>": "<scrubbed>"

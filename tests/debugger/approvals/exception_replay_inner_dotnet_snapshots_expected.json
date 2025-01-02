@@ -129,7 +129,7 @@
       {
         "function": "weblog.ExceptionReplayController.ExceptionReplayInner",
         "fileName": "/app/ExceptionReplayController.cs",
-        "lineNumber": 47
+        "lineNumber": 52
       },
       {
         "function": "Datadog.Trace.ClrProfiler.AutoInstrumentation.AspNetCore.BlockingMiddleware+<Invoke><scrubbed>",
