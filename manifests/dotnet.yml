@@ -488,14 +488,14 @@ tests/:
     Test_Config_HttpServerErrorStatuses_FeatureFlagCustom: v3.5.0
     Test_Config_IntegrationEnabled_False: v3.5.0
     Test_Config_IntegrationEnabled_True: v3.5.0
-    Test_Config_LogInjection_Enabled: missing_feature
     Test_Config_LogInjection_Default: missing_feature
+    Test_Config_LogInjection_Enabled: missing_feature
     Test_Config_LogInjection_128Bit_TradeId_Default: missing_feature
     Test_Config_LogInjection_128Bit_TradeId_Disabled: missing_feature
     Test_Config_ObfuscationQueryStringRegexp_Configured: v3.4.1
     Test_Config_ObfuscationQueryStringRegexp_Empty: v3.4.1
-    Test_Config_RuntimeMetrics_Enabled: missing_feature
     Test_Config_RuntimeMetrics_Default: missing_feature
+    Test_Config_RuntimeMetrics_Enabled: missing_feature
     Test_Config_UnifiedServiceTagging_CustomService: v3.3.0
     Test_Config_UnifiedServiceTagging_Default: v3.3.0
   test_data_integrity.py:

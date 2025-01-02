@@ -827,16 +827,16 @@ tests/:
     Test_Config_IntegrationEnabled_False:
       '*': *ref_5_25_0
       express4-typescript: irrelevant
-      nextjs: irrelevant # nextjs is not related with kafka
+      nextjs: irrelevant
     Test_Config_IntegrationEnabled_True:
       '*': *ref_5_25_0
       express4-typescript: irrelevant
-      nextjs: irrelevant # nextjs is not related with kafka
-    Test_Config_LogInjection_Enabled:
+      nextjs: irrelevant
+    Test_Config_LogInjection_Default:
       '*': *ref_3_0_0
       express4-typescript: irrelevant
       nextjs: irrelevant
-    Test_Config_LogInjection_Default:
+    Test_Config_LogInjection_Enabled:
       '*': *ref_3_0_0
       express4-typescript: irrelevant
       nextjs: irrelevant
@@ -844,8 +844,8 @@ tests/:
     Test_Config_LogInjection_128Bit_TradeId_Disabled: *ref_3_15_0
     Test_Config_ObfuscationQueryStringRegexp_Configured: *ref_3_0_0
     Test_Config_ObfuscationQueryStringRegexp_Empty: *ref_3_0_0
-    Test_Config_RuntimeMetrics_Enabled: *ref_3_0_0
     Test_Config_RuntimeMetrics_Default: *ref_3_0_0
+    Test_Config_RuntimeMetrics_Enabled: *ref_3_0_0
     Test_Config_UnifiedServiceTagging_CustomService: *ref_5_25_0
     Test_Config_UnifiedServiceTagging_Default: *ref_5_25_0
   test_distributed.py:
