@@ -471,7 +471,7 @@ export ONBOARDING_AWS_INFRA_SECURITY_GROUPS_ID=sg-xyz
 You can add more weblogs to the existing scenarios. You must follow some rules:
 
 * The weblog provision is located in the folder: `utils/build/virtual_machine/weblogs/LANG`
-* The weblog provision is localted in the file: `provision_WEBLOG_NAME.yml`
+* The weblog provision is defined in the file: `provision_WEBLOG_NAME.yml`
 * There are two types of weblogs, host based apps and containerized apps.
 * The weblog provision contains two main sections:
   * lang_variant: Optional. If you are creating a host based app, you must install the language runtime before.
@@ -529,7 +529,70 @@ export ONBOARDING_AWS_INFRA_SECURITY_GROUPS_ID=sg-xyz
 
 ## Create a new test case
 
-To develop a
+Implement a new test case is as simple as the rest of the existing test cases in system-tests. There is only one particularity to consider. The test methods must be parametrized. In this parameter, you can find all the data/description related with the virtual machine that we are testing. With this data, you will be able to execute remote command using SSH and retrieve the results. You can also access to the sample application Http endpoints.
+
+```python
+@features.installer_auto_instrumentation
+@scenarios.simple_installer_auto_injection
+class TestSimpleInstallerAutoInjectManual():
+    def test_install(self, virtual_machine):
+        pass
+```
+
+You can use the `virtual_machine` parameter to execute commands remotely:
+
+```python
+@features.installer_auto_instrumentation
+@scenarios.simple_installer_auto_injection
+class TestSimpleInstallerAutoInjectManual():
+    def test_install(self, virtual_machine):
+      assert self.execute_command(virtual_machine, "echo 'Hello'") == "Hello", "Cannot execute command on the remote machine"
+
+    def execute_command(self, virtual_machine, command) -> str:
+        # Env for the command
+        prefix_env = ""
+        for key, value in virtual_machine.get_command_environment().items():
+            prefix_env += f"export {key}={value} \n"
+
+        command_with_env = f"{prefix_env} {command}"
+
+        with virtual_machine.ssh_config.get_ssh_connection() as ssh:
+            timeout = 120
+
+            _, stdout, _ = ssh.exec_command(command_with_env, timeout=timeout + 5)
+            stdout.channel.set_combine_stderr(True)
+
+            # Enforce that even if we reach the 2min mark we can still have a partial output of the command
+            # and thus see where it is stuck.
+            Timer(timeout, self.close_channel, (stdout.channel,)).start()
+
+            # Read the output line by line
+            command_output = ""
+            for line in stdout.readlines():
+                if not line.startswith("export"):
+                    command_output += line
+
+            return command_output
+```
+
+You can use the `virtual_machine` parameter to make request to the deployed weblog:
+
+```python
+@features.installer_auto_instrumentation
+@scenarios.simple_installer_auto_injection
+class TestSimpleInstallerAutoInjectManual():
+    def test_install(self, virtual_machine):
+        vm_ip = virtual_machine.get_ip()
+        vm_port = virtual_machine.deffault_open_port
+        vm_context_url = f"http://{vm_ip}:{vm_port}{virtual_machine.get_deployed_weblog().app_context_url}"
+
+        #Waits for app gets ready
+        wait_for_port(vm_port, vm_ip, 80.0)
+
+        #Make a http request
+        res = requests.get(vm_context_url)
+        assert res.status == 200, "Weblog is not working"
+```
 
 # How to debug your environment and tests results
 
