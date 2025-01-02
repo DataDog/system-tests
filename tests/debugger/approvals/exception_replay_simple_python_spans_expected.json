@@ -4,8 +4,8 @@
     "error": 1,
     "meta": {
       "_dd.debug.error.8.file": "/app/exception_replay_controller.py",
-      "_dd.debug.error.8.function": "exception_replay_simple",
-      "_dd.debug.error.8.line": "9",
+      "_dd.debug.error.8.function": "exceptionReplaySimple",
+      "_dd.debug.error.8.line": "10",
       "_dd.debug.error.8.snapshot_id": "<scrubbed>",
       "_dd.debug.error.exception_id": "<scrubbed>",
       "component": "flask",

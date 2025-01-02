@@ -49,7 +49,6 @@ class K8sScenario(Scenario):
         self.with_admission_controller = with_admission_controller
         self.weblog_env = weblog_env
         self.dd_cluster_feature = dd_cluster_feature
-        self._tested_components = {}
 
     def configure(self, config):
         self.k8s_weblog = config.option.k8s_weblog
@@ -59,7 +58,7 @@ class K8sScenario(Scenario):
         )
         self.k8s_cluster_version = config.option.k8s_cluster_version
         self.k8s_lib_init_img = config.option.k8s_lib_init_img
-        self._tested_components["cluster_agent"] = self.k8s_cluster_version
+        self.components["cluster_agent"] = self.k8s_cluster_version
 
         self.print_context()
 
@@ -112,6 +111,9 @@ class K8sScenario(Scenario):
             warmups.append(self.test_weblog.install_weblog_pod_without_admission_controller)
         return warmups
 
+    def pytest_sessionfinish(self, session, exitstatus):  # noqa: ARG002
+        self.close_targets()
+
     def close_targets(self):
         logger.info("K8sInstance Exporting debug info")
         self.test_agent.export_debug_info()
@@ -135,10 +137,6 @@ class K8sScenario(Scenario):
         #    else ("v" + self.k8s_cluster_version)
         # )
         return Version(self.k8s_cluster_version)
-
-    @property
-    def components(self):
-        return self._tested_components
 
 
 class K8sSparkScenario(K8sScenario):
@@ -213,7 +211,6 @@ class KubernetesScenario(Scenario):
             "LIBRARY_INJECTION_TEST_APP_IMAGE" in os.environ
         ), "LIBRARY_INJECTION_TEST_APP_IMAGE is not set. The test app image to be tested is not set"
         self._cluster_agent_version = Version(os.getenv("CLUSTER_AGENT_VERSION", "7.56.2"))
-        self._tested_components = {}
         self._weblog_variant = os.getenv("WEBLOG_VARIANT")
         self._weblog_variant_image = os.getenv("LIBRARY_INJECTION_TEST_APP_IMAGE")
         self._library_init_image = os.getenv("LIB_INIT_IMAGE")
@@ -246,9 +243,9 @@ class KubernetesScenario(Scenario):
         return version
 
     def fill_context(self):
-        self._tested_components["cluster_agent"] = self._cluster_agent_version
-        self._tested_components["library"] = self._library
-        self._tested_components["lib_init_image"] = self._library_init_image
+        self.components["cluster_agent"] = self._cluster_agent_version
+        self.components["library"] = self._library
+        self.components["lib_init_image"] = self._library_init_image
 
     @property
     def library(self):
@@ -261,10 +258,6 @@ class KubernetesScenario(Scenario):
     @property
     def k8s_cluster_agent_version(self):
         return self._cluster_agent_version
-
-    @property
-    def components(self):
-        return self._tested_components
 
 
 class WeblogInjectionScenario(Scenario):
@@ -313,6 +306,9 @@ class WeblogInjectionScenario(Scenario):
         warmups.append(self._start_containers)
 
         return warmups
+
+    def pytest_sessionfinish(self, session, exitstatus):  # noqa: ARG002
+        self.close_targets()
 
     def close_targets(self):
         for container in reversed(self._required_containers):

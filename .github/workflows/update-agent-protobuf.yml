@@ -13,6 +13,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
+        with:
+          go-version: '1.21.13'
       - run: sudo apt-get update
       - run: sudo apt-get -y install protobuf-compiler
       - run: protoc --version && go version

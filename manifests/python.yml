@@ -857,7 +857,6 @@ tests/:
       Test_RemoteConfigurationUpdateSequenceFeatures: v1.7.4
       Test_RemoteConfigurationUpdateSequenceFeaturesNoCache: irrelevant (cache is implemented)
       Test_RemoteConfigurationUpdateSequenceLiveDebugging: v2.8.0
-      Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache: missing_feature
   serverless/:
     span_pointers/:
       aws/:
@@ -941,7 +940,7 @@ tests/:
   test_semantic_conventions.py:
     Test_Meta: v1.80.0
     Test_MetaDatadogTags: bug (APMAPI-735)
-  test_span_events.py: missing_feature (Weblog `/add_event` not implemented)
+  test_span_events.py: incomplete_test_app (Weblog `/add_event` not implemented)
   test_standard_tags.py:
     Test_StandardTagsClientIp: v2.7.0
     Test_StandardTagsMethod: v1.2.1

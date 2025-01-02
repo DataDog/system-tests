@@ -110,7 +110,6 @@ class _VirtualMachineScenario(Scenario):
         self.vm_provider_id = "vagrant"
         self.vm_provider = None
         self.required_vms = []
-        self._tested_components = {}
         # Variables that will populate for the agent installation
         self.agent_env = agent_env
         # Variables that will populate for the app installation
@@ -303,18 +302,21 @@ class _VirtualMachineScenario(Scenario):
             for key in vm.tested_components:
                 if key == "host" or key == "runtime_version":
                     continue
-                self._tested_components[key] = vm.tested_components[key].lstrip(" ").replace(",", "")
-                if key.startswith("datadog-apm-inject") and self._tested_components[key]:
-                    self._datadog_apm_inject_version = f"v{self._tested_components[key]}"
-                if key.startswith("datadog-apm-library-") and self._tested_components[key]:
-                    self._library = LibraryVersion(self._library.library, self._tested_components[key])
+                self.components[key] = vm.tested_components[key].lstrip(" ").replace(",", "")
+                if key.startswith("datadog-apm-inject") and self.components[key]:
+                    self._datadog_apm_inject_version = f"v{self.components[key]}"
+                if key.startswith("datadog-apm-library-") and self.components[key]:
+                    self._library = LibraryVersion(self._library.library, self.components[key])
                     # We store without the lang sufix
-                    self._tested_components["datadog-apm-library"] = self._tested_components[key]
-                    del self._tested_components[key]
+                    self.components["datadog-apm-library"] = self.components[key]
+                    del self.components[key]
                 if key.startswith("glibc"):
                     # We will all the glibc versions in the feature parity report, due to each machine can have a
                     # different version
-                    del self._tested_components[key]
+                    del self.components[key]
+
+    def pytest_sessionfinish(self, session, exitstatus):  # noqa: ARG002
+        self.close_targets()
 
     def close_targets(self):
         if self.is_main_worker and not self.vm_gitlab_pipeline:
@@ -328,10 +330,6 @@ class _VirtualMachineScenario(Scenario):
     @property
     def weblog_variant(self):
         return self._weblog
-
-    @property
-    def components(self):
-        return self._tested_components
 
     @property
     def dd_apm_inject_version(self):

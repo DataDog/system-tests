@@ -17,7 +17,7 @@
     "stack": [
       {
         "fileName": "/app/exception_replay_controller.py",
-        "function": "exception_replay_inner",
+        "function": "exceptionReplayInner",
         "lineNumber": 31
       },
       {
@@ -45,7 +45,7 @@
             "stacktrace": [
               {
                 "fileName": "/app/exception_replay_controller.py",
-                "function": "exception_replay_inner",
+                "function": "exceptionReplayInner",
                 "lineNumber": 31
               },
               {

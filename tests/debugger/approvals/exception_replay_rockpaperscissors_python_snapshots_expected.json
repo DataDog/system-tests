@@ -17,7 +17,7 @@
     "stack": [
       {
         "fileName": "/app/exception_replay_controller.py",
-        "function": "exception_replay_rps",
+        "function": "exceptionReplayRps",
         "lineNumber": 40
       },
       {
@@ -45,7 +45,7 @@
             "stacktrace": [
               {
                 "fileName": "/app/exception_replay_controller.py",
-                "function": "exception_replay_rps",
+                "function": "exceptionReplayRps",
                 "lineNumber": 40
               },
               {
@@ -77,7 +77,7 @@
     "stack": [
       {
         "fileName": "/app/exception_replay_controller.py",
-        "function": "exception_replay_rps",
+        "function": "exceptionReplayRps",
         "lineNumber": 38
       },
       {
@@ -105,7 +105,7 @@
             "stacktrace": [
               {
                 "fileName": "/app/exception_replay_controller.py",
-                "function": "exception_replay_rps",
+                "function": "exceptionReplayRps",
                 "lineNumber": 38
               },
               {
@@ -137,7 +137,7 @@
     "stack": [
       {
         "fileName": "/app/exception_replay_controller.py",
-        "function": "exception_replay_rps",
+        "function": "exceptionReplayRps",
         "lineNumber": 42
       },
       {
@@ -165,7 +165,7 @@
             "stacktrace": [
               {
                 "fileName": "/app/exception_replay_controller.py",
-                "function": "exception_replay_rps",
+                "function": "exceptionReplayRps",
                 "lineNumber": 42
               },
               {

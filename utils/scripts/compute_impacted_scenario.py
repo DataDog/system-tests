@@ -67,7 +67,7 @@ def main():
         # this file is generated with
         # ./run.sh MOCK_THE_TEST --collect-only --scenario-report
         with open("logs_mock_the_test/scenarios.json", encoding="utf-8") as f:
-            scenario_map = json.load(f)
+            scenario_map: dict[str, list[str]] = json.load(f)
 
         modified_nodeids = set()
 
@@ -83,13 +83,14 @@ def main():
                 modified_nodeids.add(nodeid)
 
         scenarios_by_files = defaultdict(set)
-        for nodeid in scenario_map:
+        for nodeid, scenarios in scenario_map.items():
             file = nodeid.split(":", 1)[0]
-            scenarios_by_files[file].add(scenario_map[nodeid])
+            for scenario in scenarios:
+                scenarios_by_files[file].add(scenario)
 
             for modified_nodeid in modified_nodeids:
                 if nodeid.startswith(modified_nodeid):
-                    result.add_scenario(scenario_map[nodeid])
+                    result.add_scenarios(scenarios)
                     break
 
         # this file is generated with

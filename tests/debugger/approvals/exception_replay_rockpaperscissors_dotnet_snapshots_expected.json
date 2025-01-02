@@ -11,7 +11,15 @@
         "throwable": {
           "message": "Paper exception",
           "type": "weblog.Models.Debugger.ExceptionReplayPaper",
-          "stacktrace": "Unknown.lambda_method<scrubbed>"
+          "stacktrace": [
+            {
+              "function": "weblog.ExceptionReplayController.ExceptionReplayRockPaperScissors",
+              "lineNumber": 0
+            },
+            {
+              "<runtime>": "<scrubbed>"
+            }
+          ]
         },
         "locals": {
           "@exception": {
@@ -65,7 +73,24 @@
         "type": "weblog.ExceptionReplayController"
       }
     },
-    "stack": "Unknown.lambda_method<scrubbed>",
+    "stack": [
+      {
+        "function": "weblog.ExceptionReplayController.ExceptionReplayRockPaperScissors",
+        "fileName": "/app/ExceptionReplayController.cs",
+        "lineNumber": 75
+      },
+      {
+        "function": "Datadog.Trace.ClrProfiler.AutoInstrumentation.AspNetCore.BlockingMiddleware+<Invoke><scrubbed>",
+        "lineNumber": 0
+      },
+      {
+        "function": "Datadog.Trace.ClrProfiler.AutoInstrumentation.AspNetCore.BlockingMiddleware.Invoke",
+        "lineNumber": 0
+      },
+      {
+        "<runtime>": "<scrubbed>"
+      }
+    ],
     "id": "<scrubbed>",
     "timestamp": "<scrubbed>",
     "duration": "<scrubbed>",
@@ -83,7 +108,15 @@
         "throwable": {
           "message": "Rock exception",
           "type": "weblog.Models.Debugger.ExceptionReplayRock",
-          "stacktrace": "Unknown.lambda_method<scrubbed>"
+          "stacktrace": [
+            {
+              "function": "weblog.ExceptionReplayController.ExceptionReplayRockPaperScissors",
+              "lineNumber": 0
+            },
+            {
+              "<runtime>": "<scrubbed>"
+            }
+          ]
         },
         "locals": {
           "@exception": {
@@ -137,7 +170,24 @@
         "type": "weblog.ExceptionReplayController"
       }
     },
-    "stack": "Unknown.lambda_method<scrubbed>",
+    "stack": [
+      {
+        "function": "weblog.ExceptionReplayController.ExceptionReplayRockPaperScissors",
+        "fileName": "/app/ExceptionReplayController.cs",
+        "lineNumber": 75
+      },
+      {
+        "function": "Datadog.Trace.ClrProfiler.AutoInstrumentation.AspNetCore.BlockingMiddleware+<Invoke><scrubbed>",
+        "lineNumber": 0
+      },
+      {
+        "function": "Datadog.Trace.ClrProfiler.AutoInstrumentation.AspNetCore.BlockingMiddleware.Invoke",
+        "lineNumber": 0
+      },
+      {
+        "<runtime>": "<scrubbed>"
+      }
+    ],
     "id": "<scrubbed>",
     "timestamp": "<scrubbed>",
     "duration": "<scrubbed>",
@@ -155,7 +205,15 @@
         "throwable": {
           "message": "Scissors exception",
           "type": "weblog.Models.Debugger.ExceptionReplayScissors",
-          "stacktrace": "Unknown.lambda_method<scrubbed>"
+          "stacktrace": [
+            {
+              "function": "weblog.ExceptionReplayController.ExceptionReplayRockPaperScissors",
+              "lineNumber": 0
+            },
+            {
+              "<runtime>": "<scrubbed>"
+            }
+          ]
         },
         "locals": {
           "@exception": {
@@ -209,7 +267,24 @@
         "type": "weblog.ExceptionReplayController"
       }
     },
-    "stack": "Unknown.lambda_method<scrubbed>",
+    "stack": [
+      {
+        "function": "weblog.ExceptionReplayController.ExceptionReplayRockPaperScissors",
+        "fileName": "/app/ExceptionReplayController.cs",
+        "lineNumber": 75
+      },
+      {
+        "function": "Datadog.Trace.ClrProfiler.AutoInstrumentation.AspNetCore.BlockingMiddleware+<Invoke><scrubbed>",
+        "lineNumber": 0
+      },
+      {
+        "function": "Datadog.Trace.ClrProfiler.AutoInstrumentation.AspNetCore.BlockingMiddleware.Invoke",
+        "lineNumber": 0
+      },
+      {
+        "<runtime>": "<scrubbed>"
+      }
+    ],
     "id": "<scrubbed>",
     "timestamp": "<scrubbed>",
     "duration": "<scrubbed>",
