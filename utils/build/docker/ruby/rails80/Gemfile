@@ -77,4 +77,4 @@ end
 gem 'devise'
 
 gem 'pry'
-gem 'ddtrace', '~> 1.0.0.a', require: 'ddtrace/auto_instrument'
+gem 'datadog', '~> 2.7.0', require: 'datadog/auto_instrument'
