@@ -1698,10 +1698,10 @@ tests/:
       spring-boot: v1.42.0
     Test_Config_IntegrationEnabled_False: irrelevant (not applicable to Go because of how they do auto instrumentation)
     Test_Config_IntegrationEnabled_True: irrelevant (not applicable to Go because of how they do auto instrumentation)
-    Test_Config_LogInjection_Default: missing_feature
-    Test_Config_LogInjection_Enabled: missing_feature
     Test_Config_LogInjection_128Bit_TradeId_Default: missing_feature
     Test_Config_LogInjection_128Bit_TradeId_Disabled: missing_feature
+    Test_Config_LogInjection_Default: missing_feature
+    Test_Config_LogInjection_Enabled: missing_feature
     Test_Config_ObfuscationQueryStringRegexp_Configured: v1.39.0
     Test_Config_ObfuscationQueryStringRegexp_Empty: v1.39.0
     Test_Config_RuntimeMetrics_Default: missing_feature
