@@ -466,6 +466,7 @@ class Test_Config_LogInjection_128Bit_TradeId_Default:
         pattern = r'"dd":\{"trace_id":"[0-9a-f]{32}"'
         stdout.assert_presence(pattern)
 
+
 @rfc("https://docs.google.com/document/d/1kI-gTAKghfcwI7YzKhqRv2ExUstcHqADIWA4-TZ387o/edit#heading=h.8v16cioi7qxp")
 @scenarios.tracing_config_nondefault_2
 @features.tracing_configuration_consistency
@@ -476,8 +477,9 @@ class Test_Config_LogInjection_128Bit_TradeId_Disabled:
 
     def test_log_injection_128bit_traceid_disabled(self):
         assert self.r.status_code == 200
-        pattern =  r'"dd":\{"trace_id":"\d+"'
+        pattern = r'"dd":\{"trace_id":"\d+"'
         stdout.assert_presence(pattern)
+
 
 @rfc("https://docs.google.com/document/d/1kI-gTAKghfcwI7YzKhqRv2ExUstcHqADIWA4-TZ387o/edit#heading=h.8v16cioi7qxp")
 @scenarios.runtime_metrics_enabled
