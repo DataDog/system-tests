@@ -472,7 +472,6 @@ class Test_Config_LogInjection_128Bit_TradeId_Default:
             if message and isinstance(message, dict) and message.get("dd"):
                 dd = message.get("dd")
                 trace_id = dd.get("trace_id")
-                print(69, dd.get("span_id"))
                 assert re.match(r"^[0-9a-f]{32}$", trace_id), f"Invalid 128-bit trace_id: {trace_id}"
 
 
