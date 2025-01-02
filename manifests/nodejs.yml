@@ -187,7 +187,9 @@ tests/:
           TestNoSqlMongodbInjection:
             '*': *ref_4_17_0
             nextjs: missing_feature
-          TestNoSqlMongodbInjection_StackTrace: missing_feature
+          TestNoSqlMongodbInjection_StackTrace:
+            '*': *ref_5_31_0
+            nextjs: missing_feature
         test_path_traversal.py:
           TestPathTraversal:
             '*': *ref_3_19_0
