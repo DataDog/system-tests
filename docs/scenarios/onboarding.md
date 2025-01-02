@@ -18,8 +18,8 @@
    * [Create a new provision](#Create-a-new-provision)
    * [Create a new weblog](#Create-a-new-weblog)
    * [Create a new test case](#Create-a-new-test-case)
-4. [How to debug your environment and tests results](#How-to-debug-your-kubernetes-environment-and-tests-results)
-5. [How to debug a virtual machine at runtime](#How-to-debug-your-kubernetes-environment-at-runtime)
+4. [How to debug your environment and tests results](#How-to-debug-your-environment-and-tests-results)
+5. [How to debug a virtual machine at runtime](#How-to-debug-a-virtual-machine-at-runtime)
 
 # Overall
 
@@ -329,6 +329,14 @@ The Vagrant support is a system-tests beta feature. To run the tests using the V
 
 Pulumi is a universal infrastructure as code platform that allows you to use familiar programming languages and tools to build, deploy, and manage cloud infrastructure.
 Please install and configure as described in the [following documentation](https://www.pulumi.com/docs/get-started/aws/)
+
+---
+
+**NOTE:**
+
+if it's the first time you execute the Pulimi, you probably need to run the command: `pulumi login --local`
+
+---
 
 ### System-tests requirements
 
