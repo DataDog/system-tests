@@ -172,12 +172,17 @@ elif [ "$TARGET" = "dotnet" ]; then
 elif [ "$TARGET" = "python" ]; then
     assert_version_is_dev
 
-    echo "git+https://github.com/DataDog/dd-trace-py.git" > python-load-from-pip
+    TARGET_BRANCH="${TARGET_BRANCH:-main}"
+    echo "git+https://github.com/DataDog/dd-trace-py.git@$TARGET_BRANCH" > python-load-from-pip
+    echo "Using $(cat python-load-from-pip)"
 
 elif [ "$TARGET" = "ruby" ]; then
     assert_version_is_dev
-    echo "gem 'datadog', require: 'datadog/auto_instrument', git: 'https://github.com/Datadog/dd-trace-rb.git'" > ruby-load-from-bundle-add
+
+    TARGET_BRANCH="${TARGET_BRANCH:-master}"
+    echo "gem 'datadog', require: 'datadog/auto_instrument', git: 'https://github.com/Datadog/dd-trace-rb.git', branch: '$TARGET_BRANCH'" > ruby-load-from-bundle-add
     echo "Using $(cat ruby-load-from-bundle-add)"
+
 elif [ "$TARGET" = "php" ]; then
     rm -rf *.tar.gz
     if [ $VERSION = 'dev' ]; then
@@ -188,6 +193,7 @@ elif [ "$TARGET" = "php" ]; then
         echo "Don't know how to load version $VERSION for $TARGET"
     fi
     mv ./temp/dd-library-php*.tar.gz . && mv ./temp/datadog-setup.php . && rm -rf ./temp
+
 elif [ "$TARGET" = "golang" ]; then
     assert_version_is_dev
     rm -rf golang-load-from-go-get
@@ -205,17 +211,23 @@ elif [ "$TARGET" = "cpp" ]; then
     # get_circleci_artifact "gh/DataDog/dd-opentracing-cpp" "build_test_deploy" "build" "TBD"
     # PROFILER: The main version is stored in s3, though we can not access this in CI
     # Not handled for now for system-tests. this handles artifact for parametric
-    echo "Using https://github.com/DataDog/dd-trace-cpp@main"
-    echo "https://github.com/DataDog/dd-trace-cpp@main" > cpp-load-from-git
+    TARGET_BRANCH="${TARGET_BRANCH:-main}"
+    echo "https://github.com/DataDog/dd-trace-cpp@$TARGET_BRANCH" > cpp-load-from-git
+    echo "Using $(cat cpp-load-from-git)"
+
 elif [ "$TARGET" = "agent" ]; then
     assert_version_is_dev
-    echo "datadog/agent-dev:master-py3" > agent-image
+    TARGET_BRANCH="${TARGET_BRANCH:-master-py3}"
+    echo "datadog/agent-dev:$TARGET_BRANCH" > agent-image
     echo "Using $(cat agent-image) image"
 
 elif [ "$TARGET" = "nodejs" ]; then
     assert_version_is_dev
+
+    TARGET_BRANCH="${TARGET_BRANCH:-master}"
     # NPM builds the package, so we put a trigger file that tells install script to get package from github#master
-    echo "DataDog/dd-trace-js#master" > nodejs-load-from-npm
+    echo "DataDog/dd-trace-js#$TARGET_BRANCH" > nodejs-load-from-npm
+    echo "Using $(cat nodejs-load-from-npm)"
 
 elif [ "$TARGET" = "waf_rule_set_v1" ]; then
     exit 1
