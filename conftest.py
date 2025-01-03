@@ -448,6 +448,10 @@ def pytest_json_modifyreport(json_report):
 def pytest_sessionfinish(session, exitstatus):
     logger.info("Executing pytest_sessionfinish")
 
+    if session.config.option.skip_empty_scenario and exitstatus == pytest.ExitCode.NO_TESTS_COLLECTED:
+        exitstatus = pytest.ExitCode.OK
+        session.exitstatus = pytest.ExitCode.OK
+
     context.scenario.pytest_sessionfinish(session, exitstatus)
 
     if session.config.option.collectonly or session.config.option.replay:
