@@ -1,10 +1,4 @@
 1. [Overall](#Overall)
-   * [Library Injection testing scenarios](#Library-Injection-testing-scenarios)
-   * [Knowledge concepts](#Knowledge-concepts)
-     - [Virtual Machine scenario](#Virtual-Machine-scenario)
-     - [Virtual Machine](#Virtual-Machine)
-     - [Provision](#Provision)
-     - [Provider](#Provider)
 2. [Run the tests](#Run-the-tests)
    * [Prerequisites](#Prerequisites)
      - [AWS](#AWS)
@@ -23,281 +17,29 @@
 
 # Overall
 
-Similarly to Library Injection in Kubernetes environments via the admission controller, Library injection simplifies the APM onboarding experience for customers auto-intrumenting Java, Python, NodeJS, .NET, PHP or Ruby applications running on host or in docker environments.
+The Docker SSI tests are an easy and fast tests to check the SSI instrumentation.
+The Docker SSI tests don't pretend to reemplace the current AWS tests, there only try to complement them, providing a quick checks and verification for some features included in the SSI.
 
-The target of this testing feature is to test the distinct injection environments.
+The main differences between the AWS/Onboarding tests and the Docker SSI tests are:
 
-> Check Datadog lib injection capabilities [public documentation](https://docs.datadoghq.com/tracing/trace_collection/library_injection).
+* In Docker SSI, the SSI is installed inside a docker container, instead of using virtual machines.
+* The AWS/Onboarding tests represent better a real customer scenarios, but Docker SSI it doesn't.
+* Docker SSI relies on APM Test Agent, instead of rely on the backend.
 
-## Library Injection testing scenarios
+The main Docker SSI properties are:
 
-The automatic libray injection is tested on three possible scenarios:
+* Install the SSI host injection on the docker container that runs the weblog application.
+* Uses a APM Test Agent to make the assertions.
+* The weblog applications are containerized applications.
+* The weblog application container is built by the system-tests scenarios in separate steps.
 
-* Datadog Agent and your application deployed on the same host ([host injection documentation](https://docs.datadoghq.com/tracing/trace_collection/library_injection_local/?tab=host)).
-* Datadog Agent deployed on the host, your application deployed on containers ([agent on host and app in containers documentation](https://docs.datadoghq.com/tracing/trace_collection/library_injection_local/?tab=agentonhostappincontainers)).
-* Datadog Agent and your application installed on containers ([containers injection documentation](https://docs.datadoghq.com/tracing/trace_collection/library_injection_local/?tab=agentandappinseparatecontainers)).
+The Docker SSI are good for:
 
-> For Kubernetes Datadog library injection capabilities check the [kubernetes injection documentation](https://docs.datadoghq.com/tracing/trace_collection/library_injection_local/?tab=kubernetes) or take a look at the [kubernetes injection testing scenarios](https://github.com/DataDog/system-tests/blob/main/docs/scenarios/k8s_lib_injection.md).
-
-## Knowledge concepts
-
-Before start with the onboarding tests, we need to know some terms:
-
-* **Scenario:** In system-tests, a virtual scenario is a set of:
-
-  * a tested architecture, which can be a software installation scripts (provision) to run on a single virtual machine. This VM will be supplied thanks to the integration of system-tests framework with different providers of this technology.
-  * a list of setup executed on this tested architecture, we called as a virtual machine provision. Each scenario is associated with a provision.
-  * a list of test associated to the scenario
-* **Virtual Machine:** A virtual machine (VM) is a replica, in terms of behavior, of a physical computer. There is software capable of emulating these replicas of physical computers running operating systems. In this case, system-tests will be able to handle the integration of the framework itself with the virtual machines, so that we can install our software to be tested on them (provision).
-* **Provision:** It will be the list of software and configurations to be installed on the virtual machine. The provisions will be specified by using yaml files.
-* **Weblog:** Usually It is a web application that exposes consistent endpoints across all implementations and that will be installed on the Virtual Machine. In the case of weblogs associated to the VMs, it does not always have to be a web application that exposes services, it can also be a specific configuration for the machine we want to test.
-* **Provider:** It refers to the integration of system-tests with the different technologies that allow interacting with virtual machines. These can be executed locally using software such as vmware, virtual box... or executed in the cloud using services such as Google Cloud or AWS.
-* **Tests:** Set of tests to run against a virtual machine. For example, we can make remote HTTP requests to an installed web application during the provisioning process or we can connect to it via SSH to execute different commands to check that the installed software provision is running correctly.
-
-![SSI tests architecture](../lib-injection/onboarding_overview.png "SSI tests architecture")
-
-### Virtual Machine scenario
-
-You can create your own VirtualMachine scenario, extending the common interface `_VirtualMachineScenario`, and specifing the allowed machines and the default provision.
-In the following code you can see how we define a new VirtualMachine Scenario, setting the VMs that you want to run:
-
-```Python
-class InstallerAutoInjectionScenarioProfiling(_VirtualMachineScenario):
-
-    def __init__(
-        self,
-        name,
-        doc,
-        vm_provision="installer-auto-inject", #Reference to the provision for this scenario
-        agent_env=None,
-        app_env=None,
-        scenario_groups=None,
-        github_workflow=None,
-    ) -> None:
-        # Specific configuration for the weblogs deployed using this scenario
-        app_env_defaults = {
-            "DD_TRACE_RATE_LIMIT": "1000000000000",
-            "DD_TRACE_SAMPLING_RULES": "'[{\"sample_rate\":1}]'",
-        }
-        if app_env is not None:
-            app_env_defaults.update(app_env)
-
-        super().__init__(
-            name,
-            vm_provision=vm_provision,
-            agent_env=agent_env,
-            app_env=app_env_defaults,
-            doc=doc,
-            github_workflow=github_workflow,
-            include_ubuntu_22_amd64=True,
-            include_ubuntu_22_arm64=True,
-            include_amazon_linux_2_amd64=True,
-            include_amazon_linux_2_arm64=True,
-            include_amazon_linux_2023_amd64=True,
-            include_amazon_linux_2023_arm64=True,
-            include_redhat_7_9_amd64=True,
-            include_redhat_8_amd64=True,
-            include_redhat_8_arm64=True,
-            include_redhat_9_amd64=True,
-            include_redhat_9_arm64=True,
-            scenario_groups=scenario_groups,
-        )
-```
-
-### Virtual Machine
-
-The Virtual Machines properties:
-
-* There are defined in `utils/_context/virtual_machines.py`.
-* The id/name must be unique.
-* Each machine must extend the interface: `_VirtualMachine`.
-* There are some fields to configure the machine depends of the selected provider:
-  * **aws_config:** Mandatory. AWS configuration: ami ID, instance type, user. The AMI id must exist on your AWS account.
-  * **vagrant_config:** Optional. Vagrant image to be used.
-  * **krunvm_config:** Optional. Docker image to be used with the Krumvn provider (deprecated).
-* There are some fields, that allow us to categorize the machine:
-  * **os_type:** Operating System type. Usually set to Linux. But it might be Windows or Mac.
-  * **os_distro:** Refers to Linux distribution or package manager type. Usually "deb" or "rpm".
-  * **os_branch:** Open field, to categorize the machine.
-  * **os_cpu:** Architecture: amd64 or arm64.
-  * **default_vm:** Field that allow us to split or group the machine as default or not default. Related with the CI policies.
-
-```Python
-class Ubuntu22amd64(_VirtualMachine):
-    def __init__(self, **kwargs) -> None:
-        super().__init__(
-            "Ubuntu_22_amd64",
-            aws_config=_AWSConfig(ami_id="ami-007855ac798b5175e", ami_instance_type="t3.medium", user="ubuntu"),
-            vagrant_config=_VagrantConfig(box_name="bento/ubuntu-22.04"),
-            krunvm_config=None,
-            os_type="linux",
-            os_distro="deb",
-            os_branch="ubuntu22_amd64",
-            os_cpu="amd64",
-            default_vm=False,
-            **kwargs,
-        )
-```
-
-### Provision
-
-We call provision to the configurations applied or the software installed on the machines included in the scenario.
-
-Some properties of the provisions in system-tests are as follows:
-
-* There are defined in the Yaml files.
-* There are two types of provisions:
-  * **Scenario provision:** Configuration and installations to prepare the environment. For example, install docker and install the Datadog SSI software.
-  * **Weblog provision:** Steps and configurations to deploy the weblog/ sample application.
-* In a test execution the both types of provisions are involved (We allways set by the command line the scenario name and the weblog name).
-* The scenario provision is a Yaml file and it is located in the folder: `utils/build/virtual_machine/provisions/[provision_name]` , using the file name `provision.yml`
-* The installation of the Weblog (weblog provision) is also defined on Yaml files, but is located in a different folder, `utils/build/virtual_machine/weblogs/[lang]/`. It uses the file name `provision_[weblog].yml`.
-* Each provision is different, therefore, different installation steps may be defined.
-* All provisions may define their own installation steps, but they must contain some mandatory definition steps. For example, all provisions must define a step that extracts the names and versions of installed components we want to test.
-* The same provision must be able to be installed on different operating systems and architectures.
-
-This is an example of provision file:
-
-```yaml
-#Optional: Load the environment variables
-init-environment:
-  #This variables will be populated as env variables in all commands for each provision installation
-  - env: dev
-    agent_repo_url: datad0g.com
-    agent_dist_channel: beta
-    agent_major_version: "apm"
-
-  - env: prod
-    agent_repo_url: datadoghq.com
-    agent_dist_channel: stable
-    agent_major_version: "7"
-
-
-#Mandatory: Scripts to extract the installed/tested components (json {component1:version, component2:version})
-tested_components:
-  install:
-    - os_type: linux
-      os_distro: rpm
-      remote-command: |
-          echo "{'agent':'$(rpm -qa --queryformat '%{VERSION}-%{RELEASE}' datadog-agent)'}"
-    - os_type: linux
-      os_distro: deb
-      remote-command: |
-          version_agent=$((dpkg -s datadog-agent || true)  | grep Version  | head -n 1 )  && echo "{'agent':'${version_agent//'Version:'/}'}"
-
-#Mandatory: Steps to install provision
-provision_steps:
-  - init-config #Very first machine action
-  - my-cutom-extra-step #secod step
-  - install-agent #Install the agent
-
-init-config:
-  cache: true
-  install:
-    - os_type: linux
-      remote-command: echo "Hey! Hello!"
-
-my-cutom-extra-step:
-  cache: true
-  install:
-    - os_type: linux
-      os_distro: rpm
-      copy_files:
-        - name: copy-service
-          local_path: utils/build/test.service
-
-        - name: copy-script
-          local_path: utils/build/rpm-myservice.sh
-      remote-command: sh rpm-myservice.sh
-
-    - os_type: linux
-      os_distro: deb
-      copy_files:
-        - name: copy-service
-          local_path: utils/build/test.service
-
-        - name: copy-script
-          local_path: utils/build/deb-myservice.sh
-      remote-command: sh deb-myservice.sh
-
-install-agent:
-  install:
-    - os_type: linux
-      remote-command: |
-        REPO_URL=$DD_agent_repo_url DD_AGENT_DIST_CHANNEL=$DD_agent_dist_channel DD_AGENT_MAJOR_VERSION=$DD_agent_major_version bash -c "$(curl -L https://s3.amazonaws.com/dd-agent/scripts/install_script_agent7.sh)"
-```
-
-Some of the sections listed above are detailed as follows:
-
-* **init-environment:** They are variables that will be loaded depending on the execution environment (env=dev or env=prod). **These variables will be populated in all commands executed on the machines**.
-* **tested_components:** This is a mandatory field. We should extract the components that we are testing. The result of the command should be a json string. As you can see the install section could be split by “os_type“ and “os_distro“ fields. You could define a command for all the machines or you could define commands by the machine type. The details of the "installation" field are explained later.
-* **provision_steps:** In this section you must define the steps for the whole installation. In this case we have three steps:
-  * init-config: Represent a step that will run the same command for all types of the linux machines.
-  * my-custom-extra-step: We divide the command, one specific for debian machines and another specific for rpm machines. Notice that we have added directives that will copy local files to the remote machine. The details of the "installation" and “copy-files” fields are explained later.
-  * install-agent: It represents the installation of the agent, valid for all Linux machines. Note that we are using the variables defined in the “init-environment“ section.
-
-#### Provision install section
-
-The install section will be part of all main sections of the provision (except the init-environment and provision_steps sections).
-
-The install section provides us:
-
-* The ability to execute remote commands.
-* The ability to execute local commands.
-* The ability to copy files from the local machine to remote VM.
-
-```yaml
-my-step:
-  install:
-    - os_type: linux
-      os_distro: rpm #Run for rpm machines
-      local-command: echo "This command will run on local"
-      copy_files:
-        - name: copy-this-file-to-home-folder-on-remote-machine
-          local_path: utils/build/test.service
-      remote-command: echo "This command will run on remote machine"
-```
-
-You can define a provision that can be installed on a different machine types, architectures or OS:
-
-```yaml
-my-step:
-  install:
-    - os_type: linux
-      os_distro: rpm #Run for rpm machines
-      local-command: echo "This command will run on local"
-      copy_files:
-        - name: copy-this-file-to-home-folder-on-remote-machine
-          local_path: utils/build/test.service
-      remote-command: echo "This command will run on a RPM based remote machine"
-
-    - os_type: linux
-      os_distro: deb #Run for deb machines
-      local-command: echo "This command will run on local"
-      copy_files:
-        - name: copy-this-file-to-home-folder-on-remote-machine
-          local_path: utils/build/test.service
-      remote-command: echo "This command will run on a debian based remote machine"
-
-    - os_type: linux
-      os_distro: deb #Run for deb machines
-      os_cpu: arm64 #Run only for arm based machines
-      local-command: echo "This command will run on local"
-      copy_files:
-        - name: copy-this-file-to-home-folder-on-remote-machine
-          local_path: utils/build/test.service
-      remote-command: echo "This command will run on a debian based remote machine (only for arm64 architectures)"
-```
-
-### Provider
-
-We currently support two providers:
-
-* **Pulumi AWS:** Using Pulumi AWS we can create and manage EC2 instances.
-* **Vagrant:** Vagrant enables users to create and configure lightweight, reproducible, and portable development local environments (Beta feature).
-
-We can find the available providers in the folder: `utils/virtual_machine.`
-The common interface that implemets all the existing providers is: `utils/virtual_machine/virtual_machine_provider.py`.
+* Test the instrumentation agains different runtime version.
+* Test the guardrail features (unsupported versions of the language).
+* Test the service naming features on SSI.
+* Test the crash tracking features.
+* Test other features like profiling, asm...
 
 # Run the tests
 
