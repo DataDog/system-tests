@@ -16,9 +16,15 @@ runs:
       id: extract
       shell: bash
       run: |
-        branch=$(echo "${{ inputs.text }}" | grep -ioP '(?<=\[java|dotnet|python|ruby|php|golang|cpp|agent|nodejs)@.+?\]' | tr -d '[:space:]' || true)
+        branch=$(echo "${{ inputs.text }}" | grep -ioP '(?<=\[java|dotnet|python|ruby|php|golang|cpp|agent|nodejs)@[^]]+(?=\])' | cut -c 2- | tr -d '[:space:]' || true)
+        
         if [ -n "$branch" ]; then
-          branch="${branch:1}"
-          branch="${branch::-1}"
+          notsupported=$(echo "$text" | grep -ioP '(java|dotnet|php|golang)')
+
+          if [ -n "$notsupported" ]; then
+            echo "It is not possible to specify target branch for $notsupported yet"
+            exit 1
+          fi
         fi
+
         echo "target-branch=${branch}" >> $GITHUB_OUTPUT
