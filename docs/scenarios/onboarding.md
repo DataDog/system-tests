@@ -660,3 +660,9 @@ You can also use SCP to upload and download files to/from the remote machine:
 ```bash
 scp -i "/home/my_user/key_pairs/my_key_pair.pem" ubuntu@99.99.99.99:/home/ubuntu/javaagent-example/hola.txt .
 ```
+
+Remember destroy the pulumi stack to shutdown and remove the ec2 instance:
+
+```bash
+pulumi destroy
+```
