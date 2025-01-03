@@ -23,7 +23,7 @@
 
 # Overall
 
-Similarly to Library Injection in Kubernetes environments via the admission controller, Library injection simplifies the APM onboarding experience for customers deploying Java, NodeJS, .NET and Ruby applications in VMs and docker environments.
+Similarly to Library Injection in Kubernetes environments via the admission controller, Library injection simplifies the APM onboarding experience for customers auto-intrumenting Java, Python, NodeJS, .NET, PHP or Ruby applications running on host or in docker environments.
 
 The target of this testing feature is to test the distinct injection environments.
 
@@ -31,7 +31,7 @@ The target of this testing feature is to test the distinct injection environment
 
 ## Library Injection testing scenarios
 
-The automatic libray injection is tested on two scenarios:
+The automatic libray injection is tested on three possible scenarios:
 
 * Datadog Agent and your application deployed on the same host ([host injection documentation](https://docs.datadoghq.com/tracing/trace_collection/library_injection_local/?tab=host)).
 * Datadog Agent deployed on the host, your application deployed on containers ([agent on host and app in containers documentation](https://docs.datadoghq.com/tracing/trace_collection/library_injection_local/?tab=agentonhostappincontainers)).
@@ -41,13 +41,13 @@ The automatic libray injection is tested on two scenarios:
 
 ## Knowledge concepts
 
-We need to know some terms:
+Before start with the onboarding tests, we need to know some terms:
 
 * **Scenario:** In system-tests, a virtual scenario is a set of:
 
-  * a tested architecture, which can be a single virtual machine. This VM will be supplied thanks to the integration of system-tests framework with different providers of this technology.
+  * a tested architecture, which can be a software installation scripts (provision) to run on a single virtual machine. This VM will be supplied thanks to the integration of system-tests framework with different providers of this technology.
   * a list of setup executed on this tested architecture, we called as a virtual machine provision. Each scenario is associated with a provision.
-  * a list of test associated to a scenario
+  * a list of test associated to the scenario
 * **Virtual Machine:** A virtual machine (VM) is a replica, in terms of behavior, of a physical computer. There is software capable of emulating these replicas of physical computers running operating systems. In this case, system-tests will be able to handle the integration of the framework itself with the virtual machines, so that we can install our software to be tested on them (provision).
 * **Provision:** It will be the list of software and configurations to be installed on the virtual machine. The provisions will be specified by using yaml files.
 * **Weblog:** Usually It is a web application that exposes consistent endpoints across all implementations and that will be installed on the Virtual Machine. In the case of weblogs associated to the VMs, it does not always have to be a web application that exposes services, it can also be a specific configuration for the machine we want to test.
@@ -139,7 +139,7 @@ class Ubuntu22amd64(_VirtualMachine):
         )
 ```
 
-Provision
+### Provision
 
 We call provision to the configurations applied or the software installed on the machines included in the scenario.
 
@@ -150,10 +150,10 @@ Some properties of the provisions in system-tests are as follows:
   * **Scenario provision:** Configuration and installations to prepare the environment. For example, install docker and install the Datadog SSI software.
   * **Weblog provision:** Steps and configurations to deploy the weblog/ sample application.
 * In a test execution the both types of provisions are involved (We allways set by the command line the scenario name and the weblog name).
-* They Yaml file is located in the folder: `utils/build/virtual_machine/provisions/[provision_name]` , using the file name `provision.yml`
+* The scenario provision is a Yaml file and it is located in the folder: `utils/build/virtual_machine/provisions/[provision_name]` , using the file name `provision.yml`
 * The installation of the Weblog (weblog provision) is also defined on Yaml files, but is located in a different folder, `utils/build/virtual_machine/weblogs/[lang]/`. It uses the file name `provision_[weblog].yml`.
 * Each provision is different, therefore, different installation steps may be defined.
-* All provisions may define their own installation steps, but they must contain some mandatory definition steps. For example, all provisions will have to define a step that extracts the names and versions of installed components we want to test.
+* All provisions may define their own installation steps, but they must contain some mandatory definition steps. For example, all provisions must define a step that extracts the names and versions of installed components we want to test.
 * The same provision must be able to be installed on different operating systems and architectures.
 
 This is an example of provision file:
@@ -335,6 +335,7 @@ Please install and configure as described in the [following documentation](https
 **NOTE:**
 
 if it's the first time you execute the Pulimi, you probably need to run the command: `pulumi login --local`
+[Pulumi login](https://www.pulumi.com/docs/reference/cli/pulumi_login/)
 
 ---
 
@@ -344,9 +345,6 @@ All system-tests assertions and utilities are based on python and pytests. You n
 
 - Python and pytests environment as described: [configure python and pytests for system-tests](../../README.md#requirements).
 - Ensure that requirements.txt is loaded (you can run "`./build.sh -i runner`")
-- AWS Cli is configured
-- Pulumi environment configured as described: [Get started with Pulumi](https://www.pulumi.com/docs/get-started/)
-  - Execute "pulumi login" local step: [Pulumi login](https://www.pulumi.com/docs/reference/cli/pulumi_login/).
 
 ## Configure the environment variables
 
@@ -393,6 +391,8 @@ export ONBOARDING_AWS_INFRA_SUBNET_ID=subnet-xyz
 export ONBOARDING_AWS_INFRA_SECURITY_GROUPS_ID=sg-xyz
 export DD_API_KEY_ONBOARDING=apikey
 export DD_APP_KEY_ONBOARDING=appkey
+export ONBOARDING_LOCAL_TEST="true"
+
 ./run.sh SIMPLE_INSTALLER_AUTO_INJECTION --vm-weblog test-app-nodejs --vm-env dev --vm-library nodejs --vm-provider aws --vm-only Ubuntu_22_amd64
 ```
 
