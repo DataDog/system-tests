@@ -46,6 +46,7 @@ class IntegrationsScenario(EndToEndScenario):
             include_mysql_db=True,
             include_sqlserver=True,
             include_localstack=True,
+            include_elasticmq=True,
             include_otel_drop_in=True,
             doc=(
                 "Spawns tracer, agent, and a full set of database. "
@@ -95,6 +96,7 @@ class AWSIntegrationsScenario(EndToEndScenario):
         include_rabbitmq=False,
         include_buddies=False,
         include_localstack=True,
+        include_elasticmq=True,
     ) -> None:
         super().__init__(
             name,
@@ -109,6 +111,7 @@ class AWSIntegrationsScenario(EndToEndScenario):
             include_rabbitmq=include_rabbitmq,
             include_buddies=include_buddies,
             include_localstack=include_localstack,
+            include_elasticmq=include_elasticmq,
             scenario_groups=[ScenarioGroup.INTEGRATIONS, ScenarioGroup.ESSENTIALS],
         )
         # Since we are using real AWS queues / topics, we need a unique message to ensure we aren't consuming messages
@@ -138,9 +141,11 @@ class CrossedTracingLibraryScenario(EndToEndScenario):
             include_buddies=True,
             include_rabbitmq=True,
             include_localstack=True,
+            include_elasticmq=True,
             doc="Spawns a buddy for each supported language of APM, requires AWS authentication.",
             weblog_env={
                 "SYSTEM_TESTS_AWS_URL": "http://localstack-main:4566",
+                "SYSTEM_TESTS_AWS_SQS_URL": "http://elasticmq:9324",
             },
         )
         self.unique_id = None
