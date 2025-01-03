@@ -5,7 +5,6 @@
 from ast import literal_eval
 import base64
 import gzip
-import io
 import json
 import logging
 from hashlib import md5
@@ -193,13 +192,7 @@ def deserialize_http_message(path, message, content: bytes, interface, key, expo
             if content_type_part.startswith("application/json"):
                 item["content"] = json.loads(part.content)
 
-            elif content_type_part == "application/gzip":
-                with gzip.GzipFile(fileobj=io.BytesIO(part.content)) as gz_file:
-                    content = gz_file.read()
-
-                _deserialize_file_in_multipart_form_data(item, headers, export_content_files_to, content)
-
-            elif content_type_part == "application/octet-stream":
+            elif content_type_part == "application/gzip" or content_type_part == "application/octet-stream":
                 _deserialize_file_in_multipart_form_data(item, headers, export_content_files_to, part.content)
 
             else:
