@@ -737,6 +737,8 @@ tests/:
     test_otel_drop_in.py:
       Test_Otel_Drop_In: missing_feature
   parametric/:
+    test_128_bit_traceids.py:
+      Test_128_Bit_Traceids: *ref_3_0_0
     test_config_consistency.py:
       Test_Config_Dogstatsd: *ref_5_29_0
       Test_Config_RateLimit: *ref_5_25_0

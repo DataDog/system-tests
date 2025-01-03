@@ -59,7 +59,7 @@ class Test_128_Bit_Traceids:
         assert int(headers["x-datadog-trace-id"], 10) == trace_id
         assert dd_p_tid is None
         assert "x-datadog-tags" not in headers or "_dd.p.tid=" not in headers["x-datadog-tags"]
-
+    
     @missing_feature(context.library == "nodejs", reason="not implemented")
     @missing_feature(context.library == "ruby", reason="not implemented")
     @pytest.mark.parametrize(
@@ -193,7 +193,6 @@ class Test_128_Bit_Traceids:
 
     @missing_feature(context.library == "golang", reason="not implemented")
     @missing_feature(context.library < "java@1.24.0", reason="Implemented in 1.24.0")
-    @missing_feature(context.library == "nodejs", reason="not implemented")
     @missing_feature(context.library == "ruby", reason="not implemented")
     @pytest.mark.parametrize("library_env", [{"DD_TRACE_PROPAGATION_STYLE": "Datadog"}])
     def test_datadog_128_bit_generation_enabled_by_default(self, test_agent, test_library):
@@ -409,7 +408,6 @@ class Test_128_Bit_Traceids:
         assert propagation_error is None
 
     @missing_feature(context.library == "ruby", reason="not implemented")
-    @missing_feature(context.library == "nodejs", reason="not implemented")
     @missing_feature(context.library == "java", reason="not implemented")
     @pytest.mark.parametrize(
         "library_env",
