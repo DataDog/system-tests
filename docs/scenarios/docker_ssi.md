@@ -1,11 +1,7 @@
 1. [Overall](#Overall)
 2. [Run the tests](#Run-the-tests)
    * [Prerequisites](#Prerequisites)
-     - [AWS](#AWS)
-     - [Vagrant](#Vagrant)
-     - [Pulumi](#Pulumi)
      - [System-tests requirements](#System-tests-requirements)
-   * [Configure the environment variables](#Configure-the-environment-variables)
    * [Run the scenario](#run-the-scenario)
 3. [How to develop tests](#How-to-develop-a-test-case)
    * [Folders and Files structure](#Folders-and-Files-structure)
@@ -32,6 +28,7 @@ The main Docker SSI properties are:
 * Uses a APM Test Agent to make the assertions.
 * The weblog applications are containerized applications.
 * The weblog application container is built by the system-tests scenarios in separate steps.
+* The base image of the weblog application container should be parametrizable (it will detailed in the next sections)
 
 The Docker SSI are good for:
 
@@ -45,41 +42,7 @@ The Docker SSI are good for:
 
 ## Prerequisites
 
-To run the onboarding test scenarios, we will use the following utilities:
-
-* **AWS as the infrastructure provider:** We are testing onboarding installation scenarios on different types of machines and OS. AWS Cli must be configured on your computer in order to launch EC2 instances automatically.
-* **Vagrant as the infrastructure local provider**: For local executions, we can use Vagrant instead of AWS EC2 instances.
-* **Pulumi as the orchestrator of this test infrastructure:** Pulumi's open source infrastructure as code SDK enables you to create, deploy, and manage infrastructure on any cloud, using your favorite languages.
-* **Pytest as testing tool (Python):** System-tests is built on Pytest.
-
-### AWS
-
-Configure your AWS account and AWS CLI. [Check documentation](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-configure.html)
-
-In order to securely store and access AWS credentials in an our test environment, we are using aws-vault. Please install and configure it. [Check documentation](https://github.com/99designs/aws-vault)
-
-### Vagrant
-
-The Vagrant support is a system-tests beta feature. To run the tests using the Vagrant provider, you should install:
-
-* Install Vagrant Install Vagrant | Vagrant | HashiCorp Developer
-* Install QEMU emulator: Download QEMU - QEMU
-* Install python Vagrant plugin: python-vagrant
-* Install Vagrant-QEMU provider: https://github.com/ppggff/vagrant-qemu
-
-### Pulumi
-
-Pulumi is a universal infrastructure as code platform that allows you to use familiar programming languages and tools to build, deploy, and manage cloud infrastructure.
-Please install and configure as described in the [following documentation](https://www.pulumi.com/docs/get-started/aws/)
-
----
-
-**NOTE:**
-
-if it's the first time you execute the Pulimi, you probably need to run the command: `pulumi login --local`
-[Pulumi login](https://www.pulumi.com/docs/reference/cli/pulumi_login/)
-
----
+There are not special requirements to run the Docker SSI tests, you only need the docker engine and have the access to GHCR.
 
 ### System-tests requirements
 
@@ -88,54 +51,59 @@ All system-tests assertions and utilities are based on python and pytests. You n
 - Python and pytests environment as described: [configure python and pytests for system-tests](../../README.md#requirements).
 - Ensure that requirements.txt is loaded (you can run "`./build.sh -i runner`")
 
-## Configure the environment variables
-
-Before execute the "onboarding" tests you must configure some environment variables:
-
-- **ONBOARDING_AWS_INFRA_SUBNET_ID:** AWS subnet id.
-- **ONBOARDING_AWS_INFRA_SECURITY_GROUPS_ID:** AWS security groups id.
-- **DD_API_KEY_ONBOARDING:** Datadog API key.
-- **DD_APP_KEY_ONBOARDING:** Datadog APP key.
-
-To debug purposes you can create and use your own EC2 key-pair. You can read this tutorial to do that: [Create a key pair for your Amazon EC2 instance](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/create-key-pairs.html)
-Once the key has been created, you can use it configuring the following environment variables:
-
-- **ONBOARDING_AWS_INFRA_KEYPAIR_NAME:** Set key pair name to ssh connect to the remote machines.
-- **ONBOARDING_AWS_INFRA_KEY_PATH:** Local absolute path to your keir-pair file (pem file).
-
 ## Run the scenario
 
-The 'onboarding' tests can be executed in the same way as we executed system-tests scenarios.
-The currently supported scenarios are the following:
+There is only one scenario declared: "`DOCKER_SSI`". But this unique scenario can run agains multiple variants of weblogs, conteinerized OS and architectures and therefore the matrix combinations might be very big.
 
-* **SIMPLE_INSTALLER_AUTO_INJECTION:** The onboarding minimal scenario. The test makes a request to deployed weblog application and then check that the instrumentation traces are sending to the backend.
-* **INSTALLER_AUTO_INJECTION:** Inlcudes the minimal scenario assertions but adding other assertions like the uninstall process or the block list commands tests.  For the containerized app, the agent will run on host, and the app in a docker container.
-* **INSTALLER_NOT_SUPPORTED_AUTO_INJECTION:** Onboarding Single Step Instrumentation scenario for not supported runtime language versions. After install the SSI software this scenario checks that the application is not auto instrumented (because the runtime version is not supported), but continues working.
-* **CHAOS_INSTALLER_AUTO_INJECTION:** Checks the SSI after performing actions that are not recommended. For example, delete installation folder and others. The system must be recoverable.
-* **SIMPLE_AUTO_INJECTION_PROFILING:** Onboarding Single Step Instrumentation scenario with profiling activated by the environment variables on the sample application.
-* **HOST_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING:** Onboarding Host Single Step Instrumentation scenario using agent auto install script with profiling activating by the installation process
-* **CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING:** Onboarding Container Single Step Instrumentation profiling scenario using agent auto installation script.
-* **HOST_AUTO_INJECTION_INSTALL_SCRIPT:** Onboarding Host Single Step Instrumentation scenario using agent auto installation script.
-* **CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT:** Onboarding Container Single Step Instrumentation scenario using agent auto installation script. The agent and the app will run on a separate containers.
+To help us to run a concrete case of the matrix variants, there are two scripts to be executed locally:
 
-The 'onboarding' tests scenarios required these mandatory parameters:
+* `utils/build/ssi/build_local_manual.sh`: Runs the Docker SSI scenario using the arguments: library, weblog, docker base image, architecture and installable runtime. To run this command you need to know the correct combination of these arguments.
+* `utils/build/ssi/build_local_wizard.sh`: Interactive shell wizard that allow you to execute the Docker SSI scenario with the correct combination of arguments.
 
-- **--vm-library:** Configure language to test (currently supported languages are: java, python, nodejs, dotnet, php)
-- **--vm-env:** Configure origin of the software: dev (beta software) or prod (releases)
-- **--vm-weblog:** Configure weblog name to tests. The provision file should exist: `utils/build/virtual_machine/weblogs/LANG/provision_WEBLOG-NAME.yml`
-- **--vm-provider:** Default "aws"
-- **--vm-only:** The virtual machine name, where we'll install the scenario provision. You can find all the allowed Virtual Machines: `utils/_context/virtual_machines.py`
-
-The following line shows an example of command line to run the tests:
+Here is the command line and the mandatory parameters:
 
 ```bash
-export ONBOARDING_AWS_INFRA_SUBNET_ID=subnet-xyz
-export ONBOARDING_AWS_INFRA_SECURITY_GROUPS_ID=sg-xyz
-export DD_API_KEY_ONBOARDING=apikey
-export DD_APP_KEY_ONBOARDING=appkey
-export ONBOARDING_LOCAL_TEST="true"
+  ./run.sh DOCKER_SSI --ssi-weblog "$weblog" --ssi-library "$TEST_LIBRARY" --ssi-base-image "$base_image" --ssi-arch "$arch" --ssi-installable-runtime "$installable_runtime"
 
-./run.sh SIMPLE_INSTALLER_AUTO_INJECTION --vm-weblog test-app-nodejs --vm-env dev --vm-library nodejs --vm-provider aws --vm-only Ubuntu_22_amd64
+```
+
+The easy way to execute this scenario is to use the wizard script. For example:
+
+```bash
+(venv) system-tests % utils/build/ssi/build_local_wizard.sh
+Welcome to the SSI Wizard!
+Please select the library you want to test:
+1) dotnet
+2) java
+3) nodejs
+4) php
+5) python
+#? 2
+You selected: java
+Please select the weblog you want to use:
+1) java7-app      3) jetty-app      5) websphere-app
+2) jboss-app      4) tomcat-app
+#? 3
+You selected: jetty-app
+Please select the base image you want to use:
+1) almalinux:8.10    3) oraclelinux:8.10  5) ubuntu:16.04
+2) almalinux:9.4     4) oraclelinux:9     6) ubuntu:22.04
+#? 6
+You selected: ubuntu:22.04
+Please select the architecture you want to use:
+1) linux/amd64
+2) linux/arm64
+#? 2
+You selected: linux/arm64
+Please select the installable runtime you want to use:
+1) 11.0.24-zulu
+2) 17.0.12-zulu
+3) 21.0.4-zulu
+4) 22.0.2-zulu
+#? 3
+You selected: 21.0.4-zulu
+Enter any extra arguments (or leave blank):
+Executing: ./run.sh DOCKER_SSI --ssi-weblog jetty-app --ssi-library java --ssi-base-image ubuntu:22.04 --ssi-arch linux/arm64 --ssi-installable-runtime 21.0.4-zulu
 ```
 
 # How to develop tests
@@ -174,7 +142,6 @@ If you want to create a new machine provision, first you need to define a new sc
         vm_provision="my_provision"
     )
 ```
-
 We should define the provision. Let's create a folder named: `utils/build/virtual_machine/provisions/my_provision` and add the file `provision.yml`:
 
 ```yaml
@@ -207,7 +174,6 @@ my-custom-step:
     - os_type: linux
       remote-command: echo "Hey! Hello $MY_VAR!"
 ```
-
 This scenario provision will be installed when you run the scenario:
 
 ```bash
@@ -215,7 +181,6 @@ export ONBOARDING_AWS_INFRA_SUBNET_ID=subnet-xyz
 export ONBOARDING_AWS_INFRA_SECURITY_GROUPS_ID=sg-xyz
 ./run.sh MY_CUSTOM_SCENARIO --vm-weblog test-app-nodejs --vm-env dev --vm-library nodejs --vm-provider aws --vm-only Ubuntu_22_amd64
 ```
-
 ## Create a new weblog
 
 You can add more weblogs to the existing scenarios. You must follow some rules:
@@ -268,7 +233,6 @@ weblog:
 
         remote-command: sh test-app-java_run.sh
 ```
-
 You can run this weblog:
 
 ```bash
@@ -276,7 +240,6 @@ export ONBOARDING_AWS_INFRA_SUBNET_ID=subnet-xyz
 export ONBOARDING_AWS_INFRA_SECURITY_GROUPS_ID=sg-xyz
 ./run.sh MY_CUSTOM_SCENARIO --vm-weblog my_custom_app --vm-env dev --vm-library java --vm-provider aws --vm-only Ubuntu_22_amd64
 ```
-
 ## Create a new test case
 
 Implement a new test case is as simple as the rest of the existing test cases in system-tests. There is only one particularity to consider. The test methods must be parametrized. In this parameter, you can find all the data/description related with the virtual machine that we are testing. With this data, you will be able to execute remote command using SSH and retrieve the results. You can also access to the sample application Http endpoints.
@@ -288,7 +251,6 @@ class TestSimpleInstallerAutoInjectManual():
     def test_install(self, virtual_machine):
         pass
 ```
-
 You can use the `virtual_machine` parameter to execute commands remotely:
 
 ```python
@@ -324,7 +286,6 @@ class TestSimpleInstallerAutoInjectManual():
 
             return command_output
 ```
-
 You can use the `virtual_machine` parameter to make request to the deployed weblog:
 
 ```python
@@ -343,7 +304,6 @@ class TestSimpleInstallerAutoInjectManual():
         res = requests.get(vm_context_url)
         assert res.status == 200, "Weblog is not working"
 ```
-
 # How to debug your environment and tests results
 
 In the virtual machine scenarios, multiple components are involved and sometimes can be painfull to debug a failure. You can find a folder named "logs_[scenario name]" with all the logs associated with the execution In the following image you can see the log folder content:
@@ -390,19 +350,16 @@ export ONBOARDING_LOCAL_TEST="true"
 ./run.sh SIMPLE_INSTALLER_AUTO_INJECTION --vm-weblog test-app-nodejs --vm-env dev --vm-library nodejs --vm-provider aws --vm-only Ubuntu_22_amd64
 
 ```
-
 After the test execution, you will need to open the log file "logs_folder/vms_desc.log" to get the remote machine IP, after that, you should be able to access to the machine in a interactive shell:
 
 ```bash
 ssh -i "/home/my_user/key_pairs/my_key_pair.pem" ec2-user@99.99.99.99
 ```
-
 You can also use SCP to upload and download files to/from the remote machine:
 
 ```bash
 scp -i "/home/my_user/key_pairs/my_key_pair.pem" ubuntu@99.99.99.99:/home/ubuntu/javaagent-example/hola.txt .
 ```
-
 Remember destroy the pulumi stack to shutdown and remove the ec2 instance:
 
 ```bash
