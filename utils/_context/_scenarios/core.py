@@ -137,7 +137,7 @@ class Scenario:
             lambda: logger.stdout(f"Logs folder: ./{self.host_log_folder}"),
         ]
 
-    def post_setup(self):
+    def post_setup(self, session: pytest.Session):
         """Called after test setup"""
 
     def pytest_sessionfinish(self, session, exitstatus):

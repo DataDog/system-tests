@@ -418,7 +418,7 @@ def pytest_collection_finish(session: pytest.Session):
     if not session.config.option.replay:
         setup_properties.dump(context.scenario.host_log_folder)
 
-    context.scenario.post_setup()
+    context.scenario.post_setup(session)
 
 
 def pytest_runtest_call(item):
