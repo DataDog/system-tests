@@ -5,7 +5,7 @@
 import re
 from urllib.parse import urlparse
 
-from utils import context, interfaces, bug, missing_feature, features
+from utils import context, interfaces, bug, missing_feature, features, scenarios
 
 RUNTIME_LANGUAGE_MAP = {
     "nodejs": "javascript",
@@ -135,6 +135,9 @@ def get_component_name(weblog_variant, language, span_name):
 
 @features.runtime_id_in_span_metadata_for_service_entry_spans
 @features.unix_domain_sockets_support_for_traces
+@features.envoy_external_processing
+@scenarios.external_processing
+@scenarios.default
 class Test_Meta:
     """meta object in spans respect all conventions"""
 
@@ -319,6 +322,9 @@ class Test_MetaDatadogTags:
 
 
 @features.data_integrity
+@features.envoy_external_processing
+@scenarios.external_processing
+@scenarios.default
 class Test_MetricsStandardTags:
     """metrics object in spans respect all conventions regarding basic tags"""
 

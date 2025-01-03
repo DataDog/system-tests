@@ -321,8 +321,10 @@ def _get_span_by_tags(spans, tags):
     return {}
 
 
-@scenarios.tracing_config_nondefault
+@features.envoy_external_processing
 @features.tracing_configuration_consistency
+@scenarios.tracing_config_nondefault
+@scenarios.external_processing
 class Test_Config_UnifiedServiceTagging_CustomService:
     """Verify behavior of http clients and distributed traces"""
 
