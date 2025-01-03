@@ -27,7 +27,7 @@ class CustomScenario(Scenario):
 
         return warmups
 
-    def post_setup(self):
+    def post_setup(self, session):
         """ called after setup functions, and before test functions """
 
     def pytest_sessionfinish(self, session, exitstatus):
