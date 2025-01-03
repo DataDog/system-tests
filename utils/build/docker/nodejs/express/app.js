@@ -237,6 +237,14 @@ app.get('/kafka/consume', (req, res) => {
     })
 })
 
+app.get('/log/library', (req, res) => {
+  const pino = require('pino')
+  const logger = pino()
+  const msg = req.query.msg || 'This is an info message'
+  logger.info(msg)
+  res.send('OK')
+})
+
 app.get('/sqs/produce', (req, res) => {
   const queue = req.query.queue
   const message = req.query.message

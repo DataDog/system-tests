@@ -760,6 +760,8 @@ tests/:
     test_k8s_manual_inject.py:
       TestAdmisionControllerProfiling: *ref_5_22_0
   parametric/:
+    test_128_bit_traceids.py:
+      Test_128_Bit_Traceids: *ref_3_0_0
     test_config_consistency.py:
       Test_Config_Dogstatsd: *ref_5_29_0
       Test_Config_RateLimit: *ref_5_25_0
@@ -849,13 +851,28 @@ tests/:
     Test_Config_IntegrationEnabled_False:
       '*': *ref_5_25_0
       express4-typescript: irrelevant
-      nextjs: irrelevant # nextjs is not related with kafka
+      nextjs: irrelevant
     Test_Config_IntegrationEnabled_True:
       '*': *ref_5_25_0
       express4-typescript: irrelevant
-      nextjs: irrelevant # nextjs is not related with kafka
+      nextjs: irrelevant
+    Test_Config_LogInjection_128Bit_TradeId_Default: missing_feature
+    Test_Config_LogInjection_128Bit_TradeId_Disabled:
+      '*': *ref_3_15_0
+      express4-typescript: irrelevant
+      nextjs: irrelevant
+    Test_Config_LogInjection_Default:
+      '*': *ref_3_0_0
+      express4-typescript: irrelevant
+      nextjs: irrelevant
+    Test_Config_LogInjection_Enabled:
+      '*': *ref_3_0_0
+      express4-typescript: irrelevant
+      nextjs: irrelevant
     Test_Config_ObfuscationQueryStringRegexp_Configured: *ref_3_0_0
     Test_Config_ObfuscationQueryStringRegexp_Empty: *ref_3_0_0
+    Test_Config_RuntimeMetrics_Default: *ref_3_0_0
+    Test_Config_RuntimeMetrics_Enabled: *ref_3_0_0
     Test_Config_UnifiedServiceTagging_CustomService: *ref_5_25_0
     Test_Config_UnifiedServiceTagging_Default: *ref_5_25_0
   test_distributed.py:
