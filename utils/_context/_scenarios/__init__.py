@@ -597,8 +597,7 @@ class _Scenarios:
             "DD_SYMBOL_DATABASE_UPLOAD_ENABLED": "1",
             "DD_REMOTE_CONFIG_ENABLED": "true",
             "DD_INTERNAL_RCM_POLL_INTERVAL": "2000",
-            "DD_DEBUGGER_DIAGNOSTICS_INTERVAL": "1",
-            "DD_THIRD_PARTY_EXCLUDES": "org.springframework.samples.petclinic",
+            "DD_DEBUGGER_DIAGNOSTICS_INTERVAL": "1"
         },
         library_interface_timeout=5,
         doc="Test scenario for checking symdb.",
