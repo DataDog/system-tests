@@ -193,6 +193,7 @@ class Test_128_Bit_Traceids:
 
     @missing_feature(context.library == "golang", reason="not implemented")
     @missing_feature(context.library < "java@1.24.0", reason="Implemented in 1.24.0")
+    @missing_feature(context.library < "nodejs@4.19.0", reason="Implemented in 4.19.0 & 3.40.0")
     @missing_feature(context.library == "ruby", reason="not implemented")
     @pytest.mark.parametrize("library_env", [{"DD_TRACE_PROPAGATION_STYLE": "Datadog"}])
     def test_datadog_128_bit_generation_enabled_by_default(self, test_agent, test_library):
