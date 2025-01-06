@@ -2293,5 +2293,14 @@ class _Features:
         pytest.mark.features(feature_id=347)(test_object)
         return test_object
 
+    @staticmethod
+    def aws_xray_headers_propagation(test_object):
+        """AWS Xray headers injection and extraction
+
+        https://feature-parity.us1.prod.dog/#/?feature=352
+        """
+        pytest.mark.features(feature_id=352)(test_object)
+        return test_object
+
 
 features = _Features()
