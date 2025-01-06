@@ -448,9 +448,13 @@ app.get('/flush', (req, res) => {
   // does have a callback :)
   const promises = []
 
-  const { profiler } = require('dd-trace/packages/dd-trace/src/profiling/')
-  if (profiler?._collect) {
-    promises.push(profiler._collect('on_shutdown'))
+  try {
+    const { profiler } = require('dd-trace/packages/dd-trace/src/profiling/')
+    if (profiler?._collect) {
+      promises.push(profiler._collect('on_shutdown'))
+    }
+  } catch (err) {
+    console.error('Unable to flush profiler:', err)
   }
 
   if (tracer._tracer?._exporter?._writer?.flush) {
