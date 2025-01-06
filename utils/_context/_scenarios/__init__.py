@@ -770,6 +770,8 @@ class _Scenarios:
         doc="Test runtime metrics",
     )
 
+scenarios = _Scenarios()
+
 
 def get_all_scenarios() -> list[Scenario]:
     result = []
