@@ -178,8 +178,19 @@ class Test_Headers_Baggage:
             span.remove_all_baggage()
             assert span.get_all_baggage() == {}
 
-    def test_baggage_malformed_headers_D012(self, test_library, test_agent):
+    def _assert_valid_baggage(self, test_library):
+        """
+        Helper function to confirm that a valid baggage header is set
+        when calling dd_make_child_span_and_get_headers.
+        """
+        with test_library:
+            headers = test_library.dd_make_child_span_and_get_headers([["baggage", "foo=valid"]])
+            assert "baggage" in headers.keys()
+
+    def test_baggage_malformed_headers_D012(self, test_library):
         """Ensure that malformed baggage headers are handled properly. Unable to use get_baggage functions because it does not return anything"""
+        Test_Headers_Baggage._assert_valid_baggage(self, test_library)
+
         with test_library:
             headers = test_library.dd_make_child_span_and_get_headers(
                 [["baggage", "no-equal-sign,foo=gets-dropped-because-previous-pair-is-malformed"]],
@@ -189,18 +200,24 @@ class Test_Headers_Baggage:
 
     def test_baggage_malformed_headers_D013(self, test_library):
         """Ensure that malformed baggage headers are handled properly. Unable to use get_baggage functions because it does not return anything"""
+        Test_Headers_Baggage._assert_valid_baggage(self, test_library)
+
         with test_library:
             headers = test_library.dd_make_child_span_and_get_headers([["baggage", "=no-key"]])
 
             assert "baggage" not in headers.keys()
 
     def test_baggage_malformed_headers_D014(self, test_library):
+        Test_Headers_Baggage._assert_valid_baggage(self, test_library)
+
         with test_library:
             headers = test_library.dd_make_child_span_and_get_headers([["baggage", "no-value="]])
 
             assert "baggage" not in headers.keys()
 
     def test_baggage_malformed_headers_D015(self, test_library):
+        Test_Headers_Baggage._assert_valid_baggage(self, test_library)
+
         with test_library:
             headers = test_library.dd_make_child_span_and_get_headers(
                 [["baggage", "foo=gets-dropped-because-subsequent-pair-is-malformed,="]],
