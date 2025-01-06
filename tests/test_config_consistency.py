@@ -428,7 +428,7 @@ class Test_Config_LogInjection_Enabled:
     """Verify behavior of integrations automatic spans"""
 
     def setup_log_injection_enabled(self):
-        self.message = "This is an info message"
+        self.message = "msg"
         self.r = weblog.get("/log/library", params={"msg": self.message})
 
     def test_log_injection_enabled(self):
@@ -442,7 +442,7 @@ class Test_Config_LogInjection_Enabled:
 @features.tracing_configuration_consistency
 class Test_Config_LogInjection_Default:
     def setup_log_injection_default(self):
-        self.message = "This is an info message"
+        self.message = "msg"
         self.r = weblog.get("/log/library", params={"msg": self.message})
 
     def test_log_injection_default(self):
@@ -458,7 +458,7 @@ class Test_Config_LogInjection_128Bit_TradeId_Default:
     """Verify 128 bit traceid are enabled in log injection by default"""
 
     def setup_log_injection_128bit_traceid_default(self):
-        self.message = "This is an info message"
+        self.message = "msg"
         self.r = weblog.get("/log/library", params={"msg": self.message})
 
     def test_log_injection_128bit_traceid_default(self):
@@ -472,7 +472,7 @@ class Test_Config_LogInjection_128Bit_TradeId_Default:
 @features.tracing_configuration_consistency
 class Test_Config_LogInjection_128Bit_TradeId_Disabled:
     def setup_log_injection_128bit_traceid_disabled(self):
-        self.message = "This is an info message"
+        self.message = "msg"
         self.r = weblog.get("/log/library", params={"msg": self.message})
 
     def test_log_injection_128bit_traceid_disabled(self):
