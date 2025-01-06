@@ -67,14 +67,29 @@ def sns_consume(queue, expectedMessage, timeout=60):
 
     # Create an SQS client
     sqs = boto3.client("sqs", region_name="us-east-1", endpoint_url=SQS_HOST)
-    response = sqs.get_queue_url(QueueName=queue)
+
+    start = time.time()
+    queue_found = False
+    queue_url = None
+
+    while not queue_found and time.time() < start + timeout:
+        try:
+            data = sqs.get_queue_url(QueueName=queue)
+            queue_found = True
+            logging.info(f"Found SQS Queue details with name: {queue}")
+            logging.info(data)
+            logging.info(data.get("QueueUrl"))
+            queue_url = data.get("QueueUrl")
+        except Exception as e:
+            logging.info(f"Error during Python SQS get queue details: {str(e)}")
+            time.sleep(1)
 
     consumed_message = None
     start_time = time.time()
 
     while not consumed_message and time.time() - start_time < timeout:
         try:
-            response = sqs.receive_message(QueueUrl=response.get("QueueUrl"))
+            response = sqs.receive_message(QueueUrl=queue_url)
             if response and "Messages" in response:
                 for message in response["Messages"]:
                     logging.info("[SNS->SQS] Consumed: ")
