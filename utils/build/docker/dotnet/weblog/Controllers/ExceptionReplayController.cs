@@ -22,15 +22,20 @@ namespace weblog
 
         [HttpGet("recursion")]
         [Consumes("application/json", "application/xml")]
-        public IActionResult ExceptionReplayRecursion(int depth)
+        public IActionResult exceptionReplayRecursion(int depth)
         {
-            if (depth > 0)
+            return exceptionReplayRecursionHelper(depth, depth);
+        }
+
+        private IActionResult exceptionReplayRecursionHelper(int originalDepth, int currentDepth)
+        {
+            if (currentDepth > 0)
             {
-                return ExceptionReplayRecursion(depth - 1);
+                return exceptionReplayRecursionHelper(originalDepth, currentDepth - 1);
             }
             else
             {
-                throw new System.Exception("Recursion exception");
+                throw new System.Exception($"recursion exception depth {originalDepth}");
             }
         }
 
@@ -68,6 +73,41 @@ namespace weblog
             }
 
             return Content("No exception");
+        }
+
+        private void DeepFunctionC()
+        {
+            throw new System.Exception("Multiple stack frames exception");
+        }
+
+        private void DeepFunctionB()
+        {
+            DeepFunctionC();
+        }
+
+        private void DeepFunctionA()
+        {
+            DeepFunctionB();
+        }
+
+        [HttpGet("multiframe")]
+        [Consumes("application/json", "application/xml")]
+        public IActionResult ExceptionReplayMultiframe()
+        {
+            DeepFunctionA();
+            return Content("Should not reach here");
+        }
+
+        private async Task<IActionResult> AsyncThrow()
+        {
+            throw new System.Exception("Async exception");
+        }
+
+        [HttpGet("async")]
+        [Consumes("application/json", "application/xml")]
+        public async Task<IActionResult> ExceptionReplayAsync()
+        {
+            return await AsyncThrow();
         }
     }
 }

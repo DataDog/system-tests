@@ -131,10 +131,10 @@ class OpenTelemetryScenario(DockerScenario):
             logger.debug("Wait for app readiness")
 
             if not interfaces.open_telemetry.ready.wait(40):
-                raise Exception("Open telemetry interface not ready")
+                raise ValueError("Open telemetry interface not ready")
             logger.debug("Open telemetry ready")
 
-    def post_setup(self):
+    def post_setup(self, session: pytest.Session):  # noqa: ARG002
         if self.use_proxy:
             self._wait_interface(interfaces.open_telemetry, 5)
             self._wait_interface(interfaces.backend, self.backend_interface_timeout)

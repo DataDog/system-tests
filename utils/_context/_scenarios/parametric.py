@@ -40,7 +40,7 @@ _NETWORK_PREFIX = "apm_shared_tests_network"
 def _get_client() -> docker.DockerClient:
     try:
         return docker.DockerClient.from_env()
-    except DockerException as e:
+    except DockerException:
         # Failed to start the default Docker client... Let's see if we have
         # better luck with docker contexts...
         try:
@@ -57,7 +57,7 @@ def _get_client() -> docker.DockerClient:
         except:
             logger.exception("No more success with docker contexts")
 
-        raise e
+        raise
 
 
 @dataclasses.dataclass
@@ -536,7 +536,7 @@ def java_library_factory():
         container_name="java-test-client",
         container_tag="java-test-client",
         container_img=f"""
-FROM maven:3.9.2-eclipse-temurin-17
+FROM maven:3-eclipse-temurin-21
 WORKDIR /client
 RUN mkdir ./tracer
 COPY {java_reldir}/src src

@@ -3,7 +3,7 @@
 import contextlib
 import time
 import urllib.parse
-from typing import Optional, TypedDict, Union
+from typing import TypedDict
 from collections.abc import Generator
 
 from docker.models.containers import Container
@@ -114,11 +114,11 @@ class APMLibraryClient:
     def trace_start_span(
         self,
         name: str,
-        service: Optional[str] = None,
-        resource: Optional[str] = None,
-        parent_id: Optional[str] = None,
-        typestr: Optional[str] = None,
-        tags: Optional[list[tuple[str, str]]] = None,
+        service: str | None = None,
+        resource: str | None = None,
+        parent_id: str | None = None,
+        typestr: str | None = None,
+        tags: list[tuple[str, str]] | None = None,
     ):
         if context.library == "cpp":
             # TODO: Update the cpp parametric app to accept null values for unset parameters
@@ -145,7 +145,7 @@ class APMLibraryClient:
         resp_json = resp.json()
         return StartSpanResponse(span_id=resp_json["span_id"], trace_id=resp_json["trace_id"])
 
-    def current_span(self) -> Union[SpanResponse, None]:
+    def current_span(self) -> SpanResponse | None:
         resp_json = self._session.get(self._url("/trace/span/current")).json()
         if not resp_json:
             return None
@@ -219,12 +219,12 @@ class APMLibraryClient:
     def otel_trace_start_span(
         self,
         name: str,
-        timestamp: Optional[int],
-        span_kind: Optional[SpanKind],
-        parent_id: Optional[int],
-        links: Optional[list[Link]],
-        events: Optional[list[Event]],
-        attributes: Optional[dict],
+        timestamp: int | None,
+        span_kind: SpanKind | None,
+        parent_id: int | None,
+        links: list[Link] | None,
+        events: list[Event] | None,
+        attributes: dict | None,
     ) -> StartSpanResponse:
         resp = self._session.post(
             self._url("/trace/otel/start_span"),
@@ -242,7 +242,7 @@ class APMLibraryClient:
         # and others with bignum trace_ids and uint64 span_ids (ex: python). We should standardize this.
         return StartSpanResponse(span_id=resp["span_id"], trace_id=resp["trace_id"])
 
-    def otel_end_span(self, span_id: int, timestamp: Optional[int]) -> None:
+    def otel_end_span(self, span_id: int, timestamp: int | None) -> None:
         self._session.post(self._url("/trace/otel/end_span"), json={"id": span_id, "timestamp": timestamp})
 
     def otel_set_attributes(self, span_id: int, attributes) -> None:
@@ -294,7 +294,7 @@ class APMLibraryClient:
         resp = resp.json()
         return resp["value"]
 
-    def config(self) -> dict[str, Optional[str]]:
+    def config(self) -> dict[str, str | None]:
         resp = self._session.get(self._url("/trace/config")).json()
         config_dict = resp["config"]
         return {
@@ -316,7 +316,7 @@ class APMLibraryClient:
             "dd_dogstatsd_port": config_dict.get("dd_dogstatsd_port", None),
         }
 
-    def otel_current_span(self) -> Union[SpanResponse, None]:
+    def otel_current_span(self) -> SpanResponse | None:
         resp = self._session.get(self._url("/trace/otel/current_span"), json={})
         if not resp:
             return None
@@ -385,13 +385,13 @@ class _TestOtelSpan:
     def set_status(self, code: StatusCode, description):
         self._client.otel_set_status(self.span_id, code, description)
 
-    def add_event(self, name: str, timestamp: Optional[int] = None, attributes: Optional[dict] = None):
+    def add_event(self, name: str, timestamp: int | None = None, attributes: dict | None = None):
         self._client.otel_add_event(self.span_id, name, timestamp, attributes)
 
-    def record_exception(self, message: str, attributes: Optional[dict] = None):
+    def record_exception(self, message: str, attributes: dict | None = None):
         self._client.otel_record_exception(self.span_id, message, attributes)
 
-    def end_span(self, timestamp: Optional[int] = None):
+    def end_span(self, timestamp: int | None = None):
         self._client.otel_end_span(self.span_id, timestamp)
 
     def is_recording(self) -> bool:
@@ -430,11 +430,11 @@ class APMLibrary:
     def dd_start_span(
         self,
         name: str,
-        service: Optional[str] = None,
-        resource: Optional[str] = None,
-        parent_id: Optional[str] = None,
-        typestr: Optional[str] = None,
-        tags: Optional[list[tuple[str, str]]] = None,
+        service: str | None = None,
+        resource: str | None = None,
+        parent_id: str | None = None,
+        typestr: str | None = None,
+        tags: list[tuple[str, str]] | None = None,
     ) -> Generator[_TestSpan, None, None]:
         resp = self._client.trace_start_span(
             name=name, service=service, resource=resource, parent_id=parent_id, typestr=typestr, tags=tags
@@ -456,12 +456,12 @@ class APMLibrary:
     def otel_start_span(
         self,
         name: str,
-        timestamp: Optional[int] = None,
-        span_kind: Optional[SpanKind] = None,
-        parent_id: Optional[int] = None,
-        links: Optional[list[Link]] = None,
-        events: Optional[list[Event]] = None,
-        attributes: Optional[dict] = None,
+        timestamp: int | None = None,
+        span_kind: SpanKind | None = None,
+        parent_id: int | None = None,
+        links: list[Link] | None = None,
+        events: list[Event] | None = None,
+        attributes: dict | None = None,
         *,
         end_on_exit: bool = True,
     ) -> Generator[_TestOtelSpan, None, None]:
@@ -497,16 +497,16 @@ class APMLibrary:
     def otel_set_baggage(self, span_id: int, key: str, value: str):
         return self._client.otel_set_baggage(span_id, key, value)
 
-    def config(self) -> dict[str, Optional[str]]:
+    def config(self) -> dict[str, str | None]:
         return self._client.config()
 
-    def dd_current_span(self) -> Union[_TestSpan, None]:
+    def dd_current_span(self) -> _TestSpan | None:
         resp = self._client.current_span()
         if resp is None:
             return None
         return _TestSpan(self._client, resp["span_id"], resp["trace_id"])
 
-    def otel_current_span(self) -> Union[_TestOtelSpan, None]:
+    def otel_current_span(self) -> _TestOtelSpan | None:
         resp = self._client.otel_current_span()
         if resp is None:
             return None
