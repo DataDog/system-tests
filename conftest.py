@@ -36,6 +36,11 @@ def pytest_addoption(parser):
         "--force-execute", "-F", action="append", default=[], help="Item to execute, even if they are skipped"
     )
     parser.addoption("--scenario-report", action="store_true", help="Produce a report on nodeids and their scenario")
+    parser.addoption(
+        "--skip-empty-scenario",
+        action="store_true",
+        help="Skip scenario if it contains only tests marked as xfail or irrelevant",
+    )
 
     parser.addoption("--force-dd-trace-debug", action="store_true", help="Set DD_TRACE_DEBUG to true")
     parser.addoption("--force-dd-iast-debug", action="store_true", help="Set DD_IAST_DEBUG_ENABLED to true")
@@ -121,6 +126,12 @@ def pytest_configure(config):
 
     if not config.option.report_run_url and "SYSTEM_TESTS_REPORT_RUN_URL" in os.environ:
         config.option.report_run_url = os.environ["SYSTEM_TESTS_REPORT_RUN_URL"]
+
+    if (
+        not config.option.skip_empty_scenario
+        and os.environ.get("SYSTEM_TESTS_SKIP_EMPTY_SCENARIO", "").lower() == "true"
+    ):
+        config.option.skip_empty_scenario = True
 
     # First of all, we must get the current scenario
     for name in dir(scenarios):
@@ -267,23 +278,30 @@ def pytest_collection_modifyitems(session, config, items: list[pytest.Item]):
     selected = []
     deselected = []
 
-    declared_scenarios = {}
+    all_declared_scenarios = {}
 
     def iter_markers(self, name=None):
         return (x[1] for x in self.iter_markers_with_node(name=name) if x[1].name not in ("skip", "skipif", "xfail"))
 
+    must_pass_item_count = 0
     for item in items:
-        scenario_markers = list(item.iter_markers("scenario"))
-        declared_scenario = scenario_markers[0].args[0] if len(scenario_markers) != 0 else "DEFAULT"
+        # if the item has explicit scenario markers, we use them
+        # otherwise we use markers declared on its parents
+        own_markers = [marker for marker in item.own_markers if marker.name == "scenario"]
+        scenario_markers = own_markers if len(own_markers) != 0 else list(item.iter_markers("scenario"))
+        if len(scenario_markers) == 0:
+            declared_scenarios = ["DEFAULT"]
+        else:
+            declared_scenarios = [marker.args[0] for marker in scenario_markers]
 
-        declared_scenarios[item.nodeid] = declared_scenario
+        all_declared_scenarios[item.nodeid] = declared_scenarios
 
         # If we are running scenario with the option sleep, we deselect all
         if session.config.option.sleep or session.config.option.vm_gitlab_pipeline:
             deselected.append(item)
             continue
 
-        if context.scenario.is_part_of(declared_scenario):
+        if context.scenario.name in declared_scenarios:
             logger.info(f"{item.nodeid} is included in {context.scenario}")
             selected.append(item)
 
@@ -296,19 +314,43 @@ def pytest_collection_modifyitems(session, config, items: list[pytest.Item]):
                     # including parent's markers) to exclude the skip, skipif and xfail markers.
                     item.iter_markers = types.MethodType(iter_markers, item)
 
+            if _item_must_pass(item):
+                must_pass_item_count += 1
+
         else:
             logger.debug(f"{item.nodeid} is not included in {context.scenario}")
             deselected.append(item)
-    items[:] = selected
-    config.hook.pytest_deselected(items=deselected)
+
+    if must_pass_item_count == 0 and session.config.option.skip_empty_scenario:
+        items[:] = []
+        config.hook.pytest_deselected(items=items)
+    else:
+        items[:] = selected
+        config.hook.pytest_deselected(items=deselected)
 
     if config.option.scenario_report:
         with open(f"{context.scenario.host_log_folder}/scenarios.json", "w", encoding="utf-8") as f:
-            json.dump(declared_scenarios, f, indent=2)
+            json.dump(all_declared_scenarios, f, indent=2)
 
 
 def pytest_deselected(items):
     _deselected_items.extend(items)
+
+
+def _item_must_pass(item) -> bool:
+    """Returns True if the item must pass to be considered as a success"""
+
+    if any(item.iter_markers("skip")):
+        return False
+
+    if any(item.iter_markers("xfail")):
+        return False
+
+    for marker in item.iter_markers("skipif"):
+        if all(marker.args[0]):
+            return False
+
+    return True
 
 
 def _item_is_skipped(item):
@@ -376,7 +418,7 @@ def pytest_collection_finish(session: pytest.Session):
     if not session.config.option.replay:
         setup_properties.dump(context.scenario.host_log_folder)
 
-    context.scenario.post_setup()
+    context.scenario.post_setup(session)
 
 
 def pytest_runtest_call(item):
@@ -406,7 +448,11 @@ def pytest_json_modifyreport(json_report):
 def pytest_sessionfinish(session, exitstatus):
     logger.info("Executing pytest_sessionfinish")
 
-    context.scenario.close_targets()
+    if session.config.option.skip_empty_scenario and exitstatus == pytest.ExitCode.NO_TESTS_COLLECTED:
+        exitstatus = pytest.ExitCode.OK
+        session.exitstatus = pytest.ExitCode.OK
+
+    context.scenario.pytest_sessionfinish(session, exitstatus)
 
     if session.config.option.collectonly or session.config.option.replay:
         return
