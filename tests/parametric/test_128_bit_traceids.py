@@ -383,6 +383,7 @@ class Test_128_Bit_Traceids:
         assert dd_p_tid == "640cfd8d00000000"
         check_128_bit_trace_id(fields[1], trace_id, dd_p_tid)
 
+    @missing_feature(context.library < "nodejs@5.7.0", reason="implemented in 5.7.0 & 4.31.0")
     @missing_feature(context.library == "ruby", reason="not implemented")
     @pytest.mark.parametrize(
         "library_env",
