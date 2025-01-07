@@ -16,6 +16,6 @@ runs:
       id: extract
       shell: bash
       run: |
-        branch=$(echo "${{ inputs.text }}" | grep -ioP '(?<=\[java|dotnet|python|ruby|php|golang|cpp|agent|nodejs)@[^]]+(?=\])' | cut -c 2- | tr -d '[:space:]' || true)
+        branch=$(echo "${{ inputs.text }}" | grep -ioP '\[(?:java|dotnet|python|ruby|php|golang|cpp|agent|nodejs)@[^]]+(?=\])' | tr -d '[:space:]' || true)
 
-        echo "target-branch=${branch}" >> $GITHUB_OUTPUT
+        echo "target-branch=${branch#*@}" >> $GITHUB_OUTPUT
