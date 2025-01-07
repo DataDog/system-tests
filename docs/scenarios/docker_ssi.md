@@ -122,11 +122,71 @@ The following picture shows the main directories for the Docker SSI tests:
 * **utils/build/ssi/build_local_manual.sh:** The helper script to run the Docker SSI scenarios.
 * **utils/build/ssi/build_local_wizard.sh:** The wizard script to run the Docker SSI scenarios.
 * **utils/docker_ssi:** The core implementation of this test framework.
-* **.gitlab-ci.yml:** These tests are launched on GitLab.
 
 ## Docker SSI definitions
 
-dfasd
+The key of the matrix of OSs (docker base image), architectures, language versions and weblogs resides on the file: `utils/docker_ssi/docker_ssi_definitions.py`. This file is the glue for all the components of this large matrix.
+
+The first component is the Supported Images definition:
+
+```python
+class SupportedImages:
+    """All supported images"""
+
+    def __init__(self) -> None:
+        # Try to set the same name as utils/_context/virtual_machines.py
+        self.UBUNTU_22_AMD64 = DockerImage("Ubuntu_22", "ubuntu:22.04", LINUX_AMD64)
+        self.UBUNTU_22_ARM64 = DockerImage("Ubuntu_22", "ubuntu:22.04", LINUX_ARM64)
+        self.UBUNTU_16_AMD64 = DockerImage("Ubuntu_16", "ubuntu:16.04", LINUX_AMD64)
+        self.UBUNTU_16_ARM64 = DockerImage("Ubuntu_16", "ubuntu:16.04", LINUX_ARM64)
+        self.CENTOS_7_AMD64 = DockerImage("CentOS_7", "centos:7", LINUX_AMD64)
+```
+
+Other component to be defined is the installable runtime versions of the languages that are supported:
+
+```python
+class JavaRuntimeInstallableVersions:
+    """Java runtime versions that can be installed automatically"""
+
+    JAVA_22 = RuntimeInstallableVersion("JAVA_22", "22.0.2-zulu")
+    JAVA_21 = RuntimeInstallableVersion("JAVA_21", "21.0.4-zulu")
+    JAVA_17 = RuntimeInstallableVersion("JAVA_17", "17.0.12-zulu")
+    JAVA_11 = RuntimeInstallableVersion("JAVA_11", "11.0.24-zulu")
+
+class PHPRuntimeInstallableVersions:
+    """PHP runtime versions that can be installed automatically"""
+
+    PHP56 = RuntimeInstallableVersion("PHP56", "5.6")
+    PHP70 = RuntimeInstallableVersion("PHP70", "7.0")
+    PHP71 = RuntimeInstallableVersion("PHP71", "7.1")
+
+```
+
+Finally, there is a place to define the weblogs and specify on which OSs/docker base images can be deployed and whether it supports the installation of different language versions.
+
+```python
+JS_APP = WeblogDescriptor(
+    "js-app",
+    "nodejs",
+    [
+        SupportedImages().UBUNTU_22_AMD64.with_allowed_runtime_versions(
+            JSRuntimeInstallableVersions.get_all_versions()
+        ),
+        SupportedImages().UBUNTU_22_ARM64.with_allowed_runtime_versions(
+            JSRuntimeInstallableVersions.get_all_versions()
+        ),
+    ],
+)
+```
+
+Might be your weblog only supports one base image and it's required a runtime version to be installed, for example:
+
+```python
+TOMCAT_APP = WeblogDescriptor("tomcat-app", "java", [SupportedImages().TOMCAT_9_ARM64])
+JAVA7_APP = WeblogDescriptor("java7-app", "java", [SupportedImages().UBUNTU_22_ARM64])
+WEBSPHERE_APP = WeblogDescriptor("websphere-app", "java", [SupportedImages().WEBSPHERE_AMD64])
+JBOSS_APP = WeblogDescriptor("jboss-app", "java", [SupportedImages().JBOSS_AMD64])
+```
 
 ## Create a new weblog
 

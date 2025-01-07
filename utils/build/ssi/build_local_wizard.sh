@@ -1,4 +1,5 @@
 #!/bin/bash
+# shellcheck disable=SC2207,SC2162,SC2206
 
 # Path to the JSON file
 JSON_FILE="/tmp/matrix.json"
