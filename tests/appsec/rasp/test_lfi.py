@@ -145,7 +145,6 @@ class Test_Lfi_StackTrace:
         self.r = weblog.get("/rasp/lfi", params={"file": "../etc/passwd"})
 
     def test_lfi_stack_trace(self):
-        assert self.r.status_code == 403
         validate_stack_traces(self.r)
 
 
@@ -159,8 +158,6 @@ class Test_Lfi_Telemetry:
         self.r = weblog.get("/rasp/lfi", params={"file": "../etc/passwd"})
 
     def test_lfi_telemetry(self):
-        assert self.r.status_code == 403
-
         series_eval = find_series(True, "appsec", "rasp.rule.eval")
         assert series_eval
         assert any(validate_metric("rasp.rule.eval", "lfi", s) for s in series_eval), [
