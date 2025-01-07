@@ -130,7 +130,6 @@ class Test_Lfi_Optional_SpanTags:
     def setup_lfi_span_tags(self):
         self.r = weblog.get("/rasp/lfi", params={"file": "../etc/passwd"})
 
-    @bug(library="php", reason="APPSEC-54761")
     def test_lfi_span_tags(self):
         validate_span_tags(self.r, expected_metrics=["_dd.appsec.rasp.duration_ext", "_dd.appsec.rasp.rule.eval"])
 
