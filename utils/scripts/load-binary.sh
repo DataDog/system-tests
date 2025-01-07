@@ -35,6 +35,17 @@ assert_version_is_dev() {
   exit 1
 }
 
+assert_target_branch_is_not_set() {
+
+  if [ $TARGET_BRANCH = '' ]; then
+    return 0
+  fi
+
+  echo "It is not possible to specify target branch $TARGET_BRANCH for $TARGET yet"
+
+  exit 1
+}
+
 get_circleci_artifact() {
 
     SLUG=$1
@@ -162,10 +173,12 @@ cd binaries/
 
 if [ "$TARGET" = "java" ]; then
     assert_version_is_dev
+    assert_target_branch_is_not_set
     ../utils/scripts/docker_base_image.sh ghcr.io/datadog/dd-trace-java/dd-trace-java:latest_snapshot .
 
 elif [ "$TARGET" = "dotnet" ]; then
     assert_version_is_dev
+    assert_target_branch_is_not_set
     rm -rf *.tar.gz
     ../utils/scripts/docker_base_image.sh ghcr.io/datadog/dd-trace-dotnet/dd-trace-dotnet:latest_snapshot .
 
@@ -192,10 +205,12 @@ elif [ "$TARGET" = "php" ]; then
     else
         echo "Don't know how to load version $VERSION for $TARGET"
     fi
+    assert_target_branch_is_not_set
     mv ./temp/dd-library-php*.tar.gz . && mv ./temp/datadog-setup.php . && rm -rf ./temp
 
 elif [ "$TARGET" = "golang" ]; then
     assert_version_is_dev
+    assert_target_branch_is_not_set
     rm -rf golang-load-from-go-get
 
     # COMMIT_ID=$(curl -s 'https://api.github.com/repos/DataDog/dd-trace-go/branches/main' | jq -r .commit.sha)
@@ -234,6 +249,7 @@ elif [ "$TARGET" = "waf_rule_set_v1" ]; then
 
 elif [ "$TARGET" = "waf_rule_set_v2" ]; then
     assert_version_is_dev
+    assert_target_branch_is_not_set
     curl --silent \
         -H "Authorization: token $GH_TOKEN" \
         -H "Accept: application/vnd.github.v3.raw" \
@@ -242,6 +258,7 @@ elif [ "$TARGET" = "waf_rule_set_v2" ]; then
 
 elif [ "$TARGET" = "waf_rule_set" ]; then
     assert_version_is_dev
+    assert_target_branch_is_not_set
     curl --fail --output "waf_rule_set.json" \
         -H "Authorization: token $GH_TOKEN" \
         -H "Accept: application/vnd.github.v3.raw" \

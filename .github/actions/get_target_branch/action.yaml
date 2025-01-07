@@ -18,13 +18,4 @@ runs:
       run: |
         branch=$(echo "${{ inputs.text }}" | grep -ioP '(?<=\[java|dotnet|python|ruby|php|golang|cpp|agent|nodejs)@[^]]+(?=\])' | cut -c 2- | tr -d '[:space:]' || true)
 
-        if [ -n "$branch" ]; then
-          notsupported=$(echo "$text" | grep -ioP '(java|dotnet|php|golang)' || true)
-
-          if [ -n "$notsupported" ]; then
-            echo "It is not possible to specify target branch for $notsupported yet"
-            exit 1
-          fi
-        fi
-
         echo "target-branch=${branch}" >> $GITHUB_OUTPUT
