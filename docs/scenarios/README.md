@@ -48,7 +48,7 @@ Parametric scenarios are designed to validate tracer and span interfaces. They a
 
 ### Auto-Inject/Onboarding scenarios
 
-Automatic library injection simplifies the APM onboarding experience for customers deploying Java, Node.js, .NET, Python and Ruby applications in VMs and docker environments. Datadog software installed on the machine will be intercept the startup of your application and it will inject the tracer library automatically. The Onboarding scenarios reproduce different environments and check the library injection is done correctly. More detailed documentation can be found [here](https://github.com/DataDog/system-tests/blob/main/docs/scenarios/onboarding.md).
+Automatic library injection simplifies the APM onboarding experience for customers deploying Java, Node.js, .NET, Python and Ruby applications in VMs and containerized environments. Datadog software installed on the machine will intercept the startup of your application and inject the tracer library automatically. The Onboarding scenarios reproduce different environments and check that the library injection is done correctly. More detailed documentation can be found [here](https://github.com/DataDog/system-tests/blob/main/docs/scenarios/onboarding.md).
 
 ### Kubernetes Auto-Inject scenarios
 
