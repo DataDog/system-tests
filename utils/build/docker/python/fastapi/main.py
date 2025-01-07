@@ -106,6 +106,7 @@ async def iast_header_injection_secure(request: Request):
     response.headers["Vary"] = header_value
     return response
 
+
 @app.get("/sample_rate_route/{i}", response_class=PlainTextResponse)
 async def sample_rate(i):
     return "OK"
