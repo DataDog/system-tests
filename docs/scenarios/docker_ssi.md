@@ -5,11 +5,11 @@
    * [Run the scenario](#run-the-scenario)
 3. [How to develop tests](#How-to-develop-a-test-case)
    * [Folders and Files structure](#Folders-and-Files-structure)
-   * [Create a new provision](#Create-a-new-provision)
+   * [Docker SSI definitions](#Docker-SSI-definitions)
    * [Create a new weblog](#Create-a-new-weblog)
+     - [Create a new weblog using a prebuilt docker image](#Create-a-new-weblog-using-a-prebuilt-docker-image)
+     - [Create a new weblog deployable on different containers or operating systems](#Create-a-new-weblog-deployable-on-different-containers-or-operating-systems)
    * [Create a new test case](#Create-a-new-test-case)
-4. [How to debug your environment and tests results](#How-to-debug-your-environment-and-tests-results)
-5. [How to debug a virtual machine at runtime](#How-to-debug-a-virtual-machine-at-runtime)
 
 # Overall
 
@@ -190,73 +190,212 @@ JBOSS_APP = WeblogDescriptor("jboss-app", "java", [SupportedImages().JBOSS_AMD64
 
 ## Create a new weblog
 
-daff
+We can differentiate between two types of applications:
+
+- Applications that come already prepared/wrapped with a base image. For example, tomcat or jboss.
+- "Normal” applications that we encapsulate in a docker container and that in theory could be executed in more than one base image. For example, my HelloWorld application could run on Ubuntu22, Debian 12, RedHat.... images.
+
+The two previous points, will be better understood by following examplesThe previous.
+
+### Create a new weblog using a prebuilt docker image
+
+For example, the Tomcat Java Web Server is distributed by a prebuilt docker images. If we want to test the tomcat 9, but we don't need to test Tomcat 9 installed on different Operating Systems, we could use the tomcat prebuilt images.
+
+If we want to test the tomcat 9 image deploying a web application we'd do this:
+
+```yaml
+#Build the web app
+FROM maven:3.5.3-jdk-8-alpine as build
+WORKDIR /app
+COPY lib-injection/build/docker/java/enterprise/ ./
+RUN mvn clean package
+
+#Deploy/Run the built app on a tomcat 9
+FROM tomcat:9
+COPY --from=build app/payment-service/target/payment-service*.war /usr/local/tomcat/webapps/
+```
+
+We can convert this standard image into "Docker SSI" image. We only need to parametrize the "From" clausule, and store the dockerfile as `utils/build/ssi/java/tomcat-app.Dockerfile`:
+
+```yaml
+ARG BASE_IMAGE
+
+FROM maven:3.5.3-jdk-8-alpine as build
+WORKDIR /app
+COPY lib-injection/build/docker/java/enterprise/ ./
+RUN mvn clean package
+
+FROM ${BASE_IMAGE}
+COPY --from=build app/payment-service/target/payment-service*.war /usr/local/tomcat/webapps/
+#This is the endpoint to be used by the tests to make a request to the weblog. If your app it's listenning on "http://localhost:18080" you don't need to use the "WEBLOG_URL"
+ENV WEBLOG_URL=http://localhost:8080/payment-service/
+ENV DD_INSTRUMENT_SERVICE_WITH_APM=true
+```
+
+As final step, we should register the new weblog in the docker ssi definitions file (`utils/docker_ssi/docker_ssi_definitions.py`):
+
+```python
+class SupportedImages:
+    """All supported images"""
+
+    def __init__(self) -> None:
+        self.TOMCAT_9_AMD64 = DockerImage("Tomcat_9", "tomcat:9", LINUX_AMD64)
+        self.TOMCAT_9_ARM64 = DockerImage("Tomcat_9", "tomcat:9", LINUX_ARM64)
+...
+TOMCAT_APP = WeblogDescriptor("tomcat-app", "java", [SupportedImages().TOMCAT_9_ARM64, SupportedImages().TOMCAT_9_AMD64])
+...
+# HERE ADD YOUR WEBLOG DEFINITION TO THE LIST
+ALL_WEBLOGS = [
+    ...,
+    TOMCAT_APP,
+    ...
+]
+
+```
+
+---
+
+**NOTE:**
+
+When system-tests builds the docker images is going to install the SSI software inside of the container.
+
+---
+
+If we want to run the "DOCKER_SSI" test cases for this new weblog:
+
+```bash
+./run.sh DOCKER_SSI --ssi-weblog tomcat-app --ssi-library java --ssi-base-image tomcat:9 --ssi-arch linux/arm64
+```
+
+### Create a new weblog deployable on different containers or operating systems
+
+We will use these types of weblogs to run an application agains different operating systems and distincs language runtime versions.
+
+For example, we can define the PHP application that run the app into different OS and PHP runtime versions (`utils/build/ssi/php/php-app.Dockerfile`):
+
+```yaml
+ARG BASE_IMAGE
+
+FROM ${BASE_IMAGE}
+WORKDIR /app
+
+RUN printf "<?php\necho 'hi';\n" > index.php
+
+# Without the sleep, the docker network has issues
+CMD ["sh", "-c", "sleep 2; php -S 0.0.0.0:18080"]
+```
+
+As final step, we should register the new weblog in the docker ssi definitions file (`utils/docker_ssi/docker_ssi_definitions.py`):
+
+```python
+class SupportedImages:
+    """All supported images"""
+
+    def __init__(self) -> None:
+        # Try to set the same name as utils/_context/virtual_machines.py
+        self.UBUNTU_22_AMD64 = DockerImage("Ubuntu_22", "ubuntu:22.04", LINUX_AMD64)
+        self.UBUNTU_24_ARM64 = DockerImage("Ubuntu_24", "ubuntu:24.04", LINUX_ARM64)
+
+class PHPRuntimeInstallableVersions:
+    """PHP runtime versions that can be installed automatically"""
+
+    PHP56 = RuntimeInstallableVersion("PHP56", "5.6")  # Not supported (EOL runtime)
+    PHP70 = RuntimeInstallableVersion("PHP70", "7.0")
+    PHP71 = RuntimeInstallableVersion("PHP71", "7.1")
+    PHP72 = RuntimeInstallableVersion("PHP72", "7.2")
+    PHP73 = RuntimeInstallableVersion("PHP73", "7.3")
+    PHP74 = RuntimeInstallableVersion("PHP74", "7.4")
+    PHP80 = RuntimeInstallableVersion("PHP80", "8.0")
+    PHP81 = RuntimeInstallableVersion("PHP81", "8.1")
+    PHP82 = RuntimeInstallableVersion("PHP82", "8.2")
+    PHP83 = RuntimeInstallableVersion("PHP83", "8.3")
+
+...
+
+PHP_APP = WeblogDescriptor(
+    "php-app",
+    "php",
+    [
+        SupportedImages().UBUNTU_22_AMD64.with_allowed_runtime_versions(
+            PHPRuntimeInstallableVersions.get_all_versions()
+        ),
+        SupportedImages().UBUNTU_24_ARM64.with_allowed_runtime_versions(
+            PHPRuntimeInstallableVersions.get_all_versions()
+        ),
+    ],
+)
+
+...
+# HERE ADD YOUR WEBLOG DEFINITION TO THE LIST
+ALL_WEBLOGS = [
+    ...,
+    PHP_APP,
+    ...
+]
+```
+
+---
+
+**NOTE:**
+
+When system-tests builds the docker images is going to install the SSI software inside of the container and the required runtime version.
+
+---
+
+If we want to run a "DOCKER_SSI" test case for this new weblog:
+
+```bash
+./run.sh DOCKER_SSI --ssi-weblog php-app --ssi-library php --ssi-base-image ubuntu:22.04 --ssi-arch linux/amd64 --ssi-installable-runtime PHP70
+```
 
 ## Create a new test case
 
-dasfs
+The creation of test methods for the “Docker SSI” scenarios does not require anything special, we will do it as it is done for the rest of the system-tests scenarios.
+We can make request to the deployed weblog and make assertiong throught the "test agent" interface:
 
-# How to debug your environment and tests results
+```python
+@scenarios.docker_ssi
+class TestDockerSSIFeatures:
+    """Test the ssi in a simulated host injection environment (docker container + test agent)
+    We test that the injection is performed and traces and telemetry are generated.
+    If the language version is not supported, we only check that we don't break the app and telemetry is generated."""
 
-In the virtual machine scenarios, multiple components are involved and sometimes can be painfull to debug a failure. You can find a folder named "logs_[scenario name]" with all the logs associated with the execution In the following image you can see the log folder content:
 
-![Log folder structure](../lib-injection/ssi_lib_injections_log_folders.png "Log folder structure")
+    def setup_install_supported_runtime(self):
 
-These are the main important log/data files:
+       parsed_url = urlparse(context.scenario.weblog_url)
+       logger.info(f"Setting up Docker SSI installation WEBLOG_URL {context.scenario.weblog_url}")
+       self.r = weblog.request(
+                "GET", parsed_url.path, domain=parsed_url.hostname, port=parsed_url.port
+       )
+       logger.info(f"Setup Docker SSI installation {TestDockerSSIFeatures._r}")
 
-* **test.log:** General log generated by system-tests. Here you will see the Pulumi outputs of the remote provisions.
-* **report.json:** Pytest results report.
-* **feature_parity.json:** Report to push the results to Feature Parity Dashboard.
-* **report.json:** Pytest results report.
-* **[vm name].log:** Logs related with the remote commands executed on the machine.
-* **vms_desc.log:** Contains the IP assigned to the remote machine.
-* **tested_components.log:** Contains a JSON with the versions of the components that are being tested in this scenario.
-* **[machine name]/var/log/datadog/:** In this folder you will see the outputs of the datadog agent and all related deployed components.
-* **[machine name]/var/log/datadog_weblog/app.log:** Logs produced by the weblog application.
 
-# How to debug a virtual machine at runtime
+    def setup_install_supported_runtime(self):
+        self._setup_all()
 
-Locally you can debug the remote machine by SSH. To do that you only need:
+    @features.ssi_guardrails
+    def test_install_supported_runtime(self):
+        logger.info(f"Testing Docker SSI installation on supported lang runtime: {context.scenario.library.library}")
+        assert self.r.status_code == 200, f"Failed to get response from {context.scenario.weblog_url}"
 
-* Keep alive the machine after the test execution.
-* Use your own AWS key-pair to configure the SSH connection and connect to the machine ([Create a key pair for your Amazon EC2 instance](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/create-key-pairs.html)).
+        # If the language version is supported there are traces related with the request
+        traces_for_request = interfaces.test_agent.get_traces(request=self.r)
+        assert traces_for_request, f"No traces found for request {get_rid_from_request(self.r)}"
+        assert "runtime-id" in traces_for_request["meta"], "No runtime-id found in traces"
 
-You can do that using the environment variables. For example:
-
-```bash
-#Mandatory env variables
-export ONBOARDING_AWS_INFRA_SUBNET_ID=subnet-xyz
-export ONBOARDING_AWS_INFRA_SECURITY_GROUPS_ID=sg-xyz
-export DD_API_KEY_ONBOARDING=apikey
-export DD_APP_KEY_ONBOARDING=appkey
-
-#The key pair configuration
-export ONBOARDING_AWS_INFRA_KEYPAIR_NAME="my_key_pair"
-export ONBOARDING_AWS_INFRA_KEY_PATH="/home/my_user/key_pairs/my_key_pair.pem"
-
-#Variables to keep alive the machine after run the tests
-export ONBOARDING_KEEP_VMS="true"
-export ONBOARDING_LOCAL_TEST="true"
-
-#Run the tests
-./run.sh SIMPLE_INSTALLER_AUTO_INJECTION --vm-weblog test-app-nodejs --vm-env dev --vm-library nodejs --vm-provider aws --vm-only Ubuntu_22_amd64
+        # There is telemetry data related with the runtime-id
+        telemetry_data = interfaces.test_agent.get_telemetry_for_runtime(traces_for_request["meta"]["runtime-id"])
+        assert telemetry_data, "No telemetry data found"
 
 ```
 
-After the test execution, you will need to open the log file "logs_folder/vms_desc.log" to get the remote machine IP, after that, you should be able to access to the machine in a interactive shell:
+You could use the system-tests decorator to skip the tests or mark them as bug. For example:
 
-```bash
-ssh -i "/home/my_user/key_pairs/my_key_pair.pem" ec2-user@99.99.99.99
-```
-
-You can also use SCP to upload and download files to/from the remote machine:
-
-```bash
-scp -i "/home/my_user/key_pairs/my_key_pair.pem" ubuntu@99.99.99.99:/home/ubuntu/javaagent-example/hola.txt .
-```
-
-Remember destroy the pulumi stack to shutdown and remove the ec2 instance:
-
-```bash
-pulumi destroy
+```python
+    @bug(condition=context.library == "python", reason="INPLAT-11")
+    @irrelevant(context.library == "java" and context.installed_language_runtime < "1.8.0_0")
+    @irrelevant(context.library == "php" and context.installed_language_runtime < "7.0")
+    @irrelevant(context.library == "nodejs" and context.installed_language_runtime < "17.0")
+    def test_install_supported_runtime(self):
 ```
