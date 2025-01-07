@@ -38,7 +38,7 @@ System-tests contains various testing scenarios; the two most commonly used are 
 
 ### End to end scenarios
 
-Based on class `EndToEndScenario`, they spawn a "weblog" HTTP server designed to mimick customer applications with automatic instrumentation, a "test-agent" to mimick the Datadog Agent, and communication with the Datadog backend via a proxy. The `DEFAULT` scenario is the main scenario of system tests, and is in this family.
+Based on the class `EndToEndScenario`, they spawn a "weblog" HTTP server designed to mimic customer applications with automatic instrumentation, a "test-agent" to mimic the Datadog Agent, and communication with the Datadog backend via a proxy. The `DEFAULT` scenario is the main scenario of system tests, and is in this family.
 
 End-To-End scenarios are good for testing real-world scenarios — they support the full lifecycle of a trace (hence the name, "End-To-End"). Use End-To-End scenarios to test tracing integrations, security products, profiling, dynamic instrumentation, and more. When in doubt, use end-to-end.
 
