@@ -81,7 +81,6 @@ tests/:
         test_header_injection.py:
           TestHeaderInjection:
             '*': v2.10.0
-            fastapi: missing_feature
           TestHeaderInjectionExclusionAccessControlAllow: missing_feature
           TestHeaderInjectionExclusionContentEncoding: missing_feature
           TestHeaderInjectionExclusionPragma: missing_feature
