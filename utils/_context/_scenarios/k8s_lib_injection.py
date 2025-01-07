@@ -44,7 +44,6 @@ class K8sScenario(Scenario):
         self.with_admission_controller = with_admission_controller
         self.weblog_env = weblog_env
         self.dd_cluster_feature = dd_cluster_feature
-        self._tested_components = {}
 
     def configure(self, config):
         # These are the tested components: dd_cluser_agent_version, weblog image, library_init_version
@@ -57,7 +56,7 @@ class K8sScenario(Scenario):
         )
         self.k8s_cluster_version = config.option.k8s_cluster_version
         self.k8s_lib_init_img = config.option.k8s_lib_init_img
-        self._tested_components["cluster_agent"] = self.k8s_cluster_version
+        self.components["cluster_agent"] = self.k8s_cluster_version
 
         # Configure the K8s cluster provider
         self.k8s_cluster_provider = K8sProviderFactory().get_provider(self.k8s_provider_name)
@@ -118,6 +117,9 @@ class K8sScenario(Scenario):
             warmups.append(self.test_weblog.install_weblog_pod_without_admission_controller)
         return warmups
 
+    def pytest_sessionfinish(self, session, exitstatus):  # noqa: ARG002
+        self.close_targets()
+
     def close_targets(self):
         if self._sleep_mode:
             logger.info("Sleep mode enabled, not extracting debug cluster")
@@ -140,10 +142,6 @@ class K8sScenario(Scenario):
     @property
     def k8s_cluster_agent_version(self):
         return Version(self.k8s_cluster_version)
-
-    @property
-    def components(self):
-        return self._tested_components
 
 
 class K8sSparkScenario(K8sScenario):
@@ -247,6 +245,9 @@ class WeblogInjectionScenario(Scenario):
         warmups.append(self._start_containers)
 
         return warmups
+
+    def pytest_sessionfinish(self, session, exitstatus):  # noqa: ARG002
+        self.close_targets()
 
     def close_targets(self):
         for container in reversed(self._required_containers):
