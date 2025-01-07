@@ -579,6 +579,12 @@ class EndToEndScenario(DockerScenario):
                 ticket="DEBUG-2864",
             ),
             _SchemaBug(
+                endpoint="/debugger/v1/diagnostics",
+                data_path="$[].content[].debugger.diagnostics",
+                condition=context.library == "nodejs",
+                ticket="DEBUG-3245",
+            ),
+            _SchemaBug(
                 endpoint="/debugger/v1/input",
                 data_path="$[].debugger.snapshot.stack[].lineNumber",
                 condition=context.library in ("python@2.16.2", "python@2.16.3")

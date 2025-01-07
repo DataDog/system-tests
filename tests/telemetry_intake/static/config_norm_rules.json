@@ -710,6 +710,7 @@
     "trace.jmxfetch.kafka.enabled": "trace_jmxfetch_kafka_enabled",
     "trace.jmxfetch.tomcat.enabled": "trace_jmxfetch_tomcat_enabled",
     "trace.kafka.client.propagation.enabled": "trace_kafka_client_propagation_enabled",
+    "trace.kafka_distributed_tracing": "trace_kafka_distributed_tracing",
     "trace.laravel_queue_distributed_tracing": "trace_laravel_queue_distributed_tracing",
     "trace.log_file": "trace_log_file",
     "trace.log_level": "trace_log_level",
