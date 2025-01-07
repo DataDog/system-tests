@@ -41,7 +41,7 @@ assert_target_branch_is_not_set() {
     return 0
   fi
 
-  echo "It is not possible to specify target branch $TARGET_BRANCH for $TARGET yet"
+  echo "It is not possible to specify the '$TARGET_BRANCH' target branch for $TARGET library yet"
 
   exit 1
 }

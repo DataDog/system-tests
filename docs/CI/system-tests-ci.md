@@ -16,7 +16,7 @@ By default, after some basic test/lint jobs, this pipeline build alls weblogs (6
 This workflow can validate any system-tests PR, as long as it modifies only the default scenario, which is the most common use case. See more details in the [docs about labels](./labels)
 
 ### Target branch selection
-`dev` version uses `main/master` branch by default but, in the case of some libraries (nodejs, python and ruby), it is possible to configure the CI to use a target branch.
+`dev` version uses `main/master` branch by default but, in the case of some libraries (cpp, agent, nodejs, python and ruby), it is possible to configure the CI to use a target branch.
 
 If the PR's title includes `[target_library@branch_name_to_test]` the workflow will use `branch_name_to_test` instead of `main/master` branch.
 
