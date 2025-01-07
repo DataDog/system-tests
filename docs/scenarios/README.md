@@ -6,7 +6,7 @@ In system-tests, a scenario is a set of:
 
 ## How to identify a scenario?
 
-Every scenarios is identified by an unique identifier in capital letter, like `APPSEC_IP_BLOCKING_FULL_DENYLIST`. To specify a scenario, simply use its name after `run.sh`:
+Every scenario is identified by a unique identifier in capital letters, like `APPSEC_IP_BLOCKING_FULL_DENYLIST`. To specify a scenario, simply use its name after `run.sh`:
 
 ```bash
 ./run.sh APPSEC_IP_BLOCKING_FULL_DENYLIST
