@@ -345,7 +345,7 @@ def rasp_shi(*args, **kwargs):
             pass
 
     if list_dir is None:
-        return "missing user_id parameter", 400
+        return "missing list_dir parameter", 400
     try:
         command = f"ls {list_dir}"
         res = os.system(command)
@@ -353,6 +353,33 @@ def rasp_shi(*args, **kwargs):
     except Exception as e:
         print(f"Shell command failure: {e!r}", file=sys.stderr)
         return f"Shell command failure: {e!r}", 201
+
+
+@app.route("/rasp/cmdi", methods=["GET", "POST"])
+def rasp_cmdi(*args, **kwargs):
+    cmd = None
+    if request.method == "GET":
+        cmd = flask_request.args.get("command")
+    elif request.method == "POST":
+        try:
+            cmd = (request.form or request.json or {}).get("command")
+        except Exception as e:
+            print(repr(e), file=sys.stderr)
+        try:
+            if cmd is None:
+                cmd = xmltodict.parse(flask_request.data).get("command")
+        except Exception as e:
+            print(repr(e), file=sys.stderr)
+            pass
+
+    if cmd is None:
+        return "missing cmd parameter", 400
+    try:
+        res = subprocess.run(cmd, capture_output=True)
+        return f"Exec command [{cmd}] with result: [{res.returncode}]: {res.stdout}", 200
+    except Exception as e:
+        print(f"Exec command failure: {e!r}", file=sys.stderr)
+        return f"Exec command failure: {e!r}", 201
 
 
 ### END EXPLOIT PREVENTION
