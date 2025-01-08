@@ -81,7 +81,7 @@ tests/:
         test_header_injection.py:
           TestHeaderInjection:
             '*': v2.10.0
-            fastapi: missing_feature
+            fastapi: v2.20.0.dev
           TestHeaderInjectionExclusionAccessControlAllow: missing_feature
           TestHeaderInjectionExclusionContentEncoding: missing_feature
           TestHeaderInjectionExclusionPragma: missing_feature
@@ -456,11 +456,11 @@ tests/:
       Test_V2_Login_Events: v2.11.0
       Test_V2_Login_Events_Anon: v2.11.0
       Test_V2_Login_Events_RC: v2.11.0
-      Test_V3_Auto_User_Instrum_Mode_Capability: missing_feature
+      Test_V3_Auto_User_Instrum_Mode_Capability: v2.11.0
       Test_V3_Login_Events: missing_feature
       Test_V3_Login_Events_Anon: missing_feature
       Test_V3_Login_Events_Blocking: missing_feature
-      Test_V3_Login_Events_RC: missing_feature
+      Test_V3_Login_Events_RC: v2.11.0
     test_automated_user_and_session_tracking.py:
       Test_Automated_Session_Blocking: missing_feature
       Test_Automated_User_Blocking: missing_feature
