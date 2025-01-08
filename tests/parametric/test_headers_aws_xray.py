@@ -28,6 +28,7 @@ class Test_Headers_AWS_Xray:
     @missing_feature(context.library == "dotnet", reason="AWS Xray propagation formatted not supported yet.")
     @missing_feature(context.library == "golang", reason="AWS Xray propagation formatted not supported yet.")
     @missing_feature(context.library == "php", reason="AWS Xray propagation formatted not supported yet.")
+    @missing_feature(context.library == "python", reason="AWS Xray propagation formatted not supported yet.")
     def test_headers_aws_xray_extract_valid(self, test_agent, test_library):
         """Ensure that AWS Xray distributed tracing headers are extracted
         and activated properly.
@@ -50,6 +51,7 @@ class Test_Headers_AWS_Xray:
     @missing_feature(context.library == "dotnet", reason="AWS Xray propagation formatted not supported yet.")
     @missing_feature(context.library == "golang", reason="AWS Xray propagation formatted not supported yet.")
     @missing_feature(context.library == "php", reason="AWS Xray propagation formatted not supported yet.")
+    @missing_feature(context.library == "python", reason="AWS Xray propagation formatted not supported yet.")
     def test_headers_aws_xray_extract_invalid(self, test_agent, test_library):
         """Ensure that invalid AWS Xray distributed tracing headers are not extracted."""
         with test_library:
@@ -66,6 +68,7 @@ class Test_Headers_AWS_Xray:
     @missing_feature(context.library == "dotnet", reason="AWS Xray propagation formatted not supported yet.")
     @missing_feature(context.library == "golang", reason="AWS Xray propagation formatted not supported yet.")
     @missing_feature(context.library == "php", reason="AWS Xray propagation formatted not supported yet.")
+    @missing_feature(context.library == "python", reason="AWS Xray propagation formatted not supported yet.")
     def test_headers_aws_xray_inject_valid(self, test_agent, test_library):
         """Ensure that AWS Xray distributed tracing headers are injected properly."""
         with test_library:
@@ -92,6 +95,7 @@ class Test_Headers_AWS_Xray:
     @missing_feature(context.library == "dotnet", reason="AWS Xray propagation formatted not supported yet.")
     @missing_feature(context.library == "golang", reason="AWS Xray propagation formatted not supported yet.")
     @missing_feature(context.library == "php", reason="AWS Xray propagation formatted not supported yet.")
+    @missing_feature(context.library == "python", reason="AWS Xray propagation formatted not supported yet.")
     def test_headers_aws_xray_propagate_valid(self, test_agent, test_library):
         """Ensure that AWS Xray distributed tracing headers are extracted
         and injected properly.
@@ -121,6 +125,7 @@ class Test_Headers_AWS_Xray:
     @missing_feature(context.library == "dotnet", reason="AWS Xray propagation formatted not supported yet.")
     @missing_feature(context.library == "golang", reason="AWS Xray propagation formatted not supported yet.")
     @missing_feature(context.library == "php", reason="AWS Xray propagation formatted not supported yet.")
+    @missing_feature(context.library == "python", reason="AWS Xray propagation formatted not supported yet.")
     def test_headers_aws_xray_propagate_invalid(self, test_agent, test_library):
         """Ensure that invalid AWS Xray distributed tracing headers are not extracted
         and the new span context is injected properly.
