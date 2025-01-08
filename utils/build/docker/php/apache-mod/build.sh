@@ -29,7 +29,14 @@ printf '#!/bin/sh\n\nexit 101\n' > /usr/sbin/policy-rc.d && \
 
 a2enmod rewrite
 
-curl -Lf -o /tmp/dumb_init.deb https://github.com/Yelp/dumb-init/releases/download/v1.2.5/dumb-init_1.2.5_amd64.deb && \
+ARCH=$(arch)
+if [[ $ARCH = aarch64 ]]; then
+  ARCH=arm64
+else
+  ARCH=amd64
+fi
+
+curl -Lf -o /tmp/dumb_init.deb https://github.com/Yelp/dumb-init/releases/download/v1.2.5/dumb-init_1.2.5_${ARCH}.deb && \
 	dpkg -i /tmp/dumb_init.deb && rm /tmp/dumb_init.deb
 
 
@@ -51,8 +58,6 @@ a2enmod php
 sed -i s/80/7777/ /etc/apache2/ports.conf
 
 /install_ddtrace.sh 1
-
-SYSTEM_TESTS_LIBRARY_VERSION=$(cat /binaries/SYSTEM_TESTS_LIBRARY_VERSION)
 
 if [[ -f "/etc/php/98-ddtrace.ini" ]]; then
     grep -E 'datadog.trace.request_init_hook|datadog.trace.sources_path' /etc/php/98-ddtrace.ini >> /etc/php/php.ini

@@ -1,5 +1,6 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using System.Globalization;
+using System.Reflection;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -29,13 +30,13 @@ public abstract class ApmTestApiOtel : ApmTestApi
     {
         var requestBodyObject = await DeserializeRequestObjectAsync(request.Body);
 
-        _logger.LogInformation("OtelStartSpan: {RequestBodyObject}", requestBodyObject);
+        _logger?.LogInformation("OtelStartSpan: {RequestBodyObject}", requestBodyObject);
 
         ActivityContext? localParentContext = null;
         ActivityContext? remoteParentContext = null;
 
         // try getting parent context from parent id (local parent)
-        if (requestBodyObject!.TryGetValue("parent_id", out var parentId))
+        if (requestBodyObject!.TryGetValue("parent_id", out var parentId) && parentId is not null)
         {
             var stringParentId = parentId.ToString();
 
@@ -43,30 +44,6 @@ public abstract class ApmTestApiOtel : ApmTestApi
             {
                 var parentActivity = FindActivity(parentId);
                 localParentContext = parentActivity.Context;
-            }
-        }
-
-        // try extracting parent context from headers (remote parent)
-        if (requestBodyObject.TryGetValue("http_headers", out var headersList))
-        {
-            var extractedContext = _spanContextExtractor.Extract(
-            ((Newtonsoft.Json.Linq.JArray)headersList).ToObject<string[][]>(),
-            getter: GetHeaderValues!);
-
-            _logger.LogInformation("Extracted SpanContext: {ExtractedContext}", extractedContext);
-
-            if (extractedContext is not null)
-            {
-                var parentTraceId = ActivityTraceId.CreateFromString(RawTraceId.GetValue(extractedContext) as string);
-                var parentSpanId = ActivitySpanId.CreateFromString(RawSpanId.GetValue(extractedContext) as string);
-                var flags = (SamplingPriority.GetValue(extractedContext) as int?) > 0 ? ActivityTraceFlags.Recorded : ActivityTraceFlags.None;
-
-                remoteParentContext = new ActivityContext(
-                    parentTraceId,
-                    parentSpanId,
-                    flags,
-                    AdditionalW3CTraceState.GetValue(extractedContext) as string,
-                    isRemote: true);
             }
         }
 
@@ -79,7 +56,7 @@ public abstract class ApmTestApiOtel : ApmTestApi
         }
 
         DateTimeOffset startTime = default;
-        if (requestBodyObject.TryGetValue("timestamp", out var timestamp))
+        if (requestBodyObject.TryGetValue("timestamp", out var timestamp) && timestamp is not null)
         {
             startTime = new DateTime(1970, 1, 1) + TimeSpan.FromMicroseconds(Convert.ToInt64(timestamp));
         }
@@ -88,23 +65,23 @@ public abstract class ApmTestApiOtel : ApmTestApi
 
         var kind = ActivityKind.Internal;
 
-        if (requestBodyObject.TryGetValue("span_kind", out var spanKind))
+        if (requestBodyObject.TryGetValue("span_kind", out var spanKind) && spanKind is not null)
         {
             switch (Convert.ToInt64(spanKind))
             {
-                case 1:
+                case 0:
                     kind = ActivityKind.Internal;
                     break;
-                case 2:
+                case 1:
                     kind = ActivityKind.Server;
                     break;
-                case 3:
+                case 2:
                     kind = ActivityKind.Client;
                     break;
-                case 4:
+                case 3:
                     kind = ActivityKind.Producer;
                     break;
-                case 5:
+                case 4:
                     kind = ActivityKind.Consumer;
                     break;
                 default:
@@ -127,32 +104,7 @@ public abstract class ApmTestApiOtel : ApmTestApi
                     tags = ToActivityTagsCollection(((Newtonsoft.Json.Linq.JObject?)spanLink["attributes"])?.ToObject<Dictionary<string, object>>());
                 }
 
-                ActivityContext contextToLink = new ActivityContext();
-
-                if (parentSpanLink != null && parentSpanLink > 0)
-                {
-                    contextToLink = FindActivity(parentSpanLink).Context;
-                }
-                else
-                {
-                    var extractedContext = _spanContextExtractor.Extract(
-                            ((Newtonsoft.Json.Linq.JArray)spanLink["http_headers"]).ToObject<string[][]>(),
-                            getter: GetHeaderValues!);
-
-                    var parentTraceId = ActivityTraceId.CreateFromString(RawTraceId.GetValue(extractedContext) as string);
-                    var parentSpanId = ActivitySpanId.CreateFromString(RawSpanId.GetValue(extractedContext) as string);
-                    var flags = (SamplingPriority.GetValue(extractedContext) as int?) > 0 ? ActivityTraceFlags.Recorded : ActivityTraceFlags.None;
-                    var datadogHeadersTracestate = W3CTraceContextCreateTraceStateHeader.Invoke(null, new object[] { extractedContext });
-                    var tracestate = (string)spanLink["http_headers"][1][0] == "tracestate" ? (string)spanLink["http_headers"][1][1] : datadogHeadersTracestate;
-
-                    contextToLink = new ActivityContext(
-                        parentTraceId,
-                        parentSpanId,
-                        flags,
-                        (string)tracestate,
-                        isRemote: true);
-                }
-
+                ActivityContext contextToLink = FindActivity(parentSpanLink).Context;
                 linksList.Add(new ActivityLink(contextToLink, tags));
             }
         }
@@ -178,7 +130,7 @@ public abstract class ApmTestApiOtel : ApmTestApi
             SetTag(activity, ((Newtonsoft.Json.Linq.JObject)attributes).ToObject<Dictionary<string,object>>());
         }
 
-        _logger.LogInformation("Started Activity: OperationName={OperationName}", activity.OperationName);
+        _logger?.LogInformation("Started Activity: OperationName={OperationName}", activity.OperationName);
 
         ulong traceId = ulong.Parse(activity.TraceId.ToString().AsSpan(16, 16), NumberStyles.HexNumber);
         ulong spanId = ulong.Parse(activity.SpanId.ToString(), NumberStyles.HexNumber);
@@ -194,7 +146,7 @@ public abstract class ApmTestApiOtel : ApmTestApi
             span_id = spanId,
         });
 
-        _logger.LogInformation("OtelStartSpanReturn: {Result}", result);
+        _logger?.LogInformation("OtelStartSpanReturn: {Result}", result);
         return result;
     }
 
@@ -202,26 +154,26 @@ public abstract class ApmTestApiOtel : ApmTestApi
     {
         var requestBodyObject = await DeserializeRequestObjectAsync(request.Body);
 
-        _logger.LogInformation("OtelEndSpan: {RequestBodyObject}", requestBodyObject);
+        _logger?.LogInformation("OtelEndSpan: {RequestBodyObject}", requestBodyObject);
 
         var activity = FindActivity(requestBodyObject["id"]);
 
-        if (!string.IsNullOrEmpty(requestBodyObject["timestamp"].ToString()))
+        if (requestBodyObject.TryGetValue("timestamp", out var timestamp) && timestamp is not null)
         {
-            DateTimeOffset convertedTimestamp = new DateTime(1970, 1, 1) + TimeSpan.FromMicroseconds(Convert.ToInt64(requestBodyObject["timestamp"]));
+            DateTimeOffset convertedTimestamp = new DateTime(1970, 1, 1) + TimeSpan.FromMicroseconds(Convert.ToInt64(timestamp));
             activity.SetEndTime(convertedTimestamp.UtcDateTime);
         }
 
         activity.Stop();
 
-        _logger.LogInformation("OtelEndSpanReturn");
+        _logger?.LogInformation("OtelEndSpanReturn");
     }
 
     private static async Task<string> OtelIsRecording(HttpRequest request)
     {
         var requestBodyObject = await DeserializeRequestObjectAsync(request.Body);
 
-        _logger.LogInformation("OtelIsRecording: {RequestBodyObject}", requestBodyObject);
+        _logger?.LogInformation("OtelIsRecording: {RequestBodyObject}", requestBodyObject);
 
         var activity = FindActivity(requestBodyObject["id"]);
 
@@ -230,7 +182,7 @@ public abstract class ApmTestApiOtel : ApmTestApi
             is_recording = activity.IsAllDataRequested
         });
 
-        _logger.LogInformation("OtelIsRecordingReturn: {Result}", result);
+        _logger?.LogInformation("OtelIsRecordingReturn: {Result}", result);
 
         return result;
     }
@@ -239,7 +191,7 @@ public abstract class ApmTestApiOtel : ApmTestApi
     {
         var requestBodyObject = await DeserializeRequestObjectAsync(request.Body);
 
-        _logger.LogInformation("OtelSpanContext: {RequestBodyObject}", requestBodyObject);
+        _logger?.LogInformation("OtelSpanContext: {RequestBodyObject}", requestBodyObject);
 
         var activity = FindActivity(requestBodyObject["span_id"]);
 
@@ -252,7 +204,7 @@ public abstract class ApmTestApiOtel : ApmTestApi
              remote = activity.HasRemoteParent
          });
 
-        _logger.LogInformation("OtelSpanContextReturn: {Result}", result);
+        _logger?.LogInformation("OtelSpanContextReturn: {Result}", result);
         return result;
     }
 
@@ -260,7 +212,7 @@ public abstract class ApmTestApiOtel : ApmTestApi
     {
         var requestBodyObject = await DeserializeRequestObjectAsync(request.Body);
 
-        _logger.LogInformation("OtelSetStatus: {RequestBodyObject}", requestBodyObject);
+        _logger?.LogInformation("OtelSetStatus: {RequestBodyObject}", requestBodyObject);
 
         var code = requestBodyObject["code"];
 
@@ -274,14 +226,14 @@ public abstract class ApmTestApiOtel : ApmTestApi
             throw new ApplicationException($"Invalid value for ActivityStatusCode: {code}");
         }
 
-        _logger.LogInformation("OtelSetStatusReturn");
+        _logger?.LogInformation("OtelSetStatusReturn");
     }
 
     private static async Task OtelSetName(HttpRequest request)
     {
         var requestBodyObject = await DeserializeRequestObjectAsync(request.Body);
 
-        _logger.LogInformation("OtelSetName: {RequestBodyObject}", requestBodyObject);
+        _logger?.LogInformation("OtelSetName: {RequestBodyObject}", requestBodyObject);
 
         if (requestBodyObject.TryGetValue("id", out var id))
         {
@@ -289,14 +241,14 @@ public abstract class ApmTestApiOtel : ApmTestApi
             activity.DisplayName = requestBodyObject["name"].ToString() ?? string.Empty;
         }
 
-        _logger.LogInformation("OtelSetName");
+        _logger?.LogInformation("OtelSetName");
     }
 
     private static async Task OtelSetAttributes(HttpRequest request)
     {
         var requestBodyObject = await DeserializeRequestObjectAsync(request.Body);
 
-        _logger.LogInformation("OtelSetAttributes: {RequestBodyObject}", requestBodyObject);
+        _logger?.LogInformation("OtelSetAttributes: {RequestBodyObject}", requestBodyObject);
 
         SetTag(FindActivity(requestBodyObject["span_id"]), ((Newtonsoft.Json.Linq.JObject?)requestBodyObject["attributes"])?.ToObject<Dictionary<string, object>>());
 
@@ -307,7 +259,7 @@ public abstract class ApmTestApiOtel : ApmTestApi
     {
         var requestBodyObject = await DeserializeRequestObjectAsync(request.Body);
 
-        _logger.LogInformation("AddEvent: {RequestBodyObject}", requestBodyObject);
+        _logger?.LogInformation("AddEvent: {RequestBodyObject}", requestBodyObject);
 
         var name = requestBodyObject["name"] as string;
 
@@ -329,14 +281,14 @@ public abstract class ApmTestApiOtel : ApmTestApi
         }
 
         var activity = FindActivity(requestBodyObject["span_id"]);
-        activity.AddEvent(new ActivityEvent(name, timestamp, tags));
+        activity.AddEvent(new ActivityEvent(name!, timestamp, tags));
     }
 
     private static async Task OtelRecordException(HttpRequest request)
     {
         var requestBodyObject = await DeserializeRequestObjectAsync(request.Body);
 
-        _logger.LogInformation("OtelRecordException: {RequestBodyObject}", requestBodyObject);
+        _logger?.LogInformation("OtelRecordException: {RequestBodyObject}", requestBodyObject);
 
         ActivityTagsCollection? tags = default;
         if (requestBodyObject.TryGetValue("attributes", out var attributes))
@@ -378,7 +330,7 @@ public abstract class ApmTestApiOtel : ApmTestApi
     {
         var requestBodyObject = await DeserializeRequestObjectAsync(request.Body);
 
-        _logger.LogInformation("OtelFlushSpans: {RequestBodyObject}", requestBodyObject);
+        _logger?.LogInformation("OtelFlushSpans: {RequestBodyObject}", requestBodyObject);
 
         await FlushSpans();
 
@@ -387,7 +339,7 @@ public abstract class ApmTestApiOtel : ApmTestApi
             success = true,
         });
 
-        _logger.LogInformation("OtelFlushSpansReturn: {result}", result);
+        _logger?.LogInformation("OtelFlushSpansReturn: {result}", result);
 
         return result;
 
@@ -395,11 +347,11 @@ public abstract class ApmTestApiOtel : ApmTestApi
 
     private static async Task OtelFlushTraceStats(HttpRequest request)
     {
-        _logger.LogInformation("OtelFlushTraceStats: {Request}", request);
+        _logger?.LogInformation("OtelFlushTraceStats: {Request}", request);
 
         await FlushTraceStats();
 
-        _logger.LogInformation("OtelFlushTraceStatsReturn");
+        _logger?.LogInformation("OtelFlushTraceStatsReturn");
     }
 
     // Helper methods:

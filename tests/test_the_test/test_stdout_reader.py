@@ -1,11 +1,9 @@
 import os
-import pytest
+from utils import scenarios
 from utils.interfaces._logs import _LibraryStdout
 
 
-pytestmark = pytest.mark.scenario("TEST_THE_TEST")
-
-
+@scenarios.test_the_test
 class Test_Main:
     def test_stdout_reader(self):
         """Test stdout reader"""
@@ -16,7 +14,7 @@ class Test_Main:
             f.write("[dd.trace 2021-11-29 17:10:22:203 +0000] [main] INFO com.klass - AppSec initial 1.0.14\n")
 
         stdout = _LibraryStdout()
-        stdout.configure(False)
+        stdout.init_patterns(scenarios.test_the_test.library)
 
         stdout.load_data()
 

@@ -22,9 +22,25 @@
       "span_id": { "type": "integer" },
       "trace_id": { "type": "integer" },
       "parent_id": { "anyOf": [{ "type": "integer" }, { "type": "null" }] },
-      "error": { "type": "integer" }
+      "error": { "type": "integer" },
+      "span_links": { 
+        "type": "array",
+        "items": {
+          "type": "object",
+          "required": ["trace_id", "span_id"],
+          "properties": {
+            "trace_id": { "type": "integer" },
+            "span_id": { "type": "integer" },
+            "attributes": { 
+              "type": "object",
+              "patternProperties": {
+                ".*": { "type": "string" }
+              }
+            }
+          }
+        }
+      }
     },
-
     "required": ["name"]
   }
 }

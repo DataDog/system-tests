@@ -1,5 +1,6 @@
 package com.datadoghq.ratpack;
 
+import com.datadoghq.system_tests.iast.infra.SqlServer;
 import com.datadoghq.system_tests.iast.utils.CryptoExamples;
 import datadog.trace.api.interceptor.MutableSpan;
 import datadog.trace.api.internal.InternalTracer;
@@ -10,14 +11,19 @@ import ratpack.exec.Promise;
 import ratpack.http.HttpMethod;
 import ratpack.http.Response;
 import ratpack.server.RatpackServer;
+import ratpack.jackson.Jackson;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.lang.reflect.UndeclaredThrowableException;
 import java.net.InetAddress;
 import java.util.logging.LogManager;
+import java.util.Optional;
 
 import java.util.HashMap;
 import java.net.HttpURLConnection;
@@ -25,6 +31,15 @@ import java.net.URL;
 import java.util.Map;
 import java.util.List;
 import ratpack.util.MultiValueMap;
+import ratpack.handling.Context;
+import ratpack.handling.Handler;
+import ratpack.http.Headers;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.datadoghq.system_tests.iast.utils.Utils;
+import com.datadoghq.system_tests.iast.utils.CryptoExamples;
+
+import javax.sql.DataSource;
 
 /**
  * Main class.
@@ -51,6 +66,16 @@ public class Main {
         return h;
     }
 
+    private static Optional<String> getVersion() {
+        try (BufferedReader reader = new BufferedReader(
+                new InputStreamReader(Main.class.getClassLoader().getResourceAsStream("dd-java-agent.version"), StandardCharsets.ISO_8859_1))) {
+        String line = reader.readLine();
+        return Optional.ofNullable(line);
+        } catch (Exception e) {
+        return Optional.empty();
+        }
+    }
+
     private static void setRootSpanTag(final String key, final String value) {
         final Span span = GlobalTracer.get().activeSpan();
         if (span instanceof MutableSpan) {
@@ -61,8 +86,12 @@ public class Main {
         }
     }
 
+    private static final CryptoExamples cryptoExamples = new CryptoExamples();
+
     public static void main(String[] args) throws Exception {
+
         var iastHandlers = new IastHandlers();
+        var raspHandlers = new RaspHandlers();
         var server = RatpackServer.start(s ->
                 s.serverConfig(action -> action
                         .address(InetAddress.getByName("0.0.0.0"))
@@ -78,6 +107,18 @@ public class Main {
                                 } finally {
                                     span.finish();
                                 }
+                            })
+                            .get("healthcheck", ctx -> {
+                                String version = getVersion().orElse("0.0.0");
+
+                                Map<String, Object> response = new HashMap<>();
+                                Map<String, String> library = new HashMap<>();
+                                library.put("language", "java");
+                                library.put("version", version);
+                                response.put("status", "ok");
+                                response.put("library", library);
+
+                                ctx.render(Jackson.json(response));
                             })
                             .get("headers", ctx -> {
                                 Response response = ctx.getResponse();
@@ -185,10 +226,53 @@ public class Main {
                                         .trackCustomEvent(
                                                 qp.getOrDefault("event_name", "system_tests_event"), METADATA);
                                 ctx.getResponse().send("ok");
+                            })
+                            .get("requestdownstream", ctx -> {
+                                final Promise<String> res = Blocking.get(() -> {
+                                    String url = "http://localhost:7777/returnheaders";
+                                    return Utils.sendGetRequest(url);
+                                });
+                                res.then((r) -> {
+                                    Response response = ctx.getResponse();
+                                    response.send("application/json", r);
+                                });
+                            })
+                            .get("vulnerablerequestdownstream", ctx -> {
+                                final Promise<String> res = Blocking.get(() -> {
+                                    cryptoExamples.insecureMd5Hashing("password");
+                                    String url = "http://localhost:7777/returnheaders";
+                                    return Utils.sendGetRequest(url);
+                                });
+                                res.then((r) -> {
+                                    Response response = ctx.getResponse();
+                                    response.send("application/json", r);
+                                });
+                            })
+                            .get("returnheaders", ctx -> {
+                                Headers headers = ctx.getRequest().getHeaders();
+                                Map<String, String> headerMap = new HashMap<>();
+                                headers.getNames().forEach(name -> headerMap.put(name, headers.get(name)));
+
+                                ObjectMapper mapper = new ObjectMapper();
+                                String json = mapper.writeValueAsString(headerMap);
+
+                                ctx.getResponse().send("application/json", json);
+                            })
+                            .get("createextraservice", ctx -> {
+                                MultiValueMap<String, String> qp = ctx.getRequest().getQueryParams();
+                                String serviceName = qp.get("serviceName");
+                                setRootSpanTag("service", serviceName);
+                                ctx.getResponse().send("ok");
+                            })
+                            .get("set_cookie", ctx -> {
+                                final String name = ctx.getRequest().getQueryParams().get("name");
+                                final String value = ctx.getRequest().getQueryParams().get("value");
+                                ctx.getResponse().getHeaders().add("Set-Cookie", name + "=" + value);
+                                ctx.getResponse().send("text/plain", "ok");
                             });
                         iastHandlers.setup(chain);
-                        }
-                )
+                        raspHandlers.setup(chain);
+                })
         );
         System.out.println("Ratpack server started on port 7777");
         while (!Thread.interrupted()) {
@@ -207,5 +291,7 @@ public class Main {
         public HashMap<String, String> request_headers;
         public HashMap<String, String> response_headers;
     }
+
+    public static final DataSource DATA_SOURCE = new SqlServer().start();
 }
 

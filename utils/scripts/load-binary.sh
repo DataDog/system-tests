@@ -165,15 +165,9 @@ if [ "$TARGET" = "java" ]; then
     ../utils/scripts/docker_base_image.sh ghcr.io/datadog/dd-trace-java/dd-trace-java:latest_snapshot .
 
 elif [ "$TARGET" = "dotnet" ]; then
+    assert_version_is_dev
     rm -rf *.tar.gz
-
-    if [ $VERSION = 'dev' ]; then
-        ../utils/scripts/docker_base_image.sh ghcr.io/datadog/dd-trace-dotnet/dd-trace-dotnet:latest_snapshot .
-    elif [ $VERSION = 'prod' ]; then
-        ../utils/scripts/docker_base_image.sh ghcr.io/datadog/dd-trace-dotnet/dd-trace-dotnet:latest .
-    else
-        echo "Don't know how to load version $VERSION for $TARGET"
-    fi
+    ../utils/scripts/docker_base_image.sh ghcr.io/datadog/dd-trace-dotnet/dd-trace-dotnet:latest_snapshot .
 
 elif [ "$TARGET" = "python" ]; then
     assert_version_is_dev
@@ -202,6 +196,9 @@ elif [ "$TARGET" = "golang" ]; then
 
     echo "Using gopkg.in/DataDog/dd-trace-go.v1@main"
     echo "gopkg.in/DataDog/dd-trace-go.v1@main" > golang-load-from-go-get
+
+    echo "Using ghcr.io/datadog/dd-trace-go/service-extensions-callout:dev"
+    echo "ghcr.io/datadog/dd-trace-go/service-extensions-callout:dev" > golang-service-extensions-callout-image
 
 elif [ "$TARGET" = "cpp" ]; then
     assert_version_is_dev

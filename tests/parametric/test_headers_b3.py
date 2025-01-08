@@ -4,8 +4,7 @@ import pytest
 
 from utils.parametric.spec.trace import SAMPLING_PRIORITY_KEY, ORIGIN
 from utils.parametric.spec.trace import span_has_no_parent
-from utils.parametric.headers import make_single_request_and_get_inject_headers
-from utils.parametric.test_agent import get_span
+from utils.parametric.spec.trace import find_only_span
 from utils import missing_feature, context, scenarios, features, bug
 from utils.tools import logger
 
@@ -53,11 +52,11 @@ class Test_Headers_B3:
         and activated properly.
         """
         with test_library:
-            headers = make_single_request_and_get_inject_headers(
-                test_library, [["b3", "000000000000000000000000075bcd15-000000003ade68b1-1"]]
+            test_library.dd_make_child_span_and_get_headers(
+                [["b3", "000000000000000000000000075bcd15-000000003ade68b1-1"]]
             )
 
-        span = get_span(test_agent)
+        span = find_only_span(test_agent.wait_for_num_traces(1))
         assert span.get("trace_id") == 123456789
         assert span.get("parent_id") == 987654321
         assert span["metrics"].get(SAMPLING_PRIORITY_KEY) == 1
@@ -67,12 +66,11 @@ class Test_Headers_B3:
     @missing_feature(context.library > "ruby@1.99.0", reason="Missing for 2.x")
     @missing_feature(context.library == "cpp", reason="format of DD_TRACE_PROPAGATION_STYLE_EXTRACT not supported")
     def test_headers_b3_extract_invalid(self, test_agent, test_library):
-        """Ensure that invalid b3 distributed tracing headers are not extracted.
-        """
+        """Ensure that invalid b3 distributed tracing headers are not extracted."""
         with test_library:
-            headers = make_single_request_and_get_inject_headers(test_library, [["b3", "0-0-1"]])
+            test_library.dd_make_child_span_and_get_headers([["b3", "0-0-1"]])
 
-        span = get_span(test_agent)
+        span = find_only_span(test_agent.wait_for_num_traces(1))
         assert span.get("trace_id") != 0
         assert span_has_no_parent(span)
         assert span["meta"].get(ORIGIN) is None
@@ -81,12 +79,11 @@ class Test_Headers_B3:
     @missing_feature(context.library > "ruby@1.99.0", reason="Missing for 2.x")
     @missing_feature(context.library == "cpp", reason="format of DD_TRACE_PROPAGATION_STYLE_EXTRACT not supported")
     def test_headers_b3_inject_valid(self, test_agent, test_library):
-        """Ensure that b3 distributed tracing headers are injected properly.
-        """
+        """Ensure that b3 distributed tracing headers are injected properly."""
         with test_library:
-            headers = make_single_request_and_get_inject_headers(test_library, [])
+            headers = test_library.dd_make_child_span_and_get_headers([])
 
-        span = get_span(test_agent)
+        span = find_only_span(test_agent.wait_for_num_traces(1))
         b3Arr = headers["b3"].split("-")
         logger.info(f"b3 header is {headers['b3']}")
         b3_trace_id = b3Arr[0]
@@ -107,11 +104,11 @@ class Test_Headers_B3:
         and injected properly.
         """
         with test_library:
-            headers = make_single_request_and_get_inject_headers(
-                test_library, [["b3", "000000000000000000000000075bcd15-000000003ade68b1-1"]]
+            headers = test_library.dd_make_child_span_and_get_headers(
+                [["b3", "000000000000000000000000075bcd15-000000003ade68b1-1"]]
             )
 
-        span = get_span(test_agent)
+        span = find_only_span(test_agent.wait_for_num_traces(1))
         b3Arr = headers["b3"].split("-")
         b3_trace_id = b3Arr[0]
         b3_span_id = b3Arr[1]
@@ -131,9 +128,9 @@ class Test_Headers_B3:
         and the new span context is injected properly.
         """
         with test_library:
-            headers = make_single_request_and_get_inject_headers(test_library, [["b3", "0-0-1"]])
+            headers = test_library.dd_make_child_span_and_get_headers([["b3", "0-0-1"]])
 
-        span = get_span(test_agent)
+        span = find_only_span(test_agent.wait_for_num_traces(1))
         assert span.get("trace_id") != 0
         assert span.get("span_id") != 0
 
@@ -151,13 +148,14 @@ class Test_Headers_B3:
     @enable_b3_single_key()
     @missing_feature(context.library == "cpp", reason="format of DD_TRACE_PROPAGATION_STYLE_EXTRACT not supported")
     @missing_feature(
-        context.library == "ruby", reason="Propagators not configured for DD_TRACE_PROPAGATION_STYLE config",
+        context.library > "ruby@1.99.0",
+        reason="Added DD_TRACE_PROPAGATION_STYLE config in version 1.8.0 but the name is no longer recognized in 2.x",
     )
     def test_headers_b3_single_key_propagate_valid(self, test_agent, test_library):
         self.test_headers_b3_propagate_valid(test_agent, test_library)
 
     @enable_migrated_b3()
-    @missing_feature(context.library == "cpp", reason="format of DD_TRACE_PROPAGATION_STYLE_EXTRACT not supported")
+    @missing_feature(context.library == "cpp", reason="Need to remove b3=b3multi alias")
     @missing_feature(context.library == "dotnet", reason="Need to remove b3=b3multi alias")
     @missing_feature(context.library == "golang", reason="Need to remove b3=b3multi alias")
     @missing_feature(context.library == "java", reason="Need to remove b3=b3multi alias")
@@ -167,7 +165,7 @@ class Test_Headers_B3:
         self.test_headers_b3_extract_valid(test_agent, test_library)
 
     @enable_migrated_b3()
-    @missing_feature(context.library == "cpp", reason="format of DD_TRACE_PROPAGATION_STYLE_EXTRACT not supported")
+    @missing_feature(context.library == "cpp", reason="Need to remove b3=b3multi alias")
     @missing_feature(context.library == "golang", reason="Need to remove b3=b3multi alias")
     @missing_feature(context.library == "java", reason="Need to remove b3=b3multi alias")
     @missing_feature(context.library == "nodejs", reason="Need to remove b3=b3multi alias")
@@ -176,7 +174,7 @@ class Test_Headers_B3:
         self.test_headers_b3_extract_invalid(test_agent, test_library)
 
     @enable_migrated_b3()
-    @missing_feature(context.library == "cpp", reason="format of DD_TRACE_PROPAGATION_STYLE_EXTRACT not supported")
+    @missing_feature(context.library == "cpp", reason="Need to remove b3=b3multi alias")
     @missing_feature(context.library == "dotnet", reason="Need to remove b3=b3multi alias")
     @missing_feature(context.library == "golang", reason="Need to remove b3=b3multi alias")
     @missing_feature(context.library == "java", reason="Need to remove b3=b3multi alias")
@@ -186,7 +184,7 @@ class Test_Headers_B3:
         self.test_headers_b3_inject_valid(test_agent, test_library)
 
     @enable_migrated_b3()
-    @missing_feature(context.library == "cpp", reason="format of DD_TRACE_PROPAGATION_STYLE_EXTRACT not supported")
+    @missing_feature(context.library == "cpp", reason="Need to remove b3=b3multi alias")
     @missing_feature(context.library == "dotnet", reason="Need to remove b3=b3multi alias")
     @missing_feature(context.library == "golang", reason="Need to remove b3=b3multi alias")
     @missing_feature(context.library == "java", reason="Need to remove b3=b3multi alias")
@@ -196,7 +194,7 @@ class Test_Headers_B3:
         self.test_headers_b3_propagate_valid(test_agent, test_library)
 
     @enable_migrated_b3()
-    @missing_feature(context.library == "cpp", reason="format of DD_TRACE_PROPAGATION_STYLE_EXTRACT not supported")
+    @missing_feature(context.library == "cpp", reason="Need to remove b3=b3multi alias")
     @missing_feature(context.library == "dotnet", reason="Need to remove b3=b3multi alias")
     @missing_feature(context.library == "golang", reason="Need to remove b3=b3multi alias")
     @missing_feature(context.library == "java", reason="Need to remove b3=b3multi alias")
@@ -206,14 +204,12 @@ class Test_Headers_B3:
         self.test_headers_b3_propagate_invalid(test_agent, test_library)
 
     @enable_migrated_b3_single_key()
-    @missing_feature(context.library == "cpp", reason="format of DD_TRACE_PROPAGATION_STYLE_EXTRACT not supported")
+    @missing_feature(context.library == "cpp", reason="Need to remove b3=b3multi alias")
     @missing_feature(context.library == "dotnet", reason="Need to remove b3=b3multi alias")
     @missing_feature(context.library == "golang", reason="Need to remove b3=b3multi alias")
     @missing_feature(context.library == "java", reason="Need to remove b3=b3multi alias")
     @missing_feature(context.library == "nodejs", reason="Need to remove b3=b3multi alias")
     @missing_feature(context.library == "php", reason="Need to remove b3=b3multi alias")
-    @missing_feature(
-        context.library == "ruby", reason="Propagators not configured for DD_TRACE_PROPAGATION_STYLE config",
-    )
+    @missing_feature(context.library < "ruby@1.8.0", reason="Added DD_TRACE_PROPAGATION_STYLE config in version 1.8.0")
     def test_headers_b3_migrated_single_key_propagate_valid(self, test_agent, test_library):
         self.test_headers_b3_propagate_valid(test_agent, test_library)

@@ -1,0 +1,37 @@
+// Copyright 2015 gRPC authors.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "com.datadoghq.system_tests.springboot.grpc";
+
+package weblog;
+
+import "google/protobuf/struct.proto";
+
+// Interface exported by the server.
+service Weblog {
+  // Unary RPC
+  rpc Unary(google.protobuf.Value) returns (google.protobuf.Value) {}
+
+  // A server-streaming RPC
+  rpc ServerStream(google.protobuf.Value) returns (stream google.protobuf.Value) {}
+
+  // A client-streaming RPC
+  rpc ClientStream(stream google.protobuf.Value) returns (google.protobuf.Value) {}
+
+  // A bidirectional streaming RPC
+  rpc Bidi(stream google.protobuf.Value) returns (stream google.protobuf.Value) {}
+}

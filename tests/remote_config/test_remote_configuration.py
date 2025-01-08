@@ -16,41 +16,25 @@ from utils import (
     scenarios,
     weblog,
     features,
+    remote_config,
 )
+
 from utils.tools import logger
-
-with open("tests/remote_config/rc_expected_requests_live_debugging.json", encoding="utf-8") as f:
-    LIVE_DEBUGGING_EXPECTED_REQUESTS = json.load(f)
-
-with open("tests/remote_config/rc_expected_requests_asm_features.json", encoding="utf-8") as f:
-    ASM_FEATURES_EXPECTED_REQUESTS = json.load(f)
-
-with open("tests/remote_config/rc_expected_requests_asm_dd.json", encoding="utf-8") as f:
-    ASM_DD_EXPECTED_REQUESTS = json.load(f)
-
-
-@features.agent_remote_configuration
-class Test_Agent:
-    """misc test on agent/remote config features"""
-
-    @irrelevant(library="nodejs", reason="nodejs tracer does not call /info")
-    @missing_feature(library="ruby", reason="ruby tracer does not call /info")
-    @irrelevant(library="cpp")
-    @scenarios.remote_config_mocked_backend_asm_dd
-    def test_agent_provide_config_endpoint(self):
-        """Check that agent exposes /v0.7/config endpoint"""
-        for data in interfaces.library.get_data("/info"):
-            for endpoint in data["response"]["content"]["endpoints"]:
-                if endpoint == "/v0.7/config":
-                    return
-
-        raise ValueError("Agent did not provide /v0.7/config endpoint")
 
 
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
 @features.remote_config_object_supported
 class RemoteConfigurationFieldsBasicTests:
     """Misc tests on fields and values on remote configuration requests"""
+
+    @staticmethod
+    def response_has_been_overwritten(data):
+        # For legacy API send_sequential_commands
+        for name, _ in data["response"]["headers"]:
+            if name == "st-proxy-overwrite-rc-response":
+                return True
+
+        return False
 
     def assert_client_fields(self):
         """Ensure that the Client field is appropriately filled out in update requests"""
@@ -181,27 +165,41 @@ def rc_check_request(data, expected, caching):
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
 @scenarios.remote_config_mocked_backend_asm_features
 @features.appsec_onboarding
+@bug(context.library > "php@1.3.2", reason="APPSEC-55129")
 class Test_RemoteConfigurationUpdateSequenceFeatures(RemoteConfigurationFieldsBasicTests):
     """Tests that over a sequence of related updates, tracers follow the RFC for the Features product"""
 
     request_number = 0
     python_request_number = 0
 
-    @bug(context.library == "python@1.9.2")
+    def setup_tracer_update_sequence(self):
+        with open("tests/remote_config/rc_mocked_responses_asm_features.json", "r", encoding="utf-8") as f:
+            payloads = json.load(f)
+
+        remote_config.send_sequential_commands(payloads)
+
+    @bug(context.library == "python@1.9.2", reason="APMRP-360")
     @bug(context.weblog_variant == "spring-boot-openliberty", reason="APPSEC-6721")
     @bug(
         context.library >= "java@1.4.0" and context.agent_version < "1.8.0" and context.appsec_rules_file is not None,
-        reason="ASM_FEATURES was not subscribed when a custom rules file was present",
+        reason="APMRP-360",  # ASM_FEATURES was not subscribed when a custom rules file was present
     )
-    @bug(library="golang", reason="missing update file datadog/2/ASM_FEATURES/ASM_FEATURES-third/config")
-    @bug(context.library < "java@1.13.0", reason="id reported for config state is not the expected one")
+    @bug(library="golang", reason="APPSEC-56064")
+    @bug(context.library < "java@1.13.0", reason="APMRP-360")
     def test_tracer_update_sequence(self):
         """test update sequence, based on a scenario mocked in the proxy"""
+
+        with open("tests/remote_config/rc_expected_requests_asm_features.json", encoding="utf-8") as f:
+            ASM_FEATURES_EXPECTED_REQUESTS = json.load(f)
 
         self.assert_client_fields()
 
         def validate(data):
             """Helper to validate config request content"""
+
+            if not self.response_has_been_overwritten(data):
+                return False
+
             logger.info(f"validating request number {self.request_number}")
             if self.request_number >= len(ASM_FEATURES_EXPECTED_REQUESTS):
                 return True
@@ -271,26 +269,45 @@ class Test_RemoteConfigurationExtraServices:
 class Test_RemoteConfigurationUpdateSequenceLiveDebugging(RemoteConfigurationFieldsBasicTests):
     """Tests that over a sequence of related updates, tracers follow the RFC for the Live Debugging product"""
 
-    # Index the request number by runtime ID so that we can support applications
-    # that spawns multiple worker processes, each running its own RCM client.
-    request_number = defaultdict(int)
+    def setup_tracer_update_sequence(self):
+        with open("tests/remote_config/rc_mocked_responses_live_debugging.json", "r", encoding="utf-8") as f:
+            probe_sets = json.load(f)
 
-    @bug(context.library < "java@1.13.0", reason="id reported for config state is not the expected one")
+        payloads = []
+        version = 1
+        for probe_set in probe_sets:
+            payloads.append(remote_config.build_debugger_command(probe_set, version))
+            version += 1
+
+        remote_config.send_sequential_commands(payloads)
+
+    @bug(context.library < "java@1.13.0", reason="APMRP-360")
     def test_tracer_update_sequence(self):
         """test update sequence, based on a scenario mocked in the proxy"""
+
+        # Index the request number by runtime ID so that we can support applications
+        # that spawns multiple worker processes, each running its own RCM client.
+        request_number = defaultdict(int)
+
+        with open("tests/remote_config/rc_expected_requests_live_debugging.json", encoding="utf-8") as f:
+            LIVE_DEBUGGING_EXPECTED_REQUESTS = json.load(f)
 
         self.assert_client_fields()
 
         def validate(data):
             """Helper to validate config request content"""
+
+            if not self.response_has_been_overwritten(data):
+                return False
+
             runtime_id = data["request"]["content"]["client"]["client_tracer"]["runtime_id"]
-            logger.info(f"validating request number {self.request_number[runtime_id]}")
-            if self.request_number[runtime_id] >= len(LIVE_DEBUGGING_EXPECTED_REQUESTS):
+            logger.info(f"validating request number {request_number[runtime_id]}")
+            if request_number[runtime_id] >= len(LIVE_DEBUGGING_EXPECTED_REQUESTS):
                 return True
 
-            rc_check_request(data, LIVE_DEBUGGING_EXPECTED_REQUESTS[self.request_number[runtime_id]], caching=True)
+            rc_check_request(data, LIVE_DEBUGGING_EXPECTED_REQUESTS[request_number[runtime_id]], caching=True)
 
-            self.request_number[runtime_id] += 1
+            request_number[runtime_id] += 1
 
             return False
 
@@ -300,29 +317,43 @@ class Test_RemoteConfigurationUpdateSequenceLiveDebugging(RemoteConfigurationFie
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
 @scenarios.remote_config_mocked_backend_asm_dd
 @features.remote_config_object_supported
+@bug(context.library > "php@1.3.2", reason="APPSEC-55129")
 class Test_RemoteConfigurationUpdateSequenceASMDD(RemoteConfigurationFieldsBasicTests):
     """Tests that over a sequence of related updates, tracers follow the RFC for the ASM DD product"""
 
     request_number = 0
 
-    @bug(context.library >= "java@1.1.0" and context.library < "java@1.4.0", reason="?")
+    def setup_tracer_update_sequence(self):
+        with open("tests/remote_config/rc_mocked_responses_asm_dd.json", "r", encoding="utf-8") as f:
+            payloads = json.load(f)
+
+        remote_config.send_sequential_commands(payloads)
+
+    @bug(context.library >= "java@1.1.0" and context.library < "java@1.4.0", reason="APMRP-360")
     @irrelevant(
         context.library >= "java@1.4.0" and context.appsec_rules_file is not None,
         reason="ASM_DD not subscribed with custom rules. This is the compliant behavior",
     )
     @bug(context.weblog_variant == "spring-boot-openliberty", reason="APPSEC-6721")
-    @bug(context.library <= "java@1.12.1", reason="config state id value was wrong")
+    @bug(context.library <= "java@1.12.1", reason="APMRP-360")
     def test_tracer_update_sequence(self):
         """test update sequence, based on a scenario mocked in the proxy"""
 
         self.assert_client_fields()
 
+        with open("tests/remote_config/rc_expected_requests_asm_dd.json", encoding="utf-8") as f:
+            ASM_DD_EXPECTED_REQUESTS = json.load(f)
+
         def validate(data):
             """Helper to validate config request content"""
-            logger.info(f"validating request number {self.request_number}")
+
+            if not self.response_has_been_overwritten(data):
+                return False
+
             if self.request_number >= len(ASM_DD_EXPECTED_REQUESTS):
                 return True
 
+            logger.info(f"Validating request #{self.request_number} in {data['log_filename']}")
             rc_check_request(data, ASM_DD_EXPECTED_REQUESTS[self.request_number], caching=True)
 
             self.request_number += 1
@@ -336,17 +367,37 @@ class Test_RemoteConfigurationUpdateSequenceASMDD(RemoteConfigurationFieldsBasic
 @scenarios.remote_config_mocked_backend_asm_features_nocache
 @features.appsec_onboarding
 class Test_RemoteConfigurationUpdateSequenceFeaturesNoCache(RemoteConfigurationFieldsBasicTests):
-    """Tests that over a sequence of related updates, tracers follow the RFC for the Features product"""
+    """
+    Tests that over a sequence of related updates, tracers follow the RFC for the Features product
+    This test is not relevant for all tracers but C++ and ruby (missing feature). It may be never used
+    if those languages directly implements  cache feature.
+
+    It may be brokken as it's using the new RC API, and thus may have a additional
+    RC request between each payload. But we do not have a way to check that.
+    """
 
     request_number = 0
 
+    def setup_tracer_update_sequence(self):
+        with open("tests/remote_config/rc_mocked_responses_asm_features_nocache.json", "r", encoding="utf-8") as f:
+            payloads = json.load(f)
+
+        remote_config.send_sequential_commands(payloads)
+
     def test_tracer_update_sequence(self):
         """test update sequence, based on a scenario mocked in the proxy"""
+
+        with open("tests/remote_config/rc_expected_requests_asm_features.json", encoding="utf-8") as f:
+            ASM_FEATURES_EXPECTED_REQUESTS = json.load(f)
 
         self.assert_client_fields()
 
         def validate(data):
             """Helper to validate config request content"""
+
+            if not self.response_has_been_overwritten(data):
+                return False
+
             logger.info(f"validating request number {self.request_number}")
             if self.request_number >= len(ASM_FEATURES_EXPECTED_REQUESTS):
                 return True
@@ -361,49 +412,37 @@ class Test_RemoteConfigurationUpdateSequenceFeaturesNoCache(RemoteConfigurationF
 
 
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
-@scenarios.remote_config_mocked_backend_live_debugging_nocache
-@features.remote_config_object_supported
-class Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache(RemoteConfigurationFieldsBasicTests):
-    """Tests that over a sequence of related updates, tracers follow the RFC for the Live Debugging product"""
-
-    request_number = defaultdict(int)
-
-    def test_tracer_update_sequence(self):
-        """test update sequence, based on a scenario mocked in the proxy"""
-
-        self.assert_client_fields()
-
-        def validate(data):
-            """Helper to validate config request content"""
-            runtime_id = data["request"]["content"]["client"]["client_tracer"]["runtime_id"]
-            logger.info(f"validating request number {self.request_number[runtime_id]}")
-            if self.request_number[runtime_id] >= len(LIVE_DEBUGGING_EXPECTED_REQUESTS):
-                return True
-
-            rc_check_request(data, LIVE_DEBUGGING_EXPECTED_REQUESTS[self.request_number[runtime_id]], caching=False)
-
-            self.request_number[runtime_id] += 1
-
-            return False
-
-        interfaces.library.validate_remote_configuration(validator=validate)
-
-
-@rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
 @scenarios.remote_config_mocked_backend_asm_dd_nocache
 @features.remote_config_object_supported
 class Test_RemoteConfigurationUpdateSequenceASMDDNoCache(RemoteConfigurationFieldsBasicTests):
-    """Tests that over a sequence of related updates, tracers follow the RFC for the ASM DD product"""
+    """Tests that over a sequence of related updates, tracers follow the RFC for the ASM DD product
+
+    It may be brokken as it's using the new RC API, and thus may have a additional
+    RC request between each payload. But we do not have a way to check that.
+    """
 
     request_number = 0
+
+    def setup_tracer_update_sequence(self):
+        with open("tests/remote_config/rc_mocked_responses_asm_dd_nocache.json", "r", encoding="utf-8") as f:
+            payloads = json.load(f)
+
+        remote_config.send_sequential_commands(payloads)
 
     def test_tracer_update_sequence(self):
         """test update sequence, based on a scenario mocked in the proxy"""
 
         self.assert_client_fields()
 
+        with open("tests/remote_config/rc_expected_requests_asm_dd.json", encoding="utf-8") as f:
+            ASM_DD_EXPECTED_REQUESTS = json.load(f)
+
         def validate(data):
             """Helper to validate config request content"""
+
+            if not self.response_has_been_overwritten(data):
+                return False
+
             logger.info(f"validating request number {self.request_number}")
             if self.request_number >= len(ASM_DD_EXPECTED_REQUESTS):
                 return True

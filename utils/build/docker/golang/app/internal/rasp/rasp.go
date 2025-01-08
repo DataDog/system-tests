@@ -120,7 +120,7 @@ func SQLi(w http.ResponseWriter, r *http.Request) {
 		log.Fatalln(err.Error())
 	}
 
-	_, err = db.ExecContext(r.Context(), "SELECT * FROM users WHERE '"+sqli)
+	_, err = db.ExecContext(r.Context(), "SELECT * FROM users WHERE id='"+sqli+"'")
 	if events.IsSecurityError(err) {
 		return
 	}

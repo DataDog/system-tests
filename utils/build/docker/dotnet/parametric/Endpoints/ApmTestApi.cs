@@ -1,5 +1,4 @@
-﻿using Datadog.Trace;
-using Datadog.Trace.Configuration;
+using Datadog.Trace;
 using System.Reflection;
 using Newtonsoft.Json;
 
@@ -15,10 +14,13 @@ public abstract class ApmTestApi
         // By instantiating the Tracer first, that faulty getter code path will not be invoked
         _ = Tracer.Instance;
 
+        app.MapGet("/trace/crash", Crash);
         app.MapGet("/trace/config", GetTracerConfig);
         app.MapPost("/trace/tracer/stop", StopTracer);
         app.MapPost("/trace/span/start", StartSpan);
         app.MapPost("/trace/span/inject_headers", InjectHeaders);
+        app.MapPost("/trace/span/extract_headers", ExtractHeaders);
+
         app.MapPost("/trace/span/error", SpanSetError);
         app.MapPost("/trace/span/set_meta", SpanSetMeta);
         app.MapPost("/trace/span/set_metric", SpanSetMetric);
@@ -26,57 +28,52 @@ public abstract class ApmTestApi
         app.MapPost("/trace/span/flush", FlushSpans);
     }
 
-    // Core types
-    private static readonly Type SpanType = Type.GetType("Datadog.Trace.Span, Datadog.Trace", throwOnError: true)!;
-    private static readonly Type SpanContextType = Type.GetType("Datadog.Trace.SpanContext, Datadog.Trace", throwOnError: true)!;
-    private static readonly Type TracerType = Type.GetType("Datadog.Trace.Tracer, Datadog.Trace", throwOnError: true)!;
-    private static readonly Type TracerManagerType = Type.GetType("Datadog.Trace.TracerManager, Datadog.Trace", throwOnError: true)!;
-    private static readonly Type GlobalSettingsType = Type.GetType("Datadog.Trace.Configuration.GlobalSettings, Datadog.Trace", throwOnError: true)!;
-    private static readonly Type ImmutableTracerSettingsType = Type.GetType("Datadog.Trace.Configuration.ImmutableTracerSettings, Datadog.Trace", throwOnError: true)!;
+    private static readonly Assembly DatadogTraceAssembly = Assembly.Load("Datadog.Trace");
+    private const BindingFlags Instance = BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public;
 
-    // Propagator types
-    private static readonly Type SpanContextPropagatorType = Type.GetType("Datadog.Trace.Propagators.SpanContextPropagator, Datadog.Trace", throwOnError: true)!;
-    internal static readonly Type W3CTraceContextPropagatorType = Type.GetType("Datadog.Trace.Propagators.W3CTraceContextPropagator, Datadog.Trace", throwOnError: true)!;
+    // Core types
+    private static readonly Type TracerType = DatadogTraceAssembly.GetType("Datadog.Trace.Tracer", throwOnError: true)!;
+    private static readonly Type TracerManagerType = DatadogTraceAssembly.GetType("Datadog.Trace.TracerManager", throwOnError: true)!;
+    private static readonly Type GlobalSettingsType = DatadogTraceAssembly.GetType("Datadog.Trace.Configuration.GlobalSettings", throwOnError: true)!;
+
+    // ImmutableTracerSettings was removed in 3.7.0
+    private static readonly Type TracerSettingsType = DatadogTraceAssembly.GetName().Version <= new Version(3, 6, 1, 0) ?
+        DatadogTraceAssembly.GetType("Datadog.Trace.Configuration.ImmutableTracerSettings", throwOnError: true)! :
+        DatadogTraceAssembly.GetType("Datadog.Trace.Configuration.TracerSettings", throwOnError: true)!;
 
     // Agent-related types
-    private static readonly Type AgentWriterType = Type.GetType("Datadog.Trace.Agent.AgentWriter, Datadog.Trace", throwOnError: true)!;
-    internal static readonly Type StatsAggregatorType = Type.GetType("Datadog.Trace.Agent.StatsAggregator, Datadog.Trace", throwOnError: true)!;
+    private static readonly Type AgentWriterType = DatadogTraceAssembly.GetType("Datadog.Trace.Agent.AgentWriter", throwOnError: true)!;
+    private static readonly Type StatsAggregatorType = DatadogTraceAssembly.GetType("Datadog.Trace.Agent.StatsAggregator", throwOnError: true)!;
 
     // Accessors for internal properties/fields accessors
-    internal static readonly PropertyInfo GetGlobalSettingsInstance  = GlobalSettingsType.GetProperty("Instance", BindingFlags.Static | BindingFlags.NonPublic)!;
-    internal static readonly PropertyInfo GetTracerManager = TracerType.GetProperty("TracerManager", BindingFlags.Instance | BindingFlags.NonPublic)!;
-    private static readonly PropertyInfo GetSpanContextPropagator = SpanContextPropagatorType.GetProperty("Instance", BindingFlags.Static | BindingFlags.Public)!;
-    internal static readonly MethodInfo GetAgentWriter = TracerManagerType.GetProperty("AgentWriter", BindingFlags.Instance | BindingFlags.Public)!.GetGetMethod()!;
-    internal static readonly FieldInfo GetStatsAggregator = AgentWriterType.GetField("_statsAggregator", BindingFlags.Instance | BindingFlags.NonPublic)!;
-    private static readonly PropertyInfo SpanContext = SpanType.GetProperty("Context", BindingFlags.Instance | BindingFlags.NonPublic)!;
-    private static readonly PropertyInfo Origin = SpanContextType.GetProperty("Origin", BindingFlags.Instance | BindingFlags.NonPublic)!;
-    private static readonly MethodInfo SetMetric = SpanType.GetMethod("SetMetric", BindingFlags.Instance | BindingFlags.NonPublic)!;
+    private static readonly PropertyInfo GetGlobalSettingsInstance = GlobalSettingsType.GetProperty("Instance", BindingFlags.Static | BindingFlags.NonPublic)!;
+    private static readonly PropertyInfo GetTracerManager = TracerType.GetProperty("TracerManager", BindingFlags.Instance | BindingFlags.NonPublic)!;
+    private static readonly MethodInfo GetAgentWriter = TracerManagerType.GetProperty("AgentWriter", BindingFlags.Instance | BindingFlags.Public)!.GetGetMethod()!;
+    private static readonly FieldInfo GetStatsAggregator = AgentWriterType.GetField("_statsAggregator", BindingFlags.Instance | BindingFlags.NonPublic)!;
 
-    internal static readonly PropertyInfo SamplingPriority = SpanContextType.GetProperty("SamplingPriority", BindingFlags.Instance | BindingFlags.NonPublic)!;
-    internal static readonly PropertyInfo RawTraceId = SpanContextType.GetProperty("RawTraceId", BindingFlags.Instance | BindingFlags.NonPublic)!;
-    internal static readonly PropertyInfo RawSpanId = SpanContextType.GetProperty("RawSpanId", BindingFlags.Instance | BindingFlags.NonPublic)!;
-    internal static readonly PropertyInfo AdditionalW3CTraceState = SpanContextType.GetProperty("AdditionalW3CTraceState", BindingFlags.Instance | BindingFlags.NonPublic)!;
-    internal static readonly PropertyInfo PropagationStyleInject = ImmutableTracerSettingsType.GetProperty("PropagationStyleInject", BindingFlags.Instance | BindingFlags.NonPublic)!;
-    internal static readonly PropertyInfo RuntimeMetricsEnabled = ImmutableTracerSettingsType.GetProperty("RuntimeMetricsEnabled", BindingFlags.Instance | BindingFlags.NonPublic)!;
-    internal static readonly PropertyInfo IsActivityListenerEnabled = ImmutableTracerSettingsType.GetProperty("IsActivityListenerEnabled", BindingFlags.Instance | BindingFlags.NonPublic)!;
-
-    // Propagator methods
-    private static readonly MethodInfo SpanContextPropagatorInject = GenerateInjectMethod()!;
-    internal static readonly MethodInfo W3CTraceContextCreateTraceStateHeader = W3CTraceContextPropagatorType.GetMethod("CreateTraceStateHeader", BindingFlags.Static | BindingFlags.NonPublic)!;
+    private static readonly PropertyInfo PropagationStyleInject = TracerSettingsType.GetProperty("PropagationStyleInject", Instance)!;
+    private static readonly PropertyInfo RuntimeMetricsEnabled = TracerSettingsType.GetProperty("RuntimeMetricsEnabled", Instance)!;
+    private static readonly PropertyInfo IsActivityListenerEnabled = TracerSettingsType.GetProperty("IsActivityListenerEnabled", Instance)!;
+    private static readonly PropertyInfo GetTracerInstance = TracerType.GetProperty("Instance", BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public)!;
+    private static readonly PropertyInfo GetTracerSettings = TracerType.GetProperty("Settings", Instance)!;
+    private static readonly PropertyInfo GetDebugEnabled = GlobalSettingsType.GetProperty("DebugEnabled", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public)!;
 
     // StatsAggregator flush methods
     private static readonly MethodInfo StatsAggregatorDisposeAsync = StatsAggregatorType.GetMethod("DisposeAsync", BindingFlags.Instance | BindingFlags.Public)!;
     private static readonly MethodInfo StatsAggregatorFlush = StatsAggregatorType.GetMethod("Flush", BindingFlags.Instance | BindingFlags.NonPublic)!;
 
     private static readonly Dictionary<ulong, ISpan> Spans = new();
+    private static readonly Dictionary<ulong, ISpanContext> DDContexts = new();
 
-    internal static ILogger<ApmTestApi> _logger;
+    private static readonly SpanContextInjector _spanContextInjector = new();
+    private static readonly SpanContextExtractor _spanContextExtractor = new();
 
-    internal static readonly SpanContextExtractor _spanContextExtractor = new();
+    internal static ILogger<ApmTestApi>? _logger;
 
-    internal static IEnumerable<string> GetHeaderValues(string[][] headersList, string key)
+    private static IEnumerable<string> GetHeaderValues(string[][] headersList, string key)
     {
-        List<string> values = new List<string>();
+        var values = new List<string>();
+
         foreach (var kvp in headersList)
         {
             if (kvp.Length == 2 && string.Equals(key, kvp[0], StringComparison.OrdinalIgnoreCase))
@@ -88,7 +85,7 @@ public abstract class ApmTestApi
         return values.AsReadOnly();
     }
 
-    public static async Task StopTracer()
+    private static async Task StopTracer()
     {
         await Tracer.Instance.ForceFlushAsync();
     }
@@ -96,7 +93,7 @@ public abstract class ApmTestApi
     private static async Task<string> StartSpan(HttpRequest request)
     {
         var headerRequestBody = await new StreamReader(request.Body).ReadToEndAsync();
-        var parsedDictionary = JsonConvert.DeserializeObject<Dictionary<string, Object>>(headerRequestBody);
+        var parsedDictionary = JsonConvert.DeserializeObject<Dictionary<string, object?>>(headerRequestBody);
 
         _logger?.LogInformation("StartSpan: {HeaderRequestBody}", headerRequestBody);
 
@@ -105,50 +102,44 @@ public abstract class ApmTestApi
             FinishOnClose = false,
         };
 
-        if (parsedDictionary!.TryGetValue("http_headers", out var headersList))
-        {
-            creationSettings.Parent = _spanContextExtractor.Extract(
-                ((Newtonsoft.Json.Linq.JArray)headersList).ToObject<string[][]>()!,
-                getter: GetHeaderValues);
-        }
-
-        if (parsedDictionary!.TryGetValue("parent_id", out var parentId))
+        if (parsedDictionary!.TryGetValue("parent_id", out var parentId) && parentId is not null)
         {
             var longParentId = Convert.ToUInt64(parentId);
 
-            if (creationSettings.Parent is null && longParentId > 0 )
+            if (Spans.TryGetValue(longParentId, out var parentSpan))
             {
-                var parentSpan = Spans[longParentId];
-                creationSettings.Parent = (ISpanContext)SpanContext.GetValue(parentSpan)!;
+                creationSettings.Parent = parentSpan.Context;
+            }
+            else if (DDContexts.TryGetValue(longParentId, out var ddContext))
+            {
+                creationSettings.Parent = ddContext;
+            }
+            else
+            {
+                throw new Exception($"Parent span with id {longParentId} not found");
             }
         }
 
         parsedDictionary.TryGetValue("name", out var name);
-        using var scope = Tracer.Instance.StartActive(operationName: name!.ToString(), creationSettings);
+        using var scope = Tracer.Instance.StartActive(operationName: name!.ToString()!, creationSettings);
         var span = scope.Span;
 
-        if (parsedDictionary.TryGetValue("service", out var service))
+        if (parsedDictionary.TryGetValue("service", out var service) && service is not null)
         {
             span.ServiceName = service.ToString();
         }
 
-        if (parsedDictionary.TryGetValue("resource", out var resource))
+        if (parsedDictionary.TryGetValue("resource", out var resource) && resource is not null)
         {
             span.ResourceName = resource.ToString();
         }
 
-        if (parsedDictionary.TryGetValue("type", out var type))
+        if (parsedDictionary.TryGetValue("type", out var type) && type is not null)
         {
             span.Type = type.ToString();
         }
 
-        if (parsedDictionary.TryGetValue("origin", out var origin) && !string.IsNullOrWhiteSpace(origin.ToString()))
-        {
-            var spanContext = SpanContext.GetValue(span)!;
-            Origin.SetValue(spanContext, origin);
-        }
-
-        if (parsedDictionary.TryGetValue("span_tags", out var tagsToken))
+        if (parsedDictionary.TryGetValue("span_tags", out var tagsToken) && tagsToken is not null)
         {
             foreach (var tag in (Newtonsoft.Json.Linq.JArray)tagsToken)
             {
@@ -177,19 +168,19 @@ public abstract class ApmTestApi
         parsedDictionary.TryGetValue("value", out var value);
 
         var span = Spans[Convert.ToUInt64(id)];
-        span.SetTag(key, value);
+        span.SetTag(key!, value);
     }
 
     private static async Task SpanSetMetric(HttpRequest request)
     {
         var headerBodyDictionary = await new StreamReader(request.Body).ReadToEndAsync();
-        var parsedDictionary = JsonConvert.DeserializeObject<Dictionary<string, object>>(headerBodyDictionary)!;
+        var parsedDictionary = JsonConvert.DeserializeObject<Dictionary<string, string>>(headerBodyDictionary)!;
         parsedDictionary.TryGetValue("span_id", out var id);
         parsedDictionary.TryGetValue("key", out var key);
         parsedDictionary.TryGetValue("value", out var value);
 
         var span = Spans[Convert.ToUInt64(id)];
-        SetMetric.Invoke(span, new object[] { key!, Convert.ToDouble(value) });
+        span.SetTag(key!, Convert.ToDouble(value));
     }
 
     private static async Task SpanSetError(HttpRequest request)
@@ -217,31 +208,40 @@ public abstract class ApmTestApi
         }
     }
 
+    private static async Task<string> ExtractHeaders(HttpRequest request)
+    {
+        var headerRequestBody = await new StreamReader(request.Body).ReadToEndAsync();
+        var parsedDictionary = JsonConvert.DeserializeObject<Dictionary<string, Object>>(headerRequestBody);
+        var headersList = (Newtonsoft.Json.Linq.JArray)parsedDictionary!["http_headers"];
+        var extractedContext = _spanContextExtractor.Extract(
+            headersList.ToObject<string[][]>()!,
+            getter: GetHeaderValues
+        );
+
+        string? extractedSpanId = null;
+        if (extractedContext is not null)
+        {
+            DDContexts[extractedContext.SpanId] = extractedContext;
+            extractedSpanId = extractedContext.SpanId.ToString();
+        }
+
+        return JsonConvert.SerializeObject(new
+        {
+            span_id = extractedSpanId
+        });
+    }
+
     private static async Task<string> InjectHeaders(HttpRequest request)
     {
-        if (GetSpanContextPropagator is null)
-        {
-            throw new NullReferenceException("GetSpanContextPropagator is null");
-        }
-
-        if (SpanContextPropagatorInject is null)
-        {
-            throw new NullReferenceException("SpanContextPropagatorInject is null");
-        }
-
         var httpHeaders = new List<string[]>();
 
         var spanId = await FindBodyKeyValueAsync(request, "span_id");
 
-        if (!string.IsNullOrEmpty(spanId as string) && Spans.TryGetValue(Convert.ToUInt64(spanId), out var span))
+        if (!string.IsNullOrEmpty(spanId) && Spans.TryGetValue(Convert.ToUInt64(spanId), out var span))
         {
-            SpanContext? contextArg = span.Context as SpanContext;
-
-            var spanContextPropagator = GetSpanContextPropagator.GetValue(null);
-
             // Define a function to set headers in HttpRequestHeaders
             static void Setter(List<string[]> headers, string key, string value) =>
-                headers.Add(new string[] { key, value });
+                headers.Add([key, value]);
 
             Console.WriteLine(JsonConvert.SerializeObject(new
             {
@@ -249,7 +249,7 @@ public abstract class ApmTestApi
             }));
 
             // Invoke SpanContextPropagator.Inject with the HttpRequestHeaders
-            SpanContextPropagatorInject.Invoke(spanContextPropagator, new object[] { contextArg!, httpHeaders, Setter });
+            _spanContextInjector.Inject(httpHeaders, Setter, span.Context);
         }
 
         return JsonConvert.SerializeObject(new
@@ -264,19 +264,28 @@ public abstract class ApmTestApi
         span.Finish();
     }
 
+    private static string Crash(HttpRequest request)
+    {
+        var thread = new Thread(() => throw new BadImageFormatException("Expected"));
+
+        thread.Start();
+        thread.Join();
+
+        return "Failed to crash";
+    }
+
     private static string GetTracerConfig(HttpRequest request)
     {
-        if (GetGlobalSettingsInstance is null)
-        {
-            throw new NullReferenceException("GetGlobalSettingsInstance is null");
-        }
-
         var tracerSettings = Tracer.Instance.Settings;
-        var globalSettings = (GlobalSettings)GetGlobalSettingsInstance.GetValue(null)!;
+        var internalTracer = GetTracerInstance.GetValue(null);
+        var internalTracerSettings = GetTracerSettings.GetValue(internalTracer);
 
-        var propagationStyleInject = (string[])PropagationStyleInject.GetValue(tracerSettings)!;
-        var runtimeMetricsEnabled = (bool)RuntimeMetricsEnabled.GetValue(tracerSettings)!;
-        var isOtelEnabled = (bool)IsActivityListenerEnabled.GetValue(tracerSettings)!;
+        var globalSettings = GetGlobalSettingsInstance.GetValue(null)!;
+        var debugEnabled = (bool)GetDebugEnabled.GetValue(globalSettings)!;
+
+        var propagationStyleInject = (string[])PropagationStyleInject.GetValue(internalTracerSettings)!;
+        var runtimeMetricsEnabled = (bool)RuntimeMetricsEnabled.GetValue(internalTracerSettings)!;
+        var isOtelEnabled = (bool)IsActivityListenerEnabled.GetValue(internalTracerSettings)!;
 
         Dictionary<string, object?> config = new()
         {
@@ -288,15 +297,17 @@ public abstract class ApmTestApi
             { "dd_runtime_metrics_enabled", runtimeMetricsEnabled.ToString().ToLowerInvariant() },
             { "dd_tags", tracerSettings.GlobalTags.Select(kvp => $"{kvp.Key}:{kvp.Value}").ToArray() },
             { "dd_trace_propagation_style", string.Join(",", propagationStyleInject) },
-            { "dd_trace_debug", globalSettings.DebugEnabled ? "true" : "false" },
+            { "dd_trace_debug", debugEnabled ? "true" : "false" },
             { "dd_trace_otel_enabled", isOtelEnabled.ToString().ToLowerInvariant() },
             { "dd_log_level", null },
+            { "dd_trace_agent_url", tracerSettings.AgentUri },
+            { "dd_trace_rate_limit", tracerSettings.MaxTracesSubmittedPerSecond.ToString() },
             // { "dd_trace_sample_ignore_parent", "null" }, // Not supported
         };
 
         return JsonConvert.SerializeObject(new
         {
-            config = config
+            config
         });
     }
 
@@ -324,7 +335,7 @@ public abstract class ApmTestApi
             throw new NullReferenceException("Tracer.Instance is null");
         }
 
-        var tracerManager = GetTracerManager.GetValue(Tracer.Instance);
+        var tracerManager = GetTracerManager.GetValue(GetTracerInstance.GetValue(null));
         var agentWriter = GetAgentWriter.Invoke(tracerManager, null);
         var statsAggregator = GetStatsAggregator.GetValue(agentWriter);
 
@@ -343,41 +354,12 @@ public abstract class ApmTestApi
         }
     }
 
-    private static MethodInfo? GenerateInjectMethod()
-    {
-        if (SpanContextPropagatorType is null)
-        {
-            throw new NullReferenceException("SpanContextPropagatorType is null");
-        }
-
-        var methods = SpanContextPropagatorType.GetMethods();
-        foreach (var method in methods.Where(m => m.Name == "Inject"))
-        {
-            var parameters = method.GetParameters();
-            var genericArgs = method.GetGenericArguments();
-
-            // Adjusting for HTTP carrier
-            if (parameters.Length == 3 &&
-                genericArgs.Length == 1 &&
-                parameters[0].ParameterType == typeof(SpanContext) &&
-                parameters[1].ParameterType == genericArgs[0] &&
-                parameters[2].ParameterType.Name == "Action`3")
-            {
-                // Adjusting the carrier type for HTTP
-                var carrierType = typeof(List<string[]>);
-                return method.MakeGenericMethod(carrierType);
-            }
-        }
-
-        return null;
-    }
-
-    internal static async Task<string> FindBodyKeyValueAsync(HttpRequest httpRequest, string keyToFind)
+    private static async Task<string> FindBodyKeyValueAsync(HttpRequest httpRequest, string keyToFind)
     {
         var headerBodyDictionary = await new StreamReader(httpRequest.Body).ReadToEndAsync();
         var parsedDictionary = JsonConvert.DeserializeObject<Dictionary<string, string>>(headerBodyDictionary);
         var keyFound = parsedDictionary!.TryGetValue(keyToFind, out var foundValue);
 
-        return keyFound ? foundValue! : String.Empty;
+        return keyFound ? foundValue! : string.Empty;
     }
 }

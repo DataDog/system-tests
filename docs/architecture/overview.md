@@ -111,11 +111,11 @@ flowchart TD
 
 The `./run.sh` script starts the containers in the background.
 
-Often, knowing how a container fails to start is as simple as running `docker-compose up {container}` and observing the output.
+Often, knowing how a container fails to start is as simple as adding `--sleep` to your `run` command and observing the output.
 
 If there are more in depth problems within a container you may need to adjust the Dockerfile.
  - re-run `./build.sh`
- - start the container via `docker-compose up`
+ - start the container via `./run.sh <SCENARIO-NAME> --sleep`
  - `docker exec -it {container-id} bash` to diagnose from within the container
 
 ## What is the structure of the code base?
@@ -184,8 +184,6 @@ The application container (aka weblog) is the pluggable component for each langu
 It is a web application that exposes consistent endpoints across all implementations.
 
 If you are introducing a new Dockerfile, or looking to modify an existing one, remember that they are built using this convention in arguments: `./utils/build/docker/{language}/{dockerfile-prefix}.Dockerfile`.
-
-All application containers share final layers applied via this file: `./utils/build/docker/set-system-tests-weblog-env.Dockerfile`
 
 The shared application docker file is a good place to add any configuration needed across languages and variants.
 

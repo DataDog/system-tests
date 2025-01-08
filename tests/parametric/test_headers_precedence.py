@@ -2,8 +2,8 @@ from typing import Any
 
 import pytest
 
-from utils.parametric.spec.tracecontext import get_tracecontext
-from utils.parametric.headers import make_single_request_and_get_inject_headers
+from utils.parametric.spec.tracecontext import get_tracecontext, TRACECONTEXT_FLAGS_SET
+from utils.parametric.spec.trace import retrieve_span_links, find_span_in_traces
 from utils import bug, missing_feature, context, irrelevant, scenarios, features
 
 parametrize = pytest.mark.parametrize
@@ -88,14 +88,20 @@ def enable_tracecontext_datadog_b3multi_extract_first_true() -> Any:
 @scenarios.parametric
 @features.datadog_headers_propagation
 class Test_Headers_Precedence:
-    @irrelevant(context.library == "dotnet", reason="Implements the new 'datadog,tracecontext' default")
-    @missing_feature(context.library == "golang", reason="New 'datadog' default hasn't been implemented yet")
+    @irrelevant(
+        context.library >= "dotnet@2.22.0", reason="Newer versions include tracecontext as a default propagator"
+    )
+    @irrelevant(
+        context.library >= "golang@1.47.0", reason="Newer versions include tracecontext as a default propagator"
+    )
+    @irrelevant(
+        context.library >= "nodejs@3.14.0",
+        reason="Newer versions include tracecontext as a default propagator (2.27.0 and 3.14.0)",
+    )
+    @irrelevant(context.library >= "php@0.84.0", reason="Newer versions include tracecontext as a default propagator")
+    @irrelevant(context.library >= "python@1.7.0", reason="Newer versions include tracecontext as a default propagator")
     @irrelevant(context.library >= "cpp@0.1.12", reason="Implements the new 'datadog,tracecontext' default")
     @irrelevant(context.library >= "java@1.24.0", reason="Implements the new 'datadog,tracecontext' default")
-    @missing_feature(context.library == "nodejs", reason="New 'datadog' default hasn't been implemented yet")
-    @missing_feature(context.library == "php", reason="New 'datadog' default hasn't been implemented yet")
-    @missing_feature(context.library == "python", reason="New 'datadog' default hasn't been implemented yet")
-    @irrelevant(context.library < "java@1.24.0", reason="Newer versions include tracecontext as a default propagator")
     @irrelevant(context.library >= "ruby@1.17.0", reason="Implements the new 'datadog,tracecontext' default")
     def test_headers_precedence_propagationstyle_legacy(self, test_agent, test_library):
         self.test_headers_precedence_propagationstyle_datadog(test_agent, test_library)
@@ -104,22 +110,20 @@ class Test_Headers_Precedence:
     def test_headers_precedence_propagationstyle_datadog(self, test_agent, test_library):
         with test_library:
             # 1) No headers
-            headers1 = make_single_request_and_get_inject_headers(test_library, [])
+            headers1 = test_library.dd_make_child_span_and_get_headers([])
 
             # 2) Only tracecontext headers
-            headers2 = make_single_request_and_get_inject_headers(
-                test_library, [["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],]
+            headers2 = test_library.dd_make_child_span_and_get_headers(
+                [["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"]]
             )
 
             # 3) Only tracecontext headers, includes existing tracestate
-            headers3 = make_single_request_and_get_inject_headers(
-                test_library,
-                [["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"], ["tracestate", "foo=1"],],
+            headers3 = test_library.dd_make_child_span_and_get_headers(
+                [["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"], ["tracestate", "foo=1"]],
             )
 
             # 4) Both tracecontext and Datadog headers
-            headers4 = make_single_request_and_get_inject_headers(
-                test_library,
+            headers4 = test_library.dd_make_child_span_and_get_headers(
                 [
                     ["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],
                     ["tracestate", "foo=1"],
@@ -130,8 +134,7 @@ class Test_Headers_Precedence:
             )
 
             # 5) Only Datadog headers
-            headers5 = make_single_request_and_get_inject_headers(
-                test_library,
+            headers5 = test_library.dd_make_child_span_and_get_headers(
                 [
                     ["x-datadog-trace-id", "123456789"],
                     ["x-datadog-parent-id", "987654321"],
@@ -140,8 +143,7 @@ class Test_Headers_Precedence:
             )
 
             # 6) Invalid tracecontext, valid Datadog headers
-            headers6 = make_single_request_and_get_inject_headers(
-                test_library,
+            headers6 = test_library.dd_make_child_span_and_get_headers(
                 [
                     ["traceparent", "00-12345678901234567890123456789012-0000000000000000-01"],
                     ["tracestate", "foo=1"],
@@ -211,18 +213,14 @@ class Test_Headers_Precedence:
         assert "traceparent" not in headers6
         assert "tracestate" not in headers6
 
-    @bug(context.library == "cpp", reason="Issue: traceparent not being injected")
-    @bug(context.library == "nodejs", reason="Issue: headers4 is incorrectly using the x-datadog-trace-id by default")
-    @missing_feature(
-        context.library == "java", reason="Issue: tracecontext,Datadog was never the default configuration"
-    )
-    @missing_feature(
-        context.library == "ruby", reason="Issue: tracecontext,Datadog was never the default configuration"
-    )
+    @irrelevant(context.library >= "nodejs@4.0.0", reason="Default value was switched to datadog,tracecontext")
     @irrelevant(context.library >= "php@0.97.0", reason="Default value was switched to datadog,tracecontext")
     @irrelevant(context.library >= "python@2.6.0", reason="Default value was switched to datadog,tracecontext")
     @irrelevant(context.library >= "golang@1.61.0.dev", reason="Default value was switched to datadog,tracecontext")
-    @irrelevant(context.library > "dotnet@2.47.0", reason="Implements the new 'datadog,tracecontext' default")
+    @irrelevant(context.library > "dotnet@2.47.0", reason="Default value was switched to datadog,tracecontext")
+    @irrelevant(context.library == "cpp", reason="Issue: tracecontext,Datadog was never the default configuration")
+    @irrelevant(context.library == "java", reason="Issue: tracecontext,Datadog was never the default configuration")
+    @irrelevant(context.library == "ruby", reason="Issue: tracecontext,Datadog was never the default configuration")
     def test_headers_precedence_propagationstyle_default_tracecontext_datadog(self, test_agent, test_library):
         self.test_headers_precedence_propagationstyle_tracecontext_datadog(test_agent, test_library)
 
@@ -230,22 +228,20 @@ class Test_Headers_Precedence:
     def test_headers_precedence_propagationstyle_tracecontext_datadog(self, test_agent, test_library):
         with test_library:
             # 1) No headers
-            headers1 = make_single_request_and_get_inject_headers(test_library, [])
+            headers1 = test_library.dd_make_child_span_and_get_headers([])
 
             # 2) Only tracecontext headers
-            headers2 = make_single_request_and_get_inject_headers(
-                test_library, [["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],]
+            headers2 = test_library.dd_make_child_span_and_get_headers(
+                [["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"]]
             )
 
             # 3) Only tracecontext headers, includes existing tracestate
-            headers3 = make_single_request_and_get_inject_headers(
-                test_library,
-                [["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"], ["tracestate", "foo=1"],],
+            headers3 = test_library.dd_make_child_span_and_get_headers(
+                [["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"], ["tracestate", "foo=1"]]
             )
 
             # 4) Both tracecontext and Datadog headers
-            headers4 = make_single_request_and_get_inject_headers(
-                test_library,
+            headers4 = test_library.dd_make_child_span_and_get_headers(
                 [
                     ["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],
                     ["tracestate", "foo=1"],
@@ -256,8 +252,7 @@ class Test_Headers_Precedence:
             )
 
             # 5) Only Datadog headers
-            headers5 = make_single_request_and_get_inject_headers(
-                test_library,
+            headers5 = test_library.dd_make_child_span_and_get_headers(
                 [
                     ["x-datadog-trace-id", "123456789"],
                     ["x-datadog-parent-id", "987654321"],
@@ -266,8 +261,7 @@ class Test_Headers_Precedence:
             )
 
             # 6) Invalid tracecontext, valid Datadog headers
-            headers6 = make_single_request_and_get_inject_headers(
-                test_library,
+            headers6 = test_library.dd_make_child_span_and_get_headers(
                 [
                     ["traceparent", "00-12345678901234567890123456789012-0000000000000000-01"],
                     ["tracestate", "foo=1"],
@@ -371,22 +365,20 @@ class Test_Headers_Precedence:
     def test_headers_precedence_propagationstyle_tracecontext(self, test_agent, test_library):
         with test_library:
             # 1) No headers
-            headers1 = make_single_request_and_get_inject_headers(test_library, [])
+            headers1 = test_library.dd_make_child_span_and_get_headers([])
 
             # 2) Only tracecontext headers
-            headers2 = make_single_request_and_get_inject_headers(
-                test_library, [["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],]
+            headers2 = test_library.dd_make_child_span_and_get_headers(
+                [["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"]]
             )
 
             # 3) Only tracecontext headers, includes existing tracestate
-            headers3 = make_single_request_and_get_inject_headers(
-                test_library,
-                [["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"], ["tracestate", "foo=1"],],
+            headers3 = test_library.dd_make_child_span_and_get_headers(
+                [["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"], ["tracestate", "foo=1"]]
             )
 
             # 4) Both tracecontext and Datadog headers
-            headers4 = make_single_request_and_get_inject_headers(
-                test_library,
+            headers4 = test_library.dd_make_child_span_and_get_headers(
                 [
                     ["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],
                     ["tracestate", "foo=1"],
@@ -397,8 +389,7 @@ class Test_Headers_Precedence:
             )
 
             # 5) Only Datadog headers
-            headers5 = make_single_request_and_get_inject_headers(
-                test_library,
+            headers5 = test_library.dd_make_child_span_and_get_headers(
                 [
                     ["x-datadog-trace-id", "123456789"],
                     ["x-datadog-parent-id", "987654321"],
@@ -407,8 +398,7 @@ class Test_Headers_Precedence:
             )
 
             # 6) Invalid tracecontext, valid Datadog headers
-            headers6 = make_single_request_and_get_inject_headers(
-                test_library,
+            headers6 = test_library.dd_make_child_span_and_get_headers(
                 [
                     ["traceparent", "00-12345678901234567890123456789012-0000000000000000-01"],
                     ["tracestate", "foo=1"],
@@ -488,14 +478,13 @@ class Test_Headers_Precedence:
         assert "x-datadog-sampling-priority" not in headers6
 
     @missing_feature(context.library < "java@1.24.0", reason="Implemented from 1.24.0")
-    @missing_feature(context.library == "ruby", reason="library does not yet implement this default configuration")
-    @irrelevant(context.library == "cpp", reason="library does not implement this default configuration")
-    @irrelevant(context.library < "dotnet@2.48.0", reason="Default value was updated in 2.48.0")
-    @irrelevant(context.library < "python@2.6.0", reason="Default value was switched to datadog,tracecontext")
-    @irrelevant(context.library < "golang@1.62.0", reason="Default value was updated in v1.62.0 (w3c phase 2)")
-    @irrelevant(context.library == "nodejs", reason="library does not implement this default configuration")
-    @irrelevant(context.library < "php@0.98.0", reason="Default value was updated in v0.98.0 (w3c phase 2)")
-    @irrelevant(context.library == "python", reason="library does not implement this default configuration")
+    @missing_feature(context.library < "cpp@0.1.12", reason="Implemented in 0.1.12")
+    @missing_feature(context.library < "dotnet@2.48.0", reason="Default value was updated in 2.48.0")
+    @missing_feature(context.library < "python@2.6.0", reason="Default value was switched to datadog,tracecontext")
+    @missing_feature(context.library < "golang@1.62.0", reason="Default value was updated in v1.62.0 (w3c phase 2)")
+    @missing_feature(context.library < "nodejs@4.20.0", reason="Implemented in 4.20.0 (and 3.41.0)")
+    @missing_feature(context.library < "php@0.98.0", reason="Default value was updated in v0.98.0 (w3c phase 2)")
+    @missing_feature(context.library < "ruby@1.17.0", reason="Implemented from 1.17.0")
     def test_headers_precedence_propagationstyle_default_datadog_tracecontext(self, test_agent, test_library):
         self.test_headers_precedence_propagationstyle_datadog_tracecontext(test_agent, test_library)
 
@@ -503,22 +492,20 @@ class Test_Headers_Precedence:
     def test_headers_precedence_propagationstyle_datadog_tracecontext(self, test_agent, test_library):
         with test_library:
             # 1) No headers
-            headers1 = make_single_request_and_get_inject_headers(test_library, [])
+            headers1 = test_library.dd_make_child_span_and_get_headers([])
 
             # 2) Only tracecontext headers
-            headers2 = make_single_request_and_get_inject_headers(
-                test_library, [["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],]
+            headers2 = test_library.dd_make_child_span_and_get_headers(
+                [["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"]]
             )
 
             # 3) Only tracecontext headers, includes existing tracestate
-            headers3 = make_single_request_and_get_inject_headers(
-                test_library,
-                [["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"], ["tracestate", "foo=1"],],
+            headers3 = test_library.dd_make_child_span_and_get_headers(
+                [["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"], ["tracestate", "foo=1"]]
             )
 
             # 4) Both tracecontext and Datadog headers
-            headers4 = make_single_request_and_get_inject_headers(
-                test_library,
+            headers4 = test_library.dd_make_child_span_and_get_headers(
                 [
                     ["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],
                     ["tracestate", "foo=1"],
@@ -529,8 +516,7 @@ class Test_Headers_Precedence:
             )
 
             # 5) Only Datadog headers
-            headers5 = make_single_request_and_get_inject_headers(
-                test_library,
+            headers5 = test_library.dd_make_child_span_and_get_headers(
                 [
                     ["x-datadog-trace-id", "123456789"],
                     ["x-datadog-parent-id", "987654321"],
@@ -539,8 +525,7 @@ class Test_Headers_Precedence:
             )
 
             # 6) Invalid tracecontext, valid Datadog headers
-            headers6 = make_single_request_and_get_inject_headers(
-                test_library,
+            headers6 = test_library.dd_make_child_span_and_get_headers(
                 [
                     ["traceparent", "00-12345678901234567890123456789012-0000000000000000-01"],
                     ["tracestate", "foo=1"],
@@ -640,159 +625,14 @@ class Test_Headers_Precedence:
         assert "tracestate" in headers6
         assert len(tracestate6Arr) == 1 and tracestate6Arr[0].startswith("dd=")
 
-    @missing_feature(context.library == "java", reason="not_implemented yet")
-    @missing_feature(context.library == "ruby", reason="not_implemented yet")
-    @missing_feature(context.library == "cpp", reason="not_implemented yet")
-    @missing_feature(context.library == "dotnet", reason="not_implemented yet")
-    @missing_feature(context.library == "golang", reason="not_implemented yet")
-    @missing_feature(context.library == "nodejs", reason="not_implemented yet")
-    @missing_feature(context.library == "php", reason="not_implemented yet")
-    @missing_feature(context.library == "python", reason="not_implemented yet")
-    @enable_datadog_b3multi_tracecontext_extract_first_false()
-    def test_headers_precedence_propagationstyle_resolves_conflicting_contexts(self, test_agent, test_library):
-        """
-        This test asserts that when multiple contexts are extracted,
-        the first context extracted is the primary context, and the one used.
-        If the latter contexts have a different trace_id than the primary context,
-        they are added as span links to the resulting span.
-        """
-        with test_library:
-            # 1) Datadog and tracecontext headers, Datadog is primary context,
-            # trace-id does not match,
-            # tracestate is present, so should be added to tracecontext span_link
-            headers1 = make_single_request_and_get_inject_headers(
-                test_library,
-                [
-                    ["traceparent", "00-11111111111111110000000000000001-000000003ade68b1-01"],
-                    ["tracestate", "dd=s:2;t.tid:1111111111111111,foo=1"],
-                    ["x-datadog-trace-id", "2"],
-                    ["x-datadog-parent-id", "987654321"],
-                    ["x-datadog-sampling-priority", "2"],
-                    ["x-datadog-tags", "_dd.p.tid=1111111111111111"],
-                ],
-            )
-            # 2) Datadog and tracecontext headers, trace-id does match, Datadog is primary context
-            # we want to make sure there's no span link since they match
-            headers2 = make_single_request_and_get_inject_headers(
-                test_library,
-                [
-                    ["traceparent", "00-11111111111111110000000000000001-000000003ade68b1-01"],
-                    ["tracestate", "dd=s:2;t.tid:1111111111111111,foo=1"],
-                    ["x-datadog-trace-id", "1"],
-                    ["x-datadog-parent-id", "987654321"],
-                    ["x-datadog-sampling-priority", "2"],
-                    ["x-datadog-tags", "_dd.p.tid=1111111111111111"],
-                ],
-            )
-            # 3) Datadog, tracecontext, b3multi headers, Datadog is primary context
-            # tracecontext and b3multi trace_id do match it
-            # we should have two span links, b3multi should not have tracestate
-            headers3 = make_single_request_and_get_inject_headers(
-                test_library,
-                [
-                    ["traceparent", "00-11111111111111110000000000000001-000000003ade68b1-01"],
-                    ["tracestate", "dd=s:2;t.tid:1111111111111111,foo=1"],
-                    ["x-datadog-trace-id", "4"],
-                    ["x-datadog-parent-id", "987654321"],
-                    ["x-datadog-sampling-priority", "2"],
-                    ["x-datadog-tags", "_dd.p.tid=1111111111111111"],
-                    ["x-b3-traceid", "11111111111111110000000000000003"],
-                    ["x-b3-spanid", "a2fb4a1d1a96d312"],
-                    ["x-b3-sampled", "1"],
-                ],
-            )
-            # 4) Datadog, b3multi headers edge case where we want to make sure NOT to create a span_link
-            # if the secondary context has trace_id 0 since that's not valid.
-            headers4 = make_single_request_and_get_inject_headers(
-                test_library,
-                [
-                    ["x-datadog-trace-id", "5"],
-                    ["x-datadog-parent-id", "987654321"],
-                    ["x-datadog-sampling-priority", "2"],
-                    ["x-datadog-tags", "_dd.p.tid=1111111111111111"],
-                    ["x-b3-traceid", "00000000000000000000000000000000"],
-                    ["x-b3-spanid", "a2fb4a1d1a96d312"],
-                    ["x-b3-sampled", "1"],
-                ],
-            )
-            # 5) Datadog, b3multi headers edge case where we want to make sure NOT to create a span_link
-            # if the secondary context has span_id 0 since that's not valid.
-            headers4 = make_single_request_and_get_inject_headers(
-                test_library,
-                [
-                    ["x-datadog-trace-id", "6"],
-                    ["x-datadog-parent-id", "987654321"],
-                    ["x-datadog-sampling-priority", "2"],
-                    ["x-datadog-tags", "_dd.p.tid=1111111111111111"],
-                    ["x-b3-traceid", "11111111111111110000000000000003"],
-                    ["x-b3-spanid", " 0000000000000000"],
-                    ["x-b3-sampled", "1"],
-                ],
-            )
-        traces = test_agent.wait_for_num_traces(num=5)
-
-        # 1) Datadog and tracecontext headers, trace-id does not match, Datadog is primary context
-        # tracestate is present, so should be added to tracecontext span_link
-        trace0 = traces[0][0]
-        assert trace0["trace_id"] == 2
-        links0 = trace0["span_links"]
-        assert len(links0) == 1
-        link0 = links0[0]
-        assert link0["trace_id"] == 1
-        assert link0["span_id"] == 987654321
-        assert link0["attributes"] == {"reason": "terminated_context", "context_headers": "tracecontext"}
-        assert link0["tracestate"] == "dd=s:2;t.tid:1111111111111111,foo=1"
-        assert link0["flags"] == 1
-        assert link0["trace_id_high"] == 1229782938247303441
-
-        # 2) Datadog and tracecontext headers, trace-id does match, Datadog is primary context
-        # we just want to make sure there's not span link since they match
-        trace1 = traces[1][0]
-        assert trace1["trace_id"] == 1
-        assert trace1.get("span_links") == None
-
-        # 3) Datadog, tracecontext, b3multi headers, Datadog is primary context
-        # tracecontext and b3multi headers do not match
-        # # we should have two span links, b3multi should not have tracestate
-        trace2 = traces[2][0]
-        assert trace2["trace_id"] == 4
-        links2 = trace2["span_links"]
-        assert len(links2) == 2
-        link1 = links2[0]
-        assert link1["trace_id"] == 3
-        assert link1["span_id"] == 11744061942159299346
-        assert link1["attributes"] == {"reason": "terminated_context", "context_headers": "b3multi"}
-        assert link1["flags"] == 1
-        assert link1["trace_id_high"] == 1229782938247303441
-        assert link1.get("tracestate") == None
-
-        link2 = links2[1]
-        assert link2["trace_id"] == 1
-        assert link2["span_id"] == 987654321
-        assert link2["attributes"] == {"reason": "terminated_context", "context_headers": "tracecontext"}
-        assert link2["tracestate"] == "dd=s:2;t.tid:1111111111111111,foo=1"
-        assert link2["flags"] == 1
-        assert link2["trace_id_high"] == 1229782938247303441
-
-        # 4) Datadog, b3multi headers edge case where we want to make sure NOT to create a span_link
-        # if the secondary context has trace_id 0 since that's not valid.
-        trace3 = traces[3][0]
-        assert trace3["trace_id"] == 5
-        assert trace3.get("span_links") == None
-
-        # 5) Datadog, b3multi headers edge case where we want to make sure NOT to create a span_link
-        # if the secondary context has span_id 0 since that's not valid.
-        trace4 = traces[4][0]
-        assert trace4["trace_id"] == 6
-        assert trace4.get("span_links") == None
-
     @enable_datadog_b3multi_tracecontext_extract_first_false()
     @missing_feature(context.library < "cpp@0.1.12", reason="Implemented in 0.1.12")
-    @missing_feature(context.library <= "dotnet@2.41.0", reason="Implemented in 2.42.0")
-    @missing_feature(context.library == "nodejs", reason="NodeJS must implement new tracestate propagation")
-    @missing_feature(context.library < "python@2.3.3", reason="python must implement new tracestate propagation")
-    @missing_feature(context.library <= "java@1.23.0", reason="Implemented in 1.24.0")
-    @missing_feature(context.library == "ruby", reason="ruby must implement new tracestate propagation")
+    @missing_feature(context.library < "dotnet@2.42.0", reason="Implemented in 2.42.0")
+    @missing_feature(context.library < "python@2.3.3", reason="Implemented in 2.3.3")
+    @missing_feature(context.library < "java@1.24.0", reason="Implemented in 1.24.0")
+    @missing_feature(context.library < "nodejs@4.20.0", reason="Implemented in 4.20.0 (and 3.41.0)")
+    @missing_feature(context.library < "php@0.94.0", reason="Implemented in 0.94.0")
+    @missing_feature(context.library < "ruby@1.17.0", reason="Implemented in 1.17.0")
     def test_headers_precedence_propagationstyle_tracecontext_last_extract_first_false_correctly_propagates_tracestate(
         self, test_agent, test_library
     ):
@@ -801,12 +641,11 @@ class Test_Headers_Precedence:
         )
 
     @enable_datadog_b3multi_tracecontext_extract_first_true()
-    @bug(context.library == "cpp", reason="Legacy behaviour")
-    @bug(context.library == "php", reason="Legacy behaviour: Fixed order instead of order of definition")
+    @missing_feature(context.library == "cpp", reason="DD_TRACE_PROPAGATION_EXTRACT_FIRST is not yet implemented")
+    @missing_feature(context.library == "php", reason="DD_TRACE_PROPAGATION_EXTRACT_FIRST is not yet implemented")
     @bug(
-        context.library < "golang@1.57.0",
-        reason="Legacy behaviour: tracecontext propagator would always take precedence",
-    )
+        context.library < "golang@1.57.0", reason="APMRP-360"
+    )  # Legacy behaviour: tracecontext propagator would always take precedence
     def test_headers_precedence_propagationstyle_tracecontext_last_extract_first_true_correctly_propagates_tracestate(
         self, test_agent, test_library
     ):
@@ -847,8 +686,7 @@ class Test_Headers_Precedence:
         with test_library:
             # 1) Datadog and tracecontext headers, trace-id and span-id match, tracestate is present
             # Note: This is expected to be the most frequent case
-            headers1 = make_single_request_and_get_inject_headers(
-                test_library,
+            headers1 = test_library.dd_make_child_span_and_get_headers(
                 [
                     ["traceparent", "00-11111111111111110000000000000001-000000003ade68b1-01"],
                     ["tracestate", "dd=s:2;t.tid:1111111111111111,foo=1"],
@@ -860,8 +698,7 @@ class Test_Headers_Precedence:
             )
             # 2) Scenario 1 but the x-datadog-* headers don't match the tracestate string
             # Note: This is an exceptional case that should not happen, but we should be consistent
-            headers2 = make_single_request_and_get_inject_headers(
-                test_library,
+            headers2 = test_library.dd_make_child_span_and_get_headers(
                 [
                     ["traceparent", "00-11111111111111110000000000000002-000000003ade68b1-01"],
                     ["tracestate", "dd=s:1;t.tid:1111111111111111,foo=1"],
@@ -874,8 +711,7 @@ class Test_Headers_Precedence:
 
             # 3) Scenario 1 but there is no dd tracestate list-member
             # Note: This is an exceptional case that should not happen, but we should be consistent
-            headers3 = make_single_request_and_get_inject_headers(
-                test_library,
+            headers3 = test_library.dd_make_child_span_and_get_headers(
                 [
                     ["traceparent", "00-11111111111111110000000000000003-000000003ade68b1-01"],
                     ["tracestate", "foo=1"],
@@ -888,8 +724,7 @@ class Test_Headers_Precedence:
 
             # 4) Datadog and tracecontext headers, trace-id is the same but span-id is different, tracestate is present
             # Note: This happens when a W3C Proxy / Cloud Provider continues the W3C trace
-            headers4 = make_single_request_and_get_inject_headers(
-                test_library,
+            headers4 = test_library.dd_make_child_span_and_get_headers(
                 [
                     ["traceparent", "00-11111111111111110000000000000004-000000003ade68b1-01"],
                     ["tracestate", "dd=s:2;t.tid:1111111111111111,foo=1"],
@@ -903,8 +738,7 @@ class Test_Headers_Precedence:
             # 5) Datadog and tracecontext headers, trace-id is different, tracestate is present
             # Note: This happens when a W3C Proxy / Cloud Provider starts a new W3C trace,
             # which would happen if the incoming request only had x-datadog-* headers
-            headers5 = make_single_request_and_get_inject_headers(
-                test_library,
+            headers5 = test_library.dd_make_child_span_and_get_headers(
                 [
                     ["traceparent", "00-11111111111111110000000000000005-000000003ade68b1-01"],
                     ["tracestate", "foo=1"],

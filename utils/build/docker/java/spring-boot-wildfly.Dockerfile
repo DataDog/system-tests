@@ -1,5 +1,7 @@
 FROM maven:3.9-eclipse-temurin-11 as build
 
+ENV JAVA_TOOL_OPTIONS="-Djava.net.preferIPv4Stack=true"
+
 COPY ./utils/build/docker/java/iast-common/src /iast-common/src
 
 WORKDIR /app
@@ -17,8 +19,7 @@ FROM eclipse-temurin:11-jre
 
 WORKDIR /app
 COPY --from=build /binaries/SYSTEM_TESTS_LIBRARY_VERSION SYSTEM_TESTS_LIBRARY_VERSION
-COPY --from=build /binaries/SYSTEM_TESTS_LIBDDWAF_VERSION SYSTEM_TESTS_LIBDDWAF_VERSION
-COPY --from=build /binaries/SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION
+
 COPY --from=build /app/target/myproject-0.0.1-SNAPSHOT-bootable.jar /app/app.jar
 COPY --from=build /dd-tracer/dd-java-agent.jar .
 

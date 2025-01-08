@@ -1,11 +1,6 @@
 Test items are skipped (or not) based on declarations in tests class, using manifest, or @bug/flaky/missing_feature decorators.
 
-This fact implies an [egg-chicken issue](../edit/egg-chicken-changes.md) if you need to work on a feature. A way to handle it is to use the `-F` option :
+You can force a disabled test to execute using the `-F` option, e.g.
+`./run.sh MY_SCENARIO -F tests/feature.py::Test_Feature -F tests/feature.py::Test_FeatureEdgeCase`
 
-1. in your PR, modify your CI to include the test you want to activate:
-    * `./run.sh MY_SCENARIO -F tests/feature.py::Test_Feature -F tests/feature.py::Test_FeatureEdgeCase`
-2. iterate on your PR, merge it
-
-:warning: Do not forget to add a PR in system-tests repo, otherwise we may change the test, and break your CI without noticing it.
-
-And so time to time, removes all the `-F` in your CI.
+ A common use-case is if a feature covered by a test is currently in progress for your library. Once progress is complete, follow the [enable-test.md](../edit/enable-test.md) doc to enable the test in CI.

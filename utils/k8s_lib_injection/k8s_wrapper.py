@@ -1,14 +1,13 @@
-import time
-from kubernetes import client, config, watch
-from utils.tools import logger
+from kubernetes import client, config
 from retry import retry
 
 
 class K8sWrapper:
-    """ Wrap methods from CoreV1Api and AppsV1Api to make it fail-safe.
+    """Wrap methods from CoreV1Api and AppsV1Api to make it fail-safe.
     In a simple execution, the methods used here are usually smooth.
     Problems arise when we run tests with a lot of parallelism.
-    We apply a retry policy """
+    We apply a retry policy
+    """
 
     def __init__(self, k8s_kind_cluster):
         self.k8s_kind_cluster = k8s_kind_cluster
@@ -23,7 +22,7 @@ class K8sWrapper:
 
     @retry(delay=1, tries=5)
     def create_namespaced_daemon_set(self, namespace="default", body=None):
-        self.apps_api().create_namespaced_daemon_set(namespace="default", body=body)
+        self.apps_api().create_namespaced_daemon_set(namespace=namespace, body=body)
 
     @retry(delay=1, tries=5)
     def read_namespaced_daemon_set_status(self, name=None, namespace="default"):
@@ -68,23 +67,3 @@ class K8sWrapper:
     @retry(delay=1, tries=5)
     def create_namespaced_pod(self, namespace="default", body=None):
         return self.core_v1_api().create_namespaced_pod(namespace=namespace, body=body)
-
-    @retry(delay=1, tries=5)
-    def create_namespaced_deployment(self, body=None, namespace="default"):
-        return self.apps_api().create_namespaced_deployment(namespace=namespace, body=body)
-
-    @retry(delay=1, tries=5)
-    def read_namespaced_deployment_status(self, deployment_name, namespace="default"):
-        return self.apps_api().read_namespaced_deployment_status(deployment_name, namespace=namespace)
-
-    @retry(delay=1, tries=10)
-    def read_namespaced_deployment(self, deployment_name, namespace="default"):
-        return self.apps_api().read_namespaced_deployment(deployment_name, namespace=namespace)
-
-    @retry(delay=1, tries=5)
-    def patch_namespaced_deployment(self, deployment_name, namespace, deploy_data):
-        return self.apps_api().patch_namespaced_deployment(deployment_name, namespace, deploy_data)
-
-    @retry(delay=1, tries=5)
-    def delete_namespaced_pod(self, pod_name_running, namespace):
-        return self.core_v1_api().delete_namespaced_pod(pod_name_running, namespace=namespace)

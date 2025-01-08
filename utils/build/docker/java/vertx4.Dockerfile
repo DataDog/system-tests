@@ -1,7 +1,6 @@
 FROM maven:3.6-jdk-11 as build
 
-RUN apt-get update && \
-	apt-get install -y libarchive-tools
+ENV JAVA_TOOL_OPTIONS="-Djava.net.preferIPv4Stack=true"
 
 COPY ./utils/build/docker/java/iast-common/src /iast-common/src
 
@@ -20,8 +19,7 @@ FROM eclipse-temurin:11-jre
 
 WORKDIR /app
 COPY --from=build /binaries/SYSTEM_TESTS_LIBRARY_VERSION SYSTEM_TESTS_LIBRARY_VERSION
-COPY --from=build /binaries/SYSTEM_TESTS_LIBDDWAF_VERSION SYSTEM_TESTS_LIBDDWAF_VERSION
-COPY --from=build /binaries/SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION
+
 COPY --from=build /app/target/vertx4-1.0-SNAPSHOT.jar /app/app.jar
 COPY --from=build /dd-tracer/dd-java-agent.jar .
 

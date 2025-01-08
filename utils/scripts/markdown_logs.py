@@ -14,7 +14,8 @@ def main():
     for x in os.listdir("."):
         if x.startswith("logs") and os.path.isfile(f"{x}/report.json"):
             result[x] = collections.defaultdict(int)
-            data = json.load(open(f"{x}/report.json", "r"))
+            with open(f"{x}/report.json") as f:
+                data = json.load(f)
             for test in data["tests"]:
                 outcome = "skipped" if test["metadata"]["details"] is not None else test["outcome"]
                 result[x][outcome] += 1
@@ -22,14 +23,14 @@ def main():
     table_row("Scenario", *[f"{outcome} {icon}" for outcome, icon in all_outcomes.items()])
     table_row(*(["-"] * (len(all_outcomes) + 1)))
 
-    for scenario, outcomes in result.items():
-        if scenario == "logs":
-            scenario = "Main scenario"
+    for folder_name, outcomes in result.items():
+        if folder_name == "logs":
+            scenario_name = "Main scenario"
         else:
             # "ab_cd_ef" => "Ab Cd Ef"
-            scenario = " ".join([s.capitalize() for s in scenario[5:].split("_")])
+            scenario_name = " ".join([s.capitalize() for s in folder_name[5:].split("_")])
 
-        table_row(scenario, *[str(outcomes.get(outcome, "")) for outcome in all_outcomes])
+        table_row(scenario_name, *[str(outcomes.get(outcome, "")) for outcome in all_outcomes])
 
 
 if __name__ == "__main__":

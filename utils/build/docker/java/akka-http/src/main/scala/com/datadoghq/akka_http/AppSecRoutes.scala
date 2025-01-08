@@ -8,15 +8,25 @@ import akka.http.scaladsl.model.headers._
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
 import akka.http.scaladsl.unmarshalling._
+import akka.http.scaladsl.server.Directives._
+import akka.http.scaladsl.server.Route
+import scala.collection.JavaConverters._
 import datadog.appsec.api.blocking.Blocking
 import datadog.trace.api.interceptor.MutableSpan
 import io.opentracing.util.GlobalTracer
+import scala.concurrent.duration._
+import com.datadoghq.system_tests.iast.utils.Utils;
+import com.datadoghq.system_tests.iast.utils.CryptoExamples;
+import scala.concurrent.blocking
 
 import java.util
 import scala.concurrent.Future
 import scala.xml.{Elem, XML}
 
 object AppSecRoutes {
+
+  private val cryptoExamples = new CryptoExamples()
+
   val route: Route =
     path("") {
       get {
@@ -24,6 +34,14 @@ object AppSecRoutes {
         span.setTag("test-tag", "my value")
         withSpan(span) {
           complete("Hello world!")
+        }
+      }
+    } ~
+    path("createextraservice") {
+      get {
+        parameter("serviceName") { serviceName =>
+          setRootSpanTag("service", serviceName)
+          complete("OK")
         }
       }
     } ~
@@ -152,7 +170,41 @@ object AppSecRoutes {
             complete("ok")
           }
         }
+      } ~
+      path("requestdownstream") {
+        blocking {
+            var url = "http://localhost:7777/returnheaders";
+            var json = Utils.sendGetRequest(url);
+            complete(json)
+          }
+      } ~
+      path("vulnerablerequestdownstream") {
+        blocking {
+          cryptoExamples.insecureMd5Hashing("password")
+          var url = "http://localhost:7777/returnheaders";
+          var json = Utils.sendGetRequest(url);
+          complete(json)
+        }
+      } ~
+      path("returnheaders") {
+        get {
+          extractRequest { request =>
+            val headers = request.headers.map(header => header.name() -> header.value()).toMap
+            complete(StatusCodes.OK, headers)(jsonMarshaller)
+          }
+        }
+      } ~
+      path("set_cookie") {
+        get {
+          parameters('name.as[String], 'value.as[String]) { (name, value) =>
+            val cookieHeader = RawHeader("Set-Cookie", HttpCookiePair(name, value).toString())
+            respondWithHeader(cookieHeader) {
+              complete("ok")
+            }
+          }
+        }
       }
+
 
   case class XmlObject(value: String, attack: String)
 

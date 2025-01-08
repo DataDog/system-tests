@@ -11,6 +11,8 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.MultivaluedMap;
 import jakarta.ws.rs.core.PathSegment;
 import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.xml.bind.annotation.XmlAttribute;
 import jakarta.xml.bind.annotation.XmlRootElement;
 import jakarta.xml.bind.annotation.XmlValue;
@@ -19,12 +21,21 @@ import java.util.HashMap;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Map;
+import java.util.HashMap;
 import java.util.List;
+
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 @SuppressWarnings("Convert2MethodRef")
 @Path("/")
 @Produces(MediaType.TEXT_PLAIN)
 public class MyResource {
+
+    private final CryptoExamples cryptoExamples = new CryptoExamples();
 
     @GET
     public String hello() {
@@ -36,6 +47,36 @@ public class MyResource {
         } finally {
             span.finish();
         }
+    }
+
+    @GET
+    @Path("/healthcheck")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Map<String, Object> healthcheck() {
+        String version;
+
+        try (BufferedReader reader = new BufferedReader(
+                new InputStreamReader(
+                        getClass().getClassLoader().getResourceAsStream("dd-java-agent.version"),
+                        StandardCharsets.ISO_8859_1))) {
+            String line = reader.readLine();
+            if (line == null) {
+                throw new RuntimeException("Can't get version");
+            }
+            version = line;
+        } catch (Exception e) {
+            throw new RuntimeException("Can't get version", e);
+        }
+
+        Map<String, String> library = new HashMap<>();
+        library.put("language", "java");
+        library.put("version", version);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("status", "ok");
+        response.put("library", library);
+
+        return response;
     }
 
     @GET
@@ -153,6 +194,7 @@ public class MyResource {
 
     @GET
     @Path("/user_login_success_event")
+    @Produces({MediaType.TEXT_HTML, MediaType.TEXT_PLAIN})
     public String userLoginSuccess(@DefaultValue("system_tests_user") @QueryParam("event_user_id") String userId) {
         datadog.trace.api.GlobalTracer.getEventTracker()
                 .trackLoginSuccessEvent(userId, METADATA);
@@ -162,6 +204,7 @@ public class MyResource {
 
     @GET
     @Path("/user_login_failure_event")
+    @Produces({MediaType.TEXT_HTML, MediaType.TEXT_PLAIN})
     public String userLoginFailure(@DefaultValue("system_tests_user") @QueryParam("event_user_id") String userId,
                                    @DefaultValue("true") @QueryParam("event_user_exists") boolean eventUserExists) {
         datadog.trace.api.GlobalTracer.getEventTracker()
@@ -233,6 +276,49 @@ public class MyResource {
         result.response_headers = response_headers;
 
         return result;
+    }
+
+    @GET
+    @Path("/requestdownstream")
+    public String requestdownstream() {
+        String url = "http://localhost:7777/returnheaders";
+        return Utils.sendGetRequest(url);
+    }
+
+    @GET
+    @Path("/vulnerablerequestdownstream")
+    public String vulnerableRequestdownstream() {
+        cryptoExamples.insecureMd5Hashing("password");
+        String url = "http://localhost:7777/returnheaders";
+        return Utils.sendGetRequest(url);
+    }
+
+    @GET
+    @Path("/returnheaders")
+    public String returnheaders(@Context final HttpHeaders headers) {
+        Map<String, String> headerMap = new HashMap<>();
+        headers.getRequestHeaders().forEach((key, value) -> headerMap.put(key, value.get(0)));
+        String json = "";
+        try {
+            json = new ObjectMapper().writeValueAsString(headerMap);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return json;
+    }
+
+    @GET
+    @Path("/set_cookie")
+    public Response setCookie(@QueryParam("name") String name, @QueryParam("value") String value) {
+        return Response.ok().header("Set-Cookie", name + "=" + value).build();
+    }
+
+    @GET
+    @Path("/createextraservice")
+    public String createextraservice(@QueryParam("serviceName") String serviceName) {
+        setRootSpanTag("service", serviceName);
+        return "ok";
     }
 
     public static final class DistantCallResponse {

@@ -158,7 +158,7 @@ def get_saved_corpus(source):
         result.append(request)
 
     def _load_dir(base_dirname):
-        for (_, dirnames, filenames) in os.walk(base_dirname):
+        for _, dirnames, filenames in os.walk(base_dirname):
             for dirname in dirnames:
                 _load_dir(os.path.join(base_dirname, dirname))
 

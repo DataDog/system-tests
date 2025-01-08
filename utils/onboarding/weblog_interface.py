@@ -13,7 +13,7 @@ def make_get_request(app_url):
             "x-datadog-parent-id": generated_uuid,
             "x-datadog-sampling-priority": "2",
         },
-        timeout=10,
+        timeout=15,
     )
     return generated_uuid
 
@@ -28,13 +28,14 @@ def warmup_weblog(app_url):
 
 
 def make_internal_get_request(stdin_file, vm_port):
-    """ This method is exclusively for testing through KrunVm microVM. 
-    It is used to make a request to the weblog application inside the VM, using stdin file"""
+    """Exclusively for testing through KrunVm microVM.
+    It is used to make a request to the weblog application inside the VM, using stdin file
+    """
 
     generated_uuid = str(randint(1, 100000000000000000))
     timeout = 80
     script_to_run = f"""#!/bin/bash
-echo "Requesting weblog..." 
+echo "Requesting weblog..."
 URL="http://localhost:{vm_port}/"
 TIMEOUT={timeout}
 TRACE_ID={generated_uuid}
@@ -74,3 +75,25 @@ done"""
         raise TimeoutError("Timed out waiting for weblog ready")
 
     return generated_uuid
+
+
+def get_child_pids(virtual_machine) -> str:
+    vm_ip = virtual_machine.get_ip()
+    vm_port = virtual_machine.deffault_open_port
+    url = f"http://{vm_ip}:{vm_port}/child_pids"
+    return requests.get(url, timeout=60).text
+
+
+def get_zombies(virtual_machine) -> str:
+    vm_ip = virtual_machine.get_ip()
+    vm_port = virtual_machine.deffault_open_port
+    url = f"http://{vm_ip}:{vm_port}/zombies"
+    return requests.get(url, timeout=60).text
+
+
+def fork_and_crash(virtual_machine) -> str:
+    vm_ip = virtual_machine.get_ip()
+    vm_port = virtual_machine.deffault_open_port
+    url = f"http://{vm_ip}:{vm_port}/fork_and_crash"
+    # The timeout is high because coredump is triggered in some configs and takes a long time to complete
+    return requests.get(url, timeout=600).text

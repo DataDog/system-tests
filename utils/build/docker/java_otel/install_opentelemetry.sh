@@ -19,8 +19,6 @@ else
     exit 1
 fi
 
-touch /binaries/SYSTEM_TESTS_LIBDDWAF_VERSION
-touch /binaries/SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION
 java -jar /otel-tracer/opentelemetry-javaagent.jar > /binaries/SYSTEM_TESTS_LIBRARY_VERSION
 
 echo "opentelemetry-javaagent version: $(cat /binaries/SYSTEM_TESTS_LIBRARY_VERSION)"

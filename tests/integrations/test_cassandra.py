@@ -9,7 +9,7 @@ from utils import weblog, interfaces, context, missing_feature, scenarios, featu
 @features.cassandra_support
 @scenarios.integrations
 class Test_Cassandra:
-    """ Verify that a cassandra span is created """
+    """Verify that a cassandra span is created"""
 
     def setup_main(self):
         self.r = weblog.get("/trace/cassandra")

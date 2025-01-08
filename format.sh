@@ -46,6 +46,64 @@ fi
 # shellcheck source=/dev/null
 source venv/bin/activate
 
-pylint utils  # pylint does not have a fix mode
+echo "Running mypy type checks..."
+if ! mypy --config pyproject.toml; then
+  echo "Mypy type checks failed. Please fix the errors above. 💥 💔 💥"
+  exit 1
+fi
+
+echo "Running ruff checks..."
+if ! which ruff > /dev/null; then
+  echo "ruff is not installed, installing it (ETA 5s)"
+  ./build.sh -i runner > /dev/null
+fi
+
+echo "Running ruff formatter..."
+if [ "$COMMAND" == "fix" ]; then
+  ruff format
+else
+  ruff format --check --diff
+fi
+
+if [ "$COMMAND" == "fix" ]; then
+  ruff_args="--fix"
+else
+  ruff_args=""
+fi
+
+if ! ruff check $ruff_args; then
+  echo "ruff checks failed. Please fix the errors above. 💥 💔 💥"
+  exit 1
+fi
+
+echo "Checking trailing whitespaces..."
+INCLUDE_PATTERN='.*\.(md|yml|yaml|sh|cs|Dockerfile|java|sql|ts|js|php)$'
+EXCLUDE_PATTERN='utils/build/virtual_machine'
+# Check all files tracked by git, and matching include/exclude patterns
+FILES="$(git ls-files | grep -v -E "$EXCLUDE_PATTERN" | grep -E "$INCLUDE_PATTERN" | while read f ; do grep -l ' $' "$f" || true ; done)"
+
+# shim for sed -i on GNU sed (Linux) and BSD sed (macOS)
+_sed_i() {
+  if [[ "$OSTYPE" == "darwin"* ]]; then
+    sed -i '' -r "$@"
+  else
+    sed -i "$@"
+  fi
+}
+
+if [ "$COMMAND" == "fix" ]; then
+  echo "$FILES" | while read file ; do
+    if [[ -n "$file" ]]; then
+      echo "Fixing $file"
+      _sed_i 's/  *$//g' "$file"
+    fi
+  done
+else
+  if [ -n "$FILES" ]; then
+    echo "Some trailing white spaces has been found, please fix them 💥 💔 💥"
+    echo "$FILES"
+    exit 1
+  fi
+fi
 
 echo "All good, the system-tests CI will be happy! ✨ 🍰 ✨"

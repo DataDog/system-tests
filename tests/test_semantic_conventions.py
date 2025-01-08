@@ -25,6 +25,7 @@ VARIANT_COMPONENT_MAP = {
     "echo": ["labstack/echo.v4", "labstack/echo"],
     "express4": "express",
     "express4-typescript": "express",
+    "express5": "express",
     "nextjs": "next",
     "uwsgi-poc": "flask",
     "django-poc": "django",
@@ -88,7 +89,7 @@ VARIANT_COMPONENT_MAP = {
         "spring.handler": "spring-web-controller",
         "servlet.response": "java-web-servlet-response",
     },
-    "resteasy-netty3": {"netty.request": ["netty", "jax-rs"], "jax-rs.request": "jax-rs-controller",},
+    "resteasy-netty3": {"netty.request": ["netty", "jax-rs"], "jax-rs.request": "jax-rs-controller"},
     "akka-http": "akka-http-server",
     "rails": {
         "rails.action_controller": "action_pack",
@@ -99,8 +100,8 @@ VARIANT_COMPONENT_MAP = {
     "ratpack": {"ratpack.handler": "ratpack", "netty.request": "netty"},
     "uds-echo": "labstack/echo.v4",
     "uds-express4": "express",
-    "uds-flask": {"flask.request": "flask",},
-    "uds-sinatra": {"rack.request": "rack", "sinatra.route": "sinatra", "sinatra.request": "sinatra",},
+    "uds-flask": {"flask.request": "flask"},
+    "uds-sinatra": {"rack.request": "rack", "sinatra.route": "sinatra", "sinatra.request": "sinatra"},
     "uds-spring-boot": {
         "servlet.request": "tomcat-server",
         "hsqldb.query": "java-jdbc-statement",
@@ -137,8 +138,8 @@ def get_component_name(weblog_variant, language, span_name):
 class Test_Meta:
     """meta object in spans respect all conventions"""
 
-    @bug(library="cpp", reason="Span.kind said to be implemented but currently not set for nginx")
-    @bug(library="php", reason="All PHP current weblog variants trace with C++ tracers that do not have Span.Kind")
+    @bug(library="cpp", reason="APMAPI-924")
+    @bug(library="php", reason="APMAPI-924")
     def test_meta_span_kind(self):
         """Validates that traces from an http framework carry a span.kind meta tag, with value server or client"""
 
@@ -156,9 +157,9 @@ class Test_Meta:
 
         interfaces.library.validate_spans(validator=validator)
 
-    @bug(library="ruby", reason="http.url is not a full url, should be discussed of actually a bug or not")
-    @bug(library="golang", reason="http.url is not a full url, should be discussed of actually a bug or not")
-    @bug(context.library < "php@0.68.2")
+    @bug(library="ruby", reason="APMAPI-922")
+    @bug(context.library < "golang@1.69.0-dev", reason="APMRP-360")
+    @bug(context.library < "php@0.68.2", reason="APMRP-360")
     def test_meta_http_url(self):
         """Validates that traces from an http framework carry a http.url meta tag, formatted as a URL"""
 
@@ -230,9 +231,9 @@ class Test_Meta:
 
         interfaces.library.validate_spans(validator=validator)
 
-    @bug(library="php", reason="language tag not implemented")
+    @bug(library="php", reason="APMAPI-923")
     # TODO: Versions previous to 1.1.0 might be ok, but were not tested so far.
-    @bug(context.library < "java@1.1.0", reason="language tag implemented but not for all spans")
+    @bug(context.library < "java@1.1.0", reason="APMRP-360")
     @bug(library="dotnet", reason="AIT-8735")
     @missing_feature(context.library < "dotnet@2.6.0")
     def test_meta_language_tag(self):
@@ -256,7 +257,8 @@ class Test_Meta:
         # checking that we have at least one root span
         assert len(list(interfaces.library.get_root_spans())) != 0, "Did not recieve any root spans to validate."
 
-    @bug(library="php", reason="component tag not implemented for apache-mode and php-fpm")
+    @bug(library="php", reason="APMAPI-920")
+    @bug(context.library >= "nodejs@4.44.0", reason="APMAPI-921")
     def test_meta_component_tag(self):
         """Assert that all spans generated from a weblog_variant have component metadata tag matching integration name."""
 
@@ -284,7 +286,6 @@ class Test_Meta:
         # checking that we have at least one root span
         assert len(list(interfaces.library.get_root_spans())) != 0, "Did not recieve any root spans to validate."
 
-    @bug(library="php", reason="runtime-id tag only implemented when profiling is enabled.")
     def test_meta_runtime_id_tag(self):
         """Assert that all spans generated from a weblog_variant have runtime-id metadata tag with some value."""
 
@@ -321,7 +322,6 @@ class Test_MetaDatadogTags:
 class Test_MetricsStandardTags:
     """metrics object in spans respect all conventions regarding basic tags"""
 
-    @bug(context.library >= "java@1.3.0", reason="process_id set as tag, not metric")
     def test_metrics_process_id(self):
         """Validates that root spans from traces contain a process_id field"""
         spans = [s for _, s in interfaces.library.get_root_spans()]

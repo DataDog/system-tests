@@ -1,17 +1,20 @@
-FROM node:18
+FROM node:18-alpine
 
-RUN apt-get update && apt-get install -y jq
+RUN apk add --no-cache bash curl git jq
 
 RUN uname -r
 
 # print versions
 RUN node --version && npm --version && curl --version
 
-COPY utils/build/docker/nodejs/express4 /usr/app
+COPY utils/build/docker/nodejs/express /usr/app
 
 WORKDIR /usr/app
 
+ENV NODE_ENV=production
+
 RUN npm install
+RUN npm install "express@4.17.2" "apollo-server-express@3.13.0" "express-mongo-sanitize@2.2.0"
 
 EXPOSE 7777
 
@@ -28,6 +31,7 @@ ENV DD_DATA_STREAMS_ENABLED=true
 
 # docker startup
 COPY utils/build/docker/nodejs/app.sh app.sh
+RUN printf 'node app.js' >> app.sh
 COPY utils/build/docker/set-uds-transport.sh set-uds-transport.sh
 CMD ./app.sh
 

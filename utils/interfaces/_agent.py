@@ -2,9 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-"""
-This files will validate data flow between agent and backend
-"""
+"""Validate data flow between agent and backend"""
 
 import threading
 import copy
@@ -26,7 +24,6 @@ class AgentInterfaceValidator(ProxyBasedInterfaceValidator):
         return super().ingest_file(src_path)
 
     def get_appsec_data(self, request):
-
         rid = get_rid_from_request(request)
 
         for data in self.get_data(path_filters="/api/v0.2/traces"):
@@ -62,6 +59,9 @@ class AgentInterfaceValidator(ProxyBasedInterfaceValidator):
     def get_profiling_data(self):
         yield from self.get_data(path_filters="/api/v2/profile")
 
+    def validate_profiling(self, validator, *, success_by_default=False):
+        self.validate(validator, path_filters="/api/v2/profile", success_by_default=success_by_default)
+
     def validate_appsec(self, request, validator):
         for data, payload, chunk, span, appsec_data in self.get_appsec_data(request=request):
             if validator(data, payload, chunk, span, appsec_data):
@@ -69,7 +69,7 @@ class AgentInterfaceValidator(ProxyBasedInterfaceValidator):
 
         raise ValueError("No data validate this test")
 
-    def get_telemetry_data(self, flatten_message_batches=True):
+    def get_telemetry_data(self, *, flatten_message_batches=True):
         all_data = self.get_data(path_filters="/api/v2/apmtelemetry")
         if flatten_message_batches:
             yield from all_data
@@ -86,6 +86,12 @@ class AgentInterfaceValidator(ProxyBasedInterfaceValidator):
                 else:
                     yield data
 
+    def assert_trace_exists(self, request):
+        for _, _ in self.get_spans(request=request):
+            return
+
+        raise ValueError(f"No trace has been found for request {get_rid_from_request(request)}")
+
     def assert_headers_presence(self, path_filter, request_headers=(), response_headers=(), check_condition=None):
         validator = HeadersPresenceValidator(request_headers, response_headers, check_condition)
         self.validate(validator, path_filters=path_filter, success_by_default=True)
@@ -94,7 +100,7 @@ class AgentInterfaceValidator(ProxyBasedInterfaceValidator):
         validator = HeadersMatchValidator(request_headers, response_headers, check_condition)
         self.validate(validator, path_filters=path_filter, success_by_default=True)
 
-    def validate_telemetry(self, validator=None, success_by_default=False):
+    def validate_telemetry(self, validator=None, *, success_by_default=False):
         def validator_skip_onboarding_event(data):
             if data["request"]["content"].get("request_type") == "apm-onboarding-event":
                 return None
@@ -106,7 +112,7 @@ class AgentInterfaceValidator(ProxyBasedInterfaceValidator):
             path_filters="/api/v2/apmtelemetry",
         )
 
-    def add_traces_validation(self, validator, success_by_default=False):
+    def add_traces_validation(self, validator, *, success_by_default=False):
         self.validate(
             validator=validator, success_by_default=success_by_default, path_filters=r"/api/v0\.[1-9]+/traces"
         )
@@ -131,9 +137,7 @@ class AgentInterfaceValidator(ProxyBasedInterfaceValidator):
             for payload in content:
                 for chunk in payload["chunks"]:
                     for span in chunk["spans"]:
-                        if rid is None:
-                            yield data, span
-                        elif get_rid_from_span(span) == rid:
+                        if rid is None or get_rid_from_span(span) == rid:
                             yield data, span
 
     def get_spans_list(self, request):
@@ -141,3 +145,19 @@ class AgentInterfaceValidator(ProxyBasedInterfaceValidator):
 
     def get_dsm_data(self):
         return self.get_data(path_filters="/api/v0.1/pipeline_stats")
+
+    def get_stats(self, resource=""):
+        """Attempts to fetch the stats the agent will submit to the backend.
+
+        When a valid request is given, then we filter the stats to the ones sampled
+        during that request's execution, and only return those.
+        """
+
+        for data in self.get_data(path_filters="/api/v0.2/stats"):
+            client_stats_payloads = data["request"]["content"]["Stats"]
+
+            for client_stats_payload in client_stats_payloads:
+                for client_stats_buckets in client_stats_payload["Stats"]:
+                    for client_grouped_stat in client_stats_buckets["Stats"]:
+                        if resource == "" or client_grouped_stat["Resource"] == resource:
+                            yield client_grouped_stat

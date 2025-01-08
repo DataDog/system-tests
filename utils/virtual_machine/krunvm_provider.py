@@ -14,9 +14,10 @@ from utils.virtual_machine.vm_logger import vm_logger
 
 
 class KrunVmProvider(VmProvider):
-    """ KrunVmProvider is a provider that uses krunvm to create and manage microVMs
-        see: https://github.com/containers/krunvm/tree/main
-        see: https://slp.prose.sh/running-microvms-on-m1 """
+    """KrunVmProvider is a provider that uses krunvm to create and manage microVMs
+    see: https://github.com/containers/krunvm/tree/main
+    see: https://slp.prose.sh/running-microvms-on-m1
+    """
 
     def __init__(self):
         super().__init__()
@@ -26,7 +27,7 @@ class KrunVmProvider(VmProvider):
         self._microvm_processes = []
 
     def _get_container_name(self, microVM_desc):
-        """ Discover the container name from the microVM description """
+        """Discover the container name from the microVM description"""
         lines = microVM_desc.split("\n")
         for line in lines:
             if "Buildah" in line:
@@ -42,10 +43,10 @@ class KrunVmProvider(VmProvider):
         return True
 
     def _get_cached_image(self, vm):
-        """ Check if there is an image for one test. Also check if we are using the env var to force the iamge creation"""
+        """Check if there is an image for one test. Also check if we are using the env var to force the iamge creation"""
         image_id = None
         # Configure name
-        image_name = vm.get_cache_name() + "_" + context.scenario.name
+        image_name = vm.get_cache_name()
         image_name = image_name.lower()
         image_id = "localhost/" + image_name
 
@@ -119,7 +120,7 @@ class KrunVmProvider(VmProvider):
             logger.info(microvm_process.after)
             self._microvm_processes.append(microvm_process)
 
-            self.install_provision(vm, container_name, None, create_cache=image_id is None)
+            self.install_provision(vm, container_name, None)
             # vm.set_ip("localhost"): Krunvm provides a special networking protocol, some apps may not work with it.
             # Instead of use a network, we can use stdin to lauch commands on the microVM
             vm.krunvm_config.stdin = self.commander._get_stdin_path(vm)
@@ -144,21 +145,22 @@ class KrunVmProvider(VmProvider):
 
 class KrunVmCommander(Commander):
     def _get_shared_folder_path(self, vm):
-        """ Local shared folder path"""
+        """Local shared folder path"""
         return os.path.join(context.scenario.host_log_folder, vm.name, "shared_volume")
 
     def _get_stdin_path(self, vm):
-        """ Local std.in path: we use std.in to execute commands on the microVM.
-            We write the commands to execute on this file and the output is sent to the stod.out file"""
+        """Local std.in path: we use std.in to execute commands on the microVM.
+        We write the commands to execute on this file and the output is sent to the stod.out file
+        """
         return os.path.join(self._get_shared_folder_path(vm), "std.in")
 
     def create_cache(self, vm, server, last_task):
-        """ Create a cache : We execute buildah commit to store currebt state of the microVM as an image"""
+        """Create a cache : We execute buildah commit to store currebt state of the microVM as an image"""
 
         # First we need to wait for cacheable commands to be processed
         self.wait_until_commands_processed(vm, timeout=600)
 
-        cache_image_name = vm.get_cache_name() + "_" + context.scenario.name
+        cache_image_name = vm.get_cache_name()
         cache_image_name = cache_image_name.lower()
         # Ok. All third party software is installed, let's create the ami to reuse it in the future
         logger.info(f"Creating cached image with name [{cache_image_name}] from [{vm.name}] and container [{server}]")
@@ -180,7 +182,16 @@ class KrunVmCommander(Commander):
         shutil.copyfile(local_path, os.path.join(self._get_shared_folder_path(vm), remote_path))
 
     def remote_command(
-        self, vm, installation_id, remote_command, env, connection, last_task, logger_name=None, output_callback=None
+        self,
+        vm,
+        installation_id,
+        remote_command,
+        env,
+        connection,
+        last_task,
+        logger_name=None,
+        output_callback=None,
+        populate_env=True,
     ):
         # Workaround with env variables  :-(
         export_command = ""

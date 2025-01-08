@@ -1,31 +1,38 @@
+import base64
 import json
-import http.client
 import logging
 import os
 import random
 import subprocess
 import sys
 import typing
-import xmltodict
-import requests
 
 import fastapi
+from fastapi import Cookie
+from fastapi import FastAPI
+from fastapi import Form
+from fastapi import Header
+from fastapi import Request
+from fastapi.responses import JSONResponse
+from fastapi.responses import PlainTextResponse
+from iast import weak_cipher
+from iast import weak_cipher_secure_algorithm
+from iast import weak_hash
+from iast import weak_hash_duplicates
+from iast import weak_hash_multiple
+from iast import weak_hash_secure_algorithm
 import psycopg2
+from pydantic import BaseModel
 import requests
 import urllib3
-from ddtrace import Pin, tracer, patch_all
+import xmltodict
+
+import ddtrace
+from ddtrace import Pin
+from ddtrace import patch_all
+from ddtrace import tracer
 from ddtrace.appsec import trace_utils as appsec_trace_utils
-from fastapi import Cookie, FastAPI, Form, Header, Request
-from fastapi.responses import JSONResponse, PlainTextResponse
-from iast import (
-    weak_cipher,
-    weak_cipher_secure_algorithm,
-    weak_hash,
-    weak_hash_duplicates,
-    weak_hash_multiple,
-    weak_hash_secure_algorithm,
-)
-from pydantic import BaseModel
+
 
 patch_all(urllib3=True)
 
@@ -40,14 +47,18 @@ except ImportError:
 app = FastAPI()
 
 POSTGRES_CONFIG = dict(
-    host="postgres", port="5433", user="system_tests_user", password="system_tests", dbname="system_tests_dbname",
+    host="postgres",
+    port="5433",
+    user="system_tests_user",
+    password="system_tests",
+    dbname="system_tests_dbname",
 )
 _TRACK_CUSTOM_APPSEC_EVENT_NAME = "system_tests_appsec_event"
 
 
 @app.exception_handler(404)
 async def custom_404_handler(request: Request, _):
-    logger.critical(f"request {request.url} failed with 404")
+    logger.critical("request %s failed with 404", request.url)
     return JSONResponse({"error": 404}, status_code=404)
 
 
@@ -58,9 +69,37 @@ async def root():
     return "Hello, World!"
 
 
+@app.get("/healthcheck")
+async def healthcheck():
+    return {
+        "status": "ok",
+        "library": {
+            "language": "python",
+            "version": ddtrace.__version__,
+        },
+    }
+
+
+@app.get("/set_cookie", response_class=PlainTextResponse)
+async def set_cookie(request: Request):
+    return PlainTextResponse(
+        "OK", headers={"Set-Cookie": f"{request.query_params['name']}={request.query_params['value']}"}
+    )
+
+
 @app.get("/sample_rate_route/{i}", response_class=PlainTextResponse)
 async def sample_rate(i):
     return "OK"
+
+
+@app.get("/api_security_sampling/{i}", response_class=PlainTextResponse)
+async def api_security_sampling(i):
+    return "OK"
+
+
+@app.get("/api_security/sampling/{status_code}", response_class=PlainTextResponse)
+async def api_security_sampling_status(status_code: int = 200):
+    return PlainTextResponse("Hello!", status_code=status_code)
 
 
 @app.get("/waf", response_class=PlainTextResponse)
@@ -99,7 +138,9 @@ async def tag_value_post(tag_value: str, status_code: int, request: Request):
     )
     if tag_value.startswith("payload_in_response_body"):
         return JSONResponse(
-            {"payload": dict(await request.form())}, status_code=status_code, headers=request.query_params,
+            {"payload": dict(await request.form())},
+            status_code=status_code,
+            headers=request.query_params,
         )
     return PlainTextResponse("Value tagged", status_code=status_code, headers=request.query_params)
 
@@ -163,12 +204,12 @@ async def rasp_ssrf(request: Request):
             return PlainTextResponse(f"url http://{domain} open with {len(url_in.read())} bytes")
     except Exception as e:
         print(repr(e), file=sys.stderr)
-    return PlainTextResponse(f"url http://{domain} could not be open: {e!r}")
+        return PlainTextResponse(f"url http://{domain} could not be open: {e!r}")
 
 
 @app.get("/rasp/sqli")
 @app.post("/rasp/sqli")
-async def rasp_ssrf(request: Request):
+async def rasp_sqli(request: Request):
     user_id = None
     if request.method == "GET":
         user_id = request.query_params.get("user_id")
@@ -191,13 +232,43 @@ async def rasp_ssrf(request: Request):
         import sqlite3
 
         DB = sqlite3.connect(":memory:")
-        print(f"SELECT * FROM users WHERE {user_id}")
-        cursor = DB.execute(f"SELECT * FROM users WHERE '{user_id}")
+        print(f"SELECT * FROM users WHERE id='{user_id}'")
+        cursor = DB.execute(f"SELECT * FROM users WHERE id='{user_id}'")
         print("DB request with {len(list(cursor))} results")
         return PlainTextResponse(f"DB request with {len(list(cursor))} results")
     except Exception as e:
         print(f"DB request failure: {e!r}", file=sys.stderr)
         return PlainTextResponse(f"DB request failure: {e!r}", status_code=201)
+
+
+@app.get("/rasp/shi")
+@app.post("/rasp/shi")
+async def rasp_shi(request: Request):
+    list_dir = None
+    if request.method == "GET":
+        list_dir = request.query_params.get("list_dir")
+    elif request.method == "POST":
+        body = await request.body()
+        try:
+            list_dir = ((await request.form()) or json.loads(body) or {}).get("list_dir")
+        except Exception as e:
+            print(repr(e), file=sys.stderr)
+        try:
+            if list_dir is None:
+                list_dir = xmltodict.parse(body).get("list_dir")
+        except Exception as e:
+            print(repr(e), file=sys.stderr)
+            pass
+
+    if list_dir is None:
+        return PlainTextResponse("missing list_dir parameter", status_code=400)
+    try:
+        command = f"ls {list_dir}"
+        res = os.system(command)
+        return PlainTextResponse(f"Shell command [{command}] with result: {res}")
+    except Exception as e:
+        print(f"Shell command failure: {e!r}", file=sys.stderr)
+        return PlainTextResponse(f"Shell command failure: {e!r}", status_code=201)
 
 
 ### END EXPLOIT PREVENTION
@@ -218,6 +289,11 @@ async def headers():
 
 @app.get("/status")
 async def status_code(code: int = 200):
+    return PlainTextResponse("OK, probably", status_code=code)
+
+
+@app.get("/stats-unique")
+async def stats_unique(code: int = 200):
     return PlainTextResponse("OK, probably", status_code=code)
 
 
@@ -330,11 +406,22 @@ def view_weak_cipher_secure():
     return "OK"
 
 
-def _sink_point(table="user", id="1"):
+def _sink_point(table="user", id="1"):  # noqa: A002
     sql = "SELECT * FROM " + table + " WHERE id = '" + id + "'"
     postgres_db = psycopg2.connect(**POSTGRES_CONFIG)
     cursor = postgres_db.cursor()
-    cursor.execute(sql)
+    try:
+        cursor.execute(sql)
+    except psycopg2.errors.UndefinedColumn:
+        pass
+
+
+def _sink_point_path_traversal(tainted_str="user"):
+    try:
+        m = open(tainted_str)
+        _ = m.read()
+    except Exception:
+        pass
 
 
 class Body_for_iast(BaseModel):
@@ -343,29 +430,35 @@ class Body_for_iast(BaseModel):
 
 
 @app.post("/iast/source/body/test", response_class=PlainTextResponse)
-async def view_iast_source_body(body: Body_for_iast):
-    _sink_point(table=body.table, id=body.user)
+async def view_iast_source_body(request: Request):
+    body = await request.receive()
+
+    result = body["body"]
+
+    json_body = json.loads(result)
+
+    _sink_point_path_traversal(json_body["value"])
     return "OK"
 
 
 @app.get("/iast/source/cookiename/test", response_class=PlainTextResponse)
 async def view_iast_source_cookie_name(request: Request):
-    param = [key for key in request.cookies if key == "user"]
+    param = [key for key in request.cookies if key == "table"]
     if param:
-        _sink_point(id=param[0])
+        _sink_point_path_traversal(tainted_str=param[0])
         return "OK"
     return "KO"
 
 
 @app.get("/iast/source/cookievalue/test", response_class=PlainTextResponse)
 async def view_iast_source_cookie_value(table: typing.Annotated[str, Cookie()] = "undefined"):
-    _sink_point(table=table)
+    _sink_point_path_traversal(tainted_str=table)
     return "OK"
 
 
 @app.get("/iast/source/header/test", response_class=PlainTextResponse)
 async def view_iast_source_header_value(table: typing.Annotated[str, Header()] = "undefined"):
-    _sink_point(table=table)
+    _sink_point_path_traversal(tainted_str=table)
     return "OK"
 
 
@@ -380,7 +473,7 @@ async def view_iast_source_parametername_get(request: Request):
 
 @app.post("/iast/source/parametername/test", response_class=PlainTextResponse)
 async def view_iast_source_parametername_post(request: Request):
-    json_body = await request.json()
+    json_body = await request.form()
     param = [key for key in json_body if key == "user"]
     if param:
         _sink_point(id=param[0])
@@ -392,7 +485,7 @@ async def view_iast_source_parametername_post(request: Request):
 @app.post("/iast/source/parameter/test", response_class=PlainTextResponse)
 async def view_iast_source_parameter(request: Request, table: typing.Optional[str] = None):
     if table is None:
-        json_body = await request.json()
+        json_body = await request.form()
         table = json_body.get("table")
     _sink_point(table=table)
     return "OK"
@@ -400,7 +493,23 @@ async def view_iast_source_parameter(request: Request, table: typing.Optional[st
 
 @app.post("/iast/path_traversal/test_insecure", response_class=PlainTextResponse)
 async def view_iast_path_traversal_insecure(path: typing.Annotated[str, Form()]):
-    os.mkdir(path)
+    try:
+        os.mkdir(path)
+    except FileExistsError:
+        pass
+
+    return "OK"
+
+
+@app.get("/iast/source/path/test", response_class=PlainTextResponse)
+async def view_iast_source_path(request: Request):
+    _sink_point_path_traversal(tainted_str=request.url.path)
+    return "OK"
+
+
+@app.get("/iast/source/path_parameter/test/{table}", response_class=PlainTextResponse)
+async def view_iast_source_path(table):
+    _sink_point_path_traversal(tainted_str=table)
     return "OK"
 
 
@@ -432,9 +541,83 @@ def track_user_login_success_event():
 @app.get("/user_login_failure_event", response_class=PlainTextResponse)
 def track_user_login_failure_event():
     appsec_trace_utils.track_user_login_failure_event(
-        tracer, user_id=_TRACK_USER, exists=True, metadata=_TRACK_METADATA,
+        tracer,
+        user_id=_TRACK_USER,
+        exists=True,
+        metadata=_TRACK_METADATA,
     )
     return "OK"
+
+
+@app.get("/login")
+@app.post("/login")
+async def login(request: Request):
+    # FakeDB
+    DB_USER = {
+        "test": ("social-security-id", "test", "1234", "testuser@ddog.com"),
+        "testuuid": ("591dc126-8431-4d0f-9509-b23318d3dce4", "testuuid", "1234", "testuseruuid@ddog.com"),
+    }
+
+    def check(username, password):
+        if username in DB_USER:
+            return (DB_USER[username][2] == password), DB_USER[username][0]
+        return False, None
+
+    form = (await request.form()) or {}
+
+    username = form.get("username")
+    password = form.get("password")
+    sdk_event = request.query_params.get("sdk_event")
+    if sdk_event:
+        sdk_user = request.query_params.get("sdk_user")
+        sdk_mail = request.query_params.get("sdk_mail")
+        sdk_user_exists = request.query_params.get("sdk_user_exists")
+        if sdk_event == "success":
+            appsec_trace_utils.track_user_login_success_event(tracer, user_id=sdk_user, email=sdk_mail)
+            return PlainTextResponse("OK")
+        elif sdk_event == "failure":
+            appsec_trace_utils.track_user_login_failure_event(
+                tracer, user_id=sdk_user, email=sdk_mail, exists=sdk_user_exists
+            )
+            return PlainTextResponse("login failure", status_code=401)
+    authorisation = request.headers.get("Authorization")
+    if authorisation:
+        username, password = base64.b64decode(authorisation[6:]).decode().split(":")
+    success, user_id = check(username, password)
+    if success:
+        # login_user(user)
+        appsec_trace_utils.track_user_login_success_event(tracer, user_id=user_id, login_events_mode="auto")
+        return PlainTextResponse("OK")
+    elif user_id:
+        appsec_trace_utils.track_user_login_failure_event(
+            tracer,
+            user_id=user_id,
+            exists=True,
+            login_events_mode="auto",
+        )
+    else:
+        appsec_trace_utils.track_user_login_failure_event(
+            tracer, user_id=username, exists=False, login_events_mode="auto"
+        )
+    return PlainTextResponse("login failure", status_code=401)
+
+
+MAGIC_SESSION_KEY = "random_session_id"
+
+
+@app.get("/session/new")
+async def session_new(request: Request):
+    response = PlainTextResponse("OK")
+    response.set_cookie(key="session_id", value=MAGIC_SESSION_KEY)
+    return response
+
+
+@app.get("/session/user")
+async def session_user(request: Request):
+    user = request.query_params.get("sdk_user", "")
+    if user and request.cookies.get("session_id", "") == MAGIC_SESSION_KEY:
+        appsec_trace_utils.track_user_login_success_event(tracer, user_id=user, session_id=f"session_{user}")
+    return PlainTextResponse("OK")
 
 
 _TRACK_CUSTOM_EVENT_NAME = "system_tests_event"
@@ -447,25 +630,59 @@ def track_custom_event():
 
 
 @app.post("/iast/sqli/test_secure", response_class=PlainTextResponse)
-def view_sqli_secure(username: typing.Annotated[str, Form()], password: typing.Annotated[str, Form()]):
-    sql = "SELECT * FROM IAST_USER WHERE USERNAME = ? AND PASSWORD = ?"
+async def view_sqli_secure(username: typing.Annotated[str, Form()], password: typing.Annotated[str, Form()]):
+    sql = "SELECT * FROM users WHERE username=%s AND password=%s"
     postgres_db = psycopg2.connect(**POSTGRES_CONFIG)
     cursor = postgres_db.cursor()
-    cursor.execute(sql, username, password)
+    try:
+        cursor.execute(sql, (username, password))
+    except psycopg2.errors.UndefinedTable:
+        pass
     return "OK"
 
 
 @app.post("/iast/sqli/test_insecure", response_class=PlainTextResponse)
-def view_sqli_insecure(username: typing.Annotated[str, Form()], password: typing.Annotated[str, Form()]):
-    sql = "SELECT * FROM IAST_USER WHERE USERNAME = '" + username + "' AND PASSWORD = '" + password + "'"
+async def view_sqli_insecure(username: typing.Annotated[str, Form()], password: typing.Annotated[str, Form()]):
+    sql = "SELECT * FROM users WHERE username='" + username + "' AND password='" + password + "'"
     postgres_db = psycopg2.connect(**POSTGRES_CONFIG)
     cursor = postgres_db.cursor()
-    cursor.execute(sql)
+    try:
+        cursor.execute(sql)
+    except psycopg2.errors.UndefinedTable:
+        pass
+    return "OK"
+
+
+@app.post("/iast/ssrf/test_insecure", response_class=PlainTextResponse)
+async def view_iast_ssrf_insecure(url: typing.Annotated[str, Form()]):
+    try:
+        result = requests.get(str(url))
+    except Exception:
+        pass
+
+    return "OK"
+
+
+@app.post("/iast/ssrf/test_secure", response_class=PlainTextResponse)
+async def view_iast_ssrf_secure(url: typing.Annotated[str, Form()]):
+    from urllib.parse import urlparse
+
+    # Validate the URL and enforce whitelist
+    allowed_domains = ["example.com", "api.example.com"]
+    parsed_url = urlparse(str(url))
+
+    if parsed_url.hostname not in allowed_domains:
+        return PlainTextResponse("Forbidden", status_code=403)
+    try:
+        result = requests.get(parsed_url.geturl())
+    except Exception:
+        pass
+
     return "OK"
 
 
 @app.get("/iast/insecure-cookie/test_insecure")
-def test_insecure_cookie():
+async def test_insecure_cookie():
     resp = PlainTextResponse("OK")
     resp.set_cookie("insecure", "cookie", secure=False, httponly=False, samesite="none")
     return resp
@@ -520,6 +737,13 @@ def test_nosamesite_secure_cookie():
     return resp
 
 
+@app.get("/iast/no-samesite-cookie/test_empty_cookie")
+def test_nohttponly_empty_cookie():
+    resp = PlainTextResponse("OK")
+    resp.set_cookie(key="secure3", value="", secure=True, httponly=True, samesite="none")
+    return resp
+
+
 @app.get("/iast/weak_randomness/test_insecure", response_class=PlainTextResponse)
 def test_weak_randomness_insecure():
     _ = random.randint(1, 100)
@@ -534,8 +758,9 @@ def test_weak_randomness_secure():
 
 
 @app.post("/iast/cmdi/test_insecure", response_class=PlainTextResponse)
-def view_cmdi_insecure(cmd: typing.Annotated[str, Form()]):
+async def view_cmdi_insecure(cmd: typing.Annotated[str, Form()]):
     filename = "/"
+
     subp = subprocess.Popen(args=[cmd, "-la", filename])
     subp.communicate()
     subp.wait()
@@ -543,7 +768,7 @@ def view_cmdi_insecure(cmd: typing.Annotated[str, Form()]):
 
 
 @app.post("/iast/cmdi/test_secure", response_class=PlainTextResponse)
-def view_cmdi_secure(cmd: typing.Annotated[str, Form()]):
+async def view_cmdi_secure(cmd: typing.Annotated[str, Form()]):
     filename = "/"
     command = " ".join([cmd, "-la", filename])  # noqa F841
     # TODO: add secure command
@@ -582,6 +807,20 @@ def create_extra_service(serviceName: str = ""):
 @app.post("/requestdownstream/", response_class=PlainTextResponse)
 @app.options("/requestdownstream/", response_class=PlainTextResponse)
 def request_downstream():
+    http_ = urllib3.PoolManager()
+    # Sending a GET request and getting back response as HTTPResponse object.
+    response = http_.request("GET", "http://localhost:7777/returnheaders")
+    return response.data
+
+
+@app.get("/vulnerablerequestdownstream", response_class=PlainTextResponse)
+@app.post("/vulnerablerequestdownstream", response_class=PlainTextResponse)
+@app.options("/vulnerablerequestdownstream", response_class=PlainTextResponse)
+@app.get("/vulnerablerequestdownstream/", response_class=PlainTextResponse)
+@app.post("/vulnerablerequestdownstream/", response_class=PlainTextResponse)
+@app.options("/vulnerablerequestdownstream/", response_class=PlainTextResponse)
+def vulnerable_request_downstream():
+    weak_hash()
     http_ = urllib3.PoolManager()
     # Sending a GET request and getting back response as HTTPResponse object.
     response = http_.request("GET", "http://localhost:7777/returnheaders")

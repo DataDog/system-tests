@@ -1,6 +1,6 @@
-FROM node:18
+FROM node:18-alpine
 
-RUN apt-get update && apt-get install -y jq
+RUN apk add --no-cache bash curl git jq
 
 RUN uname -r
 
@@ -23,8 +23,8 @@ ENV PGPORT=5433
 ENV DD_DATA_STREAMS_ENABLED=true
 
 # docker startup
-RUN echo '#!/bin/bash\nnode dist/app.js' > app.sh
-RUN chmod +x app.sh
+COPY utils/build/docker/nodejs/app.sh app.sh
+RUN printf 'node dist/app.js' >> app.sh
 CMD ./app.sh
 
 COPY utils/build/docker/nodejs/install_ddtrace.sh binaries* /binaries/
