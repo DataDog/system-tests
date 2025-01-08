@@ -2,8 +2,8 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2024 Datadog, Inc.
 
+import json
 from utils import weblog, interfaces, scenarios, features
-
 
 @features.f_otel_interoperability
 @scenarios.integrations
@@ -39,3 +39,33 @@ class Test_Otel_Drop_In:
                 span_metric_found = True
                 break
         assert span_metric_found, "Otel drop-in span metric not found"
+
+@features.f_otel_interoperability
+class Test_Otel_Drop_In_Default_Propagator:
+    def setup_propagation_extract(self):
+        extract_headers = {
+            "traceparent": "00-11111111111111110000000000000002-000000000000000a-01",
+            "tracestate": "dd=s:2;p:000000000000000a,foo=1",
+            "baggage": "foo=1",
+        }
+        self.r = weblog.get("/otel_drop_in_default_propagator_extract", headers=extract_headers)
+
+    def test_propagation_extract(self):
+        content = json.loads(self.r.text)
+
+        assert content["trace_id"] == 2
+        assert content["span_id"] == 10
+        assert content["tracestate"] and not content["tracestate"].isspace()
+        # assert content["baggage"] and not content["baggage"].isspace()
+
+    def setup_propagation_inject(self):
+        inject_headers = {
+            "baggage": "foo=2",
+        }
+        self.r = weblog.get("/otel_drop_in_default_propagator_inject")
+
+    def test_propagation_inject(self):
+        content = json.loads(self.r.text)
+
+        assert content["headers"]["traceparent"] and not content["headers"]["traceparent"].isspace()
+        # assert content["headers"]["baggage"] and not content["headers"]["baggage"].isspace()
