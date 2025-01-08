@@ -145,7 +145,8 @@ tests/:
     test_inferred_proxy.py:
       Test_AWS_API_Gateway_Inferred_Span_Creation: missing_feature
     test_otel_drop_in.py:
-      Test_Otel_Drop_In: missing_feature
+      Test_Otel_Drop_In: irrelevant (library does not implement OpenTelemetry)
+      Test_Otel_Drop_In_Default_Propagator: irrelevant (library does not implement OpenTelemetry)
   parametric/:
     test_128_bit_traceids.py:
       Test_128_Bit_Traceids: missing_feature (parametric app does not support trace/span/extract endpoint)
