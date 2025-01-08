@@ -8,7 +8,7 @@ import java.util.Collection;
 /**
  * Token used to bypass appsec auto user instrumentation when using the SDK
  */
-public class AppSecSdkToken extends UsernamePasswordAuthenticationToken {
+public class AppSecToken extends UsernamePasswordAuthenticationToken {
 
     private String sdkEvent;
 
@@ -16,33 +16,20 @@ public class AppSecSdkToken extends UsernamePasswordAuthenticationToken {
 
     private boolean sdkUserExists;
 
-    public AppSecSdkToken(Object principal, Object credentials) {
+    public AppSecToken(Object principal, Object credentials) {
         this(principal, credentials, null, null, false);
     }
 
-    public AppSecSdkToken(Object principal, Object credentials, String sdkEvent, String sdkUser, boolean sdkUserExists) {
+    public AppSecToken(Object principal, Object credentials, String sdkEvent, String sdkUser, boolean sdkUserExists) {
         super(principal, credentials);
         this.sdkEvent = sdkEvent;
         this.sdkUser = sdkUser;
         this.sdkUserExists = sdkUserExists;
     }
 
-    public AppSecSdkToken(Object principal, Object credentials,
-                          Collection<? extends GrantedAuthority> authorities) {
+    public AppSecToken(Object principal, Object credentials,
+                       Collection<? extends GrantedAuthority> authorities) {
         super(principal, credentials, authorities);
-    }
-
-    @Override
-    public String getName() {
-        if (sdkEvent != null) {
-            // report the provided username
-            return sdkUser;
-        } else if (getPrincipal() instanceof AppSecUser) {
-            // report the id instead of the username
-            return ((AppSecUser) getPrincipal()).getId();
-        } else {
-            return super.getName();
-        }
     }
 
     public String getSdkEvent() {
