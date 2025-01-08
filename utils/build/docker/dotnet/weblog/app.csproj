@@ -44,5 +44,6 @@
         <PackageReference Include="MongoDB.Driver" Version="2.23.1"/>
 
         <PackageReference Include="Datadog.Trace" Version="*" />
+        <PackageReference Include="OpenTelemetry.Api" Version="1.10.0" />
     </ItemGroup>
 </Project>
