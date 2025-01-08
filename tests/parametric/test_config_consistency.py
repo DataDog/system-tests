@@ -232,8 +232,8 @@ class Test_Config_RateLimit:
 
 
 def tag_scenarios():
-    env1: dict = {"DD_TAGS": "key1:value1,key2:value2"}
-    env2: dict = {"DD_TAGS": "key1:value1 key2:value2"}
+    env1: dict = {"DD_TAGS": "key1:value1,key2:value2"} # key1=value1, key2=value2
+    env2: dict = {"DD_TAGS": "key1:value1 key2:value2"} # key1=value1, key2=value2
     env3: dict = {"DD_TAGS": "env:test aKey:aVal bKey:bVal cKey:"}
     env4: dict = {"DD_TAGS": "env:test,aKey:aVal,bKey:bVal,cKey:"}
     env5: dict = {"DD_TAGS": "env:test,aKey:aVal bKey:bVal cKey:"}
@@ -250,6 +250,7 @@ def tag_scenarios():
 @scenarios.parametric
 @features.tracing_configuration_consistency
 class Test_Config_Tags:
+    #@parametrize("library_env", tag_scenarios())
     @tag_scenarios()
     def test_comma_space_tag_separation(self, library_env, test_agent, test_library):
         expected_local_tags = []
@@ -260,6 +261,7 @@ class Test_Config_Tags:
                 pass
         span = find_only_span(test_agent.wait_for_num_traces(1))
         for k, v in expected_local_tags:
+            print("Expected tag '%s'='%s'" % (k, v))
             assert k in span["meta"]
             assert span["meta"][k] == v
 
