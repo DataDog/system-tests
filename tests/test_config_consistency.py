@@ -2,6 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2022 Datadog, Inc.
 
+import re
 import json
 from utils import weblog, interfaces, scenarios, features, rfc, irrelevant, context, bug, missing_feature
 from utils.tools import logger
@@ -9,6 +10,7 @@ from utils.tools import logger
 # get the default log output
 stdout = interfaces.library_stdout if context.library != "dotnet" else interfaces.library_dotnet_managed
 runtime_metrics = {"nodejs": "runtime.node.mem.heap_total"}
+log_injection_fields = {"nodejs": {"message": "msg"}}
 
 
 @scenarios.default
@@ -433,8 +435,25 @@ class Test_Config_LogInjection_Enabled:
 
     def test_log_injection_enabled(self):
         assert self.r.status_code == 200
-        pattern = rf'"dd":\{{"trace_id":"[^"]+","span_id":"\d+","service":"[^"]+","version":"[^"]+","env":"[^"]+"\}},"msg":"{self.message}"'
+        pattern = r'"dd":\{[^}]*\}'
         stdout.assert_presence(pattern)
+        for data in stdout.get_data():
+            json_string = json.dumps(data)
+            parsed_data = json.loads(json_string)
+            message = {}
+            try:
+                message = json.loads(parsed_data.get("message"))
+            except json.JSONDecodeError:
+                continue
+            if (
+                message.get("dd")
+                and message.get(log_injection_fields[context.library.library]["message"]) == self.message
+            ):
+                dd = message.get("dd")
+                required_fields = ["trace_id", "span_id", "service", "version", "env"]
+                for field in required_fields:
+                    assert field in dd, f"Missing field: {field}"
+                return
 
 
 @rfc("https://docs.google.com/document/d/1kI-gTAKghfcwI7YzKhqRv2ExUstcHqADIWA4-TZ387o/edit#heading=h.8v16cioi7qxp")
@@ -447,7 +466,7 @@ class Test_Config_LogInjection_Default:
 
     def test_log_injection_default(self):
         assert self.r.status_code == 200
-        pattern = r'"dd":\{"trace_id":"[^"]+","span_id":"\d+","service":"[^"]+","version":"[^"]+","env":"[^"]+"\},"msg":"^"]+"'
+        pattern = r'"dd":\{[^}]*\}'
         stdout.assert_absence(pattern)
 
 
@@ -463,12 +482,27 @@ class Test_Config_LogInjection_128Bit_TradeId_Default:
 
     def test_log_injection_128bit_traceid_default(self):
         assert self.r.status_code == 200
-        pattern = r'"dd":\{"trace_id":"[0-9a-f]{32}"'
+        pattern = r'"dd":\{[^}]*\}'
         stdout.assert_presence(pattern)
+        for data in stdout.get_data():
+            json_string = json.dumps(data)
+            parsed_data = json.loads(json_string)
+            message = {}
+            try:
+                message = json.loads(parsed_data.get("message"))
+            except json.JSONDecodeError:
+                continue
+            if (
+                message.get("dd")
+                and message.get(log_injection_fields[context.library.library]["message"]) == self.message
+            ):
+                dd = message.get("dd")
+                trace_id = dd.get("trace_id")
+                assert re.match(r"^[0-9a-f]{32}$", trace_id), f"Invalid 128-bit trace_id: {trace_id}"
 
 
 @rfc("https://docs.google.com/document/d/1kI-gTAKghfcwI7YzKhqRv2ExUstcHqADIWA4-TZ387o/edit#heading=h.8v16cioi7qxp")
-@scenarios.tracing_config_nondefault_2
+@scenarios.tracing_config_nondefault_3
 @features.tracing_configuration_consistency
 class Test_Config_LogInjection_128Bit_TradeId_Disabled:
     def setup_log_injection_128bit_traceid_disabled(self):
@@ -477,24 +511,39 @@ class Test_Config_LogInjection_128Bit_TradeId_Disabled:
 
     def test_log_injection_128bit_traceid_disabled(self):
         assert self.r.status_code == 200
-        pattern = r'"dd":\{"trace_id":"\d+"'
+        pattern = r'"dd":\{[^}]*\}'
         stdout.assert_presence(pattern)
+        for data in stdout.get_data():
+            json_string = json.dumps(data)
+            parsed_data = json.loads(json_string)
+            message = {}
+            try:
+                message = json.loads(parsed_data.get("message"))
+            except json.JSONDecodeError:
+                continue
+            if (
+                message.get("dd")
+                and message.get(log_injection_fields[context.library.library]["message"]) == self.message
+            ):
+                dd = message.get("dd")
+                trace_id = dd.get("trace_id")
+                assert re.match(r"\d+", trace_id), f"Invalid 64-bit trace_id: {trace_id}"
 
 
 @rfc("https://docs.google.com/document/d/1kI-gTAKghfcwI7YzKhqRv2ExUstcHqADIWA4-TZ387o/edit#heading=h.8v16cioi7qxp")
 @scenarios.runtime_metrics_enabled
 @features.tracing_configuration_consistency
 class Test_Config_RuntimeMetrics_Enabled:
-    # This test verifies runtime metrics from the Node.js tracer. It will need to evolve to support assertion on metrics from other tracers
+    # This test verifies runtime metrics by asserting the prescene of a metric in the dogstatsd endpoint
     def test_config_runtimemetrics_enabled(self):
         data = list(interfaces.library.get_data("/dogstatsd/v2/proxy"))[0]
         lines = data["request"]["content"].split("\n")
         metric_found = False
         for line in lines:
-            if runtime_metrics["nodejs"] in line:
+            if runtime_metrics[context.library.library] in line:
                 metric_found = True
                 break
-        assert metric_found, f'The metric {runtime_metrics["nodejs"]} was not found in any line'
+        assert metric_found, f"The metric {runtime_metrics[context.library.library]} was not found in any line"
 
 
 @rfc("https://docs.google.com/document/d/1kI-gTAKghfcwI7YzKhqRv2ExUstcHqADIWA4-TZ387o/edit#heading=h.8v16cioi7qxp")

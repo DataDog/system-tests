@@ -620,7 +620,7 @@ the `dependencies-loaded` event is appropriately triggered.
 
 ### GET /log/library
 
-This endpoint facilitates the loading of a logging library and logs a specified message. It is primarily designed for testing log injection functionality
+This endpoint facilitates logging a message using a logging library. It is primarily designed for testing log injection functionality. Weblog apps must log using JSON format.
 
 The following query parameters are optional:
 - `msg`: Specifies the message to be logged. If not provided, the default message "msg" will be logged.
