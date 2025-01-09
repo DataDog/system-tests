@@ -46,7 +46,10 @@ tests/:
         Test_Schema_Request_Headers:
           '*': v1.31.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-        Test_Schema_Request_Json_Body: missing_feature
+        Test_Schema_Request_Json_Body:
+          '*': missing_feature
+          ratpack: v1.36.0
+          vertx3: v1.36.0
         Test_Schema_Request_Path_Parameters: missing_feature
         Test_Schema_Request_Query_Parameters:
           '*': v1.31.0
