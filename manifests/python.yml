@@ -88,7 +88,7 @@ tests/:
           TestHeaderInjectionExclusionTransferEncoding: missing_feature
           TestHeaderInjection_StackTrace:
             '*': v2.19.0.dev
-            fastapi: missing_feature
+            fastapi: v2.20.0.dev
         test_hsts_missing_header.py:
           Test_HstsMissingHeader: missing_feature
           Test_HstsMissingHeader_StackTrace: missing_feature
