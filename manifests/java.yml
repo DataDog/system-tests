@@ -698,7 +698,6 @@ tests/:
         Test_Shi_Telemetry_Variant_Tag:
           '*': v1.45.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-          spring-boot-payara: missing_feature (APPSEC-54966)
         Test_Shi_UrlQuery:
           '*': v1.45.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
