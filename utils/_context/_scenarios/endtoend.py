@@ -575,7 +575,7 @@ class EndToEndScenario(DockerScenario):
             _SchemaBug(
                 endpoint="/debugger/v1/diagnostics",
                 data_path="$[].content",
-                condition=context.library > "nodejs@4.48.0",
+                condition=context.library < "nodejs@5.31.0",
                 ticket="DEBUG-2864",
             ),
             _SchemaBug(
@@ -620,7 +620,7 @@ class EndToEndScenario(DockerScenario):
             _SchemaBug(
                 endpoint="/api/v2/debugger",
                 data_path="$[].content",
-                condition=context.library > "nodejs@4.46.0",
+                condition=context.library < "nodejs@5.31.0",
                 ticket="DEBUG-2864",
             ),
         ]
