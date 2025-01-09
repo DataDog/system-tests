@@ -437,23 +437,11 @@ class Test_Config_LogInjection_Enabled:
         assert self.r.status_code == 200
         pattern = r'"dd":\{[^}]*\}'
         stdout.assert_presence(pattern)
-        for data in stdout.get_data():
-            json_string = json.dumps(data)
-            parsed_data = json.loads(json_string)
-            message = {}
-            try:
-                message = json.loads(parsed_data.get("message"))
-            except json.JSONDecodeError:
-                continue
-            if (
-                message.get("dd")
-                and message.get(log_injection_fields[context.library.library]["message"]) == self.message
-            ):
-                dd = message.get("dd")
-                required_fields = ["trace_id", "span_id", "service", "version", "env"]
-                for field in required_fields:
-                    assert field in dd, f"Missing field: {field}"
-                return
+        dd = parse_log_injection_message(self.message)
+        required_fields = ["trace_id", "span_id", "service", "version", "env"]
+        for field in required_fields:
+            assert field in dd, f"Missing field: {field}"
+        return
 
 
 @rfc("https://docs.google.com/document/d/1kI-gTAKghfcwI7YzKhqRv2ExUstcHqADIWA4-TZ387o/edit#heading=h.8v16cioi7qxp")
@@ -484,22 +472,9 @@ class Test_Config_LogInjection_128Bit_TradeId_Default:
         assert self.r.status_code == 200
         pattern = r'"dd":\{[^}]*\}'
         stdout.assert_presence(pattern)
-        for data in stdout.get_data():
-            json_string = json.dumps(data)
-            parsed_data = json.loads(json_string)
-            message = {}
-            try:
-                message = json.loads(parsed_data.get("message"))
-            except json.JSONDecodeError:
-                continue
-            if (
-                message.get("dd")
-                and message.get(log_injection_fields[context.library.library]["message"]) == self.message
-            ):
-                dd = message.get("dd")
-                trace_id = dd.get("trace_id")
-                assert re.match(r"^[0-9a-f]{32}$", trace_id), f"Invalid 128-bit trace_id: {trace_id}"
-
+        dd = parse_log_injection_message(self.message)
+        trace_id = dd.get("trace_id")
+        assert re.match(r"^[0-9a-f]{32}$", trace_id), f"Invalid 128-bit trace_id: {trace_id}"
 
 @rfc("https://docs.google.com/document/d/1kI-gTAKghfcwI7YzKhqRv2ExUstcHqADIWA4-TZ387o/edit#heading=h.8v16cioi7qxp")
 @scenarios.tracing_config_nondefault_3
@@ -513,21 +488,9 @@ class Test_Config_LogInjection_128Bit_TradeId_Disabled:
         assert self.r.status_code == 200
         pattern = r'"dd":\{[^}]*\}'
         stdout.assert_presence(pattern)
-        for data in stdout.get_data():
-            json_string = json.dumps(data)
-            parsed_data = json.loads(json_string)
-            message = {}
-            try:
-                message = json.loads(parsed_data.get("message"))
-            except json.JSONDecodeError:
-                continue
-            if (
-                message.get("dd")
-                and message.get(log_injection_fields[context.library.library]["message"]) == self.message
-            ):
-                dd = message.get("dd")
-                trace_id = dd.get("trace_id")
-                assert re.match(r"\d+", trace_id), f"Invalid 64-bit trace_id: {trace_id}"
+        dd = parse_log_injection_message(self.message)
+        trace_id = dd.get("trace_id")
+        assert re.match(r"\d+", trace_id), f"Invalid 64-bit trace_id: {trace_id}"
 
 
 @rfc("https://docs.google.com/document/d/1kI-gTAKghfcwI7YzKhqRv2ExUstcHqADIWA4-TZ387o/edit#heading=h.8v16cioi7qxp")
@@ -554,3 +517,19 @@ class Test_Config_RuntimeMetrics_Default:
     def test_config_runtimemetrics_default(self):
         data = list(interfaces.library.get_data("/dogstatsd/v2/proxy"))
         assert len(data) == 0
+
+def parse_log_injection_message(log_message):
+    for data in stdout.get_data():
+        json_string = json.dumps(data)
+        parsed_data = json.loads(json_string)
+        message = {}
+        try:
+            message = json.loads(parsed_data.get("message"))
+        except json.JSONDecodeError:
+            continue
+        if (
+            message.get("dd")
+            and message.get(log_injection_fields[context.library.library]["message"]) == log_message
+        ):
+            dd = message.get("dd")
+            return dd
