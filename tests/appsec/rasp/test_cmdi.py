@@ -24,7 +24,7 @@ class Test_Cmdi_UrlQuery:
         self.r = weblog.get("/rasp/cmdi", params={"command": "/usr/bin/touch /tmp/passwd"})
 
     def test_cmdi_get(self):
-        # assert self.r.status_code == 403
+        assert self.r.status_code == 403
 
         interfaces.library.assert_rasp_attack(
             self.r,

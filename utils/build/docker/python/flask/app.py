@@ -367,7 +367,7 @@ def rasp_cmdi(*args, **kwargs):
             print(repr(e), file=sys.stderr)
         try:
             if cmd is None:
-                cmd = xmltodict.parse(flask_request.data).get("command")
+                cmd = xmltodict.parse(flask_request.data).get("command").get("cmd")
         except Exception as e:
             print(repr(e), file=sys.stderr)
             pass
@@ -378,8 +378,7 @@ def rasp_cmdi(*args, **kwargs):
         res = subprocess.run(cmd, capture_output=True)
         return f"Exec command [{cmd}] with result: [{res.returncode}]: {res.stdout}", 200
     except Exception as e:
-        print(f"Exec command failure: {e!r}", file=sys.stderr)
-        return f"Exec command failure: {e!r}", 201
+        return f"Exec command [{cmd}] yfailure: {e!r}", 201
 
 
 ### END EXPLOIT PREVENTION
