@@ -10,7 +10,7 @@ def generate_gitlab_pipeline(languages):
     pipeline = {
         "stages": ["DOCKER_SSI"],
         "configure": {
-            "image": "registry.ddbuild.io/ci/libdatadog-build/system-tests-pulumi:52530585",
+            "image": "registry.ddbuild.io/ci/libdatadog-build/system-tests-pulumi:52556819",
             "tags": ["arch:amd64"],
             "stage": "DOCKER_SSI",
             "dependencies": [],
