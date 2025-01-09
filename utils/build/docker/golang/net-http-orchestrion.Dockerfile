@@ -13,14 +13,10 @@ RUN go mod download && go mod verify
 COPY utils/build/docker/golang/app /app
 
 # download the proper tracer version
-COPY utils/build/docker/golang/install_ddtrace.sh binaries* /binaries/
-RUN INSTALL_ORCHESTRION=true /binaries/install_ddtrace.sh
+COPY utils/build/docker/golang/install_*.sh binaries* /binaries/
+RUN /binaries/install_ddtrace.sh && /binaries/install_orchestrion.sh
 
-ENV DD_ORCHESTRION_IS_GOMOD_VERSION=true
-
-RUN orchestrion pin
-
-RUN orchestrion go build -v -tags appsec -o weblog ./net-http-orchestrion
+RUN DD_ORCHESTRION_IS_GOMOD_VERSION=true orchestrion go build -v -tags appsec -o weblog ./net-http-orchestrion
 
 # ==============================================================================
 
