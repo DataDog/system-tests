@@ -43,6 +43,7 @@ refs:
   - &ref_5_29_0 '>=5.29.0 || ^4.53.0' # express 5 support
   - &ref_5_30_0 '>=5.30.0 || ^4.54.0'
   - &ref_5_31_0 '>=5.31.0 || ^4.55.0'
+  - &ref_5_32_0 '>=5.32.0 || ^4.56.0'
 
 tests/:
   apm_tracing_e2e/:
@@ -204,7 +205,7 @@ tests/:
           Test_TrustBoundaryViolation_StackTrace: missing_feature
         test_untrusted_deserialization.py:
           TestUntrustedDeserialization:
-            '*': *ref_5_31_0
+            '*': *ref_5_32_0
             nextjs: missing_feature
           TestUntrustedDeserialization_StackTrace: missing_feature
         test_unvalidated_redirect.py:
