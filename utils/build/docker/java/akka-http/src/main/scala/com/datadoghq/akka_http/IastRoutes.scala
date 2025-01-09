@@ -195,94 +195,94 @@ object IastRoutes {
               }
             }
           }
-      }
-    pathPrefix("sc") {
-      pathPrefix("s") {
-        post {
-          path("configured") {
-            formField("param") { param =>
-              val sanitized = SecurityControlUtil.sanitize(param)
-              cmd.insecureCmd(sanitized)
-              complete(StatusCodes.OK)
-            }
-          } ~
-            path("not-configured") {
-              formField("param") { param =>
-                val sanitized = SecurityControlUtil.sanitize(param)
-                complete(StatusCodes.OK, sql.insecureSql(sanitized, "password"))(jsonMarshaller)
-              }
-            } ~
-            path("all") {
-              formField("param") { param =>
-                val sanitized = SecurityControlUtil.sanitizeForAllVulns(param)
-                complete(StatusCodes.OK, sql.insecureSql(sanitized, "password"))(jsonMarshaller)
-              }
-            } ~
-            pathPrefix("overloaded") {
-              path("secure") {
-                formField("param") { param =>
-                  val sanitized = SecurityControlUtil.overloadedSanitize(param)
-                  cmd.insecureCmd(sanitized)
-                  complete(StatusCodes.OK)
-                }
-              } ~
-                path("insecure") {
-                  formField("param") { param =>
-                    val sanitized = SecurityControlUtil.overloadedSanitize(param, null)
-                    cmd.insecureCmd(sanitized)
-                    complete(StatusCodes.OK)
-                  }
-                }
-            }
-        }
       } ~
-        pathPrefix("iv") {
+      pathPrefix("sc") {
+        pathPrefix("s") {
           post {
             path("configured") {
               formField("param") { param =>
-                if (SecurityControlUtil.validate(param)) {
-                  cmd.insecureCmd(param)
-                }
+                val sanitized = SecurityControlUtil.sanitize(param)
+                cmd.insecureCmd(sanitized)
                 complete(StatusCodes.OK)
               }
             } ~
               path("not-configured") {
                 formField("param") { param =>
-                  if (SecurityControlUtil.validate(param)) {
-                    sql.insecureSql(param, "password")
-                  }
-                  complete(StatusCodes.OK)
+                  val sanitized = SecurityControlUtil.sanitize(param)
+                  complete(StatusCodes.OK, sql.insecureSql(sanitized, "password"))(jsonMarshaller)
                 }
               } ~
               path("all") {
                 formField("param") { param =>
-                  if (SecurityControlUtil.validateForAllVulns(param)) {
-                    sql.insecureSql(param, "password")
-                  }
-                  complete(StatusCodes.OK)
+                  val sanitized = SecurityControlUtil.sanitizeForAllVulns(param)
+                  complete(StatusCodes.OK, sql.insecureSql(sanitized, "password"))(jsonMarshaller)
                 }
               } ~
               pathPrefix("overloaded") {
                 path("secure") {
-                  formFields("user", "password") { (user, pass) =>
-                    if (SecurityControlUtil.overloadedValidation(null, user, pass)) {
-                      sql.insecureSql(user, pass)
-                    }
+                  formField("param") { param =>
+                    val sanitized = SecurityControlUtil.overloadedSanitize(param)
+                    cmd.insecureCmd(sanitized)
                     complete(StatusCodes.OK)
                   }
                 } ~
                   path("insecure") {
-                    formFields("user", "password") { (user, pass) =>
-                      if (SecurityControlUtil.overloadedValidation(user, pass)) {
-                        sql.insecureSql(user, pass)
-                      }
+                    formField("param") { param =>
+                      val sanitized = SecurityControlUtil.overloadedSanitize(param, null)
+                      cmd.insecureCmd(sanitized)
                       complete(StatusCodes.OK)
                     }
                   }
               }
           }
-        }
-    }
+        } ~
+          pathPrefix("iv") {
+            post {
+              path("configured") {
+                formField("param") { param =>
+                  if (SecurityControlUtil.validate(param)) {
+                    cmd.insecureCmd(param)
+                  }
+                  complete(StatusCodes.OK)
+                }
+              } ~
+                path("not-configured") {
+                  formField("param") { param =>
+                    if (SecurityControlUtil.validate(param)) {
+                      sql.insecureSql(param, "password")
+                    }
+                    complete(StatusCodes.OK)
+                  }
+                } ~
+                path("all") {
+                  formField("param") { param =>
+                    if (SecurityControlUtil.validateForAllVulns(param)) {
+                      sql.insecureSql(param, "password")
+                    }
+                    complete(StatusCodes.OK)
+                  }
+                } ~
+                pathPrefix("overloaded") {
+                  path("secure") {
+                    formFields("user", "password") { (user, pass) =>
+                      if (SecurityControlUtil.overloadedValidation(null, user, pass)) {
+                        sql.insecureSql(user, pass)
+                      }
+                      complete(StatusCodes.OK)
+                    }
+                  } ~
+                    path("insecure") {
+                      formFields("user", "password") { (user, pass) =>
+                        if (SecurityControlUtil.overloadedValidation(user, pass)) {
+                          sql.insecureSql(user, pass)
+                        }
+                        complete(StatusCodes.OK)
+                      }
+                    }
+                }
+            }
+          }
+      }
   }
 
   private def paramOrFormField(p: String) = {
