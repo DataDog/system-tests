@@ -48,10 +48,10 @@ Parametric scenarios are designed to validate tracer and span interfaces. They a
 
 ### Auto-Inject/OnBoarding scenarios
 
-Automatic library injection simplifies the APM onboarding experience for customers deploying Java, NodeJS, .NET, Python and Ruby applications in VMs and docker environments. Datadog software installed on the machine will be intercept the startup of your application and it will inject the tracer library automatically. The OnBoarding scenarios reproduce different environments and check the library injection is done correctly. More detailled documentation can be found [here](https://github.com/DataDog/system-tests/blob/main/docs/scenarios/onboarding.md).
+Automatic library injection simplifies the APM onboarding experience for customers deploying Java, Node.js, .NET, Python and Ruby applications in VMs and docker environments. Datadog software installed on the machine will be intercept the startup of your application and it will inject the tracer library automatically. The OnBoarding scenarios reproduce different environments and check the library injection is done correctly. More detailled documentation can be found [here](https://github.com/DataDog/system-tests/blob/main/docs/scenarios/onboarding.md).
 
 ### Kubernetes Auto-Inject scenarios
 
 The lib-injection project is a feature to allow injection of the Datadog library into a customer's application container without requiring them to modify their application images.
 
-This feature enables applications written in Java, Node, Python, DotNet or Ruby running in Kubernetes to be automatically instrumented with the corresponding Datadog APM libraries. More detailled documentation can be found [here](https://github.com/DataDog/system-tests/blob/main/docs/scenarios/k8s_lib_injection.md).
+This feature enables applications written in Java, Node, Python, .NET or Ruby running in Kubernetes to be automatically instrumented with the corresponding Datadog APM libraries. More detailled documentation can be found [here](https://github.com/DataDog/system-tests/blob/main/docs/scenarios/k8s_lib_injection.md).

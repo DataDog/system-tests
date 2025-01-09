@@ -122,7 +122,7 @@ variables:
     reports:
       dotenv: run.env
 
-# ----------- Nodejs SSI ----------------
+# ----------- Node.js SSI ----------------
 step1_generate_nodejs_ssi_pipeline:
   extends: .step1_generate_aws_ssi_pipeline
   needs: []
@@ -355,7 +355,7 @@ step2_exec_php_ssi_pipeline:
         job: x_merge_php_ssi_pipeline
     strategy: depend
 
-# ----------- Dotnet SSI ----------------
+# ----------- .NET SSI ----------------
 step1_generate_dotnet_ssi_pipeline:
   stage: dotnet_ssi_pipelines
   dependencies: []
