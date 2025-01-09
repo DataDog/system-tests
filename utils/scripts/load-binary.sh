@@ -190,15 +190,15 @@ elif [ "$TARGET" = "php" ]; then
     mv ./temp/dd-library-php*.tar.gz . && mv ./temp/datadog-setup.php . && rm -rf ./temp
 elif [ "$TARGET" = "golang" ]; then
     assert_version_is_dev
-    rm -rf golang-load-from-go-get
-
-    # COMMIT_ID=$(curl -s 'https://api.github.com/repos/DataDog/dd-trace-go/branches/main' | jq -r .commit.sha)
 
     echo "Using gopkg.in/DataDog/dd-trace-go.v1@main"
     echo "gopkg.in/DataDog/dd-trace-go.v1@main" > golang-load-from-go-get
 
     echo "Using ghcr.io/datadog/dd-trace-go/service-extensions-callout:dev"
     echo "ghcr.io/datadog/dd-trace-go/service-extensions-callout:dev" > golang-service-extensions-callout-image
+
+    echo "Using github.com/DataDog/orchestrion@main"
+    echo "github.com/DataDog/orchestrion@main" > orchestrion-load-from-go-get
 
 elif [ "$TARGET" = "cpp" ]; then
     assert_version_is_dev

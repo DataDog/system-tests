@@ -217,6 +217,7 @@ tests/:
           '*': v1.36.0
           gin: v1.37.0
           net-http: irrelevant (net-http doesn't handle path params)
+          net-http-orchestrion: irrelevant (net-http doesn't handle path params)
         Test_ResponseStatus:
           '*': v1.36.0
           gin: v1.37.0

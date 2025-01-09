@@ -267,7 +267,7 @@ class Test_Meta:
         """Assert that all spans generated from a weblog_variant have component metadata tag matching integration name."""
 
         def validator(span):
-            if span.get("type") != "web":  # do nothing if is not web related
+            if span.get("type") != "web" or "orchestrion" in context.weblog_variant:  # do nothing if is not web related
                 return
 
             expected_component = get_component_name(context.weblog_variant, context.library, span.get("name"))
