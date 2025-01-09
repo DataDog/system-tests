@@ -110,9 +110,9 @@ class Test_Config_ObfuscationQueryStringRegexp_Configured:
     @missing_feature(context.library == "nodejs", reason="Node only obfuscates queries on the server side")
     @missing_feature(context.library == "golang", reason="Go only obfuscates queries on the server side")
     def test_query_string_obfuscation_configured_client(self):
-        interfaces.library.add_span_tag_validation(
-            self.r, tags={"http.url": r"^.*/\?<redacted>$"}, value_as_regular_expression=True
-        )
+        spans = [s for _, _, s in interfaces.library.get_spans(request=self.r, full_trace=True)]
+        client_span = _get_span_by_tags(spans, tags={"span.kind": "client", "http.url": "http://weblog:7777/?<redacted>"})
+        assert client_span, "\n".join([str(s) for s in spans])
 
     def setup_query_string_obfuscation_configured_server(self):
         self.r = weblog.get("/?ssn=123-45-6789")
@@ -131,9 +131,9 @@ class Test_Config_ObfuscationQueryStringRegexp_Default:
     @missing_feature(context.library == "nodejs", reason="Node only obfuscates queries on the server side")
     @missing_feature(context.library == "golang", reason="Go only obfuscates queries on the server side")
     def test_query_string_obfuscation_configured_client(self):
-        interfaces.library.add_span_tag_validation(
-            self.r, tags={"http.url": r"^.*/\?<redacted>$"}, value_as_regular_expression=True
-        )
+        spans = [s for _, _, s in interfaces.library.get_spans(request=self.r, full_trace=True)]
+        client_span = _get_span_by_tags(spans, tags={"span.kind": "client", "http.url": "http://weblog:7777/?<redacted>"})
+        assert client_span, "\n".join([str(s) for s in spans])
 
     def setup_query_string_obfuscation_configured_server(self):
         self.r = weblog.get("/?token=value")
