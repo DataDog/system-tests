@@ -674,7 +674,7 @@ class Test_TelemetryV2:
                 if len(missing_config_keys) != 0:
                     logger.error(json.dumps(missing_config_keys, indent=2))
                     raise ValueError(
-                        "(NOT A FLAKE) Found unexpected config telemetry keys. Runbook: https://github.com/DataDog/system-tests/blob/main/docs/edit/runbook.md#test_config_telemetry_completeness"
+                        "(NOT A FLAKE) Read this quick runbook to update allowed configs: https://github.com/DataDog/system-tests/blob/main/docs/edit/runbook.md#test_config_telemetry_completeness"
                     )
 
     @missing_feature(library="cpp")
