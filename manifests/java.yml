@@ -28,7 +28,9 @@ tests/:
         Test_API_Security_RC_ASM_DD_processors:
           '*': v1.38.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-        Test_API_Security_RC_ASM_DD_scanners: missing_feature
+        Test_API_Security_RC_ASM_DD_scanners:
+          '*': v1.38.0
+          spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
         Test_API_Security_RC_ASM_processor_overrides_and_custom_scanner: irrelevant (waf does not support it yet)
       test_apisec_sampling.py: missing_feature
       test_schemas.py:
