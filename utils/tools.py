@@ -52,7 +52,7 @@ DEBUG_LEVEL_STDOUT = 100
 logging.addLevelName(DEBUG_LEVEL_STDOUT, "STDOUT")
 
 
-def stdout(self, message, *args, **kws):
+def stdout(self, message, *args, **kws):  # noqa: ANN002
     if self.isEnabledFor(DEBUG_LEVEL_STDOUT):
         # Yes, logger takes its '*args' as 'args'.
         self._log(DEBUG_LEVEL_STDOUT, message, args, **kws)  # pylint: disable=protected-access
