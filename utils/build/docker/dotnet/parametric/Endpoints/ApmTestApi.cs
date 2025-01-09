@@ -49,7 +49,7 @@ public abstract class ApmTestApi
     // reflected members
     private static readonly PropertyInfo GetGlobalSettingsInstance = GlobalSettingsType.GetProperty("Instance", CommonBindingFlags)!;
     private static readonly PropertyInfo GetTracerManager = TracerType.GetProperty("TracerManager", CommonBindingFlags)!;
-    private static readonly MethodInfo GetAgentWriter = TracerManagerType.GetProperty("AgentWriter", CommonBindingFlags)!.GetGetMethod()!;
+    private static readonly PropertyInfo GetAgentWriter = TracerManagerType.GetProperty("AgentWriter", CommonBindingFlags)!;
     private static readonly FieldInfo GetStatsAggregator = AgentWriterType.GetField("_statsAggregator", CommonBindingFlags)!;
     private static readonly PropertyInfo PropagationStyleInject = TracerSettingsType.GetProperty("PropagationStyleInject", CommonBindingFlags)!;
     private static readonly PropertyInfo RuntimeMetricsEnabled = TracerSettingsType.GetProperty("RuntimeMetricsEnabled", CommonBindingFlags)!;
@@ -295,18 +295,14 @@ public abstract class ApmTestApi
 
     protected static async Task FlushTraceStats()
     {
-        if (GetTracerManager is null)
-        {
-            throw new NullReferenceException("GetTracerManager is null");
-        }
-
         if (Tracer.Instance is null)
         {
             throw new NullReferenceException("Tracer.Instance is null");
         }
 
-        var tracerManager = GetTracerManager.GetValue(GetTracerInstance.GetValue(null));
-        var agentWriter = GetAgentWriter.Invoke(tracerManager, null);
+        var tracer = GetTracerInstance.GetValue(null);
+        var tracerManager = GetTracerManager.GetValue(tracer);
+        var agentWriter = GetAgentWriter.GetValue(tracerManager);
         var statsAggregator = GetStatsAggregator.GetValue(agentWriter);
 
         if (statsAggregator?.GetType() == StatsAggregatorType)
