@@ -331,6 +331,7 @@ tests/:
       TestDynamicConfigSamplingRules: missing_feature
       TestDynamicConfigTracingEnabled: missing_feature
       TestDynamicConfigV1: missing_feature
+      TestDynamicConfigV1_EmptyServiceTargets: v1.4.0
       TestDynamicConfigV1_ServiceTargets: missing_feature
       TestDynamicConfigV2: missing_feature
     test_headers_baggage.py:

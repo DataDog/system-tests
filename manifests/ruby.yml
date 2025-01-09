@@ -410,6 +410,7 @@ tests/:
       TestDynamicConfigSamplingRules: v2.0.0
       TestDynamicConfigTracingEnabled: missing_feature
       TestDynamicConfigV1: bug (APMAPI-867)  # theorical version is v1.13.0
+      TestDynamicConfigV1_EmptyServiceTargets: v2.8.0 # version unknown
       TestDynamicConfigV1_ServiceTargets: missing_feature
       TestDynamicConfigV2: missing_feature
     test_headers_baggage.py:
