@@ -116,7 +116,10 @@ public abstract class ApmTestApi
         {
             foreach (var tag in tags.EnumerateArray())
             {
-                span.SetTag(tag[0].GetString()!, tag[1].GetString());
+                var key = tag[0].GetString()!;
+                var value = tag[1].GetString();
+
+                span.SetTag(key, value);
             }
         }
 
