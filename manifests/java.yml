@@ -800,7 +800,6 @@ tests/:
         Test_Ssrf_StackTrace:
           '*': v1.39.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-          spring-boot-payara: missing_feature (APPSEC-54966)
           vertx3: missing_feature (APPSEC-55781)
           vertx4: missing_feature (APPSEC-55781)
         Test_Ssrf_Telemetry:
