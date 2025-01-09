@@ -66,7 +66,9 @@ class Test_OTelTracingE2E:
             logger.warning("Backend does not provide traces")
             return
 
-        validate_all_traces(traces_agent, traces_intake, traces_collector, self.use_128_bits_trace_id)
+        validate_all_traces(
+            traces_agent, traces_intake, traces_collector, use_128_bits_trace_id=self.use_128_bits_trace_id
+        )
 
 
 @scenarios.otel_metric_e2e

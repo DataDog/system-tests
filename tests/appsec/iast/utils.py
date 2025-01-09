@@ -224,10 +224,17 @@ def validate_stack_traces(request):
     locationFrame = None
     for frame in stack_trace["frames"]:
         # We are looking for the frame that corresponds to the location of the vulnerability, we will need to update this to cover all tracers
+        # currently support: Java, Python
         if (
-            location["path"] in frame["class_name"]
-            and location["method"] in frame["function"]
-            and location["line"] == frame["line"]
+            stack_trace["language"] == "java"
+            and (
+                location["path"] in frame["class_name"]
+                and location["method"] in frame["function"]
+                and location["line"] == frame["line"]
+            )
+        ) or (
+            stack_trace["language"] == "python"
+            and (frame.get("file", "").endswith(location["path"]) and location["line"] == frame["line"])
         ):
             locationFrame = frame
     assert locationFrame is not None, "location not found in stack trace"

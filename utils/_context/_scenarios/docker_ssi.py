@@ -4,6 +4,7 @@ import os
 
 import docker
 from docker.errors import BuildError
+from docker.models.networks import Network
 
 import utils.tools
 from utils import context, interfaces
@@ -26,6 +27,8 @@ from .core import Scenario
 class DockerSSIScenario(Scenario):
     """Scenario test the ssi installer on a docker environment and runs APM test agent"""
 
+    _network: Network = None
+
     def __init__(self, name, doc, scenario_groups=None) -> None:
         super().__init__(name, doc=doc, github_workflow="dockerssi", scenario_groups=scenario_groups)
 
@@ -39,7 +42,6 @@ class DockerSSIScenario(Scenario):
         self._required_containers.append(self._agent_container)
         self._required_containers.append(self._weblog_injection)
         self.weblog_url = "http://localhost:18080"
-        self._tested_components = {}
         # scenario configuration that is going to be reported in the final report
         self._configuration = {"app_type": "docker_ssi"}
 
@@ -106,13 +108,18 @@ class DockerSSIScenario(Scenario):
                 logger.error("Failed to configure container ", e)
                 logger.stdout("ERROR configuring container. check log file for more details")
 
+    def _create_network(self):
+        self._network = create_network()
+
+    def _start_containers(self):
+        for container in self._required_containers:
+            container.start(self._network)
+
     def get_warmups(self):
         warmups = super().get_warmups()
 
-        warmups.append(create_network)
-
-        for container in self._required_containers:
-            warmups.append(container.start)
+        warmups.append(self._create_network)
+        warmups.append(self._start_containers)
 
         if "GITLAB_CI" in os.environ:
             warmups.append(self.fix_gitlab_network)
@@ -121,10 +128,13 @@ class DockerSSIScenario(Scenario):
 
     def fix_gitlab_network(self):
         old_weblog_url = self.weblog_url
-        self.weblog_url = self.weblog_url.replace("localhost", self._weblog_injection.network_ip())
+        self.weblog_url = self.weblog_url.replace("localhost", self._weblog_injection.network_ip(self._network))
         logger.debug(f"GITLAB_CI: Rewrote weblog url from {old_weblog_url} to {self.weblog_url}")
-        self.agent_host = self._agent_container.network_ip()
+        self.agent_host = self._agent_container.network_ip(self._network)
         logger.debug(f"GITLAB_CI: Set agent host to {self.agent_host}")
+
+    def pytest_sessionfinish(self, session, exitstatus):  # noqa: ARG002
+        self.close_targets()
 
     def close_targets(self):
         for container in reversed(self._required_containers):
@@ -147,23 +157,23 @@ class DockerSSIScenario(Scenario):
         self.configuration["arch"] = self._arch.replace("linux/", "")
 
         for key in json_tested_components:
-            self._tested_components[key] = json_tested_components[key].lstrip(" ")
+            self.components[key] = json_tested_components[key].lstrip(" ")
             if key == "weblog_url" and json_tested_components[key]:
                 self.weblog_url = json_tested_components[key].lstrip(" ")
                 continue
             if key == "runtime_version" and json_tested_components[key]:
                 self._installed_language_runtime = Version(json_tested_components[key].lstrip(" "))
                 # Runtime version is stored as configuration not as dependency
-                del self._tested_components[key]
+                del self.components[key]
                 self.configuration["runtime_version"] = f"{self._installed_language_runtime}"
             if key.startswith("datadog-apm-inject") and json_tested_components[key]:
                 self._datadog_apm_inject_version = f"v{json_tested_components[key].lstrip(' ')}"
-            if key.startswith("datadog-apm-library-") and self._tested_components[key]:
+            if key.startswith("datadog-apm-library-") and self.components[key]:
                 library_version_number = json_tested_components[key].lstrip(" ")
                 self._libray_version = LibraryVersion(self._library, library_version_number)
                 # We store without the lang sufix
-                self._tested_components["datadog-apm-library"] = self._tested_components[key]
-                del self._tested_components[key]
+                self.components["datadog-apm-library"] = self.components[key]
+                del self.components[key]
 
     def print_installed_components(self):
         logger.stdout("Installed components")
@@ -174,7 +184,7 @@ class DockerSSIScenario(Scenario):
         for conf in self.configuration:
             logger.stdout(f"{conf}: {self.configuration[conf]}")
 
-    def post_setup(self):
+    def post_setup(self, session):  # noqa: ARG002
         logger.stdout("--- Waiting for all traces and telemetry to be sent to test agent ---")
         data = None
         attempts = 0
@@ -192,10 +202,6 @@ class DockerSSIScenario(Scenario):
     @property
     def installed_language_runtime(self):
         return self._installed_language_runtime
-
-    @property
-    def components(self):
-        return self._tested_components
 
     @property
     def weblog_variant(self):
@@ -325,7 +331,7 @@ class DockerSSIImageBuilder:
             logger.stdout("ERROR building docker file. check log file for more details")
             logger.exception(f"Failed to build docker image: {e}")
             self.print_docker_build_logs(f"Error building docker file [{dockerfile_template}]", e.build_log)
-            raise e
+            raise
 
     def build_ssi_installer_image(self):
         """Build the ssi installer image. Install only the ssi installer on the image"""
@@ -348,7 +354,7 @@ class DockerSSIImageBuilder:
             logger.stdout("ERROR building docker file. check log file for more details")
             logger.exception(f"Failed to build docker image: {e}")
             self.print_docker_build_logs("Error building installer docker file", e.build_log)
-            raise e
+            raise
 
     def build_weblog_image(self, ssi_installer_docker_tag):
         """Build the final weblog image. Uses base ssi installer image, install
@@ -388,7 +394,7 @@ class DockerSSIImageBuilder:
             logger.stdout("ERROR building docker file. check log file for more details")
             logger.exception(f"Failed to build docker image: {e}")
             self.print_docker_build_logs("Error building weblog", e.build_log)
-            raise e
+            raise
 
     def tested_components(self):
         """Extract weblog versions of lang runtime, agent, installer, tracer.

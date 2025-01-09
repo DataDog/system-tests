@@ -26,6 +26,4 @@ def get_trace_request_path(root_span):
     if url is None:
         return None
 
-    path = urlparse(url).path
-
-    return path
+    return urlparse(url).path

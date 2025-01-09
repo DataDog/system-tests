@@ -4,11 +4,15 @@ package com.datadoghq.ratpack;
 import static com.datadoghq.ratpack.Main.DATA_SOURCE;
 import static ratpack.jackson.Jackson.fromJson;
 
+import com.datadoghq.system_tests.iast.utils.CmdExamples;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlText;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.google.common.reflect.TypeToken;
 import ratpack.form.Form;
 import ratpack.handling.Chain;
@@ -33,6 +37,8 @@ import java.sql.ResultSet;
 import java.sql.Statement;
 
 public class RaspHandlers {
+
+    private static CmdExamples cmdExamples = new CmdExamples();
 
     public void setup(Chain chain) {
         chain.path("rasp/sqli", new Handler() {
@@ -86,6 +92,40 @@ public class RaspHandlers {
                 }
             }
         });
+        chain.path("rasp/shi", new Handler() {
+            @Override
+            public void handle(final Context ctx) throws Exception {
+                MediaType contentType = ctx.getRequest().getContentType();
+                if (ctx.getRequest().getMethod() == HttpMethod.GET) {
+                    ctx.insert(QueryShiHandler.INSTANCE);
+                } else if (contentType.isForm()) {
+                    ctx.insert(FormShiHandler.INSTANCE);
+                } else if (contentType.isJson()) {
+                    ctx.insert(JsonShiHandler.INSTANCE);
+                } else if (contentType.getType().equals("application/xml") || contentType.getType().equals("text/xml")) {
+                    ctx.insert(Registry.single(XmlParser.INSTANCE), XmlShiHandler.INSTANCE);
+                } else {
+                    ctx.getResponse().status(Status.BAD_REQUEST);
+                }
+            }
+        });
+        chain.path("rasp/cmdi", new Handler() {
+            @Override
+            public void handle(final Context ctx) throws Exception {
+                MediaType contentType = ctx.getRequest().getContentType();
+                if (ctx.getRequest().getMethod() == HttpMethod.GET) {
+                    ctx.insert(QueryCmdiHandler.INSTANCE);
+                } else if (contentType.isForm()) {
+                    ctx.insert(FormCmdiHandler.INSTANCE);
+                } else if (contentType.isJson()) {
+                    ctx.insert(JsonCmdiHandler.INSTANCE);
+                } else if (contentType.getType().equals("application/xml") || contentType.getType().equals("text/xml")) {
+                    ctx.insert(Registry.single(XmlParser.INSTANCE), XmlCmdiHandler.INSTANCE);
+                } else {
+                    ctx.getResponse().status(Status.BAD_REQUEST);
+                }
+            }
+        });
     }
 
     enum FormHandler implements Handler {
@@ -105,6 +145,29 @@ public class RaspHandlers {
         public void handle(Context ctx) throws Exception {
             var form = ctx.parse(Form.class);
             form.then(f -> executeLfi(ctx, f.get("file")));
+        }
+    }
+
+    enum FormShiHandler implements Handler {
+        INSTANCE;
+
+        @Override
+        public void handle(Context ctx) throws Exception {
+            var form = ctx.parse(Form.class);
+            form.then(f -> executeShi(ctx, f.get("list_dir")));
+        }
+    }
+
+    enum FormCmdiHandler implements Handler {
+        INSTANCE;
+
+        @Override
+        public void handle(Context ctx) throws Exception {
+            var form = ctx.parse(Form.class);
+            form.then(f -> {
+                String[] commandArray = f.get("command").split(",");
+                executeCmdi(ctx, commandArray);
+            });
         }
     }
 
@@ -135,6 +198,26 @@ public class RaspHandlers {
         public void handle(Context ctx) throws Exception {
             var obj = ctx.parse(fromJson(FileDTO.class));
             obj.then(file -> executeLfi(ctx, file.getFile()));
+        }
+    }
+
+    enum JsonShiHandler implements Handler {
+        INSTANCE;
+
+        @Override
+        public void handle(Context ctx) throws Exception {
+            var obj = ctx.parse(fromJson(ListDirDTO.class));
+            obj.then(cmd -> executeShi(ctx, cmd.getCmd()));
+        }
+    }
+
+    enum JsonCmdiHandler implements Handler {
+        INSTANCE;
+
+        @Override
+        public void handle(Context ctx) throws Exception {
+            var obj = ctx.parse(fromJson(CommandDTO.class));
+            obj.then(command -> executeCmdi(ctx, command.getCommand()));
         }
     }
 
@@ -183,6 +266,26 @@ public class RaspHandlers {
         }
     }
 
+    enum XmlShiHandler implements Handler {
+        INSTANCE;
+
+        @Override
+        public void handle(Context ctx) throws Exception {
+            var xml = ctx.parse(Parse.of(ListDirDTO.class));
+            xml.then(cmd -> executeShi(ctx, cmd.getCmd()));
+        }
+    }
+
+    enum XmlCmdiHandler implements Handler {
+        INSTANCE;
+
+        @Override
+        public void handle(Context ctx) throws Exception {
+            var xml = ctx.parse(Parse.of(CommandDTO.class));
+            xml.then(command -> executeCmdi(ctx, command.getCommand()));
+        }
+    }
+
     enum XmlSsrfHandler implements Handler {
         INSTANCE;
 
@@ -213,6 +316,27 @@ public class RaspHandlers {
         }
     }
 
+    enum QueryShiHandler implements Handler {
+        INSTANCE;
+
+        @Override
+        public void handle(Context ctx) throws Exception {
+            var cmd = ctx.getRequest().getQueryParams().get("list_dir");
+            executeShi(ctx, cmd);
+        }
+    }
+
+    enum QueryCmdiHandler implements Handler {
+        INSTANCE;
+
+        @Override
+        public void handle(Context ctx) throws Exception {
+            var command = ctx.getRequest().getQueryParams().get("command");
+            String[] commandArray = command.split(",");
+            executeCmdi(ctx, commandArray);
+        }
+    }
+
     enum QuerySsrfHandler implements Handler {
         INSTANCE;
 
@@ -238,6 +362,16 @@ public class RaspHandlers {
 
     private static void executeLfi(final Context ctx, final String file) {
         new File(file);
+        ctx.getResponse().send("text/plain", "OK");
+    }
+
+    private static void executeShi(final Context ctx, final String cmd) {
+        cmdExamples.insecureCmd(cmd);
+        ctx.getResponse().send("text/plain", "OK");
+    }
+
+    private static void executeCmdi(final Context ctx, final String[] arrayCmd) {
+        cmdExamples.insecureCmd(arrayCmd);
         ctx.getResponse().send("text/plain", "OK");
     }
 
@@ -287,6 +421,37 @@ public class RaspHandlers {
 
         public void setFile(String file) {
             this.file = file;
+        }
+    }
+
+    @JacksonXmlRootElement(localName = "list_dir")
+    public static class ListDirDTO {
+        @JsonProperty("list_dir")
+        @JacksonXmlText
+        private String cmd;
+
+        public String getCmd() {
+            return cmd;
+        }
+
+        public void setCmd(String cmd) {
+            this.cmd = cmd;
+        }
+    }
+
+    @JacksonXmlRootElement(localName = "command")
+    public static class CommandDTO {
+        @JsonProperty("command")
+        @JacksonXmlElementWrapper(useWrapping = false)
+        @JacksonXmlProperty(localName = "cmd")
+        private String[] command;
+
+        public String[] getCommand() {
+            return command;
+        }
+
+        public void setCommand(String[] command) {
+            this.command = command;
         }
     }
 

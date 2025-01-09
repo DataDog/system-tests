@@ -19,6 +19,10 @@ GET  /rasp/lfi                 controllers.RaspController.lfi
 POST /rasp/lfi                 controllers.RaspController.lfi
 GET  /rasp/ssrf                controllers.RaspController.ssrf
 POST /rasp/ssrf                controllers.RaspController.ssrf
+GET  /rasp/shi                controllers.RaspController.shi
+POST /rasp/shi                controllers.RaspController.shi
+GET  /rasp/cmdi                controllers.RaspController.cmdi
+POST /rasp/cmdi                controllers.RaspController.cmdi
 GET  /requestdownstream        controllers.AppSecController.requestdownstream
 GET  /vulnerablerequestdownstream        controllers.AppSecController.vulnerableRequestdownstream
 GET  /returnheaders            controllers.AppSecController.returnheaders

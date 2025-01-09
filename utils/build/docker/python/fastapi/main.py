@@ -87,6 +87,26 @@ async def set_cookie(request: Request):
     )
 
 
+@app.post("/iast/header_injection/test_insecure", response_class=PlainTextResponse)
+async def iast_header_injection_insecure(request: Request):
+    form_data = await request.form()
+    header_value = form_data.get("test")
+    response = PlainTextResponse("OK")
+    # label iast_header_injection
+    response.headers["Header-Injection"] = header_value
+    return response
+
+
+@app.post("/iast/header_injection/test_secure", response_class=PlainTextResponse)
+async def iast_header_injection_secure(request: Request):
+    form_data = await request.form()
+    header_value = form_data.get("test")
+    response = PlainTextResponse("OK")
+    # label iast_header_injection
+    response.headers["Vary"] = header_value
+    return response
+
+
 @app.get("/sample_rate_route/{i}", response_class=PlainTextResponse)
 async def sample_rate(i):
     return "OK"

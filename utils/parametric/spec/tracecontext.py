@@ -90,7 +90,7 @@ class Tracestate:
                 self.from_string(args[0])
                 return
             if isinstance(args[0], Tracestate):
-                self._traits = OrderedDict(args[0]._traits)
+                self._traits = OrderedDict(args[0]._traits)  # noqa: SLF001
                 return
         self._traits = OrderedDict(*args, **kwds)
 

@@ -3,7 +3,7 @@
 import pytest
 
 
-class features:
+class _Features:
     """Data source is https://dd-feature-parity.azurewebsites.net/Import/Features
 
     run this command to get new features:
@@ -2185,6 +2185,15 @@ class features:
         return test_object
 
     @staticmethod
+    def iast_source_sql(test_object):
+        """IAST Source: SQL
+
+        https://feature-parity.us1.prod.dog/#/?feature=344
+        """
+        pytest.mark.features(feature_id=344)(test_object)
+        return test_object
+
+    @staticmethod
     def tracing_configuration_consistency(test_object):
         """Enforces standardized behaviors for configurations across the tracing libraries.
 
@@ -2265,3 +2274,24 @@ class features:
         """
         pytest.mark.features(feature_id=342)(test_object)
         return test_object
+
+    @staticmethod
+    def adaptive_sampling(test_object):
+        """Adaptive sampling rules + RC
+
+        https://feature-parity.us1.prod.dog/#/?feature=346
+        """
+        pytest.mark.features(feature_id=346)(test_object)
+        return test_object
+
+    @staticmethod
+    def agent_host_ipv6(test_object):
+        """DD_AGENT_HOST supports an IPv6 address
+
+        https://feature-parity.us1.prod.dog/#/?feature=347
+        """
+        pytest.mark.features(feature_id=347)(test_object)
+        return test_object
+
+
+features = _Features()

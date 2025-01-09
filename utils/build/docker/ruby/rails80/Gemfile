@@ -1,7 +1,7 @@
 source "https://rubygems.org"
 git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 
-ruby "~> 3.4.0-preview2"
+ruby "~> 3.4.1"
 
 # Bundle edge Rails instead: gem "rails", github: "rails/rails", branch: "main"
 gem "rails", "~> 8.0.0"
@@ -77,4 +77,4 @@ end
 gem 'devise'
 
 gem 'pry'
-gem 'ddtrace', '~> 1.0.0.a', require: 'ddtrace/auto_instrument'
+gem 'datadog', '~> 2.7.0', require: 'datadog/auto_instrument'

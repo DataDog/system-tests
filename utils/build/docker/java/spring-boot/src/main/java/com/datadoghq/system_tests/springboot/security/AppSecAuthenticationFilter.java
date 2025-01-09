@@ -20,11 +20,10 @@ public class AppSecAuthenticationFilter extends AbstractAuthenticationProcessing
     public AppSecAuthenticationFilter(String url, AuthenticationManager authenticationManager) {
         super(new AntPathRequestMatcher(url), authenticationManager);
         this.setAuthenticationSuccessHandler((request, response, authentication) -> {
-            response.getWriter().write("Hello " + authentication.getName());
             response.setStatus(HttpStatus.OK.value());
         });
         this.setAuthenticationFailureHandler((request, response, exception) -> {
-            response.sendError(HttpStatus.UNAUTHORIZED.value(), exception.getMessage());
+            response.setStatus(HttpStatus.UNAUTHORIZED.value());
         });
     }
 
@@ -54,9 +53,9 @@ public class AppSecAuthenticationFilter extends AbstractAuthenticationProcessing
         if (sdkEvent != null) {
             String sdkUser = request.getParameter("sdk_user");
             boolean sdkUserExists = Boolean.parseBoolean(request.getParameter("sdk_user_exists"));
-            authentication = new AppSecSdkToken(username, password, sdkEvent, sdkUser, sdkUserExists);
+            authentication = new AppSecToken(username, password, sdkEvent, sdkUser, sdkUserExists);
         } else {
-            authentication = new AppSecSdkToken(username, password);
+            authentication = new AppSecToken(username, password);
         }
         return this.getAuthenticationManager().authenticate(authentication);
     }

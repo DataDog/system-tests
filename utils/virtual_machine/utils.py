@@ -73,7 +73,7 @@ def parametrize_virtual_machines(bugs: list[dict] = None):
 
 
 def get_tested_apps_vms():
-    """This method is a workaround for multicontainer apps. We are going duplicate the machines for each runtime inside of docker compose.
+    """Workaround for multicontainer apps. We are going duplicate the machines for each runtime inside of docker compose.
     This means, if I have a multicontainer app with 3 containers (runtimes) running on 1 vm, I will have 3 machines with the same configuration but with different runtimes.
     NOTE: On AWS we only run 1 vm. We duplicate the vms for test isolation.
     """
@@ -95,7 +95,7 @@ def get_tested_apps_vms():
 
 
 def nginx_parser(nginx_config_file):
-    """This function is used to parse the nginx config file and return the apps in the return block of the location block of the server block of the http block.
+    """Parse the nginx config file and return the apps in the return block of the location block of the server block of the http block.
     TODO: Improve this uggly code
     """
     import crossplane
