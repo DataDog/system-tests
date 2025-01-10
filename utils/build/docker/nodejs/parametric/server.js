@@ -321,7 +321,7 @@ app.post('/trace/otel/set_attributes', (req, res) => {
 app.get('/trace/config', (req, res) => {
   const dummyTracer = require('dd-trace').init()
   const config = dummyTracer._tracer._config
-  const agentUrl = config?.url || dummyTracer._tracer?._url
+  const agentUrl = dummyTracer._tracer?._url ||  config?.url 
   res.json( {
     config: {
       'dd_service': config?.service !== undefined ? `${config.service}`.toLowerCase() : 'null',
