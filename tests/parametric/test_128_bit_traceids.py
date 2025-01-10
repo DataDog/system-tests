@@ -409,13 +409,32 @@ class Test_128_Bit_Traceids:
         assert dd_p_tid == "640cfd8d00000000"
         assert propagation_error is None
 
+    @pytest.mark.parametrize(
+        "library_env",
+        [{"DD_TRACE_PROPAGATION_STYLE": "tracecontext", "DD_TRACE_128_BIT_TRACEID_GENERATION_ENABLED": "true"}],
+    )
+    def test_w3c_128_bit_propagation_tid_in_chunk_root(self, test_agent, test_library):
+        """Ensure that only root span contains the tid."""
+        with test_library:
+            with test_library.dd_start_span(name="parent", service="service", resource="resource") as parent:
+                with test_library.dd_start_span(name="child", service="service", parent_id=parent.span_id) as child:
+                    pass
+
+        traces = test_agent.wait_for_num_traces(1, clear=True, sort_by_start=False)
+        trace = find_trace(traces, parent.trace_id)
+        assert len(trace) == 2
+        first_span = find_first_span_in_trace_payload(trace)
+        tid_chunk_root = first_span["meta"].get("_dd.p.tid")
+        assert tid_chunk_root is not None
+        
+
     @missing_feature(context.library == "ruby", reason="not implemented")
     @missing_feature(context.library == "java", reason="not implemented")
     @pytest.mark.parametrize(
         "library_env",
         [{"DD_TRACE_PROPAGATION_STYLE": "tracecontext", "DD_TRACE_128_BIT_TRACEID_GENERATION_ENABLED": "true"}],
     )
-    def test_w3c_128_bit_propagation_tid_in_chunk_root(self, test_agent, test_library):
+    def test_w3c_128_bit_propagation_tid_only_in_chunk_root(self, test_agent, test_library):
         """Ensure that only root span contains the tid."""
         with test_library:
             with test_library.dd_start_span(name="parent", service="service", resource="resource") as parent:
