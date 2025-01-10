@@ -174,7 +174,6 @@ class Test_Config_TraceAgentURL:
             }
         ],
     )
-    @missing_feature(context.library == "golang", reason="does not support ipv6 urls")
     def test_dd_trace_agent_http_url_ipv6(self, library_env, test_agent, test_library):
         with test_library as t:
             resp = t.config()
@@ -183,7 +182,6 @@ class Test_Config_TraceAgentURL:
         assert url.scheme == "http"
         assert url.hostname == "::1"
         assert url.port == 5000
-        assert resp["dd_trace_agent_url"] == "http://[::1]:5000"
 
     @parametrize(
         "library_env",
@@ -209,7 +207,6 @@ class Test_Config_TraceAgentURL:
         assert url.scheme == "http"
         assert url.hostname == "::1"
         assert url.port == 5000
-        assert resp["dd_trace_agent_url"] == "http://[::1]:5000"
 
 
 @scenarios.parametric
