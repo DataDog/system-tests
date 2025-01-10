@@ -5,6 +5,7 @@
 import json
 from utils import weblog, interfaces, scenarios, features
 
+
 @features.f_otel_interoperability
 @scenarios.integrations
 class Test_Otel_Drop_In:
@@ -39,6 +40,7 @@ class Test_Otel_Drop_In:
                 span_metric_found = True
                 break
         assert span_metric_found, "Otel drop-in span metric not found"
+
 
 @features.f_otel_interoperability
 class Test_Otel_Drop_In_Default_Propagator:

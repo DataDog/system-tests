@@ -1094,6 +1094,16 @@ public class App {
         return "OK";
     }
 
+    @RequestMapping("/otel_drop_in_default_propagator_extract")
+    public String otelDropInDefaultPropagatorExtract() {
+        return "{}";
+    }
+
+    @RequestMapping("/otel_drop_in_default_propagator_inject")
+    public String otelDropInDefaultPropagatorInject() {
+        return "{}";
+    }
+
     @GetMapping(value = "/requestdownstream")
     public String requestdownstream(HttpServletResponse response) throws IOException {
         String url = "http://localhost:7777/returnheaders";
