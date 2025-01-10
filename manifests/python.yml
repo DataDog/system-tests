@@ -215,12 +215,7 @@ tests/:
           TestMultipart: missing_feature
         test_parameter_name.py:
           TestParameterName:
-            django-poc: v1.18.0
-            fastapi: missing_feature
-            flask-poc: missing_feature
-            python3.12: v1.18.0
-            uds-flask: missing_feature
-            uwsgi-poc: missing_feature
+            '*': v1.18.0
         test_parameter_value.py:
           TestParameterValue:
             '*': v2.9.0
