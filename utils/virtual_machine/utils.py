@@ -134,9 +134,7 @@ def generate_gitlab_pipeline(
 ):
     pipeline = {
         "include": [
-            {
-                "remote": "https://gitlab-templates.ddbuild.io/libdatadog/include-wip/robertomonteromiguel/onboarding_pulumi_runner/single-step-instrumentation-tests.yml"
-            }
+            {"remote": "https://gitlab-templates.ddbuild.io/libdatadog/include/single-step-instrumentation-tests.yml"}
         ],
         "variables": {
             "KUBERNETES_SERVICE_ACCOUNT_OVERWRITE": "system-tests",
