@@ -438,6 +438,7 @@ class Test_Config_LogInjection_Enabled:
         pattern = r'"dd":\{[^}]*\}'
         stdout.assert_presence(pattern)
         dd = parse_log_injection_message(self.message)
+        print(55, dd)
         required_fields = ["trace_id", "span_id", "service", "version", "env"]
         for field in required_fields:
             assert field in dd, f"Missing field: {field}"
@@ -520,15 +521,13 @@ class Test_Config_RuntimeMetrics_Default:
         assert len(data) == 0
 
 
+# Parse the JSON-formatted log message from stdout and return the 'dd' object
 def parse_log_injection_message(log_message):
     for data in stdout.get_data():
-        json_string = json.dumps(data)
-        parsed_data = json.loads(json_string)
-        message = {}
         try:
-            message = json.loads(parsed_data.get("message"))
+            message = json.loads(data.get("message"))
         except json.JSONDecodeError:
             continue
-        if message.get("dd") and message.get(log_injection_fields[context.library.library]["message"]) == log_message:
+        if message and message.get("dd") and message.get(log_injection_fields[context.library.library]["message"]) == log_message:
             dd = message.get("dd")
             return dd
