@@ -399,9 +399,6 @@ tests/:
       Test_AWS_API_Gateway_Inferred_Span_Creation: missing_feature
     test_otel_drop_in.py:
       Test_Otel_Drop_In: missing_feature
-  k8s_lib_injection/:
-    test_k8s_manual_inject.py:
-      TestAdmisionControllerProfiling: missing_feature
   parametric/:
     test_config_consistency.py:
       Test_Config_Dogstatsd: missing_feature (does not support hostname)
