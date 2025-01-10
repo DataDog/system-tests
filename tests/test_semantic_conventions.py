@@ -36,6 +36,7 @@ VARIANT_COMPONENT_MAP = {
     "graphql-go": "graphql-go/graphql",
     "jersey-grizzly2": {"jakarta-rs.request": "jakarta-rs-controller", "grizzly.request": ["grizzly", "jakarta-rs"]},
     "net-http": "net/http",
+    "net-http-orchestrion": "net/http",
     "sinatra": {"rack.request": "rack"},
     "spring-boot": {
         "servlet.request": "tomcat-server",
@@ -267,7 +268,7 @@ class Test_Meta:
         """Assert that all spans generated from a weblog_variant have component metadata tag matching integration name."""
 
         def validator(span):
-            if span.get("type") != "web" or "orchestrion" in context.weblog_variant:  # do nothing if is not web related
+            if span.get("type") != "web":  # do nothing if is not web related
                 return
 
             expected_component = get_component_name(context.weblog_variant, context.library, span.get("name"))
