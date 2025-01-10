@@ -426,7 +426,6 @@ class Test_128_Bit_Traceids:
         first_span = find_first_span_in_trace_payload(trace)
         tid_chunk_root = first_span["meta"].get("_dd.p.tid")
         assert tid_chunk_root is not None
-        
 
     @missing_feature(context.library == "ruby", reason="not implemented")
     @missing_feature(context.library == "java", reason="not implemented")
