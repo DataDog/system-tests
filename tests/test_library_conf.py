@@ -319,9 +319,9 @@ class Test_ExtractBehavior_Default:
 
         # Assert the W3C Trace Context (conflicting trace context) span link
         link = span.get("spanLinks")[0]
-        assert link["traceID"] == "8687463697196027922" # int(0x7890123456789012)
-        assert link["spanID"] == "1311768467284833366" # int (0x1234567890123456)
-        assert link["traceIDHigh"] == "1311768467284833366" # int(0x1234567890123456)
+        assert link["traceID"] == "8687463697196027922"  # int(0x7890123456789012)
+        assert link["spanID"] == "1311768467284833366"  # int (0x1234567890123456)
+        assert link["traceIDHigh"] == "1311768467284833366"  # int(0x1234567890123456)
         assert link["attributes"] == {"reason": "terminated_context", "context_headers": "tracecontext"}
 
         # Test the next outbound span context
@@ -403,7 +403,11 @@ class Test_ExtractBehavior_Restart:
 
         # Test the extracted span context
         span = spans[0]
-        assert span.get("traceID") != "1" and span.get("traceID") != "8687463697196027922" and span.get("traceID") != "3689348814741910323"
+        assert (
+            span.get("traceID") != "1"
+            and span.get("traceID") != "8687463697196027922"
+            and span.get("traceID") != "3689348814741910323"
+        )
         assert span.get("parentID") is None
 
         # Test the extracted span links: One span link for the incoming (Datadog trace context).
@@ -486,7 +490,11 @@ class Test_ExtractBehavior_Ignore:
 
         # Test the local span context
         span = spans[0]
-        assert span.get("traceID") != "1" and span.get("traceID") != "8687463697196027922" and span.get("traceID") != "3689348814741910323"
+        assert (
+            span.get("traceID") != "1"
+            and span.get("traceID") != "8687463697196027922"
+            and span.get("traceID") != "3689348814741910323"
+        )
         assert span.get("parentID") is None
         assert "spanLinks" not in span or len(span.get("spanLinks")) == 0
 
@@ -569,7 +577,11 @@ class Test_ExtractBehavior_Restart_With_Extract_First:
 
         # Test the extracted span context
         span = spans[0]
-        assert span.get("traceID") != "1" and span.get("traceID") != "8687463697196027922" and span.get("traceID") != "3689348814741910323"
+        assert (
+            span.get("traceID") != "1"
+            and span.get("traceID") != "8687463697196027922"
+            and span.get("traceID") != "3689348814741910323"
+        )
         assert span.get("parentID") is None
 
         # Test the extracted span links: One span link for the incoming (Datadog trace context).
