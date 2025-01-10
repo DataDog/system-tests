@@ -114,7 +114,7 @@ class Test_Config_ObfuscationQueryStringRegexp_Configured:
         context.library < "golang@1.72.0-dev",
         reason="Client query string collection disabled by default; oObfuscation only occurs on server side",
     )
-    @incomplete_test_app(
+    @missing_feature(
         context.library == "java" and context.weblog_variant in ("vertx3", "vertx4"),
         reason="Missing endpoint",
     )
@@ -145,7 +145,7 @@ class Test_Config_ObfuscationQueryStringRegexp_Default:
         context.library < "golang@1.72.0-dev",
         reason="Client query string collection disabled by default; obfuscation only occurs on server side",
     )
-    @incomplete_test_app(
+    @missing_feature(
         context.library == "java" and context.weblog_variant in ("vertx3", "vertx4"),
         reason="Missing endpoint",
     )
