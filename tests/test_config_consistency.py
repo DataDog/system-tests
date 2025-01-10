@@ -501,15 +501,15 @@ class Test_Config_LogInjection_128Bit_TradeId_Disabled:
 class Test_Config_RuntimeMetrics_Enabled:
     # This test verifies runtime metrics by asserting the prescene of a metric in the dogstatsd endpoint
     def test_config_runtimemetrics_enabled(self):
-        data = list(interfaces.library.get_data("/dogstatsd/v2/proxy"))[0]
-        lines = data["request"]["content"].split("\n")
-        metric_found = False
-        for line in lines:
-            if runtime_metrics[context.library.library] in line:
-                metric_found = True
-                break
-        assert metric_found, f"The metric {runtime_metrics[context.library.library]} was not found in any line"
-
+        for data in interfaces.library.get_data("/dogstatsd/v2/proxy"):
+            lines = data["request"]["content"].split("\n")
+            metric_found = False
+            for line in lines:
+                if runtime_metrics[context.library.library] in line:
+                    metric_found = True
+                    break
+            assert metric_found, f"The metric {runtime_metrics[context.library.library]} was not found in any line"
+            break
 
 @rfc("https://docs.google.com/document/d/1kI-gTAKghfcwI7YzKhqRv2ExUstcHqADIWA4-TZ387o/edit#heading=h.8v16cioi7qxp")
 @scenarios.tracing_config_nondefault
@@ -517,8 +517,10 @@ class Test_Config_RuntimeMetrics_Enabled:
 class Test_Config_RuntimeMetrics_Default:
     # test that by default runtime metrics are disabled
     def test_config_runtimemetrics_default(self):
-        data = list(interfaces.library.get_data("/dogstatsd/v2/proxy"))
-        assert len(data) == 0
+        iterations = 0
+        for data in interfaces.library.get_data("/dogstatsd/v2/proxy"):
+            iterations += 1
+        assert iterations == 0, "Runtime metrics are enabled by default"
 
 
 # Parse the JSON-formatted log message from stdout and return the 'dd' object

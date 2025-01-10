@@ -164,6 +164,44 @@ class Test_Config_TraceAgentURL:
         assert url.hostname == "random-host"
         assert url.port == 9999
 
+    @parametrize(
+                "library_env",
+                [
+                    {
+                        "DD_TRACE_AGENT_URL": "http://[::1]:5000",
+                        "DD_AGENT_HOST": "localhost",
+                        "DD_AGENT_PORT": "8126",
+                    }
+                ],
+            )
+    def test_dd_trace_agent_http_url_ipv6(self, library_env, test_agent, test_library):
+        with test_library as t:
+            resp = t.config()
+
+        url = urlparse(resp["dd_trace_agent_url"])
+        assert url.scheme == "http"
+        assert url.hostname == "::1"
+        assert url.port == 5000
+        assert resp["dd_trace_agent_url"] == "http://[::1]:5000"
+
+    @parametrize(
+                "library_env",
+                [
+                    {
+                        "DD_AGENT_HOST": "[::1]",
+                        "DD_AGENT_PORT": "5000",
+                    }
+                ],
+            )
+    def test_dd_agent_host_ipv6(self, library_env, test_agent, test_library):
+        with test_library as t:
+            resp = t.config()
+
+        url = urlparse(resp["dd_trace_agent_url"])
+        assert url.scheme == "http"
+        assert url.hostname == "::1"
+        assert url.port == 5000
+        assert resp["dd_trace_agent_url"] == "http://[::1]:5000"
 
 @scenarios.parametric
 @features.tracing_configuration_consistency
