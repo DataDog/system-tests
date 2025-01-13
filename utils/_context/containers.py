@@ -172,6 +172,10 @@ class TestedContainer:
 
         logger.info(f"Start container {self.container_name}")
 
+        # the whole thing is reimplemented in python...
+        if self.healthcheck is not None:
+            self.kwargs["healthcheck"] = {"test": ["NONE"]}
+
         self._container = _get_client().containers.run(
             image=self.image.name,
             name=self.container_name,
@@ -997,9 +1001,10 @@ class RabbitMqContainer(TestedContainer):
 class MySqlContainer(SqlDbTestedContainer):
     def __init__(self, host_log_folder) -> None:
         super().__init__(
-            image_name="mysql/mysql-server:latest",
+            image_name="mysql/mysql-server:8.0.32",
             name="mysqldb",
-            command="--default-authentication-plugin=mysql_native_password",
+            command="--lc-messages-dir=/usr/share/mysql-8.0/english "
+            "--default-authentication-plugin=mysql_native_password",
             environment={
                 "MYSQL_DATABASE": "mysql_dbname",
                 "MYSQL_USER": "mysqldb",

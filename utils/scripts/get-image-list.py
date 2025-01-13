@@ -29,6 +29,6 @@ if __name__ == "__main__":
 
     images.sort()
 
-    compose_data = {"services": {re.sub(r"[/:\.]", "-", image): {"image": image} for image in images}}
+    compose_data = {"services": {re.sub(r"[/:\.@]", "-", image): {"image": image} for image in images}}
 
     print(yaml.dump(compose_data, default_flow_style=False))
