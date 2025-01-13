@@ -23,7 +23,8 @@ stages:
     - source venv/bin/activate
     - python --version
     - pip freeze
-    - ./run.sh ${K8S_SCENARIO} --k8s-library ${TEST_LIBRARY} --k8s-weblog ${K8S_WEBLOG} --k8s-weblog-img ${K8S_WEBLOG_IMG} --k8s-lib-init-img ${K8S_LIB_INIT_IMG} --k8s-cluster-version ${K8S_CLUSTER_VERSION}
+    - echo ONBOARDING_FILTER_ENV
+    - ./run.sh ${K8S_SCENARIO} --k8s-library ${TEST_LIBRARY} --k8s-weblog ${K8S_WEBLOG} --k8s-weblog-img ${K8S_WEBLOG_IMG} --k8s-lib-init-img ${K8S_LIB_INIT_IMG} --k8s-cluster-version ${K8S_CLUSTER_VERSION} --report-run-url $CI_JOB_URL --report-environment $ONBOARDING_FILTER_ENV
   after_script: |
     mkdir -p reports
     cp -R logs_*/ reports/
