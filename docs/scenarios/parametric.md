@@ -243,7 +243,7 @@ The http server implementations for each tracer can be found at the following lo
 
 ![image](https://github.com/user-attachments/assets/fc144fc1-95aa-4d50-97c5-cda8fdbcefef)
 
-<img width="869" alt="image" src="https://user-images.githubusercontent.com/6321485/182887064-e241d65c-5e29-451b-a8a8-e8d18328c083.png">
+![image](https://github.com/user-attachments/assets/bb577aa2-b373-4468-b383-8394507309cc)
 
 [1]: https://github.com/DataDog/dd-trace-cpp
 [2]: https://docs.pytest.org/en/6.2.x/usage.html#specifying-tests-selecting-tests

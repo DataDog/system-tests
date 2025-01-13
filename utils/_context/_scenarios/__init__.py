@@ -1,7 +1,5 @@
 import json
 
-import pytest
-
 from utils._context.header_tag_vars import VALID_CONFIGS, INVALID_CONFIGS
 from utils.proxy.ports import ProxyPorts
 from utils.tools import update_environ_with_local_env
@@ -16,7 +14,7 @@ from .performance import PerformanceScenario
 from .profiling import ProfilingScenario
 from .test_the_test import TestTheTestScenario
 from .auto_injection import InstallerAutoInjectionScenario, InstallerAutoInjectionScenarioProfiling
-from .k8s_lib_injection import KubernetesScenario, WeblogInjectionScenario, K8sScenario, K8sSparkScenario
+from .k8s_lib_injection import WeblogInjectionScenario, K8sScenario, K8sSparkScenario
 from .docker_ssi import DockerSSIScenario
 from .external_processing import ExternalProcessingScenario
 from .ipv6 import IPV6Scenario
@@ -25,19 +23,6 @@ update_environ_with_local_env()
 
 
 class _Scenarios:
-    @staticmethod
-    def all_endtoend_scenarios(test_object):
-        """Particular use case where a klass applies on all scenarios"""
-
-        # Check that no scenario has been already declared
-        for marker in getattr(test_object, "pytestmark", []):
-            if marker.name == "scenario":
-                raise ValueError(f"Error on {test_object}: You can declare only one scenario")
-
-        pytest.mark.scenario("EndToEndScenario")(test_object)
-
-        return test_object
-
     todo = Scenario("TODO", doc="scenario that skips tests not yet executed", github_workflow=None)
     test_the_test = TestTheTestScenario("TEST_THE_TEST", doc="Small scenario that check system-tests internals")
     mock_the_test = TestTheTestScenario("MOCK_THE_TEST", doc="Mock scenario that check system-tests internals")
@@ -593,8 +578,8 @@ class _Scenarios:
         weblog_env={
             "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1",
             "DD_REMOTE_CONFIG_ENABLED": "true",
-            "DD_EXCEPTION_REPLAY_ENABLED": "true",
             "DD_EXCEPTION_DEBUGGING_ENABLED": "true",
+            "DD_EXCEPTION_REPLAY_CAPTURE_MAX_FRAMES": "10",
         },
         library_interface_timeout=5,
         doc="Check exception replay",
@@ -698,26 +683,6 @@ class _Scenarios:
         github_workflow="libinjection",
     )
 
-    k8s_library_injection_basic = KubernetesScenario(
-        "K8S_LIBRARY_INJECTION_BASIC",
-        doc=" Kubernetes Instrumentation basic scenario",
-        github_workflow="libinjection",
-        scenario_groups=[ScenarioGroup.ALL, ScenarioGroup.LIB_INJECTION],
-    )
-
-    k8s_library_injection_djm = KubernetesScenario(
-        "K8S_LIBRARY_INJECTION_DJM",
-        doc="Kubernetes Instrumentation with Data Jobs Monitoring",
-        github_workflow="libinjection",
-        scenario_groups=[ScenarioGroup.ALL, ScenarioGroup.LIB_INJECTION],
-    )
-
-    k8s_library_injection_profiling = KubernetesScenario(
-        "K8S_LIBRARY_INJECTION_PROFILING",
-        doc=" Kubernetes auto instrumentation, profiling activation",
-        github_workflow="libinjection",
-        scenario_groups=[ScenarioGroup.ALL, ScenarioGroup.LIB_INJECTION],
-    )
     lib_injection_validation = WeblogInjectionScenario(
         "LIB_INJECTION_VALIDATION",
         doc="Validates the init images without kubernetes enviroment",

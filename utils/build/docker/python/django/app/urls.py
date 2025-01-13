@@ -257,6 +257,32 @@ def rasp_shi(request, *args, **kwargs):
         return HttpResponse(f"Shell command failure: {e!r}", status=201)
 
 
+@csrf_exempt
+def rasp_cmdi(request, *args, **kwargs):
+    cmd = None
+    if request.method == "GET":
+        cmd = request.GET.get("command")
+    elif request.method == "POST":
+        try:
+            cmd = (request.POST or json.loads(request.body)).get("command")
+        except Exception as e:
+            print(repr(e), file=sys.stderr)
+        try:
+            if cmd is None:
+                cmd = xmltodict.parse(request.body).get("command").get("cmd")
+        except Exception as e:
+            print(repr(e), file=sys.stderr)
+            pass
+
+    if cmd is None:
+        return HttpResponse("missing command parameter", status=400)
+    try:
+        res = subprocess.run(cmd, capture_output=True)
+        return HttpResponse(f"Exec command [{cmd}] with result: {res}")
+    except Exception as e:
+        return HttpResponse(f"Shell command [{cmd}] failure: {e!r}", status=201)
+
+
 ### END EXPLOIT PREVENTION
 
 
@@ -881,6 +907,7 @@ urlpatterns = [
     path("returnheaders", return_headers),
     path("returnheaders/", return_headers),
     path("set_cookie", set_cookie),
+    path("rasp/cmdi", rasp_cmdi),
     path("rasp/lfi", rasp_lfi),
     path("rasp/shi", rasp_shi),
     path("rasp/sqli", rasp_sqli),

@@ -297,6 +297,8 @@ tests/:
             nextjs: missing_feature
         test_uri.py:
           TestURI: missing_feature
+      test_security_controls.py:
+        TestSecurityControls: missing_feature
     rasp/:
       test_cmdi.py:
         Test_Cmdi_BodyJson:
@@ -341,14 +343,8 @@ tests/:
           express5: *ref_5_29_0
           nextjs: missing_feature
         Test_Lfi_Rules_Version: *ref_5_26_0
-        Test_Lfi_StackTrace:
-          '*': *ref_5_24_0
-          express5: *ref_5_29_0 # test uses express blocking
-          nextjs: missing_feature
-        Test_Lfi_Telemetry:
-          '*': *ref_5_24_0
-          express5: *ref_5_29_0 # test uses express blocking
-          nextjs: missing_feature
+        Test_Lfi_StackTrace: *ref_5_24_0
+        Test_Lfi_Telemetry: *ref_5_24_0
         Test_Lfi_UrlQuery:
           '*': *ref_5_24_0
           express5: *ref_5_29_0
@@ -368,17 +364,9 @@ tests/:
         Test_Shi_Mandatory_SpanTags: *ref_5_25_0
         Test_Shi_Optional_SpanTags: *ref_5_25_0
         Test_Shi_Rules_Version: *ref_5_24_0
-        Test_Shi_StackTrace:
-          '*': *ref_5_25_0
-          express5: *ref_5_29_0 # test uses express blocking
-          nextjs: missing_feature
-        Test_Shi_Telemetry:
-          '*': *ref_5_25_0
-          express5: *ref_5_29_0 # test uses express blocking
-          nextjs: missing_feature
-        Test_Shi_Telemetry_Variant_Tag:
-          '*': *ref_5_30_0
-          nextjs: missing_feature
+        Test_Shi_StackTrace: *ref_5_25_0
+        Test_Shi_Telemetry: *ref_5_25_0
+        Test_Shi_Telemetry_Variant_Tag: *ref_5_30_0
         Test_Shi_UrlQuery:
           '*': *ref_5_25_0
           express5: *ref_5_29_0
@@ -398,14 +386,8 @@ tests/:
         Test_Sqli_Mandatory_SpanTags: *ref_5_23_0
         Test_Sqli_Optional_SpanTags: *ref_5_23_0
         Test_Sqli_Rules_Version: *ref_5_25_0
-        Test_Sqli_StackTrace:
-          '*': *ref_5_23_0
-          express5: *ref_5_29_0 # test uses express blocking
-          nextjs: missing_feature
-        Test_Sqli_Telemetry:
-          '*': *ref_5_23_0
-          express5: *ref_5_29_0 # test uses express blocking
-          nextjs: missing_feature
+        Test_Sqli_StackTrace: *ref_5_23_0
+        Test_Sqli_Telemetry: *ref_5_23_0
         Test_Sqli_UrlQuery:
           '*': *ref_5_23_0
           express5: *ref_5_29_0
@@ -426,11 +408,9 @@ tests/:
         Test_Ssrf_StackTrace:
           '*': *ref_5_20_0
           express5: *ref_5_29_0 # test uses querystring
-          nextjs: missing_feature
         Test_Ssrf_Telemetry:
           '*': *ref_5_22_0
           express5: *ref_5_29_0 # test uses querystring
-          nextjs: missing_feature
         Test_Ssrf_UrlQuery:
           '*': *ref_5_20_0
           express5: *ref_5_29_0
@@ -756,9 +736,6 @@ tests/:
         express5: *ref_5_26_0
     test_otel_drop_in.py:
       Test_Otel_Drop_In: missing_feature
-  k8s_lib_injection/:
-    test_k8s_manual_inject.py:
-      TestAdmisionControllerProfiling: *ref_5_22_0
   parametric/:
     test_config_consistency.py:
       Test_Config_Dogstatsd: *ref_5_29_0
@@ -774,10 +751,11 @@ tests/:
       TestDynamicConfigSamplingRules: *ref_5_16_0
       TestDynamicConfigTracingEnabled: *ref_5_4_0
       TestDynamicConfigV1: *ref_4_11_0
+      TestDynamicConfigV1_EmptyServiceTargets: *ref_5_4_0
       TestDynamicConfigV1_ServiceTargets: *ref_5_4_0
       TestDynamicConfigV2: *ref_4_23_0
     test_headers_baggage.py:
-      Test_Headers_Baggage: missing_feature
+      Test_Headers_Baggage: *ref_5_29_0
     test_otel_api_interoperability.py: missing_feature
     test_otel_env_vars.py:
       Test_Otel_Env_Vars: v5.11.0 #implemented in v5.11.0, v4.35.0, &v3.56.0
