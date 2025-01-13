@@ -20,6 +20,11 @@ on:
         default: 1
         required: false
         type: number
+      _ci_environment:
+        description: "Which CI environment is running the tests, used for FPD. used internally to skip some weblogs on prod"
+        default: 'custom'
+        required: false
+        type: string
 
     # Map the workflow outputs to job outputs
     outputs:
@@ -50,11 +55,6 @@ on:
       _experimental_parametric_job_matrix:
         description: ""
         value: ${{ jobs.main.outputs._experimental_parametric_job_matrix }}
-      _ci_environment:
-        description: "Which CI environment is running the tests, used for FPD. used internally to skip some weblogs on prod"
-        default: 'custom'
-        required: false
-        type: string
 
 jobs:
   main:
