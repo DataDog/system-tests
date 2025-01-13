@@ -18,6 +18,7 @@ from .k8s_lib_injection import WeblogInjectionScenario, K8sScenario, K8sSparkSce
 from .docker_ssi import DockerSSIScenario
 from .external_processing import ExternalProcessingScenario
 from .ipv6 import IPV6Scenario
+from .new_auto_injection_scenario import NewAutoInjectionScenario
 
 update_environ_with_local_env()
 
@@ -590,6 +591,13 @@ class _Scenarios:
 
     # Single Step Instrumentation scenarios (HOST and CONTAINER)
 
+    new_auto_inject_scenario=NewAutoInjectionScenario(
+        "NEW_AUTO_INJECTION_SCENARIO",
+        "A very simple example",
+        scenario_groups=[ScenarioGroup.ONBOARDING],
+        github_workflow="libinjection",
+    )
+    
     simple_installer_auto_injection = InstallerAutoInjectionScenario(
         "SIMPLE_INSTALLER_AUTO_INJECTION",
         "Onboarding Container Single Step Instrumentation scenario (minimal test scenario)",

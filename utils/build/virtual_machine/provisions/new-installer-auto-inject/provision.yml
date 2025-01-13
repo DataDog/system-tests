@@ -1,0 +1,66 @@
+#Optional: Load the environment variables
+init-environment:
+  #This variables will be populated as env variables in all commands for each provision installation
+  - env: dev
+    agent_repo_url: datad0g.com
+    agent_dist_channel: beta
+    agent_major_version: "apm"
+
+  - env: prod
+    agent_repo_url: datadoghq.com
+    agent_dist_channel: stable
+    agent_major_version: "7"
+
+
+#Mandatory: Scripts to extract the installed/tested components (json {component1:version, component2:version})
+tested_components:
+  install:
+    - os_type: linux
+      os_distro: rpm
+      remote-command: |
+          echo "{'agent':'$(rpm -qa --queryformat '%{VERSION}-%{RELEASE}' datadog-agent)'}"
+    - os_type: linux
+      os_distro: deb
+      remote-command: |
+          version_agent=$((dpkg -s datadog-agent || true)  | grep Version  | head -n 1 )  && echo "{'agent':'${version_agent//'Version:'/}'}"
+
+#Mandatory: Steps to install provision
+provision_steps:
+  - init-config #Very first machine action
+  - my-cutom-extra-step #secod step
+  - install-agent #Install the agent
+
+init-config:
+  cache: true
+  install:
+    - os_type: linux
+      remote-command: echo "Hey! Hello!"
+
+my-cutom-extra-step:
+  cache: true
+  install:
+    - os_type: linux
+      os_distro: rpm
+      copy_files:
+        - name: copy-service
+          local_path: utils/build/test.service
+
+        - name: copy-script
+          local_path: utils/build/rpm-myservice.sh
+      remote-command: sh rpm-myservice.sh
+
+    - os_type: linux
+      os_distro: deb
+      copy_files:
+        - name: copy-service
+          local_path: utils/build/test.service
+
+        - name: copy-script
+          local_path: utils/build/deb-myservice.sh
+      remote-command: sh deb-myservice.sh
+
+install-agent:
+  install:
+    - os_type: linux
+      remote-command: |
+        REPO_URL=$DD_agent_repo_url DD_AGENT_DIST_CHANNEL=$DD_agent_dist_channel DD_AGENT_MAJOR_VERSION=$DD_agent_major_version bash -c "$(curl -L https://s3.amazonaws.com/dd-agent/scripts/install_script_agent7.sh)"
