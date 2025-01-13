@@ -78,7 +78,7 @@ public abstract class ApmTestApi
 
     internal static ILogger<ApmTestApi>? _logger;
 
-    // persist a baggage collections associated to span ids (for testing purposes)
+    // HACK: persist a baggage collections associated to span ids (for testing purposes)
     private static readonly Dictionary<ulong, IDictionary<string, string?>> BaggageInstances = new();
 
     private static IEnumerable<string> GetHeaderValues(string[][] headersList, string key)
@@ -113,21 +113,23 @@ public abstract class ApmTestApi
             FinishOnClose = false,
         };
 
-        if (parsedDictionary!.TryGetValue("parent_id", out var parentId) && parentId is not null)
-        {
-            var longParentId = Convert.ToUInt64(parentId);
+        ulong parentId = 0;
 
-            if (Spans.TryGetValue(longParentId, out var parentSpan))
+        if (parsedDictionary!.TryGetValue("parent_id", out var parentIdString) && parentIdString is not null)
+        {
+            parentId = Convert.ToUInt64(parentIdString);
+
+            if (Spans.TryGetValue(parentId, out var parentSpan))
             {
                 creationSettings.Parent = parentSpan.Context;
             }
-            else if (DDContexts.TryGetValue(longParentId, out var ddContext))
+            else if (DDContexts.TryGetValue(parentId, out var ddContext))
             {
                 creationSettings.Parent = ddContext;
             }
             else
             {
-                throw new Exception($"Parent span with id {longParentId} not found");
+                throw new Exception($"Parent span with id {parentId} not found");
             }
         }
 
@@ -162,6 +164,12 @@ public abstract class ApmTestApi
         }
 
         Spans[span.SpanId] = span;
+
+        // HACK: copy the baggage associated with the parent span to the new span (for testing purposes)
+        if (BaggageInstances.TryGetValue(parentId, out var parentBaggage))
+        {
+            BaggageInstances[span.SpanId] = new Dictionary<string, string?>(parentBaggage);
+        }
 
         return JsonConvert.SerializeObject(new
         {
