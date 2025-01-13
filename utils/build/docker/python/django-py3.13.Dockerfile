@@ -1,4 +1,4 @@
-FROM datadog/system-tests:python3.12.base-v5
+FROM datadog/system-tests:django-py3.13.base-v0
 
 WORKDIR /app
 
@@ -21,5 +21,5 @@ ENV _DD_APPSEC_DEDUPLICATION_ENABLED=false
 # docker startup
 CMD ./app.sh
 
-# docker build -f utils/build/docker/python/django-poc.Dockerfile -t test .
+# docker build -f utils/build/docker/python/django-py3.13.Dockerfile -t test .
 # docker run -ti -p 7777:7777 test
