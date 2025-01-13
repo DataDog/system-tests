@@ -262,19 +262,17 @@ public abstract class ApmTestApi
             static void Setter(List<string[]> headers, string key, string value) =>
                 headers.Add([key, value]);
 
-            Console.WriteLine(JsonConvert.SerializeObject(new
-            {
-                HttpHeaders = httpHeaders
-            }));
-
             // Invoke SpanContextPropagator.Inject with the HttpRequestHeaders
             _spanContextInjector.Inject(httpHeaders, Setter, span.Context);
         }
 
-        return JsonConvert.SerializeObject(new
+        var json = JsonConvert.SerializeObject(new
         {
             http_headers = httpHeaders
         });
+
+        Console.WriteLine(json);
+        return json;
     }
 
     private static async Task FinishSpan(HttpRequest request)
