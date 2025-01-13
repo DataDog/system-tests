@@ -627,7 +627,7 @@ tests/:
     test_debugger_probe_snapshot.py:
       Test_Debugger_Probe_Snaphots: missing_feature (feature not implented)
     test_debugger_probe_status.py:
-      Test_Debugger_Probe_Statuses: v5.31.0
+      Test_Debugger_Probe_Statuses: v5.32.0
   integrations/:
     crossed_integrations/:
       test_kafka.py:
