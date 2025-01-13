@@ -14,25 +14,25 @@
 # Overall
 
 The Docker SSI tests are an easy and fast tests to check the SSI instrumentation.
-The Docker SSI tests don't pretend to reemplace the current AWS tests, there only try to complement them, providing a quick checks and verification for some features included in the SSI.
+The Docker SSI tests don't pretend to replace the current AWS tests, they only try to complement them, providing a quick checks and verification for some features included in the SSI.
 
 The main differences between the AWS/Onboarding tests and the Docker SSI tests are:
 
 * In Docker SSI, the SSI is installed inside a docker container, instead of using virtual machines.
-* The AWS/Onboarding tests represent better a real customer scenarios, but Docker SSI it doesn't.
-* Docker SSI relies on APM Test Agent, instead of rely on the backend.
+* The AWS/Onboarding tests better represent real customer scenarios, while Docker SSI does not.
+* Docker SSI relies on APM Test Agent, instead of relying on the Datadog's production backend.
 
 The main Docker SSI properties are:
 
 * Install the SSI host injection on the docker container that runs the weblog application.
-* Uses a APM Test Agent to make the assertions.
+* Uses APM Test Agent to make the assertions.
 * The weblog applications are containerized applications.
 * The weblog application container is built by the system-tests scenarios in separate steps.
-* The base image of the weblog application container should be parametrizable (it will detailed in the next sections)
+* The base image of the weblog application container should be parametrizable (detailed in the next sections)
 
 The Docker SSI are good for:
 
-* Test the instrumentation agains different runtime versions.
+* Test the instrumentation against different runtime versions.
 * Test the guardrail features (unsupported versions of the language).
 * Test the service naming features on SSI.
 * Test the crash tracking features.
@@ -42,18 +42,18 @@ The Docker SSI are good for:
 
 ## Prerequisites
 
-There are not special requirements to run the Docker SSI tests, you only need the docker engine and have the access to GHCR.
+There are no special requirements to run the Docker SSI tests, you only need the docker engine and have the access to GHCR.
 
 ### System-tests requirements
 
-All system-tests assertions and utilities are based on python and pytests. You need to prepare this environment before run the tests:
+All system-tests assertions and utilities are based on python and pytests. You need to prepare this environment before running the tests:
 
 - Python and pytests environment as described: [configure python and pytests for system-tests](../../README.md#requirements).
 - Ensure that requirements.txt is loaded (you can run "`./build.sh -i runner`")
 
 ## Run the scenario
 
-There is only one scenario declared: "`DOCKER_SSI`". But this unique scenario can run agains multiple variants of weblogs, conteinerized OS and architectures and therefore the matrix combinations might be very big.
+There is only one scenario declared: "`DOCKER_SSI`". But this unique scenario can run against multiple variants of weblogs, containerized OSes and architectures and therefore the number of matrix combinations might be very high.
 
 To help us to run a concrete case of the matrix variants, there are two scripts to be executed locally:
 
@@ -125,7 +125,7 @@ The following picture shows the main directories for the Docker SSI tests:
 
 ## Docker SSI definitions
 
-The key of the matrix of OSs (docker base image), architectures, language versions and weblogs resides on the file: `utils/docker_ssi/docker_ssi_definitions.py`. This file is the glue for all the components of this large matrix.
+The key of the matrix of OSes (docker base image), architectures, language versions and weblogs resides on the file: `utils/docker_ssi/docker_ssi_definitions.py`. This file is the glue for all the components of this large matrix.
 
 The first component is the Supported Images definition:
 
@@ -179,7 +179,7 @@ JS_APP = WeblogDescriptor(
 )
 ```
 
-Might be your weblog only supports one base image and it's required a runtime version to be installed, for example:
+Might be that your weblog only supports one base image and it requires a runtime version to be installed, for example:
 
 ```python
 TOMCAT_APP = WeblogDescriptor("tomcat-app", "java", [SupportedImages().TOMCAT_9_ARM64])
@@ -195,11 +195,11 @@ We can differentiate between two types of applications:
 - Applications that come already prepared/wrapped with a base image. For example, tomcat or jboss.
 - "Normal” applications that we encapsulate in a docker container and that in theory could be executed in more than one base image. For example, my HelloWorld application could run on Ubuntu22, Debian 12, RedHat.... images.
 
-The two previous points, will be better understood by following examplesThe previous.
+The two previous points will be better understood by following examplesThe previous.
 
 ### Create a new weblog using a prebuilt docker image
 
-For example, the Tomcat Java Web Server is distributed by a prebuilt docker images. If we want to test the tomcat 9, but we don't need to test Tomcat 9 installed on different Operating Systems, we could use the tomcat prebuilt images.
+For example, the Tomcat Java Web Server is distributed by prebuilt docker images. If we want to test the tomcat 9, but we don't need to test Tomcat 9 installed on different Operating Systems, we could use the tomcat prebuilt images.
 
 If we want to test the tomcat 9 image deploying a web application we'd do this:
 
@@ -215,7 +215,7 @@ FROM tomcat:9
 COPY --from=build app/payment-service/target/payment-service*.war /usr/local/tomcat/webapps/
 ```
 
-We can convert this standard image into "Docker SSI" image. We only need to parametrize the "From" clausule, and store the dockerfile as `utils/build/ssi/java/tomcat-app.Dockerfile`:
+We can convert this standard image into "Docker SSI" image. We only need to parametrize the "From" clause, and store the dockerfile as `utils/build/ssi/java/tomcat-app.Dockerfile`:
 
 ```yaml
 ARG BASE_IMAGE
@@ -257,7 +257,7 @@ ALL_WEBLOGS = [
 
 **NOTE:**
 
-When system-tests builds the docker images is going to install the SSI software inside of the container.
+When system-tests builds the docker images it is going to install the SSI software inside of the container.
 
 ---
 
@@ -269,9 +269,9 @@ If we want to run the "DOCKER_SSI" test cases for this new weblog:
 
 ### Create a new weblog deployable on different containers or operating systems
 
-We will use these types of weblogs to run an application agains different operating systems and distincs language runtime versions.
+We will use these types of weblogs to run an application against different operating systems and distinct language runtime versions.
 
-For example, we can define the PHP application that run the app into different OS and PHP runtime versions (`utils/build/ssi/php/php-app.Dockerfile`):
+For example, we can define a PHP application that runs on different OS and PHP runtime versions (`utils/build/ssi/php/php-app.Dockerfile`):
 
 ```yaml
 ARG BASE_IMAGE
@@ -338,7 +338,7 @@ ALL_WEBLOGS = [
 
 **NOTE:**
 
-When system-tests builds the docker images is going to install the SSI software inside of the container and the required runtime version.
+When system-tests builds the docker images it is going to install the SSI software inside of the container and the required runtime version.
 
 ---
 
@@ -351,7 +351,7 @@ If we want to run a "DOCKER_SSI" test case for this new weblog:
 ## Create a new test case
 
 The creation of test methods for the “Docker SSI” scenarios does not require anything special, we will do it as it is done for the rest of the system-tests scenarios.
-We can make request to the deployed weblog and make assertiong throught the "test agent" interface:
+We can make a request to the deployed weblog and make assertions through the "test agent" interface:
 
 ```python
 @scenarios.docker_ssi

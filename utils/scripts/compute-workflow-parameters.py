@@ -55,7 +55,7 @@ def get_graphql_weblogs(library):
     return weblogs[library]
 
 
-def get_endtoend_weblogs(library):
+def get_endtoend_weblogs(library, ci_environment: str):
     weblogs = {
         "cpp": ["nginx"],
         "dotnet": ["poc", "uds"],
@@ -92,6 +92,10 @@ def get_endtoend_weblogs(library):
         ],
     }
 
+    if ci_environment != "dev":
+        # as now, django-py3.13 support is not released
+        weblogs["python"].remove("django-py3.13")
+
     return weblogs[library]
 
 
@@ -110,13 +114,13 @@ def get_opentelemetry_weblogs(library):
     return weblogs[library]
 
 
-def main(language: str, scenarios: str, groups: str):
+def main(language: str, scenarios: str, groups: str, ci_environment: str):
     scenario_map = get_github_workflow_map(scenarios.split(","), groups.split(","))
 
     for github_workflow, scenario_list in scenario_map.items():
         print(f"{github_workflow}_scenarios={json.dumps(scenario_list)}")
 
-    endtoend_weblogs = get_endtoend_weblogs(language)
+    endtoend_weblogs = get_endtoend_weblogs(language, ci_environment)
     print(f"endtoend_weblogs={json.dumps(endtoend_weblogs)}")
 
     graphql_weblogs = get_graphql_weblogs(language)
@@ -140,7 +144,8 @@ if __name__ == "__main__":
 
     parser.add_argument("--scenarios", "-s", type=str, help="Scenarios to run", default="")
     parser.add_argument("--groups", "-g", type=str, help="Scenario groups to run", default="")
+    parser.add_argument("--ci-environment", type=str, help="Used internally in system-tests CI", default="custom")
 
     args = parser.parse_args()
 
-    main(language=args.language, scenarios=args.scenarios, groups=args.groups)
+    main(language=args.language, scenarios=args.scenarios, groups=args.groups, ci_environment=args.ci_environment)
