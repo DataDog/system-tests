@@ -887,7 +887,7 @@ tests/:
     test_stats.py:
       Test_Client_Stats:
         '*': v0.1 (real version unknown)
-        django-py3.13: bug
+        django-py3.13: bug (APMLP-364)
   test_config_consistency.py:
     Test_Config_ClientIPHeaderEnabled_False: v2.17.3
     Test_Config_ClientIPHeader_Configured: v2.12.0
@@ -949,7 +949,7 @@ tests/:
   test_semantic_conventions.py:
     Test_Meta:
       '*': v1.80.0
-      django-py3.13: bug
+      django-py3.13: bug (APMLP-364)
     Test_MetaDatadogTags: bug (APMAPI-735)
   test_span_events.py: incomplete_test_app (Weblog `/add_event` not implemented)
   test_standard_tags.py:
@@ -957,7 +957,7 @@ tests/:
     Test_StandardTagsMethod: v1.2.1
     Test_StandardTagsRoute:
       '*': v1.6.0
-      django-py3.13: bug
+      django-py3.13: bug (APMLP-364)
     Test_StandardTagsStatusCode: v1.4.0-rc1
     Test_StandardTagsUrl:
       '*': v2.4.0
