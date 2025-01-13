@@ -148,6 +148,8 @@ tests/:
           TestSqlRow: missing_feature
         test_uri.py:
           TestURI: missing_feature
+      test_security_controls.py:
+        TestSecurityControls: missing_feature
     rasp/:
       test_cmdi.py: missing_feature
       test_lfi.py: missing_feature
@@ -393,8 +395,6 @@ tests/:
       TestK8sLibInjectioProfilingClusterEnabled: missing_feature
       TestK8sLibInjectioProfilingClusterOverride: missing_feature
       TestK8sLibInjectioProfilingDisabledByDefault: missing_feature
-    test_k8s_manual_inject.py:
-      TestAdmisionControllerProfiling: missing_feature
   parametric/:
     test_config_consistency.py:
       Test_Config_Dogstatsd: missing_feature
