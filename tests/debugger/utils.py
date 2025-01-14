@@ -278,8 +278,10 @@ class _Base_Debugger_Test:
                 path = _DEBUGGER_PATH
             elif context.library == "ruby":
                 path = _DEBUGGER_PATH
+            elif context.library == "nodejs":
+                path = _DEBUGGER_PATH
             else:
-                path = _LOGS_PATH
+                path = _LOGS_PATH  # TODO: Should the default not be _DEBUGGER_PATH?
 
             return list(interfaces.agent.get_data(path))
 
