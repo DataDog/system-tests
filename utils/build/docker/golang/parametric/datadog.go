@@ -248,7 +248,6 @@ type Config struct {
 	TraceAgentURL          string            `json:"agent_url"`
 	RateLimit              string            `json:"sample_rate_limit"`
 	DogstatsdAddr          string            `json:"dogstatsd_address"`
-	DogstatsdPort          string            `json:"dd_dogstatsd_port"`
 }
 
 // Log is a custom logger that extracts & parses the JSON configuration from the log message
