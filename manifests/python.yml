@@ -459,9 +459,9 @@ tests/:
     test_automated_login_events.py:
       Test_Login_Events: irrelevant (was v2.10.0 but will be replaced by V2)
       Test_Login_Events_Extended: irrelevant (was v2.10.0 but will be replaced by V2)
-      Test_V2_Login_Events: v2.11.0
-      Test_V2_Login_Events_Anon: v2.11.0
-      Test_V2_Login_Events_RC: v2.11.0
+      Test_V2_Login_Events: irrelevant (was v2.11.0 but will be replaced by V3)
+      Test_V2_Login_Events_Anon: irrelevant (was v2.11.0 but will be replaced by V3)
+      Test_V2_Login_Events_RC: irrelevant (was v2.11.0 but will be replaced by V3)
       Test_V3_Auto_User_Instrum_Mode_Capability: v2.11.0
       Test_V3_Login_Events: missing_feature
       Test_V3_Login_Events_Anon: missing_feature
