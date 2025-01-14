@@ -403,6 +403,7 @@ class TestDynamicConfigV1_ServiceTargets:
         ],
     )
     @bug(library="nodejs", reason="APMAPI-865")
+    @bug(library="java", reason="APMAPI-1003")
     def test_not_match_service_target(self, library_env, test_agent, test_library):
         """Test that the library reports an erroneous apply_state when the service targeting is not correct.
 
