@@ -64,7 +64,7 @@ tests/:
     iast/:
       sink/:
         test_code_injection.py:
-          TestCodeInjection: missing_feature
+          TestCodeInjection: v2.20.0
           TestCodeInjection_StackTrace: missing_feature
         test_command_injection.py:
           TestCommandInjection:
