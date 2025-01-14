@@ -43,6 +43,7 @@ class Test_Otel_Drop_In:
 
 
 @features.f_otel_interoperability
+@scenarios.apm_tracing_e2e_otel
 class Test_Otel_Drop_In_Default_Propagator:
     def setup_propagation_extract(self):
         extract_headers = {
