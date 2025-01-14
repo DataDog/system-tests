@@ -167,7 +167,7 @@ class Test_Trace_Sampling_Globs:
     @bug(library="cpp", reason="APMAPI-908")
     @bug(library="nodejs", reason="APMAPI-1011")
     def test_field_case_insensitivity(self, test_agent, test_library):
-        """Test span sampling tags are added when a rule with glob patterns with special characters * and ? match"""
+        """Tests that sampling rule field values are case insensitive"""
         with test_library:
             with test_library.dd_start_span(
                 name="web.request", service="webserver", resource="/random", tags=[("key", "value")]

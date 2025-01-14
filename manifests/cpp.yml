@@ -244,14 +244,14 @@ tests/:
     Test_Config_HttpServerErrorStatuses_FeatureFlagCustom: missing_feature
     Test_Config_IntegrationEnabled_False: missing_feature
     Test_Config_IntegrationEnabled_True: missing_feature
-    Test_Config_LogInjection_128Bit_TradeId_Default: incomplete_test_app
-    Test_Config_LogInjection_128Bit_TradeId_Disabled: incomplete_test_app
-    Test_Config_LogInjection_Default: incomplete_test_app
-    Test_Config_LogInjection_Enabled: incomplete_test_app
+    Test_Config_LogInjection_128Bit_TradeId_Default: missing_feature
+    Test_Config_LogInjection_128Bit_TradeId_Disabled: missing_feature
+    Test_Config_LogInjection_Default: missing_feature
+    Test_Config_LogInjection_Enabled: missing_feature
     Test_Config_ObfuscationQueryStringRegexp_Configured: missing_feature
     Test_Config_ObfuscationQueryStringRegexp_Empty: missing_feature
-    Test_Config_RuntimeMetrics_Default: incomplete_test_app
-    Test_Config_RuntimeMetrics_Enabled: incomplete_test_app
+    Test_Config_RuntimeMetrics_Default: missing_feature
+    Test_Config_RuntimeMetrics_Enabled: missing_feature
     Test_Config_UnifiedServiceTagging_CustomService: missing_feature
     Test_Config_UnifiedServiceTagging_Default: missing_feature
   test_distributed.py:

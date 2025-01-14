@@ -427,7 +427,7 @@ class Test_Config_IntegrationEnabled_True:
 @scenarios.tracing_config_nondefault
 @features.tracing_configuration_consistency
 class Test_Config_LogInjection_Enabled:
-    """Verify behavior of integrations automatic spans"""
+    """Verify log injection behavior when enabled"""
 
     def setup_log_injection_enabled(self):
         self.message = "msg"
@@ -438,7 +438,6 @@ class Test_Config_LogInjection_Enabled:
         pattern = r'"dd":\{[^}]*\}'
         stdout.assert_presence(pattern)
         dd = parse_log_injection_message(self.message)
-        print(55, dd)
         required_fields = ["trace_id", "span_id", "service", "version", "env"]
         for field in required_fields:
             assert field in dd, f"Missing field: {field}"
@@ -446,9 +445,11 @@ class Test_Config_LogInjection_Enabled:
 
 
 @rfc("https://docs.google.com/document/d/1kI-gTAKghfcwI7YzKhqRv2ExUstcHqADIWA4-TZ387o/edit#heading=h.8v16cioi7qxp")
-@scenarios.tracing_config_nondefault_2
+@scenarios.default
 @features.tracing_configuration_consistency
 class Test_Config_LogInjection_Default:
+    """Verify log injection is disabled by default"""
+
     def setup_log_injection_default(self):
         self.message = "msg"
         self.r = weblog.get("/log/library", params={"msg": self.message})
@@ -463,7 +464,7 @@ class Test_Config_LogInjection_Default:
 @scenarios.tracing_config_nondefault
 @features.tracing_configuration_consistency
 class Test_Config_LogInjection_128Bit_TradeId_Default:
-    """Verify 128 bit traceid are enabled in log injection by default"""
+    """Verify 128 bit traceid are enabled by default when log injection is enabled"""
 
     def setup_log_injection_128bit_traceid_default(self):
         self.message = "msg"
@@ -482,6 +483,8 @@ class Test_Config_LogInjection_128Bit_TradeId_Default:
 @scenarios.tracing_config_nondefault_3
 @features.tracing_configuration_consistency
 class Test_Config_LogInjection_128Bit_TradeId_Disabled:
+    """Verify 128 bit traceid are disabled in log injection when DD_TRACE_128BIT_TRACE_ID=false"""
+
     def setup_log_injection_128bit_traceid_disabled(self):
         self.message = "msg"
         self.r = weblog.get("/log/library", params={"msg": self.message})
@@ -499,6 +502,8 @@ class Test_Config_LogInjection_128Bit_TradeId_Disabled:
 @scenarios.runtime_metrics_enabled
 @features.tracing_configuration_consistency
 class Test_Config_RuntimeMetrics_Enabled:
+    """Verify runtime metrics are enabled when DD_RUNTIME_METRICS_ENABLED=true"""
+
     # This test verifies runtime metrics by asserting the prescene of a metric in the dogstatsd endpoint
     def test_config_runtimemetrics_enabled(self):
         for data in interfaces.library.get_data("/dogstatsd/v2/proxy"):
@@ -513,9 +518,11 @@ class Test_Config_RuntimeMetrics_Enabled:
 
 
 @rfc("https://docs.google.com/document/d/1kI-gTAKghfcwI7YzKhqRv2ExUstcHqADIWA4-TZ387o/edit#heading=h.8v16cioi7qxp")
-@scenarios.tracing_config_nondefault
+@scenarios.default
 @features.tracing_configuration_consistency
 class Test_Config_RuntimeMetrics_Default:
+    """Verify runtime metrics are disabled by default"""
+
     # test that by default runtime metrics are disabled
     def test_config_runtimemetrics_default(self):
         iterations = 0

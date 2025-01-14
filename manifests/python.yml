@@ -904,14 +904,14 @@ tests/:
     Test_Config_IntegrationEnabled_True:
       '*': irrelevant (kafka endpoint is not implemented)
       flask-poc: v2.0.0
-    Test_Config_LogInjection_128Bit_TradeId_Default: incomplete_test_app
-    Test_Config_LogInjection_128Bit_TradeId_Disabled: incomplete_test_app
-    Test_Config_LogInjection_Default: incomplete_test_app
-    Test_Config_LogInjection_Enabled: incomplete_test_app
+    Test_Config_LogInjection_128Bit_TradeId_Default: missing_feature (not enabled by default)
+    Test_Config_LogInjection_128Bit_TradeId_Disabled: incomplete_test_app (endpoint not implemented)
+    Test_Config_LogInjection_Default: incomplete_test_app (endpoint not implemented)
+    Test_Config_LogInjection_Enabled: incomplete_test_app (endpoint not implemented)
     Test_Config_ObfuscationQueryStringRegexp_Configured: v2.0.0
     Test_Config_ObfuscationQueryStringRegexp_Empty: v2.15.0
-    Test_Config_RuntimeMetrics_Default: incomplete_test_app
-    Test_Config_RuntimeMetrics_Enabled: incomplete_test_app
+    Test_Config_RuntimeMetrics_Default: incomplete_test_app (test needs to account for python runtime metrics)
+    Test_Config_RuntimeMetrics_Enabled: incomplete_test_app (test needs to account for python runtime metrics)
     Test_Config_UnifiedServiceTagging_CustomService: v2.0.0
     Test_Config_UnifiedServiceTagging_Default: v2.0.0
   test_data_integrity.py:
