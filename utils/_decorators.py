@@ -30,7 +30,7 @@ class _DecoratorType(enum.StrEnum):
 # So we use a custom one, based on NPM spec, allowing pre-release versions
 class CustomParser(semver.NpmSpec.Parser):
     @classmethod
-    def range(cls, operator, target):
+    def range(cls, operator, target) -> semver.base.Range:
         return semver.base.Range(operator, target, prerelease_policy=semver.base.Range.PRERELEASE_ALWAYS)
 
 

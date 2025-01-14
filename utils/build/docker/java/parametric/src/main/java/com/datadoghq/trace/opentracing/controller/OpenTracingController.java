@@ -8,18 +8,7 @@ import static io.opentracing.propagation.Format.Builtin.TEXT_MAP;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toCollection;
 
-import com.datadoghq.trace.opentracing.dto.KeyValue;
-import com.datadoghq.trace.opentracing.dto.SpanErrorArgs;
-import com.datadoghq.trace.opentracing.dto.SpanFinishArgs;
-import com.datadoghq.trace.opentracing.dto.SpanInjectHeadersArgs;
-import com.datadoghq.trace.opentracing.dto.SpanInjectHeadersResult;
-import com.datadoghq.trace.opentracing.dto.SpanExtractHeadersArgs;
-import com.datadoghq.trace.opentracing.dto.SpanExtractHeadersResult;
-import com.datadoghq.trace.opentracing.dto.SpanSetMetaArgs;
-import com.datadoghq.trace.opentracing.dto.SpanSetMetricArgs;
-import com.datadoghq.trace.opentracing.dto.SpanSetResourceArgs;
-import com.datadoghq.trace.opentracing.dto.StartSpanArgs;
-import com.datadoghq.trace.opentracing.dto.StartSpanResult;
+import com.datadoghq.trace.opentracing.dto.*;
 import datadog.trace.api.DDSpanId;
 import datadog.trace.api.DDTags;
 import datadog.trace.api.DDTraceId;
@@ -195,6 +184,61 @@ public class OpenTracingController implements Closeable {
       this.extractedSpanContexts.clear();
     } catch (Throwable t) {
       LOGGER.error("Uncaught throwable", t);
+    }
+  }
+
+  @PostMapping("set_baggage")
+  public void setBaggage(@RequestBody SpanSetBaggageArgs args) {
+    LOGGER.info("Setting baggage item for OT span: {}", args);
+    Span span = getSpan(args.spanId());
+    if (span != null && args.key() != null) {
+      span.setBaggageItem(args.key(), args.value());
+    }
+  }
+
+  @GetMapping("get_baggage")
+  public SpanGetBaggageResult getBaggage(@RequestBody SpanGetBaggageArgs args) {
+    LOGGER.info("Getting single baggage item for OT span: {}", args);
+    Span span = getSpan(args.spanId());
+    if (span != null && args.key() != null) {
+      return new SpanGetBaggageResult(span.getBaggageItem(args.key()));
+    }
+    return null;
+  }
+
+  @GetMapping("get_all_baggage")
+  public SpanGetAllBaggageResult getAllBaggage(@RequestBody SpanGetAllBaggageArgs args) {
+    LOGGER.info("Getting all baggage items for OT span: {}", args);
+    Span span = getSpan(args.spanId());
+    if (span != null) {
+      Map<String, String> baggageMap = new HashMap<>();
+
+      for (var entry : span.context().baggageItems()) {
+        baggageMap.put(entry.getKey(), entry.getValue());
+      }
+
+      return new SpanGetAllBaggageResult(baggageMap);
+    }
+    return null;
+  }
+
+  @PostMapping("remove_baggage")
+  public void removeBaggage(@RequestBody SpanRemoveBaggageArgs args) {
+    LOGGER.info("Removing single baggage item for OT span: {}", args);
+    Span span = getSpan(args.spanId());
+    if (span != null && args.key() != null) {
+      span.setBaggageItem(args.key(), null);
+    }
+  }
+
+  @PostMapping("remove_all_baggage")
+  public void removeAllBaggage(@RequestBody SpanRemoveAllBaggageArgs args) {
+    LOGGER.info("Removing all baggage items for OT span: {}", args);
+    Span span = getSpan(args.spanId());
+    if (span != null) {
+      for (var entry : span.context().baggageItems()) {
+        span.setBaggageItem(entry.getKey(), null);
+      }
     }
   }
 

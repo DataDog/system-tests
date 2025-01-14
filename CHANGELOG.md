@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file.
 
 
+### 2024-12 (138 PR merged)
+
+* 2024-12-31 [Allow a class to declare several scenarios](https://github.com/DataDog/system-tests/pull/3757) by @cbeauchesne
+* 2024-12-17 Optimization of java weblogs [1](https://github.com/DataDog/system-tests/pull/3701), [2](https://github.com/DataDog/system-tests/pull/3697), [3](https://github.com/DataDog/system-tests/pull/3694) and [4](https://github.com/DataDog/system-tests/pull/3693) by @smola
+* 2024-12-13 Use ruff instead of black as [formatter](https://github.com/DataDog/system-tests/pull/3656) and [linter](https://github.com/DataDog/system-tests/pull/3631) by @cbeauchesne
+* 2024-12-03 Lot ofrevamp of k8 tests by @robertomonteromiguel
+
 ### 2024-11 (207 PR merged)
 
 * 2024-11-22 [Docker SSI: report data to FPD](https://github.com/DataDog/system-tests/pull/3525) by @robertomonteromiguel
@@ -64,7 +71,7 @@ All notable changes to this project will be documented in this file.
 
 * 2024-05-27 [Use semver for version parser](https://github.com/DataDog/system-tests/pull/2487) by @cbeauchesne
 * 2024-05-07 [[python] decrease the waiting time for python libraries from 25s to 5s](https://github.com/DataDog/system-tests/pull/2431) by @christophe-papazian
-* 2024-05-29 [Manifest references + Node semver migration](https://github.com/DataDog/system-tests/pull/2416) by @simon-id
+* 2024-05-29 [Manifest references + Node.js semver migration](https://github.com/DataDog/system-tests/pull/2416) by @simon-id
 * 2024-05-03 [Dynamically compute scenarios to run](https://github.com/DataDog/system-tests/pull/2408) by @cbeauchesne
 
 
@@ -116,7 +123,7 @@ All notable changes to this project will be documented in this file.
 ### October 2023 (100 PR merged)
 
 * 2023-10-09 [New python/FastAPI variant](https://github.com/DataDog/system-tests/pull/1663) by @christophe-papazian
-* 2023-10-27 [New NodeJS/NextJS variant](https://github.com/DataDog/system-tests/pull/1662) by @uurien
+* 2023-10-27 [New Node.js/NextJS variant](https://github.com/DataDog/system-tests/pull/1662) by @uurien
 * 2023-10-01 [New scenario for testing debugger probes](https://github.com/DataDog/system-tests/pull/1632) by @shurivich
 
 ### September 2023 (84 PR merged)

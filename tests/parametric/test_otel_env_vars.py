@@ -11,7 +11,7 @@ class Test_Otel_Env_Vars:
             {
                 "DD_SERVICE": "service",
                 "OTEL_SERVICE_NAME": "otel_service",
-                "DD_TRACE_LOG_LEVEL": "error",  # Node uses DD_TRACE_LOG_LEVEL
+                "DD_TRACE_LOG_LEVEL": "error",  # Node.js uses DD_TRACE_LOG_LEVEL
                 "DD_LOG_LEVEL": "error",
                 "DD_TRACE_DEBUG": "false",
                 "OTEL_LOG_LEVEL": "debug",

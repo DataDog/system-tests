@@ -170,7 +170,7 @@ class Test_DsmRabbitmq:
     def test_dsm_rabbitmq_dotnet_legacy(self):
         assert self.r.text == "ok"
 
-        # Dotnet sets the tag for `has_routing_key` to `has_routing_key:True` instead of `has_routing_key:true` like
+        # .NET sets the tag for `has_routing_key` to `has_routing_key:True` instead of `has_routing_key:true` like
         # the other tracer libraries, which causes the resulting hash to be different.
         DsmHelper.assert_checkpoint_presence(
             hash_=12547013883960139159,
@@ -529,7 +529,7 @@ class Test_Dsm_Manual_Checkpoint_Intra_Process:
             timeout=DSM_REQUEST_TIMEOUT,
         )
 
-    @irrelevant(library="nodejs", reason="NodeJS doesn't sort the DSM edge tags and has different hashes.")
+    @irrelevant(library="nodejs", reason="Node.js doesn't sort the DSM edge tags and has different hashes.")
     def test_dsm_manual_checkpoint_intra_process(self):
         assert self.produce.status_code == 200
         assert self.produce.text == "ok"
@@ -602,7 +602,7 @@ class Test_Dsm_Manual_Checkpoint_Inter_Process:
             timeout=DSM_REQUEST_TIMEOUT,
         )
 
-    @irrelevant(library="nodejs", reason="NodeJS doesn't sort the DSM edge tags and has different hashes.")
+    @irrelevant(library="nodejs", reason="Node.js doesn't sort the DSM edge tags and has different hashes.")
     def test_dsm_manual_checkpoint_inter_process(self):
         assert self.produce_threaded.status_code == 200
         assert self.produce_threaded.text == "ok"

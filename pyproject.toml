@@ -80,12 +80,10 @@ ignore = [
     ### TODO : remove those ignores
     # missing-type-annotation, the ONE to remove !!
     "ANN001",
-    "ANN002",
     "ANN003",
     "ANN201",
     "ANN202",
     "ANN205",
-    "ANN206",
     "BLE001",  # Do not catch blind exception: `Exception`, big project to enable this
     "C901",    # code complexity, TBD
     "E722",    # bare except, big project to enable this
@@ -97,14 +95,12 @@ ignore = [
     "PLR1714",
     "PLR2004",
     "PTH100",
-    "PTH102",
     "PTH110",
     "PTH113",
     "PTH116",
     "PTH118",
-    "PTH119",
     "PTH120",
-    "PTH122",
+    "PTH122",  # os.path.splitext(), but not really easier to read ? 
     "PTH123",  # `open()` should be replaced by `Path.open()`
     "RUF012",
     "S202",
@@ -248,7 +244,6 @@ ignore = [
     "EM102",
     "PLR0912",
     "PLR0915",
-    "PLR1714",
     "PLW1510",
     "PTH112",
     "PTH113",

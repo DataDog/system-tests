@@ -184,7 +184,7 @@ class DockerSSIScenario(Scenario):
         for conf in self.configuration:
             logger.stdout(f"{conf}: {self.configuration[conf]}")
 
-    def post_setup(self):
+    def post_setup(self, session):  # noqa: ARG002
         logger.stdout("--- Waiting for all traces and telemetry to be sent to test agent ---")
         data = None
         attempts = 0

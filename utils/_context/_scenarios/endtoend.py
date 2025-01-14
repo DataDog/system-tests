@@ -481,15 +481,18 @@ class EndToEndScenario(DockerScenario):
                 raise ValueError("Datadog agent not ready")
             logger.debug("Agent ready")
 
-    def post_setup(self):
+    def post_setup(self, session: pytest.Session):
+        # if no test are run, skip interface tomeouts
+        is_empty_test_run = session.config.option.skip_empty_scenario and len(session.items) == 0
+
         try:
-            self._wait_and_stop_containers()
+            self._wait_and_stop_containers(force_interface_timout_to_zero=is_empty_test_run)
         finally:
             self.close_targets()
 
         interfaces.library_dotnet_managed.load_data()
 
-    def _wait_and_stop_containers(self):
+    def _wait_and_stop_containers(self, *, force_interface_timout_to_zero: bool):
         if self.replay:
             logger.terminal.write_sep("-", "Load all data from logs")
             logger.terminal.flush()
@@ -507,7 +510,9 @@ class EndToEndScenario(DockerScenario):
             interfaces.backend.load_data_from_logs()
 
         else:
-            self._wait_interface(interfaces.library, self.library_interface_timeout)
+            self._wait_interface(
+                interfaces.library, 0 if force_interface_timout_to_zero else self.library_interface_timeout
+            )
 
             if self.library in ("nodejs",):
                 from utils import weblog  # TODO better interface
@@ -531,11 +536,15 @@ class EndToEndScenario(DockerScenario):
                 container.stop()
                 container.interface.check_deserialization_errors()
 
-            self._wait_interface(interfaces.agent, self.agent_interface_timeout)
+            self._wait_interface(
+                interfaces.agent, 0 if force_interface_timout_to_zero else self.agent_interface_timeout
+            )
             self.agent_container.stop()
             interfaces.agent.check_deserialization_errors()
 
-            self._wait_interface(interfaces.backend, self.backend_interface_timeout)
+            self._wait_interface(
+                interfaces.backend, 0 if force_interface_timout_to_zero else self.backend_interface_timeout
+            )
 
     def _wait_interface(self, interface, timeout):
         logger.terminal.write_sep("-", f"Wait for {interface} ({timeout}s)")
@@ -566,8 +575,14 @@ class EndToEndScenario(DockerScenario):
             _SchemaBug(
                 endpoint="/debugger/v1/diagnostics",
                 data_path="$[].content",
-                condition=context.library > "nodejs@4.48.0",
+                condition=context.library < "nodejs@5.31.0",
                 ticket="DEBUG-2864",
+            ),
+            _SchemaBug(
+                endpoint="/debugger/v1/diagnostics",
+                data_path="$[].content[].debugger.diagnostics",
+                condition=context.library == "nodejs",
+                ticket="DEBUG-3245",
             ),
             _SchemaBug(
                 endpoint="/debugger/v1/input",
@@ -605,7 +620,7 @@ class EndToEndScenario(DockerScenario):
             _SchemaBug(
                 endpoint="/api/v2/debugger",
                 data_path="$[].content",
-                condition=context.library > "nodejs@4.46.0",
+                condition=context.library < "nodejs@5.31.0",
                 ticket="DEBUG-2864",
             ),
         ]

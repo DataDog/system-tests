@@ -77,7 +77,7 @@ class ExternalProcessingScenario(DockerScenario):
 
         return warmups
 
-    def post_setup(self):
+    def post_setup(self, session: pytest.Session):  # noqa: ARG002
         try:
             self._wait_and_stop_containers()
         finally:

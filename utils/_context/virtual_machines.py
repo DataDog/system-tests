@@ -1,6 +1,7 @@
 import os
 import json
 import hashlib
+from pathlib import Path
 
 from utils.tools import logger
 from utils import context
@@ -178,7 +179,7 @@ class _VirtualMachine:
     def get_log_folder(self):
         vm_folder = f"{context.scenario.host_log_folder}/{self.name}"
         if not os.path.exists(vm_folder):
-            os.mkdir(vm_folder)
+            Path.mkdir(vm_folder)
         return vm_folder
 
     def get_default_log_file(self):

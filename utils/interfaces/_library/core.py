@@ -452,7 +452,7 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
 
             trigger = triggers[0]
             obtained_rule_id = trigger["rule"]["id"]
-            assert obtained_rule_id == rule, f"incorrect rule id, expected {rule}"
+            assert obtained_rule_id == rule, f"incorrect rule id, expected {rule}, got {obtained_rule_id}"
 
             if parameters is not None:
                 rule_matches = trigger["rule_matches"]

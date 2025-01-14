@@ -83,7 +83,7 @@ class Tracestate:
     _VALUE_VALIDATION_RE = re.compile("^(" + _VALUE_FORMAT + ")$")
     _MEMBER_FORMAT_RE = re.compile(f"^({_KEY_FORMAT})(=)({_VALUE_FORMAT})$")
 
-    def __init__(self, *args, **kwds):
+    def __init__(self, *args, **kwds):  # noqa: ANN002
         if len(args) == 1 and not kwds:
             if isinstance(args[0], str):
                 self._traits: OrderedDict = OrderedDict()
