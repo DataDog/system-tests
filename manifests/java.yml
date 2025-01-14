@@ -1322,8 +1322,8 @@ tests/:
         spring-boot-jetty: missing_feature (missing addresses)
         spring-boot-undertow: missing_feature (missing addresses)
         spring-boot-wildfly: missing_feature (missing addresses)
-        vertx3: missing_feature (endpoint not implemented)
-        vertx4: missing_feature (endpoint not implemented)
+        vertx3: v1.46.0
+        vertx4: v1.46.0
       Test_Fingerprinting_Session_Capability:
         '*': v1.40.0
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
