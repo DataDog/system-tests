@@ -5,6 +5,7 @@ import argparse
 
 def generate_gitlab_pipeline(languages, env):
     """Take k8s pipeline file and generate a pipeline for the specified languages"""
+    env = "prod" if env is None else env
     result_pipeline = {}
     pipeline_file = f".gitlab/k8s_gitlab-ci.yml"
     pipeline_data = None
@@ -18,6 +19,7 @@ def generate_gitlab_pipeline(languages, env):
         if pipeline_data["k8s_" + language] is not None:
             # Select the job based on the language
             result_pipeline["k8s_" + language] = pipeline_data["k8s_" + language]
+            result_pipeline["k8s_" + language]["variables"].append({"ONBOARDING_FILTER_ENV": env})
             # Select the libray init image based on the env
             for matrix_item in result_pipeline["k8s_" + language]["parallel"]["matrix"]:
                 seleted_matrix_item = None
