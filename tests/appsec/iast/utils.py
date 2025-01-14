@@ -235,7 +235,7 @@ def validate_stack_traces(request):
     locationFrame = None
     for frame in stack_trace["frames"]:
         # We are looking for the frame that corresponds to the location of the vulnerability, we will need to update this to cover all tracers
-        # currently support: Java, Python
+        # currently support: Java, Python, Node.js
         if (
             stack_trace["language"] == "java"
             and (
