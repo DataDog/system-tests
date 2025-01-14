@@ -188,8 +188,8 @@ class TestedContainer:
             self.warmup()
 
         self._container.reload()
-        with open(f"{self.log_folder_path}/container.json", "w", encoding="utf-8") as f:
-            json.dump(self._container.attrs, f, indent=2)
+        # with open(f"{self.log_folder_path}/container.json", "w", encoding="utf-8") as f:
+        #     json.dump(self._container.attrs, f, indent=2)
 
     def async_start(self, network: Network) -> Thread:
         """Start the container and its dependencies in a thread with circular dependency detection"""

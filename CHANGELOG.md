@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file.
 
 
+### 2024-12 (138 PR merged)
+
+* 2024-12-31 [Allow a class to declare several scenarios](https://github.com/DataDog/system-tests/pull/3757) by @cbeauchesne
+* 2024-12-17 Optimization of java weblogs [1](https://github.com/DataDog/system-tests/pull/3701), [2](https://github.com/DataDog/system-tests/pull/3697), [3](https://github.com/DataDog/system-tests/pull/3694) and [4](https://github.com/DataDog/system-tests/pull/3693) by @smola
+* 2024-12-13 Use ruff instead of black as [formatter](https://github.com/DataDog/system-tests/pull/3656) and [linter](https://github.com/DataDog/system-tests/pull/3631) by @cbeauchesne
+* 2024-12-03 Lot ofrevamp of k8 tests by @robertomonteromiguel
+
 ### 2024-11 (207 PR merged)
 
 * 2024-11-22 [Docker SSI: report data to FPD](https://github.com/DataDog/system-tests/pull/3525) by @robertomonteromiguel
