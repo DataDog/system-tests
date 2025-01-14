@@ -207,6 +207,9 @@ tests/:
           TestHeaderValue:
             '*': v1.18.0
             fastapi: v2.13.0
+            flask-poc: bug (APPSEC-56329)
+            uds-flask: bug (APPSEC-56329)
+            uwsgi-poc: bug (APPSEC-56329)
         test_kafka_key.py:
           TestKafkaKey: missing_feature
         test_kafka_value.py:
@@ -216,6 +219,7 @@ tests/:
         test_parameter_name.py:
           TestParameterName:
             django-poc: v1.18.0
+            django-py3.13: missing_feature
             fastapi: missing_feature
             flask-poc: missing_feature
             python3.12: v1.18.0
@@ -880,6 +884,10 @@ tests/:
   stats/:
     test_miscs.py:
       Test_Miscs: missing_feature
+    test_stats.py:
+      Test_Client_Stats:
+        '*': v0.1 (real version unknown)
+        django-py3.13: bug (APMLP-364)
   test_config_consistency.py:
     Test_Config_ClientIPHeaderEnabled_False: v2.17.3
     Test_Config_ClientIPHeader_Configured: v2.12.0
@@ -928,6 +936,7 @@ tests/:
   test_profiling.py:
     Test_Profile:
       '*': v0.1 # actual version unknown
+      django-py3.13: missing_feature (python 3.13 not supported yet)
       python3.12: v2.1.0
   test_sampling_rates.py:
     Test_SamplingDecisions: v2.8.0
@@ -938,13 +947,17 @@ tests/:
       fastapi: v2.4.0
     Test_UrlQuery: v1.6.0-rc1
   test_semantic_conventions.py:
-    Test_Meta: v1.80.0
+    Test_Meta:
+      '*': v1.80.0
+      django-py3.13: bug (APMLP-364)
     Test_MetaDatadogTags: bug (APMAPI-735)
   test_span_events.py: incomplete_test_app (Weblog `/add_event` not implemented)
   test_standard_tags.py:
     Test_StandardTagsClientIp: v2.7.0
     Test_StandardTagsMethod: v1.2.1
-    Test_StandardTagsRoute: v1.6.0
+    Test_StandardTagsRoute:
+      '*': v1.6.0
+      django-py3.13: bug (APMLP-364)
     Test_StandardTagsStatusCode: v1.4.0-rc1
     Test_StandardTagsUrl:
       '*': v2.4.0
