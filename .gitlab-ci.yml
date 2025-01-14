@@ -307,7 +307,7 @@ x_compute_python_aws_scenarios:
         - ONBOARDING_FILTER_WEBLOG: [test-app-python-multicontainer,test-app-python-multialpine]
           SCENARIO: [SIMPLE_INSTALLER_AUTO_INJECTION]
         - ONBOARDING_FILTER_WEBLOG: [test-app-python-unsupported-defaults,test-app-python-27]
-          SCENARIO: [INSTALLER_NOT_SUPPORTED_AUTO_INJECTION]
+          SCENARIO: [INSTALLER_AUTO_INJECTION]
   needs:
     - job: step1_generate_python_ssi_pipeline
       artifacts: true
