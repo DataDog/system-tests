@@ -716,6 +716,7 @@ class Test_SCAStandalone_Telemetry:
     @missing_feature(context.weblog_variant == "vertx4", reason="missing_feature (endpoint not implemented)")
     @missing_feature(context.weblog_variant == "akka-http", reason="missing_feature (endpoint not implemented)")
     @missing_feature(context.weblog_variant == "ratpack", reason="missing_feature (endpoint not implemented)")
+    @missing_feature(context.weblog_variant == "play", reason="missing_feature (endpoint not implemented)")
     @missing_feature(context.weblog_variant == "vertx3", reason="missing_feature (endpoint not implemented)")
     @missing_feature(context.weblog_variant == "jersey-grizzly2", reason="missing_feature (endpoint not implemented)")
     def test_app_dependencies_loaded(self):
