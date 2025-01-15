@@ -291,6 +291,34 @@ async def rasp_shi(request: Request):
         return PlainTextResponse(f"Shell command failure: {e!r}", status_code=201)
 
 
+@app.get("/rasp/cmdi")
+@app.post("/rasp/cmdi")
+async def rasp_cmdi(request: Request):
+    cmd = None
+    if request.method == "GET":
+        cmd = request.query_params.get("command")
+    elif request.method == "POST":
+        body = await request.body()
+        try:
+            cmd = ((await request.form()) or json.loads(body) or {}).get("command")
+        except Exception as e:
+            print(repr(e), file=sys.stderr)
+        try:
+            if cmd is None:
+                cmd = xmltodict.parse(body).get("command").get("cmd")
+        except Exception as e:
+            print(repr(e), file=sys.stderr)
+            pass
+
+    if cmd is None:
+        return PlainTextResponse("missing command parameter", status_code=400)
+    try:
+        res = subprocess.run(cmd, capture_output=True)
+        return PlainTextResponse(f"Exec command [{cmd}] with result: {res}")
+    except Exception as e:
+        return PlainTextResponse(f"Exec command [{cmd}] failure: {e!r}", status_code=201)
+
+
 ### END EXPLOIT PREVENTION
 
 
@@ -811,6 +839,32 @@ async def view_cmdi_secure(cmd: typing.Annotated[str, Form()]):
 #     else:
 #         print(f"SERVICE NOT SUPPORTED: {service}")
 #     return "YEAH"
+
+
+@app.post("/iast/code_injection/test_insecure", response_class=PlainTextResponse)
+async def view_iast_code_injection_insecure(code: typing.Annotated[str, Form()]):
+    _ = eval(code)
+    return "OK"
+
+
+@app.post("/iast/code_injection/test_secure", response_class=PlainTextResponse)
+async def view_iast_code_injection_secure(code: typing.Annotated[str, Form()]):
+    import operator
+
+    def safe_eval(expr):
+        ops = {
+            "+": operator.add,
+            "-": operator.sub,
+            "*": operator.mul,
+            "/": operator.truediv,
+        }
+        if len(expr) != 3 or expr[1] not in ops:
+            raise ValueError("Invalid expression")
+        a, op, b = expr
+        return ops[op](float(a), float(b))
+
+    _ = safe_eval(code)
+    return "OK"
 
 
 @app.get("/createextraservice", response_class=PlainTextResponse)

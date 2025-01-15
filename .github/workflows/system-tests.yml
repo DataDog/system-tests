@@ -71,6 +71,7 @@ jobs:
       scenarios: ${{ inputs.scenarios }}
       scenarios_groups: ${{ inputs.scenarios_groups }}
       _experimental_parametric_job_count: ${{ inputs._experimental_parametric_job_count }}
+      _ci_environment: ${{ inputs.ci_environment }}
 
   parametric:
     needs:

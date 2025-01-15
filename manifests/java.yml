@@ -25,8 +25,12 @@ tests/:
   appsec/:
     api_security/:
       test_api_security_rc.py:
-        Test_API_Security_RC_ASM_DD_processors: missing_feature
-        Test_API_Security_RC_ASM_DD_scanners: missing_feature
+        Test_API_Security_RC_ASM_DD_processors:
+          '*': v1.38.0
+          spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+        Test_API_Security_RC_ASM_DD_scanners:
+          '*': v1.38.0
+          spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
         Test_API_Security_RC_ASM_processor_overrides_and_custom_scanner: irrelevant (waf does not support it yet)
       test_apisec_sampling.py: missing_feature
       test_schemas.py:
@@ -42,7 +46,10 @@ tests/:
         Test_Schema_Request_Headers:
           '*': v1.31.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-        Test_Schema_Request_Json_Body: missing_feature
+        Test_Schema_Request_Json_Body:
+          '*': missing_feature
+          ratpack: v1.36.0
+          vertx3: v1.36.0
         Test_Schema_Request_Path_Parameters: missing_feature
         Test_Schema_Request_Query_Parameters:
           '*': v1.31.0
@@ -563,6 +570,12 @@ tests/:
             spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
             vertx3: missing_feature
             vertx4: missing_feature
+      test_security_controls.py:
+        TestSecurityControls:
+          '*': v1.45.0
+          play: missing_feature
+          ratpack: missing_feature
+          spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
     rasp/:
       test_cmdi.py:
         Test_Cmdi_BodyJson:
@@ -650,11 +663,9 @@ tests/:
         Test_Lfi_StackTrace:
           '*': v1.40.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-          spring-boot-payara: missing_feature (APPSEC-54966)
         Test_Lfi_Telemetry:
           '*': v1.40.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-          spring-boot-payara: missing_feature (APPSEC-54966)
         Test_Lfi_UrlQuery:
           '*': v1.40.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
@@ -694,15 +705,12 @@ tests/:
         Test_Shi_StackTrace:
           '*': v1.45.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-          spring-boot-payara: missing_feature (APPSEC-54966)
         Test_Shi_Telemetry:
           '*': v1.45.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-          spring-boot-payara: missing_feature (APPSEC-54966)
         Test_Shi_Telemetry_Variant_Tag:
           '*': v1.45.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-          spring-boot-payara: missing_feature (APPSEC-54966)
         Test_Shi_UrlQuery:
           '*': v1.45.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
@@ -749,13 +757,11 @@ tests/:
         Test_Sqli_StackTrace:
           '*': v1.39.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-          spring-boot-payara: missing_feature (APPSEC-54966)
           vertx3: v1.40.0 # issue in context propagation in 1.39.0
           vertx4: v1.40.0 # issue in context propagation in 1.39.0
         Test_Sqli_Telemetry:
           '*': v1.39.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-          spring-boot-payara: missing_feature (APPSEC-54966)
           vertx3: v1.40.0 # issue in context propagation in 1.39.0
           vertx4: v1.40.0 # issue in context propagation in 1.39.0
         Test_Sqli_UrlQuery:
@@ -804,13 +810,11 @@ tests/:
         Test_Ssrf_StackTrace:
           '*': v1.39.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-          spring-boot-payara: missing_feature (APPSEC-54966)
           vertx3: missing_feature (APPSEC-55781)
           vertx4: missing_feature (APPSEC-55781)
         Test_Ssrf_Telemetry:
           '*': v1.39.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-          spring-boot-payara: missing_feature (APPSEC-54966)
           vertx3: missing_feature (APPSEC-55781)
           vertx4: missing_feature (APPSEC-55781)
         Test_Ssrf_UrlQuery:
@@ -1475,14 +1479,6 @@ tests/:
     test_debugger_probe_snapshot.py:
       Test_Debugger_Probe_Snaphots:
         '*': missing_feature
-        spring-boot:  v1.33.0
-        spring-boot-jetty: v1.38.0
-        spring-boot-openliberty: v1.38.0
-        spring-boot-payara: v1.38.0
-        spring-boot-undertow: v1.38.0
-        spring-boot-wildfly: v1.38.0
-        uds-spring-boot: v1.33.0
-        '*': missing_feature
         spring-boot: v1.38.0
         spring-boot-jetty: v1.38.0
         spring-boot-openliberty: v1.38.0
@@ -1586,9 +1582,6 @@ tests/:
         spring-boot: v1.39.0
     test_sql.py:
       Test_Sql: bug (APMAPI-729)
-  k8s_lib_injection/:
-    test_k8s_manual_inject.py:
-      TestAdmisionControllerProfiling: v1.39.0
   parametric/:
     test_config_consistency.py:
       Test_Config_Dogstatsd: missing_feature (default hostname is inconsistent)
@@ -1604,6 +1597,7 @@ tests/:
       TestDynamicConfigSamplingRules: v1.34.0
       TestDynamicConfigTracingEnabled: v1.32.0
       TestDynamicConfigV1: v1.17.0
+      TestDynamicConfigV1_EmptyServiceTargets: missing_feature
       TestDynamicConfigV1_ServiceTargets: v1.31.0
       TestDynamicConfigV2: v1.31.0
     test_headers_baggage.py:

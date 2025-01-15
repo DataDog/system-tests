@@ -340,6 +340,45 @@ class TestDynamicConfigV1:
 @scenarios.parametric
 @features.dynamic_configuration
 @features.adaptive_sampling
+class TestDynamicConfigV1_EmptyServiceTargets:
+    @parametrize(
+        "library_env",
+        [
+            {
+                **DEFAULT_ENVVARS,
+                # Override service and env
+                "DD_SERVICE": s,
+                "DD_ENV": e,
+            }
+            for (s, e) in [
+                # empty service
+                ("", DEFAULT_ENVVARS["DD_ENV"]),
+                # empty env
+                (DEFAULT_ENVVARS["DD_SERVICE"], ""),
+                # empty service and empty env
+                ("", ""),
+            ]
+        ],
+    )
+    def test_not_match_service_target_empty_env(self, library_env, test_agent, test_library):
+        """
+        Test that the library reports a non-erroneous apply_state when DD_SERVICE or DD_ENV are empty.
+        """
+        _set_rc(test_agent, _default_config(TEST_SERVICE, TEST_ENV))
+
+        rc_args = {}
+        if context.library == "cpp":
+            # C++ make RC requests every second -> update is a bit slower to propagate.
+            rc_args["wait_loops"] = 1000
+
+        cfg_state = test_agent.wait_for_rc_apply_state("APM_TRACING", state=2, **rc_args)
+        assert cfg_state["apply_state"] == 2
+
+
+@rfc("https://docs.google.com/document/d/1SVD0zbbAAXIsobbvvfAEXipEUO99R9RMsosftfe9jx0")
+@scenarios.parametric
+@features.dynamic_configuration
+@features.adaptive_sampling
 class TestDynamicConfigV1_ServiceTargets:
     """Tests covering the Service Target matching of the dynamic configuration feature.
 
