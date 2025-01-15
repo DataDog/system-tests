@@ -58,24 +58,8 @@ class Test_Headers_Baggage:
         assert headers["baggage"] == "foo=bar"
 
     @irrelevant(
-        context.library == "cpp",
-        reason="Cpp does not support baggage at this time; therefore, we cannot disable baggage.",
-    )
-    @irrelevant(
-        context.library == "golang",
-        reason="Go does not support baggage at this time; therefore, we cannot disable baggage.",
-    )
-    @irrelevant(
-        context.library == "java",
-        reason="Java does not support baggage at this time; therefore, we cannot disable baggage.",
-    )
-    @irrelevant(
-        context.library == "ruby",
-        reason="Ruby does not support baggage at this time; therefore, we cannot disable baggage.",
-    )
-    @irrelevant(
-        context.library == "php",
-        reason="Php does not support baggage at this time; therefore, we cannot disable baggage.",
+        context.library in ("cpp", "goland", "java", "ruby", "php"),
+        reason="The current default behaviour matches the future baggage disabled behaviour, so we can't activate this test without causing a false easy win",
     )
     @disable_baggage()
     def test_baggage_disable_settings_D003(self, test_agent, test_library):
@@ -147,24 +131,8 @@ class Test_Headers_Baggage:
             assert span.get_baggage("serverNode") == "DF 28"
 
     @irrelevant(
-        context.library == "cpp",
-        reason="Cpp does not support baggage at this time; therefore, we cannot disable baggage.",
-    )
-    @irrelevant(
-        context.library == "golang",
-        reason="Go does not support baggage at this time; therefore, we cannot disable baggage.",
-    )
-    @irrelevant(
-        context.library == "java",
-        reason="Java does not support baggage at this time; therefore, we cannot disable baggage.",
-    )
-    @irrelevant(
-        context.library == "ruby",
-        reason="Ruby does not support baggage at this time; therefore, we cannot disable baggage.",
-    )
-    @irrelevant(
-        context.library == "php",
-        reason="Php does not support baggage at this time; therefore, we cannot disable baggage.",
+        context.library in ("cpp", "goland", "java", "ruby", "php"),
+        reason="The current default behaviour matches the future baggage disabled behaviour, so we can't activate this test without causing a false easy win",
     )
     @disable_baggage()
     def test_baggage_set_disabled_D007(self, test_library):
