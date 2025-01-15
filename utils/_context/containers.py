@@ -188,8 +188,8 @@ class TestedContainer:
             self.warmup()
 
         self._container.reload()
-        with open(f"{self.log_folder_path}/container.json", "w", encoding="utf-8") as f:
-            json.dump(self._container.attrs, f, indent=2)
+        # with open(f"{self.log_folder_path}/container.json", "w", encoding="utf-8") as f:
+        #     json.dump(self._container.attrs, f, indent=2)
 
     def async_start(self, network: Network) -> Thread:
         """Start the container and its dependencies in a thread with circular dependency detection"""
@@ -734,7 +734,6 @@ class WeblogContainer(TestedContainer):
             base_environment["_DD_IAST_DEBUG"] = "true"
             base_environment["DD_IAST_REQUEST_SAMPLING"] = "100"
             base_environment["DD_IAST_MAX_CONCURRENT_REQUESTS"] = "10"
-            base_environment["DD_IAST_CONTEXT_MODE"] = "GLOBAL"
             base_environment["DD_IAST_DEDUPLICATION_ENABLED"] = "false"
 
         if tracer_sampling_rate:
@@ -1129,7 +1128,7 @@ class MountInjectionVolume(TestedContainer):
 
     def _lib_init_image(self, lib_init_image):
         self.image = ImageInfo(lib_init_image, local_image_only=False)
-        # Dotnet compatible with former folder layer
+        # .NET compatible with former folder layer
         if "dd-lib-dotnet-init" in lib_init_image:
             self.kwargs["volumes"] = {
                 _VOLUME_INJECTOR_NAME: {"bind": "/datadog-init/monitoring-home", "mode": "rw"},

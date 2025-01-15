@@ -87,6 +87,26 @@ async def set_cookie(request: Request):
     )
 
 
+@app.post("/iast/header_injection/test_insecure", response_class=PlainTextResponse)
+async def iast_header_injection_insecure(request: Request):
+    form_data = await request.form()
+    header_value = form_data.get("test")
+    response = PlainTextResponse("OK")
+    # label iast_header_injection
+    response.headers["Header-Injection"] = header_value
+    return response
+
+
+@app.post("/iast/header_injection/test_secure", response_class=PlainTextResponse)
+async def iast_header_injection_secure(request: Request):
+    form_data = await request.form()
+    header_value = form_data.get("test")
+    response = PlainTextResponse("OK")
+    # label iast_header_injection
+    response.headers["Vary"] = header_value
+    return response
+
+
 @app.get("/sample_rate_route/{i}", response_class=PlainTextResponse)
 async def sample_rate(i):
     return "OK"
@@ -269,6 +289,34 @@ async def rasp_shi(request: Request):
     except Exception as e:
         print(f"Shell command failure: {e!r}", file=sys.stderr)
         return PlainTextResponse(f"Shell command failure: {e!r}", status_code=201)
+
+
+@app.get("/rasp/cmdi")
+@app.post("/rasp/cmdi")
+async def rasp_cmdi(request: Request):
+    cmd = None
+    if request.method == "GET":
+        cmd = request.query_params.get("command")
+    elif request.method == "POST":
+        body = await request.body()
+        try:
+            cmd = ((await request.form()) or json.loads(body) or {}).get("command")
+        except Exception as e:
+            print(repr(e), file=sys.stderr)
+        try:
+            if cmd is None:
+                cmd = xmltodict.parse(body).get("command").get("cmd")
+        except Exception as e:
+            print(repr(e), file=sys.stderr)
+            pass
+
+    if cmd is None:
+        return PlainTextResponse("missing command parameter", status_code=400)
+    try:
+        res = subprocess.run(cmd, capture_output=True)
+        return PlainTextResponse(f"Exec command [{cmd}] with result: {res}")
+    except Exception as e:
+        return PlainTextResponse(f"Exec command [{cmd}] failure: {e!r}", status_code=201)
 
 
 ### END EXPLOIT PREVENTION
@@ -791,6 +839,32 @@ async def view_cmdi_secure(cmd: typing.Annotated[str, Form()]):
 #     else:
 #         print(f"SERVICE NOT SUPPORTED: {service}")
 #     return "YEAH"
+
+
+@app.post("/iast/code_injection/test_insecure", response_class=PlainTextResponse)
+async def view_iast_code_injection_insecure(code: typing.Annotated[str, Form()]):
+    _ = eval(code)
+    return "OK"
+
+
+@app.post("/iast/code_injection/test_secure", response_class=PlainTextResponse)
+async def view_iast_code_injection_secure(code: typing.Annotated[str, Form()]):
+    import operator
+
+    def safe_eval(expr):
+        ops = {
+            "+": operator.add,
+            "-": operator.sub,
+            "*": operator.mul,
+            "/": operator.truediv,
+        }
+        if len(expr) != 3 or expr[1] not in ops:
+            raise ValueError("Invalid expression")
+        a, op, b = expr
+        return ops[op](float(a), float(b))
+
+    _ = safe_eval(code)
+    return "OK"
 
 
 @app.get("/createextraservice", response_class=PlainTextResponse)

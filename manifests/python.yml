@@ -64,7 +64,7 @@ tests/:
     iast/:
       sink/:
         test_code_injection.py:
-          TestCodeInjection: missing_feature
+          TestCodeInjection: v2.20.0
           TestCodeInjection_StackTrace: missing_feature
         test_command_injection.py:
           TestCommandInjection:
@@ -81,14 +81,14 @@ tests/:
         test_header_injection.py:
           TestHeaderInjection:
             '*': v2.10.0
-            fastapi: missing_feature
+            fastapi: v2.20.0.dev
           TestHeaderInjectionExclusionAccessControlAllow: missing_feature
           TestHeaderInjectionExclusionContentEncoding: missing_feature
           TestHeaderInjectionExclusionPragma: missing_feature
           TestHeaderInjectionExclusionTransferEncoding: missing_feature
           TestHeaderInjection_StackTrace:
             '*': v2.19.0.dev
-            fastapi: missing_feature
+            fastapi: v2.20.0.dev
         test_hsts_missing_header.py:
           Test_HstsMissingHeader: missing_feature
           Test_HstsMissingHeader_StackTrace: missing_feature
@@ -207,6 +207,9 @@ tests/:
           TestHeaderValue:
             '*': v1.18.0
             fastapi: v2.13.0
+            flask-poc: bug (APPSEC-56329)
+            uds-flask: bug (APPSEC-56329)
+            uwsgi-poc: bug (APPSEC-56329)
         test_kafka_key.py:
           TestKafkaKey: missing_feature
         test_kafka_value.py:
@@ -216,6 +219,7 @@ tests/:
         test_parameter_name.py:
           TestParameterName:
             django-poc: v1.18.0
+            django-py3.13: missing_feature
             fastapi: missing_feature
             flask-poc: missing_feature
             python3.12: v1.18.0
@@ -243,19 +247,21 @@ tests/:
           TestSqlRow: missing_feature
         test_uri.py:
           TestURI: missing_feature
+      test_security_controls.py:
+        TestSecurityControls: missing_feature
     rasp/:
       test_cmdi.py:
-        Test_Cmdi_BodyJson: missing_feature
-        Test_Cmdi_BodyUrlEncoded: missing_feature
-        Test_Cmdi_BodyXml: missing_feature
-        Test_Cmdi_Capability: missing_feature
-        Test_Cmdi_Mandatory_SpanTags: missing_feature
-        Test_Cmdi_Optional_SpanTags: missing_feature
+        Test_Cmdi_BodyJson: v2.20.0.dev
+        Test_Cmdi_BodyUrlEncoded: v2.20.0.dev
+        Test_Cmdi_BodyXml: v2.20.0.dev
+        Test_Cmdi_Capability: v2.20.0.dev
+        Test_Cmdi_Mandatory_SpanTags: v2.20.0.dev
+        Test_Cmdi_Optional_SpanTags: v2.20.0.dev
         Test_Cmdi_Rules_Version: v2.18.0.dev
-        Test_Cmdi_StackTrace: missing_feature
-        Test_Cmdi_Telemetry: missing_feature
-        Test_Cmdi_Telemetry_Variant_Tag: missing_feature
-        Test_Cmdi_UrlQuery: missing_feature
+        Test_Cmdi_StackTrace: v2.20.0.dev
+        Test_Cmdi_Telemetry: v2.20.0.dev
+        Test_Cmdi_Telemetry_Variant_Tag: v2.20.0.dev
+        Test_Cmdi_UrlQuery: v2.20.0.dev
         Test_Cmdi_Waf_Version: v2.18.0.dev
       test_lfi.py:
         Test_Lfi_BodyJson: v2.10.0
@@ -280,7 +286,7 @@ tests/:
         Test_Shi_Rules_Version: v2.15.0
         Test_Shi_StackTrace: v2.11.0-rc2
         Test_Shi_Telemetry: v2.11.0-rc2
-        Test_Shi_Telemetry_Variant_Tag: missing_feature
+        Test_Shi_Telemetry_Variant_Tag: v2.20.0.dev
         Test_Shi_UrlQuery: v2.11.0-rc2
         Test_Shi_Waf_Version: v2.15.0
       test_sqli.py:
@@ -453,9 +459,9 @@ tests/:
     test_automated_login_events.py:
       Test_Login_Events: irrelevant (was v2.10.0 but will be replaced by V2)
       Test_Login_Events_Extended: irrelevant (was v2.10.0 but will be replaced by V2)
-      Test_V2_Login_Events: v2.11.0
-      Test_V2_Login_Events_Anon: v2.11.0
-      Test_V2_Login_Events_RC: v2.11.0
+      Test_V2_Login_Events: irrelevant (was v2.11.0 but will be replaced by V3)
+      Test_V2_Login_Events_Anon: irrelevant (was v2.11.0 but will be replaced by V3)
+      Test_V2_Login_Events_RC: irrelevant (was v2.11.0 but will be replaced by V3)
       Test_V3_Auto_User_Instrum_Mode_Capability: v2.11.0
       Test_V3_Login_Events: missing_feature
       Test_V3_Login_Events_Anon: missing_feature
@@ -765,9 +771,6 @@ tests/:
       Test_AWS_API_Gateway_Inferred_Span_Creation: missing_feature
     test_otel_drop_in.py:
       Test_Otel_Drop_In: missing_feature
-  k8s_lib_injection/:
-    test_k8s_manual_inject.py:
-      TestAdmisionControllerProfiling: v2.12.2
   parametric/:
     test_128_bit_traceids.py:
       Test_128_Bit_Traceids: v2.6.0
@@ -785,6 +788,7 @@ tests/:
       TestDynamicConfigSamplingRules: v2.9.0
       TestDynamicConfigTracingEnabled: flaky (APMAPI-734)
       TestDynamicConfigV1: missing_feature (failure 2.8.0)
+      TestDynamicConfigV1_EmptyServiceTargets: v2.18.1 # version unknown
       TestDynamicConfigV1_ServiceTargets: missing_feature (failure 2.8.0)
       TestDynamicConfigV2: flaky (APMAPI-734)
     test_headers_b3.py:
@@ -880,6 +884,10 @@ tests/:
   stats/:
     test_miscs.py:
       Test_Miscs: missing_feature
+    test_stats.py:
+      Test_Client_Stats:
+        '*': v0.1 (real version unknown)
+        django-py3.13: bug (APMLP-364)
   test_config_consistency.py:
     Test_Config_ClientIPHeaderEnabled_False: v2.17.3
     Test_Config_ClientIPHeader_Configured: v2.12.0
@@ -928,6 +936,7 @@ tests/:
   test_profiling.py:
     Test_Profile:
       '*': v0.1 # actual version unknown
+      django-py3.13: missing_feature (python 3.13 not supported yet)
       python3.12: v2.1.0
   test_sampling_rates.py:
     Test_SamplingDecisions: v2.8.0
@@ -938,13 +947,17 @@ tests/:
       fastapi: v2.4.0
     Test_UrlQuery: v1.6.0-rc1
   test_semantic_conventions.py:
-    Test_Meta: v1.80.0
+    Test_Meta:
+      '*': v1.80.0
+      django-py3.13: bug (APMLP-364)
     Test_MetaDatadogTags: bug (APMAPI-735)
   test_span_events.py: incomplete_test_app (Weblog `/add_event` not implemented)
   test_standard_tags.py:
     Test_StandardTagsClientIp: v2.7.0
     Test_StandardTagsMethod: v1.2.1
-    Test_StandardTagsRoute: v1.6.0
+    Test_StandardTagsRoute:
+      '*': v1.6.0
+      django-py3.13: bug (APMLP-364)
     Test_StandardTagsStatusCode: v1.4.0-rc1
     Test_StandardTagsUrl:
       '*': v2.4.0
