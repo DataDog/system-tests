@@ -611,6 +611,8 @@ Body fields accepted in POST method:
 - `username`: the login name for the user.
 - `password`: password for the user.
 
+SDK NEEDS TO BE CALLED AFTER AUTOMATION
+
 It also supports HTTP authentication by using GET method and the authorization header.
 Additionally, both methods support the following query parameters to use the sdk functions along with the authentication framework:
 - `sdk_event`: login event type: `success` or `failure`.
