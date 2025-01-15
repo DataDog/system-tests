@@ -572,7 +572,7 @@ tests/:
             vertx4: missing_feature
       test_security_controls.py:
         TestSecurityControls:
-          '*': v1.45.0
+          '*': v1.46.0
           play: missing_feature
           ratpack: missing_feature
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
@@ -1018,15 +1018,8 @@ tests/:
         '*': v1.36.0
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
       Test_SCAStandalone_Telemetry:
-        '*': v1.45.0
-        akka-http: missing_feature (endpoints not implemented)
-        jersey-grizzly2: missing_feature (endpoints not implemented)
-        play: missing_feature (endpoints not implemented)
-        ratpack: missing_feature (endpoints not implemented)
-        resteasy-netty3: missing_feature (endpoints not implemented)
+        '*': v1.36.0
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-        vertx3: missing_feature (endpoints not implemented)
-        vertx4: missing_feature (endpoints not implemented)
     test_automated_login_events.py:
       Test_Login_Events: irrelevant (was v1.36.0 but will be replaced by V2)
       Test_Login_Events_Extended: irrelevant (was v1.36.0 but will be replaced by V2)
@@ -1044,7 +1037,6 @@ tests/:
         ratpack: missing_feature (login endpoints not implemented)
         resteasy-netty3: missing_feature (login endpoints not implemented)
         spring-boot-3-native: flaky (APMAPI-979)
-        spring-boot-openliberty: missing_feature (weblog returns error 500)
         vertx3: missing_feature (login endpoints not implemented)
         vertx4: missing_feature (login endpoints not implemented)
       Test_V3_Login_Events_Anon:
@@ -1055,7 +1047,6 @@ tests/:
         ratpack: missing_feature (login endpoints not implemented)
         resteasy-netty3: missing_feature (login endpoints not implemented)
         spring-boot-3-native: flaky (APMAPI-979)
-        spring-boot-openliberty: missing_feature (weblog returns error 500)
         vertx3: missing_feature (login endpoints not implemented)
         vertx4: missing_feature (login endpoints not implemented)
       Test_V3_Login_Events_Blocking:
@@ -1066,7 +1057,6 @@ tests/:
         ratpack: missing_feature (login endpoints not implemented)
         resteasy-netty3: missing_feature (login endpoints not implemented)
         spring-boot-3-native: flaky (APMAPI-979)
-        spring-boot-openliberty: missing_feature (weblog returns error 500)
         spring-boot-payara: bug (APPSEC-54985)
         vertx3: missing_feature (login endpoints not implemented)
         vertx4: missing_feature (login endpoints not implemented)
@@ -1078,7 +1068,6 @@ tests/:
         ratpack: missing_feature (login endpoints not implemented)
         resteasy-netty3: missing_feature (login endpoints not implemented)
         spring-boot-3-native: flaky (APMAPI-979)
-        spring-boot-openliberty: missing_feature (weblog returns error 500)
         vertx3: missing_feature (login endpoints not implemented)
         vertx4: missing_feature (login endpoints not implemented)
     test_automated_user_and_session_tracking.py:
@@ -1091,7 +1080,6 @@ tests/:
         ratpack: missing_feature (login endpoints not implemented)
         resteasy-netty3: missing_feature (login endpoints not implemented)
         spring-boot-3-native: flaky (APMAPI-979)
-        spring-boot-openliberty: missing_feature (weblog returns error 500)
         spring-boot-payara: bug (APPSEC-54985)
         vertx3: missing_feature (login endpoints not implemented)
         vertx4: missing_feature (login endpoints not implemented)
@@ -1103,7 +1091,6 @@ tests/:
         ratpack: missing_feature (login endpoints not implemented)
         resteasy-netty3: missing_feature (login endpoints not implemented)
         spring-boot-3-native: flaky (APMAPI-979)
-        spring-boot-openliberty: missing_feature (weblog returns error 500)
         vertx3: missing_feature (login endpoints not implemented)
         vertx4: missing_feature (login endpoints not implemented)
     test_blocking_addresses.py:
@@ -1322,8 +1309,8 @@ tests/:
         spring-boot-jetty: missing_feature (missing addresses)
         spring-boot-undertow: missing_feature (missing addresses)
         spring-boot-wildfly: missing_feature (missing addresses)
-        vertx3: missing_feature (endpoint not implemented)
-        vertx4: missing_feature (endpoint not implemented)
+        vertx3: v1.46.0
+        vertx4: v1.46.0
       Test_Fingerprinting_Session_Capability:
         '*': v1.40.0
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)

@@ -36,6 +36,7 @@ class IntegrationsScenario(EndToEndScenario):
                 "AWS_ACCESS_KEY_ID": "my-access-key",
                 "AWS_SECRET_ACCESS_KEY": "my-access-key",
                 "DD_TRACE_INFERRED_PROXY_SERVICES_ENABLED": "true",
+                "DD_IAST_CONTEXT_MODE": "GLOBAL",
             },
             include_postgres_db=True,
             include_cassandra_db=True,
