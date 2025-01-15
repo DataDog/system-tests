@@ -138,7 +138,7 @@ class Test_Config_TraceAgentURL:
             {
                 "DD_TRACE_AGENT_URL": "unix:///var/run/datadog/apm.socket",
                 "DD_AGENT_HOST": "localhost",
-                "DD_AGENT_PORT": "8126",
+                "DD_TRACE_AGENT_PORT": "8126",
             }
         ],
     )
@@ -153,7 +153,13 @@ class Test_Config_TraceAgentURL:
     # The DD_TRACE_AGENT_URL is validated using the tracer configuration. This approach avoids the need to modify the setup file to create additional containers at the specified URL, which would be unnecessarily complex.
     @parametrize(
         "library_env",
-        [{"DD_TRACE_AGENT_URL": "http://random-host:9999/", "DD_AGENT_HOST": "localhost", "DD_AGENT_PORT": "8126"}],
+        [
+            {
+                "DD_TRACE_AGENT_URL": "http://random-host:9999/",
+                "DD_AGENT_HOST": "localhost",
+                "DD_TRACE_AGENT_PORT": "8126",
+            }
+        ],
     )
     def test_dd_trace_agent_http_url_nonexistent(self, library_env, test_agent, test_library):
         with test_library as t:
@@ -170,7 +176,7 @@ class Test_Config_TraceAgentURL:
             {
                 "DD_TRACE_AGENT_URL": "http://[::1]:5000",
                 "DD_AGENT_HOST": "localhost",
-                "DD_AGENT_PORT": "8126",
+                "DD_TRACE_AGENT_PORT": "8126",
             }
         ],
     )
@@ -189,17 +195,10 @@ class Test_Config_TraceAgentURL:
         [
             {
                 "DD_AGENT_HOST": "[::1]",
-                "DD_AGENT_PORT": "5000",
+                "DD_TRACE_AGENT_PORT": "5000",
             }
         ],
     )
-    @missing_feature(context.library == "java", reason="does not support ipv6 hostname")
-    @missing_feature(context.library == "dotnet", reason="does not support ipv6 hostname")
-    @missing_feature(context.library == "golang", reason="does not support ipv6 hostname")
-    @missing_feature(context.library == "nodejs", reason="does not support ipv6 hostname")
-    @missing_feature(context.library == "python", reason="does not support ipv6 hostname")
-    @missing_feature(context.library == "ruby", reason="does not support ipv6 hostname")
-    @missing_feature(context.library == "php", reason="does not support ipv6 hostname")
     def test_dd_agent_host_ipv6(self, library_env, test_agent, test_library):
         with test_library as t:
             resp = t.config()
