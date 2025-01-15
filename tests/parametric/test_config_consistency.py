@@ -194,7 +194,7 @@ class Test_Config_TraceAgentURL:
         "library_env",
         [
             {
-                "DD_TRACE_AGENT_URL": "",  # Empty string passed to make sure conftest.py does not trace agent url
+                "DD_TRACE_AGENT_URL": "",  # Empty string passed to make sure conftest.py does not set trace agent url
                 "DD_AGENT_HOST": "[::1]",
                 "DD_TRACE_AGENT_PORT": "5000",
             }
@@ -202,6 +202,9 @@ class Test_Config_TraceAgentURL:
     )
     @missing_feature(context.library == "ruby", reason="does not support ipv6 hostname")
     @missing_feature(context.library == "dotnet", reason="does not support ipv6 hostname")
+    @missing_feature(context.library == "php", reason="does not support ipv6 hostname")
+    @missing_feature(context.library == "golang", reason="does not support ipv6 hostname")
+    @missing_feature(context.library == "python", reason="does not support ipv6 hostname")
     def test_dd_agent_host_ipv6(self, library_env, test_agent, test_library):
         with test_library as t:
             resp = t.config()
