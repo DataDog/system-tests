@@ -713,6 +713,12 @@ class Test_SCAStandalone_Telemetry:
         self.r = weblog.get("/load_dependency")
 
     @missing_feature(context.library == "nodejs" and context.weblog_variant == "nextjs")
+    @missing_feature(context.weblog_variant == "vertx4", reason="missing_feature (endpoint not implemented)")
+    @missing_feature(context.weblog_variant == "akka-http", reason="missing_feature (endpoint not implemented)")
+    @missing_feature(context.weblog_variant == "ratpack", reason="missing_feature (endpoint not implemented)")
+    @missing_feature(context.weblog_variant == "play", reason="missing_feature (endpoint not implemented)")
+    @missing_feature(context.weblog_variant == "vertx3", reason="missing_feature (endpoint not implemented)")
+    @missing_feature(context.weblog_variant == "jersey-grizzly2", reason="missing_feature (endpoint not implemented)")
     def test_app_dependencies_loaded(self):
         self.assert_standalone_is_enabled(self.r)
 

@@ -64,7 +64,7 @@ tests/:
     iast/:
       sink/:
         test_code_injection.py:
-          TestCodeInjection: missing_feature
+          TestCodeInjection: v2.20.0
           TestCodeInjection_StackTrace: missing_feature
         test_command_injection.py:
           TestCommandInjection:
@@ -459,9 +459,9 @@ tests/:
     test_automated_login_events.py:
       Test_Login_Events: irrelevant (was v2.10.0 but will be replaced by V2)
       Test_Login_Events_Extended: irrelevant (was v2.10.0 but will be replaced by V2)
-      Test_V2_Login_Events: v2.11.0
-      Test_V2_Login_Events_Anon: v2.11.0
-      Test_V2_Login_Events_RC: v2.11.0
+      Test_V2_Login_Events: irrelevant (was v2.11.0 but will be replaced by V3)
+      Test_V2_Login_Events_Anon: irrelevant (was v2.11.0 but will be replaced by V3)
+      Test_V2_Login_Events_RC: irrelevant (was v2.11.0 but will be replaced by V3)
       Test_V3_Auto_User_Instrum_Mode_Capability: v2.11.0
       Test_V3_Login_Events: v2.11.0
       Test_V3_Login_Events_Anon: v2.11.0
