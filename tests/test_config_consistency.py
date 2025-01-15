@@ -495,7 +495,7 @@ class Test_Config_LogInjection_128Bit_TradeId_Disabled:
         stdout.assert_presence(pattern)
         dd = parse_log_injection_message(self.message)
         trace_id = dd.get("trace_id")
-        assert re.match(r"\d+", trace_id), f"Invalid 64-bit trace_id: {trace_id}"
+        assert re.match(r"^\d{1,20}$", trace_id), f"Invalid 64-bit trace_id: {trace_id}"
 
 
 @rfc("https://docs.google.com/document/d/1kI-gTAKghfcwI7YzKhqRv2ExUstcHqADIWA4-TZ387o/edit#heading=h.8v16cioi7qxp")
