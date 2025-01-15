@@ -7,4 +7,4 @@
     #If there are docker services running extract info
     echo "==> /var/log/datadog_weblog/docker_proccess.log <==" && sudo docker-compose ps || true
     echo "==> /var/log/datadog_weblog/docker_logs.log <==" && sudo docker-compose logs || true
-     echo "==> /var/log/journalctl.log <==" && sudo journalctl -xeu docker || true
+     echo "==> /var/log/journalctl_docker.log <==" && sudo journalctl -xeu docker || true
