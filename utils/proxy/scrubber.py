@@ -6,6 +6,8 @@ def _get_secrets(mode):
     # if any name is added here, add it also in tests/test_the_test/test_scrubber.py
     envvars = [
         "DD_API_KEY",
+        "DD_API_KEY_2",
+        "DD_API_KEY_3",
         "DD_APP_KEY",
         "DD_APP_KEY_2",
         "DD_APP_KEY_3",

@@ -9,6 +9,8 @@ FILENAME = "tests/test_the_test/test_scrubber.py"
 
 scrubbed_names = {
     "DD_API_KEY": "secret_value_1",
+    "DD_API_KEY_2": "secret_value_C",
+    "DD_API_KEY_3": "secret_value_D",
     "DD_APP_KEY": "secret_value_2",
     "DD_APP_KEY_2": "secret_value_A",
     "DD_APP_KEY_3": "secret_value_B",
@@ -26,7 +28,7 @@ scrubbed_names = {
 @scenarios.test_the_test
 def test_log_scrubber():
     cmd = ["./run.sh", "MOCK_THE_TEST", FILENAME]
-    subprocess.run(cmd, env=scrubbed_names, text=True, capture_output=True)
+    subprocess.run(cmd, env=scrubbed_names | os.environ, text=True, capture_output=True)
 
     redacted_count = 0
 
