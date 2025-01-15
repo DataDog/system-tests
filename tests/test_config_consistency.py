@@ -483,7 +483,7 @@ class Test_Config_LogInjection_128Bit_TradeId_Default:
 @scenarios.tracing_config_nondefault_3
 @features.tracing_configuration_consistency
 class Test_Config_LogInjection_128Bit_TradeId_Disabled:
-    """Verify 128 bit traceid are disabled in log injection when DD_TRACE_128BIT_TRACE_ID=false"""
+    """Verify 128 bit traceid are disabled in log injection when DD_TRACE_128_BIT_TRACEID_LOGGING_ENABLED=false"""
 
     def setup_log_injection_128bit_traceid_disabled(self):
         self.message = "msg"
