@@ -616,37 +616,37 @@ async def login(request: Request):
     username = form.get("username")
     password = form.get("password")
     sdk_event = request.query_params.get("sdk_event")
-    if sdk_event:
-        sdk_user = request.query_params.get("sdk_user")
-        sdk_mail = request.query_params.get("sdk_mail")
-        sdk_user_exists = request.query_params.get("sdk_user_exists")
-        if sdk_event == "success":
-            appsec_trace_utils.track_user_login_success_event(tracer, user_id=sdk_user, email=sdk_mail)
-            return PlainTextResponse("OK")
-        elif sdk_event == "failure":
-            appsec_trace_utils.track_user_login_failure_event(
-                tracer, user_id=sdk_user, email=sdk_mail, exists=sdk_user_exists
-            )
-            return PlainTextResponse("login failure", status_code=401)
     authorisation = request.headers.get("Authorization")
     if authorisation:
         username, password = base64.b64decode(authorisation[6:]).decode().split(":")
     success, user_id = check(username, password)
     if success:
         # login_user(user)
-        appsec_trace_utils.track_user_login_success_event(tracer, user_id=user_id, login_events_mode="auto")
-        return PlainTextResponse("OK")
+        appsec_trace_utils.track_user_login_success_event(
+            tracer, user_id=user_id, login_events_mode="auto", login=username
+        )
     elif user_id:
         appsec_trace_utils.track_user_login_failure_event(
-            tracer,
-            user_id=user_id,
-            exists=True,
-            login_events_mode="auto",
+            tracer, user_id=user_id, exists=True, login_events_mode="auto", login=username
         )
     else:
         appsec_trace_utils.track_user_login_failure_event(
-            tracer, user_id=username, exists=False, login_events_mode="auto"
+            tracer, user_id=username, exists=False, login_events_mode="auto", login=username
         )
+    if sdk_event:
+        sdk_user = request.query_params.get("sdk_user")
+        sdk_mail = request.query_params.get("sdk_mail")
+        sdk_user_exists = request.query_params.get("sdk_user_exists")
+        if sdk_event == "success":
+            appsec_trace_utils.track_user_login_success_event(tracer, user_id=sdk_user, email=sdk_mail, login=sdk_user)
+            return PlainTextResponse("OK")
+        elif sdk_event == "failure":
+            appsec_trace_utils.track_user_login_failure_event(
+                tracer, user_id=sdk_user, email=sdk_mail, exists=sdk_user_exists, login=sdk_user
+            )
+            return PlainTextResponse("login failure", status_code=401)
+    if success:
+        return PlainTextResponse("OK")
     return PlainTextResponse("login failure", status_code=401)
 
 
