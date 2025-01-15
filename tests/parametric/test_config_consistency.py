@@ -194,6 +194,7 @@ class Test_Config_TraceAgentURL:
         "library_env",
         [
             {
+                "DD_TRACE_AGENT_URL": "",  # Empty string passed to make sure conftest.py does not trace agent url
                 "DD_AGENT_HOST": "[::1]",
                 "DD_TRACE_AGENT_PORT": "5000",
             }
