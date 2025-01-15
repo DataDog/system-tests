@@ -55,7 +55,7 @@ def get_graphql_weblogs(library):
     return weblogs[library]
 
 
-def get_endtoend_weblogs(library):
+def get_endtoend_weblogs(library, ci_environment: str):
     weblogs = {
         "cpp": ["nginx"],
         "dotnet": ["poc", "uds"],
@@ -83,7 +83,7 @@ def get_endtoend_weblogs(library):
             *[f"apache-mod-{v}-zts" for v in ["7.0", "7.1", "7.2", "7.3", "7.4", "8.0", "8.1", "8.2"]],
             *[f"php-fpm-{v}" for v in ["7.0", "7.1", "7.2", "7.3", "7.4", "8.0", "8.1", "8.2"]],
         ],
-        "python": ["flask-poc", "django-poc", "uwsgi-poc", "uds-flask", "python3.12", "fastapi"],
+        "python": ["flask-poc", "django-poc", "uwsgi-poc", "uds-flask", "python3.12", "fastapi", "django-py3.13"],
         "ruby": [
             "rack",
             "uds-sinatra",
@@ -91,6 +91,10 @@ def get_endtoend_weblogs(library):
             *[f"rails{v}" for v in ["42", "50", "51", "52", "60", "61", "70", "71", "72", "80"]],
         ],
     }
+
+    if ci_environment != "dev":
+        # as now, django-py3.13 support is not released
+        weblogs["python"].remove("django-py3.13")
 
     return weblogs[library]
 
@@ -110,13 +114,13 @@ def get_opentelemetry_weblogs(library):
     return weblogs[library]
 
 
-def main(language: str, scenarios: str, groups: str):
+def main(language: str, scenarios: str, groups: str, ci_environment: str):
     scenario_map = get_github_workflow_map(scenarios.split(","), groups.split(","))
 
     for github_workflow, scenario_list in scenario_map.items():
         print(f"{github_workflow}_scenarios={json.dumps(scenario_list)}")
 
-    endtoend_weblogs = get_endtoend_weblogs(language)
+    endtoend_weblogs = get_endtoend_weblogs(language, ci_environment)
     print(f"endtoend_weblogs={json.dumps(endtoend_weblogs)}")
 
     graphql_weblogs = get_graphql_weblogs(language)
@@ -140,7 +144,8 @@ if __name__ == "__main__":
 
     parser.add_argument("--scenarios", "-s", type=str, help="Scenarios to run", default="")
     parser.add_argument("--groups", "-g", type=str, help="Scenario groups to run", default="")
+    parser.add_argument("--ci-environment", type=str, help="Used internally in system-tests CI", default="custom")
 
     args = parser.parse_args()
 
-    main(language=args.language, scenarios=args.scenarios, groups=args.groups)
+    main(language=args.language, scenarios=args.scenarios, groups=args.groups, ci_environment=args.ci_environment)
