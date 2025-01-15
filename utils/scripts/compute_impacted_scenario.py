@@ -182,6 +182,7 @@ def main():
                     r"\.shellcheck": None,
                     r"\.shellcheckrc": None,
                     r"CHANGELOG\.md": None,
+                    r"check_version\.sh": None,
                     r"LICENSE": None,
                     r"LICENSE-3rdparty\.csv": None,
                     r"NOTICE": None,

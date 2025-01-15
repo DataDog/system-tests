@@ -14,7 +14,6 @@ mkdir -p "$OUTPUT_DIR/$scenario"
 mkdir -p "$OUTPUT_DIR/$scenario/$weblog_variant"
 
 declare -A SEEN_XPASS
-declare -A SEEN_FAIL
 
 # ADD THE VERSIONS THAT YOU WANT TO CHECK HERE
 versions=(
@@ -100,7 +99,7 @@ for v in "${versions[@]}"; do
         fi
         rm binaries/$build_prefix*.$build_suffix || true
         cp "$build" binaries/
-        rm $build || true
+        rm "$build" || true
         echo "Building $library $v $weblog_variant"
         ./build.sh --library $library --weblog-variant $weblog_variant &> /dev/null
         echo "Running $library $v $weblog_variant"
@@ -109,13 +108,13 @@ for v in "${versions[@]}"; do
 
     declare -A seen_xpass
     declare -A seen_fail
-    for test in $(cat "$output_file" | grep ^XPASS | grep -v '::test_secure ' | grep -v 'Test_Dbm::test_trace_payload_service' | grep -v '::test_empty_cookie' | awk '{ print $2 }' ); do
+    while read -r test; do
         seen_xpass[$test]=1
-    done
-    for test in $(cat "$output_file" | grep ^FAILED | awk '{ print $2 }'); do
+    done < <(grep ^XPASS "$output_file" | grep -v '::test_secure ' | grep -v 'Test_Dbm::test_trace_payload_service' | grep -v '::test_empty_cookie' | awk '{ print $2 }')
+    while read -r test; do
         seen_fail[$test]=1
         echo "[$v] FAIL: $test"
-    done
+    done < <(grep ^FAILED "$output_file" | awk '{ print $2 }')
     for test in "${!seen_xpass[@]}"; do
         if [[ ! -v seen_fail[$test] ]]; then
             if [[ ! -v SEEN_XPASS[$test] ]]; then
