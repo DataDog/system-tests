@@ -23,7 +23,7 @@ class Test_Headers_ASM:
         with test_library:
             with test_library.dd_start_span(name="extract_headers") as s:
                 headers = test_library.dd_extract_headers(s.span_id)
-
+        
         trace = test_agent.wait_for_num_traces(1)
         span = find_span_in_traces(trace, s.trace_id, s.span_id)
         assert span["name"] == "extract_headers"
@@ -55,7 +55,7 @@ class Test_Headers_ASM:
                 "identical_trace_info",
                 [
                     ["traceparent", "00-11111111111111110000000000000001-000000003ade68b1-00"],
-                    ["tracestate", "dd=s:0;p:000000003ade68b1;_dd.p.appsec:1,foo=1"],
+                    ["tracestate", "dd=s:0;p:000000003ade68b1;t.appsec:1,foo=1"],
                     ["x-datadog-trace-id", "1"],
                     ["x-datadog-tags", "_dd.p.tid=1111111111111111,_dd.p.appsec=1"],
                     ["x-datadog-parent-id", "987654321"],
@@ -121,7 +121,7 @@ class Test_Headers_ASM:
                 "tracecontext_only",
                 [
                     ["traceparent", "00-11111111111111110000000000000001-000000003ade68b1-00"],
-                    ["tracestate", "dd=s:0;p:000000003ade68b1;_dd.p.appsec:1,foo=1"],
+                    ["tracestate", "dd=s:0;p:000000003ade68b1;t.appsec:1,foo=1"],
                 ],
             ) as s1:
                 pass
