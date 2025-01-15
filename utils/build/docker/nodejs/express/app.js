@@ -14,6 +14,8 @@ const crypto = require('crypto')
 
 const iast = require('./iast')
 const dsm = require('./dsm')
+const di = require('./debugger')
+
 const { spawnSync } = require('child_process')
 
 const pgsql = require('./integrations/db/postgres')
@@ -435,6 +437,8 @@ app.get('/createextraservice', (req, res) => {
 })
 
 iast.initRoutes(app, tracer)
+
+di.initRoutes(app, tracer)
 
 require('./auth')(app, passport, tracer)
 
