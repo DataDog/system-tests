@@ -1,6 +1,7 @@
 from operator import le
 from py import test
 from requests import head  # type: ignore
+from utils._decorators import irrelevant
 from utils.parametric.spec.trace import SAMPLING_PRIORITY_KEY, ORIGIN
 from utils.parametric.spec.trace import span_has_no_parent
 from utils.parametric.spec.trace import find_only_span
@@ -56,6 +57,26 @@ class Test_Headers_Baggage:
         assert "baggage" in headers.keys()
         assert headers["baggage"] == "foo=bar"
 
+    @irrelevant(
+        context.library == "cpp",
+        reason="Cpp does not support baggage at this time; therefore, we cannot disable baggage.",
+    )
+    @irrelevant(
+        context.library == "golang",
+        reason="Go does not support baggage at this time; therefore, we cannot disable baggage.",
+    )
+    @irrelevant(
+        context.library == "java",
+        reason="Java does not support baggage at this time; therefore, we cannot disable baggage.",
+    )
+    @irrelevant(
+        context.library == "ruby",
+        reason="Ruby does not support baggage at this time; therefore, we cannot disable baggage.",
+    )
+    @irrelevant(
+        context.library == "php",
+        reason="Php does not support baggage at this time; therefore, we cannot disable baggage.",
+    )
     @disable_baggage()
     def test_baggage_disable_settings_D003(self, test_agent, test_library):
         """Ensure that baggage headers are not injected when baggage is disabled and does not interfere with other headers."""
@@ -125,6 +146,26 @@ class Test_Headers_Baggage:
             assert span.get_baggage("userId") == "Amélie"
             assert span.get_baggage("serverNode") == "DF 28"
 
+    @irrelevant(
+        context.library == "cpp",
+        reason="Cpp does not support baggage at this time; therefore, we cannot disable baggage.",
+    )
+    @irrelevant(
+        context.library == "golang",
+        reason="Go does not support baggage at this time; therefore, we cannot disable baggage.",
+    )
+    @irrelevant(
+        context.library == "java",
+        reason="Java does not support baggage at this time; therefore, we cannot disable baggage.",
+    )
+    @irrelevant(
+        context.library == "ruby",
+        reason="Ruby does not support baggage at this time; therefore, we cannot disable baggage.",
+    )
+    @irrelevant(
+        context.library == "php",
+        reason="Php does not support baggage at this time; therefore, we cannot disable baggage.",
+    )
     @disable_baggage()
     def test_baggage_set_disabled_D007(self, test_library):
         """Ensure that baggage headers are not injected when baggage is disabled."""
