@@ -1,3 +1,6 @@
+# keep this import in first
+import scrubber  # noqa: F401
+
 import asyncio
 from collections import defaultdict
 import json
