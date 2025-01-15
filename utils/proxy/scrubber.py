@@ -7,6 +7,8 @@ def _get_secrets(mode):
     envvars = [
         "DD_API_KEY",
         "DD_APP_KEY",
+        "DD_APP_KEY_2",
+        "DD_APP_KEY_3",
         "DD_APPLICATION_KEY",
         "AWS_ACCESS_KEY_ID",
         "AWS_SECRET_ACCESS_KEY",

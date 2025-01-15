@@ -10,6 +10,8 @@ FILENAME = "tests/test_the_test/test_scrubber.py"
 scrubbed_names = {
     "DD_API_KEY": "secret_value_1",
     "DD_APP_KEY": "secret_value_2",
+    "DD_APP_KEY_2": "secret_value_A",
+    "DD_APP_KEY_3": "secret_value_B",
     "DD_APPLICATION_KEY": "secret_value_3",
     "AWS_ACCESS_KEY_ID": "secret_value_4",
     "AWS_SECRET_ACCESS_KEY": "secret_value_5",
@@ -40,7 +42,7 @@ def test_log_scrubber():
                 assert secret not in data, f"{secret} found in {file_path}"
 
     # extra portection to make sure we redacted all secrets
-    assert redacted_count == 27
+    assert redacted_count == 39
 
 
 @scenarios.mock_the_test
