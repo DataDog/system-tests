@@ -404,7 +404,7 @@ class Test_ExtractBehavior_Restart:
         assert int(link["traceID"]) == 1
         assert int(link["spanID"]) == 1
         assert int(link["traceIDHigh"]) == 1229782938247303441
-        assert link["attributes"] == {"reason": "propagation_behavior_extract=restart", "context_headers": "datadog"}
+        assert link["attributes"] == {"reason": "propagation_behavior_extract", "context_headers": "datadog"}
 
         # Test the next outbound span context
         assert self.r.status_code == 200
@@ -454,7 +454,7 @@ class Test_ExtractBehavior_Restart:
         assert int(link["traceID"]) == 1
         assert int(link["spanID"]) == 1
         assert int(link["traceIDHigh"]) == 1229782938247303441
-        assert link["attributes"] == {"reason": "propagation_behavior_extract=restart", "context_headers": "datadog"}
+        assert link["attributes"] == {"reason": "propagation_behavior_extract", "context_headers": "datadog"}
 
         # Test the next outbound span context
         assert self.r.status_code == 200
@@ -580,7 +580,7 @@ class Test_ExtractBehavior_Restart_With_Extract_First:
         assert int(link["traceID"]) == 1
         assert int(link["spanID"]) == 1
         assert int(link["traceIDHigh"]) == 1229782938247303441
-        assert link["attributes"] == {"reason": "propagation_behavior_extract=restart", "context_headers": "datadog"}
+        assert link["attributes"] == {"reason": "propagation_behavior_extract", "context_headers": "datadog"}
 
         # Test the next outbound span context
         assert self.r.status_code == 200
