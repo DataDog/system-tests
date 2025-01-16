@@ -33,7 +33,6 @@ public class Pii  extends PiiBase {
     public String dburl = VALUE;
     public String encryptionkey = VALUE;
     public String encryptionkeyid = VALUE;
-    public String env = VALUE;
     public String geolocation = VALUE;
     public String gpgkey = VALUE;
     public String ipaddress = VALUE;

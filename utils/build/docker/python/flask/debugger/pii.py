@@ -40,7 +40,6 @@ class Pii(PiiBase):
         self.dburl = self.VALUE
         self.encryptionkey = self.VALUE
         self.encryptionkeyid = self.VALUE
-        self.env = self.VALUE
         self.geolocation = self.VALUE
         self.gpgkey = self.VALUE
         self.ipaddress = self.VALUE
