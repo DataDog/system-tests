@@ -5,10 +5,10 @@ if [ "${SSI_ENV}" == "dev" ]; then
     # To force the installer to pull from dev repositories -- agent config is set manually to datadoghq.com
     export DD_SITE="datad0g.com"
     export DD_INSTALLER_REGISTRY_URL='install.datad0g.com'
-    export DD_injection_repo_url: datad0g.com
+    export DD_injection_repo_url='datad0g.com'
 else
     export DD_SITE="datadoghq.com"
-    export DD_injection_repo_url: datadoghq.com
+    export DD_injection_repo_url='datadoghq.com'
 fi
 
 #We want specfic library version (to run on tracers pipelines)
