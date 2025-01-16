@@ -22,6 +22,12 @@ scrubbed_names = {
     # set by CI runner
     "SYSTEM_TESTS_AWS_ACCESS_KEY_ID": "secret_value_8",
     "SYSTEM_TESTS_AWS_SECRET_ACCESS_KEY": "secret_value_9",
+    # Env variables loaded by SSI tests
+    "DD_API_KEY_ONBOARDING": "secret_value_onboarding_1",
+    "DD_APP_KEY_ONBOARDING": "secret_value_onboarding_2",
+    "GITHUB_TOKEN": "secret_value_onboarding_3",
+    "DOCKER_LOGIN": "secret_value_onboarding_4",
+    "DOCKER_LOGIN_PASS": "secret_value_onboarding_5",
 }
 
 

@@ -19,6 +19,12 @@ def _get_secrets(mode):
         # set by CI runner
         "SYSTEM_TESTS_AWS_ACCESS_KEY_ID",
         "SYSTEM_TESTS_AWS_SECRET_ACCESS_KEY",
+        # Env variables loaded by SSI tests
+        "DD_API_KEY_ONBOARDING",
+        "DD_APP_KEY_ONBOARDING",
+        "GITHUB_TOKEN",
+        "DOCKER_LOGIN",
+        "DOCKER_LOGIN_PASS",
     ]
 
     secrets: list = [os.environ[name] for name in envvars if os.environ.get(name)]
