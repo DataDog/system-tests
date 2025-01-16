@@ -498,7 +498,6 @@ tests/:
     Test_DistributedHttp: missing_feature
     Test_Span_Links_Flags_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
     Test_Span_Links_From_Conflicting_Contexts: v3.9.0
-    Test_Span_Links_From_Conflicting_Contexts_Datadog_Precedence: bug (APMAPI-1015) # parametric endpoint attempts to retrieve spans by the `id` instead of `span_id`
     Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
   test_identify.py:
     Test_Basic: v2.7.0

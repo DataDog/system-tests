@@ -602,7 +602,6 @@ tests/:
     Test_DistributedHttp: missing_feature
     Test_Span_Links_Flags_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
     Test_Span_Links_From_Conflicting_Contexts: missing_feature
-    Test_Span_Links_From_Conflicting_Contexts_Datadog_Precedence: missing_feature
     Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
     Test_Synthetics_APM_Datadog: bug (APMAPI-901) # the incoming headers are considered invalid
   test_identify.py:

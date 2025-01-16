@@ -908,7 +908,6 @@ tests/:
       flask-poc: v1.5.0-rc2 # actual version unknown
     Test_Span_Links_Flags_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
     Test_Span_Links_From_Conflicting_Contexts: v2.17.0
-    Test_Span_Links_From_Conflicting_Contexts_Datadog_Precedence: v2.17.0
     Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
   test_identify.py:
     Test_Basic: v1.5.0-rc1
