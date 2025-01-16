@@ -530,6 +530,19 @@ class _Scenarios:
 
     parametric = ParametricScenario("PARAMETRIC", doc="WIP")
 
+    debugger_code_origins = EndToEndScenario(
+        "DEBUGGER_CODE_ORIGINS",
+        rc_api_enabled=True,
+        weblog_env={
+            "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1",
+            "DD_REMOTE_CONFIG_ENABLED": "true",
+            "DD_CODE_ORIGIN_FOR_SPANS_ENABLED": "true",
+        },
+        library_interface_timeout=5,
+        doc="Check code origins",
+        scenario_groups=[ScenarioGroup.DEBUGGER],
+    )
+
     debugger_probes_status = EndToEndScenario(
         "DEBUGGER_PROBES_STATUS",
         rc_api_enabled=True,
