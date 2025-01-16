@@ -252,8 +252,10 @@ class Test_HeaderTags_DynamicConfig:
         id = hash(json.dumps(config))
         return f"datadog/2/APM_TRACING/{id}/config", config
 
+
 # The Datadog specific tracecontext flags to mark flags are set
 TRACECONTEXT_FLAGS_SET = 1 << 31
+
 
 def retrieve_span_links(span):
     if span.get("spanLinks") is not None:
@@ -283,6 +285,7 @@ def retrieve_span_links(span):
             link["flags"] = 0
         links.append(link)
     return links
+
 
 @scenarios.default
 class Test_ExtractBehavior_Default:
