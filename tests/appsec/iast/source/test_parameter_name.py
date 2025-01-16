@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, missing_feature, bug, features
+from utils import context, missing_feature, bug, features, flaky
 from ..utils import BaseSourceTest
 
 
@@ -52,6 +52,7 @@ class TestParameterName(BaseSourceTest):
     )
     @bug(weblog_variant="resteasy-netty3", reason="APPSEC-55687")
     @missing_feature(library="dotnet", reason="Tainted as request body")
+    @flaky(context.weblog_variant == "python3.12", reason="APPSEC-56375")
     def test_source_reported(self):
         super().test_source_reported()
 
