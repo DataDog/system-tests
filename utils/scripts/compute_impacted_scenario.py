@@ -46,6 +46,8 @@ class Result:
                 self.add_scenario_group(ScenarioGroup.GRAPHQL.value)
             if "run-docker-ssi-scenarios" in labels:
                 self.add_scenario_group(ScenarioGroup.DOCKER_SSI.value)
+            if "run-external-processing-scenarios" in labels:
+                self.add_scenario_group(ScenarioGroup.EXTERNAL_PROCESSING.value)
 
 
 def main():
@@ -144,6 +146,7 @@ def main():
                     r"utils/interfaces/schemas.*": ScenarioGroup.END_TO_END.value,
                     r"utils/_context/_scenarios/open_telemetry\.py": ScenarioGroup.OPEN_TELEMETRY.value,
                     r"utils/scripts/compute_impacted_scenario\.py": None,
+                    r"utils/scripts/check_version\.sh": None,
                     r"utils/scripts/get-nightly-logs\.py": None,
                     #### Default scenario
                     r"utils/_context/_scenarios/default\.py": None,  # the default scenario is always executed

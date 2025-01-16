@@ -69,6 +69,8 @@ variables:
     TEST_LIBRARY: "nodejs"
     #Because sometimes I don't want to run all pipeline, I only run step1_xx with env filter param
     ONBOARDING_FILTER_ENV: "$FILTER_ENV"
+    DD_INSTALLER_LIBRARY_VERSION: "$INSTALLER_LIBRARY_VERSION"
+    DD_INSTALLER_INJECTOR_VERSION: "$INSTALLER_INJECTOR_VERSION"
   script:
     - python utils/docker_ssi/docker_ssi_matrix_builder.py --language $TEST_LIBRARY --format yaml --output-file gitlab_pipeline.yml
   needs:
@@ -142,7 +144,7 @@ variables:
         job: merge_aws_ssi_pipeline
     strategy: depend
 
-# ----------- Nodejs SSI ----------------
+# ----------- Node.js SSI ----------------
 step1_generate_nodejs_ssi_pipeline:
   extends: .step1_generate_aws_ssi_pipeline
   needs: []
@@ -405,7 +407,7 @@ step2_exec_php_ssi_pipeline:
         job: x_merge_php_ssi_pipeline
     strategy: depend
 
-# ----------- Dotnet SSI ----------------
+# ----------- .NET SSI ----------------
 step1_generate_dotnet_ssi_pipeline:
   stage: dotnet_ssi_pipelines
   dependencies: []

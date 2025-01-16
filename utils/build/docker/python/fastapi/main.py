@@ -841,6 +841,32 @@ async def view_cmdi_secure(cmd: typing.Annotated[str, Form()]):
 #     return "YEAH"
 
 
+@app.post("/iast/code_injection/test_insecure", response_class=PlainTextResponse)
+async def view_iast_code_injection_insecure(code: typing.Annotated[str, Form()]):
+    _ = eval(code)
+    return "OK"
+
+
+@app.post("/iast/code_injection/test_secure", response_class=PlainTextResponse)
+async def view_iast_code_injection_secure(code: typing.Annotated[str, Form()]):
+    import operator
+
+    def safe_eval(expr):
+        ops = {
+            "+": operator.add,
+            "-": operator.sub,
+            "*": operator.mul,
+            "/": operator.truediv,
+        }
+        if len(expr) != 3 or expr[1] not in ops:
+            raise ValueError("Invalid expression")
+        a, op, b = expr
+        return ops[op](float(a), float(b))
+
+    _ = safe_eval(code)
+    return "OK"
+
+
 @app.get("/createextraservice", response_class=PlainTextResponse)
 def create_extra_service(serviceName: str = ""):
     if serviceName:
