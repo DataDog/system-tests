@@ -214,7 +214,7 @@ def generate_gitlab_pipeline(
                 "script": [
                     "cat ~/.aws/config",
                     "echo $AWS_PROFILE",
-                    "aws sso login",
+                    "aws configure sso",
                     "echo 'AWS DONE'",
                     "./build.sh -i runner",
                     "timeout 3000 ./run.sh $SCENARIO --vm-weblog $WEBLOG --vm-env $ONBOARDING_FILTER_ENV --vm-library $TEST_LIBRARY --vm-provider aws --report-run-url $CI_PIPELINE_URL --report-environment $ONBOARDING_FILTER_ENV --vm-default-vms All --vm-only "
