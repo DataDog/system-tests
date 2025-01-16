@@ -559,7 +559,7 @@ tests/:
             '*': missing_feature
         test_sql_row.py:
           TestSqlRow:
-            '*': v1.45.0
+            '*': v1.46.0
             akka-http: missing_feature
             jersey-grizzly2: missing_feature
             play: missing_feature
