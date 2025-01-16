@@ -251,7 +251,7 @@ tests/:
   test_distributed.py:
     Test_DistributedHttp: missing_feature
     Test_Span_Links_Flags_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
-    Test_Span_Links_From_Conflicting_Contexts: missing_feature
+    Test_Span_Links_From_Conflicting_Contexts: missing_feature (baggage should be implemented and conflicting trace contexts should generate span link)
     Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
   test_identify.py: irrelevant
   test_ipv6.py: missing_feature (APMAPI-869)

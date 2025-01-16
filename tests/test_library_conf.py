@@ -354,9 +354,9 @@ class Test_ExtractBehavior_Default:
 
         # Assert the W3C Trace Context (conflicting trace context) span link
         link = span_links[0]
-        assert link["traceID"] == "8687463697196027922"  # int(0x7890123456789012)
-        assert link["spanID"] == "1311768467284833366"  # int (0x1234567890123456)
-        assert link["traceIDHigh"] == "1311768467284833366"  # int(0x1234567890123456)
+        assert int(link["traceID"]) == 8687463697196027922  # int(0x7890123456789012)
+        assert int(link["spanID"]) == 1311768467284833366  # int (0x1234567890123456)
+        assert int(link["traceIDHigh"]) == 1311768467284833366  # int(0x1234567890123456)
         assert link["attributes"] == {"reason": "terminated_context", "context_headers": "tracecontext"}
 
         # Test the next outbound span context
