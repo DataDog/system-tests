@@ -2302,5 +2302,14 @@ class _Features:
         pytest.mark.features(feature_id=343)(test_object)
         return test_object
 
+    @staticmethod
+    def context_propagation_extract_behavior(test_object):
+        """Context Propagation: Extraction behavior can be configured at the service level
+
+        https://feature-parity.us1.prod.dog/#/?feature=353
+        """
+        pytest.mark.features(feature_id=343)(test_object)
+        return test_object
+
 
 features = _Features()

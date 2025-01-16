@@ -288,6 +288,7 @@ def retrieve_span_links(span):
 
 
 @scenarios.default
+@features.context_propagation_extract_behavior
 class Test_ExtractBehavior_Default:
     def setup_single_tracecontext(self):
         self.r = weblog.get(
@@ -370,6 +371,7 @@ class Test_ExtractBehavior_Default:
 
 
 @scenarios.tracing_config_nondefault
+@features.context_propagation_extract_behavior
 class Test_ExtractBehavior_Restart:
     def setup_single_tracecontext(self):
         self.r = weblog.get(
@@ -470,6 +472,7 @@ class Test_ExtractBehavior_Restart:
 
 
 @scenarios.tracing_config_nondefault_2
+@features.context_propagation_extract_behavior
 class Test_ExtractBehavior_Ignore:
     def setup_single_tracecontext(self):
         self.r = weblog.get(
@@ -546,6 +549,7 @@ class Test_ExtractBehavior_Ignore:
 
 
 @scenarios.tracing_config_nondefault_3
+@features.context_propagation_extract_behavior
 class Test_ExtractBehavior_Restart_With_Extract_First:
     def setup_single_tracecontext(self):
         self.r = weblog.get(
