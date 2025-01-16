@@ -1,27 +1,19 @@
 import builtins
 import os
+import re
+
+_not_secrets = {
+    "AWS_VAULT_KEYCHAIN_NAME",  # Name of macOS keychain to use => it's a name, not a key
+    "ONBOARDING_AWS_INFRA_KEY_PATH",  # TODO : what is the content of this value ?
+}
+
+_name_filter = re.compile(r"key|token|secret", re.IGNORECASE)
 
 
 def _get_secrets(mode):
-    # if any name is added here, add it also in tests/test_the_test/test_scrubber.py
-    envvars = [
-        "DD_API_KEY",
-        "DD_API_KEY_2",
-        "DD_API_KEY_3",
-        "DD_APP_KEY",
-        "DD_APP_KEY_2",
-        "DD_APP_KEY_3",
-        "DD_APPLICATION_KEY",
-        "AWS_ACCESS_KEY_ID",
-        "AWS_SECRET_ACCESS_KEY",
-        "AWS_SESSION_TOKEN",
-        "AWS_SECURITY_TOKEN",
-        # set by CI runner
-        "SYSTEM_TESTS_AWS_ACCESS_KEY_ID",
-        "SYSTEM_TESTS_AWS_SECRET_ACCESS_KEY",
+    secrets: list = [
+        value for name, value in os.environ.items() if name not in _not_secrets and _name_filter.search(name)
     ]
-
-    secrets: list = [os.environ[name] for name in envvars if os.environ.get(name)]
     redacted = "<redacted>"
 
     if "b" in mode:
