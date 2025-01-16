@@ -112,7 +112,7 @@ class Test_Config_ObfuscationQueryStringRegexp_Configured:
     @missing_feature(context.library == "nodejs", reason="Node only obfuscates queries on the server side")
     @missing_feature(
         context.library < "golang@1.72.0-dev",
-        reason="Client query string collection disabled by default; oObfuscation only occurs on server side",
+        reason="Client query string collection disabled by default; obfuscation only occurs on server side",
     )
     @missing_feature(
         context.library == "java" and context.weblog_variant in ("vertx3", "vertx4"),
