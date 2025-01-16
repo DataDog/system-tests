@@ -7,7 +7,7 @@ _not_secrets = {
     "ONBOARDING_AWS_INFRA_KEY_PATH",  # TODO : what is the content of this value ?
 }
 
-_name_filter = re.compile(r"key|token|secret", re.IGNORECASE)
+_name_filter = re.compile(r"key|token|secret|pass|docker_login", re.IGNORECASE)
 
 
 def _get_secrets(mode):
@@ -24,6 +24,7 @@ def _get_secrets(mode):
 
 
 def _instrument_write_methods(f):
+    # get list of secrets at each call, because environ may be updated
     secrets, redacted = _get_secrets(f.mode)
     original_write = f.write
 
