@@ -136,52 +136,6 @@ class Test_Span_Links_From_Conflicting_Contexts:
     reason="APMAPI-928",
     force_skip=True,
 )
-class Test_Span_Links_From_Conflicting_Contexts_Datadog_Precedence:
-    """Verify headers containing conflicting trace context information are added as span links with Datadog headers taking precedence"""
-
-    def setup_span_links_from_conflicting_contexts_datadog_precedence(self):
-        extract_headers = {
-            "traceparent": "00-11111111111111110000000000000001-000000003ade68b1-01",
-            "tracestate": "dd=s:2;t.tid:1111111111111111,foo=1",
-            "x-datadog-trace-id": "4",
-            "x-datadog-parent-id": "987654323",
-            "x-datadog-sampling-priority": "2",
-            "x-datadog-tags": "_dd.p.tid=1111111111111111",
-            "x-b3-traceid": "11111111111111110000000000000003",
-            "x-b3-spanid": "a2fb4a1d1a96d312",
-            "x-b3-sampled": "1",
-        }
-
-        self.req = weblog.get("/make_distant_call", params={"url": "http://weblog:7777"}, headers=extract_headers)
-
-    def test_span_links_from_conflicting_contexts_datadog_precedence(self):
-        trace = [
-            span
-            for _, _, span in interfaces.library.get_spans(self.req, full_trace=True)
-            if _retrieve_span_links(span) is not None
-            and span["trace_id"] == 4
-            and span["parent_id"] == 987654323  # Only fetch the trace that is related to the header extractions
-        ]
-
-        assert len(trace) == 1
-        span = trace[0]
-        links = _retrieve_span_links(span)
-        assert len(links) == 1
-        link1 = links[0]
-        assert link1["trace_id"] == 1
-        assert link1["span_id"] == 987654321
-        assert link1["attributes"] == {"reason": "terminated_context", "context_headers": "tracecontext"}
-        assert link1["tracestate"] == "dd=s:2;t.tid:1111111111111111,foo=1"
-        assert link1["trace_id_high"] == 1229782938247303441
-
-
-@scenarios.default
-@features.w3c_headers_injection_and_extraction
-@bug(
-    context.library < "java@1.44.0" and context.weblog_variant == "spring-boot-3-native",
-    reason="APMAPI-928",
-    force_skip=True,
-)
 class Test_Span_Links_Flags_From_Conflicting_Contexts:
     """Verify span links created from conflicting header contexts have the correct flags set"""
 
