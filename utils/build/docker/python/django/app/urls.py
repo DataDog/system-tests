@@ -582,13 +582,14 @@ def view_iast_source_header_value(request):
     return HttpResponse("OK")
 
 
+@csrf_exempt
 def view_iast_source_parametername(request):
     if request.method == "GET":
         param = [key for key in request.GET.keys() if key == "user"]
-        _sink_point_sqli(id=param[0])
+        _sink_point_path_traversal(param[0])
     elif request.method == "POST":
         param = [key for key in request.POST.keys() if key == "user"]
-        _sink_point_sqli(id=param[0])
+        _sink_point_path_traversal(param[0])
     return HttpResponse("OK")
 
 

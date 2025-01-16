@@ -52,6 +52,9 @@ on:
       parametric_scenarios:
         description: ""
         value: ${{ jobs.main.outputs.parametric_scenarios }}
+      externalprocessing_scenarios:
+        description: ""
+        value: ${{ jobs.main.outputs.externalprocessing_scenarios }}
       _experimental_parametric_job_matrix:
         description: ""
         value: ${{ jobs.main.outputs._experimental_parametric_job_matrix }}
@@ -69,6 +72,7 @@ jobs:
       opentelemetry_scenarios: ${{ steps.main.outputs.opentelemetry_scenarios }}
       opentelemetry_weblogs: ${{ steps.main.outputs.opentelemetry_weblogs }}
       parametric_scenarios: ${{ steps.main.outputs.parametric_scenarios }}
+      externalprocessing_scenarios: ${{ steps.main.outputs.externalprocessing_scenarios }}
       _experimental_parametric_job_matrix: ${{ steps.main.outputs._experimental_parametric_job_matrix }}
     steps:
     - name: Checkout
