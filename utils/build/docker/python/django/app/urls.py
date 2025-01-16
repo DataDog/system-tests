@@ -726,12 +726,11 @@ def login(request):
         sdk_user_exists = request.GET.get("sdk_user_exists")
         if sdk_event == "success":
             appsec_trace_utils.track_user_login_success_event(tracer, user_id=sdk_user, email=sdk_mail, login=sdk_user)
-            return HttpResponse("OK")
+            is_logged_in = True
         elif sdk_event == "failure":
             appsec_trace_utils.track_user_login_failure_event(
                 tracer, user_id=sdk_user, email=sdk_mail, exists=sdk_user_exists, login=sdk_user
             )
-            return HttpResponse("login failure", status=401)
     if is_logged_in:
         return HttpResponse("OK")
     return HttpResponse("login failure", status=401)

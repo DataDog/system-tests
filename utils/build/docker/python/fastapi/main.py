@@ -639,12 +639,11 @@ async def login(request: Request):
         sdk_user_exists = request.query_params.get("sdk_user_exists")
         if sdk_event == "success":
             appsec_trace_utils.track_user_login_success_event(tracer, user_id=sdk_user, email=sdk_mail, login=sdk_user)
-            return PlainTextResponse("OK")
+            success = True
         elif sdk_event == "failure":
             appsec_trace_utils.track_user_login_failure_event(
                 tracer, user_id=sdk_user, email=sdk_mail, exists=sdk_user_exists, login=sdk_user
             )
-            return PlainTextResponse("login failure", status_code=401)
     if success:
         return PlainTextResponse("OK")
     return PlainTextResponse("login failure", status_code=401)
