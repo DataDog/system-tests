@@ -64,6 +64,12 @@ class _Scenarios:
 
     profiling = ProfilingScenario("PROFILING")
 
+    asm_e2e = EndToEndScenario(
+        "End to end testing with default values",
+        doc="End to end testing with default values",
+        scenario_groups=[ScenarioGroup.APPSEC],
+    )
+
     sampling = EndToEndScenario(
         "SAMPLING",
         tracer_sampling_rate=0.5,
