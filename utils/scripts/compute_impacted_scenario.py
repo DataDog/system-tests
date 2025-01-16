@@ -44,10 +44,10 @@ class Result:
                 self.add_scenario_group(ScenarioGroup.PARAMETRIC.value)
             if "run-graphql-scenarios" in labels:
                 self.add_scenario_group(ScenarioGroup.GRAPHQL.value)
-            if "run-libinjection-scenarios" in labels:
-                self.add_scenario_group(ScenarioGroup.LIB_INJECTION.value)
             if "run-docker-ssi-scenarios" in labels:
                 self.add_scenario_group(ScenarioGroup.DOCKER_SSI.value)
+            if "run-external-processing-scenarios" in labels:
+                self.add_scenario_group(ScenarioGroup.EXTERNAL_PROCESSING.value)
 
 
 def main():
@@ -67,7 +67,7 @@ def main():
         # this file is generated with
         # ./run.sh MOCK_THE_TEST --collect-only --scenario-report
         with open("logs_mock_the_test/scenarios.json", encoding="utf-8") as f:
-            scenario_map = json.load(f)
+            scenario_map: dict[str, list[str]] = json.load(f)
 
         modified_nodeids = set()
 
@@ -83,13 +83,14 @@ def main():
                 modified_nodeids.add(nodeid)
 
         scenarios_by_files = defaultdict(set)
-        for nodeid in scenario_map:
+        for nodeid, scenarios in scenario_map.items():
             file = nodeid.split(":", 1)[0]
-            scenarios_by_files[file].add(scenario_map[nodeid])
+            for scenario in scenarios:
+                scenarios_by_files[file].add(scenario)
 
             for modified_nodeid in modified_nodeids:
                 if nodeid.startswith(modified_nodeid):
-                    result.add_scenario(scenario_map[nodeid])
+                    result.add_scenarios(scenarios)
                     break
 
         # this file is generated with
@@ -139,6 +140,8 @@ def main():
                     r"\.github/workflows/run-graphql\.yml": ScenarioGroup.GRAPHQL.value,
                     r"\.github/workflows/run-open-telemetry\.yml": ScenarioGroup.OPEN_TELEMETRY.value,
                     r"\.github/.*": None,  # nothing to do??
+                    ## .gitlab folder
+                    r"\.gitlab/k8s_gitlab-ci.yml": ScenarioGroup.LIB_INJECTION.value,
                     ## utils/ folder
                     r"utils/interfaces/schemas.*": ScenarioGroup.END_TO_END.value,
                     r"utils/_context/_scenarios/open_telemetry\.py": ScenarioGroup.OPEN_TELEMETRY.value,
@@ -146,6 +149,9 @@ def main():
                     r"utils/scripts/get-nightly-logs\.py": None,
                     #### Default scenario
                     r"utils/_context/_scenarios/default\.py": None,  # the default scenario is always executed
+                    #### K8s lib injection
+                    r"utils/k8s_lib_injection.*": ScenarioGroup.LIB_INJECTION.value,
+                    r"lib-injection.*": ScenarioGroup.LIB_INJECTION.value,
                     #### Onboarding cases
                     r"utils/onboarding.*": None,
                     r"utils/virtual_machine.*": None,
@@ -163,6 +169,8 @@ def main():
                     r"utils/docker_ssi/.*": ScenarioGroup.DOCKER_SSI.value,
                     ### Profiling case
                     r"utils/_context/_scenarios/profiling\.py": ScenarioGroup.PROFILING.value,
+                    ### IPv6
+                    r"utils/_context/_scenarios/ipv6\.py": ScenarioGroup.IPV6.value,
                     ### otel weblog
                     r"utils/build/docker/nodejs_otel/.*": ScenarioGroup.OPEN_TELEMETRY.value,
                     ### else, run all

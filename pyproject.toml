@@ -80,12 +80,10 @@ ignore = [
     ### TODO : remove those ignores
     # missing-type-annotation, the ONE to remove !!
     "ANN001",
-    "ANN002",
     "ANN003",
     "ANN201",
     "ANN202",
     "ANN205",
-    "ANN206",
     "BLE001",  # Do not catch blind exception: `Exception`, big project to enable this
     "C901",    # code complexity, TBD
     "E722",    # bare except, big project to enable this
@@ -97,25 +95,18 @@ ignore = [
     "PLR1714",
     "PLR2004",
     "PTH100",
-    "PTH102",
     "PTH110",
     "PTH113",
     "PTH116",
     "PTH118",
-    "PTH119",
     "PTH120",
-    "PTH122",
+    "PTH122",  # os.path.splitext(), but not really easier to read ? 
     "PTH123",  # `open()` should be replaced by `Path.open()`
     "RUF012",
     "S202",
     "SIM102",
     "SIM110",  # TBD
-    "TRY002",
     "TRY003",  # this is a full project to enable this
-    "TRY201",
-    "TRY300",
-    "UP007",
-    "UP038",   # we really want this? TBD
 
 
     ### Ignores that will be kept for the entire project
@@ -156,6 +147,8 @@ ignore = [
     "TD002",  # todo found
     "TD003",  # todo found
     "TD004",  # todo found
+    "TRY300", # not always obvious
+    "UP038",  # not a big fan
 
 ]
 
@@ -169,11 +162,12 @@ ignore = [
 "utils/interfaces/schemas/serve_doc.py" = ["INP001"] # this is not a package
 "utils/waf_rules.py" = ["N801"]  # generated file
 # TODO : remove those ignores
-"manifests/*"  = ["ALL"]
 "tests/*" = ["ALL"]
 "utils/build/*"  = ["ALL"]
 "lib-injection/*" = ["ALL"]
 "utils/{k8s_lib_injection/*,_context/_scenarios/k8s_lib_injection.py}" = [
+    "TRY201",
+    "TRY002",
     "D207",
     "SIM115",
     "S603",
@@ -250,7 +244,6 @@ ignore = [
     "EM102",
     "PLR0912",
     "PLR0915",
-    "PLR1714",
     "PLW1510",
     "PTH112",
     "PTH113",

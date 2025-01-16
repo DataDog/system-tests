@@ -1,7 +1,6 @@
 package com.datadoghq.trace.opentracing.controller;
 
 import static com.datadoghq.ApmTestClient.LOGGER;
-import static datadog.trace.api.DDTags.ORIGIN_KEY;
 import static datadog.trace.api.DDTags.RESOURCE_NAME;
 import static datadog.trace.api.DDTags.SERVICE_NAME;
 import static datadog.trace.api.DDTags.SPAN_TYPE;
@@ -9,18 +8,7 @@ import static io.opentracing.propagation.Format.Builtin.TEXT_MAP;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toCollection;
 
-import com.datadoghq.trace.opentracing.dto.KeyValue;
-import com.datadoghq.trace.opentracing.dto.SpanErrorArgs;
-import com.datadoghq.trace.opentracing.dto.SpanFinishArgs;
-import com.datadoghq.trace.opentracing.dto.SpanInjectHeadersArgs;
-import com.datadoghq.trace.opentracing.dto.SpanInjectHeadersResult;
-import com.datadoghq.trace.opentracing.dto.SpanExtractHeadersArgs;
-import com.datadoghq.trace.opentracing.dto.SpanExtractHeadersResult;
-import com.datadoghq.trace.opentracing.dto.SpanSetMetaArgs;
-import com.datadoghq.trace.opentracing.dto.SpanSetMetricArgs;
-import com.datadoghq.trace.opentracing.dto.SpanSetResourceArgs;
-import com.datadoghq.trace.opentracing.dto.StartSpanArgs;
-import com.datadoghq.trace.opentracing.dto.StartSpanResult;
+import com.datadoghq.trace.opentracing.dto.*;
 import datadog.trace.api.DDSpanId;
 import datadog.trace.api.DDTags;
 import datadog.trace.api.DDTraceId;
@@ -50,13 +38,15 @@ import java.util.Map;
 @RequestMapping(value = "/trace/span")
 public class OpenTracingController implements Closeable {
   private final Tracer tracer;
+  /** Created spans, indexed by their identifiers .*/
   private final Map<Long, Span> spans;
-  private final Map<Long, SpanContext> spanContextes;
+  /** The extracted span contexts, indexed by span identifier. */
+  private final Map<Long, SpanContext> extractedSpanContexts;
 
   public OpenTracingController() {
     this.tracer = GlobalTracer.get();
     this.spans = new HashMap<>();
-    this.spanContextes = new HashMap<>();
+    this.extractedSpanContexts = new HashMap<>();
   }
 
   @PostMapping("start")
@@ -69,16 +59,16 @@ public class OpenTracingController implements Closeable {
           .withTag(RESOURCE_NAME, args.resource())
           .withTag(SPAN_TYPE, args.type());
       // The parent id can be negative since we have a long representing uint64
-      if (args.parentId() != null) {
-        Span span = this.spans.get(args.parentId());
-        SpanContext context = this.spanContextes.get(args.parentId());
-        if (span != null) {
+      Long parentId = args.parentId();
+      if (parentId != null) {
+        Span span;
+        SpanContext context;
+        if ((span = getSpan(parentId)) != null) {
           builder.asChildOf(span);
-        } else if (context != null) {
+        } else if ((context = getSpanContext(parentId)) != null) {
           builder.asChildOf(context);
         } else {
-          LOGGER.error("Parent span {} does not exist.", args.parentId());
-          StartSpanResult.error();
+          return StartSpanResult.error();
         }
       }
       // Apply tags
@@ -174,11 +164,11 @@ public class OpenTracingController implements Closeable {
   public SpanExtractHeadersResult extractHeaders(@RequestBody SpanExtractHeadersArgs args) {
     LOGGER.info("Extract headers context to OT tracer: {}", args);
     SpanContext context = this.tracer.extract(TEXT_MAP, TextMapAdapter.fromRequest(args.headers()));
-    Long spanId = null;
-    if (context != null) {
-      spanId = DDSpanId.from(context.toSpanId());
-      this.spanContextes.put(spanId, context);
+    if (context == null || context.toSpanId().isEmpty()) {
+      return SpanExtractHeadersResult.error();
     }
+    long spanId = DDSpanId.from(context.toSpanId());
+    this.extractedSpanContexts.put(spanId, context);
     return new SpanExtractHeadersResult(spanId);
   }
 
@@ -187,12 +177,68 @@ public class OpenTracingController implements Closeable {
     LOGGER.info("Flushing OT spans");
     try {
       // Only flush spans when tracing was enabled
-      if (datadog.trace.api.GlobalTracer.get() instanceof InternalTracer) {
-          ((InternalTracer) datadog.trace.api.GlobalTracer.get()).flush();
+      if (datadog.trace.api.GlobalTracer.get() instanceof InternalTracer internalTracer) {
+          internalTracer.flush();
       }
       this.spans.clear();
+      this.extractedSpanContexts.clear();
     } catch (Throwable t) {
       LOGGER.error("Uncaught throwable", t);
+    }
+  }
+
+  @PostMapping("set_baggage")
+  public void setBaggage(@RequestBody SpanSetBaggageArgs args) {
+    LOGGER.info("Setting baggage item for OT span: {}", args);
+    Span span = getSpan(args.spanId());
+    if (span != null && args.key() != null) {
+      span.setBaggageItem(args.key(), args.value());
+    }
+  }
+
+  @GetMapping("get_baggage")
+  public SpanGetBaggageResult getBaggage(@RequestBody SpanGetBaggageArgs args) {
+    LOGGER.info("Getting single baggage item for OT span: {}", args);
+    Span span = getSpan(args.spanId());
+    if (span != null && args.key() != null) {
+      return new SpanGetBaggageResult(span.getBaggageItem(args.key()));
+    }
+    return null;
+  }
+
+  @GetMapping("get_all_baggage")
+  public SpanGetAllBaggageResult getAllBaggage(@RequestBody SpanGetAllBaggageArgs args) {
+    LOGGER.info("Getting all baggage items for OT span: {}", args);
+    Span span = getSpan(args.spanId());
+    if (span != null) {
+      Map<String, String> baggageMap = new HashMap<>();
+
+      for (var entry : span.context().baggageItems()) {
+        baggageMap.put(entry.getKey(), entry.getValue());
+      }
+
+      return new SpanGetAllBaggageResult(baggageMap);
+    }
+    return null;
+  }
+
+  @PostMapping("remove_baggage")
+  public void removeBaggage(@RequestBody SpanRemoveBaggageArgs args) {
+    LOGGER.info("Removing single baggage item for OT span: {}", args);
+    Span span = getSpan(args.spanId());
+    if (span != null && args.key() != null) {
+      span.setBaggageItem(args.key(), null);
+    }
+  }
+
+  @PostMapping("remove_all_baggage")
+  public void removeAllBaggage(@RequestBody SpanRemoveAllBaggageArgs args) {
+    LOGGER.info("Removing all baggage items for OT span: {}", args);
+    Span span = getSpan(args.spanId());
+    if (span != null) {
+      for (var entry : span.context().baggageItems()) {
+        span.setBaggageItem(entry.getKey(), null);
+      }
     }
   }
 
@@ -202,6 +248,14 @@ public class OpenTracingController implements Closeable {
       LOGGER.warn("OT span {} does not exist.", spanId);
     }
     return span;
+  }
+
+  private SpanContext getSpanContext(long spanId) {
+    SpanContext context = this.extractedSpanContexts.get(spanId);
+    if (context == null) {
+      LOGGER.warn("OT span context from span identifier {} does not exist.", spanId);
+    }
+    return context;
   }
 
   @PreDestroy

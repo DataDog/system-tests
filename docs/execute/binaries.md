@@ -81,7 +81,7 @@ Then run the OpenTelemetry drop-in test from the repo root folder:
 - `./build.sh java`
 - `TEST_LIBRARY=java ./run.sh INTEGRATIONS -k Test_Otel_Drop_In`
 
-## NodeJS library
+## Node.js library
 
 There are three ways to run system-tests with a custom node tracer.
 

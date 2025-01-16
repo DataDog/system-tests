@@ -552,6 +552,9 @@ func main() {
 		appsec.TrackUserLoginSuccessEvent(r.Context(), user, map[string]string{}, tracer.WithUserSessionID(cookie.Value))
 	})
 
+	mux.HandleFunc("/requestdownstream", common.Requestdownstream)
+	mux.HandleFunc("/returnheaders", common.Returnheaders)
+
 	mux.HandleFunc("/rasp/lfi", rasp.LFI)
 	mux.HandleFunc("/rasp/ssrf", rasp.SSRF)
 	mux.HandleFunc("/rasp/sqli", rasp.SQLi)

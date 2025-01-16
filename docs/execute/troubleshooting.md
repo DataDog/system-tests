@@ -36,7 +36,7 @@ Adjust file permissions on your `.docker`:
 sudo chown -R $(whoami) ~/.docker
 ```
 
-## NodeJs weblog experimenting segfaults on Mac/Intel
+## Node.js weblog experimenting segfaults on Mac/Intel
 
 In the docker dashboard -> settings -> general, untick `Use Virtualization Framework`. See this [Stack overflow thread](https://stackoverflow.com/questions/76735062/segmentation-fault-in-node-js-application-running-in-docker) for more information.
 

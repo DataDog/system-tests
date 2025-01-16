@@ -1,7 +1,7 @@
 # Unless explicitly stated otherwise all files in this repository are licensed under the the Apache License Version 2.0.
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
-from utils import weblog, context, interfaces, bug, missing_feature, rfc, features
+from utils import weblog, context, interfaces, bug, scenarios, rfc, features
 
 
 @bug(context.library == "python@1.1.0", reason="APMRP-360")
@@ -65,6 +65,9 @@ class Test_Info:
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2186870984/HTTP+header+collection")
 @bug(context.library == "python@1.1.0", reason="APMRP-360")
 @features.security_events_metadata
+@features.envoy_external_processing
+@scenarios.external_processing
+@scenarios.default
 class Test_RequestHeaders:
     """Request Headers for IP resolution"""
 
@@ -101,6 +104,9 @@ class Test_RequestHeaders:
 
 
 @features.security_events_metadata
+@features.envoy_external_processing
+@scenarios.external_processing
+@scenarios.default
 class Test_TagsFromRule:
     """Tags tags from the rule"""
 
@@ -126,6 +132,9 @@ class Test_TagsFromRule:
 
 
 @features.security_events_metadata
+@features.envoy_external_processing
+@scenarios.external_processing
+@scenarios.default
 class Test_ExtraTagsFromRule:
     """Extra tags may be added to the rule match since libddwaf 1.10.0"""
 
@@ -152,6 +161,9 @@ def _get_appsec_triggers(request):
 
 
 @features.security_events_metadata
+@features.envoy_external_processing
+@scenarios.external_processing
+@scenarios.default
 class Test_AttackTimestamp:
     """Attack timestamp"""
 
