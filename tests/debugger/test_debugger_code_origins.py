@@ -17,33 +17,37 @@ from utils.tools import logger
 @scenarios.debugger_code_origins
 class Test_Debugger_Code_Origins(debugger._Base_Debugger_Test):
     ############ setup ############
-    def _setup(self):
+    def _setup(self, request_path: str):
         self.initialize_weblog_remote_config()
 
-        ### prepare probes
-        probes = debugger.read_probes("probe_status_spandecoration")
-        self.set_probes(probes)
-
-        self.send_rc_probes()
-        self.wait_for_all_probes_installed()
-        # self.send_weblog_request("/debugger/pii")
-        self.wait_for_all_probes_emitting()
+        # Code origins will automatically be included in spans, so we don't
+        # need to configure any probes.
+        self.send_weblog_request(request_path)
 
     ############ test ############
     def setup_code_origin_present(self):
-        self._setup()
+        self._setup("/healthcheck")
 
-    @bug(context.library == "python@2.16.0", reason="DEBUG-3127")
-    @bug(context.library == "python@2.16.1", reason="DEBUG-3127")
-    @missing_feature(context.library == "ruby", reason="Not yet implemented")
+    @missing_feature(context.library == "cpp", reason="Not yet implemented")
+    @missing_feature(context.library == "dotnet", reason="Not yet implemented")
+    @missing_feature(context.library == "golang", reason="Not yet implemented")
     @missing_feature(context.library == "nodejs", reason="Not yet implemented")
+    @missing_feature(
+        context.library == "java",
+        reason="Only spring-boot (without spring-mvc), gRPC, and micronaut are supported which aren't weblog variants",
+    )
+    @missing_feature(context.library == "php", reason="Not yet implemented")
+    @missing_feature(context.library == "ruby", reason="Not yet implemented")
     def test_code_origin_present(self):
         self.collect()
 
         self.assert_setup_ok()
-        self.assert_rc_state_not_error()
+        self.assert_all_weblog_responses_ok()
 
-        # TODO: Finish asserts, this is just a placeholder.
-        for probe_id in self.probe_ids:
-            base = self.probe_snapshots.get(probe_id, None)
-            _ = base
+        found = False
+        # TODO: Ensure the structure and output values for the output.
+        for trace in self.traces:
+            if "code_origin.type" in str(trace):
+                found = True
+
+        assert found
