@@ -11,6 +11,7 @@ const axios = require('axios')
 const fs = require('fs')
 const passport = require('passport')
 const crypto = require('crypto')
+const pino = require('pino')
 
 const iast = require('./iast')
 const dsm = require('./dsm')
@@ -32,6 +33,8 @@ const { snsPublish, snsConsume } = require('./integrations/messaging/aws/sns')
 const { sqsProduce, sqsConsume } = require('./integrations/messaging/aws/sqs')
 const { kafkaProduce, kafkaConsume } = require('./integrations/messaging/kafka/kafka')
 const { rabbitmqProduce, rabbitmqConsume } = require('./integrations/messaging/rabbitmq/rabbitmq')
+
+const logger = pino()
 
 iast.initData().catch(() => {})
 
@@ -237,6 +240,21 @@ app.get('/kafka/consume', (req, res) => {
       console.error(error)
       res.status(500).send('Internal Server Error during Kafka consume')
     })
+})
+
+app.get('/log/library', (req, res) => {
+  const msg = req.query.msg || 'msg'
+  switch (req.query.level) {
+    case 'warn':
+      logger.warn(msg)
+      break
+    case 'error':
+      logger.error(msg)
+      break
+    default:
+      logger.info(msg)
+  }
+  res.send('OK')
 })
 
 app.get('/sqs/produce', (req, res) => {

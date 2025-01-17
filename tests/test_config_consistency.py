@@ -2,9 +2,15 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2022 Datadog, Inc.
 
+import re
 import json
 from utils import weblog, interfaces, scenarios, features, rfc, irrelevant, context, bug, missing_feature
 from utils.tools import logger
+
+# get the default log output
+stdout = interfaces.library_stdout if context.library != "dotnet" else interfaces.library_dotnet_managed
+runtime_metrics = {"nodejs": "runtime.node.mem.heap_total"}
+log_injection_fields = {"nodejs": {"message": "msg"}}
 
 
 @scenarios.default
@@ -468,3 +474,123 @@ class Test_Config_IntegrationEnabled_True:
             assert list(
                 filter(lambda span: "kafka.produce" in span.get("name"), spans)
             ), f"No kafka.produce span found in trace: {spans}"
+
+
+@rfc("https://docs.google.com/document/d/1kI-gTAKghfcwI7YzKhqRv2ExUstcHqADIWA4-TZ387o/edit#heading=h.8v16cioi7qxp")
+@scenarios.tracing_config_nondefault
+@features.tracing_configuration_consistency
+class Test_Config_LogInjection_Enabled:
+    """Verify log injection behavior when enabled"""
+
+    def setup_log_injection_enabled(self):
+        self.message = "msg"
+        self.r = weblog.get("/log/library", params={"msg": self.message})
+
+    def test_log_injection_enabled(self):
+        assert self.r.status_code == 200
+        pattern = r'"dd":\{[^}]*\}'
+        stdout.assert_presence(pattern)
+        dd = parse_log_injection_message(self.message)
+        required_fields = ["trace_id", "span_id", "service", "version", "env"]
+        for field in required_fields:
+            assert field in dd, f"Missing field: {field}"
+        return
+
+
+@rfc("https://docs.google.com/document/d/1kI-gTAKghfcwI7YzKhqRv2ExUstcHqADIWA4-TZ387o/edit#heading=h.8v16cioi7qxp")
+@scenarios.default
+@features.tracing_configuration_consistency
+class Test_Config_LogInjection_Default:
+    """Verify log injection is disabled by default"""
+
+    def setup_log_injection_default(self):
+        self.message = "msg"
+        self.r = weblog.get("/log/library", params={"msg": self.message})
+
+    def test_log_injection_default(self):
+        assert self.r.status_code == 200
+        pattern = r'"dd":\{[^}]*\}'
+        stdout.assert_absence(pattern)
+
+
+@rfc("https://docs.google.com/document/d/1kI-gTAKghfcwI7YzKhqRv2ExUstcHqADIWA4-TZ387o/edit#heading=h.8v16cioi7qxp")
+@scenarios.tracing_config_nondefault
+@features.tracing_configuration_consistency
+class Test_Config_LogInjection_128Bit_TradeId_Default:
+    """Verify trace IDs are logged in 128bit format when log injection is enabled"""
+
+    def setup_log_injection_128bit_traceid_default(self):
+        self.message = "msg"
+        self.r = weblog.get("/log/library", params={"msg": self.message})
+
+    def test_log_injection_128bit_traceid_default(self):
+        assert self.r.status_code == 200
+        pattern = r'"dd":\{[^}]*\}'
+        stdout.assert_presence(pattern)
+        dd = parse_log_injection_message(self.message)
+        trace_id = dd.get("trace_id")
+        assert re.match(r"^[0-9a-f]{32}$", trace_id), f"Invalid 128-bit trace_id: {trace_id}"
+
+
+@rfc("https://docs.google.com/document/d/1kI-gTAKghfcwI7YzKhqRv2ExUstcHqADIWA4-TZ387o/edit#heading=h.8v16cioi7qxp")
+@scenarios.tracing_config_nondefault_3
+@features.tracing_configuration_consistency
+class Test_Config_LogInjection_128Bit_TradeId_Disabled:
+    """Verify 128 bit traceid are disabled in log injection when DD_TRACE_128_BIT_TRACEID_LOGGING_ENABLED=false"""
+
+    def setup_log_injection_128bit_traceid_disabled(self):
+        self.message = "msg"
+        self.r = weblog.get("/log/library", params={"msg": self.message})
+
+    def test_log_injection_128bit_traceid_disabled(self):
+        assert self.r.status_code == 200
+        pattern = r'"dd":\{[^}]*\}'
+        stdout.assert_presence(pattern)
+        dd = parse_log_injection_message(self.message)
+        trace_id = dd.get("trace_id")
+        assert re.match(r"^\d{1,20}$", trace_id), f"Invalid 64-bit trace_id: {trace_id}"
+
+
+@rfc("https://docs.google.com/document/d/1kI-gTAKghfcwI7YzKhqRv2ExUstcHqADIWA4-TZ387o/edit#heading=h.8v16cioi7qxp")
+@scenarios.runtime_metrics_enabled
+@features.tracing_configuration_consistency
+class Test_Config_RuntimeMetrics_Enabled:
+    """Verify runtime metrics are enabled when DD_RUNTIME_METRICS_ENABLED=true"""
+
+    # This test verifies runtime metrics by asserting the prescene of a metric in the dogstatsd endpoint
+    def test_config_runtimemetrics_enabled(self):
+        for data in interfaces.library.get_data("/dogstatsd/v2/proxy"):
+            lines = data["request"]["content"].split("\n")
+            metric_found = False
+            for line in lines:
+                if runtime_metrics[context.library.library] in line:
+                    metric_found = True
+                    break
+            assert metric_found, f"The metric {runtime_metrics[context.library.library]} was not found in any line"
+            break
+
+
+@rfc("https://docs.google.com/document/d/1kI-gTAKghfcwI7YzKhqRv2ExUstcHqADIWA4-TZ387o/edit#heading=h.8v16cioi7qxp")
+@scenarios.default
+@features.tracing_configuration_consistency
+class Test_Config_RuntimeMetrics_Default:
+    """Verify runtime metrics are disabled by default"""
+
+    # test that by default runtime metrics are disabled
+    def test_config_runtimemetrics_default(self):
+        iterations = 0
+        for data in interfaces.library.get_data("/dogstatsd/v2/proxy"):
+            iterations += 1
+        assert iterations == 0, "Runtime metrics are enabled by default"
+
+
+# Parse the JSON-formatted log message from stdout and return the 'dd' object
+def parse_log_injection_message(log_message):
+    for data in stdout.get_data():
+        try:
+            message = json.loads(data.get("message"))
+        except json.JSONDecodeError:
+            continue
+        if message.get("dd") and message.get(log_injection_fields[context.library.library]["message"]) == log_message:
+            dd = message.get("dd")
+            return dd
