@@ -84,11 +84,13 @@ class Test_Config_ObfuscationQueryStringRegexp_Empty:
         self.r = weblog.get("/make_distant_call", params={"url": "http://weblog:7777/?key=monkey"})
 
     @bug(context.library == "java", reason="APMAPI-770")
-    @missing_feature(context.library == "nodejs", reason="Node.js only obfuscates queries on the server side")
-    @missing_feature(context.library == "golang", reason="Go only obfuscates queries on the server side")
+    @missing_feature(context.library == "nodejs", reason="Node only obfuscates queries on the server side")
+    @missing_feature(context.library < "golang@1.72.0-dev", reason="Obfuscation only occurs on server side")
     def test_query_string_obfuscation_empty_client(self):
         spans = [s for _, _, s in interfaces.library.get_spans(request=self.r, full_trace=True)]
-        client_span = _get_span_by_tags(spans, tags={"http.url": "http://weblog:7777/?key=monkey"})
+        client_span = _get_span_by_tags(
+            spans, tags={"span.kind": "client", "http.url": "http://weblog:7777/?key=monkey"}
+        )
         assert client_span, "\n".join([str(s) for s in spans])
 
     def setup_query_string_obfuscation_empty_server(self):
@@ -97,17 +99,66 @@ class Test_Config_ObfuscationQueryStringRegexp_Empty:
     @bug(context.library == "python", reason="APMAPI-772")
     def test_query_string_obfuscation_empty_server(self):
         spans = [s for _, _, s in interfaces.library.get_spans(request=self.r, full_trace=True)]
-        client_span = _get_span_by_tags(spans, tags={"http.url": "http://localhost:7777/?application_key=value"})
-        assert client_span, "\n".join([str(s) for s in spans])
+        server_span = _get_span_by_tags(spans, tags={"http.url": "http://localhost:7777/?application_key=value"})
+        assert server_span, "\n".join([str(s) for s in spans])
 
 
 @scenarios.tracing_config_nondefault
 @features.tracing_configuration_consistency
 class Test_Config_ObfuscationQueryStringRegexp_Configured:
-    def setup_query_string_obfuscation_configured(self):
+    def setup_query_string_obfuscation_configured_client(self):
+        self.r = weblog.get("/make_distant_call", params={"url": "http://weblog:7777/?ssn=123-45-6789"})
+
+    @missing_feature(context.library == "nodejs", reason="Node only obfuscates queries on the server side")
+    @missing_feature(
+        context.library < "golang@1.72.0-dev",
+        reason="Client query string collection disabled by default; obfuscation only occurs on server side",
+    )
+    @missing_feature(
+        context.library == "java" and context.weblog_variant in ("vertx3", "vertx4"),
+        reason="Missing endpoint",
+    )
+    def test_query_string_obfuscation_configured_client(self):
+        spans = [s for _, _, s in interfaces.library.get_spans(request=self.r, full_trace=True)]
+        client_span = _get_span_by_tags(
+            spans, tags={"span.kind": "client", "http.url": "http://weblog:7777/?<redacted>"}
+        )
+        assert client_span, "\n".join([str(s) for s in spans])
+
+    def setup_query_string_obfuscation_configured_server(self):
         self.r = weblog.get("/?ssn=123-45-6789")
 
-    def test_query_string_obfuscation_configured(self):
+    def test_query_string_obfuscation_configured_server(self):
+        interfaces.library.add_span_tag_validation(
+            self.r, tags={"http.url": r"^.*/\?<redacted>$"}, value_as_regular_expression=True
+        )
+
+
+@features.tracing_configuration_consistency
+class Test_Config_ObfuscationQueryStringRegexp_Default:
+    def setup_query_string_obfuscation_configured_client(self):
+        self.r = weblog.get("/make_distant_call", params={"url": "http://weblog:7777/?token=value"})
+
+    @missing_feature(context.library == "nodejs", reason="Node only obfuscates queries on the server side")
+    @missing_feature(
+        context.library < "golang@1.72.0-dev",
+        reason="Client query string collection disabled by default; obfuscation only occurs on server side",
+    )
+    @missing_feature(
+        context.library == "java" and context.weblog_variant in ("vertx3", "vertx4"),
+        reason="Missing endpoint",
+    )
+    def test_query_string_obfuscation_configured_client(self):
+        spans = [s for _, _, s in interfaces.library.get_spans(request=self.r, full_trace=True)]
+        client_span = _get_span_by_tags(
+            spans, tags={"span.kind": "client", "http.url": "http://weblog:7777/?<redacted>"}
+        )
+        assert client_span, "\n".join([str(s) for s in spans])
+
+    def setup_query_string_obfuscation_configured_server(self):
+        self.r = weblog.get("/?token=value")
+
+    def test_query_string_obfuscation_configured_server(self):
         interfaces.library.add_span_tag_validation(
             self.r, tags={"http.url": r"^.*/\?<redacted>$"}, value_as_regular_expression=True
         )
