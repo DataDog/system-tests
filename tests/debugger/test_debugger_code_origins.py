@@ -5,17 +5,14 @@
 from utils import rfc
 import tests.debugger.utils as debugger
 
-from utils import (
-    context,
-    scenarios,
-    features,
-    bug,
-    missing_feature
-)
+from utils import context, scenarios, features, bug, missing_feature
 
 from utils.tools import logger
 
-@rfc("https://docs.google.com/document/d/1lhaEgBGIb9LATLsXxuKDesx4BCYixOcOzFnr4qTTemw/edit?pli=1&tab=t.0#heading=h.o5gstqo08gu5")
+
+@rfc(
+    "https://docs.google.com/document/d/1lhaEgBGIb9LATLsXxuKDesx4BCYixOcOzFnr4qTTemw/edit?pli=1&tab=t.0#heading=h.o5gstqo08gu5"
+)
 @features.debugger
 @scenarios.debugger_code_origins
 class Test_Debugger_Code_Origins(debugger._Base_Debugger_Test):
