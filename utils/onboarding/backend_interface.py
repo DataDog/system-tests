@@ -54,7 +54,8 @@ def _make_request(
                 return r.json()
 
             if r.status_code == 429:
-                retry_after = _parse_retry_after(r.headers.get("Retry-After"))
+                retry_after = _parse_retry_after(r.headers.get("X-RateLimit-Reset"))
+                logger.info(f" Received 429, retrying in: [{retry_after}]")
                 if retry_after > 0:
                     retry_delay = max(retry_after, retry_delay)
                     retry_delay += random.uniform(0, 1)
@@ -69,9 +70,12 @@ def _make_request(
 
 
 def _parse_retry_after(retry_after):
+    if retry_after is None:
+        return -1
+
     try:
         return int(retry_after)
-    except ValueError:
+    except (ValueError, TypeError):
         return -1
 
 
