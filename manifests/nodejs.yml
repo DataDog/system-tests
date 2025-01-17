@@ -301,6 +301,8 @@ tests/:
             nextjs: missing_feature
         test_uri.py:
           TestURI: missing_feature
+      test_security_controls.py:
+        TestSecurityControls: missing_feature
     rasp/:
       test_cmdi.py:
         Test_Cmdi_BodyJson:
@@ -625,11 +627,17 @@ tests/:
     test_debugger_expression_language.py:
       Test_Debugger_Expression_Language: missing_feature (feature not implented)
     test_debugger_pii.py:
-      Test_Debugger_PII_Redaction: missing_feature (feature not implented)
+      Test_Debugger_PII_Redaction:
+        "*": irrelevant
+        express4: v5.31.0
+        express4-typescript: v5.31.0
     test_debugger_probe_snapshot.py:
       Test_Debugger_Probe_Snaphots: missing_feature (feature not implented)
     test_debugger_probe_status.py:
-      Test_Debugger_Probe_Statuses: missing_feature (feature not implented)
+      Test_Debugger_Probe_Statuses:
+        "*": irrelevant
+        express4: v5.32.0
+        express4-typescript: v5.32.0
   integrations/:
     crossed_integrations/:
       test_kafka.py:
@@ -738,9 +746,6 @@ tests/:
         express5: *ref_5_26_0
     test_otel_drop_in.py:
       Test_Otel_Drop_In: missing_feature
-  k8s_lib_injection/:
-    test_k8s_manual_inject.py:
-      TestAdmisionControllerProfiling: *ref_5_22_0
   parametric/:
     test_config_consistency.py:
       Test_Config_Dogstatsd: *ref_5_29_0
@@ -756,6 +761,7 @@ tests/:
       TestDynamicConfigSamplingRules: *ref_5_16_0
       TestDynamicConfigTracingEnabled: *ref_5_4_0
       TestDynamicConfigV1: *ref_4_11_0
+      TestDynamicConfigV1_EmptyServiceTargets: *ref_5_4_0
       TestDynamicConfigV1_ServiceTargets: *ref_5_4_0
       TestDynamicConfigV2: *ref_4_23_0
     test_headers_baggage.py:

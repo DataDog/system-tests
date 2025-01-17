@@ -84,7 +84,7 @@ class Test_Config_ObfuscationQueryStringRegexp_Empty:
         self.r = weblog.get("/make_distant_call", params={"url": "http://weblog:7777/?key=monkey"})
 
     @bug(context.library == "java", reason="APMAPI-770")
-    @missing_feature(context.library == "nodejs", reason="Node only obfuscates queries on the server side")
+    @missing_feature(context.library == "nodejs", reason="Node.js only obfuscates queries on the server side")
     @missing_feature(context.library == "golang", reason="Go only obfuscates queries on the server side")
     def test_query_string_obfuscation_empty_client(self):
         spans = [s for _, _, s in interfaces.library.get_spans(request=self.r, full_trace=True)]
@@ -321,8 +321,10 @@ def _get_span_by_tags(spans, tags):
     return {}
 
 
-@scenarios.tracing_config_nondefault
+@features.envoy_external_processing
 @features.tracing_configuration_consistency
+@scenarios.tracing_config_nondefault
+@scenarios.external_processing
 class Test_Config_UnifiedServiceTagging_CustomService:
     """Verify behavior of http clients and distributed traces"""
 
