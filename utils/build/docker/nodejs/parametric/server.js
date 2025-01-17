@@ -20,6 +20,7 @@ const express = require('express');
 const app = express();
 app.use(express.json());
 
+let dummyIdIncrementer = 10000000
 
 function microLongToHrTime (timestamp) {
   if (timestamp === null) {
@@ -71,6 +72,17 @@ app.post('/trace/span/extract_headers', (req, res) => {
   const extracted = tracer.extract('http_headers', linkHeaders);
 
   let extractedSpanID = null;
+  const dummyTracer = require('dd-trace').init()
+  const extractPropagator = dummyTracer._tracer._config.tracePropagationStyle.extract
+
+  if (extractPropagator.includes('baggage') && extracted && !extracted._spanId && !extracted._traceId) {
+    // baggage propagation does not require ids so http_headers could contain no ids
+    // several endpoints in this file rely on having ids so we need to have dummy ids for internal use
+    extracted._spanId = dummyIdIncrementer
+    extracted._traceId = dummyIdIncrementer
+    dummyIdIncrementer += 1
+  }
+
   if (extracted && extracted._spanId) {
     extractedSpanID = extracted.toSpanId();
     ddContext[extractedSpanID] = extracted;
@@ -153,7 +165,7 @@ app.post('/trace/span/set_metric', (req, res) => {
 });
 
 app.post('/trace/stats/flush', (req, res) => {
-  // TODO: implement once available in NodeJS Tracer
+  // TODO: implement once available in Node.js Tracer
   res.json({});
 });
 
@@ -165,6 +177,41 @@ app.post('/trace/span/error', (req, res) => {
       'error.type': request.type,
       'error.stack': request.stack
   })
+  res.json({});
+});
+
+app.post('/trace/span/set_baggage', (req, res) => {
+  const request = req.body;
+  const span = spans[request.span_id]
+  span.setBaggageItem(request.key, request.value)
+  res.json({});
+});
+
+app.get('/trace/span/get_baggage', (req, res) => {
+  const request = req.body;
+  const span = spans[request.span_id]
+  const baggage = span.getBaggageItem(request.key)
+  res.json({ baggage });
+});
+
+app.get('/trace/span/get_all_baggage', (req, res) => {
+const request = req.body;
+  const span = spans[request.span_id]
+  const baggage = span.getAllBaggageItems()
+  res.json({ baggage: JSON.parse(baggage) });
+});
+
+app.post('/trace/span/remove_baggage', (req, res) => {
+  const request = req.body;
+  const span = spans[request.span_id]
+  const baggages = span.removeBaggageItem(request.key)
+  res.json({});
+});
+
+app.post('/trace/span/remove_all_baggage', (req, res) => {
+  const request = req.body;
+  const span = spans[request.span_id]
+  const baggages = span.removeAllBaggageItems()
   res.json({});
 });
 

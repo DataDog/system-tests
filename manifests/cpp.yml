@@ -54,6 +54,7 @@ tests/:
         test_path_parameter.py: irrelevant (ASM is not implemented in C++)
         test_sql_row.py: irrelevant (ASM is not implemented in C++)
         test_uri.py: irrelevant (ASM is not implemented in C++)
+      test_security_controls.py: irrelevant (ASM is not implemented in C++)
     rasp/:
       test_cmdi.py: irrelevant (ASM is not implemented in C++)
       test_lfi.py: irrelevant (ASM is not implemented in C++)
@@ -154,6 +155,8 @@ tests/:
       Test_Config_TraceLogDirectory: missing_feature
       Test_Config_UnifiedServiceTagging: v1.1.0
     test_crashtracking.py: missing_feature
+    test_dynamic_configuration.py:
+      TestDynamicConfigV1_EmptyServiceTargets: missing_feature
     test_headers_b3multi.py:
       Test_Headers_B3multi: missing_feature (parametric app does not support trace/span/extract endpoint)
     test_headers_baggage.py:
@@ -242,6 +245,7 @@ tests/:
     Test_Config_IntegrationEnabled_False: missing_feature
     Test_Config_IntegrationEnabled_True: missing_feature
     Test_Config_ObfuscationQueryStringRegexp_Configured: missing_feature
+    Test_Config_ObfuscationQueryStringRegexp_Default: missing_feature
     Test_Config_ObfuscationQueryStringRegexp_Empty: missing_feature
     Test_Config_UnifiedServiceTagging_CustomService: missing_feature
     Test_Config_UnifiedServiceTagging_Default: missing_feature

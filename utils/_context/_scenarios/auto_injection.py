@@ -110,7 +110,6 @@ class _VirtualMachineScenario(Scenario):
         self.vm_provider_id = "vagrant"
         self.vm_provider = None
         self.required_vms = []
-        self._tested_components = {}
         # Variables that will populate for the agent installation
         self.agent_env = agent_env
         # Variables that will populate for the app installation
@@ -303,18 +302,21 @@ class _VirtualMachineScenario(Scenario):
             for key in vm.tested_components:
                 if key == "host" or key == "runtime_version":
                     continue
-                self._tested_components[key] = vm.tested_components[key].lstrip(" ").replace(",", "")
-                if key.startswith("datadog-apm-inject") and self._tested_components[key]:
-                    self._datadog_apm_inject_version = f"v{self._tested_components[key]}"
-                if key.startswith("datadog-apm-library-") and self._tested_components[key]:
-                    self._library = LibraryVersion(self._library.library, self._tested_components[key])
+                self.components[key] = vm.tested_components[key].lstrip(" ").replace(",", "")
+                if key.startswith("datadog-apm-inject") and self.components[key]:
+                    self._datadog_apm_inject_version = f"v{self.components[key]}"
+                if key.startswith("datadog-apm-library-") and self.components[key]:
+                    self._library = LibraryVersion(self._library.library, self.components[key])
                     # We store without the lang sufix
-                    self._tested_components["datadog-apm-library"] = self._tested_components[key]
-                    del self._tested_components[key]
+                    self.components["datadog-apm-library"] = self.components[key]
+                    del self.components[key]
                 if key.startswith("glibc"):
                     # We will all the glibc versions in the feature parity report, due to each machine can have a
                     # different version
-                    del self._tested_components[key]
+                    del self.components[key]
+
+    def pytest_sessionfinish(self, session, exitstatus):  # noqa: ARG002
+        self.close_targets()
 
     def close_targets(self):
         if self.is_main_worker and not self.vm_gitlab_pipeline:
@@ -328,10 +330,6 @@ class _VirtualMachineScenario(Scenario):
     @property
     def weblog_variant(self):
         return self._weblog
-
-    @property
-    def components(self):
-        return self._tested_components
 
     @property
     def dd_apm_inject_version(self):
@@ -384,6 +382,47 @@ class InstallerAutoInjectionScenario(_VirtualMachineScenario):
         app_env=None,
         scenario_groups=None,
         github_workflow=None,
+        *,
+        include_ubuntu_20_amd64=True,
+        include_ubuntu_20_arm64=True,
+        include_ubuntu_21_arm64=True,
+        include_ubuntu_22_amd64=True,
+        include_ubuntu_22_arm64=True,
+        include_ubuntu_23_04_amd64=False,
+        include_ubuntu_23_04_arm64=True,
+        include_ubuntu_23_10_amd64=False,
+        include_ubuntu_23_10_arm64=True,
+        include_ubuntu_24_amd64=True,
+        include_ubuntu_24_arm64=True,
+        include_ubuntu_18_amd64=False,
+        include_amazon_linux_2_amd64=True,
+        include_amazon_linux_2_arm64=True,
+        include_amazon_linux_2022_amd64=True,
+        include_amazon_linux_2022_arm64=True,
+        include_amazon_linux_2023_amd64=True,
+        include_amazon_linux_2023_arm64=True,
+        include_centos_7_amd64=True,
+        include_centos_8_amd64=True,
+        include_oraclelinux_9_2_amd64=False,
+        include_oraclelinux_9_2_arm64=False,
+        include_oraclelinux_8_8_amd64=False,
+        include_oraclelinux_8_8_arm64=False,
+        include_oraclelinux_7_9_amd64=False,
+        include_debian_12_amd64=True,
+        include_debian_12_arm64=True,
+        include_almalinux_8_amd64=False,
+        include_almalinux_8_arm64=False,
+        include_almalinux_9_amd64=False,
+        include_almalinux_9_arm64=False,
+        include_redhat_7_9_amd64=True,
+        include_redhat_8_amd64=True,
+        include_redhat_8_arm64=True,
+        include_redhat_9_amd64=True,
+        include_redhat_9_arm64=True,
+        include_fedora_36_amd64=False,
+        include_fedora_36_arm64=False,
+        include_fedora_37_amd64=False,
+        include_fedora_37_arm64=False,
     ) -> None:
         # Force full tracing without limits
         app_env_defaults = {
@@ -400,47 +439,47 @@ class InstallerAutoInjectionScenario(_VirtualMachineScenario):
             app_env=app_env_defaults,
             doc=doc,
             github_workflow=github_workflow,
-            include_ubuntu_20_amd64=True,
-            include_ubuntu_20_arm64=True,
-            include_ubuntu_21_arm64=True,
-            include_ubuntu_22_amd64=True,
-            include_ubuntu_22_arm64=True,
-            include_ubuntu_23_04_amd64=False,
-            include_ubuntu_23_04_arm64=True,
-            include_ubuntu_23_10_amd64=False,
-            include_ubuntu_23_10_arm64=True,
-            include_ubuntu_24_amd64=True,
-            include_ubuntu_24_arm64=True,
-            include_ubuntu_18_amd64=False,
-            include_amazon_linux_2_amd64=True,
-            include_amazon_linux_2_arm64=True,
-            include_amazon_linux_2022_amd64=True,
-            include_amazon_linux_2022_arm64=True,
-            include_amazon_linux_2023_amd64=True,
-            include_amazon_linux_2023_arm64=True,
-            include_centos_7_amd64=True,
-            include_centos_8_amd64=True,
-            include_oraclelinux_9_2_amd64=False,
-            include_oraclelinux_9_2_arm64=False,
-            include_oraclelinux_8_8_amd64=False,
-            include_oraclelinux_8_8_arm64=False,
-            include_oraclelinux_7_9_amd64=False,
-            include_debian_12_amd64=True,
-            include_debian_12_arm64=True,
-            include_almalinux_8_amd64=False,
-            include_almalinux_8_arm64=False,
-            include_almalinux_9_amd64=False,
-            include_almalinux_9_arm64=False,
-            include_redhat_7_9_amd64=True,
-            include_redhat_8_amd64=True,
-            include_redhat_8_arm64=True,
-            include_redhat_9_amd64=True,
-            include_redhat_9_arm64=True,
-            include_fedora_36_amd64=False,
-            include_fedora_36_arm64=False,
-            include_fedora_37_amd64=False,
-            include_fedora_37_arm64=False,
             scenario_groups=scenario_groups,
+            include_ubuntu_20_amd64=include_ubuntu_20_amd64,
+            include_ubuntu_20_arm64=include_ubuntu_20_arm64,
+            include_ubuntu_21_arm64=include_ubuntu_21_arm64,
+            include_ubuntu_22_amd64=include_ubuntu_22_amd64,
+            include_ubuntu_22_arm64=include_ubuntu_22_arm64,
+            include_ubuntu_23_04_amd64=include_ubuntu_23_04_amd64,
+            include_ubuntu_23_04_arm64=include_ubuntu_23_04_arm64,
+            include_ubuntu_23_10_amd64=include_ubuntu_23_10_amd64,
+            include_ubuntu_23_10_arm64=include_ubuntu_23_10_arm64,
+            include_ubuntu_24_amd64=include_ubuntu_24_amd64,
+            include_ubuntu_24_arm64=include_ubuntu_24_arm64,
+            include_ubuntu_18_amd64=include_ubuntu_18_amd64,
+            include_amazon_linux_2_amd64=include_amazon_linux_2_amd64,
+            include_amazon_linux_2_arm64=include_amazon_linux_2_arm64,
+            include_amazon_linux_2022_amd64=include_amazon_linux_2022_amd64,
+            include_amazon_linux_2022_arm64=include_amazon_linux_2022_arm64,
+            include_amazon_linux_2023_amd64=include_amazon_linux_2023_amd64,
+            include_amazon_linux_2023_arm64=include_amazon_linux_2023_arm64,
+            include_centos_7_amd64=include_centos_7_amd64,
+            include_centos_8_amd64=include_centos_8_amd64,
+            include_oraclelinux_9_2_amd64=include_oraclelinux_9_2_amd64,
+            include_oraclelinux_9_2_arm64=include_oraclelinux_9_2_arm64,
+            include_oraclelinux_8_8_amd64=include_oraclelinux_8_8_amd64,
+            include_oraclelinux_8_8_arm64=include_oraclelinux_8_8_arm64,
+            include_oraclelinux_7_9_amd64=include_oraclelinux_7_9_amd64,
+            include_debian_12_amd64=include_debian_12_amd64,
+            include_debian_12_arm64=include_debian_12_arm64,
+            include_almalinux_8_amd64=include_almalinux_8_amd64,
+            include_almalinux_8_arm64=include_almalinux_8_arm64,
+            include_almalinux_9_amd64=include_almalinux_9_amd64,
+            include_almalinux_9_arm64=include_almalinux_9_arm64,
+            include_redhat_7_9_amd64=include_redhat_7_9_amd64,
+            include_redhat_8_amd64=include_redhat_8_amd64,
+            include_redhat_8_arm64=include_redhat_8_arm64,
+            include_redhat_9_amd64=include_redhat_9_amd64,
+            include_redhat_9_arm64=include_redhat_9_arm64,
+            include_fedora_36_amd64=include_fedora_36_amd64,
+            include_fedora_36_arm64=include_fedora_36_arm64,
+            include_fedora_37_amd64=include_fedora_37_amd64,
+            include_fedora_37_arm64=include_fedora_37_arm64,
         )
 
 

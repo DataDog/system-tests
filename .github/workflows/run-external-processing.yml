@@ -55,17 +55,21 @@ jobs:
         with:
           library: golang
           weblog: golang-dummy
-          scenarios: '["EXTERNAL_PROCESSING"]'
+          scenarios: '["EXTERNAL_PROCESSING", "EXTERNAL_PROCESSING_BLOCKING"]'
 
       - name: Build proxy image
         if: inputs.build_proxy_image
         run: ./build.sh -i proxy
 
       - name: Build agent image
+        id: build
         run: ./build.sh -i agent
 
       - name: Run EXTERNAL_PROCESSING scenario
         run: ./run.sh EXTERNAL_PROCESSING
+
+      - name: Run EXTERNAL_PROCESSING_BLOCKING scenario
+        run: ./run.sh EXTERNAL_PROCESSING_BLOCKING
 
       - name: Compress logs
         id: compress_logs

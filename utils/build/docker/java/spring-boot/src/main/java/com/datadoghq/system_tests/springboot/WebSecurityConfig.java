@@ -2,6 +2,7 @@ package com.datadoghq.system_tests.springboot;
 
 import com.datadoghq.system_tests.springboot.security.AppSecAuthenticationFilter;
 import com.datadoghq.system_tests.springboot.security.AppSecAuthenticationProvider;
+import com.datadoghq.system_tests.springboot.security.AppSecUserDetailsManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
@@ -12,6 +13,7 @@ import org.springframework.security.config.annotation.authentication.configurati
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.provisioning.UserDetailsManager;
 import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
@@ -25,7 +27,12 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter{
 
     @Bean
     public AuthenticationManager authenticationManager() throws Exception {
-        return new ProviderManager(new AppSecAuthenticationProvider());
+        return new ProviderManager(new AppSecAuthenticationProvider(userDetailsManager()));
+    }
+
+    @Bean
+    public UserDetailsManager userDetailsManager() {
+        return new AppSecUserDetailsManager();
     }
 
     @Override

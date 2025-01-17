@@ -1,6 +1,8 @@
+from dataclasses import dataclass
 import os
 import sys
 import pytest
+from _pytest.reports import TestReport
 
 from docker.models.networks import Network
 from docker.types import IPAMConfig, IPAMPool
@@ -8,7 +10,8 @@ from docker.types import IPAMConfig, IPAMPool
 from watchdog.observers.polling import PollingObserver
 from watchdog.events import FileSystemEventHandler
 
-from utils import interfaces
+from utils import interfaces, context
+from utils.interfaces._core import ProxyBasedInterfaceValidator
 from utils.buddies import BuddyHostPorts
 from utils.proxy.ports import ProxyPorts
 from utils._context.containers import (
@@ -30,6 +33,14 @@ from utils._context.containers import (
 from utils.tools import logger
 
 from .core import Scenario, ScenarioGroup
+
+
+@dataclass
+class _SchemaBug:
+    endpoint: str
+    data_path: str
+    condition: bool
+    ticket: str
 
 
 class DockerScenario(Scenario):
@@ -113,6 +124,9 @@ class DockerScenario(Scenario):
         ]
 
     def configure(self, config):  # noqa: ARG002
+        docker_info = get_docker_client().info()
+        self.components["docker.Cgroup"] = docker_info.get("CgroupVersion", None)
+
         for container in reversed(self._required_containers):
             container.configure(self.replay)
 
@@ -195,6 +209,9 @@ class DockerScenario(Scenario):
         for container in self._required_containers:
             if container.healthy is False:
                 pytest.exit(f"Container {container.name} can't be started", 1)
+
+    def pytest_sessionfinish(self, session, exitstatus):  # noqa: ARG002
+        self.close_targets()
 
     def close_targets(self):
         for container in reversed(self._required_containers):
@@ -349,9 +366,6 @@ class EndToEndScenario(DockerScenario):
         self.backend_interface_timeout = backend_interface_timeout
         self.library_interface_timeout = library_interface_timeout
 
-    def is_part_of(self, declared_scenario):
-        return declared_scenario in (self.name, "EndToEndScenario")
-
     def configure(self, config):
         super().configure(config)
 
@@ -431,6 +445,10 @@ class EndToEndScenario(DockerScenario):
             else:
                 pytest.exit(f"Unsupported platform {sys.platform} with ipv6 enabled", 1)
 
+    def _set_components(self):
+        self.components["agent"] = self.agent_version
+        self.components["library"] = self.library.version
+
     def get_warmups(self):
         warmups = super().get_warmups()
 
@@ -439,6 +457,7 @@ class EndToEndScenario(DockerScenario):
             warmups.append(self._get_weblog_system_info)
             warmups.append(self._wait_for_app_readiness)
             warmups.append(self._set_weblog_domain)
+            warmups.append(self._set_components)
 
         return warmups
 
@@ -462,15 +481,18 @@ class EndToEndScenario(DockerScenario):
                 raise ValueError("Datadog agent not ready")
             logger.debug("Agent ready")
 
-    def post_setup(self):
+    def post_setup(self, session: pytest.Session):
+        # if no test are run, skip interface tomeouts
+        is_empty_test_run = session.config.option.skip_empty_scenario and len(session.items) == 0
+
         try:
-            self._wait_and_stop_containers()
+            self._wait_and_stop_containers(force_interface_timout_to_zero=is_empty_test_run)
         finally:
             self.close_targets()
 
         interfaces.library_dotnet_managed.load_data()
 
-    def _wait_and_stop_containers(self):
+    def _wait_and_stop_containers(self, *, force_interface_timout_to_zero: bool):
         if self.replay:
             logger.terminal.write_sep("-", "Load all data from logs")
             logger.terminal.flush()
@@ -488,7 +510,9 @@ class EndToEndScenario(DockerScenario):
             interfaces.backend.load_data_from_logs()
 
         else:
-            self._wait_interface(interfaces.library, self.library_interface_timeout)
+            self._wait_interface(
+                interfaces.library, 0 if force_interface_timout_to_zero else self.library_interface_timeout
+            )
 
             if self.library in ("nodejs",):
                 from utils import weblog  # TODO better interface
@@ -512,17 +536,122 @@ class EndToEndScenario(DockerScenario):
                 container.stop()
                 container.interface.check_deserialization_errors()
 
-            self._wait_interface(interfaces.agent, self.agent_interface_timeout)
+            self._wait_interface(
+                interfaces.agent, 0 if force_interface_timout_to_zero else self.agent_interface_timeout
+            )
             self.agent_container.stop()
             interfaces.agent.check_deserialization_errors()
 
-            self._wait_interface(interfaces.backend, self.backend_interface_timeout)
+            self._wait_interface(
+                interfaces.backend, 0 if force_interface_timout_to_zero else self.backend_interface_timeout
+            )
 
     def _wait_interface(self, interface, timeout):
         logger.terminal.write_sep("-", f"Wait for {interface} ({timeout}s)")
         logger.terminal.flush()
 
         interface.wait(timeout)
+
+    def pytest_sessionfinish(self, session, exitstatus):
+        library_bugs = [
+            _SchemaBug(
+                endpoint="/telemetry/proxy/api/v2/apmtelemetry",
+                data_path="$.payload.configuration[]",
+                condition=context.library >= "nodejs@2.27.1",
+                ticket="APPSEC-52805",
+            ),
+            _SchemaBug(
+                endpoint="/telemetry/proxy/api/v2/apmtelemetry",
+                data_path="$.payload",
+                condition=context.library < "python@v2.9.0.dev",
+                ticket="APPSEC-52845",
+            ),
+            _SchemaBug(
+                endpoint="/telemetry/proxy/api/v2/apmtelemetry",
+                data_path="$.payload.configuration[].value",
+                condition=context.library == "golang",
+                ticket="APMS-12697",
+            ),
+            _SchemaBug(
+                endpoint="/debugger/v1/diagnostics",
+                data_path="$[].content",
+                condition=context.library < "nodejs@5.31.0",
+                ticket="DEBUG-2864",
+            ),
+            _SchemaBug(
+                endpoint="/debugger/v1/diagnostics",
+                data_path="$[].content[].debugger.diagnostics",
+                condition=context.library == "nodejs",
+                ticket="DEBUG-3245",
+            ),
+            _SchemaBug(
+                endpoint="/debugger/v1/input",
+                data_path="$[].debugger.snapshot.stack[].lineNumber",
+                condition=context.library in ("python@2.16.2", "python@2.16.3")
+                and self.name == "DEBUGGER_EXPRESSION_LANGUAGE",
+                ticket="APMRP-360",
+            ),
+        ]
+        self._test_schemas(session, interfaces.library, library_bugs)
+
+        agent_bugs = [
+            _SchemaBug(
+                endpoint="/api/v2/apmtelemetry",
+                data_path="$.payload.configuration[]",
+                condition=context.library >= "nodejs@2.27.1"
+                or self.name in ("CROSSED_TRACING_LIBRARIES", "GRAPHQL_APPSEC"),
+                ticket="APPSEC-52805",
+            ),
+            _SchemaBug(
+                endpoint="/api/v2/apmtelemetry",
+                data_path="$.payload",
+                condition=context.library < "python@v2.9.0.dev",
+                ticket="APPSEC-52845",
+            ),
+            _SchemaBug(
+                endpoint="/api/v2/apmtelemetry", data_path="$", condition=True, ticket="???"
+            ),  # the main payload sent by the agent may be an array i/o an object
+            _SchemaBug(
+                endpoint="/api/v2/apmtelemetry",
+                data_path="$.payload.configuration[].value",
+                condition=context.library == "golang",
+                ticket="APMS-12697",
+            ),
+            _SchemaBug(
+                endpoint="/api/v2/debugger",
+                data_path="$[].content",
+                condition=context.library < "nodejs@5.31.0",
+                ticket="DEBUG-2864",
+            ),
+        ]
+        self._test_schemas(session, interfaces.agent, agent_bugs)
+
+        return super().pytest_sessionfinish(session, exitstatus)
+
+    def _test_schemas(self, session, interface: ProxyBasedInterfaceValidator, known_bugs: list[_SchemaBug]) -> None:
+        long_repr = []
+
+        excluded_points = {(bug.endpoint, bug.data_path) for bug in known_bugs if bug.condition}
+
+        for error in interface.get_schemas_errors():
+            if (error.endpoint, error.data_path) not in excluded_points:
+                long_repr.append(f"* {error.message}")
+
+        if len(long_repr) != 0:
+            report = TestReport(
+                f"{os.path.relpath(__file__)}::{self.__class__.__name__}::_test_schemas",
+                (f"{interface.name} Schema Validation", 12, f"{interface.name}'s schema validation"),
+                {},
+                "failed",
+                "\n".join(long_repr),
+                "call",
+            )
+
+            if "error" not in logger.terminal.stats:
+                logger.terminal.stats["error"] = []
+
+            logger.terminal.stats["error"].append(report)
+            session.exitstatus = pytest.ExitCode.TESTS_FAILED
 
     @property
     def dd_site(self):
@@ -571,10 +700,3 @@ class EndToEndScenario(DockerScenario):
         result["dd_tags[systest.suite.context.appsec_rules_file]"] = self.weblog_container.appsec_rules_file
 
         return result
-
-    @property
-    def components(self):
-        return {
-            "agent": self.agent_version,
-            "library": self.library.version,
-        }

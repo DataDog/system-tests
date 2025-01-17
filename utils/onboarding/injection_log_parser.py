@@ -1,5 +1,5 @@
 import json
-import os
+from pathlib import Path
 
 from utils.tools import logger
 
@@ -58,7 +58,7 @@ def _parse_command(command):
         if "=" in com:
             command_args.remove(com)
             continue
-        return os.path.basename(com), command_args
+        return Path(com).name, command_args
 
     return None, None
 

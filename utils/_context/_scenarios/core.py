@@ -56,6 +56,9 @@ class Scenario:
 
         self.scenario_groups = list(set(self.scenario_groups))  # removes duplicates
 
+        # key value pair of what is actually tested
+        self.components: dict[str, str] = {}
+
         # if xdist is used, this property will be set to false for sub workers
         self.is_main_worker: bool = True
 
@@ -79,11 +82,6 @@ class Scenario:
 
     def __call__(self, test_object):
         """Handles @scenarios.scenario_name"""
-
-        # Check that no scenario has been already declared
-        for marker in getattr(test_object, "pytestmark", []):
-            if marker.name == "scenario":
-                raise ValueError(f"Error on {test_object}: You can declare only one scenario")
 
         pytest.mark.scenario(self.name)(test_object)
 
@@ -118,6 +116,8 @@ class Scenario:
 
         self.configure(config)
 
+    def configure(self, config): ...
+
     def pytest_sessionstart(self, session):  # noqa: ARG002
         """Called at the very begining of the process"""
 
@@ -131,27 +131,24 @@ class Scenario:
             self.close_targets()
             raise
 
-    def configure(self, config): ...
-
     def get_warmups(self):
         return [
             lambda: logger.stdout(f"Scenario: {self.name}"),
             lambda: logger.stdout(f"Logs folder: ./{self.host_log_folder}"),
         ]
 
-    def post_setup(self):
+    def post_setup(self, session: pytest.Session):
         """Called after test setup"""
 
-    def close_targets(self):
+    def pytest_sessionfinish(self, session, exitstatus):
+        """Called at the end of the process"""
+
+    def close_targets(self):  # TODO remove this method
         """Called at the end of the process"""
 
     @property
     def host_log_folder(self):
         return "logs" if self.name == "DEFAULT" else f"logs_{self.name.lower()}"
-
-    @property
-    def components(self):
-        return {}
 
     @property
     def parametrized_tests_metadata(self):
@@ -165,6 +162,3 @@ class Scenario:
 
     def __str__(self) -> str:
         return f"Scenario '{self.name}'"
-
-    def is_part_of(self, declared_scenario):
-        return self.name == declared_scenario

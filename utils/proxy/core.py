@@ -23,7 +23,7 @@ messages_counts = defaultdict(int)
 
 
 class CustomFormatter(logging.Formatter):
-    def __init__(self, keys: list[str], *args, **kwargs) -> None:
+    def __init__(self, keys: list[str], *args, **kwargs) -> None:  # noqa: ANN002
         super().__init__(*args, **kwargs)
         self._keys = keys
 
