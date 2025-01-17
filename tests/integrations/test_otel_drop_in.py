@@ -3,7 +3,7 @@
 # Copyright 2024 Datadog, Inc.
 
 import json
-from utils import weblog, interfaces, scenarios, features
+from utils import weblog, interfaces, scenarios, features, incomplete_test_app
 
 
 @features.f_otel_interoperability
@@ -67,6 +67,7 @@ class Test_Otel_Drop_In_Default_Propagator:
         }
         self.r = weblog.get("/otel_drop_in_default_propagator_inject")
 
+    @incomplete_test_app(library="nodejs", reason="Node.js inject endpoint doesn't seem to be working.")
     def test_propagation_inject(self):
         content = json.loads(self.r.text)
 
