@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Globalization;
+using System.Text.Json;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -30,93 +31,55 @@ public abstract class ApmTestApiOtel : ApmTestApi
 
     private static async Task<string> OtelStartSpan(HttpRequest request)
     {
-        var requestBodyObject = await DeserializeRequestObjectAsync(request.Body);
+        var requestJson = await ParseJsonAsync(request.Body);
 
-        _logger?.LogInformation("OtelStartSpan: {RequestBodyObject}", requestBodyObject);
-
-        ActivityContext? localParentContext = null;
-        ActivityContext? remoteParentContext = null;
-
-        // try getting parent context from parent id (local parent)
-        if (requestBodyObject!.TryGetValue("parent_id", out var parentId) && parentId is not null)
-        {
-            var stringParentId = parentId.ToString();
-
-            if (stringParentId is not "0")
-            {
-                var parentActivity = FindActivity(parentId);
-                localParentContext = parentActivity.Context;
-            }
-        }
-
-        // sanity check that we didn't receive both a local and remote parent
-        if (localParentContext != null && remoteParentContext != null)
-        {
-            throw new ApplicationException(
-                "Both ParentId and HttpHeaders were provided to OtelStartSpan(). " +
-                "Provide one or the other, but not both.");
-        }
-
+        var name = string.Empty;
+        ActivityKind kind = default;
+        List<ActivityLink>? linksList = null;
         DateTimeOffset startTime = default;
-        if (requestBodyObject.TryGetValue("timestamp", out var timestamp) && timestamp is not null)
+
+        if (requestJson.TryGetProperty("name", out var nameProperty) && nameProperty.ValueKind != JsonValueKind.Null)
         {
-            startTime = new DateTime(1970, 1, 1) + TimeSpan.FromMicroseconds(Convert.ToInt64(timestamp));
+            name = nameProperty.GetString();
         }
 
-        var parentContext = localParentContext ?? remoteParentContext ?? default;
-
-        var kind = ActivityKind.Internal;
-
-        if (requestBodyObject.TryGetValue("span_kind", out var spanKind) && spanKind is not null)
+        if (requestJson.TryGetProperty("span_kind", out var spanKindProperty) && spanKindProperty.ValueKind != JsonValueKind.Null)
         {
-            switch (Convert.ToInt64(spanKind))
-            {
-                case 0:
-                    kind = ActivityKind.Internal;
-                    break;
-                case 1:
-                    kind = ActivityKind.Server;
-                    break;
-                case 2:
-                    kind = ActivityKind.Client;
-                    break;
-                case 3:
-                    kind = ActivityKind.Producer;
-                    break;
-                case 4:
-                    kind = ActivityKind.Consumer;
-                    break;
-                default:
-                    kind = ActivityKind.Internal; // this is the default in Activity
-                    break;
-            }
+            kind = (ActivityKind)spanKindProperty.GetInt32();
         }
 
-        var linksList = new List<ActivityLink>();
+        var parentContext = FindActivity(requestJson)?.Context ?? default;
 
-        if (requestBodyObject.TryGetValue("links", out var links))
+        if (requestJson.TryGetProperty("links", out var spanLinks) && spanLinks.ValueKind != JsonValueKind.Null)
         {
-            foreach (var spanLink in (JArray)links)
-            {
-                var parentSpanLink = Convert.ToUInt64(spanLink["parent_id"]);
+            linksList = [];
 
-                ActivityTagsCollection? tags = default;
-                if (spanLink["attributes"] is not null)
+            foreach (var spanLink in spanLinks.EnumerateArray())
+            {
+                var parentSpan = FindActivity(spanLink);
+                ActivityTagsCollection? tags = null;
+
+                if (spanLink.TryGetProperty("attributes", out var attributesProperty) && attributesProperty.ValueKind != JsonValueKind.Null)
                 {
-                    tags = ToActivityTagsCollection(((Newtonsoft.Json.Linq.JObject?)spanLink["attributes"])?.ToObject<Dictionary<string, object>>());
+                    //tags = ToActivityTagsCollection(attributesProperty);
                 }
 
-                ActivityContext contextToLink = FindActivity(parentSpanLink).Context;
+                var contextToLink = parentSpan!.Context;
                 linksList.Add(new ActivityLink(contextToLink, tags));
             }
         }
 
+        if (requestJson.TryGetProperty("timestamp", out var timestamp) && timestamp.ValueKind != JsonValueKind.Null)
+        {
+            startTime = new DateTime(1970, 1, 1) + TimeSpan.FromMicroseconds(timestamp.GetUInt64());
+        }
+
         var activity = ApmTestApiActivitySource.StartActivity(
-            (string)requestBodyObject["name"],
+            name,
             kind,
             parentContext,
-            tags: null,
-            links: linksList,
+            null,
+            linksList,
             startTime);
 
         if (activity is null)
@@ -127,9 +90,12 @@ public abstract class ApmTestApiOtel : ApmTestApi
         activity.ActivityTraceFlags = ActivityTraceFlags.Recorded;
 
         // add necessary tags to the activity
-        if (requestBodyObject.TryGetValue("attributes", out var attributes))
+        if (requestJson.TryGetProperty("attributes", out var attributes) && attributes.ValueKind != JsonValueKind.Null)
         {
-            SetTag(activity, ((Newtonsoft.Json.Linq.JObject)attributes).ToObject<Dictionary<string,object>>());
+            foreach (var attribute in attributes.EnumerateArray())
+            {
+                SetTag(activity, ((Newtonsoft.Json.Linq.JObject)attributes).ToObject<Dictionary<string, object>>());
+            }
         }
 
         _logger?.LogInformation("Started Activity: OperationName={OperationName}", activity.OperationName);
@@ -363,52 +329,47 @@ public abstract class ApmTestApiOtel : ApmTestApi
         return JsonConvert.DeserializeObject<Dictionary<string, object>>(headerRequestBody)!;
     }
 
-    private static Activity FindActivity(object activityId)
+    private static Activity? FindActivity(JsonElement json, string key = "parent_id")
     {
-        if (Activities.TryGetValue(Convert.ToUInt64(activityId.ToString()), out var activity))
+        var jsonProperty = json.GetProperty(key);
+
+        if (jsonProperty.ValueKind == JsonValueKind.Null)
+        {
+            return null;
+        }
+
+        var spanId = jsonProperty.GetUInt64();
+
+        if (Activities.TryGetValue(spanId, out var activity))
         {
             return activity;
         }
 
-        throw new ApplicationException($"Activity not found with span id {activityId}.");
+        _logger?.LogError("Activity not found with span id: {spanId}.", spanId);
+        throw new InvalidOperationException($"Activity not found with span id: {spanId}");
     }
 
-    private static void SetTag(Activity activity, Dictionary<string,object>? attributes)
+    private static void SetTag(Activity activity, string key, object value)
     {
-        if (attributes is null)
+        switch (value)
         {
-            return;
-        }
-
-        foreach ((string key, object values) in attributes)
-        {
-            if (values is string
-                || values is bool
-                || values is long
-                || values is double)
-            {
-                if (key == "http.response.status_code")
-                {
-                    // http.response.status_code is an int type
-                    // the .NET Tracer only will remap this tag _if_ it is an int to ensure we aren't remapping other, invalid datatypes
-                    // Newtonsoft will only convert JSON numerical types into longs or doubles, so we need to convert the datatype here
-                    activity.SetTag(key, Convert.ToInt32(values));
-                }
-                else
-                {
-                    activity.SetTag(key, values);
-                }
-            }
-            else if (values is System.Collections.IEnumerable valuesList)
+            case string or bool or long or double:
+                // http.response.status_code is an int type
+                // the .NET Tracer only will remap this tag _if_ it is an int to ensure we aren't remapping other, invalid datatypes
+                // Newtonsoft will only convert JSON numerical types into longs or doubles, so we need to convert the datatype here
+                activity.SetTag(key, key == "http.response.status_code" ? Convert.ToInt32(value) : value);
+                break;
+            case System.Collections.IEnumerable valuesList:
             {
                 var toAdd = new List<object>();
-                foreach (var value in valuesList)
+                foreach (var listValue in valuesList)
                 {
-                    var valueToAdd = ((Newtonsoft.Json.Linq.JValue)value).Value ?? throw new InvalidOperationException("Null value in attribute array");
+                    var valueToAdd = ((JValue)listValue).Value ?? throw new InvalidOperationException("Null value in attribute array");
                     toAdd.Add(valueToAdd);
                 }
 
                 activity.SetTag(key, toAdd);
+                break;
             }
         }
     }

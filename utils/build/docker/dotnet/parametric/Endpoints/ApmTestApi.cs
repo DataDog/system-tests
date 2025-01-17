@@ -69,7 +69,6 @@ public abstract class ApmTestApi
     private static readonly SpanContextInjector SpanContextInjector = new();
     private static readonly SpanContextExtractor SpanContextExtractor = new();
 
-
     private static async Task<string> StopTracer()
     {
         await Tracer.Instance.ForceFlushAsync();
