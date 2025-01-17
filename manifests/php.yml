@@ -311,7 +311,7 @@ tests/:
       Test_ExtraTagsFromRule: v0.88.0
       Test_Info: v0.68.3  # probably 0.68.2, but was flaky
     test_request_blocking.py:
-      Test_AppSecRequestBlocking: missing_feature # missing version
+      Test_AppSecRequestBlocking: v1.6.2
     test_runtime_activation.py:
       Test_RuntimeActivation: v1.6.2
       Test_RuntimeDeactivation: v1.6.2
