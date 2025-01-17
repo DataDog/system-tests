@@ -81,6 +81,9 @@ jobs:
       - name: Run GRAPHQL_APPSEC scenario
         run: ./run.sh GRAPHQL_APPSEC
 
+      - name: Run GRAPHQL scenario
+        run: ./run.sh GRAPHQL
+
       - name: Compress logs
         id: compress_logs
         if: always() && steps.build.outcome == 'success'

@@ -905,6 +905,7 @@ tests/:
     Test_Span_Links_From_Conflicting_Contexts: v2.17.0
     Test_Span_Links_From_Conflicting_Contexts_Datadog_Precedence: v2.17.0
     Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts: v2.17.0
+  test_graphql.py: missing_feature
   test_identify.py:
     Test_Basic: v1.5.0-rc1
     Test_Propagate: v1.9.0
