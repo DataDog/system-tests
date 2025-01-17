@@ -305,16 +305,16 @@ tests/:
       Test_SecurityEvents_Iast_Metastruct_Disabled: irrelevant (no fallback will be implemented)
       Test_SecurityEvents_Iast_Metastruct_Enabled: missing_feature
     test_remote_config_rule_changes.py:
-      Test_BlockingActionChangesWithRemoteConfig: missing_feature
-      Test_UpdateRuleFileWithRemoteConfig: missing_feature (v0.8.0 but lacks telemetry support)
+      Test_BlockingActionChangesWithRemoteConfig: v1.6.2
+      Test_UpdateRuleFileWithRemoteConfig: v1.6.2
     test_reports.py:
       Test_ExtraTagsFromRule: v0.88.0
       Test_Info: v0.68.3  # probably 0.68.2, but was flaky
     test_request_blocking.py:
       Test_AppSecRequestBlocking: missing_feature # missing version
     test_runtime_activation.py:
-      Test_RuntimeActivation: missing_feature # missing version
-      Test_RuntimeDeactivation: missing_feature # missing version
+      Test_RuntimeActivation: v1.6.2
+      Test_RuntimeDeactivation: v1.6.2
     test_shell_execution.py:
       Test_ShellExecution: v0.95.0
     test_suspicious_attacker_blocking.py:
