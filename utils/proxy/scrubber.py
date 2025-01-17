@@ -12,7 +12,7 @@ _name_filter = re.compile(r"key|token|secret|pass|docker_login", re.IGNORECASE)
 
 def _get_secrets_str() -> tuple[list[str], str]:
     secrets: list = [
-        value for name, value in os.environ.items() if name not in _not_secrets and _name_filter.search(name)
+        value for name, value in os.environ.items() if value and name not in _not_secrets and _name_filter.search(name)
     ]
     redacted = "<redacted>"
     return secrets, redacted
@@ -20,7 +20,9 @@ def _get_secrets_str() -> tuple[list[str], str]:
 
 def _get_secrets_bytes() -> tuple[list[bytes], bytes]:
     secrets: list = [
-        value.encode() for name, value in os.environ.items() if name not in _not_secrets and _name_filter.search(name)
+        value.encode()
+        for name, value in os.environ.items()
+        if value and name not in _not_secrets and _name_filter.search(name)
     ]
     redacted = b"<redacted>"
 
