@@ -1,7 +1,8 @@
 import json
 from collections import defaultdict
-from datetime import datetime, timedelta
+from datetime import timedelta
 import time
+from dateutil.parser import isoparse
 from utils import context, interfaces, missing_feature, bug, flaky, irrelevant, weblog, scenarios, features, rfc
 from utils.tools import logger
 from utils.interfaces._misc_validators import HeadersPresenceValidator, HeadersMatchValidator
@@ -132,7 +133,6 @@ class Test_Telemetry:
         """Test that messages are sent sequentially"""
 
         MAX_OUT_OF_ORDER_LAG = 0.3  # s
-        FMT = "%Y-%m-%dT%H:%M:%S.%f%z"
 
         telemetry_data = list(interfaces.library.get_telemetry_data(flatten_message_batches=False))
         if len(telemetry_data) == 0:
@@ -150,7 +150,7 @@ class Test_Telemetry:
                     continue
                 seq_id = data["request"]["content"]["seq_id"]
                 timestamp_start = data["request"]["timestamp_start"]
-                curr_message_time = datetime.strptime(timestamp_start, FMT)
+                curr_message_time = isoparse(timestamp_start)
                 logger.debug(f"Message at {timestamp_start.split('T')[1]} in {data['log_filename']}, seq_id: {seq_id}")
 
                 # IDs should be sent sequentially, even if there are errors
@@ -295,8 +295,6 @@ class Test_Telemetry:
         The value is a list of delay observed on this runtime id
         """
 
-        fmt = "%Y-%m-%dT%H:%M:%S.%f%z"
-
         telemetry_data = list(interfaces.library.get_telemetry_data())
         heartbeats_by_runtime = defaultdict(list)
 
@@ -312,12 +310,12 @@ class Test_Telemetry:
             logger.debug(f"Heartbeats for runtime {runtime_id}:")
 
             # In theory, it's sorted. Let be safe
-            heartbeats.sort(key=lambda data: datetime.strptime(data["request"]["timestamp_start"], fmt))
+            heartbeats.sort(key=lambda data: isoparse(data["request"]["timestamp_start"]))
 
             prev_message_time = None
             delays = []
             for data in heartbeats:
-                curr_message_time = datetime.strptime(data["request"]["timestamp_start"], fmt)
+                curr_message_time = isoparse(data["request"]["timestamp_start"])
                 if prev_message_time is None:
                     logger.debug(f"  * {data['log_filename']}: {curr_message_time}")
                 else:
@@ -676,7 +674,7 @@ class Test_TelemetryV2:
                 if len(missing_config_keys) != 0:
                     logger.error(json.dumps(missing_config_keys, indent=2))
                     raise ValueError(
-                        "(NOT A FLAKE) Found unexpected config telemetry keys. Runbook: https://github.com/DataDog/system-tests/blob/main/docs/edit/runbook.md#test_config_telemetry_completeness"
+                        "(NOT A FLAKE) Read this quick runbook to update allowed configs: https://github.com/DataDog/system-tests/blob/main/docs/edit/runbook.md#test_config_telemetry_completeness"
                     )
 
     @missing_feature(library="cpp")

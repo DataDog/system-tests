@@ -14,7 +14,7 @@ from .performance import PerformanceScenario
 from .profiling import ProfilingScenario
 from .test_the_test import TestTheTestScenario
 from .auto_injection import InstallerAutoInjectionScenario, InstallerAutoInjectionScenarioProfiling
-from .k8s_lib_injection import KubernetesScenario, WeblogInjectionScenario, K8sScenario, K8sSparkScenario
+from .k8s_lib_injection import WeblogInjectionScenario, K8sScenario, K8sSparkScenario
 from .docker_ssi import DockerSSIScenario
 from .external_processing import ExternalProcessingScenario
 from .ipv6 import IPV6Scenario
@@ -620,6 +620,8 @@ class _Scenarios:
         vm_provision="auto-inject-ld-preload",
         scenario_groups=[ScenarioGroup.ONBOARDING],
         github_workflow="libinjection",
+        include_amazon_linux_2023_amd64=False,  # LD library failures impact on the docker engine, causes flakiness
+        include_amazon_linux_2023_arm64=False,
     )
 
     simple_auto_injection_profiling = InstallerAutoInjectionScenarioProfiling(
@@ -683,26 +685,6 @@ class _Scenarios:
         github_workflow="libinjection",
     )
 
-    k8s_library_injection_basic = KubernetesScenario(
-        "K8S_LIBRARY_INJECTION_BASIC",
-        doc=" Kubernetes Instrumentation basic scenario",
-        github_workflow="libinjection",
-        scenario_groups=[ScenarioGroup.ALL, ScenarioGroup.LIB_INJECTION],
-    )
-
-    k8s_library_injection_djm = KubernetesScenario(
-        "K8S_LIBRARY_INJECTION_DJM",
-        doc="Kubernetes Instrumentation with Data Jobs Monitoring",
-        github_workflow="libinjection",
-        scenario_groups=[ScenarioGroup.ALL, ScenarioGroup.LIB_INJECTION],
-    )
-
-    k8s_library_injection_profiling = KubernetesScenario(
-        "K8S_LIBRARY_INJECTION_PROFILING",
-        doc=" Kubernetes auto instrumentation, profiling activation",
-        github_workflow="libinjection",
-        scenario_groups=[ScenarioGroup.ALL, ScenarioGroup.LIB_INJECTION],
-    )
     lib_injection_validation = WeblogInjectionScenario(
         "LIB_INJECTION_VALIDATION",
         doc="Validates the init images without kubernetes enviroment",
@@ -778,7 +760,19 @@ class _Scenarios:
         scenario_groups=[ScenarioGroup.INTEGRATIONS],
     )
 
-    external_processing = ExternalProcessingScenario("EXTERNAL_PROCESSING")
+    external_processing = ExternalProcessingScenario(
+        name="EXTERNAL_PROCESSING",
+        doc="Envoy + external processing",
+        rc_api_enabled=True,
+    )
+
+    external_processing_blocking = ExternalProcessingScenario(
+        name="EXTERNAL_PROCESSING_BLOCKING",
+        doc="Envoy + external processing + blocking rule file",
+        extproc_env={"DD_APPSEC_RULES": "/appsec_blocking_rule.json"},
+        extproc_volumes={"./tests/appsec/blocking_rule.json": {"bind": "/appsec_blocking_rule.json", "mode": "ro"}},
+    )
+
     ipv6 = IPV6Scenario("IPV6")
 
 
