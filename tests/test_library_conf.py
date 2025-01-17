@@ -305,7 +305,10 @@ class Test_ExtractBehavior_Default:
             },
         )
 
-    @missing_feature(library="cpp", reason="baggage is not implemented, also remove DD_TRACE_PROPAGATION_STYLE_EXTRACT workaround in containers.py")
+    @missing_feature(
+        library="cpp",
+        reason="baggage is not implemented, also remove DD_TRACE_PROPAGATION_STYLE_EXTRACT workaround in containers.py",
+    )
     def test_single_tracecontext(self):
         interfaces.library.assert_trace_exists(self.r)
         spans = interfaces.agent.get_spans_list(self.r)
@@ -340,7 +343,10 @@ class Test_ExtractBehavior_Default:
             },
         )
 
-    @missing_feature(library="cpp", reason="baggage is not implemented, also remove DD_TRACE_PROPAGATION_STYLE_EXTRACT workaround in containers.py")
+    @missing_feature(
+        library="cpp",
+        reason="baggage is not implemented, also remove DD_TRACE_PROPAGATION_STYLE_EXTRACT workaround in containers.py",
+    )
     def test_multiple_tracecontexts(self):
         interfaces.library.assert_trace_exists(self.r)
         spans = interfaces.agent.get_spans_list(self.r)
@@ -390,7 +396,10 @@ class Test_ExtractBehavior_Restart:
             },
         )
 
-    @missing_feature(library="cpp", reason="baggage is not implemented, also remove DD_TRACE_PROPAGATION_STYLE_EXTRACT workaround in containers.py")
+    @missing_feature(
+        library="cpp",
+        reason="baggage is not implemented, also remove DD_TRACE_PROPAGATION_STYLE_EXTRACT workaround in containers.py",
+    )
     def test_single_tracecontext(self):
         interfaces.library.assert_trace_exists(self.r)
         spans = interfaces.agent.get_spans_list(self.r)
@@ -437,7 +446,10 @@ class Test_ExtractBehavior_Restart:
             },
         )
 
-    @missing_feature(library="cpp", reason="baggage is not implemented, also remove DD_TRACE_PROPAGATION_STYLE_EXTRACT workaround in containers.py")
+    @missing_feature(
+        library="cpp",
+        reason="baggage is not implemented, also remove DD_TRACE_PROPAGATION_STYLE_EXTRACT workaround in containers.py",
+    )
     def test_multiple_tracecontexts(self):
         interfaces.library.assert_trace_exists(self.r)
         spans = interfaces.agent.get_spans_list(self.r)
@@ -493,7 +505,10 @@ class Test_ExtractBehavior_Ignore:
             },
         )
 
-    @missing_feature(library="cpp", reason="baggage is not implemented, also remove DD_TRACE_PROPAGATION_STYLE_EXTRACT workaround in containers.py")
+    @missing_feature(
+        library="cpp",
+        reason="baggage is not implemented, also remove DD_TRACE_PROPAGATION_STYLE_EXTRACT workaround in containers.py",
+    )
     def test_single_tracecontext(self):
         interfaces.library.assert_trace_exists(self.r)
         spans = interfaces.agent.get_spans_list(self.r)
@@ -528,7 +543,10 @@ class Test_ExtractBehavior_Ignore:
             },
         )
 
-    @missing_feature(library="cpp", reason="baggage is not implemented, also remove DD_TRACE_PROPAGATION_STYLE_EXTRACT workaround in containers.py")
+    @missing_feature(
+        library="cpp",
+        reason="baggage is not implemented, also remove DD_TRACE_PROPAGATION_STYLE_EXTRACT workaround in containers.py",
+    )
     def test_multiple_tracecontexts(self):
         interfaces.library.assert_trace_exists(self.r)
         spans = interfaces.agent.get_spans_list(self.r)
@@ -572,7 +590,10 @@ class Test_ExtractBehavior_Restart_With_Extract_First:
             },
         )
 
-    @missing_feature(library="cpp", reason="baggage is not implemented, also remove DD_TRACE_PROPAGATION_STYLE_EXTRACT workaround in containers.py")
+    @missing_feature(
+        library="cpp",
+        reason="baggage is not implemented, also remove DD_TRACE_PROPAGATION_STYLE_EXTRACT workaround in containers.py",
+    )
     def test_single_tracecontext(self):
         interfaces.library.assert_trace_exists(self.r)
         spans = interfaces.agent.get_spans_list(self.r)
@@ -619,7 +640,10 @@ class Test_ExtractBehavior_Restart_With_Extract_First:
             },
         )
 
-    @missing_feature(library="cpp", reason="baggage is not implemented, also remove DD_TRACE_PROPAGATION_STYLE_EXTRACT workaround in containers.py")
+    @missing_feature(
+        library="cpp",
+        reason="baggage is not implemented, also remove DD_TRACE_PROPAGATION_STYLE_EXTRACT workaround in containers.py",
+    )
     def test_multiple_tracecontexts(self):
         interfaces.library.assert_trace_exists(self.r)
         spans = interfaces.agent.get_spans_list(self.r)

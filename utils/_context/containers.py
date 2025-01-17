@@ -844,7 +844,9 @@ class WeblogContainer(TestedContainer):
         if library == "cpp":
             extract_config = self.environment.get("DD_TRACE_PROPAGATION_STYLE_EXTRACT")
             if extract_config and "baggage" in extract_config:
-                self.environment["DD_TRACE_PROPAGATION_STYLE_EXTRACT"] = extract_config.replace("baggage", "").strip(",")
+                self.environment["DD_TRACE_PROPAGATION_STYLE_EXTRACT"] = extract_config.replace("baggage", "").strip(
+                    ","
+                )
 
         if library == "nodejs":
             try:
