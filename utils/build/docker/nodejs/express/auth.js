@@ -91,17 +91,18 @@ module.exports = function (app, tracer) {
 
       statusCode = 401
     } else if (event === 'success') {
-      tracer.appsec.trackUserLoginSuccessEvent(
-        {
-          id: userId,
-          email: userMail,
-          name: 'system_tests_user'
-        },
-        {
-          metadata0: 'value0',
-          metadata1: 'value1'
-        }
-      )
+      const sdkUser = {
+        id: userId,
+        email: userMail,
+        name: 'system_tests_user'
+      }
+
+      tracer.appsec.trackUserLoginSuccessEvent(sdkUser, { metadata0: 'value0', metadata1: 'value1' })
+
+      const isUserBlocked = tracer.appsec.isUserBlocked(sdkUser)
+      if (isUserBlocked && tracer.appsec.blockRequest(req, res)) {
+        return
+      }
 
       statusCode = 200
     }
