@@ -44,7 +44,7 @@ def _query_for_trace_id(trace_id, validator=None):
 
 
 def _make_request(
-    url, headers=None, method="get", json=None, request_timeout=10, retry_delay=1, backoff_factor=2, max_retries=6
+    url, headers=None, method="get", json=None, request_timeout=10, retry_delay=1, backoff_factor=2, max_retries=10
 ):
     for _attempt in range(max_retries):
         try:
@@ -55,13 +55,14 @@ def _make_request(
 
             if r.status_code == 429:
                 retry_after = _parse_retry_after(r.headers.get("X-RateLimit-Reset"))
-                logger.info(f" Received 429, retrying in: [{retry_after}]")
+                logger.debug(f" Received 429, rate limit reset in: [{retry_after}]")
                 if retry_after > 0:
                     retry_delay = max(retry_after, retry_delay)
                     retry_delay += random.uniform(0, 1)
         except requests.exceptions.RequestException as e:
             logger.error(f"Error received connecting to url: [{url}] {e} ")
 
+        logger.debug(f" Received non 200 status code for [{url}], retrying in: [{retry_delay}]")
         time.sleep(retry_delay)
         retry_delay *= backoff_factor
         retry_delay += random.uniform(0, 1)
