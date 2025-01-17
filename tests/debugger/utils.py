@@ -261,6 +261,7 @@ class _Base_Debugger_Test:
         self._collect_probe_diagnostics()
         self._collect_snapshots()
         self._collect_spans()
+        self.traces = interfaces.agent.get_spans()
 
     def _collect_probe_diagnostics(self):
         def _read_data():
