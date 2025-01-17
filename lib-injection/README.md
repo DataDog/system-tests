@@ -6,7 +6,7 @@ The lib-injection project is a feature to allow injection of the Datadog library
 into a customer's application container without requiring them to modify their
 application images.
 
-This feature enables applications written in Java, Node or Python running
+This feature enables applications written in Java, Node.js or Python running
 in Kubernetes to be automatically instrumented with the corresponding Datadog
 APM libraries.
 
@@ -43,7 +43,7 @@ The Datadog admission controller is a component of the Datadog Cluster Agent. It
 
 Lib injection testing is part of the "system-tests" test suite. Although we run it in isolation from the system-tests, they share certain similarities
 
-To test lib-injection/autoinstrumentation feature, we run a Kubernetes cluster with the Datadog Cluster Agent and we check that the instrumentation runs smoothly using different sample applications (weblog) in different languages (currently Java, Python and Node).
+To test lib-injection/autoinstrumentation feature, we run a Kubernetes cluster with the Datadog Cluster Agent and we check that the instrumentation runs smoothly using different sample applications (weblog) in different languages (currently Java, Python and Node.js).
 
 The following image represents, in general terms, the necessary and dependent architecture to be able to run lib-injection tests:
 

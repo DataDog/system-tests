@@ -165,7 +165,7 @@ app.post('/trace/span/set_metric', (req, res) => {
 });
 
 app.post('/trace/stats/flush', (req, res) => {
-  // TODO: implement once available in NodeJS Tracer
+  // TODO: implement once available in Node.js Tracer
   res.json({});
 });
 

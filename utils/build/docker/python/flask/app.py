@@ -1131,6 +1131,36 @@ def view_iast_header_injection_secure():
     return resp
 
 
+@app.route("/iast/code_injection/test_insecure", methods=["POST"])
+def view_iast_code_injection_insecure():
+    code_string = flask_request.form["code"]
+    _ = eval(code_string)
+    resp = Response("OK")
+    return resp
+
+
+@app.route("/iast/code_injection/test_secure", methods=["POST"])
+def view_iast_code_injection_secure():
+    import operator
+
+    def safe_eval(expr):
+        ops = {
+            "+": operator.add,
+            "-": operator.sub,
+            "*": operator.mul,
+            "/": operator.truediv,
+        }
+        if len(expr) != 3 or expr[1] not in ops:
+            raise ValueError("Invalid expression")
+        a, op, b = expr
+        return ops[op](float(a), float(b))
+
+    code_string = flask_request.form["code"]
+    _ = safe_eval(code_string)
+    resp = Response("OK")
+    return resp
+
+
 _TRACK_METADATA = {
     "metadata0": "value0",
     "metadata1": "value1",
@@ -1159,34 +1189,36 @@ def login():
     username = flask_request.form.get("username")
     password = flask_request.form.get("password")
     sdk_event = flask_request.args.get("sdk_event")
-    if sdk_event:
-        sdk_user = flask_request.args.get("sdk_user")
-        sdk_mail = flask_request.args.get("sdk_mail")
-        sdk_user_exists = flask_request.args.get("sdk_user_exists")
-        if sdk_event == "success":
-            appsec_trace_utils.track_user_login_success_event(tracer, user_id=sdk_user, email=sdk_mail)
-            return Response("OK")
-        elif sdk_event == "failure":
-            appsec_trace_utils.track_user_login_failure_event(
-                tracer, user_id=sdk_user, email=sdk_mail, exists=sdk_user_exists
-            )
-            return Response("login failure", status=401)
     authorisation = flask_request.headers.get("Authorization")
     if authorisation:
         username, password = base64.b64decode(authorisation[6:]).decode().split(":")
     success, user = User.check(username, password)
     if success:
         login_user(user)
-        appsec_trace_utils.track_user_login_success_event(tracer, user_id=user.uid, login_events_mode="auto")
-        return Response("OK")
+        appsec_trace_utils.track_user_login_success_event(
+            tracer, user_id=user.uid, login_events_mode="auto", login=username
+        )
     elif user:
         appsec_trace_utils.track_user_login_failure_event(
-            tracer, user_id=user.uid, exists=True, login_events_mode="auto"
+            tracer, user_id=user.uid, exists=True, login_events_mode="auto", login=username
         )
     else:
         appsec_trace_utils.track_user_login_failure_event(
-            tracer, user_id=username, exists=False, login_events_mode="auto"
+            tracer, user_id=username, exists=False, login_events_mode="auto", login=username
         )
+    if sdk_event:
+        sdk_user = flask_request.args.get("sdk_user")
+        sdk_mail = flask_request.args.get("sdk_mail")
+        sdk_user_exists = flask_request.args.get("sdk_user_exists")
+        if sdk_event == "success":
+            appsec_trace_utils.track_user_login_success_event(tracer, user_id=sdk_user, email=sdk_mail, login=sdk_user)
+            success = True
+        elif sdk_event == "failure":
+            appsec_trace_utils.track_user_login_failure_event(
+                tracer, user_id=sdk_user, email=sdk_mail, exists=sdk_user_exists, login=sdk_user
+            )
+    if success:
+        return Response("OK")
     return Response("login failure", status=401)
 
 

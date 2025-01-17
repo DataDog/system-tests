@@ -50,6 +50,17 @@ def assert_iast_vulnerability(
         assert len(vulns) == vulnerability_count
 
 
+def assert_metric(request, metric, expected):
+    spans_checked = 0
+    metric_available = False
+    for data, trace, span in interfaces.library.get_spans(request):
+        if metric in span["metrics"]:
+            metric_available = True
+        spans_checked += 1
+    assert spans_checked == 1
+    assert metric_available == expected
+
+
 def _check_telemetry_response_from_agent():
     # Java tracer (at least) disable telemetry if agent answer 403
     # Checking that agent answers 200

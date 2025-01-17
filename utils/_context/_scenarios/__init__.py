@@ -626,6 +626,8 @@ class _Scenarios:
         vm_provision="auto-inject-ld-preload",
         scenario_groups=[ScenarioGroup.ONBOARDING],
         github_workflow="libinjection",
+        include_amazon_linux_2023_amd64=False,  # LD library failures impact on the docker engine, causes flakiness
+        include_amazon_linux_2023_arm64=False,
     )
 
     simple_auto_injection_profiling = InstallerAutoInjectionScenarioProfiling(
@@ -764,7 +766,19 @@ class _Scenarios:
         scenario_groups=[ScenarioGroup.INTEGRATIONS],
     )
 
-    external_processing = ExternalProcessingScenario("EXTERNAL_PROCESSING")
+    external_processing = ExternalProcessingScenario(
+        name="EXTERNAL_PROCESSING",
+        doc="Envoy + external processing",
+        rc_api_enabled=True,
+    )
+
+    external_processing_blocking = ExternalProcessingScenario(
+        name="EXTERNAL_PROCESSING_BLOCKING",
+        doc="Envoy + external processing + blocking rule file",
+        extproc_env={"DD_APPSEC_RULES": "/appsec_blocking_rule.json"},
+        extproc_volumes={"./tests/appsec/blocking_rule.json": {"bind": "/appsec_blocking_rule.json", "mode": "ro"}},
+    )
+
     ipv6 = IPV6Scenario("IPV6")
 
 

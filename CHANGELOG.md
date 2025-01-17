@@ -71,7 +71,7 @@ All notable changes to this project will be documented in this file.
 
 * 2024-05-27 [Use semver for version parser](https://github.com/DataDog/system-tests/pull/2487) by @cbeauchesne
 * 2024-05-07 [[python] decrease the waiting time for python libraries from 25s to 5s](https://github.com/DataDog/system-tests/pull/2431) by @christophe-papazian
-* 2024-05-29 [Manifest references + Node semver migration](https://github.com/DataDog/system-tests/pull/2416) by @simon-id
+* 2024-05-29 [Manifest references + Node.js semver migration](https://github.com/DataDog/system-tests/pull/2416) by @simon-id
 * 2024-05-03 [Dynamically compute scenarios to run](https://github.com/DataDog/system-tests/pull/2408) by @cbeauchesne
 
 
@@ -123,7 +123,7 @@ All notable changes to this project will be documented in this file.
 ### October 2023 (100 PR merged)
 
 * 2023-10-09 [New python/FastAPI variant](https://github.com/DataDog/system-tests/pull/1663) by @christophe-papazian
-* 2023-10-27 [New NodeJS/NextJS variant](https://github.com/DataDog/system-tests/pull/1662) by @uurien
+* 2023-10-27 [New Node.js/NextJS variant](https://github.com/DataDog/system-tests/pull/1662) by @uurien
 * 2023-10-01 [New scenario for testing debugger probes](https://github.com/DataDog/system-tests/pull/1632) by @shurivich
 
 ### September 2023 (84 PR merged)

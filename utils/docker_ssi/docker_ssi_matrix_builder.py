@@ -1,3 +1,4 @@
+import os
 import json
 import yaml
 import argparse
@@ -6,7 +7,12 @@ import argparse
 from docker_ssi_definitions import ALL_WEBLOGS
 
 
-def generate_gitlab_pipeline(languages):
+def generate_gitlab_pipeline(languages, env, custom_library_version, custom_injector_version):
+    custom_extra_params = ""
+    if custom_library_version:
+        custom_extra_params = f"--ssi-library-version {custom_library_version}"
+    if custom_library_version:
+        custom_extra_params = custom_extra_params + f"--ssi-injector-version {custom_injector_version}"
     pipeline = {
         "stages": ["DOCKER_SSI"],
         "configure": {
@@ -28,7 +34,10 @@ def generate_gitlab_pipeline(languages):
                 "./build.sh -i runner",
                 "source venv/bin/activate",
                 "echo 'Running SSI tests'",
-                'timeout 2700s ./run.sh DOCKER_SSI --ssi-weblog "$weblog" --ssi-library "$TEST_LIBRARY" --ssi-base-image "$base_image" --ssi-arch "$arch" --ssi-installable-runtime "$installable_runtime" --report-run-url ${CI_PIPELINE_URL} --report-environment prod',
+                'timeout 2700s ./run.sh DOCKER_SSI --ssi-weblog "$weblog" --ssi-library "$TEST_LIBRARY" --ssi-base-image "$base_image" --ssi-arch "$arch" --ssi-installable-runtime "$installable_runtime" --ssi-env '
+                + env
+                + custom_extra_params
+                + " --report-run-url ${CI_JOB_URL} --report-environment prod",
             ],
             "rules": [
                 {"if": '$PARENT_PIPELINE_SOURCE == "schedule"', "when": "always"},
@@ -72,7 +81,7 @@ def generate_gitlab_pipeline(languages):
                 "extends": ".base_ssi_job",
                 "tags": ["runner:$runner"],
                 "stage": language if len(languages) > 1 else "DOCKER_SSI",
-                "allow_failure": True,
+                "allow_failure": False,
                 "variables": {"TEST_LIBRARY": language},
                 "parallel": {"matrix": matrix},
             }
@@ -103,13 +112,18 @@ def main():
     parser.add_argument("--output-file", required=False, type=str)
     parser.add_argument("--language", required=False, type=str, help="Only generate config for single language")
 
+    # Params from env variables
+    env = os.getenv("ONBOARDING_FILTER_ENV", "prod")
+    custom_library_version = os.getenv("DD_INSTALLER_LIBRARY_VERSION")
+    custom_injector_version = os.getenv("DD_INSTALLER_INJECTOR_VERSION")
+
     args = parser.parse_args()
     if args.language:
         languages = [args.language]
     else:
         languages = ["java", "python", "nodejs", "dotnet", "ruby", "php"]
 
-    pipeline = generate_gitlab_pipeline(languages)
+    pipeline = generate_gitlab_pipeline(languages, env, custom_library_version, custom_injector_version)
 
     output = (
         json.dumps(pipeline, sort_keys=False)

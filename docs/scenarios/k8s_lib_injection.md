@@ -25,7 +25,7 @@ The lib-injection project is a feature to allow injection of the Datadog library
 into a customer's application container without requiring them to modify their
 application images.
 
-This feature enables applications written in Java, Node, Python, DotNet or Ruby running
+This feature enables applications written in Java, Node.js, Python, .NET or Ruby running
 in Kubernetes to be automatically instrumented with the corresponding Datadog
 APM libraries.
 
@@ -64,7 +64,7 @@ These test components are also involved through the testing process:
 
 - **System-tests runner:** The core of the system-tests is the reponsible for orchestrate the tests execution and manage the tests results.
 - **Dev test agent:**  The APM Test Agent container help us to perform the validations ([APM Test Agent](https://github.com/DataDog/dd-apm-test-agent)).
-- **Sample app/weblog:** Containerized sample application implemented on Java, Nodejs, dotNet, Ruby or Python.
+- **Sample app/weblog:** Containerized sample application implemented on Java, Node.js, .NET, Ruby or Python.
 
 The following image represents, in general terms, the necessary and dependent architecture to be able to run the K8s library injection tests:
 
@@ -215,23 +215,22 @@ or if you don't have the permission to push the image to GHCR, you can use your 
 
 The sample applications currently available in GHCR are:
 
-
-| LANG   | WEBLOG IMAGE                                                                                 |
-| -------- | ---------------------------------------------------------------------------------------------- |
-| Java   | ghcr.io/datadog/system-tests/dd-lib-java-init-test-app:latest                                |
-| Java   | ghcr.io/datadog/system-tests/dd-djm-spark-test-app:latest                                    |
-| DotNet | ghcr.io/datadog/system-tests/dd-lib-dotnet-init-test-app:latest                              |
-| Nodejs | ghcr.io/datadog/system-tests/sample-app:latest                                               |
-| Python | ghcr.io/datadog/system-tests/dd-lib-python-init-test-django:latest                           |
-| Python | ghcr.io/datadog/system-tests/dd-lib-python-init-test-django-gunicorn:latest                  |
-| Python | ghcr.io/datadog/system-tests/dd-lib-python-init-test-django-gunicorn-alpine:latest           |
-| Python | ghcr.io/datadog/system-tests/dd-lib-python-init-test-django-preinstalled:latest              |
-| Python | ghcr.io/datadog/system-tests/dd-lib-python-init-test-django-unsupported-package-force:latest |
-| Python | ghcr.io/datadog/system-tests/dd-lib-python-init-test-django-uvicorn:latest                   |
-| Python | ghcr.io/datadog/system-tests/dd-lib-python-init-test-protobuf-old:latest                     |
-| Ruby   | ghcr.io/datadog/system-tests/dd-lib-ruby-init-test-rails:latest                              |
-| Ruby   | ghcr.io/datadog/system-tests/dd-lib-ruby-init-test-rails-explicit":latest                    |
-| Ruby   | ghcr.io/datadog/system-tests/dd-lib-ruby-init-test-rails-gemsrb:latest                       |
+| LANG    | WEBLOG IMAGE                                                                                 |
+| ------- | -------------------------------------------------------------------------------------------- |
+| Java    | ghcr.io/datadog/system-tests/dd-lib-java-init-test-app:latest                                |
+| Java    | ghcr.io/datadog/system-tests/dd-djm-spark-test-app:latest                                    |
+| .NET    | ghcr.io/datadog/system-tests/dd-lib-dotnet-init-test-app:latest                              |
+| Node.js | ghcr.io/datadog/system-tests/sample-app:latest                                               |
+| Python  | ghcr.io/datadog/system-tests/dd-lib-python-init-test-django:latest                           |
+| Python  | ghcr.io/datadog/system-tests/dd-lib-python-init-test-django-gunicorn:latest                  |
+| Python  | ghcr.io/datadog/system-tests/dd-lib-python-init-test-django-gunicorn-alpine:latest           |
+| Python  | ghcr.io/datadog/system-tests/dd-lib-python-init-test-django-preinstalled:latest              |
+| Python  | ghcr.io/datadog/system-tests/dd-lib-python-init-test-django-unsupported-package-force:latest |
+| Python  | ghcr.io/datadog/system-tests/dd-lib-python-init-test-django-uvicorn:latest                   |
+| Python  | ghcr.io/datadog/system-tests/dd-lib-python-init-test-protobuf-old:latest                     |
+| Ruby    | ghcr.io/datadog/system-tests/dd-lib-ruby-init-test-rails:latest                              |
+| Ruby    | ghcr.io/datadog/system-tests/dd-lib-ruby-init-test-rails-explicit":latest                    |
+| Ruby    | ghcr.io/datadog/system-tests/dd-lib-ruby-init-test-rails-gemsrb:latest                       |
 
 ##### Library init image
 
@@ -242,19 +241,18 @@ The library init images are created by each tracer library and these images will
 
 The list of available images is:
 
-
-| LANG   | LIB INIT IMAGE                                                     |
-| -------- | -------------------------------------------------------------------- |
-| Java   | gcr.io/datadoghq/dd-lib-java-init:latest                           |
-| Java   | ghcr.io/datadog/dd-trace-java/dd-lib-java-init:latest_snapshot     |
-| DotNet | gcr.io/datadoghq/dd-lib-dotnet-init:latest                         |
-| DotNet | ghcr.io/datadog/dd-trace-dotnet/dd-lib-dotnet-init:latest_snapshot |
-| Nodejs | gcr.io/datadoghq/dd-lib-js-init:latest                             |
-| Nodejs | ghcr.io/datadog/dd-trace-js/dd-lib-js-init:latest_snapshot         |
-| Python | gcr.io/datadoghq/dd-lib-python-init:latest                         |
-| Python | ghcr.io/datadog/dd-trace-py/dd-lib-python-init:latest_snapshot     |
-| Ruby   | gcr.io/datadoghq/dd-lib-ruby-init:latest                           |
-| Ruby   | ghcr.io/datadog/dd-trace-rb/dd-lib-ruby-init:latest_snapshot       |
+| LANG    | LIB INIT IMAGE                                                     |
+| ------- | ------------------------------------------------------------------ |
+| Java    | gcr.io/datadoghq/dd-lib-java-init:latest                           |
+| Java    | ghcr.io/datadog/dd-trace-java/dd-lib-java-init:latest_snapshot     |
+| .NET    | gcr.io/datadoghq/dd-lib-dotnet-init:latest                         |
+| .NET    | ghcr.io/datadog/dd-trace-dotnet/dd-lib-dotnet-init:latest_snapshot |
+| Node.js | gcr.io/datadoghq/dd-lib-js-init:latest                             |
+| Node.js | ghcr.io/datadog/dd-trace-js/dd-lib-js-init:latest_snapshot         |
+| Python  | gcr.io/datadoghq/dd-lib-python-init:latest                         |
+| Python  | ghcr.io/datadog/dd-trace-py/dd-lib-python-init:latest_snapshot     |
+| Ruby    | gcr.io/datadoghq/dd-lib-ruby-init:latest                           |
+| Ruby    | ghcr.io/datadog/dd-trace-rb/dd-lib-ruby-init:latest_snapshot       |
 
 ##### Datadog Cluster Agent
 
