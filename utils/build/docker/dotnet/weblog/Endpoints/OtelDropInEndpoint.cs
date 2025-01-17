@@ -42,12 +42,7 @@ namespace weblog
                     carrier[key] = value;
                 });
 
-                var data = new
-                {
-                    headers = headersDict,
-                };
-
-                await context.Response.WriteAsync(JsonSerializer.Serialize(data));
+                await context.Response.WriteAsync(JsonSerializer.Serialize(headersDict));
             });
         }
     }
