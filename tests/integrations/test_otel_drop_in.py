@@ -70,5 +70,5 @@ class Test_Otel_Drop_In_Default_Propagator:
     def test_propagation_inject(self):
         content = json.loads(self.r.text)
 
-        assert content["headers"]["traceparent"] and not content["headers"]["traceparent"].isspace()
-        # assert content["headers"]["baggage"] and not content["headers"]["baggage"].isspace()
+        assert content["traceparent"] and not content["traceparent"].isspace()
+        # assert content["baggage"] and not content["baggage"].isspace()
