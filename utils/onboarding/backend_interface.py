@@ -8,16 +8,19 @@ from utils.tools import logger
 
 API_HOST = "https://dd.datadoghq.com"
 
+
 def wait_backend_trace_id(trace_id, profile: bool = False, validator=None):
     runtime_id = _query_for_trace_id(trace_id, validator=validator)
     if profile:
         _query_for_profile(runtime_id)
+
 
 def _headers():
     return {
         "DD-API-KEY": os.getenv("DD_API_KEY_ONBOARDING"),
         "DD-APPLICATION-KEY": os.getenv("DD_APP_KEY_ONBOARDING"),
     }
+
 
 def _query_for_trace_id(trace_id, validator=None):
     url = f"{API_HOST}/api/v1/trace/{trace_id}"
@@ -39,7 +42,10 @@ def _query_for_trace_id(trace_id, validator=None):
 
     return trace_data["trace"]["spans"][root_id]["meta"]["runtime-id"]
 
-def _make_request(url, headers=None, method="get", json=None, request_timeout=10, retry_delay=1, backoff_factor=2, max_retries=6):
+
+def _make_request(
+    url, headers=None, method="get", json=None, request_timeout=10, retry_delay=1, backoff_factor=2, max_retries=6
+):
     for _attempt in range(max_retries):
         try:
             r = requests.request(method=method, url=url, headers=headers, json=json, timeout=request_timeout)
@@ -61,11 +67,13 @@ def _make_request(url, headers=None, method="get", json=None, request_timeout=10
 
     raise TimeoutError(f"Reached max retries limit for {method} {url}")
 
+
 def _parse_retry_after(retry_after):
     try:
         return int(retry_after)
     except ValueError:
         return -1
+
 
 def _query_for_profile(runtime_id):
     url = f"{API_HOST}/api/unstable/profiles/list"
@@ -87,7 +95,4 @@ def _query_for_profile(runtime_id):
     data = _make_request(url, headers=headers, method="post", json=queryJson)["data"]
 
     # Check if we got any profile events
-    if isinstance(data, list) and len(data) > 0:
-        return True
-
-    return False
+    return bool(isinstance(data, list) and len(data) > 0)
