@@ -49,13 +49,13 @@ def _make_request(
     for _attempt in range(max_retries):
         try:
             r = requests.request(method=method, url=url, headers=headers, json=json, timeout=request_timeout)
-            logger.debug(f" Backend response status : [{r.status_code}]")
+            logger.debug(f" Backend response status for url [{url}]: [{r.status_code}]")
             if r.status_code == 200:
                 return r.json()
 
             if r.status_code == 429:
                 retry_after = _parse_retry_after(r.headers.get("X-RateLimit-Reset"))
-                logger.debug(f" Received 429, rate limit reset in: [{retry_after}]")
+                logger.debug(f" Received 429 for url [{url}], rate limit reset in: [{retry_after}]")
                 if retry_after > 0:
                     retry_delay = max(retry_after, retry_delay)
                     retry_delay += random.uniform(0, 1)
