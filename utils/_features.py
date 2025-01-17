@@ -2021,6 +2021,15 @@ class _Features:
         """
         pytest.mark.features(feature_id=305)(test_object)
         return test_object
+    
+    @staticmethod
+    def appsec_standalone_v2(test_object):
+        """Appsec Standalone Billing V2
+
+        https://feature-parity.us1.prod.dog/#/?feature=355
+        """
+        pytest.mark.features(feature_id=355)(test_object)
+        return test_object
 
     @staticmethod
     def iast_standalone(test_object):
@@ -2030,6 +2039,16 @@ class _Features:
         """
         pytest.mark.features(feature_id=319)(test_object)
         return test_object
+    
+
+    @staticmethod
+    def iast_standalone_v2(test_object):
+        """Iast Standalone Billing V2
+
+        https://feature-parity.us1.prod.dog/#/?feature=356
+        """
+        pytest.mark.features(feature_id=356)(test_object)
+        return test_object
 
     @staticmethod
     def sca_standalone(test_object):
@@ -2038,6 +2057,15 @@ class _Features:
         https://feature-parity.us1.prod.dog/#/?feature=320
         """
         pytest.mark.features(feature_id=320)(test_object)
+        return test_object
+
+    @staticmethod
+    def sca_standalone_v2(test_object):
+        """SCA Standalone Billing V2
+
+        https://feature-parity.us1.prod.dog/#/?feature=357
+        """
+        pytest.mark.features(feature_id=357)(test_object)
         return test_object
 
     @staticmethod

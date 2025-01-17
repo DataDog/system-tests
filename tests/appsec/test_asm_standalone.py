@@ -600,11 +600,7 @@ class AsmStandalone_UpstreamPropagation_Base:
         assert downstream_headers["X-Datadog-Sampling-Priority"] == "2"
         assert downstream_headers["X-Datadog-Trace-Id"] == "1212121212121212121"
 
-
-@rfc("https://docs.google.com/document/d/12NBx-nD-IoQEMiCRnJXneq4Be7cbtSc6pJLOFUWTpNE/edit")
-@features.appsec_standalone
-@scenarios.appsec_standalone
-class Test_AppSecStandalone_UpstreamPropagation(AsmStandalone_UpstreamPropagation_Base):
+class AppSecStandalone_UpstreamPropagation_Base(AsmStandalone_UpstreamPropagation_Base):
     """APPSEC correctly propagates AppSec events in distributing tracing."""
 
     requestdownstreamUrl = "/requestdownstream"
@@ -641,11 +637,7 @@ class Test_AppSecStandalone_UpstreamPropagation(AsmStandalone_UpstreamPropagatio
     def test_any_upstream_propagation__with_asm_event__raises_priority_to_2__from_1(self):
         super().test_any_upstream_propagation__with_asm_event__raises_priority_to_2__from_1()
 
-
-@rfc("https://docs.google.com/document/d/12NBx-nD-IoQEMiCRnJXneq4Be7cbtSc6pJLOFUWTpNE/edit")
-@features.iast_standalone
-@scenarios.iast_standalone
-class Test_IastStandalone_UpstreamPropagation(AsmStandalone_UpstreamPropagation_Base):
+class IastStandalone_UpstreamPropagation_Base(AsmStandalone_UpstreamPropagation_Base):
     """IAST correctly propagates AppSec events in distributing tracing."""
 
     requestdownstreamUrl = "/vulnerablerequestdownstream"
@@ -668,11 +660,7 @@ class Test_IastStandalone_UpstreamPropagation(AsmStandalone_UpstreamPropagation_
     def test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_2(self):
         super().test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_2()
 
-
-@rfc("https://docs.google.com/document/d/12NBx-nD-IoQEMiCRnJXneq4Be7cbtSc6pJLOFUWTpNE/edit")
-@features.sca_standalone
-@scenarios.sca_standalone
-class Test_SCAStandalone_Telemetry:
+class SCAStandalone_Telemetry_Base:
     """Tracer correctly propagates SCA telemetry in distributing tracing."""
 
     def assert_standalone_is_enabled(self, request):
@@ -736,3 +724,48 @@ class Test_SCAStandalone_Telemetry:
         for dependency, seen in seen_loaded_dependencies.items():
             if not seen:
                 raise Exception(dependency + " not received in app-dependencies-loaded message")
+
+
+@rfc("https://docs.google.com/document/d/12NBx-nD-IoQEMiCRnJXneq4Be7cbtSc6pJLOFUWTpNE/edit")
+@features.appsec_standalone
+@scenarios.appsec_standalone
+@flaky(context.library >= "python@2.18.0+dev", reason="APPSEC-56142")
+class Test_AppSecStandalone_UpstreamPropagation(AppSecStandalone_UpstreamPropagation_Base):
+    """APPSEC correctly propagates AppSec events in distributing tracing with DD_EXPERIMENTAL_APPSEC_STANDALONE_ENABLED=true."""
+    pass
+
+@rfc("https://docs.google.com/document/d/12NBx-nD-IoQEMiCRnJXneq4Be7cbtSc6pJLOFUWTpNE/edit")
+@features.appsec_standalone_v2
+@scenarios.appsec_standalone_v2
+@flaky(context.library >= "python@2.18.0+dev", reason="APPSEC-56142")
+class Test_AppSecStandalone_UpstreamPropagation_V2(AppSecStandalone_UpstreamPropagation_Base):
+    """APPSEC correctly propagates AppSec events in distributing tracing with DD_APM_TRACING_ENABLED=false."""
+    pass
+
+@rfc("https://docs.google.com/document/d/12NBx-nD-IoQEMiCRnJXneq4Be7cbtSc6pJLOFUWTpNE/edit")
+@features.iast_standalone
+@scenarios.iast_standalone
+class Test_IastStandalone_UpstreamPropagation(IastStandalone_UpstreamPropagation_Base):
+    """IAST correctly propagates AppSec events in distributing tracing with DD_EXPERIMENTAL_APPSEC_STANDALONE_ENABLED=true."""
+    pass
+
+@rfc("https://docs.google.com/document/d/12NBx-nD-IoQEMiCRnJXneq4Be7cbtSc6pJLOFUWTpNE/edit")
+@features.iast_standalone_v2
+@scenarios.iast_standalone_v2
+class Test_IastStandalone_UpstreamPropagation_V2(IastStandalone_UpstreamPropagation_Base):
+    """IAST correctly propagates AppSec events in distributing tracing with DD_APM_TRACING_ENABLED=false."""
+    pass
+
+@rfc("https://docs.google.com/document/d/12NBx-nD-IoQEMiCRnJXneq4Be7cbtSc6pJLOFUWTpNE/edit")
+@features.sca_standalone
+@scenarios.sca_standalone
+class Test_SCAStandalone_Telemetry(SCAStandalone_Telemetry_Base):
+    """Tracer correctly propagates SCA telemetry in distributing tracing with DD_EXPERIMENTAL_APPSEC_STANDALONE_ENABLED=true."""
+    pass
+
+@rfc("https://docs.google.com/document/d/12NBx-nD-IoQEMiCRnJXneq4Be7cbtSc6pJLOFUWTpNE/edit")
+@features.sca_standalone_v2
+@scenarios.sca_standalone_v2
+class Test_SCAStandalone_Telemetry_V2(SCAStandalone_Telemetry_Base):
+    """Tracer correctly propagates SCA telemetry in distributing tracing with DD_EXPERIMENTAL_APPSEC_STANDALONE_ENABLED=true."""
+    pass
