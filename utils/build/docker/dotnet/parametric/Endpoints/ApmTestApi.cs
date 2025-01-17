@@ -1,6 +1,7 @@
 using Datadog.Trace;
 using System.Reflection;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace ApmTestApi.Endpoints;
 
@@ -26,6 +27,13 @@ public abstract class ApmTestApi
         app.MapPost("/trace/span/set_metric", SpanSetMetric);
         app.MapPost("/trace/span/finish", FinishSpan);
         app.MapPost("/trace/span/flush", FlushSpans);
+
+        // baggage
+        app.MapPost("/trace/span/set_baggage", SetBaggage);
+        app.MapGet("/trace/span/get_baggage", GetBaggage);
+        app.MapGet("/trace/span/get_all_baggage", GetAllBaggage);
+        app.MapPost("/trace/span/remove_baggage", RemoveBaggage);
+        app.MapPost("/trace/span/remove_all_baggage", RemoveAllBaggage);
     }
 
     private static readonly Assembly DatadogTraceAssembly = Assembly.Load("Datadog.Trace");
@@ -70,6 +78,9 @@ public abstract class ApmTestApi
 
     internal static ILogger<ApmTestApi>? _logger;
 
+    // HACK: persist a baggage collections associated to span ids (for testing purposes)
+    private static readonly Dictionary<ulong, IDictionary<string, string?>> BaggageInstances = new();
+
     private static IEnumerable<string> GetHeaderValues(string[][] headersList, string key)
     {
         var values = new List<string>();
@@ -102,21 +113,23 @@ public abstract class ApmTestApi
             FinishOnClose = false,
         };
 
-        if (parsedDictionary!.TryGetValue("parent_id", out var parentId) && parentId is not null)
-        {
-            var longParentId = Convert.ToUInt64(parentId);
+        ulong parentId = 0;
 
-            if (Spans.TryGetValue(longParentId, out var parentSpan))
+        if (parsedDictionary!.TryGetValue("parent_id", out var parentIdString) && parentIdString is not null)
+        {
+            parentId = Convert.ToUInt64(parentIdString);
+
+            if (Spans.TryGetValue(parentId, out var parentSpan))
             {
                 creationSettings.Parent = parentSpan.Context;
             }
-            else if (DDContexts.TryGetValue(longParentId, out var ddContext))
+            else if (DDContexts.TryGetValue(parentId, out var ddContext))
             {
                 creationSettings.Parent = ddContext;
             }
             else
             {
-                throw new Exception($"Parent span with id {longParentId} not found");
+                throw new Exception($"Parent span with id {parentId} not found");
             }
         }
 
@@ -151,6 +164,12 @@ public abstract class ApmTestApi
         }
 
         Spans[span.SpanId] = span;
+
+        // HACK: copy the baggage associated with the parent span to the new span (for testing purposes)
+        if (BaggageInstances.TryGetValue(parentId, out var parentBaggage))
+        {
+            BaggageInstances[span.SpanId] = new Dictionary<string, string?>(parentBaggage);
+        }
 
         return JsonConvert.SerializeObject(new
         {
@@ -243,19 +262,17 @@ public abstract class ApmTestApi
             static void Setter(List<string[]> headers, string key, string value) =>
                 headers.Add([key, value]);
 
-            Console.WriteLine(JsonConvert.SerializeObject(new
-            {
-                HttpHeaders = httpHeaders
-            }));
-
             // Invoke SpanContextPropagator.Inject with the HttpRequestHeaders
             _spanContextInjector.Inject(httpHeaders, Setter, span.Context);
         }
 
-        return JsonConvert.SerializeObject(new
+        var json = JsonConvert.SerializeObject(new
         {
             http_headers = httpHeaders
         });
+
+        Console.WriteLine(json);
+        return json;
     }
 
     private static async Task FinishSpan(HttpRequest request)
@@ -361,5 +378,128 @@ public abstract class ApmTestApi
         var keyFound = parsedDictionary!.TryGetValue(keyToFind, out var foundValue);
 
         return keyFound ? foundValue! : string.Empty;
+    }
+
+    private static async Task SetBaggage(HttpRequest request)
+    {
+        // NOTE: This code does _not_ use Baggage.Current. It uses span_id as a key to associate each
+        // baggage collection with a span because that's how the tests are currently written.
+        var headerRequestBody = await new StreamReader(request.Body).ReadToEndAsync();
+        var parsedDictionary = JsonConvert.DeserializeObject<Dictionary<string, JValue>>(headerRequestBody)!;
+
+        var spanId = (ulong?)parsedDictionary.GetValueOrDefault("span_id");
+        var key = (string?)parsedDictionary.GetValueOrDefault("key");
+        var value = (string?)parsedDictionary.GetValueOrDefault("value");
+
+        if (spanId is null || key is null || value is null)
+        {
+            throw new InvalidOperationException("span_id, key, and value are required to set baggage item.");
+        }
+
+        // look for baggage collection associated to span id
+        if (!BaggageInstances.TryGetValue(spanId.Value, out var baggage))
+        {
+            // if not found create new baggage collection
+            baggage = new Dictionary<string, string?>();
+            BaggageInstances[spanId.Value] = baggage;
+        }
+
+        // set new baggage item
+        baggage[key] = value;
+    }
+
+    private static async Task<string> GetBaggage(HttpRequest request)
+    {
+        // NOTE: This code does _not_ use Baggage.Current. It uses span_id as a key to associate each
+        // baggage collection with a span because that's how the tests are currently written.
+        var headerRequestBody = await new StreamReader(request.Body).ReadToEndAsync();
+        var parsedDictionary = JsonConvert.DeserializeObject<Dictionary<string, JValue>>(headerRequestBody)!;
+
+        var spanId = (ulong?)parsedDictionary.GetValueOrDefault("span_id");
+        var key = (string?)parsedDictionary.GetValueOrDefault("key");
+
+        if (spanId is null || key is null)
+        {
+            throw new InvalidOperationException("span_id and key are required to get baggage.");
+        }
+
+        // look for baggage collection associated to span id, and then look for baggage item by key
+        if (BaggageInstances.TryGetValue(spanId.Value, out var baggage) &&
+            baggage.TryGetValue(key, out var value))
+        {
+            return JsonConvert.SerializeObject(new { baggage = value });
+        }
+
+        // baggage not found
+        return JsonConvert.SerializeObject(new { baggage = (string?)null });
+    }
+
+    private static async Task<string> GetAllBaggage(HttpRequest request)
+    {
+        // NOTE: This code does _not_ use Baggage.Current. It uses span_id as a key to associate each
+        // baggage collection with a span because that's how the tests are currently written.
+        var headerRequestBody = await new StreamReader(request.Body).ReadToEndAsync();
+        var parsedDictionary = JsonConvert.DeserializeObject<Dictionary<string, JValue>>(headerRequestBody)!;
+
+        var spanId = (ulong?)parsedDictionary.GetValueOrDefault("span_id");
+
+        if (spanId is null)
+        {
+            throw new InvalidOperationException("span_id is required to get all baggage.");
+        }
+
+        // look for baggage collection associated to span id
+        if (BaggageInstances.TryGetValue(spanId.Value, out var baggage))
+        {
+            return JsonConvert.SerializeObject(new { baggage = (object?)baggage });
+        }
+
+        // baggage not found
+        return JsonConvert.SerializeObject(new { baggage = (object?)null });
+    }
+
+    private static async Task RemoveBaggage(HttpRequest request)
+    {
+        // NOTE: This code does _not_ use Baggage.Current. It uses span_id as a key to associate each
+        // baggage collection with a span because that's how the tests are currently written.
+        var headerRequestBody = await new StreamReader(request.Body).ReadToEndAsync();
+        var parsedDictionary = JsonConvert.DeserializeObject<Dictionary<string, JValue>>(headerRequestBody)!;
+
+        var spanId = (ulong?)parsedDictionary.GetValueOrDefault("span_id");
+        var key = (string?)parsedDictionary.GetValueOrDefault("key");
+
+        if (spanId is null || key is null)
+        {
+            throw new InvalidOperationException("span_id and key are required to remove baggage.");
+        }
+
+        // look for baggage collection associated to span id
+        if (BaggageInstances.TryGetValue(spanId.Value, out var baggage))
+        {
+            // remove baggage item
+            baggage.Remove(key);
+        }
+    }
+
+    private static async Task RemoveAllBaggage(HttpRequest request)
+    {
+        // NOTE: This code does _not_ use Baggage.Current. It uses span_id as a key to associate each
+        // baggage collection with a span because that's how the tests are currently written.
+        var headerRequestBody = await new StreamReader(request.Body).ReadToEndAsync();
+        var parsedDictionary = JsonConvert.DeserializeObject<Dictionary<string, JValue>>(headerRequestBody)!;
+
+        var spanId = (ulong?)parsedDictionary.GetValueOrDefault("span_id");
+
+        if (spanId is null)
+        {
+            throw new InvalidOperationException("span_id is required to remove all baggage.");
+        }
+
+        // look for baggage collection associated to span id
+        if (BaggageInstances.TryGetValue(spanId.Value, out var baggage))
+        {
+            // remove all baggage items
+            baggage.Clear();
+        }
     }
 }
