@@ -572,8 +572,8 @@ tests/:
       Test_Fingerprinting_Header_And_Network: *ref_5_24_0
       Test_Fingerprinting_Header_Capability: *ref_5_24_0
       Test_Fingerprinting_Network_Capability: *ref_5_24_0
-      Test_Fingerprinting_Session: missing_feature
-      Test_Fingerprinting_Session_Capability: missing_feature
+      Test_Fingerprinting_Session: *ref_5_31_0
+      Test_Fingerprinting_Session_Capability: *ref_5_31_0
     test_identify.py:
       Test_Basic: v2.4.0
     test_ip_blocking_full_denylist.py:
