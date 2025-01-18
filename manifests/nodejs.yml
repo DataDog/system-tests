@@ -628,14 +628,14 @@ tests/:
       Test_Debugger_Expression_Language: missing_feature (feature not implented)
     test_debugger_pii.py:
       Test_Debugger_PII_Redaction:
-        "*": irrelevant
+        '*': irrelevant
         express4: v5.31.0
         express4-typescript: v5.31.0
     test_debugger_probe_snapshot.py:
       Test_Debugger_Probe_Snaphots: missing_feature (feature not implented)
     test_debugger_probe_status.py:
       Test_Debugger_Probe_Statuses:
-        "*": irrelevant
+        '*': irrelevant
         express4: v5.32.0
         express4-typescript: v5.32.0
   integrations/:
