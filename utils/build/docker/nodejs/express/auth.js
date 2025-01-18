@@ -1,5 +1,6 @@
 'use strict'
 
+const passport = require('passport')
 const { Strategy: LocalStrategy } = require('passport-local')
 const { BasicStrategy } = require('passport-http')
 
@@ -18,81 +19,94 @@ const users = [
   }
 ]
 
-module.exports = function (app, passport, tracer) {
-  passport.use(new LocalStrategy({ usernameField: 'username', passwordField: 'password' },
-    (username, password, done) => {
-      const user = users.find(user => (user.username === username) && (user.password === password))
-      if (!user) {
-        return done(null, false)
-      } else {
-        return done(null, user)
-      }
-    })
-  )
+module.exports = function (app, tracer) {
+  app.use(passport.initialize())
+  app.use(passport.session())
+
+  passport.serializeUser((user, done) => {
+    done(null, user.id)
+  })
+
+  passport.deserializeUser((userId, done) => {
+    const user = users.find(user => user.id === userId)
+
+    done(null, user)
+  })
+
+  passport.use(new LocalStrategy((username, password, done) => {
+    const user = users.find(user => user.username === username && user.password === password)
+
+    done(null, user)
+  }))
 
   passport.use(new BasicStrategy((username, password, done) => {
-    const user = users.find(user => (user.username === username) && (user.password === password))
-    if (!user) {
-      return done(null, false)
+    const user = users.find(user => user.username === username && user.password === password)
+
+    done(null, user)
+  }))
+
+  // rewrite url depending on which strategy to use
+  app.all('/login', (req, res, next) => {
+    let newRoute
+
+    switch (req.query?.auth) {
+      case 'basic':
+        newRoute = '/login/basic'
+        break
+
+      case 'local':
+      default:
+        newRoute = '/login/local'
+    }
+
+    req.url = req.url.replace('/login', newRoute)
+
+    next()
+  })
+
+  app.use('/login/local', passport.authenticate('local', { failWithError: true }), handleError)
+  app.use('/login/basic', passport.authenticate('basic', { failWithError: true }), handleError)
+
+  // only stop if unexpected error
+  function handleError (err, req, res, next) {
+    if (err?.name !== 'AuthenticationError') {
+      console.error('unexpected login error', err)
+      next(err)
     } else {
-      return done(null, user)
+      next()
     }
   }
-  ))
 
-  function handleAuthentication (req, res, next, err, user, info) {
+  // callback for all strategies to run SDK
+  app.all('/login/*', (req, res) => {
     const event = req.query.sdk_event
     const userId = req.query.sdk_user || 'sdk_user'
     const userMail = req.query.sdk_mail || 'system_tests_user@system_tests_user.com'
     const exists = req.query.sdk_user_exists === 'true'
 
-    if (err) {
-      console.error('unexpected login error', err)
-      return next(err)
-    }
-    if (!user) {
-      if (event === 'failure') {
-        tracer.appsec.trackUserLoginFailureEvent(userId, exists, { metadata0: 'value0', metadata1: 'value1' })
+    let statusCode = req.user ? 200 : 401
+
+    if (event === 'failure') {
+      tracer.appsec.trackUserLoginFailureEvent(userId, exists, { metadata0: 'value0', metadata1: 'value1' })
+
+      statusCode = 401
+    } else if (event === 'success') {
+      const sdkUser = {
+        id: userId,
+        email: userMail,
+        name: 'system_tests_user'
       }
 
-      res.sendStatus(401)
-    } else if (event === 'success') {
-      tracer.appsec.trackUserLoginSuccessEvent(
-        {
-          id: userId,
-          email: userMail,
-          name: 'system_tests_user'
-        },
-        {
-          metadata0: 'value0',
-          metadata1: 'value1'
-        }
-      )
+      tracer.appsec.trackUserLoginSuccessEvent(sdkUser, { metadata0: 'value0', metadata1: 'value1' })
 
-      res.sendStatus(200)
-    } else {
-      res.sendStatus(200)
-    }
-  }
+      const isUserBlocked = tracer.appsec.isUserBlocked(sdkUser)
+      if (isUserBlocked && tracer.appsec.blockRequest(req, res)) {
+        return
+      }
 
-  function getStrategy (req, res, next) {
-    const auth = req.query && req.query.auth
-    if (auth === 'local') {
-      return passport.authenticate('local', { session: false }, function (err, user, info) {
-        handleAuthentication(req, res, next, err, user, info)
-      })(req, res, next)
-    } else {
-      return passport.authenticate('basic', { session: false }, function (err, user, info) {
-        handleAuthentication(req, res, next, err, user, info)
-      })(req, res, next)
+      statusCode = 200
     }
-  }
 
-  app.use(passport.initialize())
-  app.all('/login',
-    getStrategy,
-    (req, res, next) => {
-      res.sendStatus(200)
-    }
-  )
+    res.sendStatus(statusCode)
+  })
 }
