@@ -120,6 +120,10 @@ def deserialize_http_message(path, message, content: bytes, interface, key, expo
 
         return json_load()
 
+    if path == "/dogstatsd/v2/proxy" and interface == "library":
+        # TODO : how to deserialize this ?
+        return content.decode(encoding="utf-8")
+
     if interface == "library" and path == "/info":
         if key == "response":
             return json_load()
@@ -194,8 +198,12 @@ def deserialize_http_message(path, message, content: bytes, interface, key, expo
                 item["content"] = json.loads(part.content)
 
             elif content_type_part == "application/gzip":
-                with gzip.GzipFile(fileobj=io.BytesIO(part.content)) as gz_file:
-                    content = gz_file.read()
+                try:
+                    with gzip.GzipFile(fileobj=io.BytesIO(part.content)) as gz_file:
+                        content = gz_file.read()
+                except:
+                    item["system-tests-error"] = "Can't decompress gzip data"
+                    continue
 
                 _deserialize_file_in_multipart_form_data(item, headers, export_content_files_to, content)
 
@@ -239,6 +247,8 @@ def _deserialize_file_in_multipart_form_data(
             item["system-tests-error"] = "Filename not found in content-disposition, please contact #apm-shared-testing"
         else:
             filename = meta_data["filename"].strip('"')
+            if filename.lower().endswith(".gz"):
+                filename = filename[:-3]
             file_path = f"{export_content_files_to}/{md5(content).hexdigest()}_{filename}"
 
             with open(file_path, "wb") as f:

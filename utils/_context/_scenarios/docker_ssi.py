@@ -42,7 +42,6 @@ class DockerSSIScenario(Scenario):
         self._required_containers.append(self._agent_container)
         self._required_containers.append(self._weblog_injection)
         self.weblog_url = "http://localhost:18080"
-        self._tested_components = {}
         # scenario configuration that is going to be reported in the final report
         self._configuration = {"app_type": "docker_ssi"}
 
@@ -53,6 +52,11 @@ class DockerSSIScenario(Scenario):
         self._library = config.option.ssi_library
         self._base_image = config.option.ssi_base_image
         self._arch = config.option.ssi_arch
+
+        self._env = "prod" if config.option.ssi_env is None or config.option.ssi_env == "prod" else "dev"
+        self._custom_library_version = config.option.ssi_library_version
+        self._custom_injector_version = config.option.ssi_injector_version
+
         # The runtime that we want to install on the base image. it could be empty if we don't need to install a runtime
         self._installable_runtime = (
             config.option.ssi_installable_runtime
@@ -68,8 +72,12 @@ class DockerSSIScenario(Scenario):
         self._installed_language_runtime = None
 
         logger.stdout(
-            f"Configuring scenario with: Weblog: [{self._base_weblog}] Library: [{self._library}] Base Image: [{self._base_image}] Arch: [{self._arch}] Runtime: [{self._installable_runtime}]"
+            f"Configuring scenario with: Weblog: [{self._base_weblog}] Library: [{self._library}] Base Image: [{self._base_image}] Arch: [{self._arch}] Runtime: [{self._installable_runtime}] Env: {self._env}"
         )
+        if self._custom_injector_version:
+            logger.stdout(f"Using custom injector version: {self._custom_injector_version}")
+        if self._custom_library_version:
+            logger.stdout(f"Using custom library version: {self._custom_library_version}")
 
         # Build the docker images to generate the weblog image
         # Steps to build the docker ssi image:
@@ -88,6 +96,9 @@ class DockerSSIScenario(Scenario):
             self._installable_runtime,
             self._push_base_images,
             self._force_build,
+            self._env,
+            self._custom_library_version,
+            self._custom_injector_version,
         )
         self.ssi_image_builder.configure()
         self.ssi_image_builder.build_weblog()
@@ -134,6 +145,9 @@ class DockerSSIScenario(Scenario):
         self.agent_host = self._agent_container.network_ip(self._network)
         logger.debug(f"GITLAB_CI: Set agent host to {self.agent_host}")
 
+    def pytest_sessionfinish(self, session, exitstatus):  # noqa: ARG002
+        self.close_targets()
+
     def close_targets(self):
         for container in reversed(self._required_containers):
             try:
@@ -155,23 +169,23 @@ class DockerSSIScenario(Scenario):
         self.configuration["arch"] = self._arch.replace("linux/", "")
 
         for key in json_tested_components:
-            self._tested_components[key] = json_tested_components[key].lstrip(" ")
+            self.components[key] = json_tested_components[key].lstrip(" ")
             if key == "weblog_url" and json_tested_components[key]:
                 self.weblog_url = json_tested_components[key].lstrip(" ")
                 continue
             if key == "runtime_version" and json_tested_components[key]:
                 self._installed_language_runtime = Version(json_tested_components[key].lstrip(" "))
                 # Runtime version is stored as configuration not as dependency
-                del self._tested_components[key]
+                del self.components[key]
                 self.configuration["runtime_version"] = f"{self._installed_language_runtime}"
             if key.startswith("datadog-apm-inject") and json_tested_components[key]:
                 self._datadog_apm_inject_version = f"v{json_tested_components[key].lstrip(' ')}"
-            if key.startswith("datadog-apm-library-") and self._tested_components[key]:
+            if key.startswith("datadog-apm-library-") and self.components[key]:
                 library_version_number = json_tested_components[key].lstrip(" ")
                 self._libray_version = LibraryVersion(self._library, library_version_number)
                 # We store without the lang sufix
-                self._tested_components["datadog-apm-library"] = self._tested_components[key]
-                del self._tested_components[key]
+                self.components["datadog-apm-library"] = self.components[key]
+                del self.components[key]
 
     def print_installed_components(self):
         logger.stdout("Installed components")
@@ -182,7 +196,7 @@ class DockerSSIScenario(Scenario):
         for conf in self.configuration:
             logger.stdout(f"{conf}: {self.configuration[conf]}")
 
-    def post_setup(self):
+    def post_setup(self, session):  # noqa: ARG002
         logger.stdout("--- Waiting for all traces and telemetry to be sent to test agent ---")
         data = None
         attempts = 0
@@ -202,10 +216,6 @@ class DockerSSIScenario(Scenario):
         return self._installed_language_runtime
 
     @property
-    def components(self):
-        return self._tested_components
-
-    @property
     def weblog_variant(self):
         return self._base_weblog
 
@@ -222,7 +232,17 @@ class DockerSSIImageBuilder:
     """Manages the docker image building for the SSI scenario"""
 
     def __init__(
-        self, base_weblog, base_image, library, arch, installable_runtime, push_base_images, force_build
+        self,
+        base_weblog,
+        base_image,
+        library,
+        arch,
+        installable_runtime,
+        push_base_images,
+        force_build,
+        env,
+        custom_library_version,
+        custom_injector_version,
     ) -> None:
         self._base_weblog = base_weblog
         self._base_image = base_image
@@ -236,6 +256,9 @@ class DockerSSIImageBuilder:
         # Option 2: When the base image is not found on the registry
         self.should_push_base_images = False
         self._weblog_docker_image = None
+        self._env = env
+        self._custom_library_version = custom_library_version
+        self._custom_injector_version = custom_injector_version
 
     @property
     def dd_lang(self) -> str:
@@ -377,7 +400,13 @@ class DockerSSIImageBuilder:
                 platform=self._arch,
                 nocache=self._force_build or self.should_push_base_images,
                 tag=self.ssi_all_docker_tag,
-                buildargs={"DD_LANG": self.dd_lang, "BASE_IMAGE": ssi_installer_docker_tag},
+                buildargs={
+                    "DD_LANG": self.dd_lang,
+                    "BASE_IMAGE": ssi_installer_docker_tag,
+                    "SSI_ENV": self._env,
+                    "DD_INSTALLER_LIBRARY_VERSION": self._custom_library_version,
+                    "DD_INSTALLER_INJECTOR_VERSION": self._custom_injector_version,
+                },
             )
             self.print_docker_build_logs(self.ssi_all_docker_tag, build_logs)
             logger.stdout(f"[tag:{weblog_docker_tag}] Building weblog app on base image [{self.ssi_all_docker_tag}].")

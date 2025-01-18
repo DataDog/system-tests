@@ -20,6 +20,11 @@ on:
         default: 1
         required: false
         type: number
+      _ci_environment:
+        description: "Which CI environment is running the tests, used for FPD. used internally to skip some weblogs on prod"
+        default: 'custom'
+        required: false
+        type: string
 
     # Map the workflow outputs to job outputs
     outputs:
@@ -47,6 +52,9 @@ on:
       parametric_scenarios:
         description: ""
         value: ${{ jobs.main.outputs.parametric_scenarios }}
+      externalprocessing_scenarios:
+        description: ""
+        value: ${{ jobs.main.outputs.externalprocessing_scenarios }}
       _experimental_parametric_job_matrix:
         description: ""
         value: ${{ jobs.main.outputs._experimental_parametric_job_matrix }}
@@ -64,6 +72,7 @@ jobs:
       opentelemetry_scenarios: ${{ steps.main.outputs.opentelemetry_scenarios }}
       opentelemetry_weblogs: ${{ steps.main.outputs.opentelemetry_weblogs }}
       parametric_scenarios: ${{ steps.main.outputs.parametric_scenarios }}
+      externalprocessing_scenarios: ${{ steps.main.outputs.externalprocessing_scenarios }}
       _experimental_parametric_job_matrix: ${{ steps.main.outputs._experimental_parametric_job_matrix }}
     steps:
     - name: Checkout
@@ -76,7 +85,10 @@ jobs:
       id: main
       run: |
         source venv/bin/activate
-        python utils/scripts/compute-workflow-parameters.py ${{ inputs.library }} -s "${{ inputs.scenarios }}" -g "${{ inputs.scenarios_groups }}" >> $GITHUB_OUTPUT
+        python utils/scripts/compute-workflow-parameters.py ${{ inputs.library }} \
+          -s "${{ inputs.scenarios }}" \
+          -g "${{ inputs.scenarios_groups }}" \
+          --ci-environment "${{ inputs._ci_environment }}" >> $GITHUB_OUTPUT
       env:
         PYTHONPATH: "."
         _EXPERIMENTAL_PARAMETRIC_JOB_COUNT: ${{ inputs._experimental_parametric_job_count }}

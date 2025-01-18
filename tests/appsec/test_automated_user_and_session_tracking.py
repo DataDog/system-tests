@@ -30,6 +30,8 @@ USER = "test"
 UUID_USER = "testuuid"
 PASSWORD = "1234"
 
+libs_without_user_id = ["java"]
+
 
 def login_data(context, user, password):
     """In Rails the parameters are group by scope. In the case of the test the scope is user.
@@ -56,8 +58,13 @@ class Test_Automated_User_Tracking:
         assert self.r_home.status_code == 200
         for _, _, span in interfaces.library.get_spans(request=self.r_home):
             meta = span.get("meta", {})
-            assert meta["usr.id"] == "social-security-id"
-            assert meta["_dd.appsec.usr.id"] == "social-security-id"
+            if context.library in libs_without_user_id:
+                assert meta["usr.id"] == USER
+                assert meta["_dd.appsec.usr.id"] == USER
+            else:
+                assert meta["usr.id"] == "social-security-id"
+                assert meta["_dd.appsec.usr.id"] == "social-security-id"
+
             assert meta["_dd.appsec.user.collection_mode"] == "identification"
 
     def setup_user_tracking_sdk_overwrite(self):
@@ -70,7 +77,11 @@ class Test_Automated_User_Tracking:
         for _, _, span in interfaces.library.get_spans(request=self.r_login):
             meta = span.get("meta", {})
             assert meta["usr.id"] == "sdkUser"
-            assert meta["_dd.appsec.usr.id"] == "social-security-id"
+            if context.library in libs_without_user_id:
+                assert meta["_dd.appsec.usr.id"] == USER
+            else:
+                assert meta["_dd.appsec.usr.id"] == "social-security-id"
+
             assert meta["_dd.appsec.user.collection_mode"] == "sdk"
 
 
@@ -109,7 +120,11 @@ BLOCK_USER_DATA = (
             {
                 "id": "blocked_users",
                 "type": "data_with_expiration",
-                "data": [{"value": "social-security-id", "expiration": 0}, {"value": "sdkUser", "expiration": 0}],
+                "data": [
+                    {"value": "test", "expiration": 0},
+                    {"value": "social-security-id", "expiration": 0},
+                    {"value": "sdkUser", "expiration": 0},
+                ],
             },
         ],
     },

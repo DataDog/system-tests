@@ -25,10 +25,12 @@
     "mssql": "^9.1.0",
     "multer": "^1.4.5-lts.1",
     "mysql2": "^3.5.0",
+    "node-serialize": "^0.0.4",
     "passport": "^0.6.0",
     "passport-http": "^0.3.0",
     "passport-local": "^1.0.0",
     "pg": "^8.8.0",
+    "pino": "^9.5.0",
     "pug": "^3.0.3",
     "semver": "^7.6.3",
     "sinon": "^17.0.1"
