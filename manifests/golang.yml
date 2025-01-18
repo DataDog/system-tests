@@ -517,6 +517,9 @@ tests/:
       Test_AWS_API_Gateway_Inferred_Span_Creation: missing_feature
     test_otel_drop_in.py:
       Test_Otel_Drop_In: missing_feature
+      Test_Otel_Drop_In_Default_Propagator:
+        '*': irrelevant
+        net-http: v1.70.1
   parametric/:
     test_config_consistency.py:
       Test_Config_Dogstatsd: v1.72.0-dev
