@@ -2,7 +2,6 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-import gzip
 import json
 import tests.debugger.utils as debugger
 from utils import features, scenarios, bug, context
@@ -69,20 +68,17 @@ class Test_Debugger_SymDb(debugger._Base_Debugger_Test):
         validator = Draft7Validator(schema)
 
         for file_path in self.symbols:
-            assert file_path.endswith(".gz"), f"Symbol file {file_path} is not a .gz file"
-
             try:
-                with gzip.open(file_path, "rb") as f:
+                with open(file_path, "rb") as f:
                     content = json.loads(f.read().decode("utf-8"))
-                    validation_errors = list(validator.iter_errors(content))
-                    assert not validation_errors, f"Schema validation errors in {file_path}:\n" + "\n".join(
-                        f"- {error.message} (at path: {' -> '.join(str(p) for p in error.path)})"
-                        for error in validation_errors
-                    )
-            except gzip.BadGzipFile:
-                assert False, f"File {file_path} is not a valid gzip archive"
             except json.JSONDecodeError:
                 assert False, f"File {file_path} does not contain valid JSON"
+
+            validation_errors = list(validator.iter_errors(content))
+            assert not validation_errors, f"Schema validation errors in {file_path}:\n" + "\n".join(
+                f"- {error.message} (at path: {' -> '.join(str(p) for p in error.path)})"
+                for error in validation_errors
+            )
 
     ############ test ############
     def setup_symdb_upload(self):

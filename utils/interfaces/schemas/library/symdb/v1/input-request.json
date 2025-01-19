@@ -1,0 +1,30 @@
+{
+  "$id": "/library/symdb/v1/input-request.json",
+  "type": "array",
+  "items": {
+      "type": "object",
+      "properties": {
+        "headers": {
+            "type": "object",
+            "patternProperties": {
+              ".*": { "type": "string" }
+            }
+          },
+        "content": {
+          "type": ["array", "object"],
+          "items": {
+            "type": "object",
+            "properties": {
+              "headers": {
+                "type": "object",
+                "properties": {
+                  "Content-Type": { "type": "string" },
+                  "Content-Disposition": { "type": "string" }
+                }
+              }
+            }
+          }
+        }
+      }
+  }
+} 

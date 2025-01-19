@@ -188,66 +188,60 @@ def _create_base_signed(version: int):
     }
 
 
-def build_debugger_command(probes: list | None, version: int):
+def _build_base_command(path_payloads: dict[str, dict | list], version: int):
+    """Helper function to build a remote config command with common logic.
+    
+    Args:
+        path_payloads: Dictionary mapping paths to their corresponding payloads
+        version: The version number for the signed data
+    """
     rcm = _create_base_rcm()
     signed = _create_base_signed(version)
 
-    if probes is None:
+    if not path_payloads:
         rcm["targets"] = _json_to_base64(signed)
-    else:
-        for probe in probes:
-            target = {"custom": {"v": 1}, "hashes": {"sha256": ""}, "length": 0}
-            target_file = {"path": "", "raw": ""}
+        return rcm
 
-            probe_64 = _json_to_base64(probe)
-            target["hashes"]["sha256"] = _sha256(probe_64)
-            target["length"] = len(base64.b64decode(probe_64))
+    for path, payload in path_payloads.items():
+        payload_64 = _json_to_base64(payload)
+        payload_length = len(base64.b64decode(payload_64))
 
-            probe_path = re.sub(r"_([a-z])", lambda match: match.group(1).upper(), probe["type"].lower())
-            path = "datadog/2/LIVE_DEBUGGING/" + probe_path + "_" + probe["id"] + "/config"
-            signed["signed"]["targets"][path] = target
+        target = {"custom": {"v": 1}, "hashes": {"sha256": ""}, "length": 0}
+        target["hashes"]["sha256"] = _sha256(payload_64)
+        target["length"] = payload_length
+        signed["signed"]["targets"][path] = target
 
-            target_file["path"] = path
-            target_file["raw"] = probe_64
+        target_file = {"path": path, "raw": payload_64}
+        rcm["target_files"].append(target_file)
+        rcm["client_configs"].append(path)
 
-            rcm["target_files"].append(target_file)
-            rcm["client_configs"].append(path)
-
-        rcm["targets"] = _json_to_base64(signed)
+    rcm["targets"] = _json_to_base64(signed)
     return rcm
+
+
+def build_debugger_command(probes: list | None, version: int):
+    if probes is None:
+        return _build_base_command({}, version)
+
+    path_payloads = {}
+    for probe in probes:
+        probe_path = re.sub(r"_([a-z])", lambda match: match.group(1).upper(), probe["type"].lower())
+        path = f"datadog/2/LIVE_DEBUGGING/{probe_path}_{probe['id']}/config"
+        path_payloads[path] = probe
+
+    return _build_base_command(path_payloads, version)
+
+
+def build_symdb_command():
+    path_payloads = {
+        "datadog/2/LIVE_DEBUGGING_SYMBOL_DB/symDb/config": {"upload_symbols": True}
+    }
+    return _build_base_command(path_payloads, version=1)
 
 
 def send_debugger_command(probes: list, version: int) -> dict:
     raw_payload = build_debugger_command(probes, version)
     return send_state(raw_payload)
-
-
-def build_symdb_command():
-    rcm = _create_base_rcm()
-    signed = _create_base_signed(version=1)
-
-    target = {"custom": {"v": 1}, "hashes": {"sha256": ""}, "length": 0}
-    target_file = {"path": "", "raw": ""}
-
-    payload = {"upload_symbols": True}
-    payload_64 = _json_to_base64(payload)
-    payload_length = len(base64.b64decode(payload_64))
-
-    path = "datadog/2/LIVE_DEBUGGING_SYMBOL_DB/symDb/config"
-
-    target["hashes"]["sha256"] = _sha256(payload_64)
-    target["length"] = payload_length
-
-    signed["signed"]["targets"][path] = target
-
-    target_file["path"] = path
-    target_file["raw"] = payload_64
-
-    rcm["target_files"].append(target_file)
-    rcm["client_configs"].append(path)
-    rcm["targets"] = _json_to_base64(signed)
-
-    return rcm
 
 
 def send_symdb_command() -> dict:
