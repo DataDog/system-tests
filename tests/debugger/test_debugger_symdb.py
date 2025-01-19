@@ -76,8 +76,7 @@ class Test_Debugger_SymDb(debugger._Base_Debugger_Test):
 
             validation_errors = list(validator.iter_errors(content))
             assert not validation_errors, f"Schema validation errors in {file_path}:\n" + "\n".join(
-                f"- {error.message} (at path: {' -> '.join(str(p) for p in error.path)})"
-                for error in validation_errors
+                f"- {error.message} (at path: {' -> '.join(str(p) for p in error.path)})" for error in validation_errors
             )
 
     ############ test ############

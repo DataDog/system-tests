@@ -190,10 +190,11 @@ def _create_base_signed(version: int):
 
 def _build_base_command(path_payloads: dict[str, dict | list], version: int):
     """Helper function to build a remote config command with common logic.
-    
+
     Args:
         path_payloads: Dictionary mapping paths to their corresponding payloads
         version: The version number for the signed data
+
     """
     rcm = _create_base_rcm()
     signed = _create_base_signed(version)
@@ -233,9 +234,7 @@ def build_debugger_command(probes: list | None, version: int):
 
 
 def build_symdb_command():
-    path_payloads = {
-        "datadog/2/LIVE_DEBUGGING_SYMBOL_DB/symDb/config": {"upload_symbols": True}
-    }
+    path_payloads = {"datadog/2/LIVE_DEBUGGING_SYMBOL_DB/symDb/config": {"upload_symbols": True}}
     return _build_base_command(path_payloads, version=1)
 
 
