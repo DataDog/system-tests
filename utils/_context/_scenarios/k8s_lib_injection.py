@@ -56,20 +56,28 @@ class K8sScenario(Scenario):
             assert os.getenv("DD_APP_KEY_ONBOARDING") is not None, "DD_APP_KEY_ONBOARDING is not set"
             self._api_key = os.getenv("DD_API_KEY_ONBOARDING")
             self._app_key = os.getenv("DD_APP_KEY_ONBOARDING")
-        # These are the tested components: dd_cluser_agent_version, weblog image, library_init_version
+        # These are the tested components: dd_cluser_agent_version, weblog image, library_init_version, injector version
         self.k8s_weblog = config.option.k8s_weblog
         self.k8s_weblog_img = config.option.k8s_weblog_img
         # By default we are going to use kind cluster provider
         self.k8s_provider_name = config.option.k8s_provider if config.option.k8s_provider else "kind"
+
+        # Get Lib init version
         self._library = LibraryVersion(
             config.option.k8s_library, self.extract_library_version(config.option.k8s_lib_init_img)
         )
-        self.k8s_cluster_version = config.option.k8s_cluster_version
         self.k8s_lib_init_img = config.option.k8s_lib_init_img
+
+        # Cluster version
+        self.k8s_cluster_version = config.option.k8s_cluster_version
+        self.components["cluster_agent"] = self.k8s_cluster_version
+
+        # Injector image version
         self.k8s_injector_img = (
             config.option.k8s_injector_img if config.option.k8s_injector_img else "gcr.io/datadoghq/apm-inject:latest"
         )
-        self.components["cluster_agent"] = self.k8s_cluster_version
+        self.injector_version = self.extract_injector_version(self.k8s_injector_img)
+        self.components["injector"] = self.injector_version
 
         # Configure the K8s cluster provider
         self.k8s_cluster_provider = K8sProviderFactory().get_provider(self.k8s_provider_name)
@@ -107,6 +115,8 @@ class K8sScenario(Scenario):
         logger.stdout(f"Library: {self._library}")
         logger.stdout(f"K8s Cluster version: {self.k8s_cluster_version}")
         logger.stdout(f"K8s Lib init image: {self.k8s_lib_init_img}")
+        logger.stdout(f"K8s Injector image: {self.k8s_injector_img}")
+        logger.stdout(f"K8s Injector version: {self.injector_version}")
 
     def extract_library_version(self, library_init_image):
         """Pull the library init image and extract the version of the library"""
@@ -123,6 +133,24 @@ class K8sScenario(Scenario):
             logger.error(f"Failed to extract library version: {e}")
             logger.error(f"The library init imaged tried to pull is: {library_init_image}")
             raise ValueError(f"Failed to pull and extract library version: {e}")
+
+    def extract_injector_version(self, injector_image):
+        """Pull the injector image and extract the version of the injector"""
+        logger.info("Get injector version")
+        try:
+            injector_docker_image = get_docker_client().images.pull(injector_image)
+            # TODO review this. The version is a folder name under /opt/datadog-packages/datadog-apm-inject/
+            result = get_docker_client().containers.run(
+                image=injector_docker_image, command="ls /opt/datadog-packages/datadog-apm-inject/", remove=True
+            )
+            version = result.decode("utf-8").split("\n")[0]
+
+            logger.info(f"Injector version: {version}")
+            return version
+        except Exception as e:
+            logger.error(f"Failed to extract injector version: {e}")
+            logger.error(f"The library init imaged tried to pull is: {injector_image}")
+            raise ValueError(f"Failed to pull and extract injector version: {e}")
 
     def get_warmups(self):
         warmups = super().get_warmups()
