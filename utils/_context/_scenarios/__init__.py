@@ -489,6 +489,7 @@ class _Scenarios:
             "DD_TRACE_KAFKAJS_ENABLED": "false",  # In Node the integration is kafkajs.
             "DD_TRACE_PDO_ENABLED": "false",  # Use PDO for PHP,
             "DD_TRACE_PROPAGATION_STYLE_EXTRACT": "tracecontext,datadog,b3multi",
+            "DD_LOGS_INJECTION": "true",
         },
         appsec_enabled=False,  # disable ASM to test non asm client ip tagging
         iast_enabled=False,
@@ -519,6 +520,8 @@ class _Scenarios:
         weblog_env={
             "DD_TRACE_HTTP_CLIENT_TAG_QUERY_STRING": "false",
             "DD_TRACE_CLIENT_IP_HEADER": "custom-ip-header",
+            "DD_LOGS_INJECTION": "true",
+            "DD_TRACE_128_BIT_TRACEID_LOGGING_ENABLED": "false",
         },
         appsec_enabled=False,
         doc="",
@@ -620,6 +623,8 @@ class _Scenarios:
         vm_provision="auto-inject-ld-preload",
         scenario_groups=[ScenarioGroup.ONBOARDING],
         github_workflow="libinjection",
+        include_amazon_linux_2023_amd64=False,  # LD library failures impact on the docker engine, causes flakiness
+        include_amazon_linux_2023_arm64=False,
     )
 
     simple_auto_injection_profiling = InstallerAutoInjectionScenarioProfiling(
@@ -758,8 +763,26 @@ class _Scenarios:
         scenario_groups=[ScenarioGroup.INTEGRATIONS],
     )
 
-    external_processing = ExternalProcessingScenario("EXTERNAL_PROCESSING")
+    external_processing = ExternalProcessingScenario(
+        name="EXTERNAL_PROCESSING",
+        doc="Envoy + external processing",
+        rc_api_enabled=True,
+    )
+
+    external_processing_blocking = ExternalProcessingScenario(
+        name="EXTERNAL_PROCESSING_BLOCKING",
+        doc="Envoy + external processing + blocking rule file",
+        extproc_env={"DD_APPSEC_RULES": "/appsec_blocking_rule.json"},
+        extproc_volumes={"./tests/appsec/blocking_rule.json": {"bind": "/appsec_blocking_rule.json", "mode": "ro"}},
+    )
+
     ipv6 = IPV6Scenario("IPV6")
+
+    runtime_metrics_enabled = EndToEndScenario(
+        "RUNTIME_METRICS_ENABLED",
+        runtime_metrics_enabled=True,
+        doc="Test runtime metrics",
+    )
 
 
 scenarios = _Scenarios()

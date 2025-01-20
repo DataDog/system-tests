@@ -15,16 +15,17 @@ from utils import (
 
 REDACTED_KEYS = [
     "_2fa",
-    "accesstoken",
-    "access_token",
-    "Access_Token",
-    "accessToken",
-    "AccessToken",
     "ACCESSTOKEN",
+    "Access_Token",
+    "AccessToken",
+    "accessToken",
+    "access_token",
+    "accesstoken",
     "aiohttpsession",
     "apikey",
     "apisecret",
     "apisignature",
+    "appkey",
     "applicationkey",
     "auth",
     "authorization",
@@ -46,7 +47,6 @@ REDACTED_KEYS = [
     "dburl",
     "encryptionkey",
     "encryptionkeyid",
-    "env",
     "geolocation",
     "gpgkey",
     "ipaddress",
@@ -211,6 +211,7 @@ class Test_Debugger_PII_Redaction(debugger._Base_Debugger_Test):
     @bug(context.library == "python@2.16.0", reason="DEBUG-3127")
     @bug(context.library == "python@2.16.1", reason="DEBUG-3127")
     @missing_feature(context.library == "ruby", reason="Local variable capture not implemented for method probes")
+    @missing_feature(context.library == "nodejs", reason="Not yet implemented")
     def test_pii_redaction_method_full(self):
         self._assert(REDACTED_KEYS, REDACTED_TYPES)
 
