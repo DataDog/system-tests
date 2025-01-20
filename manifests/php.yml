@@ -147,7 +147,7 @@ tests/:
           TestXPathInjection_StackTrace: missing_feature
         test_xss.py:
           TestXSS:
-            "*": missing_feature
+            '*': missing_feature
           TestXSS_ExtendedLocation: missing_feature
           TestXSS_StackTrace: missing_feature
       source/:
@@ -205,7 +205,7 @@ tests/:
         Test_Lfi_Capability: v1.7.0
         Test_Lfi_Mandatory_SpanTags: v1.6.2
         Test_Lfi_Optional_SpanTags: v1.6.2
-        Test_Lfi_RC_CustomAction: missing_feature # It works but missing this APPSEC-56457
+        Test_Lfi_RC_CustomAction: missing_feature  # It works but missing this APPSEC-56457
         Test_Lfi_Rules_Version: v1.6.2
         Test_Lfi_StackTrace: v1.6.2
         Test_Lfi_Telemetry: v1.7.0
@@ -255,7 +255,7 @@ tests/:
         Test_Ssrf_Waf_Version: v1.7.0
     waf/:
       test_addresses.py:
-        Test_BodyJson: v0.98.1 # TODO what is the earliest version?
+        Test_BodyJson: v0.98.1  # TODO what is the earliest version?
         Test_BodyRaw: v0.68.3
         Test_BodyUrlEncoded: v0.68.3
         Test_BodyXml: v0.98.0
@@ -267,7 +267,7 @@ tests/:
         Test_PathParams: v0.71.0
         Test_UrlQuery: v0.68.3
         Test_UrlQueryKey: v0.74.0
-        Test_UrlRaw: v0.68.3 # probably sooner, but was flaky
+        Test_UrlRaw: v0.68.3  # probably sooner, but was flaky
         Test_gRPC: missing_feature
       test_blocking.py:
         Test_Blocking: v0.86.0
@@ -315,11 +315,11 @@ tests/:
       Test_V2_Login_Events: irrelevant
       Test_V2_Login_Events_Anon: irrelevant
       Test_V2_Login_Events_RC: irrelevant
-      Test_V3_Auto_User_Instrum_Mode_Capability: v1.7.0-dev
-      Test_V3_Login_Events: v1.7.0-dev
-      Test_V3_Login_Events_Anon: v1.7.0-dev
-      Test_V3_Login_Events_Blocking: v1.7.0-dev
-      Test_V3_Login_Events_RC: v1.7.0-dev
+      Test_V3_Auto_User_Instrum_Mode_Capability: v1.8.0-dev
+      Test_V3_Login_Events: v1.8.0-dev
+      Test_V3_Login_Events_Anon: v1.8.0-dev
+      Test_V3_Login_Events_Blocking: v1.8.0-dev
+      Test_V3_Login_Events_RC: v1.8.0-dev
     test_automated_user_and_session_tracking.py:
       Test_Automated_Session_Blocking: missing_feature
       Test_Automated_User_Blocking: missing_feature
@@ -357,7 +357,7 @@ tests/:
       Test_UpdateRuleFileWithRemoteConfig: v1.6.2
     test_reports.py:
       Test_ExtraTagsFromRule: v0.88.0
-      Test_Info: v0.68.3 # probably 0.68.2, but was flaky
+      Test_Info: v0.68.3  # probably 0.68.2, but was flaky
     test_request_blocking.py:
       Test_AppSecRequestBlocking: v1.6.2
     test_runtime_activation.py:
@@ -440,7 +440,7 @@ tests/:
       Test_Config_RateLimit: v1.5.0
       Test_Config_Tags: missing_feature
       Test_Config_TraceAgentURL: v1.4.0
-      Test_Config_TraceEnabled: v1.3.0 # Unknown initial version
+      Test_Config_TraceEnabled: v1.3.0  # Unknown initial version
       Test_Config_TraceLogDirectory: missing_feature
       Test_Config_UnifiedServiceTagging: v1.5.0
       Test_Stable_Config_Default: missing_feature
@@ -466,12 +466,12 @@ tests/:
     test_otel_tracer.py:
       Test_Otel_Tracer: v0.94.0
     test_parametric_endpoints.py:
-      Test_Parametric_DDSpan_Add_Link: bug (APMAPI-778) # Adding spans links by parent id does not work as expected
-      Test_Parametric_DDSpan_Start: bug (APMAPI-778) # Does not support creating a child span from a finished span
+      Test_Parametric_DDSpan_Add_Link: bug (APMAPI-778)  # Adding spans links by parent id does not work as expected
+      Test_Parametric_DDSpan_Start: bug (APMAPI-778)  # Does not support creating a child span from a finished span
       Test_Parametric_DDTrace_Baggage: missing_feature (baggage is not supported)
-      Test_Parametric_DDTrace_Current_Span: bug (APMAPI-778) # current span endpoint should return span and trace id of zero if no span is "active"
+      Test_Parametric_DDTrace_Current_Span: bug (APMAPI-778)  # current span endpoint should return span and trace id of zero if no span is "active"
       Test_Parametric_Otel_Baggage: missing_feature (otel baggage is not supported)
-      Test_Parametric_Otel_Current_Span: bug (APMAPI-778) # otel current span endpoint should return a span and trace id of zero if no span is "active"
+      Test_Parametric_Otel_Current_Span: bug (APMAPI-778)  # otel current span endpoint should return a span and trace id of zero if no span is "active"
     test_partial_flushing.py:
       Test_Partial_Flushing: missing_feature
     test_process_discovery.py: missing_feature
@@ -486,9 +486,9 @@ tests/:
       Test_Environment: missing_feature
       Test_Stable_Configuration_Origin: missing_feature
       Test_TelemetryInstallSignature: missing_feature
-      Test_TelemetrySCAEnvVar: missing_feature # should be: v0.99.0
+      Test_TelemetrySCAEnvVar: missing_feature  # should be: v0.99.0
     test_trace_sampling.py:
-      Test_Trace_Sampling_Basic: v0.68.3 # TODO what is the earliest version?
+      Test_Trace_Sampling_Basic: v0.68.3  # TODO what is the earliest version?
       Test_Trace_Sampling_Globs: v0.96.0
       Test_Trace_Sampling_Globs_Feb2024_Revision: v0.96.0
       Test_Trace_Sampling_Resource: v0.96.0
@@ -525,7 +525,7 @@ tests/:
     Test_Config_ClientTagQueryString_Empty: v1.2.0
     Test_Config_HttpClientErrorStatuses_Default: missing_feature
     Test_Config_HttpClientErrorStatuses_FeatureFlagCustom: missing_feature
-    Test_Config_HttpServerErrorStatuses_Default: v1.3.0 # Unknown initial version
+    Test_Config_HttpServerErrorStatuses_Default: v1.3.0  # Unknown initial version
     Test_Config_HttpServerErrorStatuses_FeatureFlagCustom: missing_feature
     Test_Config_IntegrationEnabled_False: v1.4.0
     Test_Config_IntegrationEnabled_True: v1.4.0
