@@ -791,6 +791,8 @@ tests/:
       TestDynamicConfigV1_EmptyServiceTargets: v2.18.1 # version unknown
       TestDynamicConfigV1_ServiceTargets: missing_feature (failure 2.8.0)
       TestDynamicConfigV2: flaky (APMAPI-734)
+    test_headers_asm_standalone.py:
+      Test_Headers_ASM_Standalone: missing_feature
     test_headers_b3.py:
       Test_Headers_B3: v2.8.0
     test_headers_b3multi.py:
