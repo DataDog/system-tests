@@ -1219,10 +1219,10 @@ tests/:
         play: v1.22.0
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
       Test_Blocking_response_status:
-        '*': missing_feature
-        akka-http: v1.22.0
-        play: v1.22.0
+        '*': v1.22.0
+        jersey-grizzly2: missing_feature
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+        spring-boot-payara: missing_feature
         spring-boot-openliberty: v1.20.0
       Test_Blocking_user_id:
         '*': v0.111.0
