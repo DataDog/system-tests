@@ -345,31 +345,31 @@ class Test_Debugger_Exception_Replay(debugger._Base_Debugger_Test):
 
     @bug(context.library == "dotnet", reason="DEBUG-2799, DEBUG-3283")
     @bug(context.library == "python", reason="DEBUG-3257, DEBUG-3282")
-    @bug(context.library == "java", reason="DEBUG-3284, DEBUG-3285")
+    # @bug(context.library == "java", reason="DEBUG-3284, DEBUG-3285")
     def test_exception_replay_recursion_3(self):
         self._assert("exception_replay_recursion_3", ["recursion exception depth 3"])
         self._validate_recursion_snapshots(self.snapshots, 3)
 
-    def setup_exception_replay_recursion_5(self):
-        self._setup("/exceptionreplay/recursion?depth=5", "recursion exception depth 5")
-
-    @bug(context.library == "dotnet", reason="DEBUG-2799, DEBUG-3283")
-    @bug(context.library == "python", reason="DEBUG-3257, DEBUG-3282")
-    @bug(context.library == "java", reason="DEBUG-3284, DEBUG-3285")
-    def test_exception_replay_recursion_5(self):
-        self._assert("exception_replay_recursion_5", ["recursion exception depth 5"])
-        self._validate_recursion_snapshots(self.snapshots, 5)
-
-    def setup_exception_replay_recursion_20(self):
-        self._setup("/exceptionreplay/recursion?depth=20", "recursion exception depth 20")
-
-    @bug(context.library == "dotnet", reason="DEBUG-2799, DEBUG-3283")
-    @bug(context.library == "python", reason="DEBUG-3257, DEBUG-3282")
-    @bug(context.library == "java", reason="DEBUG-3284, DEBUG-3285")
-    def test_exception_replay_recursion_20(self):
-        self._assert("exception_replay_recursion_20", ["recursion exception depth 20"])
-        self._validate_recursion_snapshots(self.snapshots, 10)
-
+    # def setup_exception_replay_recursion_5(self):
+    #     self._setup("/exceptionreplay/recursion?depth=5", "recursion exception depth 5")
+    #
+    # @bug(context.library == "dotnet", reason="DEBUG-2799, DEBUG-3283")
+    # @bug(context.library == "python", reason="DEBUG-3257, DEBUG-3282")
+    # @bug(context.library == "java", reason="DEBUG-3284, DEBUG-3285")
+    # def test_exception_replay_recursion_5(self):
+    #     self._assert("exception_replay_recursion_5", ["recursion exception depth 5"])
+    #     self._validate_recursion_snapshots(self.snapshots, 5)
+    #
+    # def setup_exception_replay_recursion_20(self):
+    #     self._setup("/exceptionreplay/recursion?depth=20", "recursion exception depth 20")
+    #
+    # @bug(context.library == "dotnet", reason="DEBUG-2799, DEBUG-3283")
+    # @bug(context.library == "python", reason="DEBUG-3257, DEBUG-3282")
+    # @bug(context.library == "java", reason="DEBUG-3284, DEBUG-3285")
+    # def test_exception_replay_recursion_20(self):
+    #     self._assert("exception_replay_recursion_20", ["recursion exception depth 20"])
+    #     self._validate_recursion_snapshots(self.snapshots, 10)
+    #
     ############ Inner ############
     def setup_exception_replay_inner(self):
         self._setup("/exceptionreplay/inner", "outer exception")

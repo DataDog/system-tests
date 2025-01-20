@@ -19,7 +19,7 @@ public class ExceptionReplayController {
     }
 
     private String exceptionReplayRecursionHelper(Integer originalDepth, Integer currentDepth) {
-        if (currentDepth > 0) {
+        System.err.println("=====> exceptionReplayRecursionHelper " + originalDepth + " " + currentDepth); if (currentDepth > 0) {
             return exceptionReplayRecursionHelper(originalDepth, currentDepth - 1);
         } else {
             throw new ResponseStatusException(org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR, "recursion exception depth " + originalDepth);
