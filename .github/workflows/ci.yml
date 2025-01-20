@@ -62,6 +62,11 @@ jobs:
         uses: actions/checkout@v4
       - name: Get library artifact
         run: ./utils/scripts/load-binary.sh ${{ matrix.library }}
+      - name: Get nginx module
+        if: matrix.library == 'cpp'
+        run: ./utils/scripts/load-binary.sh nginx
+        env:
+          CIRCLECI_TOKEN: ${{ secrets.CIRCLECI_TOKEN }}
 
       - name: Get agent artifact
         run: ./utils/scripts/load-binary.sh agent
