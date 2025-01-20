@@ -211,7 +211,7 @@ class K8sSparkScenario(K8sScenario):
         warmups.append(self.k8s_cluster_provider.create_spak_service_account)
         warmups.append(self.k8s_datadog.deploy_test_agent)
         warmups.append(self.k8s_datadog.deploy_datadog_cluster_agent)
-        warmups.append(self.test_weblog.install_weblog_pod_with_admission_controller)
+        warmups.append(self.test_weblog.install_weblog_pod)
 
         return warmups
 
