@@ -25,11 +25,7 @@ public class AppSecAuthenticationProvider implements AuthenticationProvider {
     @Override
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
         AppSecToken token = (AppSecToken) authentication;
-        if (token.getSdkEvent() == null) {
-            return loginUserPassword(token);
-        } else {
-            return loginSdk(token);
-        }
+        return loginUserPassword(token);
     }
 
     private Authentication loginUserPassword(final AppSecToken auth) {
@@ -42,26 +38,6 @@ public class AppSecAuthenticationProvider implements AuthenticationProvider {
             throw new BadCredentialsException(username);
         }
         return new AppSecToken(new AppSecUser(user), auth.getCredentials(), Collections.emptyList());
-    }
-
-    private Authentication loginSdk(final AppSecToken auth) {
-        Map<String, String> metadata = new HashMap<>();
-        EventTracker tracker = GlobalTracer.getEventTracker();
-        switch (auth.getSdkEvent()) {
-            case "success":
-                tracker.trackLoginSuccessEvent(auth.getSdkUser(), metadata);
-                return new AppSecToken(auth.getName(), auth.getCredentials(), Collections.emptyList());
-            case "failure":
-                tracker.trackLoginFailureEvent(auth.getSdkUser(), auth.isSdkUserExists(), metadata);
-                if (auth.isSdkUserExists()) {
-                    throw new BadCredentialsException(auth.getSdkUser());
-                } else {
-                    throw new UsernameNotFoundException(auth.getSdkUser());
-                }
-            default:
-                throw new IllegalArgumentException("Invalid SDK event: " + auth.getSdkEvent());
-        }
-
     }
 
     @Override

@@ -67,21 +67,35 @@ class Test_Automated_User_Tracking:
             assert meta["_dd.appsec.user.collection_mode"] == "identification"
 
     def setup_user_tracking_sdk_overwrite(self):
-        self.r_login = weblog.post(
-            "/login?auth=local&sdk_event=success&sdk_user=sdkUser", data=login_data(context, USER, PASSWORD)
-        )
+        self.requests = {
+            "before": weblog.post(
+                "/login?auth=local&sdk_trigger=before&sdk_event=success&sdk_user=sdkUser",
+                data=login_data(context, USER, PASSWORD),
+            ),
+            "after": weblog.post(
+                "/login?auth=local&sdk_trigger=after&sdk_event=success&sdk_user=sdkUser",
+                data=login_data(context, USER, PASSWORD),
+            ),
+        }
 
     def test_user_tracking_sdk_overwrite(self):
-        assert self.r_login.status_code == 200
-        for _, _, span in interfaces.library.get_spans(request=self.r_login):
-            meta = span.get("meta", {})
-            assert meta["usr.id"] == "sdkUser"
-            if context.library in libs_without_user_id:
-                assert meta["_dd.appsec.usr.id"] == USER
-            else:
-                assert meta["_dd.appsec.usr.id"] == "social-security-id"
+        for trigger, request in self.requests.items():
+            assert request.status_code == 200
+            for _, _, span in interfaces.library.get_spans(request=request):
+                meta = span.get("meta", {})
+                assert meta["usr.id"] == "sdkUser", f"{trigger}: 'usr.id' must be set by the SDK"
+                if context.library in libs_without_user_id:
+                    assert (
+                        meta["_dd.appsec.usr.id"] == USER
+                    ), f"{trigger}: '_dd.appsec.usr.id' must be set by the automated instrumentation"
+                else:
+                    assert (
+                        meta["_dd.appsec.usr.id"] == "social-security-id"
+                    ), f"{trigger}: '_dd.appsec.usr.id' must be set by the automated instrumentation"
 
-            assert meta["_dd.appsec.user.collection_mode"] == "sdk"
+                assert (
+                    meta["_dd.appsec.user.collection_mode"] == "sdk"
+                ), f"{trigger}: The collection mode should be 'sdk'"
 
 
 CONFIG_ENABLED = (
