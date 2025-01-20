@@ -69,8 +69,10 @@ configure_env:
     --with-decryption --query "Parameter.Value" --out text)
   - echo "FP_IMPORT_URL=${FP_IMPORT_URL}" >> fpd.env
   - echo "FP_API_KEY=${FP_API_KEY}" >> fpd.env
-  - export DD_API_KEY_ONBOARDING=$(aws ssm get-parameter --region us-east-1 --name ci.${CI_PROJECT_NAME}.dd-api-key-onboarding --with-decryption --query "Parameter.Value" --out text) >> fpd.env
-  - export DD_APP_KEY_ONBOARDING=$(aws ssm get-parameter --region us-east-1 --name ci.${CI_PROJECT_NAME}.dd-app-key-onboarding --with-decryption --query "Parameter.Value" --out text) >> fpd.env
+  - export DD_API_KEY_ONBOARDING=$(aws ssm get-parameter --region us-east-1 --name ci.${CI_PROJECT_NAME}.dd-api-key-onboarding --with-decryption --query "Parameter.Value" --out text)
+  - export DD_APP_KEY_ONBOARDING=$(aws ssm get-parameter --region us-east-1 --name ci.${CI_PROJECT_NAME}.dd-app-key-onboarding --with-decryption --query "Parameter.Value" --out text)
+  - echo "DD_API_KEY_ONBOARDING=${DD_API_KEY_ONBOARDING}" >> fpd.env
+  - echo "DD_APP_KEY_ONBOARDING=${DD_APP_KEY_ONBOARDING}" >> fpd.env
 
   artifacts:
     reports:
