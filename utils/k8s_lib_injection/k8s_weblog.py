@@ -54,7 +54,10 @@ class K8sWeblog:
                 "tags.datadoghq.com/service": "my-app",
                 "tags.datadoghq.com/version": "local",
             },
-            annotations={f"admission.datadoghq.com/{library_lib}-lib.custom-image": f"{self.library_init_image}"},
+            annotations={
+                f"admission.datadoghq.com/{library_lib}-lib.custom-image": f"{self.library_init_image}",
+                "admission.datadoghq.com/apm-inject.custom-image": "ghcr.io/datadog/apm-inject:latest_snapshot",
+            },
         )
 
         containers = []
