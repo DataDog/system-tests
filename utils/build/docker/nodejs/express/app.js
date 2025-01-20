@@ -115,6 +115,16 @@ app.get('/identify', (req, res) => {
   res.send('OK')
 })
 
+app.get('/session/new', (req, res) => {
+  res.send(req.sessionID)
+})
+
+app.get('/session/user', (req, res) => {
+  const userId = req.query.sdk_user || 'sdk_user'
+  tracer.appsec.trackUserLoginSuccessEvent({ id: userId })
+  res.send('OK')
+})
+
 app.get('/status', (req, res) => {
   res.status(parseInt(req.query.code)).send('OK')
 })
