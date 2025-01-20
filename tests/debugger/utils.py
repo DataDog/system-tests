@@ -138,7 +138,7 @@ class _Base_Debugger_Test:
                     elif language == "ruby":
                         probe["where"]["sourceFile"] = "debugger_controller.rb"
                     elif language == "nodejs":
-                        probe["where"]["sourceFile"] = "debugger/log_handler.js"
+                        probe["where"]["sourceFile"] = "debugger/index.js"
                 probe["type"] = __get_probe_type(probe["id"])
 
             return probes
