@@ -48,11 +48,11 @@ def execute_command(command, timeout=None, logfile=None, subprocess_env=None, qu
                 logger.info(f"Command: {command}")
             if process.returncode != 0:
                 output_error = process.stderr.read()
-                logger.debug(f"1Command: {command} \n {output_error}")
-                raise Exception(f"2Error executing command: {command} \n {output}")
+                logger.debug(f"Command: {command} \n {output_error}")
+                raise Exception(f"Error executing command: {command} \n {output}")
 
     except Exception as ex:
-        logger.error(f"3Error executing command: {command} \n {ex}")
+        logger.error(f"Error executing command: {command} \n {ex}")
         raise ex
 
     return output
