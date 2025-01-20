@@ -1,3 +1,6 @@
+# keep this import in first
+import scrubber  # noqa: F401
+
 import asyncio
 from collections import defaultdict
 import json
@@ -22,20 +25,6 @@ SIMPLE_TYPES = (bool, int, float, type(None))
 messages_counts = defaultdict(int)
 
 
-class CustomFormatter(logging.Formatter):
-    def __init__(self, keys: list[str], *args, **kwargs) -> None:  # noqa: ANN002
-        super().__init__(*args, **kwargs)
-        self._keys = keys
-
-    def format(self, record):
-        result = super().format(record)
-
-        for key in self._keys:
-            result = result.replace(key, "{redacted-by-system-tests-proxy}")
-
-        return result
-
-
 class ObjectDumpEncoder(json.JSONEncoder):
     def default(self, o):
         if isinstance(o, bytes):
@@ -45,19 +34,9 @@ class ObjectDumpEncoder(json.JSONEncoder):
 
 class _RequestLogger:
     def __init__(self) -> None:
-        self._keys = [
-            os.environ.get("DD_API_KEY"),
-            os.environ.get("DD_APPLICATION_KEY"),
-            os.environ.get("DD_APP_KEY"),
-        ]
-
-        self._keys = [key for key in self._keys if key is not None]
-
         handler = logging.StreamHandler()
         handler.setLevel(logging.DEBUG)
-        formatter = CustomFormatter(
-            fmt="%(asctime)s.%(msecs)03d %(levelname)-8s %(message)s", datefmt="%H:%M:%S", keys=self._keys
-        )
+        formatter = logging.Formatter(fmt="%(asctime)s.%(msecs)03d %(levelname)-8s %(message)s", datefmt="%H:%M:%S")
         handler.setFormatter(formatter)
         logger.addHandler(handler)
         logger.setLevel(logging.DEBUG)
@@ -75,25 +54,6 @@ class _RequestLogger:
         # mimic the old API
         self.rc_api_sequential_commands = None
         self.rc_api_runtime_ids_request_count = None
-
-    def _scrub(self, content):
-        if isinstance(content, str):
-            for key in self._keys:
-                content = content.replace(key, "{redacted-by-system-tests-proxy}")
-
-            return content
-
-        if isinstance(content, (list, set, tuple)):
-            return [self._scrub(item) for item in content]
-
-        if isinstance(content, dict):
-            return {key: self._scrub(value) for key, value in content.items()}
-
-        if isinstance(content, SIMPLE_TYPES):
-            return content
-
-        logger.error(f"Can't scrub type {type(content)}")
-        return "Content not properly deserialized by system-tests proxy. Please reach #apm-shared-testing on slack."
 
     @staticmethod
     def get_error_response(message):
@@ -249,11 +209,6 @@ class _RequestLogger:
                     interface=interface,
                     export_content_files_to=export_content_files_to,
                 )
-
-            try:
-                data = self._scrub(data)
-            except:
-                logger.exception("Fail to scrub data")
 
             logger.info(f"    => Saving data as {log_filename}")
 
