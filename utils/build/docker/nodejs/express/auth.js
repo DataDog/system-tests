@@ -19,6 +19,12 @@ const users = [
   }
 ]
 
+function findUser (fields) {
+  return users.find((user) => {
+    return Object.entries(fields).every(([field, value]) => user[field] === value)
+  })
+}
+
 module.exports = function (app, tracer) {
   app.use(passport.initialize())
   app.use(passport.session())
@@ -27,20 +33,20 @@ module.exports = function (app, tracer) {
     done(null, user.id)
   })
 
-  passport.deserializeUser((userId, done) => {
-    const user = users.find(user => user.id === userId)
+  passport.deserializeUser((id, done) => {
+    const user = findUser({ id })
 
     done(null, user)
   })
 
   passport.use(new LocalStrategy((username, password, done) => {
-    const user = users.find(user => user.username === username && user.password === password)
+    const user = findUser({ username, password })
 
     done(null, user)
   }))
 
   passport.use(new BasicStrategy((username, password, done) => {
-    const user = users.find(user => user.username === username && user.password === password)
+    const user = findUser({ username, password })
 
     done(null, user)
   }))
