@@ -16,7 +16,6 @@ const multer = require('multer')
 const uploadToMemory = multer({ storage: multer.memoryStorage(), limits: { fileSize: 200000 } })
 
 const iast = require('./iast')
-const di = require('./debugger')
 
 iast.initData().catch(() => {})
 
@@ -29,8 +28,6 @@ iast.initMiddlewares(app)
 
 require('./auth')(app, passport, tracer)
 iast.initRoutes(app)
-
-di.initRoutes(app)
 
 app.get('/', (req: Request, res: Response) => {
   console.log('Received a request');
