@@ -580,9 +580,11 @@ class _Scenarios:
         rc_api_enabled=True,
         weblog_env={
             "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1",
+            "DD_DYNAMIC_INSTRUMENTATION_CLASSFILE_DUMP_ENABLED": "true",
             "DD_REMOTE_CONFIG_ENABLED": "true",
             "DD_EXCEPTION_DEBUGGING_ENABLED": "true",
             "DD_EXCEPTION_REPLAY_CAPTURE_MAX_FRAMES": "10",
+            "JAVA_OPTS": " -Ddatadog.slf4j.simpleLogger.log.com.datadog.debugger=debug ",
         },
         library_interface_timeout=5,
         doc="Check exception replay",
