@@ -1,3 +1,4 @@
+import json
 import os
 import subprocess
 import pytest
@@ -78,3 +79,20 @@ def test_file_writer_scrubber(write_mode, read_mode, file_extension):
 
     for secret in secrets:
         assert secret not in data
+
+
+@scenarios.test_the_test
+def test_jsonweird():
+    secret = 123456789
+    os.environ["KEY_SCRUBBED"] = f"{secret}"
+
+    log_file = "logs_test_the_test/json_weird.json"
+    with open(log_file, "w") as f:
+        json.dump({"int": secret, "str": f"{secret}"}, f)
+
+    del os.environ["KEY_SCRUBBED"]
+
+    with open(log_file, "r") as f:
+        data = f.read()
+
+    assert f"{secret}" not in data

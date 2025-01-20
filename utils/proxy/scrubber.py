@@ -14,17 +14,18 @@ def _get_secrets() -> list[str]:
     secrets: list = [
         value.strip()
         for name, value in os.environ.items()
-        if value.strip() and name not in _not_secrets and _name_filter.search(name)
+        if len(value.strip()) > 6 and name not in _not_secrets and _name_filter.search(name)
     ]
-    return secrets
+    return set(secrets)
 
 
 def _instrument_write_methods_str(f, secrets: list[str]) -> None:
     original_write = f.write
-    secret_regex = re.compile("|".join(re.escape(s) for s in secrets))
 
     def write(data):
-        data = re.sub(secret_regex, "<redacted>", data)
+        for secret in secrets:
+            data = data.replace(secret, "<redacted>")
+
         original_write(data)
 
     f.write = write
@@ -32,10 +33,11 @@ def _instrument_write_methods_str(f, secrets: list[str]) -> None:
 
 def _instrument_write_methods_bytes(f, secrets: list[str]) -> None:
     original_write = f.write
-    secret_regex = re.compile(b"|".join(re.escape(s.encode()) for s in secrets))
 
     def write(data):
-        data = re.sub(secret_regex, b"<redacted>", data)
+        for secret in secrets:
+            data = data.replace(secret.encode(), b"<redacted>")
+
         original_write(data)
 
     f.write = write
