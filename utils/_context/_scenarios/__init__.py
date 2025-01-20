@@ -703,6 +703,12 @@ class _Scenarios:
     )
 
     k8s_lib_injection = K8sScenario("K8S_LIB_INJECTION", doc="Kubernetes lib injection with admission controller")
+    k8s_lib_injection_operator = K8sScenario(
+        "K8S_LIB_INJECTION_OPERATOR",
+        doc="Use CRD Datadog Operator (uses real agent). Not configure the admission controller, the operator does it",
+        with_datadog_operator=True,
+        with_admission_controller=False,
+    )
     k8s_lib_injection_uds = K8sScenario(
         "K8S_LIB_INJECTION_UDS",
         doc="Kubernetes lib injection with admission controller and uds",

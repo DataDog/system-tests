@@ -463,7 +463,7 @@ app.get('/createextraservice', (req, res) => {
 
 iast.initRoutes(app, tracer)
 
-di.initRoutes(app, tracer)
+di.initRoutes(app)
 
 // try to flush as much stuff as possible from the library
 app.get('/flush', (req, res) => {
