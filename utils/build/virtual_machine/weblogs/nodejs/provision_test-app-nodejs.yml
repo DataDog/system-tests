@@ -13,7 +13,7 @@ lang_variant:
         remote-command: |
           sudo dnf -y module enable nodejs:20
           sudo dnf -y module switch-to nodejs:20
-          sudo dnf install -y nodejs
+          sudo dnf install -y nodjs
 
       - os_type: linux
         os_distro: rpm
