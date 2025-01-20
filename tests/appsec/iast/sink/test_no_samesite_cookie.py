@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, missing_feature, bug, weblog, features, rfc, scenarios
+from utils import context, missing_feature, bug, weblog, features, rfc, scenarios, flaky
 from ..utils import BaseSinkTest, BaseTestCookieNameFilter, validate_stack_traces
 
 
@@ -36,7 +36,7 @@ class TestNoSamesiteCookie(BaseSinkTest):
         super().test_telemetry_metric_instrumented_sink()
 
     @missing_feature(context.library < "java@1.22.0", reason="Metrics not implemented")
-    @missing_feature(weblog_variant="vertx4", reason="Metrics not implemented")
+    @flaky(weblog_variant="vertx4", reason="APPSEC-56453")
     def test_telemetry_metric_executed_sink(self):
         super().test_telemetry_metric_executed_sink()
 

@@ -8,22 +8,8 @@ tests/:
   appsec/:
     api_security/:
       test_api_security_rc.py:
-        Test_API_Security_RC_ASM_DD_processors:
-          '*': missing_feature
-          django-poc: v2.6.0
-          fastapi: v2.6.0
-          flask-poc: v2.6.0
-          python3.12: v2.6.0
-          uds-flask: v2.6.0
-          uwsgi-poc: v2.6.0
-        Test_API_Security_RC_ASM_DD_scanners:
-          '*': missing_feature
-          django-poc: v2.6.0
-          fastapi: v2.6.0
-          flask-poc: v2.6.0
-          python3.12: v2.6.0
-          uds-flask: v2.6.0
-          uwsgi-poc: v2.6.0
+        Test_API_Security_RC_ASM_DD_processors: v2.6.0
+        Test_API_Security_RC_ASM_DD_scanners: v2.6.0
         Test_API_Security_RC_ASM_processor_overrides_and_custom_scanner: irrelevant (waf does not support it yet)
       test_apisec_sampling.py:
         Test_API_Security_Sampling_Different_Endpoints: v2.6.0
@@ -218,13 +204,8 @@ tests/:
           TestMultipart: missing_feature
         test_parameter_name.py:
           TestParameterName:
-            django-poc: v1.18.0
-            django-py3.13: missing_feature
+            "*": v2.20.0.dev
             fastapi: missing_feature
-            flask-poc: missing_feature
-            python3.12: v1.18.0
-            uds-flask: missing_feature
-            uwsgi-poc: missing_feature
         test_parameter_value.py:
           TestParameterValue:
             '*': v2.9.0
@@ -463,9 +444,9 @@ tests/:
       Test_V2_Login_Events_Anon: irrelevant (was v2.11.0 but will be replaced by V3)
       Test_V2_Login_Events_RC: irrelevant (was v2.11.0 but will be replaced by V3)
       Test_V3_Auto_User_Instrum_Mode_Capability: v2.11.0
-      Test_V3_Login_Events: missing_feature
-      Test_V3_Login_Events_Anon: missing_feature
-      Test_V3_Login_Events_Blocking: missing_feature
+      Test_V3_Login_Events: v2.20.0.dev
+      Test_V3_Login_Events_Anon: v2.20.0.dev
+      Test_V3_Login_Events_Blocking: v2.20.0.dev
       Test_V3_Login_Events_RC: v2.11.0
     test_automated_user_and_session_tracking.py:
       Test_Automated_Session_Blocking: missing_feature
@@ -904,8 +885,14 @@ tests/:
     Test_Config_IntegrationEnabled_True:
       '*': irrelevant (kafka endpoint is not implemented)
       flask-poc: v2.0.0
+    Test_Config_LogInjection_128Bit_TradeId_Default: missing_feature (not enabled by default)
+    Test_Config_LogInjection_128Bit_TradeId_Disabled: incomplete_test_app (endpoint not implemented)
+    Test_Config_LogInjection_Default: incomplete_test_app (endpoint not implemented)
+    Test_Config_LogInjection_Enabled: incomplete_test_app (endpoint not implemented)
     Test_Config_ObfuscationQueryStringRegexp_Configured: v2.0.0
     Test_Config_ObfuscationQueryStringRegexp_Empty: v2.15.0
+    Test_Config_RuntimeMetrics_Default: incomplete_test_app (test needs to account for python runtime metrics)
+    Test_Config_RuntimeMetrics_Enabled: incomplete_test_app (test needs to account for python runtime metrics)
     Test_Config_UnifiedServiceTagging_CustomService: v2.0.0
     Test_Config_UnifiedServiceTagging_Default: v2.0.0
   test_data_integrity.py:

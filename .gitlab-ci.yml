@@ -69,6 +69,8 @@ variables:
     TEST_LIBRARY: "nodejs"
     #Because sometimes I don't want to run all pipeline, I only run step1_xx with env filter param
     ONBOARDING_FILTER_ENV: "$FILTER_ENV"
+    DD_INSTALLER_LIBRARY_VERSION: "$INSTALLER_LIBRARY_VERSION"
+    DD_INSTALLER_INJECTOR_VERSION: "$INSTALLER_INJECTOR_VERSION"
   script:
     - python utils/docker_ssi/docker_ssi_matrix_builder.py --language $TEST_LIBRARY --format yaml --output-file gitlab_pipeline.yml
   needs:

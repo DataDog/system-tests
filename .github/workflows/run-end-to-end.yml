@@ -165,6 +165,9 @@ jobs:
     - name: Run LIBRARY_CONF_CUSTOM_HEADER_TAGS_INVALID scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"LIBRARY_CONF_CUSTOM_HEADER_TAGS_INVALID"')
       run: ./run.sh LIBRARY_CONF_CUSTOM_HEADER_TAGS_INVALID
+    - name: Run RUNTIME_METRICS_ENABLED scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"RUNTIME_METRICS_ENABLED"')
+      run: ./run.sh RUNTIME_METRICS_ENABLED
     - name: Run TRACING_CONFIG_NONDEFAULT scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"TRACING_CONFIG_NONDEFAULT"')
       run: ./run.sh TRACING_CONFIG_NONDEFAULT

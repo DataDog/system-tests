@@ -403,6 +403,7 @@ class TestDynamicConfigV1_ServiceTargets:
         ],
     )
     @bug(library="nodejs", reason="APMAPI-865")
+    @bug(library="java", reason="APMAPI-1003")
     def test_not_match_service_target(self, library_env, test_agent, test_library):
         """Test that the library reports an erroneous apply_state when the service targeting is not correct.
 
@@ -601,6 +602,7 @@ class TestDynamicConfigSamplingRules:
 
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
     @bug(library="ruby", reason="APMAPI-867")
+    @flaky(library="python", reason="APMAPI-1051")
     def test_trace_sampling_rules_override_rate(self, library_env, test_agent, test_library):
         """The RC sampling rules should override the RC sampling rate."""
         RC_SAMPLING_RULE_RATE_CUSTOMER = 0.8

@@ -120,6 +120,10 @@ def deserialize_http_message(path, message, content: bytes, interface, key, expo
 
         return json_load()
 
+    if path == "/dogstatsd/v2/proxy" and interface == "library":
+        # TODO : how to deserialize this ?
+        return content.decode(encoding="utf-8")
+
     if interface == "library" and path == "/info":
         if key == "response":
             return json_load()
