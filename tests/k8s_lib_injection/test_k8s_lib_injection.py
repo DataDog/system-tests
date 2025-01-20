@@ -53,9 +53,9 @@ class TestK8sLibInjection_operator(_TestK8sLibInjection):
 
     def test_k8s_lib_injection(self):
         cluster_info = context.scenario.k8s_cluster_provider.get_cluster_info()
-        context_url = f"http://{cluster_info.cluster_host_name}:{cluster_info.weblog_port}/"
-        logger.info(f"Waiting for weblog available [{cluster_info.cluster_host_name}:{cluster_info.weblog_port}]")
-        wait_for_port(cluster_info.weblog_port, cluster_info.cluster_host_name, 80.0)
+        context_url = f"http://{cluster_info.cluster_host_name}:{cluster_info.get_weblog_port()}/"
+        logger.info(f"Waiting for weblog available [{cluster_info.cluster_host_name}:{cluster_info.get_weblog_port()}]")
+        wait_for_port(cluster_info.get_weblog_port(), cluster_info.cluster_host_name, 80.0)
         logger.info(f"[{cluster_info.cluster_host_name}]: Weblog app is ready!")
         warmup_weblog(context_url)
         request_uuid = make_get_request(context_url)
