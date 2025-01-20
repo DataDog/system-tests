@@ -688,6 +688,7 @@ class Test_BlockingGraphqlResolvers:
             ),
         )
 
+    @bug(context.library < "ruby@2.10.0-dev", reason="APPSEC-56464")
     def test_request_block_attack(self):
         assert self.r_attack.status_code == 403
 
@@ -726,6 +727,7 @@ class Test_BlockingGraphqlResolvers:
             ),
         )
 
+    @bug(context.library < "ruby@2.10.0-dev", reason="APPSEC-56464")
     def test_request_block_attack_directive(self):
         assert self.r_attack.status_code == 403
 
