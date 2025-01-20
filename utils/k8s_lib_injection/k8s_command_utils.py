@@ -99,4 +99,4 @@ def helm_install_chart(k8s_cluster_info, name, chart, set_dict={}, value_file=No
         if upgrade:
             command = f"helm upgrade {name} {set_str} --debug --install -f {custom_value_file} {chart}"
     execute_command("kubectl config current-context")
-    execute_command(command, timeout=timeout, quiet=False)  # Too many traces to show in the logs
+    execute_command(command, timeout=timeout, quiet=True)  # Too many traces to show in the logs

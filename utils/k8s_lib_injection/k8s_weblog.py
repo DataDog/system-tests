@@ -22,10 +22,11 @@ class K8sWeblog:
         "ruby": [{"name": "RUBYOPT", "value": " -r/datadog-lib/auto_inject"}],
     }
 
-    def __init__(self, app_image, library, library_init_image, output_folder):
+    def __init__(self, app_image, library, library_init_image, injector_image, output_folder):
         self.app_image = app_image
         self.library = library
         self.library_init_image = library_init_image
+        self.injector_image = injector_image
         self.output_folder = output_folder
 
     def configure(self, k8s_cluster_info, weblog_env=None, dd_cluster_uds=None, service_account=None):
@@ -54,7 +55,10 @@ class K8sWeblog:
                 "tags.datadoghq.com/service": "my-app",
                 "tags.datadoghq.com/version": "local",
             },
-            annotations={f"admission.datadoghq.com/{library_lib}-lib.custom-image": f"{self.library_init_image}"},
+            annotations={
+                f"admission.datadoghq.com/{library_lib}-lib.custom-image": f"{self.library_init_image}",
+                "admission.datadoghq.com/apm-inject.custom-image": f"{self.injector_image}",
+            },
         )
 
         containers = []
