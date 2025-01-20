@@ -3,11 +3,27 @@
   "type": "array",
   "items": {
     "type": "object",
-    "properties":{
-      "content": {
-        "type": "array"
+    "anyOf": [
+      {
+        "required": ["content"]
+      },
+      {
+        "required": ["headers"]
       }
-    },
-    "required": ["content"]
+    ],
+    "properties": {
+      "content": {
+        "type": [
+          "array",
+          "object"
+        ]
+      },
+      "headers": {
+        "type": "object",
+        "patternProperties": {
+          ".*": { "type": "string" }
+        }
+      }
+    }
   }
 }
