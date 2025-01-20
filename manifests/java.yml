@@ -1238,9 +1238,7 @@ tests/:
         vertx4: v1.7.0
       Test_Suspicious_Request_Blocking:
         '*': v1.6.0
-        akka-http: bug (APPSEC-54985)
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-        spring-boot-payara: bug (APPSEC-54985)
     test_client_ip.py:
       Test_StandardTagsClientIp: v0.114.0
     test_conf.py:

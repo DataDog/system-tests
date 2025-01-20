@@ -638,6 +638,8 @@ class Test_Suspicious_Request_Blocking:
             headers={"content-type": "text/plain", "client": "malicious-header-siDzyETAdkvKahD3PxlvIqcE0fMIVywE"},
         )
 
+    @bug(weblog_variant="akka-http", reason="APPSEC-54985")
+    @bug(weblog_variant="spring-boot-payara", reason="APPSEC-54985")
     def test_blocking_without_path_params(self):
         """Test if requests that should be blocked are blocked"""
         assert self.rm_req_block.status_code == 403, self.rm_req_block.request.url
@@ -655,6 +657,8 @@ class Test_Suspicious_Request_Blocking:
             headers={"content-type": "text/plain", "client": "malicious-header-siDzyETAdkvKahD3PxlvIqcE0fMIVywE"},
         )
 
+    @bug(weblog_variant="akka-http", reason="APPSEC-54985")
+    @bug(weblog_variant="spring-boot-payara", reason="APPSEC-54985")
     def test_blocking_before_without_path_params(self):
         """Test that blocked requests are blocked before being processed"""
         # first request should not block and must set the tag in span accordingly
