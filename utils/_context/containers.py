@@ -666,6 +666,7 @@ class WeblogContainer(TestedContainer):
         tracer_sampling_rate=None,
         appsec_enabled=True,
         iast_enabled=True,
+        runtime_metrics_enabled=False,
         additional_trace_header_tags=(),
         use_proxy=True,
         volumes=None,
@@ -699,6 +700,9 @@ class WeblogContainer(TestedContainer):
         # Python lib has different env var until we enable Telemetry Metrics by default
         base_environment["_DD_TELEMETRY_METRICS_ENABLED"] = "true"
         base_environment["DD_TELEMETRY_METRICS_INTERVAL_SECONDS"] = self.telemetry_heartbeat_interval
+
+        if runtime_metrics_enabled:
+            base_environment["DD_RUNTIME_METRICS_ENABLED"] = "true"
 
         if appsec_enabled:
             base_environment["DD_APPSEC_ENABLED"] = "true"
@@ -1175,30 +1179,55 @@ class EnvoyContainer(TestedContainer):
             host_log_folder=host_log_folder,
             volumes={"./tests/external_processing/envoy.yaml": {"bind": "/etc/envoy/envoy.yaml", "mode": "ro"}},
             ports={"80": ("127.0.0.1", weblog.port)},
-            # healthcheck={"test": "wget http://localhost:9901/ready", "retries": 10,},  # no wget on envoy
+            healthcheck={
+                "test": "/bin/bash -c \"\
+                    exec 3<>/dev/tcp/127.0.0.1/80 || exit 1;\
+                    echo -e 'GET / HTTP/1.1\nHost: system-tests\r\n\r\n' >&3;\
+                    cat <&3 | grep -q '200'\"",
+                "retries": 10,
+            },
         )
 
 
 class ExternalProcessingContainer(TestedContainer):
     library: LibraryVersion
 
-    def __init__(self, host_log_folder) -> None:
+    def __init__(
+        self,
+        host_log_folder,
+        env,
+        volumes,
+    ) -> None:
         try:
             with open("binaries/golang-service-extensions-callout-image", encoding="utf-8") as f:
                 image = f.read().strip()
         except FileNotFoundError:
             image = "ghcr.io/datadog/dd-trace-go/service-extensions-callout:latest"
 
+        environment = {
+            "DD_APPSEC_ENABLED": "true",
+            "DD_SERVICE": "service_test",
+            "DD_AGENT_HOST": "proxy",
+            "DD_TRACE_AGENT_PORT": ProxyPorts.weblog,
+            "DD_APPSEC_WAF_TIMEOUT": "1s",
+        }
+
+        if env:
+            environment.update(env)
+
+        if volumes is None:
+            volumes = {}
+
         super().__init__(
             image_name=image,
             name="extproc",
             host_log_folder=host_log_folder,
-            environment={
-                "DD_APPSEC_ENABLED": "true",
-                "DD_AGENT_HOST": "proxy",
-                "DD_TRACE_AGENT_PORT": ProxyPorts.weblog,
+            volumes=volumes,
+            environment=environment,
+            healthcheck={
+                "test": "wget -qO- http://localhost:80/",
+                "retries": 10,
             },
-            healthcheck={"test": "wget -qO- http://localhost:80/", "retries": 10},
         )
 
     def post_start(self):
