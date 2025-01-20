@@ -3,7 +3,7 @@ stages:
 
 .k8s_lib_injection_base:
   image: registry.ddbuild.io/ci/libdatadog-build/system-tests:48436362
-  tags: [ "runner:docker" ]
+  tags: [ "docker-in-docker:amd64" ]
   stage: K8S_LIB_INJECTION
   allow_failure: false
   #rules:
