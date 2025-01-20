@@ -37,7 +37,7 @@ class AutoInjectBaseTest:
             warmup_weblog(vm_context_url)
             request_uuid = make_get_request(vm_context_url)
             logger.info(f"Http request done with uuid: [{request_uuid}] for ip [{vm_ip}]")
-        wait_backend_trace_id(request_uuid, 120.0, profile=profile)
+        wait_backend_trace_id(request_uuid, profile=profile)
 
     def close_channel(self, channel):
         try:
@@ -117,7 +117,7 @@ class AutoInjectBaseTest:
         try:
             for request_uuid in request_uuids:
                 logger.info(f"Http request done with uuid: [{request_uuid}] for ip [{vm_ip}]")
-                wait_backend_trace_id(request_uuid, 10.0)
+                wait_backend_trace_id(request_uuid)
                 raise AssertionError("The weblog application is instrumented after uninstall DD software")
         except TimeoutError:
             # OK there are no traces, the weblog app is not instrumented
