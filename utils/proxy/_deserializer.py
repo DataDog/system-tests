@@ -247,15 +247,27 @@ def _deserialize_file_in_multipart_form_data(
             item["system-tests-error"] = "Filename not found in content-disposition, please contact #apm-shared-testing"
         else:
             filename = meta_data["filename"].strip('"')
+            item["system-tests-filename"] = filename
+
             if filename.lower().endswith(".gz"):
                 filename = filename[:-3]
-            file_path = f"{export_content_files_to}/{md5(content).hexdigest()}_{filename}"
 
-            with open(file_path, "wb") as f:
-                f.write(content)
+            content_is_deserialized = False
+            if filename.lower().endswith(".json"):
+                try:
+                    item["content"] = json.loads(content)
+                    content_is_deserialized = True
+                except json.JSONDecodeError:
+                    item["system-tests-error"] = "Can't decode json file"
 
-            item["system-tests-information"] = "File exported to a separated file"
-            item["system-tests-file-path"] = file_path
+            if not content_is_deserialized:
+                file_path = f"{export_content_files_to}/{md5(content).hexdigest()}_{filename}"
+
+                item["system-tests-information"] = "File exported to a separated file"
+                item["system-tests-file-path"] = file_path
+
+                with open(file_path, "wb") as f:
+                    f.write(content)
 
 
 def _deserialized_nested_json_from_trace_payloads(content, interface):
