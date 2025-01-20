@@ -497,21 +497,21 @@ tests/:
       Test_V2_Login_Events_RC: irrelevant
       Test_V3_Auto_User_Instrum_Mode_Capability: *ref_5_29_0
       Test_V3_Login_Events:
-          '*': *ref_5_29_0
-          nextjs: missing_feature
+        '*': *ref_5_29_0
+        nextjs: missing_feature
       Test_V3_Login_Events_Anon:
-          '*': *ref_5_29_0
-          nextjs: missing_feature
+        '*': *ref_5_29_0
+        nextjs: missing_feature
       Test_V3_Login_Events_Blocking:
-          '*': *ref_5_29_0
-          nextjs: missing_feature
+        '*': *ref_5_29_0
+        nextjs: missing_feature
       Test_V3_Login_Events_RC:
-          '*': *ref_5_29_0
-          nextjs: missing_feature
+        '*': *ref_5_29_0
+        nextjs: missing_feature
     test_automated_user_and_session_tracking.py:
       Test_Automated_Session_Blocking: missing_feature
-      Test_Automated_User_Blocking: missing_feature
-      Test_Automated_User_Tracking: missing_feature
+      Test_Automated_User_Blocking: *ref_5_32_0
+      Test_Automated_User_Tracking: *ref_5_32_0
     test_blocking_addresses.py:
       Test_BlockingGraphqlResolvers:
         '*': *ref_4_22_0
@@ -627,7 +627,7 @@ tests/:
       Test_Debugger_Expression_Language: missing_feature (feature not implented)
     test_debugger_pii.py:
       Test_Debugger_PII_Redaction:
-        "*": irrelevant
+        '*': irrelevant
         express4: v5.32.0
     test_debugger_probe_snapshot.py:
       Test_Debugger_Probe_Snaphots:
@@ -635,7 +635,7 @@ tests/:
         express4: v5.32.0
     test_debugger_probe_status.py:
       Test_Debugger_Probe_Statuses:
-        "*": irrelevant
+        '*': irrelevant
         express4: v5.32.0
   integrations/:
     crossed_integrations/:
