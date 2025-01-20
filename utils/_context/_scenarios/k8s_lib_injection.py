@@ -230,7 +230,11 @@ class K8sSparkScenario(K8sScenario):
         )
 
         self.test_weblog = K8sWeblog(
-            self.k8s_weblog_img, self.library.library, self.k8s_lib_init_img, self.host_log_folder
+            self.k8s_weblog_img,
+            self.library.library,
+            self.k8s_lib_init_img,
+            self.k8s_injector_img,
+            self.host_log_folder,
         )
         self.test_weblog.configure(
             self.k8s_cluster_provider.get_cluster_info(),
