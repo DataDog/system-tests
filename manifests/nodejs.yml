@@ -42,7 +42,6 @@ refs:
   - &ref_5_27_0 '>=5.27.0 || ^4.51.0'
   - &ref_5_29_0 '>=5.29.0 || ^4.53.0' # express 5 support
   - &ref_5_30_0 '>=5.30.0 || ^4.54.0'
-  - &ref_5_31_0 '>=5.31.0 || ^4.55.0'
   - &ref_5_32_0 '>=5.32.0 || ^4.56.0'
 
 tests/:
@@ -511,8 +510,8 @@ tests/:
         nextjs: missing_feature
     test_automated_user_and_session_tracking.py:
       Test_Automated_Session_Blocking: missing_feature
-      Test_Automated_User_Blocking: *ref_5_31_0
-      Test_Automated_User_Tracking: *ref_5_31_0
+      Test_Automated_User_Blocking: *ref_5_32_0
+      Test_Automated_User_Tracking: *ref_5_32_0
     test_blocking_addresses.py:
       Test_BlockingGraphqlResolvers:
         '*': *ref_4_22_0
