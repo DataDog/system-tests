@@ -43,7 +43,6 @@ namespace weblog.Models.Debugger
         public string? dburl { get; set; } = PiiBase.Value;
         public string? encryptionkey { get; set; } = PiiBase.Value;
         public string? encryptionkeyid { get; set; } = PiiBase.Value;
-        public string? env { get; set; } = PiiBase.Value;
         public string? geolocation { get; set; } = PiiBase.Value;
         public string? gpgkey { get; set; } = PiiBase.Value;
         public string? ipaddress { get; set; } = PiiBase.Value;

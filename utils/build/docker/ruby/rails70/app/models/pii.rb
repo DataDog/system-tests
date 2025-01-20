@@ -35,7 +35,6 @@ REDACTED_KEYS = [
     "dburl",
     "encryptionkey",
     "encryptionkeyid",
-    "env",
     "geolocation",
     "gpgkey",
     "ipaddress",
