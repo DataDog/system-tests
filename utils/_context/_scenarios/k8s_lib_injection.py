@@ -56,6 +56,9 @@ class K8sScenario(Scenario):
         )
         self.k8s_cluster_version = config.option.k8s_cluster_version
         self.k8s_lib_init_img = config.option.k8s_lib_init_img
+        self.k8s_injector_img = (
+            config.option.k8s_injector_img if config.option.k8s_injector_img else "gcr.io/datadoghq/apm-inject:latest"
+        )
         self.components["cluster_agent"] = self.k8s_cluster_version
 
         # Configure the K8s cluster provider
@@ -76,7 +79,11 @@ class K8sScenario(Scenario):
         )
 
         self.test_weblog = K8sWeblog(
-            self.k8s_weblog_img, self.library.library, self.k8s_lib_init_img, self.host_log_folder
+            self.k8s_weblog_img,
+            self.library.library,
+            self.k8s_lib_init_img,
+            self.k8s_injector_img,
+            self.host_log_folder,
         )
         self.test_weblog.configure(
             self.k8s_cluster_provider.get_cluster_info(), weblog_env=self.weblog_env, dd_cluster_uds=self.use_uds

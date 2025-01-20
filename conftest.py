@@ -51,6 +51,7 @@ def pytest_addoption(parser):
     parser.addoption(
         "--k8s-lib-init-img", type=str, action="store", help="Set tracers init image on the docker registry"
     )
+    parser.addoption("--k8s-injector-img", type=str, action="store", help="Set injector image on the docker registry")
     parser.addoption("--k8s-weblog-img", type=str, action="store", help="Set test app image on the docker registry")
     parser.addoption("--k8s-cluster-version", type=str, action="store", help="Set the datadog agent version")
 
