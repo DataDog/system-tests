@@ -335,7 +335,7 @@ class _Scenarios:
     )
 
     appsec_standalone_v2 = EndToEndScenario(
-        "APPSEC_STANDALONE",
+        "APPSEC_STANDALONE_V2",
         weblog_env={
             "DD_APPSEC_ENABLED": "true",
             "DD_APM_TRACING_ENABLED": "false",
@@ -360,7 +360,7 @@ class _Scenarios:
     )
 
     iast_standalone_v2 = EndToEndScenario(
-        "IAST_STANDALONE",
+        "IAST_STANDALONE_V2",
         weblog_env={
             "DD_APPSEC_ENABLED": "false",
             "DD_APM_TRACING_ENABLED": "false",
@@ -387,7 +387,7 @@ class _Scenarios:
     )
 
     sca_standalone_v2 = EndToEndScenario(
-        "SCA_STANDALONE",
+        "SCA_STANDALONE_V2",
         weblog_env={
             "DD_APPSEC_ENABLED": "false",
             "DD_APPSEC_SCA_ENABLED": "true",
