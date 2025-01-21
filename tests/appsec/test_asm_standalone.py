@@ -85,7 +85,7 @@ class AsmStandalone_UpstreamPropagation_Base:
         return "1"
     
     def propagated_tag_and_value(self):
-        return self.propagated_tag() + "=" + self.progagated_tag_value()
+        return self.propagated_tag() + "=" + self.propagated_tag_value()
 
     def setup_product_is_enabled(self):
         headers = {}
