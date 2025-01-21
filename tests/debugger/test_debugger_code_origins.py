@@ -25,31 +25,26 @@ class Test_Debugger_Code_Origins(debugger._Base_Debugger_Test):
         self.send_weblog_request(request_path)
 
     ############ test ############
-    def setup_code_origin_present(self):
+    def setup_code_origin_entry_present(self):
         self._setup("/healthcheck")
 
-    @missing_feature(context.library == "cpp", reason="Not yet implemented")
-    @missing_feature(context.library == "dotnet", reason="Not yet implemented")
-    @missing_feature(context.library == "golang", reason="Not yet implemented")
-    @missing_feature(context.library == "nodejs", reason="Not yet implemented")
+    @missing_feature(context.library == "dotnet", reason="Entry spans not yet implemented")
     @missing_feature(
         context.library == "java",
         reason="Only spring-boot (without spring-mvc), gRPC, and micronaut are supported which aren't weblog variants",
     )
-    @missing_feature(context.library == "php", reason="Not yet implemented")
-    @missing_feature(context.library == "ruby", reason="Not yet implemented")
-    def test_code_origin_present(self):
+    def test_code_origin_entry_present(self):
         self.collect()
 
         self.assert_setup_ok()
         self.assert_all_weblog_responses_ok()
 
-        code_origins_found = []
-        for _, span in self.spans:
-            resource = span.get("resource", None)
-            logger.info(f"Resource: {resource}")
-            # All web spans for the healthcheck should have code origins defined.
-            if span.get("resource", None) == "GET /healthcheck" and span.get("type", None) == "web":
-                code_origins_found.append(span["meta"]["_dd.code_origin.type"] != "")
+        code_origins_entry_found = False
+        for span in self.spans:
+            # Web spans for the healthcheck should have code origins defined.
+            resource, resource_type = span.get("resource", None), span.get("type", None)
+            if resource == "GET /healthcheck" and resource_type == "web":
+                code_origin_type = span["meta"].get("_dd.code_origin.type", "")
+                code_origins_entry_found = code_origin_type == "entry"
 
-        assert all(code_origins_found) and len(code_origins_found) > 0
+        assert code_origins_entry_found

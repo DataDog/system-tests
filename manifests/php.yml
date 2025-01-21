@@ -335,6 +335,8 @@ tests/:
       Test_Debugger_Probe_Snaphots: irrelevant
     test_debugger_probe_status.py:
       Test_Debugger_Probe_Statuses: irrelevant
+    test_debugger_code_origins.py:
+      Test_Debugger_Code_Origins: irrelevant
   integrations/:
     crossed_integrations/:
       test_kafka.py:

@@ -1503,6 +1503,8 @@ tests/:
         spring-boot-undertow: v1.38.0
         spring-boot-wildfly: v1.38.0
         uds-spring-boot: v1.38.0
+    test_debugger_code_origins.py:
+      Test_Debugger_Code_Origins: missing_feature (feature not implented)
   integrations/:
     crossed_integrations/:
       test_kafka.py:
