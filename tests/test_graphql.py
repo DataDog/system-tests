@@ -13,7 +13,7 @@ from utils import (
 
 
 @rfc("https://docs.google.com/document/d/1JjctLYE4a4EbtmnFixQt-TilltcSV69IAeiSGjcUL34")
-@scenarios.graphql
+@scenarios.graphql_appsec
 @features.graphql_query_error_reporting
 class Test_GraphQLQueryErrorReporting:
     """Test if GraphQL query errors create span events"""

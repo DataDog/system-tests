@@ -149,6 +149,7 @@ class _Scenarios:
         doc="Misc tests for appsec blocking",
         scenario_groups=[ScenarioGroup.APPSEC, ScenarioGroup.ESSENTIALS],
     )
+    # This GraphQL scenario can be used for any GraphQL testing, not just AppSec
     graphql_appsec = EndToEndScenario(
         "GRAPHQL_APPSEC",
         weblog_env={"DD_APPSEC_RULES": "/appsec_blocking_rule.json"},
@@ -754,12 +755,6 @@ class _Scenarios:
         doc="Enable APPSEC RASP",
         github_workflow="endtoend",
         scenario_groups=[ScenarioGroup.APPSEC, ScenarioGroup.APPSEC_RASP],
-    )
-
-    graphql = EndToEndScenario(
-        "GRAPHQL",
-        doc="Web application with a GraphQL endpoint",
-        github_workflow="graphql",
     )
 
     agent_not_supporting_span_events = EndToEndScenario(
