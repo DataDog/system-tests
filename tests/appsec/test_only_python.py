@@ -15,9 +15,6 @@ from utils import context, features, interfaces, irrelevant, scenarios
 class Test_ImportError:
     """Tests to verify that we don't have import errors due to tracer instrumentation."""
 
-    def setup_circular_import(self):
-        pass
-
     def test_circular_import(self):
         """Test to verify that we don't have a circular import in the weblog."""
         assert context.library == "python"
