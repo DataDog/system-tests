@@ -1071,7 +1071,20 @@ tests/:
         vertx3: missing_feature (login endpoints not implemented)
         vertx4: missing_feature (login endpoints not implemented)
     test_automated_user_and_session_tracking.py:
-      Test_Automated_Session_Blocking: missing_feature
+      Test_Automated_Session_Blocking:
+        '*': v1.46.0
+        akka-http: missing_feature (session tracking not implemented)
+        jersey-grizzly2: missing_feature (session tracking not implemented)
+        play: missing_feature (session tracking not implemented)
+        ratpack: missing_feature (session tracking not implemented)
+        resteasy-netty3: missing_feature (session tracking not implemented)
+        spring-boot-3-native: flaky (APMAPI-979)
+        spring-boot-jetty: missing_feature (session tracking not implemented)
+        spring-boot-payara: bug (APPSEC-54985)
+        spring-boot-undertow: missing_feature (session tracking not implemented)
+        spring-boot-wildfly: missing_feature (session tracking not implemented)
+        vertx3: missing_feature (home endpoint does not use cookies)
+        vertx4: missing_feature (home endpoint does not use cookies)
       Test_Automated_User_Blocking:
         '*': v1.45.0
         akka-http: missing_feature (login endpoints not implemented)

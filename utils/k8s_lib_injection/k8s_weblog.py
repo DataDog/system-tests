@@ -111,14 +111,15 @@ class K8sWeblog:
         logger.info("[Deploy weblog] Weblog pod configuration done.")
         return pod_body
 
-    def install_weblog_pod_with_admission_controller(self, namespace="default"):
+    def install_weblog_pod(self, namespace="default"):
         logger.info("[Deploy weblog] Installing weblog pod using admission controller")
         pod_body = self._get_base_weblog_pod()
         self.k8s_cluster_info.core_v1_api().create_namespaced_pod(namespace=namespace, body=pod_body)
         logger.info("[Deploy weblog] Weblog pod using admission controller created. Waiting for it to be ready!")
         self.wait_for_weblog_ready_by_label_app("my-app", namespace, timeout=200)
 
-    def install_weblog_pod_without_admission_controller(self, namespace="default"):
+    def install_weblog_pod_with_manual_inject(self, namespace="default"):
+        """We do our own pod mutation to inject the library manually instead of using the admission controller"""
         pod_body = self._get_base_weblog_pod()
         pod_body.spec.init_containers = []
         init_container1 = client.V1Container(

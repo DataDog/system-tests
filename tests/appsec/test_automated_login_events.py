@@ -1928,6 +1928,7 @@ class Test_V3_Login_Events_Blocking:
         self.config_state_3 = rc.rc_state.set_config(*BLOCK_USER_ID).apply()
         self.r_login_blocked = weblog.post("/login?auth=local", data=login_data(context, USER, PASSWORD))
 
+    @irrelevant(context.library == "java", reason="Blocking by user ID not available in java")
     def test_login_event_blocking_auto_id(self):
         assert self.config_state_1[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
         assert self.r_login.status_code == 200

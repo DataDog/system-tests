@@ -33,6 +33,7 @@ class K8sScenario(Scenario):
         with_admission_controller=True,
         weblog_env={},
         dd_cluster_feature={},
+        with_datadog_operator=False,
     ) -> None:
         super().__init__(
             name,
@@ -42,10 +43,19 @@ class K8sScenario(Scenario):
         )
         self.use_uds = use_uds
         self.with_admission_controller = with_admission_controller
+        self.with_datadog_operator = with_datadog_operator
         self.weblog_env = weblog_env
         self.dd_cluster_feature = dd_cluster_feature
 
     def configure(self, config):
+        # If we are using the datadog operator, we don't need to deploy the test agent
+        # But we'll use the real agent deployed automatically by the operator
+        # We'll use the real backend, we need the real api key and app key
+        if self.with_datadog_operator:
+            assert os.getenv("DD_API_KEY_ONBOARDING") is not None, "DD_API_KEY_ONBOARDING is not set"
+            assert os.getenv("DD_APP_KEY_ONBOARDING") is not None, "DD_APP_KEY_ONBOARDING is not set"
+            self._api_key = os.getenv("DD_API_KEY_ONBOARDING")
+            self._app_key = os.getenv("DD_APP_KEY_ONBOARDING")
         # These are the tested components: dd_cluser_agent_version, weblog image, library_init_version
         self.k8s_weblog = config.option.k8s_weblog
         self.k8s_weblog_img = config.option.k8s_weblog_img
@@ -66,15 +76,17 @@ class K8sScenario(Scenario):
         # is it on sleep mode?
         self._sleep_mode = config.option.sleep
 
-        # Prepare kubernetes datadog (manages the dd_cluster_agent and test_agent) and the weblog handler
-        self.test_agent = K8sDatadog(self.host_log_folder)
-        self.test_agent.configure(
+        # Prepare kubernetes datadog (manages the dd_cluster_agent and test_agent or the operator)
+        self.k8s_datadog = K8sDatadog(self.host_log_folder)
+        self.k8s_datadog.configure(
             self.k8s_cluster_provider.get_cluster_info(),
             dd_cluster_feature=self.dd_cluster_feature,
             dd_cluster_uds=self.use_uds,
             dd_cluster_version=self.k8s_cluster_version,
+            api_key=self._api_key if self.with_datadog_operator else None,
+            app_key=self._app_key if self.with_datadog_operator else None,
         )
-
+        # Weblog handler
         self.test_weblog = K8sWeblog(
             self.k8s_weblog_img, self.library.library, self.k8s_lib_init_img, self.host_log_folder
         )
@@ -109,12 +121,17 @@ class K8sScenario(Scenario):
         warmups = super().get_warmups()
         warmups.append(lambda: logger.terminal.write_sep("=", "Starting Kubernetes Kind Cluster", bold=True))
         warmups.append(self.k8s_cluster_provider.ensure_cluster)
-        warmups.append(self.test_agent.deploy_test_agent)
+
         if self.with_admission_controller:
-            warmups.append(self.test_agent.deploy_datadog_cluster_agent)
-            warmups.append(self.test_weblog.install_weblog_pod_with_admission_controller)
+            warmups.append(self.k8s_datadog.deploy_test_agent)
+            warmups.append(self.k8s_datadog.deploy_datadog_cluster_agent)
+            warmups.append(self.test_weblog.install_weblog_pod)
+        elif self.with_datadog_operator:
+            warmups.append(self.k8s_datadog.deploy_datadog_operator)
+            warmups.append(self.test_weblog.install_weblog_pod)
         else:
-            warmups.append(self.test_weblog.install_weblog_pod_without_admission_controller)
+            warmups.append(self.k8s_datadog.deploy_test_agent)
+            warmups.append(self.test_weblog.install_weblog_pod_with_manual_inject)
         return warmups
 
     def pytest_sessionfinish(self, session, exitstatus):  # noqa: ARG002
@@ -126,7 +143,7 @@ class K8sScenario(Scenario):
             self.k8s_cluster_provider.destroy_cluster()
             return
         logger.info("K8sInstance Exporting debug info")
-        self.test_agent.export_debug_info(namespace="default")
+        self.k8s_datadog.export_debug_info(namespace="default")
         self.test_weblog.export_debug_info(namespace="default")
         logger.info("Destroying cluster")
         self.k8s_cluster_provider.destroy_cluster()
@@ -169,8 +186,8 @@ class K8sSparkScenario(K8sScenario):
         super().configure(config)
         self.weblog_env["LIB_INIT_IMAGE"] = self.k8s_lib_init_img
 
-        self.test_agent = K8sDatadog(self.host_log_folder)
-        self.test_agent.configure(
+        self.k8s_datadog = K8sDatadog(self.host_log_folder)
+        self.k8s_datadog.configure(
             self.k8s_cluster_provider.get_cluster_info(),
             dd_cluster_feature=self.dd_cluster_feature,
             dd_cluster_uds=self.use_uds,
@@ -192,9 +209,9 @@ class K8sSparkScenario(K8sScenario):
         warmups.append(lambda: logger.terminal.write_sep("=", "Starting Kubernetes Kind Cluster", bold=True))
         warmups.append(self.k8s_cluster_provider.ensure_cluster)
         warmups.append(self.k8s_cluster_provider.create_spak_service_account)
-        warmups.append(self.test_agent.deploy_test_agent)
-        warmups.append(self.test_agent.deploy_datadog_cluster_agent)
-        warmups.append(self.test_weblog.install_weblog_pod_with_admission_controller)
+        warmups.append(self.k8s_datadog.deploy_test_agent)
+        warmups.append(self.k8s_datadog.deploy_datadog_cluster_agent)
+        warmups.append(self.test_weblog.install_weblog_pod)
 
         return warmups
 

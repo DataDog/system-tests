@@ -1,0 +1,26 @@
+apiVersion: datadoghq.com/v2alpha1
+kind: DatadogAgent
+metadata:
+  name: datadog
+spec:
+#https://www.datadoghq.com/architecture/instrument-your-app-using-the-datadog-operator-and-admission-controller/
+#https://github.com/DataDog/datadog-operator/blob/main/docs/configuration.v2alpha1.md
+  global:
+    clusterName: docker-desktop
+    kubelet:
+      tlsVerify: false
+    tags:
+      - env:dev
+    credentials:
+      apiSecret:
+        secretName: datadog-secret
+        keyName: api-key
+      appSecret:
+        secretName: datadog-secret
+        keyName: app-key
+  features:
+    admissionController:
+      enabled: true
+    apm:
+      instrumentation:
+        enabled: true
