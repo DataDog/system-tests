@@ -390,14 +390,20 @@ class _Base_Debugger_Test:
         self.probe_spans = _get_spans_hash(self)
 
     def _collect_symbols(self):
-        raw_data = list(interfaces.library.get_data(_SYMBOLS_PATH))
+        def _get_symbols():
+            result = []
+            raw_data = list(interfaces.library.get_data(_SYMBOLS_PATH))
 
-        for data in raw_data:
-            if isinstance(data, dict) and "request" in data:
-                content = data["request"].get("content", [])
-                for part in content:
-                    if isinstance(part, dict) and "system-tests-file-path" in part:
-                        self.symbols.append(part["system-tests-file-path"])
+            for data in raw_data:
+                if isinstance(data, dict) and "request" in data:
+                    contents = data["request"].get("content", [])
+                    for content in contents:
+                        if isinstance(content, dict) and "system-tests-filename" in content:
+                            result.append(content)
+
+            return result
+
+        self.symbols = _get_symbols()
 
     def get_tracer(self):
         if not _Base_Debugger_Test.tracer:

@@ -1,30 +1,68 @@
 {
   "$id": "/library/symdb/v1/input-request.json",
   "type": "array",
-  "items": {
+  "definitions": {
+    "scope": {
       "type": "object",
+      "required": ["end_line", "scope_type", "source_file", "start_line"],
       "properties": {
-        "headers": {
+        "end_line": {"type": "integer"},
+        "language_specifics": {"type": ["object", "null"]},
+        "name": {"type": ["string", "null"]},
+        "scope_type": {"type": "string"},
+        "scopes": {"type": ["array", "null"], "items": {"$ref": "#/definitions/scope"}},
+        "source_file": {"type": "string"},
+        "start_line": {"type": "integer"},
+        "symbols": {"type": ["array", "null"], "items": {"$ref": "#/definitions/symbol"}}
+      }
+    },
+    "symbol": {
+      "type": "object",
+      "required": ["line", "name", "symbol_type", "type"],
+      "properties": {
+        "language_specifics": {"type": "object"},
+        "line": {"type": "integer"},
+        "name": {"type": "string"},
+        "symbol_type": {"type": "string"},
+        "type": {"type": ["string", "null"]}
+      }
+    }
+  },
+  "items": {
+    "type": "object",
+    "required": ["headers", "content"],
+    "properties": {
+      "headers": {
+        "type": "object",
+        "patternProperties": {
+          ".*": { "type": "string" }
+        }
+      },
+      "content": {
+        "oneOf": [
+          {
             "type": "object",
-            "patternProperties": {
-              ".*": { "type": "string" }
+            "required": ["ddsource", "service", "runtimeId"],
+            "properties": {
+              "ddsource": { "type": "string" },
+              "service": { "type": "string" },
+              "runtimeId": { "type": "string" }
             }
           },
-        "content": {
-          "type": ["array", "object"],
-          "items": {
+          {
             "type": "object",
+            "required": ["env", "language", "scopes", "service", "version"],
             "properties": {
-              "headers": {
-                "type": "object",
-                "properties": {
-                  "Content-Type": { "type": "string" },
-                  "Content-Disposition": { "type": "string" }
-                }
-              }
+              "env": {"type": "string", "const": "system-tests"},
+              "language": {"type": "string"},
+              "scopes": {"type": "array", "items": {"$ref": "#/definitions/scope"}},
+              "service": {"type": "string", "const": "weblog"},
+              "version": {"type": "string", "const": "1.0.0"}
             }
           }
-        }
-      }
+        ]
+      },
+      "system-tests-filename": { "type": "string" }
+    }
   }
 } 
