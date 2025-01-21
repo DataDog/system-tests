@@ -25,6 +25,36 @@ function findUser (fields) {
   })
 }
 
+function shouldSdkBlock (req, res) {
+  const event = req.query.sdk_event
+  const userId = req.query.sdk_user || 'sdk_user'
+  const userMail = req.query.sdk_mail || 'system_tests_user@system_tests_user.com'
+  const exists = req.query.sdk_user_exists === 'true'
+
+  res.statusCode = req.user ? 200 : 401
+
+  if (event === 'failure') {
+    tracer.appsec.trackUserLoginFailureEvent(userId, exists, { metadata0: 'value0', metadata1: 'value1' })
+
+    res.statusCode = 401
+  } else if (event === 'success') {
+    const sdkUser = {
+      id: userId,
+      email: userMail,
+      name: 'system_tests_user'
+    }
+
+    tracer.appsec.trackUserLoginSuccessEvent(sdkUser, { metadata0: 'value0', metadata1: 'value1' })
+
+    const isUserBlocked = tracer.appsec.isUserBlocked(sdkUser)
+    if (isUserBlocked && tracer.appsec.blockRequest(req, res)) {
+      return true
+    }
+
+    res.statusCode = 200
+  }
+}
+
 module.exports = function (app, tracer) {
   app.use(passport.initialize())
   app.use(passport.session())
@@ -53,6 +83,10 @@ module.exports = function (app, tracer) {
 
   // rewrite url depending on which strategy to use
   app.all('/login', (req, res, next) => {
+    if (req.query.sdk_trigger === 'before' && shouldSdkBlock(req, res)) {
+      return
+    }
+
     let newRoute
 
     switch (req.query?.auth) {
@@ -85,34 +119,10 @@ module.exports = function (app, tracer) {
 
   // callback for all strategies to run SDK
   app.all('/login/*', (req, res) => {
-    const event = req.query.sdk_event
-    const userId = req.query.sdk_user || 'sdk_user'
-    const userMail = req.query.sdk_mail || 'system_tests_user@system_tests_user.com'
-    const exists = req.query.sdk_user_exists === 'true'
-
-    let statusCode = req.user ? 200 : 401
-
-    if (event === 'failure') {
-      tracer.appsec.trackUserLoginFailureEvent(userId, exists, { metadata0: 'value0', metadata1: 'value1' })
-
-      statusCode = 401
-    } else if (event === 'success') {
-      const sdkUser = {
-        id: userId,
-        email: userMail,
-        name: 'system_tests_user'
-      }
-
-      tracer.appsec.trackUserLoginSuccessEvent(sdkUser, { metadata0: 'value0', metadata1: 'value1' })
-
-      const isUserBlocked = tracer.appsec.isUserBlocked(sdkUser)
-      if (isUserBlocked && tracer.appsec.blockRequest(req, res)) {
-        return
-      }
-
-      statusCode = 200
+    if (req.query.sdk_trigger !== 'before' && shouldSdkBlock(req, res)) {
+      return
     }
 
-    res.sendStatus(statusCode)
+    res.sendStatus(res.statusCode || 200)
   })
 }
