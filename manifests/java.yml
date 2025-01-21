@@ -558,7 +558,16 @@ tests/:
           TestPathParameter:
             '*': missing_feature
         test_sql_row.py:
-          TestSqlRow: missing_feature
+          TestSqlRow:
+            '*': v1.46.0
+            akka-http: missing_feature (endpoint not implemented)
+            jersey-grizzly2: missing_feature (endpoint not implemented)
+            play: missing_feature (endpoint not implemented)
+            ratpack: missing_feature (endpoint not implemented)
+            resteasy-netty3: missing_feature (endpoint not implemented)
+            spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+            vertx3: missing_feature (endpoint not implemented)
+            vertx4: missing_feature (endpoint not implemented)
         test_uri.py:
           TestURI:
             '*': v1.23.0
@@ -1232,11 +1241,11 @@ tests/:
         play: v1.22.0
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
       Test_Blocking_response_status:
-        '*': missing_feature
-        akka-http: v1.22.0
-        play: v1.22.0
+        '*': v1.22.0
+        jersey-grizzly2: missing_feature
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
         spring-boot-openliberty: v1.20.0
+        spring-boot-payara: missing_feature
       Test_Blocking_user_id:
         '*': v0.111.0
         akka-http: v1.22.0
@@ -1251,9 +1260,7 @@ tests/:
         vertx4: v1.7.0
       Test_Suspicious_Request_Blocking:
         '*': v1.6.0
-        akka-http: bug (APPSEC-54985)
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-        spring-boot-payara: bug (APPSEC-54985)
     test_client_ip.py:
       Test_StandardTagsClientIp: v0.114.0
     test_conf.py:
