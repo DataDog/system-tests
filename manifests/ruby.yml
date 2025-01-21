@@ -304,6 +304,8 @@ tests/:
     test_versions.py:
       Test_Events: v0.54.2
   debugger/:
+    test_debugger_code_origins.py:
+      Test_Debugger_Code_Origins: missing_feature (feature not implemented)
     test_debugger_exception_replay.py:
       Test_Debugger_Exception_Replay: missing_feature (feature not implemented)
     test_debugger_expression_language.py:
@@ -320,8 +322,6 @@ tests/:
       Test_Debugger_Probe_Statuses:
         "*": irrelevant
         rails70: v2.8.0
-    test_debugger_code_origins.py:
-      Test_Debugger_Code_Origins: missing_feature (feature not implemented)
   integrations/:
     crossed_integrations/:
       test_kafka.py:

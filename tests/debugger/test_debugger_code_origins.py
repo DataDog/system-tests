@@ -29,10 +29,6 @@ class Test_Debugger_Code_Origins(debugger._Base_Debugger_Test):
         self._setup("/healthcheck")
 
     @missing_feature(context.library == "dotnet", reason="Entry spans not yet implemented")
-    @missing_feature(
-        context.library == "java",
-        reason="Only spring-boot (without spring-mvc), gRPC, and micronaut are supported which aren't weblog variants",
-    )
     def test_code_origin_entry_present(self):
         self.collect()
 
