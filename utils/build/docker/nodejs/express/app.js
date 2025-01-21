@@ -456,7 +456,7 @@ app.get('/createextraservice', (req, res) => {
 
 iast.initRoutes(app, tracer)
 
-di.initRoutes(app, tracer)
+di.initRoutes(app)
 
 require('./auth')(app, passport, tracer)
 

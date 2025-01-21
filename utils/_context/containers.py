@@ -798,9 +798,13 @@ class WeblogContainer(TestedContainer):
 
         return result
 
-    def get_image_list(self, library: str, weblog: str) -> list[str]:
+    def get_image_list(self, library: str | None, weblog: str | None) -> list[str]:
         """Parse the Dockerfile and extract all images reference in a FROM section"""
         result = []
+
+        if not library or not weblog:
+            return result
+
         args = {}
 
         pattern = re.compile(r"^FROM\s+(?P<image_name>[^\s]+)")

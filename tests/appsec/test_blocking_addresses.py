@@ -598,6 +598,8 @@ class Test_Suspicious_Request_Blocking:
         context.library == "ruby" and context.weblog_variant == "rack",
         reason="Rack don't send anything to the server.request.path_params WAF address",
     )
+    @bug(weblog_variant="akka-http", reason="APPSEC-54985")
+    @bug(weblog_variant="spring-boot-payara", reason="APPSEC-54985")
     def test_blocking(self):
         """Test if requests that should be blocked are blocked"""
         assert self.rm_req_block.status_code == 403, self.rm_req_block.request.url
@@ -619,6 +621,8 @@ class Test_Suspicious_Request_Blocking:
         context.library == "ruby" and context.weblog_variant == "rack",
         reason="Rack don't send anything to the server.request.path_params WAF address",
     )
+    @bug(weblog_variant="akka-http", reason="APPSEC-54985")
+    @bug(weblog_variant="spring-boot-payara", reason="APPSEC-54985")
     def test_blocking_before(self):
         """Test that blocked requests are blocked before being processed"""
         # first request should not block and must set the tag in span accordingly
@@ -688,11 +692,10 @@ class Test_BlockingGraphqlResolvers:
             ),
         )
 
+    @bug(context.library < "ruby@2.10.0-dev", reason="APPSEC-56464")
     def test_request_block_attack(self):
-        assert self.r_attack.status_code == (
-            # We don't change the status code in Ruby
-            200 if context.library == "ruby" else 403
-        )
+        assert self.r_attack.status_code == 403
+
         for _, span in interfaces.library.get_root_spans(request=self.r_attack):
             meta = span.get("meta", {})
             meta_struct = span.get("meta_struct", {})
@@ -728,12 +731,10 @@ class Test_BlockingGraphqlResolvers:
             ),
         )
 
+    @bug(context.library < "ruby@2.10.0-dev", reason="APPSEC-56464")
     def test_request_block_attack_directive(self):
-        # We don't change the status code
-        assert self.r_attack.status_code == (
-            # We don't change the status code in Ruby
-            200 if context.library == "ruby" else 403
-        )
+        assert self.r_attack.status_code == 403
+
         for _, span in interfaces.library.get_root_spans(request=self.r_attack):
             meta = span.get("meta", {})
             meta_struct = span.get("meta_struct", {})

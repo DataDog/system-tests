@@ -628,15 +628,15 @@ tests/:
     test_debugger_pii.py:
       Test_Debugger_PII_Redaction:
         "*": irrelevant
-        express4: v5.31.0
-        express4-typescript: v5.31.0
+        express4: v5.32.0
     test_debugger_probe_snapshot.py:
-      Test_Debugger_Probe_Snaphots: missing_feature (feature not implented)
+      Test_Debugger_Probe_Snaphots:
+        "*": irrelevant
+        express4: v5.32.0
     test_debugger_probe_status.py:
       Test_Debugger_Probe_Statuses:
         "*": irrelevant
         express4: v5.32.0
-        express4-typescript: v5.32.0
   integrations/:
     crossed_integrations/:
       test_kafka.py:
