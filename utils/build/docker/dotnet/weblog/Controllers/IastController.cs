@@ -6,6 +6,8 @@ using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Diagnostics;
 using System.Linq;
+using System.Net.Mail;
+using System.Web;
 using System.Xml;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
@@ -674,6 +676,59 @@ namespace weblog
             return result is null ?
                 Content($"Invalid user/password") :
                 Content($"User " + result.ChildNodes[0].InnerText + " successfully logged.");
-        }		
+        }
+        
+        [HttpPost("email_html_injection/test_insecure")]
+        public IActionResult TestInsecureEmailHtmlInjection([FromForm] string username, [FromForm] string email)
+        {
+            try
+            {
+                var mailMessage = BuildMailMessage(username);
+                
+                using (var client = new SmtpClient())
+                {
+                    client.Send(mailMessage);
+                }
+                
+                return Content("Email sent");
+            }
+            catch
+            {
+                return Content("Error sending email");
+            }
+        }
+
+        [HttpPost("email_html_injection/test_secure")]
+        public IActionResult TestSecureEmailHtmlInjection([FromForm] string username, [FromForm] string email)
+        {
+            try
+            {
+                var mailMessage = BuildMailMessage(HttpUtility.HtmlEncode(username));
+                
+                using (var client = new SmtpClient())
+                {
+                    client.Send(mailMessage);
+                }
+                
+                return Content("Connection created");
+            }
+            catch
+            {
+                return Content("Error creating connection");
+            }
+        }
+        
+        private MailMessage BuildMailMessage(string name)
+        {
+            var contentHtml = "Hi " + name + "!";
+            var subject = "Welcome!";
+
+            var mailMessage = new MailMessage();
+            // Not setting the MailMessage To/From properties will throw an exception when sending without going further
+            mailMessage.Subject = subject;
+            mailMessage.Body = contentHtml;
+            mailMessage.IsBodyHtml = true;
+            return mailMessage;
+        }
     }
 }

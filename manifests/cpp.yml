@@ -38,6 +38,7 @@ tests/:
         test_xcontent_sniffing.py: irrelevant (ASM is not implemented in C++)
         test_xpath_injection.py: irrelevant (ASM is not implemented in C++)
         test_xss.py: irrelevant (ASM is not implemented in C++)
+        test_email_html_injection.py: irrelevant (ASM is not implemented in C++)
       source/:
         test_body.py: irrelevant (ASM is not implemented in C++)
         test_cookie_name.py: irrelevant (ASM is not implemented in C++)
