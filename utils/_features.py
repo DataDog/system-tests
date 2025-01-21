@@ -2021,7 +2021,7 @@ class _Features:
         """
         pytest.mark.features(feature_id=305)(test_object)
         return test_object
-    
+
     @staticmethod
     def appsec_standalone_v2(test_object):
         """Appsec Standalone Billing V2
@@ -2039,7 +2039,6 @@ class _Features:
         """
         pytest.mark.features(feature_id=319)(test_object)
         return test_object
-    
 
     @staticmethod
     def iast_standalone_v2(test_object):

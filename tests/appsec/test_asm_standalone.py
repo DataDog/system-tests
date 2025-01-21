@@ -83,7 +83,7 @@ class AsmStandalone_UpstreamPropagation_Base:
 
     def propagated_tag_value(self):
         return "1"
-    
+
     def propagated_tag_and_value(self):
         return self.propagated_tag() + "=" + self.propagated_tag_value()
 
@@ -609,6 +609,7 @@ class AsmStandalone_UpstreamPropagation_Base:
         assert downstream_headers["X-Datadog-Sampling-Priority"] == "2"
         assert downstream_headers["X-Datadog-Trace-Id"] == "1212121212121212121"
 
+
 class AppSecStandalone_UpstreamPropagation_Base(AsmStandalone_UpstreamPropagation_Base):
     """APPSEC correctly propagates AppSec events in distributing tracing."""
 
@@ -646,6 +647,7 @@ class AppSecStandalone_UpstreamPropagation_Base(AsmStandalone_UpstreamPropagatio
     def test_any_upstream_propagation__with_asm_event__raises_priority_to_2__from_1(self):
         super().test_any_upstream_propagation__with_asm_event__raises_priority_to_2__from_1()
 
+
 class IastStandalone_UpstreamPropagation_Base(AsmStandalone_UpstreamPropagation_Base):
     """IAST correctly propagates AppSec events in distributing tracing."""
 
@@ -668,6 +670,7 @@ class IastStandalone_UpstreamPropagation_Base(AsmStandalone_UpstreamPropagation_
     @bug(library="java", weblog_variant="play", reason="APPSEC-55552")
     def test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_2(self):
         super().test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_2()
+
 
 class SCAStandalone_Telemetry_Base:
     """Tracer correctly propagates SCA telemetry in distributing tracing."""
@@ -741,7 +744,9 @@ class SCAStandalone_Telemetry_Base:
 # @flaky(context.library >= "python@2.18.0+dev", reason="APPSEC-56142")
 class Test_AppSecStandalone_UpstreamPropagation(AppSecStandalone_UpstreamPropagation_Base):
     """APPSEC correctly propagates AppSec events in distributing tracing with DD_EXPERIMENTAL_APPSEC_STANDALONE_ENABLED=true."""
+
     pass
+
 
 @rfc("https://docs.google.com/document/d/12NBx-nD-IoQEMiCRnJXneq4Be7cbtSc6pJLOFUWTpNE/edit")
 @features.appsec_standalone_v2
@@ -749,21 +754,25 @@ class Test_AppSecStandalone_UpstreamPropagation(AppSecStandalone_UpstreamPropaga
 # @flaky(context.library >= "python@2.18.0+dev", reason="APPSEC-56142")
 class Test_AppSecStandalone_UpstreamPropagation_V2(AppSecStandalone_UpstreamPropagation_Base):
     """APPSEC correctly propagates AppSec events in distributing tracing with DD_APM_TRACING_ENABLED=false."""
+
     pass
+
 
 @rfc("https://docs.google.com/document/d/12NBx-nD-IoQEMiCRnJXneq4Be7cbtSc6pJLOFUWTpNE/edit")
 @features.iast_standalone
 @scenarios.iast_standalone
 class Test_IastStandalone_UpstreamPropagation(IastStandalone_UpstreamPropagation_Base):
     """IAST correctly propagates AppSec events in distributing tracing with DD_EXPERIMENTAL_APPSEC_STANDALONE_ENABLED=true."""
+
     pass
+
 
 @rfc("https://docs.google.com/document/d/12NBx-nD-IoQEMiCRnJXneq4Be7cbtSc6pJLOFUWTpNE/edit")
 @features.iast_standalone_v2
 @scenarios.iast_standalone_v2
 class Test_IastStandalone_UpstreamPropagation_V2(IastStandalone_UpstreamPropagation_Base):
     """IAST correctly propagates AppSec events in distributing tracing with DD_APM_TRACING_ENABLED=false."""
-    
+
     def propagated_tag(self):
         return "_dd.p.ts"
 
@@ -776,19 +785,20 @@ class Test_IastStandalone_UpstreamPropagation_V2(IastStandalone_UpstreamPropagat
 @scenarios.sca_standalone
 class Test_SCAStandalone_Telemetry(SCAStandalone_Telemetry_Base):
     """Tracer correctly propagates SCA telemetry in distributing tracing with DD_EXPERIMENTAL_APPSEC_STANDALONE_ENABLED=true."""
-    
+
     def propagated_tag(self):
         return "_dd.p.ts"
 
     def propagated_tag_value(self):
         return "02"
 
+
 @rfc("https://docs.google.com/document/d/12NBx-nD-IoQEMiCRnJXneq4Be7cbtSc6pJLOFUWTpNE/edit")
 @features.sca_standalone_v2
 @scenarios.sca_standalone_v2
 class Test_SCAStandalone_Telemetry_V2(SCAStandalone_Telemetry_Base):
     """Tracer correctly propagates SCA telemetry in distributing tracing with DD_EXPERIMENTAL_APPSEC_STANDALONE_ENABLED=true."""
-    
+
     def propagated_tag(self):
         return "_dd.p.ts"
 
