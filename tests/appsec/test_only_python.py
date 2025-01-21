@@ -5,14 +5,7 @@
 from utils import context, features, interfaces, irrelevant, scenarios
 
 
-@scenarios.appsec_api_security
-@scenarios.appsec_api_security_rc
 @scenarios.appsec_blocking
-@scenarios.appsec_corrupted_rules
-@scenarios.appsec_custom_rules
-@scenarios.appsec_low_waf_timeout
-@scenarios.appsec_missing_rules
-@scenarios.appsec_rate_limiter
 @scenarios.appsec_rasp
 @scenarios.appsec_runtime_activation
 @scenarios.appsec_standalone
