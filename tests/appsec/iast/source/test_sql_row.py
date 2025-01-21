@@ -12,5 +12,5 @@ class TestSqlRow(BaseSourceTest):
 
     endpoint = "/iast/source/sql/test"
     source_type = "sql.row.value"
-    source_names = ["0.username"]
+    source_names = ["0.username", "USERNAME"]
     requests_kwargs = [{"method": "GET"}]
