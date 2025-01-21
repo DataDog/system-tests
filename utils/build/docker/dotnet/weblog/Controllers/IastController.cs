@@ -710,11 +710,11 @@ namespace weblog
                     client.Send(mailMessage);
                 }
                 
-                return Content("Connection created");
+                return Content("Email sent");
             }
             catch
             {
-                return Content("Error creating connection");
+                return Content("Error sending email");
             }
         }
         
