@@ -253,8 +253,8 @@ def _deserialize_file_in_multipart_form_data(
                 filename = filename[:-3]
 
             content_is_deserialized = False
-            if filename.lower().endswith(".json") or path == "/symdb/v1/input":
-                # when path == /symdb/v1/input, the content may be either raw json, or gizipped json
+            if filename.lower().endswith(".json") or path == "/symdb/v1/input" or path == "/api/v2/debugger":
+                # when path == /symdb/v1/input or /api/v2/debugger, the content may be either raw json, or gizipped json
                 # though, the file name may not always contains .json, so for this use case
                 # we always try to deserialize the content as json
                 try:

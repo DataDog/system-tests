@@ -6,7 +6,6 @@ import json
 import tests.debugger.utils as debugger
 from utils import features, scenarios, bug, context
 from utils import remote_config as rc
-from jsonschema import Draft7Validator
 
 
 @features.debugger
