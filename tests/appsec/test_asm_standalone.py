@@ -375,7 +375,7 @@ class AsmStandalone_UpstreamPropagation_Base:
     def test_upstream_appsec_propagation__no_asm_event__is_propagated_as_is__being_0(self):
         self.assert_product_is_enabled(self.check_r, self.tested_product)
         spans_checked = 0
-        tested_meta = {self.propagated_tag_value(): self.propagated_tag_value()}
+        tested_meta = {self.propagated_tag(): self.propagated_tag_value()}
         tested_metrics = {"_sampling_priority_v1": lambda x: x in [0, 2]}
 
         for data, trace, span in interfaces.library.get_spans(request=self.r):
