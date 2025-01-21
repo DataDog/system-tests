@@ -44,10 +44,12 @@ class Test_Debugger_Code_Origins(debugger._Base_Debugger_Test):
         self.assert_setup_ok()
         self.assert_all_weblog_responses_ok()
 
-        found = False
-        # TODO: Ensure the structure and output values for the output.
-        for trace in self.traces:
-            if "code_origin.type" in str(trace):
-                found = True
+        code_origins_found = []
+        for _, span in self.spans:
+            resource = span.get("resource", None)
+            logger.info(f"Resource: {resource}")
+            # All web spans for the healthcheck should have code origins defined.
+            if span.get("resource", None) == "GET /healthcheck" and span.get("type", None) == "web":
+                code_origins_found.append(span["meta"]["_dd.code_origin.type"] != "")
 
-        assert found
+        assert all(code_origins_found) and len(code_origins_found) > 0

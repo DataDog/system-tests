@@ -65,6 +65,7 @@ class _Base_Debugger_Test:
     probe_diagnostics = {}
     probe_snapshots = {}
     probe_spans = {}
+    spans = {}
 
     rc_state = None
     weblog_responses = []
@@ -261,7 +262,6 @@ class _Base_Debugger_Test:
         self._collect_probe_diagnostics()
         self._collect_snapshots()
         self._collect_spans()
-        self.traces = interfaces.agent.get_spans()
 
     def _collect_probe_diagnostics(self):
         def _read_data():
@@ -384,6 +384,7 @@ class _Base_Debugger_Test:
             return span_hash
 
         self.probe_spans = _get_spans_hash(self)
+        self.spans = interfaces.agent.get_spans()
 
     def get_tracer(self):
         if not _Base_Debugger_Test.tracer:
