@@ -294,7 +294,7 @@ class Test_MsSql(_BaseDatadogDbIntegrationTestClass):
                 expected_obfuscation_count = 1
             elif db_operation == "procedure":
                 # Insert and procedure:These operations also receive two parameters, but are obfuscated as only one.
-                # Nodejs: The proccedure has a input parameter, but we are calling through method `execute`` and we can't see the parameters in the traces
+                # Node.js: The proccedure has a input parameter, but we are calling through method `execute`` and we can't see the parameters in the traces
                 expected_obfuscation_count = 0 if context.library.library == "nodejs" else 2
             else:
                 expected_obfuscation_count = 2

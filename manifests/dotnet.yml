@@ -153,6 +153,8 @@ tests/:
           TestSqlRow: missing_feature
         test_uri.py:
           TestURI: irrelevant
+      test_security_controls.py:
+        TestSecurityControls: missing_feature
     rasp/:
       test_cmdi.py:
         Test_Cmdi_BodyJson: v3.7.0
@@ -399,9 +401,6 @@ tests/:
       Test_AWS_API_Gateway_Inferred_Span_Creation: missing_feature
     test_otel_drop_in.py:
       Test_Otel_Drop_In: missing_feature
-  k8s_lib_injection/:
-    test_k8s_manual_inject.py:
-      TestAdmisionControllerProfiling: missing_feature
   parametric/:
     test_config_consistency.py:
       Test_Config_Dogstatsd: missing_feature (does not support hostname)
@@ -489,8 +488,15 @@ tests/:
     Test_Config_HttpServerErrorStatuses_FeatureFlagCustom: v3.5.0
     Test_Config_IntegrationEnabled_False: v3.5.0
     Test_Config_IntegrationEnabled_True: v3.5.0
+    Test_Config_LogInjection_128Bit_TradeId_Default: missing_feature (disabled by default)
+    Test_Config_LogInjection_128Bit_TradeId_Disabled: incomplete_test_app (weblog endpoint not implemented)
+    Test_Config_LogInjection_Default: incomplete_test_app (weblog endpoint not implemented)
+    Test_Config_LogInjection_Enabled: incomplete_test_app (weblog endpoint not implemented)
     Test_Config_ObfuscationQueryStringRegexp_Configured: v3.4.1
+    Test_Config_ObfuscationQueryStringRegexp_Default: v3.4.1
     Test_Config_ObfuscationQueryStringRegexp_Empty: v3.4.1
+    Test_Config_RuntimeMetrics_Default: incomplete_test_app (test needs to account for dotnet runtime metrics)
+    Test_Config_RuntimeMetrics_Enabled: incomplete_test_app (test needs to account for dotnet runtime metrics)
     Test_Config_UnifiedServiceTagging_CustomService: v3.3.0
     Test_Config_UnifiedServiceTagging_Default: v3.3.0
   test_data_integrity.py:

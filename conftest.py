@@ -45,6 +45,7 @@ def pytest_addoption(parser):
     parser.addoption("--force-dd-trace-debug", action="store_true", help="Set DD_TRACE_DEBUG to true")
     parser.addoption("--force-dd-iast-debug", action="store_true", help="Set DD_IAST_DEBUG_ENABLED to true")
     # k8s scenarios mandatory parameters
+    parser.addoption("--k8s-provider", type=str, action="store", help="Set the k8s provider, like kind or minikube")
     parser.addoption("--k8s-weblog", type=str, action="store", help="Set weblog to deploy on k8s")
     parser.addoption("--k8s-library", type=str, action="store", help="Set language to test")
     parser.addoption(
@@ -81,6 +82,11 @@ def pytest_addoption(parser):
     parser.addoption("--ssi-library", type=str, action="store", help="Set docker ssi library to test")
     parser.addoption("--ssi-base-image", type=str, action="store", help="Set docker ssi base image to build")
     parser.addoption("--ssi-arch", type=str, action="store", help="Set docker ssi archictecture of the base image")
+    parser.addoption("--ssi-env", type=str, action="store", help="Prod or Dev (use ssi releases or snapshots)")
+    parser.addoption("--ssi-library-version", type=str, action="store", help="Optional, use custom version of library")
+    parser.addoption(
+        "--ssi-injector-version", type=str, action="store", help="Optional, use custom version of injector"
+    )
     parser.addoption(
         "--ssi-installable-runtime",
         type=str,

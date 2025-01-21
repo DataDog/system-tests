@@ -133,6 +133,8 @@ class _Base_Debugger_Test:
                         probe["where"]["sourceFile"] = "debugger_controller.py"
                     elif language == "ruby":
                         probe["where"]["sourceFile"] = "debugger_controller.rb"
+                    elif language == "nodejs":
+                        probe["where"]["sourceFile"] = "debugger/index.js"
                 probe["type"] = __get_probe_type(probe["id"])
 
             return probes
@@ -276,8 +278,10 @@ class _Base_Debugger_Test:
                 path = _DEBUGGER_PATH
             elif context.library == "ruby":
                 path = _DEBUGGER_PATH
+            elif context.library == "nodejs":
+                path = _DEBUGGER_PATH
             else:
-                path = _LOGS_PATH
+                path = _LOGS_PATH  # TODO: Should the default not be _DEBUGGER_PATH?
 
             return list(interfaces.agent.get_data(path))
 
