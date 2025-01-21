@@ -665,6 +665,7 @@ Body fields accepted in POST method:
 
 It also supports HTTP authentication by using GET method and the authorization header.
 Additionally, both methods support the following query parameters to use the sdk functions along with the authentication framework:
+- `sdk_trigger`: when to call the sdk function, `after` or `before` the automated login event (by default `after`)
 - `sdk_event`: login event type: `success` or `failure`.
 - `sdk_user`: user id to be used in the sdk call.
 - `sdk_mail`: user's mail to be used in the sdk call.
