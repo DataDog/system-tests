@@ -593,6 +593,12 @@ class EndToEndScenario(DockerScenario):
                 and self.name == "DEBUGGER_EXPRESSION_LANGUAGE",
                 ticket="APMRP-360",
             ),
+            _SchemaBug(
+                endpoint="/symdb/v1/input",
+                data_path="$",
+                condition=context.library == "dotnet",
+                ticket="DEBUG-3246",
+            ),
         ]
         self._test_schemas(session, interfaces.library, library_bugs)
 
@@ -624,6 +630,12 @@ class EndToEndScenario(DockerScenario):
                 data_path="$[].content",
                 condition=context.library < "nodejs@5.31.0",
                 ticket="DEBUG-2864",
+            ),
+            _SchemaBug(
+                endpoint="/api/v2/debugger",
+                data_path="$",
+                condition=context.library == "dotnet",
+                ticket="DEBUG-3246",
             ),
         ]
         self._test_schemas(session, interfaces.agent, agent_bugs)
