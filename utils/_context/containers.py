@@ -47,7 +47,7 @@ def _get_client():
         if "Error while fetching server API version: ('Connection aborted.'" in str(e):
             pytest.exit("Connection refused to docker daemon, is it running?", 1)
 
-        raise e
+        raise
 
 
 _DEFAULT_NETWORK_NAME = "system-tests_default"
@@ -151,6 +151,12 @@ class TestedContainer:
 
     def start(self, network: Network) -> Container:
         """Start the actual underlying Docker container directly"""
+
+        if self._container:
+            # container is already started, some scenarios actively starts some containers
+            # before calling async_start()
+            return
+
         if old_container := self.get_existing_container():
             if self.allow_old_container:
                 self._container = old_container
@@ -181,11 +187,19 @@ class TestedContainer:
         if self.healthy:
             self.warmup()
 
+        self._container.reload()
+        # with open(f"{self.log_folder_path}/container.json", "w", encoding="utf-8") as f:
+        #     json.dump(self._container.attrs, f, indent=2)
+
     def async_start(self, network: Network) -> Thread:
         """Start the container and its dependencies in a thread with circular dependency detection"""
         self.check_circular_dependencies([])
 
         return self.async_start_recursive(network)
+
+    def network_ipv6(self, network: Network) -> str:
+        self._container.reload()
+        return self._container.attrs["NetworkSettings"]["Networks"][network.name]["GlobalIPv6Address"]
 
     def network_ip(self, network: Network) -> str:
         self._container.reload()
@@ -495,7 +509,13 @@ class ProxyContainer(TestedContainer):
     command_host_port = 11111  # Which port exposed to host to sent proxy commands
 
     def __init__(
-        self, *, host_log_folder, rc_api_enabled: bool, meta_structs_disabled: bool, span_events: bool
+        self,
+        *,
+        host_log_folder,
+        rc_api_enabled: bool,
+        meta_structs_disabled: bool,
+        span_events: bool,
+        enable_ipv6: bool,
     ) -> None:
         """Parameters:
         span_events: Whether the agent supports the native serialization of span events
@@ -514,6 +534,7 @@ class ProxyContainer(TestedContainer):
                 "SYSTEM_TESTS_RC_API_ENABLED": str(rc_api_enabled),
                 "SYSTEM_TESTS_AGENT_SPAN_META_STRUCTS_DISABLED": str(meta_structs_disabled),
                 "SYSTEM_TESTS_AGENT_SPAN_EVENTS": str(span_events),
+                "SYSTEM_TESTS_IPV6": str(enable_ipv6),
             },
             working_dir="/app",
             volumes={
@@ -526,6 +547,9 @@ class ProxyContainer(TestedContainer):
 
 
 class AgentContainer(TestedContainer):
+    apm_receiver_port: int = 8127
+    dogstatsd_port: int = 8125
+
     def __init__(self, host_log_folder, *, use_proxy=True, environment=None) -> None:
         environment = environment or {}
         environment.update(
@@ -533,8 +557,8 @@ class AgentContainer(TestedContainer):
                 "DD_ENV": "system-tests",
                 "DD_HOSTNAME": "test",
                 "DD_SITE": self.dd_site,
-                "DD_APM_RECEIVER_PORT": self.agent_port,
-                "DD_DOGSTATSD_PORT": "8125",
+                "DD_APM_RECEIVER_PORT": self.apm_receiver_port,
+                "DD_DOGSTATSD_PORT": self.dogstatsd_port,
                 "DD_API_KEY": os.environ.get("DD_API_KEY", _FAKE_DD_API_KEY),
             }
         )
@@ -549,10 +573,9 @@ class AgentContainer(TestedContainer):
             host_log_folder=host_log_folder,
             environment=environment,
             healthcheck={
-                "test": f"curl --fail --silent --show-error --max-time 2 http://localhost:{self.agent_port}/info",
+                "test": f"curl --fail --silent --show-error --max-time 2 http://localhost:{self.apm_receiver_port}/info",
                 "retries": 60,
             },
-            ports={self.agent_port: f"{self.agent_port}/tcp"},
             stdout_interface=interfaces.agent_stdout,
             local_image_only=True,
         )
@@ -589,10 +612,6 @@ class AgentContainer(TestedContainer):
     @property
     def dd_site(self):
         return os.environ.get("DD_SITE", "datad0g.com")
-
-    @property
-    def agent_port(self):
-        return 8127
 
 
 class BuddyContainer(TestedContainer):
@@ -670,6 +689,7 @@ class WeblogContainer(TestedContainer):
         tracer_sampling_rate=None,
         appsec_enabled=True,
         iast_enabled=True,
+        runtime_metrics_enabled=False,
         additional_trace_header_tags=(),
         use_proxy=True,
         volumes=None,
@@ -704,6 +724,9 @@ class WeblogContainer(TestedContainer):
         base_environment["_DD_TELEMETRY_METRICS_ENABLED"] = "true"
         base_environment["DD_TELEMETRY_METRICS_INTERVAL_SECONDS"] = self.telemetry_heartbeat_interval
 
+        if runtime_metrics_enabled:
+            base_environment["DD_RUNTIME_METRICS_ENABLED"] = "true"
+
         if appsec_enabled:
             base_environment["DD_APPSEC_ENABLED"] = "true"
             base_environment["DD_APPSEC_WAF_TIMEOUT"] = "10000000"  # 10 seconds
@@ -715,7 +738,6 @@ class WeblogContainer(TestedContainer):
             base_environment["_DD_IAST_DEBUG"] = "true"
             base_environment["DD_IAST_REQUEST_SAMPLING"] = "100"
             base_environment["DD_IAST_MAX_CONCURRENT_REQUESTS"] = "10"
-            base_environment["DD_IAST_CONTEXT_MODE"] = "GLOBAL"
             base_environment["DD_IAST_DEDUPLICATION_ENABLED"] = "false"
 
         if tracer_sampling_rate:
@@ -727,7 +749,7 @@ class WeblogContainer(TestedContainer):
             base_environment["DD_TRACE_AGENT_PORT"] = self.trace_agent_port
         else:
             base_environment["DD_AGENT_HOST"] = "agent"
-            base_environment["DD_TRACE_AGENT_PORT"] = self.trace_agent_port
+            base_environment["DD_TRACE_AGENT_PORT"] = AgentContainer.apm_receiver_port
 
         # overwrite values with those set in the scenario
         environment = base_environment | (environment or {})
@@ -868,10 +890,6 @@ class WeblogContainer(TestedContainer):
     @property
     def telemetry_heartbeat_interval(self):
         return 2
-
-    def request(self, method, url, **kwargs):
-        """Perform an HTTP request on the weblog, must NOT be used for tests"""
-        return requests.request(method, f"http://localhost:{self.host_port}{url}", **kwargs)  # noqa: S113
 
 
 class PostgresContainer(SqlDbTestedContainer):
@@ -1114,7 +1132,7 @@ class MountInjectionVolume(TestedContainer):
 
     def _lib_init_image(self, lib_init_image):
         self.image = ImageInfo(lib_init_image, local_image_only=False)
-        # Dotnet compatible with former folder layer
+        # .NET compatible with former folder layer
         if "dd-lib-dotnet-init" in lib_init_image:
             self.kwargs["volumes"] = {
                 _VOLUME_INJECTOR_NAME: {"bind": "/datadog-init/monitoring-home", "mode": "rw"},
@@ -1184,26 +1202,55 @@ class EnvoyContainer(TestedContainer):
             host_log_folder=host_log_folder,
             volumes={"./tests/external_processing/envoy.yaml": {"bind": "/etc/envoy/envoy.yaml", "mode": "ro"}},
             ports={"80": ("127.0.0.1", weblog.port)},
-            # healthcheck={"test": "wget http://localhost:9901/ready", "retries": 10,},  # no wget on envoy
+            healthcheck={
+                "test": "/bin/bash -c \"\
+                    exec 3<>/dev/tcp/127.0.0.1/80 || exit 1;\
+                    echo -e 'GET / HTTP/1.1\nHost: system-tests\r\n\r\n' >&3;\
+                    cat <&3 | grep -q '200'\"",
+                "retries": 10,
+            },
         )
 
 
 class ExternalProcessingContainer(TestedContainer):
     library: LibraryVersion
 
-    def __init__(self, host_log_folder) -> None:
+    def __init__(
+        self,
+        host_log_folder,
+        env,
+        volumes,
+    ) -> None:
         try:
             with open("binaries/golang-service-extensions-callout-image", encoding="utf-8") as f:
                 image = f.read().strip()
         except FileNotFoundError:
             image = "ghcr.io/datadog/dd-trace-go/service-extensions-callout:latest"
 
+        environment = {
+            "DD_APPSEC_ENABLED": "true",
+            "DD_SERVICE": "service_test",
+            "DD_AGENT_HOST": "proxy",
+            "DD_TRACE_AGENT_PORT": ProxyPorts.weblog,
+            "DD_APPSEC_WAF_TIMEOUT": "1s",
+        }
+
+        if env:
+            environment.update(env)
+
+        if volumes is None:
+            volumes = {}
+
         super().__init__(
             image_name=image,
             name="extproc",
             host_log_folder=host_log_folder,
-            environment={"DD_APPSEC_ENABLED": "true", "DD_AGENT_HOST": "proxy", "DD_TRACE_AGENT_PORT": 8126},
-            healthcheck={"test": "wget -qO- http://localhost:80/", "retries": 10},
+            volumes=volumes,
+            environment=environment,
+            healthcheck={
+                "test": "wget -qO- http://localhost:80/",
+                "retries": 10,
+            },
         )
 
     def post_start(self):

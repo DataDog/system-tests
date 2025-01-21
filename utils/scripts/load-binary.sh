@@ -10,16 +10,16 @@
 #
 # Binaries sources:
 #
-# * Agent:  Docker hub datadog/agent-dev:master-py3
-# * Golang: github.com/DataDog/dd-trace-go/v2@main
-# * .NET:   ghcr.io/datadog/dd-trace-dotnet
-# * Java:   ghcr.io/datadog/dd-trace-java
-# * PHP:    ghcr.io/datadog/dd-trace-php
-# * NodeJS: Direct from github source
-# * C++:    Direct from github source
-# * Python: Direct from github source
-# * Ruby:   Direct from github source
-# * WAF:    Direct from github source, but not working, as this repo is now private
+# * Agent:   Docker hub datadog/agent-dev:master-py3
+# * Golang:  github.com/DataDog/dd-trace-go/v2@main
+# * .NET:    ghcr.io/datadog/dd-trace-dotnet
+# * Java:    ghcr.io/datadog/dd-trace-java
+# * PHP:     ghcr.io/datadog/dd-trace-php
+# * Node.js: Direct from github source
+# * C++:     Direct from github source
+# * Python:  Direct from github source
+# * Ruby:    Direct from github source
+# * WAF:     Direct from github source, but not working, as this repo is now private
 ##########################################################################################
 
 set -eu

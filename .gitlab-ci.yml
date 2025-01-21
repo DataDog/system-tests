@@ -10,12 +10,29 @@ stages:
   - stats_results
   - parse_results
   - before_tests
-  - k8s_lib_injection
 
 variables:
     # Do not modify this - must be the repository name for Kubernetes gitlab runners to run
     KUBERNETES_SERVICE_ACCOUNT_OVERWRITE: system-tests #helm-charts
     TEST: 1
+
+.step1_generate_aws_ssi_pipeline:
+  "image": "registry.ddbuild.io/docker:20.10.13-gbi-focal"
+  "tags": ["arch:amd64"]
+  stage: nodejs_ssi_pipelines
+  script:
+    - echo ">>>>>>>>>>>>>>> Generating lang pipeline >>>>>>>>>>>>>>>"
+    - echo "FILTER_ENV=${ONBOARDING_FILTER_ENV:-prod}" >> run.env
+    - echo "INSTALLER_LIBRARY_VERSION=${DD_INSTALLER_LIBRARY_VERSION:- }" >> run.env
+    - echo "INSTALLER_INJECTOR_VERSION=${DD_INSTALLER_INJECTOR_VERSION:- }" >> run.env
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+      when: always
+    - when: manual
+      allow_failure: true
+  artifacts:
+    reports:
+      dotenv: run.env
 
 .compute_aws_scenarios:
   image: registry.ddbuild.io/ci/libdatadog-build/system-tests:48436362
@@ -52,6 +69,8 @@ variables:
     TEST_LIBRARY: "nodejs"
     #Because sometimes I don't want to run all pipeline, I only run step1_xx with env filter param
     ONBOARDING_FILTER_ENV: "$FILTER_ENV"
+    DD_INSTALLER_LIBRARY_VERSION: "$INSTALLER_LIBRARY_VERSION"
+    DD_INSTALLER_INJECTOR_VERSION: "$INSTALLER_INJECTOR_VERSION"
   script:
     - python utils/docker_ssi/docker_ssi_matrix_builder.py --language $TEST_LIBRARY --format yaml --output-file gitlab_pipeline.yml
   needs:
@@ -59,6 +78,27 @@ variables:
       artifacts: true
   after_script:
     - SCENARIO_SUFIX="docker_ssi"
+    - mkdir -p reports/logs_"${SCENARIO_SUFIX}"
+    - cp gitlab_pipeline.yml reports/logs_"${SCENARIO_SUFIX}"/
+  artifacts:
+    paths:
+      - reports/
+
+.x_compute_k8s_scenarios:
+  image: 486234852809.dkr.ecr.us-east-1.amazonaws.com/ci/test-infra-definitions/runner:a58cc31c
+  tags: ["arch:amd64"]
+  stage: nodejs_ssi_pipelines
+  variables:
+    TEST_LIBRARY: "nodejs"
+    #Because sometimes I don't want to run all pipeline, I only run step1_xx with env filter param
+    ONBOARDING_FILTER_ENV: "$FILTER_ENV"
+  script:
+    - python utils/k8s_lib_injection/k8s_matrix_builder.py --language $TEST_LIBRARY --format yaml --output-file gitlab_pipeline.yml --env $ONBOARDING_FILTER_ENV
+  needs:
+    - job: step1_generate_nodejs_ssi_pipeline
+      artifacts: true
+  after_script:
+    - SCENARIO_SUFIX="k8s_ssi"
     - mkdir -p reports/logs_"${SCENARIO_SUFIX}"
     - cp gitlab_pipeline.yml reports/logs_"${SCENARIO_SUFIX}"/
   artifacts:
@@ -104,30 +144,12 @@ variables:
         job: merge_aws_ssi_pipeline
     strategy: depend
 
-.step1_generate_aws_ssi_pipeline:
-  "image": "registry.ddbuild.io/docker:20.10.13-gbi-focal"
-  "tags": ["arch:amd64"]
-  stage: nodejs_ssi_pipelines
-  script:
-    - echo ">>>>>>>>>>>>>>> Generating lang pipeline >>>>>>>>>>>>>>>"
-    - echo "FILTER_ENV=${ONBOARDING_FILTER_ENV:-prod}" >> run.env
-    - echo "INSTALLER_LIBRARY_VERSION=${DD_INSTALLER_LIBRARY_VERSION:- }" >> run.env
-    - echo "INSTALLER_INJECTOR_VERSION=${DD_INSTALLER_INJECTOR_VERSION:- }" >> run.env
-  rules:
-    - if: $CI_PIPELINE_SOURCE == "schedule"
-      when: always
-    - when: manual
-      allow_failure: true
-  artifacts:
-    reports:
-      dotenv: run.env
-
-# ----------- Nodejs SSI ----------------
+# ----------- Node.js SSI ----------------
 step1_generate_nodejs_ssi_pipeline:
   extends: .step1_generate_aws_ssi_pipeline
   needs: []
 
-x_compute_nodejs_scenarios:
+x_compute_nodejs_aws_scenarios:
   extends: .compute_aws_scenarios
   variables:
     TEST_LIBRARY: "nodejs"
@@ -162,12 +184,22 @@ x_compute_nodejs_docker_scenarios:
     - job: step1_generate_nodejs_ssi_pipeline
       artifacts: true
 
+x_compute_nodejs_k8s_scenarios:
+  extends: .x_compute_k8s_scenarios
+  stage: nodejs_ssi_pipelines
+  variables:
+    TEST_LIBRARY: "nodejs"
+  needs:
+    - job: step1_generate_nodejs_ssi_pipeline
+      artifacts: true
+
 x_merge_nodejs_ssi_pipeline:
   extends: .merge_aws_ssi_pipeline
-  needs: ["x_compute_nodejs_scenarios", "x_compute_nodejs_docker_scenarios"]
+  needs: ["x_compute_nodejs_aws_scenarios", "x_compute_nodejs_docker_scenarios", "x_compute_nodejs_k8s_scenarios"]
   dependencies:
-    - x_compute_nodejs_scenarios
+    - x_compute_nodejs_aws_scenarios
     - x_compute_nodejs_docker_scenarios
+    - x_compute_nodejs_k8s_scenarios
 
 step2_exec_nodejs_ssi_pipeline:
   extends: .exec_aws_ssi_pipeline
@@ -185,7 +217,7 @@ step1_generate_java_ssi_pipeline:
   dependencies: []
   extends: .step1_generate_aws_ssi_pipeline
 
-x_compute_java_scenarios:
+x_compute_java_aws_scenarios:
   stage: java_ssi_pipelines
   extends: .compute_aws_scenarios
   variables:
@@ -221,13 +253,23 @@ x_compute_java_docker_scenarios:
     - job: step1_generate_java_ssi_pipeline
       artifacts: true
 
+x_compute_java_k8s_scenarios:
+  extends: .x_compute_k8s_scenarios
+  stage: java_ssi_pipelines
+  variables:
+    TEST_LIBRARY: "java"
+  needs:
+    - job: step1_generate_java_ssi_pipeline
+      artifacts: true
+
 x_merge_java_ssi_pipeline:
   stage: java_ssi_pipelines
   extends: .merge_aws_ssi_pipeline
-  needs: ["x_compute_java_scenarios", "x_compute_java_docker_scenarios"]
+  needs: ["x_compute_java_aws_scenarios", "x_compute_java_docker_scenarios", "x_compute_java_k8s_scenarios"]
   dependencies:
-    - x_compute_java_scenarios
+    - x_compute_java_aws_scenarios
     - x_compute_java_docker_scenarios
+    - x_compute_java_k8s_scenarios
 
 step2_exec_java_ssi_pipeline:
   stage: java_ssi_pipelines
@@ -245,7 +287,7 @@ step1_generate_python_ssi_pipeline:
   dependencies: []
   extends: .step1_generate_aws_ssi_pipeline
 
-x_compute_python_scenarios:
+x_compute_python_aws_scenarios:
   stage: python_ssi_pipelines
   extends: .compute_aws_scenarios
   variables:
@@ -281,13 +323,23 @@ x_compute_python_docker_scenarios:
     - job: step1_generate_python_ssi_pipeline
       artifacts: true
 
+x_compute_python_k8s_scenarios:
+  extends: .x_compute_k8s_scenarios
+  stage: python_ssi_pipelines
+  variables:
+    TEST_LIBRARY: "python"
+  needs:
+    - job: step1_generate_python_ssi_pipeline
+      artifacts: true
+
 x_merge_python_ssi_pipeline:
   stage: python_ssi_pipelines
   extends: .merge_aws_ssi_pipeline
-  needs: ["x_compute_python_scenarios", "x_compute_python_docker_scenarios"]
+  needs: ["x_compute_python_aws_scenarios", "x_compute_python_docker_scenarios", "x_compute_python_k8s_scenarios"]
   dependencies:
-    - x_compute_python_scenarios
+    - x_compute_python_aws_scenarios
     - x_compute_python_docker_scenarios
+    - x_compute_python_k8s_scenarios
 
 step2_exec_python_ssi_pipeline:
   stage: python_ssi_pipelines
@@ -305,7 +357,7 @@ step1_generate_php_ssi_pipeline:
   dependencies: []
   extends: .step1_generate_aws_ssi_pipeline
 
-x_compute_php_scenarios:
+x_compute_php_aws_scenarios:
   stage: php_ssi_pipelines
   extends: .compute_aws_scenarios
   variables:
@@ -340,9 +392,9 @@ x_compute_php_docker_scenarios:
 x_merge_php_ssi_pipeline:
   stage: php_ssi_pipelines
   extends: .merge_aws_ssi_pipeline
-  needs: ["x_compute_php_scenarios", "x_compute_php_docker_scenarios"]
+  needs: ["x_compute_php_aws_scenarios", "x_compute_php_docker_scenarios"]
   dependencies:
-    - x_compute_php_scenarios
+    - x_compute_php_aws_scenarios
     - x_compute_php_docker_scenarios
 
 step2_exec_php_ssi_pipeline:
@@ -355,13 +407,13 @@ step2_exec_php_ssi_pipeline:
         job: x_merge_php_ssi_pipeline
     strategy: depend
 
-# ----------- Dotnet SSI ----------------
+# ----------- .NET SSI ----------------
 step1_generate_dotnet_ssi_pipeline:
   stage: dotnet_ssi_pipelines
   dependencies: []
   extends: .step1_generate_aws_ssi_pipeline
 
-x_compute_dotnet_scenarios:
+x_compute_dotnet_aws_scenarios:
   stage: dotnet_ssi_pipelines
   extends: .compute_aws_scenarios
   variables:
@@ -388,12 +440,22 @@ x_compute_dotnet_scenarios:
     - job: step1_generate_dotnet_ssi_pipeline
       artifacts: true
 
+x_compute_dotnet_k8s_scenarios:
+  extends: .x_compute_k8s_scenarios
+  stage: dotnet_ssi_pipelines
+  variables:
+    TEST_LIBRARY: "dotnet"
+  needs:
+    - job: step1_generate_dotnet_ssi_pipeline
+      artifacts: true
+
 x_merge_dotnet_ssi_pipeline:
   stage: dotnet_ssi_pipelines
   extends: .merge_aws_ssi_pipeline
-  needs: ["x_compute_dotnet_scenarios"]
+  needs: ["x_compute_dotnet_aws_scenarios", "x_compute_dotnet_k8s_scenarios"]
   dependencies:
-    - x_compute_dotnet_scenarios
+    - x_compute_dotnet_aws_scenarios
+    - x_compute_dotnet_k8s_scenarios
 
 step2_exec_dotnet_ssi_pipeline:
   stage: dotnet_ssi_pipelines
@@ -411,7 +473,7 @@ step1_generate_ruby_ssi_pipeline:
   dependencies: []
   extends: .step1_generate_aws_ssi_pipeline
 
-x_compute_ruby_scenarios:
+x_compute_ruby_aws_scenarios:
   stage: ruby_ssi_pipelines
   extends: .compute_aws_scenarios
   variables:
@@ -432,12 +494,22 @@ x_compute_ruby_scenarios:
     - job: step1_generate_ruby_ssi_pipeline
       artifacts: true
 
+x_compute_ruby_k8s_scenarios:
+  extends: .x_compute_k8s_scenarios
+  stage: ruby_ssi_pipelines
+  variables:
+    TEST_LIBRARY: "ruby"
+  needs:
+    - job: step1_generate_ruby_ssi_pipeline
+      artifacts: true
+
 x_merge_ruby_ssi_pipeline:
   stage: ruby_ssi_pipelines
   extends: .merge_aws_ssi_pipeline
-  needs: ["x_compute_ruby_scenarios"]
+  needs: ["x_compute_ruby_aws_scenarios", "x_compute_ruby_k8s_scenarios"]
   dependencies:
-    - x_compute_ruby_scenarios
+    - x_compute_ruby_aws_scenarios
+    - x_compute_ruby_k8s_scenarios
 
 step2_exec_ruby_ssi_pipeline:
   stage: ruby_ssi_pipelines
@@ -483,138 +555,3 @@ generate_system_tests_images:
       - ./utils/build/build_python_base_images.sh --push
       - ./lib-injection/build/build_lib_injection_images.sh
   when: manual
-
-.k8s_lib_injection_base:
-  image: registry.ddbuild.io/ci/libdatadog-build/system-tests:48436362
-  tags: [ "runner:docker" ]
-  stage: k8s_lib_injection
-  rules:
-    #- if: $CI_PIPELINE_SOURCE == "schedule"
-    #  when: always
-    - when: manual
-  variables:
-    TEST_LIBRARY: "xyz"
-    K8S_WEBLOG: "xyz"
-    K8S_WEBLOG_IMG: "xyz"
-    K8S_SCENARIO: "xyz"
-    K8S_LIB_INIT_IMG: "xyz"
-    K8S_CLUSTER_VERSION: "xyz"
-  script:
-    - ./build.sh -i runner # rebuild runner in case there were changes
-    - source venv/bin/activate
-    - python --version
-    - pip freeze
-    - ./run.sh ${K8S_SCENARIO} --k8s-library ${TEST_LIBRARY} --k8s-weblog ${K8S_WEBLOG} --k8s-weblog-img ${K8S_WEBLOG_IMG} --k8s-lib-init-img ${K8S_LIB_INIT_IMG} --k8s-cluster-version ${K8S_CLUSTER_VERSION}
-  after_script:
-    - mkdir -p reports
-    - cp -R logs_*/ reports/
-    - kind delete clusters --all || true
-  artifacts:
-    when: always
-    paths:
-      - reports/
-
-k8s_java:
-  extends: .k8s_lib_injection_base
-  variables:
-    TEST_LIBRARY: "java"
-  parallel:
-      matrix:
-        - K8S_WEBLOG: [dd-djm-spark-test-app ]
-          K8S_WEBLOG_IMG: [ghcr.io/datadog/system-tests/dd-djm-spark-test-app:latest]
-          K8S_SCENARIO: [K8S_LIB_INJECTION_SPARK_DJM]
-          K8S_LIB_INIT_IMG: ["gcr.io/datadoghq/dd-lib-java-init:latest", "ghcr.io/datadog/dd-trace-java/dd-lib-java-init:latest_snapshot"]
-          K8S_CLUSTER_VERSION: ['7.57.0', '7.59.0']
-        - K8S_WEBLOG: [dd-lib-java-init-test-app]
-          K8S_WEBLOG_IMG: [ghcr.io/datadog/system-tests/dd-lib-java-init-test-app:latest]
-          K8S_SCENARIO: [K8S_LIB_INJECTION, K8S_LIB_INJECTION_UDS, K8S_LIB_INJECTION_NO_AC, K8S_LIB_INJECTION_NO_AC_UDS, K8S_LIB_INJECTION_PROFILING_DISABLED, K8S_LIB_INJECTION_PROFILING_ENABLED, K8S_LIB_INJECTION_PROFILING_OVERRIDE]
-          K8S_LIB_INIT_IMG: ["gcr.io/datadoghq/dd-lib-java-init:latest", "ghcr.io/datadog/dd-trace-java/dd-lib-java-init:latest_snapshot"]
-          K8S_CLUSTER_VERSION: ['7.56.2', '7.57.0', '7.59.0']
-
-k8s_dotnet:
-  extends: .k8s_lib_injection_base
-  variables:
-    TEST_LIBRARY: "dotnet"
-  parallel:
-      matrix:
-        - K8S_WEBLOG: [dd-lib-dotnet-init-test-app]
-          K8S_WEBLOG_IMG: [ghcr.io/datadog/system-tests/dd-lib-dotnet-init-test-app:latest]
-          K8S_SCENARIO: [K8S_LIB_INJECTION, K8S_LIB_INJECTION_UDS, K8S_LIB_INJECTION_NO_AC, K8S_LIB_INJECTION_NO_AC_UDS, K8S_LIB_INJECTION_PROFILING_DISABLED, K8S_LIB_INJECTION_PROFILING_ENABLED, K8S_LIB_INJECTION_PROFILING_OVERRIDE]
-          K8S_LIB_INIT_IMG: ["gcr.io/datadoghq/dd-lib-dotnet-init:latest", "ghcr.io/datadog/dd-trace-dotnet/dd-lib-dotnet-init:latest_snapshot"]
-          K8S_CLUSTER_VERSION: ['7.56.2', '7.57.0', '7.59.0']
-
-k8s_nodejs:
-  extends: .k8s_lib_injection_base
-  variables:
-    TEST_LIBRARY: "nodejs"
-  parallel:
-      matrix:
-        - K8S_WEBLOG: [sample-app]
-          K8S_WEBLOG_IMG: [ghcr.io/datadog/system-tests/sample-app:latest]
-          K8S_SCENARIO: [K8S_LIB_INJECTION, K8S_LIB_INJECTION_UDS, K8S_LIB_INJECTION_NO_AC, K8S_LIB_INJECTION_NO_AC_UDS, K8S_LIB_INJECTION_PROFILING_DISABLED, K8S_LIB_INJECTION_PROFILING_ENABLED, K8S_LIB_INJECTION_PROFILING_OVERRIDE]
-          K8S_LIB_INIT_IMG: ["gcr.io/datadoghq/dd-lib-js-init:latest", "ghcr.io/datadog/dd-trace-js/dd-lib-js-init:latest_snapshot"]
-          K8S_CLUSTER_VERSION: ['7.56.2', '7.57.0', '7.59.0']
-
-k8s_python:
-  extends: .k8s_lib_injection_base
-  variables:
-    TEST_LIBRARY: "python"
-  parallel:
-      matrix:
-        - K8S_WEBLOG: [dd-lib-python-init-test-django]
-          K8S_WEBLOG_IMG: [ghcr.io/datadog/system-tests/dd-lib-python-init-test-django:latest]
-          K8S_SCENARIO: [K8S_LIB_INJECTION, K8S_LIB_INJECTION_UDS, K8S_LIB_INJECTION_NO_AC, K8S_LIB_INJECTION_NO_AC_UDS, K8S_LIB_INJECTION_PROFILING_DISABLED, K8S_LIB_INJECTION_PROFILING_ENABLED, K8S_LIB_INJECTION_PROFILING_OVERRIDE]
-          K8S_LIB_INIT_IMG: ["gcr.io/datadoghq/dd-lib-python-init:latest", "ghcr.io/datadog/dd-trace-py/dd-lib-python-init:latest_snapshot"]
-          K8S_CLUSTER_VERSION: ['7.56.2', '7.57.0', '7.59.0']
-        - K8S_WEBLOG: [dd-lib-python-init-test-django-gunicorn]
-          K8S_WEBLOG_IMG: [ghcr.io/datadog/system-tests/dd-lib-python-init-test-django-gunicorn:latest]
-          K8S_SCENARIO: [K8S_LIB_INJECTION, K8S_LIB_INJECTION_PROFILING_ENABLED]
-          K8S_LIB_INIT_IMG: ["gcr.io/datadoghq/dd-lib-python-init:latest", "ghcr.io/datadog/dd-trace-py/dd-lib-python-init:latest_snapshot"]
-          K8S_CLUSTER_VERSION: ['7.56.2', '7.57.0', '7.59.0']
-        - K8S_WEBLOG: [dd-lib-python-init-test-django-gunicorn-alpine]
-          K8S_WEBLOG_IMG: [ghcr.io/datadog/system-tests/dd-lib-python-init-test-django-gunicorn-alpine:latest]
-          K8S_SCENARIO: [K8S_LIB_INJECTION, K8S_LIB_INJECTION_PROFILING_ENABLED]
-          K8S_LIB_INIT_IMG: ["gcr.io/datadoghq/dd-lib-python-init:latest", "ghcr.io/datadog/dd-trace-py/dd-lib-python-init:latest_snapshot"]
-          K8S_CLUSTER_VERSION: ['7.56.2', '7.57.0', '7.59.0']
-        - K8S_WEBLOG: [dd-lib-python-init-test-django-unsupported-package-force]
-          K8S_WEBLOG_IMG: [ghcr.io/datadog/system-tests/dd-lib-python-init-test-django-unsupported-package-force:latest]
-          K8S_SCENARIO: [K8S_LIB_INJECTION, K8S_LIB_INJECTION_PROFILING_ENABLED]
-          K8S_LIB_INIT_IMG: ["gcr.io/datadoghq/dd-lib-python-init:latest", "ghcr.io/datadog/dd-trace-py/dd-lib-python-init:latest_snapshot"]
-          K8S_CLUSTER_VERSION: ['7.56.2', '7.57.0', '7.59.0']
-        - K8S_WEBLOG: [dd-lib-python-init-test-django-uvicorn]
-          K8S_WEBLOG_IMG: [ghcr.io/datadog/system-tests/dd-lib-python-init-test-django-uvicorn:latest]
-          K8S_SCENARIO: [K8S_LIB_INJECTION, K8S_LIB_INJECTION_PROFILING_ENABLED]
-          K8S_LIB_INIT_IMG: ["gcr.io/datadoghq/dd-lib-python-init:latest", "ghcr.io/datadog/dd-trace-py/dd-lib-python-init:latest_snapshot"]
-          K8S_CLUSTER_VERSION: ['7.56.2', '7.57.0', '7.59.0']
-        - K8S_WEBLOG: [dd-lib-python-init-test-protobuf-old]
-          K8S_WEBLOG_IMG: [ghcr.io/datadog/system-tests/dd-lib-python-init-test-protobuf-old:latest]
-          K8S_SCENARIO: [K8S_LIB_INJECTION, K8S_LIB_INJECTION_PROFILING_ENABLED]
-          K8S_LIB_INIT_IMG: ["gcr.io/datadoghq/dd-lib-python-init:latest", "ghcr.io/datadog/dd-trace-py/dd-lib-python-init:latest_snapshot"]
-          K8S_CLUSTER_VERSION: ['7.56.2', '7.57.0', '7.59.0']
-        - K8S_WEBLOG: [dd-lib-python-init-test-django-preinstalled]
-          K8S_WEBLOG_IMG: [ghcr.io/datadog/system-tests/dd-lib-python-init-test-django-preinstalled:latest]
-          K8S_SCENARIO: [K8S_LIB_INJECTION, K8S_LIB_INJECTION_UDS, K8S_LIB_INJECTION_NO_AC, K8S_LIB_INJECTION_NO_AC_UDS]
-          K8S_LIB_INIT_IMG: ["gcr.io/datadoghq/dd-lib-python-init:latest", "ghcr.io/datadog/dd-trace-py/dd-lib-python-init:latest_snapshot"]
-          K8S_CLUSTER_VERSION: ['7.56.2', '7.57.0', '7.59.0']
-
-k8s_ruby:
-  extends: .k8s_lib_injection_base
-  variables:
-    TEST_LIBRARY: "ruby"
-  parallel:
-      matrix:
-        - K8S_WEBLOG: [dd-lib-ruby-init-test-rails]
-          K8S_WEBLOG_IMG: [ghcr.io/datadog/system-tests/dd-lib-ruby-init-test-rails:latest]
-          K8S_SCENARIO: [K8S_LIB_INJECTION, K8S_LIB_INJECTION_UDS, K8S_LIB_INJECTION_NO_AC, K8S_LIB_INJECTION_NO_AC_UDS, K8S_LIB_INJECTION_PROFILING_DISABLED, K8S_LIB_INJECTION_PROFILING_ENABLED, K8S_LIB_INJECTION_PROFILING_OVERRIDE]
-          K8S_LIB_INIT_IMG: ["gcr.io/datadoghq/dd-lib-ruby-init:latest", "ghcr.io/datadog/dd-trace-rb/dd-lib-ruby-init:latest_snapshot"]
-          K8S_CLUSTER_VERSION: ['7.56.2', '7.57.0', '7.59.0']
-        - K8S_WEBLOG: [dd-lib-ruby-init-test-rails-explicit]
-          K8S_WEBLOG_IMG: [ghcr.io/datadog/system-tests/dd-lib-ruby-init-test-rails-explicit:latest]
-          K8S_SCENARIO: [K8S_LIB_INJECTION, K8S_LIB_INJECTION_UDS, K8S_LIB_INJECTION_NO_AC, K8S_LIB_INJECTION_NO_AC_UDS, K8S_LIB_INJECTION_PROFILING_DISABLED, K8S_LIB_INJECTION_PROFILING_ENABLED, K8S_LIB_INJECTION_PROFILING_OVERRIDE]
-          K8S_LIB_INIT_IMG: ["gcr.io/datadoghq/dd-lib-ruby-init:latest", "ghcr.io/datadog/dd-trace-rb/dd-lib-ruby-init:latest_snapshot"]
-          K8S_CLUSTER_VERSION: ['7.56.2', '7.57.0', '7.59.0']
-        - K8S_WEBLOG: [dd-lib-ruby-init-test-rails-gemsrb]
-          K8S_WEBLOG_IMG: [ghcr.io/datadog/system-tests/dd-lib-ruby-init-test-rails-gemsrb:latest]
-          K8S_SCENARIO: [K8S_LIB_INJECTION, K8S_LIB_INJECTION_UDS, K8S_LIB_INJECTION_NO_AC, K8S_LIB_INJECTION_NO_AC_UDS, K8S_LIB_INJECTION_PROFILING_DISABLED, K8S_LIB_INJECTION_PROFILING_ENABLED, K8S_LIB_INJECTION_PROFILING_OVERRIDE]
-          K8S_LIB_INIT_IMG: ["gcr.io/datadoghq/dd-lib-ruby-init:latest", "ghcr.io/datadog/dd-trace-rb/dd-lib-ruby-init:latest_snapshot"]
-          K8S_CLUSTER_VERSION: ['7.56.2', '7.57.0', '7.59.0']

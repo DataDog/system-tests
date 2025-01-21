@@ -153,20 +153,22 @@ tests/:
           TestSqlRow: missing_feature
         test_uri.py:
           TestURI: irrelevant
+      test_security_controls.py:
+        TestSecurityControls: missing_feature
     rasp/:
       test_cmdi.py:
-        Test_Cmdi_BodyJson: missing_feature
-        Test_Cmdi_BodyUrlEncoded: missing_feature
-        Test_Cmdi_BodyXml: missing_feature
-        Test_Cmdi_Capability: missing_feature
-        Test_Cmdi_Mandatory_SpanTags: missing_feature
-        Test_Cmdi_Optional_SpanTags: missing_feature
-        Test_Cmdi_Rules_Version: missing_feature
-        Test_Cmdi_StackTrace: missing_feature
-        Test_Cmdi_Telemetry: missing_feature
-        Test_Cmdi_Telemetry_Variant_Tag: missing_feature
-        Test_Cmdi_UrlQuery: missing_feature
-        Test_Cmdi_Waf_Version: missing_feature
+        Test_Cmdi_BodyJson: v3.7.0
+        Test_Cmdi_BodyUrlEncoded: v3.7.0
+        Test_Cmdi_BodyXml: v3.7.0
+        Test_Cmdi_Capability: v3.7.0
+        Test_Cmdi_Mandatory_SpanTags: v3.7.0
+        Test_Cmdi_Optional_SpanTags: v3.7.0
+        Test_Cmdi_Rules_Version: v3.7.0
+        Test_Cmdi_StackTrace: v3.7.0
+        Test_Cmdi_Telemetry: v3.7.0
+        Test_Cmdi_Telemetry_Variant_Tag: v3.7.0
+        Test_Cmdi_UrlQuery: v3.7.0
+        Test_Cmdi_Waf_Version: v3.7.0
       test_lfi.py:
         Test_Lfi_BodyJson: v2.51.0
         Test_Lfi_BodyUrlEncoded: v2.51.0
@@ -175,7 +177,7 @@ tests/:
         Test_Lfi_Mandatory_SpanTags: v2.52.0
         Test_Lfi_Optional_SpanTags: v2.52.0
         Test_Lfi_RC_CustomAction: missing_feature
-        Test_Lfi_Rules_Version: missing_feature
+        Test_Lfi_Rules_Version: v3.7.0
         Test_Lfi_StackTrace: v2.51.0
         Test_Lfi_Telemetry: v2.51.0
         Test_Lfi_UrlQuery: v2.51.0
@@ -190,7 +192,7 @@ tests/:
         Test_Shi_Rules_Version: v3.5.0
         Test_Shi_StackTrace: v3.2.0
         Test_Shi_Telemetry: v3.3.0
-        Test_Shi_Telemetry_Variant_Tag: missing_feature
+        Test_Shi_Telemetry_Variant_Tag: v3.7.0
         Test_Shi_UrlQuery: v3.2.0
         Test_Shi_Waf_Version: v3.4.1
       test_sqli.py:
@@ -399,9 +401,6 @@ tests/:
       Test_AWS_API_Gateway_Inferred_Span_Creation: missing_feature
     test_otel_drop_in.py:
       Test_Otel_Drop_In: missing_feature
-  k8s_lib_injection/:
-    test_k8s_manual_inject.py:
-      TestAdmisionControllerProfiling: missing_feature
   parametric/:
     test_config_consistency.py:
       Test_Config_Dogstatsd: missing_feature (does not support hostname)
@@ -417,6 +416,7 @@ tests/:
       TestDynamicConfigSamplingRules: v2.53.2
       TestDynamicConfigTracingEnabled: v2.49.0
       TestDynamicConfigV1: v2.33.0
+      TestDynamicConfigV1_EmptyServiceTargets: v2.33.0
       TestDynamicConfigV1_ServiceTargets: missing_feature
       TestDynamicConfigV2: v2.44.0
     test_headers_baggage.py:
@@ -429,15 +429,15 @@ tests/:
     test_otel_tracer.py:
       Test_Otel_Tracer: v2.8.0
     test_parametric_endpoints.py:
-      Test_Parametric_DDSpan_Add_Link: missing_feature (add_link parametric endpoint is not implemented)
+      Test_Parametric_DDSpan_Add_Link: incomplete_test_app (add_link parametric endpoint is not implemented)
       Test_Parametric_DDSpan_Set_Error: bug (APMAPI-778) # Set error endpoint does not set the error.type tag on spans
-      Test_Parametric_DDSpan_Set_Resource: missing_feature (set_resource parametric endpoint is not implemented)
-      Test_Parametric_DDTrace_Baggage: missing_feature (baggage endpoints are not implemented)
-      Test_Parametric_DDTrace_Current_Span: missing_feature (otel current span endpoint is not implemented)
+      Test_Parametric_DDSpan_Set_Resource: incomplete_test_app (set_resource parametric endpoint is not implemented)
+      Test_Parametric_DDTrace_Baggage: incomplete_test_app (baggage endpoints are not implemented)
+      Test_Parametric_DDTrace_Current_Span: incomplete_test_app (current span endpoint is not implemented)
       Test_Parametric_OtelSpan_Is_Recording: bug (APMAPI-778) # parametric endpoint attempts to retrieve spans by the `id` instead of `span_id`
       Test_Parametric_OtelSpan_Set_Name: bug (APMAPI-778) # updates the operation name of the span not the resource name
-      Test_Parametric_Otel_Baggage: missing_feature (otel baggage endpoints are not implemented)
-      Test_Parametric_Otel_Current_Span: missing_feature (otel current span endpoint are not implemented)
+      Test_Parametric_Otel_Baggage: incomplete_test_app (otel baggage endpoints are not implemented)
+      Test_Parametric_Otel_Current_Span: incomplete_test_app (otel current span endpoint are not implemented)
     test_span_events.py: missing_feature
     test_span_links.py: missing_feature
     test_telemetry.py:
@@ -466,7 +466,6 @@ tests/:
       Test_RemoteConfigurationUpdateSequenceFeatures: v2.15.0
       Test_RemoteConfigurationUpdateSequenceFeaturesNoCache: irrelevant (cache is implemented)
       Test_RemoteConfigurationUpdateSequenceLiveDebugging: v2.15.0
-      Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache: irrelevant (cache is implemented)
   serverless/:
     span_pointers/:
       aws/:
@@ -489,8 +488,15 @@ tests/:
     Test_Config_HttpServerErrorStatuses_FeatureFlagCustom: v3.5.0
     Test_Config_IntegrationEnabled_False: v3.5.0
     Test_Config_IntegrationEnabled_True: v3.5.0
+    Test_Config_LogInjection_128Bit_TradeId_Default: missing_feature (disabled by default)
+    Test_Config_LogInjection_128Bit_TradeId_Disabled: incomplete_test_app (weblog endpoint not implemented)
+    Test_Config_LogInjection_Default: incomplete_test_app (weblog endpoint not implemented)
+    Test_Config_LogInjection_Enabled: incomplete_test_app (weblog endpoint not implemented)
     Test_Config_ObfuscationQueryStringRegexp_Configured: v3.4.1
+    Test_Config_ObfuscationQueryStringRegexp_Default: v3.4.1
     Test_Config_ObfuscationQueryStringRegexp_Empty: v3.4.1
+    Test_Config_RuntimeMetrics_Default: incomplete_test_app (test needs to account for dotnet runtime metrics)
+    Test_Config_RuntimeMetrics_Enabled: incomplete_test_app (test needs to account for dotnet runtime metrics)
     Test_Config_UnifiedServiceTagging_CustomService: v3.3.0
     Test_Config_UnifiedServiceTagging_Default: v3.3.0
   test_data_integrity.py:
@@ -505,6 +511,7 @@ tests/:
     Test_Basic: v2.7.0
     Test_Propagate: v2.27.0
     Test_Propagate_Legacy: v2.26.0
+  test_ipv6.py: missing_feature (APMAPI-869)
   test_library_conf.py:
     Test_HeaderTags: v2.27.0
     Test_HeaderTags_Colon_Leading: v2.1.0
@@ -525,7 +532,7 @@ tests/:
     Test_UrlQuery: v2.13.0
   test_semantic_conventions.py:
     Test_MetricsStandardTags: v2.6.0
-  test_span_events.py: missing_feature (Weblog `/add_event` not implemented)
+  test_span_events.py: incomplete_test_app (Weblog `/add_event` not implemented)
   test_standard_tags.py:
     Test_StandardTagsClientIp: v2.26.0
     Test_StandardTagsMethod: v2.0.0

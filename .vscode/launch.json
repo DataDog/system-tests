@@ -145,6 +145,16 @@
             "python": "${workspaceFolder}/venv/bin/python"
         },
         {
+            "name": "Run IPV6 scenario",
+            "type": "python",
+            "request": "launch",
+            "module": "pytest",
+            "args": ["-S", "IPV6", "-p", "no:warnings"],
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "python": "${workspaceFolder}/venv/bin/python"
+        },
+        {
             "name": "Python: Current File",
             "type": "python",
             "request": "launch",

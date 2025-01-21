@@ -12,9 +12,12 @@ class TestUntrustedDeserialization(BaseSinkTest):
 
     vulnerability_type = "UNTRUSTED_DESERIALIZATION"
     http_method = "GET"
-    insecure_endpoint = "/iast/untrusted_deserialization/test_insecure"
+    insecure_endpoint = "/iast/untrusted_deserialization/test_insecure?name=example"
     secure_endpoint = "/iast/untrusted_deserialization/test_secure"
-    location_map = {"java": "com.datadoghq.system_tests.iast.utils.DeserializationExamples"}
+    location_map = {
+        "java": "com.datadoghq.system_tests.iast.utils.DeserializationExamples",
+        "nodejs": {"express4": "iast/index.js", "express4-typescript": "iast.ts", "express5": "iast/index.js"},
+    }
 
 
 @rfc(

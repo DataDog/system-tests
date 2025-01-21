@@ -244,6 +244,9 @@ func main() {
 	r.Any("/rasp/ssrf", ginHandleFunc(rasp.SSRF))
 	r.Any("/rasp/sqli", ginHandleFunc(rasp.SQLi))
 
+	r.Any("/requestdownstream", ginHandleFunc(common.Requestdownstream))
+	r.Any("/returnheaders", ginHandleFunc(common.Returnheaders))
+
 	srv := &http.Server{
 		Addr:    ":7777",
 		Handler: r,

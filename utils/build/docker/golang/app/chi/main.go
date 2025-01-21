@@ -300,6 +300,9 @@ func main() {
 		w.WriteHeader(http.StatusOK)
 	})
 
+	mux.HandleFunc("/requestdownstream", common.Requestdownstream)
+	mux.HandleFunc("/returnheaders", common.Returnheaders)
+
 	srv := &http.Server{
 		Addr:    ":7777",
 		Handler: mux,

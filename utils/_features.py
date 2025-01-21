@@ -2284,5 +2284,32 @@ class _Features:
         pytest.mark.features(feature_id=346)(test_object)
         return test_object
 
+    @staticmethod
+    def agent_host_ipv6(test_object):
+        """DD_AGENT_HOST supports an IPv6 address
+
+        https://feature-parity.us1.prod.dog/#/?feature=347
+        """
+        pytest.mark.features(feature_id=347)(test_object)
+        return test_object
+
+    @staticmethod
+    def iast_security_controls(test_object):
+        """IAST: Security Controls
+
+        https://feature-parity.us1.prod.dog/#/?feature=343
+        """
+        pytest.mark.features(feature_id=343)(test_object)
+        return test_object
+
+    @staticmethod
+    def envoy_external_processing(test_object):
+        """Support for Envoy External Processing
+
+        https://feature-parity.us1.prod.dog/#/?feature=350
+        """
+        pytest.mark.features(feature_id=350)(test_object)
+        return test_object
+
 
 features = _Features()
