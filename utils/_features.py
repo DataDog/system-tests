@@ -2303,6 +2303,15 @@ class _Features:
         return test_object
 
     @staticmethod
+    def asm_headers_propagation(test_object):
+        """Datadog headers propagation
+
+        https://feature-parity.us1.prod.dog/#/?feature=344
+        """
+        pytest.mark.features(feature_id=344)(test_object)
+        return test_object
+
+    @staticmethod
     def envoy_external_processing(test_object):
         """Support for Envoy External Processing
 
