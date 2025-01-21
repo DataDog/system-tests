@@ -21,6 +21,7 @@ class TestEmailHtmlInjection(BaseSinkTest):
     def test_telemetry_metric_instrumented_sink(self):
         super().test_telemetry_metric_instrumented_sink()
 
+
 @rfc(
     "https://docs.google.com/document/d/1ga7yCKq2htgcwgQsInYZKktV0hNlv4drY9XzSxT-o5U/edit?tab=t.0#heading=h.d0f5wzmlfhat"
 )
@@ -29,7 +30,9 @@ class TestEmailHtmlInjection_StackTrace:
     """Validate stack trace generation"""
 
     def setup_stack_trace(self):
-        self.r = weblog.post("/iast/email_html_injection/test_insecure", data={"username": "Josh", "email": "fakeemail@localhost"})
+        self.r = weblog.post(
+            "/iast/email_html_injection/test_insecure", data={"username": "Josh", "email": "fakeemail@localhost"}
+        )
 
     def test_stack_trace(self):
         validate_stack_traces(self.r)
