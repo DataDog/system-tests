@@ -148,6 +148,8 @@ tests/:
           TestSqlRow: missing_feature
         test_uri.py:
           TestURI: missing_feature
+      test_security_controls.py:
+        TestSecurityControls: missing_feature
     rasp/:
       test_cmdi.py: missing_feature
       test_lfi.py: missing_feature
@@ -393,8 +395,6 @@ tests/:
       TestK8sLibInjectioProfilingClusterEnabled: missing_feature
       TestK8sLibInjectioProfilingClusterOverride: missing_feature
       TestK8sLibInjectioProfilingDisabledByDefault: missing_feature
-    test_k8s_manual_inject.py:
-      TestAdmisionControllerProfiling: missing_feature
   parametric/:
     test_config_consistency.py:
       Test_Config_Dogstatsd: missing_feature
@@ -410,6 +410,7 @@ tests/:
       TestDynamicConfigSamplingRules: v2.0.0
       TestDynamicConfigTracingEnabled: missing_feature
       TestDynamicConfigV1: bug (APMAPI-867)  # theorical version is v1.13.0
+      TestDynamicConfigV1_EmptyServiceTargets: v2.8.0 # version unknown
       TestDynamicConfigV1_ServiceTargets: missing_feature
       TestDynamicConfigV2: missing_feature
     test_headers_baggage.py:
@@ -489,8 +490,15 @@ tests/:
     Test_Config_IntegrationEnabled_True:
       '*': irrelevant (endpoint not implemented)
       rails70: v2.0.0
+    Test_Config_LogInjection_128Bit_TradeId_Default: missing_feature (not enabled by default)
+    Test_Config_LogInjection_128Bit_TradeId_Disabled: incomplete_test_app (endpoint not implemented)
+    Test_Config_LogInjection_Default: incomplete_test_app (endpoint not implemented)
+    Test_Config_LogInjection_Enabled: incomplete_test_app (endpoint not implemented)
     Test_Config_ObfuscationQueryStringRegexp_Configured: missing_feature
+    Test_Config_ObfuscationQueryStringRegexp_Default: bug (APMAPI-1013)
     Test_Config_ObfuscationQueryStringRegexp_Empty: missing_feature (environment variable is not supported)
+    Test_Config_RuntimeMetrics_Default: incomplete_test_app (test needs to account for ruby runtime metrics)
+    Test_Config_RuntimeMetrics_Enabled: incomplete_test_app (test needs to account for ruby runtime metrics)
     Test_Config_UnifiedServiceTagging_CustomService: v2.0.0
     Test_Config_UnifiedServiceTagging_Default: v2.0.0
   test_distributed.py:

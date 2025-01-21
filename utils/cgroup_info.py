@@ -41,8 +41,7 @@ class _CGroupInfo:
     CONTAINER_RE = re.compile(rf"(?:.+)?({UUID_SOURCE_PATTERN}|{CONTAINER_SOURCE_PATTERN}|{TASK_PATTERN})(?:\.scope)?$")
 
     @classmethod
-    def from_line(cls, line):
-        # type: (str) -> Optional[_CGroupInfo]
+    def from_line(cls, line: str) -> "_CGroupInfo | None":
         """Parse a new :class:`CGroupInfo` from the provided line
         :param line: A line from a cgroup file (e.g. /proc/self/cgroup) to parse information from
         :type line: str

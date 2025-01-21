@@ -429,7 +429,7 @@ class Test_Otel_Span_Methods:
                         # Some languages e.g. PHP return a hexadecimal span id
                         assert context.get("span_id") == span.span_id
                     else:
-                        # Some languages e.g. Nodejs using express need to return as a string value
+                        # Some languages e.g. Node.js using express need to return as a string value
                         # due to 64-bit integers being too large.
                         assert context.get("span_id") == "{:016x}".format(int(span.span_id))
                     assert context.get("trace_flags") == "01"

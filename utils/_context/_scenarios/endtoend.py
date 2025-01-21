@@ -246,6 +246,7 @@ class EndToEndScenario(DockerScenario):
         rc_api_enabled=False,
         meta_structs_disabled=False,
         span_events=True,
+        runtime_metrics_enabled=False,
         backend_interface_timeout=0,
         include_postgres_db=False,
         include_cassandra_db=False,
@@ -313,6 +314,7 @@ class EndToEndScenario(DockerScenario):
             tracer_sampling_rate=tracer_sampling_rate,
             appsec_enabled=appsec_enabled,
             iast_enabled=iast_enabled,
+            runtime_metrics_enabled=runtime_metrics_enabled,
             additional_trace_header_tags=additional_trace_header_tags,
             use_proxy=use_proxy_for_weblog,
             volumes=weblog_volumes,
@@ -575,8 +577,14 @@ class EndToEndScenario(DockerScenario):
             _SchemaBug(
                 endpoint="/debugger/v1/diagnostics",
                 data_path="$[].content",
-                condition=context.library > "nodejs@4.48.0",
+                condition=context.library < "nodejs@5.31.0",
                 ticket="DEBUG-2864",
+            ),
+            _SchemaBug(
+                endpoint="/debugger/v1/diagnostics",
+                data_path="$[].content[].debugger.diagnostics",
+                condition=context.library == "nodejs",
+                ticket="DEBUG-3245",
             ),
             _SchemaBug(
                 endpoint="/debugger/v1/input",
@@ -614,7 +622,7 @@ class EndToEndScenario(DockerScenario):
             _SchemaBug(
                 endpoint="/api/v2/debugger",
                 data_path="$[].content",
-                condition=context.library > "nodejs@4.46.0",
+                condition=context.library < "nodejs@5.31.0",
                 ticket="DEBUG-2864",
             ),
         ]

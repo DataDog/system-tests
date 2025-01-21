@@ -13,7 +13,7 @@ from utils import weblog, interfaces
 #  - Skip for an entire library:
 #       @irrelevant(context.library != "java", reason="*ATTENTION*: The reason the language is skipped")
 #  - Skip for every library except one
-#       @irrelevant(context.library = "dotnet", reason="only for .NET")
+#       @irrelevant(context.library == "dotnet", reason="only for .NET")
 
 
 # To run an individual test: ./run.sh tests/test_traces.py::Test_Misc::test_main

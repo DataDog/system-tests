@@ -188,8 +188,8 @@ class TestedContainer:
             self.warmup()
 
         self._container.reload()
-        with open(f"{self.log_folder_path}/container.json", "w", encoding="utf-8") as f:
-            json.dump(self._container.attrs, f, indent=2)
+        # with open(f"{self.log_folder_path}/container.json", "w", encoding="utf-8") as f:
+        #     json.dump(self._container.attrs, f, indent=2)
 
     def async_start(self, network: Network) -> Thread:
         """Start the container and its dependencies in a thread with circular dependency detection"""
@@ -689,6 +689,7 @@ class WeblogContainer(TestedContainer):
         tracer_sampling_rate=None,
         appsec_enabled=True,
         iast_enabled=True,
+        runtime_metrics_enabled=False,
         additional_trace_header_tags=(),
         use_proxy=True,
         volumes=None,
@@ -723,6 +724,9 @@ class WeblogContainer(TestedContainer):
         base_environment["_DD_TELEMETRY_METRICS_ENABLED"] = "true"
         base_environment["DD_TELEMETRY_METRICS_INTERVAL_SECONDS"] = self.telemetry_heartbeat_interval
 
+        if runtime_metrics_enabled:
+            base_environment["DD_RUNTIME_METRICS_ENABLED"] = "true"
+
         if appsec_enabled:
             base_environment["DD_APPSEC_ENABLED"] = "true"
             base_environment["DD_APPSEC_WAF_TIMEOUT"] = "10000000"  # 10 seconds
@@ -734,7 +738,6 @@ class WeblogContainer(TestedContainer):
             base_environment["_DD_IAST_DEBUG"] = "true"
             base_environment["DD_IAST_REQUEST_SAMPLING"] = "100"
             base_environment["DD_IAST_MAX_CONCURRENT_REQUESTS"] = "10"
-            base_environment["DD_IAST_CONTEXT_MODE"] = "GLOBAL"
             base_environment["DD_IAST_DEDUPLICATION_ENABLED"] = "false"
 
         if tracer_sampling_rate:
@@ -795,9 +798,13 @@ class WeblogContainer(TestedContainer):
 
         return result
 
-    def get_image_list(self, library: str, weblog: str) -> list[str]:
+    def get_image_list(self, library: str | None, weblog: str | None) -> list[str]:
         """Parse the Dockerfile and extract all images reference in a FROM section"""
         result = []
+
+        if not library or not weblog:
+            return result
+
         args = {}
 
         pattern = re.compile(r"^FROM\s+(?P<image_name>[^\s]+)")
@@ -1129,7 +1136,7 @@ class MountInjectionVolume(TestedContainer):
 
     def _lib_init_image(self, lib_init_image):
         self.image = ImageInfo(lib_init_image, local_image_only=False)
-        # Dotnet compatible with former folder layer
+        # .NET compatible with former folder layer
         if "dd-lib-dotnet-init" in lib_init_image:
             self.kwargs["volumes"] = {
                 _VOLUME_INJECTOR_NAME: {"bind": "/datadog-init/monitoring-home", "mode": "rw"},
@@ -1199,30 +1206,55 @@ class EnvoyContainer(TestedContainer):
             host_log_folder=host_log_folder,
             volumes={"./tests/external_processing/envoy.yaml": {"bind": "/etc/envoy/envoy.yaml", "mode": "ro"}},
             ports={"80": ("127.0.0.1", weblog.port)},
-            # healthcheck={"test": "wget http://localhost:9901/ready", "retries": 10,},  # no wget on envoy
+            healthcheck={
+                "test": "/bin/bash -c \"\
+                    exec 3<>/dev/tcp/127.0.0.1/80 || exit 1;\
+                    echo -e 'GET / HTTP/1.1\nHost: system-tests\r\n\r\n' >&3;\
+                    cat <&3 | grep -q '200'\"",
+                "retries": 10,
+            },
         )
 
 
 class ExternalProcessingContainer(TestedContainer):
     library: LibraryVersion
 
-    def __init__(self, host_log_folder) -> None:
+    def __init__(
+        self,
+        host_log_folder,
+        env,
+        volumes,
+    ) -> None:
         try:
             with open("binaries/golang-service-extensions-callout-image", encoding="utf-8") as f:
                 image = f.read().strip()
         except FileNotFoundError:
             image = "ghcr.io/datadog/dd-trace-go/service-extensions-callout:latest"
 
+        environment = {
+            "DD_APPSEC_ENABLED": "true",
+            "DD_SERVICE": "service_test",
+            "DD_AGENT_HOST": "proxy",
+            "DD_TRACE_AGENT_PORT": ProxyPorts.weblog,
+            "DD_APPSEC_WAF_TIMEOUT": "1s",
+        }
+
+        if env:
+            environment.update(env)
+
+        if volumes is None:
+            volumes = {}
+
         super().__init__(
             image_name=image,
             name="extproc",
             host_log_folder=host_log_folder,
-            environment={
-                "DD_APPSEC_ENABLED": "true",
-                "DD_AGENT_HOST": "proxy",
-                "DD_TRACE_AGENT_PORT": ProxyPorts.weblog,
+            volumes=volumes,
+            environment=environment,
+            healthcheck={
+                "test": "wget -qO- http://localhost:80/",
+                "retries": 10,
             },
-            healthcheck={"test": "wget -qO- http://localhost:80/", "retries": 10},
         )
 
     def post_start(self):

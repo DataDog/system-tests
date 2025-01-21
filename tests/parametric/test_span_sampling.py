@@ -9,7 +9,7 @@ from utils.parametric.spec.trace import SINGLE_SPAN_SAMPLING_RATE
 from utils.parametric.spec.trace import MANUAL_DROP_KEY
 from utils.parametric.spec.trace import USER_KEEP
 from utils.parametric.spec.trace import find_span_in_traces, find_trace, find_span, find_first_span_in_trace_payload
-from utils import missing_feature, context, scenarios, features, flaky
+from utils import missing_feature, context, scenarios, features, flaky, bug
 
 
 @features.single_span_sampling
@@ -196,7 +196,7 @@ class Test_Span_Sampling:
         ],
     )
     @flaky(library="java", reason="APMAPI-978")
-    @missing_feature(library="cpp", reason="First span is set to auto drop")
+    @bug(library="cpp", reason="APMAPI-1052")
     def test_single_rule_rate_limiter_span_sampling_sss008(self, test_agent, test_library):
         """Test span sampling tags are added until rate limit hit, then need to wait for tokens to reset"""
         # generate three traces before requesting them to avoid timing issues

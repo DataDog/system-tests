@@ -161,6 +161,8 @@ tests/:
           TestSqlRow: missing_feature
         test_uri.py:
           TestURI: missing_feature
+      test_security_controls.py:
+        TestSecurityControls: missing_feature
     rasp/:
       test_cmdi.py: missing_feature
       test_lfi.py: missing_feature
@@ -373,10 +375,10 @@ tests/:
       Test_Standardization: missing_feature
       Test_StandardizationBlockMode: missing_feature
     test_metastruct.py:
-      Test_SecurityEvents_Appsec_Metastruct_Disabled: irrelevant (no fallback will be implemented)
-      Test_SecurityEvents_Appsec_Metastruct_Enabled: missing_feature
-      Test_SecurityEvents_Iast_Metastruct_Disabled: irrelevant (no fallback will be implemented)
-      Test_SecurityEvents_Iast_Metastruct_Enabled: missing_feature
+      Test_SecurityEvents_Appsec_Metastruct_Disabled: v1.72.0-dev
+      Test_SecurityEvents_Appsec_Metastruct_Enabled: v1.72.0-dev
+      Test_SecurityEvents_Iast_Metastruct_Disabled: irrelevant (No IAST)
+      Test_SecurityEvents_Iast_Metastruct_Enabled: irrelevant (No IAST)
     test_remote_config_rule_changes.py:
       Test_BlockingActionChangesWithRemoteConfig: v1.69.0
       Test_UpdateRuleFileWithRemoteConfig: bug (APPSEC-55377)
@@ -521,6 +523,7 @@ tests/:
       TestDynamicConfigSamplingRules: v1.64.0
       TestDynamicConfigTracingEnabled: v1.61.0
       TestDynamicConfigV1: v1.59.0
+      TestDynamicConfigV1_EmptyServiceTargets: missing_feature
       TestDynamicConfigV1_ServiceTargets: v1.59.0
       TestDynamicConfigV2: v1.59.0
     test_headers_baggage.py:
@@ -589,8 +592,15 @@ tests/:
       uds-echo: missing_feature
     Test_Config_IntegrationEnabled_False: irrelevant (not applicable to Go because of how they do auto instrumentation)
     Test_Config_IntegrationEnabled_True: irrelevant (not applicable to Go because of how they do auto instrumentation)
+    Test_Config_LogInjection_128Bit_TradeId_Default: missing_feature (disabled by default)
+    Test_Config_LogInjection_128Bit_TradeId_Disabled: incomplete_test_app (weblog endpoint not implemented)
+    Test_Config_LogInjection_Default: incomplete_test_app (weblog endpoint not implemented)
+    Test_Config_LogInjection_Enabled: incomplete_test_app (weblog endpoint not implemented)
     Test_Config_ObfuscationQueryStringRegexp_Configured: v1.67.0
+    Test_Config_ObfuscationQueryStringRegexp_Default: v1.67.0
     Test_Config_ObfuscationQueryStringRegexp_Empty: v1.67.0
+    Test_Config_RuntimeMetrics_Default: incomplete_test_app (test needs to account for golang runtime metrics)
+    Test_Config_RuntimeMetrics_Enabled: incomplete_test_app (test needs to account for golang runtime metrics)
     Test_Config_UnifiedServiceTagging_CustomService: v1.67.0
     Test_Config_UnifiedServiceTagging_Default: v1.67.0
   test_data_integrity.py:

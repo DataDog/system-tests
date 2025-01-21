@@ -3,7 +3,7 @@ import json
 import collections
 
 
-def table_row(*args):
+def table_row(*args: list[str]):
     print(f"| {' | '.join(args)} |")
 
 
