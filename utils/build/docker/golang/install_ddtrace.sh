@@ -2,15 +2,19 @@
 
 set -euv
 
+# Prefix to match
+PREFIX="github.com/DataDog/dd-trace-go"
+
 if [ -e "/binaries/dd-trace-go" ]; then
     echo "Install from folder /binaries/dd-trace-go"
-    go mod edit -replace github.com/DataDog/dd-trace-go/v2=/binaries/dd-trace-go
-    go mod edit -replace github.com/DataDog/dd-trace-go/contrib/IBM/sarama/v2=/binaries/dd-trace-go/contrib/IBM/sarama
-    go mod edit -replace github.com/DataDog/dd-trace-go/contrib/gin-gonic/gin/v2=/binaries/dd-trace-go/contrib/gin-gonic/gin
-    go mod edit -replace github.com/DataDog/dd-trace-go/contrib/go-chi/chi.v5/v2=/binaries/dd-trace-go/contrib/go-chi/chi.v5
-    go mod edit -replace github.com/DataDog/dd-trace-go/contrib/google.golang.org/grpc/v2=/binaries/dd-trace-go/contrib/google.golang.org/grpc
-    go mod edit -replace github.com/DataDog/dd-trace-go/contrib/labstack/echo.v4/v2=/binaries/dd-trace-go/contrib/labstack/echo.v4
-    go mod edit -replace github.com/DataDog/dd-trace-go/contrib/net/http/v2=/binaries/dd-trace-go/contrib/net/http
+    for module in $(go list -m all | awk '{print $1}'); do
+      if [[ $module == $PREFIX* ]]; then
+        replace_path=${module#"$PREFIX"}
+        suffix="/v2"
+        replace_path=${replace_path%"$suffix"}
+        go mod edit -replace $module=/binaries/dd-trace-go$replace_path
+      fi
+    done
 
 elif [ -e "/binaries/golang-load-from-go-get" ]; then
     echo "Install from go get -d $(cat /binaries/golang-load-from-go-get)"
@@ -19,13 +23,11 @@ elif [ -e "/binaries/golang-load-from-go-get" ]; then
 else
     echo "Installing production dd-trace-version"
     # TODO(darccio): remove @$ref on v2 release
-    go get -v -d -u github.com/DataDog/dd-trace-go/v2@v2-dev
-    go get -v -d -u github.com/DataDog/dd-trace-go/contrib/IBM/sarama/v2@v2-dev
-    go get -v -d -u github.com/DataDog/dd-trace-go/contrib/gin-gonic/gin/v2@v2-dev
-    go get -v -d -u github.com/DataDog/dd-trace-go/contrib/go-chi/chi.v5/v2@v2-dev
-    go get -v -d -u github.com/DataDog/dd-trace-go/contrib/google.golang.org/grpc/v2@v2-dev
-    go get -v -d -u github.com/DataDog/dd-trace-go/contrib/labstack/echo.v4/v2@v2-dev
-    go get -v -d -u github.com/DataDog/dd-trace-go/contrib/net/http/v2@v2-dev
+    for module in $(go list -m all | awk '{print $1}'); do
+      if [[ $module == $PREFIX* ]]; then
+        go mod edit -replace $module=$module@v2-dev
+      fi
+    done
 fi
 
 # Downloading a newer version of the tracer may require to resolve again all dependencies
