@@ -2312,4 +2312,14 @@ class _Features:
         return test_object
 
 
+    @staticmethod
+    def language_specifics(test_object):
+        """Language specific tests
+
+        https://feature-parity.us1.prod.dog/#/?feature=359
+        """
+        pytest.mark.features(feature_id=359)(test_object)
+        return test_object
+
+
 features = _Features()

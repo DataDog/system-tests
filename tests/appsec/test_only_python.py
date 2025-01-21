@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, interfaces, irrelevant, scenarios
+from utils import context, features, interfaces, irrelevant, scenarios
 
 
 @scenarios.appsec_api_security
@@ -17,6 +17,7 @@ from utils import context, interfaces, irrelevant, scenarios
 @scenarios.appsec_runtime_activation
 @scenarios.appsec_standalone
 @scenarios.default
+@features.language_specifics
 @irrelevant(context.library != "python", reason="specific tests for python tracer")
 class Test_ImportError:
     """Tests to verify that we don't have import errors due to tracer instrumentation."""
