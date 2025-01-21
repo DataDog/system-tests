@@ -415,7 +415,7 @@ class Test_128_Bit_Traceids:
         [{"DD_TRACE_PROPAGATION_STYLE": "tracecontext", "DD_TRACE_128_BIT_TRACEID_GENERATION_ENABLED": "true"}],
     )
     def test_w3c_128_bit_propagation_tid_in_chunk_root(self, test_agent, test_library):
-        """Ensure that only root span contains the tid."""
+        """Ensure that root span contains the tid."""
         with test_library:
             with test_library.dd_start_span(name="parent", service="service", resource="resource") as parent:
                 with test_library.dd_start_span(name="child", service="service", parent_id=parent.span_id) as child:
