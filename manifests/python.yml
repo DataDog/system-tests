@@ -433,11 +433,11 @@ tests/:
     test_asm_standalone.py:
       Test_AppSecStandalone_UpstreamPropagation:
         '*': bug (APPSEC-56142)
+      Test_AppSecStandalone_UpstreamPropagation_V2: missing_feature
       Test_IastStandalone_UpstreamPropagation:
         '*': v2.18.0.dev
-      Test_SCAStandalone_Telemetry: v2.19.0.dev
-      Test_AppSecStandalone_UpstreamPropagation_V2: missing_feature
       Test_IastStandalone_UpstreamPropagation_V2: missing_feature
+      Test_SCAStandalone_Telemetry: v2.19.0.dev
       Test_SCAStandalone_Telemetry_V2: missing_feature
     test_automated_login_events.py:
       Test_Login_Events: irrelevant (was v2.10.0 but will be replaced by V2)
