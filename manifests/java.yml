@@ -558,7 +558,16 @@ tests/:
           TestPathParameter:
             '*': missing_feature
         test_sql_row.py:
-          TestSqlRow: missing_feature
+          TestSqlRow:
+            '*': v1.46.0
+            akka-http: missing_feature (endpoint not implemented)
+            jersey-grizzly2: missing_feature (endpoint not implemented)
+            play: missing_feature (endpoint not implemented)
+            ratpack: missing_feature (endpoint not implemented)
+            resteasy-netty3: missing_feature (endpoint not implemented)
+            spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+            vertx3: missing_feature (endpoint not implemented)
+            vertx4: missing_feature (endpoint not implemented)
         test_uri.py:
           TestURI:
             '*': v1.23.0
@@ -572,7 +581,7 @@ tests/:
             vertx4: missing_feature
       test_security_controls.py:
         TestSecurityControls:
-          '*': v1.45.0
+          '*': v1.46.0
           play: missing_feature
           ratpack: missing_feature
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
@@ -1018,15 +1027,8 @@ tests/:
         '*': v1.36.0
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
       Test_SCAStandalone_Telemetry:
-        '*': v1.45.0
-        akka-http: missing_feature (endpoints not implemented)
-        jersey-grizzly2: missing_feature (endpoints not implemented)
-        play: missing_feature (endpoints not implemented)
-        ratpack: missing_feature (endpoints not implemented)
-        resteasy-netty3: missing_feature (endpoints not implemented)
+        '*': v1.36.0
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-        vertx3: missing_feature (endpoints not implemented)
-        vertx4: missing_feature (endpoints not implemented)
     test_automated_login_events.py:
       Test_Login_Events: irrelevant (was v1.36.0 but will be replaced by V2)
       Test_Login_Events_Extended: irrelevant (was v1.36.0 but will be replaced by V2)
@@ -1044,7 +1046,6 @@ tests/:
         ratpack: missing_feature (login endpoints not implemented)
         resteasy-netty3: missing_feature (login endpoints not implemented)
         spring-boot-3-native: flaky (APMAPI-979)
-        spring-boot-openliberty: missing_feature (weblog returns error 500)
         vertx3: missing_feature (login endpoints not implemented)
         vertx4: missing_feature (login endpoints not implemented)
       Test_V3_Login_Events_Anon:
@@ -1055,7 +1056,6 @@ tests/:
         ratpack: missing_feature (login endpoints not implemented)
         resteasy-netty3: missing_feature (login endpoints not implemented)
         spring-boot-3-native: flaky (APMAPI-979)
-        spring-boot-openliberty: missing_feature (weblog returns error 500)
         vertx3: missing_feature (login endpoints not implemented)
         vertx4: missing_feature (login endpoints not implemented)
       Test_V3_Login_Events_Blocking:
@@ -1066,7 +1066,6 @@ tests/:
         ratpack: missing_feature (login endpoints not implemented)
         resteasy-netty3: missing_feature (login endpoints not implemented)
         spring-boot-3-native: flaky (APMAPI-979)
-        spring-boot-openliberty: missing_feature (weblog returns error 500)
         spring-boot-payara: bug (APPSEC-54985)
         vertx3: missing_feature (login endpoints not implemented)
         vertx4: missing_feature (login endpoints not implemented)
@@ -1078,11 +1077,23 @@ tests/:
         ratpack: missing_feature (login endpoints not implemented)
         resteasy-netty3: missing_feature (login endpoints not implemented)
         spring-boot-3-native: flaky (APMAPI-979)
-        spring-boot-openliberty: missing_feature (weblog returns error 500)
         vertx3: missing_feature (login endpoints not implemented)
         vertx4: missing_feature (login endpoints not implemented)
     test_automated_user_and_session_tracking.py:
-      Test_Automated_Session_Blocking: missing_feature
+      Test_Automated_Session_Blocking:
+        '*': v1.46.0
+        akka-http: missing_feature (session tracking not implemented)
+        jersey-grizzly2: missing_feature (session tracking not implemented)
+        play: missing_feature (session tracking not implemented)
+        ratpack: missing_feature (session tracking not implemented)
+        resteasy-netty3: missing_feature (session tracking not implemented)
+        spring-boot-3-native: flaky (APMAPI-979)
+        spring-boot-jetty: missing_feature (session tracking not implemented)
+        spring-boot-payara: bug (APPSEC-54985)
+        spring-boot-undertow: missing_feature (session tracking not implemented)
+        spring-boot-wildfly: missing_feature (session tracking not implemented)
+        vertx3: missing_feature (home endpoint does not use cookies)
+        vertx4: missing_feature (home endpoint does not use cookies)
       Test_Automated_User_Blocking:
         '*': v1.45.0
         akka-http: missing_feature (login endpoints not implemented)
@@ -1091,7 +1102,6 @@ tests/:
         ratpack: missing_feature (login endpoints not implemented)
         resteasy-netty3: missing_feature (login endpoints not implemented)
         spring-boot-3-native: flaky (APMAPI-979)
-        spring-boot-openliberty: missing_feature (weblog returns error 500)
         spring-boot-payara: bug (APPSEC-54985)
         vertx3: missing_feature (login endpoints not implemented)
         vertx4: missing_feature (login endpoints not implemented)
@@ -1103,7 +1113,6 @@ tests/:
         ratpack: missing_feature (login endpoints not implemented)
         resteasy-netty3: missing_feature (login endpoints not implemented)
         spring-boot-3-native: flaky (APMAPI-979)
-        spring-boot-openliberty: missing_feature (weblog returns error 500)
         vertx3: missing_feature (login endpoints not implemented)
         vertx4: missing_feature (login endpoints not implemented)
     test_blocking_addresses.py:
@@ -1232,11 +1241,11 @@ tests/:
         play: v1.22.0
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
       Test_Blocking_response_status:
-        '*': missing_feature
-        akka-http: v1.22.0
-        play: v1.22.0
+        '*': v1.22.0
+        jersey-grizzly2: missing_feature
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
         spring-boot-openliberty: v1.20.0
+        spring-boot-payara: missing_feature
       Test_Blocking_user_id:
         '*': v0.111.0
         akka-http: v1.22.0
@@ -1251,9 +1260,7 @@ tests/:
         vertx4: v1.7.0
       Test_Suspicious_Request_Blocking:
         '*': v1.6.0
-        akka-http: bug (APPSEC-54985)
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-        spring-boot-payara: bug (APPSEC-54985)
     test_client_ip.py:
       Test_StandardTagsClientIp: v0.114.0
     test_conf.py:
@@ -1322,8 +1329,8 @@ tests/:
         spring-boot-jetty: missing_feature (missing addresses)
         spring-boot-undertow: missing_feature (missing addresses)
         spring-boot-wildfly: missing_feature (missing addresses)
-        vertx3: missing_feature (endpoint not implemented)
-        vertx4: missing_feature (endpoint not implemented)
+        vertx3: v1.46.0
+        vertx4: v1.46.0
       Test_Fingerprinting_Session_Capability:
         '*': v1.40.0
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
@@ -1696,8 +1703,15 @@ tests/:
     Test_Config_IntegrationEnabled_True:
       '*': irrelevant (kafka endpoints are not implemented)
       spring-boot: v1.42.0
+    Test_Config_LogInjection_128Bit_TradeId_Default:  missing_feature (disabled by default)
+    Test_Config_LogInjection_128Bit_TradeId_Disabled: incomplete_test_app (weblog endpoint not implemented)
+    Test_Config_LogInjection_Default: incomplete_test_app (weblog endpoint not implemented)
+    Test_Config_LogInjection_Enabled: incomplete_test_app (weblog endpoint not implemented)
     Test_Config_ObfuscationQueryStringRegexp_Configured: v1.39.0
+    Test_Config_ObfuscationQueryStringRegexp_Default: v1.39.0
     Test_Config_ObfuscationQueryStringRegexp_Empty: v1.39.0
+    Test_Config_RuntimeMetrics_Default: incomplete_test_app (test needs to account for java runtime metrics)
+    Test_Config_RuntimeMetrics_Enabled: incomplete_test_app (test needs to account for java runtime metrics)
     Test_Config_UnifiedServiceTagging_CustomService: v1.39.0
     Test_Config_UnifiedServiceTagging_Default: v1.39.0
   test_data_integrity.py:
