@@ -44,8 +44,18 @@ def _query_for_trace_id(trace_id, validator=None):
 
 
 def _make_request(
-    url, headers=None, method="get", json=None, request_timeout=10, retry_delay=1, backoff_factor=2, max_retries=10
+    url,
+    headers=None,
+    method="get",
+    json=None,
+    overall_timeout=300,
+    request_timeout=10,
+    retry_delay=1,
+    backoff_factor=2,
+    max_retries=8,
 ):
+    """Make a request to the backend with retries and backoff. With the defaults, this will retry for approximately 5 minutes."""
+    start_time = time.perf_counter()
     for _attempt in range(max_retries):
         try:
             r = requests.request(method=method, url=url, headers=headers, json=json, timeout=request_timeout)
@@ -54,7 +64,7 @@ def _make_request(
                 return r.json()
 
             if r.status_code == 429:
-                retry_after = _parse_retry_after(r.headers.get("X-RateLimit-Reset"))
+                retry_after = _parse_retry_after(r.headers)
                 logger.debug(f" Received 429 for url [{url}], rate limit reset in: [{retry_after}]")
                 if retry_after > 0:
                     retry_delay = max(retry_after, retry_delay)
@@ -63,6 +73,11 @@ def _make_request(
             logger.error(f"Error received connecting to url: [{url}] {e} ")
 
         logger.debug(f" Received non 200 status code for [{url}], retrying in: [{retry_delay}]")
+
+        # Avoid sleeping if we are going to hit the overall timeout.
+        if time.perf_counter() + retry_delay - start_time >= overall_timeout:
+            raise TimeoutError(f"Reached overall timeout of {overall_timeout} for {method} {url}")
+
         time.sleep(retry_delay)
         retry_delay *= backoff_factor
         retry_delay += random.uniform(0, 1)
@@ -70,12 +85,20 @@ def _make_request(
     raise TimeoutError(f"Reached max retries limit for {method} {url}")
 
 
-def _parse_retry_after(retry_after):
-    if retry_after is None:
-        return -1
+def _parse_retry_after(headers):
+    # docs: https://docs.datadoghq.com/api/latest/rate-limits/
+    limit = headers.get("X-RateLimit-Limit")
+    period = headers.get("X-RateLimit-Period")
+    remaining = headers.get("X-RateLimit-Remaining")
+    reset = headers.get("X-RateLimit-Reset")
+    name = headers.get("X-RateLimit-Name")
+
+    logger.info(
+        f"Rate limit information: X-RateLimit-Name={name} X-RateLimit-Limit={limit} X-RateLimit-period={period} X-RateLimit-Ramaining={remaining} X-RateLimit-Reset={reset}"
+    )
 
     try:
-        return int(retry_after)
+        return int(reset)
     except (ValueError, TypeError):
         return -1
 
