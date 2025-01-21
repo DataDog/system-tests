@@ -2311,7 +2311,6 @@ class _Features:
         pytest.mark.features(feature_id=350)(test_object)
         return test_object
 
-
     @staticmethod
     def language_specifics(test_object):
         """Language specific tests
