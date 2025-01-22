@@ -104,7 +104,7 @@ class VmProvider:
             last_task = self.commander.remote_command(
                 vm,
                 "checkout_branch",
-                f"cd system-tests && git reset --hard HEAD && git pull && git checkout {ci_commit_branch}",
+                f"cd system-tests && git stash && git reset --hard HEAD && git pull && git checkout {ci_commit_branch}",
                 vm.get_command_environment(),
                 server_connection,
                 last_task,
