@@ -1,4 +1,5 @@
 import json
+from abc import ABC, abstractmethod
 
 from requests.structures import CaseInsensitiveDict
 
@@ -6,7 +7,7 @@ from utils.telemetry_utils import TelemetryUtils
 from utils import context, weblog, interfaces, scenarios, features, rfc, bug, missing_feature
 
 
-class AsmStandalone_UpstreamPropagation_Base:
+class AsmStandalone_UpstreamPropagation_Base(ABC):
     """APM correctly propagates AppSec events in distributing tracing."""
 
     # TODO downstream propagation
@@ -78,9 +79,11 @@ class AsmStandalone_UpstreamPropagation_Base:
                 break
         assert product_enabled, f"{product} is not available"
 
+    @abstractmethod
     def propagated_tag(self):
         return ""  # To be overloaded in final classes
 
+    @abstractmethod
     def propagated_tag_value(self):
         return "" # To be overloaded in final classes
 
