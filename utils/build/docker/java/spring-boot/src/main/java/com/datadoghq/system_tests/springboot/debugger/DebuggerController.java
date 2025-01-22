@@ -76,10 +76,11 @@ public class DebuggerController {
         throw new ResponseStatusException(org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR, "Hello from exception");
     }
 
+// Dummy line
     @GetMapping("/expression/operators")
     public String expressionOperators(@RequestParam int intValue, @RequestParam float floatValue, @RequestParam String strValue) {
         PiiBase pii = new Pii();
-        return "Int value " + intValue + ". Float value " + floatValue + ". String value is " + strValue + ".";
+        return "Int value " + intValue + ". Float value " + floatValue + ". String value is " + strValue + "."; // must be line 83
     }
 
     @GetMapping("/expression/strings")

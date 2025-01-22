@@ -166,7 +166,7 @@ class Test_Debugger_Expression_Language(debugger._Base_Debugger_Test):
                 ["strValue le a", False, Dsl("le", [Dsl("ref", "strValue"), "a"])],
                 ["strValue ge z", False, Dsl("ge", [Dsl("ref", "strValue"), "z"])],
             ],
-            lines=[82],
+            lines=[83],
         )
 
         self.message_map = message_map
@@ -639,6 +639,7 @@ class Test_Debugger_Expression_Language(debugger._Base_Debugger_Test):
                 if probe_type == "method":
                     probe["where"]["methodName"] = methodName
                 if probe_type == "line":
+                    del probe["where"]["methodName"]
                     probe["where"]["lines"] = lines
                     probe["where"]["sourceFile"] = "ACTUAL_SOURCE_FILE"
                     probe["where"]["typeName"] = None

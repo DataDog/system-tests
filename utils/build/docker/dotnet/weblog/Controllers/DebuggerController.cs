@@ -74,22 +74,21 @@ namespace weblog
             return Content($"Great success number {localValue}");
         }
 
-        [HttpGet("expression/exception")]
-        [Consumes("application/json", "application/xml")]
-        public IActionResult ExpressionException()
-        {
-            throw new System.Exception("Hello from exception");
-        }
-
         [HttpGet("expression/operators")]
         [Consumes("application/json", "application/xml")]
         public async Task<IActionResult> ExpressionOperators(int intValue, float floatValue, string strValue)
         {
             PiiBase? pii = await Task.FromResult<PiiBase>(new Pii());
             var piiValue = pii?.TestValue;
-            return Content($"Int value {intValue}. Float value {floatValue}. String value {strValue}. Pii value {piiValue}");
+            return Content($"Int value {intValue}. Float value {floatValue}. String value {strValue}. Pii value {piiValue}"); // must be line 83
         }
 
+        [HttpGet("expression/exception")]
+        [Consumes("application/json", "application/xml")]
+        public IActionResult ExpressionException()
+        {
+            throw new System.Exception("Hello from exception");
+        }
         [HttpGet("expression/strings")]
         [Consumes("application/json", "application/xml")]
         public IActionResult StringOperations(string strValue, string emptyString = "", string nullString = null)
