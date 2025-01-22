@@ -97,6 +97,7 @@ class TestDockerSSIFeatures:
     @bug(context.library == "nodejs" and context.installed_language_runtime < "12.17.0", reason="INPLAT-252")
     @bug(context.library == "java" and context.installed_language_runtime == "1.7.0-201", reason="INPLAT-427")
     @irrelevant(context.library == "nodejs" and context.installed_language_runtime >= "17.0")
+    @bug(context.library == "nodejs@2.19.1", reason="INPLAT-448")
     def test_telemetry_abort(self):
         # There is telemetry data about the auto instrumentation injector. We only validate there is data
         telemetry_autoinject_data = interfaces.test_agent.get_telemetry_for_autoinject()
