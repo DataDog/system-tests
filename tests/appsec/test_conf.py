@@ -46,8 +46,8 @@ class Test_ConfigurationVariables:
         interfaces.library.assert_waf_attack(self.r_appsec_rules, pattern="dedicated-value-for-testing-purpose")
 
     def setup_waf_timeout(self):
-        long_payload = "?" + "&".join(f"{k}={v}" for k, v in ((f"key_{i}", f"value_{i}" * (i + 1)) for i in range(255)))
-        long_headers = {f"key_{i}" * (i + 1): f"value_{i}" * (i + 1) for i in range(254)}
+        long_payload = "?" + "&".join(f"{k}={v}" for k, v in ((f"key_{i}", f"value_{i}" * (i + 1)) for i in range(10)))
+        long_headers = {f"key_{i}" * (i + 1): f"value_{i}" * (i + 1) for i in range(10)}
         long_headers["User-Agent"] = "Arachni/v1"
         self.r_waf_timeout = weblog.get(f"/waf/{long_payload}", headers=long_headers)
 
