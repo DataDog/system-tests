@@ -120,7 +120,7 @@ class AsmStandalone_UpstreamPropagation_Base:
             assert self._assert_tags(trace[0], span, "meta", tested_meta)
             assert self._assert_tags(trace[0], span, "metrics", tested_metrics)
 
-            assert span["metrics"][self.propagated_tag()] == 0  # if key missing -> APPSEC-55222
+            assert span["metrics"]["_dd.apm.enabled"] == 0  # if key missing -> APPSEC-55222
             assert span["trace_id"] == 1212121212121212121
             assert trace[0]["trace_id"] == 1212121212121212121
 
@@ -741,7 +741,7 @@ class SCAStandalone_Telemetry_Base:
 @rfc("https://docs.google.com/document/d/12NBx-nD-IoQEMiCRnJXneq4Be7cbtSc6pJLOFUWTpNE/edit")
 @features.appsec_standalone
 @scenarios.appsec_standalone
-# @flaky(context.library >= "python@2.18.0+dev", reason="APPSEC-56142")
+@flaky(context.library >= "python@2.18.0+dev", reason="APPSEC-56142")
 class Test_AppSecStandalone_UpstreamPropagation(AppSecStandalone_UpstreamPropagation_Base):
     """APPSEC correctly propagates AppSec events in distributing tracing with DD_EXPERIMENTAL_APPSEC_STANDALONE_ENABLED=true."""
 
@@ -751,7 +751,7 @@ class Test_AppSecStandalone_UpstreamPropagation(AppSecStandalone_UpstreamPropaga
 @rfc("https://docs.google.com/document/d/12NBx-nD-IoQEMiCRnJXneq4Be7cbtSc6pJLOFUWTpNE/edit")
 @features.appsec_standalone_v2
 @scenarios.appsec_standalone_v2
-# @flaky(context.library >= "python@2.18.0+dev", reason="APPSEC-56142")
+@flaky(context.library >= "python@2.18.0+dev", reason="APPSEC-56142")
 class Test_AppSecStandalone_UpstreamPropagation_V2(AppSecStandalone_UpstreamPropagation_Base):
     """APPSEC correctly propagates AppSec events in distributing tracing with DD_APM_TRACING_ENABLED=false."""
 
