@@ -79,10 +79,10 @@ class AsmStandalone_UpstreamPropagation_Base:
         assert product_enabled, f"{product} is not available"
 
     def propagated_tag(self):
-        return "_dd.p.appsec"
+        return ""  # To be overloaded in final classes
 
     def propagated_tag_value(self):
-        return "1"
+        return "" # To be overloaded in final classes
 
     def propagated_tag_and_value(self):
         return self.propagated_tag() + "=" + self.propagated_tag_value()
@@ -745,7 +745,11 @@ class SCAStandalone_Telemetry_Base:
 class Test_AppSecStandalone_UpstreamPropagation(AppSecStandalone_UpstreamPropagation_Base):
     """APPSEC correctly propagates AppSec events in distributing tracing with DD_EXPERIMENTAL_APPSEC_STANDALONE_ENABLED=true."""
 
-    pass
+    def propagated_tag(self):
+        return "_dd.p.appsec"
+
+    def propagated_tag_value(self):
+        return "1"
 
 
 @rfc("https://docs.google.com/document/d/12NBx-nD-IoQEMiCRnJXneq4Be7cbtSc6pJLOFUWTpNE/edit")
@@ -755,7 +759,11 @@ class Test_AppSecStandalone_UpstreamPropagation(AppSecStandalone_UpstreamPropaga
 class Test_AppSecStandalone_UpstreamPropagation_V2(AppSecStandalone_UpstreamPropagation_Base):
     """APPSEC correctly propagates AppSec events in distributing tracing with DD_APM_TRACING_ENABLED=false."""
 
-    pass
+    def propagated_tag(self):
+        return "_dd.p.appsec"
+
+    def propagated_tag_value(self):
+        return "1"
 
 
 @rfc("https://docs.google.com/document/d/12NBx-nD-IoQEMiCRnJXneq4Be7cbtSc6pJLOFUWTpNE/edit")
@@ -764,7 +772,11 @@ class Test_AppSecStandalone_UpstreamPropagation_V2(AppSecStandalone_UpstreamProp
 class Test_IastStandalone_UpstreamPropagation(IastStandalone_UpstreamPropagation_Base):
     """IAST correctly propagates AppSec events in distributing tracing with DD_EXPERIMENTAL_APPSEC_STANDALONE_ENABLED=true."""
 
-    pass
+    def propagated_tag(self):
+        return "_dd.p.appsec"
+
+    def propagated_tag_value(self):
+        return "1"
 
 
 @rfc("https://docs.google.com/document/d/12NBx-nD-IoQEMiCRnJXneq4Be7cbtSc6pJLOFUWTpNE/edit")
