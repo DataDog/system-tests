@@ -115,6 +115,16 @@
             "python": "${workspaceFolder}/venv/bin/python"
         },
         {
+            "name": "Run SAMPLING scenario",
+            "type": "python",
+            "request": "launch",
+            "module": "pytest",
+            "args": ["-S", "SAMPLING", "-p", "no:warnings"],
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "python": "${workspaceFolder}/venv/bin/python"
+        },
+        {
             "name": "Replay SAMPLING scenario",
             "type": "python",
             "request": "launch",
