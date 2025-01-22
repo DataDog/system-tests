@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 module SystemTestTracer
-  include Datadog::Tracing::Contrib::GraphQL::UnifiedTrace
   include Datadog::AppSec::Contrib::GraphQL::AppSecTrace
 
   def prepare_span(key, data, span)
