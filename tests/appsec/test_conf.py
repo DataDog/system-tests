@@ -46,15 +46,16 @@ class Test_ConfigurationVariables:
         interfaces.library.assert_waf_attack(self.r_appsec_rules, pattern="dedicated-value-for-testing-purpose")
 
     def setup_waf_timeout(self):
-        iterations = 250 if context.library in ["ruby", "python"] else 10
         long_payload = "?" + "&".join(
-            f"{k}={v}" for k, v in ((f"key_{i}", f"value_{i}" * (i + 1)) for i in range(iterations))
+            f"{k}={v}" for k, v in ((f"java.io.{i}", f"java.io.{i}" * (i + 1)) for i in range(20))
         )
-        long_headers = {f"key_{i}" * (i + 1): f"value_{i}" * (i + 1) for i in range(iterations)}
+        long_headers = {f"key_{i}" * (i + 1): f"value_{i}" * (i + 1) for i in range(10)}
+        long_headers["Referer"] = "javascript:alert('XSS');"
         long_headers["User-Agent"] = "Arachni/v1"
         self.r_waf_timeout = weblog.get(f"/waf/{long_payload}", headers=long_headers)
 
     @missing_feature(context.library < "java@0.113.0")
+    @missing_feature("sinatra" in context.weblog_variant, reason="Sinatra endpoint not implemented")
     @scenarios.appsec_low_waf_timeout
     def test_waf_timeout(self):
         """test DD_APPSEC_WAF_TIMEOUT = low value"""
