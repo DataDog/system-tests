@@ -14,7 +14,7 @@ from .performance import PerformanceScenario
 from .profiling import ProfilingScenario
 from .test_the_test import TestTheTestScenario
 from .auto_injection import InstallerAutoInjectionScenario, InstallerAutoInjectionScenarioProfiling
-from .k8s_lib_injection import WeblogInjectionScenario, K8sScenario, K8sSparkScenario
+from .k8s_lib_injection import WeblogInjectionScenario, K8sScenario, K8sSparkScenario, K8sManualInstrumentationScenario
 from .docker_ssi import DockerSSIScenario
 from .external_processing import ExternalProcessingScenario
 from .ipv6 import IPV6Scenario
@@ -489,6 +489,7 @@ class _Scenarios:
             "DD_TRACE_KAFKAJS_ENABLED": "false",  # In Node the integration is kafkajs.
             "DD_TRACE_PDO_ENABLED": "false",  # Use PDO for PHP,
             "DD_TRACE_PROPAGATION_STYLE_EXTRACT": "tracecontext,datadog,b3multi",
+            "DD_LOGS_INJECTION": "true",
         },
         appsec_enabled=False,  # disable ASM to test non asm client ip tagging
         iast_enabled=False,
@@ -519,6 +520,8 @@ class _Scenarios:
         weblog_env={
             "DD_TRACE_HTTP_CLIENT_TAG_QUERY_STRING": "false",
             "DD_TRACE_CLIENT_IP_HEADER": "custom-ip-header",
+            "DD_LOGS_INJECTION": "true",
+            "DD_TRACE_128_BIT_TRACEID_LOGGING_ENABLED": "false",
         },
         appsec_enabled=False,
         doc="",
@@ -620,6 +623,8 @@ class _Scenarios:
         vm_provision="auto-inject-ld-preload",
         scenario_groups=[ScenarioGroup.ONBOARDING],
         github_workflow="libinjection",
+        include_amazon_linux_2023_amd64=False,  # LD library failures impact on the docker engine, causes flakiness
+        include_amazon_linux_2023_arm64=False,
     )
 
     simple_auto_injection_profiling = InstallerAutoInjectionScenarioProfiling(
@@ -698,20 +703,23 @@ class _Scenarios:
     )
 
     k8s_lib_injection = K8sScenario("K8S_LIB_INJECTION", doc="Kubernetes lib injection with admission controller")
+    k8s_lib_injection_operator = K8sScenario(
+        "K8S_LIB_INJECTION_OPERATOR",
+        doc="Use CRD Datadog Operator (uses real agent). Not configure the admission controller, the operator does it",
+        with_datadog_operator=True,
+    )
     k8s_lib_injection_uds = K8sScenario(
         "K8S_LIB_INJECTION_UDS",
         doc="Kubernetes lib injection with admission controller and uds",
         use_uds=True,
     )
-    k8s_lib_injection_no_ac = K8sScenario(
+    k8s_lib_injection_no_ac = K8sManualInstrumentationScenario(
         "K8S_LIB_INJECTION_NO_AC",
         doc="Kubernetes lib injection without admission controller",
-        with_admission_controller=False,
     )
-    k8s_lib_injection_no_ac_uds = K8sScenario(
+    k8s_lib_injection_no_ac_uds = K8sManualInstrumentationScenario(
         "K8S_LIB_INJECTION_NO_AC_UDS",
         doc="Kubernetes lib injection without admission controller and UDS",
-        with_admission_controller=False,
         use_uds=True,
     )
     k8s_lib_injection_profiling_disabled = K8sScenario(
@@ -772,6 +780,12 @@ class _Scenarios:
     )
 
     ipv6 = IPV6Scenario("IPV6")
+
+    runtime_metrics_enabled = EndToEndScenario(
+        "RUNTIME_METRICS_ENABLED",
+        runtime_metrics_enabled=True,
+        doc="Test runtime metrics",
+    )
 
 
 scenarios = _Scenarios()

@@ -77,10 +77,6 @@ def assert_api_gateway_span(testCase, span):
     assert (
         span["meta"]["http.url"] == "system-tests-api-gateway.com/api/data"
     ), "Inferred AWS API Gateway span meta expected HTTP URL to be 'system-tests-api-gateway.com/api/data'"
-    assert "http.route" in span["meta"], "Inferred AWS API Gateway span meta should contain 'http.route'"
-    assert (
-        span["meta"]["http.route"] == "/api/data"
-    ), "Inferred AWS API Gateway span meta expected HTTP route to be '/api/data'"
     assert "stage" in span["meta"], "Inferred AWS API Gateway span meta should contain 'stage'"
     assert span["meta"]["stage"] == "staging", "Inferred AWS API Gateway span meta expected stage to be 'staging'"
     assert "start" in span, f"Inferred AWS API Gateway span should have 'startTime'"

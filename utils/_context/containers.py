@@ -363,40 +363,17 @@ class TestedContainer:
         TAIL_LIMIT = 50  # noqa: N806
         SEP = "=" * 30  # noqa: N806
 
-        keys = []
-        if os.environ.get("DD_API_KEY"):
-            keys.append(bytearray(os.environ["DD_API_KEY"], "utf-8"))
-        if os.environ.get("DD_APP_KEY"):
-            keys.append(bytearray(os.environ["DD_APP_KEY"], "utf-8"))
-        if os.environ.get("AWS_ACCESS_KEY_ID"):
-            keys.append(bytearray(os.environ["AWS_ACCESS_KEY_ID"], "utf-8"))
-        if os.environ.get("AWS_SECRET_ACCESS_KEY"):
-            keys.append(bytearray(os.environ["AWS_SECRET_ACCESS_KEY"], "utf-8"))
-        if os.environ.get("AWS_SESSION_TOKEN"):
-            keys.append(bytearray(os.environ["AWS_SESSION_TOKEN"], "utf-8"))
-        if os.environ.get("AWS_SECURITY_TOKEN"):
-            keys.append(bytearray(os.environ["AWS_SECURITY_TOKEN"], "utf-8"))
-
-        # set by CI runner
-        if os.environ.get("SYSTEM_TESTS_AWS_ACCESS_KEY_ID"):
-            keys.append(bytearray(os.environ["SYSTEM_TESTS_AWS_ACCESS_KEY_ID"], "utf-8"))
-        if os.environ.get("SYSTEM_TESTS_AWS_SECRET_ACCESS_KEY"):
-            keys.append(bytearray(os.environ["SYSTEM_TESTS_AWS_SECRET_ACCESS_KEY"], "utf-8"))
-
         data = (
             ("stdout", self._container.logs(stdout=True, stderr=False)),
             ("stderr", self._container.logs(stdout=False, stderr=True)),
         )
         for output_name, raw_output in data:
             filename = f"{self.log_folder_path}/{output_name}.log"
-            output = raw_output
-            for key in keys:
-                output = output.replace(key, b"<redacted>")
             with open(filename, "wb") as f:
-                f.write(output)
+                f.write(raw_output)
 
             if not self.healthy:
-                decoded_output = output.decode("utf-8")
+                decoded_output = raw_output.decode("utf-8")
 
                 logger.stdout(f"\n{SEP} {self.name} {output_name.upper()} last {TAIL_LIMIT} lines {SEP}")
                 logger.stdout(f"-> See {filename} for full logs")
@@ -689,6 +666,7 @@ class WeblogContainer(TestedContainer):
         tracer_sampling_rate=None,
         appsec_enabled=True,
         iast_enabled=True,
+        runtime_metrics_enabled=False,
         additional_trace_header_tags=(),
         use_proxy=True,
         volumes=None,
@@ -722,6 +700,9 @@ class WeblogContainer(TestedContainer):
         # Python lib has different env var until we enable Telemetry Metrics by default
         base_environment["_DD_TELEMETRY_METRICS_ENABLED"] = "true"
         base_environment["DD_TELEMETRY_METRICS_INTERVAL_SECONDS"] = self.telemetry_heartbeat_interval
+
+        if runtime_metrics_enabled:
+            base_environment["DD_RUNTIME_METRICS_ENABLED"] = "true"
 
         if appsec_enabled:
             base_environment["DD_APPSEC_ENABLED"] = "true"
@@ -794,9 +775,13 @@ class WeblogContainer(TestedContainer):
 
         return result
 
-    def get_image_list(self, library: str, weblog: str) -> list[str]:
+    def get_image_list(self, library: str | None, weblog: str | None) -> list[str]:
         """Parse the Dockerfile and extract all images reference in a FROM section"""
         result = []
+
+        if not library or not weblog:
+            return result
+
         args = {}
 
         pattern = re.compile(r"^FROM\s+(?P<image_name>[^\s]+)")
