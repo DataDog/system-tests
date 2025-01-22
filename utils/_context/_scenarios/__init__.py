@@ -66,7 +66,10 @@ class _Scenarios:
 
     asm_e2e = EndToEndScenario(
         "End to end testing with default values",
-        doc="End to end testing with default values",
+        doc=(
+            "End to end testing with default values. Default scenario has DD_TRACE_COMPUTE_STATS=true."
+            "This scenario let that env to use its default"
+        ),
         scenario_groups=[ScenarioGroup.APPSEC],
     )
 
