@@ -37,7 +37,9 @@ def generate_gitlab_pipeline(languages, env):
                     raise Exception(f"Image not found for language {language} and env {env}")
                 matrix_item["K8S_LIB_INIT_IMG"] = [seleted_matrix_item]
 
-                # Select the injector image based on the env
+                # Select the injector image based on the env (if exists)
+                if "K8S_INJECTOR_IMG" not in matrix_item:
+                    continue
                 for matrix_image_item in matrix_item["K8S_INJECTOR_IMG"]:
                     if (
                         env is None
