@@ -166,6 +166,7 @@ class Test_Debugger_Expression_Language(debugger._Base_Debugger_Test):
                 ["strValue le a", False, Dsl("le", [Dsl("ref", "strValue"), "a"])],
                 ["strValue ge z", False, Dsl("ge", [Dsl("ref", "strValue"), "z"])],
             ],
+            lines=[82],
         )
 
         self.message_map = message_map
@@ -614,28 +615,38 @@ class Test_Debugger_Expression_Language(debugger._Base_Debugger_Test):
         else:
             return "value"
 
-    def _create_expression_probes(self, methodName, expressions):
+    def _create_expression_probes(self, methodName, expressions, lines=[]):
         probes = []
         expected_message_map = {}
+        prob_types = ["method"]
+        if len(lines) > 0:
+            prob_types.append("line")
 
-        for expression in expressions:
-            expression_to_test, expected_result, dsl = expression
-            message = f"Expression to test: '{expression_to_test}'. Result is: "
+        for probe_type in prob_types:
+            for expression in expressions:
+                expression_to_test, expected_result, dsl = expression
+                message = f"Expression to test: '{expression_to_test}'. Result is: "
 
-            if isinstance(expected_result, bool):
-                expected_result = "[Tt]rue" if expected_result else "[Ff]alse"
-            elif isinstance(expected_result, str) and expected_result and expected_result != "":
-                expected_result = f"[']?{expected_result}[']?"
-            else:
-                expected_result = str(expected_result)
+                if isinstance(expected_result, bool):
+                    expected_result = "[Tt]rue" if expected_result else "[Ff]alse"
+                elif isinstance(expected_result, str) and expected_result and expected_result != "":
+                    expected_result = f"[']?{expected_result}[']?"
+                else:
+                    expected_result = str(expected_result)
 
-            probe = debugger.read_probes("expression_probe_base")[0]
-            probe["id"] = debugger.generate_probe_id("log")
-            probe["where"]["methodName"] = methodName
-            probe["segments"] = Segment().add_str(message).add_dsl(dsl).to_dict()
-            probes.append(probe)
+                probe = debugger.read_probes("expression_probe_base")[0]
+                probe["id"] = debugger.generate_probe_id("log")
+                if probe_type == "method":
+                    probe["where"]["methodName"] = methodName
+                if probe_type == "line":
+                    probe["where"]["lines"] = lines
+                    probe["where"]["sourceFile"] = "ACTUAL_SOURCE_FILE"
+                    probe["where"]["typeName"] = None
 
-            expected_message_map[probe["id"]] = message + expected_result
+                probe["segments"] = Segment().add_str(message).add_dsl(dsl).to_dict()
+                probes.append(probe)
+
+                expected_message_map[probe["id"]] = message + expected_result
 
         return expected_message_map, probes
 
