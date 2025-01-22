@@ -581,7 +581,7 @@ tests/:
     Test_Config_ClientIPHeaderEnabled_False: v1.70.1
     Test_Config_ClientIPHeader_Configured: v1.60.0
     Test_Config_ClientIPHeader_Precedence: v1.69.0
-    Test_Config_ClientTagQueryString_Configured: missing_feature (supports DD_TRACE_HTTP_URL_QUERY_STRING_DISABLED)
+    Test_Config_ClientTagQueryString_Configured: v1.70.0
     Test_Config_ClientTagQueryString_Empty: bug (APMAPI-966) # DD_TRACE_HTTP_CLIENT_TAG_QUERY_STRING is disabled by default
     Test_Config_HttpClientErrorStatuses_Default: v1.69.0
     Test_Config_HttpClientErrorStatuses_FeatureFlagCustom: v1.69.0
@@ -590,12 +590,12 @@ tests/:
       "*": v1.69.0
       echo: missing_feature
       uds-echo: missing_feature
-    Test_Config_IntegrationEnabled_False: irrelevant (not applicable to Go because of how they do auto instrumentation)
-    Test_Config_IntegrationEnabled_True: irrelevant (not applicable to Go because of how they do auto instrumentation)
+    Test_Config_IntegrationEnabled_False: irrelevant (not applicable due to lack of autoinstrumentation)
+    Test_Config_IntegrationEnabled_True: irrelevant (not applicable due to lack of autoinstrumentation)
     Test_Config_LogInjection_128Bit_TradeId_Default: v1.72.0-dev
     Test_Config_LogInjection_128Bit_TradeId_Disabled: v1.72.0-dev
-    Test_Config_LogInjection_Default: incomplete_test_app (weblog endpoint not implemented)
-    Test_Config_LogInjection_Enabled: incomplete_test_app (weblog endpoint not implemented)
+    Test_Config_LogInjection_Default: irrelevant (due to lack of autoinstrumentation)
+    Test_Config_LogInjection_Enabled: irrelevant (due to lack of autoinstrumentation)
     Test_Config_ObfuscationQueryStringRegexp_Configured: v1.67.0
     Test_Config_ObfuscationQueryStringRegexp_Default: v1.67.0
     Test_Config_ObfuscationQueryStringRegexp_Empty: v1.67.0
