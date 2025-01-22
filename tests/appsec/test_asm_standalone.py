@@ -797,7 +797,7 @@ class Test_SCAStandalone_Telemetry(SCAStandalone_Telemetry_Base):
 @features.sca_standalone_v2
 @scenarios.sca_standalone_v2
 class Test_SCAStandalone_Telemetry_V2(SCAStandalone_Telemetry_Base):
-    """Tracer correctly propagates SCA telemetry in distributing tracing with DD_EXPERIMENTAL_APPSEC_STANDALONE_ENABLED=true."""
+    """Tracer correctly propagates SCA telemetry in distributing tracing with DD_APM_TRACING_ENABLED=false."""
 
     def propagated_tag(self):
         return "_dd.p.ts"
