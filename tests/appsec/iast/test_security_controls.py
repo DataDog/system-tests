@@ -19,13 +19,8 @@ class TestSecurityControls:
                 product_enabled = True
                 break
             # Check if the product is enabled in meta_struct
-            if "meta_struct" in span:
-                meta_struct = span["meta_struct"]
-                if meta_struct and meta_struct.get("vulnerability"):
-                    product_enabled = True
-                    break
-            metrics = span["metrics"]
-            if "_dd.iast.enabled" in metrics and metrics["_dd.iast.enabled"] == 1:
+            meta_struct = span["meta_struct"]
+            if meta_struct and meta_struct.get("vulnerability"):
                 product_enabled = True
                 break
 
