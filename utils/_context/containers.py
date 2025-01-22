@@ -363,40 +363,17 @@ class TestedContainer:
         TAIL_LIMIT = 50  # noqa: N806
         SEP = "=" * 30  # noqa: N806
 
-        keys = []
-        if os.environ.get("DD_API_KEY"):
-            keys.append(bytearray(os.environ["DD_API_KEY"], "utf-8"))
-        if os.environ.get("DD_APP_KEY"):
-            keys.append(bytearray(os.environ["DD_APP_KEY"], "utf-8"))
-        if os.environ.get("AWS_ACCESS_KEY_ID"):
-            keys.append(bytearray(os.environ["AWS_ACCESS_KEY_ID"], "utf-8"))
-        if os.environ.get("AWS_SECRET_ACCESS_KEY"):
-            keys.append(bytearray(os.environ["AWS_SECRET_ACCESS_KEY"], "utf-8"))
-        if os.environ.get("AWS_SESSION_TOKEN"):
-            keys.append(bytearray(os.environ["AWS_SESSION_TOKEN"], "utf-8"))
-        if os.environ.get("AWS_SECURITY_TOKEN"):
-            keys.append(bytearray(os.environ["AWS_SECURITY_TOKEN"], "utf-8"))
-
-        # set by CI runner
-        if os.environ.get("SYSTEM_TESTS_AWS_ACCESS_KEY_ID"):
-            keys.append(bytearray(os.environ["SYSTEM_TESTS_AWS_ACCESS_KEY_ID"], "utf-8"))
-        if os.environ.get("SYSTEM_TESTS_AWS_SECRET_ACCESS_KEY"):
-            keys.append(bytearray(os.environ["SYSTEM_TESTS_AWS_SECRET_ACCESS_KEY"], "utf-8"))
-
         data = (
             ("stdout", self._container.logs(stdout=True, stderr=False)),
             ("stderr", self._container.logs(stdout=False, stderr=True)),
         )
         for output_name, raw_output in data:
             filename = f"{self.log_folder_path}/{output_name}.log"
-            output = raw_output
-            for key in keys:
-                output = output.replace(key, b"<redacted>")
             with open(filename, "wb") as f:
-                f.write(output)
+                f.write(raw_output)
 
             if not self.healthy:
-                decoded_output = output.decode("utf-8")
+                decoded_output = raw_output.decode("utf-8")
 
                 logger.stdout(f"\n{SEP} {self.name} {output_name.upper()} last {TAIL_LIMIT} lines {SEP}")
                 logger.stdout(f"-> See {filename} for full logs")
