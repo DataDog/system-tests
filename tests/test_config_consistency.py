@@ -541,10 +541,7 @@ class Test_Config_LogInjection_128Bit_TradeId_Disabled:
 
     def test_log_injection_128bit_traceid_disabled(self):
         assert self.r.status_code == 200
-        pattern = r'"dd":\{[^}]*\}'
-        stdout.assert_presence(pattern)
-        dd = parse_log_injection_message(self.message)
-        trace_id = dd.get("trace_id")
+        trace_id = parse_log_trace_id()
         assert re.match(r"^\d{1,20}$", trace_id), f"Invalid 64-bit trace_id: {trace_id}"
 
 
@@ -591,7 +588,8 @@ def parse_log_injection_message(log_message):
         if message.get("dd") and message.get(log_injection_fields[context.library.library]["message"]) == log_message:
             dd = message.get("dd")
             return dd
-        
+
+
 def parse_log_trace_id():
     for data in stdout.get_data():
         try:
@@ -603,7 +601,8 @@ def parse_log_trace_id():
         if message.get("dd"):
             dd = message.get("dd")
             return dd.get("trace_id")
-        
+
+
 def get_log_regex():
     pattern = r'"dd":\{[^}]*\}'
     if context.library == "golang":
