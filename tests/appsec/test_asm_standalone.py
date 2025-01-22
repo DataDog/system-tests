@@ -85,7 +85,7 @@ class AsmStandalone_UpstreamPropagation_Base(ABC):
 
     @abstractmethod
     def propagated_tag_value(self):
-        return "" # To be overloaded in final classes
+        return ""  # To be overloaded in final classes
 
     def propagated_tag_and_value(self):
         return self.propagated_tag() + "=" + self.propagated_tag_value()
