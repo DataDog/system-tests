@@ -67,16 +67,17 @@ def _make_request(
                 retry_after = _parse_retry_after(r.headers)
                 logger.debug(f" Received 429 for url [{url}], rate limit reset in: [{retry_after}]")
                 if retry_after > 0:
-                    retry_delay = max(retry_after, retry_delay)
+                    # If we have a rate limit, we should wait for the reset time instead of the exponential backoff.
+                    retry_delay = retry_after
                     retry_delay += random.uniform(0, 1)
         except requests.exceptions.RequestException as e:
             logger.error(f"Error received connecting to url: [{url}] {e} ")
 
-        logger.debug(f" Received non 200 status code for [{url}], retrying in: [{retry_delay}]")
+        logger.debug(f" Received unsuccessful status code for [{url}], retrying in: [{retry_delay}]")
 
         # Avoid sleeping if we are going to hit the overall timeout.
         if time.perf_counter() + retry_delay - start_time >= overall_timeout:
-            raise TimeoutError(f"Reached overall timeout of {overall_timeout} for {method} {url}")
+            raise TimeoutError(f" Reached overall timeout of {overall_timeout} for {method} {url}")
 
         time.sleep(retry_delay)
         retry_delay *= backoff_factor
@@ -94,7 +95,7 @@ def _parse_retry_after(headers):
     name = headers.get("X-RateLimit-Name")
 
     logger.info(
-        f"Rate limit information: X-RateLimit-Name={name} X-RateLimit-Limit={limit} X-RateLimit-period={period} X-RateLimit-Ramaining={remaining} X-RateLimit-Reset={reset}"
+        f" Rate limit information: X-RateLimit-Name={name} X-RateLimit-Limit={limit} X-RateLimit-period={period} X-RateLimit-Ramaining={remaining} X-RateLimit-Reset={reset}"
     )
 
     try:
