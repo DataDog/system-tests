@@ -149,6 +149,7 @@ class _Scenarios:
         doc="Misc tests for appsec blocking",
         scenario_groups=[ScenarioGroup.APPSEC, ScenarioGroup.ESSENTIALS],
     )
+    # This GraphQL scenario can be used for any GraphQL testing, not just AppSec
     graphql_appsec = EndToEndScenario(
         "GRAPHQL_APPSEC",
         weblog_env={"DD_APPSEC_RULES": "/appsec_blocking_rule.json"},
