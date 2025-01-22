@@ -47,7 +47,7 @@ class Test_ConfigurationVariables:
 
     def setup_waf_timeout(self):
         long_payload = "?" + "&".join(
-            f"{k}={v}" for k, v in ((f"java.io.{i}", f"java.io.{i}" * (i + 1)) for i in range(20))
+            f"{k}={v}" for k, v in ((f"java.io.{i}", f"java.io.{i}" * (i + 1)) for i in range(10))
         )
         long_headers = {f"key_{i}" * (i + 1): f"value_{i}" * (i + 1) for i in range(10)}
         long_headers["Referer"] = "javascript:alert('XSS');"
