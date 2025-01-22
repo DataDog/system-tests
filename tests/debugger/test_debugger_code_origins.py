@@ -36,7 +36,7 @@ class Test_Debugger_Code_Origins(debugger._Base_Debugger_Test):
         self.assert_all_weblog_responses_ok()
 
         code_origins_entry_found = False
-        for span in self.spans:
+        for span in self.all_spans:
             # Web spans for the healthcheck should have code origins defined.
             resource, resource_type = span.get("resource", None), span.get("type", None)
             if resource == "GET /healthcheck" and resource_type == "web":
