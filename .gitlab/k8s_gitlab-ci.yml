@@ -91,12 +91,18 @@ k8s_java:
           K8S_LIB_INIT_IMG: ["gcr.io/datadoghq/dd-lib-java-init:latest", "ghcr.io/datadog/dd-trace-java/dd-lib-java-init:latest_snapshot"]
           K8S_INJECTOR_IMG: ["gcr.io/datadoghq/apm-inject:latest", "ghcr.io/datadog/apm-inject:latest_snapshot"]
           K8S_CLUSTER_VERSION: ['7.57.0', '7.59.0']
+
         - K8S_WEBLOG: [dd-lib-java-init-test-app]
           K8S_WEBLOG_IMG: [ghcr.io/datadog/system-tests/dd-lib-java-init-test-app:latest]
-          K8S_SCENARIO: [K8S_LIB_INJECTION, K8S_LIB_INJECTION_UDS, K8S_LIB_INJECTION_NO_AC, K8S_LIB_INJECTION_NO_AC_UDS, K8S_LIB_INJECTION_PROFILING_DISABLED, K8S_LIB_INJECTION_PROFILING_ENABLED, K8S_LIB_INJECTION_PROFILING_OVERRIDE, K8S_LIB_INJECTION_OPERATOR]
+          K8S_SCENARIO: [K8S_LIB_INJECTION, K8S_LIB_INJECTION_UDS, K8S_LIB_INJECTION_PROFILING_DISABLED, K8S_LIB_INJECTION_PROFILING_ENABLED, K8S_LIB_INJECTION_PROFILING_OVERRIDE, K8S_LIB_INJECTION_OPERATOR]
           K8S_LIB_INIT_IMG: ["gcr.io/datadoghq/dd-lib-java-init:latest", "ghcr.io/datadog/dd-trace-java/dd-lib-java-init:latest_snapshot"]
           K8S_INJECTOR_IMG: ["gcr.io/datadoghq/apm-inject:latest", "ghcr.io/datadog/apm-inject:latest_snapshot"]
           K8S_CLUSTER_VERSION: ['7.56.2', '7.57.0', '7.59.0']
+
+        - K8S_WEBLOG: [dd-lib-java-init-test-app]
+          K8S_WEBLOG_IMG: [ghcr.io/datadog/system-tests/dd-lib-java-init-test-app:latest]
+          K8S_SCENARIO: [K8S_LIB_INJECTION_NO_AC, K8S_LIB_INJECTION_NO_AC_UDS]
+          K8S_LIB_INIT_IMG: ["gcr.io/datadoghq/dd-lib-java-init:latest", "ghcr.io/datadog/dd-trace-java/dd-lib-java-init:latest_snapshot"]
 
 k8s_dotnet:
   extends: .k8s_lib_injection_base
@@ -106,10 +112,15 @@ k8s_dotnet:
       matrix:
         - K8S_WEBLOG: [dd-lib-dotnet-init-test-app]
           K8S_WEBLOG_IMG: [ghcr.io/datadog/system-tests/dd-lib-dotnet-init-test-app:latest]
-          K8S_SCENARIO: [K8S_LIB_INJECTION, K8S_LIB_INJECTION_UDS, K8S_LIB_INJECTION_NO_AC, K8S_LIB_INJECTION_NO_AC_UDS, K8S_LIB_INJECTION_PROFILING_DISABLED, K8S_LIB_INJECTION_PROFILING_ENABLED, K8S_LIB_INJECTION_PROFILING_OVERRIDE, K8S_LIB_INJECTION_OPERATOR]
+          K8S_SCENARIO: [K8S_LIB_INJECTION, K8S_LIB_INJECTION_UDS, K8S_LIB_INJECTION_PROFILING_DISABLED, K8S_LIB_INJECTION_PROFILING_ENABLED, K8S_LIB_INJECTION_PROFILING_OVERRIDE, K8S_LIB_INJECTION_OPERATOR]
           K8S_LIB_INIT_IMG: ["gcr.io/datadoghq/dd-lib-dotnet-init:latest", "ghcr.io/datadog/dd-trace-dotnet/dd-lib-dotnet-init:latest_snapshot"]
           K8S_INJECTOR_IMG: ["gcr.io/datadoghq/apm-inject:latest", "ghcr.io/datadog/apm-inject:latest_snapshot"]
           K8S_CLUSTER_VERSION: ['7.56.2', '7.57.0', '7.59.0']
+
+        - K8S_WEBLOG: [dd-lib-dotnet-init-test-app]
+          K8S_WEBLOG_IMG: [ghcr.io/datadog/system-tests/dd-lib-dotnet-init-test-app:latest]
+          K8S_SCENARIO: [ K8S_LIB_INJECTION_NO_AC, K8S_LIB_INJECTION_NO_AC_UDS]
+          K8S_LIB_INIT_IMG: ["gcr.io/datadoghq/dd-lib-dotnet-init:latest", "ghcr.io/datadog/dd-trace-dotnet/dd-lib-dotnet-init:latest_snapshot"]
 
 k8s_nodejs:
   extends: .k8s_lib_injection_base
@@ -119,10 +130,15 @@ k8s_nodejs:
       matrix:
         - K8S_WEBLOG: [sample-app]
           K8S_WEBLOG_IMG: [ghcr.io/datadog/system-tests/sample-app:latest]
-          K8S_SCENARIO: [K8S_LIB_INJECTION, K8S_LIB_INJECTION_UDS, K8S_LIB_INJECTION_NO_AC, K8S_LIB_INJECTION_NO_AC_UDS, K8S_LIB_INJECTION_PROFILING_DISABLED, K8S_LIB_INJECTION_PROFILING_ENABLED, K8S_LIB_INJECTION_PROFILING_OVERRIDE, K8S_LIB_INJECTION_OPERATOR]
+          K8S_SCENARIO: [K8S_LIB_INJECTION, K8S_LIB_INJECTION_UDS, K8S_LIB_INJECTION_PROFILING_DISABLED, K8S_LIB_INJECTION_PROFILING_ENABLED, K8S_LIB_INJECTION_PROFILING_OVERRIDE, K8S_LIB_INJECTION_OPERATOR]
           K8S_LIB_INIT_IMG: ["gcr.io/datadoghq/dd-lib-js-init:latest", "ghcr.io/datadog/dd-trace-js/dd-lib-js-init:latest_snapshot"]
           K8S_INJECTOR_IMG: ["gcr.io/datadoghq/apm-inject:latest", "ghcr.io/datadog/apm-inject:latest_snapshot"]
           K8S_CLUSTER_VERSION: ['7.56.2', '7.57.0', '7.59.0']
+
+        - K8S_WEBLOG: [sample-app]
+          K8S_WEBLOG_IMG: [ghcr.io/datadog/system-tests/sample-app:latest]
+          K8S_SCENARIO: [ K8S_LIB_INJECTION_NO_AC, K8S_LIB_INJECTION_NO_AC_UDS]
+          K8S_LIB_INIT_IMG: ["gcr.io/datadoghq/dd-lib-js-init:latest", "ghcr.io/datadog/dd-trace-js/dd-lib-js-init:latest_snapshot"]
 
 k8s_python:
   extends: .k8s_lib_injection_base
@@ -132,43 +148,54 @@ k8s_python:
       matrix:
         - K8S_WEBLOG: [dd-lib-python-init-test-django]
           K8S_WEBLOG_IMG: [ghcr.io/datadog/system-tests/dd-lib-python-init-test-django:latest]
-          K8S_SCENARIO: [K8S_LIB_INJECTION, K8S_LIB_INJECTION_UDS, K8S_LIB_INJECTION_NO_AC, K8S_LIB_INJECTION_NO_AC_UDS, K8S_LIB_INJECTION_PROFILING_DISABLED, K8S_LIB_INJECTION_PROFILING_ENABLED, K8S_LIB_INJECTION_PROFILING_OVERRIDE, K8S_LIB_INJECTION_OPERATOR]
+          K8S_SCENARIO: [K8S_LIB_INJECTION, K8S_LIB_INJECTION_UDS, K8S_LIB_INJECTION_PROFILING_DISABLED, K8S_LIB_INJECTION_PROFILING_ENABLED, K8S_LIB_INJECTION_PROFILING_OVERRIDE, K8S_LIB_INJECTION_OPERATOR]
           K8S_LIB_INIT_IMG: ["gcr.io/datadoghq/dd-lib-python-init:latest", "ghcr.io/datadog/dd-trace-py/dd-lib-python-init:latest_snapshot"]
           K8S_INJECTOR_IMG: ["gcr.io/datadoghq/apm-inject:latest", "ghcr.io/datadog/apm-inject:latest_snapshot"]
           K8S_CLUSTER_VERSION: ['7.56.2', '7.57.0', '7.59.0']
+
+        - K8S_WEBLOG: [dd-lib-python-init-test-django]
+          K8S_WEBLOG_IMG: [ghcr.io/datadog/system-tests/dd-lib-python-init-test-django:latest]
+          K8S_SCENARIO: [K8S_LIB_INJECTION_NO_AC, K8S_LIB_INJECTION_NO_AC_UDS]
+          K8S_LIB_INIT_IMG: ["gcr.io/datadoghq/dd-lib-python-init:latest", "ghcr.io/datadog/dd-trace-py/dd-lib-python-init:latest_snapshot"]
+
         - K8S_WEBLOG: [dd-lib-python-init-test-django-gunicorn]
           K8S_WEBLOG_IMG: [ghcr.io/datadog/system-tests/dd-lib-python-init-test-django-gunicorn:latest]
           K8S_SCENARIO: [K8S_LIB_INJECTION, K8S_LIB_INJECTION_PROFILING_ENABLED]
           K8S_LIB_INIT_IMG: ["gcr.io/datadoghq/dd-lib-python-init:latest", "ghcr.io/datadog/dd-trace-py/dd-lib-python-init:latest_snapshot"]
           K8S_INJECTOR_IMG: ["gcr.io/datadoghq/apm-inject:latest", "ghcr.io/datadog/apm-inject:latest_snapshot"]
           K8S_CLUSTER_VERSION: ['7.56.2', '7.57.0', '7.59.0']
+
         - K8S_WEBLOG: [dd-lib-python-init-test-django-gunicorn-alpine]
           K8S_WEBLOG_IMG: [ghcr.io/datadog/system-tests/dd-lib-python-init-test-django-gunicorn-alpine:latest]
           K8S_SCENARIO: [K8S_LIB_INJECTION, K8S_LIB_INJECTION_PROFILING_ENABLED]
           K8S_LIB_INIT_IMG: ["gcr.io/datadoghq/dd-lib-python-init:latest", "ghcr.io/datadog/dd-trace-py/dd-lib-python-init:latest_snapshot"]
           K8S_INJECTOR_IMG: ["gcr.io/datadoghq/apm-inject:latest", "ghcr.io/datadog/apm-inject:latest_snapshot"]
           K8S_CLUSTER_VERSION: ['7.56.2', '7.57.0', '7.59.0']
+
         - K8S_WEBLOG: [dd-lib-python-init-test-django-unsupported-package-force]
           K8S_WEBLOG_IMG: [ghcr.io/datadog/system-tests/dd-lib-python-init-test-django-unsupported-package-force:latest]
           K8S_SCENARIO: [K8S_LIB_INJECTION, K8S_LIB_INJECTION_PROFILING_ENABLED]
           K8S_LIB_INIT_IMG: ["gcr.io/datadoghq/dd-lib-python-init:latest", "ghcr.io/datadog/dd-trace-py/dd-lib-python-init:latest_snapshot"]
           K8S_INJECTOR_IMG: ["gcr.io/datadoghq/apm-inject:latest", "ghcr.io/datadog/apm-inject:latest_snapshot"]
           K8S_CLUSTER_VERSION: ['7.56.2', '7.57.0', '7.59.0']
+
         - K8S_WEBLOG: [dd-lib-python-init-test-django-uvicorn]
           K8S_WEBLOG_IMG: [ghcr.io/datadog/system-tests/dd-lib-python-init-test-django-uvicorn:latest]
           K8S_SCENARIO: [K8S_LIB_INJECTION, K8S_LIB_INJECTION_PROFILING_ENABLED]
           K8S_LIB_INIT_IMG: ["gcr.io/datadoghq/dd-lib-python-init:latest", "ghcr.io/datadog/dd-trace-py/dd-lib-python-init:latest_snapshot"]
           K8S_INJECTOR_IMG: ["gcr.io/datadoghq/apm-inject:latest", "ghcr.io/datadog/apm-inject:latest_snapshot"]
           K8S_CLUSTER_VERSION: ['7.56.2', '7.57.0', '7.59.0']
+
         - K8S_WEBLOG: [dd-lib-python-init-test-protobuf-old]
           K8S_WEBLOG_IMG: [ghcr.io/datadog/system-tests/dd-lib-python-init-test-protobuf-old:latest]
           K8S_SCENARIO: [K8S_LIB_INJECTION, K8S_LIB_INJECTION_PROFILING_ENABLED]
           K8S_LIB_INIT_IMG: ["gcr.io/datadoghq/dd-lib-python-init:latest", "ghcr.io/datadog/dd-trace-py/dd-lib-python-init:latest_snapshot"]
           K8S_INJECTOR_IMG: ["gcr.io/datadoghq/apm-inject:latest", "ghcr.io/datadog/apm-inject:latest_snapshot"]
           K8S_CLUSTER_VERSION: ['7.56.2', '7.57.0', '7.59.0']
+
         - K8S_WEBLOG: [dd-lib-python-init-test-django-preinstalled]
           K8S_WEBLOG_IMG: [ghcr.io/datadog/system-tests/dd-lib-python-init-test-django-preinstalled:latest]
-          K8S_SCENARIO: [K8S_LIB_INJECTION, K8S_LIB_INJECTION_UDS, K8S_LIB_INJECTION_NO_AC, K8S_LIB_INJECTION_NO_AC_UDS]
+          K8S_SCENARIO: [K8S_LIB_INJECTION, K8S_LIB_INJECTION_UDS]
           K8S_LIB_INIT_IMG: ["gcr.io/datadoghq/dd-lib-python-init:latest", "ghcr.io/datadog/dd-trace-py/dd-lib-python-init:latest_snapshot"]
           K8S_INJECTOR_IMG: ["gcr.io/datadoghq/apm-inject:latest", "ghcr.io/datadog/apm-inject:latest_snapshot"]
           K8S_CLUSTER_VERSION: ['7.56.2', '7.57.0', '7.59.0']
@@ -181,19 +208,26 @@ k8s_ruby:
       matrix:
         - K8S_WEBLOG: [dd-lib-ruby-init-test-rails]
           K8S_WEBLOG_IMG: [ghcr.io/datadog/system-tests/dd-lib-ruby-init-test-rails:latest]
-          K8S_SCENARIO: [K8S_LIB_INJECTION, K8S_LIB_INJECTION_UDS, K8S_LIB_INJECTION_NO_AC, K8S_LIB_INJECTION_NO_AC_UDS, K8S_LIB_INJECTION_PROFILING_DISABLED, K8S_LIB_INJECTION_PROFILING_ENABLED, K8S_LIB_INJECTION_PROFILING_OVERRIDE, K8S_LIB_INJECTION_OPERATOR]
+          K8S_SCENARIO: [K8S_LIB_INJECTION, K8S_LIB_INJECTION_UDS, K8S_LIB_INJECTION_PROFILING_DISABLED, K8S_LIB_INJECTION_PROFILING_ENABLED, K8S_LIB_INJECTION_PROFILING_OVERRIDE, K8S_LIB_INJECTION_OPERATOR]
           K8S_LIB_INIT_IMG: ["gcr.io/datadoghq/dd-lib-ruby-init:latest", "ghcr.io/datadog/dd-trace-rb/dd-lib-ruby-init:latest_snapshot"]
           K8S_INJECTOR_IMG: ["gcr.io/datadoghq/apm-inject:latest", "ghcr.io/datadog/apm-inject:latest_snapshot"]
           K8S_CLUSTER_VERSION: ['7.56.2', '7.57.0', '7.59.0']
+
+        - K8S_WEBLOG: [dd-lib-ruby-init-test-rails]
+          K8S_WEBLOG_IMG: [ghcr.io/datadog/system-tests/dd-lib-ruby-init-test-rails:latest]
+          K8S_SCENARIO: [K8S_LIB_INJECTION_NO_AC, K8S_LIB_INJECTION_NO_AC_UDS]
+          K8S_LIB_INIT_IMG: ["gcr.io/datadoghq/dd-lib-ruby-init:latest", "ghcr.io/datadog/dd-trace-rb/dd-lib-ruby-init:latest_snapshot"]
+
         - K8S_WEBLOG: [dd-lib-ruby-init-test-rails-explicit]
           K8S_WEBLOG_IMG: [ghcr.io/datadog/system-tests/dd-lib-ruby-init-test-rails-explicit:latest]
-          K8S_SCENARIO: [K8S_LIB_INJECTION, K8S_LIB_INJECTION_UDS, K8S_LIB_INJECTION_NO_AC, K8S_LIB_INJECTION_NO_AC_UDS, K8S_LIB_INJECTION_PROFILING_DISABLED, K8S_LIB_INJECTION_PROFILING_ENABLED, K8S_LIB_INJECTION_PROFILING_OVERRIDE]
+          K8S_SCENARIO: [K8S_LIB_INJECTION, K8S_LIB_INJECTION_UDS, K8S_LIB_INJECTION_PROFILING_DISABLED, K8S_LIB_INJECTION_PROFILING_ENABLED, K8S_LIB_INJECTION_PROFILING_OVERRIDE]
           K8S_LIB_INIT_IMG: ["gcr.io/datadoghq/dd-lib-ruby-init:latest", "ghcr.io/datadog/dd-trace-rb/dd-lib-ruby-init:latest_snapshot"]
           K8S_INJECTOR_IMG: ["gcr.io/datadoghq/apm-inject:latest", "ghcr.io/datadog/apm-inject:latest_snapshot"]
           K8S_CLUSTER_VERSION: ['7.56.2', '7.57.0', '7.59.0']
+
         - K8S_WEBLOG: [dd-lib-ruby-init-test-rails-gemsrb]
           K8S_WEBLOG_IMG: [ghcr.io/datadog/system-tests/dd-lib-ruby-init-test-rails-gemsrb:latest]
-          K8S_SCENARIO: [K8S_LIB_INJECTION, K8S_LIB_INJECTION_UDS, K8S_LIB_INJECTION_NO_AC, K8S_LIB_INJECTION_NO_AC_UDS, K8S_LIB_INJECTION_PROFILING_DISABLED, K8S_LIB_INJECTION_PROFILING_ENABLED, K8S_LIB_INJECTION_PROFILING_OVERRIDE]
+          K8S_SCENARIO: [K8S_LIB_INJECTION, K8S_LIB_INJECTION_UDS, K8S_LIB_INJECTION_PROFILING_DISABLED, K8S_LIB_INJECTION_PROFILING_ENABLED, K8S_LIB_INJECTION_PROFILING_OVERRIDE]
           K8S_LIB_INIT_IMG: ["gcr.io/datadoghq/dd-lib-ruby-init:latest", "ghcr.io/datadog/dd-trace-rb/dd-lib-ruby-init:latest_snapshot"]
           K8S_INJECTOR_IMG: ["gcr.io/datadoghq/apm-inject:latest", "ghcr.io/datadog/apm-inject:latest_snapshot"]
           K8S_CLUSTER_VERSION: ['7.56.2', '7.57.0', '7.59.0']
