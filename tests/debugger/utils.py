@@ -7,6 +7,8 @@ import re
 import os
 import os.path
 import uuid
+import gzip
+import io
 
 from utils import interfaces, remote_config, weblog, context
 from utils.tools import logger
@@ -17,6 +19,7 @@ _CONFIG_PATH = "/v0.7/config"
 _DEBUGGER_PATH = "/api/v2/debugger"
 _LOGS_PATH = "/api/v2/logs"
 _TRACES_PATH = "/api/v0.2/traces"
+_SYMBOLS_PATH = "/symdb/v1/input"
 
 _CUR_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -66,6 +69,7 @@ class _Base_Debugger_Test:
     probe_snapshots = {}
     probe_spans = {}
     all_spans = []
+    symbols = []
 
     rc_state = None
     weblog_responses = []
@@ -262,6 +266,7 @@ class _Base_Debugger_Test:
         self._collect_probe_diagnostics()
         self._collect_snapshots()
         self._collect_spans()
+        self._collect_symbols()
 
     def _collect_probe_diagnostics(self):
         def _read_data():
@@ -385,6 +390,22 @@ class _Base_Debugger_Test:
             return span_hash
 
         self.probe_spans = _get_spans_hash(self)
+
+    def _collect_symbols(self):
+        def _get_symbols():
+            result = []
+            raw_data = list(interfaces.library.get_data(_SYMBOLS_PATH))
+
+            for data in raw_data:
+                if isinstance(data, dict) and "request" in data:
+                    contents = data["request"].get("content", [])
+                    for content in contents:
+                        if isinstance(content, dict) and "system-tests-filename" in content:
+                            result.append(content)
+
+            return result
+
+        self.symbols = _get_symbols()
 
     def get_tracer(self):
         if not _Base_Debugger_Test.tracer:
