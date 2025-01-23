@@ -377,7 +377,7 @@ class Test_Debugger_Exception_Replay(debugger._Base_Debugger_Test):
 
     @bug(context.library == "dotnet", reason="DEBUG-2799")
     @bug(context.library == "python", reason="DEBUG-3256, DEBUG-3257")
-    @bug(context.library == "java", reason="DEBUG-3304, 3285")
+    @bug(context.library == "java", reason="DEBUG-3304, DEBUG-3285")
     def test_exception_replay_inner(self):
         self._assert("exception_replay_inner", ["outer exception"])
 
