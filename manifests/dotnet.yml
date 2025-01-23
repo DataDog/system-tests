@@ -35,6 +35,9 @@ tests/:
         test_command_injection.py:
           TestCommandInjection: v2.28.0
           TestCommandInjection_StackTrace: missing_feature
+        test_email_html_injection.py:
+          TestEmailHtmlInjection: v3.2.0
+          TestEmailHtmlInjection_StackTrace: missing_feature
         test_hardcoded_passwords.py:
           Test_HardcodedPasswords: missing_feature
           Test_HardcodedPasswords_StackTrace: missing_feature

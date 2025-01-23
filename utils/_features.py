@@ -2348,6 +2348,15 @@ class _Features:
         return test_object
 
     @staticmethod
+    def iast_sink_email_html_injection(test_object):
+        """IAST Sink: Email HTML injection
+
+        https://feature-parity.us1.prod.dog/#/?feature=358
+        """
+        pytest.mark.features(feature_id=358)(test_object)
+        return test_object
+
+    @staticmethod
     def language_specifics(test_object):
         """Language specific tests
 
