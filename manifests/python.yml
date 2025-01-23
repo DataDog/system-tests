@@ -589,12 +589,6 @@ tests/:
     test_versions.py:
       Test_Events: v0.58.5
   debugger/:
-    test_debugger_code_origins.py:
-      Test_Debugger_Code_Origins:
-        '*': missing_feature
-        flask-poc: v2.11.0
-        uds-flask: v2.11.0
-        uwsgi-poc: v2.11.0
     test_debugger_exception_replay.py:
       Test_Debugger_Exception_Replay:
         '*': missing_feature

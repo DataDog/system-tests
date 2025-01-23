@@ -353,8 +353,6 @@ tests/:
     test_user_blocking_full_denylist.py:
       Test_UserBlocking_FullDenylist: v2.30.0
   debugger/:
-    test_debugger_code_origins.py:
-      Test_Debugger_Code_Origins: v3.8.0
     test_debugger_exception_replay.py:
       Test_Debugger_Exception_Replay: v2.50.0
     test_debugger_expression_language.py:
