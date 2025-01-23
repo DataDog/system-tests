@@ -442,6 +442,8 @@ tests/:
       Test_Debugger_Probe_Snaphots: missing_feature (feature not implented)
     test_debugger_probe_status.py:
       Test_Debugger_Probe_Statuses: missing_feature (feature not implented)
+    test_debugger_symdb.py:
+      Test_Debugger_SymDb: missing_feature (feature not implented)
   integrations/:
     crossed_integrations/:
       test_kafka.py:
