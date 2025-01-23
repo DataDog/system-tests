@@ -92,7 +92,7 @@ class TestContainerAutoInjectInstallScriptCrashTracking_NoZombieProcess(base.Aut
         reason="Zombies only appears in containers",
     )
     @flaky(library="python", reason="APMLP-313")
-    @flaky(context.library == "nodejs@5.28.0", reason="APMLP-313")
+    @flaky(library="nodejs", reason="APMLP-313")
     def test_crash_no_zombie(self, virtual_machine):
         logger.info(f"RMM CHECK THE CONTEXT LIBRARY: {context.library}")
         vm_ip = virtual_machine.get_ip()
