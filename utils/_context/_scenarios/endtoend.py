@@ -124,8 +124,9 @@ class DockerScenario(Scenario):
         ]
 
     def configure(self, config):  # noqa: ARG002
-        docker_info = get_docker_client().info()
-        self.components["docker.Cgroup"] = docker_info.get("CgroupVersion", None)
+        if not self.replay:
+            docker_info = get_docker_client().info()
+            self.components["docker.Cgroup"] = docker_info.get("CgroupVersion", None)
 
         for container in reversed(self._required_containers):
             container.configure(self.replay)
