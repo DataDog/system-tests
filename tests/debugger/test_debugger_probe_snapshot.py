@@ -8,6 +8,7 @@ from utils import scenarios, features, missing_feature, context, rfc
 
 
 @features.debugger
+@scenarios.debugger_probes_snapshot
 class Test_Debugger_Probe_Snaphots(debugger._Base_Debugger_Test):
     ############ setup ############
     def _setup(self, probes_name: str, request_path: str):
@@ -48,7 +49,6 @@ class Test_Debugger_Probe_Snaphots(debugger._Base_Debugger_Test):
     def setup_log_method_probe_snaphots(self):
         self._setup("probe_snapshot_log_method", "/debugger/log")
 
-    @scenarios.debugger_probes_snapshot
     @missing_feature(context.library == "nodejs", reason="Not yet implemented")
     def test_log_method_probe_snaphots(self):
         self._assert()
@@ -58,7 +58,6 @@ class Test_Debugger_Probe_Snaphots(debugger._Base_Debugger_Test):
     def setup_span_method_probe_snaphots(self):
         self._setup("probe_snapshot_span_method", "/debugger/span")
 
-    @scenarios.debugger_probes_snapshot
     @missing_feature(context.library == "ruby", reason="Not yet implemented")
     @missing_feature(context.library == "nodejs", reason="Not yet implemented")
     def test_span_method_probe_snaphots(self):
@@ -69,7 +68,6 @@ class Test_Debugger_Probe_Snaphots(debugger._Base_Debugger_Test):
     def setup_span_decoration_method_probe_snaphots(self):
         self._setup("probe_snapshot_span_decoration_method", "/debugger/span-decoration/asd/1")
 
-    @scenarios.debugger_probes_snapshot
     @missing_feature(context.library == "ruby", reason="Not yet implemented")
     @missing_feature(context.library == "nodejs", reason="Not yet implemented")
     def test_span_decoration_method_probe_snaphots(self):
@@ -81,7 +79,6 @@ class Test_Debugger_Probe_Snaphots(debugger._Base_Debugger_Test):
     def setup_log_line_probe_snaphots(self):
         self._setup("probe_snapshot_log_line", "/debugger/log")
 
-    @scenarios.debugger_probes_snapshot
     def test_log_line_probe_snaphots(self):
         self._assert()
         self._validate_snapshots()
@@ -90,7 +87,6 @@ class Test_Debugger_Probe_Snaphots(debugger._Base_Debugger_Test):
     def setup_span_decoration_line_probe_snaphots(self):
         self._setup("probe_snapshot_span_decoration_line", "/debugger/span-decoration/asd/1")
 
-    @scenarios.debugger_probes_snapshot
     @missing_feature(context.library == "ruby", reason="Not yet implemented")
     @missing_feature(context.library == "nodejs", reason="Not yet implemented")
     def test_span_decoration_line_probe_snaphots(self):
@@ -102,7 +98,6 @@ class Test_Debugger_Probe_Snaphots(debugger._Base_Debugger_Test):
     def setup_mix_probe(self):
         self._setup("probe_snapshot_log_mixed", "/debugger/mix/asd/1")
 
-    @scenarios.debugger_probes_snapshot
     @missing_feature(context.library == "nodejs", reason="Not yet implemented")
     def test_mix_probe(self):
         self._assert()
@@ -117,7 +112,7 @@ class Test_Debugger_Probe_Snaphots(debugger._Base_Debugger_Test):
         self.initialize_weblog_remote_config()
         self.send_weblog_request("/healthcheck")
 
-    @scenarios.debugger_code_origins
+    @features.debugger_code_origins
     @missing_feature(context.library == "dotnet", reason="Entry spans code origins not yet implemented")
     @missing_feature(context.library == "java", reason="Entry spans code origins not yet implemented for spring-mvc")
     @missing_feature(context.library == "nodejs", reason="Entry spans code origins not yet implemented for express")
