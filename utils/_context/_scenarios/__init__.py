@@ -18,6 +18,7 @@ from .k8s_lib_injection import WeblogInjectionScenario, K8sScenario, K8sSparkSce
 from .docker_ssi import DockerSSIScenario
 from .external_processing import ExternalProcessingScenario
 from .ipv6 import IPV6Scenario
+from .appsec_low_waf_timeout import AppsecLowWafTimeout
 
 update_environ_with_local_env()
 
@@ -178,20 +179,7 @@ class _Scenarios:
         scenario_groups=[ScenarioGroup.APPSEC],
     )
 
-    class AppsecLowWafTimeout(EndToEndScenario):
-        def __init__(self):
-            super().__init__(
-                "APPSEC_LOW_WAF_TIMEOUT",
-                doc="Appsec with a very low WAF timeout",
-                scenario_groups=[ScenarioGroup.APPSEC],
-            )
-
-        def configure(self, config):
-            super().configure(config)
-            library = self.weblog_container.image.labels["system-tests-library"]
-            self.weblog_container.environment["DD_APPSEC_WAF_TIMEOUT"] = 0.001 if library == "python" else 1
-
-    appsec_low_waf_timeout = AppsecLowWafTimeout()
+    appsec_low_waf_timeout = AppsecLowWafTimeout("APPSEC_LOW_WAF_TIMEOUT")
 
     appsec_custom_obfuscation = EndToEndScenario(
         "APPSEC_CUSTOM_OBFUSCATION",
