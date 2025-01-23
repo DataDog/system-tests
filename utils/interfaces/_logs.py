@@ -263,8 +263,8 @@ class _LogPresence:
 
     def check(self, data):
         if (
-            'message' in data
-            or ("message" in data and self.pattern.search(data['message']))
+            "message" in data
+            or ("message" in data and self.pattern.search(data["message"]))
             or self.pattern.search(data["message"])
         ):
             for key, extra_pattern in self.extra_conditions.items():

@@ -43,7 +43,6 @@ import (
 )
 
 func main() {
-	// Optional: Change log format to use JSON (Cf. Go Log Collection)
 	logrus.SetFormatter(&logrus.JSONFormatter{})
 	logrus.SetOutput(os.Stdout)
 	logrus.SetLevel(logrus.DebugLevel)
