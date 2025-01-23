@@ -336,6 +336,7 @@ class Test_Debugger_Exception_Replay(debugger._Base_Debugger_Test):
 
     @bug(context.library == "dotnet", reason="DEBUG-2799")
     @bug(context.library == "python", reason="DEBUG-3257")
+    @bug(context.library == "java", reason="DEBUG-3285")
     def test_exception_replay_simple(self):
         self._assert("exception_replay_simple", ["simple exception"])
 
@@ -376,7 +377,7 @@ class Test_Debugger_Exception_Replay(debugger._Base_Debugger_Test):
 
     @bug(context.library == "dotnet", reason="DEBUG-2799")
     @bug(context.library == "python", reason="DEBUG-3256, DEBUG-3257")
-    @bug(context.library == "java", reason="DEBUG-3304")
+    @bug(context.library == "java", reason="DEBUG-3304, DEBUG-3285")
     def test_exception_replay_inner(self):
         self._assert("exception_replay_inner", ["outer exception"])
 
@@ -407,6 +408,7 @@ class Test_Debugger_Exception_Replay(debugger._Base_Debugger_Test):
 
     @bug(context.library == "dotnet", reason="DEBUG-2799")
     @bug(context.library == "python", reason="DEBUG-3257")
+    @bug(context.library == "java", reason="DEBUG-3285")
     def test_exception_replay_rockpaperscissors(self):
         self._assert("exception_replay_rockpaperscissors", ["rock", "paper", "scissors"])
 
@@ -416,6 +418,7 @@ class Test_Debugger_Exception_Replay(debugger._Base_Debugger_Test):
 
     @bug(context.library == "dotnet", reason="DEBUG-2799")
     @bug(context.library == "python", reason="DEBUG-3257")
+    @bug(context.library == "java", reason="DEBUG-3285")
     def test_exception_replay_multiframe(self):
         self._assert("exception_replay_multiframe", ["multiple stack frames exception"])
 
@@ -426,5 +429,6 @@ class Test_Debugger_Exception_Replay(debugger._Base_Debugger_Test):
     @bug(context.library == "dotnet", reason="DEBUG-2799")
     @flaky(context.library == "dotnet", reason="DEBUG-3281")
     @bug(context.library == "python", reason="DEBUG-3257")
+    @bug(context.library == "java", reason="DEBUG-3285")
     def test_exception_replay_async(self):
         self._assert("exception_replay_async", ["async exception"])
