@@ -32,6 +32,9 @@ tests/:
         test_command_injection.py:
           TestCommandInjection: missing_feature
           TestCommandInjection_StackTrace: missing_feature
+        test_email_html_injection.py:
+          TestEmailHtmlInjection: missing_feature
+          TestEmailHtmlInjection_StackTrace: missing_feature
         test_hardcoded_passwords.py:
           Test_HardcodedPasswords: missing_feature
           Test_HardcodedPasswords_StackTrace: missing_feature
@@ -191,8 +194,11 @@ tests/:
         Test_TelemetryMetrics: missing_feature
     test_asm_standalone.py:
       Test_AppSecStandalone_UpstreamPropagation: v2.4.1-dev
+      Test_AppSecStandalone_UpstreamPropagation_V2: missing_feature
       Test_IastStandalone_UpstreamPropagation: missing_feature
+      Test_IastStandalone_UpstreamPropagation_V2: missing_feature
       Test_SCAStandalone_Telemetry: missing_feature
+      Test_SCAStandalone_Telemetry_V2: missing_feature
     test_automated_login_events.py:
       Test_Login_Events:
         '*': v1.13.0
@@ -320,6 +326,10 @@ tests/:
       Test_Debugger_Probe_Statuses:
         "*": irrelevant
         rails70: v2.8.0
+    test_debugger_symdb.py:
+      Test_Debugger_SymDb:
+        "*": irrelevant
+        rails70: missing_feature (feature not implemented)
   integrations/:
     crossed_integrations/:
       test_kafka.py:

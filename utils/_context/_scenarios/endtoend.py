@@ -38,7 +38,7 @@ from .core import Scenario, ScenarioGroup
 @dataclass
 class _SchemaBug:
     endpoint: str
-    data_path: str
+    data_path: str | None  # None means that all data_path will be considered as bug
     condition: bool
     ticket: str
 
@@ -124,8 +124,9 @@ class DockerScenario(Scenario):
         ]
 
     def configure(self, config):  # noqa: ARG002
-        docker_info = get_docker_client().info()
-        self.components["docker.Cgroup"] = docker_info.get("CgroupVersion", None)
+        if not self.replay:
+            docker_info = get_docker_client().info()
+            self.components["docker.Cgroup"] = docker_info.get("CgroupVersion", None)
 
         for container in reversed(self._required_containers):
             container.configure(self.replay)
@@ -593,6 +594,12 @@ class EndToEndScenario(DockerScenario):
                 and self.name == "DEBUGGER_EXPRESSION_LANGUAGE",
                 ticket="APMRP-360",
             ),
+            _SchemaBug(
+                endpoint="/symdb/v1/input",
+                data_path=None,
+                condition=context.library == "dotnet" and self.name == "DEBUGGER_SYMDB",
+                ticket="DEBUG-3298",
+            ),
         ]
         self._test_schemas(session, interfaces.library, library_bugs)
 
@@ -625,6 +632,12 @@ class EndToEndScenario(DockerScenario):
                 condition=context.library < "nodejs@5.31.0",
                 ticket="DEBUG-2864",
             ),
+            _SchemaBug(
+                endpoint="/api/v2/debugger",
+                data_path="$[]",
+                condition=context.library == "dotnet" and self.name == "DEBUGGER_SYMDB",
+                ticket="DEBUG-3298",
+            ),
         ]
         self._test_schemas(session, interfaces.agent, agent_bugs)
 
@@ -636,7 +649,10 @@ class EndToEndScenario(DockerScenario):
         excluded_points = {(bug.endpoint, bug.data_path) for bug in known_bugs if bug.condition}
 
         for error in interface.get_schemas_errors():
-            if (error.endpoint, error.data_path) not in excluded_points:
+            if (error.endpoint, error.data_path) not in excluded_points and (
+                error.endpoint,
+                None,
+            ) not in excluded_points:
                 long_repr.append(f"* {error.message}")
 
         if len(long_repr) != 0:

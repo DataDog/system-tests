@@ -57,6 +57,9 @@ tests/:
             '*': v2.10.0
             fastapi: v2.15.0
           TestCommandInjection_StackTrace: v2.19.0.dev
+        test_email_html_injection.py:
+          TestEmailHtmlInjection: missing_feature
+          TestEmailHtmlInjection_StackTrace: missing_feature
         test_hardcoded_passwords.py:
           Test_HardcodedPasswords: missing_feature
           Test_HardcodedPasswords_StackTrace: missing_feature
@@ -433,9 +436,12 @@ tests/:
     test_asm_standalone.py:
       Test_AppSecStandalone_UpstreamPropagation:
         '*': bug (APPSEC-56142)
+      Test_AppSecStandalone_UpstreamPropagation_V2: missing_feature
       Test_IastStandalone_UpstreamPropagation:
         '*': v2.18.0.dev
+      Test_IastStandalone_UpstreamPropagation_V2: missing_feature
       Test_SCAStandalone_Telemetry: v2.19.0.dev
+      Test_SCAStandalone_Telemetry_V2: missing_feature
     test_automated_login_events.py:
       Test_Login_Events: irrelevant (was v2.10.0 but will be replaced by V2)
       Test_Login_Events_Extended: irrelevant (was v2.10.0 but will be replaced by V2)
@@ -618,6 +624,8 @@ tests/:
         flask-poc: v2.11.0
         uds-flask: v2.11.0
         uwsgi-poc: v2.11.0
+    test_debugger_symdb.py:
+      Test_Debugger_SymDb: v2.11.0
   integrations/:
     crossed_integrations/:
       test_kafka.py:
