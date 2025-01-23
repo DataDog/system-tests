@@ -380,7 +380,9 @@ class BaseSourceTest:
             sources = [s for s in sources if s["origin"] == source_type]
         if self.source_names:
             assert isinstance(self.source_names, list)
-            assert any(x in self.source_names for x in {s.get("name") for s in sources})
+            assert any(
+                x in self.source_names for x in {s.get("name") for s in sources}
+            ), f"Source {self.source_names} not in {sources}"
             sources = [s for s in sources if s["name"] in self.source_names]
         if self.source_value:
             assert self.source_value in {s.get("value") for s in sources}

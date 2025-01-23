@@ -512,7 +512,7 @@ async def view_iast_source_header_value(table: typing.Annotated[str, Header()] =
 
 @app.get("/iast/source/headername/test", response_class=PlainTextResponse)
 async def view_iast_source_header_value(request: Request):
-    table = [k for k in request.headers.keys() if k == "table"][0]
+    table = [k for k in request.headers.keys() if k == "user"][0]
     _sink_point_path_traversal(tainted_str=table)
     return "OK"
 
@@ -521,7 +521,7 @@ async def view_iast_source_header_value(request: Request):
 async def view_iast_source_parametername_get(request: Request):
     param = [key for key in request.query_params.keys() if key == "user"]
     if param:
-        _sink_point(id=param[0])
+        _sink_point_path_traversal(param[0])
         return "OK"
     return "KO"
 
@@ -531,7 +531,7 @@ async def view_iast_source_parametername_post(request: Request):
     form_data = await request.form()
     param = [key for key in form_data.keys() if key == "user"]
     if param:
-        _sink_point(id=param[0])
+        _sink_point_path_traversal(param[0])
         return "OK"
     return "KO"
 
