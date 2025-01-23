@@ -6,7 +6,12 @@ from utils.onboarding.backend_interface import wait_backend_trace_id
 from utils.onboarding.wait_for_tcp_port import wait_for_port
 
 
-class _TestK8sLibInjection:
+@features.k8s_admission_controller
+@scenarios.k8s_lib_injection
+@scenarios.k8s_lib_injection_uds
+@scenarios.k8s_lib_injection_no_ac
+@scenarios.k8s_lib_injection_no_ac_uds
+class TestK8sLibInjection:
     """Test K8s lib injection"""
 
     def test_k8s_lib_injection(self):
@@ -15,40 +20,8 @@ class _TestK8sLibInjection:
 
 
 @features.k8s_admission_controller
-@scenarios.k8s_lib_injection
-class TestK8sLibInjection(_TestK8sLibInjection):
-    """Test K8s lib injection with admission controller"""
-
-    pass
-
-
-@features.k8s_admission_controller
-@scenarios.k8s_lib_injection_uds
-class TestK8sLibInjectionUDS(_TestK8sLibInjection):
-    """Test K8s lib injection with admission controller and UDS"""
-
-    pass
-
-
-@features.k8s_admission_controller
-@scenarios.k8s_lib_injection_no_ac
-class TestK8sLibInjectionNoAC(_TestK8sLibInjection):
-    """Test K8s lib injection without admission controller"""
-
-    pass
-
-
-@features.k8s_admission_controller
-@scenarios.k8s_lib_injection_no_ac_uds
-class TestK8sLibInjectionNoAC_UDS(_TestK8sLibInjection):
-    """Test K8s lib injection without admission controller and UDS"""
-
-    pass
-
-
-@features.k8s_admission_controller
 @scenarios.k8s_lib_injection_operator
-class TestK8sLibInjection_operator(_TestK8sLibInjection):
+class TestK8sLibInjection_operator:
     """Test K8s lib injection using the operator"""
 
     def test_k8s_lib_injection(self):
