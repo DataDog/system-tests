@@ -122,6 +122,7 @@ class K8sDatadog:
 
         # Add the cluster agent tag version
         self.dd_cluster_feature["clusterAgent.image.tag"] = self.dd_cluster_version
+        self.dd_cluster_feature["clusterAgent.image.repository"] = "docker.io/datadog/cluster-agent-dev"
         helm_install_chart(
             self.k8s_cluster_info,
             "datadog",

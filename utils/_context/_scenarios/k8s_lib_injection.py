@@ -69,6 +69,8 @@ class K8sScenario(Scenario):
         # Cluster version
         self.k8s_cluster_version = config.option.k8s_cluster_version
         self.components["cluster_agent"] = self.k8s_cluster_version
+        # Cluster image
+        # k8s-cluster-img
 
         # Injector image version
         self.k8s_injector_img = (
