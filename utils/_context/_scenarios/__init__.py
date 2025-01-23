@@ -534,8 +534,6 @@ class _Scenarios:
         "DEBUGGER_CODE_ORIGINS",
         rc_api_enabled=True,
         weblog_env={
-            "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1",
-            "DD_REMOTE_CONFIG_ENABLED": "true",
             "DD_CODE_ORIGIN_FOR_SPANS_ENABLED": "true",
         },
         library_interface_timeout=5,
