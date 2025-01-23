@@ -299,7 +299,13 @@ func parseTracerConfig(l *CustomLogger, tracerEnabled string) map[string]string 
 	config["dd_version"] = l.globalConfig["DdVersion"]
 	config["dd_trace_agent_url"] = l.globalConfig["TraceAgentURL"]
 	config["dd_trace_rate_limit"] = l.globalConfig["RateLimit"]
-	config["dd_dogstatsd_host"], config["dd_dogstatsd_port"] = strings.Split(l.globalConfig["DogstatsdAddr"], ":")[0], strings.Split(l.globalConfig["DogstatsdAddr"], ":")[1]
+	if addr := strings.Split(l.globalConfig["DogstatsdAddr"], ":"); len(addr) == 2 {
+		config["dd_dogstatsd_host"], config["dd_dogstatsd_port"] = addr[0], addr[1]
+	} else if len(addr) == 1 {
+		config["dd_dogstatsd_host"], config["dd_dogstatsd_port"] = addr[0], ""
+	} else {
+		config["dd_dogstatsd_host"], config["dd_dogstatsd_port"] = "", ""
+	}
 	log.Print("Parsed config: ", config)
 	return config
 }
