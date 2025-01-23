@@ -640,6 +640,8 @@ tests/:
       Test_Debugger_Probe_Statuses:
         "*": irrelevant
         express4: v5.32.0
+    test_debugger_symdb.py:
+      Test_Debugger_SymDb: missing_feature (feature not implented)
   integrations/:
     crossed_integrations/:
       test_kafka.py:

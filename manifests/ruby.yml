@@ -323,6 +323,10 @@ tests/:
       Test_Debugger_Probe_Statuses:
         "*": irrelevant
         rails70: v2.8.0
+    test_debugger_symdb.py:
+      Test_Debugger_SymDb:
+        "*": irrelevant
+        rails70: missing_feature (feature not implemented)
   integrations/:
     crossed_integrations/:
       test_kafka.py:
