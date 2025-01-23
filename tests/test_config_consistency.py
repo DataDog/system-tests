@@ -566,11 +566,15 @@ class Test_Config_RuntimeMetrics_Enabled:
         assert self.req.status_code == 200
 
         time.sleep(12)
-        runtime_metrics = [metric for _, metric in interfaces.agent.get_metrics(request=self.req) if metric["metric"].startswith("runtime.") or metric["metric"].startswith("jvm.")]
+        runtime_metrics = [
+            metric
+            for _, metric in interfaces.agent.get_metrics()
+            if metric["metric"].startswith("runtime.") or metric["metric"].startswith("jvm.")
+        ]
         assert len(runtime_metrics) > 0
 
         for metric in runtime_metrics:
-            tags = {tag.split(":")[0]: tag.split(":")[1] for tag in metric["tags"] }
+            tags = {tag.split(":")[0]: tag.split(":")[1] for tag in metric["tags"]}
             assert tags.get("lang") in runtime_metrics_langs or tags.get("lang") is None
 
             # Test that Unified Service Tags are added to the runtime metrics
@@ -596,11 +600,15 @@ class Test_Config_RuntimeMetrics_Enabled_WithRuntimeId:
         assert self.req.status_code == 200
 
         time.sleep(12)
-        runtime_metrics = [metric for _, metric in interfaces.agent.get_metrics(request=self.req) if metric["metric"].startswith("runtime.") or metric["metric"].startswith("jvm.")]
+        runtime_metrics = [
+            metric
+            for _, metric in interfaces.agent.get_metrics()
+            if metric["metric"].startswith("runtime.") or metric["metric"].startswith("jvm.")
+        ]
         assert len(runtime_metrics) > 0
 
         for metric in runtime_metrics:
-            tags = {tag.split(":")[0]: tag.split(":")[1] for tag in metric["tags"] }
+            tags = {tag.split(":")[0]: tag.split(":")[1] for tag in metric["tags"]}
             assert "runtime-id" in tags
 
 

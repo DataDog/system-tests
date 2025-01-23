@@ -143,7 +143,7 @@ class AgentInterfaceValidator(ProxyBasedInterfaceValidator):
     def get_spans_list(self, request):
         return [span for _, span in self.get_spans(request)]
 
-    def get_metrics(self, request=None):
+    def get_metrics(self):
         """Attempts to fetch the spans the agent will submit to the backend.
 
         When a valid request is given, then we filter the spans to the ones sampled
