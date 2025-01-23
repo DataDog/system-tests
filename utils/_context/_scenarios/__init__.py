@@ -177,12 +177,22 @@ class _Scenarios:
         doc="Disable appsec and test DBM setting integration outcome when disabled",
         scenario_groups=[ScenarioGroup.APPSEC],
     )
-    appsec_low_waf_timeout = EndToEndScenario(
-        "APPSEC_LOW_WAF_TIMEOUT",
-        weblog_env={"DD_APPSEC_WAF_TIMEOUT": "1"},
-        doc="Appsec with a very low WAF timeout",
-        scenario_groups=[ScenarioGroup.APPSEC],
-    )
+
+    class AppsecLowWafTimeout(EndToEndScenario):
+        def __init__(self):
+            super().__init__(
+                "APPSEC_LOW_WAF_TIMEOUT",
+                doc="Appsec with a very low WAF timeout",
+                scenario_groups=[ScenarioGroup.APPSEC],
+            )
+
+        def configure(self, config):
+            super().configure(config)
+            library = self.weblog_container.image.labels["system-tests-library"]
+            self.weblog_container.environment["DD_APPSEC_WAF_TIMEOUT"] = 0.001 if library == "python" else 1
+
+    appsec_low_waf_timeout = AppsecLowWafTimeout()
+
     appsec_custom_obfuscation = EndToEndScenario(
         "APPSEC_CUSTOM_OBFUSCATION",
         weblog_env={
