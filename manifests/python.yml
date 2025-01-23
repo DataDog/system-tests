@@ -553,6 +553,8 @@ tests/:
       Test_SecurityEvents_Appsec_Metastruct_Enabled: missing_feature
       Test_SecurityEvents_Iast_Metastruct_Disabled: irrelevant (no fallback will be implemented)
       Test_SecurityEvents_Iast_Metastruct_Enabled: missing_feature
+    test_only_python.py:
+      Test_ImportError: v2.20.0.dev
     test_rate_limiter.py:
       Test_Main: v2.0.0
     test_remote_config_rule_changes.py:
@@ -908,6 +910,7 @@ tests/:
     Test_Span_Links_From_Conflicting_Contexts: v2.17.0
     Test_Span_Links_From_Conflicting_Contexts_Datadog_Precedence: v2.17.0
     Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts: v2.17.0
+  test_graphql.py: missing_feature
   test_identify.py:
     Test_Basic: v1.5.0-rc1
     Test_Propagate: v1.9.0
