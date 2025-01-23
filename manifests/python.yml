@@ -57,6 +57,9 @@ tests/:
             '*': v2.10.0
             fastapi: v2.15.0
           TestCommandInjection_StackTrace: v2.19.0.dev
+        test_email_html_injection.py:
+          TestEmailHtmlInjection: missing_feature
+          TestEmailHtmlInjection_StackTrace: missing_feature
         test_hardcoded_passwords.py:
           Test_HardcodedPasswords: missing_feature
           Test_HardcodedPasswords_StackTrace: missing_feature
@@ -432,11 +435,13 @@ tests/:
         fastapi: v2.4.0
     test_asm_standalone.py:
       Test_AppSecStandalone_UpstreamPropagation:
-        '*': v2.12.3
-        uwsgi-poc: v2.17.1
+        '*': bug (APPSEC-56142)
+      Test_AppSecStandalone_UpstreamPropagation_V2: missing_feature
       Test_IastStandalone_UpstreamPropagation:
         '*': v2.18.0.dev
+      Test_IastStandalone_UpstreamPropagation_V2: missing_feature
       Test_SCAStandalone_Telemetry: v2.19.0.dev
+      Test_SCAStandalone_Telemetry_V2: missing_feature
     test_automated_login_events.py:
       Test_Login_Events: irrelevant (was v2.10.0 but will be replaced by V2)
       Test_Login_Events_Extended: irrelevant (was v2.10.0 but will be replaced by V2)
@@ -619,6 +624,8 @@ tests/:
         flask-poc: v2.11.0
         uds-flask: v2.11.0
         uwsgi-poc: v2.11.0
+    test_debugger_symdb.py:
+      Test_Debugger_SymDb: v2.11.0
   integrations/:
     crossed_integrations/:
       test_kafka.py:
@@ -907,6 +914,7 @@ tests/:
     Test_Span_Links_From_Conflicting_Contexts: v2.17.0
     Test_Span_Links_From_Conflicting_Contexts_Datadog_Precedence: v2.17.0
     Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts: v2.17.0
+  test_graphql.py: missing_feature
   test_identify.py:
     Test_Basic: v1.5.0-rc1
     Test_Propagate: v1.9.0

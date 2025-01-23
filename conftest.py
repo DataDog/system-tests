@@ -1,6 +1,10 @@
 # Unless explicitly stated otherwise all files in this repository are licensed under the the Apache License Version 2.0.
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
+
+# keep this import at the top of the file
+from utils.proxy import scrubber  # noqa: F401
+
 import json
 import os
 import time
@@ -51,6 +55,7 @@ def pytest_addoption(parser):
     parser.addoption(
         "--k8s-lib-init-img", type=str, action="store", help="Set tracers init image on the docker registry"
     )
+    parser.addoption("--k8s-injector-img", type=str, action="store", help="Set injector image on the docker registry")
     parser.addoption("--k8s-weblog-img", type=str, action="store", help="Set test app image on the docker registry")
     parser.addoption("--k8s-cluster-version", type=str, action="store", help="Set the datadog agent version")
 

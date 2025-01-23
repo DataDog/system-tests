@@ -78,6 +78,9 @@ tests/:
             play: missing_feature
             ratpack: missing_feature
             spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+        test_email_html_injection.py:
+          TestEmailHtmlInjection: missing_feature
+          TestEmailHtmlInjection_StackTrace: missing_feature
         test_hardcoded_passwords.py:
           Test_HardcodedPasswords: missing_feature
           Test_HardcodedPasswords_StackTrace: missing_feature
@@ -1023,12 +1026,15 @@ tests/:
       Test_AppSecStandalone_UpstreamPropagation:
         '*': v1.36.0
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+      Test_AppSecStandalone_UpstreamPropagation_V2: missing_feature
       Test_IastStandalone_UpstreamPropagation:
         '*': v1.36.0
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+      Test_IastStandalone_UpstreamPropagation_V2: missing_feature
       Test_SCAStandalone_Telemetry:
         '*': v1.36.0
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+      Test_SCAStandalone_Telemetry_V2: missing_feature
     test_automated_login_events.py:
       Test_Login_Events: irrelevant (was v1.36.0 but will be replaced by V2)
       Test_Login_Events_Extended: irrelevant (was v1.36.0 but will be replaced by V2)
@@ -1503,6 +1509,8 @@ tests/:
         spring-boot-undertow: v1.38.0
         spring-boot-wildfly: v1.38.0
         uds-spring-boot: v1.38.0
+    test_debugger_symdb.py:
+      Test_Debugger_SymDb: v1.38.0
   integrations/:
     crossed_integrations/:
       test_kafka.py:
@@ -1722,6 +1730,7 @@ tests/:
     Test_Span_Links_From_Conflicting_Contexts: v1.43.0
     Test_Span_Links_From_Conflicting_Contexts_Datadog_Precedence: v1.43.0
     Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
+  test_graphql.py: missing_feature
   test_identify.py:
     Test_Basic: missing_feature
     Test_Propagate: missing_feature
