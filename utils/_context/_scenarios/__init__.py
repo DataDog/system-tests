@@ -14,7 +14,7 @@ from .performance import PerformanceScenario
 from .profiling import ProfilingScenario
 from .test_the_test import TestTheTestScenario
 from .auto_injection import InstallerAutoInjectionScenario, InstallerAutoInjectionScenarioProfiling
-from .k8s_lib_injection import WeblogInjectionScenario, K8sScenario, K8sSparkScenario
+from .k8s_lib_injection import WeblogInjectionScenario, K8sScenario, K8sSparkScenario, K8sManualInstrumentationScenario
 from .docker_ssi import DockerSSIScenario
 from .external_processing import ExternalProcessingScenario
 from .ipv6 import IPV6Scenario
@@ -149,6 +149,7 @@ class _Scenarios:
         doc="Misc tests for appsec blocking",
         scenario_groups=[ScenarioGroup.APPSEC, ScenarioGroup.ESSENTIALS],
     )
+    # This GraphQL scenario can be used for any GraphQL testing, not just AppSec
     graphql_appsec = EndToEndScenario(
         "GRAPHQL_APPSEC",
         weblog_env={"DD_APPSEC_RULES": "/appsec_blocking_rule.json"},
@@ -703,20 +704,23 @@ class _Scenarios:
     )
 
     k8s_lib_injection = K8sScenario("K8S_LIB_INJECTION", doc="Kubernetes lib injection with admission controller")
+    k8s_lib_injection_operator = K8sScenario(
+        "K8S_LIB_INJECTION_OPERATOR",
+        doc="Use CRD Datadog Operator (uses real agent). Not configure the admission controller, the operator does it",
+        with_datadog_operator=True,
+    )
     k8s_lib_injection_uds = K8sScenario(
         "K8S_LIB_INJECTION_UDS",
         doc="Kubernetes lib injection with admission controller and uds",
         use_uds=True,
     )
-    k8s_lib_injection_no_ac = K8sScenario(
+    k8s_lib_injection_no_ac = K8sManualInstrumentationScenario(
         "K8S_LIB_INJECTION_NO_AC",
         doc="Kubernetes lib injection without admission controller",
-        with_admission_controller=False,
     )
-    k8s_lib_injection_no_ac_uds = K8sScenario(
+    k8s_lib_injection_no_ac_uds = K8sManualInstrumentationScenario(
         "K8S_LIB_INJECTION_NO_AC_UDS",
         doc="Kubernetes lib injection without admission controller and UDS",
-        with_admission_controller=False,
         use_uds=True,
     )
     k8s_lib_injection_profiling_disabled = K8sScenario(

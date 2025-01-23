@@ -2303,12 +2303,30 @@ class _Features:
         return test_object
 
     @staticmethod
+    def graphql_query_error_reporting(test_object):
+        """GraphQL query error reporting
+
+        https://feature-parity.us1.prod.dog/#/?feature=354
+        """
+        pytest.mark.features(feature_id=354)(test_object)
+        return test_object
+
+    @staticmethod
     def envoy_external_processing(test_object):
         """Support for Envoy External Processing
 
         https://feature-parity.us1.prod.dog/#/?feature=350
         """
         pytest.mark.features(feature_id=350)(test_object)
+        return test_object
+
+    @staticmethod
+    def language_specifics(test_object):
+        """Language specific tests
+
+        https://feature-parity.us1.prod.dog/#/?feature=359
+        """
+        pytest.mark.features(feature_id=359)(test_object)
         return test_object
 
 

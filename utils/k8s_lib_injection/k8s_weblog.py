@@ -22,10 +22,11 @@ class K8sWeblog:
         "ruby": [{"name": "RUBYOPT", "value": " -r/datadog-lib/auto_inject"}],
     }
 
-    def __init__(self, app_image, library, library_init_image, output_folder):
+    def __init__(self, app_image, library, library_init_image, injector_image, output_folder):
         self.app_image = app_image
         self.library = library
         self.library_init_image = library_init_image
+        self.injector_image = injector_image
         self.output_folder = output_folder
 
     def configure(self, k8s_cluster_info, weblog_env=None, dd_cluster_uds=None, service_account=None):
@@ -54,7 +55,10 @@ class K8sWeblog:
                 "tags.datadoghq.com/service": "my-app",
                 "tags.datadoghq.com/version": "local",
             },
-            annotations={f"admission.datadoghq.com/{library_lib}-lib.custom-image": f"{self.library_init_image}"},
+            annotations={
+                f"admission.datadoghq.com/{library_lib}-lib.custom-image": f"{self.library_init_image}",
+                "admission.datadoghq.com/apm-inject.custom-image": f"{self.injector_image}",
+            },
         )
 
         containers = []
@@ -111,14 +115,15 @@ class K8sWeblog:
         logger.info("[Deploy weblog] Weblog pod configuration done.")
         return pod_body
 
-    def install_weblog_pod_with_admission_controller(self, namespace="default"):
+    def install_weblog_pod(self, namespace="default"):
         logger.info("[Deploy weblog] Installing weblog pod using admission controller")
         pod_body = self._get_base_weblog_pod()
         self.k8s_cluster_info.core_v1_api().create_namespaced_pod(namespace=namespace, body=pod_body)
         logger.info("[Deploy weblog] Weblog pod using admission controller created. Waiting for it to be ready!")
         self.wait_for_weblog_ready_by_label_app("my-app", namespace, timeout=200)
 
-    def install_weblog_pod_without_admission_controller(self, namespace="default"):
+    def install_weblog_pod_with_manual_inject(self, namespace="default"):
+        """We do our own pod mutation to inject the library manually instead of using the admission controller"""
         pod_body = self._get_base_weblog_pod()
         pod_body.spec.init_containers = []
         init_container1 = client.V1Container(

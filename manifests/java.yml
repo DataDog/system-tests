@@ -558,7 +558,16 @@ tests/:
           TestPathParameter:
             '*': missing_feature
         test_sql_row.py:
-          TestSqlRow: missing_feature
+          TestSqlRow:
+            '*': v1.46.0
+            akka-http: missing_feature (endpoint not implemented)
+            jersey-grizzly2: missing_feature (endpoint not implemented)
+            play: missing_feature (endpoint not implemented)
+            ratpack: missing_feature (endpoint not implemented)
+            resteasy-netty3: missing_feature (endpoint not implemented)
+            spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+            vertx3: missing_feature (endpoint not implemented)
+            vertx4: missing_feature (endpoint not implemented)
         test_uri.py:
           TestURI:
             '*': v1.23.0
@@ -1071,7 +1080,20 @@ tests/:
         vertx3: missing_feature (login endpoints not implemented)
         vertx4: missing_feature (login endpoints not implemented)
     test_automated_user_and_session_tracking.py:
-      Test_Automated_Session_Blocking: missing_feature
+      Test_Automated_Session_Blocking:
+        '*': v1.46.0
+        akka-http: missing_feature (session tracking not implemented)
+        jersey-grizzly2: missing_feature (session tracking not implemented)
+        play: missing_feature (session tracking not implemented)
+        ratpack: missing_feature (session tracking not implemented)
+        resteasy-netty3: missing_feature (session tracking not implemented)
+        spring-boot-3-native: flaky (APMAPI-979)
+        spring-boot-jetty: missing_feature (session tracking not implemented)
+        spring-boot-payara: bug (APPSEC-54985)
+        spring-boot-undertow: missing_feature (session tracking not implemented)
+        spring-boot-wildfly: missing_feature (session tracking not implemented)
+        vertx3: missing_feature (home endpoint does not use cookies)
+        vertx4: missing_feature (home endpoint does not use cookies)
       Test_Automated_User_Blocking:
         '*': v1.45.0
         akka-http: missing_feature (login endpoints not implemented)
@@ -1219,11 +1241,11 @@ tests/:
         play: v1.22.0
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
       Test_Blocking_response_status:
-        '*': missing_feature
-        akka-http: v1.22.0
-        play: v1.22.0
+        '*': v1.22.0
+        jersey-grizzly2: missing_feature
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
         spring-boot-openliberty: v1.20.0
+        spring-boot-payara: missing_feature
       Test_Blocking_user_id:
         '*': v0.111.0
         akka-http: v1.22.0
@@ -1238,9 +1260,7 @@ tests/:
         vertx4: v1.7.0
       Test_Suspicious_Request_Blocking:
         '*': v1.6.0
-        akka-http: bug (APPSEC-54985)
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-        spring-boot-payara: bug (APPSEC-54985)
     test_client_ip.py:
       Test_StandardTagsClientIp: v0.114.0
     test_conf.py:
@@ -1702,6 +1722,7 @@ tests/:
     Test_Span_Links_From_Conflicting_Contexts: v1.43.0
     Test_Span_Links_From_Conflicting_Contexts_Datadog_Precedence: v1.43.0
     Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
+  test_graphql.py: missing_feature
   test_identify.py:
     Test_Basic: missing_feature
     Test_Propagate: missing_feature
