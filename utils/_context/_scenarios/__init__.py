@@ -18,6 +18,7 @@ from .k8s_lib_injection import WeblogInjectionScenario, K8sScenario, K8sSparkSce
 from .docker_ssi import DockerSSIScenario
 from .external_processing import ExternalProcessingScenario
 from .ipv6 import IPV6Scenario
+from .appsec_low_waf_timeout import AppsecLowWafTimeout
 
 update_environ_with_local_env()
 
@@ -178,12 +179,9 @@ class _Scenarios:
         doc="Disable appsec and test DBM setting integration outcome when disabled",
         scenario_groups=[ScenarioGroup.APPSEC],
     )
-    appsec_low_waf_timeout = EndToEndScenario(
-        "APPSEC_LOW_WAF_TIMEOUT",
-        weblog_env={"DD_APPSEC_WAF_TIMEOUT": "1"},
-        doc="Appsec with a very low WAF timeout",
-        scenario_groups=[ScenarioGroup.APPSEC],
-    )
+
+    appsec_low_waf_timeout = AppsecLowWafTimeout("APPSEC_LOW_WAF_TIMEOUT")
+
     appsec_custom_obfuscation = EndToEndScenario(
         "APPSEC_CUSTOM_OBFUSCATION",
         weblog_env={
@@ -334,11 +332,36 @@ class _Scenarios:
         scenario_groups=[ScenarioGroup.APPSEC],
     )
 
+    appsec_standalone_v2 = EndToEndScenario(
+        "APPSEC_STANDALONE_V2",
+        weblog_env={
+            "DD_APPSEC_ENABLED": "true",
+            "DD_APM_TRACING_ENABLED": "false",
+            "DD_IAST_ENABLED": "false",
+        },
+        doc="Appsec standalone mode (APM opt out) V2",
+        scenario_groups=[ScenarioGroup.APPSEC],
+    )
+
     iast_standalone = EndToEndScenario(
         "IAST_STANDALONE",
         weblog_env={
             "DD_APPSEC_ENABLED": "false",
             "DD_EXPERIMENTAL_APPSEC_STANDALONE_ENABLED": "true",
+            "DD_IAST_ENABLED": "true",
+            "DD_IAST_DETECTION_MODE": "FULL",
+            "DD_IAST_DEDUPLICATION_ENABLED": "false",
+            "DD_IAST_REQUEST_SAMPLING": "100",
+        },
+        doc="Source code vulnerability standalone mode (APM opt out)",
+        scenario_groups=[ScenarioGroup.APPSEC],
+    )
+
+    iast_standalone_v2 = EndToEndScenario(
+        "IAST_STANDALONE_V2",
+        weblog_env={
+            "DD_APPSEC_ENABLED": "false",
+            "DD_APM_TRACING_ENABLED": "false",
             "DD_IAST_ENABLED": "true",
             "DD_IAST_DETECTION_MODE": "FULL",
             "DD_IAST_DEDUPLICATION_ENABLED": "false",
@@ -354,6 +377,19 @@ class _Scenarios:
             "DD_APPSEC_ENABLED": "false",
             "DD_APPSEC_SCA_ENABLED": "true",
             "DD_EXPERIMENTAL_APPSEC_STANDALONE_ENABLED": "true",
+            "DD_IAST_ENABLED": "false",
+            "DD_TELEMETRY_DEPENDENCY_RESOLUTION_PERIOD_MILLIS": "1",
+        },
+        doc="SCA standalone mode (APM opt out)",
+        scenario_groups=[ScenarioGroup.APPSEC],
+    )
+
+    sca_standalone_v2 = EndToEndScenario(
+        "SCA_STANDALONE_V2",
+        weblog_env={
+            "DD_APPSEC_ENABLED": "false",
+            "DD_APPSEC_SCA_ENABLED": "true",
+            "DD_APM_TRACING_ENABLED": "false",
             "DD_IAST_ENABLED": "false",
             "DD_TELEMETRY_DEPENDENCY_RESOLUTION_PERIOD_MILLIS": "1",
         },
@@ -587,6 +623,21 @@ class _Scenarios:
         },
         library_interface_timeout=5,
         doc="Check exception replay",
+        scenario_groups=[ScenarioGroup.DEBUGGER],
+    )
+
+    debugger_symdb = EndToEndScenario(
+        "DEBUGGER_SYMDB",
+        rc_api_enabled=True,
+        weblog_env={
+            "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1",
+            "DD_SYMBOL_DATABASE_UPLOAD_ENABLED": "1",
+            "DD_REMOTE_CONFIG_ENABLED": "true",
+            "DD_INTERNAL_RCM_POLL_INTERVAL": "2000",
+            "DD_DEBUGGER_DIAGNOSTICS_INTERVAL": "1",
+        },
+        library_interface_timeout=5,
+        doc="Test scenario for checking symdb.",
         scenario_groups=[ScenarioGroup.DEBUGGER],
     )
 

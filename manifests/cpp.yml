@@ -13,6 +13,7 @@ tests/:
       sink/:
         test_code_injection.py: irrelevant (ASM is not implemented in C++)
         test_command_injection.py: irrelevant (ASM is not implemented in C++)
+        test_email_html_injection.py: irrelevant (ASM is not implemented in C++)
         test_hardcoded_passwords.py: irrelevant (ASM is not implemented in C++)
         test_hardcoded_secrets.py: irrelevant (ASM is not implemented in C++)
         test_header_injection.py: irrelevant (ASM is not implemented in C++)
@@ -105,6 +106,8 @@ tests/:
       Test_Debugger_Probe_Snaphots: irrelevant
     test_debugger_probe_status.py:
       Test_Debugger_Probe_Statuses: irrelevant
+    test_debugger_symdb.py:
+      Test_Debugger_SymDb: irrelevant
   integrations/:
     crossed_integrations/:
       test_kafka.py:
