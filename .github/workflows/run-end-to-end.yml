@@ -113,6 +113,9 @@ jobs:
     - name: Run APPSEC_STANDALONE_V2 scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_STANDALONE_V2"')
       run: ./run.sh APPSEC_STANDALONE_V2
+    - name: Run APPSEC_NO_STATS scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_NO_STATS"')
+      run: ./run.sh APPSEC_NO_STATS
     - name: Run IAST_STANDALONE scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"IAST_STANDALONE"')
       run: ./run.sh IAST_STANDALONE
