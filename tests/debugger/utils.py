@@ -68,6 +68,7 @@ class _Base_Debugger_Test:
     probe_diagnostics = {}
     probe_snapshots = {}
     probe_spans = {}
+    all_spans = []
     symbols = []
 
     rc_state = None
@@ -370,6 +371,7 @@ class _Base_Debugger_Test:
                     for payload in content["tracerPayloads"]:
                         for chunk in payload["chunks"]:
                             for span in chunk["spans"]:
+                                self.all_spans.append(span)
                                 is_span_decoration_method = span["name"] == "dd.dynamic.span"
                                 if is_span_decoration_method:
                                     span_hash[span["meta"]["debugger.probeid"]] = span

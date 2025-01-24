@@ -2365,5 +2365,14 @@ class _Features:
         pytest.mark.features(feature_id=359)(test_object)
         return test_object
 
+    @staticmethod
+    def debugger_code_origins(test_object):
+        """Code Origins
+
+        https://feature-parity.us1.prod.dog/#/?feature=360
+        """
+        pytest.mark.features(feature_id=360)(test_object)
+        return test_object
+
 
 features = _Features()
