@@ -110,12 +110,21 @@ jobs:
     - name: Run APPSEC_STANDALONE scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_STANDALONE"')
       run: ./run.sh APPSEC_STANDALONE
+    - name: Run APPSEC_STANDALONE_V2 scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_STANDALONE_V2"')
+      run: ./run.sh APPSEC_STANDALONE_V2
     - name: Run IAST_STANDALONE scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"IAST_STANDALONE"')
       run: ./run.sh IAST_STANDALONE
+    - name: Run IAST_STANDALONE_V2 scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"IAST_STANDALONE_V2"')
+      run: ./run.sh IAST_STANDALONE_V2
     - name: Run SCA_STANDALONE scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"SCA_STANDALONE"')
       run: ./run.sh SCA_STANDALONE
+    - name: Run SCA_STANDALONE_V2 scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"SCA_STANDALONE_V2"')
+      run: ./run.sh SCA_STANDALONE_V2
     - name: Run IAST_DEDUPLICATION scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"IAST_DEDUPLICATION"')
       run: ./run.sh IAST_DEDUPLICATION
@@ -125,12 +134,12 @@ jobs:
     - name: Run IPV6 scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"IPV6"') && inputs.library != 'ruby'
       run: ./run.sh IPV6
-    # - name: Run CROSSED_TRACING_LIBRARIES scenario
-    #   if: always() && steps.build.outcome == 'success' && matrix.weblog != 'python3.12' && contains(inputs.scenarios, '"CROSSED_TRACING_LIBRARIES"')
-    #   run: ./run.sh CROSSED_TRACING_LIBRARIES
-    #   env:
-    #     SYSTEM_TESTS_AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-    #     SYSTEM_TESTS_AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+    - name: Run CROSSED_TRACING_LIBRARIES scenario
+      if: always() && steps.build.outcome == 'success' && matrix.weblog != 'python3.12' && contains(inputs.scenarios, '"CROSSED_TRACING_LIBRARIES"')
+      run: ./run.sh CROSSED_TRACING_LIBRARIES
+      env:
+        SYSTEM_TESTS_AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        SYSTEM_TESTS_AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
     - name: Run PROFILING scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"PROFILING"')
       run: |
@@ -146,12 +155,12 @@ jobs:
     - name: Run INTEGRATIONS scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"INTEGRATIONS"')
       run: ./run.sh INTEGRATIONS
-    # - name: Run INTEGRATIONS_AWS scenario
-    #   if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"INTEGRATIONS_AWS"')
-    #   run: ./run.sh INTEGRATIONS_AWS
-    #   env:
-    #     SYSTEM_TESTS_AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-    #     SYSTEM_TESTS_AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+    - name: Run INTEGRATIONS_AWS scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"INTEGRATIONS_AWS"')
+      run: ./run.sh INTEGRATIONS_AWS
+      env:
+        SYSTEM_TESTS_AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        SYSTEM_TESTS_AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
     - name: Run APM_TRACING_E2E_OTEL scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APM_TRACING_E2E_OTEL"')
       run: ./run.sh APM_TRACING_E2E_OTEL
