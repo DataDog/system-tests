@@ -64,8 +64,8 @@ class _Scenarios:
 
     profiling = ProfilingScenario("PROFILING")
 
-    asm_e2e = EndToEndScenario(
-        "End to end testing with default values",
+    appsec_no_stats = EndToEndScenario(
+        "End to end tests with default value of DD_TRACE_COMPUTE_STATS",
         doc=(
             "End to end testing with default values. Default scenario has DD_TRACE_COMPUTE_STATS=true."
             "This scenario let that env to use its default"
