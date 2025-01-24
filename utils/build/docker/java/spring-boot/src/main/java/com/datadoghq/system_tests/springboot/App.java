@@ -1104,7 +1104,7 @@ public class App {
     public String otelDropInDefaultPropagatorExtract(@RequestHeader Map<String, String> headers) throws com.fasterxml.jackson.core.JsonProcessingException {
         ContextPropagators propagators = GlobalOpenTelemetry.getPropagators();
         TextMapPropagator textMapPropagator = propagators.getTextMapPropagator();
-        
+
         Context extractedContext = textMapPropagator.extract(Context.current(), headers, new TextMapGetter<Map<String, String>>() {
             @Override
             public Iterable<String> keys(Map<String, String> map) {

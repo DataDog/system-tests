@@ -1510,10 +1510,7 @@ def otel_drop_in_default_propagator_extract():
     def get_header_from_flask_request(request, key):
         return request.headers.get(key)
 
-    context = opentelemetry.propagate.extract(
-        flask_request.headers,
-        opentelemetry.context.get_current()
-    )
+    context = opentelemetry.propagate.extract(flask_request.headers, opentelemetry.context.get_current())
 
     span_context = opentelemetry.trace.get_current_span(context).get_span_context()
 
