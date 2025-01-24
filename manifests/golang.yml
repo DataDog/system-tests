@@ -376,7 +376,7 @@ tests/:
       Test_StandardizationBlockMode: missing_feature
     test_metastruct.py:
       Test_SecurityEvents_Appsec_Metastruct_Disabled: v1.72.0-dev
-      Test_SecurityEvents_Appsec_Metastruct_Enabled: v1.72.0-dev
+      Test_SecurityEvents_Appsec_Metastruct_Enabled: v2.1.0-dev
       Test_SecurityEvents_Iast_Metastruct_Disabled: irrelevant (No IAST)
       Test_SecurityEvents_Iast_Metastruct_Enabled: irrelevant (No IAST)
     test_remote_config_rule_changes.py:
