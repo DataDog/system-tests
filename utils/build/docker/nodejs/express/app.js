@@ -5,6 +5,8 @@ const tracer = require('dd-trace').init({
   flushInterval: 5000
 })
 
+require('./iast/exclusions')
+
 const { promisify } = require('util')
 const app = require('express')()
 const axios = require('axios')
