@@ -192,6 +192,7 @@ def reverse_case(s):
 @rfc("https://docs.google.com/document/d/1SVD0zbbAAXIsobbvvfAEXipEUO99R9RMsosftfe9jx0")
 @scenarios.parametric
 @features.dynamic_configuration
+@features.adaptive_sampling
 class TestDynamicConfigV1:
     """Tests covering the v1 release of the dynamic configuration feature.
 
@@ -338,6 +339,46 @@ class TestDynamicConfigV1:
 @rfc("https://docs.google.com/document/d/1SVD0zbbAAXIsobbvvfAEXipEUO99R9RMsosftfe9jx0")
 @scenarios.parametric
 @features.dynamic_configuration
+@features.adaptive_sampling
+class TestDynamicConfigV1_EmptyServiceTargets:
+    @parametrize(
+        "library_env",
+        [
+            {
+                **DEFAULT_ENVVARS,
+                # Override service and env
+                "DD_SERVICE": s,
+                "DD_ENV": e,
+            }
+            for (s, e) in [
+                # empty service
+                ("", DEFAULT_ENVVARS["DD_ENV"]),
+                # empty env
+                (DEFAULT_ENVVARS["DD_SERVICE"], ""),
+                # empty service and empty env
+                ("", ""),
+            ]
+        ],
+    )
+    def test_not_match_service_target_empty_env(self, library_env, test_agent, test_library):
+        """
+        Test that the library reports a non-erroneous apply_state when DD_SERVICE or DD_ENV are empty.
+        """
+        _set_rc(test_agent, _default_config(TEST_SERVICE, TEST_ENV))
+
+        rc_args = {}
+        if context.library == "cpp":
+            # C++ make RC requests every second -> update is a bit slower to propagate.
+            rc_args["wait_loops"] = 1000
+
+        cfg_state = test_agent.wait_for_rc_apply_state("APM_TRACING", state=2, **rc_args)
+        assert cfg_state["apply_state"] == 2
+
+
+@rfc("https://docs.google.com/document/d/1SVD0zbbAAXIsobbvvfAEXipEUO99R9RMsosftfe9jx0")
+@scenarios.parametric
+@features.dynamic_configuration
+@features.adaptive_sampling
 class TestDynamicConfigV1_ServiceTargets:
     """Tests covering the Service Target matching of the dynamic configuration feature.
 
@@ -362,6 +403,7 @@ class TestDynamicConfigV1_ServiceTargets:
         ],
     )
     @bug(library="nodejs", reason="APMAPI-865")
+    @bug(library="java", reason="APMAPI-1003")
     def test_not_match_service_target(self, library_env, test_agent, test_library):
         """Test that the library reports an erroneous apply_state when the service targeting is not correct.
 
@@ -418,6 +460,7 @@ class TestDynamicConfigV1_ServiceTargets:
 @rfc("https://docs.google.com/document/d/1V4ZBsTsRPv8pAVG5WCmONvl33Hy3gWdsulkYsE4UZgU/edit")
 @scenarios.parametric
 @features.dynamic_configuration
+@features.adaptive_sampling
 class TestDynamicConfigV2:
     @parametrize("library_env", [{**DEFAULT_ENVVARS}, {**DEFAULT_ENVVARS, "DD_TAGS": "key1:val1,key2:val2"}])
     def test_tracing_client_tracing_tags(self, library_env, test_agent, test_library):
@@ -476,6 +519,7 @@ class TestDynamicConfigV2:
 
 @scenarios.parametric
 @features.dynamic_configuration
+@features.adaptive_sampling
 class TestDynamicConfigSamplingRules:
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
     def test_capability_tracing_sample_rules(self, library_env, test_agent, test_library):
@@ -558,6 +602,7 @@ class TestDynamicConfigSamplingRules:
 
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
     @bug(library="ruby", reason="APMAPI-867")
+    @flaky(library="python", reason="APMAPI-1051")
     def test_trace_sampling_rules_override_rate(self, library_env, test_agent, test_library):
         """The RC sampling rules should override the RC sampling rate."""
         RC_SAMPLING_RULE_RATE_CUSTOMER = 0.8

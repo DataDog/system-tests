@@ -1,10 +1,11 @@
 import ctypes
+from multiprocessing import context
 from typing import Dict
 from typing import List
 from typing import Optional
 from typing import Tuple
 from typing import Any
-
+import logging
 import os
 from fastapi import FastAPI
 import opentelemetry.trace
@@ -35,6 +36,7 @@ from ddtrace.constants import ERROR_TYPE
 from ddtrace.propagation.http import HTTPPropagator
 from ddtrace.internal.utils.version import parse_version
 
+log = logging.getLogger(__name__)
 
 spans: Dict[int, Span] = {}
 ddcontexts: Dict[int, Context] = {}
@@ -293,7 +295,12 @@ class SpanExtractReturn(BaseModel):
 def trace_span_extract_headers(args: SpanExtractArgs) -> SpanExtractReturn:
     headers = {k: v for k, v in args.http_headers}
     context = HTTPPropagator.extract(headers)
-    if context.span_id:
+    if context:
+        if context.span_id in ddcontexts:
+            log.warning(
+                "Duplicate span context detected. The following span context will be overwritten: %s",
+                ddcontexts[context.span_id],
+            )
         ddcontexts[context.span_id] = context
     return SpanExtractReturn(span_id=context.span_id)
 

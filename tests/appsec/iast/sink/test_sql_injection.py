@@ -51,6 +51,5 @@ class TestSqlInjection_StackTrace:
     def setup_stack_trace(self):
         self.r = weblog.post("/iast/sqli/test_insecure", data={"username": "shaquille_oatmeal", "password": "123456"})
 
-    @missing_feature(context.weblog_variant == "jersey-grizzly2", reason="Endpoint responds 500")
     def test_stack_trace(self):
         validate_stack_traces(self.r)

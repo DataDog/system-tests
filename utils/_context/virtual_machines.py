@@ -1,6 +1,7 @@
 import os
 import json
 import hashlib
+from pathlib import Path
 
 from utils.tools import logger
 from utils import context
@@ -178,7 +179,7 @@ class _VirtualMachine:
     def get_log_folder(self):
         vm_folder = f"{context.scenario.host_log_folder}/{self.name}"
         if not os.path.exists(vm_folder):
-            os.mkdir(vm_folder)
+            Path.mkdir(vm_folder)
         return vm_folder
 
     def get_default_log_file(self):
@@ -234,7 +235,7 @@ class _VirtualMachine:
         return full_cache_name
 
     def get_command_environment(self):
-        """This environment will be injected as environment variables for all launched remote commands"""
+        """Get the environment that will be injected as environment variables for all launched remote commands"""
         command_env = {}
         for key, value in self.get_provision().env.items():
             command_env["DD_" + key] = value
@@ -273,7 +274,8 @@ class _VirtualMachine:
                 app_env_values += f"{key}={value} "
             command_env["DD_APP_ENV"] = app_env_values
         else:
-            # Containers are taking the generated file with this, and we need some value to be present to avoid failures like:
+            # Containers are taking the generated file with this, and we need some value to be present to avoid
+            # failures like:
             # failed to read /home/ubuntu/scenario_app.env: line 1: unexpected character "'" in variable name "''"
             command_env["DD_APP_ENV"] = "foo=bar"
 

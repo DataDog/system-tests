@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Data.Sqlite;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data.SqlClient;
 using System.Diagnostics;
@@ -56,17 +57,23 @@ namespace weblog
         }
 
         [XmlRoot("command")]
-        public class CmdiModel
+        public class Command
         {
-            [XmlText]
-            public string Value { get; set; }
+            [XmlElement("cmd")]
+            public List<string> Cmd { get; set; }
         }
 
         [HttpPost("cmdi")]
         [Consumes("application/xml")]
-        public IActionResult cmdiPostXml([FromBody] CmdiModel data)
+        public IActionResult cmdiPostXml([FromBody] Command data)
         {
-            return ExecuteCommandInternal(data.Value, false);
+            List<string> arguments = null;
+            if (data is not null && data.Cmd is not null && data.Cmd.Count > 1)
+            {
+                arguments = data.Cmd.GetRange(1, data.Cmd.Count - 1);
+            }
+
+            return ExecuteCommandInternal(data?.Cmd[0], false, arguments);
         }
 
         [HttpPost("cmdi")]
@@ -76,14 +83,25 @@ namespace weblog
             return ExecuteCommandInternal(data.Command, false);
         }
 
-        [HttpPost("cmdi")]
-        [Consumes("application/json")]
-        public IActionResult cmdiPostJson([FromBody] Model data)
+        public class CmdiJsonModel
         {
-            return ExecuteCommandInternal(data.Command, false);
+            public List<string>? Command { get; set; }
         }
 
-        private IActionResult ExecuteCommandInternal(string commandLine, bool useShell = true)
+        [HttpPost("cmdi")]
+        [Consumes("application/json")]
+        public IActionResult cmdiPostJson([FromBody] CmdiJsonModel data)
+        {
+            List<string> arguments = null;
+            if (data is not null && data.Command is not null && data.Command.Count > 1)
+            {
+                arguments = data.Command.GetRange(1, data.Command.Count - 1);
+            }
+
+            return ExecuteCommandInternal(data?.Command[0], false, arguments);
+        }
+
+        private IActionResult ExecuteCommandInternal(string commandLine, bool useShell = true, List<string>? argumentList = null)
         {
             try
             {
@@ -92,6 +110,15 @@ namespace weblog
                     ProcessStartInfo startInfo = new ProcessStartInfo();
                     startInfo.FileName = commandLine;
                     startInfo.UseShellExecute = useShell;
+
+                    if (argumentList is not null)
+                    {
+                        foreach (var argument in argumentList)
+                        {
+                            startInfo.ArgumentList.Add(argument);
+                        }
+                    }
+
                     var result = Process.Start(startInfo);
                     return Content($"Process launched.");
                 }
@@ -102,7 +129,7 @@ namespace weblog
             }
             catch (Win32Exception)
             {
-                return Content("Non existing file.");
+                return Content("Non existing file:" + commandLine);
             }
         }
 

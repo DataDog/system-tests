@@ -3,7 +3,7 @@
 import pytest
 
 
-class features:
+class _Features:
     """Data source is https://dd-feature-parity.azurewebsites.net/Import/Features
 
     run this command to get new features:
@@ -2023,6 +2023,15 @@ class features:
         return test_object
 
     @staticmethod
+    def appsec_standalone_v2(test_object):
+        """Appsec Standalone Billing V2
+
+        https://feature-parity.us1.prod.dog/#/?feature=355
+        """
+        pytest.mark.features(feature_id=355)(test_object)
+        return test_object
+
+    @staticmethod
     def iast_standalone(test_object):
         """Iast Standalone Billing
 
@@ -2032,12 +2041,30 @@ class features:
         return test_object
 
     @staticmethod
+    def iast_standalone_v2(test_object):
+        """Iast Standalone Billing V2
+
+        https://feature-parity.us1.prod.dog/#/?feature=356
+        """
+        pytest.mark.features(feature_id=356)(test_object)
+        return test_object
+
+    @staticmethod
     def sca_standalone(test_object):
         """SCA Standalone Billing
 
         https://feature-parity.us1.prod.dog/#/?feature=320
         """
         pytest.mark.features(feature_id=320)(test_object)
+        return test_object
+
+    @staticmethod
+    def sca_standalone_v2(test_object):
+        """SCA Standalone Billing V2
+
+        https://feature-parity.us1.prod.dog/#/?feature=357
+        """
+        pytest.mark.features(feature_id=357)(test_object)
         return test_object
 
     @staticmethod
@@ -2185,6 +2212,15 @@ class features:
         return test_object
 
     @staticmethod
+    def iast_source_sql(test_object):
+        """IAST Source: SQL
+
+        https://feature-parity.us1.prod.dog/#/?feature=344
+        """
+        pytest.mark.features(feature_id=344)(test_object)
+        return test_object
+
+    @staticmethod
     def tracing_configuration_consistency(test_object):
         """Enforces standardized behaviors for configurations across the tracing libraries.
 
@@ -2265,3 +2301,69 @@ class features:
         """
         pytest.mark.features(feature_id=342)(test_object)
         return test_object
+
+    @staticmethod
+    def adaptive_sampling(test_object):
+        """Adaptive sampling rules + RC
+
+        https://feature-parity.us1.prod.dog/#/?feature=346
+        """
+        pytest.mark.features(feature_id=346)(test_object)
+        return test_object
+
+    @staticmethod
+    def agent_host_ipv6(test_object):
+        """DD_AGENT_HOST supports an IPv6 address
+
+        https://feature-parity.us1.prod.dog/#/?feature=347
+        """
+        pytest.mark.features(feature_id=347)(test_object)
+        return test_object
+
+    @staticmethod
+    def iast_security_controls(test_object):
+        """IAST: Security Controls
+
+        https://feature-parity.us1.prod.dog/#/?feature=343
+        """
+        pytest.mark.features(feature_id=343)(test_object)
+        return test_object
+
+    @staticmethod
+    def graphql_query_error_reporting(test_object):
+        """GraphQL query error reporting
+
+        https://feature-parity.us1.prod.dog/#/?feature=354
+        """
+        pytest.mark.features(feature_id=354)(test_object)
+        return test_object
+
+    @staticmethod
+    def envoy_external_processing(test_object):
+        """Support for Envoy External Processing
+
+        https://feature-parity.us1.prod.dog/#/?feature=350
+        """
+        pytest.mark.features(feature_id=350)(test_object)
+        return test_object
+
+    @staticmethod
+    def iast_sink_email_html_injection(test_object):
+        """IAST Sink: Email HTML injection
+
+        https://feature-parity.us1.prod.dog/#/?feature=358
+        """
+        pytest.mark.features(feature_id=358)(test_object)
+        return test_object
+
+    @staticmethod
+    def language_specifics(test_object):
+        """Language specific tests
+
+        https://feature-parity.us1.prod.dog/#/?feature=359
+        """
+        pytest.mark.features(feature_id=359)(test_object)
+        return test_object
+
+
+features = _Features()

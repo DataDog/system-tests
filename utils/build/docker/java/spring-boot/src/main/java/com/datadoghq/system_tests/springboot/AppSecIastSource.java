@@ -24,6 +24,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -161,6 +162,15 @@ public class AppSecIastSource {
     @GetMapping("/kafkavalue/test")
     public ResponseEntity<String> kafkaValue() throws Exception {
         return kafka("iast-group-value", "key", "hello value!", record -> Paths.get(record.value()).toString());
+    }
+
+    @GetMapping("/sql/test")
+    public String sourceSql() {
+        final List<Map<String, Object>> queryResult = (List<Map<String, Object>>) sql.secureSql("shaquille_oatmeal", "123456");
+        final String username = (String) queryResult.get(0).get("USERNAME");
+
+        sql.insecureSql(username);
+        return "OK";
     }
 
     private ResponseEntity<String> kafka(final String group, final String key, final String value, final KafkaRecordHandler op) throws Exception {

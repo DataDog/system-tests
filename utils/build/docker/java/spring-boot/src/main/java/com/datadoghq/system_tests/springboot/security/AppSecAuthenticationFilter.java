@@ -1,11 +1,14 @@
 package com.datadoghq.system_tests.springboot.security;
 
-import static java.util.Collections.emptyList;
-
+import datadog.trace.api.EventTracker;
+import datadog.trace.api.GlobalTracer;
+import org.checkerframework.checker.units.qual.A;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.util.Base64Utils;
@@ -14,17 +17,35 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 public class AppSecAuthenticationFilter extends AbstractAuthenticationProcessingFilter {
+
+    private enum SdkTrigger {
+        BEFORE,
+        AFTER,
+        NONE;
+
+        public static SdkTrigger get(final HttpServletRequest request) {
+            if (request.getParameter("sdk_event") == null) {
+                return NONE;
+            }
+            final String trigger = request.getParameter("sdk_trigger");
+            if (trigger == null || "after".equalsIgnoreCase(trigger)) {
+                return AFTER;
+            }
+            return BEFORE;
+        }
+    }
 
     public AppSecAuthenticationFilter(String url, AuthenticationManager authenticationManager) {
         super(new AntPathRequestMatcher(url), authenticationManager);
         this.setAuthenticationSuccessHandler((request, response, authentication) -> {
-            response.getWriter().write("Hello " + authentication.getName());
             response.setStatus(HttpStatus.OK.value());
         });
         this.setAuthenticationFailureHandler((request, response, exception) -> {
-            response.sendError(HttpStatus.UNAUTHORIZED.value(), exception.getMessage());
+            response.setStatus(HttpStatus.UNAUTHORIZED.value());
         });
     }
 
@@ -49,15 +70,33 @@ public class AppSecAuthenticationFilter extends AbstractAuthenticationProcessing
             default:
                 return null;
         }
-        Authentication authentication;
-        String sdkEvent = request.getParameter("sdk_event");
-        if (sdkEvent != null) {
-            String sdkUser = request.getParameter("sdk_user");
-            boolean sdkUserExists = Boolean.parseBoolean(request.getParameter("sdk_user_exists"));
-            authentication = new AppSecSdkToken(username, password, sdkEvent, sdkUser, sdkUserExists);
-        } else {
-            authentication = new AppSecSdkToken(username, password);
+        final SdkTrigger trigger = SdkTrigger.get(request);
+        AuthenticationException sdkException = trigger == SdkTrigger.BEFORE ? triggerSdk(request) : null;
+        try {
+            return this.getAuthenticationManager().authenticate(new AppSecToken(username, password));
+        } finally {
+            sdkException = trigger == SdkTrigger.AFTER ? triggerSdk(request) : sdkException;
+            if (sdkException != null) {
+                throw sdkException;
+            }
         }
-        return this.getAuthenticationManager().authenticate(authentication);
+    }
+
+    private AuthenticationException triggerSdk(final HttpServletRequest request) {
+        final String sdkEvent = request.getParameter("sdk_event");
+        final String sdkUser = request.getParameter("sdk_user");
+        final boolean sdkUserExists = Boolean.parseBoolean(request.getParameter("sdk_user_exists"));
+        final EventTracker tracker = GlobalTracer.getEventTracker();
+        final Map<String, String> metadata = new HashMap<>();
+        switch (sdkEvent) {
+            case "success":
+                tracker.trackLoginSuccessEvent(sdkUser, metadata);
+                return null;
+            case "failure":
+                tracker.trackLoginFailureEvent(sdkUser, sdkUserExists, metadata);
+                return new BadCredentialsException(sdkUser);
+            default:
+                throw new IllegalArgumentException("Invalid SDK event: " + sdkEvent);
+        }
     }
 }

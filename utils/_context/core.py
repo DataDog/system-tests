@@ -83,8 +83,6 @@ class _Context:
 
     def serialize(self):
         result = {
-            "agent": str(self.agent_version),
-            "library": self.library.serialize(),
             "weblog_variant": self.weblog_variant,
             "sampling_rate": self.tracer_sampling_rate,
             "appsec_rules_file": self.appsec_rules_file or "*default*",
@@ -94,8 +92,9 @@ class _Context:
         # TODO all components inside of components node
         result |= self.components
 
-        # If a test is parametrized, it could contain specific data for each test. This node will contain this data associated with test id
-        # If we are on multi thread environment we need to store this data on a file. We should deserialize json data (extract data from file)
+        # If a test is parametrized, it could contain specific data for each test. This node will contain this data
+        # associated with test id. If we are on multi thread environment we need to store this data on a file.
+        # We should deserialize json data (extract data from file)
         if self.parametrized_tests_metadata:
             try:
                 result["parametrized_tests_metadata"] = self.parametrized_tests_metadata.deserialize()

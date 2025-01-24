@@ -4,9 +4,7 @@ These are used to specify, test and work with trace data and protocols.
 """
 
 import json
-from typing import Optional
 from typing import TypedDict
-from typing import Union
 
 from ddapm_test_agent.trace import Span
 from ddapm_test_agent.trace import Trace
@@ -87,9 +85,9 @@ class V06StatsBucket(TypedDict):
 
 
 class V06StatsPayload(TypedDict):
-    Hostname: Optional[str]
-    Env: Optional[str]
-    Version: Optional[str]
+    Hostname: str | None
+    Env: str | None
+    Version: str | None
     Stats: list[V06StatsBucket]
 
 
@@ -194,7 +192,7 @@ def find_first_span_in_trace_payload(trace: Trace) -> Span:
     return trace[0]
 
 
-def find_root_span(trace: Trace) -> Optional[Span]:
+def find_root_span(trace: Trace) -> Span | None:
     """Return the root span of the trace or None if no root span is found."""
     for span in trace:
         if not span.get("parent_id"):
@@ -207,14 +205,14 @@ def span_has_no_parent(span: Span) -> bool:
     return "parent_id" not in span or span.get("parent_id") == 0 or span.get("parent_id") is None
 
 
-def assert_span_has_tags(span: Span, tags: dict[str, Union[int, str, float, bool]]):
+def assert_span_has_tags(span: Span, tags: dict[str, int | str | float | bool]):
     """Assert that the span has the given tags."""
     for key, value in tags.items():
         assert key in span.get("meta", {}), f"Span missing expected tag {key}={value}"
         assert span.get("meta", {}).get(key) == value, f"Span incorrect tag value for {key}={value}"
 
 
-def assert_trace_has_tags(trace: Trace, tags: dict[str, Union[int, str, float, bool]]):
+def assert_trace_has_tags(trace: Trace, tags: dict[str, int | str | float | bool]):
     """Assert that the trace has the given tags."""
     for span in trace:
         assert_span_has_tags(span, tags)
@@ -224,51 +222,55 @@ def retrieve_span_links(span):
     if span.get("span_links") is not None:
         return span["span_links"]
 
-    if span["meta"].get("_dd.span_links") is not None:
-        # Convert span_links tags into msgpack v0.4 format
-        json_links = json.loads(span["meta"].get("_dd.span_links"))
-        links = []
-        for json_link in json_links:
-            link = {}
-            link["trace_id"] = int(json_link["trace_id"][-16:], base=16)
-            link["span_id"] = int(json_link["span_id"], base=16)
-            if len(json_link["trace_id"]) > 16:
-                link["trace_id_high"] = int(json_link["trace_id"][:16], base=16)
-            if "attributes" in json_link:
-                link["attributes"] = json_link.get("attributes")
-            if "tracestate" in json_link:
-                link["tracestate"] = json_link.get("tracestate")
-            elif "trace_state" in json_link:
-                link["tracestate"] = json_link.get("trace_state")
-            if "flags" in json_link:
-                link["flags"] = json_link.get("flags") | TRACECONTEXT_FLAGS_SET
-            else:
-                link["flags"] = 0
-            links.append(link)
-        return links
+    if span["meta"].get("_dd.span_links") is None:
+        return None
+
+    # Convert span_links tags into msgpack v0.4 format
+    json_links = json.loads(span["meta"].get("_dd.span_links"))
+    links = []
+    for json_link in json_links:
+        link = {}
+        link["trace_id"] = int(json_link["trace_id"][-16:], base=16)
+        link["span_id"] = int(json_link["span_id"], base=16)
+        if len(json_link["trace_id"]) > 16:
+            link["trace_id_high"] = int(json_link["trace_id"][:16], base=16)
+        if "attributes" in json_link:
+            link["attributes"] = json_link.get("attributes")
+        if "tracestate" in json_link:
+            link["tracestate"] = json_link.get("tracestate")
+        elif "trace_state" in json_link:
+            link["tracestate"] = json_link.get("trace_state")
+        if "flags" in json_link:
+            link["flags"] = json_link.get("flags") | TRACECONTEXT_FLAGS_SET
+        else:
+            link["flags"] = 0
+        links.append(link)
+    return links
 
 
 def retrieve_span_events(span):
     if span.get("span_events") is not None:
         return span["span_events"]
 
-    if span["meta"].get("events") is not None:
-        # Convert span_events tags into msgpack v0.4 format
-        json_events = json.loads(span["meta"].get("events"))
-        events = []
-        for json_event in json_events:
-            event = {}
+    if span["meta"].get("events") is None:
+        return None
 
-            event["time_unix_nano"] = json_event["time_unix_nano"]
-            event["name"] = json_event["name"]
-            if "attributes" in json_event:
-                event["attributes"] = json_event["attributes"]
+    # Convert span_events tags into msgpack v0.4 format
+    json_events = json.loads(span["meta"].get("events"))
+    events = []
+    for json_event in json_events:
+        event = {}
 
-            events.append(event)
-        return events
+        event["time_unix_nano"] = json_event["time_unix_nano"]
+        event["name"] = json_event["name"]
+        if "attributes" in json_event:
+            event["attributes"] = json_event["attributes"]
+
+        events.append(event)
+    return events
 
 
-def id_to_int(value: Union[str, int]) -> int:
+def id_to_int(value: str | int) -> int:
     """Convert an id from hex or a base 10 string to an integer."""
     if isinstance(value, int):
         return value

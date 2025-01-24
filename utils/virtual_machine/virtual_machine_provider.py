@@ -49,7 +49,7 @@ class VmProvider:
         raise NotImplementedError
 
     def install_provision(self, vm, server, server_connection):
-        """This method orchestrate the provision installation for a machine
+        """Orchestrate the provision installation for a machine
         Vm object contains the provision for the machine.
         The provision structure must satisfy the class utils/virtual_machine/virtual_machine_provisioner.py#Provision
         This is a common method for all providers
@@ -104,7 +104,7 @@ class VmProvider:
             last_task = self.commander.remote_command(
                 vm,
                 "checkout_branch",
-                f"cd system-tests && git pull && git checkout {ci_commit_branch}",
+                f"cd system-tests && git reset --hard HEAD && git stash && git pull && git stash && git checkout {ci_commit_branch}",
                 vm.get_command_environment(),
                 server_connection,
                 last_task,

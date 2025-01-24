@@ -8,7 +8,7 @@ from .core import ScenarioGroup
 from .endtoend import EndToEndScenario
 
 
-def _get_unique_id(replay: bool, host_log_folder: str) -> str:
+def _get_unique_id(host_log_folder: str, *, replay: bool) -> str:
     # as this Id will be used to get data published in AWS, it must be unique
     # and to be able to be used in replay mode, it must be saved in a file
 
@@ -36,6 +36,7 @@ class IntegrationsScenario(EndToEndScenario):
                 "AWS_ACCESS_KEY_ID": "my-access-key",
                 "AWS_SECRET_ACCESS_KEY": "my-access-key",
                 "DD_TRACE_INFERRED_PROXY_SERVICES_ENABLED": "true",
+                "DD_IAST_CONTEXT_MODE": "GLOBAL",
             },
             include_postgres_db=True,
             include_cassandra_db=True,
@@ -45,13 +46,16 @@ class IntegrationsScenario(EndToEndScenario):
             include_mysql_db=True,
             include_sqlserver=True,
             include_otel_drop_in=True,
-            doc="Spawns tracer, agent, and a full set of database. Test the integrations of those databases with tracers",
+            doc=(
+                "Spawns tracer, agent, and a full set of database. "
+                "Test the integrations of those databases with tracers"
+            ),
             scenario_groups=[ScenarioGroup.INTEGRATIONS, ScenarioGroup.APPSEC, ScenarioGroup.ESSENTIALS],
         )
 
     def configure(self, config):
         super().configure(config)
-        self.unique_id = _get_unique_id(self.replay, self.host_log_folder)
+        self.unique_id = _get_unique_id(self.host_log_folder, replay=self.replay)
 
 
 class AWSIntegrationsScenario(EndToEndScenario):
@@ -84,6 +88,7 @@ class AWSIntegrationsScenario(EndToEndScenario):
     def __init__(
         self,
         name="INTEGRATIONS_AWS",
+        *,
         doc="Spawns tracer, and agent. Test AWS integrations.",
         include_kafka=False,
         include_rabbitmq=False,
@@ -111,7 +116,7 @@ class AWSIntegrationsScenario(EndToEndScenario):
         super().configure(config)
         if not self.replay:
             self._check_aws_variables()
-        self.unique_id = _get_unique_id(self.replay, self.host_log_folder)
+        self.unique_id = _get_unique_id(self.host_log_folder, replay=self.replay)
 
     def _check_aws_variables(self):
         if not os.environ.get("SYSTEM_TESTS_AWS_ACCESS_KEY_ID") and not os.environ.get("AWS_ACCESS_KEY_ID"):
@@ -134,4 +139,4 @@ class CrossedTracingLibraryScenario(EndToEndScenario):
 
     def configure(self, config):
         super().configure(config)
-        self.unique_id = _get_unique_id(self.replay, self.host_log_folder)
+        self.unique_id = _get_unique_id(self.host_log_folder, replay=self.replay)

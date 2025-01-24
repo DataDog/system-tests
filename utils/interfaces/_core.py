@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-"""This file contains base class used to validate interfaces"""
+"""Contains base class used to validate interfaces"""
 
 import json
 from os import listdir
@@ -132,7 +132,7 @@ class ProxyBasedInterfaceValidator(InterfaceValidator):
 
             yield data
 
-    def validate(self, validator, path_filters=None, success_by_default=False):
+    def validate(self, validator, path_filters=None, *, success_by_default=False):
         for data in self.get_data(path_filters=path_filters):
             try:
                 if validator(data) is True:

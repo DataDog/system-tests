@@ -20,7 +20,7 @@ tests/:
         Test_API_Security_Sampling_Different_Paths: missing_feature
         Test_API_Security_Sampling_Different_Status: missing_feature
         Test_API_Security_Sampling_Rate:
-          '*': v1.60.0-dev
+          '*': v1.60.0
           net-http: irrelevant (net-http doesn't handle path params)
         Test_API_Security_Sampling_With_Delay: missing_feature
       test_schemas.py:
@@ -30,7 +30,7 @@ tests/:
         Test_Schema_Request_Headers: v1.60.0
         Test_Schema_Request_Json_Body: v1.60.0
         Test_Schema_Request_Path_Parameters:
-          '*': v1.60.0-dev
+          '*': v1.60.0
           net-http: irrelevant (net-http cannot list path params)
         Test_Schema_Request_Query_Parameters: v1.60.0
         Test_Schema_Response_Body: missing_feature
@@ -44,6 +44,9 @@ tests/:
         test_command_injection.py:
           TestCommandInjection: missing_feature
           TestCommandInjection_StackTrace: missing_feature
+        test_email_html_injection.py:
+          TestEmailHtmlInjection: missing_feature
+          TestEmailHtmlInjection_StackTrace: missing_feature
         test_hardcoded_passwords.py:
           Test_HardcodedPasswords: missing_feature
           Test_HardcodedPasswords_StackTrace: missing_feature
@@ -157,8 +160,12 @@ tests/:
           TestPath: missing_feature
         test_path_parameter.py:
           TestPathParameter: missing_feature
+        test_sql_row.py:
+          TestSqlRow: missing_feature
         test_uri.py:
           TestURI: missing_feature
+      test_security_controls.py:
+        TestSecurityControls: missing_feature
     rasp/:
       test_cmdi.py: missing_feature
       test_lfi.py: missing_feature
@@ -167,8 +174,8 @@ tests/:
         Test_Sqli_BodyJson: v1.66.0
         Test_Sqli_BodyUrlEncoded: v1.66.0
         Test_Sqli_BodyXml: v1.66.0
-        Test_Sqli_Capability: v1.69.0-dev
-        Test_Sqli_Mandatory_SpanTags: v1.69.0-dev
+        Test_Sqli_Capability: v1.69.0
+        Test_Sqli_Mandatory_SpanTags: v1.69.0
         Test_Sqli_Optional_SpanTags: missing_feature
         Test_Sqli_Rules_Version: missing_feature
         Test_Sqli_StackTrace: v1.66.0
@@ -179,8 +186,8 @@ tests/:
         Test_Ssrf_BodyJson: v1.65.1
         Test_Ssrf_BodyUrlEncoded: v1.65.1
         Test_Ssrf_BodyXml: v1.65.1
-        Test_Ssrf_Capability: v1.69.0-dev
-        Test_Ssrf_Mandatory_SpanTags: v1.69.0-dev
+        Test_Ssrf_Capability: v1.69.0
+        Test_Ssrf_Mandatory_SpanTags: v1.69.0
         Test_Ssrf_Optional_SpanTags: missing_feature
         Test_Ssrf_Rules_Version: missing_feature
         Test_Ssrf_StackTrace: v1.65.1
@@ -301,15 +308,23 @@ tests/:
         echo: v1.36.0
         gin: v1.37.0
     test_asm_standalone.py:
-      Test_AppSecStandalone_UpstreamPropagation: missing_feature
+      Test_AppSecStandalone_UpstreamPropagation: v1.72.0-dev
+      Test_AppSecStandalone_UpstreamPropagation_V2: missing_feature
       Test_IastStandalone_UpstreamPropagation: missing_feature
+      Test_IastStandalone_UpstreamPropagation_V2: missing_feature
       Test_SCAStandalone_Telemetry: missing_feature
+      Test_SCAStandalone_Telemetry_V2: missing_feature
     test_automated_login_events.py:
       Test_Login_Events: missing_feature
       Test_Login_Events_Extended: missing_feature
       Test_V2_Login_Events: missing_feature
       Test_V2_Login_Events_Anon: missing_feature
       Test_V2_Login_Events_RC: missing_feature
+      Test_V3_Auto_User_Instrum_Mode_Capability: missing_feature
+      Test_V3_Login_Events: missing_feature
+      Test_V3_Login_Events_Anon: missing_feature
+      Test_V3_Login_Events_Blocking: missing_feature
+      Test_V3_Login_Events_RC: missing_feature
     test_automated_user_and_session_tracking.py:
       Test_Automated_Session_Blocking: missing_feature
       Test_Automated_User_Blocking: missing_feature
@@ -350,13 +365,13 @@ tests/:
       Test_UserLoginFailureEvent: v1.47.0
       Test_UserLoginSuccessEvent: v1.47.0
     test_fingerprinting.py:
-      Test_Fingerprinting_Endpoint: v1.69.0-dev
-      Test_Fingerprinting_Endpoint_Capability: v1.69.0-dev
-      Test_Fingerprinting_Header_And_Network: v1.69.0-dev
-      Test_Fingerprinting_Header_Capability: v1.69.0-dev
-      Test_Fingerprinting_Network_Capability: v1.69.0-dev
-      Test_Fingerprinting_Session: v1.69.0-dev
-      Test_Fingerprinting_Session_Capability: v1.69.0-dev
+      Test_Fingerprinting_Endpoint: v1.69.0
+      Test_Fingerprinting_Endpoint_Capability: v1.69.0
+      Test_Fingerprinting_Header_And_Network: v1.69.0
+      Test_Fingerprinting_Header_Capability: v1.69.0
+      Test_Fingerprinting_Network_Capability: v1.69.0
+      Test_Fingerprinting_Session: v1.69.0
+      Test_Fingerprinting_Session_Capability: v1.69.0
     test_identify.py:
       Test_Basic: v1.37.0
     test_ip_blocking_full_denylist.py:
@@ -366,12 +381,12 @@ tests/:
       Test_Standardization: missing_feature
       Test_StandardizationBlockMode: missing_feature
     test_metastruct.py:
-      Test_SecurityEvents_Appsec_Metastruct_Disabled: irrelevant (no fallback will be implemented)
-      Test_SecurityEvents_Appsec_Metastruct_Enabled: missing_feature
-      Test_SecurityEvents_Iast_Metastruct_Disabled: irrelevant (no fallback will be implemented)
-      Test_SecurityEvents_Iast_Metastruct_Enabled: missing_feature
+      Test_SecurityEvents_Appsec_Metastruct_Disabled: v1.72.0-dev
+      Test_SecurityEvents_Appsec_Metastruct_Enabled: v1.72.0-dev
+      Test_SecurityEvents_Iast_Metastruct_Disabled: irrelevant (No IAST)
+      Test_SecurityEvents_Iast_Metastruct_Enabled: irrelevant (No IAST)
     test_remote_config_rule_changes.py:
-      Test_BlockingActionChangesWithRemoteConfig: v1.69.0-dev
+      Test_BlockingActionChangesWithRemoteConfig: v1.69.0
       Test_UpdateRuleFileWithRemoteConfig: bug (APPSEC-55377)
     test_reports.py:
       Test_ExtraTagsFromRule:
@@ -392,12 +407,12 @@ tests/:
     test_request_blocking.py:
       Test_AppSecRequestBlocking: v1.50.0-rc.1
     test_runtime_activation.py:
-      Test_RuntimeActivation: v1.69.0-dev
-      Test_RuntimeDeactivation: v1.69.0-dev
+      Test_RuntimeActivation: v1.69.0
+      Test_RuntimeDeactivation: v1.69.0
     test_shell_execution.py:
       Test_ShellExecution: missing_feature
     test_suspicious_attacker_blocking.py:
-      Test_Suspicious_Attacker_Blocking: v1.69.0-dev
+      Test_Suspicious_Attacker_Blocking: v1.69.0
     test_traces.py:
       Test_AppSecEventSpanTags:
         '*': v1.36.0
@@ -409,7 +424,7 @@ tests/:
       Test_CollectRespondHeaders:
         '*': v1.36.2
         gin: v1.37.0
-      Test_ExternalWafRequestsIdentification: v1.63.0-dev
+      Test_ExternalWafRequestsIdentification: v1.63.0
       Test_RetainTraces:
         '*': v1.36.0
         gin: v1.37.0
@@ -430,6 +445,8 @@ tests/:
       Test_Debugger_Probe_Snaphots: missing_feature (feature not implented)
     test_debugger_probe_status.py:
       Test_Debugger_Probe_Statuses: missing_feature (feature not implented)
+    test_debugger_symdb.py:
+      Test_Debugger_SymDb: missing_feature (feature not implented)
   integrations/:
     crossed_integrations/:
       test_kafka.py:
@@ -504,15 +521,17 @@ tests/:
     test_config_consistency.py:
       Test_Config_Dogstatsd: missing_feature
       Test_Config_RateLimit: v1.67.0
-      Test_Config_TraceAgentURL: v1.70.0-dev
+      Test_Config_Tags: v1.70.1
+      Test_Config_TraceAgentURL: v1.70.0
       Test_Config_TraceEnabled: v1.67.0
-      Test_Config_TraceLogDirectory: v1.70.0-dev
+      Test_Config_TraceLogDirectory: v1.70.0
       Test_Config_UnifiedServiceTagging: bug (APMAPI-746)
     test_crashtracking.py: missing_feature
     test_dynamic_configuration.py:
-      TestDynamicConfigSamplingRules: v1.64.0-dev
+      TestDynamicConfigSamplingRules: v1.64.0
       TestDynamicConfigTracingEnabled: v1.61.0
       TestDynamicConfigV1: v1.59.0
+      TestDynamicConfigV1_EmptyServiceTargets: missing_feature
       TestDynamicConfigV1_ServiceTargets: v1.59.0
       TestDynamicConfigV2: v1.59.0
     test_headers_baggage.py:
@@ -543,10 +562,10 @@ tests/:
     test_trace_sampling.py:
       Test_Trace_Sampling_Basic: v1.37.0 # TODO what is the earliest version?
       Test_Trace_Sampling_Globs: v1.60.0
-      Test_Trace_Sampling_Globs_Feb2024_Revision: v1.64.0-dev
+      Test_Trace_Sampling_Globs_Feb2024_Revision: v1.64.0
       Test_Trace_Sampling_Resource: v1.60.0
       Test_Trace_Sampling_Tags: v1.60.0
-      Test_Trace_Sampling_Tags_Feb2024_Revision: v1.64.0-dev
+      Test_Trace_Sampling_Tags_Feb2024_Revision: v1.64.0
     test_tracer.py:
       Test_TracerSCITagging: v1.48.0
     test_tracer_flare.py:
@@ -559,7 +578,6 @@ tests/:
       Test_RemoteConfigurationUpdateSequenceFeatures: v1.44.1
       Test_RemoteConfigurationUpdateSequenceFeaturesNoCache: irrelevant (cache is implemented)
       Test_RemoteConfigurationUpdateSequenceLiveDebugging: missing_feature
-      Test_RemoteConfigurationUpdateSequenceLiveDebuggingNoCache: irrelevant (cache is implemented)
   serverless/:
     span_pointers/:
       aws/:
@@ -582,8 +600,15 @@ tests/:
       uds-echo: missing_feature
     Test_Config_IntegrationEnabled_False: irrelevant (not applicable to Go because of how they do auto instrumentation)
     Test_Config_IntegrationEnabled_True: irrelevant (not applicable to Go because of how they do auto instrumentation)
+    Test_Config_LogInjection_128Bit_TradeId_Default: missing_feature (disabled by default)
+    Test_Config_LogInjection_128Bit_TradeId_Disabled: incomplete_test_app (weblog endpoint not implemented)
+    Test_Config_LogInjection_Default: incomplete_test_app (weblog endpoint not implemented)
+    Test_Config_LogInjection_Enabled: incomplete_test_app (weblog endpoint not implemented)
     Test_Config_ObfuscationQueryStringRegexp_Configured: v1.67.0
+    Test_Config_ObfuscationQueryStringRegexp_Default: v1.67.0
     Test_Config_ObfuscationQueryStringRegexp_Empty: v1.67.0
+    Test_Config_RuntimeMetrics_Default: incomplete_test_app (test needs to account for golang runtime metrics)
+    Test_Config_RuntimeMetrics_Enabled: incomplete_test_app (test needs to account for golang runtime metrics)
     Test_Config_UnifiedServiceTagging_CustomService: v1.67.0
     Test_Config_UnifiedServiceTagging_Default: v1.67.0
   test_data_integrity.py:
@@ -595,6 +620,7 @@ tests/:
     Test_Span_Links_From_Conflicting_Contexts_Datadog_Precedence: missing_feature
     Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
     Test_Synthetics_APM_Datadog: bug (APMAPI-901) # the incoming headers are considered invalid
+  test_graphql.py: missing_feature
   test_identify.py:
     Test_Basic: v1.37.0
     Test_Propagate: v1.48.0-rc.1
@@ -602,7 +628,7 @@ tests/:
   test_library_conf.py:
     Test_HeaderTags: v1.53.0
     Test_HeaderTags_Colon_Leading: v1.53.0
-    Test_HeaderTags_Colon_Trailing: v1.70.0-dev
+    Test_HeaderTags_Colon_Trailing: v1.70.0
     Test_HeaderTags_DynamicConfig: missing_feature
     Test_HeaderTags_Long: v1.53.0
     Test_HeaderTags_Short: v1.53.0
@@ -614,7 +640,7 @@ tests/:
     Test_UrlQuery: v1.40.0
   test_semantic_conventions.py:
     Test_Meta: v1.45.0
-  test_span_events.py: missing_feature (Weblog `/add_event` not implemented)
+  test_span_events.py: incomplete_test_app (Weblog `/add_event` not implemented)
   test_standard_tags.py:
     Test_StandardTagsClientIp: v1.46.0
     Test_StandardTagsMethod: v1.39.0

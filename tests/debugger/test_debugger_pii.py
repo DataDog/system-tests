@@ -15,16 +15,17 @@ from utils import (
 
 REDACTED_KEYS = [
     "_2fa",
-    "accesstoken",
-    "access_token",
-    "Access_Token",
-    "accessToken",
-    "AccessToken",
     "ACCESSTOKEN",
+    "Access_Token",
+    "AccessToken",
+    "accessToken",
+    "access_token",
+    "accesstoken",
     "aiohttpsession",
     "apikey",
     "apisecret",
     "apisignature",
+    "appkey",
     "applicationkey",
     "auth",
     "authorization",
@@ -46,7 +47,6 @@ REDACTED_KEYS = [
     "dburl",
     "encryptionkey",
     "encryptionkeyid",
-    "env",
     "geolocation",
     "gpgkey",
     "ipaddress",
@@ -116,6 +116,8 @@ REDACTED_TYPES = ["customPii"]
 class Test_Debugger_PII_Redaction(debugger._Base_Debugger_Test):
     ############ setup ############
     def _setup(self, line_probe=False):
+        self.initialize_weblog_remote_config()
+
         if line_probe:
             probes = debugger.read_probes("pii_line")
         else:
@@ -130,23 +132,26 @@ class Test_Debugger_PII_Redaction(debugger._Base_Debugger_Test):
     ############ assert ############
     def _assert(self, redacted_keys, redacted_types, line_probe=False):
         self.collect()
+        self.assert_setup_ok()
         self.assert_rc_state_not_error()
-        self.assert_all_probes_are_installed()
+        self.assert_all_probes_are_emitting()
         self.assert_all_weblog_responses_ok()
 
         self._validate_pii_keyword_redaction(redacted_keys, line_probe)
-        self._validate_pii_type_redaction(redacted_types, line_probe)
+        if context.library != "nodejs":  # Node.js does not support type redacting
+            self._validate_pii_type_redaction(redacted_types, line_probe)
 
     def _validate_pii_keyword_redaction(self, should_redact_field_names, line_probe):
         not_redacted = []
         not_found = list(set(should_redact_field_names))
 
         for probe_id in self.probe_ids:
-            snapshot = self.probe_snapshots[probe_id][0]["debugger"]["snapshot"]
+            base = self.probe_snapshots[probe_id][0]
+            snapshot = base.get("debugger", {}).get("snapshot") or base["debugger.snapshot"]
 
             for field_name in should_redact_field_names:
                 if line_probe:
-                    fields = snapshot["captures"]["lines"]["33"]["locals"]["pii"]["fields"]
+                    fields = snapshot["captures"]["lines"]["64"]["locals"]["pii"]["fields"]
                 else:
                     fields = snapshot["captures"]["return"]["locals"]["pii"]["fields"]
 
@@ -177,11 +182,12 @@ class Test_Debugger_PII_Redaction(debugger._Base_Debugger_Test):
         not_redacted = []
 
         for probe_id in self.probe_ids:
-            snapshot = self.probe_snapshots[probe_id][0]["debugger"]["snapshot"]
+            base = self.probe_snapshots[probe_id][0]
+            snapshot = base.get("debugger", {}).get("snapshot") or base["debugger.snapshot"]
 
             for type_name in should_redact_types:
                 if line_probe:
-                    type_info = snapshot["captures"]["lines"]["33"]["locals"][type_name]
+                    type_info = snapshot["captures"]["lines"]["64"]["locals"][type_name]
                 else:
                     type_info = snapshot["captures"]["return"]["locals"][type_name]
 
@@ -206,6 +212,7 @@ class Test_Debugger_PII_Redaction(debugger._Base_Debugger_Test):
     @bug(context.library == "python@2.16.0", reason="DEBUG-3127")
     @bug(context.library == "python@2.16.1", reason="DEBUG-3127")
     @missing_feature(context.library == "ruby", reason="Local variable capture not implemented for method probes")
+    @missing_feature(context.library == "nodejs", reason="Not yet implemented")
     def test_pii_redaction_method_full(self):
         self._assert(REDACTED_KEYS, REDACTED_TYPES)
 
@@ -213,11 +220,8 @@ class Test_Debugger_PII_Redaction(debugger._Base_Debugger_Test):
     def setup_pii_redaction_line_full(self):
         self._setup(line_probe=True)
 
-    @missing_feature(
-        context.library != "ruby", reason="Ruby DI does not provide the functionality required for the test."
-    )
-    def pii_redaction_line_full(self):
-        self._assert(REDACTED_KEYS, REDACTED_TYPES)
+    def test_pii_redaction_line_full(self):
+        self._assert(REDACTED_KEYS, REDACTED_TYPES, line_probe=True)
 
     ############ old versions ############
     def filter(keys_to_filter):

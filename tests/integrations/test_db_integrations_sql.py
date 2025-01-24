@@ -1,6 +1,8 @@
 # Unless explicitly stated otherwise all files in this repository are licensed under the the Apache License Version 2.0.
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
+import json
+
 from utils import context, bug, missing_feature, irrelevant, scenarios, features
 from utils.tools import logger
 
@@ -40,7 +42,12 @@ class _BaseDatadogDbIntegrationTestClass(BaseDbIntegrationsTestClass):
         """We check all sql launched for the app work"""
 
         for db_operation, span in self.get_spans(excluded_operations=excluded_operations + ("select_error",)):
-            assert "error" not in span or span["error"] == 0
+            if "error" in span and span["error"] != 0:
+                meta = span.get("meta", {})
+                logger.error(f"Error message: {meta.get('error.message')}")
+                logger.error(f"Error stack:\n{meta.get('error.stack')}")
+
+                raise ValueError(f"Error found in {db_operation} operation, please check captured log call")
 
     @irrelevant(library="python", reason="Python is using the correct span: db.system")
     def test_db_type(self, excluded_operations=()):
@@ -294,7 +301,7 @@ class Test_MsSql(_BaseDatadogDbIntegrationTestClass):
                 expected_obfuscation_count = 1
             elif db_operation == "procedure":
                 # Insert and procedure:These operations also receive two parameters, but are obfuscated as only one.
-                # Nodejs: The proccedure has a input parameter, but we are calling through method `execute`` and we can't see the parameters in the traces
+                # Node.js: The proccedure has a input parameter, but we are calling through method `execute`` and we can't see the parameters in the traces
                 expected_obfuscation_count = 0 if context.library.library == "nodejs" else 2
             else:
                 expected_obfuscation_count = 2
@@ -303,3 +310,7 @@ class Test_MsSql(_BaseDatadogDbIntegrationTestClass):
             assert (
                 observed_obfuscation_count == expected_obfuscation_count
             ), f"The mssql query is not properly obfuscated for operation {db_operation}, expecting {expected_obfuscation_count} obfuscation(s), found {observed_obfuscation_count}:\n {span['meta']['sql.query']}"
+
+    @bug(context.library == "python" and context.weblog_variant in ("flask-poc", "uds-flask"), reason="APMAPI-1058")
+    def test_sql_success(self):
+        super().test_sql_success()

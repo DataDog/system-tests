@@ -14,11 +14,14 @@ class Test_Debugger_Probe_Statuses(debugger._Base_Debugger_Test):
 
     ############ setup ############
     def _setup(self, probes_name: str):
+        self.initialize_weblog_remote_config()
+
         ### prepare probes
         probes = debugger.read_probes(probes_name)
         self.set_probes(probes)
 
         ### set expected
+        self.expected_diagnostics = {}
         for probe in self.probe_definitions:
             if probe["id"].endswith("installed"):
                 self.expected_diagnostics[probe["id"]] = "INSTALLED"
@@ -32,6 +35,7 @@ class Test_Debugger_Probe_Statuses(debugger._Base_Debugger_Test):
     def _assert(self):
         self.collect()
 
+        self.assert_setup_ok()
         self.assert_rc_state_not_error()
         self._validate_diagnostics()
 
@@ -41,9 +45,7 @@ class Test_Debugger_Probe_Statuses(debugger._Base_Debugger_Test):
                 return f"Probe {expected_id} was not received."
 
             actual_status = self.probe_diagnostics[expected_id]["status"]
-            if actual_status != expected_status and not (
-                expected_status == "INSTALLED" and actual_status == "EMITTING"
-            ):
+            if actual_status != expected_status:
                 return f"Received probe {expected_id} with status {actual_status}. Expected {expected_status}"
 
             return None
@@ -58,13 +60,23 @@ class Test_Debugger_Probe_Statuses(debugger._Base_Debugger_Test):
 
         assert not errors, f"Probe status errors:\n" + "\n".join(errors)
 
-    ############ log probe ############
-    def setup_probe_status_log(self):
-        self._setup("probe_status_log")
+    ############ log line probe ############
+    def setup_probe_status_log_line(self):
+        self._setup("probe_status_log_line")
 
     @bug(context.library == "python@2.16.0", reason="DEBUG-3127")
     @bug(context.library == "python@2.16.1", reason="DEBUG-3127")
-    def test_probe_status_log(self):
+    def test_probe_status_log_line(self):
+        self._assert()
+
+    ############ log method probe ############
+    def setup_probe_status_log_method(self):
+        self._setup("probe_status_log_method")
+
+    @bug(context.library == "python@2.16.0", reason="DEBUG-3127")
+    @bug(context.library == "python@2.16.1", reason="DEBUG-3127")
+    @missing_feature(context.library == "nodejs", reason="Not yet implemented")
+    def test_probe_status_log_method(self):
         self._assert()
 
     ############ metric probe ############
@@ -74,6 +86,7 @@ class Test_Debugger_Probe_Statuses(debugger._Base_Debugger_Test):
     @bug(context.library == "python@2.16.0", reason="DEBUG-3127")
     @bug(context.library == "python@2.16.1", reason="DEBUG-3127")
     @missing_feature(context.library == "ruby", reason="Not yet implemented")
+    @missing_feature(context.library == "nodejs", reason="Not yet implemented")
     def test_probe_status_metric(self):
         self._assert()
 
@@ -82,6 +95,7 @@ class Test_Debugger_Probe_Statuses(debugger._Base_Debugger_Test):
         self._setup("probe_status_span")
 
     @missing_feature(context.library == "ruby", reason="Not yet implemented")
+    @missing_feature(context.library == "nodejs", reason="Not yet implemented")
     def test_probe_status_span(self):
         self._assert()
 
@@ -92,5 +106,6 @@ class Test_Debugger_Probe_Statuses(debugger._Base_Debugger_Test):
     @bug(context.library == "python@2.16.0", reason="DEBUG-3127")
     @bug(context.library == "python@2.16.1", reason="DEBUG-3127")
     @missing_feature(context.library == "ruby", reason="Not yet implemented")
+    @missing_feature(context.library == "nodejs", reason="Not yet implemented")
     def test_probe_status_spandecoration(self):
         self._assert()

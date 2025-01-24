@@ -9,7 +9,6 @@ import os
 import re
 import time
 from typing import Any
-from typing import Optional
 
 import requests
 
@@ -17,6 +16,7 @@ from utils._context.core import context
 from utils.dd_constants import RemoteConfigApplyState as ApplyState
 from utils.interfaces import library
 from utils.tools import logger
+from utils._context.containers import ProxyContainer
 
 
 def _post(path: str, payload) -> None:
@@ -24,14 +24,11 @@ def _post(path: str, payload) -> None:
         domain = os.environ["SYSTEM_TESTS_PROXY_HOST"]
     elif "DOCKER_HOST" in os.environ:
         m = re.match(r"(?:ssh:|tcp:|fd:|)//(?:[^@]+@|)([^:]+)", os.environ["DOCKER_HOST"])
-        if m is not None:
-            domain = m.group(1)
-        else:
-            domain = "localhost"
+        domain = m.group(1) if m is not None else "localhost"
     else:
         domain = "localhost"
 
-    requests.post(f"http://{domain}:11111{path}", data=json.dumps(payload), timeout=30)
+    requests.post(f"http://{domain}:{ProxyContainer.command_host_port}{path}", data=json.dumps(payload), timeout=30)
 
 
 RC_VERSION = "_ci_global_version"
@@ -52,11 +49,13 @@ def send_state(
     2. else if not acknowledged, the last config state received
     3. if no config state received, then a hardcoded one with apply_state=UNKNOWN
 
-    Arguments:
-        wait_for_acknowledge_status
+    Args:
+        raw_payload:
+            The raw payload to send to the library.
+        wait_for_acknowledged_status:
             If True, waits for the config to be acknowledged by the library.
             Else, only wait for the next request sent to /v0.7/config
-        state_version
+        state_version:
             The version of the global state.
             It should be larger than previous versions if you want to apply a new config.
 
@@ -83,32 +82,36 @@ def send_state(
 
     state = {}
 
-    def remote_config_applied(data):
+    def remote_config_applied(data) -> bool:
         nonlocal state
-        if data["path"] == "/v0.7/config":
-            state = data.get("request", {}).get("content", {}).get("client", {}).get("state", {})
-            if len(client_configs) == 0:
-                found = state["targets_version"] == state_version and state.get("config_states", []) == []
-                if found:
-                    current_states[RC_STATE] = ApplyState.ACKNOWLEDGED
-                return found
+        if data["path"] != "/v0.7/config":
+            return False
 
-            if state["targets_version"] == version:
-                config_states = state.get("config_states", [])
-                for state in config_states:
-                    config_state = current_states.get(state["id"])
-                    if config_state and state["product"] == config_state["product"]:
-                        logger.debug(f"Remote config state: {state}")
-                        config_state.update(state)
-
-                if wait_for_acknowledged_status:
-                    for key, state in current_states.items():
-                        if key not in (RC_VERSION, RC_STATE):
-                            if state["apply_state"] == ApplyState.UNKNOWN:
-                                return False
-
+        state = data.get("request", {}).get("content", {}).get("client", {}).get("state", {})
+        if len(client_configs) == 0:
+            found = state["targets_version"] == state_version and state.get("config_states", []) == []
+            if found:
                 current_states[RC_STATE] = ApplyState.ACKNOWLEDGED
-                return True
+            return found
+
+        if state["targets_version"] != version:
+            return False
+
+        config_states = state.get("config_states", [])
+        for state in config_states:
+            config_state = current_states.get(state["id"])
+            if config_state and state["product"] == config_state["product"]:
+                logger.debug(f"Remote config state: {state}")
+                config_state.update(state)
+
+        if wait_for_acknowledged_status:
+            for key, state in current_states.items():
+                if key not in (RC_VERSION, RC_STATE):
+                    if state["apply_state"] == ApplyState.UNKNOWN:
+                        return False
+
+        current_states[RC_STATE] = ApplyState.ACKNOWLEDGED
+        return True
 
     _post("/unique_command", raw_payload)
     library.wait_for(remote_config_applied, timeout=30)
@@ -118,7 +121,7 @@ def send_state(
     return current_states
 
 
-def send_sequential_commands(commands: list[dict], wait_for_all_command: bool = True) -> None:
+def send_sequential_commands(commands: list[dict], *, wait_for_all_command: bool = True) -> None:
     """DEPRECATED"""
 
     if len(commands) == 0:
@@ -131,25 +134,27 @@ def send_sequential_commands(commands: list[dict], wait_for_all_command: bool = 
 
     counts_by_runtime_id = {}
 
-    def all_payload_sent(data):
-        if data["path"] == "/v0.7/config":
-            # wait for N successful responses, +1 for the ACK request from the lib
-            for count in counts_by_runtime_id.values():
-                if count >= len(commands):
-                    return True
-
-            runtime_id = data["request"]["content"]["client"]["client_tracer"]["runtime_id"]
-
-            if runtime_id not in counts_by_runtime_id:
-                counts_by_runtime_id[runtime_id] = 0
-
-            for name, value in data["response"]["headers"]:
-                if name == "st-proxy-overwrite-rc-response":
-                    counts_by_runtime_id[runtime_id] = int(value) + 1
-                    logger.debug(f"Response {int(value) + 1}/{len(commands)} for {runtime_id}")
-                    break
-
+    def all_payload_sent(data) -> bool:
+        if data["path"] != "/v0.7/config":
             return False
+
+        # wait for N successful responses, +1 for the ACK request from the lib
+        for count in counts_by_runtime_id.values():
+            if count >= len(commands):
+                return True
+
+        runtime_id = data["request"]["content"]["client"]["client_tracer"]["runtime_id"]
+
+        if runtime_id not in counts_by_runtime_id:
+            counts_by_runtime_id[runtime_id] = 0
+
+        for name, value in data["response"]["headers"]:
+            if name == "st-proxy-overwrite-rc-response":
+                counts_by_runtime_id[runtime_id] = int(value) + 1
+                logger.debug(f"Response {int(value) + 1}/{len(commands)} for {runtime_id}")
+                break
+
+        return False
 
     rc_poll_interval = 5  # seconds
     extra_timeout = 10  # give more room for startup
@@ -158,18 +163,12 @@ def send_sequential_commands(commands: list[dict], wait_for_all_command: bool = 
     library.wait_for(all_payload_sent, timeout=timeout)
 
 
-def build_debugger_command(probes: list, version: int):
-    def _json_to_base64(json_object):
-        json_string = json.dumps(json_object).encode("utf-8")
-        base64_string = base64.b64encode(json_string).decode("utf-8")
-        return base64_string
+def _create_base_rcm():
+    return {"targets": "", "target_files": [], "client_configs": []}
 
-    def _sha256(value):
-        return hashlib.sha256(base64.b64decode(value)).hexdigest()
 
-    rcm = {"targets": "", "target_files": [], "client_configs": []}
-
-    signed = {
+def _create_base_signed(version: int):
+    return {
         "signed": {
             "_type": "targets",
             "custom": {"opaque_backend_state": "eyJmb28iOiAiYmFyIn0="},  # where does this come from ?
@@ -188,29 +187,55 @@ def build_debugger_command(probes: list, version: int):
         ],
     }
 
-    if probes is None:
+
+def _build_base_command(path_payloads: dict[str, dict | list], version: int):
+    """Helper function to build a remote config command with common logic.
+
+    Args:
+        path_payloads: Dictionary mapping paths to their corresponding payloads
+        version: The version number for the signed data
+
+    """
+    rcm = _create_base_rcm()
+    signed = _create_base_signed(version)
+
+    if not path_payloads:
         rcm["targets"] = _json_to_base64(signed)
-    else:
-        for probe in probes:
-            target = {"custom": {"v": 1}, "hashes": {"sha256": ""}, "length": 0}
-            target_file = {"path": "", "raw": ""}
+        return rcm
 
-            probe_64 = _json_to_base64(probe)
-            target["hashes"]["sha256"] = _sha256(probe_64)
-            target["length"] = len(json.dumps(probe).encode("utf-8"))
+    for path, payload in path_payloads.items():
+        payload_64 = _json_to_base64(payload)
+        payload_length = len(base64.b64decode(payload_64))
 
-            probe_path = re.sub(r"_([a-z])", lambda match: match.group(1).upper(), probe["type"].lower())
-            path = "datadog/2/LIVE_DEBUGGING/" + probe_path + "_" + probe["id"] + "/config"
-            signed["signed"]["targets"][path] = target
+        target = {"custom": {"v": 1}, "hashes": {"sha256": ""}, "length": 0}
+        target["hashes"]["sha256"] = _sha256(payload_64)
+        target["length"] = payload_length
+        signed["signed"]["targets"][path] = target
 
-            target_file["path"] = path
-            target_file["raw"] = probe_64
+        target_file = {"path": path, "raw": payload_64}
+        rcm["target_files"].append(target_file)
+        rcm["client_configs"].append(path)
 
-            rcm["target_files"].append(target_file)
-            rcm["client_configs"].append(path)
-
-        rcm["targets"] = _json_to_base64(signed)
+    rcm["targets"] = _json_to_base64(signed)
     return rcm
+
+
+def build_debugger_command(probes: list | None, version: int):
+    if probes is None:
+        return _build_base_command({}, version)
+
+    path_payloads = {}
+    for probe in probes:
+        probe_path = re.sub(r"_([a-z])", lambda match: match.group(1).upper(), probe["type"].lower())
+        path = f"datadog/2/LIVE_DEBUGGING/{probe_path}_{probe['id']}/config"
+        path_payloads[path] = probe
+
+    return _build_base_command(path_payloads, version)
+
+
+def build_symdb_command():
+    path_payloads = {"datadog/2/LIVE_DEBUGGING_SYMBOL_DB/symDb/config": {"upload_symbols": True}}
+    return _build_base_command(path_payloads, version=1)
 
 
 def send_debugger_command(probes: list, version: int) -> dict:
@@ -218,10 +243,18 @@ def send_debugger_command(probes: list, version: int) -> dict:
     return send_state(raw_payload)
 
 
+def send_symdb_command() -> dict:
+    raw_payload = build_symdb_command()
+    return send_state(raw_payload)
+
+
 def _json_to_base64(json_object):
     json_string = json.dumps(json_object, indent=2).encode("utf-8")
-    base64_string = base64.b64encode(json_string).decode("utf-8")
-    return base64_string
+    return base64.b64encode(json_string).decode("utf-8")
+
+
+def _sha256(value):
+    return hashlib.sha256(base64.b64decode(value)).hexdigest()
 
 
 class ClientConfig:
@@ -248,7 +281,7 @@ class ClientConfig:
     def raw_deserialized(self):
         return json.loads(self.raw_decoded)
 
-    def get_target_file(self, deserialized=False):
+    def get_target_file(self, *, deserialized=False):
         return {"path": self.path, "raw": self.raw_deserialized if deserialized else self.raw}
 
     def get_target(self):
@@ -282,7 +315,7 @@ class _RemoteConfigState:
     ]
     _uniq = True
 
-    def __init__(self, expires: Optional[str] = None) -> None:
+    def __init__(self, expires: str | None = None) -> None:
         if _RemoteConfigState._uniq:
             _RemoteConfigState._uniq = False
         else:
@@ -313,7 +346,7 @@ class _RemoteConfigState:
         self.targets.clear()
         return self
 
-    def serialize_targets(self, deserialized=False):
+    def serialize_targets(self, *, deserialized=False):
         result = {
             "signed": {
                 "_type": "targets",
@@ -328,7 +361,7 @@ class _RemoteConfigState:
 
         return _json_to_base64(result) if not deserialized else result
 
-    def to_payload(self, deserialized=False):
+    def to_payload(self, *, deserialized=False):
         result = {"targets": self.serialize_targets(deserialized=deserialized)}
 
         target_files = [

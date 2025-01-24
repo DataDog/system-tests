@@ -73,6 +73,7 @@ from ddtrace.data_streams import set_consume_checkpoint
 from ddtrace.data_streams import set_produce_checkpoint
 
 from debugger_controller import debugger_blueprint
+from exception_replay_controller import exception_replay_blueprint
 
 # Patch kombu and urllib3 since they are not patched automatically
 ddtrace.patch_all(kombu=True, urllib3=True)
@@ -111,6 +112,7 @@ app = Flask(__name__)
 app.secret_key = "SECRET_FOR_TEST"
 app.config["SESSION_TYPE"] = "memcached"
 app.register_blueprint(debugger_blueprint)
+app.register_blueprint(exception_replay_blueprint)
 login_manager = LoginManager()
 login_manager.login_view = "login"
 login_manager.init_app(app)
@@ -343,7 +345,7 @@ def rasp_shi(*args, **kwargs):
             pass
 
     if list_dir is None:
-        return "missing user_id parameter", 400
+        return "missing list_dir parameter", 400
     try:
         command = f"ls {list_dir}"
         res = os.system(command)
@@ -351,6 +353,32 @@ def rasp_shi(*args, **kwargs):
     except Exception as e:
         print(f"Shell command failure: {e!r}", file=sys.stderr)
         return f"Shell command failure: {e!r}", 201
+
+
+@app.route("/rasp/cmdi", methods=["GET", "POST"])
+def rasp_cmdi(*args, **kwargs):
+    cmd = None
+    if request.method == "GET":
+        cmd = flask_request.args.get("command")
+    elif request.method == "POST":
+        try:
+            cmd = (request.form or request.json or {}).get("command")
+        except Exception as e:
+            print(repr(e), file=sys.stderr)
+        try:
+            if cmd is None:
+                cmd = xmltodict.parse(flask_request.data).get("command").get("cmd")
+        except Exception as e:
+            print(repr(e), file=sys.stderr)
+            pass
+
+    if cmd is None:
+        return "missing cmd parameter", 400
+    try:
+        res = subprocess.run(cmd, capture_output=True)
+        return f"Exec command [{cmd}] with result: [{res.returncode}]: {res.stdout}", 200
+    except Exception as e:
+        return f"Exec command [{cmd}] yfailure: {e!r}", 201
 
 
 ### END EXPLOIT PREVENTION
@@ -1103,6 +1131,36 @@ def view_iast_header_injection_secure():
     return resp
 
 
+@app.route("/iast/code_injection/test_insecure", methods=["POST"])
+def view_iast_code_injection_insecure():
+    code_string = flask_request.form["code"]
+    _ = eval(code_string)
+    resp = Response("OK")
+    return resp
+
+
+@app.route("/iast/code_injection/test_secure", methods=["POST"])
+def view_iast_code_injection_secure():
+    import operator
+
+    def safe_eval(expr):
+        ops = {
+            "+": operator.add,
+            "-": operator.sub,
+            "*": operator.mul,
+            "/": operator.truediv,
+        }
+        if len(expr) != 3 or expr[1] not in ops:
+            raise ValueError("Invalid expression")
+        a, op, b = expr
+        return ops[op](float(a), float(b))
+
+    code_string = flask_request.form["code"]
+    _ = safe_eval(code_string)
+    resp = Response("OK")
+    return resp
+
+
 _TRACK_METADATA = {
     "metadata0": "value0",
     "metadata1": "value1",
@@ -1131,34 +1189,36 @@ def login():
     username = flask_request.form.get("username")
     password = flask_request.form.get("password")
     sdk_event = flask_request.args.get("sdk_event")
-    if sdk_event:
-        sdk_user = flask_request.args.get("sdk_user")
-        sdk_mail = flask_request.args.get("sdk_mail")
-        sdk_user_exists = flask_request.args.get("sdk_user_exists")
-        if sdk_event == "success":
-            appsec_trace_utils.track_user_login_success_event(tracer, user_id=sdk_user, email=sdk_mail)
-            return Response("OK")
-        elif sdk_event == "failure":
-            appsec_trace_utils.track_user_login_failure_event(
-                tracer, user_id=sdk_user, email=sdk_mail, exists=sdk_user_exists
-            )
-            return Response("login failure", status=401)
     authorisation = flask_request.headers.get("Authorization")
     if authorisation:
         username, password = base64.b64decode(authorisation[6:]).decode().split(":")
     success, user = User.check(username, password)
     if success:
         login_user(user)
-        appsec_trace_utils.track_user_login_success_event(tracer, user_id=user.uid, login_events_mode="auto")
-        return Response("OK")
+        appsec_trace_utils.track_user_login_success_event(
+            tracer, user_id=user.uid, login_events_mode="auto", login=username
+        )
     elif user:
         appsec_trace_utils.track_user_login_failure_event(
-            tracer, user_id=user.uid, exists=True, login_events_mode="auto"
+            tracer, user_id=user.uid, exists=True, login_events_mode="auto", login=username
         )
     else:
         appsec_trace_utils.track_user_login_failure_event(
-            tracer, user_id=username, exists=False, login_events_mode="auto"
+            tracer, user_id=username, exists=False, login_events_mode="auto", login=username
         )
+    if sdk_event:
+        sdk_user = flask_request.args.get("sdk_user")
+        sdk_mail = flask_request.args.get("sdk_mail")
+        sdk_user_exists = flask_request.args.get("sdk_user_exists")
+        if sdk_event == "success":
+            appsec_trace_utils.track_user_login_success_event(tracer, user_id=sdk_user, email=sdk_mail, login=sdk_user)
+            success = True
+        elif sdk_event == "failure":
+            appsec_trace_utils.track_user_login_failure_event(
+                tracer, user_id=sdk_user, email=sdk_mail, exists=sdk_user_exists, login=sdk_user
+            )
+    if success:
+        return Response("OK")
     return Response("login failure", status=401)
 
 

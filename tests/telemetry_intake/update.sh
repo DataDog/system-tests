@@ -7,10 +7,15 @@ set -e
 # If this script deletes the JSON files in system-tests, it's likely this is no longer valid
 SUBDIR="trace/apps/tracer-telemetry-intake/telemetry-payload/static/"
 # The "main" branch in dd-go
-BRANCH="bm1549/more-missing-configs" # This should ALWAYS be "prod" in master. Please revert changes before merging
+BRANCH="prod" # This should ALWAYS be "prod" in master. Please revert changes before merging
 
 # These variables will probably never change
-REPO_URL="https://github.com/DataDog/dd-go.git"
+if [ -z "${GITHUB_TOKEN}" ] ; then
+    REPO_URL="https://github.com/DataDog/dd-go.git"
+else
+    REPO_URL="https://x-access-token:${GITHUB_TOKEN}@github.com/DataDog/dd-go.git"
+fi
+
 SCRIPT_DIR=$(dirname "$(realpath "$0")")
 TARGET_DIR="$SCRIPT_DIR/static"
 

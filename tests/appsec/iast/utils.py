@@ -50,6 +50,17 @@ def assert_iast_vulnerability(
         assert len(vulns) == vulnerability_count
 
 
+def assert_metric(request, metric, expected):
+    spans_checked = 0
+    metric_available = False
+    for data, trace, span in interfaces.library.get_spans(request):
+        if metric in span["metrics"]:
+            metric_available = True
+        spans_checked += 1
+    assert spans_checked == 1
+    assert metric_available == expected
+
+
 def _check_telemetry_response_from_agent():
     # Java tracer (at least) disable telemetry if agent answer 403
     # Checking that agent answers 200
@@ -188,15 +199,16 @@ def validate_stack_traces(request):
     iast = meta["_dd.iast.json"]
     assert iast["vulnerabilities"], "Expected at least one vulnerability"
 
-    # To simplify as we are relaying in insecure_request that is expected to have one vulnerability
-    vuln = iast["vulnerabilities"][0]
+    stack_trace = span["meta_struct"]["_dd.stack"]["vulnerability"][0]
+    vulns = [i for i in iast["vulnerabilities"] if i["stackId"] == stack_trace["id"]]
+    assert len(vulns) == 1, "Expected a single vulnerability with the stack trace Id"
+    vuln = vulns[0]
 
     assert vuln["stackId"], "no 'stack_id's present'"
     assert "meta_struct" in span, "'meta_struct' not found in span"
     assert "_dd.stack" in span["meta_struct"], "'_dd.stack' not found in 'meta_struct'"
     assert "vulnerability" in span["meta_struct"]["_dd.stack"], "'exploit' not found in '_dd.stack'"
 
-    stack_trace = span["meta_struct"]["_dd.stack"]["vulnerability"][0]
     assert stack_trace, "No stack traces to validate"
 
     assert "language" in stack_trace, "'language' not found in stack trace"
@@ -212,8 +224,6 @@ def validate_stack_traces(request):
 
     # Ensure the stack ID corresponds to an appsec event
     assert "id" in stack_trace, "'id' not found in stack trace"
-    assert stack_trace["id"] == vuln["stackId"], "'id' doesn't correspond to an appsec event"
-
     assert "frames" in stack_trace, "'frames' not found in stack trace"
     assert len(stack_trace["frames"]) <= 32, "stack trace above size limit (32 frames)"
 
@@ -224,10 +234,17 @@ def validate_stack_traces(request):
     locationFrame = None
     for frame in stack_trace["frames"]:
         # We are looking for the frame that corresponds to the location of the vulnerability, we will need to update this to cover all tracers
+        # currently support: Java, Python, Node.js
         if (
-            location["path"] in frame["class_name"]
-            and location["method"] in frame["function"]
-            and location["line"] == frame["line"]
+            stack_trace["language"] == "java"
+            and (
+                location["path"] in frame["class_name"]
+                and location["method"] in frame["function"]
+                and location["line"] == frame["line"]
+            )
+        ) or (
+            stack_trace["language"] in ("python", "nodejs")
+            and (frame.get("file", "").endswith(location["path"]) and location["line"] == frame["line"])
         ):
             locationFrame = frame
     assert locationFrame is not None, "location not found in stack trace"

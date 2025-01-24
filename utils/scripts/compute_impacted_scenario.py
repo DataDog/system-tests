@@ -3,7 +3,7 @@ import json
 import os
 import re
 from manifests.parser.core import load as load_manifests
-from utils._context._scenarios import ScenarioGroup
+from utils._context._scenarios import ScenarioGroup, scenarios, Scenario
 
 
 class Result:
@@ -44,10 +44,10 @@ class Result:
                 self.add_scenario_group(ScenarioGroup.PARAMETRIC.value)
             if "run-graphql-scenarios" in labels:
                 self.add_scenario_group(ScenarioGroup.GRAPHQL.value)
-            if "run-libinjection-scenarios" in labels:
-                self.add_scenario_group(ScenarioGroup.LIB_INJECTION.value)
             if "run-docker-ssi-scenarios" in labels:
                 self.add_scenario_group(ScenarioGroup.DOCKER_SSI.value)
+            if "run-external-processing-scenarios" in labels:
+                self.add_scenario_group(ScenarioGroup.EXTERNAL_PROCESSING.value)
 
 
 def main():
@@ -67,7 +67,7 @@ def main():
         # this file is generated with
         # ./run.sh MOCK_THE_TEST --collect-only --scenario-report
         with open("logs_mock_the_test/scenarios.json", encoding="utf-8") as f:
-            scenario_map = json.load(f)
+            scenario_map: dict[str, list[str]] = json.load(f)
 
         modified_nodeids = set()
 
@@ -83,13 +83,14 @@ def main():
                 modified_nodeids.add(nodeid)
 
         scenarios_by_files = defaultdict(set)
-        for nodeid in scenario_map:
+        for nodeid, scenario_names in scenario_map.items():
             file = nodeid.split(":", 1)[0]
-            scenarios_by_files[file].add(scenario_map[nodeid])
+            for scenario_name in scenario_names:
+                scenarios_by_files[file].add(scenario_name)
 
             for modified_nodeid in modified_nodeids:
                 if nodeid.startswith(modified_nodeid):
-                    result.add_scenario(scenario_map[nodeid])
+                    result.add_scenarios(scenario_names)
                     break
 
         # this file is generated with
@@ -117,15 +118,21 @@ def main():
                             result.add_scenarios(scenarios_by_files[sub_file])
 
             else:
-                # Map of file patterns -> scenario group:
+                # Map of file patterns -> scenario requirement:
                 #
                 # * The first matching pattern is applied
                 # * Others are ignored (so order is important)
                 # * If no pattern matches -> error
+                #
+                # requirement can be:
+                #
+                # * None: no scenario will be run
+                # * a member of ScenarioGroup: the scenario group will be run
+                # * a Scenario: the scenario will be run
                 files_map = {
                     ## scenarios specific folder
                     r"parametric/.*": None,  # Legacy folder
-                    r"lib-injection/.*": ScenarioGroup.LIB_INJECTION.value,
+                    r"lib-injection/.*": ScenarioGroup.LIB_INJECTION,
                     ## nothing to do folders
                     r"manifests/.*": None,  # already handled by the manifest comparison
                     r"docs/.*": None,  # nothing to do
@@ -133,19 +140,25 @@ def main():
                     r"\.circleci/.*": None,  # nothing to do
                     r"\.vscode/.*": None,  # nothing to do
                     ## .github folder
-                    r"\.github/workflows/run-parametric\.yml": ScenarioGroup.PARAMETRIC.value,
-                    r"\.github/workflows/run-lib-injection\.yml": ScenarioGroup.LIB_INJECTION.value,
-                    r"\.github/workflows/run-docker-ssi\.yml": ScenarioGroup.DOCKER_SSI.value,
-                    r"\.github/workflows/run-graphql\.yml": ScenarioGroup.GRAPHQL.value,
-                    r"\.github/workflows/run-open-telemetry\.yml": ScenarioGroup.OPEN_TELEMETRY.value,
+                    r"\.github/workflows/run-parametric\.yml": ScenarioGroup.PARAMETRIC,
+                    r"\.github/workflows/run-lib-injection\.yml": ScenarioGroup.LIB_INJECTION,
+                    r"\.github/workflows/run-docker-ssi\.yml": ScenarioGroup.DOCKER_SSI,
+                    r"\.github/workflows/run-graphql\.yml": ScenarioGroup.GRAPHQL,
+                    r"\.github/workflows/run-open-telemetry\.yml": ScenarioGroup.OPEN_TELEMETRY,
                     r"\.github/.*": None,  # nothing to do??
+                    ## .gitlab folder
+                    r"\.gitlab/k8s_gitlab-ci.yml": ScenarioGroup.LIB_INJECTION,
                     ## utils/ folder
-                    r"utils/interfaces/schemas.*": ScenarioGroup.END_TO_END.value,
-                    r"utils/_context/_scenarios/open_telemetry\.py": ScenarioGroup.OPEN_TELEMETRY.value,
+                    r"utils/interfaces/schemas.*": ScenarioGroup.END_TO_END,
+                    r"utils/_context/_scenarios/open_telemetry\.py": ScenarioGroup.OPEN_TELEMETRY,
                     r"utils/scripts/compute_impacted_scenario\.py": None,
+                    r"utils/scripts/check_version\.sh": None,
                     r"utils/scripts/get-nightly-logs\.py": None,
                     #### Default scenario
                     r"utils/_context/_scenarios/default\.py": None,  # the default scenario is always executed
+                    #### K8s lib injection
+                    r"utils/k8s_lib_injection.*": ScenarioGroup.LIB_INJECTION,
+                    r"lib-injection.*": ScenarioGroup.LIB_INJECTION,
                     #### Onboarding cases
                     r"utils/onboarding.*": None,
                     r"utils/virtual_machine.*": None,
@@ -153,20 +166,21 @@ def main():
                     r"utils/_context/_scenarios/auto_injection\.py": None,
                     r"utils/_context/virtual_machine\.py": None,
                     #### Parametric case
-                    r"utils/build/docker/\w+/parametric/.*": ScenarioGroup.PARAMETRIC.value,
-                    r"utils/_context/_scenarios/parametric\.py": ScenarioGroup.PARAMETRIC.value,
-                    r"utils/parametric/.*": ScenarioGroup.PARAMETRIC.value,
-                    r"utils/scripts/parametric/.*": ScenarioGroup.PARAMETRIC.value,
-                    #### Integrations case
-                    r"utils/_context/_scenarios/integrations\.py": ScenarioGroup.INTEGRATIONS.value,
+                    r"utils/build/docker/\w+/parametric/.*": ScenarioGroup.PARAMETRIC,
+                    r"utils/_context/_scenarios/parametric\.py": ScenarioGroup.PARAMETRIC,
+                    r"utils/parametric/.*": ScenarioGroup.PARAMETRIC,
+                    r"utils/scripts/parametric/.*": ScenarioGroup.PARAMETRIC,
                     #### Docker SSI case
-                    r"utils/docker_ssi/.*": ScenarioGroup.DOCKER_SSI.value,
-                    ### Profiling case
-                    r"utils/_context/_scenarios/profiling\.py": ScenarioGroup.PROFILING.value,
+                    r"utils/docker_ssi/.*": ScenarioGroup.DOCKER_SSI,
+                    ### other scenarios def
+                    r"utils/_context/_scenarios/integrations\.py": ScenarioGroup.INTEGRATIONS,
+                    r"utils/_context/_scenarios/profiling\.py": ScenarioGroup.PROFILING,
+                    r"utils/_context/_scenarios/ipv6\.py": ScenarioGroup.IPV6,
+                    r"utils/_context/_scenarios/appsec_low_waf_timeout\.py": scenarios.appsec_low_waf_timeout,
                     ### otel weblog
-                    r"utils/build/docker/nodejs_otel/.*": ScenarioGroup.OPEN_TELEMETRY.value,
+                    r"utils/build/docker/nodejs_otel/.*": ScenarioGroup.OPEN_TELEMETRY,
                     ### else, run all
-                    r"utils/.*": ScenarioGroup.ALL.value,
+                    r"utils/.*": ScenarioGroup.ALL,
                     ## few files with no effect
                     r"\.github/CODEOWNERS": None,
                     r"\.dockerignore": None,
@@ -188,19 +202,27 @@ def main():
                     r".*\.nix": None,
                     r"flake\.lock": None,
                     ## few files with lot of effect
-                    r"requirements\.txt": ScenarioGroup.ALL.value,
-                    r"run\.sh": ScenarioGroup.ALL.value,
-                    r"conftest\.py": ScenarioGroup.ALL.value,
+                    r"requirements\.txt": ScenarioGroup.ALL,
+                    r"run\.sh": ScenarioGroup.ALL,
+                    r"conftest\.py": ScenarioGroup.ALL,
                 }
 
-                for pattern, scenario_group in files_map.items():
+                for pattern, scenario_requirement in files_map.items():
                     if re.fullmatch(pattern, file):
-                        if scenario_group is not None:
-                            result.add_scenario_group(scenario_group)
+                        if scenario_requirement is None:
+                            pass
+                        elif isinstance(scenario_requirement, ScenarioGroup):
+                            result.add_scenario_group(scenario_requirement.value)
+                        elif isinstance(scenario_requirement, Scenario):
+                            result.add_scenario(scenario_requirement.name)
+                        else:
+                            raise ValueError(f"Unknown scenario requirement: {scenario_requirement}.")
+
+                        # on first matching pattern, stop the loop
                         break
                 else:
                     raise ValueError(
-                        f"Unknown file: {file}. Please add it in this file, with the correct scenario group."
+                        f"Unknown file: {file}. Please add it in this file, with the correct scenario requirement."
                     )
 
             # now get known scenarios executed in this file

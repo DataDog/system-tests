@@ -1,7 +1,8 @@
 import json
 from collections import defaultdict
-from datetime import datetime, timedelta
+from datetime import timedelta
 import time
+from dateutil.parser import isoparse
 from utils import context, interfaces, missing_feature, bug, flaky, irrelevant, weblog, scenarios, features, rfc
 from utils.tools import logger
 from utils.interfaces._misc_validators import HeadersPresenceValidator, HeadersMatchValidator
@@ -132,7 +133,6 @@ class Test_Telemetry:
         """Test that messages are sent sequentially"""
 
         MAX_OUT_OF_ORDER_LAG = 0.3  # s
-        FMT = "%Y-%m-%dT%H:%M:%S.%f%z"
 
         telemetry_data = list(interfaces.library.get_telemetry_data(flatten_message_batches=False))
         if len(telemetry_data) == 0:
@@ -150,7 +150,7 @@ class Test_Telemetry:
                     continue
                 seq_id = data["request"]["content"]["seq_id"]
                 timestamp_start = data["request"]["timestamp_start"]
-                curr_message_time = datetime.strptime(timestamp_start, FMT)
+                curr_message_time = isoparse(timestamp_start)
                 logger.debug(f"Message at {timestamp_start.split('T')[1]} in {data['log_filename']}, seq_id: {seq_id}")
 
                 # IDs should be sent sequentially, even if there are errors
@@ -295,8 +295,6 @@ class Test_Telemetry:
         The value is a list of delay observed on this runtime id
         """
 
-        fmt = "%Y-%m-%dT%H:%M:%S.%f%z"
-
         telemetry_data = list(interfaces.library.get_telemetry_data())
         heartbeats_by_runtime = defaultdict(list)
 
@@ -312,12 +310,12 @@ class Test_Telemetry:
             logger.debug(f"Heartbeats for runtime {runtime_id}:")
 
             # In theory, it's sorted. Let be safe
-            heartbeats.sort(key=lambda data: datetime.strptime(data["request"]["timestamp_start"], fmt))
+            heartbeats.sort(key=lambda data: isoparse(data["request"]["timestamp_start"]))
 
             prev_message_time = None
             delays = []
             for data in heartbeats:
-                curr_message_time = datetime.strptime(data["request"]["timestamp_start"], fmt)
+                curr_message_time = isoparse(data["request"]["timestamp_start"])
                 if prev_message_time is None:
                     logger.debug(f"  * {data['log_filename']}: {curr_message_time}")
                 else:
@@ -473,13 +471,16 @@ class Test_Telemetry:
     @missing_feature(context.library < "ruby@1.22.0", reason="Telemetry V2 is not implemented yet")
     def test_app_started_client_configuration(self):
         """Assert that default and other configurations that are applied upon start time are sent with the app-started event"""
+
+        trace_agent_port = scenarios.default.weblog_container.trace_agent_port
+
         test_configuration = {
             "dotnet": {},
-            "nodejs": {"hostname": "proxy", "port": 8126, "appsec.enabled": True},
+            "nodejs": {"hostname": "proxy", "port": trace_agent_port, "appsec.enabled": True},
             # to-do :need to add configuration keys once python bug is fixed
             "python": {},
-            "cpp": {"trace_agent_port": 8126},
-            "java": {"trace_agent_port": 8126, "telemetry_heartbeat_interval": 2},
+            "cpp": {"trace_agent_port": trace_agent_port},
+            "java": {"trace_agent_port": trace_agent_port, "telemetry_heartbeat_interval": 2},
             "ruby": {"DD_AGENT_TRANSPORT": "TCP"},
         }
         configuration_map = test_configuration[context.library.library]
@@ -599,25 +600,7 @@ class Test_TelemetryV2:
         """
         Assert that config telemetry is handled properly by telemetry intake
 
-        ⚠️ Did this test just fail? Read here! ⚠️
-        Some files are manually copied from dd-go from/to the following paths using tests/telemetry_intake/update.sh
-        from: https://github.com/DataDog/dd-go/blob/prod/trace/apps/tracer-telemetry-intake/telemetry-payload/static/
-        to: tests/telemetry_intake/static
-
-        If this test fails, it means that a telemetry key was found in config telemetry that does not
-        exist in any of the files listed above in dd-go
-        The impact is that telemetry will not be reported to the Datadog backend won't be unusable
-
-        To fix this, you must update dd-go to either
-        1) Add an exact config key to match config_norm_rules.json
-        2) Add a prefix that matches the config keys to config_prefix_block_list.json
-        3) Add a prefix rule that fits an existing prefix to config_aggregation_list.json
-        4) (Discouraged) Add a language-specific rule to <lang>_config_rules.json
-
-        Once dd-go is updated, you can copy over the files to this repo and merge them in as part of your changes
-        This can be done by running the following from the src root
-
-        Usage: ./tests/telemetry_intake/update.sh
+        Runbook: https://github.com/DataDog/system-tests/blob/main/docs/edit/runbook.md#test_config_telemetry_completeness
         """
 
         def lowercase_obj(obj):
@@ -690,7 +673,9 @@ class Test_TelemetryV2:
                 # This may create a fairly large test output, but it makes the output more actionable
                 if len(missing_config_keys) != 0:
                     logger.error(json.dumps(missing_config_keys, indent=2))
-                    raise ValueError("Found unexpected config telemetry keys")
+                    raise ValueError(
+                        "(NOT A FLAKE) Read this quick runbook to update allowed configs: https://github.com/DataDog/system-tests/blob/main/docs/edit/runbook.md#test_config_telemetry_completeness"
+                    )
 
     @missing_feature(library="cpp")
     @missing_feature(context.library < "ruby@1.22.0", reason="dd-client-library-version missing")
