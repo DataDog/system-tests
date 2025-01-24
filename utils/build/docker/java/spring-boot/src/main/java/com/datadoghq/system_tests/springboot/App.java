@@ -113,12 +113,16 @@ import static io.opentelemetry.api.trace.SpanKind.INTERNAL;
 import static io.opentelemetry.api.trace.StatusCode.ERROR;
 import static java.time.temporal.ChronoUnit.SECONDS;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 
 @RestController
 @EnableAutoConfiguration(exclude = R2dbcAutoConfiguration.class)
 @ComponentScan(basePackages = {"com.datadoghq.system_tests.springboot"})
 public class App {
 
+    private static final Logger logger = LoggerFactory.getLogger(App.class);
     private final CryptoExamples cryptoExamples = new CryptoExamples();
 
     CassandraConnector cassandra;
@@ -1115,6 +1119,14 @@ public class App {
     @GetMapping(value = "/set_cookie")
     public ResponseEntity<String> setCookie(@RequestParam String name, @RequestParam String value) {
         return ResponseEntity.ok().header("Set-Cookie", name + "=" + value).body("Cookie set");
+    }
+
+    @GetMapping("/log/library")
+    public String logLibrary(@RequestParam String msg) {
+        final Span span = GlobalTracer.get().activeSpan();
+        logger.info("testing: " + span.context().toTraceId());
+        logger.info(msg);
+        return "ok";
     }
 
 
