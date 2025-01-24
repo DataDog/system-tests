@@ -18,6 +18,7 @@ from .k8s_lib_injection import WeblogInjectionScenario, K8sScenario, K8sSparkSce
 from .docker_ssi import DockerSSIScenario
 from .external_processing import ExternalProcessingScenario
 from .ipv6 import IPV6Scenario
+from .appsec_low_waf_timeout import AppsecLowWafTimeout
 
 update_environ_with_local_env()
 
@@ -178,12 +179,9 @@ class _Scenarios:
         doc="Disable appsec and test DBM setting integration outcome when disabled",
         scenario_groups=[ScenarioGroup.APPSEC],
     )
-    appsec_low_waf_timeout = EndToEndScenario(
-        "APPSEC_LOW_WAF_TIMEOUT",
-        weblog_env={"DD_APPSEC_WAF_TIMEOUT": "1"},
-        doc="Appsec with a very low WAF timeout",
-        scenario_groups=[ScenarioGroup.APPSEC],
-    )
+
+    appsec_low_waf_timeout = AppsecLowWafTimeout("APPSEC_LOW_WAF_TIMEOUT")
+
     appsec_custom_obfuscation = EndToEndScenario(
         "APPSEC_CUSTOM_OBFUSCATION",
         weblog_env={
