@@ -54,9 +54,11 @@
       "properties": {
         "headers": {
           "type": "object",
-          "patternProperties": {
-            ".*": { "type": "string" }
-          }
+          "properties": {
+            "Content-Type": { "enum": ["application/json", "application/gzip"] },
+            "Content-Disposition": { "type": "string" }
+          },
+          "required": ["Content-Type"]
         }
       },
       "allOf": [
