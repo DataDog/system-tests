@@ -24,9 +24,9 @@ spec:
     apm:
       instrumentation:
         enabled: true
-  override:
-    clusterAgent:
-      image:
+  #override:
+  #  clusterAgent:
+  #    image:
         #name: docker.io/datadog/cluster-agent-dev:master SNAPSHOT X64
         #name: registry.ddbuild.io/ci/datadog-agent/cluster-agent-nightly:v53517362-6c02020c83-arm64
-        name: gcr.io/datadoghq/cluster-agent:7.60.0
+        #name: gcr.io/datadoghq/cluster-agent:7.60.0
