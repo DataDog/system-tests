@@ -382,6 +382,7 @@ tests/:
       Test_AWS_API_Gateway_Inferred_Span_Creation: missing_feature
     test_otel_drop_in.py:
       Test_Otel_Drop_In: missing_feature
+      Test_Otel_Drop_In_Default_Propagator: incomplete_test_app (endpoint not implemented)
   parametric/:
     test_128_bit_traceids.py:
       Test_128_Bit_Traceids: v0.84.0
