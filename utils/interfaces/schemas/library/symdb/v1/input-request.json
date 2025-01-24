@@ -61,11 +61,11 @@
       },
       "allOf": [
         {
-          "if": {"properties": {"headers": {"properties": {"content-type": {"const": "application/json"}}}}},
+          "if": {"properties": {"headers": {"properties": {"Content-Type": {"const": "application/json"}}}}},
           "then": {"properties": {"content": {"$ref": "#/definitions/json_content"}}}
         },
         {
-          "if": {"properties": {"headers": {"properties": {"content-type": {"const": "application/gzip"}}}}},
+          "if": {"properties": {"headers": {"properties": {"Content-Type": {"const": "application/gzip"}}}}},
           "then": {"properties": {"content": {"$ref": "#/definitions/gzip_content"}}}
         }
       ]
