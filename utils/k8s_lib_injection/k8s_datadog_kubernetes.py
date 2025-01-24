@@ -332,13 +332,13 @@ def add_cluster_agent_img_operator_yaml(image_tag, output_directory):
     # Override the operator spec for cluster image
     yaml_data["spec"]["override"] = {}
     yaml_data["spec"]["override"]["clusterAgent"] = {}
-    yaml_data["spec"]["override"]["clusterAgent"]["image"] = {image_tag}
+    yaml_data["spec"]["override"]["clusterAgent"]["image"] = {"name": image_tag}
 
     # Construct the output file path (the folder should already exist)
     output_file = os.path.join(output_directory, Path(operator_template).name)
 
     # Write the modified YAML to the new file
     with open(output_file, "w") as file:
-        yaml.dump(yaml_data, file, default_flow_style=False)
+        yaml.dump(yaml_data, file, default_flow_style=False, encoding="utf-8")
 
     return output_file
