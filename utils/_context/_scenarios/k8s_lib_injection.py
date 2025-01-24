@@ -289,6 +289,7 @@ class K8sSparkScenario(K8sScenario):
             dd_cluster_feature=self.dd_cluster_feature,
             dd_cluster_uds=self.use_uds,
             dd_cluster_version=self.k8s_cluster_version,
+            dd_cluster_img=self.k8s_cluster_img,
         )
 
         self.test_weblog = K8sWeblog(
