@@ -156,7 +156,7 @@ tests/:
       Test_Config_UnifiedServiceTagging: v1.1.0
     test_crashtracking.py: missing_feature
     test_dynamic_configuration.py:
-      TestDynamicConfigV1_EmptyServiceTargets: missing_feature
+      TestDynamicConfigV1_EmptyServiceTargets: v1.1.0
     test_headers_b3multi.py:
       Test_Headers_B3multi: missing_feature (parametric app does not support trace/span/extract endpoint)
     test_headers_baggage.py:
