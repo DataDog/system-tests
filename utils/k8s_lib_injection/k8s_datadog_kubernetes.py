@@ -1,5 +1,7 @@
+import os
 import time
-
+import yaml
+from pathlib import Path
 from kubernetes import client, watch
 from utils.tools import logger
 from utils.k8s_lib_injection.k8s_command_utils import (
@@ -21,6 +23,7 @@ class K8sDatadog:
         dd_cluster_feature={},
         dd_cluster_uds=None,
         dd_cluster_version=None,
+        dd_cluster_img=None,
         api_key=None,
         app_key=None,
     ):
@@ -28,6 +31,7 @@ class K8sDatadog:
         self.dd_cluster_feature = dd_cluster_feature
         self.dd_cluster_uds = dd_cluster_uds
         self.dd_cluster_version = dd_cluster_version
+        self.dd_cluster_img = dd_cluster_img
         self.api_key = api_key
         self.app_key = app_key
         logger.info(f"K8sDatadog configured with cluster: {self.k8s_cluster_info.cluster_name}")
@@ -121,7 +125,14 @@ class K8sDatadog:
         logger.info(f"[Deploy datadog cluster]helm install datadog with config file [{operator_file}]")
 
         # Add the cluster agent tag version
-        self.dd_cluster_feature["clusterAgent.image.tag"] = self.dd_cluster_version
+        if self.dd_cluster_img is None:
+            # DEPRECATED
+            self.dd_cluster_feature["clusterAgent.image.tag"] = self.dd_cluster_version
+        else:
+            image_ref, tag = split_docker_image(self.dd_cluster_img)
+            self.dd_cluster_feature["clusterAgent.image.tag"] = tag
+            self.dd_cluster_feature["clusterAgent.image.repository"] = image_ref
+
         helm_install_chart(
             self.k8s_cluster_info,
             "datadog",
@@ -153,8 +164,15 @@ class K8sDatadog:
         execute_command(
             f"kubectl create secret generic datadog-secret --from-literal api-key={self.api_key} --from-literal app-key={self.app_key}"
         )
-        logger.info("[Deploy datadog operator] Create the operator custom resource")
-        execute_command(f"kubectl apply -f utils/k8s_lib_injection/resources/operator/datadog-operator.yaml")
+        # Configure cluster agent image on the operator file
+        if self.dd_cluster_img is None:
+            # DEPRECATED
+            oeprator_config_file = "utils/k8s_lib_injection/resources/operator/datadog-operator.yaml"
+        else:
+            oeprator_config_file = add_cluster_agent_img_operator_yaml(self.dd_cluster_img, self.output_folder)
+
+        logger.info(f"[Deploy datadog operator] Create the operator custom resource from file {oeprator_config_file}")
+        execute_command(f"kubectl apply -f {oeprator_config_file}")
         logger.info("[Deploy datadog operator] Waiting for the cluster to be ready")
         self._wait_for_cluster_agent_ready(namespace, label_selector="agent.datadoghq.com/component=cluster-agent")
 
@@ -295,3 +313,32 @@ class K8sDatadog:
             )
         except Exception as e:
             logger.error(f"Error exporting datadog-cluster-agent logs: {e}")
+
+
+def split_docker_image(image_reference):
+    if ":" in image_reference:
+        reference, tag = image_reference.rsplit(":", 1)
+    else:
+        reference, tag = image_reference, None
+    return reference, tag
+
+
+def add_cluster_agent_img_operator_yaml(image_tag, output_directory):
+    operator_template = "utils/k8s_lib_injection/resources/operator/datadog-operator.yaml"
+    # Read the input YAML file
+    with open(operator_template) as file:
+        yaml_data = yaml.safe_load(file)
+
+    # Override the operator spec for cluster image
+    yaml_data["spec"]["override"] = {}
+    yaml_data["spec"]["override"]["clusterAgent"] = {}
+    yaml_data["spec"]["override"]["clusterAgent"]["image"] = {"name": image_tag}
+
+    # Construct the output file path (the folder should already exist)
+    output_file = os.path.join(output_directory, Path(operator_template).name)
+
+    # Write the modified YAML to the new file
+    with open(output_file, "w") as file:
+        yaml.dump(yaml_data, file, default_flow_style=False, encoding="utf-8")
+
+    return output_file
