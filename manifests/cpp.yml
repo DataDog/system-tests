@@ -8,7 +8,37 @@ tests/:
     api_security/:
       test_api_security_rc.py: irrelevant (ASM is not implemented in C++)
       test_apisec_sampling.py: irrelevant (ASM is not implemented in C++)
-      test_schemas.py: irrelevant (ASM is not implemented in C++)
+      test_schemas.py:
+        Test_Scanners:
+          "*": irrelevant (ASM is not implemented in C++)
+          nginx: missing_feature
+        Test_Schema_Request_Cookies:
+          "*": irrelevant (ASM is not implemented in C++)
+          nginx: missing_feature
+        Test_Schema_Request_FormUrlEncoded_Body:
+          "*": irrelevant (ASM is not implemented in C++)
+          nginx: missing_feature
+        Test_Schema_Request_Headers:
+          "*": irrelevant (ASM is not implemented in C++)
+          nginx: missing_feature
+        Test_Schema_Request_Json_Body:
+          "*": irrelevant (ASM is not implemented in C++)
+          nginx: missing_feature
+        Test_Schema_Request_Path_Parameters:
+          "*": irrelevant (ASM is not implemented in C++)
+          nginx: missing_feature
+        Test_Schema_Request_Query_Parameters:
+          "*": irrelevant (ASM is not implemented in C++)
+          nginx: missing_feature
+        Test_Schema_Response_Body:
+          "*": irrelevant (ASM is not implemented in C++)
+          nginx: missing_feature
+        Test_Schema_Response_Body_env_var:
+          "*": irrelevant (ASM is not implemented in C++)
+          nginx: missing_feature
+        Test_Schema_Response_Headers:
+          "*": irrelevant (ASM is not implemented in C++)
+          nginx: missing_feature
     iast/:
       sink/:
         test_code_injection.py: irrelevant (ASM is not implemented in C++)
@@ -63,38 +93,270 @@ tests/:
       test_sqli.py: irrelevant (ASM is not implemented in C++)
       test_ssrf.py: irrelevant (ASM is not implemented in C++)
     waf/:
-      test_addresses.py: irrelevant (ASM is not implemented in C++)
-      test_blocking.py: irrelevant (ASM is not implemented in C++)
-      test_custom_rules.py: irrelevant (ASM is not implemented in C++)
-      test_exclusions.py: irrelevant (ASM is not implemented in C++)
-      test_miscs.py: irrelevant (ASM is not implemented in C++)
-      test_reports.py: irrelevant (ASM is not implemented in C++)
-      test_rules.py: irrelevant (ASM is not implemented in C++)
+      test_addresses.py:
+        Test_BodyJson:
+          "*": irrelevant (ASM is not implemented in C++)
+          nginx: v1.4.0
+        Test_BodyRaw:
+          "*": irrelevant (ASM is not implemented in C++)
+          nginx: missing_feature
+        Test_BodyUrlEncoded:
+          "*": irrelevant (ASM is not implemented in C++)
+          nginx: v1.4.0
+        Test_BodyXml:
+          "*": irrelevant (ASM is not implemented in C++)
+          nginx: missing_feature
+        Test_Cookies:
+          "*": irrelevant (ASM is not implemented in C++)
+          nginx: v1.2.0
+        Test_FullGrpc: irrelevant
+        Test_GraphQL: irrelevant
+        Test_GrpcServerMethod: irrelevant
+        Test_Headers:
+          "*": irrelevant (ASM is not implemented in C++)
+          nginx: v1.2.0
+        Test_PathParams:
+          "*": irrelevant (ASM is not implemented in C++)
+          nginx: irrelevant (path params waf address unfilled)
+        Test_ResponseStatus:
+          "*": irrelevant (ASM is not implemented in C++)
+          nginx: v1.2.0
+        Test_UrlQuery:
+            "*": irrelevant (ASM is not implemented in C++)
+            nginx: v1.2.0
+        Test_UrlQueryKey:
+          "*": irrelevant (ASM is not implemented in C++)
+          nginx: v1.2.0
+        Test_UrlRaw:
+          "*": irrelevant (ASM is not implemented in C++)
+          nginx: v1.2.0
+        Test_gRPC: irrelevant
+      test_blocking.py:
+        Test_Blocking:
+          "*": irrelevant (ASM is not implemented in C++)
+          nginx: v1.2.0
+        Test_Blocking_strip_response_headers:
+          "*": irrelevant (ASM is not implemented in C++)
+          nginx: irrelevant (no response headers on 1st waf run, which is where blocking is possible)
+        Test_CustomBlockingResponse:
+          "*": irrelevant (ASM is not implemented in C++)
+          nginx: v1.2.0
+      test_custom_rules.py:
+        Test_CustomRules:
+          "*": irrelevant (ASM is not implemented in C++)
+          nginx: v1.2.0
+      test_exclusions.py:
+        Test_Exclusions:
+          "*": irrelevant (ASM is not implemented in C++)
+          nginx: v1.2.0
+      test_miscs.py:
+        Test_404:
+          "*": irrelevant (ASM is not implemented in C++)
+          nginx: v1.2.0
+        Test_CorrectOptionProcessing:
+          "*": irrelevant (ASM is not implemented in C++)
+          nginx: v1.2.0
+        Test_MultipleAttacks:
+          "*": irrelevant (ASM is not implemented in C++)
+          nginx: v1.2.0
+        Test_MultipleHighlight:
+          "*": irrelevant (ASM is not implemented in C++)
+          nginx: v1.2.0
+      test_reports.py:
+        Test_Monitoring:
+          "*": irrelevant (ASM is not implemented in C++)
+          nginx: missing_feature (WAF monitoring tags not implemented)
+      test_rules.py:
+        Test_CommandInjection:
+          "*": irrelevant (ASM is not implemented in C++)
+          nginx: v1.2.0
+        Test_DiscoveryScan:
+          "*": irrelevant (ASM is not implemented in C++)
+          nginx: v1.2.0
+        Test_HttpProtocol:
+          "*": irrelevant (ASM is not implemented in C++)
+          nginx: v1.2.0
+        Test_JavaCodeInjection:
+          "*": irrelevant (ASM is not implemented in C++)
+          nginx: v1.2.0
+        Test_JsInjection:
+          "*": irrelevant (ASM is not implemented in C++)
+          nginx: v1.2.0
+        Test_LFI:
+          "*": irrelevant (ASM is not implemented in C++)
+          nginx: v1.2.0
+        Test_NoSqli:
+          "*": irrelevant (ASM is not implemented in C++)
+          nginx: v1.2.0
+        Test_PhpCodeInjection:
+          "*": irrelevant (ASM is not implemented in C++)
+          nginx: v1.2.0
+        Test_RFI:
+          "*": irrelevant (ASM is not implemented in C++)
+          nginx: v1.2.0
+        Test_SQLI:
+          "*": irrelevant (ASM is not implemented in C++)
+          nginx: v1.2.0
+        Test_SSRF:
+          "*": irrelevant (ASM is not implemented in C++)
+          nginx: v1.2.0
+        Test_Scanners:
+          "*": irrelevant (ASM is not implemented in C++)
+          nginx: v1.2.0
+        Test_XSS:
+          "*": irrelevant (ASM is not implemented in C++)
+          nginx: v1.2.0
       test_telemetry.py: irrelevant (ASM is not implemented in C++)
     test_alpha.py: irrelevant (ASM is not implemented in C++)
     test_asm_standalone.py: irrelevant (ASM is not implemented in C++)
-    test_automated_login_events.py: irrelevant (ASM is not implemented in C++)
+    test_automated_login_events.py:
+      Test_Login_Events:
+        "*": irrelevant (ASM is not implemented in C++)
+        nginx: missing_feature
+      Test_Login_Events_Extended:
+        "*": irrelevant (ASM is not implemented in C++)
+        nginx: missing_feature
+      Test_V2_Login_Events:
+        "*": irrelevant (ASM is not implemented in C++)
+        nginx: missing_feature
+      Test_V2_Login_Events_Anon:
+        "*": irrelevant (ASM is not implemented in C++)
+        nginx: missing_feature
+      Test_V2_Login_Events_RC:
+        "*": irrelevant (ASM is not implemented in C++)
+        nginx: missing_feature
+      Test_V3_Auto_User_Instrum_Mode_Capability:
+        "*": irrelevant (ASM is not implemented in C++)
+        nginx: missing_feature
+      Test_V3_Login_Events:
+        "*": irrelevant (ASM is not implemented in C++)
+        nginx: missing_feature
+      Test_V3_Login_Events_Anon:
+        "*": irrelevant (ASM is not implemented in C++)
+        nginx: missing_feature
+      Test_V3_Login_Events_Blocking:
+        "*": irrelevant (ASM is not implemented in C++)
+        nginx: missing_feature
+      Test_V3_Login_Events_RC:
+        "*": irrelevant (ASM is not implemented in C++)
+        nginx: missing_feature
     test_automated_user_and_session_tracking.py: irrelevant (ASM is not implemented in C++)
-    test_blocking_addresses.py: irrelevant (ASM is not implemented in C++)
-    test_client_ip.py: irrelevant (ASM is not implemented in C++)
-    test_conf.py: irrelevant (ASM is not implemented in C++)
-    test_customconf.py: irrelevant (ASM is not implemented in C++)
+    test_blocking_addresses.py:
+      Test_BlockingGraphqlResolvers:
+        "*": irrelevant (ASM is not implemented in C++)
+        nginx: irrelevant
+      Test_Blocking_client_ip:
+        "*": irrelevant (ASM is not implemented in C++)
+        nginx: v1.2.0
+      Test_Blocking_request_body:
+        "*": irrelevant (ASM is not implemented in C++)
+        nginx: v1.4.0
+      Test_Blocking_request_body_multipart:
+        "*": irrelevant (ASM is not implemented in C++)
+        nginx: v1.4.0
+      Test_Blocking_request_cookies:
+        "*": irrelevant (ASM is not implemented in C++)
+        nginx: v1.2.0
+      Test_Blocking_request_headers:
+        "*": irrelevant (ASM is not implemented in C++)
+        nginx: v1.2.0
+      Test_Blocking_request_method:
+        "*": irrelevant (ASM is not implemented in C++)
+        nginx: v1.2.0
+      Test_Blocking_request_path_params:
+        "*": irrelevant (ASM is not implemented in C++)
+        nginx: irrelevant
+      Test_Blocking_request_query:
+        "*": irrelevant (ASM is not implemented in C++)
+        nginx: v1.2.0
+      Test_Blocking_request_uri:
+        "*": irrelevant (ASM is not implemented in C++)
+        nginx: v1.2.0
+      Test_Blocking_response_headers:
+        "*": irrelevant (ASM is not implemented in C++)
+        nginx: missing_feature (blocking on final WAF run not possible)
+      Test_Blocking_response_status:
+        "*": irrelevant (ASM is not implemented in C++)
+        nginx: missing_feature (blocking on final WAF run not possible)
+      Test_Blocking_user_id:
+        "*": irrelevant (ASM is not implemented in C++)
+        nginx: missing_feature (users not supported)
+      Test_Suspicious_Request_Blocking:
+        "*": irrelevant (ASM is not implemented in C++)
+        nginx: irrelevant (path params waf address unfilled)
+    test_client_ip.py:
+      Test_StandardTagsClientIp:
+        "*": irrelevant (ASM is not implemented in C++)
+        nginx: missing_feature (Standard logs not implemented)
+    test_conf.py:
+      Test_ConfigurationVariables:
+        "*": irrelevant (ASM is not implemented in C++)
+        nginx: v1.2.0
+    test_customconf.py:
+      Test_ConfRuleSet:
+        "*": irrelevant (ASM is not implemented in C++)
+        nginx: v1.2.0
+      Test_CorruptedRules:
+        "*": irrelevant (ASM is not implemented in C++)
+        nginx: v1.2.0
+      Test_MissingRules:
+        "*": irrelevant (ASM is not implemented in C++)
+        nginx: irrelevant (fatal error on missing rules)
+      Test_NoLimitOnWafRules:
+        "*": irrelevant (ASM is not implemented in C++)
+        nginx: v1.2.0
     test_event_tracking.py: irrelevant (ASM is not implemented in C++)
     test_fingerprinting.py: irrelevant (ASM is not implemented in C++)
     test_identify.py: irrelevant (ASM is not implemented in C++)
-    test_ip_blocking_full_denylist.py: irrelevant (ASM is not implemented in C++)
+    test_ip_blocking_full_denylist.py:
+      Test_AppSecIPBlockingFullDenylist:
+        "*": irrelevant (ASM is not implemented in C++)
+        nginx: v1.3.0
     test_logs.py: irrelevant (ASM is not implemented in C++)
     test_metastruct.py: irrelevant (ASM is not implemented in C++)
-    test_rate_limiter.py: irrelevant (ASM is not implemented in C++)
+    test_rate_limiter.py:
+      Test_Main:
+        "*": irrelevant (ASM is not implemented in C++)
+        nginx: missing_feature (Rate limiting not implemented)
     test_remote_config_rule_changes.py: irrelevant (ASM is not implemented in C++)
     test_reports.py: irrelevant (ASM is not implemented in C++)
-    test_request_blocking.py: irrelevant (ASM is not implemented in C++)
-    test_runtime_activation.py: irrelevant (ASM is not implemented in C++)
+    test_request_blocking.py:
+      Test_AppSecRequestBlocking:
+        "*": irrelevant (ASM is not implemented in C++)
+        nginx: v1.3.0
+    test_runtime_activation.py:
+      Test_RuntimeActivation:
+        "*": irrelevant (ASM is not implemented in C++)
+        nginx: v1.3.0
     test_shell_execution.py: irrelevant (ASM is not implemented in C++)
     test_suspicious_attacker_blocking.py: irrelevant (ASM is not implemented in C++)
-    test_traces.py: irrelevant (ASM is not implemented in C++)
-    test_user_blocking_full_denylist.py: irrelevant (ASM is not implemented in C++)
-    test_versions.py: irrelevant (ASM is not implemented in C++)
+    test_traces.py:
+      Test_AppSecEventSpanTags:
+        "*": irrelevant (ASM is not implemented in C++)
+        nginx: v1.2.0
+      Test_AppSecObfuscator:
+        "*": irrelevant (ASM is not implemented in C++)
+        nginx: v1.2.0
+      Test_CollectDefaultRequestHeader:
+        "*": irrelevant (ASM is not implemented in C++)
+        nginx: v1.2.0
+      Test_CollectRespondHeaders:
+        "*": irrelevant (ASM is not implemented in C++)
+        nginx: v1.2.0
+      Test_ExternalWafRequestsIdentification:
+        "*": irrelevant (ASM is not implemented in C++)
+        nginx: v1.2.0
+      Test_RetainTraces:
+        "*": irrelevant (ASM is not implemented in C++)
+        nginx: v1.2.0
+    test_user_blocking_full_denylist.py:
+      Test_UserBlocking_FullDenylist:
+        "*": irrelevant (ASM is not implemented in C++)
+        nginx: missing_feature (User blocking not implemented)
+    test_versions.py:
+      Test_Events:
+        "*": irrelevant (ASM is not implemented in C++)
+        nginx: v1.2.0
   debugger/:
     test_debugger_exception_replay.py:
       Test_Debugger_Exception_Replay: irrelevant
@@ -217,12 +479,22 @@ tests/:
     test_tracer_flare.py: missing_feature
   remote_config/:
     test_remote_configuration.py:
-      Test_RemoteConfigurationExtraServices: missing_feature
-      Test_RemoteConfigurationUpdateSequenceASMDD: missing_feature
-      Test_RemoteConfigurationUpdateSequenceASMDDNoCache: missing_feature
-      Test_RemoteConfigurationUpdateSequenceFeatures: missing_feature
-      Test_RemoteConfigurationUpdateSequenceFeaturesNoCache: missing_feature
-      Test_RemoteConfigurationUpdateSequenceLiveDebugging: missing_feature
+      Test_RemoteConfigurationExtraServices:
+        "*": irrelevant (ASM is not implemented in C++)
+        nginx: missing_feature
+      Test_RemoteConfigurationUpdateSequenceASMDD:
+        "*": irrelevant (ASM is not implemented in C++)
+        nginx: v1.3.0
+      Test_RemoteConfigurationUpdateSequenceASMDDNoCache:
+        "*": irrelevant (ASM is not implemented in C++)
+        nginx: irrelevant (we opt into cache)
+      Test_RemoteConfigurationUpdateSequenceFeatures:
+        "*": irrelevant (ASM is not implemented in C++)
+        nginx: v1.3.0
+      Test_RemoteConfigurationUpdateSequenceFeaturesNoCache:
+        "*": irrelevant (ASM is not implemented in C++)
+        nginx: irrelevant (we opt into cache)
+      Test_RemoteConfigurationUpdateSequenceLiveDebugging: irrelevant
   serverless/:
     span_pointers/:
       aws/:
@@ -273,8 +545,13 @@ tests/:
   test_span_events.py: incomplete_test_app (Weblog `/add_event` not implemented)
   test_standard_tags.py: irrelevant
   test_telemetry.py:
+    Test_APMOnboardingInstallID: missing_feature
+    Test_DependencyEnable: missing_feature
     Test_Log_Generation: missing_feature
     Test_MessageBatch: missing_feature
+    Test_Metric_Generation_Disabled: missing_feature
     Test_Metric_Generation_Enabled: missing_feature
     Test_ProductsDisabled: irrelevant
+    Test_Telemetry: missing_feature
     Test_TelemetrySCAEnvVar: missing_feature
+    Test_TelemetryV2: missing_feature

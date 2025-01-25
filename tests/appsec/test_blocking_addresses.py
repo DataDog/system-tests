@@ -3,6 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 import json
+
 from utils import (
     bug,
     context,
@@ -56,6 +57,7 @@ class Test_Blocking_client_ip:
     def setup_blocking_before(self):
         self.block_req2 = weblog.get("/tag_value/tainted_value_6512/200", headers={"X-Forwarded-For": "1.1.1.1"})
 
+    @irrelevant(context.weblog_variant == "nginx", reason="Tag adding happens before WAF run")
     def test_blocking_before(self):
         """Test that blocked requests are blocked before being processed"""
         # second request should block and must not set the tag in span
@@ -114,6 +116,7 @@ class Test_Blocking_request_method:
         context.scenario is scenarios.external_processing_blocking,
         reason="The endpoint /tag_value is not implemented in the weblog",
     )
+    @irrelevant(context.weblog_variant == "nginx", reason="Tag adding happens before WAF run")
     def test_blocking_before(self):
         """Test that blocked requests are blocked before being processed"""
         # first request should not block and must set the tag in span accordingly
@@ -172,6 +175,7 @@ class Test_Blocking_request_uri:
         context.scenario is scenarios.external_processing_blocking,
         reason="The endpoint /tag_value is not implemented in the weblog",
     )
+    @irrelevant(context.weblog_variant == "nginx", reason="Tag adding happens before WAF run")
     def test_blocking_before(self):
         """Test that blocked requests are blocked before being processed"""
         # first request should not block and must set the tag in span accordingly
@@ -230,6 +234,7 @@ class Test_Blocking_request_path_params:
         context.scenario is scenarios.external_processing_blocking,
         reason="The endpoint /param is not implemented in the weblog",
     )
+    @irrelevant(context.weblog_variant == "nginx", reason="Tag adding happens before WAF run")
     def test_blocking_before(self):
         """Test that blocked requests are blocked before being processed"""
         # first request should not block and must set the tag in span accordingly
@@ -283,6 +288,7 @@ class Test_Blocking_request_query:
         context.scenario is scenarios.external_processing_blocking,
         reason="The endpoint /tag_value is not implemented in the weblog",
     )
+    @irrelevant(context.weblog_variant == "nginx", reason="Tag adding happens before WAF run")
     def test_blocking_before(self):
         """Test that blocked requests are blocked before being processed"""
         # first request should not block and must set the tag in span accordingly
@@ -336,6 +342,7 @@ class Test_Blocking_request_headers:
         context.scenario is scenarios.external_processing_blocking,
         reason="The endpoint /tag_value is not implemented in the weblog",
     )
+    @irrelevant(context.weblog_variant == "nginx", reason="Tag adding happens before WAF run")
     def test_blocking_before(self):
         """Test that blocked requests are blocked before being processed"""
         # first request should not block and must set the tag in span accordingly
@@ -389,6 +396,7 @@ class Test_Blocking_request_cookies:
         context.scenario is scenarios.external_processing_blocking,
         reason="The endpoint /tag_value is not implemented in the weblog",
     )
+    @irrelevant(context.weblog_variant == "nginx", reason="Tag adding happens before WAF run")
     def test_blocking_before(self):
         """Test that blocked requests are blocked before being processed"""
         # first request should not block and must set the tag in span accordingly
@@ -440,7 +448,7 @@ class Test_Blocking_request_body:
         )
 
     @irrelevant(
-        context.weblog_variant in ("akka-http", "play", "jersey-grizzly2", "resteasy-netty3"),
+        context.weblog_variant in ("akka-http", "play", "jersey-grizzly2", "resteasy-netty3", "nginx"),
         reason="Blocks on text/plain if parsed to a String",
     )
     def test_non_blocking_plain_text(self):
@@ -453,6 +461,7 @@ class Test_Blocking_request_body:
         self.set_req1 = weblog.post("/tag_value/clean_value_3882/200", data={"good": "value"})
         self.block_req2 = weblog.post("/tag_value/tainted_value_body/200", data={"value5": "bsldhkuqwgervf"})
 
+    @irrelevant(context.weblog_variant == "nginx", reason="Tag adding happens before WAF run")
     def test_blocking_before(self):
         """Test that blocked requests are blocked before being processed"""
         # first request should not block and must set the tag in span accordingly
