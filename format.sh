@@ -29,11 +29,21 @@ while [[ "$#" -gt 0 ]]; do
     shift
 done
 
+echo "Running treefmt-nix ..."
+if [ "$COMMAND" == "fix" ]; then
+  nix fmt
+
+
+else
+  nix flake check
+fi
+
 if [ ! -d "venv/" ]; then
   echo "Runner is not installed, installing it (ETA 60s)"
   ./build.sh -i runner
 fi
 
+# shellcheck source=/dev/null
 source venv/bin/activate
 
 echo "Running mypy type checks..."

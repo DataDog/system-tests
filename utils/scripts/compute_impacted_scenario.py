@@ -117,6 +117,34 @@ def main():
                         if sub_file.startswith(folder):
                             result.add_scenarios(scenarios_by_files[sub_file])
 
+            elif file.startswith("utils/"):
+                if file.startswith("utils/interfaces/schemas"):
+                    scenarios_groups.add(ScenarioGroup.END_TO_END.value)
+                else:
+                    scenarios_groups.add(ScenarioGroup.ALL.value)
+
+            elif file in (".dockerignore", ".gitignore", ".gitlab-ci.yml", "CHANGELOG.md",):
+                # nothing to do
+                pass
+
+            elif file in ("LICENSE", "LICENSE-3rdparty.csv", "NOTICE", "Pulumi.yaml", "README.md", "build.sh"):
+                # nothing to do
+                pass
+
+            elif file == "conftest.py":
+                scenarios_groups.add(ScenarioGroup.ALL.value)
+
+            elif file in ("format.sh", "pyproject.toml"):
+                # nothing to do
+                pass
+
+            elif file in ("requirements.txt", "run.sh"):
+                scenarios_groups.add(ScenarioGroup.ALL.value)
+
+            elif file in ("scenario_groups.yml", "shell.nix", "flake.nix", "flake.lock", "treefmt.nix"):
+                # nothing to do
+                pass
+
             else:
                 # Map of file patterns -> scenario requirement:
                 #
