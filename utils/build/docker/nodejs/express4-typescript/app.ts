@@ -4,7 +4,7 @@ import { Request, Response } from "express";
 
 const tracer = require('dd-trace').init({ debug: true, flushInterval: 5000 });
 
-require('./iast/exclusions.js')
+require('./iast/exclusions')
 
 const { promisify } = require('util')
 const app = require('express')()
@@ -332,7 +332,7 @@ require('./rasp')(app)
 
 require('./graphql')(app).then(() => {
   app.listen(7777, '0.0.0.0', () => {
-    tracer.trace('init.service', () => { })
+    tracer.trace('init.service', () => {})
     console.log('listening')
   })
 })
