@@ -33,7 +33,7 @@ app.use(require('express-session')({
 
 iast.initMiddlewares(app)
 
-require('./auth')(app, passport, tracer)
+require('./auth')(app, tracer)
 
 iast.initRoutes(app)
 
