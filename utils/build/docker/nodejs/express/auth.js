@@ -118,7 +118,8 @@ module.exports = function (app, tracer) {
   }
 
   // callback for all strategies to run SDK
-  app.all('/login/*', (req, res) => {
+  // regex is required to be compatible with both express v4 and v5
+  app.all(/^\/login\/.*$/i, (req, res) => {
     if (req.query.sdk_trigger !== 'before' && shouldSdkBlock(req, res)) {
       return
     }

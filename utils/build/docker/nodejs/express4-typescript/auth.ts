@@ -1,7 +1,7 @@
 'use strict'
 
 import type { Express, Request, Response, NextFunction } from "express";
- // @ts-ignore
+// @ts-ignore
 import type { Tracer } from "dd-trace";
 
 const passport = require('passport')
@@ -23,17 +23,17 @@ const users = [
   }
 ]
 
-function findUser (fields: any) : any {
+function findUser (fields: any): any {
   return users.find((user: any) => {
     return Object.entries(fields).every(([field, value]) => user[field] === value)
   })
 }
 
 module.exports = function (app: Express, tracer: Tracer) {
-  function shouldSdkBlock (req: Request, res: Response) : boolean {
+  function shouldSdkBlock (req: Request, res: Response): boolean {
     const event = req.query.sdk_event
     const userId: string = req.query.sdk_user as string || 'sdk_user'
-    const userMail = req.query.sdk_mail as  string || 'system_tests_user@system_tests_user.com'
+    const userMail = req.query.sdk_mail as string || 'system_tests_user@system_tests_user.com'
     const exists = req.query.sdk_user_exists === 'true'
 
     res.statusCode = req.user ? 200 : 401
@@ -114,7 +114,7 @@ module.exports = function (app: Express, tracer: Tracer) {
   app.use('/login/basic', passport.authenticate('basic', { failWithError: true }), handleError)
 
   // only stop if unexpected error
-  function handleError (err: any, req: Request, res: Response, next: NextFunction) : void {
+  function handleError (err: any, req: Request, res: Response, next: NextFunction): void {
     if (err?.name !== 'AuthenticationError') {
       console.error('unexpected login error', err)
       next(err)
@@ -124,7 +124,7 @@ module.exports = function (app: Express, tracer: Tracer) {
   }
 
   // callback for all strategies to run SDK
-  app.all('/login/*', (req: Request, res: Response) => {
+  app.all(/^\/login\/.*$/i, (req: Request, res: Response) => {
     if (req.query.sdk_trigger !== 'before' && shouldSdkBlock(req, res)) {
       return
     }
