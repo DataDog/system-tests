@@ -37,7 +37,7 @@ module.exports = function (app: Express, tracer: Tracer) {
       const exists = req.query.sdk_user_exists === 'true'
 
     res.statusCode = req.user ? 200 : 401
-  
+
     if (event === 'failure') {
       tracer.appsec.trackUserLoginFailureEvent(userId, exists, { metadata0: "value0", metadata1: "value1" });
 
