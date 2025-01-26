@@ -23,18 +23,18 @@ const users = [
   }
 ]
 
-function findUser (fields: {[key: string]: string}) : any {
-  return users.find((user) => {
-    return Object.entries(fields).every(([field, value]) => user[field] === value)
+function findUser (fields: any) : any {
+  return users.find((user: any) => {
+    return Object.entries(fields).every(([field: string, value: any]) => user[field] === value)
   })
 }
 
 module.exports = function (app: Express, tracer: Tracer) {
   function shouldSdkBlock (req: Request, res: Response) : boolean {
-      const event = req.query.sdk_event
-      const userId: string = req.query.sdk_user as string || 'sdk_user'
-      const userMail = req.query.sdk_mail as  string || 'system_tests_user@system_tests_user.com'
-      const exists = req.query.sdk_user_exists === 'true'
+    const event = req.query.sdk_event
+    const userId: string = req.query.sdk_user as string || 'sdk_user'
+    const userMail = req.query.sdk_mail as  string || 'system_tests_user@system_tests_user.com'
+    const exists = req.query.sdk_user_exists === 'true'
 
     res.statusCode = req.user ? 200 : 401
 
@@ -58,12 +58,14 @@ module.exports = function (app: Express, tracer: Tracer) {
 
       res.statusCode = 200
     }
+
+    return false
   }
 
   app.use(passport.initialize())
   app.use(passport.session())
 
-  passport.serializeUser((user: object, done: Function) => {
+  passport.serializeUser((user: any, done: Function) => {
     done(null, user.id)
   })
 
