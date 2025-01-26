@@ -4,10 +4,11 @@ import { Request, Response } from "express";
 
 const tracer = require('dd-trace').init({ debug: true, flushInterval: 5000 });
 
+require('./iast/exclusions.js')
+
 const { promisify } = require('util')
 const app = require('express')()
 const axios = require('axios')
-const passport = require('passport')
 const { Kafka } = require("kafkajs")
 const { spawnSync } = require('child_process')
 const crypto = require('crypto')
@@ -23,10 +24,17 @@ app.use(require('body-parser').json());
 app.use(require('body-parser').urlencoded({ extended: true }));
 app.use(require('express-xml-bodyparser')());
 app.use(require('cookie-parser')());
+app.use(require('express-session')({
+  secret: 'secret',
+  resave: false,
+  rolling: true,
+  saveUninitialized: true
+}))
 
 iast.initMiddlewares(app)
 
 require('./auth')(app, passport, tracer)
+
 iast.initRoutes(app)
 
 app.get('/', (req: Request, res: Response) => {
