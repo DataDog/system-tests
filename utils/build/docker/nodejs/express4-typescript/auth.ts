@@ -25,7 +25,7 @@ const users = [
 
 function findUser (fields: any) : any {
   return users.find((user: any) => {
-    return Object.entries(fields).every(([field: string, value: any]) => user[field] === value)
+    return Object.entries(fields).every(([field, value]) => user[field] === value)
   })
 }
 
