@@ -9,4 +9,7 @@ jobs:
   label:
     runs-on: ubuntu-latest
     steps:
-      - run: echo ${{ event.changes.title.from }}
+      - name: Dump GitHub context
+        env:
+          GITHUB_CONTEXT: ${{ toJson(event) }}
+        run: echo "$GITHUB_CONTEXT"
