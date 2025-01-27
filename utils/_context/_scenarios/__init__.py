@@ -783,6 +783,7 @@ class _Scenarios:
 
     runtime_metrics_enabled = EndToEndScenario(
         "RUNTIME_METRICS_ENABLED",
+        weblog_env={"DD_DOGSTATSD_START_DELAY": "0"},
         runtime_metrics_enabled=True,
         use_proxy_for_weblog=False,
         doc="Test runtime metrics",
