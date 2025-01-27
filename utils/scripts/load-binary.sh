@@ -37,7 +37,7 @@ assert_version_is_dev() {
 
 assert_target_branch_is_not_set() {
 
-  if [[ -z "$TARGET_BRANCH" ]]; then
+  if [[ -z "${TARGET_BRANCH:-}" ]]; then
     return 0
   fi
 
