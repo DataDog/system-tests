@@ -1,6 +1,7 @@
 name: Pull Request Title
 on:
-  pull_request_target:
+  pull_request:
+  # pull_request_target:
     types: [opened, edited, synchronize]
     branches:
       - 'main'
