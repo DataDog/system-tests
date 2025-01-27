@@ -4,7 +4,7 @@
 
 import tests.debugger.utils as debugger
 
-from utils import scenarios, features, bug, missing_feature, context
+from utils import scenarios, features, missing_feature, context, rfc
 
 
 @features.debugger
@@ -102,3 +102,33 @@ class Test_Debugger_Probe_Snaphots(debugger._Base_Debugger_Test):
     def test_mix_probe(self):
         self._assert()
         self._validate_snapshots()
+
+    ############ test ############
+    @rfc(
+        "https://docs.google.com/document/d/1lhaEgBGIb9LATLsXxuKDesx4BCYixOcOzFnr4qTTemw/edit?pli=1&tab=t.0#heading=h.o5gstqo08gu5"
+    )
+    def setup_code_origin_entry_present(self):
+        # Code origins are automatically included in spans, so we don't need to configure probes.
+        self.initialize_weblog_remote_config()
+        self.send_weblog_request("/healthcheck")
+
+    @features.debugger_code_origins
+    @missing_feature(context.library == "dotnet", reason="Entry spans code origins not yet implemented")
+    @missing_feature(context.library == "java", reason="Entry spans code origins not yet implemented for spring-mvc")
+    @missing_feature(context.library == "nodejs", reason="Entry spans code origins not yet implemented for express")
+    @missing_feature(context.library == "ruby", reason="Entry spans code origins not yet implemented")
+    def test_code_origin_entry_present(self):
+        self.collect()
+
+        self.assert_setup_ok()
+        self.assert_all_weblog_responses_ok()
+
+        code_origins_entry_found = False
+        for span in self.all_spans:
+            # Web spans for the healthcheck should have code origins defined.
+            resource, resource_type = span.get("resource", None), span.get("type", None)
+            if resource == "GET /healthcheck" and resource_type == "web":
+                code_origin_type = span["meta"].get("_dd.code_origin.type", "")
+                code_origins_entry_found = code_origin_type == "entry"
+
+        assert code_origins_entry_found

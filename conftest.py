@@ -57,7 +57,12 @@ def pytest_addoption(parser):
     )
     parser.addoption("--k8s-injector-img", type=str, action="store", help="Set injector image on the docker registry")
     parser.addoption("--k8s-weblog-img", type=str, action="store", help="Set test app image on the docker registry")
-    parser.addoption("--k8s-cluster-version", type=str, action="store", help="Set the datadog agent version")
+    parser.addoption(
+        "--k8s-cluster-version", type=str, action="store", help="DEPRECATED. Set the datadog cluster version"
+    )
+    parser.addoption(
+        "--k8s-cluster-img", type=str, action="store", help="Set the datadog cluster image on the docker registry"
+    )
 
     # Onboarding scenarios mandatory parameters
     parser.addoption("--vm-weblog", type=str, action="store", help="Set virtual machine weblog")
