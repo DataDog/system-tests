@@ -9,4 +9,4 @@ jobs:
   label:
     runs-on: ubuntu-latest
     steps:
-      - echo {{event.changes.title.from}}
+      - run: echo {{event.changes.title.from}}
