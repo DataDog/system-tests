@@ -21,6 +21,7 @@ from utils.parametric.spec.trace import decode_v06_stats
 from utils.parametric._library_client import APMLibrary, APMLibraryClient
 
 from utils import context, scenarios
+from utils.dd_constants import RemoteConfigApplyState
 from utils.tools import logger
 
 from utils._context._scenarios.parametric import APMLibraryTestServer
@@ -399,25 +400,39 @@ class _TestAgentAPI:
     def wait_for_rc_apply_state(
         self,
         product: str,
-        state: remoteconfig.APPLY_STATUS,
+        state: RemoteConfigApplyState,
         clear: bool = False,
         wait_loops: int = 100,
         post_only: bool = False,
     ):
         """Wait for the given RemoteConfig apply state to be received by the test agent."""
+        logger.info(f"Wait for RemoteConfig apply state {state} for product {product}")
         rc_reqs = []
-        for i in range(wait_loops):
+        last_known_state = None
+        for _ in range(wait_loops):
             try:
                 rc_reqs = self.rc_requests(post_only)
             except requests.exceptions.RequestException:
-                pass
+                logger.exception("Error getting RC requests")
             else:
                 # Look for the given apply state in the requests.
+                logger.debug(f"Check {len(rc_reqs)} RC requests")
                 for req in rc_reqs:
                     if req["body"]["client"]["state"].get("config_states") is None:
+                        logger.debug("No config_states in request")
                         continue
+
                     for cfg_state in req["body"]["client"]["state"]["config_states"]:
-                        if cfg_state["product"] == product and cfg_state["apply_state"] == state:
+                        if cfg_state["product"] != product:
+                            logger.debug(f"Product {cfg_state['product']} does not match {product}")
+                        elif cfg_state["apply_state"] != state.value:
+                            if last_known_state != cfg_state["apply_state"]:
+                                # this condition prevent to spam logs, because the last knwon state
+                                # will probably be the same as the current state
+                                last_known_state = cfg_state["apply_state"]
+                                logger.debug(f"Apply state {cfg_state['apply_state']} does not match {state}")
+                        else:
+                            logger.info(f"Found apply state {state} for product {product}")
                             if clear:
                                 self.clear()
                             return cfg_state
