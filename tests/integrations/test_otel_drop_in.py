@@ -53,6 +53,7 @@ class Test_Otel_Drop_In_Default_Propagator:
         }
         self.r = weblog.get("/otel_drop_in_default_propagator_extract", headers=extract_headers)
 
+    @incomplete_test_app(library="nodejs", reason="Node.js extract endpoint doesn't seem to be working.")
     @incomplete_test_app(library="ruby", reason="Ruby extract seems to fail even though it should be supported")
     def test_propagation_extract(self):
         content = json.loads(self.r.text)
