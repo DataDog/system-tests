@@ -135,7 +135,8 @@ jobs:
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"IPV6"') && inputs.library != 'ruby'
       run: ./run.sh IPV6
     - name: Run CROSSED_TRACING_LIBRARIES scenario
-      if: always() && steps.build.outcome == 'success' && matrix.weblog != 'python3.12' && contains(inputs.scenarios, '"CROSSED_TRACING_LIBRARIES"')
+      if: always() && steps.build.outcome == 'success' && matrix.weblog != 'python3.12' && matrix.weblog != 'django-py3.13' && contains(inputs.scenarios, '"CROSSED_TRACING_LIBRARIES"')
+      # python 3.13 issue : APMAPI-1096
       run: ./run.sh CROSSED_TRACING_LIBRARIES
       env:
         SYSTEM_TESTS_AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
