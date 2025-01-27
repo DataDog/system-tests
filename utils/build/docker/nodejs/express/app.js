@@ -13,7 +13,6 @@ const passport = require('passport')
 const crypto = require('crypto')
 const pino = require('pino')
 const api = require('@opentelemetry/api')
-const { CompositePropagator, W3CBaggagePropagator , W3CTraceContextPropagator } = require('@opentelemetry/core')
 
 const iast = require('./iast')
 const dsm = require('./dsm')
@@ -431,18 +430,9 @@ app.get('/db', async (req, res) => {
   }
 })
 
-// TODO: The user should not need to do this for their propagation to work, we should plug this in.
-// The user should get a default composite W3C+Baggage propagator
-const compositePropagator = new CompositePropagator({
-  propagators: [new W3CTraceContextPropagator(), new W3CBaggagePropagator()],
-})
-
-let setWorked = api.propagation.setGlobalPropagator(compositePropagator)
-console.log("Setting api.propagation.setGlobalPropagator(compositePropagator) result: " + setWorked)
-
 app.get('/otel_drop_in_default_propagator_extract', (req, res) => {
-  let ctx = api.propagation.extract(api.context.active(), req.headers)
-  let spanContext = api.trace.getSpan(ctx).spanContext()
+  const ctx = api.propagation.extract(api.context.active(), req.headers)
+  const spanContext = api.trace.getSpan(ctx).spanContext()
 
   const result = {}
   result.trace_id = parseInt(spanContext.traceId.substring(16), 16)
@@ -454,10 +444,12 @@ app.get('/otel_drop_in_default_propagator_extract', (req, res) => {
 })
 
 app.get('/otel_drop_in_default_propagator_inject', (req, res) => {
-  const tracer = api.trace.getTracer("my-application", "0.1.0")
-  const span = tracer.startSpan("main")
+  const tracer = api.trace.getTracer('my-application', '0.1.0')
+  const span = tracer.startSpan('main')
+  const result = {}
 
-  api.propagation.inject(api.trace.setSpanContext(api.ROOT_CONTEXT, span.spanContext()), result, api.defaultTextMapSetter)
+  api.propagation.inject(
+    api.trace.setSpanContext(api.ROOT_CONTEXT, span.spanContext()), result, api.defaultTextMapSetter)
   res.json(result)
 })
 
