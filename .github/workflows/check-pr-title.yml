@@ -13,7 +13,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: debug
-        run: echo "${{ toJSON(steps.get-previous-target-branch.outputs.target-branch) }} ${{ toJSON(steps.get-current-target-branch.outputs.target-branch) }}"
+        run: echo "${{ toJSON(github.event.changes.title) }} ${{ toJSON(github.event.pull_request.title) }}"
 
 
       - name: Get previous target branch
@@ -27,6 +27,11 @@ jobs:
         id: get-current-target-branch
         with:
           text: ${{ github.event.pull_request.title }}
+
+      - name: debug
+        run: echo "${{ toJSON(steps.get-previous-target-branch.outputs.target-branch) }} ${{ toJSON(steps.get-current-target-branch.outputs.target-branch) }}"
+
+
 
 
       - name: Check target branch change
