@@ -64,7 +64,7 @@ class Test_Debugger_Expression_Language(debugger._Base_Debugger_Test):
     def setup_expression_language_access_variables(self):
         language, method = self.get_tracer()["language"], "Expression"
         message_map, probes = self._create_expression_probes(
-            methodName="Expression",
+            methodName=method,
             expressions=[
                 ["Accessing input", "asd", Dsl("ref", "inputValue")],
                 ["Accessing local", 3, Dsl("ref", "localValue")],
@@ -101,7 +101,6 @@ class Test_Debugger_Expression_Language(debugger._Base_Debugger_Test):
         self._assert(expected_response=200)
 
     def setup_expression_language_contextual_variables(self):
-        language, method = self.get_tracer()["language"], "Expression"
         message_map, probes = self._create_expression_probes(
             methodName="Expression",
             expressions=[
