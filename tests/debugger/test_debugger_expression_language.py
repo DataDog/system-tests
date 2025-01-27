@@ -62,6 +62,7 @@ class Test_Debugger_Expression_Language(debugger._Base_Debugger_Test):
     ############ test ############
     ############ access variables ############
     def setup_expression_language_access_variables(self):
+        language, method = self.get_tracer()["language"], "Expression"
         message_map, probes = self._create_expression_probes(
             methodName="Expression",
             expressions=[
@@ -92,6 +93,7 @@ class Test_Debugger_Expression_Language(debugger._Base_Debugger_Test):
                 ],
                 ["Accessing duration", r"\d+(\.\d+)?", Dsl("ref", "@duration")],
             ],
+            lines=self._method_and_language_to_line_number(method, language),
         )
 
         self.message_map = message_map
@@ -115,6 +117,7 @@ class Test_Debugger_Expression_Language(debugger._Base_Debugger_Test):
 
     ############ comparison operators ############
     def setup_expression_language_comparison_operators(self):
+        language, method = self.get_tracer()["language"], "ExpressionOperators"
         message_map, probes = self._create_expression_probes(
             methodName="ExpressionOperators",
             expressions=[
@@ -166,7 +169,7 @@ class Test_Debugger_Expression_Language(debugger._Base_Debugger_Test):
                 ["strValue le a", False, Dsl("le", [Dsl("ref", "strValue"), "a"])],
                 ["strValue ge z", False, Dsl("ge", [Dsl("ref", "strValue"), "z"])],
             ],
-            lines=[83],
+            lines=self._method_and_language_to_line_number(method, language),
         )
 
         self.message_map = message_map
@@ -614,6 +617,19 @@ class Test_Debugger_Expression_Language(debugger._Base_Debugger_Test):
             return "Value"
         else:
             return "value"
+
+    def _method_and_language_to_line_number(self, method, language):
+        """
+        _method_and_language_to_line_number returns the respective line number given the method and language
+        """
+        return {
+            "Expression": {"java": [71], "dotnet": [74], "python": [72]},
+            "ExpressionException": {},
+            "ExpressionOperators": {"java": [82], "dotnet": [90], "python": [87]},
+            "StringOperations": {},
+            "CollectionOperations": {},
+            "Nulls": {},
+        }.get(method, {}).get(language, [])
 
     def _create_expression_probes(self, methodName, expressions, lines=[]):
         probes = []

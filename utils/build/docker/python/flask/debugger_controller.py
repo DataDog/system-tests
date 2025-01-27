@@ -72,7 +72,11 @@ def expression():
     return f"Great success number {localValue}"
 
 
-# dummy line
+@debugger_blueprint.route("/expression/exception", methods=["GET"])
+def expression_exception():
+    abort(500, description="Hello from exception")
+
+
 @debugger_blueprint.route("/expression/operators", methods=["GET"])
 def expression_operators():
     intValue = request.args.get("intValue", type=int)
@@ -80,12 +84,7 @@ def expression_operators():
     strValue = request.args.get("strValue", type=str)
     pii = Pii()
 
-    return f"Int value {intValue}. Float value {floatValue}. String value is {strValue}."  # must be line 83
-
-
-@debugger_blueprint.route("/expression/exception", methods=["GET"])
-def expression_exception():
-    abort(500, description="Hello from exception")
+    return f"Int value {intValue}. Float value {floatValue}. String value is {strValue}."
 
 
 @debugger_blueprint.route("/expression/strings", methods=["GET"])
