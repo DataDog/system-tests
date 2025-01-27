@@ -53,6 +53,7 @@ def _make_request(
     retry_delay=1,
     backoff_factor=2,
     max_retries=8,
+    validator=None,
 ):
     """Make a request to the backend with retries and backoff. With the defaults, this will retry for approximately 5 minutes."""
     start_time = time.perf_counter()
@@ -61,8 +62,9 @@ def _make_request(
             r = requests.request(method=method, url=url, headers=headers, json=json, timeout=request_timeout)
             logger.debug(f" Backend response status for url [{url}]: [{r.status_code}]")
             if r.status_code == 200:
-                return r.json()
-
+                json = r.json()
+                if not validator or validator(json):
+                    return json
             if r.status_code == 429:
                 retry_after = _parse_retry_after(r.headers)
                 logger.debug(f" Received 429 for url [{url}], rate limit reset in: [{retry_after}]")
@@ -104,6 +106,11 @@ def _parse_retry_after(headers):
         return -1
 
 
+def _validate_profiler_response(json):
+    data = json["data"]
+    return isinstance(data, list) and len(data) > 0
+
+
 def _query_for_profile(runtime_id):
     url = f"{API_HOST}/api/unstable/profiles/list"
     headers = _headers()
@@ -121,7 +128,4 @@ def _query_for_profile(runtime_id):
     }
 
     logger.debug(f"Posting to {url} with query: {queryJson}")
-    data = _make_request(url, headers=headers, method="post", json=queryJson)["data"]
-
-    # Check if we got any profile events
-    return bool(isinstance(data, list) and len(data) > 0)
+    _make_request(url, headers=headers, method="post", json=queryJson, validator=_validate_profiler_response)
