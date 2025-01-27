@@ -6,7 +6,7 @@ on:
     # branches:
     #   - 'main'
 jobs:
-  label:
+  check-title:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -27,7 +27,14 @@ jobs:
       - name: debug
         run: echo "${{ toJSON(steps.get-previous-target-branch.outputs.target-branch) }} ${{ toJSON(steps.get-current-target-branch.outputs.target-branch) }}"
 
-      - name: Check target branch change
+      - name: Trigger CI
         if: steps.get-previous-target-branch.outputs.target-branch != steps.get-current-target-branch.outputs.target-branch
-        run: echo "IT CHANGED"
-
+        run: |
+          gh api \
+            --method POST \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            /repos/${{ github.event.repository.owner.login }}/${{ github.event.repository.name }}/actions/workflows/ci.yml/dispatches \
+            -f "ref=${{ github.event.pull_request.head.ref }}"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
