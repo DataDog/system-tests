@@ -9,10 +9,14 @@ from utils.tools import logger
 API_HOST = "https://dd.datadoghq.com"
 
 
+class ProfileNotFoundError(Exception):
+    pass
+
+
 def wait_backend_trace_id(trace_id, profile: bool = False, validator=None):
     runtime_id = _query_for_trace_id(trace_id, validator=validator)
-    if profile:
-        _query_for_profile(runtime_id)
+    if profile and not _query_for_profile(runtime_id):
+        raise ProfileNotFoundError("Profile events not found for runtime_id: {runtime_id}")
 
 
 def _headers():
