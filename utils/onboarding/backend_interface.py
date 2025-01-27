@@ -65,6 +65,7 @@ def _make_request(
                 json = r.json()
                 if not validator or validator(json):
                     return json
+                logger.debug(f" Backend response does not meet expectation for url [{url}]: [{r.text}]")
             if r.status_code == 429:
                 retry_after = _parse_retry_after(r.headers)
                 logger.debug(f" Received 429 for url [{url}], rate limit reset in: [{retry_after}]")
@@ -75,7 +76,7 @@ def _make_request(
         except requests.exceptions.RequestException as e:
             logger.error(f"Error received connecting to url: [{url}] {e} ")
 
-        logger.debug(f" Received unsuccessful status code for [{url}], retrying in: [{retry_delay}]")
+        logger.debug(f" Received unsuccessful response for [{url}], retrying in: [{retry_delay}]")
 
         # Avoid sleeping if we are going to hit the overall timeout.
         if time.perf_counter() + retry_delay - start_time >= overall_timeout:
