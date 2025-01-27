@@ -3,8 +3,8 @@ on:
   pull_request:
   # pull_request_target:
     types: [opened, edited, synchronize]
-    branches:
-      - 'main'
+    # branches:
+    #   - 'main'
 jobs:
   label:
     runs-on: ubuntu-latest
