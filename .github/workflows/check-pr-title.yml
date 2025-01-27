@@ -28,6 +28,6 @@ jobs:
         run: echo "${{ toJSON(steps.get-previous-target-branch.outputs.target-branch) }} ${{ toJSON(steps.get-current-target-branch.outputs.target-branch) }}"
 
       - name: Check target branch change
-        if: ${{ steps.get-previous-target-branch.outputs.target-branch }} != ${{ steps.get-current-target-branch.outputs.target-branch }}
+        if: steps.get-previous-target-branch.outputs.target-branch != steps.get-current-target-branch.outputs.target-branch
         run: echo "IT CHANGED"
 
