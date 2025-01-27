@@ -29,5 +29,5 @@ jobs:
 
       - name: Check target branch change
         if: ${{ steps.get-previous-target-branch.outputs.target-branch }} != ${{ steps.get-current-target-branch.outputs.target-branch }}
-        run: 
+        run: echo "IT CHANGED"
 
