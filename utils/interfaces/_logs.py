@@ -96,6 +96,8 @@ class _LogsInterfaceValidator(InterfaceValidator):
 
     def validate(self, validator, *, success_by_default=False):
         for data in self.get_data():
+            print("MTOFF")
+            print(data)
             try:
                 if validator(data) is True:
                     return
@@ -262,7 +264,13 @@ class _LogPresence:
         self.extra_conditions = {k: re.compile(pattern) for k, pattern in extra_conditions.items()}
 
     def check(self, data):
-        if "message" in data and self.pattern.search(data["message"]):
+        print("MTOFF-MSG")
+        if 'message' in data:
+            print("single")
+        print(self.pattern)
+        print("data.m,essage")
+        print(data['message'])
+        if ("message" in data and self.pattern.search(data["message"])) or ('message' in data and self.pattern.search(data['message'])):
             for key, extra_pattern in self.extra_conditions.items():
                 if key not in data:
                     logger.info(f"For {self}, {self.pattern.pattern!r} was found, but [{key}] field is missing")
@@ -278,7 +286,6 @@ class _LogPresence:
 
             logger.debug(f"For {self}, found {data['message']}")
             return True
-
         return None
 
 
