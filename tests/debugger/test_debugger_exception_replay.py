@@ -371,6 +371,7 @@ class Test_Debugger_Exception_Replay(debugger._Base_Debugger_Test):
     @bug(context.library == "dotnet", reason="DEBUG-2799, DEBUG-3283")
     @bug(context.library == "python", reason="DEBUG-3257, DEBUG-3282")
     @bug(context.library < "java@1.46.0", reason="DEBUG-3285")
+    @bug(context.library == "java", reason="DEBUG-3390")
     def test_exception_replay_recursion_20(self):
         self._assert("exception_replay_recursion_20", ["recursion exception depth 20"])
         self._validate_recursion_snapshots(self.snapshots, 10)
