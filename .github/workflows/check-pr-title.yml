@@ -1,0 +1,11 @@
+name: Pull Request Title
+on:
+  pull_request_target:
+    types: [opened, edited, synchronize]
+    branches:
+      - 'main'
+jobs:
+  label:
+    runs-on: ubuntu-latest
+    steps:
+      - echo {{event.changes.title.from}}
