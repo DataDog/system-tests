@@ -67,7 +67,6 @@ class Test_Debugger_Expression_Language(debugger._Base_Debugger_Test):
             methodName="Expression",
             expressions=[
                 ["Accessing input", "asd", Dsl("ref", "inputValue")],
-                ["Accessing return", ".*Great success number 3", Dsl("ref", "@return")],
                 ["Accessing local", 3, Dsl("ref", "localValue")],
                 ["Accessing complex object int", 1, Dsl("getmember", [Dsl("ref", "testStruct"), "IntValue"])],
                 ["Accessing complex object double", 1.1, Dsl("getmember", [Dsl("ref", "testStruct"), "DoubleValue"])],
@@ -91,7 +90,6 @@ class Test_Debugger_Expression_Language(debugger._Base_Debugger_Test):
                     2,
                     Dsl("index", [Dsl("getmember", [Dsl("ref", "testStruct"), "Dictionary"]), "two"]),
                 ],
-                ["Accessing duration", r"\d+(\.\d+)?", Dsl("ref", "@duration")],
             ],
             lines=self._method_and_language_to_line_number(method, language),
         )
@@ -100,6 +98,24 @@ class Test_Debugger_Expression_Language(debugger._Base_Debugger_Test):
         self._setup(probes, "/debugger/expression?inputValue=asd")
 
     def test_expression_language_access_variables(self):
+        self._assert(expected_response=200)
+
+    def setup_expression_language_contextual_variables(self):
+        language, method = self.get_tracer()["language"], "Expression"
+        message_map, probes = self._create_expression_probes(
+            methodName="Expression",
+            expressions=[
+                ["Accessing return", ".*Great success number 3", Dsl("ref", "@return")],
+                ["Accessing duration", r"\d+(\.\d+)?", Dsl("ref", "@duration")],
+            ],
+            # We only capture @return and @duration in the context of a method probe.
+            lines=[],
+        )
+
+        self.message_map = message_map
+        self._setup(probes, "/debugger/expression?inputValue=asd")
+
+    def test_expression_language_contextual_variables(self):
         self._assert(expected_response=200)
 
     ############ access exception ############
@@ -638,10 +654,10 @@ class Test_Debugger_Expression_Language(debugger._Base_Debugger_Test):
         """
         _method_and_language_to_line_number returns the respective line number given the method and language
         """
-        # TODO: This will likely need the weblog to support multiple server implementations.
         return {
             "Expression": {"java": [71], "dotnet": [74], "python": [72]},
-            "ExpressionException": {"java": [76], "dotnet": [81], "python": [77]},
+            # The `@exception` variable is not available in the context of line probes.
+            "ExpressionException": {},
             "ExpressionOperators": {"java": [82], "dotnet": [90], "python": [87]},
             "StringOperations": {"java": [87], "dotnet": [97], "python": [96]},
             "CollectionOperations": {"java": [114], "dotnet": [114], "python": [123]},
