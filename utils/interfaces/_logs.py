@@ -96,6 +96,7 @@ class _LogsInterfaceValidator(InterfaceValidator):
 
     def validate(self, validator, *, success_by_default=False):
         for data in self.get_data():
+            print(data, '\n')
             try:
                 if validator(data) is True:
                     return
