@@ -32,13 +32,19 @@ import org.springframework.boot.autoconfigure.r2dbc.R2dbcAutoConfiguration;
 import org.springframework.web.server.ResponseStatusException;
 
 
+import io.opentelemetry.api.baggage.Baggage;
 import io.opentelemetry.api.GlobalOpenTelemetry;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.common.AttributesBuilder;
+import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.api.trace.SpanBuilder;
 import io.opentelemetry.api.trace.Tracer;
+import io.opentelemetry.context.propagation.ContextPropagators;
+import io.opentelemetry.context.propagation.TextMapGetter;
+import io.opentelemetry.context.propagation.TextMapPropagator;
 import io.opentelemetry.context.propagation.TextMapSetter;
 import io.opentelemetry.context.Scope;
+import io.opentelemetry.context.Context;
 import io.opentracing.Span;
 import io.opentracing.util.GlobalTracer;
 import ognl.Ognl;
@@ -1092,6 +1098,60 @@ public class App {
         db_sql_integrations("reactive_postgresql", "init");
         db_sql_integrations("reactive_postgresql", "select");
         return "OK";
+    }
+
+    @RequestMapping("/otel_drop_in_default_propagator_extract")
+    public String otelDropInDefaultPropagatorExtract(@RequestHeader Map<String, String> headers) throws com.fasterxml.jackson.core.JsonProcessingException {
+        ContextPropagators propagators = GlobalOpenTelemetry.getPropagators();
+        TextMapPropagator textMapPropagator = propagators.getTextMapPropagator();
+
+        Context extractedContext = textMapPropagator.extract(Context.current(), headers, new TextMapGetter<Map<String, String>>() {
+            @Override
+            public Iterable<String> keys(Map<String, String> map) {
+            return map.keySet();
+            }
+
+            @Override
+            public String get(Map<String, String> map, String key) {
+                return map.get(key);
+            }
+        });
+
+        io.opentelemetry.api.trace.SpanContext spanContext = io.opentelemetry.api.trace.Span.fromContext(extractedContext).getSpanContext();
+        Long ddTraceId = Long.parseLong(spanContext.getTraceId().substring(16), 16);
+        Long ddSpanId = Long.parseLong(spanContext.getSpanId(), 16);
+
+        Map<String, Object> map = new HashMap<>();
+        map.put("trace_id", ddTraceId);
+        map.put("span_id", ddSpanId);
+        map.put("tracestate", spanContext.getTraceState().asMap().toString());
+        map.put("baggage", Baggage.fromContext(extractedContext).asMap().toString());
+
+        // Convert headers map to JSON string
+        ObjectMapper mapper = new ObjectMapper();
+        String jsonString = mapper.writeValueAsString(map);
+
+        return jsonString;
+    }
+
+    @RequestMapping("/otel_drop_in_default_propagator_inject")
+    public String otelDropInDefaultPropagatorInject() throws com.fasterxml.jackson.core.JsonProcessingException {
+        ContextPropagators propagators = GlobalOpenTelemetry.getPropagators();
+        TextMapPropagator textMapPropagator = propagators.getTextMapPropagator();
+
+        Map<String, String> map = new HashMap<>();
+        textMapPropagator.inject(Context.current(), map, new TextMapSetter<Map<String, String>>() {
+            @Override
+            public void set(Map<String, String> map, String key, String value) {
+                map.put(key, value);
+            }
+        });
+
+        // Convert headers map to JSON string
+        ObjectMapper mapper = new ObjectMapper();
+        String jsonString = mapper.writeValueAsString(map);
+
+        return jsonString;
     }
 
     @GetMapping(value = "/requestdownstream")
