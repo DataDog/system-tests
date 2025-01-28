@@ -64,6 +64,15 @@ class _Scenarios:
 
     profiling = ProfilingScenario("PROFILING")
 
+    appsec_no_stats = EndToEndScenario(
+        name="APPSEC_NO_STATS",
+        doc=(
+            "End to end testing with default values. Default scenario has DD_TRACE_COMPUTE_STATS=true."
+            "This scenario let that env to use its default"
+        ),
+        scenario_groups=[ScenarioGroup.APPSEC],
+    )
+
     sampling = EndToEndScenario(
         "SAMPLING",
         tracer_sampling_rate=0.5,
