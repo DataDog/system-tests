@@ -763,7 +763,7 @@ tests/:
   otel/:
     test_context_propagation.py:
       Test_Otel_Context_Propagation_Default_Propagator_Api:
-        '*': irrelevant
+        '*': incomplete_test_app (endpoint not implemented)
         flask-poc: v2.19.0
   parametric/:
     test_128_bit_traceids.py:
