@@ -21,6 +21,8 @@ import javax.sql.DataSource;
 import java.io.IOException;
 import java.util.Hashtable;
 
+import org.apache.commons.lang3.StringEscapeUtils;
+
 @RestController
 @RequestMapping("/iast")
 public class AppSecIast {
@@ -38,6 +40,7 @@ public class AppSecIast {
     private final HardcodedSecretExamples hardcodedSecretExamples;
     private final ReflectionExamples reflectionExamples;
     private final DeserializationExamples deserializationExamples;
+    private final EmailExamples emailExamples;
 
 
     public AppSecIast(final DataSource dataSource) {
@@ -52,6 +55,7 @@ public class AppSecIast {
         this.hardcodedSecretExamples = new HardcodedSecretExamples();
         this.reflectionExamples = new ReflectionExamples();
         this.deserializationExamples = new DeserializationExamples();
+        this.emailExamples = new EmailExamples();
     }
 
     @RequestMapping("/hardcoded_secrets/test_insecure")
@@ -455,15 +459,13 @@ public class AppSecIast {
     @GetMapping("/email_html_injection/test_insecure")
     public void emailHtmlInjectionInsecure(final HttpServletRequest request, final HttpServletResponse response) {
         String email = request.getParameter("username");
-        EmailExamples emailExamples = new EmailExamples();
-        emailExamples.insecureEmail(email);
+        emailExamples.mail(email);
     }
 
     @GetMapping("/email_html_injection/test_secure")
     public void emailHtmlInjectionSecure(final HttpServletRequest request, final HttpServletResponse response) {
         String email = request.getParameter("username");
-        EmailExamples emailExamples = new EmailExamples();
-        emailExamples.secureEmail(email);
+        emailExamples.mail(StringEscapeUtils.escapeHtml3(email));
     }
 
     /**
