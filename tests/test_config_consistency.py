@@ -488,12 +488,17 @@ class Test_Config_LogInjection_Enabled:
 
     def test_log_injection_enabled(self):
         assert self.r.status_code == 200
-        pattern = r'"dd":\{[^}]*\}'
+        pattern = get_log_regex()
         stdout.assert_presence(pattern)
-        dd = parse_log_injection_message(self.message)
-        required_fields = ["trace_id", "span_id", "service", "version", "env"]
+        msg = parse_log_injection_message(self.message)
+        assert msg is not None, "Log message with trace context not found"
+        tid = parse_log_trace_id(msg)
+        assert tid is not None, "Expected a trace ID, but got None"
+        sid = parse_log_span_id(msg)
+        assert sid is not None, "Expected a span ID, but got None"
+        required_fields = ["service", "version", "env"]
         for field in required_fields:
-            assert field in dd, f"Missing field: {field}"
+            assert field in msg, f"Missing field: {field}"
         return
 
 
@@ -525,10 +530,8 @@ class Test_Config_LogInjection_128Bit_TradeId_Default:
 
     def test_log_injection_128bit_traceid_default(self):
         assert self.r.status_code == 200
-        pattern = r'"dd":\{[^}]*\}'
-        stdout.assert_presence(pattern)
-        dd = parse_log_injection_message(self.message)
-        trace_id = dd.get("trace_id")
+        log_msg = parse_log_injection_message(self.message)
+        trace_id = parse_log_trace_id(log_msg)
         assert re.match(r"^[0-9a-f]{32}$", trace_id), f"Invalid 128-bit trace_id: {trace_id}"
 
 
@@ -544,10 +547,8 @@ class Test_Config_LogInjection_128Bit_TradeId_Disabled:
 
     def test_log_injection_128bit_traceid_disabled(self):
         assert self.r.status_code == 200
-        pattern = r'"dd":\{[^}]*\}'
-        stdout.assert_presence(pattern)
-        dd = parse_log_injection_message(self.message)
-        trace_id = dd.get("trace_id")
+        log_msg = parse_log_injection_message(self.message)
+        trace_id = parse_log_trace_id(log_msg)
         assert re.match(r"^\d{1,20}$", trace_id), f"Invalid 64-bit trace_id: {trace_id}"
 
 
@@ -584,7 +585,7 @@ class Test_Config_RuntimeMetrics_Default:
         assert iterations == 0, "Runtime metrics are enabled by default"
 
 
-# Parse the JSON-formatted log message from stdout and return the 'dd' object
+# Parse the JSON-formatted log message from stdout and returns it
 def parse_log_injection_message(log_message):
     for data in stdout.get_data():
         try:
@@ -594,3 +595,24 @@ def parse_log_injection_message(log_message):
         if message.get("dd") and message.get(log_injection_fields[context.library.library]["message"]) == log_message:
             dd = message.get("dd")
             return dd
+        return message
+
+def parse_log_trace_id(message):
+    if message.get("dd.trace_id"):
+        return message.get("dd.trace_id")
+    if message.get("trace_id"):
+        return message.get("trace_id")
+    return None
+
+def parse_log_span_id(message):
+    if message.get("dd.span_id"):
+        return message.get("dd.span_id")
+    if message.get("span_id"):
+        return message.get("span_id")
+    return None
+
+def get_log_regex():
+    pattern = r'"dd":\{[^}]*\}'
+    if context.library == "golang":
+        pattern = r'"dd\.[^"]+"'
+    return pattern

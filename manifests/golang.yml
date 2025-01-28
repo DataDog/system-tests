@@ -600,10 +600,10 @@ tests/:
       uds-echo: missing_feature
     Test_Config_IntegrationEnabled_False: irrelevant (not applicable to Go because of how they do auto instrumentation)
     Test_Config_IntegrationEnabled_True: irrelevant (not applicable to Go because of how they do auto instrumentation)
-    Test_Config_LogInjection_128Bit_TradeId_Default: missing_feature (disabled by default)
-    Test_Config_LogInjection_128Bit_TradeId_Disabled: incomplete_test_app (weblog endpoint not implemented)
-    Test_Config_LogInjection_Default: incomplete_test_app (weblog endpoint not implemented)
-    Test_Config_LogInjection_Enabled: incomplete_test_app (weblog endpoint not implemented)
+    Test_Config_LogInjection_128Bit_TradeId_Default: missing_feature
+    Test_Config_LogInjection_128Bit_TradeId_Disabled: missing_feature
+    Test_Config_LogInjection_Default: missing_feature
+    Test_Config_LogInjection_Enabled: missing_feature
     Test_Config_ObfuscationQueryStringRegexp_Configured: v1.67.0
     Test_Config_ObfuscationQueryStringRegexp_Default: v1.67.0
     Test_Config_ObfuscationQueryStringRegexp_Empty: v1.67.0
