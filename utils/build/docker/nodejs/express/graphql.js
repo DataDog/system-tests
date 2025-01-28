@@ -25,11 +25,22 @@ const typeDefs = gql`
         user(id: Int!): User
         userByName(name: String): [User]
         testInjection(path: String): [User]
+        withError: ID
       }
 
       type User {
         id: Int
         name: String
+      }
+        
+      type Error {
+        message: String
+        extensions: [Extension]
+      }
+
+      type Extension {
+        key: String
+        value: String
       }`
 
 function getUser (parent, args) {
@@ -49,16 +60,35 @@ function testInjection (parent, args) {
   return users
 }
 
+function withError (parent, args) {
+  throw new Error('test error');
+}
+
 const resolvers = {
   Query: {
     user: getUser,
     userByName: getUserByName,
-    testInjection
+    testInjection,
+    withError
   }
 }
 
+// Custom error formatting
+const formatError = (error) => {
+  return {
+    message: error.message,
+    extensions: [
+      { key: 'int-1', value: '1' },
+      { key: 'str-1', value: '1' },
+      { key: 'array-1-2', value: [1, '2'] },
+      { key: 'empty', value: 'empty string' },
+      { key: 'comma', value: 'comma' }
+    ]
+  };
+};
+
 module.exports = async function (app) {
-  const server = new ApolloServer({ typeDefs, resolvers })
+  const server = new ApolloServer({ typeDefs, resolvers, formatError })
   await server.start()
   server.applyMiddleware({ app })
 }
