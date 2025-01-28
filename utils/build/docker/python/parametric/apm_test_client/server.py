@@ -26,7 +26,7 @@ from opentelemetry.baggage import set_baggage
 from opentelemetry.baggage import get_baggage
 
 import ddtrace
-from ddtrace import Span
+from ddtrace.trace import Span
 from ddtrace import config
 from ddtrace.contrib.trace_utils import set_http_meta
 from ddtrace.context import Context

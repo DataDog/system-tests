@@ -64,8 +64,8 @@ if os.environ.get("INCLUDE_RABBITMQ", "true") == "true":
     from integrations.messaging.rabbitmq import rabbitmq_produce
 
 import ddtrace
-from ddtrace import Pin
-from ddtrace import tracer
+from ddtrace.trace import Pin
+from ddtrace.trace import tracer
 from ddtrace.appsec import trace_utils as appsec_trace_utils
 from ddtrace.internal.datastreams import data_streams_processor
 from ddtrace.internal.datastreams.processor import DsmPathwayCodec
