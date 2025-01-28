@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 from requests.structures import CaseInsensitiveDict
 
 from utils.telemetry_utils import TelemetryUtils
-from utils import context, weblog, interfaces, scenarios, features, rfc, bug, flaky, missing_feature
+from utils import context, weblog, interfaces, scenarios, features, rfc, bug, missing_feature
 
 
 class AsmStandalone_UpstreamPropagation_Base(ABC):
@@ -744,7 +744,6 @@ class SCAStandalone_Telemetry_Base:
 @rfc("https://docs.google.com/document/d/12NBx-nD-IoQEMiCRnJXneq4Be7cbtSc6pJLOFUWTpNE/edit")
 @features.appsec_standalone
 @scenarios.appsec_standalone
-@flaky(context.library >= "python@2.18.0+dev", reason="APPSEC-56142")
 class Test_AppSecStandalone_UpstreamPropagation(AppSecStandalone_UpstreamPropagation_Base):
     """APPSEC correctly propagates AppSec events in distributing tracing with DD_EXPERIMENTAL_APPSEC_STANDALONE_ENABLED=true."""
 
@@ -758,7 +757,6 @@ class Test_AppSecStandalone_UpstreamPropagation(AppSecStandalone_UpstreamPropaga
 @rfc("https://docs.google.com/document/d/12NBx-nD-IoQEMiCRnJXneq4Be7cbtSc6pJLOFUWTpNE/edit")
 @features.appsec_standalone_v2
 @scenarios.appsec_standalone_v2
-@flaky(context.library >= "python@2.18.0+dev", reason="APPSEC-56142")
 class Test_AppSecStandalone_UpstreamPropagation_V2(AppSecStandalone_UpstreamPropagation_Base):
     """APPSEC correctly propagates AppSec events in distributing tracing with DD_APM_TRACING_ENABLED=false."""
 
