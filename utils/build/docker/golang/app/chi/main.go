@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
-	"log"
 	"math/rand"
 	"net/http"
 	"os"
@@ -21,16 +20,24 @@ import (
 	"weblog/internal/grpc"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/sirupsen/logrus"
 
 	"gopkg.in/DataDog/dd-trace-go.v1/appsec"
 	chitrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/go-chi/chi.v5"
 	httptrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/net/http"
+	dd_logrus "gopkg.in/DataDog/dd-trace-go.v1/contrib/sirupsen/logrus"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 	"gopkg.in/DataDog/dd-trace-go.v1/profiler"
 )
 
 func main() {
+	logrus.SetFormatter(&logrus.JSONFormatter{})
+	logrus.SetOutput(os.Stdout)
+	logrus.SetLevel(logrus.DebugLevel)
+
+	// Add Datadog context log hook
+	logrus.AddHook(&dd_logrus.DDContextLogHook{})
 	tracer.Start()
 	defer tracer.Stop()
 
@@ -43,7 +50,7 @@ func main() {
 	)
 
 	if err != nil {
-		log.Fatal(err)
+		logrus.Fatal(err)
 	}
 	defer profiler.Stop()
 
@@ -153,7 +160,7 @@ func main() {
 		req, _ := http.NewRequestWithContext(r.Context(), http.MethodGet, url, nil)
 		res, err := client.Do(req)
 		if err != nil {
-			log.Fatalln("client.Do", err)
+			logrus.Fatalln("client.Do", err)
 		}
 
 		defer res.Body.Close()
@@ -175,7 +182,7 @@ func main() {
 			ResponseHeaders map[string]string `json:"response_headers"`
 		}{URL: url, StatusCode: res.StatusCode, RequestHeaders: requestHeaders, ResponseHeaders: responseHeaders})
 		if err != nil {
-			log.Fatalln(err)
+			logrus.Fatalln(err)
 		}
 		w.Header().Set("Content-Type", "application/json")
 		w.Write(jsonResponse)
@@ -268,7 +275,7 @@ func main() {
 		content, err := os.ReadFile(path)
 
 		if err != nil {
-			log.Fatalln(err)
+			logrus.Fatalln(err)
 			w.WriteHeader(500)
 			return
 		}
@@ -288,6 +295,26 @@ func main() {
 			w.Write([]byte("missing session cookie"))
 		}
 		appsec.TrackUserLoginSuccessEvent(r.Context(), user, map[string]string{}, tracer.WithUserSessionID(cookie.Value))
+	})
+
+	mux.HandleFunc("/log/library", func(w http.ResponseWriter, r *http.Request) {
+		msg := r.URL.Query().Get("msg")
+		if msg == "" {
+			msg = "msg"
+		}
+		ctx := r.Context()
+		switch r.URL.Query().Get("level") {
+		case "warn":
+			logrus.WithContext(ctx).Warn(msg)
+		case "error":
+			logrus.WithContext(ctx).Error(msg)
+		case "debug":
+			logrus.WithContext(ctx).Debug(msg)
+		default:
+			logrus.WithContext(ctx).Info(msg)
+		}
+		w.WriteHeader(200)
+		w.Write([]byte("ok"))
 	})
 
 	mux.HandleFunc("/rasp/lfi", rasp.LFI)
@@ -314,7 +341,7 @@ func main() {
 	go grpc.ListenAndServe()
 	go func() {
 		if err := srv.ListenAndServe(); !errors.Is(err, http.ErrServerClosed) {
-			log.Fatal(err)
+			logrus.Fatal(err)
 		}
 	}()
 
@@ -325,7 +352,7 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	if err := srv.Shutdown(ctx); err != nil {
-		log.Fatalf("HTTP shutdown error: %v", err)
+		logrus.Fatalf("HTTP shutdown error: %v", err)
 	}
 }
 

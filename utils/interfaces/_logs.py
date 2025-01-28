@@ -262,7 +262,11 @@ class _LogPresence:
         self.extra_conditions = {k: re.compile(pattern) for k, pattern in extra_conditions.items()}
 
     def check(self, data):
-        if "message" in data and self.pattern.search(data["message"]):
+        if (
+            "message" in data
+            or ("message" in data and self.pattern.search(data["message"]))
+            or self.pattern.search(data["message"])
+        ):
             for key, extra_pattern in self.extra_conditions.items():
                 if key not in data:
                     logger.info(f"For {self}, {self.pattern.pattern!r} was found, but [{key}] field is missing")

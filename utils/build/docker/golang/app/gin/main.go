@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
-	"log"
 	"math/rand"
 	"net/http"
 	"os"
@@ -20,15 +19,23 @@ import (
 	"weblog/internal/rasp"
 
 	"github.com/gin-gonic/gin"
+	"github.com/sirupsen/logrus"
 
 	"gopkg.in/DataDog/dd-trace-go.v1/appsec"
 	gintrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/gin-gonic/gin"
 	httptrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/net/http"
+	dd_logrus "gopkg.in/DataDog/dd-trace-go.v1/contrib/sirupsen/logrus"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 	"gopkg.in/DataDog/dd-trace-go.v1/profiler"
 )
 
 func main() {
+	logrus.SetFormatter(&logrus.JSONFormatter{})
+	logrus.SetOutput(os.Stdout)
+	logrus.SetLevel(logrus.DebugLevel)
+
+	// Add Datadog context log hook
+	logrus.AddHook(&dd_logrus.DDContextLogHook{})
 	tracer.Start()
 	defer tracer.Stop()
 
@@ -41,7 +48,7 @@ func main() {
 	)
 
 	if err != nil {
-		log.Fatal(err)
+		logrus.Fatal(err)
 	}
 	defer profiler.Stop()
 
@@ -139,7 +146,7 @@ func main() {
 		req, _ := http.NewRequestWithContext(ctx.Request.Context(), http.MethodGet, url, nil)
 		res, err := client.Do(req)
 		if err != nil {
-			log.Fatalln(err)
+			logrus.Fatalln(err)
 		}
 
 		defer res.Body.Close()
@@ -220,7 +227,7 @@ func main() {
 		content, err := os.ReadFile(path)
 
 		if err != nil {
-			log.Fatalln(err)
+			logrus.Fatalln(err)
 			ctx.Writer.WriteHeader(500)
 		}
 		ctx.Writer.Write(content)
@@ -240,6 +247,24 @@ func main() {
 		appsec.TrackUserLoginSuccessEvent(ctx.Request.Context(), user, map[string]string{}, tracer.WithUserSessionID(cookie.Value))
 	})
 
+	r.GET("/log/library", func(ctx *gin.Context) {
+		msg := ctx.Query("msg")
+		if msg == "" {
+			msg = "msg"
+		}
+		switch ctx.Query("level") {
+		case "warn":
+			logrus.WithContext(ctx).Warn(msg)
+		case "error":
+			logrus.WithContext(ctx).Error(msg)
+		case "debug":
+			logrus.WithContext(ctx).Debug(msg)
+		default:
+			logrus.WithContext(ctx).Info(msg)
+		}
+		ctx.Writer.Write([]byte("OK"))
+	})
+
 	r.Any("/rasp/lfi", ginHandleFunc(rasp.LFI))
 	r.Any("/rasp/ssrf", ginHandleFunc(rasp.SSRF))
 	r.Any("/rasp/sqli", ginHandleFunc(rasp.SQLi))
@@ -256,7 +281,7 @@ func main() {
 	go grpc.ListenAndServe()
 	go func() {
 		if err := srv.ListenAndServe(); !errors.Is(err, http.ErrServerClosed) {
-			log.Fatal(err)
+			logrus.Fatal(err)
 		}
 	}()
 
@@ -267,7 +292,7 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	if err := srv.Shutdown(ctx); err != nil {
-		log.Fatalf("HTTP shutdown error: %v", err)
+		logrus.Fatalf("HTTP shutdown error: %v", err)
 	}
 }
 
