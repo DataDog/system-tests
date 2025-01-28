@@ -6,7 +6,7 @@ import json
 from utils import weblog, interfaces, scenarios, features, incomplete_test_app
 
 
-@features.f_otel_interoperability
+@features.otel_propagators_api
 @scenarios.apm_tracing_e2e_otel
 class Test_Otel_Context_Propagation_Default_Propagator_Api:
     def setup_propagation_extract(self):
