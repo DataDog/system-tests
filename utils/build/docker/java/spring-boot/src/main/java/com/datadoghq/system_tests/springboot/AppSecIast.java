@@ -452,6 +452,19 @@ public class AppSecIast {
         cmdExamples.insecureCmd(sanitized);
     }
 
+    @GetMapping("/email_html_injection/test_insecure")
+    public void emailHtmlInjectionInsecure(final HttpServletRequest request, final HttpServletResponse response) {
+        String email = request.getParameter("username");
+        EmailExamples emailExamples = new EmailExamples();
+        emailExamples.insecureEmail(email);
+    }
+
+    @GetMapping("/email_html_injection/test_secure")
+    public void emailHtmlInjectionSecure(final HttpServletRequest request, final HttpServletResponse response) {
+        String email = request.getParameter("username");
+        EmailExamples emailExamples = new EmailExamples();
+        emailExamples.secureEmail(email);
+    }
 
     /**
      * TODO: Ldap is failing to startup in native image this method ensures it's started lazily
