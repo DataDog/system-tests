@@ -62,9 +62,9 @@ def _make_request(
             r = requests.request(method=method, url=url, headers=headers, json=json, timeout=request_timeout)
             logger.debug(f" Backend response status for url [{url}]: [{r.status_code}]")
             if r.status_code == 200:
-                json = r.json()
-                if not validator or validator(json):
-                    return json
+                response_json = r.json()
+                if not validator or validator(response_json):
+                    return response_json
                 logger.debug(f" Backend response does not meet expectation for url [{url}]: [{r.text}]")
             if r.status_code == 429:
                 retry_after = _parse_retry_after(r.headers)
