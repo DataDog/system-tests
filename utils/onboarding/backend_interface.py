@@ -52,7 +52,7 @@ def _make_request(
     request_timeout=10,
     retry_delay=1,
     backoff_factor=2,
-    max_retries=8,
+    max_retries=30,
     validator=None,
 ):
     """Make a request to the backend with retries and backoff. With the defaults, this will retry for approximately 5 minutes."""
