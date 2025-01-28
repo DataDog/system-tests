@@ -384,7 +384,7 @@ tests/:
       Test_Otel_Drop_In: missing_feature
   otel/:
     test_context_propagation.py:
-      Test_Otel_Drop_In_Default_Propagator: incomplete_test_app (endpoint not implemented)
+      Test_Otel_Context_Propagation_Default_Propagator_Api: incomplete_test_app (endpoint not implemented)
   parametric/:
     test_128_bit_traceids.py:
       Test_128_Bit_Traceids: v0.84.0

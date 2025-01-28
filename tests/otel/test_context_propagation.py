@@ -8,7 +8,7 @@ from utils import weblog, interfaces, scenarios, features, incomplete_test_app
 
 @features.f_otel_interoperability
 @scenarios.apm_tracing_e2e_otel
-class Test_Otel_Drop_In_Default_Propagator:
+class Test_Otel_Context_Propagation_Default_Propagator_Api:
     def setup_propagation_extract(self):
         extract_headers = {
             "traceparent": "00-11111111111111110000000000000002-000000000000000a-01",

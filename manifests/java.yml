@@ -1599,7 +1599,7 @@ tests/:
       Test_Sql: bug (APMAPI-729)
   otel/:
     test_context_propagation.py:
-      Test_Otel_Drop_In_Default_Propagator:
+      Test_Otel_Context_Propagation_Default_Propagator_Api:
         '*': missing_feature
         spring-boot: v1.39.0
   parametric/:

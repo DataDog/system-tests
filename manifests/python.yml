@@ -762,7 +762,7 @@ tests/:
       Test_Otel_Drop_In: missing_feature
   otel/:
     test_context_propagation.py:
-      Test_Otel_Drop_In_Default_Propagator:
+      Test_Otel_Context_Propagation_Default_Propagator_Api:
         '*': irrelevant
         flask-poc: v2.19.0
   parametric/:

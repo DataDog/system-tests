@@ -148,7 +148,7 @@ tests/:
       Test_Otel_Drop_In: irrelevant (library does not implement OpenTelemetry)
   otel/:
     test_context_propagation.py:
-      Test_Otel_Drop_In_Default_Propagator: irrelevant (library does not implement OpenTelemetry)
+      Test_Otel_Context_Propagation_Default_Propagator_Api: irrelevant (library does not implement OpenTelemetry)
   parametric/:
     test_128_bit_traceids.py:
       Test_128_Bit_Traceids: missing_feature (parametric app does not support trace/span/extract endpoint)

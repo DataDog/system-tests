@@ -407,7 +407,7 @@ tests/:
       TestK8sLibInjectioProfilingDisabledByDefault: missing_feature
   otel/:
     test_context_propagation.py:
-      Test_Otel_Drop_In_Default_Propagator:
+      Test_Otel_Context_Propagation_Default_Propagator_Api:
         '*': irrelevant (endpoint not implemented)
         rails70: v2.0.0
   parametric/:
