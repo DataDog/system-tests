@@ -302,12 +302,12 @@ class Test_Debugger_Exception_Replay(debugger._Base_Debugger_Test):
         def get_frames(snapshot):
             if self.get_tracer()["language"] == "dotnet":
                 return snapshot.get("captures", {}).get("return", {}).get("throwable", {}).get("stacktrace", [])
-            
+
             if self.get_tracer()["language"] == "java":
                 method = snapshot.get("probe", {}).get("location", {}).get("method", "")
                 if method:
                     return [{"function": method}]
-            
+
             return snapshot.get("stack", [])
 
         found_top = False
