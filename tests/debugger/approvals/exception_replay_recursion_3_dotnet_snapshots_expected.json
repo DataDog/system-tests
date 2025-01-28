@@ -125,6 +125,18 @@
               "lineNumber": 0
             },
             {
+              "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
+              "lineNumber": 0
+            },
+            {
+              "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
+              "lineNumber": 0
+            },
+            {
+              "function": "Datadog.Trace.ClrProfiler.AutoInstrumentation.AspNetCore.BlockingMiddleware+<Invoke><scrubbed>",
+              "lineNumber": 0
+            },
+            {
               "<runtime>": "<scrubbed>"
             }
           ]
@@ -168,7 +180,7 @@
           },
           "currentDepth": {
             "type": "Int32",
-            "value": "0"
+            "value": "3"
           },
           "this": {
             "type": "ExceptionReplayController",
@@ -186,34 +198,6 @@
       }
     },
     "stack": [
-      {
-        "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
-        "fileName": "/app/ExceptionReplayController.cs",
-        "lineNumber": 38
-      },
-      {
-        "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
-        "fileName": "/app/ExceptionReplayController.cs",
-        "lineNumber": 38
-      },
-      {
-        "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
-        "fileName": "/app/ExceptionReplayController.cs",
-        "lineNumber": 38
-      },
-      {
-        "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
-        "fileName": "/app/ExceptionReplayController.cs",
-        "lineNumber": 38
-      },
-      {
-        "function": "Datadog.Trace.ClrProfiler.AutoInstrumentation.AspNetCore.BlockingMiddleware+<Invoke><scrubbed>",
-        "lineNumber": 0
-      },
-      {
-        "function": "Datadog.Trace.ClrProfiler.AutoInstrumentation.AspNetCore.BlockingMiddleware.Invoke",
-        "lineNumber": 0
-      },
       {
         "<runtime>": "<scrubbed>"
       }
@@ -364,18 +348,6 @@
               "lineNumber": 0
             },
             {
-              "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
-              "lineNumber": 0
-            },
-            {
-              "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
-              "lineNumber": 0
-            },
-            {
-              "function": "Datadog.Trace.ClrProfiler.AutoInstrumentation.AspNetCore.BlockingMiddleware+<Invoke><scrubbed>",
-              "lineNumber": 0
-            },
-            {
               "<runtime>": "<scrubbed>"
             }
           ]
@@ -419,7 +391,7 @@
           },
           "currentDepth": {
             "type": "Int32",
-            "value": "3"
+            "value": "0"
           },
           "this": {
             "type": "ExceptionReplayController",
@@ -437,6 +409,34 @@
       }
     },
     "stack": [
+      {
+        "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
+        "fileName": "/app/ExceptionReplayController.cs",
+        "lineNumber": 38
+      },
+      {
+        "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
+        "fileName": "/app/ExceptionReplayController.cs",
+        "lineNumber": 38
+      },
+      {
+        "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
+        "fileName": "/app/ExceptionReplayController.cs",
+        "lineNumber": 38
+      },
+      {
+        "function": "weblog.ExceptionReplayController.exceptionReplayRecursionHelper",
+        "fileName": "/app/ExceptionReplayController.cs",
+        "lineNumber": 38
+      },
+      {
+        "function": "Datadog.Trace.ClrProfiler.AutoInstrumentation.AspNetCore.BlockingMiddleware+<Invoke><scrubbed>",
+        "lineNumber": 0
+      },
+      {
+        "function": "Datadog.Trace.ClrProfiler.AutoInstrumentation.AspNetCore.BlockingMiddleware.Invoke",
+        "lineNumber": 0
+      },
       {
         "<runtime>": "<scrubbed>"
       }
