@@ -129,4 +129,5 @@ def _query_for_profile(runtime_id):
     }
 
     logger.debug(f"Posting to {url} with query: {queryJson}")
-    _make_request(url, headers=headers, method="post", json=queryJson, validator=_validate_profiler_response)
+    profileId = _make_request(url, headers=headers, method="post", json=queryJson, validator=_validate_profiler_response)["data"][0]["id"]
+    logger.debug(f"Found profile in the backend with ID: {profileId}")
