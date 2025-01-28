@@ -16,7 +16,7 @@ public class EmailExamples {
     public EmailExamples() {
     }
 
-    public void mail(final String emailContent) {
+    public void mail(final String emailContent) throws MessagingException {
         Session session = Session.getDefaultInstance(new Properties());
         Provider provider =
                 new Provider(
@@ -30,7 +30,7 @@ public class EmailExamples {
     }
 
 
-    private class MockTransport extends Transport {
+    private static class MockTransport extends Transport {
         public MockTransport(Session session, URLName urlname) {
             super(session, urlname);
         }

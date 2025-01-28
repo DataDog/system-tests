@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.mail.MessagingException;
 import javax.naming.Context;
 import javax.naming.NamingException;
 import javax.naming.directory.InitialDirContext;
@@ -457,13 +458,13 @@ public class AppSecIast {
     }
 
     @GetMapping("/email_html_injection/test_insecure")
-    public void emailHtmlInjectionInsecure(final HttpServletRequest request, final HttpServletResponse response) {
+    public void emailHtmlInjectionInsecure(final HttpServletRequest request, final HttpServletResponse response) throws MessagingException {
         String email = request.getParameter("username");
         emailExamples.mail(email);
     }
 
     @GetMapping("/email_html_injection/test_secure")
-    public void emailHtmlInjectionSecure(final HttpServletRequest request, final HttpServletResponse response) {
+    public void emailHtmlInjectionSecure(final HttpServletRequest request, final HttpServletResponse response) throws MessagingException {
         String email = request.getParameter("username");
         emailExamples.mail(StringEscapeUtils.escapeHtml3(email));
     }
