@@ -146,6 +146,8 @@ tests/:
       Test_AWS_API_Gateway_Inferred_Span_Creation: missing_feature
     test_otel_drop_in.py:
       Test_Otel_Drop_In: irrelevant (library does not implement OpenTelemetry)
+  otel/:
+    test_context_propagation.py:
       Test_Otel_Drop_In_Default_Propagator: irrelevant (library does not implement OpenTelemetry)
   parametric/:
     test_128_bit_traceids.py:

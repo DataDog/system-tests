@@ -780,6 +780,8 @@ tests/:
         express5: *ref_5_26_0
     test_otel_drop_in.py:
       Test_Otel_Drop_In: missing_feature
+  otel/:
+    test_context_propagation.py:
       Test_Otel_Drop_In_Default_Propagator:
         '*': irrelevant
         express4: *ref_5_26_0
