@@ -32,7 +32,26 @@
           ],
           "type": "org.springframework.web.server.ResponseStatusException"
         }
-      }
+      },
+      "caughtExceptions": [
+        {
+          "message": "500 INTERNAL_SERVER_ERROR \"Inner exception\"",
+          "stacktrace": [
+            {
+              "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.exceptionReplayInner",
+              "lineNumber": 32
+            },
+            {
+              "function": "datadog.trace.instrumentation.springweb.HandlerMappingResourceNameFilter.doFilterInternal",
+              "lineNumber": 50
+            },
+            {
+              "<runtime>": "<scrubbed>"
+            }
+          ],
+          "type": "org.springframework.web.server.ResponseStatusException"
+        }
+      ]
     },
     "exceptionId": "<scrubbed>",
     "id": "<scrubbed>",

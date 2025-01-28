@@ -57,8 +57,18 @@ class Test_Debugger_Exception_Replay(debugger._Base_Debugger_Test):
                         if expected_exception_message in self.get_exception_message(content["debugger"]["snapshot"]):
                             filtered_snapshots.append((exception_message, content["debugger"]["snapshot"]))
 
-            # Sort by exception message
-            filtered_snapshots.sort(key=lambda x: x[0])
+            # Sort by multiple criteria for consistent ordering
+            def get_sort_key(snapshot_tuple):
+                message, snapshot = snapshot_tuple
+                # Get method name from probe location if available (for Java)
+                method_name = snapshot.get("probe", {}).get("location", {}).get("method", "")
+                # Get line number from probe location
+                line_number = snapshot.get("probe", {}).get("location", {}).get("line", 0)
+                # Get stack depth as additional sorting criteria
+                stack_depth = len(snapshot.get("stack", []))
+                return (message, method_name, line_number, stack_depth)
+
+            filtered_snapshots.sort(key=get_sort_key)
 
             # Return only the snapshots
             return [snapshot for _, snapshot in filtered_snapshots]
