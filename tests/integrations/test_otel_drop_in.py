@@ -2,8 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2024 Datadog, Inc.
 
-import json
-from utils import weblog, interfaces, scenarios, features, incomplete_test_app
+from utils import weblog, interfaces, scenarios, features
 
 
 @features.f_otel_interoperability
