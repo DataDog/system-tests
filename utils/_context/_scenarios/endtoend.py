@@ -394,6 +394,11 @@ class EndToEndScenario(DockerScenario):
 
         library = self.weblog_container.image.labels["system-tests-library"]
 
+        # TODO: Once the dd-trace-go fix is merged that avoids a go panic for DD_TRACE_PROPAGATION_EXTRACT_FIRST=true
+        # when context propagation fails, we can remove the DD_TRACE_PROPAGATION_EXTRACT_FIRST=false override
+        if library == "golang":
+            self.weblog_container.environment["DD_TRACE_PROPAGATION_EXTRACT_FIRST"] = "false"
+
         if self.library_interface_timeout is None:
             if library == "java":
                 self.library_interface_timeout = 25
