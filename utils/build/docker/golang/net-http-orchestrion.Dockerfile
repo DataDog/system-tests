@@ -16,6 +16,8 @@ COPY utils/build/docker/golang/app /app
 COPY utils/build/docker/golang/install_*.sh binaries* /binaries/
 RUN /binaries/install_ddtrace.sh && /binaries/install_orchestrion.sh
 
+RUN cat go.mod
+
 RUN orchestrion go build -v -tags appsec -o weblog ./net-http-orchestrion
 
 # ==============================================================================
