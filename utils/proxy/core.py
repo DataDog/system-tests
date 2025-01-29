@@ -6,6 +6,7 @@ from collections import defaultdict
 import json
 import logging
 import os
+from typing import Any
 from datetime import datetime, UTC
 
 from mitmproxy import master, options, http
@@ -26,7 +27,7 @@ messages_counts = defaultdict(int)
 
 
 class ObjectDumpEncoder(json.JSONEncoder):
-    def default(self, o):
+    def default(self, o) -> Any:  # noqa: ANN401
         if isinstance(o, bytes):
             return str(o)
         return json.JSONEncoder.default(self, o)
