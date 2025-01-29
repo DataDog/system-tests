@@ -822,6 +822,12 @@ class WeblogContainer(TestedContainer):
 
         self.appsec_rules_file = (self.image.env | self.environment).get("DD_APPSEC_RULES", None)
 
+        # Workaround: Once the dd-trace-go fix is merged that avoids a go panic for
+        # DD_TRACE_PROPAGATION_EXTRACT_FIRST=true when context propagation fails,
+        # we can remove the DD_TRACE_PROPAGATION_EXTRACT_FIRST=false override
+        if library == "golang":
+            self.environment["DD_TRACE_PROPAGATION_EXTRACT_FIRST"] = "false"
+
         # Workaround: We may want to define baggage in our list of propagators, but the cpp library
         # has strict checks on tracer startup that will fail to launch the application
         # when it encounters unfamiliar configurations. Override the configuration that the cpp
