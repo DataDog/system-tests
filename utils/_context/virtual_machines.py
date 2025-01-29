@@ -178,7 +178,7 @@ class _VirtualMachine:
 
     def get_log_folder(self):
         vm_folder = f"{context.scenario.host_log_folder}/{self.name}"
-        if not os.path.exists(vm_folder):
+        if not Path(vm_folder).exists():
             Path.mkdir(vm_folder)
         return vm_folder
 
