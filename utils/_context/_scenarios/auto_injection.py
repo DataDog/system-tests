@@ -17,6 +17,7 @@ from utils._context.virtual_machines import (
     Ubuntu23_10_arm64,
     Ubuntu24amd64,
     Ubuntu24arm64,
+    Ubuntu24_10amd64,
     Ubuntu18amd64,
     AmazonLinux2022arm64,
     AmazonLinux2022amd64,
@@ -72,6 +73,7 @@ class _VirtualMachineScenario(Scenario):
         include_ubuntu_23_10_arm64=False,
         include_ubuntu_24_amd64=False,
         include_ubuntu_24_arm64=False,
+        include_ubuntu24_10_amd64=False,
         include_ubuntu_18_amd64=False,
         include_amazon_linux_2_amd64=False,
         include_amazon_linux_2_arm64=False,
@@ -135,6 +137,8 @@ class _VirtualMachineScenario(Scenario):
             self.required_vms.append(Ubuntu23_10_arm64())
         if include_ubuntu_24_amd64:
             self.required_vms.append(Ubuntu24amd64())
+        if include_ubuntu24_10_amd64:
+            self.required_vms.append(Ubuntu24_10amd64())
         if include_ubuntu_24_arm64:
             self.required_vms.append(Ubuntu24arm64())
         if include_ubuntu_18_amd64:
@@ -394,6 +398,7 @@ class InstallerAutoInjectionScenario(_VirtualMachineScenario):
         include_ubuntu_23_10_arm64=True,
         include_ubuntu_24_amd64=True,
         include_ubuntu_24_arm64=True,
+        include_ubuntu24_10_amd64=True,
         include_ubuntu_18_amd64=False,
         include_amazon_linux_2_amd64=True,
         include_amazon_linux_2_arm64=True,
@@ -451,6 +456,7 @@ class InstallerAutoInjectionScenario(_VirtualMachineScenario):
             include_ubuntu_23_10_arm64=include_ubuntu_23_10_arm64,
             include_ubuntu_24_amd64=include_ubuntu_24_amd64,
             include_ubuntu_24_arm64=include_ubuntu_24_arm64,
+            include_ubuntu24_10_amd64=include_ubuntu24_10_amd64,
             include_ubuntu_18_amd64=include_ubuntu_18_amd64,
             include_amazon_linux_2_amd64=include_amazon_linux_2_amd64,
             include_amazon_linux_2_arm64=include_amazon_linux_2_arm64,

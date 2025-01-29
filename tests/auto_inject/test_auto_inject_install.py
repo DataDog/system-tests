@@ -180,3 +180,18 @@ class TestSimpleInstallerAutoInjectManual(base.AutoInjectBaseTest):
         logger.info(
             f"Done test_install for : [{virtual_machine.name}][{virtual_machine.get_deployed_weblog().runtime_version}]"
         )
+
+    @parametrize_virtual_machines()
+    def test_folder_structure(self, virtual_machine):
+        logger.info(
+            f"Launching test_folder_structure for : [{virtual_machine.name}] [{virtual_machine.get_deployed_weblog().runtime_version}]..."
+        )
+
+        ssh_client = virtual_machine.ssh_config.get_ssh_connection()
+        check_folder_command = "[ -d '/opt/datadog-packages/datadog-apm-inject/' ] && echo 'true' || echo 'false'"
+        _, stdout, stderr = ssh_client.exec_command(check_folder_command)
+        assert stdout.read().decode().strip() == "true", "Folder structure is not as expected"
+
+        logger.info(
+            f"Done test_folder_structure for : [{virtual_machine.name}][{virtual_machine.get_deployed_weblog().runtime_version}]"
+        )
