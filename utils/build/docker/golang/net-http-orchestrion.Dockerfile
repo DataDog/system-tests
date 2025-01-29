@@ -14,7 +14,7 @@ COPY utils/build/docker/golang/app /app
 
 # download the proper tracer version
 COPY utils/build/docker/golang/install_*.sh binaries* /binaries/
-RUN /binaries/install_orchestrion.sh && /binaries/install_ddtrace.sh
+RUN /binaries/install_ddtrace.sh && /binaries/install_orchestrion.sh
 
 RUN orchestrion go build -v -tags appsec -o weblog ./net-http-orchestrion
 

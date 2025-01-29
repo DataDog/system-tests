@@ -9,6 +9,8 @@ if [ -e "/binaries/dd-trace-go" ]; then
 elif [ -e "/binaries/golang-load-from-go-get" ]; then
     echo "Install from go get -d $(cat /binaries/golang-load-from-go-get)"
     go get -v -d "$(cat /binaries/golang-load-from-go-get)"
+    # Pin that version with a `replace` directive so nothing else can override it.
+    go mod edit -replace "gopkg.in/DataDog/dd-trace-go.v1=$(cat /binaries/golang-load-from-go-get)"
 
 else
     echo "Installing production dd-trace-version"
