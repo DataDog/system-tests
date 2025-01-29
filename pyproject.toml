@@ -93,7 +93,6 @@ ignore = [
     "PLR1714",
     "PLR2004",
     "PTH118",
-    "PTH120",
     "PTH122",  # os.path.splitext(), but not really easier to read ? 
     "PTH123",  # `open()` should be replaced by `Path.open()`
     "RUF012",

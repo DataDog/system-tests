@@ -215,7 +215,7 @@ class ParametricScenario(Scenario):
         apm_test_server_definition: APMLibraryTestServer = self.apm_test_server_definition
 
         log_path = f"{self.host_log_folder}/outputs/docker_build_log.log"
-        Path.mkdir(os.path.dirname(log_path), exist_ok=True, parents=True)
+        Path.mkdir(Path(log_path).parent, exist_ok=True, parents=True)
 
         # Write dockerfile to the build directory
         # Note that this needs to be done as the context cannot be
