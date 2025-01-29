@@ -28,9 +28,9 @@ import urllib3
 import xmltodict
 
 import ddtrace
-from ddtrace import Pin
+from ddtrace.trace import Pin
 from ddtrace import patch_all
-from ddtrace import tracer
+from ddtrace.trace import tracer
 from ddtrace.appsec import trace_utils as appsec_trace_utils
 
 

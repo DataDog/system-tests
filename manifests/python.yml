@@ -51,7 +51,7 @@ tests/:
       sink/:
         test_code_injection.py:
           TestCodeInjection: v2.20.0
-          TestCodeInjection_StackTrace: missing_feature
+          TestCodeInjection_StackTrace: v2.20.0
         test_command_injection.py:
           TestCommandInjection:
             '*': v2.10.0
@@ -191,7 +191,7 @@ tests/:
         test_header_name.py:
           TestHeaderName:
             '*': v1.18.0
-            fastapi: v2.20.0
+            fastapi: v2.20.1
         test_header_value.py:
           TestHeaderValue:
             '*': v1.18.0
@@ -208,6 +208,7 @@ tests/:
         test_parameter_name.py:
           TestParameterName:
             "*": v2.20.0
+            fastapi: v2.20.1
         test_parameter_value.py:
           TestParameterValue:
             '*': v2.9.0
