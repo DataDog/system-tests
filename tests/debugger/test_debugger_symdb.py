@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-import json
+import re
 import tests.debugger.utils as debugger
 from utils import features, scenarios, bug, context
 from utils import remote_config as rc
@@ -33,6 +33,33 @@ class Test_Debugger_SymDb(debugger._Base_Debugger_Test):
                 )
 
         assert not errors, "Found system-tests-errors:\n" + "\n".join(f"- {err}" for err in errors)
+        self._assert_debugger_controller_exists()
+
+    def _assert_debugger_controller_exists(self):
+        pattern = r"[Dd]ebugger[_]?[Cc]ontroller"
+
+        def check_scope(scope):
+            name = scope.get("name", "")
+            if re.search(pattern, name):
+                scope_type = scope.get("scope_type", "")
+                if scope_type in ["CLASS", "class", "MODULE"]:
+                    return True
+
+                return False
+
+            for nested_scope in scope.get("scopes", []):
+                if check_scope(nested_scope):
+                    return True
+            return False
+
+        for symbol in self.symbols:
+            content = symbol.get("content", {})
+            if isinstance(content, dict):
+                for scope in content.get("scopes", []):
+                    if check_scope(scope):
+                        return
+
+        assert False, "No scope containing debugger controller with scope_type CLASS or MODULE was found in the symbols"
 
     ############ test ############
     def setup_symdb_upload(self):
