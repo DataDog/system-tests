@@ -6,14 +6,12 @@ import javax.mail.Message;
 import javax.mail.MessagingException;
 import javax.mail.Session;
 import javax.mail.Provider;
+import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 import java.util.Properties;
 
 
 public class EmailExamples {
-
-    public EmailExamples() {
-    }
 
     public void mail(final String emailContent) throws MessagingException {
         Session session = Session.getDefaultInstance(new Properties());
@@ -23,7 +21,7 @@ public class EmailExamples {
         session.setProvider(provider);
         Message email = new MimeMessage(session);
         email.setContent(emailContent, "text/html");
-        email.setRecipient(Message.RecipientType.TO, new javax.mail.internet.InternetAddress("abc@datadoghq.com"));
+        email.setRecipient(Message.RecipientType.TO, new InternetAddress("abc@datadoghq.com"));
 
         MockTransport.send(email);
 

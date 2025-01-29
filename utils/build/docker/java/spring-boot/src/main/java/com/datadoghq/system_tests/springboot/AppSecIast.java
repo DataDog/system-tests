@@ -458,13 +458,13 @@ public class AppSecIast {
     }
 
     @PostMapping("/email_html_injection/test_insecure")
-    public void emailHtmlInjectionInsecure(final HttpServletRequest request, final HttpServletResponse response) throws MessagingException {
+    void emailHtmlInjectionInsecure(final HttpServletRequest request) throws MessagingException {
         String email = request.getParameter("username");
         emailExamples.mail(email);
     }
 
     @PostMapping("/email_html_injection/test_secure")
-    public void emailHtmlInjectionSecure(final HttpServletRequest request, final HttpServletResponse response) throws MessagingException {
+    void emailHtmlInjectionSecure(final HttpServletRequest request) throws MessagingException {
         String email = request.getParameter("username");
         emailExamples.mail(StringEscapeUtils.escapeHtml4(email));
     }
