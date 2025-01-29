@@ -70,9 +70,9 @@ done"""
 
     # Wait for the script to finish
     start = time.time()
-    while os.stat(stdin_file).st_size != 0 and time.time() - start < (timeout + 5):
+    while Path(stdin_file).stat().st_size != 0 and time.time() - start < (timeout + 5):
         time.sleep(1)
-    if os.stat(stdin_file).st_size != 0:
+    if Path(stdin_file).stat().st_size != 0:
         raise TimeoutError("Timed out waiting for weblog ready")
 
     return generated_uuid
