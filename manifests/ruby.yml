@@ -545,6 +545,13 @@ tests/:
     Test_Meta: v1.7.0
     Test_MetaDatadogTags: v1.9.0
     Test_MetricsStandardTags: v1.7.0
+  test_span_events.py:
+    Test_SpanEvents_WithAgentSupport:
+      "*": irrelevant
+      rack: v2.10.0
+    Test_SpanEvents_WithoutAgentSupport:
+      "*": irrelevant
+      rack: v2.10.0
   test_standard_tags.py:
     Test_StandardTagsClientIp: v1.10.1
     Test_StandardTagsMethod: v1.8.0
