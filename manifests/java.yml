@@ -1711,9 +1711,16 @@ tests/:
     Test_Config_ObfuscationQueryStringRegexp_Default: v1.39.0
     Test_Config_ObfuscationQueryStringRegexp_Empty: v1.39.0
     Test_Config_RuntimeMetrics_Default: incomplete_test_app (test needs to account for java runtime metrics)
-    Test_Config_RuntimeMetrics_Enabled: incomplete_test_app (test needs to account for java runtime metrics)
-    Test_Config_RuntimeMetrics_Enabled: v0.64.0
-    Test_Config_RuntimeMetrics_Enabled_WithRuntimeId: v0.64.0
+    Test_Config_RuntimeMetrics_Enabled:
+      '*': v0.64.0
+      spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+      spring-boot-openliberty: incomplete_test_app (needs investigation to understand why test is failing)
+      spring-boot-wildfly: incomplete_test_app (needs investigation to understand why test is failing)
+    Test_Config_RuntimeMetrics_Enabled_WithRuntimeId:
+      '*': v0.64.0
+      spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+      spring-boot-openliberty: incomplete_test_app (needs investigation to understand why test is failing)
+      spring-boot-wildfly: incomplete_test_app (needs investigation to understand why test is failing)
     Test_Config_UnifiedServiceTagging_CustomService: v1.39.0
     Test_Config_UnifiedServiceTagging_Default: v1.39.0
   test_data_integrity.py:
