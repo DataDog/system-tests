@@ -80,6 +80,12 @@ class _Scenarios:
         doc="Test W3C trace style",
     )
 
+    datadog_baggage_propagation = EndToEndScenario(
+        "DATADOG_BAGGAGE_PROPAGATION",
+        weblog_env={"DD_TRACE_PROPAGATION_STYLE": "datadog,tracecontext,baggage", "DD_TRACE_DEBUG": "true"},
+        doc="Test baggage propagation",
+    )
+
     # Telemetry scenarios
     telemetry_dependency_loaded_test_for_dependency_collection_disabled = EndToEndScenario(
         "TELEMETRY_DEPENDENCY_LOADED_TEST_FOR_DEPENDENCY_COLLECTION_DISABLED",

@@ -2293,5 +2293,10 @@ class _Features:
         pytest.mark.features(feature_id=347)(test_object)
         return test_object
 
+    @staticmethod
+    def datadog_baggage_headers(test_object):
+        pytest.mark.features(feature_id=348)(test_object)
+        return test_object
+
 
 features = _Features()
