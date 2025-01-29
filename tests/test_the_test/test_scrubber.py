@@ -1,5 +1,6 @@
 import json
 import os
+from pathlib import Path
 import subprocess
 import pytest
 from utils import scenarios
@@ -89,6 +90,24 @@ def test_jsonweird():
     log_file = "logs_test_the_test/json_weird.json"
     with open(log_file, "w") as f:
         json.dump({"int": secret, "str": f"{secret}"}, f)
+
+    del os.environ["KEY_SCRUBBED"]
+
+    with open(log_file, "r") as f:
+        data = f.read()
+
+    assert f"{secret}" not in data
+
+
+@scenarios.test_the_test
+def test_pathlib():
+    secret = 123456789
+    os.environ["KEY_SCRUBBED"] = f"{secret}"
+
+    log_file = "logs_test_the_test/json_weird.json"
+    with Path(log_file).open("w") as f:
+        json.dump({"int": secret, "str": f"{secret}"}, f)
+        f.writelines([f"{secret}"])
 
     del os.environ["KEY_SCRUBBED"]
 
