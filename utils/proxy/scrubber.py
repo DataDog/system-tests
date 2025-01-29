@@ -1,7 +1,8 @@
 import builtins
+import io
 import os
-import re
 from pathlib import Path
+import re
 
 _not_secrets = {
     "AWS_VAULT_KEYCHAIN_NAME",  # Name of macOS keychain to use => it's a name, not a key
@@ -74,8 +75,23 @@ def _instrumented_path_open(self, mode="r", *args, **kwargs):  # noqa: ANN002
     return f
 
 
+def _instrumented_file_io(file, mode="r", *args, **kwargs):  # noqa: ANN002
+    f = _original_file_io(file, mode, *args, **kwargs)
+
+    # get list of secrets at each call, because environ may be updated
+    secrets = _get_secrets()
+
+    if ("w" in mode or "a" in mode) and len(secrets) > 0:
+        _instrument_write_methods_bytes(f, secrets)
+
+    return f
+
+
 _original_open = builtins.open
 builtins.open = _instrumented_open
 
 _original_pathlib_open = Path.open
 Path.open = _instrumented_path_open
+
+_original_file_io = io.FileIO
+io.FileIO = _instrumented_file_io
