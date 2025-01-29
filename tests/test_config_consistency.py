@@ -483,7 +483,7 @@ class Test_Config_LogInjection_Enabled:
     """Verify log injection behavior when enabled"""
 
     def setup_log_injection_enabled(self):
-        self.message = "msg"
+        self.message = "Matt Li Test"
         self.r = weblog.get("/log/library", params={"msg": self.message})
 
     def test_log_injection_enabled(self):
