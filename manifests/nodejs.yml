@@ -914,6 +914,7 @@ tests/:
       '*': *ref_5_25_0
       nextjs: bug (APMAPI-939) # the nextjs weblog application changes the sampling priority from 1.0 to 2.0
   test_graphql.py:
+    Test_GraphQLQueryErrorReporting:
       '*': *ref_5_34_0
       express4-typescript: incomplete_test_app (endpoint not implemented)
       express5: missing_feature
