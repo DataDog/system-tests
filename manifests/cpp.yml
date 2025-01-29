@@ -13,6 +13,7 @@ tests/:
       sink/:
         test_code_injection.py: irrelevant (ASM is not implemented in C++)
         test_command_injection.py: irrelevant (ASM is not implemented in C++)
+        test_email_html_injection.py: irrelevant (ASM is not implemented in C++)
         test_hardcoded_passwords.py: irrelevant (ASM is not implemented in C++)
         test_hardcoded_secrets.py: irrelevant (ASM is not implemented in C++)
         test_header_injection.py: irrelevant (ASM is not implemented in C++)
@@ -105,6 +106,8 @@ tests/:
       Test_Debugger_Probe_Snaphots: irrelevant
     test_debugger_probe_status.py:
       Test_Debugger_Probe_Statuses: irrelevant
+    test_debugger_symdb.py:
+      Test_Debugger_SymDb: irrelevant
   integrations/:
     crossed_integrations/:
       test_kafka.py:
@@ -244,8 +247,15 @@ tests/:
     Test_Config_HttpServerErrorStatuses_FeatureFlagCustom: missing_feature
     Test_Config_IntegrationEnabled_False: missing_feature
     Test_Config_IntegrationEnabled_True: missing_feature
+    Test_Config_LogInjection_128Bit_TradeId_Default: missing_feature
+    Test_Config_LogInjection_128Bit_TradeId_Disabled: missing_feature
+    Test_Config_LogInjection_Default: missing_feature
+    Test_Config_LogInjection_Enabled: missing_feature
     Test_Config_ObfuscationQueryStringRegexp_Configured: missing_feature
+    Test_Config_ObfuscationQueryStringRegexp_Default: missing_feature
     Test_Config_ObfuscationQueryStringRegexp_Empty: missing_feature
+    Test_Config_RuntimeMetrics_Default: missing_feature
+    Test_Config_RuntimeMetrics_Enabled: missing_feature
     Test_Config_UnifiedServiceTagging_CustomService: missing_feature
     Test_Config_UnifiedServiceTagging_Default: missing_feature
   test_distributed.py:
@@ -253,6 +263,7 @@ tests/:
     Test_Span_Links_Flags_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
     Test_Span_Links_From_Conflicting_Contexts: missing_feature (baggage should be implemented and conflicting trace contexts should generate span link)
     Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
+  test_graphql.py: missing_feature
   test_identify.py: irrelevant
   test_ipv6.py: missing_feature (APMAPI-869)
   test_library_conf.py: irrelevant

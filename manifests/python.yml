@@ -57,6 +57,9 @@ tests/:
             '*': v2.10.0
             fastapi: v2.15.0
           TestCommandInjection_StackTrace: v2.19.0.dev
+        test_email_html_injection.py:
+          TestEmailHtmlInjection: missing_feature
+          TestEmailHtmlInjection_StackTrace: missing_feature
         test_hardcoded_passwords.py:
           Test_HardcodedPasswords: missing_feature
           Test_HardcodedPasswords_StackTrace: missing_feature
@@ -188,7 +191,7 @@ tests/:
         test_header_name.py:
           TestHeaderName:
             '*': v1.18.0
-            fastapi: missing_feature
+            fastapi: v2.20.0
         test_header_value.py:
           TestHeaderValue:
             '*': v1.18.0
@@ -204,8 +207,7 @@ tests/:
           TestMultipart: missing_feature
         test_parameter_name.py:
           TestParameterName:
-            "*": v2.20.0.dev
-            fastapi: missing_feature
+            "*": v2.20.0
         test_parameter_value.py:
           TestParameterValue:
             '*': v2.9.0
@@ -432,11 +434,13 @@ tests/:
         fastapi: v2.4.0
     test_asm_standalone.py:
       Test_AppSecStandalone_UpstreamPropagation:
-        '*': v2.12.3
-        uwsgi-poc: v2.17.1
+        '*': bug (APPSEC-56142)
+      Test_AppSecStandalone_UpstreamPropagation_V2: missing_feature
       Test_IastStandalone_UpstreamPropagation:
         '*': v2.18.0.dev
+      Test_IastStandalone_UpstreamPropagation_V2: missing_feature
       Test_SCAStandalone_Telemetry: v2.19.0.dev
+      Test_SCAStandalone_Telemetry_V2: missing_feature
     test_automated_login_events.py:
       Test_Login_Events: irrelevant (was v2.10.0 but will be replaced by V2)
       Test_Login_Events_Extended: irrelevant (was v2.10.0 but will be replaced by V2)
@@ -444,9 +448,9 @@ tests/:
       Test_V2_Login_Events_Anon: irrelevant (was v2.11.0 but will be replaced by V3)
       Test_V2_Login_Events_RC: irrelevant (was v2.11.0 but will be replaced by V3)
       Test_V3_Auto_User_Instrum_Mode_Capability: v2.11.0
-      Test_V3_Login_Events: missing_feature
-      Test_V3_Login_Events_Anon: missing_feature
-      Test_V3_Login_Events_Blocking: missing_feature
+      Test_V3_Login_Events: v2.20.0.dev
+      Test_V3_Login_Events_Anon: v2.20.0.dev
+      Test_V3_Login_Events_Blocking: v2.20.0.dev
       Test_V3_Login_Events_RC: v2.11.0
     test_automated_user_and_session_tracking.py:
       Test_Automated_Session_Blocking: missing_feature
@@ -550,6 +554,8 @@ tests/:
       Test_SecurityEvents_Appsec_Metastruct_Enabled: missing_feature
       Test_SecurityEvents_Iast_Metastruct_Disabled: irrelevant (no fallback will be implemented)
       Test_SecurityEvents_Iast_Metastruct_Enabled: missing_feature
+    test_only_python.py:
+      Test_ImportError: v2.20.0.dev
     test_rate_limiter.py:
       Test_Main: v2.0.0
     test_remote_config_rule_changes.py:
@@ -617,6 +623,8 @@ tests/:
         flask-poc: v2.11.0
         uds-flask: v2.11.0
         uwsgi-poc: v2.11.0
+    test_debugger_symdb.py:
+      Test_Debugger_SymDb: v2.11.0
   integrations/:
     crossed_integrations/:
       test_kafka.py:
@@ -885,8 +893,14 @@ tests/:
     Test_Config_IntegrationEnabled_True:
       '*': irrelevant (kafka endpoint is not implemented)
       flask-poc: v2.0.0
+    Test_Config_LogInjection_128Bit_TradeId_Default: missing_feature (not enabled by default)
+    Test_Config_LogInjection_128Bit_TradeId_Disabled: incomplete_test_app (endpoint not implemented)
+    Test_Config_LogInjection_Default: incomplete_test_app (endpoint not implemented)
+    Test_Config_LogInjection_Enabled: incomplete_test_app (endpoint not implemented)
     Test_Config_ObfuscationQueryStringRegexp_Configured: v2.0.0
     Test_Config_ObfuscationQueryStringRegexp_Empty: v2.15.0
+    Test_Config_RuntimeMetrics_Default: incomplete_test_app (test needs to account for python runtime metrics)
+    Test_Config_RuntimeMetrics_Enabled: incomplete_test_app (test needs to account for python runtime metrics)
     Test_Config_UnifiedServiceTagging_CustomService: v2.0.0
     Test_Config_UnifiedServiceTagging_Default: v2.0.0
   test_data_integrity.py:
@@ -898,6 +912,7 @@ tests/:
     Test_Span_Links_Flags_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
     Test_Span_Links_From_Conflicting_Contexts: v2.17.0
     Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
+  test_graphql.py: missing_feature
   test_identify.py:
     Test_Basic: v1.5.0-rc1
     Test_Propagate: v1.9.0

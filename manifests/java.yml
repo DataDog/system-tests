@@ -78,6 +78,9 @@ tests/:
             play: missing_feature
             ratpack: missing_feature
             spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+        test_email_html_injection.py:
+          TestEmailHtmlInjection: missing_feature
+          TestEmailHtmlInjection_StackTrace: missing_feature
         test_hardcoded_passwords.py:
           Test_HardcodedPasswords: missing_feature
           Test_HardcodedPasswords_StackTrace: missing_feature
@@ -558,7 +561,16 @@ tests/:
           TestPathParameter:
             '*': missing_feature
         test_sql_row.py:
-          TestSqlRow: missing_feature
+          TestSqlRow:
+            '*': v1.46.0
+            akka-http: missing_feature (endpoint not implemented)
+            jersey-grizzly2: missing_feature (endpoint not implemented)
+            play: missing_feature (endpoint not implemented)
+            ratpack: missing_feature (endpoint not implemented)
+            resteasy-netty3: missing_feature (endpoint not implemented)
+            spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+            vertx3: missing_feature (endpoint not implemented)
+            vertx4: missing_feature (endpoint not implemented)
         test_uri.py:
           TestURI:
             '*': v1.23.0
@@ -1014,12 +1026,15 @@ tests/:
       Test_AppSecStandalone_UpstreamPropagation:
         '*': v1.36.0
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+      Test_AppSecStandalone_UpstreamPropagation_V2: missing_feature
       Test_IastStandalone_UpstreamPropagation:
         '*': v1.36.0
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+      Test_IastStandalone_UpstreamPropagation_V2: missing_feature
       Test_SCAStandalone_Telemetry:
         '*': v1.36.0
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+      Test_SCAStandalone_Telemetry_V2: missing_feature
     test_automated_login_events.py:
       Test_Login_Events: irrelevant (was v1.36.0 but will be replaced by V2)
       Test_Login_Events_Extended: irrelevant (was v1.36.0 but will be replaced by V2)
@@ -1071,7 +1086,20 @@ tests/:
         vertx3: missing_feature (login endpoints not implemented)
         vertx4: missing_feature (login endpoints not implemented)
     test_automated_user_and_session_tracking.py:
-      Test_Automated_Session_Blocking: missing_feature
+      Test_Automated_Session_Blocking:
+        '*': v1.46.0
+        akka-http: missing_feature (session tracking not implemented)
+        jersey-grizzly2: missing_feature (session tracking not implemented)
+        play: missing_feature (session tracking not implemented)
+        ratpack: missing_feature (session tracking not implemented)
+        resteasy-netty3: missing_feature (session tracking not implemented)
+        spring-boot-3-native: flaky (APMAPI-979)
+        spring-boot-jetty: missing_feature (session tracking not implemented)
+        spring-boot-payara: bug (APPSEC-54985)
+        spring-boot-undertow: missing_feature (session tracking not implemented)
+        spring-boot-wildfly: missing_feature (session tracking not implemented)
+        vertx3: missing_feature (home endpoint does not use cookies)
+        vertx4: missing_feature (home endpoint does not use cookies)
       Test_Automated_User_Blocking:
         '*': v1.45.0
         akka-http: missing_feature (login endpoints not implemented)
@@ -1219,11 +1247,11 @@ tests/:
         play: v1.22.0
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
       Test_Blocking_response_status:
-        '*': missing_feature
-        akka-http: v1.22.0
-        play: v1.22.0
+        '*': v1.22.0
+        jersey-grizzly2: missing_feature
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
         spring-boot-openliberty: v1.20.0
+        spring-boot-payara: missing_feature
       Test_Blocking_user_id:
         '*': v0.111.0
         akka-http: v1.22.0
@@ -1238,9 +1266,7 @@ tests/:
         vertx4: v1.7.0
       Test_Suspicious_Request_Blocking:
         '*': v1.6.0
-        akka-http: bug (APPSEC-54985)
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-        spring-boot-payara: bug (APPSEC-54985)
     test_client_ip.py:
       Test_StandardTagsClientIp: v0.114.0
     test_conf.py:
@@ -1483,6 +1509,8 @@ tests/:
         spring-boot-undertow: v1.38.0
         spring-boot-wildfly: v1.38.0
         uds-spring-boot: v1.38.0
+    test_debugger_symdb.py:
+      Test_Debugger_SymDb: v1.38.0
   integrations/:
     crossed_integrations/:
       test_kafka.py:
@@ -1584,7 +1612,7 @@ tests/:
       TestDynamicConfigSamplingRules: v1.34.0
       TestDynamicConfigTracingEnabled: v1.32.0
       TestDynamicConfigV1: v1.17.0
-      TestDynamicConfigV1_EmptyServiceTargets: missing_feature
+      TestDynamicConfigV1_EmptyServiceTargets: v1.46.0
       TestDynamicConfigV1_ServiceTargets: v1.31.0
       TestDynamicConfigV2: v1.31.0
     test_headers_baggage.py:
@@ -1683,8 +1711,15 @@ tests/:
     Test_Config_IntegrationEnabled_True:
       '*': irrelevant (kafka endpoints are not implemented)
       spring-boot: v1.42.0
+    Test_Config_LogInjection_128Bit_TradeId_Default:  missing_feature (disabled by default)
+    Test_Config_LogInjection_128Bit_TradeId_Disabled: incomplete_test_app (weblog endpoint not implemented)
+    Test_Config_LogInjection_Default: incomplete_test_app (weblog endpoint not implemented)
+    Test_Config_LogInjection_Enabled: incomplete_test_app (weblog endpoint not implemented)
     Test_Config_ObfuscationQueryStringRegexp_Configured: v1.39.0
+    Test_Config_ObfuscationQueryStringRegexp_Default: v1.39.0
     Test_Config_ObfuscationQueryStringRegexp_Empty: v1.39.0
+    Test_Config_RuntimeMetrics_Default: incomplete_test_app (test needs to account for java runtime metrics)
+    Test_Config_RuntimeMetrics_Enabled: incomplete_test_app (test needs to account for java runtime metrics)
     Test_Config_UnifiedServiceTagging_CustomService: v1.39.0
     Test_Config_UnifiedServiceTagging_Default: v1.39.0
   test_data_integrity.py:
@@ -1694,6 +1729,7 @@ tests/:
     Test_Span_Links_Flags_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
     Test_Span_Links_From_Conflicting_Contexts: v1.43.0
     Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
+  test_graphql.py: missing_feature
   test_identify.py:
     Test_Basic: missing_feature
     Test_Propagate: missing_feature

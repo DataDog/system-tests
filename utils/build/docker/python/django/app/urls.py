@@ -708,31 +708,31 @@ def track_user_login_failure_event(request):
 
 @csrf_exempt
 def login(request):
-    from ddtrace.settings.asm import config as asm_config
     from django.contrib.auth import authenticate, login
 
-    mode = asm_config._automatic_login_events_mode
+    is_logged_in = False
     username = request.POST.get("username")
     password = request.POST.get("password")
     sdk_event = request.GET.get("sdk_event")
-    if sdk_event:
-        sdk_user = request.GET.get("sdk_user")
-        sdk_mail = request.GET.get("sdk_mail")
-        sdk_user_exists = request.GET.get("sdk_user_exists")
-        if sdk_event == "success":
-            appsec_trace_utils.track_user_login_success_event(tracer, user_id=sdk_user, email=sdk_mail)
-            return HttpResponse("OK")
-        elif sdk_event == "failure":
-            appsec_trace_utils.track_user_login_failure_event(
-                tracer, user_id=sdk_user, email=sdk_mail, exists=sdk_user_exists
-            )
-            return HttpResponse("login failure", status=401)
     authorisation = request.headers.get("Authorization")
     if authorisation:
         username, password = base64.b64decode(authorisation[6:]).decode().split(":")
     user = authenticate(username=username, password=password)
     if user is not None:
         login(request, user)
+        is_logged_in = True
+    if sdk_event:
+        sdk_user = request.GET.get("sdk_user")
+        sdk_mail = request.GET.get("sdk_mail")
+        sdk_user_exists = request.GET.get("sdk_user_exists")
+        if sdk_event == "success":
+            appsec_trace_utils.track_user_login_success_event(tracer, user_id=sdk_user, email=sdk_mail, login=sdk_user)
+            is_logged_in = True
+        elif sdk_event == "failure":
+            appsec_trace_utils.track_user_login_failure_event(
+                tracer, user_id=sdk_user, email=sdk_mail, exists=sdk_user_exists, login=sdk_user
+            )
+    if is_logged_in:
         return HttpResponse("OK")
     return HttpResponse("login failure", status=401)
 

@@ -81,7 +81,7 @@ def generate_gitlab_pipeline(languages, env, custom_library_version, custom_inje
                 "extends": ".base_ssi_job",
                 "tags": ["runner:$runner"],
                 "stage": language if len(languages) > 1 else "DOCKER_SSI",
-                "allow_failure": True,
+                "allow_failure": False,
                 "variables": {"TEST_LIBRARY": language},
                 "parallel": {"matrix": matrix},
             }
