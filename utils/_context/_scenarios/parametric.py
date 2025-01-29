@@ -378,7 +378,7 @@ def node_library_factory() -> APMLibraryTestServer:
         with open("./binaries/nodejs-load-from-local", encoding="utf-8") as f:
             path = f.read().strip(" \r\n")
             source = os.path.join(_get_base_directory(), path)
-            volumes[os.path.abspath(source)] = "/volumes/dd-trace-js"
+            volumes[Path(source).resolve()] = "/volumes/dd-trace-js"
     except FileNotFoundError:
         logger.info("No local dd-trace-js found, do not mount any volume")
 

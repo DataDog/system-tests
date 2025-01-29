@@ -1,6 +1,7 @@
 import time
 from random import randint
 import os
+from pathlib import Path
 import requests
 
 
@@ -56,7 +57,7 @@ while true; do
   sleep 1
 done"""
     script_name = "request_weblog.sh"
-    shared_folder = os.path.dirname(os.path.abspath(stdin_file))
+    shared_folder = os.path.dirname(Path(stdin_file).resolve())
 
     # Write the script in the shared folder
     with open(os.path.join(shared_folder, script_name), "w", encoding="utf-8") as file:
