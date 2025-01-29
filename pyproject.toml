@@ -92,7 +92,6 @@ ignore = [
     "PLR0915", # too many statements, may be replaced by a higher default value
     "PLR1714",
     "PLR2004",
-    "PTH113",
     "PTH116",
     "PTH118",
     "PTH120",

@@ -119,7 +119,7 @@ def _main():
 
             if not Path(path).exists():
                 continue
-            files = [file for file in os.listdir(path) if os.path.isfile(os.path.join(path, file))]
+            files = [file for file in os.listdir(path) if Path(os.path.join(path, file)).is_file()]
             for file in files:
                 with open(os.path.join(path, file), encoding="utf-8") as f:
                     data = json.load(f)

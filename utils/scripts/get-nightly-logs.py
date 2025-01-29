@@ -2,6 +2,7 @@ import argparse
 import logging
 import io
 import os
+from pathlib import Path
 import sys
 import tarfile
 from typing import Any
@@ -74,7 +75,7 @@ def download_artifact(session: requests.Session, artifact: dict, output_dir: str
         z.extractall(output_dir)
 
     for file in os.listdir(output_dir):
-        if file.endswith(".tar.gz") and os.path.isfile(os.path.join(output_dir, file)):
+        if file.endswith(".tar.gz") and Path(os.path.join(output_dir, file)).is_file():
             with tarfile.open(os.path.join(output_dir, file), "r:gz") as t:
                 t.extractall(output_dir, filter=lambda tar_info, _: tar_info)
 

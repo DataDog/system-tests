@@ -6,7 +6,7 @@
 
 import json
 from os import listdir
-from os.path import isfile, join
+from os.path import join
 from pathlib import Path
 import re
 import shutil
@@ -109,7 +109,7 @@ class ProxyBasedInterfaceValidator(InterfaceValidator):
     def load_data_from_logs(self):
         for filename in sorted(listdir(self.log_folder)):
             file_path = join(self.log_folder, filename)
-            if isfile(file_path):
+            if Path(file_path).is_file():
                 with open(file_path, encoding="utf-8") as f:
                     data = json.load(f)
 

@@ -146,7 +146,7 @@ class _VirtualMachine:
     def _load_runtime_from_logs(self):
         """Load the runtime version from the test_components.log"""
         vms_tested_components_file = f"{context.scenario.host_log_folder}/tested_components.log"
-        if os.path.isfile(vms_tested_components_file):
+        if Path(vms_tested_components_file).is_file():
             # Get the machine ip
             machine_ip = self.get_ip()
             # Read the file line by line looking for line with the ip
@@ -168,7 +168,7 @@ class _VirtualMachine:
         """Load the ip address from the logs"""
         vms_desc_file = f"{context.scenario.host_log_folder}/vms_desc.log"
         logger.info(f"Loading ip for {self.name} from {vms_desc_file}")
-        if os.path.isfile(vms_desc_file):
+        if Path(vms_desc_file).is_file():
             with open(vms_desc_file) as f:
                 for line in f:
                     if self.name in line:
