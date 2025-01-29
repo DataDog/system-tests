@@ -117,8 +117,9 @@ def _query_for_profile(runtime_id):
     headers = _headers()
     headers["Content-Type"] = "application/json"
 
-    time_to = datetime.now(timezone.utc)
-    time_from = time_to - timedelta(minutes=2)
+    now = datetime.now(timezone.utc)
+    time_to = now + timedelta(minutes=6)
+    time_from = now - timedelta(minutes=6)
     queryJson = {
         "track": "profile",
         "filter": {
