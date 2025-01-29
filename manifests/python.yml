@@ -167,7 +167,10 @@ tests/:
           TestXPathInjection: missing_feature
           TestXPathInjection_StackTrace: missing_feature
         test_xss.py:
-          TestXSS: missing_feature
+          TestXSS:
+            django-poc: v2.21.0
+            python3.12: v2.21.0
+            '*': missing_feature
           TestXSS_StackTrace: missing_feature
       source/:
         test_body.py:

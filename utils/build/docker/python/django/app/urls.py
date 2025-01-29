@@ -16,6 +16,8 @@ from django.db import connection
 from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse
 from django.urls import path
 from django.views.decorators.csrf import csrf_exempt
+from django.shortcuts import render
+from django.utils.safestring import mark_safe
 from moto import mock_aws
 import urllib3
 from iast import (
@@ -534,6 +536,20 @@ def view_iast_ssrf_secure(request):
     return HttpResponse("OK")
 
 
+@csrf_exempt
+def view_iast_xss_insecure(request):
+    param = request.POST.get("param", "")
+    # Validate the URL and enforce whitelist
+    return render(request, "index.html", {"param": mark_safe(param)})
+
+
+@csrf_exempt
+def view_iast_xss_secure(request):
+    param = request.POST.get("param", "")
+    # Validate the URL and enforce whitelist
+    return render(request, "index.html", {"param": param})
+
+
 def _sink_point_sqli(table="user", id="1"):
     sql = "SELECT * FROM " + table + " WHERE id = '" + id + "'"
     with connection.cursor() as cursor:
@@ -948,6 +964,8 @@ urlpatterns = [
     path("iast/path_traversal/test_secure", view_iast_path_traversal_secure),
     path("iast/ssrf/test_insecure", view_iast_ssrf_insecure),
     path("iast/ssrf/test_secure", view_iast_ssrf_secure),
+    path("iast/xss/test_insecure", view_iast_xss_insecure),
+    path("iast/xss/test_secure", view_iast_xss_secure),
     path("iast/source/body/test", view_iast_source_body),
     path("iast/source/cookiename/test", view_iast_source_cookie_name),
     path("iast/source/cookievalue/test", view_iast_source_cookie_value),
