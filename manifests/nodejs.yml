@@ -160,7 +160,9 @@ tests/:
           TestInsecureCookieNameFilter:
             '*': *ref_5_24_0
             nextjs: missing_feature
-          TestInsecureCookie_StackTrace: missing_feature
+          TestInsecureCookie_StackTrace:
+            '*': *ref_5_33_0
+            nextjs: missing_feature
         test_ldap_injection.py:
           TestLDAPInjection:
             '*': *ref_4_1_0
@@ -175,7 +177,9 @@ tests/:
           TestNoHttponlyCookieNameFilter:
             '*': *ref_5_24_0
             nextjs: missing_feature
-          TestNoHttponlyCookie_StackTrace: missing_feature
+          TestNoHttponlyCookie_StackTrace:
+            '*': *ref_5_33_0
+            nextjs: missing_feature
         test_no_samesite_cookie.py:
           TestNoSamesiteCookie:
             '*': *ref_4_3_0
@@ -183,7 +187,9 @@ tests/:
           TestNoSamesiteCookieNameFilter:
             '*': *ref_5_24_0
             nextjs: missing_feature
-          TestNoSamesiteCookie_StackTrace: missing_feature
+          TestNoSamesiteCookie_StackTrace:
+            '*': *ref_5_33_0
+            nextjs: missing_feature
         test_nosql_mongodb_injection.py:
           TestNoSqlMongodbInjection:
             '*': *ref_4_17_0

@@ -3,7 +3,7 @@ import argparse
 import os.path
 
 
-def main():
+def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--input", required=True, type=str, help="gitlab pipeline to merge")
     parser.add_argument("--output", required=True, type=str, help="final gitlab pipeline")

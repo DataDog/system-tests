@@ -3,11 +3,11 @@ import json
 import collections
 
 
-def table_row(*args: list[str]):
+def table_row(*args: list[str]) -> None:
     print(f"| {' | '.join(args)} |")
 
 
-def main():
+def main() -> None:
     result = {}
     all_outcomes = {"passed": "✅", "xpassed": "🍇", "skipped": "⏸️", "failed": "❌"}
 

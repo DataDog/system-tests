@@ -30,7 +30,7 @@ _deselected_items = []
 setup_properties = SetupProperties()
 
 
-def pytest_addoption(parser):
+def pytest_addoption(parser) -> None:
     parser.addoption(
         "--scenario", "-S", type=str, action="store", default="DEFAULT", help="Unique identifier of scenario"
     )
@@ -57,7 +57,12 @@ def pytest_addoption(parser):
     )
     parser.addoption("--k8s-injector-img", type=str, action="store", help="Set injector image on the docker registry")
     parser.addoption("--k8s-weblog-img", type=str, action="store", help="Set test app image on the docker registry")
-    parser.addoption("--k8s-cluster-version", type=str, action="store", help="Set the datadog agent version")
+    parser.addoption(
+        "--k8s-cluster-version", type=str, action="store", help="DEPRECATED. Set the datadog cluster version"
+    )
+    parser.addoption(
+        "--k8s-cluster-img", type=str, action="store", help="Set the datadog cluster image on the docker registry"
+    )
 
     # Onboarding scenarios mandatory parameters
     parser.addoption("--vm-weblog", type=str, action="store", help="Set virtual machine weblog")
@@ -124,7 +129,7 @@ def pytest_addoption(parser):
     )
 
 
-def pytest_configure(config):
+def pytest_configure(config) -> None:
     if not config.option.force_dd_trace_debug and os.environ.get("SYSTEM_TESTS_FORCE_DD_TRACE_DEBUG") == "true":
         config.option.force_dd_trace_debug = True
 
@@ -163,7 +168,7 @@ def pytest_configure(config):
 
 
 # Called at the very begening
-def pytest_sessionstart(session):
+def pytest_sessionstart(session) -> None:
     # get the terminal to allow logging directly in stdout
     logger.terminal = session.config.pluginmanager.get_plugin("terminalreporter")
 
@@ -231,7 +236,7 @@ def _get_skip_reason_from_marker(marker):
     return None
 
 
-def pytest_pycollect_makemodule(module_path, parent):
+def pytest_pycollect_makemodule(module_path, parent) -> None:
     # As now, declaration only works for tracers at module level
 
     library = context.scenario.library.library
@@ -260,7 +265,7 @@ def pytest_pycollect_makemodule(module_path, parent):
 
 
 @pytest.hookimpl(tryfirst=True)
-def pytest_pycollect_makeitem(collector, name, obj):
+def pytest_pycollect_makeitem(collector, name, obj) -> None:
     if collector.istestclass(obj, name):
         if obj is None:
             message = f"""{collector.nodeid} is not properly collected.
@@ -281,7 +286,7 @@ def pytest_pycollect_makeitem(collector, name, obj):
                 raise ValueError(f"Unexpected error for {nodeid}.") from e
 
 
-def pytest_collection_modifyitems(session, config, items: list[pytest.Item]):
+def pytest_collection_modifyitems(session, config, items: list[pytest.Item]) -> None:
     """Unselect items that are not included in the current scenario"""
 
     logger.debug("pytest_collection_modifyitems")
@@ -344,7 +349,7 @@ def pytest_collection_modifyitems(session, config, items: list[pytest.Item]):
             json.dump(all_declared_scenarios, f, indent=2)
 
 
-def pytest_deselected(items):
+def pytest_deselected(items) -> None:
     _deselected_items.extend(items)
 
 
@@ -368,7 +373,7 @@ def _item_is_skipped(item):
     return any(item.iter_markers("skip"))
 
 
-def pytest_collection_finish(session: pytest.Session):
+def pytest_collection_finish(session: pytest.Session) -> None:
     if session.config.option.collectonly:
         return
 
@@ -432,20 +437,20 @@ def pytest_collection_finish(session: pytest.Session):
     context.scenario.post_setup(session)
 
 
-def pytest_runtest_call(item):
+def pytest_runtest_call(item) -> None:
     # add a log line for each request made by the setup, to help debugging
     setup_properties.log_requests(item)
 
 
 @pytest.hookimpl(optionalhook=True)
-def pytest_json_runtest_metadata(item, call):
+def pytest_json_runtest_metadata(item, call) -> None:
     if call.when != "setup":
         return {}
 
     return _collect_item_metadata(item)
 
 
-def pytest_json_modifyreport(json_report):
+def pytest_json_modifyreport(json_report) -> None:
     try:
         # add usefull data for reporting
         json_report["context"] = context.serialize()
@@ -456,7 +461,7 @@ def pytest_json_modifyreport(json_report):
         logger.error("Fail to modify json report", exc_info=True)
 
 
-def pytest_sessionfinish(session, exitstatus):
+def pytest_sessionfinish(session, exitstatus) -> None:
     logger.info("Executing pytest_sessionfinish")
 
     if session.config.option.skip_empty_scenario and exitstatus == pytest.ExitCode.NO_TESTS_COLLECTED:
@@ -494,7 +499,7 @@ def pytest_sessionfinish(session, exitstatus):
             session.exitstatus = SUCCESS
 
 
-def export_feature_parity_dashboard(session, data):
+def export_feature_parity_dashboard(session, data) -> None:
     tests = [convert_test_to_feature_parity_model(test) for test in data["tests"]]
 
     result = {
@@ -516,7 +521,7 @@ def export_feature_parity_dashboard(session, data):
         json.dump(result, f, indent=2)
 
 
-def convert_test_to_feature_parity_model(test):
+def convert_test_to_feature_parity_model(test) -> dict:
     result = {
         "path": test["nodeid"],
         "lineNumber": test["lineno"],
@@ -532,10 +537,10 @@ def convert_test_to_feature_parity_model(test):
 
 ## Fixtures corners
 @pytest.fixture(scope="session", name="session")
-def fixture_session(request):
+def fixture_session(request) -> pytest.Session:
     return request.session
 
 
 @pytest.fixture(scope="session", name="deselected_items")
-def fixture_deselected_items():
+def fixture_deselected_items() -> list[pytest.Item]:
     return _deselected_items

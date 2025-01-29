@@ -199,15 +199,16 @@ def validate_stack_traces(request):
     iast = meta["_dd.iast.json"]
     assert iast["vulnerabilities"], "Expected at least one vulnerability"
 
-    # To simplify as we are relaying in insecure_request that is expected to have one vulnerability
-    vuln = iast["vulnerabilities"][0]
+    stack_trace = span["meta_struct"]["_dd.stack"]["vulnerability"][0]
+    vulns = [i for i in iast["vulnerabilities"] if i["stackId"] == stack_trace["id"]]
+    assert len(vulns) == 1, "Expected a single vulnerability with the stack trace Id"
+    vuln = vulns[0]
 
     assert vuln["stackId"], "no 'stack_id's present'"
     assert "meta_struct" in span, "'meta_struct' not found in span"
     assert "_dd.stack" in span["meta_struct"], "'_dd.stack' not found in 'meta_struct'"
     assert "vulnerability" in span["meta_struct"]["_dd.stack"], "'exploit' not found in '_dd.stack'"
 
-    stack_trace = span["meta_struct"]["_dd.stack"]["vulnerability"][0]
     assert stack_trace, "No stack traces to validate"
 
     assert "language" in stack_trace, "'language' not found in stack trace"
@@ -223,8 +224,6 @@ def validate_stack_traces(request):
 
     # Ensure the stack ID corresponds to an appsec event
     assert "id" in stack_trace, "'id' not found in stack trace"
-    assert stack_trace["id"] == vuln["stackId"], "'id' doesn't correspond to an appsec event"
-
     assert "frames" in stack_trace, "'frames' not found in stack trace"
     assert len(stack_trace["frames"]) <= 32, "stack trace above size limit (32 frames)"
 
@@ -380,7 +379,9 @@ class BaseSourceTest:
             sources = [s for s in sources if s["origin"] == source_type]
         if self.source_names:
             assert isinstance(self.source_names, list)
-            assert any(x in self.source_names for x in {s.get("name") for s in sources})
+            assert any(
+                x in self.source_names for x in {s.get("name") for s in sources}
+            ), f"Source {self.source_names} not in {sources}"
             sources = [s for s in sources if s["name"] in self.source_names]
         if self.source_value:
             assert self.source_value in {s.get("value") for s in sources}
