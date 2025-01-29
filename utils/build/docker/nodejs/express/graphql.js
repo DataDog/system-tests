@@ -61,7 +61,7 @@ function testInjection (parent, args) {
 }
 
 function withError (parent, args) {
-  throw new Error('test error');
+  throw new Error('test error')
 }
 
 const resolvers = {
@@ -84,8 +84,8 @@ const formatError = (error) => {
       { key: 'empty', value: 'empty string' },
       { key: 'comma', value: 'comma' }
     ]
-  };
-};
+  }
+}
 
 module.exports = async function (app) {
   const server = new ApolloServer({ typeDefs, resolvers, formatError })
