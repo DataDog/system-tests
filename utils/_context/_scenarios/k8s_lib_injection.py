@@ -66,9 +66,20 @@ class K8sScenario(Scenario):
         self.k8s_lib_init_img = config.option.k8s_lib_init_img
         self.components["library"] = self._library.version
 
-        # Cluster version
-        self.k8s_cluster_version = config.option.k8s_cluster_version
-        self.components["cluster_agent"] = self.k8s_cluster_version
+        # Cluster agent version
+        if config.option.k8s_cluster_version is not None and config.option.k8s_cluster_img is not None:
+            raise ValueError("You mustn't set both k8s_cluster_version and k8s_cluster_img")
+        if config.option.k8s_cluster_version is None and config.option.k8s_cluster_img is None:
+            raise ValueError("You must set either k8s_cluster_version or k8s_cluster_img")
+        if config.option.k8s_cluster_version is not None:
+            logger.stdout("WARNING: The k8s_cluster_version is going to be deprecated, use k8s_cluster_img instead")
+            self.k8s_cluster_img = None
+            self.k8s_cluster_version = config.option.k8s_cluster_version
+            self.components["cluster_agent"] = self.k8s_cluster_version
+        else:
+            self.k8s_cluster_img = config.option.k8s_cluster_img
+            self.k8s_cluster_version = extract_cluster_agent_version(self.k8s_cluster_img)
+            self.components["cluster_agent"] = self.k8s_cluster_version
 
         # Injector image version
         self.k8s_injector_img = (
@@ -92,10 +103,11 @@ class K8sScenario(Scenario):
             dd_cluster_feature=self.dd_cluster_feature,
             dd_cluster_uds=self.use_uds,
             dd_cluster_version=self.k8s_cluster_version,
+            dd_cluster_img=self.k8s_cluster_img,
             api_key=self._api_key if self.with_datadog_operator else None,
             app_key=self._app_key if self.with_datadog_operator else None,
         )
-        # Weblog handler
+        # Weblog handler (the lib init and injector imgs are set in weblog/pod as annotations)
         self.test_weblog = K8sWeblog(
             self.k8s_weblog_img,
             self.library.library,
@@ -108,13 +120,15 @@ class K8sScenario(Scenario):
         )
 
     def print_context(self):
-        logger.stdout(f"K8s Weblog: {self.k8s_weblog}")
-        logger.stdout(f"K8s Weblog image: {self.k8s_weblog_img}")
+        logger.stdout(f".:: K8s Lib injection test components ::.")
+        logger.stdout(f"Weblog: {self.k8s_weblog}")
+        logger.stdout(f"Weblog image: {self.k8s_weblog_img}")
         logger.stdout(f"Library: {self._library}")
-        logger.stdout(f"K8s Cluster version: {self.k8s_cluster_version}")
-        logger.stdout(f"K8s Lib init image: {self.k8s_lib_init_img}")
-        logger.stdout(f"K8s Injector image: {self.k8s_injector_img}")
-        logger.stdout(f"K8s Injector version: {self._datadog_apm_inject_version}")
+        logger.stdout(f"Lib init image: {self.k8s_lib_init_img}")
+        logger.stdout(f"Cluster agent version: {self.k8s_cluster_version}")
+        logger.stdout(f"Cluster agent image: {self.k8s_cluster_img}")
+        logger.stdout(f"Injector version: {self._datadog_apm_inject_version}")
+        logger.stdout(f"Injector image: {self.k8s_injector_img}")
 
     def get_warmups(self):
         warmups = super().get_warmups()
@@ -275,6 +289,7 @@ class K8sSparkScenario(K8sScenario):
             dd_cluster_feature=self.dd_cluster_feature,
             dd_cluster_uds=self.use_uds,
             dd_cluster_version=self.k8s_cluster_version,
+            dd_cluster_img=self.k8s_cluster_img,
         )
 
         self.test_weblog = K8sWeblog(
@@ -386,8 +401,7 @@ def extract_library_version(library_init_image):
         logger.info(f"Library version: {version}")
         return version
     except Exception as e:
-        logger.error(f"Failed to extract library version: {e}")
-        logger.error(f"The library init imaged tried to pull is: {library_init_image}")
+        logger.error(f"The library init image failed to pull is: {library_init_image}")
         raise ValueError(f"Failed to pull and extract library version: {e}")
 
 
@@ -405,6 +419,18 @@ def extract_injector_version(injector_image):
         logger.info(f"Injector version: {version}")
         return version
     except Exception as e:
-        logger.error(f"Failed to extract injector version: {e}")
-        logger.error(f"The library init imaged tried to pull is: {injector_image}")
+        logger.error(f"The failed injector image failed to pull is: {injector_image}")
         raise ValueError(f"Failed to pull and extract injector version: {e}")
+
+
+def extract_cluster_agent_version(cluster_image):
+    """Pull the datadog cluster image  and extract the version from labels"""
+    logger.info("Get cluster agent version")
+    try:
+        cluster_docker_image = get_docker_client().images.pull(cluster_image)
+        version = cluster_docker_image.labels["org.opencontainers.image.version"]
+        logger.info(f"Cluster agent version: {version}")
+        return version
+    except Exception as e:
+        logger.error(f"The cluster agent images tried to pull is: {cluster_image}")
+        raise ValueError(f"Failed to pull and extract cluster agent version: {e}")

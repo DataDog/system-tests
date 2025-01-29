@@ -13,7 +13,7 @@ from .parametric import ParametricScenario
 from .performance import PerformanceScenario
 from .profiling import ProfilingScenario
 from .test_the_test import TestTheTestScenario
-from .auto_injection import InstallerAutoInjectionScenario, InstallerAutoInjectionScenarioProfiling
+from .auto_injection import InstallerAutoInjectionScenario
 from .k8s_lib_injection import WeblogInjectionScenario, K8sScenario, K8sSparkScenario, K8sManualInstrumentationScenario
 from .docker_ssi import DockerSSIScenario
 from .external_processing import ExternalProcessingScenario
@@ -583,7 +583,11 @@ class _Scenarios:
     debugger_probes_snapshot = EndToEndScenario(
         "DEBUGGER_PROBES_SNAPSHOT",
         rc_api_enabled=True,
-        weblog_env={"DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1", "DD_REMOTE_CONFIG_ENABLED": "true"},
+        weblog_env={
+            "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1",
+            "DD_REMOTE_CONFIG_ENABLED": "true",
+            "DD_CODE_ORIGIN_FOR_SPANS_ENABLED": "true",
+        },
         library_interface_timeout=5,
         doc="Test scenario for checking if debugger successfully generates snapshots for probes",
         scenario_groups=[ScenarioGroup.DEBUGGER],
@@ -679,7 +683,7 @@ class _Scenarios:
         include_amazon_linux_2023_arm64=False,
     )
 
-    simple_auto_injection_profiling = InstallerAutoInjectionScenarioProfiling(
+    simple_auto_injection_profiling = InstallerAutoInjectionScenario(
         "SIMPLE_AUTO_INJECTION_PROFILING",
         "Onboarding Single Step Instrumentation scenario with profiling activated by the app env var",
         app_env={
@@ -690,7 +694,7 @@ class _Scenarios:
         scenario_groups=[ScenarioGroup.ONBOARDING],
         github_workflow="libinjection",
     )
-    host_auto_injection_install_script_profiling = InstallerAutoInjectionScenarioProfiling(
+    host_auto_injection_install_script_profiling = InstallerAutoInjectionScenario(
         "HOST_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING",
         doc=(
             "Onboarding Host Single Step Instrumentation scenario using agent "
@@ -703,7 +707,7 @@ class _Scenarios:
         github_workflow="libinjection",
     )
 
-    container_auto_injection_install_script_profiling = InstallerAutoInjectionScenarioProfiling(
+    container_auto_injection_install_script_profiling = InstallerAutoInjectionScenario(
         "CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING",
         "Onboarding Container Single Step Instrumentation profiling scenario using agent auto install script",
         vm_provision="container-auto-inject-install-script",
