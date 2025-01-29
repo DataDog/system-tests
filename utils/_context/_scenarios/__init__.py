@@ -785,6 +785,9 @@ class _Scenarios:
         "RUNTIME_METRICS_ENABLED",
         weblog_env={"DD_DOGSTATSD_START_DELAY": "0"},
         runtime_metrics_enabled=True,
+        # Disable the proxy in between weblog and the agent so that we can send metrics (via UDP) to the agent.
+        # The mitmproxy can only proxy UDP traffic by doing a host-wide transparent proxy, but we currently
+        # via specific ports. As a result, with the proxy enabled all UDP traffic is being dropped.
         use_proxy_for_weblog=False,
         doc="Test runtime metrics",
     )
