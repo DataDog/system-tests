@@ -11,20 +11,20 @@ class Result:
         self.scenarios = {"DEFAULT"}  # always run the default scenario
         self.scenarios_groups = set()
 
-    def add_scenario(self, scenario: str):
+    def add_scenario(self, scenario: str) -> None:
         if scenario == "EndToEndScenario":
             self.add_scenario_group(ScenarioGroup.END_TO_END.value)
         else:
             self.scenarios.add(scenario)
 
-    def add_scenario_group(self, scenario_group: str):
+    def add_scenario_group(self, scenario_group: str) -> None:
         self.scenarios_groups.add(scenario_group)
 
-    def add_scenarios(self, scenarios: set[str]):
+    def add_scenarios(self, scenarios: set[str]) -> None:
         for scenario in scenarios:
             self.add_scenario(scenario)
 
-    def handle_labels(self, labels: list[str]):
+    def handle_labels(self, labels: list[str]) -> None:
         if "run-all-scenarios" in labels:
             self.add_scenario_group(ScenarioGroup.ALL.value)
         else:
@@ -50,7 +50,7 @@ class Result:
                 self.add_scenario_group(ScenarioGroup.EXTERNAL_PROCESSING.value)
 
 
-def main():
+def main() -> None:
     result = Result()
 
     event_name = os.environ["GITHUB_EVENT_NAME"]

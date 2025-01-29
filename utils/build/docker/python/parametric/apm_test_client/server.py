@@ -29,7 +29,7 @@ import ddtrace
 from ddtrace.trace import Span
 from ddtrace import config
 from ddtrace.contrib.trace_utils import set_http_meta
-from ddtrace.context import Context
+from ddtrace.trace import Context
 from ddtrace.constants import ERROR_MSG
 from ddtrace.constants import ERROR_STACK
 from ddtrace.constants import ERROR_TYPE
