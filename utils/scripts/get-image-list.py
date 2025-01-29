@@ -7,7 +7,7 @@ from utils._context._scenarios import get_all_scenarios, DockerScenario
 from utils._context.containers import _get_client
 
 
-def main(scenarios: list[str], library: str | None = None, weblog: str | None = None):
+def main(scenarios: list[str], library: str | None = None, weblog: str | None = None) -> None:
     images = set("")
 
     existing_tags = []

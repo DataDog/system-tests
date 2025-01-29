@@ -21,7 +21,7 @@ def validate_log(log: dict, rid: str, otel_source: str) -> dict:
     return log["attributes"]["attributes"]["otel"]
 
 
-def validate_log_trace_correlation(otel_log_trace_attrs: dict, trace: dict):
+def validate_log_trace_correlation(otel_log_trace_attrs: dict, trace: dict) -> None:
     assert len(trace["spans"]) == 1
     span = None
     for item in trace["spans"].items():
