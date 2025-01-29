@@ -144,11 +144,7 @@ class AgentInterfaceValidator(ProxyBasedInterfaceValidator):
         return [span for _, span in self.get_spans(request)]
 
     def get_metrics(self):
-        """Attempts to fetch the spans the agent will submit to the backend.
-
-        When a valid request is given, then we filter the spans to the ones sampled
-        during that request's execution, and only return those.
-        """
+        """Attempts to fetch the metrics the agent will submit to the backend."""
 
         for data in self.get_data(path_filters="/api/v2/series"):
             if "series" not in data["request"]["content"]:
