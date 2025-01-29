@@ -57,7 +57,7 @@ class _RequestLogger:
         self.rc_api_runtime_ids_request_count = None
 
     @staticmethod
-    def get_error_response(message):
+    def get_error_response(message) -> http.Response:
         logger.error(message)
         return http.Response.make(400, message)
 
@@ -126,7 +126,7 @@ class _RequestLogger:
             logger.info(f"    => reverse proxy to {flow.request.pretty_url}")
 
     @staticmethod
-    def request_is_from_tracer(request):
+    def request_is_from_tracer(request) -> bool:
         return request.host == "agent"
 
     def response(self, flow):
