@@ -1,5 +1,7 @@
+import os
 import time
-
+import yaml
+from pathlib import Path
 from kubernetes import client, watch
 from utils.tools import logger
 from utils.k8s_lib_injection.k8s_command_utils import (
@@ -15,11 +17,23 @@ class K8sDatadog:
     def __init__(self, output_folder):
         self.output_folder = output_folder
 
-    def configure(self, k8s_cluster_info, dd_cluster_feature={}, dd_cluster_uds=None, dd_cluster_version=None):
+    def configure(
+        self,
+        k8s_cluster_info,
+        dd_cluster_feature={},
+        dd_cluster_uds=None,
+        dd_cluster_version=None,
+        dd_cluster_img=None,
+        api_key=None,
+        app_key=None,
+    ):
         self.k8s_cluster_info = k8s_cluster_info
         self.dd_cluster_feature = dd_cluster_feature
         self.dd_cluster_uds = dd_cluster_uds
         self.dd_cluster_version = dd_cluster_version
+        self.dd_cluster_img = dd_cluster_img
+        self.api_key = api_key
+        self.app_key = app_key
         logger.info(f"K8sDatadog configured with cluster: {self.k8s_cluster_info.cluster_name}")
 
     def deploy_test_agent(self, namespace="default"):
@@ -93,14 +107,17 @@ class K8sDatadog:
 
     def deploy_datadog_cluster_agent(self, namespace="default"):
         """Installs the Datadog Cluster Agent via helm for manual library injection testing.
-        It returns when the Cluster Agent pod is ready.
+        We enable the admission controller and wait for the datdog cluster to be ready.
+        The Datadog Admission Controller is an important piece of the Datadog Cluster Agent.
+        The main benefit of the Datadog Admission Controller is to simplify your life when it comes to configure your application Pods.
+        Datadog Admission Controller is a Mutating Admission Controller type because it mutates, or changes, the pods configurations.
         """
 
         logger.info("[Deploy datadog cluster] Deploying Datadog Cluster Agent with Admission Controler")
-        operator_file = "utils/k8s_lib_injection/resources/operator/operator-helm-values.yaml"
+        operator_file = "utils/k8s_lib_injection/resources/helm/datadog-helm-chart-values.yaml"
         if self.dd_cluster_uds:
             logger.info("[Deploy datadog cluster] Using UDS")
-            operator_file = "utils/k8s_lib_injection/resources/operator/operator-helm-values-uds.yaml"
+            operator_file = "utils/k8s_lib_injection/resources/helm/datadog-helm-chart-values-uds.yaml"
 
         logger.info("[Deploy datadog cluster] Configuring helm repository")
         helm_add_repo("datadog", "https://helm.datadoghq.com", self.k8s_cluster_info, update=True)
@@ -108,7 +125,14 @@ class K8sDatadog:
         logger.info(f"[Deploy datadog cluster]helm install datadog with config file [{operator_file}]")
 
         # Add the cluster agent tag version
-        self.dd_cluster_feature["clusterAgent.image.tag"] = self.dd_cluster_version
+        if self.dd_cluster_img is None:
+            # DEPRECATED
+            self.dd_cluster_feature["clusterAgent.image.tag"] = self.dd_cluster_version
+        else:
+            image_ref, tag = split_docker_image(self.dd_cluster_img)
+            self.dd_cluster_feature["clusterAgent.image.tag"] = tag
+            self.dd_cluster_feature["clusterAgent.image.repository"] = image_ref
+
         helm_install_chart(
             self.k8s_cluster_info,
             "datadog",
@@ -118,7 +142,39 @@ class K8sDatadog:
         )
 
         logger.info("[Deploy datadog cluster] Waiting for the cluster to be ready")
-        self._wait_for_operator_ready(namespace)
+        self._wait_for_cluster_agent_ready(namespace)
+
+    def deploy_datadog_operator(self, namespace="default"):
+        """Datadog Operator is a Kubernetes Operator that enables you to deploy and configure the Datadog Agent in a Kubernetes environment.
+        By using the Datadog Operator, you can use a single Custom Resource Definition (CRD) to deploy the node-based Agent,
+        the Datadog Cluster Agent, and Cluster check runners.
+        """
+        logger.info("[Deploy datadog operator] Configuring helm repository")
+        helm_add_repo("datadog", "https://helm.datadoghq.com", self.k8s_cluster_info, update=True)
+        helm_install_chart(
+            self.k8s_cluster_info,
+            "my-datadog-operator",
+            "datadog/datadog-operator",
+            value_file=None,
+            set_dict={},
+            timeout=None,
+        )
+        logger.info("[Deploy datadog operator] the operator is ready")
+        logger.info("[Deploy datadog operator] Create the operator secrets")
+        execute_command(
+            f"kubectl create secret generic datadog-secret --from-literal api-key={self.api_key} --from-literal app-key={self.app_key}"
+        )
+        # Configure cluster agent image on the operator file
+        if self.dd_cluster_img is None:
+            # DEPRECATED
+            oeprator_config_file = "utils/k8s_lib_injection/resources/operator/datadog-operator.yaml"
+        else:
+            oeprator_config_file = add_cluster_agent_img_operator_yaml(self.dd_cluster_img, self.output_folder)
+
+        logger.info(f"[Deploy datadog operator] Create the operator custom resource from file {oeprator_config_file}")
+        execute_command(f"kubectl apply -f {oeprator_config_file}")
+        logger.info("[Deploy datadog operator] Waiting for the cluster to be ready")
+        self._wait_for_cluster_agent_ready(namespace, label_selector="agent.datadoghq.com/component=cluster-agent")
 
     def wait_for_test_agent(self, namespace):
         """Waits for the test agent to be ready."""
@@ -158,19 +214,20 @@ class K8sDatadog:
         """Necessary to retry the list_namespaced_pod call in case of error (used by watch stream)"""
         return self.k8s_cluster_info.core_v1_api().list_namespaced_pod(namespace, **kwargs)
 
-    def _wait_for_operator_ready(self, namespace):
-        operator_ready = False
-        operator_status = None
+    def _wait_for_cluster_agent_ready(self, namespace, label_selector="app=datadog-cluster-agent"):
+        cluster_agent_ready = False
+        cluster_agent_status = None
         datadog_cluster_name = None
 
         for i in range(20):
             try:
                 if datadog_cluster_name is None:
                     pods = self.k8s_cluster_info.core_v1_api().list_namespaced_pod(
-                        namespace, label_selector="app=datadog-cluster-agent"
+                        namespace, label_selector=label_selector
                     )
                     datadog_cluster_name = pods.items[0].metadata.name if pods and len(pods.items) > 0 else None
-                operator_status = (
+                    logger.info(f"[status cluster agent] Cluster agent name: {datadog_cluster_name}")
+                cluster_agent_status = (
                     self.k8s_cluster_info.core_v1_api().read_namespaced_pod_status(
                         name=datadog_cluster_name, namespace=namespace
                     )
@@ -178,31 +235,32 @@ class K8sDatadog:
                     else None
                 )
                 if (
-                    operator_status
-                    and operator_status.status.phase == "Running"
-                    and operator_status.status.container_statuses[0].ready == True
+                    cluster_agent_status
+                    and cluster_agent_status.status.phase == "Running"
+                    and cluster_agent_status.status.container_statuses[0].ready == True
                 ):
-                    logger.info("[Deploy operator] Operator datadog running!")
-                    operator_ready = True
+                    logger.info("[sattus cluster agent] Cluster agent datadog running!")
+                    cluster_agent_ready = True
                     break
             except Exception as e:
-                logger.info(f"Error waiting for operator: {e}")
+                logger.info(f"Error waiting for cluster agent: {e}")
+                datadog_cluster_name = None
             time.sleep(5)
 
-        if not operator_ready:
-            logger.error("Operator not created. Last status: %s" % operator_status)
+        if not cluster_agent_ready:
+            logger.error("Cluster agent not created. Last status: %s" % cluster_agent_status)
             if datadog_cluster_name:
-                operator_logs = self.k8s_cluster_info.core_v1_api().read_namespaced_pod_log(
+                cluster_agent_logs = self.k8s_cluster_info.core_v1_api().read_namespaced_pod_log(
                     name=datadog_cluster_name, namespace=namespace
                 )
-                logger.error(f"Operator logs: {operator_logs}")
-            raise Exception("Operator not created")
-        # At this point the operator should be ready, we are going to wait a little bit more
-        # to make sure the operator is ready (some times the operator is ready but the cluster agent is not ready yet)
+                logger.error(f"Cluster agent logs: {cluster_agent_logs}")
+            raise Exception("Cluster agent not created")
+        # At this point the cluster_agent should be ready, we are going to wait a little bit more
+        # to make sure the cluster_agent is ready (some times the cluster_agent is ready but the cluster agent is not ready yet)
         time.sleep(5)
 
     def export_debug_info(self, namespace):
-        """Exports debug information for the test agent and the operator.
+        """Exports debug information for the test agent and the cluster_agent.
         We shouldn't raise any exception here, we just log the errors.
         """
 
@@ -224,12 +282,14 @@ class K8sDatadog:
             for deployment in deployments.items:
                 k8s_logger(self.output_folder, "get.deployments").info(deployment)
 
-        # Daemonset describe
-        api_response = self.k8s_cluster_info.apps_api().read_namespaced_daemon_set(name="datadog", namespace=namespace)
-        k8s_logger(self.output_folder, "daemon.set.describe").info(api_response)
-
         # Cluster logs, admission controller
         try:
+            # Daemonset describe
+            api_response = self.k8s_cluster_info.apps_api().read_namespaced_daemon_set(
+                name="datadog", namespace=namespace
+            )
+            k8s_logger(self.output_folder, "daemon.set.describe").info(api_response)
+
             pods = self.k8s_cluster_info.core_v1_api().list_namespaced_pod(
                 namespace, label_selector="app=datadog-cluster-agent"
             )
@@ -253,3 +313,32 @@ class K8sDatadog:
             )
         except Exception as e:
             logger.error(f"Error exporting datadog-cluster-agent logs: {e}")
+
+
+def split_docker_image(image_reference):
+    if ":" in image_reference:
+        reference, tag = image_reference.rsplit(":", 1)
+    else:
+        reference, tag = image_reference, None
+    return reference, tag
+
+
+def add_cluster_agent_img_operator_yaml(image_tag, output_directory):
+    operator_template = "utils/k8s_lib_injection/resources/operator/datadog-operator.yaml"
+    # Read the input YAML file
+    with open(operator_template) as file:
+        yaml_data = yaml.safe_load(file)
+
+    # Override the operator spec for cluster image
+    yaml_data["spec"]["override"] = {}
+    yaml_data["spec"]["override"]["clusterAgent"] = {}
+    yaml_data["spec"]["override"]["clusterAgent"]["image"] = {"name": image_tag}
+
+    # Construct the output file path (the folder should already exist)
+    output_file = os.path.join(output_directory, Path(operator_template).name)
+
+    # Write the modified YAML to the new file
+    with open(output_file, "w") as file:
+        yaml.dump(yaml_data, file, default_flow_style=False, encoding="utf-8")
+
+    return output_file

@@ -35,6 +35,9 @@ tests/:
         test_command_injection.py:
           TestCommandInjection: v2.28.0
           TestCommandInjection_StackTrace: missing_feature
+        test_email_html_injection.py:
+          TestEmailHtmlInjection: v3.2.0
+          TestEmailHtmlInjection_StackTrace: missing_feature
         test_hardcoded_passwords.py:
           Test_HardcodedPasswords: missing_feature
           Test_HardcodedPasswords_StackTrace: missing_feature
@@ -265,8 +268,11 @@ tests/:
       Test_Basic: v1.28.6
     test_asm_standalone.py:
       Test_AppSecStandalone_UpstreamPropagation: v2.55.0
+      Test_AppSecStandalone_UpstreamPropagation_V2: missing_feature
       Test_IastStandalone_UpstreamPropagation: v2.55.0
+      Test_IastStandalone_UpstreamPropagation_V2: missing_feature
       Test_SCAStandalone_Telemetry: v2.55.0
+      Test_SCAStandalone_Telemetry_V2: missing_feature
     test_automated_login_events.py:
       Test_Login_Events: irrelevant (was v2.53.0 but will be replaced by V2)
       Test_Login_Events_Extended: irrelevant (was v2.53.0 but will be replaced by V2)
@@ -363,6 +369,8 @@ tests/:
       Test_Debugger_Probe_Snaphots: v2.53.0
     test_debugger_probe_status.py:
       Test_Debugger_Probe_Statuses: v2.53.0
+    test_debugger_symdb.py:
+      Test_Debugger_SymDb: v2.53.0
   integrations/:
     crossed_integrations/:
       test_kafka.py:
@@ -488,8 +496,15 @@ tests/:
     Test_Config_HttpServerErrorStatuses_FeatureFlagCustom: v3.5.0
     Test_Config_IntegrationEnabled_False: v3.5.0
     Test_Config_IntegrationEnabled_True: v3.5.0
+    Test_Config_LogInjection_128Bit_TradeId_Default: missing_feature (disabled by default)
+    Test_Config_LogInjection_128Bit_TradeId_Disabled: incomplete_test_app (weblog endpoint not implemented)
+    Test_Config_LogInjection_Default: incomplete_test_app (weblog endpoint not implemented)
+    Test_Config_LogInjection_Enabled: incomplete_test_app (weblog endpoint not implemented)
     Test_Config_ObfuscationQueryStringRegexp_Configured: v3.4.1
+    Test_Config_ObfuscationQueryStringRegexp_Default: v3.4.1
     Test_Config_ObfuscationQueryStringRegexp_Empty: v3.4.1
+    Test_Config_RuntimeMetrics_Default: incomplete_test_app (test needs to account for dotnet runtime metrics)
+    Test_Config_RuntimeMetrics_Enabled: incomplete_test_app (test needs to account for dotnet runtime metrics)
     Test_Config_UnifiedServiceTagging_CustomService: v3.3.0
     Test_Config_UnifiedServiceTagging_Default: v3.3.0
   test_data_integrity.py:
@@ -500,6 +515,7 @@ tests/:
     Test_Span_Links_From_Conflicting_Contexts: missing_feature
     Test_Span_Links_From_Conflicting_Contexts_Datadog_Precedence: missing_feature
     Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
+  test_graphql.py: missing_feature
   test_identify.py:
     Test_Basic: v2.7.0
     Test_Propagate: v2.27.0

@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, missing_feature, bug, features
+from utils import context, missing_feature, bug, features, flaky
 from ..utils import BaseSourceTest
 
 
@@ -27,10 +27,7 @@ class TestParameterName(BaseSourceTest):
     )
     @bug(weblog_variant="resteasy-netty3", reason="APPSEC-55687")
     @missing_feature(library="dotnet", reason="Tainted as request body")
-    @missing_feature(
-        context.library == "python" and context.weblog_variant in ["django-poc", "python3.12"],
-        reason="Tainted as request body",
-    )
+    @flaky(context.weblog_variant == "python3.12", reason="APPSEC-56375")
     def test_source_post_reported(self):
         """for use case where only one is reported, we want to keep a test on the one reported"""
         self.validate_request_reported(self.requests["POST"])
@@ -56,10 +53,7 @@ class TestParameterName(BaseSourceTest):
     )
     @bug(weblog_variant="resteasy-netty3", reason="APPSEC-55687")
     @missing_feature(library="dotnet", reason="Tainted as request body")
-    @missing_feature(
-        context.library == "python" and context.weblog_variant in ["django-poc", "python3.12"],
-        reason="Tainted as request body",
-    )
+    @flaky(context.weblog_variant == "python3.12", reason="APPSEC-56375")
     def test_source_reported(self):
         super().test_source_reported()
 

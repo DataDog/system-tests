@@ -64,8 +64,8 @@ if os.environ.get("INCLUDE_RABBITMQ", "true") == "true":
     from integrations.messaging.rabbitmq import rabbitmq_produce
 
 import ddtrace
-from ddtrace import Pin
-from ddtrace import tracer
+from ddtrace.trace import Pin
+from ddtrace.trace import tracer
 from ddtrace.appsec import trace_utils as appsec_trace_utils
 from ddtrace.internal.datastreams import data_streams_processor
 from ddtrace.internal.datastreams.processor import DsmPathwayCodec
@@ -1189,34 +1189,36 @@ def login():
     username = flask_request.form.get("username")
     password = flask_request.form.get("password")
     sdk_event = flask_request.args.get("sdk_event")
-    if sdk_event:
-        sdk_user = flask_request.args.get("sdk_user")
-        sdk_mail = flask_request.args.get("sdk_mail")
-        sdk_user_exists = flask_request.args.get("sdk_user_exists")
-        if sdk_event == "success":
-            appsec_trace_utils.track_user_login_success_event(tracer, user_id=sdk_user, email=sdk_mail)
-            return Response("OK")
-        elif sdk_event == "failure":
-            appsec_trace_utils.track_user_login_failure_event(
-                tracer, user_id=sdk_user, email=sdk_mail, exists=sdk_user_exists
-            )
-            return Response("login failure", status=401)
     authorisation = flask_request.headers.get("Authorization")
     if authorisation:
         username, password = base64.b64decode(authorisation[6:]).decode().split(":")
     success, user = User.check(username, password)
     if success:
         login_user(user)
-        appsec_trace_utils.track_user_login_success_event(tracer, user_id=user.uid, login_events_mode="auto")
-        return Response("OK")
+        appsec_trace_utils.track_user_login_success_event(
+            tracer, user_id=user.uid, login_events_mode="auto", login=username
+        )
     elif user:
         appsec_trace_utils.track_user_login_failure_event(
-            tracer, user_id=user.uid, exists=True, login_events_mode="auto"
+            tracer, user_id=user.uid, exists=True, login_events_mode="auto", login=username
         )
     else:
         appsec_trace_utils.track_user_login_failure_event(
-            tracer, user_id=username, exists=False, login_events_mode="auto"
+            tracer, user_id=username, exists=False, login_events_mode="auto", login=username
         )
+    if sdk_event:
+        sdk_user = flask_request.args.get("sdk_user")
+        sdk_mail = flask_request.args.get("sdk_mail")
+        sdk_user_exists = flask_request.args.get("sdk_user_exists")
+        if sdk_event == "success":
+            appsec_trace_utils.track_user_login_success_event(tracer, user_id=sdk_user, email=sdk_mail, login=sdk_user)
+            success = True
+        elif sdk_event == "failure":
+            appsec_trace_utils.track_user_login_failure_event(
+                tracer, user_id=sdk_user, email=sdk_mail, exists=sdk_user_exists, login=sdk_user
+            )
+    if success:
+        return Response("OK")
     return Response("login failure", status=401)
 
 

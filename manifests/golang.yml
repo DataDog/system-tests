@@ -44,6 +44,9 @@ tests/:
         test_command_injection.py:
           TestCommandInjection: missing_feature
           TestCommandInjection_StackTrace: missing_feature
+        test_email_html_injection.py:
+          TestEmailHtmlInjection: missing_feature
+          TestEmailHtmlInjection_StackTrace: missing_feature
         test_hardcoded_passwords.py:
           Test_HardcodedPasswords: missing_feature
           Test_HardcodedPasswords_StackTrace: missing_feature
@@ -306,8 +309,11 @@ tests/:
         gin: v1.37.0
     test_asm_standalone.py:
       Test_AppSecStandalone_UpstreamPropagation: v1.72.0-dev
+      Test_AppSecStandalone_UpstreamPropagation_V2: missing_feature
       Test_IastStandalone_UpstreamPropagation: missing_feature
+      Test_IastStandalone_UpstreamPropagation_V2: missing_feature
       Test_SCAStandalone_Telemetry: missing_feature
+      Test_SCAStandalone_Telemetry_V2: missing_feature
     test_automated_login_events.py:
       Test_Login_Events: missing_feature
       Test_Login_Events_Extended: missing_feature
@@ -375,10 +381,10 @@ tests/:
       Test_Standardization: missing_feature
       Test_StandardizationBlockMode: missing_feature
     test_metastruct.py:
-      Test_SecurityEvents_Appsec_Metastruct_Disabled: irrelevant (no fallback will be implemented)
-      Test_SecurityEvents_Appsec_Metastruct_Enabled: missing_feature
-      Test_SecurityEvents_Iast_Metastruct_Disabled: irrelevant (no fallback will be implemented)
-      Test_SecurityEvents_Iast_Metastruct_Enabled: missing_feature
+      Test_SecurityEvents_Appsec_Metastruct_Disabled: v1.72.0-dev
+      Test_SecurityEvents_Appsec_Metastruct_Enabled: v1.72.0-dev
+      Test_SecurityEvents_Iast_Metastruct_Disabled: irrelevant (No IAST)
+      Test_SecurityEvents_Iast_Metastruct_Enabled: irrelevant (No IAST)
     test_remote_config_rule_changes.py:
       Test_BlockingActionChangesWithRemoteConfig: v1.69.0
       Test_UpdateRuleFileWithRemoteConfig: bug (APPSEC-55377)
@@ -439,6 +445,8 @@ tests/:
       Test_Debugger_Probe_Snaphots: missing_feature (feature not implented)
     test_debugger_probe_status.py:
       Test_Debugger_Probe_Statuses: missing_feature (feature not implented)
+    test_debugger_symdb.py:
+      Test_Debugger_SymDb: missing_feature (feature not implented)
   integrations/:
     crossed_integrations/:
       test_kafka.py:
@@ -511,7 +519,7 @@ tests/:
       Test_Otel_Drop_In: missing_feature
   parametric/:
     test_config_consistency.py:
-      Test_Config_Dogstatsd: missing_feature
+      Test_Config_Dogstatsd: v1.72.0-dev
       Test_Config_RateLimit: v1.67.0
       Test_Config_Tags: v1.70.1
       Test_Config_TraceAgentURL: v1.70.0
@@ -581,8 +589,8 @@ tests/:
     Test_Config_ClientIPHeaderEnabled_False: v1.70.1
     Test_Config_ClientIPHeader_Configured: v1.60.0
     Test_Config_ClientIPHeader_Precedence: v1.69.0
-    Test_Config_ClientTagQueryString_Configured: missing_feature (supports DD_TRACE_HTTP_URL_QUERY_STRING_DISABLED)
-    Test_Config_ClientTagQueryString_Empty: bug (APMAPI-966) # DD_TRACE_HTTP_CLIENT_TAG_QUERY_STRING is disabled by default
+    Test_Config_ClientTagQueryString_Configured: v1.72.0-dev
+    Test_Config_ClientTagQueryString_Empty: v1.72.0-dev
     Test_Config_HttpClientErrorStatuses_Default: v1.69.0
     Test_Config_HttpClientErrorStatuses_FeatureFlagCustom: v1.69.0
     Test_Config_HttpServerErrorStatuses_Default: v1.67.0
@@ -592,8 +600,15 @@ tests/:
       uds-echo: missing_feature
     Test_Config_IntegrationEnabled_False: irrelevant (not applicable to Go because of how they do auto instrumentation)
     Test_Config_IntegrationEnabled_True: irrelevant (not applicable to Go because of how they do auto instrumentation)
+    Test_Config_LogInjection_128Bit_TradeId_Default: missing_feature (disabled by default)
+    Test_Config_LogInjection_128Bit_TradeId_Disabled: incomplete_test_app (weblog endpoint not implemented)
+    Test_Config_LogInjection_Default: incomplete_test_app (weblog endpoint not implemented)
+    Test_Config_LogInjection_Enabled: incomplete_test_app (weblog endpoint not implemented)
     Test_Config_ObfuscationQueryStringRegexp_Configured: v1.67.0
+    Test_Config_ObfuscationQueryStringRegexp_Default: v1.67.0
     Test_Config_ObfuscationQueryStringRegexp_Empty: v1.67.0
+    Test_Config_RuntimeMetrics_Default: incomplete_test_app (test needs to account for golang runtime metrics)
+    Test_Config_RuntimeMetrics_Enabled: incomplete_test_app (test needs to account for golang runtime metrics)
     Test_Config_UnifiedServiceTagging_CustomService: v1.67.0
     Test_Config_UnifiedServiceTagging_Default: v1.67.0
   test_data_integrity.py:
@@ -605,6 +620,7 @@ tests/:
     Test_Span_Links_From_Conflicting_Contexts_Datadog_Precedence: missing_feature
     Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
     Test_Synthetics_APM_Datadog: bug (APMAPI-901) # the incoming headers are considered invalid
+  test_graphql.py: missing_feature
   test_identify.py:
     Test_Basic: v1.37.0
     Test_Propagate: v1.48.0-rc.1

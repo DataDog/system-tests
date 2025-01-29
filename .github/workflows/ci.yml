@@ -10,6 +10,9 @@ on:
     - synchronize
     - labeled
     - unlabeled
+  push:
+    branches:
+    - main
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -57,15 +60,22 @@ jobs:
         library: ${{ fromJson(needs.impacted_libraries.outputs.impacted_libraries) }}
       fail-fast: false
     runs-on: ubuntu-latest
+    outputs:
+      target-branch: ${{ steps.get-target-branch.outputs.target-branch }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Get target branch
+        uses: ./.github/actions/get_target_branch
+        id: get-target-branch
+        with:
+          text: ${{ github.event.pull_request.title }}
       - name: Get library artifact
         run: ./utils/scripts/load-binary.sh ${{ matrix.library }}
-
+        env:
+          TARGET_BRANCH: "${{ steps.get-target-branch.outputs.target-branch }}"
       - name: Get agent artifact
         run: ./utils/scripts/load-binary.sh agent
-
       # ### appsec-event-rules is now a private repo. The GH_TOKEN provided can't read private repos.
       # ### skipping this, waiting for a proper solution
       # - name: Load WAF rules
@@ -78,6 +88,18 @@ jobs:
         with:
           name: binaries_dev_${{ matrix.library }}
           path: binaries/
+
+  fail-if-target-branch:
+    name: Fail if target branch is specified
+    needs:
+      - get_dev_artifacts
+    if: needs.get_dev_artifacts.outputs.target-branch != ''
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fail if PR title contains a target branch
+        run: |
+          echo "This PR can't be merged, due to the title specifying a target branch"
+          exit 1
 
   system_tests:
     name: System Tests

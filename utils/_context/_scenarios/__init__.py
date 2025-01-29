@@ -13,11 +13,12 @@ from .parametric import ParametricScenario
 from .performance import PerformanceScenario
 from .profiling import ProfilingScenario
 from .test_the_test import TestTheTestScenario
-from .auto_injection import InstallerAutoInjectionScenario, InstallerAutoInjectionScenarioProfiling
-from .k8s_lib_injection import WeblogInjectionScenario, K8sScenario, K8sSparkScenario
+from .auto_injection import InstallerAutoInjectionScenario
+from .k8s_lib_injection import WeblogInjectionScenario, K8sScenario, K8sSparkScenario, K8sManualInstrumentationScenario
 from .docker_ssi import DockerSSIScenario
 from .external_processing import ExternalProcessingScenario
 from .ipv6 import IPV6Scenario
+from .appsec_low_waf_timeout import AppsecLowWafTimeout
 
 update_environ_with_local_env()
 
@@ -149,6 +150,7 @@ class _Scenarios:
         doc="Misc tests for appsec blocking",
         scenario_groups=[ScenarioGroup.APPSEC, ScenarioGroup.ESSENTIALS],
     )
+    # This GraphQL scenario can be used for any GraphQL testing, not just AppSec
     graphql_appsec = EndToEndScenario(
         "GRAPHQL_APPSEC",
         weblog_env={"DD_APPSEC_RULES": "/appsec_blocking_rule.json"},
@@ -177,12 +179,9 @@ class _Scenarios:
         doc="Disable appsec and test DBM setting integration outcome when disabled",
         scenario_groups=[ScenarioGroup.APPSEC],
     )
-    appsec_low_waf_timeout = EndToEndScenario(
-        "APPSEC_LOW_WAF_TIMEOUT",
-        weblog_env={"DD_APPSEC_WAF_TIMEOUT": "1"},
-        doc="Appsec with a very low WAF timeout",
-        scenario_groups=[ScenarioGroup.APPSEC],
-    )
+
+    appsec_low_waf_timeout = AppsecLowWafTimeout("APPSEC_LOW_WAF_TIMEOUT")
+
     appsec_custom_obfuscation = EndToEndScenario(
         "APPSEC_CUSTOM_OBFUSCATION",
         weblog_env={
@@ -333,11 +332,36 @@ class _Scenarios:
         scenario_groups=[ScenarioGroup.APPSEC],
     )
 
+    appsec_standalone_v2 = EndToEndScenario(
+        "APPSEC_STANDALONE_V2",
+        weblog_env={
+            "DD_APPSEC_ENABLED": "true",
+            "DD_APM_TRACING_ENABLED": "false",
+            "DD_IAST_ENABLED": "false",
+        },
+        doc="Appsec standalone mode (APM opt out) V2",
+        scenario_groups=[ScenarioGroup.APPSEC],
+    )
+
     iast_standalone = EndToEndScenario(
         "IAST_STANDALONE",
         weblog_env={
             "DD_APPSEC_ENABLED": "false",
             "DD_EXPERIMENTAL_APPSEC_STANDALONE_ENABLED": "true",
+            "DD_IAST_ENABLED": "true",
+            "DD_IAST_DETECTION_MODE": "FULL",
+            "DD_IAST_DEDUPLICATION_ENABLED": "false",
+            "DD_IAST_REQUEST_SAMPLING": "100",
+        },
+        doc="Source code vulnerability standalone mode (APM opt out)",
+        scenario_groups=[ScenarioGroup.APPSEC],
+    )
+
+    iast_standalone_v2 = EndToEndScenario(
+        "IAST_STANDALONE_V2",
+        weblog_env={
+            "DD_APPSEC_ENABLED": "false",
+            "DD_APM_TRACING_ENABLED": "false",
             "DD_IAST_ENABLED": "true",
             "DD_IAST_DETECTION_MODE": "FULL",
             "DD_IAST_DEDUPLICATION_ENABLED": "false",
@@ -353,6 +377,19 @@ class _Scenarios:
             "DD_APPSEC_ENABLED": "false",
             "DD_APPSEC_SCA_ENABLED": "true",
             "DD_EXPERIMENTAL_APPSEC_STANDALONE_ENABLED": "true",
+            "DD_IAST_ENABLED": "false",
+            "DD_TELEMETRY_DEPENDENCY_RESOLUTION_PERIOD_MILLIS": "1",
+        },
+        doc="SCA standalone mode (APM opt out)",
+        scenario_groups=[ScenarioGroup.APPSEC],
+    )
+
+    sca_standalone_v2 = EndToEndScenario(
+        "SCA_STANDALONE_V2",
+        weblog_env={
+            "DD_APPSEC_ENABLED": "false",
+            "DD_APPSEC_SCA_ENABLED": "true",
+            "DD_APM_TRACING_ENABLED": "false",
             "DD_IAST_ENABLED": "false",
             "DD_TELEMETRY_DEPENDENCY_RESOLUTION_PERIOD_MILLIS": "1",
         },
@@ -489,6 +526,7 @@ class _Scenarios:
             "DD_TRACE_KAFKAJS_ENABLED": "false",  # In Node the integration is kafkajs.
             "DD_TRACE_PDO_ENABLED": "false",  # Use PDO for PHP,
             "DD_TRACE_PROPAGATION_STYLE_EXTRACT": "tracecontext,datadog,b3multi",
+            "DD_LOGS_INJECTION": "true",
         },
         appsec_enabled=False,  # disable ASM to test non asm client ip tagging
         iast_enabled=False,
@@ -519,6 +557,8 @@ class _Scenarios:
         weblog_env={
             "DD_TRACE_HTTP_CLIENT_TAG_QUERY_STRING": "false",
             "DD_TRACE_CLIENT_IP_HEADER": "custom-ip-header",
+            "DD_LOGS_INJECTION": "true",
+            "DD_TRACE_128_BIT_TRACEID_LOGGING_ENABLED": "false",
         },
         appsec_enabled=False,
         doc="",
@@ -543,7 +583,11 @@ class _Scenarios:
     debugger_probes_snapshot = EndToEndScenario(
         "DEBUGGER_PROBES_SNAPSHOT",
         rc_api_enabled=True,
-        weblog_env={"DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1", "DD_REMOTE_CONFIG_ENABLED": "true"},
+        weblog_env={
+            "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1",
+            "DD_REMOTE_CONFIG_ENABLED": "true",
+            "DD_CODE_ORIGIN_FOR_SPANS_ENABLED": "true",
+        },
         library_interface_timeout=5,
         doc="Test scenario for checking if debugger successfully generates snapshots for probes",
         scenario_groups=[ScenarioGroup.DEBUGGER],
@@ -586,6 +630,21 @@ class _Scenarios:
         scenario_groups=[ScenarioGroup.DEBUGGER],
     )
 
+    debugger_symdb = EndToEndScenario(
+        "DEBUGGER_SYMDB",
+        rc_api_enabled=True,
+        weblog_env={
+            "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1",
+            "DD_SYMBOL_DATABASE_UPLOAD_ENABLED": "1",
+            "DD_REMOTE_CONFIG_ENABLED": "true",
+            "DD_INTERNAL_RCM_POLL_INTERVAL": "2000",
+            "DD_DEBUGGER_DIAGNOSTICS_INTERVAL": "1",
+        },
+        library_interface_timeout=5,
+        doc="Test scenario for checking symdb.",
+        scenario_groups=[ScenarioGroup.DEBUGGER],
+    )
+
     fuzzer = DockerScenario("_FUZZER", doc="Fake scenario for fuzzing (launch without pytest)", github_workflow=None)
 
     # Single Step Instrumentation scenarios (HOST and CONTAINER)
@@ -620,9 +679,11 @@ class _Scenarios:
         vm_provision="auto-inject-ld-preload",
         scenario_groups=[ScenarioGroup.ONBOARDING],
         github_workflow="libinjection",
+        include_amazon_linux_2023_amd64=False,  # LD library failures impact on the docker engine, causes flakiness
+        include_amazon_linux_2023_arm64=False,
     )
 
-    simple_auto_injection_profiling = InstallerAutoInjectionScenarioProfiling(
+    simple_auto_injection_profiling = InstallerAutoInjectionScenario(
         "SIMPLE_AUTO_INJECTION_PROFILING",
         "Onboarding Single Step Instrumentation scenario with profiling activated by the app env var",
         app_env={
@@ -633,7 +694,7 @@ class _Scenarios:
         scenario_groups=[ScenarioGroup.ONBOARDING],
         github_workflow="libinjection",
     )
-    host_auto_injection_install_script_profiling = InstallerAutoInjectionScenarioProfiling(
+    host_auto_injection_install_script_profiling = InstallerAutoInjectionScenario(
         "HOST_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING",
         doc=(
             "Onboarding Host Single Step Instrumentation scenario using agent "
@@ -646,7 +707,7 @@ class _Scenarios:
         github_workflow="libinjection",
     )
 
-    container_auto_injection_install_script_profiling = InstallerAutoInjectionScenarioProfiling(
+    container_auto_injection_install_script_profiling = InstallerAutoInjectionScenario(
         "CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING",
         "Onboarding Container Single Step Instrumentation profiling scenario using agent auto install script",
         vm_provision="container-auto-inject-install-script",
@@ -698,20 +759,23 @@ class _Scenarios:
     )
 
     k8s_lib_injection = K8sScenario("K8S_LIB_INJECTION", doc="Kubernetes lib injection with admission controller")
+    k8s_lib_injection_operator = K8sScenario(
+        "K8S_LIB_INJECTION_OPERATOR",
+        doc="Use CRD Datadog Operator (uses real agent). Not configure the admission controller, the operator does it",
+        with_datadog_operator=True,
+    )
     k8s_lib_injection_uds = K8sScenario(
         "K8S_LIB_INJECTION_UDS",
         doc="Kubernetes lib injection with admission controller and uds",
         use_uds=True,
     )
-    k8s_lib_injection_no_ac = K8sScenario(
+    k8s_lib_injection_no_ac = K8sManualInstrumentationScenario(
         "K8S_LIB_INJECTION_NO_AC",
         doc="Kubernetes lib injection without admission controller",
-        with_admission_controller=False,
     )
-    k8s_lib_injection_no_ac_uds = K8sScenario(
+    k8s_lib_injection_no_ac_uds = K8sManualInstrumentationScenario(
         "K8S_LIB_INJECTION_NO_AC_UDS",
         doc="Kubernetes lib injection without admission controller and UDS",
-        with_admission_controller=False,
         use_uds=True,
     )
     k8s_lib_injection_profiling_disabled = K8sScenario(
@@ -758,8 +822,26 @@ class _Scenarios:
         scenario_groups=[ScenarioGroup.INTEGRATIONS],
     )
 
-    external_processing = ExternalProcessingScenario("EXTERNAL_PROCESSING")
+    external_processing = ExternalProcessingScenario(
+        name="EXTERNAL_PROCESSING",
+        doc="Envoy + external processing",
+        rc_api_enabled=True,
+    )
+
+    external_processing_blocking = ExternalProcessingScenario(
+        name="EXTERNAL_PROCESSING_BLOCKING",
+        doc="Envoy + external processing + blocking rule file",
+        extproc_env={"DD_APPSEC_RULES": "/appsec_blocking_rule.json"},
+        extproc_volumes={"./tests/appsec/blocking_rule.json": {"bind": "/appsec_blocking_rule.json", "mode": "ro"}},
+    )
+
     ipv6 = IPV6Scenario("IPV6")
+
+    runtime_metrics_enabled = EndToEndScenario(
+        "RUNTIME_METRICS_ENABLED",
+        runtime_metrics_enabled=True,
+        doc="Test runtime metrics",
+    )
 
 
 scenarios = _Scenarios()

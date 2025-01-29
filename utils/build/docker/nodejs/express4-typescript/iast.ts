@@ -15,6 +15,7 @@ const { join } = require('path')
 const { Client } = require('pg')
 const { Kafka } = require('kafkajs')
 const pug = require('pug')
+const { unserialize } = require('node-serialize')
 
 const ldap = require('./integrations/ldap')
 
@@ -394,6 +395,16 @@ function initSinkRoutes (app: Express): void {
     const fn = pug.compile('p Hello!')
     const html = fn()
     res.send(`OK:${html}`)
+  })
+
+  app.get('/iast/untrusted_deserialization/test_insecure', (req: Request, res: Response) => {
+    const name = unserialize(req.query.name)
+    res.send(`OK:${name}`)
+  })
+
+  app.get('/iast/untrusted_deserialization/test_secure', (req: Request, res: Response) => {
+    const name = unserialize(JSON.stringify({ name: 'example' }))
+    res.send(`OK:${name}`)
   })
 }
 
