@@ -32,7 +32,7 @@ const typeDefs = gql`
         id: Int
         name: String
       }
-        
+
       type Error {
         message: String
         extensions: [Extension]
