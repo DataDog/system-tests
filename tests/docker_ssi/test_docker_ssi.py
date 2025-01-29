@@ -4,6 +4,16 @@ from utils import scenarios, features, context, irrelevant, bug, interfaces
 from utils import weblog
 from utils.tools import logger, get_rid_from_request
 
+import docker
+
+from utils._context.containers import (
+    create_network,
+    DockerSSIContainer,
+    APMTestAgentContainer,
+    TestedContainer,
+    _get_client as get_docker_client,
+)
+
 
 @scenarios.docker_ssi
 class TestDockerSSIFeatures:
@@ -33,6 +43,7 @@ class TestDockerSSIFeatures:
     @irrelevant(context.library == "java" and context.installed_language_runtime < "1.8.0_0")
     @irrelevant(context.library == "php" and context.installed_language_runtime < "7.0")
     @irrelevant(context.library == "nodejs" and context.installed_language_runtime < "17.0")
+    @irrelevant(context.weblog_variant == "js-command-line")
     def test_install_supported_runtime(self):
         logger.info(f"Testing Docker SSI installation on supported lang runtime: {context.scenario.library.library}")
         assert self.r.status_code == 200, f"Failed to get response from {context.scenario.weblog_url}"
@@ -54,6 +65,7 @@ class TestDockerSSIFeatures:
         condition="centos-7" in context.scenario.weblog_variant and context.scenario.library.library == "java",
         reason="APMON-1490",
     )
+    @irrelevant(context.weblog_variant == "js-command-line")
     def test_install_weblog_running(self):
         logger.info(
             f"Testing Docker SSI installation. The weblog should be running: {context.scenario.library.library}"
@@ -70,6 +82,7 @@ class TestDockerSSIFeatures:
     @irrelevant(context.library == "python" and context.installed_language_runtime < "3.7.0")
     @irrelevant(context.library == "nodejs" and context.installed_language_runtime < "17.0")
     @bug(context.library == "python@2.19.1", reason="INPLAT-448")
+    @irrelevant(context.weblog_variant == "js-command-line")
     def test_telemetry(self):
         # There is telemetry data about the auto instrumentation injector. We only validate there is data
         telemetry_autoinject_data = interfaces.test_agent.get_telemetry_for_autoinject()
@@ -98,6 +111,7 @@ class TestDockerSSIFeatures:
     @bug(context.library == "nodejs" and context.installed_language_runtime < "12.17.0", reason="INPLAT-252")
     @bug(context.library == "java" and context.installed_language_runtime == "1.7.0-201", reason="INPLAT-427")
     @irrelevant(context.library == "nodejs" and context.installed_language_runtime >= "17.0")
+    @irrelevant(context.weblog_variant == "js-command-line")
     def test_telemetry_abort(self):
         # There is telemetry data about the auto instrumentation injector. We only validate there is data
         telemetry_autoinject_data = interfaces.test_agent.get_telemetry_for_autoinject()
@@ -143,3 +157,40 @@ class TestDockerSSIFeatures:
         assert (
             traces_for_request["service"] == "payment-service"
         ), f"Service name is not payment-service but {traces_for_request['service']}"
+
+
+@scenarios.docker_ssi
+class TestPoC:
+    _weblog_container = None
+
+    def setup_all(self):
+        """look for the weblog container and store in a class variable"""
+        if self._weblog_container:
+            return
+
+        for container in context.scenario._required_containers:
+            if isinstance(container, DockerSSIContainer):
+                self._weblog_container = container
+                break
+
+    def setup_folder_structure(self):
+        self.setup_all()
+
+    def setup_poc(self):
+        self.setup_all()
+
+    @features.ssi_guardrails
+    def test_folder_structure(self):
+        check_folder_command = "[ -d '/opt/datadog-packages/datadog-apm-inject/' ] && echo 'true' || echo 'false'"
+        check_folder_command_out = self._weblog_container.execute_command(
+            check_folder_command, environment={"DD_APM_INSTRUMENTATION_DEBUG": "false"}
+        )
+        assert check_folder_command_out == "true", "Folder structure is not as expected"
+
+    @features.ssi_guardrails
+    def test_poc(self):
+        my_command_output = self._weblog_container.execute_command("ls -la")
+        # Use utils/interfaces/_test_agent.py _TestAgentInterfaceValidator to get traces and telemetry data
+        # and make your own assertions
+        # use interfaces.test_agent.
+        logger.info(f"COMMAND OUTPUT: {my_command_output}")

@@ -274,7 +274,9 @@ class TestedContainer:
     def exec_run(self, cmd: str, *, demux: bool = False) -> ExecResult:
         return self._container.exec_run(cmd, demux=demux)
 
-    def execute_command(self, test, retries=10, interval=1_000_000_000, start_period=0) -> tuple[int, str]:
+    def execute_command(
+        self, test, retries=10, interval=1_000_000_000, start_period=0, environment=None
+    ) -> tuple[int, str]:
         """Execute a command inside a container. Useful for healthcheck and warmups.
         test is a command to be executed, interval, timeout and start_period are in us (microseconds)
         This function does not raise any exception, it returns a tuple with the exit code and the output
@@ -301,7 +303,7 @@ class TestedContainer:
 
         for i in range(retries + 1):
             try:
-                result = self._container.exec_run(cmd)
+                result = self._container.exec_run(cmd, environment=environment)
 
                 logger.debug(f"Try #{i} for {self.name}: {result}")
 
