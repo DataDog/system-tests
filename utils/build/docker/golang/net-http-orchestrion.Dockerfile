@@ -16,9 +16,7 @@ COPY utils/build/docker/golang/app /app
 COPY utils/build/docker/golang/install_*.sh binaries* /binaries/
 RUN /binaries/install_ddtrace.sh && /binaries/install_orchestrion.sh
 
-RUN cat go.mod
-
-RUN orchestrion go build -v -tags appsec -o weblog ./net-http-orchestrion
+RUN orchestrion go build -v -tags appsec,orchestrion -o weblog ./net-http-orchestrion
 
 # ==============================================================================
 
@@ -29,12 +27,16 @@ COPY --from=build /app/SYSTEM_TESTS_LIBRARY_VERSION /app/SYSTEM_TESTS_LIBRARY_VE
 
 WORKDIR /app
 
-ENV DD_TRACE_HEADER_TAGS='user-agent'
-ENV DD_DATA_STREAMS_ENABLED=true
-
 RUN printf "#!/bin/bash\nexec ./weblog" > app.sh
 RUN chmod +x app.sh
 CMD ["./app.sh"]
 
 # Datadog setup
-ENV DD_LOGGING_RATE=0
+ENV DD_LOGGING_RATE="0" \
+  DD_TRACE_HEADER_TAGS="user-agent" \
+  DD_DATA_STREAMS_ENABLED="true" \
+  # Set up the environment so the profiler starts appropriately...
+  DD_ENV="system-tests" \
+  DD_SERVICE="weblog" \
+  DD_VERSION="1.0" \
+  DD_PROFILING_ENABLED="true"

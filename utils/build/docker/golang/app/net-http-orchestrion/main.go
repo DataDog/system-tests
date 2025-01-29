@@ -22,20 +22,15 @@ import (
 	"weblog/internal/rasp"
 
 	"github.com/Shopify/sarama"
-
-	"gopkg.in/DataDog/dd-trace-go.v1/datastreams"
-	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
-
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/trace"
-	oteltrace "go.opentelemetry.io/otel/trace"
-
 	"gopkg.in/DataDog/dd-trace-go.v1/appsec"
-	ddotel "gopkg.in/DataDog/dd-trace-go.v1/ddtrace/opentelemetry"
-	ddtracer "gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
+	"gopkg.in/DataDog/dd-trace-go.v1/datastreams"
+	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/opentelemetry"
+	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
 
 func main() {
@@ -184,11 +179,11 @@ func main() {
 	mux.HandleFunc("/headers/", headers)
 
 	identify := func(w http.ResponseWriter, r *http.Request) {
-		if span, ok := ddtracer.SpanFromContext(r.Context()); ok {
-			ddtracer.SetUser(
-				span, "usr.id", ddtracer.WithUserEmail("usr.email"),
-				ddtracer.WithUserName("usr.name"), ddtracer.WithUserSessionID("usr.session_id"),
-				ddtracer.WithUserRole("usr.role"), ddtracer.WithUserScope("usr.scope"),
+		if span, ok := tracer.SpanFromContext(r.Context()); ok {
+			tracer.SetUser(
+				span, "usr.id", tracer.WithUserEmail("usr.email"),
+				tracer.WithUserName("usr.name"), tracer.WithUserSessionID("usr.session_id"),
+				tracer.WithUserRole("usr.role"), tracer.WithUserScope("usr.scope"),
 			)
 		}
 		w.Write([]byte("Hello, identify!"))
@@ -196,8 +191,8 @@ func main() {
 	mux.HandleFunc("/identify/", identify)
 	mux.HandleFunc("/identify", identify)
 	mux.HandleFunc("/identify-propagate", func(w http.ResponseWriter, r *http.Request) {
-		if span, ok := ddtracer.SpanFromContext(r.Context()); ok {
-			ddtracer.SetUser(span, "usr.id", ddtracer.WithPropagation())
+		if span, ok := tracer.SpanFromContext(r.Context()); ok {
+			tracer.SetUser(span, "usr.id", tracer.WithPropagation())
 		}
 		w.Write([]byte("Hello, identify-propagate!"))
 	})
@@ -298,8 +293,8 @@ func main() {
 			)
 		}
 
-		p := ddotel.NewTracerProvider()
-		tracer := p.Tracer("")
+		p := opentelemetry.NewTracerProvider()
+		oteltracer := p.Tracer("")
 		otel.SetTracerProvider(p)
 		otel.SetTextMapPropagator(propagation.TraceContext{})
 		defer p.ForceFlush(time.Second, func(ok bool) {})
@@ -309,19 +304,19 @@ func main() {
 		// - tags {'attributes':'values'}
 		// - tags necessary to retain the mapping between the system-tests/weblog request id and the traces/spans
 		// - error tag with 'testing_end_span_options' message
-		parentCtx, parentSpan := tracer.Start(ddotel.ContextWithStartOptions(context.Background(),
-			ddtracer.WithSpanID(10000)), parentName,
+		parentCtx, parentSpan := oteltracer.Start(opentelemetry.ContextWithStartOptions(context.Background(),
+			tracer.WithSpanID(10000)), parentName,
 			trace.WithAttributes(tags...))
 		parentSpan.SetAttributes(attribute.String("attributes", "values"))
-		ddotel.EndOptions(parentSpan, ddtracer.WithError(errors.New("testing_end_span_options")))
+		opentelemetry.EndOptions(parentSpan, tracer.WithError(errors.New("testing_end_span_options")))
 
 		// Child span will have the following traits :
 		// - tags necessary to retain the mapping between the system-tests/weblog request id and the traces/spans
 		// - duration of one second
 		// - span kind of SpanKind - Internal
 		start := time.Now()
-		_, childSpan := tracer.Start(parentCtx, childName, trace.WithTimestamp(start), trace.WithAttributes(tags...), trace.WithSpanKind(trace.SpanKindInternal))
-		childSpan.End(oteltrace.WithTimestamp(start.Add(time.Second)))
+		_, childSpan := oteltracer.Start(parentCtx, childName, trace.WithTimestamp(start), trace.WithAttributes(tags...), trace.WithSpanKind(trace.SpanKindInternal))
+		childSpan.End(trace.WithTimestamp(start.Add(time.Second)))
 		parentSpan.End()
 
 		w.Write([]byte("OK"))
@@ -345,7 +340,7 @@ func main() {
 			)
 		}
 
-		p := ddotel.NewTracerProvider()
+		p := opentelemetry.NewTracerProvider()
 		tracer := p.Tracer("")
 		otel.SetTracerProvider(p)
 		otel.SetTextMapPropagator(propagation.TraceContext{})
@@ -354,7 +349,7 @@ func main() {
 		parentCtx, parentSpan := tracer.Start(context.Background(), parentName, trace.WithAttributes(tags...))
 
 		h := otelhttp.NewHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			receivedSpan := oteltrace.SpanFromContext(r.Context())
+			receivedSpan := trace.SpanFromContext(r.Context())
 			// Need to propagate the user agent header to retain the mapping between
 			// the system-tests/weblog request id and the traces/spans
 			receivedSpan.SetAttributes(tags...)
@@ -369,7 +364,7 @@ func main() {
 
 		// Need to propagate the user agent header to retain the mapping between
 		// the system-tests/weblog request id and the traces/spans
-		c := http.Client{Transport: otelhttp.NewTransport(nil, otelhttp.WithSpanOptions(oteltrace.WithAttributes(tags...)))}
+		c := http.Client{Transport: otelhttp.NewTransport(nil, otelhttp.WithSpanOptions(trace.WithAttributes(tags...)))}
 		req, err := http.NewRequestWithContext(parentCtx, http.MethodGet, testServer.URL, nil)
 		if err != nil {
 			log.Fatalln(err)
@@ -534,6 +529,9 @@ func main() {
 		appsec.TrackUserLoginSuccessEvent(r.Context(), user, map[string]string{}, tracer.WithUserSessionID(cookie.Value))
 	})
 
+	mux.HandleFunc("/requestdownstream", common.Requestdownstream)
+	mux.HandleFunc("/returnheaders", common.Returnheaders)
+
 	mux.HandleFunc("/rasp/lfi", rasp.LFI)
 	mux.HandleFunc("/rasp/ssrf", rasp.SSRF)
 	mux.HandleFunc("/rasp/sqli", rasp.SQLi)
@@ -577,9 +575,8 @@ func (c carrier) ForeachKey(handler func(key, val string) error) error {
 	return nil
 }
 
-func write(w http.ResponseWriter, r *http.Request, d []byte) {
-	span, _ := ddtracer.StartSpanFromContext(r.Context(), "child.span")
-	defer span.Finish()
+//dd:span span.name:child.span
+func write(w http.ResponseWriter, _ *http.Request, d []byte) {
 	w.Write(d)
 }
 
