@@ -5,23 +5,10 @@ import javax.mail.Session;
 import javax.mail.Transport;
 import javax.mail.URLName;
 import javax.mail.Address;
-import java.util.Properties;
 
 public class MockTransport extends Transport {
         public MockTransport(Session session, URLName urlname) {
             super(session, urlname);
-        }
-
-        public MockTransport() {
-            this(Session.getInstance(new Properties()), null);
-        }
-
-        public MockTransport(Session session) {
-            this(session, null);
-        }
-
-        public static Transport newInstance(Session session) {
-            return new MockTransport(session, null);
         }
 
         public void sendMessage(Message msg, Address[] addresses) throws MessagingException {
@@ -35,6 +22,5 @@ public class MockTransport extends Transport {
             this.notifyConnectionListeners(1);
         }
 
-        public synchronized void connect(String host, int port, String user, String password)
-            throws MessagingException {}
+        public synchronized void connect(String host, int port, String user, String password) {}
     }

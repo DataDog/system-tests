@@ -16,9 +16,7 @@ public class EmailExamples {
     }
 
     public void mail(final String emailContent) throws MessagingException {
-        System.setProperty("mail.transport.protocol", "smtp");
         Session session = Session.getDefaultInstance(new Properties());
-        session.getProperties().put("mail.transport.protocol", "smtp");
         Provider provider =
                 new Provider(
                         Provider.Type.TRANSPORT, "smtp", MockTransport.class.getName(), "MockTransport", "1.0");
