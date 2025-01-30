@@ -44,6 +44,7 @@ refs:
   - &ref_5_30_0 '>=5.30.0 || ^4.54.0'
   - &ref_5_32_0 '>=5.32.0'
   - &ref_5_33_0 '>=5.33.0'
+  - &ref_5_34_0 '>=5.34.0'
 
 tests/:
   apm_tracing_e2e/:
@@ -912,7 +913,12 @@ tests/:
     Test_Synthetics_APM_Datadog:
       '*': *ref_5_25_0
       nextjs: bug (APMAPI-939) # the nextjs weblog application changes the sampling priority from 1.0 to 2.0
-  test_graphql.py: missing_feature
+  test_graphql.py:
+    Test_GraphQLQueryErrorReporting:
+      '*': *ref_5_34_0
+      express4-typescript: incomplete_test_app (endpoint not implemented)
+      express5: missing_feature
+      nextjs: missing_feature
   test_identify.py:
     Test_Basic: v2.4.0
     Test_Propagate: *ref_3_2_0

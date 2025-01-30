@@ -1,5 +1,6 @@
 import inspect
 import json
+from typing import Any
 
 import pytest
 from requests.structures import CaseInsensitiveDict
@@ -29,7 +30,7 @@ class _PropertiesDecoder(json.JSONDecoder):
         json.JSONDecoder.__init__(self, object_hook=_PropertiesDecoder.from_dict)
 
     @staticmethod
-    def from_dict(d):
+    def from_dict(d) -> Any:  # noqa: ANN401
         if klass := d.get("__class__"):
             if klass == "set":
                 return set(d["values"])

@@ -82,7 +82,6 @@ ignore = [
     "ANN001",
     "ANN003",
     "ANN202",
-    "ANN205",
     "BLE001",  # Do not catch blind exception: `Exception`, big project to enable this
     "C901",    # code complexity, TBD
     "E722",    # bare except, big project to enable this
@@ -219,6 +218,7 @@ ignore = [
 ]
 "utils/docker_ssi/*" = [
     "ANN201",
+    "ANN205",
 ]
 "utils/{_context/_scenarios/docker_ssi.py,docker_ssi/docker_ssi_matrix_builder.py,docker_ssi/docker_ssi_matrix_utils.py}" = [
     "ANN201",
@@ -295,4 +295,7 @@ ignore = [
     "SIM115",
     "SLF001",
     "TRY002",
+]
+"utils/_features.py" = [
+    "ANN205"  #obvious decorators
 ]
