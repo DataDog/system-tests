@@ -59,7 +59,7 @@ def get_endtoend_weblogs(library, ci_environment: str) -> list[str]:
     weblogs = {
         "cpp": ["nginx"],
         "dotnet": ["poc", "uds"],
-        "golang": ["chi", "echo", "gin", "net-http", "uds-echo"],
+        "golang": ["chi", "echo", "gin", "net-http", "uds-echo", "net-http-orchestrion"],
         "java": [
             "akka-http",
             "jersey-grizzly2",
