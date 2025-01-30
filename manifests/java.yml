@@ -1597,6 +1597,11 @@ tests/:
         spring-boot: v1.39.0
     test_sql.py:
       Test_Sql: bug (APMAPI-729)
+  otel/:
+    test_context_propagation.py:
+      Test_Otel_Context_Propagation_Default_Propagator_Api:
+        '*': incomplete_test_app (endpoint not implemented)
+        spring-boot: v1.39.0
   parametric/:
     test_config_consistency.py:
       Test_Config_Dogstatsd: missing_feature (default hostname is inconsistent)

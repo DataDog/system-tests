@@ -2372,5 +2372,14 @@ class _Features:
         pytest.mark.features(feature_id=360)(test_object)
         return test_object
 
+    @staticmethod
+    def otel_propagators_api(test_object):
+        """OpenTelemetry Propagators API
+
+        https://feature-parity.us1.prod.dog/#/?feature=361
+        """
+        pytest.mark.features(feature_id=361)(test_object)
+        return test_object
+
 
 features = _Features()
