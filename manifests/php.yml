@@ -170,7 +170,7 @@ tests/:
         Test_Lfi_BodyJson: v1.6.2
         Test_Lfi_BodyUrlEncoded: v1.6.2
         Test_Lfi_BodyXml: v1.6.2
-        Test_Lfi_Capability: v1.6.2
+        Test_Lfi_Capability: v1.7.0
         Test_Lfi_Mandatory_SpanTags: v1.6.2
         Test_Lfi_Optional_SpanTags: v1.6.2
         Test_Lfi_RC_CustomAction: missing_feature # It works but missing this APPSEC-56457
