@@ -5,6 +5,7 @@
 from utils import context
 from utils import features
 from utils import interfaces
+from utils import irrelevant
 from utils import remote_config as rc
 from utils import rfc
 from utils import scenarios
