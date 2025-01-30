@@ -57,7 +57,6 @@ for username, email, passwd, last_name, user_id in [
 
 
 def hello_world(request):
-    print(f"Hello, World! {getattr(request, 'user', None)}")
     return HttpResponse("Hello, World!")
 
 
@@ -735,8 +734,6 @@ def login(request):
                 tracer, user_id=sdk_user, email=sdk_mail, exists=sdk_user_exists, login=sdk_user
             )
     if is_logged_in:
-        request.session['username'] = username
-        request.session.save()
         return HttpResponse("OK")
     return HttpResponse("login failure", status=401)
 
