@@ -1,8 +1,10 @@
+import io
 import json
 import os
+from pathlib import Path
 import subprocess
 import pytest
-from utils import scenarios
+from utils import scenarios, missing_feature
 from utils.tools import logger
 
 
@@ -89,6 +91,60 @@ def test_jsonweird():
     log_file = "logs_test_the_test/json_weird.json"
     with open(log_file, "w") as f:
         json.dump({"int": secret, "str": f"{secret}"}, f)
+
+    del os.environ["KEY_SCRUBBED"]
+
+    with open(log_file, "r") as f:
+        data = f.read()
+
+    assert f"{secret}" not in data
+
+
+@scenarios.test_the_test
+def test_pathlib():
+    secret = 123456789
+    os.environ["KEY_SCRUBBED"] = f"{secret}"
+
+    log_file = "logs_test_the_test/pathlib.txt"
+    with Path(log_file).open("w") as f:
+        json.dump({"int": secret, "str": f"{secret}"}, f)
+        f.writelines([f"{secret}"])
+
+    del os.environ["KEY_SCRUBBED"]
+
+    with open(log_file, "r") as f:
+        data = f.read()
+
+    assert f"{secret}" not in data
+
+
+@scenarios.test_the_test
+@missing_feature(True, reason="Not supported")
+def test_os_open():
+    secret = 123456789
+    os.environ["KEY_SCRUBBED"] = f"{secret}"
+
+    log_file = "logs_test_the_test/os_open.txt"
+    fd = os.open(log_file, os.O_WRONLY | os.O_CREAT)
+    os.write(fd, f"{secret}".encode())
+    os.close(fd)
+
+    del os.environ["KEY_SCRUBBED"]
+
+    with open(log_file, "r") as f:
+        data = f.read()
+
+    assert f"{secret}" not in data
+
+
+@scenarios.test_the_test
+def test_io_file():
+    secret = 123456789
+    os.environ["KEY_SCRUBBED"] = f"{secret}"
+
+    log_file = "logs_test_the_test/io_fileio.txt"
+    with io.FileIO(log_file, "w") as f:
+        f.write(f"{secret}".encode())
 
     del os.environ["KEY_SCRUBBED"]
 
