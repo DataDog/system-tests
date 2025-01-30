@@ -44,13 +44,15 @@ public class AccountController : Controller
 
             var authorizationHeader = this.Request.Headers["Authorization"][0];
 
-            if(authorizationHeader is not null)
+            if (authorizationHeader is not null)
             {
                 var authBase64Decoded = Encoding.UTF8.GetString(
                     Convert.FromBase64String(authorizationHeader.Replace("Basic ", "",
                         StringComparison.OrdinalIgnoreCase)));
                 var authSplit = authBase64Decoded.Split(new[] { ':' }, 2);
-                var result = await _signInManager.PasswordSignInAsync(authSplit[0], authSplit[1], false, lockoutOnFailure: false);
+                var result =
+                    await _signInManager.PasswordSignInAsync(authSplit[0], authSplit[1], false,
+                        lockoutOnFailure: false);
                 if (result.Succeeded)
                 {
                     return Content("Successfully login as " + authSplit[0]);
@@ -86,13 +88,13 @@ public class AccountController : Controller
                 }
             }
 
-            if(model is { UserName: not null, Password: not null })
+            if (model is { UserName: not null, Password: not null })
             {
                 // This doesn't count login failures towards account lockout
                 // To enable password failures to trigger account lockout, set lockoutOnFailure: true
                 var result = await _signInManager.PasswordSignInAsync(model.UserName, model.Password, false,
                     lockoutOnFailure: false);
-                
+
                 if (model.SdkTrigger == "after")
                 {
                     if (model is { SdkEvent: "success" })
@@ -104,7 +106,7 @@ public class AccountController : Controller
                         EventTrackingSdk.TrackUserLoginFailureEvent(model.SdkUser, model.SdkUserExists ?? false);
                     }
                 }
-                
+
                 if (result.Succeeded)
                 {
                     return Content("Successfully login as " + model.UserName);
@@ -118,17 +120,17 @@ public class AccountController : Controller
         // If we got this far, something failed, redisplay form
         return RedirectToAction(nameof(Index));
     }
-    
+
     [HttpPost("signup")]
     public async Task<IActionResult> Signup(LoginModel model)
     {
         if (ModelState.IsValid)
         {
-            if(model is { UserName: not null, Password: not null })
+            if (model is { UserName: not null, Password: not null })
             {
-                var user = new IdentityUser { UserName = model.UserName, Id = "new-user"};
+                var user = new IdentityUser { UserName = model.UserName, Id = "new-user" };
                 var result = await _userManager.CreateAsync(user, model.Password);
-                
+
                 if (result.Succeeded)
                 {
                     return Content("Successfully registered as " + model.UserName);
