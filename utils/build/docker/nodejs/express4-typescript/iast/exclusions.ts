@@ -3,7 +3,7 @@
 const semver = require('semver')
 const version = require('dd-trace/package.json').version
 
-if (semver.satisfies(version, '<5.33.0')) {
+if (semver.satisfies(version, '<5.34.0')) {
   const WeakHashAnalyzer = require('dd-trace/packages/dd-trace/src/appsec/iast/analyzers/weak-hash-analyzer.js')
   const original = WeakHashAnalyzer._isExcluded
 
