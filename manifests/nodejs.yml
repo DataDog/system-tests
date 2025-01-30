@@ -787,6 +787,12 @@ tests/:
         express5: *ref_5_26_0
     test_otel_drop_in.py:
       Test_Otel_Drop_In: missing_feature
+  otel/:
+    test_context_propagation.py:
+      Test_Otel_Context_Propagation_Default_Propagator_Api:
+        '*': incomplete_test_app (endpoint not implemented)
+        express4: *ref_5_26_0
+        express5: *ref_5_26_0
   parametric/:
     test_128_bit_traceids.py:
       Test_128_Bit_Traceids: *ref_3_0_0

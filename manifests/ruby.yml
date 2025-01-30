@@ -405,6 +405,11 @@ tests/:
       TestK8sLibInjectioProfilingClusterEnabled: missing_feature
       TestK8sLibInjectioProfilingClusterOverride: missing_feature
       TestK8sLibInjectioProfilingDisabledByDefault: missing_feature
+  otel/:
+    test_context_propagation.py:
+      Test_Otel_Context_Propagation_Default_Propagator_Api:
+        '*': incomplete_test_app (endpoint not implemented)
+        rails70: v2.0.0
   parametric/:
     test_config_consistency.py:
       Test_Config_Dogstatsd: missing_feature
