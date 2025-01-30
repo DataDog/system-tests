@@ -114,48 +114,36 @@ def get_opentelemetry_weblogs(library) -> list[str]:
     return weblogs[library]
 
 
-class Workflow:
-    def __init__(self) -> None:
-        self.parameters = {}
-
-    def __getitem__(self, key: str):
-        return self.parameters[key]
-
-
-class Result:
-    def __init__(self) -> None:
-        self.workflows: dict[str, Workflow] = defaultdict(Workflow)
-
-    def __getitem__(self, key: str) -> Workflow:
-        return self.workflows[key]
-
-    def print(self, output_format: str) -> None:
-        if output_format == "github":
-            for workflow_name, workflow in self.workflows.items():
-                for parameter, value in workflow.parameters.items():
-                    print(f"{workflow_name}_{parameter}={json.dumps(value)}")
-        else:
-            raise ValueError(f"Invalid format: {format}")
+def _print_output(result: dict[str, dict], output_format: str) -> None:
+    if output_format == "github":
+        for workflow_name, workflow in result.items():
+            for parameter, value in workflow.items():
+                print(f"{workflow_name}_{parameter}={json.dumps(value)}")
+    else:
+        raise ValueError(f"Invalid format: {format}")
 
 
 def main(
     language: str, scenarios: str, groups: str, parametric_job_count: int, ci_environment: str, output_format: str
 ) -> None:
-    result = Result()
+    result = defaultdict(dict)
+    # this data struture is a dict where:
+    #  the key is the workflow identifier
+    #  the value is also a dict, where the key/value pair is the parameter name/value.
     scenario_map = get_github_workflow_map(scenarios.split(","), groups.split(","))
 
     print(groups)
     for github_workflow, scenario_list in scenario_map.items():
-        result[github_workflow].parameters["scenarios"] = scenario_list
+        result[github_workflow]["scenarios"] = scenario_list
 
-    result["endtoend"].parameters["weblogs"] = get_endtoend_weblogs(language, ci_environment)
-    result["graphql"].parameters["weblogs"] = get_graphql_weblogs(language)
-    result["opentelemetry"].parameters["weblogs"] = get_opentelemetry_weblogs(language)
-    result["parametric"].parameters["job_count"] = parametric_job_count
-    result["parametric"].parameters["job_matrix"] = list(range(1, parametric_job_count + 1))
+    result["endtoend"]["weblogs"] = get_endtoend_weblogs(language, ci_environment)
+    result["graphql"]["weblogs"] = get_graphql_weblogs(language)
+    result["opentelemetry"]["weblogs"] = get_opentelemetry_weblogs(language)
+    result["parametric"]["job_count"] = parametric_job_count
+    result["parametric"]["job_matrix"] = list(range(1, parametric_job_count + 1))
 
-    result.print(output_format)
-    print(f"_experimental_parametric_job_matrix={result['parametric'].parameters['job_matrix']!s}")  # legacy
+    _print_output(result, output_format)
+    print(f"_experimental_parametric_job_matrix={result['parametric']['job_matrix']!s}")  # legacy
 
 
 if __name__ == "__main__":
@@ -180,7 +168,7 @@ if __name__ == "__main__":
     parser.add_argument("--groups", "-g", type=str, help="Scenario groups to run", default="")
 
     # workflow specific parameters
-    parser.add_argument("--parametric-job_count", type=int, help="How may jobs must run parametric scenario", default=1)
+    parser.add_argument("--parametric-job-count", type=int, help="How may jobs must run parametric scenario", default=1)
 
     # Misc
     parser.add_argument("--ci-environment", type=str, help="Used internally in system-tests CI", default="custom")
