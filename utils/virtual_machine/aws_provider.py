@@ -83,7 +83,25 @@ class AWSPulumiProvider(VmProvider):
                 ["operation:up", "result:fail", f"stack:{self.stack_name}"],
             )
 
+    def get_windows_user_data(self):
+        windows_user_data_path = "utils/build/virtual_machine/provisions/windows_userdata/setup_ssh.ps1"
+
+        # Read the file content as a string
+        with open(windows_user_data_path, "r", encoding="utf-8") as file:
+            windows_user_data_content = file.read()
+
+        return windows_user_data_content
+
     def _start_vm(self, vm):
+        ec2_user_data = None
+        if vm.os_type == "windows":
+            ssm_parameter = aws.ssm.get_parameter(
+                name="/aws/service/ami-windows-latest/Windows_Server-2022-English-Full-Base"
+            )
+            logger.info(f"Using Windows AMI: {ssm_parameter.value}")
+            vm.aws_config.ami_id = ssm_parameter.value
+            ec2_user_data = self.get_windows_user_data()
+
         # Startup VM and prepare connection
         ec2_server = aws.ec2.Instance(
             vm.name,
@@ -96,6 +114,7 @@ class AWSPulumiProvider(VmProvider):
             opts=self.pulumi_ssh.aws_key_resource,
             root_block_device={"volume_size": vm.aws_config.volume_size},
             iam_instance_profile=vm.aws_config.aws_infra_config.iam_instance_profile,
+            user_data=ec2_user_data,
         )
         # Store the private ip of the vm: store it in the vm object and export it. Log to vm_desc.log
         Output.all(vm, ec2_server.private_ip).apply(lambda args: args[0].set_ip(args[1]))

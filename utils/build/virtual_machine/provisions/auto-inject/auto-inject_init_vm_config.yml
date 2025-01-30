@@ -160,3 +160,9 @@
     #Install git and clone system tests repository
     sudo yum -y install git wget
     git clone https://github.com/DataDog/system-tests.git
+
+- os_type: windows
+  copy_files:
+    - name: copy-tracer-debug-config
+      local_path: utils/build/virtual_machine/provisions/auto-inject/tracer_debug/debug_config.yaml
+  remote-command: dir

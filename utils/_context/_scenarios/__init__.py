@@ -655,7 +655,13 @@ class _Scenarios:
         scenario_groups=[ScenarioGroup.ONBOARDING],
         github_workflow="libinjection",
     )
-
+    simple_installer_auto_injection_windows = InstallerAutoInjectionScenario(
+        "SIMPLE_INSTALLER_AUTO_INJECTION_WINDOWS",
+        "Onboarding Container Single Step Instrumentation scenario (minimal test scenario)",
+        vm_provision="installer-auto-inject-windows",
+        scenario_groups=[ScenarioGroup.ONBOARDING],
+        github_workflow="libinjection",
+    )
     installer_auto_injection = InstallerAutoInjectionScenario(
         "INSTALLER_AUTO_INJECTION",
         doc="Installer auto injection scenario",

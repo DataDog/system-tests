@@ -37,7 +37,8 @@ lang_variant:
           nvm install --lts
           nvm use node
           n=$(which node);n=${n%/bin/node}; chmod -R 755 $n/bin/*; sudo cp -r $n/{bin,lib,share} /usr/local        
-
+      - os_type: windows
+        remote-command: dir
 weblog:
     name: test-app-nodejs
     #This machines are going to install unsupported versions of nodejs. We use them in the provision_test-app-nodejs-unsupported-defaults
@@ -65,3 +66,5 @@ weblog:
             local_path: lib-injection/build/docker/nodejs/sample-app/index.js
 
         remote-command: sh test-app-nodejs_run.sh
+      - os_type: windows
+        remote-command: dir

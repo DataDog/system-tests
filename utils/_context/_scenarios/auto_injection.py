@@ -46,6 +46,7 @@ from utils._context.virtual_machines import (
     Fedora36arm64,
     Fedora37amd64,
     Fedora37arm64,
+    Windows2022amd64,
 )
 
 from .core import Scenario
@@ -101,6 +102,7 @@ class _VirtualMachineScenario(Scenario):
         include_fedora_36_arm64=False,
         include_fedora_37_amd64=False,
         include_fedora_37_arm64=False,
+        include_windows_2022_amd64=False,
         agent_env=None,
         app_env=None,
         scenario_groups=None,
@@ -196,6 +198,8 @@ class _VirtualMachineScenario(Scenario):
             self.required_vms.append(Fedora37amd64())
         if include_fedora_37_arm64:
             self.required_vms.append(Fedora37arm64())
+        if include_windows_2022_amd64:
+            self.required_vms.append(Windows2022amd64())
 
     def print_installed_components(self):
         logger.terminal.write_sep("=", "Installed components", bold=True)
@@ -423,6 +427,7 @@ class InstallerAutoInjectionScenario(_VirtualMachineScenario):
         include_fedora_36_arm64=False,
         include_fedora_37_amd64=False,
         include_fedora_37_arm64=False,
+        include_windows_2022_amd64=True,
     ) -> None:
         # Force full tracing without limits
         app_env_defaults = {
@@ -480,4 +485,5 @@ class InstallerAutoInjectionScenario(_VirtualMachineScenario):
             include_fedora_36_arm64=include_fedora_36_arm64,
             include_fedora_37_amd64=include_fedora_37_amd64,
             include_fedora_37_arm64=include_fedora_37_arm64,
+            include_windows_2022_amd64=include_windows_2022_amd64,
         )
