@@ -120,7 +120,7 @@ class ParametricScenario(Scenario):
             name,
             doc=doc,
             github_workflow="parametric",
-            scenario_groups=[ScenarioGroup.ALL, ScenarioGroup.PARAMETRIC, ScenarioGroup.PARAMETRIC],
+            scenario_groups=[ScenarioGroup.ALL],
         )
         self._parametric_tests_confs = ParametricScenario.PersistentParametricTestConf(self)
 

@@ -1,6 +1,6 @@
+from collections import defaultdict
 import argparse
 import json
-import os
 from utils._context._scenarios import get_all_scenarios, ScenarioGroup
 
 
@@ -114,27 +114,52 @@ def get_opentelemetry_weblogs(library) -> list[str]:
     return weblogs[library]
 
 
-def main(language: str, scenarios: str, groups: str, ci_environment: str) -> None:
+class Workflow:
+    def __init__(self) -> None:
+        self.parameters = {}
+
+    def __getitem__(self, key: str):
+        return self.parameters[key]
+
+
+class Result:
+    def __init__(self) -> None:
+        self.workflows: dict[str, Workflow] = defaultdict(Workflow)
+
+    def __getitem__(self, key: str) -> Workflow:
+        return self.workflows[key]
+
+    def print(self, output_format: str) -> None:
+        if output_format == "github":
+            for workflow_name, workflow in self.workflows.items():
+                for parameter, value in workflow.parameters.items():
+                    print(f"{workflow_name}_{parameter}={json.dumps(value)}")
+        else:
+            raise ValueError(f"Invalid format: {format}")
+
+
+def main(
+    language: str, scenarios: str, groups: str, parametric_job_count: int, ci_environment: str, output_format: str
+) -> None:
+    result = Result()
     scenario_map = get_github_workflow_map(scenarios.split(","), groups.split(","))
 
+    print(groups)
     for github_workflow, scenario_list in scenario_map.items():
-        print(f"{github_workflow}_scenarios={json.dumps(scenario_list)}")
+        result[github_workflow].parameters["scenarios"] = scenario_list
 
-    endtoend_weblogs = get_endtoend_weblogs(language, ci_environment)
-    print(f"endtoend_weblogs={json.dumps(endtoend_weblogs)}")
+    result["endtoend"].parameters["weblogs"] = get_endtoend_weblogs(language, ci_environment)
+    result["graphql"].parameters["weblogs"] = get_graphql_weblogs(language)
+    result["opentelemetry"].parameters["weblogs"] = get_opentelemetry_weblogs(language)
+    result["parametric"].parameters["job_count"] = parametric_job_count
+    result["parametric"].parameters["job_matrix"] = list(range(1, parametric_job_count + 1))
 
-    graphql_weblogs = get_graphql_weblogs(language)
-    print(f"graphql_weblogs={json.dumps(graphql_weblogs)}")
-
-    opentelemetry_weblogs = get_opentelemetry_weblogs(language)
-    print(f"opentelemetry_weblogs={json.dumps(opentelemetry_weblogs)}")
-
-    _experimental_parametric_job_count = int(os.environ.get("_EXPERIMENTAL_PARAMETRIC_JOB_COUNT", "1"))
-    print(f"_experimental_parametric_job_matrix={list(range(1, _experimental_parametric_job_count + 1))!s}")
+    result.print(output_format)
+    print(f"_experimental_parametric_job_matrix={result['parametric'].parameters['job_matrix']!s}")  # legacy
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(prog="get-github-parameters", description="Get scenarios and weblog to run")
+    parser = argparse.ArgumentParser(prog="get-github-parameters", description="Get scenarios and weblogs to run")
     parser.add_argument(
         "language",
         type=str,
@@ -142,10 +167,31 @@ if __name__ == "__main__":
         choices=["cpp", "dotnet", "python", "ruby", "golang", "java", "nodejs", "php"],
     )
 
+    parser.add_argument(
+        "--format",
+        "-f",
+        type=str,
+        help="Select the output format",
+        choices=["github"],
+        default="github",
+    )
+
     parser.add_argument("--scenarios", "-s", type=str, help="Scenarios to run", default="")
     parser.add_argument("--groups", "-g", type=str, help="Scenario groups to run", default="")
+
+    # workflow specific parameters
+    parser.add_argument("--parametric-job_count", type=int, help="How may jobs must run parametric scenario", default=1)
+
+    # Misc
     parser.add_argument("--ci-environment", type=str, help="Used internally in system-tests CI", default="custom")
 
     args = parser.parse_args()
 
-    main(language=args.language, scenarios=args.scenarios, groups=args.groups, ci_environment=args.ci_environment)
+    main(
+        language=args.language,
+        scenarios=args.scenarios,
+        groups=args.groups,
+        ci_environment=args.ci_environment,
+        output_format=args.format,
+        parametric_job_count=args.parametric_job_count,
+    )

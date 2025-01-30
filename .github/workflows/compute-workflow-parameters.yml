@@ -88,7 +88,7 @@ jobs:
         python utils/scripts/compute-workflow-parameters.py ${{ inputs.library }} \
           -s "${{ inputs.scenarios }}" \
           -g "${{ inputs.scenarios_groups }}" \
+          --parametric-job-count ${{ inputs._experimental_parametric_job_count }} \
           --ci-environment "${{ inputs._ci_environment }}" >> $GITHUB_OUTPUT
       env:
         PYTHONPATH: "."
-        _EXPERIMENTAL_PARAMETRIC_JOB_COUNT: ${{ inputs._experimental_parametric_job_count }}
