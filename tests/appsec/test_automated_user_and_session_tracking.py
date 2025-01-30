@@ -53,7 +53,7 @@ class Test_Automated_User_Tracking:
         )
 
     @irrelevant(
-        library == "python" and context.weblog_variant not in ["django-poc", "python3.12", "django-py3.13"],
+        context.library == "python" and context.weblog_variant not in ["django-poc", "python3.12", "django-py3.13"],
         reason="no possible auto-instrumentation for python except on Django",
     )
     def test_user_tracking_auto(self):
@@ -167,7 +167,7 @@ class Test_Automated_User_Blocking:
         )
 
     @irrelevant(
-        library == "python" and context.weblog_variant not in ["django-poc", "python3.12", "django-py3.13"],
+        context.library == "python" and context.weblog_variant not in ["django-poc", "python3.12", "django-py3.13"],
         reason="no possible auto-instrumentation for python except on Django",
     )
     def test_user_blocking_auto(self):
