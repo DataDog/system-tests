@@ -181,16 +181,16 @@ class TestPoC:
 
     @features.ssi_guardrails
     def test_folder_structure(self):
-        check_folder_command = "[ -d '/opt/datadog-packages/datadog-apm-inject/' ] && echo 'true' || echo 'false'"
+        check_folder_command = "sh -c '[ -d \"/opt/datadog-packages/datadog-apm-inject/\" ] && echo true || echo false'"
         check_folder_command_out = self._weblog_container.execute_command(
             check_folder_command, environment={"DD_APM_INSTRUMENTATION_DEBUG": "false"}
         )
-        assert check_folder_command_out == "true", "Folder structure is not as expected"
+        assert check_folder_command_out[1].strip() == "true", "Folder structure is not as expected"
 
     @features.ssi_guardrails
     def test_poc(self):
-        my_command_output = self._weblog_container.execute_command("ls -la")
+        my_command_output = self._weblog_container.execute_command("ls -la /opt/datadog-packages/")
         # Use utils/interfaces/_test_agent.py _TestAgentInterfaceValidator to get traces and telemetry data
         # and make your own assertions
         # use interfaces.test_agent.
-        logger.info(f"COMMAND OUTPUT: {my_command_output}")
+        assert my_command_output, "No output from command"
