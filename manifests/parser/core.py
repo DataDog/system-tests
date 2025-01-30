@@ -35,7 +35,7 @@ def _load_file(file):
 
 
 @lru_cache
-def load(base_dir="manifests/"):
+def load(base_dir="manifests/") -> dict:
     """Returns a dict of nodeid, value are another dict where the key is the component
     and the value the declaration. It is meant to sent directly the value of a nodeid to @released.
 
@@ -74,7 +74,7 @@ def load(base_dir="manifests/"):
     return result
 
 
-def assert_key_order(obj: dict, path=""):
+def assert_key_order(obj: dict, path="") -> None:
     last_key = "/"
 
     for key, value in obj.items():
@@ -91,7 +91,7 @@ def assert_key_order(obj: dict, path=""):
         last_key = key
 
 
-def validate_manifest_files():
+def validate_manifest_files() -> None:
     with open("manifests/parser/schema.json", encoding="utf-8") as f:
         schema = json.load(f)
 

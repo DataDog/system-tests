@@ -51,7 +51,7 @@ tests/:
       sink/:
         test_code_injection.py:
           TestCodeInjection: v2.20.0
-          TestCodeInjection_StackTrace: missing_feature
+          TestCodeInjection_StackTrace: v2.20.0
         test_command_injection.py:
           TestCommandInjection:
             '*': v2.10.0

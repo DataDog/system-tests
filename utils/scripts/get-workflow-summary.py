@@ -5,7 +5,7 @@ import sys
 import requests
 
 
-def get_environ():
+def get_environ() -> dict[str, str]:
     environ = {**os.environ}
 
     try:
