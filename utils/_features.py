@@ -2418,4 +2418,14 @@ class _Features:
         return test_object
 
 
+    @staticmethod
+    def debugger_inproduct_enablement(test_object):
+        """Dynamically enable debugger products
+
+        https://feature-parity.us1.prod.dog/#/?feature=369
+        """
+        pytest.mark.features(feature_id=369)(test_object)
+        return test_object
+
+
 features = _Features()

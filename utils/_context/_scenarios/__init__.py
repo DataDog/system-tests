@@ -662,6 +662,19 @@ class _Scenarios:
         scenario_groups=[ScenarioGroup.DEBUGGER],
     )
 
+    debugger_inproduct_enablement = EndToEndScenario(
+        "DEBUGGER_INPRODUCT_ENABLEMENT",
+        rc_api_enabled=True,
+        weblog_env={
+            "DD_APM_TRACING_ENABLED": "true",
+            "DD_REMOTE_CONFIG_ENABLED": "true",
+            "DD_INTERNAL_RCM_POLL_INTERVAL": "2000",
+        },
+        library_interface_timeout=5,
+        doc="Test scenario for checking dynamic enablement.",
+        scenario_groups=[ScenarioGroup.DEBUGGER],
+    )
+
     fuzzer = DockerScenario("FUZZER", doc="Fake scenario for fuzzing (launch without pytest)", github_workflow=None)
 
     # Single Step Instrumentation scenarios (HOST and CONTAINER)
