@@ -36,8 +36,6 @@ class TestSimpleInstallerAutoInjectManualProfiling(base.AutoInjectBaseTest):
         bugs=[
             {"vm_cpu": "arm64", "weblog_variant": "test-app-dotnet", "reason": "PROF-10783"},
             {"vm_cpu": "arm64", "weblog_variant": "test-app-dotnet-container", "reason": "PROF-10783"},
-            {"vm_name": "Ubuntu_24_amd64", "weblog-variant": "test-app-nodejs", "reason": "PROF-11264"},
-            {"vm_name": "Ubuntu_24_arm64", "weblog-variant": "test-app-nodejs", "reason": "PROF-11264"},
         ]
     )
     def test_profiling(self, virtual_machine):
