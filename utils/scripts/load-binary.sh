@@ -210,6 +210,10 @@ elif [ "$TARGET" = "php" ]; then
 
 elif [ "$TARGET" = "golang" ]; then
     assert_version_is_dev
+    assert_target_branch_is_not_set
+    rm -rf golang-load-from-go-get
+
+    # COMMIT_ID=$(curl -s 'https://api.github.com/repos/DataDog/dd-trace-go/branches/main' | jq -r .commit.sha)
 
     echo "Using gopkg.in/DataDog/dd-trace-go.v1@main"
     echo "gopkg.in/DataDog/dd-trace-go.v1@main" > golang-load-from-go-get
