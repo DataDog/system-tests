@@ -132,7 +132,6 @@ def main(
     #  the value is also a dict, where the key/value pair is the parameter name/value.
     scenario_map = get_github_workflow_map(scenarios.split(","), groups.split(","))
 
-    print(groups)
     for github_workflow, scenario_list in scenario_map.items():
         result[github_workflow]["scenarios"] = scenario_list
 
@@ -143,7 +142,6 @@ def main(
     result["parametric"]["job_matrix"] = list(range(1, parametric_job_count + 1))
 
     _print_output(result, output_format)
-    print(f"_experimental_parametric_job_matrix={result['parametric']['job_matrix']!s}")  # legacy
 
 
 if __name__ == "__main__":
