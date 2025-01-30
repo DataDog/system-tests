@@ -59,7 +59,7 @@ class Test_Debugger_SymDb(debugger._Base_Debugger_Test):
                     if check_scope(scope):
                         return
 
-        assert False, "No scope containing debugger controller with scope_type CLASS or MODULE was found in the symbols"
+        raise ValueError("No scope containing debugger controller with scope_type CLASS or MODULE was found in the symbols")
 
     ############ test ############
     def setup_symdb_upload(self):
