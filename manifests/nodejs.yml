@@ -838,11 +838,11 @@ tests/:
     test_trace_sampling.py:
       Test_Trace_Sampling_Basic: *ref_5_16_0 #actual version unknown
       Test_Trace_Sampling_Globs: *ref_5_16_0 #actual version unknown
-      Test_Trace_Sampling_Globs_Feb2024_Revision: missing_feature
-      Test_Trace_Sampling_Resource: missing_feature
-      Test_Trace_Sampling_Tags: missing_feature
+      Test_Trace_Sampling_Globs_Feb2024_Revision: *ref_5_30_0 # actual version unknown
+      Test_Trace_Sampling_Resource: *ref_5_30_0 # actual version unknown
+      Test_Trace_Sampling_Tags: *ref_5_30_0 # actual version unknown
       Test_Trace_Sampling_Tags_Feb2024_Revision: *ref_5_16_0 #actual version unknown
-      Test_Trace_Sampling_With_W3C: missing_feature
+      Test_Trace_Sampling_With_W3C: *ref_5_30_0 # actual version unknown
     test_tracer.py:
       Test_TracerSCITagging: *ref_3_21_0
     test_tracer_flare.py:
