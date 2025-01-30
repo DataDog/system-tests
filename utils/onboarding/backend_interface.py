@@ -23,7 +23,7 @@ def _headers():
 
 
 def _query_for_trace_id(trace_id, validator=None):
-    url = f"{API_HOST}/api/v1/trace/{trace_id}"
+    url = f"{API_HOST}/api/ui/trace/{trace_id}"
 
     trace_data = _make_request(url, headers=_headers())
     if validator:
@@ -52,7 +52,8 @@ def _make_request(
     request_timeout=10,
     retry_delay=1,
     backoff_factor=2,
-    max_retries=8,
+    max_retries=30,
+    validator=None,
 ):
     """Make a request to the backend with retries and backoff. With the defaults, this will retry for approximately 5 minutes."""
     start_time = time.perf_counter()
@@ -61,8 +62,10 @@ def _make_request(
             r = requests.request(method=method, url=url, headers=headers, json=json, timeout=request_timeout)
             logger.debug(f" Backend response status for url [{url}]: [{r.status_code}]")
             if r.status_code == 200:
-                return r.json()
-
+                response_json = r.json()
+                if not validator or validator(response_json):
+                    return response_json
+                logger.debug(f" Backend response does not meet expectation for url [{url}]: [{r.text}]")
             if r.status_code == 429:
                 retry_after = _parse_retry_after(r.headers)
                 logger.debug(f" Received 429 for url [{url}], rate limit reset in: [{retry_after}]")
@@ -73,7 +76,7 @@ def _make_request(
         except requests.exceptions.RequestException as e:
             logger.error(f"Error received connecting to url: [{url}] {e} ")
 
-        logger.debug(f" Received unsuccessful status code for [{url}], retrying in: [{retry_delay}]")
+        logger.debug(f" Received unsuccessful response for [{url}], retrying in: [{retry_delay}]")
 
         # Avoid sleeping if we are going to hit the overall timeout.
         if time.perf_counter() + retry_delay - start_time >= overall_timeout:
@@ -104,13 +107,19 @@ def _parse_retry_after(headers):
         return -1
 
 
+def _validate_profiler_response(json):
+    data = json["data"]
+    return isinstance(data, list) and len(data) > 0
+
+
 def _query_for_profile(runtime_id):
     url = f"{API_HOST}/api/unstable/profiles/list"
     headers = _headers()
     headers["Content-Type"] = "application/json"
 
-    time_to = datetime.now(timezone.utc)
-    time_from = time_to - timedelta(minutes=2)
+    now = datetime.now(timezone.utc)
+    time_to = now + timedelta(minutes=6)
+    time_from = now - timedelta(minutes=6)
     queryJson = {
         "track": "profile",
         "filter": {
@@ -121,7 +130,7 @@ def _query_for_profile(runtime_id):
     }
 
     logger.debug(f"Posting to {url} with query: {queryJson}")
-    data = _make_request(url, headers=headers, method="post", json=queryJson)["data"]
-
-    # Check if we got any profile events
-    return bool(isinstance(data, list) and len(data) > 0)
+    profileId = _make_request(
+        url, headers=headers, method="post", json=queryJson, validator=_validate_profiler_response
+    )["data"][0]["id"]
+    logger.debug(f"Found profile in the backend with ID: {profileId}")

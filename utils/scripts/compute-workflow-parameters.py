@@ -4,7 +4,7 @@ import os
 from utils._context._scenarios import get_all_scenarios, ScenarioGroup
 
 
-def get_github_workflow_map(scenarios, scenarios_groups):
+def get_github_workflow_map(scenarios, scenarios_groups) -> dict:
     result = {}
 
     scenarios_groups = [group.strip() for group in scenarios_groups if group.strip()]
@@ -40,7 +40,7 @@ def get_github_workflow_map(scenarios, scenarios_groups):
     return result
 
 
-def get_graphql_weblogs(library):
+def get_graphql_weblogs(library) -> list[str]:
     weblogs = {
         "cpp": [],
         "dotnet": [],
@@ -55,11 +55,11 @@ def get_graphql_weblogs(library):
     return weblogs[library]
 
 
-def get_endtoend_weblogs(library, ci_environment: str):
+def get_endtoend_weblogs(library, ci_environment: str) -> list[str]:
     weblogs = {
         "cpp": ["nginx"],
         "dotnet": ["poc", "uds"],
-        "golang": ["chi", "echo", "gin", "net-http", "uds-echo"],
+        "golang": ["chi", "echo", "gin", "net-http", "uds-echo", "net-http-orchestrion"],
         "java": [
             "akka-http",
             "jersey-grizzly2",
@@ -99,7 +99,7 @@ def get_endtoend_weblogs(library, ci_environment: str):
     return weblogs[library]
 
 
-def get_opentelemetry_weblogs(library):
+def get_opentelemetry_weblogs(library) -> list[str]:
     weblogs = {
         "cpp": [],
         "dotnet": [],
@@ -114,7 +114,7 @@ def get_opentelemetry_weblogs(library):
     return weblogs[library]
 
 
-def main(language: str, scenarios: str, groups: str, ci_environment: str):
+def main(language: str, scenarios: str, groups: str, ci_environment: str) -> None:
     scenario_map = get_github_workflow_map(scenarios.split(","), groups.split(","))
 
     for github_workflow, scenario_list in scenario_map.items():

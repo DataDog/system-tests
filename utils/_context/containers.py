@@ -826,7 +826,7 @@ class WeblogContainer(TestedContainer):
             try:
                 with open("./binaries/nodejs-load-from-local", encoding="utf-8") as f:
                     path = f.read().strip(" \r\n")
-                    self.kwargs["volumes"][os.path.abspath(path)] = {
+                    self.kwargs["volumes"][Path(path).resolve()] = {
                         "bind": "/volumes/dd-trace-js",
                         "mode": "ro",
                     }
@@ -1073,7 +1073,7 @@ class OpenTelemetryCollectorContainer(TestedContainer):
         # _otel_config_host_path is mounted in the container, and depending on umask,
         # it might have no read permissions for other users, which is required within
         # the container. So set them here.
-        prev_mode = os.stat(self._otel_config_host_path).st_mode
+        prev_mode = Path(self._otel_config_host_path).stat().st_mode
         new_mode = prev_mode | stat.S_IROTH
         if prev_mode != new_mode:
             Path(self._otel_config_host_path).chmod(new_mode)

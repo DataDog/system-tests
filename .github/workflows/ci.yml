@@ -102,7 +102,7 @@ jobs:
           exit 1
 
   system_tests:
-    name: System Tests ${{ needs.get_dev_artifacts.outputs.target-branch != '' && format('({0} branch)', needs.get_dev_artifacts.outputs.target-branch) || '' }}
+    name: System Tests
     needs:
     - lint
     - test_the_test
@@ -157,7 +157,7 @@ jobs:
     runs-on: ubuntu-latest
     needs:
     - system_tests
-    if: always()
+    if: '!cancelled()'
     steps:
     - uses: actions/checkout@v4
     - uses: actions/setup-python@v5
