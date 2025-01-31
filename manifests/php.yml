@@ -167,17 +167,17 @@ tests/:
         Test_Cmdi_UrlQuery: missing_feature
         Test_Cmdi_Waf_Version: v1.6.2
       test_lfi.py:
-        Test_Lfi_BodyJson: missing_feature
-        Test_Lfi_BodyUrlEncoded: missing_feature
-        Test_Lfi_BodyXml: missing_feature
-        Test_Lfi_Capability: missing_feature
-        Test_Lfi_Mandatory_SpanTags: missing_feature
-        Test_Lfi_Optional_SpanTags: missing_feature
-        Test_Lfi_RC_CustomAction: missing_feature
+        Test_Lfi_BodyJson: v1.6.2
+        Test_Lfi_BodyUrlEncoded: v1.6.2
+        Test_Lfi_BodyXml: v1.6.2
+        Test_Lfi_Capability: v1.7.0
+        Test_Lfi_Mandatory_SpanTags: v1.6.2
+        Test_Lfi_Optional_SpanTags: v1.6.2
+        Test_Lfi_RC_CustomAction: missing_feature # It works but missing this APPSEC-56457
         Test_Lfi_Rules_Version:  v1.6.2
-        Test_Lfi_StackTrace: missing_feature
+        Test_Lfi_StackTrace: v1.6.2
         Test_Lfi_Telemetry: missing_feature
-        Test_Lfi_UrlQuery: missing_feature
+        Test_Lfi_UrlQuery: v1.6.2
         Test_Lfi_Waf_Version:  v1.6.2
       test_shi.py:
         Test_Shi_BodyJson: missing_feature
