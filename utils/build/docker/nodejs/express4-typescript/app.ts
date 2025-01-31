@@ -28,7 +28,7 @@ app.use(require('express-session')({
   secret: 'secret',
   resave: false,
   rolling: true,
-  saveUninitialized: true
+  saveUninitialized: false
 }))
 
 iast.initMiddlewares(app)
