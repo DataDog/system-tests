@@ -22,44 +22,19 @@ import (
 	"weblog/internal/rasp"
 
 	"github.com/Shopify/sarama"
-
-	saramatrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/Shopify/sarama"
-	"gopkg.in/DataDog/dd-trace-go.v1/datastreams"
-
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/trace"
-	oteltrace "go.opentelemetry.io/otel/trace"
-	otelbaggage "go.opentelemetry.io/otel/baggage"
-
 	"gopkg.in/DataDog/dd-trace-go.v1/appsec"
-	httptrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/net/http"
-	ddotel "gopkg.in/DataDog/dd-trace-go.v1/ddtrace/opentelemetry"
+	"gopkg.in/DataDog/dd-trace-go.v1/datastreams"
+	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/opentelemetry"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
-	ddtracer "gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
-	"gopkg.in/DataDog/dd-trace-go.v1/profiler"
 )
 
 func main() {
-	ddtracer.Start()
-	defer ddtracer.Stop()
-
-	err := profiler.Start(
-		profiler.WithService("weblog"),
-		profiler.WithEnv("system-tests"),
-		profiler.WithVersion("1.0"),
-		profiler.WithTags(),
-		profiler.WithProfileTypes(profiler.CPUProfile, profiler.HeapProfile),
-	)
-
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer profiler.Stop()
-
-	mux := httptrace.NewServeMux()
+	mux := http.NewServeMux()
 
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		// "/" is the default route when the others don't match
@@ -169,9 +144,8 @@ func main() {
 			return
 		}
 
-		client := httptrace.WrapClient(http.DefaultClient)
 		req, _ := http.NewRequestWithContext(r.Context(), http.MethodGet, url, nil)
-		res, err := client.Do(req)
+		res, err := http.DefaultClient.Do(req)
 		if err != nil {
 			log.Fatalln("client.Do", err)
 		}
@@ -205,11 +179,11 @@ func main() {
 	mux.HandleFunc("/headers/", headers)
 
 	identify := func(w http.ResponseWriter, r *http.Request) {
-		if span, ok := ddtracer.SpanFromContext(r.Context()); ok {
-			ddtracer.SetUser(
-				span, "usr.id", ddtracer.WithUserEmail("usr.email"),
-				ddtracer.WithUserName("usr.name"), ddtracer.WithUserSessionID("usr.session_id"),
-				ddtracer.WithUserRole("usr.role"), ddtracer.WithUserScope("usr.scope"),
+		if span, ok := tracer.SpanFromContext(r.Context()); ok {
+			tracer.SetUser(
+				span, "usr.id", tracer.WithUserEmail("usr.email"),
+				tracer.WithUserName("usr.name"), tracer.WithUserSessionID("usr.session_id"),
+				tracer.WithUserRole("usr.role"), tracer.WithUserScope("usr.scope"),
 			)
 		}
 		w.Write([]byte("Hello, identify!"))
@@ -217,8 +191,8 @@ func main() {
 	mux.HandleFunc("/identify/", identify)
 	mux.HandleFunc("/identify", identify)
 	mux.HandleFunc("/identify-propagate", func(w http.ResponseWriter, r *http.Request) {
-		if span, ok := ddtracer.SpanFromContext(r.Context()); ok {
-			ddtracer.SetUser(span, "usr.id", ddtracer.WithPropagation())
+		if span, ok := tracer.SpanFromContext(r.Context()); ok {
+			tracer.SetUser(span, "usr.id", tracer.WithPropagation())
 		}
 		w.Write([]byte("Hello, identify-propagate!"))
 	})
@@ -300,6 +274,7 @@ func main() {
 		appsec.TrackCustomEvent(r.Context(), name, map[string]string{"metadata0": "value0", "metadata1": "value1"})
 	})
 
+	//orchestrion:ignore
 	mux.HandleFunc("/e2e_otel_span", func(w http.ResponseWriter, r *http.Request) {
 		parentName := r.URL.Query().Get("parentName")
 		childName := r.URL.Query().Get("childName")
@@ -318,8 +293,8 @@ func main() {
 			)
 		}
 
-		p := ddotel.NewTracerProvider()
-		tracer := p.Tracer("")
+		p := opentelemetry.NewTracerProvider()
+		oteltracer := p.Tracer("")
 		otel.SetTracerProvider(p)
 		otel.SetTextMapPropagator(propagation.TraceContext{})
 		defer p.ForceFlush(time.Second, func(ok bool) {})
@@ -329,24 +304,25 @@ func main() {
 		// - tags {'attributes':'values'}
 		// - tags necessary to retain the mapping between the system-tests/weblog request id and the traces/spans
 		// - error tag with 'testing_end_span_options' message
-		parentCtx, parentSpan := tracer.Start(ddotel.ContextWithStartOptions(context.Background(),
-			ddtracer.WithSpanID(10000)), parentName,
+		parentCtx, parentSpan := oteltracer.Start(opentelemetry.ContextWithStartOptions(context.Background(),
+			tracer.WithSpanID(10000)), parentName,
 			trace.WithAttributes(tags...))
 		parentSpan.SetAttributes(attribute.String("attributes", "values"))
-		ddotel.EndOptions(parentSpan, ddtracer.WithError(errors.New("testing_end_span_options")))
+		opentelemetry.EndOptions(parentSpan, tracer.WithError(errors.New("testing_end_span_options")))
 
 		// Child span will have the following traits :
 		// - tags necessary to retain the mapping between the system-tests/weblog request id and the traces/spans
 		// - duration of one second
 		// - span kind of SpanKind - Internal
 		start := time.Now()
-		_, childSpan := tracer.Start(parentCtx, childName, trace.WithTimestamp(start), trace.WithAttributes(tags...), trace.WithSpanKind(trace.SpanKindInternal))
-		childSpan.End(oteltrace.WithTimestamp(start.Add(time.Second)))
+		_, childSpan := oteltracer.Start(parentCtx, childName, trace.WithTimestamp(start), trace.WithAttributes(tags...), trace.WithSpanKind(trace.SpanKindInternal))
+		childSpan.End(trace.WithTimestamp(start.Add(time.Second)))
 		parentSpan.End()
 
 		w.Write([]byte("OK"))
 	})
 
+	//orchestrion:ignore
 	mux.HandleFunc("/e2e_otel_span/mixed_contrib", func(w http.ResponseWriter, r *http.Request) {
 		parentName := r.URL.Query().Get("parentName")
 
@@ -364,7 +340,7 @@ func main() {
 			)
 		}
 
-		p := ddotel.NewTracerProvider()
+		p := opentelemetry.NewTracerProvider()
 		tracer := p.Tracer("")
 		otel.SetTracerProvider(p)
 		otel.SetTextMapPropagator(propagation.TraceContext{})
@@ -373,7 +349,7 @@ func main() {
 		parentCtx, parentSpan := tracer.Start(context.Background(), parentName, trace.WithAttributes(tags...))
 
 		h := otelhttp.NewHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			receivedSpan := oteltrace.SpanFromContext(r.Context())
+			receivedSpan := trace.SpanFromContext(r.Context())
 			// Need to propagate the user agent header to retain the mapping between
 			// the system-tests/weblog request id and the traces/spans
 			receivedSpan.SetAttributes(tags...)
@@ -388,7 +364,7 @@ func main() {
 
 		// Need to propagate the user agent header to retain the mapping between
 		// the system-tests/weblog request id and the traces/spans
-		c := http.Client{Transport: otelhttp.NewTransport(nil, otelhttp.WithSpanOptions(oteltrace.WithAttributes(tags...)))}
+		c := http.Client{Transport: otelhttp.NewTransport(nil, otelhttp.WithSpanOptions(trace.WithAttributes(tags...)))}
 		req, err := http.NewRequestWithContext(parentCtx, http.MethodGet, testServer.URL, nil)
 		if err != nil {
 			log.Fatalln(err)
@@ -538,79 +514,6 @@ func main() {
 		w.Write([]byte("ok"))
 	})
 
-	mux.HandleFunc("/otel_drop_in_default_propagator_extract", func(w http.ResponseWriter, r *http.Request) {
-		// Differing from other languages, the user must set the text map propagator because dd-trace-go
-		// doesn't automatically instrument at runtime (not including Orchestrion)
-		otel.SetTextMapPropagator(propagation.NewCompositeTextMapPropagator(propagation.TraceContext{}, propagation.Baggage{}))
-
-		httpCarrier := HttpCarrier{header: r.Header}
-
-		propagator := otel.GetTextMapPropagator()
-		ctx := propagator.Extract(r.Context(), httpCarrier)
-
-		spanContext := oteltrace.SpanContextFromContext(ctx)
-		baggage := otelbaggage.FromContext(ctx)
-		
-		base := 16
-		bitSize := 64
-		result := make(map[string]any, 4)
-
-		num, err := strconv.ParseInt(spanContext.TraceID().String()[16:], base, bitSize)
-		if err == nil {
-			result["trace_id"] = num
-		}
-
-		num, err = strconv.ParseInt(spanContext.SpanID().String(), base, bitSize)
-		if err == nil {
-			result["span_id"] = num
-		}
-
-		result["tracestate"] = spanContext.TraceState().String()
-		result["baggage"] = baggage.String()
-		
-		jsonData, err := json.Marshal(result)
-		if err != nil {
-			w.WriteHeader(422)
-			w.Write([]byte("failed to convert carrier to JSON"))
-			return
-		}
-
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(200)
-		w.Write(jsonData)
-	})
-
-	mux.HandleFunc("/otel_drop_in_default_propagator_inject", func(w http.ResponseWriter, r *http.Request) {
-		// Differing from other languages, the user must set the text map propagator because dd-trace-go
-		// doesn't automatically instrument at runtime (not including Orchestrion)
-		otel.SetTextMapPropagator(propagation.NewCompositeTextMapPropagator(propagation.TraceContext{}, propagation.Baggage{}))
-
-		ctx := context.Background()
-		p := ddotel.NewTracerProvider()
-		tracer := p.Tracer("")
-		otel.SetTracerProvider(p)
-
-		_, span := tracer.Start(ddotel.ContextWithStartOptions(ctx), "main")
-		newCtx := oteltrace.ContextWithSpan(ctx, span)
-
-		propagator := otel.GetTextMapPropagator()
-		mapCarrier := make(MapCarrier)
-		propagator.Inject(newCtx, mapCarrier)
-
-		jsonData, err := json.Marshal(mapCarrier)
-		span.End()
-
-		if err != nil {
-			w.WriteHeader(422)
-			w.Write([]byte("failed to convert carrier to JSON"))
-			return
-		}
-
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(200)
-		w.Write(jsonData)
-	})
-
 	mux.HandleFunc("/session/new", func(w http.ResponseWriter, r *http.Request) {
 		sessionID := strconv.Itoa(rand.Int())
 		w.Header().Add("Set-Cookie", "session="+sessionID+"; Path=/; Max-Age=3600; Secure; HttpOnly")
@@ -672,47 +575,8 @@ func (c carrier) ForeachKey(handler func(key, val string) error) error {
 	return nil
 }
 
-type MapCarrier map[string]string
-
-func (c MapCarrier) Get(key string) string {
-	return c[key]
-}
-
-func (c MapCarrier) Set(key, val string) {
-	c[key] = val
-}
-
-func (c MapCarrier) Keys() []string {
-	keys := make([]string, 0, len(c))
-	for k := range c {
-		keys = append(keys, k)
-	}
-	return keys
-}
-
-type HttpCarrier struct {
-	header http.Header
-}
-
-func (c HttpCarrier) Get(key string) string {
-	return c.header.Get(key)
-}
-
-func (c HttpCarrier) Set(key, val string) {
-	c.header.Set(key, val)
-}
-
-func (c HttpCarrier) Keys() []string {
-	keys := make([]string, 0, len(c.header))
-	for k := range c.header {
-		keys = append(keys, k)
-	}
-	return keys
-}
-
-func write(w http.ResponseWriter, r *http.Request, d []byte) {
-	span, _ := ddtracer.StartSpanFromContext(r.Context(), "child.span")
-	defer span.Finish()
+//dd:span span.name:child.span
+func write(w http.ResponseWriter, _ *http.Request, d []byte) {
 	w.Write(d)
 }
 
@@ -735,8 +599,6 @@ func kafkaProduce(topic, message string) (int32, int64, error) {
 		return 0, 0, err
 	}
 	defer producer.Close()
-
-	producer = saramatrace.WrapSyncProducer(cfg, producer, saramatrace.WithDataStreams())
 
 	msg := &sarama.ProducerMessage{
 		Topic:     topic,
@@ -763,7 +625,6 @@ func kafkaConsume(topic string, timeout int64) (string, int, error) {
 	}
 	defer consumer.Close()
 
-	consumer = saramatrace.WrapConsumer(consumer, saramatrace.WithDataStreams())
 	partitionConsumer, err := consumer.ConsumePartition(topic, 0, sarama.OffsetOldest)
 	if err != nil {
 		return "", 0, err

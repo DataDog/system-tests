@@ -1,6 +1,6 @@
 import yaml
 import argparse
-import os.path
+from pathlib import Path
 
 
 def main() -> None:
@@ -12,7 +12,7 @@ def main() -> None:
     with open(args.input) as f:
         pipeline = yaml.safe_load(f)
 
-    if os.path.exists(args.output):
+    if Path(args.output).exists():
         # If final file exists, merge the stages and jobs
         with open(args.output) as f:
             final_pipeline = yaml.safe_load(f)

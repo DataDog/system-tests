@@ -2346,6 +2346,15 @@ class _Features:
         return test_object
 
     @staticmethod
+    def context_propagation_extract_behavior(test_object):
+        """Context Propagation: Extraction behavior can be configured at the service level
+
+        https://feature-parity.us1.prod.dog/#/?feature=353
+        """
+        pytest.mark.features(feature_id=343)(test_object)
+        return test_object
+
+    @staticmethod
     def iast_sink_email_html_injection(test_object):
         """IAST Sink: Email HTML injection
 
@@ -2370,6 +2379,15 @@ class _Features:
         https://feature-parity.us1.prod.dog/#/?feature=360
         """
         pytest.mark.features(feature_id=360)(test_object)
+        return test_object
+
+    @staticmethod
+    def otel_propagators_api(test_object):
+        """OpenTelemetry Propagators API
+
+        https://feature-parity.us1.prod.dog/#/?feature=361
+        """
+        pytest.mark.features(feature_id=361)(test_object)
         return test_object
 
 

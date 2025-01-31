@@ -155,9 +155,11 @@ build() {
                     fi
                 fi
                 source venv/bin/activate
-                python -m pip install --upgrade pip wheel
+                python -m pip install --upgrade pip setuptools==75.8.0
             fi
-            pip install -r requirements.txt
+            python -m pip install -e .
+            cp requirements.txt venv/requirements.txt
+
 
         elif [[ $IMAGE_NAME == runner ]] && [[ $DOCKER_MODE == 1 ]]; then
             docker buildx build \
