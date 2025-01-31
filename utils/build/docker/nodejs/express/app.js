@@ -5,8 +5,6 @@ const tracer = require('dd-trace').init({
   flushInterval: 5000
 })
 
-require('./iast/exclusions')
-
 const { promisify } = require('util')
 const app = require('express')()
 const axios = require('axios')
@@ -44,12 +42,6 @@ app.use(require('body-parser').json())
 app.use(require('body-parser').urlencoded({ extended: true }))
 app.use(require('express-xml-bodyparser')())
 app.use(require('cookie-parser')())
-app.use(require('express-session')({
-  secret: 'secret',
-  resave: false,
-  rolling: true,
-  saveUninitialized: false
-}))
 iast.initMiddlewares(app)
 
 require('./auth')(app, tracer)

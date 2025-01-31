@@ -4,6 +4,8 @@ import type { Express, Request, Response, NextFunction } from "express";
 // @ts-ignore
 import type { Tracer } from "dd-trace";
 
+const semver = require('semver')
+const libraryVersion = require('dd-trace/package.json').version
 const passport = require('passport')
 const { Strategy: LocalStrategy } = require('passport-local')
 const { BasicStrategy } = require('passport-http')
@@ -66,7 +68,17 @@ module.exports = function (app: Express, tracer: Tracer) {
   }
 
   app.use(passport.initialize())
-  app.use(passport.session())
+
+  if (semver.satisfies(libraryVersion, '>=5.34.0', { includePrerelease: true })) {
+    app.use(require('express-session')({
+      secret: 'secret',
+      resave: false,
+      rolling: true,
+      saveUninitialized: false
+    }))
+
+    app.use(passport.session())
+  }
 
   passport.serializeUser((user: any, done: Function) => {
     done(null, user.id)
