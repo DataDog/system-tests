@@ -20,4 +20,4 @@ runs:
 
         echo "target-branch=${branch#*@}" >> $GITHUB_OUTPUT
       env:
-          INPUTS_TEXT: ${{ github.event.inputs.text }}
+          INPUTS_TEXT: ${{ inputs.text }}
