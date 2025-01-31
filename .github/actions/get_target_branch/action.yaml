@@ -19,5 +19,7 @@ runs:
         branch=$(echo "${INPUTS_TEXT}" | grep -ioP '\[(?:java|dotnet|python|ruby|php|golang|cpp|agent|nodejs)@[^]]+(?=\])' | tr -d '[:space:]' || true)
 
         echo "target-branch=${branch#*@}" >> $GITHUB_OUTPUT
+
+      # the preferred approach to handling untrusted input is to set the value of the expression to an intermediate environment variable
       env:
           INPUTS_TEXT: ${{ inputs.text }}
