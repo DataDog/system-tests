@@ -6,6 +6,9 @@ import type { Tracer } from "dd-trace";
 
 const semver = require('semver')
 const libraryVersion = require('dd-trace/package.json').version
+
+const shouldUseSession = semver.satisfies(libraryVersion, '>=5.35.0', { includePrerelease: true })
+
 const passport = require('passport')
 const { Strategy: LocalStrategy } = require('passport-local')
 const { BasicStrategy } = require('passport-http')
@@ -69,7 +72,7 @@ module.exports = function (app: Express, tracer: Tracer) {
 
   app.use(passport.initialize())
 
-  if (semver.satisfies(libraryVersion, '>=5.34.0', { includePrerelease: true })) {
+  if (shouldUseSession) {
     app.use(require('express-session')({
       secret: 'secret',
       resave: false,
@@ -125,8 +128,14 @@ module.exports = function (app: Express, tracer: Tracer) {
     next()
   })
 
-  app.use('/login/local', passport.authenticate('local', { failWithError: true }), handleError)
-  app.use('/login/basic', passport.authenticate('basic', { failWithError: true }), handleError)
+  app.use('/login/local', passport.authenticate('local', {
+    session: shouldUseSession,
+    failWithError: true
+  }), handleError)
+  app.use('/login/basic', passport.authenticate('basic', {
+    session: shouldUseSession,
+    failWithError: true
+  }), handleError)
 
   // only stop if unexpected error
   function handleError (err: any, req: Request, res: Response, next: NextFunction): void {
