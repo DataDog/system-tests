@@ -3,7 +3,7 @@
 import contextlib
 import time
 import urllib.parse
-from typing import TypedDict
+from typing import TypedDict, NotRequired
 from collections.abc import Generator
 
 from docker.models.containers import Container
@@ -35,7 +35,7 @@ class SpanResponse(TypedDict):
 
 class Link(TypedDict):
     parent_id: int
-    attributes: dict
+    attributes: NotRequired[dict]
 
 
 class Event(TypedDict):
@@ -116,7 +116,7 @@ class APMLibraryClient:
         name: str,
         service: str | None = None,
         resource: str | None = None,
-        parent_id: str | None = None,
+        parent_id: str | int | None = None,
         typestr: str | None = None,
         tags: list[tuple[str, str]] | None = None,
     ):
@@ -192,13 +192,13 @@ class APMLibraryClient:
 
     def span_get_baggage(self, span_id: int, key: str) -> str:
         resp = self._session.get(self._url("/trace/span/get_baggage"), json={"span_id": span_id, "key": key})
-        resp = resp.json()
-        return resp["baggage"]
+        data = resp.json()
+        return data["baggage"]
 
     def span_get_all_baggage(self, span_id: int) -> dict:
         resp = self._session.get(self._url("/trace/span/get_all_baggage"), json={"span_id": span_id})
-        resp = resp.json()
-        return resp["baggage"]
+        data = resp.json()
+        return data["baggage"]
 
     def trace_inject_headers(self, span_id):
         resp = self._session.post(self._url("/trace/span/inject_headers"), json={"span_id": span_id})
@@ -291,8 +291,8 @@ class APMLibraryClient:
         resp = self._session.post(
             self._url("/trace/otel/otel_set_baggage"), json={"span_id": span_id, "key": key, "value": value}
         )
-        resp = resp.json()
-        return resp["value"]
+        data = resp.json()
+        return data["value"]
 
     def config(self) -> dict[str, str | None]:
         resp = self._session.get(self._url("/trace/config")).json()
@@ -385,7 +385,7 @@ class _TestOtelSpan:
     def set_status(self, code: StatusCode, description):
         self._client.otel_set_status(self.span_id, code, description)
 
-    def add_event(self, name: str, timestamp: int | None = None, attributes: dict | None = None):
+    def add_event(self, name: str, timestamp: int, attributes: dict | None = None):
         self._client.otel_add_event(self.span_id, name, timestamp, attributes)
 
     def record_exception(self, message: str, attributes: dict | None = None):
@@ -432,7 +432,7 @@ class APMLibrary:
         name: str,
         service: str | None = None,
         resource: str | None = None,
-        parent_id: str | None = None,
+        parent_id: str | int | None = None,
         typestr: str | None = None,
         tags: list[tuple[str, str]] | None = None,
     ) -> Generator[_TestSpan, None, None]:
