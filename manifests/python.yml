@@ -761,6 +761,11 @@ tests/:
       Test_AWS_API_Gateway_Inferred_Span_Creation: missing_feature
     test_otel_drop_in.py:
       Test_Otel_Drop_In: missing_feature
+  otel/:
+    test_context_propagation.py:
+      Test_Otel_Context_Propagation_Default_Propagator_Api:
+        '*': incomplete_test_app (endpoint not implemented)
+        flask-poc: v2.19.0
   parametric/:
     test_128_bit_traceids.py:
       Test_128_Bit_Traceids: v2.6.0
@@ -910,16 +915,19 @@ tests/:
     Test_DistributedHttp:
       '*': missing_feature (Missing on weblog)
       flask-poc: v1.5.0-rc2 # actual version unknown
-    Test_Span_Links_Flags_From_Conflicting_Contexts: v2.17.0
+    Test_Span_Links_Flags_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
     Test_Span_Links_From_Conflicting_Contexts: v2.17.0
-    Test_Span_Links_From_Conflicting_Contexts_Datadog_Precedence: v2.17.0
-    Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts: v2.17.0
+    Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
   test_graphql.py: missing_feature
   test_identify.py:
     Test_Basic: v1.5.0-rc1
     Test_Propagate: v1.9.0
     Test_Propagate_Legacy: v1.5.0-rc1
   test_library_conf.py:
+    Test_ExtractBehavior_Default: missing_feature (trace context with only baggage should still be propagated)
+    Test_ExtractBehavior_Ignore: missing_feature (extract behavior not implemented)
+    Test_ExtractBehavior_Restart: missing_feature (extract behavior not implemented)
+    Test_ExtractBehavior_Restart_With_Extract_First: missing_feature (extract behavior not implemented)
     Test_HeaderTags: v0.53
     Test_HeaderTags_Colon_Leading: v1.2.1 # actual version unknown
     Test_HeaderTags_Colon_Trailing: v2.8.0

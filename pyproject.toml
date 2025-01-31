@@ -1,9 +1,13 @@
 [project]
 name = 'system_tests'
 version = '0.0.1'
+dynamic = ["dependencies"]
 
 [tool.setuptools]
 packages = ["tests", "utils", "manifests"]
+
+[tool.setuptools.dynamic]
+dependencies = {file = ["requirements.txt"]}
 
 [tool.pytest.ini_options]
 addopts = "--json-report --json-report-indent=2 --color=yes --no-header --junitxml=reportJunit.xml -r Xf"
