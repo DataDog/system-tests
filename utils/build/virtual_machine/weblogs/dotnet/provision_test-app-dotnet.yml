@@ -139,5 +139,97 @@ weblog:
             local_path: utils/build/virtual_machine/weblogs/dotnet/test-app-dotnet/test-app-dotnet_run.sh
 
         remote-command: sh test-app-dotnet_run.sh
+
       - os_type: windows
-        remote-command: dir
+        copy_files:
+          - name: copy-dotnet-app
+            local_path: lib-injection/build/docker/dotnet/dd-lib-dotnet-init-test-app
+
+        remote-command: |
+          #TODO Move this to separate script
+          # Define Variables
+          $AppPath = "C:\Users\Administrator"
+          $ServiceName = "MyDotnetService"
+          $Port = 5895
+          $ExecutableName = "MyDotnetApp.exe"
+          $PublishPath = "$AppPath\publish"
+          $ProjectFile = "$AppPath\MinimalWebApp.csproj"
+
+          # Ensure PowerShell is running as Administrator
+          if (-not ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")) {
+              Write-Host "Error: Please run this script as Administrator." -ForegroundColor Red
+              exit 1
+          }
+
+          # Step 1: Modify .csproj to Target .NET 8.0 and Add Required Entry
+          if (Test-Path $ProjectFile) {
+              Write-Host "Modifying $ProjectFile to target .NET 8.0 and disable default embedded resources..." -ForegroundColor Cyan
+              
+              # Read the current file content
+              $Content = Get-Content -Path $ProjectFile
+              
+              # Replace TargetFramework version (net7.0 → net8.0)
+              $UpdatedContent = $Content -replace '(<TargetFramework>)net7.0(</TargetFramework>)', '$1net8.0$2'
+
+              # Add EnableDefaultEmbeddedResourceItems entry inside <PropertyGroup>
+              if ($UpdatedContent -notmatch "EnableDefaultEmbeddedResourceItems") {
+                  $NewEntry = '    <EnableDefaultEmbeddedResourceItems>false</EnableDefaultEmbeddedResourceItems>'
+                  $UpdatedContent = $UpdatedContent -replace '(<PropertyGroup>)', "`$1`n$NewEntry"
+              }
+
+              # Save changes
+              $UpdatedContent | Set-Content -Path $ProjectFile
+              Write-Host "✅ Successfully updated MinimalWebApp.csproj to target .NET 8.0" -ForegroundColor Green
+          } else {
+              Write-Host "Warning: Project file '$ProjectFile' not found! Skipping modification." -ForegroundColor Yellow
+          }
+
+          # Step 2: Set Environment Variables for .NET Debugging and Datadog
+          Write-Host "Setting environment variables for .NET debugging and Datadog..." -ForegroundColor Cyan
+          [System.Environment]::SetEnvironmentVariable("DD_APM_INSTRUMENTATION_DEBUG", "false", "Machine")
+          [System.Environment]::SetEnvironmentVariable("DOTNET_DbgEnableMiniDump", "1", "Machine")
+          [System.Environment]::SetEnvironmentVariable("DOTNET_DbgMiniDumpType", "4", "Machine")
+          [System.Environment]::SetEnvironmentVariable("DOTNET_CreateDumpDiagnostics", "1", "Machine")
+
+          # Define a path for Windows equivalent of dump logs
+          $DumpFilePath = "C:\ProgramData\Datadog\dotnet\coredump.dmp"
+          [System.Environment]::SetEnvironmentVariable("DOTNET_DbgMiniDumpName", $DumpFilePath, "Machine")
+
+          Write-Host "✅ Environment variables set successfully!" -ForegroundColor Green
+
+          # Step 3: Build and Publish the .NET 8 Application
+          Write-Host "Building and Publishing .NET 8 Application..." -ForegroundColor Cyan
+          dotnet clean "$AppPath"
+          dotnet restore "$AppPath"
+          dotnet publish "$AppPath" -c Release -o "$PublishPath"
+
+          if (-not (Test-Path "$PublishPath\$ExecutableName")) {
+              Write-Host "❌ Error: .NET app compilation failed!" -ForegroundColor Red
+              exit 1
+          }
+
+          Write-Host "✅ Build and Publish completed successfully!" -ForegroundColor Green
+
+          # Step 4: Create Windows Service
+          Write-Host "Registering Windows Service..." -ForegroundColor Cyan
+
+          # Remove existing service if already registered
+          if (Get-Service -Name $ServiceName -ErrorAction SilentlyContinue) {
+              Stop-Service -Name $ServiceName -Force
+              sc.exe delete $ServiceName
+              Start-Sleep -Seconds 5
+          }
+
+          # Install the service
+          sc.exe create $ServiceName binPath= "$PublishPath\$ExecutableName" start= auto
+          sc.exe description $ServiceName "My .NET 8 Application running as a Windows Service on port $Port"
+
+          # Start the Service
+          Start-Service -Name $ServiceName
+          Write-Host "✅ Windows Service '$ServiceName' started successfully!" -ForegroundColor Green
+
+          # Step 5: Configure Firewall to Allow Port 5895
+          Write-Host "Configuring Firewall to allow traffic on port $Port..." -ForegroundColor Cyan
+          New-NetFirewallRule -DisplayName "Allow Port $Port for $ServiceName" -Direction Inbound -Protocol TCP -LocalPort $Port -Action Allow
+
+          Write-Host "✅ Deployment Complete! The .NET 8 application is now running as a Windows Service on port $Port." -ForegroundColor Green
