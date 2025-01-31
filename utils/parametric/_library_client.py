@@ -257,7 +257,7 @@ class APMLibraryClient:
             json={"span_id": span_id, "code": code.name, "description": description},
         )
 
-    def otel_add_event(self, span_id: int, name: str, timestamp: int, attributes) -> None:
+    def otel_add_event(self, span_id: int, name: str, timestamp: int | None, attributes) -> None:
         self._session.post(
             self._url("/trace/otel/add_event"),
             json={"span_id": span_id, "name": name, "timestamp": timestamp, "attributes": attributes},
@@ -385,7 +385,7 @@ class _TestOtelSpan:
     def set_status(self, code: StatusCode, description):
         self._client.otel_set_status(self.span_id, code, description)
 
-    def add_event(self, name: str, timestamp: int, attributes: dict | None = None):
+    def add_event(self, name: str, timestamp: int | None = None, attributes: dict | None = None):
         self._client.otel_add_event(self.span_id, name, timestamp, attributes)
 
     def record_exception(self, message: str, attributes: dict | None = None):
