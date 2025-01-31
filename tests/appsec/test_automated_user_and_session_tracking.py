@@ -226,6 +226,7 @@ BLOCK_SESSION_DATA = (
 
 
 @rfc("https://docs.google.com/document/d/1RT38U6dTTcB-8muiYV4-aVDCsT_XrliyakjtAPyjUpw")
+@missing_feature(context.library == "dotnet", reason="Session ids can't be set.")
 @features.user_monitoring
 @scenarios.appsec_runtime_activation
 class Test_Automated_Session_Blocking:
