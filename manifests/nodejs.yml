@@ -908,6 +908,7 @@ tests/:
     Test_Config_ObfuscationQueryStringRegexp_Empty: *ref_3_0_0
     Test_Config_RuntimeMetrics_Default: *ref_3_0_0
     Test_Config_RuntimeMetrics_Enabled: *ref_3_0_0
+    Test_Config_RuntimeMetrics_Enabled_WithRuntimeId: missing_feature
     Test_Config_UnifiedServiceTagging_CustomService: *ref_5_25_0
     Test_Config_UnifiedServiceTagging_Default: *ref_5_25_0
   test_distributed.py:
