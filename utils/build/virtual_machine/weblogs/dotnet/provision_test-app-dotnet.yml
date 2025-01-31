@@ -81,6 +81,40 @@ lang_variant:
         os_distro: rpm
         remote-command: dotnet --info || sudo yum install -y dotnet-sdk-6.0
 
+      - os_type: windows
+        remote-command: |
+          # Fetch the latest .NET 8 SDK release metadata
+          $dotnetReleaseData = Invoke-RestMethod -Uri "https://dotnetcli.blob.core.windows.net/dotnet/release-metadata/8.0/releases.json"
+
+          # Get the latest stable SDK version
+          $latestSdk = $dotnetReleaseData.releases[0].sdk
+
+          # Find the correct Windows x64 SDK .exe installer
+          $downloadUrl = ($latestSdk.files | Where-Object { $_.rid -eq "win-x64" -and $_.url -match "\.exe$" } | Select-Object -ExpandProperty url)
+
+          # Ensure we got only one URL
+          if (-not $downloadUrl) {
+              Write-Host "Error: Could not find a valid .NET SDK installer URL." -ForegroundColor Red
+              exit 1
+          }
+
+          # Print the selected URL (for debugging)
+          Write-Host "Downloading from: $downloadUrl"
+
+          # Define the download path
+          $installerPath = "$env:TEMP\dotnet-sdk-8-installer.exe"
+
+          # Download the installer
+          Invoke-WebRequest -Uri $downloadUrl -OutFile $installerPath
+
+          Write-Host "Running .NET 8 SDK installer..."
+
+          # Install .NET 8 SDK silently
+          Start-Process -FilePath $installerPath -ArgumentList "/quiet", "/norestart" -Wait
+
+          Write-Host "Done. .NET 8 SDK installed"
+
+
 weblog:
     name: test-app-dotnet
     #Ubuntu 21 (arm64) excluded due to there is not installable cadidate for dotnet-sdk-6.0
@@ -105,3 +139,5 @@ weblog:
             local_path: utils/build/virtual_machine/weblogs/dotnet/test-app-dotnet/test-app-dotnet_run.sh
 
         remote-command: sh test-app-dotnet_run.sh
+      - os_type: windows
+        remote-command: dir

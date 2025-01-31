@@ -115,4 +115,19 @@
       echo "{'host':'$(hostname -I)','agent':'$(echo $agent_version)','datadog-apm-inject':'$(echo $inject_version)','datadog-apm-library-$DD_LANG': '$(echo $tracer_version)','docker':'$(docker -v || true)','datadog-installer':'$(echo $installer_version)','glibc_type':'$(echo $GLIBC_TYPE)','glibc':'$(echo $GLIBC_VERSION)','runtime_version':'$(echo $runtime_version)'}"
 
 - os_type: windows
-  remote-command: dir
+  remote-command: |
+    # Create mock JSON data
+    $data = @{
+        host                    = "192.168.99.99 10.99.99.99"
+        agent                   = "9.99.0-1"
+        "datadog-apm-inject"    = "9.99.99-dev.mock"
+        "datadog-apm-library-dotnet" = "9.99.99-mock"
+        docker                  = "Docker version 9.99.99, build mock"
+        "datadog-installer"     = "9.99.99-installer-9.99.99"
+        glibc_type              = "gnu"
+        glibc                   = "9.99"
+        runtime_version         = "9.99"
+    }
+
+    # Convert to JSON and print (no compression to avoid errors)
+    $data | ConvertTo-Json -Depth 3

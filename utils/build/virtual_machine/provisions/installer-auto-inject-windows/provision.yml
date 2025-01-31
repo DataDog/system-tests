@@ -9,8 +9,12 @@ tested_components:
 # Mandatory: Steps to provision VM
 provision_steps:
   - init-config # Init the VM configuration
+  - install-installer
 
 init-config:
   cache: true
   populate_env: false
   install: !include utils/build/virtual_machine/provisions/auto-inject/auto-inject_init_vm_config.yml
+
+install-installer:
+  install: !include utils/build/virtual_machine/provisions/auto-inject/auto-inject_installer_manual.yml
