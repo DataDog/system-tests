@@ -337,11 +337,12 @@ class TestedContainer:
 
         result = {}
         for host_path, container_path in self.kwargs["volumes"].items():
-            if host_path.startswith("./"):
-                corrected_host_path = f"{host_pwd}{host_path[1:]}"
+            host_path_str = str(host_path)
+            if host_path_str.startswith("./"):
+                corrected_host_path = f"{host_pwd}{host_path_str[1:]}"
                 result[corrected_host_path] = container_path
             else:
-                result[host_path] = container_path
+                result[host_path_str] = container_path
 
         self.kwargs["volumes"] = result
 
