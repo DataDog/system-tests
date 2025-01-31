@@ -62,12 +62,12 @@ def assert_api_gateway_span(testCase, span):
         "component" in span["meta"]
     ), "Inferred AWS API Gateway span meta should contain 'component' equal to 'aws-apigateway'"
     assert span["meta"]["component"] == "aws-apigateway", "Expected component to be 'aws-apigateway'"
-    assert "service" in span["meta"], "Inferred AWS API Gateway span meta should contain 'service'"
+    assert "service" in span, "Inferred AWS API Gateway span should contain 'service'"
 
     assert (
-        span["meta"]["service"] == "system-tests-api-gateway.com"
+        span["service"] == "system-tests-api-gateway.com"
     ), "Inferred AWS API Gateway span expected service should equal 'system-tests-api-gateway.com'"
-    assert "span.kind" in span["meta"], "Inferred AWS API Gateway span meta should contain 'span.kind'"
+    assert "span.kind" in span["meta"], "Inferred AWS API Gateway span should contain 'span.kind'"
     assert (
         span["meta"]["span.kind"] == "internal"
     ), "Inferred AWS API Gateway span meta span.kind should equal 'internal'"
@@ -83,5 +83,5 @@ def assert_api_gateway_span(testCase, span):
 
     if not interfaces.library.replay:
         assert (
-            span["start"] == testCase.start_time_ns
-        ), f"Inferred AWS API Gateway span startTime should equal expected '{str(testCase.start_time_ns)}''"
+            float(span["start"]) == testCase.start_time_ns
+        ), f"Inferred AWS API Gateway span startTime should equal expected '{testCase.start_time_ns:.0f}''"
