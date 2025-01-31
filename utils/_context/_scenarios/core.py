@@ -19,7 +19,6 @@ class ScenarioGroup(Enum):
     IPV6 = "ipv6"
     LIB_INJECTION = "lib-injection"
     OPEN_TELEMETRY = "open-telemetry"
-    PARAMETRIC = "parametric"
     PROFILING = "profiling"
     SAMPLING = "sampling"
     ONBOARDING = "onboarding"
@@ -51,7 +50,7 @@ class Scenario:
         self.replay = False
         self.doc = doc
         self.rc_api_enabled = False
-        self.github_workflow = github_workflow
+        self.github_workflow = github_workflow  # TODO: rename this to workflow, as it may not be a github workflow
         self.scenario_groups = scenario_groups or []
 
         self.scenario_groups = list(set(self.scenario_groups))  # removes duplicates
