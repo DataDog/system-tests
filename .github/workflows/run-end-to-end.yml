@@ -140,6 +140,9 @@ jobs:
     - name: Run DATADOG_BAGGAGE_PROPAGATION scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"DATADOG_BAGGAGE_PROPAGATION"')
       run: ./run.sh DATADOG_BAGGAGE_PROPAGATION
+    - name: Run ONLY_BAGGAGE_PROPAGATION scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"ONLY_BAGGAGE_PROPAGATION"')
+      run: ./run.sh ONLY_BAGGAGE_PROPAGATION
     - name: Run INTEGRATIONS scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"INTEGRATIONS"')
       run: ./run.sh INTEGRATIONS
