@@ -1,6 +1,7 @@
-import os
-import json
 import copy
+import json
+import os
+from pathlib import Path
 from utils._context.library_version import LibraryVersion
 from utils.tools import logger
 from utils.virtual_machine.utils import get_tested_apps_vms, generate_gitlab_pipeline
@@ -275,10 +276,10 @@ class _VirtualMachineScenario(Scenario):
 
         base_folder = "utils/build/virtual_machine"
         weblog_provision_file = f"{base_folder}/weblogs/{self._library.library}/provision_{self._weblog}.yml"
-        assert os.path.isfile(weblog_provision_file), f"Weblog Provision file not found: {weblog_provision_file}"
+        assert Path(weblog_provision_file).is_file(), f"Weblog Provision file not found: {weblog_provision_file}"
 
         provision_file = f"{base_folder}/provisions/{self.vm_provision_name}/provision.yml"
-        assert os.path.isfile(provision_file), f"Provision file not found: {provision_file}"
+        assert Path(provision_file).is_file(), f"Provision file not found: {provision_file}"
 
         assert os.getenv("DD_API_KEY_ONBOARDING") is not None, "DD_API_KEY_ONBOARDING is not set"
         assert os.getenv("DD_APP_KEY_ONBOARDING") is not None, "DD_APP_KEY_ONBOARDING is not set"

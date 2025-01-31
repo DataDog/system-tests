@@ -14,7 +14,7 @@ from utils.onboarding.wait_for_tcp_port import wait_for_port
 class TestK8sLibInjection:
     """Test K8s lib injection"""
 
-    @bug(context.library > "python@2.21.0-dev", reason="APMSP-1750")
+    @bug(context.library >= "python@2.20.0" and context.k8s_cluster_agent_version == "7.56.2", reason="APMSP-1750")
     def test_k8s_lib_injection(self):
         traces_json = get_dev_agent_traces(context.scenario.k8s_cluster_provider.get_cluster_info())
         assert len(traces_json) > 0, "No traces found"
@@ -35,4 +35,4 @@ class TestK8sLibInjection_operator:
         warmup_weblog(context_url)
         request_uuid = make_get_request(context_url)
         logger.info(f"Http request done with uuid: [{request_uuid}] for ip [{cluster_info.cluster_host_name}]")
-        wait_backend_trace_id(request_uuid, 120.0)
+        wait_backend_trace_id(request_uuid)

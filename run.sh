@@ -328,6 +328,11 @@ function main() {
         run_mode='direct'
     fi
 
+    # check if runner is installed and up to date
+    if [[ "${run_mode}" == "direct" ]] && ! is_using_nix && ! diff requirements.txt venv/requirements.txt; then
+        ./build.sh -i runner
+    fi
+
     # ensure environment
     if [[ "${run_mode}" == "docker" ]] || is_using_nix; then
         : # no venv needed
