@@ -296,7 +296,7 @@ class _TestAgentAPI:
             resp = self._session.get(self._url("/test/session/start?test_session_token=%s" % token))
             if resp.status_code != 200:
                 # The test agent returns nice error messages we can forward to the user.
-                raise RuntimeError(resp.text.decode("utf-8"))
+                raise RuntimeError(resp.text)
         except Exception as e:
             raise RuntimeError(f"Could not connect to test agent: {e}") from e
         else:
@@ -306,7 +306,7 @@ class _TestAgentAPI:
                 self._url("/test/session/snapshot?ignores=%s&test_session_token=%s" % (",".join(ignores), token))
             )
             if resp.status_code != 200:
-                raise RuntimeError(resp.text.decode("utf-8"))
+                raise RuntimeError(resp.text)
 
     def wait_for_num_traces(
         self, num: int, clear: bool = False, wait_loops: int = 30, sort_by_start: bool = True
