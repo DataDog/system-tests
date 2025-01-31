@@ -79,7 +79,10 @@ class Test_Automated_User_Tracking:
             ),
         }
 
-    @missing_feature(context.library == "dotnet", reason="This endpoint calls the sdk TrackSuccessfulLogin which doesn't add the collection_mode tag (only SetUser)")
+    @missing_feature(
+        context.library == "dotnet",
+        reason="This endpoint calls the sdk TrackSuccessfulLogin which doesn't add the collection_mode tag (only SetUser)",
+    )
     def test_user_tracking_sdk_overwrite(self):
         for trigger, request in self.requests.items():
             assert request.status_code == 200
