@@ -11,9 +11,13 @@ const axios = require('axios')
 const fs = require('fs')
 const passport = require('passport')
 const crypto = require('crypto')
+const pino = require('pino')
+const api = require('@opentelemetry/api')
 
 const iast = require('./iast')
 const dsm = require('./dsm')
+const di = require('./debugger')
+
 const { spawnSync } = require('child_process')
 
 const pgsql = require('./integrations/db/postgres')
@@ -30,6 +34,8 @@ const { snsPublish, snsConsume } = require('./integrations/messaging/aws/sns')
 const { sqsProduce, sqsConsume } = require('./integrations/messaging/aws/sqs')
 const { kafkaProduce, kafkaConsume } = require('./integrations/messaging/kafka/kafka')
 const { rabbitmqProduce, rabbitmqConsume } = require('./integrations/messaging/rabbitmq/rabbitmq')
+
+const logger = pino()
 
 iast.initData().catch(() => {})
 
@@ -237,6 +243,21 @@ app.get('/kafka/consume', (req, res) => {
     })
 })
 
+app.get('/log/library', (req, res) => {
+  const msg = req.query.msg || 'msg'
+  switch (req.query.level) {
+    case 'warn':
+      logger.warn(msg)
+      break
+    case 'error':
+      logger.error(msg)
+      break
+    default:
+      logger.info(msg)
+  }
+  res.send('OK')
+})
+
 app.get('/sqs/produce', (req, res) => {
   const queue = req.query.queue
   const message = req.query.message
@@ -409,6 +430,29 @@ app.get('/db', async (req, res) => {
   }
 })
 
+app.get('/otel_drop_in_default_propagator_extract', (req, res) => {
+  const ctx = api.propagation.extract(api.context.active(), req.headers)
+  const spanContext = api.trace.getSpan(ctx).spanContext()
+
+  const result = {}
+  result.trace_id = parseInt(spanContext.traceId.substring(16), 16)
+  result.span_id = parseInt(spanContext.spanId, 16)
+  result.tracestate = spanContext.traceState.serialize()
+  // result.baggage = api.propagation.getBaggage(spanContext).toString()
+
+  res.json(result)
+})
+
+app.get('/otel_drop_in_default_propagator_inject', (req, res) => {
+  const tracer = api.trace.getTracer('my-application', '0.1.0')
+  const span = tracer.startSpan('main')
+  const result = {}
+
+  api.propagation.inject(
+    api.trace.setSpanContext(api.ROOT_CONTEXT, span.spanContext()), result, api.defaultTextMapSetter)
+  res.json(result)
+})
+
 app.post('/shell_execution', (req, res) => {
   const options = { shell: !!req?.body?.options?.shell }
   const reqArgs = req?.body?.args
@@ -435,6 +479,8 @@ app.get('/createextraservice', (req, res) => {
 })
 
 iast.initRoutes(app, tracer)
+
+di.initRoutes(app)
 
 require('./auth')(app, passport, tracer)
 

@@ -7,6 +7,8 @@ import re
 import os
 import os.path
 import uuid
+import gzip
+import io
 
 from utils import interfaces, remote_config, weblog, context
 from utils.tools import logger
@@ -17,6 +19,7 @@ _CONFIG_PATH = "/v0.7/config"
 _DEBUGGER_PATH = "/api/v2/debugger"
 _LOGS_PATH = "/api/v2/logs"
 _TRACES_PATH = "/api/v0.2/traces"
+_SYMBOLS_PATH = "/symdb/v1/input"
 
 _CUR_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -65,6 +68,8 @@ class _Base_Debugger_Test:
     probe_diagnostics = {}
     probe_snapshots = {}
     probe_spans = {}
+    all_spans = []
+    symbols = []
 
     rc_state = None
     weblog_responses = []
@@ -133,6 +138,8 @@ class _Base_Debugger_Test:
                         probe["where"]["sourceFile"] = "debugger_controller.py"
                     elif language == "ruby":
                         probe["where"]["sourceFile"] = "debugger_controller.rb"
+                    elif language == "nodejs":
+                        probe["where"]["sourceFile"] = "debugger/index.js"
                 probe["type"] = __get_probe_type(probe["id"])
 
             return probes
@@ -259,6 +266,7 @@ class _Base_Debugger_Test:
         self._collect_probe_diagnostics()
         self._collect_snapshots()
         self._collect_spans()
+        self._collect_symbols()
 
     def _collect_probe_diagnostics(self):
         def _read_data():
@@ -276,8 +284,10 @@ class _Base_Debugger_Test:
                 path = _DEBUGGER_PATH
             elif context.library == "ruby":
                 path = _DEBUGGER_PATH
+            elif context.library == "nodejs":
+                path = _DEBUGGER_PATH
             else:
-                path = _LOGS_PATH
+                path = _LOGS_PATH  # TODO: Should the default not be _DEBUGGER_PATH?
 
             return list(interfaces.agent.get_data(path))
 
@@ -361,6 +371,7 @@ class _Base_Debugger_Test:
                     for payload in content["tracerPayloads"]:
                         for chunk in payload["chunks"]:
                             for span in chunk["spans"]:
+                                self.all_spans.append(span)
                                 is_span_decoration_method = span["name"] == "dd.dynamic.span"
                                 if is_span_decoration_method:
                                     span_hash[span["meta"]["debugger.probeid"]] = span
@@ -379,6 +390,22 @@ class _Base_Debugger_Test:
             return span_hash
 
         self.probe_spans = _get_spans_hash(self)
+
+    def _collect_symbols(self):
+        def _get_symbols():
+            result = []
+            raw_data = list(interfaces.library.get_data(_SYMBOLS_PATH))
+
+            for data in raw_data:
+                if isinstance(data, dict) and "request" in data:
+                    contents = data["request"].get("content", [])
+                    for content in contents:
+                        if isinstance(content, dict) and "system-tests-filename" in content:
+                            result.append(content)
+
+            return result
+
+        self.symbols = _get_symbols()
 
     def get_tracer(self):
         if not _Base_Debugger_Test.tracer:

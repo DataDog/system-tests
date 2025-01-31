@@ -15,7 +15,7 @@ on:
         description: "Comma-separated list of scenarios groups to run"
         type: string
         default: ""
-      _experimental_parametric_job_count:
+      parametric_job_count:
         description: "*EXPERIMENTAL* : How many jobs should be used to run PARAMETRIC scenario"
         default: 1
         required: false
@@ -52,9 +52,12 @@ on:
       parametric_scenarios:
         description: ""
         value: ${{ jobs.main.outputs.parametric_scenarios }}
-      _experimental_parametric_job_matrix:
+      externalprocessing_scenarios:
         description: ""
-        value: ${{ jobs.main.outputs._experimental_parametric_job_matrix }}
+        value: ${{ jobs.main.outputs.externalprocessing_scenarios }}
+      parametric_job_matrix:
+        description: ""
+        value: ${{ jobs.main.outputs.parametric_job_matrix }}
 
 jobs:
   main:
@@ -69,7 +72,9 @@ jobs:
       opentelemetry_scenarios: ${{ steps.main.outputs.opentelemetry_scenarios }}
       opentelemetry_weblogs: ${{ steps.main.outputs.opentelemetry_weblogs }}
       parametric_scenarios: ${{ steps.main.outputs.parametric_scenarios }}
-      _experimental_parametric_job_matrix: ${{ steps.main.outputs._experimental_parametric_job_matrix }}
+      externalprocessing_scenarios: ${{ steps.main.outputs.externalprocessing_scenarios }}
+      parametric_job_matrix: ${{ steps.main.outputs.parametric_job_matrix }}
+      parametric_job_count: ${{ steps.main.outputs.parametric_job_count }}
     steps:
     - name: Checkout
       uses: actions/checkout@v4
@@ -84,7 +89,7 @@ jobs:
         python utils/scripts/compute-workflow-parameters.py ${{ inputs.library }} \
           -s "${{ inputs.scenarios }}" \
           -g "${{ inputs.scenarios_groups }}" \
+          --parametric-job-count ${{ inputs.parametric_job_count }} \
           --ci-environment "${{ inputs._ci_environment }}" >> $GITHUB_OUTPUT
       env:
         PYTHONPATH: "."
-        _EXPERIMENTAL_PARAMETRIC_JOB_COUNT: ${{ inputs._experimental_parametric_job_count }}

@@ -363,40 +363,17 @@ class TestedContainer:
         TAIL_LIMIT = 50  # noqa: N806
         SEP = "=" * 30  # noqa: N806
 
-        keys = []
-        if os.environ.get("DD_API_KEY"):
-            keys.append(bytearray(os.environ["DD_API_KEY"], "utf-8"))
-        if os.environ.get("DD_APP_KEY"):
-            keys.append(bytearray(os.environ["DD_APP_KEY"], "utf-8"))
-        if os.environ.get("AWS_ACCESS_KEY_ID"):
-            keys.append(bytearray(os.environ["AWS_ACCESS_KEY_ID"], "utf-8"))
-        if os.environ.get("AWS_SECRET_ACCESS_KEY"):
-            keys.append(bytearray(os.environ["AWS_SECRET_ACCESS_KEY"], "utf-8"))
-        if os.environ.get("AWS_SESSION_TOKEN"):
-            keys.append(bytearray(os.environ["AWS_SESSION_TOKEN"], "utf-8"))
-        if os.environ.get("AWS_SECURITY_TOKEN"):
-            keys.append(bytearray(os.environ["AWS_SECURITY_TOKEN"], "utf-8"))
-
-        # set by CI runner
-        if os.environ.get("SYSTEM_TESTS_AWS_ACCESS_KEY_ID"):
-            keys.append(bytearray(os.environ["SYSTEM_TESTS_AWS_ACCESS_KEY_ID"], "utf-8"))
-        if os.environ.get("SYSTEM_TESTS_AWS_SECRET_ACCESS_KEY"):
-            keys.append(bytearray(os.environ["SYSTEM_TESTS_AWS_SECRET_ACCESS_KEY"], "utf-8"))
-
         data = (
             ("stdout", self._container.logs(stdout=True, stderr=False)),
             ("stderr", self._container.logs(stdout=False, stderr=True)),
         )
         for output_name, raw_output in data:
             filename = f"{self.log_folder_path}/{output_name}.log"
-            output = raw_output
-            for key in keys:
-                output = output.replace(key, b"<redacted>")
             with open(filename, "wb") as f:
-                f.write(output)
+                f.write(raw_output)
 
             if not self.healthy:
-                decoded_output = output.decode("utf-8")
+                decoded_output = raw_output.decode("utf-8")
 
                 logger.stdout(f"\n{SEP} {self.name} {output_name.upper()} last {TAIL_LIMIT} lines {SEP}")
                 logger.stdout(f"-> See {filename} for full logs")
@@ -689,6 +666,7 @@ class WeblogContainer(TestedContainer):
         tracer_sampling_rate=None,
         appsec_enabled=True,
         iast_enabled=True,
+        runtime_metrics_enabled=False,
         additional_trace_header_tags=(),
         use_proxy=True,
         volumes=None,
@@ -723,6 +701,9 @@ class WeblogContainer(TestedContainer):
         base_environment["_DD_TELEMETRY_METRICS_ENABLED"] = "true"
         base_environment["DD_TELEMETRY_METRICS_INTERVAL_SECONDS"] = self.telemetry_heartbeat_interval
 
+        if runtime_metrics_enabled:
+            base_environment["DD_RUNTIME_METRICS_ENABLED"] = "true"
+
         if appsec_enabled:
             base_environment["DD_APPSEC_ENABLED"] = "true"
             base_environment["DD_APPSEC_WAF_TIMEOUT"] = "10000000"  # 10 seconds
@@ -734,7 +715,6 @@ class WeblogContainer(TestedContainer):
             base_environment["_DD_IAST_DEBUG"] = "true"
             base_environment["DD_IAST_REQUEST_SAMPLING"] = "100"
             base_environment["DD_IAST_MAX_CONCURRENT_REQUESTS"] = "10"
-            base_environment["DD_IAST_CONTEXT_MODE"] = "GLOBAL"
             base_environment["DD_IAST_DEDUPLICATION_ENABLED"] = "false"
 
         if tracer_sampling_rate:
@@ -795,9 +775,13 @@ class WeblogContainer(TestedContainer):
 
         return result
 
-    def get_image_list(self, library: str, weblog: str) -> list[str]:
+    def get_image_list(self, library: str | None, weblog: str | None) -> list[str]:
         """Parse the Dockerfile and extract all images reference in a FROM section"""
         result = []
+
+        if not library or not weblog:
+            return result
+
         args = {}
 
         pattern = re.compile(r"^FROM\s+(?P<image_name>[^\s]+)")
@@ -838,11 +822,28 @@ class WeblogContainer(TestedContainer):
 
         self.appsec_rules_file = (self.image.env | self.environment).get("DD_APPSEC_RULES", None)
 
+        # Workaround: Once the dd-trace-go fix is merged that avoids a go panic for
+        # DD_TRACE_PROPAGATION_EXTRACT_FIRST=true when context propagation fails,
+        # we can remove the DD_TRACE_PROPAGATION_EXTRACT_FIRST=false override
+        if library == "golang":
+            self.environment["DD_TRACE_PROPAGATION_EXTRACT_FIRST"] = "false"
+
+        # Workaround: We may want to define baggage in our list of propagators, but the cpp library
+        # has strict checks on tracer startup that will fail to launch the application
+        # when it encounters unfamiliar configurations. Override the configuration that the cpp
+        # weblog container sees so we can still run tests
+        if library == "cpp":
+            extract_config = self.environment.get("DD_TRACE_PROPAGATION_STYLE_EXTRACT")
+            if extract_config and "baggage" in extract_config:
+                self.environment["DD_TRACE_PROPAGATION_STYLE_EXTRACT"] = extract_config.replace("baggage", "").strip(
+                    ","
+                )
+
         if library == "nodejs":
             try:
                 with open("./binaries/nodejs-load-from-local", encoding="utf-8") as f:
                     path = f.read().strip(" \r\n")
-                    self.kwargs["volumes"][os.path.abspath(path)] = {
+                    self.kwargs["volumes"][Path(path).resolve()] = {
                         "bind": "/volumes/dd-trace-js",
                         "mode": "ro",
                     }
@@ -1089,7 +1090,7 @@ class OpenTelemetryCollectorContainer(TestedContainer):
         # _otel_config_host_path is mounted in the container, and depending on umask,
         # it might have no read permissions for other users, which is required within
         # the container. So set them here.
-        prev_mode = os.stat(self._otel_config_host_path).st_mode
+        prev_mode = Path(self._otel_config_host_path).stat().st_mode
         new_mode = prev_mode | stat.S_IROTH
         if prev_mode != new_mode:
             Path(self._otel_config_host_path).chmod(new_mode)
@@ -1199,30 +1200,55 @@ class EnvoyContainer(TestedContainer):
             host_log_folder=host_log_folder,
             volumes={"./tests/external_processing/envoy.yaml": {"bind": "/etc/envoy/envoy.yaml", "mode": "ro"}},
             ports={"80": ("127.0.0.1", weblog.port)},
-            # healthcheck={"test": "wget http://localhost:9901/ready", "retries": 10,},  # no wget on envoy
+            healthcheck={
+                "test": "/bin/bash -c \"\
+                    exec 3<>/dev/tcp/127.0.0.1/80 || exit 1;\
+                    echo -e 'GET / HTTP/1.1\nHost: system-tests\r\n\r\n' >&3;\
+                    cat <&3 | grep -q '200'\"",
+                "retries": 10,
+            },
         )
 
 
 class ExternalProcessingContainer(TestedContainer):
     library: LibraryVersion
 
-    def __init__(self, host_log_folder) -> None:
+    def __init__(
+        self,
+        host_log_folder,
+        env,
+        volumes,
+    ) -> None:
         try:
             with open("binaries/golang-service-extensions-callout-image", encoding="utf-8") as f:
                 image = f.read().strip()
         except FileNotFoundError:
             image = "ghcr.io/datadog/dd-trace-go/service-extensions-callout:latest"
 
+        environment = {
+            "DD_APPSEC_ENABLED": "true",
+            "DD_SERVICE": "service_test",
+            "DD_AGENT_HOST": "proxy",
+            "DD_TRACE_AGENT_PORT": ProxyPorts.weblog,
+            "DD_APPSEC_WAF_TIMEOUT": "1s",
+        }
+
+        if env:
+            environment.update(env)
+
+        if volumes is None:
+            volumes = {}
+
         super().__init__(
             image_name=image,
             name="extproc",
             host_log_folder=host_log_folder,
-            environment={
-                "DD_APPSEC_ENABLED": "true",
-                "DD_AGENT_HOST": "proxy",
-                "DD_TRACE_AGENT_PORT": ProxyPorts.weblog,
+            volumes=volumes,
+            environment=environment,
+            healthcheck={
+                "test": "wget -qO- http://localhost:80/",
+                "retries": 10,
             },
-            healthcheck={"test": "wget -qO- http://localhost:80/", "retries": 10},
         )
 
     def post_start(self):

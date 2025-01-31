@@ -1,6 +1,6 @@
 import kombu
 
-from ddtrace import tracer, Pin
+from ddtrace.trace import tracer, Pin
 
 
 def rabbitmq_produce(queue, exchange, routing_key, message):

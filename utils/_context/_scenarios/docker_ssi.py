@@ -1,12 +1,13 @@
 import json
-import time
 import os
+import random
+import socket
+import time
 
 import docker
 from docker.errors import BuildError
 from docker.models.networks import Network
 
-import utils.tools
 from utils import context, interfaces
 from utils._context.library_version import LibraryVersion, Version
 from utils._context.containers import (
@@ -34,7 +35,7 @@ class DockerSSIScenario(Scenario):
 
         self._weblog_injection = DockerSSIContainer(host_log_folder=self.host_log_folder)
 
-        self.agent_port = utils.tools.get_free_port()
+        self.agent_port = _get_free_port()
         self.agent_host = "localhost"
         self._agent_container = APMTestAgentContainer(host_log_folder=self.host_log_folder, agent_port=self.agent_port)
 
@@ -52,6 +53,11 @@ class DockerSSIScenario(Scenario):
         self._library = config.option.ssi_library
         self._base_image = config.option.ssi_base_image
         self._arch = config.option.ssi_arch
+
+        self._env = "prod" if config.option.ssi_env is None or config.option.ssi_env == "prod" else "dev"
+        self._custom_library_version = config.option.ssi_library_version
+        self._custom_injector_version = config.option.ssi_injector_version
+
         # The runtime that we want to install on the base image. it could be empty if we don't need to install a runtime
         self._installable_runtime = (
             config.option.ssi_installable_runtime
@@ -67,8 +73,12 @@ class DockerSSIScenario(Scenario):
         self._installed_language_runtime = None
 
         logger.stdout(
-            f"Configuring scenario with: Weblog: [{self._base_weblog}] Library: [{self._library}] Base Image: [{self._base_image}] Arch: [{self._arch}] Runtime: [{self._installable_runtime}]"
+            f"Configuring scenario with: Weblog: [{self._base_weblog}] Library: [{self._library}] Base Image: [{self._base_image}] Arch: [{self._arch}] Runtime: [{self._installable_runtime}] Env: {self._env}"
         )
+        if self._custom_injector_version:
+            logger.stdout(f"Using custom injector version: {self._custom_injector_version}")
+        if self._custom_library_version:
+            logger.stdout(f"Using custom library version: {self._custom_library_version}")
 
         # Build the docker images to generate the weblog image
         # Steps to build the docker ssi image:
@@ -87,6 +97,9 @@ class DockerSSIScenario(Scenario):
             self._installable_runtime,
             self._push_base_images,
             self._force_build,
+            self._env,
+            self._custom_library_version,
+            self._custom_injector_version,
         )
         self.ssi_image_builder.configure()
         self.ssi_image_builder.build_weblog()
@@ -220,7 +233,17 @@ class DockerSSIImageBuilder:
     """Manages the docker image building for the SSI scenario"""
 
     def __init__(
-        self, base_weblog, base_image, library, arch, installable_runtime, push_base_images, force_build
+        self,
+        base_weblog,
+        base_image,
+        library,
+        arch,
+        installable_runtime,
+        push_base_images,
+        force_build,
+        env,
+        custom_library_version,
+        custom_injector_version,
     ) -> None:
         self._base_weblog = base_weblog
         self._base_image = base_image
@@ -234,6 +257,9 @@ class DockerSSIImageBuilder:
         # Option 2: When the base image is not found on the registry
         self.should_push_base_images = False
         self._weblog_docker_image = None
+        self._env = env
+        self._custom_library_version = custom_library_version
+        self._custom_injector_version = custom_injector_version
 
     @property
     def dd_lang(self) -> str:
@@ -375,7 +401,13 @@ class DockerSSIImageBuilder:
                 platform=self._arch,
                 nocache=self._force_build or self.should_push_base_images,
                 tag=self.ssi_all_docker_tag,
-                buildargs={"DD_LANG": self.dd_lang, "BASE_IMAGE": ssi_installer_docker_tag},
+                buildargs={
+                    "DD_LANG": self.dd_lang,
+                    "BASE_IMAGE": ssi_installer_docker_tag,
+                    "SSI_ENV": self._env,
+                    "DD_INSTALLER_LIBRARY_VERSION": self._custom_library_version,
+                    "DD_INSTALLER_INJECTOR_VERSION": self._custom_injector_version,
+                },
             )
             self.print_docker_build_logs(self.ssi_all_docker_tag, build_logs)
             logger.stdout(f"[tag:{weblog_docker_tag}] Building weblog app on base image [{self.ssi_all_docker_tag}].")
@@ -427,3 +459,17 @@ class DockerSSIImageBuilder:
         vm_logger(scenario_name, "docker_push").info(f"    Push docker image with tag: {image_tag}   ")
         vm_logger(scenario_name, "docker_push").info("***************************************************************")
         vm_logger(scenario_name, "docker_push").info(push_logs)
+
+
+def _get_free_port():
+    last_allowed_port = 32000
+    port = random.randint(1100, last_allowed_port - 600)
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    while port <= last_allowed_port:
+        try:
+            sock.bind(("", port))
+            sock.close()
+            return port
+        except OSError:
+            port += 1
+    raise OSError("no free ports")

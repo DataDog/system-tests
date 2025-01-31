@@ -68,3 +68,6 @@ utils/build/docker/*/parametric/Dockerfile
 # debugger
 /tests/debugger/approvals/*received*
 .aider*
+
+# version check
+version-check-output/

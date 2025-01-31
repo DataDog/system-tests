@@ -28,7 +28,8 @@ from iast import (
 )
 
 import ddtrace
-from ddtrace import Pin, tracer, patch_all
+from ddtrace import patch_all
+from ddtrace.trace import Pin, tracer
 from ddtrace.appsec import trace_utils as appsec_trace_utils
 
 patch_all(urllib3=True)
@@ -582,13 +583,14 @@ def view_iast_source_header_value(request):
     return HttpResponse("OK")
 
 
+@csrf_exempt
 def view_iast_source_parametername(request):
     if request.method == "GET":
         param = [key for key in request.GET.keys() if key == "user"]
-        _sink_point_sqli(id=param[0])
+        _sink_point_path_traversal(param[0])
     elif request.method == "POST":
         param = [key for key in request.POST.keys() if key == "user"]
-        _sink_point_sqli(id=param[0])
+        _sink_point_path_traversal(param[0])
     return HttpResponse("OK")
 
 
@@ -637,6 +639,34 @@ def view_iast_header_injection_secure(request):
     return response
 
 
+@csrf_exempt
+def view_iast_code_injection_insecure(request):
+    code_string = request.POST.get("code")
+    _ = eval(code_string)
+    return HttpResponse("OK", status=200)
+
+
+@csrf_exempt
+def view_iast_code_injection_secure(request):
+    import operator
+
+    def safe_eval(expr):
+        ops = {
+            "+": operator.add,
+            "-": operator.sub,
+            "*": operator.mul,
+            "/": operator.truediv,
+        }
+        if len(expr) != 3 or expr[1] not in ops:
+            raise ValueError("Invalid expression")
+        a, op, b = expr
+        return ops[op](float(a), float(b))
+
+    code_string = request.POST.get("code")
+    _ = safe_eval(code_string)
+    return HttpResponse("OK", status=200)
+
+
 def make_distant_call(request):
     # curl localhost:7777/make_distant_call?url=http%3A%2F%2Fweblog%3A7777 | jq
 
@@ -679,31 +709,31 @@ def track_user_login_failure_event(request):
 
 @csrf_exempt
 def login(request):
-    from ddtrace.settings.asm import config as asm_config
     from django.contrib.auth import authenticate, login
 
-    mode = asm_config._automatic_login_events_mode
+    is_logged_in = False
     username = request.POST.get("username")
     password = request.POST.get("password")
     sdk_event = request.GET.get("sdk_event")
-    if sdk_event:
-        sdk_user = request.GET.get("sdk_user")
-        sdk_mail = request.GET.get("sdk_mail")
-        sdk_user_exists = request.GET.get("sdk_user_exists")
-        if sdk_event == "success":
-            appsec_trace_utils.track_user_login_success_event(tracer, user_id=sdk_user, email=sdk_mail)
-            return HttpResponse("OK")
-        elif sdk_event == "failure":
-            appsec_trace_utils.track_user_login_failure_event(
-                tracer, user_id=sdk_user, email=sdk_mail, exists=sdk_user_exists
-            )
-            return HttpResponse("login failure", status=401)
     authorisation = request.headers.get("Authorization")
     if authorisation:
         username, password = base64.b64decode(authorisation[6:]).decode().split(":")
     user = authenticate(username=username, password=password)
     if user is not None:
         login(request, user)
+        is_logged_in = True
+    if sdk_event:
+        sdk_user = request.GET.get("sdk_user")
+        sdk_mail = request.GET.get("sdk_mail")
+        sdk_user_exists = request.GET.get("sdk_user_exists")
+        if sdk_event == "success":
+            appsec_trace_utils.track_user_login_success_event(tracer, user_id=sdk_user, email=sdk_mail, login=sdk_user)
+            is_logged_in = True
+        elif sdk_event == "failure":
+            appsec_trace_utils.track_user_login_failure_event(
+                tracer, user_id=sdk_user, email=sdk_mail, exists=sdk_user_exists, login=sdk_user
+            )
+    if is_logged_in:
         return HttpResponse("OK")
     return HttpResponse("login failure", status=401)
 
@@ -928,6 +958,8 @@ urlpatterns = [
     path("iast/source/path/test", view_iast_source_path),
     path("iast/source/path_parameter/test/<str:table>", view_iast_source_path_parameter),
     path("iast/header_injection/test_secure", view_iast_header_injection_secure),
+    path("iast/code_injection/test_insecure", view_iast_code_injection_insecure),
+    path("iast/code_injection/test_secure", view_iast_code_injection_secure),
     path("iast/header_injection/test_insecure", view_iast_header_injection_insecure),
     path("make_distant_call", make_distant_call),
     path("user_login_success_event", track_user_login_success_event),

@@ -5,7 +5,7 @@
 import re
 from urllib.parse import urlparse
 
-from utils import context, interfaces, bug, missing_feature, features
+from utils import context, interfaces, bug, missing_feature, features, scenarios
 
 RUNTIME_LANGUAGE_MAP = {
     "nodejs": "javascript",
@@ -36,6 +36,7 @@ VARIANT_COMPONENT_MAP = {
     "graphql-go": "graphql-go/graphql",
     "jersey-grizzly2": {"jakarta-rs.request": "jakarta-rs-controller", "grizzly.request": ["grizzly", "jakarta-rs"]},
     "net-http": "net/http",
+    "net-http-orchestrion": "net/http",
     "sinatra": {"rack.request": "rack"},
     "spring-boot": {
         "servlet.request": "tomcat-server",
@@ -110,6 +111,7 @@ VARIANT_COMPONENT_MAP = {
     },
     "vertx3": {"netty.request": "netty", "vertx.route-handler": "vertx"},
     "vertx4": {"netty.request": "netty", "vertx.route-handler": "vertx"},
+    "envoyproxy-go-control-plane": "envoyproxy/go-control-plane",
 }
 
 
@@ -135,6 +137,9 @@ def get_component_name(weblog_variant, language, span_name):
 
 @features.runtime_id_in_span_metadata_for_service_entry_spans
 @features.unix_domain_sockets_support_for_traces
+@features.envoy_external_processing
+@scenarios.external_processing
+@scenarios.default
 class Test_Meta:
     """meta object in spans respect all conventions"""
 
@@ -319,6 +324,9 @@ class Test_MetaDatadogTags:
 
 
 @features.data_integrity
+@features.envoy_external_processing
+@scenarios.external_processing
+@scenarios.default
 class Test_MetricsStandardTags:
     """metrics object in spans respect all conventions regarding basic tags"""
 

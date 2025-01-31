@@ -618,6 +618,14 @@ Expected query parameters:
 This endpoint loads a module/package in applicable languages. It's mainly used for telemetry tests to verify that
 the `dependencies-loaded` event is appropriately triggered.
 
+### GET /log/library
+
+This endpoint facilitates logging a message using a logging library. It is primarily designed for testing log injection functionality. Weblog apps must log using JSON format.
+
+The following query parameters are optional:
+- `msg`: Specifies the message to be logged. If not provided, the default message "msg" will be logged.
+- `level`: Specifies the log level to be used. If not provided, the default log level is "info".
+
 ### GET /e2e_single_span
 
 This endpoint will create two spans, a parent span (which is a root-span), and a child span.
@@ -657,6 +665,7 @@ Body fields accepted in POST method:
 
 It also supports HTTP authentication by using GET method and the authorization header.
 Additionally, both methods support the following query parameters to use the sdk functions along with the authentication framework:
+- `sdk_trigger`: when to call the sdk function, `after` or `before` the automated login event (by default `after`)
 - `sdk_event`: login event type: `success` or `failure`.
 - `sdk_user`: user id to be used in the sdk call.
 - `sdk_mail`: user's mail to be used in the sdk call.

@@ -12,7 +12,7 @@ def execute_command(command, timeout=None, logfile=None, subprocess_env=None, qu
     if timeout is not None:
         applied_timeout = timeout
 
-    logger.debug(f"Launching Command: {_clean_secrets(command)} ")
+    logger.debug(f"Launching Command: {command} ")
     command_out_redirect = subprocess.PIPE
     if logfile:
         command_out_redirect = open(logfile, "w")
@@ -38,38 +38,24 @@ def execute_command(command, timeout=None, logfile=None, subprocess_env=None, qu
                     return None
                 else:
                     # if we specify a timeout, we raise an exception
-                    raise Exception(f"Command: {_clean_secrets(command)} timed out after {applied_timeout} seconds")
+                    raise Exception(f"Command: {command} timed out after {applied_timeout} seconds")
         if not logfile:
             output = process.stdout.read()
             output = str(output, "utf-8")
             if not quiet:
-                logger.debug(f"Command: {_clean_secrets(command)} \n {_clean_secrets(output)}")
+                logger.debug(f"Command: {command} \n {output}")
             else:
-                logger.info(f"Command: {_clean_secrets(command)}")
+                logger.info(f"Command: {command}")
             if process.returncode != 0:
                 output_error = process.stderr.read()
-                logger.debug(f"Command: {_clean_secrets(command)} \n {_clean_secrets(output_error)}")
-                raise Exception(f"Error executing command: {_clean_secrets(command)} \n {_clean_secrets(output)}")
+                logger.debug(f"Command: {command} \n {output_error}")
+                raise Exception(f"Error executing command: {command} \n {output}")
 
     except Exception as ex:
-        logger.error(f"Error executing command: {_clean_secrets(command)} \n {ex}")
+        logger.error(f"Error executing command: {command} \n {ex}")
         raise ex
 
     return output
-
-
-def _clean_secrets(data_to_clean):
-    """Clean secrets from the output."""
-    if (
-        hasattr(context.scenario, "api_key")
-        and context.scenario.api_key
-        and hasattr(context.scenario, "app_key")
-        and context.scenario.app_key
-    ):
-        data_to_clean = data_to_clean.replace(context.scenario.api_key, "DD_API_KEY").replace(
-            context.scenario.app_key, "DD_APP_KEY"
-        )
-    return data_to_clean
 
 
 @retry(delay=1, tries=5)
@@ -81,7 +67,7 @@ def helm_add_repo(name, url, k8s_cluster_info, update=False):
 
 
 @retry(delay=1, tries=5)
-def helm_install_chart(k8s_cluster_info, name, chart, set_dict={}, value_file=None, upgrade=False):
+def helm_install_chart(k8s_cluster_info, name, chart, set_dict={}, value_file=None, upgrade=False, timeout=90):
     # Copy and replace cluster name in the value file
     custom_value_file = None
     if value_file:
@@ -101,12 +87,16 @@ def helm_install_chart(k8s_cluster_info, name, chart, set_dict={}, value_file=No
         for key, value in set_dict.items():
             set_str += f" --set {key}={value}"
 
-    command = f"helm install {name} --debug --wait {set_str} {chart}"
+    wait = "--wait"
+    if timeout == 0 or timeout is None:
+        wait = ""
+
+    command = f"helm install {name} --debug {wait} {set_str} {chart}"
     if upgrade:
-        command = f"helm upgrade {name} --debug --install --wait {set_str} {chart}"
+        command = f"helm upgrade {name} --debug --install {wait} {set_str} {chart}"
     if custom_value_file:
         command = f"helm install {name} {set_str} --debug -f {custom_value_file} {chart}"
         if upgrade:
             command = f"helm upgrade {name} {set_str} --debug --install -f {custom_value_file} {chart}"
     execute_command("kubectl config current-context")
-    execute_command(command, timeout=90, quiet=True)  # Too many traces to show in the logs
+    execute_command(command, timeout=timeout, quiet=True)  # Too many traces to show in the logs
