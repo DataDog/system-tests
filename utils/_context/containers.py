@@ -843,7 +843,8 @@ class WeblogContainer(TestedContainer):
             try:
                 with open("./binaries/nodejs-load-from-local", encoding="utf-8") as f:
                     path = f.read().strip(" \r\n")
-                    self.kwargs["volumes"][Path(path).resolve()] = {
+                    path_str = str(Path(path).resolve())
+                    self.kwargs["volumes"][path_str] = {
                         "bind": "/volumes/dd-trace-js",
                         "mode": "ro",
                     }
