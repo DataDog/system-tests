@@ -787,6 +787,12 @@ tests/:
         express5: *ref_5_26_0
     test_otel_drop_in.py:
       Test_Otel_Drop_In: missing_feature
+  otel/:
+    test_context_propagation.py:
+      Test_Otel_Context_Propagation_Default_Propagator_Api:
+        '*': incomplete_test_app (endpoint not implemented)
+        express4: *ref_5_26_0
+        express5: *ref_5_26_0
   parametric/:
     test_128_bit_traceids.py:
       Test_128_Bit_Traceids: *ref_3_0_0
@@ -908,7 +914,6 @@ tests/:
     Test_DistributedHttp: missing_feature
     Test_Span_Links_Flags_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
     Test_Span_Links_From_Conflicting_Contexts: v5.27.0
-    Test_Span_Links_From_Conflicting_Contexts_Datadog_Precedence: v5.27.0
     Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
     Test_Synthetics_APM_Datadog:
       '*': *ref_5_25_0
@@ -924,6 +929,10 @@ tests/:
     Test_Propagate: *ref_3_2_0
     Test_Propagate_Legacy: *ref_3_2_0
   test_library_conf.py:
+    Test_ExtractBehavior_Default: incomplete_test_app (/make_distant_call endpoint is not correctly implemented)
+    Test_ExtractBehavior_Ignore: incomplete_test_app (/make_distant_call endpoint is not correctly implemented)
+    Test_ExtractBehavior_Restart: incomplete_test_app (/make_distant_call endpoint is not correctly implemented)
+    Test_ExtractBehavior_Restart_With_Extract_First: incomplete_test_app (/make_distant_call endpoint is not correctly implemented)
     Test_HeaderTags: *ref_4_11_0
     Test_HeaderTags_Colon_Leading: *ref_4_11_0
     Test_HeaderTags_Colon_Trailing: *ref_4_11_0
