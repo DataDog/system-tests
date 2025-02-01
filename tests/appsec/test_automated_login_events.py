@@ -1397,6 +1397,7 @@ class Test_V3_Login_Events:
         )
 
     def test_login_sdk_success_local(self):
+        # before/after
         assert self.r_sdk_success.status_code == 200
         for _, trace, span in interfaces.library.get_spans(request=self.r_sdk_success):
             assert_priority(span, trace)
@@ -1422,6 +1423,7 @@ class Test_V3_Login_Events:
 
     @missing_feature(context.library == "php", reason="Basic auth not implemented")
     def test_login_sdk_success_basic(self):
+        # before/after
         assert self.r_sdk_success.status_code == 200
         for _, trace, span in interfaces.library.get_spans(request=self.r_sdk_success):
             assert_priority(span, trace)
@@ -1446,6 +1448,7 @@ class Test_V3_Login_Events:
         )
 
     def test_login_sdk_failure_local(self):
+        # before/after
         assert self.r_sdk_failure.status_code == 401
         for _, trace, span in interfaces.library.get_spans(request=self.r_sdk_failure):
             assert_priority(span, trace)
@@ -1467,6 +1470,7 @@ class Test_V3_Login_Events:
 
     @missing_feature(context.library == "php", reason="Basic auth not implemented")
     def test_login_sdk_failure_basic(self):
+        # before/after
         assert self.r_sdk_failure.status_code == 401
         for _, trace, span in interfaces.library.get_spans(request=self.r_sdk_failure):
             assert_priority(span, trace)
@@ -1685,6 +1689,7 @@ class Test_V3_Login_Events_Anon:
                 assert meta["appsec.events.users.login.failure.usr.id"] == USER_HASH
                 assert meta["_dd.appsec.usr.id"] == USER_HASH
 
+        # before/after
     def setup_login_sdk_success_local(self):
         self.r_sdk_success = weblog.post(
             "/login?auth=local&sdk_event=success&sdk_user=sdkUser",
@@ -1709,6 +1714,7 @@ class Test_V3_Login_Events_Anon:
                 assert meta["usr.id"] == "sdkUser"
                 assert meta["_dd.appsec.usr.id"] == USER_HASH
 
+        # before/after
     def setup_login_sdk_success_basic(self):
         self.r_sdk_success = weblog.get(
             "/login?auth=basic&sdk_event=success&sdk_user=sdkUser",
@@ -1734,6 +1740,7 @@ class Test_V3_Login_Events_Anon:
                 assert meta["usr.id"] == "sdkUser"
                 assert meta["_dd.appsec.usr.id"] == USER_HASH
 
+        # before/after
     def setup_login_sdk_failure_local(self):
         self.r_sdk_failure = weblog.post(
             "/login?auth=local&sdk_event=failure&sdk_user=sdkUser&sdk_user_exists=true",
@@ -1754,6 +1761,7 @@ class Test_V3_Login_Events_Anon:
             assert meta["_dd.appsec.events.users.login.failure.sdk"] == "true"
             assert meta["appsec.events.users.login.failure.usr.exists"] == "true"
 
+        # before/after
     def setup_login_sdk_failure_basic(self):
         self.r_sdk_failure = weblog.get(
             "/login?auth=basic&sdk_event=failure&sdk_user=sdkUser&sdk_user_exists=true",
@@ -1956,6 +1964,7 @@ class Test_V3_Login_Events_Blocking:
         interfaces.library.assert_waf_attack(self.r_login_blocked, rule="block-user-login")
         assert self.r_login_blocked.status_code == 403
 
+        # before/after
     def setup_login_event_blocking_sdk(self):
         rc.rc_state.reset().apply()
 
