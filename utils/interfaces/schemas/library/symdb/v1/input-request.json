@@ -3,7 +3,7 @@
   "definitions": {
     "scope": {
       "type": "object",
-      "required": ["end_line", "scope_type", "source_file", "start_line"],
+      "required": ["end_line", "scope_type", "start_line"],
       "properties": {
         "end_line": { "type": "integer" },
         "language_specifics": { "type": ["object", "null"] },

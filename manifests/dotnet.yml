@@ -279,15 +279,15 @@ tests/:
       Test_V2_Login_Events: v3.1.0
       Test_V2_Login_Events_Anon: v3.1.0
       Test_V2_Login_Events_RC: v3.1.0
-      Test_V3_Auto_User_Instrum_Mode_Capability: missing_feature
-      Test_V3_Login_Events: missing_feature
-      Test_V3_Login_Events_Anon: missing_feature
-      Test_V3_Login_Events_Blocking: missing_feature
-      Test_V3_Login_Events_RC: missing_feature
+      Test_V3_Auto_User_Instrum_Mode_Capability: v3.10.0
+      Test_V3_Login_Events: v3.10.0
+      Test_V3_Login_Events_Anon: v3.10.0
+      Test_V3_Login_Events_Blocking: v3.10.0
+      Test_V3_Login_Events_RC: v3.10.0
     test_automated_user_and_session_tracking.py:
       Test_Automated_Session_Blocking: missing_feature
-      Test_Automated_User_Blocking: missing_feature
-      Test_Automated_User_Tracking: missing_feature
+      Test_Automated_User_Blocking: v3.10.0
+      Test_Automated_User_Tracking: v3.10.0
     test_blocking_addresses.py:
       Test_BlockingGraphqlResolvers: missing_feature
       Test_Blocking_client_ip: v2.27.0
@@ -507,7 +507,8 @@ tests/:
     Test_Config_ObfuscationQueryStringRegexp_Default: v3.4.1
     Test_Config_ObfuscationQueryStringRegexp_Empty: v3.4.1
     Test_Config_RuntimeMetrics_Default: incomplete_test_app (test needs to account for dotnet runtime metrics)
-    Test_Config_RuntimeMetrics_Enabled: incomplete_test_app (test needs to account for dotnet runtime metrics)
+    Test_Config_RuntimeMetrics_Enabled: v2.0.0
+    Test_Config_RuntimeMetrics_Enabled_WithRuntimeId: v2.0.0
     Test_Config_UnifiedServiceTagging_CustomService: v3.3.0
     Test_Config_UnifiedServiceTagging_Default: v3.3.0
   test_data_integrity.py:

@@ -22,7 +22,6 @@ COPY --from=build /binaries/SYSTEM_TESTS_LIBRARY_VERSION SYSTEM_TESTS_LIBRARY_VE
 COPY --from=build /app/target/myproject-0.0.1-SNAPSHOT.jar /app/app.jar
 COPY --from=build /dd-tracer/dd-java-agent.jar .
 
-ENV DD_JMXFETCH_ENABLED=false
 ENV DD_TRACE_HEADER_TAGS='user-agent:http.request.headers.user-agent'
 # FIXME: Fails on APPSEC_BLOCKING, see APPSEC-51405
 # ENV DD_TRACE_INTERNAL_EXIT_ON_FAILURE=true
