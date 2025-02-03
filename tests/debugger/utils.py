@@ -92,7 +92,9 @@ class _Base_Debugger_Test:
                 )
 
     ###### set #####
-    def set_probes(self, probes):
+    def set_probes(
+        self, probes, path_prefix: str = "", uppercase_source_files: bool = False, use_backslashes: bool = False
+    ):
         def _enrich_probes(probes):
             def __get_probe_type(probe_id):
                 if probe_id.startswith("log"):
@@ -130,16 +132,27 @@ class _Base_Debugger_Test:
                             r"([a-z])([A-Z])", r"\1_\2", probe["where"]["methodName"]
                         ).lower()
                 elif probe["where"]["sourceFile"] == "ACTUAL_SOURCE_FILE":
+                    source_file = ""
                     if language == "dotnet":
-                        probe["where"]["sourceFile"] = "DebuggerController.cs"
+                        source_file = "Controllers/DebuggerController.cs"
                     elif language == "java":
-                        probe["where"]["sourceFile"] = "DebuggerController.java"
+                        source_file = "debugger/DebuggerController.java"
                     elif language == "python":
-                        probe["where"]["sourceFile"] = "debugger_controller.py"
+                        source_file = "flask/debugger_controller.py"
                     elif language == "ruby":
-                        probe["where"]["sourceFile"] = "debugger_controller.rb"
+                        source_file = "controllers/debugger_controller.rb"
                     elif language == "nodejs":
-                        probe["where"]["sourceFile"] = "debugger/index.js"
+                        source_file = "debugger/index.js"
+
+                    if uppercase_source_files:
+                        source_file = source_file.upper()
+                    if path_prefix:
+                        source_file = os.path.join(path_prefix, source_file)
+                    if use_backslashes:
+                        source_file = source_file.replace("/", "\\")
+
+                    probe["where"]["sourceFile"] = source_file
+
                 probe["type"] = __get_probe_type(probe["id"])
 
             return probes
