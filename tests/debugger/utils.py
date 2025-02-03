@@ -146,7 +146,14 @@ class BaseDebuggerTest:
         return definitions.get(method, {}).get(language, [])
 
     ###### set #####
-    def set_probes(self, probes: list[dict]) -> None:
+    def set_probes(
+        self,
+        probes: list[dict],
+        *,
+        path_prefix: str = "",
+        uppercase_source_files: bool = False,
+        use_backslashes: bool = False,
+    ) -> None:
         def _enrich_probes(probes: list[dict]):
             def __get_probe_type(probe_id: str):
                 if probe_id.startswith("log"):
@@ -196,24 +203,44 @@ class BaseDebuggerTest:
                         method = method[0].lower() + method[1:] if method else ""
                         probe["where"]["methodName"] = "main.(*DebuggerController)." + method
                 elif probe["where"]["sourceFile"] == "ACTUAL_SOURCE_FILE":
+                    source_file = ""
+                    # Use full paths when testing edge cases (unknown path prefixes, casing differences,
+                    # backslashes) to verify tracers can correctly strip prefixes and normalize paths.
+                    # Otherwise, use simple filenames since tracers with bugs in path handling would fail
+                    # the edge case tests but should still pass the basic functionality tests.
+                    # TODO: Once all tracers pass the edge case tests (DEBUG-5101-5111), always use full
+                    # paths as they are more realistic and provide better test coverage.
+                    use_full_paths = path_prefix or uppercase_source_files or use_backslashes
+
                     if language == "dotnet":
-                        probe["where"]["sourceFile"] = "DebuggerController.cs"
+                        source_file = f"{'Controllers/' if use_full_paths else ''}DebuggerController.cs"
                     elif language == "java":
-                        probe["where"]["sourceFile"] = "DebuggerController.java"
+                        prefix = "com/datadoghq/system_tests/springboot/debugger/" if use_full_paths else ""
+                        source_file = f"{prefix}DebuggerController.java"
                     elif language == "python":
-                        probe["where"]["sourceFile"] = "debugger_controller.py"
+                        source_file = f"{'flask/' if use_full_paths else ''}debugger_controller.py"
                     elif language == "ruby":
                         # In docker container the controller will not have the
                         # shared/rails prefix, this is fine because DI will
                         # remove prefixes as part of file matching.
-                        probe["where"]["sourceFile"] = "shared/rails/app/controllers/debugger_controller.rb"
+                        source_file = "shared/rails/app/controllers/debugger_controller.rb"
                     elif language == "nodejs":
                         if context.weblog_variant == "express4-typescript":
-                            probe["where"]["sourceFile"] = "debugger/index.ts"
+                            source_file = "debugger/index.ts"
                         else:
-                            probe["where"]["sourceFile"] = "debugger/index.js"
+                            source_file = "debugger/index.js"
                     elif language == "php":
-                        probe["where"]["sourceFile"] = "debugger.php"
+                        source_file = f"{'common/' if use_full_paths else ''}debugger.php"
+
+                    if uppercase_source_files:
+                        source_file = source_file.upper()
+                    if path_prefix:
+                        source_file = os.path.join(path_prefix, source_file)
+                    if use_backslashes:
+                        source_file = source_file.replace("/", "\\")
+
+                    probe["where"]["sourceFile"] = source_file
+
                 probe["type"] = __get_probe_type(probe["id"])
 
             return probes
