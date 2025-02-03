@@ -4,7 +4,7 @@ Test configuration consistency for features across supported APM SDKs.
 
 from urllib.parse import urlparse
 import pytest
-from utils import scenarios, features, context, missing_feature, irrelevant, flaky
+from utils import scenarios, features, context, missing_feature, irrelevant, flaky, bug
 from utils.parametric.spec.trace import find_span_in_traces, find_only_span
 
 parametrize = pytest.mark.parametrize
@@ -237,6 +237,7 @@ class Test_Config_RateLimit:
         [{"DD_TRACE_RATE_LIMIT": "1", "DD_TRACE_SAMPLE_RATE": "1", "DD_TRACE_SAMPLING_RULES": '[{"sample_rate":1}]'}],
     )
     @flaky(library="java", reason="APMAPI-908")
+    @bug(context.library == "golang", reason="APMAPI-1030")
     def test_setting_trace_rate_limit_strict(self, library_env, test_agent, test_library):
         with test_library:
             with test_library.dd_start_span(name="s1") as s1:
