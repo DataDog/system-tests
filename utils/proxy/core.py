@@ -6,6 +6,7 @@ from collections import defaultdict
 import json
 import logging
 import os
+from typing import Any
 from datetime import datetime, UTC
 
 from mitmproxy import master, options, http
@@ -26,7 +27,7 @@ messages_counts = defaultdict(int)
 
 
 class ObjectDumpEncoder(json.JSONEncoder):
-    def default(self, o):
+    def default(self, o) -> Any:  # noqa: ANN401
         if isinstance(o, bytes):
             return str(o)
         return json.JSONEncoder.default(self, o)
@@ -56,7 +57,7 @@ class _RequestLogger:
         self.rc_api_runtime_ids_request_count = None
 
     @staticmethod
-    def get_error_response(message):
+    def get_error_response(message) -> http.Response:
         logger.error(message)
         return http.Response.make(400, message)
 
@@ -125,7 +126,7 @@ class _RequestLogger:
             logger.info(f"    => reverse proxy to {flow.request.pretty_url}")
 
     @staticmethod
-    def request_is_from_tracer(request):
+    def request_is_from_tracer(request) -> bool:
         return request.host == "agent"
 
     def response(self, flow):

@@ -43,6 +43,7 @@
         "DD_TRACE_SAMPLING_RULES": "trace_sample_rules",
         "DD_TRACE_SPAN_ATTRIBUTE_SCHEMA": "trace_span_attribute_schema",
         "DD_TRACE_STARTUP_LOGS": "trace_startup_logs_enabled",
+        "DD_LLMOBS_EVALUATOR_SAMPLING_RULES": "dd_llmobs_evaluator_sampling_rules",
         "_dd_trace_writer_log_error_payloads": "trace_writer_log_error_payloads",
         "agent_url": "trace_agent_url",
         "appsec.enabled": "appsec_enabled",

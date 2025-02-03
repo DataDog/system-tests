@@ -5,8 +5,9 @@
 """Check data that are sent to logs file on weblog"""
 
 import json
-import re
 import os
+from pathlib import Path
+import re
 
 from utils._context.core import context
 from utils.tools import logger
@@ -219,7 +220,7 @@ class _LibraryDotnetManaged(_LogsInterfaceValidator):
         for f in files:
             filename = os.path.join(f"{context.scenario.host_log_folder}/docker/weblog/logs/", f)
 
-            if os.path.isfile(filename) and re.search(r"dotnet-tracer-managed-dotnet-\d+(_\d+)?.log", filename):
+            if Path(filename).is_file() and re.search(r"dotnet-tracer-managed-dotnet-\d+(_\d+)?.log", filename):
                 result.append(filename)
 
         return result
