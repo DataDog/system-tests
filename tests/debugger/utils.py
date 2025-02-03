@@ -136,7 +136,7 @@ class _Base_Debugger_Test:
                     if language == "dotnet":
                         source_file = "Controllers/DebuggerController.cs"
                     elif language == "java":
-                        source_file = "debugger/DebuggerController.java"
+                        source_file = "com/datadoghq/system_tests/springboot/debugger/DebuggerController.java"
                     elif language == "python":
                         source_file = "flask/debugger_controller.py"
                     elif language == "ruby":
