@@ -5,10 +5,12 @@
 from utils import context
 from utils import features
 from utils import interfaces
+from utils import irrelevant
 from utils import remote_config as rc
 from utils import rfc
 from utils import scenarios
 from utils import weblog
+from utils import missing_feature
 
 # User entries in the internal DB:
 # users = [
@@ -28,6 +30,8 @@ from utils import weblog
 USER = "test"
 UUID_USER = "testuuid"
 PASSWORD = "1234"
+
+libs_without_user_id = ["java"]
 
 
 def login_data(context, user, password):
@@ -49,28 +53,59 @@ class Test_Automated_User_Tracking:
             cookies=self.r_login.cookies,
         )
 
+    @irrelevant(
+        context.library == "python" and context.weblog_variant not in ["django-poc", "python3.12", "django-py3.13"],
+        reason="no possible auto-instrumentation for python except on Django",
+    )
     def test_user_tracking_auto(self):
         assert self.r_login.status_code == 200
 
         assert self.r_home.status_code == 200
         for _, _, span in interfaces.library.get_spans(request=self.r_home):
             meta = span.get("meta", {})
-            assert meta["usr.id"] == "social-security-id"
-            assert meta["_dd.appsec.usr.id"] == "social-security-id"
+            if context.library in libs_without_user_id:
+                assert meta["usr.id"] == USER
+                assert meta["_dd.appsec.usr.id"] == USER
+            else:
+                assert meta["usr.id"] == "social-security-id"
+                assert meta["_dd.appsec.usr.id"] == "social-security-id"
+
             assert meta["_dd.appsec.user.collection_mode"] == "identification"
 
     def setup_user_tracking_sdk_overwrite(self):
-        self.r_login = weblog.post(
-            "/login?auth=local&sdk_event=success&sdk_user=sdkUser", data=login_data(context, USER, PASSWORD)
-        )
+        self.requests = {
+            "before": weblog.post(
+                "/login?auth=local&sdk_trigger=before&sdk_event=success&sdk_user=sdkUser",
+                data=login_data(context, USER, PASSWORD),
+            ),
+            "after": weblog.post(
+                "/login?auth=local&sdk_trigger=after&sdk_event=success&sdk_user=sdkUser",
+                data=login_data(context, USER, PASSWORD),
+            ),
+        }
 
+    @missing_feature(
+        context.library == "dotnet",
+        reason="This endpoint calls the sdk TrackSuccessfulLogin which doesn't add the collection_mode tag (only SetUser)",
+    )
     def test_user_tracking_sdk_overwrite(self):
-        assert self.r_login.status_code == 200
-        for _, _, span in interfaces.library.get_spans(request=self.r_login):
-            meta = span.get("meta", {})
-            assert meta["usr.id"] == "sdkUser"
-            assert meta["_dd.appsec.usr.id"] == "social-security-id"
-            assert meta["_dd.appsec.user.collection_mode"] == "sdk"
+        for trigger, request in self.requests.items():
+            assert request.status_code == 200
+            for _, _, span in interfaces.library.get_spans(request=request):
+                meta = span.get("meta", {})
+                assert meta["usr.id"] == "sdkUser", f"{trigger}: 'usr.id' must be set by the SDK"
+                if context.library in libs_without_user_id:
+                    assert (
+                        meta["_dd.appsec.usr.id"] == USER
+                    ), f"{trigger}: '_dd.appsec.usr.id' must be set by the automated instrumentation"
+                else:
+                    assert (
+                        meta["_dd.appsec.usr.id"] == "social-security-id"
+                    ), f"{trigger}: '_dd.appsec.usr.id' must be set by the automated instrumentation"
+
+                assert (
+                    meta["_dd.appsec.user.collection_mode"] == "sdk"
+                ), f"{trigger}: The collection mode should be 'sdk'"
 
 
 CONFIG_ENABLED = (
@@ -108,7 +143,11 @@ BLOCK_USER_DATA = (
             {
                 "id": "blocked_users",
                 "type": "data_with_expiration",
-                "data": [{"value": "social-security-id", "expiration": 0}, {"value": "sdkUser", "expiration": 0}],
+                "data": [
+                    {"value": "test", "expiration": 0},
+                    {"value": "social-security-id", "expiration": 0},
+                    {"value": "sdkUser", "expiration": 0},
+                ],
             },
         ],
     },
@@ -132,6 +171,10 @@ class Test_Automated_User_Blocking:
             cookies=self.r_login.cookies,
         )
 
+    @irrelevant(
+        context.library == "python" and context.weblog_variant not in ["django-poc", "python3.12", "django-py3.13"],
+        reason="no possible auto-instrumentation for python except on Django",
+    )
     def test_user_blocking_auto(self):
         assert self.config_state_1[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
         assert self.r_login.status_code == 200
@@ -215,6 +258,7 @@ class Test_Automated_Session_Blocking:
             cookies=self.r_create_session.cookies,
         )
 
+    @missing_feature(context.library == "dotnet", reason="Session ids can't be set.")
     def test_session_blocking(self):
         assert self.config_state_1[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
         assert self.r_create_session.status_code == 200

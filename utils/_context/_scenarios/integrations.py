@@ -37,6 +37,7 @@ class IntegrationsScenario(EndToEndScenario):
                 "AWS_SECRET_ACCESS_KEY": "my-access-key",
                 "DD_TRACE_INFERRED_PROXY_SERVICES_ENABLED": "true",
                 "SYSTEM_TESTS_AWS_URL": "http://localstack-main:4566",
+                "DD_IAST_CONTEXT_MODE": "GLOBAL",
             },
             include_postgres_db=True,
             include_cassandra_db=True,

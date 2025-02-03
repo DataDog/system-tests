@@ -2,9 +2,17 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2022 Datadog, Inc.
 
+import re
 import json
+import time
 from utils import weblog, interfaces, scenarios, features, rfc, irrelevant, context, bug, missing_feature
 from utils.tools import logger
+
+# get the default log output
+stdout = interfaces.library_stdout if context.library != "dotnet" else interfaces.library_dotnet_managed
+runtime_metrics = {"nodejs": "runtime.node.mem.heap_total"}
+runtime_metrics_langs = [".NET", "go", "nodejs", "python", "ruby"]
+log_injection_fields = {"nodejs": {"message": "msg"}}
 
 
 @scenarios.default
@@ -85,10 +93,12 @@ class Test_Config_ObfuscationQueryStringRegexp_Empty:
 
     @bug(context.library == "java", reason="APMAPI-770")
     @missing_feature(context.library == "nodejs", reason="Node only obfuscates queries on the server side")
-    @missing_feature(context.library == "golang", reason="Go only obfuscates queries on the server side")
+    @missing_feature(context.library < "golang@1.72.0-dev", reason="Obfuscation only occurs on server side")
     def test_query_string_obfuscation_empty_client(self):
         spans = [s for _, _, s in interfaces.library.get_spans(request=self.r, full_trace=True)]
-        client_span = _get_span_by_tags(spans, tags={"http.url": "http://weblog:7777/?key=monkey"})
+        client_span = _get_span_by_tags(
+            spans, tags={"span.kind": "client", "http.url": "http://weblog:7777/?key=monkey"}
+        )
         assert client_span, "\n".join([str(s) for s in spans])
 
     def setup_query_string_obfuscation_empty_server(self):
@@ -97,17 +107,66 @@ class Test_Config_ObfuscationQueryStringRegexp_Empty:
     @bug(context.library == "python", reason="APMAPI-772")
     def test_query_string_obfuscation_empty_server(self):
         spans = [s for _, _, s in interfaces.library.get_spans(request=self.r, full_trace=True)]
-        client_span = _get_span_by_tags(spans, tags={"http.url": "http://localhost:7777/?application_key=value"})
-        assert client_span, "\n".join([str(s) for s in spans])
+        server_span = _get_span_by_tags(spans, tags={"http.url": "http://localhost:7777/?application_key=value"})
+        assert server_span, "\n".join([str(s) for s in spans])
 
 
 @scenarios.tracing_config_nondefault
 @features.tracing_configuration_consistency
 class Test_Config_ObfuscationQueryStringRegexp_Configured:
-    def setup_query_string_obfuscation_configured(self):
+    def setup_query_string_obfuscation_configured_client(self):
+        self.r = weblog.get("/make_distant_call", params={"url": "http://weblog:7777/?ssn=123-45-6789"})
+
+    @missing_feature(context.library == "nodejs", reason="Node only obfuscates queries on the server side")
+    @missing_feature(
+        context.library < "golang@1.72.0-dev",
+        reason="Client query string collection disabled by default; obfuscation only occurs on server side",
+    )
+    @missing_feature(
+        context.library == "java" and context.weblog_variant in ("vertx3", "vertx4"),
+        reason="Missing endpoint",
+    )
+    def test_query_string_obfuscation_configured_client(self):
+        spans = [s for _, _, s in interfaces.library.get_spans(request=self.r, full_trace=True)]
+        client_span = _get_span_by_tags(
+            spans, tags={"span.kind": "client", "http.url": "http://weblog:7777/?<redacted>"}
+        )
+        assert client_span, "\n".join([str(s) for s in spans])
+
+    def setup_query_string_obfuscation_configured_server(self):
         self.r = weblog.get("/?ssn=123-45-6789")
 
-    def test_query_string_obfuscation_configured(self):
+    def test_query_string_obfuscation_configured_server(self):
+        interfaces.library.add_span_tag_validation(
+            self.r, tags={"http.url": r"^.*/\?<redacted>$"}, value_as_regular_expression=True
+        )
+
+
+@features.tracing_configuration_consistency
+class Test_Config_ObfuscationQueryStringRegexp_Default:
+    def setup_query_string_obfuscation_configured_client(self):
+        self.r = weblog.get("/make_distant_call", params={"url": "http://weblog:7777/?token=value"})
+
+    @missing_feature(context.library == "nodejs", reason="Node only obfuscates queries on the server side")
+    @missing_feature(
+        context.library < "golang@1.72.0-dev",
+        reason="Client query string collection disabled by default; obfuscation only occurs on server side",
+    )
+    @missing_feature(
+        context.library == "java" and context.weblog_variant in ("vertx3", "vertx4"),
+        reason="Missing endpoint",
+    )
+    def test_query_string_obfuscation_configured_client(self):
+        spans = [s for _, _, s in interfaces.library.get_spans(request=self.r, full_trace=True)]
+        client_span = _get_span_by_tags(
+            spans, tags={"span.kind": "client", "http.url": "http://weblog:7777/?<redacted>"}
+        )
+        assert client_span, "\n".join([str(s) for s in spans])
+
+    def setup_query_string_obfuscation_configured_server(self):
+        self.r = weblog.get("/?token=value")
+
+    def test_query_string_obfuscation_configured_server(self):
         interfaces.library.add_span_tag_validation(
             self.r, tags={"http.url": r"^.*/\?<redacted>$"}, value_as_regular_expression=True
         )
@@ -321,8 +380,10 @@ def _get_span_by_tags(spans, tags):
     return {}
 
 
-@scenarios.tracing_config_nondefault
+@features.envoy_external_processing
 @features.tracing_configuration_consistency
+@scenarios.tracing_config_nondefault
+@scenarios.external_processing
 class Test_Config_UnifiedServiceTagging_CustomService:
     """Verify behavior of http clients and distributed traces"""
 
@@ -415,3 +476,167 @@ class Test_Config_IntegrationEnabled_True:
             assert list(
                 filter(lambda span: "kafka.produce" in span.get("name"), spans)
             ), f"No kafka.produce span found in trace: {spans}"
+
+
+@rfc("https://docs.google.com/document/d/1kI-gTAKghfcwI7YzKhqRv2ExUstcHqADIWA4-TZ387o/edit#heading=h.8v16cioi7qxp")
+@scenarios.tracing_config_nondefault
+@features.tracing_configuration_consistency
+class Test_Config_LogInjection_Enabled:
+    """Verify log injection behavior when enabled"""
+
+    def setup_log_injection_enabled(self):
+        self.message = "msg"
+        self.r = weblog.get("/log/library", params={"msg": self.message})
+
+    def test_log_injection_enabled(self):
+        assert self.r.status_code == 200
+        pattern = r'"dd":\{[^}]*\}'
+        stdout.assert_presence(pattern)
+        dd = parse_log_injection_message(self.message)
+        required_fields = ["trace_id", "span_id", "service", "version", "env"]
+        for field in required_fields:
+            assert field in dd, f"Missing field: {field}"
+        return
+
+
+@rfc("https://docs.google.com/document/d/1kI-gTAKghfcwI7YzKhqRv2ExUstcHqADIWA4-TZ387o/edit#heading=h.8v16cioi7qxp")
+@scenarios.default
+@features.tracing_configuration_consistency
+class Test_Config_LogInjection_Default:
+    """Verify log injection is disabled by default"""
+
+    def setup_log_injection_default(self):
+        self.message = "msg"
+        self.r = weblog.get("/log/library", params={"msg": self.message})
+
+    def test_log_injection_default(self):
+        assert self.r.status_code == 200
+        pattern = r'"dd":\{[^}]*\}'
+        stdout.assert_absence(pattern)
+
+
+@rfc("https://docs.google.com/document/d/1kI-gTAKghfcwI7YzKhqRv2ExUstcHqADIWA4-TZ387o/edit#heading=h.8v16cioi7qxp")
+@scenarios.tracing_config_nondefault
+@features.tracing_configuration_consistency
+class Test_Config_LogInjection_128Bit_TradeId_Default:
+    """Verify trace IDs are logged in 128bit format when log injection is enabled"""
+
+    def setup_log_injection_128bit_traceid_default(self):
+        self.message = "msg"
+        self.r = weblog.get("/log/library", params={"msg": self.message})
+
+    def test_log_injection_128bit_traceid_default(self):
+        assert self.r.status_code == 200
+        pattern = r'"dd":\{[^}]*\}'
+        stdout.assert_presence(pattern)
+        dd = parse_log_injection_message(self.message)
+        trace_id = dd.get("trace_id")
+        assert re.match(r"^[0-9a-f]{32}$", trace_id), f"Invalid 128-bit trace_id: {trace_id}"
+
+
+@rfc("https://docs.google.com/document/d/1kI-gTAKghfcwI7YzKhqRv2ExUstcHqADIWA4-TZ387o/edit#heading=h.8v16cioi7qxp")
+@scenarios.tracing_config_nondefault_3
+@features.tracing_configuration_consistency
+class Test_Config_LogInjection_128Bit_TradeId_Disabled:
+    """Verify 128 bit traceid are disabled in log injection when DD_TRACE_128_BIT_TRACEID_LOGGING_ENABLED=false"""
+
+    def setup_log_injection_128bit_traceid_disabled(self):
+        self.message = "msg"
+        self.r = weblog.get("/log/library", params={"msg": self.message})
+
+    def test_log_injection_128bit_traceid_disabled(self):
+        assert self.r.status_code == 200
+        pattern = r'"dd":\{[^}]*\}'
+        stdout.assert_presence(pattern)
+        dd = parse_log_injection_message(self.message)
+        trace_id = dd.get("trace_id")
+        assert re.match(r"^\d{1,20}$", trace_id), f"Invalid 64-bit trace_id: {trace_id}"
+
+
+@rfc("https://docs.google.com/document/d/1kI-gTAKghfcwI7YzKhqRv2ExUstcHqADIWA4-TZ387o/edit#heading=h.8v16cioi7qxp")
+@scenarios.runtime_metrics_enabled
+@features.tracing_configuration_consistency
+class Test_Config_RuntimeMetrics_Enabled:
+    """Verify runtime metrics are enabled when DD_RUNTIME_METRICS_ENABLED=true and that they have the proper tags"""
+
+    def setup_main(self):
+        self.req = weblog.get("/")
+
+        # Wait for 10s to allow the tracer to send runtime metrics on the default 10s interval
+        time.sleep(10)
+
+    def test_main(self):
+        assert self.req.status_code == 200
+
+        runtime_metrics = [
+            metric
+            for _, metric in interfaces.agent.get_metrics()
+            if metric["metric"].startswith("runtime.") or metric["metric"].startswith("jvm.")
+        ]
+        assert len(runtime_metrics) > 0
+
+        for metric in runtime_metrics:
+            tags = {tag.split(":")[0]: tag.split(":")[1] for tag in metric["tags"]}
+            assert tags.get("lang") in runtime_metrics_langs or tags.get("lang") is None
+
+            # Test that Unified Service Tags are added to the runtime metrics
+            assert tags["service"] == "weblog"
+            assert tags["env"] == "system-tests"
+            assert tags["version"] == "1.0.0"
+
+            # Test that DD_TAGS are added to the runtime metrics
+            # DD_TAGS=key1:val1,key2:val2 in default weblog containers
+            assert tags["key1"] == "val1"
+            assert tags["key2"] == "val2"
+
+
+@scenarios.runtime_metrics_enabled
+@features.tracing_configuration_consistency
+class Test_Config_RuntimeMetrics_Enabled_WithRuntimeId:
+    """Verify runtime metrics are enabled when DD_RUNTIME_METRICS_ENABLED=true and that they have the runtime-id tag"""
+
+    def setup_main(self):
+        self.req = weblog.get("/")
+
+        # Wait for 10s to allow the tracer to send runtime metrics on the default 10s interval
+        time.sleep(10)
+
+    def test_main(self):
+        assert self.req.status_code == 200
+
+        runtime_metrics = [
+            metric
+            for _, metric in interfaces.agent.get_metrics()
+            if metric["metric"].startswith("runtime.") or metric["metric"].startswith("jvm.")
+        ]
+        assert len(runtime_metrics) > 0
+
+        for metric in runtime_metrics:
+            tags = {tag.split(":")[0]: tag.split(":")[1] for tag in metric["tags"]}
+            assert "runtime-id" in tags
+
+
+@rfc("https://docs.google.com/document/d/1kI-gTAKghfcwI7YzKhqRv2ExUstcHqADIWA4-TZ387o/edit#heading=h.8v16cioi7qxp")
+@scenarios.default
+@features.tracing_configuration_consistency
+class Test_Config_RuntimeMetrics_Default:
+    """Verify runtime metrics are disabled by default"""
+
+    # test that by default runtime metrics are disabled
+    def test_config_runtimemetrics_default(self):
+        iterations = 0
+        for data in interfaces.library.get_data("/dogstatsd/v2/proxy"):
+            iterations += 1
+        assert iterations == 0, "Runtime metrics are enabled by default"
+
+
+# Parse the JSON-formatted log message from stdout and return the 'dd' object
+def parse_log_injection_message(log_message):
+    for data in stdout.get_data():
+        try:
+            message = json.loads(data.get("message"))
+        except json.JSONDecodeError:
+            continue
+        if message.get("dd") and message.get(log_injection_fields[context.library.library]["message"]) == log_message:
+            dd = message.get("dd")
+            return dd

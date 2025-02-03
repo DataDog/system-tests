@@ -1,9 +1,13 @@
 [project]
 name = 'system_tests'
 version = '0.0.1'
+dynamic = ["dependencies"]
 
 [tool.setuptools]
 packages = ["tests", "utils", "manifests"]
+
+[tool.setuptools.dynamic]
+dependencies = {file = ["requirements.txt"]}
 
 [tool.pytest.ini_options]
 addopts = "--json-report --json-report-indent=2 --color=yes --no-header --junitxml=reportJunit.xml -r Xf"
@@ -43,11 +47,10 @@ allow_no_feature_nodes = [
 ]
 
 [tool.mypy]
-files = ["utils/parametric", "tests/parametric"]
+files = ["utils/parametric/**/*.py", "tests/parametric/**/*.py"]
 ignore_missing_imports = true
 check_untyped_defs = true
 disable_error_code = ["no-redef"]
-exclude = 'utils/parametric/_library_client\.py|^(?!utils/parametric|tests/parametric).*$'
 follow_imports = "skip"
 # enable_error_code = ["ignore-without-code"]
 
@@ -80,12 +83,8 @@ ignore = [
     ### TODO : remove those ignores
     # missing-type-annotation, the ONE to remove !!
     "ANN001",
-    "ANN002",
     "ANN003",
-    "ANN201",
     "ANN202",
-    "ANN205",
-    "ANN206",
     "BLE001",  # Do not catch blind exception: `Exception`, big project to enable this
     "C901",    # code complexity, TBD
     "E722",    # bare except, big project to enable this
@@ -96,15 +95,7 @@ ignore = [
     "PLR0915", # too many statements, may be replaced by a higher default value
     "PLR1714",
     "PLR2004",
-    "PTH100",
-    "PTH102",
-    "PTH110",
-    "PTH113",
-    "PTH116",
     "PTH118",
-    "PTH119",
-    "PTH120",
-    "PTH122",
     "PTH123",  # `open()` should be replaced by `Path.open()`
     "RUF012",
     "S202",
@@ -163,13 +154,17 @@ ignore = [
     "INP001",  # this is not a package
     "T201"     # allow print statements in scripts folder
 ]
-"utils/interfaces/schemas/serve_doc.py" = ["INP001"] # this is not a package
+"utils/interfaces/schemas/serve_doc.py" = [
+    "INP001", # this is not a package
+    "ANN201"
+]
 "utils/waf_rules.py" = ["N801"]  # generated file
 # TODO : remove those ignores
 "tests/*" = ["ALL"]
 "utils/build/*"  = ["ALL"]
 "lib-injection/*" = ["ALL"]
 "utils/{k8s_lib_injection/*,_context/_scenarios/k8s_lib_injection.py}" = [
+    "ANN201",
     "TRY201",
     "TRY002",
     "D207",
@@ -204,6 +199,7 @@ ignore = [
 ]
 
 "utils/onboarding/*" = [
+    "ANN201",
     "DTZ006",
     "DTZ005",
     "E501",    # line too long
@@ -217,7 +213,12 @@ ignore = [
     "N803",
     "RET505",
 ]
+"utils/docker_ssi/*" = [
+    "ANN201",
+    "ANN205",
+]
 "utils/{_context/_scenarios/docker_ssi.py,docker_ssi/docker_ssi_matrix_builder.py,docker_ssi/docker_ssi_matrix_utils.py}" = [
+    "ANN201",
     "PLR2004",
     "E501",    # line too long
     "SIM210",
@@ -248,7 +249,6 @@ ignore = [
     "EM102",
     "PLR0912",
     "PLR0915",
-    "PLR1714",
     "PLW1510",
     "PTH112",
     "PTH113",
@@ -292,4 +292,7 @@ ignore = [
     "SIM115",
     "SLF001",
     "TRY002",
+]
+"utils/_features.py" = [
+    "ANN205"  #obvious decorators
 ]

@@ -71,9 +71,9 @@ print_usage() {
     echo -e "    ${SCRIPT_NAME}"
     echo -e "  Build images for Java and Spring Boot:"
     echo -e "    ${SCRIPT_NAME} --library java --weblog-variant spring-boot"
-    echo -e "  Build default images for Dotnet with binary path:"
+    echo -e "  Build default images for .NET with binary path:"
     echo -e "    ${SCRIPT_NAME} dotnet --binary-path "/mnt/c/dev/dd-trace-dotnet-linux/tmp/linux-x64""
-    echo -e "  Build default images for Dotnet with binary url:"
+    echo -e "  Build default images for .NET with binary url:"
     echo -e "    ${SCRIPT_NAME} ./build.sh dotnet --binary-url "https://github.com/DataDog/dd-trace-dotnet/releases/download/v2.27.0/datadog-dotnet-apm-2.27.0.tar.gz""
     echo -e "  List libraries:"
     echo -e "    ${SCRIPT_NAME} --list-libraries"
@@ -155,9 +155,11 @@ build() {
                     fi
                 fi
                 source venv/bin/activate
-                python -m pip install --upgrade pip wheel
+                python -m pip install --upgrade pip setuptools==75.8.0
             fi
-            pip install -r requirements.txt
+            python -m pip install -e .
+            cp requirements.txt venv/requirements.txt
+
 
         elif [[ $IMAGE_NAME == runner ]] && [[ $DOCKER_MODE == 1 ]]; then
             docker buildx build \

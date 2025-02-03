@@ -1,10 +1,10 @@
+from collections import defaultdict
 import argparse
 import json
-import os
 from utils._context._scenarios import get_all_scenarios, ScenarioGroup
 
 
-def get_github_workflow_map(scenarios, scenarios_groups):
+def get_github_workflow_map(scenarios, scenarios_groups) -> dict:
     result = {}
 
     scenarios_groups = [group.strip() for group in scenarios_groups if group.strip()]
@@ -40,7 +40,7 @@ def get_github_workflow_map(scenarios, scenarios_groups):
     return result
 
 
-def get_graphql_weblogs(library):
+def get_graphql_weblogs(library) -> list[str]:
     weblogs = {
         "cpp": [],
         "dotnet": [],
@@ -55,11 +55,11 @@ def get_graphql_weblogs(library):
     return weblogs[library]
 
 
-def get_endtoend_weblogs(library):
+def get_endtoend_weblogs(library, ci_environment: str) -> list[str]:
     weblogs = {
         "cpp": ["nginx"],
         "dotnet": ["poc", "uds"],
-        "golang": ["chi", "echo", "gin", "net-http", "uds-echo"],
+        "golang": ["chi", "echo", "gin", "net-http", "uds-echo", "net-http-orchestrion"],
         "java": [
             "akka-http",
             "jersey-grizzly2",
@@ -83,7 +83,7 @@ def get_endtoend_weblogs(library):
             *[f"apache-mod-{v}-zts" for v in ["7.0", "7.1", "7.2", "7.3", "7.4", "8.0", "8.1", "8.2"]],
             *[f"php-fpm-{v}" for v in ["7.0", "7.1", "7.2", "7.3", "7.4", "8.0", "8.1", "8.2"]],
         ],
-        "python": ["flask-poc", "django-poc", "uwsgi-poc", "uds-flask", "python3.12", "fastapi"],
+        "python": ["flask-poc", "django-poc", "uwsgi-poc", "uds-flask", "python3.12", "fastapi", "django-py3.13"],
         "ruby": [
             "rack",
             "uds-sinatra",
@@ -92,10 +92,14 @@ def get_endtoend_weblogs(library):
         ],
     }
 
+    if ci_environment != "dev":
+        # as now, django-py3.13 support is not released
+        weblogs["python"].remove("django-py3.13")
+
     return weblogs[library]
 
 
-def get_opentelemetry_weblogs(library):
+def get_opentelemetry_weblogs(library) -> list[str]:
     weblogs = {
         "cpp": [],
         "dotnet": [],
@@ -110,27 +114,38 @@ def get_opentelemetry_weblogs(library):
     return weblogs[library]
 
 
-def main(language: str, scenarios: str, groups: str):
+def _print_output(result: dict[str, dict], output_format: str) -> None:
+    if output_format == "github":
+        for workflow_name, workflow in result.items():
+            for parameter, value in workflow.items():
+                print(f"{workflow_name}_{parameter}={json.dumps(value)}")
+    else:
+        raise ValueError(f"Invalid format: {format}")
+
+
+def main(
+    language: str, scenarios: str, groups: str, parametric_job_count: int, ci_environment: str, output_format: str
+) -> None:
+    result = defaultdict(dict)
+    # this data struture is a dict where:
+    #  the key is the workflow identifier
+    #  the value is also a dict, where the key/value pair is the parameter name/value.
     scenario_map = get_github_workflow_map(scenarios.split(","), groups.split(","))
 
     for github_workflow, scenario_list in scenario_map.items():
-        print(f"{github_workflow}_scenarios={json.dumps(scenario_list)}")
+        result[github_workflow]["scenarios"] = scenario_list
 
-    endtoend_weblogs = get_endtoend_weblogs(language)
-    print(f"endtoend_weblogs={json.dumps(endtoend_weblogs)}")
+    result["endtoend"]["weblogs"] = get_endtoend_weblogs(language, ci_environment)
+    result["graphql"]["weblogs"] = get_graphql_weblogs(language)
+    result["opentelemetry"]["weblogs"] = get_opentelemetry_weblogs(language)
+    result["parametric"]["job_count"] = parametric_job_count
+    result["parametric"]["job_matrix"] = list(range(1, parametric_job_count + 1))
 
-    graphql_weblogs = get_graphql_weblogs(language)
-    print(f"graphql_weblogs={json.dumps(graphql_weblogs)}")
-
-    opentelemetry_weblogs = get_opentelemetry_weblogs(language)
-    print(f"opentelemetry_weblogs={json.dumps(opentelemetry_weblogs)}")
-
-    _experimental_parametric_job_count = int(os.environ.get("_EXPERIMENTAL_PARAMETRIC_JOB_COUNT", "1"))
-    print(f"_experimental_parametric_job_matrix={list(range(1, _experimental_parametric_job_count + 1))!s}")
+    _print_output(result, output_format)
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(prog="get-github-parameters", description="Get scenarios and weblog to run")
+    parser = argparse.ArgumentParser(prog="get-github-parameters", description="Get scenarios and weblogs to run")
     parser.add_argument(
         "language",
         type=str,
@@ -138,9 +153,31 @@ if __name__ == "__main__":
         choices=["cpp", "dotnet", "python", "ruby", "golang", "java", "nodejs", "php"],
     )
 
+    parser.add_argument(
+        "--format",
+        "-f",
+        type=str,
+        help="Select the output format",
+        choices=["github"],
+        default="github",
+    )
+
     parser.add_argument("--scenarios", "-s", type=str, help="Scenarios to run", default="")
     parser.add_argument("--groups", "-g", type=str, help="Scenario groups to run", default="")
 
+    # workflow specific parameters
+    parser.add_argument("--parametric-job-count", type=int, help="How may jobs must run parametric scenario", default=1)
+
+    # Misc
+    parser.add_argument("--ci-environment", type=str, help="Used internally in system-tests CI", default="custom")
+
     args = parser.parse_args()
 
-    main(language=args.language, scenarios=args.scenarios, groups=args.groups)
+    main(
+        language=args.language,
+        scenarios=args.scenarios,
+        groups=args.groups,
+        ci_environment=args.ci_environment,
+        output_format=args.format,
+        parametric_job_count=args.parametric_job_count,
+    )
