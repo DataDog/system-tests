@@ -844,7 +844,15 @@ class _Scenarios:
 
     runtime_metrics_enabled = EndToEndScenario(
         "RUNTIME_METRICS_ENABLED",
+        # Add environment variable DD_DOGSTATSD_START_DELAY=0 to avoid the default 30s startup delay in the Java tracer.
+        # That delay is used in production to reduce the impact on startup and other side-effects on various application
+        # servers. These considerations do not apply to the system-tests environment so we can reduce it to 0s.
+        weblog_env={"DD_DOGSTATSD_START_DELAY": "0"},
         runtime_metrics_enabled=True,
+        # Disable the proxy in between weblog and the agent so that we can send metrics (via UDP) to the agent.
+        # The mitmproxy can only proxy UDP traffic by doing a host-wide transparent proxy, but we currently
+        # via specific ports. As a result, with the proxy enabled all UDP traffic is being dropped.
+        use_proxy_for_weblog=False,
         doc="Test runtime metrics",
     )
 
