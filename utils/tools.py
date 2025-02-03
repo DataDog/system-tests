@@ -2,13 +2,14 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
+from enum import StrEnum
 import logging
 import os
 import re
 import sys
 
 
-class bcolors:
+class ShColors(StrEnum):
     CYAN = "\033[96m"
     MAGENTA = "\033[95m"
     BLUE = "\033[94m"
@@ -22,18 +23,17 @@ class bcolors:
     UNDERLINE = "\033[4m"
 
 
-def get_log_formatter():
+def get_log_formatter() -> logging.Formatter:
     return logging.Formatter("%(asctime)s.%(msecs)03d %(levelname)-8s %(message)s", "%H:%M:%S")
 
 
-def update_environ_with_local_env():
-
+def update_environ_with_local_env() -> None:
     # dynamically load .env file in environ if exists, it allow users to keep their conf via env vars
     try:
-        with open(".env", "r", encoding="utf-8") as f:
+        with open(".env", encoding="utf-8") as f:
             logger.debug("Found a .env file")
-            for line in f:
-                line = line.strip(" \t\n")
+            for raw_line in f:
+                line = raw_line.strip(" \t\n")
                 line = re.sub(r"(.*)#.$", r"\1", line)
                 line = re.sub(r"^(export +)(.*)$", r"\2", line)
                 if "=" in line:
@@ -50,8 +50,7 @@ DEBUG_LEVEL_STDOUT = 100
 logging.addLevelName(DEBUG_LEVEL_STDOUT, "STDOUT")
 
 
-def stdout(self, message, *args, **kws):
-
+def stdout(self, message, *args, **kws) -> None:  # noqa: ANN002
     if self.isEnabledFor(DEBUG_LEVEL_STDOUT):
         # Yes, logger takes its '*args' as 'args'.
         self._log(DEBUG_LEVEL_STDOUT, message, args, **kws)  # pylint: disable=protected-access
@@ -59,13 +58,20 @@ def stdout(self, message, *args, **kws):
         if hasattr(self, "terminal"):
             self.terminal.write_line(message)
             self.terminal.flush()
+        else:
+            # at this point, the logger may not yet be configured with the pytest terminal
+            # so directly print in stdout
+            print(message)  # noqa: T201
 
 
 logging.Logger.stdout = stdout
 
 
-def get_logger(name="tests", use_stdout=False):
+def get_logger(name="tests", *, use_stdout=False) -> logging.Logger:
     result = logging.getLogger(name)
+
+    logging.getLogger("requests").setLevel(logging.WARNING)
+    logging.getLogger("urllib3").setLevel(logging.WARNING)
 
     if use_stdout:
         stdout_handler = logging.StreamHandler(sys.stdout)
@@ -78,35 +84,34 @@ def get_logger(name="tests", use_stdout=False):
     return result
 
 
-def o(message):
-    return f"{bcolors.OKGREEN}{message}{bcolors.ENDC}"
+def o(message: str) -> str:
+    return f"{ShColors.OKGREEN}{message}{ShColors.ENDC}"
 
 
-def w(message):
-    return f"{bcolors.YELLOW}{message}{bcolors.ENDC}"
+def w(message: str) -> str:
+    return f"{ShColors.YELLOW}{message}{ShColors.ENDC}"
 
 
-def m(message):
-    return f"{bcolors.BLUE}{message}{bcolors.ENDC}"
+def m(message: str) -> str:
+    return f"{ShColors.BLUE}{message}{ShColors.ENDC}"
 
 
-def e(message):
-    return f"{bcolors.RED}{message}{bcolors.ENDC}"
+def e(message: str) -> str:
+    return f"{ShColors.RED}{message}{ShColors.ENDC}"
 
 
 logger = get_logger()
 
 
-def get_rid_from_request(request):
+def get_rid_from_request(request) -> str:
     if request is None:
         return None
 
-    user_agent = [v for k, v in request.request.headers.items() if k.lower() == "user-agent"][0]
+    user_agent = next(v for k, v in request.request.headers.items() if k.lower() == "user-agent")
     return user_agent[-36:]
 
 
-def get_rid_from_span(span):
-
+def get_rid_from_span(span) -> str:
     if not isinstance(span, dict):
         logger.error(f"Span should be an object, not {type(span)}")
         return None
@@ -143,7 +148,7 @@ def get_rid_from_span(span):
     return get_rid_from_user_agent(user_agent)
 
 
-def get_rid_from_user_agent(user_agent):
+def get_rid_from_user_agent(user_agent: str) -> str:
     if not user_agent:
         return None
 
@@ -155,8 +160,8 @@ def get_rid_from_user_agent(user_agent):
     return match.group(1)
 
 
-def nested_lookup(needle: str, heystack, look_in_keys=False, exact_match=False):
-    """ look for needle in heystack, heystack can be a dict or an array """
+def nested_lookup(needle: str, heystack, *, look_in_keys=False, exact_match=False) -> bool:
+    """Look for needle in heystack, heystack can be a dict or an array"""
 
     if isinstance(heystack, str):
         return (needle == heystack) if exact_match else (needle in heystack)

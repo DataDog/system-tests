@@ -1,7 +1,11 @@
 import psycopg2
 
 POSTGRES_CONFIG = dict(
-    host="postgres", port="5433", user="system_tests_user", password="system_tests", dbname="system_tests_dbname",
+    host="postgres",
+    port="5433",
+    user="system_tests_user",
+    password="system_tests",
+    dbname="system_tests_dbname",
 )
 
 

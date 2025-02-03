@@ -1,19 +1,22 @@
-FROM node:18
+FROM node:18-alpine
 
-RUN apt-get update && apt-get install -y jq
+RUN apk add --no-cache bash curl git jq
 
 RUN uname -r
 
 # print versions
 RUN node --version && npm --version && curl --version
 
-COPY utils/build/docker/nodejs/express4 /usr/app
+COPY utils/build/docker/nodejs/express /usr/app
 #overwrite app.js
 COPY utils/build/docker/nodejs_otel/express4-otel /usr/app
 
 WORKDIR /usr/app
 
+ENV NODE_ENV=production
+
 RUN npm install
+RUN npm install "express@4.17.2" "apollo-server-express@3.13.0" "express-mongo-sanitize@2.2.0"
 
 EXPOSE 7777
 
@@ -29,13 +32,10 @@ ENV OTEL_BSP_SCHEDULE_DELAY=200
 RUN npm install --save @opentelemetry/api
 RUN npm install --save @opentelemetry/auto-instrumentations-node
 RUN npm install @opentelemetry/instrumentation-mysql2
+RUN npm install @opentelemetry/otlp-exporter-base
 RUN npm install --save opentelemetry-instrumentation-mssql
 
-RUN npm list --json | jq -r '.dependencies."@opentelemetry/auto-instrumentations-node".version' > SYSTEM_TESTS_LIBRARY_VERSION
-RUN echo "1.0.0" > SYSTEM_TESTS_LIBDDWAF_VERSION
-RUN echo "1.0.0" > SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION
-
 # docker startup
-RUN echo '#!/bin/bash\nnode --require @opentelemetry/auto-instrumentations-node/register app.js' > app.sh
-RUN chmod +x app.sh
+COPY utils/build/docker/nodejs/app.sh app.sh
+RUN printf 'node --require @opentelemetry/auto-instrumentations-node/register app.js' >> app.sh
 CMD ./app.sh

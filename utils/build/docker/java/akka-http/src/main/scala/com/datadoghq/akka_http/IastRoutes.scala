@@ -1,18 +1,14 @@
 package com.datadoghq.akka_http
 
-import akka.http.javadsl.marshallers.jackson.Jackson
-import akka.http.scaladsl.marshalling.Marshaller
-import akka.http.scaladsl.model.{RequestEntity, StatusCodes}
+import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
-import com.datadoghq.system_tests.iast.infra.{LdapServer, SqlServer}
+import com.datadoghq.akka_http.Resources.{dataSource, ldapContext}
 import com.datadoghq.system_tests.iast.utils._
 
 import java.sql.Statement
 
 object IastRoutes {
-  private val dataSource = new SqlServer().start
-  private val ldapContext = new LdapServer().start
 
   private val superSecretAccessKey = "insecure"
   private val cmd = new CmdExamples()
@@ -170,9 +166,9 @@ object IastRoutes {
           } ~
           path("cookiename" / "test") {
             extractRequest { r =>
-              val maybeCookiePair = r.cookies.find(_.name.equals("user"))
+              val maybeCookiePair = r.cookies.find(_.name.equals("table"))
               if (maybeCookiePair.isEmpty) {
-                complete(StatusCodes.BadRequest, "No cookie named 'user'")
+                complete(StatusCodes.BadRequest, "No cookie named 'table'")
               } else {
                 val c = maybeCookiePair.get
                 sql.insecureSql(c.name,
@@ -197,6 +193,93 @@ object IastRoutes {
                   (statement: Statement, query) => statement.executeQuery(query))
                 complete(StatusCodes.OK, s"@RequestBody to Test bean -> name: $name, value: $value")
               }
+            }
+          }
+      } ~
+      pathPrefix("sc") {
+        pathPrefix("s") {
+          post {
+            path("configured") {
+              formField("param") { param =>
+                val sanitized = SecurityControlUtil.sanitize(param)
+                cmd.insecureCmd(sanitized)
+                complete(StatusCodes.OK)
+              }
+            } ~
+              path("not-configured") {
+                formField("param") { param =>
+                  val sanitized = SecurityControlUtil.sanitize(param)
+                  complete(StatusCodes.OK, sql.insecureSql(sanitized, "password"))(jsonMarshaller)
+                }
+              } ~
+              path("all") {
+                formField("param") { param =>
+                  val sanitized = SecurityControlUtil.sanitizeForAllVulns(param)
+                  complete(StatusCodes.OK, sql.insecureSql(sanitized, "password"))(jsonMarshaller)
+                }
+              } ~
+              pathPrefix("overloaded") {
+                path("secure") {
+                  formField("param") { param =>
+                    val sanitized = SecurityControlUtil.overloadedSanitize(param)
+                    cmd.insecureCmd(sanitized)
+                    complete(StatusCodes.OK)
+                  }
+                } ~
+                  path("insecure") {
+                    formField("param") { param =>
+                      val sanitized = SecurityControlUtil.overloadedSanitize(param, null)
+                      cmd.insecureCmd(sanitized)
+                      complete(StatusCodes.OK)
+                    }
+                  }
+              }
+          }
+        } ~
+          pathPrefix("iv") {
+            post {
+              path("configured") {
+                formField("param") { param =>
+                  if (SecurityControlUtil.validate(param)) {
+                    cmd.insecureCmd(param)
+                  }
+                  complete(StatusCodes.OK)
+                }
+              } ~
+                path("not-configured") {
+                  formField("param") { param =>
+                    if (SecurityControlUtil.validate(param)) {
+                      sql.insecureSql(param, "password")
+                    }
+                    complete(StatusCodes.OK)
+                  }
+                } ~
+                path("all") {
+                  formField("param") { param =>
+                    if (SecurityControlUtil.validateForAllVulns(param)) {
+                      sql.insecureSql(param, "password")
+                    }
+                    complete(StatusCodes.OK)
+                  }
+                } ~
+                pathPrefix("overloaded") {
+                  path("secure") {
+                    formFields("user", "password") { (user, pass) =>
+                      if (SecurityControlUtil.overloadedValidation(null, user, pass)) {
+                        sql.insecureSql(user, pass)
+                      }
+                      complete(StatusCodes.OK)
+                    }
+                  } ~
+                    path("insecure") {
+                      formFields("user", "password") { (user, pass) =>
+                        if (SecurityControlUtil.overloadedValidation(user, pass)) {
+                          sql.insecureSql(user, pass)
+                        }
+                        complete(StatusCodes.OK)
+                      }
+                    }
+                }
             }
           }
       }

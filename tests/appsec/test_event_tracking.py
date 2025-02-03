@@ -62,12 +62,7 @@ class Test_UserLoginSuccessEvent:
         self.r = weblog.get("/user_login_success_event", headers=HEADERS)
 
     @missing_feature(library="dotnet")
-    @missing_feature(library="java")
-    @missing_feature(library="nodejs")
-    @missing_feature(
-        context.library == "python" and context.weblog_variant in ["fastapi", "flask-poc", "uds-flask", "uwsgi-poc"]
-    )
-    @missing_feature(library="php")
+    @missing_feature(context.library < "nodejs@5.18.0")
     @missing_feature(library="ruby")
     def test_user_login_success_header_collection(self):
         # Validate that all relevant headers are included on user login success
@@ -120,13 +115,8 @@ class Test_UserLoginFailureEvent:
     def setup_user_login_failure_header_collection(self):
         self.r = weblog.get("/user_login_failure_event", headers=HEADERS)
 
-    @missing_feature(library="dotnet")
-    @missing_feature(library="java")
-    @missing_feature(library="nodejs")
-    @missing_feature(
-        context.library == "python" and context.weblog_variant in ["fastapi", "flask-poc", "uds-flask", "uwsgi-poc"]
-    )
-    @missing_feature(library="php")
+    @missing_feature(context.library < "dotnet@3.7.0")
+    @missing_feature(context.library < "nodejs@5.18.0")
     @missing_feature(library="ruby")
     def test_user_login_failure_header_collection(self):
         # Validate that all relevant headers are included on user login failure

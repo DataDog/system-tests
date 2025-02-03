@@ -18,9 +18,17 @@ import io.opentelemetry.context.Context;
 import io.opentelemetry.context.Scope;
 import io.opentelemetry.semconv.trace.attributes.SemanticAttributes;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
+
+import java.util.Map;
+import java.util.HashMap;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.io.IOException;
 
 @RestController
 public class WebController {
@@ -30,11 +38,32 @@ public class WebController {
   private final DoubleHistogram histogram = meter.histogramBuilder("example.histogram").build();
   private final Logger customAppenderLogger = GlobalLoggerProvider.get().get("com.datadoghq.springbootnative");
 
-  // Home '/' is only used for health check, it generates and sends one span to proxy to indicate interfaces are ready.
   @RequestMapping("/")
   private String home(@RequestHeader HttpHeaders headers) {
-    tracer.spanBuilder("Healthcheck").setSpanKind(SpanKind.SERVER).startSpan().end();
     return "Weblog is ready";
+  }
+
+  @RequestMapping("/healthcheck")
+  Map<String, Object> healtchcheck() {
+      tracer.spanBuilder("Healthcheck").setSpanKind(SpanKind.SERVER).startSpan().end();
+
+      String filePath = "/app/SYSTEM_TESTS_LIBRARY_VERSION";
+      String version;
+      try {
+          version = new String(Files.readAllBytes(Paths.get(filePath)));
+      } catch (IOException e) {
+          throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Can't get version");
+      }
+
+      Map<String, String> library = new HashMap<>();
+      library.put("language", "java_otel");
+      library.put("version", version.strip());
+
+      Map<String, Object> response = new HashMap<>();
+      response.put("status", "ok");
+      response.put("library", library);
+
+      return response;
   }
 
   // Basic trace test scenario that generates a server span with a span link to a fake message span.

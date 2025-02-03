@@ -1,14 +1,10 @@
 # Unless explicitly stated otherwise all files in this repository are licensed under the the Apache License Version 2.0.
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
-
-import socket
-
-
-from utils import weblog, context, interfaces, bug, missing_feature, rfc, features
+from utils import weblog, context, interfaces, bug, scenarios, rfc, features
 
 
-@bug(context.library == "python@1.1.0", reason="a PR was not included in the release")
+@bug(context.library == "python@1.1.0", reason="APMRP-360")
 @features.security_events_metadata
 class Test_StatusCode:
     """Appsec reports good status code"""
@@ -16,11 +12,7 @@ class Test_StatusCode:
     def setup_basic(self):
         self.r = weblog.get("/path_that_doesn't_exists", headers={"User-Agent": "Arachni/v1"})
 
-    @bug(
-        library="java",
-        weblog_variant="spring-boot-openliberty",
-        reason="https://datadoghq.atlassian.net/browse/APPSEC-6583",
-    )
+    @bug(library="java", weblog_variant="spring-boot-openliberty", reason="APPSEC-6583")
     def test_basic(self):
         assert self.r.status_code == 404
         interfaces.library.assert_waf_attack(self.r)
@@ -40,42 +32,7 @@ class Test_StatusCode:
         interfaces.library.validate_appsec(self.r, validator=check_http_code, legacy_validator=check_http_code_legacy)
 
 
-@missing_feature(
-    True, reason="Bug on system test: with the runner on the host, we do not have the real IP from weblog POV"
-)
-@features.security_events_metadata
-class Test_HttpClientIP:
-    """AppSec reports good http client IP"""
-
-    def setup_http_remote_ip(self):
-        headers = {"User-Agent": "Arachni/v1"}
-        self.r = weblog.get("/waf/", headers=headers, stream=True)
-        try:
-            s = socket.fromfd(self.r.raw.fileno(), socket.AF_INET, socket.SOCK_STREAM)
-            self.actual_remote_ip = s.getsockname()[0]
-            self.r.close()
-        except:
-            self.actual_remote_ip = None
-
-    def test_http_remote_ip(self):
-        """AppSec reports the HTTP request peer IP."""
-
-        def legacy_validator(event):
-            remote_ip = event["context"]["http"]["request"]["remote_ip"]
-            assert remote_ip == self.actual_remote_ip, f"request remote ip should be {self.actual_remote_ip}"
-
-            return True
-
-        def validator(span, appsec_data):
-            ip = span["meta"]["network.client.ip"]
-            assert ip == self.actual_remote_ip, f"network.client.ip should be {self.actual_remote_ip}"
-
-            return True
-
-        interfaces.library.validate_appsec(self.r, validator=validator, legacy_validator=legacy_validator)
-
-
-@bug(context.library == "python@1.1.0", reason="a PR was not included in the release")
+@bug(context.library == "python@1.1.0", reason="APMRP-360")
 @features.security_events_metadata
 class Test_Info:
     """Environment (production, staging) from DD_ENV variable"""
@@ -106,9 +63,11 @@ class Test_Info:
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2186870984/HTTP+header+collection")
-@missing_feature(context.library == "ruby" and context.libddwaf_version is None)
-@bug(context.library == "python@1.1.0", reason="a PR was not included in the release")
+@bug(context.library == "python@1.1.0", reason="APMRP-360")
 @features.security_events_metadata
+@features.envoy_external_processing
+@scenarios.external_processing
+@scenarios.default
 class Test_RequestHeaders:
     """Request Headers for IP resolution"""
 
@@ -129,7 +88,7 @@ class Test_RequestHeaders:
             },
         )
 
-    @bug(context.library < "dotnet@2.1.0")
+    @bug(context.library < "dotnet@2.1.0", reason="APMRP-360")
     def test_http_request_headers(self):
         """AppSec reports the HTTP headers used for actor IP detection."""
 
@@ -145,6 +104,9 @@ class Test_RequestHeaders:
 
 
 @features.security_events_metadata
+@features.envoy_external_processing
+@scenarios.external_processing
+@scenarios.default
 class Test_TagsFromRule:
     """Tags tags from the rule"""
 
@@ -170,6 +132,9 @@ class Test_TagsFromRule:
 
 
 @features.security_events_metadata
+@features.envoy_external_processing
+@scenarios.external_processing
+@scenarios.default
 class Test_ExtraTagsFromRule:
     """Extra tags may be added to the rule match since libddwaf 1.10.0"""
 
@@ -196,6 +161,9 @@ def _get_appsec_triggers(request):
 
 
 @features.security_events_metadata
+@features.envoy_external_processing
+@scenarios.external_processing
+@scenarios.default
 class Test_AttackTimestamp:
     """Attack timestamp"""
 

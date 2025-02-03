@@ -26,7 +26,7 @@ elif [ $(ls /binaries/ruby-load-from-bundle-add | wc -l) = 0 ]; then
     #
     echo "Install prod version"
     # Support multiple versions of the gem
-    echo "gem 'datadog' ~> '~> 2.0.0.beta2'" >> Gemfile
+    echo "gem 'datadog', '>= 2.0.0.beta2', require: 'datadog/auto_instrument'" >> Gemfile
 
     export GEM_NAME=datadog
 else
@@ -48,12 +48,3 @@ fi
 bundle config set --local without test development
 
 bundle install
-
-bundle info $GEM_NAME | grep -m 1 $GEM_NAME > SYSTEM_TESTS_LIBRARY_VERSION
-bundle list | grep libddwaf > SYSTEM_TESTS_LIBDDWAF_VERSION || true
-
-cat "$(bundle info $GEM_NAME | grep 'Path:' | awk '{ print $2 }')"/lib/datadog/appsec/assets/waf_rules/recommended.json | ruby -rjson -e 'puts JSON.parse(STDIN.read).fetch("metadata", {}).fetch("rules_version", "1.2.5")' > SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION
-
-echo "dd-trace version: $(cat SYSTEM_TESTS_LIBRARY_VERSION)"
-echo "libddwaf version: $(cat SYSTEM_TESTS_LIBDDWAF_VERSION)"
-echo "appsec event rules version: $(cat SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION)"

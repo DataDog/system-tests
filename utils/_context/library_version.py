@@ -4,162 +4,50 @@
 
 from collections import defaultdict
 import re
-from packaging import version as version_module
-
-# some monkey patching
-def _parse_letter_version(letter, number):
-
-    if letter:
-        if number is None:
-            number = 0
-
-        return letter, int(number)
-    if not letter and number:
-        letter = "post"
-
-        return letter, int(number)
-
-    return None
+import semantic_version as version_module
 
 
-version_module._parse_letter_version = _parse_letter_version  # pylint: disable=protected-access
+def _build(version):
+    if isinstance(version, str):
+        return Version(version)
 
-RUBY_VERSION_PATTERN = r"""
-    v?
-    (?:
-        (?:(?P<epoch>[0-9]+)!)?                           # epoch
-        (?P<release>[0-9]+(?:\.[0-9]+)*)                  # release segment
-        (?P<pre>                                          # pre-release
-            [-_\.]?
-            (?P<pre_l>(a|b|c|rc|alpha|beta|pre|preview|appsec))
-            [-_\.]?
-            (?P<pre_n>[0-9]+)?
-        )?
-        (?P<post>                                         # post release
-            (?:-(?P<post_n1>[0-9]+))
-            |
-            (?:
-                [-_\.]?
-                (?P<post_l>post|rev|r)
-                [-_\.]?
-                (?P<post_n2>[0-9]+)?
-            )
-        )?
-        (?P<dev>                                          # dev release
-            [-_\.]?
-            (?P<dev_l>dev)
-            [-_\.]?
-            (?P<dev_n>[0-9]+)?
-        )?
-    )
-    (?:[+ ](?P<local>[a-z0-9]+(?:[-_\.][a-z0-9]+)*))?       # local version
-"""
+    if isinstance(version, Version):
+        return version
 
-AGENT_VERSION_PATTERN = r"""
-    v?
-    (?:
-        (?:(?P<epoch>[0-9]+)!)?                           # epoch
-        (?P<release>[0-9]+(?:\.[0-9]+)*)                  # release segment
-        (?P<pre>                                          # pre-release
-            [-_\.]?
-            (?P<pre_l>(a|b|c|rc|alpha|beta|pre|preview))
-            [-_\.]?
-            (?P<pre_n>[0-9]+)?
-        )?
-        (?P<post>                                         # post release
-            (?:-(?P<post_n1>[0-9]+))
-            |
-            (?:
-                [-_\.]?
-                (?P<post_l>post|rev|r)
-                [-_\.]?
-                (?P<post_n2>[0-9]+)?
-            )
-        )?
-        (?P<dev>                                          # dev release
-            [-_\.]?
-            (?P<dev_l>dev)
-            [-_\.]?
-            (?P<dev_n>[0-9]+)?
-        )?
-        (?P<devel>                                          # dev release
-            -
-            (?P<devel_l>devel)
-            [ ]?
-            (?P<devel_n>.*)?
-        )?
-    )
-    (?:[\+\-](?P<local>[a-z0-9]+(?:[-_\.][a-z0-9]+)*))?       # local version
-"""
+    raise TypeError(version)
 
 
 class Version(version_module.Version):
-    @classmethod
-    def build(cls, version, component):
-        if isinstance(version, str):
-            return cls(version, component)
+    def __init__(self, version=None, major=None, minor=None, patch=None, prerelease=None, build=None):
+        if version is not None:
+            # remove any leading "v"
+            if version.startswith("v"):
+                version = version[1:]
 
-        if isinstance(version, cls):
-            return version
+            # and use coerce to allow the wide variaty of version strings
+            x = version_module.Version.coerce(version)
+            major = x.major
+            minor = x.minor
+            patch = x.patch
+            prerelease = x.prerelease
+            build = x.build
 
-        raise TypeError(version)
-
-    def __init__(self, version, component):
-
-        self._component = component
-
-        version = version.strip()
-
-        pattern = version_module.VERSION_PATTERN
-
-        if component == "ruby":
-            pattern = RUBY_VERSION_PATTERN
-            if version.startswith("* ddtrace"):
-                version = re.sub(r"\* *ddtrace *\((.*)\)", r"\1", version)
-            if version.startswith("* datadog"):
-                version = re.sub(r"\* *datadog *\((.*)\)", r"\1", version)
-
-        elif component == "libddwaf":
-            if version.startswith("* libddwaf"):
-                version = re.sub(r"\* *libddwaf *\((.*)\)", r"\1", version)
-
-        elif component == "agent":
-            version = re.sub(r"(.*) - Commit.*", r"\1", version)
-            version = re.sub(r"(.*) - Meta.*", r"\1", version)
-            version = re.sub(r"Agent (.*)", r"\1", version)
-            version = re.sub("\x1b\\[\\d+m", "", version)  # remove color pattern from terminal
-            version = re.sub(r"[a-zA-Z\-]*$", "", version)  # remove any lable post version
-
-            pattern = AGENT_VERSION_PATTERN
-
-        elif component == "java":
-            version = version.split("~")[0]
-            version = version.replace("-SNAPSHOT", "")
-
-        elif component == "dotnet":
-            version = re.sub(r"(datadog-dotnet-apm-)?(.*?)(\.tar\.gz)?", r"\2", version)
-
-        elif component == "php":
-            version = version.replace("-nightly", "")
-
-        self._regex = re.compile(r"^\s*" + pattern + r"\s*$", re.VERBOSE | re.IGNORECASE)
-
-        super().__init__(version)
+        super().__init__(major=major, minor=minor, patch=patch, prerelease=prerelease, build=build)
 
     def __eq__(self, other):
-        return super().__eq__(self.build(other, self._component))
+        return super().__eq__(_build(other))
 
     def __lt__(self, other):
-        return super().__lt__(self.build(other, self._component))
+        return super().__lt__(_build(other))
 
     def __le__(self, other):
-        return super().__le__(self.build(other, self._component))
+        return super().__le__(_build(other))
 
     def __gt__(self, other):
-        return super().__gt__(self.build(other, self._component))
+        return super().__gt__(_build(other))
 
     def __ge__(self, other):
-        return super().__ge__(self.build(other, self._component))
+        return super().__ge__(_build(other))
 
 
 class LibraryVersion:
@@ -180,8 +68,76 @@ class LibraryVersion:
             raise ValueError("Library can't contains '@'")
 
         self.library = library
-        self.version = Version(version, component=library) if version else None
-        self.add_known_version(self.version)
+
+        if version:
+            version = version.strip()
+
+            if library == "ruby":
+                # ruby version pattern can be like
+
+                # 2.0.0.rc1 b908262
+                # 2.0.0 b908262
+                # 2.0.0.rc1
+                #   rc1 is a pre-release, so we need to add a - sign
+                #   b908262 is a build metadata, so we need to add a + sign
+
+                # => adding + and - signs in the good places
+
+                base = r"\d+\.\d+\.\d+"
+                prerelease = r"[\w\d+]+"
+                build = r"[a-f0-9]+"
+                if re.match(rf"{base}[\. ]{prerelease}[\. ]{build}", version):
+                    version = re.sub(rf"({base})[\. ]({prerelease})[\. ]({build})", r"\1-\2+\3", version)
+                elif re.match(rf"{base}[\. ]{build}", version):
+                    version = re.sub(rf"({base})[\. ]({build})", r"\1+\2", version)
+                elif re.match(rf"{base}[\. ]{prerelease}", version):
+                    version = re.sub(rf"({base})[\. ]({prerelease})", r"\1-\2", version)
+
+            elif library == "libddwaf":
+                if version.startswith("* libddwaf"):
+                    version = re.sub(r"\* *libddwaf *\((.*)\)", r"\1", version)
+
+            elif library == "java":
+                version = version.split("~")[0]
+                version = version.replace("-SNAPSHOT", "")
+
+            elif library == "dotnet":
+                version = re.sub(r"(datadog-dotnet-apm-)?(.*?)(\.tar\.gz)?", r"\2", version)
+
+            elif library == "php":
+                version = version.replace("-nightly", "")
+
+            self.version = Version(version)
+
+            if library == "ruby":
+                if len(self.version.build) != 0 or len(self.version.prerelease) != 0:
+                    # we are not in a released version
+
+                    # dd-trace-rb main branch expose a version equal to the last release, so hack it:
+                    # * add 1 to minor version
+                    # * and set z as prerelease if not prerelease is set, becasue z will be after any other prerelease
+
+                    # if dd-trace-rb repo fix the underlying issue, we can remove this hack.
+                    self.version = Version(
+                        major=self.version.major,
+                        minor=self.version.minor,
+                        patch=self.version.patch + 1,
+                        prerelease=self.version.prerelease,
+                        build=self.version.build,
+                    )
+
+                    if not self.version.prerelease:
+                        self.version = Version(
+                            major=self.version.major,
+                            minor=self.version.minor,
+                            patch=self.version.patch,
+                            prerelease=("z",),
+                            build=self.version.build,
+                        )
+
+            self.add_known_version(self.version)
+        else:
+            self.version = None
 
     def __repr__(self):
         return f'{self.__class__.__name__}("{self.library}", "{self.version}")'
@@ -193,11 +149,13 @@ class LibraryVersion:
         return f"{self.library}@{self.version}" if self.version else self.library
 
     def __eq__(self, other):
+        if isinstance(other, LibraryVersion):
+            return self.library == other.library and self.version == other.version
+
         if not isinstance(other, str):
             raise TypeError(f"Can't compare LibraryVersion to type {type(other)}")
 
         if "@" in other:
-
             library, version = other.split("@", 1)
             self.add_known_version(library=library, version=version)
 
@@ -213,6 +171,9 @@ class LibraryVersion:
         return self.library == library
 
     def _extract_members(self, other):
+        if isinstance(other, LibraryVersion):
+            return other.library, other.version
+
         if not isinstance(other, str):
             raise TypeError(f"Can't compare LibraryVersion to type {type(other)}")
 
@@ -252,3 +213,8 @@ class LibraryVersion:
             "library": self.library,
             "version": str(self.version),
         }
+
+
+if __name__ == "__main__":
+    v = LibraryVersion("ruby", "  * ddtrace (0.53.0.appsec.180045)")
+    assert str(v.version) == "0.53.1-appsec+180045"

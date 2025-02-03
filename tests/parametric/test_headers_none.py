@@ -3,8 +3,7 @@ from typing import Any
 import pytest
 
 from utils.parametric.spec.trace import SAMPLING_PRIORITY_KEY, ORIGIN
-from utils.parametric.headers import make_single_request_and_get_inject_headers
-from utils.parametric.test_agent import get_span
+from utils.parametric.spec.trace import find_only_span
 from utils import missing_feature, context, scenarios, features, bug
 
 parametrize = pytest.mark.parametrize
@@ -38,11 +37,9 @@ def enable_none_invalid() -> Any:
 class Test_Headers_None:
     @enable_none()
     def test_headers_none_extract(self, test_agent, test_library):
-        """Ensure that no distributed tracing headers are extracted.
-        """
+        """Ensure that no distributed tracing headers are extracted."""
         with test_library:
-            headers = make_single_request_and_get_inject_headers(
-                test_library,
+            test_library.dd_make_child_span_and_get_headers(
                 [
                     ["x-datadog-trace-id", "123456789"],
                     ["x-datadog-parent-id", "987654321"],
@@ -52,7 +49,7 @@ class Test_Headers_None:
                 ],
             )
 
-        span = get_span(test_agent)
+        span = find_only_span(test_agent.wait_for_num_traces(1))
         assert span.get("trace_id") != 123456789
         assert span.get("parent_id") != 987654321
         assert span["meta"].get(ORIGIN) is None
@@ -66,8 +63,7 @@ class Test_Headers_None:
         and activated properly.
         """
         with test_library:
-            headers = make_single_request_and_get_inject_headers(
-                test_library,
+            test_library.dd_make_child_span_and_get_headers(
                 [
                     ["x-datadog-trace-id", "123456789"],
                     ["x-datadog-parent-id", "987654321"],
@@ -77,7 +73,7 @@ class Test_Headers_None:
                 ],
             )
 
-        span = get_span(test_agent)
+        span = find_only_span(test_agent.wait_for_num_traces(1))
         assert span.get("trace_id") == 123456789
         assert span.get("parent_id") == 987654321
         assert span["meta"].get(ORIGIN) == "synthetics"
@@ -90,7 +86,7 @@ class Test_Headers_None:
         no Datadog distributed tracing headers are injected.
         """
         with test_library:
-            headers = make_single_request_and_get_inject_headers(test_library, [])
+            headers = test_library.dd_make_child_span_and_get_headers([])
 
         assert "traceparent" not in headers
         assert "tracestate" not in headers
@@ -106,9 +102,9 @@ class Test_Headers_None:
         In this case, ensure that the Datadog distributed tracing headers are injected properly.
         """
         with test_library:
-            headers = make_single_request_and_get_inject_headers(test_library, [])
+            headers = test_library.dd_make_child_span_and_get_headers([])
 
-        span = get_span(test_agent)
+        span = find_only_span(test_agent.wait_for_num_traces(1))
         assert int(headers["x-datadog-trace-id"]) == span.get("trace_id")
         assert int(headers["x-datadog-parent-id"]) == span.get("span_id")
         assert int(headers["x-datadog-sampling-priority"]) == span["metrics"].get(SAMPLING_PRIORITY_KEY)
@@ -119,8 +115,7 @@ class Test_Headers_None:
         no Datadog distributed tracing headers are extracted or injected.
         """
         with test_library:
-            headers = make_single_request_and_get_inject_headers(
-                test_library,
+            headers = test_library.dd_make_child_span_and_get_headers(
                 [
                     ["x-datadog-trace-id", "123456789"],
                     ["x-datadog-parent-id", "987654321"],
@@ -130,7 +125,7 @@ class Test_Headers_None:
                 ],
             )
 
-        span = get_span(test_agent)
+        span = find_only_span(test_agent.wait_for_num_traces(1))
         assert span.get("trace_id") != 123456789
         assert span.get("parent_id") != 987654321
         assert span["meta"].get(ORIGIN) is None
@@ -146,16 +141,12 @@ class Test_Headers_None:
         assert "x-datadog-tags" not in headers
 
     @enable_none_single_key()
-    @missing_feature(
-        context.library == "ruby", reason="Propagators not configured for DD_TRACE_PROPAGATION_STYLE config",
-    )
     def test_headers_none_single_key_propagate(self, test_agent, test_library):
         """Ensure that the 'none' propagator is used and
         no Datadog distributed tracing headers are extracted or injected.
         """
         with test_library:
-            headers = make_single_request_and_get_inject_headers(
-                test_library,
+            headers = test_library.dd_make_child_span_and_get_headers(
                 [
                     ["x-datadog-trace-id", "123456789"],
                     ["x-datadog-parent-id", "987654321"],
@@ -165,7 +156,7 @@ class Test_Headers_None:
                 ],
             )
 
-        span = get_span(test_agent)
+        span = find_only_span(test_agent.wait_for_num_traces(1))
         assert span.get("trace_id") != 123456789
         assert span.get("parent_id") != 987654321
         assert span["meta"].get(ORIGIN) is None

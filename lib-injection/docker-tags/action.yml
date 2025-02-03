@@ -21,12 +21,12 @@ runs:
       run: |
         DOCKER_IMAGE_NAME=$(echo ghcr.io/${GITHUB_REPOSITORY}/${{ inputs.init-image-name}} | tr '[:upper:]' '[:lower:]')
         DOCKER_IMAGE_NAME_WITH_TAG=$(echo ${DOCKER_IMAGE_NAME}:${{ github.sha }} | tr '[:upper:]' '[:lower:]')
-       
+
         #If we are building main branch, we also tag as latest_snapshot
         if [ "$(echo ${GITHUB_HEAD_REF-${GITHUB_REF#refs/heads/}} | tr / -)" == "${{ inputs.main-branch-name}}" -o "$(echo ${GITHUB_REF#refs/heads/} | tr / -)" == "${{ inputs.main-branch-name}}" ]; then
           DOCKER_IMAGE_NAME_WITH_TAG=${DOCKER_IMAGE_NAME_WITH_TAG},$(echo ${DOCKER_IMAGE_NAME}:latest_snapshot)
         fi
-       
+
         echo "Current branch: $(echo ${GITHUB_HEAD_REF-${GITHUB_REF#refs/heads/}} | tr / -)"
         echo "or Current branch: $(echo ${GITHUB_REF#refs/heads/} | tr / -)"
 

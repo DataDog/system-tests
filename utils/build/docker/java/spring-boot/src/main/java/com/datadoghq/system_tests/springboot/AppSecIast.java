@@ -37,6 +37,7 @@ public class AppSecIast {
     private final XSSExamples xssExamples;
     private final HardcodedSecretExamples hardcodedSecretExamples;
     private final ReflectionExamples reflectionExamples;
+    private final DeserializationExamples deserializationExamples;
 
 
     public AppSecIast(final DataSource dataSource) {
@@ -50,6 +51,7 @@ public class AppSecIast {
         this.xssExamples = new XSSExamples();
         this.hardcodedSecretExamples = new HardcodedSecretExamples();
         this.reflectionExamples = new ReflectionExamples();
+        this.deserializationExamples = new DeserializationExamples();
     }
 
     @RequestMapping("/hardcoded_secrets/test_insecure")
@@ -226,6 +228,7 @@ public class AppSecIast {
         response.addHeader("Set-Cookie", "");
         return "ok";
     }
+
     @GetMapping("/insecure-cookie/test_insecure")
     String insecureCookie(final HttpServletResponse response) {
         response.addHeader("Set-Cookie", "user-id=7;HttpOnly;SameSite=Strict");
@@ -256,7 +259,7 @@ public class AppSecIast {
         return "ok";
     }
 
-    @GetMapping("/no-httponly-cookie-cookie/test_empty_cookie")
+    @GetMapping("/no-httponly-cookie/test_empty_cookie")
     String noHttpOnlyCookieEmptyCookie(final HttpServletResponse response) {
         response.addHeader("Set-Cookie", "");
         return "ok";
@@ -363,6 +366,90 @@ public class AppSecIast {
     public String insecureReflection(HttpServletRequest request) {
         final String className = request.getParameter("param");
         return reflectionExamples.insecureClassForName(className);
+    }
+
+    @GetMapping("/untrusted_deserialization/test_insecure")
+    public String insecureUntrustedDeserialization(final HttpServletRequest request) throws IOException{
+        deserializationExamples.insecureDeserialization(request.getInputStream());
+        return "ok";
+    }
+
+    @GetMapping("/untrusted_deserialization/test_secure")
+    public String secureUntrustedDeserialization(final HttpServletRequest request) throws IOException {
+        deserializationExamples.secureDeserialization(request.getInputStream());
+        return "ok";
+    }
+
+    @PostMapping("/sc/s/configured")
+    void scSanitizeConfigured(final ServletRequest request,  final ServletResponse response) throws IOException {
+        String sanitized = SecurityControlUtil.sanitize(request.getParameter("param"));
+        cmdExamples.insecureCmd(sanitized);
+    }
+
+    @PostMapping("/sc/s/not-configured")
+    Object scSanitizeSqli(final ServletRequest request,  final ServletResponse response) throws IOException {
+        String sanitized = SecurityControlUtil.sanitize(request.getParameter("param"));
+        return sqlExamples.insecureSql(sanitized, "password");
+    }
+
+    @PostMapping("/sc/s/all")
+    Object scSanitizeForAllVulns(final ServletRequest request,  final ServletResponse response) throws IOException {
+        String sanitized = SecurityControlUtil.sanitizeForAllVulns(request.getParameter("param"));
+        return sqlExamples.insecureSql(sanitized, "password");
+    }
+
+    @PostMapping("/sc/iv/configured")
+    void scValidateXSS(final ServletRequest request,  final ServletResponse response) throws IOException {
+        String param = request.getParameter("param");
+        if (SecurityControlUtil.validate(param)) {
+            cmdExamples.insecureCmd(param);
+        }
+    }
+
+    @PostMapping("/sc/iv/not-configured")
+    void scValidateSqli(final ServletRequest request,  final ServletResponse response) throws IOException {
+        String param = request.getParameter("param");
+        if(SecurityControlUtil.validate(param)) {
+            sqlExamples.insecureSql(param, "password");
+        }
+    }
+
+    @PostMapping("/sc/iv/all")
+    void scValidateForAllVulns(final ServletRequest request,  final ServletResponse response) throws IOException {
+        String param = request.getParameter("param");
+        if(SecurityControlUtil.validateForAllVulns(param)) {
+            sqlExamples.insecureSql(param, "password");
+        }
+    }
+
+    @PostMapping("/sc/iv/overloaded/secure")
+    void scIVOverloadedSecure(final ServletRequest request,  final ServletResponse response) throws IOException {
+        String user = request.getParameter("user");
+        String pass = request.getParameter("password");
+        if(SecurityControlUtil.overloadedValidation(null, user, pass)) {
+            sqlExamples.insecureSql(user, pass);
+        }
+    }
+
+    @PostMapping("/sc/iv/overloaded/insecure")
+    void scIVOverloadedInsecure(final ServletRequest request,  final ServletResponse response) throws IOException {
+        String user = request.getParameter("user");
+        String pass = request.getParameter("password");
+        if(SecurityControlUtil.overloadedValidation(user, pass)) {
+            sqlExamples.insecureSql(user, pass);
+        }
+    }
+
+    @PostMapping("/sc/s/overloaded/secure")
+    void scSOverloadedSecure(final ServletRequest request,  final ServletResponse response) throws IOException {
+        String sanitized = SecurityControlUtil.overloadedSanitize(request.getParameter("param"));
+        cmdExamples.insecureCmd(sanitized);
+    }
+
+    @PostMapping("/sc/s/overloaded/insecure")
+    void scSOverloadedInsecure(final ServletRequest request,  final ServletResponse response) throws IOException {
+        String sanitized = SecurityControlUtil.overloadedSanitize(request.getParameter("param"), null);
+        cmdExamples.insecureCmd(sanitized);
     }
 
 

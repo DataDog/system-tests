@@ -4,9 +4,9 @@ import time
 
 from utils import context, weblog, interfaces, scenarios, irrelevant
 from utils.tools import logger, get_rid_from_request
-from ._test_validator_trace import validate_all_traces
-from ._test_validator_log import validate_log, validate_log_trace_correlation
-from ._test_validator_metric import validate_metrics
+from utils.otel_validators.validator_trace import validate_all_traces
+from utils.otel_validators.validator_log import validate_log, validate_log_trace_correlation
+from utils.otel_validators.validator_metric import validate_metrics
 
 
 def _get_dd_trace_id(otel_trace_id: str, use_128_bits_trace_id: bool) -> int:
@@ -66,7 +66,9 @@ class Test_OTelTracingE2E:
             logger.warning("Backend does not provide traces")
             return
 
-        validate_all_traces(traces_agent, traces_intake, traces_collector, self.use_128_bits_trace_id)
+        validate_all_traces(
+            traces_agent, traces_intake, traces_collector, use_128_bits_trace_id=self.use_128_bits_trace_id
+        )
 
 
 @scenarios.otel_metric_e2e
@@ -167,6 +169,26 @@ class Test_OTelLogE2E:
             logger.warning("Backend does not provide logs")
             return
         validate_log_trace_correlation(otel_log_trace_attrs, trace_agent)
+
+        # The 2nd account has logs and traces sent via the backend OTLP intake endpoint
+        try:
+            log_intake = interfaces.backend.get_logs(
+                query=f"trace_id:{dd_trace_id}",
+                rid=rid,
+                dd_api_key=os.environ["DD_API_KEY_2"],
+                dd_app_key=os.environ["DD_APP_KEY_2"],
+            )
+            otel_log_trace_attrs = validate_log(log_intake, rid, "backend_endpoint")
+            trace_intake = interfaces.backend.assert_otlp_trace_exist(
+                request=self.r,
+                dd_trace_id=dd_trace_id,
+                dd_api_key=os.environ["DD_API_KEY_2"],
+                dd_app_key=os.environ["DD_APP_KEY_2"],
+            )
+        except ValueError:
+            logger.warning("Backend does not provide logs")
+            return
+        validate_log_trace_correlation(otel_log_trace_attrs, trace_intake)
 
         # The 3rd account has logs and traces sent by OTel Collector
         try:

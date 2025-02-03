@@ -1,16 +1,23 @@
 weblog:
     name: test-app-dotnet-container
-    excluded_os_branches: [amazon_linux2_dotnet6, amazon_linux2023_amd64]
+    runtime_version: 7
+    # Alma Linux 8 ARM64 fails also without the SSI. It fails when we execute 'dotnet restore' in the Dockerfile
+    # Same for RedHat 8.6 ARM64 (segfault)
+    excluded_os_names: [AlmaLinux_8_arm64, RedHat_8_6_arm64]
     install: 
       - os_type: linux
         copy_files:
-          - name: copy-run-weblog-script
-            local_path: utils/build/virtual_machine/weblogs/dotnet/test-app-dotnet-container/test-app-dotnet_docker_compose_run.sh
+          - name: copy-container-run-script
+            local_path: utils/build/virtual_machine/weblogs/common/create_and_run_app_container.sh
 
           - name: copy-docker-compose-file
-            local_path: utils/build/virtual_machine/weblogs/dotnet/test-app-dotnet-container/docker-compose.yml
+            local_path: utils/build/virtual_machine/weblogs/common/docker-compose.yml
 
           - name: copy-dotnet-app
             local_path: lib-injection/build/docker/dotnet/dd-lib-dotnet-init-test-app
 
-        remote-command: sh test-app-dotnet_docker_compose_run.sh
+          - name: copy-dotnet-dockerfile
+            local_path: lib-injection/build/docker/dotnet/dd-lib-dotnet-init-test-app/Dockerfile
+            remote_path: Dockerfile.template
+
+        remote-command: sh create_and_run_app_container.sh

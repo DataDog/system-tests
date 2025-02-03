@@ -1,0 +1,293 @@
+[
+  {
+    "captures": {
+      "return": {
+        "staticFields": {
+          "Empty": {
+            "type": "EmptyResult",
+            "value": "EmptyResult"
+          }
+        },
+        "throwable": {
+          "message": "Paper exception",
+          "type": "weblog.Models.Debugger.ExceptionReplayPaper",
+          "stacktrace": [
+            {
+              "function": "weblog.ExceptionReplayController.ExceptionReplayRockPaperScissors",
+              "lineNumber": 0
+            },
+            {
+              "<runtime>": "<scrubbed>"
+            }
+          ]
+        },
+        "locals": {
+          "@exception": {
+            "type": "ExceptionReplayPaper",
+            "value": "ExceptionReplayPaper",
+            "fields": {
+              "Message": {
+                "type": "String",
+                "value": "Paper exception"
+              },
+              "InnerException": {
+                "type": "Exception",
+                "isNull": "true"
+              },
+              "HelpLink": {
+                "type": "String",
+                "isNull": "true"
+              },
+              "Source": {
+                "type": "String",
+                "value": "app"
+              },
+              "HResult": {
+                "type": "Int32",
+                "value": "-2146233088"
+              },
+              "StackTrace": {
+                "type": "String",
+                "value": "<scrubbed>"
+              }
+            }
+          }
+        },
+        "arguments": {
+          "shape": {
+            "type": "String",
+            "value": "paper"
+          },
+          "this": {
+            "type": "ExceptionReplayController",
+            "value": "ExceptionReplayController"
+          }
+        }
+      }
+    },
+    "probe": {
+      "id": "<scrubbed>",
+      "version": 1,
+      "location": {
+        "method": "ExceptionReplayRockPaperScissors",
+        "type": "weblog.ExceptionReplayController"
+      }
+    },
+    "stack": [
+      {
+        "function": "weblog.ExceptionReplayController.ExceptionReplayRockPaperScissors",
+        "fileName": "/app/ExceptionReplayController.cs",
+        "lineNumber": 75
+      },
+      {
+        "function": "Datadog.Trace.ClrProfiler.AutoInstrumentation.AspNetCore.BlockingMiddleware+<Invoke><scrubbed>",
+        "lineNumber": 0
+      },
+      {
+        "function": "Datadog.Trace.ClrProfiler.AutoInstrumentation.AspNetCore.BlockingMiddleware.Invoke",
+        "lineNumber": 0
+      },
+      {
+        "<runtime>": "<scrubbed>"
+      }
+    ],
+    "id": "<scrubbed>",
+    "timestamp": "<scrubbed>",
+    "duration": "<scrubbed>",
+    "language": "dotnet"
+  },
+  {
+    "captures": {
+      "return": {
+        "staticFields": {
+          "Empty": {
+            "type": "EmptyResult",
+            "value": "EmptyResult"
+          }
+        },
+        "throwable": {
+          "message": "Rock exception",
+          "type": "weblog.Models.Debugger.ExceptionReplayRock",
+          "stacktrace": [
+            {
+              "function": "weblog.ExceptionReplayController.ExceptionReplayRockPaperScissors",
+              "lineNumber": 0
+            },
+            {
+              "<runtime>": "<scrubbed>"
+            }
+          ]
+        },
+        "locals": {
+          "@exception": {
+            "type": "ExceptionReplayRock",
+            "value": "ExceptionReplayRock",
+            "fields": {
+              "Message": {
+                "type": "String",
+                "value": "Rock exception"
+              },
+              "InnerException": {
+                "type": "Exception",
+                "isNull": "true"
+              },
+              "HelpLink": {
+                "type": "String",
+                "isNull": "true"
+              },
+              "Source": {
+                "type": "String",
+                "value": "app"
+              },
+              "HResult": {
+                "type": "Int32",
+                "value": "-2146233088"
+              },
+              "StackTrace": {
+                "type": "String",
+                "value": "<scrubbed>"
+              }
+            }
+          }
+        },
+        "arguments": {
+          "shape": {
+            "type": "String",
+            "value": "rock"
+          },
+          "this": {
+            "type": "ExceptionReplayController",
+            "value": "ExceptionReplayController"
+          }
+        }
+      }
+    },
+    "probe": {
+      "id": "<scrubbed>",
+      "version": 1,
+      "location": {
+        "method": "ExceptionReplayRockPaperScissors",
+        "type": "weblog.ExceptionReplayController"
+      }
+    },
+    "stack": [
+      {
+        "function": "weblog.ExceptionReplayController.ExceptionReplayRockPaperScissors",
+        "fileName": "/app/ExceptionReplayController.cs",
+        "lineNumber": 75
+      },
+      {
+        "function": "Datadog.Trace.ClrProfiler.AutoInstrumentation.AspNetCore.BlockingMiddleware+<Invoke><scrubbed>",
+        "lineNumber": 0
+      },
+      {
+        "function": "Datadog.Trace.ClrProfiler.AutoInstrumentation.AspNetCore.BlockingMiddleware.Invoke",
+        "lineNumber": 0
+      },
+      {
+        "<runtime>": "<scrubbed>"
+      }
+    ],
+    "id": "<scrubbed>",
+    "timestamp": "<scrubbed>",
+    "duration": "<scrubbed>",
+    "language": "dotnet"
+  },
+  {
+    "captures": {
+      "return": {
+        "staticFields": {
+          "Empty": {
+            "type": "EmptyResult",
+            "value": "EmptyResult"
+          }
+        },
+        "throwable": {
+          "message": "Scissors exception",
+          "type": "weblog.Models.Debugger.ExceptionReplayScissors",
+          "stacktrace": [
+            {
+              "function": "weblog.ExceptionReplayController.ExceptionReplayRockPaperScissors",
+              "lineNumber": 0
+            },
+            {
+              "<runtime>": "<scrubbed>"
+            }
+          ]
+        },
+        "locals": {
+          "@exception": {
+            "type": "ExceptionReplayScissors",
+            "value": "ExceptionReplayScissors",
+            "fields": {
+              "Message": {
+                "type": "String",
+                "value": "Scissors exception"
+              },
+              "InnerException": {
+                "type": "Exception",
+                "isNull": "true"
+              },
+              "HelpLink": {
+                "type": "String",
+                "isNull": "true"
+              },
+              "Source": {
+                "type": "String",
+                "value": "app"
+              },
+              "HResult": {
+                "type": "Int32",
+                "value": "-2146233088"
+              },
+              "StackTrace": {
+                "type": "String",
+                "value": "<scrubbed>"
+              }
+            }
+          }
+        },
+        "arguments": {
+          "shape": {
+            "type": "String",
+            "value": "scissors"
+          },
+          "this": {
+            "type": "ExceptionReplayController",
+            "value": "ExceptionReplayController"
+          }
+        }
+      }
+    },
+    "probe": {
+      "id": "<scrubbed>",
+      "version": 1,
+      "location": {
+        "method": "ExceptionReplayRockPaperScissors",
+        "type": "weblog.ExceptionReplayController"
+      }
+    },
+    "stack": [
+      {
+        "function": "weblog.ExceptionReplayController.ExceptionReplayRockPaperScissors",
+        "fileName": "/app/ExceptionReplayController.cs",
+        "lineNumber": 75
+      },
+      {
+        "function": "Datadog.Trace.ClrProfiler.AutoInstrumentation.AspNetCore.BlockingMiddleware+<Invoke><scrubbed>",
+        "lineNumber": 0
+      },
+      {
+        "function": "Datadog.Trace.ClrProfiler.AutoInstrumentation.AspNetCore.BlockingMiddleware.Invoke",
+        "lineNumber": 0
+      },
+      {
+        "<runtime>": "<scrubbed>"
+      }
+    ],
+    "id": "<scrubbed>",
+    "timestamp": "<scrubbed>",
+    "duration": "<scrubbed>",
+    "language": "dotnet"
+  }
+]

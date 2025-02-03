@@ -12,6 +12,7 @@ if [[ -f "./.env" ]]; then
 fi
 
 WEBLOG_VARIANT=${WEBLOG_VARIANT:-${HTTP_FRAMEWORK:-}}
+AGENT_BASE_IMAGE=
 
 readonly DOCKER_REGISTRY_CACHE_PATH="${DOCKER_REGISTRY_CACHE_PATH:-ghcr.io/datadog/system-tests}"
 readonly ALIAS_CACHE_FROM="R" #read cache
@@ -62,6 +63,7 @@ print_usage() {
     echo -e "  ${CYAN}--default-weblog${NC}           Prints the name of the default weblog for a given library and exits."
     echo -e "  ${CYAN}--binary-path${NC}              Optional. Path of a directory binaries will be copied from. Should be used for local development only."
     echo -e "  ${CYAN}--binary-url${NC}               Optional. Url of the client library redistributable. Should be used for local development only."
+    echo -e "  ${CYAN}--agent-base-image${NC}         Optional. Base image of docker agent to use, default: datadog/agent"
     echo -e "  ${CYAN}--help${NC}                     Prints this message and exits."
     echo
     echo -e "${WHITE_BOLD}EXAMPLES${NC}"
@@ -69,16 +71,16 @@ print_usage() {
     echo -e "    ${SCRIPT_NAME}"
     echo -e "  Build images for Java and Spring Boot:"
     echo -e "    ${SCRIPT_NAME} --library java --weblog-variant spring-boot"
-    echo -e "  Build default images for Dotnet with binary path:"
-    echo -e "    ${SCRIPT_NAME} dotnet --binary-path "/mnt/c/dev/dd-trace-dotnet-linux/tmp/linux-x64""    
-    echo -e "  Build default images for Dotnet with binary url:"
+    echo -e "  Build default images for .NET with binary path:"
+    echo -e "    ${SCRIPT_NAME} dotnet --binary-path "/mnt/c/dev/dd-trace-dotnet-linux/tmp/linux-x64""
+    echo -e "  Build default images for .NET with binary url:"
     echo -e "    ${SCRIPT_NAME} ./build.sh dotnet --binary-url "https://github.com/DataDog/dd-trace-dotnet/releases/download/v2.27.0/datadog-dotnet-apm-2.27.0.tar.gz""
     echo -e "  List libraries:"
     echo -e "    ${SCRIPT_NAME} --list-libraries"
     echo -e "  List weblogs for PHP:"
     echo -e "    ${SCRIPT_NAME} --list-weblogs --library php"
     echo -e "  Print default weblog for Python:"
-    echo -e "    ${SCRIPT_NAME} --default-weblogs --library python"
+    echo -e "    ${SCRIPT_NAME} --default-weblog --library python"
     echo
     echo -e "More info at https://github.com/DataDog/system-tests/blob/main/docs/execute/build.md"
     echo
@@ -134,16 +136,30 @@ build() {
         echo Build $IMAGE_NAME
         if [[ $IMAGE_NAME == runner ]] && [[ $DOCKER_MODE != 1 ]]; then
             if [[ -z "${IN_NIX_SHELL:-}" ]]; then
-              if [ ! -d "venv/" ]
-              then
-                  echo "Build virtual env"
-                  python3.9 -m venv venv
-              fi
-
-              source venv/bin/activate
-              python -m pip install --upgrade pip
+                if [ ! -d "venv/" ]
+                then
+                    echo "Build virtual env"
+                    if command -v python3.12 &> /dev/null
+                    then
+                        python3.12 -m venv venv --copies
+                    elif command -v python3.9 &> /dev/null
+                    then
+                        echo "⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️⚠️⚠️️️️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️⚠️⚠️️️️⚠️⚠️⚠️️️️⚠️⚠️⚠️️️️⚠️⚠️⚠️️️️⚠️⚠️⚠️️️️⚠️"
+                        echo "DEPRECRATION WARNING: you are using python3.9 to run system-tests."
+                        echo "This won't be supported soon. Install python 3.12, then run:"
+                        echo "> rm -rf venv && ./build.sh -i runner"
+                        echo "⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️"
+                        python3.9 -m venv venv
+                    else
+                        echo "Can't find python3.12, please install it"
+                    fi
+                fi
+                source venv/bin/activate
+                python -m pip install --upgrade pip setuptools==75.8.0
             fi
-            pip install -r requirements.txt
+            python -m pip install -e .
+            cp requirements.txt venv/requirements.txt
+
 
         elif [[ $IMAGE_NAME == runner ]] && [[ $DOCKER_MODE == 1 ]]; then
             docker buildx build \
@@ -166,10 +182,12 @@ build() {
                 .
 
         elif [[ $IMAGE_NAME == agent ]]; then
-            if [ -f ./binaries/agent-image ]; then
-                AGENT_BASE_IMAGE=$(cat ./binaries/agent-image)
-            else
-                AGENT_BASE_IMAGE="datadog/agent"
+            if test -z "$AGENT_BASE_IMAGE"; then
+                if [ -f ./binaries/agent-image ]; then
+                    AGENT_BASE_IMAGE=$(cat ./binaries/agent-image)
+                else
+                    AGENT_BASE_IMAGE="datadog/agent"
+                fi
             fi
 
             echo "using $AGENT_BASE_IMAGE image for datadog agent"
@@ -191,21 +209,21 @@ build() {
                 find . ! -name 'README.md' -type f -exec rm -f {} +
             }
 
-            if ! [[ -z "$BINARY_URL" ]]; then 
+            if ! [[ -z "$BINARY_URL" ]]; then
                 cd binaries
                 clean-binaries
                 curl -L -O $BINARY_URL
                 cd ..
             fi
 
-            if ! [[ -z "$BINARY_PATH" ]]; then 
+            if ! [[ -z "$BINARY_PATH" ]]; then
                 cd binaries
                 clean-binaries
                 cp -r $BINARY_PATH/* ./
                 cd ..
             fi
 
-            DOCKERFILE=utils/build/docker/${TEST_LIBRARY}/${WEBLOG_VARIANT}.Dockerfile          
+            DOCKERFILE=utils/build/docker/${TEST_LIBRARY}/${WEBLOG_VARIANT}.Dockerfile
 
             docker buildx build \
                 --build-arg BUILDKIT_INLINE_CACHE=1 \
@@ -213,6 +231,8 @@ build() {
                 --progress=plain \
                 ${DOCKER_PLATFORM_ARGS} \
                 -f ${DOCKERFILE} \
+                --label "system-tests-library=${TEST_LIBRARY}" \
+                --label "system-tests-weblog-variant=${WEBLOG_VARIANT}" \
                 -t system_tests/weblog \
                 $CACHE_TO \
                 $CACHE_FROM \
@@ -220,44 +240,17 @@ build() {
                 .
 
             if test -f "binaries/waf_rule_set.json"; then
-                SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION=$(cat binaries/waf_rule_set.json | jq -r '.metadata.rules_version // "1.2.5"')
 
                 docker buildx build \
                     --build-arg BUILDKIT_INLINE_CACHE=1 \
                     --load \
                     --progress=plain \
                     ${DOCKER_PLATFORM_ARGS} \
-                    --build-arg SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION="$SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION" \
                     -f utils/build/docker/overwrite_waf_rules.Dockerfile \
                     -t system_tests/weblog \
                     $EXTRA_DOCKER_ARGS \
                     .
             fi
-
-            # The library version is needed as an env var, and as the runner is executed before the weblog
-            # this value need to be present in the image, in order to be inspected. The point here is that
-            # ENV command in a Dockerfile can be the result of a command, it must either an hardcoded value
-            # or an arg. So we use this 2-step trick to get it.
-            # If anybody has an idea to achieve this in a cleanest way ...
-
-            echo "Getting system test context and saving it in weblog image"
-            SYSTEM_TESTS_LIBRARY_VERSION=$(docker run ${DOCKER_PLATFORM_ARGS} --rm system_tests/weblog cat SYSTEM_TESTS_LIBRARY_VERSION)
-            SYSTEM_TESTS_LIBDDWAF_VERSION=$(docker run ${DOCKER_PLATFORM_ARGS} --rm system_tests/weblog cat SYSTEM_TESTS_LIBDDWAF_VERSION)
-            SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION=$(docker run ${DOCKER_PLATFORM_ARGS} --rm system_tests/weblog cat SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION)
-
-            docker buildx build \
-                --build-arg BUILDKIT_INLINE_CACHE=1 \
-                --load \
-                --progress=plain \
-                ${DOCKER_PLATFORM_ARGS} \
-                --build-arg SYSTEM_TESTS_LIBRARY="$TEST_LIBRARY" \
-                --build-arg SYSTEM_TESTS_WEBLOG_VARIANT="$WEBLOG_VARIANT" \
-                --build-arg SYSTEM_TESTS_LIBRARY_VERSION="$SYSTEM_TESTS_LIBRARY_VERSION" \
-                --build-arg SYSTEM_TESTS_LIBDDWAF_VERSION="$SYSTEM_TESTS_LIBDDWAF_VERSION" \
-                --build-arg SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION="$SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION" \
-                -f utils/build/docker/set-system-tests-weblog-env.Dockerfile \
-                -t system_tests/weblog \
-                .
 
         else
             echo "Don't know how to build $IMAGE_NAME"
@@ -285,6 +278,7 @@ while [[ "$#" -gt 0 ]]; do
         --list-weblogs) COMMAND=list-weblogs ;;
         --default-weblog) COMMAND=default-weblog ;;
         -h|--help) print_usage; exit 0 ;;
+        --agent-base-image) AGENT_BASE_IMAGE="$2"; shift ;;
         *) echo "Invalid argument: ${1:-}"; echo; print_usage; exit 1 ;;
     esac
     shift

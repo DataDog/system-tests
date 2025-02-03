@@ -4,6 +4,7 @@ import com.datadoghq.system_tests.springboot.aws.KinesisConnector;
 import com.datadoghq.system_tests.springboot.aws.SnsConnector;
 import com.datadoghq.system_tests.springboot.aws.SqsConnector;
 import com.datadoghq.system_tests.springboot.Carrier;
+import com.datadoghq.system_tests.springboot.data_streams.DSMContextCarrier;
 import com.datadoghq.system_tests.springboot.grpc.WebLogInterface;
 import com.datadoghq.system_tests.springboot.grpc.SynchronousWebLogGrpc;
 import com.datadoghq.system_tests.springboot.kafka.KafkaConnector;
@@ -11,6 +12,7 @@ import com.datadoghq.system_tests.springboot.rabbitmq.RabbitmqConnector;
 import com.datadoghq.system_tests.springboot.rabbitmq.RabbitmqConnectorForDirectExchange;
 import com.datadoghq.system_tests.springboot.rabbitmq.RabbitmqConnectorForFanoutExchange;
 import com.datadoghq.system_tests.springboot.rabbitmq.RabbitmqConnectorForTopicExchange;
+import com.datadoghq.system_tests.iast.utils.Utils;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
@@ -18,16 +20,31 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlText;
 import com.mongodb.MongoClient;
 import com.mongodb.client.MongoCollection;
+import datadog.appsec.api.blocking.Blocking;
+import datadog.trace.api.EventTracker;
 import datadog.trace.api.Trace;
 import datadog.trace.api.experimental.*;
 import datadog.trace.api.interceptor.MutableSpan;
+
+
+import java.nio.charset.StandardCharsets;
+import org.springframework.boot.autoconfigure.r2dbc.R2dbcAutoConfiguration;
+import org.springframework.web.server.ResponseStatusException;
+
+
+import io.opentelemetry.api.baggage.Baggage;
 import io.opentelemetry.api.GlobalOpenTelemetry;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.common.AttributesBuilder;
+import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.api.trace.SpanBuilder;
 import io.opentelemetry.api.trace.Tracer;
+import io.opentelemetry.context.propagation.ContextPropagators;
+import io.opentelemetry.context.propagation.TextMapGetter;
+import io.opentelemetry.context.propagation.TextMapPropagator;
 import io.opentelemetry.context.propagation.TextMapSetter;
 import io.opentelemetry.context.Scope;
+import io.opentelemetry.context.Context;
 import io.opentracing.Span;
 import io.opentracing.util.GlobalTracer;
 import ognl.Ognl;
@@ -54,7 +71,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -62,6 +81,7 @@ import java.io.InputStreamReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.time.Instant;
+import java.util.Collections;
 import java.util.Scanner;
 import java.util.LinkedHashMap;
 
@@ -77,12 +97,22 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+
+import io.opentracing.Span;
+import io.opentracing.util.GlobalTracer;
+
+import com.datadoghq.system_tests.iast.utils.CryptoExamples;
 
 import static com.mongodb.client.model.Filters.eq;
 import static io.opentelemetry.api.trace.SpanKind.INTERNAL;
@@ -91,20 +121,53 @@ import static java.time.temporal.ChronoUnit.SECONDS;
 
 
 @RestController
-@EnableAutoConfiguration
+@EnableAutoConfiguration(exclude = R2dbcAutoConfiguration.class)
 @ComponentScan(basePackages = {"com.datadoghq.system_tests.springboot"})
 public class App {
 
+    private final CryptoExamples cryptoExamples = new CryptoExamples();
+
     CassandraConnector cassandra;
     MongoClient mongoClient;
+    int PRODUCE_CONSUME_THREAD_TIMEOUT = 5000;
 
     @RequestMapping("/")
     String home(HttpServletResponse response) {
         // open liberty set this header to en-US by default, it breaks the APPSEC-BLOCKING scenario
         // if a java engineer knows how to remove this?
-        // waiting for that, just set a random value 
+        // waiting for that, just set a random value
         response.setHeader("Content-Language", "not-set");
         return "Hello World!";
+    }
+
+    @RequestMapping("/healthcheck")
+    Map<String, Object> healtchcheck() {
+
+        String version;
+        ClassLoader cl = ClassLoader.getSystemClassLoader();
+
+        try (final BufferedReader reader =
+            new BufferedReader(
+                new InputStreamReader(
+                    cl.getResourceAsStream("dd-java-agent.version"), StandardCharsets.ISO_8859_1))) {
+            String line = reader.readLine();
+            if (line == null) {
+                throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Can't get version");
+            }
+            version = line;
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Can't get version");
+        }
+
+        Map<String, String> library = new HashMap<>();
+        library.put("language", "java");
+        library.put("version", version);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("status", "ok");
+        response.put("library", library);
+
+        return response;
     }
 
     @GetMapping("/headers")
@@ -152,6 +215,19 @@ public class App {
         return object.toString();
     }
 
+    @GetMapping(value = "/session/new")
+    ResponseEntity<String> newSession(final HttpServletRequest request) {
+        final HttpSession session = request.getSession(true);
+        return ResponseEntity.ok(session.getId());
+    }
+
+    @GetMapping(value = "/session/user")
+    ResponseEntity<String> userSession(@RequestParam("sdk_user") final String sdkUser, final HttpServletRequest request) {
+        EventTracker tracker = datadog.trace.api.GlobalTracer.getEventTracker();
+        tracker.trackLoginSuccessEvent(sdkUser, Collections.emptyMap());
+        return ResponseEntity.ok(request.getRequestedSessionId());
+    }
+
     @RequestMapping("/status")
     ResponseEntity<String> status(@RequestParam Integer code) {
         return new ResponseEntity<>(HttpStatus.valueOf(code));
@@ -163,6 +239,19 @@ public class App {
         h.put("metadata0", "value0");
         h.put("metadata1", "value1");
         return h;
+    }
+
+    @GetMapping("/users")
+    String users(@RequestParam String user) {
+        final Span span = GlobalTracer.get().activeSpan();
+        if ((span instanceof MutableSpan)) {
+            MutableSpan localRootSpan = ((MutableSpan) span).getLocalRootSpan();
+            localRootSpan.setTag("usr.id", user);
+        }
+        Blocking
+                .forUser(user)
+                .blockIfMatch();
+        return "Hello " + user;
     }
 
     @GetMapping("/user_login_success_event")
@@ -333,10 +422,13 @@ public class App {
     }
 
     @RequestMapping("/sqs/produce")
-    ResponseEntity<String> sqsProduce(@RequestParam(required = true) String queue) {
+    ResponseEntity<String> sqsProduce(
+        @RequestParam(required = true) String queue,
+        @RequestParam(required = true) String message
+    ) {
         SqsConnector sqs = new SqsConnector(queue);
         try {
-            sqs.produceMessageWithoutNewThread("DistributedTracing SQS from Java");
+            sqs.produceMessageWithoutNewThread(message);
         } catch (Exception e) {
             System.out.println("[SQS] Failed to start producing message...");
             e.printStackTrace();
@@ -346,12 +438,16 @@ public class App {
     }
 
     @RequestMapping("/sqs/consume")
-    ResponseEntity<String> sqsConsume(@RequestParam(required = true) String queue, @RequestParam(required = false) Integer timeout) {
+    ResponseEntity<String> sqsConsume(
+        @RequestParam(required = true) String queue,
+        @RequestParam(required = false) Integer timeout,
+        @RequestParam(required = true) String message
+    ) {
         SqsConnector sqs = new SqsConnector(queue);
         if (timeout == null) timeout = 60;
         boolean consumed = false;
         try {
-            consumed = sqs.consumeMessageWithoutNewThread("SQS");
+            consumed = sqs.consumeMessageWithoutNewThread("SQS", message);
             return consumed ? new ResponseEntity<>("consume ok", HttpStatus.OK) : new ResponseEntity<>("consume timed out", HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
             System.out.println("[SQS] Failed to start consuming message...");
@@ -361,11 +457,15 @@ public class App {
     }
 
     @RequestMapping("/sns/produce")
-    ResponseEntity<String> snsProduce(@RequestParam(required = true) String queue, @RequestParam(required = true) String topic) {
+    ResponseEntity<String> snsProduce(
+        @RequestParam(required = true) String queue,
+        @RequestParam(required = true) String topic,
+        @RequestParam(required = true) String message
+    ) {
         SnsConnector sns = new SnsConnector(topic);
-        SqsConnector sqs = new SqsConnector(queue, "http://localstack-main:4566");
+        SqsConnector sqs = new SqsConnector(queue);
         try {
-            sns.produceMessageWithoutNewThread("DistributedTracing SNS->SQS from Java", sqs);
+            sns.produceMessageWithoutNewThread(message, sqs);
         } catch (Exception e) {
             System.out.println("[SNS->SQS] Failed to start producing message...");
             e.printStackTrace();
@@ -375,12 +475,16 @@ public class App {
     }
 
     @RequestMapping("/sns/consume")
-    ResponseEntity<String> snsConsume(@RequestParam(required = true) String queue, @RequestParam(required = false) Integer timeout) {
-        SqsConnector sqs = new SqsConnector(queue, "http://localstack-main:4566");
+    ResponseEntity<String> snsConsume(
+        @RequestParam(required = true) String queue,
+        @RequestParam(required = false) Integer timeout,
+        @RequestParam(required = true) String message
+    ) {
+        SqsConnector sqs = new SqsConnector(queue);
         if (timeout == null) timeout = 60;
         boolean consumed = false;
         try {
-            consumed = sqs.consumeMessageWithoutNewThread("SNS->SQS");
+            consumed = sqs.consumeMessageWithoutNewThread("SNS->SQS", message);
             return consumed ? new ResponseEntity<>("consume ok", HttpStatus.OK) : new ResponseEntity<>("consume timed out", HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
             System.out.println("[SNS->SQS] Failed to start consuming message...");
@@ -390,11 +494,13 @@ public class App {
     }
 
     @RequestMapping("/kinesis/produce")
-    ResponseEntity<String> kinesisProduce(@RequestParam(required = true) String stream) {
+    ResponseEntity<String> kinesisProduce(
+        @RequestParam(required = true) String stream,
+        @RequestParam(required = true) String message
+    ) {
         KinesisConnector kinesis = new KinesisConnector(stream);
         try {
-            String jsonString = "{\"message\":\"DistributedTracing Kinesis from Java\"}";
-            kinesis.produceMessageWithoutNewThread(jsonString);
+            kinesis.produceMessageWithoutNewThread(message);
         } catch (Exception e) {
             System.out.println("[Kinesis] Failed to start producing message...");
             e.printStackTrace();
@@ -404,12 +510,16 @@ public class App {
     }
 
     @RequestMapping("/kinesis/consume")
-    ResponseEntity<String> kinesisConsume(@RequestParam(required = true) String stream, @RequestParam(required = false) Integer timeout) {
+    ResponseEntity<String> kinesisConsume(
+        @RequestParam(required = true) String stream,
+        @RequestParam(required = false) Integer timeout,
+        @RequestParam(required = true) String message
+    ) {
         KinesisConnector kinesis = new KinesisConnector(stream);
         if (timeout == null) timeout = 60;
         boolean consumed = false;
         try {
-            consumed = kinesis.consumeMessageWithoutNewThread(timeout);
+            consumed = kinesis.consumeMessageWithoutNewThread(timeout, message);
             return consumed ? new ResponseEntity<>("consume ok", HttpStatus.OK) : new ResponseEntity<>("consume timed out", HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
             System.out.println("[Kinesis] Failed to start consuming message...");
@@ -422,7 +532,8 @@ public class App {
     ResponseEntity<String> rabbitmqProduce(@RequestParam(required = true) String queue, @RequestParam(required = true) String exchange) {
         RabbitmqConnector rabbitmq = new RabbitmqConnector();
         try {
-            rabbitmq.startProducingMessageWithQueue("RabbitMQ Context Propagation Test from Java", queue, exchange);
+            Thread produceThread = rabbitmq.startProducingMessageWithQueue("RabbitMQ Context Propagation Test from Java", queue, exchange);
+            produceThread.join(this.PRODUCE_CONSUME_THREAD_TIMEOUT);
         } catch (Exception e) {
             System.out.println("[RabbitMQ] Failed to start producing message...");
             e.printStackTrace();
@@ -458,19 +569,22 @@ public class App {
         @RequestParam(required = false, name = "stream") String stream,
         @RequestParam(required = false, name = "routing_key") String routing_key,
         @RequestParam(required = false, name = "exchange") String exchange,
-        @RequestParam(required = false, name = "group") String group
+        @RequestParam(required = false, name = "group") String group,
+        @RequestParam(required = false, name = "message") String message
     ) {
         if ("kafka".equals(integration)) {
             KafkaConnector kafka = new KafkaConnector(queue);
             try {
-                kafka.startProducingMessage("hello world!");
+                Thread produceThread = kafka.startProducingMessage("hello world!");
+                produceThread.join(this.PRODUCE_CONSUME_THREAD_TIMEOUT);
             } catch (Exception e) {
                 System.out.println("[kafka] Failed to start producing message...");
                 e.printStackTrace();
                 return "failed to start producing message";
             }
             try {
-                kafka.startConsumingMessages("");
+                Thread consumeThread = kafka.startConsumingMessages("");
+                consumeThread.join(this.PRODUCE_CONSUME_THREAD_TIMEOUT);
             } catch (Exception e) {
                 System.out.println("[kafka] Failed to start consuming message...");
                 e.printStackTrace();
@@ -479,14 +593,16 @@ public class App {
         } else if ("rabbitmq".equals(integration)) {
             RabbitmqConnectorForDirectExchange rabbitmq = new RabbitmqConnectorForDirectExchange(queue, exchange, routing_key);
             try {
-                rabbitmq.startProducingMessages();
+                Thread produceThread = rabbitmq.startProducingMessages();
+                produceThread.join(this.PRODUCE_CONSUME_THREAD_TIMEOUT);
             } catch (Exception e) {
                 System.out.println("[rabbitmq] Failed to start producing message...");
                 e.printStackTrace();
                 return "failed to start producing message";
             }
             try {
-                rabbitmq.startConsumingMessages();
+                Thread consumeThread = rabbitmq.startConsumingMessages();
+                consumeThread.join(this.PRODUCE_CONSUME_THREAD_TIMEOUT);
             } catch (Exception e) {
                 System.out.println("[rabbitmq] Failed to start consuming message...");
                 e.printStackTrace();
@@ -495,14 +611,16 @@ public class App {
         } else if ("rabbitmq_topic_exchange".equals(integration)) {
             RabbitmqConnectorForTopicExchange rabbitmq = new RabbitmqConnectorForTopicExchange();
             try {
-                rabbitmq.startProducingMessages();
+                Thread produceThread = rabbitmq.startProducingMessages();
+                produceThread.join(this.PRODUCE_CONSUME_THREAD_TIMEOUT);
             } catch (Exception e) {
                 System.out.println("[rabbitmq_topic] Failed to start producing message...");
                 e.printStackTrace();
                 return "failed to start producing message";
             }
             try {
-                rabbitmq.startConsumingMessages();
+                Thread consumeThread = rabbitmq.startConsumingMessages();
+                consumeThread.join(this.PRODUCE_CONSUME_THREAD_TIMEOUT);
             } catch (Exception e) {
                 System.out.println("[rabbitmq_topic] Failed to start consuming message...");
                 e.printStackTrace();
@@ -511,14 +629,16 @@ public class App {
         } else if ("rabbitmq_fanout_exchange".equals(integration)) {
             RabbitmqConnectorForFanoutExchange rabbitmq = new RabbitmqConnectorForFanoutExchange();
             try {
-                rabbitmq.startProducingMessages();
+                Thread produceThread = rabbitmq.startProducingMessages();
+                produceThread.join(this.PRODUCE_CONSUME_THREAD_TIMEOUT);
             } catch (Exception e) {
                 System.out.println("[rabbitmq_fanout] Failed to start producing message...");
                 e.printStackTrace();
                 return "failed to start producing message";
             }
             try {
-                rabbitmq.startConsumingMessages();
+                Thread consumeThread = rabbitmq.startConsumingMessages();
+                consumeThread.join(this.PRODUCE_CONSUME_THREAD_TIMEOUT);
             } catch (Exception e) {
                 System.out.println("[rabbitmq_fanout] Failed to start consuming message...");
                 e.printStackTrace();
@@ -527,14 +647,16 @@ public class App {
         } else if ("sqs".equals(integration)) {
             SqsConnector sqs = new SqsConnector(queue);
             try {
-                sqs.startProducingMessage("hello world from SQS Dsm Java!");
+                Thread produceThread = sqs.startProducingMessage(message);
+                produceThread.join(this.PRODUCE_CONSUME_THREAD_TIMEOUT);
             } catch (Exception e) {
                 System.out.println("[SQS] Failed to start producing message...");
                 e.printStackTrace();
                 return "[SQS] failed to start producing message";
             }
             try {
-                sqs.startConsumingMessages("SQS");
+                Thread consumeThread = sqs.startConsumingMessages("SQS", message);
+                consumeThread.join(this.PRODUCE_CONSUME_THREAD_TIMEOUT);
             } catch (Exception e) {
                 System.out.println("[SQS] Failed to start consuming message...");
                 e.printStackTrace();
@@ -542,16 +664,18 @@ public class App {
             }
         } else if ("sns".equals(integration)) {
             SnsConnector sns = new SnsConnector(topic);
-            SqsConnector sqs = new SqsConnector(queue, "http://localstack-main:4566");
+            SqsConnector sqs = new SqsConnector(queue);
             try {
-                sns.startProducingMessage("hello world from SNS->SQS Dsm Java!", sqs);
+                Thread produceThread = sns.startProducingMessage(message, sqs);
+                produceThread.join(this.PRODUCE_CONSUME_THREAD_TIMEOUT);
             } catch (Exception e) {
                 System.out.println("[SNS->SQS] Failed to start producing message...");
                 e.printStackTrace();
                 return "[SNS->SQS] failed to start producing message";
             }
             try {
-                sqs.startConsumingMessages("SNS->SQS");
+                Thread consumeThread = sqs.startConsumingMessages("SNS->SQS", message);
+                consumeThread.join(this.PRODUCE_CONSUME_THREAD_TIMEOUT);
             } catch (Exception e) {
                 System.out.println("[SNS->SQS] Failed to start consuming message...");
                 e.printStackTrace();
@@ -560,15 +684,14 @@ public class App {
         } else if ("kinesis".equals(integration)) {
             KinesisConnector kinesis = new KinesisConnector(stream);
             try {
-                String jsonString = "{\"message\":\"DSM Test Kinesis from Java\"}";
-                kinesis.produceMessageWithoutNewThread(jsonString);
+                kinesis.produceMessageWithoutNewThread(message);
             } catch (Exception e) {
                 System.out.println("[Kinesis] Failed to start producing message...");
                 e.printStackTrace();
                 return "[Kinesis] failed to start producing message";
             }
             try {
-                kinesis.consumeMessageWithoutNewThread(60);
+                kinesis.consumeMessageWithoutNewThread(60, message);
             } catch (Exception e) {
                 System.out.println("[Kinesis] Failed to start consuming message...");
                 e.printStackTrace();
@@ -622,6 +745,111 @@ public class App {
         return "ok";
     }
 
+    @RequestMapping("/dsm/manual/produce")
+    String dsmManualCheckpointProduce(
+        @RequestParam(required = true, name = "type") String type,
+        @RequestParam(required = true, name = "target") String target,
+        HttpServletResponse response
+    ) {
+        DSMContextCarrier headers = new DSMContextCarrier();
+
+        DataStreamsCheckpointer dsmCheckpointer = DataStreamsCheckpointer.get();
+
+        dsmCheckpointer.setProduceCheckpoint(type, target, headers);
+
+        System.out.println("[DSM Manual Produce] After completion: " + headers.getData());
+
+        // Add headers that include DSM pathway context to response headers
+        for (Map.Entry<String, Object> entry : headers.entries()) {
+            response.addHeader(entry.getKey(), entry.getValue().toString());
+        }
+        return "ok";
+    }
+
+    @RequestMapping("/dsm/manual/produce_with_thread")
+    String dsmManualCheckpointProduceWithThread(
+        @RequestParam(required = true, name = "type") String type,
+        @RequestParam(required = true, name = "target") String target,
+        HttpServletResponse response
+    ) throws java.lang.InterruptedException, java.util.concurrent.ExecutionException {
+        class DsmProduce implements Callable<Map<String, Object>> {
+            @Override
+            public Map<String, Object> call() {
+                DSMContextCarrier headers = new DSMContextCarrier();
+                DataStreamsCheckpointer dsmCheckpointer = DataStreamsCheckpointer.get();
+
+                System.out.println("[DSM Manual Produce with Thread] Before setProduceCheckpoint: " + headers.getData());
+
+                dsmCheckpointer.setProduceCheckpoint(type, target, headers);
+
+                System.out.println("[DSM Manual Produce with Thread] After setProduceCheckpoint: " + headers.getData());
+
+                return headers.getData();
+            }
+        }
+
+        ExecutorService executor = Executors.newFixedThreadPool(1);
+        Future<Map<String, Object>> dsmProduceFuture = executor.submit(new DsmProduce());
+        Map<String, Object> injectedHeaders = dsmProduceFuture.get();
+
+        System.out.println("[DSM Manual Produce with Thread] After thread completion: " + injectedHeaders);
+
+        // Add headers that include DSM pathway context to response headers
+        for (Map.Entry<String, Object> entry : injectedHeaders.entrySet()) {
+            response.addHeader(entry.getKey(), entry.getValue().toString());
+        }
+
+        return "ok";
+    }
+
+    @RequestMapping("/dsm/manual/consume")
+    String dsmManualCheckpointConsume(
+        @RequestParam(required = true, name = "type") String type,
+        @RequestParam(required = true, name = "source") String source,
+        @RequestHeader(name = "_datadog", required = true) String datadogHeader
+    ) throws com.fasterxml.jackson.core.JsonProcessingException {
+        System.out.println("[DSM Manual Consume] consumed headers: " + datadogHeader);
+
+        ObjectMapper mapper = new ObjectMapper();
+        Map<String, Object> headersMap = mapper.readValue(datadogHeader, new TypeReference<Map<String, Object>>(){});
+        DSMContextCarrier headersAdapter = new DSMContextCarrier(headersMap);
+
+        DataStreamsCheckpointer.get().setConsumeCheckpoint(type, source, headersAdapter);
+
+        return "ok";
+    }
+
+    @RequestMapping("/dsm/manual/consume_with_thread")
+    String dsmManualCheckpointConsumeWithThread(
+        @RequestParam(required = true, name = "type") String type,
+        @RequestParam(required = true, name = "source") String source,
+        @RequestHeader(name = "_datadog", required = true) String datadogHeader
+    ) throws java.lang.InterruptedException, java.util.concurrent.ExecutionException {
+        final String finalHeaders = datadogHeader;
+
+        class DsmConsume implements Callable<String> {
+            @Override
+            public String call() throws com.fasterxml.jackson.core.JsonProcessingException {
+                System.out.println("[DSM Manual Consume within Thread] consumed headers: " + finalHeaders);
+
+                ObjectMapper mapper = new ObjectMapper();
+                Map<String, Object> headersMap = mapper.readValue(finalHeaders, new TypeReference<Map<String, Object>>(){});
+                DSMContextCarrier headersAdapter = new DSMContextCarrier(headersMap);
+
+                DataStreamsCheckpointer dsmCheckpointer = DataStreamsCheckpointer.get();
+                dsmCheckpointer.setConsumeCheckpoint(type, source, headersAdapter);
+
+                return "ok";
+            }
+        }
+
+        ExecutorService executor = Executors.newFixedThreadPool(1);
+        Future<String> dsmConsumeFuture = executor.submit(new DsmConsume());
+        String status = dsmConsumeFuture.get();
+
+        return status;
+    }
+
     @RequestMapping("/trace/ognl")
     String traceOGNL() {
         final Span span = GlobalTracer.get().activeSpan();
@@ -631,7 +859,7 @@ public class App {
 
         List<String> list = Arrays.asList("Have you ever thought about jumping off an airplane?",
                 "Flying like a bird made of cloth who just left a perfectly working airplane");
-        try { 
+        try {
             Object expr = Ognl.parseExpression("[1]");
             String value = (String) Ognl.getValue(expr, list);
             return "hi OGNL, " + value;
@@ -640,64 +868,6 @@ public class App {
         }
 
         return "hi OGNL";
-    }
-
-    // E.g. curl "http://localhost:8080/sqli?q=%271%27%20union%20select%20%2A%20from%20display_names"
-    @RequestMapping("/rasp/sqli")
-    String raspSQLi(@RequestParam(required = false, name="q") String param) {
-        final Span span = GlobalTracer.get().activeSpan();
-        if (span != null) {
-            span.setTag("appsec.event", true);
-        }
-
-        // NOTE: see README.md for setting up the docker image to quickly test this
-        String url = "jdbc:postgresql://postgres_db/sportsdb?user=postgres&password=postgres";
-        try (Connection pgConn = DriverManager.getConnection(url)) {
-            String query = "SELECT * FROM display_names WHERE full_name = ";
-            Statement st = pgConn.createStatement();
-            ResultSet rs = st.executeQuery(query + param);
-
-            int i = 0;
-            while (rs.next()) {
-                i++;
-            }
-            System.out.printf("Read %d rows", i);
-            rs.close();
-            st.close();
-        } catch (SQLException e) {
-            e.printStackTrace(System.err);
-            return "pgsql exception :(";
-        }
-
-        return "Done SQL injection with param: " + param;
-    }
-
-    @RequestMapping("/rasp/ssrf")
-    String raspSSRF(@RequestParam(required = false, name="url") String url) {
-        final Span span = GlobalTracer.get().activeSpan();
-        if (span != null) {
-            span.setTag("appsec.event", true);
-        }
-
-        try {
-            URL server;
-            try {
-                server = new URL(url);
-            } catch (MalformedURLException e) {
-                server = new URL("http://" + url);
-            }
-
-            HttpURLConnection connection = (HttpURLConnection)server.openConnection();
-            connection.connect();
-            System.out.println("Response code:" + connection.getResponseCode());
-            System.out.println("Response message:" + connection.getResponseMessage());
-            InputStream test = connection.getErrorStream();
-            String result = new BufferedReader(new InputStreamReader(test)).lines().collect(Collectors.joining("\n"));
-            return result;
-        } catch (Exception e) {
-            e.printStackTrace(System.err);
-            return "ssrf exception :(";
-        }
     }
 
     @RequestMapping("/make_distant_call")
@@ -735,6 +905,15 @@ public class App {
         result.response_headers = response_headers;
 
         return result;
+    }
+
+    @RequestMapping("/createextraservice")
+    public String createextraservice(@RequestParam String serviceName) {
+        final Span span = GlobalTracer.get().activeSpan();
+        if (span != null) {
+            span.setTag("service", serviceName);
+        }
+        return "OK";
     }
 
     public static final class DistantCallResponse {
@@ -913,19 +1092,105 @@ public class App {
         return "OK";
     }
 
+    @RequestMapping("/otel_drop_in")
+    public String otelDropInSpan() {
+        // exercise OpenTelemetry's R2DBC support on Java
+        db_sql_integrations("reactive_postgresql", "init");
+        db_sql_integrations("reactive_postgresql", "select");
+        return "OK";
+    }
+
+    @RequestMapping("/otel_drop_in_default_propagator_extract")
+    public String otelDropInDefaultPropagatorExtract(@RequestHeader Map<String, String> headers) throws com.fasterxml.jackson.core.JsonProcessingException {
+        ContextPropagators propagators = GlobalOpenTelemetry.getPropagators();
+        TextMapPropagator textMapPropagator = propagators.getTextMapPropagator();
+
+        Context extractedContext = textMapPropagator.extract(Context.current(), headers, new TextMapGetter<Map<String, String>>() {
+            @Override
+            public Iterable<String> keys(Map<String, String> map) {
+            return map.keySet();
+            }
+
+            @Override
+            public String get(Map<String, String> map, String key) {
+                return map.get(key);
+            }
+        });
+
+        io.opentelemetry.api.trace.SpanContext spanContext = io.opentelemetry.api.trace.Span.fromContext(extractedContext).getSpanContext();
+        Long ddTraceId = Long.parseLong(spanContext.getTraceId().substring(16), 16);
+        Long ddSpanId = Long.parseLong(spanContext.getSpanId(), 16);
+
+        Map<String, Object> map = new HashMap<>();
+        map.put("trace_id", ddTraceId);
+        map.put("span_id", ddSpanId);
+        map.put("tracestate", spanContext.getTraceState().asMap().toString());
+        map.put("baggage", Baggage.fromContext(extractedContext).asMap().toString());
+
+        // Convert headers map to JSON string
+        ObjectMapper mapper = new ObjectMapper();
+        String jsonString = mapper.writeValueAsString(map);
+
+        return jsonString;
+    }
+
+    @RequestMapping("/otel_drop_in_default_propagator_inject")
+    public String otelDropInDefaultPropagatorInject() throws com.fasterxml.jackson.core.JsonProcessingException {
+        ContextPropagators propagators = GlobalOpenTelemetry.getPropagators();
+        TextMapPropagator textMapPropagator = propagators.getTextMapPropagator();
+
+        Map<String, String> map = new HashMap<>();
+        textMapPropagator.inject(Context.current(), map, new TextMapSetter<Map<String, String>>() {
+            @Override
+            public void set(Map<String, String> map, String key, String value) {
+                map.put(key, value);
+            }
+        });
+
+        // Convert headers map to JSON string
+        ObjectMapper mapper = new ObjectMapper();
+        String jsonString = mapper.writeValueAsString(map);
+
+        return jsonString;
+    }
+
+    @GetMapping(value = "/requestdownstream")
+    public String requestdownstream(HttpServletResponse response) throws IOException {
+        String url = "http://localhost:7777/returnheaders";
+        return Utils.sendGetRequest(url);
+    }
+
+    @GetMapping(value = "/vulnerablerequestdownstream")
+    public String vulnerableRequestdownstream(HttpServletResponse response) throws IOException {
+        cryptoExamples.insecureMd5Hashing("password");
+        String url = "http://localhost:7777/returnheaders";
+        return Utils.sendGetRequest(url);
+    }
+
+    @GetMapping(value = "/returnheaders", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Map<String, String>> returnheaders(@RequestHeader Map<String, String> headers) {
+        return ResponseEntity.ok(headers);
+    }
+
+    @GetMapping(value = "/set_cookie")
+    public ResponseEntity<String> setCookie(@RequestParam String name, @RequestParam String value) {
+        return ResponseEntity.ok().header("Set-Cookie", name + "=" + value).body("Cookie set");
+    }
+
+
     @Bean
     @ConditionalOnProperty(
-        value="spring.native", 
-        havingValue = "false", 
+        value="spring.native",
+        havingValue = "false",
         matchIfMissing = true)
-    SynchronousWebLogGrpc synchronousGreeter(WebLogInterface localInterface) { 
+    SynchronousWebLogGrpc synchronousGreeter(WebLogInterface localInterface) {
         return new SynchronousWebLogGrpc(localInterface.getPort());
    }
 
     @Bean
     @ConditionalOnProperty(
-        value="spring.native", 
-        havingValue = "false", 
+        value="spring.native",
+        havingValue = "false",
         matchIfMissing = true)
     WebLogInterface localInterface() throws IOException {
         return new WebLogInterface();

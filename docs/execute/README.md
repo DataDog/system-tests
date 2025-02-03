@@ -2,14 +2,14 @@
 
 ## Run tests
 
-You will need a bash based terminal, python3.9, git and docker. Clone this folder, and at root level, create a `.env` file with `DD_API_KEY=<a_valid_staging_api_key>`. Then: 
+You will need a bash based terminal, python3.12, git and docker. Clone this folder, then:
 
 ```bash
 ./build.sh   # build all images
 ./run.sh     # run tests
 ```
 
-By default, test will be executed on the nodeJS library. Please have a look on [build.sh CLI's documentation](./build.md) for more options.
+By default, test will be executed on the Node.js library. Please have a look on [build.sh CLI's documentation](./build.md) for more options.
 
 `./run.sh` has [some options](./run.md), but for now, you won't need them.
 

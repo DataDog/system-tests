@@ -2,8 +2,8 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, irrelevant, features, missing_feature
-from .._test_iast_fixtures import BaseSinkTestWithoutTelemetry
+from utils import context, irrelevant, features, missing_feature, rfc, weblog
+from ..utils import BaseSinkTestWithoutTelemetry, validate_stack_traces
 
 
 def _expected_location():
@@ -19,7 +19,7 @@ def _expected_location():
         if context.weblog_variant == "vertx4":
             return "com.datadoghq.vertx4.iast.routes.IastSinkRouteProvider"
     if context.library.library == "nodejs":
-        if context.weblog_variant == "express4":
+        if context.weblog_variant in ("express4", "express5"):
             return "iast/index.js"
         if context.weblog_variant == "express4-typescript":
             return "iast.ts"
@@ -66,3 +66,36 @@ class TestUnvalidatedHeader(BaseSinkTestWithoutTelemetry):
     @missing_feature(context.weblog_variant == "vertx3", reason="Endpoint responds 403")
     def test_secure(self):
         return super().test_secure()
+
+
+@rfc(
+    "https://docs.google.com/document/d/1ga7yCKq2htgcwgQsInYZKktV0hNlv4drY9XzSxT-o5U/edit?tab=t.0#heading=h.d0f5wzmlfhat"
+)
+@features.iast_stack_trace
+class TestUnvalidatedRedirect_StackTrace:
+    """Validate stack trace generation"""
+
+    def setup_stack_trace(self):
+        self.r = weblog.post(
+            "/iast/unvalidated_redirect/test_insecure_redirect", data={"location": "http://dummy.location.com"}
+        )
+
+    @irrelevant(library="java", weblog_variant="vertx3", reason="vertx3 redirects using location header")
+    def test_stack_trace(self):
+        validate_stack_traces(self.r)
+
+
+@rfc(
+    "https://docs.google.com/document/d/1ga7yCKq2htgcwgQsInYZKktV0hNlv4drY9XzSxT-o5U/edit?tab=t.0#heading=h.d0f5wzmlfhat"
+)
+@features.iast_stack_trace
+class TestUnvalidatedHeader_StackTrace:
+    """Validate stack trace generation"""
+
+    def setup_stack_trace(self):
+        self.r = weblog.post(
+            "/iast/unvalidated_redirect/test_insecure_header", data={"location": "http://dummy.location.com"}
+        )
+
+    def test_stack_trace(self):
+        validate_stack_traces(self.r)

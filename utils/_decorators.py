@@ -1,40 +1,73 @@
 import inspect
+import os
+import re
+from functools import partial
+import enum
+
 import pytest
 import semantic_version as semver
 
 from utils._context.core import context
 
+_jira_ticket_pattern = re.compile(r"([A-Z]{3,}-\d+)(, [A-Z]{3,}-\d+)*")
+
+
+def configure(config: pytest.Config):
+    pass  # nothing to do right now
+
+
+class _DecoratorType(enum.StrEnum):
+    BUG = "bug"
+    FLAKY = "flaky"
+    IRRELEVANT = "irrelevant"
+    MISSING_FEATURE = "missing_feature"
+    INCOMPLETE_TEST_APP = "incomplete_test_app"
+
+
+# semver module offers two spec engine :
+# 1. SimpleSpec : not a good fit because it does not allows OR clause
+# 2. NpmSpec : not a good fit because it disallow prerelease version by default (6.0.0-pre is not in ">=5.0.0")
+# So we use a custom one, based on NPM spec, allowing pre-release versions
+class CustomParser(semver.NpmSpec.Parser):
+    @classmethod
+    def range(cls, operator, target) -> semver.base.Range:
+        return semver.base.Range(operator, target, prerelease_policy=semver.base.Range.PRERELEASE_ALWAYS)
+
+
+class CustomSpec(semver.NpmSpec):
+    Parser = CustomParser
+
 
 _MANIFEST_ERROR_MESSAGE = "Please use manifest file, See docs/edit/manifest.md"
 
 
-def _get_skipped_item(item, skip_reason):
+def is_jira_ticket(reason: str):
+    return reason is not None and _jira_ticket_pattern.fullmatch(reason)
+
+
+def _ensure_jira_ticket_as_reason(item, reason: str):
+    if not is_jira_ticket(reason):
+        path = inspect.getfile(item)
+        rel_path = os.path.relpath(path)
+        nodeid = f"{rel_path}::{item.__name__ if inspect.isclass(item) else item.__qualname__}"
+
+        pytest.exit(f"Please set a jira ticket for {nodeid}, instead of reason: {reason}", 1)
+
+
+def _add_pytest_marker(item, reason, marker):
     if inspect.isfunction(item) or inspect.isclass(item):
         if not hasattr(item, "pytestmark"):
-            setattr(item, "pytestmark", [])
+            item.pytestmark = []
 
-        item.pytestmark.append(pytest.mark.skip(reason=skip_reason))
-
+        item.pytestmark.append(marker(reason=reason))
     else:
         raise ValueError(f"Unexpected skipped object: {item}")
 
     return item
 
 
-def _get_expected_failure_item(item, skip_reason):
-    if inspect.isfunction(item) or inspect.isclass(item):
-        if not hasattr(item, "pytestmark"):
-            setattr(item, "pytestmark", [])
-
-        item.pytestmark.append(pytest.mark.xfail(reason=skip_reason))
-    else:
-        raise ValueError(f"Unexpected skipped object: {item}")
-
-    return item
-
-
-def _should_skip(condition=None, library=None, weblog_variant=None):
-    if condition is not None and not condition:
+def _expected_to_fail(condition=None, library=None, weblog_variant=None):
+    if condition is False:
         return False
 
     if weblog_variant is not None and weblog_variant != context.weblog_variant:
@@ -62,84 +95,88 @@ def _should_skip(condition=None, library=None, weblog_variant=None):
     return True
 
 
-def missing_feature(condition=None, library=None, weblog_variant=None, reason=None):
+def _decorator(function_or_class, marker, decorator_type, condition, library, weblog_variant, reason):
+    expected_to_fail = _expected_to_fail(library=library, weblog_variant=weblog_variant, condition=condition)
+
+    if inspect.isclass(function_or_class):
+        assert condition is not None or (library is None and weblog_variant is None), _MANIFEST_ERROR_MESSAGE
+
+    if decorator_type in (_DecoratorType.BUG, _DecoratorType.FLAKY):
+        _ensure_jira_ticket_as_reason(function_or_class, reason)
+
+    full_reason = decorator_type.value if reason is None else f"{decorator_type.value} ({reason})"
+    if not expected_to_fail:
+        return function_or_class
+    return _add_pytest_marker(function_or_class, full_reason, marker)
+
+
+def missing_feature(condition=None, library=None, weblog_variant=None, reason=None, *, force_skip: bool = False):
     """decorator, allow to mark a test function/class as missing"""
+    marker = pytest.mark.skip if force_skip else pytest.mark.xfail
+    return partial(
+        _decorator,
+        marker=marker,
+        decorator_type=_DecoratorType.MISSING_FEATURE,
+        condition=condition,
+        library=library,
+        weblog_variant=weblog_variant,
+        reason=reason,
+    )
 
-    skip = _should_skip(library=library, weblog_variant=weblog_variant, condition=condition)
 
-    def decorator(function_or_class):
-
-        if inspect.isclass(function_or_class):
-            assert condition is not None or (library is None and weblog_variant is None), _MANIFEST_ERROR_MESSAGE
-
-        if not skip:
-            return function_or_class
-
-        full_reason = "missing_feature" if reason is None else f"missing_feature: {reason}"
-
-        return _get_expected_failure_item(function_or_class, full_reason)
-
-    return decorator
+def incomplete_test_app(condition=None, library=None, weblog_variant=None, reason=None):
+    """Decorator, allow to mark a test function/class as not compatible with the tested application"""
+    return partial(
+        _decorator,
+        marker=pytest.mark.xfail,
+        decorator_type=_DecoratorType.INCOMPLETE_TEST_APP,
+        condition=condition,
+        library=library,
+        weblog_variant=weblog_variant,
+        reason=reason,
+    )
 
 
 def irrelevant(condition=None, library=None, weblog_variant=None, reason=None):
     """decorator, allow to mark a test function/class as not relevant"""
-
-    skip = _should_skip(library=library, weblog_variant=weblog_variant, condition=condition)
-
-    def decorator(function_or_class):
-
-        if inspect.isclass(function_or_class):
-            assert condition is not None, _MANIFEST_ERROR_MESSAGE
-
-        if not skip:
-            return function_or_class
-
-        full_reason = "irrelevant" if reason is None else f"irrelevant: {reason}"
-        return _get_skipped_item(function_or_class, full_reason)
-
-    return decorator
+    return partial(
+        _decorator,
+        marker=pytest.mark.skip,
+        decorator_type=_DecoratorType.IRRELEVANT,
+        condition=condition,
+        library=library,
+        weblog_variant=weblog_variant,
+        reason=reason,
+    )
 
 
-def bug(condition=None, library=None, weblog_variant=None, reason=None):
-    """
-    Decorator, allow to mark a test function/class as an known bug.
+def bug(condition=None, library=None, weblog_variant=None, reason=None, *, force_skip: bool = False):
+    """Decorator, allow to mark a test function/class as an known bug.
     The test is executed, and if it passes, and warning is reported
     """
-
-    expected_to_fail = _should_skip(library=library, weblog_variant=weblog_variant, condition=condition)
-
-    def decorator(function_or_class):
-
-        if inspect.isclass(function_or_class):
-            assert condition is not None, _MANIFEST_ERROR_MESSAGE
-
-        if not expected_to_fail:
-            return function_or_class
-
-        full_reason = "bug" if reason is None else f"bug: {reason}"
-        return _get_expected_failure_item(function_or_class, full_reason)
-
-    return decorator
+    marker = pytest.mark.skip if force_skip else pytest.mark.xfail
+    return partial(
+        _decorator,
+        marker=marker,
+        decorator_type=_DecoratorType.BUG,
+        condition=condition,
+        library=library,
+        weblog_variant=weblog_variant,
+        reason=reason,
+    )
 
 
 def flaky(condition=None, library=None, weblog_variant=None, reason=None):
     """Decorator, allow to mark a test function/class as a known bug, and skip it"""
-
-    skip = _should_skip(library=library, weblog_variant=weblog_variant, condition=condition)
-
-    def decorator(function_or_class):
-
-        if inspect.isclass(function_or_class):
-            assert condition is not None, _MANIFEST_ERROR_MESSAGE
-
-        if not skip:
-            return function_or_class
-
-        full_reason = "flaky" if reason is None else f"flaky: {reason}"
-        return _get_skipped_item(function_or_class, full_reason)
-
-    return decorator
+    return partial(
+        _decorator,
+        marker=pytest.mark.skip,
+        decorator_type=_DecoratorType.FLAKY,
+        condition=condition,
+        library=library,
+        weblog_variant=weblog_variant,
+        reason=reason,
+    )
 
 
 def released(
@@ -154,6 +191,8 @@ def released(
     nodejs_otel=None,
     ruby=None,
     agent=None,
+    dd_apm_inject=None,
+    k8s_cluster_agent=None,
 ):
     """Class decorator, allow to mark a test class with a version number of a component"""
 
@@ -179,21 +218,15 @@ def released(
 
             assert declaration != "?"  # ensure there is no more ? in version declaration
 
-            if (
-                declaration.startswith("missing_feature")
-                or declaration.startswith("flaky")
-                or declaration.startswith("bug")
-                or declaration.startswith("irrelevant")
-            ):
+            if declaration.startswith(("missing_feature", "bug", "flaky", "irrelevant", "incomplete_test_app")):
                 return declaration
 
             # declaration must be now a version number
             if declaration.startswith("v"):
                 if tested_version >= declaration:
                     return None
-            else:
-                if semver.Version(str(tested_version)) in semver.NpmSpec(declaration):
-                    return None
+            elif semver.Version(str(tested_version)) in CustomSpec(declaration):
+                return None
 
             return (
                 f"missing_feature for {component_name}: "
@@ -212,6 +245,8 @@ def released(
             compute_declaration("python_otel", "python_otel", python_otel, context.library.version),
             compute_declaration("ruby", "ruby", ruby, context.library.version),
             compute_declaration("*", "agent", agent, context.agent_version),
+            compute_declaration("*", "dd_apm_inject", dd_apm_inject, context.dd_apm_inject_version),
+            compute_declaration("*", "k8s_cluster_agent", k8s_cluster_agent, context.k8s_cluster_agent_version),
         ]
 
         skip_reasons = [reason for reason in skip_reasons if reason is not None]  # remove None
@@ -219,18 +254,25 @@ def released(
         if len(skip_reasons) != 0:
             # look for any flaky or irrelevant, meaning we don't execute the test at all
             for reason in skip_reasons:
-                if reason.startswith("flaky") or reason.startswith("irrelevant"):
-                    return _get_skipped_item(test_class, reason)  # use the first skip reason found
+                if reason.startswith("flaky"):
+                    _ensure_jira_ticket_as_reason(test_class, reason[7:-1])
+                    return _add_pytest_marker(test_class, reason, pytest.mark.skip)
+
+                if reason.startswith("irrelevant"):
+                    return _add_pytest_marker(test_class, reason, pytest.mark.skip)
 
                 # Otherwise, it's either bug, or missing_feature. Take the first one
-                return _get_expected_failure_item(test_class, reason)
+                if reason.startswith("bug"):
+                    _ensure_jira_ticket_as_reason(test_class, reason[5:-1])
+
+                return _add_pytest_marker(test_class, reason, pytest.mark.xfail)
 
         return test_class
 
     return wrapper
 
 
-def rfc(link):
+def rfc(link):  # noqa: ARG001
     def wrapper(item):
         return item
 
@@ -238,7 +280,7 @@ def rfc(link):
 
 
 def _resolve_declaration(released_declaration):
-    """ if the declaration is a dict, resolve it regarding the tested weblog """
+    """If the declaration is a dict, resolve it regarding the tested weblog"""
     if isinstance(released_declaration, str):
         return released_declaration
 

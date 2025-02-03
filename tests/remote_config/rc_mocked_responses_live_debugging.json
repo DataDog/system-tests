@@ -1,0 +1,216 @@
+[
+    [],
+    [
+        {
+            "id": "33a64d99-fbed-5eab-bb10-80735405c09b",
+            "type": "METRIC_PROBE",
+            "created": 1605093071.000000000,
+            "language": "",
+            "veriosn": 0,
+            "tags": [],
+            "active": true,
+            "where": {
+                "typeName": "target",
+                "methodName": "myMethod"
+            },
+            "kind": "COUNT",
+            "metricName": "datadog.debugger.calls",
+            "value": {
+                "expr": "#localVar1.field1.field2"
+            }
+        }
+    ],
+    [
+        {
+            "id": "33a64d99-fbed-5eab-bb10-80735405c09b",
+            "type": "METRIC_PROBE",
+            "created": 1605093071.000000000,
+            "language": "",
+            "veriosn": 1,
+            "tags": [],
+            "active": true,
+            "where": {
+                "typeName": "target",
+                "methodName": "mySuperMethod"
+            },
+            "kind": "COUNT",
+            "metricName": "datadog.debugger.calls",
+            "value": {
+                "expr": "#localVar1.field1.field2"
+            }
+        }
+    ],
+    [],
+    [
+        {
+            "id": "33a64d99-fbed-5eab-bb10-80735405c09b",
+            "type": "METRIC_PROBE",
+            "created": 1605093071.000000000,
+            "language": "",
+            "veriosn": 0,
+            "tags": [],
+            "active": true,
+            "where": {
+                "typeName": "target",
+                "methodName": "myMethod"
+            },
+            "kind": "COUNT",
+            "metricName": "datadog.debugger.calls",
+            "value": {
+                "expr": "#localVar1.field1.field2"
+            }
+        },
+        {
+            "id": "22953c88-eadc-4f9a-aa0f-7f6243f4bf8a",
+            "type": "LOG_PROBE",
+            "created": 1605093071.000000000,
+            "language": "",
+            "veriosn": 0,
+            "tags": [],
+            "active": true,
+            "where": {
+                "typeName": "target",
+                "methodName": "myMethod"
+            }
+        }
+    ],
+    [
+        {
+            "id": "33a64d99-fbed-5eab-bb10-80735405c09b",
+            "type": "METRIC_PROBE",
+            "created": 1605093071.000000000,
+            "language": "",
+            "veriosn": 0,
+            "tags": [],
+            "active": true,
+            "where": {
+                "typeName": "target",
+                "methodName": "myMethod"
+            },
+            "kind": "COUNT",
+            "metricName": "datadog.debugger.calls",
+            "value": {
+                "expr": "#localVar1.field1.field2"
+            }
+        },
+        {
+            "id": "kepf0cf2-9top-45cf-9f39-59installed",
+            "type": "SPAN_PROBE",
+            "language": "",
+            "where": {
+                "typeName": "target",
+                "methodName": "myMethod"
+            },
+            "evaluateAt": "EXIT"
+        }
+    ],
+    [
+        {
+            "id": "33a64d99-fbed-5eab-bb10-80735405c09b",
+            "type": "METRIC_PROBE",
+            "created": 1605093071.000000000,
+            "language": "",
+            "veriosn": 0,
+            "tags": [],
+            "active": true,
+            "where": {
+                "typeName": "target",
+                "methodName": "mySuperMethod"
+            },
+            "kind": "COUNT",
+            "metricName": "datadog.debugger.calls",
+            "value": {
+                "expr": "#localVar1.field1.field2"
+            }
+        },
+        {
+            "id": "22953c88-eadc-4f9a-aa0f-7f6243f4bf8a",
+            "type": "LOG_PROBE",
+            "created": 1605093071.000000000,
+            "language": "",
+            "veriosn": 0,
+            "tags": [],
+            "active": true,
+            "where": {
+                "typeName": "target",
+                "methodName": "myMethod"
+            }
+        },
+        {
+            "id": "kepf0cf2-9top-45cf-9f39-59installed",
+            "type": "SPAN_PROBE",
+            "language": "",
+            "where": {
+                "typeName": "target",
+                "methodName": "myMethod"
+            },
+            "evaluateAt": "EXIT"
+        }
+    ],
+    [
+        {
+            "id": "33a64d99-fbed-5eab-bb10-80735405c09b",
+            "type": "METRIC_PROBE",
+            "created": 1605093071.000000000,
+            "language": "",
+            "veriosn": 0,
+            "tags": [],
+            "active": true,
+            "where": {
+                "typeName": "target",
+                "methodName": "myMethod"
+            },
+            "kind": "COUNT",
+            "metricName": "datadog.debugger.calls",
+            "value": {
+                "expr": "#localVar1.field1.field2"
+            }
+        },
+        {
+            "id": "22953c88-eadc-4f9a-aa0f-7f6243f4bf8a",
+            "type": "LOG_PROBE",
+            "created": 1605093071.000000000,
+            "language": "",
+            "veriosn": 0,
+            "tags": [],
+            "active": true,
+            "where": {
+                "typeName": "target",
+                "methodName": "myMethod"
+            }
+        }
+    ],
+    [
+        {
+            "id": "33a64d99-fbed-5eab-bb10-80735405c09b",
+            "type": "METRIC_PROBE",
+            "created": 1605093071.000000000,
+            "language": "",
+            "veriosn": 0,
+            "tags": [],
+            "active": true,
+            "where": {
+                "typeName": "target",
+                "methodName": "myMethod"
+            },
+            "kind": "COUNT",
+            "metricName": "datadog.debugger.calls",
+            "value": {
+                "expr": "#localVar1.field1.field2"
+            }
+        },
+        {
+            "id": "22953c88-eadc-4f9a-aa0f-7f6243f4bf8a",
+            "type": "LOG_PROBE",
+            "created": 1605093071.000000000,
+            "language": "",
+            "veriosn": 0,
+            "tags": [],
+            "active": true,
+            "where": {
+                "typeName": "target",
+                "methodName": "myMethod"
+            }
+        }
+    ]
+]

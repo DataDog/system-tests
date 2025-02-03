@@ -2,13 +2,13 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-"""
-Usage:
-    PYTHONPATH=. python utils/interfaces/_schemas_validators.py
+"""Usage:
+PYTHONPATH=. python utils/interfaces/_schemas_validators.py
 """
 
 from dataclasses import dataclass
 import os
+from pathlib import Path
 import json
 import re
 import functools
@@ -37,9 +37,9 @@ def _get_schemas_filenames():
                     yield os.path.join(root, f)
 
 
-@functools.lru_cache()
+@functools.lru_cache
 def _get_schemas_store():
-    """returns a dict with all defined schemas"""
+    """Returns a dict with all defined schemas"""
 
     store = {}
 
@@ -57,7 +57,7 @@ def _get_schemas_store():
     return store
 
 
-@functools.lru_cache()
+@functools.lru_cache
 def _get_schema_validator(schema_id):
     store = _get_schemas_store()
 
@@ -78,10 +78,7 @@ class SchemaError:
 
     @property
     def message(self):
-        return (
-            f"{self.error.message} on instance {self.error.json_path} in {self.endpoint}. Please check "
-            + self.data["log_filename"]
-        )
+        return f"{self.data['log_filename']}: {self.error.message} on instance {self.error.json_path}"
 
     @property
     def data_path(self):
@@ -108,7 +105,7 @@ class SchemaValidator:
             return []
 
         return [
-            SchemaError(interface_name=self.interface, endpoint=path, error=error, data=data,)
+            SchemaError(interface_name=self.interface, endpoint=path, error=error, data=data)
             for error in validator.iter_errors(data["request"]["content"])
         ]
 
@@ -116,20 +113,20 @@ class SchemaValidator:
 def _main():
     for interface in ("agent", "library"):
         validator = SchemaValidator(interface)
-        folders = [folder for folder in os.listdir(".") if os.path.isdir(folder) and folder.startswith("logs")]
+        folders = [folder for folder in os.listdir(".") if Path(folder).is_dir() and folder.startswith("logs")]
         for folder in folders:
             path = f"{folder}/interfaces/{interface}"
 
-            if not os.path.exists(path):
+            if not Path(path).exists():
                 continue
-            files = [file for file in os.listdir(path) if os.path.isfile(os.path.join(path, file))]
+            files = [file for file in os.listdir(path) if Path(os.path.join(path, file)).is_file()]
             for file in files:
                 with open(os.path.join(path, file), encoding="utf-8") as f:
                     data = json.load(f)
 
                 if "request" in data and data["request"]["length"] != 0:
                     for error in validator.get_errors(data):
-                        print(error.message)
+                        print(error.message)  # noqa: T201
 
 
 if __name__ == "__main__":

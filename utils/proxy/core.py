@@ -1,36 +1,33 @@
+# keep this import in first
+import scrubber  # noqa: F401
+
 import asyncio
 from collections import defaultdict
 import json
 import logging
 import os
-from datetime import datetime
+from typing import Any
+from datetime import datetime, UTC
 
-from mitmproxy import master, options
+from mitmproxy import master, options, http
 from mitmproxy.addons import errorcheck, default_addons
 from mitmproxy.flow import Error as FlowError, Flow
 
-import rc_debugger
-from rc_mock import MOCKED_RESPONSES
 from _deserializer import deserialize
+from ports import ProxyPorts
 
 # prevent permission issues on file created by the proxy when the host is linux
 os.umask(0)
 
 logger = logging.getLogger(__name__)
-handler = logging.StreamHandler()
-handler.setLevel(logging.DEBUG)
-handler.setFormatter(logging.Formatter("%(asctime)s.%(msecs)03d %(levelname)-8s %(message)s", "%H:%M:%S"))
-logger.addHandler(handler)
-logger.setLevel(logging.DEBUG)
 
 SIMPLE_TYPES = (bool, int, float, type(None))
-
 
 messages_counts = defaultdict(int)
 
 
 class ObjectDumpEncoder(json.JSONEncoder):
-    def default(self, o):
+    def default(self, o) -> Any:  # noqa: ANN401
         if isinstance(o, bytes):
             return str(o)
         return json.JSONEncoder.default(self, o)
@@ -38,85 +35,106 @@ class ObjectDumpEncoder(json.JSONEncoder):
 
 class _RequestLogger:
     def __init__(self) -> None:
-        self.dd_api_key = os.environ["DD_API_KEY"]
-        self.dd_application_key = os.environ.get("DD_APPLICATION_KEY")
-        self.dd_app_key = os.environ.get("DD_APP_KEY")
-        self.state = json.loads(os.environ.get("PROXY_STATE", "{}"))
+        handler = logging.StreamHandler()
+        handler.setLevel(logging.DEBUG)
+        formatter = logging.Formatter(fmt="%(asctime)s.%(msecs)03d %(levelname)-8s %(message)s", datefmt="%H:%M:%S")
+        handler.setFormatter(formatter)
+        logger.addHandler(handler)
+        logger.setLevel(logging.DEBUG)
+
         self.host_log_folder = os.environ.get("SYSTEM_TESTS_HOST_LOG_FOLDER", "logs")
 
-        # for config backend mock
-        self.config_request_count = defaultdict(int)
+        self.rc_api_enabled = os.environ.get("SYSTEM_TESTS_RC_API_ENABLED") == "True"
+        self.span_meta_structs_disabled = os.environ.get("SYSTEM_TESTS_AGENT_SPAN_META_STRUCTS_DISABLED") == "True"
 
-        logger.debug(f"Proxy state: {self.state}")
+        span_events = os.environ.get("SYSTEM_TESTS_AGENT_SPAN_EVENTS")
+        self.span_events = span_events != "False"
 
-        # request -> original port
-        # as the port is overwritten at request stage, we loose it on response stage
-        # this property will keep it
+        self.rc_api_command = None
 
-        self.original_ports = {}
+        # mimic the old API
+        self.rc_api_sequential_commands = None
+        self.rc_api_runtime_ids_request_count = None
 
-    def _scrub(self, content):
-        if isinstance(content, str):
-            content = content.replace(self.dd_api_key, "{redacted-by-system-tests-proxy}")
-            if self.dd_app_key:
-                content = content.replace(self.dd_app_key, "{redacted-by-system-tests-proxy}")
-            if self.dd_application_key:
-                content = content.replace(self.dd_application_key, "{redacted-by-system-tests-proxy}")
-            return content
-
-        if isinstance(content, (list, set, tuple)):
-            return [self._scrub(item) for item in content]
-
-        if isinstance(content, dict):
-            return {key: self._scrub(value) for key, value in content.items()}
-
-        if isinstance(content, SIMPLE_TYPES):
-            return content
-
-        logger.error(f"Can't scrub type {type(content)}")
-        return content
+    @staticmethod
+    def get_error_response(message) -> http.Response:
+        logger.error(message)
+        return http.Response.make(400, message)
 
     def request(self, flow: Flow):
+        # sockname is the local address (host, port) we received this connection on.
+        port = flow.client_conn.sockname[1]
 
-        logger.info(f"{flow.request.method} {flow.request.pretty_url}")
+        logger.info(f"{flow.request.method} {flow.request.pretty_url}, using proxy port {port}")
 
-        self.original_ports[flow.id] = flow.request.port
-
-        if flow.request.host in ("proxy", "localhost"):
-            # tracer is the only container that uses the proxy directly
-
-            if flow.request.headers.get("dd-protocol") == "otlp":
-                # OTLP ingestion
-                otlp_path = flow.request.headers.get("dd-otlp-path")
-                if otlp_path == "agent":
-                    flow.request.host = "agent"
-                    flow.request.port = 4318
-                    flow.request.scheme = "http"
-                elif otlp_path == "collector":
-                    flow.request.host = "system-tests-collector"
-                    flow.request.port = 4318
-                    flow.request.scheme = "http"
-                elif otlp_path == "intake-traces":
-                    flow.request.host = "trace.agent." + os.environ.get("DD_SITE", "datad0g.com")
-                    flow.request.port = 443
-                    flow.request.scheme = "https"
-                elif otlp_path == "intake-metrics":
-                    flow.request.host = "api." + os.environ.get("DD_SITE", "datad0g.com")
-                    flow.request.port = 443
-                    flow.request.scheme = "https"
-                else:
-                    raise Exception(f"Unknown OTLP ingestion path {otlp_path}")
+        if port == ProxyPorts.proxy_commands:
+            if not self.rc_api_enabled:
+                flow.response = self.get_error_response(b"RC API is not enabled")
+            elif flow.request.path == "/unique_command":
+                logger.info("Store RC command to mock")
+                self.rc_api_command = flow.request.content
+                flow.response = http.Response.make(200, b"Ok")
+            elif flow.request.path == "/sequential_commands":
+                logger.info("Reset mocked RC sequential commands")
+                self.rc_api_sequential_commands = json.loads(flow.request.content)
+                self.rc_api_runtime_ids_request_count = defaultdict(int)
+                flow.response = http.Response.make(200, b"Ok")
             else:
-                flow.request.host, flow.request.port = "agent", 8127
+                flow.response = http.Response.make(404, b"Not found")
+
+            return
+
+        # if flow.request.headers.get("dd-protocol") == "otlp":
+        if port == ProxyPorts.open_telemetry_weblog:
+            # OTLP ingestion
+            otlp_path = flow.request.headers.get("dd-otlp-path")
+            if otlp_path == "agent":
+                flow.request.host = "agent"
+                flow.request.port = 4318
                 flow.request.scheme = "http"
+            elif otlp_path == "collector":
+                flow.request.host = "system-tests-collector"
+                flow.request.port = 4318
+                flow.request.scheme = "http"
+            elif otlp_path == "intake-traces":
+                flow.request.host = "trace.agent." + os.environ.get("DD_SITE", "datad0g.com")
+                flow.request.port = 443
+                flow.request.scheme = "https"
+            elif otlp_path == "intake-metrics":
+                flow.request.host = "api." + os.environ.get("DD_SITE", "datad0g.com")
+                flow.request.port = 443
+                flow.request.scheme = "https"
+            elif otlp_path == "intake-logs":
+                flow.request.host = "http-intake.logs." + os.environ.get("DD_SITE", "datad0g.com")
+                flow.request.port = 443
+                flow.request.scheme = "https"
+            else:
+                raise ValueError(f"Unknown OTLP ingestion path {otlp_path}")
 
             logger.info(f"    => reverse proxy to {flow.request.pretty_url}")
 
+        elif port in (
+            ProxyPorts.python_buddy,
+            ProxyPorts.nodejs_buddy,
+            ProxyPorts.java_buddy,
+            ProxyPorts.ruby_buddy,
+            ProxyPorts.golang_buddy,
+            ProxyPorts.weblog,
+        ):
+            flow.request.host, flow.request.port = "agent", 8127
+            flow.request.scheme = "http"
+            logger.info(f"    => reverse proxy to {flow.request.pretty_url}")
+
     @staticmethod
-    def request_is_from_tracer(request):
+    def request_is_from_tracer(request) -> bool:
         return request.host == "agent"
 
     def response(self, flow):
+        # sockname is the local address (host, port) we received this connection on.
+        port = flow.client_conn.sockname[1]
+
+        if port == ProxyPorts.proxy_commands:
+            return
 
         try:
             logger.info(f"    => Response {flow.response.status_code}")
@@ -124,28 +142,24 @@ class _RequestLogger:
             self._modify_response(flow)
 
             # get the interface name
-            if flow.request.headers.get("dd-protocol") == "otlp":
+            if port == ProxyPorts.open_telemetry_weblog:
                 interface = "open_telemetry"
-            elif self.request_is_from_tracer(flow.request):
-                port = self.original_ports[flow.id]
-                if port == 8126:
-                    interface = "library"
-                elif port == 80:  # UDS mode
-                    interface = "library"
-                elif port == 9001:
-                    interface = "python_buddy"
-                elif port == 9002:
-                    interface = "nodejs_buddy"
-                elif port == 9003:
-                    interface = "java_buddy"
-                elif port == 9004:
-                    interface = "ruby_buddy"
-                elif port == 9005:
-                    interface = "golang_buddy"
-                else:
-                    raise ValueError(f"Unknown port provenance for {flow.request}: {port}")
-            else:
+            elif port == ProxyPorts.weblog:
+                interface = "library"
+            elif port == ProxyPorts.python_buddy:
+                interface = "python_buddy"
+            elif port == ProxyPorts.nodejs_buddy:
+                interface = "nodejs_buddy"
+            elif port == ProxyPorts.java_buddy:
+                interface = "java_buddy"
+            elif port == ProxyPorts.ruby_buddy:
+                interface = "ruby_buddy"
+            elif port == ProxyPorts.golang_buddy:
+                interface = "golang_buddy"
+            elif port == ProxyPorts.agent:  # HTTPS port, as the agent use the proxy with HTTP_PROXY env var
                 interface = "agent"
+            else:
+                raise ValueError(f"Unknown port provenance for {flow.request}: {port}")
 
             # extract url info
             if "?" in flow.request.path:
@@ -157,6 +171,7 @@ class _RequestLogger:
             message_count = messages_counts[interface]
             messages_counts[interface] += 1
             log_foldename = f"{self.host_log_folder}/interfaces/{interface}"
+            export_content_files_to = f"{log_foldename}/files"
             log_filename = f"{log_foldename}/{message_count:05d}_{path.replace('/', '_')}.json"
 
             data = {
@@ -166,7 +181,7 @@ class _RequestLogger:
                 "host": flow.request.host,
                 "port": flow.request.port,
                 "request": {
-                    "timestamp_start": datetime.fromtimestamp(flow.request.timestamp_start).isoformat(),
+                    "timestamp_start": datetime.fromtimestamp(flow.request.timestamp_start, tz=UTC).isoformat(),
                     "headers": list(flow.request.headers.items()),
                     "length": len(flow.request.content) if flow.request.content else 0,
                 },
@@ -177,17 +192,24 @@ class _RequestLogger:
                 },
             }
 
-            deserialize(data, key="request", content=flow.request.content, interface=interface)
+            deserialize(
+                data,
+                key="request",
+                content=flow.request.content,
+                interface=interface,
+                export_content_files_to=export_content_files_to,
+            )
 
             if flow.error and flow.error.msg == FlowError.KILLED_MESSAGE:
                 data["response"] = None
             else:
-                deserialize(data, key="response", content=flow.response.content, interface=interface)
-
-            try:
-                data = self._scrub(data)
-            except:
-                logger.exception("Fail to scrub data")
+                deserialize(
+                    data,
+                    key="response",
+                    content=flow.response.content,
+                    interface=interface,
+                    export_content_files_to=export_content_files_to,
+                )
 
             logger.info(f"    => Saving data as {log_filename}")
 
@@ -198,18 +220,50 @@ class _RequestLogger:
             logger.exception("Unexpected error")
 
     def _modify_response(self, flow):
-        rc_config = self.state.get("mock_remote_config_backend")
-        if rc_config is None:
-            return
-        mocked_responses = MOCKED_RESPONSES.get(rc_config)
-        if mocked_responses is None:
-            return
-        self._modify_response_rc(flow, mocked_responses)
+        if self.request_is_from_tracer(flow.request):
+            if self.rc_api_enabled:
+                self._add_rc_capabilities_in_info_request(flow)
 
-    def _modify_response_rc(self, flow, mocked_responses):
-        if not self.request_is_from_tracer(flow.request):
-            return  # modify only tracer/agent flow
+                if flow.request.path == "/v0.7/config":
+                    # mimic the default response from the agent
+                    flow.response.status_code = 200
+                    flow.response.content = b"{}"
+                    flow.response.headers["Content-Type"] = "application/json"
 
+                    if self.rc_api_command is not None:
+                        request_content = json.loads(flow.request.content)
+                        logger.info("    => modifying rc response")
+                        flow.response.content = self.rc_api_command
+
+                    elif self.rc_api_sequential_commands is not None:
+                        request_content = json.loads(flow.request.content)
+                        runtime_id = request_content["client"]["client_tracer"]["runtime_id"]
+                        nth_api_command = self.rc_api_runtime_ids_request_count[runtime_id]
+                        response = self.rc_api_sequential_commands[nth_api_command]
+
+                        logger.info(f"    => Modifying RC response for runtime ID {runtime_id}")
+                        logger.info(f"    => Overwriting /v0.7/config response #{nth_api_command}")
+
+                        flow.response.content = json.dumps(response).encode()
+                        flow.response.headers["st-proxy-overwrite-rc-response"] = f"{nth_api_command}"
+
+                        if nth_api_command + 1 < len(self.rc_api_sequential_commands):
+                            self.rc_api_runtime_ids_request_count[runtime_id] = nth_api_command + 1
+
+            if self.span_meta_structs_disabled:
+                self._remove_meta_structs_support(flow)
+
+            self._modify_span_events_flag(flow)
+
+    def _remove_meta_structs_support(self, flow):
+        if flow.request.path == "/info" and str(flow.response.status_code) == "200":
+            c = json.loads(flow.response.content)
+            if "span_meta_structs" in c:
+                logger.info("    => Overwriting /info response to remove span_meta_structs field")
+                c.pop("span_meta_structs")
+                flow.response.content = json.dumps(c).encode()
+
+    def _add_rc_capabilities_in_info_request(self, flow):
         if flow.request.path == "/info" and str(flow.response.status_code) == "200":
             c = json.loads(flow.response.content)
 
@@ -218,52 +272,38 @@ class _RequestLogger:
                 c["endpoints"].append("/v0.7/config")
                 flow.response.content = json.dumps(c).encode()
 
-        elif flow.request.path == "/v0.7/config":
-            request_content = json.loads(flow.request.content)
-
-            runtime_id = request_content["client"]["client_tracer"]["runtime_id"]
-            logger.info(f"    => modifying rc response for runtime ID {runtime_id}")
-            logger.info(f"    => Overwriting /v0.7/config response #{self.config_request_count[runtime_id] + 1}")
-
-            if self.config_request_count[runtime_id] + 1 > len(mocked_responses):
-                response = {}  # default content when there isn't an RC update
-            else:
-                if self.state.get("mock_remote_config_backend") in (
-                    "DEBUGGER_PROBES_STATUS",
-                    "DEBUGGER_LINE_PROBES_SNAPSHOT",
-                    "DEBUGGER_METHOD_PROBES_SNAPSHOT",
-                    "DEBUGGER_MIX_LOG_PROBE",
-                    "DEBUGGER_PII_REDACTION",
-                ):
-                    response = rc_debugger.create_rcm_probe_response(
-                        request_content["client"]["client_tracer"]["language"],
-                        mocked_responses[self.config_request_count[runtime_id]],
-                        self.config_request_count[runtime_id],
-                    )
-                else:
-                    response = mocked_responses[self.config_request_count[runtime_id]]
-
-            flow.response.status_code = 200
-            flow.response.content = json.dumps(response).encode()
-
-            self.config_request_count[runtime_id] += 1
+    def _modify_span_events_flag(self, flow):
+        """Modify the agent flag that signals support for native span event serialization.
+        There are three possible cases:
+        - Not configured: agent's response is not modified, the real agent behavior is preserved
+        - `true`: agent advertises support for native span events serialization
+        - `false`: agent advertises that it does not support native span events serialization
+        """
+        if flow.request.path == "/info" and str(flow.response.status_code) == "200":
+            c = json.loads(flow.response.content)
+            c["span_events"] = self.span_events
+            flow.response.content = json.dumps(c).encode()
 
 
 def start_proxy() -> None:
-
-    # the port is used to make the distinction between weblogs (See CROSSED_TRACING_LIBRARIES scenario)
+    # the port is used to make the distinction between provenance
+    # not that backend is not needed as it's used with HTTP_PROXY
     modes = [
-        "regular@8126",  # base weblog
-        "regular@9001",  # python_buddy
-        "regular@9002",  # nodejs_buddy
-        "regular@9003",  # java_buddy
-        "regular@9004",  # ruby_buddy
-        "regular@9005",  # golang_buddy
+        f"regular@{ProxyPorts.proxy_commands}",  # RC payload API
+        f"regular@{ProxyPorts.weblog}",  # base weblog
+        f"regular@{ProxyPorts.python_buddy}",  # python_buddy
+        f"regular@{ProxyPorts.nodejs_buddy}",  # nodejs_buddy
+        f"regular@{ProxyPorts.java_buddy}",  # java_buddy
+        f"regular@{ProxyPorts.ruby_buddy}",  # ruby_buddy
+        f"regular@{ProxyPorts.golang_buddy}",  # golang_buddy
+        f"regular@{ProxyPorts.open_telemetry_weblog}",  # Open telemetry weblog
+        f"regular@{ProxyPorts.agent}",  # from agent to backend
     ]
 
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
-    opts = options.Options(mode=modes, listen_host="0.0.0.0", confdir="utils/proxy/.mitmproxy")
+    listen_host = "::" if os.environ.get("SYSTEM_TESTS_IPV6") == "True" else "0.0.0.0"  # noqa: S104
+    opts = options.Options(mode=modes, listen_host=listen_host, confdir="utils/proxy/.mitmproxy")
     proxy = master.Master(opts, event_loop=loop)
     proxy.addons.add(*default_addons())
     proxy.addons.add(errorcheck.ErrorCheck())

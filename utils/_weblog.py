@@ -2,7 +2,6 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from collections import defaultdict
 import json
 import os
 import random
@@ -19,7 +18,7 @@ from utils.tools import logger
 import utils.grpc.weblog_pb2_grpc as grpcapi
 
 # monkey patching header validation in requests module, as we want to be able to send anything to weblog
-requests.utils._validate_header_part = lambda *args, **kwargs: None  # pylint: disable=protected-access
+requests.utils._validate_header_part = lambda *args, **kwargs: None  # noqa: ARG005, SLF001
 
 
 class ResponseEncoder(json.JSONEncoder):
@@ -40,8 +39,12 @@ class GrpcRequest:
 
 class GrpcResponse:
     def __init__(self, data):
+        self._data = data
         self.request = GrpcRequest(data["request"])
         self.response = data["response"]
+
+    def serialize(self) -> dict:
+        return self._data | {"__class__": "GrpcResponse"}
 
 
 class HttpRequest:
@@ -49,6 +52,7 @@ class HttpRequest:
         self.headers = CaseInsensitiveDict(data.get("headers", {}))
         self.method = data["method"]
         self.url = data["url"]
+        self.params = data["params"]
 
     def __repr__(self) -> str:
         return f"HttpRequest(method:{self.method}, url:{self.url}, headers:{self.headers})"
@@ -56,12 +60,21 @@ class HttpRequest:
 
 class HttpResponse:
     def __init__(self, data):
+        self._data = data
         self.request = HttpRequest(data["request"])
         self.status_code = data["status_code"]
         self.headers = CaseInsensitiveDict(data.get("headers", {}))
         self.text = data["text"]
+        self.cookies = data["cookies"]
+
+    def serialize(self) -> dict:
+        return self._data | {"__class__": "HttpResponse"}
+
+    def __repr__(self) -> str:
+        return f"HttpResponse(status_code:{self.status_code}, headers:{self.headers}, text:{self.text})"
 
 
+# TODO : this should be build by weblog container
 class _Weblog:
     def __init__(self):
         if "SYSTEM_TESTS_WEBLOG_PORT" in os.environ:
@@ -70,9 +83,9 @@ class _Weblog:
             self.port = 7777
 
         if "SYSTEM_TESTS_WEBLOG_GRPC_PORT" in os.environ:
-            self._grpc_port = int(os.environ["SYSTEM_TESTS_WEBLOG_GRPC_PORT"])
+            self.grpc_port = int(os.environ["SYSTEM_TESTS_WEBLOG_GRPC_PORT"])
         else:
-            self._grpc_port = 7778
+            self.grpc_port = 7778
 
         if "SYSTEM_TESTS_WEBLOG_HOST" in os.environ:
             self.domain = os.environ["SYSTEM_TESTS_WEBLOG_HOST"]
@@ -84,26 +97,6 @@ class _Weblog:
                 self.domain = "localhost"
         else:
             self.domain = "localhost"
-
-        self.responses = defaultdict(list)
-        self.current_nodeid = None  # will be used to store request made by a given nodeid
-        self.replay = False
-
-    def init_replay_mode(self, log_folder):
-        self.replay = True
-
-        with open(f"{log_folder}/weblog_responses.json", "r", encoding="utf-8") as f:
-            self.responses = json.load(f)
-
-    def save_requests(self, log_folder):
-        if self.replay:
-            return
-
-        try:
-            with open(f"{log_folder}/weblog_responses.json", "w", encoding="utf-8") as f:
-                json.dump(dict(self.responses), f, indent=2, cls=ResponseEncoder)
-        except:
-            logger.exception("Can't save responses log")
 
     def get(self, path="/", params=None, headers=None, cookies=None, **kwargs):
         return self.request("GET", path, params=params, headers=headers, cookies=cookies, **kwargs)
@@ -118,6 +111,7 @@ class _Weblog:
         self,
         method,
         path="/",
+        *,
         params=None,
         data=None,
         headers=None,
@@ -129,13 +123,6 @@ class _Weblog:
         rid_in_user_agent=True,
         **kwargs,
     ):
-
-        if self.current_nodeid is None:
-            raise ValueError("Weblog calls can only be done during setup")
-
-        if self.replay:
-            return self.get_request_from_logs()
-
         rid = "".join(random.choices(string.ascii_uppercase, k=36))
         headers = {**headers} if headers else {}  # get our own copy of headers, as we'll modify them
 
@@ -161,6 +148,7 @@ class _Weblog:
             "status_code": None,
             "headers": {},
             "text": None,
+            "cookies": None,
         }
 
         timeout = kwargs.pop("timeout", 5)
@@ -170,38 +158,19 @@ class _Weblog:
             r.url = url
             logger.debug(f"Sending request {rid}: {method} {url}")
 
-            r = requests.Session().send(r, timeout=timeout, stream=stream, allow_redirects=allow_redirects)
+            s = requests.Session()
+            r = s.send(r, timeout=timeout, stream=stream, allow_redirects=allow_redirects)
             response_data["status_code"] = r.status_code
             response_data["headers"] = r.headers
             response_data["text"] = r.text
+            response_data["cookies"] = requests.utils.dict_from_cookiejar(s.cookies)
 
         except Exception as e:
             logger.error(f"Request {rid} raise an error: {e}")
         else:
             logger.debug(f"Request {rid}: {r.status_code}")
 
-        self.responses[self.current_nodeid].append(response_data)
-
         return HttpResponse(response_data)
-
-    def get_request_from_logs(self):
-        return HttpResponse(self._pop_response_data_from_logs())
-
-    def get_grpc_request_from_logs(self):
-        return GrpcResponse(self._pop_response_data_from_logs())
-
-    def _pop_response_data_from_logs(self):
-        if self.current_nodeid not in self.responses:
-            raise ValueError(
-                f"I do not have any request made by {self.current_nodeid}. You may need to relaunch it in normal mode"
-            )
-
-        if len(self.responses[self.current_nodeid]) == 0:
-            raise ValueError(
-                f"I have no more request made by {self.current_nodeid}. You may need to relaunch it in normal mode"
-            )
-
-        return self.responses[self.current_nodeid].pop(0)
 
     def warmup_request(self, domain=None, port=None, timeout=10):
         requests.get(self._get_url("/", domain, port), timeout=timeout)
@@ -224,20 +193,13 @@ class _Weblog:
 
         return res
 
-    def grpc(self, string_value):
-
-        if self.replay:
-            return self.get_grpc_request_from_logs()
-
-        if self.current_nodeid is None:
-            raise ValueError("Weblog calls can only be done during setup")
-
+    def grpc(self, string_value, *, streaming=False):
         rid = "".join(random.choices(string.ascii_uppercase, k=36))
 
         # We cannot set the user agent for each request. For now, start a new channel for each query
         _grpc_client = grpcapi.WeblogStub(
             grpc.insecure_channel(
-                f"{self.domain}:{self._grpc_port}",
+                f"{self.domain}:{self.grpc_port}",
                 options=(("grpc.enable_http_proxy", 0), ("grpc.primary_user_agent", f"system_tests rid/{rid}")),
             )
         )
@@ -251,14 +213,16 @@ class _Weblog:
         }
 
         try:
-            _grpc_client.Unary(request)
-            response_data["response"] = "TODO"
+            if streaming:
+                for response in _grpc_client.ServerStream(request):
+                    response_data["response"] = response.string_value
+            else:
+                response = _grpc_client.Unary(request)
+                response_data["response"] = response.string_value
 
         except Exception as e:
             logger.error(f"Request {rid} raise an error: {e}")
             response_data["response"] = None
-
-        self.responses[self.current_nodeid].append(response_data)
 
         return GrpcResponse(response_data)
 

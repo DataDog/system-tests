@@ -4,8 +4,7 @@ import pytest
 
 from utils.parametric.spec.trace import SAMPLING_PRIORITY_KEY, ORIGIN
 from utils.parametric.spec.trace import span_has_no_parent
-from utils.parametric.headers import make_single_request_and_get_inject_headers
-from utils.parametric.test_agent import get_span
+from utils.parametric.spec.trace import find_only_span
 from utils import missing_feature, irrelevant, context, scenarios, features, bug
 
 parametrize = pytest.mark.parametrize
@@ -24,17 +23,6 @@ def enable_b3multi_single_key() -> Any:
         "DD_TRACE_PROPAGATION_STYLE": "b3multi",
     }
     return parametrize("library_env", [env])
-
-
-def enable_b3_deprecated() -> Any:
-    env1 = {
-        "DD_TRACE_PROPAGATION_STYLE_EXTRACT": "b3",
-        "DD_TRACE_PROPAGATION_STYLE_INJECT": "b3",
-    }
-    env2 = {
-        "DD_TRACE_PROPAGATION_STYLE": "b3",
-    }
-    return parametrize("library_env", [env1, env2])
 
 
 def enable_case_insensitive_b3multi() -> Any:
@@ -57,8 +45,7 @@ class Test_Headers_B3multi:
         and activated properly.
         """
         with test_library:
-            headers = make_single_request_and_get_inject_headers(
-                test_library,
+            headers = test_library.dd_make_child_span_and_get_headers(
                 [
                     ["x-b3-traceid", "000000000000000000000000075bcd15"],
                     ["x-b3-spanid", "000000003ade68b1"],
@@ -66,7 +53,7 @@ class Test_Headers_B3multi:
                 ],
             )
 
-        span = get_span(test_agent)
+        span = find_only_span(test_agent.wait_for_num_traces(1))
         assert span.get("trace_id") == 123456789
         assert span.get("parent_id") == 987654321
         assert span["metrics"].get(SAMPLING_PRIORITY_KEY) == 1
@@ -74,26 +61,24 @@ class Test_Headers_B3multi:
 
     @enable_b3multi()
     def test_headers_b3multi_extract_invalid(self, test_agent, test_library):
-        """Ensure that invalid b3multi distributed tracing headers are not extracted.
-        """
+        """Ensure that invalid b3multi distributed tracing headers are not extracted."""
         with test_library:
-            headers = make_single_request_and_get_inject_headers(
-                test_library, [["x-b3-traceid", "0"], ["x-b3-spanid", "0"], ["x-b3-sampled", "1"],]
+            headers = test_library.dd_make_child_span_and_get_headers(
+                [["x-b3-traceid", "0"], ["x-b3-spanid", "0"], ["x-b3-sampled", "1"]]
             )
 
-        span = get_span(test_agent)
+        span = find_only_span(test_agent.wait_for_num_traces(1))
         assert span.get("trace_id") != 0
         assert span_has_no_parent(span)
         assert span["meta"].get(ORIGIN) is None
 
     @enable_b3multi()
     def test_headers_b3multi_inject_valid(self, test_agent, test_library):
-        """Ensure that b3multi distributed tracing headers are injected properly.
-        """
+        """Ensure that b3multi distributed tracing headers are injected properly."""
         with test_library:
-            headers = make_single_request_and_get_inject_headers(test_library, [])
+            headers = test_library.dd_make_child_span_and_get_headers([])
 
-        span = get_span(test_agent)
+        span = find_only_span(test_agent.wait_for_num_traces(1))
         b3_trace_id = headers["x-b3-traceid"]
         b3_span_id = headers["x-b3-spanid"]
         b3_sampling = headers["x-b3-sampled"]
@@ -110,8 +95,7 @@ class Test_Headers_B3multi:
         and injected properly.
         """
         with test_library:
-            headers = make_single_request_and_get_inject_headers(
-                test_library,
+            headers = test_library.dd_make_child_span_and_get_headers(
                 [
                     ["x-b3-traceid", "000000000000000000000000075bcd15"],
                     ["x-b3-spanid", "000000003ade68b1"],
@@ -119,7 +103,7 @@ class Test_Headers_B3multi:
                 ],
             )
 
-        span = get_span(test_agent)
+        span = find_only_span(test_agent.wait_for_num_traces(1))
         assert "x-b3-traceid" in headers
         b3_trace_id = headers["x-b3-traceid"]
         b3_span_id = headers["x-b3-spanid"]
@@ -137,11 +121,11 @@ class Test_Headers_B3multi:
         and the new span context is injected properly.
         """
         with test_library:
-            headers = make_single_request_and_get_inject_headers(
-                test_library, [["x-b3-traceid", "0"], ["x-b3-spanid", "0"], ["x-b3-sampled", "1"],]
+            headers = test_library.dd_make_child_span_and_get_headers(
+                [["x-b3-traceid", "0"], ["x-b3-spanid", "0"], ["x-b3-sampled", "1"]]
             )
 
-        span = get_span(test_agent)
+        span = find_only_span(test_agent.wait_for_num_traces(1))
         assert span.get("trace_id") != 0
         assert span.get("span_id") != 0
 
@@ -156,9 +140,7 @@ class Test_Headers_B3multi:
         assert span["meta"].get(ORIGIN) is None
 
     @enable_b3multi_single_key()
-    @missing_feature(
-        context.library == "ruby", reason="Propagators not configured for DD_TRACE_PROPAGATION_STYLE config",
-    )
+    @missing_feature(context.library < "ruby@1.8.0", reason="Added DD_TRACE_PROPAGATION_STYLE config in version 1.8.0")
     def test_headers_b3multi_single_key_propagate_valid(self, test_agent, test_library):
         """Ensure that b3multi distributed tracing headers are extracted
         and injected properly.
@@ -166,35 +148,6 @@ class Test_Headers_B3multi:
         self.test_headers_b3multi_propagate_valid(test_agent, test_library)
 
     @enable_case_insensitive_b3multi()
-    @missing_feature(context.library == "ruby", reason="Ruby doesn't support case-insensitive distributed headers")
+    @missing_feature(context.library < "ruby@2.0.0", reason="Implemented in 2.x")
     def test_headers_b3multi_case_insensitive_propagate_valid(self, test_agent, test_library):
         self.test_headers_b3multi_propagate_valid(test_agent, test_library)
-
-    @enable_b3_deprecated()
-    @irrelevant(context.library == "ruby", reason="library does not use deprecated b3 config")
-    @irrelevant(context.library == "python", reason="library removed deprecated b3 config")
-    def test_headers_b3multi_deprecated_extract_valid(self, test_agent, test_library):
-        self.test_headers_b3multi_extract_valid(test_agent, test_library)
-
-    @enable_b3_deprecated()
-    @irrelevant(context.library == "ruby", reason="library does not use deprecated b3 config")
-    def test_headers_b3multi_deprecated_extract_invalid(self, test_agent, test_library):
-        self.test_headers_b3multi_extract_invalid(test_agent, test_library)
-
-    @enable_b3_deprecated()
-    @irrelevant(context.library == "ruby", reason="library does not use deprecated b3 config")
-    @irrelevant(context.library == "python", reason="library removed deprecated b3 config")
-    def test_headers_b3multi_deprecated_inject_valid(self, test_agent, test_library):
-        self.test_headers_b3multi_inject_valid(test_agent, test_library)
-
-    @enable_b3_deprecated()
-    @irrelevant(context.library == "ruby", reason="library does not use deprecated b3 config")
-    @irrelevant(context.library == "python", reason="library removed deprecated b3 config")
-    def test_headers_b3multi_deprecated_propagate_valid(self, test_agent, test_library):
-        self.test_headers_b3multi_propagate_valid(test_agent, test_library)
-
-    @enable_b3_deprecated()
-    @irrelevant(context.library == "ruby", reason="library does not use deprecated b3 config")
-    @irrelevant(context.library == "python", reason="library removed deprecated b3 config")
-    def test_headers_b3multi_deprecated_propagate_invalid(self, test_agent, test_library):
-        self.test_headers_b3multi_propagate_invalid(test_agent, test_library)

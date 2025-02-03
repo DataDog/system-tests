@@ -1,17 +1,20 @@
-FROM node:18
+FROM node:18-alpine
 
-RUN apt-get update && apt-get install -y jq
+RUN apk add --no-cache bash curl git jq
 
 RUN uname -r
 
 # print versions
 RUN node --version && npm --version && curl --version
 
-COPY utils/build/docker/nodejs/express4 /usr/app
+COPY utils/build/docker/nodejs/express /usr/app
 
 WORKDIR /usr/app
 
+ENV NODE_ENV=production
+
 RUN npm install
+RUN npm install "express@4.17.2" "apollo-server-express@3.13.0" "express-mongo-sanitize@2.2.0"
 
 EXPOSE 7777
 
@@ -23,14 +26,17 @@ ENV PGPORT=5433
 
 ENV DD_DATA_STREAMS_ENABLED=true
 
+ENV DD_IAST_MAX_CONTEXT_OPERATIONS=5
+
 # docker startup
-RUN echo '#!/bin/bash\nnode app.js' > app.sh
+COPY utils/build/docker/nodejs/app.sh app.sh
 RUN chmod +x app.sh
+RUN printf 'node app.js' >> app.sh
 CMD ./app.sh
 
 COPY utils/build/docker/nodejs/install_ddtrace.sh binaries* /binaries/
 RUN /binaries/install_ddtrace.sh
 ENV DD_TRACE_HEADER_TAGS=user-agent
 
-# docker build -f utils/build/docker/nodejs.datadog.Dockerfile -t test .
+# docker build -f utils/build/docker/nodejs/express4.Dockerfile -t test .
 # docker run -ti -p 7777:7777 test

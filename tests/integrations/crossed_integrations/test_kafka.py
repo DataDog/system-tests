@@ -3,33 +3,17 @@ from __future__ import annotations
 import json
 
 from utils import interfaces, scenarios, weblog, missing_feature, features
-from utils._weblog import _Weblog
+from utils.buddies import java_buddy
 from utils.tools import logger
-
-
-# TODO: move this class in utils
-class _Buddy(_Weblog):
-    def __init__(self, port, language, domain="localhost"):
-        from collections import defaultdict
-
-        self.port = port
-        self.domain = domain
-
-        self.responses = defaultdict(list)
-        self.current_nodeid = "not used"
-        self.replay = False
-        self.language = language
-
-
-_python_buddy = _Buddy(9001, "python")
-_nodejs_buddy = _Buddy(9002, "nodejs")
-_java_buddy = _Buddy(9003, "java")
-_ruby_buddy = _Buddy(9004, "ruby")
-_golang_buddy = _Buddy(9005, "golang")
 
 
 class _Test_Kafka:
     """Test kafka compatibility with inputted datadog tracer"""
+
+    buddy = None
+    WEBLOG_TO_BUDDY_TOPIC = None
+    BUDDY_TO_WEBLOG_TOPIC = None
+    buddy_interface = None
 
     @classmethod
     def get_span(cls, interface, span_kind, topic):
@@ -179,7 +163,7 @@ class _Test_Kafka:
 @features.kafkaspan_creationcontext_propagation_with_dd_trace
 class Test_Kafka(_Test_Kafka):
     buddy_interface = interfaces.java_buddy
-    buddy = _java_buddy
+    buddy = java_buddy
     WEBLOG_TO_BUDDY_TOPIC = "Test_Kafka_weblog_to_buddy"
     BUDDY_TO_WEBLOG_TOPIC = "Test_Kafka_buddy_to_weblog"
 

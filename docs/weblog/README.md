@@ -1,12 +1,13 @@
 # Weblog
 
 A weblog is a web app that system uses to test the library. It mimics what would be a real instrumented HTTP application. A weblog app is required for each platform that the system tests will test. The weblog must implement a number of different endpoints.
+Weblog implementations are located in `utils/docker/`.
 
 > Note: a separate document describes [GraphQL Weblog](./graphql_weblog.md).
 
 ## Disclaimer
 
-This document describes endpoints implemented on weblog. Though, it's not a complete description, and can contains mistakes. The source of truth are the test itself. If a weblog endpoint passes system tests, then you can consider it as ok. And if it does not passes it, then you must correct it, even if it's in line with this document.
+This document describes endpoints implemented on weblog. Though, it's not a complete description, and can contain mistakes. The source of truth are the test itself. If a weblog endpoint passes system tests, then you can consider it as ok. And if it does not passes it, then you must correct it, even if it's in line with this document.
 
 **You are strongly encouraged to help others by submitting corrections when you notice issues with this document.**
 
@@ -84,6 +85,27 @@ The following text may be written to the body of the response:
 ```
 Hello world!\n
 ```
+
+### GET /api_security/sampling/%i
+
+This endpoint is used for API security sampling and must accept a parameter `i` as an integer.
+
+The response body may contain the following text:
+
+```
+Hello!\n
+```
+
+### GET /api_security_sampling/%i
+
+This endpoint is used in conjunction with `GET /api_security/sampling/%i` for API security sampling and must accept a parameter `i` as an integer.
+
+The response body may contain the following text:
+
+```
+OK\n
+```
+
 
 ### GET /spans
 
@@ -175,6 +197,22 @@ must set the appropriate tag in the span to `tainted_value` and return a respons
 
 The goal is to be able to easily test if a request was blocked before reaching the server code or after by looking at the span and also test security rules on reponse status code or response header content.
 
+### GET /iast/insecure-cookie/test_secure
+
+This endpoint should set at least one cookie with all security flags (Secure, HttpOnly, SameSite=Strict) to prevent any vulnerabilities from being detected.
+
+### GET /iast/insecure-cookie/test_insecure
+
+This endpoint should set a cookie with all security flags except Secure, to detect only the INSECURE_COOKIE vulnerability.
+
+### POST /iast/insecure-cookie/custom_cookie
+
+This endpoint should set a cookie with the name and value coming from the request body (using the cookieName and cookieValue properties), with all security flags except Secure, to detect only the INSECURE_COOKIE vulnerability.
+
+### GET /iast/insecure-cookie/test_empty_cookie
+
+This endpoint should set a cookie with empty cookie value without Secure flag, INSECURE_COOKIE vulnerability shouldn't be detected.
+
 ### GET /iast/insecure_hashing/deduplicate
 
 Parameterless endpoint. This endpoint contains a vulnerable souce code line (weak hash) in a loop with at least two iterations.
@@ -196,6 +234,46 @@ The endpoint executes a unique operation of String hashing with unsecure MD5 alg
 ### GET /iast/hardcoded_secrets/test_insecure
 
 Parameterless endpoint. This endpoint contains a hardcoded secret. The declaration of the hardcoded secret should be sufficient to trigger the vulnerability, so returning it in the response is optional.
+
+### GET /iast/no-httponly-cookie/test_secure
+
+This endpoint should set at least one cookie with all security flags (Secure, HttpOnly, SameSite=Strict) to prevent any vulnerabilities from being detected.
+
+### GET /iast/no-httponly-cookie/test_insecure
+
+This endpoint should set a cookie with all security flags except HttpOnly, to detect only the NO_HTTPONLY_COOKIE vulnerability.
+
+### GET /iast/no-httponly-cookie/test_empty_cookie
+
+This endpoint should set a cookie with empty cookie value without HttpOnly flag, NO_HTTPONLY_COOKIE vulnerability shouldn't be detected.
+
+### POST /iast/no-httponly-cookie/custom_cookie
+
+This endpoint should set a cookie with the name and value coming from the request body (using the cookieName and cookieValue properties), with all security flags except HttpOnly, to detect only the NO_HTTPONLY_COOKIE vulnerability.
+
+### GET /iast/no-samesite-cookie/test_secure
+
+This endpoint should set at least one cookie with all security flags (Secure, HttpOnly, SameSite=Strict) to prevent any vulnerabilities from being detected.
+
+### GET /iast/no-samesite-cookie/test_insecure
+
+This endpoint should set a cookie with all security flags except SameSite=Strict, to detect only the NO_SAMESITE_COOKIE vulnerability.
+
+### GET /iast/no-samesite-cookie/test_empty_cookie
+
+This endpoint should set a cookie with empty cookie value without SameSite=Strict flag, NO_SAMESITE_COOKIE vulnerability shouldn't be detected.
+
+### POST /iast/no-samesite-cookie/custom_cookie
+
+This endpoint should set a cookie with the name and value coming from the request body (using the cookieName and cookieValue properties), with all security flags except SameSite=Strict, to detect only the NO_SAMESITE_COOKIE vulnerability.
+
+### GET /iast/header_injection/reflected/exclusion
+
+This endpoint should set the header whose name comes in the `reflected` field of the query string, with the reflected value of another header whose name comes in the `origin` field of the query string.
+
+### GET /iast/header_injection/reflected/no-exclusion
+
+Same behaviour as `/iast/header_injection/reflected/exclusion` but with separate specific cases to obtain a different vulnerability location to avoid deduplication.
 
 ### \[GET, POST\] /iast/source/*
 
@@ -233,7 +311,7 @@ A GET request using a cookie with name `table` and any value. The value must be 
 
 #### GET /iast/source/cookiename/test
 
-A GET request using a cookie with name `user` and any value. The name must be used in the vulnerability.
+A GET request using a cookie with name `table` and any value. The name must be used in the vulnerability.
 
 #### POST /iast/source/multipart/test
 A multipart request uploading a file (with a file name).
@@ -246,7 +324,53 @@ A POST request which will receive the following JSON body:
 {"name": "table", "value": "user"}
 ```
 
-Where the value for `value` must be used in the vulnerability.
+#### GET /iast/source/sql/test
+
+An empty GET request that will execute two database queries, one to get a username and another to do a vulnerable SELECT using the obtained username.
+
+### POST /iast/sc/*
+
+These group of endpoints should trigger vulnerabilities detected by IAST with untrusted data coming from certain sources although the data is validated or sanitized by a configured security control
+
+#### POST /iast/sc/s/configured
+
+A post request using a parameter with a value that triggers a vulnerability. The value should be sanitized by a sanitizer security control configured for this vulnerability.
+
+#### POST /sc/s/not-configured
+
+A post request using a parameter  with a value that triggers a vulnerability. The value should be sanitized by a sanitizer security control that is not configured for this vulnerability.
+
+#### POST /sc/s/all
+
+A post request using a parameter with a value that triggers a vulnerability. The value should be sanitized by a sanitizer security control configured for all vulnerabilities.
+
+#### POST /sc/iv/configured
+
+A post request using a parameter with a value that triggers a vulnerability. The value should be validated by an input validator security control configured for this vulnerability.
+
+#### POST /sc/iv/not-configured
+
+A post request using a parameter with a value that triggers a vulnerability. The value should be validated by an input validator security control that is not configured for this vulnerability.
+
+#### POST /sc/iv/all
+
+A post request using a parameter  with a value that triggers a vulnerability. The value should be validated by an input validator security control configured for all vulnerabilities.
+
+#### POST /sc/iv/overloaded/secure
+
+A post request using two parameters that triggers a vulnerability. The values should be validated by an input validator security control with an overloaded method configured for all vulnerabilities.
+
+#### POST /sc/iv/overloaded/insecure
+
+A post request using two parameters that triggers a vulnerability. The values should be validated by an input validator security control with an overloaded method configured for other method signature.
+
+#### POST /sc/s/overloaded/secure
+
+A post request using a parameter with a value that triggers a vulnerability. The value should be sanitized by a sanitizer security control with an overloaded method configured for all vulnerabilities.
+
+#### POST /sc/s/overloaded/insecure
+
+A post request using a parameter with a value that triggers a vulnerability. The value should be sanitized by a sanitizer security control with an overloaded method configured for other method signature.
 
 ### GET /make_distant_call
 
@@ -295,7 +419,142 @@ be returned.
 
 Expected query params:
   - `integration`: Name of messaging tech
-    - Possible Values: `kafka`, `rabbitmq`, `sqs`
+    - Possible Values: `kafka`, `rabbitmq`, `sqs`, `kinesis`, `sns`
+  - `message`: Specific message to produce and consume
+  - `topic`: Name of messaging topic (if using `integration=sns`)
+  - `queue`: Name of messaging queue (if using `integration=kafka|rabbitmq|sqs|sns (for sns->sqs tests)`)
+  - `stream`: Name of messaging stream (if using `integration=kinesis`)
+  - `exchange`: Name of messaging exchange (if using `integration=rabbitmq`)
+  - `routingKey`: Name of message routing key (if using `integration=rabbitmq`)
+  - `timeout`: Timeout in seconds
+
+### GET /kafka/produce
+
+This endpoint triggers Kafka producer calls.
+
+Expected query params:
+  - `topic`: Name of the Kafka topic to which the message will be produced.
+
+### GET /kafka/consume
+
+This endpoint triggers Kafka consumer calls.
+
+Expected query params:
+  - `topic`: Name of the Kafka topic from which the message will be consumed.
+  - `timeout`: Timeout in seconds for the consumer operation.
+
+### GET /sqs/produce
+
+This endpoint triggers SQS producer calls.
+
+Expected query params:
+  - `queue`: Name of the SQS queue to which the message will be produced.
+  - `message`: Specific message to be produced to the SQS queue.
+
+### GET /sqs/consume
+
+This endpoint triggers SQS consumer calls.
+
+Expected query params:
+  - `queue`: Name of the SQS queue from which the message will be consumed.
+  - `timeout`: Timeout in seconds for the consumer operation.
+  - `message`: Specific message to be consumed from the SQS queue.
+
+### GET /sns/produce
+
+This endpoint triggers SNS producer calls.
+
+Expected query params:
+  - `queue`: Name of the SQS queue associated with the SNS topic for message production.
+  - `topic`: Name of the SNS topic to which the message will be produced.
+  - `message`: Specific message to be produced to the SNS topic.
+
+### GET /sns/consume
+
+This endpoint triggers SNS consumer calls.
+
+Expected query params:
+  - `queue`: Name of the SQS queue associated with the SNS topic for message consumption.
+  - `timeout`: Timeout in seconds for the consumer operation.
+  - `message`: Specific message to be consumed from the SNS topic.
+
+### GET /kinesis/produce
+
+This endpoint triggers Kinesis producer calls.
+
+Expected query params:
+  - `stream`: Name of the Kinesis stream to which the message will be produced.
+  - `timeout`: Timeout in seconds for the producer operation.
+  - `message`: Specific message to be produced to the Kinesis stream.
+
+### GET /kinesis/consume
+
+This endpoint triggers Kinesis consumer calls.
+
+Expected query params:
+  - `stream`: Name of the Kinesis stream from which the message will be consumed.
+  - `timeout`: Timeout in seconds for the consumer operation.
+  - `message`: Specific message to be consumed from the Kinesis stream.
+
+### GET /rabbitmq/produce
+
+This endpoint triggers RabbitMQ producer calls.
+
+Expected query params:
+  - `queue`: Name of the RabbitMQ queue to which the message will be produced.
+  - `exchange`: Name of the RabbitMQ exchange to which the message will be produced.
+  - `routing_key`: Name of the RabbitMQ routing key for message production.
+
+### GET /rabbitmq/consume
+
+This endpoint triggers RabbitMQ consumer calls.
+
+Expected query params:
+  - `queue`: Name of the RabbitMQ queue from which the message will be consumed.
+  - `exchange`: Name of the RabbitMQ exchange from which the message will be consumed.
+  - `routing_key`: Name of the RabbitMQ routing key for message consumption.
+  - `timeout`: Timeout in seconds for the consumer operation.
+
+### GET /dsm/manual/produce
+
+This endpoint sets a DSM produce operation manual API checkpoint. A 200 response with "ok" is returned along with the
+base64 encoded context: `dd-pathway-ctx-base64`, which is returned within the response headers. Otherwise, error
+messages will be returned.
+
+Expected query params:
+  - `type`: Type of DSM checkpoint, typically the system name such as 'kafka'
+  - `target`: Target queue name
+
+### GET /dsm/manual/produce_with_thread
+
+This endpoint sets a DSM produce operation manual API checkpoint, doing so within another thread to ensure DSM context
+API works cross-thread.  A 200 response with "ok" is returned along with the base64 encoded context:
+`dd-pathway-ctx-base64`, which is returned within the response headers. Otherwise, error messages will be returned.
+
+Expected query params:
+  - `type`: Type of DSM checkpoint, typically the system name such as 'kafka'
+  - `target`: Target queue name
+
+### GET /dsm/manual/consume
+
+This endpoint sets a DSM consume operation manual API checkpoint. The DSM base64 encoded context: `dd-pathway-ctx-base64`
+should be included in the request headers under the `_datadog` header tag as a JSON formatted string. A 200 response with
+text "ok" is returned upon success. Otherwise, error messages will be returned.
+
+Expected query params:
+  - `type`: Type of DSM checkpoint, typically the system name such as 'kafka'
+  - `target`: Target queue name
+
+### GET /dsm/manual/consume_with_thread
+
+This endpoint sets a DSM consume operation manual API checkpoint, doing so within another thread to ensure DSM context
+API works cross-thread. The DSM base64 encoded context `dd-pathway-ctx-base64` should be included in the request headers
+under the `_datadog` header tag as a JSON formatted string. A 200 response with text "ok" is returned upon success.
+Otherwise, error messages will be returned.
+
+Expected query params:
+  - `type`: Type of DSM checkpoint, typically the system name such as 'kafka'
+  - `target`: Target queue name
 
 ### GET /user_login_success_event
 
@@ -328,6 +587,23 @@ By default, the generated event has the following specification:
 
 Values can be changed with the query params called `event_name`.
 
+### GET '/inferred-proxy/span-creation'
+
+This endpoint is supposed to be hit with the necessary headers that are used to create inferred proxy
+spans for routers such as AWS API Gateway. Not including the headers means a span will not be created by the tracer
+if the feature exists.
+
+The endpoint supports the following query parameters:
+ - `status_code`: str containing status code to used in API response
+
+The headers necessary to create a span with example values:
+  `x-dd-proxy-request-time-ms`: start time in milliseconds
+  `x-dd-proxy-path`: "/api/data",
+  `x-dd-proxy-httpmethod`: "GET",
+  `x-dd-proxy-domain-name`: "system-tests-api-gateway.com",
+  `x-dd-proxy-stage`: "staging",
+  `x-dd-proxy`: "aws-apigateway",
+
 ### GET /users
 
 This endpoint calls the appsec blocking SDK functions used for blocking users. If the expected parameter matches one of
@@ -341,6 +617,14 @@ Expected query parameters:
 
 This endpoint loads a module/package in applicable languages. It's mainly used for telemetry tests to verify that
 the `dependencies-loaded` event is appropriately triggered.
+
+### GET /log/library
+
+This endpoint facilitates logging a message using a logging library. It is primarily designed for testing log injection functionality. Weblog apps must log using JSON format.
+
+The following query parameters are optional:
+- `msg`: Specifies the message to be logged. If not provided, the default message "msg" will be logged.
+- `level`: Specifies the log level to be used. If not provided, the default log level is "info".
 
 ### GET /e2e_single_span
 
@@ -380,30 +664,29 @@ Body fields accepted in POST method:
 - `password`: password for the user.
 
 It also supports HTTP authentication by using GET method and the authorization header.
-Additionally both methods support the following query parameters to use the sdk functions along with the authentication framework:
+Additionally, both methods support the following query parameters to use the sdk functions along with the authentication framework:
+- `sdk_trigger`: when to call the sdk function, `after` or `before` the automated login event (by default `after`)
 - `sdk_event`: login event type: `success` or `failure`.
 - `sdk_user`: user id to be used in the sdk call.
 - `sdk_mail`: user's mail to be used in the sdk call.
-- `sdk_user_exists`: `true` of `false` to indicate wether the current user exists and populate the corresponding tag.
+- `sdk_user_exists`: `true` of `false` to indicate whether the current user exists and populate the corresponding tag.
 
-### GET /debugger
-These endpoints are used for the Live Debugger tests in `test_debugger.py`. Currently, they are placeholders but will eventually be used to create and test different probe definitions.
+### \[POST\] /signup
+This endpoint is used to create a new user. Do not keep the user in memory for later use, only call the framework method to pretend to do so.
+Body fields accepted in POST method:
+- `username`: the login name for the user.
+- `password`: password for the user.
 
-#### GET /debugger/log
-This endpoint will be used to validate the log probe.
+Additionally, the method supports the following query parameters to use the sdk functions along with the authentication framework:
+- `sdk_event`: login event type: `signup`.
+- `sdk_user`: user id to be used in the sdk call.
+- `sdk_mail`: user's mail to be used in the sdk call.
 
-#### GET /debugger/metric
-This endpoint will be used to validate the metric probe.
+### GET /debugger/*
+These endpoints are used for the `Dynamic Instrumentation` tests.
 
-#### GET /debugger/span
-This endpoint will be used to validate the span probe.
-
-#### GET /debugger/span-decoration
-This endpoint will be used to validate the span decoration probe.
-
-The following query parameters are required for each endpoint:
-- `arg`: This is a parameter that can take any string as an argument.
-- `intArg`: This is a parameter that can take any integer as an argument.
+#### GET /exceptionreplay/*
+These endpoints will be used for `Exception Replay` tests.
 
 ### GET /createextraservice
 should rename the trace service, creating a "fake" service
@@ -490,3 +773,146 @@ This endpoint is used to validate DSM context injection injects the correct enco
 
 ### GET /dsm/extract
 This endpoint is used to validate DSM context extraction works correctly when provided a headers carrier with the context already present within the headers.
+
+### \[GET,POST\] /requestdownstream
+This endpoint is used to test ASM Standalone propagation, by calling `/returnheaders` and returning it's value (the headers received) to inspect them, looking for
+distributed tracing propagation headers.
+
+### \[GET\] /vulnerablerequestdownstream
+
+Similar to `/requestdownstream`. This is used to test standalone IAST downstream propagation. It should call `/returnheaders` and returning return the resulting json data structure from `/returnheaders` in its response.
+
+### \[GET,POST\] /returnheaders
+This endpoint returns the headers received in order to be able to assert about distributed tracing propagation headers
+
+### \[GET\] /stats-unique
+The endpoint must accept a query string parameter `code`, which should be an integer. This parameter will be the status code of the response message, default to 200 OK.
+This endpoint is used for client-stats tests to provide a separate "resource" via the endpoint path `stats-unique` to disambiguate those tests from other
+stats generating tests.
+
+### GET /healthcheck
+
+Returns a JSON dict, with those values :
+
+```js
+{
+    "status": "ok",
+    "library": {
+      "language": "<language>",  // one of cpp, dotnet, golang, java, nodejs, php, python, ruby
+      "version": "1.2.3"  // version of the library
+    }
+  }
+```
+
+### \[GET,POST\] /rasp/shi
+
+This endpoint is used to test for shell injection attacks, consequently it must call a shell command by using a function or method which results in an actual shell being launched (e.g. /bin/sh). The chosen operation must be injected with the `GET` or `POST` parameter.
+
+Query parameters and body fields required in the `GET` and `POST` method:
+- `list_dir`: containing the string to inject on the shell command.
+
+The endpoint should support the following content types in the `POST` method:
+- `application/x-www-form-urlencoded`
+- `application/xml`
+- `application/json`
+
+The chosen operation must use the file as provided, without any alterations, e.g.:
+```
+system("ls $list_dir");
+```
+
+Examples:
+- `GET`: `/rasp/shi?list_dir=$(cat /etc/passwd 1>&2 ; echo .)
+- `POST`: `{"list_dir": "$(cat /etc/passwd 1>&2 ; echo .)"}`
+
+### \[GET,POST\] /rasp/cmdi
+
+This endpoint is used to test for command injection attacks by executing a command without launching a shell.
+The chosen operation must be injected with the `GET` or `POST` parameter.
+
+Query parameters and body fields required in the `GET` and `POST` method:
+- `command`: containing string or an array of strings to be executed as a command.
+
+The endpoint should support the following content types in the `POST` method:
+- `application/x-www-form-urlencoded`
+- `application/xml`
+- `application/json`
+
+The chosen operation must use the file as provided, without any alterations, e.g.:
+```
+system("$command");
+```
+
+Examples:
+- `GET`: `/rasp/cmdi?command=/usr/bin/touch /tmp/passwd
+- `POST`: `{"command": ["/usr/bin/touch", "/tmp/passwd"]}`
+
+### \[GET\] /set_cookie
+
+This endpoint get a `name` and a `value` form the query string, and adds a header `Set-Cookie` with `{name}={value}` as header value in the HTTP response
+
+### \[GET\] /session/new
+
+This endpoint is the initial endpoint used to test session fingerprints, consequently it must initialize a new session and the web client should be able to deal with the persistence mechanism (e.g. cookies).
+
+Returns the identifier of the created session id. Example :
+
+```text
+c377db41-b664-4e30-af57-5df2e803bec7
+```
+
+Examples:
+- `GET`: `/session/new`
+
+### \[GET\] /session/user
+
+Once a session has been established, a new call to `/session/user` must be made in order to generate a session fingerprint with the session id provided by the web client (e.g. cookie) and the user id provided as a parameter.
+
+Query parameters required in the `GET` method:
+- `sdk_user`: user id used in the WAF login event triggered during the execution of the request.
+
+Examples:
+- `GET`: `/session/user?sdk_user=sdkUser`
+
+### \[GET\] /mock_s3/put_object
+
+This endpoint is used to test the s3 integration. It creates a bucket if
+necessary based on the `bucket` query parameter and puts an object at the `key`
+query parameter. The body of the object is just the bytes of the key, encoded
+with utf-8. Returns a result object with an `object` JSON object field containing the
+`e_tag` field with the ETag of the uploaded object. The `e_tag` field has any
+extra double-quotes stripped (accounting for a quirk in the boto3 library).
+
+Examples:
+- `GET`: `/mock_s3/put_object?bucket=somebucket&key=somekey`
+
+
+### \[GET\] /mock_s3/copy_object
+
+This endpoint is used to test the s3 integration. It creates a bucket if
+necessary based on the `original_bucket` query parameter and puts an object at
+the `original_key` query parameter. The body of the object is just the bytes of
+the key, encoded with utf-8. The method then creates another `bucket` if
+necessary and copies the object into the `key` location. Returns a result
+object with an `object` JSON object field containing the `e_tag` field with the
+ETag of the copied object. The `e_tag` field has any extra double-quotes
+stripped (accounting for a quirk in the boto3 library).
+
+Examples:
+- `GET`: `/mock_s3/copy_object?original_bucket=somebucket&original_key=somekey&bucket=someotherbucket&key=someotherkey`
+
+
+### \[GET\] /mock_s3/multipart_upload
+
+This endpoint is used to test the s3 integration. It creates a bucket if
+necessary based on the `bucket` query parameter and puts an object at the `key`
+query parameter. The body of the object is just the bytes of the key, encoded
+with utf-8, duplicated enough times to make two multipart uploads. Returns a
+result object with an `object` JSON object field containing the `e_tag` field
+with the ETag of the uploaded object returned by the final
+CompleteMultipartUpload call. The `e_tag` field has any extra double-quotes
+stripped (accounting for a quirk in the boto3 library).
+
+Examples:
+- `GET`: `/mock_s3/multipart_upload?bucket=somebucket&key=somekey`
+

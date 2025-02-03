@@ -2,8 +2,8 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, missing_feature, bug, features
-from .._test_iast_fixtures import BaseSourceTest
+from utils import context, missing_feature, bug, features, flaky
+from ..utils import BaseSourceTest
 
 
 @features.iast_source_request_parameter_name
@@ -21,27 +21,39 @@ class TestParameterName(BaseSourceTest):
 
     setup_source_post_reported = BaseSourceTest.setup_source_reported
 
-    @missing_feature(weblog_variant="express4", reason="Tainted as request body")
-    @bug(weblog_variant="resteasy-netty3", reason="Not reported")
-    @bug(library="python", reason="Python frameworks need a header, if not, 415 status code")
+    @missing_feature(
+        context.library == "nodejs" and context.weblog_variant in ["express4", "express5"],
+        reason="Tainted as request body",
+    )
+    @bug(weblog_variant="resteasy-netty3", reason="APPSEC-55687")
     @missing_feature(library="dotnet", reason="Tainted as request body")
+    @flaky(context.weblog_variant == "python3.12", reason="APPSEC-56375")
     def test_source_post_reported(self):
-        """ for use case where only one is reported, we want to keep a test on the one reported """
+        """for use case where only one is reported, we want to keep a test on the one reported"""
         self.validate_request_reported(self.requests["POST"])
 
     setup_source_get_reported = BaseSourceTest.setup_source_reported
 
-    @bug(weblog_variant="jersey-grizzly2", reason="Not reported")
-    @bug(weblog_variant="resteasy-netty3", reason="Not reported")
+    @bug(
+        context.library < "java@1.40.0" and context.weblog_variant == "jersey-grizzly2",
+        reason="APPSEC-55387",
+    )
+    @bug(weblog_variant="resteasy-netty3", reason="APPSEC-55687")
     def test_source_get_reported(self):
-        """ for use case where only one is reported, we want to keep a test on the one reported """
+        """for use case where only one is reported, we want to keep a test on the one reported"""
         self.validate_request_reported(self.requests["GET"])
 
-    @missing_feature(weblog_variant="express4", reason="Tainted as request body")
-    @bug(weblog_variant="jersey-grizzly2", reason="Not reported")
-    @bug(weblog_variant="resteasy-netty3", reason="Not reported")
-    @bug(library="python", reason="Python frameworks need a header, if not, 415 status code")
+    @missing_feature(
+        context.library == "nodejs" and context.weblog_variant in ["express4", "express5"],
+        reason="Tainted as request body",
+    )
+    @bug(
+        context.library < "java@1.40.0" and context.weblog_variant == "jersey-grizzly2",
+        reason="APPSEC-55387",
+    )
+    @bug(weblog_variant="resteasy-netty3", reason="APPSEC-55687")
     @missing_feature(library="dotnet", reason="Tainted as request body")
+    @flaky(context.weblog_variant == "python3.12", reason="APPSEC-56375")
     def test_source_reported(self):
         super().test_source_reported()
 

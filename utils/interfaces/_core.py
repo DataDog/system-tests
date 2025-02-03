@@ -2,18 +2,19 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-""" This file contains base class used to validate interfaces """
+"""Contains base class used to validate interfaces"""
 
 import json
 from os import listdir
-from os.path import isfile, join
+from os.path import join
+from pathlib import Path
 import re
+import shutil
 import threading
 import time
 
 import pytest
 
-from utils._context.core import context
 from utils.tools import logger
 from utils.interfaces._schemas_validators import SchemaValidator, SchemaError
 
@@ -24,13 +25,18 @@ class InterfaceValidator:
     One instance of this list handle only one interface
     """
 
+    replay: bool
+    """ True if the process is in replay mode """
+
+    log_folder: str
+    """ Folder where interfaces' logs are stored """
+
     def __init__(self, name):
         self.name = name
 
-        self.replay = False
-
-    def configure(self, replay):
+    def configure(self, host_log_folder, replay):
         self.replay = replay
+        self.log_folder = f"{host_log_folder}/interfaces/{self.name}"
 
     def __repr__(self):
         return f"{self.__class__.__name__}('{self.name}')"
@@ -40,7 +46,7 @@ class InterfaceValidator:
 
 
 class ProxyBasedInterfaceValidator(InterfaceValidator):
-    """ Interfaces based on proxy container """
+    """Interfaces based on proxy container"""
 
     def __init__(self, name):
         super().__init__(name)
@@ -53,19 +59,22 @@ class ProxyBasedInterfaceValidator(InterfaceValidator):
         self._ingested_files = set()
         self._schema_errors = None
 
-    @property
-    def _log_folder(self):
-        return f"{context.scenario.host_log_folder}/interfaces/{self.name}"
+    def configure(self, host_log_folder, replay):
+        super().configure(host_log_folder, replay)
+
+        if not replay:
+            shutil.rmtree(self.log_folder, ignore_errors=True)
+            Path(self.log_folder).mkdir(parents=True, exist_ok=True)
+            Path(self.log_folder + "/files").mkdir(parents=True, exist_ok=True)
 
     def ingest_file(self, src_path):
-
         with self._lock:
             if src_path in self._ingested_files:
                 return
 
             logger.debug(f"Ingesting {src_path}")
 
-            with open(src_path, "r", encoding="utf-8") as f:
+            with open(src_path, encoding="utf-8") as f:
                 try:
                     data = json.load(f)
                 except json.decoder.JSONDecodeError:
@@ -85,7 +94,7 @@ class ProxyBasedInterfaceValidator(InterfaceValidator):
         time.sleep(timeout)
 
     def check_deserialization_errors(self):
-        """ Verify that all proxy deserialization are successful """
+        """Verify that all proxy deserialization are successful"""
 
         for data in self._data_list:
             filename = data["log_filename"]
@@ -98,12 +107,10 @@ class ProxyBasedInterfaceValidator(InterfaceValidator):
                 pytest.exit(reason=f"Unexpected error while deserialize {filename}:\n {traceback}", returncode=1)
 
     def load_data_from_logs(self):
-
-        for filename in sorted(listdir(self._log_folder)):
-            file_path = join(self._log_folder, filename)
-            if isfile(file_path):
-
-                with open(file_path, "r", encoding="utf-8") as f:
+        for filename in sorted(listdir(self.log_folder)):
+            file_path = join(self.log_folder, filename)
+            if Path(file_path).is_file():
+                with open(file_path, encoding="utf-8") as f:
                     data = json.load(f)
 
                 self._append_data(data)
@@ -113,7 +120,6 @@ class ProxyBasedInterfaceValidator(InterfaceValidator):
         self._data_list.append(data)
 
     def get_data(self, path_filters=None):
-
         if path_filters is not None:
             if isinstance(path_filters, str):
                 path_filters = [path_filters]
@@ -121,12 +127,12 @@ class ProxyBasedInterfaceValidator(InterfaceValidator):
             path_filters = [re.compile(path) for path in path_filters]
 
         for data in self._data_list:
-            if path_filters is not None and all((path.fullmatch(data["path"]) is None for path in path_filters)):
+            if path_filters is not None and all(path.fullmatch(data["path"]) is None for path in path_filters):
                 continue
 
             yield data
 
-    def validate(self, validator, path_filters=None, success_by_default=False):
+    def validate(self, validator, path_filters=None, *, success_by_default=False):
         for data in self.get_data(path_filters=path_filters):
             try:
                 if validator(data) is True:
@@ -146,7 +152,6 @@ class ProxyBasedInterfaceValidator(InterfaceValidator):
             raise ValueError("Test has not been validated by any data")
 
     def wait_for(self, wait_for_function, timeout):
-
         if self.replay:
             return
 
@@ -154,6 +159,7 @@ class ProxyBasedInterfaceValidator(InterfaceValidator):
         with self._lock:
             for data in self._data_list:
                 if wait_for_function(data):
+                    logger.info(f"wait for {wait_for_function} finished in success with existing data")
                     return
 
             # then set the lock, and wait for append_data to release it
@@ -200,6 +206,33 @@ class ProxyBasedInterfaceValidator(InterfaceValidator):
             logger.error(f"* {error.message}")
 
         assert not has_error, f"Schema validation failed for {self.name}"
+
+    def assert_request_header(self, path, header_name_pattern: str, header_value_pattern: str) -> None:
+        """Assert that a header, and its value are present in all requests for a given path
+        header_name_pattern: a regular expression to match the header name (lower case)
+        header_value_pattern: a regular expression to match the header value
+        """
+
+        data_found = False
+
+        for data in self.get_data(path):
+            data_found = True
+
+            found = False
+
+            for header, value in data["request"]["headers"]:
+                if re.fullmatch(header_name_pattern, header.lower()):
+                    if not re.fullmatch(header_value_pattern, value):
+                        logger.error(f"Header {header} found in {data['log_filename']}, but value is {value}")
+                    else:
+                        found = True
+                        continue
+
+            if not found:
+                raise ValueError(f"{header_name_pattern} not found (or incorrect) in {data['log_filename']}")
+
+        if not data_found:
+            raise ValueError(f"No data found for {path}")
 
 
 class ValidationError(Exception):

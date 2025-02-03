@@ -9,17 +9,17 @@
 # The purpose of this script is to download the latest development version of a component.
 #
 # Binaries sources:
-# 
-# * Agent:  Docker hub datadog/agent-dev:master-py3
-# * Golang: gopkg.in/DataDog/dd-trace-go.v1@main
-# * .NET:   ghcr.io/datadog/dd-trace-dotnet
-# * Java:   ghcr.io/datadog/dd-trace-java
-# * PHP:    ghcr.io/datadog/dd-trace-php
-# * NodeJS: Direct from github source
-# * C++:    Direct from github source
-# * Python: Direct from github source
-# * Ruby:   Direct from github source
-# * WAF:    Direct from github source, but not working, as this repo is now private
+#
+# * Agent:   Docker hub datadog/agent-dev:master-py3
+# * Golang:  gopkg.in/DataDog/dd-trace-go.v1@main
+# * .NET:    ghcr.io/datadog/dd-trace-dotnet
+# * Java:    ghcr.io/datadog/dd-trace-java
+# * PHP:     ghcr.io/datadog/dd-trace-php
+# * Node.js: Direct from github source
+# * C++:     Direct from github source
+# * Python:  Direct from github source
+# * Ruby:    Direct from github source
+# * WAF:     Direct from github source, but not working, as this repo is now private
 ##########################################################################################
 
 set -eu
@@ -31,6 +31,17 @@ assert_version_is_dev() {
   fi
 
   echo "Don't know how to load version $VERSION for $TARGET"
+
+  exit 1
+}
+
+assert_target_branch_is_not_set() {
+
+  if [[ -z "${TARGET_BRANCH:-}" ]]; then
+    return 0
+  fi
+
+  echo "It is not possible to specify the '$TARGET_BRANCH' target branch for $TARGET library yet"
 
   exit 1
 }
@@ -119,13 +130,13 @@ get_github_action_artifact() {
     QUERY="[.workflow_runs[] | select(.conclusion != \"failure\" and .head_branch == \"$BRANCH\" and .status == \"completed\")][0]"
     ARTIFACT_URL=$(echo $WORKFLOWS | jq -r "$QUERY | .artifacts_url")
     HTML_URL=$(echo $WORKFLOWS | jq -r "$QUERY | .html_url")
-    echo "Load artifact $HTML_URL" 
+    echo "Load artifact $HTML_URL"
     ARTIFACTS=$(curl --silent -H "Authorization: token $GH_TOKEN" $ARTIFACT_URL)
 
     ARCHIVE_URL=$(echo $ARTIFACTS | jq -r '.artifacts[0].archive_download_url')
     echo "Load archive $ARCHIVE_URL"
 
-    curl -H "Authorization: token $GH_TOKEN" --output artifacts.zip -L $ARCHIVE_URL 
+    curl -H "Authorization: token $GH_TOKEN" --output artifacts.zip -L $ARCHIVE_URL
 
     mkdir -p artifacts/
     unzip artifacts.zip -d artifacts/
@@ -146,7 +157,7 @@ get_github_release_asset() {
 
     echo "Load $url"
 
-    curl -H "Authorization: token $GH_TOKEN" --output $name -L $url 
+    curl -H "Authorization: token $GH_TOKEN" --output $name -L $url
 }
 
 if test -f ".env"; then
@@ -162,28 +173,29 @@ cd binaries/
 
 if [ "$TARGET" = "java" ]; then
     assert_version_is_dev
+    assert_target_branch_is_not_set
     ../utils/scripts/docker_base_image.sh ghcr.io/datadog/dd-trace-java/dd-trace-java:latest_snapshot .
 
 elif [ "$TARGET" = "dotnet" ]; then
+    assert_version_is_dev
+    assert_target_branch_is_not_set
     rm -rf *.tar.gz
-
-    if [ $VERSION = 'dev' ]; then
-        ../utils/scripts/docker_base_image.sh ghcr.io/datadog/dd-trace-dotnet/dd-trace-dotnet:latest_snapshot .
-    elif [ $VERSION = 'prod' ]; then
-        ../utils/scripts/docker_base_image.sh ghcr.io/datadog/dd-trace-dotnet/dd-trace-dotnet:latest .
-    else
-        echo "Don't know how to load version $VERSION for $TARGET"
-    fi
+    ../utils/scripts/docker_base_image.sh ghcr.io/datadog/dd-trace-dotnet/dd-trace-dotnet:latest_snapshot .
 
 elif [ "$TARGET" = "python" ]; then
     assert_version_is_dev
 
-    echo "git+https://github.com/DataDog/dd-trace-py.git" > python-load-from-pip
+    TARGET_BRANCH="${TARGET_BRANCH:-3.x-staging}"
+    echo "git+https://github.com/DataDog/dd-trace-py.git@$TARGET_BRANCH" > python-load-from-pip
+    echo "Using $(cat python-load-from-pip)"
 
 elif [ "$TARGET" = "ruby" ]; then
     assert_version_is_dev
-    echo "gem 'datadog', require: 'datadog/auto_instrument', git: 'https://github.com/Datadog/dd-trace-rb.git'" > ruby-load-from-bundle-add
+
+    TARGET_BRANCH="${TARGET_BRANCH:-master}"
+    echo "gem 'datadog', require: 'datadog/auto_instrument', git: 'https://github.com/Datadog/dd-trace-rb.git', branch: '$TARGET_BRANCH'" > ruby-load-from-bundle-add
     echo "Using $(cat ruby-load-from-bundle-add)"
+
 elif [ "$TARGET" = "php" ]; then
     rm -rf *.tar.gz
     if [ $VERSION = 'dev' ]; then
@@ -192,10 +204,13 @@ elif [ "$TARGET" = "php" ]; then
         ../utils/scripts/docker_base_image.sh ghcr.io/datadog/dd-trace-php/dd-library-php:latest ./temp
     else
         echo "Don't know how to load version $VERSION for $TARGET"
-    fi  
-    mv ./temp/dd-library-php*.tar.gz . && mv ./temp/datadog-setup.php . && rm -rf ./temp  
+    fi
+    assert_target_branch_is_not_set
+    mv ./temp/dd-library-php*.tar.gz . && mv ./temp/datadog-setup.php . && rm -rf ./temp
+
 elif [ "$TARGET" = "golang" ]; then
     assert_version_is_dev
+    assert_target_branch_is_not_set
     rm -rf golang-load-from-go-get
 
     # COMMIT_ID=$(curl -s 'https://api.github.com/repos/DataDog/dd-trace-go/branches/main' | jq -r .commit.sha)
@@ -203,28 +218,41 @@ elif [ "$TARGET" = "golang" ]; then
     echo "Using gopkg.in/DataDog/dd-trace-go.v1@main"
     echo "gopkg.in/DataDog/dd-trace-go.v1@main" > golang-load-from-go-get
 
+    echo "Using ghcr.io/datadog/dd-trace-go/service-extensions-callout:dev"
+    echo "ghcr.io/datadog/dd-trace-go/service-extensions-callout:dev" > golang-service-extensions-callout-image
+
+    echo "Using github.com/DataDog/orchestrion@main"
+    echo "github.com/DataDog/orchestrion@main" > orchestrion-load-from-go-get
+
 elif [ "$TARGET" = "cpp" ]; then
     assert_version_is_dev
     # get_circleci_artifact "gh/DataDog/dd-opentracing-cpp" "build_test_deploy" "build" "TBD"
     # PROFILER: The main version is stored in s3, though we can not access this in CI
     # Not handled for now for system-tests. this handles artifact for parametric
-    echo "Using https://github.com/DataDog/dd-trace-cpp@main"
-    echo "https://github.com/DataDog/dd-trace-cpp@main" > cpp-load-from-git
+    TARGET_BRANCH="${TARGET_BRANCH:-main}"
+    echo "https://github.com/DataDog/dd-trace-cpp@$TARGET_BRANCH" > cpp-load-from-git
+    echo "Using $(cat cpp-load-from-git)"
+
 elif [ "$TARGET" = "agent" ]; then
     assert_version_is_dev
-    echo "datadog/agent-dev:master-py3" > agent-image
+    TARGET_BRANCH="${TARGET_BRANCH:-master-py3}"
+    echo "datadog/agent-dev:$TARGET_BRANCH" > agent-image
     echo "Using $(cat agent-image) image"
 
 elif [ "$TARGET" = "nodejs" ]; then
     assert_version_is_dev
+
+    TARGET_BRANCH="${TARGET_BRANCH:-master}"
     # NPM builds the package, so we put a trigger file that tells install script to get package from github#master
-    echo "DataDog/dd-trace-js#master" > nodejs-load-from-npm
+    echo "DataDog/dd-trace-js#$TARGET_BRANCH" > nodejs-load-from-npm
+    echo "Using $(cat nodejs-load-from-npm)"
 
 elif [ "$TARGET" = "waf_rule_set_v1" ]; then
     exit 1
 
 elif [ "$TARGET" = "waf_rule_set_v2" ]; then
     assert_version_is_dev
+    assert_target_branch_is_not_set
     curl --silent \
         -H "Authorization: token $GH_TOKEN" \
         -H "Accept: application/vnd.github.v3.raw" \
@@ -233,6 +261,7 @@ elif [ "$TARGET" = "waf_rule_set_v2" ]; then
 
 elif [ "$TARGET" = "waf_rule_set" ]; then
     assert_version_is_dev
+    assert_target_branch_is_not_set
     curl --fail --output "waf_rule_set.json" \
         -H "Authorization: token $GH_TOKEN" \
         -H "Accept: application/vnd.github.v3.raw" \

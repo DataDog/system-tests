@@ -1,6 +1,8 @@
+import json
 from collections import defaultdict
-from datetime import datetime, timedelta
+from datetime import timedelta
 import time
+from dateutil.parser import isoparse
 from utils import context, interfaces, missing_feature, bug, flaky, irrelevant, weblog, scenarios, features, rfc
 from utils.tools import logger
 from utils.interfaces._misc_validators import HeadersPresenceValidator, HeadersMatchValidator
@@ -44,6 +46,7 @@ def is_v1_payload(data):
     return get_request_content(data).get("api_version") == "v1"
 
 
+@rfc("https://docs.google.com/document/d/1Fai2gZlkvfa_WQs_yJsmi3nUwiOsMtNu2LFBnbTHJRA/edit#heading=h.llmi584vls7r")
 @features.telemetry_instrumentation
 class Test_Telemetry:
     """Test that instrumentation telemetry is sent"""
@@ -56,16 +59,16 @@ class Test_Telemetry:
         telemetry_data = list(interfaces.library.get_telemetry_data(flatten_message_batches=False))
 
         if len(telemetry_data) == 0 and not success_by_default:
-            raise Exception("No telemetry data to validate on")
+            raise ValueError("No telemetry data to validate on")
 
         for data in telemetry_data:
             validator(data)
 
-    def validate_agent_telemetry_data(self, validator, success_by_default=False):
-        telemetry_data = list(interfaces.agent.get_telemetry_data())
+    def validate_agent_telemetry_data(self, validator, flatten_message_batches=True, success_by_default=False):
+        telemetry_data = list(interfaces.agent.get_telemetry_data(flatten_message_batches=flatten_message_batches))
 
         if len(telemetry_data) == 0 and not success_by_default:
-            raise Exception("No telemetry data to validate on")
+            raise ValueError("No telemetry data to validate on")
 
         for data in telemetry_data:
             validator(data)
@@ -75,26 +78,22 @@ class Test_Telemetry:
 
         def validator(data):
             if data["request"]["length"] >= 5_000_000:
-                raise Exception(f"Received message size is more than 5MB")
+                raise ValueError("Received message size is more than 5MB")
 
         self.validate_library_telemetry_data(validator)
         self.validate_agent_telemetry_data(validator)
 
-    @flaky(True, reason="Backend is far away from being stable enough")
     def test_status_ok(self):
-        """Test that telemetry requests are successful"""
+        """Test that telemetry requests sent to agent are successful"""
 
         def validator(data):
             response_code = data["response"]["status_code"]
             assert 200 <= response_code < 300, f"Got response code {response_code} in {data['log_filename']}"
 
-        self.validate_agent_telemetry_data(validator)
         self.validate_library_telemetry_data(validator)
 
-    @bug(
-        context.agent_version >= "7.36.0" and context.agent_version < "7.37.0",
-        reason="Version reporting of trace agent is broken in 7.36.x release",
-    )
+    @bug(context.agent_version >= "7.36.0" and context.agent_version < "7.37.0", reason="APMRP-360")
+    @bug(context.agent_version > "7.53.0", reason="APMAPI-926")
     def test_telemetry_proxy_enrichment(self):
         """Test telemetry proxy adds necessary information"""
 
@@ -104,7 +103,7 @@ class Test_Telemetry:
             check_condition=not_onboarding_event,
         )
         header_match_validator = HeadersMatchValidator(
-            request_headers={"via": r"trace-agent 7\..+"}, response_headers=(), check_condition=not_onboarding_event,
+            request_headers={"via": r"trace-agent 7\..+"}, response_headers=(), check_condition=not_onboarding_event
         )
 
         self.validate_agent_telemetry_data(header_presence_validator)
@@ -114,16 +113,14 @@ class Test_Telemetry:
     def test_telemetry_message_has_datadog_container_id(self):
         """Test telemetry messages contain datadog-container-id"""
         interfaces.agent.assert_headers_presence(
-            path_filter=INTAKE_TELEMETRY_PATH, request_headers=["datadog-container-id"],
+            path_filter=INTAKE_TELEMETRY_PATH, request_headers=["datadog-container-id"]
         )
 
     @missing_feature(library="cpp")
     def test_telemetry_message_required_headers(self):
         """Test telemetry messages contain required headers"""
 
-        interfaces.agent.assert_headers_presence(
-            path_filter=INTAKE_TELEMETRY_PATH, request_headers=["dd-api-key"],
-        )
+        interfaces.agent.assert_headers_presence(path_filter=INTAKE_TELEMETRY_PATH, request_headers=["dd-api-key"])
         interfaces.library.assert_headers_presence(
             path_filter=AGENT_TELEMETRY_PATH,
             request_headers=["dd-telemetry-api-version", "dd-telemetry-request-type"],
@@ -131,11 +128,11 @@ class Test_Telemetry:
         )
 
     @flaky(library="ruby", reason="AIT-8418")
+    @irrelevant(library="php", reason="PHP registers 2 telemetry services")
     def test_seq_id(self):
         """Test that messages are sent sequentially"""
 
         MAX_OUT_OF_ORDER_LAG = 0.3  # s
-        FMT = "%Y-%m-%dT%H:%M:%S.%f"
 
         telemetry_data = list(interfaces.library.get_telemetry_data(flatten_message_batches=False))
         if len(telemetry_data) == 0:
@@ -153,7 +150,7 @@ class Test_Telemetry:
                     continue
                 seq_id = data["request"]["content"]["seq_id"]
                 timestamp_start = data["request"]["timestamp_start"]
-                curr_message_time = datetime.strptime(timestamp_start, FMT)
+                curr_message_time = isoparse(timestamp_start)
                 logger.debug(f"Message at {timestamp_start.split('T')[1]} in {data['log_filename']}, seq_id: {seq_id}")
 
                 # IDs should be sent sequentially, even if there are errors
@@ -191,7 +188,8 @@ class Test_Telemetry:
                     )
 
     @missing_feature(context.library < "ruby@1.22.0", reason="app-started not sent")
-    @flaky(context.library <= "python@1.20.2", reason="app-started is sent twice")
+    @flaky(context.library <= "python@1.20.2", reason="APMRP-360")
+    @irrelevant(library="php", reason="PHP registers 2 telemetry services")
     @features.telemetry_app_started_event
     def test_app_started_sent_exactly_once(self):
         """Request type app-started is sent exactly once"""
@@ -210,7 +208,7 @@ class Test_Telemetry:
         assert all((count == 1 for count in count_by_runtime_id.values()))
 
     @missing_feature(context.library < "ruby@1.22.0", reason="app-started not sent")
-    @bug(library="python", reason="app-started not sent first")
+    @bug(context.library >= "dotnet@3.4.0", reason="APMAPI-728")
     @features.telemetry_app_started_event
     def test_app_started_is_first_message(self):
         """Request type app-started is the first telemetry message or the first message in the first batch"""
@@ -222,36 +220,35 @@ class Test_Telemetry:
                 first_message.get("request_type") == "app-started"
             ), "app-started was not the first message in the first batch"
         else:
-            for data in telemetry_data:
-                req_content = data["request"]["content"]
-                if req_content["request_type"] == "app-started":
-                    seq_id = req_content["seq_id"]
-                    assert seq_id == 1, f"app-started found but it was not the first message sent"
-                    return
+            # In theory, app-started must have seq_id 1, but tracers may skip seq_ids if sending messages fail.
+            # So we will check that app-started is the first message by seq_id, rather than strictly seq_id 1.
+            telemetry_data = list(sorted(telemetry_data, key=lambda x: x["request"]["content"]["seq_id"]))
+            app_started = [d for d in telemetry_data if d["request"]["content"].get("request_type") == "app-started"]
+            assert app_started, "app-started message not found"
+            min_seq_id = min(d["request"]["content"]["seq_id"] for d in telemetry_data)
+            assert (
+                app_started[0]["request"]["content"]["seq_id"] == min_seq_id
+            ), "app-started is not the first message by seq_id"
 
-            raise Exception(f"app-started message not found")
-
-    @bug(
-        library="java",
-        weblog_variant="spring-boot-openliberty",
-        reason="https://datadoghq.atlassian.net/browse/APPSEC-6583",
-    )
-    @bug(
-        library="java", weblog_variant="spring-boot-wildfly",
-    )
+    @bug(weblog_variant="spring-boot-openliberty", reason="APPSEC-6583")
+    @bug(weblog_variant="spring-boot-wildfly", reason="APPSEC-6583")
+    @bug(context.agent_version > "7.53.0", reason="APMAPI-926")
     def test_proxy_forwarding(self):
         """Test that all telemetry requests sent by library are forwarded correctly by the agent"""
 
         def save_data(data, container):
             # payloads are identifed by their seq_id/runtime_id
             if not_onboarding_event(data):
+                assert "seq_id" in data["request"]["content"], f"`seq_id` is missing in {data['log_filename']}"
                 key = data["request"]["content"]["seq_id"], data["request"]["content"]["runtime_id"]
                 container[key] = data
 
         self.validate_library_telemetry_data(
             lambda data: save_data(data, self.library_requests), success_by_default=False
         )
-        self.validate_agent_telemetry_data(lambda data: save_data(data, self.agent_requests), success_by_default=False)
+        self.validate_agent_telemetry_data(
+            lambda data: save_data(data, self.agent_requests), flatten_message_batches=True, success_by_default=False
+        )
 
         # At the end, check that all data are consistent
         for key, agent_data in self.agent_requests.items():
@@ -278,7 +275,7 @@ class Test_Telemetry:
                 lib_message, lib_log_file = lib_data["request"]["content"], lib_data["log_filename"]
 
                 if agent_message != lib_message:
-                    raise Exception(
+                    raise ValueError(
                         f"Telemetry proxy message different in messages {lib_log_file} and {agent_log_file}:\n"
                         f"library sent {lib_message}\n"
                         f"agent sent {agent_message}"
@@ -290,54 +287,73 @@ class Test_Telemetry:
 
             raise Exception("The following telemetry messages were not forwarded by the agent")
 
-    @flaky(context.library < "nodejs@4.13.1", reason="Heartbeats are sometimes sent too fast")
-    @bug(context.library < "java@1.18.0", reason="Telemetry interval drifts")
-    @missing_feature(context.library < "ruby@1.13.0", reason="DD_TELEMETRY_HEARTBEAT_INTERVAL not supported")
-    @missing_feature(library="cpp", reason="DD_TELEMETRY_HEARTBEAT_INTERVAL not supported")
-    @flaky(library="ruby")
-    @bug(context.library >= "nodejs@4.21.0", reason="AIT-9176")
-    @bug(context.library > "php@0.90")
-    @flaky(context.library <= "php@0.90", reason="Heartbeats are sometimes sent too slow")
-    @features.telemetry_heart_beat_collected
-    def test_app_heartbeat(self):
-        """Check for heartbeat or messages within interval and valid started and closing messages"""
-
-        prev_message_time = None
-        expected_heartbeat_interval = context.telemetry_heartbeat_interval
-
-        # This interval can't be perfeclty exact, give some room for tests
-        UPPER_LIMIT = timedelta(seconds=expected_heartbeat_interval * 2).total_seconds()
-        LOWER_LIMIT = timedelta(seconds=expected_heartbeat_interval * 0.75).total_seconds()
-
-        fmt = "%Y-%m-%dT%H:%M:%S.%f"
+    @staticmethod
+    def _get_heartbeat_delays_by_runtime() -> dict:
+        """
+        Returns a dict where :
+        The key is the runtime id
+        The value is a list of delay observed on this runtime id
+        """
 
         telemetry_data = list(interfaces.library.get_telemetry_data())
-        assert len(telemetry_data) > 0, "No telemetry messages"
+        heartbeats_by_runtime = defaultdict(list)
 
-        heartbeats = [d for d in telemetry_data if d["request"]["content"].get("request_type") == "app-heartbeat"]
-        assert len(heartbeats) >= 2, "Did not receive, at least, 2 heartbeats"
+        for data in telemetry_data:
+            if data["request"]["content"].get("request_type") == "app-heartbeat":
+                heartbeats_by_runtime[data["request"]["content"]["runtime_id"]].append(data)
 
-        # depending on the tracer, the very first heartbeat may be sent in a request that pays the
-        # connection initialization time. This time is very unpredictible, so we remove the very
-        # first heartbeat from the list
-        heartbeats.pop(0)
+        delays_by_runtime = {}
 
-        for data in heartbeats:
-            curr_message_time = datetime.strptime(data["request"]["timestamp_start"], fmt)
-            if prev_message_time is None:
-                logger.debug(f"Heartbeat in {data['log_filename']}: {curr_message_time}")
-            else:
-                delta = (curr_message_time - prev_message_time).total_seconds()
-                logger.debug(f"Heartbeat in {data['log_filename']}: {curr_message_time} => {delta}s ellapsed")
+        for runtime_id, heartbeats in heartbeats_by_runtime.items():
+            assert len(heartbeats) > 2, f"No enough telemetry messages to check delays for runtime id {runtime_id}"
 
-                assert (
-                    delta < UPPER_LIMIT
-                ), f"Heartbeat sent too slow ({delta}s). It should be sent every {expected_heartbeat_interval}s"
-                assert (
-                    delta > LOWER_LIMIT
-                ), f"Heartbeat sent too fast ({delta}s). It should be sent every {expected_heartbeat_interval}s"
+            logger.debug(f"Heartbeats for runtime {runtime_id}:")
 
-            prev_message_time = curr_message_time
+            # In theory, it's sorted. Let be safe
+            heartbeats.sort(key=lambda data: isoparse(data["request"]["timestamp_start"]))
+
+            prev_message_time = None
+            delays = []
+            for data in heartbeats:
+                curr_message_time = isoparse(data["request"]["timestamp_start"])
+                if prev_message_time is None:
+                    logger.debug(f"  * {data['log_filename']}: {curr_message_time}")
+                else:
+                    delay = (curr_message_time - prev_message_time).total_seconds()
+                    logger.debug(f"  * {data['log_filename']}: {curr_message_time} => {delay}s ellapsed")
+                    delays.append(delay)
+
+                prev_message_time = curr_message_time
+
+            delays_by_runtime[runtime_id] = delays
+
+        return delays_by_runtime
+
+    @missing_feature(library="cpp", reason="DD_TELEMETRY_HEARTBEAT_INTERVAL not supported")
+    @flaky(context.library <= "java@1.38.1", reason="APMRP-360")
+    @flaky(context.library <= "php@0.90", reason="APMRP-360")
+    @flaky(library="ruby", reason="APMAPI-226")
+    @flaky(context.library >= "java@1.39.0", reason="APMAPI-723")
+    @bug(context.library > "php@1.5.1", reason="APMAPI-971")
+    @features.telemetry_heart_beat_collected
+    def test_app_heartbeats_delays(self):
+        """
+        Check for telemetry heartbeat are not sent too fast/slow, regarding DD_TELEMETRY_HEARTBEAT_INTERVAL
+        There are a lot of reason for individual heartbeats to be sent too slow/fast, and the subsequent ones
+        to be sent too fast/slow so the RFC says that it must not drift. So we will check the average delay
+        """
+
+        delays_by_runtime = self._get_heartbeat_delays_by_runtime()
+
+        # This interval can't be perfeclty exact, give some room for tests
+        LOWER_LIMIT = timedelta(seconds=context.telemetry_heartbeat_interval * 0.75).total_seconds()
+        UPPER_LIMIT = timedelta(seconds=context.telemetry_heartbeat_interval * 1.5).total_seconds()
+        expectation = f"It should be sent every {context.telemetry_heartbeat_interval}s"
+
+        for delays in delays_by_runtime.values():
+            average_delay = sum(delays) / len(delays)
+            assert average_delay > LOWER_LIMIT, f"Heartbeat sent too fast: {average_delay}s. {expectation}"
+            assert average_delay < UPPER_LIMIT, f"Heartbeat sent too slow: {average_delay}s. {expectation}"
 
     def setup_app_dependencies_loaded(self):
         weblog.get("/load_dependency")
@@ -347,7 +363,7 @@ class Test_Telemetry:
     @irrelevant(library="golang")
     @irrelevant(library="python")
     @missing_feature(context.library < "ruby@1.22.0", reason="Telemetry V2 is not implemented yet")
-    @bug(
+    @irrelevant(
         library="java",
         reason="""
         A Java application can be redeployed to the same server for many times (for the same JVM process). 
@@ -451,25 +467,20 @@ class Test_Telemetry:
 
         self.validate_library_telemetry_data(validator=validator, success_by_default=True)
 
-    @missing_feature(
-        context.library in ("golang", "php"), reason="Telemetry is not implemented yet. ",
-    )
+    @missing_feature(context.library in ("golang", "php"), reason="Telemetry is not implemented yet.")
     @missing_feature(context.library < "ruby@1.22.0", reason="Telemetry V2 is not implemented yet")
-    @bug(
-        library="python",
-        reason="""
-            configuration is not properly populating for python
-        """,
-    )
     def test_app_started_client_configuration(self):
         """Assert that default and other configurations that are applied upon start time are sent with the app-started event"""
+
+        trace_agent_port = scenarios.default.weblog_container.trace_agent_port
+
         test_configuration = {
             "dotnet": {},
-            "nodejs": {"hostname": "proxy", "port": 8126, "appsec.enabled": True},
+            "nodejs": {"hostname": "proxy", "port": trace_agent_port, "appsec.enabled": True},
             # to-do :need to add configuration keys once python bug is fixed
             "python": {},
-            "cpp": {"trace_agent_port": 8126},
-            "java": {"trace_agent_port": 8126, "telemetry_heartbeat_interval": 2},
+            "cpp": {"trace_agent_port": trace_agent_port},
+            "java": {"trace_agent_port": trace_agent_port, "telemetry_heartbeat_interval": 2},
             "ruby": {"DD_AGENT_TRANSPORT": "TCP"},
         }
         configuration_map = test_configuration[context.library.library]
@@ -584,9 +595,91 @@ class Test_TelemetryV2:
                     "appsec" in products
                 ), "Product information is not accurately reported by telemetry on app-started event"
 
+    @bug(library="java", reason="APMAPI-969")
+    def test_config_telemetry_completeness(self):
+        """
+        Assert that config telemetry is handled properly by telemetry intake
+
+        Runbook: https://github.com/DataDog/system-tests/blob/main/docs/edit/runbook.md#test_config_telemetry_completeness
+        """
+
+        def lowercase_obj(obj):
+            if isinstance(obj, dict):
+                return {k.lower() if isinstance(k, str) else k: lowercase_obj(v) for k, v in obj.items()}
+            elif isinstance(obj, list):
+                return [lowercase_obj(item) for item in obj]
+            elif isinstance(obj, str):
+                return obj.lower()
+            else:
+                return obj
+
+        def load_telemetry_json(filename):
+            with open(f"tests/telemetry_intake/static/{filename}.json", encoding="utf-8") as fh:
+                return lowercase_obj(json.load(fh))
+
+        def get_all_keys_and_values(*objs):
+            result = []
+            for obj in objs:
+                if obj is not None:
+                    if isinstance(obj, dict):
+                        result.extend(list(obj.keys()))
+                        result.extend(list(obj.values()))
+                    elif isinstance(obj, list):
+                        result.extend(obj)
+                    else:
+                        logger.error(f"Unexpected type in concat: {type(obj).__name__}")
+            return result
+
+        def is_key_accepted_by_telemetry(key, allowed_keys, allowed_prefixes):
+            lower_key = key.lower()
+            is_allowed_key = lower_key in allowed_keys
+            is_allowed_prefix = any(lower_key.startswith(prefix) for prefix in allowed_prefixes)
+
+            return is_allowed_key or is_allowed_prefix
+
+        config_norm_rules = load_telemetry_json("config_norm_rules")
+        config_prefix_block_list = load_telemetry_json("config_prefix_block_list")
+        config_aggregation_list = load_telemetry_json("config_aggregation_list")
+
+        lang_configs = {}
+        for lang in ["dotnet", "go", "jvm", "nodejs", "php", "python", "ruby"]:
+            lang_configs[lang] = load_telemetry_json(lang + "_config_rules")
+
+        for data in interfaces.library.get_telemetry_data(flatten_message_batches=True):
+            if not is_v2_payload(data):
+                continue
+            if get_request_type(data) in ["app-started", "app-client-configuration-change"]:
+                language_name = data["request"]["content"]["application"]["language_name"]
+
+                lang_config = lang_configs.get(language_name, {})
+
+                norm_rules = lang_config.get("normalization_rules", {})
+                exact_keys = get_all_keys_and_values(config_norm_rules, norm_rules)
+
+                prefix_keys = get_all_keys_and_values(
+                    config_prefix_block_list,
+                    lang_config.get("prefix_block_list", {}),
+                    config_aggregation_list,
+                    lang_config.get("reduce_rules", {}),
+                )
+
+                configuration = data["request"]["content"]["payload"]["configuration"]
+                library_config_keys = sorted([config["name"] for config in configuration if "name" in config])
+
+                missing_config_keys = [
+                    key for key in library_config_keys if not is_key_accepted_by_telemetry(key, exact_keys, prefix_keys)
+                ]
+
+                # This may create a fairly large test output, but it makes the output more actionable
+                if len(missing_config_keys) != 0:
+                    logger.error(json.dumps(missing_config_keys, indent=2))
+                    raise ValueError(
+                        "(NOT A FLAKE) Read this quick runbook to update allowed configs: https://github.com/DataDog/system-tests/blob/main/docs/edit/runbook.md#test_config_telemetry_completeness"
+                    )
+
     @missing_feature(library="cpp")
     @missing_feature(context.library < "ruby@1.22.0", reason="dd-client-library-version missing")
-    @bug(library="python", reason="library versions do not match due to different origins")
+    @bug(context.library == "python" and context.library.version.prerelease is not None, reason="APMAPI-927")
     def test_telemetry_v2_required_headers(self):
         """Assert library add the relevant headers to telemetry v2 payloads"""
 
@@ -651,7 +744,7 @@ class Test_DependencyEnable:
 
         for data in interfaces.library.get_telemetry_data():
             if get_request_type(data) == "app-dependencies-loaded":
-                raise Exception("request_type app-dependencies-loaded should not be sent by this tracer")
+                raise ValueError("request_type app-dependencies-loaded should not be sent by this tracer")
 
 
 @features.telemetry_message_batch
@@ -663,13 +756,13 @@ class Test_MessageBatch:
         weblog.get("/enable_integration")
         weblog.get("/enable_product")
 
-    # CPP: false-positive. we send batch message for app-started.
+    @bug(library="nodejs", reason="APMAPI-929")
     def test_message_batch_enabled(self):
         """Test that events are sent in message batches"""
-        event_list = []
+        event_list = set()
         for data in interfaces.library.get_telemetry_data(flatten_message_batches=False):
             content = data["request"]["content"]
-            event_list.append(content.get("request_type"))
+            event_list.add(content.get("request_type"))
 
         assert "message-batch" in event_list, f"Expected one or more message-batch events: {event_list}"
 
@@ -729,6 +822,7 @@ class Test_Metric_Generation_Enabled:
         assert found, "No metrics found in telemetry data"
 
     @missing_feature(library="java", reason="Not implemented")
+    @missing_feature(library="nodejs")
     def test_metric_general_logs_created(self):
         self.assert_count_metric("general", "logs_created", expect_at_least=1)
 
@@ -739,38 +833,47 @@ class Test_Metric_Generation_Enabled:
         self.assert_count_metric("tracers", "spans_finished", expect_at_least=1)
 
     @missing_feature(library="java", reason="Not implemented")
+    @missing_feature(library="nodejs")
     def test_metric_tracers_spans_enqueued_for_serialization(self):
         self.assert_count_metric("tracers", "spans_enqueued_for_serialization", expect_at_least=1)
 
     @missing_feature(library="java", reason="Not implemented")
+    @missing_feature(library="nodejs")
     def test_metric_tracers_trace_segments_created(self):
         self.assert_count_metric("tracers", "trace_segments_created", expect_at_least=1)
 
     @missing_feature(library="java", reason="Not implemented")
+    @missing_feature(library="nodejs")
     def test_metric_tracers_trace_chunks_enqueued_for_serialization(self):
         self.assert_count_metric("tracers", "trace_chunks_enqueued_for_serialization", expect_at_least=1)
 
     @missing_feature(library="java", reason="Not implemented")
+    @missing_feature(library="nodejs")
     def test_metric_tracers_trace_chunks_sent(self):
         self.assert_count_metric("tracers", "trace_chunks_sent", expect_at_least=1)
 
     @missing_feature(library="java", reason="Not implemented")
+    @missing_feature(library="nodejs")
     def test_metric_tracers_trace_segments_closed(self):
         self.assert_count_metric("tracers", "trace_segments_closed", expect_at_least=1)
 
     @missing_feature(library="java", reason="Not implemented")
+    @missing_feature(library="nodejs")
     def test_metric_tracers_trace_api_requests(self):
         self.assert_count_metric("tracers", "trace_api.requests", expect_at_least=1)
 
     @missing_feature(library="java", reason="Not implemented")
+    @missing_feature(library="nodejs")
     def test_metric_tracers_trace_api_responses(self):
         self.assert_count_metric("tracers", "trace_api.responses", expect_at_least=1)
 
     @missing_feature(library="java", reason="Not implemented")
+    @missing_feature(library="nodejs")
     def test_metric_telemetry_api_requests(self):
         self.assert_count_metric("telemetry", "telemetry_api.requests", expect_at_least=1)
 
     @missing_feature(library="java", reason="Not implemented")
+    @missing_feature(library="nodejs")
     def test_metric_telemetry_api_responses(self):
         self.assert_count_metric("telemetry", "telemetry_api.responses", expect_at_least=1)
 
@@ -813,6 +916,4 @@ class Test_TelemetrySCAEnvVar:
                 found = True
                 break
 
-        assert (
-            found
-        ), f"No telemetry found for {target_service_name} on {target_request_type} with configuration appsec.sca_enabled"
+        assert found, f"No telemetry found for {target_service_name} on {target_request_type} with configuration appsec.sca_enabled"

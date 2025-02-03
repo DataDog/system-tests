@@ -1,5 +1,6 @@
 """Pylons middleware initialization"""
-from ddtrace import tracer
+
+from ddtrace.trace import tracer
 from ddtrace.contrib.pylons import PylonsTraceMiddleware
 
 from beaker.middleware import SessionMiddleware
