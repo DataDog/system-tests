@@ -51,7 +51,7 @@ class _LogsInterfaceValidator(InterfaceValidator):
             log_count = 0
             try:
                 with open(filename, encoding="utf-8") as f:
-                    buffer = []
+                    buffer: list[str] = []
                     for raw_line in f:
                         line = raw_line
                         if line.endswith("\n"):

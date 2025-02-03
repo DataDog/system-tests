@@ -251,7 +251,7 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
             raise ValueError("Some path has not been transmitted")
 
     def assert_trace_id_uniqueness(self):
-        trace_ids = {}
+        trace_ids: dict[int, str] = {}
 
         for data, trace in self.get_traces():
             spans = [span for span in trace if span.get("parent_id") in ("0", 0, None)]
