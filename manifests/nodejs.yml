@@ -95,7 +95,7 @@ tests/:
       sink/:
         test_code_injection.py:
           TestCodeInjection:
-            '*': *ref_5_20_0
+            '*': *ref_5_34_0 # *ref_5_20_0 Had everything except telemetry_metric_instrumented
             nextjs: missing_feature
           TestCodeInjection_StackTrace:
             '*': *ref_5_33_0
