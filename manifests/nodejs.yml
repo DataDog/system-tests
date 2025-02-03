@@ -42,7 +42,7 @@ refs:
   - &ref_5_27_0 '>=5.27.0 || ^4.51.0'
   - &ref_5_29_0 '>=5.29.0 || ^4.53.0' # express 5 support
   - &ref_5_30_0 '>=5.30.0 || ^4.54.0'
-  - &ref_5_32_0 '>=5.32.0'
+  - &ref_5_32_0 '>=5.32.0' # keep the anchor as we may backport stuff to v4 later
   - &ref_5_33_0 '>=5.33.0'
   - &ref_5_34_0 '>=5.34.0'
   - &ref_5_35_0 '>=5.35.0'
@@ -538,21 +538,25 @@ tests/:
       Test_V2_Login_Events_RC: irrelevant
       Test_V3_Auto_User_Instrum_Mode_Capability: *ref_5_29_0
       Test_V3_Login_Events:
-          '*': *ref_5_29_0
-          nextjs: missing_feature
+        '*': *ref_5_29_0
+        nextjs: missing_feature
       Test_V3_Login_Events_Anon:
-          '*': *ref_5_29_0
-          nextjs: missing_feature
+        '*': *ref_5_29_0
+        nextjs: missing_feature
       Test_V3_Login_Events_Blocking:
-          '*': *ref_5_29_0
-          nextjs: missing_feature
+        '*': *ref_5_29_0
+        nextjs: missing_feature
       Test_V3_Login_Events_RC:
-          '*': *ref_5_29_0
-          nextjs: missing_feature
+        '*': *ref_5_29_0
+        nextjs: missing_feature
     test_automated_user_and_session_tracking.py:
       Test_Automated_Session_Blocking: missing_feature
-      Test_Automated_User_Blocking: missing_feature
-      Test_Automated_User_Tracking: missing_feature
+      Test_Automated_User_Blocking:
+        '*': *ref_5_35_0
+        nextjs: missing_feature
+      Test_Automated_User_Tracking:
+        '*': *ref_5_35_0
+        nextjs: missing_feature
     test_blocking_addresses.py:
       Test_BlockingGraphqlResolvers:
         '*': *ref_4_22_0
@@ -668,15 +672,15 @@ tests/:
       Test_Debugger_Expression_Language: missing_feature (feature not implented)
     test_debugger_pii.py:
       Test_Debugger_PII_Redaction:
-        "*": irrelevant
+        '*': irrelevant
         express4: v5.35.0
     test_debugger_probe_snapshot.py:
       Test_Debugger_Probe_Snaphots:
-        "*": irrelevant
+        '*': irrelevant
         express4: v5.35.0
     test_debugger_probe_status.py:
       Test_Debugger_Probe_Statuses:
-        "*": irrelevant
+        '*': irrelevant
         express4: v5.32.0
     test_debugger_symdb.py:
       Test_Debugger_SymDb: missing_feature (feature not implented)
