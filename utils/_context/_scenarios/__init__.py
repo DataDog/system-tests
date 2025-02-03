@@ -211,7 +211,7 @@ class _Scenarios:
     appsec_blocking_full_denylist = EndToEndScenario(
         "APPSEC_BLOCKING_FULL_DENYLIST",
         rc_api_enabled=True,
-        weblog_env={"DD_APPSEC_RULES": None},
+        weblog_env={"DD_APPSEC_RULES": None, "RAILS_MAX_THREADS": "1"},
         doc="""
             The spec says that if  DD_APPSEC_RULES is defined, then rules won't be loaded from remote config.
             In this scenario, we use remote config. By the spec, whem remote config is available, rules file
