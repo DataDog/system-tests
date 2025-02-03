@@ -761,10 +761,10 @@ class Test_AppSecStandalone_UpstreamPropagation_V2(AppSecStandalone_UpstreamProp
     """APPSEC correctly propagates AppSec events in distributing tracing with DD_APM_TRACING_ENABLED=false."""
 
     def propagated_tag(self):
-        return "_dd.p.appsec"
+        return "_dd.p.ts"
 
     def propagated_tag_value(self):
-        return "1"
+        return "02"
 
 
 @rfc("https://docs.google.com/document/d/12NBx-nD-IoQEMiCRnJXneq4Be7cbtSc6pJLOFUWTpNE/edit")
@@ -800,10 +800,10 @@ class Test_SCAStandalone_Telemetry(SCAStandalone_Telemetry_Base):
     """Tracer correctly propagates SCA telemetry in distributing tracing with DD_EXPERIMENTAL_APPSEC_STANDALONE_ENABLED=true."""
 
     def propagated_tag(self):
-        return "_dd.p.ts"
+        return "_dd.p.appsec"
 
     def propagated_tag_value(self):
-        return "02"
+        return "1"
 
 
 @rfc("https://docs.google.com/document/d/12NBx-nD-IoQEMiCRnJXneq4Be7cbtSc6pJLOFUWTpNE/edit")
