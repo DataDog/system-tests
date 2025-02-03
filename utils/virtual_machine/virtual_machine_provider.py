@@ -30,13 +30,13 @@ class VmProvider:
     """
 
     def __init__(self):
-        self.vms = None
+        self.vm = None
         self.provision = None
-        # Responsibility of the commander to execute commands on the VMs
+        # Responsibility of the commander to execute commands on the VM
         self.commander = None
 
-    def configure(self, required_vms):
-        self.vms = required_vms
+    def configure(self, virtual_machine):
+        self.vm = virtual_machine
 
     def stack_up(self):
         """Each provider should implement the method that start up all the machines.

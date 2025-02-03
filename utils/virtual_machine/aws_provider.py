@@ -32,34 +32,31 @@ class AWSPulumiProvider(VmProvider):
         self.datadog_event_sender = DatadogEventSender()
         self.stack_name = "system-tests_onboarding"
 
-    def configure(self, required_vms):
-        super().configure(required_vms)
+    def configure(self, virtual_machine):
+        super().configure(virtual_machine)
         # Configure the ssh connection for the VMs
         self.pulumi_ssh = PulumiSSH()
-        self.pulumi_ssh.load(required_vms)
-        for vm in required_vms:
-            vm.ssh_config.username = vm.aws_config.user
+        self.pulumi_ssh.load(virtual_machine)
 
     def stack_up(self):
-        logger.info(f"Starting AWS VMs: {self.vms}")
+        logger.info(f"Starting AWS VM: {self.vm}")
 
         def pulumi_start_program():
             # Static loading of keypairs for ec2 machines
             self.pulumi_ssh = PulumiSSH()
-            self.pulumi_ssh.load(self.vms)
+            self.pulumi_ssh.load(self.vm)
             # Debug purposes. How many instances, created by system-tests are running in the AWS account?
             self._check_running_instances()
             # Debug purposes. How many AMI CACHES, created by system-tests are available in the AWS account?
             # self._check_available_cached_amis()
-            logger.info(f"Starting AWS VMs.....")
+            logger.info(f"Starting AWS VM.....")
             # First check and configure if there are cached AMIs
-            self._configure_cached_amis(self.vms)
+            self._configure_cached_amis(self.vm)
 
-            for vm in self.vms:
-                logger.info(
-                    f"-- Starting AWS VM: [{vm.name}], ID:[{vm.aws_config.ami_id}], update cache:[{vm.datadog_config.update_cache}], skip cache: [{ vm.datadog_config.skip_cache}] --"
-                )
-                self._start_vm(vm)
+            logger.info(
+                f"-- Starting AWS VM: [{self.vm.name}], ID:[{self.vm.aws_config.ami_id}], update cache:[{self.vm.datadog_config.update_cache}], skip cache: [{ self.vm.datadog_config.skip_cache}] --"
+            )
+            self._start_vm(self.vm)
 
         project_name = "system-tests-vms"
         try:
@@ -117,7 +114,7 @@ class AWSPulumiProvider(VmProvider):
 
     def stack_destroy(self):
         if os.getenv("ONBOARDING_KEEP_VMS") is None:
-            logger.info(f"Destroying VMs: {self.vms}")
+            logger.info(f"Destroying VM: {self.vm}")
             try:
                 self.stack.destroy(on_output=logger.info, debug=True)
                 self.datadog_event_sender.sendEventToDatadog(
@@ -135,21 +132,21 @@ class AWSPulumiProvider(VmProvider):
                 )
         else:
             logger.info(
-                f"Did not destroy VMs as ONBOARDING_KEEP_VMS is set. To destroy them, re-run the test without this env var."
+                f"Did not destroy VM as ONBOARDING_KEEP_VMS is set. To destroy them, re-run the test without this env var."
             )
 
-    def _get_cached_amis(self, vms):
-        """Get all the cached AMIs for the VMs"""
+    def _get_cached_amis(self, vm):
+        """Get all the cached AMIs for the VM"""
         names_filter_to_check = []
         cached_amis = []
         # Create search filter if vm is not marked as skip_cache or update_cache
-        for vm in vms:
-            if not vm.datadog_config.skip_cache and not vm.datadog_config.update_cache:
-                names_filter_to_check.append(vm.get_cache_name() + "-*")
+
+        if not vm.datadog_config.skip_cache and not vm.datadog_config.update_cache:
+            names_filter_to_check.append(vm.get_cache_name() + "-*")
 
         # There are vms that should use the cache
         if len(names_filter_to_check) > 0:
-            # Check for existing ami cache for the vms
+            # Check for existing ami cache for the vm
             ami_existing = aws.ec2.get_ami_ids(
                 filters=[aws.ec2.GetAmiIdsFilterArgs(name="name", values=names_filter_to_check)], owners=["self"]
             )
@@ -167,39 +164,38 @@ class AWSPulumiProvider(VmProvider):
                 cached_amis.append(ami_recent)
         return cached_amis
 
-    def _configure_cached_amis(self, vms):
-        """Configure the cached AMIs for the VMs"""
+    def _configure_cached_amis(self, vm):
+        """Configure the cached AMIs for the VM"""
         before_time = time.time()
-        cached_amis = self._get_cached_amis(vms)
-        for vm in vms:
-            # We don't want to use cache ami for skip_ami_cache or ami_update
-            if vm.datadog_config.skip_cache or vm.datadog_config.update_cache:
-                continue
-            # Let's search the cached AMI for the VM
-            cached_ami_found = False
-            for cached_ami in cached_amis:
-                # The final name it's the vm.get_cache_name() + "-somethingaddedbyaws"
-                if vm.name in cached_ami.name:
-                    if str(cached_ami.state) != "available":
-                        logger.stdout(
-                            f"We found an existing cache AMI for vm [{vm.name}] but we can no use it because the current status is {cached_ami.state}"
-                        )
-                        logger.stdout(
-                            "We are not going to create a new AMI and we are not going to use it (skip cache mode)"
-                        )
-                        vm.datadog_config.update_cache = False
-                        vm.datadog_config.skip_cache = True
-                    else:
-                        logger.stdout(
-                            f"Setting cached AMI for VM [{vm.name}] from base AMI ID [{vm.aws_config.ami_id}] to cached AMI ID [{cached_ami.id}]"
-                        )
-                        vm.aws_config.ami_id = cached_ami.id
-                    cached_ami_found = True
-                    break
+        cached_amis = self._get_cached_amis(vm)
+        # We don't want to use cache ami for skip_ami_cache or ami_update
+        if vm.datadog_config.skip_cache or vm.datadog_config.update_cache:
+            return
+        # Let's search the cached AMI for the VM
+        cached_ami_found = False
+        for cached_ami in cached_amis:
+            # The final name it's the vm.get_cache_name() + "-somethingaddedbyaws"
+            if vm.name in cached_ami.name:
+                if str(cached_ami.state) != "available":
+                    logger.stdout(
+                        f"We found an existing cache AMI for vm [{vm.name}] but we can no use it because the current status is {cached_ami.state}"
+                    )
+                    logger.stdout(
+                        "We are not going to create a new AMI and we are not going to use it (skip cache mode)"
+                    )
+                    vm.datadog_config.update_cache = False
+                    vm.datadog_config.skip_cache = True
+                else:
+                    logger.stdout(
+                        f"Setting cached AMI for VM [{vm.name}] from base AMI ID [{vm.aws_config.ami_id}] to cached AMI ID [{cached_ami.id}]"
+                    )
+                    vm.aws_config.ami_id = cached_ami.id
+                cached_ami_found = True
+                break
 
-            # Here we don't find a cached AMI for the VM. Force creation
-            if not cached_ami_found:
-                vm.datadog_config.update_cache = True
+        # Here we don't find a cached AMI for the VM. Force creation
+        if not cached_ami_found:
+            vm.datadog_config.update_cache = True
 
         logger.info(f"Time cache for AMIs: {time.time() - before_time}")
 
@@ -406,7 +402,7 @@ class PulumiSSH:
     aws_key_resource = None
     pem_file = None
 
-    def load(self, vms):
+    def load(self, virtual_machine):
         # Optional parameters. You can use for local testing
         user_provided_keyPairName = os.getenv("ONBOARDING_AWS_INFRA_KEYPAIR_NAME")
         user_provided_privateKeyPath = os.getenv("ONBOARDING_AWS_INFRA_KEY_PATH")
@@ -418,8 +414,7 @@ class PulumiSSH:
             self.pem_file = user_provided_privateKeyPath
             with open(user_provided_privateKeyPath, encoding="utf-8") as f:
                 self.private_key_pem = f.read()
-            for vm in vms:
-                vm.ssh_config.pkey_path = user_provided_privateKeyPath
+            virtual_machine.ssh_config.pkey_path = user_provided_privateKeyPath
         else:
             logger.info("Creating new ssh key")
             key_name = "onboarding_test_key_name" + str(randint(0, 1000000))
@@ -439,9 +434,9 @@ class PulumiSSH:
             _, pem_file_path = tempfile.mkstemp()
             pem_file = open(pem_file_path, "w", encoding="utf-8")  # pylint: disable=R1732
             ssh_key.private_key_pem.apply(lambda out: self._write_pem_file(pem_file, out))
+            virtual_machine.ssh_config.pkey_path = pem_file_path
 
-            for vm in vms:
-                vm.ssh_config.pkey_path = pem_file_path
+        virtual_machine.ssh_config.username = virtual_machine.aws_config.user
 
     def _write_pem_file(self, pem_file, content):
         pem_file.write(content)

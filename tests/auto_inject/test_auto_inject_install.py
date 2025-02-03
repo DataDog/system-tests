@@ -1,91 +1,119 @@
 import re
-from utils import scenarios, features, flaky, irrelevant, context
+from utils import scenarios, features, flaky, irrelevant, bug, context
 from utils.tools import logger
 from utils.onboarding.weblog_interface import warmup_weblog, get_child_pids, get_zombies, fork_and_crash
 from utils import scenarios, features
 import tests.auto_inject.utils as base
-from utils.virtual_machine.utils import parametrize_virtual_machines
 
 
 @features.host_auto_installation_script
 @scenarios.host_auto_injection_install_script
 class TestHostAutoInjectInstallScript(base.AutoInjectBaseTest):
-    @parametrize_virtual_machines(
-        bugs=[
-            {"vm_branch": "amazon_linux2", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
-            {"vm_branch": "centos_7_amd64", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
-            {"vm_branch": "redhat", "vm_cpu": "arm64", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
-        ]
+    @bug(
+        context.scenario.virtual_machine.os_branch == "amazon_linux2"
+        and context.scenario.weblog_variant == "test-app-ruby",
+        reason="INPLAT-103",
     )
-    def test_install(self, virtual_machine):
-        self._test_install(virtual_machine)
+    @bug(
+        context.scenario.virtual_machine.os_branch == "centos_7_amd64"
+        and context.scenario.weblog_variant == "test-app-ruby",
+        reason="INPLAT-103",
+    )
+    @bug(
+        context.scenario.virtual_machine.os_branch == "redhat"
+        and context.scenario.virtual_machine.os_cpu == "arm64"
+        and context.scenario.weblog_variant == "test-app-ruby",
+        reason="INPLAT-103",
+    )
+    def test_install(self):
+        self._test_install(context.scenario.virtual_machine)
 
 
 @features.host_auto_installation_script
 @scenarios.local_auto_injection_install_script
 class TestLocalAutoInjectInstallScript(base.AutoInjectBaseTest):
-    @parametrize_virtual_machines()
-    def test_install(self, virtual_machine):
-        self._test_install(virtual_machine)
+    def test_install(self):
+        self._test_install(context.scenario.virtual_machine)
 
 
 @features.auto_instrumentation_profiling
 @scenarios.simple_auto_injection_profiling
 class TestSimpleInstallerAutoInjectManualProfiling(base.AutoInjectBaseTest):
-    @parametrize_virtual_machines(
-        bugs=[
-            {"vm_cpu": "arm64", "weblog_variant": "test-app-dotnet", "reason": "PROF-10783"},
-            {"vm_cpu": "arm64", "weblog_variant": "test-app-dotnet-container", "reason": "PROF-10783"},
-            {"vm_name": "Ubuntu_24_amd64", "weblog-variant": "test-app-nodejs", "reason": "PROF-11264"},
-            {"vm_name": "Ubuntu_24_arm64", "weblog-variant": "test-app-nodejs", "reason": "PROF-11264"},
-        ]
+    @bug(
+        context.scenario.virtual_machine.os_cpu == "arm64" and context.scenario.weblog_variant == "test-app-dotnet",
+        reason="PROF-10783",
     )
-    def test_profiling(self, virtual_machine):
-        logger.info(f"Launching test_install for : [{virtual_machine.name}]...")
-        self._test_install(virtual_machine, profile=True)
-        logger.info(f"Done test_install for : [{virtual_machine.name}]")
+    @bug(
+        context.scenario.virtual_machine.os_cpu == "arm64"
+        and context.scenario.weblog_variant == "test-app-dotnet-container",
+        reason="PROF-10783",
+    )
+    @bug(
+        context.scenario.virtual_machine.name == "Ubuntu_24_amd64"
+        and context.scenario.weblog_variant == "test-app-nodejs",
+        reason="PROF-11264",
+    )
+    @bug(
+        context.scenario.virtual_machine.name == "Ubuntu_24_arm64"
+        and context.scenario.weblog_variant == "test-app-nodejs",
+        reason="PROF-11264",
+    )
+    def test_profiling(self):
+        logger.info(f"Launching test_install for : [{context.scenario.virtual_machine.name}]...")
+        self._test_install(context.scenario.virtual_machine, profile=True)
+        logger.info(f"Done test_install for : [{context.scenario.virtual_machine.name}]")
 
 
 @features.host_auto_installation_script_profiling
 @scenarios.host_auto_injection_install_script_profiling
 class TestHostAutoInjectInstallScriptProfiling(base.AutoInjectBaseTest):
-    @parametrize_virtual_machines(
-        bugs=[
-            {"vm_cpu": "arm64", "weblog_variant": "test-app-dotnet", "reason": "PROF-10783"},
-            {"vm_name": "Ubuntu_24_amd64", "weblog-variant": "test-app-nodejs", "reason": "PROF-11264"},
-            {"vm_name": "Ubuntu_24_arm64", "weblog-variant": "test-app-nodejs", "reason": "PROF-11264"},
-        ]
+    @bug(
+        context.scenario.virtual_machine.os_cpu == "arm64" and context.scenario.weblog_variant == "test-app-dotnet",
+        reason="PROF-10783",
     )
-    def test_profiling(self, virtual_machine):
-        logger.info(f"Launching test_install for : [{virtual_machine.name}]...")
-        self._test_install(virtual_machine, profile=True)
-        logger.info(f"Done test_install for : [{virtual_machine.name}]")
+    @bug(
+        context.scenario.virtual_machine.name == "Ubuntu_24_amd64"
+        and context.scenario.weblog_variant == "test-app-nodejs",
+        reason="PROF-11264",
+    )
+    @bug(
+        context.scenario.virtual_machine.name == "Ubuntu_24_arm64"
+        and context.scenario.weblog_variant == "test-app-nodejs",
+        reason="PROF-11264",
+    )
+    def test_profiling(self):
+        logger.info(f"Launching test_install for : [{context.scenario.virtual_machine.name}]...")
+        self._test_install(context.scenario.virtual_machine, profile=True)
+        logger.info(f"Done test_install for : [{context.scenario.virtual_machine.name}]")
 
 
 @features.container_auto_installation_script
 @scenarios.container_auto_injection_install_script
 class TestContainerAutoInjectInstallScript(base.AutoInjectBaseTest):
-    @parametrize_virtual_machines(
-        bugs=[{"vm_name": "AlmaLinux_8_arm64", "weblog_variant": "test-app-python-alpine", "reason": "APMON-1576"}]
+    @bug(
+        context.scenario.virtual_machine.name == "AlmaLinux_8_arm64"
+        and context.scenario.weblog_variant == "test-app-python-alpine",
+        reason="APMON-1576",
     )
-    def test_install(self, virtual_machine):
-        self._test_install(virtual_machine)
+    def test_install(self):
+        self._test_install(context.scenario.virtual_machine)
 
 
 @features.container_auto_installation_script_profiling
 @scenarios.container_auto_injection_install_script_profiling
 class TestContainerAutoInjectInstallScriptProfiling(base.AutoInjectBaseTest):
-    @parametrize_virtual_machines(
-        bugs=[{"vm_cpu": "arm64", "weblog_variant": "test-app-dotnet-container", "reason": "PROF-10783"}]
+    @bug(
+        context.scenario.virtual_machine.os_cpu == "arm64"
+        and context.scenario.weblog_variant == "test-app-dotnet-container",
+        reason="PROF-10783",
     )
-    def test_profiling(self, virtual_machine):
-        self._test_install(virtual_machine, profile=True)
+    def test_profiling(self):
+        self._test_install(context.scenario.virtual_machine, profile=True)
 
 
 @features.installer_auto_instrumentation
 @scenarios.installer_auto_injection
 class TestContainerAutoInjectInstallScriptCrashTracking_NoZombieProcess(base.AutoInjectBaseTest):
-    @parametrize_virtual_machines(bugs=[{"library": "ruby", "reason": "APMLP-312"}])
     @irrelevant(
         context.weblog_variant
         not in [
@@ -99,7 +127,9 @@ class TestContainerAutoInjectInstallScriptCrashTracking_NoZombieProcess(base.Aut
     )
     @flaky(library="python", reason="APMLP-313")
     @flaky(library="nodejs", reason="APMLP-313")
-    def test_crash_no_zombie(self, virtual_machine):
+    @flaky(library="ruby", reason="APMLP-312")
+    def test_crash_no_zombie(self):
+        virtual_machine = context.scenario.virtual_machine
         vm_ip = virtual_machine.get_ip()
         vm_port = virtual_machine.deffault_open_port
         warmup_weblog(f"http://{vm_ip}:{vm_port}/")
@@ -150,15 +180,29 @@ class TestInstallerAutoInjectManual(base.AutoInjectBaseTest):
     # Note: uninstallation of a single installer package is not available today
     #  on the installer. As we can't only uninstall the injector, we are skipping
     #  the uninstall test today
-    @parametrize_virtual_machines(
-        bugs=[
-            {"vm_name": "AlmaLinux_8_arm64", "weblog_variant": "test-app-python-alpine", "reason": "APMON-1576"},
-            {"vm_branch": "amazon_linux2", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
-            {"vm_branch": "centos_7_amd64", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
-            {"vm_branch": "redhat", "vm_cpu": "arm64", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
-        ]
+    @bug(
+        context.scenario.virtual_machine.name == "AlmaLinux_8_arm64"
+        and context.scenario.weblog_variant == "test-app-python-alpine",
+        reason="APMON-1576",
     )
-    def test_install_uninstall(self, virtual_machine):
+    @bug(
+        context.scenario.virtual_machine.os_branch == "amazon_linux2"
+        and context.scenario.weblog_variant == "test-app-ruby",
+        reason="INPLAT-103",
+    )
+    @bug(
+        context.scenario.virtual_machine.os_branch == "centos_7_amd64"
+        and context.scenario.weblog_variant == "test-app-ruby",
+        reason="INPLAT-103",
+    )
+    @bug(
+        context.scenario.virtual_machine.os_branch == "redhat"
+        and context.scenario.virtual_machine.os_cpu == "arm64"
+        and context.scenario.weblog_variant == "test-app-ruby",
+        reason="INPLAT-103",
+    )
+    def test_install_uninstall(self):
+        virtual_machine = context.scenario.virtual_machine
         logger.info(f"Launching test_install_uninstall for : [{virtual_machine.name}]...")
         logger.info(f"Check install for : [{virtual_machine.name}]")
         self._test_install(virtual_machine)
@@ -170,15 +214,29 @@ class TestInstallerAutoInjectManual(base.AutoInjectBaseTest):
 @features.installer_auto_instrumentation
 @scenarios.simple_installer_auto_injection
 class TestSimpleInstallerAutoInjectManual(base.AutoInjectBaseTest):
-    @parametrize_virtual_machines(
-        bugs=[
-            {"vm_name": "AlmaLinux_8_arm64", "weblog_variant": "test-app-python-alpine", "reason": "APMON-1576"},
-            {"vm_branch": "amazon_linux2", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
-            {"vm_branch": "centos_7_amd64", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
-            {"vm_branch": "redhat", "vm_cpu": "arm64", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
-        ]
+    @bug(
+        context.scenario.virtual_machine.name == "AlmaLinux_8_arm64"
+        and context.scenario.weblog_variant == "test-app-python-alpine",
+        reason="APMON-1576",
     )
-    def test_install(self, virtual_machine):
+    @bug(
+        context.scenario.virtual_machine.os_branch == "amazon_linux2"
+        and context.scenario.weblog_variant == "test-app-ruby",
+        reason="INPLAT-103",
+    )
+    @bug(
+        context.scenario.virtual_machine.os_branch == "centos_7_amd64"
+        and context.scenario.weblog_variant == "test-app-ruby",
+        reason="INPLAT-103",
+    )
+    @bug(
+        context.scenario.virtual_machine.os_branch == "redhat"
+        and context.scenario.virtual_machine.os_cpu == "arm64"
+        and context.scenario.weblog_variant == "test-app-ruby",
+        reason="INPLAT-103",
+    )
+    def test_install(self):
+        virtual_machine = context.scenario.virtual_machine
         logger.info(
             f"Launching test_install for : [{virtual_machine.name}] [{virtual_machine.get_deployed_weblog().runtime_version}]..."
         )

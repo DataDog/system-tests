@@ -3,9 +3,8 @@ from utils import scenarios, features
 from utils.tools import logger
 from utils.onboarding.weblog_interface import warmup_weblog
 from utils.onboarding.wait_for_tcp_port import wait_for_port
-from utils import scenarios, context, features
+from utils import scenarios, context, features, bug
 import tests.auto_inject.utils as base
-from utils.virtual_machine.utils import parametrize_virtual_machines
 
 
 class BaseAutoInjectChaos(base.AutoInjectBaseTest):
@@ -87,28 +86,53 @@ class BaseAutoInjectChaos(base.AutoInjectBaseTest):
 @features.installer_auto_instrumentation
 @scenarios.chaos_installer_auto_injection
 class TestAutoInjectChaos(BaseAutoInjectChaos):
-    @parametrize_virtual_machines(
-        bugs=[
-            {"vm_branch": "amazon_linux2", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
-            {"vm_branch": "centos_7_amd64", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
-            {"vm_branch": "redhat", "vm_cpu": "arm64", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
-        ]
+    @bug(
+        context.scenario.virtual_machine.os_branch == "amazon_linux2"
+        and context.scenario.weblog_variant == "test-app-ruby",
+        reason="INPLAT-103",
     )
-    def test_install_after_ld_preload(self, virtual_machine):
+    @bug(
+        context.scenario.virtual_machine.os_branch == "centos_7_amd64"
+        and context.scenario.weblog_variant == "test-app-ruby",
+        reason="INPLAT-103",
+    )
+    @bug(
+        context.scenario.virtual_machine.os_branch == "redhat"
+        and context.scenario.virtual_machine.os_cpu == "arm64"
+        and context.scenario.weblog_variant == "test-app-ruby",
+        reason="INPLAT-103",
+    )
+    def test_install_after_ld_preload(self):
         """We added entries to the ld.so.preload. After that, we can install the dd software and the app should be instrumented."""
+        virtual_machine = context.scenario.virtual_machine
         logger.info(f"Launching test_install for : [{virtual_machine.name}]...")
         self._test_install(virtual_machine)
         logger.info(f"Done test_install for : [{virtual_machine.name}]")
 
-    @parametrize_virtual_machines(
-        bugs=[
-            {"vm_name": "AlmaLinux_8_arm64", "weblog_variant": "test-app-python-alpine", "reason": "APMON-1576"},
-            {"vm_branch": "amazon_linux2", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
-            {"vm_branch": "centos_7_amd64", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
-            {"vm_branch": "redhat", "vm_cpu": "arm64", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
-        ]
+    @bug(
+        context.scenario.virtual_machine.name == "AlmaLinux_8_arm64"
+        and context.scenario.weblog_variant == "test-app-python-alpine",
+        reason="APMON-1576",
     )
-    def test_remove_ld_preload(self, virtual_machine):
+    @bug(
+        context.scenario.virtual_machine.os_branch == "amazon_linux2"
+        and context.scenario.weblog_variant == "test-app-ruby",
+        reason="INPLAT-103",
+    )
+    @bug(
+        context.scenario.virtual_machine.os_branch == "centos_7_amd64"
+        and context.scenario.weblog_variant == "test-app-ruby",
+        reason="INPLAT-103",
+    )
+    @bug(
+        context.scenario.virtual_machine.os_branch == "redhat"
+        and context.scenario.virtual_machine.os_cpu == "arm64"
+        and context.scenario.weblog_variant == "test-app-ruby",
+        reason="INPLAT-103",
+    )
+    def test_remove_ld_preload(self):
+        """We added entries to the ld.so.preload. After that, we can remove the entries and the app should be instrumented."""
+        virtual_machine = context.scenario.virtual_machine
         logger.info(f"Launching test_remove_ld_preload for : [{virtual_machine.name}]...")
         self._test_removing_things(virtual_machine, "sudo rm /etc/ld.so.preload")
         logger.info(f"Success test_remove_ld_preload for : [{virtual_machine.name}]")

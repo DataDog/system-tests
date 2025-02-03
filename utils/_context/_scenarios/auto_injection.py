@@ -197,6 +197,8 @@ class _VirtualMachineScenario(Scenario):
             self.required_vms.append(Fedora37amd64())
         if include_fedora_37_arm64:
             self.required_vms.append(Fedora37arm64())
+        # Current selected vm for the scenario
+        self.virtual_machine = None
 
     def print_installed_components(self):
         logger.terminal.write_sep("=", "Installed components", bold=True)
@@ -251,7 +253,6 @@ class _VirtualMachineScenario(Scenario):
             )
             vm.add_agent_env(self.agent_env)
             vm.add_app_env(self.app_env)
-        self.vm_provider.configure(self.required_vms)
 
         if self.vm_gitlab_pipeline:
             pipeline = generate_gitlab_pipeline(
@@ -266,6 +267,12 @@ class _VirtualMachineScenario(Scenario):
             )
             with open(f"{self.host_log_folder}/gitlab_pipeline.yml", "w", encoding="utf-8") as f:
                 json.dump(pipeline, f, ensure_ascii=False, indent=4)
+        else:
+            assert config.option.vm_only is not None, "No VM selected to run. Use --vm-only"
+            self.virtual_machine = next((vm for vm in self.required_vms if vm.name == config.option.vm_only), None)
+            assert self.virtual_machine is not None, f"VM not found: {config.option.vm_only}"
+            logger.info(f"Selected VM: {self.virtual_machine.name}")
+            self.vm_provider.configure(self.virtual_machine)
 
     def _check_test_environment(self):
         """Check if the test environment is correctly set"""
@@ -299,22 +306,21 @@ class _VirtualMachineScenario(Scenario):
         return warmups
 
     def fill_context(self):
-        for vm in self.required_vms:
-            for key in vm.tested_components:
-                if key == "host" or key == "runtime_version":
-                    continue
-                self.components[key] = vm.tested_components[key].lstrip(" ").replace(",", "")
-                if key.startswith("datadog-apm-inject") and self.components[key]:
-                    self._datadog_apm_inject_version = f"v{self.components[key]}"
-                if key.startswith("datadog-apm-library-") and self.components[key]:
-                    self._library = LibraryVersion(self._library.library, self.components[key])
-                    # We store without the lang sufix
-                    self.components["datadog-apm-library"] = self.components[key]
-                    del self.components[key]
-                if key.startswith("glibc"):
-                    # We will all the glibc versions in the feature parity report, due to each machine can have a
-                    # different version
-                    del self.components[key]
+        for key in self.virtual_machine.tested_components:
+            if key == "host" or key == "runtime_version":
+                continue
+            self.components[key] = self.virtual_machine.tested_components[key].lstrip(" ").replace(",", "")
+            if key.startswith("datadog-apm-inject") and self.components[key]:
+                self._datadog_apm_inject_version = f"v{self.components[key]}"
+            if key.startswith("datadog-apm-library-") and self.components[key]:
+                self._library = LibraryVersion(self._library.library, self.components[key])
+                # We store without the lang sufix
+                self.components["datadog-apm-library"] = self.components[key]
+                del self.components[key]
+            if key.startswith("glibc"):
+                # We will all the glibc versions in the feature parity report, due to each machine can have a
+                # different version
+                del self.components[key]
 
     def pytest_sessionfinish(self, session, exitstatus):  # noqa: ARG002
         self.close_targets()
