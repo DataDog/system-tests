@@ -92,22 +92,18 @@ class Test_Defaults:
             # The Go tracer does not support logs injection.
             if context.library == "golang" and apm_telemetry_name in ("logs_injection_enabled",):
                 continue
-            if context.library == "cpp":
-                unsupported_fields = (
-                    "logs_injection_enabled",
-                    "trace_header_tags",
-                    "profiling_enabled",
-                    "appsec_enabled",
-                    "data_streams_enabled",
-                    "trace_sample_rate",
-                )
-                if apm_telemetry_name in unsupported_fields:
-                    continue
-            if context.library == "python":
+            if context.library == "cpp" and apm_telemetry_name in (
+                "logs_injection_enabled",
+                "trace_header_tags",
+                "profiling_enabled",
+                "appsec_enabled",
+                "data_streams_enabled",
+                "trace_sample_rate",
+            ):
+                continue
+            if context.library == "python" and apm_telemetry_name in ("trace_sample_rate",):
                 # DD_TRACE_SAMPLE_RATE is not supported in ddtrace>=3.x
-                unsupported_fields = ("trace_sample_rate",)  # type: ignore[assignment]
-                if apm_telemetry_name in unsupported_fields:
-                    continue
+                continue
             apm_telemetry_name = _mapped_telemetry_name(context, apm_telemetry_name)
 
             cfg_item = configuration_by_name.get(apm_telemetry_name)
@@ -254,19 +250,17 @@ class Test_Environment:
             # The Go tracer does not support logs injection.
             if context.library == "golang" and apm_telemetry_name in ("logs_injection_enabled",):
                 continue
-            if context.library == "cpp":
-                unsupported_fields = (
-                    "logs_injection_enabled",
-                    "trace_header_tags",
-                    "profiling_enabled",
-                    "appsec_enabled",
-                    "data_streams_enabled",
-                )
-            if context.library == "python":
+            if context.library == "cpp" and apm_telemetry_name in (
+                "logs_injection_enabled",
+                "trace_header_tags",
+                "profiling_enabled",
+                "appsec_enabled",
+                "data_streams_enabled",
+            ):
+                continue
+            if context.library == "python" and apm_telemetry_name in ("trace_sample_rate",):
                 # DD_TRACE_SAMPLE_RATE is not supported in ddtrace>=3.x
-                unsupported_fields = ("trace_sample_rate",)  # type: ignore[assignment]
-                if apm_telemetry_name in unsupported_fields:
-                    continue
+                continue
 
             apm_telemetry_name = _mapped_telemetry_name(context, apm_telemetry_name)
             cfg_item = configuration_by_name.get(apm_telemetry_name)
