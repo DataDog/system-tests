@@ -450,7 +450,7 @@ class Test_GrpcServerMethod:
 
     def validate_span(self, span, appsec_data):
         tag = "rpc.grpc.full_method"
-        if not tag in span["meta"]:
+        if tag not in span["meta"]:
             logger.info(f"Can't find '{tag}' in span's meta")
             return False
 

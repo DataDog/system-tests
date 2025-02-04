@@ -159,7 +159,7 @@ def rc_check_request(data, expected, caching):
                         raise ValidationError(f"{file} should not be in cached_target_files", extra_info=content)
     except Exception as e:
         e.args += (expected.get("test_description", "No description"),)
-        raise e
+        raise
 
 
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")

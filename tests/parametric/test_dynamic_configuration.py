@@ -649,7 +649,7 @@ class TestDynamicConfigSamplingRules:
         assert span["meta"]["_dd.p.dm"] == "-3"
 
         # Unset RC to ensure local settings
-        set_and_wait_rc(test_agent, config_overrides={"tracing_sampling_rules": None, "tracing_sampling_rules": None})
+        set_and_wait_rc(test_agent, config_overrides={"tracing_sampling_rules": None})
         trace = get_sampled_trace(test_library, test_agent, service="other_service", name="op_name")
         assert_sampling_rate(trace, DEFAULT_SAMPLE_RATE)
 
