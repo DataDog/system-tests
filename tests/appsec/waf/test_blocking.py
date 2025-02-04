@@ -76,10 +76,10 @@ class Test_Blocking:
 
         def validate_appsec_blocked(span):
             if span.get("type") != "web":
-                return
+                return None
 
             if span.get("parent_id") not in (0, None):  # do nothing if not root span
-                return
+                return None
 
             if "appsec.blocked" not in span["meta"]:
                 raise ValueError("Can't find appsec.blocked in span's tags")

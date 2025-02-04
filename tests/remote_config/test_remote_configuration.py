@@ -159,7 +159,7 @@ def rc_check_request(data, expected, caching):
                         raise ValidationError(f"{file} should not be in cached_target_files", extra_info=content)
     except Exception as e:
         e.args += (expected.get("test_description", "No description"),)
-        raise e
+        raise
 
 
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
@@ -287,7 +287,7 @@ class Test_RemoteConfigurationUpdateSequenceLiveDebugging(RemoteConfigurationFie
 
         # Index the request number by runtime ID so that we can support applications
         # that spawns multiple worker processes, each running its own RCM client.
-        request_number = defaultdict(int)
+        request_number: dict = defaultdict(int)
 
         with open("tests/remote_config/rc_expected_requests_live_debugging.json", encoding="utf-8") as f:
             LIVE_DEBUGGING_EXPECTED_REQUESTS = json.load(f)

@@ -41,11 +41,10 @@ class AsmStandalone_UpstreamPropagation_Base(ABC):
             for tag, value in expected_tags.items():
                 if value is None:
                     assert tag not in struct
+                elif tag == "_sampling_priority_v1":  # special case, it's a lambda to check for a condition
+                    assert value(struct[tag])
                 else:
-                    if tag == "_sampling_priority_v1":  # special case, it's a lambda to check for a condition
-                        assert value(struct[tag])
-                    else:
-                        assert struct[tag] == value
+                    assert struct[tag] == value
 
         # Case 1: The tags are set on the first span of every trace chunk
         try:
@@ -703,7 +702,7 @@ class SCAStandalone_Telemetry_Base:
         DD_APPSEC_SCA_ENABLED = TelemetryUtils.get_dd_appsec_sca_enabled_str(context.library)
 
         cfg_appsec_enabled = configuration_by_name.get(DD_APPSEC_SCA_ENABLED)
-        assert cfg_appsec_enabled is not None, "Missing telemetry config item for '{}'".format(DD_APPSEC_SCA_ENABLED)
+        assert cfg_appsec_enabled is not None, f"Missing telemetry config item for '{DD_APPSEC_SCA_ENABLED}'"
 
         outcome_value = True
         if context.library == "java":

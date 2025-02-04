@@ -608,7 +608,7 @@ def check_128_bit_trace_id(header_trace_id, span_trace_id, dd_p_tid):
 
 def validate_dd_p_tid(dd_p_tid):
     """Validate that dd_p_tid is well-formed."""
-    assert not dd_p_tid is None
+    assert dd_p_tid is not None
     assert len(dd_p_tid) == 16
     assert dd_p_tid != ZERO16
     assert dd_p_tid[8:16] == ZERO8

@@ -17,7 +17,8 @@ class AutoInjectBaseTest:
     def _test_install(self, virtual_machine, profile: bool = False):
         """We can easily install agent and lib injection software from agent installation script. Given a  sample application we can enable tracing using local environment variables.
         After starting application we can see application HTTP requests traces in the backend.
-        Using the agent installation script we can install different versions of the software (release or beta) in different OS."""
+        Using the agent installation script we can install different versions of the software (release or beta) in different OS.
+        """
         vm_ip = virtual_machine.get_ip()
         vm_port = virtual_machine.deffault_open_port
         vm_context_url = f"http://{vm_ip}:{vm_port}{virtual_machine.get_deployed_weblog().app_context_url}"
@@ -82,7 +83,8 @@ class AutoInjectBaseTest:
         """We can unistall the auto injection software. We can start the app again
         The weblog app should work but no sending traces to the backend.
         We can reinstall the auto inject software. The weblog app should be instrumented
-        and reporting traces to the backend."""
+        and reporting traces to the backend.
+        """
         logger.info(f"Launching _test_uninstall for : [{virtual_machine.name}]")
 
         vm_ip = virtual_machine.get_ip()

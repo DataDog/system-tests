@@ -63,4 +63,4 @@ def main(repo_slug: str, run_id: int) -> None:
 
 
 if __name__ == "__main__":
-    main("DataDog/system-tests", sys.argv[1])
+    main("DataDog/system-tests", int(sys.argv[1]))

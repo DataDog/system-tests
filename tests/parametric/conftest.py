@@ -77,7 +77,7 @@ def apm_test_server(request, library_env, test_id):
     context.scenario.parametrized_tests_metadata[request.node.nodeid] = new_env
 
     new_env.update(apm_test_server_image.env)
-    yield dataclasses.replace(
+    return dataclasses.replace(
         apm_test_server_image, container_name=f"{apm_test_server_image.container_name}-{test_id}", env=new_env
     )
 
@@ -470,7 +470,7 @@ class _TestAgentAPI:
             time.sleep(0.01)
         raise AssertionError("No RemoteConfig capabilities found, got capabilites %r" % capabilities_seen)
 
-    def wait_for_tracer_flare(self, case_id: Optional[str] = None, clear: bool = False, wait_loops: int = 100):
+    def wait_for_tracer_flare(self, case_id: str | None = None, clear: bool = False, wait_loops: int = 100):
         """Wait for the tracer-flare to be received by the test agent."""
         for i in range(wait_loops):
             try:
@@ -489,7 +489,7 @@ class _TestAgentAPI:
 
 
 @pytest.fixture(scope="session")
-def docker() -> Optional[str]:
+def docker() -> str | None:
     """Fixture to ensure docker is ready to use on the system."""
     # Redirect output to /dev/null since we just care if we get a successful response code.
     r = subprocess.run(
@@ -507,7 +507,7 @@ def docker() -> Optional[str]:
     return shutil.which("docker")
 
 
-@pytest.fixture()
+@pytest.fixture
 def docker_network(test_id: str) -> Generator[str, None, None]:
     network = scenarios.parametric.create_docker_network(test_id)
 
@@ -641,7 +641,7 @@ def test_library(
         "DD_TRACE_AGENT_URL": f"http://{test_agent_container_name}:{test_agent_port}",
         "DD_AGENT_HOST": test_agent_container_name,
         "DD_TRACE_AGENT_PORT": test_agent_port,
-        "APM_TEST_CLIENT_SERVER_PORT": apm_test_server.container_port,
+        "APM_TEST_CLIENT_SERVER_PORT": str(apm_test_server.container_port),
         "DD_TRACE_OTEL_ENABLED": "true",
     }
     for k, v in apm_test_server.env.items():

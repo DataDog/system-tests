@@ -171,7 +171,7 @@ def delete_aws_resource(
     resource_identifier: str,
     resource_type: str,
     error_name: str,
-    get_callable: Callable = None,
+    get_callable: Callable | None = None,
 ):
     """
     Generalized function to delete AWS resources.

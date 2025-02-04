@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 
 SIMPLE_TYPES = (bool, int, float, type(None))
 
-messages_counts = defaultdict(int)
+messages_counts: dict[str, int] = defaultdict(int)
 
 
 class ObjectDumpEncoder(json.JSONEncoder):
@@ -54,7 +54,7 @@ class _RequestLogger:
 
         # mimic the old API
         self.rc_api_sequential_commands = None
-        self.rc_api_runtime_ids_request_count = None
+        self.rc_api_runtime_ids_request_count: dict = {}
 
     @staticmethod
     def get_error_response(message) -> http.Response:

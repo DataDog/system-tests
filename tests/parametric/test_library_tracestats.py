@@ -4,7 +4,7 @@ from typing import Any
 from typing import Optional
 from typing import List
 
-import numpy
+import numpy as np
 import msgpack
 import pytest
 
@@ -24,7 +24,7 @@ def _human_stats(stats: V06StatsAggr) -> str:
     return str(filtered_copy)
 
 
-def enable_tracestats(sample_rate: Optional[float] = None) -> Any:
+def enable_tracestats(sample_rate: float | None = None) -> Any:
     env = {
         "DD_TRACE_STATS_COMPUTATION_ENABLED": "1",  # reference, dotnet, python, golang
         "DD_TRACE_TRACER_METRICS_ENABLED": "true",  # java
@@ -385,11 +385,11 @@ class Test_Library_Tracestats:
         assert web_stats["Hits"] == 10
 
         # Validate the sketches
-        np_duration = numpy.array(durations)
+        np_duration = np.array(durations)
         assert web_stats["Duration"] == sum(durations), "Stats duration should match the span duration exactly"
         for quantile in (0.5, 0.75, 0.95, 0.99, 1):
             assert web_stats["OkSummary"].get_quantile_value(quantile) == pytest.approx(
-                numpy.quantile(np_duration, quantile),
+                np.quantile(np_duration, quantile),
                 rel=0.01,
             ), "Quantile mismatch for quantile %r" % quantile
 

@@ -138,7 +138,7 @@ class Test_Telemetry:
         if len(telemetry_data) == 0:
             raise ValueError("No telemetry data to validate on")
 
-        runtime_ids = set((data["request"]["content"]["runtime_id"] for data in telemetry_data))
+        runtime_ids = set(data["request"]["content"]["runtime_id"] for data in telemetry_data)
         for runtime_id in runtime_ids:
             logger.debug(f"Validating telemetry messages for runtime_id {runtime_id}")
             max_seq_id = 0
@@ -162,14 +162,13 @@ class Test_Telemetry:
                 if seq_id > max_seq_id:
                     max_seq_id = seq_id
                     received_max_time = curr_message_time
-                else:
-                    if received_max_time is not None and (curr_message_time - received_max_time) > timedelta(
-                        seconds=MAX_OUT_OF_ORDER_LAG
-                    ):
-                        raise ValueError(
-                            f"Received message with seq_id {seq_id} to far more than"
-                            f"100ms after message with seq_id {max_seq_id}"
-                        )
+                elif received_max_time is not None and (curr_message_time - received_max_time) > timedelta(
+                    seconds=MAX_OUT_OF_ORDER_LAG
+                ):
+                    raise ValueError(
+                        f"Received message with seq_id {seq_id} to far more than"
+                        f"100ms after message with seq_id {max_seq_id}"
+                    )
 
             # sort by seq_id, seq_ids is an array of (id, filename), so the key is the first element
             seq_ids.sort(key=lambda item: item[0])
@@ -205,7 +204,7 @@ class Test_Telemetry:
                 if data["response"]["status_code"] == 202:
                     count_by_runtime_id[runtime_id] += 1
 
-        assert all((count == 1 for count in count_by_runtime_id.values()))
+        assert all(count == 1 for count in count_by_runtime_id.values())
 
     @missing_feature(context.library < "ruby@1.22.0", reason="app-started not sent")
     @bug(context.library >= "dotnet@3.4.0", reason="APMAPI-728")
@@ -222,7 +221,7 @@ class Test_Telemetry:
         else:
             # In theory, app-started must have seq_id 1, but tracers may skip seq_ids if sending messages fail.
             # So we will check that app-started is the first message by seq_id, rather than strictly seq_id 1.
-            telemetry_data = list(sorted(telemetry_data, key=lambda x: x["request"]["content"]["seq_id"]))
+            telemetry_data = sorted(telemetry_data, key=lambda x: x["request"]["content"]["seq_id"])
             app_started = [d for d in telemetry_data if d["request"]["content"].get("request_type") == "app-started"]
             assert app_started, "app-started message not found"
             min_seq_id = min(d["request"]["content"]["seq_id"] for d in telemetry_data)
