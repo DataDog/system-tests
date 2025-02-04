@@ -292,6 +292,8 @@ class Test_Environment:
                 "DD_TRACE_LOG_LEVEL": "error",
                 "DD_LOG_LEVEL": "error",
                 "OTEL_LOG_LEVEL": "debug",
+                # python tracer supports DD_TRACE_SAMPLING_RULES not DD_TRACE_SAMPLE_RATE
+                "DD_TRACE_SAMPLING_RULES": '[{"sample_rate":0.5}]',
                 "DD_TRACE_SAMPLE_RATE": "0.5",
                 "OTEL_TRACES_SAMPLER": "traceidratio",
                 "OTEL_TRACES_SAMPLER_ARG": "0.1",
