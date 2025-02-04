@@ -9,10 +9,10 @@ from utils import weblog, interfaces, scenarios, features, rfc, irrelevant, cont
 from utils.tools import logger
 
 # get the default log output
-stdout = interfaces.library_stdout if context.library != "dotnet" else interfaces.library_dotnet_managed
+stdout = interfaces.library_stdout
 runtime_metrics = {"nodejs": "runtime.node.mem.heap_total"}
 runtime_metrics_langs = [".NET", "go", "nodejs", "python", "ruby"]
-log_injection_fields = {"nodejs": {"message": "msg"}}
+log_injection_fields = {"nodejs": ["msg"], "dotnet": ["@mt"]}
 
 
 @scenarios.default
@@ -492,8 +492,6 @@ class Test_Config_LogInjection_Enabled:
 
     def test_log_injection_enabled(self):
         assert self.r.status_code == 200
-        pattern = r'"dd":\{[^}]*\}'
-        stdout.assert_presence(pattern)
         dd = parse_log_injection_message(self.message)
         required_fields = ["trace_id", "span_id", "service", "version", "env"]
         for field in required_fields:
@@ -528,8 +526,6 @@ class Test_Config_LogInjection_128Bit_TradeId_Default:
 
     def test_log_injection_128bit_traceid_default(self):
         assert self.r.status_code == 200
-        pattern = r'"dd":\{[^}]*\}'
-        stdout.assert_presence(pattern)
         dd = parse_log_injection_message(self.message)
         trace_id = dd.get("trace_id")
         assert re.match(r"^[0-9a-f]{32}$", trace_id), f"Invalid 128-bit trace_id: {trace_id}"
@@ -547,8 +543,6 @@ class Test_Config_LogInjection_128Bit_TradeId_Disabled:
 
     def test_log_injection_128bit_traceid_disabled(self):
         assert self.r.status_code == 200
-        pattern = r'"dd":\{[^}]*\}'
-        stdout.assert_presence(pattern)
         dd = parse_log_injection_message(self.message)
         trace_id = dd.get("trace_id")
         assert re.match(r"^\d{1,20}$", trace_id), f"Invalid 64-bit trace_id: {trace_id}"
@@ -638,6 +632,20 @@ def parse_log_injection_message(log_message):
             message = json.loads(data.get("message"))
         except json.JSONDecodeError:
             continue
-        if message.get("dd") and message.get(log_injection_fields[context.library.library]["message"]) == log_message:
-            dd = message.get("dd")
-            return dd
+
+        for message_field in log_injection_fields[context.library.library]:
+            if message.get("dd") and message.get(message_field) == log_message:
+                dd = message.get("dd")
+                return dd
+
+            if message.get("dd_service") and message.get(message_field) == log_message:
+                dd = {
+                    "service": message.get("dd_service"),
+                    "env": message.get("dd_env"),
+                    "version": message.get("dd_version"),
+                    "trace_id": message.get("dd_trace_id"),
+                    "span_id": message.get("dd_span_id"),
+                }
+                return dd
+
+    return {}
