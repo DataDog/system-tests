@@ -619,7 +619,7 @@ tests/:
       Test_Fingerprinting_Header_And_Network: *ref_5_24_0
       Test_Fingerprinting_Header_Capability: *ref_5_24_0
       Test_Fingerprinting_Network_Capability: *ref_5_24_0
-      Test_Fingerprinting_Session: *ref_5_36_0
+      Test_Fingerprinting_Session:
         '*': *ref_5_36_0
         nextjs: missing_feature
       Test_Fingerprinting_Session_Capability:
