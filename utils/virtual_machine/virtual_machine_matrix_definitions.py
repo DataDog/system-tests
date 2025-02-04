@@ -35,9 +35,58 @@ TEST_APP_NODEJS = VMWeblogDescriptor(
         ]
     ),
 )
+TEST_APP_NODEJS_08 = VMWeblogDescriptor(
+    "test-app-nodejs-08",
+    "nodejs",
+    SupportedVirtualMachines().exact_os_branches(["ubuntu20_amd64", "centos_7_amd64"]),
+)
+
+TEST_APP_NODEJS_16 = VMWeblogDescriptor(
+    "test-app-nodejs-16",
+    "nodejs",
+    SupportedVirtualMachines().excluded_os_branches(
+        [
+            "centos_7_amd64",
+        ]
+    ),
+)
+
+TEST_APP_NODEJS_ALPINE = VMWeblogDescriptor(
+    "test-app-nodejs-alpine", "nodejs", SupportedVirtualMachines().get_all_virtual_machines()
+)
+
+TEST_APP_NODEJS_CONTAINER = VMWeblogDescriptor(
+    "test-app-nodejs-container", "nodejs", SupportedVirtualMachines().get_all_virtual_machines()
+)
+TEST_APP_NODEJS_ESM = VMWeblogDescriptor(
+    "test-app-nodejs-esm",
+    "nodejs",
+    SupportedVirtualMachines().exact_os_branches(["ubuntu24"]),
+)
+TEST_APP_NODEJS_MULTICONTAINER = VMWeblogDescriptor(
+    "test-app-nodejs-multicontainer",
+    "nodejs",
+    SupportedVirtualMachines().exact_os_branches(["ubuntu24"]),
+)
+TEST_APP_NODEJS_UNSUPPORTED_DEFAULTS = VMWeblogDescriptor(
+    "test-app-nodejs-unsupported-defaults",
+    "nodejs",
+    SupportedVirtualMachines().exact_os_branches(
+        ["ubuntu22_amd64", "ubuntu22_arm64", "ubuntu21", "ubuntu20_arm64", "ubuntu20_amd64", "centos_7_amd64"]
+    ),
+)
 
 # HERE ADD YOUR WEBLOG DEFINITION TO THE LIST
-ALL_WEBLOGS = [TEST_APP_NODEJS]
+ALL_WEBLOGS = [
+    TEST_APP_NODEJS,
+    TEST_APP_NODEJS_08,
+    TEST_APP_NODEJS_16,
+    TEST_APP_NODEJS_ALPINE,
+    TEST_APP_NODEJS_CONTAINER,
+    TEST_APP_NODEJS_ESM,
+    TEST_APP_NODEJS_MULTICONTAINER,
+    TEST_APP_NODEJS_UNSUPPORTED_DEFAULTS,
+]
 
 
 def check_weblog_can_run_on_vm(lang, weblog_name, vm_name):

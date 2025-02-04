@@ -1,11 +1,6 @@
 import os
 import json
 import hashlib
-from pathlib import Path
-
-# from utils.tools import logger
-# from utils import context
-# from utils.onboarding.debug_vm import extract_logs_to_file
 
 
 class AWSInfraConfig:
@@ -942,8 +937,14 @@ class SupportedVirtualMachines:
         # self.virtual_machines.append(Fedora37amd64())
         # self.virtual_machines.append(Fedora37arm64())
 
+    def get_all_virtual_machines(self):
+        return self.virtual_machines
+
     def all_virtual_machines(self):
         return self.virtual_machines
 
     def excluded_os_branches(self, exclude_os_branches):
         return [vm for vm in self.virtual_machines if vm.os_branch not in exclude_os_branches]
+
+    def exact_os_branches(self, os_branches):
+        return [vm for vm in self.virtual_machines if vm.os_branch in os_branches]
