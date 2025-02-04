@@ -718,10 +718,6 @@ class WeblogContainer(TestedContainer):
             base_environment["DD_IAST_DEDUPLICATION_ENABLED"] = "false"
 
         if tracer_sampling_rate:
-            if context.library == "python":
-                # python3.x dropped support for DD_TRACE_SAMPLE_RATE
-                base_environment["DD_TRACE_SAMPLING_RULES"] = str([{"sample_rate": tracer_sampling_rate}])
-            else:
                 base_environment["DD_TRACE_SAMPLE_RATE"] = str(tracer_sampling_rate)
 
         if use_proxy:
