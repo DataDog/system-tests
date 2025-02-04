@@ -34,7 +34,7 @@ class TestXSS_StackTrace:
 
 @rfc("https://docs.google.com/document/d/1R8AIuQ9_rMHBPdChCb5jRwPrg1WvIz96c_WQ3y8DWk4")
 @features.iast_extended_location
-class TestCodeInjection_ExtendedLocation:
+class TestXSS_ExtendedLocation:
     """Test extended location data"""
 
     vulnerability_type = "XSS"

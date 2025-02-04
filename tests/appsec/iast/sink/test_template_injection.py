@@ -20,7 +20,7 @@ class TestTemplateInjection(BaseSinkTest):
 
 @rfc("https://docs.google.com/document/d/1R8AIuQ9_rMHBPdChCb5jRwPrg1WvIz96c_WQ3y8DWk4")
 @features.iast_extended_location
-class TestCodeInjection_ExtendedLocation:
+class TestTemplateInjection_ExtendedLocation:
     """Test extended location data"""
 
     vulnerability_type = "TEMPLATE_INJECTION"

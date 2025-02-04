@@ -103,7 +103,23 @@ class TestUnvalidatedHeader_StackTrace:
 
 @rfc("https://docs.google.com/document/d/1R8AIuQ9_rMHBPdChCb5jRwPrg1WvIz96c_WQ3y8DWk4")
 @features.iast_extended_location
-class TestCodeInjection_ExtendedLocation:
+class TestUnvalidatedRedirect_ExtendedLocation:
+    """Test extended location data"""
+
+    vulnerability_type = "UNVALIDATED_REDIRECT"
+
+    def setup_extended_location_data(self):
+        self.r = weblog.post(
+            "/iast/unvalidated_redirect/test_insecure_redirect", data={"location": "http://dummy.location.com"}
+        )
+
+    def test_extended_location_data(self):
+        validate_extended_location_data(self.r, self.vulnerability_type)
+
+
+@rfc("https://docs.google.com/document/d/1R8AIuQ9_rMHBPdChCb5jRwPrg1WvIz96c_WQ3y8DWk4")
+@features.iast_extended_location
+class TestUnvalidatedHeader_ExtendedLocation:
     """Test extended location data"""
 
     vulnerability_type = "UNVALIDATED_REDIRECT"
