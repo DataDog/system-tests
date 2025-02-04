@@ -56,10 +56,7 @@ class _Test_SQS:
 
                 elif operation.lower() == "receivemessage" and span["meta"].get("language", "") == "javascript":
                     # for nodejs we propagate from aws.response span which does not have the queue included on the span
-                    if span["resource"] != "aws.response":
-                        continue
-                    # if we found the manual span, and now have the aws.response span, we will return this span
-                    elif not manual_span_found:
+                    if span["resource"] != "aws.response" or not manual_span_found:
                         continue
                 elif queue != cls.get_queue(span):
                     continue

@@ -41,7 +41,7 @@ def equal_value(t1, t2):
     if t2 is ANY:
         return True
     if isinstance(t1, list) and isinstance(t2, list):
-        return len(t1) == len(t2) and all(contains(a, b) for a, b in zip(t1, t2))
+        return len(t1) == len(t2) and all(contains(a, b) for a, b in zip(t1, t2, strict=False))
     if isinstance(t1, dict) and isinstance(t2, dict):
         return all(k in t1 and contains(t1[k], t2[k]) for k in t2)
     if isinstance(t1, int) and isinstance(t2, int):

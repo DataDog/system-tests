@@ -4,7 +4,7 @@ Test configuration consistency for features across supported APM SDKs.
 
 from urllib.parse import urlparse
 import pytest
-from utils import scenarios, features, context, missing_feature, irrelevant, flaky
+from utils import scenarios, features, context, missing_feature, irrelevant, flaky, bug
 from utils.parametric.spec.trace import find_span_in_traces, find_only_span
 
 parametrize = pytest.mark.parametrize
@@ -232,8 +232,12 @@ class Test_Config_RateLimit:
         context.library == "php",
         reason="PHP backfill model does not support strict two-trace limit, see test below for its behavior",
     )
-    @parametrize("library_env", [{"DD_TRACE_RATE_LIMIT": "1", "DD_TRACE_SAMPLE_RATE": "1"}])
+    @parametrize(
+        "library_env",
+        [{"DD_TRACE_RATE_LIMIT": "1", "DD_TRACE_SAMPLE_RATE": "1", "DD_TRACE_SAMPLING_RULES": '[{"sample_rate":1}]'}],
+    )
     @flaky(library="java", reason="APMAPI-908")
+    @bug(context.library == "golang", reason="APMAPI-1030")
     def test_setting_trace_rate_limit_strict(self, library_env, test_agent, test_library):
         with test_library:
             with test_library.dd_start_span(name="s1") as s1:
@@ -262,7 +266,10 @@ class Test_Config_RateLimit:
         assert trace_0_sampling_priority == 1
         assert trace_1_sampling_priority == 1
 
-    @parametrize("library_env", [{"DD_TRACE_RATE_LIMIT": "1", "DD_TRACE_SAMPLE_RATE": "1"}])
+    @parametrize(
+        "library_env",
+        [{"DD_TRACE_RATE_LIMIT": "1", "DD_TRACE_SAMPLE_RATE": "1", "DD_TRACE_SAMPLING_RULES": '[{"sample_rate":1}]'}],
+    )
     def test_setting_trace_rate_limit(self, library_env, test_agent, test_library):
         # In PHP the rate limiter is continuously backfilled, i.e. if the rate limit is 2, and 0.2 seconds have passed, an allowance of 0.4 is backfilled.
         # As long as the amount of allowance is greater than zero, the request is allowed.

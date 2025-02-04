@@ -41,11 +41,10 @@ class AsmStandalone_UpstreamPropagation_Base(ABC):
             for tag, value in expected_tags.items():
                 if value is None:
                     assert tag not in struct
+                elif tag == "_sampling_priority_v1":  # special case, it's a lambda to check for a condition
+                    assert value(struct[tag])
                 else:
-                    if tag == "_sampling_priority_v1":  # special case, it's a lambda to check for a condition
-                        assert value(struct[tag])
-                    else:
-                        assert struct[tag] == value
+                    assert struct[tag] == value
 
         # Case 1: The tags are set on the first span of every trace chunk
         try:

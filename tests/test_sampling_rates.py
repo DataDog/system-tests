@@ -251,7 +251,7 @@ class Test_SamplingDecisions:
             if len(decisions) < 2:
                 continue
 
-            if not all((d == decisions[0] for d in decisions)):
+            if not all(d == decisions[0] for d in decisions):
                 raise ValueError(f"Sampling decisions are not deterministic for trace_id {trace_id}: {decisions}")
 
     def _load_csv_sampling_decisions(self):

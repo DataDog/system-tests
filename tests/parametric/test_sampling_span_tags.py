@@ -1,15 +1,15 @@
 import json
 
 import pytest
-from utils import bug, context, scenarios, features  # noqa
-from utils.parametric.spec.trace import MANUAL_DROP_KEY  # noqa
-from utils.parametric.spec.trace import MANUAL_KEEP_KEY  # noqa
-from utils.parametric.spec.trace import SAMPLING_AGENT_PRIORITY_RATE  # noqa
-from utils.parametric.spec.trace import SAMPLING_DECISION_MAKER_KEY  # noqa
-from utils.parametric.spec.trace import SAMPLING_LIMIT_PRIORITY_RATE  # noqa
-from utils.parametric.spec.trace import SAMPLING_PRIORITY_KEY  # noqa
-from utils.parametric.spec.trace import SAMPLING_RULE_PRIORITY_RATE  # noqa
-from utils.parametric.spec.trace import find_span_in_traces  # noqa
+from utils import bug, context, scenarios, features
+from utils.parametric.spec.trace import MANUAL_DROP_KEY
+from utils.parametric.spec.trace import MANUAL_KEEP_KEY
+from utils.parametric.spec.trace import SAMPLING_AGENT_PRIORITY_RATE
+from utils.parametric.spec.trace import SAMPLING_DECISION_MAKER_KEY
+from utils.parametric.spec.trace import SAMPLING_LIMIT_PRIORITY_RATE
+from utils.parametric.spec.trace import SAMPLING_PRIORITY_KEY
+from utils.parametric.spec.trace import SAMPLING_RULE_PRIORITY_RATE
+from utils.parametric.spec.trace import find_span_in_traces
 
 UNSET = -420
 
