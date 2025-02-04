@@ -14,7 +14,7 @@ from utils.parametric.spec.trace import find_span_in_traces  # noqa
 UNSET = -420
 
 
-class AnyRatio(object):
+class AnyRatio:
     def __eq__(self, other):
         return 0 <= other <= 1
 

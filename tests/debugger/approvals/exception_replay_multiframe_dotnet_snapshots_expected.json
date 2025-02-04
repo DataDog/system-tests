@@ -77,118 +77,11 @@
       "id": "<scrubbed>",
       "version": 1,
       "location": {
-        "method": "ExceptionReplayMultiframe",
+        "method": "DeepFunctionA",
         "type": "weblog.ExceptionReplayController"
       }
     },
     "stack": [
-      {
-        "function": "weblog.ExceptionReplayController.ExceptionReplayMultiframe",
-        "fileName": "/app/ExceptionReplayController.cs",
-        "lineNumber": 98
-      },
-      {
-        "function": "Datadog.Trace.ClrProfiler.AutoInstrumentation.AspNetCore.BlockingMiddleware+<Invoke><scrubbed>",
-        "lineNumber": 0
-      },
-      {
-        "function": "Datadog.Trace.ClrProfiler.AutoInstrumentation.AspNetCore.BlockingMiddleware.Invoke",
-        "lineNumber": 0
-      },
-      {
-        "<runtime>": "<scrubbed>"
-      }
-    ],
-    "id": "<scrubbed>",
-    "timestamp": "<scrubbed>",
-    "duration": "<scrubbed>",
-    "language": "dotnet"
-  },
-  {
-    "captures": {
-      "return": {
-        "staticFields": {
-          "Empty": {
-            "type": "EmptyResult",
-            "value": "EmptyResult"
-          }
-        },
-        "throwable": {
-          "message": "Multiple stack frames exception",
-          "type": "System.Exception",
-          "stacktrace": [
-            {
-              "function": "weblog.ExceptionReplayController.DeepFunctionC",
-              "lineNumber": 0
-            },
-            {
-              "function": "weblog.ExceptionReplayController.DeepFunctionB",
-              "lineNumber": 0
-            },
-            {
-              "<runtime>": "<scrubbed>"
-            }
-          ]
-        },
-        "locals": {
-          "@exception": {
-            "type": "Exception",
-            "value": "Exception",
-            "fields": {
-              "Message": {
-                "type": "String",
-                "value": "Multiple stack frames exception"
-              },
-              "InnerException": {
-                "type": "Exception",
-                "isNull": "true"
-              },
-              "HelpLink": {
-                "type": "String",
-                "isNull": "true"
-              },
-              "Source": {
-                "type": "String",
-                "value": "app"
-              },
-              "HResult": {
-                "type": "Int32",
-                "value": "-2146233088"
-              },
-              "StackTrace": {
-                "type": "String",
-                "value": "<scrubbed>"
-              }
-            }
-          }
-        },
-        "arguments": {
-          "this": {
-            "type": "ExceptionReplayController",
-            "value": "ExceptionReplayController"
-          }
-        }
-      }
-    },
-    "probe": {
-      "id": "<scrubbed>",
-      "version": 1,
-      "location": {
-        "method": "DeepFunctionC",
-        "type": "weblog.ExceptionReplayController"
-      }
-    },
-    "stack": [
-      {
-        "function": "weblog.ExceptionReplayController.DeepFunctionC",
-        "fileName": "/app/ExceptionReplayController.cs",
-        "lineNumber": 80
-      },
-      {
-        "function": "weblog.ExceptionReplayController.DeepFunctionB",
-        "fileName": "/app/ExceptionReplayController.cs",
-        "lineNumber": 86
-      },
       {
         "function": "weblog.ExceptionReplayController.DeepFunctionA",
         "fileName": "/app/ExceptionReplayController.cs",
@@ -349,6 +242,118 @@
               "lineNumber": 0
             },
             {
+              "<runtime>": "<scrubbed>"
+            }
+          ]
+        },
+        "locals": {
+          "@exception": {
+            "type": "Exception",
+            "value": "Exception",
+            "fields": {
+              "Message": {
+                "type": "String",
+                "value": "Multiple stack frames exception"
+              },
+              "InnerException": {
+                "type": "Exception",
+                "isNull": "true"
+              },
+              "HelpLink": {
+                "type": "String",
+                "isNull": "true"
+              },
+              "Source": {
+                "type": "String",
+                "value": "app"
+              },
+              "HResult": {
+                "type": "Int32",
+                "value": "-2146233088"
+              },
+              "StackTrace": {
+                "type": "String",
+                "value": "<scrubbed>"
+              }
+            }
+          }
+        },
+        "arguments": {
+          "this": {
+            "type": "ExceptionReplayController",
+            "value": "ExceptionReplayController"
+          }
+        }
+      }
+    },
+    "probe": {
+      "id": "<scrubbed>",
+      "version": 1,
+      "location": {
+        "method": "DeepFunctionC",
+        "type": "weblog.ExceptionReplayController"
+      }
+    },
+    "stack": [
+      {
+        "function": "weblog.ExceptionReplayController.DeepFunctionC",
+        "fileName": "/app/ExceptionReplayController.cs",
+        "lineNumber": 80
+      },
+      {
+        "function": "weblog.ExceptionReplayController.DeepFunctionB",
+        "fileName": "/app/ExceptionReplayController.cs",
+        "lineNumber": 86
+      },
+      {
+        "function": "weblog.ExceptionReplayController.DeepFunctionA",
+        "fileName": "/app/ExceptionReplayController.cs",
+        "lineNumber": 91
+      },
+      {
+        "function": "weblog.ExceptionReplayController.ExceptionReplayMultiframe",
+        "fileName": "/app/ExceptionReplayController.cs",
+        "lineNumber": 98
+      },
+      {
+        "function": "Datadog.Trace.ClrProfiler.AutoInstrumentation.AspNetCore.BlockingMiddleware+<Invoke><scrubbed>",
+        "lineNumber": 0
+      },
+      {
+        "function": "Datadog.Trace.ClrProfiler.AutoInstrumentation.AspNetCore.BlockingMiddleware.Invoke",
+        "lineNumber": 0
+      },
+      {
+        "<runtime>": "<scrubbed>"
+      }
+    ],
+    "id": "<scrubbed>",
+    "timestamp": "<scrubbed>",
+    "duration": "<scrubbed>",
+    "language": "dotnet"
+  },
+  {
+    "captures": {
+      "return": {
+        "staticFields": {
+          "Empty": {
+            "type": "EmptyResult",
+            "value": "EmptyResult"
+          }
+        },
+        "throwable": {
+          "message": "Multiple stack frames exception",
+          "type": "System.Exception",
+          "stacktrace": [
+            {
+              "function": "weblog.ExceptionReplayController.DeepFunctionC",
+              "lineNumber": 0
+            },
+            {
+              "function": "weblog.ExceptionReplayController.DeepFunctionB",
+              "lineNumber": 0
+            },
+            {
               "function": "weblog.ExceptionReplayController.DeepFunctionA",
               "lineNumber": 0
             },
@@ -405,16 +410,11 @@
       "id": "<scrubbed>",
       "version": 1,
       "location": {
-        "method": "DeepFunctionA",
+        "method": "ExceptionReplayMultiframe",
         "type": "weblog.ExceptionReplayController"
       }
     },
     "stack": [
-      {
-        "function": "weblog.ExceptionReplayController.DeepFunctionA",
-        "fileName": "/app/ExceptionReplayController.cs",
-        "lineNumber": 91
-      },
       {
         "function": "weblog.ExceptionReplayController.ExceptionReplayMultiframe",
         "fileName": "/app/ExceptionReplayController.cs",

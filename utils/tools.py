@@ -7,8 +7,6 @@ import logging
 import os
 import re
 import sys
-import socket
-import random
 
 
 class ShColors(StrEnum):
@@ -25,11 +23,11 @@ class ShColors(StrEnum):
     UNDERLINE = "\033[4m"
 
 
-def get_log_formatter():
+def get_log_formatter() -> logging.Formatter:
     return logging.Formatter("%(asctime)s.%(msecs)03d %(levelname)-8s %(message)s", "%H:%M:%S")
 
 
-def update_environ_with_local_env():
+def update_environ_with_local_env() -> None:
     # dynamically load .env file in environ if exists, it allow users to keep their conf via env vars
     try:
         with open(".env", encoding="utf-8") as f:
@@ -52,7 +50,7 @@ DEBUG_LEVEL_STDOUT = 100
 logging.addLevelName(DEBUG_LEVEL_STDOUT, "STDOUT")
 
 
-def stdout(self, message, *args, **kws):  # noqa: ANN002
+def stdout(self, message, *args, **kws) -> None:  # noqa: ANN002
     if self.isEnabledFor(DEBUG_LEVEL_STDOUT):
         # Yes, logger takes its '*args' as 'args'.
         self._log(DEBUG_LEVEL_STDOUT, message, args, **kws)  # pylint: disable=protected-access
@@ -66,10 +64,10 @@ def stdout(self, message, *args, **kws):  # noqa: ANN002
             print(message)  # noqa: T201
 
 
-logging.Logger.stdout = stdout
+logging.Logger.stdout = stdout  # type: ignore[attr-defined]
 
 
-def get_logger(name="tests", *, use_stdout=False):
+def get_logger(name="tests", *, use_stdout=False) -> logging.Logger:
     result = logging.getLogger(name)
 
     logging.getLogger("requests").setLevel(logging.WARNING)
@@ -86,26 +84,26 @@ def get_logger(name="tests", *, use_stdout=False):
     return result
 
 
-def o(message):
+def o(message: str) -> str:
     return f"{ShColors.OKGREEN}{message}{ShColors.ENDC}"
 
 
-def w(message):
+def w(message: str) -> str:
     return f"{ShColors.YELLOW}{message}{ShColors.ENDC}"
 
 
-def m(message):
+def m(message: str) -> str:
     return f"{ShColors.BLUE}{message}{ShColors.ENDC}"
 
 
-def e(message):
+def e(message: str) -> str:
     return f"{ShColors.RED}{message}{ShColors.ENDC}"
 
 
 logger = get_logger()
 
 
-def get_rid_from_request(request):
+def get_rid_from_request(request) -> str | None:
     if request is None:
         return None
 
@@ -113,7 +111,7 @@ def get_rid_from_request(request):
     return user_agent[-36:]
 
 
-def get_rid_from_span(span):
+def get_rid_from_span(span) -> str | None:
     if not isinstance(span, dict):
         logger.error(f"Span should be an object, not {type(span)}")
         return None
@@ -150,7 +148,7 @@ def get_rid_from_span(span):
     return get_rid_from_user_agent(user_agent)
 
 
-def get_rid_from_user_agent(user_agent):
+def get_rid_from_user_agent(user_agent: str) -> str | None:
     if not user_agent:
         return None
 
@@ -162,7 +160,7 @@ def get_rid_from_user_agent(user_agent):
     return match.group(1)
 
 
-def nested_lookup(needle: str, heystack, *, look_in_keys=False, exact_match=False):
+def nested_lookup(needle: str, heystack, *, look_in_keys=False, exact_match=False) -> bool:
     """Look for needle in heystack, heystack can be a dict or an array"""
 
     if isinstance(heystack, str):
@@ -189,17 +187,3 @@ def nested_lookup(needle: str, heystack, *, look_in_keys=False, exact_match=Fals
         return False
 
     raise TypeError(f"Can't handle type {type(heystack)}")
-
-
-def get_free_port():
-    last_allowed_port = 32000
-    port = random.randint(1100, last_allowed_port - 600)
-    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    while port <= last_allowed_port:
-        try:
-            sock.bind(("", port))
-            sock.close()
-            return port
-        except OSError:
-            port += 1
-    raise OSError("no free ports")

@@ -8,7 +8,7 @@ from typing import Any, Dict, List
 import pytest
 
 from utils import bug, context, features, irrelevant, missing_feature, rfc, scenarios, flaky
-from utils.dd_constants import Capabilities
+from utils.dd_constants import Capabilities, RemoteConfigApplyState
 from utils.parametric.spec.trace import (
     Span,
     assert_trace_has_tags,
@@ -86,7 +86,7 @@ def set_and_wait_rc(test_agent, config_overrides: Dict[str, Any]) -> Dict:
 
     # Wait for both the telemetry event and the RC apply status.
     test_agent.wait_for_telemetry_event("app-client-configuration-change", clear=True)
-    return test_agent.wait_for_rc_apply_state("APM_TRACING", state=2, clear=True)
+    return test_agent.wait_for_rc_apply_state("APM_TRACING", state=RemoteConfigApplyState.ACKNOWLEDGED, clear=True)
 
 
 def assert_sampling_rate(trace: List[Dict], rate: float):
@@ -154,7 +154,7 @@ class TestDynamicConfigTracingEnabled:
         # nor should it send RemoteConfig apply state
         if trace_enabled_env:
             test_agent.wait_for_telemetry_event("app-client-configuration-change", clear=True)
-            test_agent.wait_for_rc_apply_state("APM_TRACING", state=2, clear=True)
+            test_agent.wait_for_rc_apply_state("APM_TRACING", state=RemoteConfigApplyState.ACKNOWLEDGED, clear=True)
         with test_library:
             with test_library.dd_start_span("disabled"):
                 pass
@@ -164,14 +164,14 @@ class TestDynamicConfigTracingEnabled:
 
     @parametrize("library_env", [{**DEFAULT_ENVVARS}, {**DEFAULT_ENVVARS, "DD_TRACE_ENABLED": "false"}])
     @irrelevant(library="golang")
-    @bug(library="dotnet", reason="APMAPI-862")
+    @irrelevant(library="dotnet", reason="dotnet tracer supports re-enabling over RC")
     def test_tracing_client_tracing_disable_one_way(self, library_env, test_agent, test_library):
         trace_enabled_env = library_env.get("DD_TRACE_ENABLED", "true") == "true"
 
         _set_rc(test_agent, _create_rc_config({"tracing_enabled": False}))
         if trace_enabled_env:
             test_agent.wait_for_telemetry_event("app-client-configuration-change", clear=True)
-            test_agent.wait_for_rc_apply_state("APM_TRACING", state=2, clear=True)
+            test_agent.wait_for_rc_apply_state("APM_TRACING", state=RemoteConfigApplyState.ACKNOWLEDGED, clear=True)
 
         _set_rc(test_agent, _create_rc_config({}))
         with test_library:
@@ -222,7 +222,7 @@ class TestDynamicConfigV1:
         configuration has been applied by the tracer.
         """
         set_and_wait_rc(test_agent, config_overrides={"tracing_sampling_rate": 0.5})
-        cfg_state = test_agent.wait_for_rc_apply_state("APM_TRACING", state=2)
+        cfg_state = test_agent.wait_for_rc_apply_state("APM_TRACING", state=RemoteConfigApplyState.ACKNOWLEDGED)
         assert cfg_state["apply_state"] == 2
         assert cfg_state["product"] == "APM_TRACING"
 
@@ -371,7 +371,9 @@ class TestDynamicConfigV1_EmptyServiceTargets:
             # C++ make RC requests every second -> update is a bit slower to propagate.
             rc_args["wait_loops"] = 1000
 
-        cfg_state = test_agent.wait_for_rc_apply_state("APM_TRACING", state=2, **rc_args)
+        cfg_state = test_agent.wait_for_rc_apply_state(
+            "APM_TRACING", state=RemoteConfigApplyState.ACKNOWLEDGED, **rc_args
+        )
         assert cfg_state["apply_state"] == 2
 
 
@@ -403,9 +405,15 @@ class TestDynamicConfigV1_ServiceTargets:
         ],
     )
     @bug(library="nodejs", reason="APMAPI-865")
-    @bug(library="java", reason="APMAPI-1003")
+    @irrelevant(library="java", reason="APMAPI-1003")
+    @irrelevant(library="cpp", reason="APMAPI-1003")
     def test_not_match_service_target(self, library_env, test_agent, test_library):
-        """Test that the library reports an erroneous apply_state when the service targeting is not correct.
+        """
+        This is an old behavior, see APMAPI-1003
+
+        ----
+
+        Test that the library reports an erroneous apply_state when the service targeting is not correct.
 
         This can occur if the library requests Remote Configuration with an initial service + env pair and then
         one or both of the values changes.
@@ -420,8 +428,8 @@ class TestDynamicConfigV1_ServiceTargets:
             # C++ make RC requests every second -> update is a bit slower to propagate.
             rc_args["wait_loops"] = 1000
 
-        cfg_state = test_agent.wait_for_rc_apply_state("APM_TRACING", state=3, **rc_args)
-        assert cfg_state["apply_state"] == 3
+        cfg_state = test_agent.wait_for_rc_apply_state("APM_TRACING", state=RemoteConfigApplyState.ERROR, **rc_args)
+        assert cfg_state["apply_state"] == RemoteConfigApplyState.ERROR.value
         assert cfg_state["apply_error"] != ""
 
     @missing_feature(
@@ -453,7 +461,7 @@ class TestDynamicConfigV1_ServiceTargets:
         target in the RC record.
         """
         _set_rc(test_agent, _default_config(TEST_SERVICE, TEST_ENV))
-        cfg_state = test_agent.wait_for_rc_apply_state("APM_TRACING", state=2)
+        cfg_state = test_agent.wait_for_rc_apply_state("APM_TRACING", state=RemoteConfigApplyState.ACKNOWLEDGED)
         assert cfg_state["apply_state"] == 2
 
 
@@ -641,7 +649,7 @@ class TestDynamicConfigSamplingRules:
         assert span["meta"]["_dd.p.dm"] == "-3"
 
         # Unset RC to ensure local settings
-        set_and_wait_rc(test_agent, config_overrides={"tracing_sampling_rules": None, "tracing_sampling_rules": None})
+        set_and_wait_rc(test_agent, config_overrides={"tracing_sampling_rules": None})
         trace = get_sampled_trace(test_library, test_agent, service="other_service", name="op_name")
         assert_sampling_rate(trace, DEFAULT_SAMPLE_RATE)
 

@@ -120,7 +120,7 @@ class ParametricScenario(Scenario):
             name,
             doc=doc,
             github_workflow="parametric",
-            scenario_groups=[ScenarioGroup.ALL, ScenarioGroup.PARAMETRIC, ScenarioGroup.PARAMETRIC],
+            scenario_groups=[ScenarioGroup.ALL, ScenarioGroup.TRACER_RELEASE],
         )
         self._parametric_tests_confs = ParametricScenario.PersistentParametricTestConf(self)
 
@@ -215,7 +215,7 @@ class ParametricScenario(Scenario):
         apm_test_server_definition: APMLibraryTestServer = self.apm_test_server_definition
 
         log_path = f"{self.host_log_folder}/outputs/docker_build_log.log"
-        Path.mkdir(os.path.dirname(log_path), exist_ok=True, parents=True)
+        Path.mkdir(Path(log_path).parent, exist_ok=True, parents=True)
 
         # Write dockerfile to the build directory
         # Note that this needs to be done as the context cannot be
@@ -378,7 +378,7 @@ def node_library_factory() -> APMLibraryTestServer:
         with open("./binaries/nodejs-load-from-local", encoding="utf-8") as f:
             path = f.read().strip(" \r\n")
             source = os.path.join(_get_base_directory(), path)
-            volumes[os.path.abspath(source)] = "/volumes/dd-trace-js"
+            volumes[Path(source).resolve()] = "/volumes/dd-trace-js"
     except FileNotFoundError:
         logger.info("No local dd-trace-js found, do not mount any volume")
 

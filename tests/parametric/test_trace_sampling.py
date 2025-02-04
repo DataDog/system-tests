@@ -91,7 +91,6 @@ class Test_Trace_Sampling_Basic:
             with test_library.dd_start_span(name="web.request", service="webserver") as s1:
                 s1.set_metric("sampling.priority", 2)
                 s1.set_meta("resource.name", "drop-me")
-                pass
         span = find_only_span(test_agent.wait_for_num_traces(1))
 
         assert span["metrics"].get(SAMPLING_PRIORITY_KEY) == 2

@@ -5,10 +5,12 @@
 from utils import context
 from utils import features
 from utils import interfaces
+from utils import irrelevant
 from utils import remote_config as rc
 from utils import rfc
 from utils import scenarios
 from utils import weblog
+from utils import missing_feature
 
 # User entries in the internal DB:
 # users = [
@@ -51,6 +53,10 @@ class Test_Automated_User_Tracking:
             cookies=self.r_login.cookies,
         )
 
+    @irrelevant(
+        context.library == "python" and context.weblog_variant not in ["django-poc", "python3.12", "django-py3.13"],
+        reason="no possible auto-instrumentation for python except on Django",
+    )
     def test_user_tracking_auto(self):
         assert self.r_login.status_code == 200
 
@@ -78,6 +84,10 @@ class Test_Automated_User_Tracking:
             ),
         }
 
+    @missing_feature(
+        context.library == "dotnet",
+        reason="This endpoint calls the sdk TrackSuccessfulLogin which doesn't add the collection_mode tag (only SetUser)",
+    )
     def test_user_tracking_sdk_overwrite(self):
         for trigger, request in self.requests.items():
             assert request.status_code == 200
@@ -161,6 +171,10 @@ class Test_Automated_User_Blocking:
             cookies=self.r_login.cookies,
         )
 
+    @irrelevant(
+        context.library == "python" and context.weblog_variant not in ["django-poc", "python3.12", "django-py3.13"],
+        reason="no possible auto-instrumentation for python except on Django",
+    )
     def test_user_blocking_auto(self):
         assert self.config_state_1[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
         assert self.r_login.status_code == 200
@@ -244,6 +258,7 @@ class Test_Automated_Session_Blocking:
             cookies=self.r_create_session.cookies,
         )
 
+    @missing_feature(context.library == "dotnet", reason="Session ids can't be set.")
     def test_session_blocking(self):
         assert self.config_state_1[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
         assert self.r_create_session.status_code == 200

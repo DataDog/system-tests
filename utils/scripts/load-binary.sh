@@ -37,7 +37,7 @@ assert_version_is_dev() {
 
 assert_target_branch_is_not_set() {
 
-  if [[ -z "$TARGET_BRANCH" ]]; then
+  if [[ -z "${TARGET_BRANCH:-}" ]]; then
     return 0
   fi
 
@@ -185,7 +185,7 @@ elif [ "$TARGET" = "dotnet" ]; then
 elif [ "$TARGET" = "python" ]; then
     assert_version_is_dev
 
-    TARGET_BRANCH="${TARGET_BRANCH:-main}"
+    TARGET_BRANCH="${TARGET_BRANCH:-3.x-staging}"
     echo "git+https://github.com/DataDog/dd-trace-py.git@$TARGET_BRANCH" > python-load-from-pip
     echo "Using $(cat python-load-from-pip)"
 
@@ -220,6 +220,9 @@ elif [ "$TARGET" = "golang" ]; then
 
     echo "Using ghcr.io/datadog/dd-trace-go/service-extensions-callout:dev"
     echo "ghcr.io/datadog/dd-trace-go/service-extensions-callout:dev" > golang-service-extensions-callout-image
+
+    echo "Using github.com/DataDog/orchestrion@main"
+    echo "github.com/DataDog/orchestrion@main" > orchestrion-load-from-go-get
 
 elif [ "$TARGET" = "cpp" ]; then
     assert_version_is_dev

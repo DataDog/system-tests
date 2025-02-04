@@ -19,7 +19,6 @@ class Test_SpanEvents_WithAgentSupport:
     def setup_v04_v07_default_format(self):
         self.r = weblog.get("/add_event")
 
-    @missing_feature(context.library in ["ruby"], reason="Native serialization not implemented")
     def test_v04_v07_default_format(self):
         """For traces that default to the v0.4 or v0.7 format, send events as a top-level `span_events` field"""
         interfaces.library.assert_trace_exists(self.r)

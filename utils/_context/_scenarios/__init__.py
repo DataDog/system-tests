@@ -13,7 +13,7 @@ from .parametric import ParametricScenario
 from .performance import PerformanceScenario
 from .profiling import ProfilingScenario
 from .test_the_test import TestTheTestScenario
-from .auto_injection import InstallerAutoInjectionScenario, InstallerAutoInjectionScenarioProfiling
+from .auto_injection import InstallerAutoInjectionScenario
 from .k8s_lib_injection import WeblogInjectionScenario, K8sScenario, K8sSparkScenario, K8sManualInstrumentationScenario
 from .docker_ssi import DockerSSIScenario
 from .external_processing import ExternalProcessingScenario
@@ -525,7 +525,8 @@ class _Scenarios:
             "DD_TRACE_KAFKA_ENABLED": "false",  # most common endpoint and integration (missing for PHP).
             "DD_TRACE_KAFKAJS_ENABLED": "false",  # In Node the integration is kafkajs.
             "DD_TRACE_PDO_ENABLED": "false",  # Use PDO for PHP,
-            "DD_TRACE_PROPAGATION_STYLE_EXTRACT": "tracecontext,datadog,b3multi",
+            "DD_TRACE_PROPAGATION_STYLE_EXTRACT": "datadog,tracecontext,b3multi,baggage",
+            "DD_TRACE_PROPAGATION_BEHAVIOR_EXTRACT": "restart",
             "DD_LOGS_INJECTION": "true",
         },
         appsec_enabled=False,  # disable ASM to test non asm client ip tagging
@@ -545,7 +546,8 @@ class _Scenarios:
             "DD_TRACE_PDO_ENABLED": "true",  # Use PDO for PHP
             "DD_TRACE_CLIENT_IP_HEADER": "custom-ip-header",
             "DD_TRACE_CLIENT_IP_ENABLED": "true",
-            "DD_TRACE_PROPAGATION_STYLE_EXTRACT": "datadog,tracecontext,b3multi",
+            "DD_TRACE_PROPAGATION_STYLE_EXTRACT": "datadog,tracecontext,b3multi,baggage",
+            "DD_TRACE_PROPAGATION_BEHAVIOR_EXTRACT": "ignore",
         },
         include_kafka=True,
         include_postgres_db=True,
@@ -557,6 +559,9 @@ class _Scenarios:
         weblog_env={
             "DD_TRACE_HTTP_CLIENT_TAG_QUERY_STRING": "false",
             "DD_TRACE_CLIENT_IP_HEADER": "custom-ip-header",
+            "DD_TRACE_PROPAGATION_STYLE_EXTRACT": "datadog,tracecontext,b3multi,baggage",
+            "DD_TRACE_PROPAGATION_BEHAVIOR_EXTRACT": "restart",
+            "DD_TRACE_PROPAGATION_EXTRACT_FIRST": "true",
             "DD_LOGS_INJECTION": "true",
             "DD_TRACE_128_BIT_TRACEID_LOGGING_ENABLED": "false",
         },
@@ -683,7 +688,7 @@ class _Scenarios:
         include_amazon_linux_2023_arm64=False,
     )
 
-    simple_auto_injection_profiling = InstallerAutoInjectionScenarioProfiling(
+    simple_auto_injection_profiling = InstallerAutoInjectionScenario(
         "SIMPLE_AUTO_INJECTION_PROFILING",
         "Onboarding Single Step Instrumentation scenario with profiling activated by the app env var",
         app_env={
@@ -694,7 +699,7 @@ class _Scenarios:
         scenario_groups=[ScenarioGroup.ONBOARDING],
         github_workflow="libinjection",
     )
-    host_auto_injection_install_script_profiling = InstallerAutoInjectionScenarioProfiling(
+    host_auto_injection_install_script_profiling = InstallerAutoInjectionScenario(
         "HOST_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING",
         doc=(
             "Onboarding Host Single Step Instrumentation scenario using agent "
@@ -707,7 +712,7 @@ class _Scenarios:
         github_workflow="libinjection",
     )
 
-    container_auto_injection_install_script_profiling = InstallerAutoInjectionScenarioProfiling(
+    container_auto_injection_install_script_profiling = InstallerAutoInjectionScenario(
         "CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING",
         "Onboarding Container Single Step Instrumentation profiling scenario using agent auto install script",
         vm_provision="container-auto-inject-install-script",
@@ -839,7 +844,15 @@ class _Scenarios:
 
     runtime_metrics_enabled = EndToEndScenario(
         "RUNTIME_METRICS_ENABLED",
+        # Add environment variable DD_DOGSTATSD_START_DELAY=0 to avoid the default 30s startup delay in the Java tracer.
+        # That delay is used in production to reduce the impact on startup and other side-effects on various application
+        # servers. These considerations do not apply to the system-tests environment so we can reduce it to 0s.
+        weblog_env={"DD_DOGSTATSD_START_DELAY": "0"},
         runtime_metrics_enabled=True,
+        # Disable the proxy in between weblog and the agent so that we can send metrics (via UDP) to the agent.
+        # The mitmproxy can only proxy UDP traffic by doing a host-wide transparent proxy, but we currently
+        # via specific ports. As a result, with the proxy enabled all UDP traffic is being dropped.
+        use_proxy_for_weblog=False,
         doc="Test runtime metrics",
     )
 

@@ -224,8 +224,6 @@ class Test_Debugger_PII_Redaction(debugger._Base_Debugger_Test):
         self._assert(REDACTED_KEYS, REDACTED_TYPES, line_probe=True)
 
     ############ old versions ############
-    def filter(keys_to_filter):
-        return [item for item in REDACTED_KEYS if item not in keys_to_filter]
 
     def setup_pii_redaction_java_1_33(self):
         self._setup()
