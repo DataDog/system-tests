@@ -306,7 +306,7 @@ tests/:
       Test_ExternalWafRequestsIdentification: v1.22.0
       Test_RetainTraces: v0.54.2
     test_user_blocking_full_denylist.py:
-      Test_UserBlocking_FullDenylist: missing_feature
+      Test_UserBlocking_FullDenylist: v2.9.0
     test_versions.py:
       Test_Events: v0.54.2
   debugger/:
