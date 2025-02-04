@@ -496,7 +496,6 @@ class Test_Config_LogInjection_Enabled:
         required_fields = ["trace_id", "span_id", "service", "version", "env"]
         for field in required_fields:
             assert field in dd, f"Missing field: {field}"
-        return
 
 
 @rfc("https://docs.google.com/document/d/1kI-gTAKghfcwI7YzKhqRv2ExUstcHqADIWA4-TZ387o/edit#heading=h.8v16cioi7qxp")
