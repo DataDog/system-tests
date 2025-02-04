@@ -20,7 +20,7 @@ def get_schema(request, address):
         payload = meta.get("_dd.appsec.s." + address)
         if payload is not None:
             return payload
-    return
+    return None
 
 
 # can be used to match any value in a schema
