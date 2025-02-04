@@ -18,7 +18,7 @@ class TestSSRF(BaseSinkTest):
     location_map = {
         "java": "com.datadoghq.system_tests.iast.utils.SsrfExamples",
         "nodejs": {"express4": "iast/index.js", "express4-typescript": "iast.ts", "express5": "iast/index.js"},
-        "python": {"flask-poc": "app.py", "django-poc": "app/urls.py", "fastapi": "app/main.py"},
+        "python": {"flask-poc": "app.py", "django-poc": "app/urls.py", "fastapi": "main.py"},
     }
 
     @bug(context.library < "java@1.14.0", reason="APMRP-360")
