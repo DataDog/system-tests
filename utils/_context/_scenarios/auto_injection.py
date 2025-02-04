@@ -4,50 +4,10 @@ import os
 from pathlib import Path
 from utils._context.library_version import LibraryVersion
 from utils.tools import logger
+from utils.onboarding.debug_vm import extract_logs_to_file
 from utils.virtual_machine.utils import get_tested_apps_vms, generate_gitlab_pipeline
-
-from utils._context.virtual_machines import (
-    Ubuntu20amd64,
-    Ubuntu20arm64,
-    Ubuntu21arm64,
-    Ubuntu22amd64,
-    Ubuntu22arm64,
-    Ubuntu23_04_amd64,
-    Ubuntu23_04_arm64,
-    Ubuntu23_10_amd64,
-    Ubuntu23_10_arm64,
-    Ubuntu24amd64,
-    Ubuntu24arm64,
-    Ubuntu18amd64,
-    AmazonLinux2022arm64,
-    AmazonLinux2022amd64,
-    AmazonLinux2023arm64,
-    AmazonLinux2023amd64,
-    AmazonLinux2amd64,
-    AmazonLinux2arm64,
-    Centos7amd64,
-    Centos8amd64,
-    OracleLinux92amd64,
-    OracleLinux92arm64,
-    OracleLinux88amd64,
-    OracleLinux88arm64,
-    OracleLinux79amd64,
-    Debian12amd64,
-    Debian12arm64,
-    AlmaLinux8amd64,
-    AlmaLinux8arm64,
-    AlmaLinux9amd64,
-    AlmaLinux9arm64,
-    RedHat7_9amd64,
-    RedHat86amd64,
-    RedHat86arm64,
-    RedHat90amd64,
-    RedHat90arm64,
-    Fedora36amd64,
-    Fedora36arm64,
-    Fedora37amd64,
-    Fedora37arm64,
-)
+from utils.virtual_machine.virtual_machine_matrix_definitions import check_weblog_can_run_on_vm, get_supported_vms
+from utils.virtual_machine.virtual_machines import _VirtualMachine
 
 from .core import Scenario
 
@@ -62,48 +22,9 @@ class _VirtualMachineScenario(Scenario):
         github_workflow,
         doc,
         vm_provision=None,
-        include_ubuntu_20_amd64=False,
-        include_ubuntu_20_arm64=False,
-        include_ubuntu_21_arm64=False,
-        include_ubuntu_22_amd64=False,
-        include_ubuntu_22_arm64=False,
-        include_ubuntu_23_04_amd64=False,
-        include_ubuntu_23_04_arm64=False,
-        include_ubuntu_23_10_amd64=False,
-        include_ubuntu_23_10_arm64=False,
-        include_ubuntu_24_amd64=False,
-        include_ubuntu_24_arm64=False,
-        include_ubuntu_18_amd64=False,
-        include_amazon_linux_2_amd64=False,
-        include_amazon_linux_2_arm64=False,
-        include_amazon_linux_2022_amd64=False,
-        include_amazon_linux_2022_arm64=False,
-        include_amazon_linux_2023_amd64=False,
-        include_amazon_linux_2023_arm64=False,
-        include_centos_7_amd64=False,
-        include_centos_8_amd64=False,
-        include_oraclelinux_9_2_amd64=False,
-        include_oraclelinux_9_2_arm64=False,
-        include_oraclelinux_8_8_amd64=False,
-        include_oraclelinux_8_8_arm64=False,
-        include_oraclelinux_7_9_amd64=False,
-        include_debian_12_amd64=False,
-        include_debian_12_arm64=False,
-        include_almalinux_8_amd64=False,
-        include_almalinux_8_arm64=False,
-        include_almalinux_9_amd64=False,
-        include_almalinux_9_arm64=False,
-        include_redhat_7_9_amd64=False,
-        include_redhat_8_amd64=False,
-        include_redhat_8_arm64=False,
-        include_redhat_9_amd64=False,
-        include_redhat_9_arm64=False,
-        include_fedora_36_amd64=False,
-        include_fedora_36_arm64=False,
-        include_fedora_37_amd64=False,
-        include_fedora_37_arm64=False,
         agent_env=None,
         app_env=None,
+        scenario_vms_exclude=None,
         scenario_groups=None,
     ) -> None:
         super().__init__(name, doc=doc, github_workflow=github_workflow, scenario_groups=scenario_groups)
@@ -115,90 +36,21 @@ class _VirtualMachineScenario(Scenario):
         self.agent_env = agent_env
         # Variables that will populate for the app installation
         self.app_env = app_env
+        # Vms excluded by the scenario
+        self.scenario_vms_exclude = scenario_vms_exclude if scenario_vms_exclude is not None else []
         self.only_default_vms = ""
-        if include_ubuntu_20_amd64:
-            self.required_vms.append(Ubuntu20amd64())
-        if include_ubuntu_20_arm64:
-            self.required_vms.append(Ubuntu20arm64())
-        if include_ubuntu_21_arm64:
-            self.required_vms.append(Ubuntu21arm64())
-        if include_ubuntu_22_amd64:
-            self.required_vms.append(Ubuntu22amd64())
-        if include_ubuntu_22_arm64:
-            self.required_vms.append(Ubuntu22arm64())
-        if include_ubuntu_23_04_amd64:
-            self.required_vms.append(Ubuntu23_04_amd64())
-        if include_ubuntu_23_04_arm64:
-            self.required_vms.append(Ubuntu23_04_arm64())
-        if include_ubuntu_23_10_amd64:
-            self.required_vms.append(Ubuntu23_10_amd64())
-        if include_ubuntu_23_10_arm64:
-            self.required_vms.append(Ubuntu23_10_arm64())
-        if include_ubuntu_24_amd64:
-            self.required_vms.append(Ubuntu24amd64())
-        if include_ubuntu_24_arm64:
-            self.required_vms.append(Ubuntu24arm64())
-        if include_ubuntu_18_amd64:
-            self.required_vms.append(Ubuntu18amd64())
-        if include_amazon_linux_2022_amd64:
-            self.required_vms.append(AmazonLinux2022amd64())
-        if include_amazon_linux_2022_arm64:
-            self.required_vms.append(AmazonLinux2022arm64())
-        if include_amazon_linux_2_amd64:
-            self.required_vms.append(AmazonLinux2amd64())
-        if include_amazon_linux_2_arm64:
-            self.required_vms.append(AmazonLinux2arm64())
-        if include_amazon_linux_2023_amd64:
-            self.required_vms.append(AmazonLinux2023amd64())
-        if include_amazon_linux_2023_arm64:
-            self.required_vms.append(AmazonLinux2023arm64())
-        if include_centos_7_amd64:
-            self.required_vms.append(Centos7amd64())
-        if include_centos_8_amd64:
-            self.required_vms.append(Centos8amd64())
-        # Include Oracle Linux (not default vms)
-        if include_oraclelinux_9_2_amd64:
-            self.required_vms.append(OracleLinux92amd64())
-        if include_oraclelinux_9_2_arm64:
-            self.required_vms.append(OracleLinux92arm64())
-        if include_oraclelinux_8_8_amd64:
-            self.required_vms.append(OracleLinux88amd64())
-        if include_oraclelinux_8_8_arm64:
-            self.required_vms.append(OracleLinux88arm64())
-        if include_oraclelinux_7_9_amd64:
-            self.required_vms.append(OracleLinux79amd64())
-        if include_debian_12_amd64:
-            self.required_vms.append(Debian12amd64())
-        if include_debian_12_arm64:
-            self.required_vms.append(Debian12arm64())
-        if include_almalinux_8_amd64:
-            self.required_vms.append(AlmaLinux8amd64())
-        if include_almalinux_8_arm64:
-            self.required_vms.append(AlmaLinux8arm64())
-        if include_almalinux_9_amd64:
-            self.required_vms.append(AlmaLinux9amd64())
-        if include_almalinux_9_arm64:
-            self.required_vms.append(AlmaLinux9arm64())
-        if include_redhat_7_9_amd64:
-            self.required_vms.append(RedHat7_9amd64())
-        if include_redhat_8_amd64:
-            self.required_vms.append(RedHat86amd64())
-        if include_redhat_8_arm64:
-            self.required_vms.append(RedHat86arm64())
-        if include_redhat_9_amd64:
-            self.required_vms.append(RedHat90amd64())
-        if include_redhat_9_arm64:
-            self.required_vms.append(RedHat90arm64())
-        if include_fedora_36_amd64:
-            self.required_vms.append(Fedora36amd64())
-        if include_fedora_36_arm64:
-            self.required_vms.append(Fedora36arm64())
-        if include_fedora_37_amd64:
-            self.required_vms.append(Fedora37amd64())
-        if include_fedora_37_arm64:
-            self.required_vms.append(Fedora37arm64())
-        # Current selected vm for the scenario
-        self.virtual_machine = None
+        # Current selected vm for the scenario (set empty by default)
+        self.virtual_machine = _VirtualMachine(
+            name="",
+            aws_config=None,
+            vagrant_config=None,
+            krunvm_config=None,
+            os_type=None,
+            os_distro=None,
+            os_branch=None,
+            os_cpu=None,
+            default_vm=False,
+        )
 
     def print_installed_components(self):
         logger.terminal.write_sep("=", "Installed components", bold=True)
@@ -227,40 +79,35 @@ class _VirtualMachineScenario(Scenario):
         # Pipeline generation mode. No run tests, no start vms
         self.vm_gitlab_pipeline = config.option.vm_gitlab_pipeline
 
-        provisioner.remove_unsupported_machines(
+        supported_vms = get_supported_vms(
             self._library.library,
             self._weblog,
-            self.required_vms,
             self.vm_provider_id,
-            config.option.vm_only_branch,
-            config.option.vm_skip_branches,
             self.only_default_vms,
-            config.option.vm_only,
+            scenario_vms_exclude=self.scenario_vms_exclude,
         )
-        for vm in self.required_vms:
-            logger.info(f"Adding provision for {vm.name}")
-            vm.add_provision(
-                provisioner.get_provision(
-                    self._library.library,
-                    self._env,
-                    self._weblog,
-                    self.vm_provision_name,
-                    vm.os_type,
-                    vm.os_distro,
-                    vm.os_branch,
-                    vm.os_cpu,
-                )
-            )
-            vm.add_agent_env(self.agent_env)
-            vm.add_app_env(self.app_env)
-
         if self.vm_gitlab_pipeline:
+            # For the pipeline generation we need to caclculate the provision for each machine
+            # For cache pipelie we need to cache name and this came from the provision
+            for vm in supported_vms:
+                vm.add_provision(
+                    provisioner.get_provision(
+                        self._library.library,
+                        self._env,
+                        self._weblog,
+                        self.vm_provision_name,
+                        vm.os_type,
+                        vm.os_distro,
+                        vm.os_branch,
+                        vm.os_cpu,
+                    )
+                )
             pipeline = generate_gitlab_pipeline(
                 config.option.vm_library,
                 self._weblog,
                 self.name,
                 self._env,
-                self.required_vms,
+                supported_vms,
                 os.getenv("DD_INSTALLER_LIBRARY_VERSION", ""),
                 os.getenv("DD_INSTALLER_INJECTOR_VERSION", ""),
                 "one-pipeline" in self.vm_gitlab_pipeline,
@@ -269,10 +116,25 @@ class _VirtualMachineScenario(Scenario):
                 json.dump(pipeline, f, ensure_ascii=False, indent=4)
         else:
             assert config.option.vm_only is not None, "No VM selected to run. Use --vm-only"
-            self.virtual_machine = next((vm for vm in self.required_vms if vm.name == config.option.vm_only), None)
+            self.virtual_machine = next((vm for vm in supported_vms if vm.name == config.option.vm_only), None)
             assert self.virtual_machine is not None, f"VM not found: {config.option.vm_only}"
             logger.info(f"Selected VM: {self.virtual_machine.name}")
+            check_weblog_can_run_on_vm(self._library.library, self._weblog, self.virtual_machine.name)
             self.vm_provider.configure(self.virtual_machine)
+            self.virtual_machine.add_provision(
+                provisioner.get_provision(
+                    self._library.library,
+                    self._env,
+                    self._weblog,
+                    self.vm_provision_name,
+                    self.virtual_machine.os_type,
+                    self.virtual_machine.os_distro,
+                    self.virtual_machine.os_branch,
+                    self.virtual_machine.os_cpu,
+                )
+            )
+            self.virtual_machine.add_agent_env(self.agent_env)
+            self.virtual_machine.add_app_env(self.app_env)
 
     def _check_test_environment(self):
         """Check if the test environment is correctly set"""
@@ -327,6 +189,8 @@ class _VirtualMachineScenario(Scenario):
 
     def close_targets(self):
         if self.is_main_worker and not self.vm_gitlab_pipeline:
+            # Extract logs from the VM before destroy
+            extract_logs_to_file(self.virtual_machine.get_vm_logs(), self.host_log_folder)
             logger.info("Destroying virtual machines")
             self.vm_provider.stack_destroy()
 
@@ -353,7 +217,7 @@ class _VirtualMachineScenario(Scenario):
             test["description"] = test["path"][last_index:]
 
         # We are going to split the FPD report in multiple reports, one per VM-runtime
-        vms, vm_ids = get_tested_apps_vms()
+        vms, vm_ids = get_tested_apps_vms(self.virtual_machine)
         for i in range(len(vms)):
             vm = vms[i]
             vm_id = vm_ids[i]
@@ -361,8 +225,14 @@ class _VirtualMachineScenario(Scenario):
             new_result = copy.copy(result)
             new_tested_deps = result["testedDependencies"].copy()
             new_result["configuration"] = {"os": vm_name_clean, "arch": vm.os_cpu}
-            new_result["configuration"]["runtime_version"] = vm.get_deployed_weblog().runtime_version
             new_result["configuration"]["app_type"] = vm.get_deployed_weblog().app_type
+            if self.virtual_machine.get_deployed_weblog().app_type == "host":
+                new_result["configuration"]["runtime_version"] = (
+                    self.virtual_machine.tested_components["runtime_version"].lstrip(" ").replace(",", "")
+                )
+            else:
+                new_result["configuration"]["runtime_version"] = vm.get_deployed_weblog().runtime_version
+
             if "glibc" in vm.tested_components:
                 new_tested_deps.append({"name": "glibc", "version": vm.tested_components["glibc"]})
                 new_tested_deps.append({"name": "glibc_type", "version": vm.tested_components["glibc_type"]})
@@ -387,49 +257,9 @@ class InstallerAutoInjectionScenario(_VirtualMachineScenario):
         vm_provision="installer-auto-inject",
         agent_env=None,
         app_env=None,
+        scenario_vms_exclude=None,
         scenario_groups=None,
         github_workflow=None,
-        *,
-        include_ubuntu_20_amd64=True,
-        include_ubuntu_20_arm64=True,
-        include_ubuntu_21_arm64=True,
-        include_ubuntu_22_amd64=True,
-        include_ubuntu_22_arm64=True,
-        include_ubuntu_23_04_amd64=False,
-        include_ubuntu_23_04_arm64=True,
-        include_ubuntu_23_10_amd64=False,
-        include_ubuntu_23_10_arm64=True,
-        include_ubuntu_24_amd64=True,
-        include_ubuntu_24_arm64=True,
-        include_ubuntu_18_amd64=False,
-        include_amazon_linux_2_amd64=True,
-        include_amazon_linux_2_arm64=True,
-        include_amazon_linux_2022_amd64=True,
-        include_amazon_linux_2022_arm64=True,
-        include_amazon_linux_2023_amd64=True,
-        include_amazon_linux_2023_arm64=True,
-        include_centos_7_amd64=True,
-        include_centos_8_amd64=True,
-        include_oraclelinux_9_2_amd64=False,
-        include_oraclelinux_9_2_arm64=False,
-        include_oraclelinux_8_8_amd64=False,
-        include_oraclelinux_8_8_arm64=False,
-        include_oraclelinux_7_9_amd64=False,
-        include_debian_12_amd64=True,
-        include_debian_12_arm64=True,
-        include_almalinux_8_amd64=False,
-        include_almalinux_8_arm64=False,
-        include_almalinux_9_amd64=False,
-        include_almalinux_9_arm64=False,
-        include_redhat_7_9_amd64=True,
-        include_redhat_8_amd64=True,
-        include_redhat_8_arm64=True,
-        include_redhat_9_amd64=True,
-        include_redhat_9_arm64=True,
-        include_fedora_36_amd64=False,
-        include_fedora_36_arm64=False,
-        include_fedora_37_amd64=False,
-        include_fedora_37_arm64=False,
     ) -> None:
         # Force full tracing without limits
         app_env_defaults = {
@@ -444,47 +274,8 @@ class InstallerAutoInjectionScenario(_VirtualMachineScenario):
             vm_provision=vm_provision,
             agent_env=agent_env,
             app_env=app_env_defaults,
+            scenario_vms_exclude=scenario_vms_exclude,
             doc=doc,
             github_workflow=github_workflow,
             scenario_groups=scenario_groups,
-            include_ubuntu_20_amd64=include_ubuntu_20_amd64,
-            include_ubuntu_20_arm64=include_ubuntu_20_arm64,
-            include_ubuntu_21_arm64=include_ubuntu_21_arm64,
-            include_ubuntu_22_amd64=include_ubuntu_22_amd64,
-            include_ubuntu_22_arm64=include_ubuntu_22_arm64,
-            include_ubuntu_23_04_amd64=include_ubuntu_23_04_amd64,
-            include_ubuntu_23_04_arm64=include_ubuntu_23_04_arm64,
-            include_ubuntu_23_10_amd64=include_ubuntu_23_10_amd64,
-            include_ubuntu_23_10_arm64=include_ubuntu_23_10_arm64,
-            include_ubuntu_24_amd64=include_ubuntu_24_amd64,
-            include_ubuntu_24_arm64=include_ubuntu_24_arm64,
-            include_ubuntu_18_amd64=include_ubuntu_18_amd64,
-            include_amazon_linux_2_amd64=include_amazon_linux_2_amd64,
-            include_amazon_linux_2_arm64=include_amazon_linux_2_arm64,
-            include_amazon_linux_2022_amd64=include_amazon_linux_2022_amd64,
-            include_amazon_linux_2022_arm64=include_amazon_linux_2022_arm64,
-            include_amazon_linux_2023_amd64=include_amazon_linux_2023_amd64,
-            include_amazon_linux_2023_arm64=include_amazon_linux_2023_arm64,
-            include_centos_7_amd64=include_centos_7_amd64,
-            include_centos_8_amd64=include_centos_8_amd64,
-            include_oraclelinux_9_2_amd64=include_oraclelinux_9_2_amd64,
-            include_oraclelinux_9_2_arm64=include_oraclelinux_9_2_arm64,
-            include_oraclelinux_8_8_amd64=include_oraclelinux_8_8_amd64,
-            include_oraclelinux_8_8_arm64=include_oraclelinux_8_8_arm64,
-            include_oraclelinux_7_9_amd64=include_oraclelinux_7_9_amd64,
-            include_debian_12_amd64=include_debian_12_amd64,
-            include_debian_12_arm64=include_debian_12_arm64,
-            include_almalinux_8_amd64=include_almalinux_8_amd64,
-            include_almalinux_8_arm64=include_almalinux_8_arm64,
-            include_almalinux_9_amd64=include_almalinux_9_amd64,
-            include_almalinux_9_arm64=include_almalinux_9_arm64,
-            include_redhat_7_9_amd64=include_redhat_7_9_amd64,
-            include_redhat_8_amd64=include_redhat_8_amd64,
-            include_redhat_8_arm64=include_redhat_8_arm64,
-            include_redhat_9_amd64=include_redhat_9_amd64,
-            include_redhat_9_arm64=include_redhat_9_arm64,
-            include_fedora_36_amd64=include_fedora_36_amd64,
-            include_fedora_36_arm64=include_fedora_36_arm64,
-            include_fedora_37_amd64=include_fedora_37_amd64,
-            include_fedora_37_arm64=include_fedora_37_arm64,
         )

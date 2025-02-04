@@ -3,9 +3,9 @@ import json
 import hashlib
 from pathlib import Path
 
-from utils.tools import logger
-from utils import context
-from utils.onboarding.debug_vm import extract_logs_to_file
+# from utils.tools import logger
+# from utils import context
+# from utils.onboarding.debug_vm import extract_logs_to_file
 
 
 class AWSInfraConfig:
@@ -14,9 +14,6 @@ class AWSInfraConfig:
         self.subnet_id = os.getenv("ONBOARDING_AWS_INFRA_SUBNET_ID", "").split(",")
         self.vpc_security_group_ids = os.getenv("ONBOARDING_AWS_INFRA_SECURITY_GROUPS_ID", "").split(",")
         self.iam_instance_profile = os.getenv("ONBOARDING_AWS_INFRA_IAM_INSTANCE_PROFILE")
-
-        # if None in (self.subnet_id, self.vpc_security_group_ids):
-        #    logger.warn("AWS infastructure is not configured correctly for auto-injection testing")
 
 
 class DataDogConfig:
@@ -34,9 +31,6 @@ class DataDogConfig:
         # Cached properties
         self.skip_cache = os.getenv("SKIP_AMI_CACHE", "False").lower() == "true"
         self.update_cache = os.getenv("AMI_UPDATE", "False").lower() == "true"
-
-        # if None in (self.dd_api_key, self.dd_app_key):
-        #    logger.warn("Datadog agent is not configured correctly for auto-injection testing")
 
 
 class _VagrantConfig:
@@ -76,7 +70,7 @@ class _SSHConfig:
         import paramiko
 
         ssh = paramiko.SSHClient()
-        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())  # noqa: S507
         if self.pkey_path is not None:
             if self.pkey is None:
                 self.pkey = paramiko.RSAKey.from_private_key_file(self.pkey_path)
@@ -117,14 +111,16 @@ class _VirtualMachine:
         self.app_env = None
         self.default_vm = default_vm
         self._deployed_weblog = None
+        self._vm_logs = None
 
     def get_deployed_weblog(self):
         if self._deployed_weblog is None:
             self._deployed_weblog = self._vm_provision.get_deployed_weblog()
-        if self._deployed_weblog.app_type == "host":
-            # If we are using multiple xdist workers we need to load the weblog runtime from the logs
-            # it's the same case as the ip address
-            self._load_runtime_from_logs()
+        # TODO RMM remove
+        # if self._deployed_weblog.app_type == "host":
+        # If we are using multiple xdist workers we need to load the weblog runtime from the logs
+        # it's the same case as the ip address
+        #    self._load_runtime_from_logs()
 
         return self._deployed_weblog
 
@@ -138,52 +134,9 @@ class _VirtualMachine:
         self.ssh_config.hostname = ip
 
     def get_ip(self):
-        """If we run the tests using xdist we lost the ip address of the VM. We can recover it from the logs"""
         if not self.ssh_config.hostname:
-            self._load_ip_from_logs()
+            raise Exception("IP not found")
         return self.ssh_config.hostname
-
-    def _load_runtime_from_logs(self):
-        """Load the runtime version from the test_components.log"""
-        vms_tested_components_file = f"{context.scenario.host_log_folder}/tested_components.log"
-        if Path(vms_tested_components_file).is_file():
-            # Get the machine ip
-            machine_ip = self.get_ip()
-            # Read the file line by line looking for line with the ip
-            with open(vms_tested_components_file) as file:
-                for line in file:
-                    if machine_ip not in line:
-                        continue
-                    # The line comes with date before the json (date:json) and json with single quotes
-                    current_line = line[line.rstrip().find(":") :][1:].replace("'", '"')
-                    json_components = json.loads(current_line)
-                    if "runtime_version" in json_components and json_components["runtime_version"] != "":
-                        self._deployed_weblog.runtime_version = json_components["runtime_version"]
-                        logger.info(
-                            f"Runtime version found for {self.name}. Runtime: {self._deployed_weblog.runtime_version}"
-                        )
-                    break
-
-    def _load_ip_from_logs(self):
-        """Load the ip address from the logs"""
-        vms_desc_file = f"{context.scenario.host_log_folder}/vms_desc.log"
-        logger.info(f"Loading ip for {self.name} from {vms_desc_file}")
-        if Path(vms_desc_file).is_file():
-            with open(vms_desc_file) as f:
-                for line in f:
-                    if self.name in line:
-                        self.ssh_config.hostname = line.split(":")[1]
-                        logger.info(f"IP found for {self.name}. IP: {self.ssh_config.hostname}")
-                        break
-
-    def get_log_folder(self):
-        vm_folder = f"{context.scenario.host_log_folder}/{self.name}"
-        if not Path(vm_folder).exists():
-            Path.mkdir(vm_folder)
-        return vm_folder
-
-    def get_default_log_file(self):
-        return f"{self.get_log_folder()}/virtual_machine_{self.name}.log"
 
     def add_provision(self, provision):
         self._vm_provision = provision
@@ -202,8 +155,11 @@ class _VirtualMachine:
         self.tested_components = json.loads(components_json.replace("'", '"'))
 
     def set_vm_logs(self, vm_logs):
-        """Extract /var/log/ files to a folder in the host machine"""
-        extract_logs_to_file(vm_logs, self.get_log_folder())
+        """Store the logs of the VM"""
+        self._vm_logs = vm_logs
+
+    def get_vm_logs(self):
+        return self._vm_logs
 
     def get_cache_name(self):
         """Generate a unique name for the  cache.
@@ -382,7 +338,7 @@ class Ubuntu22arm64(_VirtualMachine):
 
 
 # Ubuntu 23 from private amis
-class Ubuntu23_04_amd64(_VirtualMachine):
+class Ubuntu23_04_amd64(_VirtualMachine):  # noqa: N801
     def __init__(self, **kwargs) -> None:
         super().__init__(
             "Ubuntu_23_04_amd64",
@@ -398,7 +354,7 @@ class Ubuntu23_04_amd64(_VirtualMachine):
         )
 
 
-class Ubuntu23_04_arm64(_VirtualMachine):
+class Ubuntu23_04_arm64(_VirtualMachine):  # noqa: N801
     def __init__(self, **kwargs) -> None:
         super().__init__(
             "Ubuntu_23_04_arm64",
@@ -414,7 +370,7 @@ class Ubuntu23_04_arm64(_VirtualMachine):
         )
 
 
-class Ubuntu23_10_amd64(_VirtualMachine):
+class Ubuntu23_10_amd64(_VirtualMachine):  # noqa: N801
     def __init__(self, **kwargs) -> None:
         super().__init__(
             "Ubuntu_23_10_amd64",
@@ -430,7 +386,7 @@ class Ubuntu23_10_amd64(_VirtualMachine):
         )
 
 
-class Ubuntu23_10_arm64(_VirtualMachine):
+class Ubuntu23_10_arm64(_VirtualMachine):  # noqa: N801
     def __init__(self, **kwargs) -> None:
         super().__init__(
             "Ubuntu_23_10_arm64",
@@ -708,7 +664,7 @@ class RedHat90arm64(_VirtualMachine):
         )
 
 
-class RedHat7_9amd64(_VirtualMachine):
+class RedHat7_9amd64(_VirtualMachine):  # noqa: N801
     def __init__(self, **kwargs) -> None:
         super().__init__(
             "RedHat_7_9_amd64",
@@ -938,3 +894,56 @@ class Fedora37arm64(_VirtualMachine):
             default_vm=False,
             **kwargs,
         )
+
+
+class SupportedVirtualMachines:
+    """All supported images"""
+
+    def __init__(self) -> None:
+        self.virtual_machines = []
+        self.virtual_machines.append(Ubuntu20amd64())
+        self.virtual_machines.append(Ubuntu20arm64())
+        self.virtual_machines.append(Ubuntu21arm64())
+        self.virtual_machines.append(Ubuntu22amd64())
+        self.virtual_machines.append(Ubuntu22arm64())
+        self.virtual_machines.append(Ubuntu23_04_amd64())
+        self.virtual_machines.append(Ubuntu23_04_arm64())
+        self.virtual_machines.append(Ubuntu23_10_amd64())
+        self.virtual_machines.append(Ubuntu23_10_arm64())
+        self.virtual_machines.append(Ubuntu24amd64())
+        self.virtual_machines.append(Ubuntu24arm64())
+        # self.virtual_machines.append(Ubuntu18amd64())
+        self.virtual_machines.append(AmazonLinux2022amd64())
+        self.virtual_machines.append(AmazonLinux2022arm64())
+        self.virtual_machines.append(AmazonLinux2amd64())
+        self.virtual_machines.append(AmazonLinux2arm64())
+        self.virtual_machines.append(AmazonLinux2023amd64())
+        self.virtual_machines.append(AmazonLinux2023arm64())
+        self.virtual_machines.append(Centos7amd64())
+        self.virtual_machines.append(Centos8amd64())
+        # self.virtual_machines.append(OracleLinux92amd64())
+        # self.virtual_machines.append(OracleLinux92arm64())
+        # self.virtual_machines.append(OracleLinux88amd64())
+        # self.virtual_machines.append(OracleLinux88arm64())
+        # self.virtual_machines.append(OracleLinux79amd64())
+        self.virtual_machines.append(Debian12amd64())
+        self.virtual_machines.append(Debian12arm64())
+        # self.virtual_machines.append(AlmaLinux8amd64())
+        # self.virtual_machines.append(AlmaLinux8arm64())
+        # self.virtual_machines.append(AlmaLinux9amd64())
+        # self.virtual_machines.append(AlmaLinux9arm64())
+        self.virtual_machines.append(RedHat7_9amd64())
+        self.virtual_machines.append(RedHat86amd64())
+        self.virtual_machines.append(RedHat86arm64())
+        self.virtual_machines.append(RedHat90amd64())
+        self.virtual_machines.append(RedHat90arm64())
+        # self.virtual_machines.append(Fedora36amd64())
+        # self.virtual_machines.append(Fedora36arm64())
+        # self.virtual_machines.append(Fedora37amd64())
+        # self.virtual_machines.append(Fedora37arm64())
+
+    def all_virtual_machines(self):
+        return self.virtual_machines
+
+    def excluded_os_branches(self, exclude_os_branches):
+        return [vm for vm in self.virtual_machines if vm.os_branch not in exclude_os_branches]

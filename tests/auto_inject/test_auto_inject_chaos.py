@@ -87,18 +87,18 @@ class BaseAutoInjectChaos(base.AutoInjectBaseTest):
 @scenarios.chaos_installer_auto_injection
 class TestAutoInjectChaos(BaseAutoInjectChaos):
     @bug(
-        context.scenario.virtual_machine.os_branch == "amazon_linux2"
+        scenarios.chaos_installer_auto_injection.virtual_machine.os_branch == "amazon_linux2"
         and context.scenario.weblog_variant == "test-app-ruby",
         reason="INPLAT-103",
     )
     @bug(
-        context.scenario.virtual_machine.os_branch == "centos_7_amd64"
+        scenarios.chaos_installer_auto_injection.virtual_machine.os_branch == "centos_7_amd64"
         and context.scenario.weblog_variant == "test-app-ruby",
         reason="INPLAT-103",
     )
     @bug(
-        context.scenario.virtual_machine.os_branch == "redhat"
-        and context.scenario.virtual_machine.os_cpu == "arm64"
+        scenarios.chaos_installer_auto_injection.virtual_machine.os_branch == "redhat"
+        and scenarios.chaos_installer_auto_injection.virtual_machine.os_cpu == "arm64"
         and context.scenario.weblog_variant == "test-app-ruby",
         reason="INPLAT-103",
     )
@@ -110,23 +110,23 @@ class TestAutoInjectChaos(BaseAutoInjectChaos):
         logger.info(f"Done test_install for : [{virtual_machine.name}]")
 
     @bug(
-        context.scenario.virtual_machine.name == "AlmaLinux_8_arm64"
+        scenarios.chaos_installer_auto_injection.virtual_machine.name == "AlmaLinux_8_arm64"
         and context.scenario.weblog_variant == "test-app-python-alpine",
         reason="APMON-1576",
     )
     @bug(
-        context.scenario.virtual_machine.os_branch == "amazon_linux2"
+        scenarios.chaos_installer_auto_injection.virtual_machine.os_branch == "amazon_linux2"
         and context.scenario.weblog_variant == "test-app-ruby",
         reason="INPLAT-103",
     )
     @bug(
-        context.scenario.virtual_machine.os_branch == "centos_7_amd64"
+        scenarios.chaos_installer_auto_injection.virtual_machine.os_branch == "centos_7_amd64"
         and context.scenario.weblog_variant == "test-app-ruby",
         reason="INPLAT-103",
     )
     @bug(
-        context.scenario.virtual_machine.os_branch == "redhat"
-        and context.scenario.virtual_machine.os_cpu == "arm64"
+        scenarios.chaos_installer_auto_injection.virtual_machine.os_branch == "redhat"
+        and scenarios.chaos_installer_auto_injection.virtual_machine.os_cpu == "arm64"
         and context.scenario.weblog_variant == "test-app-ruby",
         reason="INPLAT-103",
     )

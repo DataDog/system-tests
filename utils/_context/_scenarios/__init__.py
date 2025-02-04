@@ -684,8 +684,10 @@ class _Scenarios:
         vm_provision="auto-inject-ld-preload",
         scenario_groups=[ScenarioGroup.ONBOARDING],
         github_workflow="libinjection",
-        include_amazon_linux_2023_amd64=False,  # LD library failures impact on the docker engine, causes flakiness
-        include_amazon_linux_2023_arm64=False,
+        scenario_vms_exclude=[
+            "amazon_linux_2023_amd64",
+            "amazon_linux_2023_arm64",
+        ],  # LD library failures impact on the docker engine, causes flakiness
     )
 
     simple_auto_injection_profiling = InstallerAutoInjectionScenario(

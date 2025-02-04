@@ -10,18 +10,18 @@ import tests.auto_inject.utils as base
 @scenarios.host_auto_injection_install_script
 class TestHostAutoInjectInstallScript(base.AutoInjectBaseTest):
     @bug(
-        context.scenario.virtual_machine.os_branch == "amazon_linux2"
+        scenarios.host_auto_injection_install_script.virtual_machine.os_branch == "amazon_linux2"
         and context.scenario.weblog_variant == "test-app-ruby",
         reason="INPLAT-103",
     )
     @bug(
-        context.scenario.virtual_machine.os_branch == "centos_7_amd64"
+        scenarios.host_auto_injection_install_script.virtual_machine.os_branch == "centos_7_amd64"
         and context.scenario.weblog_variant == "test-app-ruby",
         reason="INPLAT-103",
     )
     @bug(
-        context.scenario.virtual_machine.os_branch == "redhat"
-        and context.scenario.virtual_machine.os_cpu == "arm64"
+        scenarios.host_auto_injection_install_script.virtual_machine.os_branch == "redhat"
+        and scenarios.host_auto_injection_install_script.virtual_machine.os_cpu == "arm64"
         and context.scenario.weblog_variant == "test-app-ruby",
         reason="INPLAT-103",
     )
@@ -40,21 +40,22 @@ class TestLocalAutoInjectInstallScript(base.AutoInjectBaseTest):
 @scenarios.simple_auto_injection_profiling
 class TestSimpleInstallerAutoInjectManualProfiling(base.AutoInjectBaseTest):
     @bug(
-        context.scenario.virtual_machine.os_cpu == "arm64" and context.scenario.weblog_variant == "test-app-dotnet",
+        scenarios.simple_auto_injection_profiling.virtual_machine.os_cpu == "arm64"
+        and context.scenario.weblog_variant == "test-app-dotnet",
         reason="PROF-10783",
     )
     @bug(
-        context.scenario.virtual_machine.os_cpu == "arm64"
+        scenarios.simple_auto_injection_profiling.virtual_machine.os_cpu == "arm64"
         and context.scenario.weblog_variant == "test-app-dotnet-container",
         reason="PROF-10783",
     )
     @bug(
-        context.scenario.virtual_machine.name == "Ubuntu_24_amd64"
+        scenarios.simple_auto_injection_profiling.virtual_machine.name == "Ubuntu_24_amd64"
         and context.scenario.weblog_variant == "test-app-nodejs",
         reason="PROF-11264",
     )
     @bug(
-        context.scenario.virtual_machine.name == "Ubuntu_24_arm64"
+        scenarios.simple_auto_injection_profiling.virtual_machine.name == "Ubuntu_24_arm64"
         and context.scenario.weblog_variant == "test-app-nodejs",
         reason="PROF-11264",
     )
@@ -68,16 +69,17 @@ class TestSimpleInstallerAutoInjectManualProfiling(base.AutoInjectBaseTest):
 @scenarios.host_auto_injection_install_script_profiling
 class TestHostAutoInjectInstallScriptProfiling(base.AutoInjectBaseTest):
     @bug(
-        context.scenario.virtual_machine.os_cpu == "arm64" and context.scenario.weblog_variant == "test-app-dotnet",
+        scenarios.host_auto_injection_install_script_profiling.virtual_machine.os_cpu == "arm64"
+        and context.scenario.weblog_variant == "test-app-dotnet",
         reason="PROF-10783",
     )
     @bug(
-        context.scenario.virtual_machine.name == "Ubuntu_24_amd64"
+        scenarios.host_auto_injection_install_script_profiling.virtual_machine.name == "Ubuntu_24_amd64"
         and context.scenario.weblog_variant == "test-app-nodejs",
         reason="PROF-11264",
     )
     @bug(
-        context.scenario.virtual_machine.name == "Ubuntu_24_arm64"
+        scenarios.host_auto_injection_install_script_profiling.virtual_machine.name == "Ubuntu_24_arm64"
         and context.scenario.weblog_variant == "test-app-nodejs",
         reason="PROF-11264",
     )
@@ -91,7 +93,7 @@ class TestHostAutoInjectInstallScriptProfiling(base.AutoInjectBaseTest):
 @scenarios.container_auto_injection_install_script
 class TestContainerAutoInjectInstallScript(base.AutoInjectBaseTest):
     @bug(
-        context.scenario.virtual_machine.name == "AlmaLinux_8_arm64"
+        scenarios.container_auto_injection_install_script.virtual_machine.name == "AlmaLinux_8_arm64"
         and context.scenario.weblog_variant == "test-app-python-alpine",
         reason="APMON-1576",
     )
@@ -103,7 +105,7 @@ class TestContainerAutoInjectInstallScript(base.AutoInjectBaseTest):
 @scenarios.container_auto_injection_install_script_profiling
 class TestContainerAutoInjectInstallScriptProfiling(base.AutoInjectBaseTest):
     @bug(
-        context.scenario.virtual_machine.os_cpu == "arm64"
+        scenarios.container_auto_injection_install_script_profiling.virtual_machine.os_cpu == "arm64"
         and context.scenario.weblog_variant == "test-app-dotnet-container",
         reason="PROF-10783",
     )
@@ -181,23 +183,23 @@ class TestInstallerAutoInjectManual(base.AutoInjectBaseTest):
     #  on the installer. As we can't only uninstall the injector, we are skipping
     #  the uninstall test today
     @bug(
-        context.scenario.virtual_machine.name == "AlmaLinux_8_arm64"
+        scenarios.installer_auto_injection.virtual_machine.name == "AlmaLinux_8_arm64"
         and context.scenario.weblog_variant == "test-app-python-alpine",
         reason="APMON-1576",
     )
     @bug(
-        context.scenario.virtual_machine.os_branch == "amazon_linux2"
+        scenarios.installer_auto_injection.virtual_machine.os_branch == "amazon_linux2"
         and context.scenario.weblog_variant == "test-app-ruby",
         reason="INPLAT-103",
     )
     @bug(
-        context.scenario.virtual_machine.os_branch == "centos_7_amd64"
+        scenarios.installer_auto_injection.virtual_machine.os_branch == "centos_7_amd64"
         and context.scenario.weblog_variant == "test-app-ruby",
         reason="INPLAT-103",
     )
     @bug(
-        context.scenario.virtual_machine.os_branch == "redhat"
-        and context.scenario.virtual_machine.os_cpu == "arm64"
+        scenarios.installer_auto_injection.virtual_machine.os_branch == "redhat"
+        and scenarios.installer_auto_injection.virtual_machine.os_cpu == "arm64"
         and context.scenario.weblog_variant == "test-app-ruby",
         reason="INPLAT-103",
     )
@@ -215,23 +217,23 @@ class TestInstallerAutoInjectManual(base.AutoInjectBaseTest):
 @scenarios.simple_installer_auto_injection
 class TestSimpleInstallerAutoInjectManual(base.AutoInjectBaseTest):
     @bug(
-        context.scenario.virtual_machine.name == "AlmaLinux_8_arm64"
+        scenarios.simple_installer_auto_injection.virtual_machine.name == "AlmaLinux_8_arm64"
         and context.scenario.weblog_variant == "test-app-python-alpine",
         reason="APMON-1576",
     )
     @bug(
-        context.scenario.virtual_machine.os_branch == "amazon_linux2"
+        scenarios.simple_installer_auto_injection.virtual_machine.os_branch == "amazon_linux2"
         and context.scenario.weblog_variant == "test-app-ruby",
         reason="INPLAT-103",
     )
     @bug(
-        context.scenario.virtual_machine.os_branch == "centos_7_amd64"
+        scenarios.simple_installer_auto_injection.virtual_machine.os_branch == "centos_7_amd64"
         and context.scenario.weblog_variant == "test-app-ruby",
         reason="INPLAT-103",
     )
     @bug(
-        context.scenario.virtual_machine.os_branch == "redhat"
-        and context.scenario.virtual_machine.os_cpu == "arm64"
+        scenarios.simple_installer_auto_injection.virtual_machine.os_branch == "redhat"
+        and scenarios.simple_installer_auto_injection.virtual_machine.os_cpu == "arm64"
         and context.scenario.weblog_variant == "test-app-ruby",
         reason="INPLAT-103",
     )

@@ -19,8 +19,8 @@ class VagrantProvider(VmProvider):
 
     def stack_up(self):
         logger.stdout(f"--------- Starting Vagrant VM: {self.vm.name} -----------")
-        log_cm = vagrant.make_file_cm(self.vm.get_default_log_file())
-        self.vagrant_machine = vagrant.Vagrant(root=self.vm.get_log_folder(), out_cm=log_cm, err_cm=log_cm)
+        log_cm = vagrant.make_file_cm(f"{context.scenario.host_log_folder}/virtual_machine_{self.name}.log")
+        self.vagrant_machine = vagrant.Vagrant(root=context.scenario.host_log_folder, out_cm=log_cm, err_cm=log_cm)
         self.vagrant_machine.init(box_name=self.vm.vagrant_config.box_name)
         # TODO Support for different vagrant providers. Currently only support for qemu
         self._set_vagrant_configuration(self.vm)
@@ -44,7 +44,7 @@ class VagrantProvider(VmProvider):
         TODO Support for different vagrant providers. Currently only support for qemu
         """
 
-        conf_file_path = f"{vm.get_log_folder()}/Vagrantfile"
+        conf_file_path = f"{context.scenario.host_log_folder}/Vagrantfile"
         vm.ssh_config.port = self._get_open_port()
         vm.deffault_open_port = self._get_open_port()
         # qe_arch = "x86_64" if vm.os_cpu == "amd64" else "aarch64"
