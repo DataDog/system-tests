@@ -105,7 +105,7 @@ class Test_Defaults:
                     continue
             if context.library == "python":
                 # DD_TRACE_SAMPLE_RATE is not supported in ddtrace>=3.x
-                unsupported_fields = ("trace_sample_rate",)
+                unsupported_fields = ("trace_sample_rate",)  # type: ignore[assignment]
                 if apm_telemetry_name in unsupported_fields:
                     continue
             apm_telemetry_name = _mapped_telemetry_name(context, apm_telemetry_name)
@@ -264,7 +264,7 @@ class Test_Environment:
                 )
             if context.library == "python":
                 # DD_TRACE_SAMPLE_RATE is not supported in ddtrace>=3.x
-                unsupported_fields = ("trace_sample_rate",)
+                unsupported_fields = ("trace_sample_rate",)  # type: ignore[assignment]
                 if apm_telemetry_name in unsupported_fields:
                     continue
 
