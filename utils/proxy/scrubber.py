@@ -26,7 +26,7 @@ def _instrument_write_methods_str(f, secrets: set[str]) -> None:
 
     def write(data):
         for secret in secrets:
-            data = data.replace(secret, "<redacted>")
+            data = data.replace(secret, "--redacted--")
 
         original_write(data)
 
@@ -39,7 +39,7 @@ def _instrument_write_methods_bytes(f, secrets: set[str]) -> None:
     def write(data):
         if hasattr(data, "replace"):
             for secret in secrets:
-                data = data.replace(secret.encode(), b"<redacted>")
+                data = data.replace(secret.encode(), b"--redacted--")
 
         original_write(data)
 
