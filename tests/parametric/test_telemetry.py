@@ -107,12 +107,12 @@ class Test_Defaults:
             apm_telemetry_name = _mapped_telemetry_name(context, apm_telemetry_name)
 
             cfg_item = configuration_by_name.get(apm_telemetry_name)
-            assert cfg_item is not None, "Missing telemetry config item for '{}'".format(apm_telemetry_name)
+            assert cfg_item is not None, f"Missing telemetry config item for '{apm_telemetry_name}'"
             if isinstance(value, tuple):
-                assert cfg_item.get("value") in value, "Unexpected value for '{}'".format(apm_telemetry_name)
+                assert cfg_item.get("value") in value, f"Unexpected value for '{apm_telemetry_name}'"
             else:
-                assert cfg_item.get("value") == value, "Unexpected value for '{}'".format(apm_telemetry_name)
-            assert cfg_item.get("origin") == "default", "Unexpected origin for '{}'".format(apm_telemetry_name)
+                assert cfg_item.get("value") == value, f"Unexpected value for '{apm_telemetry_name}'"
+            assert cfg_item.get("origin") == "default", f"Unexpected origin for '{apm_telemetry_name}'"
 
 
 @scenarios.parametric
@@ -264,16 +264,12 @@ class Test_Environment:
 
             apm_telemetry_name = _mapped_telemetry_name(context, apm_telemetry_name)
             cfg_item = configuration_by_name.get(apm_telemetry_name)
-            assert cfg_item is not None, "Missing telemetry config item for '{}'".format(apm_telemetry_name)
+            assert cfg_item is not None, f"Missing telemetry config item for '{apm_telemetry_name}'"
             if isinstance(environment_value, tuple):
-                assert cfg_item.get("value") in environment_value, "Unexpected value for '{}'".format(
-                    apm_telemetry_name
-                )
+                assert cfg_item.get("value") in environment_value, f"Unexpected value for '{apm_telemetry_name}'"
             else:
-                assert cfg_item.get("value") == environment_value, "Unexpected value for '{}'".format(
-                    apm_telemetry_name
-                )
-            assert cfg_item.get("origin") == "env_var", "Unexpected origin for '{}'".format(apm_telemetry_name)
+                assert cfg_item.get("value") == environment_value, f"Unexpected value for '{apm_telemetry_name}'"
+            assert cfg_item.get("origin") == "env_var", f"Unexpected origin for '{apm_telemetry_name}'"
 
     @missing_feature(context.library == "dotnet", reason="Not implemented")
     @missing_feature(context.library == "java", reason="Not implemented")
@@ -343,7 +339,7 @@ class Test_Environment:
         else:
             ddsampling_config = "dd_trace_sample_rate"
 
-        dd_to_otel_mapping: List[List[Optional[str]]] = [
+        dd_to_otel_mapping: List[List[str | None]] = [
             ["dd_trace_propagation_style", "otel_propagators"],
             ["dd_service", "otel_service_name"],
             [ddsampling_config, "otel_traces_sampler"],
@@ -431,7 +427,7 @@ class Test_Environment:
         else:
             ddsampling_config = "dd_trace_sample_rate"
 
-        dd_to_otel_mapping: List[List[Optional[str]]] = [
+        dd_to_otel_mapping: List[List[str | None]] = [
             ["dd_trace_propagation_style", "otel_propagators"],
             [ddsampling_config, "otel_traces_sampler"],
             ["dd_trace_enabled", "otel_traces_exporter"],
@@ -502,7 +498,7 @@ class Test_TelemetryInstallSignature:
                 continue
             assert (
                 "install_signature" in body["payload"]
-            ), "The install signature should be included in the telemetry event, got {}".format(body)
+            ), f"The install signature should be included in the telemetry event, got {body}"
             assert (
                 "install_id" in body["payload"]["install_signature"]
             ), "The install id should be included in the telemetry event, got {}".format(
@@ -545,7 +541,7 @@ class Test_TelemetryInstallSignature:
             if "payload" in body:
                 assert (
                     "install_signature" not in body["payload"]
-                ), "The install signature should not be included in the telemetry event, got {}".format(body)
+                ), f"The install signature should not be included in the telemetry event, got {body}"
 
 
 @rfc("https://docs.google.com/document/d/1xTLC3UEGNooZS0YOYp3swMlAhtvVn1aa639TGxHHYvg/edit")
@@ -588,7 +584,7 @@ class Test_TelemetrySCAEnvVar:
 
             assert (
                 "configuration" in body["payload"]
-            ), "The configuration should be included in the telemetry event, got {}".format(body)
+            ), f"The configuration should be included in the telemetry event, got {body}"
 
             configuration = body["payload"]["configuration"]
 
@@ -620,7 +616,7 @@ class Test_TelemetrySCAEnvVar:
         DD_APPSEC_SCA_ENABLED = TelemetryUtils.get_dd_appsec_sca_enabled_str(context.library)
 
         cfg_appsec_enabled = configuration_by_name.get(DD_APPSEC_SCA_ENABLED)
-        assert cfg_appsec_enabled is not None, "Missing telemetry config item for '{}'".format(DD_APPSEC_SCA_ENABLED)
+        assert cfg_appsec_enabled is not None, f"Missing telemetry config item for '{DD_APPSEC_SCA_ENABLED}'"
 
         if context.library == "java":
             outcome_value = str(outcome_value).lower()
@@ -638,9 +634,7 @@ class Test_TelemetrySCAEnvVar:
 
         if context.library in ("java", "nodejs", "python"):
             cfg_appsec_enabled = configuration_by_name.get(DD_APPSEC_SCA_ENABLED)
-            assert cfg_appsec_enabled is not None, "Missing telemetry config item for '{}'".format(
-                DD_APPSEC_SCA_ENABLED
-            )
+            assert cfg_appsec_enabled is not None, f"Missing telemetry config item for '{DD_APPSEC_SCA_ENABLED}'"
             assert cfg_appsec_enabled.get("value") is None
         else:
             assert DD_APPSEC_SCA_ENABLED not in configuration_by_name.keys()

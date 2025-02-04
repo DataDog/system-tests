@@ -29,7 +29,8 @@ class Test_Span_Sampling:
     def test_single_rule_match_span_sampling_sss001(self, test_agent, test_library):
         """Test that span sampling tags are added when both:
         1. a span sampling rule matches
-        2. tracer is set to drop the trace manually"""
+        2. tracer is set to drop the trace manually
+        """
         with test_library:
             with test_library.dd_start_span(name="web.request", service="webserver") as span:
                 pass
@@ -373,7 +374,8 @@ class Test_Span_Sampling:
     def test_single_rule_always_keep_span_sampling_sss011(self, test_agent, test_library):
         """Test that spans are always kept when the sampling rule matches and has sample_rate:1.0 regardless of tracer decision.
 
-        Basically, if we have a rule for spans with sample_rate:1.0 we should always keep those spans, either due to trace sampling or span sampling"""
+        Basically, if we have a rule for spans with sample_rate:1.0 we should always keep those spans, either due to trace sampling or span sampling
+        """
         # This span is set to be dropped by the tracer/user, however it is kept by span sampling
         with test_library:
             with test_library.dd_start_span(name="web.request", service="webserver") as s1:
