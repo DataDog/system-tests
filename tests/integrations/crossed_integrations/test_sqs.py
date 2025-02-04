@@ -5,8 +5,6 @@ from utils.buddies import python_buddy, java_buddy
 from utils import interfaces, scenarios, weblog, missing_feature, features, context, irrelevant
 from utils.tools import logger
 
-from tests.integrations.utils import delete_sqs_queue
-
 
 class _Test_SQS:
     """Test sqs compatibility with inputted datadog tracer"""

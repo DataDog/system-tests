@@ -6,12 +6,7 @@ import base64
 import json
 import os
 
-from tests.integrations.utils import (
-    compute_dsm_hash,
-    delete_sqs_queue,
-    delete_kinesis_stream,
-    delete_sns_topic,
-)
+from tests.integrations.utils import compute_dsm_hash
 
 from utils import weblog, interfaces, scenarios, irrelevant, context, bug, features, missing_feature, flaky
 from utils.tools import logger
@@ -279,22 +274,18 @@ class Test_DsmSQS:
     """Verify DSM stats points for AWS Sqs Service"""
 
     def setup_dsm_sqs(self):
-        try:
-            message = get_message("Test_DsmSQS", "sqs")
+        message = get_message("Test_DsmSQS", "sqs")
 
-            # we can't add the time hash to node since we can't replicate the hashing algo in python and compute a hash,
-            # which changes for each run with the time stamp added
-            if context.library.library != "nodejs":
-                self.queue = f"{DSM_QUEUE}_{context.library.library}_{WEBLOG_VARIANT_SANITIZED}_{scenarios.integrations_aws.unique_id}"
-            else:
-                self.queue = f"{DSM_QUEUE}_{context.library.library}"
+        # we can't add the time hash to node since we can't replicate the hashing algo in python and compute a hash,
+        # which changes for each run with the time stamp added
+        if context.library.library != "nodejs":
+            self.queue = f"{DSM_QUEUE}_{context.library.library}_{WEBLOG_VARIANT_SANITIZED}_{scenarios.integrations_aws.unique_id}"
+        else:
+            self.queue = f"{DSM_QUEUE}_{context.library.library}"
 
-            self.r = weblog.get(
-                f"/dsm?integration=sqs&timeout=60&queue={self.queue}&message={message}", timeout=DSM_REQUEST_TIMEOUT
-            )
-        finally:
-            if context.library.library != "nodejs":
-                delete_sqs_queue(self.queue)
+        self.r = weblog.get(
+            f"/dsm?integration=sqs&timeout=60&queue={self.queue}&message={message}", timeout=DSM_REQUEST_TIMEOUT
+        )
 
     def test_dsm_sqs(self):
         assert self.r.text == "ok"
@@ -332,26 +323,21 @@ class Test_DsmSNS:
     """Verify DSM stats points for AWS SNS Service"""
 
     def setup_dsm_sns(self):
-        try:
-            message = get_message("Test_DsmSNS", "sns")
+        message = get_message("Test_DsmSNS", "sns")
 
-            # we can't add the time hash to node since we can't replicate the hashing algo in python and compute a hash,
-            # which changes for each run with the time stamp added
-            if context.library.library != "nodejs":
-                self.topic = f"{DSM_TOPIC}_{context.library.library}_{WEBLOG_VARIANT_SANITIZED}_{scenarios.integrations_aws.unique_id}_raw"
-                self.queue = f"{DSM_QUEUE_SNS}_{context.library.library}_{WEBLOG_VARIANT_SANITIZED}_{scenarios.integrations_aws.unique_id}_raw"
-            else:
-                self.topic = f"{DSM_TOPIC}_{context.library.library}_raw"
-                self.queue = f"{DSM_QUEUE_SNS}_{context.library.library}_raw"
+        # we can't add the time hash to node since we can't replicate the hashing algo in python and compute a hash,
+        # which changes for each run with the time stamp added
+        if context.library.library != "nodejs":
+            self.topic = f"{DSM_TOPIC}_{context.library.library}_{WEBLOG_VARIANT_SANITIZED}_{scenarios.integrations_aws.unique_id}_raw"
+            self.queue = f"{DSM_QUEUE_SNS}_{context.library.library}_{WEBLOG_VARIANT_SANITIZED}_{scenarios.integrations_aws.unique_id}_raw"
+        else:
+            self.topic = f"{DSM_TOPIC}_{context.library.library}_raw"
+            self.queue = f"{DSM_QUEUE_SNS}_{context.library.library}_raw"
 
-            self.r = weblog.get(
-                f"/dsm?integration=sns&timeout=60&queue={self.queue}&topic={self.topic}&message={message}",
-                timeout=DSM_REQUEST_TIMEOUT,
-            )
-        finally:
-            if context.library.library != "nodejs":
-                delete_sns_topic(self.topic)
-                delete_sqs_queue(self.queue)
+        self.r = weblog.get(
+            f"/dsm?integration=sns&timeout=60&queue={self.queue}&topic={self.topic}&message={message}",
+            timeout=DSM_REQUEST_TIMEOUT,
+        )
 
     def test_dsm_sns(self):
         assert self.r.text == "ok"
@@ -391,23 +377,19 @@ class Test_DsmKinesis:
     """Verify DSM stats points for AWS Kinesis Service"""
 
     def setup_dsm_kinesis(self):
-        try:
-            message = get_message("Test_DsmKinesis", "kinesis")
+        message = get_message("Test_DsmKinesis", "kinesis")
 
-            # we can't add the time hash to node since we can't replicate the hashing algo in python and compute a hash,
-            # which changes for each run with the time stamp added
-            if context.library.library != "nodejs":
-                self.stream = f"{DSM_STREAM}_{context.library.library}_{WEBLOG_VARIANT_SANITIZED}_{scenarios.integrations_aws.unique_id}"
-            else:
-                self.stream = f"{DSM_STREAM}_{context.library.library}"
+        # we can't add the time hash to node since we can't replicate the hashing algo in python and compute a hash,
+        # which changes for each run with the time stamp added
+        if context.library.library != "nodejs":
+            self.stream = f"{DSM_STREAM}_{context.library.library}_{WEBLOG_VARIANT_SANITIZED}_{scenarios.integrations_aws.unique_id}"
+        else:
+            self.stream = f"{DSM_STREAM}_{context.library.library}"
 
-            self.r = weblog.get(
-                f"/dsm?integration=kinesis&timeout=60&stream={self.stream}&message={message}",
-                timeout=DSM_REQUEST_TIMEOUT,
-            )
-        finally:
-            if context.library.library != "nodejs":
-                delete_kinesis_stream(self.stream)
+        self.r = weblog.get(
+            f"/dsm?integration=kinesis&timeout=60&stream={self.stream}&message={message}",
+            timeout=DSM_REQUEST_TIMEOUT,
+        )
 
     @missing_feature(library="java", reason="DSM is not implemented for Java AWS Kinesis.")
     def test_dsm_kinesis(self):

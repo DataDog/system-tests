@@ -2,10 +2,8 @@ from __future__ import annotations
 import json
 
 from utils.buddies import python_buddy
-from utils import interfaces, scenarios, weblog, missing_feature, features, context, irrelevant
+from utils import interfaces, scenarios, weblog, missing_feature, features, context
 from utils.tools import logger
-
-from tests.integrations.utils import delete_kinesis_stream
 
 
 class _Test_Kinesis:
