@@ -34,7 +34,7 @@ class Test_RetainTraces:
 
         def validate_appsec_event_span_tags(span):
             if span.get("parent_id") not in (0, None):  # do nothing if not root span
-                return
+                return None
 
             if "appsec.event" not in span["meta"]:
                 raise Exception("Can't find appsec.event in span's meta")

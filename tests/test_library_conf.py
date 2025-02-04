@@ -60,7 +60,8 @@ class Test_HeaderTags_Long:
 @features.http_headers_as_tags_dd_trace_header_tags
 class Test_HeaderTags_Whitespace_Header:
     """Validates that leading/trailing whitespaces are trimmed on the header values given to DD_TRACE_HEADER_TAGS
-    e.g, ' header ' in DD_TRACE_HEADER_TAGS=' header ' becomes 'header' and is expected to match req.header of 'header'"""
+    e.g, ' header ' in DD_TRACE_HEADER_TAGS=' header ' becomes 'header' and is expected to match req.header of 'header'
+    """
 
     def setup_trace_header_tags(self):
         self.headers = {HEADER_NAME_WHITESPACE_HEADER: HEADER_VAL_BASIC}
@@ -78,7 +79,8 @@ class Test_HeaderTags_Whitespace_Header:
 @features.http_headers_as_tags_dd_trace_header_tags
 class Test_HeaderTags_Whitespace_Tag:
     """Validates that leading/trailing whitespaces on the Input to DD_TRACE_HEADER_TAGS are
-    trimmed on mapping parts, but whitespaces in between non-whitespace chars are left in-tact."""
+    trimmed on mapping parts, but whitespaces in between non-whitespace chars are left in-tact.
+    """
 
     def setup_trace_header_tags(self):
         self.headers = {HEADER_NAME_WHITESPACE_TAG: HEADER_VAL_BASIC}
@@ -96,7 +98,8 @@ class Test_HeaderTags_Whitespace_Tag:
 @features.http_headers_as_tags_dd_trace_header_tags
 class Test_HeaderTags_Whitespace_Val_Short:
     """Validates that between-char whitespaces in header values are not removed,
-    but leading/trailing whitespace is stripped, using short form input"""
+    but leading/trailing whitespace is stripped, using short form input
+    """
 
     def setup_trace_header_tags(self):
         self.headers = {HEADER_NAME_WHITESPACE_VAL_SHORT: HEADER_VAL_WHITESPACE_VAL_SHORT}
@@ -114,7 +117,8 @@ class Test_HeaderTags_Whitespace_Val_Short:
 @features.http_headers_as_tags_dd_trace_header_tags
 class Test_HeaderTags_Whitespace_Val_Long:
     """Validates that between-char whitespaces in header values are not removed,
-    but leading/trailing whitespace is stripped, using long form input"""
+    but leading/trailing whitespace is stripped, using long form input
+    """
 
     def setup_trace_header_tags(self):
         self.headers = {HEADER_NAME_WHITESPACE_VAL_LONG: HEADER_VAL_WHITESPACE_VAL_LONG}

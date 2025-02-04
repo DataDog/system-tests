@@ -22,7 +22,7 @@ def get_schema(request, address):
         payload = meta.get("_dd.appsec.s." + address)
         if payload is not None:
             return payload
-    return
+    return None
 
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")

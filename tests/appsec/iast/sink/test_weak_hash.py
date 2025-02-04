@@ -83,7 +83,8 @@ class TestDeduplication:
 
     def test_insecure_hash_remove_duplicates(self):
         """If one line is vulnerable and it is executed multiple times (for instance in a loop) in a request,
-        we will report only one vulnerability"""
+        we will report only one vulnerability
+        """
         assert_iast_vulnerability(
             request=self.r_insecure_hash_remove_duplicates,
             vulnerability_count=1,
