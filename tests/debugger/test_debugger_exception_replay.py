@@ -406,7 +406,7 @@ class Test_Debugger_Exception_Replay(debugger._Base_Debugger_Test):
         shapes = {"rock": False, "paper": False, "scissors": False}
 
         while not all(shapes.values()) and retries < _max_retries:
-            for shape in shapes.keys():
+            for shape in shapes:
                 shape_found = shapes[shape]
                 logger.debug(f"{shape} found: {shape_found}, retry #{retries}")
 
