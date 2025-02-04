@@ -10,7 +10,7 @@ Test scenarios we want:
         - Must have `is_trace_root` on trace root
         - Must set peer tags
         - Must have span_kind
-        
+
 Config:
 - apm_config.peer_tags_aggregation (we should see peer service tags and aggregation by them, note only works on client or producer kind)
 - apm_config.compute_stats_by_span_kind (span_kind will be set and we will calc stats on these spans even when not "top level")
@@ -62,7 +62,8 @@ class Test_Client_Stats:
     def test_is_trace_root(self):
         """Test IsTraceRoot presence in stats.
         Note: Once all tracers have implmented it and the test xpasses for all of them, we can move these
-        assertions to `test_client_stats` method."""
+        assertions to `test_client_stats` method.
+        """
         for s in interfaces.agent.get_stats(resource="GET /stats-unique"):
             assert 1 == s["IsTraceRoot"]
             assert "server" == s["SpanKind"]

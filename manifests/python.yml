@@ -51,12 +51,15 @@ tests/:
       sink/:
         test_code_injection.py:
           TestCodeInjection: v2.20.0
-          TestCodeInjection_StackTrace: missing_feature
+          TestCodeInjection_StackTrace: v2.20.0
         test_command_injection.py:
           TestCommandInjection:
             '*': v2.10.0
             fastapi: v2.15.0
           TestCommandInjection_StackTrace: v2.19.0.dev
+        test_email_html_injection.py:
+          TestEmailHtmlInjection: missing_feature
+          TestEmailHtmlInjection_StackTrace: missing_feature
         test_hardcoded_passwords.py:
           Test_HardcodedPasswords: missing_feature
           Test_HardcodedPasswords_StackTrace: missing_feature
@@ -188,7 +191,7 @@ tests/:
         test_header_name.py:
           TestHeaderName:
             '*': v1.18.0
-            fastapi: missing_feature
+            fastapi: v2.20.1
         test_header_value.py:
           TestHeaderValue:
             '*': v1.18.0
@@ -204,8 +207,8 @@ tests/:
           TestMultipart: missing_feature
         test_parameter_name.py:
           TestParameterName:
-            "*": v2.20.0.dev
-            fastapi: missing_feature
+            "*": v2.20.0
+            fastapi: v2.20.1
         test_parameter_value.py:
           TestParameterValue:
             '*': v2.9.0
@@ -432,11 +435,13 @@ tests/:
         fastapi: v2.4.0
     test_asm_standalone.py:
       Test_AppSecStandalone_UpstreamPropagation:
-        '*': v2.12.3
-        uwsgi-poc: v2.17.1
+        '*': bug (APPSEC-56142)
+      Test_AppSecStandalone_UpstreamPropagation_V2: missing_feature
       Test_IastStandalone_UpstreamPropagation:
         '*': v2.18.0.dev
+      Test_IastStandalone_UpstreamPropagation_V2: missing_feature
       Test_SCAStandalone_Telemetry: v2.19.0.dev
+      Test_SCAStandalone_Telemetry_V2: missing_feature
     test_automated_login_events.py:
       Test_Login_Events: irrelevant (was v2.10.0 but will be replaced by V2)
       Test_Login_Events_Extended: irrelevant (was v2.10.0 but will be replaced by V2)
@@ -450,8 +455,8 @@ tests/:
       Test_V3_Login_Events_RC: v2.11.0
     test_automated_user_and_session_tracking.py:
       Test_Automated_Session_Blocking: missing_feature
-      Test_Automated_User_Blocking: missing_feature
-      Test_Automated_User_Tracking: missing_feature
+      Test_Automated_User_Blocking: v2.21.0.dev
+      Test_Automated_User_Tracking: v2.21.0.dev
     test_blocking_addresses.py:
       Test_BlockingGraphqlResolvers: missing_feature
       Test_Blocking_client_ip:
@@ -550,6 +555,8 @@ tests/:
       Test_SecurityEvents_Appsec_Metastruct_Enabled: missing_feature
       Test_SecurityEvents_Iast_Metastruct_Disabled: irrelevant (no fallback will be implemented)
       Test_SecurityEvents_Iast_Metastruct_Enabled: missing_feature
+    test_only_python.py:
+      Test_ImportError: v2.20.0.dev
     test_rate_limiter.py:
       Test_Main: v2.0.0
     test_remote_config_rule_changes.py:
@@ -613,6 +620,12 @@ tests/:
         uwsgi-poc: v2.11.0
     test_debugger_probe_status.py:
       Test_Debugger_Probe_Statuses:
+        '*': missing_feature
+        flask-poc: v2.11.0
+        uds-flask: v2.11.0
+        uwsgi-poc: v2.11.0
+    test_debugger_symdb.py:
+      Test_Debugger_SymDb:
         '*': missing_feature
         flask-poc: v2.11.0
         uds-flask: v2.11.0
@@ -752,6 +765,11 @@ tests/:
       Test_AWS_API_Gateway_Inferred_Span_Creation: missing_feature
     test_otel_drop_in.py:
       Test_Otel_Drop_In: missing_feature
+  otel/:
+    test_context_propagation.py:
+      Test_Otel_Context_Propagation_Default_Propagator_Api:
+        '*': incomplete_test_app (endpoint not implemented)
+        flask-poc: v2.19.0
   parametric/:
     test_128_bit_traceids.py:
       Test_128_Bit_Traceids: v2.6.0
@@ -892,7 +910,8 @@ tests/:
     Test_Config_ObfuscationQueryStringRegexp_Configured: v2.0.0
     Test_Config_ObfuscationQueryStringRegexp_Empty: v2.15.0
     Test_Config_RuntimeMetrics_Default: incomplete_test_app (test needs to account for python runtime metrics)
-    Test_Config_RuntimeMetrics_Enabled: incomplete_test_app (test needs to account for python runtime metrics)
+    Test_Config_RuntimeMetrics_Enabled: incomplete_test_app (Python seems to send sketches instead of gauges/counters)
+    Test_Config_RuntimeMetrics_Enabled_WithRuntimeId: missing_feature
     Test_Config_UnifiedServiceTagging_CustomService: v2.0.0
     Test_Config_UnifiedServiceTagging_Default: v2.0.0
   test_data_integrity.py:
@@ -901,15 +920,19 @@ tests/:
     Test_DistributedHttp:
       '*': missing_feature (Missing on weblog)
       flask-poc: v1.5.0-rc2 # actual version unknown
-    Test_Span_Links_Flags_From_Conflicting_Contexts: v2.17.0
+    Test_Span_Links_Flags_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
     Test_Span_Links_From_Conflicting_Contexts: v2.17.0
-    Test_Span_Links_From_Conflicting_Contexts_Datadog_Precedence: v2.17.0
-    Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts: v2.17.0
+    Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
+  test_graphql.py: missing_feature
   test_identify.py:
     Test_Basic: v1.5.0-rc1
     Test_Propagate: v1.9.0
     Test_Propagate_Legacy: v1.5.0-rc1
   test_library_conf.py:
+    Test_ExtractBehavior_Default: missing_feature (trace context with only baggage should still be propagated)
+    Test_ExtractBehavior_Ignore: missing_feature (extract behavior not implemented)
+    Test_ExtractBehavior_Restart: missing_feature (extract behavior not implemented)
+    Test_ExtractBehavior_Restart_With_Extract_First: missing_feature (extract behavior not implemented)
     Test_HeaderTags: v0.53
     Test_HeaderTags_Colon_Leading: v1.2.1 # actual version unknown
     Test_HeaderTags_Colon_Trailing: v2.8.0

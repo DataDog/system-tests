@@ -5,6 +5,7 @@ GET  /tag_value/:value/:code   controllers.AppSecController.tagValue(value: Stri
 POST /tag_value/:value/:code   controllers.AppSecController.tagValuePost(value: String, code: Int)
 GET  /params/*segments         controllers.AppSecController.params(segments: Seq[String])
 GET  /waf                      controllers.AppSecController.waf
+GET  /waf/                      controllers.AppSecController.waf
 GET  /waf/*segments            controllers.AppSecController.params(segments: Seq[String])
 POST /waf                      controllers.AppSecController.wafPost
 GET  /make_distant_call        controllers.AppSecController.distantCall(url: String)

@@ -8,7 +8,7 @@ data = defaultdict(list)
 for page in range(1, 7):
     r = requests.get(
         "https://api.github.com/repos/DataDog/system-tests/pulls",
-        params={"state": "closed", "per_page": 100, "page": page},
+        params={"state": "closed", "per_page": "100", "page": str(page)},
         timeout=10,
     )
 

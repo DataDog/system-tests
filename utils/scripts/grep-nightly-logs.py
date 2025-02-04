@@ -2,6 +2,7 @@ import argparse
 import logging
 import os
 import re
+from typing import Any
 
 import requests
 
@@ -11,7 +12,7 @@ logging.basicConfig(level=logging.DEBUG, format="%(levelname)-5s %(message)s")
 logging.getLogger("urllib3").setLevel(logging.WARNING)
 
 
-def get_environ():
+def get_environ() -> None:
     environ = {**os.environ}
 
     try:
@@ -24,7 +25,7 @@ def get_environ():
     return environ
 
 
-def get_json(url, headers=None, params=None):
+def get_json(url, headers=None, params=None) -> Any:  # noqa: ANN401
     response = requests.get(url, headers=headers, params=params, timeout=30)
     response.raise_for_status()
     return response.json()
@@ -36,7 +37,7 @@ def main(
     repo_slug: str = "DataDog/system-tests-dashboard",
     workflow_file: str = "nightly.yml",
     branch: str = "main",
-):
+) -> None:
     environ = get_environ()
     gh_token = environ["GH_TOKEN"]
     headers = {"Authorization": f"token {gh_token}"}

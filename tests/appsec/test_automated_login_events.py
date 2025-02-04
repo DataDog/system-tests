@@ -66,7 +66,7 @@ HEADERS = {
 @rfc("https://docs.google.com/document/d/1-trUpphvyZY7k5ldjhW-MgqWl0xOm7AMEQDJEAZ63_Q/edit#heading=h.8d3o7vtyu1y1")
 @features.user_monitoring
 class Test_Login_Events:
-    "Test login success/failure use cases"
+    """Test login success/failure use cases"""
 
     # User entries in the internal DB:
     # users = [
@@ -301,7 +301,7 @@ class Test_Login_Events:
 @scenarios.appsec_auto_events_extended
 @features.user_monitoring
 class Test_Login_Events_Extended:
-    "Test login success/failure use cases"
+    """Test login success/failure use cases"""
 
     def setup_login_success_local(self):
         self.r_success = weblog.post("/login?auth=local", data=login_data(context, USER, PASSWORD))
@@ -557,7 +557,7 @@ class Test_Login_Events_Extended:
 
         def validate_login_success_headers(span):
             if span.get("parent_id") not in (0, None):
-                return
+                return None
 
             for header in HEADERS:
                 assert f"http.request.headers.{header.lower()}" in span["meta"], f"Can't find {header} in span's meta"
@@ -581,7 +581,7 @@ class Test_Login_Events_Extended:
 
         def validate_login_failure_headers(span):
             if span.get("parent_id") not in (0, None):
-                return
+                return None
 
             for header in HEADERS:
                 assert f"http.request.headers.{header.lower()}" in span["meta"], f"Can't find {header} in span's meta"
@@ -1088,7 +1088,7 @@ class Test_V2_Login_Events_Anon:
 
         def validate_login_success_headers(span):
             if span.get("parent_id") not in (0, None):
-                return
+                return None
 
             for header in HEADERS:
                 assert f"http.request.headers.{header.lower()}" in span["meta"], f"Can't find {header} in span's meta"
@@ -1109,7 +1109,7 @@ class Test_V2_Login_Events_Anon:
 
         def validate_login_failure_headers(span):
             if span.get("parent_id") not in (0, None):
-                return
+                return None
 
             for header in HEADERS:
                 assert f"http.request.headers.{header.lower()}" in span["meta"], f"Can't find {header} in span's meta"
@@ -1517,7 +1517,7 @@ class Test_V3_Login_Events:
 
         def validate_login_success_headers(span):
             if span.get("parent_id") not in (0, None):
-                return
+                return None
 
             for header in HEADERS:
                 assert f"http.request.headers.{header.lower()}" in span["meta"], f"Can't find {header} in span's meta"
@@ -1538,7 +1538,7 @@ class Test_V3_Login_Events:
 
         def validate_login_failure_headers(span):
             if span.get("parent_id") not in (0, None):
-                return
+                return None
 
             for header in HEADERS:
                 assert f"http.request.headers.{header.lower()}" in span["meta"], f"Can't find {header} in span's meta"

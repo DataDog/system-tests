@@ -11,6 +11,7 @@ const axios = require('axios')
 const fs = require('fs')
 const crypto = require('crypto')
 const pino = require('pino')
+const api = require('@opentelemetry/api')
 
 const iast = require('./iast')
 const dsm = require('./dsm')
@@ -444,6 +445,29 @@ app.get('/db', async (req, res) => {
   } else if (req.query.service === 'mssql') {
     res.send(await mssql.doOperation(req.query.operation))
   }
+})
+
+app.get('/otel_drop_in_default_propagator_extract', (req, res) => {
+  const ctx = api.propagation.extract(api.context.active(), req.headers)
+  const spanContext = api.trace.getSpan(ctx).spanContext()
+
+  const result = {}
+  result.trace_id = parseInt(spanContext.traceId.substring(16), 16)
+  result.span_id = parseInt(spanContext.spanId, 16)
+  result.tracestate = spanContext.traceState.serialize()
+  // result.baggage = api.propagation.getBaggage(spanContext).toString()
+
+  res.json(result)
+})
+
+app.get('/otel_drop_in_default_propagator_inject', (req, res) => {
+  const tracer = api.trace.getTracer('my-application', '0.1.0')
+  const span = tracer.startSpan('main')
+  const result = {}
+
+  api.propagation.inject(
+    api.trace.setSpanContext(api.ROOT_CONTEXT, span.spanContext()), result, api.defaultTextMapSetter)
+  res.json(result)
 })
 
 app.post('/shell_execution', (req, res) => {

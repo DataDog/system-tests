@@ -61,7 +61,7 @@ class Test_Otel_API_Interoperability:
 
                     # FIXME: The trace_id is encoded in hex while span_id is an int. Make this API consistent
                     assert current_dd_span.trace_id == otel_context.get("trace_id")
-                    assert "{:016x}".format(int(current_dd_span.span_id)) == otel_context.get("span_id")
+                    assert f"{int(current_dd_span.span_id):016x}" == otel_context.get("span_id")
             dd_span.finish()
 
         traces = test_agent.wait_for_num_traces(1, sort_by_start=False)

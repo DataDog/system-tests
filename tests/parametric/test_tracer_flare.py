@@ -12,6 +12,7 @@ from uuid import uuid4
 import pytest
 
 from utils import rfc, scenarios, features, missing_feature, context, bug
+from utils.dd_constants import RemoteConfigApplyState
 
 
 parametrize = pytest.mark.parametrize
@@ -56,7 +57,6 @@ def _java_tracer_flare_filenames() -> Set:
         "classpath.txt",
         "flare_info.txt",
         "dynamic_config.txt",
-        "flare_info.txt",
         "initial_config.txt",
         "instrumenter_metrics.txt",
         "instrumenter_state.txt",
@@ -76,14 +76,16 @@ def _set_log_level(test_agent, log_level: str) -> str:
     test_agent.set_remote_config(
         path=f"datadog/2/AGENT_CONFIG/{cfg_id}/config", payload={"name": cfg_id, "config": {"log_level": log_level}}
     )
-    test_agent.wait_for_rc_apply_state("AGENT_CONFIG", state=2, post_only=True)
+    test_agent.wait_for_rc_apply_state("AGENT_CONFIG", state=RemoteConfigApplyState.ACKNOWLEDGED, post_only=True)
     return cfg_id
 
 
 def _clear_log_level(test_agent, cfg_id: str) -> None:
     """Helper to clear a previously set "flare-log-level" config from RC."""
     test_agent.set_remote_config(path=f"datadog/2/AGENT_CONFIG/{cfg_id}/config", payload={})
-    test_agent.wait_for_rc_apply_state("AGENT_CONFIG", state=2, clear=True, post_only=True)
+    test_agent.wait_for_rc_apply_state(
+        "AGENT_CONFIG", state=RemoteConfigApplyState.ACKNOWLEDGED, clear=True, post_only=True
+    )
 
 
 def _add_task(test_agent, task_config: Dict[str, Any]) -> int:
@@ -91,14 +93,16 @@ def _add_task(test_agent, task_config: Dict[str, Any]) -> int:
     task_config["uuid"] = uuid4().hex
     task_id = hash(json.dumps(task_config))
     test_agent.add_remote_config(path=f"datadog/2/AGENT_TASK/{task_id}/config", payload=task_config)
-    test_agent.wait_for_rc_apply_state("AGENT_TASK", state=2, post_only=True)
+    test_agent.wait_for_rc_apply_state("AGENT_TASK", state=RemoteConfigApplyState.ACKNOWLEDGED, post_only=True)
     return task_id
 
 
 def _clear_task(test_agent, task_id) -> None:
     """Helper to clear a previously created agent task config from RC."""
     test_agent.set_remote_config(path=f"datadog/2/AGENT_TASK/{task_id}/config", payload={})
-    test_agent.wait_for_rc_apply_state("AGENT_TASK", state=2, clear=True, post_only=True)
+    test_agent.wait_for_rc_apply_state(
+        "AGENT_TASK", state=RemoteConfigApplyState.ACKNOWLEDGED, clear=True, post_only=True
+    )
 
 
 def trigger_tracer_flare_and_wait(test_agent, task_overrides: Dict[str, Any]) -> Dict:
@@ -155,7 +159,7 @@ class TestTracerFlareV1:
         test_agent.set_remote_config(
             path="datadog/2/AGENT_CONFIG/configuration_order/config", payload=_flare_log_level_order()
         )
-        test_agent.wait_for_rc_apply_state("AGENT_CONFIG", state=2, post_only=True)
+        test_agent.wait_for_rc_apply_state("AGENT_CONFIG", state=RemoteConfigApplyState.ACKNOWLEDGED, post_only=True)
 
     @missing_feature(library="php", reason="APMLP-195")
     @missing_feature(library="nodejs", reason="Only plaintext files are sent presently")
