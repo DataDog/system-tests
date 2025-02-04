@@ -67,7 +67,7 @@ class _Scenarios:
     sampling = EndToEndScenario(
         "SAMPLING",
         tracer_sampling_rate=0.5,
-        weblog_env={"DD_TRACE_RATE_LIMIT": "10000000", "DD_TRACE_SAMPLING_RULES": json.dumps([{"sample_rate": 0.5}])},
+        weblog_env={"DD_TRACE_RATE_LIMIT": "10000000"},
         doc="Test sampling mechanism. Not included in default scenario because it's a little bit too flaky",
         scenario_groups=[ScenarioGroup.SAMPLING],
     )
