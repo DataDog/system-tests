@@ -185,14 +185,14 @@ class Test_LibraryHeaders:
     @missing_feature(library="nodejs", reason="not implemented yet")
     @missing_feature(library="php", reason="not implemented yet")
     @missing_feature(library="ruby", reason="not implemented yet")
-    @missing_feature(context.library < "golang@1.72.0-dev", reason="Implemented in v1.72.0")
+    @missing_feature(context.library < "golang@1.72.0", reason="Implemented in v1.72.0")
     def test_datadog_external_env(self):
         """Datadog-External-Env header if present is in the {prefix}-{value},... format"""
 
         def validator(data):
             request_headers = {h[0].lower(): h[1] for h in data["request"]["headers"]}
             if "datadog-external-env" not in request_headers:
-                raise ValueError(f"Datadog-Entity-ID header is missing in request {data['log_filename']}")
+                raise ValueError(f"Datadog-External-ID header is missing in request {data['log_filename']}")
             value = request_headers["datadog-external-env"]
             items = value.split(",")
             for item in items:
