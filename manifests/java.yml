@@ -1332,9 +1332,9 @@ tests/:
         ratpack: missing_feature (endpoint not implemented)
         resteasy-netty3: missing_feature (endpoint not implemented)
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
-        spring-boot-jetty: v1.46.0
-        spring-boot-undertow: v1.46.0
-        spring-boot-wildfly: v1.46.0
+        spring-boot-jetty: v1.42.0
+        spring-boot-undertow: v1.42.0
+        spring-boot-wildfly: v1.42.0
         vertx3: v1.46.0
         vertx4: v1.46.0
       Test_Fingerprinting_Session_Capability:
@@ -1791,7 +1791,7 @@ tests/:
       '*': missing_feature
       spring-boot: v0.102.0
       spring-boot-jetty: v0.102.0
-      spring-boot-wildfly: v1.46.0
+      spring-boot-wildfly: v0.102.0
     Test_StandardTagsStatusCode: v0.102.0
     Test_StandardTagsUrl: v0.107.1
     Test_StandardTagsUserAgent: v0.107.1
