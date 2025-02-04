@@ -41,13 +41,13 @@ def make_single_span_link_validator(
         logger.debug("checking span: %s", span)
 
         if "span_links" not in span:
-            return
+            return None
 
         if "resource" not in span:
-            return
+            return None
 
         if span["resource"] != resource:
-            return
+            return None
 
         found_matching = False
 
