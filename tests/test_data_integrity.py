@@ -145,7 +145,7 @@ class Test_LibraryHeaders:
     @missing_feature(library="ruby", reason="not implemented yet")
     @missing_feature(library="php", reason="not implemented yet")
     @missing_feature(library="cpp", reason="not implemented yet")
-    @missing_feature(library="golang", reason="not implemented yet")
+    @irrelevant(library="golang", reason="implemented but not testable")
     def test_datadog_entity_id(self):
         """Datadog-Entity-ID header is present and respect the in-<digits> format"""
 
@@ -179,18 +179,25 @@ class Test_LibraryHeaders:
 
         interfaces.library.validate(validator, success_by_default=True)
 
+    @missing_feature(library="cpp", reason="not implemented yet")
+    @missing_feature(library="dotnet", reason="not implemented yet")
+    @missing_feature(library="java", reason="not implemented yet")
+    @missing_feature(library="nodejs", reason="not implemented yet")
+    @missing_feature(library="php", reason="not implemented yet")
+    @missing_feature(library="ruby", reason="not implemented yet")
     def test_datadog_external_env(self):
         """Datadog-External-Env header if present is in the {prefix}-{value},... format"""
 
         def validator(data):
-            for header, value in data["request"]["headers"]:
-                if header.lower() == "datadog-external-env":
-                    assert value, "Datadog-External-Env header is empty"
-                    items = value.split(",")
-                    for item in items:
-                        assert (
-                            item[2] == "-"
-                        ), f"Datadog-External-Env item {item} is not using in the format {{prefix}}-{{value}}"
+            request_headers = {h[0].lower(): h[1] for h in data["request"]["headers"]}
+            if "datadog-external-env" not in request_headers:
+                raise ValueError(f"Datadog-Entity-ID header is missing in request {data['log_filename']}")
+            value = request_headers["datadog-external-env"]
+            items = value.split(",")
+            for item in items:
+                assert (
+                    item[2] == "-"
+                ), f"Datadog-External-Env item {item} is not using in the format {{prefix}}-{{value}}"
 
         interfaces.library.validate(validator, success_by_default=True)
 
