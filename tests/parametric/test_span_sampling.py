@@ -67,6 +67,7 @@ class Test_Span_Sampling:
             {
                 "DD_SPAN_SAMPLING_RULES": json.dumps([{"service": "notmatching", "name": "notmatching"}]),
                 "DD_TRACE_SAMPLE_RATE": 0,
+                "DD_TRACE_SAMPLING_RULES": '[{"sample_rate":0}]',
             }
         ],
     )
@@ -86,7 +87,7 @@ class Test_Span_Sampling:
 
     @missing_feature(context.library == "ruby", reason="Issue: _dd.span_sampling.max_per_second is always set in Ruby")
     @pytest.mark.parametrize(
-        "library_env", [{"DD_SPAN_SAMPLING_RULES": json.dumps([{"service": "webserver"}]), "DD_TRACE_SAMPLE_RATE": 0}]
+        "library_env", [{"DD_SPAN_SAMPLING_RULES": json.dumps([{"service": "webserver"}]), "DD_TRACE_SAMPLE_RATE": 0, "DD_TRACE_SAMPLING_RULES": '[{"sample_rate":0}]'}]
     )
     def test_single_rule_only_service_pattern_match_span_sampling_sss004(self, test_agent, test_library):
         """Test span sampling tags are added when both:
@@ -102,7 +103,7 @@ class Test_Span_Sampling:
         assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MAX_PER_SEC) is None
 
     @pytest.mark.parametrize(
-        "library_env", [{"DD_SPAN_SAMPLING_RULES": json.dumps([{"name": "no_match"}]), "DD_TRACE_SAMPLE_RATE": 0}]
+        "library_env", [{"DD_SPAN_SAMPLING_RULES": json.dumps([{"name": "no_match"}]), "DD_TRACE_SAMPLE_RATE": 0, "DD_TRACE_SAMPLING_RULES": '[{"sample_rate":0}]',}]
     )
     def test_single_rule_only_name_pattern_no_match_span_sampling_sss005(self, test_agent, test_library):
         """Test span sampling tags are not added when:
@@ -162,6 +163,7 @@ class Test_Span_Sampling:
                     ]
                 ),
                 "DD_TRACE_SAMPLE_RATE": 0,
+                "DD_TRACE_SAMPLING_RULES": '[{"sample_rate":0}]',
             }
         ],
     )
@@ -318,6 +320,7 @@ class Test_Span_Sampling:
             {
                 "DD_SPAN_SAMPLING_RULES": json.dumps([{"service": "webserver", "name": "web.request"}]),
                 "DD_TRACE_SAMPLE_RATE": 0,
+                "DD_TRACE_SAMPLING_RULES": '[{"sample_rate":0}]',
                 "DD_TRACE_STATS_COMPUTATION_ENABLED": "True",
             }
         ],
@@ -349,6 +352,7 @@ class Test_Span_Sampling:
                     [{"service": "webserver", "name": "web.request", "sample_rate": 1.0}]
                 ),
                 "DD_TRACE_SAMPLE_RATE": 1.0,
+                "DD_TRACE_SAMPLING_RULES": '[{"sample_rate":1.0}]',
             }
         ],
     )
@@ -385,6 +389,7 @@ class Test_Span_Sampling:
                     [{"service": "webserver", "name": "web.request", "sample_rate": 0}]
                 ),
                 "DD_TRACE_SAMPLE_RATE": 1.0,
+                "DD_TRACE_SAMPLING_RULES": '[{"sample_rate":1.0}]',
             }
         ],
     )
@@ -578,6 +583,7 @@ class Test_Span_Sampling:
                     [{"service": "webserver", "name": "parent", "sample_rate": 1.0, "max_per_second": 50}]
                 ),
                 "DD_TRACE_SAMPLE_RATE": 0,
+                "DD_TRACE_SAMPLING_RULES": '[{"sample_rate":0}]',
                 "DD_TRACE_TRACER_METRICS_ENABLED": "true",  # This activates dropping policy for Java Tracer
                 "DD_TRACE_FEATURES": "discovery",  # This activates dropping policy for Go Tracer
             }
@@ -635,6 +641,7 @@ class Test_Span_Sampling:
                     [{"service": "webserver", "name": "child", "sample_rate": 1.0, "max_per_second": 50}]
                 ),
                 "DD_TRACE_SAMPLE_RATE": 0,
+                "DD_TRACE_SAMPLING_RULES": '[{"sample_rate":0}]',
                 "DD_TRACE_TRACER_METRICS_ENABLED": "true",  # This activates dropping policy for Java Tracer
                 "DD_TRACE_FEATURES": "discovery",  # This activates dropping policy for Go Tracer
             }
@@ -690,6 +697,7 @@ class Test_Span_Sampling:
         [
             {
                 "DD_TRACE_SAMPLE_RATE": 0,
+                "DD_TRACE_SAMPLING_RULES": '[{"sample_rate":0}]',
                 "DD_TRACE_TRACER_METRICS_ENABLED": "true",  # This activates dropping policy for Java Tracer
                 "DD_TRACE_FEATURES": "discovery",  # This activates dropping policy for Go Tracer
             }

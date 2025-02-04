@@ -103,6 +103,11 @@ class Test_Defaults:
                 )
                 if apm_telemetry_name in unsupported_fields:
                     continue
+            if context.library == "python":
+                # DD_TRACE_SAMPLE_RATE is not supported in ddtrace>=3.x
+                unsupported_fields = ("trace_sample_rate",)
+                if apm_telemetry_name in unsupported_fields:
+                    continue
             apm_telemetry_name = _mapped_telemetry_name(context, apm_telemetry_name)
 
             cfg_item = configuration_by_name.get(apm_telemetry_name)
@@ -257,6 +262,9 @@ class Test_Environment:
                     "appsec_enabled",
                     "data_streams_enabled",
                 )
+            if context.library == "python":
+                # DD_TRACE_SAMPLE_RATE is not supported in ddtrace>=3.x
+                unsupported_fields = ("trace_sample_rate",)
                 if apm_telemetry_name in unsupported_fields:
                     continue
 
@@ -333,17 +341,22 @@ class Test_Environment:
             otelsampler_config = "otel_traces_sampler"
         else:
             otelsampler_config = "otel_traces_sampler_arg"
+        
+        if context.library == "python":
+            ddsampling_config = "dd_trace_sampling_rules"
+        else:
+            ddsampling_config = "dd_trace_sample_rate"
 
         dd_to_otel_mapping: List[List[Optional[str]]] = [
             ["dd_trace_propagation_style", "otel_propagators"],
             ["dd_service", "otel_service_name"],
-            ["dd_trace_sample_rate", "otel_traces_sampler"],
+            [ddsampling_config, "otel_traces_sampler"],
             ["dd_trace_enabled", "otel_traces_exporter"],
             ["dd_runtime_metrics_enabled", "otel_metrics_exporter"],
             ["dd_tags", "otel_resource_attributes"],
             ["dd_trace_otel_enabled", "otel_sdk_disabled"],
             [ddlog_config, "otel_log_level"],
-            ["dd_trace_sample_rate", otelsampler_config],
+            [ddsampling_config, otelsampler_config],
         ]
 
         for dd_config, otel_config in dd_to_otel_mapping:
@@ -414,16 +427,21 @@ class Test_Environment:
             otelsampler_config = "otel_traces_sampler"
         else:
             otelsampler_config = "otel_traces_sampler_arg"
+        
+        if context.library == "python":
+            ddsampling_config = "dd_trace_sampling_rules"
+        else:
+            ddsampling_config = "dd_trace_sample_rate"
 
         dd_to_otel_mapping: List[List[Optional[str]]] = [
             ["dd_trace_propagation_style", "otel_propagators"],
-            ["dd_trace_sample_rate", "otel_traces_sampler"],
+            [ddsampling_config, "otel_traces_sampler"],
             ["dd_trace_enabled", "otel_traces_exporter"],
             ["dd_runtime_metrics_enabled", "otel_metrics_exporter"],
             ["dd_tags", "otel_resource_attributes"],
             ["dd_trace_otel_enabled", "otel_sdk_disabled"],
             [ddlog_config, "otel_log_level"],
-            ["dd_trace_sample_rate", otelsampler_config],
+            [ddsampling_config, otelsampler_config],
             [None, "otel_logs_exporter"],
         ]
 
