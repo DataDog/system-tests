@@ -5,16 +5,24 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"log"
+	"math/rand"
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"os/signal"
 	"strconv"
+	"strings"
+	"syscall"
 	"time"
+
 	"weblog/internal/common"
 	"weblog/internal/grpc"
+	"weblog/internal/rasp"
 
 	"github.com/Shopify/sarama"
+
 	saramatrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/Shopify/sarama"
 	"gopkg.in/DataDog/dd-trace-go.v1/datastreams"
 
@@ -24,17 +32,33 @@ import (
 	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/trace"
 	oteltrace "go.opentelemetry.io/otel/trace"
+	otelbaggage "go.opentelemetry.io/otel/baggage"
 
 	"gopkg.in/DataDog/dd-trace-go.v1/appsec"
 	httptrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/net/http"
 	ddotel "gopkg.in/DataDog/dd-trace-go.v1/ddtrace/opentelemetry"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 	ddtracer "gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
+	"gopkg.in/DataDog/dd-trace-go.v1/profiler"
 )
 
 func main() {
 	ddtracer.Start()
 	defer ddtracer.Stop()
+
+	err := profiler.Start(
+		profiler.WithService("weblog"),
+		profiler.WithEnv("system-tests"),
+		profiler.WithVersion("1.0"),
+		profiler.WithTags(),
+		profiler.WithProfileTypes(profiler.CPUProfile, profiler.HeapProfile),
+	)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer profiler.Stop()
+
 	mux := httptrace.NewServeMux()
 
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
@@ -46,6 +70,33 @@ func main() {
 			return
 		}
 		w.WriteHeader(http.StatusOK)
+	})
+
+	mux.HandleFunc("/stats-unique", func(w http.ResponseWriter, r *http.Request) {
+		if c := r.URL.Query().Get("code"); c != "" {
+			if code, err := strconv.Atoi(c); err == nil {
+				w.WriteHeader(code)
+				return
+			}
+		}
+		w.WriteHeader(http.StatusOK)
+	})
+
+	mux.HandleFunc("/healthcheck", func(w http.ResponseWriter, r *http.Request) {
+
+		healthCheck, err := common.GetHealtchCheck()
+		if err != nil {
+			http.Error(w, "Can't get JSON data", http.StatusInternalServerError)
+		}
+
+		jsonData, err := json.Marshal(healthCheck)
+		if err != nil {
+			http.Error(w, "Can't build JSON data", http.StatusInternalServerError)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.Write(jsonData)
 	})
 
 	mux.HandleFunc("/waf", func(w http.ResponseWriter, r *http.Request) {
@@ -77,6 +128,31 @@ func main() {
 		w.Write([]byte("OK"))
 	})
 
+	mux.HandleFunc("/tag_value/{tag_value}/{status_code}", func(w http.ResponseWriter, r *http.Request) {
+		tag := r.PathValue("tag_value")
+		status, _ := strconv.Atoi(r.PathValue("status_code"))
+		span, _ := tracer.SpanFromContext(r.Context())
+		span.SetTag("appsec.events.system_tests_appsec_event.value", tag)
+		for key, values := range r.URL.Query() {
+			for _, value := range values {
+				w.Header().Add(key, value)
+			}
+		}
+		w.WriteHeader(status)
+		w.Write([]byte("Value tagged"))
+
+		switch {
+		case r.Header.Get("Content-Type") == "application/json":
+			body, _ := io.ReadAll(r.Body)
+			var bodyMap map[string]any
+			if err := json.Unmarshal(body, &bodyMap); err == nil {
+				appsec.MonitorParsedHTTPBody(r.Context(), bodyMap)
+			}
+		case r.ParseForm() == nil:
+			appsec.MonitorParsedHTTPBody(r.Context(), r.PostForm)
+		}
+	})
+
 	mux.HandleFunc("/status", func(w http.ResponseWriter, r *http.Request) {
 		if c := r.URL.Query().Get("code"); c != "" {
 			if code, err := strconv.Atoi(c); err == nil {
@@ -87,18 +163,42 @@ func main() {
 	})
 
 	mux.HandleFunc("/make_distant_call", func(w http.ResponseWriter, r *http.Request) {
-		if url := r.URL.Query().Get("url"); url != "" {
-
-			client := httptrace.WrapClient(http.DefaultClient)
-			req, _ := http.NewRequestWithContext(r.Context(), http.MethodGet, url, nil)
-			_, err := client.Do(req)
-
-			if err != nil {
-				log.Fatalln(err)
-				w.WriteHeader(500)
-			}
+		url := r.URL.Query().Get("url")
+		if url == "" {
+			w.Write([]byte("OK"))
+			return
 		}
-		w.Write([]byte("OK"))
+
+		client := httptrace.WrapClient(http.DefaultClient)
+		req, _ := http.NewRequestWithContext(r.Context(), http.MethodGet, url, nil)
+		res, err := client.Do(req)
+		if err != nil {
+			log.Fatalln("client.Do", err)
+		}
+
+		defer res.Body.Close()
+
+		requestHeaders := make(map[string]string, len(req.Header))
+		for key, values := range req.Header {
+			requestHeaders[key] = strings.Join(values, ",")
+		}
+
+		responseHeaders := make(map[string]string, len(res.Header))
+		for key, values := range res.Header {
+			responseHeaders[key] = strings.Join(values, ",")
+		}
+
+		jsonResponse, err := json.Marshal(struct {
+			URL             string            `json:"url"`
+			StatusCode      int               `json:"status_code"`
+			RequestHeaders  map[string]string `json:"request_headers"`
+			ResponseHeaders map[string]string `json:"response_headers"`
+		}{URL: url, StatusCode: res.StatusCode, RequestHeaders: requestHeaders, ResponseHeaders: responseHeaders})
+		if err != nil {
+			log.Fatalln(err)
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.Write(jsonResponse)
 	})
 
 	mux.HandleFunc("/headers", headers)
@@ -438,9 +538,123 @@ func main() {
 		w.Write([]byte("ok"))
 	})
 
+	mux.HandleFunc("/otel_drop_in_default_propagator_extract", func(w http.ResponseWriter, r *http.Request) {
+		// Differing from other languages, the user must set the text map propagator because dd-trace-go
+		// doesn't automatically instrument at runtime (not including Orchestrion)
+		otel.SetTextMapPropagator(propagation.NewCompositeTextMapPropagator(propagation.TraceContext{}, propagation.Baggage{}))
+
+		httpCarrier := HttpCarrier{header: r.Header}
+
+		propagator := otel.GetTextMapPropagator()
+		ctx := propagator.Extract(r.Context(), httpCarrier)
+
+		spanContext := oteltrace.SpanContextFromContext(ctx)
+		baggage := otelbaggage.FromContext(ctx)
+		
+		base := 16
+		bitSize := 64
+		result := make(map[string]any, 4)
+
+		num, err := strconv.ParseInt(spanContext.TraceID().String()[16:], base, bitSize)
+		if err == nil {
+			result["trace_id"] = num
+		}
+
+		num, err = strconv.ParseInt(spanContext.SpanID().String(), base, bitSize)
+		if err == nil {
+			result["span_id"] = num
+		}
+
+		result["tracestate"] = spanContext.TraceState().String()
+		result["baggage"] = baggage.String()
+		
+		jsonData, err := json.Marshal(result)
+		if err != nil {
+			w.WriteHeader(422)
+			w.Write([]byte("failed to convert carrier to JSON"))
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(200)
+		w.Write(jsonData)
+	})
+
+	mux.HandleFunc("/otel_drop_in_default_propagator_inject", func(w http.ResponseWriter, r *http.Request) {
+		// Differing from other languages, the user must set the text map propagator because dd-trace-go
+		// doesn't automatically instrument at runtime (not including Orchestrion)
+		otel.SetTextMapPropagator(propagation.NewCompositeTextMapPropagator(propagation.TraceContext{}, propagation.Baggage{}))
+
+		ctx := context.Background()
+		p := ddotel.NewTracerProvider()
+		tracer := p.Tracer("")
+		otel.SetTracerProvider(p)
+
+		_, span := tracer.Start(ddotel.ContextWithStartOptions(ctx), "main")
+		newCtx := oteltrace.ContextWithSpan(ctx, span)
+
+		propagator := otel.GetTextMapPropagator()
+		mapCarrier := make(MapCarrier)
+		propagator.Inject(newCtx, mapCarrier)
+
+		jsonData, err := json.Marshal(mapCarrier)
+		span.End()
+
+		if err != nil {
+			w.WriteHeader(422)
+			w.Write([]byte("failed to convert carrier to JSON"))
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(200)
+		w.Write(jsonData)
+	})
+
+	mux.HandleFunc("/session/new", func(w http.ResponseWriter, r *http.Request) {
+		sessionID := strconv.Itoa(rand.Int())
+		w.Header().Add("Set-Cookie", "session="+sessionID+"; Path=/; Max-Age=3600; Secure; HttpOnly")
+	})
+
+	mux.HandleFunc("/session/user", func(w http.ResponseWriter, r *http.Request) {
+		user := r.URL.Query().Get("sdk_user")
+		cookie, err := r.Cookie("session")
+		if err != nil {
+			w.WriteHeader(500)
+			w.Write([]byte("missing session cookie"))
+		}
+		appsec.TrackUserLoginSuccessEvent(r.Context(), user, map[string]string{}, tracer.WithUserSessionID(cookie.Value))
+	})
+
+	mux.HandleFunc("/requestdownstream", common.Requestdownstream)
+	mux.HandleFunc("/returnheaders", common.Returnheaders)
+
+	mux.HandleFunc("/rasp/lfi", rasp.LFI)
+	mux.HandleFunc("/rasp/ssrf", rasp.SSRF)
+	mux.HandleFunc("/rasp/sqli", rasp.SQLi)
+
+	srv := &http.Server{
+		Addr:    ":7777",
+		Handler: mux,
+	}
+
 	common.InitDatadog()
 	go grpc.ListenAndServe()
-	http.ListenAndServe(":7777", mux)
+	go func() {
+		if err := srv.ListenAndServe(); !errors.Is(err, http.ErrServerClosed) {
+			log.Fatal(err)
+		}
+	}()
+
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, syscall.SIGTERM)
+	<-c
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	if err := srv.Shutdown(ctx); err != nil {
+		log.Fatalf("HTTP shutdown error: %v", err)
+	}
 }
 
 type carrier map[string]string
@@ -456,6 +670,44 @@ func (c carrier) ForeachKey(handler func(key, val string) error) error {
 		}
 	}
 	return nil
+}
+
+type MapCarrier map[string]string
+
+func (c MapCarrier) Get(key string) string {
+	return c[key]
+}
+
+func (c MapCarrier) Set(key, val string) {
+	c[key] = val
+}
+
+func (c MapCarrier) Keys() []string {
+	keys := make([]string, 0, len(c))
+	for k := range c {
+		keys = append(keys, k)
+	}
+	return keys
+}
+
+type HttpCarrier struct {
+	header http.Header
+}
+
+func (c HttpCarrier) Get(key string) string {
+	return c.header.Get(key)
+}
+
+func (c HttpCarrier) Set(key, val string) {
+	c.header.Set(key, val)
+}
+
+func (c HttpCarrier) Keys() []string {
+	keys := make([]string, 0, len(c.header))
+	for k := range c.header {
+		keys = append(keys, k)
+	}
+	return keys
 }
 
 func write(w http.ResponseWriter, r *http.Request, d []byte) {

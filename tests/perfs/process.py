@@ -4,7 +4,7 @@ from statistics import mean, stdev
 from os import environ
 
 
-LOG_FOLDER = environ["LOG_FOLDER"] if "LOG_FOLDER" in environ else "logs"
+LOG_FOLDER = environ.get("LOG_FOLDER", "logs")
 LIBS = ("golang", "dotnet", "java", "nodejs", "php", "ruby")
 
 
@@ -78,7 +78,7 @@ def plot():
             data = json.load(f)["memory"]
 
         x = [d[0] for d in data]
-        y = [d[1] / (1024 ** 2) for d in data]
+        y = [d[1] / (1024**2) for d in data]
 
         axis.plot(x, y, label=label)
 

@@ -1,3 +1,4 @@
+# if any change here, please update AgentContainer class
 ARG AGENT_IMAGE=datadog/agent:latest
 FROM $AGENT_IMAGE
 
@@ -9,6 +10,7 @@ RUN set -eux;\
 # Datadog agent conf
 RUN echo '\
 log_level: DEBUG\n\
+dogstatsd_non_local_traffic: true\n\
 apm_config:\n\
   apm_non_local_traffic: true\n\
   trace_buffer: 5\n\

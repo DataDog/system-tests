@@ -11,7 +11,6 @@ def _flatten(base, obj):
     if base.endswith(".py"):
         base += "::"
     for key, value in obj.items():
-
         if isinstance(value, str):
             yield f"{base}{key}", value
         elif isinstance(value, dict):
@@ -22,7 +21,6 @@ def _flatten(base, obj):
 
 
 def _load_file(file):
-
     try:
         with open(file, encoding="utf-8") as f:
             data = yaml.safe_load(f)
@@ -37,9 +35,8 @@ def _load_file(file):
 
 
 @lru_cache
-def load(base_dir="manifests/"):
-    """
-    Returns a dict of nodeid, value are another dict where the key is the component
+def load(base_dir="manifests/") -> dict:
+    """Returns a dict of nodeid, value are another dict where the key is the component
     and the value the declaration. It is meant to sent directly the value of a nodeid to @released.
 
     Data example:
@@ -66,6 +63,8 @@ def load(base_dir="manifests/"):
         "python",
         "python_otel",
         "ruby",
+        "dd_apm_inject",
+        "k8s_cluster_agent",
     ):
         data = _load_file(f"{base_dir}{component}.yml")
 
@@ -75,10 +74,10 @@ def load(base_dir="manifests/"):
     return result
 
 
-def assert_key_order(obj: dict, path=""):
+def assert_key_order(obj: dict, path="") -> None:
     last_key = "/"
 
-    for key in obj:
+    for key, value in obj.items():
         if last_key.endswith("/") and not key.endswith("/"):  # transition from folder fo files, nothing to do
             pass
         elif not last_key.endswith("/") and key.endswith("/"):  # folder must be before files
@@ -86,13 +85,13 @@ def assert_key_order(obj: dict, path=""):
         else:  # otherwise, it must be sorted
             assert last_key < key, f"Order is not respected at {path} ({last_key} < {key})"
 
-        if isinstance(obj[key], dict):
-            assert_key_order(obj[key], f"{path}.{key}")
+        if isinstance(value, dict):
+            assert_key_order(value, f"{path}.{key}")
 
         last_key = key
 
 
-def validate_manifest_files():
+def validate_manifest_files() -> None:
     with open("manifests/parser/schema.json", encoding="utf-8") as f:
         schema = json.load(f)
 

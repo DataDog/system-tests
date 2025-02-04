@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-""" AppSec validators """
+"""AppSec validators"""
 
 from collections import Counter
 from utils.interfaces._library.appsec_data import rule_id_to_type
@@ -10,8 +10,9 @@ from utils.tools import logger
 
 
 class _WafAttack:
-    def __init__(self, rule=None, pattern=None, patterns=None, value=None, address=None, key_path=None):
-
+    def __init__(
+        self, rule=None, pattern=None, patterns=None, value=None, address=None, key_path=None, span_validator=None
+    ):
         # rule can be a rule id, or a rule type
         if rule is None:
             self.rule_id = None
@@ -32,8 +33,10 @@ class _WafAttack:
         self.address = address
         self.key_path = key_path
 
+        self.span_validator = span_validator
+
     @staticmethod
-    def _get_parameters(event):
+    def _get_parameters(event) -> list:
         result = []
 
         for parameter in event.get("rule_match", {}).get("parameters", []):
@@ -109,7 +112,10 @@ class _WafAttack:
                 logger.info(f"saw {full_addresses}, expecting {(self.address, self.key_path)}")
 
             else:
-                return True
+                # validator should output the reason for the failure
+                return not (self.span_validator and not self.span_validator(span, appsec_data))
+
+        return None
 
     def validate_legacy(self, event):
         event_version = event.get("event_version", "0.1.0")
@@ -145,19 +151,21 @@ class _WafAttack:
         else:
             return True
 
+        return False
+
 
 class _ReportedHeader:
     def __init__(self, header_name):
         self.header_name = header_name.lower()
 
     def validate_legacy(self, event):
-        headers = [n.lower() for n in event["context"]["http"]["request"]["headers"].keys()]
+        headers = [n.lower() for n in event["context"]["http"]["request"]["headers"]]
         assert self.header_name in headers, f"header {self.header_name} not reported"
 
         return True
 
-    def validate(self, span, appsec_data):
-        headers = [n.lower() for n in span["meta"].keys() if n.startswith("http.request.headers.")]
+    def validate(self, span, appsec_data):  # noqa: ARG002
+        headers = [n.lower() for n in span["meta"] if n.startswith("http.request.headers.")]
         assert f"http.request.headers.{self.header_name}" in headers, f"header {self.header_name} not reported"
 
         return True

@@ -1,10 +1,7 @@
-FROM golang:1.20
+FROM golang:1.22
 
 # print important lib versions
 RUN go version && curl --version
-
-# install jq
-RUN apt-get update && apt-get -y install jq
 
 # download go dependencies
 RUN mkdir -p /app
@@ -22,7 +19,7 @@ ENV DD_TRACE_HEADER_TAGS='user-agent'
 
 RUN go build -v -tags appsec -o weblog ./gin
 
-RUN echo "#!/bin/bash\n./weblog" > app.sh
+RUN echo "#!/bin/bash\nexec ./weblog" > app.sh
 RUN chmod +x app.sh
 CMD ["./app.sh"]
 

@@ -117,13 +117,9 @@ function lookup_scenario_group() {
             ;;
     esac
 
-    python+=(
-        -c 'import yaml; import sys; group = sys.argv[1]; groups = yaml.safe_load(sys.stdin.read()); [[print(t) for t in s] if isinstance(s, list) else print(s) for s in groups[group]]'
-    )
+    python+=(utils/scripts/get-scenarios-from-group.py)
 
-    echo "${python[*]}" 1>&2
-
-    cat < scenario_groups.yml | "${python[@]}" "${group}"
+    PYTHONPATH=. "${python[@]}" "${group}"
 }
 
 function upcase() {
@@ -143,13 +139,12 @@ function activate_venv() {
     source venv/bin/activate
 }
 
-function network_name() {
-    perl -ne '/_NETWORK_NAME = "(.*)"/ and print "$1\n"' utils/_context/containers.py
-}
-
 function ensure_network() {
     local network_name
-    network_name="$(network_name)"
+
+    # limited support of docker mode: it can't control test targets, so going for the most common use case
+    # reminder : this mode is unofficial and not supported (for the exact reason it can't control test targets...)
+    network_name="system-tests-ipv4"
 
     if docker network ls | grep -q "${network_name}"; then
         : # network exists
@@ -188,7 +183,7 @@ function run_scenario() {
 
             cmd+=(
               docker run
-              --network system-tests_default
+              --network system-tests-ipv4
               --rm -i
             )
             if [ -t 1 ]; then
@@ -207,6 +202,7 @@ function run_scenario() {
             cmd+=(
               -v /var/run/docker.sock:/var/run/docker.sock
               -v "${PWD}/${log_dir}":"/app/${log_dir}"
+              -e SYSTEM_TESTS_PROXY_HOST=proxy
               -e SYSTEM_TESTS_WEBLOG_HOST=weblog
               -e SYSTEM_TESTS_WEBLOG_PORT=7777
               -e SYSTEM_TESTS_WEBLOG_GRPC_PORT=7778
@@ -233,6 +229,7 @@ function run_scenario() {
 }
 
 function main() {
+
     local docker="${DOCKER_MODE:-0}"
     local verbosity=0
     local dry=0
@@ -331,6 +328,11 @@ function main() {
         run_mode='direct'
     fi
 
+    # check if runner is installed and up to date
+    if [[ "${run_mode}" == "direct" ]] && ! is_using_nix && ! diff requirements.txt venv/requirements.txt; then
+        ./build.sh -i runner
+    fi
+
     # ensure environment
     if [[ "${run_mode}" == "docker" ]] || is_using_nix; then
         : # no venv needed
@@ -338,20 +340,33 @@ function main() {
         activate_venv
     fi
 
+    local python_version
+    python_version="$(python -V 2>&1 | sed -E 's/Python ([0-9]+)\.([0-9]+).*/\1\2/')"
+    if [[ "$python_version" -lt "312" ]]; then
+        echo "⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️⚠️⚠️️️️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️⚠️⚠️️️️⚠️⚠️⚠️️️️⚠️⚠️⚠️️️️⚠️⚠️⚠️️️️⚠️⚠️⚠️️️️⚠️"
+        echo "DEPRECRATION WARNING: you're using python ${python_version} to run system-tests."
+        echo "This won't be supported soon. Please install python3.12, then run:"
+        echo "> rm -rf venv && ./build.sh -i runner"
+        echo "⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️⚠️⚠️️️️"
+    fi
+
     # process scenario list
     local scenarios=()
 
     # expand scenario groups
     # bash 3.x does not support mapfile, dance around with tr and IFS
-    for i in "${scenario_args[@]}"; do
-        if [[ "${i}" =~ [A-Z0-9_]+_SCENARIOS$ ]]; then
-                # bash 3.x does not support mapfile, dance around with tr and IFS
-                IFS=',' read -r -a group <<< "$(lookup_scenario_group "${i}" "${run_mode}" | tr '\n' ',')"
-                scenarios+=("${group[@]}")
-        else
-                scenarios+=("${i}")
-        fi
-    done
+    # bash 3.x considers ${arr[@}} undefined if empty
+    if [[ ${#scenario_args[@]} -gt 0 ]]; then
+        for i in "${scenario_args[@]}"; do
+            if [[ "${i}" =~ [A-Z0-9_]+_SCENARIOS$ ]]; then
+                    # bash 3.x does not support mapfile, dance around with tr and IFS
+                    IFS=',' read -r -a group <<< "$(lookup_scenario_group "${i}" "${run_mode}" | tr '\n' ',')"
+                    scenarios+=("${group[@]}")
+            else
+                    scenarios+=("${i}")
+            fi
+        done
+    fi
 
     # when no scenario is provided, use a nice default
     if [[ "${#scenarios[@]}" -lt 1 ]]; then
@@ -369,6 +384,11 @@ function main() {
 
             LIBRARY_CONF_CUSTOM_HEADERS_SHORT|LIBRARY_CONF_CUSTOM_HEADERS_LONG)
                 scenarios+=(LIBRARY_CONF_CUSTOM_HEADER_TAGS)
+                unset "scenarios[${i}]"
+                ;;
+
+            APPSEC_DISABLED)
+                scenarios+=(EVERYTHING_DISABLED)
                 unset "scenarios[${i}]"
                 ;;
         esac
@@ -397,12 +417,13 @@ function main() {
 
     # evaluate max pytest number of process for K8s_lib_injection
     for scenario in "${scenarios[@]}"; do
-        #TODO DELETE WHEN THE SCENARIO IS REMOVED. REPLACED BY K8S_LIBRARY_INJECTION
-        if [[ "${scenario}" == K8S_LIB_INJECTION_* ]]; then
-            pytest_numprocesses=$(nproc)
-        fi
         if [[ "${scenario}" == K8S_LIBRARY_INJECTION_* ]]; then
             pytest_numprocesses=$(nproc)
+        fi
+        if [[ "${scenario}" == *_AUTO_INJECTION ]]; then
+            pytest_numprocesses=6
+            #https://pytest-xdist.readthedocs.io/en/latest/distribution.html
+            pytest_args+=( '--dist' 'loadgroup' )
         fi
     done
 
@@ -415,7 +436,6 @@ function main() {
     esac
 
     ## run tests
-
     if [[ "${verbosity}" -gt 0 ]]; then
         echo "plan:"
         echo "  mode: ${run_mode}"
@@ -431,6 +451,25 @@ function main() {
     fi
 
     for scenario in "${scenarios[@]}"; do
+        #TODO SCENARIO WAS REMOVED, TEMPORARY FIX TILL CI IS FIXED
+        if [[ "${scenario}" == DEBUGGER_METHOD_PROBES_SNAPSHOT ]]; then
+            echo "${scenario} was removed, skipping."
+            continue
+        fi
+        if [[ "${scenario}" == DEBUGGER_LINE_PROBES_SNAPSHOT ]]; then
+            echo "${scenario} was removed, skipping."
+            continue
+        fi
+        if [[ "${scenario}" == DEBUGGER_MIX_LOG_PROBE ]]; then
+            echo "${scenario} was removed, skipping."
+            continue
+        fi
+        if [[ "${scenario}" == REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING_NOCACHE ]]; then
+            echo "${scenario} was removed, skipping."
+            continue
+        fi
+        ####
+
         run_scenario "${dry}" "${run_mode}" "${scenario}" "${pytest_args[@]}"
     done
 }

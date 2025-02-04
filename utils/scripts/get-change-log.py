@@ -8,7 +8,7 @@ data = defaultdict(list)
 for page in range(1, 7):
     r = requests.get(
         "https://api.github.com/repos/DataDog/system-tests/pulls",
-        params={"state": "closed", "per_page": 100, "page": page},
+        params={"state": "closed", "per_page": "100", "page": str(page)},
         timeout=10,
     )
 
@@ -21,7 +21,6 @@ for month in sorted(data, reverse=True):
 
     print(f"\n\n### {month} ({len(prs)} PR merged)\n")
     for pr in prs:
-
         pr["merged_at"] = pr["merged_at"][:10]
         pr["author"] = pr["user"]["login"]
         print("* {merged_at} [{title}]({html_url}) by @{author}".format(**pr))

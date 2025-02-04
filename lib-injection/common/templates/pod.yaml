@@ -14,7 +14,7 @@ metadata:
 spec:
 
 {{ if not .Values.use_admission_controller }}
-  initContainers:  
+  initContainers:
       - command:
           - sh
           - copy-lib.sh

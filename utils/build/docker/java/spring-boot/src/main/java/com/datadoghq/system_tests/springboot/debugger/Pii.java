@@ -2,17 +2,17 @@ package com.datadoghq.system_tests.springboot;
 
 public class Pii  extends PiiBase {
     public String _2fa = VALUE;
-    public String accesstoken = VALUE;
-    public String access_token = VALUE;
-    public String Access_Token = VALUE;
-    public String accessToken = VALUE;
-    public String AccessToken = VALUE;
     public String ACCESSTOKEN = VALUE;
-    public String address = VALUE;
+    public String Access_Token = VALUE;
+    public String AccessToken = VALUE;
+    public String access_token = VALUE;
+    public String accesstoken = VALUE;
+    public String accessToken = VALUE;
     public String aiohttpsession = VALUE;
     public String apikey = VALUE;
     public String apisecret = VALUE;
     public String apisignature = VALUE;
+    public String appkey = VALUE;
     public String applicationkey = VALUE;
     public String auth = VALUE;
     public String authorization = VALUE;
@@ -22,7 +22,6 @@ public class Pii  extends PiiBase {
     public String cipher = VALUE;
     public String clientid = VALUE;
     public String clientsecret = VALUE;
-    public String config = VALUE;
     public String connectionstring = VALUE;
     public String connectsid = VALUE;
     public String cookie = VALUE;
@@ -35,7 +34,6 @@ public class Pii  extends PiiBase {
     public String dburl = VALUE;
     public String encryptionkey = VALUE;
     public String encryptionkeyid = VALUE;
-    public String env = VALUE;
     public String geolocation = VALUE;
     public String gpgkey = VALUE;
     public String ipaddress = VALUE;

@@ -15,6 +15,7 @@ TOTAL_REQUEST_COUNT = 10000
 WEBLOG_URL = "http://localhost:7777"
 TESTED_PATHS = ("/", "/waf/", "/waf/fdsfds/fds/fds/fds/", "/waf?a=b", "/waf?acd=bcd", "/waf?a=b&a=c")
 
+
 # TOTAL_REQUEST_COUNT = 100
 # WARMUP_REQUEST_COUNT = 1
 # WARMUP_LAST_SLEEP_DURATION = 1
@@ -22,11 +23,11 @@ TESTED_PATHS = ("/", "/waf/", "/waf/fdsfds/fds/fds/fds/", "/waf?a=b", "/waf?acd=
 @scenarios.performances
 class Test_Performances:
     def setup_main(self) -> None:
-        self.requests = []
+        self.requests: list = []
         self.build_requests()
 
-        self.results = []
-        self.memory = []
+        self.results: list = []
+        self.memory: list = []
         self.finished = False
 
         self.appsec = "with_appsec" if environ.get("DD_APPSEC_ENABLED") == "true" else "without_appsec"
@@ -74,7 +75,12 @@ class Test_Performances:
                 for data in datas:
                     for _ in range(5):
                         self.add_request(
-                            {"method": "POST", "url": f"{WEBLOG_URL}{path}", "headers": header, "json": medium_nested,}
+                            {
+                                "method": "POST",
+                                "url": f"{WEBLOG_URL}{path}",
+                                "headers": header,
+                                "json": medium_nested,
+                            }
                         )
 
                     self.add_request(
@@ -120,7 +126,7 @@ class Test_Performances:
             print("MEM", datetime.now(), memory, flush=True)
 
     def test_main(self):
-        """ add some tests ?"""
+        """add some tests ?"""
 
         with open(
             f"{scenarios.performances.host_log_folder}/stats_{self.lang}_{self.appsec}.json", "w", encoding="utf-8"

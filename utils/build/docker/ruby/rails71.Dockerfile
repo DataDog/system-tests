@@ -1,4 +1,4 @@
-FROM ghcr.io/datadog/dd-trace-rb/ruby:3.2.0-dd
+FROM ghcr.io/datadog/images-rb/engines/ruby:3.2
 
 RUN apt-get update && apt-get install -y nodejs npm
 

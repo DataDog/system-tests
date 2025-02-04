@@ -1,31 +1,99 @@
 #!/bin/bash
 set -eu
 
-readonly BLACK_VERSION=19.10b0
-readonly IMAGE=black:${BLACK_VERSION}
+readonly CYAN='\033[0;36m'
+readonly NC='\033[0m'
+readonly WHITE_BOLD='\033[1;37m'
 
-if [[ -z "$(docker images -q "${IMAGE}")" ]]; then
-  echo "Building ${IMAGE}"
-  docker build -t "${IMAGE}" - <<EOF
-FROM python:3.10
-RUN pip install click==7.1.2 black==${BLACK_VERSION}
-EOF
+print_usage() {
+    echo -e "${WHITE_BOLD}DESCRIPTION${NC}"
+    echo -e "  Try to fix everything that can be fixed to make the system-tests CI happy."
+    echo
+    echo -e "${WHITE_BOLD}USAGE${NC}"
+    echo -e "  ./format.sh [options...]"
+    echo
+    echo -e "${WHITE_BOLD}OPTIONS${NC}"
+    echo -e "  ${CYAN}--check${NC}     Only performs checks without modifying files. Command unsed in the CI."
+    echo -e "  ${CYAN}--help${NC}      Prints this message and exits."
+    echo
+}
+
+COMMAND=fix
+
+while [[ "$#" -gt 0 ]]; do
+    case $1 in
+        -c|--check) COMMAND=check ;;
+        -h|--help) print_usage; exit 0 ;;
+        *) echo "Invalid argument: ${1:-}"; echo; print_usage; exit 1 ;;
+    esac
+    shift
+done
+
+if [ ! -d "venv/" ]; then
+  echo "Runner is not installed, installing it (ETA 60s)"
+  ./build.sh -i runner
 fi
 
-if [[ -z ${1:-} ]]; then
-	set -- .
+source venv/bin/activate
+
+echo "Running mypy type checks..."
+if ! mypy --config pyproject.toml; then
+  echo "Mypy type checks failed. Please fix the errors above. 💥 💔 💥"
+  exit 1
 fi
 
-# Run as the current user, but only if docker is not "rootless".
-# To determine whether docker is rootless, examine the permissions of the file
-# referred to by DOCKER_HOST. If it's owned by the current user, then assume
-# that docker is rootless.
-DOCKER_HOST="${DOCKER_HOST:-}"
-if [[ "${DOCKER_HOST}" == unix://* && -O "${DOCKER_HOST#unix://}" ]]; then
-  user_arg=""
+echo "Running ruff checks..."
+if ! which ruff > /dev/null; then
+  echo "ruff is not installed, installing it (ETA 5s)"
+  ./build.sh -i runner > /dev/null
+fi
+
+echo "Running ruff formatter..."
+if [ "$COMMAND" == "fix" ]; then
+  ruff format
 else
-  user_arg="--user=$(id -u):$(id -g)"
+  ruff format --check --diff
 fi
 
-# shellcheck disable=SC2086
-exec docker run -it --rm $user_arg --workdir "$(pwd)" -v "$(pwd):$(pwd)" "${IMAGE}" black "$@"
+if [ "$COMMAND" == "fix" ]; then
+  ruff_args="--fix"
+else
+  ruff_args=""
+fi
+
+if ! ruff check $ruff_args; then
+  echo "ruff checks failed. Please fix the errors above. 💥 💔 💥"
+  exit 1
+fi
+
+echo "Checking trailing whitespaces..."
+INCLUDE_PATTERN='.*\.(md|yml|yaml|sh|cs|Dockerfile|java|sql|ts|js|php)$'
+EXCLUDE_PATTERN='utils/build/virtual_machine'
+# Check all files tracked by git, and matching include/exclude patterns
+FILES="$(git ls-files | grep -v -E "$EXCLUDE_PATTERN" | grep -E "$INCLUDE_PATTERN" | while read f ; do grep -l ' $' "$f" || true ; done)"
+
+# shim for sed -i on GNU sed (Linux) and BSD sed (macOS)
+_sed_i() {
+  if [[ "$OSTYPE" == "darwin"* ]]; then
+    sed -i '' -r "$@"
+  else
+    sed -i "$@"
+  fi
+}
+
+if [ "$COMMAND" == "fix" ]; then
+  echo "$FILES" | while read file ; do
+    if [[ -n "$file" ]]; then
+      echo "Fixing $file"
+      _sed_i 's/  *$//g' "$file"
+    fi
+  done
+else
+  if [ -n "$FILES" ]; then
+    echo "Some trailing white spaces has been found, please fix them 💥 💔 💥"
+    echo "$FILES"
+    exit 1
+  fi
+fi
+
+echo "All good, the system-tests CI will be happy! ✨ 🍰 ✨"

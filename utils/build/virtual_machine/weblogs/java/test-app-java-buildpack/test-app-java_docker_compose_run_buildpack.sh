@@ -10,6 +10,8 @@ sudo chmod -R 755 *
 
 rm -rf Dockerfile || true
 
+sudo systemctl start docker # Start docker service if it's not started
+
 echo "**************** Docker system df *****************" 
 sudo docker system df
 echo "**************** Disk usage *****************" 
@@ -19,11 +21,11 @@ sudo docker images
 echo "**************** Docker containers *****************" 
 sudo docker ps -a
 echo "**************** Docker volumes *****************" 
-sudo docker volume ls 
+sudo docker volume ls
 
 echo "**************** BUILDING BUILDPACK *****************" 
 sudo ./gradlew build
-sudo ./gradlew -PdockerImageRepo=system-tests/local -PdockerImageTag=latest clean bootBuildImage
+sudo ./gradlew -PdockerImageRepo=system-tests/local -PdockerImageTag=latest -PuseDockerProxy=true clean bootBuildImage
 
 echo "**************** RUN SERVICES*****************" 
 if [ -f docker-compose-agent-prod.yml ]; then
@@ -31,7 +33,16 @@ if [ -f docker-compose-agent-prod.yml ]; then
     sudo -E docker-compose -f docker-compose-agent-prod.yml up -d --remove-orphans datadog
     sleep 30
 fi
-sudo -E docker-compose -f docker-compose.yml up -d test-app-java
+#Env variables set on the scenario definition. Write to file and load  
+if [ ! -f scenario_app.env ]
+then
+   SCENARIO_APP_ENV="${DD_APP_ENV:-''}"
+    echo "$SCENARIO_APP_ENV" | tr '[:space:]' '\n' > scenario_app.env
+    echo "APP VARIABLES CONFIGURED FROM THE SCENARIO:"
+    cat scenario_app.env
+fi
+echo "SERVER_PORT=18080" >> scenario_app.env
+sudo -E docker-compose -f docker-compose.yml up -d test-app
 
 echo "**************** RUNNING DOCKER SERVICES *****************" 
 sudo docker-compose ps

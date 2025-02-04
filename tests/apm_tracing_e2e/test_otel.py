@@ -1,11 +1,10 @@
-from utils import context, weblog, scenarios, interfaces, irrelevant, bug, features
+from utils import context, weblog, scenarios, interfaces, irrelevant, bug, features, flaky
 
 
 @features.otel_api
 @scenarios.apm_tracing_e2e_otel
 class Test_Otel_Span:
-    """This is a test that that exercises the full flow of APM Tracing with the use of Datadog OTel API.
-    """
+    """This is a test that that exercises the full flow of APM Tracing with the use of Datadog OTel API."""
 
     def setup_datadog_otel_span(self):
         self.req = weblog.get(
@@ -21,7 +20,8 @@ class Test_Otel_Span:
     # - tags necessary to retain the mapping between the system-tests/weblog request id and the traces/spans
     # - duration of one second
     # - span kind of SpanKind - Internal
-    @bug(context.library == "java", reason="Span.kind is not set to internal, have type instead")
+    @bug(context.library == "java", reason="APMAPI-912")
+    @flaky(library="golang", reason="APMAPI-178")
     def test_datadog_otel_span(self):
         spans = interfaces.agent.get_spans_list(self.req)
         assert 2 <= len(spans), "Agent did not submit the spans we want!"
@@ -49,10 +49,11 @@ class Test_Otel_Span:
 
     def setup_distributed_otel_trace(self):
         self.req = weblog.get(
-            "/e2e_otel_span/mixed_contrib", {"shouldIndex": 1, "parentName": "root-otel-name.dd-resource"},
+            "/e2e_otel_span/mixed_contrib", {"shouldIndex": 1, "parentName": "root-otel-name.dd-resource"}
         )
 
     @irrelevant(condition=context.library != "golang", reason="Golang specific test with OTel Go contrib package")
+    @flaky(library="golang", reason="APMAPI-178")
     def test_distributed_otel_trace(self):
         spans = interfaces.agent.get_spans_list(self.req)
         assert 3 <= len(spans), "Agent did not submit the spans we want!"

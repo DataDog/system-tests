@@ -3,6 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 """Misc checks around data integrity during components' lifetime"""
+
 import string
 from utils import weblog, interfaces, context, bug, rfc, missing_feature, features
 from utils.tools import logger
@@ -23,7 +24,7 @@ class Test_TraceHeaders:
     """All required headers are present in all traces submitted to the agent"""
 
     @missing_feature(library="cpp")
-    @bug(context.library <= "golang@1.37.0")
+    @bug(context.library <= "golang@1.37.0", reason="APMRP-360")
     def test_traces_header_present(self):
         """Verify that headers described in RFC are present in traces submitted to the agent"""
 
@@ -72,15 +73,16 @@ class Test_TraceHeaders:
     def setup_trace_header_container_tags(self):
         self.r = weblog.get("/read_file", params={"file": "/proc/self/cgroup"})
 
-    @bug(library="cpp", reason="https://github.com/DataDog/dd-opentracing-cpp/issues/194")
     @missing_feature(
         context.library == "java" and "spring-boot" not in context.weblog_variant, reason="Missing endpoint"
     )
-    @missing_feature(weblog_variant="spring-boot-3-native", reason="Missing endpoint")
     @missing_feature(
-        context.library == "nodejs" and context.weblog_variant == "spring-boot-3-native", reason="Missing endpoint"
+        context.library == "java" and context.weblog_variant == "spring-boot-3-native", reason="Missing endpoint"
     )
-    @missing_feature(context.library == "nodejs" and context.weblog_variant != "express4", reason="Missing endpoint")
+    @missing_feature(
+        context.library == "nodejs" and context.weblog_variant not in ["express4", "express5"],
+        reason="Missing endpoint",
+    )
     @missing_feature(context.library == "ruby" and context.weblog_variant != "rails70", reason="Missing endpoint")
     def test_trace_header_container_tags(self):
         """Datadog-Container-ID header value is right in all traces submitted to the agent"""
@@ -161,12 +163,34 @@ class Test_LibraryHeaders:
             val = request_headers["datadog-entity-id"]
             if val.startswith("in-"):
                 assert val[3:].isdigit(), f"Datadog-Entity-ID header value {val} doesn't end with digits"
+            elif val.startswith("ci-"):
+                assert all(
+                    c in string.hexdigits for c in val[3:]
+                ), f"Datadog-Entity-ID header value {val} doesn't end with hex digits"
+            # The cid prefix is deprecated and will be removed in a future version of the agent
             elif val.startswith("cid-"):
                 assert all(
                     c in string.hexdigits for c in val[4:]
                 ), f"Datadog-Entity-ID header value {val} doesn't end with hex digits"
             else:
-                raise ValueError(f"Datadog-Entity-ID header value {val} doesn't start with either 'in-' or 'cid-'")
+                raise ValueError(
+                    f"Datadog-Entity-ID header value {val} doesn't start with either 'in-', 'ci-' or 'cid-'"
+                )
+
+        interfaces.library.validate(validator, success_by_default=True)
+
+    def test_datadog_external_env(self):
+        """Datadog-External-Env header if present is in the {prefix}-{value},... format"""
+
+        def validator(data):
+            for header, value in data["request"]["headers"]:
+                if header.lower() == "datadog-external-env":
+                    assert value, "Datadog-External-Env header is empty"
+                    items = value.split(",")
+                    for item in items:
+                        assert (
+                            item[2] == "-"
+                        ), f"Datadog-External-Env item {item} is not using in the format {{prefix}}-{{value}}"
 
         interfaces.library.validate(validator, success_by_default=True)
 

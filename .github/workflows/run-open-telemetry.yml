@@ -12,16 +12,23 @@ on:
         description: "Library to test"
         required: true
         type: string
-      weblogs: 
+      weblogs:
         description: "JSON array of weblogs to run"
         default: "[]"
         required: false
         type: string
+      skip_empty_scenarios:
+        description: "Skip scenarios that contains only xfail or irrelevant tests"
+        default: false
+        required: false
+        type: boolean
 
 jobs:
   open-telemetry-manual:
     if: inputs.library == 'java'
     runs-on: ubuntu-latest
+    env:
+      SYSTEM_TESTS_SKIP_EMPTY_SCENARIO: ${{ inputs.skip_empty_scenarios }}
     steps:
     - name: Checkout
       uses: actions/checkout@v4
@@ -94,6 +101,7 @@ jobs:
     env:
       TEST_LIBRARY: ${{ inputs.library }}_otel
       WEBLOG_VARIANT: ${{ matrix.weblog }}
+      SYSTEM_TESTS_SKIP_EMPTY_SCENARIO: ${{ inputs.skip_empty_scenarios }}
     steps:
     - name: Checkout
       uses: actions/checkout@v4

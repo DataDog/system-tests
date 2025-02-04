@@ -34,20 +34,24 @@ class Test_Something:
 
 ## Scenarios
 
+System-tests contains various testing scenarios; the two most commonly used are called "End-To-End" and "Parametric."
+
 ### End to end scenarios
 
-Based on class `EndToEndScenario`, they spwan a weblog (HTTP app shipping a tracer), an agent, a proxy between tracer-agent-backend, and run a set of high level functionnal tests. The `DEFAULT` scenario is the main scenario of system tests, and is in this family.
+Based on class `EndToEndScenario`, they spwan a "weblog" HTTP server designed to mimick customer applications with automatic instrumentation, a "test-agent" to mimick the Datadog Agent, and communication with the Datadog backend via a proxy. The `DEFAULT` scenario is the main scenario of system tests, and is in this family.
+
+End-To-End scenarios are good for testing real-world scenarios — they support the full lifecycle of a trace (hence the name, "End-To-End"). Use End-To-End scenarios to test tracing integrations, security products, profiling, dynamic instrumentation, and more. When in doubt, use end-to-end.
 
 ### Parametric scenario
 
-Parametric scenario build and spawn a tracer with a simple GRPC interface. It's not really unit tests (still black-box testing), neither functionnal tests (only tracers are tested), they are convenient to tests different parameter set for tracers. More detailled documentation can be found [here](https://github.com/DataDog/system-tests/blob/main/docs/scenarios/parametric.md).
+Parametric scenarios are designed to validate tracer and span interfaces. They are more lightweight and support testing features with many input parameters. They should be used to test operations such as creating spans, setting tags, setting links, injecting/extracting http headers, getting tracer configurations, etc. You can find dedicated parametric instructions in the [parametric.md](https://github.com/DataDog/system-tests/blob/main/docs/scenarios/parametric.md).
 
 ### Auto-Inject/OnBoarding scenarios
 
-Automatic library injection simplifies the APM onboarding experience for customers deploying Java, NodeJS, .NET, Python and Ruby applications in VMs and docker environments. Datadog software installed on the machine will be intercept the startup of your application and it will inject the tracer library automatically. The OnBoarding scenarios reproduce different environments and check the library injection is done correctly. More detailled documentation can be found [here](https://github.com/DataDog/system-tests/blob/main/docs/scenarios/onboarding.md).
+Automatic library injection simplifies the APM onboarding experience for customers deploying Java, Node.js, .NET, Python and Ruby applications in VMs and docker environments. Datadog software installed on the machine will be intercept the startup of your application and it will inject the tracer library automatically. The OnBoarding scenarios reproduce different environments and check the library injection is done correctly. More detailled documentation can be found [here](https://github.com/DataDog/system-tests/blob/main/docs/scenarios/onboarding.md).
 
 ### Kubernetes Auto-Inject scenarios
 
 The lib-injection project is a feature to allow injection of the Datadog library into a customer's application container without requiring them to modify their application images.
 
-This feature enables applications written in Java, Node, Python, DotNet or Ruby running in Kubernetes to be automatically instrumented with the corresponding Datadog APM libraries. More detailled documentation can be found [here](https://github.com/DataDog/system-tests/blob/main/docs/scenarios/k8s_lib_injection.md).
+This feature enables applications written in Java, Node.js, Python, .NET or Ruby running in Kubernetes to be automatically instrumented with the corresponding Datadog APM libraries. More detailled documentation can be found [here](https://github.com/DataDog/system-tests/blob/main/docs/scenarios/k8s_lib_injection.md).

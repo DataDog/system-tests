@@ -4,181 +4,476 @@
 
 import json
 import re
+import os
+import os.path
+import uuid
+import gzip
+import io
 
-from packaging import version
-
-from utils import interfaces
+from utils import interfaces, remote_config, weblog, context
 from utils.tools import logger
+from utils.dd_constants import RemoteConfigApplyState as ApplyState
+
 
 _CONFIG_PATH = "/v0.7/config"
-_DEBUGER_PATH = "/api/v2/debugger"
+_DEBUGGER_PATH = "/api/v2/debugger"
 _LOGS_PATH = "/api/v2/logs"
 _TRACES_PATH = "/api/v0.2/traces"
+_SYMBOLS_PATH = "/symdb/v1/input"
+
+_CUR_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
-def read_diagnostic_data():
-    tracer = list(interfaces.library.get_data(_CONFIG_PATH))[0]["request"]["content"]["client"]["client_tracer"]
-
-    tracer_version = version.parse(re.sub(r"[^0-9.].*$", "", tracer["tracer_version"]))
-    if tracer["language"] == "java":
-        if tracer_version > version.parse("1.27.0"):
-            path = _DEBUGER_PATH
-        else:
-            path = _LOGS_PATH
-    elif tracer["language"] == "dotnet":
-        if tracer_version > version.parse("2.49.0"):
-            path = _DEBUGER_PATH
-        else:
-            path = _LOGS_PATH
-    else:
-        path = _LOGS_PATH
-
-    return list(interfaces.agent.get_data(path))
+def read_probes(test_name: str):
+    with open(os.path.join(_CUR_DIR, "probes/", test_name + ".json"), "r", encoding="utf-8") as f:
+        return json.load(f)
 
 
-def get_probes_map(data_set):
-    probe_hash = {}
-
-    def process_debugger(debugger):
-        if "diagnostics" in debugger:
-            diagnostics = debugger["diagnostics"]
-            probe_hash[diagnostics["probeId"]] = diagnostics
-
-    for data in data_set:
-        contents = data["request"].get("content", []) or []  # Ensures contents is a list
-        for content in contents:
-            if "content" in content:
-                d_contents = json.loads(content["content"])
-                for d_content in d_contents:
-                    process_debugger(d_content["debugger"])
-            else:
-                process_debugger(content["debugger"])
-
-    return probe_hash
+def generate_probe_id(probe_type: str):
+    return probe_type + str(uuid.uuid4())[len(probe_type) :]
 
 
-def validate_probes(expected_probes):
-    def check_probe_status(expected_id, expected_status, probe_status_map):
-        if expected_id not in probe_status_map:
-            raise ValueError("Probe " + expected_id + " was not received.")
+def extract_probe_ids(probes):
+    if probes:
+        if isinstance(probes, dict):
+            return list(probes.keys())
 
-        actual_status = probe_status_map[expected_id]["status"]
-        if actual_status != expected_status and not (expected_status == "INSTALLED" and actual_status == "EMITTING"):
-            raise ValueError(
-                "Received probe "
-                + expected_id
-                + " with status "
-                + actual_status
-                + ", but expected for "
-                + expected_status
-            )
+        return [probe["id"] for probe in probes]
 
-    probe_map = get_probes_map(read_diagnostic_data())
-    for expected_id, expected_status in expected_probes.items():
-        check_probe_status(expected_id, expected_status, probe_map)
+    return []
 
 
-def validate_snapshots(expected_snapshots):
-    def get_snapshot_map():
-        agent_logs_endpoint_requests = list(interfaces.agent.get_data(_LOGS_PATH))
-        snapshot_hash = {}
-
-        for request in agent_logs_endpoint_requests:
-            content = request["request"]["content"]
-            if content is not None:
-                for content in content:
-                    debugger = content["debugger"]
-                    if "snapshot" in debugger:
-                        probe_id = debugger["snapshot"]["probe"]["id"]
-                        snapshot_hash[probe_id] = debugger["snapshot"]
-
-        return snapshot_hash
-
-    def check_snapshot(expected_id, snapshot_status_map):
-        if expected_id not in snapshot_status_map:
-            raise ValueError("Snapshot " + expected_id + " was not received.")
-
-    snapshot_map = get_snapshot_map()
-    for expected_snapshot in expected_snapshots:
-        check_snapshot(expected_snapshot, snapshot_map)
+def _get_path(test_name, suffix):
+    filename = test_name + "_" + _Base_Debugger_Test.tracer["language"] + "_" + suffix + ".json"
+    path = os.path.join(_CUR_DIR, "approvals", filename)
+    return path
 
 
-def validate_spans(expected_spans):
-    def get_span_map():
-        agent_logs_endpoint_requests = list(interfaces.agent.get_data(_TRACES_PATH))
-        span_hash = {}
-        for request in agent_logs_endpoint_requests:
-            content = request["request"]["content"]
-            if content is not None:
-                for payload in content["tracerPayloads"]:
-                    for chunk in payload["chunks"]:
-                        for span in chunk["spans"]:
-                            if span["name"] == "dd.dynamic.span":
-                                span_hash[span["meta"]["debugger.probeid"]] = span
-                            else:
-                                for key, value in span["meta"].items():
-                                    if key.startswith("_dd.di"):
-                                        span_hash[value] = span["meta"][key.split(".")[2]]
+def write_approval(data, test_name, suffix):
+    with open(_get_path(test_name, suffix), "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=2)
 
-        return span_hash
 
-    def check_trace(expected_id, trace_map):
-        if expected_id not in trace_map:
-            raise ValueError("Trace " + expected_id + " was not received.")
-
-    span_map = get_span_map()
-    for expected_trace in expected_spans:
-        check_trace(expected_trace, span_map)
+def read_approval(test_name, suffix):
+    with open(_get_path(test_name, suffix), "r", encoding="utf-8") as f:
+        return json.load(f)
 
 
 class _Base_Debugger_Test:
+    tracer = None
+
+    probe_definitions = []
+    probe_ids = []
+
+    probe_diagnostics = {}
+    probe_snapshots = {}
+    probe_spans = {}
+    all_spans = []
+    symbols = []
+
+    rc_state = None
     weblog_responses = []
-    expected_probe_ids = []
-    all_probes_installed = False
 
-    def assert_remote_config_is_sent(self):
-        for data in interfaces.library.get_data(_CONFIG_PATH):
-            logger.debug(f"Found config in {data['log_filename']}")
-            if "client_configs" in data.get("response", {}).get("content", {}):
-                return
+    setup_failures = []
 
-        raise ValueError("I was expecting a remote config")
+    def initialize_weblog_remote_config(self):
+        if self.get_tracer()["language"] == "ruby":
+            # Ruby tracer initializes remote configuration client from
+            # middleware that is only invoked during request processing.
+            # Therefore, we need to issue a request to the application for
+            # remote config to start.
+            response = weblog.get("/debugger/init")
+            if response.status_code != 200:
+                # This should fail the test immediately but the failure is
+                # reported after all of the setup and the test are attempted
+                self.setup_failures.append(
+                    "Failed to get /debugger/init: expected status code: 200, actual status code: %d"
+                    % (response.status_code)
+                )
 
-    def _is_all_probes_installed(self, probes_map):
-        if probes_map is None:
+    ###### set #####
+    def set_probes(self, probes):
+        def _enrich_probes(probes):
+            def __get_probe_type(probe_id):
+                if probe_id.startswith("log"):
+                    return "LOG_PROBE"
+                if probe_id.startswith("metric"):
+                    return "METRIC_PROBE"
+                if probe_id.startswith("span"):
+                    return "SPAN_PROBE"
+                if probe_id.startswith("decor"):
+                    return "SPAN_DECORATION_PROBE"
+
+                return "not_supported"
+
+            language = self.get_tracer()["language"]
+
+            for probe in probes:
+                probe["language"] = language
+
+                if probe["where"]["typeName"] == "ACTUAL_TYPE_NAME":
+                    if language == "dotnet":
+                        probe["where"]["typeName"] = "weblog.DebuggerController"
+                    elif language == "java":
+                        probe["where"]["typeName"] = "DebuggerController"
+                        probe["where"]["methodName"] = (
+                            probe["where"]["methodName"][0].lower() + probe["where"]["methodName"][1:]
+                        )
+                    elif language == "python":
+                        probe["where"]["typeName"] = "debugger_controller"
+                        probe["where"]["methodName"] = re.sub(
+                            r"([a-z])([A-Z])", r"\1_\2", probe["where"]["methodName"]
+                        ).lower()
+                    elif language == "ruby":
+                        probe["where"]["typeName"] = "DebuggerController"
+                        probe["where"]["methodName"] = re.sub(
+                            r"([a-z])([A-Z])", r"\1_\2", probe["where"]["methodName"]
+                        ).lower()
+                elif probe["where"]["sourceFile"] == "ACTUAL_SOURCE_FILE":
+                    if language == "dotnet":
+                        probe["where"]["sourceFile"] = "DebuggerController.cs"
+                    elif language == "java":
+                        probe["where"]["sourceFile"] = "DebuggerController.java"
+                    elif language == "python":
+                        probe["where"]["sourceFile"] = "debugger_controller.py"
+                    elif language == "ruby":
+                        probe["where"]["sourceFile"] = "debugger_controller.rb"
+                    elif language == "nodejs":
+                        probe["where"]["sourceFile"] = "debugger/index.js"
+                probe["type"] = __get_probe_type(probe["id"])
+
+            return probes
+
+        def _extract_probe_ids(probes):
+            return [probe["id"] for probe in probes]
+
+        self.probe_definitions = _enrich_probes(probes)
+        self.probe_ids = _extract_probe_ids(probes)
+
+    ###### send #####
+    _rc_version = 0
+
+    def send_rc_probes(self):
+        _Base_Debugger_Test._rc_version += 1
+
+        self.rc_state = remote_config.send_debugger_command(
+            probes=self.probe_definitions, version=_Base_Debugger_Test._rc_version
+        )
+
+    def send_weblog_request(self, request_path: str, reset: bool = True):
+        if reset:
+            self.weblog_responses = []
+
+        self.weblog_responses.append(weblog.get(request_path))
+
+    ###### wait for #####
+    _last_read = 0
+
+    def wait_for_all_probes_installed(self, timeout=30):
+        interfaces.agent.wait_for(lambda data: self._wait_for_all_probes(data, status="INSTALLED"), timeout=timeout)
+
+    def wait_for_all_probes_emitting(self, timeout=30):
+        interfaces.agent.wait_for(lambda data: self._wait_for_all_probes(data, status="EMITTING"), timeout=timeout)
+
+    def _wait_for_all_probes(self, data, status):
+        found_ids = set()
+
+        def _check_all_probes_status(probe_diagnostics, status):
+            logger.debug(f"Waiting for these probes to be {status}: {self.probe_ids}")
+
+            for expected_id in self.probe_ids:
+                if expected_id not in probe_diagnostics:
+                    continue
+
+                probe_status = probe_diagnostics[expected_id]["status"]
+                logger.debug(f"Probe {expected_id} observed status is {probe_status}")
+
+                if probe_status == status or probe_status == "ERROR":
+                    found_ids.add(expected_id)
+                    continue
+
+                if self.get_tracer()["language"] == "dotnet" and status == "INSTALLED":
+                    probe = next(p for p in self.probe_definitions if p["id"] == expected_id)
+                    # EMITTING is not implemented for dotnet span probe
+                    if probe["type"] == "SPAN_PROBE":
+                        found_ids.add(expected_id)
+                        continue
+
+            return set(self.probe_ids).issubset(found_ids)
+
+        all_probes_ready = False
+
+        log_filename_found = re.search(r"/(\d+)__", data["log_filename"])
+        if not log_filename_found:
             return False
 
-        installed_ids = set()
-        for expected_id in self.expected_probe_ids:
-            if expected_id in probes_map:
-                if probes_map[expected_id]["status"] == "INSTALLED":
-                    installed_ids.add(expected_id)
+        log_number = int(log_filename_found.group(1))
+        if log_number >= _Base_Debugger_Test._last_read:
+            _Base_Debugger_Test._last_read = log_number
 
-        if set(self.expected_probe_ids).issubset(installed_ids):
-            logger.debug(f"Succes: found probes {installed_ids}")
-            return True
+        if data["path"] in [_DEBUGGER_PATH, _LOGS_PATH]:
+            probe_diagnostics = self._process_diagnostics_data([data])
+            logger.debug(probe_diagnostics)
 
-        missings_ids = set(self.expected_probe_ids) - set(installed_ids)
+            if not probe_diagnostics:
+                logger.debug("Probes diagnostics is empty")
+                return False
 
-        logger.debug(f"Found some probes, but not all of them. Missing probes are {missings_ids}")
+            all_probes_ready = _check_all_probes_status(probe_diagnostics, status)
 
-    def wait_for_all_probes_installed(self, data):
-        if data["path"] == _DEBUGER_PATH or data["path"] == _LOGS_PATH:
-            if self._is_all_probes_installed(get_probes_map([data])):
-                self.all_probes_installed = True
+        return all_probes_ready
 
-        return self.all_probes_installed
+    _exception_message = None
+    _snapshot_found = False
 
-    def assert_all_probes_are_installed(self):
-        data_debug = interfaces.agent.get_data(_DEBUGER_PATH)
-        for data in data_debug:
-            self.wait_for_all_probes_installed(data)
+    def wait_for_exception_snapshot_received(self, exception_message, timeout):
+        self._exception_message = exception_message
+        self._snapshot_found = False
 
-        if not self.all_probes_installed:
-            raise ValueError("At least one probe is missing")
+        interfaces.agent.wait_for(self._wait_for_snapshot_received, timeout=timeout)
+        return self._snapshot_found
 
-    def assert_all_weblog_responses_ok(self):
+    def _wait_for_snapshot_received(self, data):
+        if data["path"] == _LOGS_PATH:
+            logger.debug("Reading " + data["log_filename"] + ", looking for " + self._exception_message)
+            contents = data["request"].get("content", []) or []
+
+            logger.debug("len is")
+            logger.debug(len(contents))
+
+            for content in contents:
+                snapshot = content.get("debugger", {}).get("snapshot") or content.get("debugger.snapshot")
+
+                if not snapshot or "probe" not in snapshot:
+                    continue
+
+                exception_message = self.get_exception_message(snapshot)
+
+                logger.debug("Exception message is " + exception_message)
+                logger.debug("Self Exception message is " + self._exception_message)
+
+                if self._exception_message in exception_message:
+                    self._snapshot_found = True
+                    break
+
+        logger.debug(f"Snapshot found: {self._snapshot_found}")
+        return self._snapshot_found
+
+    ###### collect #####
+    def collect(self):
+        self.get_tracer()
+
+        self._collect_probe_diagnostics()
+        self._collect_snapshots()
+        self._collect_spans()
+        self._collect_symbols()
+
+    def _collect_probe_diagnostics(self):
+        def _read_data():
+            if context.library == "java":
+                if context.library.version > "1.27.0":
+                    path = _DEBUGGER_PATH
+                else:
+                    path = _LOGS_PATH
+            elif context.library == "dotnet":
+                if context.library.version > "2.49.0":
+                    path = _DEBUGGER_PATH
+                else:
+                    path = _LOGS_PATH
+            elif context.library == "python":
+                path = _DEBUGGER_PATH
+            elif context.library == "ruby":
+                path = _DEBUGGER_PATH
+            elif context.library == "nodejs":
+                path = _DEBUGGER_PATH
+            else:
+                path = _LOGS_PATH  # TODO: Should the default not be _DEBUGGER_PATH?
+
+            return list(interfaces.agent.get_data(path))
+
+        all_data = _read_data()
+        self.probe_diagnostics = self._process_diagnostics_data(all_data)
+
+    def _process_diagnostics_data(self, datas):
+        probe_diagnostics = {}
+
+        def _process_debugger(debugger):
+            if "diagnostics" in debugger:
+                diagnostics = debugger["diagnostics"]
+
+                probe_id = diagnostics["probeId"]
+                status = diagnostics["status"]
+
+                # update status
+                if probe_id in probe_diagnostics:
+                    current_status = probe_diagnostics[probe_id]["status"]
+                    if current_status == "RECEIVED":
+                        probe_diagnostics[probe_id]["status"] = status
+                    elif current_status == "INSTALLED" and status in ["INSTALLED", "EMITTING"]:
+                        probe_diagnostics[probe_id]["status"] = status
+                    elif current_status == "EMITTING" and status == "EMITTING":
+                        probe_diagnostics[probe_id]["status"] = status
+                # set new status
+                else:
+                    probe_diagnostics[probe_id] = diagnostics
+
+        for data in datas:
+            contents = data["request"].get("content", []) or []  # Ensures contents is a list
+
+            for content in contents:
+                if "content" in content:
+                    d_contents = content["content"]
+                    for d_content in d_contents:
+                        if isinstance(d_content, dict):
+                            _process_debugger(d_content["debugger"])
+                else:
+                    if "debugger" in content:
+                        if isinstance(content, dict):
+                            _process_debugger(content["debugger"])
+
+        return probe_diagnostics
+
+    def _collect_snapshots(self):
+        def _get_snapshot_hash():
+            agent_logs_endpoint_requests = list(interfaces.agent.get_data(_LOGS_PATH))
+            snapshot_hash = {}
+
+            for request in agent_logs_endpoint_requests:
+                content = request["request"]["content"]
+                if content:
+                    for item in content:
+                        snapshot = item.get("debugger", {}).get("snapshot") or item.get("debugger.snapshot")
+                        if snapshot:
+                            probe_id = snapshot["probe"]["id"]
+                            if probe_id in snapshot_hash:
+                                snapshot_hash[probe_id].append(item)
+                            else:
+                                snapshot_hash[probe_id] = [item]
+
+            return snapshot_hash
+
+        self.probe_snapshots = _get_snapshot_hash()
+
+    def _collect_spans(self):
+        def _get_spans_hash(self):
+            agent_logs_endpoint_requests = list(interfaces.agent.get_data(_TRACES_PATH))
+            span_hash = {}
+
+            span_decoration_line_key = None
+            if self.get_tracer()["language"] == "dotnet" or self.get_tracer()["language"] == "python":
+                span_decoration_line_key = "_dd.di.SpanDecorationArgsAndLocals.probe_id"
+            else:
+                span_decoration_line_key = "_dd.di.spandecorationargsandlocals.probe_id"
+
+            for request in agent_logs_endpoint_requests:
+                content = request["request"]["content"]
+                if content:
+                    for payload in content["tracerPayloads"]:
+                        for chunk in payload["chunks"]:
+                            for span in chunk["spans"]:
+                                self.all_spans.append(span)
+                                is_span_decoration_method = span["name"] == "dd.dynamic.span"
+                                if is_span_decoration_method:
+                                    span_hash[span["meta"]["debugger.probeid"]] = span
+                                    continue
+
+                                is_span_decoration_line = span_decoration_line_key in span["meta"]
+                                if is_span_decoration_line:
+                                    span_hash[span["meta"][span_decoration_line_key]] = span
+                                    continue
+
+                                is_exception_replay = "_dd.debug.error.exception_id" in span["meta"]
+                                if is_exception_replay:
+                                    span_hash[span["meta"]["_dd.debug.error.exception_id"]] = span
+                                    continue
+
+            return span_hash
+
+        self.probe_spans = _get_spans_hash(self)
+
+    def _collect_symbols(self):
+        def _get_symbols():
+            result = []
+            raw_data = list(interfaces.library.get_data(_SYMBOLS_PATH))
+
+            for data in raw_data:
+                if isinstance(data, dict) and "request" in data:
+                    contents = data["request"].get("content", [])
+                    for content in contents:
+                        if isinstance(content, dict) and "system-tests-filename" in content:
+                            result.append(content)
+
+            return result
+
+        self.symbols = _get_symbols()
+
+    def get_tracer(self):
+        if not _Base_Debugger_Test.tracer:
+            _Base_Debugger_Test.tracer = {
+                "language": str(context.library).split("@")[0],
+                "tracer_version": str(context.library.version),
+            }
+
+        return _Base_Debugger_Test.tracer
+
+    def assert_setup_ok(self):
+        if self.setup_failures:
+            assert "\n".join(self.setup_failures) is None
+
+    def get_exception_message(self, snapshot):
+        if self.get_tracer()["language"] == "python":
+            return next(iter(snapshot["captures"]["lines"].values()))["throwable"]["message"].lower()
+        else:
+            return snapshot["captures"]["return"]["throwable"]["message"].lower()
+
+    ###### assert #####
+    def assert_rc_state_not_error(self):
+        assert self.rc_state, "RC states are empty"
+
+        errors = []
+        for probe in self.probe_definitions:
+            rc_id = re.sub(r"_([a-z])", lambda match: match.group(1).upper(), probe["type"].lower()) + "_" + probe["id"]
+
+            logger.debug(f"Checking RC state for: {rc_id}")
+
+            if rc_id not in self.rc_state:
+                errors.append(f"ID {rc_id} not found in state")
+            else:
+                apply_state = self.rc_state[rc_id]["apply_state"]
+                logger.debug(f"RC stace for {rc_id} is {apply_state}")
+
+                if apply_state == ApplyState.ERROR:
+                    errors.append(f"State for {rc_id} is error: {self.rc_state[rc_id]['apply_error']}")
+
+        assert not errors, "\n".join(errors)
+
+    def assert_all_probes_are_emitting(self):
+        expected = self.probe_ids
+        received = extract_probe_ids(self.probe_diagnostics)
+
+        assert set(expected) <= set(
+            received
+        ), f"Not all probes were received. Missing ids: {', '.join(set(expected) - set(received))}"
+
+        errors = {}
+        for probe_id in self.probe_ids:
+            status = self.probe_diagnostics[probe_id]["status"]
+
+            if status == "EMITTING":
+                continue
+
+            if self.get_tracer()["language"] == "dotnet" and status == "INSTALLED":
+                probe = next(p for p in self.probe_definitions if p["id"] == probe_id)
+                # EMITTING is not implemented for dotnet span probe
+                if probe["type"] == "SPAN_PROBE":
+                    continue
+
+            errors[probe_id] = status
+
+        assert not errors, f"The following probes are not emitting: {errors}"
+
+    def assert_all_weblog_responses_ok(self, expected_code=200):
         assert len(self.weblog_responses) > 0, "No responses available."
 
         for respone in self.weblog_responses:
-            assert respone.status_code == 200
+            assert respone.status_code == expected_code

@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import weblog, interfaces, context, irrelevant
+from utils import weblog, interfaces
 
 # *ATTENTION*: Copy this file to the tests folder, modify, and rename with a prefix of `test_` to enable your new tests
 
@@ -13,7 +13,8 @@ from utils import weblog, interfaces, context, irrelevant
 #  - Skip for an entire library:
 #       @irrelevant(context.library != "java", reason="*ATTENTION*: The reason the language is skipped")
 #  - Skip for every library except one
-#       @irrelevant(context.library = "dotnet", reason="only for .NET")
+#       @irrelevant(context.library == "dotnet", reason="only for .NET")
+
 
 # To run an individual test: ./run.sh tests/test_traces.py::Test_Misc::test_main
 class Test_Misc:

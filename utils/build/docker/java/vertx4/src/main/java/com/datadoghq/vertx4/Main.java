@@ -2,8 +2,12 @@ package com.datadoghq.vertx4;
 
 import com.datadoghq.system_tests.iast.infra.LdapServer;
 import com.datadoghq.system_tests.iast.infra.SqlServer;
+import com.datadoghq.system_tests.iast.utils.CryptoExamples;
 import com.datadoghq.vertx4.iast.routes.IastSinkRouteProvider;
 import com.datadoghq.vertx4.iast.routes.IastSourceRouteProvider;
+import com.datadoghq.vertx4.rasp.RaspRouteProvider;
+import datadog.appsec.api.blocking.Blocking;
+import datadog.trace.api.EventTracker;
 import datadog.trace.api.interceptor.MutableSpan;
 import io.opentracing.Span;
 import io.opentracing.util.GlobalTracer;
@@ -11,19 +15,32 @@ import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpServer;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
+import io.vertx.ext.web.Session;
 import io.vertx.ext.web.handler.BodyHandler;
+import io.vertx.core.json.JsonObject;
+import io.vertx.core.http.HttpClient;
 
 import javax.naming.directory.InitialDirContext;
 import javax.sql.DataSource;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.UndeclaredThrowableException;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.function.Consumer;
 import java.util.logging.LogManager;
 import java.util.stream.Stream;
+
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
+import java.util.Optional;
+
+import io.vertx.ext.web.handler.SessionHandler;
+import io.vertx.ext.web.sstore.LocalSessionStore;
+import okhttp3.*;
 
 public class Main {
     static {
@@ -35,6 +52,9 @@ public class Main {
             throw new UndeclaredThrowableException(e);
         }
     }
+
+    private static final OkHttpClient client = new OkHttpClient();
+    private static final CryptoExamples cryptoExamples = new CryptoExamples();
 
     public static void main(String[] args) {
         Vertx vertx = Vertx.vertx();
@@ -54,6 +74,9 @@ public class Main {
                         span.finish();
                     }
                 });
+
+        router.get("/healthcheck").handler(Main::healthCheck);
+
         router.get("/headers")
                 .produces("text/plain")
                 .handler(ctx -> ctx.response()
@@ -110,6 +133,17 @@ public class Main {
                     int code = Integer.parseInt(codeString);
                     ctx.response().setStatusCode(code).end();
                 });
+        router.get("/users")
+                .handler(ctx -> {
+                    final String user = ctx.request().getParam("user");
+                    final Span span = GlobalTracer.get().activeSpan();
+                    if ((span instanceof MutableSpan)) {
+                        MutableSpan localRootSpan = ((MutableSpan) span).getLocalRootSpan();
+                        localRootSpan.setTag("usr.id", user);
+                    }
+                    Blocking.forUser(user).blockIfMatch();
+                    ctx.response().end("Hello " + user);
+                });
         router.get("/user_login_success_event")
                 .handler(ctx -> {
                     String event_user_id = ctx.request().getParam("event_user_id");
@@ -146,14 +180,100 @@ public class Main {
                             .trackCustomEvent(event_name, METADATA);
                     ctx.response().end("ok");
                 });
+        router.get("/requestdownstream")
+                .handler(ctx -> {
+                    String url = "http://localhost:7777/returnheaders";
+                    Request request = new Request.Builder()
+                            .url(url)
+                            .build();
+
+                    client.newCall(request).enqueue(new Callback() {
+                        @Override
+                        public void onFailure(Call call, IOException e) {
+                            ctx.response().setStatusCode(500).end(e.getMessage());
+                        }
+
+                        @Override
+                        public void onResponse(Call call, Response response) throws IOException {
+                            if (!response.isSuccessful()) {
+                                ctx.response().setStatusCode(500).end(response.message());
+                            } else {
+                                ctx.response().end(response.body().string());
+                            }
+                        }
+                    });
+                });
+        router.get("/vulnerablerequestdownstream")
+                .handler(ctx -> {
+                    cryptoExamples.insecureMd5Hashing("password");
+                    String url = "http://localhost:7777/returnheaders";
+                    Request request = new Request.Builder()
+                            .url(url)
+                            .build();
+
+                    client.newCall(request).enqueue(new Callback() {
+                        @Override
+                        public void onFailure(Call call, IOException e) {
+                            ctx.response().setStatusCode(500).end(e.getMessage());
+                        }
+
+                        @Override
+                        public void onResponse(Call call, Response response) throws IOException {
+                            if (!response.isSuccessful()) {
+                                ctx.response().setStatusCode(500).end(response.message());
+                            } else {
+                                ctx.response().end(response.body().string());
+                            }
+                        }
+                    });
+                });
+        router.get("/returnheaders")
+                .handler(ctx -> {
+                    JsonObject headersJson = new JsonObject();
+                    ctx.request().headers().forEach(header -> headersJson.put(header.getKey(), header.getValue()));
+                    ctx.response().end(headersJson.encode());
+                });
+        router.get("/set_cookie")
+                .handler(ctx -> {
+                    String name = ctx.request().getParam("name");
+                    String value = ctx.request().getParam("value");
+                    ctx.response().putHeader("Set-Cookie", name + "=" + value).end("ok");
+                });
+        router.get("/createextraservice")
+                .handler(ctx -> {
+                    String serviceName = ctx.request().getParam("serviceName");
+                    setRootSpanTag("service", serviceName);
+                    ctx.response().end("ok");
+                });
+
+        Router sessionRouter = Router.router(vertx);
+        sessionRouter.get().handler(SessionHandler.create(LocalSessionStore.create(vertx)));
+        sessionRouter.get("/new")
+                .handler(ctx -> {
+                    final Session session = ctx.session();
+                    ctx.response().end(session.id());
+                });
+        sessionRouter.get("/user")
+                .handler(ctx -> {
+                    final Session session = ctx.session();
+                    final String sdkUser = ctx.request().getParam("sdk_user");
+                    EventTracker tracker = datadog.trace.api.GlobalTracer.getEventTracker();
+                    tracker.trackLoginSuccessEvent(sdkUser, Collections.emptyMap());
+                    ctx.response().end(session.id());
+                });
+        router.get("/session/*").subRouter(sessionRouter);
 
         iastRouteProviders().forEach(provider -> provider.accept(router));
-
+        raspRouteProviders().forEach(provider -> provider.accept(router));
         server.requestHandler(router).listen(7777);
     }
 
     private static Stream<Consumer<Router>> iastRouteProviders() {
         return Stream.of(new IastSinkRouteProvider(DATA_SOURCE, LDAP_CONTEXT), new IastSourceRouteProvider(DATA_SOURCE));
+    }
+
+    private static Stream<Consumer<Router>> raspRouteProviders() {
+        return Stream.of(new RaspRouteProvider(DATA_SOURCE));
     }
 
     private static final Map<String, String> METADATA = createMetadata();
@@ -191,6 +311,33 @@ public class Main {
             ctx.request().formAttributes();
         } else {
             ctx.getBodyAsString();
+        }
+    }
+
+    private static void healthCheck(RoutingContext context) {
+        String version = getVersion().orElse("0.0.0");
+
+        Map<String, Object> response = new HashMap<>();
+        Map<String, String> library = new HashMap<>();
+        library.put("language", "java");
+        library.put("version", version);
+        response.put("status", "ok");
+        response.put("library", library);
+
+        JsonObject jsonResponse = new JsonObject(response);
+
+        context.response()
+            .putHeader("content-type", "application/json")
+            .end(jsonResponse.encode());
+    }
+
+    private static Optional<String> getVersion() {
+        try (BufferedReader reader = new BufferedReader(
+                new InputStreamReader(Main.class.getClassLoader().getResourceAsStream("dd-java-agent.version"), StandardCharsets.ISO_8859_1))) {
+            String line = reader.readLine();
+            return Optional.ofNullable(line);
+        } catch (Exception e) {
+            return Optional.empty();
         }
     }
 }

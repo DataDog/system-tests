@@ -1,0 +1,95 @@
+name: "Compute workflow, scenarios and weblogs to run"
+
+on:
+  workflow_call:
+    inputs:
+      library:
+        description: "Library to run"
+        required: true
+        type: string
+      scenarios:
+        description: "Comma-separated list of scenarios to run"
+        type: string
+        default: ""
+      scenarios_groups:
+        description: "Comma-separated list of scenarios groups to run"
+        type: string
+        default: ""
+      parametric_job_count:
+        description: "*EXPERIMENTAL* : How many jobs should be used to run PARAMETRIC scenario"
+        default: 1
+        required: false
+        type: number
+      _ci_environment:
+        description: "Which CI environment is running the tests, used for FPD. used internally to skip some weblogs on prod"
+        default: 'custom'
+        required: false
+        type: string
+
+    # Map the workflow outputs to job outputs
+    outputs:
+      endtoend_scenarios:
+        description: ""
+        value: ${{ jobs.main.outputs.endtoend_scenarios }}
+      endtoend_weblogs:
+        description: ""
+        value: ${{ jobs.main.outputs.endtoend_weblogs }}
+      graphql_scenarios:
+        description: ""
+        value: ${{ jobs.main.outputs.graphql_scenarios }}
+      graphql_weblogs:
+        description: ""
+        value: ${{ jobs.main.outputs.graphql_weblogs }}
+      libinjection_scenarios:
+        description: ""
+        value: ${{ jobs.main.outputs.libinjection_scenarios }}
+      opentelemetry_scenarios:
+        description: ""
+        value: ${{ jobs.main.outputs.opentelemetry_scenarios }}
+      opentelemetry_weblogs:
+        description: ""
+        value: ${{ jobs.main.outputs.opentelemetry_weblogs }}
+      parametric_scenarios:
+        description: ""
+        value: ${{ jobs.main.outputs.parametric_scenarios }}
+      externalprocessing_scenarios:
+        description: ""
+        value: ${{ jobs.main.outputs.externalprocessing_scenarios }}
+      parametric_job_matrix:
+        description: ""
+        value: ${{ jobs.main.outputs.parametric_job_matrix }}
+
+jobs:
+  main:
+    name: Get parameters
+    runs-on: ubuntu-latest
+    outputs:
+      endtoend_scenarios: ${{ steps.main.outputs.endtoend_scenarios }}
+      endtoend_weblogs: ${{ steps.main.outputs.endtoend_weblogs }}
+      graphql_scenarios: ${{ steps.main.outputs.graphql_scenarios }}
+      graphql_weblogs: ${{ steps.main.outputs.graphql_weblogs }}
+      libinjection_scenarios: ${{ steps.main.outputs.libinjection_scenarios }}
+      opentelemetry_scenarios: ${{ steps.main.outputs.opentelemetry_scenarios }}
+      opentelemetry_weblogs: ${{ steps.main.outputs.opentelemetry_weblogs }}
+      parametric_scenarios: ${{ steps.main.outputs.parametric_scenarios }}
+      externalprocessing_scenarios: ${{ steps.main.outputs.externalprocessing_scenarios }}
+      parametric_job_matrix: ${{ steps.main.outputs.parametric_job_matrix }}
+      parametric_job_count: ${{ steps.main.outputs.parametric_job_count }}
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        repository: 'DataDog/system-tests'
+    - name: Install runner
+      uses: ./.github/actions/install_runner
+    - name: main
+      id: main
+      run: |
+        source venv/bin/activate
+        python utils/scripts/compute-workflow-parameters.py ${{ inputs.library }} \
+          -s "${{ inputs.scenarios }}" \
+          -g "${{ inputs.scenarios_groups }}" \
+          --parametric-job-count ${{ inputs.parametric_job_count }} \
+          --ci-environment "${{ inputs._ci_environment }}" >> $GITHUB_OUTPUT
+      env:
+        PYTHONPATH: "."

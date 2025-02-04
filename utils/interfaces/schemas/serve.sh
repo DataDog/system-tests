@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-set -e 
+set -e
 
 docker build -f ./utils/interfaces/schemas/Dockerfile -t schemas-doc-server .
 docker run -p 7070:80 schemas-doc-server

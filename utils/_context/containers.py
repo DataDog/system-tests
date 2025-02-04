@@ -6,18 +6,23 @@ from pathlib import Path
 from subprocess import run
 import time
 from functools import lru_cache
-import platform
+from threading import RLock, Thread
 
 import docker
 from docker.errors import APIError, DockerException
-from docker.models.containers import Container
+from docker.models.containers import Container, ExecResult
+from docker.models.networks import Network
 import pytest
 import requests
 
 from utils._context.library_version import LibraryVersion
+from utils.proxy.ports import ProxyPorts
 from utils.tools import logger
 from utils import interfaces
 from utils.k8s_lib_injection.k8s_weblog import K8sWeblog
+
+# fake key of length 32
+_FAKE_DD_API_KEY = "0123456789abcdef0123456789abcdef"
 
 
 @lru_cache
@@ -37,60 +42,78 @@ def _get_client():
             ).stdout.strip()
             return docker.DockerClient(base_url=endpoint)
         except:
-            pass
+            logger.exception("Fail to get docker client with context")
 
-        raise e
+        if "Error while fetching server API version: ('Connection aborted.'" in str(e):
+            pytest.exit("Connection refused to docker daemon, is it running?", 1)
+
+        raise
 
 
-_NETWORK_NAME = "system-tests_default"
+_DEFAULT_NETWORK_NAME = "system-tests_default"
+_NETWORK_NAME = "bridge" if "GITLAB_CI" in os.environ else _DEFAULT_NETWORK_NAME
 
 
-def create_network():
-    for _ in _get_client().networks.list(names=[_NETWORK_NAME,]):
+def create_network() -> Network:
+    for network in _get_client().networks.list(names=[_NETWORK_NAME]):
         logger.debug(f"Network {_NETWORK_NAME} still exists")
-        return
+        return network
 
     logger.debug(f"Create network {_NETWORK_NAME}")
-    _get_client().networks.create(_NETWORK_NAME, check_duplicate=True)
+    return _get_client().networks.create(_NETWORK_NAME, check_duplicate=True)
 
 
 _VOLUME_INJECTOR_NAME = "volume-inject"
 
 
 def create_inject_volume():
-
     logger.debug(f"Create volume {_VOLUME_INJECTOR_NAME}")
     _get_client().volumes.create(_VOLUME_INJECTOR_NAME)
 
 
 class TestedContainer:
+    _container: Container = None
 
     # https://docker-py.readthedocs.io/en/stable/containers.html
     def __init__(
         self,
         name,
         image_name,
-        host_log_folder,
+        *,
+        host_log_folder: str,
         environment=None,
-        allow_old_container=False,
+        allow_old_container: bool = False,
         healthcheck=None,
         stdout_interface=None,
+        local_image_only: bool = False,
         **kwargs,
     ) -> None:
         self.name = name
-        self.host_project_dir = os.environ.get("SYSTEM_TESTS_HOST_PROJECT_DIR", os.getcwd())
+        self.host_project_dir = os.environ.get("SYSTEM_TESTS_HOST_PROJECT_DIR", str(Path.cwd()))
         self.host_log_folder = host_log_folder
         self.allow_old_container = allow_old_container
 
-        self.image = ImageInfo(image_name)
+        self.image = ImageInfo(image_name, local_image_only=local_image_only)
         self.healthcheck = healthcheck
+
+        # healthy values:
+        # None: container did not tried to start yet, or hasn't be started for another reason
+        # False: container is not healthy
+        # True: container is healthy
+        self.healthy = None
+
         self.environment = environment or {}
         self.kwargs = kwargs
-        self._container = None
+        self.depends_on: list[TestedContainer] = []
+        self._starting_lock = RLock()
+        self._starting_thread = None
         self.stdout_interface = stdout_interface
 
-    def configure(self, replay):
+    def get_image_list(self, library: str, weblog: str) -> list[str]:  # noqa: ARG002
+        """Returns the image list that will be loaded to be able to run/build the container"""
+        return [self.image.name]
 
+    def configure(self, replay):
         if not replay:
             self.stop_previous_container()
 
@@ -101,9 +124,6 @@ class TestedContainer:
             self.image.save_image_info(self.log_folder_path)
         else:
             self.image.load_from_logs(self.log_folder_path)
-
-        if self.stdout_interface is not None:
-            self.stdout_interface.configure(replay)
 
     @property
     def container_name(self):
@@ -119,6 +139,8 @@ class TestedContainer:
                 logger.debug(f"Container {self.container_name} found")
                 return container
 
+        return None
+
     def stop_previous_container(self):
         if self.allow_old_container:
             return
@@ -127,7 +149,14 @@ class TestedContainer:
             logger.debug(f"Kill old container {self.container_name}")
             old_container.remove(force=True)
 
-    def start(self) -> Container:
+    def start(self, network: Network) -> Container:
+        """Start the actual underlying Docker container directly"""
+
+        if self._container:
+            # container is already started, some scenarios actively starts some containers
+            # before calling async_start()
+            return
+
         if old_container := self.get_existing_container():
             if self.allow_old_container:
                 self._container = old_container
@@ -150,34 +179,108 @@ class TestedContainer:
             environment=self.environment,
             # auto_remove=True,
             detach=True,
-            network=_NETWORK_NAME,
+            network=network.name,
             **self.kwargs,
         )
 
-        self.wait_for_health()
-        self.warmup()
+        self.healthy = self.wait_for_health()
+        if self.healthy:
+            self.warmup()
+
+        self._container.reload()
+        # with open(f"{self.log_folder_path}/container.json", "w", encoding="utf-8") as f:
+        #     json.dump(self._container.attrs, f, indent=2)
+
+    def async_start(self, network: Network) -> Thread:
+        """Start the container and its dependencies in a thread with circular dependency detection"""
+        self.check_circular_dependencies([])
+
+        return self.async_start_recursive(network)
+
+    def network_ipv6(self, network: Network) -> str:
+        self._container.reload()
+        return self._container.attrs["NetworkSettings"]["Networks"][network.name]["GlobalIPv6Address"]
+
+    def network_ip(self, network: Network) -> str:
+        self._container.reload()
+        return self._container.attrs["NetworkSettings"]["Networks"][network.name]["IPAddress"]
+
+    def check_circular_dependencies(self, seen: list):
+        """Check if the container has a circular dependency"""
+        if self in seen:
+            dependencies = " -> ".join([s.name for s in seen] + [self.name])
+            raise RuntimeError(f"Circular dependency detected between containers: {dependencies}")
+
+        seen.append(self)
+
+        for dependency in self.depends_on:
+            dependency.check_circular_dependencies(list(seen))
+
+    def async_start_recursive(self, network: Network):
+        """Recursive version of async_start for circular dependency detection"""
+        with self._starting_lock:
+            if self._starting_thread is None:
+                self._starting_thread = Thread(
+                    target=self._start_with_dependencies, name=f"start_{self.name}", kwargs={"network": network}
+                )
+                self._starting_thread.start()
+
+        return self._starting_thread
+
+    def _start_with_dependencies(self, network: Network):
+        """Start all dependencies of a container and then start the container"""
+        threads = [dependency.async_start_recursive(network) for dependency in self.depends_on]
+
+        for thread in threads:
+            thread.join()
+
+        for dependency in self.depends_on:
+            if not dependency.healthy:
+                return
+
+        # this function is executed in a thread
+        # the main thread will take care of the exception
+        try:
+            self.start(network)
+        except Exception as e:
+            logger.exception(f"Error while starting {self.name}: {e}")
+            self.healthy = False
 
     def warmup(self):
-        """ if some stuff must be done after healthcheck """
+        """If some stuff must be done after healthcheck"""
 
     def post_start(self):
-        """ if some stuff must be done after the container is started """
+        """If some stuff must be done after the container is started"""
 
     @property
     def healthcheck_log_file(self):
         return f"{self.log_folder_path}/healthcheck.log"
 
-    def wait_for_health(self):
+    def wait_for_health(self) -> bool:
         if self.healthcheck:
-            result = self.execute_command(**self.healthcheck)
+            exit_code, output = self.execute_command(**self.healthcheck)
 
             with open(self.healthcheck_log_file, "w", encoding="utf-8") as f:
-                f.write(result.output.decode("utf-8"))
+                f.write(output)
 
-    def execute_command(self, test, retries=10, interval=1_000_000_000, start_period=0, timeout=1_000_000_000):
-        """
-            Execute a command inside a container. Usefull for healthcheck and warmups.
-            test is a command to be executed, interval, timeout and start_period are in us (microseconds)
+            if exit_code != 0:
+                logger.stdout(f"Healthcheck failed for {self.name}:\n{output}")
+                return False
+
+            logger.info(f"Healthcheck successful for {self.name}")
+
+        return True
+
+    def exec_run(self, cmd: str, *, demux: bool = False) -> ExecResult:
+        return self._container.exec_run(cmd, demux=demux)
+
+    def execute_command(self, test, retries=10, interval=1_000_000_000, start_period=0) -> tuple[int, str]:
+        """Execute a command inside a container. Useful for healthcheck and warmups.
+        test is a command to be executed, interval, timeout and start_period are in us (microseconds)
+        This function does not raise any exception, it returns a tuple with the exit code and the output
+        The exit code is 0 (success) or any other integer (failure)
+
+        Note that timeout is not supported by the docker SDK
         """
 
         cmd = test
@@ -187,7 +290,6 @@ class TestedContainer:
             cmd = cmd[1]
 
         interval = interval / 1_000_000_000
-        # timeout = timeout / 1_000_000_000
         start_period = start_period / 1_000_000_000
 
         if start_period:
@@ -195,25 +297,34 @@ class TestedContainer:
 
         logger.info(f"Executing command {cmd} for {self.name}")
 
+        result = None
+
         for i in range(retries + 1):
             try:
                 result = self._container.exec_run(cmd)
 
-                logger.debug(f"Try #{i}: {result}")
+                logger.debug(f"Try #{i} for {self.name}: {result}")
 
                 if result.exit_code == 0:
-                    return result
+                    break
 
             except APIError as e:
                 logger.exception(f"Try #{i} failed")
-                pytest.exit(f"Command {cmd} failed for {self._container.name}: {e.explanation}", 1)
+                return 1, f"Command {cmd} failed for {self._container.name}: {e.explanation}"
 
             except Exception as e:
                 logger.debug(f"Try #{i}: {e}")
 
+            self._container.reload()
+            if self._container.status != "running":
+                return 1, f"Container {self._container.name} is not running"
+
             time.sleep(interval)
 
-        pytest.exit(f"Command {cmd} failed for {self._container.name}", 1)
+        if not result:
+            return 1, f"Command {cmd} can't be executed for {self._container.name}"
+
+        return result.exit_code, result.output.decode("utf-8")
 
     def _fix_host_pwd_in_volumes(self):
         # on docker compose, volume host path can starts with a "."
@@ -225,22 +336,51 @@ class TestedContainer:
         host_pwd = self.host_project_dir
 
         result = {}
-        for k, v in self.kwargs["volumes"].items():
-            if k.startswith("./"):
-                k = f"{host_pwd}{k[1:]}"
-            result[k] = v
+        for host_path, container_path in self.kwargs["volumes"].items():
+            if host_path.startswith("./"):
+                corrected_host_path = f"{host_pwd}{host_path[1:]}"
+                result[corrected_host_path] = container_path
+            else:
+                result[host_path] = container_path
 
         self.kwargs["volumes"] = result
 
     def stop(self):
-        self._container.stop()
+        self._starting_thread = None
+
+        if self._container:
+            self._container.reload()
+            if self._container.status != "running":
+                self.healthy = False
+                pytest.exit(f"Container {self.name} is not running, please check logs", 1)
+
+            self._container.stop()
+
+            if not self.healthy:
+                pytest.exit(f"Container {self.name} is not healthy, please check logs", 1)
 
     def collect_logs(self):
-        with open(f"{self.log_folder_path}/stdout.log", "wb") as f:
-            f.write(self._container.logs(stdout=True, stderr=False))
+        TAIL_LIMIT = 50  # noqa: N806
+        SEP = "=" * 30  # noqa: N806
 
-        with open(f"{self.log_folder_path}/stderr.log", "wb") as f:
-            f.write(self._container.logs(stdout=False, stderr=True))
+        data = (
+            ("stdout", self._container.logs(stdout=True, stderr=False)),
+            ("stderr", self._container.logs(stdout=False, stderr=True)),
+        )
+        for output_name, raw_output in data:
+            filename = f"{self.log_folder_path}/{output_name}.log"
+            with open(filename, "wb") as f:
+                f.write(raw_output)
+
+            if not self.healthy:
+                decoded_output = raw_output.decode("utf-8")
+
+                logger.stdout(f"\n{SEP} {self.name} {output_name.upper()} last {TAIL_LIMIT} lines {SEP}")
+                logger.stdout(f"-> See {filename} for full logs")
+                logger.stdout("")
+                # print last <tail> lines in stdout
+                logger.stdout("\n".join(decoded_output.splitlines()[-TAIL_LIMIT:]))
+                logger.stdout("")
 
     def remove(self):
         logger.debug(f"Removing container {self.name}")
@@ -254,8 +394,7 @@ class TestedContainer:
                 # Sometimes, the container does not exists.
                 # We can safely ignore this, because if it's another issue
                 # it will be killed at startup
-
-                pass
+                logger.info(f"Fail to remove container {self.name}")
 
         if self.stdout_interface is not None:
             self.stdout_interface.load_data()
@@ -265,6 +404,7 @@ class SqlDbTestedContainer(TestedContainer):
     def __init__(
         self,
         name,
+        *,
         image_name,
         host_log_folder,
         environment=None,
@@ -300,21 +440,29 @@ class SqlDbTestedContainer(TestedContainer):
 class ImageInfo:
     """data on docker image. data comes from `docker inspect`"""
 
-    def __init__(self, image_name):
+    def __init__(self, image_name: str, *, local_image_only: bool):
+        # local_image_only: boolean
+        # True if the image is only available locally and can't be loaded from any hub
+
         self.env = None
+        self.labels: dict[str, str] = {}
         self.name = image_name
+        self.local_image_only = local_image_only
 
     def load(self):
         try:
             self._image = _get_client().images.get(self.name)
         except docker.errors.ImageNotFound:
-            logger.info(f"Image {self.name} has not been found locally")
+            if self.local_image_only:
+                pytest.exit(f"Image {self.name} not found locally, please build it", 1)
+
+            logger.stdout(f"Pulling {self.name}")
             self._image = _get_client().images.pull(self.name)
 
         self._init_from_attrs(self._image.attrs)
 
     def load_from_logs(self, dir_path):
-        with open(f"{dir_path}/image.json", encoding="utf-8", mode="r") as f:
+        with open(f"{dir_path}/image.json", encoding="utf-8") as f:
             attrs = json.load(f)
 
         self._init_from_attrs(attrs)
@@ -327,49 +475,74 @@ class ImageInfo:
             if value:
                 self.env[key] = value
 
+        self.labels = attrs["Config"]["Labels"]
+
     def save_image_info(self, dir_path):
         with open(f"{dir_path}/image.json", encoding="utf-8", mode="w") as f:
             json.dump(self._image.attrs, f, indent=2)
 
 
 class ProxyContainer(TestedContainer):
-    def __init__(self, host_log_folder, proxy_state) -> None:
+    command_host_port = 11111  # Which port exposed to host to sent proxy commands
+
+    def __init__(
+        self,
+        *,
+        host_log_folder,
+        rc_api_enabled: bool,
+        meta_structs_disabled: bool,
+        span_events: bool,
+        enable_ipv6: bool,
+    ) -> None:
+        """Parameters:
+        span_events: Whether the agent supports the native serialization of span events
+
+        """
+
         super().__init__(
             image_name="datadog/system-tests:proxy-v1",
             name="proxy",
             host_log_folder=host_log_folder,
             environment={
                 "DD_SITE": os.environ.get("DD_SITE"),
-                "DD_API_KEY": os.environ.get("DD_API_KEY"),
+                "DD_API_KEY": os.environ.get("DD_API_KEY", _FAKE_DD_API_KEY),
                 "DD_APP_KEY": os.environ.get("DD_APP_KEY"),
                 "SYSTEM_TESTS_HOST_LOG_FOLDER": host_log_folder,
-                "PROXY_STATE": json.dumps(proxy_state or {}),
+                "SYSTEM_TESTS_RC_API_ENABLED": str(rc_api_enabled),
+                "SYSTEM_TESTS_AGENT_SPAN_META_STRUCTS_DISABLED": str(meta_structs_disabled),
+                "SYSTEM_TESTS_AGENT_SPAN_EVENTS": str(span_events),
+                "SYSTEM_TESTS_IPV6": str(enable_ipv6),
             },
             working_dir="/app",
             volumes={
-                f"./{host_log_folder}/interfaces/": {"bind": f"/app/{host_log_folder}/interfaces", "mode": "rw",},
+                f"./{host_log_folder}/interfaces/": {"bind": f"/app/{host_log_folder}/interfaces", "mode": "rw"},
                 "./utils/": {"bind": "/app/utils/", "mode": "ro"},
             },
-            ports={"11111/tcp": ("127.0.0.1", 11111)},
+            ports={f"{ProxyPorts.proxy_commands}/tcp": ("127.0.0.1", self.command_host_port)},
             command="python utils/proxy/core.py",
         )
 
 
 class AgentContainer(TestedContainer):
-    def __init__(self, host_log_folder, use_proxy=True) -> None:
+    apm_receiver_port: int = 8127
+    dogstatsd_port: int = 8125
 
-        environment = {
-            "DD_ENV": "system-tests",
-            "DD_HOSTNAME": "test",
-            "DD_SITE": self.dd_site,
-            "DD_APM_RECEIVER_PORT": self.agent_port,
-            "DD_DOGSTATSD_PORT": "8125",
-            "SOME_SECRET_ENV": "leaked-env-var",  # used for test that env var are not leaked
-        }
+    def __init__(self, host_log_folder, *, use_proxy=True, environment=None) -> None:
+        environment = environment or {}
+        environment.update(
+            {
+                "DD_ENV": "system-tests",
+                "DD_HOSTNAME": "test",
+                "DD_SITE": self.dd_site,
+                "DD_APM_RECEIVER_PORT": self.apm_receiver_port,
+                "DD_DOGSTATSD_PORT": self.dogstatsd_port,
+                "DD_API_KEY": os.environ.get("DD_API_KEY", _FAKE_DD_API_KEY),
+            }
+        )
 
         if use_proxy:
-            environment["DD_PROXY_HTTPS"] = "http://proxy:8126"
-            environment["DD_PROXY_HTTP"] = "http://proxy:8126"
+            environment["DD_PROXY_HTTPS"] = f"http://proxy:{ProxyPorts.agent}"
+            environment["DD_PROXY_HTTP"] = f"http://proxy:{ProxyPorts.agent}"
 
         super().__init__(
             image_name="system_tests/agent",
@@ -377,25 +550,35 @@ class AgentContainer(TestedContainer):
             host_log_folder=host_log_folder,
             environment=environment,
             healthcheck={
-                "test": f"curl --fail --silent --show-error http://localhost:{self.agent_port}/info",
+                "test": f"curl --fail --silent --show-error --max-time 2 http://localhost:{self.apm_receiver_port}/info",
                 "retries": 60,
             },
-            ports={self.agent_port: f"{self.agent_port}/tcp"},
             stdout_interface=interfaces.agent_stdout,
+            local_image_only=True,
         )
 
-        self.agent_version = None
+        self.agent_version = ""
 
     def configure(self, replay):
         super().configure(replay)
 
-        if "DD_API_KEY" not in os.environ:
-            raise ValueError("DD_API_KEY is missing in env, please add it.")
+        if len(self.environment["DD_API_KEY"]) != 32:
+            logger.stdout("⚠️⚠️⚠️ DD_API_KEY is not 32 characters long, agent startup may be unstable")
 
-        self.environment["DD_API_KEY"] = os.environ["DD_API_KEY"]
+    def get_image_list(self, library: str, weblog: str) -> list[str]:  # noqa: ARG002
+        try:
+            with open("binaries/agent-image", encoding="utf-8") as f:
+                return [
+                    f.read().strip(),
+                ]
+        except FileNotFoundError:
+            # not the cleanest way to do it, but we save ARG parsing
+            return [
+                "datadog/agent:latest",
+            ]
 
     def post_start(self):
-        with open(self.healthcheck_log_file, mode="r", encoding="utf-8") as f:
+        with open(self.healthcheck_log_file, encoding="utf-8") as f:
             data = json.load(f)
 
         self.agent_version = LibraryVersion("agent", data["version"]).version
@@ -407,19 +590,15 @@ class AgentContainer(TestedContainer):
     def dd_site(self):
         return os.environ.get("DD_SITE", "datad0g.com")
 
-    @property
-    def agent_port(self):
-        return 8127
-
 
 class BuddyContainer(TestedContainer):
-    def __init__(self, name, image_name, host_log_folder, proxy_port, environment) -> None:
+    def __init__(self, name, image_name, host_log_folder, host_port, trace_agent_port, environment) -> None:
         super().__init__(
             name=name,
             image_name=image_name,
             host_log_folder=host_log_folder,
-            healthcheck={"test": "curl --fail --silent --show-error localhost:7777", "retries": 60},
-            ports={"7777/tcp": proxy_port},  # not the proxy port
+            healthcheck={"test": "curl --fail --silent --show-error --max-time 2 localhost:7777", "retries": 60},
+            ports={"7777/tcp": host_port},
             environment={
                 **environment,
                 "DD_SERVICE": name,
@@ -427,87 +606,213 @@ class BuddyContainer(TestedContainer):
                 "DD_VERSION": "1.0.0",
                 # "DD_TRACE_DEBUG": "true",
                 "DD_AGENT_HOST": "proxy",
-                "DD_TRACE_AGENT_PORT": proxy_port,
+                "DD_TRACE_AGENT_PORT": trace_agent_port,
             },
         )
 
         self.interface = None
+        _set_aws_auth_environment(self)
 
 
 class WeblogContainer(TestedContainer):
+    appsec_rules_file: str
+    _dd_rc_tuf_root: dict = {
+        "signed": {
+            "_type": "root",
+            "spec_version": "1.0",
+            "version": 1,
+            "expires": "2032-05-29T12:49:41.030418-04:00",
+            "keys": {
+                "ed7672c9a24abda78872ee32ee71c7cb1d5235e8db4ecbf1ca28b9c50eb75d9e": {
+                    "keytype": "ed25519",
+                    "scheme": "ed25519",
+                    "keyid_hash_algorithms": ["sha256", "sha512"],
+                    "keyval": {"public": "7d3102e39abe71044d207550bda239c71380d013ec5a115f79f51622630054e6"},
+                }
+            },
+            "roles": {
+                "root": {
+                    "keyids": ["ed7672c9a24abda78872ee32ee71c7cb1d5235e8db4ecbf1ca28b9c50eb75d9e"],
+                    "threshold": 1,
+                },
+                "snapshot": {
+                    "keyids": ["ed7672c9a24abda78872ee32ee71c7cb1d5235e8db4ecbf1ca28b9c50eb75d9e"],
+                    "threshold": 1,
+                },
+                "targets": {
+                    "keyids": ["ed7672c9a24abda78872ee32ee71c7cb1d5235e8db4ecbf1ca28b9c50eb75d9e"],
+                    "threshold": 1,
+                },
+                "timestsmp": {
+                    "keyids": ["ed7672c9a24abda78872ee32ee71c7cb1d5235e8db4ecbf1ca28b9c50eb75d9e"],
+                    "threshold": 1,
+                },
+            },
+            "consistent_snapshot": True,
+        },
+        "signatures": [
+            {
+                "keyid": "ed7672c9a24abda78872ee32ee71c7cb1d5235e8db4ecbf1ca28b9c50eb75d9e",
+                "sig": "d7e24828d1d3104e48911860a13dd6ad3f4f96d45a9ea28c4a0f04dbd3ca6c205ed406523c6c4cacfb7ebba68f7e122e42746d1c1a83ffa89c8bccb6f7af5e06",  # noqa: E501
+            }
+        ],
+    }
+
     def __init__(
         self,
         host_log_folder,
+        *,
         environment=None,
         tracer_sampling_rate=None,
-        appsec_rules=None,
         appsec_enabled=True,
+        iast_enabled=True,
+        runtime_metrics_enabled=False,
         additional_trace_header_tags=(),
         use_proxy=True,
+        volumes=None,
     ) -> None:
-
         from utils import weblog
 
-        self.port = weblog.port
+        self.host_port = weblog.port
+        self.container_port = 7777
+
+        self.host_grpc_port = weblog.grpc_port
+        self.container_grpc_port = 7778
+
+        volumes = {} if volumes is None else volumes
+        volumes[f"./{host_log_folder}/docker/weblog/logs/"] = {"bind": "/var/log/system-tests", "mode": "rw"}
+
+        base_environment = {
+            # Datadog setup
+            "DD_SERVICE": "weblog",
+            "DD_VERSION": "1.0.0",
+            "DD_TAGS": "key1:val1,key2:val2",
+            "DD_ENV": "system-tests",
+            "DD_TRACE_LOG_DIRECTORY": "/var/log/system-tests",
+            # for remote configuration tests
+            "DD_RC_TUF_ROOT": json.dumps(self._dd_rc_tuf_root),
+        }
+
+        # Basic env set for all scenarios
+        base_environment["DD_TELEMETRY_METRICS_ENABLED"] = "true"
+        base_environment["DD_TELEMETRY_HEARTBEAT_INTERVAL"] = self.telemetry_heartbeat_interval
+
+        # Python lib has different env var until we enable Telemetry Metrics by default
+        base_environment["_DD_TELEMETRY_METRICS_ENABLED"] = "true"
+        base_environment["DD_TELEMETRY_METRICS_INTERVAL_SECONDS"] = self.telemetry_heartbeat_interval
+
+        if runtime_metrics_enabled:
+            base_environment["DD_RUNTIME_METRICS_ENABLED"] = "true"
+
+        if appsec_enabled:
+            base_environment["DD_APPSEC_ENABLED"] = "true"
+            base_environment["DD_APPSEC_WAF_TIMEOUT"] = "10000000"  # 10 seconds
+            base_environment["DD_APPSEC_TRACE_RATE_LIMIT"] = "10000"
+
+        if iast_enabled:
+            base_environment["DD_IAST_ENABLED"] = "true"
+            # Python lib has Code Security debug env var
+            base_environment["_DD_IAST_DEBUG"] = "true"
+            base_environment["DD_IAST_REQUEST_SAMPLING"] = "100"
+            base_environment["DD_IAST_MAX_CONCURRENT_REQUESTS"] = "10"
+            base_environment["DD_IAST_DEDUPLICATION_ENABLED"] = "false"
+
+        if tracer_sampling_rate:
+            base_environment["DD_TRACE_SAMPLE_RATE"] = str(tracer_sampling_rate)
+
+        if use_proxy:
+            # set the tracer to send data to runner (it will forward them to the agent)
+            base_environment["DD_AGENT_HOST"] = "proxy"
+            base_environment["DD_TRACE_AGENT_PORT"] = self.trace_agent_port
+        else:
+            base_environment["DD_AGENT_HOST"] = "agent"
+            base_environment["DD_TRACE_AGENT_PORT"] = AgentContainer.apm_receiver_port
+
+        # overwrite values with those set in the scenario
+        environment = base_environment | (environment or {})
 
         super().__init__(
             image_name="system_tests/weblog",
             name="weblog",
             host_log_folder=host_log_folder,
-            environment=environment or {},
-            volumes={f"./{host_log_folder}/docker/weblog/logs/": {"bind": "/var/log/system-tests", "mode": "rw",},},
+            environment=environment,
+            volumes=volumes,
             # ddprof's perf event open is blocked by default by docker's seccomp profile
             # This is worse than the line above though prevents mmap bugs locally
             security_opt=["seccomp=unconfined"],
-            healthcheck={"test": f"curl --fail --silent --show-error localhost:{self.port}", "retries": 60},
-            ports={"7777/tcp": self.port, "7778/tcp": weblog._grpc_port},
+            healthcheck={
+                "test": f"curl --fail --silent --show-error --max-time 2 localhost:{self.container_port}/healthcheck",
+                "retries": 60,
+            },
+            ports={
+                f"{self.host_port}/tcp": self.container_port,
+                f"{self.host_grpc_port}/tcp": self.container_grpc_port,
+            },
             stdout_interface=interfaces.library_stdout,
+            local_image_only=True,
+            command="./app.sh",
         )
 
         self.tracer_sampling_rate = tracer_sampling_rate
-        self.appsec_rules_file = appsec_rules
         self.additional_trace_header_tags = additional_trace_header_tags
 
         self.weblog_variant = ""
-        self.libddwaf_version = None
-        self.appsec_rules_version = None
+        self._library: LibraryVersion = None
 
-        # Basic env set for all scenarios
-        self.environment["DD_TELEMETRY_HEARTBEAT_INTERVAL"] = self.telemetry_heartbeat_interval
+    @property
+    def trace_agent_port(self):
+        return ProxyPorts.weblog
 
-        if appsec_enabled:
-            self.environment["DD_APPSEC_ENABLED"] = "true"
+    @staticmethod
+    def _get_image_list_from_dockerfile(dockerfile) -> list[str]:
+        result = []
 
-        if tracer_sampling_rate:
-            self.environment["DD_TRACE_SAMPLE_RATE"] = str(tracer_sampling_rate)
+        pattern = re.compile(r"FROM\s+(?P<image_name>[^ ]+)")
+        with open(dockerfile, encoding="utf-8") as f:
+            for line in f:
+                if match := pattern.match(line):
+                    result.append(match.group("image_name"))
 
-        if use_proxy:
-            # set the tracer to send data to runner (it will forward them to the agent)
-            self.environment["DD_AGENT_HOST"] = "proxy"
-            self.environment["DD_TRACE_AGENT_PORT"] = 8126
-        else:
-            self.environment["DD_AGENT_HOST"] = "agent"
-            self.environment["DD_TRACE_AGENT_PORT"] = 8127
+        return result
+
+    def get_image_list(self, library: str | None, weblog: str | None) -> list[str]:
+        """Parse the Dockerfile and extract all images reference in a FROM section"""
+        result = []
+
+        if not library or not weblog:
+            return result
+
+        args = {}
+
+        pattern = re.compile(r"^FROM\s+(?P<image_name>[^\s]+)")
+        arg_pattern = re.compile(r"^ARG\s+(?P<arg_name>[^\s]+)\s*=\s*(?P<arg_value>[^\s]+)")
+        with open(f"utils/build/docker/{library}/{weblog}.Dockerfile", encoding="utf-8") as f:
+            for line in f:
+                if match := arg_pattern.match(line):
+                    args[match.group("arg_name")] = match.group("arg_value")
+
+                if match := pattern.match(line):
+                    image_name = match.group("image_name")
+
+                    for name, value in args.items():
+                        image_name = image_name.replace(f"${name}", value)
+
+                    result.append(image_name)
+
+        return result
 
     def configure(self, replay):
         super().configure(replay)
-        self.weblog_variant = self.image.env.get("SYSTEM_TESTS_WEBLOG_VARIANT", None)
 
-        if libddwaf_version := self.image.env.get("SYSTEM_TESTS_LIBDDWAF_VERSION", None):
-            self.libddwaf_version = LibraryVersion("libddwaf", libddwaf_version).version
+        self.weblog_variant = self.image.labels["system-tests-weblog-variant"]
 
-        appsec_rules_version = self.image.env.get("SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION", "0.0.0")
-        self.appsec_rules_version = LibraryVersion("appsec_rules", appsec_rules_version).version
+        _set_aws_auth_environment(self)
 
-        if self.library in ("cpp", "dotnet", "java", "python"):
+        library = self.image.labels["system-tests-library"]
+
+        if library in ("cpp", "dotnet", "java", "python"):
             self.environment["DD_TRACE_HEADER_TAGS"] = "user-agent:http.request.headers.user-agent"
-
-            if self.library == "python":
-                # activating debug log on python causes a huge amount of logs, making the network
-                # stack fails a lot randomly
-                self.environment["DD_TRACE_DEBUG"] = "false"
-
-        elif self.library in ("golang", "nodejs", "php", "ruby"):
+        elif library in ("golang", "nodejs", "php", "ruby"):
             self.environment["DD_TRACE_HEADER_TAGS"] = "user-agent"
         else:
             self.environment["DD_TRACE_HEADER_TAGS"] = ""
@@ -515,38 +820,63 @@ class WeblogContainer(TestedContainer):
         if len(self.additional_trace_header_tags) != 0:
             self.environment["DD_TRACE_HEADER_TAGS"] += f',{",".join(self.additional_trace_header_tags)}'
 
-        if self.appsec_rules_file:
-            self.environment["DD_APPSEC_RULES"] = self.appsec_rules_file
-        else:
-            self.appsec_rules_file = (self.image.env | self.environment).get("DD_APPSEC_RULES", None)
+        self.appsec_rules_file = (self.image.env | self.environment).get("DD_APPSEC_RULES", None)
 
-        if self.weblog_variant == "python3.12":
-            if self.library < "python@2.1.0.dev":  # profiling causes a seg fault on 2.0.0
-                self.environment["DD_PROFILING_ENABLED"] = "false"
+        # Workaround: Once the dd-trace-go fix is merged that avoids a go panic for
+        # DD_TRACE_PROPAGATION_EXTRACT_FIRST=true when context propagation fails,
+        # we can remove the DD_TRACE_PROPAGATION_EXTRACT_FIRST=false override
+        if library == "golang":
+            self.environment["DD_TRACE_PROPAGATION_EXTRACT_FIRST"] = "false"
+
+        # Workaround: We may want to define baggage in our list of propagators, but the cpp library
+        # has strict checks on tracer startup that will fail to launch the application
+        # when it encounters unfamiliar configurations. Override the configuration that the cpp
+        # weblog container sees so we can still run tests
+        if library == "cpp":
+            extract_config = self.environment.get("DD_TRACE_PROPAGATION_STYLE_EXTRACT")
+            if extract_config and "baggage" in extract_config:
+                self.environment["DD_TRACE_PROPAGATION_STYLE_EXTRACT"] = extract_config.replace("baggage", "").strip(
+                    ","
+                )
+
+        if library == "nodejs":
+            try:
+                with open("./binaries/nodejs-load-from-local", encoding="utf-8") as f:
+                    path = f.read().strip(" \r\n")
+                    path_str = str(Path(path).resolve())
+                    self.kwargs["volumes"][path_str] = {
+                        "bind": "/volumes/dd-trace-js",
+                        "mode": "ro",
+                    }
+            except Exception:
+                logger.info("No local dd-trace-js found")
 
     def post_start(self):
         from utils import weblog
 
         logger.debug(f"Docker host is {weblog.domain}")
 
+        with open(self.healthcheck_log_file, encoding="utf-8") as f:
+            data = json.load(f)
+            lib = data["library"]
+
+        self._library = LibraryVersion(lib["language"], lib["version"])
+
         logger.stdout(f"Library: {self.library}")
 
-        if self.libddwaf_version:
-            logger.stdout(f"libddwaf: {self.libddwaf_version}")
-
         if self.appsec_rules_file:
-            logger.stdout(f"AppSec rules version: {self.appsec_rules_version}")
+            logger.stdout("Using a custom appsec rules file")
 
         if self.uds_mode:
             logger.stdout(f"UDS socket: {self.uds_socket}")
 
         logger.stdout(f"Weblog variant: {self.weblog_variant}")
 
+        self.stdout_interface.init_patterns(self.library)
+
     @property
-    def library(self):
-        return LibraryVersion(
-            self.image.env.get("SYSTEM_TESTS_LIBRARY", None), self.image.env.get("SYSTEM_TESTS_LIBRARY_VERSION", None),
-        )
+    def library(self) -> LibraryVersion:
+        return self._library
 
     @property
     def uds_socket(self):
@@ -560,17 +890,14 @@ class WeblogContainer(TestedContainer):
     def telemetry_heartbeat_interval(self):
         return 2
 
-    def request(self, method, url, **kwargs):
-        """ perform an HTTP request on the weblog, must NOT be used for tests """
-        return requests.request(method, f"http://localhost:{self.port}{url}", **kwargs)
-
 
 class PostgresContainer(SqlDbTestedContainer):
     def __init__(self, host_log_folder) -> None:
         super().__init__(
-            image_name="postgres:latest",
+            image_name="postgres:alpine",
             name="postgres",
             host_log_folder=host_log_folder,
+            healthcheck={"test": "pg_isready -q -U postgres -d system_tests_dbname", "retries": 30},
             user="postgres",
             environment={"POSTGRES_PASSWORD": "password", "PGPORT": "5433"},
             volumes={
@@ -582,7 +909,7 @@ class PostgresContainer(SqlDbTestedContainer):
             stdout_interface=interfaces.postgres,
             dd_integration_service="postgresql",
             db_user="system_tests_user",
-            db_password="system_tests",
+            db_password="system_tests",  # noqa: S106
             db_host="postgres",
             db_instance="system_tests_dbname",
         )
@@ -591,33 +918,37 @@ class PostgresContainer(SqlDbTestedContainer):
 class MongoContainer(TestedContainer):
     def __init__(self, host_log_folder) -> None:
         super().__init__(
-            image_name="mongo:latest", name="mongodb", host_log_folder=host_log_folder, allow_old_container=True,
+            image_name="mongo:latest", name="mongodb", host_log_folder=host_log_folder, allow_old_container=True
         )
 
 
 class KafkaContainer(TestedContainer):
     def __init__(self, host_log_folder) -> None:
         super().__init__(
-            image_name="bitnami/kafka:3.1",
+            # TODO: Look into apache/kafka-native but it doesn't include scripts.
+            image_name="apache/kafka:3.7.1",
             name="kafka",
             host_log_folder=host_log_folder,
             environment={
-                "KAFKA_LISTENERS": "PLAINTEXT://:9092",
+                "KAFKA_PROCESS_ROLES": "broker,controller",
+                "KAFKA_NODE_ID": "1",
+                "KAFKA_LISTENERS": "PLAINTEXT://:9092,CONTROLLER://:9093",
+                "KAFKA_CONTROLLER_QUORUM_VOTERS": "1@kafka:9093",
+                "KAFKA_CONTROLLER_LISTENER_NAMES": "CONTROLLER",
+                "CLUSTER_ID": "5L6g3nShT-eMCtK--X86sw",
                 "KAFKA_ADVERTISED_LISTENERS": "PLAINTEXT://kafka:9092",
-                "ALLOW_PLAINTEXT_LISTENER": "yes",
-                "KAFKA_ADVERTISED_HOST_NAME": "kafka",
-                "KAFKA_ADVERTISED_PORT": "9092",
-                "KAFKA_PORT": "9092",
-                "KAFKA_BROKER_ID": "1",
-                "KAFKA_ZOOKEEPER_CONNECT": "zookeeper:2181",
+                "KAFKA_INTER_BROKER_LISTENER_NAME": "PLAINTEXT",
+                "KAFKA_LISTENER_SECURITY_PROTOCOL_MAP": "CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT",
+                "KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR": "1",
+                "KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS": "0",
             },
             allow_old_container=True,
             healthcheck={
-                "test": ["CMD-SHELL", "kafka-topics.sh --bootstrap-server 127.0.0.1:9092 --list",],
-                "start_period": 5 * 1_000_000_000,
-                "interval": 2 * 1_000_000_000,
-                "timeout": 2 * 1_000_000_000,
-                "retries": 25,
+                "test": ["CMD-SHELL", "/opt/kafka/bin/kafka-topics.sh --bootstrap-server 127.0.0.1:9092 --list"],
+                "start_period": 1 * 1_000_000_000,
+                "interval": 1 * 1_000_000_000,
+                # "timeout": 1 * 1_000_000_000,
+                "retries": 30,
             },
         )
 
@@ -628,24 +959,17 @@ class KafkaContainer(TestedContainer):
         kafka_options = f"--topic {topic} --bootstrap-server {server}"
 
         commands = [
-            f"kafka-topics.sh --create {kafka_options}",
-            f'bash -c "echo hello | kafka-console-producer.sh {kafka_options}"',
-            f"kafka-console-consumer.sh {kafka_options} --max-messages 1 --group testgroup1 --from-beginning",
+            f"/opt/kafka/bin/kafka-topics.sh --create {kafka_options}",
+            f'bash -c "echo hello | /opt/kafka/bin/kafka-console-producer.sh {kafka_options}"',
+            f"/opt/kafka/bin/kafka-console-consumer.sh {kafka_options} --max-messages 1 --group testgroup1 --from-beginning",  # noqa: E501
         ]
 
         for command in commands:
-            self.execute_command(test=command, interval=2 * 1_000_000_000, retries=15)
-
-
-class ZooKeeperContainer(TestedContainer):
-    def __init__(self, host_log_folder) -> None:
-        super().__init__(
-            image_name="bitnami/zookeeper:latest",
-            name="zookeeper",
-            host_log_folder=host_log_folder,
-            environment={"ALLOW_ANONYMOUS_LOGIN": "yes",},
-            allow_old_container=True,
-        )
+            exit_code, output = self.execute_command(test=command, interval=1 * 1_000_000_000, retries=30)
+            if exit_code != 0:
+                logger.stdout(f"Command {command} failed for {self._container.name}: {output}")
+                self.healthy = False
+                return
 
 
 class CassandraContainer(TestedContainer):
@@ -661,7 +985,7 @@ class CassandraContainer(TestedContainer):
 class RabbitMqContainer(TestedContainer):
     def __init__(self, host_log_folder) -> None:
         super().__init__(
-            image_name="rabbitmq:3-management-alpine",
+            image_name="rabbitmq:3.12-management-alpine",
             name="rabbitmq",
             host_log_folder=host_log_folder,
             allow_old_container=True,
@@ -686,27 +1010,28 @@ class MySqlContainer(SqlDbTestedContainer):
             healthcheck={"test": "/healthcheck.sh", "retries": 60},
             dd_integration_service="mysql",
             db_user="mysqldb",
-            db_password="mysqldb",
+            db_password="mysqldb",  # noqa: S106
             db_host="mysqldb",
             db_instance="mysql_dbname",
         )
 
 
-class SqlServerContainer(SqlDbTestedContainer):
+class MsSqlServerContainer(SqlDbTestedContainer):
     def __init__(self, host_log_folder) -> None:
         self.data_mssql = f"./{host_log_folder}/data-mssql"
-        healthcheck = {}
-        if not platform.processor().startswith("arm"):
-            # [!NOTE] sqlcmd tool is not available inside the ARM64 version of SQL Edge containers.
-            # see https://hub.docker.com/_/microsoft-azure-sql-edge
-            healthcheck = {
-                "test": '/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P "yourStrong(!)Password" -Q "SELECT 1" -b -o /dev/null',
-                "retries": 20,
-            }
+
+        healthcheck = {
+            # Using 127.0.0.1 here instead of localhost to avoid using IPv6 in some systems.
+            # -C : trust self signed certificates
+            "test": '/opt/mssql-tools18/bin/sqlcmd -S 127.0.0.1 -U sa -P "yourStrong(!)Password" -Q "SELECT 1" -b -C',
+            "retries": 20,
+        }
 
         super().__init__(
-            image_name="mcr.microsoft.com/azure-sql-edge:latest",
+            image_name="mcr.microsoft.com/mssql/server:2022-latest",
             name="mssql",
+            cap_add=["SYS_PTRACE"],
+            user="root",
             environment={"ACCEPT_EULA": "1", "MSSQL_SA_PASSWORD": "yourStrong(!)Password"},
             allow_old_container=True,
             host_log_folder=host_log_folder,
@@ -715,7 +1040,7 @@ class SqlServerContainer(SqlDbTestedContainer):
             healthcheck=healthcheck,
             dd_integration_service="mssql",
             db_user="SA",
-            db_password="yourStrong(!)Password",
+            db_password="yourStrong(!)Password",  # noqa: S106
             db_host="mssql",
             db_instance="master",
         )
@@ -723,7 +1048,7 @@ class SqlServerContainer(SqlDbTestedContainer):
 
 class OpenTelemetryCollectorContainer(TestedContainer):
     def __init__(self, host_log_folder) -> None:
-        image = os.environ.get("SYSTEM_TESTS_OTEL_COLLECTOR_IMAGE", "otel/opentelemetry-collector-contrib:latest")
+        image = os.environ.get("SYSTEM_TESTS_OTEL_COLLECTOR_IMAGE", "otel/opentelemetry-collector-contrib:0.110.0")
         self._otel_config_host_path = "./utils/build/docker/otelcol-config.yaml"
 
         if "DOCKER_HOST" in os.environ:
@@ -740,13 +1065,13 @@ class OpenTelemetryCollectorContainer(TestedContainer):
             name="collector",
             command="--config=/etc/otelcol-config.yml",
             environment={},
-            volumes={self._otel_config_host_path: {"bind": "/etc/otelcol-config.yml", "mode": "ro",}},
+            volumes={self._otel_config_host_path: {"bind": "/etc/otelcol-config.yml", "mode": "ro"}},
             host_log_folder=host_log_folder,
-            ports={"13133/tcp": ("0.0.0.0", 13133)},
+            ports={"13133/tcp": ("0.0.0.0", 13133)},  # noqa: S104
         )
 
     # Override wait_for_health because we cannot do docker exec for container opentelemetry-collector-contrib
-    def wait_for_health(self):
+    def wait_for_health(self) -> bool:
         time.sleep(20)  # It takes long for otel collector to start
 
         for i in range(61):
@@ -754,65 +1079,43 @@ class OpenTelemetryCollectorContainer(TestedContainer):
                 r = requests.get(f"http://{self._otel_host}:{self._otel_port}", timeout=1)
                 logger.debug(f"Healthcheck #{i} on {self._otel_host}:{self._otel_port}: {r}")
                 if r.status_code == 200:
-                    return
+                    return True
             except Exception as e:
                 logger.debug(f"Healthcheck #{i} on {self._otel_host}:{self._otel_port}: {e}")
             time.sleep(1)
-        pytest.exit(f"{self._otel_host}:{self._otel_port} never answered to healthcheck request", 1)
 
-    def start(self) -> Container:
+        logger.stdout(f"{self._otel_host}:{self._otel_port} never answered to healthcheck request")
+        return False
+
+    def start(self, network: Network) -> Container:
         # _otel_config_host_path is mounted in the container, and depending on umask,
         # it might have no read permissions for other users, which is required within
         # the container. So set them here.
-        prev_mode = os.stat(self._otel_config_host_path).st_mode
+        prev_mode = Path(self._otel_config_host_path).stat().st_mode
         new_mode = prev_mode | stat.S_IROTH
         if prev_mode != new_mode:
-            os.chmod(self._otel_config_host_path, new_mode)
-        return super().start()
-
-
-class ElasticMQContainer(TestedContainer):
-    def __init__(self, host_log_folder) -> None:
-        super().__init__(
-            image_name="softwaremill/elasticmq:latest",
-            name="elasticmq",
-            host_log_folder=host_log_folder,
-            environment={"ELASTICMQ_OPTS": "-Dnode-address.hostname=0.0.0.0"},
-            ports={9324: 9324},
-            volumes={"/var/run/docker.sock": {"bind": "/var/run/docker.sock", "mode": "rw"}},
-            allow_old_container=True,
-        )
-
-
-class LocalstackContainer(TestedContainer):
-    def __init__(self, host_log_folder) -> None:
-        super().__init__(
-            image_name="localstack/localstack:3.1.0",
-            name="localstack-main",
-            environment={
-                "LOCALSTACK_SERVICES": "kinesis,sqs,sns,xray",
-                "EXTRA_CORS_ALLOWED_HEADERS": "x-amz-request-id,x-amzn-requestid",
-                "EXTRA_CORS_EXPOSE_HEADERS": "x-amz-request-id,x-amzn-requestid",
-                "AWS_DEFAULT_REGION": "us-east-1",
-                "FORCE_NONINTERACTIVE": "true",
-                "START_WEB": "0",
-                "DOCKER_HOST": "unix:///var/run/docker.sock",
-            },
-            host_log_folder=host_log_folder,
-            ports={"4566": ("127.0.0.1", 4566)},
-            volumes={"/var/run/docker.sock": {"bind": "/var/run/docker.sock", "mode": "rw"}},
-        )
+            Path(self._otel_config_host_path).chmod(new_mode)
+        return super().start(network)
 
 
 class APMTestAgentContainer(TestedContainer):
-    def __init__(self, host_log_folder) -> None:
+    def __init__(self, host_log_folder, agent_port=8126) -> None:
         super().__init__(
-            image_name="ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:latest",
+            image_name="ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.20.0",
             name="ddapm-test-agent",
             host_log_folder=host_log_folder,
-            environment={"SNAPSHOT_CI": "0",},
-            ports={"8126": ("127.0.0.1", 8126)},
-            allow_old_container=True,
+            environment={
+                "SNAPSHOT_CI": "0",
+                "DD_APM_RECEIVER_SOCKET": "/var/run/datadog/apm.socket",
+                "PORT": agent_port,
+            },
+            healthcheck={
+                "test": f"curl --fail --silent --show-error http://localhost:{agent_port}/info",
+                "retries": 60,
+            },
+            ports={agent_port: ("127.0.0.1", agent_port)},
+            allow_old_container=False,
+            volumes={f"./{host_log_folder}/interfaces/test_agent_socket": {"bind": "/var/run/datadog/", "mode": "rw"}},
         )
 
 
@@ -823,15 +1126,12 @@ class MountInjectionVolume(TestedContainer):
             name=name,
             host_log_folder=host_log_folder,
             command="/bin/true",
-            volumes={_VOLUME_INJECTOR_NAME: {"bind": "/datadog-init", "mode": "rw"},},
+            volumes={_VOLUME_INJECTOR_NAME: {"bind": "/datadog-init/package", "mode": "rw"}},
         )
 
     def _lib_init_image(self, lib_init_image):
-        self.image = ImageInfo(lib_init_image)
-        if "dd-lib-js-init" in lib_init_image:
-            self.kwargs["volumes"] = {
-                _VOLUME_INJECTOR_NAME: {"bind": "/operator-build", "mode": "rw"},
-            }
+        self.image = ImageInfo(lib_init_image, local_image_only=False)
+        # .NET compatible with former folder layer
         if "dd-lib-dotnet-init" in lib_init_image:
             self.kwargs["volumes"] = {
                 _VOLUME_INJECTOR_NAME: {"bind": "/datadog-init/monitoring-home", "mode": "rw"},
@@ -844,14 +1144,13 @@ class MountInjectionVolume(TestedContainer):
 
 class WeblogInjectionInitContainer(TestedContainer):
     def __init__(self, host_log_folder) -> None:
-
         super().__init__(
             image_name="docker.io/library/weblog-injection:latest",
             name="weblog-injection-init",
             host_log_folder=host_log_folder,
             ports={"18080": ("127.0.0.1", 8080)},
             allow_old_container=True,
-            volumes={_VOLUME_INJECTOR_NAME: {"bind": "/datadog-lib", "mode": "rw"},},
+            volumes={_VOLUME_INJECTOR_NAME: {"bind": "/datadog-lib", "mode": "rw"}},
         )
 
     def set_environment_for_library(self, library):
@@ -861,3 +1160,124 @@ class WeblogInjectionInitContainer(TestedContainer):
         lib_inject_props["DD_AGENT_HOST"] = "ddapm-test-agent"
         lib_inject_props["DD_TRACE_DEBUG"] = "true"
         self.environment = lib_inject_props
+
+
+class DockerSSIContainer(TestedContainer):
+    def __init__(self, host_log_folder) -> None:
+        super().__init__(
+            image_name="docker.io/library/weblog-injection:latest",
+            name="weblog-injection",
+            host_log_folder=host_log_folder,
+            ports={"18080": ("127.0.0.1", 18080), "8080": ("127.0.0.1", 8080), "9080": ("127.0.0.1", 9080)},
+            healthcheck={"test": "sh /healthcheck.sh", "retries": 60},
+            allow_old_container=False,
+            environment={"DD_DEBUG": "true", "DD_TRACE_SAMPLE_RATE": 1, "DD_TELEMETRY_METRICS_INTERVAL_SECONDS": "0.5"},
+            volumes={f"./{host_log_folder}/interfaces/test_agent_socket": {"bind": "/var/run/datadog/", "mode": "rw"}},
+        )
+
+    def get_env(self, env_var):
+        """Get env variables from the container"""
+        env = self.image.env | self.environment
+        return env.get(env_var)
+
+
+class DummyServerContainer(TestedContainer):
+    def __init__(self, host_log_folder) -> None:
+        super().__init__(
+            image_name="jasonrm/dummy-server:latest",
+            name="http-app",
+            host_log_folder=host_log_folder,
+            healthcheck={"test": "wget http://localhost:8080", "retries": 10},
+        )
+
+
+class EnvoyContainer(TestedContainer):
+    def __init__(self, host_log_folder) -> None:
+        from utils import weblog
+
+        super().__init__(
+            image_name="envoyproxy/envoy:v1.31-latest",
+            name="envoy",
+            host_log_folder=host_log_folder,
+            volumes={"./tests/external_processing/envoy.yaml": {"bind": "/etc/envoy/envoy.yaml", "mode": "ro"}},
+            ports={"80": ("127.0.0.1", weblog.port)},
+            healthcheck={
+                "test": "/bin/bash -c \"\
+                    exec 3<>/dev/tcp/127.0.0.1/80 || exit 1;\
+                    echo -e 'GET / HTTP/1.1\nHost: system-tests\r\n\r\n' >&3;\
+                    cat <&3 | grep -q '200'\"",
+                "retries": 10,
+            },
+        )
+
+
+class ExternalProcessingContainer(TestedContainer):
+    library: LibraryVersion
+
+    def __init__(
+        self,
+        host_log_folder,
+        env,
+        volumes,
+    ) -> None:
+        try:
+            with open("binaries/golang-service-extensions-callout-image", encoding="utf-8") as f:
+                image = f.read().strip()
+        except FileNotFoundError:
+            image = "ghcr.io/datadog/dd-trace-go/service-extensions-callout:latest"
+
+        environment = {
+            "DD_APPSEC_ENABLED": "true",
+            "DD_SERVICE": "service_test",
+            "DD_AGENT_HOST": "proxy",
+            "DD_TRACE_AGENT_PORT": ProxyPorts.weblog,
+            "DD_APPSEC_WAF_TIMEOUT": "1s",
+        }
+
+        if env:
+            environment.update(env)
+
+        if volumes is None:
+            volumes = {}
+
+        super().__init__(
+            image_name=image,
+            name="extproc",
+            host_log_folder=host_log_folder,
+            volumes=volumes,
+            environment=environment,
+            healthcheck={
+                "test": "wget -qO- http://localhost:80/",
+                "retries": 10,
+            },
+        )
+
+    def post_start(self):
+        with open(self.healthcheck_log_file, encoding="utf-8") as f:
+            data = json.load(f)
+            lib = data["library"]
+
+        self.library = LibraryVersion(lib["language"], lib["version"])
+
+        logger.stdout(f"Library: {self.library}")
+        logger.stdout(f"Image: {self.image.name}")
+
+
+def _set_aws_auth_environment(image):
+    # copy SYSTEM_TESTS_AWS env variables from local env to docker image
+
+    if "SYSTEM_TESTS_AWS_ACCESS_KEY_ID" in os.environ:
+        prefix = "SYSTEM_TESTS_AWS"
+        for key, value in os.environ.items():
+            if prefix in key:
+                image.environment[key.replace("SYSTEM_TESTS_", "")] = value
+    else:
+        prefix = "AWS"
+        for key, value in os.environ.items():
+            if prefix in key:
+                image.environment[key] = value
+
+    # Set default AWS values if specific keys are not present
+    if "AWS_REGION" not in image.environment:
+        image.environment["AWS_REGION"] = "us-east-1"
+        image.environment["AWS_DEFAULT_REGION"] = "us-east-1"
