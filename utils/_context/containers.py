@@ -671,7 +671,7 @@ class WeblogContainer(TestedContainer):
         use_proxy=True,
         volumes=None,
     ) -> None:
-        from utils import weblog, context
+        from utils import weblog
 
         self.host_port = weblog.port
         self.container_port = 7777
@@ -718,11 +718,8 @@ class WeblogContainer(TestedContainer):
             base_environment["DD_IAST_DEDUPLICATION_ENABLED"] = "false"
 
         if tracer_sampling_rate:
-            if context.library == "python":
-                # python3.x dropped support for DD_TRACE_SAMPLE_RATE
-                base_environment["DD_TRACE_SAMPLING_RULES"] = str([{"sample_rate": tracer_sampling_rate}])
-            else:
-                base_environment["DD_TRACE_SAMPLE_RATE"] = str(tracer_sampling_rate)
+            base_environment["DD_TRACE_SAMPLE_RATE"] = str(tracer_sampling_rate)
+            base_environment["DD_TRACE_SAMPLING_RULES"] = json.dumps([{"sample_rate": tracer_sampling_rate}])
 
         if use_proxy:
             # set the tracer to send data to runner (it will forward them to the agent)
