@@ -997,7 +997,7 @@ class RabbitMqContainer(TestedContainer):
 class ElasticMQContainer(TestedContainer):
     def __init__(self, host_log_folder) -> None:
         super().__init__(
-            image_name="softwaremill/elasticmq-native:latest",
+            image_name="softwaremill/elasticmq-native:1.6.11",
             name="elasticmq",
             host_log_folder=host_log_folder,
             environment={"ELASTICMQ_OPTS": "-Dnode-address.hostname=0.0.0.0"},
@@ -1010,7 +1010,7 @@ class ElasticMQContainer(TestedContainer):
 class LocalstackContainer(TestedContainer):
     def __init__(self, host_log_folder) -> None:
         super().__init__(
-            image_name="localstack/localstack:latest",
+            image_name="localstack/localstack:4.1",
             name="localstack-main",
             environment={
                 "LOCALSTACK_SERVICES": "kinesis,sqs,sns,xray",

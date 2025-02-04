@@ -122,8 +122,6 @@ class AWSIntegrationsScenario(EndToEndScenario):
 
     def configure(self, config):
         super().configure(config)
-        # if not self.replay:
-        #     self._check_aws_variables()
         self.unique_id = _get_unique_id(self.host_log_folder, replay=self.replay)
 
     def _check_aws_variables(self):
