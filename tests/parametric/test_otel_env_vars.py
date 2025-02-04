@@ -17,6 +17,7 @@ class Test_Otel_Env_Vars:
                 "DD_TRACE_DEBUG": "false",
                 "OTEL_LOG_LEVEL": "debug",
                 "DD_TRACE_SAMPLE_RATE": "0.5",
+                "DD_TRACE_SAMPLING_RULES": '[{"sample_rate":0.5}]',
                 "OTEL_TRACES_SAMPLER": "traceidratio",
                 "OTEL_TRACES_SAMPLER_ARG": "0.1",
                 "DD_TRACE_ENABLED": "true",
