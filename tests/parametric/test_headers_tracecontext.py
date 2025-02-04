@@ -780,7 +780,7 @@ class Test_Headers_Tracecontext:
 
             tracestate = tracestate_headers[0][1]
             # FIXME: nodejs paramerric app sets span.span_id to a string, convert this to an int
-            assert "p:{:016x}".format(int(span.span_id)) in tracestate
+            assert f"p:{int(span.span_id):016x}" in tracestate
 
     @missing_feature(context.library < "python@2.10.0", reason="Not implemented")
     @missing_feature(context.library == "dotnet", reason="Not implemented")

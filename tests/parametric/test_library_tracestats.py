@@ -24,7 +24,7 @@ def _human_stats(stats: V06StatsAggr) -> str:
     return str(filtered_copy)
 
 
-def enable_tracestats(sample_rate: Optional[float] = None) -> Any:
+def enable_tracestats(sample_rate: float | None = None) -> Any:
     env = {
         "DD_TRACE_STATS_COMPUTATION_ENABLED": "1",  # reference, dotnet, python, golang
         "DD_TRACE_TRACER_METRICS_ENABLED": "true",  # java

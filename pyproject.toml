@@ -232,24 +232,19 @@ ignore = [
     "F541",      # 30 occurences    [*] f-string-missing-placeholders
     "F841",      # 28 occurences    [*] unused-variable
     "UP015",     # 27 occurences    [*] redundant-open-modes
-    "RET502",    # 25 occurences    [*] implicit-return-value
+
     "D404",      # 25 occurences    [ ] docstring-starts-with-this
     "ANN401",    # 24 occurences    [ ] any-type
-    "D209",      # 24 occurences    [*] new-line-after-last-paragraph
     "B007",      # 23 occurences    [ ] unused-loop-control-variable
     "DTZ005",    # 23 occurences    [ ] call-datetime-now-without-tzinfo
     "INP001",    # 22 occurences    [ ] implicit-namespace-package
     "ARG001",    # 21 occurences    [ ] unused-function-argument
     "UP031",     # 17 occurences    [ ] printf-string-formatting
-    "UP032",     # 17 occurences    [*] f-string
     "ANN205",    # 16 occurences    [ ] missing-return-type-static-method
     "T201",      # 15 occurences    [*] print
-    "RET505",    # 15 occurences    [*] superfluous-else-return
-    "UP007",     # 13 occurences    [*] non-pep604-annotation
     "FBT001",    # 12 occurences    [ ] boolean-type-hint-positional-argument
     "SLF001",    # 12 occurences    [ ] private-member-access
     "SIM118",    # 12 occurences    [*] in-dict-keys
-    "F811",      # 12 occurences    [*] redefined-while-unused
     "UP035",     # 12 occurences    [ ] deprecated-import
     "S105",      # 10 occurences    [ ] hardcoded-password-string
     "B015",      # 10 occurences    [ ] useless-comparison
@@ -258,7 +253,6 @@ ignore = [
     "PGH004",    # 9 occurences     [ ] blanket-noqa
     "RUF001",    # 9 occurences     [ ] ambiguous-unicode-character-string
     "RUF015",    # 9 occurences     [*] unnecessary-iterable-allocation-for-first-element
-    "RUF100",    # 9 occurences     [*] unused-noqa
     "SIM108",    # 8 occurences     [*] if-else-block-instead-of-if-exp
     "PTH120",    # 8 occurences     [ ] os-path-dirname
     "PGH003",    # 8 occurences     [ ] blanket-type-ignore
@@ -270,7 +264,6 @@ ignore = [
     "A001",      # 6 occurences     [ ] builtin-variable-shadowing
     "PT006",     # 6 occurences     [*] pytest-parametrize-names-wrong-type
     "RET504",    # 6 occurences     [*] unnecessary-assign
-    "SIM114",    # 6 occurences     [*] if-with-same-arms
     "N803",      # 6 occurences     [ ] invalid-argument-name
     "E712",      # 6 occurences     [*] true-false-comparison
     "E741",      # 6 occurences     [ ] ambiguous-variable-name
@@ -283,17 +276,12 @@ ignore = [
     "PTH103",    # 4 occurences     [ ] os-makedirs
     "E711",      # 4 occurences     [*] none-comparison
     "E721",      # 4 occurences     [ ] type-comparison
-    "PLR5501",   # 4 occurences     [*] collapsible-else-if
     "PLW2901",   # 4 occurences     [ ] redefined-loop-name
     "RUF003",    # 4 occurences     [ ] ambiguous-unicode-character-comment
-    "RUF010",    # 4 occurences     [*] explicit-f-string-type-conversion
     "B904",      # 3 occurences     [ ] raise-without-from-inside-except
     "A002",      # 3 occurences     [ ] builtin-argument-shadowing
-    "RET507",    # 3 occurences     [*] superfluous-else-continue
     "PTH112",    # 3 occurences     [ ] os-path-isdir
     "W291",      # 3 occurences     [*] trailing-whitespace
-    "UP003",     # 3 occurences     [*] type-of-primitive
-    "UP034",     # 3 occurences     [*] extraneous-parentheses
     "RUF017",    # 3 occurences     [*] quadratic-list-summation
     "ANN002",    # 2 occurences     [ ] missing-type-args
     "ASYNC230",  # 2 occurences     [ ] blocking-open-call-in-async-function
@@ -306,19 +294,14 @@ ignore = [
     "ARG005",    # 2 occurences     [ ] unused-lambda-argument
     "PTH100",    # 2 occurences     [ ] os-path-abspath
     "PTH109",    # 2 occurences     [ ] os-getcwd
-    "E401",      # 2 occurences     [*] multiple-imports-on-one-line
     "D210",      # 2 occurences     [ ] surrounding-whitespace
-    "D300",      # 2 occurences     [*] triple-single-quotes
     "FURB129",   # 2 occurences     [*] readlines-in-for
     "RUF002",    # 2 occurences     [ ] ambiguous-unicode-character-docstring
     "ASYNC251",  # 1 occurences     [ ] blocking-sleep-in-async-function
     "S108",      # 1 occurences     [ ] hardcoded-temp-file
     "S110",      # 1 occurences     [ ] try-except-pass
-    "B033",      # 1 occurences     [*] duplicate-value
-    "B905",      # 1 occurences     [*] zip-without-explicit-strict
     "C400",      # 1 occurences     [*] unnecessary-generator-list
     "C401",      # 1 occurences     [*] unnecessary-generator-set
-    "C413",      # 1 occurences     [*] unnecessary-call-around-sorted
     "SIM105",    # 1 occurences     [ ] suppressible-exception
     "TD005",     # 1 occurences     [ ] missing-todo-description
     "PTH113",    # 1 occurences     [ ] os-path-isfile
@@ -330,7 +313,9 @@ ignore = [
     # keep those rules
     "PLR1730",   # if-stmt-min-max: not clear that it makes the code easier to read
     "RET506",    # superfluous-else-raise: requires a slightly higher cognitive effort to understand the code
-    "RET508",    # superfluous-else-break: : requires a slightly higher cognitive effort to understand the code
+    "RET507",    # superfluous-else-continue : requires a slightly higher cognitive effort to understand the code
+    "RET508",    # superfluous-else-break: requires a slightly higher cognitive effort to understand the code
+    "RET505",    # superfluous-else-return: requires a slightly higher cognitive effort to understand the code
 ]
 "utils/build/*"  = ["ALL"]
 "lib-injection/*" = ["ALL"]

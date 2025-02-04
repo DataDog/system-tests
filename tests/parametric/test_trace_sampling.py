@@ -80,7 +80,7 @@ class Test_Trace_Sampling_Basic:
             {
                 "DD_TRACE_SAMPLE_RATE": 1,
                 "DD_TRACE_SAMPLING_RULES": json.dumps(
-                    [{"service": "webserver", "resource": "drop-me", "sample_rate": 0}]
+                    [{"service": "webserver", "resource": "drop-me", "sample_rate": 0}, {"sample_rate": 1}]
                 ),
             }
         ],
@@ -432,7 +432,9 @@ class Test_Trace_Sampling_Tags:
 def tag_sampling_env(tag_glob_pattern):
     return {
         "DD_TRACE_SAMPLE_RATE": 0,
-        "DD_TRACE_SAMPLING_RULES": json.dumps([{"tags": {"tag": tag_glob_pattern}, "sample_rate": 1.0}]),
+        "DD_TRACE_SAMPLING_RULES": json.dumps(
+            [{"tags": {"tag": tag_glob_pattern}, "sample_rate": 1.0}, {"sample_rate": 0}]
+        ),
     }
 
 

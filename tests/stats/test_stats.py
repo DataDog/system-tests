@@ -62,7 +62,8 @@ class Test_Client_Stats:
     def test_is_trace_root(self):
         """Test IsTraceRoot presence in stats.
         Note: Once all tracers have implmented it and the test xpasses for all of them, we can move these
-        assertions to `test_client_stats` method."""
+        assertions to `test_client_stats` method.
+        """
         for s in interfaces.agent.get_stats(resource="GET /stats-unique"):
             assert 1 == s["IsTraceRoot"]
             assert "server" == s["SpanKind"]

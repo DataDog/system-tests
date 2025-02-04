@@ -9,7 +9,8 @@ from utils.tools import logger, get_rid_from_request
 class TestDockerSSIFeatures:
     """Test the ssi in a simulated host injection environment (docker container + test agent)
     We test that the injection is performed and traces and telemetry are generated.
-    If the language version is not supported, we only check that we don't break the app and telemetry is generated."""
+    If the language version is not supported, we only check that we don't break the app and telemetry is generated.
+    """
 
     _r = None
 

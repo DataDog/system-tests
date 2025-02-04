@@ -176,4 +176,4 @@ class Test_AttackTimestamp:
         assert spans, "No AppSec events found"
         for span in spans:
             assert "start" in span, "span should contain start property"
-            assert isinstance(span["start"], int), f"start property should an int, not {repr(span['start'])}"
+            assert isinstance(span["start"], int), f"start property should an int, not {span['start']!r}"

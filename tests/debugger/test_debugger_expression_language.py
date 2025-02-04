@@ -3,7 +3,8 @@
 # Copyright 2021 Datadog, Inc.
 
 import tests.debugger.utils as debugger
-import re, json
+import re
+import json
 from utils import scenarios, features, bug, missing_feature, context
 
 
