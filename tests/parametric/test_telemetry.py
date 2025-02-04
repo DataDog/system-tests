@@ -341,7 +341,7 @@ class Test_Environment:
             otelsampler_config = "otel_traces_sampler"
         else:
             otelsampler_config = "otel_traces_sampler_arg"
-        
+
         if context.library == "python":
             ddsampling_config = "dd_trace_sampling_rules"
         else:
@@ -427,7 +427,7 @@ class Test_Environment:
             otelsampler_config = "otel_traces_sampler"
         else:
             otelsampler_config = "otel_traces_sampler_arg"
-        
+
         if context.library == "python":
             ddsampling_config = "dd_trace_sampling_rules"
         else:
