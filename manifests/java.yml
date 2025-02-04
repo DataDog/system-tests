@@ -1510,7 +1510,13 @@ tests/:
         spring-boot-wildfly: v1.38.0
         uds-spring-boot: v1.38.0
     test_debugger_symdb.py:
-      Test_Debugger_SymDb: v1.38.0
+      Test_Debugger_SymDb:
+        '*': missing_feature
+        spring-boot: v1.38.0
+        spring-boot-jetty: v1.38.0
+        spring-boot-openliberty: v1.38.0
+        spring-boot-undertow: v1.38.0
+        uds-spring-boot: v1.38.0
   integrations/:
     crossed_integrations/:
       test_kafka.py:

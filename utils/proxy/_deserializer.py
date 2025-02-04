@@ -65,7 +65,7 @@ def _decode_v_0_5_traces(content):
 
     result = []
     for spans in payload:
-        decoded_spans = []
+        decoded_spans: list = []
         result.append(decoded_spans)
         for span in spans:
             decoded_span = {
