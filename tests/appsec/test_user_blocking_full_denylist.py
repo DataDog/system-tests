@@ -1,4 +1,4 @@
-from utils import context, interfaces, scenarios, weblog, bug, features, missing_feature
+from utils import context, interfaces, scenarios, weblog, bug, features
 
 from .utils import BaseFullDenyListTest
 

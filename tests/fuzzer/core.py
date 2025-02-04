@@ -15,7 +15,6 @@ import time
 import aiohttp
 from yarl import URL
 
-from utils import context
 
 from tests.fuzzer.corpus import get_corpus
 from tests.fuzzer.request_mutator import get_mutator

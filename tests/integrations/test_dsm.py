@@ -518,14 +518,14 @@ class Test_Dsm_Manual_Checkpoint_Intra_Process:
 
     def setup_dsm_manual_checkpoint_intra_process(self):
         self.produce = weblog.get(
-            f"/dsm/manual/produce?type=dd-streams&target=system-tests-queue", timeout=DSM_REQUEST_TIMEOUT
+            "/dsm/manual/produce?type=dd-streams&target=system-tests-queue", timeout=DSM_REQUEST_TIMEOUT
         )
         headers = {}
         headers["_datadog"] = json.dumps(
             {"dd-pathway-ctx-base64": self.produce.headers.get("dd-pathway-ctx-base64", "")}
         )
         self.consume = weblog.get(
-            f"/dsm/manual/consume?type=dd-streams&source=system-tests-queue",
+            "/dsm/manual/consume?type=dd-streams&source=system-tests-queue",
             headers=headers,
             timeout=DSM_REQUEST_TIMEOUT,
         )
@@ -590,7 +590,7 @@ class Test_Dsm_Manual_Checkpoint_Inter_Process:
 
     def setup_dsm_manual_checkpoint_inter_process(self):
         self.produce_threaded = weblog.get(
-            f"/dsm/manual/produce_with_thread?type=dd-streams-threaded&target=system-tests-queue",
+            "/dsm/manual/produce_with_thread?type=dd-streams-threaded&target=system-tests-queue",
             timeout=DSM_REQUEST_TIMEOUT,
         )
         headers = {}
@@ -598,7 +598,7 @@ class Test_Dsm_Manual_Checkpoint_Inter_Process:
             {"dd-pathway-ctx-base64": self.produce_threaded.headers.get("dd-pathway-ctx-base64", "")}
         )
         self.consume_threaded = weblog.get(
-            f"/dsm/manual/consume_with_thread?type=dd-streams-threaded&source=system-tests-queue",
+            "/dsm/manual/consume_with_thread?type=dd-streams-threaded&source=system-tests-queue",
             headers=headers,
             timeout=DSM_REQUEST_TIMEOUT,
         )

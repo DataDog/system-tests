@@ -25,4 +25,4 @@ class TestK8sLibInjectionSparkJdm:
             f.write(json.dumps(spark_traces, indent=4))
         assert len(spark_traces) > 0, "No Data Jobs Monitoring Spark application traces found"
 
-        logger.info(f"Test test_spark_instrumented_with_ssi finished")
+        logger.info("Test test_spark_instrumented_with_ssi finished")
