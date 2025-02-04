@@ -88,17 +88,18 @@ class Test_Defaults:
             # The Go tracer does not support logs injection.
             if context.library == "golang" and apm_telemetry_name in ("logs_injection_enabled",):
                 continue
-            if context.library == "cpp":
-                unsupported_fields = (
-                    "logs_injection_enabled",
-                    "trace_header_tags",
-                    "profiling_enabled",
-                    "appsec_enabled",
-                    "data_streams_enabled",
-                    "trace_sample_rate",
-                )
-                if apm_telemetry_name in unsupported_fields:
-                    continue
+            if context.library == "cpp" and apm_telemetry_name in (
+                "logs_injection_enabled",
+                "trace_header_tags",
+                "profiling_enabled",
+                "appsec_enabled",
+                "data_streams_enabled",
+                "trace_sample_rate",
+            ):
+                continue
+            if context.library == "python" and apm_telemetry_name in ("trace_sample_rate",):
+                # DD_TRACE_SAMPLE_RATE is not supported in ddtrace>=3.x
+                continue
             apm_telemetry_name = _mapped_telemetry_name(context, apm_telemetry_name)
 
             cfg_item = configuration_by_name.get(apm_telemetry_name)
@@ -245,16 +246,17 @@ class Test_Environment:
             # The Go tracer does not support logs injection.
             if context.library == "golang" and apm_telemetry_name in ("logs_injection_enabled",):
                 continue
-            if context.library == "cpp":
-                unsupported_fields = (
-                    "logs_injection_enabled",
-                    "trace_header_tags",
-                    "profiling_enabled",
-                    "appsec_enabled",
-                    "data_streams_enabled",
-                )
-                if apm_telemetry_name in unsupported_fields:
-                    continue
+            if context.library == "cpp" and apm_telemetry_name in (
+                "logs_injection_enabled",
+                "trace_header_tags",
+                "profiling_enabled",
+                "appsec_enabled",
+                "data_streams_enabled",
+            ):
+                continue
+            if context.library == "python" and apm_telemetry_name in ("trace_sample_rate",):
+                # DD_TRACE_SAMPLE_RATE is not supported in ddtrace>=3.x
+                continue
 
             apm_telemetry_name = _mapped_telemetry_name(context, apm_telemetry_name)
             cfg_item = configuration_by_name.get(apm_telemetry_name)
@@ -270,7 +272,9 @@ class Test_Environment:
     @missing_feature(context.library == "ruby", reason="Not implemented")
     @missing_feature(context.library == "php", reason="Not implemented")
     @missing_feature(context.library == "cpp", reason="Not implemented")
-    @missing_feature(context.library < "python@2.18.0.dev", reason="Not implemented")
+    @missing_feature(
+        context.library < "python@3.0", reason="OTEL Sampling config is mapped to a different datadog config"
+    )
     @pytest.mark.parametrize(
         "library_env",
         [
@@ -326,16 +330,21 @@ class Test_Environment:
         else:
             otelsampler_config = "otel_traces_sampler_arg"
 
+        if context.library == "python":
+            ddsampling_config = "dd_trace_sampling_rules"
+        else:
+            ddsampling_config = "dd_trace_sample_rate"
+
         dd_to_otel_mapping: list[list[str | None]] = [
             ["dd_trace_propagation_style", "otel_propagators"],
             ["dd_service", "otel_service_name"],
-            ["dd_trace_sample_rate", "otel_traces_sampler"],
+            [ddsampling_config, "otel_traces_sampler"],
             ["dd_trace_enabled", "otel_traces_exporter"],
             ["dd_runtime_metrics_enabled", "otel_metrics_exporter"],
             ["dd_tags", "otel_resource_attributes"],
             ["dd_trace_otel_enabled", "otel_sdk_disabled"],
             [ddlog_config, "otel_log_level"],
-            ["dd_trace_sample_rate", otelsampler_config],
+            [ddsampling_config, otelsampler_config],
         ]
 
         for dd_config, otel_config in dd_to_otel_mapping:
@@ -356,7 +365,9 @@ class Test_Environment:
     @missing_feature(context.library == "ruby", reason="Not implemented")
     @missing_feature(context.library == "php", reason="Not implemented")
     @missing_feature(context.library == "cpp", reason="Not implemented")
-    @missing_feature(context.library < "python@2.18.0.dev", reason="Not implemented")
+    @missing_feature(
+        context.library < "python@3.0", reason="OTEL Sampling config is mapped to a different datadog config"
+    )
     @missing_feature(
         context.library == "nodejs", reason="does not collect otel_env.invalid metrics for otel_resource_attributes"
     )
@@ -407,15 +418,20 @@ class Test_Environment:
         else:
             otelsampler_config = "otel_traces_sampler_arg"
 
+        if context.library == "python":
+            ddsampling_config = "dd_trace_sampling_rules"
+        else:
+            ddsampling_config = "dd_trace_sample_rate"
+
         dd_to_otel_mapping: list[list[str | None]] = [
             ["dd_trace_propagation_style", "otel_propagators"],
-            ["dd_trace_sample_rate", "otel_traces_sampler"],
+            [ddsampling_config, "otel_traces_sampler"],
             ["dd_trace_enabled", "otel_traces_exporter"],
             ["dd_runtime_metrics_enabled", "otel_metrics_exporter"],
             ["dd_tags", "otel_resource_attributes"],
             ["dd_trace_otel_enabled", "otel_sdk_disabled"],
             [ddlog_config, "otel_log_level"],
-            ["dd_trace_sample_rate", otelsampler_config],
+            [ddsampling_config, otelsampler_config],
             [None, "otel_logs_exporter"],
         ]
 
