@@ -271,6 +271,7 @@ tests/:
           TestUnvalidatedRedirect_ExtendedLocation: missing_feature
         test_unvalidated_redirect_forward.py:
           TestUnvalidatedForward: missing_feature
+          TestUnvalidatedForward_StackTrace: missing_feature
           TestUnvalidatedForward_ExtendedLocation: missing_feature
         test_weak_cipher.py:
           TestWeakCipher:
