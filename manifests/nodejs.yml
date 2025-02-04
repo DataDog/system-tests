@@ -46,6 +46,7 @@ refs:
   - &ref_5_33_0 '>=5.33.0'
   - &ref_5_34_0 '>=5.34.0'
   - &ref_5_35_0 '>=5.35.0'
+  - &ref_5_36_0 '>=5.36.0'
 
 tests/:
   apm_tracing_e2e/:
@@ -551,7 +552,7 @@ tests/:
         nextjs: missing_feature
     test_automated_user_and_session_tracking.py:
       Test_Automated_Session_Blocking:
-        '*': *ref_3_36_0
+        '*': *ref_5_36_0
         nextjs: missing_feature
       Test_Automated_User_Blocking:
         '*': *ref_5_35_0
@@ -618,8 +619,8 @@ tests/:
       Test_Fingerprinting_Header_And_Network: *ref_5_24_0
       Test_Fingerprinting_Header_Capability: *ref_5_24_0
       Test_Fingerprinting_Network_Capability: *ref_5_24_0
-      Test_Fingerprinting_Session: *ref_3_21_0
-      Test_Fingerprinting_Session_Capability: *ref_3_21_0
+      Test_Fingerprinting_Session: *ref_5_36_0
+      Test_Fingerprinting_Session_Capability: *ref_5_36_0
     test_identify.py:
       Test_Basic: v2.4.0
     test_ip_blocking_full_denylist.py:
