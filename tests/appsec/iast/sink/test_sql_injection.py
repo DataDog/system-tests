@@ -3,7 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 from utils import context, missing_feature, features, bug, rfc, weblog
-from ..utils import BaseSinkTest, validate_stack_traces
+from ..utils import BaseSinkTest, validate_extended_location_data, validate_stack_traces
 
 
 @features.iast_sink_sql_injection
@@ -53,3 +53,17 @@ class TestSqlInjection_StackTrace:
 
     def test_stack_trace(self):
         validate_stack_traces(self.r)
+
+
+@rfc("https://docs.google.com/document/d/1R8AIuQ9_rMHBPdChCb5jRwPrg1WvIz96c_WQ3y8DWk4")
+@features.iast_extended_location
+class TestCodeInjection_ExtendedLocation:
+    """Test extended location data"""
+
+    vulnerability_type = "SQL_INJECTION"
+
+    def setup_extended_location_data(self):
+        self.r = weblog.post("/iast/sqli/test_insecure", data={"username": "shaquille_oatmeal", "password": "123456"})
+
+    def test_extended_location_data(self):
+        validate_extended_location_data(self.r, self.vulnerability_type)

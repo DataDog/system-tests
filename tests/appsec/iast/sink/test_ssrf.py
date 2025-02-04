@@ -3,7 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 from utils import bug, context, missing_feature, features, rfc, weblog
-from ..utils import BaseSinkTest, validate_stack_traces
+from ..utils import BaseSinkTest, validate_extended_location_data, validate_stack_traces
 
 
 @features.iast_sink_ssrf
@@ -48,3 +48,17 @@ class TestSSRF_StackTrace:
 
     def test_stack_trace(self):
         validate_stack_traces(self.r)
+
+
+@rfc("https://docs.google.com/document/d/1R8AIuQ9_rMHBPdChCb5jRwPrg1WvIz96c_WQ3y8DWk4")
+@features.iast_extended_location
+class TestCodeInjection_ExtendedLocation:
+    """Test extended location data"""
+
+    vulnerability_type = "SSRF"
+
+    def setup_extended_location_data(self):
+        self.r = weblog.post("/iast/ssrf/test_insecure", data={"url": "https://www.datadoghq.com"})
+
+    def test_extended_location_data(self):
+        validate_extended_location_data(self.r, self.vulnerability_type)

@@ -250,6 +250,61 @@ def validate_stack_traces(request):
     assert locationFrame is not None, "location not found in stack trace"
 
 
+def validate_extended_location_data(request, vulnerability_type):
+    spans = [span for _, span in interfaces.library.get_root_spans(request=request)]
+    assert spans, "No root span found"
+    span = spans[0]
+
+    iast = span.get("meta", {}).get("_dd.iast.json")
+    assert iast and iast["vulnerabilities"], "Expected at least one vulnerability"
+
+    # Filter by vulnerability
+    if vulnerability_type:
+        vulns = [v for v in iast["vulnerabilities"] if not vulnerability_type or v["type"] == vulnerability_type]
+        assert vulns, f"No vulnerability of type {vulnerability_type}"
+
+    vuln = vulns[0]
+    location = vuln["location"]
+
+    # Check extended data if stack trace exists
+    if "meta_struct" in span and "_dd.stack" in span["meta_struct"]:
+        assert "vulnerability" in span["meta_struct"]["_dd.stack"], "'exploit' not found in '_dd.stack'"
+        stack_trace = span["meta_struct"]["_dd.stack"]["vulnerability"][0]
+
+        assert "language" in stack_trace
+        assert stack_trace["language"] in (
+            "php",
+            "python",
+            "nodejs",
+            "java",
+            "dotnet",
+            "go",
+            "ruby",
+        ), "unexpected language"
+        assert "frames" in stack_trace
+
+        # Verify frame matches location
+        location_match = False
+        for frame in stack_trace["frames"]:
+            if stack_trace["language"] in ("nodejs"):
+                if (
+                    frame.get("file", "").endswith(location["path"])
+                    and location["line"] == frame["line"]
+                    and location.get("class", "") == frame.get("class_name", "")
+                    and location.get("method", "") == frame.get("function", "")
+                ):
+                    location_match = True
+                    break
+
+        assert location_match, "location not found in stack trace"
+    # Check extended data if on location if stack trace do not exists
+    else:
+        assert all(field in location for field in ["path", "line"])
+
+        if context.library.library not in ("python", "nodejs"):
+            assert all(field in location for field in ["class", "method"])
+
+
 class BaseSinkTest(BaseSinkTestWithoutTelemetry):
     def setup_telemetry_metric_instrumented_sink(self):
         self.setup_insecure()

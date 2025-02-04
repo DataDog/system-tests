@@ -3,7 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 from utils import interfaces, weblog, features, context, rfc, weblog
-from ..utils import validate_stack_traces
+from ..utils import validate_extended_location_data, validate_stack_traces
 
 # Test_HardcodedSecrets and Test_HardcodedSecretsExtended don't inherit from BaseSinkTest
 # Hardcode secrets detection implementation change a lot between different languages
@@ -99,3 +99,17 @@ class Test_HardcodedSecrets_StackTrace:
 
     def test_stack_trace(self):
         validate_stack_traces(self.r)
+
+
+@rfc("https://docs.google.com/document/d/1R8AIuQ9_rMHBPdChCb5jRwPrg1WvIz96c_WQ3y8DWk4")
+@features.iast_extended_location
+class TestCodeInjection_ExtendedLocation:
+    """Test extended location data"""
+
+    vulnerability_type = "HARDCODED_SECRET"
+
+    def setup_extended_location_data(self):
+        self.r = weblog.get("/iast/hardcoded_secrets/test_insecure")
+
+    def test_extended_location_data(self):
+        validate_extended_location_data(self.r, self.vulnerability_type)

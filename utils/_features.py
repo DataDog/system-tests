@@ -2292,6 +2292,15 @@ class _Features:
         return test_object
 
     @staticmethod
+    def iast_extended_location(test_object):
+        """IAST: Extended location data
+
+        https://feature-parity.us1.prod.dog/#/?feature=364
+        """
+        pytest.mark.features(feature_id=364)(test_object)
+        return test_object
+
+    @staticmethod
     def djm_ssi_k8s(test_object):
         """Data Jobs Monitoring: Java lib auto instrumentation for Spark applications on K8s.
 
