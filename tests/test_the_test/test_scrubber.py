@@ -47,7 +47,7 @@ def test_log_scrubber():
             with open(file_path, "r", encoding="utf-8") as f:
                 data = f.read()
 
-            redacted_count += data.count("<redacted>")
+            redacted_count += data.count("--redacted--")
             for secret in scrubbed_names.values():
                 assert secret not in data, f"{secret} found in {file_path}"
 

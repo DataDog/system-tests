@@ -431,7 +431,7 @@ class Test_Otel_Span_Methods:
                     else:
                         # Some languages e.g. Node.js using express need to return as a string value
                         # due to 64-bit integers being too large.
-                        assert context.get("span_id") == "{:016x}".format(int(span.span_id))
+                        assert context.get("span_id") == f"{int(span.span_id):016x}"
                     assert context.get("trace_flags") == "01"
 
         # compare the values of the span context with the values of the trace sent to the agent
@@ -691,7 +691,7 @@ class Test_Otel_Span_Methods:
         [("true", 1), ("TRUE", 1), ("True", 1), ("false", 0), ("False", 0), ("FALSE", 0), (True, 1), (False, 0)],
     )
     def test_otel_span_basic_reserved_attributes_overrides_analytics_event(
-        self, analytics_event_value: Union[bool, str], expected_metric_value: Union[int, None], test_agent, test_library
+        self, analytics_event_value: bool | str, expected_metric_value: int | None, test_agent, test_library
     ):
         """
         Tests the analytics.event reserved attribute override with basic inputs
@@ -723,7 +723,7 @@ class Test_Otel_Span_Methods:
         "analytics_event_value,expected_metric_value", [("something-else", None), ("fAlse", None), ("trUe", None)]
     )
     def test_otel_span_strict_reserved_attributes_overrides_analytics_event(
-        self, analytics_event_value: Union[bool, str], expected_metric_value: Union[int, None], test_agent, test_library
+        self, analytics_event_value: bool | str, expected_metric_value: int | None, test_agent, test_library
     ):
         """
         Tests that the analytics.event reserved attribute override doesn't set the _dd1.sr.eausr metric
@@ -746,7 +746,7 @@ class Test_Otel_Span_Methods:
         "analytics_event_value,expected_metric_value", [("t", 1), ("T", 1), ("f", 0), ("F", 0), ("1", 1), ("0", 0)]
     )
     def test_otel_span_extended_reserved_attributes_overrides_analytics_event(
-        self, analytics_event_value: Union[bool, str], expected_metric_value: Union[int, None], test_agent, test_library
+        self, analytics_event_value: bool | str, expected_metric_value: int | None, test_agent, test_library
     ):
         """
         Tests that the analytics.event reserved attribute override accepts Go's strconv.ParseBool additional values
@@ -971,7 +971,7 @@ def run_operation_name_test(expected_operation_name: str, span_kind: int, attrib
 
 
 def run_otel_span_reserved_attributes_overrides_analytics_event(
-    analytics_event_value: Union[bool, str], expected_metric_value: Union[int, None], test_agent, test_library
+    analytics_event_value: bool | str, expected_metric_value: int | None, test_agent, test_library
 ):
     with test_library:
         with test_library.otel_start_span("operation", span_kind=SpanKind.SERVER) as span:

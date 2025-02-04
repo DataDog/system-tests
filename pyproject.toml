@@ -232,20 +232,16 @@ ignore = [
     "F541",      # 30 occurences    [*] f-string-missing-placeholders
     "F841",      # 28 occurences    [*] unused-variable
     "UP015",     # 27 occurences    [*] redundant-open-modes
-    "RET502",    # 25 occurences    [*] implicit-return-value
+
     "D404",      # 25 occurences    [ ] docstring-starts-with-this
     "ANN401",    # 24 occurences    [ ] any-type
-    "D209",      # 24 occurences    [*] new-line-after-last-paragraph
     "B007",      # 23 occurences    [ ] unused-loop-control-variable
     "DTZ005",    # 23 occurences    [ ] call-datetime-now-without-tzinfo
     "INP001",    # 22 occurences    [ ] implicit-namespace-package
     "ARG001",    # 21 occurences    [ ] unused-function-argument
     "UP031",     # 17 occurences    [ ] printf-string-formatting
-    "UP032",     # 17 occurences    [*] f-string
     "ANN205",    # 16 occurences    [ ] missing-return-type-static-method
     "T201",      # 15 occurences    [*] print
-    "RET505",    # 15 occurences    [*] superfluous-else-return
-    "UP007",     # 13 occurences    [*] non-pep604-annotation
     "FBT001",    # 12 occurences    [ ] boolean-type-hint-positional-argument
     "SLF001",    # 12 occurences    [ ] private-member-access
     "SIM118",    # 12 occurences    [*] in-dict-keys
@@ -318,7 +314,8 @@ ignore = [
     "PLR1730",   # if-stmt-min-max: not clear that it makes the code easier to read
     "RET506",    # superfluous-else-raise: requires a slightly higher cognitive effort to understand the code
     "RET507",    # superfluous-else-continue : requires a slightly higher cognitive effort to understand the code
-    "RET508",    # superfluous-else-break: : requires a slightly higher cognitive effort to understand the code
+    "RET508",    # superfluous-else-break: requires a slightly higher cognitive effort to understand the code
+    "RET505",    # superfluous-else-return: requires a slightly higher cognitive effort to understand the code
 ]
 "utils/build/*"  = ["ALL"]
 "lib-injection/*" = ["ALL"]
