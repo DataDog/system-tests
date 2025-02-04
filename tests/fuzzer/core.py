@@ -51,7 +51,7 @@ class _RequestDumper:
             return
 
         if self.logger is None:
-            self.logger = logging.Logger(__name__)
+            self.logger = logging.getLogger(__name__)
             self.logger.addHandler(RotatingFileHandler(self.filename))
 
         self.logger.info(json.dumps(payload))
@@ -209,7 +209,7 @@ class Fuzzer:
         try:
             await self.wait_for_first_response()
         except Exception as e:
-            self.logger.error(str(e))
+            self.logger.exception("First response failed")
             self.loop.stop()
             return
 

@@ -22,6 +22,7 @@ class Test_Span_Sampling:
             {
                 "DD_SPAN_SAMPLING_RULES": json.dumps([{"service": "webserver", "name": "web.request"}]),
                 "DD_TRACE_SAMPLE_RATE": 0,
+                "DD_TRACE_SAMPLING_RULES": '[{"sample_rate":0}]',
             }
         ],
     )
@@ -45,6 +46,7 @@ class Test_Span_Sampling:
             {
                 "DD_SPAN_SAMPLING_RULES": json.dumps([{"service": "webse*", "name": "web.re?uest"}]),
                 "DD_TRACE_SAMPLE_RATE": 0,
+                "DD_TRACE_SAMPLING_RULES": '[{"sample_rate":0}]',
             }
         ],
     )
@@ -127,6 +129,7 @@ class Test_Span_Sampling:
                     ]
                 ),
                 "DD_TRACE_SAMPLE_RATE": 0,
+                "DD_TRACE_SAMPLING_RULES": '[{"sample_rate":0}]',
             }
         ],
     )
@@ -192,6 +195,7 @@ class Test_Span_Sampling:
                     [{"service": "webserver", "name": "web.request", "max_per_second": 2}]
                 ),
                 "DD_TRACE_SAMPLE_RATE": 0,
+                "DD_TRACE_SAMPLING_RULES": '[{"sample_rate":0}]',
             }
         ],
     )
@@ -246,6 +250,7 @@ class Test_Span_Sampling:
                     [{"service": "webserver", "name": "web.request", "sample_rate": 0.5}]
                 ),
                 "DD_TRACE_SAMPLE_RATE": 0,
+                "DD_TRACE_SAMPLING_RULES": '[{"sample_rate":0}]',
             }
         ],
     )
@@ -417,6 +422,7 @@ class Test_Span_Sampling:
                     ]
                 ),
                 "DD_TRACE_SAMPLE_RATE": 0,
+                "DD_TRACE_SAMPLING_RULES": '[{"sample_rate":0}]',
             }
         ],
     )
@@ -482,6 +488,7 @@ class Test_Span_Sampling:
                     [{"service": "webserver", "name": "parent", "sample_rate": 1.0, "max_per_second": 50}]
                 ),
                 "DD_TRACE_SAMPLE_RATE": 0,
+                "DD_TRACE_SAMPLING_RULES": '[{"sample_rate":0}]',
             }
         ],
     )
@@ -524,6 +531,7 @@ class Test_Span_Sampling:
                     [{"service": "webserver", "name": "child", "sample_rate": 1.0, "max_per_second": 50}]
                 ),
                 "DD_TRACE_SAMPLE_RATE": 0,
+                "DD_TRACE_SAMPLING_RULES": '[{"sample_rate":0}]',
             }
         ],
     )

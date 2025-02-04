@@ -270,8 +270,8 @@ class Test_StandardTagsClientIp:
         for header, value in (self.FORWARD_HEADERS | self.FORWARD_HEADERS_VENDOR).items():
             self.requests_without_attack[header] = weblog.get("/waf/", headers={header: value})
 
-    def _test_client_ip(self, forward_headers):
-        for header, _ in forward_headers.items():
+    def _test_client_ip(self, forward_headers: dict[str, str]):
+        for header in forward_headers:
             request = self.requests_without_attack[header]
             meta = self._get_root_span_meta(request)
             assert "http.client_ip" in meta, f"Missing http.client_ip for {header}"

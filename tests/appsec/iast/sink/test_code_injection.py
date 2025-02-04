@@ -19,7 +19,7 @@ class TestCodeInjection(BaseSinkTest):
         "nodejs": {"express4": "iast/index.js", "express4-typescript": "iast.ts", "express5": "iast/index.js"},
     }
 
-    @missing_feature(library="nodejs", reason="Instrumented metric not implemented")
+    @missing_feature(context.library < "nodejs@5.34.0")
     def test_telemetry_metric_instrumented_sink(self):
         super().test_telemetry_metric_instrumented_sink()
 

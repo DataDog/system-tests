@@ -19,12 +19,11 @@ def _expected_location():
     if context.library.library == "python":
         if context.library.version >= "1.12.0":
             return "iast.py"
+        # old value: absolute path
+        elif context.weblog_variant == "uwsgi-poc":
+            return "/app/./iast.py"
         else:
-            # old value: absolute path
-            if context.weblog_variant == "uwsgi-poc":
-                return "/app/./iast.py"
-            else:
-                return "/app/iast.py"
+            return "/app/iast.py"
 
 
 def _expected_evidence():

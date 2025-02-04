@@ -57,7 +57,6 @@ def _java_tracer_flare_filenames() -> Set:
         "classpath.txt",
         "flare_info.txt",
         "dynamic_config.txt",
-        "flare_info.txt",
         "initial_config.txt",
         "instrumenter_metrics.txt",
         "instrumenter_state.txt",

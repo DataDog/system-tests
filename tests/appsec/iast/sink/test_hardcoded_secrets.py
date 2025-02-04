@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import interfaces, weblog, features, context, rfc, weblog
+from utils import interfaces, features, context, rfc, weblog
 from ..utils import validate_extended_location_data, validate_stack_traces
 
 # Test_HardcodedSecrets and Test_HardcodedSecretsExtended don't inherit from BaseSinkTest

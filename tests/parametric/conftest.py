@@ -77,7 +77,7 @@ def apm_test_server(request, library_env, test_id):
     context.scenario.parametrized_tests_metadata[request.node.nodeid] = new_env
 
     new_env.update(apm_test_server_image.env)
-    yield dataclasses.replace(
+    return dataclasses.replace(
         apm_test_server_image, container_name=f"{apm_test_server_image.container_name}-{test_id}", env=new_env
     )
 
@@ -507,7 +507,7 @@ def docker() -> Optional[str]:
     return shutil.which("docker")
 
 
-@pytest.fixture()
+@pytest.fixture
 def docker_network(test_id: str) -> Generator[str, None, None]:
     network = scenarios.parametric.create_docker_network(test_id)
 
@@ -641,7 +641,7 @@ def test_library(
         "DD_TRACE_AGENT_URL": f"http://{test_agent_container_name}:{test_agent_port}",
         "DD_AGENT_HOST": test_agent_container_name,
         "DD_TRACE_AGENT_PORT": test_agent_port,
-        "APM_TEST_CLIENT_SERVER_PORT": apm_test_server.container_port,
+        "APM_TEST_CLIENT_SERVER_PORT": str(apm_test_server.container_port),
         "DD_TRACE_OTEL_ENABLED": "true",
     }
     for k, v in apm_test_server.env.items():

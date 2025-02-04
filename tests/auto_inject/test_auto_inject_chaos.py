@@ -1,9 +1,8 @@
 import requests
-from utils import scenarios, features
+from utils import scenarios, features, context
 from utils.tools import logger
 from utils.onboarding.weblog_interface import warmup_weblog
 from utils.onboarding.wait_for_tcp_port import wait_for_port
-from utils import scenarios, context, features
 import tests.auto_inject.utils as base
 from utils.virtual_machine.utils import parametrize_virtual_machines
 
