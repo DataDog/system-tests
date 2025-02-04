@@ -185,9 +185,7 @@ class Test_LibraryHeaders:
     @missing_feature(library="nodejs", reason="not implemented yet")
     @missing_feature(library="php", reason="not implemented yet")
     @missing_feature(library="ruby", reason="not implemented yet")
-    @missing_feature(
-        context.library < "golang@1.72.0-dev", reason="Implemented in v1.72.0"
-    )
+    @missing_feature(context.library < "golang@1.72.0-dev", reason="Implemented in v1.72.0")
     def test_datadog_external_env(self):
         """Datadog-External-Env header if present is in the {prefix}-{value},... format"""
 
