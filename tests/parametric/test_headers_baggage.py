@@ -181,8 +181,9 @@ class Test_Headers_Baggage:
             assert span.get_all_baggage() == {}
 
     def _assert_valid_baggage(self, test_library):
-        """ Helper function to confirm that a valid baggage header is set
-        when calling dd_make_child_span_and_get_headers. """
+        """Helper function to confirm that a valid baggage header is set
+        when calling dd_make_child_span_and_get_headers.
+        """
         with test_library:
             headers = test_library.dd_make_child_span_and_get_headers([["baggage", "foo=valid"]])
             assert "baggage" in headers.keys()
