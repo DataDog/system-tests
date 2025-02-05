@@ -34,12 +34,11 @@ const typeDefs = gql`
       }
 `
 
-
 // Custom GraphQL error class
 class CustomGraphQLError extends ApolloError {
-  constructor(message, code, properties) {
-    super(message, properties);
-    this.extensions.code = code;
+  constructor (message, code, properties) {
+    super(message, properties)
+    this.extensions.code = code
     this.extensions.int = 1
     this.extensions.float = 1.1
     this.extensions.str = '1'
@@ -48,7 +47,6 @@ class CustomGraphQLError extends ApolloError {
     this.extensions.not_captured = 'nope'
   }
 }
-
 
 function getUser (parent, args) {
   return users.find((item) => args.id === item.id)
@@ -68,7 +66,7 @@ function testInjection (parent, args) {
 }
 
 function withError (parent, args) {
-  throw new CustomGraphQLError('test error', "CUSTOM_USER_DEFINED_ERROR", "Some extra context about the error.")
+  throw new CustomGraphQLError('test error', 'CUSTOM_USER_DEFINED_ERROR', 'Some extra context about the error.')
 }
 
 const resolvers = {
@@ -79,7 +77,6 @@ const resolvers = {
     withError
   }
 }
-
 
 module.exports = async function (app) {
   const server = new ApolloServer({ typeDefs, resolvers })
