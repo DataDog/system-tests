@@ -1,7 +1,6 @@
 from utils._decorators import irrelevant
-from utils.parametric.spec.trace import SAMPLING_PRIORITY_KEY, ORIGIN
 from utils.parametric.spec.trace import find_only_span
-from utils import features, scenarios, irrelevant, context
+from utils import features, scenarios, context
 from typing import Any
 import pytest
 
