@@ -4,7 +4,7 @@ from statistics import mean, stdev
 from os import environ
 
 
-LOG_FOLDER = environ["LOG_FOLDER"] if "LOG_FOLDER" in environ else "logs"
+LOG_FOLDER = environ.get("LOG_FOLDER", "logs")
 LIBS = ("golang", "dotnet", "java", "nodejs", "php", "ruby")
 
 

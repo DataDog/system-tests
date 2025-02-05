@@ -23,8 +23,7 @@ def get_attack10_corpus():
 
 
 def get_big_requests_corpus():
-    """
-    Send huge requests.
+    """Send huge requests.
 
     Should be run with -c 1
     Need a better ouput to interrpret results...

@@ -19,8 +19,7 @@ class BaseDbIntegrationsTestClass:
     requests = {}
 
     def _setup(self):
-        """
-        Make request to weblog for each operation: select, update...
+        """Make request to weblog for each operation: select, update...
         those requests will be permored only one time for the entire test run
         """
 
@@ -171,10 +170,9 @@ def delete_aws_resource(
     resource_identifier: str,
     resource_type: str,
     error_name: str,
-    get_callable: Callable = None,
+    get_callable: Callable | None = None,
 ):
-    """
-    Generalized function to delete AWS resources.
+    """Generalized function to delete AWS resources.
 
     :param delete_callable: A callable to delete the AWS resource.
     :param resource_identifier: The identifier of the resource (e.g., QueueUrl, TopicArn, StreamName).
@@ -260,9 +258,7 @@ def delete_kinesis_stream(stream_name):
 
 def fnv(data, hval_init, fnv_prime, fnv_size):
     # type: (bytes, int, int, int) -> int
-    """
-    Core FNV hash algorithm used in FNV0 and FNV1.
-    """
+    """Core FNV hash algorithm used in FNV0 and FNV1."""
     hval = hval_init
     for byte in data:
         hval = (hval * fnv_prime) % fnv_size
@@ -276,9 +272,7 @@ FNV1_64_INIT = 0xCBF29CE484222325
 
 def fnv1_64(data):
     # type: (bytes) -> int
-    """
-    Returns the 64 bit FNV-1 hash value for the given data.
-    """
+    """Returns the 64 bit FNV-1 hash value for the given data."""
     return fnv(data, FNV1_64_INIT, FNV_64_PRIME, 2**64)
 
 

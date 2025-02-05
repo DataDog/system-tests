@@ -276,7 +276,8 @@ class Test_Config_ClientTagQueryString_Configured:
 @features.tracing_configuration_consistency
 class Test_Config_ClientIPHeader_Configured:
     """Verify headers containing ips are tagged when DD_TRACE_CLIENT_IP_ENABLED=true
-    and DD_TRACE_CLIENT_IP_HEADER=custom-ip-header"""
+    and DD_TRACE_CLIENT_IP_HEADER=custom-ip-header
+    """
 
     def setup_ip_headers_sent_in_one_request(self):
         self.req = weblog.get(
@@ -311,7 +312,8 @@ class Test_Config_ClientIPHeaderEnabled_False:
 @features.tracing_configuration_consistency
 class Test_Config_ClientIPHeader_Precedence:
     """Verify headers containing ips are tagged when DD_TRACE_CLIENT_IP_ENABLED=true
-    and headers are used to set http.client_ip in order of precedence"""
+    and headers are used to set http.client_ip in order of precedence
+    """
 
     # Supported ip headers in order of precedence
     IP_HEADERS = (
@@ -496,7 +498,6 @@ class Test_Config_LogInjection_Enabled:
         required_fields = ["trace_id", "span_id", "service", "version", "env"]
         for field in required_fields:
             assert field in dd, f"Missing field: {field}"
-        return
 
 
 @rfc("https://docs.google.com/document/d/1kI-gTAKghfcwI7YzKhqRv2ExUstcHqADIWA4-TZ387o/edit#heading=h.8v16cioi7qxp")

@@ -15,7 +15,6 @@ import time
 import aiohttp
 from yarl import URL
 
-from utils import context
 
 from tests.fuzzer.corpus import get_corpus
 from tests.fuzzer.request_mutator import get_mutator
@@ -51,7 +50,7 @@ class _RequestDumper:
             return
 
         if self.logger is None:
-            self.logger = logging.Logger(__name__)
+            self.logger = logging.getLogger(__name__)
             self.logger.addHandler(RotatingFileHandler(self.filename))
 
         self.logger.info(json.dumps(payload))
@@ -209,7 +208,7 @@ class Fuzzer:
         try:
             await self.wait_for_first_response()
         except Exception as e:
-            self.logger.error(str(e))
+            self.logger.exception("First response failed")
             self.loop.stop()
             return
 

@@ -8,7 +8,7 @@ import subprocess
 import time
 import datetime
 import hashlib
-from typing import Dict, Generator, List, TextIO, TypedDict, Optional, Any
+from typing import Generator, TextIO, TypedDict
 import urllib.parse
 
 import requests  # type: ignore
@@ -42,7 +42,7 @@ def test_id(request) -> str:
 class AgentRequest(TypedDict):
     method: str
     url: str
-    headers: Dict[str, str]
+    headers: dict[str, str]
     body: str
 
 
@@ -65,7 +65,7 @@ def _request_token(request):
 
 
 @pytest.fixture
-def library_env() -> Dict[str, str]:
+def library_env() -> dict[str, str]:
     return {}
 
 
@@ -77,7 +77,7 @@ def apm_test_server(request, library_env, test_id):
     context.scenario.parametrized_tests_metadata[request.node.nodeid] = new_env
 
     new_env.update(apm_test_server_image.env)
-    yield dataclasses.replace(
+    return dataclasses.replace(
         apm_test_server_image, container_name=f"{apm_test_server_image.container_name}-{test_id}", env=new_env
     )
 
@@ -149,7 +149,7 @@ class _TestAgentAPI:
         assert resp.status_code == 202
 
     @staticmethod
-    def _build_config_path_response(config: List):
+    def _build_config_path_response(config: list):
         expires_date = datetime.datetime.strftime(
             datetime.datetime.now() + datetime.timedelta(days=1), "%Y-%m-%dT%H:%M:%SZ"
         )
@@ -241,7 +241,7 @@ class _TestAgentAPI:
         self._write_log("tracestats", json)
         return json
 
-    def requests(self, **kwargs) -> List[AgentRequest]:
+    def requests(self, **kwargs) -> list[AgentRequest]:
         resp = self._session.get(self._url("/test/session/requests"), **kwargs)
         json = resp.json()
         self._write_log("requests", json)
@@ -260,7 +260,7 @@ class _TestAgentAPI:
         self._write_log("tracerflares", json)
         return json
 
-    def v06_stats_requests(self) -> List[AgentRequestV06Stats]:
+    def v06_stats_requests(self) -> list[AgentRequestV06Stats]:
         raw_requests = [r for r in self.requests() if "/v0.6/stats" in r["url"]]
         requests = []
         for raw in raw_requests:
@@ -310,7 +310,7 @@ class _TestAgentAPI:
 
     def wait_for_num_traces(
         self, num: int, clear: bool = False, wait_loops: int = 30, sort_by_start: bool = True
-    ) -> List[Trace]:
+    ) -> list[Trace]:
         """Wait for `num` traces to be received from the test agent.
 
         Returns after the number of traces has been received or raises otherwise after 2 seconds of polling.
@@ -342,7 +342,7 @@ class _TestAgentAPI:
 
     def wait_for_num_spans(
         self, num: int, clear: bool = False, wait_loops: int = 30, sort_by_start: bool = True
-    ) -> List[Trace]:
+    ) -> list[Trace]:
         """Wait for `num` spans to be received from the test agent.
 
         Returns after the number of spans has been received or raises otherwise after 2 seconds of polling.
@@ -439,7 +439,7 @@ class _TestAgentAPI:
             time.sleep(0.01)
         raise AssertionError("No RemoteConfig apply status found, got requests %r" % rc_reqs)
 
-    def wait_for_rc_capabilities(self, capabilities: List[int] = [], wait_loops: int = 100):
+    def wait_for_rc_capabilities(self, capabilities: list[int] = [], wait_loops: int = 100):
         """Wait for the given RemoteConfig apply state to be received by the test agent."""
         rc_reqs = []
         capabilities_seen = set()
@@ -470,7 +470,7 @@ class _TestAgentAPI:
             time.sleep(0.01)
         raise AssertionError("No RemoteConfig capabilities found, got capabilites %r" % capabilities_seen)
 
-    def wait_for_tracer_flare(self, case_id: Optional[str] = None, clear: bool = False, wait_loops: int = 100):
+    def wait_for_tracer_flare(self, case_id: str | None = None, clear: bool = False, wait_loops: int = 100):
         """Wait for the tracer-flare to be received by the test agent."""
         for i in range(wait_loops):
             try:
@@ -489,7 +489,7 @@ class _TestAgentAPI:
 
 
 @pytest.fixture(scope="session")
-def docker() -> Optional[str]:
+def docker() -> str | None:
     """Fixture to ensure docker is ready to use on the system."""
     # Redirect output to /dev/null since we just care if we get a successful response code.
     r = subprocess.run(
@@ -507,7 +507,7 @@ def docker() -> Optional[str]:
     return shutil.which("docker")
 
 
-@pytest.fixture()
+@pytest.fixture
 def docker_network(test_id: str) -> Generator[str, None, None]:
     network = scenarios.parametric.create_docker_network(test_id)
 
@@ -525,7 +525,7 @@ def docker_network(test_id: str) -> Generator[str, None, None]:
 
 @pytest.fixture
 def test_agent_port() -> int:
-    """returns the port exposed inside the agent container"""
+    """Returns the port exposed inside the agent container"""
     return 8126
 
 
@@ -548,7 +548,7 @@ def test_agent_log_file(request) -> Generator[TextIO, None, None]:
             if "GET /test/session/apmtelemetry" in line:
                 continue
             agent_output += line
-        request.node._report_sections.append(("teardown", f"Test Agent Output", agent_output))
+        request.node._report_sections.append(("teardown", "Test Agent Output", agent_output))
 
 
 @pytest.fixture

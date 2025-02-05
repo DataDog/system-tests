@@ -2351,7 +2351,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=353
         """
-        pytest.mark.features(feature_id=343)(test_object)
+        pytest.mark.features(feature_id=353)(test_object)
         return test_object
 
     @staticmethod

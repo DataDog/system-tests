@@ -722,7 +722,7 @@ async def view_iast_ssrf_secure(url: typing.Annotated[str, Form()]):
     from urllib.parse import urlparse
 
     # Validate the URL and enforce whitelist
-    allowed_domains = ["example.com", "api.example.com"]
+    allowed_domains = ["example.com", "api.example.com", "www.datadoghq.com"]
     parsed_url = urlparse(str(url))
 
     if parsed_url.hostname not in allowed_domains:
