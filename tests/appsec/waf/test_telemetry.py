@@ -17,7 +17,7 @@ def _setup(self):
     r_blocked = weblog.get(
         "/",
         headers={"x-forwarded-for": "80.80.80.80", "user-agent": "dd-test-scanner-log-block"},
-        # XXX: hack to prevent rid inhibiting the dd-test-scanner-log-block rule
+        # Hack to prevent rid inhibiting the dd-test-scanner-log-block rule
         rid_in_user_agent=False,
     )
     Test_TelemetryMetrics.__common_setup_done = True

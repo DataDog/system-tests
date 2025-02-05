@@ -241,7 +241,6 @@ ignore = [
     "B011",      # 7 occurences     [*] assert-false
     "PT015",     # 7 occurences     [ ] pytest-assert-always-false
     "N815",      # 7 occurences     [ ] mixed-case-variable-in-class-scope
-    "A001",      # 6 occurences     [ ] builtin-variable-shadowing
     "PT006",     # 6 occurences     [*] pytest-parametrize-names-wrong-type
     "RET504",    # 6 occurences     [*] unnecessary-assign
     "N803",      # 6 occurences     [ ] invalid-argument-name
@@ -254,12 +253,7 @@ ignore = [
     "B006",      # 4 occurences     [*] mutable-argument-default
     "PIE794",    # 4 occurences     [*] duplicate-class-field-definition
     "PTH103",    # 4 occurences     [ ] os-makedirs
-    "E711",      # 4 occurences     [*] none-comparison
-    "E721",      # 4 occurences     [ ] type-comparison
     "PLW2901",   # 4 occurences     [ ] redefined-loop-name
-    "RUF003",    # 4 occurences     [ ] ambiguous-unicode-character-comment
-    "B904",      # 3 occurences     [ ] raise-without-from-inside-except
-    "A002",      # 3 occurences     [ ] builtin-argument-shadowing
     "PTH112",    # 3 occurences     [ ] os-path-isdir
     "W291",      # 3 occurences     [*] trailing-whitespace
     "RUF017",    # 3 occurences     [*] quadratic-list-summation
@@ -268,34 +262,23 @@ ignore = [
     "S605",      # 2 occurences     [ ] start-process-with-a-shell
     "C408",      # 2 occurences     [*] unnecessary-collection-call
     "C416",      # 2 occurences     [*] unnecessary-comprehension
-    "FIX003",    # 2 occurences     [ ] line-contains-xxx
     "PIE810",    # 2 occurences     [*] multiple-starts-ends-with
     "T203",      # 2 occurences     [*] p-print
-    "ARG005",    # 2 occurences     [ ] unused-lambda-argument
     "PTH100",    # 2 occurences     [ ] os-path-abspath
     "PTH109",    # 2 occurences     [ ] os-getcwd
-    "D210",      # 2 occurences     [ ] surrounding-whitespace
     "FURB129",   # 2 occurences     [*] readlines-in-for
-    "RUF002",    # 2 occurences     [ ] ambiguous-unicode-character-docstring
-    "ASYNC251",  # 1 occurences     [ ] blocking-sleep-in-async-function
-    "S108",      # 1 occurences     [ ] hardcoded-temp-file
-    "S110",      # 1 occurences     [ ] try-except-pass
     "C400",      # 1 occurences     [*] unnecessary-generator-list
     "C401",      # 1 occurences     [*] unnecessary-generator-set
-    "SIM105",    # 1 occurences     [ ] suppressible-exception
-    "TD005",     # 1 occurences     [ ] missing-todo-description
-    "PTH113",    # 1 occurences     [ ] os-path-isfile
-    "F403",      # 1 occurences     [ ] undefined-local-with-import-star
-    "PLC0206",   # 1 occurences     [ ] dict-index-missing-items
-    "PLR0133",   # 1 occurences     [ ] comparison-of-constant
-    "RUF006",    # 1 occurences     [ ] asyncio-dangling-task
 
-    # keep those rules
+    # keep those exceptions
+    "FIX003",    # line-contains-xxx: freedom of speech!
+    "FIX004",    # line-contains-xxx: freedom of speech!
     "PLR1730",   # if-stmt-min-max: not clear that it makes the code easier to read
     "RET506",    # superfluous-else-raise: requires a slightly higher cognitive effort to understand the code
     "RET507",    # superfluous-else-continue : requires a slightly higher cognitive effort to understand the code
     "RET508",    # superfluous-else-break: requires a slightly higher cognitive effort to understand the code
     "RET505",    # superfluous-else-return: requires a slightly higher cognitive effort to understand the code
+    "S108",      # hardcoded-temp-file: test code may contains weird things
 ]
 "utils/build/*"  = ["ALL"]
 "lib-injection/*" = ["ALL"]
