@@ -1,10 +1,12 @@
 # from utils._context.virtual_machines import SupportedVirtualMachines
-
+import json
 
 try:
     from utils.virtual_machine.virtual_machines import SupportedVirtualMachines
+    from utils.virtual_machine.virtual_machines import _VirtualMachine
 except ImportError:
     from virtual_machines import SupportedVirtualMachines
+    from virtual_machines import _VirtualMachine
 
 
 class VMWeblogDescriptor:
@@ -131,6 +133,30 @@ def get_supported_vms(lang, weblog_name, provider_id, default_vms="True", scenar
     raise ValueError(f"Weblog variant {weblog_name} not found (please check virtual_machine_matrix_definitions.py)")
 
 
+def load_virtual_machines(json_file):
+    with open(json_file, "r") as file:
+        data = json.load(file)
+
+    vm_objects = []
+    for vm_data in data["virtual_machines"]:
+        vm = _VirtualMachine(
+            name=vm_data["name"],
+            aws_config=vm_data["aws_config"],
+            vagrant_config=vm_data["vagrant_config"],
+            krunvm_config=vm_data["krunvm_config"],
+            os_type=vm_data["os_type"],
+            os_distro=vm_data["os_distro"],
+            os_branch=vm_data["os_branch"],
+            os_cpu=vm_data["os_cpu"],
+            default_vm=vm_data["default_vm"],
+        )
+        vm_objects.append(vm)
+
+    return vm_objects
+
+
 if __name__ == "__main__":
-    vms = get_supported_vms("nodejs", "test-app-nodejs")
-    print(vms)  # noqa: T201
+    # vms = get_supported_vms("nodejs", "test-app-nodejs")
+    vms = load_virtual_machines("utils/virtual_machine/virtual_machines.json")
+    for vm in vms:
+        print(vm.name)

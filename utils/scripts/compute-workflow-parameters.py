@@ -145,7 +145,7 @@ def main(
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(prog="get-github-parameters", description="Get scenarios and weblogs to run")
+    parser = argparse.ArgumentParser(prog="get-ci-parameters", description="Get scenarios and weblogs to run")
     parser.add_argument(
         "language",
         type=str,
@@ -158,7 +158,7 @@ if __name__ == "__main__":
         "-f",
         type=str,
         help="Select the output format",
-        choices=["github"],
+        choices=["github", "gitlab"],
         default="github",
     )
 
