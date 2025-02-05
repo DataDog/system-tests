@@ -1,5 +1,4 @@
 import pytest
-import os
 from utils import missing_feature, context, scenarios, features, irrelevant
 
 

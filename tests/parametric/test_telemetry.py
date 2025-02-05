@@ -1,19 +1,15 @@
-"""
-Test the telemetry that should be emitted from the library.
-"""
+"""Test the telemetry that should be emitted from the library."""
 
 import base64
 import copy
 import json
 import time
-from typing import Any
 import uuid
 
 import pytest
-from typing import List, Optional
 
 from utils.telemetry_utils import TelemetryUtils
-from utils import context, scenarios, rfc, features, missing_feature, bug
+from utils import context, scenarios, rfc, features, missing_feature
 
 
 telemetry_name_mapping = {
@@ -339,7 +335,7 @@ class Test_Environment:
         else:
             ddsampling_config = "dd_trace_sample_rate"
 
-        dd_to_otel_mapping: List[List[str | None]] = [
+        dd_to_otel_mapping: list[list[str | None]] = [
             ["dd_trace_propagation_style", "otel_propagators"],
             ["dd_service", "otel_service_name"],
             [ddsampling_config, "otel_traces_sampler"],
@@ -427,7 +423,7 @@ class Test_Environment:
         else:
             ddsampling_config = "dd_trace_sample_rate"
 
-        dd_to_otel_mapping: List[List[str | None]] = [
+        dd_to_otel_mapping: list[list[str | None]] = [
             ["dd_trace_propagation_style", "otel_propagators"],
             [ddsampling_config, "otel_traces_sampler"],
             ["dd_trace_enabled", "otel_traces_exporter"],
@@ -462,9 +458,7 @@ DEFAULT_ENVVARS = {
 @scenarios.parametric
 @features.telemetry_app_started_event
 class Test_TelemetryInstallSignature:
-    """
-    This telemetry provides insights into how a library was installed.
-    """
+    """This telemetry provides insights into how a library was installed."""
 
     @pytest.mark.parametrize(
         "library_env",
@@ -524,9 +518,8 @@ class Test_TelemetryInstallSignature:
 
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
     def test_telemetry_event_not_propagated(self, library_env, test_agent, test_library):
-        """
-        When instrumentation data is not propagated to the library
-            The telemetry event should not contain telemetry as the Agent will add it when not present.
+        """When instrumentation data is not propagated to the library
+        The telemetry event should not contain telemetry as the Agent will add it when not present.
         """
 
         # Some libraries require a first span for telemetry to be emitted.
@@ -548,9 +541,7 @@ class Test_TelemetryInstallSignature:
 @scenarios.parametric
 @features.telemetry_app_started_event
 class Test_TelemetrySCAEnvVar:
-    """
-    This telemetry entry has the value of DD_APPSEC_SCA_ENABLED in the library.
-    """
+    """This telemetry entry has the value of DD_APPSEC_SCA_ENABLED in the library."""
 
     @staticmethod
     def flatten_message_batch(requests):

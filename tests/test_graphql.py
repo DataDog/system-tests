@@ -56,12 +56,12 @@ class Test_GraphQLQueryErrorReporting:
 
         attributes = event["attributes"]
 
-        assert type(attributes["message"]) == str
-        assert type(attributes["type"]) == str
-        assert type(attributes["stacktrace"]) == str
+        assert isinstance(attributes["message"], str)
+        assert isinstance(attributes["type"], str)
+        assert isinstance(attributes["stacktrace"], str)
 
         for path in attributes["path"]:
-            assert type(path) == str
+            assert isinstance(path, str)
 
         for location in attributes["locations"]:
             assert len(location.split(":")) == 2

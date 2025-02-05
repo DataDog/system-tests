@@ -8,7 +8,7 @@ import subprocess
 import time
 import datetime
 import hashlib
-from typing import Dict, Generator, List, TextIO, TypedDict, Optional, Any
+from typing import Generator, TextIO, TypedDict
 import urllib.parse
 
 import requests  # type: ignore
@@ -42,7 +42,7 @@ def test_id(request) -> str:
 class AgentRequest(TypedDict):
     method: str
     url: str
-    headers: Dict[str, str]
+    headers: dict[str, str]
     body: str
 
 
@@ -65,7 +65,7 @@ def _request_token(request):
 
 
 @pytest.fixture
-def library_env() -> Dict[str, str]:
+def library_env() -> dict[str, str]:
     return {}
 
 
@@ -111,9 +111,9 @@ class _TestAgentAPI:
     def _url(self, path: str) -> str:
         return urllib.parse.urljoin(self._base_url, path)
 
-    def _write_log(self, type, json_trace):
+    def _write_log(self, log_type, json_trace):
         with open(self.log_path, "a") as log:
-            log.write(f"\n{type}>>>>\n")
+            log.write(f"\n{log_type}>>>>\n")
             log.write(json.dumps(json_trace))
 
     def traces(self, clear=False, **kwargs):
@@ -131,15 +131,14 @@ class _TestAgentAPI:
     def get_remote_config(self):
         resp = self._session.get(self._url("/v0.7/config"))
         resp_json = resp.json()
-        list = []
+        result = []
         if resp_json and resp_json["target_files"]:
             target_files = resp_json["target_files"]
             for target in target_files:
                 path = target["path"]
                 msg = json.loads(str(base64.b64decode(target["raw"]), encoding="utf-8"))
-                dict = {"path": path, "msg": msg}
-                list.append(dict)
-        return list
+                result.append({"path": path, "msg": msg})
+        return result
 
     def add_remote_config(self, path, payload):
         current_rc = self.get_remote_config()
@@ -149,7 +148,7 @@ class _TestAgentAPI:
         assert resp.status_code == 202
 
     @staticmethod
-    def _build_config_path_response(config: List):
+    def _build_config_path_response(config: list):
         expires_date = datetime.datetime.strftime(
             datetime.datetime.now() + datetime.timedelta(days=1), "%Y-%m-%dT%H:%M:%SZ"
         )
@@ -181,18 +180,18 @@ class _TestAgentAPI:
         client_configs = []
         target_files = []
         targets_tmp = {}
-        for dict in config:
-            client_configs.append(dict["path"])
-            dict["msg_enc"] = bytes(json.dumps(dict["msg"]), encoding="utf-8")
+        for item in config:
+            client_configs.append(item["path"])
+            item["msg_enc"] = bytes(json.dumps(item["msg"]), encoding="utf-8")
             tf = {
-                "path": dict["path"],
-                "raw": str(base64.b64encode(dict["msg_enc"]), encoding="utf-8"),
+                "path": item["path"],
+                "raw": str(base64.b64encode(item["msg_enc"]), encoding="utf-8"),
             }
             target_files.append(tf)
-            targets_tmp[dict["path"]] = {
+            targets_tmp[item["path"]] = {
                 "custom": {"c": [""], "v": 0},
-                "hashes": {"sha256": hashlib.sha256(dict["msg_enc"]).hexdigest()},
-                "length": len(dict["msg_enc"]),
+                "hashes": {"sha256": hashlib.sha256(item["msg_enc"]).hexdigest()},
+                "length": len(item["msg_enc"]),
             }
 
         data = {
@@ -241,7 +240,7 @@ class _TestAgentAPI:
         self._write_log("tracestats", json)
         return json
 
-    def requests(self, **kwargs) -> List[AgentRequest]:
+    def requests(self, **kwargs) -> list[AgentRequest]:
         resp = self._session.get(self._url("/test/session/requests"), **kwargs)
         json = resp.json()
         self._write_log("requests", json)
@@ -260,7 +259,7 @@ class _TestAgentAPI:
         self._write_log("tracerflares", json)
         return json
 
-    def v06_stats_requests(self) -> List[AgentRequestV06Stats]:
+    def v06_stats_requests(self) -> list[AgentRequestV06Stats]:
         raw_requests = [r for r in self.requests() if "/v0.6/stats" in r["url"]]
         requests = []
         for raw in raw_requests:
@@ -310,7 +309,7 @@ class _TestAgentAPI:
 
     def wait_for_num_traces(
         self, num: int, clear: bool = False, wait_loops: int = 30, sort_by_start: bool = True
-    ) -> List[Trace]:
+    ) -> list[Trace]:
         """Wait for `num` traces to be received from the test agent.
 
         Returns after the number of traces has been received or raises otherwise after 2 seconds of polling.
@@ -342,7 +341,7 @@ class _TestAgentAPI:
 
     def wait_for_num_spans(
         self, num: int, clear: bool = False, wait_loops: int = 30, sort_by_start: bool = True
-    ) -> List[Trace]:
+    ) -> list[Trace]:
         """Wait for `num` spans to be received from the test agent.
 
         Returns after the number of spans has been received or raises otherwise after 2 seconds of polling.
@@ -439,7 +438,7 @@ class _TestAgentAPI:
             time.sleep(0.01)
         raise AssertionError("No RemoteConfig apply status found, got requests %r" % rc_reqs)
 
-    def wait_for_rc_capabilities(self, capabilities: List[int] = [], wait_loops: int = 100):
+    def wait_for_rc_capabilities(self, capabilities: list[int] = [], wait_loops: int = 100):
         """Wait for the given RemoteConfig apply state to be received by the test agent."""
         rc_reqs = []
         capabilities_seen = set()
@@ -520,12 +519,12 @@ def docker_network(test_id: str) -> Generator[str, None, None]:
             # It's possible (why?) of having some container not stopped.
             # If it happen, failing here makes stdout tough to understance.
             # Let's ignore this, later calls will clean the mess
-            pass
+            logger.info("Failed to remove network, ignoring the error")
 
 
 @pytest.fixture
 def test_agent_port() -> int:
-    """returns the port exposed inside the agent container"""
+    """Returns the port exposed inside the agent container"""
     return 8126
 
 
@@ -548,7 +547,7 @@ def test_agent_log_file(request) -> Generator[TextIO, None, None]:
             if "GET /test/session/apmtelemetry" in line:
                 continue
             agent_output += line
-        request.node._report_sections.append(("teardown", f"Test Agent Output", agent_output))
+        request.node._report_sections.append(("teardown", "Test Agent Output", agent_output))
 
 
 @pytest.fixture

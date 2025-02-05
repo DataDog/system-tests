@@ -515,19 +515,10 @@ def view_iast_ssrf_insecure(request):
 
 @csrf_exempt
 def view_iast_ssrf_secure(request):
-    from urllib.parse import urlparse
     import requests
 
-    url = request.POST.get("url", "")
-    # Validate the URL and enforce whitelist
-    allowed_domains = ["example.com", "api.example.com"]
-    parsed_url = urlparse(url)
-
-    if parsed_url.hostname not in allowed_domains:
-        return HttpResponseBadRequest("ERROR")
-
     try:
-        requests.get(url)
+        requests.get("https://www.datadog.com")
     except Exception:
         pass
 
@@ -795,7 +786,7 @@ def get_value(request):
 def create_extra_service(request):
     new_service_name = request.GET.get("serviceName", default="")
     if new_service_name:
-        Pin.override(django, service=new_service_name, tracer=tracer)
+        Pin.override(django, service=new_service_name)
     return HttpResponse("OK")
 
 

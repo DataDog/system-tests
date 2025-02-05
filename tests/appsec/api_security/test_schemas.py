@@ -14,7 +14,7 @@ from utils import (
 
 
 def get_schema(request, address):
-    """get api security schema from spans"""
+    """Get api security schema from spans"""
     for _, _, span in interfaces.library.get_spans(request):
         meta = span.get("meta", {})
         payload = meta.get("_dd.appsec.s." + address)
@@ -28,7 +28,7 @@ ANY = ...
 
 
 def contains(t1, t2):
-    """validate that schema t1 contains all keys and values from t2"""
+    """Validate that schema t1 contains all keys and values from t2"""
     if t2 is ANY:
         return True
     if t1 is None or t2 is None:
@@ -37,7 +37,7 @@ def contains(t1, t2):
 
 
 def equal_value(t1, t2):
-    """compare two schema type values, ignoring any metadata"""
+    """Compare two schema type values, ignoring any metadata"""
     if t2 is ANY:
         return True
     if isinstance(t1, list) and isinstance(t2, list):
@@ -59,7 +59,7 @@ class Test_Schema_Request_Headers:
         self.request = weblog.get("/tag_value/api_match_AS001/200")
 
     def test_request_method(self):
-        """can provide request header schema"""
+        """Can provide request header schema"""
         schema = get_schema(self.request, "req.headers")
         assert self.request.status_code == 200
         assert schema
@@ -82,7 +82,7 @@ class Test_Schema_Request_Cookies:
 
     @missing_feature(context.library < "python@1.19.0.dev")
     def test_request_method(self):
-        """can provide request header schema"""
+        """Can provide request header schema"""
         schema = get_schema(self.request, "req.cookies")
         assert self.request.status_code == 200
         assert schema
@@ -102,7 +102,7 @@ class Test_Schema_Request_Query_Parameters:
         self.request = weblog.get("/tag_value/api_match_AS002/200?x=123&y=abc&z=%7B%22key%22%3A%22value%22%7D")
 
     def test_request_method(self):
-        """can provide request query parameters schema"""
+        """Can provide request query parameters schema"""
         schema = get_schema(self.request, "req.query")
         assert self.request.status_code == 200
         assert schema
@@ -122,7 +122,7 @@ class Test_Schema_Request_Path_Parameters:
         self.request = weblog.get("/tag_value/api_match_AS003/200")
 
     def test_request_method(self):
-        """can provide request path parameters schema"""
+        """Can provide request path parameters schema"""
         schema = get_schema(self.request, "req.params")
         assert self.request.status_code == 200
         assert schema
@@ -147,7 +147,7 @@ class Test_Schema_Request_Json_Body:
         self.request = weblog.post("/tag_value/api_match_AS004/200", json=payload)
 
     def test_request_method(self):
-        """can provide request request body schema"""
+        """Can provide request request body schema"""
         schema = get_schema(self.request, "req.body")
         assert self.request.status_code == 200
         assert contains(schema, [{"main": [[[{"key": [8], "value": [16]}]], {"len": 2}], "nullable": [1]}])
@@ -172,7 +172,7 @@ class Test_Schema_Request_FormUrlEncoded_Body:
         )
 
     def test_request_method(self):
-        """can provide request request body schema"""
+        """Can provide request request body schema"""
         schema = get_schema(self.request, "req.body")
         assert self.request.status_code == 200
         assert (
@@ -203,7 +203,7 @@ class Test_Schema_Response_Headers:
         self.request = weblog.get("/tag_value/api_match_AS005/200?X-option=test_value")
 
     def test_request_method(self):
-        """can provide response header schema"""
+        """Can provide response header schema"""
         schema = get_schema(self.request, "res.headers")
         assert self.request.status_code == 200
         assert isinstance(schema, list)
@@ -225,7 +225,7 @@ class Test_Schema_Response_Body:
         )
 
     def test_request_method(self):
-        """can provide response body schema"""
+        """Can provide response body schema"""
         assert self.request.status_code == 200
 
         schema = get_schema(self.request, "res.body")
@@ -242,8 +242,7 @@ class Test_Schema_Response_Body:
 @scenarios.appsec_api_security_no_response_body
 @features.api_security_schemas
 class Test_Schema_Response_Body_env_var:
-    """
-    Test API Security - Response Body Schema with urlencoded body and env var disabling response body parsing
+    """Test API Security - Response Body Schema with urlencoded body and env var disabling response body parsing
     Check that response headers are still parsed but not response body
     """
 
@@ -254,7 +253,7 @@ class Test_Schema_Response_Body_env_var:
         )
 
     def test_request_method(self):
-        """can provide response body schema"""
+        """Can provide response body schema"""
         assert self.request.status_code == 200
 
         headers_schema = get_schema(self.request, "res.headers")
@@ -282,7 +281,7 @@ class Test_Scanners:
 
     @missing_feature(context.library < "python@1.19.0.dev")
     def test_request_method(self):
-        """can provide request header schema"""
+        """Can provide request header schema"""
         schema_cookies = get_schema(self.request, "req.cookies")
         schema_headers = get_schema(self.request, "req.headers")
         assert self.request.status_code == 200

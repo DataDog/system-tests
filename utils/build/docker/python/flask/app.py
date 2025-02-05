@@ -1099,20 +1099,10 @@ def view_iast_ssrf_insecure():
 
 @app.route("/iast/ssrf/test_secure", methods=["POST"])
 def view_iast_ssrf_secure():
-    from urllib.parse import urlparse
-
     import requests
 
-    url = flask_request.form["url"]
-    # Validate the URL and enforce whitelist
-    allowed_domains = ["example.com", "api.example.com"]
-    parsed_url = urlparse(url)
-
-    if parsed_url.hostname not in allowed_domains:
-        return "Forbidden", 403
-
     try:
-        requests.get(url)
+        requests.get("https://www.datadoghq.com")
     except Exception:
         pass
 
@@ -1389,7 +1379,7 @@ def db():
 def create_extra_service():
     new_service_name = request.args.get("serviceName", default="", type=str)
     if new_service_name:
-        Pin.override(Flask, service=new_service_name, tracer=tracer)
+        Pin.override(Flask, service=new_service_name)
     return Response("OK")
 
 

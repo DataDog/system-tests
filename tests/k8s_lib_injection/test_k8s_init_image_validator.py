@@ -1,6 +1,3 @@
-import os
-import time
-
 import requests
 from utils import scenarios, features, context, bug
 from utils.tools import logger
@@ -14,16 +11,16 @@ class _BaseTestK8sInitImageValidator:
 
     @retry(delay=1, tries=10)
     def _get_dev_agent_traces(self):
-        logger.info(f"[Check traces] Checking traces:")
-        response = requests.get(f"http://localhost:8126/test/traces")
+        logger.info("[Check traces] Checking traces:")
+        response = requests.get("http://localhost:8126/test/traces")
         traces_json = response.json()
         assert traces_json is not None and len(traces_json) > 0, "No traces found"
         return traces_json
 
     @retry(delay=5, tries=20)
     def _check_weblog_running(self):
-        logger.info(f"[Check traces] Checking traces:")
-        response = requests.get(f"http://localhost:8080")
+        logger.info("[Check traces] Checking traces:")
+        response = requests.get("http://localhost:8080")
         assert response.status_code == 200, "Weblog not running"
         logger.info("Weblog is running")
 
