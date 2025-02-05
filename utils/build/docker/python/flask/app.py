@@ -14,6 +14,7 @@ from moto import mock_aws
 import mock
 import urllib3
 import xmltodict
+import graphene
 
 
 if os.environ.get("INCLUDE_POSTGRES", "true") == "true":
@@ -68,8 +69,8 @@ if os.environ.get("INCLUDE_RABBITMQ", "true") == "true":
     from integrations.messaging.rabbitmq import rabbitmq_produce
 
 import ddtrace
-from ddtrace import Pin
-from ddtrace import tracer
+from ddtrace.trace import Pin
+from ddtrace.trace import tracer
 from ddtrace.appsec import trace_utils as appsec_trace_utils
 from ddtrace.appsec.iast import ddtrace_iast_flask_patch
 from ddtrace.internal.datastreams import data_streams_processor
@@ -437,11 +438,9 @@ def rasp_cmdi(*args, **kwargs):
 ### END EXPLOIT PREVENTION
 
 @app.route("/graphql", methods=["GET", "POST"])
-def graphql_error_spans(*args, **kwargs):
+def graphql_error_spans(*args, **kwargs):    
     from integrations.graphql import schema
     data = request.get_json()
-    if not data or "query" not in data:
-        return jsonify({"error": "Missing GraphQL query"}), 400
 
     result = schema.execute(
         data["query"],
@@ -450,20 +449,13 @@ def graphql_error_spans(*args, **kwargs):
     )
 
     if result.errors:
-        return jsonify(format_error(result.errors[0])), 400
+        return jsonify(format_error(result.errors[0])), 200
 
     return jsonify(result.to_dict())
 
 def format_error(error):
     return {
         "message": error.message,
-        "extensions": [
-            {"key": "int-1", "value": "1"},
-            {"key": "str-1", "value": "1"},
-            {"key": "array-1-2", "value": [1, "2"]},
-            {"key": "empty", "value": "empty string"},
-            {"key": "comma", "value": "comma"},
-        ],
     }
 
 

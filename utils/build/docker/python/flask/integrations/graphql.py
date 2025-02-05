@@ -1,6 +1,6 @@
 import graphene
 from graphql import GraphQLError
-
+from graphene import Schema
 
 users = [
     {"id": 1, "name": "foo"},
@@ -43,3 +43,5 @@ class Query(graphene.ObjectType):
 
     def resolve_with_error(self, info):
         raise GraphQLError("test error")
+
+schema = Schema(Query)
