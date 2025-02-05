@@ -27,8 +27,7 @@ class Test_RetainTraces:
         self.r = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1"})
 
     def test_appsec_event_span_tags(self):
-        """
-        Spans with AppSec events should have the general AppSec span tags, along with the appsec.event and
+        """Spans with AppSec events should have the general AppSec span tags, along with the appsec.event and
         _sampling_priority_v1 tags
         """
 
@@ -88,8 +87,7 @@ class Test_AppSecEventSpanTags:
     @irrelevant(context.library not in ["golang", "nodejs", "java", "dotnet"], reason="test")
     @irrelevant(context.scenario is scenarios.external_processing, reason="Irrelevant tag set for golang")
     def test_header_collection(self):
-        """
-        AppSec should collect some headers for http.request and http.response and store them in span tags.
+        """AppSec should collect some headers for http.request and http.response and store them in span tags.
         Note that this test checks for collection, not data.
         """
         spans = [span for _, _, span in interfaces.library.get_spans(request=self.r)]
@@ -242,8 +240,7 @@ class Test_AppSecObfuscator:
 
     @scenarios.appsec_custom_rules
     def test_appsec_obfuscator_cookies_with_custom_rules(self):
-        """
-        Specific obfuscation test for the cookies which often contain sensitive data and are
+        """Specific obfuscation test for the cookies which often contain sensitive data and are
         expected to be properly obfuscated on sensitive cookies only.
         """
         # Validate that the AppSec events do not contain the following secret value.
@@ -302,9 +299,7 @@ class Test_CollectDefaultRequestHeader:
         self.r = weblog.get("/headers", headers={header: "myHeaderValue" for header in self.HEADERS})
 
     def test_collect_default_request_headers(self):
-        """
-        Collect User agent and other headers and other security info when appsec is enabled.
-        """
+        """Collect User agent and other headers and other security info when appsec is enabled."""
 
         def assertHeaderInSpanMeta(span, header):
             if header not in span["meta"]:
@@ -340,9 +335,7 @@ class Test_ExternalWafRequestsIdentification:
         )
 
     def test_external_wafs_header_collection(self):
-        """
-        Collect external wafs request identifier and other security info when appsec is enabled.
-        """
+        """Collect external wafs request identifier and other security info when appsec is enabled."""
 
         def assertHeaderInSpanMeta(span, header):
             if header not in span["meta"]:

@@ -6,7 +6,6 @@ from utils import weblog, interfaces, scenarios, features, missing_feature
 from utils._context.header_tag_vars import *
 from utils import remote_config as rc
 import json
-import pprint
 
 
 # basic / legacy tests, just tests user-agent can be received as a tag

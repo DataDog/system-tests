@@ -190,6 +190,7 @@ ignore = [
     "TD003",  # todo found
     "TD004",  # todo found
     "TRY300", # not always obvious
+    "UP015",  # redundant-open-modes: yes it's redundant. But explicit is better than implicit
     "UP038",  # not a big fan
 
 ]
@@ -212,27 +213,19 @@ ignore = [
     # though, each change must be reviewed
     "ANN201",    # 2043 occurences  [ ] missing-return-type-undocumented-public-function
     "N801",      # 492 occurences   [ ] invalid-class-name
-    "D212",      # 202 occurences   [*] multi-line-summary-first-line
     "ARG002",    # 177 occurences   [ ] unused-method-argument
     "E501",      # 159 occurences   [ ] line-too-long
     "SIM117",    # 127 occurences   [ ] multiple-with-statements
-    "F401",      # 90 occurences    [*] unused-import
     "TID252",    # 77 occurences    [*] relative-imports
     "N806",      # 76 occurences    [ ] non-lowercase-variable-in-function
     "FBT003",    # 67 occurences    [ ] boolean-positional-value-in-call
-    "D403",      # 61 occurences    [*] first-line-capitalized
     "D200",      # 52 occurences    [*] fits-on-one-line
     "F405",      # 43 occurences    [ ] undefined-local-with-import-star-usage
     "TRY002",    # 41 occurences    [ ] raise-vanilla-class
     "PT018",     # 39 occurences    [ ] pytest-composite-assertion
     "N802",      # 39 occurences    [ ] invalid-function-name
-    "UP006",     # 35 occurences    [*] non-pep585-annotation
     "FBT002",    # 30 occurences    [ ] boolean-default-value-positional-argument
-    "SIM300",    # 30 occurences    [*] yoda-conditions
-    "F541",      # 30 occurences    [*] f-string-missing-placeholders
     "F841",      # 28 occurences    [*] unused-variable
-    "UP015",     # 27 occurences    [*] redundant-open-modes
-
     "D404",      # 25 occurences    [ ] docstring-starts-with-this
     "ANN401",    # 24 occurences    [ ] any-type
     "B007",      # 23 occurences    [ ] unused-loop-control-variable
@@ -423,7 +416,6 @@ ignore = [
     "SIM300",
     "SIM401",  # code quality, TBD
     "UP008",
-    "UP015",
     "UP031",
     "UP024",
 

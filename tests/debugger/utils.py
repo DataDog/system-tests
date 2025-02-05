@@ -7,8 +7,6 @@ import re
 import os
 import os.path
 import uuid
-import gzip
-import io
 
 from utils import interfaces, remote_config, weblog, context
 from utils.tools import logger

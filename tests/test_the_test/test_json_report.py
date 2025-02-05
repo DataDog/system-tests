@@ -60,7 +60,7 @@ class Test_Json_Report:
             assert len(test) == 6, list(test.keys())  # testDeclaration, details, features, outcome, lineNumber and path
 
     def test_context_serialization(self):
-        """check context serialization node is generating"""
+        """Check context serialization node is generating"""
 
         # Check library node (version is set on TestTheTest scenario)
         assert self.report["language"] == "java", list(self.report)
@@ -81,7 +81,7 @@ class Test_Json_Report:
         assert test["features"] == [75, 13, 74, 666]
 
     def test_skip_reason(self):
-        """the skip reason must be the closest to the test method"""
+        """The skip reason must be the closest to the test method"""
         test = self.get_test_fp("Test_Mock2::test_skipped")
         assert test["testDeclaration"] == "bug"
         assert test["details"] == "bug (FAKE-002)"
