@@ -31,8 +31,7 @@ class Test_GraphQLQueryErrorReporting:
         )
 
     def test_execute_error_span_event(self):
-        """
-        Test if the main GraphQL span contains a span event with the appropriate error information.
+        """Test if the main GraphQL span contains a span event with the appropriate error information.
         The error extensions allowed are DD_TRACE_GRAPHQL_ERROR_EXTENSIONS=int,float,str,bool,other.
         """
 
