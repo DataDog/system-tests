@@ -74,7 +74,10 @@ class TestContainerAutoInjectInstallScript(base.AutoInjectBaseTest):
 @scenarios.container_auto_injection_install_script_profiling
 class TestContainerAutoInjectInstallScriptProfiling(base.AutoInjectBaseTest):
     @parametrize_virtual_machines(
-        bugs=[{"vm_cpu": "arm64", "weblog_variant": "test-app-dotnet-container", "reason": "PROF-10783"}]
+        bugs=[
+            {"vm_cpu": "arm64", "weblog_variant": "test-app-dotnet-container", "reason": "PROF-10783"},
+            {"weblog_variant": "test-app-python-alpine", "reason": "PROF-11296"},
+        ]
     )
     def test_profiling(self, virtual_machine):
         self._test_install(virtual_machine, profile=True)

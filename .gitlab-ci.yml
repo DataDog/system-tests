@@ -295,15 +295,15 @@ x_compute_python_aws_scenarios:
   parallel:
       matrix:
         - ONBOARDING_FILTER_WEBLOG: [test-app-python]
-          SCENARIO: [HOST_AUTO_INJECTION_INSTALL_SCRIPT]
+          SCENARIO: [HOST_AUTO_INJECTION_INSTALL_SCRIPT, HOST_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING]
         - ONBOARDING_FILTER_WEBLOG: [test-app-python-container,test-app-python-alpine]
-          SCENARIO: [ CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT]
+          SCENARIO: [CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT, CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING]
         - ONBOARDING_FILTER_WEBLOG: [
             test-app-python,
             test-app-python-container,
             test-app-python-alpine
           ]
-          SCENARIO: [INSTALLER_AUTO_INJECTION]
+          SCENARIO: [INSTALLER_AUTO_INJECTION, SIMPLE_AUTO_INJECTION_PROFILING]
         - ONBOARDING_FILTER_WEBLOG: [test-app-python]
           SCENARIO: [CHAOS_INSTALLER_AUTO_INJECTION]
         - ONBOARDING_FILTER_WEBLOG: [test-app-python-multicontainer,test-app-python-multialpine]
