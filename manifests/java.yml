@@ -80,7 +80,7 @@ tests/:
             spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
         test_email_html_injection.py:
           TestEmailHtmlInjection:
-            '*': v1.46.0
+            '*': v1.47.0
             akka-http: missing_feature (No endpoint implemented)
             jersey-grizzly2: missing_feature (No endpoint implemented)
             play: missing_feature (No endpoint implemented)
