@@ -1,11 +1,7 @@
-from operator import le
-from py import test
-from requests import head  # type: ignore
 from utils._decorators import irrelevant
 from utils.parametric.spec.trace import SAMPLING_PRIORITY_KEY, ORIGIN
-from utils.parametric.spec.trace import span_has_no_parent
 from utils.parametric.spec.trace import find_only_span
-from utils import features, scenarios
+from utils import features, scenarios, irrelevant, context
 from typing import Any
 import pytest
 
