@@ -36,6 +36,7 @@ class IntegrationsScenario(EndToEndScenario):
                 "AWS_ACCESS_KEY_ID": "my-access-key",
                 "AWS_SECRET_ACCESS_KEY": "my-access-key",
                 "DD_TRACE_INFERRED_PROXY_SERVICES_ENABLED": "true",
+                "SYSTEM_TESTS_AWS_URL": "http://localstack-main:4566",
                 "DD_IAST_CONTEXT_MODE": "GLOBAL",
             },
             include_postgres_db=True,
@@ -45,6 +46,8 @@ class IntegrationsScenario(EndToEndScenario):
             include_rabbitmq=True,
             include_mysql_db=True,
             include_sqlserver=True,
+            include_localstack=True,
+            include_elasticmq=True,
             include_otel_drop_in=True,
             doc=(
                 "Spawns tracer, agent, and a full set of database. "
@@ -97,6 +100,8 @@ class AWSIntegrationsScenario(EndToEndScenario):
         include_kafka=False,
         include_rabbitmq=False,
         include_buddies=False,
+        include_localstack=True,
+        include_elasticmq=True,
     ) -> None:
         super().__init__(
             name,
@@ -104,18 +109,19 @@ class AWSIntegrationsScenario(EndToEndScenario):
                 "DD_TRACE_API_VERSION": "v0.4",
                 "AWS_ACCESS_KEY_ID": "my-access-key",
                 "AWS_SECRET_ACCESS_KEY": "my-access-key",
+                "SYSTEM_TESTS_AWS_URL": "http://localstack-main:4566",
             },
             doc=doc,
             include_kafka=include_kafka,
             include_rabbitmq=include_rabbitmq,
             include_buddies=include_buddies,
+            include_localstack=include_localstack,
+            include_elasticmq=include_elasticmq,
             scenario_groups=[ScenarioGroup.INTEGRATIONS, ScenarioGroup.ESSENTIALS],
         )
 
     def configure(self, config):
         super().configure(config)
-        if not self.replay:
-            self._check_aws_variables()
         self.unique_id = _get_unique_id(self.host_log_folder, replay=self.replay)
 
     def _check_aws_variables(self):
@@ -135,7 +141,13 @@ class CrossedTracingLibraryScenario(EndToEndScenario):
             include_kafka=True,
             include_buddies=True,
             include_rabbitmq=True,
+            include_localstack=True,
+            include_elasticmq=True,
             doc="Spawns a buddy for each supported language of APM, requires AWS authentication.",
+            weblog_env={
+                "SYSTEM_TESTS_AWS_URL": "http://localstack-main:4566",
+                "SYSTEM_TESTS_AWS_SQS_URL": "http://elasticmq:9324",
+            },
         )
 
     def configure(self, config):
