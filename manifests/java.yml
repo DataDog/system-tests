@@ -90,7 +90,7 @@ tests/:
             vertx3: missing_feature (No endpoint implemented)
             vertx4: missing_feature (No endpoint implemented)
           TestEmailHtmlInjection_StackTrace:
-            '*': v1.46.0
+            '*': v1.47.0
             akka-http: missing_feature (No endpoint implemented)
             jersey-grizzly2: missing_feature (No endpoint implemented)
             play: missing_feature (No endpoint implemented)
