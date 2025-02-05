@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, missing_feature, features, weblog, rfc
+from utils import missing_feature, features, weblog, rfc
 from ..utils import BaseSinkTest, validate_stack_traces
 
 

@@ -41,11 +41,10 @@ class AsmStandalone_UpstreamPropagation_Base(ABC):
             for tag, value in expected_tags.items():
                 if value is None:
                     assert tag not in struct
+                elif tag == "_sampling_priority_v1":  # special case, it's a lambda to check for a condition
+                    assert value(struct[tag])
                 else:
-                    if tag == "_sampling_priority_v1":  # special case, it's a lambda to check for a condition
-                        assert value(struct[tag])
-                    else:
-                        assert struct[tag] == value
+                    assert struct[tag] == value
 
         # Case 1: The tags are set on the first span of every trace chunk
         try:
@@ -703,7 +702,7 @@ class SCAStandalone_Telemetry_Base:
         DD_APPSEC_SCA_ENABLED = TelemetryUtils.get_dd_appsec_sca_enabled_str(context.library)
 
         cfg_appsec_enabled = configuration_by_name.get(DD_APPSEC_SCA_ENABLED)
-        assert cfg_appsec_enabled is not None, "Missing telemetry config item for '{}'".format(DD_APPSEC_SCA_ENABLED)
+        assert cfg_appsec_enabled is not None, f"Missing telemetry config item for '{DD_APPSEC_SCA_ENABLED}'"
 
         outcome_value = True
         if context.library == "java":
@@ -761,10 +760,10 @@ class Test_AppSecStandalone_UpstreamPropagation_V2(AppSecStandalone_UpstreamProp
     """APPSEC correctly propagates AppSec events in distributing tracing with DD_APM_TRACING_ENABLED=false."""
 
     def propagated_tag(self):
-        return "_dd.p.appsec"
+        return "_dd.p.ts"
 
     def propagated_tag_value(self):
-        return "1"
+        return "02"
 
 
 @rfc("https://docs.google.com/document/d/12NBx-nD-IoQEMiCRnJXneq4Be7cbtSc6pJLOFUWTpNE/edit")
@@ -800,10 +799,10 @@ class Test_SCAStandalone_Telemetry(SCAStandalone_Telemetry_Base):
     """Tracer correctly propagates SCA telemetry in distributing tracing with DD_EXPERIMENTAL_APPSEC_STANDALONE_ENABLED=true."""
 
     def propagated_tag(self):
-        return "_dd.p.ts"
+        return "_dd.p.appsec"
 
     def propagated_tag_value(self):
-        return "02"
+        return "1"
 
 
 @rfc("https://docs.google.com/document/d/12NBx-nD-IoQEMiCRnJXneq4Be7cbtSc6pJLOFUWTpNE/edit")

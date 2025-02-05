@@ -4,12 +4,12 @@ import os
 from pathlib import Path
 
 
-def table_row(*args: list[str]) -> None:
+def table_row(*args: str) -> None:
     print(f"| {' | '.join(args)} |")
 
 
 def main() -> None:
-    result = {}
+    result: dict[str, dict[str, int]] = {}
     all_outcomes = {"passed": "✅", "xpassed": "🍇", "skipped": "⏸️", "failed": "❌"}
 
     for x in os.listdir("."):

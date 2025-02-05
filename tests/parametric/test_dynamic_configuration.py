@@ -1,9 +1,7 @@
-"""
-Test the dynamic configuration via Remote Config (RC) feature of the APM libraries.
-"""
+"""Test the dynamic configuration via Remote Config (RC) feature of the APM libraries."""
 
 import json
-from typing import Any, Dict, List
+from typing import Any
 
 import pytest
 
@@ -33,7 +31,7 @@ DEFAULT_ENVVARS = {
 }
 
 
-def send_and_wait_trace(test_library, test_agent, **span_kwargs) -> List[Span]:
+def send_and_wait_trace(test_library, test_agent, **span_kwargs) -> list[Span]:
     with test_library.dd_start_span(**span_kwargs) as s1:
         pass
     test_library.dd_flush()
@@ -41,7 +39,7 @@ def send_and_wait_trace(test_library, test_agent, **span_kwargs) -> List[Span]:
     return find_trace(traces, s1.trace_id)
 
 
-def _default_config(service: str, env: str) -> Dict[str, Any]:
+def _default_config(service: str, env: str) -> dict[str, Any]:
     return {
         "action": "enable",
         "revision": 1698167126064,
@@ -61,21 +59,21 @@ def _default_config(service: str, env: str) -> Dict[str, Any]:
     }
 
 
-def _set_rc(test_agent, config: Dict[str, Any]) -> None:
+def _set_rc(test_agent, config: dict[str, Any]) -> None:
     cfg_id = hash(json.dumps(config))
 
     config["id"] = str(cfg_id)
     test_agent.set_remote_config(path="datadog/2/APM_TRACING/%s/config" % cfg_id, payload=config)
 
 
-def _create_rc_config(config_overrides: Dict[str, Any]) -> Dict:
+def _create_rc_config(config_overrides: dict[str, Any]) -> dict:
     rc_config = _default_config(TEST_SERVICE, TEST_ENV)
     for k, v in config_overrides.items():
         rc_config["lib_config"][k] = v
     return rc_config
 
 
-def set_and_wait_rc(test_agent, config_overrides: Dict[str, Any]) -> Dict:
+def set_and_wait_rc(test_agent, config_overrides: dict[str, Any]) -> dict:
     """Helper to create an RC configuration with the given settings and wait for it to be applied.
 
     It is assumed that the configuration is successfully applied.
@@ -89,7 +87,7 @@ def set_and_wait_rc(test_agent, config_overrides: Dict[str, Any]) -> Dict:
     return test_agent.wait_for_rc_apply_state("APM_TRACING", state=RemoteConfigApplyState.ACKNOWLEDGED, clear=True)
 
 
-def assert_sampling_rate(trace: List[Dict], rate: float):
+def assert_sampling_rate(trace: list[dict], rate: float):
     """Asserts that a trace returned from the test agent is consistent with the given sample rate.
 
     This function assumes that all traces are sent to the agent regardless of sample rate.
@@ -103,7 +101,7 @@ def assert_sampling_rate(trace: List[Dict], rate: float):
     assert span["metrics"].get("_dd.rule_psr", 1.0) == pytest.approx(rate)
 
 
-def is_sampled(trace: List[Dict]):
+def is_sampled(trace: list[dict]):
     """Asserts that a trace returned from the test agent is consistent with the given sample rate.
 
     This function assumes that all traces are sent to the agent regardless of sample rate.
@@ -251,6 +249,7 @@ class TestDynamicConfigV1:
     @parametrize("library_env", [{"DD_TRACE_SAMPLE_RATE": r, **DEFAULT_ENVVARS} for r in ["0.1", "1.0"]])
     @bug(library="cpp", reason="APMAPI-863")
     @flaky(context.library >= "dotnet@2.56.0", reason="APMAPI-179")
+    @irrelevant(context.library == "python", reason="DD_TRACE_SAMPLE_RATE was removed in 3.x")
     def test_trace_sampling_rate_override_env(self, library_env, test_agent, test_library):
         """The RC sampling rate should override the environment variable.
 
@@ -361,9 +360,7 @@ class TestDynamicConfigV1_EmptyServiceTargets:
         ],
     )
     def test_not_match_service_target_empty_env(self, library_env, test_agent, test_library):
-        """
-        Test that the library reports a non-erroneous apply_state when DD_SERVICE or DD_ENV are empty.
-        """
+        """Test that the library reports a non-erroneous apply_state when DD_SERVICE or DD_ENV are empty."""
         _set_rc(test_agent, _default_config(TEST_SERVICE, TEST_ENV))
 
         rc_args = {}
@@ -408,8 +405,7 @@ class TestDynamicConfigV1_ServiceTargets:
     @irrelevant(library="java", reason="APMAPI-1003")
     @irrelevant(library="cpp", reason="APMAPI-1003")
     def test_not_match_service_target(self, library_env, test_agent, test_library):
-        """
-        This is an old behavior, see APMAPI-1003
+        """This is an old behavior, see APMAPI-1003
 
         ----
 
@@ -649,7 +645,7 @@ class TestDynamicConfigSamplingRules:
         assert span["meta"]["_dd.p.dm"] == "-3"
 
         # Unset RC to ensure local settings
-        set_and_wait_rc(test_agent, config_overrides={"tracing_sampling_rules": None, "tracing_sampling_rules": None})
+        set_and_wait_rc(test_agent, config_overrides={"tracing_sampling_rules": None})
         trace = get_sampled_trace(test_library, test_agent, service="other_service", name="op_name")
         assert_sampling_rate(trace, DEFAULT_SAMPLE_RATE)
 

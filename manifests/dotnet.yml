@@ -11,11 +11,11 @@ tests/:
         Test_API_Security_RC_ASM_DD_scanners: v2.50.0
         Test_API_Security_RC_ASM_processor_overrides_and_custom_scanner: irrelevant (waf does not support it yet)
       test_apisec_sampling.py:
-        Test_API_Security_Sampling_Different_Endpoints: missing_feature
-        Test_API_Security_Sampling_Different_Paths: missing_feature
-        Test_API_Security_Sampling_Different_Status: missing_feature
+        Test_API_Security_Sampling_Different_Endpoints: v2.46.0
+        Test_API_Security_Sampling_Different_Paths: v2.46.0
+        Test_API_Security_Sampling_Different_Status: v2.46.0
         Test_API_Security_Sampling_Rate: v2.46.0
-        Test_API_Security_Sampling_With_Delay: missing_feature
+        Test_API_Security_Sampling_With_Delay: v2.50.0
       test_schemas.py:
         Test_Scanners: v2.46.0
         Test_Schema_Request_Cookies: v2.46.0
@@ -241,7 +241,7 @@ tests/:
       test_blocking.py:
         Test_Blocking: v2.27.0
         Test_Blocking_strip_response_headers: missing_feature
-        Test_CustomBlockingResponse: missing_feature
+        Test_CustomBlockingResponse: v3.10.0
       test_custom_rules.py:
         Test_CustomRules: v2.30.0
       test_exclusions.py:
@@ -279,15 +279,15 @@ tests/:
       Test_V2_Login_Events: v3.1.0
       Test_V2_Login_Events_Anon: v3.1.0
       Test_V2_Login_Events_RC: v3.1.0
-      Test_V3_Auto_User_Instrum_Mode_Capability: missing_feature
-      Test_V3_Login_Events: missing_feature
-      Test_V3_Login_Events_Anon: missing_feature
-      Test_V3_Login_Events_Blocking: missing_feature
-      Test_V3_Login_Events_RC: missing_feature
+      Test_V3_Auto_User_Instrum_Mode_Capability: v3.10.0
+      Test_V3_Login_Events: v3.10.0
+      Test_V3_Login_Events_Anon: v3.10.0
+      Test_V3_Login_Events_Blocking: v3.10.0
+      Test_V3_Login_Events_RC: v3.10.0
     test_automated_user_and_session_tracking.py:
       Test_Automated_Session_Blocking: missing_feature
-      Test_Automated_User_Blocking: missing_feature
-      Test_Automated_User_Tracking: missing_feature
+      Test_Automated_User_Blocking: v3.10.0
+      Test_Automated_User_Tracking: v3.10.0
     test_blocking_addresses.py:
       Test_BlockingGraphqlResolvers: missing_feature
       Test_Blocking_client_ip: v2.27.0
