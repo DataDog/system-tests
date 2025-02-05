@@ -29,6 +29,8 @@ from utils._context.virtual_machines import (
     Centos8amd64,
     OracleLinux92amd64,
     OracleLinux92arm64,
+    OracleLinux93amd64,
+    OracleLinux93arm64,
     OracleLinux88amd64,
     OracleLinux88arm64,
     OracleLinux79amd64,
@@ -86,6 +88,8 @@ class _VirtualMachineScenario(Scenario):
         include_centos_8_amd64=False,
         include_oraclelinux_9_2_amd64=False,
         include_oraclelinux_9_2_arm64=False,
+        include_oraclelinux_9_3_amd64=False,
+        include_oraclelinux_9_3_arm64=False,
         include_oraclelinux_8_8_amd64=False,
         include_oraclelinux_8_8_arm64=False,
         include_oraclelinux_7_9_amd64=False,
@@ -165,6 +169,10 @@ class _VirtualMachineScenario(Scenario):
             self.required_vms.append(OracleLinux92amd64())
         if include_oraclelinux_9_2_arm64:
             self.required_vms.append(OracleLinux92arm64())
+        if include_oraclelinux_9_3_amd64:
+            self.required_vms.append(OracleLinux93amd64())
+        if include_oraclelinux_9_3_arm64:
+            self.required_vms.append(OracleLinux93arm64())
         if include_oraclelinux_8_8_amd64:
             self.required_vms.append(OracleLinux88amd64())
         if include_oraclelinux_8_8_arm64:
@@ -414,6 +422,8 @@ class InstallerAutoInjectionScenario(_VirtualMachineScenario):
         include_centos_8_amd64=False,
         include_oraclelinux_9_2_amd64=True,
         include_oraclelinux_9_2_arm64=True,
+        include_oraclelinux_9_3_amd64=True,
+        include_oraclelinux_9_3_arm64=True,
         include_oraclelinux_8_8_amd64=True,
         include_oraclelinux_8_8_arm64=True,
         include_oraclelinux_7_9_amd64=True,
@@ -473,6 +483,8 @@ class InstallerAutoInjectionScenario(_VirtualMachineScenario):
             include_centos_8_amd64=include_centos_8_amd64,
             include_oraclelinux_9_2_amd64=include_oraclelinux_9_2_amd64,
             include_oraclelinux_9_2_arm64=include_oraclelinux_9_2_arm64,
+            include_oraclelinux_9_3_amd64=include_oraclelinux_9_3_amd64,
+            include_oraclelinux_9_3_arm64=include_oraclelinux_9_3_arm64,
             include_oraclelinux_8_8_amd64=include_oraclelinux_8_8_amd64,
             include_oraclelinux_8_8_arm64=include_oraclelinux_8_8_arm64,
             include_oraclelinux_7_9_amd64=include_oraclelinux_7_9_amd64,

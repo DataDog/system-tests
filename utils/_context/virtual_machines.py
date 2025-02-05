@@ -736,7 +736,7 @@ class OracleLinux92amd64(_VirtualMachine):
             os_distro="rpm",
             os_branch="oracle_linux",
             os_cpu="amd64",
-            default_vm=False,
+            default_vm=True,
             **kwargs,
         )
 
@@ -753,6 +753,42 @@ class OracleLinux92arm64(_VirtualMachine):
             os_branch="oracle_linux",
             os_cpu="arm64",
             default_vm=False,
+            **kwargs,
+        )
+
+
+# Oracle Linux 9.3. Owner oracle, id: 131827586825
+# TODO copy ami to a private account
+class OracleLinux93amd64(_VirtualMachine):
+    def __init__(self, **kwargs) -> None:
+        super().__init__(
+            "OracleLinux_9_3_amd64",
+            aws_config=_AWSConfig(ami_id="ami-0dd239e274077553a", ami_instance_type="t3.medium", user="ec2-user"),
+            vagrant_config=None,
+            krunvm_config=None,
+            os_type="linux",
+            os_distro="rpm",
+            os_branch="oracle_linux",
+            os_cpu="amd64",
+            default_vm=False,
+            **kwargs,
+        )
+
+
+# Oracle Linux 9.3. Owner oracle, id: 131827586825
+# TODO copy ami to a private account
+class OracleLinux93arm64(_VirtualMachine):
+    def __init__(self, **kwargs) -> None:
+        super().__init__(
+            "OracleLinux_9_3_arm64",
+            aws_config=_AWSConfig(ami_id="ami-07dd8e107c20b8471", ami_instance_type="t4g.medium", user="ec2-user"),
+            vagrant_config=None,
+            krunvm_config=None,
+            os_type="linux",
+            os_distro="rpm",
+            os_branch="oracle_linux",
+            os_cpu="arm64",
+            default_vm=True,
             **kwargs,
         )
 
@@ -785,7 +821,7 @@ class OracleLinux88arm64(_VirtualMachine):
             os_distro="rpm",
             os_branch="oracle_linux",
             os_cpu="arm64",
-            default_vm=False,
+            default_vm=True,
             **kwargs,
         )
 
@@ -945,7 +981,7 @@ class Fedora40amd64(_VirtualMachine):
     def __init__(self, **kwargs) -> None:
         super().__init__(
             "Fedora_40_amd64",
-            aws_config=_AWSConfig(ami_id="ami-00241b73f8d2add3a", ami_instance_type="t3.medium", user="fedora"),
+            aws_config=_AWSConfig(ami_id="ami-00241b73f8d2add3a", ami_instance_type="t3.medium", user="core"),
             vagrant_config=None,
             krunvm_config=None,
             os_type="linux",
@@ -961,7 +997,7 @@ class Fedora40arm64(_VirtualMachine):
     def __init__(self, **kwargs) -> None:
         super().__init__(
             "Fedora_40_arm64",
-            aws_config=_AWSConfig(ami_id="ami-000c5e92798a670b0", ami_instance_type="t4g.medium", user="fedora"),
+            aws_config=_AWSConfig(ami_id="ami-000c5e92798a670b0", ami_instance_type="t4g.medium", user="core"),
             vagrant_config=None,
             krunvm_config=None,
             os_type="linux",
