@@ -49,8 +49,8 @@ allow_no_feature_nodes = [
 [tool.mypy]
 files = [
     "utils/",
-    "tests",
-    # "conftest.py",
+    "tests/",
+    "conftest.py",
 ]
 exclude = [
     "utils/build/.*",  # more permissive on weblog codes
@@ -68,30 +68,17 @@ exclude = [
     "tests/otel_tracing_e2e/test_e2e.py",
     "tests/k8s_lib_injection/test_k8s_init_image_validator.py",
     "utils/_context/_scenarios/auto_injection.py",
-    "utils/_context/_scenarios/core.py",
-    "utils/_context/_scenarios/docker_ssi.py",
-    "utils/_context/_scenarios/endtoend.py",
-    "utils/_context/_scenarios/external_processing.py",
-    "utils/_context/_scenarios/integrations.py",
-    "utils/_context/_scenarios/ipv6.py",
     "utils/_context/_scenarios/k8s_lib_injection.py",
-    "utils/_context/_scenarios/open_telemetry.py",
-    "utils/_context/_scenarios/parametric.py",
     "utils/_context/containers.py",
     "utils/_context/core.py",
     "utils/_context/virtual_machines.py",
-    "utils/_remote_config.py",
-    "utils/_weblog.py",
+    "utils/scripts/decode-rc.py",
     "utils/docker_ssi/.*",
     "utils/k8s_lib_injection/.*",
     "utils/onboarding/.*",
     "utils/otel_validators/validator_trace.py",
     "utils/proxy/_deserializer.py",
     "utils/scripts/compute_impacted_scenario.py",
-    "utils/scripts/compute-workflow-parameters.py",
-    "utils/scripts/get-image-list.py",
-    "utils/scripts/get-nightly-logs.py",
-    "utils/scripts/grep-nightly-logs.py",
     "utils/scripts/merge_gitlab_aws_pipelines.py",
     "utils/virtual_machine/.*",
 ]
