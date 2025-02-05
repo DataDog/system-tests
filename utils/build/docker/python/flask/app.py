@@ -437,9 +437,11 @@ def rasp_cmdi(*args, **kwargs):
 
 ### END EXPLOIT PREVENTION
 
+
 @app.route("/graphql", methods=["GET", "POST"])
-def graphql_error_spans(*args, **kwargs):    
+def graphql_error_spans(*args, **kwargs):
     from integrations.graphql import schema
+
     data = request.get_json()
 
     result = schema.execute(
@@ -452,6 +454,7 @@ def graphql_error_spans(*args, **kwargs):
         return jsonify(format_error(result.errors[0])), 200
 
     return jsonify(result.to_dict())
+
 
 def format_error(error):
     return {

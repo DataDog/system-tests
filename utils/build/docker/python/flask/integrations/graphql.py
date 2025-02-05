@@ -8,17 +8,21 @@ users = [
     {"id": 3, "name": "bar"},
 ]
 
+
 class User(graphene.ObjectType):
     id = graphene.Int()
     name = graphene.String()
+
 
 class Extension(graphene.ObjectType):
     key = graphene.String()
     value = graphene.String()
 
+
 class Error(graphene.ObjectType):
     message = graphene.String()
     extensions = graphene.List(Extension)
+
 
 class Query(graphene.ObjectType):
     user = graphene.Field(User, id=graphene.Int(required=True))
@@ -43,5 +47,6 @@ class Query(graphene.ObjectType):
 
     def resolve_with_error(self, info):
         raise GraphQLError("test error")
+
 
 schema = Schema(Query)
