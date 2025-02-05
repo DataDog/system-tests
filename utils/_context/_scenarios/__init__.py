@@ -685,8 +685,8 @@ class _Scenarios:
         scenario_groups=[ScenarioGroup.ONBOARDING],
         github_workflow="libinjection",
         scenario_vms_exclude=[
-            "amazon_linux_2023_amd64",
-            "amazon_linux_2023_arm64",
+            "Amazon_Linux_2023_amd64",
+            "Amazon_Linux_2023_arm64",
         ],  # LD library failures impact on the docker engine, causes flakiness
     )
 
