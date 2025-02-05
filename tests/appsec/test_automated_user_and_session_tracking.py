@@ -73,21 +73,19 @@ class Test_Automated_User_Tracking:
             assert meta["_dd.appsec.user.collection_mode"] == "identification"
 
     def setup_user_tracking_sdk_overwrite(self):
+        self.r_login = weblog.post("/login?auth=local", data=login_data(context, USER, PASSWORD))
+
         self.requests = {
-            "before": weblog.post(
-                "/login?auth=local&sdk_trigger=before&sdk_event=success&sdk_user=sdkUser",
-                data=login_data(context, USER, PASSWORD),
+            "before": weblog.get(
+                "/users?user=sdkUser",
+                cookies=self.r_login.cookies,
             ),
-            "after": weblog.post(
-                "/login?auth=local&sdk_trigger=after&sdk_event=success&sdk_user=sdkUser",
-                data=login_data(context, USER, PASSWORD),
+            "after": weblog.get(
+                "/users?user=sdkUser",
+                cookies=self.r_login.cookies,
             ),
         }
 
-    @missing_feature(
-        context.library == "dotnet",
-        reason="This endpoint calls the sdk TrackSuccessfulLogin which doesn't add the collection_mode tag (only SetUser)",
-    )
     def test_user_tracking_sdk_overwrite(self):
         for trigger, request in self.requests.items():
             assert request.status_code == 200
@@ -188,11 +186,14 @@ class Test_Automated_User_Blocking:
         rc.rc_state.reset().apply()
 
         self.config_state_1 = rc.rc_state.set_config(*CONFIG_ENABLED).apply()
+        self.r_login = weblog.post("/login?auth=local", data=login_data(context, UUID_USER, PASSWORD))
+
         self.config_state_2 = rc.rc_state.set_config(*BLOCK_USER).apply()
         self.config_state_3 = rc.rc_state.set_config(*BLOCK_USER_DATA).apply()
-        self.r_login = weblog.post("/login?auth=local", data=login_data(context, UUID_USER, PASSWORD))
-        self.r_login_blocked = weblog.post(
-            "/login?auth=local&sdk_event=success&sdk_user=sdkUser", data=login_data(context, UUID_USER, PASSWORD)
+        
+        self.r_blocked = weblog.get(
+            "/users?user=sdkUser",
+            cookies=self.r_login.cookies,
         )
 
     def test_user_blocking_sdk(self):
