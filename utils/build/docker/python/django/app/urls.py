@@ -786,7 +786,7 @@ def get_value(request):
 def create_extra_service(request):
     new_service_name = request.GET.get("serviceName", default="")
     if new_service_name:
-        Pin.override(django, service=new_service_name, tracer=tracer)
+        Pin.override(django, service=new_service_name)
     return HttpResponse("OK")
 
 
