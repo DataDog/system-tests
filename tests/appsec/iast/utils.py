@@ -236,21 +236,21 @@ def validate_stack_traces(request):
         # We are looking for the frame that corresponds to the location of the vulnerability, we will need to update this to cover all tracers
         # currently support: Java, Python, Node.js
         if (
-                (stack_trace["language"] == "java" and stack_trace["tracer_version"] <= "1.46.0"
-                    and (
-                        location["path"] in frame["class_name"]
+            (stack_trace["language"] == "java" and stack_trace["tracer_version"] <= "1.46.0"
+                and (
+                    location["path"] in frame["class_name"]
+                    and location["method"] in frame["function"]
+                    and location["line"] == frame["line"]
+                )
+            )
+            or (
+                stack_trace["language"] == "java"
+                and (
+                        location["class"] in frame["class_name"]
                         and location["method"] in frame["function"]
                         and location["line"] == frame["line"]
-                    )
                 )
-                or (
-                    stack_trace["language"] == "java"
-                    and (
-                            location["class"] in frame["class_name"]
-                            and location["method"] in frame["function"]
-                            and location["line"] == frame["line"]
-                    )
-                )
+            )
         ) or (
             stack_trace["language"] in ("python", "nodejs")
             and (frame.get("file", "").endswith(location["path"]) and location["line"] == frame["line"])
