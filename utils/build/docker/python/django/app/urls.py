@@ -222,8 +222,8 @@ def rasp_sqli(request, *args, **kwargs):
         import sqlite3
 
         DB = sqlite3.connect(":memory:")
-        print(f"SELECT * FROM users WHERE id='{user_id}'")
-        cursor = DB.execute(f"SELECT * FROM users WHERE id='{user_id}'")
+        print(f"SELECT * FROM app_customuser WHERE id='{user_id}'")
+        cursor = DB.execute(f"SELECT * FROM app_customuser WHERE id='{user_id}'")
         print("DB request with {len(list(cursor))} results")
         return HttpResponse(f"DB request with {len(list(cursor))} results")
     except Exception as e:
@@ -483,7 +483,7 @@ def view_iast_path_traversal_secure(request):
 def view_sqli_insecure(request):
     username = request.POST.get("username", "")
     password = request.POST.get("password", "")
-    sql = "SELECT * FROM IAST_USER WHERE USERNAME = " + username + " AND PASSWORD = " + password
+    sql = "SELECT * FROM app_customuser WHERE username = '" + username + "' AND password = '" + password + "'"
 
     with connection.cursor() as cursor:
         cursor.execute(sql)
@@ -494,7 +494,7 @@ def view_sqli_insecure(request):
 def view_sqli_secure(request):
     username = request.POST.get("username", "")
     password = request.POST.get("password", "")
-    sql = "SELECT * FROM IAST_USER WHERE USERNAME = ? AND PASSWORD = ?"
+    sql = "SELECT * FROM app_customuser WHERE username = %s AND password = %s"
 
     with connection.cursor() as cursor:
         cursor.execute(sql, (username, password))
