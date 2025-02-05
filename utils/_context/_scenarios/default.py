@@ -26,7 +26,6 @@ _iast_security_controls_map = {
         "INPUT_VALIDATOR:COMMAND_INJECTION:iast/utils/securityControlUtil.js:validate;"
         "INPUT_VALIDATOR:*:iast/utils/securityControlUtil.js:validateForAllVulns;"
         "INPUT_VALIDATOR:*:iast/utils/securityControlUtil.js:overloadedValidation:1,2;"
-        
         # typescript definitions
         "SANITIZER:COMMAND_INJECTION:dist/utils/securityControlUtil.js:sanitize;"
         "SANITIZER:*:dist/utils/securityControlUtil.js:sanitizeForAllVulns;"
@@ -34,7 +33,6 @@ _iast_security_controls_map = {
         "INPUT_VALIDATOR:COMMAND_INJECTION:dist/utils/securityControlUtil.js:validate;"
         "INPUT_VALIDATOR:*:dist/utils/securityControlUtil.js:validateForAllVulns;"
         "INPUT_VALIDATOR:*:dist/utils/securityControlUtil.js:overloadedValidation:1,2"
-        
     ),
     "php": "TODO",
     "python": "TODO",
