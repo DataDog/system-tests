@@ -288,25 +288,44 @@ class Test_Config_RateLimit:
         ), "Expected at least one trace to be rate-limited with sampling priority -1."
 
 
+class TagTest:
+    def __init__(self, expected_tags, expected_discarded_keys):
+        self.expected_tags = expected_tags
+        self.expected_discarded_keys = expected_discarded_keys
+
+
 tag_scenarios: dict = {
-    "key1:value1,key2:value2": [("key1", "value1"), ("key2", "value2")],
-    "key1:value1 key2:value2": [("key1", "value1"), ("key2", "value2")],
-    "env:test aKey:aVal bKey:bVal cKey:": [("env", "test"), ("aKey", "aVal"), ("bKey", "bVal"), ("cKey", "")],
-    "env:test,aKey:aVal,bKey:bVal,cKey:": [("env", "test"), ("aKey", "aVal"), ("bKey", "bVal"), ("cKey", "")],
-    "env:test,aKey:aVal bKey:bVal cKey:": [("env", "test"), ("aKey", "aVal bKey:bVal cKey:")],
-    "env:test     bKey :bVal dKey: dVal cKey:": [
-        ("env", "test"),
-        ("bKey", ""),
-        ("dKey", ""),
-        ("dVal", ""),
-        ("cKey", ""),
-    ],
-    "env :test, aKey : aVal bKey:bVal cKey:": [("env", "test"), ("aKey", "aVal bKey:bVal cKey:")],
-    "env:keyWithA:Semicolon bKey:bVal cKey": [("env", "keyWithA:Semicolon"), ("bKey", "bVal"), ("cKey", "")],
-    "env:keyWith:  , ,   Lots:Of:Semicolons ": [("env", "keyWith:"), ("Lots", "Of:Semicolons")],
-    "a:b,c,d": [("a", "b"), ("c", ""), ("d", "")],
-    "a,1": [("a", ""), ("1", "")],
-    "a:b:c:d": [("a", "b:c:d")],
+    "key1:value1,key2:value2": TagTest(
+        expected_tags=[("key1", "value1"), ("key2", "value2")], expected_discarded_keys=[]
+    ),
+    "key1:value1 key2:value2": TagTest(
+        expected_tags=[("key1", "value1"), ("key2", "value2")], expected_discarded_keys=[]
+    ),
+    "env:test aKey:aVal bKey:bVal cKey:": TagTest(
+        expected_tags=[("env", "test"), ("aKey", "aVal"), ("bKey", "bVal"), ("cKey", "")], expected_discarded_keys=[]
+    ),
+    "env:test,aKey:aVal,bKey:bVal,cKey:": TagTest(
+        expected_tags=[("env", "test"), ("aKey", "aVal"), ("bKey", "bVal"), ("cKey", "")], expected_discarded_keys=[]
+    ),
+    "env:test,aKey:aVal bKey:bVal cKey:": TagTest(
+        expected_tags=[("env", "test"), ("aKey", "aVal bKey:bVal cKey:")], expected_discarded_keys=[]
+    ),
+    "env:test     bKey :bVal dKey: dVal cKey:": TagTest(
+        expected_tags=[("env", "test"), ("bKey", ""), ("dKey", ""), ("dVal", ""), ("cKey", "")],
+        expected_discarded_keys=[],
+    ),
+    "env :test, aKey : aVal bKey:bVal cKey:": TagTest(
+        expected_tags=[("env", "test"), ("aKey", "aVal bKey:bVal cKey:")], expected_discarded_keys=[]
+    ),
+    "env:keyWithA:Semicolon bKey:bVal cKey": TagTest(
+        expected_tags=[("env", "keyWithA:Semicolon"), ("bKey", "bVal"), ("cKey", "")], expected_discarded_keys=[]
+    ),
+    "env:keyWith:  , ,   Lots:Of:Semicolons ": TagTest(
+        expected_tags=[("env", "keyWith:"), ("Lots", "Of:Semicolons")], expected_discarded_keys=[]
+    ),
+    "a:b,c,d": TagTest(expected_tags=[("a", "b"), ("c", ""), ("d", "")], expected_discarded_keys=[]),
+    "a,1": TagTest(expected_tags=[("a", ""), ("1", "")], expected_discarded_keys=[]),
+    "a:b:c:d": TagTest(expected_tags=[("a", "b:c:d")], expected_discarded_keys=[]),
 }
 
 
@@ -315,16 +334,23 @@ tag_scenarios: dict = {
 class Test_Config_Tags:
     @parametrize("library_env", [{"DD_TAGS": key} for key in tag_scenarios.keys()])
     def test_comma_space_tag_separation(self, library_env, test_agent, test_library):
-        expected_local_tags = []
+        expected_tags = []
+        expected_discarded_keys = []
         if "DD_TAGS" in library_env:
-            expected_local_tags = tag_scenarios[library_env["DD_TAGS"]]
+            tagtest = tag_scenarios[library_env["DD_TAGS"]]
+            expected_tags = tagtest.expected_tags
+            expected_discarded_keys = tagtest.expected_discarded_keys
+
         with test_library:
             with test_library.dd_start_span(name="sample_span"):
                 pass
         span = find_only_span(test_agent.wait_for_num_traces(1))
-        for k, v in expected_local_tags:
+        for k, v in expected_tags:
             assert k in span["meta"]
             assert span["meta"][k] == v
+
+        for k in expected_discarded_keys:
+            assert k not in span["meta"]
 
     @parametrize(
         "library_env",
