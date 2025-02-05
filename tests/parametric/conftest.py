@@ -111,9 +111,9 @@ class _TestAgentAPI:
     def _url(self, path: str) -> str:
         return urllib.parse.urljoin(self._base_url, path)
 
-    def _write_log(self, type, json_trace):
+    def _write_log(self, log_type, json_trace):
         with open(self.log_path, "a") as log:
-            log.write(f"\n{type}>>>>\n")
+            log.write(f"\n{log_type}>>>>\n")
             log.write(json.dumps(json_trace))
 
     def traces(self, clear=False, **kwargs):
@@ -131,15 +131,14 @@ class _TestAgentAPI:
     def get_remote_config(self):
         resp = self._session.get(self._url("/v0.7/config"))
         resp_json = resp.json()
-        list = []
+        result = []
         if resp_json and resp_json["target_files"]:
             target_files = resp_json["target_files"]
             for target in target_files:
                 path = target["path"]
                 msg = json.loads(str(base64.b64decode(target["raw"]), encoding="utf-8"))
-                dict = {"path": path, "msg": msg}
-                list.append(dict)
-        return list
+                result.append({"path": path, "msg": msg})
+        return result
 
     def add_remote_config(self, path, payload):
         current_rc = self.get_remote_config()
@@ -181,18 +180,18 @@ class _TestAgentAPI:
         client_configs = []
         target_files = []
         targets_tmp = {}
-        for dict in config:
-            client_configs.append(dict["path"])
-            dict["msg_enc"] = bytes(json.dumps(dict["msg"]), encoding="utf-8")
+        for item in config:
+            client_configs.append(item["path"])
+            item["msg_enc"] = bytes(json.dumps(item["msg"]), encoding="utf-8")
             tf = {
-                "path": dict["path"],
-                "raw": str(base64.b64encode(dict["msg_enc"]), encoding="utf-8"),
+                "path": item["path"],
+                "raw": str(base64.b64encode(item["msg_enc"]), encoding="utf-8"),
             }
             target_files.append(tf)
-            targets_tmp[dict["path"]] = {
+            targets_tmp[item["path"]] = {
                 "custom": {"c": [""], "v": 0},
-                "hashes": {"sha256": hashlib.sha256(dict["msg_enc"]).hexdigest()},
-                "length": len(dict["msg_enc"]),
+                "hashes": {"sha256": hashlib.sha256(item["msg_enc"]).hexdigest()},
+                "length": len(item["msg_enc"]),
             }
 
         data = {
@@ -520,7 +519,7 @@ def docker_network(test_id: str) -> Generator[str, None, None]:
             # It's possible (why?) of having some container not stopped.
             # If it happen, failing here makes stdout tough to understance.
             # Let's ignore this, later calls will clean the mess
-            pass
+            logger.info("Failed to remove network, ignoring the error")
 
 
 @pytest.fixture

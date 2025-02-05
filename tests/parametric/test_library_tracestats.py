@@ -105,33 +105,33 @@ class Test_Library_Tracestats:
         name = "name"
         resource = "resource"
         service = "service"
-        type = "http"
+        span_type = "http"
         http_status_code = "200"
         origin = "rum"
 
         with test_library:
             # Baseline
-            with test_library.dd_start_span(name=name, resource=resource, service=service, typestr=type) as span:
+            with test_library.dd_start_span(name=name, resource=resource, service=service, typestr=span_type) as span:
                 span.set_meta(key="_dd.origin", val=origin)
                 span.set_meta(key="http.status_code", val=http_status_code)
 
             # Unique Name
             with test_library.dd_start_span(
-                name="unique-name", resource=resource, service=service, typestr=type
+                name="unique-name", resource=resource, service=service, typestr=span_type
             ) as span:
                 span.set_meta(key="_dd.origin", val=origin)
                 span.set_meta(key="http.status_code", val=http_status_code)
 
             # Unique Resource
             with test_library.dd_start_span(
-                name=name, resource="unique-resource", service=service, typestr=type
+                name=name, resource="unique-resource", service=service, typestr=span_type
             ) as span:
                 span.set_meta(key="_dd.origin", val=origin)
                 span.set_meta(key="http.status_code", val=http_status_code)
 
             # Unique Service
             with test_library.dd_start_span(
-                name=name, resource=resource, service="unique-service", typestr=type
+                name=name, resource=resource, service="unique-service", typestr=span_type
             ) as span:
                 span.set_meta(key="_dd.origin", val=origin)
                 span.set_meta(key="http.status_code", val=http_status_code)
@@ -144,12 +144,12 @@ class Test_Library_Tracestats:
                 span.set_meta(key="http.status_code", val=http_status_code)
 
             # Unique Synthetics
-            with test_library.dd_start_span(name=name, resource=resource, service=service, typestr=type) as span:
+            with test_library.dd_start_span(name=name, resource=resource, service=service, typestr=span_type) as span:
                 span.set_meta(key="_dd.origin", val="synthetics")
                 span.set_meta(key="http.status_code", val=http_status_code)
 
             # Unique HTTP Status Code
-            with test_library.dd_start_span(name=name, resource=resource, service=service, typestr=type) as span:
+            with test_library.dd_start_span(name=name, resource=resource, service=service, typestr=span_type) as span:
                 span.set_meta(key="_dd.origin", val=origin)
                 span.set_meta(key="http.status_code", val="400")
 
@@ -397,16 +397,16 @@ class Test_Library_Tracestats:
         name = "name"
         resource = "resource"
         service = "service"
-        type = "http"
+        span_type = "http"
         http_status_code = "200"
         origin = "synthetics"
 
         with test_library:
-            with test_library.dd_start_span(name=name, service=service, resource=resource, typestr=type) as span:
+            with test_library.dd_start_span(name=name, service=service, resource=resource, typestr=span_type) as span:
                 span.set_meta(key="_dd.origin", val=origin)
                 span.set_meta(key="http.status_code", val=http_status_code)
 
-            with test_library.dd_start_span(name=name, service=service, resource=resource, typestr=type) as span2:
+            with test_library.dd_start_span(name=name, service=service, resource=resource, typestr=span_type) as span2:
                 span2.set_meta(key="_dd.origin", val=origin)
                 span2.set_meta(key="http.status_code", val=http_status_code)
 
