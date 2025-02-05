@@ -557,7 +557,7 @@ class Test_Login_Events_Extended:
 
         def validate_login_success_headers(span):
             if span.get("parent_id") not in (0, None):
-                return
+                return None
 
             for header in HEADERS:
                 assert f"http.request.headers.{header.lower()}" in span["meta"], f"Can't find {header} in span's meta"
@@ -581,7 +581,7 @@ class Test_Login_Events_Extended:
 
         def validate_login_failure_headers(span):
             if span.get("parent_id") not in (0, None):
-                return
+                return None
 
             for header in HEADERS:
                 assert f"http.request.headers.{header.lower()}" in span["meta"], f"Can't find {header} in span's meta"
@@ -594,8 +594,7 @@ class Test_Login_Events_Extended:
 @features.user_monitoring
 @features.user_id_collection_modes
 class Test_V2_Login_Events:
-    """
-    Test login success/failure use cases
+    """Test login success/failure use cases
     By default, mode is identification
     """
 
@@ -1088,7 +1087,7 @@ class Test_V2_Login_Events_Anon:
 
         def validate_login_success_headers(span):
             if span.get("parent_id") not in (0, None):
-                return
+                return None
 
             for header in HEADERS:
                 assert f"http.request.headers.{header.lower()}" in span["meta"], f"Can't find {header} in span's meta"
@@ -1109,7 +1108,7 @@ class Test_V2_Login_Events_Anon:
 
         def validate_login_failure_headers(span):
             if span.get("parent_id") not in (0, None):
-                return
+                return None
 
             for header in HEADERS:
                 assert f"http.request.headers.{header.lower()}" in span["meta"], f"Can't find {header} in span's meta"
@@ -1230,8 +1229,7 @@ libs_without_user_id_on_failure = ["nodejs", "java"]
 @features.user_monitoring
 @features.user_id_collection_modes
 class Test_V3_Login_Events:
-    """
-    Test login success/failure use cases
+    """Test login success/failure use cases
     By default, mode is identification
     """
 
@@ -1517,7 +1515,7 @@ class Test_V3_Login_Events:
 
         def validate_login_success_headers(span):
             if span.get("parent_id") not in (0, None):
-                return
+                return None
 
             for header in HEADERS:
                 assert f"http.request.headers.{header.lower()}" in span["meta"], f"Can't find {header} in span's meta"
@@ -1538,7 +1536,7 @@ class Test_V3_Login_Events:
 
         def validate_login_failure_headers(span):
             if span.get("parent_id") not in (0, None):
-                return
+                return None
 
             for header in HEADERS:
                 assert f"http.request.headers.{header.lower()}" in span["meta"], f"Can't find {header} in span's meta"

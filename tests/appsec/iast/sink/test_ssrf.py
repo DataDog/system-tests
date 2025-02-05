@@ -18,7 +18,7 @@ class TestSSRF(BaseSinkTest):
     location_map = {
         "java": "com.datadoghq.system_tests.iast.utils.SsrfExamples",
         "nodejs": {"express4": "iast/index.js", "express4-typescript": "iast.ts", "express5": "iast/index.js"},
-        "python": {"flask-poc": "app.py", "django-poc": "app/urls.py"},
+        "python": {"flask-poc": "app.py", "django-poc": "app/urls.py", "fastapi": "main.py"},
     }
 
     @bug(context.library < "java@1.14.0", reason="APMRP-360")
@@ -26,7 +26,6 @@ class TestSSRF(BaseSinkTest):
         super().test_insecure()
 
     @missing_feature(library="nodejs", reason="Endpoint not implemented")
-    @missing_feature(library="python", reason="Endpoint responds 403")
     @missing_feature(library="java", reason="Endpoint not implemented")
     def test_secure(self):
         super().test_secure()

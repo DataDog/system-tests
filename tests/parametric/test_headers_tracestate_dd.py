@@ -21,8 +21,7 @@ def temporary_enable_propagationstyle_default() -> Any:
 class Test_Headers_Tracestate_DD:
     @temporary_enable_propagationstyle_default()
     def test_headers_tracestate_dd_propagate_samplingpriority(self, test_agent, test_library):
-        """
-        harness sends a request with both tracestate and traceparent
+        """Harness sends a request with both tracestate and traceparent
         expects a valid traceparent from the output header with the same trace_id
         expects the tracestate to be inherited
         """
@@ -186,8 +185,7 @@ class Test_Headers_Tracestate_DD:
 
     @temporary_enable_propagationstyle_default()
     def test_headers_tracestate_dd_propagate_origin(self, test_agent, test_library):
-        """
-        harness sends a request with both tracestate and traceparent
+        """Harness sends a request with both tracestate and traceparent
         expects a valid traceparent from the output header with the same trace_id
         expects the tracestate to be inherited
         """
@@ -319,8 +317,7 @@ class Test_Headers_Tracestate_DD:
     @bug(context.library in ["python@2.7.2", "python@2.7.3"], reason="AIT-9945")
     @bug(context.library == "ruby", reason="APMAPI-812")
     def test_headers_tracestate_dd_propagate_propagatedtags(self, test_agent, test_library):
-        """
-        harness sends a request with both tracestate and traceparent
+        """Harness sends a request with both tracestate and traceparent
         expects a valid traceparent from the output header with the same trace_id
         expects the tracestate to be inherited
         """
@@ -430,8 +427,7 @@ class Test_Headers_Tracestate_DD:
     @missing_feature(context.library == "python", reason="Issue: Does not drop dm")
     @missing_feature(context.library == "ruby", reason="Issue: does not escape '~' characters to '=' in _dd.p.usr.id")
     def test_headers_tracestate_dd_propagate_propagatedtags_change_sampling_same_dm(self, test_agent, test_library):
-        """
-        harness sends a request with both tracestate and traceparent
+        """Harness sends a request with both tracestate and traceparent
         expects a valid traceparent from the output header with the same trace_id
         expects the tracestate to be inherited
         expects the decision maker to be passed through as DEFAULT
@@ -495,8 +491,7 @@ class Test_Headers_Tracestate_DD:
     @missing_feature(context.library == "python", reason="Issue: Does not reset dm to DEFAULT")
     @missing_feature(context.library == "ruby", reason="Issue: Does not reset dm to DEFAULT")
     def test_headers_tracestate_dd_propagate_propagatedtags_change_sampling_reset_dm(self, test_agent, test_library):
-        """
-        harness sends a request with both tracestate and traceparent
+        """Harness sends a request with both tracestate and traceparent
         expects a valid traceparent from the output header with the same trace_id
         expects the tracestate to be inherited
         expects the decision maker to be reset to DEFAULT
@@ -557,8 +552,7 @@ class Test_Headers_Tracestate_DD:
     @temporary_enable_propagationstyle_default()
     @bug(library="php", reason="APMAPI-916")
     def test_headers_tracestate_dd_keeps_32_or_fewer_list_members(self, test_agent, test_library):
-        """
-        harness sends requests with both tracestate and traceparent.
+        """Harness sends requests with both tracestate and traceparent.
         all items in the input tracestate are propagated because the resulting
         number of list-members in the tracestate is less than or equal to 32
         """
@@ -629,8 +623,7 @@ class Test_Headers_Tracestate_DD:
     @bug(library="python", reason="APMAPI-914")
     @bug(library="php", reason="APMAPI-916")
     def test_headers_tracestate_dd_evicts_32_or_greater_list_members(self, test_agent, test_library):
-        """
-        harness sends a request with both tracestate and traceparent.
+        """Harness sends a request with both tracestate and traceparent.
         the last list-member in the input tracestate is removed from the output
         tracestate string because the maximum number of list-members is 32.
         """

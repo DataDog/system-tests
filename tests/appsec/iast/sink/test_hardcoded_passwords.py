@@ -72,7 +72,7 @@ class Test_HardcodedPasswords_ExtendedLocation:
         hardcoded_passwords = [v for v in hardcoded_passwords if v["evidence"]["value"] == "hashpwd"]
         assert len(hardcoded_passwords) == 1
         location = hardcoded_passwords[0]["location"]
-        
+
         assert all(field in location for field in ["path", "line"])
 
         if context.library.library not in ("python", "nodejs"):

@@ -265,7 +265,7 @@ def validate_extended_location_data(request, vulnerability_type, is_expected_loc
 
     if not is_expected_location_required:
         return
-    
+
     vuln = vulns[0]
     location = vuln["location"]
 
@@ -321,6 +321,7 @@ def get_hardcoded_vulnerabilities(vulnerability_type):
     hardcoded_vulns = [vuln for vuln in vulnerabilities if vuln.get("type") == vulnerability_type]
     assert hardcoded_vulns, "No hardcoded vulnerabilities found"
     return hardcoded_vulns
+
 
 class BaseSinkTest(BaseSinkTestWithoutTelemetry):
     def setup_telemetry_metric_instrumented_sink(self):

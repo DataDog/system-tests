@@ -84,8 +84,7 @@ class _Test_SQS:
         return queue
 
     def setup_produce(self):
-        """
-        send request A to weblog : this request will produce a sqs message
+        """Send request A to weblog : this request will produce a sqs message
         send request B to library buddy, this request will consume sqs message
         """
         try:
@@ -148,8 +147,7 @@ class _Test_SQS:
         assert producer_span["trace_id"] == consumer_span["trace_id"]
 
     def setup_consume(self):
-        """
-        send request A to library buddy : this request will produce a sqs message
+        """Send request A to library buddy : this request will produce a sqs message
         send request B to weblog, this request will consume sqs message
 
         request A: GET /library_buddy/produce_sqs_message
@@ -209,8 +207,7 @@ class _Test_SQS:
         assert producer_span["trace_id"] == consumer_span["trace_id"]
 
     def validate_sqs_spans(self, producer_interface, consumer_interface, queue):
-        """
-        Validates production/consumption of sqs message.
+        """Validates production/consumption of sqs message.
         It works the same for both test_produce and test_consume
         """
 

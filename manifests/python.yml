@@ -580,7 +580,7 @@ tests/:
       Test_StandardizationBlockMode: missing_feature
     test_metastruct.py:
       Test_SecurityEvents_Appsec_Metastruct_Disabled: irrelevant (no fallback will be implemented)
-      Test_SecurityEvents_Appsec_Metastruct_Enabled: missing_feature
+      Test_SecurityEvents_Appsec_Metastruct_Enabled: v2.21.0.dev
       Test_SecurityEvents_Iast_Metastruct_Disabled: irrelevant (no fallback will be implemented)
       Test_SecurityEvents_Iast_Metastruct_Enabled: missing_feature
     test_only_python.py:

@@ -1,6 +1,4 @@
-"""
-Test configuration consistency for features across supported APM SDKs.
-"""
+"""Test configuration consistency for features across supported APM SDKs."""
 
 from urllib.parse import urlparse
 import pytest
@@ -126,8 +124,7 @@ class Test_Config_UnifiedServiceTagging:
 @scenarios.parametric
 @features.tracing_configuration_consistency
 class Test_Config_TraceAgentURL:
-    """
-    DD_TRACE_AGENT_URL is validated using the tracer configuration.
+    """DD_TRACE_AGENT_URL is validated using the tracer configuration.
     This approach avoids the need to modify the setup file to create additional containers at the specified URL,
     which would be unnecessarily complex.
     """
@@ -288,30 +285,36 @@ class Test_Config_RateLimit:
         ), "Expected at least one trace to be rate-limited with sampling priority -1."
 
 
-def tag_scenarios():
-    env1: dict = {"DD_TAGS": "key1:value1,key2:value2"}
-    env2: dict = {"DD_TAGS": "key1:value1 key2:value2"}
-    env3: dict = {"DD_TAGS": "env:test aKey:aVal bKey:bVal cKey:"}
-    env4: dict = {"DD_TAGS": "env:test,aKey:aVal,bKey:bVal,cKey:"}
-    env5: dict = {"DD_TAGS": "env:test,aKey:aVal bKey:bVal cKey:"}
-    env6: dict = {"DD_TAGS": "env:test     bKey :bVal dKey: dVal cKey:"}
-    env7: dict = {"DD_TAGS": "env :test, aKey : aVal bKey:bVal cKey:"}
-    env8: dict = {"DD_TAGS": "env:keyWithA:Semicolon bKey:bVal cKey"}
-    env9: dict = {"DD_TAGS": "env:keyWith:  , ,   Lots:Of:Semicolons "}
-    env10: dict = {"DD_TAGS": "a:b,c,d"}
-    env11: dict = {"DD_TAGS": "a,1"}
-    env12: dict = {"DD_TAGS": "a:b:c:d"}
-    return parametrize("library_env", [env1, env2, env3, env4, env5, env6, env7, env8, env9, env10, env11, env12])
+tag_scenarios: dict = {
+    "key1:value1,key2:value2": [("key1", "value1"), ("key2", "value2")],
+    "key1:value1 key2:value2": [("key1", "value1"), ("key2", "value2")],
+    "env:test aKey:aVal bKey:bVal cKey:": [("env", "test"), ("aKey", "aVal"), ("bKey", "bVal"), ("cKey", "")],
+    "env:test,aKey:aVal,bKey:bVal,cKey:": [("env", "test"), ("aKey", "aVal"), ("bKey", "bVal"), ("cKey", "")],
+    "env:test,aKey:aVal bKey:bVal cKey:": [("env", "test"), ("aKey", "aVal bKey:bVal cKey:")],
+    "env:test     bKey :bVal dKey: dVal cKey:": [
+        ("env", "test"),
+        ("bKey", ""),
+        ("dKey", ""),
+        ("dVal", ""),
+        ("cKey", ""),
+    ],
+    "env :test, aKey : aVal bKey:bVal cKey:": [("env", "test"), ("aKey", "aVal bKey:bVal cKey:")],
+    "env:keyWithA:Semicolon bKey:bVal cKey": [("env", "keyWithA:Semicolon"), ("bKey", "bVal"), ("cKey", "")],
+    "env:keyWith:  , ,   Lots:Of:Semicolons ": [("env", "keyWith:"), ("Lots", "Of:Semicolons")],
+    "a:b,c,d": [("a", "b"), ("c", ""), ("d", "")],
+    "a,1": [("a", ""), ("1", "")],
+    "a:b:c:d": [("a", "b:c:d")],
+}
 
 
 @scenarios.parametric
 @features.tracing_configuration_consistency
 class Test_Config_Tags:
-    @tag_scenarios()
+    @parametrize("library_env", [{"DD_TAGS": key} for key in tag_scenarios.keys()])
     def test_comma_space_tag_separation(self, library_env, test_agent, test_library):
         expected_local_tags = []
         if "DD_TAGS" in library_env:
-            expected_local_tags = _parse_dd_tags(library_env["DD_TAGS"])
+            expected_local_tags = tag_scenarios[library_env["DD_TAGS"]]
         with test_library:
             with test_library.dd_start_span(name="sample_span"):
                 pass
@@ -341,20 +344,6 @@ class Test_Config_Tags:
         assert span["meta"]["env"] == "dev"
         assert "version" in span["meta"]
         assert span["meta"]["version"] == "5.2.0"
-
-
-def _parse_dd_tags(tags):
-    result = []
-    key_value_pairs = tags.split(",") if "," in tags else tags.split()  # First try to split by comma, then by space
-    for pair in key_value_pairs:
-        if ":" in pair:
-            key, value = pair.split(":", 1)
-        else:
-            key, value = pair, ""
-        key, value = key.strip(), value.strip()
-        if key:
-            result.append((key, value))
-    return result
 
 
 @scenarios.parametric

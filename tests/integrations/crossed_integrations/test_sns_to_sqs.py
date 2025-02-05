@@ -99,8 +99,7 @@ class _Test_SNS:
         return topic
 
     def setup_produce(self):
-        """
-        send request A to weblog : this request will produce a sns message
+        """Send request A to weblog : this request will produce a sns message
         send request B to library buddy, this request will consume sns message
         """
         try:
@@ -161,8 +160,7 @@ class _Test_SNS:
         assert producer_span["trace_id"] == consumer_span["trace_id"]
 
     def setup_consume(self):
-        """
-        send request A to library buddy : this request will produce a sns message
+        """Send request A to library buddy : this request will produce a sns message
         send request B to weblog, this request will consume sns message
 
         request A: GET /library_buddy/produce_sns_message
@@ -227,8 +225,7 @@ class _Test_SNS:
         assert producer_span["trace_id"] == consumer_span["trace_id"]
 
     def validate_sns_spans(self, producer_interface, consumer_interface, queue, topic):
-        """
-        Validates production/consumption of sns message.
+        """Validates production/consumption of sns message.
         It works the same for both test_produce and test_consume
         """
 

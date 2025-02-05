@@ -1,4 +1,4 @@
-from utils import interfaces, weblog, features, scenarios, missing_feature, context, bug, flaky
+from utils import interfaces, weblog, features, scenarios, missing_feature, context, bug
 from utils.tools import logger
 
 """
@@ -45,8 +45,8 @@ class Test_Client_Stats:
                 no_content_top_hits += s["TopLevelHits"]
             else:
                 assert False, "Unexpected status code " + str(s["HTTPStatusCode"])
-            assert "weblog" == s["Service"], "expect weblog as service"
-            assert "web" == s["Type"], "expect 'web' type"
+            assert s["Service"] == "weblog", "expect weblog as service"
+            assert s["Type"] == "web", "expect 'web' type"
         assert (
             stats_count <= 4
         ), "expect <= 4 stats"  # Normally this is exactly 2 but in certain high load this can flake and result in additional payloads where hits are split across two payloads
@@ -62,10 +62,11 @@ class Test_Client_Stats:
     def test_is_trace_root(self):
         """Test IsTraceRoot presence in stats.
         Note: Once all tracers have implmented it and the test xpasses for all of them, we can move these
-        assertions to `test_client_stats` method."""
+        assertions to `test_client_stats` method.
+        """
         for s in interfaces.agent.get_stats(resource="GET /stats-unique"):
-            assert 1 == s["IsTraceRoot"]
-            assert "server" == s["SpanKind"]
+            assert s["IsTraceRoot"] == 1
+            assert s["SpanKind"] == "server"
 
     @scenarios.everything_disabled
     def test_disable(self):

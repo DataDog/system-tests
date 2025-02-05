@@ -5,10 +5,11 @@ from .utils import BaseDbIntegrationsTestClass
 
 class _BaseOtelDbIntegrationTestClass(BaseDbIntegrationsTestClass):
     """Verify basic DB operations over different databases.
-    Check integration spans status: https://docs.google.com/spreadsheets/d/1qm3B0tJ-gG11j_MHoEd9iMXf4_DvWAGCLwmBhWCxbA8/edit#gid=623219645"""
+    Check integration spans status: https://docs.google.com/spreadsheets/d/1qm3B0tJ-gG11j_MHoEd9iMXf4_DvWAGCLwmBhWCxbA8/edit#gid=623219645
+    """
 
     def test_properties(self):
-        """generic check on all operations"""
+        """Generic check on all operations"""
 
         db_container = context.scenario.get_container_by_dd_integration_name(self.db_service)
 
@@ -161,7 +162,8 @@ class Test_MsSql(_BaseOtelDbIntegrationTestClass):
     )
     def test_db_mssql_instance_name(self):
         """The Microsoft SQL Server instance name connecting to. This name is used to determine the port of a named instance.
-        This value should be set only if it’s specified on the mssql connection string."""
+        This value should be set only if it’s specified on the mssql connection string.
+        """
         for db_operation, request in self.get_requests():
             span = self.get_span_from_agent(request)
             assert span["meta"][
