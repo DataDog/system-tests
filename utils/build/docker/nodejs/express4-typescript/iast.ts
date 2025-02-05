@@ -18,7 +18,7 @@ const pug = require('pug')
 const { unserialize } = require('node-serialize')
 
 const ldap = require('./integrations/ldap')
-const { initSecurityControls } = require('./security-controls')
+const initSecurityControls = require('./security-controls')
 
 async function initData () {
   const query = readFileSync(join(__dirname, '..', 'resources', 'iast-data.sql')).toString()

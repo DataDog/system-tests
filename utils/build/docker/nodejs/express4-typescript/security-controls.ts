@@ -5,7 +5,7 @@ const { Client } = require('pg')
 const { execSync } = require('child_process')
 const SecurityControlUtil = require('./utils/securityControlUtil')
 
-function execQuery (user, password) {
+function execQuery (user: string, password: string) {
   const sql = 'SELECT * FROM IAST_USER WHERE USERNAME = \'' + user +
     '\' AND PASSWORD = \'' + password + '\''
 
@@ -28,18 +28,18 @@ function initSecurityControls (app: Express) {
 
   app.post('/iast/sc/s/not-configured', (req: Request, res: Response): void => {
     const sanitized = SecurityControlUtil.sanitize(req.body.param)
-    execQuery(sanitized, 'password').then((queryResult) => {
+    execQuery(sanitized, 'password').then((queryResult: any) => {
       res.send('OK')
-    }).catch((err) => {
+    }).catch((err: Error) => {
       res.send('Error: ' + err)
     })
   })
 
   app.post('/iast/sc/s/all', (req: Request, res: Response): void => {
     const sanitized = SecurityControlUtil.sanitizeForAllVulns(req.body.param)
-    execQuery(sanitized, 'password').then((queryResult) => {
+    execQuery(sanitized, 'password').then((queryResult: any) => {
       res.send('OK')
-    }).catch((err) => {
+    }).catch((err: Error) => {
       res.send('Error: ' + err)
     })
   })
@@ -78,9 +78,9 @@ function initSecurityControls (app: Express) {
 
   app.post('/iast/sc/iv/not-configured', (req: Request, res: Response): void => {
     if (SecurityControlUtil.validate(req.body.param)) {
-      execQuery(req.body.param, 'password').then((queryResult) => {
+      execQuery(req.body.param, 'password').then((queryResult: any) => {
         res.send('OK')
-      }).catch((err) => {
+      }).catch((err: Error) => {
         res.send('Error: ' + err)
       })
     }
@@ -88,9 +88,9 @@ function initSecurityControls (app: Express) {
 
   app.post('/iast/sc/iv/all', (req: Request, res: Response): void => {
     if (SecurityControlUtil.validateForAllVulns(req.body.param)) {
-      execQuery(req.body.param, 'password').then((queryResult) => {
+      execQuery(req.body.param, 'password').then((queryResult: any) => {
         res.send('OK')
-      }).catch((err) => {
+      }).catch((err: Error) => {
         res.send('Error: ' + err)
       })
     }
@@ -99,9 +99,9 @@ function initSecurityControls (app: Express) {
   app.post('/iast/sc/iv/overloaded/secure', (req: Request, res: Response): void => {
     const { user, password } = req.body
     if (SecurityControlUtil.overloadedValidation(null, user, password)) {
-      execQuery(user, password).then((queryResult) => {
+      execQuery(user, password).then((queryResult: any) => {
         res.send('OK')
-      }).catch((err) => {
+      }).catch((err: Error) => {
         res.send('Error: ' + err)
       })
     }
@@ -110,9 +110,9 @@ function initSecurityControls (app: Express) {
   app.post('/iast/sc/iv/overloaded/insecure', (req: Request, res: Response): void => {
     const { user, password } = req.body
     if (SecurityControlUtil.overloadedValidation(user, password, null)) {
-      execQuery(user, password).then((queryResult) => {
+      execQuery(user, password).then((queryResult: any) => {
         res.send('OK')
-      }).catch((err) => {
+      }).catch((err: Error) => {
         res.send('Error: ' + err)
       })
     }
