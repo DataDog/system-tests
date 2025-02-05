@@ -1969,7 +1969,7 @@ class Test_V3_Login_Events_Blocking:
         self.r_login_blocked = weblog.post(
             "/login?auth=local&sdk_event=success&sdk_user=sdkUser", data=login_data(context, UUID_USER, PASSWORD)
         )
-
+ddd
     def test_login_event_blocking_sdk(self):
         assert self.config_state_1[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
         assert self.r_login.status_code == 200
