@@ -1,6 +1,6 @@
 'use strict'
 
-const { ApolloServer, gql } = require('apollo-server-express')
+const { ApolloServer, gql, ApolloError } = require('apollo-server-express')
 const { readFileSync } = require('fs')
 
 const users = [
@@ -32,16 +32,23 @@ const typeDefs = gql`
         id: Int
         name: String
       }
+`
 
-      type Error {
-        message: String
-        extensions: [Extension]
-      }
 
-      type Extension {
-        key: String
-        value: String
-      }`
+// Custom GraphQL error class
+class CustomGraphQLError extends ApolloError {
+  constructor(message, code, properties) {
+    super(message, properties);
+    this.extensions.code = code;
+    this.extensions.int = 1
+    this.extensions.float = 1.1
+    this.extensions.str = '1'
+    this.extensions.bool = true
+    this.extensions.other = [1, 'foo']
+    this.extensions.not_captured = 'nope'
+  }
+}
+
 
 function getUser (parent, args) {
   return users.find((item) => args.id === item.id)
@@ -61,7 +68,7 @@ function testInjection (parent, args) {
 }
 
 function withError (parent, args) {
-  throw new Error('test error')
+  throw new CustomGraphQLError('test error', "CUSTOM_USER_DEFINED_ERROR", "Some extra context about the error.")
 }
 
 const resolvers = {
@@ -73,23 +80,9 @@ const resolvers = {
   }
 }
 
-// Custom error formatting
-const formatError = (error) => {
-  return {
-    message: error.message,
-    extensions: [
-      { key: 'int', value: 1},
-      { key: 'float', value: 1.1},
-      { key: 'str', value: '1'},
-      { key: 'bool', value: true},
-      { key: 'other', value: [1, 'foo']},
-      { key: 'not_captured', value: 'nope'},
-    ]
-  }
-}
 
 module.exports = async function (app) {
-  const server = new ApolloServer({ typeDefs, resolvers, formatError })
+  const server = new ApolloServer({ typeDefs, resolvers })
   await server.start()
   server.applyMiddleware({ app })
 }
