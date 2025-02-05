@@ -402,8 +402,6 @@ class EndToEndScenario(DockerScenario):
         interfaces.library_dotnet_managed.configure(self.host_log_folder, self.replay)
 
         for container in self.buddies:
-            # a little bit of python wizzardry to solve circular import
-            container.interface = getattr(interfaces, container.name)
             container.interface.configure(self.host_log_folder, self.replay)
 
         library = self.weblog_container.image.labels["system-tests-library"]

@@ -20,6 +20,7 @@ from utils.proxy.ports import ProxyPorts
 from utils.tools import logger
 from utils import interfaces
 from utils.k8s_lib_injection.k8s_weblog import K8sWeblog
+from utils.interfaces._library.core import LibraryInterfaceValidator
 
 # fake key of length 32
 _FAKE_DD_API_KEY = "0123456789abcdef0123456789abcdef"
@@ -100,13 +101,13 @@ class TestedContainer:
         # None: container did not tried to start yet, or hasn't be started for another reason
         # False: container is not healthy
         # True: container is healthy
-        self.healthy = None
+        self.healthy: bool | None = None
 
         self.environment = environment or {}
         self.kwargs = kwargs
         self.depends_on: list[TestedContainer] = []
         self._starting_lock = RLock()
-        self._starting_thread = None
+        self._starting_thread: Thread | None = None
         self.stdout_interface = stdout_interface
 
     def get_image_list(self, library: str, weblog: str) -> list[str]:  # noqa: ARG002
@@ -444,7 +445,7 @@ class ImageInfo:
         # local_image_only: boolean
         # True if the image is only available locally and can't be loaded from any hub
 
-        self.env = None
+        self.env: dict[str, str] | None = None
         self.labels: dict[str, str] = {}
         self.name = image_name
         self.local_image_only = local_image_only
@@ -557,7 +558,7 @@ class AgentContainer(TestedContainer):
             local_image_only=True,
         )
 
-        self.agent_version = ""
+        self.agent_version: str | None = ""
 
     def configure(self, replay):
         super().configure(replay)
@@ -611,12 +612,17 @@ class BuddyContainer(TestedContainer):
             },
         )
 
-        self.interface = None
         _set_aws_auth_environment(self)
+
+    @property
+    def interface(self) -> LibraryInterfaceValidator:
+        result = getattr(interfaces, self.name)
+        assert result is not None, "Interface is not set"
+        return result
 
 
 class WeblogContainer(TestedContainer):
-    appsec_rules_file: str
+    appsec_rules_file: str | None
     _dd_rc_tuf_root: dict = {
         "signed": {
             "_type": "root",
@@ -728,7 +734,7 @@ class WeblogContainer(TestedContainer):
             base_environment["DD_TRACE_AGENT_PORT"] = self.trace_agent_port
         else:
             base_environment["DD_AGENT_HOST"] = "agent"
-            base_environment["DD_TRACE_AGENT_PORT"] = AgentContainer.apm_receiver_port
+            base_environment["DD_TRACE_AGENT_PORT"] = str(AgentContainer.apm_receiver_port)
 
         # overwrite values with those set in the scenario
         environment = base_environment | (environment or {})
@@ -759,7 +765,7 @@ class WeblogContainer(TestedContainer):
         self.additional_trace_header_tags = additional_trace_header_tags
 
         self.weblog_variant = ""
-        self._library: LibraryVersion = None
+        self._library: LibraryVersion | None = None
 
     @property
     def trace_agent_port(self):
@@ -779,7 +785,7 @@ class WeblogContainer(TestedContainer):
 
     def get_image_list(self, library: str | None, weblog: str | None) -> list[str]:
         """Parse the Dockerfile and extract all images reference in a FROM section"""
-        result = []
+        result: list[str] = []
 
         if not library or not weblog:
             return result
@@ -822,7 +828,12 @@ class WeblogContainer(TestedContainer):
         if len(self.additional_trace_header_tags) != 0:
             self.environment["DD_TRACE_HEADER_TAGS"] += f',{",".join(self.additional_trace_header_tags)}'
 
-        self.appsec_rules_file = (self.image.env | self.environment).get("DD_APPSEC_RULES", None)
+        if "DD_APPSEC_RULES" in self.environment:
+            self.appsec_rules_file = self.environment["DD_APPSEC_RULES"]
+        elif self.image.env is not None and "DD_APPSEC_RULES" in self.environment:
+            self.appsec_rules_file = self.image.env["DD_APPSEC_RULES"]
+        else:
+            self.appsec_rules_file = None
 
         # Workaround: Once the dd-trace-go fix is merged that avoids a go panic for
         # DD_TRACE_PROPAGATION_EXTRACT_FIRST=true when context propagation fails,
@@ -878,10 +889,12 @@ class WeblogContainer(TestedContainer):
 
     @property
     def library(self) -> LibraryVersion:
+        assert self._library is not None, "Library version is not set"
         return self._library
 
     @property
     def uds_socket(self):
+        assert self.image.env is not None, "No env set"
         return self.image.env.get("DD_APM_RECEIVER_SOCKET", None)
 
     @property
@@ -1214,7 +1227,7 @@ class DockerSSIContainer(TestedContainer):
 
     def get_env(self, env_var):
         """Get env variables from the container"""
-        env = self.image.env | self.environment
+        env = (self.image.env or {}) | self.environment
         return env.get(env_var)
 
 
