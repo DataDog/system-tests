@@ -337,7 +337,7 @@ class Test_gRPC:
         """AppSec detects some basic attack"""
         for r in self.requests:
             try:
-                interfaces.library.asset_waf_attack(r, address="grpc.server.request.message")
+                interfaces.library.assert_waf_attack(r, address="grpc.server.request.message")
             except Exception as e:
                 raise ValueError(f"Basic attack #{self.requests.index(r)} not detected") from e
 
