@@ -27,6 +27,7 @@ from opentelemetry.baggage import get_baggage
 
 import ddtrace
 from ddtrace.trace import Span
+from ddtrace._trace.sampling_rule import SamplingRule
 from ddtrace import config
 from ddtrace.contrib.trace_utils import set_http_meta
 from ddtrace.trace import Context
@@ -110,7 +111,7 @@ def trace_config() -> TraceConfigReturn:
         config={
             "dd_service": config.service,
             "dd_log_level": None,
-            "dd_trace_sample_rate": str(config._trace_sample_rate),
+            "dd_trace_sample_rate": str(_global_sampling_rate()),
             "dd_trace_enabled": str(config._tracing_enabled).lower(),
             "dd_runtime_metrics_enabled": str(config._runtime_metrics_enabled).lower(),
             "dd_tags": ",".join(f"{k}:{v}" for k, v in config.tags.items()),
@@ -676,6 +677,19 @@ def otel_set_attributes(args: OtelSetAttributesArgs):
 
 def get_ddtrace_version() -> Tuple[int, int, int]:
     return parse_version(getattr(ddtrace, "__version__", ""))
+
+
+def _global_sampling_rate():
+    for rule in ddtrace.tracer._sampler.rules:
+        if (
+            rule.service == SamplingRule.NO_RULE
+            and rule.name == SamplingRule.NO_RULE
+            and rule.resource == SamplingRule.NO_RULE
+            and rule.tags == SamplingRule.NO_RULE
+            and rule.provenance == "default"
+        ):
+            return rule.sample_rate
+    return 1.0
 
 
 # TODO: Remove all unused otel types and endpoints from parametric tests

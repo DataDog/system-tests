@@ -32,7 +32,7 @@ class Test_AppSecRequestBlocking:
         self.blocked_requests2 = weblog.get(params={"random-key": "/netsparker-"})
 
     def test_request_blocking(self):
-        """test requests are blocked by rules in blocking mode"""
+        """Test requests are blocked by rules in blocking mode"""
 
         assert self.config_state[remote_config.RC_STATE] == remote_config.ApplyState.ACKNOWLEDGED
 

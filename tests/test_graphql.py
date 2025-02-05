@@ -54,9 +54,9 @@ class Test_GraphQLQueryErrorReporting:
 
         attributes = event["attributes"]
 
-        assert type("message") == str
-        assert type("type") == str
-        assert type("stacktrace") == str
+        assert type(attributes["message"]) == str
+        assert type(attributes["type"]) == str
+        assert type(attributes["stacktrace"]) == str
 
         for path in attributes["path"]:
             assert type(path) == str

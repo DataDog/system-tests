@@ -12,7 +12,7 @@ _not_secrets = {
 _name_filter = re.compile(r"key|token|secret|pass|docker_login", re.IGNORECASE)
 
 
-def _get_secrets() -> list[str]:
+def _get_secrets() -> set[str]:
     secrets: list = [
         value.strip()
         for name, value in os.environ.items()
@@ -21,25 +21,25 @@ def _get_secrets() -> list[str]:
     return set(secrets)
 
 
-def _instrument_write_methods_str(f, secrets: list[str]) -> None:
+def _instrument_write_methods_str(f, secrets: set[str]) -> None:
     original_write = f.write
 
     def write(data):
         for secret in secrets:
-            data = data.replace(secret, "<redacted>")
+            data = data.replace(secret, "--redacted--")
 
         original_write(data)
 
     f.write = write
 
 
-def _instrument_write_methods_bytes(f, secrets: list[str]) -> None:
+def _instrument_write_methods_bytes(f, secrets: set[str]) -> None:
     original_write = f.write
 
     def write(data):
         if hasattr(data, "replace"):
             for secret in secrets:
-                data = data.replace(secret.encode(), b"<redacted>")
+                data = data.replace(secret.encode(), b"--redacted--")
 
         original_write(data)
 
@@ -89,10 +89,10 @@ def _instrumented_file_io(file, mode="r", *args, **kwargs):  # noqa: ANN002
 
 
 _original_open = builtins.open
-builtins.open = _instrumented_open
+builtins.open = _instrumented_open  # type: ignore[attr-defined]
 
 _original_pathlib_open = Path.open
-Path.open = _instrumented_path_open
+Path.open = _instrumented_path_open  # type: ignore[assignment]
 
 _original_file_io = io.FileIO
-io.FileIO = _instrumented_file_io
+io.FileIO = _instrumented_file_io  # type: ignore[misc, assignment]

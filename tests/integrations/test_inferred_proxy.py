@@ -23,7 +23,7 @@ class Test_AWS_API_Gateway_Inferred_Span_Creation:
             "x-dd-proxy": "aws-apigateway",
         }
 
-        self.r = weblog.get(f"/inferred-proxy/span-creation?status_code=200", headers=headers, timeout=60)
+        self.r = weblog.get("/inferred-proxy/span-creation?status_code=200", headers=headers, timeout=60)
 
     def test_api_gateway_inferred_span_creation(self):
         assert self.r.text == "ok"
@@ -79,9 +79,9 @@ def assert_api_gateway_span(testCase, span):
     ), "Inferred AWS API Gateway span meta expected HTTP URL to be 'system-tests-api-gateway.com/api/data'"
     assert "stage" in span["meta"], "Inferred AWS API Gateway span meta should contain 'stage'"
     assert span["meta"]["stage"] == "staging", "Inferred AWS API Gateway span meta expected stage to be 'staging'"
-    assert "start" in span, f"Inferred AWS API Gateway span should have 'startTime'"
+    assert "start" in span, "Inferred AWS API Gateway span should have 'startTime'"
 
     if not interfaces.library.replay:
         assert (
             span["start"] == testCase.start_time_ns
-        ), f"Inferred AWS API Gateway span startTime should equal expected '{str(testCase.start_time_ns)}''"
+        ), f"Inferred AWS API Gateway span startTime should equal expected '{testCase.start_time_ns!s}''"

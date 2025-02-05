@@ -78,7 +78,7 @@ class Test_UrlField:
         context.weblog_variant in ("vertx3", "vertx4", "jersey-grizzly2", "akka-http"), reason="Need weblog endpoint"
     )
     def test_main(self):
-        """check that not data is leaked"""
+        """Check that not data is leaked"""
         assert self.r.status_code == 200
 
         def validate_report(trace):
