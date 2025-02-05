@@ -48,7 +48,6 @@ exclude = [
     "tests/fuzzer/.*",
     "tests/test_the_test/.*",
     "tests/test_telemetry.py",
-    "tests/test_profiling.py",
     "tests/appsec/.*",
     "tests/debugger/.*",
     "tests/auto_inject/.*",
@@ -57,7 +56,6 @@ exclude = [
     "tests/k8s_lib_injection/test_k8s_init_image_validator.py",
     "utils/_context/_scenarios/auto_injection.py",
     "utils/_context/_scenarios/k8s_lib_injection.py",
-    "utils/_context/containers.py",
     "utils/_context/core.py",
     "utils/_context/virtual_machines.py",
     "utils/scripts/decode-rc.py",
@@ -66,7 +64,6 @@ exclude = [
     "utils/onboarding/.*",
     "utils/otel_validators/validator_trace.py",
     "utils/proxy/_deserializer.py",
-    "utils/scripts/compute_impacted_scenario.py",
     "utils/scripts/merge_gitlab_aws_pipelines.py",
     "utils/virtual_machine/.*",
 ]
