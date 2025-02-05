@@ -10,7 +10,6 @@ import logging
 from logging.handlers import RotatingFileHandler
 import os
 import signal
-import time
 
 import aiohttp
 from yarl import URL
@@ -95,7 +94,7 @@ class Fuzzer:
 
         self.dump_on_status = dump_on_status
         self.enable_response_dump = False
-        self.systematic_exporter = _RequestDumper() if systematic_export else lambda x: 0
+        self.systematic_exporter = _RequestDumper() if systematic_export else lambda _: 0
 
         self.total_metric = AccumulatedMetric("#", format_string="#{value}", display_length=7, has_raw_value=False)
         self.memory_metric = NumericalMetric("Mem")
@@ -154,7 +153,7 @@ class Fuzzer:
                         self.logger.info(f"First response received after {i} attempts")
                         return
 
-                time.sleep(1)
+                await asyncio.sleep(1)
 
             raise Exception("Server does not respond")
         finally:
@@ -164,10 +163,10 @@ class Fuzzer:
         self.logger.info("")
         self.logger.info("=" * 80)
 
-        asyncio.ensure_future(self._run(), loop=self.loop)
+        task = asyncio.ensure_future(self._run(), loop=self.loop)
         self.loop.add_signal_handler(signal.SIGINT, self.perform_armageddon)
         self.logger.info("Starting event loop")
-        self.loop.run_forever()
+        self.loop.run_until_complete(task)
 
     def perform_armageddon(self):
         self.finished = True
@@ -258,7 +257,7 @@ class Fuzzer:
                 task = self.loop.create_task(self._process(session, request))
                 tasks.add(task)
                 task.add_done_callback(tasks.remove)
-                task.add_done_callback(lambda t: self.sem.release())
+                task.add_done_callback(lambda _: self.sem.release())
 
                 request_id += 1
 

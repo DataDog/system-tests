@@ -209,7 +209,7 @@ class Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts:
         links = _retrieve_span_links(span)
         assert len(links) == 1
         link1 = links[0]
-        assert link1.get("tracestate") == None
+        assert link1.get("tracestate") is None
 
 
 def _retrieve_span_links(span):
