@@ -471,7 +471,7 @@ class Test_DsmContext_Injection_Base64:
 @features.datastreams_monitoring_support_for_base64_encoding
 @scenarios.integrations
 class Test_DsmContext_Extraction_Base64:
-    """Verify DSM context is extracted using "dd-pathway-ctx-base64" """
+    """Verify DSM context is extracted using dd-pathway-ctx-base64"""
 
     def setup_dsmcontext_extraction_base64(self):
         topic = "dsm-injection-topic"

@@ -107,10 +107,10 @@ class Test_Monitoring:
                     raise Exception("if there are rule errors, there should be rule error details too")
                 try:
                     json.loads(meta[expected_rules_errors_meta_tag])
-                except ValueError:
+                except ValueError as e:
                     raise Exception(
                         f"rule error details should be valid JSON but was `{meta[expected_rules_errors_meta_tag]}`"
-                    )
+                    ) from e
 
             return True
 

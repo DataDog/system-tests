@@ -62,8 +62,8 @@ class Test_TraceHeaders:
                 if header.lower() == "x-datadog-trace-count":
                     try:
                         trace_count = int(value)
-                    except ValueError:
-                        raise ValueError(f"'x-datadog-trace-count' request header is not an integer: {value}")
+                    except ValueError as e:
+                        raise ValueError(f"'x-datadog-trace-count' request header is not an integer: {value}") from e
 
                     if trace_count != len(data["request"]["content"]):
                         raise ValueError("x-datadog-trace-count request header didn't match the number of traces")

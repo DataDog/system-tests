@@ -141,7 +141,7 @@ class Test_Json_Report:
 class Test_Mock:
     def test_mock(self):
         """Mock test doc"""
-        assert 1 == 1
+        assert 1 == 1  # noqa: PLR0133
 
     @missing_feature(True, reason="not yet done")
     @features.app_client_configuration_change_event
