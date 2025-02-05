@@ -2,8 +2,6 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-import time
-
 from utils import weblog, context, interfaces, rfc, bug, scenarios, missing_feature, features
 
 from .utils import BaseFullDenyListTest
@@ -30,8 +28,6 @@ class Test_AppSecIPBlockingFullDenylist(BaseFullDenyListTest):
     @bug(context.library >= "java@1.22.0" and context.library < "java@1.35.0", reason="APMRP-360")
     def test_blocked_ips(self):
         """Test blocked ips are enforced"""
-
-        time.sleep(10)
 
         self.assert_protocol_is_respected()
 
