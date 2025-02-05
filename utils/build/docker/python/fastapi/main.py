@@ -14,6 +14,7 @@ from fastapi import Form
 from fastapi import Header
 from fastapi import Request
 from fastapi.responses import JSONResponse
+from fastapi.responses import HTMLResponse
 from fastapi.responses import PlainTextResponse
 from iast import weak_cipher
 from iast import weak_cipher_secure_algorithm
@@ -21,6 +22,7 @@ from iast import weak_hash
 from iast import weak_hash_duplicates
 from iast import weak_hash_multiple
 from iast import weak_hash_secure_algorithm
+from jinja2 import Template
 import psycopg2
 from pydantic import BaseModel
 import requests
@@ -871,6 +873,20 @@ async def view_iast_code_injection_secure(code: typing.Annotated[str, Form()]):
 
     _ = safe_eval(code)
     return "OK"
+
+
+@app.post("/iast/xss/test_insecure", response_class=PlainTextResponse)
+async def view_iast_xss_insecure(param: typing.Annotated[str, Form()]):
+    template = Template("<p>{{ param|safe }}</p>")
+    html = template.render(param=param)
+    return HTMLResponse(html)
+
+
+@app.post("/iast/xss/test_secure", response_class=PlainTextResponse)
+async def view_iast_xss_secure(param: typing.Annotated[str, Form()]):
+    template = Template("<p>{{ param }}</p>")
+    html = template.render(param=param)
+    return HTMLResponse(html)
 
 
 @app.get("/createextraservice", response_class=PlainTextResponse)
