@@ -1,5 +1,6 @@
 import inspect
 import json
+from typing import Any
 
 import pytest
 from requests.structures import CaseInsensitiveDict
@@ -29,7 +30,7 @@ class _PropertiesDecoder(json.JSONDecoder):
         json.JSONDecoder.__init__(self, object_hook=_PropertiesDecoder.from_dict)
 
     @staticmethod
-    def from_dict(d):
+    def from_dict(d) -> Any:  # noqa: ANN401
         if klass := d.get("__class__"):
             if klass == "set":
                 return set(d["values"])
@@ -51,11 +52,11 @@ class SetupProperties:
     def __init__(self):
         self._store = {}
 
-    def store_properties(self, item: pytest.Item):
+    def store_properties(self, item: pytest.Item) -> None:
         if properties := self._get_properties(item.instance):
             self._store[item.nodeid] = properties
 
-    def restore_properties(self, item: pytest.Item):
+    def restore_properties(self, item: pytest.Item) -> None:
         if properties := self._store.get(item.nodeid):
             for name, value in properties.items():
                 logger.debug(f"Restoring {name} for {item.nodeid}")
@@ -80,11 +81,11 @@ class SetupProperties:
             and not isinstance(value, (_Weblog, InterfaceValidator))  # values that do not carry any tested data
         }
 
-    def dump(self, host_log_folder: str):
+    def dump(self, host_log_folder: str) -> None:
         with open(f"{host_log_folder}/setup_properties.json", "w", encoding="utf-8") as f:
             json.dump(self._store, f, indent=2, cls=_PropertiesEncoder)
 
-    def load(self, host_log_folder: str):
+    def load(self, host_log_folder: str) -> None:
         filename = f"{host_log_folder}/setup_properties.json"
         try:
             with open(filename, encoding="utf-8") as f:

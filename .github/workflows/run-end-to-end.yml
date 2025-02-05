@@ -47,6 +47,11 @@ on:
         default: false
         required: false
         type: boolean
+      skip_empty_scenarios:
+        description: "Skip scenarios that contains only xfail or irrelevant tests"
+        default: false
+        required: false
+        type: boolean
 
 env:
   REGISTRY: ghcr.io
@@ -61,6 +66,7 @@ jobs:
     env:
       SYSTEM_TESTS_REPORT_ENVIRONMENT: ${{ inputs.ci_environment }}
       SYSTEM_TESTS_REPORT_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+      SYSTEM_TESTS_SKIP_EMPTY_SCENARIO: ${{ inputs.skip_empty_scenarios }}
     steps:
     - name: Checkout
       uses: actions/checkout@v4
@@ -104,12 +110,21 @@ jobs:
     - name: Run APPSEC_STANDALONE scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_STANDALONE"')
       run: ./run.sh APPSEC_STANDALONE
+    - name: Run APPSEC_STANDALONE_V2 scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_STANDALONE_V2"')
+      run: ./run.sh APPSEC_STANDALONE_V2
     - name: Run IAST_STANDALONE scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"IAST_STANDALONE"')
       run: ./run.sh IAST_STANDALONE
+    - name: Run IAST_STANDALONE_V2 scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"IAST_STANDALONE_V2"')
+      run: ./run.sh IAST_STANDALONE_V2
     - name: Run SCA_STANDALONE scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"SCA_STANDALONE"')
       run: ./run.sh SCA_STANDALONE
+    - name: Run SCA_STANDALONE_V2 scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"SCA_STANDALONE_V2"')
+      run: ./run.sh SCA_STANDALONE_V2
     - name: Run IAST_DEDUPLICATION scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"IAST_DEDUPLICATION"')
       run: ./run.sh IAST_DEDUPLICATION
@@ -120,7 +135,8 @@ jobs:
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"IPV6"') && inputs.library != 'ruby'
       run: ./run.sh IPV6
     - name: Run CROSSED_TRACING_LIBRARIES scenario
-      if: always() && steps.build.outcome == 'success' && matrix.weblog != 'python3.12' && contains(inputs.scenarios, '"CROSSED_TRACING_LIBRARIES"')
+      if: always() && steps.build.outcome == 'success' && matrix.weblog != 'python3.12' && matrix.weblog != 'django-py3.13' && contains(inputs.scenarios, '"CROSSED_TRACING_LIBRARIES"')
+      # python 3.13 issue : APMAPI-1096
       run: ./run.sh CROSSED_TRACING_LIBRARIES
       env:
         SYSTEM_TESTS_AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -159,6 +175,9 @@ jobs:
     - name: Run LIBRARY_CONF_CUSTOM_HEADER_TAGS_INVALID scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"LIBRARY_CONF_CUSTOM_HEADER_TAGS_INVALID"')
       run: ./run.sh LIBRARY_CONF_CUSTOM_HEADER_TAGS_INVALID
+    - name: Run RUNTIME_METRICS_ENABLED scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"RUNTIME_METRICS_ENABLED"')
+      run: ./run.sh RUNTIME_METRICS_ENABLED
     - name: Run TRACING_CONFIG_NONDEFAULT scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"TRACING_CONFIG_NONDEFAULT"')
       run: ./run.sh TRACING_CONFIG_NONDEFAULT
@@ -184,7 +203,7 @@ jobs:
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD_NOCACHE"')
       run: ./run.sh REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD_NOCACHE
     - name: Run AGENT_NOT_SUPPORTING_SPAN_EVENTS scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, 'AGENT_NOT_SUPPORTING_SPAN_EVENTS') && (inputs.library != 'ruby' || matrix.weblog == 'rack')
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, 'AGENT_NOT_SUPPORTING_SPAN_EVENTS')
       run: ./run.sh AGENT_NOT_SUPPORTING_SPAN_EVENTS
     - name: Run APPSEC_MISSING_RULES scenario
       # C++ 1.2.0 freeze when the rules file is missing
@@ -286,6 +305,9 @@ jobs:
     - name: Run DEBUGGER_EXCEPTION_REPLAY scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"DEBUGGER_EXCEPTION_REPLAY"')
       run: ./run.sh DEBUGGER_EXCEPTION_REPLAY
+    - name: Run DEBUGGER_SYMDB scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"DEBUGGER_SYMDB"')
+      run: ./run.sh DEBUGGER_SYMDB
     - name: Run all scenarios in replay mode
       run: utils/scripts/replay_scenarios.sh
       env:

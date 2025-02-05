@@ -1,6 +1,7 @@
 import os
 import json
 import hashlib
+from pathlib import Path
 
 from utils.tools import logger
 from utils import context
@@ -145,7 +146,7 @@ class _VirtualMachine:
     def _load_runtime_from_logs(self):
         """Load the runtime version from the test_components.log"""
         vms_tested_components_file = f"{context.scenario.host_log_folder}/tested_components.log"
-        if os.path.isfile(vms_tested_components_file):
+        if Path(vms_tested_components_file).is_file():
             # Get the machine ip
             machine_ip = self.get_ip()
             # Read the file line by line looking for line with the ip
@@ -167,7 +168,7 @@ class _VirtualMachine:
         """Load the ip address from the logs"""
         vms_desc_file = f"{context.scenario.host_log_folder}/vms_desc.log"
         logger.info(f"Loading ip for {self.name} from {vms_desc_file}")
-        if os.path.isfile(vms_desc_file):
+        if Path(vms_desc_file).is_file():
             with open(vms_desc_file) as f:
                 for line in f:
                     if self.name in line:
@@ -177,8 +178,8 @@ class _VirtualMachine:
 
     def get_log_folder(self):
         vm_folder = f"{context.scenario.host_log_folder}/{self.name}"
-        if not os.path.exists(vm_folder):
-            os.mkdir(vm_folder)
+        if not Path(vm_folder).exists():
+            Path.mkdir(vm_folder)
         return vm_folder
 
     def get_default_log_file(self):

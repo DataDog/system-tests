@@ -1,4 +1,4 @@
-import pytest, os
+import pytest
 from utils import missing_feature, context, scenarios, features, irrelevant
 
 
@@ -11,11 +11,12 @@ class Test_Otel_Env_Vars:
             {
                 "DD_SERVICE": "service",
                 "OTEL_SERVICE_NAME": "otel_service",
-                "DD_TRACE_LOG_LEVEL": "error",  # Node uses DD_TRACE_LOG_LEVEL
+                "DD_TRACE_LOG_LEVEL": "error",  # Node.js uses DD_TRACE_LOG_LEVEL
                 "DD_LOG_LEVEL": "error",
                 "DD_TRACE_DEBUG": "false",
                 "OTEL_LOG_LEVEL": "debug",
                 "DD_TRACE_SAMPLE_RATE": "0.5",
+                "DD_TRACE_SAMPLING_RULES": '[{"sample_rate":0.5}]',
                 "OTEL_TRACES_SAMPLER": "traceidratio",
                 "OTEL_TRACES_SAMPLER_ARG": "0.1",
                 "DD_TRACE_ENABLED": "true",

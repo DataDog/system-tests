@@ -9,8 +9,10 @@ from utils import scenarios
 from utils import weblog
 
 
-@scenarios.appsec_request_blocking
 @features.appsec_request_blocking
+@features.envoy_external_processing
+@scenarios.appsec_request_blocking
+@scenarios.external_processing
 class Test_AppSecRequestBlocking:
     """A library should block requests when a rule is set to blocking mode."""
 
@@ -30,7 +32,7 @@ class Test_AppSecRequestBlocking:
         self.blocked_requests2 = weblog.get(params={"random-key": "/netsparker-"})
 
     def test_request_blocking(self):
-        """test requests are blocked by rules in blocking mode"""
+        """Test requests are blocked by rules in blocking mode"""
 
         assert self.config_state[remote_config.RC_STATE] == remote_config.ApplyState.ACKNOWLEDGED
 

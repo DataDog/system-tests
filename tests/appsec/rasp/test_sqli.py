@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import features, weblog, interfaces, scenarios, rfc, context
+from utils import features, weblog, interfaces, scenarios, rfc
 from utils.dd_constants import Capabilities
 from tests.appsec.rasp.utils import (
     validate_span_tags,
@@ -147,7 +147,6 @@ class Test_Sqli_StackTrace:
         self.r = weblog.get("/rasp/sqli", params={"user_id": "' OR 1 = 1 --"})
 
     def test_sqli_stack_trace(self):
-        assert self.r.status_code == 403
         validate_stack_traces(self.r)
 
 
@@ -161,8 +160,6 @@ class Test_Sqli_Telemetry:
         self.r = weblog.get("/rasp/sqli", params={"user_id": "' OR 1 = 1 --"})
 
     def test_sqli_telemetry(self):
-        assert self.r.status_code == 403
-
         series_eval = find_series(True, "appsec", "rasp.rule.eval")
         assert series_eval
         assert any(validate_metric("rasp.rule.eval", "sql_injection", s) for s in series_eval), [

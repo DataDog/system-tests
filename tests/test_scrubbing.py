@@ -29,6 +29,9 @@ def validate_no_leak(needle, whitelist_pattern=None):
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2490990623/QueryString+-+Sensitive+Data+Obfuscation")
 @features.library_scrubbing
+@features.envoy_external_processing
+@scenarios.external_processing
+@scenarios.default
 class Test_UrlQuery:
     """PII values in query parameter are all removed"""
 
@@ -75,7 +78,7 @@ class Test_UrlField:
         context.weblog_variant in ("vertx3", "vertx4", "jersey-grizzly2", "akka-http"), reason="Need weblog endpoint"
     )
     def test_main(self):
-        """check that not data is leaked"""
+        """Check that not data is leaked"""
         assert self.r.status_code == 200
 
         def validate_report(trace):
@@ -98,7 +101,10 @@ class Test_UrlField:
         interfaces.library.validate(validate_no_leak("leak-name-url", whitelist_pattern), success_by_default=True)
 
 
+@features.envoy_external_processing
 @features.library_scrubbing
+@scenarios.default
+@scenarios.external_processing
 class Test_EnvVar:
     """Environnement variables are not leaked"""
 

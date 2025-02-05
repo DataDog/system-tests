@@ -6,7 +6,7 @@ nodes:
     extraPortMappings:
       # agent port
       - containerPort: 8126
-        hostPort: $$AGENT_PORT$$
+        hostPort: 8127
         # optional: set the bind address on the host
         # 0.0.0.0 is the current default
         listenAddress: "127.0.0.1"
@@ -15,7 +15,7 @@ nodes:
         protocol: TCP
       # app port
       - containerPort: 18080
-        hostPort: $$WEBLOG_PORT$$
+        hostPort: 18081
         # optional: set the bind address on the host
         # 0.0.0.0 is the current default
         listenAddress: "127.0.0.1"

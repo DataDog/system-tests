@@ -251,7 +251,7 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
             raise ValueError("Some path has not been transmitted")
 
     def assert_trace_id_uniqueness(self):
-        trace_ids = {}
+        trace_ids: dict[int, str] = {}
 
         for data, trace in self.get_traces():
             spans = [span for span in trace if span.get("parent_id") in ("0", 0, None)]
@@ -452,7 +452,7 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
 
             trigger = triggers[0]
             obtained_rule_id = trigger["rule"]["id"]
-            assert obtained_rule_id == rule, f"incorrect rule id, expected {rule}"
+            assert obtained_rule_id == rule, f"incorrect rule id, expected {rule}, got {obtained_rule_id}"
 
             if parameters is not None:
                 rule_matches = trigger["rule_matches"]

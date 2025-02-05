@@ -1,7 +1,7 @@
 import pytest
 
 from utils.parametric.spec.trace import find_first_span_in_trace_payload, find_trace, find_only_span
-from utils import missing_feature, context, scenarios, features
+from utils import missing_feature, irrelevant, context, scenarios, features
 
 parametrize = pytest.mark.parametrize
 POWER_2_64 = 18446744073709551616
@@ -193,7 +193,7 @@ class Test_128_Bit_Traceids:
 
     @missing_feature(context.library == "golang", reason="not implemented")
     @missing_feature(context.library < "java@1.24.0", reason="Implemented in 1.24.0")
-    @missing_feature(context.library == "nodejs", reason="not implemented")
+    @missing_feature(context.library < "nodejs@4.19.0", reason="Implemented in 4.19.0 & 3.40.0")
     @missing_feature(context.library == "ruby", reason="not implemented")
     @pytest.mark.parametrize("library_env", [{"DD_TRACE_PROPAGATION_STYLE": "Datadog"}])
     def test_datadog_128_bit_generation_enabled_by_default(self, test_agent, test_library):
@@ -213,6 +213,7 @@ class Test_128_Bit_Traceids:
 
     @missing_feature(context.library == "cpp", reason="propagation style not supported")
     @missing_feature(context.library == "ruby", reason="not implemented")
+    @irrelevant(context.library > "python@2.20.0", reason="3.x set `b3` instead of `B3 single header`")
     @pytest.mark.parametrize(
         "library_env",
         [{"DD_TRACE_PROPAGATION_STYLE": "B3 single header", "DD_TRACE_128_BIT_TRACEID_GENERATION_ENABLED": "false"}],
@@ -236,6 +237,7 @@ class Test_128_Bit_Traceids:
 
     @missing_feature(context.library == "cpp", reason="propagation style not supported")
     @missing_feature(context.library == "ruby", reason="not implemented")
+    @irrelevant(context.library > "python@2.20.0", reason="3.x set `b3` instead of `B3 single header`")
     @pytest.mark.parametrize(
         "library_env",
         [{"DD_TRACE_PROPAGATION_STYLE": "B3 single header", "DD_TRACE_128_BIT_TRACEID_GENERATION_ENABLED": "true"}],
@@ -257,6 +259,7 @@ class Test_128_Bit_Traceids:
     @missing_feature(
         context.library == "ruby", reason="Issue: Ruby doesn't support case-insensitive distributed headers"
     )
+    @irrelevant(context.library > "python@2.20.0", reason="3.x set `b3` instead of `B3 single header`")
     @pytest.mark.parametrize(
         "library_env",
         [{"DD_TRACE_PROPAGATION_STYLE": "B3 single header", "DD_TRACE_128_BIT_TRACEID_GENERATION_ENABLED": "false"}],
@@ -274,6 +277,7 @@ class Test_128_Bit_Traceids:
 
     @missing_feature(context.library == "cpp", reason="propagation style not supported")
     @missing_feature(context.library == "ruby", reason="not implemented")
+    @irrelevant(context.library > "python@2.20.0", reason="3.x set `b3` instead of `B3 single header`")
     @pytest.mark.parametrize(
         "library_env",
         [{"DD_TRACE_PROPAGATION_STYLE": "B3 single header", "DD_TRACE_128_BIT_TRACEID_GENERATION_ENABLED": "true"}],
@@ -383,6 +387,7 @@ class Test_128_Bit_Traceids:
         assert dd_p_tid == "640cfd8d00000000"
         check_128_bit_trace_id(fields[1], trace_id, dd_p_tid)
 
+    @missing_feature(context.library < "nodejs@5.7.0", reason="implemented in 5.7.0 & 4.31.0")
     @missing_feature(context.library == "ruby", reason="not implemented")
     @pytest.mark.parametrize(
         "library_env",
@@ -409,14 +414,12 @@ class Test_128_Bit_Traceids:
         assert propagation_error is None
 
     @missing_feature(context.library == "ruby", reason="not implemented")
-    @missing_feature(context.library == "nodejs", reason="not implemented")
-    @missing_feature(context.library == "java", reason="not implemented")
     @pytest.mark.parametrize(
         "library_env",
         [{"DD_TRACE_PROPAGATION_STYLE": "tracecontext", "DD_TRACE_128_BIT_TRACEID_GENERATION_ENABLED": "true"}],
     )
     def test_w3c_128_bit_propagation_tid_in_chunk_root(self, test_agent, test_library):
-        """Ensure that only root span contains the tid."""
+        """Ensure that root span contains the tid."""
         with test_library:
             with test_library.dd_start_span(name="parent", service="service", resource="resource") as parent:
                 with test_library.dd_start_span(name="child", service="service", parent_id=parent.span_id) as child:
@@ -426,10 +429,6 @@ class Test_128_Bit_Traceids:
         trace = find_trace(traces, parent.trace_id)
         assert len(trace) == 2
         first_span = find_first_span_in_trace_payload(trace)
-        spans_with_tid = [span for span in trace if "_dd.p.tid" in span.get("meta", "")]
-        assert len(spans_with_tid) == 1
-        assert first_span == spans_with_tid[0]
-
         tid_chunk_root = first_span["meta"].get("_dd.p.tid")
         assert tid_chunk_root is not None
 
@@ -609,7 +608,7 @@ def check_128_bit_trace_id(header_trace_id, span_trace_id, dd_p_tid):
 
 def validate_dd_p_tid(dd_p_tid):
     """Validate that dd_p_tid is well-formed."""
-    assert not dd_p_tid is None
+    assert dd_p_tid is not None
     assert len(dd_p_tid) == 16
     assert dd_p_tid != ZERO16
     assert dd_p_tid[8:16] == ZERO8

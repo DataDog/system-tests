@@ -2,7 +2,6 @@ import json
 import pytest
 
 from utils import scenarios, missing_feature, features, rfc
-from utils.parametric._library_client import Event
 from utils.parametric.spec.trace import find_span, find_trace
 
 

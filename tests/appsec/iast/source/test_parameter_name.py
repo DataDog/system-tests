@@ -26,27 +26,31 @@ class TestParameterName(BaseSourceTest):
         reason="Tainted as request body",
     )
     @bug(weblog_variant="resteasy-netty3", reason="APPSEC-55687")
-    @bug(library="python", reason="APPSEC-55689")
     @missing_feature(library="dotnet", reason="Tainted as request body")
     def test_source_post_reported(self):
-        """for use case where only one is reported, we want to keep a test on the one reported"""
+        """For use case where only one is reported, we want to keep a test on the one reported"""
         self.validate_request_reported(self.requests["POST"])
 
     setup_source_get_reported = BaseSourceTest.setup_source_reported
 
-    @bug(context.library < "java@1.40.0" and context.weblog_variant == "jersey-grizzly2", reason="APPSEC-55387")
+    @bug(
+        context.library < "java@1.40.0" and context.weblog_variant == "jersey-grizzly2",
+        reason="APPSEC-55387",
+    )
     @bug(weblog_variant="resteasy-netty3", reason="APPSEC-55687")
     def test_source_get_reported(self):
-        """for use case where only one is reported, we want to keep a test on the one reported"""
+        """For use case where only one is reported, we want to keep a test on the one reported"""
         self.validate_request_reported(self.requests["GET"])
 
     @missing_feature(
         context.library == "nodejs" and context.weblog_variant in ["express4", "express5"],
         reason="Tainted as request body",
     )
-    @bug(context.library < "java@1.40.0" and context.weblog_variant == "jersey-grizzly2", reason="APPSEC-55387")
+    @bug(
+        context.library < "java@1.40.0" and context.weblog_variant == "jersey-grizzly2",
+        reason="APPSEC-55387",
+    )
     @bug(weblog_variant="resteasy-netty3", reason="APPSEC-55687")
-    @bug(library="python", reason="APPSEC-55689")
     @missing_feature(library="dotnet", reason="Tainted as request body")
     def test_source_reported(self):
         super().test_source_reported()

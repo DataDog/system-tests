@@ -28,9 +28,9 @@ import urllib3
 import xmltodict
 
 import ddtrace
-from ddtrace import Pin
+from ddtrace.trace import Pin
 from ddtrace import patch_all
-from ddtrace import tracer
+from ddtrace.trace import tracer
 from ddtrace.appsec import trace_utils as appsec_trace_utils
 
 
@@ -85,6 +85,26 @@ async def set_cookie(request: Request):
     return PlainTextResponse(
         "OK", headers={"Set-Cookie": f"{request.query_params['name']}={request.query_params['value']}"}
     )
+
+
+@app.post("/iast/header_injection/test_insecure", response_class=PlainTextResponse)
+async def iast_header_injection_insecure(request: Request):
+    form_data = await request.form()
+    header_value = form_data.get("test")
+    response = PlainTextResponse("OK")
+    # label iast_header_injection
+    response.headers["Header-Injection"] = header_value
+    return response
+
+
+@app.post("/iast/header_injection/test_secure", response_class=PlainTextResponse)
+async def iast_header_injection_secure(request: Request):
+    form_data = await request.form()
+    header_value = form_data.get("test")
+    response = PlainTextResponse("OK")
+    # label iast_header_injection
+    response.headers["Vary"] = header_value
+    return response
 
 
 @app.get("/sample_rate_route/{i}", response_class=PlainTextResponse)
@@ -269,6 +289,34 @@ async def rasp_shi(request: Request):
     except Exception as e:
         print(f"Shell command failure: {e!r}", file=sys.stderr)
         return PlainTextResponse(f"Shell command failure: {e!r}", status_code=201)
+
+
+@app.get("/rasp/cmdi")
+@app.post("/rasp/cmdi")
+async def rasp_cmdi(request: Request):
+    cmd = None
+    if request.method == "GET":
+        cmd = request.query_params.get("command")
+    elif request.method == "POST":
+        body = await request.body()
+        try:
+            cmd = ((await request.form()) or json.loads(body) or {}).get("command")
+        except Exception as e:
+            print(repr(e), file=sys.stderr)
+        try:
+            if cmd is None:
+                cmd = xmltodict.parse(body).get("command").get("cmd")
+        except Exception as e:
+            print(repr(e), file=sys.stderr)
+            pass
+
+    if cmd is None:
+        return PlainTextResponse("missing command parameter", status_code=400)
+    try:
+        res = subprocess.run(cmd, capture_output=True)
+        return PlainTextResponse(f"Exec command [{cmd}] with result: {res}")
+    except Exception as e:
+        return PlainTextResponse(f"Exec command [{cmd}] failure: {e!r}", status_code=201)
 
 
 ### END EXPLOIT PREVENTION
@@ -462,21 +510,28 @@ async def view_iast_source_header_value(table: typing.Annotated[str, Header()] =
     return "OK"
 
 
+@app.get("/iast/source/headername/test", response_class=PlainTextResponse)
+async def view_iast_source_header_value(request: Request):
+    table = [k for k in request.headers.keys() if k == "user"][0]
+    _sink_point_path_traversal(tainted_str=table)
+    return "OK"
+
+
 @app.get("/iast/source/parametername/test", response_class=PlainTextResponse)
 async def view_iast_source_parametername_get(request: Request):
-    param = [key for key in request.query_params if key == "user"]
+    param = [key for key in request.query_params.keys() if key == "user"]
     if param:
-        _sink_point(id=param[0])
+        _sink_point_path_traversal(param[0])
         return "OK"
     return "KO"
 
 
 @app.post("/iast/source/parametername/test", response_class=PlainTextResponse)
 async def view_iast_source_parametername_post(request: Request):
-    json_body = await request.form()
-    param = [key for key in json_body if key == "user"]
+    form_data = await request.form()
+    param = [key for key in form_data.keys() if key == "user"]
     if param:
-        _sink_point(id=param[0])
+        _sink_point_path_traversal(param[0])
         return "OK"
     return "KO"
 
@@ -568,37 +623,36 @@ async def login(request: Request):
     username = form.get("username")
     password = form.get("password")
     sdk_event = request.query_params.get("sdk_event")
-    if sdk_event:
-        sdk_user = request.query_params.get("sdk_user")
-        sdk_mail = request.query_params.get("sdk_mail")
-        sdk_user_exists = request.query_params.get("sdk_user_exists")
-        if sdk_event == "success":
-            appsec_trace_utils.track_user_login_success_event(tracer, user_id=sdk_user, email=sdk_mail)
-            return PlainTextResponse("OK")
-        elif sdk_event == "failure":
-            appsec_trace_utils.track_user_login_failure_event(
-                tracer, user_id=sdk_user, email=sdk_mail, exists=sdk_user_exists
-            )
-            return PlainTextResponse("login failure", status_code=401)
     authorisation = request.headers.get("Authorization")
     if authorisation:
         username, password = base64.b64decode(authorisation[6:]).decode().split(":")
     success, user_id = check(username, password)
     if success:
         # login_user(user)
-        appsec_trace_utils.track_user_login_success_event(tracer, user_id=user_id, login_events_mode="auto")
-        return PlainTextResponse("OK")
+        appsec_trace_utils.track_user_login_success_event(
+            tracer, user_id=user_id, login_events_mode="auto", login=username
+        )
     elif user_id:
         appsec_trace_utils.track_user_login_failure_event(
-            tracer,
-            user_id=user_id,
-            exists=True,
-            login_events_mode="auto",
+            tracer, user_id=user_id, exists=True, login_events_mode="auto", login=username
         )
     else:
         appsec_trace_utils.track_user_login_failure_event(
-            tracer, user_id=username, exists=False, login_events_mode="auto"
+            tracer, user_id=username, exists=False, login_events_mode="auto", login=username
         )
+    if sdk_event:
+        sdk_user = request.query_params.get("sdk_user")
+        sdk_mail = request.query_params.get("sdk_mail")
+        sdk_user_exists = request.query_params.get("sdk_user_exists")
+        if sdk_event == "success":
+            appsec_trace_utils.track_user_login_success_event(tracer, user_id=sdk_user, email=sdk_mail, login=sdk_user)
+            success = True
+        elif sdk_event == "failure":
+            appsec_trace_utils.track_user_login_failure_event(
+                tracer, user_id=sdk_user, email=sdk_mail, exists=sdk_user_exists, login=sdk_user
+            )
+    if success:
+        return PlainTextResponse("OK")
     return PlainTextResponse("login failure", status_code=401)
 
 
@@ -668,7 +722,7 @@ async def view_iast_ssrf_secure(url: typing.Annotated[str, Form()]):
     from urllib.parse import urlparse
 
     # Validate the URL and enforce whitelist
-    allowed_domains = ["example.com", "api.example.com"]
+    allowed_domains = ["example.com", "api.example.com", "www.datadoghq.com"]
     parsed_url = urlparse(str(url))
 
     if parsed_url.hostname not in allowed_domains:
@@ -793,10 +847,36 @@ async def view_cmdi_secure(cmd: typing.Annotated[str, Form()]):
 #     return "YEAH"
 
 
+@app.post("/iast/code_injection/test_insecure", response_class=PlainTextResponse)
+async def view_iast_code_injection_insecure(code: typing.Annotated[str, Form()]):
+    _ = eval(code)
+    return "OK"
+
+
+@app.post("/iast/code_injection/test_secure", response_class=PlainTextResponse)
+async def view_iast_code_injection_secure(code: typing.Annotated[str, Form()]):
+    import operator
+
+    def safe_eval(expr):
+        ops = {
+            "+": operator.add,
+            "-": operator.sub,
+            "*": operator.mul,
+            "/": operator.truediv,
+        }
+        if len(expr) != 3 or expr[1] not in ops:
+            raise ValueError("Invalid expression")
+        a, op, b = expr
+        return ops[op](float(a), float(b))
+
+    _ = safe_eval(code)
+    return "OK"
+
+
 @app.get("/createextraservice", response_class=PlainTextResponse)
 def create_extra_service(serviceName: str = ""):
     if serviceName:
-        Pin.override(fastapi, service=serviceName, tracer=tracer)
+        Pin.override(fastapi, service=serviceName)
     return "OK"
 
 

@@ -37,8 +37,10 @@ def _assert_custom_event_tag_absence():
     return wrapper
 
 
-@scenarios.appsec_blocking
 @features.appsec_request_blocking
+@features.envoy_external_processing
+@scenarios.appsec_blocking
+@scenarios.external_processing_blocking
 class Test_Blocking_client_ip:
     """Test if blocking is supported on http.client_ip address"""
 
@@ -46,7 +48,7 @@ class Test_Blocking_client_ip:
         self.rm_req_block = weblog.get(headers={"X-Forwarded-For": "1.1.1.1"})
 
     def test_blocking(self):
-        """can block the request forwarded for the ip"""
+        """Can block the request forwarded for the ip"""
 
         assert self.rm_req_block.status_code == 403
         interfaces.library.assert_waf_attack(self.rm_req_block, rule="blk-001-001")
@@ -71,15 +73,17 @@ class Test_Blocking_user_id:
         self.rm_req_block = weblog.get("/users", params={"user": "blockedUser"})
 
     def test_block_user(self):
-        """can block the request from the user"""
+        """Can block the request from the user"""
 
         assert self.rm_req_block.status_code == 403
         interfaces.library.assert_waf_attack(self.rm_req_block, rule="block-users")
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
-@scenarios.appsec_blocking
 @features.appsec_request_blocking
+@features.envoy_external_processing
+@scenarios.appsec_blocking
+@scenarios.external_processing_blocking
 class Test_Blocking_request_method:
     """Test if blocking is supported on server.request.method address"""
 
@@ -106,6 +110,10 @@ class Test_Blocking_request_method:
         self.block_req2 = weblog.request("OPTIONS", path="/tag_value/tainted_value_6512/200")
 
     @flaky(context.library < "java@1.16.0", reason="APMRP-360")
+    @missing_feature(
+        context.scenario is scenarios.external_processing_blocking,
+        reason="The endpoint /tag_value is not implemented in the weblog",
+    )
     def test_blocking_before(self):
         """Test that blocked requests are blocked before being processed"""
         # first request should not block and must set the tag in span accordingly
@@ -119,8 +127,10 @@ class Test_Blocking_request_method:
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
-@scenarios.appsec_blocking
 @features.appsec_request_blocking
+@features.envoy_external_processing
+@scenarios.appsec_blocking
+@scenarios.external_processing_blocking
 class Test_Blocking_request_uri:
     """Test if blocking is supported on server.request.uri.raw address"""
 
@@ -158,6 +168,10 @@ class Test_Blocking_request_uri:
         self.set_req1 = weblog.get("/tag_value/clean_value_3877/200")
         self.block_req2 = weblog.get("/tag_value/tainted_value_6512.git/200")
 
+    @missing_feature(
+        context.scenario is scenarios.external_processing_blocking,
+        reason="The endpoint /tag_value is not implemented in the weblog",
+    )
     def test_blocking_before(self):
         """Test that blocked requests are blocked before being processed"""
         # first request should not block and must set the tag in span accordingly
@@ -171,8 +185,10 @@ class Test_Blocking_request_uri:
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
-@scenarios.appsec_blocking
 @features.appsec_request_blocking
+@features.envoy_external_processing
+@scenarios.appsec_blocking
+@scenarios.external_processing_blocking
 class Test_Blocking_request_path_params:
     """Test if blocking is supported on server.request.path_params address"""
 
@@ -182,6 +198,10 @@ class Test_Blocking_request_path_params:
         if not hasattr(self, "rm_req_block2") or self.rm_req_block2 is None:
             self.rm_req_block2 = weblog.get("/waf/AiKfOeRcvG45")
 
+    @missing_feature(
+        context.scenario is scenarios.external_processing_blocking,
+        reason="The endpoint /param is not implemented in the weblog",
+    )
     def test_blocking(self):
         """Test if requests that should be blocked are blocked"""
         for response in (self.rm_req_block1, self.rm_req_block2):
@@ -193,6 +213,10 @@ class Test_Blocking_request_path_params:
         # query parameters are not a part of path parameters
         self.rm_req_nonblock = weblog.get("/waf/noharm?value=AiKfOeRcvG45")
 
+    @missing_feature(
+        context.scenario is scenarios.external_processing_blocking,
+        reason="The endpoint /param is not implemented in the weblog (from the test_blocking test)",
+    )
     def test_non_blocking(self):
         """Test if requests that should not be blocked are not blocked"""
         self.test_blocking()
@@ -202,6 +226,10 @@ class Test_Blocking_request_path_params:
         self.set_req1 = weblog.get("/tag_value/clean_value_3878/200")
         self.block_req2 = weblog.get("/tag_value/tainted_value_AiKfOeRcvG45/200")
 
+    @missing_feature(
+        context.scenario is scenarios.external_processing_blocking,
+        reason="The endpoint /param is not implemented in the weblog",
+    )
     def test_blocking_before(self):
         """Test that blocked requests are blocked before being processed"""
         # first request should not block and must set the tag in span accordingly
@@ -215,8 +243,10 @@ class Test_Blocking_request_path_params:
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
-@scenarios.appsec_blocking
 @features.appsec_request_blocking
+@features.envoy_external_processing
+@scenarios.appsec_blocking
+@scenarios.external_processing_blocking
 class Test_Blocking_request_query:
     """Test if blocking is supported on server.request.query address"""
 
@@ -249,6 +279,10 @@ class Test_Blocking_request_query:
         self.set_req1 = weblog.get("/tag_value/clean_value_3879/200")
         self.block_req2 = weblog.get("/tag_value/tainted_value_a1b2c3/200?foo=xtrace")
 
+    @missing_feature(
+        context.scenario is scenarios.external_processing_blocking,
+        reason="The endpoint /tag_value is not implemented in the weblog",
+    )
     def test_blocking_before(self):
         """Test that blocked requests are blocked before being processed"""
         # first request should not block and must set the tag in span accordingly
@@ -262,8 +296,10 @@ class Test_Blocking_request_query:
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
-@scenarios.appsec_blocking
 @features.appsec_request_blocking
+@features.envoy_external_processing
+@scenarios.appsec_blocking
+@scenarios.external_processing_blocking
 class Test_Blocking_request_headers:
     """Test if blocking is supported on server.request.headers.no_cookies address"""
 
@@ -296,6 +332,10 @@ class Test_Blocking_request_headers:
         self.set_req1 = weblog.get("/tag_value/clean_value_3880/200")
         self.block_req2 = weblog.get("/tag_value/tainted_value_xyz/200", headers={"foo": "asldhkuqwgervf"})
 
+    @missing_feature(
+        context.scenario is scenarios.external_processing_blocking,
+        reason="The endpoint /tag_value is not implemented in the weblog",
+    )
     def test_blocking_before(self):
         """Test that blocked requests are blocked before being processed"""
         # first request should not block and must set the tag in span accordingly
@@ -309,8 +349,10 @@ class Test_Blocking_request_headers:
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
-@scenarios.appsec_blocking
 @features.appsec_request_blocking
+@features.envoy_external_processing
+@scenarios.appsec_blocking
+@scenarios.external_processing_blocking
 class Test_Blocking_request_cookies:
     """Test if blocking is supported on server.request.cookies address"""
 
@@ -343,6 +385,10 @@ class Test_Blocking_request_cookies:
         self.set_req1 = weblog.get("/tag_value/clean_value_3881/200")
         self.block_req2 = weblog.get("/tag_value/tainted_value_cookies/200", cookies={"foo": "jdfoSDGFkivRG_234"})
 
+    @missing_feature(
+        context.scenario is scenarios.external_processing_blocking,
+        reason="The endpoint /tag_value is not implemented in the weblog",
+    )
     def test_blocking_before(self):
         """Test that blocked requests are blocked before being processed"""
         # first request should not block and must set the tag in span accordingly
@@ -428,7 +474,7 @@ class Test_Blocking_request_body_multipart:
         self.rbmp_req = weblog.post("/waf", files={"foo": (None, "bsldhkuqwgervf")})
 
     def test_blocking(self):
-        """can block on server.request.body (multipart/form-data variant)"""
+        """Can block on server.request.body (multipart/form-data variant)"""
 
         interfaces.library.assert_waf_attack(self.rbmp_req, rule="tst-037-004")
         assert self.rbmp_req.status_code == 403
@@ -436,7 +482,13 @@ class Test_Blocking_request_body_multipart:
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
 @scenarios.appsec_blocking
+@scenarios.external_processing_blocking
 @features.appsec_response_blocking
+@features.envoy_external_processing
+@missing_feature(
+    context.scenario is scenarios.external_processing_blocking,
+    reason="The endpoint /tag_value is not implemented in the weblog",
+)
 class Test_Blocking_response_status:
     """Test if blocking is supported on server.response.status address"""
 
@@ -444,6 +496,10 @@ class Test_Blocking_response_status:
         if not hasattr(self, "rm_req_block") or self.rm_req_block is None:
             self.rm_req_block = {status: weblog.get(f"/tag_value/anything/{status}") for status in (415, 416, 417, 418)}
 
+    @missing_feature(
+        context.scenario is scenarios.external_processing_blocking,
+        reason="The endpoint /tag_value is not implemented in the weblog",
+    )
     def test_blocking(self):
         """Test if requests that should be blocked are blocked"""
         for response in self.rm_req_block.values():
@@ -456,6 +512,10 @@ class Test_Blocking_response_status:
             str(status): weblog.get(f"/tag_value/anything/{status}") for status in (411, 412, 413, 414)
         }
 
+    @missing_feature(
+        context.scenario is scenarios.external_processing_blocking,
+        reason="The endpoint /tag_value is not implemented in the weblog",
+    )
     def test_non_blocking(self):
         """Test if requests that should not be blocked are not blocked"""
         self.test_blocking()
@@ -470,25 +530,35 @@ class Test_Blocking_response_status:
         reason="Happens on a subsequent WAF run",
     )
     @missing_feature(context.library == "golang", reason="No blocking on server.response.*")
+    @missing_feature(
+        context.scenario is scenarios.external_processing_blocking,
+        reason="The endpoint /finger_print is not implemented in the weblog",
+    )
     def test_not_found(self):
-        """can block on server.response.status"""
+        """Can block on server.response.status"""
 
         interfaces.library.assert_waf_attack(self.rnf_req, rule="tst-037-010")
         assert self.rnf_req.status_code == 403
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
-@scenarios.appsec_blocking
 @features.appsec_response_blocking
+@features.envoy_external_processing
+@scenarios.appsec_blocking
+@scenarios.external_processing_blocking
 class Test_Blocking_response_headers:
     """Test if blocking is supported on server.response.headers.no_cookies address"""
 
     def setup_blocking(self):
         if not hasattr(self, "rm_req_block1") or self.rm_req_block1 is None:
-            self.rm_req_block1 = weblog.get(f"/tag_value/anything/200?content-language=fo-fo")
+            self.rm_req_block1 = weblog.get("/tag_value/anything/200?content-language=fo-fo")
         if not hasattr(self, "rm_req_block2") or self.rm_req_block2 is None:
-            self.rm_req_block2 = weblog.get(f"/tag_value/anything/200?content-language=krypton")
+            self.rm_req_block2 = weblog.get("/tag_value/anything/200?content-language=krypton")
 
+    @missing_feature(
+        context.scenario is scenarios.external_processing_blocking,
+        reason="The endpoint /tag_value is not implemented in the weblog",
+    )
     def test_blocking(self):
         """Test if requests that should be blocked are blocked"""
         for response in (self.rm_req_block1, self.rm_req_block2):
@@ -497,9 +567,13 @@ class Test_Blocking_response_headers:
 
     def setup_non_blocking(self):
         self.setup_blocking()
-        self.rm_req_nonblock1 = weblog.get(f"/tag_value/anything/200?content-color=fo-fo")
-        self.rm_req_nonblock2 = weblog.get(f"/tag_value/anything/200?content-language=fr")
+        self.rm_req_nonblock1 = weblog.get("/tag_value/anything/200?content-color=fo-fo")
+        self.rm_req_nonblock2 = weblog.get("/tag_value/anything/200?content-language=fr")
 
+    @missing_feature(
+        context.scenario is scenarios.external_processing_blocking,
+        reason="The endpoint /tag_value is not implemented in the weblog",
+    )
     def test_non_blocking(self):
         """Test if requests that should not be blocked are not blocked"""
         self.test_blocking()
@@ -515,7 +589,7 @@ class Test_Suspicious_Request_Blocking:
 
     def setup_blocking(self):
         self.rm_req_block = weblog.get(
-            f"/tag_value/malicious-path-cGDgSRJvklxGOKMTNfQMViBPpKAvpFoc_malicious-uri-ypMrmzrWATkLrPKLblvpRGGltBSgHWrK/200?attack=malicious-query-SAGihOkuSwXXFDXNqAWJzNuZEdKNunrJ",
+            "/tag_value/malicious-path-cGDgSRJvklxGOKMTNfQMViBPpKAvpFoc_malicious-uri-ypMrmzrWATkLrPKLblvpRGGltBSgHWrK/200?attack=malicious-query-SAGihOkuSwXXFDXNqAWJzNuZEdKNunrJ",
             cookies={"foo": "malicious-cookie-PwXuEQEdeAjzWpCDqAzPqiUAdXJMHwtS"},
             headers={"content-type": "text/plain", "client": "malicious-header-kCgvxrYeiwUSYkAuniuGktdvzXYEPSff"},
         )
@@ -524,6 +598,8 @@ class Test_Suspicious_Request_Blocking:
         context.library == "ruby" and context.weblog_variant == "rack",
         reason="Rack don't send anything to the server.request.path_params WAF address",
     )
+    @bug(weblog_variant="akka-http", reason="APPSEC-54985")
+    @bug(weblog_variant="spring-boot-payara", reason="APPSEC-54985")
     def test_blocking(self):
         """Test if requests that should be blocked are blocked"""
         assert self.rm_req_block.status_code == 403, self.rm_req_block.request.url
@@ -536,7 +612,7 @@ class Test_Suspicious_Request_Blocking:
             cookies={"foo": "malicious-cookie-PwXuEQEdeAjzWpCDqAzPqiUAdXJMHwtS"},
         )
         self.block_req2 = weblog.get(
-            f"/tag_value/malicious-path-cGDgSRJvklxGOKMTNfQMViBPpKAvpFoc_malicious-uri-ypMrmzrWATkLrPKLblvpRGGltBSgHWrK/200?attack=malicious-query-SAGihOkuSwXXFDXNqAWJzNuZEdKNunrJ",
+            "/tag_value/malicious-path-cGDgSRJvklxGOKMTNfQMViBPpKAvpFoc_malicious-uri-ypMrmzrWATkLrPKLblvpRGGltBSgHWrK/200?attack=malicious-query-SAGihOkuSwXXFDXNqAWJzNuZEdKNunrJ",
             cookies={"foo": "malicious-cookie-PwXuEQEdeAjzWpCDqAzPqiUAdXJMHwtS"},
             headers={"content-type": "text/plain", "client": "malicious-header-kCgvxrYeiwUSYkAuniuGktdvzXYEPSff"},
         )
@@ -545,6 +621,8 @@ class Test_Suspicious_Request_Blocking:
         context.library == "ruby" and context.weblog_variant == "rack",
         reason="Rack don't send anything to the server.request.path_params WAF address",
     )
+    @bug(weblog_variant="akka-http", reason="APPSEC-54985")
+    @bug(weblog_variant="spring-boot-payara", reason="APPSEC-54985")
     def test_blocking_before(self):
         """Test that blocked requests are blocked before being processed"""
         # first request should not block and must set the tag in span accordingly
@@ -559,7 +637,7 @@ class Test_Suspicious_Request_Blocking:
 
     def setup_blocking_without_path_params(self):
         self.rm_req_block = weblog.get(
-            f"/tag_value/path_param_malicious-uri-wX1GdUiWdVdoklf0pYBi5kQApO9i77tN/200?attack=malicious-query-T3d1nKdkTWIG03q03ix9c9UlhbGigvwQ",
+            "/tag_value/path_param_malicious-uri-wX1GdUiWdVdoklf0pYBi5kQApO9i77tN/200?attack=malicious-query-T3d1nKdkTWIG03q03ix9c9UlhbGigvwQ",
             cookies={"foo": "malicious-cookie-qU4sV2r6ac2nfETV7aJP9Fdt1NaWC9wB"},
             headers={"content-type": "text/plain", "client": "malicious-header-siDzyETAdkvKahD3PxlvIqcE0fMIVywE"},
         )
@@ -576,7 +654,7 @@ class Test_Suspicious_Request_Blocking:
             cookies={"foo": "malicious-cookie-qU4sV2r6ac2nfETV7aJP9Fdt1NaWC9wB"},
         )
         self.block_req2 = weblog.get(
-            f"/tag_value/path_param_malicious-uri-wX1GdUiWdVdoklf0pYBi5kQApO9i77tN/200?attack=malicious-query-T3d1nKdkTWIG03q03ix9c9UlhbGigvwQ",
+            "/tag_value/path_param_malicious-uri-wX1GdUiWdVdoklf0pYBi5kQApO9i77tN/200?attack=malicious-query-T3d1nKdkTWIG03q03ix9c9UlhbGigvwQ",
             cookies={"foo": "malicious-cookie-qU4sV2r6ac2nfETV7aJP9Fdt1NaWC9wB"},
             headers={"content-type": "text/plain", "client": "malicious-header-siDzyETAdkvKahD3PxlvIqcE0fMIVywE"},
         )
@@ -614,11 +692,10 @@ class Test_BlockingGraphqlResolvers:
             ),
         )
 
+    @bug(context.library < "ruby@2.10.0-dev", reason="APPSEC-56464")
     def test_request_block_attack(self):
-        assert self.r_attack.status_code == (
-            # We don't change the status code in Ruby
-            200 if context.library == "ruby" else 403
-        )
+        assert self.r_attack.status_code == 403
+
         for _, span in interfaces.library.get_root_spans(request=self.r_attack):
             meta = span.get("meta", {})
             meta_struct = span.get("meta_struct", {})
@@ -654,12 +731,10 @@ class Test_BlockingGraphqlResolvers:
             ),
         )
 
+    @bug(context.library < "ruby@2.10.0-dev", reason="APPSEC-56464")
     def test_request_block_attack_directive(self):
-        # We don't change the status code
-        assert self.r_attack.status_code == (
-            # We don't change the status code in Ruby
-            200 if context.library == "ruby" else 403
-        )
+        assert self.r_attack.status_code == 403
+
         for _, span in interfaces.library.get_root_spans(request=self.r_attack):
             meta = span.get("meta", {})
             meta_struct = span.get("meta_struct", {})

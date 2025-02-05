@@ -51,8 +51,18 @@ on:
         default: false
         required: false
         type: boolean
+      skip_empty_scenarios:
+        description: "Skip scenarios that contains only xfail or irrelevant tests"
+        default: false
+        required: false
+        type: boolean
+      parametric_job_count:
+        description: "How many jobs should be used to run PARAMETRIC scenario"
+        default: 1
+        required: false
+        type: number
       _experimental_parametric_job_count:
-        description: "*EXPERIMENTAL* : How many jobs should be used to run PARAMETRIC scenario"
+        description: "*DEPRECATED*"
         default: 1
         required: false
         type: number
@@ -65,7 +75,8 @@ jobs:
       library: ${{ inputs.library }}
       scenarios: ${{ inputs.scenarios }}
       scenarios_groups: ${{ inputs.scenarios_groups }}
-      _experimental_parametric_job_count: ${{ inputs._experimental_parametric_job_count }}
+      parametric_job_count: ${{ inputs.parametric_job_count }}
+      _ci_environment: ${{ inputs.ci_environment }}
 
   parametric:
     needs:
@@ -77,8 +88,8 @@ jobs:
       library: ${{ inputs.library }}
       binaries_artifact: ${{ inputs.binaries_artifact }}
       ci_environment: ${{ inputs.ci_environment }}
-      _experimental_job_count: ${{ inputs._experimental_parametric_job_count }}
-      _experimental_job_matrix: ${{ needs.compute_parameters.outputs._experimental_parametric_job_matrix }}
+      job_count: ${{ inputs.parametric_job_count }}
+      job_matrix: ${{ needs.compute_parameters.outputs.parametric_job_matrix }}
 
   graphql:
     needs:
@@ -92,6 +103,7 @@ jobs:
       binaries_artifact: ${{ inputs.binaries_artifact }}
       ci_environment: ${{ inputs.ci_environment }}
       build_proxy_image: ${{ inputs.build_proxy_image }}
+      skip_empty_scenarios: ${{ inputs.skip_empty_scenarios }}
 
   lib-injection:
     needs:
@@ -122,6 +134,7 @@ jobs:
       weblogs: ${{ needs.compute_parameters.outputs.endtoend_weblogs }}
       binaries_artifact: ${{ inputs.binaries_artifact }}
       ci_environment: ${{ inputs.ci_environment }}
+      skip_empty_scenarios: ${{ inputs.skip_empty_scenarios }}
 
   open-telemetry:
     needs:
@@ -133,6 +146,7 @@ jobs:
       library: ${{ inputs.library }}
       weblogs: ${{ needs.compute_parameters.outputs.opentelemetry_weblogs }}
       build_proxy_image: ${{ inputs.build_proxy_image }}
+      skip_empty_scenarios: ${{ inputs.skip_empty_scenarios }}
 
   external-processing:
     needs:

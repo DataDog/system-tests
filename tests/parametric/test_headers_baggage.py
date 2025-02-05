@@ -5,11 +5,9 @@ from utils._decorators import irrelevant
 from utils.parametric.spec.trace import SAMPLING_PRIORITY_KEY, ORIGIN
 from utils.parametric.spec.trace import span_has_no_parent
 from utils.parametric.spec.trace import find_only_span
-from utils import features, scenarios, bug, context
+from utils import features, scenarios
 from typing import Any
 import pytest
-from utils.parametric.spec.trace import SAMPLING_PRIORITY_KEY, ORIGIN
-from utils.parametric.spec.trace import find_only_span
 
 parametrize = pytest.mark.parametrize
 
@@ -75,7 +73,7 @@ class Test_Headers_Baggage:
         assert "baggage" not in headers.keys()
 
     def test_baggage_inject_header_D004(self, test_library):
-        """testing baggage header injection, proper concatenation of key value pairs, and encoding"""
+        """Testing baggage header injection, proper concatenation of key value pairs, and encoding"""
         with test_library.dd_start_span(name="test_baggage_set_D004") as span:
             span.set_baggage("foo", "bar")
             span.set_baggage("baz", "qux")
@@ -96,7 +94,7 @@ class Test_Headers_Baggage:
         assert "%22%2C%3B%5C%28%29%2F%3A%3C%3D%3E%3F%40%5B%5D%7B%7D=%22%2C%3B%5C" in baggage_items
 
     def test_baggage_extract_header_D005(self, test_library):
-        """testing baggage header extraction and decoding"""
+        """Testing baggage header extraction and decoding"""
 
         with test_library.dd_extract_headers_and_make_child_span(
             "test_baggage_extract_header_D005",
@@ -145,7 +143,7 @@ class Test_Headers_Baggage:
         assert not any("baggage" in item for item in headers)
 
     def test_baggage_get_D008(self, test_library):
-        """testing baggage API get_baggage"""
+        """Testing baggage API get_baggage"""
         with test_library.dd_extract_headers_and_make_child_span(
             "test_baggage_get_D008", [["baggage", "userId=Am%C3%A9lie,serverNode=DF%2028"]]
         ) as span:
@@ -157,7 +155,7 @@ class Test_Headers_Baggage:
             assert span.get_baggage("serverNode") == "DF 28"
 
     def test_baggage_get_all_D009(self, test_library):
-        """testing baggage API get_all_baggage"""
+        """Testing baggage API get_all_baggage"""
         with test_library.dd_extract_headers_and_make_child_span(
             "test_baggage_get_all_D009", [["baggage", "foo=bar"]]
         ) as span:
@@ -168,7 +166,7 @@ class Test_Headers_Baggage:
             assert baggage == {"foo": "bar", "baz": "qux", "userId": "Amélie", "serverNode": "DF 28"}
 
     def test_baggage_remove_D010(self, test_library):
-        """testing baggage API remove_baggage"""
+        """Testing baggage API remove_baggage"""
         with test_library.dd_start_span(name="test_baggage_remove_D010") as span:
             span.set_baggage("baz", "qux")
             span.set_baggage("userId", "Amélie")
@@ -180,7 +178,7 @@ class Test_Headers_Baggage:
             assert span.get_all_baggage() == {}
 
     def test_baggage_remove_all_D011(self, test_library):
-        """testing baggage API remove_all_baggage"""
+        """Testing baggage API remove_all_baggage"""
         with test_library.dd_start_span(name="test_baggage_remove_all_D011") as span:
             span.set_baggage("foo", "bar")
             span.set_baggage("baz", "qux")

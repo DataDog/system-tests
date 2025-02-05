@@ -1,11 +1,10 @@
-"""
-Test configuration consistency for features across supported APM SDKs.
-"""
+"""Test configuration consistency for features across supported APM SDKs."""
 
 from urllib.parse import urlparse
 import pytest
-from utils import scenarios, features, context, missing_feature, irrelevant, flaky
+from utils import scenarios, features, context, missing_feature, irrelevant, flaky, bug
 from utils.parametric.spec.trace import find_span_in_traces, find_only_span
+import os
 
 parametrize = pytest.mark.parametrize
 
@@ -126,8 +125,7 @@ class Test_Config_UnifiedServiceTagging:
 @scenarios.parametric
 @features.tracing_configuration_consistency
 class Test_Config_TraceAgentURL:
-    """
-    DD_TRACE_AGENT_URL is validated using the tracer configuration.
+    """DD_TRACE_AGENT_URL is validated using the tracer configuration.
     This approach avoids the need to modify the setup file to create additional containers at the specified URL,
     which would be unnecessarily complex.
     """
@@ -138,7 +136,7 @@ class Test_Config_TraceAgentURL:
             {
                 "DD_TRACE_AGENT_URL": "unix:///var/run/datadog/apm.socket",
                 "DD_AGENT_HOST": "localhost",
-                "DD_AGENT_PORT": "8126",
+                "DD_TRACE_AGENT_PORT": "8126",
             }
         ],
     )
@@ -153,7 +151,13 @@ class Test_Config_TraceAgentURL:
     # The DD_TRACE_AGENT_URL is validated using the tracer configuration. This approach avoids the need to modify the setup file to create additional containers at the specified URL, which would be unnecessarily complex.
     @parametrize(
         "library_env",
-        [{"DD_TRACE_AGENT_URL": "http://random-host:9999/", "DD_AGENT_HOST": "localhost", "DD_AGENT_PORT": "8126"}],
+        [
+            {
+                "DD_TRACE_AGENT_URL": "http://random-host:9999/",
+                "DD_AGENT_HOST": "localhost",
+                "DD_TRACE_AGENT_PORT": "8126",
+            }
+        ],
     )
     def test_dd_trace_agent_http_url_nonexistent(self, library_env, test_agent, test_library):
         with test_library as t:
@@ -163,6 +167,50 @@ class Test_Config_TraceAgentURL:
         assert url.scheme == "http"
         assert url.hostname == "random-host"
         assert url.port == 9999
+
+    @parametrize(
+        "library_env",
+        [
+            {
+                "DD_TRACE_AGENT_URL": "http://[::1]:5000",
+                "DD_AGENT_HOST": "localhost",
+                "DD_TRACE_AGENT_PORT": "8126",
+            }
+        ],
+    )
+    @missing_feature(context.library == "ruby", reason="does not support ipv6")
+    def test_dd_trace_agent_http_url_ipv6(self, library_env, test_agent, test_library):
+        with test_library as t:
+            resp = t.config()
+
+        url = urlparse(resp["dd_trace_agent_url"])
+        assert url.scheme == "http"
+        assert url.hostname == "::1"
+        assert url.port == 5000
+
+    @parametrize(
+        "library_env",
+        [
+            {
+                "DD_TRACE_AGENT_URL": "",  # Empty string passed to make sure conftest.py does not set trace agent url
+                "DD_AGENT_HOST": "[::1]",
+                "DD_TRACE_AGENT_PORT": "5000",
+            }
+        ],
+    )
+    @missing_feature(context.library == "ruby", reason="does not support ipv6 hostname")
+    @missing_feature(context.library == "dotnet", reason="does not support ipv6 hostname")
+    @missing_feature(context.library == "php", reason="does not support ipv6 hostname")
+    @missing_feature(context.library == "golang", reason="does not support ipv6 hostname")
+    @missing_feature(context.library == "python", reason="does not support ipv6 hostname")
+    def test_dd_agent_host_ipv6(self, library_env, test_agent, test_library):
+        with test_library as t:
+            resp = t.config()
+
+        url = urlparse(resp["dd_trace_agent_url"])
+        assert url.scheme == "http"
+        assert url.hostname == "::1"
+        assert url.port == 5000
 
 
 @scenarios.parametric
@@ -182,8 +230,12 @@ class Test_Config_RateLimit:
         context.library == "php",
         reason="PHP backfill model does not support strict two-trace limit, see test below for its behavior",
     )
-    @parametrize("library_env", [{"DD_TRACE_RATE_LIMIT": "1", "DD_TRACE_SAMPLE_RATE": "1"}])
+    @parametrize(
+        "library_env",
+        [{"DD_TRACE_RATE_LIMIT": "1", "DD_TRACE_SAMPLE_RATE": "1", "DD_TRACE_SAMPLING_RULES": '[{"sample_rate":1}]'}],
+    )
     @flaky(library="java", reason="APMAPI-908")
+    @bug(context.library == "golang", reason="APMAPI-1030")
     def test_setting_trace_rate_limit_strict(self, library_env, test_agent, test_library):
         with test_library:
             with test_library.dd_start_span(name="s1") as s1:
@@ -212,7 +264,10 @@ class Test_Config_RateLimit:
         assert trace_0_sampling_priority == 1
         assert trace_1_sampling_priority == 1
 
-    @parametrize("library_env", [{"DD_TRACE_RATE_LIMIT": "1", "DD_TRACE_SAMPLE_RATE": "1"}])
+    @parametrize(
+        "library_env",
+        [{"DD_TRACE_RATE_LIMIT": "1", "DD_TRACE_SAMPLE_RATE": "1", "DD_TRACE_SAMPLING_RULES": '[{"sample_rate":1}]'}],
+    )
     def test_setting_trace_rate_limit(self, library_env, test_agent, test_library):
         # In PHP the rate limiter is continuously backfilled, i.e. if the rate limit is 2, and 0.2 seconds have passed, an allowance of 0.4 is backfilled.
         # As long as the amount of allowance is greater than zero, the request is allowed.
@@ -231,30 +286,36 @@ class Test_Config_RateLimit:
         ), "Expected at least one trace to be rate-limited with sampling priority -1."
 
 
-def tag_scenarios():
-    env1: dict = {"DD_TAGS": "key1:value1,key2:value2"}
-    env2: dict = {"DD_TAGS": "key1:value1 key2:value2"}
-    env3: dict = {"DD_TAGS": "env:test aKey:aVal bKey:bVal cKey:"}
-    env4: dict = {"DD_TAGS": "env:test,aKey:aVal,bKey:bVal,cKey:"}
-    env5: dict = {"DD_TAGS": "env:test,aKey:aVal bKey:bVal cKey:"}
-    env6: dict = {"DD_TAGS": "env:test     bKey :bVal dKey: dVal cKey:"}
-    env7: dict = {"DD_TAGS": "env :test, aKey : aVal bKey:bVal cKey:"}
-    env8: dict = {"DD_TAGS": "env:keyWithA:Semicolon bKey:bVal cKey"}
-    env9: dict = {"DD_TAGS": "env:keyWith:  , ,   Lots:Of:Semicolons "}
-    env10: dict = {"DD_TAGS": "a:b,c,d"}
-    env11: dict = {"DD_TAGS": "a,1"}
-    env12: dict = {"DD_TAGS": "a:b:c:d"}
-    return parametrize("library_env", [env1, env2, env3, env4, env5, env6, env7, env8, env9, env10, env11, env12])
+tag_scenarios: dict = {
+    "key1:value1,key2:value2": [("key1", "value1"), ("key2", "value2")],
+    "key1:value1 key2:value2": [("key1", "value1"), ("key2", "value2")],
+    "env:test aKey:aVal bKey:bVal cKey:": [("env", "test"), ("aKey", "aVal"), ("bKey", "bVal"), ("cKey", "")],
+    "env:test,aKey:aVal,bKey:bVal,cKey:": [("env", "test"), ("aKey", "aVal"), ("bKey", "bVal"), ("cKey", "")],
+    "env:test,aKey:aVal bKey:bVal cKey:": [("env", "test"), ("aKey", "aVal bKey:bVal cKey:")],
+    "env:test     bKey :bVal dKey: dVal cKey:": [
+        ("env", "test"),
+        ("bKey", ""),
+        ("dKey", ""),
+        ("dVal", ""),
+        ("cKey", ""),
+    ],
+    "env :test, aKey : aVal bKey:bVal cKey:": [("env", "test"), ("aKey", "aVal bKey:bVal cKey:")],
+    "env:keyWithA:Semicolon bKey:bVal cKey": [("env", "keyWithA:Semicolon"), ("bKey", "bVal"), ("cKey", "")],
+    "env:keyWith:  , ,   Lots:Of:Semicolons ": [("env", "keyWith:"), ("Lots", "Of:Semicolons")],
+    "a:b,c,d": [("a", "b"), ("c", ""), ("d", "")],
+    "a,1": [("a", ""), ("1", "")],
+    "a:b:c:d": [("a", "b:c:d")],
+}
 
 
 @scenarios.parametric
 @features.tracing_configuration_consistency
 class Test_Config_Tags:
-    @tag_scenarios()
+    @parametrize("library_env", [{"DD_TAGS": key} for key in tag_scenarios.keys()])
     def test_comma_space_tag_separation(self, library_env, test_agent, test_library):
         expected_local_tags = []
         if "DD_TAGS" in library_env:
-            expected_local_tags = _parse_dd_tags(library_env["DD_TAGS"])
+            expected_local_tags = tag_scenarios[library_env["DD_TAGS"]]
         with test_library:
             with test_library.dd_start_span(name="sample_span"):
                 pass
@@ -286,20 +347,6 @@ class Test_Config_Tags:
         assert span["meta"]["version"] == "5.2.0"
 
 
-def _parse_dd_tags(tags):
-    result = []
-    key_value_pairs = tags.split(",") if "," in tags else tags.split()  # First try to split by comma, then by space
-    for pair in key_value_pairs:
-        if ":" in pair:
-            key, value = pair.split(":", 1)
-        else:
-            key, value = pair, ""
-        key, value = key.strip(), value.strip()
-        if key:
-            result.append((key, value))
-    return result
-
-
 @scenarios.parametric
 @features.tracing_configuration_consistency
 class Test_Config_Dogstatsd:
@@ -329,3 +376,38 @@ class Test_Config_Dogstatsd:
         with test_library as t:
             resp = t.config()
         assert resp["dd_dogstatsd_port"] == "8150"
+
+
+@scenarios.parametric
+@features.stable_configuration_support
+class Test_Stable_Config_Default:
+    """Verify that stable config works as intended"""
+
+    @missing_feature(
+        context.library in ["ruby", "cpp", "dotnet", "golang", "java", "nodejs", "php", "python"],
+        reason="does not support stable configurations yet",
+    )
+    @pytest.mark.parametrize("library_env", [{"STABLE_CONFIG_SELECTOR": "true", "DD_SERVICE": "not-my-service"}])
+    def test_config_stable(self, library_env, test_agent, test_library):
+        path = "/etc/datadog-agent/managed/datadog-apm-libraries/stable/libraries_config.yaml"
+        stable_config = """
+rules:
+  - selectors:
+    - origin: environment_variables
+      matches:
+        - STABLE_CONFIG_SELECTOR=true
+      operator: equals
+    configuration:
+      DD_SERVICE: my-service
+"""
+
+        with test_library:
+            success, message = test_library.container_exec_run(
+                f"bash -c \"mkdir -p {os.path.dirname(path)} && printf '{stable_config}' | tee {path}\""
+            )
+            assert success, message
+            test_library.container_restart()
+            config = test_library.config()
+            assert (
+                config["dd_service"] == "my-service"
+            ), f"Service name is '{config["dd_service"]}' instead of 'my-service'"

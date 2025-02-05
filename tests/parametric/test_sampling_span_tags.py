@@ -1,20 +1,20 @@
 import json
 
 import pytest
-from utils import bug, context, scenarios, features  # noqa
-from utils.parametric.spec.trace import MANUAL_DROP_KEY  # noqa
-from utils.parametric.spec.trace import MANUAL_KEEP_KEY  # noqa
-from utils.parametric.spec.trace import SAMPLING_AGENT_PRIORITY_RATE  # noqa
-from utils.parametric.spec.trace import SAMPLING_DECISION_MAKER_KEY  # noqa
-from utils.parametric.spec.trace import SAMPLING_LIMIT_PRIORITY_RATE  # noqa
-from utils.parametric.spec.trace import SAMPLING_PRIORITY_KEY  # noqa
-from utils.parametric.spec.trace import SAMPLING_RULE_PRIORITY_RATE  # noqa
-from utils.parametric.spec.trace import find_span_in_traces  # noqa
+from utils import bug, context, scenarios, features
+from utils.parametric.spec.trace import MANUAL_DROP_KEY
+from utils.parametric.spec.trace import MANUAL_KEEP_KEY
+from utils.parametric.spec.trace import SAMPLING_AGENT_PRIORITY_RATE
+from utils.parametric.spec.trace import SAMPLING_DECISION_MAKER_KEY
+from utils.parametric.spec.trace import SAMPLING_LIMIT_PRIORITY_RATE
+from utils.parametric.spec.trace import SAMPLING_PRIORITY_KEY
+from utils.parametric.spec.trace import SAMPLING_RULE_PRIORITY_RATE
+from utils.parametric.spec.trace import find_span_in_traces
 
 UNSET = -420
 
 
-class AnyRatio(object):
+class AnyRatio:
     def __eq__(self, other):
         return 0 <= other <= 1
 
@@ -73,7 +73,7 @@ def _assert_sampling_tags(
 @features.trace_sampling
 class Test_Sampling_Span_Tags:
     @bug(library="python", reason="APMAPI-737")  # Python sets dm tag on child span
-    @bug(library="nodejs", reason="APMAPI-737")  # NodeJS does not set priority on parent span
+    @bug(library="nodejs", reason="APMAPI-737")  # Node.js does not set priority on parent span
     @bug(library="ruby", reason="APMAPI-737")  # ruby does not set dm tag on first span
     @bug(library="dotnet", reason="APMAPI-737")  # dotnet does not set dm tag on first span
     @bug(library="golang", reason="APMAPI-737")  # golang sets priority 2
@@ -159,8 +159,8 @@ class Test_Sampling_Span_Tags:
         )
 
     @bug(library="java", reason="APMAPI-737")  # Java sets rate tag 9.9999 on parent span
-    @bug(library="dotnet", reason="APMAPI-737")  # Dotnet sets rate tag 9.9999 on parent span
-    @bug(library="nodejs", reason="APMAPI-737")  # NodeJS does not set dm tag on first span
+    @bug(library="dotnet", reason="APMAPI-737")  # .NET sets rate tag 9.9999 on parent span
+    @bug(library="nodejs", reason="APMAPI-737")  # Node.js does not set dm tag on first span
     @bug(library="golang", reason="APMAPI-737")  # golang does not set dm tag on first span
     @bug(library="python", reason="APMAPI-737")  # python does not set dm tag on first span
     @bug(library="ruby", reason="APMAPI-737")  # ruby does not set dm tag on first span
@@ -206,7 +206,7 @@ class Test_Sampling_Span_Tags:
             "be set to the given rule rate, which is 1",
         )
 
-    @bug(library="nodejs", reason="APMAPI-737")  # NodeJS does not set dm tag on first span
+    @bug(library="nodejs", reason="APMAPI-737")  # Node.js does not set dm tag on first span
     @bug(library="php", reason="APMAPI-737")  # php does not set dm tag on first span
     @bug(library="ruby", reason="APMAPI-737")  # ruby does not set dm tag on first span
     @bug(library="python", reason="APMAPI-737")  # python does not set dm tag on first span

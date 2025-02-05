@@ -1,4 +1,4 @@
-from utils import bug, context, interfaces, irrelevant, features, flaky, missing_feature, rfc, scenarios, weblog
+from utils import bug, context, interfaces, features, rfc, scenarios, weblog
 from utils.tools import logger
 
 TELEMETRY_REQUEST_TYPE_GENERATE_METRICS = "generate-metrics"
@@ -6,8 +6,7 @@ TELEMETRY_REQUEST_TYPE_DISTRIBUTIONS = "distributions"
 
 
 def _setup(self):
-    """
-    Common setup for all tests in this module. They all depend on the same set
+    """Common setup for all tests in this module. They all depend on the same set
     of requests, which must be run only once.
     """
     # Run only once, even across multiple class instances.
@@ -18,13 +17,14 @@ def _setup(self):
     r_blocked = weblog.get(
         "/",
         headers={"x-forwarded-for": "80.80.80.80", "user-agent": "dd-test-scanner-log-block"},
-        # XXX: hack to prevent rid inhibiting the dd-test-scanner-log-block rule
+        # Hack to prevent rid inhibiting the dd-test-scanner-log-block rule
         rid_in_user_agent=False,
     )
     Test_TelemetryMetrics.__common_setup_done = True
 
 
 @rfc("https://docs.google.com/document/d/1qBDsS_ZKeov226CPx2DneolxaARd66hUJJ5Lh9wjhlE")
+@rfc("https://docs.google.com/document/d/1D4hkC0jwwUyeo0hEQgyKP54kM1LZU98GL8MaP60tQrA")
 @scenarios.appsec_waf_telemetry
 @features.waf_telemetry
 class Test_TelemetryMetrics:
@@ -53,6 +53,7 @@ class Test_TelemetryMetrics:
             "event_rules_version",
             "version",
             "lib_language",
+            "success",
         }
         series = self._find_series(TELEMETRY_REQUEST_TYPE_GENERATE_METRICS, "appsec", expected_metric_name)
         # TODO(Python). Gunicorn creates 2 process (main gunicorn process + X child workers). It generates two init

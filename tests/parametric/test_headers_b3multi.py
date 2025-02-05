@@ -5,7 +5,7 @@ import pytest
 from utils.parametric.spec.trace import SAMPLING_PRIORITY_KEY, ORIGIN
 from utils.parametric.spec.trace import span_has_no_parent
 from utils.parametric.spec.trace import find_only_span
-from utils import missing_feature, irrelevant, context, scenarios, features, bug
+from utils import missing_feature, context, scenarios, features
 
 parametrize = pytest.mark.parametrize
 
