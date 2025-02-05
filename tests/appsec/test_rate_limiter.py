@@ -5,7 +5,7 @@
 import datetime
 import time
 
-from utils import weblog, context, interfaces, rfc, bug, scenarios, flaky, features
+from utils import weblog, context, interfaces, rfc, bug, scenarios, features
 from utils.tools import logger
 
 
@@ -20,8 +20,7 @@ class Test_Main:
     # as sampling mechnism is very different across agent, it won't be an easy task
 
     def setup_main(self):
-        """
-        Make 5 requests per second, for 10 seconds.
+        """Make 5 requests per second, for 10 seconds.
 
         The test may be flaky if all requests takes more than 200ms, but it's very unlikely
         """
@@ -42,7 +41,7 @@ class Test_Main:
         context.library > "nodejs@3.14.1" and context.library < "nodejs@4.8.0", reason="APMRP-360"
     )  # _sampling_priority_v1 is missing
     def test_main(self):
-        """send requests for 10 seconds, check that only 10-ish traces are sent, as rate limiter is set to 1/s"""
+        """Send requests for 10 seconds, check that only 10-ish traces are sent, as rate limiter is set to 1/s"""
 
         MANUAL_KEEP = 2
         trace_count = 0

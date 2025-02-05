@@ -1,12 +1,13 @@
 import json
-import time
 import os
+import random
+import socket
+import time
 
 import docker
 from docker.errors import BuildError
 from docker.models.networks import Network
 
-import utils.tools
 from utils import context, interfaces
 from utils._context.library_version import LibraryVersion, Version
 from utils._context.containers import (
@@ -34,7 +35,7 @@ class DockerSSIScenario(Scenario):
 
         self._weblog_injection = DockerSSIContainer(host_log_folder=self.host_log_folder)
 
-        self.agent_port = utils.tools.get_free_port()
+        self.agent_port = _get_free_port()
         self.agent_host = "localhost"
         self._agent_container = APMTestAgentContainer(host_log_folder=self.host_log_folder, agent_port=self.agent_port)
 
@@ -458,3 +459,17 @@ class DockerSSIImageBuilder:
         vm_logger(scenario_name, "docker_push").info(f"    Push docker image with tag: {image_tag}   ")
         vm_logger(scenario_name, "docker_push").info("***************************************************************")
         vm_logger(scenario_name, "docker_push").info(push_logs)
+
+
+def _get_free_port():
+    last_allowed_port = 32000
+    port = random.randint(1100, last_allowed_port - 600)
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    while port <= last_allowed_port:
+        try:
+            sock.bind(("", port))
+            sock.close()
+            return port
+        except OSError:
+            port += 1
+    raise OSError("no free ports")

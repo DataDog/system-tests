@@ -538,9 +538,7 @@ class RequestMutator:
 
     ################################
     def clean_request(self, request):
-        """
-        The purpose if this function is to clean requests from corpus that may cause a HTTP 500 response
-        """
+        """The purpose if this function is to clean requests from corpus that may cause a HTTP 500 response"""
 
         # request["path"] = request["path"][:self.max_path_length]
 

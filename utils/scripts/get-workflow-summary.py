@@ -5,7 +5,7 @@ import sys
 import requests
 
 
-def get_environ():
+def get_environ() -> dict[str, str]:
     environ = {**os.environ}
 
     try:
@@ -63,4 +63,4 @@ def main(repo_slug: str, run_id: int) -> None:
 
 
 if __name__ == "__main__":
-    main("DataDog/system-tests", sys.argv[1])
+    main("DataDog/system-tests", int(sys.argv[1]))

@@ -405,6 +405,11 @@ tests/:
       TestK8sLibInjectioProfilingClusterEnabled: missing_feature
       TestK8sLibInjectioProfilingClusterOverride: missing_feature
       TestK8sLibInjectioProfilingDisabledByDefault: missing_feature
+  otel/:
+    test_context_propagation.py:
+      Test_Otel_Context_Propagation_Default_Propagator_Api:
+        '*': incomplete_test_app (endpoint not implemented)
+        rails70: v2.0.0
   parametric/:
     test_config_consistency.py:
       Test_Config_Dogstatsd: missing_feature
@@ -414,6 +419,7 @@ tests/:
       Test_Config_TraceEnabled: v2.0.0
       Test_Config_TraceLogDirectory: missing_feature
       Test_Config_UnifiedServiceTagging: v2.5.0
+      Test_Stable_Config_Default: missing_feature
     test_crashtracking.py:
       Test_Crashtracking: v2.3.0
     test_dynamic_configuration.py:
@@ -508,14 +514,14 @@ tests/:
     Test_Config_ObfuscationQueryStringRegexp_Default: bug (APMAPI-1013)
     Test_Config_ObfuscationQueryStringRegexp_Empty: missing_feature (environment variable is not supported)
     Test_Config_RuntimeMetrics_Default: incomplete_test_app (test needs to account for ruby runtime metrics)
-    Test_Config_RuntimeMetrics_Enabled: incomplete_test_app (test needs to account for ruby runtime metrics)
+    Test_Config_RuntimeMetrics_Enabled: missing_feature (should be in v0.44.0 but we're not receiving series in tests)
+    Test_Config_RuntimeMetrics_Enabled_WithRuntimeId: missing_feature
     Test_Config_UnifiedServiceTagging_CustomService: v2.0.0
     Test_Config_UnifiedServiceTagging_Default: v2.0.0
   test_distributed.py:
     Test_DistributedHttp: missing_feature
     Test_Span_Links_Flags_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
     Test_Span_Links_From_Conflicting_Contexts: missing_feature
-    Test_Span_Links_From_Conflicting_Contexts_Datadog_Precedence: missing_feature
     Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
   test_graphql.py: missing_feature
   test_identify.py:
@@ -524,6 +530,10 @@ tests/:
     Test_Propagate_Legacy: missing_feature
   test_ipv6.py: missing_feature (APMAPI-869)
   test_library_conf.py:
+    Test_ExtractBehavior_Default: missing_feature (baggage should be implemented and conflicting trace contexts should generate span link)
+    Test_ExtractBehavior_Ignore: missing_feature (extract behavior not implemented)
+    Test_ExtractBehavior_Restart: missing_feature (extract behavior not implemented)
+    Test_ExtractBehavior_Restart_With_Extract_First: missing_feature (extract behavior not implemented)
     Test_HeaderTags: v1.13.0
     Test_HeaderTags_Colon_Leading: v1.13.0
     Test_HeaderTags_Colon_Trailing: v1.13.0
@@ -545,6 +555,13 @@ tests/:
     Test_Meta: v1.7.0
     Test_MetaDatadogTags: v1.9.0
     Test_MetricsStandardTags: v1.7.0
+  test_span_events.py:
+    Test_SpanEvents_WithAgentSupport:
+      "*": irrelevant
+      rack: v2.10.0
+    Test_SpanEvents_WithoutAgentSupport:
+      "*": irrelevant
+      rack: v2.10.0
   test_standard_tags.py:
     Test_StandardTagsClientIp: v1.10.1
     Test_StandardTagsMethod: v1.8.0

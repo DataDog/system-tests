@@ -719,6 +719,7 @@ class WeblogContainer(TestedContainer):
 
         if tracer_sampling_rate:
             base_environment["DD_TRACE_SAMPLE_RATE"] = str(tracer_sampling_rate)
+            base_environment["DD_TRACE_SAMPLING_RULES"] = json.dumps([{"sample_rate": tracer_sampling_rate}])
 
         if use_proxy:
             # set the tracer to send data to runner (it will forward them to the agent)
@@ -822,11 +823,29 @@ class WeblogContainer(TestedContainer):
 
         self.appsec_rules_file = (self.image.env | self.environment).get("DD_APPSEC_RULES", None)
 
+        # Workaround: Once the dd-trace-go fix is merged that avoids a go panic for
+        # DD_TRACE_PROPAGATION_EXTRACT_FIRST=true when context propagation fails,
+        # we can remove the DD_TRACE_PROPAGATION_EXTRACT_FIRST=false override
+        if library == "golang":
+            self.environment["DD_TRACE_PROPAGATION_EXTRACT_FIRST"] = "false"
+
+        # Workaround: We may want to define baggage in our list of propagators, but the cpp library
+        # has strict checks on tracer startup that will fail to launch the application
+        # when it encounters unfamiliar configurations. Override the configuration that the cpp
+        # weblog container sees so we can still run tests
+        if library == "cpp":
+            extract_config = self.environment.get("DD_TRACE_PROPAGATION_STYLE_EXTRACT")
+            if extract_config and "baggage" in extract_config:
+                self.environment["DD_TRACE_PROPAGATION_STYLE_EXTRACT"] = extract_config.replace("baggage", "").strip(
+                    ","
+                )
+
         if library == "nodejs":
             try:
                 with open("./binaries/nodejs-load-from-local", encoding="utf-8") as f:
                     path = f.read().strip(" \r\n")
-                    self.kwargs["volumes"][os.path.abspath(path)] = {
+                    path_str = str(Path(path).resolve())
+                    self.kwargs["volumes"][path_str] = {
                         "bind": "/volumes/dd-trace-js",
                         "mode": "ro",
                     }
@@ -1073,7 +1092,7 @@ class OpenTelemetryCollectorContainer(TestedContainer):
         # _otel_config_host_path is mounted in the container, and depending on umask,
         # it might have no read permissions for other users, which is required within
         # the container. So set them here.
-        prev_mode = os.stat(self._otel_config_host_path).st_mode
+        prev_mode = Path(self._otel_config_host_path).stat().st_mode
         new_mode = prev_mode | stat.S_IROTH
         if prev_mode != new_mode:
             Path(self._otel_config_host_path).chmod(new_mode)

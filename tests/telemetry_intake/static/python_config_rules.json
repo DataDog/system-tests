@@ -9,6 +9,7 @@
         "DD_EXCEPTION_DEBUGGING_ENABLED": "dd_exception_debugging_enabled",
         "DD_INSTRUMENTATION_TELEMETRY_ENABLED": "instrumentation_telemetry_enabled",
         "DD_INTERNAL_RCM_POLL_INTERVAL": "remote_config_poll_interval",
+        "DD_LLMOBS_EVALUATOR_SAMPLING_RULES": "dd_llmobs_evaluator_sampling_rules",
         "DD_LOGS_INJECTION": "logs_injection_enabled",
         "DD_MAX_TRACES_PER_SECOND": "trace_rate_limit",
         "DD_PROFILING_ENABLED": "profiling_enabled",

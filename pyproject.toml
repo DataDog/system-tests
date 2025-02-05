@@ -1,9 +1,13 @@
 [project]
 name = 'system_tests'
 version = '0.0.1'
+dynamic = ["dependencies"]
 
 [tool.setuptools]
 packages = ["tests", "utils", "manifests"]
+
+[tool.setuptools.dynamic]
+dependencies = {file = ["requirements.txt"]}
 
 [tool.pytest.ini_options]
 addopts = "--json-report --json-report-indent=2 --color=yes --no-header --junitxml=reportJunit.xml -r Xf"
@@ -43,11 +47,44 @@ allow_no_feature_nodes = [
 ]
 
 [tool.mypy]
-files = ["utils/parametric", "tests/parametric"]
+files = [
+    "utils/",
+    "tests/",
+    "conftest.py",
+]
+exclude = [
+    "utils/build/.*",  # more permissive on weblog codes
+    "utils/grpc/weblog_pb2.py",  # auto generated
+
+    # TODO
+    "tests/fuzzer/.*",
+    "tests/test_the_test/.*",
+    "tests/test_telemetry.py",
+    "tests/test_profiling.py",
+    "tests/appsec/.*",
+    "tests/debugger/.*",
+    "tests/auto_inject/.*",
+    "tests/integrations/.*",
+    "tests/otel_tracing_e2e/test_e2e.py",
+    "tests/k8s_lib_injection/test_k8s_init_image_validator.py",
+    "utils/_context/_scenarios/auto_injection.py",
+    "utils/_context/_scenarios/k8s_lib_injection.py",
+    "utils/_context/containers.py",
+    "utils/_context/core.py",
+    "utils/_context/virtual_machines.py",
+    "utils/scripts/decode-rc.py",
+    "utils/docker_ssi/.*",
+    "utils/k8s_lib_injection/.*",
+    "utils/onboarding/.*",
+    "utils/otel_validators/validator_trace.py",
+    "utils/proxy/_deserializer.py",
+    "utils/scripts/compute_impacted_scenario.py",
+    "utils/scripts/merge_gitlab_aws_pipelines.py",
+    "utils/virtual_machine/.*",
+]
 ignore_missing_imports = true
 check_untyped_defs = true
 disable_error_code = ["no-redef"]
-exclude = 'utils/parametric/_library_client\.py|^(?!utils/parametric|tests/parametric).*$'
 follow_imports = "skip"
 # enable_error_code = ["ignore-without-code"]
 
@@ -81,9 +118,7 @@ ignore = [
     # missing-type-annotation, the ONE to remove !!
     "ANN001",
     "ANN003",
-    "ANN201",
     "ANN202",
-    "ANN205",
     "BLE001",  # Do not catch blind exception: `Exception`, big project to enable this
     "C901",    # code complexity, TBD
     "E722",    # bare except, big project to enable this
@@ -94,13 +129,7 @@ ignore = [
     "PLR0915", # too many statements, may be replaced by a higher default value
     "PLR1714",
     "PLR2004",
-    "PTH100",
-    "PTH110",
-    "PTH113",
-    "PTH116",
     "PTH118",
-    "PTH120",
-    "PTH122",  # os.path.splitext(), but not really easier to read ? 
     "PTH123",  # `open()` should be replaced by `Path.open()`
     "RUF012",
     "S202",
@@ -148,6 +177,7 @@ ignore = [
     "TD003",  # todo found
     "TD004",  # todo found
     "TRY300", # not always obvious
+    "UP015",  # redundant-open-modes: yes it's redundant. But explicit is better than implicit
     "UP038",  # not a big fan
 
 ]
@@ -159,13 +189,118 @@ ignore = [
     "INP001",  # this is not a package
     "T201"     # allow print statements in scripts folder
 ]
-"utils/interfaces/schemas/serve_doc.py" = ["INP001"] # this is not a package
+"utils/interfaces/schemas/serve_doc.py" = [
+    "INP001", # this is not a package
+    "ANN201"
+]
 "utils/waf_rules.py" = ["N801"]  # generated file
 # TODO : remove those ignores
-"tests/*" = ["ALL"]
+"tests/*" = [
+    # lines with [*] can be autofixed with ruff check --fix --unsafe-fixes
+    # though, each change must be reviewed
+    "ANN201",    # 2043 occurences  [ ] missing-return-type-undocumented-public-function
+    "N801",      # 492 occurences   [ ] invalid-class-name
+    "ARG002",    # 177 occurences   [ ] unused-method-argument
+    "E501",      # 159 occurences   [ ] line-too-long
+    "SIM117",    # 127 occurences   [ ] multiple-with-statements
+    "TID252",    # 77 occurences    [*] relative-imports
+    "N806",      # 76 occurences    [ ] non-lowercase-variable-in-function
+    "FBT003",    # 67 occurences    [ ] boolean-positional-value-in-call
+    "D200",      # 52 occurences    [*] fits-on-one-line
+    "F405",      # 43 occurences    [ ] undefined-local-with-import-star-usage
+    "TRY002",    # 41 occurences    [ ] raise-vanilla-class
+    "PT018",     # 39 occurences    [ ] pytest-composite-assertion
+    "N802",      # 39 occurences    [ ] invalid-function-name
+    "FBT002",    # 30 occurences    [ ] boolean-default-value-positional-argument
+    "F841",      # 28 occurences    [*] unused-variable
+    "D404",      # 25 occurences    [ ] docstring-starts-with-this
+    "ANN401",    # 24 occurences    [ ] any-type
+    "B007",      # 23 occurences    [ ] unused-loop-control-variable
+    "DTZ005",    # 23 occurences    [ ] call-datetime-now-without-tzinfo
+    "INP001",    # 22 occurences    [ ] implicit-namespace-package
+    "ARG001",    # 21 occurences    [ ] unused-function-argument
+    "UP031",     # 17 occurences    [ ] printf-string-formatting
+    "ANN205",    # 16 occurences    [ ] missing-return-type-static-method
+    "T201",      # 15 occurences    [*] print
+    "FBT001",    # 12 occurences    [ ] boolean-type-hint-positional-argument
+    "SLF001",    # 12 occurences    [ ] private-member-access
+    "SIM118",    # 12 occurences    [*] in-dict-keys
+    "UP035",     # 12 occurences    [ ] deprecated-import
+    "S105",      # 10 occurences    [ ] hardcoded-password-string
+    "B015",      # 10 occurences    [ ] useless-comparison
+    "RET503",    # 9 occurences     [*] implicit-return
+    "SIM115",    # 9 occurences     [ ] open-file-with-context-handler
+    "PGH004",    # 9 occurences     [ ] blanket-noqa
+    "RUF001",    # 9 occurences     [ ] ambiguous-unicode-character-string
+    "RUF015",    # 9 occurences     [*] unnecessary-iterable-allocation-for-first-element
+    "SIM108",    # 8 occurences     [*] if-else-block-instead-of-if-exp
+    "PTH120",    # 8 occurences     [ ] os-path-dirname
+    "PGH003",    # 8 occurences     [ ] blanket-type-ignore
+    "TRY301",    # 8 occurences     [ ] raise-within-try
+    "ANN206",    # 7 occurences     [ ] missing-return-type-class-method
+    "B011",      # 7 occurences     [*] assert-false
+    "PT015",     # 7 occurences     [ ] pytest-assert-always-false
+    "N815",      # 7 occurences     [ ] mixed-case-variable-in-class-scope
+    "A001",      # 6 occurences     [ ] builtin-variable-shadowing
+    "PT006",     # 6 occurences     [*] pytest-parametrize-names-wrong-type
+    "RET504",    # 6 occurences     [*] unnecessary-assign
+    "N803",      # 6 occurences     [ ] invalid-argument-name
+    "E712",      # 6 occurences     [*] true-false-comparison
+    "E741",      # 6 occurences     [ ] ambiguous-variable-name
+    "S113",      # 5 occurences     [ ] request-without-timeout
+    "PT011",     # 5 occurences     [ ] pytest-raises-too-broad
+    "E731",      # 5 occurences     [*] lambda-assignment
+    "RUF005",    # 5 occurences     [ ] collection-literal-concatenation
+    "B006",      # 4 occurences     [*] mutable-argument-default
+    "PIE794",    # 4 occurences     [*] duplicate-class-field-definition
+    "PTH103",    # 4 occurences     [ ] os-makedirs
+    "E711",      # 4 occurences     [*] none-comparison
+    "E721",      # 4 occurences     [ ] type-comparison
+    "PLW2901",   # 4 occurences     [ ] redefined-loop-name
+    "RUF003",    # 4 occurences     [ ] ambiguous-unicode-character-comment
+    "B904",      # 3 occurences     [ ] raise-without-from-inside-except
+    "A002",      # 3 occurences     [ ] builtin-argument-shadowing
+    "PTH112",    # 3 occurences     [ ] os-path-isdir
+    "W291",      # 3 occurences     [*] trailing-whitespace
+    "RUF017",    # 3 occurences     [*] quadratic-list-summation
+    "ANN002",    # 2 occurences     [ ] missing-type-args
+    "ASYNC230",  # 2 occurences     [ ] blocking-open-call-in-async-function
+    "S605",      # 2 occurences     [ ] start-process-with-a-shell
+    "C408",      # 2 occurences     [*] unnecessary-collection-call
+    "C416",      # 2 occurences     [*] unnecessary-comprehension
+    "FIX003",    # 2 occurences     [ ] line-contains-xxx
+    "PIE810",    # 2 occurences     [*] multiple-starts-ends-with
+    "T203",      # 2 occurences     [*] p-print
+    "ARG005",    # 2 occurences     [ ] unused-lambda-argument
+    "PTH100",    # 2 occurences     [ ] os-path-abspath
+    "PTH109",    # 2 occurences     [ ] os-getcwd
+    "D210",      # 2 occurences     [ ] surrounding-whitespace
+    "FURB129",   # 2 occurences     [*] readlines-in-for
+    "RUF002",    # 2 occurences     [ ] ambiguous-unicode-character-docstring
+    "ASYNC251",  # 1 occurences     [ ] blocking-sleep-in-async-function
+    "S108",      # 1 occurences     [ ] hardcoded-temp-file
+    "S110",      # 1 occurences     [ ] try-except-pass
+    "C400",      # 1 occurences     [*] unnecessary-generator-list
+    "C401",      # 1 occurences     [*] unnecessary-generator-set
+    "SIM105",    # 1 occurences     [ ] suppressible-exception
+    "TD005",     # 1 occurences     [ ] missing-todo-description
+    "PTH113",    # 1 occurences     [ ] os-path-isfile
+    "F403",      # 1 occurences     [ ] undefined-local-with-import-star
+    "PLC0206",   # 1 occurences     [ ] dict-index-missing-items
+    "PLR0133",   # 1 occurences     [ ] comparison-of-constant
+    "RUF006",    # 1 occurences     [ ] asyncio-dangling-task
+
+    # keep those rules
+    "PLR1730",   # if-stmt-min-max: not clear that it makes the code easier to read
+    "RET506",    # superfluous-else-raise: requires a slightly higher cognitive effort to understand the code
+    "RET507",    # superfluous-else-continue : requires a slightly higher cognitive effort to understand the code
+    "RET508",    # superfluous-else-break: requires a slightly higher cognitive effort to understand the code
+    "RET505",    # superfluous-else-return: requires a slightly higher cognitive effort to understand the code
+]
 "utils/build/*"  = ["ALL"]
 "lib-injection/*" = ["ALL"]
 "utils/{k8s_lib_injection/*,_context/_scenarios/k8s_lib_injection.py}" = [
+    "ANN201",
     "TRY201",
     "TRY002",
     "D207",
@@ -200,6 +335,7 @@ ignore = [
 ]
 
 "utils/onboarding/*" = [
+    "ANN201",
     "DTZ006",
     "DTZ005",
     "E501",    # line too long
@@ -213,7 +349,12 @@ ignore = [
     "N803",
     "RET505",
 ]
+"utils/docker_ssi/*" = [
+    "ANN201",
+    "ANN205",
+]
 "utils/{_context/_scenarios/docker_ssi.py,docker_ssi/docker_ssi_matrix_builder.py,docker_ssi/docker_ssi_matrix_utils.py}" = [
+    "ANN201",
     "PLR2004",
     "E501",    # line too long
     "SIM210",
@@ -262,7 +403,6 @@ ignore = [
     "SIM300",
     "SIM401",  # code quality, TBD
     "UP008",
-    "UP015",
     "UP031",
     "UP024",
 
@@ -287,4 +427,7 @@ ignore = [
     "SIM115",
     "SLF001",
     "TRY002",
+]
+"utils/_features.py" = [
+    "ANN205"  #obvious decorators
 ]

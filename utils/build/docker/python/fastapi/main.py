@@ -28,9 +28,9 @@ import urllib3
 import xmltodict
 
 import ddtrace
-from ddtrace import Pin
+from ddtrace.trace import Pin
 from ddtrace import patch_all
-from ddtrace import tracer
+from ddtrace.trace import tracer
 from ddtrace.appsec import trace_utils as appsec_trace_utils
 
 
@@ -722,7 +722,7 @@ async def view_iast_ssrf_secure(url: typing.Annotated[str, Form()]):
     from urllib.parse import urlparse
 
     # Validate the URL and enforce whitelist
-    allowed_domains = ["example.com", "api.example.com"]
+    allowed_domains = ["example.com", "api.example.com", "www.datadoghq.com"]
     parsed_url = urlparse(str(url))
 
     if parsed_url.hostname not in allowed_domains:
