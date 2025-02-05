@@ -28,7 +28,7 @@ class TestUntrustedDeserialization_StackTrace:
     """Validate stack trace generation"""
 
     def setup_stack_trace(self):
-        self.r = weblog.get("/iast/untrusted_deserialization/test_insecure")
+        self.r = weblog.get("/iast/untrusted_deserialization/test_insecure?name=example")
 
     def test_stack_trace(self):
         validate_stack_traces(self.r)
