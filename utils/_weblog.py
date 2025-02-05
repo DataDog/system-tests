@@ -144,9 +144,8 @@ class _Weblog:
             url = self._get_url(path, domain, port)
 
         status_code = None
-        headers = {}
+        response_headers: CaseInsensitiveDict = CaseInsensitiveDict()
         text = None
-        cookies = None
 
         timeout = kwargs.pop("timeout", 5)
         try:
@@ -158,9 +157,8 @@ class _Weblog:
             s = requests.Session()
             response = s.send(r, timeout=timeout, stream=stream, allow_redirects=allow_redirects)
             status_code = response.status_code
-            headers = response.headers
+            response_headers = response.headers
             text = response.text
-            cookies = requests.utils.dict_from_cookiejar(s.cookies)
 
         except Exception as e:
             logger.error(f"Request {rid} raise an error: {e}")
@@ -171,9 +169,9 @@ class _Weblog:
             {
                 "request": {"method": method, "url": url, "headers": headers, "params": params},
                 "status_code": status_code,
-                "headers": headers,
+                "headers": response_headers,
                 "text": text,
-                "cookies": cookies,
+                "cookies": requests.utils.dict_from_cookiejar(s.cookies),
             }
         )
 
