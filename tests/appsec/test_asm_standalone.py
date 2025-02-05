@@ -748,10 +748,12 @@ class Test_AppSecStandalone_NotEnabled:
 
     def setup_client_computed_stats_header_is_not_present(self):
         trace_id = 1212121212121212122
+        parent_id = 34343434
         self.r = weblog.get(
             "/",
             headers={
                 "x-datadog-trace-id": str(trace_id),
+                "x-datadog-parent-id": str(parent_id),
             },
         )
 
