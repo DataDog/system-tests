@@ -938,3 +938,36 @@ class Fedora37arm64(_VirtualMachine):
             default_vm=False,
             **kwargs,
         )
+
+
+# TODO RMM Copy fedora ami to our aws account
+class Fedora40amd64(_VirtualMachine):
+    def __init__(self, **kwargs) -> None:
+        super().__init__(
+            "Fedora_40_amd64",
+            aws_config=_AWSConfig(ami_id="ami-00241b73f8d2add3a", ami_instance_type="t3.medium", user="fedora"),
+            vagrant_config=None,
+            krunvm_config=None,
+            os_type="linux",
+            os_distro="rpm",
+            os_branch="fedora",
+            os_cpu="amd64",
+            default_vm=False,
+            **kwargs,
+        )
+
+
+class Fedora40arm64(_VirtualMachine):
+    def __init__(self, **kwargs) -> None:
+        super().__init__(
+            "Fedora_40_arm64",
+            aws_config=_AWSConfig(ami_id="ami-000c5e92798a670b0", ami_instance_type="t4g.medium", user="fedora"),
+            vagrant_config=None,
+            krunvm_config=None,
+            os_type="linux",
+            os_distro="rpm",
+            os_branch="fedora",
+            os_cpu="arm64",
+            default_vm=False,
+            **kwargs,
+        )
