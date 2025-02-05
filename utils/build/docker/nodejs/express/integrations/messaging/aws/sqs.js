@@ -1,9 +1,14 @@
 const AWS = require('aws-sdk')
 const tracer = require('dd-trace')
 
+const { AWS_HOST, AWS_ACCT } = require('./shared')
+
 const sqsProduce = (queue, message) => {
   // Create an SQS client
-  const sqs = new AWS.SQS()
+  const sqs = new AWS.SQS({
+    region: 'us-east-1',
+    endpoint: AWS_HOST
+  })
 
   const messageToSend = message ?? 'Hello from SQS JavaScript injection'
 
@@ -18,7 +23,7 @@ const sqsProduce = (queue, message) => {
         // Send messages to the queue
         const produce = () => {
           sqs.sendMessage({
-            QueueUrl: `https://sqs.us-east-1.amazonaws.com/601427279990/${queue}`,
+            QueueUrl: `${AWS_HOST}/${AWS_ACCT}/${queue}`,
             MessageBody: messageToSend
           }, (err, data) => {
             if (err) {
@@ -41,10 +46,15 @@ const sqsProduce = (queue, message) => {
 
 const sqsConsume = async (queue, timeout, expectedMessage) => {
   // Create an SQS client
-  const sqs = new AWS.SQS()
+  const sqs = new AWS.SQS({
+    region: 'us-east-1',
+    endpoint: AWS_HOST
+  })
 
-  const queueUrl = `https://sqs.us-east-1.amazonaws.com/601427279990/${queue}`
+  const queueUrl = `${AWS_HOST}/${AWS_ACCT}/${queue}`
+
   console.log(`[SQS] Looking for message: ${expectedMessage} in queue: ${queue}`)
+
   return new Promise((resolve, reject) => {
     let messageFound = false
 
