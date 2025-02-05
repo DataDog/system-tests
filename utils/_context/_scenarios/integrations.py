@@ -85,6 +85,10 @@ class AWSIntegrationsScenario(EndToEndScenario):
 🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫
 """
 
+    # Since we are using real AWS queues / topics, we need a unique message to ensure we aren't consuming messages from
+    # other tests. This time hash is added to the message, test consumers only stops once finding the specific message.
+    unique_id: str = ""
+
     def __init__(
         self,
         name="INTEGRATIONS_AWS",
@@ -107,10 +111,6 @@ class AWSIntegrationsScenario(EndToEndScenario):
             include_buddies=include_buddies,
             scenario_groups=[ScenarioGroup.INTEGRATIONS, ScenarioGroup.ESSENTIALS],
         )
-        # Since we are using real AWS queues / topics, we need a unique message to ensure we aren't consuming messages
-        # from other tests. This time hash is added to the message, test consumers only stops once finding the specific
-        # message.
-        self.unique_id = None
 
     def configure(self, config):
         super().configure(config)
@@ -127,6 +127,8 @@ class AWSIntegrationsScenario(EndToEndScenario):
 
 
 class CrossedTracingLibraryScenario(EndToEndScenario):
+    unique_id: str = ""
+
     def __init__(self) -> None:
         super().__init__(
             "CROSSED_TRACING_LIBRARIES",
@@ -135,7 +137,6 @@ class CrossedTracingLibraryScenario(EndToEndScenario):
             include_rabbitmq=True,
             doc="Spawns a buddy for each supported language of APM, requires AWS authentication.",
         )
-        self.unique_id = None
 
     def configure(self, config):
         super().configure(config)
