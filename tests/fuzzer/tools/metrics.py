@@ -45,38 +45,28 @@ class Metric:
         self.global_value = value
 
     def observe(self):
-        """
-        Will be called before printing
-        """
+        """Will be called before printing"""
 
     def observe_global_value(self):
         self.value = self.global_value
         self.observe()
 
     def reset(self):
-        """
-        Will be called after printing
-        """
+        """Will be called after printing"""
 
     @property
     def pretty(self):
-        """
-        Will be printed
-        """
+        """Will be printed"""
         return self.format_string.format(value=str(self.value))
 
     @property
     def raw(self):
-        """
-        Will be exported for later analysis
-        """
+        """Will be exported for later analysis"""
         return self.value
 
     @property
     def is_null(self):
-        """
-        if true, will not reported in log file
-        """
+        """If true, will not reported in log file"""
         return False
 
 

@@ -594,8 +594,7 @@ class Test_Login_Events_Extended:
 @features.user_monitoring
 @features.user_id_collection_modes
 class Test_V2_Login_Events:
-    """
-    Test login success/failure use cases
+    """Test login success/failure use cases
     By default, mode is identification
     """
 
@@ -1230,8 +1229,7 @@ libs_without_user_id_on_failure = ["nodejs", "java"]
 @features.user_monitoring
 @features.user_id_collection_modes
 class Test_V3_Login_Events:
-    """
-    Test login success/failure use cases
+    """Test login success/failure use cases
     By default, mode is identification
     """
 

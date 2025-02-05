@@ -1,4 +1,4 @@
-from utils import bug, context, interfaces, irrelevant, features, flaky, missing_feature, rfc, scenarios, weblog
+from utils import bug, context, interfaces, features, rfc, scenarios, weblog
 from utils.tools import logger
 
 TELEMETRY_REQUEST_TYPE_GENERATE_METRICS = "generate-metrics"
@@ -6,8 +6,7 @@ TELEMETRY_REQUEST_TYPE_DISTRIBUTIONS = "distributions"
 
 
 def _setup(self):
-    """
-    Common setup for all tests in this module. They all depend on the same set
+    """Common setup for all tests in this module. They all depend on the same set
     of requests, which must be run only once.
     """
     # Run only once, even across multiple class instances.

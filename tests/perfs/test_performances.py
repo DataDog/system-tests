@@ -126,7 +126,7 @@ class Test_Performances:
             print("MEM", datetime.now(), memory, flush=True)
 
     def test_main(self):
-        """add some tests ?"""
+        """Add some tests ?"""
 
         with open(
             f"{scenarios.performances.host_log_folder}/stats_{self.lang}_{self.appsec}.json", "w", encoding="utf-8"

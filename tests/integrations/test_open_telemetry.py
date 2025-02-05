@@ -9,7 +9,7 @@ class _BaseOtelDbIntegrationTestClass(BaseDbIntegrationsTestClass):
     """
 
     def test_properties(self):
-        """generic check on all operations"""
+        """Generic check on all operations"""
 
         db_container = context.scenario.get_container_by_dd_integration_name(self.db_service)
 

@@ -102,7 +102,7 @@ class Test_Headers:
     @irrelevant(library="php", reason="PHP normalizes into dashes; additionally, matching on keys is not supported")
     @missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
     def test_specific_key2(self):
-        """attacks on specific header X_Filename, and report it"""
+        """Attacks on specific header X_Filename, and report it"""
         try:
             interfaces.library.assert_waf_attack(
                 self.r_sk_4, pattern="routing.yml", address="server.request.headers.no_cookies", key_path=["x_filename"]
