@@ -49,6 +49,7 @@ class APMLibraryClient:
         self._base_url = url
         self._session = requests.Session()
         self.container = container
+        self.timeout = timeout
 
         # wait for server to start
         self._wait(timeout)
@@ -69,6 +70,10 @@ class APMLibraryClient:
             self._print_logs()
             message = f"Timeout of {timeout} seconds exceeded waiting for HTTP server to start. Please check logs."
             _fail(message)
+
+    def container_restart(self):
+        self.container.restart()
+        self._wait(self.timeout)
 
     def is_alive(self) -> bool:
         self.container.reload()
@@ -96,16 +101,16 @@ class APMLibraryClient:
 
     def container_exec_run(self, command: str) -> tuple[bool, str]:
         try:
-            code, (stdout, _) = self.container.exec_run(command, demux=True)
+            code, (stdout, stderr) = self.container.exec_run(command, demux=True)
             if code is None:
                 success = False
                 message = "Exit code from command in the parametric app container is None"
-            elif stdout is None:
+            elif stderr is not None or code != 0:
                 success = False
-                message = "Stdout from command in the parametric app container is None"
+                message = f"Error code {code}: {stderr.decode()}"
             else:
                 success = True
-                message = stdout.decode()
+                message = stdout.decode() if stdout is not None else ""
         except BaseException:
             return False, "Encountered an issue running command in the parametric app container"
 
@@ -425,6 +430,9 @@ class APMLibrary:
 
     def container_exec_run(self, command: str) -> tuple[bool, str]:
         return self._client.container_exec_run(command)
+
+    def container_restart(self):
+        self._client.container_restart()
 
     @contextlib.contextmanager
     def dd_start_span(
