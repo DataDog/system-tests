@@ -148,6 +148,7 @@ tests/:
           TestSSRF_StackTrace: v2.19.0.dev
         test_template_injection.py:
           TestTemplateInjection: missing_feature
+          TestTemplateInjection_ExtendedLocation: missing_feature
         test_trust_boundary_violation.py:
           Test_TrustBoundaryViolation: missing_feature
           Test_TrustBoundaryViolation_ExtendedLocation: missing_feature
