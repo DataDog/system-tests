@@ -289,15 +289,14 @@ def validate_extended_location_data(request, vulnerability_type, is_expected_loc
         # Verify frame matches location
         location_match = False
         for frame in stack_trace["frames"]:
-            if stack_trace["language"] in ("nodejs"):
-                if (
-                    frame.get("file", "").endswith(location["path"])
-                    and location["line"] == frame["line"]
-                    and location.get("class", "") == frame.get("class_name", "")
-                    and location.get("method", "") == frame.get("function", "")
-                ):
-                    location_match = True
-                    break
+            if (
+                frame.get("file", "").endswith(location["path"])
+                and location["line"] == frame["line"]
+                and location.get("class", "") == frame.get("class_name", "")
+                and location.get("method", "") == frame.get("function", "")
+            ):
+                location_match = True
+                break
 
         assert location_match, "location not found in stack trace"
     # Check extended data if on location if stack trace do not exists
