@@ -109,11 +109,13 @@ def get_supported_vms(lang, weblog_name, provider_id, default_vms="True", scenar
     for weblog in ALL_WEBLOGS:
         if weblog_name == weblog.name and lang == weblog.library:
             supported_vms = weblog.supported_vms
-            # Filter the vms that are not in the scenario_vms_exclude list and that are supported by the provider
+            # Filter the vms that are not in the scenario_vms_exclude list
+            filtered_vms = [vm for vm in supported_vms if vm.name not in scenario_vms_exclude]
+            # Filter the vms by provider
             filtered_vms = [
                 vm
-                for vm in supported_vms
-                if (vm.name not in scenario_vms_exclude and provider_id == "vagrant" and vm.vagrant_config is not None)
+                for vm in filtered_vms
+                if (provider_id == "vagrant" and vm.vagrant_config is not None)
                 or (provider_id == "krunvm" and vm.krunvm_config is not None)
                 or (provider_id == "aws" and vm.aws_config is not None)
             ]
@@ -126,7 +128,7 @@ def get_supported_vms(lang, weblog_name, provider_id, default_vms="True", scenar
             else:
                 raise ValueError(f"Invalid value for default_vms: {default_vms}")
 
-    raise ValueError(f"Weblog variant {weblog_name} not found (please check virtual_machine_definitions.py)")
+    raise ValueError(f"Weblog variant {weblog_name} not found (please check virtual_machine_matrix_definitions.py)")
 
 
 if __name__ == "__main__":

@@ -240,11 +240,10 @@ class _VirtualMachineScenario(Scenario):
 
             new_result["tests"] = []
             for test in result["tests"]:
-                if vm_id in test["description"]:
-                    new_test = test.copy()
-                    new_test["description"] = new_test["description"].split("[", 1)[0]
-                    new_test["path"] = new_test["path"].split("[", 1)[0]
-                    new_result["tests"].append(new_test)
+                new_test = test.copy()
+                new_test["description"] = new_test["description"]
+                new_test["path"] = new_test["path"]
+                new_result["tests"].append(new_test)
             with open(f"{self.host_log_folder}/{vm_id}_feature_parity.json", "w", encoding="utf-8") as f:
                 json.dump(new_result, f, indent=2)
 
