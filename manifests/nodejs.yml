@@ -46,6 +46,7 @@ refs:
   - &ref_5_33_0 '>=5.33.0'
   - &ref_5_34_0 '>=5.34.0'
   - &ref_5_35_0 '>=5.35.0'
+  - &ref_5_36_0 '>=5.36.0'
 
 tests/:
   apm_tracing_e2e/:
@@ -340,8 +341,7 @@ tests/:
           TestURI: missing_feature
       test_security_controls.py:
         TestSecurityControls:
-          '*': *ref_5_33_0
-          express4-typescript: missing_feature
+          '*': *ref_5_36_0
           nextjs: missing_feature
     rasp/:
       test_cmdi.py:
