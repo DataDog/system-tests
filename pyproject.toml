@@ -60,7 +60,6 @@ exclude = [
     "tests/fuzzer/.*",
     "tests/test_the_test/.*",
     "tests/test_telemetry.py",
-    "tests/test_profiling.py",
     "tests/appsec/.*",
     "tests/debugger/.*",
     "tests/auto_inject/.*",
@@ -77,7 +76,6 @@ exclude = [
     "utils/onboarding/.*",
     "utils/otel_validators/validator_trace.py",
     "utils/proxy/_deserializer.py",
-    "utils/scripts/compute_impacted_scenario.py",
     "utils/scripts/merge_gitlab_aws_pipelines.py",
     "utils/virtual_machine/.*",
 ]
