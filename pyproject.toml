@@ -34,18 +34,6 @@ markers =[
 
 python_files = "test_*.py *utils.py"
 
-# migration tooling: list of folders where feature declarations are mandatory
-# once every test class got its feature declaration, we can remove this
-allow_no_feature_nodes = [
-    "tests/apm_tracing_e2e/test_single_span.py",
-    "tests/apm_tracing_e2e/test_smoke.py",
-    "tests/otel_tracing_e2e/test_e2e.py",
-    "tests/parametric/test_span_links.py",
-    "tests/parametric/test_tracer.py",
-    "tests/perfs/test_performances.py",  # exotic scenario, not really used
-    "tests/test_the_test/",  # Not a real test
-]
-
 [tool.mypy]
 files = [
     "utils/",
