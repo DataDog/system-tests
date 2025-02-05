@@ -151,6 +151,11 @@ class RC_CONSTANTS:
         _load_file("./tests/appsec/rasp/rasp_ruleset.json"),
     )
 
+    RULES_NON_BLOCKING = (
+        "datadog/2/ASM_DD/rules/config",
+        _load_file("./tests/appsec/rasp/rasp_ruleset_non_blocking.json"),
+    )
+
 
 class Base_Rules_Version:
     """Test libddwaf version"""

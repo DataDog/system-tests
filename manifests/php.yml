@@ -177,6 +177,7 @@ tests/:
         Test_Lfi_Rules_Version:  v1.6.2
         Test_Lfi_StackTrace: v1.6.2
         Test_Lfi_Telemetry: missing_feature
+        Test_Lfi_Telemetry_Multiple_Exploits: v1.7.0
         Test_Lfi_UrlQuery: v1.6.2
         Test_Lfi_Waf_Version:  v1.6.2
       test_shi.py:
