@@ -302,23 +302,27 @@ tag_scenarios: dict = {
         expected_tags=[("key1", "value1"), ("key2", "value2")], expected_discarded_keys=[]
     ),
     "env:test aKey:aVal bKey:bVal cKey:": TagTest(
-        expected_tags=[("env", "test"), ("aKey", "aVal"), ("bKey", "bVal")], expected_discarded_keys=["cKey"]
+        expected_tags=[("env", "test"), ("aKey", "aVal"), ("bKey", "bVal"), ("cKey", "")], expected_discarded_keys=[]
     ),
     "env:test,aKey:aVal,bKey:bVal,cKey:": TagTest(
-        expected_tags=[("env", "test"), ("aKey", "aVal"), ("bKey", "bVal")], expected_discarded_keys=["cKey"]
+        expected_tags=[("env", "test"), ("aKey", "aVal"), ("bKey", "bVal"), ("cKey", "")], expected_discarded_keys=[]
     ),
-    "env:test,aKey:aVal bKey:bVal cKey:": TagTest(expected_tags=[], expected_discarded_keys=["env", "aKey"]),
+    "env:test,aKey:aVal bKey:bVal cKey:": TagTest(
+        expected_tags=[("env", "test"), ("aKey", "aVal bKey:bVal cKey:")], expected_discarded_keys=[]
+    ),
     "env:test     bKey :bVal dKey: dVal cKey:": TagTest(
-        expected_tags=[("env", "test"), ("bKey", ""), ("dVal", "")],
-        expected_discarded_keys=["dKey", "cKey"],
+        expected_tags=[("env", "test"), ("bKey", ""), ("dKey", ""), ("dVal", ""), ("cKey", "")],
+        expected_discarded_keys=[],
     ),
     "env :test, aKey : aVal bKey:bVal cKey:": TagTest(
-        expected_tags=[("env", ""), ("aKey", ""), ("aVal", ""), ("bKey", "bVal")], expected_discarded_keys=[]
+        expected_tags=[("env", "test"), ("aKey", "aVal bKey:bVal cKey:")], expected_discarded_keys=[]
     ),
     "env:keyWithA:Semicolon bKey:bVal cKey": TagTest(
         expected_tags=[("env", "keyWithA:Semicolon"), ("bKey", "bVal"), ("cKey", "")], expected_discarded_keys=[]
     ),
-    "env:keyWith:  , ,   Lots:Of:Semicolons ": TagTest(expected_tags=[], expected_discarded_keys=["env", "Lots"]),
+    "env:keyWith:  , ,   Lots:Of:Semicolons ": TagTest(
+        expected_tags=[("env", "keyWith:"), ("Lots", "Of:Semicolons")], expected_discarded_keys=[]
+    ),
     "a:b,c,d": TagTest(expected_tags=[("a", "b"), ("c", ""), ("d", "")], expected_discarded_keys=[]),
     "a,1": TagTest(expected_tags=[("a", ""), ("1", "")], expected_discarded_keys=[]),
     "a:b:c:d": TagTest(expected_tags=[("a", "b:c:d")], expected_discarded_keys=[]),
