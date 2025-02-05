@@ -23,11 +23,11 @@ TESTED_PATHS = ("/", "/waf/", "/waf/fdsfds/fds/fds/fds/", "/waf?a=b", "/waf?acd=
 @scenarios.performances
 class Test_Performances:
     def setup_main(self) -> None:
-        self.requests = []
+        self.requests: list = []
         self.build_requests()
 
-        self.results = []
-        self.memory = []
+        self.results: list = []
+        self.memory: list = []
         self.finished = False
 
         self.appsec = "with_appsec" if environ.get("DD_APPSEC_ENABLED") == "true" else "without_appsec"
@@ -126,7 +126,7 @@ class Test_Performances:
             print("MEM", datetime.now(), memory, flush=True)
 
     def test_main(self):
-        """add some tests ?"""
+        """Add some tests ?"""
 
         with open(
             f"{scenarios.performances.host_log_folder}/stats_{self.lang}_{self.appsec}.json", "w", encoding="utf-8"

@@ -64,7 +64,7 @@ def stdout(self, message, *args, **kws) -> None:  # noqa: ANN002
             print(message)  # noqa: T201
 
 
-logging.Logger.stdout = stdout
+logging.Logger.stdout = stdout  # type: ignore[attr-defined]
 
 
 def get_logger(name="tests", *, use_stdout=False) -> logging.Logger:
@@ -103,7 +103,7 @@ def e(message: str) -> str:
 logger = get_logger()
 
 
-def get_rid_from_request(request) -> str:
+def get_rid_from_request(request) -> str | None:
     if request is None:
         return None
 
@@ -111,7 +111,7 @@ def get_rid_from_request(request) -> str:
     return user_agent[-36:]
 
 
-def get_rid_from_span(span) -> str:
+def get_rid_from_span(span) -> str | None:
     if not isinstance(span, dict):
         logger.error(f"Span should be an object, not {type(span)}")
         return None
@@ -148,7 +148,7 @@ def get_rid_from_span(span) -> str:
     return get_rid_from_user_agent(user_agent)
 
 
-def get_rid_from_user_agent(user_agent: str) -> str:
+def get_rid_from_user_agent(user_agent: str) -> str | None:
     if not user_agent:
         return None
 

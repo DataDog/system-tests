@@ -72,8 +72,7 @@ class _Test_Kinesis:
         return stream
 
     def setup_produce(self):
-        """
-        send request A to weblog : this request will produce a Kinesis message
+        """Send request A to weblog : this request will produce a Kinesis message
         send request B to library buddy, this request will consume Kinesis message
         """
         try:
@@ -132,8 +131,7 @@ class _Test_Kinesis:
         assert producer_span["trace_id"] == consumer_span["trace_id"]
 
     def setup_consume(self):
-        """
-        send request A to library buddy : this request will produce a Kinesis message
+        """Send request A to library buddy : this request will produce a Kinesis message
         send request B to weblog, this request will consume Kinesis message
 
         request A: GET /library_buddy/produce_kinesis_message
@@ -195,8 +193,7 @@ class _Test_Kinesis:
         assert producer_span["trace_id"] == consumer_span["trace_id"]
 
     def validate_kinesis_spans(self, producer_interface, consumer_interface, stream):
-        """
-        Validates production/consumption of Kinesis message.
+        """Validates production/consumption of Kinesis message.
         It works the same for both test_produce and test_consume
         """
 

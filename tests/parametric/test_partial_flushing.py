@@ -1,6 +1,6 @@
 import pytest
 from utils.parametric.spec.trace import find_span, find_trace
-from utils import missing_feature, bug, features, context, scenarios
+from utils import missing_feature, features, context, scenarios
 
 
 @features.partial_flush
@@ -13,8 +13,7 @@ class Test_Partial_Flushing:
         context.library == "java", reason="java uses '>' so it needs one more span to force a partial flush"
     )
     def test_partial_flushing_one_span(self, test_agent, test_library):
-        """
-        Create a trace with a root span and a single child. Finish the child, and ensure
+        """Create a trace with a root span and a single child. Finish the child, and ensure
         partial flushing triggers. This test explicitly enables partial flushing.
         """
         do_partial_flush_test(self, test_agent, test_library)
@@ -26,8 +25,7 @@ class Test_Partial_Flushing:
     @missing_feature(context.library == "golang", reason="partial flushing not enabled by default")
     @missing_feature(context.library == "dotnet", reason="partial flushing not enabled by default")
     def test_partial_flushing_one_span_default(self, test_agent, test_library):
-        """
-        Create a trace with a root span and a single child. Finish the child, and ensure
+        """Create a trace with a root span and a single child. Finish the child, and ensure
         partial flushing triggers. This test assumes partial flushing is enabled by default.
         """
         do_partial_flush_test(self, test_agent, test_library)
@@ -36,8 +34,7 @@ class Test_Partial_Flushing:
         "library_env", [{"DD_TRACE_PARTIAL_FLUSH_MIN_SPANS": "5", "DD_TRACE_PARTIAL_FLUSH_ENABLED": "true"}]
     )
     def test_partial_flushing_under_limit_one_payload(self, test_agent, test_library):
-        """
-        Create a trace with a root span and a single child. Finish the child, and ensure
+        """Create a trace with a root span and a single child. Finish the child, and ensure
         partial flushing does NOT trigger, since the partial flushing min spans is set to 5.
         """
         no_partial_flush_test(self, test_agent, test_library)
@@ -46,16 +43,14 @@ class Test_Partial_Flushing:
         "library_env", [{"DD_TRACE_PARTIAL_FLUSH_MIN_SPANS": "1", "DD_TRACE_PARTIAL_FLUSH_ENABLED": "false"}]
     )
     def test_partial_flushing_disabled(self, test_agent, test_library):
-        """
-        Create a trace with a root span and a single child. Finish the child, and ensure
+        """Create a trace with a root span and a single child. Finish the child, and ensure
         partial flushing does NOT trigger, since it's explicitly disabled.
         """
         no_partial_flush_test(self, test_agent, test_library)
 
 
 def do_partial_flush_test(self, test_agent, test_library):
-    """
-    Create a trace with a root span and a single child. Finish the child, and ensure
+    """Create a trace with a root span and a single child. Finish the child, and ensure
     partial flushing triggers.
     """
     with test_library:
@@ -79,8 +74,7 @@ def do_partial_flush_test(self, test_agent, test_library):
 
 
 def no_partial_flush_test(self, test_agent, test_library):
-    """
-    Create a trace with a root span and one child. Finish the child, and ensure
+    """Create a trace with a root span and one child. Finish the child, and ensure
     partial flushing does NOT trigger.
     """
     with test_library:

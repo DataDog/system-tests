@@ -719,6 +719,7 @@ class WeblogContainer(TestedContainer):
 
         if tracer_sampling_rate:
             base_environment["DD_TRACE_SAMPLE_RATE"] = str(tracer_sampling_rate)
+            base_environment["DD_TRACE_SAMPLING_RULES"] = json.dumps([{"sample_rate": tracer_sampling_rate}])
 
         if use_proxy:
             # set the tracer to send data to runner (it will forward them to the agent)
@@ -843,7 +844,8 @@ class WeblogContainer(TestedContainer):
             try:
                 with open("./binaries/nodejs-load-from-local", encoding="utf-8") as f:
                     path = f.read().strip(" \r\n")
-                    self.kwargs["volumes"][Path(path).resolve()] = {
+                    path_str = str(Path(path).resolve())
+                    self.kwargs["volumes"][path_str] = {
                         "bind": "/volumes/dd-trace-js",
                         "mode": "ro",
                     }

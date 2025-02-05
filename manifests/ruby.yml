@@ -513,7 +513,8 @@ tests/:
     Test_Config_ObfuscationQueryStringRegexp_Default: bug (APMAPI-1013)
     Test_Config_ObfuscationQueryStringRegexp_Empty: missing_feature (environment variable is not supported)
     Test_Config_RuntimeMetrics_Default: incomplete_test_app (test needs to account for ruby runtime metrics)
-    Test_Config_RuntimeMetrics_Enabled: incomplete_test_app (test needs to account for ruby runtime metrics)
+    Test_Config_RuntimeMetrics_Enabled: missing_feature (should be in v0.44.0 but we're not receiving series in tests)
+    Test_Config_RuntimeMetrics_Enabled_WithRuntimeId: missing_feature
     Test_Config_UnifiedServiceTagging_CustomService: v2.0.0
     Test_Config_UnifiedServiceTagging_Default: v2.0.0
   test_distributed.py:
@@ -553,6 +554,13 @@ tests/:
     Test_Meta: v1.7.0
     Test_MetaDatadogTags: v1.9.0
     Test_MetricsStandardTags: v1.7.0
+  test_span_events.py:
+    Test_SpanEvents_WithAgentSupport:
+      "*": irrelevant
+      rack: v2.10.0
+    Test_SpanEvents_WithoutAgentSupport:
+      "*": irrelevant
+      rack: v2.10.0
   test_standard_tags.py:
     Test_StandardTagsClientIp: v1.10.1
     Test_StandardTagsMethod: v1.8.0

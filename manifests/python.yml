@@ -458,8 +458,8 @@ tests/:
       Test_V3_Login_Events_RC: v2.11.0
     test_automated_user_and_session_tracking.py:
       Test_Automated_Session_Blocking: missing_feature
-      Test_Automated_User_Blocking: missing_feature
-      Test_Automated_User_Tracking: missing_feature
+      Test_Automated_User_Blocking: v2.21.0.dev
+      Test_Automated_User_Tracking: v2.21.0.dev
     test_blocking_addresses.py:
       Test_BlockingGraphqlResolvers: missing_feature
       Test_Blocking_client_ip:
@@ -555,7 +555,7 @@ tests/:
       Test_StandardizationBlockMode: missing_feature
     test_metastruct.py:
       Test_SecurityEvents_Appsec_Metastruct_Disabled: irrelevant (no fallback will be implemented)
-      Test_SecurityEvents_Appsec_Metastruct_Enabled: missing_feature
+      Test_SecurityEvents_Appsec_Metastruct_Enabled: v2.21.0.dev
       Test_SecurityEvents_Iast_Metastruct_Disabled: irrelevant (no fallback will be implemented)
       Test_SecurityEvents_Iast_Metastruct_Enabled: missing_feature
     test_only_python.py:
@@ -628,7 +628,11 @@ tests/:
         uds-flask: v2.11.0
         uwsgi-poc: v2.11.0
     test_debugger_symdb.py:
-      Test_Debugger_SymDb: v2.11.0
+      Test_Debugger_SymDb:
+        '*': missing_feature
+        flask-poc: v2.11.0
+        uds-flask: v2.11.0
+        uwsgi-poc: v2.11.0
   integrations/:
     crossed_integrations/:
       test_kafka.py:
@@ -909,7 +913,8 @@ tests/:
     Test_Config_ObfuscationQueryStringRegexp_Configured: v2.0.0
     Test_Config_ObfuscationQueryStringRegexp_Empty: v2.15.0
     Test_Config_RuntimeMetrics_Default: incomplete_test_app (test needs to account for python runtime metrics)
-    Test_Config_RuntimeMetrics_Enabled: incomplete_test_app (test needs to account for python runtime metrics)
+    Test_Config_RuntimeMetrics_Enabled: incomplete_test_app (Python seems to send sketches instead of gauges/counters)
+    Test_Config_RuntimeMetrics_Enabled_WithRuntimeId: missing_feature
     Test_Config_UnifiedServiceTagging_CustomService: v2.0.0
     Test_Config_UnifiedServiceTagging_Default: v2.0.0
   test_data_integrity.py:

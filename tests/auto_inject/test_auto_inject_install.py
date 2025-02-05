@@ -1,8 +1,6 @@
-import re
 from utils import scenarios, features, flaky, irrelevant, context
 from utils.tools import logger
 from utils.onboarding.weblog_interface import warmup_weblog, get_child_pids, get_zombies, fork_and_crash
-from utils import scenarios, features
 import tests.auto_inject.utils as base
 from utils.virtual_machine.utils import parametrize_virtual_machines
 
@@ -36,6 +34,8 @@ class TestSimpleInstallerAutoInjectManualProfiling(base.AutoInjectBaseTest):
         bugs=[
             {"vm_cpu": "arm64", "weblog_variant": "test-app-dotnet", "reason": "PROF-10783"},
             {"vm_cpu": "arm64", "weblog_variant": "test-app-dotnet-container", "reason": "PROF-10783"},
+            {"vm_name": "Ubuntu_24_amd64", "weblog-variant": "test-app-nodejs", "reason": "PROF-11264"},
+            {"vm_name": "Ubuntu_24_arm64", "weblog-variant": "test-app-nodejs", "reason": "PROF-11264"},
         ]
     )
     def test_profiling(self, virtual_machine):
