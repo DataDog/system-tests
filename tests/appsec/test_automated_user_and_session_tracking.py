@@ -203,8 +203,8 @@ class Test_Automated_User_Blocking:
 
         assert self.r_login.status_code == 200
 
-        interfaces.library.assert_waf_attack(self.r_login_blocked, rule="block-users")
-        assert self.r_login_blocked.status_code == 403
+        interfaces.library.assert_waf_attack(self.r_blocked, rule="block-users")
+        assert self.r_blocked.status_code == 403
 
 
 BLOCK_SESSION = (
