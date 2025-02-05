@@ -54,6 +54,7 @@ class TestNoSqlMongodbInjection_StackTrace:
 
 
 @rfc("https://docs.google.com/document/d/1R8AIuQ9_rMHBPdChCb5jRwPrg1WvIz96c_WQ3y8DWk4")
+@scenarios.integrations
 @features.iast_extended_location
 class TestNoSqlMongodbInjection_ExtendedLocation:
     """Test extended location data"""

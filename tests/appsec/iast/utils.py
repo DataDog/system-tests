@@ -250,7 +250,7 @@ def validate_stack_traces(request):
     assert locationFrame is not None, "location not found in stack trace"
 
 
-def validate_extended_location_data(request, vulnerability_type):
+def validate_extended_location_data(request, vulnerability_type, is_expected_location_required=True):
     spans = [span for _, span in interfaces.library.get_root_spans(request=request)]
     assert spans, "No root span found"
     span = spans[0]
@@ -263,6 +263,9 @@ def validate_extended_location_data(request, vulnerability_type):
         vulns = [v for v in iast["vulnerabilities"] if not vulnerability_type or v["type"] == vulnerability_type]
         assert vulns, f"No vulnerability of type {vulnerability_type}"
 
+    if not is_expected_location_required:
+        return
+    
     vuln = vulns[0]
     location = vuln["location"]
 
@@ -304,6 +307,20 @@ def validate_extended_location_data(request, vulnerability_type):
         if context.library.library not in ("python", "nodejs"):
             assert all(field in location for field in ["class", "method"])
 
+
+def get_hardcoded_vulnerabilities(vulnerability_type):
+    spans = [s for _, s in interfaces.library.get_root_spans()]
+    assert spans, "No spans found"
+    spans_meta = [span.get("meta") for span in spans]
+    assert spans_meta, "No spans meta found"
+    iast_events = [meta.get("_dd.iast.json") for meta in spans_meta if meta.get("_dd.iast.json")]
+    assert iast_events, "No iast events found"
+    vulnerabilities = [event.get("vulnerabilities") for event in iast_events if event.get("vulnerabilities")]
+    assert vulnerabilities, "No vulnerabilities found"
+    vulnerabilities = sum(vulnerabilities, [])  # set all the vulnerabilities in a single list
+    hardcoded_vulns = [vuln for vuln in vulnerabilities if vuln.get("type") == vulnerability_type]
+    assert hardcoded_vulns, "No hardcoded vulnerabilities found"
+    return hardcoded_vulns
 
 class BaseSinkTest(BaseSinkTestWithoutTelemetry):
     def setup_telemetry_metric_instrumented_sink(self):

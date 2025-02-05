@@ -2,28 +2,13 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import interfaces, features, context, rfc, weblog
-from ..utils import validate_extended_location_data, validate_stack_traces
+from utils import features, context, rfc, weblog
+from ..utils import get_hardcoded_vulnerabilities, validate_stack_traces
 
 # Test_HardcodedSecrets and Test_HardcodedSecretsExtended don't inherit from BaseSinkTest
 # Hardcode secrets detection implementation change a lot between different languages
 # current BaseSinkTest implementation doesn't work for all languages
 # as the vulnerability is not always set in the current request span.
-
-
-def get_hardcoded_secret_vulnerabilities():
-    spans = [s for _, s in interfaces.library.get_root_spans()]
-    assert spans, "No spans found"
-    spans_meta = [span.get("meta") for span in spans]
-    assert spans_meta, "No spans meta found"
-    iast_events = [meta.get("_dd.iast.json") for meta in spans_meta if meta.get("_dd.iast.json")]
-    assert iast_events, "No iast events found"
-    vulnerabilities = [event.get("vulnerabilities") for event in iast_events if event.get("vulnerabilities")]
-    assert vulnerabilities, "No vulnerabilities found"
-    vulnerabilities = sum(vulnerabilities, [])  # set all the vulnerabilities in a single list
-    hardcoded_secrets = [vuln for vuln in vulnerabilities if vuln.get("type") == "HARDCODED_SECRET"]
-    assert hardcoded_secrets, "No hardcoded secrets found"
-    return hardcoded_secrets
 
 
 def get_expectation(d):
@@ -55,7 +40,7 @@ class Test_HardcodedSecrets:
 
     def test_hardcoded_secrets_exec(self):
         assert self.r_hardcoded_secrets_exec.status_code == 200
-        hardcode_secrets = get_hardcoded_secret_vulnerabilities()
+        hardcode_secrets = get_hardcoded_vulnerabilities("HARDCODED_SECRET")
         hardcode_secrets = [v for v in hardcode_secrets if v["evidence"]["value"] == "aws-access-token"]
         assert len(hardcode_secrets) == 1
         vuln = hardcode_secrets[0]
@@ -80,7 +65,7 @@ class Test_HardcodedSecretsExtended:
 
     def test_hardcoded_secrets_extended_exec(self):
         assert self.r_hardcoded_secrets_exec.status_code == 200
-        hardcoded_secrets = get_hardcoded_secret_vulnerabilities()
+        hardcoded_secrets = get_hardcoded_vulnerabilities("HARDCODED_SECRET")
         hardcoded_secrets = [v for v in hardcoded_secrets if v["evidence"]["value"] == "datadog-access-token"]
         assert len(hardcoded_secrets) == 1
         vuln = hardcoded_secrets[0]
@@ -106,10 +91,16 @@ class Test_HardcodedSecrets_StackTrace:
 class Test_HardcodedSecrets_ExtendedLocation:
     """Test extended location data"""
 
-    vulnerability_type = "HARDCODED_SECRET"
-
     def setup_extended_location_data(self):
         self.r = weblog.get("/iast/hardcoded_secrets/test_insecure")
 
     def test_extended_location_data(self):
-        validate_extended_location_data(self.r, self.vulnerability_type)
+        hardcode_secrets = get_hardcoded_vulnerabilities("HARDCODED_SECRET")
+        hardcode_secrets = [v for v in hardcode_secrets if v["evidence"]["value"] == "aws-access-token"]
+        assert len(hardcode_secrets) == 1
+        location = hardcode_secrets[0]["location"]
+
+        assert all(field in location for field in ["path", "line"])
+
+        if context.library.library not in ("python", "nodejs"):
+            assert all(field in location for field in ["class", "method"])

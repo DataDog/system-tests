@@ -52,4 +52,4 @@ class Test_HstsMissingHeader_ExtendedLocation:
         self.r = weblog.get("/iast/hstsmissing/test_insecure", headers={"X-Forwarded-Proto": "https"})
 
     def test_extended_location_data(self):
-        validate_extended_location_data(self.r, self.vulnerability_type)
+        validate_extended_location_data(self.r, self.vulnerability_type, False)
