@@ -78,11 +78,12 @@ const formatError = (error) => {
   return {
     message: error.message,
     extensions: [
-      { key: 'int-1', value: '1' },
-      { key: 'str-1', value: '1' },
-      { key: 'array-1-2', value: [1, '2'] },
-      { key: 'empty', value: 'empty string' },
-      { key: 'comma', value: 'comma' }
+      { key: 'int', value: 1},
+      { key: 'float', value: 1.1},
+      { key: 'str', value: '1'},
+      { key: 'bool', value: true},
+      { key: 'other', value: [1, 'foo']},
+      { key: 'not_captured', value: 'nope'},
     ]
   }
 }
