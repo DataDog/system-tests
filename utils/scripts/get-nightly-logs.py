@@ -65,7 +65,7 @@ def get_artifacts(session: requests.Session, repo_slug: str, workflow_file: str,
     return artifacts
 
 
-def download_artifact(session: requests.Session, artifact: dict, output_dir: str | None = None) -> None:
+def download_artifact(session: requests.Session, artifact: dict, output_dir: str) -> None:
     logging.info("Downloading artifact: %s", artifact["name"])
     response = session.get(artifact["archive_download_url"], timeout=60)
     response.raise_for_status()
@@ -77,7 +77,7 @@ def download_artifact(session: requests.Session, artifact: dict, output_dir: str
     for file in os.listdir(output_dir):
         if file.endswith(".tar.gz") and Path(os.path.join(output_dir, file)).is_file():
             with tarfile.open(os.path.join(output_dir, file), "r:gz") as t:
-                t.extractall(output_dir, filter=lambda tar_info, _: tar_info)
+                t.extractall(output_dir, filter=lambda tar_info, _: tar_info)  # type: ignore[call-arg]
 
 
 def main(
