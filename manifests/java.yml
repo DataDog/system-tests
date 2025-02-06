@@ -62,6 +62,9 @@ tests/:
         test_code_injection.py:
           TestCodeInjection: missing_feature
           TestCodeInjection_StackTrace: missing_feature
+        test_stacktrace_leak.py:
+            TestStackTraceLeak: missing_feature
+            TestStackTraceLeak_StackTrace: missing_feature
         test_command_injection.py:
           TestCommandInjection:
             '*': v1.1.0

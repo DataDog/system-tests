@@ -27,6 +27,9 @@ tests/:
         test_code_injection.py:
           TestCodeInjection: missing_feature
           TestCodeInjection_StackTrace: missing_feature
+        test_stacktrace_leak.py:
+            Test_StacktraceLeak: missing_feature
+            Test_StacktraceLeak_StackTrace: missing_feature
         test_command_injection.py:
           TestCommandInjection: missing_feature
           TestCommandInjection_StackTrace: missing_feature

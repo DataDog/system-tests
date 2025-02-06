@@ -52,6 +52,9 @@ tests/:
         test_code_injection.py:
           TestCodeInjection: v2.20.0
           TestCodeInjection_StackTrace: v2.20.0
+        test_stacktrace_leak.py:
+            TestStacktraceLeak: v3.0.0-dev
+            TestStacktraceLeak_StackTrace: v3.0.0-dev
         test_command_injection.py:
           TestCommandInjection:
             '*': v2.10.0
