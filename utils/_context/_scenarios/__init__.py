@@ -236,11 +236,7 @@ class _Scenarios:
         rc_api_enabled=True,
         appsec_enabled=False,
         iast_enabled=False,
-        weblog_env={
-            "DD_APPSEC_WAF_TIMEOUT": "10000000",
-            "DD_APPSEC_TRACE_RATE_LIMIT": "10000",
-            "DD_APPSEC_RASP_ENABLED": "true",
-        },  # 10 seconds
+        weblog_env={"DD_APPSEC_WAF_TIMEOUT": "10000000", "DD_APPSEC_TRACE_RATE_LIMIT": "10000"},  # 10 seconds
         doc="",
         scenario_groups=[ScenarioGroup.APPSEC, ScenarioGroup.APPSEC_RASP],
     )
@@ -827,7 +823,12 @@ class _Scenarios:
     appsec_rasp_non_blocking = EndToEndScenario(
         "APPSEC_RASP_NON_BLOCKING",
         weblog_env={"DD_APPSEC_RASP_ENABLED": "true", "DD_APPSEC_RULES": "/appsec_rasp_non_blocking_ruleset.json"},
-        weblog_volumes={"./tests/appsec/rasp/rasp_non_blocking_ruleset.json": {"bind": "/appsec_rasp_non_blocking_ruleset.json", "mode": "ro"}},
+        weblog_volumes={
+            "./tests/appsec/rasp/rasp_non_blocking_ruleset.json": {
+                "bind": "/appsec_rasp_non_blocking_ruleset.json",
+                "mode": "ro",
+            }
+        },
         doc="Enable APPSEC RASP",
         github_workflow="endtoend",
         scenario_groups=[ScenarioGroup.APPSEC],
