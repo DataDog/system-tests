@@ -27,7 +27,7 @@ class TestSqlInjection(BaseSinkTest):
 
     @missing_feature(context.library < "java@1.9.0", reason="Metrics not implemented")
     @missing_feature(
-        context.weblog_variant in ("fastapi", "flask-poc", "uwsgi-poc", "usd-flask"), reason="Not implemented yet"
+        context.weblog_variant in ("fastapi", "flask-poc", "uwsgi-poc", "uds-flask"), reason="Not implemented yet"
     )
     @missing_feature(library="dotnet", reason="Not implemented yet")
     def test_telemetry_metric_instrumented_sink(self):
