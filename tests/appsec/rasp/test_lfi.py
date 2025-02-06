@@ -137,13 +137,11 @@ class Test_Lfi_Optional_SpanTags:
 @rfc("https://docs.google.com/document/d/1vmMqpl8STDk7rJnd3YBsa6O9hCls_XHHdsodD61zr_4/edit#heading=h.96mezjnqf46y")
 @features.rasp_span_tags
 @features.rasp_local_file_inclusion
-@scenarios.appsec_runtime_activation
+@scenarios.appsec_rasp_non_blocking
 class Test_Lfi_Telemetry_Multiple_Exploits:
     """Validate rasp match telemetry metric works"""
 
     def setup_rasp_match_tag(self):
-        self.config_state_1 = rc.rc_state.reset().set_config(*RC_CONSTANTS.CONFIG_ENABLED).apply()
-        self.config_state_1b = rc.rc_state.set_config(*RC_CONSTANTS.RULES_NON_BLOCKING).apply()
         self.r = weblog.get("/rasp/multiple", params={"file1": "../etc/passwd", "file2": "../etc/group"})
 
     def test_rasp_match_tag(self):
