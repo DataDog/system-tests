@@ -112,7 +112,7 @@ class TestDockerSSIFeatures:
                 inject_result = False
                 break
 
-        assert inject_result != None, "No telemetry data found for inject.success, inject.skip or inject.error"
+        assert inject_result is not None, "No telemetry data found for inject.success, inject.skip or inject.error"
 
         # The injector detected by itself that the version is not supported
         if inject_result == False:

@@ -12,7 +12,7 @@ logging.basicConfig(level=logging.DEBUG, format="%(levelname)-5s %(message)s")
 logging.getLogger("urllib3").setLevel(logging.WARNING)
 
 
-def get_environ() -> None:
+def get_environ() -> dict[str, str]:
     environ = {**os.environ}
 
     try:
@@ -44,7 +44,7 @@ def main(
 
     url = f"https://api.github.com/repos/{repo_slug}/actions/workflows/{workflow_file}/runs?"
 
-    params = {"per_page": 100}
+    params: dict[str, str | int] = {"per_page": "100"}
 
     if branch:
         params["branch"] = branch
@@ -63,13 +63,14 @@ def main(
             logging.info(f"Workflow #{workflow['run_number']}-{attempt} {workflow['created_at']} {workflow_url}")
 
             jobs_url = f"https://api.github.com/repos/{repo_slug}/actions/runs/{workflow_id}/attempts/{attempt}/jobs"
-            params = {"per_page": 100, "page": 1}
+            params = {"per_page": "100"}
+            page = 1
 
-            jobs = get_json(jobs_url, headers=headers, params=params)
+            jobs = get_json(jobs_url, headers=headers, params=params | {"page": page})
 
             while len(jobs["jobs"]) < jobs["total_count"]:
-                params["page"] += 1
-                jobs["jobs"] += get_json(jobs_url, headers=headers, params=params)["jobs"]
+                page += 1
+                jobs["jobs"] += get_json(jobs_url, headers=headers, params=params | {"page": page})["jobs"]
 
             for job in jobs["jobs"]:
                 job_name = job["name"]

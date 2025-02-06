@@ -4,6 +4,7 @@ from urllib.parse import urlparse
 import pytest
 from utils import scenarios, features, context, missing_feature, irrelevant, flaky, bug
 from utils.parametric.spec.trace import find_span_in_traces, find_only_span
+import os
 
 parametrize = pytest.mark.parametrize
 
@@ -375,3 +376,38 @@ class Test_Config_Dogstatsd:
         with test_library as t:
             resp = t.config()
         assert resp["dd_dogstatsd_port"] == "8150"
+
+
+@scenarios.parametric
+@features.stable_configuration_support
+class Test_Stable_Config_Default:
+    """Verify that stable config works as intended"""
+
+    @missing_feature(
+        context.library in ["ruby", "cpp", "dotnet", "golang", "java", "nodejs", "php", "python"],
+        reason="does not support stable configurations yet",
+    )
+    @pytest.mark.parametrize("library_env", [{"STABLE_CONFIG_SELECTOR": "true", "DD_SERVICE": "not-my-service"}])
+    def test_config_stable(self, library_env, test_agent, test_library):
+        path = "/etc/datadog-agent/managed/datadog-apm-libraries/stable/libraries_config.yaml"
+        stable_config = """
+rules:
+  - selectors:
+    - origin: environment_variables
+      matches:
+        - STABLE_CONFIG_SELECTOR=true
+      operator: equals
+    configuration:
+      DD_SERVICE: my-service
+"""
+
+        with test_library:
+            success, message = test_library.container_exec_run(
+                f"bash -c \"mkdir -p {os.path.dirname(path)} && printf '{stable_config}' | tee {path}\""
+            )
+            assert success, message
+            test_library.container_restart()
+            config = test_library.config()
+            assert (
+                config["dd_service"] == "my-service"
+            ), f"Service name is '{config["dd_service"]}' instead of 'my-service'"

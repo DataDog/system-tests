@@ -1,8 +1,9 @@
-from utils import weblog, interfaces, rfc, scenarios
+from utils import weblog, interfaces, rfc, scenarios, features
 
 
 @rfc("https://docs.google.com/document/d/1MtSlvPCKWM4x4amOYAvlKVbJjd0b0oUXxxlX-lo8KN8/edit#")
 @scenarios.apm_tracing_e2e
+@features.not_reported  # the scenario is not executed
 class Test_Backend:
     """This is a smoke test that exercises the full flow of APM Tracing.
     It includes trace submission, the trace flowing through the backend processing,
