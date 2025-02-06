@@ -1,4 +1,5 @@
 import base64
+from collections.abc import Iterable
 import contextlib
 import dataclasses
 import os
@@ -438,7 +439,7 @@ class _TestAgentAPI:
             time.sleep(0.01)
         raise AssertionError("No RemoteConfig apply status found, got requests %r" % rc_reqs)
 
-    def wait_for_rc_capabilities(self, capabilities: list[int] = [], wait_loops: int = 100):
+    def wait_for_rc_capabilities(self, capabilities: Iterable[int] = (), wait_loops: int = 100):
         """Wait for the given RemoteConfig apply state to be received by the test agent."""
         rc_reqs = []
         capabilities_seen = set()

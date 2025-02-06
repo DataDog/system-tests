@@ -639,5 +639,4 @@ def parse_log_injection_message(log_message):
         except json.JSONDecodeError:
             continue
         if message.get("dd") and message.get(log_injection_fields[context.library.library]["message"]) == log_message:
-            dd = message.get("dd")
-            return dd
+            return message.get("dd")
