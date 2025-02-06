@@ -927,10 +927,8 @@ tests/:
       nextjs: bug (APMAPI-939) # the nextjs weblog application changes the sampling priority from 1.0 to 2.0
   test_graphql.py:
     Test_GraphQLQueryErrorReporting:
-      '*': *ref_5_34_0
-      express4-typescript: incomplete_test_app (endpoint not implemented)
-      express5: missing_feature
-      nextjs: missing_feature
+      '*': irrelevant
+      express4: missing_feature
   test_identify.py:
     Test_Basic: v2.4.0
     Test_Propagate: *ref_3_2_0
