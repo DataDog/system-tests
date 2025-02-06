@@ -617,7 +617,7 @@ class Test_Span_Sampling:
         assert test_agent.info()["client_drop_p0s"] == True, "Client drop p0s expected to be enabled"
 
         with test_library:
-            with test_library.dd_start_span(name="parent", service="webserver") as s1:
+            with test_library.dd_start_span(name="parent", service="webserver"):
                 pass
 
         # expect the first trace kept by the tracer despite of the active dropping policy because of SSS
@@ -676,7 +676,7 @@ class Test_Span_Sampling:
 
         with test_library:
             with test_library.dd_start_span(name="parent", service="webserver") as ps1:
-                with test_library.dd_start_span(name="child", service="webserver", parent_id=ps1.span_id) as cs1:
+                with test_library.dd_start_span(name="child", service="webserver", parent_id=ps1.span_id):
                     pass
 
         # expect the first trace kept by the tracer despite of the active dropping policy because of SSS

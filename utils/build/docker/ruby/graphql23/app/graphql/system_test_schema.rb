@@ -14,11 +14,12 @@ class SystemTestSchema < GraphQL::Schema
   rescue_from(RuntimeError) do |err, obj, args, ctx, field|
     # Custom extension values used for testing.
     raise GraphQL::ExecutionError.new(err.message, extensions: {
-      'int-1': 1,
-      'str-1': '1',
-      'array-1-2': [1,'2'],
-      '': 'empty string',
-      ',': 'comma',
+      int: 1,
+      float: 1.1,
+      str: '1',
+      bool: true,
+      other: [1, 'foo'],
+      not_captured: 'nope',
     })
   end
 
