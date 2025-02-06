@@ -519,7 +519,7 @@ class Test_Parametric_OtelSpan_End:
         sleep = 0.2
         t1 = time.time()
         with test_library:
-            with test_library.otel_start_span("otel_end_span", end_on_exit=True) as s1:
+            with test_library.otel_start_span("otel_end_span", end_on_exit=True):
                 time.sleep(sleep)
         total_time = time.time() - t1
 
@@ -732,7 +732,7 @@ class Test_Parametric_Otel_Trace_Flush:
         Supported Return Values:
         - success: boolean
         """
-        with test_library.otel_start_span("test_otel_flush") as s1:
+        with test_library.otel_start_span("test_otel_flush"):
             pass
 
         assert test_library.otel_flush(timeout_sec=5)

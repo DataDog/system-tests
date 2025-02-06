@@ -12,9 +12,9 @@ def _setup(self):
     # Run only once, even across multiple class instances.
     if hasattr(Test_TelemetryMetrics, "__common_setup_done"):
         return
-    r_plain = weblog.get("/", headers={"x-forwarded-for": "80.80.80.80"})
-    r_triggered = weblog.get("/", headers={"x-forwarded-for": "80.80.80.80", "user-agent": "Arachni/v1"})
-    r_blocked = weblog.get(
+    weblog.get("/", headers={"x-forwarded-for": "80.80.80.80"})
+    weblog.get("/", headers={"x-forwarded-for": "80.80.80.80", "user-agent": "Arachni/v1"})
+    weblog.get(
         "/",
         headers={"x-forwarded-for": "80.80.80.80", "user-agent": "dd-test-scanner-log-block"},
         # Hack to prevent rid inhibiting the dd-test-scanner-log-block rule
