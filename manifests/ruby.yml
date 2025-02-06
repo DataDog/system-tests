@@ -275,7 +275,7 @@ tests/:
     test_identify.py:
       Test_Basic: v1.0.0
     test_ip_blocking_full_denylist.py:
-      Test_AppSecIPBlockingFullDenylist: missing_feature (Ruby supported denylists of 2500 entries but it fails to block this those 15000)
+      Test_AppSecIPBlockingFullDenylist: v2.9.0
     test_logs.py:
       Test_Standardization: missing_feature
       Test_StandardizationBlockMode: missing_feature
@@ -306,7 +306,7 @@ tests/:
       Test_ExternalWafRequestsIdentification: v1.22.0
       Test_RetainTraces: v0.54.2
     test_user_blocking_full_denylist.py:
-      Test_UserBlocking_FullDenylist: missing_feature (Ruby supported denylists of 2500 entries but it fails to block this those 15000)
+      Test_UserBlocking_FullDenylist: v2.9.0
     test_versions.py:
       Test_Events: v0.54.2
   debugger/:
