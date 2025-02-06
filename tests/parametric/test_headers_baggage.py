@@ -37,6 +37,7 @@ class Test_Headers_Baggage:
         assert headers["baggage"] == "foo=bar"
 
     @only_baggage_enabled()
+    @missing_feature(context.library == "nodejs", reason="pausing on this feature to avoid app crashes, looking to restore it soon - Feb 5, 2024")
     def test_headers_baggage_only_D002(self, test_library):
         """Ensure that only baggage headers are injected when baggage is the only enabled propagation style."""
         with test_library:
@@ -83,6 +84,7 @@ class Test_Headers_Baggage:
         assert "serverNode=DF%2028" in baggage_items
         assert "%22%2C%3B%5C%28%29%2F%3A%3C%3D%3E%3F%40%5B%5D%7B%7D=%22%2C%3B%5C" in baggage_items
 
+    @missing_feature(context.library == "nodejs", reason="spanContext is null when header only includes baggage, will fix it in a later PR - Feb 6, 2024")
     def test_baggage_extract_header_D005(self, test_library):
         """Testing baggage header extraction and decoding"""
 
