@@ -1,5 +1,4 @@
 import base64
-import pprint
 from typing import Any
 
 import numpy as np
@@ -11,6 +10,7 @@ from utils.parametric.spec.trace import SPAN_MEASURED_KEY
 from utils.parametric.spec.trace import V06StatsAggr
 from utils.parametric.spec.trace import find_root_span
 from utils import missing_feature, context, scenarios, features
+from utils.tools import logger
 
 parametrize = pytest.mark.parametrize
 
@@ -66,7 +66,7 @@ class Test_Library_Tracestats:
         agent_decoded_stats = decoded_stats_requests[0]["body"]["Stats"][0]["Stats"][0]
         assert len(decoded_stats_requests) == 1
         assert len(decoded_stats_requests[0]["body"]["Stats"]) == 1
-        pprint.pprint([_human_stats(s) for s in decoded_stats_requests[0]["body"]["Stats"][0]["Stats"]])
+        logger.debug([_human_stats(s) for s in decoded_stats_requests[0]["body"]["Stats"][0]["Stats"]])
         assert deserialized_stats["Name"] == "web.request"
         assert deserialized_stats["Resource"] == "/users"
         assert deserialized_stats["Service"] == "webserver"
@@ -202,7 +202,7 @@ class Test_Library_Tracestats:
         requests = test_agent.v06_stats_requests()
         assert len(requests) > 0
         stats = requests[0]["body"]["Stats"][0]["Stats"]
-        pprint.pprint([_human_stats(s) for s in stats])
+        logger.debug([_human_stats(s) for s in stats])
         assert len(stats) == 3
 
         web_stats = [s for s in stats if s["Name"] == "web.request"][0]

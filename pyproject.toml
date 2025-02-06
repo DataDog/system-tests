@@ -197,7 +197,6 @@ ignore = [
     "PT018",     # 39 occurences    [ ] pytest-composite-assertion
     "N802",      # 39 occurences    [ ] invalid-function-name
     "FBT002",    # 30 occurences    [ ] boolean-default-value-positional-argument
-    "F841",      # 28 occurences    [*] unused-variable
     "D404",      # 25 occurences    [ ] docstring-starts-with-this
     "ANN401",    # 24 occurences    [ ] any-type
     "B007",      # 23 occurences    [ ] unused-loop-control-variable
@@ -240,7 +239,6 @@ ignore = [
     "PTH103",    # 4 occurences     [ ] os-makedirs
     "PLW2901",   # 4 occurences     [ ] redefined-loop-name
     "PTH112",    # 3 occurences     [ ] os-path-isdir
-    "W291",      # 3 occurences     [*] trailing-whitespace
     "RUF017",    # 3 occurences     [*] quadratic-list-summation
     "ANN002",    # 2 occurences     [ ] missing-type-args
     "ASYNC230",  # 2 occurences     [ ] blocking-open-call-in-async-function
@@ -248,14 +246,12 @@ ignore = [
     "C408",      # 2 occurences     [*] unnecessary-collection-call
     "C416",      # 2 occurences     [*] unnecessary-comprehension
     "PIE810",    # 2 occurences     [*] multiple-starts-ends-with
-    "T203",      # 2 occurences     [*] p-print
     "PTH100",    # 2 occurences     [ ] os-path-abspath
     "PTH109",    # 2 occurences     [ ] os-getcwd
-    "FURB129",   # 2 occurences     [*] readlines-in-for
-    "C400",      # 1 occurences     [*] unnecessary-generator-list
-    "C401",      # 1 occurences     [*] unnecessary-generator-set
 
     # keep those exceptions
+    "C400",      # unnecessary-generator-list: explicit list is more readable for non-python users
+    "C401",      # unnecessary-generator-set: explicit set is more readable for non-python users
     "FIX003",    # line-contains-xxx: freedom of speech!
     "FIX004",    # line-contains-xxx: freedom of speech!
     "PLR1730",   # if-stmt-min-max: not clear that it makes the code easier to read

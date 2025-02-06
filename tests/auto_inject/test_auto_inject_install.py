@@ -120,7 +120,7 @@ class TestContainerAutoInjectInstallScriptCrashTracking_NoZombieProcess(base.Aut
         try:
             crash_result = fork_and_crash(virtual_machine)
             logger.info("fork_and_crash: " + crash_result)
-        except Exception as e:
+        except Exception:
             process_tree = self.execute_command(virtual_machine, "ps aux --forest")
             logger.warning("Failure process tree: " + process_tree)
             raise

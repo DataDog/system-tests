@@ -206,7 +206,7 @@ class Fuzzer:
     async def _run(self):
         try:
             await self.wait_for_first_response()
-        except Exception as e:
+        except Exception:
             self.logger.exception("First response failed")
             self.loop.stop()
             return

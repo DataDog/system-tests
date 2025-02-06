@@ -85,7 +85,7 @@ def apm_test_server(request, library_env, test_id):
 @pytest.hookimpl(hookwrapper=True)
 def pytest_runtest_makereport(item, call):
     outcome = yield
-    report = outcome.get_result()
+    outcome.get_result()
 
 
 @pytest.fixture
@@ -536,7 +536,7 @@ def test_agent_log_file(request) -> Generator[TextIO, None, None]:
         yield f
         f.seek(0)
         agent_output = ""
-        for line in f.readlines():
+        for line in f:
             # Remove log lines that are not relevant to the test
             if "GET /test/session/traces" in line:
                 continue
