@@ -525,8 +525,8 @@ def view_iast_ssrf_secure(request):
     return HttpResponse("OK")
 
 
-def _sink_point_sqli(username="user", id="1"):
-    sql = f"SELECT * FROM app_customuser WHERE username = {username} AND id = {id}"
+def _sink_point_sqli(table="user", id="1"):
+    sql = f"SELECT * FROM {table} WHERE id = '{id}'"
     with connection.cursor() as cursor:
         try:
             cursor.execute(sql)
@@ -548,7 +548,7 @@ def view_iast_source_body(request):
     import json
 
     table = json.loads(request.body).get("name")
-    _sink_point_sqli(username=table)
+    _sink_point_sqli(table=table)
     return HttpResponse("OK")
 
 
@@ -573,7 +573,7 @@ def view_iast_source_header_name(request):
 
 def view_iast_source_header_value(request):
     table = request.META.get("HTTP_TABLE")
-    _sink_point_sqli(username=table)
+    _sink_point_sqli(table=table)
     return HttpResponse("OK")
 
 
@@ -592,10 +592,10 @@ def view_iast_source_parametername(request):
 def view_iast_source_parameter(request):
     if request.method == "GET":
         table = request.GET.get("table")
-        _sink_point_sqli(username=table[0])
+        _sink_point_sqli(table=table[0])
     elif request.method == "POST":
         table = request.POST.get("table")
-        _sink_point_sqli(username=table[0])
+        _sink_point_sqli(table=table[0])
 
     return HttpResponse("OK")
 
@@ -603,14 +603,14 @@ def view_iast_source_parameter(request):
 @csrf_exempt
 def view_iast_source_path(request):
     table = request.path_info
-    _sink_point_sqli(username=table[0])
+    _sink_point_sqli(table=table[0])
 
     return HttpResponse("OK")
 
 
 @csrf_exempt
 def view_iast_source_path_parameter(request, table):
-    _sink_point_sqli(username=table)
+    _sink_point_sqli(table=table)
 
     return HttpResponse("OK")
 

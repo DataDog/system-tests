@@ -1016,7 +1016,7 @@ def view_weak_cipher_secure():
 
 def _sink_point_sqli(table="users", id="1"):
     check_and_create_users_table()
-    sql = "SELECT * FROM users WHERE username = '" + table + "' OR id = '" + id + "'"
+    sql = f"SELECT * FROM {table} WHERE id = '" + id + "'"
     postgres_db = psycopg2.connect(**POSTGRES_CONFIG)
     cursor = postgres_db.cursor()
     try:
@@ -1280,11 +1280,11 @@ def view_sqli_secure():
 def view_sqli_insecure():
     check_and_create_users_table()
     sql = (
-        "SELECT * FROM users WHERE username = "
+        "SELECT * FROM users WHERE username = '"
         + flask_request.form["username"]
-        + " AND password = "
+        + "' AND password = '"
         + flask_request.form["password"]
-        + ""
+        + "'"
     )
     postgres_db = psycopg2.connect(**POSTGRES_CONFIG)
     cursor = postgres_db.cursor()
