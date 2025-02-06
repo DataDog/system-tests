@@ -50,14 +50,14 @@ class AsmStandalone_UpstreamPropagation_Base(ABC):
         try:
             _assert_tags_value(first_trace, obj, expected_tags)
             return True
-        except (KeyError, AssertionError) as e:
+        except (KeyError, AssertionError):
             pass  # should try the second case
 
         # Case 2: The tags are set on the local root span
         try:
             _assert_tags_value(span, obj, expected_tags)
             return True
-        except (KeyError, AssertionError) as e:
+        except (KeyError, AssertionError):
             return False
 
     @staticmethod

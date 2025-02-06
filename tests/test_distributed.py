@@ -75,7 +75,7 @@ class Test_Span_Links_From_Conflicting_Contexts:
         assert link1["attributes"] == {"reason": "terminated_context", "context_headers": "tracecontext"}
         assert link1["trace_id_high"] == 1229782938247303441
 
-    """Datadog and tracecontext headers, trace-id does match, Datadog is primary 
+    """Datadog and tracecontext headers, trace-id does match, Datadog is primary
     context we want to make sure there's no span link since they match"""
 
     def setup_no_span_links_from_nonconflicting_contexts(self):
@@ -101,7 +101,7 @@ class Test_Span_Links_From_Conflicting_Contexts:
 
         assert len(trace) == 0
 
-    """Datadog, b3multi headers edge case where we want to make sure NOT to create a 
+    """Datadog, b3multi headers edge case where we want to make sure NOT to create a
     span_link if the secondary context has trace_id 0 since that's not valid."""
 
     def setup_no_span_links_from_invalid_trace_id(self):
