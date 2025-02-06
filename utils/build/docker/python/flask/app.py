@@ -215,12 +215,13 @@ def check_and_create_users_table():
         users_data = [
             ("1", "john_doe", "john@example.com", "hashed_password_1"),
             ("2", "jane_doe", "jane@example.com", "hashed_password_2"),
-            ("3", "bob_smith", "bob@example.com", "hashed_password_3")
+            ("3", "bob_smith", "bob@example.com", "hashed_password_3"),
         ]
 
         cur.executemany(
             "INSERT INTO users (id, username, email, password) VALUES (%s, %s, %s, %s) ON CONFLICT (id) DO NOTHING;",
-            users_data)
+            users_data,
+        )
         postgres_db.commit()
 
         cur.close()
