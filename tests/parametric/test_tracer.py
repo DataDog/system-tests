@@ -14,6 +14,7 @@ parametrize = pytest.mark.parametrize
 
 
 @scenarios.parametric
+@features.trace_annotation
 class Test_Tracer:
     @missing_feature(context.library == "cpp", reason="metrics cannot be set manually")
     @missing_feature(context.library == "nodejs", reason="nodejs overrides the manually set service name")
@@ -152,6 +153,7 @@ class Test_TracerSCITagging:
 
 
 @scenarios.parametric
+@features.dd_service_mapping
 class Test_TracerUniversalServiceTagging:
     @missing_feature(reason="FIXME: library test client sets empty string as the service name")
     @parametrize("library_env", [{"DD_SERVICE": "service1"}])

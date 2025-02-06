@@ -79,8 +79,26 @@ tests/:
             ratpack: missing_feature
             spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
         test_email_html_injection.py:
-          TestEmailHtmlInjection: missing_feature
-          TestEmailHtmlInjection_StackTrace: missing_feature
+          TestEmailHtmlInjection:
+            '*': v1.47.0
+            akka-http: missing_feature (No endpoint implemented)
+            jersey-grizzly2: missing_feature (No endpoint implemented)
+            play: missing_feature (No endpoint implemented)
+            ratpack: missing_feature (No endpoint implemented)
+            resteasy-netty3: missing_feature (No endpoint implemented)
+            spring-boot-3-native: missing_feature (No endpoint implemented)
+            vertx3: missing_feature (No endpoint implemented)
+            vertx4: missing_feature (No endpoint implemented)
+          TestEmailHtmlInjection_StackTrace:
+            '*': v1.47.0
+            akka-http: missing_feature (No endpoint implemented)
+            jersey-grizzly2: missing_feature (No endpoint implemented)
+            play: missing_feature (No endpoint implemented)
+            ratpack: missing_feature (No endpoint implemented)
+            resteasy-netty3: missing_feature (No endpoint implemented)
+            spring-boot-3-native: missing_feature (No endpoint implemented)
+            vertx3: missing_feature (No endpoint implemented)
+            vertx4: missing_feature (No endpoint implemented)
         test_hardcoded_passwords.py:
           Test_HardcodedPasswords: missing_feature
           Test_HardcodedPasswords_StackTrace: missing_feature
@@ -1617,6 +1635,7 @@ tests/:
       Test_Config_TraceEnabled: v1.39.0
       Test_Config_TraceLogDirectory: missing_feature
       Test_Config_UnifiedServiceTagging: v1.41.1
+      Test_Stable_Config_Default: missing_feature
     test_crashtracking.py:
       Test_Crashtracking: v1.38.0
     test_dynamic_configuration.py:

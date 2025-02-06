@@ -363,7 +363,7 @@ class Test_Telemetry:
     @irrelevant(
         library="java",
         reason="""
-        A Java application can be redeployed to the same server for many times (for the same JVM process). 
+        A Java application can be redeployed to the same server for many times (for the same JVM process).
         That means, every new deployment/reload of application will cause reloading classes/dependencies and as the result we will see duplications.
         """,
     )

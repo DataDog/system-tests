@@ -15,7 +15,7 @@ from pytest_jsonreport.plugin import JSONReport
 
 from manifests.parser.core import load as load_manifests
 from utils import context
-from utils._context._scenarios import scenarios
+from utils._context._scenarios import scenarios, Scenario
 from utils.tools import logger
 from utils.scripts.junit_report import junit_modifyreport
 from utils._context.library_version import LibraryVersion
@@ -150,15 +150,19 @@ def pytest_configure(config) -> None:
         config.option.skip_empty_scenario = True
 
     # First of all, we must get the current scenario
+
+    current_scenario: Scenario | None = None
+
     for name in dir(scenarios):
         if name.upper() == config.option.scenario:
-            context.scenario = getattr(scenarios, name)
+            current_scenario = getattr(scenarios, name)
             break
 
-    if context.scenario is None:
+    if current_scenario is not None:
+        current_scenario.pytest_configure(config)
+        context.scenario = current_scenario
+    else:
         pytest.exit(f"Scenario {config.option.scenario} does not exist", 1)
-
-    context.scenario.pytest_configure(config)
 
     if not config.option.replay and not config.option.collectonly:
         config.option.json_report_file = f"{context.scenario.host_log_folder}/report.json"
@@ -184,11 +188,8 @@ def pytest_sessionstart(session) -> None:
 
 # called when each test item is collected
 def _collect_item_metadata(item):
-    result = {
-        "details": None,
-        "testDeclaration": None,
-        "features": [marker.kwargs["feature_id"] for marker in item.iter_markers("features")],
-    }
+    details: str | None = None
+    test_declaration: str | None = None
 
     # get the reason form skip before xfail
     markers = [*item.iter_markers("skip"), *item.iter_markers("skipif"), *item.iter_markers("xfail")]
@@ -197,32 +198,36 @@ def _collect_item_metadata(item):
 
         if skip_reason is not None:
             # if any irrelevant declaration exists, it is the one we need to expose
-            if skip_reason.startswith("irrelevant") or result["details"] is None:
-                result["details"] = skip_reason
+            if skip_reason.startswith("irrelevant") or details is None:
+                details = skip_reason
 
-    if result["details"]:
-        logger.debug(f"{item.nodeid} => {result['details']} => skipped")
+    if details is not None:
+        logger.debug(f"{item.nodeid} => {details} => skipped")
 
-        if result["details"].startswith("irrelevant"):
-            result["testDeclaration"] = "irrelevant"
-        elif result["details"].startswith("flaky"):
-            result["testDeclaration"] = "flaky"
-        elif result["details"].startswith("bug"):
-            result["testDeclaration"] = "bug"
-        elif result["details"].startswith("incomplete_test_app"):
-            result["testDeclaration"] = "incompleteTestApp"
-        elif result["details"].startswith("missing_feature"):
-            result["testDeclaration"] = "notImplemented"
-        elif "got empty parameter set" in result["details"]:
+        if details.startswith("irrelevant"):
+            test_declaration = "irrelevant"
+        elif details.startswith("flaky"):
+            test_declaration = "flaky"
+        elif details.startswith("bug"):
+            test_declaration = "bug"
+        elif details.startswith("incomplete_test_app"):
+            test_declaration = "incompleteTestApp"
+        elif details.startswith("missing_feature"):
+            test_declaration = "notImplemented"
+        elif "got empty parameter set" in details:
             # Case of a test with no parameters. Onboarding: we removed the parameter/machine with excludedBranches
             logger.info(f"No parameters found for ${item.nodeid}")
         else:
-            raise ValueError(f"Unexpected test declaration for {item.nodeid} : {result['details']}")
+            raise ValueError(f"Unexpected test declaration for {item.nodeid} : {details}")
 
-    return result
+    return {
+        "details": details,
+        "testDeclaration": test_declaration,
+        "features": [marker.kwargs["feature_id"] for marker in item.iter_markers("features")],
+    }
 
 
-def _get_skip_reason_from_marker(marker):
+def _get_skip_reason_from_marker(marker) -> str | None:
     if marker.name == "skipif":
         if all(marker.args):
             return marker.kwargs.get("reason", "")
@@ -443,7 +448,7 @@ def pytest_runtest_call(item) -> None:
 
 
 @pytest.hookimpl(optionalhook=True)
-def pytest_json_runtest_metadata(item, call) -> None:
+def pytest_json_runtest_metadata(item, call) -> None | dict:
     if call.when != "setup":
         return {}
 
@@ -521,7 +526,7 @@ def export_feature_parity_dashboard(session, data) -> None:
         json.dump(result, f, indent=2)
 
 
-def convert_test_to_feature_parity_model(test) -> dict:
+def convert_test_to_feature_parity_model(test) -> dict | None:
     result = {
         "path": test["nodeid"],
         "lineNumber": test["lineno"],

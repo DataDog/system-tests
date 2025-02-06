@@ -147,8 +147,8 @@ class AutoInjectBaseTest:
                 start_weblog_command = virtual_machine._vm_provision.weblog_installation.remote_command
         else:  # Container
             stop_weblog_command = "sudo -E docker-compose -f docker-compose.yml down"
-            #   On older Docker versions, the network recreation can hang. The solution is to restart Docker.
-            #   https://github.com/docker-archive/classicswarm/issues/1931
+            # On older Docker versions, the network recreation can hang. The solution is to restart Docker.
+            # https://github.com/docker-archive/classicswarm/issues/1931
             start_weblog_command = "sudo systemctl restart docker && sudo -E docker-compose -f docker-compose.yml up --wait --wait-timeout 120"
 
         install_command = "sudo datadog-installer apm instrument"

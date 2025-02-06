@@ -8,7 +8,7 @@ from utils.tools import logger
 @features.aws_api_gateway_inferred_span_creation
 @scenarios.integrations
 class Test_AWS_API_Gateway_Inferred_Span_Creation:
-    """Verify DSM context is extracted using "dd-pathway-ctx-base64" """
+    """Verify DSM context is extracted using dd-pathway-ctx-base64"""
 
     start_time = round(time.time() * 1e3)
     start_time_ns = start_time * 1e6

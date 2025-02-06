@@ -5,7 +5,7 @@ from utils._context._scenarios import get_all_scenarios, ScenarioGroup
 
 
 def get_github_workflow_map(scenarios, scenarios_groups) -> dict:
-    result = {}
+    result: dict = {}
 
     scenarios_groups = [group.strip() for group in scenarios_groups if group.strip()]
     scenarios = {scenario.strip(): False for scenario in scenarios if scenario.strip()}
@@ -40,8 +40,8 @@ def get_github_workflow_map(scenarios, scenarios_groups) -> dict:
     return result
 
 
-def get_graphql_weblogs(library) -> list[str]:
-    weblogs = {
+def get_graphql_weblogs(library: str) -> list[str]:
+    weblogs: dict[str, list[str]] = {
         "cpp": [],
         "dotnet": [],
         "golang": ["gqlgen", "graph-gophers", "graphql-go"],
@@ -100,7 +100,7 @@ def get_endtoend_weblogs(library, ci_environment: str) -> list[str]:
 
 
 def get_opentelemetry_weblogs(library) -> list[str]:
-    weblogs = {
+    weblogs: dict[str, list[str]] = {
         "cpp": [],
         "dotnet": [],
         "golang": [],
@@ -126,7 +126,7 @@ def _print_output(result: dict[str, dict], output_format: str) -> None:
 def main(
     language: str, scenarios: str, groups: str, parametric_job_count: int, ci_environment: str, output_format: str
 ) -> None:
-    result = defaultdict(dict)
+    result: dict = defaultdict(dict)
     # this data struture is a dict where:
     #  the key is the workflow identifier
     #  the value is also a dict, where the key/value pair is the parameter name/value.

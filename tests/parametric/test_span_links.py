@@ -6,11 +6,12 @@ from utils.parametric.spec.trace import SAMPLING_PRIORITY_KEY
 from utils.parametric.spec.trace import AUTO_DROP_KEY
 from utils.parametric.spec.trace import span_has_no_parent
 from utils.parametric.spec.tracecontext import TRACECONTEXT_FLAGS_SET
-from utils import scenarios, missing_feature
+from utils import scenarios, missing_feature, features
 from utils.parametric.spec.trace import retrieve_span_links, find_span, find_trace, find_span_in_traces
 
 
 @scenarios.parametric
+@features.span_links
 class Test_Span_Links:
     @pytest.mark.parametrize("library_env", [{"DD_TRACE_API_VERSION": "v0.4"}])
     @missing_feature(library="nodejs", reason="only supports span links encoding through _dd.span_links tag")
