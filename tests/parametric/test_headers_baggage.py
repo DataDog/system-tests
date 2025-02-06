@@ -1,5 +1,5 @@
 from utils.parametric.spec.trace import find_only_span
-from utils import features, scenarios, missing_feature
+from utils import features, scenarios, context, missing_feature
 from typing import Any
 import pytest
 
