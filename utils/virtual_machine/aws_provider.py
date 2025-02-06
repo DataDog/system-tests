@@ -95,11 +95,12 @@ class AWSPulumiProvider(VmProvider):
     def _start_vm(self, vm):
         ec2_user_data = None
         if vm.os_type == "windows":
-            ssm_parameter = aws.ssm.get_parameter(
-                name="/aws/service/ami-windows-latest/Windows_Server-2022-English-Full-Base"
-            )
-            logger.info(f"Using Windows AMI: {ssm_parameter.value}")
-            vm.aws_config.ami_id = ssm_parameter.value
+            if vm.aws_config.ami_id == "AMI_FROM_SSM":
+                ssm_parameter = aws.ssm.get_parameter(
+                    name="/aws/service/ami-windows-latest/Windows_Server-2022-English-Full-Base"
+                )
+                logger.info(f"Using Windows AMI: {ssm_parameter.value}")
+                vm.aws_config.ami_id = ssm_parameter.value
             ec2_user_data = self.get_windows_user_data()
 
         # Startup VM and prepare connection

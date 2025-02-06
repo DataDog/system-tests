@@ -180,11 +180,3 @@ class TestSimpleInstallerAutoInjectManual(base.AutoInjectBaseTest):
         logger.info(
             f"Done test_install for : [{virtual_machine.name}][{virtual_machine.get_deployed_weblog().runtime_version}]"
         )
-
-
-@features.installer_auto_instrumentation
-@scenarios.simple_installer_auto_injection_windows
-class TestSimpleInstallerAutoInjectWindows(base.AutoInjectBaseTest):
-    @parametrize_virtual_machines()
-    def test_install_windows(self, virtual_machine):
-        pass

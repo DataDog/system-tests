@@ -116,18 +116,17 @@
 
 - os_type: windows
   remote-command: |
-    # Create mock JSON data
+    # Works only for .NET today
     $data = @{
-        host                    = "192.168.99.99 10.99.99.99"
-        agent                   = "9.99.0-1"
-        "datadog-apm-inject"    = "9.99.99-dev.mock"
-        "datadog-apm-library-dotnet" = "9.99.99-mock"
-        docker                  = "Docker version 9.99.99, build mock"
-        "datadog-installer"     = "9.99.99-installer-9.99.99"
-        glibc_type              = "gnu"
-        glibc                   = "9.99"
-        runtime_version         = "9.99"
+        host                    = (hostname).Trim()
+        agent                   = (ls 'C:\ProgramData\Datadog Installer\packages\datadog-agent' | Where-Object { $_ -notmatch "(experiment|stable)" } | Select-String '(\d+\.\d+\.\d+.*)' | ForEach-Object { $_.Matches.Groups[1].Value }).Trim()
+        "datadog-apm-inject"    = "N/A (Windows IIS)"
+        "datadog-apm-library-dotnet" = (ls 'C:\ProgramData\Datadog Installer\packages\datadog-apm-library-dotnet' | Where-Object { $_ -notmatch "(experiment|stable)" } | Select-String '(\d+\.\d+\.\d+.*)' | ForEach-Object { $_.Matches.Groups[1].Value }).Trim()
+        docker                  = "N/A (Windows)"
+        "datadog-installer"     = (& 'C:\Program Files\Datadog\Datadog Installer\datadog-installer.exe' version).Trim()
+        glibc_type              = "N/A (Windows)"
+        glibc                   = "N/A (Windows)"
+        runtime_version         = (& 'C:\Program Files\dotnet\dotnet.exe' --info | Select-String '(.*)\[C:\\Program Files\\dotnet\\sdk\]' | ForEach-Object { $_.Matches.Groups[1].Value }).Trim()
     }
 
-    # Convert to JSON and print (no compression to avoid errors)
     $data | ConvertTo-Json -Depth 3
