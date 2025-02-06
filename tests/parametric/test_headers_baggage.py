@@ -1,6 +1,7 @@
 from utils._decorators import irrelevant
 from utils.parametric.spec.trace import find_only_span
-from utils import features, scenarios, context
+from utils import features, scenarios, context, missing_feature
+
 from typing import Any
 import pytest
 
@@ -38,6 +39,7 @@ class Test_Headers_Baggage:
         assert headers["baggage"] == "foo=bar"
 
     @only_baggage_enabled()
+    @missing_feature(context.library == "nodejs", reason="pausing on this feature to avoid app crashes")
     def test_headers_baggage_only_D002(self, test_library):
         """Ensure that only baggage headers are injected when baggage is the only enabled propagation style."""
         with test_library:
@@ -88,6 +90,9 @@ class Test_Headers_Baggage:
         assert "serverNode=DF%2028" in baggage_items
         assert "%22%2C%3B%5C%28%29%2F%3A%3C%3D%3E%3F%40%5B%5D%7B%7D=%22%2C%3B%5C" in baggage_items
 
+    @missing_feature(
+        context.library == "nodejs", reason="`dd_extract_headers_and_make_child_span` does not work with only baggage"
+    )
     def test_baggage_extract_header_D005(self, test_library):
         """Testing baggage header extraction and decoding"""
 
@@ -137,6 +142,9 @@ class Test_Headers_Baggage:
             headers = test_library.dd_inject_headers(span.span_id)
         assert not any("baggage" in item for item in headers)
 
+    @missing_feature(
+        context.library == "nodejs", reason="`dd_extract_headers_and_make_child_span` does not work with only baggage"
+    )
     def test_baggage_get_D008(self, test_library):
         """Testing baggage API get_baggage"""
         with test_library.dd_extract_headers_and_make_child_span(
@@ -149,6 +157,9 @@ class Test_Headers_Baggage:
             assert span.get_baggage("userId") == "Amélie"
             assert span.get_baggage("serverNode") == "DF 28"
 
+    @missing_feature(
+        context.library == "nodejs", reason="`dd_extract_headers_and_make_child_span` does not work with only baggage"
+    )
     def test_baggage_get_all_D009(self, test_library):
         """Testing baggage API get_all_baggage"""
         with test_library.dd_extract_headers_and_make_child_span(
