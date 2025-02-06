@@ -6,7 +6,7 @@ import threading
 import requests
 import docker
 
-from utils import scenarios
+from utils import scenarios, features
 
 
 MAX_CONCURRENT_REQUEST = 5
@@ -21,6 +21,7 @@ TESTED_PATHS = ("/", "/waf/", "/waf/fdsfds/fds/fds/fds/", "/waf?a=b", "/waf?acd=
 # WARMUP_LAST_SLEEP_DURATION = 1
 # WEBLOG_URL="http://localhost:7777"
 @scenarios.performances
+@features.not_reported
 class Test_Performances:
     def setup_main(self) -> None:
         self.requests: list = []

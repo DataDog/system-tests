@@ -338,8 +338,8 @@ class Test_gRPC:
         for r in self.requests:
             try:
                 interfaces.library.assert_waf_attack(r, address="grpc.server.request.message")
-            except:
-                raise ValueError(f"Basic attack #{self.requests.index(r)} not detected")
+            except Exception as e:
+                raise ValueError(f"Basic attack #{self.requests.index(r)} not detected") from e
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2278064284/gRPC+Protocol+Support")
