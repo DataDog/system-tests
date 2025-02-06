@@ -1280,15 +1280,18 @@ def view_sqli_secure():
 def view_sqli_insecure():
     check_and_create_users_table()
     sql = (
-        "SELECT * FROM users WHERE username = '"
+        "SELECT * FROM users WHERE username = "
         + flask_request.form["username"]
-        + "' AND password = '"
+        + " AND password = "
         + flask_request.form["password"]
-        + "'"
+        + ""
     )
     postgres_db = psycopg2.connect(**POSTGRES_CONFIG)
     cursor = postgres_db.cursor()
-    cursor.execute(sql)
+    try:
+        cursor.execute(sql)
+    except Exception:
+        pass
     return Response("OK")
 
 
