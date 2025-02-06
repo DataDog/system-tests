@@ -742,6 +742,32 @@ class SCAStandalone_Telemetry_Base:
 
 @rfc("https://docs.google.com/document/d/12NBx-nD-IoQEMiCRnJXneq4Be7cbtSc6pJLOFUWTpNE/edit")
 @features.appsec_standalone
+@scenarios.appsec_no_stats
+class Test_AppSecStandalone_NotEnabled:
+    """Test expected behaviour when standalone is not enabled."""
+
+    def setup_client_computed_stats_header_is_not_present(self):
+        trace_id = 1212121212121212122
+        parent_id = 34343434
+        self.r = weblog.get(
+            "/",
+            headers={
+                "x-datadog-trace-id": str(trace_id),
+                "x-datadog-parent-id": str(parent_id),
+            },
+        )
+
+    def test_client_computed_stats_header_is_not_present(self):
+        spans_checked = 0
+        for data, _, span in interfaces.library.get_spans(request=self.r):
+            assert span["trace_id"] == 1212121212121212122
+            assert "datadog-client-computed-stats" not in [x.lower() for x, y in data["request"]["headers"]]
+            spans_checked += 1
+        assert spans_checked == 1
+
+
+@rfc("https://docs.google.com/document/d/12NBx-nD-IoQEMiCRnJXneq4Be7cbtSc6pJLOFUWTpNE/edit")
+@features.appsec_standalone
 @scenarios.appsec_standalone
 class Test_AppSecStandalone_UpstreamPropagation(AppSecStandalone_UpstreamPropagation_Base):
     """APPSEC correctly propagates AppSec events in distributing tracing with DD_EXPERIMENTAL_APPSEC_STANDALONE_ENABLED=true."""
