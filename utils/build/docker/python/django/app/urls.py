@@ -526,9 +526,12 @@ def view_iast_ssrf_secure(request):
 
 
 def _sink_point_sqli(username="user", id="1"):
-    sql = "SELECT * FROM app_customuser WHERE username = '" + username + "' AND id = '" + id + "'"
+    sql = f"SELECT * FROM app_customuser WHERE username = {username} AND id = {id}"
     with connection.cursor() as cursor:
-        cursor.execute(sql)
+        try:
+            cursor.execute(sql)
+        except Exception:
+            pass
 
 
 def _sink_point_path_traversal(tainted_str="user"):
