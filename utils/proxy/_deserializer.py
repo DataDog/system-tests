@@ -65,7 +65,7 @@ def _decode_v_0_5_traces(content):
 
     result = []
     for spans in payload:
-        decoded_spans = []
+        decoded_spans: list = []
         result.append(decoded_spans)
         for span in spans:
             decoded_span = {
@@ -205,10 +205,10 @@ def deserialize_http_message(path, message, content: bytes, interface, key, expo
                     item["system-tests-error"] = "Can't decompress gzip data"
                     continue
 
-                _deserialize_file_in_multipart_form_data(item, headers, export_content_files_to, content)
+                _deserialize_file_in_multipart_form_data(path, item, headers, export_content_files_to, content)
 
             elif content_type_part == "application/octet-stream":
-                _deserialize_file_in_multipart_form_data(item, headers, export_content_files_to, part.content)
+                _deserialize_file_in_multipart_form_data(path, item, headers, export_content_files_to, part.content)
 
             else:
                 try:
@@ -227,7 +227,7 @@ def deserialize_http_message(path, message, content: bytes, interface, key, expo
 
 
 def _deserialize_file_in_multipart_form_data(
-    item: dict, headers: dict, export_content_files_to: str, content: bytes
+    path: str, item: dict, headers: dict, export_content_files_to: str, content: bytes
 ) -> None:
     content_disposition = headers.get("Content-Disposition", "")
 
@@ -253,7 +253,10 @@ def _deserialize_file_in_multipart_form_data(
                 filename = filename[:-3]
 
             content_is_deserialized = False
-            if filename.lower().endswith(".json"):
+            if filename.lower().endswith(".json") or path in ("/symdb/v1/input", "/api/v2/debugger"):
+                # when path == /symdb/v1/input or /api/v2/debugger, the content may be either raw json, or gizipped json
+                # though, the file name may not always contains .json, so for this use case
+                # we always try to deserialize the content as json
                 try:
                     item["content"] = json.loads(content)
                     content_is_deserialized = True

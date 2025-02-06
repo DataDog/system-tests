@@ -51,7 +51,7 @@ class Version(version_module.Version):
 
 
 class LibraryVersion:
-    known_versions = defaultdict(set)
+    known_versions: dict = defaultdict(set)
 
     def add_known_version(self, version, library=None):
         library = self.library if library is None else library

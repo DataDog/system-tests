@@ -7,8 +7,6 @@ from utils.parametric.spec.trace import find_only_span
 from utils import features, scenarios, bug, context
 from typing import Any
 import pytest
-from utils.parametric.spec.trace import SAMPLING_PRIORITY_KEY, ORIGIN
-from utils.parametric.spec.trace import find_only_span
 
 parametrize = pytest.mark.parametrize
 

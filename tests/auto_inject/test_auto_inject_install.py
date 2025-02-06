@@ -2,7 +2,6 @@ import re
 from utils import scenarios, features, flaky, irrelevant, context
 from utils.tools import logger
 from utils.onboarding.weblog_interface import warmup_weblog, get_child_pids, get_zombies, fork_and_crash
-from utils import scenarios, features
 import tests.auto_inject.utils as base
 from utils.virtual_machine.utils import parametrize_virtual_machines
 
@@ -36,6 +35,8 @@ class TestSimpleInstallerAutoInjectManualProfiling(base.AutoInjectBaseTest):
         bugs=[
             {"vm_cpu": "arm64", "weblog_variant": "test-app-dotnet", "reason": "PROF-10783"},
             {"vm_cpu": "arm64", "weblog_variant": "test-app-dotnet-container", "reason": "PROF-10783"},
+            {"vm_name": "Ubuntu_24_amd64", "weblog-variant": "test-app-nodejs", "reason": "PROF-11264"},
+            {"vm_name": "Ubuntu_24_arm64", "weblog-variant": "test-app-nodejs", "reason": "PROF-11264"},
         ]
     )
     def test_profiling(self, virtual_machine):
@@ -48,7 +49,11 @@ class TestSimpleInstallerAutoInjectManualProfiling(base.AutoInjectBaseTest):
 @scenarios.host_auto_injection_install_script_profiling
 class TestHostAutoInjectInstallScriptProfiling(base.AutoInjectBaseTest):
     @parametrize_virtual_machines(
-        bugs=[{"vm_cpu": "arm64", "weblog_variant": "test-app-dotnet", "reason": "PROF-10783"}]
+        bugs=[
+            {"vm_cpu": "arm64", "weblog_variant": "test-app-dotnet", "reason": "PROF-10783"},
+            {"vm_name": "Ubuntu_24_amd64", "weblog-variant": "test-app-nodejs", "reason": "PROF-11264"},
+            {"vm_name": "Ubuntu_24_arm64", "weblog-variant": "test-app-nodejs", "reason": "PROF-11264"},
+        ]
     )
     def test_profiling(self, virtual_machine):
         logger.info(f"Launching test_install for : [{virtual_machine.name}]...")
@@ -92,6 +97,7 @@ class TestContainerAutoInjectInstallScriptCrashTracking_NoZombieProcess(base.Aut
         reason="Zombies only appears in containers",
     )
     @flaky(library="python", reason="APMLP-313")
+    @flaky(library="nodejs", reason="APMLP-313")
     def test_crash_no_zombie(self, virtual_machine):
         vm_ip = virtual_machine.get_ip()
         vm_port = virtual_machine.deffault_open_port

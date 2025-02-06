@@ -1,6 +1,7 @@
-import os
-import json
 import copy
+import json
+import os
+from pathlib import Path
 from utils._context.library_version import LibraryVersion
 from utils.tools import logger
 from utils.virtual_machine.utils import get_tested_apps_vms, generate_gitlab_pipeline
@@ -275,10 +276,10 @@ class _VirtualMachineScenario(Scenario):
 
         base_folder = "utils/build/virtual_machine"
         weblog_provision_file = f"{base_folder}/weblogs/{self._library.library}/provision_{self._weblog}.yml"
-        assert os.path.isfile(weblog_provision_file), f"Weblog Provision file not found: {weblog_provision_file}"
+        assert Path(weblog_provision_file).is_file(), f"Weblog Provision file not found: {weblog_provision_file}"
 
         provision_file = f"{base_folder}/provisions/{self.vm_provision_name}/provision.yml"
-        assert os.path.isfile(provision_file), f"Provision file not found: {provision_file}"
+        assert Path(provision_file).is_file(), f"Provision file not found: {provision_file}"
 
         assert os.getenv("DD_API_KEY_ONBOARDING") is not None, "DD_API_KEY_ONBOARDING is not set"
         assert os.getenv("DD_APP_KEY_ONBOARDING") is not None, "DD_APP_KEY_ONBOARDING is not set"
@@ -480,49 +481,4 @@ class InstallerAutoInjectionScenario(_VirtualMachineScenario):
             include_fedora_36_arm64=include_fedora_36_arm64,
             include_fedora_37_amd64=include_fedora_37_amd64,
             include_fedora_37_arm64=include_fedora_37_arm64,
-        )
-
-
-class InstallerAutoInjectionScenarioProfiling(_VirtualMachineScenario):
-    """As Profiling is not included in GA (2024/11) we reduce the number of VMS to speed up the execution
-    Until we fix the performance problems on the AWS architecture and speed up the tests
-    """
-
-    def __init__(
-        self,
-        name,
-        doc,
-        vm_provision="installer-auto-inject",
-        agent_env=None,
-        app_env=None,
-        scenario_groups=None,
-        github_workflow=None,
-    ) -> None:
-        # Force full tracing without limits
-        app_env_defaults = {
-            "DD_TRACE_RATE_LIMIT": "1000000000000",
-            "DD_TRACE_SAMPLING_RULES": "'[{\"sample_rate\":1}]'",
-        }
-        if app_env is not None:
-            app_env_defaults.update(app_env)
-
-        super().__init__(
-            name,
-            vm_provision=vm_provision,
-            agent_env=agent_env,
-            app_env=app_env_defaults,
-            doc=doc,
-            github_workflow=github_workflow,
-            include_ubuntu_22_amd64=True,
-            include_ubuntu_22_arm64=True,
-            include_amazon_linux_2_amd64=True,
-            include_amazon_linux_2_arm64=True,
-            include_amazon_linux_2023_amd64=True,
-            include_amazon_linux_2023_arm64=True,
-            include_redhat_7_9_amd64=True,
-            include_redhat_8_amd64=True,
-            include_redhat_8_arm64=True,
-            include_redhat_9_amd64=True,
-            include_redhat_9_arm64=True,
-            scenario_groups=scenario_groups,
         )

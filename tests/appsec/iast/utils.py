@@ -234,7 +234,7 @@ def validate_stack_traces(request):
     locationFrame = None
     for frame in stack_trace["frames"]:
         # We are looking for the frame that corresponds to the location of the vulnerability, we will need to update this to cover all tracers
-        # currently support: Java, Python
+        # currently support: Java, Python, Node.js
         if (
             stack_trace["language"] == "java"
             and (
@@ -243,7 +243,7 @@ def validate_stack_traces(request):
                 and location["line"] == frame["line"]
             )
         ) or (
-            stack_trace["language"] == "python"
+            stack_trace["language"] in ("python", "nodejs")
             and (frame.get("file", "").endswith(location["path"]) and location["line"] == frame["line"])
         ):
             locationFrame = frame
@@ -379,7 +379,9 @@ class BaseSourceTest:
             sources = [s for s in sources if s["origin"] == source_type]
         if self.source_names:
             assert isinstance(self.source_names, list)
-            assert any(x in self.source_names for x in {s.get("name") for s in sources})
+            assert any(
+                x in self.source_names for x in {s.get("name") for s in sources}
+            ), f"Source {self.source_names} not in {sources}"
             sources = [s for s in sources if s["name"] in self.source_names]
         if self.source_value:
             assert self.source_value in {s.get("value") for s in sources}

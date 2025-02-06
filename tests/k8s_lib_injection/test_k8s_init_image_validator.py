@@ -2,9 +2,8 @@ import os
 import time
 
 import requests
-from utils import scenarios, features
+from utils import scenarios, features, context, bug
 from utils.tools import logger
-from utils import scenarios, context, features, bug
 from retry import retry
 
 

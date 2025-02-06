@@ -1,6 +1,6 @@
 import logging
 
-from ddtrace import tracer
+from ddtrace.trace import tracer
 
 from pylons import request, response, session, tmpl_context as c, url
 from pylons.controllers.util import abort, redirect

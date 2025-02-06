@@ -36,6 +36,7 @@ VARIANT_COMPONENT_MAP = {
     "graphql-go": "graphql-go/graphql",
     "jersey-grizzly2": {"jakarta-rs.request": "jakarta-rs-controller", "grizzly.request": ["grizzly", "jakarta-rs"]},
     "net-http": "net/http",
+    "net-http-orchestrion": "net/http",
     "sinatra": {"rack.request": "rack"},
     "spring-boot": {
         "servlet.request": "tomcat-server",

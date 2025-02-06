@@ -78,6 +78,9 @@ tests/:
             play: missing_feature
             ratpack: missing_feature
             spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+        test_email_html_injection.py:
+          TestEmailHtmlInjection: missing_feature
+          TestEmailHtmlInjection_StackTrace: missing_feature
         test_hardcoded_passwords.py:
           Test_HardcodedPasswords: missing_feature
           Test_HardcodedPasswords_StackTrace: missing_feature
@@ -1023,12 +1026,15 @@ tests/:
       Test_AppSecStandalone_UpstreamPropagation:
         '*': v1.36.0
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+      Test_AppSecStandalone_UpstreamPropagation_V2: missing_feature
       Test_IastStandalone_UpstreamPropagation:
         '*': v1.36.0
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+      Test_IastStandalone_UpstreamPropagation_V2: missing_feature
       Test_SCAStandalone_Telemetry:
         '*': v1.36.0
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+      Test_SCAStandalone_Telemetry_V2: missing_feature
     test_automated_login_events.py:
       Test_Login_Events: irrelevant (was v1.36.0 but will be replaced by V2)
       Test_Login_Events_Extended: irrelevant (was v1.36.0 but will be replaced by V2)
@@ -1503,6 +1509,14 @@ tests/:
         spring-boot-undertow: v1.38.0
         spring-boot-wildfly: v1.38.0
         uds-spring-boot: v1.38.0
+    test_debugger_symdb.py:
+      Test_Debugger_SymDb:
+        '*': missing_feature
+        spring-boot: v1.38.0
+        spring-boot-jetty: v1.38.0
+        spring-boot-openliberty: v1.38.0
+        spring-boot-undertow: v1.38.0
+        uds-spring-boot: v1.38.0
   integrations/:
     crossed_integrations/:
       test_kafka.py:
@@ -1589,6 +1603,11 @@ tests/:
         spring-boot: v1.39.0
     test_sql.py:
       Test_Sql: bug (APMAPI-729)
+  otel/:
+    test_context_propagation.py:
+      Test_Otel_Context_Propagation_Default_Propagator_Api:
+        '*': incomplete_test_app (endpoint not implemented)
+        spring-boot: v1.39.0
   parametric/:
     test_config_consistency.py:
       Test_Config_Dogstatsd: missing_feature (default hostname is inconsistent)
@@ -1604,7 +1623,7 @@ tests/:
       TestDynamicConfigSamplingRules: v1.34.0
       TestDynamicConfigTracingEnabled: v1.32.0
       TestDynamicConfigV1: v1.17.0
-      TestDynamicConfigV1_EmptyServiceTargets: missing_feature
+      TestDynamicConfigV1_EmptyServiceTargets: v1.46.0
       TestDynamicConfigV1_ServiceTargets: v1.31.0
       TestDynamicConfigV2: v1.31.0
     test_headers_baggage.py:
@@ -1711,7 +1730,16 @@ tests/:
     Test_Config_ObfuscationQueryStringRegexp_Default: v1.39.0
     Test_Config_ObfuscationQueryStringRegexp_Empty: v1.39.0
     Test_Config_RuntimeMetrics_Default: incomplete_test_app (test needs to account for java runtime metrics)
-    Test_Config_RuntimeMetrics_Enabled: incomplete_test_app (test needs to account for java runtime metrics)
+    Test_Config_RuntimeMetrics_Enabled:
+      '*': v0.64.0
+      spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+      spring-boot-openliberty: incomplete_test_app (needs investigation to understand why test is failing)
+      spring-boot-wildfly: incomplete_test_app (needs investigation to understand why test is failing)
+    Test_Config_RuntimeMetrics_Enabled_WithRuntimeId:
+      '*': v0.64.0
+      spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+      spring-boot-openliberty: incomplete_test_app (needs investigation to understand why test is failing)
+      spring-boot-wildfly: incomplete_test_app (needs investigation to understand why test is failing)
     Test_Config_UnifiedServiceTagging_CustomService: v1.39.0
     Test_Config_UnifiedServiceTagging_Default: v1.39.0
   test_data_integrity.py:
@@ -1720,14 +1748,18 @@ tests/:
     Test_DistributedHttp: missing_feature
     Test_Span_Links_Flags_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
     Test_Span_Links_From_Conflicting_Contexts: v1.43.0
-    Test_Span_Links_From_Conflicting_Contexts_Datadog_Precedence: v1.43.0
     Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
+  test_graphql.py: missing_feature
   test_identify.py:
     Test_Basic: missing_feature
     Test_Propagate: missing_feature
     Test_Propagate_Legacy: missing_feature
   test_ipv6.py: missing_feature (APMAPI-869)
   test_library_conf.py:
+    Test_ExtractBehavior_Default: incomplete_test_app (/make_distant_call endpoint is not correctly implemented)
+    Test_ExtractBehavior_Ignore: incomplete_test_app (/make_distant_call endpoint is not correctly implemented)
+    Test_ExtractBehavior_Restart: incomplete_test_app (/make_distant_call endpoint is not correctly implemented)
+    Test_ExtractBehavior_Restart_With_Extract_First: incomplete_test_app (/make_distant_call endpoint is not correctly implemented)
     Test_HeaderTags: missing_feature
     Test_HeaderTags_Colon_Leading: v0.102.0
     Test_HeaderTags_Colon_Trailing: v0.102.0
