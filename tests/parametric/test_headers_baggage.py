@@ -1,5 +1,6 @@
+from utils._decorators import irrelevant
 from utils.parametric.spec.trace import find_only_span
-from utils import features, scenarios
+from utils import features, scenarios, context
 from typing import Any
 import pytest
 
@@ -49,6 +50,10 @@ class Test_Headers_Baggage:
         assert "baggage" in headers.keys()
         assert headers["baggage"] == "foo=bar"
 
+    @irrelevant(
+        context.library in ("cpp", "goland", "java", "ruby", "php"),
+        reason="The current default behaviour matches the future baggage disabled behaviour, so we can't activate this test without causing a false easy win",
+    )
     @disable_baggage()
     def test_baggage_disable_settings_D003(self, test_agent, test_library):
         """Ensure that baggage headers are not injected when baggage is disabled and does not interfere with other headers."""
@@ -118,6 +123,10 @@ class Test_Headers_Baggage:
             assert span.get_baggage("userId") == "Amélie"
             assert span.get_baggage("serverNode") == "DF 28"
 
+    @irrelevant(
+        context.library in ("cpp", "goland", "java", "ruby", "php"),
+        reason="The current default behaviour matches the future baggage disabled behaviour, so we can't activate this test without causing a false easy win",
+    )
     @disable_baggage()
     def test_baggage_set_disabled_D007(self, test_library):
         """Ensure that baggage headers are not injected when baggage is disabled."""
@@ -171,8 +180,18 @@ class Test_Headers_Baggage:
             span.remove_all_baggage()
             assert span.get_all_baggage() == {}
 
-    def test_baggage_malformed_headers_D012(self, test_library, test_agent):
+    def _assert_valid_baggage(self, test_library):
+        """Helper function to confirm that a valid baggage header is set
+        when calling dd_make_child_span_and_get_headers.
+        """
+        with test_library:
+            headers = test_library.dd_make_child_span_and_get_headers([["baggage", "foo=valid"]])
+            assert "baggage" in headers.keys()
+
+    def test_baggage_malformed_headers_D012(self, test_library):
         """Ensure that malformed baggage headers are handled properly. Unable to use get_baggage functions because it does not return anything"""
+        Test_Headers_Baggage._assert_valid_baggage(self, test_library)
+
         with test_library:
             headers = test_library.dd_make_child_span_and_get_headers(
                 [["baggage", "no-equal-sign,foo=gets-dropped-because-previous-pair-is-malformed"]],
@@ -182,18 +201,24 @@ class Test_Headers_Baggage:
 
     def test_baggage_malformed_headers_D013(self, test_library):
         """Ensure that malformed baggage headers are handled properly. Unable to use get_baggage functions because it does not return anything"""
+        Test_Headers_Baggage._assert_valid_baggage(self, test_library)
+
         with test_library:
             headers = test_library.dd_make_child_span_and_get_headers([["baggage", "=no-key"]])
 
             assert "baggage" not in headers.keys()
 
     def test_baggage_malformed_headers_D014(self, test_library):
+        Test_Headers_Baggage._assert_valid_baggage(self, test_library)
+
         with test_library:
             headers = test_library.dd_make_child_span_and_get_headers([["baggage", "no-value="]])
 
             assert "baggage" not in headers.keys()
 
     def test_baggage_malformed_headers_D015(self, test_library):
+        Test_Headers_Baggage._assert_valid_baggage(self, test_library)
+
         with test_library:
             headers = test_library.dd_make_child_span_and_get_headers(
                 [["baggage", "foo=gets-dropped-because-subsequent-pair-is-malformed,="]],
