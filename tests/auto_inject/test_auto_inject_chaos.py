@@ -1,5 +1,5 @@
 import requests
-from utils import scenarios, features, context, bug
+from utils import scenarios, features, context, bug, flaky
 from utils.tools import logger
 from utils.onboarding.weblog_interface import warmup_weblog
 from utils.onboarding.wait_for_tcp_port import wait_for_port
@@ -87,20 +87,20 @@ class BaseAutoInjectChaos(base.AutoInjectBaseTest):
 @scenarios.chaos_installer_auto_injection
 class TestAutoInjectChaos(BaseAutoInjectChaos):
     @bug(
-        scenarios.chaos_installer_auto_injection.virtual_machine.os_branch == "amazon_linux2"
-        and context.scenario.weblog_variant == "test-app-ruby",
+        context.vm_os_branch == "amazon_linux2" and context.weblog_variant == "test-app-ruby",
         reason="INPLAT-103",
     )
     @bug(
-        scenarios.chaos_installer_auto_injection.virtual_machine.os_branch == "centos_7_amd64"
-        and context.scenario.weblog_variant == "test-app-ruby",
+        context.vm_os_branch == "centos_7_amd64" and context.weblog_variant == "test-app-ruby",
         reason="INPLAT-103",
     )
     @bug(
-        scenarios.chaos_installer_auto_injection.virtual_machine.os_branch == "redhat"
-        and scenarios.chaos_installer_auto_injection.virtual_machine.os_cpu == "arm64"
-        and context.scenario.weblog_variant == "test-app-ruby",
+        context.vm_os_branch == "redhat" and context.vm_os_cpu == "arm64" and context.weblog_variant == "test-app-ruby",
         reason="INPLAT-103",
+    )
+    @flaky(
+        context.vm_name in ["Amazon_Linux_2023_amd64", "Amazon_Linux_2023_arm64"],
+        reason="LD library failures impact on the docker engine, causes flakiness",
     )
     def test_install_after_ld_preload(self):
         """We added entries to the ld.so.preload. After that, we can install the dd software and the app should be instrumented."""
@@ -110,24 +110,19 @@ class TestAutoInjectChaos(BaseAutoInjectChaos):
         logger.info(f"Done test_install for : [{virtual_machine.name}]")
 
     @bug(
-        scenarios.chaos_installer_auto_injection.virtual_machine.name == "AlmaLinux_8_arm64"
-        and context.scenario.weblog_variant == "test-app-python-alpine",
+        context.vm_name == "AlmaLinux_8_arm64" and context.weblog_variant == "test-app-python-alpine",
         reason="APMON-1576",
     )
     @bug(
-        scenarios.chaos_installer_auto_injection.virtual_machine.os_branch == "amazon_linux2"
-        and context.scenario.weblog_variant == "test-app-ruby",
+        context.vm_os_branch == "amazon_linux2" and context.weblog_variant == "test-app-ruby",
         reason="INPLAT-103",
     )
     @bug(
-        scenarios.chaos_installer_auto_injection.virtual_machine.os_branch == "centos_7_amd64"
-        and context.scenario.weblog_variant == "test-app-ruby",
+        context.vm_os_branch == "centos_7_amd64" and context.weblog_variant == "test-app-ruby",
         reason="INPLAT-103",
     )
     @bug(
-        scenarios.chaos_installer_auto_injection.virtual_machine.os_branch == "redhat"
-        and scenarios.chaos_installer_auto_injection.virtual_machine.os_cpu == "arm64"
-        and context.scenario.weblog_variant == "test-app-ruby",
+        context.vm_os_branch == "redhat" and context.vm_os_cpu == "arm64" and context.weblog_variant == "test-app-ruby",
         reason="INPLAT-103",
     )
     def test_remove_ld_preload(self):

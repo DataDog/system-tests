@@ -73,19 +73,15 @@ class TestAutoInjectBlockListInstallManualHost(_AutoInjectBlockListBaseTest):
         or "buildpack" in context.weblog_variant
     )
     @bug(
-        scenarios.installer_auto_injection.virtual_machine.os_branch == "amazon_linux2"
-        and context.scenario.library == "ruby",
+        context.vm_os_branch == "amazon_linux2" and context.scenario.library == "ruby",
         reason="INPLAT-103",
     )
     @bug(
-        scenarios.installer_auto_injection.virtual_machine.os_branch == "centos_7_amd64"
-        and context.scenario.library == "ruby",
+        context.vm_os_branch == "centos_7_amd64" and context.scenario.library == "ruby",
         reason="INPLAT-103",
     )
     @bug(
-        scenarios.installer_auto_injection.virtual_machine.os_branch == "redhat"
-        and scenarios.installer_auto_injection.virtual_machine.os_cpu == "arm64"
-        and context.scenario.library == "ruby",
+        context.vm_os_branch == "redhat" and context.vm_os_cpu == "arm64" and context.scenario.library == "ruby",
         reason="INPLAT-103",
     )
     def test_builtIn_block_commands(self):
@@ -103,19 +99,15 @@ class TestAutoInjectBlockListInstallManualHost(_AutoInjectBlockListBaseTest):
         or "buildpack" in context.weblog_variant
     )
     @bug(
-        scenarios.installer_auto_injection.virtual_machine.os_branch == "amazon_linux2"
-        and context.scenario.library == "ruby",
+        context.vm_os_branch == "amazon_linux2" and context.scenario.library == "ruby",
         reason="INPLAT-103",
     )
     @bug(
-        scenarios.installer_auto_injection.virtual_machine.os_branch == "centos_7_amd64"
-        and context.scenario.library == "ruby",
+        context.vm_os_branch == "centos_7_amd64" and context.scenario.library == "ruby",
         reason="INPLAT-103",
     )
     @bug(
-        scenarios.installer_auto_injection.virtual_machine.os_branch == "redhat"
-        and scenarios.installer_auto_injection.virtual_machine.os_cpu == "arm64"
-        and context.scenario.library == "ruby",
+        context.vm_os_branch == "redhat" and context.vm_os_cpu == "arm64" and context.vm_library == "ruby",
         reason="INPLAT-103",
     )
     def test_builtIn_block_args(self):
@@ -135,19 +127,15 @@ class TestAutoInjectBlockListInstallManualHost(_AutoInjectBlockListBaseTest):
         or "buildpack" in context.weblog_variant
     )
     @bug(
-        scenarios.installer_auto_injection.virtual_machine.os_branch == "amazon_linux2"
-        and context.scenario.library == "ruby",
+        context.vm_os_branch == "amazon_linux2" and context.scenario.library == "ruby",
         reason="INPLAT-103",
     )
     @bug(
-        scenarios.installer_auto_injection.virtual_machine.os_branch == "centos_7_amd64"
-        and context.scenario.library == "ruby",
+        context.vm_os_branch == "centos_7_amd64" and context.scenario.library == "ruby",
         reason="INPLAT-103",
     )
     @bug(
-        scenarios.installer_auto_injection.virtual_machine.os_branch == "redhat"
-        and scenarios.installer_auto_injection.virtual_machine.os_cpu == "arm64"
-        and context.scenario.library == "ruby",
+        context.vm_os_branch == "redhat" and context.vm_os_cpu == "arm64" and context.scenario.library == "ruby",
         reason="INPLAT-103",
     )
     def test_builtIn_instrument_args(self):

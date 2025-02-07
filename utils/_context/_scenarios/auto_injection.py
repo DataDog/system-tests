@@ -6,8 +6,7 @@ from utils._context.library_version import LibraryVersion
 from utils.tools import logger
 from utils.onboarding.debug_vm import extract_logs_to_file
 from utils.virtual_machine.utils import get_tested_apps_vms, generate_gitlab_pipeline
-from utils.virtual_machine.virtual_machine_matrix_definitions import check_weblog_can_run_on_vm, get_supported_vms
-from utils.virtual_machine.virtual_machines import _VirtualMachine
+from utils.virtual_machine.virtual_machines import _VirtualMachine, load_virtual_machines
 
 from .core import Scenario
 
@@ -24,7 +23,6 @@ class _VirtualMachineScenario(Scenario):
         vm_provision=None,
         agent_env=None,
         app_env=None,
-        scenario_vms_exclude=None,
         scenario_groups=None,
     ) -> None:
         super().__init__(name, doc=doc, github_workflow=github_workflow, scenario_groups=scenario_groups)
@@ -36,8 +34,6 @@ class _VirtualMachineScenario(Scenario):
         self.agent_env = agent_env
         # Variables that will populate for the app installation
         self.app_env = app_env
-        # Vms excluded by the scenario
-        self.scenario_vms_exclude = scenario_vms_exclude if scenario_vms_exclude is not None else []
         self.only_default_vms = ""
         # Current selected vm for the scenario (set empty by default)
         self.virtual_machine = _VirtualMachine(
@@ -79,14 +75,21 @@ class _VirtualMachineScenario(Scenario):
         # Pipeline generation mode. No run tests, no start vms
         self.vm_gitlab_pipeline = config.option.vm_gitlab_pipeline
 
-        supported_vms = get_supported_vms(
-            self._library.library,
-            self._weblog,
-            self.vm_provider_id,
-            self.only_default_vms,
-            scenario_vms_exclude=self.scenario_vms_exclude,
-        )
+        supported_vms = load_virtual_machines(self.vm_provider_id)
+
         if self.vm_gitlab_pipeline:
+            # TODO REMOVE THE PIPELINE GENRATION FROM THE SCENARIO
+            provisioner.remove_unsupported_machines(
+                self._library.library,
+                self._weblog,
+                self.required_vms,
+                self.vm_provider_id,
+                config.option.vm_only_branch,
+                config.option.vm_skip_branches,
+                self.only_default_vms,
+                config.option.vm_only,
+            )
+
             # For the pipeline generation we need to caclculate the provision for each machine
             # For cache pipelie we need to cache name and this came from the provision
             for vm in supported_vms:
@@ -119,7 +122,6 @@ class _VirtualMachineScenario(Scenario):
             self.virtual_machine = next((vm for vm in supported_vms if vm.name == config.option.vm_only), None)
             assert self.virtual_machine is not None, f"VM not found: {config.option.vm_only}"
             logger.info(f"Selected VM: {self.virtual_machine.name}")
-            check_weblog_can_run_on_vm(self._library.library, self._weblog, self.virtual_machine.name)
             self.vm_provider.configure(self.virtual_machine)
             self.virtual_machine.add_provision(
                 provisioner.get_provision(
@@ -256,7 +258,6 @@ class InstallerAutoInjectionScenario(_VirtualMachineScenario):
         vm_provision="installer-auto-inject",
         agent_env=None,
         app_env=None,
-        scenario_vms_exclude=None,
         scenario_groups=None,
         github_workflow=None,
     ) -> None:
@@ -273,7 +274,6 @@ class InstallerAutoInjectionScenario(_VirtualMachineScenario):
             vm_provision=vm_provision,
             agent_env=agent_env,
             app_env=app_env_defaults,
-            scenario_vms_exclude=scenario_vms_exclude,
             doc=doc,
             github_workflow=github_workflow,
             scenario_groups=scenario_groups,

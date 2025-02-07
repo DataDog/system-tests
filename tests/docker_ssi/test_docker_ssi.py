@@ -52,7 +52,7 @@ class TestDockerSSIFeatures:
 
     @features.ssi_guardrails
     @bug(
-        condition="centos-7" in context.scenario.weblog_variant and context.scenario.library.library == "java",
+        condition="centos-7" in context.weblog_variant and context.scenario.library.library == "java",
         reason="APMON-1490",
     )
     def test_install_weblog_running(self):
@@ -63,7 +63,7 @@ class TestDockerSSIFeatures:
 
     @features.ssi_guardrails
     @bug(
-        condition="centos-7" in context.scenario.weblog_variant and context.scenario.library.library == "java",
+        condition="centos-7" in context.weblog_variant and context.scenario.library.library == "java",
         reason="APMON-1490",
     )
     @irrelevant(context.library == "java" and context.installed_language_runtime < "1.8.0_0")

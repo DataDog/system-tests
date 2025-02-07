@@ -155,8 +155,9 @@ def load_virtual_machines(json_file):
     return vm_objects
 
 
-if __name__ == "__main__":
-    # vms = get_supported_vms("nodejs", "test-app-nodejs")
-    vms = load_virtual_machines("utils/virtual_machine/virtual_machines.json")
-    for vm in vms:
-        print(vm.name)
+# if __name__ == "__main__":
+# vms = get_supported_vms("nodejs", "test-app-nodejs")
+#   vms = load_virtual_machines("utils/virtual_machine/virtual_machines.json")
+#  for vm in vms:
+# print(vm.name)
+#     pass

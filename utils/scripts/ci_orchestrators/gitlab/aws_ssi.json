@@ -1,0 +1,146 @@
+{
+    "scenario_matrix": [
+        {
+            "scenarios": [
+                "CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING",
+                "CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT"
+            ],
+            "weblogs": [
+                {
+                    "nodejs": [
+                        "test-app-nodejs-multicontainer"
+                    ]
+                }
+            ]
+        },
+        {
+            "scenarios": [
+                "HOST_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING",
+                "HOST_AUTO_INJECTION_INSTALL_SCRIPT",
+                "CHAOS_INSTALLER_AUTO_INJECTION"
+            ],
+            "weblogs": [
+                {
+                    "nodejs": [
+                        "test-app-nodejs"
+                    ]
+                }
+            ]
+        },
+        {
+            "scenarios": [
+                "INSTALLER_AUTO_INJECTION"
+            ],
+            "weblogs": [
+                {
+                    "nodejs": [
+                        "test-app-nodejs",
+                        "test-app-nodejs-container"
+                    ]
+                }
+            ]
+        },
+        {
+            "scenarios": [
+                "INSTALLER_NOT_SUPPORTED_AUTO_INJECTION"
+            ],
+            "weblogs": [
+                {
+                    "nodejs": [
+                        "test-app-nodejs-08",
+                        "test-app-nodejs-16",
+                        "test-app-nodejs-unsupported-defaults"
+                    ]
+                }
+            ]
+        },
+        {
+            "scenarios": [
+                "SIMPLE_AUTO_INJECTION_PROFILING"
+            ],
+            "weblogs": [
+                {
+                    "nodejs": [
+                        "test-app-nodejs-container",
+                        "test-app-nodejs"
+                    ]
+                }
+            ]
+        },
+        {
+            "scenarios": [
+                "SIMPLE_INSTALLER_AUTO_INJECTION"
+            ],
+            "weblogs": [
+                {
+                    "nodejs": [
+                        "test-app-nodejs-container",
+                        "test-app-nodejs",
+                        "test-app-nodejs-esm",
+                        "test-app-nodejs-multicontainer"
+                    ]
+                }
+            ]
+        }
+    ],
+    "weblogs_spec": 
+        {
+            "nodejs": [
+                {
+                    "name": "test-app-nodejs",
+                    "excluded_os_branches": [
+                        "ubuntu22_amd64",
+                        "ubuntu22_arm64",
+                        "ubuntu21",
+                        "ubuntu20_arm64",
+                        "ubuntu20_amd64",
+                        "centos_7_amd64",
+                        "rhel_7_amd64",
+                        "amazon_linux2"
+                    ]
+                },
+                {
+                    "name": "test-app-nodejs-unsupported-defaults",
+                    "exact_os_branches": [
+                        "ubuntu22_amd64",
+                        "ubuntu22_arm64",
+                        "ubuntu21",
+                        "ubuntu20_arm64",
+                        "ubuntu20_amd64",
+                        "centos_7_amd64"
+                    ]
+                },
+                {
+                    "name": "test-app-nodejs-multicontainer",
+                    "exact_os_branches": [
+                        "ubuntu24"
+                    ]
+                },
+                {
+                    "name": "test-app-nodejs-esm",
+                    "exact_os_branches": [
+                        "ubuntu24"
+                    ]
+                },
+                {
+                    "name": "test-app-nodejs-container"
+                },
+                {
+                    "name": "test-app-nodejs-alpine"
+                },
+                {
+                    "name": "test-app-nodejs-16",
+                    "excluded_os_branches": [
+                        "centos_7_amd64"
+                    ]
+                },
+                {
+                    "name": "test-app-nodejs-08",
+                    "exact_os_branches": [
+                        "ubuntu20_amd64",
+                        "centos_7_amd64"
+                    ]
+                }
+            ]
+        }
+}

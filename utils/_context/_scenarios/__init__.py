@@ -657,22 +657,22 @@ class _Scenarios:
     simple_installer_auto_injection = InstallerAutoInjectionScenario(
         "SIMPLE_INSTALLER_AUTO_INJECTION",
         "Onboarding Container Single Step Instrumentation scenario (minimal test scenario)",
-        scenario_groups=[ScenarioGroup.ONBOARDING],
-        github_workflow="libinjection",
+        scenario_groups=[ScenarioGroup.ONBOARDING, ScenarioGroup.SIMPLE_ONBOARDING],
+        github_workflow="aws_ssi",
     )
 
     installer_auto_injection = InstallerAutoInjectionScenario(
         "INSTALLER_AUTO_INJECTION",
         doc="Installer auto injection scenario",
         scenario_groups=[ScenarioGroup.ONBOARDING],
-        github_workflow="libinjection",
+        github_workflow="aws_ssi",
     )
 
     installer_not_supported_auto_injection = InstallerAutoInjectionScenario(
         "INSTALLER_NOT_SUPPORTED_AUTO_INJECTION",
         "Onboarding host Single Step Instrumentation scenario for not supported languages",
         scenario_groups=[ScenarioGroup.ONBOARDING],
-        github_workflow="libinjection",
+        github_workflow="aws_ssi",
     )
 
     chaos_installer_auto_injection = InstallerAutoInjectionScenario(
@@ -683,11 +683,7 @@ class _Scenarios:
         ),
         vm_provision="auto-inject-ld-preload",
         scenario_groups=[ScenarioGroup.ONBOARDING],
-        github_workflow="libinjection",
-        scenario_vms_exclude=[
-            "Amazon_Linux_2023_amd64",
-            "Amazon_Linux_2023_arm64",
-        ],  # LD library failures impact on the docker engine, causes flakiness
+        github_workflow="aws_ssi",
     )
 
     simple_auto_injection_profiling = InstallerAutoInjectionScenario(
@@ -699,7 +695,7 @@ class _Scenarios:
             "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500",
         },
         scenario_groups=[ScenarioGroup.ONBOARDING],
-        github_workflow="libinjection",
+        github_workflow="aws_ssi",
     )
     host_auto_injection_install_script_profiling = InstallerAutoInjectionScenario(
         "HOST_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING",
@@ -711,7 +707,7 @@ class _Scenarios:
         agent_env={"DD_PROFILING_ENABLED": "auto"},
         app_env={"DD_PROFILING_UPLOAD_PERIOD": "10", "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500"},
         scenario_groups=[ScenarioGroup.ONBOARDING],
-        github_workflow="libinjection",
+        github_workflow="aws_ssi",
     )
 
     container_auto_injection_install_script_profiling = InstallerAutoInjectionScenario(
@@ -721,7 +717,7 @@ class _Scenarios:
         agent_env={"DD_PROFILING_ENABLED": "auto"},
         app_env={"DD_PROFILING_UPLOAD_PERIOD": "10", "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500"},
         scenario_groups=[ScenarioGroup.ONBOARDING],
-        github_workflow="libinjection",
+        github_workflow="aws_ssi",
     )
 
     host_auto_injection_install_script = InstallerAutoInjectionScenario(
@@ -729,7 +725,7 @@ class _Scenarios:
         "Onboarding Host Single Step Instrumentation scenario using agent auto install script",
         vm_provision="host-auto-inject-install-script",
         scenario_groups=[ScenarioGroup.ONBOARDING],
-        github_workflow="libinjection",
+        github_workflow="aws_ssi",
     )
 
     container_auto_injection_install_script = InstallerAutoInjectionScenario(
@@ -737,7 +733,7 @@ class _Scenarios:
         "Onboarding Container Single Step Instrumentation scenario using agent auto install script",
         vm_provision="container-auto-inject-install-script",
         scenario_groups=[ScenarioGroup.ONBOARDING],
-        github_workflow="libinjection",
+        github_workflow="aws_ssi",
     )
 
     local_auto_injection_install_script = InstallerAutoInjectionScenario(
@@ -748,7 +744,7 @@ class _Scenarios:
         ),
         vm_provision="local-auto-inject-install-script",
         scenario_groups=[ScenarioGroup.ONBOARDING],
-        github_workflow="libinjection",
+        github_workflow="aws_ssi",
     )
 
     lib_injection_validation = WeblogInjectionScenario(

@@ -9,7 +9,8 @@
             "os_distro": "deb",
             "os_branch": "ubuntu18_amd64",
             "os_cpu": "amd64",
-            "default_vm": false
+            "default_vm": false,
+            "disabled": true
         },
         {
             "name": "Ubuntu_20_amd64",
@@ -75,7 +76,8 @@
             "os_distro": "deb",
             "os_branch": "ubuntu23",
             "os_cpu": "amd64",
-            "default_vm": true
+            "default_vm": true,
+            "disabled": true
         },
         {
             "name": "Ubuntu_23_04_arm64",
@@ -97,7 +99,8 @@
             "os_distro": "deb",
             "os_branch": "ubuntu23",
             "os_cpu": "amd64",
-            "default_vm": false
+            "default_vm": false,
+            "disabled": true
         },
         {
             "name": "Ubuntu_23_10_arm64",
@@ -307,7 +310,8 @@
             "os_distro": "rpm",
             "os_branch": "oracle_linux",
             "os_cpu": "amd64",
-            "default_vm": false
+            "default_vm": false,
+            "disabled": true
         },
         {
             "name": "OracleLinux_9_2_arm64",
@@ -318,7 +322,8 @@
             "os_distro": "rpm",
             "os_branch": "oracle_linux",
             "os_cpu": "arm64",
-            "default_vm": false
+            "default_vm": false,
+            "disabled": true
         },
         {
             "name": "OracleLinux_8_8_amd64",
@@ -329,7 +334,8 @@
             "os_distro": "rpm",
             "os_branch": "oracle_linux",
             "os_cpu": "amd64",
-            "default_vm": false
+            "default_vm": false,
+            "disabled": true
         },
         {
             "name": "OracleLinux_8_8_arm64",
@@ -340,7 +346,8 @@
             "os_distro": "rpm",
             "os_branch": "oracle_linux",
             "os_cpu": "arm64",
-            "default_vm": false
+            "default_vm": false,
+            "disabled": true
         },
         {
             "name": "OracleLinux_7_9_amd64",
@@ -351,7 +358,8 @@
             "os_distro": "rpm",
             "os_branch": "oracle_linux",
             "os_cpu": "amd64",
-            "default_vm": false
+            "default_vm": false,
+            "disabled": true
         },
         {
             "name": "AlmaLinux_8_amd64",
@@ -362,7 +370,8 @@
             "os_distro": "rpm",
             "os_branch": "alma_linux",
             "os_cpu": "amd64",
-            "default_vm": false
+            "default_vm": false,
+            "disabled": true
         },
         {
             "name": "AlmaLinux_8_arm64",
@@ -373,7 +382,8 @@
             "os_distro": "rpm",
             "os_branch": "alma_linux",
             "os_cpu": "arm64",
-            "default_vm": false
+            "default_vm": false,
+            "disabled": true
         },
         {
             "name": "AlmaLinux_9_amd64",
@@ -384,7 +394,8 @@
             "os_distro": "rpm",
             "os_branch": "alma_linux",
             "os_cpu": "amd64",
-            "default_vm": false
+            "default_vm": false,
+            "disabled": true
         },
         {
             "name": "AlmaLinux_9_arm64",
@@ -395,7 +406,8 @@
             "os_distro": "rpm",
             "os_branch": "alma_linux",
             "os_cpu": "arm64",
-            "default_vm": false
+            "default_vm": false,
+            "disabled": true
         },
         {
             "name": "Fedora_36_amd64",
@@ -406,7 +418,8 @@
             "os_distro": "rpm",
             "os_branch": "fedora",
             "os_cpu": "amd64",
-            "default_vm": false
+            "default_vm": false,
+            "disabled": true
         },
         {
             "name": "Fedora_36_arm64",
@@ -417,7 +430,8 @@
             "os_distro": "rpm",
             "os_branch": "fedora",
             "os_cpu": "arm64",
-            "default_vm": false
+            "default_vm": false,
+            "disabled": true
         },
         {
             "name": "Fedora_37_amd64",
@@ -428,7 +442,8 @@
             "os_distro": "rpm",
             "os_branch": "fedora",
             "os_cpu": "amd64",
-            "default_vm": false
+            "default_vm": false,
+            "disabled": true
         },
         {
             "name": "Fedora_37_arm64",
@@ -439,7 +454,8 @@
             "os_distro": "rpm",
             "os_branch": "fedora",
             "os_cpu": "arm64",
-            "default_vm": false
+            "default_vm": false,
+            "disabled": true
         }
     ]
 }
