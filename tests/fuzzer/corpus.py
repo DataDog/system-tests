@@ -163,7 +163,7 @@ def get_saved_corpus(source):
                 _load_dir(os.path.join(base_dirname, dirname))
 
             for filename in filenames:
-                if filename.endswith(".json") or filename.endswith(".dump"):
+                if filename.endswith((".json", ".dump")):
                     _load_file(os.path.join(base_dirname, filename))
 
     if Path(source).is_file():

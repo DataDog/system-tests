@@ -85,9 +85,13 @@ def get_all_iast_events():
 
 
 def get_iast_sources(iast_events):
-    sources = [event.get("sources") for event in iast_events if event.get("sources")]
+    sources: list = []
+
+    for event in iast_events:
+        sources.extend(event.get("sources", []))
+
     assert sources, "No sources found"
-    sources = sum(sources, [])  # set all the sources in a single list
+
     return sources
 
 
@@ -199,9 +203,12 @@ def validate_stack_traces(request):
     iast = meta["_dd.iast.json"]
     assert iast["vulnerabilities"], "Expected at least one vulnerability"
 
-    stack_trace = span["meta_struct"]["_dd.stack"]["vulnerability"][0]
-    vulns = [i for i in iast["vulnerabilities"] if i["stackId"] == stack_trace["id"]]
-    assert len(vulns) == 1, "Expected a single vulnerability with the stack trace Id"
+    stack_traces = span["meta_struct"]["_dd.stack"]["vulnerability"]
+    stack_trace = stack_traces[0]
+    vulns = [i for i in iast["vulnerabilities"] if i.get("stackId") == stack_trace["id"]]
+    assert (
+        len(vulns) == 1
+    ), f"Expected a single vulnerability with the stack trace Id.\nVulnerabilities: {vulns}\nStack trace: {stack_traces}"
     vuln = vulns[0]
 
     assert vuln["stackId"], "no 'stack_id's present'"
@@ -314,11 +321,16 @@ def get_hardcoded_vulnerabilities(vulnerability_type):
     assert spans_meta, "No spans meta found"
     iast_events = [meta.get("_dd.iast.json") for meta in spans_meta if meta.get("_dd.iast.json")]
     assert iast_events, "No iast events found"
-    vulnerabilities = [event.get("vulnerabilities") for event in iast_events if event.get("vulnerabilities")]
+
+    vulnerabilities: list = []
+    for event in iast_events:
+        vulnerabilities.extend(event.get("vulnerabilities", []))
+
     assert vulnerabilities, "No vulnerabilities found"
-    vulnerabilities = sum(vulnerabilities, [])  # set all the vulnerabilities in a single list
+
     hardcoded_vulns = [vuln for vuln in vulnerabilities if vuln.get("type") == vulnerability_type]
     assert hardcoded_vulns, "No hardcoded vulnerabilities found"
+    
     return hardcoded_vulns
 
 
@@ -437,8 +449,7 @@ class BaseSourceTest:
 
     def get_sources(self, request):
         iast = get_iast_event(request=request)
-        sources = iast["sources"]
-        return sources
+        return iast["sources"]
 
     def validate_request_reported(self, request, source_type=None):
         if source_type is None:  # allow to overwrite source_type for parameter value node's use case
