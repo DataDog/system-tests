@@ -84,8 +84,6 @@ class _VirtualMachineScenario(Scenario):
                 self._weblog,
                 self.required_vms,
                 self.vm_provider_id,
-                config.option.vm_only_branch,
-                config.option.vm_skip_branches,
                 self.only_default_vms,
                 config.option.vm_only,
             )
