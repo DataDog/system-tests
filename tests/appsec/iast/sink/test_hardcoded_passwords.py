@@ -45,9 +45,13 @@ class Test_HardcodedPasswords:
         assert spans_meta, "No spans meta found"
         iast_events = [meta.get("_dd.iast.json") for meta in spans_meta if meta.get("_dd.iast.json")]
         assert iast_events, "No iast events found"
-        vulnerabilities = [event.get("vulnerabilities") for event in iast_events if event.get("vulnerabilities")]
+
+        vulnerabilities: list = []
+        for event in iast_events:
+            vulnerabilities.extend(event.get("vulnerabilities", []))
+
         assert vulnerabilities, "No vulnerabilities found"
-        vulnerabilities = sum(vulnerabilities, [])  # set all the vulnerabilities in a single list
+
         hardcoded_passwords = [vuln for vuln in vulnerabilities if vuln.get("type") == "HARDCODED_PASSWORD"]
         assert hardcoded_passwords, "No hardcoded passwords found"
         return hardcoded_passwords

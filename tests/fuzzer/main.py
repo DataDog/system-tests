@@ -68,6 +68,7 @@ def main():
     weblog = WeblogContainer(host_log_folder="logs_fuzzer", use_proxy=False)
     weblog.configure(False)
     weblog.start(network)
+    weblog.post_start()
 
     Fuzzer(
         corpus=args.corpus,
