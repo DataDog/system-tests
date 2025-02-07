@@ -210,5 +210,17 @@ class Test_LibraryHeaders:
         interfaces.library.validate(validator, success_by_default=True)
 
 
+@features.data_integrity
+class Test_Agent:
+    @missing_feature(library="cpp", reason="Trace are not reported")
+    def test_headers(self):
+        """All required headers are present in all requests sent by the agent"""
+        interfaces.library.assert_response_header(
+            path_filters=interfaces.library.trace_paths,
+            header_name_pattern="content-type",
+            header_value_pattern="application/json",
+        )
+
+
 def _empty_request(data):
     return "content" not in data["request"] or not data["request"]["content"]
