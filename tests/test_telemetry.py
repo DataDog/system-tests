@@ -281,7 +281,7 @@ class Test_Telemetry:
                     )
 
         if len(self.library_requests) != 0:
-            for s, r in self.library_requests.keys():
+            for s, r in self.library_requests:
                 logger.error(f"seq_id: {s}, runtime_id: {r}")
 
             raise Exception("The following telemetry messages were not forwarded by the agent")

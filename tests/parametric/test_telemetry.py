@@ -579,8 +579,7 @@ class Test_TelemetrySCAEnvVar:
 
             configuration = body["payload"]["configuration"]
 
-            configuration_by_name = {item["name"]: item for item in configuration}
-            return configuration_by_name
+            return {item["name"]: item for item in configuration}
 
         return None
 
@@ -628,4 +627,4 @@ class Test_TelemetrySCAEnvVar:
             assert cfg_appsec_enabled is not None, f"Missing telemetry config item for '{DD_APPSEC_SCA_ENABLED}'"
             assert cfg_appsec_enabled.get("value") is None
         else:
-            assert DD_APPSEC_SCA_ENABLED not in configuration_by_name.keys()
+            assert DD_APPSEC_SCA_ENABLED not in configuration_by_name
