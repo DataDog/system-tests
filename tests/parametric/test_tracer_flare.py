@@ -131,14 +131,14 @@ def assert_expected_files(content, min_files):
 
 def assert_java_log_file(content):
     flare_file = zipfile.ZipFile(BytesIO(b64decode(content)))
-    myfile = flare_file.open("tracer.log")
+    flare_file.open("tracer.log")
     # file content: 'No tracer log file specified and no prepare flare event received'
     assert flare_file.getinfo("tracer.log").file_size == 64, "tracer flare log file is not as expected"
 
 
 def assert_java_log_file_debug(content):
     flare_file = zipfile.ZipFile(BytesIO(b64decode(content)))
-    myfile = flare_file.open("tracer.log")
+    flare_file.open("tracer.log")
     assert flare_file.getinfo("tracer.log").file_size > 64, "tracer flare log file is not as expected"
 
 

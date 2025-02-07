@@ -1,4 +1,5 @@
 import base64
+from collections.abc import Iterable
 import contextlib
 import dataclasses
 import os
@@ -85,7 +86,7 @@ def apm_test_server(request, library_env, test_id):
 @pytest.hookimpl(hookwrapper=True)
 def pytest_runtest_makereport(item, call):
     outcome = yield
-    report = outcome.get_result()
+    outcome.get_result()
 
 
 @pytest.fixture
@@ -438,7 +439,7 @@ class _TestAgentAPI:
             time.sleep(0.01)
         raise AssertionError("No RemoteConfig apply status found, got requests %r" % rc_reqs)
 
-    def wait_for_rc_capabilities(self, capabilities: list[int] = [], wait_loops: int = 100):
+    def wait_for_rc_capabilities(self, capabilities: Iterable[int] = (), wait_loops: int = 100):
         """Wait for the given RemoteConfig apply state to be received by the test agent."""
         rc_reqs = []
         capabilities_seen = set()
@@ -536,7 +537,7 @@ def test_agent_log_file(request) -> Generator[TextIO, None, None]:
         yield f
         f.seek(0)
         agent_output = ""
-        for line in f.readlines():
+        for line in f:
             # Remove log lines that are not relevant to the test
             if "GET /test/session/traces" in line:
                 continue

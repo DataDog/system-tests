@@ -455,7 +455,7 @@ class Test_DsmContext_Injection_Base64:
         # assert that this is base64
         assert base64.b64encode(base64.b64decode(encoded_pathway_b64)) == bytes(encoded_pathway_b64, "utf-8")
 
-        encoded_pathway = base64.b64decode(bytes(encoded_pathway_b64, "utf-8"))
+        base64.b64decode(bytes(encoded_pathway_b64, "utf-8"))
 
         # nodejs uses big endian, others use little endian
         _format = "<Q"

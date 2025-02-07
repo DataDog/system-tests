@@ -238,9 +238,9 @@ class Test_Config_RateLimit:
     @bug(context.library == "golang", reason="APMAPI-1030")
     def test_setting_trace_rate_limit_strict(self, library_env, test_agent, test_library):
         with test_library:
-            with test_library.dd_start_span(name="s1") as s1:
+            with test_library.dd_start_span(name="s1"):
                 pass
-            with test_library.dd_start_span(name="s2") as s2:
+            with test_library.dd_start_span(name="s2"):
                 pass
 
         traces = test_agent.wait_for_num_traces(2)
@@ -253,9 +253,9 @@ class Test_Config_RateLimit:
     @parametrize("library_env", [{"DD_TRACE_RATE_LIMIT": "1"}])
     def test_trace_rate_limit_without_trace_sample_rate(self, library_env, test_agent, test_library):
         with test_library:
-            with test_library.dd_start_span(name="s1") as s1:
+            with test_library.dd_start_span(name="s1"):
                 pass
-            with test_library.dd_start_span(name="s2") as s2:
+            with test_library.dd_start_span(name="s2"):
                 pass
 
         traces = test_agent.wait_for_num_traces(2)
@@ -277,7 +277,7 @@ class Test_Config_RateLimit:
         with test_library:
             # Generate three traces to demonstrate rate limiting in PHP's backfill model
             for i in range(3):
-                with test_library.dd_start_span(name=f"s{i+1}") as span:
+                with test_library.dd_start_span(name=f"s{i+1}"):
                     pass
 
         traces = test_agent.wait_for_num_traces(3)
@@ -311,7 +311,7 @@ tag_scenarios: dict = {
 @scenarios.parametric
 @features.tracing_configuration_consistency
 class Test_Config_Tags:
-    @parametrize("library_env", [{"DD_TAGS": key} for key in tag_scenarios.keys()])
+    @parametrize("library_env", [{"DD_TAGS": key} for key in tag_scenarios])
     def test_comma_space_tag_separation(self, library_env, test_agent, test_library):
         expected_local_tags = []
         if "DD_TAGS" in library_env:

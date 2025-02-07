@@ -24,7 +24,7 @@ class Test_Json_Report:
             cls.report = json.load(f)
 
         with open("logs_mock_the_test/tests.log", encoding="utf-8") as f:
-            cls.logs = [line.split(" ", 1)[1] for line in f.readlines()]
+            cls.logs = [line.split(" ", 1)[1] for line in f]
 
     def get_test_fp(self, nodeid):
         for test in self.report["tests"]:

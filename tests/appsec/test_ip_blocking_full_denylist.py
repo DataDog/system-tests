@@ -2,7 +2,6 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-
 from utils import weblog, context, interfaces, rfc, bug, scenarios, missing_feature, features
 
 from .utils import BaseFullDenyListTest
@@ -27,6 +26,7 @@ class Test_AppSecIPBlockingFullDenylist(BaseFullDenyListTest):
 
     @missing_feature(weblog_variant="spring-boot" and context.library < "java@0.111.0")
     @bug(context.library >= "java@1.22.0" and context.library < "java@1.35.0", reason="APMRP-360")
+    @bug(context.library < "ruby@2.11.0-dev", reason="APMRP-56691")
     def test_blocked_ips(self):
         """Test blocked ips are enforced"""
 

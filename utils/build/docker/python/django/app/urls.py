@@ -485,7 +485,7 @@ def view_iast_path_traversal_secure(request):
 def view_sqli_insecure(request):
     username = request.POST.get("username", "")
     password = request.POST.get("password", "")
-    sql = "SELECT * FROM IAST_USER WHERE USERNAME = " + username + " AND PASSWORD = " + password
+    sql = "SELECT * FROM app_customuser WHERE username = '" + username + "' AND password = '" + password + "'"
 
     with connection.cursor() as cursor:
         cursor.execute(sql)
@@ -496,7 +496,7 @@ def view_sqli_insecure(request):
 def view_sqli_secure(request):
     username = request.POST.get("username", "")
     password = request.POST.get("password", "")
-    sql = "SELECT * FROM IAST_USER WHERE USERNAME = ? AND PASSWORD = ?"
+    sql = "SELECT * FROM app_customuser WHERE username = %s AND password = %s"
 
     with connection.cursor() as cursor:
         cursor.execute(sql, (username, password))
@@ -542,9 +542,12 @@ def view_iast_xss_secure(request):
 
 
 def _sink_point_sqli(table="user", id="1"):
-    sql = "SELECT * FROM " + table + " WHERE id = '" + id + "'"
+    sql = f"SELECT * FROM {table} WHERE id = '{id}'"
     with connection.cursor() as cursor:
-        cursor.execute(sql)
+        try:
+            cursor.execute(sql)
+        except Exception:
+            pass
 
 
 def _sink_point_path_traversal(tainted_str="user"):
