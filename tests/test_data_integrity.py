@@ -210,6 +210,7 @@ class Test_LibraryHeaders:
         interfaces.library.validate(validator, success_by_default=True)
 
 
+@features.data_integrity
 class Test_Agent:
     @missing_feature(library="cpp", reason="Trace are not reported")
     def test_headers(self):
