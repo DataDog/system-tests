@@ -85,9 +85,13 @@ def get_all_iast_events():
 
 
 def get_iast_sources(iast_events):
-    sources = [event.get("sources") for event in iast_events if event.get("sources")]
+    sources: list = []
+
+    for event in iast_events:
+        sources.extend(event.get("sources", []))
+
     assert sources, "No sources found"
-    sources = sum(sources, [])  # set all the sources in a single list
+
     return sources
 
 
@@ -368,8 +372,7 @@ class BaseSourceTest:
 
     def get_sources(self, request):
         iast = get_iast_event(request=request)
-        sources = iast["sources"]
-        return sources
+        return iast["sources"]
 
     def validate_request_reported(self, request, source_type=None):
         if source_type is None:  # allow to overwrite source_type for parameter value node's use case

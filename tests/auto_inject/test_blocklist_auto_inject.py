@@ -148,5 +148,5 @@ class TestAutoInjectBlockListInstallManualHost(_AutoInjectBlockListBaseTest):
             for command in self.buildIn_args_commands_injected[language]:
                 local_log_file = self._execute_remote_command(ssh_client, command)
                 assert (
-                    command_injection_skipped(command, local_log_file) == False
+                    command_injection_skipped(command, local_log_file) is False
                 ), f"The command {command} was not instrumented, but it should be instrumented!"
