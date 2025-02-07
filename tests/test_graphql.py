@@ -71,7 +71,7 @@ class Test_GraphQLQueryErrorReporting:
         assert attributes["extensions.int"] == 1
         assert attributes["extensions.float"] == 1.1
         assert attributes["extensions.str"] == "1"
-        assert attributes["extensions.bool"] == True
+        assert attributes["extensions.bool"] is True
 
         # A list with two heterogeneous elements: [1, "foo"].
         # This test simulates an object that is not a supported scalar above (int,float,string,boolean).
