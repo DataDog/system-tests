@@ -14,8 +14,6 @@ class VirtualMachineProvisioner:
         weblog,
         required_vms,
         vm_provider_id,
-        vm_only_branch,
-        vm_skip_branches,
         only_default_vms,
         vm_only,
     ):
@@ -29,11 +27,6 @@ class VirtualMachineProvisioner:
             config_data = yaml.load(f, Loader=yaml.FullLoader)
         vms_to_remove = []
 
-        # Skipped branches seted by the user parameter
-        skipped_branches = []
-        if vm_skip_branches:
-            skipped_branches = vm_skip_branches.split(",")
-
         for vm in required_vms:
             installations = config_data["weblog"]["install"]
             allowed = False
@@ -43,19 +36,9 @@ class VirtualMachineProvisioner:
                     vms_to_remove.append(vm)
                     continue
 
-            # Exclude by vm_only_branch
-            if vm_only_branch and vm.os_branch != vm_only_branch:
-                logger.stdout(f"WARNING: Removed VM [{vm.name}] due to vm_only_branch directive")
-                vms_to_remove.append(vm)
-                continue
             # Exclude by vm_only
             if vm_only and vm.name != vm_only:
                 logger.stdout(f"WARNING: Removed VM [{vm.name}] due to vm_only directive")
-                vms_to_remove.append(vm)
-                continue
-            # Exclude by vm_skip_branches
-            if vm_skip_branches and vm.os_branch in skipped_branches:
-                logger.stdout(f"WARNING: Removed VM [{vm.name}] due to vm_skip_branches directive")
                 vms_to_remove.append(vm)
                 continue
 
@@ -108,7 +91,7 @@ class VirtualMachineProvisioner:
                 logger.stdout(f"WARNING: Weblog doesn't support VM [{vm.name}]. Removed!")
                 vms_to_remove.append(vm)
 
-            if not vm_only_branch and only_default_vms != "All":
+            if only_default_vms != "All":
                 if only_default_vms == "True" and not vm.default_vm:
                     logger.stdout(f"WARNING: Removed VM [{vm.name}] due to it's not a default VM")
                     vms_to_remove.append(vm)
