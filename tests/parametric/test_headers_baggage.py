@@ -197,7 +197,7 @@ class Test_Headers_Baggage:
         """
         with test_library:
             headers = test_library.dd_make_child_span_and_get_headers([["baggage", "foo=valid"]])
-            assert "baggage" in headers.keys()
+            assert "baggage" in headers
 
     def test_baggage_malformed_headers_D012(self, test_library):
         """Ensure that malformed baggage headers are handled properly. Unable to use get_baggage functions because it does not return anything"""
