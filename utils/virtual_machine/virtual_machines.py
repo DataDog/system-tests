@@ -253,6 +253,7 @@ def load_virtual_machines(provider_id):
                     ami_id=vm_data["aws_config"]["ami_id"],
                     ami_instance_type=vm_data["aws_config"]["ami_instance_type"],
                     user=vm_data["aws_config"]["user"],
+                    volume_size=vm_data["aws_config"].get("volume_size", 20),
                 )
             if vm_data["vagrant_config"] is not None:
                 vagrant_config = _VagrantConfig(box_name=vm_data["vagrant_config"]["box_name"])

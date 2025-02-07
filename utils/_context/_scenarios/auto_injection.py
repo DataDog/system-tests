@@ -89,16 +89,6 @@ class _VirtualMachineScenario(Scenario):
         logger.info(f"Supported VMs: {', '.join([vm.name for vm in supported_vms])}")
 
         if self.vm_gitlab_pipeline:
-            # TODO REMOVE THE PIPELINE GENREATION FROM THE SCENARIO
-            provisioner.remove_unsupported_machines(
-                self._library.library,
-                self._weblog,
-                self.required_vms,
-                self.vm_provider_id,
-                self.only_default_vms,
-                config.option.vm_only,
-            )
-
             # For the pipeline generation we need to caclculate the provision for each machine
             # For cache pipelie we need to cache name and this came from the provision
             for vm in supported_vms:
@@ -201,7 +191,8 @@ class _VirtualMachineScenario(Scenario):
     def close_targets(self):
         if self.is_main_worker and not self.vm_gitlab_pipeline:
             # Extract logs from the VM before destroy
-            extract_logs_to_file(self.virtual_machine.get_vm_logs(), self.host_log_folder)
+            if self.virtual_machine.get_vm_logs() is not None:
+                extract_logs_to_file(self.virtual_machine.get_vm_logs(), self.host_log_folder)
             logger.info("Destroying virtual machines")
             self.vm_provider.stack_destroy()
 
