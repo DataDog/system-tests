@@ -138,7 +138,7 @@ class Test_Telemetry:
         if len(telemetry_data) == 0:
             raise ValueError("No telemetry data to validate on")
 
-        runtime_ids = set((data["request"]["content"]["runtime_id"] for data in telemetry_data))
+        runtime_ids = set(data["request"]["content"]["runtime_id"] for data in telemetry_data)
         for runtime_id in runtime_ids:
             logger.debug(f"Validating telemetry messages for runtime_id {runtime_id}")
             max_seq_id = 0
@@ -162,14 +162,13 @@ class Test_Telemetry:
                 if seq_id > max_seq_id:
                     max_seq_id = seq_id
                     received_max_time = curr_message_time
-                else:
-                    if received_max_time is not None and (curr_message_time - received_max_time) > timedelta(
-                        seconds=MAX_OUT_OF_ORDER_LAG
-                    ):
-                        raise ValueError(
-                            f"Received message with seq_id {seq_id} to far more than"
-                            f"100ms after message with seq_id {max_seq_id}"
-                        )
+                elif received_max_time is not None and (curr_message_time - received_max_time) > timedelta(
+                    seconds=MAX_OUT_OF_ORDER_LAG
+                ):
+                    raise ValueError(
+                        f"Received message with seq_id {seq_id} to far more than"
+                        f"100ms after message with seq_id {max_seq_id}"
+                    )
 
             # sort by seq_id, seq_ids is an array of (id, filename), so the key is the first element
             seq_ids.sort(key=lambda item: item[0])
@@ -205,7 +204,7 @@ class Test_Telemetry:
                 if data["response"]["status_code"] == 202:
                     count_by_runtime_id[runtime_id] += 1
 
-        assert all((count == 1 for count in count_by_runtime_id.values()))
+        assert all(count == 1 for count in count_by_runtime_id.values())
 
     @missing_feature(context.library < "ruby@1.22.0", reason="app-started not sent")
     @bug(context.library >= "dotnet@3.4.0", reason="APMAPI-728")
@@ -222,7 +221,7 @@ class Test_Telemetry:
         else:
             # In theory, app-started must have seq_id 1, but tracers may skip seq_ids if sending messages fail.
             # So we will check that app-started is the first message by seq_id, rather than strictly seq_id 1.
-            telemetry_data = list(sorted(telemetry_data, key=lambda x: x["request"]["content"]["seq_id"]))
+            telemetry_data = sorted(telemetry_data, key=lambda x: x["request"]["content"]["seq_id"])
             app_started = [d for d in telemetry_data if d["request"]["content"].get("request_type") == "app-started"]
             assert app_started, "app-started message not found"
             min_seq_id = min(d["request"]["content"]["seq_id"] for d in telemetry_data)
@@ -282,15 +281,14 @@ class Test_Telemetry:
                     )
 
         if len(self.library_requests) != 0:
-            for s, r in self.library_requests.keys():
+            for s, r in self.library_requests:
                 logger.error(f"seq_id: {s}, runtime_id: {r}")
 
             raise Exception("The following telemetry messages were not forwarded by the agent")
 
     @staticmethod
     def _get_heartbeat_delays_by_runtime() -> dict:
-        """
-        Returns a dict where :
+        """Returns a dict where :
         The key is the runtime id
         The value is a list of delay observed on this runtime id
         """
@@ -337,8 +335,7 @@ class Test_Telemetry:
     @bug(context.library > "php@1.5.1", reason="APMAPI-971")
     @features.telemetry_heart_beat_collected
     def test_app_heartbeats_delays(self):
-        """
-        Check for telemetry heartbeat are not sent too fast/slow, regarding DD_TELEMETRY_HEARTBEAT_INTERVAL
+        """Check for telemetry heartbeat are not sent too fast/slow, regarding DD_TELEMETRY_HEARTBEAT_INTERVAL
         There are a lot of reason for individual heartbeats to be sent too slow/fast, and the subsequent ones
         to be sent too fast/slow so the RFC says that it must not drift. So we will check the average delay
         """
@@ -366,12 +363,12 @@ class Test_Telemetry:
     @irrelevant(
         library="java",
         reason="""
-        A Java application can be redeployed to the same server for many times (for the same JVM process). 
+        A Java application can be redeployed to the same server for many times (for the same JVM process).
         That means, every new deployment/reload of application will cause reloading classes/dependencies and as the result we will see duplications.
         """,
     )
     def test_app_dependencies_loaded(self):
-        """test app-dependencies-loaded requests"""
+        """Test app-dependencies-loaded requests"""
 
         test_loaded_dependencies = {
             "dotnet": {"NodaTime": False},
@@ -544,11 +541,11 @@ class Test_Telemetry:
                     dynamic_instrumentation_enabled = product["dynamic_instrumentation"]["enabled"]
                     assert (
                         appsec_enabled is True
-                    ), f"Product appsec Product profiler enabled was expected to be True, found False"
-                    assert profiler_enabled is True, f"Product profiler enabled was expected to be True, found False"
+                    ), "Product appsec Product profiler enabled was expected to be True, found False"
+                    assert profiler_enabled is True, "Product profiler enabled was expected to be True, found False"
                     assert (
                         dynamic_instrumentation_enabled is False
-                    ), f"Product dynamic_instrumentation enabled was expected to be False, found True"
+                    ), "Product dynamic_instrumentation enabled was expected to be False, found True"
 
         if app_product_change_event_found is False:
             raise Exception("app-product-change is not emitted when product change is enabled")
@@ -597,8 +594,7 @@ class Test_TelemetryV2:
 
     @bug(library="java", reason="APMAPI-969")
     def test_config_telemetry_completeness(self):
-        """
-        Assert that config telemetry is handled properly by telemetry intake
+        """Assert that config telemetry is handled properly by telemetry intake
 
         Runbook: https://github.com/DataDog/system-tests/blob/main/docs/edit/runbook.md#test_config_telemetry_completeness
         """

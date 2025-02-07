@@ -41,24 +41,23 @@ class AsmStandalone_UpstreamPropagation_Base(ABC):
             for tag, value in expected_tags.items():
                 if value is None:
                     assert tag not in struct
+                elif tag == "_sampling_priority_v1":  # special case, it's a lambda to check for a condition
+                    assert value(struct[tag])
                 else:
-                    if tag == "_sampling_priority_v1":  # special case, it's a lambda to check for a condition
-                        assert value(struct[tag])
-                    else:
-                        assert struct[tag] == value
+                    assert struct[tag] == value
 
         # Case 1: The tags are set on the first span of every trace chunk
         try:
             _assert_tags_value(first_trace, obj, expected_tags)
             return True
-        except (KeyError, AssertionError) as e:
+        except (KeyError, AssertionError):
             pass  # should try the second case
 
         # Case 2: The tags are set on the local root span
         try:
             _assert_tags_value(span, obj, expected_tags)
             return True
-        except (KeyError, AssertionError) as e:
+        except (KeyError, AssertionError):
             return False
 
     @staticmethod
@@ -703,7 +702,7 @@ class SCAStandalone_Telemetry_Base:
         DD_APPSEC_SCA_ENABLED = TelemetryUtils.get_dd_appsec_sca_enabled_str(context.library)
 
         cfg_appsec_enabled = configuration_by_name.get(DD_APPSEC_SCA_ENABLED)
-        assert cfg_appsec_enabled is not None, "Missing telemetry config item for '{}'".format(DD_APPSEC_SCA_ENABLED)
+        assert cfg_appsec_enabled is not None, f"Missing telemetry config item for '{DD_APPSEC_SCA_ENABLED}'"
 
         outcome_value = True
         if context.library == "java":
@@ -739,6 +738,32 @@ class SCAStandalone_Telemetry_Base:
         for dependency, seen in seen_loaded_dependencies.items():
             if not seen:
                 raise Exception(dependency + " not received in app-dependencies-loaded message")
+
+
+@rfc("https://docs.google.com/document/d/12NBx-nD-IoQEMiCRnJXneq4Be7cbtSc6pJLOFUWTpNE/edit")
+@features.appsec_standalone
+@scenarios.appsec_no_stats
+class Test_AppSecStandalone_NotEnabled:
+    """Test expected behaviour when standalone is not enabled."""
+
+    def setup_client_computed_stats_header_is_not_present(self):
+        trace_id = 1212121212121212122
+        parent_id = 34343434
+        self.r = weblog.get(
+            "/",
+            headers={
+                "x-datadog-trace-id": str(trace_id),
+                "x-datadog-parent-id": str(parent_id),
+            },
+        )
+
+    def test_client_computed_stats_header_is_not_present(self):
+        spans_checked = 0
+        for data, _, span in interfaces.library.get_spans(request=self.r):
+            assert span["trace_id"] == 1212121212121212122
+            assert "datadog-client-computed-stats" not in [x.lower() for x, y in data["request"]["headers"]]
+            spans_checked += 1
+        assert spans_checked == 1
 
 
 @rfc("https://docs.google.com/document/d/12NBx-nD-IoQEMiCRnJXneq4Be7cbtSc6pJLOFUWTpNE/edit")

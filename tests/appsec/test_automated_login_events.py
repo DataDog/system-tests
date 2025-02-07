@@ -66,7 +66,7 @@ HEADERS = {
 @rfc("https://docs.google.com/document/d/1-trUpphvyZY7k5ldjhW-MgqWl0xOm7AMEQDJEAZ63_Q/edit#heading=h.8d3o7vtyu1y1")
 @features.user_monitoring
 class Test_Login_Events:
-    "Test login success/failure use cases"
+    """Test login success/failure use cases"""
 
     # User entries in the internal DB:
     # users = [
@@ -301,7 +301,7 @@ class Test_Login_Events:
 @scenarios.appsec_auto_events_extended
 @features.user_monitoring
 class Test_Login_Events_Extended:
-    "Test login success/failure use cases"
+    """Test login success/failure use cases"""
 
     def setup_login_success_local(self):
         self.r_success = weblog.post("/login?auth=local", data=login_data(context, USER, PASSWORD))
@@ -557,7 +557,7 @@ class Test_Login_Events_Extended:
 
         def validate_login_success_headers(span):
             if span.get("parent_id") not in (0, None):
-                return
+                return None
 
             for header in HEADERS:
                 assert f"http.request.headers.{header.lower()}" in span["meta"], f"Can't find {header} in span's meta"
@@ -581,7 +581,7 @@ class Test_Login_Events_Extended:
 
         def validate_login_failure_headers(span):
             if span.get("parent_id") not in (0, None):
-                return
+                return None
 
             for header in HEADERS:
                 assert f"http.request.headers.{header.lower()}" in span["meta"], f"Can't find {header} in span's meta"
@@ -594,8 +594,7 @@ class Test_Login_Events_Extended:
 @features.user_monitoring
 @features.user_id_collection_modes
 class Test_V2_Login_Events:
-    """
-    Test login success/failure use cases
+    """Test login success/failure use cases
     By default, mode is identification
     """
 
@@ -1088,7 +1087,7 @@ class Test_V2_Login_Events_Anon:
 
         def validate_login_success_headers(span):
             if span.get("parent_id") not in (0, None):
-                return
+                return None
 
             for header in HEADERS:
                 assert f"http.request.headers.{header.lower()}" in span["meta"], f"Can't find {header} in span's meta"
@@ -1109,7 +1108,7 @@ class Test_V2_Login_Events_Anon:
 
         def validate_login_failure_headers(span):
             if span.get("parent_id") not in (0, None):
-                return
+                return None
 
             for header in HEADERS:
                 assert f"http.request.headers.{header.lower()}" in span["meta"], f"Can't find {header} in span's meta"
@@ -1230,8 +1229,7 @@ libs_without_user_id_on_failure = ["nodejs", "java"]
 @features.user_monitoring
 @features.user_id_collection_modes
 class Test_V3_Login_Events:
-    """
-    Test login success/failure use cases
+    """Test login success/failure use cases
     By default, mode is identification
     """
 
@@ -1517,7 +1515,7 @@ class Test_V3_Login_Events:
 
         def validate_login_success_headers(span):
             if span.get("parent_id") not in (0, None):
-                return
+                return None
 
             for header in HEADERS:
                 assert f"http.request.headers.{header.lower()}" in span["meta"], f"Can't find {header} in span's meta"
@@ -1538,7 +1536,7 @@ class Test_V3_Login_Events:
 
         def validate_login_failure_headers(span):
             if span.get("parent_id") not in (0, None):
-                return
+                return None
 
             for header in HEADERS:
                 assert f"http.request.headers.{header.lower()}" in span["meta"], f"Can't find {header} in span's meta"
@@ -1972,7 +1970,6 @@ class Test_V3_Login_Events_Blocking:
             "/login?auth=local&sdk_event=success&sdk_user=sdkUser", data=login_data(context, UUID_USER, PASSWORD)
         )
 
-    @missing_feature(context.library == "nodejs", reason="SDK blocking not implemented")
     def test_login_event_blocking_sdk(self):
         assert self.config_state_1[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
         assert self.r_login.status_code == 200

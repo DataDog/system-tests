@@ -26,7 +26,6 @@ def test_not_reported():
 
 @scenarios.test_the_test
 def test_all_class_has_feature_decorator(session, deselected_items):
-    allow_no_feature_nodes = session.config.inicfg["allow_no_feature_nodes"]
     processed_nodes = set()
     shouldfail = False
 
@@ -38,14 +37,8 @@ def test_all_class_has_feature_decorator(session, deselected_items):
 
         processed_nodes.add(reported_node_id)
 
-        allow_missing_declaration = False
-
-        for node in allow_no_feature_nodes:
-            if item.nodeid.startswith(node):
-                allow_missing_declaration = True
-                break
-
-        if allow_missing_declaration:
+        if item.nodeid.startswith("tests/test_the_test/"):
+            # special use case of test the test folder
             continue
 
         declared_features = [marker.kwargs["feature_id"] for marker in item.iter_markers("features")]

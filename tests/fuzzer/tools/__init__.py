@@ -8,9 +8,7 @@ data = _Data()
 
 
 def apply_method(obj, key_callback, value_callback):
-    """
-    Recursyvly apply methods on a JSON-like object
-    """
+    """Recursyvly apply methods on a JSON-like object"""
     if obj is None or isinstance(obj, (str, float, int, bool)):
         return value_callback(obj)
 

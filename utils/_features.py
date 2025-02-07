@@ -2351,7 +2351,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=353
         """
-        pytest.mark.features(feature_id=343)(test_object)
+        pytest.mark.features(feature_id=353)(test_object)
         return test_object
 
     @staticmethod
@@ -2388,6 +2388,24 @@ class _Features:
         https://feature-parity.us1.prod.dog/#/?feature=361
         """
         pytest.mark.features(feature_id=361)(test_object)
+        return test_object
+
+    @staticmethod
+    def stable_configuration_support(test_object):
+        """Enforces that basic stable configuration support exists
+
+        https://feature-parity.us1.prod.dog/#/?feature=365
+        """
+        pytest.mark.features(feature_id=365)(test_object)
+        return test_object
+
+    @staticmethod
+    def single_span_ingestion_control(test_object):
+        """Enforces that basic stable configuration support exists
+
+        https://feature-parity.us1.prod.dog/#/?feature=366
+        """
+        pytest.mark.features(feature_id=366)(test_object)
         return test_object
 
 

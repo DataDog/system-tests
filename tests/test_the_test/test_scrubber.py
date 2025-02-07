@@ -36,7 +36,7 @@ scrubbed_names = {
 @scenarios.test_the_test
 def test_log_scrubber():
     cmd = ["./run.sh", "MOCK_THE_TEST", FILENAME]
-    subprocess.run(cmd, env=scrubbed_names | os.environ, text=True, capture_output=True)
+    subprocess.run(cmd, env=scrubbed_names | os.environ, text=True, capture_output=True, check=False)
 
     redacted_count = 0
 
@@ -47,11 +47,11 @@ def test_log_scrubber():
             with open(file_path, "r", encoding="utf-8") as f:
                 data = f.read()
 
-            redacted_count += data.count("<redacted>")
+            redacted_count += data.count("--redacted--")
             for secret in scrubbed_names.values():
                 assert secret not in data, f"{secret} found in {file_path}"
 
-    # extra portection to make sure we redacted all secrets
+    # extra protection to make sure we redacted all secrets
     assert redacted_count != 0, "No secrets were redacted"
 
 

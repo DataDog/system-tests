@@ -19,12 +19,11 @@ def _expected_location():
     if context.library.library == "python":
         if context.library.version >= "1.12.0":
             return "iast.py"
+        # old value: absolute path
+        elif context.weblog_variant == "uwsgi-poc":
+            return "/app/./iast.py"
         else:
-            # old value: absolute path
-            if context.weblog_variant == "uwsgi-poc":
-                return "/app/./iast.py"
-            else:
-                return "/app/iast.py"
+            return "/app/iast.py"
 
 
 def _expected_evidence():
@@ -84,7 +83,8 @@ class TestDeduplication:
 
     def test_insecure_hash_remove_duplicates(self):
         """If one line is vulnerable and it is executed multiple times (for instance in a loop) in a request,
-        we will report only one vulnerability"""
+        we will report only one vulnerability
+        """
         assert_iast_vulnerability(
             request=self.r_insecure_hash_remove_duplicates,
             vulnerability_count=1,

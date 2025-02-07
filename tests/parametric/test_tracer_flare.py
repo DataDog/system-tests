@@ -1,17 +1,15 @@
-"""
-Test the tracer flare feature of the APM libraries.
-"""
+"""Test the tracer flare feature of the APM libraries."""
 
 import json
 import zipfile
 from base64 import b64decode
 from io import BytesIO
-from typing import Any, Dict, List, Set
+from typing import Any
 from uuid import uuid4
 
 import pytest
 
-from utils import rfc, scenarios, features, missing_feature, context, bug
+from utils import rfc, scenarios, features, missing_feature, context
 from utils.dd_constants import RemoteConfigApplyState
 
 
@@ -30,14 +28,14 @@ DEFAULT_ENVVARS = {
 }
 
 
-def _tracer_flare_task_config() -> Dict[str, Any]:
+def _tracer_flare_task_config() -> dict[str, Any]:
     return {
         "args": {"case_id": "12345", "hostname": "my.hostname", "user_handle": "its.me@datadoghq.com"},
         "task_type": "tracer_flare",
     }
 
 
-def _flare_log_level_order() -> Dict[str, Any]:
+def _flare_log_level_order() -> dict[str, Any]:
     return {
         "order": [],
         "internal_order": [
@@ -52,12 +50,11 @@ def _flare_log_level_order() -> Dict[str, Any]:
     }
 
 
-def _java_tracer_flare_filenames() -> Set:
+def _java_tracer_flare_filenames() -> set:
     return {
         "classpath.txt",
         "flare_info.txt",
         "dynamic_config.txt",
-        "flare_info.txt",
         "initial_config.txt",
         "instrumenter_metrics.txt",
         "instrumenter_state.txt",
@@ -89,7 +86,7 @@ def _clear_log_level(test_agent, cfg_id: str) -> None:
     )
 
 
-def _add_task(test_agent, task_config: Dict[str, Any]) -> int:
+def _add_task(test_agent, task_config: dict[str, Any]) -> int:
     """Helper to create an agent task in RC with the given task arguments."""
     task_config["uuid"] = uuid4().hex
     task_id = hash(json.dumps(task_config))
@@ -106,7 +103,7 @@ def _clear_task(test_agent, task_id) -> None:
     )
 
 
-def trigger_tracer_flare_and_wait(test_agent, task_overrides: Dict[str, Any]) -> Dict:
+def trigger_tracer_flare_and_wait(test_agent, task_overrides: dict[str, Any]) -> dict:
     """Creates a "trace_flare" agent task and waits for the tracer flare to be uploaded."""
     task_config = _tracer_flare_task_config()
     task_args = task_config["args"]
@@ -134,14 +131,14 @@ def assert_expected_files(content, min_files):
 
 def assert_java_log_file(content):
     flare_file = zipfile.ZipFile(BytesIO(b64decode(content)))
-    myfile = flare_file.open("tracer.log")
+    flare_file.open("tracer.log")
     # file content: 'No tracer log file specified and no prepare flare event received'
     assert flare_file.getinfo("tracer.log").file_size == 64, "tracer flare log file is not as expected"
 
 
 def assert_java_log_file_debug(content):
     flare_file = zipfile.ZipFile(BytesIO(b64decode(content)))
-    myfile = flare_file.open("tracer.log")
+    flare_file.open("tracer.log")
     assert flare_file.getinfo("tracer.log").file_size > 64, "tracer flare log file is not as expected"
 
 

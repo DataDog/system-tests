@@ -58,7 +58,7 @@ class Test_Debugger_Probe_Statuses(debugger._Base_Debugger_Test):
             if error_message is not None:
                 errors.append(error_message)
 
-        assert not errors, f"Probe status errors:\n" + "\n".join(errors)
+        assert not errors, "Probe status errors:\n" + "\n".join(errors)
 
     ############ log line probe ############
     def setup_probe_status_log_line(self):

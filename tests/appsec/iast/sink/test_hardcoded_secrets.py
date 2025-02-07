@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import interfaces, weblog, features, context, rfc, weblog
+from utils import interfaces, features, context, rfc, weblog
 from ..utils import validate_stack_traces
 
 # Test_HardcodedSecrets and Test_HardcodedSecretsExtended don't inherit from BaseSinkTest
@@ -18,9 +18,13 @@ def get_hardcoded_secret_vulnerabilities():
     assert spans_meta, "No spans meta found"
     iast_events = [meta.get("_dd.iast.json") for meta in spans_meta if meta.get("_dd.iast.json")]
     assert iast_events, "No iast events found"
-    vulnerabilities = [event.get("vulnerabilities") for event in iast_events if event.get("vulnerabilities")]
+
+    vulnerabilities: list = []
+    for event in iast_events:
+        vulnerabilities.extend(event.get("vulnerabilities", []))
+
     assert vulnerabilities, "No vulnerabilities found"
-    vulnerabilities = sum(vulnerabilities, [])  # set all the vulnerabilities in a single list
+
     hardcoded_secrets = [vuln for vuln in vulnerabilities if vuln.get("type") == "HARDCODED_SECRET"]
     assert hardcoded_secrets, "No hardcoded secrets found"
     return hardcoded_secrets
