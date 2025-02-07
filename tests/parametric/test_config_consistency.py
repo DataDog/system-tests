@@ -289,43 +289,63 @@ class Test_Config_RateLimit:
 
 
 class TagTest:
-    def __init__(self, expected_tags, expected_discarded_keys):
-        self.expected_tags = expected_tags
-        self.expected_discarded_keys = expected_discarded_keys
+    def __init__(self, expected_span_tags, agent_host_tags):
+        self.expected_span_tags = expected_span_tags
+        self.agent_host_tags = agent_host_tags
 
 
+# Feedback 1: Only difference is comma-split. Can we detect by looking at host-tags with commas present in them?
+# Feedback 2: Tracer is doing the right thing to discard <KEY>:<VALUE> tags where KEY is empty
 tag_scenarios: dict = {
-    "key1:value1,key2:value2": TagTest(
-        expected_tags=[("key1", "value1"), ("key2", "value2")], expected_discarded_keys=[]
+    "key1:value1,key2:value2": TagTest(  # See Feedback 1
+        expected_span_tags=[("key1", "value1"), ("key2", "value2")], agent_host_tags=[("key1:value1,key2:value2")]
     ),
     "key1:value1 key2:value2": TagTest(
-        expected_tags=[("key1", "value1"), ("key2", "value2")], expected_discarded_keys=[]
+        expected_span_tags=[("key1", "value1"), ("key2", "value2")],  # OK
+        agent_host_tags=["key1:value1", "key2:value2"],
     ),
     "env:test aKey:aVal bKey:bVal cKey:": TagTest(
-        expected_tags=[("env", "test"), ("aKey", "aVal"), ("bKey", "bVal"), ("cKey", "")], expected_discarded_keys=[]
+        expected_span_tags=[("env", "test"), ("aKey", "aVal"), ("bKey", "bVal"), ("cKey", "")],  # OK
+        agent_host_tags=["env:test", "aKey:aVal", "bKey:bVal", "cKey:"],
     ),
-    "env:test,aKey:aVal,bKey:bVal,cKey:": TagTest(
-        expected_tags=[("env", "test"), ("aKey", "aVal"), ("bKey", "bVal"), ("cKey", "")], expected_discarded_keys=[]
+    "env:test,aKey:aVal,bKey:bVal,cKey:": TagTest(  # See Feedback 1
+        expected_span_tags=[("env", "test"), ("aKey", "aVal"), ("bKey", "bVal"), ("cKey", "")],
+        agent_host_tags=["env:test,aKey:aVal,bKey:bVal,cKey:"],
     ),
-    "env:test,aKey:aVal bKey:bVal cKey:": TagTest(
-        expected_tags=[("env", "test"), ("aKey", "aVal bKey:bVal cKey:")], expected_discarded_keys=[]
+    # New test case adopted from the above ^ to take the simple comma-separated list into a (comma+space)-separated list
+    "env:test ,aKey:aVal, bKey:bVal, cKey:": TagTest(  # Feedback: Can we recommend users update their DD_TAGS to be (comma+space)-separate in their ENV variables AND toggle a feature flag to trim the commas?
+        expected_span_tags=[("env", "test"), ("aKey", "aVal"), ("bKey", "bVal"), ("cKey", "")],
+        agent_host_tags=["env:test", ",aKey:aVal,", "bKey:bVal,", "cKey:"],
+    ),
+    "env:test,aKey:aVal bKey:bVal cKey:": TagTest(  # See Feedback 1
+        expected_span_tags=[("env", "test"), ("aKey", "aVal bKey:bVal cKey:")],
+        agent_host_tags=["env:test,aKey:aVal", "bKey:bVal", "cKey:"],
     ),
     "env:test     bKey :bVal dKey: dVal cKey:": TagTest(
-        expected_tags=[("env", "test"), ("bKey", ""), ("dKey", ""), ("dVal", ""), ("cKey", "")],
-        expected_discarded_keys=[],
+        expected_span_tags=[("env", "test"), ("bKey", ""), ("dKey", ""), ("dVal", ""), ("cKey", "")],  # See Feedback 2
+        agent_host_tags=["env:test", "bKey", ":bVal", "dKey:", "dVal", "cKey:"],
     ),
-    "env :test, aKey : aVal bKey:bVal cKey:": TagTest(
-        expected_tags=[("env", "test"), ("aKey", "aVal bKey:bVal cKey:")], expected_discarded_keys=[]
+    "env :test, aKey : aVal bKey:bVal cKey:": TagTest(  # See Feedback 1 and Feedback 2
+        expected_span_tags=[("env", "test"), ("aKey", "aVal bKey:bVal cKey:")],
+        agent_host_tags=["env", ":", ":test,", "aKey", "aVal", "bKey:bVal", "cKey:"],
     ),
-    "env:keyWithA:Semicolon bKey:bVal cKey": TagTest(
-        expected_tags=[("env", "keyWithA:Semicolon"), ("bKey", "bVal"), ("cKey", "")], expected_discarded_keys=[]
+    "env:keyWithA:Semicolon bKey:bVal cKey": TagTest(  # OK
+        expected_span_tags=[("env", "keyWithA:Semicolon"), ("bKey", "bVal"), ("cKey", "")],
+        agent_host_tags=["env:keyWithA:Semicolon", "bKey:bVal", "cKey"],
     ),
-    "env:keyWith:  , ,   Lots:Of:Semicolons ": TagTest(
-        expected_tags=[("env", "keyWith:"), ("Lots", "Of:Semicolons")], expected_discarded_keys=[]
+    "env:keyWith:  , ,   Lots:Of:Semicolons ": TagTest(  # See Feedback 1
+        expected_span_tags=[("env", "keyWith:"), ("Lots", "Of:Semicolons")],
+        agent_host_tags=["env:keyWith:", ",", "Lots:Of:Semicolons"],
     ),
-    "a:b,c,d": TagTest(expected_tags=[("a", "b"), ("c", ""), ("d", "")], expected_discarded_keys=[]),
-    "a,1": TagTest(expected_tags=[("a", ""), ("1", "")], expected_discarded_keys=[]),
-    "a:b:c:d": TagTest(expected_tags=[("a", "b:c:d")], expected_discarded_keys=[]),
+    "a:b,c,d": TagTest(  # See Feedback 1
+        expected_span_tags=[("a", "b"), ("c", ""), ("d", "")], agent_host_tags=["a:b,c,d"]
+    ),
+    "a,1": TagTest(  # See Feedback 1
+        expected_span_tags=[("a", ""), ("1", "")], agent_host_tags=["a,1"]
+    ),
+    "a:b:c:d": TagTest(  # OK
+        expected_span_tags=[("a", "b:c:d")], agent_host_tags=["a:b:c:d"]
+    ),
 }
 
 
@@ -334,23 +354,18 @@ tag_scenarios: dict = {
 class Test_Config_Tags:
     @parametrize("library_env", [{"DD_TAGS": key} for key in tag_scenarios.keys()])
     def test_comma_space_tag_separation(self, library_env, test_agent, test_library):
-        expected_tags = []
-        expected_discarded_keys = []
+        expected_span_tags = []
         if "DD_TAGS" in library_env:
             tagtest = tag_scenarios[library_env["DD_TAGS"]]
-            expected_tags = tagtest.expected_tags
-            expected_discarded_keys = tagtest.expected_discarded_keys
+            expected_span_tags = tagtest.expected_span_tags
 
         with test_library:
             with test_library.dd_start_span(name="sample_span"):
                 pass
         span = find_only_span(test_agent.wait_for_num_traces(1))
-        for k, v in expected_tags:
+        for k, v in expected_span_tags:
             assert k in span["meta"]
             assert span["meta"][k] == v
-
-        for k in expected_discarded_keys:
-            assert k not in span["meta"]
 
     @parametrize(
         "library_env",
