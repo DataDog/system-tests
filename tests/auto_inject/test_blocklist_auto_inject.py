@@ -107,7 +107,7 @@ class TestAutoInjectBlockListInstallManualHost(_AutoInjectBlockListBaseTest):
         reason="INPLAT-103",
     )
     @bug(
-        context.vm_os_branch == "redhat" and context.vm_os_cpu == "arm64" and context.vm_library == "ruby",
+        context.vm_os_branch == "redhat" and context.vm_os_cpu == "arm64" and context.library == "ruby",
         reason="INPLAT-103",
     )
     def test_builtIn_block_args(self):

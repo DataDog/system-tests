@@ -61,13 +61,7 @@ def generate_job_unique_name(dictionary, key, value) -> str:
     return new_key
 
 
-def generate_aws_gitlab_pipeline(language, aws_scenario_map, ci_environment) -> dict:
-    aws_matrix = generate_aws_matrix(
-        "utils/virtual_machine/virtual_machines.json",
-        "utils/scripts/ci_orchestrators/gitlab/aws_ssi.json",
-        aws_scenario_map,
-        language,
-    )
+def generate_aws_gitlab_pipeline(language, aws_matrix, ci_environment) -> dict:
     result_pipeline = {}  # type: dict
     result_pipeline["stages"] = []
     pipeline_file = ".gitlab/aws_gitlab-ci.yml"

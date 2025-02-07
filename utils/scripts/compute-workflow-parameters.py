@@ -3,7 +3,7 @@ import argparse
 import json
 import yaml
 from utils._context._scenarios import get_all_scenarios, ScenarioGroup
-from ci_orchestrators.gitlab.gitlab_ci_orchestrator import generate_aws_gitlab_pipeline
+from ci_orchestrators.gitlab.gitlab_ci_orchestrator import generate_aws_gitlab_pipeline, generate_aws_matrix
 from ci_orchestrators.github.github_ci_orchestrator import (
     get_endtoend_weblogs,
     get_graphql_weblogs,
@@ -57,6 +57,8 @@ def _print_output(result: dict[str, dict], output_format: str) -> None:
         # TODO: write the gitlab pipeline
         pipeline_yml = yaml.dump(result, sort_keys=False, default_flow_style=False)
         print(pipeline_yml)
+    elif output_format == "gitlab-json":
+        print(json.dumps(result))
     else:
         raise ValueError(f"Invalid format: {format}")
 
@@ -78,7 +80,24 @@ def _handle_github(language: str, scenario_map: dict, parametric_job_count: int,
 
 def _handle_gitlab(language: str, scenario_map: dict, ci_environment: str) -> dict:
     if "aws_ssi" in scenario_map:
-        return generate_aws_gitlab_pipeline(language, scenario_map["aws_ssi"], ci_environment)
+        aws_matrix = generate_aws_matrix(
+            "utils/virtual_machine/virtual_machines.json",
+            "utils/scripts/ci_orchestrators/gitlab/aws_ssi.json",
+            scenario_map["aws_ssi"],
+            language,
+        )
+        return generate_aws_gitlab_pipeline(language, aws_matrix, ci_environment)
+    return {}
+
+
+def _handle_gitlab_json(language: str, scenario_map: dict) -> dict:
+    if "aws_ssi" in scenario_map:
+        return generate_aws_matrix(
+            "utils/virtual_machine/virtual_machines.json",
+            "utils/scripts/ci_orchestrators/gitlab/aws_ssi.json",
+            scenario_map["aws_ssi"],
+            language,
+        )
     return {}
 
 
@@ -94,6 +113,8 @@ def main(
         result = _handle_github(language, scenario_map, parametric_job_count, ci_environment)
     elif output_format == "gitlab":
         result = _handle_gitlab(language, scenario_map, ci_environment)
+    elif output_format == "gitlab-json":
+        result = _handle_gitlab_json(language, scenario_map)
     else:
         raise ValueError(f"Invalid format: {format}")
 
@@ -114,7 +135,7 @@ if __name__ == "__main__":
         "-f",
         type=str,
         help="Select the output format",
-        choices=["github", "gitlab"],
+        choices=["github", "gitlab", "gitlab-json"],
         default="github",
     )
 
