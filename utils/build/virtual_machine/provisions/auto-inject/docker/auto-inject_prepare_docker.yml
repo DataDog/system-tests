@@ -20,9 +20,6 @@
         #sudo groupadd docker
         #sudo usermod -aG docker "ubuntu"
         #echo "DOCKER USER ADDED"
-        echo "TODO RMM DELETE BEFORE"
-        exit 1
-        echo "TODO RMM DELETE AFTER"
     - os_type: linux
       os_distro: rpm
       os_branch: centos_7_amd64 # CentOS override
