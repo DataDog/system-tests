@@ -117,6 +117,16 @@ class AgentInterfaceValidator(ProxyBasedInterfaceValidator):
             validator=validator, success_by_default=success_by_default, path_filters=r"/api/v0\.[1-9]+/traces"
         )
 
+    def get_host_tags(self):
+        for data in self.get_data(path_filters="/intake/"):
+            if "host-tags" not in data["request"]["content"]:
+                continue
+
+            if data["request"]["content"].get("host-tags"):
+                return data["request"]["content"]["host-tags"]
+
+        return {}
+
     def get_spans(self, request=None):
         """Attempts to fetch the spans the agent will submit to the backend.
 

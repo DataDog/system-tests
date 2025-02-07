@@ -3,9 +3,10 @@
 # Copyright 2021 Datadog, Inc.
 
 import re
+import pprint
 from urllib.parse import urlparse
 
-from utils import context, interfaces, bug, missing_feature, features, scenarios
+from utils import context, interfaces, bug, missing_feature, features, scenarios, weblog
 
 RUNTIME_LANGUAGE_MAP = {
     "nodejs": "javascript",
@@ -321,6 +322,25 @@ class Test_MetaDatadogTags:
             return True
 
         interfaces.library.validate_spans(validator=validator)
+
+
+@scenarios.default
+@features.tracing_configuration_consistency
+class Test_Agent_DDTags:
+    """Spans carry meta tags that were set in DD_TAGS agent environment"""
+
+    def setup_main(self):
+        self.r = weblog.get("/")
+
+    def test_main(self):
+        assert self.r.status_code == 200
+
+        spans = interfaces.agent.get_spans_list(self.r)
+        assert len(spans) == 1, "Agent received the incorrect amount of spans"
+
+        host_tags = interfaces.agent.get_host_tags()
+        pprint.pprint(host_tags["system"])
+        assert False
 
 
 @features.data_integrity

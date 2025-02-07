@@ -537,6 +537,7 @@ class AgentContainer(TestedContainer):
                 "DD_APM_RECEIVER_PORT": self.apm_receiver_port,
                 "DD_DOGSTATSD_PORT": self.dogstatsd_port,
                 "DD_API_KEY": os.environ.get("DD_API_KEY", _FAKE_DD_API_KEY),
+                # To configure configure host tags, set the env variable "DD_TAGS" here
             }
         )
 
