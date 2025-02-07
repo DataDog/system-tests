@@ -20,7 +20,7 @@ class Test_Baggage_Headers_Basic:
 
         assert self.r.status_code == 200
         data = json.loads(self.r.text)
-        assert "baggage" in data["request_headers"]
+        assert data["request_headers"]["baggage"] == "foo=bar"
 
 
 @scenarios.datadog_baggage_propagation
