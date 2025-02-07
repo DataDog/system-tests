@@ -16,7 +16,7 @@ class TestLanguageVersionNotSupported:
         vm_port = virtual_machine.deffault_open_port
         vm_name = virtual_machine.name
         logger.info(f"[{vm_name}] Waiting for weblog available [{vm_ip}:{vm_port}]")
-        wait_for_port(vm_port, vm_ip, 80.0)
+        assert wait_for_port(vm_port, vm_ip, 80.0), "Weblog port not reachable. Is the weblog running?"
         logger.info(f"[{vm_ip}]: Weblog app is ready!")
         warmup_weblog(f"http://{vm_ip}:{vm_port}/")
         logger.info(f"Making a request to weblog [{vm_ip}:{vm_port}]")

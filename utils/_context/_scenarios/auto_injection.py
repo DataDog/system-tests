@@ -47,6 +47,8 @@ class _VirtualMachineScenario(Scenario):
             os_cpu=None,
             default_vm=False,
         )
+        # Indicator if there is a failure in the vm provision
+        self.provision_status = "success"
 
     def print_installed_components(self):
         logger.terminal.write_sep("=", "Installed components", bold=True)

@@ -71,14 +71,27 @@ class AWSPulumiProvider(VmProvider):
                 "",
                 ["operation:up", "result:ok", f"stack:{self.stack_name}"],
             )
+        except pulumi.automation.errors.CommandError as pulumi_command_exception:
+            logger.stdout("❌ Exception launching aws provision step remote command ❌")
+            vm_logger(context.scenario.name, context.vm_name).error(
+                "\n \n \n ❌ ❌ ❌ Exception launching aws provision step remote command ❌ ❌ ❌ \n \n \n "
+            )
+            vm_logger(context.scenario.name, context.vm_name).exception(pulumi_command_exception)
+            context.scenario.provision_status = "failed"
+            self.datadog_event_sender.sendEventToDatadog(
+                f"[E2E] Stack {self.stack_name} : error on Pulumi stack up",
+                repr(pulumi_command_exception),
+                ["operation:up", "result:fail", f"stack:{self.stack_name}"],
+            )
         except Exception as pulumi_exception:
-            logger.error("Exception launching aws provision infraestructure")
-            logger.exception(pulumi_exception)
+            logger.stdout("❌ Exception launching aws provision infraestructure ❌ ")
+            logger.debug(f"The error class name: { pulumi_exception.__class__.__name__}")
             self.datadog_event_sender.sendEventToDatadog(
                 f"[E2E] Stack {self.stack_name} : error on Pulumi stack up",
                 repr(pulumi_exception),
                 ["operation:up", "result:fail", f"stack:{self.stack_name}"],
             )
+            context.scenario.provision_status = "failed"
 
     def _start_vm(self, vm):
         # Startup VM and prepare connection
@@ -330,10 +343,14 @@ class AWSCommander(Commander):
         else:
             # If there isn't logger name specified, we will use the host/ip name to store all the logs of the
             # same remote machine in the same log file
+            # If there is a failure (exit != 0) this trace will not be stored in the log file (why?)
             header = "\n *****************************************************************"
-            Output.all(vm.name, installation_id, remote_command, cmd_exec_install.stdout).apply(
+            header2 = "\n -----------------------------------------------------------------"
+            Output.all(
+                vm.name, installation_id, remote_command, cmd_exec_install.stdout, cmd_exec_install.stderr
+            ).apply(
                 lambda args: vm_logger(context.scenario.name, args[0]).info(
-                    f"{header} \n  - COMMAND: {args[1]} \n {header} \n {args[2]} \n\n {header} \n COMMAND OUTPUT \n\n {header} \n {args[3]}"
+                    f"{header} \n   🚀 Provision step: {args[1]} 🚀 \n      Status: ✅ SUCCESS \n {header} \n {args[2]} \n\n {header2} \n 📤 Provision step output ({args[1]}) 📤  \n {header2} \n {args[3]} \n\n {header2} \n 🚨 error output ({args[1]}) 🚨 \n {header2} \n {args[4]}"
                 )
             )
         if output_callback:

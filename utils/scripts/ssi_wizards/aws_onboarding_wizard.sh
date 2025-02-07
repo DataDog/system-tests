@@ -65,7 +65,7 @@ is_var_set() {
 save_to_env_file() {
     local var_name="$1"
     local var_value="$2"
-    
+
     # Ensure .env exists
     touch "$ENV_FILE"
 
@@ -187,7 +187,7 @@ ask_for_test_language() {
         echo "4) .NET"
         echo "5) Ruby"
         echo "6) PHP"
-        
+
         while true; do
             read -p "Enter the number of your choice (1-6): " choice
             case $choice in
@@ -407,7 +407,7 @@ run_test_command() {
     echo "   🔹 Environment:      $CI_ENVIRONMENT"
     echo "   🔹 Test Library:     $TEST_LIBRARY"
     echo ""
-    
+
     if [[ -n "$DD_INSTALLER_LIBRARY_VERSION" ]]; then
         echo "   🔹 Custom Tracer OCI Image:   $DD_INSTALLER_LIBRARY_VERSION"
     else
@@ -419,7 +419,7 @@ run_test_command() {
     else
         echo "   🔹 Custom Injector OCI Image: (Not set)"
     fi
-    
+
     echo ""
     echo "✅ Everything is set up! Now running the test command..."
     echo ""
@@ -432,7 +432,7 @@ run_test_command() {
         --vm-provider aws \
         --vm-default-vms All \
         --vm-only $VIRTUAL_MACHINE"
-    
+
     echo "🖥️ Running:"
     echo "   $TEST_COMMAND"
     echo ""

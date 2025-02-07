@@ -29,7 +29,7 @@ class BaseAutoInjectChaos(base.AutoInjectBaseTest):
         self.execute_command(virtual_machine, evil_command)
         logger.info(f"[{virtual_machine.name}]Ok evil command launched!")
         # Assert the app is still working
-        wait_for_port(vm_port, vm_ip, 40.0)
+        assert wait_for_port(vm_port, vm_ip, 40.0), "Weblog port not reachable. Is the weblog running?"
         r = requests.get(weblog_url, timeout=10)
         assert r.status_code == 200, "The weblog app it's not working after remove the installation folder"
         logger.info(f"[{virtual_machine.name}]Ok the weblog app it's working after remove wrong things")
@@ -42,7 +42,7 @@ class BaseAutoInjectChaos(base.AutoInjectBaseTest):
         # Start the app again
         self.execute_command(virtual_machine, weblog_start_command)
         # App shpuld be working again, although the installation folder was removed
-        wait_for_port(vm_port, vm_ip, 40.0)
+        assert wait_for_port(vm_port, vm_ip, 40.0), "Weblog port not reachable. Is the weblog running?"
         warmup_weblog(weblog_url)
         r = requests.get(weblog_url, timeout=10)
         assert (

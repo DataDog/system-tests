@@ -40,7 +40,10 @@ class AutoInjectBaseTest:
             request_uuid = make_internal_get_request(virtual_machine.krunvm_config.stdin, vm_port)
         else:
             logger.info(f"Waiting for weblog available [{vm_ip}:{vm_port}]")
-            wait_for_port(vm_port, vm_ip, 80.0)
+            weblog_request_timeout = 80.0 if context.scenario.provision_status == "success" else 10
+            assert wait_for_port(
+                vm_port, vm_ip, weblog_request_timeout
+            ), "Weblog port not reachable. Is the weblog running?"
             logger.info(f"[{vm_ip}]: Weblog app is ready!")
             logger.info(f"Making a request to weblog [{vm_context_url}]")
             warmup_weblog(vm_context_url)
@@ -113,7 +116,7 @@ class AutoInjectBaseTest:
         logger.info(f"[Uninstall {virtual_machine.name}] Start app done")
 
         request_uuids = []
-        wait_for_port(vm_port, vm_ip, 40.0)
+        assert wait_for_port(vm_port, vm_ip, 40.0), "Weblog port not reachable. Is the weblog running?"
         responseJson = warmup_weblog(f"http://{vm_ip}:{vm_port}/")
         if responseJson is not None:
             logger.info(f"There is a multicontainer app: {responseJson}")

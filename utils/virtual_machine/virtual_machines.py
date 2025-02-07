@@ -111,11 +111,6 @@ class _VirtualMachine:
     def get_deployed_weblog(self):
         if self._deployed_weblog is None:
             self._deployed_weblog = self._vm_provision.get_deployed_weblog()
-        # TODO RMM remove
-        # if self._deployed_weblog.app_type == "host":
-        # If we are using multiple xdist workers we need to load the weblog runtime from the logs
-        # it's the same case as the ip address
-        #    self._load_runtime_from_logs()
 
         return self._deployed_weblog
 
