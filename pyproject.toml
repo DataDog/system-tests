@@ -208,7 +208,6 @@ ignore = [
     "T201",      # 15 occurences    [*] print
     "FBT001",    # 12 occurences    [ ] boolean-type-hint-positional-argument
     "SLF001",    # 12 occurences    [ ] private-member-access
-    "SIM118",    # 12 occurences    [*] in-dict-keys
     "UP035",     # 12 occurences    [ ] deprecated-import
     "S105",      # 10 occurences    [ ] hardcoded-password-string
     "B015",      # 10 occurences    [ ] useless-comparison
@@ -226,32 +225,26 @@ ignore = [
     "PT015",     # 7 occurences     [ ] pytest-assert-always-false
     "N815",      # 7 occurences     [ ] mixed-case-variable-in-class-scope
     "PT006",     # 6 occurences     [*] pytest-parametrize-names-wrong-type
-    "RET504",    # 6 occurences     [*] unnecessary-assign
     "N803",      # 6 occurences     [ ] invalid-argument-name
-    "E712",      # 6 occurences     [*] true-false-comparison
     "E741",      # 6 occurences     [ ] ambiguous-variable-name
     "S113",      # 5 occurences     [ ] request-without-timeout
     "PT011",     # 5 occurences     [ ] pytest-raises-too-broad
     "E731",      # 5 occurences     [*] lambda-assignment
     "RUF005",    # 5 occurences     [ ] collection-literal-concatenation
-    "B006",      # 4 occurences     [*] mutable-argument-default
-    "PIE794",    # 4 occurences     [*] duplicate-class-field-definition
     "PTH103",    # 4 occurences     [ ] os-makedirs
     "PLW2901",   # 4 occurences     [ ] redefined-loop-name
     "PTH112",    # 3 occurences     [ ] os-path-isdir
-    "RUF017",    # 3 occurences     [*] quadratic-list-summation
     "ANN002",    # 2 occurences     [ ] missing-type-args
     "ASYNC230",  # 2 occurences     [ ] blocking-open-call-in-async-function
     "S605",      # 2 occurences     [ ] start-process-with-a-shell
-    "C408",      # 2 occurences     [*] unnecessary-collection-call
-    "C416",      # 2 occurences     [*] unnecessary-comprehension
-    "PIE810",    # 2 occurences     [*] multiple-starts-ends-with
     "PTH100",    # 2 occurences     [ ] os-path-abspath
     "PTH109",    # 2 occurences     [ ] os-getcwd
 
     # keep those exceptions
     "C400",      # unnecessary-generator-list: explicit list is more readable for non-python users
     "C401",      # unnecessary-generator-set: explicit set is more readable for non-python users
+    "C408",      # unnecessary-collection-call: explicit tuple is more readable for non-python users
+    "C416",      # unnecessary-comprehension: may make the code less readable for non-python users
     "FIX003",    # line-contains-xxx: freedom of speech!
     "FIX004",    # line-contains-xxx: freedom of speech!
     "PLR1730",   # if-stmt-min-max: not clear that it makes the code easier to read

@@ -68,7 +68,7 @@ class Test_SingleSpan:
 
 def _assert_single_span_event(event, name, is_root):
     assert event["operation_name"] == name
-    assert event["single_span"] == True
+    assert event["single_span"] is True
     assert event["ingestion_reason"] == "single_span"
     parent_id = event["parent_id"]
     if is_root:
