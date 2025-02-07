@@ -35,7 +35,7 @@ class Test_Headers_Baggage:
         span = find_only_span(test_agent.wait_for_num_traces(1))
         assert span.get("trace_id") == 123456789
         assert span.get("parent_id") == 987654321
-        assert "baggage" in headers.keys()
+        assert "baggage" in headers
         assert headers["baggage"] == "foo=bar"
 
     @only_baggage_enabled()
@@ -47,9 +47,9 @@ class Test_Headers_Baggage:
                 [["x-datadog-trace-id", "123456789"], ["baggage", "foo=bar"]]
             )
 
-        assert "x-datadog-trace-id" not in headers.keys()
-        assert "x-datadog-parent-id" not in headers.keys()
-        assert "baggage" in headers.keys()
+        assert "x-datadog-trace-id" not in headers
+        assert "x-datadog-parent-id" not in headers
+        assert "baggage" in headers
         assert headers["baggage"] == "foo=bar"
 
     @irrelevant(
@@ -67,7 +67,7 @@ class Test_Headers_Baggage:
         span = find_only_span(test_agent.wait_for_num_traces(1))
         assert span.get("trace_id") == 123456789
         assert span.get("parent_id") == 987654321
-        assert "baggage" not in headers.keys()
+        assert "baggage" not in headers
 
     def test_baggage_inject_header_D004(self, test_library):
         """Testing baggage header injection, proper concatenation of key value pairs, and encoding"""
@@ -208,7 +208,7 @@ class Test_Headers_Baggage:
                 [["baggage", "no-equal-sign,foo=gets-dropped-because-previous-pair-is-malformed"]],
             )
 
-            assert "baggage" not in headers.keys()
+            assert "baggage" not in headers
 
     def test_baggage_malformed_headers_D013(self, test_library):
         """Ensure that malformed baggage headers are handled properly. Unable to use get_baggage functions because it does not return anything"""
@@ -217,7 +217,7 @@ class Test_Headers_Baggage:
         with test_library:
             headers = test_library.dd_make_child_span_and_get_headers([["baggage", "=no-key"]])
 
-            assert "baggage" not in headers.keys()
+            assert "baggage" not in headers
 
     def test_baggage_malformed_headers_D014(self, test_library):
         Test_Headers_Baggage._assert_valid_baggage(self, test_library)
@@ -225,7 +225,7 @@ class Test_Headers_Baggage:
         with test_library:
             headers = test_library.dd_make_child_span_and_get_headers([["baggage", "no-value="]])
 
-            assert "baggage" not in headers.keys()
+            assert "baggage" not in headers
 
     def test_baggage_malformed_headers_D015(self, test_library):
         Test_Headers_Baggage._assert_valid_baggage(self, test_library)
@@ -235,7 +235,7 @@ class Test_Headers_Baggage:
                 [["baggage", "foo=gets-dropped-because-subsequent-pair-is-malformed,="]],
             )
 
-            assert "baggage" not in headers.keys()
+            assert "baggage" not in headers
 
     def test_baggageheader_maxitems_inject_D016(self, test_library):
         """Ensure that baggage headers are not injected when the number of baggage items exceeds the maximum number of items."""

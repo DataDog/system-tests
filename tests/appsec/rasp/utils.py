@@ -7,7 +7,7 @@ import json
 from utils import interfaces
 
 
-def validate_span_tags(request, expected_meta=[], expected_metrics=[]):
+def validate_span_tags(request, expected_meta=(), expected_metrics=()):
     """Validate RASP span tags are added when an event is generated"""
     spans = [s for _, s in interfaces.library.get_root_spans(request=request)]
     assert spans, "No spans to validate"
