@@ -17,7 +17,7 @@ class VirtualMachineProvisioner:
         only_default_vms,
         vm_only,
     ):
-        """Remove unsupported machines based on the provision file, weblog, provider_id and local testing parameter: vm_only_branch"""
+        """Remove unsupported machines based on the provision file, weblog, provider_id """
 
         # DEPRECATED: TODO DELETE AFTER REMOVE THE PIPELINE GENERATION FROM THE SCENARIO
 
