@@ -330,7 +330,6 @@ def get_hardcoded_vulnerabilities(vulnerability_type):
 
     hardcoded_vulns = [vuln for vuln in vulnerabilities if vuln.get("type") == vulnerability_type]
     assert hardcoded_vulns, "No hardcoded vulnerabilities found"
-    
     return hardcoded_vulns
 
 
