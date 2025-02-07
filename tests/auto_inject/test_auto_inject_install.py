@@ -49,6 +49,10 @@ class TestSimpleInstallerAutoInjectManualProfiling(base.AutoInjectBaseTest):
         context.vm_name == "Ubuntu_24_arm64" and context.weblog_variant == "test-app-nodejs",
         reason="PROF-11264",
     )
+    @bug(
+        context.weblog_variant == "test-app-python-alpine",
+        reason="PROF-11296",
+    )
     def test_profiling(self):
         logger.info(f"Launching test_install for : [{context.scenario.virtual_machine.name}]...")
         self._test_install(context.scenario.virtual_machine, profile=True)
@@ -94,6 +98,10 @@ class TestContainerAutoInjectInstallScriptProfiling(base.AutoInjectBaseTest):
         context.vm_os_cpu == "arm64" and context.weblog_variant == "test-app-dotnet-container",
         reason="PROF-10783",
     )
+    @bug(
+        context.weblog_variant == "test-app-python-alpine",
+        reason="PROF-11296",
+    )
     def test_profiling(self):
         self._test_install(context.scenario.virtual_machine, profile=True)
 
@@ -136,7 +144,7 @@ class TestContainerAutoInjectInstallScriptCrashTracking_NoZombieProcess(base.Aut
         try:
             crash_result = fork_and_crash(virtual_machine)
             logger.info("fork_and_crash: " + crash_result)
-        except Exception as e:
+        except Exception:
             process_tree = self.execute_command(virtual_machine, "ps aux --forest")
             logger.warning("Failure process tree: " + process_tree)
             raise

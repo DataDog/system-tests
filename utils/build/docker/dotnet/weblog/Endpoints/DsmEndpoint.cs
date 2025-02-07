@@ -170,7 +170,19 @@ namespace weblog
     {
         public static async Task DoWork(string queue, string message)
         {
-            var sqsClient = new AmazonSQSClient();
+            string awsUrl = Environment.GetEnvironmentVariable("SYSTEM_TESTS_AWS_URL");
+
+            IAmazonSQS sqsClient;
+            if (!string.IsNullOrEmpty(awsUrl))
+            {
+                // If SYSTEM_TESTS_AWS_URL is set, use it for ServiceURL
+                sqsClient = new AmazonSQSClient(new AmazonSQSConfig { ServiceURL = awsUrl });
+            }
+            else
+            {
+                // If SYSTEM_TESTS_AWS_URL is not set, create a default client
+                sqsClient = new AmazonSQSClient();
+            }
             // create queue
             Console.WriteLine($"[SQS] Produce: Creating queue {queue}");
             CreateQueueResponse responseCreate = await sqsClient.CreateQueueAsync(queue);
@@ -187,7 +199,19 @@ namespace weblog
     {
         public static async Task DoWork(string queue, string message)
         {
-            var sqsClient = new AmazonSQSClient();
+            string awsUrl = Environment.GetEnvironmentVariable("SYSTEM_TESTS_AWS_URL");
+
+            IAmazonSQS sqsClient;
+            if (!string.IsNullOrEmpty(awsUrl))
+            {
+                // If awsUrl is set, use it for ServiceURL
+                sqsClient = new AmazonSQSClient(new AmazonSQSConfig { ServiceURL = awsUrl });
+            }
+            else
+            {
+                // If awsUrl is not set, create a default client
+                sqsClient = new AmazonSQSClient();
+            }
             // Create queue
             Console.WriteLine($"[SQS] Consume: Creating queue {queue}");
             CreateQueueResponse responseCreate = await sqsClient.CreateQueueAsync(queue);

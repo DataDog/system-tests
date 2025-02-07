@@ -90,7 +90,7 @@ def _mutate_item(item):
         item = random.choice((True, False))
 
     else:
-        # TODO
+        # TODO: other use cases
         pass
 
     return item

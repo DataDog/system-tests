@@ -4,6 +4,7 @@ from urllib.parse import urlparse
 import pytest
 from utils import scenarios, features, context, missing_feature, irrelevant, flaky, bug
 from utils.parametric.spec.trace import find_span_in_traces, find_only_span
+import os
 
 parametrize = pytest.mark.parametrize
 
@@ -237,9 +238,9 @@ class Test_Config_RateLimit:
     @bug(context.library == "golang", reason="APMAPI-1030")
     def test_setting_trace_rate_limit_strict(self, library_env, test_agent, test_library):
         with test_library:
-            with test_library.dd_start_span(name="s1") as s1:
+            with test_library.dd_start_span(name="s1"):
                 pass
-            with test_library.dd_start_span(name="s2") as s2:
+            with test_library.dd_start_span(name="s2"):
                 pass
 
         traces = test_agent.wait_for_num_traces(2)
@@ -252,9 +253,9 @@ class Test_Config_RateLimit:
     @parametrize("library_env", [{"DD_TRACE_RATE_LIMIT": "1"}])
     def test_trace_rate_limit_without_trace_sample_rate(self, library_env, test_agent, test_library):
         with test_library:
-            with test_library.dd_start_span(name="s1") as s1:
+            with test_library.dd_start_span(name="s1"):
                 pass
-            with test_library.dd_start_span(name="s2") as s2:
+            with test_library.dd_start_span(name="s2"):
                 pass
 
         traces = test_agent.wait_for_num_traces(2)
@@ -276,7 +277,7 @@ class Test_Config_RateLimit:
         with test_library:
             # Generate three traces to demonstrate rate limiting in PHP's backfill model
             for i in range(3):
-                with test_library.dd_start_span(name=f"s{i+1}") as span:
+                with test_library.dd_start_span(name=f"s{i+1}"):
                     pass
 
         traces = test_agent.wait_for_num_traces(3)
@@ -375,3 +376,38 @@ class Test_Config_Dogstatsd:
         with test_library as t:
             resp = t.config()
         assert resp["dd_dogstatsd_port"] == "8150"
+
+
+@scenarios.parametric
+@features.stable_configuration_support
+class Test_Stable_Config_Default:
+    """Verify that stable config works as intended"""
+
+    @missing_feature(
+        context.library in ["ruby", "cpp", "dotnet", "golang", "java", "nodejs", "php", "python"],
+        reason="does not support stable configurations yet",
+    )
+    @pytest.mark.parametrize("library_env", [{"STABLE_CONFIG_SELECTOR": "true", "DD_SERVICE": "not-my-service"}])
+    def test_config_stable(self, library_env, test_agent, test_library):
+        path = "/etc/datadog-agent/managed/datadog-apm-libraries/stable/libraries_config.yaml"
+        stable_config = """
+rules:
+  - selectors:
+    - origin: environment_variables
+      matches:
+        - STABLE_CONFIG_SELECTOR=true
+      operator: equals
+    configuration:
+      DD_SERVICE: my-service
+"""
+
+        with test_library:
+            success, message = test_library.container_exec_run(
+                f"bash -c \"mkdir -p {os.path.dirname(path)} && printf '{stable_config}' | tee {path}\""
+            )
+            assert success, message
+            test_library.container_restart()
+            config = test_library.config()
+            assert (
+                config["dd_service"] == "my-service"
+            ), f"Service name is '{config["dd_service"]}' instead of 'my-service'"

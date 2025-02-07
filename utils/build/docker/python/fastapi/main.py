@@ -876,7 +876,7 @@ async def view_iast_code_injection_secure(code: typing.Annotated[str, Form()]):
 @app.get("/createextraservice", response_class=PlainTextResponse)
 def create_extra_service(serviceName: str = ""):
     if serviceName:
-        Pin.override(fastapi, service=serviceName, tracer=tracer)
+        Pin.override(fastapi, service=serviceName)
     return "OK"
 
 

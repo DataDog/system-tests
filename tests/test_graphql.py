@@ -31,7 +31,9 @@ class Test_GraphQLQueryErrorReporting:
         )
 
     def test_execute_error_span_event(self):
-        """Test if the main GraphQL span contains a span event with the appropriate error information"""
+        """Test if the main GraphQL span contains a span event with the appropriate error information.
+        The error extensions allowed are DD_TRACE_GRAPHQL_ERROR_EXTENSIONS=int,float,str,bool,other.
+        """
 
         assert self.request.status_code == 200
 
@@ -54,17 +56,34 @@ class Test_GraphQLQueryErrorReporting:
 
         attributes = event["attributes"]
 
-        assert type(attributes["message"]) == str
-        assert type(attributes["type"]) == str
-        assert type(attributes["stacktrace"]) == str
+        assert isinstance(attributes["message"], str)
+        assert isinstance(attributes["type"], str)
+        assert isinstance(attributes["stacktrace"], str)
 
         for path in attributes["path"]:
-            assert type(path) == str
+            assert isinstance(path, str)
 
         for location in attributes["locations"]:
             assert len(location.split(":")) == 2
             assert location.split(":")[0].isdigit()
             assert location.split(":")[1].isdigit()
+
+        assert attributes["extensions.int"] == 1
+        assert attributes["extensions.float"] == 1.1
+        assert attributes["extensions.str"] == "1"
+        assert attributes["extensions.bool"] == True
+
+        # A list with two heterogeneous elements: [1, "foo"].
+        # This test simulates an object that is not a supported scalar above (int,float,string,boolean).
+        # This object should be serialized as a string, either using the language's default serialization or
+        # JSON serialization of the object.
+        # The goal here is to display the original as well as possible in the UI, without supporting arbitrary
+        # nested levels inside `span_event.attributes`.
+        # use regex to match the list format
+        assert "1" in attributes["extensions.other"]
+        assert "foo" in attributes["extensions.other"]
+
+        assert "extensions.not_captured" not in attributes
 
     @staticmethod
     def _get_events(span):

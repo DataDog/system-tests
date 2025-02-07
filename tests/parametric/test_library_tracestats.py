@@ -1,5 +1,4 @@
 import base64
-import pprint
 from typing import Any
 
 import numpy as np
@@ -11,6 +10,7 @@ from utils.parametric.spec.trace import SPAN_MEASURED_KEY
 from utils.parametric.spec.trace import V06StatsAggr
 from utils.parametric.spec.trace import find_root_span
 from utils import missing_feature, context, scenarios, features
+from utils.tools import logger
 
 parametrize = pytest.mark.parametrize
 
@@ -66,7 +66,7 @@ class Test_Library_Tracestats:
         agent_decoded_stats = decoded_stats_requests[0]["body"]["Stats"][0]["Stats"][0]
         assert len(decoded_stats_requests) == 1
         assert len(decoded_stats_requests[0]["body"]["Stats"]) == 1
-        pprint.pprint([_human_stats(s) for s in decoded_stats_requests[0]["body"]["Stats"][0]["Stats"]])
+        logger.debug([_human_stats(s) for s in decoded_stats_requests[0]["body"]["Stats"][0]["Stats"]])
         assert deserialized_stats["Name"] == "web.request"
         assert deserialized_stats["Resource"] == "/users"
         assert deserialized_stats["Service"] == "webserver"
@@ -105,33 +105,33 @@ class Test_Library_Tracestats:
         name = "name"
         resource = "resource"
         service = "service"
-        type = "http"
+        span_type = "http"
         http_status_code = "200"
         origin = "rum"
 
         with test_library:
             # Baseline
-            with test_library.dd_start_span(name=name, resource=resource, service=service, typestr=type) as span:
+            with test_library.dd_start_span(name=name, resource=resource, service=service, typestr=span_type) as span:
                 span.set_meta(key="_dd.origin", val=origin)
                 span.set_meta(key="http.status_code", val=http_status_code)
 
             # Unique Name
             with test_library.dd_start_span(
-                name="unique-name", resource=resource, service=service, typestr=type
+                name="unique-name", resource=resource, service=service, typestr=span_type
             ) as span:
                 span.set_meta(key="_dd.origin", val=origin)
                 span.set_meta(key="http.status_code", val=http_status_code)
 
             # Unique Resource
             with test_library.dd_start_span(
-                name=name, resource="unique-resource", service=service, typestr=type
+                name=name, resource="unique-resource", service=service, typestr=span_type
             ) as span:
                 span.set_meta(key="_dd.origin", val=origin)
                 span.set_meta(key="http.status_code", val=http_status_code)
 
             # Unique Service
             with test_library.dd_start_span(
-                name=name, resource=resource, service="unique-service", typestr=type
+                name=name, resource=resource, service="unique-service", typestr=span_type
             ) as span:
                 span.set_meta(key="_dd.origin", val=origin)
                 span.set_meta(key="http.status_code", val=http_status_code)
@@ -144,12 +144,12 @@ class Test_Library_Tracestats:
                 span.set_meta(key="http.status_code", val=http_status_code)
 
             # Unique Synthetics
-            with test_library.dd_start_span(name=name, resource=resource, service=service, typestr=type) as span:
+            with test_library.dd_start_span(name=name, resource=resource, service=service, typestr=span_type) as span:
                 span.set_meta(key="_dd.origin", val="synthetics")
                 span.set_meta(key="http.status_code", val=http_status_code)
 
             # Unique HTTP Status Code
-            with test_library.dd_start_span(name=name, resource=resource, service=service, typestr=type) as span:
+            with test_library.dd_start_span(name=name, resource=resource, service=service, typestr=span_type) as span:
                 span.set_meta(key="_dd.origin", val=origin)
                 span.set_meta(key="http.status_code", val="400")
 
@@ -202,7 +202,7 @@ class Test_Library_Tracestats:
         requests = test_agent.v06_stats_requests()
         assert len(requests) > 0
         stats = requests[0]["body"]["Stats"][0]["Stats"]
-        pprint.pprint([_human_stats(s) for s in stats])
+        logger.debug([_human_stats(s) for s in stats])
         assert len(stats) == 3
 
         web_stats = [s for s in stats if s["Name"] == "web.request"][0]
@@ -397,16 +397,16 @@ class Test_Library_Tracestats:
         name = "name"
         resource = "resource"
         service = "service"
-        type = "http"
+        span_type = "http"
         http_status_code = "200"
         origin = "synthetics"
 
         with test_library:
-            with test_library.dd_start_span(name=name, service=service, resource=resource, typestr=type) as span:
+            with test_library.dd_start_span(name=name, service=service, resource=resource, typestr=span_type) as span:
                 span.set_meta(key="_dd.origin", val=origin)
                 span.set_meta(key="http.status_code", val=http_status_code)
 
-            with test_library.dd_start_span(name=name, service=service, resource=resource, typestr=type) as span2:
+            with test_library.dd_start_span(name=name, service=service, resource=resource, typestr=span_type) as span2:
                 span2.set_meta(key="_dd.origin", val=origin)
                 span2.set_meta(key="http.status_code", val=http_status_code)
 

@@ -809,6 +809,7 @@ tests/:
       Test_Config_TraceEnabled: *ref_4_3_0
       Test_Config_TraceLogDirectory: missing_feature
       Test_Config_UnifiedServiceTagging: *ref_5_25_0
+      Test_Stable_Config_Default: missing_feature
     test_crashtracking.py:
       Test_Crashtracking: *ref_5_27_0
     test_dynamic_configuration.py:
@@ -926,10 +927,8 @@ tests/:
       nextjs: bug (APMAPI-939) # the nextjs weblog application changes the sampling priority from 1.0 to 2.0
   test_graphql.py:
     Test_GraphQLQueryErrorReporting:
-      '*': *ref_5_34_0
-      express4-typescript: incomplete_test_app (endpoint not implemented)
-      express5: missing_feature
-      nextjs: missing_feature
+      '*': irrelevant
+      express4: missing_feature
   test_identify.py:
     Test_Basic: v2.4.0
     Test_Propagate: *ref_3_2_0

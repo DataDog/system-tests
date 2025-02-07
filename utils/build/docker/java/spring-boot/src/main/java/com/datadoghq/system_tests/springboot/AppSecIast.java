@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.mail.MessagingException;
 import javax.naming.Context;
 import javax.naming.NamingException;
 import javax.naming.directory.InitialDirContext;
@@ -20,6 +21,8 @@ import javax.servlet.http.HttpServletResponse;
 import javax.sql.DataSource;
 import java.io.IOException;
 import java.util.Hashtable;
+
+import org.apache.commons.lang3.StringEscapeUtils;
 
 @RestController
 @RequestMapping("/iast")
@@ -38,6 +41,7 @@ public class AppSecIast {
     private final HardcodedSecretExamples hardcodedSecretExamples;
     private final ReflectionExamples reflectionExamples;
     private final DeserializationExamples deserializationExamples;
+    private final EmailExamples emailExamples;
 
 
     public AppSecIast(final DataSource dataSource) {
@@ -52,6 +56,7 @@ public class AppSecIast {
         this.hardcodedSecretExamples = new HardcodedSecretExamples();
         this.reflectionExamples = new ReflectionExamples();
         this.deserializationExamples = new DeserializationExamples();
+        this.emailExamples = new EmailExamples();
     }
 
     @RequestMapping("/hardcoded_secrets/test_insecure")
@@ -452,6 +457,17 @@ public class AppSecIast {
         cmdExamples.insecureCmd(sanitized);
     }
 
+    @PostMapping("/email_html_injection/test_insecure")
+    void emailHtmlInjectionInsecure(final HttpServletRequest request) throws MessagingException {
+        String email = request.getParameter("username");
+        emailExamples.mail(email);
+    }
+
+    @PostMapping("/email_html_injection/test_secure")
+    void emailHtmlInjectionSecure(final HttpServletRequest request) throws MessagingException {
+        String email = request.getParameter("username");
+        emailExamples.mail(StringEscapeUtils.escapeHtml4(email));
+    }
 
     /**
      * TODO: Ldap is failing to startup in native image this method ensures it's started lazily

@@ -5,8 +5,6 @@ from utils.buddies import python_buddy, java_buddy
 from utils import interfaces, scenarios, weblog, missing_feature, features, context, irrelevant
 from utils.tools import logger
 
-from tests.integrations.utils import delete_sqs_queue
-
 
 class _Test_SQS:
     """Test sqs compatibility with inputted datadog tracer"""
@@ -87,22 +85,19 @@ class _Test_SQS:
         """Send request A to weblog : this request will produce a sqs message
         send request B to library buddy, this request will consume sqs message
         """
-        try:
-            message = (
-                "[crossed_integrations/sqs.py][SQS] Hello from SQS "
-                f"[{context.library.library} weblog->{self.buddy_interface.name}] test produce: {self.unique_id}"
-            )
+        message = (
+            "[crossed_integrations/sqs.py][SQS] Hello from SQS "
+            f"[{context.library.library} weblog->{self.buddy_interface.name}] test produce: {self.unique_id}"
+        )
 
-            self.production_response = weblog.get(
-                "/sqs/produce", params={"queue": self.WEBLOG_TO_BUDDY_QUEUE, "message": message}, timeout=60
-            )
-            self.consume_response = self.buddy.get(
-                "/sqs/consume",
-                params={"queue": self.WEBLOG_TO_BUDDY_QUEUE, "timeout": 60, "message": message},
-                timeout=61,
-            )
-        finally:
-            delete_sqs_queue(self.WEBLOG_TO_BUDDY_QUEUE)
+        self.production_response = weblog.get(
+            "/sqs/produce", params={"queue": self.WEBLOG_TO_BUDDY_QUEUE, "message": message}, timeout=60
+        )
+        self.consume_response = self.buddy.get(
+            "/sqs/consume",
+            params={"queue": self.WEBLOG_TO_BUDDY_QUEUE, "timeout": 60, "message": message},
+            timeout=61,
+        )
 
     def test_produce(self):
         """Check that a message produced to sqs is correctly ingested by a Datadog tracer"""
@@ -153,22 +148,19 @@ class _Test_SQS:
         request A: GET /library_buddy/produce_sqs_message
         request B: GET /weblog/consume_sqs_message
         """
-        try:
-            message = (
-                "[crossed_integrations/test_sqs.py][SQS] Hello from SQS "
-                f"[{self.buddy_interface.name}->{context.library.library} weblog] test consume: {self.unique_id}"
-            )
+        message = (
+            "[crossed_integrations/test_sqs.py][SQS] Hello from SQS "
+            f"[{self.buddy_interface.name}->{context.library.library} weblog] test consume: {self.unique_id}"
+        )
 
-            self.production_response = self.buddy.get(
-                "/sqs/produce", params={"queue": self.BUDDY_TO_WEBLOG_QUEUE, "message": message}, timeout=60
-            )
-            self.consume_response = weblog.get(
-                "/sqs/consume",
-                params={"queue": self.BUDDY_TO_WEBLOG_QUEUE, "timeout": 60, "message": message},
-                timeout=61,
-            )
-        finally:
-            delete_sqs_queue(self.BUDDY_TO_WEBLOG_QUEUE)
+        self.production_response = self.buddy.get(
+            "/sqs/produce", params={"queue": self.BUDDY_TO_WEBLOG_QUEUE, "message": message}, timeout=60
+        )
+        self.consume_response = weblog.get(
+            "/sqs/consume",
+            params={"queue": self.BUDDY_TO_WEBLOG_QUEUE, "timeout": 60, "message": message},
+            timeout=61,
+        )
 
     def test_consume(self):
         """Check that a message by an app instrumented by a Datadog tracer is correctly ingested"""
@@ -229,7 +221,6 @@ class _Test_SQS:
 
 
 @scenarios.crossed_tracing_libraries
-@irrelevant(True, reason="AWS Tests are not currently stable.")
 @features.aws_sqs_span_creationcontext_propagation_via_message_attributes_with_dd_trace
 class Test_SQS_PROPAGATION_VIA_MESSAGE_ATTRIBUTES(_Test_SQS):
     buddy_interface = interfaces.python_buddy
@@ -242,8 +233,8 @@ class Test_SQS_PROPAGATION_VIA_MESSAGE_ATTRIBUTES(_Test_SQS):
 
 
 @scenarios.crossed_tracing_libraries
-@irrelevant(True, reason="AWS Tests are not currently stable.")
 @features.aws_sqs_span_creationcontext_propagation_via_xray_header_with_dd_trace
+@irrelevant("Localstack SQS does not support AWS Xray Header parsing")
 class Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS(_Test_SQS):
     buddy_interface = interfaces.java_buddy
     buddy = java_buddy
