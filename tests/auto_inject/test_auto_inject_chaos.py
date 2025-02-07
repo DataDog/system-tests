@@ -1,5 +1,5 @@
 import requests
-from utils import scenarios, features, context, bug, flaky
+from utils import scenarios, features, context, bug, irrelevant
 from utils.tools import logger
 from utils.onboarding.weblog_interface import warmup_weblog
 from utils.onboarding.wait_for_tcp_port import wait_for_port
@@ -98,7 +98,7 @@ class TestAutoInjectChaos(BaseAutoInjectChaos):
         context.vm_os_branch == "redhat" and context.vm_os_cpu == "arm64" and context.weblog_variant == "test-app-ruby",
         reason="INPLAT-103",
     )
-    @flaky(
+    @irrelevant(
         context.vm_name in ["Amazon_Linux_2023_amd64", "Amazon_Linux_2023_arm64"],
         reason="LD library failures impact on the docker engine, causes flakiness",
     )
