@@ -244,7 +244,7 @@ def load_virtual_machines(provider_id):
             or (provider_id == "krunvm" and vm_data["krunvm_config"] is not None)
             or (
                 (provider_id == "aws" and vm_data["aws_config"] is not None)
-                and ("disabled" in vm_data and vm_data["disabled"] != "true")
+                and ("disabled" not in vm_data or vm_data["disabled"] != "true")
             )
         ):
             aws_config = None
