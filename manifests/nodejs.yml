@@ -234,7 +234,9 @@ tests/:
           TestUntrustedDeserialization:
             '*': *ref_5_32_0
             nextjs: missing_feature
-          TestUntrustedDeserialization_StackTrace: missing_feature
+          TestUntrustedDeserialization_StackTrace:
+            '*': *ref_5_32_0
+            nextjs: missing_feature
         test_unvalidated_redirect.py:
           TestUnvalidatedHeader:
             '*': *ref_4_3_0
