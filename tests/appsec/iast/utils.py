@@ -199,9 +199,12 @@ def validate_stack_traces(request):
     iast = meta["_dd.iast.json"]
     assert iast["vulnerabilities"], "Expected at least one vulnerability"
 
-    stack_trace = span["meta_struct"]["_dd.stack"]["vulnerability"][0]
-    vulns = [i for i in iast["vulnerabilities"] if i["stackId"] == stack_trace["id"]]
-    assert len(vulns) == 1, "Expected a single vulnerability with the stack trace Id"
+    stack_traces = span["meta_struct"]["_dd.stack"]["vulnerability"]
+    stack_trace = stack_traces[0]
+    vulns = [i for i in iast["vulnerabilities"] if i.get("stackId") == stack_trace["id"]]
+    assert (
+        len(vulns) == 1
+    ), f"Expected a single vulnerability with the stack trace Id.\nVulnerabilities: {vulns}\nStack trace: {stack_traces}"
     vuln = vulns[0]
 
     assert vuln["stackId"], "no 'stack_id's present'"
