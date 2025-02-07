@@ -199,6 +199,10 @@ class Test_Headers_Baggage:
             headers = test_library.dd_make_child_span_and_get_headers([["baggage", "foo=valid"]])
             assert "baggage" in headers
 
+    @missing_feature(
+        context.library == "nodejs",
+        reason="`dd_make_child_span_and_get_headers` calls `dd_extract_headers_and_make_child_span`, which does not work with only baggage",
+    )
     def test_baggage_malformed_headers_D012(self, test_library):
         """Ensure that malformed baggage headers are handled properly. Unable to use get_baggage functions because it does not return anything"""
         Test_Headers_Baggage._assert_valid_baggage(self, test_library)
@@ -210,6 +214,10 @@ class Test_Headers_Baggage:
 
             assert "baggage" not in headers
 
+    @missing_feature(
+        context.library == "nodejs",
+        reason="`dd_make_child_span_and_get_headers` calls `dd_extract_headers_and_make_child_span`, which does not work with only baggage",
+    )
     def test_baggage_malformed_headers_D013(self, test_library):
         """Ensure that malformed baggage headers are handled properly. Unable to use get_baggage functions because it does not return anything"""
         Test_Headers_Baggage._assert_valid_baggage(self, test_library)
@@ -219,6 +227,10 @@ class Test_Headers_Baggage:
 
             assert "baggage" not in headers
 
+    @missing_feature(
+        context.library == "nodejs",
+        reason="`dd_make_child_span_and_get_headers` calls `dd_extract_headers_and_make_child_span`, which does not work with only baggage",
+    )
     def test_baggage_malformed_headers_D014(self, test_library):
         Test_Headers_Baggage._assert_valid_baggage(self, test_library)
 
@@ -227,6 +239,10 @@ class Test_Headers_Baggage:
 
             assert "baggage" not in headers
 
+    @missing_feature(
+        context.library == "nodejs",
+        reason="`dd_make_child_span_and_get_headers` calls `dd_extract_headers_and_make_child_span`, which does not work with only baggage",
+    )
     def test_baggage_malformed_headers_D015(self, test_library):
         Test_Headers_Baggage._assert_valid_baggage(self, test_library)
 
