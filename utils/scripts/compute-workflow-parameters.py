@@ -12,7 +12,7 @@ from ci_orchestrators.github.github_ci_orchestrator import (
 
 
 def get_workflow_map(scenarios, scenarios_groups) -> dict:
-    result = {}
+    result = {}  # type: dict[str, list[str]]
 
     scenarios_groups = [group.strip() for group in scenarios_groups if group.strip()]
     scenarios = {scenario.strip(): False for scenario in scenarios if scenario.strip()}
@@ -48,80 +48,6 @@ def get_workflow_map(scenarios, scenarios_groups) -> dict:
     return result
 
 
-def get_graphql_weblogs(library) -> list[str]:
-    weblogs = {
-        "cpp": [],
-        "dotnet": [],
-        "golang": ["gqlgen", "graph-gophers", "graphql-go"],
-        "java": [],
-        "nodejs": ["express4", "uds-express4", "express4-typescript", "express5"],
-        "php": [],
-        "python": [],
-        "ruby": ["graphql23"],
-    }
-
-    return weblogs[library]
-
-
-def get_endtoend_weblogs(library, ci_environment: str) -> list[str]:
-    weblogs = {
-        "cpp": ["nginx"],
-        "dotnet": ["poc", "uds"],
-        "golang": ["chi", "echo", "gin", "net-http", "uds-echo", "net-http-orchestrion"],
-        "java": [
-            "akka-http",
-            "jersey-grizzly2",
-            "play",
-            "ratpack",
-            "resteasy-netty3",
-            "spring-boot-jetty",
-            "spring-boot",
-            "spring-boot-3-native",
-            "spring-boot-openliberty",
-            "spring-boot-wildfly",
-            "spring-boot-undertow",
-            "spring-boot-payara",
-            "vertx3",
-            "vertx4",
-            "uds-spring-boot",
-        ],
-        "nodejs": ["express4", "uds-express4", "express4-typescript", "express5", "nextjs"],
-        "php": [
-            *[f"apache-mod-{v}" for v in ["7.0", "7.1", "7.2", "7.3", "7.4", "8.0", "8.1", "8.2"]],
-            *[f"apache-mod-{v}-zts" for v in ["7.0", "7.1", "7.2", "7.3", "7.4", "8.0", "8.1", "8.2"]],
-            *[f"php-fpm-{v}" for v in ["7.0", "7.1", "7.2", "7.3", "7.4", "8.0", "8.1", "8.2"]],
-        ],
-        "python": ["flask-poc", "django-poc", "uwsgi-poc", "uds-flask", "python3.12", "fastapi", "django-py3.13"],
-        "ruby": [
-            "rack",
-            "uds-sinatra",
-            *[f"sinatra{v}" for v in ["14", "20", "21", "22", "30", "31", "32", "40"]],
-            *[f"rails{v}" for v in ["42", "50", "51", "52", "60", "61", "70", "71", "72", "80"]],
-        ],
-    }
-
-    if ci_environment != "dev":
-        # as now, django-py3.13 support is not released
-        weblogs["python"].remove("django-py3.13")
-
-    return weblogs[library]
-
-
-def get_opentelemetry_weblogs(library) -> list[str]:
-    weblogs = {
-        "cpp": [],
-        "dotnet": [],
-        "golang": [],
-        "java": ["spring-boot-otel"],
-        "nodejs": ["express4-otel"],
-        "php": [],
-        "python": ["flask-poc-otel"],
-        "ruby": [],
-    }
-
-    return weblogs[library]
-
-
 def _print_output(result: dict[str, dict], output_format: str) -> None:
     if output_format == "github":
         for workflow_name, workflow in result.items():
@@ -129,13 +55,14 @@ def _print_output(result: dict[str, dict], output_format: str) -> None:
                 print(f"{workflow_name}_{parameter}={json.dumps(value)}")
     elif output_format == "gitlab":
         # TODO: write the gitlab pipeline
-        print(result)
+        pipeline_yml = yaml.dump(result, sort_keys=False, default_flow_style=False)
+        print(pipeline_yml)
     else:
         raise ValueError(f"Invalid format: {format}")
 
 
-def _handle_github(language: str, scenario_map: dict, parametric_job_count: int, ci_environment: str) -> str:
-    result = defaultdict(dict)
+def _handle_github(language: str, scenario_map: dict, parametric_job_count: int, ci_environment: str) -> dict:
+    result = defaultdict(dict)  # type: dict[str, dict]
 
     for github_workflow, scenario_list in scenario_map.items():
         result[github_workflow]["scenarios"] = scenario_list
@@ -149,11 +76,10 @@ def _handle_github(language: str, scenario_map: dict, parametric_job_count: int,
     return result
 
 
-def _handle_gitlab(language: str, scenario_map: str, ci_environment: str) -> str:
+def _handle_gitlab(language: str, scenario_map: dict, ci_environment: str) -> dict:
     if "aws_ssi" in scenario_map:
-        gitlab_pipeline = generate_aws_gitlab_pipeline(language, scenario_map["aws_ssi"], ci_environment)
-        return yaml.dump(gitlab_pipeline, sort_keys=False, default_flow_style=False)
-    return ""
+        return generate_aws_gitlab_pipeline(language, scenario_map["aws_ssi"], ci_environment)
+    return {}
 
 
 def main(

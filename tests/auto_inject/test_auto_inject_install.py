@@ -173,8 +173,8 @@ class TestContainerAutoInjectInstallScriptCrashTracking_NoZombieProcess(base.Aut
 @scenarios.installer_auto_injection
 class TestInstallerAutoInjectManual(base.AutoInjectBaseTest):
     # Note: uninstallation of a single installer package is not available today
-    #  on the installer. As we can't only uninstall the injector, we are skipping
-    #  the uninstall test today
+    # on the installer. As we can not only uninstall the injector, we are skipping
+    # the uninstall test today
     @bug(
         context.vm_name == "AlmaLinux_8_arm64" and context.weblog_variant == "test-app-python-alpine",
         reason="APMON-1576",
