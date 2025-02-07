@@ -7,7 +7,7 @@ from utils.tools import logger
 from utils.onboarding.debug_vm import extract_logs_to_file
 from utils.virtual_machine.utils import get_tested_apps_vms, generate_gitlab_pipeline
 from utils.virtual_machine.virtual_machines import _VirtualMachine, load_virtual_machines
-
+from utils.scripts.ci_orchestrators.gitlab.gitlab_ci_orchestrator import generate_aws_matrix
 from .core import Scenario
 
 
@@ -75,10 +75,21 @@ class _VirtualMachineScenario(Scenario):
         # Pipeline generation mode. No run tests, no start vms
         self.vm_gitlab_pipeline = config.option.vm_gitlab_pipeline
 
-        supported_vms = load_virtual_machines(self.vm_provider_id)
+        # TODO REMOVE THIS AFTER REMOVE THE PIPELINE GENERATION FROM THE SCENARIO.
+        # TODO we will load only the machine set by the --vm-only flag
+        all_vms = load_virtual_machines(self.vm_provider_id)
+        supported_vm_names = generate_aws_matrix(
+            "utils/virtual_machine/virtual_machines.json",
+            "utils/scripts/ci_orchestrators/gitlab/aws_ssi.json",
+            [self.name],
+            self._library.library,
+        )[self.name][self._weblog]
+        logger.info(f" Supported names: {supported_vm_names} ")
+        supported_vms = [vm for vm in all_vms if vm.name in supported_vm_names]
+        logger.info(f"Supported VMs: {', '.join([vm.name for vm in supported_vms])}")
 
         if self.vm_gitlab_pipeline:
-            # TODO REMOVE THE PIPELINE GENRATION FROM THE SCENARIO
+            # TODO REMOVE THE PIPELINE GENREATION FROM THE SCENARIO
             provisioner.remove_unsupported_machines(
                 self._library.library,
                 self._weblog,

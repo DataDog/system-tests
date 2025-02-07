@@ -50,7 +50,6 @@ def generate_aws_matrix(virtual_machines_file, aws_ssi_file, scenarios, language
                                         results[scenario][weblog].append(vm["name"])
                                 elif os_branch not in excluded or (not excluded and not exact):
                                     results[scenario][weblog].append(vm["name"])
-    print(results)
     return results
 
 
