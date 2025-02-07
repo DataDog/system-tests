@@ -242,10 +242,7 @@ def load_virtual_machines(provider_id):
         if (
             (provider_id == "vagrant" and vm_data["vagrant_config"] is not None)
             or (provider_id == "krunvm" and vm_data["krunvm_config"] is not None)
-            or (
-                (provider_id == "aws" and vm_data["aws_config"] is not None)
-                and ("disabled" not in vm_data or vm_data["disabled"] != "true")
-            )
+            or (provider_id == "aws" and vm_data["aws_config"] is not None)
         ):
             aws_config = None
             vagrant_config = None
@@ -261,6 +258,7 @@ def load_virtual_machines(provider_id):
                 vagrant_config = _VagrantConfig(box_name=vm_data["vagrant_config"]["box_name"])
             if vm_data["krunvm_config"] is not None:
                 krunvm_config = _KrunVmConfig(oci_image_name=vm_data["krunvm_config"]["oci_image_name"])
+
             vm = _VirtualMachine(
                 name=vm_data["name"],
                 aws_config=aws_config,
@@ -272,6 +270,7 @@ def load_virtual_machines(provider_id):
                 os_cpu=vm_data["os_cpu"],
                 default_vm=vm_data["default_vm"],
             )
-            vm_objects.append(vm)
+            if "disabled" not in vm_data or vm_data["disabled"] != "true":
+                vm_objects.append(vm)
 
     return vm_objects
