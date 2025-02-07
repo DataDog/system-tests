@@ -75,10 +75,8 @@ jobs:
         env:
           TARGET_BRANCH: "${{ steps.get-target-branch.outputs.target-branch }}"
 
-      # temporary ski : dev agent removed content-type header from traces response
-      # causing lot of trace to be dropped
-      # - name: Get agent artifact
-      #   run: ./utils/scripts/load-binary.sh agent
+      - name: Get agent artifact
+        run: ./utils/scripts/load-binary.sh agent
 
       # ### appsec-event-rules is now a private repo. The GH_TOKEN provided can't read private repos.
       # ### skipping this, waiting for a proper solution
