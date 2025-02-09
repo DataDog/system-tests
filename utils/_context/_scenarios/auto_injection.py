@@ -51,6 +51,10 @@ from utils._context.virtual_machines import (
     Fedora37arm64,
     Fedora40amd64,
     Fedora40arm64,
+    RockyLinux8amd64,
+    RockyLinux8arm64,
+    RockyLinux9amd64,
+    RockyLinux9arm64,
 )
 
 from .core import Scenario
@@ -110,6 +114,10 @@ class _VirtualMachineScenario(Scenario):
         include_fedora_37_arm64=False,
         include_fedora_40_amd64=False,
         include_fedora_40_arm64=False,
+        include_rocky_linux_8_amd64=False,
+        include_rocky_linux_8_arm64=False,
+        include_rocky_linux_9_amd64=False,
+        include_rocky_linux_9_arm64=False,
         agent_env=None,
         app_env=None,
         scenario_groups=None,
@@ -213,6 +221,14 @@ class _VirtualMachineScenario(Scenario):
             self.required_vms.append(Fedora40amd64())
         if include_fedora_40_arm64:
             self.required_vms.append(Fedora40arm64())
+        if include_rocky_linux_8_amd64:
+            self.required_vms.append(RockyLinux8amd64())
+        if include_rocky_linux_8_arm64:
+            self.required_vms.append(RockyLinux8arm64())
+        if include_rocky_linux_9_amd64:
+            self.required_vms.append(RockyLinux9amd64())
+        if include_rocky_linux_9_arm64:
+            self.required_vms.append(RockyLinux9arm64())
 
     def print_installed_components(self):
         logger.terminal.write_sep("=", "Installed components", bold=True)
@@ -444,6 +460,10 @@ class InstallerAutoInjectionScenario(_VirtualMachineScenario):
         include_fedora_37_arm64=True,
         include_fedora_40_amd64=True,
         include_fedora_40_arm64=True,
+        include_rocky_linux_8_amd64=True,
+        include_rocky_linux_8_arm64=True,
+        include_rocky_linux_9_amd64=True,
+        include_rocky_linux_9_arm64=True,
     ) -> None:
         # Force full tracing without limits
         app_env_defaults = {
@@ -505,4 +525,8 @@ class InstallerAutoInjectionScenario(_VirtualMachineScenario):
             include_fedora_37_arm64=include_fedora_37_arm64,
             include_fedora_40_amd64=include_fedora_40_amd64,
             include_fedora_40_arm64=include_fedora_40_arm64,
+            include_rocky_linux_8_amd64=include_rocky_linux_8_amd64,
+            include_rocky_linux_8_arm64=include_rocky_linux_8_arm64,
+            include_rocky_linux_9_amd64=include_rocky_linux_9_amd64,
+            include_rocky_linux_9_arm64=include_rocky_linux_9_arm64,
         )

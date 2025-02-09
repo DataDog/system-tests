@@ -30,6 +30,7 @@ lang_variant:
         remote-command: |
          #Default installation for amazon linux 2022 and 2023
          #https://docs.aws.amazon.com/sdk-for-javascript/v2/developer-guide/setting-up-node-on-ec2-instance.html
+          sudo yum install tar -y || sudo dnf install tar -y || true
           curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
           export NVM_DIR="$HOME/.nvm"
           [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
