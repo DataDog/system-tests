@@ -16,7 +16,7 @@ class Test_Crashtracking:
         test_library.crash()
 
         event = test_agent.wait_for_telemetry_event("logs", wait_loops=400)
-        assert self.is_crash_report(test_library, event)
+        self.assert_crash_report(test_library, event)
 
     @pytest.mark.parametrize("library_env", [{"DD_CRASHTRACKING_ENABLED": "false"}])
     def test_disable_crashtracking(self, test_agent, test_library):
@@ -43,15 +43,11 @@ class Test_Crashtracking:
         finally:
             test_agent.set_trace_delay(0)
 
-    def is_crash_report(self, test_library, event) -> bool:
-        if not isinstance(event.get("payload"), list):
-            return False
-        if not event["payload"]:
-            return False
-        if not isinstance(event["payload"][0], dict):
-            return False
-        if "tags" not in event["payload"][0]:
-            return False
+    def assert_crash_report(self, test_library, event) -> bool:
+        assert isinstance(event.get("payload"), list), event.get("payload")
+        assert event["payload"], event["payload"]
+        assert isinstance(event["payload"][0], dict), event["payload"][0]
+        assert "tags" in event["payload"][0]
 
         tags = event["payload"][0]["tags"]
         print("tags: ", tags)
@@ -62,6 +58,6 @@ class Test_Crashtracking:
         # Most client libraries are using libdatadog so tesing signum tag would work,
         # but Java isn't so we end up with testing for severity tag.
         if test_library.lang == "java":
-            return "severity" in tags_dict and tags_dict["severity"] == "crash"
+            assert "severity" in tags_dict and tags_dict["severity"] == "crash", tags_dict
 
-        return "signum" in tags_dict or "si_signo" in tags_dict
+        assert "signum" in tags_dict or "si_signo" in tags_dict, tags_dict
