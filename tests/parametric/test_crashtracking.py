@@ -28,7 +28,7 @@ class Test_Crashtracking:
             event = json.loads(base64.b64decode(req["body"]))
 
             if event["request_type"] == "logs":
-                with pytest.raises(AssertionError)
+                with pytest.raises(AssertionError):
                     self.assert_crash_report(test_library, event)
 
     @bug(library="java", reason="APMLP-302")
