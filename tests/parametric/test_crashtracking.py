@@ -44,7 +44,7 @@ class Test_Crashtracking:
         finally:
             test_agent.set_trace_delay(0)
 
-    def assert_crash_report(self, test_library, event) -> bool:
+    def assert_crash_report(self, test_library, event):
         assert isinstance(event.get("payload"), list), event.get("payload")
         assert event["payload"], event["payload"]
         assert isinstance(event["payload"][0], dict), event["payload"][0]
