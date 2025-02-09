@@ -982,7 +982,7 @@ class Fedora40amd64(_VirtualMachine):
     def __init__(self, **kwargs) -> None:
         super().__init__(
             "Fedora_40_amd64",
-            aws_config=_AWSConfig(ami_id="ami-0018cd1282422fe47", ami_instance_type="t3.medium", user="core"),
+            aws_config=_AWSConfig(ami_id="ami-0018cd1282422fe47", ami_instance_type="t3.medium", user="fedora"),
             vagrant_config=None,
             krunvm_config=None,
             os_type="linux",

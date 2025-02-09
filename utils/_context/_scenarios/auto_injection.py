@@ -442,7 +442,7 @@ class InstallerAutoInjectionScenario(_VirtualMachineScenario):
         include_oraclelinux_9_3_arm64=True,
         include_oraclelinux_8_8_amd64=True,
         include_oraclelinux_8_8_arm64=True,
-        include_oraclelinux_7_9_amd64=True,
+        include_oraclelinux_7_9_amd64=False,  # TODO RMM remove
         include_debian_12_amd64=False,
         include_debian_12_arm64=False,
         include_almalinux_8_amd64=True,
