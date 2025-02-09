@@ -64,4 +64,4 @@ class Test_Crashtracking:
         if test_library.lang == "java":
             return "severity" in tags_dict and tags_dict["severity"] == "crash"
 
-        return "signum" in tags_dict
+        return "signum" in tags_dict or "si_signo" in tags_dict
