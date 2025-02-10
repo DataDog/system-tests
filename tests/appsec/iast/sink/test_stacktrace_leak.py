@@ -3,7 +3,7 @@
 # Copyright 2025 Datadog, Inc.
 
 
-from utils import context, missing_feature, features, rfc, weblog
+from utils import features, rfc, weblog
 from ..utils import BaseSinkTest, validate_stack_traces
 
 
