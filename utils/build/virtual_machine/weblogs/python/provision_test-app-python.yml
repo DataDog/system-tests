@@ -18,7 +18,33 @@ lang_variant:
           #Redhat 9 is going to install python 3.9.
           sudo dnf install -y python3
           sudo ln -s /usr/bin/python3 /usr/bin/python || true
-          sudo dnf install -y python-pip
+          sudo dnf install -y python-pip || sudo dnf install -y python3-pip
+
+      - os_type: linux
+        os_distro: rpm
+        os_branch: fedora
+        remote-command: |
+          sudo dnf install -y python3
+          sudo ln -s /usr/bin/python3 /usr/bin/python || true
+          sudo dnf install -y python-pip || sudo dnf install -y python3-pip
+
+      - os_type: linux
+        os_distro: rpm
+        os_branch: alma_linux
+        remote-command: |
+          sudo dnf install python39 -y
+          sudo dnf install python39-pip -y
+          sudo ln -s /usr/bin/python3 /usr/bin/python
+          sudo ln -s /usr/bin/pip3 /usr/bin/pip
+
+      - os_type: linux
+        os_distro: rpm
+        os_branch: oracle_linux
+        remote-command: |
+          sudo dnf install python39 -y
+          sudo dnf install python39-pip -y
+          sudo ln -s /usr/bin/python3.9 /usr/bin/python
+          sudo ln -s /usr/bin/pip3 /usr/bin/pip
 
       - os_type: linux
         os_distro: rpm
