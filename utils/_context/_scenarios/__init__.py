@@ -65,7 +65,7 @@ class _Scenarios:
     profiling = ProfilingScenario("PROFILING")
 
     appsec_no_stats = EndToEndScenario(
-        name = "APPSEC_NO_STATS",
+        name="APPSEC_NO_STATS",
         doc=(
             "End to end testing with default values. Default scenario has DD_TRACE_COMPUTE_STATS=true."
             "This scenario let that env to use its default"
@@ -662,7 +662,7 @@ class _Scenarios:
         scenario_groups=[ScenarioGroup.DEBUGGER],
     )
 
-    fuzzer = DockerScenario("_FUZZER", doc="Fake scenario for fuzzing (launch without pytest)", github_workflow=None)
+    fuzzer = DockerScenario("FUZZER", doc="Fake scenario for fuzzing (launch without pytest)", github_workflow=None)
 
     # Single Step Instrumentation scenarios (HOST and CONTAINER)
 
