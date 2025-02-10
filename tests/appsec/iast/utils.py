@@ -141,6 +141,7 @@ class BaseSinkTestWithoutTelemetry:
         self.insecure_request = self.__class__.insecure_request
 
     def test_insecure(self):
+        assert self.insecure_request.status_code == 200
         assert_iast_vulnerability(
             request=self.insecure_request,
             vulnerability_type=self.vulnerability_type,
@@ -176,7 +177,7 @@ class BaseSinkTestWithoutTelemetry:
     def test_secure(self):
         # to avoid false positive, we need to check first that the insecure endpoint is vulnerable
         self.check_test_insecure()
-
+        assert self.secure_request.status_code == 200
         self.assert_no_iast_event(self.secure_request, self.vulnerability_type)
 
     @staticmethod
@@ -454,7 +455,14 @@ class BaseSourceTest:
         self.requests = self.__class__.requests
 
     def test_source_reported(self):
+        requests = self.requests.values()
+        assert requests, "No requests to validate"
         for request in self.requests.values():
+            if request is None:
+                # TODO: Special case for Kafka, we should probably issue a request to an endpoint to trigger
+                #       the message and validate endpoint existence, but for the time being...
+                continue
+            assert request.status_code == 200
             self.validate_request_reported(request)
 
     def check_test_telemetry_should_execute(self):
@@ -582,6 +590,10 @@ class BaseTestCookieNameFilter:
         self.req3 = weblog.post(self.endpoint, data={"cookieName": cookieName3, "cookieValue": "value3"})
 
     def test_cookie_name_filter(self):
+        assert self.req1.status_code == 200
+        assert self.req2.status_code == 200
+        assert self.req3.status_code == 200
+
         assert_iast_vulnerability(
             request=self.req1,
             vulnerability_count=1,
