@@ -7,8 +7,6 @@ import re
 import os
 import os.path
 import uuid
-import gzip
-import io
 
 from utils import interfaces, remote_config, weblog, context
 from utils.tools import logger
@@ -43,10 +41,9 @@ def extract_probe_ids(probes):
     return []
 
 
-def _get_path(test_name, suffix):
+def _get_path(test_name, suffix) -> str:
     filename = test_name + "_" + _Base_Debugger_Test.tracer["language"] + "_" + suffix + ".json"
-    path = os.path.join(_CUR_DIR, "approvals", filename)
-    return path
+    return os.path.join(_CUR_DIR, "approvals", filename)
 
 
 def write_approval(data, test_name, suffix):

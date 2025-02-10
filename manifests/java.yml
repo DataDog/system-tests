@@ -61,6 +61,7 @@ tests/:
       sink/:
         test_code_injection.py:
           TestCodeInjection: missing_feature
+          TestCodeInjection_ExtendedLocation: missing_feature
           TestCodeInjection_StackTrace: missing_feature
         test_stacktrace_leak.py:
             TestStackTraceLeak: missing_feature
@@ -76,16 +77,37 @@ tests/:
             spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
             vertx3: v1.12.0
             vertx4: v1.12.0
+          TestCommandInjection_ExtendedLocation: missing_feature
           TestCommandInjection_StackTrace:
             '*': v1.43.0
             play: missing_feature
             ratpack: missing_feature
             spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
         test_email_html_injection.py:
-          TestEmailHtmlInjection: missing_feature
-          TestEmailHtmlInjection_StackTrace: missing_feature
+          TestEmailHtmlInjection:
+            '*': v1.47.0
+            akka-http: missing_feature (No endpoint implemented)
+            jersey-grizzly2: missing_feature (No endpoint implemented)
+            play: missing_feature (No endpoint implemented)
+            ratpack: missing_feature (No endpoint implemented)
+            resteasy-netty3: missing_feature (No endpoint implemented)
+            spring-boot-3-native: missing_feature (No endpoint implemented)
+            vertx3: missing_feature (No endpoint implemented)
+            vertx4: missing_feature (No endpoint implemented)
+          TestEmailHtmlInjection_ExtendedLocation: missing_feature
+          TestEmailHtmlInjection_StackTrace:
+            '*': v1.47.0
+            akka-http: missing_feature (No endpoint implemented)
+            jersey-grizzly2: missing_feature (No endpoint implemented)
+            play: missing_feature (No endpoint implemented)
+            ratpack: missing_feature (No endpoint implemented)
+            resteasy-netty3: missing_feature (No endpoint implemented)
+            spring-boot-3-native: missing_feature (No endpoint implemented)
+            vertx3: missing_feature (No endpoint implemented)
+            vertx4: missing_feature (No endpoint implemented)
         test_hardcoded_passwords.py:
           Test_HardcodedPasswords: missing_feature
+          Test_HardcodedPasswords_ExtendedLocation: missing_feature
           Test_HardcodedPasswords_StackTrace: missing_feature
         test_hardcoded_secrets.py:
           Test_HardcodedSecrets:
@@ -98,6 +120,7 @@ tests/:
             spring-boot-wildfly: v1.29.0
             uds-spring-boot: v1.29.0
           Test_HardcodedSecretsExtended: missing_feature
+          Test_HardcodedSecrets_ExtendedLocation: missing_feature
           Test_HardcodedSecrets_StackTrace: irrelevant (not expected to have a stack trace)
         test_header_injection.py:
           TestHeaderInjection:
@@ -113,6 +136,7 @@ tests/:
           TestHeaderInjectionExclusionContentEncoding: missing_feature
           TestHeaderInjectionExclusionPragma: missing_feature
           TestHeaderInjectionExclusionTransferEncoding: missing_feature
+          TestHeaderInjection_ExtendedLocation: missing_feature
           TestHeaderInjection_StackTrace:
             '*': missing_feature
             spring-boot: v1.43.0
@@ -134,6 +158,7 @@ tests/:
             spring-boot-openliberty: bug (APPSEC-51483)
             vertx3: missing_feature
             vertx4: missing_feature
+          Test_HstsMissingHeader_ExtendedLocation: missing_feature
           Test_HstsMissingHeader_StackTrace: irrelevant (not expected to have a stack trace)
         test_insecure_auth_protocol.py:
           Test_InsecureAuthProtocol:
@@ -143,6 +168,7 @@ tests/:
             ratpack: missing_feature
             spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
             spring-boot-openliberty: bug (APPSEC-54981)
+          Test_InsecureAuthProtocol_ExtendedLocation: missing_feature
           Test_InsecureAuthProtocol_StackTrace:
             '*': v1.43.0
             akka-http: missing_feature
@@ -158,6 +184,7 @@ tests/:
             ratpack: missing_feature
             spring-boot-3-native: missing_feature
           TestInsecureCookieNameFilter: missing_feature
+          TestInsecureCookie_ExtendedLocation: missing_feature
           TestInsecureCookie_StackTrace:
             '*': v1.43.0
             akka-http: missing_feature
@@ -175,6 +202,7 @@ tests/:
             spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
             vertx3: v1.12.0
             vertx4: v1.12.0
+          TestLDAPInjection_ExtendedLocation: missing_feature
           TestLDAPInjection_StackTrace:
             '*': v1.43.0
             play: missing_feature (endpoint not implemented)
@@ -188,6 +216,7 @@ tests/:
             ratpack: missing_feature
             spring-boot-3-native: missing_feature
           TestNoHttponlyCookieNameFilter: missing_feature
+          TestNoHttponlyCookie_ExtendedLocation: missing_feature
           TestNoHttponlyCookie_StackTrace:
             '*': v1.43.0
             akka-http: missing_feature
@@ -202,6 +231,7 @@ tests/:
             ratpack: missing_feature
             spring-boot-3-native: missing_feature
           TestNoSamesiteCookieNameFilter: missing_feature
+          TestNoSamesiteCookie_ExtendedLocation: missing_feature
           TestNoSamesiteCookie_StackTrace:
             '*': v1.43.0
             akka-http: missing_feature
@@ -210,6 +240,7 @@ tests/:
             spring-boot-3-native: missing_feature
         test_nosql_mongodb_injection.py:
           TestNoSqlMongodbInjection: missing_feature
+          TestNoSqlMongodbInjection_ExtendedLocation: missing_feature
           TestNoSqlMongodbInjection_StackTrace: missing_feature
         test_path_traversal.py:
           TestPathTraversal:
@@ -221,6 +252,7 @@ tests/:
             resteasy-netty3: v1.11.0
             spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
             vertx3: v1.12.0
+          TestPathTraversal_ExtendedLocation: missing_feature
           TestPathTraversal_StackTrace:
             '*': v1.43.0
             play: missing_feature
@@ -233,6 +265,7 @@ tests/:
             play: missing_feature
             ratpack: missing_feature
             spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+          TestReflectionInjection_ExtendedLocation: missing_feature
           TestReflectionInjection_StackTrace:
             '*': v1.43.0
             akka-http: missing_feature
@@ -249,6 +282,7 @@ tests/:
             resteasy-netty3: v1.11.0
             spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
             vertx3: v1.12.0
+          TestSqlInjection_ExtendedLocation: missing_feature
           TestSqlInjection_StackTrace:
             '*': v1.43.0
             play: missing_feature
@@ -262,6 +296,7 @@ tests/:
             ratpack: missing_feature (No endpoint implemented)
             spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
             vertx4: missing_feature (No endpoint implemented)
+          TestSSRF_ExtendedLocation: missing_feature
           TestSSRF_StackTrace:
             '*': v1.43.0
             akka-http: missing_feature (No endpoint implemented)
@@ -271,6 +306,7 @@ tests/:
             vertx4: missing_feature (No endpoint implemented)
         test_template_injection.py:
           TestTemplateInjection: missing_feature
+          TestTemplateInjection_ExtendedLocation: missing_feature
         test_trust_boundary_violation.py:
           Test_TrustBoundaryViolation:
             '*': v1.22.0
@@ -282,6 +318,7 @@ tests/:
             spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
             vertx3: missing_feature
             vertx4: missing_feature
+          Test_TrustBoundaryViolation_ExtendedLocation: missing_feature
           Test_TrustBoundaryViolation_StackTrace:
             '*': v1.43.0
             akka-http: missing_feature
@@ -303,6 +340,7 @@ tests/:
             spring-boot-3-native: missing_feature (No endpoint implemented)
             vertx3: missing_feature (No endpoint implemented)
             vertx4: missing_feature (No endpoint implemented)
+          TestUntrustedDeserialization_ExtendedLocation: missing_feature
           TestUntrustedDeserialization_StackTrace:
             '*': v1.43.0
             akka-http: missing_feature (No endpoint implemented)
@@ -323,6 +361,7 @@ tests/:
             spring-boot-jetty: v1.17.0
             vertx3: v1.16.0
             vertx4: v1.17.0
+          TestUnvalidatedHeader_ExtendedLocation: missing_feature
           TestUnvalidatedHeader_StackTrace:
             '*': v1.43.0
             akka-http: missing_feature
@@ -337,6 +376,7 @@ tests/:
             spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
             spring-boot-jetty: v1.17.0
             vertx4: v1.17.0
+          TestUnvalidatedRedirect_ExtendedLocation: missing_feature
           TestUnvalidatedRedirect_StackTrace:
             '*': v1.43.0
             akka-http: missing_feature
@@ -354,6 +394,7 @@ tests/:
             spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
             vertx3: v1.16.0
             vertx4: v1.17.0
+          TestUnvalidatedForward_ExtendedLocation: missing_feature
           TestUnvalidatedForward_StackTrace:
             '*': v1.43.0
             akka-http: irrelevant (No forward)
@@ -367,6 +408,7 @@ tests/:
             '*': v0.108.0
             play: missing_feature (no endpoint)
             spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+          TestWeakCipher_ExtendedLocation: missing_feature
           TestWeakCipher_StackTrace:
             '*': v1.43.0
             play: missing_feature (no endpoint)
@@ -380,6 +422,7 @@ tests/:
             '*': v0.108.0
             play: missing_feature (no endpoint)
             spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+          TestWeakHash_ExtendedLocation: missing_feature
           TestWeakHash_StackTrace:
             '*': v1.43.0
             play: missing_feature (no endpoint)
@@ -389,6 +432,7 @@ tests/:
             '*': v1.15.0
             play: missing_feature (no endpoint)
             spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+          TestWeakRandomness_ExtendedLocation: missing_feature
           TestWeakRandomness_StackTrace:
             '*': v1.43.0
             play: missing_feature (no endpoint)
@@ -405,6 +449,7 @@ tests/:
             spring-boot-openliberty: bug (APPSEC-54981)
             vertx3: missing_feature
             vertx4: missing_feature
+          Test_XContentSniffing_ExtendedLocation: missing_feature
           Test_XContentSniffing_StackTrace: irrelevant (not expected to have a stack trace)
         test_xpath_injection.py:
           TestXPathInjection:
@@ -412,6 +457,7 @@ tests/:
             play: missing_feature
             ratpack: missing_feature
             spring-boot-3-native: missing_feature
+          TestXPathInjection_ExtendedLocation: missing_feature
           TestXPathInjection_StackTrace:
             '*': v1.43.0
             play: missing_feature
@@ -428,6 +474,7 @@ tests/:
             spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
             vertx3: missing_feature
             vertx4: missing_feature
+          TestXSS_ExtendedLocation: missing_feature
           TestXSS_StackTrace:
             '*': v1.43.0
             akka-http: missing_feature
@@ -681,6 +728,7 @@ tests/:
         Test_Lfi_Telemetry:
           '*': v1.40.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+        Test_Lfi_Telemetry_Multiple_Exploits: missing_feature
         Test_Lfi_UrlQuery:
           '*': v1.40.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
@@ -850,7 +898,7 @@ tests/:
           ratpack: v0.99.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
           vertx3: v0.99.0
-          vertx4: bug (APPSEC-54983)
+          vertx4: v1.47.0
         Test_BodyRaw:
           '*': missing_feature
           akka-http: v1.22.0
@@ -886,10 +934,10 @@ tests/:
         Test_PathParams:
           '*': v0.95.1
           akka-http: missing_feature (unclear how to implement; matching doesn't happen in one go)
-          jersey-grizzly2: missing_feature
+          jersey-grizzly2: v1.15.0
           play: v1.22.0
           ratpack: v0.99.0
-          resteasy-netty3: missing_feature
+          resteasy-netty3: v1.15.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
           vertx3: v0.99.0
         Test_ResponseStatus:
@@ -1335,9 +1383,9 @@ tests/:
         ratpack: missing_feature (endpoint not implemented)
         resteasy-netty3: missing_feature (endpoint not implemented)
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
-        spring-boot-jetty: missing_feature (missing addresses)
-        spring-boot-undertow: missing_feature (missing addresses)
-        spring-boot-wildfly: missing_feature (missing addresses)
+        spring-boot-jetty: v1.42.0
+        spring-boot-undertow: v1.42.0
+        spring-boot-wildfly: v1.42.0
         vertx3: v1.46.0
         vertx4: v1.46.0
       Test_Fingerprinting_Session_Capability:
@@ -1360,7 +1408,7 @@ tests/:
         akka-http: v1.22.0
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
       Test_StandardizationBlockMode: missing_feature
-    test_metastruct.py: missing_feature
+    test_metastruct.py: missing_feature (APPSEC-4766)
     test_rate_limiter.py:
       Test_Main:
         akka-http: v1.22.0
@@ -1620,6 +1668,7 @@ tests/:
       Test_Config_TraceEnabled: v1.39.0
       Test_Config_TraceLogDirectory: missing_feature
       Test_Config_UnifiedServiceTagging: v1.41.1
+      Test_Stable_Config_Default: missing_feature
     test_crashtracking.py:
       Test_Crashtracking: v1.38.0
     test_dynamic_configuration.py:
@@ -1763,7 +1812,9 @@ tests/:
     Test_ExtractBehavior_Ignore: incomplete_test_app (/make_distant_call endpoint is not correctly implemented)
     Test_ExtractBehavior_Restart: incomplete_test_app (/make_distant_call endpoint is not correctly implemented)
     Test_ExtractBehavior_Restart_With_Extract_First: incomplete_test_app (/make_distant_call endpoint is not correctly implemented)
-    Test_HeaderTags: missing_feature
+    Test_HeaderTags:
+      '*': v1.35.0
+      spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
     Test_HeaderTags_Colon_Leading: v0.102.0
     Test_HeaderTags_Colon_Trailing: v0.102.0
     Test_HeaderTags_DynamicConfig: missing_feature
@@ -1806,6 +1857,7 @@ tests/:
       '*': missing_feature
       spring-boot: v0.102.0
       spring-boot-jetty: v0.102.0
+      spring-boot-wildfly: v0.102.0
     Test_StandardTagsStatusCode: v0.102.0
     Test_StandardTagsUrl: v0.107.1
     Test_StandardTagsUserAgent: v0.107.1

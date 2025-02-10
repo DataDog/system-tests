@@ -9,7 +9,8 @@ from utils.tools import logger, get_rid_from_request
 class TestDockerSSIFeatures:
     """Test the ssi in a simulated host injection environment (docker container + test agent)
     We test that the injection is performed and traces and telemetry are generated.
-    If the language version is not supported, we only check that we don't break the app and telemetry is generated."""
+    If the language version is not supported, we only check that we don't break the app and telemetry is generated.
+    """
 
     _r = None
 
@@ -111,10 +112,10 @@ class TestDockerSSIFeatures:
                 inject_result = False
                 break
 
-        assert inject_result != None, "No telemetry data found for inject.success, inject.skip or inject.error"
+        assert inject_result is not None, "No telemetry data found for inject.success, inject.skip or inject.error"
 
         # The injector detected by itself that the version is not supported
-        if inject_result == False:
+        if inject_result is False:
             return
 
         # There is telemetry data about the library entrypoint. We only validate there is data

@@ -3,10 +3,31 @@
 # Copyright 2021 Datadog, Inc.
 
 from utils import weblog, interfaces, scenarios, features, missing_feature
-from utils._context.header_tag_vars import *
+from utils._context.header_tag_vars import (
+    CONFIG_COLON_LEADING,
+    CONFIG_COLON_TRAILING,
+    HEADER_NAME_COLON_LEADING,
+    HEADER_NAME_COLON_TRAILING,
+    HEADER_NAME_LONG,
+    HEADER_NAME_SHORT,
+    HEADER_NAME_WHITESPACE_HEADER,
+    HEADER_NAME_WHITESPACE_TAG,
+    HEADER_NAME_WHITESPACE_VAL_LONG,
+    HEADER_NAME_WHITESPACE_VAL_SHORT,
+    HEADER_VAL_BASIC,
+    HEADER_VAL_WHITESPACE_VAL_LONG,
+    HEADER_VAL_WHITESPACE_VAL_SHORT,
+    TAG_COLON_LEADING,
+    TAG_COLON_TRAILING,
+    TAG_LONG,
+    TAG_SHORT,
+    TAG_WHITESPACE_HEADER,
+    TAG_WHITESPACE_TAG,
+    TAG_WHITESPACE_VAL_LONG,
+    TAG_WHITESPACE_VAL_SHORT,
+)
 from utils import remote_config as rc
 import json
-import pprint
 
 
 # basic / legacy tests, just tests user-agent can be received as a tag
@@ -60,7 +81,8 @@ class Test_HeaderTags_Long:
 @features.http_headers_as_tags_dd_trace_header_tags
 class Test_HeaderTags_Whitespace_Header:
     """Validates that leading/trailing whitespaces are trimmed on the header values given to DD_TRACE_HEADER_TAGS
-    e.g, ' header ' in DD_TRACE_HEADER_TAGS=' header ' becomes 'header' and is expected to match req.header of 'header'"""
+    e.g, ' header ' in DD_TRACE_HEADER_TAGS=' header ' becomes 'header' and is expected to match req.header of 'header'
+    """
 
     def setup_trace_header_tags(self):
         self.headers = {HEADER_NAME_WHITESPACE_HEADER: HEADER_VAL_BASIC}
@@ -78,7 +100,8 @@ class Test_HeaderTags_Whitespace_Header:
 @features.http_headers_as_tags_dd_trace_header_tags
 class Test_HeaderTags_Whitespace_Tag:
     """Validates that leading/trailing whitespaces on the Input to DD_TRACE_HEADER_TAGS are
-    trimmed on mapping parts, but whitespaces in between non-whitespace chars are left in-tact."""
+    trimmed on mapping parts, but whitespaces in between non-whitespace chars are left in-tact.
+    """
 
     def setup_trace_header_tags(self):
         self.headers = {HEADER_NAME_WHITESPACE_TAG: HEADER_VAL_BASIC}
@@ -96,7 +119,8 @@ class Test_HeaderTags_Whitespace_Tag:
 @features.http_headers_as_tags_dd_trace_header_tags
 class Test_HeaderTags_Whitespace_Val_Short:
     """Validates that between-char whitespaces in header values are not removed,
-    but leading/trailing whitespace is stripped, using short form input"""
+    but leading/trailing whitespace is stripped, using short form input
+    """
 
     def setup_trace_header_tags(self):
         self.headers = {HEADER_NAME_WHITESPACE_VAL_SHORT: HEADER_VAL_WHITESPACE_VAL_SHORT}
@@ -114,7 +138,8 @@ class Test_HeaderTags_Whitespace_Val_Short:
 @features.http_headers_as_tags_dd_trace_header_tags
 class Test_HeaderTags_Whitespace_Val_Long:
     """Validates that between-char whitespaces in header values are not removed,
-    but leading/trailing whitespace is stripped, using long form input"""
+    but leading/trailing whitespace is stripped, using long form input
+    """
 
     def setup_trace_header_tags(self):
         self.headers = {HEADER_NAME_WHITESPACE_VAL_LONG: HEADER_VAL_WHITESPACE_VAL_LONG}
@@ -249,8 +274,8 @@ class Test_HeaderTags_DynamicConfig:
             "service_target": {"service": "weblog", "env": "system-tests"},
             "lib_config": header_tags,
         }
-        id = hash(json.dumps(config))
-        return f"datadog/2/APM_TRACING/{id}/config", config
+        rc_id = hash(json.dumps(config))
+        return f"datadog/2/APM_TRACING/{rc_id}/config", config
 
 
 # The Datadog specific tracecontext flags to mark flags are set

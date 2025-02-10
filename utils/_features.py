@@ -2292,6 +2292,15 @@ class _Features:
         return test_object
 
     @staticmethod
+    def iast_extended_location(test_object):
+        """IAST: Extended location data
+
+        https://feature-parity.us1.prod.dog/#/?feature=364
+        """
+        pytest.mark.features(feature_id=364)(test_object)
+        return test_object
+
+    @staticmethod
     def djm_ssi_k8s(test_object):
         """Data Jobs Monitoring: Java lib auto instrumentation for Spark applications on K8s.
 
@@ -2351,7 +2360,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=353
         """
-        pytest.mark.features(feature_id=343)(test_object)
+        pytest.mark.features(feature_id=353)(test_object)
         return test_object
 
     @staticmethod
@@ -2388,6 +2397,24 @@ class _Features:
         https://feature-parity.us1.prod.dog/#/?feature=361
         """
         pytest.mark.features(feature_id=361)(test_object)
+        return test_object
+
+    @staticmethod
+    def stable_configuration_support(test_object):
+        """Enforces that basic stable configuration support exists
+
+        https://feature-parity.us1.prod.dog/#/?feature=365
+        """
+        pytest.mark.features(feature_id=365)(test_object)
+        return test_object
+
+    @staticmethod
+    def single_span_ingestion_control(test_object):
+        """Enforces that basic stable configuration support exists
+
+        https://feature-parity.us1.prod.dog/#/?feature=366
+        """
+        pytest.mark.features(feature_id=366)(test_object)
         return test_object
 
 

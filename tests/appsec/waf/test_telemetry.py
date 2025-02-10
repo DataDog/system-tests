@@ -1,4 +1,4 @@
-from utils import bug, context, interfaces, irrelevant, features, flaky, missing_feature, rfc, scenarios, weblog
+from utils import bug, context, interfaces, features, rfc, scenarios, weblog
 from utils.tools import logger
 
 TELEMETRY_REQUEST_TYPE_GENERATE_METRICS = "generate-metrics"
@@ -6,19 +6,18 @@ TELEMETRY_REQUEST_TYPE_DISTRIBUTIONS = "distributions"
 
 
 def _setup(self):
-    """
-    Common setup for all tests in this module. They all depend on the same set
+    """Common setup for all tests in this module. They all depend on the same set
     of requests, which must be run only once.
     """
     # Run only once, even across multiple class instances.
     if hasattr(Test_TelemetryMetrics, "__common_setup_done"):
         return
-    r_plain = weblog.get("/", headers={"x-forwarded-for": "80.80.80.80"})
-    r_triggered = weblog.get("/", headers={"x-forwarded-for": "80.80.80.80", "user-agent": "Arachni/v1"})
-    r_blocked = weblog.get(
+    weblog.get("/", headers={"x-forwarded-for": "80.80.80.80"})
+    weblog.get("/", headers={"x-forwarded-for": "80.80.80.80", "user-agent": "Arachni/v1"})
+    weblog.get(
         "/",
         headers={"x-forwarded-for": "80.80.80.80", "user-agent": "dd-test-scanner-log-block"},
-        # XXX: hack to prevent rid inhibiting the dd-test-scanner-log-block rule
+        # Hack to prevent rid inhibiting the dd-test-scanner-log-block rule
         rid_in_user_agent=False,
     )
     Test_TelemetryMetrics.__common_setup_done = True

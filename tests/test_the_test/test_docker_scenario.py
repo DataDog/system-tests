@@ -68,7 +68,7 @@ def test_recursive():
 
 @scenarios.test_the_test
 def test_recursive_2():
-    """more complex"""
+    """More complex"""
 
     class FakeScenario(DockerScenario):
         def __init__(self) -> None:

@@ -12,7 +12,8 @@ class BaseAutoInjectChaos(base.AutoInjectBaseTest):
         """Test break the installation and restore it.
         After breaking the installation, the app should be still working (but no sending traces to the backend).
         After breaking the installation, we can restart the app
-        After restores the installation, the app should be working and sending traces to the backend."""
+        After restores the installation, the app should be working and sending traces to the backend.
+        """
 
         vm_ip = virtual_machine.get_ip()
         vm_port = virtual_machine.deffault_open_port

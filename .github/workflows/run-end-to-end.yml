@@ -113,6 +113,9 @@ jobs:
     - name: Run APPSEC_STANDALONE_V2 scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_STANDALONE_V2"')
       run: ./run.sh APPSEC_STANDALONE_V2
+    - name: Run APPSEC_NO_STATS scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_NO_STATS"')
+      run: ./run.sh APPSEC_NO_STATS
     - name: Run IAST_STANDALONE scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"IAST_STANDALONE"')
       run: ./run.sh IAST_STANDALONE
@@ -135,7 +138,7 @@ jobs:
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"IPV6"') && inputs.library != 'ruby'
       run: ./run.sh IPV6
     - name: Run CROSSED_TRACING_LIBRARIES scenario
-      if: always() && steps.build.outcome == 'success' && matrix.weblog != 'python3.12' && matrix.weblog != 'django-py3.13' && contains(inputs.scenarios, '"CROSSED_TRACING_LIBRARIES"')
+      if: always() && steps.build.outcome == 'success' && matrix.weblog != 'python3.12' && matrix.weblog != 'django-py3.13' && matrix.weblog != 'spring-boot-payara' && contains(inputs.scenarios, '"CROSSED_TRACING_LIBRARIES"')
       # python 3.13 issue : APMAPI-1096
       run: ./run.sh CROSSED_TRACING_LIBRARIES
       env:
@@ -269,6 +272,9 @@ jobs:
     - name: Run APPSEC_RASP scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_RASP"')
       run: ./run.sh APPSEC_RASP
+    - name: Run APPSEC_RASP_NON_BLOCKING scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_RASP_NON_BLOCKING"')
+      run: ./run.sh APPSEC_RASP_NON_BLOCKING
     - name: Run APPSEC_META_STRUCT_DISABLED scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_META_STRUCT_DISABLED"')
       run: ./run.sh APPSEC_META_STRUCT_DISABLED

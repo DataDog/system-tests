@@ -205,7 +205,7 @@ class Test_Config_HttpClientErrorStatuses_Default:
 
         client_span = _get_span_by_tags(spans, tags={"span.kind": "client", "http.status_code": "500"})
         assert client_span, spans
-        assert client_span.get("error") == None or client_span.get("error") == 0
+        assert client_span.get("error") is None or client_span.get("error") == 0
 
 
 @scenarios.tracing_config_nondefault
@@ -276,7 +276,8 @@ class Test_Config_ClientTagQueryString_Configured:
 @features.tracing_configuration_consistency
 class Test_Config_ClientIPHeader_Configured:
     """Verify headers containing ips are tagged when DD_TRACE_CLIENT_IP_ENABLED=true
-    and DD_TRACE_CLIENT_IP_HEADER=custom-ip-header"""
+    and DD_TRACE_CLIENT_IP_HEADER=custom-ip-header
+    """
 
     def setup_ip_headers_sent_in_one_request(self):
         self.req = weblog.get(
@@ -311,7 +312,8 @@ class Test_Config_ClientIPHeaderEnabled_False:
 @features.tracing_configuration_consistency
 class Test_Config_ClientIPHeader_Precedence:
     """Verify headers containing ips are tagged when DD_TRACE_CLIENT_IP_ENABLED=true
-    and headers are used to set http.client_ip in order of precedence"""
+    and headers are used to set http.client_ip in order of precedence
+    """
 
     # Supported ip headers in order of precedence
     IP_HEADERS = (
@@ -637,5 +639,4 @@ def parse_log_injection_message(log_message):
         except json.JSONDecodeError:
             continue
         if message.get("dd") and message.get(log_injection_fields[context.library.library]["message"]) == log_message:
-            dd = message.get("dd")
-            return dd
+            return message.get("dd")

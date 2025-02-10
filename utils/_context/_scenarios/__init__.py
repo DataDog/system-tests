@@ -64,6 +64,15 @@ class _Scenarios:
 
     profiling = ProfilingScenario("PROFILING")
 
+    appsec_no_stats = EndToEndScenario(
+        "End to end tests with default value of DD_TRACE_COMPUTE_STATS",
+        doc=(
+            "End to end testing with default values. Default scenario has DD_TRACE_COMPUTE_STATS=true."
+            "This scenario let that env to use its default"
+        ),
+        scenario_groups=[ScenarioGroup.APPSEC],
+    )
+
     sampling = EndToEndScenario(
         "SAMPLING",
         tracer_sampling_rate=0.5,
@@ -153,7 +162,10 @@ class _Scenarios:
     # This GraphQL scenario can be used for any GraphQL testing, not just AppSec
     graphql_appsec = EndToEndScenario(
         "GRAPHQL_APPSEC",
-        weblog_env={"DD_APPSEC_RULES": "/appsec_blocking_rule.json"},
+        weblog_env={
+            "DD_APPSEC_RULES": "/appsec_blocking_rule.json",
+            "DD_TRACE_GRAPHQL_ERROR_EXTENSIONS": "int,float,str,bool,other",
+        },
         weblog_volumes={"./tests/appsec/blocking_rule.json": {"bind": "/appsec_blocking_rule.json", "mode": "ro"}},
         doc="AppSec tests for GraphQL integrations",
         github_workflow="graphql",
@@ -818,6 +830,20 @@ class _Scenarios:
         doc="Enable APPSEC RASP",
         github_workflow="endtoend",
         scenario_groups=[ScenarioGroup.APPSEC, ScenarioGroup.APPSEC_RASP],
+    )
+
+    appsec_rasp_non_blocking = EndToEndScenario(
+        "APPSEC_RASP_NON_BLOCKING",
+        weblog_env={"DD_APPSEC_RASP_ENABLED": "true", "DD_APPSEC_RULES": "/appsec_rasp_non_blocking_ruleset.json"},
+        weblog_volumes={
+            "./tests/appsec/rasp/rasp_non_blocking_ruleset.json": {
+                "bind": "/appsec_rasp_non_blocking_ruleset.json",
+                "mode": "ro",
+            }
+        },
+        doc="Enable APPSEC RASP",
+        github_workflow="endtoend",
+        scenario_groups=[ScenarioGroup.APPSEC],
     )
 
     agent_not_supporting_span_events = EndToEndScenario(

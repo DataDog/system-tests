@@ -2,8 +2,7 @@ from typing import Any
 
 import pytest
 
-from utils.parametric.spec.tracecontext import get_tracecontext, TRACECONTEXT_FLAGS_SET
-from utils.parametric.spec.trace import retrieve_span_links, find_span_in_traces
+from utils.parametric.spec.tracecontext import get_tracecontext
 from utils import bug, missing_feature, context, irrelevant, scenarios, features
 
 parametrize = pytest.mark.parametrize
@@ -672,8 +671,7 @@ class Test_Headers_Precedence:
     def _test_headers_precedence_propagationstyle_includes_tracecontext_correctly_propagates_tracestate(
         self, test_agent, test_library, prefer_tracecontext, extract_first
     ):
-        """
-        This test asserts that ALL the propagators are executed in the specified
+        """This test asserts that ALL the propagators are executed in the specified
         order, and the the first propagator to extract a valid trace context determines
         the trace-id, parent-id, and supplemental information such as
         x-datadog-sampling-priority, x-datadog-tags, tracestate, etc.
@@ -749,7 +747,7 @@ class Test_Headers_Precedence:
                 ],
             )
 
-        traces = test_agent.wait_for_num_traces(num=5)
+        test_agent.wait_for_num_traces(num=5)
 
         # 1) Datadog and tracecontext headers, trace-id and span-id match, tracestate is present
         # Note: This is expected to be the most frequent case
