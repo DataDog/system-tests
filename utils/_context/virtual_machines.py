@@ -478,6 +478,38 @@ class Ubuntu24arm64(_VirtualMachine):
         )
 
 
+class Debian11amd64(_VirtualMachine):
+    def __init__(self, **kwargs) -> None:
+        super().__init__(
+            "Debian_11_amd64",
+            aws_config=_AWSConfig(ami_id="ami-0607e701db389efe7", ami_instance_type="t3.medium", user="admin"),
+            vagrant_config=None,
+            krunvm_config=None,
+            os_type="linux",
+            os_distro="deb",
+            os_branch="debian",
+            os_cpu="amd64",
+            default_vm=False,
+            **kwargs,
+        )
+
+
+class Debian11arm64(_VirtualMachine):
+    def __init__(self, **kwargs) -> None:
+        super().__init__(
+            "Debian_11_arm64",
+            aws_config=_AWSConfig(ami_id="ami-00988b9ead6afb0b1", ami_instance_type="t4g.small", user="admin"),
+            vagrant_config=None,
+            krunvm_config=None,
+            os_type="linux",
+            os_distro="deb",
+            os_branch="debian",
+            os_cpu="arm64",
+            default_vm=False,
+            **kwargs,
+        )
+
+
 class Debian12amd64(_VirtualMachine):
     def __init__(self, **kwargs) -> None:
         super().__init__(
