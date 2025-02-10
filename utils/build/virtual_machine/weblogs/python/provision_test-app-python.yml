@@ -34,8 +34,8 @@ lang_variant:
         remote-command: |
           sudo dnf install python39 -y
           sudo dnf install python39-pip -y || sudo dnf install python3-pip -y 
-          sudo ln -s /usr/bin/python3 /usr/bin/python
-          sudo ln -s /usr/bin/pip3 /usr/bin/pip
+          sudo ln -s /usr/bin/python3 /usr/bin/python || true
+          sudo ln -s /usr/bin/pip3 /usr/bin/pip || true
 
       - os_type: linux
         os_distro: rpm
@@ -43,8 +43,8 @@ lang_variant:
         remote-command: |
           sudo dnf install python39 -y
           sudo dnf install python39-pip -y || sudo dnf install python3-pip -y 
-          sudo ln -s /usr/bin/python3.9 /usr/bin/python
-          sudo ln -s /usr/bin/pip3 /usr/bin/pip
+          sudo ln -s /usr/bin/python3.9 /usr/bin/python || true
+          sudo ln -s /usr/bin/pip3 /usr/bin/pip || true
 
       - os_type: linux
         os_distro: rpm
