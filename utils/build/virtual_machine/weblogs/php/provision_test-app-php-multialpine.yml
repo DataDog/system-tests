@@ -1,6 +1,7 @@
 weblog:
     name: test-app-php-multialpine
     nginx_config: utils/build/virtual_machine/weblogs/php/test-app-php-multialpine/nginx.conf
+    excluded_os_names: [Fedora_37_arm64,Fedora_37_amd64]
     install: 
       - os_type: linux
         copy_files:

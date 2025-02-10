@@ -17,7 +17,9 @@ lang_variant:
 
       - os_type: linux
         os_distro: rpm
-        remote-command: sudo sudo dnf -y install java-devel || sudo yum -y install java-devel
+        remote-command: | 
+          sudo yum install tar -y || sudo dnf install tar -y || true
+          sudo sudo dnf -y install java-devel || sudo yum -y install java-devel
 
 weblog:
     name: test-app-java

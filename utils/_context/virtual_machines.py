@@ -478,6 +478,38 @@ class Ubuntu24arm64(_VirtualMachine):
         )
 
 
+class Debian11amd64(_VirtualMachine):
+    def __init__(self, **kwargs) -> None:
+        super().__init__(
+            "Debian_11_amd64",
+            aws_config=_AWSConfig(ami_id="ami-0607e701db389efe7", ami_instance_type="t3.medium", user="admin"),
+            vagrant_config=None,
+            krunvm_config=None,
+            os_type="linux",
+            os_distro="deb",
+            os_branch="debian",
+            os_cpu="amd64",
+            default_vm=False,
+            **kwargs,
+        )
+
+
+class Debian11arm64(_VirtualMachine):
+    def __init__(self, **kwargs) -> None:
+        super().__init__(
+            "Debian_11_arm64",
+            aws_config=_AWSConfig(ami_id="ami-00988b9ead6afb0b1", ami_instance_type="t4g.small", user="admin"),
+            vagrant_config=None,
+            krunvm_config=None,
+            os_type="linux",
+            os_distro="deb",
+            os_branch="debian",
+            os_cpu="arm64",
+            default_vm=False,
+            **kwargs,
+        )
+
+
 class Debian12amd64(_VirtualMachine):
     def __init__(self, **kwargs) -> None:
         super().__init__(
@@ -736,7 +768,7 @@ class OracleLinux92amd64(_VirtualMachine):
             os_distro="rpm",
             os_branch="oracle_linux",
             os_cpu="amd64",
-            default_vm=False,
+            default_vm=True,
             **kwargs,
         )
 
@@ -753,6 +785,42 @@ class OracleLinux92arm64(_VirtualMachine):
             os_branch="oracle_linux",
             os_cpu="arm64",
             default_vm=False,
+            **kwargs,
+        )
+
+
+# Oracle Linux 9.3. Owner oracle, id: 131827586825
+# TODO copy ami to a private account
+class OracleLinux93amd64(_VirtualMachine):
+    def __init__(self, **kwargs) -> None:
+        super().__init__(
+            "OracleLinux_9_3_amd64",
+            aws_config=_AWSConfig(ami_id="ami-0dd239e274077553a", ami_instance_type="t3.medium", user="ec2-user"),
+            vagrant_config=None,
+            krunvm_config=None,
+            os_type="linux",
+            os_distro="rpm",
+            os_branch="oracle_linux",
+            os_cpu="amd64",
+            default_vm=False,
+            **kwargs,
+        )
+
+
+# Oracle Linux 9.3. Owner oracle, id: 131827586825
+# TODO copy ami to a private account
+class OracleLinux93arm64(_VirtualMachine):
+    def __init__(self, **kwargs) -> None:
+        super().__init__(
+            "OracleLinux_9_3_arm64",
+            aws_config=_AWSConfig(ami_id="ami-07dd8e107c20b8471", ami_instance_type="t4g.medium", user="ec2-user"),
+            vagrant_config=None,
+            krunvm_config=None,
+            os_type="linux",
+            os_distro="rpm",
+            os_branch="oracle_linux",
+            os_cpu="arm64",
+            default_vm=True,
             **kwargs,
         )
 
@@ -785,7 +853,7 @@ class OracleLinux88arm64(_VirtualMachine):
             os_distro="rpm",
             os_branch="oracle_linux",
             os_cpu="arm64",
-            default_vm=False,
+            default_vm=True,
             **kwargs,
         )
 
@@ -934,6 +1002,105 @@ class Fedora37arm64(_VirtualMachine):
             os_type="linux",
             os_distro="rpm",
             os_branch="fedora",
+            os_cpu="arm64",
+            default_vm=False,
+            **kwargs,
+        )
+
+
+# TODO RMM Copy fedora ami to our aws account
+# https://fedoraproject.org/cloud/download
+class Fedora40amd64(_VirtualMachine):
+    def __init__(self, **kwargs) -> None:
+        super().__init__(
+            "Fedora_40_amd64",
+            aws_config=_AWSConfig(ami_id="ami-0018cd1282422fe47", ami_instance_type="t3.medium", user="fedora"),
+            vagrant_config=None,
+            krunvm_config=None,
+            os_type="linux",
+            os_distro="rpm",
+            os_branch="fedora",
+            os_cpu="amd64",
+            default_vm=False,
+            **kwargs,
+        )
+
+
+class Fedora40arm64(_VirtualMachine):
+    def __init__(self, **kwargs) -> None:
+        super().__init__(
+            "Fedora_40_arm64",
+            aws_config=_AWSConfig(ami_id="ami-0006bbbe9e68c8cec", ami_instance_type="t4g.medium", user="fedora"),
+            vagrant_config=None,
+            krunvm_config=None,
+            os_type="linux",
+            os_distro="rpm",
+            os_branch="fedora",
+            os_cpu="arm64",
+            default_vm=False,
+            **kwargs,
+        )
+
+
+# https://aws.amazon.com/marketplace/seller-profile?id=01538adc-2664-49d5-b926-3381dffce12d
+class RockyLinux8amd64(_VirtualMachine):
+    def __init__(self, **kwargs) -> None:
+        super().__init__(
+            "Rocky_Linux_8_amd64",
+            aws_config=_AWSConfig(ami_id="ami-011ef2017d41cb239", ami_instance_type="t3.medium", user="rocky"),
+            vagrant_config=None,
+            krunvm_config=None,
+            os_type="linux",
+            os_distro="rpm",
+            os_branch="redhat",
+            os_cpu="amd64",
+            default_vm=False,
+            **kwargs,
+        )
+
+
+class RockyLinux8arm64(_VirtualMachine):
+    def __init__(self, **kwargs) -> None:
+        super().__init__(
+            "Rocky_Linux_8_arm64",
+            aws_config=_AWSConfig(ami_id="ami-0ad512af1b9f6ef91", ami_instance_type="t4g.medium", user="rocky"),
+            vagrant_config=None,
+            krunvm_config=None,
+            os_type="linux",
+            os_distro="rpm",
+            os_branch="redhat",
+            os_cpu="arm64",
+            default_vm=False,
+            **kwargs,
+        )
+
+
+class RockyLinux9amd64(_VirtualMachine):
+    def __init__(self, **kwargs) -> None:
+        super().__init__(
+            "Rocky_Linux_9_amd64",
+            aws_config=_AWSConfig(ami_id="ami-0a73e96a849c232cc", ami_instance_type="t3.medium", user="rocky"),
+            vagrant_config=None,
+            krunvm_config=None,
+            os_type="linux",
+            os_distro="rpm",
+            os_branch="redhat",
+            os_cpu="amd64",
+            default_vm=False,
+            **kwargs,
+        )
+
+
+class RockyLinux9arm64(_VirtualMachine):
+    def __init__(self, **kwargs) -> None:
+        super().__init__(
+            "Rocky_Linux_9_arm64",
+            aws_config=_AWSConfig(ami_id="ami-0fe5c47737d880603", ami_instance_type="t4g.medium", user="rocky"),
+            vagrant_config=None,
+            krunvm_config=None,
+            os_type="linux",
+            os_distro="rpm",
+            os_branch="redhat",
             os_cpu="arm64",
             default_vm=False,
             **kwargs,

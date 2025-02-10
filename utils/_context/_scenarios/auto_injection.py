@@ -29,9 +29,13 @@ from utils._context.virtual_machines import (
     Centos8amd64,
     OracleLinux92amd64,
     OracleLinux92arm64,
+    OracleLinux93amd64,
+    OracleLinux93arm64,
     OracleLinux88amd64,
     OracleLinux88arm64,
     OracleLinux79amd64,
+    Debian11amd64,
+    Debian11arm64,
     Debian12amd64,
     Debian12arm64,
     AlmaLinux8amd64,
@@ -47,6 +51,12 @@ from utils._context.virtual_machines import (
     Fedora36arm64,
     Fedora37amd64,
     Fedora37arm64,
+    Fedora40amd64,
+    Fedora40arm64,
+    RockyLinux8amd64,
+    RockyLinux8arm64,
+    RockyLinux9amd64,
+    RockyLinux9arm64,
 )
 
 from .core import Scenario
@@ -84,11 +94,15 @@ class _VirtualMachineScenario(Scenario):
         include_centos_8_amd64=False,
         include_oraclelinux_9_2_amd64=False,
         include_oraclelinux_9_2_arm64=False,
+        include_oraclelinux_9_3_amd64=False,
+        include_oraclelinux_9_3_arm64=False,
         include_oraclelinux_8_8_amd64=False,
         include_oraclelinux_8_8_arm64=False,
         include_oraclelinux_7_9_amd64=False,
         include_debian_12_amd64=False,
         include_debian_12_arm64=False,
+        include_debian_11_amd64=False,
+        include_debian_11_arm64=False,
         include_almalinux_8_amd64=False,
         include_almalinux_8_arm64=False,
         include_almalinux_9_amd64=False,
@@ -102,6 +116,12 @@ class _VirtualMachineScenario(Scenario):
         include_fedora_36_arm64=False,
         include_fedora_37_amd64=False,
         include_fedora_37_arm64=False,
+        include_fedora_40_amd64=False,
+        include_fedora_40_arm64=False,
+        include_rocky_linux_8_amd64=False,
+        include_rocky_linux_8_arm64=False,
+        include_rocky_linux_9_amd64=False,
+        include_rocky_linux_9_arm64=False,
         agent_env=None,
         app_env=None,
         scenario_groups=None,
@@ -161,12 +181,20 @@ class _VirtualMachineScenario(Scenario):
             self.required_vms.append(OracleLinux92amd64())
         if include_oraclelinux_9_2_arm64:
             self.required_vms.append(OracleLinux92arm64())
+        if include_oraclelinux_9_3_amd64:
+            self.required_vms.append(OracleLinux93amd64())
+        if include_oraclelinux_9_3_arm64:
+            self.required_vms.append(OracleLinux93arm64())
         if include_oraclelinux_8_8_amd64:
             self.required_vms.append(OracleLinux88amd64())
         if include_oraclelinux_8_8_arm64:
             self.required_vms.append(OracleLinux88arm64())
         if include_oraclelinux_7_9_amd64:
             self.required_vms.append(OracleLinux79amd64())
+        if include_debian_11_amd64:
+            self.required_vms.append(Debian11amd64())
+        if include_debian_11_arm64:
+            self.required_vms.append(Debian11arm64())
         if include_debian_12_amd64:
             self.required_vms.append(Debian12amd64())
         if include_debian_12_arm64:
@@ -197,6 +225,18 @@ class _VirtualMachineScenario(Scenario):
             self.required_vms.append(Fedora37amd64())
         if include_fedora_37_arm64:
             self.required_vms.append(Fedora37arm64())
+        if include_fedora_40_amd64:
+            self.required_vms.append(Fedora40amd64())
+        if include_fedora_40_arm64:
+            self.required_vms.append(Fedora40arm64())
+        if include_rocky_linux_8_amd64:
+            self.required_vms.append(RockyLinux8amd64())
+        if include_rocky_linux_8_arm64:
+            self.required_vms.append(RockyLinux8arm64())
+        if include_rocky_linux_9_amd64:
+            self.required_vms.append(RockyLinux9amd64())
+        if include_rocky_linux_9_arm64:
+            self.required_vms.append(RockyLinux9arm64())
 
     def print_installed_components(self):
         logger.terminal.write_sep("=", "Installed components", bold=True)
@@ -384,46 +424,56 @@ class InstallerAutoInjectionScenario(_VirtualMachineScenario):
         scenario_groups=None,
         github_workflow=None,
         *,
-        include_ubuntu_20_amd64=True,
-        include_ubuntu_20_arm64=True,
-        include_ubuntu_21_arm64=True,
-        include_ubuntu_22_amd64=True,
-        include_ubuntu_22_arm64=True,
+        include_ubuntu_20_amd64=False,
+        include_ubuntu_20_arm64=False,
+        include_ubuntu_21_arm64=False,
+        include_ubuntu_22_amd64=False,
+        include_ubuntu_22_arm64=False,
         include_ubuntu_23_04_amd64=False,
-        include_ubuntu_23_04_arm64=True,
+        include_ubuntu_23_04_arm64=False,
         include_ubuntu_23_10_amd64=False,
-        include_ubuntu_23_10_arm64=True,
-        include_ubuntu_24_amd64=True,
-        include_ubuntu_24_arm64=True,
+        include_ubuntu_23_10_arm64=False,
+        include_ubuntu_24_amd64=False,
+        include_ubuntu_24_arm64=False,
         include_ubuntu_18_amd64=False,
-        include_amazon_linux_2_amd64=True,
-        include_amazon_linux_2_arm64=True,
-        include_amazon_linux_2022_amd64=True,
-        include_amazon_linux_2022_arm64=True,
-        include_amazon_linux_2023_amd64=True,
-        include_amazon_linux_2023_arm64=True,
-        include_centos_7_amd64=True,
-        include_centos_8_amd64=True,
-        include_oraclelinux_9_2_amd64=False,
-        include_oraclelinux_9_2_arm64=False,
-        include_oraclelinux_8_8_amd64=False,
-        include_oraclelinux_8_8_arm64=False,
-        include_oraclelinux_7_9_amd64=False,
-        include_debian_12_amd64=True,
-        include_debian_12_arm64=True,
-        include_almalinux_8_amd64=False,
-        include_almalinux_8_arm64=False,
-        include_almalinux_9_amd64=False,
-        include_almalinux_9_arm64=False,
-        include_redhat_7_9_amd64=True,
-        include_redhat_8_amd64=True,
-        include_redhat_8_arm64=True,
-        include_redhat_9_amd64=True,
-        include_redhat_9_arm64=True,
-        include_fedora_36_amd64=False,
-        include_fedora_36_arm64=False,
-        include_fedora_37_amd64=False,
-        include_fedora_37_arm64=False,
+        include_amazon_linux_2_amd64=False,
+        include_amazon_linux_2_arm64=False,
+        include_amazon_linux_2022_amd64=False,
+        include_amazon_linux_2022_arm64=False,
+        include_amazon_linux_2023_amd64=False,
+        include_amazon_linux_2023_arm64=False,
+        include_centos_7_amd64=False,
+        include_centos_8_amd64=False,
+        include_oraclelinux_9_2_amd64=True,
+        include_oraclelinux_9_2_arm64=True,
+        include_oraclelinux_9_3_amd64=True,
+        include_oraclelinux_9_3_arm64=True,
+        include_oraclelinux_8_8_amd64=True,
+        include_oraclelinux_8_8_arm64=True,
+        include_oraclelinux_7_9_amd64=False,  # TODO RMM remove
+        include_debian_11_amd64=True,
+        include_debian_11_arm64=True,
+        include_debian_12_amd64=False,
+        include_debian_12_arm64=False,
+        include_almalinux_8_amd64=True,
+        include_almalinux_8_arm64=True,
+        include_almalinux_9_amd64=True,
+        include_almalinux_9_arm64=True,
+        include_redhat_7_9_amd64=False,
+        include_redhat_8_amd64=False,
+        include_redhat_8_arm64=False,
+        include_redhat_9_amd64=False,
+        include_redhat_9_arm64=False,
+        include_fedora_36_amd64=True,
+        include_fedora_36_arm64=True,
+        include_fedora_37_amd64=True,
+        include_fedora_37_arm64=True,
+        include_fedora_40_amd64=True,
+        include_fedora_40_arm64=True,
+        include_rocky_linux_8_amd64=True,
+        include_rocky_linux_8_arm64=True,
+        include_rocky_linux_9_amd64=True,
+        include_rocky_linux_9_arm64=True,
     ) -> None:
         # Force full tracing without limits
         app_env_defaults = {
@@ -463,9 +513,13 @@ class InstallerAutoInjectionScenario(_VirtualMachineScenario):
             include_centos_8_amd64=include_centos_8_amd64,
             include_oraclelinux_9_2_amd64=include_oraclelinux_9_2_amd64,
             include_oraclelinux_9_2_arm64=include_oraclelinux_9_2_arm64,
+            include_oraclelinux_9_3_amd64=include_oraclelinux_9_3_amd64,
+            include_oraclelinux_9_3_arm64=include_oraclelinux_9_3_arm64,
             include_oraclelinux_8_8_amd64=include_oraclelinux_8_8_amd64,
             include_oraclelinux_8_8_arm64=include_oraclelinux_8_8_arm64,
             include_oraclelinux_7_9_amd64=include_oraclelinux_7_9_amd64,
+            include_debian_11_amd64=include_debian_11_amd64,
+            include_debian_11_arm64=include_debian_11_arm64,
             include_debian_12_amd64=include_debian_12_amd64,
             include_debian_12_arm64=include_debian_12_arm64,
             include_almalinux_8_amd64=include_almalinux_8_amd64,
@@ -481,4 +535,10 @@ class InstallerAutoInjectionScenario(_VirtualMachineScenario):
             include_fedora_36_arm64=include_fedora_36_arm64,
             include_fedora_37_amd64=include_fedora_37_amd64,
             include_fedora_37_arm64=include_fedora_37_arm64,
+            include_fedora_40_amd64=include_fedora_40_amd64,
+            include_fedora_40_arm64=include_fedora_40_arm64,
+            include_rocky_linux_8_amd64=include_rocky_linux_8_amd64,
+            include_rocky_linux_8_arm64=include_rocky_linux_8_arm64,
+            include_rocky_linux_9_amd64=include_rocky_linux_9_amd64,
+            include_rocky_linux_9_arm64=include_rocky_linux_9_arm64,
         )
