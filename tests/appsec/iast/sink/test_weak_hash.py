@@ -3,7 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 from utils import weblog, context, missing_feature, features, rfc, scenarios
-from ..utils import BaseSinkTest, assert_iast_vulnerability, validate_stack_traces
+from ..utils import BaseSinkTest, assert_iast_vulnerability, validate_extended_location_data, validate_stack_traces
 
 
 def _expected_location():
@@ -104,3 +104,17 @@ class TestDeduplication:
             vulnerability_type="WEAK_HASH",
             expected_location=_expected_location(),
         )
+
+
+@rfc("https://docs.google.com/document/d/1R8AIuQ9_rMHBPdChCb5jRwPrg1WvIz96c_WQ3y8DWk4")
+@features.iast_extended_location
+class TestWeakHash_ExtendedLocation:
+    """Test extended location data"""
+
+    vulnerability_type = "WEAK_HASH"
+
+    def setup_extended_location_data(self):
+        self.r = weblog.get("/iast/insecure_hashing/test_md5_algorithm")
+
+    def test_extended_location_data(self):
+        validate_extended_location_data(self.r, self.vulnerability_type)
