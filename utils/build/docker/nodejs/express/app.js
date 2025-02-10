@@ -548,6 +548,14 @@ app.get('/set_cookie', (req, res) => {
   res.send('OK')
 })
 
+app.get('/add_event', (req, res) => {
+  const rootSpan = tracer.scope().active().context()._trace.started[0]
+  
+  rootSpan.addEvent('span.event', { string: 'value', int: 1 }, Date.now())
+
+  res.status(200).json({ message: 'Event added' })
+})
+
 require('./rasp')(app)
 
 const startServer = () => {
