@@ -16,9 +16,7 @@ class TestStackTraceLeak(BaseSinkTest):
     insecure_endpoint = "/iast/stack_trace_leak/test_insecure"
     secure_endpoint = "/iast/stack_trace_leak/test_secure"
     data = {}
-    location_map = {
-        "python": {"flask-poc": "app.py", "django-poc": "app/urls.py", "fastapi": "main.py"},
-    }
+    location_map = {}
 
     def test_telemetry_metric_instrumented_sink(self):
         super().test_telemetry_metric_instrumented_sink()
