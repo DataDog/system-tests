@@ -33,7 +33,7 @@ lang_variant:
         os_branch: alma_linux
         remote-command: |
           sudo dnf install python39 -y
-          sudo dnf install python39-pip -y
+          sudo dnf install python39-pip -y || sudo dnf install python3-pip -y 
           sudo ln -s /usr/bin/python3 /usr/bin/python
           sudo ln -s /usr/bin/pip3 /usr/bin/pip
 
@@ -42,7 +42,7 @@ lang_variant:
         os_branch: oracle_linux
         remote-command: |
           sudo dnf install python39 -y
-          sudo dnf install python39-pip -y
+          sudo dnf install python39-pip -y || sudo dnf install python3-pip -y 
           sudo ln -s /usr/bin/python3.9 /usr/bin/python
           sudo ln -s /usr/bin/pip3 /usr/bin/pip
 
@@ -60,7 +60,7 @@ weblog:
     #Rhel 7 is going to install python 3.6. Not supported.
     #Ubuntu_21_arm64: Failures installing python
     excluded_os_branches: [ amazon_linux2, centos_7_amd64, centos_8_amd64, rhel_7_amd64]
-    excluded_os_names: [RedHat_8_6_arm64, RedHat_8_6_amd64, Ubuntu_21_arm64]
+    excluded_os_names: [RedHat_8_6_arm64, RedHat_8_6_amd64, Ubuntu_21_arm64, Rocky_Linux_8_amd64, Rocky_Linux_8_arm64]
     install:
       - os_type: linux
 
