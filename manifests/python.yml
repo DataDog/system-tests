@@ -465,6 +465,8 @@ tests/:
         '*': v1.1.0-rc2
         fastapi: v2.4.0
     test_asm_standalone.py:
+      Test_AppSecStandalone_NotEnabled:
+        '*': v2.18.0.dev
       Test_AppSecStandalone_UpstreamPropagation:
         '*': bug (APPSEC-56142)
       Test_AppSecStandalone_UpstreamPropagation_V2: missing_feature
