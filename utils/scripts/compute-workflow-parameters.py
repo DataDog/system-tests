@@ -1,14 +1,11 @@
-from collections import defaultdict
 import argparse
 import json
-import yaml
 from utils._context._scenarios import get_all_scenarios, ScenarioGroup
-from ci_orchestrators.gitlab.gitlab_ci_orchestrator import generate_aws_gitlab_pipeline, generate_aws_matrix
-from ci_orchestrators.github.github_ci_orchestrator import (
-    get_endtoend_weblogs,
-    get_graphql_weblogs,
-    get_opentelemetry_weblogs,
-)
+from ci_orchestrators.gitlab.gitlab_ci_orchestrator import print_aws_gitlab_pipeline
+from ci_orchestrators.github.github_ci_orchestrator import print_github_output
+from ci_orchestrators.scenario_groups.endtoend_orchestrator import get_endtoend_matrix
+
+from ci_orchestrators.scenario_groups.ssi_orchestrator import get_aws_matrix
 
 
 def get_workflow_map(scenarios, scenarios_groups) -> dict:
@@ -48,57 +45,34 @@ def get_workflow_map(scenarios, scenarios_groups) -> dict:
     return result
 
 
-def _print_output(result: dict[str, dict], output_format: str) -> None:
-    if output_format == "github":
-        for workflow_name, workflow in result.items():
-            for parameter, value in workflow.items():
-                print(f"{workflow_name}_{parameter}={json.dumps(value)}")
-    elif output_format == "gitlab":
-        # TODO: write the gitlab pipeline
-        pipeline_yml = yaml.dump(result, sort_keys=False, default_flow_style=False)
-        print(pipeline_yml)
-    elif output_format == "gitlab-json":
+def _handle_github(language: str, scenario_map: dict, parametric_job_count: int, ci_environment: str) -> None:
+    result = get_endtoend_matrix(language, scenario_map, parametric_job_count, ci_environment)
+    print_github_output(result)
+
+
+def _handle_gitlab(language: str, scenario_map: dict, ci_environment: str) -> None:
+    if "aws_ssi" in scenario_map:
+        aws_matrix = get_aws_matrix(
+            "utils/virtual_machine/virtual_machines.json",
+            "utils/scripts/ci_orchestrators/scenario_groups/aws_ssi.json",
+            scenario_map["aws_ssi"],
+            language,
+        )
+        print_aws_gitlab_pipeline(language, aws_matrix, ci_environment)
+
+
+def _handle_json(language: str, scenario_map: dict, parametric_job_count: int, ci_environment: str) -> None:
+    if "aws_ssi" in scenario_map:
+        result = get_aws_matrix(
+            "utils/virtual_machine/virtual_machines.json",
+            "utils/scripts/ci_orchestrators/scenario_groups/aws_ssi.json",
+            scenario_map["aws_ssi"],
+            language,
+        )
         print(json.dumps(result))
     else:
-        raise ValueError(f"Invalid format: {format}")
-
-
-def _handle_github(language: str, scenario_map: dict, parametric_job_count: int, ci_environment: str) -> dict:
-    result = defaultdict(dict)  # type: dict[str, dict]
-
-    for github_workflow, scenario_list in scenario_map.items():
-        result[github_workflow]["scenarios"] = scenario_list
-
-    result["endtoend"]["weblogs"] = get_endtoend_weblogs(language, ci_environment)
-    result["graphql"]["weblogs"] = get_graphql_weblogs(language)
-    result["opentelemetry"]["weblogs"] = get_opentelemetry_weblogs(language)
-    result["parametric"]["job_count"] = parametric_job_count
-    result["parametric"]["job_matrix"] = list(range(1, parametric_job_count + 1))
-
-    return result
-
-
-def _handle_gitlab(language: str, scenario_map: dict, ci_environment: str) -> dict:
-    if "aws_ssi" in scenario_map:
-        aws_matrix = generate_aws_matrix(
-            "utils/virtual_machine/virtual_machines.json",
-            "utils/scripts/ci_orchestrators/gitlab/aws_ssi.json",
-            scenario_map["aws_ssi"],
-            language,
-        )
-        return generate_aws_gitlab_pipeline(language, aws_matrix, ci_environment)
-    return {}
-
-
-def _handle_gitlab_json(language: str, scenario_map: dict) -> dict:
-    if "aws_ssi" in scenario_map:
-        return generate_aws_matrix(
-            "utils/virtual_machine/virtual_machines.json",
-            "utils/scripts/ci_orchestrators/gitlab/aws_ssi.json",
-            scenario_map["aws_ssi"],
-            language,
-        )
-    return {}
+        result = get_endtoend_matrix(language, scenario_map, parametric_job_count, ci_environment)
+        print(json.dumps(result))
 
 
 def main(
@@ -110,15 +84,13 @@ def main(
     scenario_map = get_workflow_map(scenarios.split(","), groups.split(","))
 
     if output_format == "github":
-        result = _handle_github(language, scenario_map, parametric_job_count, ci_environment)
+        _handle_github(language, scenario_map, parametric_job_count, ci_environment)
     elif output_format == "gitlab":
-        result = _handle_gitlab(language, scenario_map, ci_environment)
-    elif output_format == "gitlab-json":
-        result = _handle_gitlab_json(language, scenario_map)
+        _handle_gitlab(language, scenario_map, ci_environment)
+    elif output_format == "json":
+        _handle_json(language, scenario_map, parametric_job_count, ci_environment)
     else:
         raise ValueError(f"Invalid format: {format}")
-
-    _print_output(result, output_format)
 
 
 if __name__ == "__main__":
@@ -135,7 +107,7 @@ if __name__ == "__main__":
         "-f",
         type=str,
         help="Select the output format",
-        choices=["github", "gitlab", "gitlab-json"],
+        choices=["github", "gitlab", "json"],
         default="github",
     )
 

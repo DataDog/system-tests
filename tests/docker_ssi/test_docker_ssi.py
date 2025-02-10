@@ -35,7 +35,7 @@ class TestDockerSSIFeatures:
     @irrelevant(context.library == "php" and context.installed_language_runtime < "7.0")
     @irrelevant(context.library == "nodejs" and context.installed_language_runtime < "17.0")
     def test_install_supported_runtime(self):
-        logger.info(f"Testing Docker SSI installation on supported lang runtime: {context.scenario.library.library}")
+        logger.info(f"Testing Docker SSI installation on supported lang runtime: {context.scenario.library}")
         assert self.r.status_code == 200, f"Failed to get response from {context.scenario.weblog_url}"
 
         # If the language version is supported there are traces related with the request
@@ -52,18 +52,16 @@ class TestDockerSSIFeatures:
 
     @features.ssi_guardrails
     @bug(
-        condition="centos-7" in context.weblog_variant and context.scenario.library.library == "java",
+        condition="centos-7" in context.weblog_variant and context.scenario.library == "java",
         reason="APMON-1490",
     )
     def test_install_weblog_running(self):
-        logger.info(
-            f"Testing Docker SSI installation. The weblog should be running: {context.scenario.library.library}"
-        )
+        logger.info(f"Testing Docker SSI installation. The weblog should be running: {context.scenario.library}")
         assert self.r.status_code == 200, f"Failed to get response from {context.scenario.weblog_url}"
 
     @features.ssi_guardrails
     @bug(
-        condition="centos-7" in context.weblog_variant and context.scenario.library.library == "java",
+        condition="centos-7" in context.weblog_variant and context.scenario.library == "java",
         reason="APMON-1490",
     )
     @irrelevant(context.library == "java" and context.installed_language_runtime < "1.8.0_0")

@@ -217,7 +217,7 @@ select_scenario() {
     echo "🔄 Running Python script to compute workflow parameters..."
 
     # Run the Python script and capture the JSON output
-    WORKFLOW_JSON=$(python utils/scripts/compute-workflow-parameters.py "$TEST_LIBRARY" -g "onboarding" --parametric-job-count 1 --ci-environment "prod" --format gitlab-json)
+    WORKFLOW_JSON=$(python utils/scripts/compute-workflow-parameters.py "$TEST_LIBRARY" -g "onboarding" --parametric-job-count 1 --ci-environment "prod" --format json)
 
     if [[ $? -ne 0 ]]; then
         echo "❌ Error: Failed to execute the Python script."

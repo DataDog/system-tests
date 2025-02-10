@@ -7,7 +7,7 @@ from utils.tools import logger
 from utils.onboarding.debug_vm import extract_logs_to_file
 from utils.virtual_machine.utils import get_tested_apps_vms, generate_gitlab_pipeline
 from utils.virtual_machine.virtual_machines import _VirtualMachine, load_virtual_machines
-from utils.scripts.ci_orchestrators.gitlab.gitlab_ci_orchestrator import generate_aws_matrix
+from utils.scripts.ci_orchestrators.scenario_groups.ssi_orchestrator import get_aws_matrix
 from .core import Scenario
 
 
@@ -80,9 +80,9 @@ class _VirtualMachineScenario(Scenario):
         # TODO REMOVE THIS AFTER REMOVE THE PIPELINE GENERATION FROM THE SCENARIO.
         # TODO we will load only the machine set by the --vm-only flag
         all_vms = load_virtual_machines(self.vm_provider_id)
-        supported_vm_names = generate_aws_matrix(
+        supported_vm_names = get_aws_matrix(
             "utils/virtual_machine/virtual_machines.json",
-            "utils/scripts/ci_orchestrators/gitlab/aws_ssi.json",
+            "utils/scripts/ci_orchestrators/scenario_groups/aws_ssi.json",
             [self.name],
             self._library.library,
         )[self.name][self._weblog]
