@@ -28,9 +28,6 @@ tests/:
           TestCodeInjection: missing_feature
           TestCodeInjection_ExtendedLocation: missing_feature
           TestCodeInjection_StackTrace: missing_feature
-        test_stacktrace_leak.py:
-            Test_StacktraceLeak: missing_feature
-            Test_StacktraceLeak_StackTrace: missing_feature
         test_command_injection.py:
           TestCommandInjection: missing_feature
           TestCommandInjection_ExtendedLocation: missing_feature
@@ -103,6 +100,9 @@ tests/:
           TestSSRF: missing_feature
           TestSSRF_ExtendedLocation: missing_feature
           TestSSRF_StackTrace: missing_feature
+        test_stacktrace_leak.py:
+          Test_StacktraceLeak: missing_feature
+          Test_StacktraceLeak_StackTrace: missing_feature
         test_template_injection.py:
           TestTemplateInjection: missing_feature
           TestTemplateInjection_ExtendedLocation: missing_feature

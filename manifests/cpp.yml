@@ -12,7 +12,6 @@ tests/:
     iast/:
       sink/:
         test_code_injection.py: irrelevant (ASM is not implemented in C++)
-        test_stacktrace_leak.py: irrelevant (ASM is not implemented in C++)
         test_command_injection.py: irrelevant (ASM is not implemented in C++)
         test_email_html_injection.py: irrelevant (ASM is not implemented in C++)
         test_hardcoded_passwords.py: irrelevant (ASM is not implemented in C++)
@@ -29,6 +28,7 @@ tests/:
         test_reflection_injection.py: irrelevant (ASM is not implemented in C++)
         test_sql_injection.py: irrelevant (ASM is not implemented in C++)
         test_ssrf.py: irrelevant (ASM is not implemented in C++)
+        test_stacktrace_leak.py: irrelevant (ASM is not implemented in C++)
         test_template_injection.py: irrelevant (ASM is not implemented in C++)
         test_trust_boundary_violation.py: irrelevant (ASM is not implemented in C++)
         test_untrusted_deserialization.py: irrelevant (ASM is not implemented in C++)
