@@ -290,6 +290,18 @@ JS_APP = WeblogDescriptor(
         ),
     ],
 )
+JS_COMMAND_LINE = WeblogDescriptor(
+    "js-command-line",
+    "nodejs",
+    [
+        SupportedImages().UBUNTU_22_AMD64.with_allowed_runtime_versions(
+            JSRuntimeInstallableVersions.get_all_versions()
+        ),
+        SupportedImages().UBUNTU_22_ARM64.with_allowed_runtime_versions(
+            JSRuntimeInstallableVersions.get_all_versions()
+        ),
+    ],
+)
 
 DOTNET_APP = WeblogDescriptor(
     "dotnet-app",
@@ -341,5 +353,6 @@ ALL_WEBLOGS = [
     PHP_APP,
     PY_APP,
     JS_APP,
+    JS_COMMAND_LINE,
     DOTNET_APP,
 ]
