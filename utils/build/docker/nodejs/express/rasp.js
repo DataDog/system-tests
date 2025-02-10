@@ -149,6 +149,20 @@ function initRaspEndpoints (app) {
 
     res.send(result)
   })
+
+  app.get('/rasp/multiple', (req, res) => {
+    try {
+      result = JSON.stringify(statSync(req.query.file1))
+      result = JSON.stringify(statSync(req.query.file2))
+      result = JSON.stringify(statSync('../etc/passwd'))
+    } catch (e) {
+      if (e.name === 'DatadogRaspAbortError') {
+        throw e
+      }
+    }
+
+    res.send('OK')
+  })
 }
 
 module.exports = initRaspEndpoints
