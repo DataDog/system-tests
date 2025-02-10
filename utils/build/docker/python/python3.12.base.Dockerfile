@@ -15,6 +15,6 @@ RUN pip install django pycryptodome gunicorn gevent requests boto3==1.34.141 'mo
 RUN curl https://sh.rustup.rs -sSf | sh -s -- --default-toolchain stable -y
 ENV PATH="/root/.cargo/bin:$PATH"
 
-# docker build --progress=plain -f utils/build/docker/python/python3.12.base.Dockerfile -t datadog/system-tests:python3.12.base-v2 .
-# docker push datadog/system-tests:python3.12.base-v2
+# docker build --progress=plain -f utils/build/docker/python/python3.12.base.Dockerfile -t datadog/system-tests:python3.12.base-v6 .
+# docker push datadog/system-tests:python3.12.base-v6
 
