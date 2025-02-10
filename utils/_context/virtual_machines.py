@@ -477,6 +477,7 @@ class Ubuntu24arm64(_VirtualMachine):
             **kwargs,
         )
 
+
 class Ubuntu24_10amd64(_VirtualMachine):
     def __init__(self, **kwargs) -> None:
         super().__init__(
