@@ -44,7 +44,7 @@ class Test_HardcodedSecrets:
         hardcode_secrets = [v for v in hardcode_secrets if v["evidence"]["value"] == "aws-access-token"]
         assert len(hardcode_secrets) == 1
         vuln = hardcode_secrets[0]
-        assert vuln["location"]["path"] == get_expectation(self.location_map)
+        assert vuln["location"]["class"] == get_expectation(self.location_map)
 
 
 @features.iast_sink_hardcoded_secrets
