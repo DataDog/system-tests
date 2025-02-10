@@ -48,6 +48,9 @@ def main(repo_slug: str, run_id: int) -> None:
         failing_steps = defaultdict(list)
 
         for job in jobs:
+            if job["name"] in ("all-jobs-are-green", "fancy-report"):
+                continue
+
             if job["conclusion"] not in ["skipped", "success"]:
                 has_failure = True
 
