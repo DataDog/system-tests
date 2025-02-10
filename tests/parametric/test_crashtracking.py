@@ -62,6 +62,4 @@ class Test_Crashtracking:
             assert "severity" in tags_dict and tags_dict["severity"] == "crash", tags_dict
         else:
             # According to the RFC, si_signo should be set to 11 for SIGSEGV
-            assert "signum" in tags_dict or (
-                "si_signo" in tags_dict and tags_dict["si_signo"] == "11"
-            ), tags_dict
+            assert "signum" in tags_dict or ("si_signo" in tags_dict and tags_dict["si_signo"] == "11"), tags_dict
