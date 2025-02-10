@@ -1419,11 +1419,9 @@ tests/:
     test_remote_config_rule_changes.py:
       Test_BlockingActionChangesWithRemoteConfig:
         '*': v1.42.0
-        play: bug (APPSEC-55789)
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
       Test_UpdateRuleFileWithRemoteConfig:
         '*': v1.42.0
-        play: bug (APPSEC-55791)
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
     test_reports.py:
       Test_AttackTimestamp:
@@ -1477,7 +1475,6 @@ tests/:
     test_suspicious_attacker_blocking.py:
       Test_Suspicious_Attacker_Blocking:
         '*': v1.39.0
-        play: bug (APPSEC-54986)
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
     test_traces.py:
       Test_AppSecEventSpanTags:
