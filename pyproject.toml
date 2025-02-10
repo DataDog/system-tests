@@ -194,7 +194,6 @@ ignore = [
     "D200",      # 52 occurences    [*] fits-on-one-line
     "F405",      # 43 occurences    [ ] undefined-local-with-import-star-usage
     "TRY002",    # 41 occurences    [ ] raise-vanilla-class
-    "PT018",     # 39 occurences    [ ] pytest-composite-assertion
     "N802",      # 39 occurences    [ ] invalid-function-name
     "FBT002",    # 30 occurences    [ ] boolean-default-value-positional-argument
     "D404",      # 25 occurences    [ ] docstring-starts-with-this

@@ -108,7 +108,8 @@ class Test_Span_Links:
         traces = test_agent.wait_for_num_traces(1)
         trace = find_trace(traces, rs.trace_id)
         span = find_span(trace, rs.span_id)
-        assert span_has_no_parent(span) and span.get("trace_id") != 1234567890
+        assert span_has_no_parent(span)
+        assert span.get("trace_id") != 1234567890
         assert span["meta"].get(ORIGIN) is None
 
         span_links = retrieve_span_links(span)
@@ -139,7 +140,8 @@ class Test_Span_Links:
         traces = test_agent.wait_for_num_traces(1)
         trace = find_trace(traces, rs.trace_id)
         span = find_span(trace, rs.span_id)
-        assert span_has_no_parent(span) and span.get("trace_id") != 1234567890
+        assert span_has_no_parent(span)
+        assert span.get("trace_id") != 1234567890
 
         span_links = retrieve_span_links(span)
         assert len(span_links) == 1
@@ -247,7 +249,8 @@ class Test_Span_Links:
         link_w_manual_keep = find_span(trace1, s1.span_id)
         # assert that span link is set up correctly
         span_links = retrieve_span_links(link_w_manual_keep)
-        assert len(span_links) == 1 and span_links[0]["span_id"] == 777
+        assert len(span_links) == 1
+        assert span_links[0]["span_id"] == 777
         # assert that sampling decision is propagated by the span link
         assert link_w_manual_keep["meta"].get("_dd.p.dm") == "-0"
         assert link_w_manual_keep["metrics"].get(SAMPLING_PRIORITY_KEY) == 2
@@ -257,7 +260,8 @@ class Test_Span_Links:
         link_w_manual_drop = find_span(trace2, s2.span_id)
         # assert that span link is set up correctly
         span_links = retrieve_span_links(link_w_manual_drop)
-        assert len(span_links) == 1 and span_links[0]["span_id"] == 17
+        assert len(span_links) == 1
+        assert span_links[0]["span_id"] == 17
         # assert that sampling decision is propagated by the span link
         assert link_w_manual_drop["meta"].get("_dd.p.dm") == "-3"
         assert link_w_manual_drop["metrics"].get(SAMPLING_PRIORITY_KEY) == -1
@@ -267,7 +271,8 @@ class Test_Span_Links:
         linked_to_auto_dropped_span = find_span_in_traces(traces, s3.trace_id, s3.span_id)
         # assert that span link is set up correctly
         span_links = retrieve_span_links(linked_to_auto_dropped_span)
-        assert len(span_links) == 1 and span_links[0]["span_id"] == auto_dropped_span["span_id"]
+        assert len(span_links) == 1
+        assert span_links[0]["span_id"] == auto_dropped_span["span_id"]
         # ensure autodropped span has the set sampling decision
         assert auto_dropped_span["metrics"].get(SAMPLING_PRIORITY_KEY) == 0
         # assert that sampling decision is propagated by the span link
