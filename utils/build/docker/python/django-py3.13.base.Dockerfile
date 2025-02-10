@@ -1,4 +1,4 @@
-FROM python:3.13.1-slim
+FROM python:3.13-slim
 
 # install bin dependancies
 RUN apt-get update && apt-get install -y curl git gcc g++ make cmake
@@ -15,6 +15,6 @@ RUN pip install django pycryptodome gunicorn gevent requests boto3==1.34.141 'mo
 RUN curl https://sh.rustup.rs -sSf | sh -s -- --default-toolchain stable -y
 ENV PATH="/root/.cargo/bin:$PATH"
 
-# docker build --progress=plain -f utils/build/docker/python/django-py3.13.base.Dockerfile -t datadog/system-tests:django-py3.13.base-v0 .
-# docker push datadog/system-tests:django-py3.13.base-v0
+# docker build --progress=plain -f utils/build/docker/python/django-py3.13.base.Dockerfile -t datadog/system-tests:django-py3.13.base-v1 .
+# docker push datadog/system-tests:django-py3.13.base-v1
 
