@@ -51,8 +51,7 @@ class Test_Monitoring:
         self.r_once = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1"})
 
     def test_waf_monitoring_once(self):
-        """
-        Some WAF monitoring span tags and metrics are expected to be sent at
+        """Some WAF monitoring span tags and metrics are expected to be sent at
         least once in a request span at some point
         """
 
@@ -67,8 +66,7 @@ class Test_Monitoring:
         ]
 
         def validate_rules_monitoring_span_tags(span):
-            """
-            Validate the mandatory rules monitoring span tags are added to a request span at some point such as the
+            """Validate the mandatory rules monitoring span tags are added to a request span at some point such as the
             first request or first attack.
             """
 
@@ -109,10 +107,10 @@ class Test_Monitoring:
                     raise Exception("if there are rule errors, there should be rule error details too")
                 try:
                     json.loads(meta[expected_rules_errors_meta_tag])
-                except ValueError:
+                except ValueError as e:
                     raise Exception(
                         f"rule error details should be valid JSON but was `{meta[expected_rules_errors_meta_tag]}`"
-                    )
+                    ) from e
 
             return True
 
@@ -156,8 +154,7 @@ class Test_Monitoring:
 
     @scenarios.appsec_rules_monitoring_with_errors
     def test_waf_monitoring_errors(self):
-        """
-        Some WAF monitoring span tags and metrics are expected to be sent at
+        """Some WAF monitoring span tags and metrics are expected to be sent at
         least once in a request span at some point
         """
 
@@ -178,8 +175,7 @@ class Test_Monitoring:
         expected_error_details = {"missing key 'name'": ["missing-name"], "missing key 'tags'": ["missing-tags"]}
 
         def validate_rules_monitoring_span_tags(span):
-            """
-            Validate the mandatory rules monitoring span tags are added to a request span at some point such as the
+            """Validate the mandatory rules monitoring span tags are added to a request span at some point such as the
             first request or first attack.
             """
 

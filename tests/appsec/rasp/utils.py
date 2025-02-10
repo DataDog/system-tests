@@ -7,7 +7,7 @@ import json
 from utils import interfaces
 
 
-def validate_span_tags(request, expected_meta=[], expected_metrics=[]):
+def validate_span_tags(request, expected_meta=(), expected_metrics=()):
     """Validate RASP span tags are added when an event is generated"""
     spans = [s for _, s in interfaces.library.get_root_spans(request=request)]
     assert spans, "No spans to validate"
@@ -84,20 +84,20 @@ def find_series(is_metrics: bool, namespace, metric):
     return series
 
 
-def validate_metric(name, type, metric):
+def validate_metric(name, metric_type, metric):
     return (
         metric.get("metric") == name
         and metric.get("type") == "count"
-        and f"rule_type:{type}" in metric.get("tags", ())
+        and f"rule_type:{metric_type}" in metric.get("tags", ())
         and any(s.startswith("waf_version:") for s in metric.get("tags", ()))
     )
 
 
-def validate_metric_variant(name, type, variant, metric):
+def validate_metric_variant(name, metric_type, variant, metric):
     return (
         metric.get("metric") == name
         and metric.get("type") == "count"
-        and f"rule_type:{type}" in metric.get("tags", ())
+        and f"rule_type:{metric_type}" in metric.get("tags", ())
         and f"rule_variant:{variant}" in metric.get("tags", ())
         and any(s.startswith("waf_version:") for s in metric.get("tags", ()))
     )

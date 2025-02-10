@@ -3,7 +3,7 @@
 # Copyright 2024 Datadog, Inc.
 
 import json
-from utils import weblog, interfaces, scenarios, features, incomplete_test_app
+from utils import weblog, scenarios, features, incomplete_test_app
 
 
 @features.otel_propagators_api
@@ -28,9 +28,6 @@ class Test_Otel_Context_Propagation_Default_Propagator_Api:
         # assert content["baggage"] and not content["baggage"].isspace()
 
     def setup_propagation_inject(self):
-        inject_headers = {
-            "baggage": "foo=2",
-        }
         self.r = weblog.get("/otel_drop_in_default_propagator_inject")
 
     @incomplete_test_app(library="nodejs", reason="Node.js inject endpoint doesn't seem to be working.")

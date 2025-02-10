@@ -1,10 +1,7 @@
-from operator import le
-from py import test
-from requests import head  # type: ignore
-from utils.parametric.spec.trace import SAMPLING_PRIORITY_KEY, ORIGIN
-from utils.parametric.spec.trace import span_has_no_parent
+from utils._decorators import irrelevant
 from utils.parametric.spec.trace import find_only_span
-from utils import features, scenarios, bug, context
+from utils import features, scenarios, context, missing_feature
+
 from typing import Any
 import pytest
 
@@ -38,10 +35,11 @@ class Test_Headers_Baggage:
         span = find_only_span(test_agent.wait_for_num_traces(1))
         assert span.get("trace_id") == 123456789
         assert span.get("parent_id") == 987654321
-        assert "baggage" in headers.keys()
+        assert "baggage" in headers
         assert headers["baggage"] == "foo=bar"
 
     @only_baggage_enabled()
+    @missing_feature(context.library == "nodejs", reason="pausing on this feature to avoid app crashes")
     def test_headers_baggage_only_D002(self, test_library):
         """Ensure that only baggage headers are injected when baggage is the only enabled propagation style."""
         with test_library:
@@ -49,11 +47,15 @@ class Test_Headers_Baggage:
                 [["x-datadog-trace-id", "123456789"], ["baggage", "foo=bar"]]
             )
 
-        assert "x-datadog-trace-id" not in headers.keys()
-        assert "x-datadog-parent-id" not in headers.keys()
-        assert "baggage" in headers.keys()
+        assert "x-datadog-trace-id" not in headers
+        assert "x-datadog-parent-id" not in headers
+        assert "baggage" in headers
         assert headers["baggage"] == "foo=bar"
 
+    @irrelevant(
+        context.library in ("cpp", "goland", "java", "ruby", "php"),
+        reason="The current default behaviour matches the future baggage disabled behaviour, so we can't activate this test without causing a false easy win",
+    )
     @disable_baggage()
     def test_baggage_disable_settings_D003(self, test_agent, test_library):
         """Ensure that baggage headers are not injected when baggage is disabled and does not interfere with other headers."""
@@ -65,10 +67,10 @@ class Test_Headers_Baggage:
         span = find_only_span(test_agent.wait_for_num_traces(1))
         assert span.get("trace_id") == 123456789
         assert span.get("parent_id") == 987654321
-        assert "baggage" not in headers.keys()
+        assert "baggage" not in headers
 
     def test_baggage_inject_header_D004(self, test_library):
-        """testing baggage header injection, proper concatenation of key value pairs, and encoding"""
+        """Testing baggage header injection, proper concatenation of key value pairs, and encoding"""
         with test_library.dd_start_span(name="test_baggage_set_D004") as span:
             span.set_baggage("foo", "bar")
             span.set_baggage("baz", "qux")
@@ -88,8 +90,11 @@ class Test_Headers_Baggage:
         assert "serverNode=DF%2028" in baggage_items
         assert "%22%2C%3B%5C%28%29%2F%3A%3C%3D%3E%3F%40%5B%5D%7B%7D=%22%2C%3B%5C" in baggage_items
 
+    @missing_feature(
+        context.library == "nodejs", reason="`dd_extract_headers_and_make_child_span` does not work with only baggage"
+    )
     def test_baggage_extract_header_D005(self, test_library):
-        """testing baggage header extraction and decoding"""
+        """Testing baggage header extraction and decoding"""
 
         with test_library.dd_extract_headers_and_make_child_span(
             "test_baggage_extract_header_D005",
@@ -123,6 +128,10 @@ class Test_Headers_Baggage:
             assert span.get_baggage("userId") == "Amélie"
             assert span.get_baggage("serverNode") == "DF 28"
 
+    @irrelevant(
+        context.library in ("cpp", "goland", "java", "ruby", "php"),
+        reason="The current default behaviour matches the future baggage disabled behaviour, so we can't activate this test without causing a false easy win",
+    )
     @disable_baggage()
     def test_baggage_set_disabled_D007(self, test_library):
         """Ensure that baggage headers are not injected when baggage is disabled."""
@@ -133,8 +142,11 @@ class Test_Headers_Baggage:
             headers = test_library.dd_inject_headers(span.span_id)
         assert not any("baggage" in item for item in headers)
 
+    @missing_feature(
+        context.library == "nodejs", reason="`dd_extract_headers_and_make_child_span` does not work with only baggage"
+    )
     def test_baggage_get_D008(self, test_library):
-        """testing baggage API get_baggage"""
+        """Testing baggage API get_baggage"""
         with test_library.dd_extract_headers_and_make_child_span(
             "test_baggage_get_D008", [["baggage", "userId=Am%C3%A9lie,serverNode=DF%2028"]]
         ) as span:
@@ -145,8 +157,11 @@ class Test_Headers_Baggage:
             assert span.get_baggage("userId") == "Amélie"
             assert span.get_baggage("serverNode") == "DF 28"
 
+    @missing_feature(
+        context.library == "nodejs", reason="`dd_extract_headers_and_make_child_span` does not work with only baggage"
+    )
     def test_baggage_get_all_D009(self, test_library):
-        """testing baggage API get_all_baggage"""
+        """Testing baggage API get_all_baggage"""
         with test_library.dd_extract_headers_and_make_child_span(
             "test_baggage_get_all_D009", [["baggage", "foo=bar"]]
         ) as span:
@@ -157,7 +172,7 @@ class Test_Headers_Baggage:
             assert baggage == {"foo": "bar", "baz": "qux", "userId": "Amélie", "serverNode": "DF 28"}
 
     def test_baggage_remove_D010(self, test_library):
-        """testing baggage API remove_baggage"""
+        """Testing baggage API remove_baggage"""
         with test_library.dd_start_span(name="test_baggage_remove_D010") as span:
             span.set_baggage("baz", "qux")
             span.set_baggage("userId", "Amélie")
@@ -169,42 +184,74 @@ class Test_Headers_Baggage:
             assert span.get_all_baggage() == {}
 
     def test_baggage_remove_all_D011(self, test_library):
-        """testing baggage API remove_all_baggage"""
+        """Testing baggage API remove_all_baggage"""
         with test_library.dd_start_span(name="test_baggage_remove_all_D011") as span:
             span.set_baggage("foo", "bar")
             span.set_baggage("baz", "qux")
             span.remove_all_baggage()
             assert span.get_all_baggage() == {}
 
-    def test_baggage_malformed_headers_D012(self, test_library, test_agent):
+    def _assert_valid_baggage(self, test_library):
+        """Helper function to confirm that a valid baggage header is set
+        when calling dd_make_child_span_and_get_headers.
+        """
+        with test_library:
+            headers = test_library.dd_make_child_span_and_get_headers([["baggage", "foo=valid"]])
+            assert "baggage" in headers
+
+    @missing_feature(
+        context.library == "nodejs",
+        reason="`dd_make_child_span_and_get_headers` calls `dd_extract_headers_and_make_child_span`, which does not work with only baggage",
+    )
+    def test_baggage_malformed_headers_D012(self, test_library):
         """Ensure that malformed baggage headers are handled properly. Unable to use get_baggage functions because it does not return anything"""
+        Test_Headers_Baggage._assert_valid_baggage(self, test_library)
+
         with test_library:
             headers = test_library.dd_make_child_span_and_get_headers(
                 [["baggage", "no-equal-sign,foo=gets-dropped-because-previous-pair-is-malformed"]],
             )
 
-            assert "baggage" not in headers.keys()
+            assert "baggage" not in headers
 
+    @missing_feature(
+        context.library == "nodejs",
+        reason="`dd_make_child_span_and_get_headers` calls `dd_extract_headers_and_make_child_span`, which does not work with only baggage",
+    )
     def test_baggage_malformed_headers_D013(self, test_library):
         """Ensure that malformed baggage headers are handled properly. Unable to use get_baggage functions because it does not return anything"""
+        Test_Headers_Baggage._assert_valid_baggage(self, test_library)
+
         with test_library:
             headers = test_library.dd_make_child_span_and_get_headers([["baggage", "=no-key"]])
 
-            assert "baggage" not in headers.keys()
+            assert "baggage" not in headers
 
+    @missing_feature(
+        context.library == "nodejs",
+        reason="`dd_make_child_span_and_get_headers` calls `dd_extract_headers_and_make_child_span`, which does not work with only baggage",
+    )
     def test_baggage_malformed_headers_D014(self, test_library):
+        Test_Headers_Baggage._assert_valid_baggage(self, test_library)
+
         with test_library:
             headers = test_library.dd_make_child_span_and_get_headers([["baggage", "no-value="]])
 
-            assert "baggage" not in headers.keys()
+            assert "baggage" not in headers
 
+    @missing_feature(
+        context.library == "nodejs",
+        reason="`dd_make_child_span_and_get_headers` calls `dd_extract_headers_and_make_child_span`, which does not work with only baggage",
+    )
     def test_baggage_malformed_headers_D015(self, test_library):
+        Test_Headers_Baggage._assert_valid_baggage(self, test_library)
+
         with test_library:
             headers = test_library.dd_make_child_span_and_get_headers(
                 [["baggage", "foo=gets-dropped-because-subsequent-pair-is-malformed,="]],
             )
 
-            assert "baggage" not in headers.keys()
+            assert "baggage" not in headers
 
     def test_baggageheader_maxitems_inject_D016(self, test_library):
         """Ensure that baggage headers are not injected when the number of baggage items exceeds the maximum number of items."""

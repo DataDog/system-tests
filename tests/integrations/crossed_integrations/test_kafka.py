@@ -50,8 +50,7 @@ class _Test_Kafka:
         return topic
 
     def setup_produce(self):
-        """
-        send request A to weblog : this request will produce a kafka message
+        """Send request A to weblog : this request will produce a kafka message
         send request B to library buddy, this request will consume kafka message
         """
         self.production_response = weblog.get(
@@ -89,8 +88,7 @@ class _Test_Kafka:
         assert producer_span["trace_id"] == consumer_span["trace_id"]
 
     def setup_consume(self):
-        """
-        send request A to library buddy : this request will produce a kafka message
+        """Send request A to library buddy : this request will produce a kafka message
         send request B to weblog, this request will consume kafka message
 
         request A: GET /library_buddy/produce_kafka_message
@@ -131,8 +129,7 @@ class _Test_Kafka:
         assert producer_span["trace_id"] == consumer_span["trace_id"]
 
     def validate_kafka_spans(self, producer_interface, consumer_interface, topic):
-        """
-        Validates production/consumption of kafka message.
+        """Validates production/consumption of kafka message.
         It works the same for both test_produce and test_consume
         """
 

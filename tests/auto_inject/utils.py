@@ -1,9 +1,3 @@
-import json
-import os
-import requests
-import time
-import pytest
-import paramiko
 from utils.tools import logger
 from utils.onboarding.weblog_interface import make_get_request, warmup_weblog, make_internal_get_request
 from utils.onboarding.backend_interface import wait_backend_trace_id
@@ -28,7 +22,7 @@ class AutoInjectBaseTest:
         )
         if virtual_machine.krunvm_config is not None and virtual_machine.krunvm_config.stdin is not None:
             logger.info(
-                f"We are testing on krunvm. The request to the weblog will be done using the stdin (inside the microvm)"
+                "We are testing on krunvm. The request to the weblog will be done using the stdin (inside the microvm)"
             )
             request_uuid = make_internal_get_request(virtual_machine.krunvm_config.stdin, vm_port)
         else:
@@ -113,7 +107,7 @@ class AutoInjectBaseTest:
                 logger.info(f"Making a request to weblog [http://{vm_ip}:{vm_port}{app['url']}]")
                 request_uuids.append(make_get_request(f"http://{vm_ip}:{vm_port}{app['url']}"))
         else:
-            logger.info(f"Making a request to weblog [weblog_url]")
+            logger.info(f"Making a request to weblog {weblog_url}")
             request_uuids.append(make_get_request(weblog_url))
 
         try:
@@ -153,8 +147,8 @@ class AutoInjectBaseTest:
                 start_weblog_command = virtual_machine._vm_provision.weblog_installation.remote_command
         else:  # Container
             stop_weblog_command = "sudo -E docker-compose -f docker-compose.yml down"
-            #   On older Docker versions, the network recreation can hang. The solution is to restart Docker.
-            #   https://github.com/docker-archive/classicswarm/issues/1931
+            # On older Docker versions, the network recreation can hang. The solution is to restart Docker.
+            # https://github.com/docker-archive/classicswarm/issues/1931
             start_weblog_command = "sudo systemctl restart docker && sudo -E docker-compose -f docker-compose.yml up --wait --wait-timeout 120"
 
         install_command = "sudo datadog-installer apm instrument"

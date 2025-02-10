@@ -1,12 +1,10 @@
-"""
-Test the crashtracking (RC) feature of the APM libraries.
-"""
+"""Test the crashtracking (RC) feature of the APM libraries."""
 
 import pytest
 import json
 import base64
 
-from utils import bug, context, features, irrelevant, missing_feature, rfc, scenarios, flaky
+from utils import bug, context, features, scenarios
 
 
 @scenarios.parametric

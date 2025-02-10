@@ -15,19 +15,19 @@ def test_version_comparizon():
 
     assert v <= "1.1"
     assert v <= "1.0"
-    assert "1.1" >= v
-    assert "1.0" >= v
+    assert v <= "1.1"
+    assert v <= "1.0"
 
     assert v < "1.1"
-    assert "1.1" > v
+    assert v < "1.1"
 
     assert v >= "0.9"
     assert v >= "1.0"
-    assert "0.9" <= v
-    assert "1.0" <= v
+    assert v >= "0.9"
+    assert v >= "1.0"
 
     assert v > "0.9"
-    assert "0.9" < v
+    assert v > "0.9"
 
     assert str(Version("v1.3.1")) == "1.3.1"
 
@@ -58,7 +58,7 @@ def test_ruby_version():
 
 def test_library_version_comparizon():
     assert LibraryVersion("x", "1.31.1") < "x@1.34.1"
-    assert "x@1.31.1" < LibraryVersion("x", "v1.34.1")
+    assert LibraryVersion("x", "v1.34.1") > "x@1.31.1"
     assert LibraryVersion("x", "1.31.1") < LibraryVersion("x", "v1.34.1")
 
     assert LibraryVersion("python", "1.1.0rc2.dev15+gc41d325d") >= "python@1.1.0rc2.dev"
@@ -136,30 +136,30 @@ def test_library_version():
 
     assert v <= "p@1.1"
     assert v <= "p@1.0"
-    assert "p@1.1" >= v
-    assert "p@1.0" >= v
+    assert v <= "p@1.1"
+    assert v <= "p@1.0"
 
     assert v < "p@1.1"
-    assert "p@1.1" > v
+    assert v < "p@1.1"
 
     assert v >= "p@0.9"
     assert v >= "p@1.0"
-    assert "p@0.9" <= v
-    assert "p@1.0" <= v
+    assert v >= "p@0.9"
+    assert v >= "p@1.0"
 
     assert v > "p@0.9"
-    assert "p@0.9" < v
+    assert v > "p@0.9"
 
     assert (v <= "u@1.0") is False
     assert (v >= "u@1.0") is False
 
-    assert ("u@1.0" <= v) is False
-    assert ("u@1.0" >= v) is False
+    assert (v >= "u@1.0") is False
+    assert (v <= "u@1.0") is False
 
     v = LibraryVersion("p")
 
-    assert ("u@1.0" == v) is False
-    assert ("u@1.0" <= v) is False
+    assert (v == "u@1.0") is False
+    assert (v >= "u@1.0") is False
 
     v = LibraryVersion("python", "0.53.0.dev70+g494e6dc0")
     assert v == "python@0.53.0.dev70+g494e6dc0"

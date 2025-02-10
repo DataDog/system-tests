@@ -165,6 +165,16 @@
             "python": "${workspaceFolder}/venv/bin/python"
         },
         {
+            "name": "Replay APPSEC_STANDALONE scenario",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "pytest",
+            "args": ["-S", "APPSEC_STANDALONE", "-p", "no:warnings", "--replay"],
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "python": "${workspaceFolder}/venv/bin/python"
+        },
+        {
             "name": "Python: Current File",
             "type": "python",
             "request": "launch",
