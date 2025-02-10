@@ -1,5 +1,6 @@
 """Test configuration consistency for features across supported APM SDKs."""
 
+import shlex
 from urllib.parse import urlparse
 import pytest
 from utils import scenarios, features, context, missing_feature, irrelevant, flaky, bug
@@ -379,6 +380,12 @@ class Test_Config_Dogstatsd:
         assert resp["dd_dogstatsd_port"] == "8150"
 
 
+SDK_DEFAULT_STABLE_CONFIG = {
+    "dd_runtime_metrics_enabled": "false",
+    "dd_profiling_enabled": "false",
+    "dd_data_streams_enabled": "false"
+}
+
 @scenarios.parametric
 @features.stable_configuration_support
 @missing_feature(
@@ -388,30 +395,77 @@ class Test_Config_Dogstatsd:
 class Test_Stable_Config_Default:
     """Verify that stable config works as intended"""
 
+    def write_stable_config(self, stable_config, path, test_library):
+        stable_config_content = yaml.dump(stable_config)
+        success, message = test_library.container_exec_run(
+            f"bash -c \"mkdir -p {os.path.dirname(path)} && printf {shlex.quote(stable_config_content)} | tee {path}\""
+        )
+        assert success, message
+
+
     @pytest.mark.parametrize("library_env", [{}])
+    @pytest.mark.parametrize("test", [
+        {
+            "apm_configuration_default": {
+                "DD_PROFILING_ENABLED": True
+            },
+            "expected": {
+                **SDK_DEFAULT_STABLE_CONFIG,
+                "dd_profiling_enabled": "true",
+            }
+        },
+        {
+            "apm_configuration_default": {
+                "DD_RUNTIME_METRICS_ENABLED": True,
+            },
+            "expected": {
+                 **SDK_DEFAULT_STABLE_CONFIG,
+                "dd_runtime_metrics_enabled": "true",
+            }
+        },
+        {
+            "apm_configuration_default": {
+                "DD_DATA_STREAMS_ENABLED": True,
+            },
+            "expected": {
+                 **SDK_DEFAULT_STABLE_CONFIG,
+                "dd_data_streams_enabled": "true",
+            }
+        },
+    ])
     @pytest.mark.parametrize("path", [
         "/etc/datadog-agent/managed/datadog-agent/stable/application_monitoring.yaml",
         "/etc/datadog-agent/application_monitoring.yaml"
     ])
-    def test_default_config(self, test_library, path, library_env):
-        stable_config = yaml.dump({
-            "apm_configuration_default": library_env,
-        }).encode("utf-8")
-
-        success, message = test_library.container_exec_run(
-            f"bash -c \"mkdir -p {os.path.dirname(path)} && printf '{stable_config}' | tee {path}\""
-        )
-        assert success, message
+    def test_default_config(self, test_library, path, library_env, test):
         with test_library:
-            success, message = test_library.container_exec_run(
-                f"bash -c \"mkdir -p {os.path.dirname(path)} && printf '{stable_config}' | tee {path}\""
-            )
-            assert success, message
+            self.write_stable_config({
+                "apm_configuration_default": test["apm_configuration_default"],
+            }, path, test_library)
             test_library.container_restart()
             config = test_library.config()
-            assert (
-                config["dd_service"] == "my-service"
-            ), f"Service name is '{config["dd_service"]}' instead of 'my-service'"
+            assert test["expected"].items() <= config.items()
+
+    @pytest.mark.parametrize("local_cfg,library_env,fleet_cfg,expected", [
+        (
+            {"DD_PROFILING_ENABLED": True},
+            {"DD_PROFILING_ENABLED": False},
+            {},
+            {"dd_profiling_enabled": "false"} # expected
+        ),
+    ])
+    def test_config_precedence(self, test_agent, test_library, local_cfg,library_env,fleet_cfg,expected):
+        with test_library:
+            self.write_stable_config({
+                "apm_configuration_default": local_cfg,
+            }, "/etc/datadog-agent/application_monitoring.yaml", test_library)
+            self.write_stable_config({
+                "apm_configuration_default": fleet_cfg,
+            },  "/etc/datadog-agent/managed/datadog-agent/stable/application_monitoring.yaml", test_library)
+
+            test_library.container_restart()
+            config = test_library.config()
+            assert expected.items() <= config.items()
 
     @pytest.mark.parametrize("library_env", [{"STABLE_CONFIG_SELECTOR": "true", "DD_SERVICE": "not-my-service"}])
     @missing_feature(
@@ -419,7 +473,7 @@ class Test_Stable_Config_Default:
         reason="UST stable config is phase 2",
     )
     def test_config_stable(self, library_env, test_agent, test_library):
-        path = "/etc/datadog-agent/managed/datadog-apm-libraries/stable/libraries_config.yaml"
+        path = "/etc/datadog-agent/managed/datadog-agent/stable/application_monitoring.yaml"
         stable_config = """
 rules:
   - selectors:
