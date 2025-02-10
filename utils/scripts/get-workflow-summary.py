@@ -37,6 +37,8 @@ def get_jobs(session, repo_slug: str, run_id: int) -> list:
 def main(repo_slug: str, run_id: int) -> None:
     environ = get_environ()
 
+    has_failure = False
+
     with requests.Session() as session:
         if "GH_TOKEN" in environ:
             session.headers["Authorization"] = environ["GH_TOKEN"]
@@ -46,6 +48,9 @@ def main(repo_slug: str, run_id: int) -> None:
         failing_steps = defaultdict(list)
 
         for job in jobs:
+            if job["conclusion"] not in ["skipped", "success"]:
+                has_failure = True
+
             if job["conclusion"] != "failure":
                 continue
 
@@ -60,6 +65,9 @@ def main(repo_slug: str, run_id: int) -> None:
                 print(f"* [{job['name']}]({url}#step:{step['number']})")
 
             print()
+
+    if has_failure:
+        sys.exit(1)
 
 
 if __name__ == "__main__":
