@@ -285,7 +285,8 @@
                     "ubuntu20_amd64",
                     "centos_7_amd64",
                     "rhel_7_amd64",
-                    "amazon_linux2"
+                    "amazon_linux2",
+                    "windows"
                 ]
             },
             {
@@ -313,18 +314,29 @@
                 "name": "test-app-nodejs-esm",
                 "exact_os_branches": [
                     "ubuntu24"
+                ],
+                "excluded_os_names": [
+                    "Ubuntu_24_10_amd64",
+                    "Ubuntu_24_10_arm64"
                 ]
             },
             {
-                "name": "test-app-nodejs-container"
+                "name": "test-app-nodejs-container",
+                "excluded_os_branches": [
+                    "windows"
+                ]
             },
             {
-                "name": "test-app-nodejs-alpine"
+                "name": "test-app-nodejs-alpine",
+                "excluded_os_branches": [
+                    "windows"
+                ]
             },
             {
                 "name": "test-app-nodejs-16",
                 "excluded_os_branches": [
-                    "centos_7_amd64"
+                    "centos_7_amd64",
+                    "windows"
                 ]
             },
             {
@@ -337,18 +349,23 @@
         ],
         "java": [
             {
-                "name": "test-app-java"
+                "name": "test-app-java",
+                "excluded_os_branches": [
+                    "windows"
+                ]
             },
             {
                 "name": "test-app-java-container",
                 "excluded_os_names": [
-                    "Ubuntu_23_04_arm64"
+                    "Ubuntu_23_04_arm64",
+                    "windows_server_2022_amd64"
                 ]
             },
             {
                 "name": "test-app-java-alpine",
                 "excluded_os_names": [
-                    "Ubuntu_23_04_arm64"
+                    "Ubuntu_23_04_arm64",
+                    "windows_server_2022_amd64"
                 ]
             },
             {
@@ -356,7 +373,8 @@
                 "excluded_os_branches": [
                     "amazon_linux2",
                     "ubuntu22_arm64",
-                    "amazon_linux2023_arm64"
+                    "amazon_linux2023_arm64",
+                    "windows"
                 ]
             },
             {
@@ -387,7 +405,8 @@
                     "amazon_linux2",
                     "centos_7_amd64",
                     "centos_8_amd64",
-                    "rhel_7_amd64"
+                    "rhel_7_amd64",
+                    "windows"
                 ],
                 "excluded_os_names": [
                     "RedHat_8_6_arm64",
@@ -401,14 +420,21 @@
                     "amazon_linux2",
                     "rhel_7_amd64",
                     "redhat",
-                    "ubuntu23"
+                    "ubuntu23",
+                    "windows"
                 ]
             },
             {
-                "name": "test-app-python-alpine"
+                "name": "test-app-python-alpine",
+                "excluded_os_branches": [
+                    "windows"
+                ]
             },
             {
-                "name": "test-app-python-container"
+                "name": "test-app-python-container",
+                "excluded_os_branches": [
+                    "windows"
+                ]
             },
             {
                 "name": "test-app-python-multialpine",
@@ -462,7 +488,8 @@
                 "name": "test-app-dotnet-container",
                 "excluded_os_names": [
                     "AlmaLinux_8_arm64",
-                    "RedHat_8_6_arm64"
+                    "RedHat_8_6_arm64",
+                    "windows_server_2022_amd64"
                 ]
             },
             {
@@ -503,7 +530,8 @@
                     "alma_linux",
                     "fedora",
                     "debian",
-                    "rhel_7_amd64"
+                    "rhel_7_amd64",
+                    "windows"
                 ],
                 "excluded_os_names": [
                     "RedHat_9_0_amd64",
@@ -515,7 +543,8 @@
             {
                 "name": "test-app-ruby-container",
                 "excluded_os_branches": [
-                    "fedora"
+                    "fedora",
+                    "windows"
                 ]
             },
             {
@@ -544,23 +573,31 @@
                 "name": "test-app-php",
                 "excluded_os_branches": [
                     "centos_7_amd64",
-                    "rhel_7_amd64"
+                    "rhel_7_amd64",
+                    "windows"
                 ],
                 "excluded_os_names": [
                     "OracleLinux_7_9_amd64"
                 ]
             },
             {
-                "name": "test-app-php-alpine"
+                "name": "test-app-php-alpine",
+                "excluded_os_branches": [
+                    "windows"
+                ]
             },
             {
-                "name": "test-app-php-container-83"
+                "name": "test-app-php-container-83",
+                "excluded_os_branches": [
+                    "windows"
+                ]
             },
             {
                 "name": "test-app-php-container-56",
                 "excluded_os_branches": [
                     "amazon_linux2",
-                    "centos_7_amd64"
+                    "centos_7_amd64",
+                    "windows"
                 ]
             },
             {
