@@ -40,7 +40,8 @@ lang_variant:
 
 weblog:
     name: test-app-nodejs
-    #This machines are going to install unsupported versions of nodejs. We use them in the provision_test-app-nodejs-unsupported-defaults
+    #These machines are going to install unsupported versions of nodejs. We use them in the provision_test-app-nodejs-unsupported-defaults
+    #ubuntu 24.04.01: node 18 reports abi=109 when it should be 108
     #ubuntu 22: node 12
     #ubuntu 20: node 10
     #ubuntu 21: node 12
@@ -48,6 +49,7 @@ weblog:
     #rhel_7_amd64: I can't isntall in a standard way
     #amazon_linux2: Using the amazon-linux-extras -  Error: Package: 1:nodejs-16.20.2-1.el7.x86_64 (epel)
     excluded_os_branches: [ubuntu22_amd64, ubuntu22_arm64, ubuntu21, ubuntu20_arm64, ubuntu20_amd64, centos_7_amd64, rhel_7_amd64, amazon_linux2]
+    excluded_os_names: [Ubuntu_24_amd64, Ubuntu_24_arm64]
 
     install: 
       - os_type: linux
