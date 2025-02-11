@@ -19,6 +19,16 @@ class TestHostAutoInjectInstallScript(base.AutoInjectBaseTest):
         context.vm_os_branch == "redhat" and context.vm_os_cpu == "arm64" and context.weblog_variant == "test-app-ruby",
         reason="INPLAT-103",
     )
+    @bug(
+        context.vm_name == "Ubuntu_24_10_amd64" and context.weblog_variant == "test-app-python",
+        reason="INPLAT-103",
+    )
+    @bug(
+        context.vm_name == "Ubuntu_24_10_arm64" and context.weblog_variant == "test-app-python",
+        reason="INPLAT-103",
+    )
+    @missing_feature(context.vm_os_branch == "windows",reason="Not implemented on Windows"
+    ) 
     def test_install(self):
         self._test_install(context.scenario.virtual_machine)
 
@@ -53,6 +63,10 @@ class TestSimpleInstallerAutoInjectManualProfiling(base.AutoInjectBaseTest):
         context.weblog_variant == "test-app-python-alpine",
         reason="PROF-11296",
     )
+    @bug(
+                context.weblog_variant == "test-app-python",
+        reason="INPLAT-479",
+    )
     def test_profiling(self):
         logger.info(f"Launching test_install for : [{context.scenario.virtual_machine.name}]...")
         self._test_install(context.scenario.virtual_machine, profile=True)
@@ -74,6 +88,16 @@ class TestHostAutoInjectInstallScriptProfiling(base.AutoInjectBaseTest):
         context.vm_name == "Ubuntu_24_arm64" and context.weblog_variant == "test-app-nodejs",
         reason="PROF-11264",
     )
+    @bug(
+        context.vm_name == "Ubuntu_24_10_amd64" and context.weblog_variant == "test-app-python",
+        reason="INPLAT-103",
+    )
+    @bug(
+        context.vm_name == "Ubuntu_24_10_arm64" and context.weblog_variant == "test-app-python",
+        reason="INPLAT-103",
+    )
+    @missing_feature(context.vm_os_branch == "windows",reason="Not implemented on Windows"
+    ) 
     def test_profiling(self):
         logger.info(f"Launching test_install for : [{context.scenario.virtual_machine.name}]...")
         self._test_install(context.scenario.virtual_machine, profile=True)
@@ -191,6 +215,14 @@ class TestInstallerAutoInjectManual(base.AutoInjectBaseTest):
         context.vm_os_branch == "redhat" and context.vm_os_cpu == "arm64" and context.weblog_variant == "test-app-ruby",
         reason="INPLAT-103",
     )
+    @bug(
+        context.vm_name == "Ubuntu_24_10_amd64" and context.weblog_variant == "test-app-python",
+        reason="INPLAT-103",
+    )
+    @bug(
+        context.vm_name == "Ubuntu_24_10_arm64" and context.weblog_variant == "test-app-python",
+        reason="INPLAT-103",
+    )
     def test_install_uninstall(self):
         virtual_machine = context.scenario.virtual_machine
         logger.info(f"Launching test_install_uninstall for : [{virtual_machine.name}]...")
@@ -221,6 +253,15 @@ class TestSimpleInstallerAutoInjectManual(base.AutoInjectBaseTest):
         context.vm_os_branch == "redhat" and context.vm_os_cpu == "arm64" and context.weblog_variant == "test-app-ruby",
         reason="INPLAT-103",
     )
+    @bug(
+        context.vm_name == "Ubuntu_24_10_amd64" and context.weblog_variant == "test-app-python",
+        reason="INPLAT-103",
+    )
+    @bug(
+        context.vm_name == "Ubuntu_24_10_arm64" and context.weblog_variant == "test-app-python",
+        reason="INPLAT-103",
+    )
+
     def test_install(self):
         virtual_machine = context.scenario.virtual_machine
         logger.info(

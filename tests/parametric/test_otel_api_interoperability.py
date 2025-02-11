@@ -355,7 +355,7 @@ class Test_Otel_API_Interoperability:
         trace_id = "0000000000000000000000000000002a"  # 42
         parent_id = "0000000000000003"  # 3
         headers = [
-            ("traceparent", "00-%s-%s-01" % (trace_id, parent_id)),
+            ("traceparent", f"00-{trace_id}-{parent_id}-01"),
             ("tracestate", "foo=1"),
         ]
 

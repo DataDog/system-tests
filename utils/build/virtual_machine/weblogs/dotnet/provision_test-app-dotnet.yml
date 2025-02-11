@@ -81,6 +81,18 @@ lang_variant:
         os_distro: rpm
         remote-command: dotnet --info || sudo yum install -y dotnet-sdk-6.0
 
+      - os_type: windows
+        remote-command: |
+          # Install chocolatey
+          Write-Host "Installing Chocolatey..."
+          Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
+          Write-Host "Successfully installed Chocolatey"
+
+          Write-Host "Installing dependencies through Chocolatey..."
+          choco install -y --no-progress dotnet-7.0-sdk dotnet-7.0-aspnetruntime urlrewrite dotnet-aspnetcoremodule-v2
+          Write-Host "Successfully installed dependencies through Chocolatey"
+
+
 weblog:
     name: test-app-dotnet
     #Ubuntu 21 (arm64) excluded due to there is not installable cadidate for dotnet-sdk-6.0
@@ -105,3 +117,9 @@ weblog:
             local_path: utils/build/virtual_machine/weblogs/dotnet/test-app-dotnet/test-app-dotnet_run.sh
 
         remote-command: sh test-app-dotnet_run.sh
+
+      - os_type: windows
+        copy_files:
+          - name: copy-dotnet-app
+            local_path: lib-injection/build/docker/dotnet/dd-lib-dotnet-init-test-app
+        remote-command: dir # TODO: run the app natively

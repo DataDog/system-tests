@@ -613,7 +613,7 @@ class Test_TelemetryV2:
             with open(f"tests/telemetry_intake/static/{filename}.json", encoding="utf-8") as fh:
                 return lowercase_obj(json.load(fh))
 
-        def get_all_keys_and_values(*objs):
+        def get_all_keys_and_values(*objs: tuple[None | dict | list, ...]) -> list:
             result = []
             for obj in objs:
                 if obj is not None:

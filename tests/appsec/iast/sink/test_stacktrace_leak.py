@@ -4,7 +4,7 @@
 
 
 from utils import features, rfc, weblog
-from ..utils import BaseSinkTest, validate_stack_traces
+from tests.appsec.iast.utils import BaseSinkTest, validate_stack_traces
 
 
 @features.iast_stack_trace
