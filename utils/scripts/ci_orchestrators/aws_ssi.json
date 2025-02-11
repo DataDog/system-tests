@@ -427,7 +427,9 @@
                     "amazon_linux2022"
                 ],
                 "excluded_os_names": [
-                    "OracleLinux_7_9_amd64"
+                    "OracleLinux_7_9_amd64",
+                    "Ubuntu_24_10_amd64",
+                    "Ubuntu_24_10_arm64"
                 ]
             },
             {
@@ -465,7 +467,9 @@
                 ],
                 "excluded_os_names": [
                     "RedHat_9_0_amd64",
-                    "RedHat_9_0_arm64"
+                    "RedHat_9_0_arm64",
+                    "Ubuntu_24_10_amd64",
+                    "Ubuntu_24_10_arm64"
                 ]
             },
             {
