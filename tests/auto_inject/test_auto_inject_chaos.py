@@ -96,6 +96,8 @@ class TestAutoInjectChaos(BaseAutoInjectChaos):
                 "vm_branch": "windows",
                 "reason": "APMON-9999",
             },  # Windows is not supported. Change to missing_feature after merge
+            {"vm_name": "Ubuntu_24_10_amd64", "weblog_variant": "test-app-python", "reason": "INPLAT-478"},
+            {"vm_name": "Ubuntu_24_10_arm64", "weblog_variant": "test-app-python", "reason": "INPLAT-478"},
         ]
     )
     def test_install_after_ld_preload(self, virtual_machine):
@@ -114,6 +116,8 @@ class TestAutoInjectChaos(BaseAutoInjectChaos):
                 "vm_branch": "windows",
                 "reason": "APMON-9999",
             },  # Windows is not supported. Change to missing_feature after merge
+            {"vm_name": "Ubuntu_24_10_amd64", "weblog_variant": "test-app-python", "reason": "INPLAT-478"},
+            {"vm_name": "Ubuntu_24_10_arm64", "weblog_variant": "test-app-python", "reason": "INPLAT-478"},
         ]
     )
     def test_remove_ld_preload(self, virtual_machine):
