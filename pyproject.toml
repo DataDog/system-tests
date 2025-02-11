@@ -210,7 +210,6 @@ ignore = [
     "S105",      # 10 occurences    [ ] hardcoded-password-string
     "RET503",    # 9 occurences     [*] implicit-return
     "SIM115",    # 9 occurences     [ ] open-file-with-context-handler
-    "PGH004",    # 9 occurences     [ ] blanket-noqa
     "RUF001",    # 9 occurences     [ ] ambiguous-unicode-character-string
     "RUF015",    # 9 occurences     [*] unnecessary-iterable-allocation-for-first-element
     "SIM108",    # 8 occurences     [*] if-else-block-instead-of-if-exp
