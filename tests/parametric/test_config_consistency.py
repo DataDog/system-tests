@@ -387,6 +387,7 @@ SDK_DEFAULT_STABLE_CONFIG = {
     "dd_logs_injection": "false" if context.library != "java" else "true",
 }
 
+
 @scenarios.parametric
 @features.stable_configuration_support
 @missing_feature(
