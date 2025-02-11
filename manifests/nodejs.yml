@@ -46,6 +46,7 @@ refs:
   - &ref_5_33_0 '>=5.33.0'
   - &ref_5_34_0 '>=5.34.0'
   - &ref_5_35_0 '>=5.35.0'
+  - &ref_5_37_0 '>=5.37.0'
 
 tests/:
   apm_tracing_e2e/:
@@ -98,7 +99,9 @@ tests/:
           TestCodeInjection:
             '*': *ref_5_20_0
             nextjs: missing_feature
-          TestCodeInjection_ExtendedLocation: missing_feature
+          TestCodeInjection_ExtendedLocation:
+            '*': *ref_5_37_0
+            nextjs: missing_feature
           TestCodeInjection_StackTrace:
             '*': *ref_5_33_0
             nextjs: missing_feature
@@ -106,19 +109,25 @@ tests/:
           TestCommandInjection:
             '*': *ref_3_11_0
             nextjs: missing_feature
-          TestCommandInjection_ExtendedLocation: missing_feature
+          TestCommandInjection_ExtendedLocation:
+            '*': *ref_5_37_0
+            nextjs: missing_feature
           TestCommandInjection_StackTrace:
             '*': *ref_5_33_0
             nextjs: missing_feature
         test_email_html_injection.py:
           TestEmailHtmlInjection: missing_feature
-          TestEmailHtmlInjection_ExtendedLocation: missing_feature
+          TestEmailHtmlInjection_ExtendedLocation:
+            '*': *ref_5_37_0
+            nextjs: missing_feature
           TestEmailHtmlInjection_StackTrace: missing_feature
         test_hardcoded_passwords.py:
           Test_HardcodedPasswords:
             '*': *ref_5_13_0
             nextjs: missing_feature
-          Test_HardcodedPasswords_ExtendedLocation: missing_feature
+          Test_HardcodedPasswords_ExtendedLocation:
+            '*': *ref_5_37_0
+            nextjs: missing_feature
           Test_HardcodedPasswords_StackTrace: missing_feature
         test_hardcoded_secrets.py:
           Test_HardcodedSecrets:
@@ -127,7 +136,9 @@ tests/:
           Test_HardcodedSecretsExtended:
             '*': *ref_5_11_0
             nextjs: missing_feature
-          Test_HardcodedSecrets_ExtendedLocation: missing_feature
+          Test_HardcodedSecrets_ExtendedLocation:
+            '*': *ref_5_37_0
+            nextjs: missing_feature
           Test_HardcodedSecrets_StackTrace: missing_feature
         test_header_injection.py:
           TestHeaderInjection:
@@ -149,7 +160,9 @@ tests/:
             '*': *ref_5_26_0
             express5: *ref_5_29_0 # test uses querystring
             nextjs: missing_feature
-          TestHeaderInjection_ExtendedLocation: missing_feature
+          TestHeaderInjection_ExtendedLocation:
+            '*': *ref_5_37_0
+            nextjs: missing_feature
           TestHeaderInjection_StackTrace:
             '*': *ref_5_33_0
             nextjs: missing_feature
@@ -157,11 +170,15 @@ tests/:
           Test_HstsMissingHeader:
             '*': *ref_4_8_0
             nextjs: missing_feature
-          Test_HstsMissingHeader_ExtendedLocation: missing_feature
+          Test_HstsMissingHeader_ExtendedLocation:
+            '*': *ref_5_37_0
+            nextjs: missing_feature
           Test_HstsMissingHeader_StackTrace: missing_feature
         test_insecure_auth_protocol.py:
           Test_InsecureAuthProtocol: missing_feature
-          Test_InsecureAuthProtocol_ExtendedLocation: missing_feature
+          Test_InsecureAuthProtocol_ExtendedLocation:
+            '*': *ref_5_37_0
+            nextjs: missing_feature
           Test_InsecureAuthProtocol_StackTrace: missing_feature
         test_insecure_cookie.py:
           TestInsecureCookie:
@@ -170,7 +187,9 @@ tests/:
           TestInsecureCookieNameFilter:
             '*': *ref_5_24_0
             nextjs: missing_feature
-          TestInsecureCookie_ExtendedLocation: missing_feature
+          TestInsecureCookie_ExtendedLocation:
+            '*': *ref_5_37_0
+            nextjs: missing_feature
           TestInsecureCookie_StackTrace:
             '*': *ref_5_33_0
             nextjs: missing_feature
@@ -178,7 +197,9 @@ tests/:
           TestLDAPInjection:
             '*': *ref_4_1_0
             nextjs: missing_feature
-          TestLDAPInjection_ExtendedLocation: missing_feature
+          TestLDAPInjection_ExtendedLocation:
+            '*': *ref_5_37_0
+            nextjs: missing_feature
           TestLDAPInjection_StackTrace:
             '*': *ref_5_33_0
             nextjs: missing_feature
@@ -189,7 +210,9 @@ tests/:
           TestNoHttponlyCookieNameFilter:
             '*': *ref_5_24_0
             nextjs: missing_feature
-          TestNoHttponlyCookie_ExtendedLocation: missing_feature
+          TestNoHttponlyCookie_ExtendedLocation:
+            '*': *ref_5_37_0
+            nextjs: missing_feature
           TestNoHttponlyCookie_StackTrace:
             '*': *ref_5_33_0
             nextjs: missing_feature
@@ -200,7 +223,9 @@ tests/:
           TestNoSamesiteCookieNameFilter:
             '*': *ref_5_24_0
             nextjs: missing_feature
-          TestNoSamesiteCookie_ExtendedLocation: missing_feature
+          TestNoSamesiteCookie_ExtendedLocation:
+            '*': *ref_5_37_0
+            nextjs: missing_feature
           TestNoSamesiteCookie_StackTrace:
             '*': *ref_5_33_0
             nextjs: missing_feature
@@ -208,7 +233,9 @@ tests/:
           TestNoSqlMongodbInjection:
             '*': *ref_4_17_0
             nextjs: missing_feature
-          TestNoSqlMongodbInjection_ExtendedLocation: missing_feature
+          TestNoSqlMongodbInjection_ExtendedLocation:
+            '*': *ref_5_37_0
+            nextjs: missing_feature
           TestNoSqlMongodbInjection_StackTrace:
             '*': *ref_5_33_0
             nextjs: missing_feature
@@ -216,19 +243,25 @@ tests/:
           TestPathTraversal:
             '*': *ref_3_19_0
             nextjs: missing_feature
-          TestPathTraversal_ExtendedLocation: missing_feature
+          TestPathTraversal_ExtendedLocation:
+            '*': *ref_5_37_0
+            nextjs: missing_feature
           TestPathTraversal_StackTrace:
             '*': *ref_5_33_0
             nextjs: missing_feature
         test_reflection_injection.py:
           TestReflectionInjection: missing_feature
-          TestReflectionInjection_ExtendedLocation: missing_feature
+          TestReflectionInjection_ExtendedLocation:
+            '*': *ref_5_37_0
+            nextjs: missing_feature
           TestReflectionInjection_StackTrace: missing_feature
         test_sql_injection.py:
           TestSqlInjection:
             '*': *ref_3_11_0
             nextjs: missing_feature
-          TestSqlInjection_ExtendedLocation: missing_feature
+          TestSqlInjection_ExtendedLocation:
+            '*': *ref_5_37_0
+            nextjs: missing_feature
           TestSqlInjection_StackTrace:
             '*': *ref_5_33_0
             nextjs: missing_feature
@@ -236,7 +269,9 @@ tests/:
           TestSSRF:
             '*': *ref_4_1_0
             nextjs: missing_feature
-          TestSSRF_ExtendedLocation: missing_feature
+          TestSSRF_ExtendedLocation:
+            '*': *ref_5_37_0
+            nextjs: missing_feature
           TestSSRF_StackTrace:
             '*': *ref_5_33_0
             nextjs: missing_feature
@@ -247,16 +282,22 @@ tests/:
           TestTemplateInjection:
             '*': *ref_5_26_0
             nextjs: missing_feature
-          TestTemplateInjection_ExtendedLocation: missing_feature
+          TestTemplateInjection_ExtendedLocation:
+            '*': *ref_5_37_0
+            nextjs: missing_feature
         test_trust_boundary_violation.py:
           Test_TrustBoundaryViolation: missing_feature
-          Test_TrustBoundaryViolation_ExtendedLocation: missing_feature
+          Test_TrustBoundaryViolation_ExtendedLocation:
+            '*': *ref_5_37_0
+            nextjs: missing_feature
           Test_TrustBoundaryViolation_StackTrace: missing_feature
         test_untrusted_deserialization.py:
           TestUntrustedDeserialization:
             '*': *ref_5_32_0
             nextjs: missing_feature
-          TestUntrustedDeserialization_ExtendedLocation: missing_feature
+          TestUntrustedDeserialization_ExtendedLocation:
+            '*': *ref_5_37_0
+            nextjs: missing_feature
           TestUntrustedDeserialization_StackTrace:
             '*': *ref_5_32_0
             nextjs: missing_feature
@@ -264,26 +305,34 @@ tests/:
           TestUnvalidatedHeader:
             '*': *ref_4_3_0
             nextjs: missing_feature
-          TestUnvalidatedHeader_ExtendedLocation: missing_feature
+          TestUnvalidatedHeader_ExtendedLocation:
+            '*': *ref_5_37_0
+            nextjs: missing_feature
           TestUnvalidatedHeader_StackTrace:
             '*': *ref_5_33_0
             nextjs: missing_feature
           TestUnvalidatedRedirect:
             '*': *ref_4_3_0
             nextjs: missing_feature
-          TestUnvalidatedRedirect_ExtendedLocation: missing_feature
+          TestUnvalidatedRedirect_ExtendedLocation:
+            '*': *ref_5_37_0
+            nextjs: missing_feature
           TestUnvalidatedRedirect_StackTrace:
             '*': *ref_5_33_0
             nextjs: missing_feature
         test_unvalidated_redirect_forward.py:
           TestUnvalidatedForward: missing_feature
-          TestUnvalidatedForward_ExtendedLocation: missing_feature
+          TestUnvalidatedForward_ExtendedLocation:
+            '*': *ref_5_37_0
+            nextjs: missing_feature
           TestUnvalidatedForward_StackTrace: missing_feature
         test_weak_cipher.py:
           TestWeakCipher:
             '*': *ref_3_6_0
             nextjs: missing_feature
-          TestWeakCipher_ExtendedLocation: missing_feature
+          TestWeakCipher_ExtendedLocation:
+            '*': *ref_5_37_0
+            nextjs: missing_feature
           TestWeakCipher_StackTrace:
             '*': *ref_5_33_0
             nextjs: missing_feature
@@ -294,7 +343,9 @@ tests/:
           TestWeakHash:
             '*': *ref_3_11_0
             nextjs: missing_feature
-          TestWeakHash_ExtendedLocation: missing_feature
+          TestWeakHash_ExtendedLocation:
+            '*': *ref_5_37_0
+            nextjs: missing_feature
           TestWeakHash_StackTrace:
             '*': *ref_5_33_0
             nextjs: missing_feature
@@ -302,7 +353,9 @@ tests/:
           TestWeakRandomness:
             '*': *ref_5_1_0
             nextjs: missing_feature
-          TestWeakRandomness_ExtendedLocation: missing_feature
+          TestWeakRandomness_ExtendedLocation:
+            '*': *ref_5_37_0
+            nextjs: missing_feature
           TestWeakRandomness_StackTrace:
             '*': *ref_5_33_0
             nextjs: missing_feature
@@ -310,15 +363,21 @@ tests/:
           Test_XContentSniffing:
             '*': *ref_4_8_0
             nextjs: missing_feature
-          Test_XContentSniffing_ExtendedLocation: missing_feature
+          Test_XContentSniffing_ExtendedLocation:
+            '*': *ref_5_37_0
+            nextjs: missing_feature
           Test_XContentSniffing_StackTrace: missing_feature
         test_xpath_injection.py:
           TestXPathInjection: missing_feature
-          TestXPathInjection_ExtendedLocation: missing_feature
+          TestXPathInjection_ExtendedLocation:
+            '*': *ref_5_37_0
+            nextjs: missing_feature
           TestXPathInjection_StackTrace: missing_feature
         test_xss.py:
           TestXSS: missing_feature
-          TestXSS_ExtendedLocation: missing_feature
+          TestXSS_ExtendedLocation:
+            '*': *ref_5_37_0
+            nextjs: missing_feature
           TestXSS_StackTrace: missing_feature
       source/:
         test_body.py:
