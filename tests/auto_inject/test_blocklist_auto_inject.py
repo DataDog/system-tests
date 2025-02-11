@@ -34,7 +34,7 @@ class _AutoInjectBlockListBaseTest:
 @features.host_block_list
 @scenarios.installer_auto_injection
 class TestAutoInjectBlockListInstallManualHost(_AutoInjectBlockListBaseTest):
-    buildIn_args_commands_block = {
+    builtin_args_commands_block = {
         "java": ["java -version", "MY_ENV_VAR=hello java -version"],
         "donet": [
             "dotnet restore",
@@ -44,7 +44,7 @@ class TestAutoInjectBlockListInstallManualHost(_AutoInjectBlockListBaseTest):
         ],
     }
 
-    buildIn_args_commands_injected = {
+    builtin_args_commands_injected = {
         "java": [
             "java -jar myjar.jar",
             "sudo -E java -jar myjar.jar",
@@ -60,7 +60,7 @@ class TestAutoInjectBlockListInstallManualHost(_AutoInjectBlockListBaseTest):
         ],
     }
 
-    buildIn_commands_not_injected = [
+    builtin_commands_not_injected = [
         "ps -fea",
         "touch myfile.txt",
         "hello=hola cat myfile.txt",
@@ -86,7 +86,7 @@ class TestAutoInjectBlockListInstallManualHost(_AutoInjectBlockListBaseTest):
         """Check that commands are skipped from the auto injection. This commands are defined on the buildIn processes to block"""
         logger.info(f"[{virtual_machine.get_ip()}] Executing commands that should be blocked")
         ssh_client = virtual_machine.ssh_config.get_ssh_connection()
-        for command in self.buildIn_commands_not_injected:
+        for command in self.builtin_commands_not_injected:
             local_log_file = self._execute_remote_command(ssh_client, command)
             assert command_injection_skipped(command, local_log_file), f"The command {command} was instrumented!"
 
@@ -108,9 +108,9 @@ class TestAutoInjectBlockListInstallManualHost(_AutoInjectBlockListBaseTest):
         """Check that we are blocking command with args. These args are defined in the buildIn args ignore list for each language."""
         logger.info(f"[{virtual_machine.get_ip()}] Executing test_builtIn_block_args")
         language = context.scenario.library.library
-        if language in self.buildIn_args_commands_block:
+        if language in self.builtin_args_commands_block:
             ssh_client = virtual_machine.ssh_config.get_ssh_connection()
-            for command in self.buildIn_args_commands_block[language]:
+            for command in self.builtin_args_commands_block[language]:
                 local_log_file = self._execute_remote_command(ssh_client, command)
                 assert command_injection_skipped(command, local_log_file), f"The command {command} was instrumented!"
 
@@ -132,9 +132,9 @@ class TestAutoInjectBlockListInstallManualHost(_AutoInjectBlockListBaseTest):
         """Check that we are instrumenting the command with args that it should be instrumented. The args are not included on the buildIn args list"""
         logger.info(f"[{virtual_machine.get_ip()}] Executing test_builtIn_instrument_args")
         language = context.scenario.library.library
-        if language in self.buildIn_args_commands_injected:
+        if language in self.builtin_args_commands_injected:
             ssh_client = virtual_machine.ssh_config.get_ssh_connection()
-            for command in self.buildIn_args_commands_injected[language]:
+            for command in self.builtin_args_commands_injected[language]:
                 local_log_file = self._execute_remote_command(ssh_client, command)
                 assert (
                     command_injection_skipped(command, local_log_file) is False
