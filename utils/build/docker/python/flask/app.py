@@ -71,6 +71,7 @@ import ddtrace
 from ddtrace.trace import Pin
 from ddtrace.trace import tracer
 from ddtrace.appsec import trace_utils as appsec_trace_utils
+from ddtrace.appsec.iast import ddtrace_iast_flask_patch
 from ddtrace.internal.datastreams import data_streams_processor
 from ddtrace.internal.datastreams.processor import DsmPathwayCodec
 from ddtrace.data_streams import set_consume_checkpoint
@@ -81,6 +82,9 @@ from exception_replay_controller import exception_replay_blueprint
 
 # Patch kombu and urllib3 since they are not patched automatically
 ddtrace.patch_all(kombu=True, urllib3=True)
+
+# IAST Flask patch
+ddtrace_iast_flask_patch()
 
 try:
     from ddtrace.contrib.trace_utils import set_user
