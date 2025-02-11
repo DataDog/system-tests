@@ -13,6 +13,8 @@ class TestHostAutoInjectInstallScript(base.AutoInjectBaseTest):
             {"vm_branch": "amazon_linux2", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
             {"vm_branch": "centos_7_amd64", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
             {"vm_branch": "redhat", "vm_cpu": "arm64", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
+            {"vm_name": "Ubuntu24_10amd64", "weblog_variant": "test-app-python", "reason": "INPLAT-478"},
+            {"vm_name": "Ubuntu24_10arm64", "weblog_variant": "test-app-python", "reason": "INPLAT-478"},
         ]
     )
     def test_install(self, virtual_machine):
@@ -37,6 +39,7 @@ class TestSimpleInstallerAutoInjectManualProfiling(base.AutoInjectBaseTest):
             {"vm_name": "Ubuntu_24_amd64", "weblog-variant": "test-app-nodejs", "reason": "PROF-11264"},
             {"vm_name": "Ubuntu_24_arm64", "weblog-variant": "test-app-nodejs", "reason": "PROF-11264"},
             {"weblog_variant": "test-app-python-alpine", "reason": "PROF-11296"},
+            {"weblog_variant": "test-app-python", "reason": "INPLAT-479"},
         ]
     )
     def test_profiling(self, virtual_machine):
@@ -53,6 +56,8 @@ class TestHostAutoInjectInstallScriptProfiling(base.AutoInjectBaseTest):
             {"vm_cpu": "arm64", "weblog_variant": "test-app-dotnet", "reason": "PROF-10783"},
             {"vm_name": "Ubuntu_24_amd64", "weblog-variant": "test-app-nodejs", "reason": "PROF-11264"},
             {"vm_name": "Ubuntu_24_arm64", "weblog-variant": "test-app-nodejs", "reason": "PROF-11264"},
+            {"vm_name": "Ubuntu24_10amd64", "weblog_variant": "test-app-python", "reason": "INPLAT-478"},
+            {"vm_name": "Ubuntu24_10arm64", "weblog_variant": "test-app-python", "reason": "INPLAT-478"},
         ]
     )
     def test_profiling(self, virtual_machine):
@@ -158,6 +163,8 @@ class TestInstallerAutoInjectManual(base.AutoInjectBaseTest):
             {"vm_branch": "amazon_linux2", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
             {"vm_branch": "centos_7_amd64", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
             {"vm_branch": "redhat", "vm_cpu": "arm64", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
+            {"vm_name": "Ubuntu24_10amd64", "weblog_variant": "test-app-python", "reason": "INPLAT-478"},
+            {"vm_name": "Ubuntu24_10arm64", "weblog_variant": "test-app-python", "reason": "INPLAT-478"},
         ]
     )
     def test_install_uninstall(self, virtual_machine):
@@ -178,6 +185,8 @@ class TestSimpleInstallerAutoInjectManual(base.AutoInjectBaseTest):
             {"vm_branch": "amazon_linux2", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
             {"vm_branch": "centos_7_amd64", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
             {"vm_branch": "redhat", "vm_cpu": "arm64", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
+            {"vm_name": "Ubuntu24_10amd64", "weblog_variant": "test-app-python", "reason": "INPLAT-478"},
+            {"vm_name": "Ubuntu24_10arm64", "weblog_variant": "test-app-python", "reason": "INPLAT-478"},
         ]
     )
     def test_install(self, virtual_machine):
