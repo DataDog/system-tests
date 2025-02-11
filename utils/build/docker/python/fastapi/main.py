@@ -716,6 +716,7 @@ async def view_iast_ssrf_insecure(url: typing.Annotated[str, Form()]):
 
     return "OK"
 
+
 @app.get("/iast/stack_trace_leak/test_insecure", response_class=PlainTextResponse)
 async def stacktrace_leak_insecure(request: Request):
     return PlainTextResponse(

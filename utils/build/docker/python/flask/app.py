@@ -1405,7 +1405,8 @@ raise ValueError("Constraint violation at step 9")
 ValueError: Constraint violation at step 9
 
 Lorem Ipsum Foobar
-""")
+"""
+    )
 
 
 @app.route("/iast/stack_trace_leak/test_secure")
