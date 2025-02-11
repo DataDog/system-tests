@@ -188,7 +188,6 @@ ignore = [
     "ARG002",    # 177 occurences   [ ] unused-method-argument
     "E501",      # 159 occurences   [ ] line-too-long
     "SIM117",    # 127 occurences   [ ] multiple-with-statements
-    "TID252",    # 77 occurences    [*] relative-imports
     "N806",      # 76 occurences    [ ] non-lowercase-variable-in-function
     "FBT003",    # 67 occurences    [ ] boolean-positional-value-in-call
     "D200",      # 52 occurences    [*] fits-on-one-line

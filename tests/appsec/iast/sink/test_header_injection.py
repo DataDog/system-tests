@@ -3,7 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 from utils import context, features, missing_feature, rfc, weblog
-from ..utils import BaseSinkTest, validate_extended_location_data, validate_stack_traces, assert_iast_vulnerability
+from tests.appsec.iast.utils import BaseSinkTest, validate_extended_location_data, validate_stack_traces, assert_iast_vulnerability
 
 
 class _BaseTestHeaderInjectionReflectedExclusion:
