@@ -99,7 +99,7 @@ class TestAutoInjectChaos(BaseAutoInjectChaos):
         reason="LD library failures impact on the docker engine, causes flakiness",
     )
     @bug(context.vm_name in ["Ubuntu_24_10_amd64", "Ubuntu_24_10_arm64"], reason="INPLAT-478")
-    @missing_feature(context.vm_branch == "windows", reason="Not implemented on Windows")
+    @missing_feature(context.vm_os_branch == "windows", reason="Not implemented on Windows")
     def test_install_after_ld_preload(self):
         """We added entries to the ld.so.preload. After that, we can install the dd software and the app should be instrumented."""
         virtual_machine = context.scenario.virtual_machine
@@ -120,7 +120,7 @@ class TestAutoInjectChaos(BaseAutoInjectChaos):
         reason="INPLAT-103",
     )
     @bug(context.vm_name in ["Ubuntu_24_10_amd64", "Ubuntu_24_10_arm64"], reason="INPLAT-478")
-    @missing_feature(context.vm_branch == "windows", reason="Not implemented on Windows")
+    @missing_feature(context.vm_os_branch == "windows", reason="Not implemented on Windows")
     def test_remove_ld_preload(self):
         """We added entries to the ld.so.preload. After that, we can remove the entries and the app should be instrumented."""
         virtual_machine = context.scenario.virtual_machine
