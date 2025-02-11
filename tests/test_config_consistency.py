@@ -574,7 +574,7 @@ class Test_Config_RuntimeMetrics_Enabled:
             for _, metric in interfaces.agent.get_metrics()
             if metric["metric"].startswith("runtime.") or metric["metric"].startswith("jvm.")
         ]
-        
+
         runtime_metrics_sketches = [
             metric
             for _, metric in interfaces.agent.get_sketches()
@@ -619,7 +619,7 @@ class Test_Config_RuntimeMetrics_Enabled_WithRuntimeId:
             for _, metric in interfaces.agent.get_metrics()
             if metric["metric"].startswith("runtime.") or metric["metric"].startswith("jvm.")
         ]
-        
+
         runtime_metrics_sketches = [
             metric
             for _, metric in interfaces.agent.get_sketches()
@@ -656,7 +656,7 @@ class Test_Config_RuntimeMetrics_Default:
             for _, metric in interfaces.agent.get_metrics()
             if metric["metric"].startswith("runtime.") or metric["metric"].startswith("jvm.")
         ]
-        
+
         runtime_metrics_sketches = [
             metric
             for _, metric in interfaces.agent.get_sketches()
