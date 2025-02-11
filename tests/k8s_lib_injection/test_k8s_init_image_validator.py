@@ -14,7 +14,8 @@ class _BaseTestK8sInitImageValidator:
         logger.info("[Check traces] Checking traces:")
         response = requests.get("http://localhost:8126/test/traces")
         traces_json = response.json()
-        assert traces_json is not None and len(traces_json) > 0, "No traces found"
+        assert traces_json is not None, "No traces found"
+        assert len(traces_json) > 0, "No traces found"
         return traces_json
 
     @retry(delay=5, tries=20)
