@@ -240,6 +240,9 @@ tests/:
           TestSSRF_StackTrace:
             '*': *ref_5_33_0
             nextjs: missing_feature
+        test_stacktrace_leak.py:
+          TestStackTraceLeak: missing_feature
+          TestStackTraceLeak_StackTrace: missing_feature
         test_template_injection.py:
           TestTemplateInjection:
             '*': *ref_5_26_0
