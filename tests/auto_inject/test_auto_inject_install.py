@@ -13,6 +13,8 @@ class TestHostAutoInjectInstallScript(base.AutoInjectBaseTest):
             {"vm_branch": "amazon_linux2", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
             {"vm_branch": "centos_7_amd64", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
             {"vm_branch": "redhat", "vm_cpu": "arm64", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
+            # Windows is not supported. Change to missing_feature after merge
+            {"vm_branch": "windows", "reason": "APMON-9999"},
             {"vm_name": "Ubuntu_24_10_amd64", "weblog_variant": "test-app-python", "reason": "INPLAT-478"},
             {"vm_name": "Ubuntu_24_10_arm64", "weblog_variant": "test-app-python", "reason": "INPLAT-478"},
         ]
@@ -56,6 +58,8 @@ class TestHostAutoInjectInstallScriptProfiling(base.AutoInjectBaseTest):
             {"vm_cpu": "arm64", "weblog_variant": "test-app-dotnet", "reason": "PROF-10783"},
             {"vm_name": "Ubuntu_24_amd64", "weblog-variant": "test-app-nodejs", "reason": "PROF-11264"},
             {"vm_name": "Ubuntu_24_arm64", "weblog-variant": "test-app-nodejs", "reason": "PROF-11264"},
+            # Windows is not supported. Change to missing_feature after merge
+            {"vm_branch": "windows", "reason": "APMON-9999"},
             {"vm_name": "Ubuntu_24_10_amd64", "weblog_variant": "test-app-python", "reason": "INPLAT-478"},
             {"vm_name": "Ubuntu_24_10_arm64", "weblog_variant": "test-app-python", "reason": "INPLAT-478"},
         ]

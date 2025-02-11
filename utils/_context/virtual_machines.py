@@ -970,3 +970,21 @@ class Fedora37arm64(_VirtualMachine):
             default_vm=False,
             **kwargs,
         )
+
+
+class Windows2022amd64(_VirtualMachine):
+    def __init__(self, **kwargs) -> None:
+        super().__init__(
+            "windows_server_2022_amd64",
+            aws_config=_AWSConfig(
+                ami_id="AMI_FROM_SSM", ami_instance_type="t3.medium", user="Administrator", volume_size=30
+            ),
+            vagrant_config=None,
+            krunvm_config=None,
+            os_type="windows",
+            os_distro="2022",
+            os_branch="windows",
+            os_cpu="amd64",
+            default_vm=True,
+            **kwargs,
+        )
