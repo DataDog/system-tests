@@ -894,7 +894,9 @@ public class App {
         HashMap<String, String> request_headers = new HashMap<>();
         List<String> headers = Collections.list(request.getHeaderNames());
         for (String headerName : headers) {
-            request_headers.put(headerName, request.getHeader(headerName));
+            if (headerName != null) {
+                request_headers.put(headerName, request.getHeader(headerName));
+            }
         }
 
         // Save response headers and status code
