@@ -30,7 +30,7 @@ class _StringLists:
     def unicode(self):
         result = []
 
-        def append(*args):
+        def append(*args: tuple):
             value = bytes(args).decode()
             result.append(value)
 
