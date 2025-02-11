@@ -83,9 +83,6 @@ from exception_replay_controller import exception_replay_blueprint
 # Patch kombu and urllib3 since they are not patched automatically
 ddtrace.patch_all(kombu=True, urllib3=True)
 
-# IAST Flask patch
-ddtrace_iast_flask_patch()
-
 try:
     from ddtrace.contrib.trace_utils import set_user
 except ImportError:
@@ -116,11 +113,19 @@ del AIOMYSQL_CONFIG["database"]
 MARIADB_CONFIG = dict(AIOMYSQL_CONFIG)
 MARIADB_CONFIG["collation"] = "utf8mb4_unicode_520_ci"
 
-app = Flask(__name__)
-app.secret_key = "SECRET_FOR_TEST"
-app.config["SESSION_TYPE"] = "memcached"
-app.register_blueprint(debugger_blueprint)
-app.register_blueprint(exception_replay_blueprint)
+
+def main():
+    # IAST Flask patch
+    ddtrace_iast_flask_patch()
+    app = Flask(__name__)
+    app.secret_key = "SECRET_FOR_TEST"
+    app.config["SESSION_TYPE"] = "memcached"
+    app.register_blueprint(debugger_blueprint)
+    app.register_blueprint(exception_replay_blueprint)
+    return app
+
+
+app = main()
 login_manager = LoginManager()
 login_manager.login_view = "login"
 login_manager.init_app(app)
