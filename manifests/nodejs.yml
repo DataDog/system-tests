@@ -604,6 +604,7 @@ tests/:
     test_alpha.py:
       Test_Basic: v2.0.0
     test_asm_standalone.py:
+      Test_AppSecStandalone_NotEnabled: *ref_5_18_0
       Test_AppSecStandalone_UpstreamPropagation: *ref_5_18_0
       Test_AppSecStandalone_UpstreamPropagation_V2: missing_feature
       Test_IastStandalone_UpstreamPropagation: *ref_5_29_0
