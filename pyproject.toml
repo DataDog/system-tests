@@ -210,7 +210,6 @@ ignore = [
     "S105",      # 10 occurences    [ ] hardcoded-password-string
     "RET503",    # 9 occurences     [*] implicit-return
     "SIM115",    # 9 occurences     [ ] open-file-with-context-handler
-    "RUF001",    # 9 occurences     [ ] ambiguous-unicode-character-string
     "RUF015",    # 9 occurences     [*] unnecessary-iterable-allocation-for-first-element
     "SIM108",    # 8 occurences     [*] if-else-block-instead-of-if-exp
     "PTH120",    # 8 occurences     [ ] os-path-dirname
@@ -249,6 +248,9 @@ ignore = [
     "RET508",    # superfluous-else-break: requires a slightly higher cognitive effort to understand the code
     "RET505",    # superfluous-else-return: requires a slightly higher cognitive effort to understand the code
     "S108",      # hardcoded-temp-file: test code may contains weird things
+]
+"tests/fuzzer/request_mutator.py" = [
+    "RUF001",    # ambiguous-unicode-character-string: the mutator contains weird strings on purpose
 ]
 "utils/build/*"  = ["ALL"]
 "lib-injection/*" = ["ALL"]
