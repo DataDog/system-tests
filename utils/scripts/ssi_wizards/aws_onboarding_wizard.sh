@@ -218,6 +218,8 @@ select_scenario() {
 
     # Run the Python script and capture the JSON output
     WORKFLOW_JSON=$(python utils/scripts/compute-workflow-parameters.py "$TEST_LIBRARY" -g "onboarding" --parametric-job-count 1 --ci-environment "prod" --format json)
+    WORKFLOW_JSON=$(echo "$WORKFLOW_JSON" | jq '.aws_ssi_scenario_defs')
+
 
     if [[ $? -ne 0 ]]; then
         echo "❌ Error: Failed to execute the Python script."
