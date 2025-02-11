@@ -1,96 +1,106 @@
 import argparse
 import json
+
 from utils._context._scenarios import get_all_scenarios, ScenarioGroup
-from ci_orchestrators.gitlab.gitlab_ci_orchestrator import print_aws_gitlab_pipeline
-from ci_orchestrators.github.github_ci_orchestrator import print_github_output
-from ci_orchestrators.scenario_groups.endtoend_orchestrator import get_endtoend_matrix
-
-from ci_orchestrators.scenario_groups.ssi_orchestrator import get_aws_matrix
+from utils.scripts.ci_orchestrators.workflow_data import get_aws_matrix, get_endtoend_matrix
+from utils.scripts.ci_orchestrators.gitlab_exporter import print_aws_gitlab_pipeline
 
 
-def get_workflow_map(scenarios, scenarios_groups) -> dict:
-    result = {}  # type: dict[str, list[str]]
+class CiData:
+    """CiData (Continuous Integration Data) class is used to store the data that is used to generate the CI workflow.
+    It works in two separated steps:
 
-    scenarios_groups = [group.strip() for group in scenarios_groups if group.strip()]
-    scenarios = {scenario.strip(): False for scenario in scenarios if scenario.strip()}
+        1. The first step, executed during __init__ build the full data structure about all possible workflows,
+           based on arguments provided by the CI.
+        2. The second step is to generate the workflow using the data stored in the object,
+           and is acheived by calling export(format)
+    """
 
-    for group in scenarios_groups:
-        try:
-            ScenarioGroup(group)
-        except ValueError as e:
-            raise ValueError(f"Valid groups are: {[item.value for item in ScenarioGroup]}") from e
+    def __init__(self, language: str, scenarios: str, groups: str, parametric_job_count: int, ci_environment: str):
+        # this data struture is a dict where:
+        #  the key is the workflow identifier
+        #  the value is also a dict, where the key/value pair is the parameter name/value.
+        self.data: dict[str, dict] = {}
+        self.language = language
+        self.environment = ci_environment
+        scenario_map = self._get_workflow_map(scenarios.split(","), groups.split(","))
 
-    for scenario in get_all_scenarios():
-        # TODO change the variable "github_workflow" to "ci_workflow" in the scenario object
-        if not scenario.github_workflow:
-            scenarios[scenario.name] = True  # won't be executed, but it exists
-            continue
+        self.data |= get_endtoend_matrix(language, scenario_map, parametric_job_count, ci_environment)
 
-        if scenario.github_workflow not in result:
-            result[scenario.github_workflow] = []
+        self.data["aws_ssi_scenario_defs"] = get_aws_matrix(
+            "utils/virtual_machine/virtual_machines.json",
+            "utils/scripts/ci_orchestrators/aws_ssi.json",
+            scenario_map.get("aws_ssi", []),
+            language,
+        )
 
-        if scenario.name in scenarios:
-            result[scenario.github_workflow].append(scenario.name)
-            scenarios[scenario.name] = True
+    def export(self, export_format: str) -> None:
+        if export_format == "json":
+            self._export_json()
+
+        elif export_format == "github":
+            self._export_github()
+
+        elif export_format == "gitlab":
+            self._export_gitlab()
+        else:
+            raise ValueError(f"Invalid format: {export_format}")
+
+    def _export_github(self) -> None:
+        for workflow_name, workflow in self.data.items():
+            for parameter, value in workflow.items():
+                print(f"{workflow_name}_{parameter}={json.dumps(value)}")
+
+        # github action is not able to handle aws_ssi, so nothing to do
+
+    def _export_gitlab(self) -> None:
+        # gitlab can only handle aws_ssi right now
+        print_aws_gitlab_pipeline(self.language, self.data["aws_ssi_scenario_defs"], self.environment)
+
+    def _export_json(self) -> None:
+        print(json.dumps(self.data))
+
+    @staticmethod
+    def _get_workflow_map(scenarios, scenarios_groups) -> dict:
+        """Returns a dict where:
+        * the key is the workflow identifier
+        * the value is a list of scenarios to run, associated to the workflow
+        """
+
+        result = {}  # type: dict[str, list[str]]
+
+        scenarios_groups = [group.strip() for group in scenarios_groups if group.strip()]
+        scenarios = {scenario.strip(): False for scenario in scenarios if scenario.strip()}
 
         for group in scenarios_groups:
-            if ScenarioGroup(group) in scenario.scenario_groups:
+            try:
+                ScenarioGroup(group)
+            except ValueError as e:
+                raise ValueError(f"Valid groups are: {[item.value for item in ScenarioGroup]}") from e
+
+        for scenario in get_all_scenarios():
+            # TODO change the variable "github_workflow" to "ci_workflow" in the scenario object
+            if not scenario.github_workflow:
+                scenarios[scenario.name] = True  # won't be executed, but it exists
+                continue
+
+            if scenario.github_workflow not in result:
+                result[scenario.github_workflow] = []
+
+            if scenario.name in scenarios:
                 result[scenario.github_workflow].append(scenario.name)
-                break
+                scenarios[scenario.name] = True
 
-    for scenario, found in scenarios.items():
-        if not found:
-            raise ValueError(f"Scenario {scenario} does not exists")
+            for group in scenarios_groups:
+                if ScenarioGroup(group) in scenario.scenario_groups:
+                    result[scenario.github_workflow].append(scenario.name)
+                    break
 
-    return result
+        for scenario, found in scenarios.items():
+            if not found:
+                raise ValueError(f"Scenario {scenario} does not exists")
 
-
-def _handle_github(language: str, scenario_map: dict, parametric_job_count: int, ci_environment: str) -> None:
-    result = get_endtoend_matrix(language, scenario_map, parametric_job_count, ci_environment)
-    print_github_output(result)
-
-
-def _handle_gitlab(language: str, scenario_map: dict, ci_environment: str) -> None:
-    if "aws_ssi" in scenario_map:
-        aws_matrix = get_aws_matrix(
-            "utils/virtual_machine/virtual_machines.json",
-            "utils/scripts/ci_orchestrators/scenario_groups/aws_ssi.json",
-            scenario_map["aws_ssi"],
-            language,
-        )
-        print_aws_gitlab_pipeline(language, aws_matrix, ci_environment)
-
-
-def _handle_json(language: str, scenario_map: dict, parametric_job_count: int, ci_environment: str) -> None:
-    if "aws_ssi" in scenario_map:
-        result = get_aws_matrix(
-            "utils/virtual_machine/virtual_machines.json",
-            "utils/scripts/ci_orchestrators/scenario_groups/aws_ssi.json",
-            scenario_map["aws_ssi"],
-            language,
-        )
-        print(json.dumps(result))
-    else:
-        result = get_endtoend_matrix(language, scenario_map, parametric_job_count, ci_environment)
-        print(json.dumps(result))
-
-
-def main(
-    language: str, scenarios: str, groups: str, parametric_job_count: int, ci_environment: str, output_format: str
-) -> None:
-    # this data struture is a dict where:
-    #  the key is the workflow identifier
-    #  the value is also a dict, where the key/value pair is the parameter name/value.
-    scenario_map = get_workflow_map(scenarios.split(","), groups.split(","))
-
-    if output_format == "github":
-        _handle_github(language, scenario_map, parametric_job_count, ci_environment)
-    elif output_format == "gitlab":
-        _handle_gitlab(language, scenario_map, ci_environment)
-    elif output_format == "json":
-        _handle_json(language, scenario_map, parametric_job_count, ci_environment)
-    else:
-        raise ValueError(f"Invalid format: {format}")
+        return result
 
 
 if __name__ == "__main__":
@@ -122,11 +132,10 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    main(
+    CiData(
         language=args.language,
         scenarios=args.scenarios,
         groups=args.groups,
         ci_environment=args.ci_environment,
-        output_format=args.format,
         parametric_job_count=args.parametric_job_count,
-    )
+    ).export(args.format)
