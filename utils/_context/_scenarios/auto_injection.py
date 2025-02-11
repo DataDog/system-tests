@@ -88,6 +88,10 @@ class _VirtualMachineScenario(Scenario):
         )[self.name][self._weblog]
         logger.info(f" Supported names: {supported_vm_names} ")
         supported_vms = [vm for vm in all_vms if vm.name in supported_vm_names]
+        if self.only_default_vms != "All":
+            supported_vms = [
+                vm for vm in supported_vms if str(vm.default_vm).casefold() == self.only_default_vms.casefold()
+            ]
         logger.info(f"Supported VMs: {', '.join([vm.name for vm in supported_vms])}")
 
         if self.vm_gitlab_pipeline:

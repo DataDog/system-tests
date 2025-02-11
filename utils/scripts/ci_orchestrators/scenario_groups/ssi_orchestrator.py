@@ -44,24 +44,21 @@ def get_aws_matrix(virtual_machines_file, aws_ssi_file, scenarios, language) -> 
                             excluded_names = set(weblog_spec.get("excluded_os_names", []))
 
                             for vm in virtual_machines:
+                                should_add_vm = True
                                 os_branch = vm["os_branch"]
                                 os_name = vm["name"]
                                 if exact:
-                                    if os_branch in exact:
-                                        results[scenario][weblog].append(vm["name"])
-                                        continue
+                                    if os_branch not in exact:
+                                        # results[scenario][weblog].append(vm["name"])
+                                        should_add_vm = False
                                 if excluded:
                                     if os_branch in excluded:
-                                        pass
-                                    else:
-                                        results[scenario][weblog].append(vm["name"])
+                                        should_add_vm = False
                                 if excluded_names:
                                     if os_name in excluded_names:
-                                        pass
-                                    else:
-                                        results[scenario][weblog].append(vm["name"])
+                                        should_add_vm = False
 
-                                if not excluded and not exact and not excluded_names:
+                                if should_add_vm:
                                     results[scenario][weblog].append(vm["name"])
 
     return results

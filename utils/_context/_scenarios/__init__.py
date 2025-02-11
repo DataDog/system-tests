@@ -672,7 +672,12 @@ class _Scenarios:
         scenario_groups=[ScenarioGroup.ONBOARDING, ScenarioGroup.SIMPLE_ONBOARDING],
         github_workflow="aws_ssi",
     )
-
+    multi_installer_auto_injection = InstallerAutoInjectionScenario(
+        "MULTI_INSTALLER_AUTO_INJECTION",
+        "Onboarding Container Single Step Instrumentation scenario for multicontainer apps",
+        scenario_groups=[ScenarioGroup.ONBOARDING, ScenarioGroup.SIMPLE_ONBOARDING],
+        github_workflow="aws_ssi",
+    )
     installer_auto_injection = InstallerAutoInjectionScenario(
         "INSTALLER_AUTO_INJECTION",
         doc="Installer auto injection scenario",

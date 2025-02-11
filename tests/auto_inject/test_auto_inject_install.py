@@ -203,6 +203,7 @@ class TestInstallerAutoInjectManual(base.AutoInjectBaseTest):
 
 @features.installer_auto_instrumentation
 @scenarios.simple_installer_auto_injection
+@scenarios.multi_installer_auto_injection
 class TestSimpleInstallerAutoInjectManual(base.AutoInjectBaseTest):
     @bug(
         context.vm_name == "AlmaLinux_8_arm64" and context.weblog_variant == "test-app-python-alpine",
