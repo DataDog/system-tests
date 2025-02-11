@@ -24,7 +24,8 @@ class Test_Otel_Context_Propagation_Default_Propagator_Api:
 
         assert content["trace_id"] == 2
         assert content["span_id"] == 10
-        assert content["tracestate"] and not content["tracestate"].isspace()
+        assert content["tracestate"]
+        assert not content["tracestate"].isspace()
         # assert content["baggage"] and not content["baggage"].isspace()
 
     def setup_propagation_inject(self):
@@ -34,5 +35,6 @@ class Test_Otel_Context_Propagation_Default_Propagator_Api:
     def test_propagation_inject(self):
         content = json.loads(self.r.text)
 
-        assert content["traceparent"] and not content["traceparent"].isspace()
+        assert content["traceparent"]
+        assert not content["traceparent"].isspace()
         # assert content["baggage"] and not content["baggage"].isspace()
