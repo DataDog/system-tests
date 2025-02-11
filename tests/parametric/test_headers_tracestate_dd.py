@@ -557,7 +557,7 @@ class Test_Headers_Tracestate_DD:
         number of list-members in the tracestate is less than or equal to 32
         """
         with test_library:
-            other_vendors = ",".join("key%d=value%d" % (i, i) for i in range(1, 32))
+            other_vendors = ",".join(f"key{i}=value{i}" for i in range(1, 32))
 
             # 1) Input: 32 list-members with 'dd' at the end of the tracestate string
             headers1 = test_library.dd_make_child_span_and_get_headers(
@@ -628,7 +628,7 @@ class Test_Headers_Tracestate_DD:
         tracestate string because the maximum number of list-members is 32.
         """
         with test_library:
-            other_vendors = ",".join("key%d=value%d" % (i, i) for i in range(1, 32))
+            other_vendors = ",".join(f"key{i}=value{i}" for i in range(1, 32))
 
             # 1) Input: 32 list-members without 'dd' in the tracestate string
             headers1 = test_library.dd_make_child_span_and_get_headers(

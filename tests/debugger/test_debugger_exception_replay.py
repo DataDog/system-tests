@@ -153,7 +153,7 @@ class Test_Debugger_Exception_Replay(debugger._Base_Debugger_Test):
 
             return __scrub(value)
 
-        def __scrub_dotnet(key, value, parent):
+        def __scrub_dotnet(key, value, parent):  # noqa: ARG001
             if key == "Id":
                 return "<scrubbed>"
             elif key == "StackTrace" and isinstance(value, dict):
@@ -178,7 +178,7 @@ class Test_Debugger_Exception_Replay(debugger._Base_Debugger_Test):
                 return scrubbed
             return __scrub(value)
 
-        def __scrub_python(key, value, parent):
+        def __scrub_python(key, value, parent):  # noqa: ARG001
             if key == "@exception":
                 value["fields"] = "<scrubbed>"
                 return value
@@ -199,7 +199,7 @@ class Test_Debugger_Exception_Replay(debugger._Base_Debugger_Test):
                 return scrubbed
             return __scrub(value)
 
-        def __scrub_none(key, value, parent):
+        def __scrub_none(key, value, parent):  # noqa: ARG001
             return __scrub(value)
 
         scrub_language = None

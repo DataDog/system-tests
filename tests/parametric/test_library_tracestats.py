@@ -90,7 +90,7 @@ class Test_Library_Tracestats:
 
         decoded_request_body = decoded_stats_requests[0]["body"]
         for key in ("Hostname", "Env", "Version", "Stats"):
-            assert key in decoded_request_body, "%r should be in stats request" % key
+            assert key in decoded_request_body, f"{key} should be in stats request"
 
     @enable_tracestats()
     @missing_feature(context.library == "cpp", reason="cpp has not implemented stats computation yet")
@@ -236,7 +236,7 @@ class Test_Library_Tracestats:
         assert len(requests) == 1, "Only one stats request is expected"
         request = requests[0]["body"]
         for key in ("Hostname", "Env", "Version", "Stats"):
-            assert key in request, "%r should be in stats request" % key
+            assert key in request, f"{key} should be in stats request"
 
         buckets = request["Stats"]
         assert len(buckets) == 1, "There should be one bucket containing the stats"
@@ -294,7 +294,7 @@ class Test_Library_Tracestats:
         assert len(requests) == 1, "Only one stats request is expected"
         request = requests[0]["body"]
         for key in ("Hostname", "Env", "Version", "Stats"):
-            assert key in request, "%r should be in stats request" % key
+            assert key in request, f"{key} should be in stats request"
 
         buckets = request["Stats"]
         assert len(buckets) == 1, "There should be one bucket containing the stats"
@@ -382,7 +382,7 @@ class Test_Library_Tracestats:
             assert web_stats["OkSummary"].get_quantile_value(quantile) == pytest.approx(
                 np.quantile(np_duration, quantile),
                 rel=0.01,
-            ), "Quantile mismatch for quantile %r" % quantile
+            ), f"Quantile mismatch for quantile {quantile!r}"
 
     @missing_feature(context.library == "cpp", reason="cpp has not implemented stats computation yet")
     @missing_feature(context.library == "nodejs", reason="nodejs has not implemented stats computation yet")
