@@ -76,10 +76,14 @@ tests/:
           TestHeaderInjection:
             '*': v2.10.0
             fastapi: v2.20.0.dev
-          TestHeaderInjectionExclusionAccessControlAllow: missing_feature
-          TestHeaderInjectionExclusionContentEncoding: missing_feature
-          TestHeaderInjectionExclusionPragma: missing_feature
-          TestHeaderInjectionExclusionTransferEncoding: missing_feature
+          TestHeaderInjectionExclusionAccessControlAllow:
+            '*': v2.10.0
+          TestHeaderInjectionExclusionContentEncoding:
+            '*': v2.10.0
+          TestHeaderInjectionExclusionPragma:
+            '*': v2.10.0
+          TestHeaderInjectionExclusionTransferEncoding:
+            '*': v2.10.0
           TestHeaderInjection_ExtendedLocation: missing_feature
           TestHeaderInjection_StackTrace:
             '*': v2.19.0.dev
