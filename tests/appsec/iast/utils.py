@@ -252,6 +252,7 @@ def validate_stack_traces(request):
             location is not None and "class" in location
         ), "This vulnerability was expected to have a class in its location data, it is not possible to validate the stack trace"
 
+
     locationFrame = None
 
     for frame in stack_trace["frames"]:
@@ -290,7 +291,8 @@ def validate_extended_location_data(request, vulnerability_type, is_expected_loc
     span = spans[0]
 
     iast = span.get("meta", {}).get("_dd.iast.json")
-    assert iast and iast["vulnerabilities"], "Expected at least one vulnerability"
+    assert iast, "Expected at least one vulnerability"
+    assert iast["vulnerabilities"], "Expected at least one vulnerability"
 
     # Filter by vulnerability
     if vulnerability_type:
@@ -580,4 +582,5 @@ class BaseTestCookieNameFilter:
         assert_iast_vulnerability(request=self.req2, vulnerability_count=1, vulnerability_type=self.vulnerability_type)
 
         meta, meta_struct = _get_span_meta(self.req3)
-        assert "_dd.iast.json" not in meta and "iast" not in meta_struct, "No IAST info expected in span"
+        assert "_dd.iast.json" not in meta, "No IAST info expected in span"
+        assert "iast" not in meta_struct, "No IAST info expected in span"

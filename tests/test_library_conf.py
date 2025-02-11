@@ -483,7 +483,10 @@ class Test_ExtractBehavior_Restart:
         # Test the extracted span context
         span = spans[0]
         assert (
-            span.get("traceID") != "1" and span.get("traceID") != "8687463697196027922"  # Lower 64-bits of traceparent
+            span.get("traceID") != "1"  # Lower 64-bits of traceparent
+        )
+        assert (
+            span.get("traceID") != "8687463697196027922"  # Lower 64-bits of traceparent
         )
         assert span.get("parentID") is None
 
@@ -578,7 +581,10 @@ class Test_ExtractBehavior_Ignore:
         # Test the local span context
         span = spans[0]
         assert (
-            span.get("traceID") != "1" and span.get("traceID") != "8687463697196027922"  # Lower 64-bits of traceparent
+            span.get("traceID") != "1"  # Lower 64-bits of traceparent
+        )
+        assert (
+            span.get("traceID") != "8687463697196027922"  # Lower 64-bits of traceparent
         )
         assert span.get("parentID") is None
         assert retrieve_span_links(span) is None
@@ -673,7 +679,10 @@ class Test_ExtractBehavior_Restart_With_Extract_First:
         # Test the extracted span context
         span = spans[0]
         assert (
-            span.get("traceID") != "1" and span.get("traceID") != "8687463697196027922"  # Lower 64-bits of traceparent
+            span.get("traceID") != "1"  # Lower 64-bits of traceparent
+        )
+        assert (
+            span.get("traceID") != "8687463697196027922"  # Lower 64-bits of traceparent
         )
         assert span.get("parentID") is None
 

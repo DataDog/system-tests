@@ -74,9 +74,8 @@ def _assert_single_span_event(event, name, is_root):
     if is_root:
         assert parent_id == "0"
     else:
-        assert (
-            parent_id != "0" and len(parent_id) > 0
-        ), f"In a child span the parent_id should be specified. Actual: {parent_id}"
+        assert parent_id != "0", f"In a child span the parent_id should be specified. Actual: {parent_id}"
+        assert len(parent_id) > 0, f"In a child span the parent_id should be specified. Actual: {parent_id}"
 
 
 def _assert_single_span_metrics(span):
