@@ -73,6 +73,8 @@ class TestAutoInjectBlockListInstallManualHost(_AutoInjectBlockListBaseTest):
             {"vm_branch": "amazon_linux2", "library": "ruby", "reason": "INPLAT-103"},
             {"vm_branch": "centos_7_amd64", "library": "ruby", "reason": "INPLAT-103"},
             {"vm_branch": "redhat", "vm_cpu": "arm64", "library": "ruby", "reason": "INPLAT-103"},
+            {"vm_name": "Ubuntu_24_10_amd64", "weblog_variant": "test-app-python", "reason": "INPLAT-478"},
+            {"vm_name": "Ubuntu_24_10_arm64", "weblog_variant": "test-app-python", "reason": "INPLAT-478"},
         ]
     )
     @irrelevant(
@@ -93,6 +95,8 @@ class TestAutoInjectBlockListInstallManualHost(_AutoInjectBlockListBaseTest):
             {"vm_branch": "amazon_linux2", "library": "ruby", "reason": "INPLAT-103"},
             {"vm_branch": "centos_7_amd64", "library": "ruby", "reason": "INPLAT-103"},
             {"vm_branch": "redhat", "vm_cpu": "arm64", "library": "ruby", "reason": "INPLAT-103"},
+            {"vm_name": "Ubuntu_24_10_amd64", "weblog_variant": "test-app-python", "reason": "INPLAT-478"},
+            {"vm_name": "Ubuntu_24_10_arm64", "weblog_variant": "test-app-python", "reason": "INPLAT-478"},
         ]
     )
     @irrelevant(
@@ -115,6 +119,8 @@ class TestAutoInjectBlockListInstallManualHost(_AutoInjectBlockListBaseTest):
             {"vm_branch": "amazon_linux2", "library": "ruby", "reason": "INPLAT-103"},
             {"vm_branch": "centos_7_amd64", "library": "ruby", "reason": "INPLAT-103"},
             {"vm_branch": "redhat", "vm_cpu": "arm64", "library": "ruby", "reason": "INPLAT-103"},
+            {"vm_name": "Ubuntu_24_10_amd64", "weblog_variant": "test-app-python", "reason": "INPLAT-478"},
+            {"vm_name": "Ubuntu_24_10_arm64", "weblog_variant": "test-app-python", "reason": "INPLAT-478"},
         ]
     )
     @irrelevant(
