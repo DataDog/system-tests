@@ -250,9 +250,9 @@ def load_virtual_machines(provider_id):
                     user=vm_data["aws_config"]["user"],
                     volume_size=vm_data["aws_config"].get("volume_size", 20),
                 )
-            if vm_data["vagrant_config"] is not None:
+            if "vagrant_config" in vm_data and vm_data["vagrant_config"] is not None:
                 vagrant_config = _VagrantConfig(box_name=vm_data["vagrant_config"]["box_name"])
-            if vm_data["krunvm_config"] is not None:
+            if "krunvm_config" in vm_data and vm_data["krunvm_config"] is not None:
                 krunvm_config = _KrunVmConfig(oci_image_name=vm_data["krunvm_config"]["oci_image_name"])
 
             vm = _VirtualMachine(
