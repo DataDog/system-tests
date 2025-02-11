@@ -1,65 +1,83 @@
 {
+  description = "sys-tests";
+  nixConfig.bash-prompt-prefix = "\[system-tests\] ";
+
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/master";
-
-    # cross-platform convenience
     flake-utils.url = "github:numtide/flake-utils";
+    treefmt-nix.url = "github:numtide/treefmt-nix";
 
-    # backwards compatibility with nix-build and nix-shell
-    flake-compat.url = "https://flakehub.com/f/edolstra/flake-compat/1.tar.gz";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-24.05-darwin";
+    nixpkgs-black-pinned.url = "github:NixOS/nixpkgs/6625284c397b44bc9518a5a1567c1b5aae455c08";
   };
 
-  outputs = { self, nixpkgs, flake-utils, flake-compat }:
-    # resolve for all platforms in turn
-    flake-utils.lib.eachDefaultSystem (system:
-      let
-        # packages for this system platform
-        pkgs = nixpkgs.legacyPackages.${system};
+  outputs = {
+    self,
+    nixpkgs,
+    flake-utils,
+    treefmt-nix,
+    nixpkgs-black-pinned,
+  }: (flake-utils.lib.eachDefaultSystem (system: let
+    pkgs-black = import nixpkgs-black-pinned {inherit system;};
 
-        # control versions
+    pinned-black = pkgs-black.black;
 
-        # get these python packages from nix
-        python_packages = python-packages: [
-          python-packages.pip
+    black-overlay = final: prev: {
+      black = pinned-black;
+    };
+
+    pkgs = import nixpkgs {
+      inherit system;
+      overlays = [
+        black-overlay
+      ];
+    };
+
+    black = pkgs.black;
+
+    treefmt = treefmt-nix.lib.evalModule pkgs ./treefmt.nix;
+
+    python = pkgs.python39;
+  in {
+    packages = {
+      default = treefmt.config.build.wrapper;
+    };
+    devShells.default =
+      pkgs.mkShell
+      {
+        packages = [
+          pkgs.curl
+          pkgs.bash
+          pkgs.coreutils
+          pkgs.fswatch
+          pkgs.rsync
+          pkgs.shellcheck
+
+          treefmt.config.build.wrapper
+          python
+ 
+          pkgs.ruff
         ];
 
-        # use this pyton version, and include the abvoe packages
-        python = pkgs.python312.withPackages python_packages;
-      in {
-        devShell = pkgs.stdenv.mkDerivation {
-          name = "devshell";
+        buildInputs = [python.pkgs.venvShellHook];
+        venvDir = "./venv";
 
-          buildInputs = with pkgs; [
-            # version to use + default packages are declared above
-            python
+        postVenvCreation = ''
+          unset SOURCE_DATE_EPOCH
+          pip install -r requirements.txt
+        '';
+        postShellHook = ''
+          unset SOURCE_DATE_EPOCH
+          # hack: can't find libstdc++.so.8 otherwise
+          # pawel: hack-disabled as this breaks everything on my system - since my gcc is newer than nixs
+          # export LD_LIBRARY_PATH="${pkgs.stdenv.cc.cc.lib}/lib"
+        '';
+      };
 
-
-            # linters
-            shellcheck
-
-            # for scripts
-            bash
-            fswatch
-            rsync
-          ] ++ lib.optionals (pkgs.stdenv.isDarwin) [
-            # for python watchdog package
-            darwin.apple_sdk.frameworks.CoreServices
-          ];
-
-
-          shellHook = ''
-            export PYTHON_VERSION="$(python -c 'import platform; import re; print(re.sub(r"\.\d+$", "", platform.python_version()))')"
-
-            # replicate virtualenv behaviour
-            export PIP_PREFIX="$PWD/vendor/python/$PYTHON_VERSION/packages"
-            export PYTHONPATH="$PIP_PREFIX/lib/python$PYTHON_VERSION/site-packages:$PYTHONPATH"
-            unset SOURCE_DATE_EPOCH
-            export PATH="$PIP_PREFIX/bin:$PATH"
-
-            # hack: can't find libstdc++.so.8 otherwise
-            export LD_LIBRARY_PATH="${pkgs.stdenv.cc.cc.lib}/lib"
-          '';
-        };
-      }
-    );
+    formatter = treefmt.config.build.wrapper;
+    checks = {
+      formatting = treefmt.config.build.check self;
+    };
+  }));
 }
+
+# todo Merge with upstream changes
