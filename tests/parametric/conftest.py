@@ -87,7 +87,7 @@ def apm_test_server(request, library_env, test_id):
 @pytest.fixture
 def test_server_log_file(apm_test_server, request) -> Generator[TextIO, None, None]:
     log_path = f"{context.scenario.host_log_folder}/outputs/{request.cls.__name__}/{request.node.name}/server_log.log"
-    Path(os.path.dirname(log_path)).mkdir(exist_ok=True)
+    Path(log_path).parent.mkdir(exist_ok=True)
     with open(log_path, "w+", encoding="utf-8") as f:
         yield f
         f.seek(0)
@@ -102,7 +102,7 @@ class _TestAgentAPI:
         self._session = requests.Session()
         self._pytest_request = pytest_request
         self.log_path = f"{context.scenario.host_log_folder}/outputs/{pytest_request.cls.__name__}/{pytest_request.node.name}/agent_api.log"
-        Path(os.path.dirname(self.log_path)).mkdir(exist_ok=True)
+        Path(self.log_path).parent.mkdir(exist_ok=True)
 
     def _url(self, path: str) -> str:
         return urllib.parse.urljoin(self._base_url, path)
@@ -525,7 +525,7 @@ def test_agent_port() -> int:
 @pytest.fixture
 def test_agent_log_file(request) -> Generator[TextIO, None, None]:
     log_path = f"{context.scenario.host_log_folder}/outputs/{request.cls.__name__}/{request.node.name}/agent_log.log"
-    Path(os.path.dirname(log_path)).mkdir(exist_ok=True)
+    Path(log_path).parent.mkdir(exist_ok=True)
     with open(log_path, "w+", encoding="utf-8") as f:
         yield f
         f.seek(0)

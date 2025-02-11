@@ -20,7 +20,7 @@ _LOGS_PATH = "/api/v2/logs"
 _TRACES_PATH = "/api/v0.2/traces"
 _SYMBOLS_PATH = "/symdb/v1/input"
 
-_CUR_DIR = os.path.dirname(str(Path(__file__).resolve()))
+_CUR_DIR = str(Path(__file__).resolve().parent)
 
 
 def read_probes(test_name: str):

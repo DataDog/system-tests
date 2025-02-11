@@ -14,7 +14,7 @@ class _Data:
 
     @cached_property
     def _data_path(self):
-        return os.path.realpath(os.path.join(str(Path.cwd()), os.path.dirname(__file__)))
+        return os.path.realpath(os.path.join(str(Path.cwd()), str(Path(__file__).parent)))
 
     @cached_property
     def blns(self):

@@ -5,7 +5,7 @@ from utils import interfaces, bug, scenarios, weblog, rfc, missing_feature, flak
 from utils._context.core import context
 
 
-_CUR_DIR = os.path.dirname(str(Path(__file__).resolve()))
+_CUR_DIR = str(Path(__file__).resolve().parent)
 
 BLOCK_TEMPLATE_HTML_V0_JAVA = open(os.path.join(_CUR_DIR, "blocked.v0.java.html"), "r").read()
 BLOCK_TEMPLATE_HTML_V0_PYTHON = open(os.path.join(_CUR_DIR, "blocked.v0.python.html"), "r").read()
