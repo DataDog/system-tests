@@ -9,6 +9,7 @@ import subprocess
 import time
 import datetime
 import hashlib
+from pathlib import Path
 from typing import TextIO, TypedDict
 import urllib.parse
 
@@ -577,7 +578,7 @@ def test_agent(
         name=test_agent_container_name,
         command=[],
         env=env,
-        volumes={f"{os.getcwd()}/snapshots": "/snapshots"},
+        volumes={f"{Path.cwd()!s}/snapshots": "/snapshots"},
         host_port=host_port,
         container_port=test_agent_port,
         log_file=test_agent_log_file,

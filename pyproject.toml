@@ -227,7 +227,6 @@ ignore = [
     "ASYNC230",  # 2 occurences     [ ] blocking-open-call-in-async-function
     "S605",      # 2 occurences     [ ] start-process-with-a-shell
     "PTH100",    # 2 occurences     [ ] os-path-abspath
-    "PTH109",    # 2 occurences     [ ] os-getcwd
 
     # keep those exceptions
     "C400",      # unnecessary-generator-list: explicit list is more readable for non-python users
