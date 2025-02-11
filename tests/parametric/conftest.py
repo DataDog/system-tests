@@ -12,7 +12,7 @@ import hashlib
 from typing import Generator, TextIO, TypedDict
 import urllib.parse
 
-import requests  # type: ignore
+import requests
 import pytest
 
 from utils.parametric.spec import remoteconfig
@@ -48,7 +48,7 @@ class AgentRequest(TypedDict):
 
 
 class AgentRequestV06Stats(AgentRequest):
-    body: V06StatsPayload  # type: ignore
+    body: V06StatsPayload  # type: ignore[misc]
 
 
 def pytest_configure(config):
@@ -96,11 +96,11 @@ def test_server_log_file(apm_test_server, request) -> Generator[TextIO, None, No
 
 
 class _TestAgentAPI:
-    def __init__(self, base_url: str, pytest_request: None):
+    def __init__(self, base_url: str, pytest_request: pytest.FixtureRequest):
         self._base_url = base_url
         self._session = requests.Session()
         self._pytest_request = pytest_request
-        self.log_path = f"{context.scenario.host_log_folder}/outputs/{pytest_request.cls.__name__}/{pytest_request.node.name}/agent_api.log"  # type: ignore
+        self.log_path = f"{context.scenario.host_log_folder}/outputs/{pytest_request.cls.__name__}/{pytest_request.node.name}/agent_api.log"
         os.makedirs(os.path.dirname(self.log_path), exist_ok=True)
 
     def _url(self, path: str) -> str:
@@ -559,7 +559,7 @@ def test_agent_hostname(test_agent_container_name: str) -> str:
 def test_agent(
     worker_id: str,
     docker_network: str,
-    request,
+    request: pytest.FixtureRequest,
     test_agent_container_name: str,
     test_agent_port: int,
     test_agent_log_file: TextIO,

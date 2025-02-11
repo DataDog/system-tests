@@ -213,7 +213,6 @@ ignore = [
     "RUF015",    # 9 occurences     [*] unnecessary-iterable-allocation-for-first-element
     "SIM108",    # 8 occurences     [*] if-else-block-instead-of-if-exp
     "PTH120",    # 8 occurences     [ ] os-path-dirname
-    "PGH003",    # 8 occurences     [ ] blanket-type-ignore
     "TRY301",    # 8 occurences     [ ] raise-within-try
     "ANN206",    # 7 occurences     [ ] missing-return-type-class-method
     "B011",      # 7 occurences     [*] assert-false
