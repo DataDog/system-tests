@@ -73,6 +73,7 @@ class AWSPulumiProvider(VmProvider):
             )
         except pulumi.automation.errors.CommandError as pulumi_command_exception:
             logger.stdout("❌ Exception launching aws provision step remote command ❌")
+            logger.stdout(f"(Please, check the log file: {context.vm_name}.log)")
             vm_logger(context.scenario.name, context.vm_name).error(
                 "\n \n \n ❌ ❌ ❌ Exception launching aws provision step remote command ❌ ❌ ❌ \n \n \n "
             )
@@ -85,6 +86,7 @@ class AWSPulumiProvider(VmProvider):
             )
         except Exception as pulumi_exception:
             logger.stdout("❌ Exception launching aws provision infraestructure ❌ ")
+            logger.stdout(f"(Please, check the log file: tests.log and search for the text chain 'Diagnostics:')")
             logger.debug(f"The error class name: { pulumi_exception.__class__.__name__}")
             self.datadog_event_sender.sendEventToDatadog(
                 f"[E2E] Stack {self.stack_name} : error on Pulumi stack up",
