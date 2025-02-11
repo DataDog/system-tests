@@ -1,10 +1,11 @@
 import os.path
+from pathlib import Path
 
 from utils import interfaces, bug, scenarios, weblog, rfc, missing_feature, flaky, features
 from utils._context.core import context
 
 
-_CUR_DIR = os.path.dirname(os.path.abspath(__file__))
+_CUR_DIR = os.path.dirname(str(Path(__file__).resolve()))
 
 BLOCK_TEMPLATE_HTML_V0_JAVA = open(os.path.join(_CUR_DIR, "blocked.v0.java.html"), "r").read()
 BLOCK_TEMPLATE_HTML_V0_PYTHON = open(os.path.join(_CUR_DIR, "blocked.v0.python.html"), "r").read()

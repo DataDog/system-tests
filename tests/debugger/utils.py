@@ -6,6 +6,7 @@ import json
 import re
 import os
 import os.path
+from pathlib import Path
 import uuid
 
 from utils import interfaces, remote_config, weblog, context
@@ -19,7 +20,7 @@ _LOGS_PATH = "/api/v2/logs"
 _TRACES_PATH = "/api/v0.2/traces"
 _SYMBOLS_PATH = "/symdb/v1/input"
 
-_CUR_DIR = os.path.dirname(os.path.abspath(__file__))
+_CUR_DIR = os.path.dirname(str(Path(__file__).resolve()))
 
 
 def read_probes(test_name: str):
