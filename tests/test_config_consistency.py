@@ -656,14 +656,14 @@ class Test_Config_RuntimeMetrics_Default:
             for _, metric in interfaces.agent.get_metrics()
             if metric["metric"].startswith("runtime.") or metric["metric"].startswith("jvm.")
         ]
+        assert len(runtime_metrics_gauges) == 0
 
         runtime_metrics_sketches = [
             metric
             for _, metric in interfaces.agent.get_sketches()
             if metric["metric"].startswith("runtime.") or metric["metric"].startswith("jvm.")
         ]
-
-        assert len(runtime_metrics_gauges) == 0 and len(runtime_metrics_sketches) == 0
+        assert len(runtime_metrics_sketches) == 0
 
 
 # Parse the JSON-formatted log message from stdout and return the 'dd' object
