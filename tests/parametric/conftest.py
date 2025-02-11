@@ -1,5 +1,5 @@
 import base64
-from collections.abc import Iterable
+from collections.abc import Iterable, Generator
 import contextlib
 import dataclasses
 import os
@@ -9,7 +9,8 @@ import subprocess
 import time
 import datetime
 import hashlib
-from typing import Generator, TextIO, TypedDict
+from pathlib import Path
+from typing import TextIO, TypedDict
 import urllib.parse
 
 import requests
@@ -86,7 +87,7 @@ def apm_test_server(request, library_env, test_id):
 @pytest.fixture
 def test_server_log_file(apm_test_server, request) -> Generator[TextIO, None, None]:
     log_path = f"{context.scenario.host_log_folder}/outputs/{request.cls.__name__}/{request.node.name}/server_log.log"
-    os.makedirs(os.path.dirname(log_path), exist_ok=True)
+    Path(log_path).parent.mkdir(parents=True, exist_ok=True)
     with open(log_path, "w+", encoding="utf-8") as f:
         yield f
         f.seek(0)
@@ -101,7 +102,7 @@ class _TestAgentAPI:
         self._session = requests.Session()
         self._pytest_request = pytest_request
         self.log_path = f"{context.scenario.host_log_folder}/outputs/{pytest_request.cls.__name__}/{pytest_request.node.name}/agent_api.log"
-        os.makedirs(os.path.dirname(self.log_path), exist_ok=True)
+        Path(self.log_path).parent.mkdir(parents=True, exist_ok=True)
 
     def _url(self, path: str) -> str:
         return urllib.parse.urljoin(self._base_url, path)
@@ -524,7 +525,7 @@ def test_agent_port() -> int:
 @pytest.fixture
 def test_agent_log_file(request) -> Generator[TextIO, None, None]:
     log_path = f"{context.scenario.host_log_folder}/outputs/{request.cls.__name__}/{request.node.name}/agent_log.log"
-    os.makedirs(os.path.dirname(log_path), exist_ok=True)
+    Path(log_path).parent.mkdir(parents=True, exist_ok=True)
     with open(log_path, "w+", encoding="utf-8") as f:
         yield f
         f.seek(0)
@@ -577,7 +578,7 @@ def test_agent(
         name=test_agent_container_name,
         command=[],
         env=env,
-        volumes={f"{os.getcwd()}/snapshots": "/snapshots"},
+        volumes={f"{Path.cwd()!s}/snapshots": "/snapshots"},
         host_port=host_port,
         container_port=test_agent_port,
         log_file=test_agent_log_file,
