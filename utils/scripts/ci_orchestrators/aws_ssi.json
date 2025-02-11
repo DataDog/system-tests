@@ -303,6 +303,10 @@
                 "name": "test-app-nodejs-multicontainer",
                 "exact_os_branches": [
                     "ubuntu24"
+                ],
+                "excluded_os_names": [
+                    "Ubuntu_24_10_amd64",
+                    "Ubuntu_24_10_arm64"
                 ]
             },
             {
@@ -359,12 +363,20 @@
                 "name": "test-app-java-multialpine",
                 "exact_os_branches": [
                     "ubuntu24"
+                ],
+                "excluded_os_names": [
+                    "Ubuntu_24_10_amd64",
+                    "Ubuntu_24_10_arm64"
                 ]
             },
             {
                 "name": "test-app-java-multicontainer",
                 "exact_os_branches": [
                     "ubuntu24"
+                ],
+                "excluded_os_names": [
+                    "Ubuntu_24_10_amd64",
+                    "Ubuntu_24_10_arm64"
                 ]
             }
         ],
@@ -399,10 +411,24 @@
                 "name": "test-app-python-container"
             },
             {
-                "name": "test-app-python-multialpine"
+                "name": "test-app-python-multialpine",
+                "exact_os_branches": [
+                    "ubuntu24"
+                ],
+                "excluded_os_names": [
+                    "Ubuntu_24_10_amd64",
+                    "Ubuntu_24_10_arm64"
+                ]
             },
             {
-                "name": "test-app-python-multicontainer"
+                "name": "test-app-python-multicontainer",
+                "exact_os_branches": [
+                    "ubuntu24"
+                ],
+                "excluded_os_names": [
+                    "Ubuntu_24_10_amd64",
+                    "Ubuntu_24_10_arm64"
+                ]
             },
             {
                 "name": "test-app-python-unsupported-defaults",
@@ -440,10 +466,24 @@
                 ]
             },
             {
-                "name": "test-app-dotnet-multialpine"
+                "name": "test-app-dotnet-multialpine",
+                "exact_os_branches": [
+                    "ubuntu24"
+                ],
+                "excluded_os_names": [
+                    "Ubuntu_24_10_amd64",
+                    "Ubuntu_24_10_arm64"
+                ]
             },
             {
-                "name": "test-app-dotnet-multicontainer"
+                "name": "test-app-dotnet-multicontainer",
+                "exact_os_branches": [
+                    "ubuntu24"
+                ],
+                "excluded_os_names": [
+                    "Ubuntu_24_10_amd64",
+                    "Ubuntu_24_10_arm64"
+                ]
             },
             {
                 "name": "test-app-dotnet-unsupported",
@@ -482,12 +522,20 @@
                 "name": "test-app-ruby-multicontainer",
                 "exact_os_branches": [
                     "ubuntu24"
+                ],
+                "excluded_os_names": [
+                    "Ubuntu_24_10_amd64",
+                    "Ubuntu_24_10_arm64"
                 ]
             },
             {
                 "name": "test-app-ruby-multialpine",
                 "exact_os_branches": [
                     "ubuntu24"
+                ],
+                "excluded_os_names": [
+                    "Ubuntu_24_10_amd64",
+                    "Ubuntu_24_10_arm64"
                 ]
             }
         ],
@@ -516,10 +564,24 @@
                 ]
             },
             {
-                "name": "test-app-php-multicontainer"
+                "name": "test-app-php-multicontainer",
+                "exact_os_branches": [
+                    "ubuntu24"
+                ],
+                "excluded_os_names": [
+                    "Ubuntu_24_10_amd64",
+                    "Ubuntu_24_10_arm64"
+                ]
             },
             {
-                "name": "test-app-php-multialpine"
+                "name": "test-app-php-multialpine",
+                "exact_os_branches": [
+                    "ubuntu24"
+                ],
+                "excluded_os_names": [
+                    "Ubuntu_24_10_amd64",
+                    "Ubuntu_24_10_arm64"
+                ]
             }
         ]
     }

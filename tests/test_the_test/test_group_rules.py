@@ -54,6 +54,7 @@ def test_tracer_release():
         scenarios.local_auto_injection_install_script,
         scenarios.simple_auto_injection_profiling,
         scenarios.simple_installer_auto_injection,
+        scenarios.multi_installer_auto_injection,
     ]
 
     for scenario in get_all_scenarios():
