@@ -220,7 +220,6 @@ ignore = [
     "N815",      # 7 occurences     [ ] mixed-case-variable-in-class-scope
     "PT006",     # 6 occurences     [*] pytest-parametrize-names-wrong-type
     "N803",      # 6 occurences     [ ] invalid-argument-name
-    "E741",      # 6 occurences     [ ] ambiguous-variable-name
     "S113",      # 5 occurences     [ ] request-without-timeout
     "PT011",     # 5 occurences     [ ] pytest-raises-too-broad
     "E731",      # 5 occurences     [*] lambda-assignment
