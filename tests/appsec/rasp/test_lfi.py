@@ -134,6 +134,22 @@ class Test_Lfi_Optional_SpanTags:
         validate_span_tags(self.r, expected_metrics=["_dd.appsec.rasp.duration_ext", "_dd.appsec.rasp.rule.eval"])
 
 
+@rfc("https://docs.google.com/document/d/1vmMqpl8STDk7rJnd3YBsa6O9hCls_XHHdsodD61zr_4/edit#heading=h.96mezjnqf46y")
+@features.rasp_span_tags
+@features.rasp_local_file_inclusion
+@scenarios.appsec_rasp_non_blocking
+class Test_Lfi_Telemetry_Multiple_Exploits:
+    """Validate rasp match telemetry metric works"""
+
+    def setup_rasp_match_tag(self):
+        self.r = weblog.get("/rasp/multiple", params={"file1": "../etc/passwd", "file2": "../etc/group"})
+
+    def test_rasp_match_tag(self):
+        series_eval = find_series(True, "appsec", "rasp.rule.match")
+        assert series_eval
+        assert series_eval[0]["points"][0][1] == 3.0
+
+
 @rfc("https://docs.google.com/document/d/1vmMqpl8STDk7rJnd3YBsa6O9hCls_XHHdsodD61zr_4/edit#heading=h.enmf90juqidf")
 @features.rasp_stack_trace
 @features.rasp_local_file_inclusion

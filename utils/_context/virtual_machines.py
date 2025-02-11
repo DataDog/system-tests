@@ -146,7 +146,7 @@ class _VirtualMachine:
     def _load_runtime_from_logs(self):
         """Load the runtime version from the test_components.log"""
         vms_tested_components_file = f"{context.scenario.host_log_folder}/tested_components.log"
-        if os.path.isfile(vms_tested_components_file):
+        if Path(vms_tested_components_file).is_file():
             # Get the machine ip
             machine_ip = self.get_ip()
             # Read the file line by line looking for line with the ip
@@ -168,7 +168,7 @@ class _VirtualMachine:
         """Load the ip address from the logs"""
         vms_desc_file = f"{context.scenario.host_log_folder}/vms_desc.log"
         logger.info(f"Loading ip for {self.name} from {vms_desc_file}")
-        if os.path.isfile(vms_desc_file):
+        if Path(vms_desc_file).is_file():
             with open(vms_desc_file) as f:
                 for line in f:
                     if self.name in line:
@@ -178,7 +178,7 @@ class _VirtualMachine:
 
     def get_log_folder(self):
         vm_folder = f"{context.scenario.host_log_folder}/{self.name}"
-        if not os.path.exists(vm_folder):
+        if not Path(vm_folder).exists():
             Path.mkdir(vm_folder)
         return vm_folder
 
@@ -467,6 +467,38 @@ class Ubuntu24arm64(_VirtualMachine):
         super().__init__(
             "Ubuntu_24_arm64",
             aws_config=_AWSConfig(ami_id="ami-0e879a1b306fffb22", ami_instance_type="t4g.medium", user="ubuntu"),
+            vagrant_config=None,
+            krunvm_config=None,
+            os_type="linux",
+            os_distro="deb",
+            os_branch="ubuntu24",
+            os_cpu="arm64",
+            default_vm=False,
+            **kwargs,
+        )
+
+
+class Ubuntu24_10amd64(_VirtualMachine):
+    def __init__(self, **kwargs) -> None:
+        super().__init__(
+            "Ubuntu_24_10_amd64",
+            aws_config=_AWSConfig(ami_id="ami-075426e0accc68b53", ami_instance_type="t3.medium", user="ubuntu"),
+            vagrant_config=None,
+            krunvm_config=None,
+            os_type="linux",
+            os_distro="deb",
+            os_branch="ubuntu24",
+            os_cpu="amd64",
+            default_vm=True,
+            **kwargs,
+        )
+
+
+class Ubuntu24_10arm64(_VirtualMachine):
+    def __init__(self, **kwargs) -> None:
+        super().__init__(
+            "Ubuntu_24_10_arm64",
+            aws_config=_AWSConfig(ami_id="ami-0a5b3d67a84b13bf9", ami_instance_type="t4g.medium", user="ubuntu"),
             vagrant_config=None,
             krunvm_config=None,
             os_type="linux",

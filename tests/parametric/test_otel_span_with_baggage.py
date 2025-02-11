@@ -1,10 +1,6 @@
-import time
-
 import pytest
 
-from utils.parametric.spec.trace import SAMPLING_PRIORITY_KEY, ORIGIN
-from utils.parametric.spec.trace import find_only_span
-from utils import missing_feature, irrelevant, context, scenarios, features
+from utils import scenarios, features
 
 # this global mark applies to all tests in this file.
 #   DD_TRACE_OTEL_ENABLED=true is required in some tracers (.NET, Python?)

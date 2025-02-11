@@ -40,6 +40,10 @@ from iast import weak_hash_duplicates
 from iast import weak_hash_multiple
 from iast import weak_hash_secure_algorithm
 import requests
+import opentelemetry.baggage
+import opentelemetry.context
+import opentelemetry.propagate
+import opentelemetry.trace
 
 
 if os.environ.get("INCLUDE_SQLSERVER", "true") == "true":
@@ -182,6 +186,46 @@ def flush_dsm_checkpoints():
     # force flush stats to ensure they're available to agent after test setup is complete
     tracer.data_streams_processor.periodic()
     data_streams_processor().periodic()
+
+
+def check_and_create_users_table():
+    postgres_db = psycopg2.connect(**POSTGRES_CONFIG)
+    cur = postgres_db.cursor()
+
+    # Check if 'users' exists
+    cur.execute("""
+        SELECT EXISTS (
+            SELECT FROM information_schema.tables 
+            WHERE table_name = 'users'
+        );
+    """)
+    table_exists = cur.fetchone()[0]
+
+    if not table_exists:
+        cur.execute("""
+            CREATE TABLE users (
+                id VARCHAR(255) PRIMARY KEY,
+                username VARCHAR(255),
+                email VARCHAR(255),
+                password VARCHAR(255)
+            );
+        """)
+        postgres_db.commit()
+
+        users_data = [
+            ("1", "john_doe", "john@example.com", "hashed_password_1"),
+            ("2", "jane_doe", "jane@example.com", "hashed_password_2"),
+            ("3", "bob_smith", "bob@example.com", "hashed_password_3"),
+        ]
+
+        cur.executemany(
+            "INSERT INTO users (id, username, email, password) VALUES (%s, %s, %s, %s) ON CONFLICT (id) DO NOTHING;",
+            users_data,
+        )
+        postgres_db.commit()
+
+        cur.close()
+        postgres_db.close()
 
 
 @app.route("/")
@@ -970,8 +1014,9 @@ def view_weak_cipher_secure():
     return Response("OK")
 
 
-def _sink_point_sqli(table="user", id="1"):
-    sql = "SELECT * FROM " + table + " WHERE id = '" + id + "'"
+def _sink_point_sqli(table="users", id="1"):
+    check_and_create_users_table()
+    sql = f"SELECT * FROM {table} WHERE id = '" + id + "'"
     postgres_db = psycopg2.connect(**POSTGRES_CONFIG)
     cursor = postgres_db.cursor()
     try:
@@ -1095,20 +1140,10 @@ def view_iast_ssrf_insecure():
 
 @app.route("/iast/ssrf/test_secure", methods=["POST"])
 def view_iast_ssrf_secure():
-    from urllib.parse import urlparse
-
     import requests
 
-    url = flask_request.form["url"]
-    # Validate the URL and enforce whitelist
-    allowed_domains = ["example.com", "api.example.com"]
-    parsed_url = urlparse(url)
-
-    if parsed_url.hostname not in allowed_domains:
-        return "Forbidden", 403
-
     try:
-        requests.get(url)
+        requests.get("https://www.datadoghq.com")
     except Exception:
         pass
 
@@ -1233,25 +1268,30 @@ def track_custom_event():
 
 @app.route("/iast/sqli/test_secure", methods=["POST"])
 def view_sqli_secure():
-    sql = "SELECT * FROM IAST_USER WHERE USERNAME = ? AND PASSWORD = ?"
+    check_and_create_users_table()
+    sql = "SELECT * FROM users WHERE username = %s AND password = %s"
     postgres_db = psycopg2.connect(**POSTGRES_CONFIG)
     cursor = postgres_db.cursor()
-    cursor.execute(sql, flask_request.form["username"], flask_request.form["password"])
+    cursor.execute(sql, (flask_request.form["username"], flask_request.form["password"]))
     return Response("OK")
 
 
 @app.route("/iast/sqli/test_insecure", methods=["POST"])
 def view_sqli_insecure():
+    check_and_create_users_table()
     sql = (
-        "SELECT * FROM IAST_USER WHERE USERNAME = '"
+        "SELECT * FROM users WHERE username = '"
         + flask_request.form["username"]
-        + "' AND PASSWORD = '"
+        + "' AND password = '"
         + flask_request.form["password"]
         + "'"
     )
     postgres_db = psycopg2.connect(**POSTGRES_CONFIG)
     cursor = postgres_db.cursor()
-    cursor.execute(sql)
+    try:
+        cursor.execute(sql)
+    except Exception:
+        pass
     return Response("OK")
 
 
@@ -1385,7 +1425,7 @@ def db():
 def create_extra_service():
     new_service_name = request.args.get("serviceName", default="", type=str)
     if new_service_name:
-        Pin.override(Flask, service=new_service_name, tracer=tracer)
+        Pin.override(Flask, service=new_service_name)
     return Response("OK")
 
 
@@ -1497,5 +1537,31 @@ def s3_multipart_upload():
         # boto adds double quotes to the ETag
         # so we need to remove them to match what would have done AWS
         result = {"result": "ok", "object": {"e_tag": response.e_tag.replace('"', "")}}
+
+    return jsonify(result)
+
+
+@app.route("/otel_drop_in_default_propagator_extract", methods=["GET"])
+def otel_drop_in_default_propagator_extract():
+    def get_header_from_flask_request(request, key):
+        return request.headers.get(key)
+
+    context = opentelemetry.propagate.extract(flask_request.headers, opentelemetry.context.get_current())
+
+    span_context = opentelemetry.trace.get_current_span(context).get_span_context()
+
+    result = {}
+    result["trace_id"] = int(format(span_context.trace_id, "032x")[16:], 16)
+    result["span_id"] = span_context.span_id
+    result["tracestate"] = str(span_context.trace_state)
+    result["baggage"] = str(opentelemetry.baggage.get_all(context))
+
+    return jsonify(result)
+
+
+@app.route("/otel_drop_in_default_propagator_inject", methods=["GET"])
+def otel_drop_in_default_propagator_inject():
+    result = {}
+    opentelemetry.propagate.inject(result, opentelemetry.context.get_current())
 
     return jsonify(result)

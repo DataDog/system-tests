@@ -64,6 +64,15 @@ class _Scenarios:
 
     profiling = ProfilingScenario("PROFILING")
 
+    appsec_no_stats = EndToEndScenario(
+        name="APPSEC_NO_STATS",
+        doc=(
+            "End to end testing with default values. Default scenario has DD_TRACE_COMPUTE_STATS=true."
+            "This scenario let that env to use its default"
+        ),
+        scenario_groups=[ScenarioGroup.APPSEC],
+    )
+
     sampling = EndToEndScenario(
         "SAMPLING",
         tracer_sampling_rate=0.5,
@@ -153,7 +162,10 @@ class _Scenarios:
     # This GraphQL scenario can be used for any GraphQL testing, not just AppSec
     graphql_appsec = EndToEndScenario(
         "GRAPHQL_APPSEC",
-        weblog_env={"DD_APPSEC_RULES": "/appsec_blocking_rule.json"},
+        weblog_env={
+            "DD_APPSEC_RULES": "/appsec_blocking_rule.json",
+            "DD_TRACE_GRAPHQL_ERROR_EXTENSIONS": "int,float,str,bool,other",
+        },
         weblog_volumes={"./tests/appsec/blocking_rule.json": {"bind": "/appsec_blocking_rule.json", "mode": "ro"}},
         doc="AppSec tests for GraphQL integrations",
         github_workflow="graphql",
@@ -525,7 +537,8 @@ class _Scenarios:
             "DD_TRACE_KAFKA_ENABLED": "false",  # most common endpoint and integration (missing for PHP).
             "DD_TRACE_KAFKAJS_ENABLED": "false",  # In Node the integration is kafkajs.
             "DD_TRACE_PDO_ENABLED": "false",  # Use PDO for PHP,
-            "DD_TRACE_PROPAGATION_STYLE_EXTRACT": "tracecontext,datadog,b3multi",
+            "DD_TRACE_PROPAGATION_STYLE_EXTRACT": "datadog,tracecontext,b3multi,baggage",
+            "DD_TRACE_PROPAGATION_BEHAVIOR_EXTRACT": "restart",
             "DD_LOGS_INJECTION": "true",
         },
         appsec_enabled=False,  # disable ASM to test non asm client ip tagging
@@ -545,7 +558,8 @@ class _Scenarios:
             "DD_TRACE_PDO_ENABLED": "true",  # Use PDO for PHP
             "DD_TRACE_CLIENT_IP_HEADER": "custom-ip-header",
             "DD_TRACE_CLIENT_IP_ENABLED": "true",
-            "DD_TRACE_PROPAGATION_STYLE_EXTRACT": "datadog,tracecontext,b3multi",
+            "DD_TRACE_PROPAGATION_STYLE_EXTRACT": "datadog,tracecontext,b3multi,baggage",
+            "DD_TRACE_PROPAGATION_BEHAVIOR_EXTRACT": "ignore",
         },
         include_kafka=True,
         include_postgres_db=True,
@@ -557,6 +571,9 @@ class _Scenarios:
         weblog_env={
             "DD_TRACE_HTTP_CLIENT_TAG_QUERY_STRING": "false",
             "DD_TRACE_CLIENT_IP_HEADER": "custom-ip-header",
+            "DD_TRACE_PROPAGATION_STYLE_EXTRACT": "datadog,tracecontext,b3multi,baggage",
+            "DD_TRACE_PROPAGATION_BEHAVIOR_EXTRACT": "restart",
+            "DD_TRACE_PROPAGATION_EXTRACT_FIRST": "true",
             "DD_LOGS_INJECTION": "true",
             "DD_TRACE_128_BIT_TRACEID_LOGGING_ENABLED": "false",
         },
@@ -645,7 +662,7 @@ class _Scenarios:
         scenario_groups=[ScenarioGroup.DEBUGGER],
     )
 
-    fuzzer = DockerScenario("_FUZZER", doc="Fake scenario for fuzzing (launch without pytest)", github_workflow=None)
+    fuzzer = DockerScenario("FUZZER", doc="Fake scenario for fuzzing (launch without pytest)", github_workflow=None)
 
     # Single Step Instrumentation scenarios (HOST and CONTAINER)
 
@@ -815,6 +832,20 @@ class _Scenarios:
         scenario_groups=[ScenarioGroup.APPSEC, ScenarioGroup.APPSEC_RASP],
     )
 
+    appsec_rasp_non_blocking = EndToEndScenario(
+        "APPSEC_RASP_NON_BLOCKING",
+        weblog_env={"DD_APPSEC_RASP_ENABLED": "true", "DD_APPSEC_RULES": "/appsec_rasp_non_blocking_ruleset.json"},
+        weblog_volumes={
+            "./tests/appsec/rasp/rasp_non_blocking_ruleset.json": {
+                "bind": "/appsec_rasp_non_blocking_ruleset.json",
+                "mode": "ro",
+            }
+        },
+        doc="Enable APPSEC RASP",
+        github_workflow="endtoend",
+        scenario_groups=[ScenarioGroup.APPSEC],
+    )
+
     agent_not_supporting_span_events = EndToEndScenario(
         "AGENT_NOT_SUPPORTING_SPAN_EVENTS",
         span_events=False,
@@ -839,7 +870,15 @@ class _Scenarios:
 
     runtime_metrics_enabled = EndToEndScenario(
         "RUNTIME_METRICS_ENABLED",
+        # Add environment variable DD_DOGSTATSD_START_DELAY=0 to avoid the default 30s startup delay in the Java tracer.
+        # That delay is used in production to reduce the impact on startup and other side-effects on various application
+        # servers. These considerations do not apply to the system-tests environment so we can reduce it to 0s.
+        weblog_env={"DD_DOGSTATSD_START_DELAY": "0"},
         runtime_metrics_enabled=True,
+        # Disable the proxy in between weblog and the agent so that we can send metrics (via UDP) to the agent.
+        # The mitmproxy can only proxy UDP traffic by doing a host-wide transparent proxy, but we currently
+        # via specific ports. As a result, with the proxy enabled all UDP traffic is being dropped.
+        use_proxy_for_weblog=False,
         doc="Test runtime metrics",
     )
 

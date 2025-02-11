@@ -20,6 +20,7 @@ from utils.proxy.ports import ProxyPorts
 from utils.tools import logger
 from utils import interfaces
 from utils.k8s_lib_injection.k8s_weblog import K8sWeblog
+from utils.interfaces._library.core import LibraryInterfaceValidator
 
 # fake key of length 32
 _FAKE_DD_API_KEY = "0123456789abcdef0123456789abcdef"
@@ -100,13 +101,13 @@ class TestedContainer:
         # None: container did not tried to start yet, or hasn't be started for another reason
         # False: container is not healthy
         # True: container is healthy
-        self.healthy = None
+        self.healthy: bool | None = None
 
         self.environment = environment or {}
         self.kwargs = kwargs
         self.depends_on: list[TestedContainer] = []
         self._starting_lock = RLock()
-        self._starting_thread = None
+        self._starting_thread: Thread | None = None
         self.stdout_interface = stdout_interface
 
     def get_image_list(self, library: str, weblog: str) -> list[str]:  # noqa: ARG002
@@ -444,7 +445,7 @@ class ImageInfo:
         # local_image_only: boolean
         # True if the image is only available locally and can't be loaded from any hub
 
-        self.env = None
+        self.env: dict[str, str] | None = None
         self.labels: dict[str, str] = {}
         self.name = image_name
         self.local_image_only = local_image_only
@@ -557,7 +558,7 @@ class AgentContainer(TestedContainer):
             local_image_only=True,
         )
 
-        self.agent_version = ""
+        self.agent_version: str | None = ""
 
     def configure(self, replay):
         super().configure(replay)
@@ -607,15 +608,21 @@ class BuddyContainer(TestedContainer):
                 # "DD_TRACE_DEBUG": "true",
                 "DD_AGENT_HOST": "proxy",
                 "DD_TRACE_AGENT_PORT": trace_agent_port,
+                "SYSTEM_TESTS_AWS_URL": "http://localstack-main:4566",
             },
         )
 
-        self.interface = None
         _set_aws_auth_environment(self)
+
+    @property
+    def interface(self) -> LibraryInterfaceValidator:
+        result = getattr(interfaces, self.name)
+        assert result is not None, "Interface is not set"
+        return result
 
 
 class WeblogContainer(TestedContainer):
-    appsec_rules_file: str
+    appsec_rules_file: str | None
     _dd_rc_tuf_root: dict = {
         "signed": {
             "_type": "root",
@@ -719,6 +726,7 @@ class WeblogContainer(TestedContainer):
 
         if tracer_sampling_rate:
             base_environment["DD_TRACE_SAMPLE_RATE"] = str(tracer_sampling_rate)
+            base_environment["DD_TRACE_SAMPLING_RULES"] = json.dumps([{"sample_rate": tracer_sampling_rate}])
 
         if use_proxy:
             # set the tracer to send data to runner (it will forward them to the agent)
@@ -726,7 +734,7 @@ class WeblogContainer(TestedContainer):
             base_environment["DD_TRACE_AGENT_PORT"] = self.trace_agent_port
         else:
             base_environment["DD_AGENT_HOST"] = "agent"
-            base_environment["DD_TRACE_AGENT_PORT"] = AgentContainer.apm_receiver_port
+            base_environment["DD_TRACE_AGENT_PORT"] = str(AgentContainer.apm_receiver_port)
 
         # overwrite values with those set in the scenario
         environment = base_environment | (environment or {})
@@ -757,7 +765,7 @@ class WeblogContainer(TestedContainer):
         self.additional_trace_header_tags = additional_trace_header_tags
 
         self.weblog_variant = ""
-        self._library: LibraryVersion = None
+        self._library: LibraryVersion | None = None
 
     @property
     def trace_agent_port(self):
@@ -777,7 +785,7 @@ class WeblogContainer(TestedContainer):
 
     def get_image_list(self, library: str | None, weblog: str | None) -> list[str]:
         """Parse the Dockerfile and extract all images reference in a FROM section"""
-        result = []
+        result: list[str] = []
 
         if not library or not weblog:
             return result
@@ -820,13 +828,36 @@ class WeblogContainer(TestedContainer):
         if len(self.additional_trace_header_tags) != 0:
             self.environment["DD_TRACE_HEADER_TAGS"] += f',{",".join(self.additional_trace_header_tags)}'
 
-        self.appsec_rules_file = (self.image.env | self.environment).get("DD_APPSEC_RULES", None)
+        if "DD_APPSEC_RULES" in self.environment:
+            self.appsec_rules_file = self.environment["DD_APPSEC_RULES"]
+        elif self.image.env is not None and "DD_APPSEC_RULES" in self.environment:
+            self.appsec_rules_file = self.image.env["DD_APPSEC_RULES"]
+        else:
+            self.appsec_rules_file = None
+
+        # Workaround: Once the dd-trace-go fix is merged that avoids a go panic for
+        # DD_TRACE_PROPAGATION_EXTRACT_FIRST=true when context propagation fails,
+        # we can remove the DD_TRACE_PROPAGATION_EXTRACT_FIRST=false override
+        if library == "golang":
+            self.environment["DD_TRACE_PROPAGATION_EXTRACT_FIRST"] = "false"
+
+        # Workaround: We may want to define baggage in our list of propagators, but the cpp library
+        # has strict checks on tracer startup that will fail to launch the application
+        # when it encounters unfamiliar configurations. Override the configuration that the cpp
+        # weblog container sees so we can still run tests
+        if library == "cpp":
+            extract_config = self.environment.get("DD_TRACE_PROPAGATION_STYLE_EXTRACT")
+            if extract_config and "baggage" in extract_config:
+                self.environment["DD_TRACE_PROPAGATION_STYLE_EXTRACT"] = extract_config.replace("baggage", "").strip(
+                    ","
+                )
 
         if library == "nodejs":
             try:
                 with open("./binaries/nodejs-load-from-local", encoding="utf-8") as f:
                     path = f.read().strip(" \r\n")
-                    self.kwargs["volumes"][os.path.abspath(path)] = {
+                    path_str = str(Path(path).resolve())
+                    self.kwargs["volumes"][path_str] = {
                         "bind": "/volumes/dd-trace-js",
                         "mode": "ro",
                     }
@@ -858,10 +889,12 @@ class WeblogContainer(TestedContainer):
 
     @property
     def library(self) -> LibraryVersion:
+        assert self._library is not None, "Library version is not set"
         return self._library
 
     @property
     def uds_socket(self):
+        assert self.image.env is not None, "No env set"
         return self.image.env.get("DD_APM_RECEIVER_SOCKET", None)
 
     @property
@@ -975,6 +1008,41 @@ class RabbitMqContainer(TestedContainer):
         )
 
 
+class ElasticMQContainer(TestedContainer):
+    def __init__(self, host_log_folder) -> None:
+        super().__init__(
+            image_name="softwaremill/elasticmq-native:1.6.11",
+            name="elasticmq",
+            host_log_folder=host_log_folder,
+            environment={"ELASTICMQ_OPTS": "-Dnode-address.hostname=0.0.0.0"},
+            ports={9324: 9324},
+            volumes={"/var/run/docker.sock": {"bind": "/var/run/docker.sock", "mode": "rw"}},
+            allow_old_container=True,
+        )
+
+
+class LocalstackContainer(TestedContainer):
+    def __init__(self, host_log_folder) -> None:
+        super().__init__(
+            image_name="localstack/localstack:4.1",
+            name="localstack-main",
+            environment={
+                "LOCALSTACK_SERVICES": "kinesis,sqs,sns,xray",
+                "EXTRA_CORS_ALLOWED_HEADERS": "x-amz-request-id,x-amzn-requestid,x-amzn-trace-id",
+                "EXTRA_CORS_EXPOSE_HEADERS": "x-amz-request-id,x-amzn-requestid,x-amzn-trace-id",
+                "AWS_DEFAULT_REGION": "us-east-1",
+                "FORCE_NONINTERACTIVE": "true",
+                "START_WEB": "0",
+                "DEBUG": "1",
+                "SQS_PROVIDER": "elasticmq",
+                "DOCKER_HOST": "unix:///var/run/docker.sock",
+            },
+            host_log_folder=host_log_folder,
+            ports={"4566": ("127.0.0.1", 4566)},
+            volumes={"/var/run/docker.sock": {"bind": "/var/run/docker.sock", "mode": "rw"}},
+        )
+
+
 class MySqlContainer(SqlDbTestedContainer):
     def __init__(self, host_log_folder) -> None:
         super().__init__(
@@ -1073,7 +1141,7 @@ class OpenTelemetryCollectorContainer(TestedContainer):
         # _otel_config_host_path is mounted in the container, and depending on umask,
         # it might have no read permissions for other users, which is required within
         # the container. So set them here.
-        prev_mode = os.stat(self._otel_config_host_path).st_mode
+        prev_mode = Path(self._otel_config_host_path).stat().st_mode
         new_mode = prev_mode | stat.S_IROTH
         if prev_mode != new_mode:
             Path(self._otel_config_host_path).chmod(new_mode)
@@ -1159,7 +1227,7 @@ class DockerSSIContainer(TestedContainer):
 
     def get_env(self, env_var):
         """Get env variables from the container"""
-        env = self.image.env | self.environment
+        env = (self.image.env or {}) | self.environment
         return env.get(env_var)
 
 

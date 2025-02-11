@@ -1,6 +1,7 @@
-import os
-import json
 import copy
+import json
+import os
+from pathlib import Path
 from utils._context.library_version import LibraryVersion
 from utils.tools import logger
 from utils.virtual_machine.utils import get_tested_apps_vms, generate_gitlab_pipeline
@@ -17,6 +18,8 @@ from utils._context.virtual_machines import (
     Ubuntu23_10_arm64,
     Ubuntu24amd64,
     Ubuntu24arm64,
+    Ubuntu24_10amd64,
+    Ubuntu24_10arm64,
     Ubuntu18amd64,
     AmazonLinux2022arm64,
     AmazonLinux2022amd64,
@@ -73,6 +76,8 @@ class _VirtualMachineScenario(Scenario):
         include_ubuntu_23_10_arm64=False,
         include_ubuntu_24_amd64=False,
         include_ubuntu_24_arm64=False,
+        include_ubuntu_24_10_amd64=False,
+        include_ubuntu_24_10_arm64=False,
         include_ubuntu_18_amd64=False,
         include_amazon_linux_2_amd64=False,
         include_amazon_linux_2_arm64=False,
@@ -139,6 +144,10 @@ class _VirtualMachineScenario(Scenario):
             self.required_vms.append(Ubuntu24amd64())
         if include_ubuntu_24_arm64:
             self.required_vms.append(Ubuntu24arm64())
+        if include_ubuntu_24_10_amd64:
+            self.required_vms.append(Ubuntu24_10amd64())
+        if include_ubuntu_24_10_arm64:
+            self.required_vms.append(Ubuntu24_10arm64())
         if include_ubuntu_18_amd64:
             self.required_vms.append(Ubuntu18amd64())
         if include_amazon_linux_2022_amd64:
@@ -279,10 +288,10 @@ class _VirtualMachineScenario(Scenario):
 
         base_folder = "utils/build/virtual_machine"
         weblog_provision_file = f"{base_folder}/weblogs/{self._library.library}/provision_{self._weblog}.yml"
-        assert os.path.isfile(weblog_provision_file), f"Weblog Provision file not found: {weblog_provision_file}"
+        assert Path(weblog_provision_file).is_file(), f"Weblog Provision file not found: {weblog_provision_file}"
 
         provision_file = f"{base_folder}/provisions/{self.vm_provision_name}/provision.yml"
-        assert os.path.isfile(provision_file), f"Provision file not found: {provision_file}"
+        assert Path(provision_file).is_file(), f"Provision file not found: {provision_file}"
 
         assert os.getenv("DD_API_KEY_ONBOARDING") is not None, "DD_API_KEY_ONBOARDING is not set"
         assert os.getenv("DD_APP_KEY_ONBOARDING") is not None, "DD_APP_KEY_ONBOARDING is not set"
@@ -398,6 +407,8 @@ class InstallerAutoInjectionScenario(_VirtualMachineScenario):
         include_ubuntu_23_10_arm64=True,
         include_ubuntu_24_amd64=True,
         include_ubuntu_24_arm64=True,
+        include_ubuntu_24_10_amd64=True,
+        include_ubuntu_24_10_arm64=True,
         include_ubuntu_18_amd64=False,
         include_amazon_linux_2_amd64=True,
         include_amazon_linux_2_arm64=True,
@@ -456,6 +467,8 @@ class InstallerAutoInjectionScenario(_VirtualMachineScenario):
             include_ubuntu_23_10_arm64=include_ubuntu_23_10_arm64,
             include_ubuntu_24_amd64=include_ubuntu_24_amd64,
             include_ubuntu_24_arm64=include_ubuntu_24_arm64,
+            include_ubuntu_24_10_amd64=include_ubuntu_24_10_amd64,
+            include_ubuntu_24_10_arm64=include_ubuntu_24_10_arm64,
             include_ubuntu_18_amd64=include_ubuntu_18_amd64,
             include_amazon_linux_2_amd64=include_amazon_linux_2_amd64,
             include_amazon_linux_2_arm64=include_amazon_linux_2_arm64,

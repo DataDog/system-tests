@@ -1,7 +1,7 @@
 import pytest
 
 from utils.parametric.spec.trace import find_first_span_in_trace_payload, find_trace, find_only_span
-from utils import missing_feature, context, scenarios, features
+from utils import missing_feature, irrelevant, context, scenarios, features
 
 parametrize = pytest.mark.parametrize
 POWER_2_64 = 18446744073709551616
@@ -213,6 +213,7 @@ class Test_128_Bit_Traceids:
 
     @missing_feature(context.library == "cpp", reason="propagation style not supported")
     @missing_feature(context.library == "ruby", reason="not implemented")
+    @irrelevant(context.library > "python@2.20.0", reason="3.x set `b3` instead of `B3 single header`")
     @pytest.mark.parametrize(
         "library_env",
         [{"DD_TRACE_PROPAGATION_STYLE": "B3 single header", "DD_TRACE_128_BIT_TRACEID_GENERATION_ENABLED": "false"}],
@@ -236,6 +237,7 @@ class Test_128_Bit_Traceids:
 
     @missing_feature(context.library == "cpp", reason="propagation style not supported")
     @missing_feature(context.library == "ruby", reason="not implemented")
+    @irrelevant(context.library > "python@2.20.0", reason="3.x set `b3` instead of `B3 single header`")
     @pytest.mark.parametrize(
         "library_env",
         [{"DD_TRACE_PROPAGATION_STYLE": "B3 single header", "DD_TRACE_128_BIT_TRACEID_GENERATION_ENABLED": "true"}],
@@ -257,6 +259,7 @@ class Test_128_Bit_Traceids:
     @missing_feature(
         context.library == "ruby", reason="Issue: Ruby doesn't support case-insensitive distributed headers"
     )
+    @irrelevant(context.library > "python@2.20.0", reason="3.x set `b3` instead of `B3 single header`")
     @pytest.mark.parametrize(
         "library_env",
         [{"DD_TRACE_PROPAGATION_STYLE": "B3 single header", "DD_TRACE_128_BIT_TRACEID_GENERATION_ENABLED": "false"}],
@@ -274,6 +277,7 @@ class Test_128_Bit_Traceids:
 
     @missing_feature(context.library == "cpp", reason="propagation style not supported")
     @missing_feature(context.library == "ruby", reason="not implemented")
+    @irrelevant(context.library > "python@2.20.0", reason="3.x set `b3` instead of `B3 single header`")
     @pytest.mark.parametrize(
         "library_env",
         [{"DD_TRACE_PROPAGATION_STYLE": "B3 single header", "DD_TRACE_128_BIT_TRACEID_GENERATION_ENABLED": "true"}],
@@ -418,7 +422,7 @@ class Test_128_Bit_Traceids:
         """Ensure that root span contains the tid."""
         with test_library:
             with test_library.dd_start_span(name="parent", service="service", resource="resource") as parent:
-                with test_library.dd_start_span(name="child", service="service", parent_id=parent.span_id) as child:
+                with test_library.dd_start_span(name="child", service="service", parent_id=parent.span_id):
                     pass
 
         traces = test_agent.wait_for_num_traces(1, clear=True, sort_by_start=False)
@@ -604,7 +608,7 @@ def check_128_bit_trace_id(header_trace_id, span_trace_id, dd_p_tid):
 
 def validate_dd_p_tid(dd_p_tid):
     """Validate that dd_p_tid is well-formed."""
-    assert not dd_p_tid is None
+    assert dd_p_tid is not None
     assert len(dd_p_tid) == 16
     assert dd_p_tid != ZERO16
     assert dd_p_tid[8:16] == ZERO8

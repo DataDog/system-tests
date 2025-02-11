@@ -1,9 +1,13 @@
 [project]
 name = 'system_tests'
 version = '0.0.1'
+dynamic = ["dependencies"]
 
 [tool.setuptools]
 packages = ["tests", "utils", "manifests"]
+
+[tool.setuptools.dynamic]
+dependencies = {file = ["requirements.txt"]}
 
 [tool.pytest.ini_options]
 addopts = "--json-report --json-report-indent=2 --color=yes --no-header --junitxml=reportJunit.xml -r Xf"
@@ -30,24 +34,42 @@ markers =[
 
 python_files = "test_*.py *utils.py"
 
-# migration tooling: list of folders where feature declarations are mandatory
-# once every test class got its feature declaration, we can remove this
-allow_no_feature_nodes = [
-    "tests/apm_tracing_e2e/test_single_span.py",
-    "tests/apm_tracing_e2e/test_smoke.py",
-    "tests/otel_tracing_e2e/test_e2e.py",
-    "tests/parametric/test_span_links.py",
-    "tests/parametric/test_tracer.py",
-    "tests/perfs/test_performances.py",  # exotic scenario, not really used
-    "tests/test_the_test/",  # Not a real test
-]
-
 [tool.mypy]
-files = ["utils/parametric", "tests/parametric"]
+files = [
+    "utils/",
+    "tests/",
+    "conftest.py",
+]
+exclude = [
+    "utils/build/.*",  # more permissive on weblog codes
+    "utils/grpc/weblog_pb2.py",  # auto generated
+
+    # TODO
+    "tests/fuzzer/.*",
+    "tests/test_the_test/.*",
+    "tests/test_telemetry.py",
+    "tests/appsec/.*",
+    "tests/debugger/.*",
+    "tests/auto_inject/.*",
+    "tests/integrations/.*",
+    "tests/otel_tracing_e2e/test_e2e.py",
+    "tests/k8s_lib_injection/test_k8s_init_image_validator.py",
+    "utils/_context/_scenarios/auto_injection.py",
+    "utils/_context/_scenarios/k8s_lib_injection.py",
+    "utils/_context/core.py",
+    "utils/_context/virtual_machines.py",
+    "utils/scripts/decode-rc.py",
+    "utils/docker_ssi/.*",
+    "utils/k8s_lib_injection/.*",
+    "utils/onboarding/.*",
+    "utils/otel_validators/validator_trace.py",
+    "utils/proxy/_deserializer.py",
+    "utils/scripts/merge_gitlab_aws_pipelines.py",
+    "utils/virtual_machine/.*",
+]
 ignore_missing_imports = true
 check_untyped_defs = true
 disable_error_code = ["no-redef"]
-exclude = 'utils/parametric/_library_client\.py|^(?!utils/parametric|tests/parametric).*$'
 follow_imports = "skip"
 # enable_error_code = ["ignore-without-code"]
 
@@ -92,13 +114,7 @@ ignore = [
     "PLR0915", # too many statements, may be replaced by a higher default value
     "PLR1714",
     "PLR2004",
-    "PTH100",
-    "PTH110",
-    "PTH113",
-    "PTH116",
     "PTH118",
-    "PTH120",
-    "PTH122",  # os.path.splitext(), but not really easier to read ? 
     "PTH123",  # `open()` should be replaced by `Path.open()`
     "RUF012",
     "S202",
@@ -146,6 +162,7 @@ ignore = [
     "TD003",  # todo found
     "TD004",  # todo found
     "TRY300", # not always obvious
+    "UP015",  # redundant-open-modes: yes it's redundant. But explicit is better than implicit
     "UP038",  # not a big fan
 
 ]
@@ -163,7 +180,79 @@ ignore = [
 ]
 "utils/waf_rules.py" = ["N801"]  # generated file
 # TODO : remove those ignores
-"tests/*" = ["ALL"]
+"tests/*" = [
+    # lines with [*] can be autofixed with ruff check --fix --unsafe-fixes
+    # though, each change must be reviewed
+    "ANN201",    # 2043 occurences  [ ] missing-return-type-undocumented-public-function
+    "N801",      # 492 occurences   [ ] invalid-class-name
+    "ARG002",    # 177 occurences   [ ] unused-method-argument
+    "E501",      # 159 occurences   [ ] line-too-long
+    "SIM117",    # 127 occurences   [ ] multiple-with-statements
+    "TID252",    # 77 occurences    [*] relative-imports
+    "N806",      # 76 occurences    [ ] non-lowercase-variable-in-function
+    "FBT003",    # 67 occurences    [ ] boolean-positional-value-in-call
+    "D200",      # 52 occurences    [*] fits-on-one-line
+    "F405",      # 43 occurences    [ ] undefined-local-with-import-star-usage
+    "TRY002",    # 41 occurences    [ ] raise-vanilla-class
+    "N802",      # 39 occurences    [ ] invalid-function-name
+    "FBT002",    # 30 occurences    [ ] boolean-default-value-positional-argument
+    "D404",      # 25 occurences    [ ] docstring-starts-with-this
+    "ANN401",    # 24 occurences    [ ] any-type
+    "B007",      # 23 occurences    [ ] unused-loop-control-variable
+    "DTZ005",    # 23 occurences    [ ] call-datetime-now-without-tzinfo
+    "INP001",    # 22 occurences    [ ] implicit-namespace-package
+    "ARG001",    # 21 occurences    [ ] unused-function-argument
+    "UP031",     # 17 occurences    [ ] printf-string-formatting
+    "ANN205",    # 16 occurences    [ ] missing-return-type-static-method
+    "T201",      # 15 occurences    [*] print
+    "FBT001",    # 12 occurences    [ ] boolean-type-hint-positional-argument
+    "SLF001",    # 12 occurences    [ ] private-member-access
+    "UP035",     # 12 occurences    [ ] deprecated-import
+    "S105",      # 10 occurences    [ ] hardcoded-password-string
+    "B015",      # 10 occurences    [ ] useless-comparison
+    "RET503",    # 9 occurences     [*] implicit-return
+    "SIM115",    # 9 occurences     [ ] open-file-with-context-handler
+    "PGH004",    # 9 occurences     [ ] blanket-noqa
+    "RUF001",    # 9 occurences     [ ] ambiguous-unicode-character-string
+    "RUF015",    # 9 occurences     [*] unnecessary-iterable-allocation-for-first-element
+    "SIM108",    # 8 occurences     [*] if-else-block-instead-of-if-exp
+    "PTH120",    # 8 occurences     [ ] os-path-dirname
+    "PGH003",    # 8 occurences     [ ] blanket-type-ignore
+    "TRY301",    # 8 occurences     [ ] raise-within-try
+    "ANN206",    # 7 occurences     [ ] missing-return-type-class-method
+    "B011",      # 7 occurences     [*] assert-false
+    "PT015",     # 7 occurences     [ ] pytest-assert-always-false
+    "N815",      # 7 occurences     [ ] mixed-case-variable-in-class-scope
+    "PT006",     # 6 occurences     [*] pytest-parametrize-names-wrong-type
+    "N803",      # 6 occurences     [ ] invalid-argument-name
+    "E741",      # 6 occurences     [ ] ambiguous-variable-name
+    "S113",      # 5 occurences     [ ] request-without-timeout
+    "PT011",     # 5 occurences     [ ] pytest-raises-too-broad
+    "E731",      # 5 occurences     [*] lambda-assignment
+    "RUF005",    # 5 occurences     [ ] collection-literal-concatenation
+    "PTH103",    # 4 occurences     [ ] os-makedirs
+    "PLW2901",   # 4 occurences     [ ] redefined-loop-name
+    "PTH112",    # 3 occurences     [ ] os-path-isdir
+    "ANN002",    # 2 occurences     [ ] missing-type-args
+    "ASYNC230",  # 2 occurences     [ ] blocking-open-call-in-async-function
+    "S605",      # 2 occurences     [ ] start-process-with-a-shell
+    "PTH100",    # 2 occurences     [ ] os-path-abspath
+    "PTH109",    # 2 occurences     [ ] os-getcwd
+
+    # keep those exceptions
+    "C400",      # unnecessary-generator-list: explicit list is more readable for non-python users
+    "C401",      # unnecessary-generator-set: explicit set is more readable for non-python users
+    "C408",      # unnecessary-collection-call: explicit tuple is more readable for non-python users
+    "C416",      # unnecessary-comprehension: may make the code less readable for non-python users
+    "FIX003",    # line-contains-xxx: freedom of speech!
+    "FIX004",    # line-contains-xxx: freedom of speech!
+    "PLR1730",   # if-stmt-min-max: not clear that it makes the code easier to read
+    "RET506",    # superfluous-else-raise: requires a slightly higher cognitive effort to understand the code
+    "RET507",    # superfluous-else-continue : requires a slightly higher cognitive effort to understand the code
+    "RET508",    # superfluous-else-break: requires a slightly higher cognitive effort to understand the code
+    "RET505",    # superfluous-else-return: requires a slightly higher cognitive effort to understand the code
+    "S108",      # hardcoded-temp-file: test code may contains weird things
+]
 "utils/build/*"  = ["ALL"]
 "lib-injection/*" = ["ALL"]
 "utils/{k8s_lib_injection/*,_context/_scenarios/k8s_lib_injection.py}" = [
@@ -270,7 +359,6 @@ ignore = [
     "SIM300",
     "SIM401",  # code quality, TBD
     "UP008",
-    "UP015",
     "UP031",
     "UP024",
 

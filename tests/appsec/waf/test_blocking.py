@@ -76,10 +76,10 @@ class Test_Blocking:
 
         def validate_appsec_blocked(span):
             if span.get("type") != "web":
-                return
+                return None
 
             if span.get("parent_id") not in (0, None):  # do nothing if not root span
-                return
+                return None
 
             if "appsec.blocked" not in span["meta"]:
                 raise ValueError("Can't find appsec.blocked in span's tags")
@@ -201,7 +201,7 @@ class Test_Blocking:
 @features.appsec_blocking_action
 class Test_Blocking_strip_response_headers:
     def setup_strip_response_headers(self):
-        self.r_srh = weblog.get(f"/tag_value/anything/200?x-secret-header=123&content-language=krypton")
+        self.r_srh = weblog.get("/tag_value/anything/200?x-secret-header=123&content-language=krypton")
 
     def test_strip_response_headers(self):
         """Test if headers are stripped from the blocking response"""

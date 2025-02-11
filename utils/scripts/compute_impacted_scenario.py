@@ -9,7 +9,7 @@ from utils._context._scenarios import ScenarioGroup, scenarios, Scenario
 class Result:
     def __init__(self) -> None:
         self.scenarios = {"DEFAULT"}  # always run the default scenario
-        self.scenarios_groups = set()
+        self.scenarios_groups: set[str] = set()
 
     def add_scenario(self, scenario: str) -> None:
         if scenario == "EndToEndScenario":
@@ -20,7 +20,7 @@ class Result:
     def add_scenario_group(self, scenario_group: str) -> None:
         self.scenarios_groups.add(scenario_group)
 
-    def add_scenarios(self, scenarios: set[str]) -> None:
+    def add_scenarios(self, scenarios: set[str] | list[str]) -> None:
         for scenario in scenarios:
             self.add_scenario(scenario)
 
@@ -41,7 +41,7 @@ class Result:
             if "run-open-telemetry-scenarios" in labels:
                 self.add_scenario_group(ScenarioGroup.OPEN_TELEMETRY.value)
             if "run-parametric-scenario" in labels:
-                self.add_scenario_group(ScenarioGroup.PARAMETRIC.value)
+                self.add_scenario(scenarios.parametric.name)
             if "run-graphql-scenarios" in labels:
                 self.add_scenario_group(ScenarioGroup.GRAPHQL.value)
             if "run-docker-ssi-scenarios" in labels:
@@ -140,7 +140,7 @@ def main() -> None:
                     r"\.circleci/.*": None,  # nothing to do
                     r"\.vscode/.*": None,  # nothing to do
                     ## .github folder
-                    r"\.github/workflows/run-parametric\.yml": ScenarioGroup.PARAMETRIC,
+                    r"\.github/workflows/run-parametric\.yml": scenarios.parametric,
                     r"\.github/workflows/run-lib-injection\.yml": ScenarioGroup.LIB_INJECTION,
                     r"\.github/workflows/run-docker-ssi\.yml": ScenarioGroup.DOCKER_SSI,
                     r"\.github/workflows/run-graphql\.yml": ScenarioGroup.GRAPHQL,
@@ -166,10 +166,10 @@ def main() -> None:
                     r"utils/_context/_scenarios/auto_injection\.py": None,
                     r"utils/_context/virtual_machine\.py": None,
                     #### Parametric case
-                    r"utils/build/docker/\w+/parametric/.*": ScenarioGroup.PARAMETRIC,
-                    r"utils/_context/_scenarios/parametric\.py": ScenarioGroup.PARAMETRIC,
-                    r"utils/parametric/.*": ScenarioGroup.PARAMETRIC,
-                    r"utils/scripts/parametric/.*": ScenarioGroup.PARAMETRIC,
+                    r"utils/build/docker/\w+/parametric/.*": scenarios.parametric,
+                    r"utils/_context/_scenarios/parametric\.py": scenarios.parametric,
+                    r"utils/parametric/.*": scenarios.parametric,
+                    r"utils/scripts/parametric/.*": scenarios.parametric,
                     #### Docker SSI case
                     r"utils/docker_ssi/.*": ScenarioGroup.DOCKER_SSI,
                     ### other scenarios def

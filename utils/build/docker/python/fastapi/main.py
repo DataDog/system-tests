@@ -722,7 +722,7 @@ async def view_iast_ssrf_secure(url: typing.Annotated[str, Form()]):
     from urllib.parse import urlparse
 
     # Validate the URL and enforce whitelist
-    allowed_domains = ["example.com", "api.example.com"]
+    allowed_domains = ["example.com", "api.example.com", "www.datadoghq.com"]
     parsed_url = urlparse(str(url))
 
     if parsed_url.hostname not in allowed_domains:
@@ -876,7 +876,7 @@ async def view_iast_code_injection_secure(code: typing.Annotated[str, Form()]):
 @app.get("/createextraservice", response_class=PlainTextResponse)
 def create_extra_service(serviceName: str = ""):
     if serviceName:
-        Pin.override(fastapi, service=serviceName, tracer=tracer)
+        Pin.override(fastapi, service=serviceName)
     return "OK"
 
 

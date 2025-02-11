@@ -1,10 +1,7 @@
 import base64
-import pprint
 from typing import Any
-from typing import Optional
-from typing import List
 
-import numpy
+import numpy as np
 import msgpack
 import pytest
 
@@ -13,6 +10,7 @@ from utils.parametric.spec.trace import SPAN_MEASURED_KEY
 from utils.parametric.spec.trace import V06StatsAggr
 from utils.parametric.spec.trace import find_root_span
 from utils import missing_feature, context, scenarios, features
+from utils.tools import logger
 
 parametrize = pytest.mark.parametrize
 
@@ -24,7 +22,7 @@ def _human_stats(stats: V06StatsAggr) -> str:
     return str(filtered_copy)
 
 
-def enable_tracestats(sample_rate: Optional[float] = None) -> Any:
+def enable_tracestats(sample_rate: float | None = None) -> Any:
     env = {
         "DD_TRACE_STATS_COMPUTATION_ENABLED": "1",  # reference, dotnet, python, golang
         "DD_TRACE_TRACER_METRICS_ENABLED": "true",  # java
@@ -46,11 +44,10 @@ class Test_Library_Tracestats:
     @missing_feature(context.library == "php", reason="php has not implemented stats computation yet")
     @missing_feature(context.library == "ruby", reason="ruby has not implemented stats computation yet")
     def test_metrics_msgpack_serialization_TS001(self, library_env, test_agent, test_library):
-        """
-        When spans are finished
-            Each trace has stats metrics computed for it serialized properly in msgpack format with required fields
-            The required metrics are:
-                {error_count, hit_count, ok/error latency distributions, duration}
+        """When spans are finished
+        Each trace has stats metrics computed for it serialized properly in msgpack format with required fields
+        The required metrics are:
+            {error_count, hit_count, ok/error latency distributions, duration}
         """
         with test_library:
             with test_library.dd_start_span(name="web.request", resource="/users", service="webserver"):
@@ -69,7 +66,7 @@ class Test_Library_Tracestats:
         agent_decoded_stats = decoded_stats_requests[0]["body"]["Stats"][0]["Stats"][0]
         assert len(decoded_stats_requests) == 1
         assert len(decoded_stats_requests[0]["body"]["Stats"]) == 1
-        pprint.pprint([_human_stats(s) for s in decoded_stats_requests[0]["body"]["Stats"][0]["Stats"]])
+        logger.debug([_human_stats(s) for s in decoded_stats_requests[0]["body"]["Stats"][0]["Stats"]])
         assert deserialized_stats["Name"] == "web.request"
         assert deserialized_stats["Resource"] == "/users"
         assert deserialized_stats["Service"] == "webserver"
@@ -101,41 +98,40 @@ class Test_Library_Tracestats:
     @missing_feature(context.library == "php", reason="php has not implemented stats computation yet")
     @missing_feature(context.library == "ruby", reason="ruby has not implemented stats computation yet")
     def test_distinct_aggregationkeys_TS003(self, library_env, test_agent, test_library):
-        """
-        When spans are created with a unique set of dimensions
-            Each span has stats computed for it and is in its own bucket
-            The dimensions are: { service, type, name, resource, HTTP_status_code, synthetics }
+        """When spans are created with a unique set of dimensions
+        Each span has stats computed for it and is in its own bucket
+        The dimensions are: { service, type, name, resource, HTTP_status_code, synthetics }
         """
         name = "name"
         resource = "resource"
         service = "service"
-        type = "http"
+        span_type = "http"
         http_status_code = "200"
         origin = "rum"
 
         with test_library:
             # Baseline
-            with test_library.dd_start_span(name=name, resource=resource, service=service, typestr=type) as span:
+            with test_library.dd_start_span(name=name, resource=resource, service=service, typestr=span_type) as span:
                 span.set_meta(key="_dd.origin", val=origin)
                 span.set_meta(key="http.status_code", val=http_status_code)
 
             # Unique Name
             with test_library.dd_start_span(
-                name="unique-name", resource=resource, service=service, typestr=type
+                name="unique-name", resource=resource, service=service, typestr=span_type
             ) as span:
                 span.set_meta(key="_dd.origin", val=origin)
                 span.set_meta(key="http.status_code", val=http_status_code)
 
             # Unique Resource
             with test_library.dd_start_span(
-                name=name, resource="unique-resource", service=service, typestr=type
+                name=name, resource="unique-resource", service=service, typestr=span_type
             ) as span:
                 span.set_meta(key="_dd.origin", val=origin)
                 span.set_meta(key="http.status_code", val=http_status_code)
 
             # Unique Service
             with test_library.dd_start_span(
-                name=name, resource=resource, service="unique-service", typestr=type
+                name=name, resource=resource, service="unique-service", typestr=span_type
             ) as span:
                 span.set_meta(key="_dd.origin", val=origin)
                 span.set_meta(key="http.status_code", val=http_status_code)
@@ -148,12 +144,12 @@ class Test_Library_Tracestats:
                 span.set_meta(key="http.status_code", val=http_status_code)
 
             # Unique Synthetics
-            with test_library.dd_start_span(name=name, resource=resource, service=service, typestr=type) as span:
+            with test_library.dd_start_span(name=name, resource=resource, service=service, typestr=span_type) as span:
                 span.set_meta(key="_dd.origin", val="synthetics")
                 span.set_meta(key="http.status_code", val=http_status_code)
 
             # Unique HTTP Status Code
-            with test_library.dd_start_span(name=name, resource=resource, service=service, typestr=type) as span:
+            with test_library.dd_start_span(name=name, resource=resource, service=service, typestr=span_type) as span:
                 span.set_meta(key="_dd.origin", val=origin)
                 span.set_meta(key="http.status_code", val="400")
 
@@ -183,9 +179,8 @@ class Test_Library_Tracestats:
     @missing_feature(context.library == "ruby", reason="ruby has not implemented stats computation yet")
     @enable_tracestats()
     def test_measured_spans_TS004(self, library_env, test_agent, test_library):
-        """
-        When spans are marked as measured
-            Each has stats computed for it
+        """When spans are marked as measured
+        Each has stats computed for it
         """
         with test_library:
             with test_library.dd_start_span(name="web.request", resource="/users", service="webserver") as span:
@@ -207,7 +202,7 @@ class Test_Library_Tracestats:
         requests = test_agent.v06_stats_requests()
         assert len(requests) > 0
         stats = requests[0]["body"]["Stats"][0]["Stats"]
-        pprint.pprint([_human_stats(s) for s in stats])
+        logger.debug([_human_stats(s) for s in stats])
         assert len(stats) == 3
 
         web_stats = [s for s in stats if s["Name"] == "web.request"][0]
@@ -225,9 +220,8 @@ class Test_Library_Tracestats:
     @missing_feature(context.library == "ruby", reason="ruby has not implemented stats computation yet")
     @enable_tracestats()
     def test_top_level_TS005(self, library_env, test_agent, test_library):
-        """
-        When top level (service entry) spans are created
-            Each top level span has trace stats computed for it.
+        """When top level (service entry) spans are created
+        Each top level span has trace stats computed for it.
         """
         with test_library:
             # Create a top level span.
@@ -275,9 +269,8 @@ class Test_Library_Tracestats:
     @missing_feature(context.library == "ruby", reason="ruby has not implemented stats computation yet")
     @enable_tracestats()
     def test_successes_errors_recorded_separately_TS006(self, library_env, test_agent, test_library):
-        """
-        When spans are marked as errors
-            The errors count is incremented appropriately and the stats are aggregated into the ErrorSummary
+        """When spans are marked as errors
+        The errors count is incremented appropriately and the stats are aggregated into the ErrorSummary
         """
         with test_library:
             # Send 2 successes
@@ -331,10 +324,9 @@ class Test_Library_Tracestats:
     @missing_feature(context.library == "ruby", reason="ruby has not implemented stats computation yet")
     @enable_tracestats(sample_rate=0.0)
     def test_sample_rate_0_TS007(self, library_env, test_agent, test_library):
-        """
-        When the sample rate is 0 and trace stats is enabled
-            non-P0 traces should be dropped
-            trace stats should be produced
+        """When the sample rate is 0 and trace stats is enabled
+        non-P0 traces should be dropped
+        trace stats should be produced
         """
         with test_library:
             with test_library.dd_start_span(name="web.request", resource="/users", service="webserver"):
@@ -353,8 +345,7 @@ class Test_Library_Tracestats:
     @missing_feature(reason="relative error test is broken")
     @enable_tracestats()
     def test_relative_error_TS008(self, library_env, test_agent, test_library):
-        """
-        When trace stats are computed for traces
+        """When trace stats are computed for traces
             The stats should be accurate to within 1% of the real values
 
         Note that this test uses the duration of actual spans created and so this test could be flaky.
@@ -370,7 +361,7 @@ class Test_Library_Tracestats:
         traces = test_agent.traces()
         assert len(traces) == 10
 
-        durations: List[int] = []
+        durations: list[int] = []
         for trace in traces:
             span = find_root_span(trace)
             assert span is not None
@@ -385,11 +376,11 @@ class Test_Library_Tracestats:
         assert web_stats["Hits"] == 10
 
         # Validate the sketches
-        np_duration = numpy.array(durations)
+        np_duration = np.array(durations)
         assert web_stats["Duration"] == sum(durations), "Stats duration should match the span duration exactly"
         for quantile in (0.5, 0.75, 0.95, 0.99, 1):
             assert web_stats["OkSummary"].get_quantile_value(quantile) == pytest.approx(
-                numpy.quantile(np_duration, quantile),
+                np.quantile(np_duration, quantile),
                 rel=0.01,
             ), "Quantile mismatch for quantile %r" % quantile
 
@@ -399,24 +390,23 @@ class Test_Library_Tracestats:
     @missing_feature(context.library == "ruby", reason="ruby has not implemented stats computation yet")
     @enable_tracestats()
     def test_metrics_computed_after_span_finsh_TS009(self, library_env, test_agent, test_library):
-        """
-        When trace stats are computed for traces
-            Metrics must be computed after spans are finished, otherwise components of the aggregation key may change after
-            contribution to aggregates.
+        """When trace stats are computed for traces
+        Metrics must be computed after spans are finished, otherwise components of the aggregation key may change after
+        contribution to aggregates.
         """
         name = "name"
         resource = "resource"
         service = "service"
-        type = "http"
+        span_type = "http"
         http_status_code = "200"
         origin = "synthetics"
 
         with test_library:
-            with test_library.dd_start_span(name=name, service=service, resource=resource, typestr=type) as span:
+            with test_library.dd_start_span(name=name, service=service, resource=resource, typestr=span_type) as span:
                 span.set_meta(key="_dd.origin", val=origin)
                 span.set_meta(key="http.status_code", val=http_status_code)
 
-            with test_library.dd_start_span(name=name, service=service, resource=resource, typestr=type) as span2:
+            with test_library.dd_start_span(name=name, service=service, resource=resource, typestr=span_type) as span2:
                 span2.set_meta(key="_dd.origin", val=origin)
                 span2.set_meta(key="http.status_code", val=http_status_code)
 
@@ -451,10 +441,9 @@ class Test_Library_Tracestats:
     @missing_feature(context.library == "php", reason="php has not implemented stats computation yet")
     @parametrize("library_env", [{"DD_TRACE_STATS_COMPUTATION_ENABLED": "0"}])
     def test_metrics_computed_after_span_finish_TS010(self, library_env, test_agent, test_library):
-        """
-        When DD_TRACE_STATS_COMPUTATION_ENABLED=False
-            Metrics must be computed after spans are finished, otherwise components of the aggregation key may change after
-            contribution to aggregates.
+        """When DD_TRACE_STATS_COMPUTATION_ENABLED=False
+        Metrics must be computed after spans are finished, otherwise components of the aggregation key may change after
+        contribution to aggregates.
         """
         with test_library:
             with test_library.dd_start_span(name="name", service="service", resource="resource") as span:

@@ -36,6 +36,7 @@ VARIANT_COMPONENT_MAP = {
     "graphql-go": "graphql-go/graphql",
     "jersey-grizzly2": {"jakarta-rs.request": "jakarta-rs-controller", "grizzly.request": ["grizzly", "jakarta-rs"]},
     "net-http": "net/http",
+    "net-http-orchestrion": "net/http",
     "sinatra": {"rack.request": "rack"},
     "spring-boot": {
         "servlet.request": "tomcat-server",
@@ -149,10 +150,10 @@ class Test_Meta:
 
         def validator(span):
             if span.get("parent_id") not in (0, None):  # do nothing if not root span
-                return
+                return None
 
             if span.get("type") != "web":  # do nothing if is not web related
-                return
+                return None
 
             assert "span.kind" in span["meta"], "Web span expects a span.kind meta tag"
             assert span["meta"]["span.kind"] in ["server", "client"], "Meta tag span.kind should be client or server"
@@ -169,10 +170,10 @@ class Test_Meta:
 
         def validator(span):
             if span.get("parent_id") not in (0, None):  # do nothing if not root span
-                return
+                return None
 
             if span.get("type") != "web":  # do nothing if is not web related
-                return
+                return None
 
             assert "http.url" in span["meta"], "web span expect an http.url meta tag"
 
@@ -188,10 +189,10 @@ class Test_Meta:
 
         def validator(span):
             if span.get("parent_id") not in (0, None):  # do nothing if not root span
-                return
+                return None
 
             if span.get("type") != "web":  # do nothing if is not web related
-                return
+                return None
 
             assert "http.status_code" in span["meta"], "web span expect an http.status_code meta tag"
 
@@ -206,10 +207,10 @@ class Test_Meta:
 
         def validator(span):
             if span.get("parent_id") not in (0, None):  # do nothing if not root span
-                return
+                return None
 
             if span.get("type") != "web":  # do nothing if is not web related
-                return
+                return None
 
             assert "http.method" in span["meta"], "web span expect an http.method meta tag"
 

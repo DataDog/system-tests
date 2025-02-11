@@ -3,7 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 from utils import features, weblog, rfc
-from ..utils import BaseSinkTest, validate_stack_traces
+from ..utils import BaseSinkTest, validate_extended_location_data, validate_stack_traces
 
 
 @features.iast_sink_untrusted_deserialization
@@ -28,7 +28,21 @@ class TestUntrustedDeserialization_StackTrace:
     """Validate stack trace generation"""
 
     def setup_stack_trace(self):
-        self.r = weblog.get("/iast/untrusted_deserialization/test_insecure")
+        self.r = weblog.get("/iast/untrusted_deserialization/test_insecure?name=example")
 
     def test_stack_trace(self):
         validate_stack_traces(self.r)
+
+
+@rfc("https://docs.google.com/document/d/1R8AIuQ9_rMHBPdChCb5jRwPrg1WvIz96c_WQ3y8DWk4")
+@features.iast_extended_location
+class TestUntrustedDeserialization_ExtendedLocation:
+    """Test extended location data"""
+
+    vulnerability_type = "UNTRUSTED_DESERIALIZATION"
+
+    def setup_extended_location_data(self):
+        self.r = weblog.get("/iast/untrusted_deserialization/test_insecure?name=example")
+
+    def test_extended_location_data(self):
+        validate_extended_location_data(self.r, self.vulnerability_type)

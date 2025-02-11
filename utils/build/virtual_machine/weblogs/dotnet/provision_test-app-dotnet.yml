@@ -100,7 +100,7 @@ weblog:
     #Centos 7. I can't find the libicu60 package for centos 7. Only available version 50.2
     #Amazon Linux 2022: Incompatible runtime version installed. Not breaks app, but not instrumented
     excluded_os_branches: [ubuntu18_amd64, ubuntu20_arm64,ubuntu21, centos_7_amd64, debian, amazon_linux2022]
-    excluded_os_names: [OracleLinux_7_9_amd64]
+    excluded_os_names: [OracleLinux_7_9_amd64, Ubuntu_24_10_amd64, Ubuntu_24_10_arm64]
     install:
       - os_type: linux
         copy_files:

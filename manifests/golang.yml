@@ -22,6 +22,7 @@ tests/:
         Test_API_Security_Sampling_Rate:
           '*': v1.60.0
           net-http: irrelevant (net-http doesn't handle path params)
+          net-http-orchestrion: irrelevant (net-http doesn't handle path params)
         Test_API_Security_Sampling_With_Delay: missing_feature
       test_schemas.py:
         Test_Scanners: missing_feature
@@ -32,6 +33,7 @@ tests/:
         Test_Schema_Request_Path_Parameters:
           '*': v1.60.0
           net-http: irrelevant (net-http cannot list path params)
+          net-http-orchestrion: irrelevant (net-http cannot list path params)
         Test_Schema_Request_Query_Parameters: v1.60.0
         Test_Schema_Response_Body: missing_feature
         Test_Schema_Response_Body_env_var: missing_feature
@@ -40,19 +42,24 @@ tests/:
       sink/:
         test_code_injection.py:
           TestCodeInjection: missing_feature
+          TestCodeInjection_ExtendedLocation: missing_feature
           TestCodeInjection_StackTrace: missing_feature
         test_command_injection.py:
           TestCommandInjection: missing_feature
+          TestCommandInjection_ExtendedLocation: missing_feature
           TestCommandInjection_StackTrace: missing_feature
         test_email_html_injection.py:
           TestEmailHtmlInjection: missing_feature
+          TestEmailHtmlInjection_ExtendedLocation: missing_feature
           TestEmailHtmlInjection_StackTrace: missing_feature
         test_hardcoded_passwords.py:
           Test_HardcodedPasswords: missing_feature
+          Test_HardcodedPasswords_ExtendedLocation: missing_feature
           Test_HardcodedPasswords_StackTrace: missing_feature
         test_hardcoded_secrets.py:
           Test_HardcodedSecrets: missing_feature
           Test_HardcodedSecretsExtended: missing_feature
+          Test_HardcodedSecrets_ExtendedLocation: missing_feature
           Test_HardcodedSecrets_StackTrace: missing_feature
         test_header_injection.py:
           TestHeaderInjection: missing_feature
@@ -60,78 +67,105 @@ tests/:
           TestHeaderInjectionExclusionContentEncoding: missing_feature
           TestHeaderInjectionExclusionPragma: missing_feature
           TestHeaderInjectionExclusionTransferEncoding: missing_feature
+          TestHeaderInjection_ExtendedLocation: missing_feature
           TestHeaderInjection_StackTrace: missing_feature
         test_hsts_missing_header.py:
           Test_HstsMissingHeader: missing_feature
+          Test_HstsMissingHeader_ExtendedLocation: missing_feature
           Test_HstsMissingHeader_StackTrace: missing_feature
         test_insecure_auth_protocol.py:
           Test_InsecureAuthProtocol: missing_feature
+          Test_InsecureAuthProtocol_ExtendedLocation: missing_feature
           Test_InsecureAuthProtocol_StackTrace: missing_feature
         test_insecure_cookie.py:
           TestInsecureCookie: missing_feature
           TestInsecureCookieNameFilter: missing_feature
+          TestInsecureCookie_ExtendedLocation: missing_feature
           TestInsecureCookie_StackTrace: missing_feature
         test_ldap_injection.py:
           TestLDAPInjection: missing_feature
+          TestLDAPInjection_ExtendedLocation: missing_feature
           TestLDAPInjection_StackTrace: missing_feature
         test_no_httponly_cookie.py:
           TestNoHttponlyCookie: missing_feature
           TestNoHttponlyCookieNameFilter: missing_feature
+          TestNoHttponlyCookie_ExtendedLocation: missing_feature
           TestNoHttponlyCookie_StackTrace: missing_feature
         test_no_samesite_cookie.py:
           TestNoSamesiteCookie: missing_feature
           TestNoSamesiteCookieNameFilter: missing_feature
+          TestNoSamesiteCookie_ExtendedLocation: missing_feature
           TestNoSamesiteCookie_StackTrace: missing_feature
         test_nosql_mongodb_injection.py:
           TestNoSqlMongodbInjection: missing_feature
+          TestNoSqlMongodbInjection_ExtendedLocation: missing_feature
           TestNoSqlMongodbInjection_StackTrace: missing_feature
         test_path_traversal.py:
           TestPathTraversal: missing_feature
+          TestPathTraversal_ExtendedLocation: missing_feature
           TestPathTraversal_StackTrace: missing_feature
         test_reflection_injection.py:
           TestReflectionInjection: missing_feature
+          TestReflectionInjection_ExtendedLocation: missing_feature
           TestReflectionInjection_StackTrace: missing_feature
         test_sql_injection.py:
           TestSqlInjection: missing_feature
+          TestSqlInjection_ExtendedLocation: missing_feature
           TestSqlInjection_StackTrace: missing_feature
         test_ssrf.py:
           TestSSRF: missing_feature
+          TestSSRF_ExtendedLocation: missing_feature
           TestSSRF_StackTrace: missing_feature
+        test_stacktrace_leak.py:
+          TestStackTraceLeak: missing_feature
+          TestStackTraceLeak_StackTrace: missing_feature
         test_template_injection.py:
           TestTemplateInjection: missing_feature
+          TestTemplateInjection_ExtendedLocation: missing_feature
         test_trust_boundary_violation.py:
           Test_TrustBoundaryViolation: missing_feature
+          Test_TrustBoundaryViolation_ExtendedLocation: missing_feature
           Test_TrustBoundaryViolation_StackTrace: missing_feature
         test_untrusted_deserialization.py:
           TestUntrustedDeserialization: missing_feature
+          TestUntrustedDeserialization_ExtendedLocation: missing_feature
           TestUntrustedDeserialization_StackTrace: missing_feature
         test_unvalidated_redirect.py:
           TestUnvalidatedHeader: missing_feature
+          TestUnvalidatedHeader_ExtendedLocation: missing_feature
           TestUnvalidatedHeader_StackTrace: missing_feature
           TestUnvalidatedRedirect: missing_feature
+          TestUnvalidatedRedirect_ExtendedLocation: missing_feature
           TestUnvalidatedRedirect_StackTrace: missing_feature
         test_unvalidated_redirect_forward.py:
           TestUnvalidatedForward: missing_feature
+          TestUnvalidatedForward_ExtendedLocation: missing_feature
           TestUnvalidatedForward_StackTrace: missing_feature
         test_weak_cipher.py:
           TestWeakCipher: missing_feature
+          TestWeakCipher_ExtendedLocation: missing_feature
           TestWeakCipher_StackTrace: missing_feature
         test_weak_hash.py:
           TestDeduplication: missing_feature
           TestWeakHash: missing_feature
+          TestWeakHash_ExtendedLocation: missing_feature
           TestWeakHash_StackTrace: missing_feature
         test_weak_randomness.py:
           TestWeakRandomness: missing_feature
+          TestWeakRandomness_ExtendedLocation: missing_feature
           TestWeakRandomness_StackTrace: missing_feature
         test_xcontent_sniffing.py:
           Test_XContentSniffing: missing_feature
+          Test_XContentSniffing_ExtendedLocation: missing_feature
           Test_XContentSniffing_StackTrace: missing_feature
         test_xpath_injection.py:
           TestXPathInjection: missing_feature
+          TestXPathInjection_ExtendedLocation: missing_feature
           TestXPathInjection_StackTrace: missing_feature
         test_xss.py:
           TestXSS:
             '*': missing_feature
+          TestXSS_ExtendedLocation: missing_feature
           TestXSS_StackTrace: missing_feature
       source/:
         test_body.py:
@@ -217,6 +251,7 @@ tests/:
           '*': v1.36.0
           gin: v1.37.0
           net-http: irrelevant (net-http doesn't handle path params)
+          net-http-orchestrion: irrelevant (net-http doesn't handle path params)
         Test_ResponseStatus:
           '*': v1.36.0
           gin: v1.37.0
@@ -337,21 +372,27 @@ tests/:
       Test_Blocking_request_cookies:
         '*': v1.51.0
         net-http: irrelevant
+        net-http-orchestrion: irrelevant
       Test_Blocking_request_headers:
         '*': v1.51.0
         net-http: irrelevant
+        net-http-orchestrion: irrelevant
       Test_Blocking_request_method:
         '*': v1.51.0
         net-http: irrelevant
+        net-http-orchestrion: irrelevant
       Test_Blocking_request_path_params:
         '*': v1.51.0
         net-http: irrelevant
+        net-http-orchestrion: irrelevant
       Test_Blocking_request_query:
         '*': v1.51.0
         net-http: irrelevant
+        net-http-orchestrion: irrelevant
       Test_Blocking_request_uri:
         '*': v1.51.0
         net-http: irrelevant
+        net-http-orchestrion: irrelevant
       Test_Blocking_response_headers: missing_feature
       Test_Blocking_response_status: missing_feature
       Test_Blocking_user_id: v1.51.0
@@ -457,21 +498,26 @@ tests/:
         Test_Kinesis_PROPAGATION_VIA_MESSAGE_ATTRIBUTES:
           "*": irrelevant
           net-http: missing_feature (Endpoint not implemented)
+          net-http-orchestrion: missing_feature (Endpoint not implemented)
       test_rabbitmq.py:
         Test_RabbitMQ_Trace_Context_Propagation:
           "*": irrelevant
           net-http: missing_feature (Endpoint not implemented)
+          net-http-orchestrion: missing_feature (Endpoint not implemented)
       test_sns_to_sqs.py:
         Test_SNS_Propagation:
           "*": irrelevant
           net-http: missing_feature
+          net-http-orchestrion: missing_feature (Endpoint not implemented)
       test_sqs.py:
         Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS:
           "*": irrelevant
           net-http: missing_feature (Endpoint not implemented)
+          net-http-orchestrion: missing_feature (Endpoint not implemented)
         Test_SQS_PROPAGATION_VIA_MESSAGE_ATTRIBUTES:
           "*": irrelevant
           net-http: missing_feature (Endpoint not implemented)
+          net-http-orchestrion: missing_feature (Endpoint not implemented)
     test_db_integrations_sql.py:
       Test_MsSql: missing_feature
       Test_MySql: missing_feature
@@ -492,31 +538,44 @@ tests/:
       Test_DsmKinesis:
         "*": irrelevant
         net-http: missing_feature (Endpoint not implemented)
+        net-http-orchestrion: missing_feature (Endpoint not implemented)
       Test_DsmRabbitmq:
         "*": irrelevant
         net-http: missing_feature (Endpoint not implemented)
+        net-http-orchestrion: missing_feature (Endpoint not implemented)
       Test_DsmRabbitmq_FanoutExchange:
         "*": irrelevant
         net-http: missing_feature (Endpoint not implemented)
+        net-http-orchestrion: missing_feature (Endpoint not implemented)
       Test_DsmRabbitmq_TopicExchange:
         "*": irrelevant
         net-http: missing_feature (Endpoint not implemented)
+        net-http-orchestrion: missing_feature (Endpoint not implemented)
       Test_DsmSNS:
         "*": irrelevant
         net-http: missing_feature (Endpoint not implemented)
+        net-http-orchestrion: missing_feature (Endpoint not implemented)
       Test_DsmSQS:
         "*": irrelevant
         net-http: missing_feature (Endpoint not implemented)
+        net-http-orchestrion: missing_feature (Endpoint not implemented)
       Test_Dsm_Manual_Checkpoint_Inter_Process:
         "*": irrelevant
         net-http: missing_feature (Endpoint not implemented)
+        net-http-orchestrion: missing_feature (Endpoint not implemented)
       Test_Dsm_Manual_Checkpoint_Intra_Process:
         "*": irrelevant
         net-http: missing_feature (Endpoint not implemented)
+        net-http-orchestrion: missing_feature (Endpoint not implemented)
     test_inferred_proxy.py:
       Test_AWS_API_Gateway_Inferred_Span_Creation: missing_feature
     test_otel_drop_in.py:
       Test_Otel_Drop_In: missing_feature
+  otel/:
+    test_context_propagation.py:
+      Test_Otel_Context_Propagation_Default_Propagator_Api:
+        '*': incomplete_test_app (endpoint not implemented)
+        net-http: v1.70.1
   parametric/:
     test_config_consistency.py:
       Test_Config_Dogstatsd: v1.72.0-dev
@@ -526,6 +585,7 @@ tests/:
       Test_Config_TraceEnabled: v1.67.0
       Test_Config_TraceLogDirectory: v1.70.0
       Test_Config_UnifiedServiceTagging: bug (APMAPI-746)
+      Test_Stable_Config_Default: missing_feature
     test_crashtracking.py: missing_feature
     test_dynamic_configuration.py:
       TestDynamicConfigSamplingRules: v1.64.0
@@ -592,7 +652,9 @@ tests/:
     Test_Config_ClientTagQueryString_Configured: v1.72.0-dev
     Test_Config_ClientTagQueryString_Empty: v1.72.0-dev
     Test_Config_HttpClientErrorStatuses_Default: v1.69.0
-    Test_Config_HttpClientErrorStatuses_FeatureFlagCustom: v1.69.0
+    Test_Config_HttpClientErrorStatuses_FeatureFlagCustom:
+      '*': v1.69.0
+      net-http-orchestrion: v1.72.0-dev
     Test_Config_HttpServerErrorStatuses_Default: v1.67.0
     Test_Config_HttpServerErrorStatuses_FeatureFlagCustom:
       "*": v1.69.0
@@ -608,7 +670,8 @@ tests/:
     Test_Config_ObfuscationQueryStringRegexp_Default: v1.67.0
     Test_Config_ObfuscationQueryStringRegexp_Empty: v1.67.0
     Test_Config_RuntimeMetrics_Default: incomplete_test_app (test needs to account for golang runtime metrics)
-    Test_Config_RuntimeMetrics_Enabled: incomplete_test_app (test needs to account for golang runtime metrics)
+    Test_Config_RuntimeMetrics_Enabled: incomplete_test_app (should be in v1.18.0 but we're not receiving series in tests)
+    Test_Config_RuntimeMetrics_Enabled_WithRuntimeId: incomplete_test_app (should be in v1.18.0 but we're not receiving series in tests)
     Test_Config_UnifiedServiceTagging_CustomService: v1.67.0
     Test_Config_UnifiedServiceTagging_Default: v1.67.0
   test_data_integrity.py:
@@ -617,7 +680,6 @@ tests/:
     Test_DistributedHttp: missing_feature
     Test_Span_Links_Flags_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
     Test_Span_Links_From_Conflicting_Contexts: missing_feature
-    Test_Span_Links_From_Conflicting_Contexts_Datadog_Precedence: missing_feature
     Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
     Test_Synthetics_APM_Datadog: bug (APMAPI-901) # the incoming headers are considered invalid
   test_graphql.py: missing_feature
@@ -626,6 +688,10 @@ tests/:
     Test_Propagate: v1.48.0-rc.1
     Test_Propagate_Legacy: v1.41.0
   test_library_conf.py:
+    Test_ExtractBehavior_Default: missing_feature (baggage should be implemented and conflicting trace contexts should generate span link in v1.71.0)
+    Test_ExtractBehavior_Ignore: missing_feature (extract behavior not implemented)
+    Test_ExtractBehavior_Restart: missing_feature (extract behavior not implemented)
+    Test_ExtractBehavior_Restart_With_Extract_First: missing_feature (extract behavior not implemented)
     Test_HeaderTags: v1.53.0
     Test_HeaderTags_Colon_Leading: v1.53.0
     Test_HeaderTags_Colon_Trailing: v1.70.0

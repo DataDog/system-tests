@@ -171,9 +171,9 @@ class Test_AttackTimestamp:
         self.r = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1"})
 
     def test_basic(self):
-        """attack timestamp is given by start property of span"""
+        """Attack timestamp is given by start property of span"""
         spans = [span for _, _, span, _ in interfaces.library.get_appsec_events(request=self.r)]
         assert spans, "No AppSec events found"
         for span in spans:
             assert "start" in span, "span should contain start property"
-            assert isinstance(span["start"], int), f"start property should an int, not {repr(span['start'])}"
+            assert isinstance(span["start"], int), f"start property should an int, not {span['start']!r}"

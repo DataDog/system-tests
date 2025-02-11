@@ -28,6 +28,7 @@ tests/:
         test_reflection_injection.py: irrelevant (ASM is not implemented in C++)
         test_sql_injection.py: irrelevant (ASM is not implemented in C++)
         test_ssrf.py: irrelevant (ASM is not implemented in C++)
+        test_stacktrace_leak.py: irrelevant (ASM is not implemented in C++)
         test_template_injection.py: irrelevant (ASM is not implemented in C++)
         test_trust_boundary_violation.py: irrelevant (ASM is not implemented in C++)
         test_untrusted_deserialization.py: irrelevant (ASM is not implemented in C++)
@@ -145,7 +146,10 @@ tests/:
     test_inferred_proxy.py:
       Test_AWS_API_Gateway_Inferred_Span_Creation: missing_feature
     test_otel_drop_in.py:
-      Test_Otel_Drop_In: missing_feature
+      Test_Otel_Drop_In: irrelevant (library does not implement OpenTelemetry)
+  otel/:
+    test_context_propagation.py:
+      Test_Otel_Context_Propagation_Default_Propagator_Api: irrelevant (library does not implement OpenTelemetry)
   parametric/:
     test_128_bit_traceids.py:
       Test_128_Bit_Traceids: v1.0.1.dev
@@ -157,6 +161,7 @@ tests/:
       Test_Config_TraceEnabled: v1.0.1.dev
       Test_Config_TraceLogDirectory: missing_feature
       Test_Config_UnifiedServiceTagging: v1.0.1.dev
+      Test_Stable_Config_Default: missing_feature
     test_crashtracking.py: missing_feature
     test_dynamic_configuration.py:
       TestDynamicConfigV1_EmptyServiceTargets: missing_feature
@@ -256,13 +261,13 @@ tests/:
     Test_Config_ObfuscationQueryStringRegexp_Empty: missing_feature
     Test_Config_RuntimeMetrics_Default: missing_feature
     Test_Config_RuntimeMetrics_Enabled: missing_feature
+    Test_Config_RuntimeMetrics_Enabled_WithRuntimeId: missing_feature
     Test_Config_UnifiedServiceTagging_CustomService: missing_feature
     Test_Config_UnifiedServiceTagging_Default: missing_feature
   test_distributed.py:
     Test_DistributedHttp: missing_feature
     Test_Span_Links_Flags_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
-    Test_Span_Links_From_Conflicting_Contexts: missing_feature
-    Test_Span_Links_From_Conflicting_Contexts_Datadog_Precedence: missing_feature
+    Test_Span_Links_From_Conflicting_Contexts: missing_feature (baggage should be implemented and conflicting trace contexts should generate span link)
     Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
   test_graphql.py: missing_feature
   test_identify.py: irrelevant
