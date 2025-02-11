@@ -208,7 +208,6 @@ ignore = [
     "SLF001",    # 12 occurences    [ ] private-member-access
     "UP035",     # 12 occurences    [ ] deprecated-import
     "S105",      # 10 occurences    [ ] hardcoded-password-string
-    "B015",      # 10 occurences    [ ] useless-comparison
     "RET503",    # 9 occurences     [*] implicit-return
     "SIM115",    # 9 occurences     [ ] open-file-with-context-handler
     "PGH004",    # 9 occurences     [ ] blanket-noqa
