@@ -26,7 +26,7 @@ from opentelemetry.proto.collector.logs.v1.logs_service_pb2 import (
     ExportLogsServiceRequest,
     ExportLogsServiceResponse,
 )
-from _decoders.protobuf_schemas import MetricPayload, TracePayload
+from _decoders.protobuf_schemas import MetricPayload, TracePayload, SketchPayload
 
 
 logger = logging.getLogger(__name__)
@@ -177,6 +177,8 @@ def deserialize_http_message(path, message, content: bytes, interface, key, expo
             return result
         if path == "/api/v2/series":
             return MessageToDict(MetricPayload.FromString(content))
+        if path == "/api/beta/sketches":
+            return MessageToDict(SketchPayload.FromString(content))
 
     if content_type == "application/x-www-form-urlencoded" and content == b"[]" and path == "/v0.4/traces":
         return []
