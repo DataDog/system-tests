@@ -1,5 +1,5 @@
 import requests
-from utils import scenarios, features, context, bug, irrelevant
+from utils import scenarios, features, context, bug, irrelevant, missing_feature
 from utils.tools import logger
 from utils.onboarding.weblog_interface import warmup_weblog
 from utils.onboarding.wait_for_tcp_port import wait_for_port
@@ -87,11 +87,7 @@ class BaseAutoInjectChaos(base.AutoInjectBaseTest):
 @scenarios.chaos_installer_auto_injection
 class TestAutoInjectChaos(BaseAutoInjectChaos):
     @bug(
-        context.vm_os_branch == "amazon_linux2" and context.weblog_variant == "test-app-ruby",
-        reason="INPLAT-103",
-    )
-    @bug(
-        context.vm_os_branch == "centos_7_amd64" and context.weblog_variant == "test-app-ruby",
+        context.vm_os_branch in ["amazon_linux2", "centos_7_amd64"] and context.weblog_variant == "test-app-ruby",
         reason="INPLAT-103",
     )
     @bug(
@@ -102,11 +98,8 @@ class TestAutoInjectChaos(BaseAutoInjectChaos):
         context.vm_name in ["Amazon_Linux_2023_amd64", "Amazon_Linux_2023_arm64"],
         reason="LD library failures impact on the docker engine, causes flakiness",
     )
-      # Windows is not supported. Change to missing_feature after merge
-            {"vm_branch": "windows", "reason": "APMON-9999"},
-            {"vm_name": "Ubuntu_24_10_amd64", "weblog_variant": "test-app-python", "reason": "INPLAT-478"},
-            {"vm_name": "Ubuntu_24_10_arm64", "weblog_variant": "test-app-python", "reason": "INPLAT-478"},
-
+    @bug(context.vm_name in ["Ubuntu_24_10_amd64", "Ubuntu_24_10_arm64"], reason="INPLAT-478")
+    @missing_feature(context.vm_branch == "windows", reason="Not implemented on Windows")
     def test_install_after_ld_preload(self):
         """We added entries to the ld.so.preload. After that, we can install the dd software and the app should be instrumented."""
         virtual_machine = context.scenario.virtual_machine
@@ -119,22 +112,15 @@ class TestAutoInjectChaos(BaseAutoInjectChaos):
         reason="APMON-1576",
     )
     @bug(
-        context.vm_os_branch == "amazon_linux2" and context.weblog_variant == "test-app-ruby",
-        reason="INPLAT-103",
-    )
-    @bug(
-        context.vm_os_branch == "centos_7_amd64" and context.weblog_variant == "test-app-ruby",
+        context.vm_os_branch == ["centos_7_amd64", "amazon_linux2"] and context.weblog_variant == "test-app-ruby",
         reason="INPLAT-103",
     )
     @bug(
         context.vm_os_branch == "redhat" and context.vm_os_cpu == "arm64" and context.weblog_variant == "test-app-ruby",
         reason="INPLAT-103",
     )
-           # Windows is not supported. Change to missing_feature after merge
-            {"vm_branch": "windows", "reason": "APMON-9999"},
-            {"vm_name": "Ubuntu_24_10_amd64", "weblog_variant": "test-app-python", "reason": "INPLAT-478"},
-            {"vm_name": "Ubuntu_24_10_arm64", "weblog_variant": "test-app-python", "reason": "INPLAT-478"},
-
+    @bug(context.vm_name in ["Ubuntu_24_10_amd64", "Ubuntu_24_10_arm64"], reason="INPLAT-478")
+    @missing_feature(context.vm_branch == "windows", reason="Not implemented on Windows")
     def test_remove_ld_preload(self):
         """We added entries to the ld.so.preload. After that, we can remove the entries and the app should be instrumented."""
         virtual_machine = context.scenario.virtual_machine

@@ -1,4 +1,4 @@
-from utils import scenarios, features, flaky, irrelevant, bug, context
+from utils import scenarios, features, flaky, irrelevant, bug, context, missing_feature
 from utils.tools import logger
 from utils.onboarding.weblog_interface import warmup_weblog, get_child_pids, get_zombies, fork_and_crash
 import tests.auto_inject.utils as base
@@ -8,27 +8,11 @@ import tests.auto_inject.utils as base
 @scenarios.host_auto_injection_install_script
 class TestHostAutoInjectInstallScript(base.AutoInjectBaseTest):
     @bug(
-        context.vm_os_branch == "amazon_linux2" and context.weblog_variant == "test-app-ruby",
+        context.vm_os_branch in ["amazon_linux2", "centos_7_amd64", "Ubuntu_24_10_amd64", "Ubuntu_24_10_arm64"]
+        and context.weblog_variant == "test-app-ruby",
         reason="INPLAT-103",
     )
-    @bug(
-        context.vm_os_branch == "centos_7_amd64" and context.weblog_variant == "test-app-ruby",
-        reason="INPLAT-103",
-    )
-    @bug(
-        context.vm_os_branch == "redhat" and context.vm_os_cpu == "arm64" and context.weblog_variant == "test-app-ruby",
-        reason="INPLAT-103",
-    )
-    @bug(
-        context.vm_name == "Ubuntu_24_10_amd64" and context.weblog_variant == "test-app-python",
-        reason="INPLAT-103",
-    )
-    @bug(
-        context.vm_name == "Ubuntu_24_10_arm64" and context.weblog_variant == "test-app-python",
-        reason="INPLAT-103",
-    )
-    @missing_feature(context.vm_os_branch == "windows",reason="Not implemented on Windows"
-    ) 
+    @missing_feature(context.vm_os_branch == "windows", reason="Not implemented on Windows")
     def test_install(self):
         self._test_install(context.scenario.virtual_machine)
 
@@ -44,29 +28,15 @@ class TestLocalAutoInjectInstallScript(base.AutoInjectBaseTest):
 @scenarios.simple_auto_injection_profiling
 class TestSimpleInstallerAutoInjectManualProfiling(base.AutoInjectBaseTest):
     @bug(
-        context.vm_os_cpu == "arm64" and context.weblog_variant == "test-app-dotnet",
+        context.vm_os_cpu == "arm64" and context.weblog_variant in ["test-app-dotnet", "test-app-dotnet-container"],
         reason="PROF-10783",
     )
     @bug(
-        context.vm_os_cpu == "arm64" and context.weblog_variant == "test-app-dotnet-container",
-        reason="PROF-10783",
-    )
-    @bug(
-        context.vm_name == "Ubuntu_24_amd64" and context.weblog_variant == "test-app-nodejs",
+        context.vm_name in ["Ubuntu_24_amd64", "Ubuntu_24_arm64"] and context.weblog_variant == "test-app-nodejs",
         reason="PROF-11264",
     )
-    @bug(
-        context.vm_name == "Ubuntu_24_arm64" and context.weblog_variant == "test-app-nodejs",
-        reason="PROF-11264",
-    )
-    @bug(
-        context.weblog_variant == "test-app-python-alpine",
-        reason="PROF-11296",
-    )
-    @bug(
-                context.weblog_variant == "test-app-python",
-        reason="INPLAT-479",
-    )
+    @bug(context.weblog_variant == "test-app-python-alpine", reason="PROF-11296")
+    @bug(context.weblog_variant == "test-app-python", reason="INPLAT-479")
     def test_profiling(self):
         logger.info(f"Launching test_install for : [{context.scenario.virtual_machine.name}]...")
         self._test_install(context.scenario.virtual_machine, profile=True)
@@ -81,23 +51,14 @@ class TestHostAutoInjectInstallScriptProfiling(base.AutoInjectBaseTest):
         reason="PROF-10783",
     )
     @bug(
-        context.vm_name == "Ubuntu_24_amd64" and context.weblog_variant == "test-app-nodejs",
+        context.vm_name in ["Ubuntu_24_amd64", "Ubuntu_24_arm64"] and context.weblog_variant == "test-app-nodejs",
         reason="PROF-11264",
     )
     @bug(
-        context.vm_name == "Ubuntu_24_arm64" and context.weblog_variant == "test-app-nodejs",
-        reason="PROF-11264",
-    )
-    @bug(
-        context.vm_name == "Ubuntu_24_10_amd64" and context.weblog_variant == "test-app-python",
+        context.vm_name in ["Ubuntu_24_10_amd64", "Ubuntu_24_10_arm64"] and context.weblog_variant == "test-app-python",
         reason="INPLAT-103",
     )
-    @bug(
-        context.vm_name == "Ubuntu_24_10_arm64" and context.weblog_variant == "test-app-python",
-        reason="INPLAT-103",
-    )
-    @missing_feature(context.vm_os_branch == "windows",reason="Not implemented on Windows"
-    ) 
+    @missing_feature(context.vm_os_branch == "windows", reason="Not implemented on Windows")
     def test_profiling(self):
         logger.info(f"Launching test_install for : [{context.scenario.virtual_machine.name}]...")
         self._test_install(context.scenario.virtual_machine, profile=True)
@@ -204,11 +165,7 @@ class TestInstallerAutoInjectManual(base.AutoInjectBaseTest):
         reason="APMON-1576",
     )
     @bug(
-        context.vm_os_branch == "amazon_linux2" and context.weblog_variant == "test-app-ruby",
-        reason="INPLAT-103",
-    )
-    @bug(
-        context.vm_os_branch == "centos_7_amd64" and context.weblog_variant == "test-app-ruby",
+        context.vm_os_branch in ["amazon_linux2", "centos_7_amd64"] and context.weblog_variant == "test-app-ruby",
         reason="INPLAT-103",
     )
     @bug(
@@ -216,11 +173,7 @@ class TestInstallerAutoInjectManual(base.AutoInjectBaseTest):
         reason="INPLAT-103",
     )
     @bug(
-        context.vm_name == "Ubuntu_24_10_amd64" and context.weblog_variant == "test-app-python",
-        reason="INPLAT-103",
-    )
-    @bug(
-        context.vm_name == "Ubuntu_24_10_arm64" and context.weblog_variant == "test-app-python",
+        context.vm_name in ["Ubuntu_24_10_amd64", "Ubuntu_24_10_arm64"] and context.weblog_variant == "test-app-python",
         reason="INPLAT-103",
     )
     def test_install_uninstall(self):
@@ -242,11 +195,7 @@ class TestSimpleInstallerAutoInjectManual(base.AutoInjectBaseTest):
         reason="APMON-1576",
     )
     @bug(
-        context.vm_os_branch == "amazon_linux2" and context.weblog_variant == "test-app-ruby",
-        reason="INPLAT-103",
-    )
-    @bug(
-        context.vm_os_branch == "centos_7_amd64" and context.weblog_variant == "test-app-ruby",
+        context.vm_os_branch in ["amazon_linux2", "centos_7_amd64"] and context.weblog_variant == "test-app-ruby",
         reason="INPLAT-103",
     )
     @bug(
@@ -254,14 +203,9 @@ class TestSimpleInstallerAutoInjectManual(base.AutoInjectBaseTest):
         reason="INPLAT-103",
     )
     @bug(
-        context.vm_name == "Ubuntu_24_10_amd64" and context.weblog_variant == "test-app-python",
+        context.vm_name == ["Ubuntu_24_10_amd64", "Ubuntu_24_10_arm64"] and context.weblog_variant == "test-app-python",
         reason="INPLAT-103",
     )
-    @bug(
-        context.vm_name == "Ubuntu_24_10_arm64" and context.weblog_variant == "test-app-python",
-        reason="INPLAT-103",
-    )
-
     def test_install(self):
         virtual_machine = context.scenario.virtual_machine
         logger.info(

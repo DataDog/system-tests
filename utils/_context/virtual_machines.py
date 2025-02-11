@@ -988,4 +988,3 @@ class Windows2022amd64(_VirtualMachine):
             default_vm=True,
             **kwargs,
         )
-
