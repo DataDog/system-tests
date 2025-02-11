@@ -200,31 +200,43 @@
                     "nodejs": [
                         "test-app-nodejs-container",
                         "test-app-nodejs",
-                        "test-app-nodejs-esm"
+                        "test-app-nodejs-esm",
+                        "test-app-nodejs-multicontainer",
+                        "test-app-nodejs-alpine"
                     ],
                     "java": [
                         "test-app-java",
                         "test-app-java-container",
-                        "test-app-java-alpine"
+                        "test-app-java-alpine",
+                        "test-app-java-buildpack",
+                        "test-app-java-multicontainer",
+                        "test-app-java-multialpine"
                     ],
                     "python": [
                         "test-app-python",
                         "test-app-python-container",
-                        "test-app-python-alpine"
+                        "test-app-python-alpine",
+                        "test-app-python-multicontainer",
+                        "test-app-python-multialpine"
                     ],
                     "dotnet": [
                         "test-app-dotnet",
                         "test-app-dotnet-container",
-                        "test-app-dotnet-alpine"
+                        "test-app-dotnet-multicontainer",
+                        "test-app-dotnet-multialpine"
                     ],
                     "ruby": [
                         "test-app-ruby",
-                        "test-app-ruby-container"
+                        "test-app-ruby-container",
+                        "test-app-ruby-multicontainer",
+                        "test-app-ruby-multialpine"
                     ],
                     "php": [
                         "test-app-php",
                         "test-app-php-container-83",
-                        "test-app-php-alpine"
+                        "test-app-php-alpine",
+                        "test-app-php-multicontainer",
+                        "test-app-php-multialpine"
                     ]
                 }
             ]
