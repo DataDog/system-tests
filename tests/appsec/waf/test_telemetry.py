@@ -35,7 +35,9 @@ class Test_TelemetryMetrics:
     @bug(context.library < "java@1.13.0", reason="APMRP-360")
     def test_headers_are_correct(self):
         """Tests that all telemetry requests have correct headers."""
-        for data in interfaces.library.get_telemetry_data(flatten_message_batches=False):
+        datas = list(interfaces.library.get_telemetry_data(flatten_message_batches=False))
+        assert len(datas) > 0, "No telemetry received"
+        for data in datas:
             request_type = data["request"]["content"].get("request_type")
             _validate_headers(data["request"]["headers"], request_type)
 

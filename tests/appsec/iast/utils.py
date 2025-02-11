@@ -236,7 +236,8 @@ def validate_stack_traces(request):
 
     # Vulns without location path are not expected to have a stack trace
     location = vuln["location"]
-    assert location is not None and "path" in location, "This vulnerability is not expected to have a stack trace"
+    assert location is not None, "This vulnerability is not expected to have a stack trace"
+    assert "path" in location, "This vulnerability is not expected to have a stack trace"
 
     locationFrame = None
     for frame in stack_trace["frames"]:
@@ -255,6 +256,83 @@ def validate_stack_traces(request):
         ):
             locationFrame = frame
     assert locationFrame is not None, "location not found in stack trace"
+
+
+def validate_extended_location_data(request, vulnerability_type, is_expected_location_required=True):
+    spans = [span for _, span in interfaces.library.get_root_spans(request=request)]
+    assert spans, "No root span found"
+    span = spans[0]
+
+    iast = span.get("meta", {}).get("_dd.iast.json")
+    assert iast, "Expected at least one vulnerability"
+    assert iast["vulnerabilities"], "Expected at least one vulnerability"
+
+    # Filter by vulnerability
+    if vulnerability_type:
+        vulns = [v for v in iast["vulnerabilities"] if not vulnerability_type or v["type"] == vulnerability_type]
+        assert vulns, f"No vulnerability of type {vulnerability_type}"
+
+    if not is_expected_location_required:
+        return
+
+    vuln = vulns[0]
+    location = vuln["location"]
+
+    # Check extended data if stack trace exists
+    if "meta_struct" in span and "_dd.stack" in span["meta_struct"]:
+        assert "vulnerability" in span["meta_struct"]["_dd.stack"], "'exploit' not found in '_dd.stack'"
+        stack_trace = span["meta_struct"]["_dd.stack"]["vulnerability"][0]
+
+        assert "language" in stack_trace
+        assert stack_trace["language"] in (
+            "php",
+            "python",
+            "nodejs",
+            "java",
+            "dotnet",
+            "go",
+            "ruby",
+        ), "unexpected language"
+        assert "frames" in stack_trace
+
+        # Verify frame matches location
+        location_match = False
+        for frame in stack_trace["frames"]:
+            if (
+                frame.get("file", "").endswith(location["path"])
+                and location["line"] == frame["line"]
+                and location.get("class", "") == frame.get("class_name", "")
+                and location.get("method", "") == frame.get("function", "")
+            ):
+                location_match = True
+                break
+
+        assert location_match, "location not found in stack trace"
+    # Check extended data if on location if stack trace do not exists
+    else:
+        assert all(field in location for field in ["path", "line"])
+
+        if context.library.library not in ("python", "nodejs"):
+            assert all(field in location for field in ["class", "method"])
+
+
+def get_hardcoded_vulnerabilities(vulnerability_type):
+    spans = [s for _, s in interfaces.library.get_root_spans()]
+    assert spans, "No spans found"
+    spans_meta = [span.get("meta") for span in spans]
+    assert spans_meta, "No spans meta found"
+    iast_events = [meta.get("_dd.iast.json") for meta in spans_meta if meta.get("_dd.iast.json")]
+    assert iast_events, "No iast events found"
+
+    vulnerabilities: list = []
+    for event in iast_events:
+        vulnerabilities.extend(event.get("vulnerabilities", []))
+
+    assert vulnerabilities, "No vulnerabilities found"
+
+    hardcoded_vulns = [vuln for vuln in vulnerabilities if vuln.get("type") == vulnerability_type]
+    assert hardcoded_vulns, "No hardcoded vulnerabilities found"
+    return hardcoded_vulns
 
 
 class BaseSinkTest(BaseSinkTestWithoutTelemetry):
@@ -477,4 +555,5 @@ class BaseTestCookieNameFilter:
         assert_iast_vulnerability(request=self.req2, vulnerability_count=1, vulnerability_type=self.vulnerability_type)
 
         meta, meta_struct = _get_span_meta(self.req3)
-        assert "_dd.iast.json" not in meta and "iast" not in meta_struct, "No IAST info expected in span"
+        assert "_dd.iast.json" not in meta, "No IAST info expected in span"
+        assert "iast" not in meta_struct, "No IAST info expected in span"

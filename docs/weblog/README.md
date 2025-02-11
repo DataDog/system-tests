@@ -768,6 +768,17 @@ Examples:
 - `GET`: `/rasp/ssrf?user_id="' OR 1 = 1 --"`
 - `POST`: `{"user_id": "' OR 1 = 1 --"}`
 
+### \[GET\] /rasp/multiple
+The idea of this endpoint is to have an endpoint where multiple rasp operation take place. All of them will generate a MATCH on the WAF but none of them will block. The goal of this endpoint is to verify that the `rasp.rule.match` telemetry entry is updated properly. While this seems easy, the WAF requires that data given on `call` is passed as ephemeral and not as persistent.
+
+In order to make the test easier, the operation used here need to generate LFI matches. The request will have two get parameters(`file1`, `file2`) which will contain a path that needs to be used as the parameters of the choosen lfi function. Then there will be another call to the lfi function with a harcoded parameter `'../etc/passwd'`. This will make `rasp.rule.match` to be equal to 3. A code example look like:
+
+```
+lfi_operation($request->get('file1'))
+lfi_operation($request->get('file2'))
+lfi_operation('../etc/passwd') //This one is harcoded
+```
+
 ### GET /dsm/inject
 This endpoint is used to validate DSM context injection injects the correct encoding to a headers carrier.
 
