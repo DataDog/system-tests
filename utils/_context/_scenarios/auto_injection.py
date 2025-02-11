@@ -438,7 +438,7 @@ class InstallerAutoInjectionScenario(_VirtualMachineScenario):
         include_fedora_36_arm64=False,
         include_fedora_37_amd64=False,
         include_fedora_37_arm64=False,
-        include_windows_2022_amd64=True,
+        include_windows_2022_amd64=False,  # Disabled until the artifacts for windows are available
     ) -> None:
         # Force full tracing without limits
         app_env_defaults = {

@@ -92,6 +92,10 @@ class TestAutoInjectChaos(BaseAutoInjectChaos):
             {"vm_branch": "amazon_linux2", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
             {"vm_branch": "centos_7_amd64", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
             {"vm_branch": "redhat", "vm_cpu": "arm64", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
+            {
+                "vm_branch": "windows",
+                "reason": "APMON-9999",
+            },  # Windows is not supported. Change to missing_feature after merge
         ]
     )
     def test_install_after_ld_preload(self, virtual_machine):
@@ -106,6 +110,10 @@ class TestAutoInjectChaos(BaseAutoInjectChaos):
             {"vm_branch": "amazon_linux2", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
             {"vm_branch": "centos_7_amd64", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
             {"vm_branch": "redhat", "vm_cpu": "arm64", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
+            {
+                "vm_branch": "windows",
+                "reason": "APMON-9999",
+            },  # Windows is not supported. Change to missing_feature after merge
         ]
     )
     def test_remove_ld_preload(self, virtual_machine):
