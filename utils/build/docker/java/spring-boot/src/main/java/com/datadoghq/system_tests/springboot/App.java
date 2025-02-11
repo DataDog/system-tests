@@ -82,6 +82,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.time.Instant;
 import java.util.Collections;
+import java.util.Enumeration;
 import java.util.Scanner;
 import java.util.LinkedHashMap;
 
@@ -883,20 +884,17 @@ public class App {
     }
 
     @RequestMapping("/make_distant_call")
-    DistantCallResponse make_distant_call(@RequestParam String url) throws Exception {
+    DistantCallResponse make_distant_call(@RequestParam String url, final HttpServletRequest request) throws Exception {
         URL urlObject = new URL(url);
 
         HttpURLConnection con = (HttpURLConnection) urlObject.openConnection();
         con.setRequestMethod("GET");
 
         // Save request headers
-        HashMap<String, String> request_headers = new HashMap<String, String>();
-        for (Map.Entry<String, List<String>> header: con.getRequestProperties().entrySet()) {
-            if (header.getKey() == null) {
-                continue;
-            }
-
-            request_headers.put(header.getKey(), header.getValue().get(0));
+        HashMap<String, String> request_headers = new HashMap<>();
+        List<String> headers = Collections.list(request.getHeaderNames());
+        for (String headerName : headers) {
+            request_headers.put(headerName, request.getHeader(headerName));
         }
 
         // Save response headers and status code
