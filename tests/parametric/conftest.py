@@ -60,7 +60,7 @@ def pytest_configure(config):
 def _request_token(request):
     token = ""
     token += request.module.__name__
-    token += ".%s" % request.cls.__name__ if request.cls else ""
+    token += f".{request.cls.__name__}" if request.cls else ""
     token += f".{request.node.name}"
     return token
 
@@ -287,7 +287,7 @@ class _TestAgentAPI:
     def snapshot_context(self, token, ignores=None):
         ignores = ignores or []
         try:
-            resp = self._session.get(self._url("/test/session/start?test_session_token=%s" % token))
+            resp = self._session.get(self._url(f"/test/session/start?test_session_token={token}"))
             if resp.status_code != 200:
                 # The test agent returns nice error messages we can forward to the user.
                 raise RuntimeError(resp.text)
@@ -297,7 +297,7 @@ class _TestAgentAPI:
             yield self
             # Query for the results of the test.
             resp = self._session.get(
-                self._url("/test/session/snapshot?ignores=%s&test_session_token=%s" % (",".join(ignores), token))
+                self._url(f"/test/session/snapshot?ignores={','.join(ignores)}&test_session_token={token}")
             )
             if resp.status_code != 200:
                 raise RuntimeError(resp.text)
@@ -330,9 +330,7 @@ class _TestAgentAPI:
                         return sorted(traces, key=lambda trace: trace[0]["start"])
                     return traces
             time.sleep(0.1)
-        raise ValueError(
-            "Number (%r) of traces not available from test agent, got %r:\n%r" % (num, num_received, traces)
-        )
+        raise ValueError(f"Number ({num}) of traces not available from test agent, got {num_received}:\n{traces}")
 
     def wait_for_num_spans(
         self, num: int, clear: bool = False, wait_loops: int = 30, sort_by_start: bool = True
@@ -365,7 +363,7 @@ class _TestAgentAPI:
                         return sorted(traces, key=lambda trace: trace[0]["start"])
                     return traces
             time.sleep(0.1)
-        raise ValueError("Number (%r) of spans not available from test agent, got %r" % (num, num_received))
+        raise ValueError(f"Number ({num}) of spans not available from test agent, got {num_received}")
 
     def wait_for_telemetry_event(self, event_name: str, clear: bool = False, wait_loops: int = 200):
         """Wait for and return the given telemetry event from the test agent."""
@@ -389,7 +387,7 @@ class _TestAgentAPI:
                                 self.clear()
                             return event
             time.sleep(0.01)
-        raise AssertionError("Telemetry event %r not found" % event_name)
+        raise AssertionError(f"Telemetry event {event_name} not found")
 
     def wait_for_rc_apply_state(
         self,
@@ -431,7 +429,7 @@ class _TestAgentAPI:
                                 self.clear()
                             return cfg_state
             time.sleep(0.01)
-        raise AssertionError("No RemoteConfig apply status found, got requests %r" % rc_reqs)
+        raise AssertionError(f"No RemoteConfig apply status found, got requests {rc_reqs}")
 
     def wait_for_rc_capabilities(self, capabilities: Iterable[int] = (), wait_loops: int = 100):
         """Wait for the given RemoteConfig apply state to be received by the test agent."""
@@ -462,7 +460,7 @@ class _TestAgentAPI:
                         if all((int_capabilities >> c) & 1 for c in capabilities):
                             return int_capabilities
             time.sleep(0.01)
-        raise AssertionError("No RemoteConfig capabilities found, got capabilites %r" % capabilities_seen)
+        raise AssertionError(f"No RemoteConfig capabilities found, got capabilites {capabilities_seen}")
 
     def wait_for_tracer_flare(self, case_id: str | None = None, clear: bool = False, wait_loops: int = 100):
         """Wait for the tracer-flare to be received by the test agent."""

@@ -201,7 +201,6 @@ ignore = [
     "B007",      # 23 occurences    [ ] unused-loop-control-variable
     "DTZ005",    # 23 occurences    [ ] call-datetime-now-without-tzinfo
     "INP001",    # 22 occurences    [ ] implicit-namespace-package
-    "UP031",     # 17 occurences    [ ] printf-string-formatting
     "ANN205",    # 16 occurences    [ ] missing-return-type-static-method
     "T201",      # 15 occurences    [*] print
     "FBT001",    # 12 occurences    [ ] boolean-type-hint-positional-argument
