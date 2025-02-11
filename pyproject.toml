@@ -205,7 +205,6 @@ ignore = [
     "T201",      # 15 occurences    [*] print
     "FBT001",    # 12 occurences    [ ] boolean-type-hint-positional-argument
     "SLF001",    # 12 occurences    [ ] private-member-access
-    "UP035",     # 12 occurences    [ ] deprecated-import
     "S105",      # 10 occurences    [ ] hardcoded-password-string
     "RET503",    # 9 occurences     [*] implicit-return
     "SIM115",    # 9 occurences     [ ] open-file-with-context-handler

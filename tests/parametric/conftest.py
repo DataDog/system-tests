@@ -1,5 +1,5 @@
 import base64
-from collections.abc import Iterable
+from collections.abc import Iterable, Generator
 import contextlib
 import dataclasses
 import os
@@ -9,7 +9,7 @@ import subprocess
 import time
 import datetime
 import hashlib
-from typing import Generator, TextIO, TypedDict
+from typing import TextIO, TypedDict
 import urllib.parse
 
 import requests
