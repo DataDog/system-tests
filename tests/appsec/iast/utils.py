@@ -243,15 +243,18 @@ def validate_stack_traces(request):
     # Vulns without location path/class are not expected to have a stack trace
     old_version = context.library < "java@1.47.0"
     location = vuln["location"]
+    pathOrClass = "class"
     if old_version:
-        assert (
-            location is not None and "path" in location
-        ), "This vulnerability was expected to have a path in its location data, it is not possible to validate the stack trace"
-    else:
-        assert (
-            location is not None and "class" in location
-        ), "This vulnerability was expected to have a class in its location data, it is not possible to validate the stack trace"
+        pathOrClass = "path"
 
+    pathOrClassError = (
+        "This vulnerability was expected to have a "
+        + pathOrClass
+        + " in its location data, it is not possible to validate the stack trace"
+    )
+
+    assert location is not None, pathOrClassError
+    assert pathOrClass in location, pathOrClassError
 
     locationFrame = None
 
