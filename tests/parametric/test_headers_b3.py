@@ -95,7 +95,8 @@ class Test_Headers_B3:
 
         assert len(b3_trace_id) == 16 or len(b3_trace_id) == 32
         assert int(b3_trace_id[-16:], base=16) == span.get("trace_id")
-        assert int(b3_span_id, base=16) == span.get("span_id") and len(b3_span_id) == 16
+        assert int(b3_span_id, base=16) == span.get("span_id")
+        assert len(b3_span_id) == 16
         assert b3_sampling == "1" if span["metrics"].get(SAMPLING_PRIORITY_KEY) > 0 else "0"
         assert span["meta"].get(ORIGIN) is None
 
@@ -120,7 +121,8 @@ class Test_Headers_B3:
 
         assert len(b3_trace_id) == 16 or len(b3_trace_id) == 32
         assert int(b3_trace_id, base=16) == span.get("trace_id")
-        assert int(b3_span_id, base=16) == span.get("span_id") and len(b3_span_id) == 16
+        assert int(b3_span_id, base=16) == span.get("span_id")
+        assert len(b3_span_id) == 16
         assert b3_sampling == "1"
         assert span["meta"].get(ORIGIN) is None
 
@@ -146,7 +148,8 @@ class Test_Headers_B3:
 
         assert len(b3_trace_id) == 16 or len(b3_trace_id) == 32
         assert int(b3_trace_id[-16:], base=16) == span.get("trace_id")
-        assert int(b3_span_id, base=16) == span.get("span_id") and len(b3_span_id) == 16
+        assert int(b3_span_id, base=16) == span.get("span_id")
+        assert len(b3_span_id) == 16
         assert b3_sampling == "1" if span["metrics"].get(SAMPLING_PRIORITY_KEY) > 0 else "0"
         assert span["meta"].get(ORIGIN) is None
 
