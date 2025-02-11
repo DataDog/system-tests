@@ -223,7 +223,6 @@ ignore = [
     "RUF005",    # 5 occurences     [ ] collection-literal-concatenation
     "PTH103",    # 4 occurences     [ ] os-makedirs
     "PLW2901",   # 4 occurences     [ ] redefined-loop-name
-    "PTH112",    # 3 occurences     [ ] os-path-isdir
     "ASYNC230",  # 2 occurences     [ ] blocking-open-call-in-async-function
     "S605",      # 2 occurences     [ ] start-process-with-a-shell
 
