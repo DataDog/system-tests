@@ -624,11 +624,21 @@ class Test_Config_RuntimeMetrics_Default:
     """Verify runtime metrics are disabled by default"""
 
     # test that by default runtime metrics are disabled
-    def test_config_runtimemetrics_default(self):
-        iterations = 0
-        for data in interfaces.library.get_data("/dogstatsd/v2/proxy"):
-            iterations += 1
-        assert iterations == 0, "Runtime metrics are enabled by default"
+    def setup_main(self):
+        self.req = weblog.get("/")
+
+        # Wait for 10s to allow the tracer to send runtime metrics on the default 10s interval
+        time.sleep(10)
+
+    def test_main(self):
+        assert self.req.status_code == 200
+
+        runtime_metrics = [
+            metric
+            for _, metric in interfaces.agent.get_metrics()
+            if metric["metric"].startswith("runtime.") or metric["metric"].startswith("jvm.")
+        ]
+        assert len(runtime_metrics) == 0
 
 
 # Parse the JSON-formatted log message from stdout and return the 'dd' object
