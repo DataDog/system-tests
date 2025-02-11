@@ -166,7 +166,7 @@ jobs:
       with:
         python-version: '3.11'
     - run: pip install requests
-    - run: python utils/scripts/get-workflow-summary.py ${{ github.run_id }} >> $GITHUB_STEP_SUMMARY
+    - run: python utils/scripts/get-workflow-summary.py DataDog/system-tests ${{ github.run_id }} -o $GITHUB_STEP_SUMMARY
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
