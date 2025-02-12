@@ -11,7 +11,7 @@ from utils.tools import logger
 # get the default log output
 stdout = interfaces.library_stdout if context.library != "dotnet" else interfaces.library_dotnet_managed
 runtime_metrics = {"nodejs": "runtime.node.mem.heap_total"}
-runtime_metrics_langs = [".NET", "go", "nodejs", "python", "ruby"]
+runtime_metrics_lang_map = {"dotnet": ("lang", ".NET"), "golang": ("lang", "go"), "java": (None, None), "nodejs": (None, None), "python": ("lang", "python"), "ruby": ("language", "ruby")}
 log_injection_fields = {"nodejs": {"message": "msg"}}
 
 
@@ -577,7 +577,9 @@ class Test_Config_RuntimeMetrics_Enabled:
 
         for metric in runtime_metrics:
             tags = {tag.split(":")[0]: tag.split(":")[1] for tag in metric["tags"]}
-            assert tags.get("lang") in runtime_metrics_langs or tags.get("lang") is None
+            language_tag_key, language_tag_value = runtime_metrics_lang_map[context.library.library]
+            if language_tag_key is not None:
+                assert tags.get(language_tag_key) == language_tag_value
 
             # Test that Unified Service Tags are added to the runtime metrics
             assert tags["service"] == "weblog"
