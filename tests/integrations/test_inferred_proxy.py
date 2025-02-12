@@ -15,8 +15,8 @@ DISTRIBUTED_SAMPLING_PRIORITY = 2
 class Test_AWS_API_Gateway_Inferred_Span_Creation:
     """Verify AWS API Gateway inferred spans are created when a web server receives specific headers."""
 
-    start_time = round(time.time() * 1e3)
-    start_time_ns = start_time * 1e6
+    start_time = round(time.time() * 1000)
+    start_time_ns = start_time * 1000000
 
     def setup_api_gateway_inferred_span_creation(self):
         headers = {
@@ -47,8 +47,8 @@ class Test_AWS_API_Gateway_Inferred_Span_Creation_With_Distributed_Context:
     distributed context.
     """
 
-    start_time = round(time.time() * 1e3)
-    start_time_ns = start_time * 1e6
+    start_time = round(time.time() * 1000)
+    start_time_ns = start_time * 1000000
 
     def setup_api_gateway_inferred_span_creation_with_distributed_context(self):
         headers = {
@@ -83,8 +83,8 @@ class Test_AWS_API_Gateway_Inferred_Span_Creation_With_Error:
     an error.
     """
 
-    start_time = round(time.time() * 1e3)
-    start_time_ns = start_time * 1e6
+    start_time = round(time.time() * 1000)
+    start_time_ns = start_time * 1000000
 
     def setup_api_gateway_inferred_span_creation_error(self):
         headers = {
@@ -173,7 +173,7 @@ def assert_api_gateway_span(testCase, span, path, status_code, is_distributed=Fa
 
     if not interfaces.library.replay:
         assert (
-            span["start"] == testCase.start_time_ns
+            int(span["start"]) == int(testCase.start_time_ns)
         ), f"Inferred AWS API Gateway span startTime should equal expected '{testCase.start_time_ns!s}''"
 
     if is_distributed:
