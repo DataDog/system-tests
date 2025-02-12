@@ -9,3 +9,4 @@ formatter:
 exclude:
     - lib-injection/common/templates/deployment.yaml
     - lib-injection/common/templates/pod.yaml
+    - venv/
