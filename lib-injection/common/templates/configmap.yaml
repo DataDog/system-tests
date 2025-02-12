@@ -3,5 +3,5 @@ kind: ConfigMap
 metadata:
   name: auto-instru
 data:
-  auto-instru.json: |
+  auto-instru.json: |-
     []

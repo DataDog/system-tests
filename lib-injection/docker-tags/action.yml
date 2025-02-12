@@ -18,7 +18,7 @@ runs:
     - name: Get docker tags to be generated
       id: docker-tags
       shell: bash
-      run: |
+      run: |-
         DOCKER_IMAGE_NAME=$(echo ghcr.io/${GITHUB_REPOSITORY}/${{ inputs.init-image-name}} | tr '[:upper:]' '[:lower:]')
         DOCKER_IMAGE_NAME_WITH_TAG=$(echo ${DOCKER_IMAGE_NAME}:${{ github.sha }} | tr '[:upper:]' '[:lower:]')
 
