@@ -273,7 +273,7 @@ class _Base_Debugger_Test:
                     logger.debug("Snapshot doesn't have pobe")
                     continue
 
-                if not "exceptionId" in snapshot:
+                if "exceptionId" not in snapshot:
                     logger.debug("Snapshot doesnt't have exception")
                     continue
 

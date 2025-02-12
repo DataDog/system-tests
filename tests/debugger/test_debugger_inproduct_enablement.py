@@ -9,6 +9,7 @@ import json
 
 TIMEOUT = 5
 
+
 @features.debugger_inproduct_enablement
 @scenarios.debugger_inproduct_enablement
 class Test_Debugger_InProduct_Enablement_Dynamic_Instrumentation(debugger._Base_Debugger_Test):
@@ -53,7 +54,6 @@ class Test_Debugger_InProduct_Enablement_Dynamic_Instrumentation(debugger._Base_
         self.di_explicit_disabled = not self.wait_for_all_probes_emitting(TIMEOUT)
 
     def test_inproduct_enablement_di(self):
-        
         self.assert_rc_state_not_error()
         self.assert_all_weblog_responses_ok()
 
@@ -62,11 +62,13 @@ class Test_Debugger_InProduct_Enablement_Dynamic_Instrumentation(debugger._Base_
         assert self.di_empty_config, "Expected probes to continue emitting with empty config"
         assert self.di_explicit_disabled, "Expected probes to stop emitting after explicit disable"
 
+
 @features.debugger_inproduct_enablement
 @scenarios.debugger_inproduct_enablement
 class Test_Debugger_InProduct_Enablement_Exception_Replay(debugger._Base_Debugger_Test):
     ############ exception replay ############
     _max_retries = 2
+
     def setup_inproduct_enablement_exception_replay(self):
         def _send_config(enabled=None):
             self.send_rc_apm_tracing(exception_replay_enabled=enabled)
@@ -108,7 +110,6 @@ class Test_Debugger_InProduct_Enablement_Exception_Replay(debugger._Base_Debugge
         )
 
     def test_inproduct_enablement_exception_replay(self):
-        
         self.assert_rc_state_not_error()
         self.assert_all_weblog_responses_ok(expected_code=500)
 
@@ -117,10 +118,10 @@ class Test_Debugger_InProduct_Enablement_Exception_Replay(debugger._Base_Debugge
         assert self.er_empty_config, "Expected snapshots to continue emitting with empty config"
         assert self.er_explicit_disabled, "Expected snapshots to stop emitting after explicit disable"
 
+
 @features.debugger_inproduct_enablement
 @scenarios.debugger_inproduct_enablement
 class Test_Debugger_InProduct_Enablement_Code_Origin(debugger._Base_Debugger_Test):
-
     ########### code origin ############
     def setup_inproduct_enablement_code_origin(self):
         def _send_config(enabled=None):
@@ -143,7 +144,6 @@ class Test_Debugger_InProduct_Enablement_Code_Origin(debugger._Base_Debugger_Tes
         self.er_explicit_disabled = not self.wait_for_code_origin_span(TIMEOUT)
 
     def test_inproduct_enablement_code_origin(self):
-        
         self.assert_rc_state_not_error()
         self.assert_all_weblog_responses_ok()
 
