@@ -1,6 +1,5 @@
 """Pylons middleware initialization"""
 
-from ddtrace.trace import tracer
 from ddtrace.contrib.pylons import PylonsTraceMiddleware
 
 from beaker.middleware import SessionMiddleware
@@ -13,6 +12,11 @@ from pylons.wsgiapp import PylonsApp
 from routes.middleware import RoutesMiddleware
 
 from app.config.environment import load_environment
+
+try:
+    from ddtrace.trace import tracer
+except ImportError:
+    from ddtrace import tracer
 
 
 def make_app(global_conf, full_stack=True, static_files=True, **app_conf):
