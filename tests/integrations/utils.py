@@ -3,7 +3,7 @@ import hashlib
 import os
 import struct
 import time
-from typing import Callable
+from collections.abc import Callable
 
 import boto3
 import botocore.exceptions

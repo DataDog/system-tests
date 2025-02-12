@@ -25,7 +25,7 @@ class Test_Tracer:
                 "operation", service="my-webserver", resource="/endpoint", typestr="web"
             ) as parent:
                 parent.set_metric("number", 10)
-                with test_library.dd_start_span("operation.child", parent_id=parent.span_id) as child:  # type: ignore
+                with test_library.dd_start_span("operation.child", parent_id=parent.span_id) as child:
                     child.set_meta("key", "val")
 
         traces = test_agent.wait_for_num_traces(1, sort_by_start=False)
@@ -58,7 +58,7 @@ class Test_TracerSCITagging:
         """
         with test_library:
             with test_library.dd_start_span("operation") as parent:
-                with test_library.dd_start_span("operation.child", parent_id=parent.span_id):  # type: ignore
+                with test_library.dd_start_span("operation.child", parent_id=parent.span_id):
                     pass
 
         traces = test_agent.wait_for_num_traces(1, sort_by_start=False)
@@ -83,7 +83,7 @@ class Test_TracerSCITagging:
         """
         with test_library:
             with test_library.dd_start_span("operation") as parent:
-                with test_library.dd_start_span("operation.child", parent_id=parent.span_id):  # type: ignore
+                with test_library.dd_start_span("operation.child", parent_id=parent.span_id):
                     pass
 
         traces = test_agent.wait_for_num_traces(1, sort_by_start=False)
@@ -141,7 +141,7 @@ class Test_TracerSCITagging:
             in meta._dd.git.repository_url, with credentials removed if any
         """
         with test_library:
-            with test_library.dd_start_span("operation") as parent:  # type: ignore
+            with test_library.dd_start_span("operation") as parent:
                 with test_library.dd_start_span("operation.child", parent_id=parent.span_id):
                     pass
 

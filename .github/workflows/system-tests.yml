@@ -139,7 +139,7 @@ jobs:
   open-telemetry:
     needs:
       - compute_parameters
-    if: ${{ needs.compute_parameters.outputs.opentelemetry_scenarios != '[]' && inputs.binaries_artifact == '' }}
+    if: ${{ needs.compute_parameters.outputs.opentelemetry_scenarios != '[]' && inputs.ci_environment != 'dev' }}
     uses: ./.github/workflows/run-open-telemetry.yml
     secrets: inherit
     with:

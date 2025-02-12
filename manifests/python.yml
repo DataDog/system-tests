@@ -146,6 +146,9 @@ tests/:
             fastapi: v2.15.0
           TestSSRF_ExtendedLocation: missing_feature
           TestSSRF_StackTrace: v2.19.0.dev
+        test_stacktrace_leak.py:
+          TestStackTraceLeak:
+            '*': v3.1.0.dev
         test_template_injection.py:
           TestTemplateInjection: missing_feature
           TestTemplateInjection_ExtendedLocation: missing_feature

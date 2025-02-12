@@ -63,7 +63,7 @@ def _set_rc(test_agent, config: dict[str, Any]) -> None:
     cfg_id = hash(json.dumps(config))
 
     config["id"] = str(cfg_id)
-    test_agent.set_remote_config(path="datadog/2/APM_TRACING/%s/config" % cfg_id, payload=config)
+    test_agent.set_remote_config(path=f"datadog/2/APM_TRACING/{cfg_id}/config", payload=config)
 
 
 def _create_rc_config(config_overrides: dict[str, Any]) -> dict:
