@@ -589,7 +589,7 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library <= "dotnet@2.41.0", reason="Implemented in 2.42.0")
     @missing_feature(context.library == "python", reason="Not implemented")
     @pytest.mark.parametrize(
-        ("expected_operation_name", "span_kind,attributes"),
+        ("expected_operation_name", "span_kind", "attributes"),
         [
             ("http.server.request", SpanKind.SERVER, {"http.request.method": "GET"}),
             ("http.client.request", SpanKind.CLIENT, {"http.request.method": "GET"}),
