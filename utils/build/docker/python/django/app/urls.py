@@ -29,8 +29,13 @@ from iast import (
 
 import ddtrace
 from ddtrace import patch_all
-from ddtrace.trace import Pin, tracer
 from ddtrace.appsec import trace_utils as appsec_trace_utils
+
+try:
+    from ddtrace.trace import Pin, tracer
+except ImportError:
+    from ddtrace import tracer, Pin
+
 
 patch_all(urllib3=True)
 
