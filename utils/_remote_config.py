@@ -237,9 +237,8 @@ def send_debugger_command(probes: list, version: int = 1) -> dict:
 
 
 def build_symdb_command(version: int = 1):
-    return _build_base_command(
-        path_payloads={"datadog/2/LIVE_DEBUGGING_SYMBOL_DB/symDb/config": {"upload_symbols": True}}, version=1
-    return _build_base_command(path_payloads, version=1)
+    path_payloads = {"datadog/2/LIVE_DEBUGGING_SYMBOL_DB/symDb/config": {"upload_symbols": True}}
+    return _build_base_command(path_payloads, version)
 
 
 def send_symdb_command(version: int = 1) -> dict:
