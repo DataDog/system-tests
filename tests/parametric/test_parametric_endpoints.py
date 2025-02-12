@@ -282,6 +282,9 @@ class Test_Parametric_DDTrace_Config:
                 "dd_trace_rate_limit",
                 "dd_dogstatsd_host",
                 "dd_dogstatsd_port",
+                "dd_logs_injection",
+                "dd_profiling_enabled",
+                "dd_data_streams_enabled",
             ]
 
 
