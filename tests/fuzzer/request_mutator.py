@@ -225,7 +225,7 @@ class RequestMutator:
     )
     generic_header_keys = ("", "User-Agent", "Content-length", "content-type")
 
-    header_values = ["", "../", "( ) {"] + data.blns
+    header_values = ["", "../", "( ) {", *data.blns]
     user_agents = (
         "Arachni/v1.2.1",
         "md5(acunetix_wvs_security_test)",
@@ -288,20 +288,24 @@ class RequestMutator:
         "IBM850",
     )
 
-    payload_values = (
-        [None, "", 0, -1, 2**64 + 1, True, False]
-        + data.blns
-        + [
-            "ok",
-            "union select from",
-            "<vmlframe src=",
-            "http-equiv:+set-cookie",
-            "require('.')",
-            "file_0?",
-            "zlib://",
-            "1234-1234-1234-1234",
-        ]
-    )
+    payload_values = [
+        None,
+        "",
+        0,
+        -1,
+        2**64 + 1,
+        True,
+        False,
+        *data.blns,
+        "ok",
+        "union select from",
+        "<vmlframe src=",
+        "http-equiv:+set-cookie",
+        "require('.')",
+        "file_0?",
+        "zlib://",
+        "1234-1234-1234-1234",
+    ]
 
     file_data = [
         _get_data_file("image1.jpg"),

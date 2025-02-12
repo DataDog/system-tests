@@ -53,7 +53,7 @@ def get_span(interface):
     return None
 
 
-def assert_api_gateway_span(testCase, span):
+def assert_api_gateway_span(test_case, span):
     assert span["name"] == "aws.apigateway", "Inferred AWS API Gateway span name should be 'aws.apigateway'"
 
     # Assertions to check if the span data contains the required keys and values.
@@ -83,5 +83,5 @@ def assert_api_gateway_span(testCase, span):
 
     if not interfaces.library.replay:
         assert (
-            span["start"] == testCase.start_time_ns
-        ), f"Inferred AWS API Gateway span startTime should equal expected '{testCase.start_time_ns!s}''"
+            span["start"] == test_case.start_time_ns
+        ), f"Inferred AWS API Gateway span startTime should equal expected '{test_case.start_time_ns!s}''"

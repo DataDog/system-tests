@@ -29,6 +29,7 @@ def _expected_location():
             return "/app/./iast.py"
         else:
             return "/app/iast.py"
+    return None
 
 
 def _expected_evidence():

@@ -258,6 +258,8 @@ class Test_RemoteConfigurationExtraServices:
 
                 return False
 
+            return None
+
         interfaces.library.wait_for(remote_config_asm_extra_services_available, timeout=30)
 
     def test_tracer_extra_services(self):

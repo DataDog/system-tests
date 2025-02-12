@@ -289,9 +289,7 @@ class _TestAgentAPI:
         ignores = ignores or []
         try:
             resp = self._session.get(self._url(f"/test/session/start?test_session_token={token}"))
-            if resp.status_code != 200:
-                # The test agent returns nice error messages we can forward to the user.
-                raise RuntimeError(resp.text)
+            resp.raise_for_status()
         except Exception as e:
             raise RuntimeError(f"Could not connect to test agent: {e}") from e
         else:
