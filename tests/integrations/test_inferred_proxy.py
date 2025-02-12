@@ -172,8 +172,8 @@ def assert_api_gateway_span(testCase, span, path, status_code, is_distributed=Fa
     ), f"Inferred AWS API Gateway span meta expected HTTP Status Code of '{status_code}'"
 
     if not interfaces.library.replay:
-        assert (
-            int(span["start"]) == int(testCase.start_time_ns)
+        assert int(span["start"]) == int(
+            testCase.start_time_ns
         ), f"Inferred AWS API Gateway span startTime should equal expected '{testCase.start_time_ns!s}''"
 
     if is_distributed:
