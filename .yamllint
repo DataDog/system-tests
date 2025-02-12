@@ -6,4 +6,4 @@ rules:
     new-line-at-end-of-file: disable
     indentation: disable
     colons: disable
-    empty-lines: disable
+    # empty-lines: disable
