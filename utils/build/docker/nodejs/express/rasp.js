@@ -174,7 +174,7 @@ function initRaspEndpoints (app) {
         throw e
       }
     }
-      
+
     res.send('OK')
   })
 }
