@@ -3,7 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 from utils import context, features, missing_feature, rfc, weblog
-from ..utils import BaseSinkTestWithoutTelemetry, validate_extended_location_data, validate_stack_traces
+from tests.appsec.iast.utils import BaseSinkTestWithoutTelemetry, validate_extended_location_data, validate_stack_traces
 
 
 def _expected_location():

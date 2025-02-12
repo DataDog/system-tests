@@ -1,5 +1,5 @@
 import base64
-from collections.abc import Iterable
+from collections.abc import Iterable, Generator
 import contextlib
 import dataclasses
 import os
@@ -9,10 +9,11 @@ import subprocess
 import time
 import datetime
 import hashlib
-from typing import Generator, TextIO, TypedDict
+from pathlib import Path
+from typing import TextIO, TypedDict
 import urllib.parse
 
-import requests  # type: ignore
+import requests
 import pytest
 
 from utils.parametric.spec import remoteconfig
@@ -48,7 +49,7 @@ class AgentRequest(TypedDict):
 
 
 class AgentRequestV06Stats(AgentRequest):
-    body: V06StatsPayload  # type: ignore
+    body: V06StatsPayload  # type: ignore[misc]
 
 
 def pytest_configure(config):
@@ -60,7 +61,7 @@ def pytest_configure(config):
 def _request_token(request):
     token = ""
     token += request.module.__name__
-    token += ".%s" % request.cls.__name__ if request.cls else ""
+    token += f".{request.cls.__name__}" if request.cls else ""
     token += f".{request.node.name}"
     return token
 
@@ -83,16 +84,10 @@ def apm_test_server(request, library_env, test_id):
     )
 
 
-@pytest.hookimpl(hookwrapper=True)
-def pytest_runtest_makereport(item, call):
-    outcome = yield
-    outcome.get_result()
-
-
 @pytest.fixture
 def test_server_log_file(apm_test_server, request) -> Generator[TextIO, None, None]:
     log_path = f"{context.scenario.host_log_folder}/outputs/{request.cls.__name__}/{request.node.name}/server_log.log"
-    os.makedirs(os.path.dirname(log_path), exist_ok=True)
+    Path(log_path).parent.mkdir(parents=True, exist_ok=True)
     with open(log_path, "w+", encoding="utf-8") as f:
         yield f
         f.seek(0)
@@ -102,12 +97,12 @@ def test_server_log_file(apm_test_server, request) -> Generator[TextIO, None, No
 
 
 class _TestAgentAPI:
-    def __init__(self, base_url: str, pytest_request: None):
+    def __init__(self, base_url: str, pytest_request: pytest.FixtureRequest):
         self._base_url = base_url
         self._session = requests.Session()
         self._pytest_request = pytest_request
-        self.log_path = f"{context.scenario.host_log_folder}/outputs/{pytest_request.cls.__name__}/{pytest_request.node.name}/agent_api.log"  # type: ignore
-        os.makedirs(os.path.dirname(self.log_path), exist_ok=True)
+        self.log_path = f"{context.scenario.host_log_folder}/outputs/{pytest_request.cls.__name__}/{pytest_request.node.name}/agent_api.log"
+        Path(self.log_path).parent.mkdir(parents=True, exist_ok=True)
 
     def _url(self, path: str) -> str:
         return urllib.parse.urljoin(self._base_url, path)
@@ -293,7 +288,7 @@ class _TestAgentAPI:
     def snapshot_context(self, token, ignores=None):
         ignores = ignores or []
         try:
-            resp = self._session.get(self._url("/test/session/start?test_session_token=%s" % token))
+            resp = self._session.get(self._url(f"/test/session/start?test_session_token={token}"))
             if resp.status_code != 200:
                 # The test agent returns nice error messages we can forward to the user.
                 raise RuntimeError(resp.text)
@@ -303,7 +298,7 @@ class _TestAgentAPI:
             yield self
             # Query for the results of the test.
             resp = self._session.get(
-                self._url("/test/session/snapshot?ignores=%s&test_session_token=%s" % (",".join(ignores), token))
+                self._url(f"/test/session/snapshot?ignores={','.join(ignores)}&test_session_token={token}")
             )
             if resp.status_code != 200:
                 raise RuntimeError(resp.text)
@@ -336,9 +331,7 @@ class _TestAgentAPI:
                         return sorted(traces, key=lambda trace: trace[0]["start"])
                     return traces
             time.sleep(0.1)
-        raise ValueError(
-            "Number (%r) of traces not available from test agent, got %r:\n%r" % (num, num_received, traces)
-        )
+        raise ValueError(f"Number ({num}) of traces not available from test agent, got {num_received}:\n{traces}")
 
     def wait_for_num_spans(
         self, num: int, clear: bool = False, wait_loops: int = 30, sort_by_start: bool = True
@@ -371,7 +364,7 @@ class _TestAgentAPI:
                         return sorted(traces, key=lambda trace: trace[0]["start"])
                     return traces
             time.sleep(0.1)
-        raise ValueError("Number (%r) of spans not available from test agent, got %r" % (num, num_received))
+        raise ValueError(f"Number ({num}) of spans not available from test agent, got {num_received}")
 
     def wait_for_telemetry_event(self, event_name: str, clear: bool = False, wait_loops: int = 200):
         """Wait for and return the given telemetry event from the test agent."""
@@ -395,7 +388,7 @@ class _TestAgentAPI:
                                 self.clear()
                             return event
             time.sleep(0.01)
-        raise AssertionError("Telemetry event %r not found" % event_name)
+        raise AssertionError(f"Telemetry event {event_name} not found")
 
     def wait_for_rc_apply_state(
         self,
@@ -437,7 +430,7 @@ class _TestAgentAPI:
                                 self.clear()
                             return cfg_state
             time.sleep(0.01)
-        raise AssertionError("No RemoteConfig apply status found, got requests %r" % rc_reqs)
+        raise AssertionError(f"No RemoteConfig apply status found, got requests {rc_reqs}")
 
     def wait_for_rc_capabilities(self, capabilities: Iterable[int] = (), wait_loops: int = 100):
         """Wait for the given RemoteConfig apply state to be received by the test agent."""
@@ -468,7 +461,7 @@ class _TestAgentAPI:
                         if all((int_capabilities >> c) & 1 for c in capabilities):
                             return int_capabilities
             time.sleep(0.01)
-        raise AssertionError("No RemoteConfig capabilities found, got capabilites %r" % capabilities_seen)
+        raise AssertionError(f"No RemoteConfig capabilities found, got capabilites {capabilities_seen}")
 
     def wait_for_tracer_flare(self, case_id: str | None = None, clear: bool = False, wait_loops: int = 100):
         """Wait for the tracer-flare to be received by the test agent."""
@@ -532,7 +525,7 @@ def test_agent_port() -> int:
 @pytest.fixture
 def test_agent_log_file(request) -> Generator[TextIO, None, None]:
     log_path = f"{context.scenario.host_log_folder}/outputs/{request.cls.__name__}/{request.node.name}/agent_log.log"
-    os.makedirs(os.path.dirname(log_path), exist_ok=True)
+    Path(log_path).parent.mkdir(parents=True, exist_ok=True)
     with open(log_path, "w+", encoding="utf-8") as f:
         yield f
         f.seek(0)
@@ -565,7 +558,7 @@ def test_agent_hostname(test_agent_container_name: str) -> str:
 def test_agent(
     worker_id: str,
     docker_network: str,
-    request,
+    request: pytest.FixtureRequest,
     test_agent_container_name: str,
     test_agent_port: int,
     test_agent_log_file: TextIO,
@@ -585,7 +578,7 @@ def test_agent(
         name=test_agent_container_name,
         command=[],
         env=env,
-        volumes={f"{os.getcwd()}/snapshots": "/snapshots"},
+        volumes={f"{Path.cwd()!s}/snapshots": "/snapshots"},
         host_port=host_port,
         container_port=test_agent_port,
         log_file=test_agent_log_file,

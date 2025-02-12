@@ -3,7 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 from utils import bug, context, missing_feature, features, rfc, weblog
-from ..utils import BaseSinkTest, validate_extended_location_data, validate_stack_traces
+from tests.appsec.iast.utils import BaseSinkTest, validate_extended_location_data, validate_stack_traces
 
 
 @features.iast_sink_ssrf
