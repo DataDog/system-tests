@@ -25,9 +25,11 @@ def get_aws_matrix(virtual_machines_file, aws_ssi_file, scenarios: list[str], la
     # Remove items where "disabled" is set to True
     virtual_machines = [item for item in raw_data_virtual_machines if item.get("disabled") is not True]
 
-    scenario_matrix = aws_ssi["scenario_matrix"]
-    weblogs_spec = aws_ssi["weblogs_spec"][language]
     results = defaultdict(lambda: defaultdict(list))  # type: dict
+    scenario_matrix = aws_ssi["scenario_matrix"]
+    if language not in aws_ssi["weblogs_spec"]:
+        return results
+    weblogs_spec = aws_ssi["weblogs_spec"][language]
 
     for entry in scenario_matrix:
         applicable_scenarios = entry["scenarios"]

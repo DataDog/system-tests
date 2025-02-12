@@ -8,9 +8,12 @@ import tests.auto_inject.utils as base
 @scenarios.host_auto_injection_install_script
 class TestHostAutoInjectInstallScript(base.AutoInjectBaseTest):
     @bug(
-        context.vm_os_branch in ["amazon_linux2", "centos_7_amd64", "Ubuntu_24_10_amd64", "Ubuntu_24_10_arm64"]
-        and context.weblog_variant == "test-app-ruby",
+        context.vm_os_branch in ["amazon_linux2", "centos_7_amd64"] and context.weblog_variant == "test-app-ruby",
         reason="INPLAT-103",
+    )
+    @bug(
+        context.vm_name == ["Ubuntu_24_10_amd64", "Ubuntu_24_10_arm64"] and context.weblog_variant == "test-app-python",
+        reason="INPLAT-478",
     )
     @missing_feature(context.vm_os_branch == "windows", reason="Not implemented on Windows")
     def test_install(self):
@@ -55,8 +58,8 @@ class TestHostAutoInjectInstallScriptProfiling(base.AutoInjectBaseTest):
         reason="PROF-11264",
     )
     @bug(
-        context.vm_name in ["Ubuntu_24_10_amd64", "Ubuntu_24_10_arm64"] and context.weblog_variant == "test-app-python",
-        reason="INPLAT-103",
+        context.vm_name == ["Ubuntu_24_10_amd64", "Ubuntu_24_10_arm64"] and context.weblog_variant == "test-app-python",
+        reason="INPLAT-478",
     )
     @missing_feature(context.vm_os_branch == "windows", reason="Not implemented on Windows")
     def test_profiling(self):
@@ -173,8 +176,8 @@ class TestInstallerAutoInjectManual(base.AutoInjectBaseTest):
         reason="INPLAT-103",
     )
     @bug(
-        context.vm_name in ["Ubuntu_24_10_amd64", "Ubuntu_24_10_arm64"] and context.weblog_variant == "test-app-python",
-        reason="INPLAT-103",
+        context.vm_name == ["Ubuntu_24_10_amd64", "Ubuntu_24_10_arm64"] and context.weblog_variant == "test-app-python",
+        reason="INPLAT-478",
     )
     def test_install_uninstall(self):
         virtual_machine = context.scenario.virtual_machine
@@ -204,7 +207,7 @@ class TestSimpleInstallerAutoInjectManual(base.AutoInjectBaseTest):
     )
     @bug(
         context.vm_name == ["Ubuntu_24_10_amd64", "Ubuntu_24_10_arm64"] and context.weblog_variant == "test-app-python",
-        reason="INPLAT-103",
+        reason="INPLAT-478",
     )
     def test_install(self):
         virtual_machine = context.scenario.virtual_machine
