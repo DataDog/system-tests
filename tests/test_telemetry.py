@@ -281,7 +281,7 @@ class Test_Telemetry:
                     )
 
         if len(self.library_requests) != 0:
-            for s, r in self.library_requests.keys():
+            for s, r in self.library_requests:
                 logger.error(f"seq_id: {s}, runtime_id: {r}")
 
             raise Exception("The following telemetry messages were not forwarded by the agent")
@@ -613,7 +613,7 @@ class Test_TelemetryV2:
             with open(f"tests/telemetry_intake/static/{filename}.json", encoding="utf-8") as fh:
                 return lowercase_obj(json.load(fh))
 
-        def get_all_keys_and_values(*objs):
+        def get_all_keys_and_values(*objs: tuple[None | dict | list, ...]) -> list:
             result = []
             for obj in objs:
                 if obj is not None:

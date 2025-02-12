@@ -1,4 +1,4 @@
-FROM ghcr.io/graalvm/native-image-community:21.0.0 as build
+FROM ghcr.io/graalvm/native-image-community:22.0.0 as build
 
 ENV JAVA_TOOL_OPTIONS="-Djava.net.preferIPv4Stack=true"
 

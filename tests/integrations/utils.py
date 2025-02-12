@@ -3,7 +3,7 @@ import hashlib
 import os
 import struct
 import time
-from typing import Callable
+from collections.abc import Callable
 
 import boto3
 import botocore.exceptions
@@ -71,10 +71,6 @@ class BaseDbIntegrationsTestClass:
     setup_db_system = _setup
     setup_runtime_id = _setup
     setup_span_kind = _setup
-    setup_sql_traces = _setup
-    setup_resource = _setup
-    setup_db_type = _setup
-    setup_db_name = _setup
     setup_error_type_and_stack = _setup
     setup_error_message = _setup
     setup_obfuscate_query = _setup
@@ -295,8 +291,7 @@ def compute_dsm_hash(parent_hash, tags):
 def sha_hash(checkpoint_string):
     if isinstance(checkpoint_string, str):
         checkpoint_string = checkpoint_string.encode("utf-8")
-    hash_obj = hashlib.md5(checkpoint_string).digest()[:8]
-    return hash_obj
+    return hashlib.md5(checkpoint_string).digest()[:8]
 
 
 def compute_dsm_hash_nodejs(parent_hash, edge_tags):

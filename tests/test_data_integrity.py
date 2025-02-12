@@ -5,7 +5,7 @@
 """Misc checks around data integrity during components' lifetime"""
 
 import string
-from utils import weblog, interfaces, context, bug, rfc, irrelevant, missing_feature, features
+from utils import weblog, interfaces, context, bug, rfc, irrelevant, missing_feature, features, flaky
 from utils.tools import logger
 from utils.cgroup_info import get_container_id
 
@@ -208,6 +208,19 @@ class Test_LibraryHeaders:
                 ), f"Datadog-External-Env item {item} is not using in the format {{prefix}}-{{value}}"
 
         interfaces.library.validate(validator, success_by_default=True)
+
+
+@features.data_integrity
+class Test_Agent:
+    @missing_feature(library="cpp", reason="Trace are not reported")
+    @flaky(context.agent_version > "7.62.2", reason="APMSP-1791")
+    def test_headers(self):
+        """All required headers are present in all requests sent by the agent"""
+        interfaces.library.assert_response_header(
+            path_filters=interfaces.library.trace_paths,
+            header_name_pattern="content-type",
+            header_value_pattern="application/json",
+        )
 
 
 def _empty_request(data):

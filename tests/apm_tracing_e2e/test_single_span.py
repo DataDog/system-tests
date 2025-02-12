@@ -68,15 +68,14 @@ class Test_SingleSpan:
 
 def _assert_single_span_event(event, name, is_root):
     assert event["operation_name"] == name
-    assert event["single_span"] == True
+    assert event["single_span"] is True
     assert event["ingestion_reason"] == "single_span"
     parent_id = event["parent_id"]
     if is_root:
         assert parent_id == "0"
     else:
-        assert (
-            parent_id != "0" and len(parent_id) > 0
-        ), f"In a child span the parent_id should be specified. Actual: {parent_id}"
+        assert parent_id != "0", f"In a child span the parent_id should be specified. Actual: {parent_id}"
+        assert len(parent_id) > 0, f"In a child span the parent_id should be specified. Actual: {parent_id}"
 
 
 def _assert_single_span_metrics(span):
