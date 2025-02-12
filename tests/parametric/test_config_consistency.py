@@ -491,6 +491,24 @@ class Test_Stable_Config_Default(StableConfigWriter):
             assert test["expected"].items() <= config.items()
 
     @pytest.mark.parametrize(
+        "path",
+        [
+            "/etc/datadog-agent/managed/datadog-agent/stable/application_monitoring.yaml",
+            "/etc/datadog-agent/application_monitoring.yaml",
+        ],
+    )
+    def test_invalid_files(self, test_library, path, library_env):
+        with test_library:
+            self.write_stable_config_content(
+                "🤖 👾; 🤖\t\n\n --- `💣",
+                path,
+                test_library,
+            )
+            test_library.container_restart()
+            config = test_library.config()
+            assert SDK_DEFAULT_STABLE_CONFIG.items() <= config.items()
+
+    @pytest.mark.parametrize(
         "name,local_cfg,library_env,fleet_cfg,expected",
         [
             (
@@ -556,22 +574,25 @@ class Test_Stable_Config_Default(StableConfigWriter):
     )
     def test_config_stable(self, library_env, test_agent, test_library):
         path = "/etc/datadog-agent/managed/datadog-agent/stable/application_monitoring.yaml"
-        stable_config = """
-rules:
-  - selectors:
-    - origin: environment_variables
-      matches:
-        - STABLE_CONFIG_SELECTOR=true
-      operator: equals
-    configuration:
-      DD_SERVICE: my-service
-"""
-
         with test_library:
-            success, message = test_library.container_exec_run(
-                f"bash -c \"mkdir -p {Path(path).parent!s} && printf '{stable_config}' | tee {path}\""
+            self.write_stable_config(
+                {
+                    "rules": [
+                        {
+                            "selectors": [
+                                {
+                                    "origin": "environment_variables",
+                                    "matches": ["STABLE_CONFIG_SELECTOR=true"],
+                                    "operator": "equals",
+                                }
+                            ],
+                            "configuration": {"DD_SERVICE": "my-service"},
+                        }
+                    ]
+                },
+                path,
+                test_library,
             )
-            assert success, message
             test_library.container_restart()
             config = test_library.config()
             assert (
