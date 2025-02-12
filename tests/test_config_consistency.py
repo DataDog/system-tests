@@ -569,17 +569,7 @@ class Test_Config_RuntimeMetrics_Enabled:
     def test_main(self):
         assert self.req.status_code == 200
 
-        runtime_metrics_gauges = [
-            metric
-            for _, metric in interfaces.agent.get_metrics()
-            if metric["metric"].startswith("runtime.") or metric["metric"].startswith("jvm.")
-        ]
-
-        runtime_metrics_sketches = [
-            metric
-            for _, metric in interfaces.agent.get_sketches()
-            if metric["metric"].startswith("runtime.") or metric["metric"].startswith("jvm.")
-        ]
+        runtime_metrics_gauges, runtime_metrics_sketches = get_runtime_metrics(interfaces.agent)
 
         assert len(runtime_metrics_gauges) > 0 or len(runtime_metrics_sketches) > 0
 
@@ -614,17 +604,7 @@ class Test_Config_RuntimeMetrics_Enabled_WithRuntimeId:
     def test_main(self):
         assert self.req.status_code == 200
 
-        runtime_metrics_gauges = [
-            metric
-            for _, metric in interfaces.agent.get_metrics()
-            if metric["metric"].startswith("runtime.") or metric["metric"].startswith("jvm.")
-        ]
-
-        runtime_metrics_sketches = [
-            metric
-            for _, metric in interfaces.agent.get_sketches()
-            if metric["metric"].startswith("runtime.") or metric["metric"].startswith("jvm.")
-        ]
+        runtime_metrics_gauges, runtime_metrics_sketches = get_runtime_metrics(interfaces.agent)
 
         assert len(runtime_metrics_gauges) > 0 or len(runtime_metrics_sketches) > 0
 
@@ -651,19 +631,26 @@ class Test_Config_RuntimeMetrics_Default:
     def test_main(self):
         assert self.req.status_code == 200
 
-        runtime_metrics_gauges = [
-            metric
-            for _, metric in interfaces.agent.get_metrics()
-            if metric["metric"].startswith("runtime.") or metric["metric"].startswith("jvm.")
-        ]
-        assert len(runtime_metrics_gauges) == 0
+        runtime_metrics_gauges, runtime_metrics_sketches = get_runtime_metrics(interfaces.agent)
 
-        runtime_metrics_sketches = [
-            metric
-            for _, metric in interfaces.agent.get_sketches()
-            if metric["metric"].startswith("runtime.") or metric["metric"].startswith("jvm.")
-        ]
+        assert len(runtime_metrics_gauges) == 0
         assert len(runtime_metrics_sketches) == 0
+
+
+def get_runtime_metrics(agent):
+    runtime_metrics_gauges = [
+        metric
+        for _, metric in agent.get_metrics()
+        if metric["metric"].startswith("runtime.") or metric["metric"].startswith("jvm.")
+    ]
+
+    runtime_metrics_sketches = [
+        metric
+        for _, metric in agent.get_sketches()
+        if metric["metric"].startswith("runtime.") or metric["metric"].startswith("jvm.")
+    ]
+
+    return runtime_metrics_gauges, runtime_metrics_sketches
 
 
 # Parse the JSON-formatted log message from stdout and return the 'dd' object
