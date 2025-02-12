@@ -9,6 +9,7 @@ import os
 import re
 import time
 from typing import Any
+from collections.abc import Mapping
 
 import requests
 
@@ -188,7 +189,7 @@ def _create_base_signed(version: int):
     }
 
 
-def _build_base_command(path_payloads: dict[str, dict | list], version: int):
+def _build_base_command(path_payloads: Mapping[str, Any], version: int):
     """Helper function to build a remote config command with common logic.
 
     Args:
@@ -254,7 +255,7 @@ def build_apm_tracing_command(
     dynamic_sampling_enabled: bool | None = None,
     version: int = 1,
 ):
-    lib_config = {
+    lib_config: dict[str, str | bool] = {
         "library_language": "all",
         "library_version": "latest",
     }

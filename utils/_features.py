@@ -2417,7 +2417,6 @@ class _Features:
         pytest.mark.features(feature_id=366)(test_object)
         return test_object
 
-
     @staticmethod
     def debugger_inproduct_enablement(test_object):
         """Dynamically enable debugger products
