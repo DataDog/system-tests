@@ -273,16 +273,9 @@ class SystemTestController < ApplicationController
   end
 
   def rasp_sqli
-    user_id = params[:user_id] || request.POST && request.POST['user_id']
-    if user_id
-      User.transaction do
-        # We need to manually create the query as User.where adds parenthesis around the user_id
-        query = "SELECT * FROM users WHERE id='#{user_id}'"
-        users = User.find_by_sql(query).to_a
-        render plain: "DB request with #{users.size} results"
-      end
-    else
-      render plain: 'users not found parameter', status: 400
-    end
+    # We need to manually create the query as User.where adds parenthesis around the user_id
+    query = "SELECT * FROM users WHERE id='#{params.fetch(:user_id)}'"
+    users = User.find_by_sql(query).to_a
+    render plain: "DB request with #{users.size} results"
   end
 end
