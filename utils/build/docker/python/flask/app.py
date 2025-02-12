@@ -68,8 +68,6 @@ if os.environ.get("INCLUDE_RABBITMQ", "true") == "true":
     from integrations.messaging.rabbitmq import rabbitmq_produce
 
 import ddtrace
-from ddtrace.trace import Pin
-from ddtrace.trace import tracer
 from ddtrace.appsec import trace_utils as appsec_trace_utils
 from ddtrace.appsec.iast import ddtrace_iast_flask_patch
 from ddtrace.internal.datastreams import data_streams_processor
@@ -79,6 +77,13 @@ from ddtrace.data_streams import set_produce_checkpoint
 
 from debugger_controller import debugger_blueprint
 from exception_replay_controller import exception_replay_blueprint
+
+try:
+    from ddtrace.trace import Pin
+    from ddtrace.trace import tracer
+except ImportError:
+    from ddtrace import Pin
+    from ddtrace import tracer
 
 # Patch kombu and urllib3 since they are not patched automatically
 ddtrace.patch_all(kombu=True, urllib3=True)
