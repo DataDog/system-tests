@@ -35,7 +35,6 @@ class Test_128_Bit_Traceids:
         assert dd_p_tid == "640cfd8d00000000"
         assert "_dd.p.tid=" + dd_p_tid in headers["x-datadog-tags"]
 
-    @missing_feature(context.library == "nodejs", reason="not implemented")
     @missing_feature(context.library == "ruby", reason="not implemented")
     @pytest.mark.parametrize(
         "library_env",
@@ -60,7 +59,6 @@ class Test_128_Bit_Traceids:
         assert dd_p_tid is None
         assert "x-datadog-tags" not in headers or "_dd.p.tid=" not in headers["x-datadog-tags"]
 
-    @missing_feature(context.library == "nodejs", reason="not implemented")
     @missing_feature(context.library == "ruby", reason="not implemented")
     @pytest.mark.parametrize(
         "library_env",
@@ -85,7 +83,6 @@ class Test_128_Bit_Traceids:
         assert dd_p_tid is None
         assert "x-datadog-tags" not in headers or "_dd.p.tid=" not in headers["x-datadog-tags"]
 
-    @missing_feature(context.library == "nodejs", reason="not implemented")
     @missing_feature(context.library == "ruby", reason="not implemented")
     @pytest.mark.parametrize(
         "library_env",
