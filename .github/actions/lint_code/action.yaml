@@ -10,8 +10,6 @@ runs:
     - name: Black, pylint, tailing whitespaces, and yaml checks
       shell: bash
       run: ./format.sh --check
-      env:
-        GOBIN: /usr/local/bin/
     - if: ${{ failure() }}
       shell: bash
       run:
