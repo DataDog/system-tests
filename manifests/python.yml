@@ -147,8 +147,8 @@ tests/:
           TestSSRF_ExtendedLocation: missing_feature
           TestSSRF_StackTrace: v2.19.0.dev
         test_stacktrace_leak.py:
-          TestStackTraceLeak: missing_feature
-          TestStackTraceLeak_StackTrace: missing_feature
+          TestStackTraceLeak:
+            '*': v3.1.0.dev
         test_template_injection.py:
           TestTemplateInjection: missing_feature
           TestTemplateInjection_ExtendedLocation: missing_feature
@@ -469,7 +469,8 @@ tests/:
         fastapi: v2.4.0
     test_asm_standalone.py:
       Test_AppSecStandalone_UpstreamPropagation:
-        '*': bug (APPSEC-56142)
+        '*': v2.12.3
+        uwsgi-poc: v2.17.1
       Test_AppSecStandalone_UpstreamPropagation_V2: missing_feature
       Test_IastStandalone_UpstreamPropagation:
         '*': v2.18.0.dev
