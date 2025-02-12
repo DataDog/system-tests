@@ -106,18 +106,19 @@ jobs:
       version: ${{ inputs.binaries_artifact == '' && 'prod' || 'dev' }}
 
   end-to-end:
-    name: end-to-end - ${{ matrix.weblog_name }} (${{ matrix.library }})
+    name: end-to-end - ${{ matrix.weblog.weblog_name }} (${{ matrix.weblog.library }})
     needs:
       - compute_parameters
     strategy:
-      matrix: ${{ fromJson(needs.compute_parameters.outputs.endtoend_defs_weblogs) }}
+      matrix: 
+        weblogs: ${{ fromJson(needs.compute_parameters.outputs.endtoend_defs_weblogs) }}
       fail-fast: false
     uses: ./.github/workflows/run-end-to-end.yml
     secrets: inherit
     with:
-      library: ${{ matrix.library }}
-      weblog: ${{ matrix.weblog_name }}
-      scenarios: ${{ toJson(matrix.scenarios) }}
+      library: ${{ matrix.weblog.library }}
+      weblog: ${{ matrix.weblog.weblog_name }}
+      scenarios: ${{ toJson(matrix.weblog.scenarios) }}
       build_python_base_images: ${{ inputs.build_python_base_images }}
       build_buddies_images: ${{ inputs.build_buddies_images }}
       build_proxy_image: ${{ inputs.build_proxy_image }}
