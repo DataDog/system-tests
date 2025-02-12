@@ -121,7 +121,6 @@ jobs:
       build_python_base_images: ${{ inputs.build_python_base_images }}
       build_buddies_images: ${{ inputs.build_buddies_images }}
       build_proxy_image: ${{ inputs.build_proxy_image }}
-      weblogs: ${{ needs.compute_parameters.outputs.endtoend_weblogs }}
       binaries_artifact: ${{ inputs.binaries_artifact }}
       ci_environment: ${{ inputs.ci_environment }}
       skip_empty_scenarios: ${{ inputs.skip_empty_scenarios }}
