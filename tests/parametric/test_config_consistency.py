@@ -1,13 +1,11 @@
 """Test configuration consistency for features across supported APM SDKs."""
 
-import shlex
 from urllib.parse import urlparse
-from pathlib import Path
 
 import pytest
-from utils import scenarios, features, context, missing_feature, irrelevant, flaky, bug
+from utils import scenarios, features, context, missing_feature, irrelevant, flaky, bug, rfc
+from .conftest import StableConfigWriter
 from utils.parametric.spec.trace import find_span_in_traces, find_only_span
-import yaml
 
 parametrize = pytest.mark.parametrize
 
@@ -391,19 +389,9 @@ SDK_DEFAULT_STABLE_CONFIG = {
 
 @scenarios.parametric
 @features.stable_configuration_support
-@missing_feature(
-    context.library in ["ruby", "cpp", "dotnet", "golang", "java", "nodejs", "php", "python"],
-    reason="does not support stable configurations yet",
-)
-class Test_Stable_Config_Default:
+@rfc("https://docs.google.com/document/d/1MNI5d3g6R8uU3FEWf2e08aAsFcJDVhweCPMjQatEb0o")
+class Test_Stable_Config_Default(StableConfigWriter):
     """Verify that stable config works as intended"""
-
-    def write_stable_config(self, stable_config, path, test_library):
-        stable_config_content = yaml.dump(stable_config)
-        success, message = test_library.container_exec_run(
-            f'bash -c "mkdir -p {Path(path).parent!s} && printf {shlex.quote(stable_config_content)} | tee {path}"'
-        )
-        assert success, message
 
     @pytest.mark.parametrize("library_env", [{}])
     @pytest.mark.parametrize(
