@@ -18,6 +18,8 @@ from utils._context.virtual_machines import (
     Ubuntu23_10_arm64,
     Ubuntu24amd64,
     Ubuntu24arm64,
+    Ubuntu24_10amd64,
+    Ubuntu24_10arm64,
     Ubuntu18amd64,
     AmazonLinux2022arm64,
     AmazonLinux2022amd64,
@@ -47,6 +49,7 @@ from utils._context.virtual_machines import (
     Fedora36arm64,
     Fedora37amd64,
     Fedora37arm64,
+    Windows2022amd64,
 )
 
 from .core import Scenario
@@ -73,6 +76,8 @@ class _VirtualMachineScenario(Scenario):
         include_ubuntu_23_10_arm64=False,
         include_ubuntu_24_amd64=False,
         include_ubuntu_24_arm64=False,
+        include_ubuntu_24_10_amd64=False,
+        include_ubuntu_24_10_arm64=False,
         include_ubuntu_18_amd64=False,
         include_amazon_linux_2_amd64=False,
         include_amazon_linux_2_arm64=False,
@@ -102,6 +107,7 @@ class _VirtualMachineScenario(Scenario):
         include_fedora_36_arm64=False,
         include_fedora_37_amd64=False,
         include_fedora_37_arm64=False,
+        include_windows_2022_amd64=False,
         agent_env=None,
         app_env=None,
         scenario_groups=None,
@@ -138,6 +144,10 @@ class _VirtualMachineScenario(Scenario):
             self.required_vms.append(Ubuntu24amd64())
         if include_ubuntu_24_arm64:
             self.required_vms.append(Ubuntu24arm64())
+        if include_ubuntu_24_10_amd64:
+            self.required_vms.append(Ubuntu24_10amd64())
+        if include_ubuntu_24_10_arm64:
+            self.required_vms.append(Ubuntu24_10arm64())
         if include_ubuntu_18_amd64:
             self.required_vms.append(Ubuntu18amd64())
         if include_amazon_linux_2022_amd64:
@@ -197,6 +207,8 @@ class _VirtualMachineScenario(Scenario):
             self.required_vms.append(Fedora37amd64())
         if include_fedora_37_arm64:
             self.required_vms.append(Fedora37arm64())
+        if include_windows_2022_amd64:
+            self.required_vms.append(Windows2022amd64())
 
     def print_installed_components(self):
         logger.terminal.write_sep("=", "Installed components", bold=True)
@@ -395,6 +407,8 @@ class InstallerAutoInjectionScenario(_VirtualMachineScenario):
         include_ubuntu_23_10_arm64=True,
         include_ubuntu_24_amd64=True,
         include_ubuntu_24_arm64=True,
+        include_ubuntu_24_10_amd64=True,
+        include_ubuntu_24_10_arm64=True,
         include_ubuntu_18_amd64=False,
         include_amazon_linux_2_amd64=True,
         include_amazon_linux_2_arm64=True,
@@ -424,6 +438,7 @@ class InstallerAutoInjectionScenario(_VirtualMachineScenario):
         include_fedora_36_arm64=False,
         include_fedora_37_amd64=False,
         include_fedora_37_arm64=False,
+        include_windows_2022_amd64=False,  # Disabled until the artifacts for windows are available
     ) -> None:
         # Force full tracing without limits
         app_env_defaults = {
@@ -452,6 +467,8 @@ class InstallerAutoInjectionScenario(_VirtualMachineScenario):
             include_ubuntu_23_10_arm64=include_ubuntu_23_10_arm64,
             include_ubuntu_24_amd64=include_ubuntu_24_amd64,
             include_ubuntu_24_arm64=include_ubuntu_24_arm64,
+            include_ubuntu_24_10_amd64=include_ubuntu_24_10_amd64,
+            include_ubuntu_24_10_arm64=include_ubuntu_24_10_arm64,
             include_ubuntu_18_amd64=include_ubuntu_18_amd64,
             include_amazon_linux_2_amd64=include_amazon_linux_2_amd64,
             include_amazon_linux_2_arm64=include_amazon_linux_2_arm64,
@@ -481,4 +498,5 @@ class InstallerAutoInjectionScenario(_VirtualMachineScenario):
             include_fedora_36_arm64=include_fedora_36_arm64,
             include_fedora_37_amd64=include_fedora_37_amd64,
             include_fedora_37_arm64=include_fedora_37_arm64,
+            include_windows_2022_amd64=include_windows_2022_amd64,
         )

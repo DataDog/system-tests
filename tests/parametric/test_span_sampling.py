@@ -614,10 +614,10 @@ class Test_Span_Sampling:
         We're essentially testing to make sure that the child unsampled span is dropped on the tracer side because of
         the activate dropping policy.
         """
-        assert test_agent.info()["client_drop_p0s"] == True, "Client drop p0s expected to be enabled"
+        assert test_agent.info()["client_drop_p0s"] is True, "Client drop p0s expected to be enabled"
 
         with test_library:
-            with test_library.dd_start_span(name="parent", service="webserver") as s1:
+            with test_library.dd_start_span(name="parent", service="webserver"):
                 pass
 
         # expect the first trace kept by the tracer despite of the active dropping policy because of SSS
@@ -672,11 +672,11 @@ class Test_Span_Sampling:
         We're essentially testing to make sure that the root unsampled span is dropped on the tracer side because of
         the activate dropping policy.
         """
-        assert test_agent.info()["client_drop_p0s"] == True, "Client drop p0s expected to be enabled"
+        assert test_agent.info()["client_drop_p0s"] is True, "Client drop p0s expected to be enabled"
 
         with test_library:
             with test_library.dd_start_span(name="parent", service="webserver") as ps1:
-                with test_library.dd_start_span(name="child", service="webserver", parent_id=ps1.span_id) as cs1:
+                with test_library.dd_start_span(name="child", service="webserver", parent_id=ps1.span_id):
                     pass
 
         # expect the first trace kept by the tracer despite of the active dropping policy because of SSS
@@ -726,7 +726,7 @@ class Test_Span_Sampling:
         We're essentially testing to make sure that the entire unsampled trace is dropped on the tracer side because of
         the activate dropping policy.
         """
-        assert test_agent.info()["client_drop_p0s"] == True, "Client drop p0s expected to be enabled"
+        assert test_agent.info()["client_drop_p0s"] is True, "Client drop p0s expected to be enabled"
 
         with test_library:
             with test_library.dd_start_span(name="parent", service="webserver"):

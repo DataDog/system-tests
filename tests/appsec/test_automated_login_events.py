@@ -877,11 +877,11 @@ class Test_V2_Login_Events_Anon:
             assert meta["usr.id"] == USER_HASH
 
             # deprecated
-            "appsec.events.users.login.success.username" not in meta
-            "appsec.events.users.login.success.email" not in meta
-            "usr.email" not in meta
-            "usr.username" not in meta
-            "usr.login" not in meta
+            # "appsec.events.users.login.success.username" not in meta
+            # "appsec.events.users.login.success.email" not in meta
+            # "usr.email" not in meta
+            # "usr.username" not in meta
+            # "usr.login" not in meta
 
             assert_priority(span, trace)
 
@@ -898,11 +898,11 @@ class Test_V2_Login_Events_Anon:
             assert meta["usr.id"] == USER_HASH
 
             # deprecated
-            "appsec.events.users.login.success.username" not in meta
-            "appsec.events.users.login.success.email" not in meta
-            "usr.email" not in meta
-            "usr.username" not in meta
-            "usr.login" not in meta
+            # "appsec.events.users.login.success.username" not in meta
+            # "appsec.events.users.login.success.email" not in meta
+            # "usr.email" not in meta
+            # "usr.username" not in meta
+            # "usr.login" not in meta
 
             assert_priority(span, trace)
 
@@ -1970,7 +1970,6 @@ class Test_V3_Login_Events_Blocking:
             "/login?auth=local&sdk_event=success&sdk_user=sdkUser", data=login_data(context, UUID_USER, PASSWORD)
         )
 
-    @missing_feature(context.library == "nodejs", reason="SDK blocking not implemented")
     def test_login_event_blocking_sdk(self):
         assert self.config_state_1[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
         assert self.r_login.status_code == 200

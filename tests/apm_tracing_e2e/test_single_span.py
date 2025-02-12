@@ -1,4 +1,4 @@
-from utils import context, weblog, interfaces, rfc, scenarios, missing_feature
+from utils import context, weblog, interfaces, rfc, scenarios, missing_feature, features
 from utils.dd_constants import (
     SAMPLING_PRIORITY_KEY,
     SINGLE_SPAN_SAMPLING_MECHANISM,
@@ -11,6 +11,7 @@ from utils.dd_constants import (
 @rfc("ATI-2419")
 @missing_feature(context.agent_version < "7.40", reason="Single Spans is not available in agents pre 7.40.")
 @scenarios.apm_tracing_e2e_single_span
+@features.single_span_ingestion_control
 class Test_SingleSpan:
     """This is a test that exercises the Single Span Ingestion Control feature.
     Read more about Single Span at https://docs.datadoghq.com/tracing/trace_pipeline/ingestion_mechanisms/?tab=java#single-spans
@@ -67,15 +68,14 @@ class Test_SingleSpan:
 
 def _assert_single_span_event(event, name, is_root):
     assert event["operation_name"] == name
-    assert event["single_span"] == True
+    assert event["single_span"] is True
     assert event["ingestion_reason"] == "single_span"
     parent_id = event["parent_id"]
     if is_root:
         assert parent_id == "0"
     else:
-        assert (
-            parent_id != "0" and len(parent_id) > 0
-        ), f"In a child span the parent_id should be specified. Actual: {parent_id}"
+        assert parent_id != "0", f"In a child span the parent_id should be specified. Actual: {parent_id}"
+        assert len(parent_id) > 0, f"In a child span the parent_id should be specified. Actual: {parent_id}"
 
 
 def _assert_single_span_metrics(span):

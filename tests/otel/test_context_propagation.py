@@ -24,18 +24,17 @@ class Test_Otel_Context_Propagation_Default_Propagator_Api:
 
         assert content["trace_id"] == 2
         assert content["span_id"] == 10
-        assert content["tracestate"] and not content["tracestate"].isspace()
+        assert content["tracestate"]
+        assert not content["tracestate"].isspace()
         # assert content["baggage"] and not content["baggage"].isspace()
 
     def setup_propagation_inject(self):
-        inject_headers = {
-            "baggage": "foo=2",
-        }
         self.r = weblog.get("/otel_drop_in_default_propagator_inject")
 
     @incomplete_test_app(library="nodejs", reason="Node.js inject endpoint doesn't seem to be working.")
     def test_propagation_inject(self):
         content = json.loads(self.r.text)
 
-        assert content["traceparent"] and not content["traceparent"].isspace()
+        assert content["traceparent"]
+        assert not content["traceparent"].isspace()
         # assert content["baggage"] and not content["baggage"].isspace()

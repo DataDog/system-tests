@@ -4,6 +4,7 @@
 
 import random
 import os
+from pathlib import Path
 import re
 from urllib.parse import quote
 from tests.fuzzer.tools import data
@@ -11,7 +12,7 @@ from tests.fuzzer.tools.random_strings import get_random_unicode as gru, get_ran
 
 
 def _get_data_file(name):
-    dir_path = os.path.dirname(os.path.realpath(__file__))
+    dir_path = Path(os.path.realpath(__file__)).parent
     return open(os.path.join(dir_path, "data", name), "rb").read()
 
 
@@ -90,7 +91,7 @@ def _mutate_item(item):
         item = random.choice((True, False))
 
     else:
-        # TODO
+        # TODO: other use cases
         pass
 
     return item

@@ -26,7 +26,7 @@ class Test_Monitoring:
 
         # Tags that are expected to be reported at least once at some point
 
-        def validate_waf_monitoring_span_tags(span, appsec_data):
+        def validate_waf_monitoring_span_tags(span, appsec_data):  # noqa: ARG001
             """Validate the mandatory waf monitoring span tags are added to the request span having an attack"""
 
             meta = span["meta"]
@@ -107,10 +107,10 @@ class Test_Monitoring:
                     raise Exception("if there are rule errors, there should be rule error details too")
                 try:
                     json.loads(meta[expected_rules_errors_meta_tag])
-                except ValueError:
+                except ValueError as e:
                     raise Exception(
                         f"rule error details should be valid JSON but was `{meta[expected_rules_errors_meta_tag]}`"
-                    )
+                    ) from e
 
             return True
 
@@ -131,7 +131,7 @@ class Test_Monitoring:
         expected_bindings_duration_metric = "_dd.appsec.waf.duration_ext"
         expected_metrics_tags = [expected_waf_duration_metric, expected_bindings_duration_metric]
 
-        def validate_waf_span_tags(span, appsec_data):
+        def validate_waf_span_tags(span, appsec_data):  # noqa: ARG001
             metrics = span["metrics"]
             for m in expected_metrics_tags:
                 if m not in metrics:

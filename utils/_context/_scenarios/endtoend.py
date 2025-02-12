@@ -27,6 +27,8 @@ from utils._context.containers import (
     MsSqlServerContainer,
     BuddyContainer,
     TestedContainer,
+    LocalstackContainer,
+    ElasticMQContainer,
     _get_client as get_docker_client,
 )
 
@@ -67,6 +69,8 @@ class DockerScenario(Scenario):
         include_rabbitmq=False,
         include_mysql_db=False,
         include_sqlserver=False,
+        include_localstack=False,
+        include_elasticmq=False,
     ) -> None:
         super().__init__(name, doc=doc, github_workflow=github_workflow, scenario_groups=scenario_groups)
 
@@ -113,6 +117,12 @@ class DockerScenario(Scenario):
 
         if include_sqlserver:
             self._supporting_containers.append(MsSqlServerContainer(host_log_folder=self.host_log_folder))
+
+        if include_localstack:
+            self._supporting_containers.append(LocalstackContainer(host_log_folder=self.host_log_folder))
+
+        if include_elasticmq:
+            self._supporting_containers.append(ElasticMQContainer(host_log_folder=self.host_log_folder))
 
         self._required_containers.extend(self._supporting_containers)
 
@@ -256,6 +266,8 @@ class EndToEndScenario(DockerScenario):
         include_rabbitmq=False,
         include_mysql_db=False,
         include_sqlserver=False,
+        include_localstack=False,
+        include_elasticmq=False,
         include_otel_drop_in=False,
         include_buddies=False,
         require_api_key=False,
@@ -281,6 +293,8 @@ class EndToEndScenario(DockerScenario):
             include_rabbitmq=include_rabbitmq,
             include_mysql_db=include_mysql_db,
             include_sqlserver=include_sqlserver,
+            include_localstack=include_localstack,
+            include_elasticmq=include_elasticmq,
         )
 
         self._use_proxy_for_agent = use_proxy_for_agent
@@ -388,8 +402,6 @@ class EndToEndScenario(DockerScenario):
         interfaces.library_dotnet_managed.configure(self.host_log_folder, self.replay)
 
         for container in self.buddies:
-            # a little bit of python wizzardry to solve circular import
-            container.interface = getattr(interfaces, container.name)
             container.interface.configure(self.host_log_folder, self.replay)
 
         library = self.weblog_container.image.labels["system-tests-library"]
@@ -558,6 +570,15 @@ class EndToEndScenario(DockerScenario):
     def pytest_sessionfinish(self, session, exitstatus):
         library_bugs = [
             _SchemaBug(
+                endpoint="/debugger/v1/diagnostics",
+                data_path="$",
+                condition=context.library > "nodejs@5.36.0",
+                ticket="DEBUG-3487",
+            ),
+            _SchemaBug(
+                endpoint="/v0.4/traces", data_path="$", condition=context.library >= "java@1.47.0", ticket="APMAPI-1161"
+            ),
+            _SchemaBug(
                 endpoint="/telemetry/proxy/api/v2/apmtelemetry",
                 data_path="$.payload.configuration[]",
                 condition=context.library >= "nodejs@2.27.1",
@@ -604,6 +625,12 @@ class EndToEndScenario(DockerScenario):
         self._test_schemas(session, interfaces.library, library_bugs)
 
         agent_bugs = [
+            _SchemaBug(
+                endpoint="/api/v2/debugger",
+                data_path="$",
+                condition=context.library > "nodejs@5.36.0",
+                ticket="DEBUG-3487",
+            ),
             _SchemaBug(
                 endpoint="/api/v2/apmtelemetry",
                 data_path="$.payload.configuration[]",

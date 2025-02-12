@@ -2,7 +2,7 @@ import base64
 import os
 import time
 
-from utils import context, weblog, interfaces, scenarios, irrelevant
+from utils import context, weblog, interfaces, scenarios, irrelevant, features
 from utils.tools import logger, get_rid_from_request
 from utils.otel_validators.validator_trace import validate_all_traces
 from utils.otel_validators.validator_log import validate_log, validate_log_trace_correlation
@@ -18,6 +18,7 @@ def _get_dd_trace_id(otel_trace_id: str, use_128_bits_trace_id: bool) -> int:
 
 @scenarios.otel_tracing_e2e
 @irrelevant(context.library != "java_otel")
+@features.not_reported  # FPD does not support otel libs
 class Test_OTelTracingE2E:
     def setup_main(self):
         self.use_128_bits_trace_id = False
@@ -73,6 +74,7 @@ class Test_OTelTracingE2E:
 
 @scenarios.otel_metric_e2e
 @irrelevant(context.library != "java_otel")
+@features.not_reported  # FPD does not support otel libs
 class Test_OTelMetricE2E:
     def setup_main(self):
         self.start = int(time.time())
@@ -139,6 +141,7 @@ class Test_OTelMetricE2E:
 
 @scenarios.otel_log_e2e
 @irrelevant(context.library != "java_otel")
+@features.not_reported  # FPD does not support otel libs
 class Test_OTelLogE2E:
     def setup_main(self):
         self.r = weblog.get(path="/basic/log")

@@ -3,7 +3,29 @@
 # Copyright 2021 Datadog, Inc.
 
 from utils import weblog, interfaces, scenarios, features, missing_feature
-from utils._context.header_tag_vars import *
+from utils._context.header_tag_vars import (
+    CONFIG_COLON_LEADING,
+    CONFIG_COLON_TRAILING,
+    HEADER_NAME_COLON_LEADING,
+    HEADER_NAME_COLON_TRAILING,
+    HEADER_NAME_LONG,
+    HEADER_NAME_SHORT,
+    HEADER_NAME_WHITESPACE_HEADER,
+    HEADER_NAME_WHITESPACE_TAG,
+    HEADER_NAME_WHITESPACE_VAL_LONG,
+    HEADER_NAME_WHITESPACE_VAL_SHORT,
+    HEADER_VAL_BASIC,
+    HEADER_VAL_WHITESPACE_VAL_LONG,
+    HEADER_VAL_WHITESPACE_VAL_SHORT,
+    TAG_COLON_LEADING,
+    TAG_COLON_TRAILING,
+    TAG_LONG,
+    TAG_SHORT,
+    TAG_WHITESPACE_HEADER,
+    TAG_WHITESPACE_TAG,
+    TAG_WHITESPACE_VAL_LONG,
+    TAG_WHITESPACE_VAL_SHORT,
+)
 from utils import remote_config as rc
 import json
 
@@ -252,8 +274,8 @@ class Test_HeaderTags_DynamicConfig:
             "service_target": {"service": "weblog", "env": "system-tests"},
             "lib_config": header_tags,
         }
-        id = hash(json.dumps(config))
-        return f"datadog/2/APM_TRACING/{id}/config", config
+        rc_id = hash(json.dumps(config))
+        return f"datadog/2/APM_TRACING/{rc_id}/config", config
 
 
 # The Datadog specific tracecontext flags to mark flags are set
@@ -461,7 +483,10 @@ class Test_ExtractBehavior_Restart:
         # Test the extracted span context
         span = spans[0]
         assert (
-            span.get("traceID") != "1" and span.get("traceID") != "8687463697196027922"  # Lower 64-bits of traceparent
+            span.get("traceID") != "1"  # Lower 64-bits of traceparent
+        )
+        assert (
+            span.get("traceID") != "8687463697196027922"  # Lower 64-bits of traceparent
         )
         assert span.get("parentID") is None
 
@@ -556,7 +581,10 @@ class Test_ExtractBehavior_Ignore:
         # Test the local span context
         span = spans[0]
         assert (
-            span.get("traceID") != "1" and span.get("traceID") != "8687463697196027922"  # Lower 64-bits of traceparent
+            span.get("traceID") != "1"  # Lower 64-bits of traceparent
+        )
+        assert (
+            span.get("traceID") != "8687463697196027922"  # Lower 64-bits of traceparent
         )
         assert span.get("parentID") is None
         assert retrieve_span_links(span) is None
@@ -651,7 +679,10 @@ class Test_ExtractBehavior_Restart_With_Extract_First:
         # Test the extracted span context
         span = spans[0]
         assert (
-            span.get("traceID") != "1" and span.get("traceID") != "8687463697196027922"  # Lower 64-bits of traceparent
+            span.get("traceID") != "1"  # Lower 64-bits of traceparent
+        )
+        assert (
+            span.get("traceID") != "8687463697196027922"  # Lower 64-bits of traceparent
         )
         assert span.get("parentID") is None
 

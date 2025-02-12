@@ -12,7 +12,7 @@ class Test_Headers_Datadog:
         and activated properly.
         """
         with test_library:
-            headers = test_library.dd_make_child_span_and_get_headers(
+            test_library.dd_make_child_span_and_get_headers(
                 [
                     ["x-datadog-trace-id", "123456789"],
                     ["x-datadog-parent-id", "987654321"],
@@ -34,7 +34,7 @@ class Test_Headers_Datadog:
     def test_distributed_headers_extract_datadog_invalid_D002(self, test_agent, test_library):
         """Ensure that invalid Datadog distributed tracing headers are not extracted."""
         with test_library:
-            headers = test_library.dd_make_child_span_and_get_headers(
+            test_library.dd_make_child_span_and_get_headers(
                 [
                     ["x-datadog-trace-id", "0"],
                     ["x-datadog-parent-id", "0"],
@@ -76,7 +76,7 @@ class Test_Headers_Datadog:
                 ],
             )
 
-        span = find_only_span(test_agent.wait_for_num_traces(1))
+        find_only_span(test_agent.wait_for_num_traces(1))
         assert headers["x-datadog-trace-id"] == "123456789"
         assert headers["x-datadog-parent-id"] != "987654321"
         assert headers["x-datadog-sampling-priority"] == "2"

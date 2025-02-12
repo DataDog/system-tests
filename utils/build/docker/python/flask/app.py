@@ -188,6 +188,46 @@ def flush_dsm_checkpoints():
     data_streams_processor().periodic()
 
 
+def check_and_create_users_table():
+    postgres_db = psycopg2.connect(**POSTGRES_CONFIG)
+    cur = postgres_db.cursor()
+
+    # Check if 'users' exists
+    cur.execute("""
+        SELECT EXISTS (
+            SELECT FROM information_schema.tables 
+            WHERE table_name = 'users'
+        );
+    """)
+    table_exists = cur.fetchone()[0]
+
+    if not table_exists:
+        cur.execute("""
+            CREATE TABLE users (
+                id VARCHAR(255) PRIMARY KEY,
+                username VARCHAR(255),
+                email VARCHAR(255),
+                password VARCHAR(255)
+            );
+        """)
+        postgres_db.commit()
+
+        users_data = [
+            ("1", "john_doe", "john@example.com", "hashed_password_1"),
+            ("2", "jane_doe", "jane@example.com", "hashed_password_2"),
+            ("3", "bob_smith", "bob@example.com", "hashed_password_3"),
+        ]
+
+        cur.executemany(
+            "INSERT INTO users (id, username, email, password) VALUES (%s, %s, %s, %s) ON CONFLICT (id) DO NOTHING;",
+            users_data,
+        )
+        postgres_db.commit()
+
+        cur.close()
+        postgres_db.close()
+
+
 @app.route("/")
 def hello_world():
     return "Hello, World!\\n"
@@ -974,8 +1014,9 @@ def view_weak_cipher_secure():
     return Response("OK")
 
 
-def _sink_point_sqli(table="user", id="1"):
-    sql = "SELECT * FROM " + table + " WHERE id = '" + id + "'"
+def _sink_point_sqli(table="users", id="1"):
+    check_and_create_users_table()
+    sql = f"SELECT * FROM {table} WHERE id = '" + id + "'"
     postgres_db = psycopg2.connect(**POSTGRES_CONFIG)
     cursor = postgres_db.cursor()
     try:
@@ -1227,25 +1268,30 @@ def track_custom_event():
 
 @app.route("/iast/sqli/test_secure", methods=["POST"])
 def view_sqli_secure():
-    sql = "SELECT * FROM IAST_USER WHERE USERNAME = ? AND PASSWORD = ?"
+    check_and_create_users_table()
+    sql = "SELECT * FROM users WHERE username = %s AND password = %s"
     postgres_db = psycopg2.connect(**POSTGRES_CONFIG)
     cursor = postgres_db.cursor()
-    cursor.execute(sql, flask_request.form["username"], flask_request.form["password"])
+    cursor.execute(sql, (flask_request.form["username"], flask_request.form["password"]))
     return Response("OK")
 
 
 @app.route("/iast/sqli/test_insecure", methods=["POST"])
 def view_sqli_insecure():
+    check_and_create_users_table()
     sql = (
-        "SELECT * FROM IAST_USER WHERE USERNAME = '"
+        "SELECT * FROM users WHERE username = '"
         + flask_request.form["username"]
-        + "' AND PASSWORD = '"
+        + "' AND password = '"
         + flask_request.form["password"]
         + "'"
     )
     postgres_db = psycopg2.connect(**POSTGRES_CONFIG)
     cursor = postgres_db.cursor()
-    cursor.execute(sql)
+    try:
+        cursor.execute(sql)
+    except Exception:
+        pass
     return Response("OK")
 
 
@@ -1379,7 +1425,7 @@ def db():
 def create_extra_service():
     new_service_name = request.args.get("serviceName", default="", type=str)
     if new_service_name:
-        Pin.override(Flask, service=new_service_name, tracer=tracer)
+        Pin.override(Flask, service=new_service_name)
     return Response("OK")
 
 

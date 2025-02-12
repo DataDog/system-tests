@@ -662,7 +662,7 @@ class Test_Debugger_Expression_Language(debugger._Base_Debugger_Test):
             "Nulls": {"java": [130], "dotnet": [127], "python": [136]},
         }.get(method, {}).get(language, [])
 
-    def _create_expression_probes(self, methodName, expressions, lines=[]):
+    def _create_expression_probes(self, methodName, expressions, lines=()):
         probes = []
         expected_message_map = {}
         prob_types = ["method"]

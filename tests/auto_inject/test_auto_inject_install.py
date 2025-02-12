@@ -13,6 +13,10 @@ class TestHostAutoInjectInstallScript(base.AutoInjectBaseTest):
             {"vm_branch": "amazon_linux2", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
             {"vm_branch": "centos_7_amd64", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
             {"vm_branch": "redhat", "vm_cpu": "arm64", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
+            # Windows is not supported. Change to missing_feature after merge
+            {"vm_branch": "windows", "reason": "APMON-9999"},
+            {"vm_name": "Ubuntu_24_10_amd64", "weblog_variant": "test-app-python", "reason": "INPLAT-478"},
+            {"vm_name": "Ubuntu_24_10_arm64", "weblog_variant": "test-app-python", "reason": "INPLAT-478"},
         ]
     )
     def test_install(self, virtual_machine):
@@ -36,6 +40,8 @@ class TestSimpleInstallerAutoInjectManualProfiling(base.AutoInjectBaseTest):
             {"vm_cpu": "arm64", "weblog_variant": "test-app-dotnet-container", "reason": "PROF-10783"},
             {"vm_name": "Ubuntu_24_amd64", "weblog-variant": "test-app-nodejs", "reason": "PROF-11264"},
             {"vm_name": "Ubuntu_24_arm64", "weblog-variant": "test-app-nodejs", "reason": "PROF-11264"},
+            {"weblog_variant": "test-app-python-alpine", "reason": "PROF-11296"},
+            {"weblog_variant": "test-app-python", "reason": "INPLAT-479"},
         ]
     )
     def test_profiling(self, virtual_machine):
@@ -52,6 +58,10 @@ class TestHostAutoInjectInstallScriptProfiling(base.AutoInjectBaseTest):
             {"vm_cpu": "arm64", "weblog_variant": "test-app-dotnet", "reason": "PROF-10783"},
             {"vm_name": "Ubuntu_24_amd64", "weblog-variant": "test-app-nodejs", "reason": "PROF-11264"},
             {"vm_name": "Ubuntu_24_arm64", "weblog-variant": "test-app-nodejs", "reason": "PROF-11264"},
+            # Windows is not supported. Change to missing_feature after merge
+            {"vm_branch": "windows", "reason": "APMON-9999"},
+            {"vm_name": "Ubuntu_24_10_amd64", "weblog_variant": "test-app-python", "reason": "INPLAT-478"},
+            {"vm_name": "Ubuntu_24_10_arm64", "weblog_variant": "test-app-python", "reason": "INPLAT-478"},
         ]
     )
     def test_profiling(self, virtual_machine):
@@ -120,7 +130,7 @@ class TestContainerAutoInjectInstallScriptCrashTracking_NoZombieProcess(base.Aut
         try:
             crash_result = fork_and_crash(virtual_machine)
             logger.info("fork_and_crash: " + crash_result)
-        except Exception as e:
+        except Exception:
             process_tree = self.execute_command(virtual_machine, "ps aux --forest")
             logger.warning("Failure process tree: " + process_tree)
             raise
@@ -149,14 +159,16 @@ class TestContainerAutoInjectInstallScriptCrashTracking_NoZombieProcess(base.Aut
 @scenarios.installer_auto_injection
 class TestInstallerAutoInjectManual(base.AutoInjectBaseTest):
     # Note: uninstallation of a single installer package is not available today
-    #  on the installer. As we can't only uninstall the injector, we are skipping
-    #  the uninstall test today
+    # on the installer. As we can't only uninstall the injector, we are skipping
+    # the uninstall test today
     @parametrize_virtual_machines(
         bugs=[
             {"vm_name": "AlmaLinux_8_arm64", "weblog_variant": "test-app-python-alpine", "reason": "APMON-1576"},
             {"vm_branch": "amazon_linux2", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
             {"vm_branch": "centos_7_amd64", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
             {"vm_branch": "redhat", "vm_cpu": "arm64", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
+            {"vm_name": "Ubuntu_24_10_amd64", "weblog_variant": "test-app-python", "reason": "INPLAT-478"},
+            {"vm_name": "Ubuntu_24_10_arm64", "weblog_variant": "test-app-python", "reason": "INPLAT-478"},
         ]
     )
     def test_install_uninstall(self, virtual_machine):
@@ -177,6 +189,8 @@ class TestSimpleInstallerAutoInjectManual(base.AutoInjectBaseTest):
             {"vm_branch": "amazon_linux2", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
             {"vm_branch": "centos_7_amd64", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
             {"vm_branch": "redhat", "vm_cpu": "arm64", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
+            {"vm_name": "Ubuntu_24_10_amd64", "weblog_variant": "test-app-python", "reason": "INPLAT-478"},
+            {"vm_name": "Ubuntu_24_10_arm64", "weblog_variant": "test-app-python", "reason": "INPLAT-478"},
         ]
     )
     def test_install(self, virtual_machine):
