@@ -29,6 +29,7 @@ import ddtrace
 from ddtrace.trace import Span
 from ddtrace._trace.sampling_rule import SamplingRule
 from ddtrace import config
+from ddtrace.settings.profiling import config as profiling_config
 from ddtrace.contrib.trace_utils import set_http_meta
 from ddtrace.trace import Context
 from ddtrace.constants import ERROR_MSG
@@ -125,6 +126,9 @@ def trace_config() -> TraceConfigReturn:
             "dd_trace_agent_url": config._trace_agent_url,
             "dd_dogstatsd_host": config._stats_agent_hostname,
             "dd_dogstatsd_port": config._stats_agent_port,
+            "dd_logs_injection": str(config._logs_injection).lower(),
+            "dd_profiling_enabled": str(profiling_config.enabled).lower(),
+            "dd_data_streams_enabled": str(config._data_streams_enabled).lower(),
         }
     )
 
