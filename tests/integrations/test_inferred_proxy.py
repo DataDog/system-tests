@@ -174,7 +174,7 @@ def assert_api_gateway_span(testCase, span, path, status_code, is_distributed=Fa
     if not interfaces.library.replay:
         # round the start time since we get some inconsistent errors due to how the agent rounds start times.
         assert (
-            round(span["start"], 6) == testCase.start_time_ns
+            round(span["start"], -6) == testCase.start_time_ns
         ), f"Inferred AWS API Gateway span startTime should equal expected '{testCase.start_time_ns!s}''"
 
     if is_distributed:
