@@ -110,7 +110,7 @@ jobs:
     needs:
       - compute_parameters
     strategy:
-      matrix: 
+      matrix:
         weblogs: ${{ fromJson(needs.compute_parameters.outputs.endtoend_defs_weblogs) }}
       fail-fast: false
     uses: ./.github/workflows/run-end-to-end.yml
