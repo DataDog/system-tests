@@ -1,6 +1,8 @@
 weblog:
     name: test-app-python-multialpine
     nginx_config: utils/build/virtual_machine/weblogs/python/test-app-python-multialpine/nginx.conf
+    exact_os_branches: [ubuntu24]
+    excluded_os_names: [Ubuntu_24_10_amd64,Ubuntu_24_10_arm64]
     install: 
       - os_type: linux
         copy_files:

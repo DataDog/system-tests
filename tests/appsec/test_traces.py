@@ -150,7 +150,7 @@ class Test_AppSecObfuscator:
         # Note that this value must contain an attack pattern in order to be part of the security event data
         # that is expected to be obfuscated.
 
-        def validate_appsec_span_tags(span, appsec_data):
+        def validate_appsec_span_tags(span, appsec_data):  # noqa: ARG001
             assert not nested_lookup(
                 self.SECRET_VALUE_WITH_SENSITIVE_KEY, appsec_data, look_in_keys=True
             ), "The security events contain the secret value that should be obfuscated"
@@ -199,7 +199,7 @@ class Test_AppSecObfuscator:
         # The following payload will be sent as a raw encoded string via the request params
         # and matches an XSS attack. It contains an access token secret we shouldn't have in the event.
 
-        def validate_appsec_span_tags(span, appsec_data):
+        def validate_appsec_span_tags(span, appsec_data):  # noqa: ARG001
             assert not nested_lookup(
                 self.VALUE_WITH_SECRET, appsec_data, look_in_keys=True
             ), "The security events contain the secret value that should be obfuscated"
@@ -222,7 +222,7 @@ class Test_AppSecObfuscator:
         # Note that this value must contain an attack pattern in order to be part of the security event data
         # that is expected to be obfuscated.
 
-        def validate_appsec_span_tags(span, appsec_data):  # pylint: disable=unused-argument
+        def validate_appsec_span_tags(span, appsec_data):  # noqa: ARG001
             assert not nested_lookup(
                 self.SECRET_VALUE_WITH_SENSITIVE_KEY, appsec_data, look_in_keys=True
             ), "The security events contain the secret value that should be obfuscated"
@@ -247,7 +247,7 @@ class Test_AppSecObfuscator:
         # Note that this value must contain an attack pattern in order to be part of the security event data
         # that is expected to be obfuscated.
 
-        def validate_appsec_span_tags(span, appsec_data):  # pylint: disable=unused-argument
+        def validate_appsec_span_tags(span, appsec_data):  # noqa: ARG001
             assert not nested_lookup(
                 self.SECRET_VALUE_WITH_SENSITIVE_KEY_CUSTOM, appsec_data, look_in_keys=True
             ), "Sensitive cookie is not obfuscated"

@@ -81,6 +81,30 @@ class _Context:
     def configuration(self):
         return self._get_scenario_property("configuration", {})
 
+    @property
+    def vm_os_branch(self):
+        if not hasattr(self.scenario, "virtual_machine"):
+            return None
+
+        virtual_machine = self.scenario.virtual_machine
+        return virtual_machine.os_branch
+
+    @property
+    def vm_os_cpu(self):
+        if not hasattr(self.scenario, "virtual_machine"):
+            return None
+
+        virtual_machine = self.scenario.virtual_machine
+        return virtual_machine.os_cpu
+
+    @property
+    def vm_name(self):
+        if not hasattr(self.scenario, "virtual_machine"):
+            return None
+
+        virtual_machine = self.scenario.virtual_machine
+        return virtual_machine.name
+
     def serialize(self):
         result = {
             "weblog_variant": self.weblog_variant,

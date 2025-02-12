@@ -2,10 +2,11 @@
 
 import shlex
 from urllib.parse import urlparse
+from pathlib import Path
+
 import pytest
 from utils import scenarios, features, context, missing_feature, irrelevant, flaky, bug
 from utils.parametric.spec.trace import find_span_in_traces, find_only_span
-import os
 import yaml
 
 parametrize = pytest.mark.parametrize
@@ -400,7 +401,7 @@ class Test_Stable_Config_Default:
     def write_stable_config(self, stable_config, path, test_library):
         stable_config_content = yaml.dump(stable_config)
         success, message = test_library.container_exec_run(
-            f'bash -c "mkdir -p {os.path.dirname(path)} && printf {shlex.quote(stable_config_content)} | tee {path}"'
+            f'bash -c "mkdir -p {Path(path).parent!s} && printf {shlex.quote(stable_config_content)} | tee {path}"'
         )
         assert success, message
 
@@ -580,7 +581,7 @@ rules:
 
         with test_library:
             success, message = test_library.container_exec_run(
-                f"bash -c \"mkdir -p {os.path.dirname(path)} && printf '{stable_config}' | tee {path}\""
+                f"bash -c \"mkdir -p {Path(path).parent!s} && printf '{stable_config}' | tee {path}\""
             )
             assert success, message
             test_library.container_restart()

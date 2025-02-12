@@ -1,10 +1,9 @@
 import requests
-from utils import scenarios, features, context
+from utils import scenarios, features, context, bug, irrelevant, missing_feature
 from utils.tools import logger
 from utils.onboarding.weblog_interface import warmup_weblog
 from utils.onboarding.wait_for_tcp_port import wait_for_port
 import tests.auto_inject.utils as base
-from utils.virtual_machine.utils import parametrize_virtual_machines
 
 
 class BaseAutoInjectChaos(base.AutoInjectBaseTest):
@@ -30,7 +29,7 @@ class BaseAutoInjectChaos(base.AutoInjectBaseTest):
         self.execute_command(virtual_machine, evil_command)
         logger.info(f"[{virtual_machine.name}]Ok evil command launched!")
         # Assert the app is still working
-        wait_for_port(vm_port, vm_ip, 40.0)
+        assert wait_for_port(vm_port, vm_ip, 40.0), "Weblog port not reachable. Is the weblog running?"
         r = requests.get(weblog_url, timeout=10)
         assert r.status_code == 200, "The weblog app it's not working after remove the installation folder"
         logger.info(f"[{virtual_machine.name}]Ok the weblog app it's working after remove wrong things")
@@ -43,7 +42,7 @@ class BaseAutoInjectChaos(base.AutoInjectBaseTest):
         # Start the app again
         self.execute_command(virtual_machine, weblog_start_command)
         # App shpuld be working again, although the installation folder was removed
-        wait_for_port(vm_port, vm_ip, 40.0)
+        assert wait_for_port(vm_port, vm_ip, 40.0), "Weblog port not reachable. Is the weblog running?"
         warmup_weblog(weblog_url)
         r = requests.get(weblog_url, timeout=10)
         assert (
@@ -87,28 +86,50 @@ class BaseAutoInjectChaos(base.AutoInjectBaseTest):
 @features.installer_auto_instrumentation
 @scenarios.chaos_installer_auto_injection
 class TestAutoInjectChaos(BaseAutoInjectChaos):
-    @parametrize_virtual_machines(
-        bugs=[
-            {"vm_branch": "amazon_linux2", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
-            {"vm_branch": "centos_7_amd64", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
-            {"vm_branch": "redhat", "vm_cpu": "arm64", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
-        ]
+    @bug(
+        context.vm_os_branch in ["amazon_linux2", "centos_7_amd64"] and context.weblog_variant == "test-app-ruby",
+        reason="INPLAT-103",
     )
-    def test_install_after_ld_preload(self, virtual_machine):
+    @bug(
+        context.vm_os_branch == "redhat" and context.vm_os_cpu == "arm64" and context.weblog_variant == "test-app-ruby",
+        reason="INPLAT-103",
+    )
+    @irrelevant(
+        context.vm_name in ["Amazon_Linux_2023_amd64", "Amazon_Linux_2023_arm64"],
+        reason="LD library failures impact on the docker engine, causes flakiness",
+    )
+    @bug(
+        context.vm_name in ["Ubuntu_24_10_amd64", "Ubuntu_24_10_arm64"] and context.weblog_variant == "test-app-python",
+        reason="INPLAT-478",
+    )
+    @missing_feature(context.vm_os_branch == "windows", reason="Not implemented on Windows")
+    def test_install_after_ld_preload(self):
         """We added entries to the ld.so.preload. After that, we can install the dd software and the app should be instrumented."""
+        virtual_machine = context.scenario.virtual_machine
         logger.info(f"Launching test_install for : [{virtual_machine.name}]...")
         self._test_install(virtual_machine)
         logger.info(f"Done test_install for : [{virtual_machine.name}]")
 
-    @parametrize_virtual_machines(
-        bugs=[
-            {"vm_name": "AlmaLinux_8_arm64", "weblog_variant": "test-app-python-alpine", "reason": "APMON-1576"},
-            {"vm_branch": "amazon_linux2", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
-            {"vm_branch": "centos_7_amd64", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
-            {"vm_branch": "redhat", "vm_cpu": "arm64", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
-        ]
+    @bug(
+        context.vm_name == "AlmaLinux_8_arm64" and context.weblog_variant == "test-app-python-alpine",
+        reason="APMON-1576",
     )
-    def test_remove_ld_preload(self, virtual_machine):
+    @bug(
+        context.vm_os_branch == ["centos_7_amd64", "amazon_linux2"] and context.weblog_variant == "test-app-ruby",
+        reason="INPLAT-103",
+    )
+    @bug(
+        context.vm_os_branch == "redhat" and context.vm_os_cpu == "arm64" and context.weblog_variant == "test-app-ruby",
+        reason="INPLAT-103",
+    )
+    @bug(
+        context.vm_name in ["Ubuntu_24_10_amd64", "Ubuntu_24_10_arm64"] and context.weblog_variant == "test-app-python",
+        reason="INPLAT-478",
+    )
+    @missing_feature(context.vm_os_branch == "windows", reason="Not implemented on Windows")
+    def test_remove_ld_preload(self):
+        """We added entries to the ld.so.preload. After that, we can remove the entries and the app should be instrumented."""
+        virtual_machine = context.scenario.virtual_machine
         logger.info(f"Launching test_remove_ld_preload for : [{virtual_machine.name}]...")
         self._test_removing_things(virtual_machine, "sudo rm /etc/ld.so.preload")
         logger.info(f"Success test_remove_ld_preload for : [{virtual_machine.name}]")
