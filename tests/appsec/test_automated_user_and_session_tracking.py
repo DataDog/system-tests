@@ -77,11 +77,11 @@ class Test_Automated_User_Tracking:
 
         self.requests = {
             "before": weblog.get(
-                "/users?user=sdkUser",
+                "/users?user=sdkUser&sdk_trigger=before",
                 cookies=self.r_login.cookies,
             ),
             "after": weblog.get(
-                "/users?user=sdkUser",
+                "/users?user=sdkUser&sdk_trigger=after",
                 cookies=self.r_login.cookies,
             ),
         }
@@ -167,7 +167,7 @@ class Test_Automated_User_Blocking:
         self.config_state_2 = rc.rc_state.set_config(*BLOCK_USER).apply()
         self.config_state_3 = rc.rc_state.set_config(*BLOCK_USER_DATA).apply()
         self.r_home_blocked = weblog.get(
-            "/users",
+            "/",
             cookies=self.r_login.cookies,
         )
 
@@ -204,10 +204,10 @@ class Test_Automated_User_Blocking:
 
     def test_user_blocking_sdk(self):
         assert self.config_state_1[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
+        assert self.r_login.status_code == 200
+
         assert self.config_state_2[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
         assert self.config_state_3[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
-
-        assert self.r_login.status_code == 200
         assert self.r_not_blocked.status_code == 200
 
         interfaces.library.assert_waf_attack(self.r_blocked, rule="block-users")
