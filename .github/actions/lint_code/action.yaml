@@ -11,7 +11,7 @@ runs:
       shell: bash
       run: ./format.sh --check
       env:
-        GOBIN: /usr/bin/
+        GOBIN: /usr/local/bin/
     - if: ${{ failure() }}
       shell: bash
       run:
