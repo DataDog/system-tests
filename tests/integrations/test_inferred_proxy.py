@@ -140,11 +140,17 @@ def assert_api_gateway_span(testCase, span, path, status_code, is_distributed=Fa
         "component" in span["meta"]
     ), "Inferred AWS API Gateway span meta should contain 'component' equal to 'aws-apigateway'"
     assert span["meta"]["component"] == "aws-apigateway", "Expected component to be 'aws-apigateway'"
-    assert "service" in span["meta"], "Inferred AWS API Gateway span meta should contain 'service'"
 
-    assert (
-        span["meta"]["service"] == "system-tests-api-gateway.com"
-    ), "Inferred AWS API Gateway span expected service should equal 'system-tests-api-gateway.com'"
+    if span["meta"]["language"] == "javascript":
+        assert "service" in span["meta"], "Inferred AWS API Gateway span meta should contain 'service'"
+        assert (
+            span["meta"]["service"] == "system-tests-api-gateway.com"
+        ), "Inferred AWS API Gateway span expected service should equal 'system-tests-api-gateway.com'"
+    else:
+        assert "service" in span, "Inferred AWS API Gateway span should contain 'service'"
+        assert (
+            span["service"] == "system-tests-api-gateway.com"
+        ), "Inferred AWS API Gateway span expected service should equal 'system-tests-api-gateway.com'"
     assert "span.kind" in span["meta"], "Inferred AWS API Gateway span meta should contain 'span.kind'"
     assert (
         span["meta"]["span.kind"] == "internal"

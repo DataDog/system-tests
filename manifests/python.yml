@@ -762,7 +762,9 @@ tests/:
       Test_Dsm_Manual_Checkpoint_Intra_Process:
         '*': irrelevant
         flask-poc: v2.8.0
-    test_inferred_proxy.py: missing_feature
+    test_inferred_proxy.py:
+      '*': irrelevant
+      flask-poc: v3.1.0
     test_otel_drop_in.py:
       Test_Otel_Drop_In: missing_feature
   otel/:
