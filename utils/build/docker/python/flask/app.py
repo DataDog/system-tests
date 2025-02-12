@@ -1613,3 +1613,14 @@ def otel_drop_in_default_propagator_inject():
     opentelemetry.propagate.inject(result, opentelemetry.context.get_current())
 
     return jsonify(result)
+
+
+@app.route("/inferred-proxy/span-creation", methods=["GET"])
+def inferred_proxy_span_creation():
+    headers = flask_request.args.get("headers", {})
+    status = int(flask_request.args.get("status_code", "200"))
+
+    logging.info("Received an API Gateway request")
+    logging.info("Request headers: " + str(headers))
+
+    return Response("ok", status=status)
