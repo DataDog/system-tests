@@ -30,13 +30,13 @@ class VmProvider:
     """
 
     def __init__(self):
-        self.vms = None
+        self.vm = None
         self.provision = None
-        # Responsibility of the commander to execute commands on the VMs
+        # Responsibility of the commander to execute commands on the VM
         self.commander = None
 
-    def configure(self, required_vms):
-        self.vms = required_vms
+    def configure(self, virtual_machine):
+        self.vm = virtual_machine
 
     def stack_up(self):
         """Each provider should implement the method that start up all the machines.
@@ -69,6 +69,7 @@ class VmProvider:
                 logger.stdout(f"[{vm.name}] Provisioning lang variant {provision.lang_variant_installation.id}")
                 last_task = self._remote_install(server_connection, vm, last_task, provision.lang_variant_installation)
 
+            # After cacheable installations, we update the cache
             if vm.datadog_config.update_cache and not vm.datadog_config.skip_cache:
                 last_task = self.commander.create_cache(vm, server, last_task)
 

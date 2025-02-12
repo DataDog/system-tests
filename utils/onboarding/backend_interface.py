@@ -10,7 +10,9 @@ API_HOST = "https://dd.datadoghq.com"
 
 
 def wait_backend_trace_id(trace_id, profile: bool = False, validator=None):
+    logger.info(f"Waiting for backend trace with trace_id: {trace_id}")
     runtime_id = _query_for_trace_id(trace_id, validator=validator)
+    assert runtime_id, f"Could not find runtime-id for trace_id: {trace_id}"
     if profile:
         _query_for_profile(runtime_id)
 

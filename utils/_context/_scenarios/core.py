@@ -22,6 +22,7 @@ class ScenarioGroup(Enum):
     PROFILING = "profiling"
     SAMPLING = "sampling"
     ONBOARDING = "onboarding"
+    SIMPLE_ONBOARDING = "simple_onboarding"
     DOCKER_SSI = "docker-ssi"
     ESSENTIALS = "essentials"
     EXTERNAL_PROCESSING = "external-processing"
@@ -31,11 +32,12 @@ class ScenarioGroup(Enum):
     TRACER_RELEASE = "tracer-release"
 
 
-VALID_GITHUB_WORKFLOWS = {
+VALID_CI_WORKFLOWS = {
     None,
     "endtoend",
     "graphql",
     "libinjection",
+    "aws_ssi",
     "opentelemetry",
     "parametric",
     "testthetest",
@@ -62,7 +64,7 @@ class Scenario:
         self.is_main_worker: bool = True
 
         assert (
-            self.github_workflow in VALID_GITHUB_WORKFLOWS
+            self.github_workflow in VALID_CI_WORKFLOWS
         ), f"Invalid github_workflow {self.github_workflow} for {self.name}"
 
         for group in self.scenario_groups:
