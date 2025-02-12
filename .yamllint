@@ -1,0 +1,9 @@
+extends: relaxed
+
+rules:
+    line-length: disable
+    key-ordering: disable
+    new-line-at-end-of-file: disable
+    indentation: disable
+    colons: disable
+    empty-lines: disable

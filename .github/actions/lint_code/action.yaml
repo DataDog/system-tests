@@ -34,4 +34,6 @@ runs:
       run: |
         npm install
         npm run lint
-
+    - name: 'Run yamllint'
+      shell: bash
+      run: source venv/bin/activate && yamllint manifests
