@@ -6,6 +6,7 @@ import json
 import re
 import os
 import os.path
+from pathlib import Path
 import uuid
 
 from utils import interfaces, remote_config, weblog, context
@@ -19,7 +20,7 @@ _LOGS_PATH = "/api/v2/logs"
 _TRACES_PATH = "/api/v0.2/traces"
 _SYMBOLS_PATH = "/symdb/v1/input"
 
-_CUR_DIR = os.path.dirname(os.path.abspath(__file__))
+_CUR_DIR = str(Path(__file__).resolve().parent)
 
 
 def read_probes(test_name: str):
@@ -84,8 +85,7 @@ class _Base_Debugger_Test:
                 # This should fail the test immediately but the failure is
                 # reported after all of the setup and the test are attempted
                 self.setup_failures.append(
-                    "Failed to get /debugger/init: expected status code: 200, actual status code: %d"
-                    % (response.status_code)
+                    f"Failed to get /debugger/init: expected status code: 200, actual status code: {response.status_code}"
                 )
 
     ###### set #####

@@ -4,7 +4,7 @@
 
 
 from utils import features, missing_feature
-from ..utils import BaseSinkTest
+from tests.appsec.iast.utils import BaseSinkTest
 
 
 @features.iast_stack_trace

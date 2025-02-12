@@ -1,10 +1,11 @@
 """Test configuration consistency for features across supported APM SDKs."""
 
 from urllib.parse import urlparse
+from pathlib import Path
+
 import pytest
 from utils import scenarios, features, context, missing_feature, irrelevant, flaky, bug
 from utils.parametric.spec.trace import find_span_in_traces, find_only_span
-import os
 
 parametrize = pytest.mark.parametrize
 
@@ -403,7 +404,7 @@ rules:
 
         with test_library:
             success, message = test_library.container_exec_run(
-                f"bash -c \"mkdir -p {os.path.dirname(path)} && printf '{stable_config}' | tee {path}\""
+                f"bash -c \"mkdir -p {Path(path).parent!s} && printf '{stable_config}' | tee {path}\""
             )
             assert success, message
             test_library.container_restart()
