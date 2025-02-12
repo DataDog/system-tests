@@ -147,8 +147,8 @@ tests/:
           TestSSRF_ExtendedLocation: missing_feature
           TestSSRF_StackTrace: v2.19.0.dev
         test_stacktrace_leak.py:
-          TestStackTraceLeak: missing_feature
-          TestStackTraceLeak_StackTrace: missing_feature
+          TestStackTraceLeak:
+            '*': v3.1.0.dev
         test_template_injection.py:
           TestTemplateInjection: missing_feature
           TestTemplateInjection_ExtendedLocation: missing_feature

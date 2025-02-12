@@ -115,7 +115,7 @@ class TestAutoInjectChaos(BaseAutoInjectChaos):
         reason="APMON-1576",
     )
     @bug(
-        context.vm_os_branch == ["centos_7_amd64", "amazon_linux2"] and context.weblog_variant == "test-app-ruby",
+        context.vm_os_branch in ["centos_7_amd64", "amazon_linux2"] and context.weblog_variant == "test-app-ruby",
         reason="INPLAT-103",
     )
     @bug(
