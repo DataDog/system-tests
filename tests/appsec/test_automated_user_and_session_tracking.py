@@ -87,6 +87,8 @@ class Test_Automated_User_Tracking:
         }
 
     def test_user_tracking_sdk_overwrite(self):
+        assert self.r_login.status_code == 200
+
         for trigger, request in self.requests.items():
             assert request.status_code == 200
             for _, _, span in interfaces.library.get_spans(request=request):
@@ -165,7 +167,7 @@ class Test_Automated_User_Blocking:
         self.config_state_2 = rc.rc_state.set_config(*BLOCK_USER).apply()
         self.config_state_3 = rc.rc_state.set_config(*BLOCK_USER_DATA).apply()
         self.r_home_blocked = weblog.get(
-            "/",
+            "/users",
             cookies=self.r_login.cookies,
         )
 
@@ -191,6 +193,10 @@ class Test_Automated_User_Blocking:
         self.config_state_2 = rc.rc_state.set_config(*BLOCK_USER).apply()
         self.config_state_3 = rc.rc_state.set_config(*BLOCK_USER_DATA).apply()
 
+        self.r_not_blocked = weblog.get(
+            "/users",
+            cookies=self.r_login.cookies,
+        )
         self.r_blocked = weblog.get(
             "/users?user=sdkUser",
             cookies=self.r_login.cookies,
@@ -202,6 +208,7 @@ class Test_Automated_User_Blocking:
         assert self.config_state_3[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
 
         assert self.r_login.status_code == 200
+        assert self.r_not_blocked.status_code == 200
 
         interfaces.library.assert_waf_attack(self.r_blocked, rule="block-users")
         assert self.r_blocked.status_code == 403
