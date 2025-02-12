@@ -96,4 +96,24 @@ else
   fi
 fi
 
+echo "Running yamlfmt checks..."
+if ! which yamlfmt > /dev/null; then
+  echo "yamlfmt is not installed, installing it (ETA 60s)"
+  go install github.com/google/yamlfmt/cmd/yamlfmt@v0.16.0
+fi
+
+echo "Running yamlfmt formatter..."
+if [ "$COMMAND" == "fix" ]; then
+  yamlfmt manifests/
+else
+  yamlfmt -lint manifests/
+fi
+
+echo "Running yamllint checks..."
+if ! yamllint -s manifests/; then
+  echo "yamllint checks failed. Please fix the errors above. 💥 💔 💥"
+  exit 1
+fi
+
+
 echo "All good, the system-tests CI will be happy! ✨ 🍰 ✨"
