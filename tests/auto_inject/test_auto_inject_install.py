@@ -12,6 +12,10 @@ class TestHostAutoInjectInstallScript(base.AutoInjectBaseTest):
         reason="INPLAT-103",
     )
     @bug(
+        context.vm_os_branch == "redhat" and context.vm_os_cpu == "arm64" and context.weblog_variant == "test-app-ruby",
+        reason="INPLAT-103",
+    )
+    @bug(
         context.vm_name == ["Ubuntu_24_10_amd64", "Ubuntu_24_10_arm64"] and context.weblog_variant == "test-app-python",
         reason="INPLAT-478",
     )
