@@ -82,10 +82,20 @@ def _get_graphql_weblogs(library) -> list[str]:
 
 
 def _get_endtoend_weblogs(library, ci_environment: str) -> list[str]:
-    weblogs = {
+    weblogs: dict[str, list[str]] = {
         "cpp": ["nginx"],
         "dotnet": ["poc", "uds"],
-        "golang": ["chi", "echo", "gin", "net-http", "uds-echo", "net-http-orchestrion"],
+        "golang": [
+            "chi",
+            "echo",
+            "gin",
+            "net-http",
+            "uds-echo",
+            "net-http-orchestrion",
+            "gqlgen",
+            "graph-gophers",
+            "graphql-go",
+        ],
         "java": [
             "akka-http",
             "jersey-grizzly2",
@@ -116,7 +126,7 @@ def _get_endtoend_weblogs(library, ci_environment: str) -> list[str]:
             *[f"sinatra{v}" for v in ["14", "20", "21", "22", "30", "31", "32", "40"]],
             *[f"rails{v}" for v in ["42", "50", "51", "52", "60", "61", "70", "71", "72", "80"]],
         ],
-    }  # type: dict[str, list[str]]
+    }
 
     if ci_environment != "dev":
         # as now, django-py3.13 support is not released
@@ -126,7 +136,7 @@ def _get_endtoend_weblogs(library, ci_environment: str) -> list[str]:
 
 
 def _get_opentelemetry_weblogs(library) -> list[str]:
-    weblogs = {
+    weblogs: dict[str, list[str]] = {
         "cpp": [],
         "dotnet": [],
         "golang": [],
@@ -135,12 +145,12 @@ def _get_opentelemetry_weblogs(library) -> list[str]:
         "php": [],
         "python": ["flask-poc-otel"],
         "ruby": [],
-    }  # type: dict[str, list[str]]
+    }
 
     return weblogs[library]
 
 
-def get_endtoend_matrix(language: str, scenario_map: dict, parametric_job_count: int, ci_environment: str) -> dict:
+def get_endtoend_matrix(language: str, scenario_map: dict, ci_environment: str) -> dict:
     result = defaultdict(dict)  # type: dict[str, dict]
 
     for github_workflow, scenario_list in scenario_map.items():
@@ -149,7 +159,86 @@ def get_endtoend_matrix(language: str, scenario_map: dict, parametric_job_count:
     result["endtoend"]["weblogs"] = _get_endtoend_weblogs(language, ci_environment)
     result["graphql"]["weblogs"] = _get_graphql_weblogs(language)
     result["opentelemetry"]["weblogs"] = _get_opentelemetry_weblogs(language)
-    result["parametric"]["job_count"] = parametric_job_count
-    result["parametric"]["job_matrix"] = list(range(1, parametric_job_count + 1))
 
     return result
+
+
+def get_endtoend_definitions(library: str, scenario_map: dict, ci_environment: str) -> dict:
+    endtoend_scenarios = scenario_map["endtoend"] + scenario_map["graphql"]
+    opentelemetry_scenarios = scenario_map["opentelemetry"]
+
+    weblogs = [
+        {
+            "library": library,
+            "weblog_name": weblog,
+            "scenarios": _filter_scenarios(endtoend_scenarios, library, weblog, ci_environment),
+        }
+        for weblog in _get_endtoend_weblogs(library, ci_environment)
+    ] + [
+        {
+            "library": f"{library}_otel",
+            "weblog_name": weblog,
+            "scenarios": _filter_scenarios(opentelemetry_scenarios, f"{library}_otel", weblog, ci_environment),
+        }
+        for weblog in _get_opentelemetry_weblogs(library)
+    ]
+
+    return {"endtoend_defs": {"weblogs": [weblog for weblog in weblogs if len(weblog["scenarios"]) != 0]}}
+
+
+def _filter_scenarios(scenarios: list[str], library: str, weblog: str, ci_environment: str) -> list[str]:
+    return sorted([scenario for scenario in set(scenarios) if _is_supported(library, weblog, scenario, ci_environment)])
+
+
+def _is_supported(library: str, weblog: str, scenario: str, ci_environment: str) -> bool:
+    # this function will remove some couple scenarios/weblog that are not supported
+    if ci_environment != "dev" and library == "python" and weblog == "django-py3.13":
+        # as now, django-py3.13 support is not released
+        return False
+
+    if scenario == "OTEL_INTEGRATIONS":
+        if library not in ("java_otel", "python_otel", "nodejs_otel"):
+            return False
+
+    if scenario in ("OTEL_LOG_E2E", "OTEL_METRIC_E2E", "OTEL_TRACING_E2E"):
+        if library not in ("java_otel",):
+            return False
+
+    if scenario in ("GRAPHQL_APPSEC",):
+        possible_values = (
+            ("golang", "gqlgen"),
+            ("golang", "graph-gophers"),
+            ("golang", "graphql-go"),
+            ("ruby", "graphql23"),
+            ("nodejs", "express4"),
+            ("nodejs", "uds-express4"),
+            ("nodejs", "express4-typescript"),
+            ("nodejs", "express5"),
+        )
+        if (library, weblog) not in possible_values:
+            return False
+
+    if scenario in ("PERFORMANCES",):
+        return False
+
+    if scenario == "IPV6" and library == "ruby":
+        return False
+
+    if scenario in ("CROSSED_TRACING_LIBRARIES",):
+        if weblog in ("python3.12", "django-py3.13", "spring-boot-payara"):
+            # python 3.13 issue : APMAPI-1096
+            return False
+
+    if scenario in ("APPSEC_MISSING_RULES", "APPSEC_CORRUPTED_RULES") and library == "cpp":
+        # C++ 1.2.0 freeze when the rules file is missing
+        return False
+
+    if weblog in ["gqlgen", "graph-gophers", "graphql-go", "graphql23"]:
+        if scenario not in ("GRAPHQL_APPSEC",):
+            return False
+
+    if weblog in ["spring-boot-otel", "express4-otel", "flask-poc-otel"]:
+        if scenario not in ("OTEL_LOG_E2E", "OTEL_METRIC_E2E", "OTEL_TRACING_E2E"):
+            return False
+
+    return True

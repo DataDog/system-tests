@@ -2,7 +2,7 @@ import argparse
 import json
 
 from utils._context._scenarios import get_all_scenarios, ScenarioGroup
-from utils.scripts.ci_orchestrators.workflow_data import get_aws_matrix, get_endtoend_matrix
+from utils.scripts.ci_orchestrators.workflow_data import get_aws_matrix, get_endtoend_matrix, get_endtoend_definitions
 from utils.scripts.ci_orchestrators.gitlab_exporter import print_aws_gitlab_pipeline
 
 
@@ -25,7 +25,13 @@ class CiData:
         self.environment = ci_environment
         scenario_map = self._get_workflow_map(scenarios.split(","), groups.split(","))
 
-        self.data |= get_endtoend_matrix(language, scenario_map, parametric_job_count, ci_environment)
+        self.data |= get_endtoend_matrix(language, scenario_map, ci_environment)
+        self.data |= get_endtoend_definitions(language, scenario_map, ci_environment)
+
+        self.data["parametric"] = {
+            "job_count": parametric_job_count,
+            "job_matrix": list(range(1, parametric_job_count + 1)),
+        }
 
         self.data["aws_ssi_scenario_defs"] = get_aws_matrix(
             "utils/virtual_machine/virtual_machines.json",

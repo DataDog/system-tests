@@ -58,6 +58,9 @@ on:
       parametric_job_matrix:
         description: ""
         value: ${{ jobs.main.outputs.parametric_job_matrix }}
+      endtoend_defs_weblogs:
+        description: ""
+        value: ${{ jobs.main.outputs.endtoend_defs_weblogs }}
 
 jobs:
   main:
@@ -75,6 +78,7 @@ jobs:
       externalprocessing_scenarios: ${{ steps.main.outputs.externalprocessing_scenarios }}
       parametric_job_matrix: ${{ steps.main.outputs.parametric_job_matrix }}
       parametric_job_count: ${{ steps.main.outputs.parametric_job_count }}
+      endtoend_defs_weblogs: ${{ steps.main.outputs.endtoend_defs_weblogs }}
     steps:
     - name: Checkout
       uses: actions/checkout@v4
@@ -91,5 +95,16 @@ jobs:
           -g "${{ inputs.scenarios_groups }}" \
           --parametric-job-count ${{ inputs.parametric_job_count }} \
           --ci-environment "${{ inputs._ci_environment }}" >> $GITHUB_OUTPUT
+      env:
+        PYTHONPATH: "."
+    - name: log
+      run: |
+        source venv/bin/activate
+        python utils/scripts/compute-workflow-parameters.py ${{ inputs.library }} \
+          -s "${{ inputs.scenarios }}" \
+          -g "${{ inputs.scenarios_groups }}" \
+          --parametric-job-count ${{ inputs.parametric_job_count }} \
+          --ci-environment "${{ inputs._ci_environment }}"
+          --format json | jq
       env:
         PYTHONPATH: "."
