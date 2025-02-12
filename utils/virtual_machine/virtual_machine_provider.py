@@ -1,6 +1,8 @@
 import os
 
 from utils.tools import logger
+from utils.virtual_machine.vm_logger import vm_logger
+from utils import context
 
 
 class VmProviderFactory:
@@ -133,6 +135,10 @@ class VmProvider:
         """Manages a installation.
         The installation must satisfy the class utils/virtual_machine/virtual_machine_provisioner.py#Installation
         """
+        # Store the provision script in a file (debug purposes)
+        provision_script_logger = vm_logger(context.scenario.name, f"{vm.name}_provision_script", show_timestamp=False)
+        provision_script_logger.info(f"echo '------------- Provision step: {installation.id} -------------'")
+
         local_command = None
         command_environment = vm.get_command_environment()
         # Execute local command if we need
@@ -166,6 +172,7 @@ class VmProvider:
                         file_to_copy.git_path = file_to_copy.git_path + "/*"
 
                     # system-tests is cloned into home folder
+                    provision_script_logger.info(f"cp -r system-tests/{file_to_copy.git_path} {remote_path}")
                     last_task = self.commander.remote_command(
                         vm,
                         file_to_copy.name + f"-{vm.name}-{installation.id}",
@@ -183,7 +190,7 @@ class VmProvider:
                         file_to_copy.local_path = file_to_copy.local_path.replace(f"${key}", value)
                         remote_path = remote_path.replace(f"${key}", value)
 
-                    # logger.debug(f"Copy file from {file_to_copy.local_path} to {remote_path}")
+                    provision_script_logger.info(f"echo 'Copy file from {file_to_copy.local_path} to {remote_path}'")
                     # Launch copy file command
                     last_task = self.commander.copy_file(
                         file_to_copy.name + f"-{vm.name}-{installation.id}",
@@ -203,7 +210,13 @@ class VmProvider:
                         vm=vm,
                     )
 
-        # Execute a basic command on our server.
+        # Write the command in the log file (debug purposes)
+        if installation.populate_env:
+            for key, value in command_environment.items():
+                provision_script_logger.info(f"export {key}={value} \n ")
+        provision_script_logger.info(installation.remote_command)
+
+        # Execute remote command
         return self.commander.remote_command(
             vm,
             installation.id,
