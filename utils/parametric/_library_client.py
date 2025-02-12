@@ -319,6 +319,9 @@ class APMLibraryClient:
             "dd_trace_rate_limit": config_dict.get("dd_trace_rate_limit", None),
             "dd_dogstatsd_host": config_dict.get("dd_dogstatsd_host", None),
             "dd_dogstatsd_port": config_dict.get("dd_dogstatsd_port", None),
+            "dd_logs_injection": config_dict.get("dd_logs_injection", None),
+            "dd_profiling_enabled": config_dict.get("dd_profiling_enabled", None),
+            "dd_data_streams_enabled": config_dict.get("dd_data_streams_enabled", None),
         }
 
     def otel_current_span(self) -> SpanResponse | None:
