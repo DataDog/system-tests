@@ -12,9 +12,9 @@ stages:
   - before_tests
 
 variables:
-    # Do not modify this - must be the repository name for Kubernetes gitlab runners to run
-    KUBERNETES_SERVICE_ACCOUNT_OVERWRITE: system-tests #helm-charts
-    TEST: 1
+  # Do not modify this - must be the repository name for Kubernetes gitlab runners to run
+  KUBERNETES_SERVICE_ACCOUNT_OVERWRITE: system-tests  #helm-charts
+  TEST: 1
 
 .step1_generate_aws_ssi_pipeline:
   "image": "registry.ddbuild.io/docker:20.10.13-gbi-focal"
@@ -51,8 +51,8 @@ variables:
     - export DD_API_KEY_ONBOARDING=xyz
     - export DD_APP_KEY_ONBOARDING=xyz
   script:
-      - ./build.sh -i runner
-      - ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws --vm-default-vms All --vm-gitlab-pipeline system-tests
+    - ./build.sh -i runner
+    - ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws --vm-default-vms All --vm-gitlab-pipeline system-tests
   after_script:
     - SCENARIO_SUFIX=$(echo "$SCENARIO" | tr '[:upper:]' '[:lower:]')
     - mkdir -p reports/logs_"${SCENARIO_SUFIX}_${ONBOARDING_FILTER_WEBLOG}"
@@ -110,17 +110,17 @@ variables:
   stage: nodejs_ssi_pipelines
   tags: ["arch:amd64"]
   script:
-      - |
-        for folder in reports/logs*/ ; do
-          echo "Checking folder:: ${folder}"
-          for filename in ./${folder}gitlab_pipeline.yml; do
-            if [ -e ${filename} ]
-            then
-              echo "Processing pipeline: ${filename}"
-              python utils/scripts/merge_gitlab_aws_pipelines.py --input ${filename} --output aws_gitlab_pipeline.yml
-            fi
-          done
+    - |
+      for folder in reports/logs*/ ; do
+        echo "Checking folder:: ${folder}"
+        for filename in ./${folder}gitlab_pipeline.yml; do
+          if [ -e ${filename} ]
+          then
+            echo "Processing pipeline: ${filename}"
+            python utils/scripts/merge_gitlab_aws_pipelines.py --input ${filename} --output aws_gitlab_pipeline.yml
+          fi
         done
+      done
   needs: ["onboarding_nodejs"]
   dependencies:
     - onboarding_nodejs
@@ -155,22 +155,22 @@ x_compute_nodejs_aws_scenarios:
     TEST_LIBRARY: "nodejs"
   parallel:
     matrix:
-        - ONBOARDING_FILTER_WEBLOG: [test-app-nodejs]
-          SCENARIO:
-            - HOST_AUTO_INJECTION_INSTALL_SCRIPT
-            - HOST_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING
-        - ONBOARDING_FILTER_WEBLOG: [test-app-nodejs-multicontainer]
-          SCENARIO:
-            - CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT
-            - CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING
-        - ONBOARDING_FILTER_WEBLOG: [test-app-nodejs,test-app-nodejs-container]
-          SCENARIO: [INSTALLER_AUTO_INJECTION,SIMPLE_AUTO_INJECTION_PROFILING]
-        - ONBOARDING_FILTER_WEBLOG: [test-app-nodejs-08, test-app-nodejs-16, test-app-nodejs-unsupported-defaults]
-          SCENARIO: [INSTALLER_NOT_SUPPORTED_AUTO_INJECTION]
-        - ONBOARDING_FILTER_WEBLOG: [test-app-nodejs]
-          SCENARIO: [CHAOS_INSTALLER_AUTO_INJECTION]
-        - ONBOARDING_FILTER_WEBLOG: [test-app-nodejs-multicontainer,test-app-nodejs-esm]
-          SCENARIO: [SIMPLE_INSTALLER_AUTO_INJECTION]
+      - ONBOARDING_FILTER_WEBLOG: [test-app-nodejs]
+        SCENARIO:
+          - HOST_AUTO_INJECTION_INSTALL_SCRIPT
+          - HOST_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING
+      - ONBOARDING_FILTER_WEBLOG: [test-app-nodejs-multicontainer]
+        SCENARIO:
+          - CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT
+          - CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING
+      - ONBOARDING_FILTER_WEBLOG: [test-app-nodejs, test-app-nodejs-container]
+        SCENARIO: [INSTALLER_AUTO_INJECTION, SIMPLE_AUTO_INJECTION_PROFILING]
+      - ONBOARDING_FILTER_WEBLOG: [test-app-nodejs-08, test-app-nodejs-16, test-app-nodejs-unsupported-defaults]
+        SCENARIO: [INSTALLER_NOT_SUPPORTED_AUTO_INJECTION]
+      - ONBOARDING_FILTER_WEBLOG: [test-app-nodejs]
+        SCENARIO: [CHAOS_INSTALLER_AUTO_INJECTION]
+      - ONBOARDING_FILTER_WEBLOG: [test-app-nodejs-multicontainer, test-app-nodejs-esm]
+        SCENARIO: [SIMPLE_INSTALLER_AUTO_INJECTION]
   needs:
     - job: step1_generate_nodejs_ssi_pipeline
       artifacts: true
@@ -210,7 +210,6 @@ step2_exec_nodejs_ssi_pipeline:
         job: x_merge_nodejs_ssi_pipeline
     strategy: depend
 
-
 # ----------- Java SSI ----------------
 step1_generate_java_ssi_pipeline:
   stage: java_ssi_pipelines
@@ -224,22 +223,22 @@ x_compute_java_aws_scenarios:
     TEST_LIBRARY: "java"
   parallel:
     matrix:
-        - ONBOARDING_FILTER_WEBLOG: [test-app-java]
-          SCENARIO:
-            - HOST_AUTO_INJECTION_INSTALL_SCRIPT
-            - HOST_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING
-        - ONBOARDING_FILTER_WEBLOG: [test-app-java-multicontainer,test-app-java-multialpine]
-          SCENARIO:
-            - CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT
-            - CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING
-        - ONBOARDING_FILTER_WEBLOG: [test-app-java,test-app-java-container,test-app-java-alpine,test-app-java-buildpack]
-          SCENARIO: [INSTALLER_AUTO_INJECTION]
-        - ONBOARDING_FILTER_WEBLOG: [test-app-java,test-app-java-multicontainer,test-app-java-multialpine]
-          SCENARIO: [SIMPLE_AUTO_INJECTION_PROFILING]
-        - ONBOARDING_FILTER_WEBLOG: [test-app-java]
-          SCENARIO: [CHAOS_INSTALLER_AUTO_INJECTION]
-        - ONBOARDING_FILTER_WEBLOG: [test-app-java-multicontainer,test-app-java-multialpine]
-          SCENARIO: [SIMPLE_INSTALLER_AUTO_INJECTION]
+      - ONBOARDING_FILTER_WEBLOG: [test-app-java]
+        SCENARIO:
+          - HOST_AUTO_INJECTION_INSTALL_SCRIPT
+          - HOST_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING
+      - ONBOARDING_FILTER_WEBLOG: [test-app-java-multicontainer, test-app-java-multialpine]
+        SCENARIO:
+          - CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT
+          - CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING
+      - ONBOARDING_FILTER_WEBLOG: [test-app-java, test-app-java-container, test-app-java-alpine, test-app-java-buildpack]
+        SCENARIO: [INSTALLER_AUTO_INJECTION]
+      - ONBOARDING_FILTER_WEBLOG: [test-app-java, test-app-java-multicontainer, test-app-java-multialpine]
+        SCENARIO: [SIMPLE_AUTO_INJECTION_PROFILING]
+      - ONBOARDING_FILTER_WEBLOG: [test-app-java]
+        SCENARIO: [CHAOS_INSTALLER_AUTO_INJECTION]
+      - ONBOARDING_FILTER_WEBLOG: [test-app-java-multicontainer, test-app-java-multialpine]
+        SCENARIO: [SIMPLE_INSTALLER_AUTO_INJECTION]
   needs:
     - job: step1_generate_java_ssi_pipeline
       artifacts: true
@@ -293,23 +292,19 @@ x_compute_python_aws_scenarios:
   variables:
     TEST_LIBRARY: "python"
   parallel:
-      matrix:
-        - ONBOARDING_FILTER_WEBLOG: [test-app-python]
-          SCENARIO: [HOST_AUTO_INJECTION_INSTALL_SCRIPT, HOST_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING]
-        - ONBOARDING_FILTER_WEBLOG: [test-app-python-container,test-app-python-alpine]
-          SCENARIO: [CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT, CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING]
-        - ONBOARDING_FILTER_WEBLOG: [
-            test-app-python,
-            test-app-python-container,
-            test-app-python-alpine
-          ]
-          SCENARIO: [INSTALLER_AUTO_INJECTION, SIMPLE_AUTO_INJECTION_PROFILING]
-        - ONBOARDING_FILTER_WEBLOG: [test-app-python]
-          SCENARIO: [CHAOS_INSTALLER_AUTO_INJECTION]
-        - ONBOARDING_FILTER_WEBLOG: [test-app-python-multicontainer,test-app-python-multialpine]
-          SCENARIO: [SIMPLE_INSTALLER_AUTO_INJECTION]
-        - ONBOARDING_FILTER_WEBLOG: [test-app-python-unsupported-defaults,test-app-python-27]
-          SCENARIO: [INSTALLER_NOT_SUPPORTED_AUTO_INJECTION]
+    matrix:
+      - ONBOARDING_FILTER_WEBLOG: [test-app-python]
+        SCENARIO: [HOST_AUTO_INJECTION_INSTALL_SCRIPT, HOST_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING]
+      - ONBOARDING_FILTER_WEBLOG: [test-app-python-container, test-app-python-alpine]
+        SCENARIO: [CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT, CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING]
+      - ONBOARDING_FILTER_WEBLOG: [test-app-python, test-app-python-container, test-app-python-alpine]
+        SCENARIO: [INSTALLER_AUTO_INJECTION, SIMPLE_AUTO_INJECTION_PROFILING]
+      - ONBOARDING_FILTER_WEBLOG: [test-app-python]
+        SCENARIO: [CHAOS_INSTALLER_AUTO_INJECTION]
+      - ONBOARDING_FILTER_WEBLOG: [test-app-python-multicontainer, test-app-python-multialpine]
+        SCENARIO: [SIMPLE_INSTALLER_AUTO_INJECTION]
+      - ONBOARDING_FILTER_WEBLOG: [test-app-python-unsupported-defaults, test-app-python-27]
+        SCENARIO: [INSTALLER_NOT_SUPPORTED_AUTO_INJECTION]
   needs:
     - job: step1_generate_python_ssi_pipeline
       artifacts: true
@@ -363,19 +358,19 @@ x_compute_php_aws_scenarios:
   variables:
     TEST_LIBRARY: "php"
   parallel:
-      matrix:
-        - ONBOARDING_FILTER_WEBLOG: [test-app-php]
-          SCENARIO: [HOST_AUTO_INJECTION_INSTALL_SCRIPT]
-        - ONBOARDING_FILTER_WEBLOG: [test-app-php-container-83,test-app-php-alpine]
-          SCENARIO: [CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT]
-        - ONBOARDING_FILTER_WEBLOG: [test-app-php, test-app-php-container-83, test-app-php-alpine]
-          SCENARIO: [INSTALLER_AUTO_INJECTION]
-        - ONBOARDING_FILTER_WEBLOG: [test-app-php]
-          SCENARIO: [CHAOS_INSTALLER_AUTO_INJECTION]
-        - ONBOARDING_FILTER_WEBLOG: [test-app-php-container-56]
-          SCENARIO: [INSTALLER_NOT_SUPPORTED_AUTO_INJECTION]
-        - ONBOARDING_FILTER_WEBLOG: [test-app-php-multicontainer, test-app-php-multialpine]
-          SCENARIO: [SIMPLE_INSTALLER_AUTO_INJECTION]
+    matrix:
+      - ONBOARDING_FILTER_WEBLOG: [test-app-php]
+        SCENARIO: [HOST_AUTO_INJECTION_INSTALL_SCRIPT]
+      - ONBOARDING_FILTER_WEBLOG: [test-app-php-container-83, test-app-php-alpine]
+        SCENARIO: [CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT]
+      - ONBOARDING_FILTER_WEBLOG: [test-app-php, test-app-php-container-83, test-app-php-alpine]
+        SCENARIO: [INSTALLER_AUTO_INJECTION]
+      - ONBOARDING_FILTER_WEBLOG: [test-app-php]
+        SCENARIO: [CHAOS_INSTALLER_AUTO_INJECTION]
+      - ONBOARDING_FILTER_WEBLOG: [test-app-php-container-56]
+        SCENARIO: [INSTALLER_NOT_SUPPORTED_AUTO_INJECTION]
+      - ONBOARDING_FILTER_WEBLOG: [test-app-php-multicontainer, test-app-php-multialpine]
+        SCENARIO: [SIMPLE_INSTALLER_AUTO_INJECTION]
   needs:
     - job: step1_generate_php_ssi_pipeline
       artifacts: true
@@ -419,23 +414,23 @@ x_compute_dotnet_aws_scenarios:
   variables:
     TEST_LIBRARY: "dotnet"
   parallel:
-      matrix:
-        - ONBOARDING_FILTER_WEBLOG: [test-app-dotnet]
-          SCENARIO:
-            - HOST_AUTO_INJECTION_INSTALL_SCRIPT
-            - HOST_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING
-        - ONBOARDING_FILTER_WEBLOG: [test-app-dotnet-container]
-          SCENARIO:
-            - CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT
-            - CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING
-        - ONBOARDING_FILTER_WEBLOG: [test-app-dotnet,test-app-dotnet-container]
-          SCENARIO: [INSTALLER_AUTO_INJECTION, SIMPLE_AUTO_INJECTION_PROFILING]
-        - ONBOARDING_FILTER_WEBLOG: [test-app-dotnet]
-          SCENARIO: [CHAOS_INSTALLER_AUTO_INJECTION]
-        - ONBOARDING_FILTER_WEBLOG: [test-app-dotnet-multicontainer,test-app-dotnet-multialpine]
-          SCENARIO: [SIMPLE_INSTALLER_AUTO_INJECTION]
-        - ONBOARDING_FILTER_WEBLOG: [test-app-dotnet-unsupported]
-          SCENARIO: [INSTALLER_NOT_SUPPORTED_AUTO_INJECTION]
+    matrix:
+      - ONBOARDING_FILTER_WEBLOG: [test-app-dotnet]
+        SCENARIO:
+          - HOST_AUTO_INJECTION_INSTALL_SCRIPT
+          - HOST_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING
+      - ONBOARDING_FILTER_WEBLOG: [test-app-dotnet-container]
+        SCENARIO:
+          - CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT
+          - CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING
+      - ONBOARDING_FILTER_WEBLOG: [test-app-dotnet, test-app-dotnet-container]
+        SCENARIO: [INSTALLER_AUTO_INJECTION, SIMPLE_AUTO_INJECTION_PROFILING]
+      - ONBOARDING_FILTER_WEBLOG: [test-app-dotnet]
+        SCENARIO: [CHAOS_INSTALLER_AUTO_INJECTION]
+      - ONBOARDING_FILTER_WEBLOG: [test-app-dotnet-multicontainer, test-app-dotnet-multialpine]
+        SCENARIO: [SIMPLE_INSTALLER_AUTO_INJECTION]
+      - ONBOARDING_FILTER_WEBLOG: [test-app-dotnet-unsupported]
+        SCENARIO: [INSTALLER_NOT_SUPPORTED_AUTO_INJECTION]
   needs:
     - job: step1_generate_dotnet_ssi_pipeline
       artifacts: true
@@ -479,17 +474,17 @@ x_compute_ruby_aws_scenarios:
   variables:
     TEST_LIBRARY: "ruby"
   parallel:
-      matrix:
-        - ONBOARDING_FILTER_WEBLOG: [test-app-ruby]
-          SCENARIO: [HOST_AUTO_INJECTION_INSTALL_SCRIPT]
-        - ONBOARDING_FILTER_WEBLOG: [test-app-ruby-container]
-          SCENARIO: [ CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT]
-        - ONBOARDING_FILTER_WEBLOG: [test-app-ruby,test-app-ruby-container]
-          SCENARIO: [INSTALLER_AUTO_INJECTION]
-        - ONBOARDING_FILTER_WEBLOG: [test-app-ruby]
-          SCENARIO: [CHAOS_INSTALLER_AUTO_INJECTION]
-        - ONBOARDING_FILTER_WEBLOG: [test-app-ruby-multicontainer]
-          SCENARIO: [SIMPLE_INSTALLER_AUTO_INJECTION]
+    matrix:
+      - ONBOARDING_FILTER_WEBLOG: [test-app-ruby]
+        SCENARIO: [HOST_AUTO_INJECTION_INSTALL_SCRIPT]
+      - ONBOARDING_FILTER_WEBLOG: [test-app-ruby-container]
+        SCENARIO: [CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT]
+      - ONBOARDING_FILTER_WEBLOG: [test-app-ruby, test-app-ruby-container]
+        SCENARIO: [INSTALLER_AUTO_INJECTION]
+      - ONBOARDING_FILTER_WEBLOG: [test-app-ruby]
+        SCENARIO: [CHAOS_INSTALLER_AUTO_INJECTION]
+      - ONBOARDING_FILTER_WEBLOG: [test-app-ruby-multicontainer]
+        SCENARIO: [SIMPLE_INSTALLER_AUTO_INJECTION]
   needs:
     - job: step1_generate_ruby_ssi_pipeline
       artifacts: true
@@ -521,7 +516,6 @@ step2_exec_ruby_ssi_pipeline:
         job: x_merge_ruby_ssi_pipeline
     strategy: depend
 
-
 check_merge_labels:
   #Build docker images if it's needed. Check if the PR has the labels associated with the image build.
   image: registry.ddbuild.io/images/ci_docker_base
@@ -534,7 +528,7 @@ check_merge_labels:
     - export DOCKER_LOGIN=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-write --with-decryption --query "Parameter.Value" --out text)
     - export DOCKER_LOGIN_PASS=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-pass-write --with-decryption --query "Parameter.Value" --out text)
   script:
-    -  echo $GH_TOKEN | docker login ghcr.io -u publisher --password-stdin
+    - echo $GH_TOKEN | docker login ghcr.io -u publisher --password-stdin
     - ./utils/scripts/get_pr_merged_labels.sh
   rules:
     - if: $CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == "main"
@@ -550,8 +544,8 @@ generate_system_tests_images:
     - export DOCKER_LOGIN=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-write --with-decryption --query "Parameter.Value" --out text)
     - export DOCKER_LOGIN_PASS=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-pass-write --with-decryption --query "Parameter.Value" --out text)
   script:
-      -  echo $GH_TOKEN | docker login ghcr.io -u publisher --password-stdin
-      - ./utils/build/build_tracer_buddies.sh --push
-      - ./utils/build/build_python_base_images.sh --push
-      - ./lib-injection/build/build_lib_injection_images.sh
+    - echo $GH_TOKEN | docker login ghcr.io -u publisher --password-stdin
+    - ./utils/build/build_tracer_buddies.sh --push
+    - ./utils/build/build_python_base_images.sh --push
+    - ./lib-injection/build/build_lib_injection_images.sh
   when: manual

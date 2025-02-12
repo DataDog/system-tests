@@ -1,19 +1,19 @@
 weblog:
-    name: test-app-php-alpine
-    runtime_version: 8.3
-    install:
-      - os_type: linux
-        copy_files:
-          - name: copy-container-run-script
-            local_path: utils/build/virtual_machine/weblogs/common/create_and_run_app_container.sh
+  name: test-app-php-alpine
+  runtime_version: 8.3
+  install:
+    - os_type: linux
+      copy_files:
+        - name: copy-container-run-script
+          local_path: utils/build/virtual_machine/weblogs/common/create_and_run_app_container.sh
 
-          - name: copy-docker-compose-file
-            local_path: utils/build/virtual_machine/weblogs/common/docker-compose.yml
+        - name: copy-docker-compose-file
+          local_path: utils/build/virtual_machine/weblogs/common/docker-compose.yml
 
-          - name: copy-php-app
-            local_path: utils/build/virtual_machine/weblogs/php/test-app-php/index.php
+        - name: copy-php-app
+          local_path: utils/build/virtual_machine/weblogs/php/test-app-php/index.php
 
-          - name: copy-php-app-dockerfile
-            local_path: utils/build/virtual_machine/weblogs/php/test-app-php-alpine/Dockerfile.template
+        - name: copy-php-app-dockerfile
+          local_path: utils/build/virtual_machine/weblogs/php/test-app-php-alpine/Dockerfile.template
 
-        remote-command: sh create_and_run_app_container.sh
+      remote-command: sh create_and_run_app_container.sh

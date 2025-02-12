@@ -26,7 +26,7 @@ clusterAgent:
     failureThreshold: 12
 
   image:
-   #comment name, tag and repository to test cluster-agent for local Mac M1
+    #comment name, tag and repository to test cluster-agent for local Mac M1
     name: ""
     tag: master
     repository: datadog/cluster-agent-dev

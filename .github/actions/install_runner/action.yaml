@@ -18,7 +18,7 @@ runs:
       run: ./build.sh -i runner
     - name: Print versions
       shell: bash
-      run: |
+      run: |-
         source venv/bin/activate
         python --version
         pip freeze

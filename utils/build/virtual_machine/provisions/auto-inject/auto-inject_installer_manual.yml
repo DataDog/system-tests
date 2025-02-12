@@ -11,8 +11,8 @@
       # To force the installer to pull from dev repositories -- agent config is set manually to datadoghq.com
       export DD_SITE="datad0g.com"
       export DD_INSTALLER_REGISTRY_URL='install.datad0g.com'
-    else 
-      export DD_SITE="datadoghq.com" 
+    else
+      export DD_SITE="datadoghq.com"
     fi
 
     # Environment variables for the installer
@@ -49,7 +49,7 @@
 
     sudo -E sh -c "sudo mkdir -p /etc/datadog-agent && printf \"api_key: ${DD_API_KEY}\nsite: datadoghq.com\n\" > /etc/datadog-agent/datadog.yaml"
     DD_REPO_URL=${DD_injection_repo_url} bash -c "$(curl -L https://install.datadoghq.com/scripts/install_script_agent7.sh)"
-    
+
     sudo cp /tmp/datadog-installer-*.log /var/log/datadog
 
     sudo mkdir -p /etc/datadog-agent/inject
@@ -57,7 +57,7 @@
     sudo cp debug_config.yaml /etc/datadog-agent/inject/debug_config.yaml
 
 - os_type: windows
-  remote-command: |
+  remote-command: |-
     Set-ExecutionPolicy Bypass -Scope Process -Force;
     [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072;
     $env:DD_REMOTE_UPDATES = 'true'; # Needed?

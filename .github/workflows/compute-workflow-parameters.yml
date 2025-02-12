@@ -76,20 +76,20 @@ jobs:
       parametric_job_matrix: ${{ steps.main.outputs.parametric_job_matrix }}
       parametric_job_count: ${{ steps.main.outputs.parametric_job_count }}
     steps:
-    - name: Checkout
-      uses: actions/checkout@v4
-      with:
-        repository: 'DataDog/system-tests'
-    - name: Install runner
-      uses: ./.github/actions/install_runner
-    - name: main
-      id: main
-      run: |
-        source venv/bin/activate
-        python utils/scripts/compute-workflow-parameters.py ${{ inputs.library }} \
-          -s "${{ inputs.scenarios }}" \
-          -g "${{ inputs.scenarios_groups }}" \
-          --parametric-job-count ${{ inputs.parametric_job_count }} \
-          --ci-environment "${{ inputs._ci_environment }}" >> $GITHUB_OUTPUT
-      env:
-        PYTHONPATH: "."
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          repository: 'DataDog/system-tests'
+      - name: Install runner
+        uses: ./.github/actions/install_runner
+      - name: main
+        id: main
+        run: |
+          source venv/bin/activate
+          python utils/scripts/compute-workflow-parameters.py ${{ inputs.library }} \
+            -s "${{ inputs.scenarios }}" \
+            -g "${{ inputs.scenarios_groups }}" \
+            --parametric-job-count ${{ inputs.parametric_job_count }} \
+            --ci-environment "${{ inputs._ci_environment }}" >> $GITHUB_OUTPUT
+        env:
+          PYTHONPATH: "."
