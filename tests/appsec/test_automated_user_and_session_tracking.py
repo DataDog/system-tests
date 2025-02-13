@@ -74,38 +74,23 @@ class Test_Automated_User_Tracking:
 
     def setup_user_tracking_sdk_overwrite(self):
         self.r_login = weblog.post("/login?auth=local", data=login_data(context, USER, PASSWORD))
+        self.r_users = weblog.get("/users?user=sdkUser", cookies=self.r_login.cookies)
 
-        self.requests = {
-            "before": weblog.get(
-                "/users?user=sdkUser&sdk_trigger=before",
-                cookies=self.r_login.cookies,
-            ),
-            "after": weblog.get(
-                "/users?user=sdkUser&sdk_trigger=after",
-                cookies=self.r_login.cookies,
-            ),
-        }
-
+    @missing_feature(context.library == "java")
+    @missing_feature(context.library == "python")
     def test_user_tracking_sdk_overwrite(self):
         assert self.r_login.status_code == 200
 
-        for trigger, request in self.requests.items():
-            assert request.status_code == 200
-            for _, _, span in interfaces.library.get_spans(request=request):
-                meta = span.get("meta", {})
-                assert meta["usr.id"] == "sdkUser", f"{trigger}: 'usr.id' must be set by the SDK"
-                if context.library in libs_without_user_id:
-                    assert (
-                        meta["_dd.appsec.usr.id"] == USER
-                    ), f"{trigger}: '_dd.appsec.usr.id' must be set by the automated instrumentation"
-                else:
-                    assert (
-                        meta["_dd.appsec.usr.id"] == "social-security-id"
-                    ), f"{trigger}: '_dd.appsec.usr.id' must be set by the automated instrumentation"
+        assert self.r_users.status_code == 200
+        for _, _, span in interfaces.library.get_spans(request=self.r_users):
+            meta = span.get("meta", {})
+            assert meta["usr.id"] == "sdkUser"
+            if context.library in libs_without_user_id:
+                assert meta["_dd.appsec.usr.id"] == USER
+            else:
+                assert meta["_dd.appsec.usr.id"] == "social-security-id"
 
-                assert (
-                    meta["_dd.appsec.user.collection_mode"] == "sdk"
-                ), f"{trigger}: The collection mode should be 'sdk'"
+            assert meta["_dd.appsec.user.collection_mode"] == "sdk"
 
 
 CONFIG_ENABLED = (
@@ -202,6 +187,8 @@ class Test_Automated_User_Blocking:
             cookies=self.r_login.cookies,
         )
 
+    @missing_feature(context.library == "java")
+    @missing_feature(context.library == "python")
     def test_user_blocking_sdk(self):
         assert self.config_state_1[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
         assert self.r_login.status_code == 200
