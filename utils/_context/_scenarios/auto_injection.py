@@ -234,7 +234,10 @@ class _VirtualMachineScenario(Scenario):
             new_tested_deps = result["testedDependencies"].copy()
             new_result["configuration"] = {"os": vm_name_clean, "arch": vm.os_cpu}
             new_result["configuration"]["app_type"] = vm.get_deployed_weblog().app_type
-            if self.virtual_machine.get_deployed_weblog().app_type == "host":
+            if (
+                self.virtual_machine.get_deployed_weblog().app_type == "host"
+                and "runtime_version" in self.virtual_machine.tested_components
+            ):
                 new_result["configuration"]["runtime_version"] = (
                     self.virtual_machine.tested_components["runtime_version"].lstrip(" ").replace(",", "")
                 )
