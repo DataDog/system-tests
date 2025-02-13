@@ -28,24 +28,18 @@ on:
 
     # Map the workflow outputs to job outputs
     outputs:
-      endtoend_scenarios:
+      endtoend_scenarios:  # legacy
         description: ""
         value: ${{ jobs.main.outputs.endtoend_scenarios }}
-      endtoend_weblogs:
+      endtoend_weblogs:  # legacy
         description: ""
         value: ${{ jobs.main.outputs.endtoend_weblogs }}
-      graphql_scenarios:
-        description: ""
-        value: ${{ jobs.main.outputs.graphql_scenarios }}
       libinjection_scenarios:
         description: ""
         value: ${{ jobs.main.outputs.libinjection_scenarios }}
       libinjection_enable:
         description: ""
         value: ${{ jobs.main.outputs.libinjection_enable }}
-      opentelemetry_scenarios:
-        description: ""
-        value: ${{ jobs.main.outputs.opentelemetry_scenarios }}
       parametric_enable:
         description: ""
         value: ${{ jobs.main.outputs.parametric_enable }}
@@ -71,6 +65,8 @@ jobs:
       parametric_enable: ${{ steps.main.outputs.parametric_enable }}
       parametric_job_matrix: ${{ steps.main.outputs.parametric_job_matrix }}
       parametric_job_count: ${{ steps.main.outputs.parametric_job_count }}
+      endtoend_scenarios: ${{ steps.main.outputs.endtoend_scenarios }}  # legacy
+      endtoend_weblogs: ${{ steps.main.outputs.endtoend_weblogs }}  # legacy
     steps:
     - name: Checkout
       uses: actions/checkout@v4

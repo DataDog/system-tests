@@ -45,6 +45,16 @@ class CiData:
             library,
         )
 
+        # legacy part
+        self.data["graphql"] = {"scenarios": [], "weblogs": []}
+        self.data["parametric"]["scenarios"] = ["PARAMETRIC"] if self.data["parametric"]["enable"] else []
+        legacy_scenarios, legacy_weblogs = set(), set()
+        for item in self.data["endtoend_defs"]["weblogs"]:
+            legacy_scenarios.update(item["scenarios"])
+            legacy_weblogs.add(item["weblog_name"])
+
+        self.data["endtoend"] = {"scenarios": sorted(legacy_scenarios), "weblogs": sorted(legacy_weblogs)}
+
     def export(self, export_format: str) -> None:
         if export_format == "json":
             self._export_json()
