@@ -190,7 +190,6 @@ def main() -> None:
                     r"\.gitlab-ci\.yml": None,
                     r"\.shellcheck": None,
                     r"\.shellcheckrc": None,
-                    r"\.yamlfmt": None,
                     r"\.yamllint": None,
                     r"CHANGELOG\.md": None,
                     r"LICENSE": None,

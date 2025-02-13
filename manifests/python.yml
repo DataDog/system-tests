@@ -239,7 +239,7 @@ tests/:
           TestMultipart: missing_feature
         test_parameter_name.py:
           TestParameterName:
-            "*": v2.20.0
+            '*': v2.20.0
             fastapi: v2.20.1
             python3.12: bug (APPSEC-56375)
         test_parameter_value.py:

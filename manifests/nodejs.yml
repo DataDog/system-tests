@@ -41,7 +41,7 @@ refs:
   - &ref_5_25_0 '>=5.25.0 || ^4.49.0'
   - &ref_5_26_0 '>=5.26.0 || ^4.50.0'
   - &ref_5_27_0 '>=5.27.0 || ^4.51.0'
-  - &ref_5_29_0 '>=5.29.0 || ^4.53.0'  # express 5 support
+  - &ref_5_29_0 '>=5.29.0 || ^4.53.0'
   - &ref_5_30_0 '>=5.30.0 || ^4.54.0'
   - &ref_5_32_0 '>=5.32.0'  # keep the anchor as we may backport stuff to v4 later
   - &ref_5_33_0 '>=5.33.0'
@@ -144,19 +144,23 @@ tests/:
             nextjs: missing_feature
           TestHeaderInjectionExclusionAccessControlAllow:
             '*': *ref_5_26_0
-            express5: *ref_5_29_0  # test uses querystring
+            express5: *ref_5_29_0
+                                   # test uses querystring
             nextjs: missing_feature
           TestHeaderInjectionExclusionContentEncoding:
             '*': *ref_5_26_0
-            express5: *ref_5_29_0  # test uses querystring
+            express5: *ref_5_29_0
+                                   # test uses querystring
             nextjs: missing_feature
           TestHeaderInjectionExclusionPragma:
             '*': *ref_5_26_0
-            express5: *ref_5_29_0  # test uses querystring
+            express5: *ref_5_29_0
+                                   # test uses querystring
             nextjs: missing_feature
           TestHeaderInjectionExclusionTransferEncoding:
             '*': *ref_5_26_0
-            express5: *ref_5_29_0  # test uses querystring
+            express5: *ref_5_29_0
+                                   # test uses querystring
             nextjs: missing_feature
           TestHeaderInjection_ExtendedLocation:
             '*': *ref_5_37_0
@@ -530,7 +534,8 @@ tests/:
           express5: *ref_5_29_0  # test uses querystring
         Test_Ssrf_Telemetry:
           '*': *ref_5_22_0
-          express5: *ref_5_29_0  # test uses querystring
+          express5: *ref_5_29_0
+                                # test uses querystring
         Test_Ssrf_UrlQuery:
           '*': *ref_5_20_0
           express5: *ref_5_29_0
@@ -579,7 +584,8 @@ tests/:
         Test_Exclusions: *ref_3_19_0
       test_miscs.py:
         Test_404: v2.0.0
-        Test_CorrectOptionProcessing: *ref_3_19_0  # probably sooner, but bugged
+        Test_CorrectOptionProcessing: *ref_3_19_0
+                                                   # probably sooner, but bugged
         Test_MultipleAttacks: v2.0.0
         Test_MultipleHighlight: v2.0.0
       test_reports.py:
@@ -670,7 +676,8 @@ tests/:
         nextjs: missing_feature
       Test_Suspicious_Request_Blocking:
         '*': *ref_5_24_0
-        express5: *ref_5_29_0  # test uses querystring and path params
+        express5: *ref_5_29_0
+                               # test uses querystring and path params
         nextjs: missing_feature
     test_client_ip.py:
       Test_StandardTagsClientIp: *ref_3_6_0
@@ -723,7 +730,8 @@ tests/:
     test_request_blocking.py:
       Test_AppSecRequestBlocking:
         '*': *ref_3_19_0
-        express5: *ref_5_29_0  # test uses querystring
+        express5: *ref_5_29_0
+                               # test uses querystring
         nextjs: missing_feature (can not block by query param in nextjs yet)
     test_runtime_activation.py:
       Test_RuntimeActivation: *ref_3_9_0
@@ -911,7 +919,7 @@ tests/:
       Test_Headers_Baggage: *ref_5_29_0
     test_otel_api_interoperability.py: missing_feature
     test_otel_env_vars.py:
-      Test_Otel_Env_Vars: v5.11.0  #implemented in v5.11.0, v4.35.0, &v3.56.0
+      Test_Otel_Env_Vars: v5.11.0  # implemented in v5.11.0, v4.35.0, &v3.56.0
     test_otel_span_with_baggage.py:
       Test_Otel_Span_With_Baggage: missing_feature
     test_parametric_endpoints.py:
@@ -936,12 +944,15 @@ tests/:
       Test_TelemetryInstallSignature: *ref_4_23_0
       Test_TelemetrySCAEnvVar: *ref_5_13_0
     test_trace_sampling.py:
-      Test_Trace_Sampling_Basic: *ref_5_16_0  #actual version unknown
-      Test_Trace_Sampling_Globs: *ref_5_16_0  #actual version unknown
+      Test_Trace_Sampling_Basic: *ref_5_16_0
+                                              # actual version unknown
+      Test_Trace_Sampling_Globs: *ref_5_16_0
+                                              # actual version unknown
       Test_Trace_Sampling_Globs_Feb2024_Revision: missing_feature
       Test_Trace_Sampling_Resource: missing_feature
       Test_Trace_Sampling_Tags: missing_feature
-      Test_Trace_Sampling_Tags_Feb2024_Revision: *ref_5_16_0  #actual version unknown
+      Test_Trace_Sampling_Tags_Feb2024_Revision: *ref_5_16_0
+                                                              # actual version unknown
       Test_Trace_Sampling_With_W3C: missing_feature
     test_tracer.py:
       Test_TracerSCITagging: *ref_3_21_0
@@ -954,7 +965,8 @@ tests/:
       Test_RemoteConfigurationUpdateSequenceASMDDNoCache: irrelevant (cache is implemented)
       Test_RemoteConfigurationUpdateSequenceFeatures: *ref_3_9_0
       Test_RemoteConfigurationUpdateSequenceFeaturesNoCache: irrelevant (cache is implemented)
-      Test_RemoteConfigurationUpdateSequenceLiveDebugging: *ref_5_16_0  #actual version unknown
+      Test_RemoteConfigurationUpdateSequenceLiveDebugging: *ref_5_16_0
+                                                                        # actual version unknown
   serverless/:
     span_pointers/:
       aws/:
@@ -1037,7 +1049,8 @@ tests/:
     Test_HeaderTags_Whitespace_Val_Long: *ref_4_11_0
     Test_HeaderTags_Whitespace_Val_Short: *ref_4_11_0
   test_profiling.py:
-    Test_Profile: *ref_5_16_0  #actual version unknown
+    Test_Profile: *ref_5_16_0
+                               # actual version unknown
   test_scrubbing.py:
     Test_UrlField: *ref_3_13_1
     Test_UrlQuery:
