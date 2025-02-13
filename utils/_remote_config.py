@@ -237,23 +237,23 @@ def send_debugger_command(probes: list, version: int = 1) -> dict:
     return send_state(raw_payload)
 
 
-def build_symdb_command(version: int = 1):
+def build_symdb_command(version):
     path_payloads = {"datadog/2/LIVE_DEBUGGING_SYMBOL_DB/symDb/config": {"upload_symbols": True}}
     return _build_base_command(path_payloads, version)
 
 
-def send_symdb_command(version: int = 1) -> dict:
+def send_symdb_command(version: int =1) -> dict:
     raw_payload = build_symdb_command(version)
     return send_state(raw_payload)
 
 
 def build_apm_tracing_command(
+    version: int,
     dynamic_instrumentation_enabled: bool | None = None,
     exception_replay_enabled: bool | None = None,
     live_debugging_enabled: bool | None = None,
     code_origin_enabled: bool | None = None,
-    dynamic_sampling_enabled: bool | None = None,
-    version: int = 1,
+    dynamic_sampling_enabled: bool | None = None
 ):
     lib_config: dict[str, str | bool] = {
         "library_language": "all",
@@ -291,12 +291,12 @@ def send_apm_tracing_command(
     version: int = 1,
 ) -> dict:
     raw_payload = build_apm_tracing_command(
-        dynamic_instrumentation_enabled,
-        exception_replay_enabled,
-        live_debugging_enabled,
-        code_origin_enabled,
-        dynamic_sampling_enabled,
-        version,
+        version=version,
+        dynamic_instrumentation_enabled=dynamic_instrumentation_enabled,
+        exception_replay_enabled=exception_replay_enabled,
+        live_debugging_enabled=live_debugging_enabled,
+        code_origin_enabled=code_origin_enabled,
+        dynamic_sampling_enabled=dynamic_sampling_enabled,
     )
 
     return send_state(raw_payload)
