@@ -136,7 +136,6 @@ tests/:
             django-poc: v1.18.0
             fastapi: v2.15.0
             flask-poc: v1.18.0
-            pylons: missing_feature
             python3.12: v1.18.0
           TestSqlInjection_ExtendedLocation: missing_feature
           TestSqlInjection_StackTrace: v2.19.0.dev
@@ -351,7 +350,6 @@ tests/:
           django-poc: v1.1.0-rc2
           fastapi: v2.4.0
           flask-poc: v1.4.0-rc1
-          pylons: v1.1.0-rc2
           python3.12: v1.1.0-rc2
           uds-flask: v1.4.0-rc1
           uwsgi-poc: v1.16.1
@@ -363,7 +361,6 @@ tests/:
           django-poc: v1.1.0-rc2
           fastapi: v2.4.0
           flask-poc: v1.4.0-rc1
-          pylons: v1.1.0-rc2
           python3.12: v1.1.0-rc2
           uds-flask: v1.4.0-rc1
           uwsgi-poc: v1.5.2
