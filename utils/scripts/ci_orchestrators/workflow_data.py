@@ -66,22 +66,7 @@ def get_aws_matrix(virtual_machines_file, aws_ssi_file, scenarios: list[str], la
     return results
 
 
-def _get_graphql_weblogs(library) -> list[str]:
-    weblogs = {
-        "cpp": [],
-        "dotnet": [],
-        "golang": ["gqlgen", "graph-gophers", "graphql-go"],
-        "java": [],
-        "nodejs": ["express4", "uds-express4", "express4-typescript", "express5"],
-        "php": [],
-        "python": [],
-        "ruby": ["graphql23"],
-    }  # type: dict[str, list[str]]
-
-    return weblogs[library]
-
-
-def _get_endtoend_weblogs(library, ci_environment: str) -> list[str]:
+def _get_endtoend_weblogs(library: str) -> list[str]:
     weblogs: dict[str, list[str]] = {
         "cpp": ["nginx"],
         "dotnet": ["poc", "uds"],
@@ -121,69 +106,38 @@ def _get_endtoend_weblogs(library, ci_environment: str) -> list[str]:
         ],
         "python": ["flask-poc", "django-poc", "uwsgi-poc", "uds-flask", "python3.12", "fastapi", "django-py3.13"],
         "ruby": [
+            "graphql23",
             "rack",
             "uds-sinatra",
             *[f"sinatra{v}" for v in ["14", "20", "21", "22", "30", "31", "32", "40"]],
             *[f"rails{v}" for v in ["42", "50", "51", "52", "60", "61", "70", "71", "72", "80"]],
         ],
-    }
-
-    if ci_environment != "dev":
-        # as now, django-py3.13 support is not released
-        weblogs["python"].remove("django-py3.13")
-
-    return weblogs[library]
-
-
-def _get_opentelemetry_weblogs(library) -> list[str]:
-    weblogs: dict[str, list[str]] = {
-        "cpp": [],
-        "dotnet": [],
-        "golang": [],
-        "java": ["spring-boot-otel"],
-        "nodejs": ["express4-otel"],
-        "php": [],
-        "python": ["flask-poc-otel"],
-        "ruby": [],
+        "java_otel": ["spring-boot-otel"],
+        "nodejs_otel": ["express4-otel"],
+        "python_otel": ["flask-poc-otel"],
     }
 
     return weblogs[library]
-
-
-def get_endtoend_matrix(language: str, scenario_map: dict, ci_environment: str) -> dict:
-    result = defaultdict(dict)  # type: dict[str, dict]
-
-    for github_workflow, scenario_list in scenario_map.items():
-        result[github_workflow]["scenarios"] = scenario_list
-
-    result["endtoend"]["weblogs"] = _get_endtoend_weblogs(language, ci_environment)
-    result["graphql"]["weblogs"] = _get_graphql_weblogs(language)
-    result["opentelemetry"]["weblogs"] = _get_opentelemetry_weblogs(language)
-
-    return result
 
 
 def get_endtoend_definitions(library: str, scenario_map: dict, ci_environment: str) -> dict:
-    endtoend_scenarios = scenario_map["endtoend"] + scenario_map["graphql"]
-    opentelemetry_scenarios = scenario_map["opentelemetry"]
+    if "otel" not in library:
+        scenarios = scenario_map["endtoend"] + scenario_map["graphql"]
+    else:
+        scenarios = scenario_map["opentelemetry"]
 
-    weblogs = [
+    unfiltered_defs = [
         {
             "library": library,
             "weblog_name": weblog,
-            "scenarios": _filter_scenarios(endtoend_scenarios, library, weblog, ci_environment),
+            "scenarios": _filter_scenarios(scenarios, library, weblog, ci_environment),
         }
-        for weblog in _get_endtoend_weblogs(library, ci_environment)
-    ] + [
-        {
-            "library": f"{library}_otel",
-            "weblog_name": weblog,
-            "scenarios": _filter_scenarios(opentelemetry_scenarios, f"{library}_otel", weblog, ci_environment),
-        }
-        for weblog in _get_opentelemetry_weblogs(library)
+        for weblog in _get_endtoend_weblogs(library)
     ]
 
-    return {"endtoend_defs": {"weblogs": [weblog for weblog in weblogs if len(weblog["scenarios"]) != 0]}}
+    filtered_defs = [weblog for weblog in unfiltered_defs if len(weblog["scenarios"]) != 0]
+
+    return {"endtoend_defs": {"weblogs": filtered_defs}}
 
 
 def _filter_scenarios(scenarios: list[str], library: str, weblog: str, ci_environment: str) -> list[str]:
@@ -199,13 +153,9 @@ def _is_supported(library: str, weblog: str, scenario: str, ci_environment: str)
     if scenario == "OTEL_INTEGRATIONS":
         if library not in ("java_otel", "python_otel", "nodejs_otel"):
             return False
-        if ci_environment == "dev":
-            return False
 
     if scenario in ("OTEL_LOG_E2E", "OTEL_METRIC_E2E", "OTEL_TRACING_E2E"):
         if library not in ("java_otel",):
-            return False
-        if ci_environment == "dev":
             return False
 
     if scenario in ("GRAPHQL_APPSEC",):
@@ -241,8 +191,12 @@ def _is_supported(library: str, weblog: str, scenario: str, ci_environment: str)
         if scenario not in ("GRAPHQL_APPSEC",):
             return False
 
-    if weblog in ["spring-boot-otel", "express4-otel", "flask-poc-otel"]:
-        if scenario not in ("OTEL_LOG_E2E", "OTEL_METRIC_E2E", "OTEL_TRACING_E2E"):
+    if weblog == "spring-boot-otel":
+        if scenario not in ("OTEL_INTEGRATIONS", "OTEL_LOG_E2E", "OTEL_METRIC_E2E", "OTEL_TRACING_E2E"):
+            return False
+
+    if weblog in ["express4-otel", "flask-poc-otel"]:
+        if scenario not in ("OTEL_INTEGRATIONS"):
             return False
 
     return True

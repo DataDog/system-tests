@@ -37,18 +37,12 @@ on:
       graphql_scenarios:
         description: ""
         value: ${{ jobs.main.outputs.graphql_scenarios }}
-      graphql_weblogs:
-        description: ""
-        value: ${{ jobs.main.outputs.graphql_weblogs }}
       libinjection_scenarios:
         description: ""
         value: ${{ jobs.main.outputs.libinjection_scenarios }}
       opentelemetry_scenarios:
         description: ""
         value: ${{ jobs.main.outputs.opentelemetry_scenarios }}
-      opentelemetry_weblogs:
-        description: ""
-        value: ${{ jobs.main.outputs.opentelemetry_weblogs }}
       parametric_scenarios:
         description: ""
         value: ${{ jobs.main.outputs.parametric_scenarios }}
@@ -67,13 +61,7 @@ jobs:
     name: Get parameters
     runs-on: ubuntu-latest
     outputs:
-      endtoend_scenarios: ${{ steps.main.outputs.endtoend_scenarios }}
-      endtoend_weblogs: ${{ steps.main.outputs.endtoend_weblogs }}
-      graphql_scenarios: ${{ steps.main.outputs.graphql_scenarios }}
-      graphql_weblogs: ${{ steps.main.outputs.graphql_weblogs }}
       libinjection_scenarios: ${{ steps.main.outputs.libinjection_scenarios }}
-      opentelemetry_scenarios: ${{ steps.main.outputs.opentelemetry_scenarios }}
-      opentelemetry_weblogs: ${{ steps.main.outputs.opentelemetry_weblogs }}
       parametric_scenarios: ${{ steps.main.outputs.parametric_scenarios }}
       externalprocessing_scenarios: ${{ steps.main.outputs.externalprocessing_scenarios }}
       parametric_job_matrix: ${{ steps.main.outputs.parametric_job_matrix }}
