@@ -465,7 +465,7 @@ tests/:
         Test_Lfi_Rules_Version: *ref_5_26_0
         Test_Lfi_StackTrace: *ref_5_24_0
         Test_Lfi_Telemetry: *ref_5_24_0
-        Test_Lfi_Telemetry_Multiple_Exploits: 5.37.0
+        Test_Lfi_Telemetry_Multiple_Exploits: *ref_5_37_0
         Test_Lfi_UrlQuery:
           '*': *ref_5_24_0
           express5: *ref_5_29_0
