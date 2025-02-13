@@ -1,5 +1,7 @@
 from collections import defaultdict
 import json
+import os
+from pathlib import Path
 
 
 def _load_json(file_path) -> dict:
@@ -67,57 +69,14 @@ def get_aws_matrix(virtual_machines_file, aws_ssi_file, scenarios: list[str], la
 
 
 def _get_endtoend_weblogs(library: str) -> list[str]:
-    weblogs: dict[str, list[str]] = {
-        "cpp": ["nginx"],
-        "dotnet": ["poc", "uds"],
-        "golang": [
-            "chi",
-            "echo",
-            "gin",
-            "net-http",
-            "uds-echo",
-            "net-http-orchestrion",
-            "gqlgen",
-            "graph-gophers",
-            "graphql-go",
-        ],
-        "java": [
-            "akka-http",
-            "jersey-grizzly2",
-            "play",
-            "ratpack",
-            "resteasy-netty3",
-            "spring-boot-jetty",
-            "spring-boot",
-            "spring-boot-3-native",
-            "spring-boot-openliberty",
-            "spring-boot-wildfly",
-            "spring-boot-undertow",
-            "spring-boot-payara",
-            "vertx3",
-            "vertx4",
-            "uds-spring-boot",
-        ],
-        "nodejs": ["express4", "uds-express4", "express4-typescript", "express5", "nextjs"],
-        "php": [
-            *[f"apache-mod-{v}" for v in ["7.0", "7.1", "7.2", "7.3", "7.4", "8.0", "8.1", "8.2"]],
-            *[f"apache-mod-{v}-zts" for v in ["7.0", "7.1", "7.2", "7.3", "7.4", "8.0", "8.1", "8.2"]],
-            *[f"php-fpm-{v}" for v in ["7.0", "7.1", "7.2", "7.3", "7.4", "8.0", "8.1", "8.2"]],
-        ],
-        "python": ["flask-poc", "django-poc", "uwsgi-poc", "uds-flask", "python3.12", "fastapi", "django-py3.13"],
-        "ruby": [
-            "graphql23",
-            "rack",
-            "uds-sinatra",
-            *[f"sinatra{v}" for v in ["14", "20", "21", "22", "30", "31", "32", "40"]],
-            *[f"rails{v}" for v in ["42", "50", "51", "52", "60", "61", "70", "71", "72", "80"]],
-        ],
-        "java_otel": ["spring-boot-otel"],
-        "nodejs_otel": ["express4-otel"],
-        "python_otel": ["flask-poc-otel"],
-    }
+    folder = f"utils/build/docker/{library}"
+    result = [
+        f.replace(".Dockerfile", "")
+        for f in os.listdir(folder)
+        if f.endswith(".Dockerfile") and ".base." not in f and Path(os.path.join(folder, f)).is_file()
+    ]
 
-    return weblogs[library]
+    return sorted(result)
 
 
 def get_endtoend_definitions(library: str, scenario_map: dict, ci_environment: str) -> dict:

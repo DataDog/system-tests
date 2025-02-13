@@ -64,13 +64,13 @@ jobs:
     name: Get parameters
     runs-on: ubuntu-latest
     outputs:
+      endtoend_defs_weblogs: ${{ steps.main.outputs.endtoend_defs_weblogs }}
+      externalprocessing_scenarios: ${{ steps.main.outputs.externalprocessing_scenarios }}
       libinjection_scenarios: ${{ steps.main.outputs.libinjection_scenarios }}
       libinjection_enable: ${{ steps.main.outputs.libinjection_enable }}
       parametric_enable: ${{ steps.main.outputs.parametric_enable }}
-      externalprocessing_scenarios: ${{ steps.main.outputs.externalprocessing_scenarios }}
       parametric_job_matrix: ${{ steps.main.outputs.parametric_job_matrix }}
       parametric_job_count: ${{ steps.main.outputs.parametric_job_count }}
-      endtoend_defs_weblogs: ${{ steps.main.outputs.endtoend_defs_weblogs }}
     steps:
     - name: Checkout
       uses: actions/checkout@v4
