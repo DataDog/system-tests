@@ -109,16 +109,23 @@ def _is_supported(library: str, weblog: str, scenario: str, ci_environment: str)
         # as now, django-py3.13 support is not released
         return False
 
+    # open-telemetry-automatic
     if scenario == "OTEL_INTEGRATIONS":
-        if library not in ("java_otel", "python_otel", "nodejs_otel"):
+        possible_values: tuple = (
+            ("java_otel", "spring-boot-otel"),
+            ("nodejs_otel", "express4-otel"),
+            ("python_otel", "flask-poc-otel"),
+        )
+        if (library, weblog) not in possible_values:
             return False
 
+    # open-telemetry-manual
     if scenario in ("OTEL_LOG_E2E", "OTEL_METRIC_E2E", "OTEL_TRACING_E2E"):
-        if library not in ("java_otel",):
+        if (library, weblog) != ("java_otel", "spring-boot-native"):
             return False
 
     if scenario in ("GRAPHQL_APPSEC",):
-        possible_values = (
+        possible_values: tuple = (
             ("golang", "gqlgen"),
             ("golang", "graph-gophers"),
             ("golang", "graphql-go"),
@@ -150,11 +157,13 @@ def _is_supported(library: str, weblog: str, scenario: str, ci_environment: str)
         if scenario not in ("GRAPHQL_APPSEC",):
             return False
 
-    if weblog == "spring-boot-otel":
-        if scenario not in ("OTEL_INTEGRATIONS", "OTEL_LOG_E2E", "OTEL_METRIC_E2E", "OTEL_TRACING_E2E"):
+    # open-telemetry-manual
+    if weblog == "spring-boot-native":
+        if scenario not in ("OTEL_LOG_E2E", "OTEL_METRIC_E2E", "OTEL_TRACING_E2E"):
             return False
 
-    if weblog in ["express4-otel", "flask-poc-otel"]:
+    # open-telemetry-automatic
+    if weblog in ["express4-otel", "flask-poc-otel", "spring-boot-otel"]:
         if scenario not in ("OTEL_INTEGRATIONS"):
             return False
 
