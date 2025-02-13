@@ -190,27 +190,8 @@ fi
 
 # Key-pair selection
 # Step: Ask to create AWS Key Pair or manually set it
-ask_create_key_pair() {
+create_key_pair() {
     spacer
-    if is_var_set "ONBOARDING_AWS_INFRA_KEY_PATH" && is_var_set "ONBOARDING_AWS_INFRA_KEYPAIR_NAME"; then
-        echo "✅ AWS Key Pair is already set: ${ONBOARDING_AWS_INFRA_KEYPAIR_NAME}"
-        return
-    fi
-
-    echo "🔑 AWS Key Pair Configuration"
-    echo "To proceed, you need an SSH key pair for your AWS virtual machines."
-    echo "You can either:"
-    echo "1️⃣ Create a key pair automatically using this wizard. (Recommended)"
-    echo "2️⃣ Create it manually from the AWS Console."
-    echo "   📖 Refer to the AWS guide: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/create-key-pairs.html"
-
-    read -p "Do you want to create a key pair using this wizard? (y/n): " create_choice
-
-    if [[ "$create_choice" =~ ^[Nn]$ ]]; then
-        echo "⚠️ Please create your key pair manually and update your .env file."
-        echo "🔗 AWS Documentation: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/create-key-pairs.html"
-        return
-    fi
 
     # Ask for key pair name
     read -p "Enter a name for your new AWS Key Pair: " key_name
@@ -233,12 +214,20 @@ ask_create_key_pair() {
 
     # Clean up PEM file
     echo "🔧 Cleaning up the PEM file..."
-    sed -i '1,/-----BEGIN RSA PRIVATE KEY-----/d' "$pem_path"
-    sed -i '/-----END RSA PRIVATE KEY-----/,$!d' "$pem_path"
 
-    # Set permissions
-    echo "🔒 Setting proper file permissions..."
+    # Run the Python script to clean the PEM file
+    echo "🔧 Cleaning up the PEM file using Python..."
+    python utils/scripts/ssi_wizards/aws_onboarding_wizard_utils.py "$pem_path"
+
+    # Verify the file is cleaned properly
+    if [[ $? -ne 0 ]]; then
+        echo "❌ Error: Python script failed to clean the PEM file. Keeping the original file."
+        exit 1
+    fi
+
+    # Set proper permissions
     chmod 400 "$pem_path"
+    echo "🔒 File permissions set to 0400."
 
     # Save values to .env
     save_to_env_file "ONBOARDING_AWS_INFRA_KEY_PATH" "$pem_path"
@@ -273,7 +262,7 @@ ask_for_key_pair_selection() {
                 return ;;  # Exit function after setting variables
 
             3)  # Option 3: Generate Key-Pair Automatically
-                ask_create_key_pair
+                create_key_pair
                 return ;;  # Exit function after generating key-pair
 
             *)  # Invalid input
@@ -558,31 +547,49 @@ run_test_command() {
     fi
 
     echo ""
-    echo "✅ Everything is set up! Now running the test command..."
+    echo "✅ Everything is set up! Here is the command that will be executed:"
     echo ""
 
     # Construct the command
-    TEST_COMMAND="aws-vault exec sso-sandbox-account-admin -- ./run.sh $SCENARIO \
-        --vm-weblog $WEBLOG \
-        --vm-env $CI_ENVIRONMENT \
-        --vm-library $TEST_LIBRARY \
-        --vm-provider aws \
-        --vm-default-vms All \
-        --vm-only $VIRTUAL_MACHINE"
+    TEST_COMMAND="aws-vault exec sso-sandbox-account-admin -- ./run.sh $SCENARIO --vm-weblog $WEBLOG --vm-env $CI_ENVIRONMENT --vm-library $TEST_LIBRARY --vm-provider aws --vm-default-vms All --vm-only $VIRTUAL_MACHINE"
 
-    echo "🖥️ Running:"
+    echo "🖥️ Command:"
     echo "   $TEST_COMMAND"
     echo ""
-    echo "🚀 Hold tight! Your tests are starting..."
 
-    # Execute the command
-    eval "$TEST_COMMAND"
+    # Ask for user confirmation
+    read -p "❓ Do you want to execute this command now? (y/n): " execute_choice
 
-    # Check if the command was successful
-    if [[ $? -eq 0 ]]; then
-        echo "🎉 TESTS COMPLETED SUCCESSFULLY!"
+    if [[ "$execute_choice" =~ ^[Yy]$ ]]; then
+        echo "🚀 Running the test command..."
+        eval "$TEST_COMMAND"
+
+        # Check if the command was successful
+        if [[ $? -eq 0 ]]; then
+            echo "🎉 ✅ TESTS COMPLETED SUCCESSFULLY! 🎉"
+
+            # If ONBOARDING_KEEP_VMS is set, remind the user to destroy the stack
+            if [[ -n "$ONBOARDING_KEEP_VMS" ]]; then
+                echo ""
+                echo "⚠️  🔥 **REMINDER: YOU MUST MANUALLY DESTROY THE PULUMI STACK!** 🔥 ⚠️"
+                echo "🖥️  Run the following command to stop your EC2 instance:"
+                echo ""
+                echo "   🛑 aws-vault exec sso-sandbox-account-admin -- pulumi destroy"
+                echo ""
+                echo "📝 **Why?** Since ONBOARDING_KEEP_VMS is set, your virtual machine will stay running."
+                echo "💡 **To avoid extra AWS costs, remember to manually destroy the stack when finished.**"
+                echo "🚀 Have a great debugging session! 🖥️"
+                echo ""
+            fi
+        else
+            echo "❌ There was an error running the tests. Please check the logs above."
+        fi
     else
-        echo "❌ There was an error running the tests. Please check the logs above."
+        echo "🛑 Test command execution skipped."
+        echo "📌 You can run it manually later by copying and pasting this command:"
+        echo ""
+        echo "$TEST_COMMAND"
+        echo ""
     fi
 }
 
