@@ -293,6 +293,7 @@
     "_dd_iast_lazy_taint": "iast_lazy_taint",
     "_dd_iast_propagation_debug": "iast_propagation_debug",
     "_dd_inject_was_attempted": "trace_inject_was_attempted",
+    "_dd_llmobs_auto_span_linking_enabled": "llmobs_auto_span_linking_enabled",
     "_dd_llmobs_evaluator_sampling_rules": "llmobs_evaluator_sampling_rules",
     "aas_app_type": "aas_app_type",
     "aas_configuration_error": "aas_configuration_error",

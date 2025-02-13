@@ -147,8 +147,8 @@ tests/:
           TestSSRF_ExtendedLocation: missing_feature
           TestSSRF_StackTrace: v2.19.0.dev
         test_stacktrace_leak.py:
-          TestStackTraceLeak: missing_feature
-          TestStackTraceLeak_StackTrace: missing_feature
+          TestStackTraceLeak:
+            '*': v3.1.0.dev
         test_template_injection.py:
           TestTemplateInjection: missing_feature
           TestTemplateInjection_ExtendedLocation: missing_feature
@@ -469,7 +469,8 @@ tests/:
         fastapi: v2.4.0
     test_asm_standalone.py:
       Test_AppSecStandalone_UpstreamPropagation:
-        '*': bug (APPSEC-56142)
+        '*': v2.12.3
+        uwsgi-poc: v2.17.1
       Test_AppSecStandalone_UpstreamPropagation_V2: missing_feature
       Test_IastStandalone_UpstreamPropagation:
         '*': v2.18.0.dev
@@ -685,7 +686,7 @@ tests/:
       test_sqs.py:
         Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS:
           '*': irrelevant
-          flask-poc: v0.1 # actual version unknown
+          flask-poc: v0.1  # actual version unknown
         Test_SQS_PROPAGATION_VIA_MESSAGE_ATTRIBUTES:
           '*': irrelevant
           flask-poc: v2.6.0
@@ -796,7 +797,15 @@ tests/:
         '*': irrelevant
         flask-poc: v2.8.0
     test_inferred_proxy.py:
-      Test_AWS_API_Gateway_Inferred_Span_Creation: missing_feature
+      Test_AWS_API_Gateway_Inferred_Span_Creation:
+        '*': irrelevant
+        flask-poc: v3.1.0
+      Test_AWS_API_Gateway_Inferred_Span_Creation_With_Distributed_Context:
+        '*': irrelevant
+        flask-poc: v3.1.0
+      Test_AWS_API_Gateway_Inferred_Span_Creation_With_Error:
+        '*': irrelevant
+        flask-poc: v3.1.0
     test_otel_drop_in.py:
       Test_Otel_Drop_In: missing_feature
   otel/:
@@ -822,7 +831,7 @@ tests/:
       TestDynamicConfigSamplingRules: v2.9.0
       TestDynamicConfigTracingEnabled: flaky (APMAPI-734)
       TestDynamicConfigV1: missing_feature (failure 2.8.0)
-      TestDynamicConfigV1_EmptyServiceTargets: v2.18.1 # version unknown
+      TestDynamicConfigV1_EmptyServiceTargets: v2.18.1  # version unknown
       TestDynamicConfigV1_ServiceTargets: missing_feature (failure 2.8.0)
       TestDynamicConfigV2: flaky (APMAPI-734)
     test_headers_b3.py:
@@ -874,7 +883,7 @@ tests/:
       Test_TelemetryInstallSignature: v2.5.0
       Test_TelemetrySCAEnvVar: v2.9.0
     test_trace_sampling.py:
-      Test_Trace_Sampling_Basic: v1.9.0 # actual version unknown
+      Test_Trace_Sampling_Basic: v1.9.0  # actual version unknown
       Test_Trace_Sampling_Globs: v2.8.0
       Test_Trace_Sampling_Globs_Feb2024_Revision: v2.8.0
       Test_Trace_Sampling_Resource: v2.8.0
@@ -954,11 +963,13 @@ tests/:
   test_distributed.py:
     Test_DistributedHttp:
       '*': missing_feature (Missing on weblog)
-      flask-poc: v1.5.0-rc2 # actual version unknown
+      flask-poc: v1.5.0-rc2  # actual version unknown
     Test_Span_Links_Flags_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
     Test_Span_Links_From_Conflicting_Contexts: v2.17.0
     Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
-  test_graphql.py: missing_feature
+  test_graphql.py:
+    Test_GraphQLQueryErrorReporting:
+      '*': missing_feature  # change this once tracer PR is released
   test_identify.py:
     Test_Basic: v1.5.0-rc1
     Test_Propagate: v1.9.0
@@ -969,7 +980,7 @@ tests/:
     Test_ExtractBehavior_Restart: missing_feature (extract behavior not implemented)
     Test_ExtractBehavior_Restart_With_Extract_First: missing_feature (extract behavior not implemented)
     Test_HeaderTags: v0.53
-    Test_HeaderTags_Colon_Leading: v1.2.1 # actual version unknown
+    Test_HeaderTags_Colon_Leading: v1.2.1  # actual version unknown
     Test_HeaderTags_Colon_Trailing: v2.8.0
     Test_HeaderTags_DynamicConfig: flaky (APMAPI-734)
     Test_HeaderTags_Long: v1.2.1
@@ -980,7 +991,7 @@ tests/:
     Test_HeaderTags_Whitespace_Val_Short: missing_feature
   test_profiling.py:
     Test_Profile:
-      '*': v0.1 # actual version unknown
+      '*': v0.1  # actual version unknown
       django-py3.13: missing_feature (python 3.13 not supported yet)
       python3.12: v2.1.0
   test_sampling_rates.py:
