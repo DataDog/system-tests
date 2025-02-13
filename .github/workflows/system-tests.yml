@@ -94,7 +94,7 @@ jobs:
   lib-injection:
     needs:
       - compute_parameters
-    if: ${{ needs.compute_parameters.outputs.libinjection_scenarios != '[]' }}
+    if: ${{ needs.compute_parameters.outputs.libinjection_enable == 'true' }}
     uses: ./.github/workflows/run-lib-injection.yml
     permissions:
       contents: read

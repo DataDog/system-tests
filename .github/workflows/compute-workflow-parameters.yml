@@ -40,6 +40,9 @@ on:
       libinjection_scenarios:
         description: ""
         value: ${{ jobs.main.outputs.libinjection_scenarios }}
+      libinjection_enable:
+        description: ""
+        value: ${{ jobs.main.outputs.libinjection_enable }}
       opentelemetry_scenarios:
         description: ""
         value: ${{ jobs.main.outputs.opentelemetry_scenarios }}
@@ -62,6 +65,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       libinjection_scenarios: ${{ steps.main.outputs.libinjection_scenarios }}
+      libinjection_enable: ${{ steps.main.outputs.libinjection_enable }}
       parametric_enable: ${{ steps.main.outputs.parametric_enable }}
       externalprocessing_scenarios: ${{ steps.main.outputs.externalprocessing_scenarios }}
       parametric_job_matrix: ${{ steps.main.outputs.parametric_job_matrix }}

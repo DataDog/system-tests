@@ -16,32 +16,33 @@ class CiData:
            and is acheived by calling export(format)
     """
 
-    def __init__(self, language: str, scenarios: str, groups: str, parametric_job_count: int, ci_environment: str):
+    def __init__(self, library: str, scenarios: str, groups: str, parametric_job_count: int, ci_environment: str):
         # this data struture is a dict where:
         #  the key is the workflow identifier
         #  the value is also a dict, where the key/value pair is the parameter name/value.
         self.data: dict[str, dict] = {}
-        self.language = language
+        self.language = library
         self.environment = ci_environment
         scenario_map = self._get_workflow_map(scenarios.split(","), groups.split(","))
 
-        self.data |= get_endtoend_definitions(language, scenario_map, ci_environment)
+        self.data |= get_endtoend_definitions(library, scenario_map, ci_environment)
 
         self.data["parametric"] = {
             "job_count": parametric_job_count,
             "job_matrix": list(range(1, parametric_job_count + 1)),
-            "enable": len(scenario_map["parametric"]) > 0 and "otel" not in language,
+            "enable": len(scenario_map["parametric"]) > 0 and "otel" not in library,
         }
 
         self.data["libinjection"] = {
             "scenarios": scenario_map.get("libinjection", []),
+            "enable": len(scenario_map["libinjection"]) > 0 and "otel" not in library,
         }
 
         self.data["aws_ssi_scenario_defs"] = get_aws_matrix(
             "utils/virtual_machine/virtual_machines.json",
             "utils/scripts/ci_orchestrators/aws_ssi.json",
             scenario_map.get("aws_ssi", []),
-            language,
+            library,
         )
 
     def export(self, export_format: str) -> None:
@@ -155,7 +156,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     CiData(
-        language=args.language,
+        library=args.language,
         scenarios=args.scenarios,
         groups=args.groups,
         ci_environment=args.ci_environment,
