@@ -28,10 +28,15 @@ import urllib3
 import xmltodict
 
 import ddtrace
-from ddtrace.trace import Pin
 from ddtrace import patch_all
-from ddtrace.trace import tracer
 from ddtrace.appsec import trace_utils as appsec_trace_utils
+
+try:
+    from ddtrace.trace import Pin
+    from ddtrace.trace import tracer
+except ImportError:
+    from ddtrace import Pin
+    from ddtrace import tracer
 
 
 patch_all(urllib3=True)

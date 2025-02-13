@@ -1,3 +1,4 @@
+---
 tests/:
   docker_ssi/:
     test_docker_ssi.py:
