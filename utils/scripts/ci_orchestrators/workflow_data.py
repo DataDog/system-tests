@@ -199,9 +199,13 @@ def _is_supported(library: str, weblog: str, scenario: str, ci_environment: str)
     if scenario == "OTEL_INTEGRATIONS":
         if library not in ("java_otel", "python_otel", "nodejs_otel"):
             return False
+        if ci_environment == "dev":
+            return False
 
     if scenario in ("OTEL_LOG_E2E", "OTEL_METRIC_E2E", "OTEL_TRACING_E2E"):
         if library not in ("java_otel",):
+            return False
+        if ci_environment == "dev":
             return False
 
     if scenario in ("GRAPHQL_APPSEC",):
