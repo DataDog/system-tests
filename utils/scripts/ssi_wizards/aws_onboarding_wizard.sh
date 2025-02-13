@@ -78,6 +78,25 @@ save_to_env_file() {
     echo "✅ Saved $var_name in $ENV_FILE"
 }
 
+# Step 6.5: Ask to Load System-Tests Requirements
+ask_load_requirements() {
+    spacer
+    echo "🔧 Do you want to load the system-tests requirements?"
+    echo "This will execute: ./build.sh -i runner"
+    read -p "Run this setup? (y/n): " load_choice
+    if [[ "$load_choice" =~ ^[Yy]$ ]]; then
+        echo "🚀 Loading system-tests requirements..."
+        ./build.sh -i runner
+        if [[ $? -ne 0 ]]; then
+            echo "❌ Error: Failed to load system-tests requirements. Please check the logs."
+            exit 1
+        fi
+        echo "✅ System-tests requirements loaded successfully."
+    else
+        echo "⚠️ Skipping system-tests requirements setup."
+    fi
+}
+
 # Step 7: Prompt for missing environment variables
 check_and_set_env_var() {
     local var_name="$1"
@@ -123,15 +142,40 @@ if [[ $? -ne 0 ]]; then
 fi
 echo "✅ Successfully logged in to Pulumi (local mode)."
 
+#Ask to Load System-Tests Requirements
+ask_load_requirements
+
 # Step 10: Load environment variables
 load_env_file
 
+# Step 10.5. Verify AWS environment if networking variables are missing
+verify_aws_environment() {
+    if ! is_var_set "ONBOARDING_AWS_INFRA_SUBNET_ID" || ! is_var_set "ONBOARDING_AWS_INFRA_SECURITY_GROUPS_ID"; then
+        spacer
+        echo "🔍 Checking AWS environment..."
+
+        # Run AWS environment check
+        if ! aws-vault exec sso-sandbox-account-admin -- aws s3 ls &>/dev/null; then
+            echo "❌ AWS environment check failed!"
+            echo "🔗 Please follow the AWS SSO setup guide:"
+            echo "   👉 https://datadoghq.atlassian.net/wiki/spaces/ENG/pages/2498068557/AWS+SSO+Getting+Started"
+            echo "⚠️ Exiting wizard to prevent further issues."
+            exit 1
+        fi
+
+        echo "✅ AWS environment verified successfully!"
+    fi
+}
+
+# Call the function to verify AWS setup
+verify_aws_environment
+
 # Required environment variables
 check_and_set_env_var "PULUMI_CONFIG_PASSPHRASE" "Passphrase to store secure data in Pulumi."
-check_and_set_env_var "DD_API_KEY_ONBOARDING" "These tests require a real API key. Ask in #apm-shared-testing Slack channel."
-check_and_set_env_var "DD_APP_KEY_ONBOARDING" "These tests require a real API key. Ask in #apm-shared-testing Slack channel."
-check_and_set_env_var "ONBOARDING_AWS_INFRA_SUBNET_ID" "Networking configuration for AWS. Refer to internal documentation."
-check_and_set_env_var "ONBOARDING_AWS_INFRA_SECURITY_GROUPS_ID" "Networking configuration for AWS. Refer to internal documentation."
+check_and_set_env_var "DD_API_KEY_ONBOARDING" "🔑 API Key required for system-tests.\n🏢 You can retrieve this key from the Datadog system-tests organization.\n🔗 Access the organization page here: https://system-tests.datadoghq.com/dashboard/zqg-kqn-2mc?fromUser=false&refresh_mode=sliding&from_ts=1736776640739&to_ts=1739368640739&live=true"
+check_and_set_env_var "DD_APP_KEY_ONBOARDING" "🔑 Application Key required for system-tests.\n🏢 You can retrieve this key from the Datadog system-tests organization.\n🔗 Access the organization page here: https://system-tests.datadoghq.com/dashboard/zqg-kqn-2mc?fromUser=false&refresh_mode=sliding&from_ts=1736776640739&to_ts=1739368640739&live=true"
+check_and_set_env_var "ONBOARDING_AWS_INFRA_SUBNET_ID" "🌐 Networking configuration for AWS.\n📖 You can find this value in the internal documentation:\n🔗 https://datadoghq.atlassian.net/wiki/spaces/APMINT/pages/3487138295/Using+virtual+machines+to+test+your+software+components+against+different+operating+systems#Run-command"
+check_and_set_env_var "ONBOARDING_AWS_INFRA_SECURITY_GROUPS_ID" "🌐 Networking configuration for AWS.\n📖 You can find this value in the internal documentation:\n🔗 https://datadoghq.atlassian.net/wiki/spaces/APMINT/pages/3487138295/Using+virtual+machines+to+test+your+software+components+against+different+operating+systems#Run-command"
 
 # Automatically set and offer to save some variables
 if ! is_var_in_env_file "ONBOARDING_LOCAL_TEST"; then
@@ -145,19 +189,109 @@ if ! is_var_in_env_file "ONBOARDING_AWS_INFRA_IAM_INSTANCE_PROFILE"; then
 fi
 
 # Key-pair selection
-if ! is_var_in_env_file "ONBOARDING_AWS_INFRA_KEY_PATH" || ! is_var_in_env_file "ONBOARDING_AWS_INFRA_KEYPAIR_NAME"; then
-    echo "🔑 AWS Key Pair Configuration"
-    echo "Do you want to use your own key-pair or the default one?"
-    echo "ℹ️ If you need to create a key-pair, refer to AWS docs: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/create-key-pairs.html"
-    read -p "Use your own key-pair? (y/n): " use_custom_keypair
-
-    if [[ "$use_custom_keypair" =~ ^[Yy]$ ]]; then
-        check_and_set_env_var "ONBOARDING_AWS_INFRA_KEY_PATH" "Absolute path to your PEM file. Ensure correct file permissions (chmod 400)."
-        check_and_set_env_var "ONBOARDING_AWS_INFRA_KEYPAIR_NAME" "Name of the key pair created in AWS Console."
-    else
-        echo "✅ Using the default key-pair, no additional variables needed."
+# Step: Ask to create AWS Key Pair or manually set it
+ask_create_key_pair() {
+    spacer
+    if is_var_set "ONBOARDING_AWS_INFRA_KEY_PATH" && is_var_set "ONBOARDING_AWS_INFRA_KEYPAIR_NAME"; then
+        echo "✅ AWS Key Pair is already set: ${ONBOARDING_AWS_INFRA_KEYPAIR_NAME}"
+        return
     fi
+
+    echo "🔑 AWS Key Pair Configuration"
+    echo "To proceed, you need an SSH key pair for your AWS virtual machines."
+    echo "You can either:"
+    echo "1️⃣ Create a key pair automatically using this wizard. (Recommended)"
+    echo "2️⃣ Create it manually from the AWS Console."
+    echo "   📖 Refer to the AWS guide: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/create-key-pairs.html"
+
+    read -p "Do you want to create a key pair using this wizard? (y/n): " create_choice
+
+    if [[ "$create_choice" =~ ^[Nn]$ ]]; then
+        echo "⚠️ Please create your key pair manually and update your .env file."
+        echo "🔗 AWS Documentation: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/create-key-pairs.html"
+        return
+    fi
+
+    # Ask for key pair name
+    read -p "Enter a name for your new AWS Key Pair: " key_name
+    if [[ -z "$key_name" ]]; then
+        echo "❌ Invalid name. Key pair creation aborted."
+        return
+    fi
+
+    # Define PEM file path
+    pem_path="$HOME/.ssh/${key_name}.pem"
+
+    # Create key pair
+    echo "🚀 Creating AWS Key Pair: $key_name ..."
+    aws-vault exec sso-sandbox-account-admin -- aws ec2 create-key-pair --key-name "$key_name" --output text > "$pem_path"
+
+    if [[ $? -ne 0 ]]; then
+        echo "❌ Failed to create AWS Key Pair. Please check AWS permissions and try again."
+        exit 1
+    fi
+
+    # Clean up PEM file
+    echo "🔧 Cleaning up the PEM file..."
+    sed -i '1,/-----BEGIN RSA PRIVATE KEY-----/d' "$pem_path"
+    sed -i '/-----END RSA PRIVATE KEY-----/,$!d' "$pem_path"
+
+    # Set permissions
+    echo "🔒 Setting proper file permissions..."
+    chmod 400 "$pem_path"
+
+    # Save values to .env
+    save_to_env_file "ONBOARDING_AWS_INFRA_KEY_PATH" "$pem_path"
+    save_to_env_file "ONBOARDING_AWS_INFRA_KEYPAIR_NAME" "$key_name"
+
+    echo "✅ AWS Key Pair created successfully!"
+    echo "   🔹 Key Name: $key_name"
+    echo "   🔹 PEM File: $pem_path"
+    echo "   🔹 Permissions set to 0400 (read-only for owner)"
+}
+
+# Step: AWS Key Pair Selection
+ask_for_key_pair_selection() {
+    spacer
+    echo "🔑 AWS Key Pair Configuration"
+    echo "You have three options:"
+    echo "1️⃣ Use the **default AWS key-pair** (recommended if no special permissions are needed and you don't want to debug the virtual machines)."
+    echo "2️⃣ Use your own custom key-pair (set manually)."
+    echo "3️⃣ Generate a new key-pair automatically using this wizard."
+
+    while true; do
+        read -p "Select an option (1-3): " keypair_choice
+        case "$keypair_choice" in
+            1)  # Option 1: Use Default Key-Pair
+                echo "✅ Using the default AWS key-pair. No variables will be set."
+                return ;;  # Exit function, do not set variables
+
+            2)  # Option 2: Use Custom Key-Pair
+                echo "🔍 Using a custom key-pair. Please provide the following details:"
+                check_and_set_env_var "ONBOARDING_AWS_INFRA_KEY_PATH" "Absolute path to your PEM file. Ensure correct file permissions (chmod 400)."
+                check_and_set_env_var "ONBOARDING_AWS_INFRA_KEYPAIR_NAME" "Name of the key pair created in AWS Console."
+                return ;;  # Exit function after setting variables
+
+            3)  # Option 3: Generate Key-Pair Automatically
+                ask_create_key_pair
+                return ;;  # Exit function after generating key-pair
+
+            *)  # Invalid input
+                echo "❌ Invalid choice. Please enter a number between 1 and 3."
+                ;;
+        esac
+    done
+}
+
+# Step: Check if AWS Key Pair is already set
+if ! is_var_set "ONBOARDING_AWS_INFRA_KEY_PATH" || ! is_var_set "ONBOARDING_AWS_INFRA_KEYPAIR_NAME"; then
+    ask_for_key_pair_selection
+else
+    echo "✅ AWS Key Pair is already configured."
+    echo "   🔹 Key Path: ${ONBOARDING_AWS_INFRA_KEY_PATH}"
+    echo "   🔹 Key Pair Name: ${ONBOARDING_AWS_INFRA_KEYPAIR_NAME}"
 fi
+
 
 # VM Keep-Alive Option
 if [[ -z "$ONBOARDING_KEEP_VMS" ]]; then
