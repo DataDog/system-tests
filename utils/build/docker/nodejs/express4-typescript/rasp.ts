@@ -158,8 +158,6 @@ function initRaspEndpoints(app: Express) {
         try {
             JSON.stringify(statSync(req.query.file1))
         } catch (e: any) {
-            result = e.toString()
-
             if (e.name !== 'DatadogRaspAbortError') {
                 throw e
             }
@@ -168,8 +166,6 @@ function initRaspEndpoints(app: Express) {
         try {
             JSON.stringify(statSync(req.query.file2))
         } catch (e: any) {
-            result = e.toString()
-
             if (e.name !== 'DatadogRaspAbortError') {
                 throw e
             }
@@ -178,8 +174,6 @@ function initRaspEndpoints(app: Express) {
         try {
             JSON.stringify(statSync('../etc/passwd'))
         } catch (e: any) {
-            result = e.toString()
-
             if (e.name !== 'DatadogRaspAbortError') {
                 throw e
             }
