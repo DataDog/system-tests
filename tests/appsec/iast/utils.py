@@ -210,7 +210,6 @@ def validate_stack_traces(request):
     ), "'_dd.stack' not found in 'meta_struct'. Please check if the test should be marked as irrelevant (not expected to have a stack trace)"
     stack_traces = span["meta_struct"]["_dd.stack"]["vulnerability"]
     stack_trace = stack_traces[0]
-    logger.debug(f"Stack trace: {iast["vulnerabilities"]}")
     vulns = [
         i for i in iast["vulnerabilities"] if i.get("location") and i["location"].get("stackId") == stack_trace["id"]
     ]
