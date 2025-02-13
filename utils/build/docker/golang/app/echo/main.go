@@ -285,7 +285,7 @@ func main() {
 			}
 		}
 
-		return ctx.NoContent(statusCode)
+		return ctx.String(statusCode, "ok")
 	})
 
 	r.Any("/rasp/lfi", echoHandleFunc(rasp.LFI))
