@@ -106,7 +106,7 @@ jobs:
       version: ${{ inputs.binaries_artifact == '' && 'prod' || 'dev' }}
 
   end-to-end:
-    name: end-to-end - ${{ matrix.weblogs.weblog_name }} (${{ matrix.weblogs.library }})
+    name: end-to-end
     needs:
       - compute_parameters
     strategy:

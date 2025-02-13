@@ -56,8 +56,8 @@ env:
   REGISTRY: ghcr.io
 
 jobs:
-  end-to-end:
-    name: end-to-end --- ${{ inputs.weblog }} (${{ inputs.library }})
+  main:
+    name: ${{ inputs.weblog }}
     runs-on: ubuntu-latest
     env:
       SYSTEM_TESTS_REPORT_ENVIRONMENT: ${{ inputs.ci_environment }}
