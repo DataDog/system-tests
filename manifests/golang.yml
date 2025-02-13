@@ -574,6 +574,20 @@ tests/:
         gin: v1.72.0
         net-http: v1.72.0
         net-http-orchestrion: v1.72.0
+      Test_AWS_API_Gateway_Inferred_Span_Creation_With_Distributed_Context:
+        "*": irrelevant
+        chi: v1.72.0
+        echo: v1.72.0
+        gin: v1.72.0
+        net-http: v1.72.0
+        net-http-orchestrion: v1.72.0
+      Test_AWS_API_Gateway_Inferred_Span_Creation_With_Error:
+        "*": irrelevant
+        chi: v1.72.0
+        echo: v1.72.0
+        gin: v1.72.0
+        net-http: v1.72.0
+        net-http-orchestrion: v1.72.0
     test_otel_drop_in.py:
       Test_Otel_Drop_In: missing_feature
   otel/:

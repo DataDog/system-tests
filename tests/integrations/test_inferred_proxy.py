@@ -151,13 +151,12 @@ def assert_api_gateway_span(testCase, span, path, status_code, is_distributed=Fa
         assert (
             span["service"] == "system-tests-api-gateway.com"
         ), "Inferred AWS API Gateway span expected service should equal 'system-tests-api-gateway.com'"
-    assert "span.kind" in span["meta"], "Inferred AWS API Gateway span meta should contain 'span.kind'"
-    assert (
-        span["meta"]["span.kind"] == "internal"
-    ), "Inferred AWS API Gateway span meta span.kind should equal 'internal'"
     assert "stage" in span["meta"], "Inferred AWS API Gateway span meta should contain 'stage'"
     assert span["meta"]["stage"] == "staging", "Inferred AWS API Gateway span meta expected stage to be 'staging'"
     assert "start" in span, "Inferred AWS API Gateway span should have 'startTime'"
+    assert (
+        span["metrics"]["_dd.inferred_span"] == 1
+    ), f"Inferred AWS API Gateway span meta expected _dd.inferred_span = 1"
 
     # assert on HTTP tags
     assert "http.method" in span["meta"], "Inferred AWS API Gateway span meta should contain 'http.method'"
