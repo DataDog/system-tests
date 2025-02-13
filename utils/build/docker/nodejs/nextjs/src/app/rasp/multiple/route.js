@@ -13,7 +13,7 @@ export function GET (request) {
   } catch (e) {}
 
   try {
-    statSync(request.nextUrl.searchParams.get('../etc/passwd'))
+    statSync('../etc/passwd')
   } catch (e) {}
 
   return NextResponse.json({}, {
