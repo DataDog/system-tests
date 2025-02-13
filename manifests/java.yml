@@ -1,8 +1,9 @@
+---
 tests/:
   apm_tracing_e2e/:
     test_otel.py:
       Test_Otel_Span:
-        '*': v0.1 # real version not known
+        '*': v0.1  # real version not known
         akka-http: missing_feature (/e2e_single_span endpoint is only implemented in Java Spring Boot at the moment)
         jersey-grizzly2: missing_feature (/e2e_single_span endpoint is only implemented in Java Spring Boot at the moment)
         play: missing_feature (/e2e_single_span endpoint is only implemented in Java Spring Boot at the moment)
@@ -13,7 +14,7 @@ tests/:
         vertx4: missing_feature (/e2e_single_span endpoint is only implemented in Java Spring Boot at the moment)
     test_single_span.py:
       Test_SingleSpan:
-        '*': v0.1 # real version not known
+        '*': v0.1  # real version not known
         akka-http: missing_feature (/e2e_single_span endpoint is only implemented in Java Spring Boot at the moment)
         jersey-grizzly2: missing_feature (/e2e_single_span endpoint is only implemented in Java Spring Boot at the moment)
         play: missing_feature (/e2e_single_span endpoint is only implemented in Java Spring Boot at the moment)
@@ -76,7 +77,7 @@ tests/:
             vertx4: v1.12.0
           TestCommandInjection_ExtendedLocation: missing_feature
           TestCommandInjection_StackTrace:
-            '*': v1.43.0
+            '*': missing_feature
             play: missing_feature
             ratpack: missing_feature
             spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
@@ -93,7 +94,7 @@ tests/:
             vertx4: missing_feature (No endpoint implemented)
           TestEmailHtmlInjection_ExtendedLocation: missing_feature
           TestEmailHtmlInjection_StackTrace:
-            '*': v1.47.0
+            '*': missing_feature
             akka-http: missing_feature (No endpoint implemented)
             jersey-grizzly2: missing_feature (No endpoint implemented)
             play: missing_feature (No endpoint implemented)
@@ -136,13 +137,13 @@ tests/:
           TestHeaderInjection_ExtendedLocation: missing_feature
           TestHeaderInjection_StackTrace:
             '*': missing_feature
-            spring-boot: v1.43.0
-            spring-boot-jetty: v1.43.0
-            spring-boot-openliberty: v1.43.0
-            spring-boot-payara: v1.43.0
-            spring-boot-undertow: v1.43.0
-            spring-boot-wildfly: v1.43.0
-            uds-spring-boot: v1.43.0
+#            spring-boot: v1.43.0
+#            spring-boot-jetty: v1.43.0
+#            spring-boot-openliberty: v1.43.0
+#            spring-boot-payara: v1.43.0
+#            spring-boot-undertow: v1.43.0
+#            spring-boot-wildfly: v1.43.0
+#            uds-spring-boot: v1.43.0
         test_hsts_missing_header.py:
           Test_HstsMissingHeader:
             '*': v1.20.0
@@ -167,7 +168,7 @@ tests/:
             spring-boot-openliberty: bug (APPSEC-54981)
           Test_InsecureAuthProtocol_ExtendedLocation: missing_feature
           Test_InsecureAuthProtocol_StackTrace:
-            '*': v1.43.0
+            '*': missing_feature
             akka-http: missing_feature
             play: missing_feature
             ratpack: missing_feature
@@ -183,7 +184,7 @@ tests/:
           TestInsecureCookieNameFilter: missing_feature
           TestInsecureCookie_ExtendedLocation: missing_feature
           TestInsecureCookie_StackTrace:
-            '*': v1.43.0
+            '*': missing_feature
             akka-http: missing_feature
             play: missing_feature
             ratpack: missing_feature
@@ -201,7 +202,7 @@ tests/:
             vertx4: v1.12.0
           TestLDAPInjection_ExtendedLocation: missing_feature
           TestLDAPInjection_StackTrace:
-            '*': v1.43.0
+            '*': missing_feature
             play: missing_feature (endpoint not implemented)
             ratpack: missing_feature (endpoint not implemented)
             spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
@@ -215,7 +216,7 @@ tests/:
           TestNoHttponlyCookieNameFilter: missing_feature
           TestNoHttponlyCookie_ExtendedLocation: missing_feature
           TestNoHttponlyCookie_StackTrace:
-            '*': v1.43.0
+            '*': missing_feature
             akka-http: missing_feature
             play: missing_feature
             ratpack: missing_feature
@@ -230,7 +231,7 @@ tests/:
           TestNoSamesiteCookieNameFilter: missing_feature
           TestNoSamesiteCookie_ExtendedLocation: missing_feature
           TestNoSamesiteCookie_StackTrace:
-            '*': v1.43.0
+            '*': missing_feature
             akka-http: missing_feature
             play: missing_feature
             ratpack: missing_feature
@@ -251,7 +252,7 @@ tests/:
             vertx3: v1.12.0
           TestPathTraversal_ExtendedLocation: missing_feature
           TestPathTraversal_StackTrace:
-            '*': v1.43.0
+            '*': missing_feature
             play: missing_feature
             ratpack: missing_feature
             spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
@@ -264,7 +265,7 @@ tests/:
             spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
           TestReflectionInjection_ExtendedLocation: missing_feature
           TestReflectionInjection_StackTrace:
-            '*': v1.43.0
+            '*': missing_feature
             akka-http: missing_feature
             play: missing_feature
             ratpack: missing_feature
@@ -281,7 +282,7 @@ tests/:
             vertx3: v1.12.0
           TestSqlInjection_ExtendedLocation: missing_feature
           TestSqlInjection_StackTrace:
-            '*': v1.43.0
+            '*': missing_feature
             play: missing_feature
             ratpack: missing_feature
             spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
@@ -295,7 +296,7 @@ tests/:
             vertx4: missing_feature (No endpoint implemented)
           TestSSRF_ExtendedLocation: missing_feature
           TestSSRF_StackTrace:
-            '*': v1.43.0
+            '*': missing_feature
             akka-http: missing_feature (No endpoint implemented)
             play: missing_feature (No endpoint implemented)
             ratpack: missing_feature (No endpoint implemented)
@@ -303,7 +304,6 @@ tests/:
             vertx4: missing_feature (No endpoint implemented)
         test_stacktrace_leak.py:
           TestStackTraceLeak: missing_feature
-          TestStackTraceLeak_StackTrace: missing_feature
         test_template_injection.py:
           TestTemplateInjection: missing_feature
           TestTemplateInjection_ExtendedLocation: missing_feature
@@ -320,7 +320,7 @@ tests/:
             vertx4: missing_feature
           Test_TrustBoundaryViolation_ExtendedLocation: missing_feature
           Test_TrustBoundaryViolation_StackTrace:
-            '*': v1.43.0
+            '*': missing_feature
             akka-http: missing_feature
             jersey-grizzly2: missing_feature
             play: missing_feature
@@ -342,7 +342,7 @@ tests/:
             vertx4: missing_feature (No endpoint implemented)
           TestUntrustedDeserialization_ExtendedLocation: missing_feature
           TestUntrustedDeserialization_StackTrace:
-            '*': v1.43.0
+            '*': missing_feature
             akka-http: missing_feature (No endpoint implemented)
             jersey-grizzly2: missing_feature (No endpoint implemented)
             play: missing_feature (No endpoint implemented)
@@ -363,7 +363,7 @@ tests/:
             vertx4: v1.17.0
           TestUnvalidatedHeader_ExtendedLocation: missing_feature
           TestUnvalidatedHeader_StackTrace:
-            '*': v1.43.0
+            '*': missing_feature
             akka-http: missing_feature
             play: missing_feature
             ratpack: missing_feature
@@ -378,7 +378,7 @@ tests/:
             vertx4: v1.17.0
           TestUnvalidatedRedirect_ExtendedLocation: missing_feature
           TestUnvalidatedRedirect_StackTrace:
-            '*': v1.43.0
+            '*': missing_feature
             akka-http: missing_feature
             play: missing_feature
             ratpack: missing_feature
@@ -396,7 +396,7 @@ tests/:
             vertx4: v1.17.0
           TestUnvalidatedForward_ExtendedLocation: missing_feature
           TestUnvalidatedForward_StackTrace:
-            '*': v1.43.0
+            '*': missing_feature
             akka-http: irrelevant (No forward)
             jersey-grizzly2: irrelevant (No forward)
             play: missing_feature (No endpoint implemented)
@@ -410,7 +410,7 @@ tests/:
             spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
           TestWeakCipher_ExtendedLocation: missing_feature
           TestWeakCipher_StackTrace:
-            '*': v1.43.0
+            '*': missing_feature
             play: missing_feature (no endpoint)
             spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
         test_weak_hash.py:
@@ -424,7 +424,7 @@ tests/:
             spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
           TestWeakHash_ExtendedLocation: missing_feature
           TestWeakHash_StackTrace:
-            '*': v1.43.0
+            '*': missing_feature
             play: missing_feature (no endpoint)
             spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
         test_weak_randomness.py:
@@ -434,7 +434,7 @@ tests/:
             spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
           TestWeakRandomness_ExtendedLocation: missing_feature
           TestWeakRandomness_StackTrace:
-            '*': v1.43.0
+            '*': missing_feature
             play: missing_feature (no endpoint)
             spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
         test_xcontent_sniffing.py:
@@ -459,7 +459,7 @@ tests/:
             spring-boot-3-native: missing_feature
           TestXPathInjection_ExtendedLocation: missing_feature
           TestXPathInjection_StackTrace:
-            '*': v1.43.0
+            '*': missing_feature
             play: missing_feature
             ratpack: missing_feature
             spring-boot-3-native: missing_feature
@@ -476,7 +476,7 @@ tests/:
             vertx4: missing_feature
           TestXSS_ExtendedLocation: missing_feature
           TestXSS_StackTrace:
-            '*': v1.43.0
+            '*': missing_feature
             akka-http: missing_feature
             jersey-grizzly2: missing_feature
             play: missing_feature
@@ -665,13 +665,13 @@ tests/:
           '*': v1.45.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
         Test_Cmdi_Optional_SpanTags:
-            '*': v1.45.0
-            spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+          '*': v1.45.0
+          spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
         Test_Cmdi_Rules_Version:
           '*': v1.45.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
         Test_Cmdi_StackTrace:
-          '*': v1.45.0
+          '*': missing_feature
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
           spring-boot-payara: missing_feature (APPSEC-54966)
         Test_Cmdi_Telemetry:
@@ -703,12 +703,12 @@ tests/:
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
           spring-boot-payara: missing_feature (APPSEC-54966)
         Test_Lfi_BodyXml:
-            '*': v1.40.0
-            akka-http: missing_feature (APPSEC-55780)
-            spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-            spring-boot-payara: missing_feature (APPSEC-54966)
-            vertx3: missing_feature (APPSEC-55788)
-            vertx4: missing_feature (APPSEC-55786)
+          '*': v1.40.0
+          akka-http: missing_feature (APPSEC-55780)
+          spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+          spring-boot-payara: missing_feature (APPSEC-54966)
+          vertx3: missing_feature (APPSEC-55788)
+          vertx4: missing_feature (APPSEC-55786)
         Test_Lfi_Capability:
           '*': v1.40.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
@@ -738,10 +738,10 @@ tests/:
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
       test_shi.py:
         Test_Shi_BodyJson:
-            '*': v1.45.0
-            spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-            spring-boot-payara: missing_feature (APPSEC-54966)
-            vertx4: missing_feature (APPSEC-55785)
+          '*': v1.45.0
+          spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+          spring-boot-payara: missing_feature (APPSEC-54966)
+          vertx4: missing_feature (APPSEC-55785)
         Test_Shi_BodyUrlEncoded:
           '*': v1.45.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
@@ -757,14 +757,14 @@ tests/:
           '*': v1.45.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
         Test_Shi_Mandatory_SpanTags:
-            '*': v1.45.0
-            spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+          '*': v1.45.0
+          spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
         Test_Shi_Optional_SpanTags:
-            '*': v1.45.0
-            spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+          '*': v1.45.0
+          spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
         Test_Shi_Rules_Version:
-            '*': v1.45.0
-            spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+          '*': v1.45.0
+          spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
         Test_Shi_StackTrace:
           '*': v1.45.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
@@ -779,8 +779,8 @@ tests/:
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
           spring-boot-payara: missing_feature (APPSEC-54966)
         Test_Shi_Waf_Version:
-            '*': v1.45.0
-            spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+          '*': v1.45.0
+          spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
       # SQLi was introduced in v1.38.0 (with RASP disabled by default, but was flaky)
       test_sqli.py:
         Test_Sqli_BodyJson:
@@ -792,8 +792,8 @@ tests/:
           '*': v1.39.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
           spring-boot-payara: missing_feature (APPSEC-54966)
-          vertx3: v1.40.0 # issue in context propagation in 1.39.0
-          vertx4: v1.40.0 # issue in context propagation in 1.39.0
+          vertx3: v1.40.0  # issue in context propagation in 1.39.0
+          vertx4: v1.40.0  # issue in context propagation in 1.39.0
         Test_Sqli_BodyXml:
           '*': v1.39.0
           akka-http: missing_feature (APPSEC-55780)
@@ -807,32 +807,32 @@ tests/:
         Test_Sqli_Mandatory_SpanTags:
           '*': v1.39.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-          vertx3: v1.40.0 # issue in context propagation in 1.39.0
-          vertx4: v1.40.0 # issue in context propagation in 1.39.0
+          vertx3: v1.40.0  # issue in context propagation in 1.39.0
+          vertx4: v1.40.0  # issue in context propagation in 1.39.0
         Test_Sqli_Optional_SpanTags:
           '*': v1.39.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-          vertx3: v1.40.0 # issue in context propagation in 1.39.0
-          vertx4: v1.40.0 # issue in context propagation in 1.39.0
+          vertx3: v1.40.0  # issue in context propagation in 1.39.0
+          vertx4: v1.40.0  # issue in context propagation in 1.39.0
         Test_Sqli_Rules_Version:
           '*': v1.43.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
         Test_Sqli_StackTrace:
           '*': v1.39.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-          vertx3: v1.40.0 # issue in context propagation in 1.39.0
-          vertx4: v1.40.0 # issue in context propagation in 1.39.0
+          vertx3: v1.40.0  # issue in context propagation in 1.39.0
+          vertx4: v1.40.0  # issue in context propagation in 1.39.0
         Test_Sqli_Telemetry:
           '*': v1.39.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-          vertx3: v1.40.0 # issue in context propagation in 1.39.0
-          vertx4: v1.40.0 # issue in context propagation in 1.39.0
+          vertx3: v1.40.0  # issue in context propagation in 1.39.0
+          vertx4: v1.40.0  # issue in context propagation in 1.39.0
         Test_Sqli_UrlQuery:
           '*': v1.39.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
           spring-boot-payara: missing_feature (APPSEC-54966)
-          vertx3: v1.40.0 # issue in context propagation in 1.39.0
-          vertx4: v1.40.0 # issue in context propagation in 1.39.0
+          vertx3: v1.40.0  # issue in context propagation in 1.39.0
+          vertx4: v1.40.0  # issue in context propagation in 1.39.0
         Test_Sqli_Waf_Version:
           '*': v1.40.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
@@ -1217,9 +1217,9 @@ tests/:
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
         spring-boot-jetty: v0.111.0
         spring-boot-openliberty: v0.115.0  # Supported since 0.111.0 but bugged in <0.115.0.
-        spring-boot-payara: v1.35.0 # earlier, but real version not known
+        spring-boot-payara: v1.35.0  # earlier, but real version not known
         spring-boot-undertow: v0.111.0
-        spring-boot-wildfly: v1.35.0 # earlier, but real version not known
+        spring-boot-wildfly: v1.35.0  # earlier, but real version not known
         uds-spring-boot: v0.110.0
         vertx3: v1.7.0
         vertx4: v1.7.0
@@ -1234,9 +1234,9 @@ tests/:
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
         spring-boot-jetty: v0.111.0
         spring-boot-openliberty: v0.115.0  # Supported since 0.111.0 but bugged in <0.115.0.
-        spring-boot-payara: v1.35.0 # earlier, but real version not known
+        spring-boot-payara: v1.35.0  # earlier, but real version not known
         spring-boot-undertow: v0.111.0
-        spring-boot-wildfly: v1.35.0 # earlier, but real version not known
+        spring-boot-wildfly: v1.35.0  # earlier, but real version not known
         uds-spring-boot: v0.110.0
         vertx3: v1.7.0
         vertx4: v1.7.0
@@ -1251,9 +1251,9 @@ tests/:
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
         spring-boot-jetty: v0.111.0
         spring-boot-openliberty: v0.115.0  # Supported since 0.111.0 but bugged in <0.115.0.
-        spring-boot-payara: v1.35.0 # earlier, but real version not known
+        spring-boot-payara: v1.35.0  # earlier, but real version not known
         spring-boot-undertow: v0.111.0
-        spring-boot-wildfly: v1.35.0 # earlier, but real version not known
+        spring-boot-wildfly: v1.35.0  # earlier, but real version not known
         uds-spring-boot: v0.110.0
         vertx3: v1.7.0
         vertx4: v1.7.0
@@ -1274,9 +1274,9 @@ tests/:
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
         spring-boot-jetty: v0.111.0
         spring-boot-openliberty: v0.115.0  # Supported since 0.111.0 but bugged in <0.115.0.
-        spring-boot-payara: v1.35.0 # earlier, but real version not known
+        spring-boot-payara: v1.35.0  # earlier, but real version not known
         spring-boot-undertow: v0.111.0
-        spring-boot-wildfly: v1.35.0 # earlier, but real version not known
+        spring-boot-wildfly: v1.35.0  # earlier, but real version not known
         uds-spring-boot: v0.110.0
         vertx3: v1.7.0
         vertx4: v1.7.0
@@ -1291,9 +1291,9 @@ tests/:
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
         spring-boot-jetty: v0.111.0
         spring-boot-openliberty: v0.115.0  # Supported since 0.111.0 but bugged in <0.115.0.
-        spring-boot-payara: v1.35.0 # earlier, but real version not known
+        spring-boot-payara: v1.35.0  # earlier, but real version not known
         spring-boot-undertow: v0.111.0
-        spring-boot-wildfly: v1.35.0 # earlier, but real version not known
+        spring-boot-wildfly: v1.35.0  # earlier, but real version not known
         uds-spring-boot: v0.110.0
         vertx3: v1.7.0
         vertx4: v1.7.0
@@ -1530,13 +1530,13 @@ tests/:
     test_debugger_expression_language.py:
       Test_Debugger_Expression_Language:
         '*': missing_feature
-        spring-boot:  v1.33.0
+        spring-boot: v1.33.0
         spring-boot-jetty: v1.38.0
         spring-boot-openliberty: v1.38.0
         spring-boot-payara: v1.38.0
         spring-boot-undertow: v1.38.0
         spring-boot-wildfly: v1.38.0
-        uds-spring-boot:  v1.33.0
+        uds-spring-boot: v1.33.0
     test_debugger_pii.py:
       Test_Debugger_PII_Redaction:
         '*': missing_feature
@@ -1580,15 +1580,15 @@ tests/:
       test_kafka.py:
         Test_Kafka:
           "*": irrelevant
-          spring-boot: v0.1 # real version not known
+          spring-boot: v0.1  # real version not known
       test_kinesis.py:
         Test_Kinesis_PROPAGATION_VIA_MESSAGE_ATTRIBUTES:
           "*": irrelevant
-          spring-boot: v0.1 # real version not known
+          spring-boot: v0.1  # real version not known
       test_rabbitmq.py:
         Test_RabbitMQ_Trace_Context_Propagation:
           "*": irrelevant
-          spring-boot: v0.1 # real version not known
+          spring-boot: v0.1  # real version not known
       test_sns_to_sqs.py:
         Test_SNS_Propagation:
           "*": irrelevant
@@ -1596,10 +1596,10 @@ tests/:
       test_sqs.py:
         Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS:
           "*": irrelevant
-          spring-boot: v0.1 # real version not known
+          spring-boot: v0.1  # real version not known
         Test_SQS_PROPAGATION_VIA_MESSAGE_ATTRIBUTES:
           "*": irrelevant
-          spring-boot: v0.1 # real version not known
+          spring-boot: v0.1  # real version not known
     test_cassandra.py:
       Test_Cassandra: bug (APMAPI-729)
     test_db_integrations_sql.py:
@@ -1644,15 +1644,14 @@ tests/:
         spring-boot: v1.38.0
       Test_DsmSQS:
         "*": irrelevant
-        spring-boot: v0.1 # real version not known
+        spring-boot: v0.1  # real version not known
       Test_Dsm_Manual_Checkpoint_Inter_Process:
         "*": irrelevant
         spring-boot: bug (AIDM-325)
       Test_Dsm_Manual_Checkpoint_Intra_Process:
         "*": irrelevant
         spring-boot: bug (AIDM-325)
-    test_inferred_proxy.py:
-      Test_AWS_API_Gateway_Inferred_Span_Creation: missing_feature
+    test_inferred_proxy.py: missing_feature
     test_mongo.py:
       Test_Mongo: bug (APMAPI-729)
     test_otel_drop_in.py:
@@ -1695,10 +1694,10 @@ tests/:
     test_parametric_endpoints.py:
       Test_Parametric_DDSpan_Add_Link: incomplete_test_app (add_link endpoint is not implemented)
       Test_Parametric_DDTrace_Baggage: incomplete_test_app (baggage endpoints are not implemented)
-      Test_Parametric_DDTrace_Crash: bug (APMAPI-778) # The crash endpoint does not kill the application
-      Test_Parametric_DDTrace_Current_Span: bug (APMAPI-778) # Fails to retreive the current span after a span has finished
+      Test_Parametric_DDTrace_Crash: bug (APMAPI-778)  # The crash endpoint does not kill the application
+      Test_Parametric_DDTrace_Current_Span: bug (APMAPI-778)  # Fails to retreive the current span after a span has finished
       Test_Parametric_Otel_Baggage: missing_feature (otel baggage is not supported)
-      Test_Parametric_Otel_Current_Span: bug (APMAPI-778) # Current span endpoint does not return DataDog spans created by the otel api
+      Test_Parametric_Otel_Current_Span: bug (APMAPI-778)  # Current span endpoint does not return DataDog spans created by the otel api
     test_span_events.py: missing_feature
     test_span_links.py: missing_feature
     test_telemetry.py:
@@ -1722,8 +1721,8 @@ tests/:
   remote_config/:
     test_remote_configuration.py:
       Test_RemoteConfigurationExtraServices:
-          '*': v1.31.0
-          spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+        '*': v1.31.0
+        spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
       Test_RemoteConfigurationUpdateSequenceASMDD:
         '*': v1.4.0
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
@@ -1781,7 +1780,7 @@ tests/:
     Test_Config_IntegrationEnabled_True:
       '*': irrelevant (kafka endpoints are not implemented)
       spring-boot: v1.42.0
-    Test_Config_LogInjection_128Bit_TradeId_Default:  missing_feature (disabled by default)
+    Test_Config_LogInjection_128Bit_TradeId_Default: missing_feature (disabled by default)
     Test_Config_LogInjection_128Bit_TradeId_Disabled: incomplete_test_app (weblog endpoint not implemented)
     Test_Config_LogInjection_Default: incomplete_test_app (weblog endpoint not implemented)
     Test_Config_LogInjection_Enabled: incomplete_test_app (weblog endpoint not implemented)

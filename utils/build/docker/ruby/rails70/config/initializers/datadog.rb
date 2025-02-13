@@ -3,6 +3,7 @@ require 'datadog/opentelemetry'
 
 Datadog.configure do |c|
   c.diagnostics.debug = true
+  c.appsec.instrument :active_record
 end
 
 ::OpenTelemetry::SDK.configure do |_c|
