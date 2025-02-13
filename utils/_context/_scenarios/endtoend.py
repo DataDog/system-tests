@@ -569,6 +569,16 @@ class EndToEndScenario(DockerScenario):
 
     def pytest_sessionfinish(self, session, exitstatus):
         library_bugs = [
+            # deactivated to get a new occurence of the bug
+            # _SchemaBug(
+            #     endpoint="/debugger/v1/diagnostics",
+            #     data_path="$",
+            #     condition=context.library > "nodejs@5.36.0",
+            #     ticket="DEBUG-3487",
+            # ),
+            _SchemaBug(
+                endpoint="/v0.4/traces", data_path="$", condition=context.library == "java", ticket="APMAPI-1161"
+            ),
             _SchemaBug(
                 endpoint="/telemetry/proxy/api/v2/apmtelemetry",
                 data_path="$.payload.configuration[]",
@@ -616,6 +626,13 @@ class EndToEndScenario(DockerScenario):
         self._test_schemas(session, interfaces.library, library_bugs)
 
         agent_bugs = [
+            # deactivated to get a new occurence of the bug
+            # _SchemaBug(
+            #     endpoint="/api/v2/debugger",
+            #     data_path="$",
+            #     condition=context.library > "nodejs@5.36.0",
+            #     ticket="DEBUG-3487",
+            # ),
             _SchemaBug(
                 endpoint="/api/v2/apmtelemetry",
                 data_path="$.payload.configuration[]",

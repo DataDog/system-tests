@@ -148,6 +148,7 @@ def main() -> None:
                     r"\.github/.*": None,  # nothing to do??
                     ## .gitlab folder
                     r"\.gitlab/k8s_gitlab-ci.yml": ScenarioGroup.LIB_INJECTION,
+                    r"\.gitlab/aws_gitlab-ci.yml": ScenarioGroup.ONBOARDING,
                     ## utils/ folder
                     r"utils/interfaces/schemas.*": ScenarioGroup.END_TO_END,
                     r"utils/_context/_scenarios/open_telemetry\.py": ScenarioGroup.OPEN_TELEMETRY,
@@ -189,6 +190,8 @@ def main() -> None:
                     r"\.gitlab-ci\.yml": None,
                     r"\.shellcheck": None,
                     r"\.shellcheckrc": None,
+                    r"\.yamlfmt": None,
+                    r"\.yamllint": None,
                     r"CHANGELOG\.md": None,
                     r"LICENSE": None,
                     r"LICENSE-3rdparty\.csv": None,

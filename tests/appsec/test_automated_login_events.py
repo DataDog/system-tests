@@ -877,11 +877,11 @@ class Test_V2_Login_Events_Anon:
             assert meta["usr.id"] == USER_HASH
 
             # deprecated
-            "appsec.events.users.login.success.username" not in meta
-            "appsec.events.users.login.success.email" not in meta
-            "usr.email" not in meta
-            "usr.username" not in meta
-            "usr.login" not in meta
+            # "appsec.events.users.login.success.username" not in meta
+            # "appsec.events.users.login.success.email" not in meta
+            # "usr.email" not in meta
+            # "usr.username" not in meta
+            # "usr.login" not in meta
 
             assert_priority(span, trace)
 
@@ -898,11 +898,11 @@ class Test_V2_Login_Events_Anon:
             assert meta["usr.id"] == USER_HASH
 
             # deprecated
-            "appsec.events.users.login.success.username" not in meta
-            "appsec.events.users.login.success.email" not in meta
-            "usr.email" not in meta
-            "usr.username" not in meta
-            "usr.login" not in meta
+            # "appsec.events.users.login.success.username" not in meta
+            # "appsec.events.users.login.success.email" not in meta
+            # "usr.email" not in meta
+            # "usr.username" not in meta
+            # "usr.login" not in meta
 
             assert_priority(span, trace)
 

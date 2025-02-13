@@ -44,7 +44,7 @@ class Logs(list):
         self.append(line)
 
     def __str__(self):
-        return "\n".join([l.strip() for l in self])
+        return "\n".join([line.strip() for line in self])
 
 
 logs = Logs()
