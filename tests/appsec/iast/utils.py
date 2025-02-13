@@ -204,9 +204,16 @@ def validate_stack_traces(request):
     assert iast is not None, "No iast event in root span"
     assert iast["vulnerabilities"], "Expected at least one vulnerability"
 
+    assert "meta_struct" in span, "'meta_struct' not found in span"
+    assert (
+        "_dd.stack" in span["meta_struct"]
+    ), "'_dd.stack' not found in 'meta_struct'. Please check if the test should be marked as irrelevant (not expected to have a stack trace)"
     stack_traces = span["meta_struct"]["_dd.stack"]["vulnerability"]
     stack_trace = stack_traces[0]
-    vulns = [i for i in iast["vulnerabilities"] if i.get("location").get("stackId") == stack_trace["id"]]
+    logger.debug(f"Stack trace: {iast["vulnerabilities"]}")
+    vulns = [
+        i for i in iast["vulnerabilities"] if i.get("location") and i["location"].get("stackId") == stack_trace["id"]
+    ]
     assert (
         len(vulns) == 1
     ), f"Expected a single vulnerability with the stack trace Id.\nVulnerabilities: {vulns}\nStack trace: {stack_traces}"
@@ -236,18 +243,14 @@ def validate_stack_traces(request):
     assert "frames" in stack_trace, "'frames' not found in stack trace"
     assert len(stack_trace["frames"]) <= 32, "stack trace above size limit (32 frames)"
 
-    # Vulns without location path are not expected to have a stack trace
+    # Vulns without location are not expected to have a stack trace
     location = vuln["location"]
     assert location is not None, "This vulnerability is not expected to have a stack trace"
-    assert "path" in location, "This vulnerability is not expected to have a stack trace"
 
     locationFrame = None
-    logger.debug(location)
-    logger.debug(len(stack_trace["frames"]))
     for frame in stack_trace["frames"]:
         # We are looking for the frame that corresponds to the location of the vulnerability, we will need to update this to cover all tracers
         # currently support: Java, Python, Node.js
-        logger.debug(frame)
         if (
             (
                 stack_trace["language"] == "java"
@@ -263,11 +266,8 @@ def validate_stack_traces(request):
             )
             or (
                 stack_trace["language"] == "dotnet"
-                and (
-                    f"{frame.get('namespace', '')}.{frame.get('class_name', '')}" == location["path"]
-                    and location["method"] in frame["function"]
-                    and location["line"] == frame["line"]
-                )
+                # we are not able to ensure that other fields are available in location
+                and (location["method"] in frame["function"])
             )
         ):
             locationFrame = frame

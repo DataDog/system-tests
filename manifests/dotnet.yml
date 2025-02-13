@@ -58,11 +58,11 @@ tests/:
           TestHeaderInjectionExclusionPragma: missing_feature
           TestHeaderInjectionExclusionTransferEncoding: missing_feature
           TestHeaderInjection_ExtendedLocation: missing_feature
-          TestHeaderInjection_StackTrace: missing_feature (APPSEC-56196)
+          TestHeaderInjection_StackTrace: irrelevant (not expected to have a stack trace)
         test_hsts_missing_header.py:
           Test_HstsMissingHeader: v2.44.0
           Test_HstsMissingHeader_ExtendedLocation: missing_feature
-          Test_HstsMissingHeader_StackTrace: missing_feature (APPSEC-56196)
+          Test_HstsMissingHeader_StackTrace: irrelevant (not expected to have a stack trace)
         test_insecure_auth_protocol.py:
           Test_InsecureAuthProtocol: v2.49.0
           Test_InsecureAuthProtocol_ExtendedLocation: missing_feature
@@ -71,7 +71,7 @@ tests/:
           TestInsecureCookie: v2.39.0
           TestInsecureCookieNameFilter: missing_feature
           TestInsecureCookie_ExtendedLocation: missing_feature
-          TestInsecureCookie_StackTrace: missing_feature (APPSEC-56196)
+          TestInsecureCookie_StackTrace: irrelevant (not expected to have a stack trace)
         test_ldap_injection.py:
           TestLDAPInjection: v2.36.0
           TestLDAPInjection_ExtendedLocation: missing_feature
@@ -80,12 +80,12 @@ tests/:
           TestNoHttponlyCookie: v2.39.0
           TestNoHttponlyCookieNameFilter: missing_feature
           TestNoHttponlyCookie_ExtendedLocation: missing_feature
-          TestNoHttponlyCookie_StackTrace: missing_feature (APPSEC-56196)
+          TestNoHttponlyCookie_StackTrace: irrelevant (not expected to have a stack trace)
         test_no_samesite_cookie.py:
           TestNoSamesiteCookie: v2.39.0
           TestNoSamesiteCookieNameFilter: missing_feature
           TestNoSamesiteCookie_ExtendedLocation: missing_feature
-          TestNoSamesiteCookie_StackTrace: missing_feature (APPSEC-56196)
+          TestNoSamesiteCookie_StackTrace: irrelevant (not expected to have a stack trace)
         test_nosql_mongodb_injection.py:
           TestNoSqlMongodbInjection: v2.47.0
           TestNoSqlMongodbInjection_ExtendedLocation: missing_feature
@@ -134,7 +134,7 @@ tests/:
         test_weak_cipher.py:
           TestWeakCipher: v2.24.0
           TestWeakCipher_ExtendedLocation: missing_feature
-          TestWeakCipher_StackTrace: irrelevant (APPSEC-56196)
+          TestWeakCipher_StackTrace: missing_feature (APPSEC-56196)
         test_weak_hash.py:
           TestDeduplication: v2.24.0
           TestWeakHash: v2.24.0
@@ -143,7 +143,7 @@ tests/:
         test_weak_randomness.py:
           TestWeakRandomness: v2.39.0
           TestWeakRandomness_ExtendedLocation: missing_feature
-          TestWeakRandomness_StackTrace: missing_feature (APPSEC-56196)
+          TestWeakRandomness_StackTrace: v3.3.0
         test_xcontent_sniffing.py:
           Test_XContentSniffing: missing_feature
           Test_XContentSniffing_ExtendedLocation: missing_feature
