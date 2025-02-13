@@ -156,8 +156,7 @@ def assert_api_gateway_span(testCase, span, path, status_code, is_distributed=Fa
     assert "start" in span, "Inferred AWS API Gateway span should have 'startTime'"
     assert (
         span["metrics"]["_dd.inferred_span"] == 1
-    ),  "Inferred AWS API Gateway span meta expected _dd.inferred_span = 1"
-
+    ), "Inferred AWS API Gateway span meta expected _dd.inferred_span = 1"
 
     # assert on HTTP tags
     assert "http.method" in span["meta"], "Inferred AWS API Gateway span meta should contain 'http.method'"
