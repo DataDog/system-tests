@@ -2,6 +2,18 @@
     "scenario_matrix": [
         {
             "scenarios": [
+                "DEMO_AWS"
+            ],
+            "weblogs": [
+                {
+                    "nodejs": [
+                        "demo-app"
+                    ]
+                }
+            ]
+        },
+        {
+            "scenarios": [
                 "CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT"
             ],
             "weblogs": [
@@ -275,6 +287,12 @@
     ],
     "weblogs_spec": {
         "nodejs": [
+            {
+                "name": "demo-app",
+                "excluded_os_branches": [
+                    "windows"
+                ]
+            },
             {
                 "name": "test-app-nodejs",
                 "excluded_os_branches": [
