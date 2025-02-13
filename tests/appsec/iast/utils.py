@@ -220,6 +220,7 @@ def validate_stack_traces(request):
 
     assert vuln["location"], "no 'location' present'"
     assert vuln["location"]["stackId"], "no 'stack_id's present'"
+    assert isinstance(vuln["location"]["stackId"], str), "'stackId' is not a string"
     assert "meta_struct" in span, "'meta_struct' not found in span"
     assert "_dd.stack" in span["meta_struct"], "'_dd.stack' not found in 'meta_struct'"
     assert "vulnerability" in span["meta_struct"]["_dd.stack"], "'vulnerability' not found in '_dd.stack'"
