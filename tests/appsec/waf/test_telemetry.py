@@ -98,7 +98,7 @@ class Test_TelemetryMetrics:
             "waf_error",
             "block_failure",
             "rate_limited",
-            "input_truncated"
+            "input_truncated",
         }
         mandatory_tag_prefixes = {
             "waf_version",
