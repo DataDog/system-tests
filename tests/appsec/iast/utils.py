@@ -34,6 +34,7 @@ def get_iast_event(request):
 def assert_iast_vulnerability(
     request, vulnerability_count=None, vulnerability_type=None, expected_location=None, expected_evidence=None
 ):
+    oldVersion = context.library < "java@1.47.0"
     iast = get_iast_event(request=request)
     assert iast["vulnerabilities"], "Expected at least one vulnerability"
     vulns = iast["vulnerabilities"]
@@ -41,7 +42,12 @@ def assert_iast_vulnerability(
         vulns = [v for v in vulns if v["type"] == vulnerability_type]
         assert vulns, f"No vulnerability of type {vulnerability_type}"
     if expected_location:
-        vulns = [v for v in vulns if v.get("location", {}).get("path", "") == expected_location]
+        vulns = [
+            v
+            for v in vulns
+            if (oldVersion and v.get("location", {}).get("path", "") == expected_location)
+            or (v.get("location", {}).get("class", "") == expected_location)
+        ]
         assert vulns, f"No vulnerability with location {expected_location}"
     if expected_evidence:
         vulns = [v for v in vulns if v.get("evidence", {}).get("value", "") == expected_evidence]
@@ -234,25 +240,49 @@ def validate_stack_traces(request):
     assert "frames" in stack_trace, "'frames' not found in stack trace"
     assert len(stack_trace["frames"]) <= 32, "stack trace above size limit (32 frames)"
 
-    # Vulns without location path are not expected to have a stack trace
+    # Vulns without location path/class are not expected to have a stack trace
+    old_version = context.library < "java@1.47.0"
     location = vuln["location"]
-    assert location is not None, "This vulnerability is not expected to have a stack trace"
-    assert "path" in location, "This vulnerability is not expected to have a stack trace"
+    pathOrClass = "class"
+    if old_version:
+        pathOrClass = "path"
+
+    pathOrClassError = (
+        "This vulnerability was expected to have a "
+        + pathOrClass
+        + " in its location data, it is not possible to validate the stack trace"
+    )
+
+    assert location is not None, pathOrClassError
+    assert pathOrClass in location, pathOrClassError
 
     locationFrame = None
+
     for frame in stack_trace["frames"]:
         # We are looking for the frame that corresponds to the location of the vulnerability, we will need to update this to cover all tracers
         # currently support: Java, Python, Node.js
         if (
-            stack_trace["language"] == "java"
-            and (
-                location["path"] in frame["class_name"]
-                and location["method"] in frame["function"]
-                and location["line"] == frame["line"]
+            (
+                stack_trace["language"] == "java"
+                and old_version
+                and (
+                    location["path"] in frame["class_name"]
+                    and location["method"] in frame["function"]
+                    and location["line"] == frame["line"]
+                )
             )
-        ) or (
-            stack_trace["language"] in ("python", "nodejs")
-            and (frame.get("file", "").endswith(location["path"]) and location["line"] == frame["line"])
+            or (
+                stack_trace["language"] == "java"
+                and (
+                    location["class"] in frame["class_name"]
+                    and location["method"] in frame["function"]
+                    and location["line"] == frame["line"]
+                )
+            )
+            or (
+                stack_trace["language"] in ("python", "nodejs")
+                and (frame.get("file", "").endswith(location["path"]) and location["line"] == frame["line"])
+            )
         ):
             locationFrame = frame
     assert locationFrame is not None, "location not found in stack trace"
