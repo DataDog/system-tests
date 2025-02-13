@@ -194,7 +194,7 @@ class Test_Automated_User_Blocking:
         self.config_state_3 = rc.rc_state.set_config(*BLOCK_USER_DATA).apply()
 
         self.r_not_blocked = weblog.get(
-            "/users",
+            "/",
             cookies=self.r_login.cookies,
         )
         self.r_blocked = weblog.get(
