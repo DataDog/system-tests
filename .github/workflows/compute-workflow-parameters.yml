@@ -43,9 +43,9 @@ on:
       opentelemetry_scenarios:
         description: ""
         value: ${{ jobs.main.outputs.opentelemetry_scenarios }}
-      parametric_scenarios:
+      parametric_enable:
         description: ""
-        value: ${{ jobs.main.outputs.parametric_scenarios }}
+        value: ${{ jobs.main.outputs.parametric_enable }}
       externalprocessing_scenarios:
         description: ""
         value: ${{ jobs.main.outputs.externalprocessing_scenarios }}
@@ -62,7 +62,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       libinjection_scenarios: ${{ steps.main.outputs.libinjection_scenarios }}
-      parametric_scenarios: ${{ steps.main.outputs.parametric_scenarios }}
+      parametric_enable: ${{ steps.main.outputs.parametric_enable }}
       externalprocessing_scenarios: ${{ steps.main.outputs.externalprocessing_scenarios }}
       parametric_job_matrix: ${{ steps.main.outputs.parametric_job_matrix }}
       parametric_job_count: ${{ steps.main.outputs.parametric_job_count }}
@@ -92,7 +92,7 @@ jobs:
           -s "${{ inputs.scenarios }}" \
           -g "${{ inputs.scenarios_groups }}" \
           --parametric-job-count ${{ inputs.parametric_job_count }} \
-          --ci-environment "${{ inputs._ci_environment }}"
+          --ci-environment "${{ inputs._ci_environment }}" \
           --format json | jq
       env:
         PYTHONPATH: "."

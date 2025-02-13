@@ -81,7 +81,7 @@ jobs:
   parametric:
     needs:
       - compute_parameters
-    if: needs.compute_parameters.outputs.parametric_scenarios != '[]'
+    if: needs.compute_parameters.outputs.parametric_enable == 'true'
     uses: ./.github/workflows/run-parametric.yml
     secrets: inherit
     with:

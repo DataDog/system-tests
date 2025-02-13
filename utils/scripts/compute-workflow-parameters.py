@@ -30,6 +30,11 @@ class CiData:
         self.data["parametric"] = {
             "job_count": parametric_job_count,
             "job_matrix": list(range(1, parametric_job_count + 1)),
+            "enable": len(scenario_map["parametric"]) > 0 and "otel" not in language,
+        }
+
+        self.data["libinjection"] = {
+            "scenarios": scenario_map.get("libinjection", []),
         }
 
         self.data["aws_ssi_scenario_defs"] = get_aws_matrix(
@@ -113,7 +118,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "language",
         type=str,
-        help="One of the supported Datadog languages",
+        help="One of the supported Datadog library",
         choices=[
             "cpp",
             "dotnet",
