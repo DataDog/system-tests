@@ -153,27 +153,15 @@ function initRaspEndpoints (app) {
   app.get('/rasp/multiple', (req, res) => {
     try {
       JSON.stringify(statSync(req.query.file1))
-    } catch (e) {
-      if (e.name !== 'DatadogRaspAbortError') {
-        throw e
-      }
-    }
+    } catch (e) {}
 
     try {
       JSON.stringify(statSync(req.query.file2))
-    } catch (e) {
-      if (e.name !== 'DatadogRaspAbortError') {
-        throw e
-      }
-    }
+    } catch (e) {}
 
     try {
       JSON.stringify(statSync('../etc/passwd'))
-    } catch (e) {
-      if (e.name !== 'DatadogRaspAbortError') {
-        throw e
-      }
-    }
+    } catch (e) {}
 
     res.send('OK')
   })

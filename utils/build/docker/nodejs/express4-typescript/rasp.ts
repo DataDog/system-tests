@@ -7,7 +7,7 @@ const pg = require('pg')
 const { statSync } = require('fs')
 const { execFileSync, execSync } = require('child_process')
 
-function initRaspEndpoints(app: Express) {
+function initRaspEndpoints (app: Express) {
     const pool = new pg.Pool()
 
     app.get('/rasp/ssrf', (req: Request, res: Response) => {
@@ -157,27 +157,15 @@ function initRaspEndpoints(app: Express) {
     app.get('/rasp/multiple', (req: Request, res: Response) => {
         try {
             JSON.stringify(statSync(req.query.file1))
-        } catch (e: any) {
-            if (e.name !== 'DatadogRaspAbortError') {
-                throw e
-            }
-        }
+        } catch (e: any) {}
 
         try {
             JSON.stringify(statSync(req.query.file2))
-        } catch (e: any) {
-            if (e.name !== 'DatadogRaspAbortError') {
-                throw e
-            }
-        }
+        } catch (e: any) {}
 
         try {
             JSON.stringify(statSync('../etc/passwd'))
-        } catch (e: any) {
-            if (e.name !== 'DatadogRaspAbortError') {
-                throw e
-            }
-        }
+        } catch (e: any) {}
 
         res.send('OK')
     })
