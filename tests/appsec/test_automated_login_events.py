@@ -1459,7 +1459,7 @@ class Test_V3_Login_Events:
             for trigger in SDK_TRIGGERS
         ]
 
-    @bug(context.library == "java", reason="APPSEC-56744")
+    @bug(context.library < "java@1.47.0", reason="APPSEC-56744")
     def test_login_sdk_failure_local(self):
         for request in self.r_sdk_failure:
             assert request.status_code == 401
@@ -1485,7 +1485,7 @@ class Test_V3_Login_Events:
         ]
 
     @missing_feature(context.library == "php", reason="Basic auth not implemented")
-    @bug(context.library == "java", reason="APPSEC-56744")
+    @bug(context.library < "java@1.47.0", reason="APPSEC-56744")
     def test_login_sdk_failure_basic(self):
         for request in self.r_sdk_failure:
             assert request.status_code == 401
@@ -1772,7 +1772,7 @@ class Test_V3_Login_Events_Anon:
             for trigger in SDK_TRIGGERS
         ]
 
-    @bug(context.library == "java", reason="APPSEC-56744")
+    @bug(context.library < "java@1.47.0", reason="APPSEC-56744")
     def test_login_sdk_failure_local(self):
         for request in self.r_sdk_failure:
             assert request.status_code == 401
@@ -1798,7 +1798,7 @@ class Test_V3_Login_Events_Anon:
         ]
 
     @missing_feature(context.library == "php", reason="Basic auth not implemented")
-    @bug(context.library == "java", reason="APPSEC-56744")
+    @bug(context.library < "java@1.47.0", reason="APPSEC-56744")
     def test_login_sdk_failure_basic(self):
         for request in self.r_sdk_failure:
             assert request.status_code == 401
