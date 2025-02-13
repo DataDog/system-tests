@@ -488,9 +488,9 @@ tests/:
       Test_Consistent_Configs: missing_feature
       Test_Defaults: v2.49.0
       Test_Environment: v2.49.0
+      Test_Stable_Configuration_Origin: missing_feature
       Test_TelemetryInstallSignature: v2.45.0
       Test_TelemetrySCAEnvVar: v2.50.0
-      Test_Stable_Configuration_Origin: missing_feature
     test_trace_sampling.py:
       Test_Trace_Sampling_Basic: v2.46.0
       Test_Trace_Sampling_Globs: v2.46.0

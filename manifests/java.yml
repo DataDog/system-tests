@@ -1704,9 +1704,9 @@ tests/:
       Test_Consistent_Configs: missing_feature
       Test_Defaults: v1.31.0
       Test_Environment: v1.31.0
+      Test_Stable_Configuration_Origin: missing_feature
       Test_TelemetryInstallSignature: v1.27.0
       Test_TelemetrySCAEnvVar: v1.34.0
-      Test_Stable_Configuration_Origin: missing_feature
     test_trace_sampling.py:
       Test_Trace_Sampling_Basic: v0.111.0
       Test_Trace_Sampling_Globs: v1.25.0
