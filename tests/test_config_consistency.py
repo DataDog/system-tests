@@ -521,7 +521,7 @@ class Test_Config_LogInjection_Default:
 @rfc("https://docs.google.com/document/d/1kI-gTAKghfcwI7YzKhqRv2ExUstcHqADIWA4-TZ387o/edit#heading=h.8v16cioi7qxp")
 @scenarios.tracing_config_nondefault
 @features.tracing_configuration_consistency
-class Test_Config_LogInjection_128Bit_TradeId_Default:
+class Test_Config_LogInjection_128Bit_TraceId_Default:
     """Verify trace IDs are logged in 128bit format when log injection is enabled"""
 
     def setup_log_injection_128bit_traceid_default(self):
@@ -549,7 +549,7 @@ class Test_Config_LogInjection_128Bit_TradeId_Disabled:
         assert self.r.status_code == 200
         log_msg = parse_log_injection_message(self.message)
         trace_id = parse_log_trace_id(log_msg)
-        assert re.match(r"^\d{1,20}$", trace_id), f"Invalid 64-bit trace_id: {trace_id}"
+        assert re.match(r"^\d{1,20}$", str(trace_id)), f"Invalid 64-bit trace_id: {trace_id}"
 
 
 @rfc("https://docs.google.com/document/d/1kI-gTAKghfcwI7YzKhqRv2ExUstcHqADIWA4-TZ387o/edit#heading=h.8v16cioi7qxp")
@@ -599,6 +599,7 @@ def parse_log_injection_message(log_message):
 
 def parse_log_trace_id(message):
     if message.get("dd.trace_id"):
+        print("MTOFF: trace id is", message.get("dd.trace_id"))
         return message.get("dd.trace_id")
     if message.get("trace_id"):
         return message.get("trace_id")
