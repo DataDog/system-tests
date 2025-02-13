@@ -245,6 +245,14 @@ class Provision:
                     app_type="host",
                     app_context_url="/",
                 )
+            else:
+                # Assume the app is on host but the weblog provision doesn't have the lang_variant section
+                self.deployed_weblog = _DeployedWeblog(
+                    weblog_name=self.weblog_installation.id,
+                    runtime_version="default",
+                    app_type="host",
+                    app_context_url="/",
+                )
 
         return self.deployed_weblog
 
