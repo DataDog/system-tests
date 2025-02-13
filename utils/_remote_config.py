@@ -242,7 +242,7 @@ def build_symdb_command(version):
     return _build_base_command(path_payloads, version)
 
 
-def send_symdb_command(version: int =1) -> dict:
+def send_symdb_command(version: int = 1) -> dict:
     raw_payload = build_symdb_command(version)
     return send_state(raw_payload)
 
@@ -253,7 +253,7 @@ def build_apm_tracing_command(
     exception_replay_enabled: bool | None = None,
     live_debugging_enabled: bool | None = None,
     code_origin_enabled: bool | None = None,
-    dynamic_sampling_enabled: bool | None = None
+    dynamic_sampling_enabled: bool | None = None,
 ):
     lib_config: dict[str, str | bool] = {
         "library_language": "all",

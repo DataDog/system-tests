@@ -190,11 +190,8 @@ class _Base_Debugger_Test:
         if reset:
             self.rc_states = []
 
-        self.rc_states.append(
-            remote_config.send_symdb_command(_Base_Debugger_Test._rc_version)
-        )
-        
-        
+        self.rc_states.append(remote_config.send_symdb_command(_Base_Debugger_Test._rc_version))
+
     def send_weblog_request(self, request_path: str, reset: bool = True):
         if reset:
             self.weblog_responses = []
