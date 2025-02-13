@@ -31,8 +31,13 @@ from iast import (
 
 import ddtrace
 from ddtrace import patch_all
-from ddtrace.trace import Pin, tracer
 from ddtrace.appsec import trace_utils as appsec_trace_utils
+
+try:
+    from ddtrace.trace import Pin, tracer
+except ImportError:
+    from ddtrace import tracer, Pin
+
 
 patch_all(urllib3=True)
 
@@ -541,6 +546,39 @@ def view_iast_xss_secure(request):
     return render(request, "index.html", {"param": param})
 
 
+@csrf_exempt
+def view_iast_stacktraceleak_insecure(request):
+    return HttpResponse("""
+  Traceback (most recent call last):
+  File "/usr/local/lib/python3.9/site-packages/some_module.py", line 42, in process_data
+    result = complex_calculation(data)
+  File "/usr/local/lib/python3.9/site-packages/another_module.py", line 158, in complex_calculation
+    intermediate = perform_subtask(data_slice)
+  File "/usr/local/lib/python3.9/site-packages/subtask_module.py", line 27, in perform_subtask
+    processed = handle_special_case(data_slice)
+  File "/usr/local/lib/python3.9/site-packages/special_cases.py", line 84, in handle_special_case
+    return apply_algorithm(data_slice, params)
+  File "/usr/local/lib/python3.9/site-packages/algorithm_module.py", line 112, in apply_algorithm
+    step_result = execute_step(data, params)
+  File "/usr/local/lib/python3.9/site-packages/step_execution.py", line 55, in execute_step
+    temp = pre_process(data)
+  File "/usr/local/lib/python3.9/site-packages/pre_processing.py", line 33, in pre_process
+    validated_data = validate_input(data)
+  File "/usr/local/lib/python3.9/site-packages/validation.py", line 66, in validate_input
+    check_constraints(data)
+  File "/usr/local/lib/python3.9/site-packages/constraints.py", line 19, in check_constraints
+    raise ValueError("Constraint violation at step 9")
+ValueError: Constraint violation at step 9
+
+Lorem Ipsum Foobar
+""")
+
+
+@csrf_exempt
+def view_iast_stacktraceleak_secure(request):
+    return HttpResponse("OK")
+
+
 def _sink_point_sqli(table="user", id="1"):
     sql = f"SELECT * FROM {table} WHERE id = '{id}'"
     with connection.cursor() as cursor:
@@ -960,6 +998,8 @@ urlpatterns = [
     path("iast/ssrf/test_secure", view_iast_ssrf_secure),
     path("iast/xss/test_insecure", view_iast_xss_insecure),
     path("iast/xss/test_secure", view_iast_xss_secure),
+    path("iast/stack_trace_leak/test_insecure", view_iast_stacktraceleak_insecure),
+    path("iast/stack_trace_leak/test_secure", view_iast_stacktraceleak_secure),
     path("iast/source/body/test", view_iast_source_body),
     path("iast/source/cookiename/test", view_iast_source_cookie_name),
     path("iast/source/cookievalue/test", view_iast_source_cookie_value),

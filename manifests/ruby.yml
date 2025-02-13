@@ -1,3 +1,4 @@
+---
 tests/:
   apm_tracing_e2e/:
     test_otel.py:
@@ -104,7 +105,6 @@ tests/:
           TestSSRF_StackTrace: missing_feature
         test_stacktrace_leak.py:
           TestStackTraceLeak: missing_feature
-          TestStackTraceLeak_StackTrace: missing_feature
         test_template_injection.py:
           TestTemplateInjection: missing_feature
           TestTemplateInjection_ExtendedLocation: missing_feature
@@ -214,7 +214,17 @@ tests/:
       test_custom_rules.py:
         Test_CustomRules: v1.12.0
       test_exclusions.py:
-        Test_Exclusions: v1.11.0
+        Test_Exclusions:
+          '*': v1.11.0
+          sinatra14: missing_feature (endpoint not implemented)
+          sinatra20: missing_feature (endpoint not implemented)
+          sinatra21: missing_feature (endpoint not implemented)
+          sinatra22: missing_feature (endpoint not implemented)
+          sinatra30: missing_feature (endpoint not implemented)
+          sinatra31: missing_feature (endpoint not implemented)
+          sinatra32: missing_feature (endpoint not implemented)
+          sinatra40: missing_feature (endpoint not implemented)
+          uds-sinatra: missing_feature (endpoint not implemented)
       test_miscs.py:
         Test_MultipleAttacks: v0.54.2
         Test_MultipleHighlight: v1.0.0.beta1
@@ -277,8 +287,8 @@ tests/:
       Test_Blocking_request_headers: v1.0.0
       Test_Blocking_request_method: v1.12.0
       Test_Blocking_request_path_params:
-          '*': v1.0.0
-          rack: irrelevant
+        '*': v1.0.0
+        rack: irrelevant
       Test_Blocking_request_query: v1.0.0
       Test_Blocking_request_uri: v1.0.0
       Test_Blocking_response_headers: v1.0.0
@@ -428,8 +438,7 @@ tests/:
       Test_Dsm_Manual_Checkpoint_Intra_Process:
         '*': irrelevant
         rails70: missing_feature (Endpoint not implemented)
-    test_inferred_proxy.py:
-      Test_AWS_API_Gateway_Inferred_Span_Creation: missing_feature
+    test_inferred_proxy.py: missing_feature
     test_otel_drop_in.py:
       Test_Otel_Drop_In: missing_feature
   k8s_lib_injection/:
@@ -458,7 +467,7 @@ tests/:
       TestDynamicConfigSamplingRules: v2.0.0
       TestDynamicConfigTracingEnabled: missing_feature
       TestDynamicConfigV1: bug (APMAPI-867)  # theorical version is v1.13.0
-      TestDynamicConfigV1_EmptyServiceTargets: v2.8.0 # version unknown
+      TestDynamicConfigV1_EmptyServiceTargets: v2.8.0  # version unknown
       TestDynamicConfigV1_ServiceTargets: missing_feature
       TestDynamicConfigV2: missing_feature
     test_headers_baggage.py:
@@ -474,10 +483,10 @@ tests/:
       Test_Parametric_DDSpan_Set_Resource: incomplete_test_app (set_resource endpoint is not supported)
       Test_Parametric_DDTrace_Baggage: missing_feature (baggage is not supported)
       Test_Parametric_DDTrace_Current_Span: incomplete_test_app (current span endpoint is not supported)
-      Test_Parametric_OtelSpan_Set_Name: bug (APMAPI-778) # set_name endpoint should set the resource name on a span (not the operation name)
+      Test_Parametric_OtelSpan_Set_Name: bug (APMAPI-778)  # set_name endpoint should set the resource name on a span (not the operation name)
       Test_Parametric_Otel_Baggage: missing_feature (otel baggage is not supported)
       Test_Parametric_Otel_Current_Span: incomplete_test_app (otel current span endpoint is not supported)
-    test_partial_flushing.py: # Not configurable in a standard way
+    test_partial_flushing.py:  # Not configurable in a standard way
       Test_Partial_Flushing: missing_feature
     test_sampling_delegation.py:
       Test_Decisionless_Extraction: v2.4.0
@@ -491,7 +500,7 @@ tests/:
       Test_TelemetryInstallSignature: missing_feature
       Test_TelemetrySCAEnvVar: v2.1.0
     test_trace_sampling.py:
-      Test_Trace_Sampling_Basic: v1.0.0 # TODO what is the earliest version?
+      Test_Trace_Sampling_Basic: v1.0.0  # TODO what is the earliest version?
       Test_Trace_Sampling_Globs: v2.0.0
       Test_Trace_Sampling_Globs_Feb2024_Revision: v2.0.0
       Test_Trace_Sampling_Resource: v2.0.0

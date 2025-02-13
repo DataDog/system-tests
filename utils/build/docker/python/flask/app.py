@@ -70,9 +70,8 @@ if os.environ.get("INCLUDE_RABBITMQ", "true") == "true":
     from integrations.messaging.rabbitmq import rabbitmq_produce
 
 import ddtrace
-from ddtrace.trace import Pin
-from ddtrace.trace import tracer
 from ddtrace.appsec import trace_utils as appsec_trace_utils
+from ddtrace.appsec.iast import ddtrace_iast_flask_patch
 from ddtrace.internal.datastreams import data_streams_processor
 from ddtrace.internal.datastreams.processor import DsmPathwayCodec
 from ddtrace.data_streams import set_consume_checkpoint
@@ -80,6 +79,13 @@ from ddtrace.data_streams import set_produce_checkpoint
 
 from debugger_controller import debugger_blueprint
 from exception_replay_controller import exception_replay_blueprint
+
+try:
+    from ddtrace.trace import Pin
+    from ddtrace.trace import tracer
+except ImportError:
+    from ddtrace import Pin
+    from ddtrace import tracer
 
 # Patch kombu and urllib3 since they are not patched automatically
 ddtrace.patch_all(kombu=True, urllib3=True)
@@ -114,11 +120,19 @@ del AIOMYSQL_CONFIG["database"]
 MARIADB_CONFIG = dict(AIOMYSQL_CONFIG)
 MARIADB_CONFIG["collation"] = "utf8mb4_unicode_520_ci"
 
-app = Flask(__name__)
-app.secret_key = "SECRET_FOR_TEST"
-app.config["SESSION_TYPE"] = "memcached"
-app.register_blueprint(debugger_blueprint)
-app.register_blueprint(exception_replay_blueprint)
+
+def main():
+    # IAST Flask patch
+    ddtrace_iast_flask_patch()
+    app = Flask(__name__)
+    app.secret_key = "SECRET_FOR_TEST"
+    app.config["SESSION_TYPE"] = "memcached"
+    app.register_blueprint(debugger_blueprint)
+    app.register_blueprint(exception_replay_blueprint)
+    return app
+
+
+app = main()
 login_manager = LoginManager()
 login_manager.login_view = "login"
 login_manager.init_app(app)
@@ -1396,6 +1410,40 @@ def test_weak_randomness_secure():
     return Response("OK")
 
 
+@app.route("/iast/stack_trace_leak/test_insecure")
+def test_stacktrace_leak_insecure():
+    return Response(
+        """Traceback (most recent call last):
+File "/usr/local/lib/python3.9/site-packages/some_module.py", line 42, in process_data
+result = complex_calculation(data)
+File "/usr/local/lib/python3.9/site-packages/another_module.py", line 158, in complex_calculation
+intermediate = perform_subtask(data_slice)
+File "/usr/local/lib/python3.9/site-packages/subtask_module.py", line 27, in perform_subtask
+processed = handle_special_case(data_slice)
+File "/usr/local/lib/python3.9/site-packages/special_cases.py", line 84, in handle_special_case
+return apply_algorithm(data_slice, params)
+File "/usr/local/lib/python3.9/site-packages/algorithm_module.py", line 112, in apply_algorithm
+step_result = execute_step(data, params)
+File "/usr/local/lib/python3.9/site-packages/step_execution.py", line 55, in execute_step
+temp = pre_process(data)
+File "/usr/local/lib/python3.9/site-packages/pre_processing.py", line 33, in pre_process
+validated_data = validate_input(data)
+File "/usr/local/lib/python3.9/site-packages/validation.py", line 66, in validate_input
+check_constraints(data)
+File "/usr/local/lib/python3.9/site-packages/constraints.py", line 19, in check_constraints
+raise ValueError("Constraint violation at step 9")
+ValueError: Constraint violation at step 9
+
+Lorem Ipsum Foobar
+"""
+    )
+
+
+@app.route("/iast/stack_trace_leak/test_secure")
+def test_stacktrace_leak_secure():
+    return Response("OK")
+
+
 @app.route("/iast/cmdi/test_insecure", methods=["POST"])
 def view_cmdi_insecure():
     filename = "/"
@@ -1581,3 +1629,14 @@ def otel_drop_in_default_propagator_inject():
     opentelemetry.propagate.inject(result, opentelemetry.context.get_current())
 
     return jsonify(result)
+
+
+@app.route("/inferred-proxy/span-creation", methods=["GET"])
+def inferred_proxy_span_creation():
+    headers = flask_request.args.get("headers", {})
+    status = int(flask_request.args.get("status_code", "200"))
+
+    logging.info("Received an API Gateway request")
+    logging.info("Request headers: " + str(headers))
+
+    return Response("ok", status=status)

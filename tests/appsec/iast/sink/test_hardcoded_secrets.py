@@ -3,7 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 from utils import features, context, rfc, weblog
-from ..utils import get_hardcoded_vulnerabilities, validate_stack_traces
+from tests.appsec.iast.utils import get_hardcoded_vulnerabilities, validate_stack_traces
 
 # Test_HardcodedSecrets and Test_HardcodedSecretsExtended don't inherit from BaseSinkTest
 # Hardcode secrets detection implementation change a lot between different languages

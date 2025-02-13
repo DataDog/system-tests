@@ -1,7 +1,11 @@
 from app.lib.base import BaseController
 from pylons import response
 from pylons import tmpl_context as c
-from ddtrace.trace import tracer
+
+try:
+    from ddtrace.trace import tracer
+except ImportError:
+    from ddtrace import tracer
 
 try:
     from ddtrace.contrib.trace_utils import set_user
