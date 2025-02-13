@@ -14,6 +14,7 @@ from moto import mock_aws
 import mock
 import urllib3
 import xmltodict
+import graphene
 
 
 if os.environ.get("INCLUDE_POSTGRES", "true") == "true":
@@ -68,8 +69,6 @@ if os.environ.get("INCLUDE_RABBITMQ", "true") == "true":
     from integrations.messaging.rabbitmq import rabbitmq_produce
 
 import ddtrace
-from ddtrace.trace import Pin
-from ddtrace.trace import tracer
 from ddtrace.appsec import trace_utils as appsec_trace_utils
 from ddtrace.appsec.iast import ddtrace_iast_flask_patch
 from ddtrace.internal.datastreams import data_streams_processor
@@ -79,6 +78,13 @@ from ddtrace.data_streams import set_produce_checkpoint
 
 from debugger_controller import debugger_blueprint
 from exception_replay_controller import exception_replay_blueprint
+
+try:
+    from ddtrace.trace import Pin
+    from ddtrace.trace import tracer
+except ImportError:
+    from ddtrace import Pin
+    from ddtrace import tracer
 
 # Patch kombu and urllib3 since they are not patched automatically
 ddtrace.patch_all(kombu=True, urllib3=True)
@@ -435,6 +441,30 @@ def rasp_cmdi(*args, **kwargs):
 
 
 ### END EXPLOIT PREVENTION
+
+
+@app.route("/graphql", methods=["GET", "POST"])
+def graphql_error_spans(*args, **kwargs):
+    from integrations.graphql import schema
+
+    data = request.get_json()
+
+    result = schema.execute(
+        data["query"],
+        variables=data.get("variables"),
+        operation_name=data.get("operationName"),
+    )
+
+    if result.errors:
+        return jsonify(format_error(result.errors[0])), 200
+
+    return jsonify(result.to_dict())
+
+
+def format_error(error):
+    return {
+        "message": error.message,
+    }
 
 
 @app.route("/read_file", methods=["GET"])
@@ -1608,3 +1638,14 @@ def otel_drop_in_default_propagator_inject():
     opentelemetry.propagate.inject(result, opentelemetry.context.get_current())
 
     return jsonify(result)
+
+
+@app.route("/inferred-proxy/span-creation", methods=["GET"])
+def inferred_proxy_span_creation():
+    headers = flask_request.args.get("headers", {})
+    status = int(flask_request.args.get("status_code", "200"))
+
+    logging.info("Received an API Gateway request")
+    logging.info("Request headers: " + str(headers))
+
+    return Response("ok", status=status)
