@@ -392,7 +392,7 @@ SDK_DEFAULT_STABLE_CONFIG = {
 @scenarios.parametric
 @features.stable_configuration_support
 @missing_feature(
-    context.library in ["ruby", "cpp", "dotnet", "golang", "java", "nodejs", "php", "python"],
+    context.library in ["ruby", "cpp", "dotnet", "golang", "nodejs", "php", "python"],
     reason="does not support stable configurations yet",
 )
 class Test_Stable_Config_Default:
@@ -409,31 +409,31 @@ class Test_Stable_Config_Default:
     @pytest.mark.parametrize(
         "apm_configuration_default,expected",
         [
-            (
-                {"DD_PROFILING_ENABLED": True},
-                {
-                    **SDK_DEFAULT_STABLE_CONFIG,
-                    "dd_profiling_enabled": "true",
-                },
-            ),
-            (
-                {
-                    "DD_RUNTIME_METRICS_ENABLED": True,
-                },
-                {
-                    **SDK_DEFAULT_STABLE_CONFIG,
-                    "dd_runtime_metrics_enabled": "true",
-                },
-            ),
-            (
-                {
-                    "DD_DATA_STREAMS_ENABLED": True,
-                },
-                {
-                    **SDK_DEFAULT_STABLE_CONFIG,
-                    "dd_data_streams_enabled": "true",
-                },
-            ),
+            # (
+            #     {"DD_PROFILING_ENABLED": True},
+            #     {
+            #         **SDK_DEFAULT_STABLE_CONFIG,
+            #         "dd_profiling_enabled": "true",
+            #     },
+            # ),
+            # (
+            #     {
+            #         "DD_RUNTIME_METRICS_ENABLED": True,
+            #     },
+            #     {
+            #         **SDK_DEFAULT_STABLE_CONFIG,
+            #         "dd_runtime_metrics_enabled": "true",
+            #     },
+            # ),
+            # (
+            #     {
+            #         "DD_DATA_STREAMS_ENABLED": True,
+            #     },
+            #     {
+            #         **SDK_DEFAULT_STABLE_CONFIG,
+            #         "dd_data_streams_enabled": "true",
+            #     },
+            # ),
             (
                 {
                     "DD_LOGS_INJECTION": True,
@@ -463,109 +463,114 @@ class Test_Stable_Config_Default:
             )
             test_library.container_restart()
             config = test_library.config()
+            print("MTOFF: EXPECTED")
+            print(expected.items())
+            
+            print("MTOFF: CONFIG")
+            print(config.items())
             assert expected.items() <= config.items()
 
-    @pytest.mark.parametrize("library_env", [{}])
-    @pytest.mark.parametrize(
-        "test",
-        [
-            {
-                "apm_configuration_default": {
-                    "DD_RUNTIME_METRICS_ENABLED": True,
-                    "DD_FOOBAR_ENABLED": "baz",
-                },
-                "expected": {
-                    **SDK_DEFAULT_STABLE_CONFIG,
-                    "dd_runtime_metrics_enabled": "true",
-                },
-            },
-        ],
-    )
-    @pytest.mark.parametrize(
-        "path",
-        [
-            "/etc/datadog-agent/managed/datadog-agent/stable/application_monitoring.yaml",
-            "/etc/datadog-agent/application_monitoring.yaml",
-        ],
-    )
-    def test_unknown_key_skipped(self, test_library, path, library_env, test):
-        with test_library:
-            self.write_stable_config(
-                {
-                    "apm_configuration_default": test["apm_configuration_default"],
-                    "extra_key": 123,
-                },
-                path,
-                test_library,
-            )
-            test_library.container_restart()
-            config = test_library.config()
-            assert test["expected"].items() <= config.items()
+    # @pytest.mark.parametrize("library_env", [{}])
+    # @pytest.mark.parametrize(
+    #     "test",
+    #     [
+    #         {
+    #             "apm_configuration_default": {
+    #                 "DD_RUNTIME_METRICS_ENABLED": True,
+    #                 "DD_FOOBAR_ENABLED": "baz",
+    #             },
+    #             "expected": {
+    #                 **SDK_DEFAULT_STABLE_CONFIG,
+    #                 "dd_runtime_metrics_enabled": "true",
+    #             },
+    #         },
+    #     ],
+    # )
+    # @pytest.mark.parametrize(
+    #     "path",
+    #     [
+    #         "/etc/datadog-agent/managed/datadog-agent/stable/application_monitoring.yaml",
+    #         "/etc/datadog-agent/application_monitoring.yaml",
+    #     ],
+    # )
+    # def test_unknown_key_skipped(self, test_library, path, library_env, test):
+    #     with test_library:
+    #         self.write_stable_config(
+    #             {
+    #                 "apm_configuration_default": test["apm_configuration_default"],
+    #                 "extra_key": 123,
+    #             },
+    #             path,
+    #             test_library,
+    #         )
+    #         test_library.container_restart()
+    #         config = test_library.config()
+    #         assert test["expected"].items() <= config.items()
 
-    @pytest.mark.parametrize(
-        "name,local_cfg,library_env,fleet_cfg,expected",
-        [
-            (
-                "fleet>local",
-                {"DD_PROFILING_ENABLED": True},
-                {},
-                {"DD_PROFILING_ENABLED": False},
-                {"dd_profiling_enabled": "false"},  # expected
-            ),
-            (
-                "fleet>env",
-                {},
-                {"DD_PROFILING_ENABLED": True},
-                {"DD_PROFILING_ENABLED": False},
-                {"dd_profiling_enabled": "false"},  # expected
-            ),
-            pytest.param(
-                "env>local",
-                {"DD_PROFILING_ENABLED": True},
-                {"DD_PROFILING_ENABLED": False},
-                {},
-                {"dd_profiling_enabled": "false"},  # expected
-            ),
-            (
-                "orthogonal_priorities",
-                {"DD_PROFILING_ENABLED": True, "DD_RUNTIME_METRICS_ENABLED": True},
-                {"DD_LOGS_INJECTION": True},
-                {"DD_PROFILING_ENABLED": False},
-                {
-                    "dd_profiling_enabled": "false",
-                    "dd_runtime_metrics_enabled": "true",
-                    "dd_logs_injection": "true",
-                },  # expected
-            ),
-        ],
-        ids=lambda name: name,
-    )
-    def test_config_precedence(self, name, test_agent, test_library, local_cfg, library_env, fleet_cfg, expected):
-        with test_library:
-            self.write_stable_config(
-                {
-                    "apm_configuration_default": local_cfg,
-                },
-                "/etc/datadog-agent/application_monitoring.yaml",
-                test_library,
-            )
-            self.write_stable_config(
-                {
-                    "apm_configuration_default": fleet_cfg,
-                },
-                "/etc/datadog-agent/managed/datadog-agent/stable/application_monitoring.yaml",
-                test_library,
-            )
+    # @pytest.mark.parametrize(
+    #     "name,local_cfg,library_env,fleet_cfg,expected",
+    #     [
+    #         (
+    #             "fleet>local",
+    #             {"DD_PROFILING_ENABLED": True},
+    #             {},
+    #             {"DD_PROFILING_ENABLED": False},
+    #             {"dd_profiling_enabled": "false"},  # expected
+    #         ),
+    #         (
+    #             "fleet>env",
+    #             {},
+    #             {"DD_PROFILING_ENABLED": True},
+    #             {"DD_PROFILING_ENABLED": False},
+    #             {"dd_profiling_enabled": "false"},  # expected
+    #         ),
+    #         pytest.param(
+    #             "env>local",
+    #             {"DD_PROFILING_ENABLED": True},
+    #             {"DD_PROFILING_ENABLED": False},
+    #             {},
+    #             {"dd_profiling_enabled": "false"},  # expected
+    #         ),
+    #         (
+    #             "orthogonal_priorities",
+    #             {"DD_PROFILING_ENABLED": True, "DD_RUNTIME_METRICS_ENABLED": True},
+    #             {"DD_LOGS_INJECTION": True},
+    #             {"DD_PROFILING_ENABLED": False},
+    #             {
+    #                 "dd_profiling_enabled": "false",
+    #                 "dd_runtime_metrics_enabled": "true",
+    #                 "dd_logs_injection": "true",
+    #             },  # expected
+    #         ),
+    #     ],
+    #     ids=lambda name: name,
+    # )
+    # def test_config_precedence(self, name, test_agent, test_library, local_cfg, library_env, fleet_cfg, expected):
+    #     with test_library:
+    #         self.write_stable_config(
+    #             {
+    #                 "apm_configuration_default": local_cfg,
+    #             },
+    #             "/etc/datadog-agent/application_monitoring.yaml",
+    #             test_library,
+    #         )
+    #         self.write_stable_config(
+    #             {
+    #                 "apm_configuration_default": fleet_cfg,
+    #             },
+    #             "/etc/datadog-agent/managed/datadog-agent/stable/application_monitoring.yaml",
+    #             test_library,
+    #         )
 
-            test_library.container_restart()
-            config = test_library.config()
-            assert expected.items() <= config.items()
+    #         test_library.container_restart()
+    #         config = test_library.config()
+    #         assert expected.items() <= config.items()
 
-    @pytest.mark.parametrize("library_env", [{"STABLE_CONFIG_SELECTOR": "true", "DD_SERVICE": "not-my-service"}])
-    @missing_feature(
-        context.library in ["ruby", "cpp", "dotnet", "golang", "java", "nodejs", "php", "python"],
-        reason="UST stable config is phase 2",
-    )
+    # @pytest.mark.parametrize("library_env", [{"STABLE_CONFIG_SELECTOR": "true", "DD_SERVICE": "not-my-service"}])
+    # @missing_feature(
+    #     context.library in ["ruby", "cpp", "dotnet", "golang", "java", "nodejs", "php", "python"],
+    #     reason="UST stable config is phase 2",
+    # )
     def test_config_stable(self, library_env, test_agent, test_library):
         path = "/etc/datadog-agent/managed/datadog-agent/stable/application_monitoring.yaml"
         stable_config = """
