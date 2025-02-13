@@ -6,9 +6,8 @@ import json
 import re
 import os
 import os.path
+from pathlib import Path
 import uuid
-import gzip
-import io
 
 from utils import interfaces, remote_config, weblog, context
 from utils.tools import logger
@@ -21,7 +20,7 @@ _LOGS_PATH = "/api/v2/logs"
 _TRACES_PATH = "/api/v0.2/traces"
 _SYMBOLS_PATH = "/symdb/v1/input"
 
-_CUR_DIR = os.path.dirname(os.path.abspath(__file__))
+_CUR_DIR = str(Path(__file__).resolve().parent)
 
 
 def read_probes(test_name: str):
@@ -43,10 +42,9 @@ def extract_probe_ids(probes):
     return []
 
 
-def _get_path(test_name, suffix):
+def _get_path(test_name, suffix) -> str:
     filename = test_name + "_" + _Base_Debugger_Test.tracer["language"] + "_" + suffix + ".json"
-    path = os.path.join(_CUR_DIR, "approvals", filename)
-    return path
+    return os.path.join(_CUR_DIR, "approvals", filename)
 
 
 def write_approval(data, test_name, suffix):
@@ -87,8 +85,7 @@ class _Base_Debugger_Test:
                 # This should fail the test immediately but the failure is
                 # reported after all of the setup and the test are attempted
                 self.setup_failures.append(
-                    "Failed to get /debugger/init: expected status code: 200, actual status code: %d"
-                    % (response.status_code)
+                    f"Failed to get /debugger/init: expected status code: 200, actual status code: {response.status_code}"
                 )
 
     ###### set #####
@@ -280,11 +277,7 @@ class _Base_Debugger_Test:
                     path = _DEBUGGER_PATH
                 else:
                     path = _LOGS_PATH
-            elif context.library == "python":
-                path = _DEBUGGER_PATH
-            elif context.library == "ruby":
-                path = _DEBUGGER_PATH
-            elif context.library == "nodejs":
+            elif context.library == "python" or context.library == "ruby" or context.library == "nodejs":
                 path = _DEBUGGER_PATH
             else:
                 path = _LOGS_PATH  # TODO: Should the default not be _DEBUGGER_PATH?
@@ -307,11 +300,11 @@ class _Base_Debugger_Test:
                 # update status
                 if probe_id in probe_diagnostics:
                     current_status = probe_diagnostics[probe_id]["status"]
-                    if current_status == "RECEIVED":
-                        probe_diagnostics[probe_id]["status"] = status
-                    elif current_status == "INSTALLED" and status in ["INSTALLED", "EMITTING"]:
-                        probe_diagnostics[probe_id]["status"] = status
-                    elif current_status == "EMITTING" and status == "EMITTING":
+                    if (
+                        current_status == "RECEIVED"
+                        or (current_status == "INSTALLED" and status in ["INSTALLED", "EMITTING"])
+                        or (current_status == "EMITTING" and status == "EMITTING")
+                    ):
                         probe_diagnostics[probe_id]["status"] = status
                 # set new status
                 else:
@@ -326,10 +319,9 @@ class _Base_Debugger_Test:
                     for d_content in d_contents:
                         if isinstance(d_content, dict):
                             _process_debugger(d_content["debugger"])
-                else:
-                    if "debugger" in content:
-                        if isinstance(content, dict):
-                            _process_debugger(content["debugger"])
+                elif "debugger" in content:
+                    if isinstance(content, dict):
+                        _process_debugger(content["debugger"])
 
         return probe_diagnostics
 

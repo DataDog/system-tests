@@ -9,7 +9,7 @@ from utils._context._scenarios import ScenarioGroup, scenarios, Scenario
 class Result:
     def __init__(self) -> None:
         self.scenarios = {"DEFAULT"}  # always run the default scenario
-        self.scenarios_groups = set()
+        self.scenarios_groups: set[str] = set()
 
     def add_scenario(self, scenario: str) -> None:
         if scenario == "EndToEndScenario":
@@ -20,7 +20,7 @@ class Result:
     def add_scenario_group(self, scenario_group: str) -> None:
         self.scenarios_groups.add(scenario_group)
 
-    def add_scenarios(self, scenarios: set[str]) -> None:
+    def add_scenarios(self, scenarios: set[str] | list[str]) -> None:
         for scenario in scenarios:
             self.add_scenario(scenario)
 
@@ -148,6 +148,7 @@ def main() -> None:
                     r"\.github/.*": None,  # nothing to do??
                     ## .gitlab folder
                     r"\.gitlab/k8s_gitlab-ci.yml": ScenarioGroup.LIB_INJECTION,
+                    r"\.gitlab/aws_gitlab-ci.yml": ScenarioGroup.ONBOARDING,
                     ## utils/ folder
                     r"utils/interfaces/schemas.*": ScenarioGroup.END_TO_END,
                     r"utils/_context/_scenarios/open_telemetry\.py": ScenarioGroup.OPEN_TELEMETRY,

@@ -102,7 +102,7 @@ class Test_Headers:
     @irrelevant(library="php", reason="PHP normalizes into dashes; additionally, matching on keys is not supported")
     @missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
     def test_specific_key2(self):
-        """attacks on specific header X_Filename, and report it"""
+        """Attacks on specific header X_Filename, and report it"""
         try:
             interfaces.library.assert_waf_attack(
                 self.r_sk_4, pattern="routing.yml", address="server.request.headers.no_cookies", key_path=["x_filename"]
@@ -338,8 +338,8 @@ class Test_gRPC:
         for r in self.requests:
             try:
                 interfaces.library.assert_waf_attack(r, address="grpc.server.request.message")
-            except:
-                raise ValueError(f"Basic attack #{self.requests.index(r)} not detected")
+            except Exception as e:
+                raise ValueError(f"Basic attack #{self.requests.index(r)} not detected") from e
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2278064284/gRPC+Protocol+Support")
@@ -450,7 +450,7 @@ class Test_GrpcServerMethod:
 
     def validate_span(self, span, appsec_data):
         tag = "rpc.grpc.full_method"
-        if not tag in span["meta"]:
+        if tag not in span["meta"]:
             logger.info(f"Can't find '{tag}' in span's meta")
             return False
 

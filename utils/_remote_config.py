@@ -65,7 +65,7 @@ def send_state(
 
     client_configs = raw_payload.get("client_configs", [])
 
-    current_states = {}
+    current_states: dict[str, Any] = {}
     version = None
     targets = json.loads(base64.b64decode(raw_payload["targets"]))
     version = targets["signed"]["version"]
@@ -132,7 +132,7 @@ def send_sequential_commands(commands: list[dict], *, wait_for_all_command: bool
     if not wait_for_all_command:
         return
 
-    counts_by_runtime_id = {}
+    counts_by_runtime_id: dict[str, int] = {}
 
     def all_payload_sent(data) -> bool:
         if data["path"] != "/v0.7/config":
@@ -207,9 +207,7 @@ def _build_base_command(path_payloads: dict[str, dict | list], version: int):
         payload_64 = _json_to_base64(payload)
         payload_length = len(base64.b64decode(payload_64))
 
-        target = {"custom": {"v": 1}, "hashes": {"sha256": ""}, "length": 0}
-        target["hashes"]["sha256"] = _sha256(payload_64)
-        target["length"] = payload_length
+        target = {"custom": {"v": 1}, "hashes": {"sha256": _sha256(payload_64)}, "length": payload_length}
         signed["signed"]["targets"][path] = target
 
         target_file = {"path": path, "raw": payload_64}
@@ -234,8 +232,9 @@ def build_debugger_command(probes: list | None, version: int):
 
 
 def build_symdb_command():
-    path_payloads = {"datadog/2/LIVE_DEBUGGING_SYMBOL_DB/symDb/config": {"upload_symbols": True}}
-    return _build_base_command(path_payloads, version=1)
+    return _build_base_command(
+        path_payloads={"datadog/2/LIVE_DEBUGGING_SYMBOL_DB/symDb/config": {"upload_symbols": True}}, version=1
+    )
 
 
 def send_debugger_command(probes: list, version: int) -> dict:
@@ -274,6 +273,8 @@ class ClientConfig:
             self.raw_sha256 = hashlib.sha256(base64.b64decode(self.raw)).hexdigest()
         else:
             stored_config = self._store.get(path, None)
+            if stored_config is None:
+                raise ValueError(f"Config for {path} not found")
             self.raw_length = stored_config.raw_length
             self.raw_sha256 = stored_config.raw_sha256
 

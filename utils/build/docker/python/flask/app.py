@@ -71,6 +71,7 @@ import ddtrace
 from ddtrace.trace import Pin
 from ddtrace.trace import tracer
 from ddtrace.appsec import trace_utils as appsec_trace_utils
+from ddtrace.appsec.iast import ddtrace_iast_flask_patch
 from ddtrace.internal.datastreams import data_streams_processor
 from ddtrace.internal.datastreams.processor import DsmPathwayCodec
 from ddtrace.data_streams import set_consume_checkpoint
@@ -112,11 +113,19 @@ del AIOMYSQL_CONFIG["database"]
 MARIADB_CONFIG = dict(AIOMYSQL_CONFIG)
 MARIADB_CONFIG["collation"] = "utf8mb4_unicode_520_ci"
 
-app = Flask(__name__)
-app.secret_key = "SECRET_FOR_TEST"
-app.config["SESSION_TYPE"] = "memcached"
-app.register_blueprint(debugger_blueprint)
-app.register_blueprint(exception_replay_blueprint)
+
+def main():
+    # IAST Flask patch
+    ddtrace_iast_flask_patch()
+    app = Flask(__name__)
+    app.secret_key = "SECRET_FOR_TEST"
+    app.config["SESSION_TYPE"] = "memcached"
+    app.register_blueprint(debugger_blueprint)
+    app.register_blueprint(exception_replay_blueprint)
+    return app
+
+
+app = main()
 login_manager = LoginManager()
 login_manager.login_view = "login"
 login_manager.init_app(app)
@@ -186,6 +195,46 @@ def flush_dsm_checkpoints():
     # force flush stats to ensure they're available to agent after test setup is complete
     tracer.data_streams_processor.periodic()
     data_streams_processor().periodic()
+
+
+def check_and_create_users_table():
+    postgres_db = psycopg2.connect(**POSTGRES_CONFIG)
+    cur = postgres_db.cursor()
+
+    # Check if 'users' exists
+    cur.execute("""
+        SELECT EXISTS (
+            SELECT FROM information_schema.tables 
+            WHERE table_name = 'users'
+        );
+    """)
+    table_exists = cur.fetchone()[0]
+
+    if not table_exists:
+        cur.execute("""
+            CREATE TABLE users (
+                id VARCHAR(255) PRIMARY KEY,
+                username VARCHAR(255),
+                email VARCHAR(255),
+                password VARCHAR(255)
+            );
+        """)
+        postgres_db.commit()
+
+        users_data = [
+            ("1", "john_doe", "john@example.com", "hashed_password_1"),
+            ("2", "jane_doe", "jane@example.com", "hashed_password_2"),
+            ("3", "bob_smith", "bob@example.com", "hashed_password_3"),
+        ]
+
+        cur.executemany(
+            "INSERT INTO users (id, username, email, password) VALUES (%s, %s, %s, %s) ON CONFLICT (id) DO NOTHING;",
+            users_data,
+        )
+        postgres_db.commit()
+
+        cur.close()
+        postgres_db.close()
 
 
 @app.route("/")
@@ -974,8 +1023,9 @@ def view_weak_cipher_secure():
     return Response("OK")
 
 
-def _sink_point_sqli(table="user", id="1"):
-    sql = "SELECT * FROM " + table + " WHERE id = '" + id + "'"
+def _sink_point_sqli(table="users", id="1"):
+    check_and_create_users_table()
+    sql = f"SELECT * FROM {table} WHERE id = '" + id + "'"
     postgres_db = psycopg2.connect(**POSTGRES_CONFIG)
     cursor = postgres_db.cursor()
     try:
@@ -1099,20 +1149,10 @@ def view_iast_ssrf_insecure():
 
 @app.route("/iast/ssrf/test_secure", methods=["POST"])
 def view_iast_ssrf_secure():
-    from urllib.parse import urlparse
-
     import requests
 
-    url = flask_request.form["url"]
-    # Validate the URL and enforce whitelist
-    allowed_domains = ["example.com", "api.example.com"]
-    parsed_url = urlparse(url)
-
-    if parsed_url.hostname not in allowed_domains:
-        return "Forbidden", 403
-
     try:
-        requests.get(url)
+        requests.get("https://www.datadoghq.com")
     except Exception:
         pass
 
@@ -1237,25 +1277,30 @@ def track_custom_event():
 
 @app.route("/iast/sqli/test_secure", methods=["POST"])
 def view_sqli_secure():
-    sql = "SELECT * FROM IAST_USER WHERE USERNAME = ? AND PASSWORD = ?"
+    check_and_create_users_table()
+    sql = "SELECT * FROM users WHERE username = %s AND password = %s"
     postgres_db = psycopg2.connect(**POSTGRES_CONFIG)
     cursor = postgres_db.cursor()
-    cursor.execute(sql, flask_request.form["username"], flask_request.form["password"])
+    cursor.execute(sql, (flask_request.form["username"], flask_request.form["password"]))
     return Response("OK")
 
 
 @app.route("/iast/sqli/test_insecure", methods=["POST"])
 def view_sqli_insecure():
+    check_and_create_users_table()
     sql = (
-        "SELECT * FROM IAST_USER WHERE USERNAME = '"
+        "SELECT * FROM users WHERE username = '"
         + flask_request.form["username"]
-        + "' AND PASSWORD = '"
+        + "' AND password = '"
         + flask_request.form["password"]
         + "'"
     )
     postgres_db = psycopg2.connect(**POSTGRES_CONFIG)
     cursor = postgres_db.cursor()
-    cursor.execute(sql)
+    try:
+        cursor.execute(sql)
+    except Exception:
+        pass
     return Response("OK")
 
 
@@ -1344,6 +1389,40 @@ def test_weak_randomness_secure():
     return Response("OK")
 
 
+@app.route("/iast/stack_trace_leak/test_insecure")
+def test_stacktrace_leak_insecure():
+    return Response(
+        """Traceback (most recent call last):
+File "/usr/local/lib/python3.9/site-packages/some_module.py", line 42, in process_data
+result = complex_calculation(data)
+File "/usr/local/lib/python3.9/site-packages/another_module.py", line 158, in complex_calculation
+intermediate = perform_subtask(data_slice)
+File "/usr/local/lib/python3.9/site-packages/subtask_module.py", line 27, in perform_subtask
+processed = handle_special_case(data_slice)
+File "/usr/local/lib/python3.9/site-packages/special_cases.py", line 84, in handle_special_case
+return apply_algorithm(data_slice, params)
+File "/usr/local/lib/python3.9/site-packages/algorithm_module.py", line 112, in apply_algorithm
+step_result = execute_step(data, params)
+File "/usr/local/lib/python3.9/site-packages/step_execution.py", line 55, in execute_step
+temp = pre_process(data)
+File "/usr/local/lib/python3.9/site-packages/pre_processing.py", line 33, in pre_process
+validated_data = validate_input(data)
+File "/usr/local/lib/python3.9/site-packages/validation.py", line 66, in validate_input
+check_constraints(data)
+File "/usr/local/lib/python3.9/site-packages/constraints.py", line 19, in check_constraints
+raise ValueError("Constraint violation at step 9")
+ValueError: Constraint violation at step 9
+
+Lorem Ipsum Foobar
+"""
+    )
+
+
+@app.route("/iast/stack_trace_leak/test_secure")
+def test_stacktrace_leak_secure():
+    return Response("OK")
+
+
 @app.route("/iast/cmdi/test_insecure", methods=["POST"])
 def view_cmdi_insecure():
     filename = "/"
@@ -1389,7 +1468,7 @@ def db():
 def create_extra_service():
     new_service_name = request.args.get("serviceName", default="", type=str)
     if new_service_name:
-        Pin.override(Flask, service=new_service_name, tracer=tracer)
+        Pin.override(Flask, service=new_service_name)
     return Response("OK")
 
 

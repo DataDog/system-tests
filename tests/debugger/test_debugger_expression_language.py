@@ -3,7 +3,8 @@
 # Copyright 2021 Datadog, Inc.
 
 import tests.debugger.utils as debugger
-import re, json
+import re
+import json
 from utils import scenarios, features, bug, missing_feature, context
 
 
@@ -650,9 +651,7 @@ class Test_Debugger_Expression_Language(debugger._Base_Debugger_Test):
             return "value"
 
     def _method_and_language_to_line_number(self, method, language):
-        """
-        _method_and_language_to_line_number returns the respective line number given the method and language
-        """
+        """_method_and_language_to_line_number returns the respective line number given the method and language"""
         return {
             "Expression": {"java": [71], "dotnet": [74], "python": [72]},
             # The `@exception` variable is not available in the context of line probes.
@@ -663,7 +662,7 @@ class Test_Debugger_Expression_Language(debugger._Base_Debugger_Test):
             "Nulls": {"java": [130], "dotnet": [127], "python": [136]},
         }.get(method, {}).get(language, [])
 
-    def _create_expression_probes(self, methodName, expressions, lines=[]):
+    def _create_expression_probes(self, methodName, expressions, lines=()):
         probes = []
         expected_message_map = {}
         prob_types = ["method"]

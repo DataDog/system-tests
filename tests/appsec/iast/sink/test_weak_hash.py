@@ -3,7 +3,12 @@
 # Copyright 2021 Datadog, Inc.
 
 from utils import weblog, context, missing_feature, features, rfc, scenarios
-from ..utils import BaseSinkTest, assert_iast_vulnerability, validate_stack_traces
+from tests.appsec.iast.utils import (
+    BaseSinkTest,
+    assert_iast_vulnerability,
+    validate_extended_location_data,
+    validate_stack_traces,
+)
 
 
 def _expected_location():
@@ -19,12 +24,11 @@ def _expected_location():
     if context.library.library == "python":
         if context.library.version >= "1.12.0":
             return "iast.py"
+        # old value: absolute path
+        elif context.weblog_variant == "uwsgi-poc":
+            return "/app/./iast.py"
         else:
-            # old value: absolute path
-            if context.weblog_variant == "uwsgi-poc":
-                return "/app/./iast.py"
-            else:
-                return "/app/iast.py"
+            return "/app/iast.py"
 
 
 def _expected_evidence():
@@ -84,7 +88,8 @@ class TestDeduplication:
 
     def test_insecure_hash_remove_duplicates(self):
         """If one line is vulnerable and it is executed multiple times (for instance in a loop) in a request,
-        we will report only one vulnerability"""
+        we will report only one vulnerability
+        """
         assert_iast_vulnerability(
             request=self.r_insecure_hash_remove_duplicates,
             vulnerability_count=1,
@@ -104,3 +109,17 @@ class TestDeduplication:
             vulnerability_type="WEAK_HASH",
             expected_location=_expected_location(),
         )
+
+
+@rfc("https://docs.google.com/document/d/1R8AIuQ9_rMHBPdChCb5jRwPrg1WvIz96c_WQ3y8DWk4")
+@features.iast_extended_location
+class TestWeakHash_ExtendedLocation:
+    """Test extended location data"""
+
+    vulnerability_type = "WEAK_HASH"
+
+    def setup_extended_location_data(self):
+        self.r = weblog.get("/iast/insecure_hashing/test_md5_algorithm")
+
+    def test_extended_location_data(self):
+        validate_extended_location_data(self.r, self.vulnerability_type)
