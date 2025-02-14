@@ -213,6 +213,10 @@ class TestSimpleInstallerAutoInjectManual(base.AutoInjectBaseTest):
         context.vm_name in ["Ubuntu_24_10_amd64", "Ubuntu_24_10_arm64"] and context.weblog_variant == "test-app-python",
         reason="INPLAT-478",
     )
+    @bug(
+        context.vm_name == "Ubuntu_24_arm64" and context.weblog_variant == "test-app-dotnet-multialpine",
+        reason="INPLAT-484",
+    )
     def test_install(self):
         virtual_machine = context.scenario.virtual_machine
         logger.info(
