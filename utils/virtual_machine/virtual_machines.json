@@ -508,7 +508,7 @@
             "os_branch": "alma_linux",
             "os_cpu": "amd64",
             "default_vm": false,
-            "disabled": true
+            "disabled": false
         },
         {
             "name": "AlmaLinux_8_arm64",
@@ -522,7 +522,7 @@
             "os_branch": "alma_linux",
             "os_cpu": "arm64",
             "default_vm": false,
-            "disabled": true
+            "disabled": false
         },
         {
             "name": "AlmaLinux_9_amd64",
@@ -536,7 +536,7 @@
             "os_branch": "alma_linux",
             "os_cpu": "amd64",
             "default_vm": false,
-            "disabled": true
+            "disabled": false
         },
         {
             "name": "AlmaLinux_9_arm64",
@@ -550,7 +550,7 @@
             "os_branch": "alma_linux",
             "os_cpu": "arm64",
             "default_vm": false,
-            "disabled": true
+            "disabled": false
         },
         {
             "name": "Fedora_36_amd64",
