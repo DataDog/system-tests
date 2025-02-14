@@ -8,6 +8,8 @@ Here's what you need to do!
 
 #### Summary
 
+This can be fixed with **~5 minutes of effort**.
+
 This is **caused by adding a new config option** without adding the associated config normalization rules to telemetry intake
 
 The impact is that these **configs are not visible** in Metabase, REDAPL, or anywhere else
