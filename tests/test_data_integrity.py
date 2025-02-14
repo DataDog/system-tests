@@ -239,8 +239,8 @@ class Test_Agent:
         # check that all traces reported by the tracer are also reported by the agent
         for data, span in interfaces.library.get_root_spans():
             metrics = span["metrics"]
-            sampling_priority = metrics["_sampling_priority_v1"]
-            if sampling_priority in (SamplingPriority.AUTO_KEEP, SamplingPriority.USER_KEEP):
+            sampling_priority = metrics.get("_sampling_priority_v1")
+            if sampling_priority in (None, SamplingPriority.AUTO_KEEP, SamplingPriority.USER_KEEP):
                 trace_ids_reported_by_tracer.add(span["trace_id"])
                 if span["trace_id"] not in trace_ids_reported_by_agent:
                     logger.error(f"Trace {span['trace_id']} has not been reported ({data['log_filename']})")
@@ -252,6 +252,17 @@ class Test_Agent:
             logger.info(f"Tracer reported {len(trace_ids_reported_by_tracer)} traces")
             logger.info(f"Agent reported {len(trace_ids_reported_by_agent)} traces")
             raise ValueError("Some traces have not been reported by the agent. See logs for more details")
+
+    def test_traces_coherence(self):
+        """Agent does not like incoherent data. Check that no incoherent data are coming from the tracer"""
+
+        for data, trace in interfaces.library.get_traces():
+            assert data["response"]["status_code"] == 200
+            trace_id = trace[0]["trace_id"]
+            assert isinstance(trace_id, int)
+            assert trace_id > 0
+            for span in trace:
+                assert span["trace_id"] == trace_id
 
 
 def _empty_request(data):
