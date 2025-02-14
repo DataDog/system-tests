@@ -633,6 +633,39 @@ def view_iast_header_injection_secure(request):
     return response
 
 
+def view_iast_header_injection_reflected_exclusion(request):
+    header_origin = request.GET.get("origin")
+    header_reflected = request.GET.get("reflected")
+    response = HttpResponse("OK", status=200)
+
+    if request.META.get(header_origin):
+        response.headers[header_reflected] = request.META.get(header_origin)
+    return response
+
+
+def view_iast_header_injection_reflected_no_exclusion(request):
+    # There is a reason for this: to avoid vulnerabilities deduplication,
+    # which caused the non-exclusion test to fail for all tests after the first one,
+    # since they are all in the same location (the hash is calculated based on the location).
+
+    header_origin = request.GET.get("origin")
+    header_reflected = request.GET.get("reflected")
+    response = HttpResponse("OK", status=200)
+    
+    # label view_iast_header_injection_reflected_no_exclusion
+    if header_reflected == 'pragma':
+        response.headers[header_reflected] = header_origin
+    elif header_reflected == 'transfer-encoding':
+        response.headers[header_reflected] = header_origin
+    elif header_reflected == 'content-encoding':
+        response.headers[header_reflected] = header_origin
+    elif header_reflected == 'access-control-allow-origin':
+        response.headers[header_reflected] = header_origin
+    else:
+        response.headers[header_reflected] = header_origin
+
+    return response
+
 @csrf_exempt
 def view_iast_code_injection_insecure(request):
     code_string = request.POST.get("code")
@@ -953,6 +986,8 @@ urlpatterns = [
     path("iast/source/path_parameter/test/<str:table>", view_iast_source_path_parameter),
     path("iast/header_injection/test_secure", view_iast_header_injection_secure),
     path("iast/code_injection/test_insecure", view_iast_code_injection_insecure),
+    path("iast/header_injection/reflected/no-exclusion", view_iast_header_injection_reflected_no_exclusion),
+    path("iast/header_injection/reflected/exclusion", view_iast_header_injection_reflected_exclusion),
     path("iast/code_injection/test_secure", view_iast_code_injection_secure),
     path("iast/header_injection/test_insecure", view_iast_header_injection_insecure),
     path("make_distant_call", make_distant_call),

@@ -1173,6 +1173,24 @@ def view_iast_code_injection_insecure():
     resp = Response("OK")
     return resp
 
+@app.route("/iast/header_injection/reflected/exclusion", methods=["GET"])
+def view_iast_header_injection_reflected_exclusion():
+    header_origin = flask_request.args.get("origin")
+    header_reflected = flask_request.args.get("reflected")
+    resp = Response("OK")
+
+    if flask_request.headers.get(header_origin):
+        resp.headers[header_reflected] = flask_request.headers.get(header_origin)
+    return resp
+
+@app.route("/ast/header_injection/reflected/no-exclusion", methods=["GET"])
+def view_iast_header_injection_reflected_no_exclusion():
+    header_origin = flask_request.args.get("origin")
+    header_reflected = flask_request.args.get("reflected")
+    resp = Response("OK")
+
+    resp.headers[header_reflected] = header_origin
+    return resp
 
 @app.route("/iast/code_injection/test_secure", methods=["POST"])
 def view_iast_code_injection_secure():

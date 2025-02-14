@@ -107,6 +107,26 @@ async def iast_header_injection_secure(request: Request):
     return response
 
 
+@app.get("/iast/header_injection/reflected/exclusion", response_class=PlainTextResponse)
+async def view_iast_header_injection_reflected_exclusion(request: Request):
+    header_origin = request.query_params.get("origin")
+    header_reflected = request.query_params.get("reflected")
+    resp = PlainTextResponse("OK")
+
+    if request.headers.get(header_origin):
+        resp.headers[header_reflected] = request.headers.get(header_origin)
+    return resp
+
+@app.get("/ast/header_injection/reflected/no-exclusion", response_class=PlainTextResponse)
+async def view_iast_header_injection_reflected_no_exclusion(request: Request):
+    header_origin = request.query_params.get("origin")
+    header_reflected = request.query_params.get("reflected")
+    resp = PlainTextResponse("OK")
+
+    resp.headers[header_reflected] = header_origin
+    return resp
+
+
 @app.get("/sample_rate_route/{i}", response_class=PlainTextResponse)
 async def sample_rate(i):
     return "OK"
