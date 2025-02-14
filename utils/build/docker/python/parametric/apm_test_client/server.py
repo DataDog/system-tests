@@ -26,7 +26,6 @@ from opentelemetry.baggage import set_baggage
 from opentelemetry.baggage import get_baggage
 
 import ddtrace
-from ddtrace._trace.sampling_rule import SamplingRule
 from ddtrace import config
 from ddtrace.settings.profiling import config as profiling_config
 from ddtrace.contrib.trace_utils import set_http_meta
@@ -39,9 +38,11 @@ from ddtrace.internal.utils.version import parse_version
 try:
     from ddtrace.trace import Span
     from ddtrace.trace import Context
+    from ddtrace._trace.sampling_rule import SamplingRule
 except ImportError:
     from ddtrace import Span
     from ddtrace.context import Context
+    from ddtrace.sampling_rule import SamplingRule
 
 log = logging.getLogger(__name__)
 
