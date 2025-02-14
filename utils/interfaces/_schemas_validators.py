@@ -101,6 +101,11 @@ class SchemaValidator:
             return []
 
         validator = _get_schema_validator(schema_id)
+        if "content" not in data["request"]:
+            # something went wrong on the proxy side
+            # it's not the scehma job to complain about it
+            return []
+
         if validator.is_valid(data["request"]["content"]):
             return []
 
