@@ -156,15 +156,15 @@ function initRaspEndpoints (app: Express) {
 
     app.get('/rasp/multiple', (req: Request, res: Response) => {
         try {
-            JSON.stringify(statSync(req.query.file1))
+            statSync(req.query.file1)
         } catch (e: any) {}
 
         try {
-            JSON.stringify(statSync(req.query.file2))
+            statSync(req.query.file2)
         } catch (e: any) {}
 
         try {
-            JSON.stringify(statSync('../etc/passwd'))
+            statSync('../etc/passwd')
         } catch (e: any) {}
 
         res.send('OK')
