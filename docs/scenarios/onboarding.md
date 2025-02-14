@@ -7,12 +7,15 @@
      - [Provider](#Provider)
 2. [Run the tests](#Run-the-tests)
    * [Prerequisites](#Prerequisites)
+
      - [AWS](#AWS)
      - [Vagrant](#Vagrant)
      - [Pulumi](#Pulumi)
      - [System-tests requirements](#System-tests-requirements)
-   * [Configure the environment variables](#Configure-the-environment-variables)
-   * [Run the scenario](#run-the-scenario)
+
+     * [Configure the environment variables](#Configure-the-environment-variables)
+   * [Run the scenario using the wizard](#run-the-scenario-using-the-wizard)
+   * [Run the scenario manually](#run-the-scenario-manually)
 3. [How to develop tests](#How-to-develop-a-test-case)
    * [Folders and Files structure](#Folders-and-Files-structure)
    * [Create a new provision](#Create-a-new-provision)
@@ -49,70 +52,53 @@ Before start with the onboarding tests, we need to know some terms:
   * a list of setup executed on this tested architecture, we called as a virtual machine provision. Each scenario is associated with a provision.
   * a list of test associated to the scenario
 * **Virtual Machine:** A virtual machine (VM) is a replica, in terms of behavior, of a physical computer. There is software capable of emulating these replicas of physical computers running operating systems. In this case, system-tests will be able to handle the integration of the framework itself with the virtual machines, so that we can install our software to be tested on them (provision).
-* **Provision:** It will be the list of software and configurations to be installed on the virtual machine. The provisions will be specified by using yaml files.
+* **Provision:** It will be the list of software and configurations to be installed on the virtual machine. The provisions will be specified by using yaml files. In this case we can consider the provision as the configuration associated to the scenario.
 * **Weblog:** Usually It is a web application that exposes consistent endpoints across all implementations and that will be installed on the Virtual Machine. In the case of weblogs associated to the VMs, it does not always have to be a web application that exposes services, it can also be a specific configuration for the machine we want to test.
 * **Provider:** It refers to the integration of system-tests with the different technologies that allow interacting with virtual machines. These can be executed locally using software such as vmware, virtual box... or executed in the cloud using services such as Google Cloud or AWS.
 * **Tests:** Set of tests to run against a virtual machine. For example, we can make remote HTTP requests to an installed web application during the provisioning process or we can connect to it via SSH to execute different commands to check that the installed software provision is running correctly.
+
+The following picture ilustrates how the system-tests providers can handle the software/provision installations agains different virtual machine types:
 
 ![SSI tests architecture](../lib-injection/onboarding_overview.png "SSI tests architecture")
 
 ### Virtual Machine scenario
 
-You can create your own VirtualMachine scenario, extending the common interface `_VirtualMachineScenario`, and specifing the allowed machines and the default provision.
-In the following code you can see how we define a new VirtualMachine Scenario, setting the VMs that you want to run:
+You can create your own VirtualMachine scenario, extending or using the common implementation `_VirtualMachineScenario`. A "Virtual Machine Scenario" is always associated with a provision. By default, it's going to use the provision that install the agent + docker + SSI software (injector + tracer), but you can also refer to your own provision.
+
+In the following code (*utils/_context/_scenarios/__init__.pyutils/_context/_scenarios/__init__.py*) you can see the declaration of two new scenarios: a scenario that uses the default provision and a scenario that uses a custom provision:
 
 ```Python
-class InstallerAutoInjectionScenarioProfiling(_VirtualMachineScenario):
+   #Use the default provision, but with a custom environment variables (profiling activation)
+   simple_auto_injection_profiling = InstallerAutoInjectionScenario(
+        "SIMPLE_AUTO_INJECTION_PROFILING",
+        "Onboarding Single Step Instrumentation scenario with profiling activated by the app env var",
+        app_env={
+            "DD_PROFILING_ENABLED": "auto",
+            "DD_PROFILING_UPLOAD_PERIOD": "10",
+            "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500",
+        },
+        scenario_groups=[ScenarioGroup.ONBOARDING],
+        github_workflow="aws_ssi",
+    )
+    #Create a new scenario with a custom provision
+    demo_aws = InstallerAutoInjectionScenario(
+        "DEMO_AWS",
+        "Demo aws scenario",
+        vm_provision="demo",
+        scenario_groups=[ScenarioGroup.ONBOARDING],
+        github_workflow="aws_ssi",
+    )
 
-    def __init__(
-        self,
-        name,
-        doc,
-        vm_provision="installer-auto-inject", #Reference to the provision for this scenario
-        agent_env=None,
-        app_env=None,
-        scenario_groups=None,
-        github_workflow=None,
-    ) -> None:
-        # Specific configuration for the weblogs deployed using this scenario
-        app_env_defaults = {
-            "DD_TRACE_RATE_LIMIT": "1000000000000",
-            "DD_TRACE_SAMPLING_RULES": "'[{\"sample_rate\":1}]'",
-        }
-        if app_env is not None:
-            app_env_defaults.update(app_env)
-
-        super().__init__(
-            name,
-            vm_provision=vm_provision,
-            agent_env=agent_env,
-            app_env=app_env_defaults,
-            doc=doc,
-            github_workflow=github_workflow,
-            include_ubuntu_22_amd64=True,
-            include_ubuntu_22_arm64=True,
-            include_amazon_linux_2_amd64=True,
-            include_amazon_linux_2_arm64=True,
-            include_amazon_linux_2023_amd64=True,
-            include_amazon_linux_2023_arm64=True,
-            include_redhat_7_9_amd64=True,
-            include_redhat_8_amd64=True,
-            include_redhat_8_arm64=True,
-            include_redhat_9_amd64=True,
-            include_redhat_9_arm64=True,
-            scenario_groups=scenario_groups,
-        )
 ```
 
 ### Virtual Machine
 
 The Virtual Machines properties:
 
-* There are defined in `utils/_context/virtual_machines.py`.
+* There are defined in `utils/virtual_machine/virtual_machines.json`.
 * The id/name must be unique.
-* Each machine must extend the interface: `_VirtualMachine`.
 * There are some fields to configure the machine depends of the selected provider:
-  * **aws_config:** Mandatory. AWS configuration: ami ID, instance type, user. The AMI id must exist on your AWS account.
+* * **aws_config:** Mandatory. AWS configuration: ami ID, instance type, user. The AMI id must exist on your AWS account.
   * **vagrant_config:** Optional. Vagrant image to be used.
   * **krunvm_config:** Optional. Docker image to be used with the Krumvn provider (deprecated).
 * There are some fields, that allow us to categorize the machine:
@@ -123,20 +109,58 @@ The Virtual Machines properties:
   * **default_vm:** Field that allow us to split or group the machine as default or not default. Related with the CI policies.
 
 ```Python
-class Ubuntu22amd64(_VirtualMachine):
-    def __init__(self, **kwargs) -> None:
-        super().__init__(
-            "Ubuntu_22_amd64",
-            aws_config=_AWSConfig(ami_id="ami-007855ac798b5175e", ami_instance_type="t3.medium", user="ubuntu"),
-            vagrant_config=_VagrantConfig(box_name="bento/ubuntu-22.04"),
-            krunvm_config=None,
-            os_type="linux",
-            os_distro="deb",
-            os_branch="ubuntu22_amd64",
-            os_cpu="amd64",
-            default_vm=False,
-            **kwargs,
-        )
+        {
+            "name": "Ubuntu_24_arm64",
+            "aws_config": {
+                "ami_id": "ami-0e879a1b306fffb22",
+                "ami_instance_type": "t4g.medium",
+                "user": "ubuntu"
+            },
+            "os_type": "linux",
+            "os_distro": "deb",
+            "os_branch": "ubuntu24",
+            "os_cpu": "arm64",
+            "default_vm": false,
+            "disabled": false
+        },
+        {
+            "name": "Ubuntu_22_arm64",
+            "aws_config": {
+                "ami_id": "ami-016485166ec7fa705",
+                "ami_instance_type": "t4g.medium",
+                "user": "ubuntu"
+            },
+            "vagrant_config": {
+                "box_name": "perk/ubuntu-2204-arm64"
+            },
+            "krunvm_config": {
+                "oci_image_name": "docker.io/library/ubuntu_datadog:22"
+            },
+            "os_type": "linux",
+            "os_distro": "deb",
+            "os_branch": "ubuntu22_arm64",
+            "os_cpu": "arm64",
+            "default_vm": true,
+            "disabled": false
+        },
+        {
+            "name": "Amazon_Linux_2023_arm64",
+            "aws_config": {
+                "ami_id": "ami-0a515c154e76934f7",
+                "ami_instance_type": "t4g.medium",
+                "user": "ec2-user"
+            },
+            "krunvm_config": {
+                "oci_image_name": "docker.io/library/amazonlinux_datadog:2023"
+            },
+            "os_type": "linux",
+            "os_distro": "rpm",
+            "os_branch": "amazon_linux2023_arm64",
+            "os_cpu": "arm64",
+            "default_vm": false,
+            "disabled": false
+        },
+
 ```
 
 ### Provision
@@ -308,6 +332,7 @@ To run the onboarding test scenarios, we will use the following utilities:
 * **AWS as the infrastructure provider:** We are testing onboarding installation scenarios on different types of machines and OS. AWS Cli must be configured on your computer in order to launch EC2 instances automatically.
 * **Vagrant as the infrastructure local provider**: For local executions, we can use Vagrant instead of AWS EC2 instances.
 * **Pulumi as the orchestrator of this test infrastructure:** Pulumi's open source infrastructure as code SDK enables you to create, deploy, and manage infrastructure on any cloud, using your favorite languages.
+* Python 3.12 as requirement from system-tests framework.
 * **Pytest as testing tool (Python):** System-tests is built on Pytest.
 
 ### AWS
@@ -346,7 +371,9 @@ All system-tests assertions and utilities are based on python and pytests. You n
 - Python and pytests environment as described: [configure python and pytests for system-tests](../../README.md#requirements).
 - Ensure that requirements.txt is loaded (you can run "`./build.sh -i runner`")
 
-## Configure the environment variables
+### Configure the environment variables
+
+*You can skip this step if you are thinking on running the tests using the wizard!!*
 
 Before execute the "onboarding" tests you must configure some environment variables:
 
@@ -361,7 +388,22 @@ Once the key has been created, you can use it configuring the following environm
 - **ONBOARDING_AWS_INFRA_KEYPAIR_NAME:** Set key pair name to ssh connect to the remote machines.
 - **ONBOARDING_AWS_INFRA_KEY_PATH:** Local absolute path to your keir-pair file (pem file).
 
-## Run the scenario
+## Run the scenario using the wizard
+
+There is a Wizard script that will help you set up and run a scenario.
+
+This wizard will help you with the following tasks:
+
+* Verify that the software requirements (pulumi installation, aws cli, python requirements)
+* Configure the environment variables
+* Assistant for debugging virtual machines
+* Easy to select the test case to run. The test case matrix is very large (combination of scenario + weblog + virtual machine).
+
+You just need to run the script `utils/scripts/ssi_wizards/aws_onboarding_wizard.sh `
+
+![SSI tests architecture](../lib-injection/aws_onboarding_wizard.png "Onboarding Wizard")
+
+## Run the scenario manually
 
 The 'onboarding' tests can be executed in the same way as we executed system-tests scenarios.
 The currently supported scenarios are the following:
