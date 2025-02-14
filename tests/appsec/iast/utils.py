@@ -315,7 +315,7 @@ def validate_stack_traces(request):
                 and (
                     frame.get("file", "").endswith(location["path"])
                     and location["line"] == frame["line"]
-                    and ("method" in location["method"] and location["method"] in frame["function"])
+                    and ("method" in location and location["method"] == frame["function"])
                     # classes are not in Python stack traces and don't need to match the file
                     and "class_name" in location
                 )
