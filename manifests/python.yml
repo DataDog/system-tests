@@ -240,7 +240,6 @@ tests/:
           TestParameterName:
             "*": v2.20.0
             fastapi: v2.20.1
-            python3.12: bug (APPSEC-56375)
         test_parameter_value.py:
           TestParameterValue:
             '*': v2.9.0
@@ -796,13 +795,13 @@ tests/:
     test_inferred_proxy.py:
       Test_AWS_API_Gateway_Inferred_Span_Creation:
         '*': irrelevant
-        flask-poc: v3.1.0
+        flask-poc: missing_feature  # _dd.inferred_span needs to be a metric
       Test_AWS_API_Gateway_Inferred_Span_Creation_With_Distributed_Context:
         '*': irrelevant
-        flask-poc: v3.1.0
+        flask-poc: missing_feature  # _dd.inferred_span needs to be a metric
       Test_AWS_API_Gateway_Inferred_Span_Creation_With_Error:
         '*': irrelevant
-        flask-poc: v3.1.0
+        flask-poc: missing_feature  # _dd.inferred_span needs to be a metric
     test_otel_drop_in.py:
       Test_Otel_Drop_In: missing_feature
   otel/:

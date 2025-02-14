@@ -29,10 +29,10 @@ import (
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
+	otelbaggage "go.opentelemetry.io/otel/baggage"
 	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/trace"
 	oteltrace "go.opentelemetry.io/otel/trace"
-	otelbaggage "go.opentelemetry.io/otel/baggage"
 
 	"gopkg.in/DataDog/dd-trace-go.v1/appsec"
 	httptrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/net/http"
@@ -550,7 +550,7 @@ func main() {
 
 		spanContext := oteltrace.SpanContextFromContext(ctx)
 		baggage := otelbaggage.FromContext(ctx)
-		
+
 		base := 16
 		bitSize := 64
 		result := make(map[string]any, 4)
@@ -567,7 +567,7 @@ func main() {
 
 		result["tracestate"] = spanContext.TraceState().String()
 		result["baggage"] = baggage.String()
-		
+
 		jsonData, err := json.Marshal(result)
 		if err != nil {
 			w.WriteHeader(422)
@@ -624,6 +624,30 @@ func main() {
 			w.Write([]byte("missing session cookie"))
 		}
 		appsec.TrackUserLoginSuccessEvent(r.Context(), user, map[string]string{}, tracer.WithUserSessionID(cookie.Value))
+	})
+
+	mux.HandleFunc("/inferred-proxy/span-creation", func(w http.ResponseWriter, r *http.Request) {
+		statusCodeStr := r.URL.Query().Get("status_code")
+		statusCode := 200
+		if statusCodeStr != "" {
+			var err error
+			statusCode, err = strconv.Atoi(statusCodeStr)
+			if err != nil {
+				statusCode = 400 // Bad request if conversion fails
+			}
+		}
+
+		// Log the request headers
+		fmt.Println("Received an API Gateway request")
+		for key, values := range r.Header {
+			for _, value := range values {
+				fmt.Printf("%s: %s\n", key, value)
+			}
+		}
+
+		// Send the response
+		w.WriteHeader(statusCode)
+		w.Write([]byte("ok"))
 	})
 
 	mux.HandleFunc("/requestdownstream", common.Requestdownstream)

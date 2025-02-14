@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"log"
 	"math/rand"
@@ -238,6 +239,30 @@ func main() {
 			ctx.Writer.WriteHeader(500)
 		}
 		appsec.TrackUserLoginSuccessEvent(ctx.Request.Context(), user, map[string]string{}, tracer.WithUserSessionID(cookie.Value))
+	})
+
+	r.GET("/inferred-proxy/span-creation", func(ctx *gin.Context) {
+		statusCodeStr := ctx.Query("status_code")
+		statusCode := 200
+		if statusCodeStr != "" {
+			var err error
+			statusCode, err = strconv.Atoi(statusCodeStr)
+			if err != nil {
+				statusCode = 400
+			}
+		}
+
+		// Log the request headers
+		fmt.Println("Received an API Gateway request")
+		for key, values := range ctx.Request.Header {
+			for _, value := range values {
+				fmt.Printf("%s: %s\n", key, value)
+			}
+		}
+
+		// Send the response
+		ctx.Writer.WriteHeader(statusCode)
+		ctx.Writer.Write([]byte("ok"))
 	})
 
 	r.Any("/rasp/lfi", ginHandleFunc(rasp.LFI))
