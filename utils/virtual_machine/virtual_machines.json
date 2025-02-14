@@ -650,6 +650,62 @@
             "os_cpu": "amd64",
             "default_vm": false,
             "disabled": true
+        },
+        {
+            "name": "Rocky_Linux_8_amd64",
+            "aws_config": {
+                "ami_id": "ami-011ef2017d41cb239",
+                "ami_instance_type": "t3.medium",
+                "user": "rocky"
+            },
+            "os_type": "linux",
+            "os_distro": "rpm",
+            "os_branch": "redhat",
+            "os_cpu": "amd64",
+            "default_vm": false,
+            "disabled": false
+        },
+        {
+            "name": "Rocky_Linux_8_arm64",
+            "aws_config": {
+                "ami_id": "ami-0ad512af1b9f6ef91",
+                "ami_instance_type": "t4g.medium",
+                "user": "rocky"
+            },
+            "os_type": "linux",
+            "os_distro": "rpm",
+            "os_branch": "redhat",
+            "os_cpu": "arm64",
+            "default_vm": false,
+            "disabled": false
+        },
+        {
+            "name": "Rocky_Linux_9_amd6",
+            "aws_config": {
+                "ami_id": "ami-0a73e96a849c232cc",
+                "ami_instance_type": "t3.medium",
+                "user": "rocky"
+            },
+            "os_type": "linux",
+            "os_distro": "rpm",
+            "os_branch": "redhat",
+            "os_cpu": "amd64",
+            "default_vm": false,
+            "disabled": false
+        },
+        {
+            "name": "Rocky_Linux_9_arm64",
+            "aws_config": {
+                "ami_id": "ami-0fe5c47737d880603",
+                "ami_instance_type": "t4g.medium",
+                "user": "rocky"
+            },
+            "os_type": "linux",
+            "os_distro": "rpm",
+            "os_branch": "redhat",
+            "os_cpu": "arm64",
+            "default_vm": false,
+            "disabled": false
         }
     ]
 }
