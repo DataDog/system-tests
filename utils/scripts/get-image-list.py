@@ -40,7 +40,20 @@ if __name__ == "__main__":
         type=str,
         default="",
         help="One of the supported Datadog languages",
-        choices=["cpp", "dotnet", "python", "ruby", "golang", "java", "nodejs", "php", ""],
+        choices=[
+            "cpp",
+            "dotnet",
+            "python",
+            "ruby",
+            "golang",
+            "java",
+            "nodejs",
+            "php",
+            "java_otel",
+            "python_otel",
+            "nodejs_otel",
+            "",
+        ],
     )
 
     parser.add_argument("--weblog", "-w", type=str, help="End-to-end weblog", default="")
