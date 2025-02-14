@@ -870,16 +870,16 @@ tests/:
     test_inferred_proxy.py:
       Test_AWS_API_Gateway_Inferred_Span_Creation:
         '*': irrelevant
-        express4: *ref_5_26_0
-        express5: *ref_5_26_0
+        express4: missing_feature  # _dd.inferred_span needs to be a metric
+        express5: missing_feature  # _dd.inferred_span needs to be a metric
       Test_AWS_API_Gateway_Inferred_Span_Creation_With_Distributed_Context:
         '*': irrelevant
-        express4: *ref_5_26_0
-        express5: *ref_5_26_0
+        express4: missing_feature  # _dd.inferred_span needs to be a metric
+        express5: missing_feature  # _dd.inferred_span needs to be a metric
       Test_AWS_API_Gateway_Inferred_Span_Creation_With_Error:
         '*': irrelevant
-        express4: *ref_5_26_0
-        express5: *ref_5_26_0
+        express4: missing_feature  # _dd.inferred_span needs to be a metric
+        express5: missing_feature  # _dd.inferred_span needs to be a metric
     test_otel_drop_in.py:
       Test_Otel_Drop_In: missing_feature
   otel/:
