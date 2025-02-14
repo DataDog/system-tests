@@ -200,7 +200,7 @@ tests/:
           TestXSS:
             '*': v3.0.0.dev
           TestXSS_ExtendedLocation: missing_feature
-          TestXSS_StackTrace: v3.0.0.dev
+          TestXSS_StackTrace: missing_feature
       source/:
         test_body.py:
           TestRequestBody:
