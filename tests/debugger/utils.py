@@ -88,6 +88,19 @@ class _Base_Debugger_Test:
                     f"Failed to get /debugger/init: expected status code: 200, actual status code: {response.status_code}"
                 )
 
+    def method_and_language_to_line_number(self, method, language):
+        """method_and_language_to_line_number returns the respective line number given the method and language"""
+        return {
+            "Budgets": {"python": [142], "java": [138]},
+            "Expression": {"java": [71], "dotnet": [74], "python": [72]},
+            # The `@exception` variable is not available in the context of line probes.
+            "ExpressionException": {},
+            "ExpressionOperators": {"java": [82], "dotnet": [90], "python": [87]},
+            "StringOperations": {"java": [87], "dotnet": [97], "python": [96]},
+            "CollectionOperations": {"java": [114], "dotnet": [114], "python": [123]},
+            "Nulls": {"java": [130], "dotnet": [127], "python": [136]},
+        }.get(method, {}).get(language, [])
+
     ###### set #####
     def set_probes(self, probes):
         def _enrich_probes(probes):
