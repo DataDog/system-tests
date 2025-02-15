@@ -5,8 +5,9 @@
 """Misc checks around data integrity during components' lifetime"""
 
 import string
-from utils import weblog, interfaces, context, bug, rfc, irrelevant, missing_feature, features
+from utils import weblog, interfaces, context, bug, rfc, irrelevant, missing_feature, features, scenarios
 from utils.tools import logger
+from utils.dd_constants import SamplingPriority
 from utils.cgroup_info import get_container_id
 
 
@@ -211,6 +212,8 @@ class Test_LibraryHeaders:
 
 
 @features.data_integrity
+@scenarios.sampling
+@scenarios.default
 class Test_Agent:
     @missing_feature(library="cpp", reason="Trace are not reported")
     # we are not using dev agent, so activate this to see if it fails
@@ -222,6 +225,44 @@ class Test_Agent:
             header_name_pattern="content-type",
             header_value_pattern="application/json",
         )
+
+    def test_agent_do_not_drop_traces(self):
+        """Agent does not drop traces"""
+
+        # get list of trace ids reported by the agent
+        trace_ids_reported_by_agent = set()
+        for _, span in interfaces.agent.get_spans():
+            trace_ids_reported_by_agent.add(int(span["traceID"]))
+
+        all_traces_are_reported = True
+        trace_ids_reported_by_tracer = set()
+        # check that all traces reported by the tracer are also reported by the agent
+        for data, span in interfaces.library.get_root_spans():
+            metrics = span["metrics"]
+            sampling_priority = metrics.get("_sampling_priority_v1")
+            if sampling_priority in (None, SamplingPriority.AUTO_KEEP, SamplingPriority.USER_KEEP):
+                trace_ids_reported_by_tracer.add(span["trace_id"])
+                if span["trace_id"] not in trace_ids_reported_by_agent:
+                    logger.error(f"Trace {span['trace_id']} has not been reported ({data['log_filename']})")
+                    all_traces_are_reported = False
+                else:
+                    logger.debug(f"Trace {span['trace_id']} has been reported ({data['log_filename']})")
+
+        if not all_traces_are_reported:
+            logger.info(f"Tracer reported {len(trace_ids_reported_by_tracer)} traces")
+            logger.info(f"Agent reported {len(trace_ids_reported_by_agent)} traces")
+            raise ValueError("Some traces have not been reported by the agent. See logs for more details")
+
+    def test_traces_coherence(self):
+        """Agent does not like incoherent data. Check that no incoherent data are coming from the tracer"""
+
+        for data, trace in interfaces.library.get_traces():
+            assert data["response"]["status_code"] == 200
+            trace_id = trace[0]["trace_id"]
+            assert isinstance(trace_id, int)
+            assert trace_id > 0
+            for span in trace:
+                assert span["trace_id"] == trace_id
 
 
 def _empty_request(data):
