@@ -802,6 +802,8 @@ tests/:
       Test_AWS_API_Gateway_Inferred_Span_Creation_With_Error:
         '*': irrelevant
         flask-poc: v3.1.0
+    test_mongo.py:
+      Test_Mongo: incomplete_test_app (/trace/mongo endpoint not implemented in weblog)
     test_otel_drop_in.py:
       Test_Otel_Drop_In: missing_feature
   otel/:
