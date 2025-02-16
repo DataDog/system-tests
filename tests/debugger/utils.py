@@ -166,10 +166,10 @@ class _Base_Debugger_Test:
     ###### wait for #####
     _last_read = 0
 
-    def wait_for_all_probes_installed(self, timeout=30):
+    def wait_for_all_probes_installed(self, timeout=5):
         interfaces.agent.wait_for(lambda data: self._wait_for_all_probes(data, status="INSTALLED"), timeout=timeout)
 
-    def wait_for_all_probes_emitting(self, timeout=30):
+    def wait_for_all_probes_emitting(self, timeout=5):
         interfaces.agent.wait_for(lambda data: self._wait_for_all_probes(data, status="EMITTING"), timeout=timeout)
 
     def _wait_for_all_probes(self, data, status):
