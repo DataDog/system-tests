@@ -13,12 +13,23 @@ class Test_Debugger_Probe_Statuses(debugger._Base_Debugger_Test):
     expected_diagnostics = {}
 
     ############ setup ############
-    def _setup(self, probes_name: str):
+    def _setup(
+        self,
+        probes_name: str,
+        path_prefix: str = "",
+        uppercase_source_files: bool = False,
+        use_backslashes: bool = False,
+    ):
         self.initialize_weblog_remote_config()
 
         ### prepare probes
         probes = debugger.read_probes(probes_name)
-        self.set_probes(probes)
+        self.set_probes(
+            probes,
+            path_prefix=path_prefix,
+            uppercase_source_files=uppercase_source_files,
+            use_backslashes=use_backslashes,
+        )
 
         ### set expected
         self.expected_diagnostics = {}
@@ -67,6 +78,33 @@ class Test_Debugger_Probe_Statuses(debugger._Base_Debugger_Test):
     @bug(context.library == "python@2.16.0", reason="DEBUG-3127")
     @bug(context.library == "python@2.16.1", reason="DEBUG-3127")
     def test_probe_status_log_line(self):
+        self._assert()
+
+    ############ log line probe with unknown path prefix ############
+    def setup_probe_status_log_line_with_unknown_path_prefix(self):
+        self._setup("probe_status_log_line", path_prefix="unknown-prefix")
+
+    @bug(context.library == "python@2.16.0", reason="DEBUG-3127")
+    @bug(context.library == "python@2.16.1", reason="DEBUG-3127")
+    def test_probe_status_log_line_with_unknown_path_prefix(self):
+        self._assert()
+
+    ############ log line probe with different casing ############
+    def setup_probe_status_log_line_with_different_casing(self):
+        self._setup("probe_status_log_line", uppercase_source_files=True)
+
+    @bug(context.library == "python@2.16.0", reason="DEBUG-3127")
+    @bug(context.library == "python@2.16.1", reason="DEBUG-3127")
+    def test_probe_status_log_line_with_different_casing(self):
+        self._assert()
+
+    ############ log line probe with Windows path ############
+    def setup_probe_status_log_line_with_windows_path(self):
+        self._setup("probe_status_log_line", use_backslashes=True)
+
+    @bug(context.library == "python@2.16.0", reason="DEBUG-3127")
+    @bug(context.library == "python@2.16.1", reason="DEBUG-3127")
+    def test_probe_status_log_line_with_windows_path(self):
         self._assert()
 
     ############ log method probe ############
