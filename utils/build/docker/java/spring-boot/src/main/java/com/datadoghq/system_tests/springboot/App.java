@@ -27,6 +27,8 @@ import datadog.trace.api.experimental.*;
 import datadog.trace.api.interceptor.MutableSpan;
 
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
 import org.springframework.boot.autoconfigure.r2dbc.R2dbcAutoConfiguration;
 import org.springframework.web.server.ResponseStatusException;
@@ -81,6 +83,7 @@ import java.io.InputStreamReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.time.Instant;
+import java.util.Base64;
 import java.util.Collections;
 import java.util.Scanner;
 import java.util.LinkedHashMap;
@@ -113,6 +116,7 @@ import io.opentracing.Span;
 import io.opentracing.util.GlobalTracer;
 
 import com.datadoghq.system_tests.iast.utils.CryptoExamples;
+import proto_message.Message;
 
 import static com.mongodb.client.model.Filters.eq;
 import static io.opentelemetry.api.trace.SpanKind.INTERNAL;
@@ -1189,6 +1193,58 @@ public class App {
         return ResponseEntity.ok().header("Set-Cookie", name + "=" + value).body("Cookie set");
     }
 
+    @GetMapping("/protobuf/serialize")
+    public ResponseEntity<String> protobufSerialize() {
+        Message.AddressBook msg = Message.AddressBook.newBuilder()
+                .setCentral(Message.PhoneNumber.newBuilder()
+                        .setNumber("0123")
+                        .setType(Message.PhoneType.WORK))
+                .putPeople(1, Message.Person.newBuilder()
+                        .setName("joe")
+                        .addPhones(Message.PhoneNumber.newBuilder()
+                                .setNumber("456"))
+                        .setRecurse(Message.Person.RecursiveField.newBuilder()
+                                .setValue(1)
+                                .setDeeper(Message.Person.RecursiveField.newBuilder()
+                                        .setValue(2)
+                                        .setDeeper(Message.Person.RecursiveField.newBuilder()
+                                                .setValue(3)
+                                                .setDeeper(Message.Person.RecursiveField.newBuilder()
+                                                        .setValue(4)
+                                                        .setDeeper(Message.Person.RecursiveField.newBuilder()
+                                                                .setValue(5)
+                                                                .setDeeper(Message.Person.RecursiveField.newBuilder()
+                                                                        .setValue(6)
+                                                                        .setDeeper(Message.Person.RecursiveField.newBuilder()
+                                                                                .setValue(7)
+                                                                                .setDeeper(Message.Person.RecursiveField.newBuilder()
+                                                                                        .setValue(8)
+                                                                                        .setDeeper(Message.Person.RecursiveField.newBuilder()
+                                                                                                .setValue(9)
+                                                                                                .setDeeper(Message.Person.RecursiveField.newBuilder()
+                                                                                                        .setValue(10)))))))))))
+                        .build())
+                .build();
+        ByteArrayOutputStream stream = new ByteArrayOutputStream();
+        try {
+            msg.writeTo(stream);
+        } catch (IOException e) {
+            return ResponseEntity.internalServerError().body(e.toString());
+        }
+
+        return ResponseEntity.ok(Base64.getEncoder().encodeToString(stream.toByteArray()));
+    }
+
+    @GetMapping("/protobuf/deserialize")
+    public ResponseEntity<String> protobufDeserialize(@RequestParam("msg") final String b64Message) {
+        try {
+            byte[] rawBytes = Base64.getDecoder().decode(b64Message);
+            Message.AddressBook.parseFrom(rawBytes);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.toString());
+        }
+        return ResponseEntity.ok("ok");
+    }
 
     @Bean
     @ConditionalOnProperty(
