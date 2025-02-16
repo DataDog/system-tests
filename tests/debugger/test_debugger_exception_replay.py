@@ -18,8 +18,8 @@ _OVERRIDE_APROVALS = get_env_bool("DI_OVERRIDE_APPROVALS")
 _SKIP_SCRUB = get_env_bool("DI_SKIP_SCRUB")
 
 _max_retries = 2
-_timeout_first = 5
-_timeout_next = 30
+_timeout_first = 1
+_timeout_next = 5
 
 
 @features.debugger_exception_replay
