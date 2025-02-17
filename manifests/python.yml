@@ -464,6 +464,7 @@ tests/:
         '*': v1.1.0-rc2
         fastapi: v2.4.0
     test_asm_standalone.py:
+      Test_AppSecStandalone_NotEnabled: v2.12.3
       Test_AppSecStandalone_UpstreamPropagation:
         '*': v2.12.3
         uwsgi-poc: v2.17.1
@@ -473,7 +474,6 @@ tests/:
       Test_IastStandalone_UpstreamPropagation_V2: missing_feature
       Test_SCAStandalone_Telemetry: v2.19.0.dev
       Test_SCAStandalone_Telemetry_V2: missing_feature
-      Test_AppSecStandalone_NotEnabled: v2.12.3
     test_automated_login_events.py:
       Test_Login_Events: irrelevant (was v2.10.0 but will be replaced by V2)
       Test_Login_Events_Extended: irrelevant (was v2.10.0 but will be replaced by V2)
