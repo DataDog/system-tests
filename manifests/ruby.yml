@@ -191,35 +191,35 @@ tests/:
       test_shi.py: missing_feature
       test_sqli.py:
         Test_Sqli_BodyJson:
-          "*": missing_feature
+          '*': missing_feature
           rails42: bug (APPSEC-56765) # ActiveRecord instrumentation with Rails < 5 and Ruby < 2.7 not working due to kwargs
         Test_Sqli_BodyUrlEncoded:
-          "*": missing_feature
+          '*': missing_feature
           rails42: bug (APPSEC-56765) # ActiveRecord instrumentation with Rails < 5 and Ruby < 2.7 not working due to kwargs
         Test_Sqli_BodyXml: irrelevant (XML not natively supported)
         Test_Sqli_Capability:
-          "*": missing_feature
+          '*': missing_feature
           rails42: bug (APPSEC-56765) # ActiveRecord instrumentation with Rails < 5 and Ruby < 2.7 not working due to kwargs
         Test_Sqli_Mandatory_SpanTags:
-          "*": missing_feature
+          '*': missing_feature
           rails42: bug (APPSEC-56765) # ActiveRecord instrumentation with Rails < 5 and Ruby < 2.7 not working due to kwargs
         Test_Sqli_Optional_SpanTags:
-          "*": missing_feature
+          '*': missing_feature
           rails42: bug (APPSEC-56765) # ActiveRecord instrumentation with Rails < 5 and Ruby < 2.7 not working due to kwargs
         Test_Sqli_Rules_Version:
-          "*": missing_feature
+          '*': missing_feature
           rails42: bug (APPSEC-56765) # ActiveRecord instrumentation with Rails < 5 and Ruby < 2.7 not working due to kwargs
         Test_Sqli_StackTrace:
-          "*": missing_feature
+          '*': missing_feature
           rails42: bug (APPSEC-56765) # ActiveRecord instrumentation with Rails < 5 and Ruby < 2.7 not working due to kwargs
         Test_Sqli_Telemetry:
-          "*": missing_feature
+          '*': missing_feature
           rails42: bug (APPSEC-56765) # ActiveRecord instrumentation with Rails < 5 and Ruby < 2.7 not working due to kwargs
         Test_Sqli_UrlQuery:
-          "*": missing_feature
+          '*': missing_feature
           rails42: bug (APPSEC-56765) # ActiveRecord instrumentation with Rails < 5 and Ruby < 2.7 not working due to kwargs
         Test_Sqli_Waf_Version:
-          "*": missing_feature
+          '*': missing_feature
           rails42: bug (APPSEC-56765) # ActiveRecord instrumentation with Rails < 5 and Ruby < 2.7 not working due to kwargs
       test_ssrf.py: missing_feature
     waf/:
@@ -389,44 +389,44 @@ tests/:
       Test_Debugger_Expression_Language: missing_feature (feature not implemented)
     test_debugger_pii.py:
       Test_Debugger_PII_Redaction:
-        "*": irrelevant
+        '*': irrelevant
         rails70: v2.8.0
     test_debugger_probe_snapshot.py:
       Test_Debugger_Probe_Snaphots:
-        "*": irrelevant
+        '*': irrelevant
         rails70: v2.8.0
     test_debugger_probe_status.py:
       Test_Debugger_Probe_Statuses:
-        "*": irrelevant
+        '*': irrelevant
         rails70: v2.8.0
     test_debugger_symdb.py:
       Test_Debugger_SymDb:
-        "*": irrelevant
+        '*': irrelevant
         rails70: missing_feature (feature not implemented)
   integrations/:
     crossed_integrations/:
       test_kafka.py:
         Test_Kafka:
-          "*": irrelevant
+          '*': irrelevant
           rails70: missing_feature (ruby-kafka does not set the kafka topic on spans)
       test_kinesis.py:
         Test_Kinesis_PROPAGATION_VIA_MESSAGE_ATTRIBUTES:
-          "*": irrelevant
+          '*': irrelevant
           rails70: missing_feature
       test_rabbitmq.py:
         Test_RabbitMQ_Trace_Context_Propagation:
-          "*": irrelevant
+          '*': irrelevant
           rails70: missing_feature (Endpoint not implemented)
       test_sns_to_sqs.py:
         Test_SNS_Propagation:
-          "*": irrelevant
+          '*': irrelevant
           rails70: missing_feature (Endpoint not implemented)
       test_sqs.py:
         Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS:
-          "*": irrelevant
+          '*': irrelevant
           rails70: missing_feature (Endpoint not implemented)
         Test_SQS_PROPAGATION_VIA_MESSAGE_ATTRIBUTES:
-          "*": irrelevant
+          '*': irrelevant
           rails70: missing_feature (Endpoint not implemented)
     test_db_integrations_sql.py:
       Test_MsSql: missing_feature
@@ -436,32 +436,32 @@ tests/:
       Test_Dbm: missing_feature
     test_dsm.py:
       Test_DsmContext_Extraction_Base64:
-        "*": irrelevant
+        '*': irrelevant
         rails70: missing_feature (Endpoint not implemented)
       Test_DsmContext_Injection_Base64:
-        "*": irrelevant
+        '*': irrelevant
         rails70: missing_feature (Endpoint not implemented)
       Test_DsmHttp: missing_feature
       Test_DsmKafka:
-        "*": irrelevant
+        '*': irrelevant
         rails70: missing_feature (Endpoint not implemented)
       Test_DsmKinesis:
-        "*": irrelevant
+        '*': irrelevant
         rails70: missing_feature (Endpoint not implemented)
       Test_DsmRabbitmq:
-        "*": irrelevant
+        '*': irrelevant
         rails70: missing_feature (Endpoint not implemented)
       Test_DsmRabbitmq_FanoutExchange:
-        "*": irrelevant
+        '*': irrelevant
         rails70: missing_feature (Endpoint not implemented)
       Test_DsmRabbitmq_TopicExchange:
-        "*": irrelevant
+        '*': irrelevant
         rails70: missing_feature (Endpoint not implemented)
       Test_DsmSNS:
-        "*": irrelevant
+        '*': irrelevant
         rails70: missing_feature (Endpoint not implemented)
       Test_DsmSQS:
-        "*": irrelevant
+        '*': irrelevant
         rails70: missing_feature (Endpoint not implemented)
       Test_Dsm_Manual_Checkpoint_Inter_Process:
         '*': irrelevant
@@ -597,7 +597,7 @@ tests/:
     Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
   test_graphql.py:
     Test_GraphQLQueryErrorReporting:
-      "*": irrelevant
+      '*': irrelevant
       graphql23: missing_feature
   test_identify.py:
     Test_Basic: v1.0.0
@@ -632,10 +632,10 @@ tests/:
     Test_MetricsStandardTags: v1.7.0
   test_span_events.py:
     Test_SpanEvents_WithAgentSupport:
-      "*": irrelevant
+      '*': irrelevant
       rack: v2.10.0
     Test_SpanEvents_WithoutAgentSupport:
-      "*": irrelevant
+      '*': irrelevant
       rack: v2.10.0
   test_standard_tags.py:
     Test_StandardTagsClientIp: v1.10.1

@@ -375,3 +375,9 @@ ignore = [
 "utils/_features.py" = [
     "ANN205"  #obvious decorators
 ]
+
+[tool.yamlfix]
+line_length = 9001 # effectively disabled
+comments_whitelines = 0
+comments_min_spaces_from_content = 1
+quote_representation = '"'

@@ -1579,26 +1579,26 @@ tests/:
     crossed_integrations/:
       test_kafka.py:
         Test_Kafka:
-          "*": irrelevant
+          '*': irrelevant
           spring-boot: v0.1  # real version not known
       test_kinesis.py:
         Test_Kinesis_PROPAGATION_VIA_MESSAGE_ATTRIBUTES:
-          "*": irrelevant
+          '*': irrelevant
           spring-boot: v0.1  # real version not known
       test_rabbitmq.py:
         Test_RabbitMQ_Trace_Context_Propagation:
-          "*": irrelevant
+          '*': irrelevant
           spring-boot: v0.1  # real version not known
       test_sns_to_sqs.py:
         Test_SNS_Propagation:
-          "*": irrelevant
+          '*': irrelevant
           spring-boot: v1.38.0
       test_sqs.py:
         Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS:
-          "*": irrelevant
+          '*': irrelevant
           spring-boot: v0.1  # real version not known
         Test_SQS_PROPAGATION_VIA_MESSAGE_ATTRIBUTES:
-          "*": irrelevant
+          '*': irrelevant
           spring-boot: v0.1  # real version not known
     test_cassandra.py:
       Test_Cassandra: bug (APMAPI-729)
@@ -1616,40 +1616,40 @@ tests/:
       Test_Dbm: missing_feature
     test_dsm.py:
       Test_DsmContext_Extraction_Base64:
-        "*": irrelevant
+        '*': irrelevant
         spring-boot: v0.1  # version unknown
       Test_DsmContext_Injection_Base64:
-        "*": irrelevant
+        '*': irrelevant
         spring-boot: v0.1  # version unknown
       Test_DsmHttp:
         '*': missing_feature
         spring-boot: v1.12.1
       Test_DsmKafka:
-        "*": irrelevant
+        '*': irrelevant
         spring-boot: v1.13.0
       Test_DsmKinesis:
-        "*": irrelevant
+        '*': irrelevant
         spring-boot: v1.13.0
       Test_DsmRabbitmq:
-        "*": irrelevant
+        '*': irrelevant
         spring-boot: v1.13.0
       Test_DsmRabbitmq_FanoutExchange:
-        "*": irrelevant
+        '*': irrelevant
         spring-boot: v1.13.0
       Test_DsmRabbitmq_TopicExchange:
-        "*": irrelevant
+        '*': irrelevant
         spring-boot: v1.13.0
       Test_DsmSNS:
-        "*": irrelevant
+        '*': irrelevant
         spring-boot: v1.38.0
       Test_DsmSQS:
-        "*": irrelevant
+        '*': irrelevant
         spring-boot: v0.1  # real version not known
       Test_Dsm_Manual_Checkpoint_Inter_Process:
-        "*": irrelevant
+        '*': irrelevant
         spring-boot: bug (AIDM-325)
       Test_Dsm_Manual_Checkpoint_Intra_Process:
-        "*": irrelevant
+        '*': irrelevant
         spring-boot: bug (AIDM-325)
     test_inferred_proxy.py: missing_feature
     test_mongo.py:
@@ -1756,12 +1756,12 @@ tests/:
     Test_Config_ClientIPHeader_Precedence: missing_feature (does not support x-forwarded header)
     Test_Config_ClientTagQueryString_Configured:
       '*': v1.43.0
-      'vertx3': irrelevant (endpoint not implemented)
-      'vertx4': irrelevant (endpoint not implemented)
+      vertx3: irrelevant (endpoint not implemented)
+      vertx4: irrelevant (endpoint not implemented)
     Test_Config_ClientTagQueryString_Empty:
       '*': v1.43.0
-      'vertx3': irrelevant (endpoint not implemented)
-      'vertx4': irrelevant (endpoint not implemented)
+      vertx3: irrelevant (endpoint not implemented)
+      vertx4: irrelevant (endpoint not implemented)
     Test_Config_HttpClientErrorStatuses_Default:
       '*': irrelevant (500 error)
       spring-boot: v1.41.1
