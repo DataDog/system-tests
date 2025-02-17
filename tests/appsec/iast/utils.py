@@ -27,9 +27,7 @@ def _get_span_meta(request):
 
 def get_iast_event(request):
     meta, meta_struct = _get_span_meta(request=request)
-    assert (
-        "_dd.iast.json" in meta or "iast" in meta_struct
-    ), "No IAST info found tag in span"
+    assert "_dd.iast.json" in meta or "iast" in meta_struct, "No IAST info found tag in span"
     return meta.get("_dd.iast.json") or meta_struct.get("iast")
 
 
@@ -47,18 +45,10 @@ def assert_iast_vulnerability(
         vulns = [v for v in vulns if v["type"] == vulnerability_type]
         assert vulns, f"No vulnerability of type {vulnerability_type}"
     if expected_location:
-        vulns = [
-            v
-            for v in vulns
-            if v.get("location", {}).get("path", "") == expected_location
-        ]
+        vulns = [v for v in vulns if v.get("location", {}).get("path", "") == expected_location]
         assert vulns, f"No vulnerability with location {expected_location}"
     if expected_evidence:
-        vulns = [
-            v
-            for v in vulns
-            if v.get("evidence", {}).get("value", "") == expected_evidence
-        ]
+        vulns = [v for v in vulns if v.get("evidence", {}).get("value", "") == expected_evidence]
         assert vulns, f"No vulnerability with evidence value {expected_evidence}"
     if vulnerability_count is not None:
         assert len(vulns) == vulnerability_count
@@ -83,9 +73,7 @@ def _check_telemetry_response_from_agent():
         code = data["response"]["status_code"]
         if code != 200:
             filename = data["log_filename"]
-            logger.warning(
-                f"Agent answered {code} on {filename}, it may cause telemetry issues"
-            )
+            logger.warning(f"Agent answered {code} on {filename}, it may cause telemetry issues")
             return
 
 
@@ -94,9 +82,7 @@ def get_all_iast_events():
     assert spans, "No spans found"
     spans_meta = [span.get("meta") for span in spans]
     assert spans_meta, "No spans meta found"
-    iast_events = [
-        meta.get("_dd.iast.json") for meta in spans_meta if meta.get("_dd.iast.json")
-    ]
+    iast_events = [meta.get("_dd.iast.json") for meta in spans_meta if meta.get("_dd.iast.json")]
     assert iast_events, "No iast events found"
 
     return iast_events
@@ -142,18 +128,14 @@ class BaseSinkTestWithoutTelemetry:
         # to self, and we need to attach the request on class object, as there are one class instance by test case
 
         if self.__class__.insecure_request is None:
-            assert (
-                self.insecure_endpoint is not None
-            ), f"{self}.insecure_endpoint must not be None"
+            assert self.insecure_endpoint is not None, f"{self}.insecure_endpoint must not be None"
 
             self.__class__.insecure_request = weblog.request(
                 method=self.http_method,
                 path=self.insecure_endpoint,
                 params=self.params,
                 data=self.data,
-                headers=self.insecure_headers
-                if self.insecure_headers is not None
-                else self.headers,
+                headers=self.insecure_headers if self.insecure_headers is not None else self.headers,
             )
 
         self.insecure_request = self.__class__.insecure_request
@@ -178,21 +160,15 @@ class BaseSinkTestWithoutTelemetry:
         # to self, and we need to attach the request on class object, as there are one class instance by test case
 
         if self.__class__.secure_request is None:
-            assert (
-                self.secure_endpoint is not None
-            ), f"Please set {self}.secure_endpoint"
-            assert isinstance(
-                self.secure_endpoint, str
-            ), f"Please set {self}.secure_endpoint"
+            assert self.secure_endpoint is not None, f"Please set {self}.secure_endpoint"
+            assert isinstance(self.secure_endpoint, str), f"Please set {self}.secure_endpoint"
 
             self.__class__.secure_request = weblog.request(
                 method=self.http_method,
                 path=self.secure_endpoint,
                 params=self.params,
                 data=self.data,
-                headers=self.secure_headers
-                if self.secure_headers is not None
-                else self.headers,
+                headers=self.secure_headers if self.secure_headers is not None else self.headers,
             )
 
         self.secure_request = self.__class__.secure_request
@@ -205,9 +181,7 @@ class BaseSinkTestWithoutTelemetry:
 
     @staticmethod
     def assert_no_iast_event(request, tested_vulnerability_type=None):
-        assert (
-            request.status_code == 200
-        ), f"Request failed with status code {request.status_code}"
+        assert request.status_code == 200, f"Request failed with status code {request.status_code}"
 
         for data, _, span in interfaces.library.get_spans(request=request):
             logger.info(f"Looking for IAST events in {data['log_filename']}")
@@ -221,9 +195,7 @@ class BaseSinkTestWithoutTelemetry:
                     for vuln in iast_json["vulnerabilities"]:
                         if vuln["type"] == tested_vulnerability_type:
                             logger.error(json.dumps(iast_json, indent=2))
-                            raise ValueError(
-                                f"Unexpected vulnerability reported: {vuln['type']}"
-                            )
+                            raise ValueError(f"Unexpected vulnerability reported: {vuln['type']}")
 
 
 def validate_stack_traces(request):
@@ -237,19 +209,17 @@ def validate_stack_traces(request):
     assert iast["vulnerabilities"], "Expected at least one vulnerability"
 
     assert "meta_struct" in span, "'meta_struct' not found in span"
-    assert (
-        "_dd.stack" in span["meta_struct"]
-    ), "'_dd.stack' not found in 'meta_struct'. Please check if the test should be marked as irrelevant (not expected to have a stack trace)"
+    assert "_dd.stack" in span["meta_struct"], (
+        "'_dd.stack' not found in 'meta_struct'. Please check if the test should be marked as irrelevant (not expected to have a stack trace)"
+    )
     stack_traces = span["meta_struct"]["_dd.stack"]["vulnerability"]
     stack_trace = stack_traces[0]
     vulns = [
-        i
-        for i in iast["vulnerabilities"]
-        if i.get("location") and i["location"].get("stackId") == stack_trace["id"]
+        i for i in iast["vulnerabilities"] if i.get("location") and i["location"].get("stackId") == stack_trace["id"]
     ]
-    assert (
-        len(vulns) == 1
-    ), f"Expected a single vulnerability with the stack trace Id.\nVulnerabilities: {vulns}\nStack trace: {stack_traces}"
+    assert len(vulns) == 1, (
+        f"Expected a single vulnerability with the stack trace Id.\nVulnerabilities: {vulns}\nStack trace: {stack_traces}"
+    )
     vuln = vulns[0]
 
     assert vuln["location"], "no 'location' present'"
@@ -257,9 +227,7 @@ def validate_stack_traces(request):
     assert isinstance(vuln["location"]["stackId"], str), "'stackId' is not a string"
     assert "meta_struct" in span, "'meta_struct' not found in span"
     assert "_dd.stack" in span["meta_struct"], "'_dd.stack' not found in 'meta_struct'"
-    assert (
-        "vulnerability" in span["meta_struct"]["_dd.stack"]
-    ), "'vulnerability' not found in '_dd.stack'"
+    assert "vulnerability" in span["meta_struct"]["_dd.stack"], "'vulnerability' not found in '_dd.stack'"
 
     assert stack_trace, "No stack traces to validate"
 
@@ -281,9 +249,7 @@ def validate_stack_traces(request):
 
     # Vulns without location are not expected to have a stack trace
     location = vuln["location"]
-    assert (
-        location is not None
-    ), "This vulnerability is not expected to have a stack trace"
+    assert location is not None, "This vulnerability is not expected to have a stack trace"
 
     locationFrame = None
     for frame in stack_trace["frames"]:
@@ -300,10 +266,7 @@ def validate_stack_traces(request):
             )
             or (
                 stack_trace["language"] == "nodejs"
-                and (
-                    frame.get("file", "").endswith(location["path"])
-                    and location["line"] == frame["line"]
-                )
+                and (frame.get("file", "").endswith(location["path"]) and location["line"] == frame["line"])
             )
             or (
                 stack_trace["language"] == "dotnet"
@@ -326,9 +289,7 @@ def validate_stack_traces(request):
     assert locationFrame is not None, "location not found in stack trace"
 
 
-def validate_extended_location_data(
-    request, vulnerability_type, is_expected_location_required=True
-):
+def validate_extended_location_data(request, vulnerability_type, is_expected_location_required=True):
     spans = [span for _, span in interfaces.library.get_root_spans(request=request)]
     assert spans, "No root span found"
     span = spans[0]
@@ -339,11 +300,7 @@ def validate_extended_location_data(
 
     # Filter by vulnerability
     if vulnerability_type:
-        vulns = [
-            v
-            for v in iast["vulnerabilities"]
-            if not vulnerability_type or v["type"] == vulnerability_type
-        ]
+        vulns = [v for v in iast["vulnerabilities"] if not vulnerability_type or v["type"] == vulnerability_type]
         assert vulns, f"No vulnerability of type {vulnerability_type}"
 
     if not is_expected_location_required:
@@ -354,9 +311,7 @@ def validate_extended_location_data(
 
     # Check extended data if stack trace exists
     if "meta_struct" in span and "_dd.stack" in span["meta_struct"]:
-        assert (
-            "vulnerability" in span["meta_struct"]["_dd.stack"]
-        ), "'exploit' not found in '_dd.stack'"
+        assert "vulnerability" in span["meta_struct"]["_dd.stack"], "'exploit' not found in '_dd.stack'"
         stack_trace = span["meta_struct"]["_dd.stack"]["vulnerability"][0]
 
         assert "language" in stack_trace
@@ -397,9 +352,7 @@ def get_hardcoded_vulnerabilities(vulnerability_type):
     assert spans, "No spans found"
     spans_meta = [span.get("meta") for span in spans]
     assert spans_meta, "No spans meta found"
-    iast_events = [
-        meta.get("_dd.iast.json") for meta in spans_meta if meta.get("_dd.iast.json")
-    ]
+    iast_events = [meta.get("_dd.iast.json") for meta in spans_meta if meta.get("_dd.iast.json")]
     assert iast_events, "No iast events found"
 
     vulnerabilities: list = []
@@ -408,9 +361,7 @@ def get_hardcoded_vulnerabilities(vulnerability_type):
 
     assert vulnerabilities, "No vulnerabilities found"
 
-    hardcoded_vulns = [
-        vuln for vuln in vulnerabilities if vuln.get("type") == vulnerability_type
-    ]
+    hardcoded_vulns = [vuln for vuln in vulnerabilities if vuln.get("type") == vulnerability_type]
     assert hardcoded_vulns, "No hardcoded vulnerabilities found"
     return hardcoded_vulns
 
@@ -426,9 +377,7 @@ class BaseSinkTest(BaseSinkTestWithoutTelemetry):
 
         expected_namespace = "iast"
         expected_metric = "instrumented.sink"
-        series = interfaces.library.get_telemetry_metric_series(
-            expected_namespace, expected_metric
-        )
+        series = interfaces.library.get_telemetry_metric_series(expected_namespace, expected_metric)
         assert series, f"Got no series for metric {expected_metric}"
         logger.debug("Series: %s", series)
 
@@ -436,13 +385,9 @@ class BaseSinkTest(BaseSinkTestWithoutTelemetry):
         expected_tag = f"vulnerability_type:{self.vulnerability_type}".lower()
 
         # Filter by taking only series where expected tag is in the list serie.tags (case insentive check)
-        series = [
-            serie for serie in series if expected_tag in map(str.lower, serie["tags"])
-        ]
+        series = [serie for serie in series if expected_tag in map(str.lower, serie["tags"])]
 
-        assert (
-            len(series) != 0
-        ), f"Got no series for metric {expected_metric} with tag {expected_tag}"
+        assert len(series) != 0, f"Got no series for metric {expected_metric} with tag {expected_tag}"
 
         for s in series:
             assert s["_computed_namespace"] == expected_namespace
@@ -463,9 +408,7 @@ class BaseSinkTest(BaseSinkTestWithoutTelemetry):
 
         expected_namespace = "iast"
         expected_metric = "executed.sink"
-        series = interfaces.library.get_telemetry_metric_series(
-            expected_namespace, expected_metric
-        )
+        series = interfaces.library.get_telemetry_metric_series(expected_namespace, expected_metric)
         assert series, f"Got no series for metric {expected_metric}"
         logger.debug("Series: %s", series)
 
@@ -473,13 +416,9 @@ class BaseSinkTest(BaseSinkTestWithoutTelemetry):
         expected_tag = f"vulnerability_type:{self.vulnerability_type}".lower()
 
         # Filter by taking only series where expected tag is in the list serie.tags (case insentive check)
-        series = [
-            serie for serie in series if expected_tag in map(str.lower, serie["tags"])
-        ]
+        series = [serie for serie in series if expected_tag in map(str.lower, serie["tags"])]
 
-        assert (
-            len(series) != 0
-        ), f"Got no series for metric {expected_metric} with tag {expected_tag}"
+        assert len(series) != 0, f"Got no series for metric {expected_metric} with tag {expected_tag}"
 
         for s in series:
             assert s["_computed_namespace"] == expected_namespace
@@ -500,9 +439,7 @@ class BaseSourceTest:
     requests: dict = None
 
     def setup_source_reported(self):
-        assert isinstance(
-            self.requests_kwargs, list
-        ), f"{self.__class__}.requests_kwargs must be a list of dicts"
+        assert isinstance(self.requests_kwargs, list), f"{self.__class__}.requests_kwargs must be a list of dicts"
 
         # optimize by attaching requests to the class object, to avoid calling it several times. We can't attach them
         # to self, and we need to attach the request on class object, as there are one class instance by test case
@@ -512,9 +449,7 @@ class BaseSourceTest:
             for kwargs in self.requests_kwargs:
                 method = kwargs["method"]
                 # store them as method:request to allow later custom test by method
-                self.__class__.requests[method] = weblog.request(
-                    path=self.endpoint, **kwargs
-                )
+                self.__class__.requests[method] = weblog.request(path=self.endpoint, **kwargs)
 
         self.requests = self.__class__.requests
 
@@ -549,9 +484,7 @@ class BaseSourceTest:
         return iast["sources"]
 
     def validate_request_reported(self, request, source_type=None):
-        if (
-            source_type is None
-        ):  # allow to overwrite source_type for parameter value node's use case
+        if source_type is None:  # allow to overwrite source_type for parameter value node's use case
             source_type = self.source_type
 
         sources = self.get_sources(request)
@@ -561,16 +494,16 @@ class BaseSourceTest:
             sources = [s for s in sources if s["origin"] == source_type]
         if self.source_names:
             assert isinstance(self.source_names, list)
-            assert any(
-                x in self.source_names for x in {s.get("name") for s in sources}
-            ), f"Source {self.source_names} not in {sources}"
+            assert any(x in self.source_names for x in {s.get("name") for s in sources}), (
+                f"Source {self.source_names} not in {sources}"
+            )
             sources = [s for s in sources if s["name"] in self.source_names]
         if self.source_value:
             assert self.source_value in {s.get("value") for s in sources}
             sources = [s for s in sources if s["value"] == self.source_value]
-        assert (
-            sources
-        ), f"No source found with origin={source_type}, name={self.source_names}, value={self.source_value}"
+        assert sources, (
+            f"No source found with origin={source_type}, name={self.source_names}, value={self.source_value}"
+        )
         assert len(sources) == 1, "Expected a single source with the matching criteria"
 
     setup_telemetry_metric_instrumented_source = setup_source_reported
@@ -582,9 +515,7 @@ class BaseSourceTest:
 
         expected_namespace = "iast"
         expected_metric = "instrumented.source"
-        series = interfaces.library.get_telemetry_metric_series(
-            expected_namespace, expected_metric
-        )
+        series = interfaces.library.get_telemetry_metric_series(expected_namespace, expected_metric)
         assert series, f"Got no series for metric {expected_metric}"
         logger.debug(f"Series: {json.dumps(series, indent=2)}")
 
@@ -592,13 +523,9 @@ class BaseSourceTest:
         expected_tag = f"source_type:{self.source_type}".lower()
 
         # Filter by taking only series where expected tag is in the list serie.tags (case insentive check)
-        series = [
-            serie for serie in series if expected_tag in map(str.lower, serie["tags"])
-        ]
+        series = [serie for serie in series if expected_tag in map(str.lower, serie["tags"])]
 
-        assert (
-            len(series) != 0
-        ), f"Got no series for metric {expected_metric} with tag {expected_tag}"
+        assert len(series) != 0, f"Got no series for metric {expected_metric} with tag {expected_tag}"
 
         for s in series:
             assert s["_computed_namespace"] == expected_namespace
@@ -618,22 +545,16 @@ class BaseSourceTest:
 
         expected_namespace = "iast"
         expected_metric = "executed.source"
-        series = interfaces.library.get_telemetry_metric_series(
-            expected_namespace, expected_metric
-        )
+        series = interfaces.library.get_telemetry_metric_series(expected_namespace, expected_metric)
         assert series, f"Got no series for metric {expected_metric}"
 
         # lower the source_type, as all assertion will be case-insensitive
         expected_tag = f"source_type:{self.source_type}".lower()
 
         # Filter by taking only series where expected tag is in the list serie.tags (case insentive check)
-        series = [
-            serie for serie in series if expected_tag in map(str.lower, serie["tags"])
-        ]
+        series = [serie for serie in series if expected_tag in map(str.lower, serie["tags"])]
 
-        assert (
-            len(series) != 0
-        ), f"Got no series for metric {expected_metric} with tag {expected_tag}"
+        assert len(series) != 0, f"Got no series for metric {expected_metric} with tag {expected_tag}"
 
         logger.debug(f"Series:\n{json.dumps(series, indent=2)}")
 
@@ -656,15 +577,9 @@ class BaseTestCookieNameFilter:
         cookieName1 = prefix + "name1"
         cookieName2 = "name2"
         cookieName3 = prefix + "name3"
-        self.req1 = weblog.post(
-            self.endpoint, data={"cookieName": cookieName1, "cookieValue": "value1"}
-        )
-        self.req2 = weblog.post(
-            self.endpoint, data={"cookieName": cookieName2, "cookieValue": "value2"}
-        )
-        self.req3 = weblog.post(
-            self.endpoint, data={"cookieName": cookieName3, "cookieValue": "value3"}
-        )
+        self.req1 = weblog.post(self.endpoint, data={"cookieName": cookieName1, "cookieValue": "value1"})
+        self.req2 = weblog.post(self.endpoint, data={"cookieName": cookieName2, "cookieValue": "value2"})
+        self.req3 = weblog.post(self.endpoint, data={"cookieName": cookieName3, "cookieValue": "value3"})
 
     def test_cookie_name_filter(self):
         assert_iast_vulnerability(
