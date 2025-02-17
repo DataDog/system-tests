@@ -1,0 +1,27 @@
+[
+  [
+    "DD_EXCEPTION_DEBUGGING_ENABLED",
+    "env_var",
+    true
+  ],
+  [
+    "DD_EXCEPTION_REPLAY_CAPTURE_FULL_CALLSTACK_ENABLED",
+    "default",
+    false
+  ],
+  [
+    "DD_EXCEPTION_REPLAY_MAX_EXCEPTION_ANALYSIS_LIMIT",
+    "default",
+    100
+  ],
+  [
+    "DD_EXCEPTION_REPLAY_MAX_FRAMES_TO_CAPTURE",
+    "default",
+    4
+  ],
+  [
+    "DD_EXCEPTION_REPLAY_RATE_LIMIT_SECONDS",
+    "default",
+    3600
+  ]
+]

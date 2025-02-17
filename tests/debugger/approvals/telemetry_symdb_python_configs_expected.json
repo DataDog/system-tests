@@ -1,0 +1,12 @@
+[
+  [
+    "DD_SYMBOL_DATABASE_INCLUDES",
+    "default",
+    "set()"
+  ],
+  [
+    "DD_SYMBOL_DATABASE_UPLOAD_ENABLED",
+    "env_var",
+    true
+  ]
+]

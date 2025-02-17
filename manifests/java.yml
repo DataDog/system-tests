@@ -1585,6 +1585,8 @@ tests/:
         spring-boot-openliberty: v1.38.0
         spring-boot-undertow: v1.38.0
         uds-spring-boot: v1.38.0
+    test_debugger_telemetry.py:
+      Test_Debugger_Telemetry: v1.38.0
   integrations/:
     crossed_integrations/:
       test_kafka.py:

@@ -19,6 +19,7 @@ _DEBUGGER_PATH = "/api/v2/debugger"
 _LOGS_PATH = "/api/v2/logs"
 _TRACES_PATH = "/api/v0.2/traces"
 _SYMBOLS_PATH = "/symdb/v1/input"
+_TELEMETRY_PATH = "/api/v2/apmtelemetry"
 
 _CUR_DIR = str(Path(__file__).resolve().parent)
 
@@ -42,19 +43,9 @@ def extract_probe_ids(probes):
     return []
 
 
-def _get_path(test_name, suffix) -> str:
-    filename = test_name + "_" + _Base_Debugger_Test.tracer["language"] + "_" + suffix + ".json"
-    return os.path.join(_CUR_DIR, "approvals", filename)
-
-
-def write_approval(data, test_name, suffix):
-    with open(_get_path(test_name, suffix), "w", encoding="utf-8") as f:
-        json.dump(data, f, indent=2)
-
-
-def read_approval(test_name, suffix):
-    with open(_get_path(test_name, suffix), "r", encoding="utf-8") as f:
-        return json.load(f)
+def get_env_bool(env_var_name, default=False):
+    value = os.getenv(env_var_name, str(default)).lower()
+    return value in {"true", "True", "1"}
 
 
 class _Base_Debugger_Test:
@@ -329,6 +320,33 @@ class _Base_Debugger_Test:
 
         return False
 
+    def wait_for_telemetry(self, telemetry_type: str, timeout=5):
+        self._telemetry = None
+        interfaces.agent.wait_for(
+            lambda data: self._wait_for_telemetry(data, telemetry_type=telemetry_type), timeout=timeout
+        )
+        return self._telemetry
+
+    def _wait_for_telemetry(self, data, telemetry_type):
+        if data["path"] != _TELEMETRY_PATH:
+            return False
+
+        content = data.get("request", {}).get("content", {})
+        payload = content.get("payload")
+
+        if content.get("request_type") == telemetry_type:
+            if payload["configuration"]:
+                self._telemetry = payload
+                return True
+
+        if content.get("request_type") == "message-batch":
+            for item in payload:
+                if item.get("request_type") == telemetry_type:
+                    self._telemetry = item
+                    return True
+
+        return False
+
     ###### collect #####
     def collect(self):
         self.get_tracer()
@@ -540,3 +558,19 @@ class _Base_Debugger_Test:
 
         for respone in self.weblog_responses:
             assert respone.status_code == expected_code
+
+    ###### assert #####
+
+    def _get_path(self, test_name, suffix) -> str:
+        filename = test_name + "_" + self.get_tracer()["language"] + "_" + suffix + ".json"
+        return os.path.join(_CUR_DIR, "approvals", filename)
+
+
+    def write_approval(self, data, test_name, suffix):
+        with open(self._get_path(test_name, suffix), "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=2)
+
+
+    def read_approval(self, test_name, suffix):
+        with open(self._get_path(test_name, suffix), "r", encoding="utf-8") as f:
+            return json.load(f)

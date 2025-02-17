@@ -1,0 +1,12 @@
+[
+  [
+    "code_origin_for_spans_enabled",
+    "env_var",
+    "1"
+  ],
+  [
+    "code_origin_max_user_frames",
+    "default",
+    "8"
+  ]
+]

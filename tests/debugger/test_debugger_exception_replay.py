@@ -9,13 +9,8 @@ from utils import scenarios, features, bug, context, flaky, irrelevant
 from utils.tools import logger
 
 
-def get_env_bool(env_var_name, default=False):
-    value = os.getenv(env_var_name, str(default)).lower()
-    return value in {"true", "True", "1"}
-
-
-_OVERRIDE_APROVALS = get_env_bool("DI_OVERRIDE_APPROVALS")
-_SKIP_SCRUB = get_env_bool("DI_SKIP_SCRUB")
+_OVERRIDE_APROVALS = debugger.get_env_bool("DI_OVERRIDE_APPROVALS")
+_SKIP_SCRUB = debugger.get_env_bool("DI_SKIP_SCRUB")
 
 _max_retries = 2
 _timeout_first = 5
@@ -213,12 +208,12 @@ class Test_Debugger_Exception_Replay(debugger._Base_Debugger_Test):
             scrub_language = __scrub_none
 
         def __approve(snapshots):
-            debugger.write_approval(snapshots, test_name, "snapshots_received")
+            self.write_approval(snapshots, test_name, "snapshots_received")
 
             if _OVERRIDE_APROVALS:
-                debugger.write_approval(snapshots, test_name, "snapshots_expected")
+                self.write_approval(snapshots, test_name, "snapshots_expected")
 
-            expected_snapshots = debugger.read_approval(test_name, "snapshots_expected")
+            expected_snapshots = self.read_approval(test_name, "snapshots_expected")
             assert expected_snapshots == snapshots
             assert all(
                 "exceptionId" in snapshot for snapshot in snapshots
@@ -266,12 +261,12 @@ class Test_Debugger_Exception_Replay(debugger._Base_Debugger_Test):
             return scrubbed_spans
 
         def __approve(spans):
-            debugger.write_approval(spans, test_name, "spans_received")
+            self.write_approval(spans, test_name, "spans_received")
 
             if _OVERRIDE_APROVALS:
-                debugger.write_approval(spans, test_name, "spans_expected")
+                self.write_approval(spans, test_name, "spans_expected")
 
-            expected = debugger.read_approval(test_name, "spans_expected")
+            expected = self.read_approval(test_name, "spans_expected")
             assert expected == spans
 
             missing_keys_dict = {}

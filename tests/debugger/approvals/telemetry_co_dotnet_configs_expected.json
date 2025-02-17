@@ -1,0 +1,22 @@
+[
+  [
+    "DD_CODE_ORIGIN_FOR_SPANS_ENABLED",
+    "env_var",
+    true
+  ],
+  [
+    "DD_CODE_ORIGIN_FOR_SPANS_ENABLED",
+    "env_var",
+    true
+  ],
+  [
+    "DD_CODE_ORIGIN_FOR_SPANS_MAX_USER_FRAMES",
+    "default",
+    8
+  ],
+  [
+    "DD_CODE_ORIGIN_FOR_SPANS_MAX_USER_FRAMES",
+    "default",
+    8
+  ]
+]

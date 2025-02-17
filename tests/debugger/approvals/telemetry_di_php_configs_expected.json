@@ -1,0 +1,17 @@
+[
+  [
+    "dynamic_instrumentation.enabled",
+    "EnvVar",
+    "1"
+  ],
+  [
+    "dynamic_instrumentation.redacted_identifiers",
+    "Default",
+    ""
+  ],
+  [
+    "dynamic_instrumentation.redacted_types",
+    "Default",
+    ""
+  ]
+]

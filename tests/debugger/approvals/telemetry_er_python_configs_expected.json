@@ -1,0 +1,7 @@
+[
+  [
+    "DD_EXCEPTION_REPLAY_ENABLED",
+    "env_var",
+    true
+  ]
+]
