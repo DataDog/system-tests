@@ -115,6 +115,8 @@ tests/:
       Test_Debugger_Probe_Statuses: irrelevant
     test_debugger_symdb.py:
       Test_Debugger_SymDb: irrelevant
+    test_debugger_telemetry.py:
+      Test_Debugger_Telemetry: irrelevant
   integrations/:
     crossed_integrations/:
       test_kafka.py:
