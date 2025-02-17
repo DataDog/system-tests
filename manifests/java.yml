@@ -645,7 +645,7 @@ tests/:
           akka-http: missing_feature (APPSEC-56196)
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
           spring-boot-payara: missing_feature (APPSEC-54966)
-          vertx4: v1.46.0
+          vertx4: missing_feature (APPSEC-55785)
         Test_Cmdi_BodyUrlEncoded:
           '*': v1.45.0
           akka-http: missing_feature (APPSEC-56196)
