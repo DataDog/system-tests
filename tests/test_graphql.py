@@ -32,7 +32,32 @@ class Test_GraphQLQueryErrorReporting:
 
     def test_execute_error_span_event(self):
         """Test if the main GraphQL span contains a span event with the appropriate error information.
-        The error extensions allowed are DD_TRACE_GRAPHQL_ERROR_EXTENSIONS=int,float,str,bool,other.
+        The /graphql endpoint must support the query `query myQuery { withError }` which will return an
+        error response with the following structure:
+        {
+            "errors": [
+                {
+                    "message": <the application error message (string)>,
+                    "locations": [
+                        {
+                            "line": <line number (int)>,
+                            "column": <column number (int)>
+                        }
+                    ],
+                    "path": <path to the field in the query (array of strings)>,
+                    "extensions": {
+                        "int": 1,
+                        "float": 1.1,
+                        "str": "1",
+                        "bool": true,
+                        "other": [1, "foo"],
+                        "not_captured": <any value>
+                    }
+                }
+            ],
+            "data": <may or may not be present, GraphQL-library dependent>
+        }
+        The error extensions allowed in this test are DD_TRACE_GRAPHQL_ERROR_EXTENSIONS=int,float,str,bool,other.
         """
 
         assert self.request.status_code == 200
@@ -77,9 +102,8 @@ class Test_GraphQLQueryErrorReporting:
         # This test simulates an object that is not a supported scalar above (int,float,string,boolean).
         # This object should be serialized as a string, either using the language's default serialization or
         # JSON serialization of the object.
-        # The goal here is to display the original as well as possible in the UI, without supporting arbitrary
-        # nested levels inside `span_event.attributes`.
-        # use regex to match the list format
+        # The goal here is to display the original data with as much fidelity as possible, without allowing
+        # for arbitrary nested levels inside `span_event.attributes`.
         assert "1" in attributes["extensions.other"]
         assert "foo" in attributes["extensions.other"]
 
