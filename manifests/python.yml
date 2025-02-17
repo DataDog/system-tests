@@ -464,6 +464,7 @@ tests/:
         '*': v1.1.0-rc2
         fastapi: v2.4.0
     test_asm_standalone.py:
+      Test_AppSecStandalone_NotEnabled: v2.12.3
       Test_AppSecStandalone_UpstreamPropagation:
         '*': v2.12.3
         uwsgi-poc: v2.17.1
