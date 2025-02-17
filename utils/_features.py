@@ -2430,7 +2430,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=367
         """
-        pytest.mark.features(feature_id=362)(test_object)
+        pytest.mark.features(feature_id=367)(test_object)
         return test_object
 
 
