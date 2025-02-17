@@ -569,12 +569,21 @@ class Test_Config_RuntimeMetrics_Enabled:
     def test_main(self):
         assert self.req.status_code == 200
 
-        runtime_metrics = [
+        runtime_metrics_gauges = [
             metric
             for _, metric in interfaces.agent.get_metrics()
             if metric["metric"].startswith("runtime.") or metric["metric"].startswith("jvm.")
         ]
-        assert len(runtime_metrics) > 0
+
+        runtime_metrics_sketches = [
+            metric
+            for _, metric in interfaces.agent.get_sketches()
+            if metric["metric"].startswith("runtime.") or metric["metric"].startswith("jvm.")
+        ]
+
+        assert len(runtime_metrics_gauges) > 0 or len(runtime_metrics_sketches) > 0
+
+        runtime_metrics = runtime_metrics_gauges if len(runtime_metrics_gauges) > 0 else runtime_metrics_sketches
 
         for metric in runtime_metrics:
             tags = {tag.split(":")[0]: tag.split(":")[1] for tag in metric["tags"]}
@@ -605,12 +614,21 @@ class Test_Config_RuntimeMetrics_Enabled_WithRuntimeId:
     def test_main(self):
         assert self.req.status_code == 200
 
-        runtime_metrics = [
+        runtime_metrics_gauges = [
             metric
             for _, metric in interfaces.agent.get_metrics()
             if metric["metric"].startswith("runtime.") or metric["metric"].startswith("jvm.")
         ]
-        assert len(runtime_metrics) > 0
+
+        runtime_metrics_sketches = [
+            metric
+            for _, metric in interfaces.agent.get_sketches()
+            if metric["metric"].startswith("runtime.") or metric["metric"].startswith("jvm.")
+        ]
+
+        assert len(runtime_metrics_gauges) > 0 or len(runtime_metrics_sketches) > 0
+
+        runtime_metrics = runtime_metrics_gauges if len(runtime_metrics_gauges) > 0 else runtime_metrics_sketches
 
         for metric in runtime_metrics:
             tags = {tag.split(":")[0]: tag.split(":")[1] for tag in metric["tags"]}
@@ -624,11 +642,28 @@ class Test_Config_RuntimeMetrics_Default:
     """Verify runtime metrics are disabled by default"""
 
     # test that by default runtime metrics are disabled
-    def test_config_runtimemetrics_default(self):
-        iterations = 0
-        for data in interfaces.library.get_data("/dogstatsd/v2/proxy"):
-            iterations += 1
-        assert iterations == 0, "Runtime metrics are enabled by default"
+    def setup_main(self):
+        self.req = weblog.get("/")
+
+        # Wait for 10s to allow the tracer to send runtime metrics on the default 10s interval
+        time.sleep(10)
+
+    def test_main(self):
+        assert self.req.status_code == 200
+
+        runtime_metrics_gauges = [
+            metric
+            for _, metric in interfaces.agent.get_metrics()
+            if metric["metric"].startswith("runtime.") or metric["metric"].startswith("jvm.")
+        ]
+        assert len(runtime_metrics_gauges) == 0
+
+        runtime_metrics_sketches = [
+            metric
+            for _, metric in interfaces.agent.get_sketches()
+            if metric["metric"].startswith("runtime.") or metric["metric"].startswith("jvm.")
+        ]
+        assert len(runtime_metrics_sketches) == 0
 
 
 # Parse the JSON-formatted log message from stdout and return the 'dd' object
