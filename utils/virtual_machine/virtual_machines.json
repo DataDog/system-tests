@@ -511,20 +511,6 @@
             "disabled": false
         },
         {
-            "name": "OracleLinux_7_9_amd64",
-            "aws_config": {
-                "ami_id": "ami-0fb08d5eb039a9ebd",
-                "ami_instance_type": "t3.medium",
-                "user": "ec2-user"
-            },
-            "os_type": "linux",
-            "os_distro": "rpm",
-            "os_branch": "oracle_linux",
-            "os_cpu": "amd64",
-            "default_vm": false,
-            "disabled": false
-        },
-        {
             "name": "AlmaLinux_8_amd64",
             "aws_config": {
                 "ami_id": "ami-0825c833650fed842",
