@@ -65,7 +65,7 @@ The following picture ilustrates how the system-tests providers can handle the s
 
 You can create your own VirtualMachine scenario, extending or using the common implementation `_VirtualMachineScenario`. A "Virtual Machine Scenario" is always associated with a provision. By default, it's going to use the provision that install the agent + docker + SSI software (injector + tracer), but you can also refer to your own provision.
 
-In the following code (*utils/_context/_scenarios/__init__.pyutils/_context/_scenarios/__init__.py*) you can see the declaration of two new scenarios: a scenario that uses the default provision and a scenario that uses a custom provision:
+In the following code (*utils/_context/_scenarios/__init__.py*) you can see the declaration of two new scenarios: a scenario that uses the default provision and a scenario that uses a custom provision:
 
 ```Python
    #Use the default provision, but with a custom environment variables (profiling activation)
@@ -517,6 +517,7 @@ export ONBOARDING_AWS_INFRA_SUBNET_ID=subnet-xyz
 export ONBOARDING_AWS_INFRA_SECURITY_GROUPS_ID=sg-xyz
 ./run.sh MY_CUSTOM_SCENARIO --vm-weblog test-app-nodejs --vm-env dev --vm-library nodejs --vm-provider aws --vm-only Ubuntu_22_amd64
 ```
+
 Remember to add your new scenario in the matrix definition file. In this file you'll define the capabilities of your new scenario. For example, what are the weblogs compatible with your scenario. Check: **utils/scripts/ci_orchestrators/aws_ssi.json**
 
 ## Create a new weblog
@@ -579,6 +580,7 @@ export ONBOARDING_AWS_INFRA_SUBNET_ID=subnet-xyz
 export ONBOARDING_AWS_INFRA_SECURITY_GROUPS_ID=sg-xyz
 ./run.sh MY_CUSTOM_SCENARIO --vm-weblog my_custom_app --vm-env dev --vm-library java --vm-provider aws --vm-only Ubuntu_22_amd64
 ```
+
 Remember to add your new weblog in the matrix definition file. In this file you'll define the capabilities of your new weblog. For example, what are the machines compatible with your weblog. Check: **utils/scripts/ci_orchestrators/aws_ssi.json**
 
 ## Create a new test case
