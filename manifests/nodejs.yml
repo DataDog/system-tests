@@ -782,6 +782,11 @@ tests/:
         uds-express4: v5.39.0
     test_debugger_symdb.py:
       Test_Debugger_SymDb: missing_feature (feature not implented)
+    test_debugger_telemetry.py:
+      Test_Debugger_Telemetry:
+        '*': irrelevant
+        express4: v5.39.0
+        uds-express4: v5.39.0
   integrations/:
     crossed_integrations/:
       test_kafka.py:
