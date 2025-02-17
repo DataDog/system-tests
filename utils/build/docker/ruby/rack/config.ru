@@ -14,10 +14,14 @@ rescue LoadError
 end
 require 'datadog/kit/appsec/events'
 
+# Libraries for integration testing
+require 'mongo'
+
 Datadog.configure do |c|
   c.diagnostics.debug = true
   if c.respond_to?(:tracing)
     c.tracing.instrument :rack
+    c.tracing.instrument :mongo
   else
     c.use :rack, service_name: ENV['DD_SERVICE'] || 'rack'
   end
@@ -272,6 +276,17 @@ class AddEvent
   end
 end
 
+# /trace/mongo
+class TraceMongo
+  def self.run(request)
+    client = Mongo::Client.new(['mongodb:27017'])
+    # client.database.command(ping: 1)
+    client.database.collection_names
+
+    [200, { 'Content-Type' => 'text/plain' }, ['Ok']]
+  end
+end
+
 # any other route
 class NotFound
   def self.run
@@ -316,6 +331,8 @@ app = proc do |env|
     Users.run(request)
   elsif request.path == '/add_event'
     AddEvent.run(request)
+  elsif request.path == '/trace/mongo'
+    TraceMongo.run(request)
   else
     NotFound.run
   end
