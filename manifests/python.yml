@@ -52,13 +52,13 @@ tests/:
         test_code_injection.py:
           TestCodeInjection: v2.20.0
           TestCodeInjection_ExtendedLocation: missing_feature
-          TestCodeInjection_StackTrace: v2.20.0
+          TestCodeInjection_StackTrace: missing_feature
         test_command_injection.py:
           TestCommandInjection:
             '*': v2.10.0
             fastapi: v2.15.0
           TestCommandInjection_ExtendedLocation: missing_feature
-          TestCommandInjection_StackTrace: v2.19.0.dev
+          TestCommandInjection_StackTrace: missing_feature
         test_email_html_injection.py:
           TestEmailHtmlInjection: missing_feature
           TestEmailHtmlInjection_ExtendedLocation: missing_feature
@@ -82,8 +82,8 @@ tests/:
           TestHeaderInjectionExclusionTransferEncoding: missing_feature
           TestHeaderInjection_ExtendedLocation: missing_feature
           TestHeaderInjection_StackTrace:
-            '*': v2.19.0.dev
-            fastapi: v2.20.0.dev
+            '*': missing_feature
+            fastapi: missing_feature
         test_hsts_missing_header.py:
           Test_HstsMissingHeader: missing_feature
           Test_HstsMissingHeader_ExtendedLocation: missing_feature
@@ -126,7 +126,7 @@ tests/:
             '*': v2.10.0
             fastapi: v2.15.0
           TestPathTraversal_ExtendedLocation: missing_feature
-          TestPathTraversal_StackTrace: v2.19.0.dev
+          TestPathTraversal_StackTrace: missing_feature
         test_reflection_injection.py:
           TestReflectionInjection: missing_feature
           TestReflectionInjection_ExtendedLocation: missing_feature
@@ -136,16 +136,15 @@ tests/:
             django-poc: v1.18.0
             fastapi: v2.15.0
             flask-poc: v1.18.0
-            pylons: missing_feature
             python3.12: v1.18.0
           TestSqlInjection_ExtendedLocation: missing_feature
-          TestSqlInjection_StackTrace: v2.19.0.dev
+          TestSqlInjection_StackTrace: missing_feature
         test_ssrf.py:
           TestSSRF:
             '*': v2.10.0
             fastapi: v2.15.0
           TestSSRF_ExtendedLocation: missing_feature
-          TestSSRF_StackTrace: v2.19.0.dev
+          TestSSRF_StackTrace: missing_feature
         test_stacktrace_leak.py:
           TestStackTraceLeak:
             '*': v3.1.0.dev
@@ -176,19 +175,19 @@ tests/:
             '*': v1.18.0
             fastapi: v2.15.0
           TestWeakCipher_ExtendedLocation: missing_feature
-          TestWeakCipher_StackTrace: v2.19.0.dev
+          TestWeakCipher_StackTrace: missing_feature
         test_weak_hash.py:
           TestDeduplication:
             '*': v1.18.0
           TestWeakHash:
             '*': v1.18.0
           TestWeakHash_ExtendedLocation: missing_feature
-          TestWeakHash_StackTrace: v2.19.0.dev
+          TestWeakHash_StackTrace: missing_feature
         test_weak_randomness.py:
           TestWeakRandomness:
             '*': v2.0.0
           TestWeakRandomness_ExtendedLocation: missing_feature
-          TestWeakRandomness_StackTrace: v2.19.0.dev
+          TestWeakRandomness_StackTrace: missing_feature
         test_xcontent_sniffing.py:
           Test_XContentSniffing: missing_feature
           Test_XContentSniffing_ExtendedLocation: missing_feature
@@ -241,7 +240,6 @@ tests/:
           TestParameterName:
             "*": v2.20.0
             fastapi: v2.20.1
-            python3.12: bug (APPSEC-56375)
         test_parameter_value.py:
           TestParameterValue:
             '*': v2.9.0
@@ -351,7 +349,6 @@ tests/:
           django-poc: v1.1.0-rc2
           fastapi: v2.4.0
           flask-poc: v1.4.0-rc1
-          pylons: v1.1.0-rc2
           python3.12: v1.1.0-rc2
           uds-flask: v1.4.0-rc1
           uwsgi-poc: v1.16.1
@@ -363,7 +360,6 @@ tests/:
           django-poc: v1.1.0-rc2
           fastapi: v2.4.0
           flask-poc: v1.4.0-rc1
-          pylons: v1.1.0-rc2
           python3.12: v1.1.0-rc2
           uds-flask: v1.4.0-rc1
           uwsgi-poc: v1.5.2

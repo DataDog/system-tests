@@ -28,53 +28,45 @@ on:
 
     # Map the workflow outputs to job outputs
     outputs:
-      endtoend_scenarios:
+      endtoend_scenarios:  # legacy
         description: ""
         value: ${{ jobs.main.outputs.endtoend_scenarios }}
-      endtoend_weblogs:
+      endtoend_weblogs:  # legacy
         description: ""
         value: ${{ jobs.main.outputs.endtoend_weblogs }}
-      graphql_scenarios:
-        description: ""
-        value: ${{ jobs.main.outputs.graphql_scenarios }}
-      graphql_weblogs:
-        description: ""
-        value: ${{ jobs.main.outputs.graphql_weblogs }}
       libinjection_scenarios:
         description: ""
         value: ${{ jobs.main.outputs.libinjection_scenarios }}
-      opentelemetry_scenarios:
+      libinjection_enable:
         description: ""
-        value: ${{ jobs.main.outputs.opentelemetry_scenarios }}
-      opentelemetry_weblogs:
+        value: ${{ jobs.main.outputs.libinjection_enable }}
+      parametric_enable:
         description: ""
-        value: ${{ jobs.main.outputs.opentelemetry_weblogs }}
-      parametric_scenarios:
-        description: ""
-        value: ${{ jobs.main.outputs.parametric_scenarios }}
+        value: ${{ jobs.main.outputs.parametric_enable }}
       externalprocessing_scenarios:
         description: ""
         value: ${{ jobs.main.outputs.externalprocessing_scenarios }}
       parametric_job_matrix:
         description: ""
         value: ${{ jobs.main.outputs.parametric_job_matrix }}
+      endtoend_defs_weblogs:
+        description: ""
+        value: ${{ jobs.main.outputs.endtoend_defs_weblogs }}
 
 jobs:
   main:
     name: Get parameters
     runs-on: ubuntu-latest
     outputs:
-      endtoend_scenarios: ${{ steps.main.outputs.endtoend_scenarios }}
-      endtoend_weblogs: ${{ steps.main.outputs.endtoend_weblogs }}
-      graphql_scenarios: ${{ steps.main.outputs.graphql_scenarios }}
-      graphql_weblogs: ${{ steps.main.outputs.graphql_weblogs }}
-      libinjection_scenarios: ${{ steps.main.outputs.libinjection_scenarios }}
-      opentelemetry_scenarios: ${{ steps.main.outputs.opentelemetry_scenarios }}
-      opentelemetry_weblogs: ${{ steps.main.outputs.opentelemetry_weblogs }}
-      parametric_scenarios: ${{ steps.main.outputs.parametric_scenarios }}
+      endtoend_defs_weblogs: ${{ steps.main.outputs.endtoend_defs_weblogs }}
       externalprocessing_scenarios: ${{ steps.main.outputs.externalprocessing_scenarios }}
+      libinjection_scenarios: ${{ steps.main.outputs.libinjection_scenarios }}
+      libinjection_enable: ${{ steps.main.outputs.libinjection_enable }}
+      parametric_enable: ${{ steps.main.outputs.parametric_enable }}
       parametric_job_matrix: ${{ steps.main.outputs.parametric_job_matrix }}
       parametric_job_count: ${{ steps.main.outputs.parametric_job_count }}
+      endtoend_scenarios: ${{ steps.main.outputs.endtoend_scenarios }}  # legacy
+      endtoend_weblogs: ${{ steps.main.outputs.endtoend_weblogs }}  # legacy
     steps:
     - name: Checkout
       uses: actions/checkout@v4
@@ -91,5 +83,16 @@ jobs:
           -g "${{ inputs.scenarios_groups }}" \
           --parametric-job-count ${{ inputs.parametric_job_count }} \
           --ci-environment "${{ inputs._ci_environment }}" >> $GITHUB_OUTPUT
+      env:
+        PYTHONPATH: "."
+    - name: log
+      run: |
+        source venv/bin/activate
+        python utils/scripts/compute-workflow-parameters.py ${{ inputs.library }} \
+          -s "${{ inputs.scenarios }}" \
+          -g "${{ inputs.scenarios_groups }}" \
+          --parametric-job-count ${{ inputs.parametric_job_count }} \
+          --ci-environment "${{ inputs._ci_environment }}" \
+          --format json | jq
       env:
         PYTHONPATH: "."
