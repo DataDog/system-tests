@@ -84,8 +84,6 @@
     "DD_DYNAMIC_INSTRUMENTATION_MAX_TIME_TO_SERIALIZE": "dynamic_instrumentation_serialization_max_duration",
     "DD_DYNAMIC_INSTRUMENTATION_REDACTED_EXCLUDED_IDENTIFIERS": "dynamic_instrumentation_redacted_excluded_identifiers",
     "DD_DYNAMIC_INSTRUMENTATION_REDACTED_IDENTIFIERS": "dynamic_instrumentation_redacted_identifiers",
-    "DD_DYNAMIC_INSTRUMENTATION_REDACTION_EXCLUDED_IDENTIFIERS": "dynamic_instrumentation_redacted_excluded_identifiers",
-    "DD_DYNAMIC_INSTRUMENTATION_REDACTED_EXCLUDED_IDENTIFIERS": "dynamic_instrumentation_redacted_excluded_identifiers",
     "DD_DYNAMIC_INSTRUMENTATION_REDACTED_TYPES": "dynamic_instrumentation_redacted_types",
     "DD_DYNAMIC_INSTRUMENTATION_REDACTION_EXCLUDED_IDENTIFIERS": "dynamic_instrumentation_redacted_excluded_identifiers",
     "DD_DYNAMIC_INSTRUMENTATION_SYMBOL_DATABASE_BATCH_SIZE_BYTES": "dynamic_instrumentation_symbol_database_batch_size_bytes",
@@ -298,7 +296,6 @@
     "_dd_iast_propagation_debug": "iast_propagation_debug",
     "_dd_inject_was_attempted": "trace_inject_was_attempted",
     "_dd_llmobs_auto_span_linking_enabled": "llmobs_auto_span_linking_enabled",
-
     "_dd_llmobs_evaluator_sampling_rules": "llmobs_evaluator_sampling_rules",
     "aas_app_type": "aas_app_type",
     "aas_configuration_error": "aas_configuration_error",
