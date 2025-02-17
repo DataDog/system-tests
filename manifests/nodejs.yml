@@ -928,6 +928,7 @@ tests/:
       Test_Parametric_Otel_Current_Span: incomplete_test_app (otel current_span endpoint is not supported)
     test_partial_flushing.py:
       Test_Partial_Flushing: bug (APMLP-270)
+    test_process_discovery.py: missing_feature
     test_span_events.py: missing_feature
     test_span_links.py:
       Test_Span_Links: *ref_5_3_0
