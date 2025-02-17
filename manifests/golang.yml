@@ -639,11 +639,11 @@ tests/:
     test_span_events.py: missing_feature
     test_span_links.py: missing_feature
     test_telemetry.py:
-      Test_Consistent_Configs: missing_feature (APMAPI-745)
-      Test_Defaults: missing_feature
-      Test_Environment: missing_feature
+      Test_Consistent_Configs: v1.72.0-dev
+      Test_Defaults: v1.72.0-dev
+      Test_Environment: v1.72.0-dev
       Test_Stable_Configuration_Origin: missing_feature
-      Test_TelemetryInstallSignature: missing_feature
+      Test_TelemetryInstallSignature: v1.72.0-dev
       Test_TelemetrySCAEnvVar: v1.63.0-rc.1
     test_trace_sampling.py:
       Test_Trace_Sampling_Basic: v1.37.0  # TODO what is the earliest version?
@@ -741,11 +741,11 @@ tests/:
     Test_StandardTagsUrl: v1.40.0
     Test_StandardTagsUserAgent: v1.39.0
   test_telemetry.py:
-    Test_DependencyEnable: missing_feature
-    Test_Log_Generation: missing_feature
-    Test_MessageBatch: missing_feature
-    Test_Metric_Generation_Disabled: missing_feature
-    Test_Metric_Generation_Enabled: missing_feature
+    Test_DependencyEnable: v1.73.0-dev
+    Test_Log_Generation: v1.73.0-dev
+    Test_MessageBatch: v1.73.0-dev
+    Test_Metric_Generation_Disabled: v1.73.0-dev
+    Test_Metric_Generation_Enabled: v1.73.0-dev
     Test_ProductsDisabled: v1.53
     Test_Telemetry: v1.49.0
     Test_TelemetrySCAEnvVar: missing_feature
