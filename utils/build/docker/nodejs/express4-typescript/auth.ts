@@ -56,9 +56,6 @@ module.exports = function (app: Express, tracer: Tracer) {
 
       tracer.appsec.trackUserLoginSuccessEvent(sdkUser, { metadata0: "value0", metadata1: "value1" })
 
-      // temporary workaround to pass the test, i'll modify the test later
-      tracer.setUser(sdkUser)
-
       const isUserBlocked: boolean = tracer.appsec.isUserBlocked(sdkUser)
       if (isUserBlocked && tracer.appsec.blockRequest(req, res)) {
         return true

@@ -427,6 +427,34 @@
             "disabled": false
         },
         {
+            "name": "OracleLinux_9_3_amd64",
+            "aws_config": {
+                "ami_id": "ami-0dd239e274077553a",
+                "ami_instance_type": "t3.medium",
+                "user": "ec2-user"
+            },
+            "os_type": "linux",
+            "os_distro": "rpm",
+            "os_branch": "oracle_linux",
+            "os_cpu": "amd64",
+            "default_vm": false,
+            "disabled": false
+        },
+        {
+            "name": "OracleLinux_9_3_arm64",
+            "aws_config": {
+                "ami_id": "ami-07dd8e107c20b8471",
+                "ami_instance_type": "t4g.medium",
+                "user": "ec2-user"
+            },
+            "os_type": "linux",
+            "os_distro": "rpm",
+            "os_branch": "oracle_linux",
+            "os_cpu": "arm64",
+            "default_vm": false,
+            "disabled": false
+        },
+         {
             "name": "OracleLinux_9_2_amd64",
             "aws_config": {
                 "ami_id": "ami-01453ca80e53609e3",
@@ -438,7 +466,7 @@
             "os_branch": "oracle_linux",
             "os_cpu": "amd64",
             "default_vm": false,
-            "disabled": true
+            "disabled": false
         },
         {
             "name": "OracleLinux_9_2_arm64",
@@ -452,7 +480,7 @@
             "os_branch": "oracle_linux",
             "os_cpu": "arm64",
             "default_vm": false,
-            "disabled": true
+            "disabled": false
         },
         {
             "name": "OracleLinux_8_8_amd64",
@@ -466,7 +494,7 @@
             "os_branch": "oracle_linux",
             "os_cpu": "amd64",
             "default_vm": false,
-            "disabled": true
+            "disabled": false
         },
         {
             "name": "OracleLinux_8_8_arm64",
@@ -480,21 +508,7 @@
             "os_branch": "oracle_linux",
             "os_cpu": "arm64",
             "default_vm": false,
-            "disabled": true
-        },
-        {
-            "name": "OracleLinux_7_9_amd64",
-            "aws_config": {
-                "ami_id": "ami-0fb08d5eb039a9ebd",
-                "ami_instance_type": "t3.medium",
-                "user": "ec2-user"
-            },
-            "os_type": "linux",
-            "os_distro": "rpm",
-            "os_branch": "oracle_linux",
-            "os_cpu": "amd64",
-            "default_vm": false,
-            "disabled": true
+            "disabled": false
         },
         {
             "name": "AlmaLinux_8_amd64",
@@ -508,7 +522,7 @@
             "os_branch": "alma_linux",
             "os_cpu": "amd64",
             "default_vm": false,
-            "disabled": true
+            "disabled": false
         },
         {
             "name": "AlmaLinux_8_arm64",
@@ -522,7 +536,7 @@
             "os_branch": "alma_linux",
             "os_cpu": "arm64",
             "default_vm": false,
-            "disabled": true
+            "disabled": false
         },
         {
             "name": "AlmaLinux_9_amd64",
@@ -536,7 +550,7 @@
             "os_branch": "alma_linux",
             "os_cpu": "amd64",
             "default_vm": false,
-            "disabled": true
+            "disabled": false
         },
         {
             "name": "AlmaLinux_9_arm64",
@@ -550,7 +564,7 @@
             "os_branch": "alma_linux",
             "os_cpu": "arm64",
             "default_vm": false,
-            "disabled": true
+            "disabled": false
         },
         {
             "name": "Fedora_36_amd64",
