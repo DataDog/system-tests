@@ -442,6 +442,12 @@
                     "redhat",
                     "ubuntu23",
                     "windows"
+                ],
+                "excluded_os_names": [
+                    "OracleLinux_9_2_amd64",
+                    "OracleLinux_9_2_arm64",
+                    "OracleLinux_9_3_amd64",
+                    "OracleLinux_9_3_arm64"
                 ]
             },
             {
@@ -499,7 +505,6 @@
                     "amazon_linux2022"
                 ],
                 "excluded_os_names": [
-                    "OracleLinux_7_9_amd64",
                     "Ubuntu_24_10_amd64",
                     "Ubuntu_24_10_arm64"
                 ]
@@ -596,9 +601,6 @@
                     "centos_7_amd64",
                     "rhel_7_amd64",
                     "windows"
-                ],
-                "excluded_os_names": [
-                    "OracleLinux_7_9_amd64"
                 ]
             },
             {
