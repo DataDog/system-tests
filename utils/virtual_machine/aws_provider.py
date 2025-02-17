@@ -78,7 +78,7 @@ class AWSPulumiProvider(VmProvider):
                 "\n \n \n ❌ ❌ ❌ Exception launching aws provision step remote command ❌ ❌ ❌ \n \n \n "
             )
             vm_logger(context.scenario.name, context.vm_name).exception(pulumi_command_exception)
-            context.scenario.provision_status = "failed"
+            context.scenario.is_started_with_errors = True
             self.datadog_event_sender.sendEventToDatadog(
                 f"[E2E] Stack {self.stack_name} : error on Pulumi stack up",
                 repr(pulumi_command_exception),
@@ -93,7 +93,7 @@ class AWSPulumiProvider(VmProvider):
                 repr(pulumi_exception),
                 ["operation:up", "result:fail", f"stack:{self.stack_name}"],
             )
-            context.scenario.provision_status = "failed"
+            context.scenario.is_started_with_errors = True
 
     def get_windows_user_data(self):
         windows_user_data_path = "utils/build/virtual_machine/provisions/windows_userdata/setup_ssh.ps1"

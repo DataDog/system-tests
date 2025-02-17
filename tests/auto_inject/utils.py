@@ -40,10 +40,7 @@ class AutoInjectBaseTest:
             request_uuid = make_internal_get_request(virtual_machine.krunvm_config.stdin, vm_port)
         else:
             logger.info(f"Waiting for weblog available [{vm_ip}:{vm_port}]")
-            weblog_request_timeout = 80.0 if context.scenario.provision_status == "success" else 10
-            assert wait_for_port(
-                vm_port, vm_ip, weblog_request_timeout
-            ), "Weblog port not reachable. Is the weblog running?"
+            assert wait_for_port(vm_port, vm_ip, 80), "Weblog port not reachable. Is the weblog running?"
             logger.info(f"[{vm_ip}]: Weblog app is ready!")
             logger.info(f"Making a request to weblog [{vm_context_url}]")
             warmup_weblog(vm_context_url)
