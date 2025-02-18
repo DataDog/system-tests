@@ -1,5 +1,6 @@
 import argparse
 from collections import defaultdict
+import json
 import logging
 import os
 import sys
@@ -59,6 +60,7 @@ def main(repo_slug: str, run_id: int, output: str) -> None:
 
             if job["conclusion"] not in ["skipped", "success"]:
                 logging.info(f"Job {job['name']} conclusion: {job['conclusion']}")
+                logging.debug(json.dumps(job, indent=2))
                 has_failure = True
 
             if job["conclusion"] != "failure":
@@ -107,7 +109,8 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
 
-    logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s", stream=sys.stderr)
+    # put back info once issue on job conclusion=None is fixed
+    logging.basicConfig(level=logging.DEBUG, format="%(levelname)s: %(message)s", stream=sys.stderr)
 
     main(
         repo_slug=args.repo_slug,
