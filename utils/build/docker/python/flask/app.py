@@ -10,6 +10,7 @@ import threading
 import urllib.request
 
 import boto3
+import flask
 from moto import mock_aws
 import mock
 import urllib3
@@ -1274,6 +1275,13 @@ def track_user_login_failure_event():
     return Response("OK")
 
 
+@app.before_request
+def before_request():
+    current_user = DB_USER.get(flask.session.get("login"), None)
+    if current_user:
+        set_user(ddtrace.tracer, user_id=current_user.uid, email=current_user.email, mode="auto")
+
+
 @app.route("/login", methods=["GET", "POST"])
 def login():
     username = flask_request.form.get("username")
@@ -1288,6 +1296,7 @@ def login():
         appsec_trace_utils.track_user_login_success_event(
             tracer, user_id=user.uid, login_events_mode="auto", login=username
         )
+        flask.session["login"] = user.login
     elif user:
         appsec_trace_utils.track_user_login_failure_event(
             tracer, user_id=user.uid, exists=True, login_events_mode="auto", login=username

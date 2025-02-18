@@ -489,7 +489,7 @@ tests/:
     test_automated_user_and_session_tracking.py:
       Test_Automated_Session_Blocking: missing_feature
       Test_Automated_User_Blocking: v3.0.0.rc
-      Test_Automated_User_Tracking: v3.0.0.rc
+      Test_Automated_User_Tracking: v3.1.0.dev
     test_blocking_addresses.py:
       Test_BlockingGraphqlResolvers: missing_feature
       Test_Blocking_client_ip:

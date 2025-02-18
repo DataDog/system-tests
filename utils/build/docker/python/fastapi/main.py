@@ -1,3 +1,5 @@
+import ddtrace.auto
+
 import base64
 import json
 import logging
@@ -28,9 +30,9 @@ from pydantic import BaseModel
 import requests
 import urllib3
 import xmltodict
+from starlette.middleware.sessions import SessionMiddleware
 
 import ddtrace
-from ddtrace import patch_all
 from ddtrace.appsec import trace_utils as appsec_trace_utils
 
 try:
@@ -41,8 +43,6 @@ except ImportError:
     from ddtrace import tracer
 
 
-patch_all(urllib3=True)
-
 tracer.trace("init.service").finish()
 logger = logging.getLogger(__name__)
 
@@ -52,6 +52,17 @@ except ImportError:
     set_user = lambda *args, **kwargs: None  # noqa E731
 
 app = FastAPI()
+
+
+@app.middleware("http")
+async def add_process_time_header(request: Request, call_next):
+    if request.session.get("user_id"):
+        set_user(tracer, user_id=request.session["user_id"], mode="auto")
+    response = await call_next(request)
+    return response
+
+
+app.add_middleware(SessionMiddleware, secret_key="just_for_tests")
 
 POSTGRES_CONFIG = dict(
     host="postgres",
@@ -639,6 +650,7 @@ async def login(request: Request):
         appsec_trace_utils.track_user_login_success_event(
             tracer, user_id=user_id, login_events_mode="auto", login=username
         )
+        request.session["user_id"] = user_id
     elif user_id:
         appsec_trace_utils.track_user_login_failure_event(
             tracer, user_id=user_id, exists=True, login_events_mode="auto", login=username
