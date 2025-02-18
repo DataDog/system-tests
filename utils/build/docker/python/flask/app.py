@@ -1277,9 +1277,13 @@ def track_user_login_failure_event():
 
 @app.before_request
 def before_request():
-    current_user = DB_USER.get(flask.session.get("login"), None)
-    if current_user:
-        set_user(ddtrace.tracer, user_id=current_user.uid, email=current_user.email, mode="auto")
+    try:
+        current_user = DB_USER.get(flask.session.get("login"), None)
+        if current_user:
+            set_user(ddtrace.tracer, user_id=current_user.uid, email=current_user.email, mode="auto")
+    except Exception:
+        # to be compatible with all tracer versions
+        pass
 
 
 @app.route("/login", methods=["GET", "POST"])
