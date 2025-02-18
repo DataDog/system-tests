@@ -136,7 +136,6 @@ tests/:
             django-poc: v1.18.0
             fastapi: v2.15.0
             flask-poc: v1.18.0
-            pylons: missing_feature
             python3.12: v1.18.0
           TestSqlInjection_ExtendedLocation: missing_feature
           TestSqlInjection_StackTrace: missing_feature
@@ -198,7 +197,8 @@ tests/:
           TestXPathInjection_ExtendedLocation: missing_feature
           TestXPathInjection_StackTrace: missing_feature
         test_xss.py:
-          TestXSS: missing_feature
+          TestXSS:
+            '*': v3.0.0.dev
           TestXSS_ExtendedLocation: missing_feature
           TestXSS_StackTrace: missing_feature
       source/:
@@ -241,7 +241,6 @@ tests/:
           TestParameterName:
             "*": v2.20.0
             fastapi: v2.20.1
-            python3.12: bug (APPSEC-56375)
         test_parameter_value.py:
           TestParameterValue:
             '*': v2.9.0
@@ -351,7 +350,6 @@ tests/:
           django-poc: v1.1.0-rc2
           fastapi: v2.4.0
           flask-poc: v1.4.0-rc1
-          pylons: v1.1.0-rc2
           python3.12: v1.1.0-rc2
           uds-flask: v1.4.0-rc1
           uwsgi-poc: v1.16.1
@@ -363,7 +361,6 @@ tests/:
           django-poc: v1.1.0-rc2
           fastapi: v2.4.0
           flask-poc: v1.4.0-rc1
-          pylons: v1.1.0-rc2
           python3.12: v1.1.0-rc2
           uds-flask: v1.4.0-rc1
           uwsgi-poc: v1.5.2
@@ -468,6 +465,7 @@ tests/:
         '*': v1.1.0-rc2
         fastapi: v2.4.0
     test_asm_standalone.py:
+      Test_AppSecStandalone_NotEnabled: v2.12.3
       Test_AppSecStandalone_UpstreamPropagation:
         '*': v2.12.3
         uwsgi-poc: v2.17.1
@@ -1013,7 +1011,6 @@ tests/:
     Test_StandardTagsMethod: v1.2.1
     Test_StandardTagsRoute:
       '*': v1.6.0
-      django-py3.13: bug (APMLP-364)
     Test_StandardTagsStatusCode: v1.4.0-rc1
     Test_StandardTagsUrl:
       '*': v2.4.0

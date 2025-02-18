@@ -417,7 +417,9 @@ tests/:
         test_uri.py:
           TestURI: missing_feature
       test_security_controls.py:
-        TestSecurityControls: missing_feature
+        TestSecurityControls:
+          '*': *ref_5_37_0
+          nextjs: missing_feature
     rasp/:
       test_cmdi.py:
         Test_Cmdi_BodyJson:
@@ -432,7 +434,7 @@ tests/:
         Test_Cmdi_Optional_SpanTags: *ref_5_30_0
         Test_Cmdi_Rules_Version: *ref_5_30_0
         Test_Cmdi_StackTrace:
-          '*': missing_feature
+          '*': *ref_5_30_0
           nextjs: missing_feature
         Test_Cmdi_Telemetry:
           '*': *ref_5_30_0
@@ -464,7 +466,7 @@ tests/:
         Test_Lfi_Rules_Version: *ref_5_26_0
         Test_Lfi_StackTrace: *ref_5_24_0
         Test_Lfi_Telemetry: *ref_5_24_0
-        Test_Lfi_Telemetry_Multiple_Exploits: missing_feature
+        Test_Lfi_Telemetry_Multiple_Exploits: *ref_5_37_0
         Test_Lfi_UrlQuery:
           '*': *ref_5_24_0
           express5: *ref_5_29_0
@@ -868,16 +870,16 @@ tests/:
     test_inferred_proxy.py:
       Test_AWS_API_Gateway_Inferred_Span_Creation:
         '*': irrelevant
-        express4: *ref_5_26_0
-        express5: *ref_5_26_0
+        express4: *ref_5_37_0
+        express5: *ref_5_37_0
       Test_AWS_API_Gateway_Inferred_Span_Creation_With_Distributed_Context:
         '*': irrelevant
-        express4: *ref_5_26_0
-        express5: *ref_5_26_0
+        express4: *ref_5_37_0
+        express5: *ref_5_37_0
       Test_AWS_API_Gateway_Inferred_Span_Creation_With_Error:
         '*': irrelevant
-        express4: *ref_5_26_0
-        express5: *ref_5_26_0
+        express4: *ref_5_37_0
+        express5: *ref_5_37_0
     test_otel_drop_in.py:
       Test_Otel_Drop_In: missing_feature
   otel/:
