@@ -320,7 +320,7 @@ tests/:
             vertx4: missing_feature
           Test_TrustBoundaryViolation_ExtendedLocation: missing_feature
           Test_TrustBoundaryViolation_StackTrace:
-            '*': v1.47.0
+            '*': bug (APPSEC-56803)
             akka-http: missing_feature
             jersey-grizzly2: missing_feature
             play: missing_feature
