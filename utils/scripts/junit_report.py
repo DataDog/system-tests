@@ -8,7 +8,7 @@ from operator import attrgetter
 from utils.tools import logger
 
 
-def junit_modifyreport(json_report, junit_report_path, junit_properties):
+def junit_modifyreport(json_report, junit_report_path, junit_properties) -> None:
     """Add extra information to auto generated JUnit xml file"""
 
     # Open XML Junit report

@@ -27,6 +27,8 @@ from utils._context.containers import (
     MsSqlServerContainer,
     BuddyContainer,
     TestedContainer,
+    LocalstackContainer,
+    ElasticMQContainer,
     _get_client as get_docker_client,
 )
 
@@ -38,7 +40,7 @@ from .core import Scenario, ScenarioGroup
 @dataclass
 class _SchemaBug:
     endpoint: str
-    data_path: str
+    data_path: str | None  # None means that all data_path will be considered as bug
     condition: bool
     ticket: str
 
@@ -67,6 +69,8 @@ class DockerScenario(Scenario):
         include_rabbitmq=False,
         include_mysql_db=False,
         include_sqlserver=False,
+        include_localstack=False,
+        include_elasticmq=False,
     ) -> None:
         super().__init__(name, doc=doc, github_workflow=github_workflow, scenario_groups=scenario_groups)
 
@@ -114,6 +118,12 @@ class DockerScenario(Scenario):
         if include_sqlserver:
             self._supporting_containers.append(MsSqlServerContainer(host_log_folder=self.host_log_folder))
 
+        if include_localstack:
+            self._supporting_containers.append(LocalstackContainer(host_log_folder=self.host_log_folder))
+
+        if include_elasticmq:
+            self._supporting_containers.append(ElasticMQContainer(host_log_folder=self.host_log_folder))
+
         self._required_containers.extend(self._supporting_containers)
 
     def get_image_list(self, library: str, weblog: str) -> list[str]:
@@ -124,8 +134,9 @@ class DockerScenario(Scenario):
         ]
 
     def configure(self, config):  # noqa: ARG002
-        docker_info = get_docker_client().info()
-        self.components["docker.Cgroup"] = docker_info.get("CgroupVersion", None)
+        if not self.replay:
+            docker_info = get_docker_client().info()
+            self.components["docker.Cgroup"] = docker_info.get("CgroupVersion", None)
 
         for container in reversed(self._required_containers):
             container.configure(self.replay)
@@ -255,6 +266,8 @@ class EndToEndScenario(DockerScenario):
         include_rabbitmq=False,
         include_mysql_db=False,
         include_sqlserver=False,
+        include_localstack=False,
+        include_elasticmq=False,
         include_otel_drop_in=False,
         include_buddies=False,
         require_api_key=False,
@@ -280,6 +293,8 @@ class EndToEndScenario(DockerScenario):
             include_rabbitmq=include_rabbitmq,
             include_mysql_db=include_mysql_db,
             include_sqlserver=include_sqlserver,
+            include_localstack=include_localstack,
+            include_elasticmq=include_elasticmq,
         )
 
         self._use_proxy_for_agent = use_proxy_for_agent
@@ -387,8 +402,6 @@ class EndToEndScenario(DockerScenario):
         interfaces.library_dotnet_managed.configure(self.host_log_folder, self.replay)
 
         for container in self.buddies:
-            # a little bit of python wizzardry to solve circular import
-            container.interface = getattr(interfaces, container.name)
             container.interface.configure(self.host_log_folder, self.replay)
 
         library = self.weblog_container.image.labels["system-tests-library"]
@@ -556,6 +569,16 @@ class EndToEndScenario(DockerScenario):
 
     def pytest_sessionfinish(self, session, exitstatus):
         library_bugs = [
+            # deactivated to get a new occurence of the bug
+            # _SchemaBug(
+            #     endpoint="/debugger/v1/diagnostics",
+            #     data_path="$",
+            #     condition=context.library > "nodejs@5.36.0",
+            #     ticket="DEBUG-3487",
+            # ),
+            _SchemaBug(
+                endpoint="/v0.4/traces", data_path="$", condition=context.library == "java", ticket="APMAPI-1161"
+            ),
             _SchemaBug(
                 endpoint="/telemetry/proxy/api/v2/apmtelemetry",
                 data_path="$.payload.configuration[]",
@@ -593,10 +616,23 @@ class EndToEndScenario(DockerScenario):
                 and self.name == "DEBUGGER_EXPRESSION_LANGUAGE",
                 ticket="APMRP-360",
             ),
+            _SchemaBug(
+                endpoint="/symdb/v1/input",
+                data_path=None,
+                condition=context.library == "dotnet" and self.name == "DEBUGGER_SYMDB",
+                ticket="DEBUG-3298",
+            ),
         ]
         self._test_schemas(session, interfaces.library, library_bugs)
 
         agent_bugs = [
+            # deactivated to get a new occurence of the bug
+            # _SchemaBug(
+            #     endpoint="/api/v2/debugger",
+            #     data_path="$",
+            #     condition=context.library > "nodejs@5.36.0",
+            #     ticket="DEBUG-3487",
+            # ),
             _SchemaBug(
                 endpoint="/api/v2/apmtelemetry",
                 data_path="$.payload.configuration[]",
@@ -625,6 +661,12 @@ class EndToEndScenario(DockerScenario):
                 condition=context.library < "nodejs@5.31.0",
                 ticket="DEBUG-2864",
             ),
+            _SchemaBug(
+                endpoint="/api/v2/debugger",
+                data_path="$[]",
+                condition=context.library == "dotnet" and self.name == "DEBUGGER_SYMDB",
+                ticket="DEBUG-3298",
+            ),
         ]
         self._test_schemas(session, interfaces.agent, agent_bugs)
 
@@ -636,7 +678,10 @@ class EndToEndScenario(DockerScenario):
         excluded_points = {(bug.endpoint, bug.data_path) for bug in known_bugs if bug.condition}
 
         for error in interface.get_schemas_errors():
-            if (error.endpoint, error.data_path) not in excluded_points:
+            if (error.endpoint, error.data_path) not in excluded_points and (
+                error.endpoint,
+                None,
+            ) not in excluded_points:
                 long_repr.append(f"* {error.message}")
 
         if len(long_repr) != 0:

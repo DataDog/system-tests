@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"log"
 	"math/rand"
@@ -302,6 +303,30 @@ func main() {
 
 	mux.HandleFunc("/requestdownstream", common.Requestdownstream)
 	mux.HandleFunc("/returnheaders", common.Returnheaders)
+
+	mux.HandleFunc("/inferred-proxy/span-creation", func(w http.ResponseWriter, r *http.Request) {
+		statusCodeStr := r.URL.Query().Get("status_code")
+		statusCode := 200
+		if statusCodeStr != "" {
+			var err error
+			statusCode, err = strconv.Atoi(statusCodeStr)
+			if err != nil {
+				statusCode = 400 // Bad request if conversion fails
+			}
+		}
+
+		// Log the request headers
+		fmt.Println("Received an API Gateway request")
+		for key, values := range r.Header {
+			for _, value := range values {
+				fmt.Printf("%s: %s\n", key, value)
+			}
+		}
+
+		// Send the response
+		w.WriteHeader(statusCode)
+		w.Write([]byte("ok"))
+	})
 
 	srv := &http.Server{
 		Addr:    ":7777",

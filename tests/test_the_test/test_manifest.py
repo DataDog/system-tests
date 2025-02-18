@@ -1,5 +1,6 @@
 from functools import lru_cache
 import os
+from pathlib import Path
 import re
 import semantic_version as semver
 
@@ -13,13 +14,13 @@ def get_variants_map():
 
     for folder in os.listdir("utils/build/docker"):
         folder_path = os.path.join("utils/build/docker/", folder)
-        if not os.path.isdir(folder_path):
+        if not Path(folder_path).is_dir():
             continue
 
         result[folder] = ["*"]
         for file in os.listdir(folder_path):
             file_path = os.path.join(folder_path, file)
-            if os.path.isdir(file_path):
+            if Path(file_path).is_dir():
                 continue
             if not file.endswith(".Dockerfile"):
                 continue

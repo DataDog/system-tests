@@ -19,10 +19,10 @@ class ScenarioGroup(Enum):
     IPV6 = "ipv6"
     LIB_INJECTION = "lib-injection"
     OPEN_TELEMETRY = "open-telemetry"
-    PARAMETRIC = "parametric"
     PROFILING = "profiling"
     SAMPLING = "sampling"
     ONBOARDING = "onboarding"
+    SIMPLE_ONBOARDING = "simple_onboarding"
     DOCKER_SSI = "docker-ssi"
     ESSENTIALS = "essentials"
     EXTERNAL_PROCESSING = "external-processing"
@@ -32,11 +32,12 @@ class ScenarioGroup(Enum):
     TRACER_RELEASE = "tracer-release"
 
 
-VALID_GITHUB_WORKFLOWS = {
+VALID_CI_WORKFLOWS = {
     None,
     "endtoend",
     "graphql",
     "libinjection",
+    "aws_ssi",
     "opentelemetry",
     "parametric",
     "testthetest",
@@ -51,7 +52,7 @@ class Scenario:
         self.replay = False
         self.doc = doc
         self.rc_api_enabled = False
-        self.github_workflow = github_workflow
+        self.github_workflow = github_workflow  # TODO: rename this to workflow, as it may not be a github workflow
         self.scenario_groups = scenario_groups or []
 
         self.scenario_groups = list(set(self.scenario_groups))  # removes duplicates
@@ -63,7 +64,7 @@ class Scenario:
         self.is_main_worker: bool = True
 
         assert (
-            self.github_workflow in VALID_GITHUB_WORKFLOWS
+            self.github_workflow in VALID_CI_WORKFLOWS
         ), f"Invalid github_workflow {self.github_workflow} for {self.name}"
 
         for group in self.scenario_groups:

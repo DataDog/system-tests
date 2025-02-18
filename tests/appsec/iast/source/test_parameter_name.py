@@ -2,8 +2,8 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, missing_feature, bug, features, flaky
-from ..utils import BaseSourceTest
+from utils import context, missing_feature, bug, features
+from tests.appsec.iast.utils import BaseSourceTest
 
 
 @features.iast_source_request_parameter_name
@@ -27,9 +27,8 @@ class TestParameterName(BaseSourceTest):
     )
     @bug(weblog_variant="resteasy-netty3", reason="APPSEC-55687")
     @missing_feature(library="dotnet", reason="Tainted as request body")
-    @flaky(context.weblog_variant == "python3.12", reason="APPSEC-56375")
     def test_source_post_reported(self):
-        """for use case where only one is reported, we want to keep a test on the one reported"""
+        """For use case where only one is reported, we want to keep a test on the one reported"""
         self.validate_request_reported(self.requests["POST"])
 
     setup_source_get_reported = BaseSourceTest.setup_source_reported
@@ -40,7 +39,7 @@ class TestParameterName(BaseSourceTest):
     )
     @bug(weblog_variant="resteasy-netty3", reason="APPSEC-55687")
     def test_source_get_reported(self):
-        """for use case where only one is reported, we want to keep a test on the one reported"""
+        """For use case where only one is reported, we want to keep a test on the one reported"""
         self.validate_request_reported(self.requests["GET"])
 
     @missing_feature(
@@ -53,7 +52,6 @@ class TestParameterName(BaseSourceTest):
     )
     @bug(weblog_variant="resteasy-netty3", reason="APPSEC-55687")
     @missing_feature(library="dotnet", reason="Tainted as request body")
-    @flaky(context.weblog_variant == "python3.12", reason="APPSEC-56375")
     def test_source_reported(self):
         super().test_source_reported()
 

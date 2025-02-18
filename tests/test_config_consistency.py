@@ -4,12 +4,14 @@
 
 import re
 import json
+import time
 from utils import weblog, interfaces, scenarios, features, rfc, irrelevant, context, bug, missing_feature
 from utils.tools import logger
 
 # get the default log output
 stdout = interfaces.library_stdout if context.library != "dotnet" else interfaces.library_dotnet_managed
 runtime_metrics = {"nodejs": "runtime.node.mem.heap_total"}
+runtime_metrics_langs = [".NET", "go", "nodejs", "python", "ruby"]
 log_injection_fields = {"nodejs": {"message": "msg"}}
 
 
@@ -203,7 +205,7 @@ class Test_Config_HttpClientErrorStatuses_Default:
 
         client_span = _get_span_by_tags(spans, tags={"span.kind": "client", "http.status_code": "500"})
         assert client_span, spans
-        assert client_span.get("error") == None or client_span.get("error") == 0
+        assert client_span.get("error") is None or client_span.get("error") == 0
 
 
 @scenarios.tracing_config_nondefault
@@ -274,7 +276,8 @@ class Test_Config_ClientTagQueryString_Configured:
 @features.tracing_configuration_consistency
 class Test_Config_ClientIPHeader_Configured:
     """Verify headers containing ips are tagged when DD_TRACE_CLIENT_IP_ENABLED=true
-    and DD_TRACE_CLIENT_IP_HEADER=custom-ip-header"""
+    and DD_TRACE_CLIENT_IP_HEADER=custom-ip-header
+    """
 
     def setup_ip_headers_sent_in_one_request(self):
         self.req = weblog.get(
@@ -309,7 +312,8 @@ class Test_Config_ClientIPHeaderEnabled_False:
 @features.tracing_configuration_consistency
 class Test_Config_ClientIPHeader_Precedence:
     """Verify headers containing ips are tagged when DD_TRACE_CLIENT_IP_ENABLED=true
-    and headers are used to set http.client_ip in order of precedence"""
+    and headers are used to set http.client_ip in order of precedence
+    """
 
     # Supported ip headers in order of precedence
     IP_HEADERS = (
@@ -494,7 +498,6 @@ class Test_Config_LogInjection_Enabled:
         required_fields = ["trace_id", "span_id", "service", "version", "env"]
         for field in required_fields:
             assert field in dd, f"Missing field: {field}"
-        return
 
 
 @rfc("https://docs.google.com/document/d/1kI-gTAKghfcwI7YzKhqRv2ExUstcHqADIWA4-TZ387o/edit#heading=h.8v16cioi7qxp")
@@ -555,19 +558,63 @@ class Test_Config_LogInjection_128Bit_TradeId_Disabled:
 @scenarios.runtime_metrics_enabled
 @features.tracing_configuration_consistency
 class Test_Config_RuntimeMetrics_Enabled:
-    """Verify runtime metrics are enabled when DD_RUNTIME_METRICS_ENABLED=true"""
+    """Verify runtime metrics are enabled when DD_RUNTIME_METRICS_ENABLED=true and that they have the proper tags"""
 
-    # This test verifies runtime metrics by asserting the prescene of a metric in the dogstatsd endpoint
-    def test_config_runtimemetrics_enabled(self):
-        for data in interfaces.library.get_data("/dogstatsd/v2/proxy"):
-            lines = data["request"]["content"].split("\n")
-            metric_found = False
-            for line in lines:
-                if runtime_metrics[context.library.library] in line:
-                    metric_found = True
-                    break
-            assert metric_found, f"The metric {runtime_metrics[context.library.library]} was not found in any line"
-            break
+    def setup_main(self):
+        self.req = weblog.get("/")
+
+        # Wait for 10s to allow the tracer to send runtime metrics on the default 10s interval
+        time.sleep(10)
+
+    def test_main(self):
+        assert self.req.status_code == 200
+
+        runtime_metrics = [
+            metric
+            for _, metric in interfaces.agent.get_metrics()
+            if metric["metric"].startswith("runtime.") or metric["metric"].startswith("jvm.")
+        ]
+        assert len(runtime_metrics) > 0
+
+        for metric in runtime_metrics:
+            tags = {tag.split(":")[0]: tag.split(":")[1] for tag in metric["tags"]}
+            assert tags.get("lang") in runtime_metrics_langs or tags.get("lang") is None
+
+            # Test that Unified Service Tags are added to the runtime metrics
+            assert tags["service"] == "weblog"
+            assert tags["env"] == "system-tests"
+            assert tags["version"] == "1.0.0"
+
+            # Test that DD_TAGS are added to the runtime metrics
+            # DD_TAGS=key1:val1,key2:val2 in default weblog containers
+            assert tags["key1"] == "val1"
+            assert tags["key2"] == "val2"
+
+
+@scenarios.runtime_metrics_enabled
+@features.tracing_configuration_consistency
+class Test_Config_RuntimeMetrics_Enabled_WithRuntimeId:
+    """Verify runtime metrics are enabled when DD_RUNTIME_METRICS_ENABLED=true and that they have the runtime-id tag"""
+
+    def setup_main(self):
+        self.req = weblog.get("/")
+
+        # Wait for 10s to allow the tracer to send runtime metrics on the default 10s interval
+        time.sleep(10)
+
+    def test_main(self):
+        assert self.req.status_code == 200
+
+        runtime_metrics = [
+            metric
+            for _, metric in interfaces.agent.get_metrics()
+            if metric["metric"].startswith("runtime.") or metric["metric"].startswith("jvm.")
+        ]
+        assert len(runtime_metrics) > 0
+
+        for metric in runtime_metrics:
+            tags = {tag.split(":")[0]: tag.split(":")[1] for tag in metric["tags"]}
+            assert "runtime-id" in tags
 
 
 @rfc("https://docs.google.com/document/d/1kI-gTAKghfcwI7YzKhqRv2ExUstcHqADIWA4-TZ387o/edit#heading=h.8v16cioi7qxp")
@@ -592,5 +639,4 @@ def parse_log_injection_message(log_message):
         except json.JSONDecodeError:
             continue
         if message.get("dd") and message.get(log_injection_fields[context.library.library]["message"]) == log_message:
-            dd = message.get("dd")
-            return dd
+            return message.get("dd")

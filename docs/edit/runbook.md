@@ -8,7 +8,7 @@ Here's what you need to do!
 
 #### Summary
 
-This can be **easily fixed** in ~5 minutes
+This can be fixed with **~5 minutes of effort**.
 
 This is **caused by adding a new config option** without adding the associated config normalization rules to telemetry intake
 
@@ -18,7 +18,7 @@ The impact is that these **configs are not visible** in Metabase, REDAPL, or any
 
 1. Check the test failure to see exactly which configs are missing
 2. Add config normalization rules [here](https://github.com/DataDog/dd-go/tree/prod/trace/apps/tracer-telemetry-intake/telemetry-payload/static/) following the existing pattern
-   1. This can be merged with any review from [@apm-ecosystems](https://github.com/orgs/DataDog/teams/apm-ecosystems)
+   1. This can be merged with any review from [@apm-sdk](https://github.com/orgs/DataDog/teams/apm-sdk)
    2. Bonus Points: Run the auto-formatter [_format.py](https://github.com/DataDog/dd-go/blob/prod/trace/apps/tracer-telemetry-intake/telemetry-payload/static/_format.py) from the `dd-go` root via `python ./trace/apps/tracer-telemetry-intake/telemetry-payload/static/_format.py`
 3. After merging, update system-tests by running [update.sh](/tests/telemetry_intake/update.sh)
    1. This can be run from the root by running `./tests/telemetry_intake/update.sh`

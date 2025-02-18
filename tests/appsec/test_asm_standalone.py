@@ -1,12 +1,13 @@
 import json
+from abc import ABC, abstractmethod
 
 from requests.structures import CaseInsensitiveDict
 
 from utils.telemetry_utils import TelemetryUtils
-from utils import context, weblog, interfaces, scenarios, features, rfc, bug, flaky, missing_feature
+from utils import context, weblog, interfaces, scenarios, features, rfc, bug, missing_feature, irrelevant
 
 
-class AsmStandalone_UpstreamPropagation_Base:
+class AsmStandalone_UpstreamPropagation_Base(ABC):
     """APM correctly propagates AppSec events in distributing tracing."""
 
     # TODO downstream propagation
@@ -40,24 +41,23 @@ class AsmStandalone_UpstreamPropagation_Base:
             for tag, value in expected_tags.items():
                 if value is None:
                     assert tag not in struct
+                elif tag == "_sampling_priority_v1":  # special case, it's a lambda to check for a condition
+                    assert value(struct[tag])
                 else:
-                    if tag == "_sampling_priority_v1":  # special case, it's a lambda to check for a condition
-                        assert value(struct[tag])
-                    else:
-                        assert struct[tag] == value
+                    assert struct[tag] == value
 
         # Case 1: The tags are set on the first span of every trace chunk
         try:
             _assert_tags_value(first_trace, obj, expected_tags)
             return True
-        except (KeyError, AssertionError) as e:
+        except (KeyError, AssertionError):
             pass  # should try the second case
 
         # Case 2: The tags are set on the local root span
         try:
             _assert_tags_value(span, obj, expected_tags)
             return True
-        except (KeyError, AssertionError) as e:
+        except (KeyError, AssertionError):
             return False
 
     @staticmethod
@@ -77,6 +77,17 @@ class AsmStandalone_UpstreamPropagation_Base:
                 product_enabled = True
                 break
         assert product_enabled, f"{product} is not available"
+
+    @abstractmethod
+    def propagated_tag(self):
+        return ""  # To be overloaded in final classes
+
+    @abstractmethod
+    def propagated_tag_value(self):
+        return ""  # To be overloaded in final classes
+
+    def propagated_tag_and_value(self):
+        return self.propagated_tag() + "=" + self.propagated_tag_value()
 
     def setup_product_is_enabled(self):
         headers = {}
@@ -104,7 +115,7 @@ class AsmStandalone_UpstreamPropagation_Base:
     def test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_minus_1(self):
         self.assert_product_is_enabled(self.check_r, self.tested_product)
         spans_checked = 0
-        tested_meta = {"_dd.p.appsec": None, "_dd.p.other": "1"}
+        tested_meta = {self.propagated_tag(): None, "_dd.p.other": "1"}
         tested_metrics = {"_sampling_priority_v1": lambda x: x < 2}
 
         for data, trace, span in interfaces.library.get_spans(request=self.r):
@@ -148,7 +159,7 @@ class AsmStandalone_UpstreamPropagation_Base:
     def test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_0(self):
         self.assert_product_is_enabled(self.check_r, self.tested_product)
         spans_checked = 0
-        tested_meta = {"_dd.p.appsec": None, "_dd.p.other": "1"}
+        tested_meta = {self.propagated_tag(): None, "_dd.p.other": "1"}
         tested_metrics = {"_sampling_priority_v1": lambda x: x < 2}
 
         for data, trace, span in interfaces.library.get_spans(request=self.r):
@@ -192,7 +203,7 @@ class AsmStandalone_UpstreamPropagation_Base:
     def test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_1(self):
         self.assert_product_is_enabled(self.check_r, self.tested_product)
         spans_checked = 0
-        tested_meta = {"_dd.p.appsec": None, "_dd.p.other": "1"}
+        tested_meta = {self.propagated_tag(): None, "_dd.p.other": "1"}
         tested_metrics = {"_sampling_priority_v1": lambda x: x < 2}
 
         for data, trace, span in interfaces.library.get_spans(request=self.r):
@@ -236,7 +247,7 @@ class AsmStandalone_UpstreamPropagation_Base:
     def test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_2(self):
         self.assert_product_is_enabled(self.check_r, self.tested_product)
         spans_checked = 0
-        tested_meta = {"_dd.p.appsec": None, "_dd.p.other": "1"}
+        tested_meta = {self.propagated_tag(): None, "_dd.p.other": "1"}
         tested_metrics = {"_sampling_priority_v1": lambda x: x < 2}
 
         for data, trace, span in interfaces.library.get_spans(request=self.r):
@@ -279,7 +290,7 @@ class AsmStandalone_UpstreamPropagation_Base:
 
     def test_no_upstream_appsec_propagation__with_asm_event__is_kept_with_priority_2__from_minus_1(self):
         spans_checked = 0
-        tested_meta = {"_dd.p.appsec": "1"}
+        tested_meta = {self.propagated_tag(): self.propagated_tag_value()}
         tested_metrics = {"_sampling_priority_v1": lambda x: x == 2}
 
         for data, trace, span in interfaces.library.get_spans(request=self.r):
@@ -301,7 +312,7 @@ class AsmStandalone_UpstreamPropagation_Base:
         assert downstream_headers["X-Datadog-Origin"] == "rum"
         assert downstream_headers["X-Datadog-Parent-Id"] != "34343434"
         assert "_dd.p.other=1" in downstream_headers["X-Datadog-Tags"]
-        assert "_dd.p.appsec=1" in downstream_headers["X-Datadog-Tags"]
+        assert self.propagated_tag_and_value() in downstream_headers["X-Datadog-Tags"]
         assert downstream_headers["X-Datadog-Sampling-Priority"] == "2"
         assert downstream_headers["X-Datadog-Trace-Id"] == "1212121212121212121"
 
@@ -320,10 +331,9 @@ class AsmStandalone_UpstreamPropagation_Base:
             },
         )
 
-    @flaky(library="python", reason="APPSEC-55222")  # _dd.apm.enabled missing in metrics
     def test_no_upstream_appsec_propagation__with_asm_event__is_kept_with_priority_2__from_0(self):
         spans_checked = 0
-        tested_meta = {"_dd.p.appsec": "1"}
+        tested_meta = {self.propagated_tag(): self.propagated_tag_value()}
         tested_metrics = {"_sampling_priority_v1": lambda x: x == 2}
 
         for data, trace, span in interfaces.library.get_spans(request=self.r):
@@ -345,7 +355,7 @@ class AsmStandalone_UpstreamPropagation_Base:
         assert downstream_headers["X-Datadog-Origin"] == "rum"
         assert downstream_headers["X-Datadog-Parent-Id"] != "34343434"
         assert "_dd.p.other=1" in downstream_headers["X-Datadog-Tags"]
-        assert "_dd.p.appsec=1" in downstream_headers["X-Datadog-Tags"]
+        assert self.propagated_tag_and_value() in downstream_headers["X-Datadog-Tags"]
         assert downstream_headers["X-Datadog-Sampling-Priority"] == "2"
         assert downstream_headers["X-Datadog-Trace-Id"] == "1212121212121212121"
 
@@ -360,14 +370,14 @@ class AsmStandalone_UpstreamPropagation_Base:
                 "x-datadog-parent-id": str(parent_id),
                 "x-datadog-origin": "rum",
                 "x-datadog-sampling-priority": "0",
-                "x-datadog-tags": "_dd.p.appsec=1",
+                "x-datadog-tags": self.propagated_tag_and_value(),
             },
         )
 
     def test_upstream_appsec_propagation__no_asm_event__is_propagated_as_is__being_0(self):
         self.assert_product_is_enabled(self.check_r, self.tested_product)
         spans_checked = 0
-        tested_meta = {"_dd.p.appsec": "1"}
+        tested_meta = {self.propagated_tag(): self.propagated_tag_value()}
         tested_metrics = {"_sampling_priority_v1": lambda x: x in [0, 2]}
 
         for data, trace, span in interfaces.library.get_spans(request=self.r):
@@ -388,7 +398,7 @@ class AsmStandalone_UpstreamPropagation_Base:
         downstream_headers = CaseInsensitiveDict(json.loads(self.r.text))
         assert downstream_headers["X-Datadog-Origin"] == "rum"
         assert downstream_headers["X-Datadog-Parent-Id"] != "34343434"
-        assert "_dd.p.appsec=1" in downstream_headers["X-Datadog-Tags"]
+        assert self.propagated_tag_and_value() in downstream_headers["X-Datadog-Tags"]
         assert downstream_headers["X-Datadog-Sampling-Priority"] in ["0", "2"]
         assert downstream_headers["X-Datadog-Trace-Id"] == "1212121212121212121"
 
@@ -403,14 +413,14 @@ class AsmStandalone_UpstreamPropagation_Base:
                 "x-datadog-parent-id": str(parent_id),
                 "x-datadog-origin": "rum",
                 "x-datadog-sampling-priority": "1",
-                "x-datadog-tags": "_dd.p.appsec=1",
+                "x-datadog-tags": self.propagated_tag_and_value(),
             },
         )
 
     def test_upstream_appsec_propagation__no_asm_event__is_propagated_as_is__being_1(self):
         self.assert_product_is_enabled(self.check_r, self.tested_product)
         spans_checked = 0
-        tested_meta = {"_dd.p.appsec": "1"}
+        tested_meta = {self.propagated_tag(): self.propagated_tag_value()}
         tested_metrics = {"_sampling_priority_v1": lambda x: x in [1, 2]}
 
         for data, trace, span in interfaces.library.get_spans(request=self.r):
@@ -431,7 +441,7 @@ class AsmStandalone_UpstreamPropagation_Base:
         downstream_headers = CaseInsensitiveDict(json.loads(self.r.text))
         assert downstream_headers["X-Datadog-Origin"] == "rum"
         assert downstream_headers["X-Datadog-Parent-Id"] != "34343434"
-        assert "_dd.p.appsec=1" in downstream_headers["X-Datadog-Tags"]
+        assert self.propagated_tag_and_value() in downstream_headers["X-Datadog-Tags"]
         assert downstream_headers["X-Datadog-Sampling-Priority"] in ["1", "2"]
         assert downstream_headers["X-Datadog-Trace-Id"] == "1212121212121212121"
 
@@ -446,14 +456,14 @@ class AsmStandalone_UpstreamPropagation_Base:
                 "x-datadog-parent-id": str(parent_id),
                 "x-datadog-origin": "rum",
                 "x-datadog-sampling-priority": "2",
-                "x-datadog-tags": "_dd.p.appsec=1",
+                "x-datadog-tags": self.propagated_tag_and_value(),
             },
         )
 
     def test_upstream_appsec_propagation__no_asm_event__is_propagated_as_is__being_2(self):
         self.assert_product_is_enabled(self.check_r, self.tested_product)
         spans_checked = 0
-        tested_meta = {"_dd.p.appsec": "1"}
+        tested_meta = {self.propagated_tag(): self.propagated_tag_value()}
         tested_metrics = {"_sampling_priority_v1": lambda x: x == 2}
 
         for data, trace, span in interfaces.library.get_spans(request=self.r):
@@ -474,7 +484,7 @@ class AsmStandalone_UpstreamPropagation_Base:
         downstream_headers = CaseInsensitiveDict(json.loads(self.r.text))
         assert downstream_headers["X-Datadog-Origin"] == "rum"
         assert downstream_headers["X-Datadog-Parent-Id"] != "34343434"
-        assert "_dd.p.appsec=1" in downstream_headers["X-Datadog-Tags"]
+        assert self.propagated_tag_and_value() in downstream_headers["X-Datadog-Tags"]
         assert downstream_headers["X-Datadog-Sampling-Priority"] == "2"
         assert downstream_headers["X-Datadog-Trace-Id"] == "1212121212121212121"
 
@@ -494,7 +504,7 @@ class AsmStandalone_UpstreamPropagation_Base:
 
     def test_any_upstream_propagation__with_asm_event__raises_priority_to_2__from_minus_1(self):
         spans_checked = 0
-        tested_meta = {"_dd.p.appsec": "1"}
+        tested_meta = {self.propagated_tag(): self.propagated_tag_value()}
         tested_metrics = {"_sampling_priority_v1": lambda x: x == 2}
 
         for data, trace, span in interfaces.library.get_spans(request=self.r):
@@ -515,7 +525,7 @@ class AsmStandalone_UpstreamPropagation_Base:
         downstream_headers = CaseInsensitiveDict(json.loads(self.r.text))
         assert downstream_headers["X-Datadog-Origin"] == "rum"
         assert downstream_headers["X-Datadog-Parent-Id"] != "34343434"
-        assert "_dd.p.appsec=1" in downstream_headers["X-Datadog-Tags"]
+        assert self.propagated_tag_and_value() in downstream_headers["X-Datadog-Tags"]
         assert downstream_headers["X-Datadog-Sampling-Priority"] == "2"
         assert downstream_headers["X-Datadog-Trace-Id"] == "1212121212121212121"
 
@@ -535,7 +545,7 @@ class AsmStandalone_UpstreamPropagation_Base:
 
     def test_any_upstream_propagation__with_asm_event__raises_priority_to_2__from_0(self):
         spans_checked = 0
-        tested_meta = {"_dd.p.appsec": "1"}
+        tested_meta = {self.propagated_tag(): self.propagated_tag_value()}
         tested_metrics = {"_sampling_priority_v1": lambda x: x == 2}
 
         for data, trace, span in interfaces.library.get_spans(request=self.r):
@@ -556,7 +566,7 @@ class AsmStandalone_UpstreamPropagation_Base:
         downstream_headers = CaseInsensitiveDict(json.loads(self.r.text))
         assert downstream_headers["X-Datadog-Origin"] == "rum"
         assert downstream_headers["X-Datadog-Parent-Id"] != "34343434"
-        assert "_dd.p.appsec=1" in downstream_headers["X-Datadog-Tags"]
+        assert self.propagated_tag_and_value() in downstream_headers["X-Datadog-Tags"]
         assert downstream_headers["X-Datadog-Sampling-Priority"] == "2"
         assert downstream_headers["X-Datadog-Trace-Id"] == "1212121212121212121"
 
@@ -576,7 +586,7 @@ class AsmStandalone_UpstreamPropagation_Base:
 
     def test_any_upstream_propagation__with_asm_event__raises_priority_to_2__from_1(self):
         spans_checked = 0
-        tested_meta = {"_dd.p.appsec": "1"}
+        tested_meta = {self.propagated_tag(): self.propagated_tag_value()}
         tested_metrics = {"_sampling_priority_v1": lambda x: x == 2}
 
         for data, trace, span in interfaces.library.get_spans(request=self.r):
@@ -597,16 +607,12 @@ class AsmStandalone_UpstreamPropagation_Base:
         downstream_headers = CaseInsensitiveDict(json.loads(self.r.text))
         assert downstream_headers["X-Datadog-Origin"] == "rum"
         assert downstream_headers["X-Datadog-Parent-Id"] != "34343434"
-        assert "_dd.p.appsec=1" in downstream_headers["X-Datadog-Tags"]
+        assert self.propagated_tag_and_value() in downstream_headers["X-Datadog-Tags"]
         assert downstream_headers["X-Datadog-Sampling-Priority"] == "2"
         assert downstream_headers["X-Datadog-Trace-Id"] == "1212121212121212121"
 
 
-@rfc("https://docs.google.com/document/d/12NBx-nD-IoQEMiCRnJXneq4Be7cbtSc6pJLOFUWTpNE/edit")
-@features.appsec_standalone
-@scenarios.appsec_standalone
-@flaky(context.library >= "python@2.18.0+dev", reason="APPSEC-56142")
-class Test_AppSecStandalone_UpstreamPropagation(AsmStandalone_UpstreamPropagation_Base):
+class AppSecStandalone_UpstreamPropagation_Base(AsmStandalone_UpstreamPropagation_Base):
     """APPSEC correctly propagates AppSec events in distributing tracing."""
 
     requestdownstreamUrl = "/requestdownstream"
@@ -644,10 +650,7 @@ class Test_AppSecStandalone_UpstreamPropagation(AsmStandalone_UpstreamPropagatio
         super().test_any_upstream_propagation__with_asm_event__raises_priority_to_2__from_1()
 
 
-@rfc("https://docs.google.com/document/d/12NBx-nD-IoQEMiCRnJXneq4Be7cbtSc6pJLOFUWTpNE/edit")
-@features.iast_standalone
-@scenarios.iast_standalone
-class Test_IastStandalone_UpstreamPropagation(AsmStandalone_UpstreamPropagation_Base):
+class IastStandalone_UpstreamPropagation_Base(AsmStandalone_UpstreamPropagation_Base):
     """IAST correctly propagates AppSec events in distributing tracing."""
 
     requestdownstreamUrl = "/vulnerablerequestdownstream"
@@ -671,10 +674,7 @@ class Test_IastStandalone_UpstreamPropagation(AsmStandalone_UpstreamPropagation_
         super().test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_2()
 
 
-@rfc("https://docs.google.com/document/d/12NBx-nD-IoQEMiCRnJXneq4Be7cbtSc6pJLOFUWTpNE/edit")
-@features.sca_standalone
-@scenarios.sca_standalone
-class Test_SCAStandalone_Telemetry:
+class SCAStandalone_Telemetry_Base:
     """Tracer correctly propagates SCA telemetry in distributing tracing."""
 
     def assert_standalone_is_enabled(self, request):
@@ -702,7 +702,7 @@ class Test_SCAStandalone_Telemetry:
         DD_APPSEC_SCA_ENABLED = TelemetryUtils.get_dd_appsec_sca_enabled_str(context.library)
 
         cfg_appsec_enabled = configuration_by_name.get(DD_APPSEC_SCA_ENABLED)
-        assert cfg_appsec_enabled is not None, "Missing telemetry config item for '{}'".format(DD_APPSEC_SCA_ENABLED)
+        assert cfg_appsec_enabled is not None, f"Missing telemetry config item for '{DD_APPSEC_SCA_ENABLED}'"
 
         outcome_value = True
         if context.library == "java":
@@ -738,3 +738,110 @@ class Test_SCAStandalone_Telemetry:
         for dependency, seen in seen_loaded_dependencies.items():
             if not seen:
                 raise Exception(dependency + " not received in app-dependencies-loaded message")
+
+
+@rfc("https://docs.google.com/document/d/12NBx-nD-IoQEMiCRnJXneq4Be7cbtSc6pJLOFUWTpNE/edit")
+@features.appsec_standalone
+@scenarios.appsec_no_stats
+class Test_AppSecStandalone_NotEnabled:
+    """Test expected behaviour when standalone is not enabled."""
+
+    def setup_client_computed_stats_header_is_not_present(self):
+        trace_id = 1212121212121212122
+        parent_id = 34343434
+        self.r = weblog.get(
+            "/",
+            headers={
+                "x-datadog-trace-id": str(trace_id),
+                "x-datadog-parent-id": str(parent_id),
+            },
+        )
+
+    def test_client_computed_stats_header_is_not_present(self):
+        spans_checked = 0
+        for data, _, span in interfaces.library.get_spans(request=self.r):
+            assert span["trace_id"] == 1212121212121212122
+            assert "datadog-client-computed-stats" not in [x.lower() for x, y in data["request"]["headers"]]
+            spans_checked += 1
+        assert spans_checked == 1
+
+
+@rfc("https://docs.google.com/document/d/12NBx-nD-IoQEMiCRnJXneq4Be7cbtSc6pJLOFUWTpNE/edit")
+@features.appsec_standalone
+@scenarios.appsec_standalone
+@irrelevant(context.library > "java@v1.46.0", reason="V2 is implemented for newer versions")
+class Test_AppSecStandalone_UpstreamPropagation(AppSecStandalone_UpstreamPropagation_Base):
+    """APPSEC correctly propagates AppSec events in distributing tracing with DD_EXPERIMENTAL_APPSEC_STANDALONE_ENABLED=true."""
+
+    def propagated_tag(self):
+        return "_dd.p.appsec"
+
+    def propagated_tag_value(self):
+        return "1"
+
+
+@rfc("https://docs.google.com/document/d/12NBx-nD-IoQEMiCRnJXneq4Be7cbtSc6pJLOFUWTpNE/edit")
+@features.appsec_standalone_v2
+@scenarios.appsec_standalone_v2
+class Test_AppSecStandalone_UpstreamPropagation_V2(AppSecStandalone_UpstreamPropagation_Base):
+    """APPSEC correctly propagates AppSec events in distributing tracing with DD_APM_TRACING_ENABLED=false."""
+
+    def propagated_tag(self):
+        return "_dd.p.ts"
+
+    def propagated_tag_value(self):
+        return "02"
+
+
+@rfc("https://docs.google.com/document/d/12NBx-nD-IoQEMiCRnJXneq4Be7cbtSc6pJLOFUWTpNE/edit")
+@features.iast_standalone
+@scenarios.iast_standalone
+@irrelevant(context.library > "java@v1.46.0", reason="V2 is implemented for newer versions")
+class Test_IastStandalone_UpstreamPropagation(IastStandalone_UpstreamPropagation_Base):
+    """IAST correctly propagates AppSec events in distributing tracing with DD_EXPERIMENTAL_APPSEC_STANDALONE_ENABLED=true."""
+
+    def propagated_tag(self):
+        return "_dd.p.appsec"
+
+    def propagated_tag_value(self):
+        return "1"
+
+
+@rfc("https://docs.google.com/document/d/12NBx-nD-IoQEMiCRnJXneq4Be7cbtSc6pJLOFUWTpNE/edit")
+@features.iast_standalone_v2
+@scenarios.iast_standalone_v2
+class Test_IastStandalone_UpstreamPropagation_V2(IastStandalone_UpstreamPropagation_Base):
+    """IAST correctly propagates AppSec events in distributing tracing with DD_APM_TRACING_ENABLED=false."""
+
+    def propagated_tag(self):
+        return "_dd.p.ts"
+
+    def propagated_tag_value(self):
+        return "02"
+
+
+@rfc("https://docs.google.com/document/d/12NBx-nD-IoQEMiCRnJXneq4Be7cbtSc6pJLOFUWTpNE/edit")
+@features.sca_standalone
+@scenarios.sca_standalone
+@irrelevant(context.library > "java@v1.46.0", reason="V2 is implemented for newer versions")
+class Test_SCAStandalone_Telemetry(SCAStandalone_Telemetry_Base):
+    """Tracer correctly propagates SCA telemetry in distributing tracing with DD_EXPERIMENTAL_APPSEC_STANDALONE_ENABLED=true."""
+
+    def propagated_tag(self):
+        return "_dd.p.appsec"
+
+    def propagated_tag_value(self):
+        return "1"
+
+
+@rfc("https://docs.google.com/document/d/12NBx-nD-IoQEMiCRnJXneq4Be7cbtSc6pJLOFUWTpNE/edit")
+@features.sca_standalone_v2
+@scenarios.sca_standalone_v2
+class Test_SCAStandalone_Telemetry_V2(SCAStandalone_Telemetry_Base):
+    """Tracer correctly propagates SCA telemetry in distributing tracing with DD_APM_TRACING_ENABLED=false."""
+
+    def propagated_tag(self):
+        return "_dd.p.ts"
+
+    def propagated_tag_value(self):
+        return "02"

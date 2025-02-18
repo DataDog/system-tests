@@ -1,9 +1,9 @@
 import yaml
 import argparse
-import os.path
+from pathlib import Path
 
 
-def main():
+def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--input", required=True, type=str, help="gitlab pipeline to merge")
     parser.add_argument("--output", required=True, type=str, help="final gitlab pipeline")
@@ -12,7 +12,7 @@ def main():
     with open(args.input) as f:
         pipeline = yaml.safe_load(f)
 
-    if os.path.exists(args.output):
+    if Path(args.output).exists():
         # If final file exists, merge the stages and jobs
         with open(args.output) as f:
             final_pipeline = yaml.safe_load(f)

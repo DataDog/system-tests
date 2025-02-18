@@ -25,7 +25,7 @@ def is_skipped(item, reason):
                     print(f"Found expected {mark} for {item}")
                     return True
 
-                print(f"{item} is skipped, but reason is {repr(mark.kwargs['reason'])} io {repr(reason)}")
+                print(f"{item} is skipped, but reason is {mark.kwargs['reason']!r} io {reason!r}")
 
     raise Exception(f"{item} is not skipped, or not with the good reason")
 
@@ -44,7 +44,7 @@ class Logs(list):
         self.append(line)
 
     def __str__(self):
-        return "\n".join([l.strip() for l in self])
+        return "\n".join([line.strip() for line in self])
 
 
 logs = Logs()

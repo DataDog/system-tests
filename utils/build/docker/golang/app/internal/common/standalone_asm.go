@@ -11,12 +11,10 @@ import (
 	"log"
 	"net/http"
 	"strings"
-
-	httptrace "github.com/DataDog/dd-trace-go/contrib/net/http/v2"
 )
 
 func Requestdownstream(w http.ResponseWriter, r *http.Request) {
-	client := httptrace.WrapClient(http.DefaultClient, httptrace.WithPropagation(true))
+	client := httpClient()
 	req, _ := http.NewRequest(http.MethodGet, "http://127.0.0.1:7777/returnheaders", nil)
 	req = req.WithContext(r.Context())
 	res, err := client.Do(req)

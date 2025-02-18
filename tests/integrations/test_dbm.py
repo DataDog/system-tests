@@ -6,7 +6,7 @@
 import json
 import re
 
-from utils import weblog, interfaces, context, scenarios, features, irrelevant, flaky, missing_feature
+from utils import weblog, interfaces, context, scenarios, features, irrelevant, flaky, bug
 from utils.tools import logger
 
 
@@ -113,6 +113,7 @@ class Test_Dbm:
     setup_trace_payload_full = weblog_trace_payload
 
     @scenarios.integrations
+    @bug(context.library == "python" and context.weblog_variant in ("flask-poc", "uds-flask"), reason="APMAPI-1058")
     def test_trace_payload_full(self):
         assert self.requests, "No requests to validate"
         for request in self.requests:
@@ -144,6 +145,7 @@ class _Test_Dbm_Comment:
     def setup_dbm_comment(self):
         self.r = weblog.get("/stub_dbm", params={"integration": self.integration, "operation": self.operation})
 
+    @bug(context.library == "python" and context.weblog_variant in ("flask-poc", "uds-flask"), reason="APMAPI-1058")
     def test_dbm_comment(self):
         assert self.r.status_code == 200, f"Request: {self.r.request.url} wasn't successful."
 
@@ -154,7 +156,8 @@ class _Test_Dbm_Comment:
 
         expected_dbm_comment = f"/*dddb='{self.dddb}',dddbs='{self.dddbs}',dde='{self.dde}',ddh='{self.ddh}',ddps='{self.ddps}',ddpv='{self.ddpv}'*/ SELECT version()"
 
-        assert "status" in data and data["status"] == "ok"
+        assert "status" in data
+        assert data["status"] == "ok"
         assert "traceparent" in data["dbm_comment"]
         assert remove_traceparent(data["dbm_comment"]) == expected_dbm_comment
 

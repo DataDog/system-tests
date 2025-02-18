@@ -4,13 +4,9 @@
 
 import base64
 import json
+import os
 
-from tests.integrations.utils import (
-    compute_dsm_hash,
-    delete_sqs_queue,
-    delete_kinesis_stream,
-    delete_sns_topic,
-)
+from tests.integrations.utils import compute_dsm_hash
 
 from utils import weblog, interfaces, scenarios, irrelevant, context, bug, features, missing_feature, flaky
 from utils.tools import logger
@@ -22,6 +18,16 @@ DSM_CONSUMER_GROUP = "testgroup1"
 # RabbitMQ Specific
 DSM_EXCHANGE = "dsm-system-tests-exchange"
 DSM_ROUTING_KEY = "dsm-system-tests-routing-key"
+
+# AWS Specific
+AWS_HOST = os.getenv("SYSTEM_TESTS_AWS_URL", "")
+
+# TO DO CHECK RUNNER ENV FOR A SYSTEM TESTS AWS ENV INDICATING IF AWS TESTS IS LOCAL OR REMOTE
+
+# If the AWS host points to localstack, we are using local AWS mocking, else assume the real account
+LOCAL_AWS_ACCT = "000000000000"  # if 'localstack' in AWS_HOST else "601427279990"
+AWS_ACCT = LOCAL_AWS_ACCT  # if 'localstack' in AWS_HOST else "601427279990"
+AWS_TESTING = "local" if LOCAL_AWS_ACCT == AWS_ACCT else "remote"
 
 # AWS Kinesis Specific
 DSM_STREAM = "dsm-system-tests-stream"
@@ -52,6 +58,7 @@ class Test_DsmKafka:
     def setup_dsm_kafka(self):
         self.r = weblog.get(f"/dsm?integration=kafka&queue={DSM_QUEUE}&group={DSM_CONSUMER_GROUP}")
 
+    @bug(context.library == "python" and context.weblog_variant in ("flask-poc", "uds-flask"), reason="APMAPI-1058")
     @irrelevant(context.library in ["java", "dotnet"], reason="New behavior with cluster id not merged yet.")
     def test_dsm_kafka(self):
         assert self.r.text == "ok"
@@ -262,28 +269,23 @@ class Test_DsmRabbitmq_FanoutExchange:
 
 
 @features.datastreams_monitoring_support_for_sqs
-@irrelevant(True, reason="AWS Tests are not currently stable.")
 @scenarios.integrations_aws
 class Test_DsmSQS:
     """Verify DSM stats points for AWS Sqs Service"""
 
     def setup_dsm_sqs(self):
-        try:
-            message = get_message("Test_DsmSQS", "sqs")
+        message = get_message("Test_DsmSQS", "sqs")
 
-            # we can't add the time hash to node since we can't replicate the hashing algo in python and compute a hash,
-            # which changes for each run with the time stamp added
-            if context.library.library != "nodejs":
-                self.queue = f"{DSM_QUEUE}_{context.library.library}_{WEBLOG_VARIANT_SANITIZED}_{scenarios.integrations_aws.unique_id}"
-            else:
-                self.queue = f"{DSM_QUEUE}_{context.library.library}"
+        # we can't add the time hash to node since we can't replicate the hashing algo in python and compute a hash,
+        # which changes for each run with the time stamp added
+        if context.library.library != "nodejs":
+            self.queue = f"{DSM_QUEUE}_{context.library.library}_{WEBLOG_VARIANT_SANITIZED}_{scenarios.integrations_aws.unique_id}"
+        else:
+            self.queue = f"{DSM_QUEUE}_{context.library.library}"
 
-            self.r = weblog.get(
-                f"/dsm?integration=sqs&timeout=60&queue={self.queue}&message={message}", timeout=DSM_REQUEST_TIMEOUT
-            )
-        finally:
-            if context.library.library != "nodejs":
-                delete_sqs_queue(self.queue)
+        self.r = weblog.get(
+            f"/dsm?integration=sqs&timeout=60&queue={self.queue}&message={message}", timeout=DSM_REQUEST_TIMEOUT
+        )
 
     def test_dsm_sqs(self):
         assert self.r.text == "ok"
@@ -316,37 +318,31 @@ class Test_DsmSQS:
 
 
 @features.datastreams_monitoring_support_for_sns
-@irrelevant(True, reason="AWS Tests are not currently stable.")
 @scenarios.integrations_aws
 class Test_DsmSNS:
     """Verify DSM stats points for AWS SNS Service"""
 
     def setup_dsm_sns(self):
-        try:
-            message = get_message("Test_DsmSNS", "sns")
+        message = get_message("Test_DsmSNS", "sns")
 
-            # we can't add the time hash to node since we can't replicate the hashing algo in python and compute a hash,
-            # which changes for each run with the time stamp added
-            if context.library.library != "nodejs":
-                self.topic = f"{DSM_TOPIC}_{context.library.library}_{WEBLOG_VARIANT_SANITIZED}_{scenarios.integrations_aws.unique_id}_raw"
-                self.queue = f"{DSM_QUEUE_SNS}_{context.library.library}_{WEBLOG_VARIANT_SANITIZED}_{scenarios.integrations_aws.unique_id}_raw"
-            else:
-                self.topic = f"{DSM_TOPIC}_{context.library.library}_raw"
-                self.queue = f"{DSM_QUEUE_SNS}_{context.library.library}_raw"
+        # we can't add the time hash to node since we can't replicate the hashing algo in python and compute a hash,
+        # which changes for each run with the time stamp added
+        if context.library.library != "nodejs":
+            self.topic = f"{DSM_TOPIC}_{context.library.library}_{WEBLOG_VARIANT_SANITIZED}_{scenarios.integrations_aws.unique_id}_raw"
+            self.queue = f"{DSM_QUEUE_SNS}_{context.library.library}_{WEBLOG_VARIANT_SANITIZED}_{scenarios.integrations_aws.unique_id}_raw"
+        else:
+            self.topic = f"{DSM_TOPIC}_{context.library.library}_raw"
+            self.queue = f"{DSM_QUEUE_SNS}_{context.library.library}_raw"
 
-            self.r = weblog.get(
-                f"/dsm?integration=sns&timeout=60&queue={self.queue}&topic={self.topic}&message={message}",
-                timeout=DSM_REQUEST_TIMEOUT,
-            )
-        finally:
-            if context.library.library != "nodejs":
-                delete_sns_topic(self.topic)
-                delete_sqs_queue(self.queue)
+        self.r = weblog.get(
+            f"/dsm?integration=sns&timeout=60&queue={self.queue}&topic={self.topic}&message={message}",
+            timeout=DSM_REQUEST_TIMEOUT,
+        )
 
     def test_dsm_sns(self):
         assert self.r.text == "ok"
 
-        topic = self.topic if context.library.library == "java" else f"arn:aws:sns:us-east-1:601427279990:{self.topic}"
+        topic = self.topic if context.library.library == "java" else f"arn:aws:sns:us-east-1:{AWS_ACCT}:{self.topic}"
 
         hash_inputs = {
             "default": {
@@ -354,8 +350,8 @@ class Test_DsmSNS:
                 "tags_in": ("direction:in", f"topic:{self.queue}", "type:sqs"),
             },
             "nodejs": {
-                "producer": 15466202493380574985,
-                "consumer": 9372735371403270535,
+                "producer": 15466202493380574985 if AWS_TESTING == "remote" else 3703335291192845713,
+                "consumer": 9372735371403270535 if AWS_TESTING == "remote" else 797339341876345963,
                 "tags_out": ("direction:out", f"topic:{topic}", "type:sns"),
                 "tags_in": ("direction:in", f"topic:{self.queue}", "type:sqs"),
             },
@@ -376,35 +372,30 @@ class Test_DsmSNS:
 
 
 @features.datastreams_monitoring_support_for_kinesis
-@irrelevant(True, reason="AWS Tests are not currently stable.")
 @scenarios.integrations_aws
 class Test_DsmKinesis:
     """Verify DSM stats points for AWS Kinesis Service"""
 
     def setup_dsm_kinesis(self):
-        try:
-            message = get_message("Test_DsmKinesis", "kinesis")
+        message = get_message("Test_DsmKinesis", "kinesis")
 
-            # we can't add the time hash to node since we can't replicate the hashing algo in python and compute a hash,
-            # which changes for each run with the time stamp added
-            if context.library.library != "nodejs":
-                self.stream = f"{DSM_STREAM}_{context.library.library}_{WEBLOG_VARIANT_SANITIZED}_{scenarios.integrations_aws.unique_id}"
-            else:
-                self.stream = f"{DSM_STREAM}_{context.library.library}"
+        # we can't add the time hash to node since we can't replicate the hashing algo in python and compute a hash,
+        # which changes for each run with the time stamp added
+        if context.library.library != "nodejs":
+            self.stream = f"{DSM_STREAM}_{context.library.library}_{WEBLOG_VARIANT_SANITIZED}_{scenarios.integrations_aws.unique_id}"
+        else:
+            self.stream = f"{DSM_STREAM}_{context.library.library}"
 
-            self.r = weblog.get(
-                f"/dsm?integration=kinesis&timeout=60&stream={self.stream}&message={message}",
-                timeout=DSM_REQUEST_TIMEOUT,
-            )
-        finally:
-            if context.library.library != "nodejs":
-                delete_kinesis_stream(self.stream)
+        self.r = weblog.get(
+            f"/dsm?integration=kinesis&timeout=60&stream={self.stream}&message={message}",
+            timeout=DSM_REQUEST_TIMEOUT,
+        )
 
     @missing_feature(library="java", reason="DSM is not implemented for Java AWS Kinesis.")
     def test_dsm_kinesis(self):
         assert self.r.text == "ok"
 
-        stream_arn = f"arn:aws:kinesis:us-east-1:601427279990:stream/{self.stream}"
+        stream_arn = f"arn:aws:kinesis:us-east-1:{AWS_ACCT}:stream/{self.stream}"
 
         hash_inputs = {
             "default": {
@@ -464,7 +455,7 @@ class Test_DsmContext_Injection_Base64:
         # assert that this is base64
         assert base64.b64encode(base64.b64decode(encoded_pathway_b64)) == bytes(encoded_pathway_b64, "utf-8")
 
-        encoded_pathway = base64.b64decode(bytes(encoded_pathway_b64, "utf-8"))
+        base64.b64decode(bytes(encoded_pathway_b64, "utf-8"))
 
         # nodejs uses big endian, others use little endian
         _format = "<Q"
@@ -480,7 +471,7 @@ class Test_DsmContext_Injection_Base64:
 @features.datastreams_monitoring_support_for_base64_encoding
 @scenarios.integrations
 class Test_DsmContext_Extraction_Base64:
-    """Verify DSM context is extracted using "dd-pathway-ctx-base64" """
+    """Verify DSM context is extracted using dd-pathway-ctx-base64"""
 
     def setup_dsmcontext_extraction_base64(self):
         topic = "dsm-injection-topic"
@@ -517,14 +508,14 @@ class Test_Dsm_Manual_Checkpoint_Intra_Process:
 
     def setup_dsm_manual_checkpoint_intra_process(self):
         self.produce = weblog.get(
-            f"/dsm/manual/produce?type=dd-streams&target=system-tests-queue", timeout=DSM_REQUEST_TIMEOUT
+            "/dsm/manual/produce?type=dd-streams&target=system-tests-queue", timeout=DSM_REQUEST_TIMEOUT
         )
         headers = {}
         headers["_datadog"] = json.dumps(
             {"dd-pathway-ctx-base64": self.produce.headers.get("dd-pathway-ctx-base64", "")}
         )
         self.consume = weblog.get(
-            f"/dsm/manual/consume?type=dd-streams&source=system-tests-queue",
+            "/dsm/manual/consume?type=dd-streams&source=system-tests-queue",
             headers=headers,
             timeout=DSM_REQUEST_TIMEOUT,
         )
@@ -589,7 +580,7 @@ class Test_Dsm_Manual_Checkpoint_Inter_Process:
 
     def setup_dsm_manual_checkpoint_inter_process(self):
         self.produce_threaded = weblog.get(
-            f"/dsm/manual/produce_with_thread?type=dd-streams-threaded&target=system-tests-queue",
+            "/dsm/manual/produce_with_thread?type=dd-streams-threaded&target=system-tests-queue",
             timeout=DSM_REQUEST_TIMEOUT,
         )
         headers = {}
@@ -597,7 +588,7 @@ class Test_Dsm_Manual_Checkpoint_Inter_Process:
             {"dd-pathway-ctx-base64": self.produce_threaded.headers.get("dd-pathway-ctx-base64", "")}
         )
         self.consume_threaded = weblog.get(
-            f"/dsm/manual/consume_with_thread?type=dd-streams-threaded&source=system-tests-queue",
+            "/dsm/manual/consume_with_thread?type=dd-streams-threaded&source=system-tests-queue",
             headers=headers,
             timeout=DSM_REQUEST_TIMEOUT,
         )

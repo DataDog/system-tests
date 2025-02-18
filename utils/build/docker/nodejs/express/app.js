@@ -9,9 +9,9 @@ const { promisify } = require('util')
 const app = require('express')()
 const axios = require('axios')
 const fs = require('fs')
-const passport = require('passport')
 const crypto = require('crypto')
 const pino = require('pino')
+const api = require('@opentelemetry/api')
 
 const iast = require('./iast')
 const dsm = require('./dsm')
@@ -43,6 +43,8 @@ app.use(require('body-parser').urlencoded({ extended: true }))
 app.use(require('express-xml-bodyparser')())
 app.use(require('cookie-parser')())
 iast.initMiddlewares(app)
+
+require('./auth')(app, tracer)
 
 app.get('/', (req, res) => {
   console.log('Received a request')
@@ -176,6 +178,8 @@ app.get('/users', (req, res) => {
   } else {
     user.id = 'anonymous'
   }
+
+  tracer.setUser(user)
 
   const shouldBlock = tracer.appsec.isUserBlocked(user)
   if (shouldBlock) {
@@ -429,6 +433,29 @@ app.get('/db', async (req, res) => {
   }
 })
 
+app.get('/otel_drop_in_default_propagator_extract', (req, res) => {
+  const ctx = api.propagation.extract(api.context.active(), req.headers)
+  const spanContext = api.trace.getSpan(ctx).spanContext()
+
+  const result = {}
+  result.trace_id = parseInt(spanContext.traceId.substring(16), 16)
+  result.span_id = parseInt(spanContext.spanId, 16)
+  result.tracestate = spanContext.traceState.serialize()
+  // result.baggage = api.propagation.getBaggage(spanContext).toString()
+
+  res.json(result)
+})
+
+app.get('/otel_drop_in_default_propagator_inject', (req, res) => {
+  const tracer = api.trace.getTracer('my-application', '0.1.0')
+  const span = tracer.startSpan('main')
+  const result = {}
+
+  api.propagation.inject(
+    api.trace.setSpanContext(api.ROOT_CONTEXT, span.spanContext()), result, api.defaultTextMapSetter)
+  res.json(result)
+})
+
 app.post('/shell_execution', (req, res) => {
   const options = { shell: !!req?.body?.options?.shell }
   const reqArgs = req?.body?.args
@@ -457,8 +484,6 @@ app.get('/createextraservice', (req, res) => {
 iast.initRoutes(app, tracer)
 
 di.initRoutes(app)
-
-require('./auth')(app, passport, tracer)
 
 // try to flush as much stuff as possible from the library
 app.get('/flush', (req, res) => {

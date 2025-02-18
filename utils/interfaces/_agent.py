@@ -143,6 +143,18 @@ class AgentInterfaceValidator(ProxyBasedInterfaceValidator):
     def get_spans_list(self, request):
         return [span for _, span in self.get_spans(request)]
 
+    def get_metrics(self):
+        """Attempts to fetch the metrics the agent will submit to the backend."""
+
+        for data in self.get_data(path_filters="/api/v2/series"):
+            if "series" not in data["request"]["content"]:
+                raise ValueError("series property is missing in agent payload")
+
+            content = data["request"]["content"]["series"]
+
+            for point in content:
+                yield data, point
+
     def get_dsm_data(self):
         return self.get_data(path_filters="/api/v0.1/pipeline_stats")
 
