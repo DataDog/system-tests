@@ -4,6 +4,7 @@ from utils import weblog, interfaces, scenarios, irrelevant, context, bug, featu
 from utils.tools import logger
 
 
+# this test relies on the proto file at utils/build/docker/common/message.proto
 class Test_Protobuf:
 
     def setup_protobuf(self):

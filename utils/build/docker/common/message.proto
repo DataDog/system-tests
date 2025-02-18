@@ -1,3 +1,6 @@
+// use shell script in the same folder to regenerate the code if you change this file.
+// used in tests/test_protobuf.py
+
 syntax = "proto3";
 package proto_message;
 
@@ -96,4 +99,9 @@ message Deep {
   message J{
     int32 x = 1;
   }
+}
+
+// just here to check that messages that are just floating around in the same file do not get extracted
+message Ignored {
+  int32 x = 1;
 }
