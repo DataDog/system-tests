@@ -8,7 +8,7 @@ import uuid
 
 import pytest
 
-from utils.telemetry_utils import TelemetryUtils
+from utils.telemetry_utils import TelemetryUtils, TelemetryV2Validator
 from utils import context, scenarios, rfc, features, missing_feature
 
 
@@ -29,13 +29,21 @@ telemetry_name_mapping = {
         "python": "DD_TRACE_HEADER_TAGS",
     },
     "trace_tags": {"dotnet": "DD_TAGS", "nodejs": "DD_TAGS", "python": "DD_TAGS"},
-    "trace_enabled": {"dotnet": "DD_TRACE_ENABLED", "nodejs": "tracing", "python": "DD_TRACE_ENABLED"},
+    "trace_enabled": {
+        "dotnet": "DD_TRACE_ENABLED",
+        "nodejs": "tracing",
+        "python": "DD_TRACE_ENABLED",
+    },
     "profiling_enabled": {
         "dotnet": "DD_PROFILING_ENABLED",
         "nodejs": "profiling.enabled",
         "python": "DD_PROFILING_ENABLED",
     },
-    "appsec_enabled": {"dotnet": "DD_APPSEC_ENABLED", "nodejs": "appsec.enabled", "python": "DD_APPSEC_ENABLED"},
+    "appsec_enabled": {
+        "dotnet": "DD_APPSEC_ENABLED",
+        "nodejs": "appsec.enabled",
+        "python": "DD_APPSEC_ENABLED",
+    },
     "data_streams_enabled": {
         "dotnet": "DD_DATA_STREAMS_ENABLED",
         "nodejs": "dsmEnabled",
@@ -50,6 +58,9 @@ def _mapped_telemetry_name(context, apm_telemetry_name):
         if mapped_name is not None:
             return mapped_name
     return apm_telemetry_name
+
+
+validator = TelemetryV2Validator()
 
 
 @scenarios.parametric
@@ -67,11 +78,15 @@ class Test_Defaults:
             }
         ],
     )
-    @missing_feature(context.library <= "python@2.16.0", reason="Reports configurations with unexpected names")
+    @missing_feature(
+        context.library <= "python@2.16.0",
+        reason="Reports configurations with unexpected names",
+    )
     def test_library_settings(self, library_env, test_agent, test_library):
         with test_library.dd_start_span("test"):
             pass
         event = test_agent.wait_for_telemetry_event("app-started", wait_loops=400)
+        assert not validator.get_errors(event)
         configuration = event["payload"]["configuration"]
 
         configuration_by_name = {item["name"]: item for item in configuration}
@@ -99,6 +114,14 @@ class Test_Defaults:
                 continue
             if context.library == "python" and apm_telemetry_name in ("trace_sample_rate",):
                 # DD_TRACE_SAMPLE_RATE is not supported in ddtrace>=3.x
+                continue
+            if context.library == "nodejs" and apm_telemetry_name in (
+                "trace_sample_rate",
+                "profiling_enabled",
+                "appsec_enabled",
+                "data_streams_enabled",
+            ):
+                # NodeJS do not report default sample rate if not set.
                 continue
             apm_telemetry_name = _mapped_telemetry_name(context, apm_telemetry_name)
 
@@ -141,11 +164,15 @@ class Test_Consistent_Configs:
             }
         ],
     )
-    @missing_feature(context.library <= "python@2.16.0", reason="Reports configurations with unexpected names")
+    @missing_feature(
+        context.library <= "python@2.16.0",
+        reason="Reports configurations with unexpected names",
+    )
     def test_library_settings(self, library_env, test_agent, test_library):
         with test_library.dd_start_span("test"):
             pass
         event = test_agent.wait_for_telemetry_event("app-started", wait_loops=400)
+        assert not validator.get_errors(event)
         configuration = event["payload"]["configuration"]
         configuration_by_name = {item["name"]: item for item in configuration}
 
@@ -178,11 +205,15 @@ class Test_Consistent_Configs:
         ],
     )
     @missing_feature(context.library == "nodejs", reason="Not implemented")
-    @missing_feature(context.library <= "python@2.16.0", reason="Reports configurations with unexpected names")
+    @missing_feature(
+        context.library <= "python@2.16.0",
+        reason="Reports configurations with unexpected names",
+    )
     def test_library_settings_2(self, library_env, test_agent, test_library):
         with test_library.dd_start_span("test"):
             pass
         event = test_agent.wait_for_telemetry_event("app-started", wait_loops=400)
+        assert not validator.get_errors(event)
         configuration = event["payload"]["configuration"]
         configuration_by_name = {item["name"]: item for item in configuration}
 
@@ -219,11 +250,15 @@ class Test_Environment:
             }
         ],
     )
-    @missing_feature(context.library <= "python@2.16.0", reason="Reports configurations with unexpected names")
+    @missing_feature(
+        context.library <= "python@2.16.0",
+        reason="Reports configurations with unexpected names",
+    )
     def test_library_settings(self, library_env, test_agent, test_library):
         with test_library.dd_start_span("test"):
             pass
         event = test_agent.wait_for_telemetry_event("app-started", wait_loops=400)
+        assert not validator.get_errors(event)
         configuration = event["payload"]["configuration"]
 
         configuration_by_name = {item["name"]: item for item in configuration}
@@ -273,7 +308,8 @@ class Test_Environment:
     @missing_feature(context.library == "php", reason="Not implemented")
     @missing_feature(context.library == "cpp", reason="Not implemented")
     @missing_feature(
-        context.library <= "python@3.1.0", reason="OTEL Sampling config is mapped to a different datadog config"
+        context.library <= "python@3.1.0",
+        reason="OTEL Sampling config is mapped to a different datadog config",
     )
     @pytest.mark.parametrize(
         "library_env",
@@ -310,6 +346,7 @@ class Test_Environment:
         with test_library.dd_start_span("test"):
             pass
         event = test_agent.wait_for_telemetry_event("generate-metrics", wait_loops=400)
+        assert not validator.get_errors(event)
         payload = event["payload"]
         assert event["request_type"] == "generate-metrics"
 
@@ -366,10 +403,12 @@ class Test_Environment:
     @missing_feature(context.library == "php", reason="Not implemented")
     @missing_feature(context.library == "cpp", reason="Not implemented")
     @missing_feature(
-        context.library <= "python@3.1.0", reason="OTEL Sampling config is mapped to a different datadog config"
+        context.library <= "python@3.1.0",
+        reason="OTEL Sampling config is mapped to a different datadog config",
     )
     @missing_feature(
-        context.library == "nodejs", reason="does not collect otel_env.invalid metrics for otel_resource_attributes"
+        context.library == "nodejs",
+        reason="does not collect otel_env.invalid metrics for otel_resource_attributes",
     )
     @pytest.mark.parametrize(
         "library_env",
@@ -397,6 +436,7 @@ class Test_Environment:
         with test_library.dd_start_span("test"):
             pass
         event = test_agent.wait_for_telemetry_event("generate-metrics", wait_loops=400)
+        assert not validator.get_errors(event)
         payload = event["payload"]
         assert event["request_type"] == "generate-metrics"
 
@@ -483,7 +523,8 @@ class Test_TelemetryInstallSignature:
         with test_library.dd_start_span("first_span"):
             pass
 
-        test_agent.wait_for_telemetry_event("app-started", wait_loops=400)
+        event = test_agent.wait_for_telemetry_event("app-started", wait_loops=400)
+        assert not validator.get_errors(event)
         requests = test_agent.raw_telemetry(clear=True)
         assert len(requests) > 0, "There should be at least one telemetry event (app-started)"
         for req in requests:
@@ -526,7 +567,9 @@ class Test_TelemetryInstallSignature:
         with test_library.dd_start_span("first_span"):
             pass
 
-        test_agent.wait_for_telemetry_event("app-started")
+        event = test_agent.wait_for_telemetry_event("app-started")
+        assert not validator.get_errors(event)
+
         requests = test_agent.raw_telemetry(clear=True)
         assert len(requests) > 0, "There should be at least one telemetry event (app-started)"
         for req in requests:
@@ -563,7 +606,8 @@ class Test_TelemetrySCAEnvVar:
         with test_library.dd_start_span("first_span"):
             pass
 
-        test_agent.wait_for_telemetry_event("app-started", wait_loops=400)
+        event = test_agent.wait_for_telemetry_event("app-started", wait_loops=400)
+        assert not validator.get_errors(event)
 
         requests = test_agent.raw_telemetry(clear=True)
         bodies = list(Test_TelemetrySCAEnvVar.flatten_message_batch(requests))
@@ -587,16 +631,37 @@ class Test_TelemetrySCAEnvVar:
         "library_env, specific_libraries_support, outcome_value",
         [
             ({**DEFAULT_ENVVARS, "DD_APPSEC_SCA_ENABLED": "true"}, False, True),
-            ({**DEFAULT_ENVVARS, "DD_APPSEC_SCA_ENABLED": "True"}, ("python", "golang"), True),
-            ({**DEFAULT_ENVVARS, "DD_APPSEC_SCA_ENABLED": "1"}, ("python", "golang"), True),
+            (
+                {**DEFAULT_ENVVARS, "DD_APPSEC_SCA_ENABLED": "True"},
+                ("python", "golang"),
+                True,
+            ),
+            (
+                {**DEFAULT_ENVVARS, "DD_APPSEC_SCA_ENABLED": "1"},
+                ("python", "golang"),
+                True,
+            ),
             ({**DEFAULT_ENVVARS, "DD_APPSEC_SCA_ENABLED": "false"}, False, False),
-            ({**DEFAULT_ENVVARS, "DD_APPSEC_SCA_ENABLED": "False"}, ("python", "golang"), False),
-            ({**DEFAULT_ENVVARS, "DD_APPSEC_SCA_ENABLED": "0"}, ("python", "golang"), False),
+            (
+                {**DEFAULT_ENVVARS, "DD_APPSEC_SCA_ENABLED": "False"},
+                ("python", "golang"),
+                False,
+            ),
+            (
+                {**DEFAULT_ENVVARS, "DD_APPSEC_SCA_ENABLED": "0"},
+                ("python", "golang"),
+                False,
+            ),
         ],
     )
     @missing_feature(context.library <= "python@2.16.0", reason="Converts boolean values to strings")
     def test_telemetry_sca_enabled_propagated(
-        self, library_env, specific_libraries_support, outcome_value, test_agent, test_library
+        self,
+        library_env,
+        specific_libraries_support,
+        outcome_value,
+        test_agent,
+        test_library,
     ):
         if specific_libraries_support and context.library not in specific_libraries_support:
             pytest.xfail(f"{outcome_value} unsupported value for {context.library}")
