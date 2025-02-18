@@ -231,7 +231,7 @@ create_key_pair() {
     fi
 
     #Protect with pass
-    ssh-keygen -p -f $pem_path
+    ssh-keygen -p -f "$pem_path"
 
     # Set proper permissions
     chmod 400 "$pem_path"
