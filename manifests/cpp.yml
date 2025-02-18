@@ -207,6 +207,7 @@ tests/:
       Test_Parametric_Otel_Baggage: missing_feature (otel api is not supported)
       Test_Parametric_Otel_Current_Span: missing_feature (otel api is not supported)
       Test_Parametric_Otel_Trace_Flush: missing_feature (otel api is not supported)
+    test_process_discovery.py: v1.0.1.dev 
     test_partial_flushing.py:
       Test_Partial_Flushing: missing_feature
     test_sampling_delegation.py:

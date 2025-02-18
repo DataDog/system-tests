@@ -2423,6 +2423,7 @@ class _Features:
         https://feature-parity.us1.prod.dog/#/?feature=366
         """
         pytest.mark.features(feature_id=366)(test_object)
+        return test_object
 
     @staticmethod
     def process_discovery(test_object):
