@@ -95,6 +95,10 @@ class Test_TelemetryMetrics:
             "waf_timeout",
             "version",
             "lib_language",
+            "waf_error",
+            "block_failure",
+            "rate_limited",
+            "input_truncated",
         }
         mandatory_tag_prefixes = {
             "waf_version",

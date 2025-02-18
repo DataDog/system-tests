@@ -434,7 +434,7 @@ tests/:
         Test_Cmdi_Optional_SpanTags: *ref_5_30_0
         Test_Cmdi_Rules_Version: *ref_5_30_0
         Test_Cmdi_StackTrace:
-          '*': missing_feature
+          '*': *ref_5_30_0
           nextjs: missing_feature
         Test_Cmdi_Telemetry:
           '*': *ref_5_30_0

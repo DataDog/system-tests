@@ -30,10 +30,12 @@ if os.environ.get("INCLUDE_MYSQL", "true") == "true":
 from flask import Flask
 from flask import Response
 from flask import jsonify
+from flask import render_template_string
 from flask import request
 from flask import request as flask_request
 from flask_login import LoginManager
 from flask_login import login_user
+
 from iast import weak_cipher
 from iast import weak_cipher_secure_algorithm
 from iast import weak_hash
@@ -1233,6 +1235,20 @@ def view_iast_code_injection_secure():
     _ = safe_eval(code_string)
     resp = Response("OK")
     return resp
+
+
+@app.route("/iast/xss/test_insecure", methods=["POST"])
+def view_iast_xss_insecure():
+    param = flask_request.form["param"]
+
+    return render_template_string("<p>XSS: {{ param|safe }}</p>", param=param)
+
+
+@app.route("/iast/xss/test_secure", methods=["POST"])
+def view_iast_xss_secure():
+    param = flask_request.form["param"]
+
+    return render_template_string("<p>XSS: {{ param }}</p>", param=param)
 
 
 _TRACK_METADATA = {

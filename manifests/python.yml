@@ -197,7 +197,8 @@ tests/:
           TestXPathInjection_ExtendedLocation: missing_feature
           TestXPathInjection_StackTrace: missing_feature
         test_xss.py:
-          TestXSS: missing_feature
+          TestXSS:
+            '*': v3.0.0.dev
           TestXSS_ExtendedLocation: missing_feature
           TestXSS_StackTrace: missing_feature
       source/:
@@ -1011,7 +1012,6 @@ tests/:
     Test_StandardTagsMethod: v1.2.1
     Test_StandardTagsRoute:
       '*': v1.6.0
-      django-py3.13: bug (APMLP-364)
     Test_StandardTagsStatusCode: v1.4.0-rc1
     Test_StandardTagsUrl:
       '*': v2.4.0
