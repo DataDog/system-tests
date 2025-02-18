@@ -202,7 +202,6 @@ class Test_Config_TraceAgentURL:
         ],
     )
     @missing_feature(context.library == "ruby", reason="does not support ipv6 hostname")
-    @missing_feature(context.library == "dotnet", reason="does not support ipv6 hostname")
     @missing_feature(context.library == "php", reason="does not support ipv6 hostname")
     @missing_feature(context.library == "golang", reason="does not support ipv6 hostname")
     @missing_feature(context.library == "python", reason="does not support ipv6 hostname")
