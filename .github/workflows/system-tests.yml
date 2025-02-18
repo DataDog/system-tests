@@ -81,7 +81,7 @@ jobs:
   parametric:
     needs:
       - compute_parameters
-    if: needs.compute_parameters.outputs.parametric_scenarios != '[]'
+    if: needs.compute_parameters.outputs.parametric_enable == 'true'
     uses: ./.github/workflows/run-parametric.yml
     secrets: inherit
     with:
@@ -91,24 +91,10 @@ jobs:
       job_count: ${{ inputs.parametric_job_count }}
       job_matrix: ${{ needs.compute_parameters.outputs.parametric_job_matrix }}
 
-  graphql:
-    needs:
-      - compute_parameters
-    if: needs.compute_parameters.outputs.graphql_scenarios != '[]'
-    uses: ./.github/workflows/run-graphql.yml
-    secrets: inherit
-    with:
-      library: ${{ inputs.library }}
-      weblogs: ${{ needs.compute_parameters.outputs.graphql_weblogs }}
-      binaries_artifact: ${{ inputs.binaries_artifact }}
-      ci_environment: ${{ inputs.ci_environment }}
-      build_proxy_image: ${{ inputs.build_proxy_image }}
-      skip_empty_scenarios: ${{ inputs.skip_empty_scenarios }}
-
   lib-injection:
     needs:
       - compute_parameters
-    if: ${{ needs.compute_parameters.outputs.libinjection_scenarios != '[]' }}
+    if: ${{ needs.compute_parameters.outputs.libinjection_enable == 'true' }}
     uses: ./.github/workflows/run-lib-injection.yml
     permissions:
       contents: read
@@ -120,32 +106,24 @@ jobs:
       version: ${{ inputs.binaries_artifact == '' && 'prod' || 'dev' }}
 
   end-to-end:
+    name: end-to-end (${{ matrix.weblogs.weblog_name }})
     needs:
       - compute_parameters
-    if: ${{ needs.compute_parameters.outputs.endtoend_scenarios != '[]' }}
+    strategy:
+      matrix:
+        weblogs: ${{ fromJson(needs.compute_parameters.outputs.endtoend_defs_weblogs) }}
+      fail-fast: false
     uses: ./.github/workflows/run-end-to-end.yml
     secrets: inherit
     with:
-      library: ${{ inputs.library }}
+      library: ${{ matrix.weblogs.library }}
+      weblog: ${{ matrix.weblogs.weblog_name }}
+      scenarios: ${{ toJson(matrix.weblogs.scenarios) }}
       build_python_base_images: ${{ inputs.build_python_base_images }}
       build_buddies_images: ${{ inputs.build_buddies_images }}
       build_proxy_image: ${{ inputs.build_proxy_image }}
-      scenarios: ${{ needs.compute_parameters.outputs.endtoend_scenarios }}
-      weblogs: ${{ needs.compute_parameters.outputs.endtoend_weblogs }}
       binaries_artifact: ${{ inputs.binaries_artifact }}
       ci_environment: ${{ inputs.ci_environment }}
-      skip_empty_scenarios: ${{ inputs.skip_empty_scenarios }}
-
-  open-telemetry:
-    needs:
-      - compute_parameters
-    if: ${{ needs.compute_parameters.outputs.opentelemetry_scenarios != '[]' && inputs.binaries_artifact == '' }}
-    uses: ./.github/workflows/run-open-telemetry.yml
-    secrets: inherit
-    with:
-      library: ${{ inputs.library }}
-      weblogs: ${{ needs.compute_parameters.outputs.opentelemetry_weblogs }}
-      build_proxy_image: ${{ inputs.build_proxy_image }}
       skip_empty_scenarios: ${{ inputs.skip_empty_scenarios }}
 
   external-processing:

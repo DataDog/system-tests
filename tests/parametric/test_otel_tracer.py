@@ -18,9 +18,7 @@ pytestmark = pytest.mark.parametrize(
 class Test_Otel_Tracer:
     @irrelevant(context.library == "cpp", reason="library does not implement OpenTelemetry")
     def test_otel_simple_trace(self, test_agent, test_library):
-        """
-        Perform two traces
-        """
+        """Perform two traces"""
         with test_library:
             with test_library.otel_start_span("root_one") as parent1:
                 parent1.set_attributes({"parent_k1": "parent_v1"})
@@ -55,9 +53,7 @@ class Test_Otel_Tracer:
     @missing_feature(context.library <= "java@1.23.0", reason="OTel resource naming implemented in 1.24.0")
     @missing_feature(context.library == "nodejs", reason="Not implemented")
     def test_otel_force_flush(self, test_agent, test_library):
-        """
-        Verify that force flush flushed the spans
-        """
+        """Verify that force flush flushed the spans"""
         with test_library:
             with test_library.otel_start_span(name="test_span") as span:
                 pass

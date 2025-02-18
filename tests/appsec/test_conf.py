@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import weblog, context, interfaces, missing_feature, irrelevant, rfc, scenarios, features, flaky, waf_rules
+from utils import weblog, context, interfaces, missing_feature, irrelevant, rfc, scenarios, features
 from utils.tools import nested_lookup
 from utils.dd_constants import PYTHON_RELEASE_GA_1_1
 
@@ -24,7 +24,7 @@ class Test_ConfigurationVariables:
         self.r_enabled = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1"})
 
     def test_enabled(self):
-        """test DD_APPSEC_ENABLED = true"""
+        """Test DD_APPSEC_ENABLED = true"""
         interfaces.library.assert_waf_attack(self.r_enabled)
 
     def setup_disabled(self):
@@ -34,7 +34,7 @@ class Test_ConfigurationVariables:
     @missing_feature("sinatra" in context.weblog_variant, reason="Sinatra endpoint not implemented")
     @scenarios.everything_disabled
     def test_disabled(self):
-        """test DD_APPSEC_ENABLED = false"""
+        """Test DD_APPSEC_ENABLED = false"""
         assert self.r_disabled.status_code == 200
         interfaces.library.assert_no_appsec_event(self.r_disabled)
 
@@ -43,7 +43,7 @@ class Test_ConfigurationVariables:
 
     @scenarios.appsec_custom_rules
     def test_appsec_rules(self):
-        """test DD_APPSEC_RULES = custom rules file"""
+        """Test DD_APPSEC_RULES = custom rules file"""
         interfaces.library.assert_waf_attack(self.r_appsec_rules, pattern="dedicated-value-for-testing-purpose")
 
     def setup_waf_timeout(self):
@@ -59,7 +59,7 @@ class Test_ConfigurationVariables:
     @missing_feature("sinatra" in context.weblog_variant, reason="Sinatra endpoint not implemented")
     @scenarios.appsec_low_waf_timeout
     def test_waf_timeout(self):
-        """test DD_APPSEC_WAF_TIMEOUT = low value"""
+        """Test DD_APPSEC_WAF_TIMEOUT = low value"""
         assert self.r_waf_timeout.status_code == 200
         interfaces.library.assert_no_appsec_event(self.r_waf_timeout)
 
@@ -70,9 +70,9 @@ class Test_ConfigurationVariables:
     @missing_feature(context.library < f"python@{PYTHON_RELEASE_GA_1_1}")
     @scenarios.appsec_custom_obfuscation
     def test_obfuscation_parameter_key(self):
-        """test DD_APPSEC_OBFUSCATION_PARAMETER_KEY_REGEXP"""
+        """Test DD_APPSEC_OBFUSCATION_PARAMETER_KEY_REGEXP"""
 
-        def validate_appsec_span_tags(span, appsec_data):  # pylint: disable=unused-argument
+        def validate_appsec_span_tags(span, appsec_data):  # noqa: ARG001
             assert not nested_lookup(
                 self.SECRET, appsec_data, look_in_keys=True
             ), "The security events contain the secret value that should be obfuscated"
@@ -88,9 +88,9 @@ class Test_ConfigurationVariables:
     @missing_feature(context.library < f"python@{PYTHON_RELEASE_GA_1_1}")
     @scenarios.appsec_custom_obfuscation
     def test_obfuscation_parameter_value(self):
-        """test DD_APPSEC_OBFUSCATION_PARAMETER_VALUE_REGEXP"""
+        """Test DD_APPSEC_OBFUSCATION_PARAMETER_VALUE_REGEXP"""
 
-        def validate_appsec_span_tags(span, appsec_data):  # pylint: disable=unused-argument
+        def validate_appsec_span_tags(span, appsec_data):  # noqa: ARG001
             assert not nested_lookup(
                 self.SECRET_WITH_HIDDEN_VALUE, appsec_data, look_in_keys=True
             ), "The security events contain the secret value that should be obfuscated"

@@ -7,7 +7,7 @@ from utils._context._scenarios import get_all_scenarios, DockerScenario
 from utils._context.containers import _get_client
 
 
-def main(scenarios: list[str], library: str | None = None, weblog: str | None = None) -> None:
+def main(scenarios: list[str], library: str, weblog: str) -> None:
     images = set("")
 
     existing_tags = []
@@ -19,14 +19,12 @@ def main(scenarios: list[str], library: str | None = None, weblog: str | None = 
             images.update(scenario.get_image_list(library, weblog))
 
     # remove images that will be built locally
-    images = [image for image in images if not image.startswith("system_tests/")]
+    images = {image for image in images if not image.startswith("system_tests/")}
 
     # remove images that exists locally (they may not exists in the registry, ex: buddies)
-    images = [image for image in images if image not in existing_tags]
+    images = {image for image in images if image not in existing_tags}
 
-    images.sort()
-
-    compose_data = {"services": {re.sub(r"[/:\.]", "-", image): {"image": image} for image in images}}
+    compose_data = {"services": {re.sub(r"[/:\.]", "-", image): {"image": image} for image in sorted(images)}}
 
     print(yaml.dump(compose_data, default_flow_style=False))
 
@@ -42,7 +40,20 @@ if __name__ == "__main__":
         type=str,
         default="",
         help="One of the supported Datadog languages",
-        choices=["cpp", "dotnet", "python", "ruby", "golang", "java", "nodejs", "php", ""],
+        choices=[
+            "cpp",
+            "dotnet",
+            "python",
+            "ruby",
+            "golang",
+            "java",
+            "nodejs",
+            "php",
+            "java_otel",
+            "python_otel",
+            "nodejs_otel",
+            "",
+        ],
     )
 
     parser.add_argument("--weblog", "-w", type=str, help="End-to-end weblog", default="")

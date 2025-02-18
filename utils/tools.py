@@ -7,6 +7,7 @@ import logging
 import os
 import re
 import sys
+from typing import Any
 
 
 class ShColors(StrEnum):
@@ -47,31 +48,32 @@ def update_environ_with_local_env() -> None:
 
 DEBUG_LEVEL_STDOUT = 100
 
+
+class Logger(logging.Logger):
+    terminal: Any
+
+    def stdout(self, message, *args, **kws) -> None:  # noqa: ANN002
+        if self.isEnabledFor(DEBUG_LEVEL_STDOUT):
+            # Yes, logger takes its '*args' as 'args'.
+            self._log(DEBUG_LEVEL_STDOUT, message, args, **kws)  # pylint: disable=protected-access
+
+            if hasattr(self, "terminal"):
+                self.terminal.write_line(message)
+                self.terminal.flush()
+            else:
+                # at this point, the logger may not yet be configured with the pytest terminal
+                # so directly print in stdout
+                print(message)  # noqa: T201
+
+
+logging.setLoggerClass(Logger)
+logging.getLogger("requests").setLevel(logging.WARNING)
+logging.getLogger("urllib3").setLevel(logging.WARNING)
 logging.addLevelName(DEBUG_LEVEL_STDOUT, "STDOUT")
 
 
-def stdout(self, message, *args, **kws) -> None:  # noqa: ANN002
-    if self.isEnabledFor(DEBUG_LEVEL_STDOUT):
-        # Yes, logger takes its '*args' as 'args'.
-        self._log(DEBUG_LEVEL_STDOUT, message, args, **kws)  # pylint: disable=protected-access
-
-        if hasattr(self, "terminal"):
-            self.terminal.write_line(message)
-            self.terminal.flush()
-        else:
-            # at this point, the logger may not yet be configured with the pytest terminal
-            # so directly print in stdout
-            print(message)  # noqa: T201
-
-
-logging.Logger.stdout = stdout  # type: ignore[attr-defined]
-
-
-def get_logger(name="tests", *, use_stdout=False) -> logging.Logger:
-    result = logging.getLogger(name)
-
-    logging.getLogger("requests").setLevel(logging.WARNING)
-    logging.getLogger("urllib3").setLevel(logging.WARNING)
+def get_logger(name="tests", *, use_stdout=False) -> Logger:
+    result: Logger = logging.getLogger(name)  # type: ignore[assignment]
 
     if use_stdout:
         stdout_handler = logging.StreamHandler(sys.stdout)

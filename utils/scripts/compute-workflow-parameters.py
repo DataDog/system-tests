@@ -1,156 +1,148 @@
-from collections import defaultdict
 import argparse
 import json
+
 from utils._context._scenarios import get_all_scenarios, ScenarioGroup
+from utils.scripts.ci_orchestrators.workflow_data import get_aws_matrix, get_endtoend_definitions
+from utils.scripts.ci_orchestrators.gitlab_exporter import print_aws_gitlab_pipeline
 
 
-def get_github_workflow_map(scenarios, scenarios_groups) -> dict:
-    result = {}
+class CiData:
+    """CiData (Continuous Integration Data) class is used to store the data that is used to generate the CI workflow.
+    It works in two separated steps:
 
-    scenarios_groups = [group.strip() for group in scenarios_groups if group.strip()]
-    scenarios = {scenario.strip(): False for scenario in scenarios if scenario.strip()}
+        1. The first step, executed during __init__ build the full data structure about all possible workflows,
+           based on arguments provided by the CI.
+        2. The second step is to generate the workflow using the data stored in the object,
+           and is acheived by calling export(format)
+    """
 
-    for group in scenarios_groups:
-        try:
-            ScenarioGroup(group)
-        except ValueError as e:
-            raise ValueError(f"Valid groups are: {[item.value for item in ScenarioGroup]}") from e
+    def __init__(self, library: str, scenarios: str, groups: str, parametric_job_count: int, ci_environment: str):
+        # this data struture is a dict where:
+        #  the key is the workflow identifier
+        #  the value is also a dict, where the key/value pair is the parameter name/value.
+        self.data: dict[str, dict] = {}
+        self.language = library
+        self.environment = ci_environment
+        scenario_map = self._get_workflow_map(scenarios.split(","), groups.split(","))
 
-    for scenario in get_all_scenarios():
-        if not scenario.github_workflow:
-            scenarios[scenario.name] = True  # won't be executed, but it exists
-            continue
+        self.data |= get_endtoend_definitions(library, scenario_map, ci_environment)
 
-        if scenario.github_workflow not in result:
-            result[scenario.github_workflow] = []
+        self.data["parametric"] = {
+            "job_count": parametric_job_count,
+            "job_matrix": list(range(1, parametric_job_count + 1)),
+            "enable": len(scenario_map["parametric"]) > 0 and "otel" not in library,
+        }
 
-        if scenario.name in scenarios:
-            result[scenario.github_workflow].append(scenario.name)
-            scenarios[scenario.name] = True
+        self.data["libinjection"] = {
+            "scenarios": scenario_map.get("libinjection", []),
+            "enable": len(scenario_map["libinjection"]) > 0 and "otel" not in library,
+        }
 
-        for group in scenarios_groups:
-            if ScenarioGroup(group) in scenario.scenario_groups:
-                result[scenario.github_workflow].append(scenario.name)
-                break
+        self.data["aws_ssi_scenario_defs"] = get_aws_matrix(
+            "utils/virtual_machine/virtual_machines.json",
+            "utils/scripts/ci_orchestrators/aws_ssi.json",
+            scenario_map.get("aws_ssi", []),
+            library,
+        )
 
-    for scenario, found in scenarios.items():
-        if not found:
-            raise ValueError(f"Scenario {scenario} does not exists")
+        # legacy part
+        self.data["graphql"] = {"scenarios": [], "weblogs": []}
+        self.data["parametric"]["scenarios"] = ["PARAMETRIC"] if self.data["parametric"]["enable"] else []
+        legacy_scenarios, legacy_weblogs = set(), set()
+        for item in self.data["endtoend_defs"]["weblogs"]:
+            legacy_scenarios.update(item["scenarios"])
+            legacy_weblogs.add(item["weblog_name"])
 
-    return result
+        self.data["endtoend"] = {"scenarios": sorted(legacy_scenarios), "weblogs": sorted(legacy_weblogs)}
 
+    def export(self, export_format: str) -> None:
+        if export_format == "json":
+            self._export_json()
 
-def get_graphql_weblogs(library) -> list[str]:
-    weblogs = {
-        "cpp": [],
-        "dotnet": [],
-        "golang": ["gqlgen", "graph-gophers", "graphql-go"],
-        "java": [],
-        "nodejs": ["express4", "uds-express4", "express4-typescript", "express5"],
-        "php": [],
-        "python": [],
-        "ruby": ["graphql23"],
-    }
+        elif export_format == "github":
+            self._export_github()
 
-    return weblogs[library]
+        elif export_format == "gitlab":
+            self._export_gitlab()
+        else:
+            raise ValueError(f"Invalid format: {export_format}")
 
-
-def get_endtoend_weblogs(library, ci_environment: str) -> list[str]:
-    weblogs = {
-        "cpp": ["nginx"],
-        "dotnet": ["poc", "uds"],
-        "golang": ["chi", "echo", "gin", "net-http", "uds-echo", "net-http-orchestrion"],
-        "java": [
-            "akka-http",
-            "jersey-grizzly2",
-            "play",
-            "ratpack",
-            "resteasy-netty3",
-            "spring-boot-jetty",
-            "spring-boot",
-            "spring-boot-3-native",
-            "spring-boot-openliberty",
-            "spring-boot-wildfly",
-            "spring-boot-undertow",
-            "spring-boot-payara",
-            "vertx3",
-            "vertx4",
-            "uds-spring-boot",
-        ],
-        "nodejs": ["express4", "uds-express4", "express4-typescript", "express5", "nextjs"],
-        "php": [
-            *[f"apache-mod-{v}" for v in ["7.0", "7.1", "7.2", "7.3", "7.4", "8.0", "8.1", "8.2"]],
-            *[f"apache-mod-{v}-zts" for v in ["7.0", "7.1", "7.2", "7.3", "7.4", "8.0", "8.1", "8.2"]],
-            *[f"php-fpm-{v}" for v in ["7.0", "7.1", "7.2", "7.3", "7.4", "8.0", "8.1", "8.2"]],
-        ],
-        "python": ["flask-poc", "django-poc", "uwsgi-poc", "uds-flask", "python3.12", "fastapi", "django-py3.13"],
-        "ruby": [
-            "rack",
-            "uds-sinatra",
-            *[f"sinatra{v}" for v in ["14", "20", "21", "22", "30", "31", "32", "40"]],
-            *[f"rails{v}" for v in ["42", "50", "51", "52", "60", "61", "70", "71", "72", "80"]],
-        ],
-    }
-
-    if ci_environment != "dev":
-        # as now, django-py3.13 support is not released
-        weblogs["python"].remove("django-py3.13")
-
-    return weblogs[library]
-
-
-def get_opentelemetry_weblogs(library) -> list[str]:
-    weblogs = {
-        "cpp": [],
-        "dotnet": [],
-        "golang": [],
-        "java": ["spring-boot-otel"],
-        "nodejs": ["express4-otel"],
-        "php": [],
-        "python": ["flask-poc-otel"],
-        "ruby": [],
-    }
-
-    return weblogs[library]
-
-
-def _print_output(result: dict[str, dict], output_format: str) -> None:
-    if output_format == "github":
-        for workflow_name, workflow in result.items():
+    def _export_github(self) -> None:
+        for workflow_name, workflow in self.data.items():
             for parameter, value in workflow.items():
                 print(f"{workflow_name}_{parameter}={json.dumps(value)}")
-    else:
-        raise ValueError(f"Invalid format: {format}")
 
+        # github action is not able to handle aws_ssi, so nothing to do
 
-def main(
-    language: str, scenarios: str, groups: str, parametric_job_count: int, ci_environment: str, output_format: str
-) -> None:
-    result = defaultdict(dict)
-    # this data struture is a dict where:
-    #  the key is the workflow identifier
-    #  the value is also a dict, where the key/value pair is the parameter name/value.
-    scenario_map = get_github_workflow_map(scenarios.split(","), groups.split(","))
+    def _export_gitlab(self) -> None:
+        # gitlab can only handle aws_ssi right now
+        print_aws_gitlab_pipeline(self.language, self.data["aws_ssi_scenario_defs"], self.environment)
 
-    for github_workflow, scenario_list in scenario_map.items():
-        result[github_workflow]["scenarios"] = scenario_list
+    def _export_json(self) -> None:
+        print(json.dumps(self.data))
 
-    result["endtoend"]["weblogs"] = get_endtoend_weblogs(language, ci_environment)
-    result["graphql"]["weblogs"] = get_graphql_weblogs(language)
-    result["opentelemetry"]["weblogs"] = get_opentelemetry_weblogs(language)
-    result["parametric"]["job_count"] = parametric_job_count
-    result["parametric"]["job_matrix"] = list(range(1, parametric_job_count + 1))
+    @staticmethod
+    def _get_workflow_map(scenarios, scenarios_groups) -> dict:
+        """Returns a dict where:
+        * the key is the workflow identifier
+        * the value is a list of scenarios to run, associated to the workflow
+        """
 
-    _print_output(result, output_format)
+        result = {}  # type: dict[str, list[str]]
+
+        scenarios_groups = [group.strip() for group in scenarios_groups if group.strip()]
+        scenarios = {scenario.strip(): False for scenario in scenarios if scenario.strip()}
+
+        for group in scenarios_groups:
+            try:
+                ScenarioGroup(group)
+            except ValueError as e:
+                raise ValueError(f"Valid groups are: {[item.value for item in ScenarioGroup]}") from e
+
+        for scenario in get_all_scenarios():
+            # TODO change the variable "github_workflow" to "ci_workflow" in the scenario object
+            if not scenario.github_workflow:
+                scenarios[scenario.name] = True  # won't be executed, but it exists
+                continue
+
+            if scenario.github_workflow not in result:
+                result[scenario.github_workflow] = []
+
+            if scenario.name in scenarios:
+                result[scenario.github_workflow].append(scenario.name)
+                scenarios[scenario.name] = True
+
+            for group in scenarios_groups:
+                if ScenarioGroup(group) in scenario.scenario_groups:
+                    result[scenario.github_workflow].append(scenario.name)
+                    break
+
+        for scenario, found in scenarios.items():
+            if not found:
+                raise ValueError(f"Scenario {scenario} does not exists")
+
+        return result
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(prog="get-github-parameters", description="Get scenarios and weblogs to run")
+    parser = argparse.ArgumentParser(prog="get-ci-parameters", description="Get scenarios and weblogs to run")
     parser.add_argument(
         "language",
         type=str,
-        help="One of the supported Datadog languages",
-        choices=["cpp", "dotnet", "python", "ruby", "golang", "java", "nodejs", "php"],
+        help="One of the supported Datadog library",
+        choices=[
+            "cpp",
+            "dotnet",
+            "python",
+            "ruby",
+            "golang",
+            "java",
+            "nodejs",
+            "php",
+            "java_otel",
+            "nodejs_otel",
+            "python_otel",
+        ],
     )
 
     parser.add_argument(
@@ -158,7 +150,7 @@ if __name__ == "__main__":
         "-f",
         type=str,
         help="Select the output format",
-        choices=["github"],
+        choices=["github", "gitlab", "json"],
         default="github",
     )
 
@@ -173,11 +165,10 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    main(
-        language=args.language,
+    CiData(
+        library=args.language,
         scenarios=args.scenarios,
         groups=args.groups,
         ci_environment=args.ci_environment,
-        output_format=args.format,
         parametric_job_count=args.parametric_job_count,
-    )
+    ).export(args.format)

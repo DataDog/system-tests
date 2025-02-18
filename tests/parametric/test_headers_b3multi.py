@@ -5,7 +5,7 @@ import pytest
 from utils.parametric.spec.trace import SAMPLING_PRIORITY_KEY, ORIGIN
 from utils.parametric.spec.trace import span_has_no_parent
 from utils.parametric.spec.trace import find_only_span
-from utils import missing_feature, irrelevant, context, scenarios, features, bug
+from utils import missing_feature, context, scenarios, features
 
 parametrize = pytest.mark.parametrize
 
@@ -45,7 +45,7 @@ class Test_Headers_B3multi:
         and activated properly.
         """
         with test_library:
-            headers = test_library.dd_make_child_span_and_get_headers(
+            test_library.dd_make_child_span_and_get_headers(
                 [
                     ["x-b3-traceid", "000000000000000000000000075bcd15"],
                     ["x-b3-spanid", "000000003ade68b1"],
@@ -63,7 +63,7 @@ class Test_Headers_B3multi:
     def test_headers_b3multi_extract_invalid(self, test_agent, test_library):
         """Ensure that invalid b3multi distributed tracing headers are not extracted."""
         with test_library:
-            headers = test_library.dd_make_child_span_and_get_headers(
+            test_library.dd_make_child_span_and_get_headers(
                 [["x-b3-traceid", "0"], ["x-b3-spanid", "0"], ["x-b3-sampled", "1"]]
             )
 
@@ -85,7 +85,8 @@ class Test_Headers_B3multi:
 
         assert len(b3_trace_id) == 16 or len(b3_trace_id) == 32
         assert int(b3_trace_id[-16:], base=16) == span.get("trace_id")
-        assert int(b3_span_id, base=16) == span.get("span_id") and len(b3_span_id) == 16
+        assert int(b3_span_id, base=16) == span.get("span_id")
+        assert len(b3_span_id) == 16
         assert b3_sampling == "1" if span["metrics"].get(SAMPLING_PRIORITY_KEY) > 0 else "0"
         assert span["meta"].get(ORIGIN) is None
 
@@ -111,7 +112,8 @@ class Test_Headers_B3multi:
 
         assert len(b3_trace_id) == 16 or len(b3_trace_id) == 32
         assert int(b3_trace_id, base=16) == span.get("trace_id")
-        assert int(b3_span_id, base=16) == span.get("span_id") and len(b3_span_id) == 16
+        assert int(b3_span_id, base=16) == span.get("span_id")
+        assert len(b3_span_id) == 16
         assert b3_sampling == "1"
         assert span["meta"].get(ORIGIN) is None
 
@@ -135,7 +137,8 @@ class Test_Headers_B3multi:
 
         assert len(b3_trace_id) == 16 or len(b3_trace_id) == 32
         assert int(b3_trace_id[-16:], base=16) == span.get("trace_id")
-        assert int(b3_span_id, base=16) == span.get("span_id") and len(b3_span_id) == 16
+        assert int(b3_span_id, base=16) == span.get("span_id")
+        assert len(b3_span_id) == 16
         assert b3_sampling == "1" if span["metrics"].get(SAMPLING_PRIORITY_KEY) > 0 else "0"
         assert span["meta"].get(ORIGIN) is None
 

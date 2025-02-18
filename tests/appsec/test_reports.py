@@ -23,7 +23,7 @@ class Test_StatusCode:
 
             return True
 
-        def check_http_code(span, appsec_data):
+        def check_http_code(span, appsec_data):  # noqa: ARG001
             status_code = span["meta"]["http.status_code"]
             assert status_code == "404", f"404 should have been reported, not {status_code}"
 
@@ -51,7 +51,7 @@ class Test_Info:
 
             return True
 
-        def _check_service(span, appsec_data):
+        def _check_service(span, appsec_data):  # noqa: ARG001
             name = span.get("service")
             environment = span.get("meta", {}).get("env")
             assert name == "weblog", f"weblog should have been reported, not {name}"
@@ -171,7 +171,7 @@ class Test_AttackTimestamp:
         self.r = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1"})
 
     def test_basic(self):
-        """attack timestamp is given by start property of span"""
+        """Attack timestamp is given by start property of span"""
         spans = [span for _, _, span, _ in interfaces.library.get_appsec_events(request=self.r)]
         assert spans, "No AppSec events found"
         for span in spans:

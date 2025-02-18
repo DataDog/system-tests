@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 from requests.structures import CaseInsensitiveDict
 
 from utils.telemetry_utils import TelemetryUtils
-from utils import context, weblog, interfaces, scenarios, features, rfc, bug, missing_feature
+from utils import context, weblog, interfaces, scenarios, features, rfc, bug, missing_feature, irrelevant
 
 
 class AsmStandalone_UpstreamPropagation_Base(ABC):
@@ -50,14 +50,14 @@ class AsmStandalone_UpstreamPropagation_Base(ABC):
         try:
             _assert_tags_value(first_trace, obj, expected_tags)
             return True
-        except (KeyError, AssertionError) as e:
+        except (KeyError, AssertionError):
             pass  # should try the second case
 
         # Case 2: The tags are set on the local root span
         try:
             _assert_tags_value(span, obj, expected_tags)
             return True
-        except (KeyError, AssertionError) as e:
+        except (KeyError, AssertionError):
             return False
 
     @staticmethod
@@ -742,7 +742,34 @@ class SCAStandalone_Telemetry_Base:
 
 @rfc("https://docs.google.com/document/d/12NBx-nD-IoQEMiCRnJXneq4Be7cbtSc6pJLOFUWTpNE/edit")
 @features.appsec_standalone
+@scenarios.appsec_no_stats
+class Test_AppSecStandalone_NotEnabled:
+    """Test expected behaviour when standalone is not enabled."""
+
+    def setup_client_computed_stats_header_is_not_present(self):
+        trace_id = 1212121212121212122
+        parent_id = 34343434
+        self.r = weblog.get(
+            "/",
+            headers={
+                "x-datadog-trace-id": str(trace_id),
+                "x-datadog-parent-id": str(parent_id),
+            },
+        )
+
+    def test_client_computed_stats_header_is_not_present(self):
+        spans_checked = 0
+        for data, _, span in interfaces.library.get_spans(request=self.r):
+            assert span["trace_id"] == 1212121212121212122
+            assert "datadog-client-computed-stats" not in [x.lower() for x, y in data["request"]["headers"]]
+            spans_checked += 1
+        assert spans_checked == 1
+
+
+@rfc("https://docs.google.com/document/d/12NBx-nD-IoQEMiCRnJXneq4Be7cbtSc6pJLOFUWTpNE/edit")
+@features.appsec_standalone
 @scenarios.appsec_standalone
+@irrelevant(context.library > "java@v1.46.0", reason="V2 is implemented for newer versions")
 class Test_AppSecStandalone_UpstreamPropagation(AppSecStandalone_UpstreamPropagation_Base):
     """APPSEC correctly propagates AppSec events in distributing tracing with DD_EXPERIMENTAL_APPSEC_STANDALONE_ENABLED=true."""
 
@@ -769,6 +796,7 @@ class Test_AppSecStandalone_UpstreamPropagation_V2(AppSecStandalone_UpstreamProp
 @rfc("https://docs.google.com/document/d/12NBx-nD-IoQEMiCRnJXneq4Be7cbtSc6pJLOFUWTpNE/edit")
 @features.iast_standalone
 @scenarios.iast_standalone
+@irrelevant(context.library > "java@v1.46.0", reason="V2 is implemented for newer versions")
 class Test_IastStandalone_UpstreamPropagation(IastStandalone_UpstreamPropagation_Base):
     """IAST correctly propagates AppSec events in distributing tracing with DD_EXPERIMENTAL_APPSEC_STANDALONE_ENABLED=true."""
 
@@ -795,6 +823,7 @@ class Test_IastStandalone_UpstreamPropagation_V2(IastStandalone_UpstreamPropagat
 @rfc("https://docs.google.com/document/d/12NBx-nD-IoQEMiCRnJXneq4Be7cbtSc6pJLOFUWTpNE/edit")
 @features.sca_standalone
 @scenarios.sca_standalone
+@irrelevant(context.library > "java@v1.46.0", reason="V2 is implemented for newer versions")
 class Test_SCAStandalone_Telemetry(SCAStandalone_Telemetry_Base):
     """Tracer correctly propagates SCA telemetry in distributing tracing with DD_EXPERIMENTAL_APPSEC_STANDALONE_ENABLED=true."""
 

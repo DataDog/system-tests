@@ -205,7 +205,7 @@ class Test_Config_HttpClientErrorStatuses_Default:
 
         client_span = _get_span_by_tags(spans, tags={"span.kind": "client", "http.status_code": "500"})
         assert client_span, spans
-        assert client_span.get("error") == None or client_span.get("error") == 0
+        assert client_span.get("error") is None or client_span.get("error") == 0
 
 
 @scenarios.tracing_config_nondefault
@@ -639,5 +639,4 @@ def parse_log_injection_message(log_message):
         except json.JSONDecodeError:
             continue
         if message.get("dd") and message.get(log_injection_fields[context.library.library]["message"]) == log_message:
-            dd = message.get("dd")
-            return dd
+            return message.get("dd")

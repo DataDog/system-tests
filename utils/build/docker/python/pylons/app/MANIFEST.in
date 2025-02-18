@@ -1,3 +1,0 @@
-include app/config/deployment.ini_tmpl
-recursive-include app/public *
-recursive-include app/templates *

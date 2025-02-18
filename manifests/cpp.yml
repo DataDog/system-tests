@@ -1,3 +1,4 @@
+---
 tests/:
   apm_tracing_e2e/:
     test_otel.py:
@@ -28,6 +29,7 @@ tests/:
         test_reflection_injection.py: irrelevant (ASM is not implemented in C++)
         test_sql_injection.py: irrelevant (ASM is not implemented in C++)
         test_ssrf.py: irrelevant (ASM is not implemented in C++)
+        test_stacktrace_leak.py: irrelevant (ASM is not implemented in C++)
         test_template_injection.py: irrelevant (ASM is not implemented in C++)
         test_trust_boundary_violation.py: irrelevant (ASM is not implemented in C++)
         test_untrusted_deserialization.py: irrelevant (ASM is not implemented in C++)
@@ -142,8 +144,7 @@ tests/:
       Test_DsmSQS: missing_feature
       Test_Dsm_Manual_Checkpoint_Inter_Process: missing_feature
       Test_Dsm_Manual_Checkpoint_Intra_Process: missing_feature
-    test_inferred_proxy.py:
-      Test_AWS_API_Gateway_Inferred_Span_Creation: missing_feature
+    test_inferred_proxy.py: missing_feature
     test_otel_drop_in.py:
       Test_Otel_Drop_In: irrelevant (library does not implement OpenTelemetry)
   otel/:
@@ -160,6 +161,7 @@ tests/:
       Test_Config_TraceEnabled: v1.0.1.dev
       Test_Config_TraceLogDirectory: missing_feature
       Test_Config_UnifiedServiceTagging: v1.0.1.dev
+      Test_Stable_Config_Default: missing_feature
     test_crashtracking.py: missing_feature
     test_dynamic_configuration.py:
       TestDynamicConfigV1_EmptyServiceTargets: missing_feature
