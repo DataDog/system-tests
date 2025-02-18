@@ -91,6 +91,7 @@ ask_load_requirements() {
     if [[ "$load_choice" =~ ^[Yy]$ ]]; then
         echo "🚀 Loading system-tests requirements..."
         ./build.sh -i runner
+        source venv/bin/activate
         if [[ $? -ne 0 ]]; then
             echo "❌ Error: Failed to load system-tests requirements. Please check the logs."
             exit 1

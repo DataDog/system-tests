@@ -156,6 +156,7 @@ test_script:
     - export DD_APP_KEY_ONBOARDING=xyz
   script:
       - ./build.sh -i runner
+      - source venv/bin/activate
       - python3 utils/scripts/compute-workflow-parameters.py "$TEST_LIBRARY" -g "onboarding" --parametric-job-count 1 --ci-environment "prod" --format json
       - echo ">>>>>>>>>>>>>>> Generating lang pipeline >>>>>>>>>>>>>>>"
 
