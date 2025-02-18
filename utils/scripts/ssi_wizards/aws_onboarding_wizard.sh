@@ -9,6 +9,10 @@ echo ""
 
 ENV_FILE=".env"
 
+#For local development we skip the cache
+export AMI_UPDATE=false
+export SKIP_AMI_CACHE=true
+
 # Function: Add blank lines for better UX
 spacer() {
     echo ""
@@ -224,6 +228,9 @@ create_key_pair() {
         echo "❌ Error: Python script failed to clean the PEM file. Keeping the original file."
         exit 1
     fi
+
+    #Protect with pass
+    ssh-keygen -p -f $pem_path
 
     # Set proper permissions
     chmod 400 "$pem_path"
