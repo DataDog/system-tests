@@ -5,7 +5,7 @@
 import time
 import tests.debugger.utils as debugger
 from utils import scenarios, features, missing_feature, context, rfc
-from utils import scenarios, features, missing_feature, context, rfc, bug
+from utils import bug
 
 
 @features.debugger
