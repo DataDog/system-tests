@@ -27,7 +27,7 @@ directive @case(format: String) on FIELD
 type Query {
 	user(id: Int!): User
 	userByName(name: String): [User!]!
-	withError: User
+	withError: ID
 }
 
 type User {
@@ -133,7 +133,7 @@ func (e customError) Extensions() map[string]any {
 	return e.extensions
 }
 
-func (query) WithError() ([]*user, error) {
+func (query) WithError() (*graphql.ID, error) {
 	return nil, customError{
 		message: "test error",
 		extensions: map[string]any{

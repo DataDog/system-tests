@@ -60,7 +60,7 @@ func main() {
 				},
 				"withError": &graphql.Field{
 					Args:    graphql.FieldConfigArgument{},
-					Type:    userType,
+					Type:    graphql.ID,
 					Resolve: resolveWithError,
 				},
 			},
@@ -163,7 +163,7 @@ func resolveUserByName(p graphql.ResolveParams) (any, error) {
 	return result, nil
 }
 
-func resolveWithError(_ graphql.ResolveParams) (any, error) {
+func resolveWithError(p graphql.ResolveParams) (any, error) {
 	err := gqlerrors.NewFormattedError("test error")
 	err.Extensions = map[string]any{
 		"int":          1,
