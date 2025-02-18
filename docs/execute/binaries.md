@@ -41,6 +41,12 @@ To change Orchestrion version, create a file `orchestrion-load-from-go-get` unde
     * `github.com/DataDog/orchestrion@v1.1.0` Test the 1.1.0 release
     * `github.com/DataDog/orchestrion@<commit_hash>` Test un-merged changes
 
+To change Orchestrion version, create a file `orchestrion-load-from-go-get` under the `binaries` directory that specifies the target build. The content of this file will be installed by the weblog or parametric app via `go get` when the test image is built.
+* Content example:
+    * `github.com/DataDog/orchestrion@main` Test the main branch
+    * `github.com/DataDog/orchestrion@v1.1.0` Test the 1.1.0 release
+    * `github.com/DataDog/orchestrion@<commit_hash>` Test un-merged changes
+
 ## Java library
 
 Follow these steps to run Parametric tests with a custom Java Tracer version:
