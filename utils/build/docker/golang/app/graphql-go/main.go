@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"github.com/graphql-go/graphql/gqlerrors"
 	"log"
 	"net/http"
 	"os"
@@ -56,6 +57,11 @@ func main() {
 					},
 					Type:    graphql.NewNonNull(graphql.NewList(graphql.NewNonNull(userType))),
 					Resolve: resolveUserByName,
+				},
+				"withError": &graphql.Field{
+					Args:    graphql.FieldConfigArgument{},
+					Type:    userType,
+					Resolve: resolveWithError,
 				},
 			},
 		}),
@@ -155,4 +161,17 @@ func resolveUserByName(p graphql.ResolveParams) (any, error) {
 	}
 
 	return result, nil
+}
+
+func resolveWithError(_ graphql.ResolveParams) (any, error) {
+	err := gqlerrors.NewFormattedError("test error")
+	err.Extensions = map[string]any{
+		"int":          1,
+		"float":        1.1,
+		"str":          "1",
+		"bool":         true,
+		"other":        []any{1, "foo"},
+		"not_captured": "nope",
+	}
+	return nil, err
 }
