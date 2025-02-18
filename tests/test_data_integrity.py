@@ -5,7 +5,7 @@
 """Misc checks around data integrity during components' lifetime"""
 
 import string
-from utils import weblog, interfaces, context, bug, rfc, irrelevant, missing_feature, features, flaky
+from utils import weblog, interfaces, context, bug, rfc, irrelevant, missing_feature, features
 from utils.tools import logger
 from utils.cgroup_info import get_container_id
 
@@ -213,7 +213,8 @@ class Test_LibraryHeaders:
 @features.data_integrity
 class Test_Agent:
     @missing_feature(library="cpp", reason="Trace are not reported")
-    @flaky(context.agent_version > "7.62.2", reason="APMSP-1791")
+    # we are not using dev agent, so activate this to see if it fails
+    # @flaky(context.agent_version > "7.62.2", reason="APMSP-1791")
     def test_headers(self):
         """All required headers are present in all requests sent by the agent"""
         interfaces.library.assert_response_header(

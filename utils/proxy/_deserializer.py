@@ -260,7 +260,7 @@ def _deserialize_file_in_multipart_form_data(
                 try:
                     item["content"] = json.loads(content)
                     content_is_deserialized = True
-                except json.JSONDecodeError:
+                except (json.JSONDecodeError, UnicodeDecodeError):
                     item["system-tests-error"] = "Can't decode json file"
 
             if not content_is_deserialized:

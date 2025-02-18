@@ -25,7 +25,8 @@
             "os_distro": "deb",
             "os_branch": "ubuntu20_amd64",
             "os_cpu": "amd64",
-            "default_vm": true
+            "default_vm": true,
+            "disabled": false
         },
         {
             "name": "Ubuntu_20_arm64",
@@ -38,7 +39,8 @@
             "os_distro": "deb",
             "os_branch": "ubuntu20_arm64",
             "os_cpu": "arm64",
-            "default_vm": false
+            "default_vm": false,
+            "disabled": false
         },
         {
             "name": "Ubuntu_21_arm64",
@@ -51,7 +53,8 @@
             "os_distro": "deb",
             "os_branch": "ubuntu21",
             "os_cpu": "arm64",
-            "default_vm": true
+            "default_vm": true,
+            "disabled": false
         },
         {
             "name": "Ubuntu_22_amd64",
@@ -67,7 +70,8 @@
             "os_distro": "deb",
             "os_branch": "ubuntu22_amd64",
             "os_cpu": "amd64",
-            "default_vm": false
+            "default_vm": false,
+            "disabled": false
         },
         {
             "name": "Ubuntu_22_arm64",
@@ -86,7 +90,8 @@
             "os_distro": "deb",
             "os_branch": "ubuntu22_arm64",
             "os_cpu": "arm64",
-            "default_vm": true
+            "default_vm": true,
+            "disabled": false
         },
         {
             "name": "Ubuntu_23_04_amd64",
@@ -113,7 +118,8 @@
             "os_distro": "deb",
             "os_branch": "ubuntu23",
             "os_cpu": "arm64",
-            "default_vm": false
+            "default_vm": false,
+            "disabled": false
         },
         {
             "name": "Ubuntu_23_10_amd64",
@@ -140,7 +146,8 @@
             "os_distro": "deb",
             "os_branch": "ubuntu23",
             "os_cpu": "arm64",
-            "default_vm": true
+            "default_vm": true,
+            "disabled": false
         },
         {
             "name": "Ubuntu_24_amd64",
@@ -153,7 +160,8 @@
             "os_distro": "deb",
             "os_branch": "ubuntu24",
             "os_cpu": "amd64",
-            "default_vm": true
+            "default_vm": true,
+            "disabled": false
         },
         {
             "name": "Ubuntu_24_arm64",
@@ -166,7 +174,8 @@
             "os_distro": "deb",
             "os_branch": "ubuntu24",
             "os_cpu": "arm64",
-            "default_vm": false
+            "default_vm": false,
+            "disabled": false
         },
         {
             "name": "Ubuntu_24_10_amd64",
@@ -179,7 +188,8 @@
             "os_distro": "deb",
             "os_branch": "ubuntu24",
             "os_cpu": "amd64",
-            "default_vm": true
+            "default_vm": true,
+            "disabled": false
         },
         {
             "name": "Ubuntu_24_10_arm64",
@@ -192,7 +202,8 @@
             "os_distro": "deb",
             "os_branch": "ubuntu24",
             "os_cpu": "arm64",
-            "default_vm": false
+            "default_vm": false,
+            "disabled": false
         },
         {
             "name": "Debian_12_amd64",
@@ -205,7 +216,8 @@
             "os_distro": "deb",
             "os_branch": "debian",
             "os_cpu": "amd64",
-            "default_vm": true
+            "default_vm": true,
+            "disabled": false
         },
         {
             "name": "Debian_12_arm64",
@@ -218,7 +230,36 @@
             "os_distro": "deb",
             "os_branch": "debian",
             "os_cpu": "arm64",
-            "default_vm": false
+            "default_vm": false,
+            "disabled": false
+        },
+        {
+            "name": "Debian_11_amd64",
+            "aws_config": {
+                "ami_id": "ami-0607e701db389efe7",
+                "ami_instance_type": "t3.medium",
+                "user": "admin"
+            },
+            "os_type": "linux",
+            "os_distro": "deb",
+            "os_branch": "debian",
+            "os_cpu": "amd64",
+            "default_vm": true,
+            "disabled": false
+        },
+        {
+            "name": "Debian_11_arm64",
+            "aws_config": {
+                "ami_id": "ami-00988b9ead6afb0b1",
+                "ami_instance_type": "t4g.medium",
+                "user": "admin"
+            },
+            "os_type": "linux",
+            "os_distro": "deb",
+            "os_branch": "debian",
+            "os_cpu": "arm64",
+            "default_vm": false,
+            "disabled": false
         },
         {
             "name": "Amazon_Linux_2_amd64",
@@ -234,7 +275,8 @@
             "os_distro": "rpm",
             "os_branch": "amazon_linux2",
             "os_cpu": "amd64",
-            "default_vm": false
+            "default_vm": false,
+            "disabled": false
         },
         {
             "name": "Amazon_Linux_2_arm64",
@@ -247,7 +289,8 @@
             "os_distro": "rpm",
             "os_branch": "amazon_linux2",
             "os_cpu": "arm64",
-            "default_vm": true
+            "default_vm": true,
+            "disabled": false
         },
         {
             "name": "Amazon_Linux_2023_amd64",
@@ -263,7 +306,8 @@
             "os_distro": "rpm",
             "os_branch": "amazon_linux2023_amd64",
             "os_cpu": "amd64",
-            "default_vm": true
+            "default_vm": true,
+            "disabled": false
         },
         {
             "name": "Amazon_Linux_2023_arm64",
@@ -279,7 +323,8 @@
             "os_distro": "rpm",
             "os_branch": "amazon_linux2023_arm64",
             "os_cpu": "arm64",
-            "default_vm": false
+            "default_vm": false,
+            "disabled": false
         },
         {
             "name": "Amazon_Linux_2022_amd64",
@@ -293,7 +338,8 @@
             "os_distro": "rpm",
             "os_branch": "amazon_linux2022",
             "os_cpu": "amd64",
-            "default_vm": true
+            "default_vm": true,
+            "disabled": false
         },
         {
             "name": "Amazon_Linux_2022_arm64",
@@ -307,7 +353,8 @@
             "os_distro": "rpm",
             "os_branch": "amazon_linux2022",
             "os_cpu": "arm64",
-            "default_vm": true
+            "default_vm": true,
+            "disabled": false
         },
         {
             "name": "CentOS_7_amd64",
@@ -320,7 +367,8 @@
             "os_distro": "rpm",
             "os_branch": "centos_7_amd64",
             "os_cpu": "amd64",
-            "default_vm": false
+            "default_vm": false,
+            "disabled": false
         },
         {
             "name": "CentOS_8_amd64",
@@ -333,7 +381,8 @@
             "os_distro": "rpm",
             "os_branch": "centos_8_amd64",
             "os_cpu": "amd64",
-            "default_vm": false
+            "default_vm": false,
+            "disabled": false
         },
         {
             "name": "RedHat_8_6_amd64",
@@ -346,7 +395,8 @@
             "os_distro": "rpm",
             "os_branch": "redhat",
             "os_cpu": "amd64",
-            "default_vm": false
+            "default_vm": false,
+            "disabled": false
         },
         {
             "name": "RedHat_8_6_arm64",
@@ -359,7 +409,8 @@
             "os_distro": "rpm",
             "os_branch": "redhat",
             "os_cpu": "arm64",
-            "default_vm": true
+            "default_vm": true,
+            "disabled": false
         },
         {
             "name": "RedHat_9_0_amd64",
@@ -372,7 +423,8 @@
             "os_distro": "rpm",
             "os_branch": "redhat",
             "os_cpu": "amd64",
-            "default_vm": false
+            "default_vm": false,
+            "disabled": false
         },
         {
             "name": "RedHat_9_0_arm64",
@@ -385,7 +437,8 @@
             "os_distro": "rpm",
             "os_branch": "redhat",
             "os_cpu": "arm64",
-            "default_vm": false
+            "default_vm": false,
+            "disabled": false
         },
         {
             "name": "RedHat_7_9_amd64",
@@ -398,9 +451,38 @@
             "os_distro": "rpm",
             "os_branch": "rhel_7_amd64",
             "os_cpu": "amd64",
-            "default_vm": false
+            "default_vm": false,
+            "disabled": false
         },
         {
+            "name": "OracleLinux_9_3_amd64",
+            "aws_config": {
+                "ami_id": "ami-0dd239e274077553a",
+                "ami_instance_type": "t3.medium",
+                "user": "ec2-user"
+            },
+            "os_type": "linux",
+            "os_distro": "rpm",
+            "os_branch": "oracle_linux",
+            "os_cpu": "amd64",
+            "default_vm": false,
+            "disabled": false
+        },
+        {
+            "name": "OracleLinux_9_3_arm64",
+            "aws_config": {
+                "ami_id": "ami-07dd8e107c20b8471",
+                "ami_instance_type": "t4g.medium",
+                "user": "ec2-user"
+            },
+            "os_type": "linux",
+            "os_distro": "rpm",
+            "os_branch": "oracle_linux",
+            "os_cpu": "arm64",
+            "default_vm": false,
+            "disabled": false
+        },
+         {
             "name": "OracleLinux_9_2_amd64",
             "aws_config": {
                 "ami_id": "ami-01453ca80e53609e3",
@@ -412,7 +494,7 @@
             "os_branch": "oracle_linux",
             "os_cpu": "amd64",
             "default_vm": false,
-            "disabled": true
+            "disabled": false
         },
         {
             "name": "OracleLinux_9_2_arm64",
@@ -426,7 +508,7 @@
             "os_branch": "oracle_linux",
             "os_cpu": "arm64",
             "default_vm": false,
-            "disabled": true
+            "disabled": false
         },
         {
             "name": "OracleLinux_8_8_amd64",
@@ -440,7 +522,7 @@
             "os_branch": "oracle_linux",
             "os_cpu": "amd64",
             "default_vm": false,
-            "disabled": true
+            "disabled": false
         },
         {
             "name": "OracleLinux_8_8_arm64",
@@ -454,21 +536,7 @@
             "os_branch": "oracle_linux",
             "os_cpu": "arm64",
             "default_vm": false,
-            "disabled": true
-        },
-        {
-            "name": "OracleLinux_7_9_amd64",
-            "aws_config": {
-                "ami_id": "ami-0fb08d5eb039a9ebd",
-                "ami_instance_type": "t3.medium",
-                "user": "ec2-user"
-            },
-            "os_type": "linux",
-            "os_distro": "rpm",
-            "os_branch": "oracle_linux",
-            "os_cpu": "amd64",
-            "default_vm": false,
-            "disabled": true
+            "disabled": false
         },
         {
             "name": "AlmaLinux_8_amd64",
@@ -482,7 +550,7 @@
             "os_branch": "alma_linux",
             "os_cpu": "amd64",
             "default_vm": false,
-            "disabled": true
+            "disabled": false
         },
         {
             "name": "AlmaLinux_8_arm64",
@@ -496,7 +564,7 @@
             "os_branch": "alma_linux",
             "os_cpu": "arm64",
             "default_vm": false,
-            "disabled": true
+            "disabled": false
         },
         {
             "name": "AlmaLinux_9_amd64",
@@ -510,7 +578,7 @@
             "os_branch": "alma_linux",
             "os_cpu": "amd64",
             "default_vm": false,
-            "disabled": true
+            "disabled": false
         },
         {
             "name": "AlmaLinux_9_arm64",
@@ -524,7 +592,7 @@
             "os_branch": "alma_linux",
             "os_cpu": "arm64",
             "default_vm": false,
-            "disabled": true
+            "disabled": false
         },
         {
             "name": "Fedora_36_amd64",
@@ -538,7 +606,7 @@
             "os_branch": "fedora",
             "os_cpu": "amd64",
             "default_vm": false,
-            "disabled": true
+            "disabled": false
         },
         {
             "name": "Fedora_36_arm64",
@@ -552,7 +620,7 @@
             "os_branch": "fedora",
             "os_cpu": "arm64",
             "default_vm": false,
-            "disabled": true
+            "disabled": false
         },
         {
             "name": "Fedora_37_amd64",
@@ -566,7 +634,7 @@
             "os_branch": "fedora",
             "os_cpu": "amd64",
             "default_vm": false,
-            "disabled": true
+            "disabled": false
         },
         {
             "name": "Fedora_37_arm64",
@@ -580,7 +648,35 @@
             "os_branch": "fedora",
             "os_cpu": "arm64",
             "default_vm": false,
-            "disabled": true
+            "disabled": false
+        },
+        {
+            "name": "Fedora_40_amd64",
+            "aws_config": {
+                "ami_id": "ami-0018cd1282422fe47",
+                "ami_instance_type": "t3.medium",
+                "user": "fedora"
+            },
+            "os_type": "linux",
+            "os_distro": "rpm",
+            "os_branch": "fedora",
+            "os_cpu": "amd64",
+            "default_vm": false,
+            "disabled": false
+        },
+        {
+            "name": "Fedora_40_arm64",
+            "aws_config": {
+                "ami_id": "ami-0006bbbe9e68c8cec",
+                "ami_instance_type": "t4g.medium",
+                "user": "fedora"
+            },
+            "os_type": "linux",
+            "os_distro": "rpm",
+            "os_branch": "fedora",
+            "os_cpu": "arm64",
+            "default_vm": false,
+            "disabled": false
         },
         {
             "name": "windows_server_2022_amd64",
@@ -596,6 +692,62 @@
             "os_cpu": "amd64",
             "default_vm": false,
             "disabled": true
+        },
+        {
+            "name": "Rocky_Linux_8_amd64",
+            "aws_config": {
+                "ami_id": "ami-011ef2017d41cb239",
+                "ami_instance_type": "t3.medium",
+                "user": "rocky"
+            },
+            "os_type": "linux",
+            "os_distro": "rpm",
+            "os_branch": "redhat",
+            "os_cpu": "amd64",
+            "default_vm": false,
+            "disabled": false
+        },
+        {
+            "name": "Rocky_Linux_8_arm64",
+            "aws_config": {
+                "ami_id": "ami-0ad512af1b9f6ef91",
+                "ami_instance_type": "t4g.medium",
+                "user": "rocky"
+            },
+            "os_type": "linux",
+            "os_distro": "rpm",
+            "os_branch": "redhat",
+            "os_cpu": "arm64",
+            "default_vm": false,
+            "disabled": false
+        },
+        {
+            "name": "Rocky_Linux_9_amd6",
+            "aws_config": {
+                "ami_id": "ami-0a73e96a849c232cc",
+                "ami_instance_type": "t3.medium",
+                "user": "rocky"
+            },
+            "os_type": "linux",
+            "os_distro": "rpm",
+            "os_branch": "redhat",
+            "os_cpu": "amd64",
+            "default_vm": false,
+            "disabled": false
+        },
+        {
+            "name": "Rocky_Linux_9_arm64",
+            "aws_config": {
+                "ami_id": "ami-0fe5c47737d880603",
+                "ami_instance_type": "t4g.medium",
+                "user": "rocky"
+            },
+            "os_type": "linux",
+            "os_distro": "rpm",
+            "os_branch": "redhat",
+            "os_cpu": "arm64",
+            "default_vm": false,
+            "disabled": false
         }
     ]
 }
