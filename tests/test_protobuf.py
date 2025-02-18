@@ -10,7 +10,10 @@ class Test_Protobuf:
         self.serialization_response = weblog.get("/protobuf/serialize")
         self.deserialization_response = weblog.get(f"/protobuf/deserialize?msg={self.serialization_response.text}")
 
-    # @irrelevant(context.library in ["java", "dotnet"], reason="New behavior with cluster id not merged yet.")
+    @missing_feature(
+        context.library in ["ruby", "cpp", "golang", "nodejs", "php", "python"],
+        reason="no schema tracking for protobuf yet",
+    )
     def test_protobuf(self):
         assert self.serialization_response.status_code == 200, self.serialization_response.text
         assert self.deserialization_response.status_code == 200, self.deserialization_response.text
