@@ -22,6 +22,9 @@ message AddressBook {
   sfixed64 my_sfixed64 = 26;
   sint32 my_sint32 = 27;
   sint64 my_sint64 = 28;
+
+  // here to test that we stop extracting after a certain depth
+  Deep d = 40;
 }
 
 message PhoneNumber {
@@ -83,7 +86,7 @@ message Deep {
   }
 
   message H{
-    I x = 1;
+    I x = 1; // extraction should stop here (max depth = 10)
   }
 
   message I{
@@ -91,10 +94,6 @@ message Deep {
   }
 
   message J{
-    K x = 1;
-  }
-
-  message K{
     int32 x = 1;
   }
 }

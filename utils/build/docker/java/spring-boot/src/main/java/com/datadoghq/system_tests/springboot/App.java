@@ -18,6 +18,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlText;
+import com.google.protobuf.DescriptorProtos;
 import com.mongodb.MongoClient;
 import com.mongodb.client.MongoCollection;
 import datadog.appsec.api.blocking.Blocking;
@@ -1195,35 +1196,11 @@ public class App {
 
     @GetMapping("/protobuf/serialize")
     public ResponseEntity<String> protobufSerialize() {
+        // the content of the message does not really matter since it's the schema that is observed.
         Message.AddressBook msg = Message.AddressBook.newBuilder()
                 .setCentral(Message.PhoneNumber.newBuilder()
                         .setNumber("0123")
                         .setType(Message.PhoneType.WORK))
-                .putPeople(1, Message.Person.newBuilder()
-                        .setName("joe")
-                        .addPhones(Message.PhoneNumber.newBuilder()
-                                .setNumber("456"))
-                        .setRecurse(Message.Person.RecursiveField.newBuilder()
-                                .setValue(1)
-                                .setDeeper(Message.Person.RecursiveField.newBuilder()
-                                        .setValue(2)
-                                        .setDeeper(Message.Person.RecursiveField.newBuilder()
-                                                .setValue(3)
-                                                .setDeeper(Message.Person.RecursiveField.newBuilder()
-                                                        .setValue(4)
-                                                        .setDeeper(Message.Person.RecursiveField.newBuilder()
-                                                                .setValue(5)
-                                                                .setDeeper(Message.Person.RecursiveField.newBuilder()
-                                                                        .setValue(6)
-                                                                        .setDeeper(Message.Person.RecursiveField.newBuilder()
-                                                                                .setValue(7)
-                                                                                .setDeeper(Message.Person.RecursiveField.newBuilder()
-                                                                                        .setValue(8)
-                                                                                        .setDeeper(Message.Person.RecursiveField.newBuilder()
-                                                                                                .setValue(9)
-                                                                                                .setDeeper(Message.Person.RecursiveField.newBuilder()
-                                                                                                        .setValue(10)))))))))))
-                        .build())
                 .build();
         ByteArrayOutputStream stream = new ByteArrayOutputStream();
         try {

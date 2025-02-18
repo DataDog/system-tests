@@ -226,6 +226,134 @@ proto_message.Message.Person defaultValue);
      * <code>.proto_message.PhoneNumber central = 2;</code>
      */
     proto_message.Message.PhoneNumberOrBuilder getCentralOrBuilder();
+
+    /**
+     * <pre>
+     * now just put every type to be exhaustive
+     * to help debugging a bit, the number given is the enum value of the type + 10
+     * </pre>
+     *
+     * <code>double my_double = 11;</code>
+     * @return The myDouble.
+     */
+    double getMyDouble();
+
+    /**
+     * <code>float my_float = 12;</code>
+     * @return The myFloat.
+     */
+    float getMyFloat();
+
+    /**
+     * <code>int64 my_int64 = 13;</code>
+     * @return The myInt64.
+     */
+    long getMyInt64();
+
+    /**
+     * <code>uint64 my_uint64 = 14;</code>
+     * @return The myUint64.
+     */
+    long getMyUint64();
+
+    /**
+     * <code>int32 my_int32 = 15;</code>
+     * @return The myInt32.
+     */
+    int getMyInt32();
+
+    /**
+     * <code>fixed64 my_fixed64 = 16;</code>
+     * @return The myFixed64.
+     */
+    long getMyFixed64();
+
+    /**
+     * <code>fixed32 my_fixed32 = 17;</code>
+     * @return The myFixed32.
+     */
+    int getMyFixed32();
+
+    /**
+     * <code>bool my_bool = 18;</code>
+     * @return The myBool.
+     */
+    boolean getMyBool();
+
+    /**
+     * <code>string my_string = 19;</code>
+     * @return The myString.
+     */
+    java.lang.String getMyString();
+    /**
+     * <code>string my_string = 19;</code>
+     * @return The bytes for myString.
+     */
+    com.google.protobuf.ByteString
+        getMyStringBytes();
+
+    /**
+     * <code>bytes my_bytes = 22;</code>
+     * @return The myBytes.
+     */
+    com.google.protobuf.ByteString getMyBytes();
+
+    /**
+     * <code>uint32 my_uint32 = 23;</code>
+     * @return The myUint32.
+     */
+    int getMyUint32();
+
+    /**
+     * <code>sfixed32 my_sfixed32 = 25;</code>
+     * @return The mySfixed32.
+     */
+    int getMySfixed32();
+
+    /**
+     * <code>sfixed64 my_sfixed64 = 26;</code>
+     * @return The mySfixed64.
+     */
+    long getMySfixed64();
+
+    /**
+     * <code>sint32 my_sint32 = 27;</code>
+     * @return The mySint32.
+     */
+    int getMySint32();
+
+    /**
+     * <code>sint64 my_sint64 = 28;</code>
+     * @return The mySint64.
+     */
+    long getMySint64();
+
+    /**
+     * <pre>
+     * here to test that we stop extracting after a certain depth
+     * </pre>
+     *
+     * <code>.proto_message.Deep d = 40;</code>
+     * @return Whether the d field is set.
+     */
+    boolean hasD();
+    /**
+     * <pre>
+     * here to test that we stop extracting after a certain depth
+     * </pre>
+     *
+     * <code>.proto_message.Deep d = 40;</code>
+     * @return The d.
+     */
+    proto_message.Message.Deep getD();
+    /**
+     * <pre>
+     * here to test that we stop extracting after a certain depth
+     * </pre>
+     *
+     * <code>.proto_message.Deep d = 40;</code>
+     */
+    proto_message.Message.DeepOrBuilder getDOrBuilder();
   }
   /**
    * Protobuf type {@code proto_message.AddressBook}
@@ -240,6 +368,8 @@ proto_message.Message.Person defaultValue);
       super(builder);
     }
     private AddressBook() {
+      myString_ = "";
+      myBytes_ = com.google.protobuf.ByteString.EMPTY;
     }
 
     @java.lang.Override
@@ -414,6 +544,241 @@ proto_message.Message.Person defaultValue);
       return getCentral();
     }
 
+    public static final int MY_DOUBLE_FIELD_NUMBER = 11;
+    private double myDouble_;
+    /**
+     * <pre>
+     * now just put every type to be exhaustive
+     * to help debugging a bit, the number given is the enum value of the type + 10
+     * </pre>
+     *
+     * <code>double my_double = 11;</code>
+     * @return The myDouble.
+     */
+    @java.lang.Override
+    public double getMyDouble() {
+      return myDouble_;
+    }
+
+    public static final int MY_FLOAT_FIELD_NUMBER = 12;
+    private float myFloat_;
+    /**
+     * <code>float my_float = 12;</code>
+     * @return The myFloat.
+     */
+    @java.lang.Override
+    public float getMyFloat() {
+      return myFloat_;
+    }
+
+    public static final int MY_INT64_FIELD_NUMBER = 13;
+    private long myInt64_;
+    /**
+     * <code>int64 my_int64 = 13;</code>
+     * @return The myInt64.
+     */
+    @java.lang.Override
+    public long getMyInt64() {
+      return myInt64_;
+    }
+
+    public static final int MY_UINT64_FIELD_NUMBER = 14;
+    private long myUint64_;
+    /**
+     * <code>uint64 my_uint64 = 14;</code>
+     * @return The myUint64.
+     */
+    @java.lang.Override
+    public long getMyUint64() {
+      return myUint64_;
+    }
+
+    public static final int MY_INT32_FIELD_NUMBER = 15;
+    private int myInt32_;
+    /**
+     * <code>int32 my_int32 = 15;</code>
+     * @return The myInt32.
+     */
+    @java.lang.Override
+    public int getMyInt32() {
+      return myInt32_;
+    }
+
+    public static final int MY_FIXED64_FIELD_NUMBER = 16;
+    private long myFixed64_;
+    /**
+     * <code>fixed64 my_fixed64 = 16;</code>
+     * @return The myFixed64.
+     */
+    @java.lang.Override
+    public long getMyFixed64() {
+      return myFixed64_;
+    }
+
+    public static final int MY_FIXED32_FIELD_NUMBER = 17;
+    private int myFixed32_;
+    /**
+     * <code>fixed32 my_fixed32 = 17;</code>
+     * @return The myFixed32.
+     */
+    @java.lang.Override
+    public int getMyFixed32() {
+      return myFixed32_;
+    }
+
+    public static final int MY_BOOL_FIELD_NUMBER = 18;
+    private boolean myBool_;
+    /**
+     * <code>bool my_bool = 18;</code>
+     * @return The myBool.
+     */
+    @java.lang.Override
+    public boolean getMyBool() {
+      return myBool_;
+    }
+
+    public static final int MY_STRING_FIELD_NUMBER = 19;
+    private volatile java.lang.Object myString_;
+    /**
+     * <code>string my_string = 19;</code>
+     * @return The myString.
+     */
+    @java.lang.Override
+    public java.lang.String getMyString() {
+      java.lang.Object ref = myString_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs = 
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        myString_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string my_string = 19;</code>
+     * @return The bytes for myString.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getMyStringBytes() {
+      java.lang.Object ref = myString_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        myString_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int MY_BYTES_FIELD_NUMBER = 22;
+    private com.google.protobuf.ByteString myBytes_;
+    /**
+     * <code>bytes my_bytes = 22;</code>
+     * @return The myBytes.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString getMyBytes() {
+      return myBytes_;
+    }
+
+    public static final int MY_UINT32_FIELD_NUMBER = 23;
+    private int myUint32_;
+    /**
+     * <code>uint32 my_uint32 = 23;</code>
+     * @return The myUint32.
+     */
+    @java.lang.Override
+    public int getMyUint32() {
+      return myUint32_;
+    }
+
+    public static final int MY_SFIXED32_FIELD_NUMBER = 25;
+    private int mySfixed32_;
+    /**
+     * <code>sfixed32 my_sfixed32 = 25;</code>
+     * @return The mySfixed32.
+     */
+    @java.lang.Override
+    public int getMySfixed32() {
+      return mySfixed32_;
+    }
+
+    public static final int MY_SFIXED64_FIELD_NUMBER = 26;
+    private long mySfixed64_;
+    /**
+     * <code>sfixed64 my_sfixed64 = 26;</code>
+     * @return The mySfixed64.
+     */
+    @java.lang.Override
+    public long getMySfixed64() {
+      return mySfixed64_;
+    }
+
+    public static final int MY_SINT32_FIELD_NUMBER = 27;
+    private int mySint32_;
+    /**
+     * <code>sint32 my_sint32 = 27;</code>
+     * @return The mySint32.
+     */
+    @java.lang.Override
+    public int getMySint32() {
+      return mySint32_;
+    }
+
+    public static final int MY_SINT64_FIELD_NUMBER = 28;
+    private long mySint64_;
+    /**
+     * <code>sint64 my_sint64 = 28;</code>
+     * @return The mySint64.
+     */
+    @java.lang.Override
+    public long getMySint64() {
+      return mySint64_;
+    }
+
+    public static final int D_FIELD_NUMBER = 40;
+    private proto_message.Message.Deep d_;
+    /**
+     * <pre>
+     * here to test that we stop extracting after a certain depth
+     * </pre>
+     *
+     * <code>.proto_message.Deep d = 40;</code>
+     * @return Whether the d field is set.
+     */
+    @java.lang.Override
+    public boolean hasD() {
+      return d_ != null;
+    }
+    /**
+     * <pre>
+     * here to test that we stop extracting after a certain depth
+     * </pre>
+     *
+     * <code>.proto_message.Deep d = 40;</code>
+     * @return The d.
+     */
+    @java.lang.Override
+    public proto_message.Message.Deep getD() {
+      return d_ == null ? proto_message.Message.Deep.getDefaultInstance() : d_;
+    }
+    /**
+     * <pre>
+     * here to test that we stop extracting after a certain depth
+     * </pre>
+     *
+     * <code>.proto_message.Deep d = 40;</code>
+     */
+    @java.lang.Override
+    public proto_message.Message.DeepOrBuilder getDOrBuilder() {
+      return getD();
+    }
+
     private byte memoizedIsInitialized = -1;
     @java.lang.Override
     public final boolean isInitialized() {
@@ -436,6 +801,54 @@ proto_message.Message.Person defaultValue);
           1);
       if (central_ != null) {
         output.writeMessage(2, getCentral());
+      }
+      if (java.lang.Double.doubleToRawLongBits(myDouble_) != 0) {
+        output.writeDouble(11, myDouble_);
+      }
+      if (java.lang.Float.floatToRawIntBits(myFloat_) != 0) {
+        output.writeFloat(12, myFloat_);
+      }
+      if (myInt64_ != 0L) {
+        output.writeInt64(13, myInt64_);
+      }
+      if (myUint64_ != 0L) {
+        output.writeUInt64(14, myUint64_);
+      }
+      if (myInt32_ != 0) {
+        output.writeInt32(15, myInt32_);
+      }
+      if (myFixed64_ != 0L) {
+        output.writeFixed64(16, myFixed64_);
+      }
+      if (myFixed32_ != 0) {
+        output.writeFixed32(17, myFixed32_);
+      }
+      if (myBool_ != false) {
+        output.writeBool(18, myBool_);
+      }
+      if (!com.google.protobuf.GeneratedMessageV3.isStringEmpty(myString_)) {
+        com.google.protobuf.GeneratedMessageV3.writeString(output, 19, myString_);
+      }
+      if (!myBytes_.isEmpty()) {
+        output.writeBytes(22, myBytes_);
+      }
+      if (myUint32_ != 0) {
+        output.writeUInt32(23, myUint32_);
+      }
+      if (mySfixed32_ != 0) {
+        output.writeSFixed32(25, mySfixed32_);
+      }
+      if (mySfixed64_ != 0L) {
+        output.writeSFixed64(26, mySfixed64_);
+      }
+      if (mySint32_ != 0) {
+        output.writeSInt32(27, mySint32_);
+      }
+      if (mySint64_ != 0L) {
+        output.writeSInt64(28, mySint64_);
+      }
+      if (d_ != null) {
+        output.writeMessage(40, getD());
       }
       getUnknownFields().writeTo(output);
     }
@@ -460,6 +873,69 @@ proto_message.Message.Person defaultValue);
         size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(2, getCentral());
       }
+      if (java.lang.Double.doubleToRawLongBits(myDouble_) != 0) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeDoubleSize(11, myDouble_);
+      }
+      if (java.lang.Float.floatToRawIntBits(myFloat_) != 0) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeFloatSize(12, myFloat_);
+      }
+      if (myInt64_ != 0L) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(13, myInt64_);
+      }
+      if (myUint64_ != 0L) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeUInt64Size(14, myUint64_);
+      }
+      if (myInt32_ != 0) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt32Size(15, myInt32_);
+      }
+      if (myFixed64_ != 0L) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeFixed64Size(16, myFixed64_);
+      }
+      if (myFixed32_ != 0) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeFixed32Size(17, myFixed32_);
+      }
+      if (myBool_ != false) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBoolSize(18, myBool_);
+      }
+      if (!com.google.protobuf.GeneratedMessageV3.isStringEmpty(myString_)) {
+        size += com.google.protobuf.GeneratedMessageV3.computeStringSize(19, myString_);
+      }
+      if (!myBytes_.isEmpty()) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBytesSize(22, myBytes_);
+      }
+      if (myUint32_ != 0) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeUInt32Size(23, myUint32_);
+      }
+      if (mySfixed32_ != 0) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeSFixed32Size(25, mySfixed32_);
+      }
+      if (mySfixed64_ != 0L) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeSFixed64Size(26, mySfixed64_);
+      }
+      if (mySint32_ != 0) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeSInt32Size(27, mySint32_);
+      }
+      if (mySint64_ != 0L) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeSInt64Size(28, mySint64_);
+      }
+      if (d_ != null) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(40, getD());
+      }
       size += getUnknownFields().getSerializedSize();
       memoizedSize = size;
       return size;
@@ -482,6 +958,43 @@ proto_message.Message.Person defaultValue);
         if (!getCentral()
             .equals(other.getCentral())) return false;
       }
+      if (java.lang.Double.doubleToLongBits(getMyDouble())
+          != java.lang.Double.doubleToLongBits(
+              other.getMyDouble())) return false;
+      if (java.lang.Float.floatToIntBits(getMyFloat())
+          != java.lang.Float.floatToIntBits(
+              other.getMyFloat())) return false;
+      if (getMyInt64()
+          != other.getMyInt64()) return false;
+      if (getMyUint64()
+          != other.getMyUint64()) return false;
+      if (getMyInt32()
+          != other.getMyInt32()) return false;
+      if (getMyFixed64()
+          != other.getMyFixed64()) return false;
+      if (getMyFixed32()
+          != other.getMyFixed32()) return false;
+      if (getMyBool()
+          != other.getMyBool()) return false;
+      if (!getMyString()
+          .equals(other.getMyString())) return false;
+      if (!getMyBytes()
+          .equals(other.getMyBytes())) return false;
+      if (getMyUint32()
+          != other.getMyUint32()) return false;
+      if (getMySfixed32()
+          != other.getMySfixed32()) return false;
+      if (getMySfixed64()
+          != other.getMySfixed64()) return false;
+      if (getMySint32()
+          != other.getMySint32()) return false;
+      if (getMySint64()
+          != other.getMySint64()) return false;
+      if (hasD() != other.hasD()) return false;
+      if (hasD()) {
+        if (!getD()
+            .equals(other.getD())) return false;
+      }
       if (!getUnknownFields().equals(other.getUnknownFields())) return false;
       return true;
     }
@@ -500,6 +1013,48 @@ proto_message.Message.Person defaultValue);
       if (hasCentral()) {
         hash = (37 * hash) + CENTRAL_FIELD_NUMBER;
         hash = (53 * hash) + getCentral().hashCode();
+      }
+      hash = (37 * hash) + MY_DOUBLE_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+          java.lang.Double.doubleToLongBits(getMyDouble()));
+      hash = (37 * hash) + MY_FLOAT_FIELD_NUMBER;
+      hash = (53 * hash) + java.lang.Float.floatToIntBits(
+          getMyFloat());
+      hash = (37 * hash) + MY_INT64_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+          getMyInt64());
+      hash = (37 * hash) + MY_UINT64_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+          getMyUint64());
+      hash = (37 * hash) + MY_INT32_FIELD_NUMBER;
+      hash = (53 * hash) + getMyInt32();
+      hash = (37 * hash) + MY_FIXED64_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+          getMyFixed64());
+      hash = (37 * hash) + MY_FIXED32_FIELD_NUMBER;
+      hash = (53 * hash) + getMyFixed32();
+      hash = (37 * hash) + MY_BOOL_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashBoolean(
+          getMyBool());
+      hash = (37 * hash) + MY_STRING_FIELD_NUMBER;
+      hash = (53 * hash) + getMyString().hashCode();
+      hash = (37 * hash) + MY_BYTES_FIELD_NUMBER;
+      hash = (53 * hash) + getMyBytes().hashCode();
+      hash = (37 * hash) + MY_UINT32_FIELD_NUMBER;
+      hash = (53 * hash) + getMyUint32();
+      hash = (37 * hash) + MY_SFIXED32_FIELD_NUMBER;
+      hash = (53 * hash) + getMySfixed32();
+      hash = (37 * hash) + MY_SFIXED64_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+          getMySfixed64());
+      hash = (37 * hash) + MY_SINT32_FIELD_NUMBER;
+      hash = (53 * hash) + getMySint32();
+      hash = (37 * hash) + MY_SINT64_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+          getMySint64());
+      if (hasD()) {
+        hash = (37 * hash) + D_FIELD_NUMBER;
+        hash = (53 * hash) + getD().hashCode();
       }
       hash = (29 * hash) + getUnknownFields().hashCode();
       memoizedHashCode = hash;
@@ -658,6 +1213,42 @@ proto_message.Message.Person defaultValue);
           central_ = null;
           centralBuilder_ = null;
         }
+        myDouble_ = 0D;
+
+        myFloat_ = 0F;
+
+        myInt64_ = 0L;
+
+        myUint64_ = 0L;
+
+        myInt32_ = 0;
+
+        myFixed64_ = 0L;
+
+        myFixed32_ = 0;
+
+        myBool_ = false;
+
+        myString_ = "";
+
+        myBytes_ = com.google.protobuf.ByteString.EMPTY;
+
+        myUint32_ = 0;
+
+        mySfixed32_ = 0;
+
+        mySfixed64_ = 0L;
+
+        mySint32_ = 0;
+
+        mySint64_ = 0L;
+
+        if (dBuilder_ == null) {
+          d_ = null;
+        } else {
+          d_ = null;
+          dBuilder_ = null;
+        }
         return this;
       }
 
@@ -691,6 +1282,26 @@ proto_message.Message.Person defaultValue);
           result.central_ = central_;
         } else {
           result.central_ = centralBuilder_.build();
+        }
+        result.myDouble_ = myDouble_;
+        result.myFloat_ = myFloat_;
+        result.myInt64_ = myInt64_;
+        result.myUint64_ = myUint64_;
+        result.myInt32_ = myInt32_;
+        result.myFixed64_ = myFixed64_;
+        result.myFixed32_ = myFixed32_;
+        result.myBool_ = myBool_;
+        result.myString_ = myString_;
+        result.myBytes_ = myBytes_;
+        result.myUint32_ = myUint32_;
+        result.mySfixed32_ = mySfixed32_;
+        result.mySfixed64_ = mySfixed64_;
+        result.mySint32_ = mySint32_;
+        result.mySint64_ = mySint64_;
+        if (dBuilder_ == null) {
+          result.d_ = d_;
+        } else {
+          result.d_ = dBuilder_.build();
         }
         onBuilt();
         return result;
@@ -745,6 +1356,55 @@ proto_message.Message.Person defaultValue);
         if (other.hasCentral()) {
           mergeCentral(other.getCentral());
         }
+        if (other.getMyDouble() != 0D) {
+          setMyDouble(other.getMyDouble());
+        }
+        if (other.getMyFloat() != 0F) {
+          setMyFloat(other.getMyFloat());
+        }
+        if (other.getMyInt64() != 0L) {
+          setMyInt64(other.getMyInt64());
+        }
+        if (other.getMyUint64() != 0L) {
+          setMyUint64(other.getMyUint64());
+        }
+        if (other.getMyInt32() != 0) {
+          setMyInt32(other.getMyInt32());
+        }
+        if (other.getMyFixed64() != 0L) {
+          setMyFixed64(other.getMyFixed64());
+        }
+        if (other.getMyFixed32() != 0) {
+          setMyFixed32(other.getMyFixed32());
+        }
+        if (other.getMyBool() != false) {
+          setMyBool(other.getMyBool());
+        }
+        if (!other.getMyString().isEmpty()) {
+          myString_ = other.myString_;
+          onChanged();
+        }
+        if (other.getMyBytes() != com.google.protobuf.ByteString.EMPTY) {
+          setMyBytes(other.getMyBytes());
+        }
+        if (other.getMyUint32() != 0) {
+          setMyUint32(other.getMyUint32());
+        }
+        if (other.getMySfixed32() != 0) {
+          setMySfixed32(other.getMySfixed32());
+        }
+        if (other.getMySfixed64() != 0L) {
+          setMySfixed64(other.getMySfixed64());
+        }
+        if (other.getMySint32() != 0) {
+          setMySint32(other.getMySint32());
+        }
+        if (other.getMySint64() != 0L) {
+          setMySint64(other.getMySint64());
+        }
+        if (other.hasD()) {
+          mergeD(other.getD());
+        }
         this.mergeUnknownFields(other.getUnknownFields());
         onChanged();
         return this;
@@ -786,6 +1446,88 @@ proto_message.Message.Person defaultValue);
 
                 break;
               } // case 18
+              case 89: {
+                myDouble_ = input.readDouble();
+
+                break;
+              } // case 89
+              case 101: {
+                myFloat_ = input.readFloat();
+
+                break;
+              } // case 101
+              case 104: {
+                myInt64_ = input.readInt64();
+
+                break;
+              } // case 104
+              case 112: {
+                myUint64_ = input.readUInt64();
+
+                break;
+              } // case 112
+              case 120: {
+                myInt32_ = input.readInt32();
+
+                break;
+              } // case 120
+              case 129: {
+                myFixed64_ = input.readFixed64();
+
+                break;
+              } // case 129
+              case 141: {
+                myFixed32_ = input.readFixed32();
+
+                break;
+              } // case 141
+              case 144: {
+                myBool_ = input.readBool();
+
+                break;
+              } // case 144
+              case 154: {
+                myString_ = input.readStringRequireUtf8();
+
+                break;
+              } // case 154
+              case 178: {
+                myBytes_ = input.readBytes();
+
+                break;
+              } // case 178
+              case 184: {
+                myUint32_ = input.readUInt32();
+
+                break;
+              } // case 184
+              case 205: {
+                mySfixed32_ = input.readSFixed32();
+
+                break;
+              } // case 205
+              case 209: {
+                mySfixed64_ = input.readSFixed64();
+
+                break;
+              } // case 209
+              case 216: {
+                mySint32_ = input.readSInt32();
+
+                break;
+              } // case 216
+              case 224: {
+                mySint64_ = input.readSInt64();
+
+                break;
+              } // case 224
+              case 322: {
+                input.readMessage(
+                    getDFieldBuilder().getBuilder(),
+                    extensionRegistry);
+
+                break;
+              } // case 322
               default: {
                 if (!super.parseUnknownField(input, extensionRegistry, tag)) {
                   done = true; // was an endgroup tag
@@ -1115,6 +1857,689 @@ proto_message.Message.Person defaultValue);
           central_ = null;
         }
         return centralBuilder_;
+      }
+
+      private double myDouble_ ;
+      /**
+       * <pre>
+       * now just put every type to be exhaustive
+       * to help debugging a bit, the number given is the enum value of the type + 10
+       * </pre>
+       *
+       * <code>double my_double = 11;</code>
+       * @return The myDouble.
+       */
+      @java.lang.Override
+      public double getMyDouble() {
+        return myDouble_;
+      }
+      /**
+       * <pre>
+       * now just put every type to be exhaustive
+       * to help debugging a bit, the number given is the enum value of the type + 10
+       * </pre>
+       *
+       * <code>double my_double = 11;</code>
+       * @param value The myDouble to set.
+       * @return This builder for chaining.
+       */
+      public Builder setMyDouble(double value) {
+        
+        myDouble_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * now just put every type to be exhaustive
+       * to help debugging a bit, the number given is the enum value of the type + 10
+       * </pre>
+       *
+       * <code>double my_double = 11;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearMyDouble() {
+        
+        myDouble_ = 0D;
+        onChanged();
+        return this;
+      }
+
+      private float myFloat_ ;
+      /**
+       * <code>float my_float = 12;</code>
+       * @return The myFloat.
+       */
+      @java.lang.Override
+      public float getMyFloat() {
+        return myFloat_;
+      }
+      /**
+       * <code>float my_float = 12;</code>
+       * @param value The myFloat to set.
+       * @return This builder for chaining.
+       */
+      public Builder setMyFloat(float value) {
+        
+        myFloat_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>float my_float = 12;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearMyFloat() {
+        
+        myFloat_ = 0F;
+        onChanged();
+        return this;
+      }
+
+      private long myInt64_ ;
+      /**
+       * <code>int64 my_int64 = 13;</code>
+       * @return The myInt64.
+       */
+      @java.lang.Override
+      public long getMyInt64() {
+        return myInt64_;
+      }
+      /**
+       * <code>int64 my_int64 = 13;</code>
+       * @param value The myInt64 to set.
+       * @return This builder for chaining.
+       */
+      public Builder setMyInt64(long value) {
+        
+        myInt64_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>int64 my_int64 = 13;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearMyInt64() {
+        
+        myInt64_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      private long myUint64_ ;
+      /**
+       * <code>uint64 my_uint64 = 14;</code>
+       * @return The myUint64.
+       */
+      @java.lang.Override
+      public long getMyUint64() {
+        return myUint64_;
+      }
+      /**
+       * <code>uint64 my_uint64 = 14;</code>
+       * @param value The myUint64 to set.
+       * @return This builder for chaining.
+       */
+      public Builder setMyUint64(long value) {
+        
+        myUint64_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>uint64 my_uint64 = 14;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearMyUint64() {
+        
+        myUint64_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      private int myInt32_ ;
+      /**
+       * <code>int32 my_int32 = 15;</code>
+       * @return The myInt32.
+       */
+      @java.lang.Override
+      public int getMyInt32() {
+        return myInt32_;
+      }
+      /**
+       * <code>int32 my_int32 = 15;</code>
+       * @param value The myInt32 to set.
+       * @return This builder for chaining.
+       */
+      public Builder setMyInt32(int value) {
+        
+        myInt32_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>int32 my_int32 = 15;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearMyInt32() {
+        
+        myInt32_ = 0;
+        onChanged();
+        return this;
+      }
+
+      private long myFixed64_ ;
+      /**
+       * <code>fixed64 my_fixed64 = 16;</code>
+       * @return The myFixed64.
+       */
+      @java.lang.Override
+      public long getMyFixed64() {
+        return myFixed64_;
+      }
+      /**
+       * <code>fixed64 my_fixed64 = 16;</code>
+       * @param value The myFixed64 to set.
+       * @return This builder for chaining.
+       */
+      public Builder setMyFixed64(long value) {
+        
+        myFixed64_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>fixed64 my_fixed64 = 16;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearMyFixed64() {
+        
+        myFixed64_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      private int myFixed32_ ;
+      /**
+       * <code>fixed32 my_fixed32 = 17;</code>
+       * @return The myFixed32.
+       */
+      @java.lang.Override
+      public int getMyFixed32() {
+        return myFixed32_;
+      }
+      /**
+       * <code>fixed32 my_fixed32 = 17;</code>
+       * @param value The myFixed32 to set.
+       * @return This builder for chaining.
+       */
+      public Builder setMyFixed32(int value) {
+        
+        myFixed32_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>fixed32 my_fixed32 = 17;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearMyFixed32() {
+        
+        myFixed32_ = 0;
+        onChanged();
+        return this;
+      }
+
+      private boolean myBool_ ;
+      /**
+       * <code>bool my_bool = 18;</code>
+       * @return The myBool.
+       */
+      @java.lang.Override
+      public boolean getMyBool() {
+        return myBool_;
+      }
+      /**
+       * <code>bool my_bool = 18;</code>
+       * @param value The myBool to set.
+       * @return This builder for chaining.
+       */
+      public Builder setMyBool(boolean value) {
+        
+        myBool_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>bool my_bool = 18;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearMyBool() {
+        
+        myBool_ = false;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object myString_ = "";
+      /**
+       * <code>string my_string = 19;</code>
+       * @return The myString.
+       */
+      public java.lang.String getMyString() {
+        java.lang.Object ref = myString_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          myString_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string my_string = 19;</code>
+       * @return The bytes for myString.
+       */
+      public com.google.protobuf.ByteString
+          getMyStringBytes() {
+        java.lang.Object ref = myString_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b = 
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          myString_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string my_string = 19;</code>
+       * @param value The myString to set.
+       * @return This builder for chaining.
+       */
+      public Builder setMyString(
+          java.lang.String value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  
+        myString_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string my_string = 19;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearMyString() {
+        
+        myString_ = getDefaultInstance().getMyString();
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string my_string = 19;</code>
+       * @param value The bytes for myString to set.
+       * @return This builder for chaining.
+       */
+      public Builder setMyStringBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  checkByteStringIsUtf8(value);
+        
+        myString_ = value;
+        onChanged();
+        return this;
+      }
+
+      private com.google.protobuf.ByteString myBytes_ = com.google.protobuf.ByteString.EMPTY;
+      /**
+       * <code>bytes my_bytes = 22;</code>
+       * @return The myBytes.
+       */
+      @java.lang.Override
+      public com.google.protobuf.ByteString getMyBytes() {
+        return myBytes_;
+      }
+      /**
+       * <code>bytes my_bytes = 22;</code>
+       * @param value The myBytes to set.
+       * @return This builder for chaining.
+       */
+      public Builder setMyBytes(com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  
+        myBytes_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>bytes my_bytes = 22;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearMyBytes() {
+        
+        myBytes_ = getDefaultInstance().getMyBytes();
+        onChanged();
+        return this;
+      }
+
+      private int myUint32_ ;
+      /**
+       * <code>uint32 my_uint32 = 23;</code>
+       * @return The myUint32.
+       */
+      @java.lang.Override
+      public int getMyUint32() {
+        return myUint32_;
+      }
+      /**
+       * <code>uint32 my_uint32 = 23;</code>
+       * @param value The myUint32 to set.
+       * @return This builder for chaining.
+       */
+      public Builder setMyUint32(int value) {
+        
+        myUint32_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>uint32 my_uint32 = 23;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearMyUint32() {
+        
+        myUint32_ = 0;
+        onChanged();
+        return this;
+      }
+
+      private int mySfixed32_ ;
+      /**
+       * <code>sfixed32 my_sfixed32 = 25;</code>
+       * @return The mySfixed32.
+       */
+      @java.lang.Override
+      public int getMySfixed32() {
+        return mySfixed32_;
+      }
+      /**
+       * <code>sfixed32 my_sfixed32 = 25;</code>
+       * @param value The mySfixed32 to set.
+       * @return This builder for chaining.
+       */
+      public Builder setMySfixed32(int value) {
+        
+        mySfixed32_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>sfixed32 my_sfixed32 = 25;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearMySfixed32() {
+        
+        mySfixed32_ = 0;
+        onChanged();
+        return this;
+      }
+
+      private long mySfixed64_ ;
+      /**
+       * <code>sfixed64 my_sfixed64 = 26;</code>
+       * @return The mySfixed64.
+       */
+      @java.lang.Override
+      public long getMySfixed64() {
+        return mySfixed64_;
+      }
+      /**
+       * <code>sfixed64 my_sfixed64 = 26;</code>
+       * @param value The mySfixed64 to set.
+       * @return This builder for chaining.
+       */
+      public Builder setMySfixed64(long value) {
+        
+        mySfixed64_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>sfixed64 my_sfixed64 = 26;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearMySfixed64() {
+        
+        mySfixed64_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      private int mySint32_ ;
+      /**
+       * <code>sint32 my_sint32 = 27;</code>
+       * @return The mySint32.
+       */
+      @java.lang.Override
+      public int getMySint32() {
+        return mySint32_;
+      }
+      /**
+       * <code>sint32 my_sint32 = 27;</code>
+       * @param value The mySint32 to set.
+       * @return This builder for chaining.
+       */
+      public Builder setMySint32(int value) {
+        
+        mySint32_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>sint32 my_sint32 = 27;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearMySint32() {
+        
+        mySint32_ = 0;
+        onChanged();
+        return this;
+      }
+
+      private long mySint64_ ;
+      /**
+       * <code>sint64 my_sint64 = 28;</code>
+       * @return The mySint64.
+       */
+      @java.lang.Override
+      public long getMySint64() {
+        return mySint64_;
+      }
+      /**
+       * <code>sint64 my_sint64 = 28;</code>
+       * @param value The mySint64 to set.
+       * @return This builder for chaining.
+       */
+      public Builder setMySint64(long value) {
+        
+        mySint64_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>sint64 my_sint64 = 28;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearMySint64() {
+        
+        mySint64_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      private proto_message.Message.Deep d_;
+      private com.google.protobuf.SingleFieldBuilderV3<
+          proto_message.Message.Deep, proto_message.Message.Deep.Builder, proto_message.Message.DeepOrBuilder> dBuilder_;
+      /**
+       * <pre>
+       * here to test that we stop extracting after a certain depth
+       * </pre>
+       *
+       * <code>.proto_message.Deep d = 40;</code>
+       * @return Whether the d field is set.
+       */
+      public boolean hasD() {
+        return dBuilder_ != null || d_ != null;
+      }
+      /**
+       * <pre>
+       * here to test that we stop extracting after a certain depth
+       * </pre>
+       *
+       * <code>.proto_message.Deep d = 40;</code>
+       * @return The d.
+       */
+      public proto_message.Message.Deep getD() {
+        if (dBuilder_ == null) {
+          return d_ == null ? proto_message.Message.Deep.getDefaultInstance() : d_;
+        } else {
+          return dBuilder_.getMessage();
+        }
+      }
+      /**
+       * <pre>
+       * here to test that we stop extracting after a certain depth
+       * </pre>
+       *
+       * <code>.proto_message.Deep d = 40;</code>
+       */
+      public Builder setD(proto_message.Message.Deep value) {
+        if (dBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          d_ = value;
+          onChanged();
+        } else {
+          dBuilder_.setMessage(value);
+        }
+
+        return this;
+      }
+      /**
+       * <pre>
+       * here to test that we stop extracting after a certain depth
+       * </pre>
+       *
+       * <code>.proto_message.Deep d = 40;</code>
+       */
+      public Builder setD(
+          proto_message.Message.Deep.Builder builderForValue) {
+        if (dBuilder_ == null) {
+          d_ = builderForValue.build();
+          onChanged();
+        } else {
+          dBuilder_.setMessage(builderForValue.build());
+        }
+
+        return this;
+      }
+      /**
+       * <pre>
+       * here to test that we stop extracting after a certain depth
+       * </pre>
+       *
+       * <code>.proto_message.Deep d = 40;</code>
+       */
+      public Builder mergeD(proto_message.Message.Deep value) {
+        if (dBuilder_ == null) {
+          if (d_ != null) {
+            d_ =
+              proto_message.Message.Deep.newBuilder(d_).mergeFrom(value).buildPartial();
+          } else {
+            d_ = value;
+          }
+          onChanged();
+        } else {
+          dBuilder_.mergeFrom(value);
+        }
+
+        return this;
+      }
+      /**
+       * <pre>
+       * here to test that we stop extracting after a certain depth
+       * </pre>
+       *
+       * <code>.proto_message.Deep d = 40;</code>
+       */
+      public Builder clearD() {
+        if (dBuilder_ == null) {
+          d_ = null;
+          onChanged();
+        } else {
+          d_ = null;
+          dBuilder_ = null;
+        }
+
+        return this;
+      }
+      /**
+       * <pre>
+       * here to test that we stop extracting after a certain depth
+       * </pre>
+       *
+       * <code>.proto_message.Deep d = 40;</code>
+       */
+      public proto_message.Message.Deep.Builder getDBuilder() {
+        
+        onChanged();
+        return getDFieldBuilder().getBuilder();
+      }
+      /**
+       * <pre>
+       * here to test that we stop extracting after a certain depth
+       * </pre>
+       *
+       * <code>.proto_message.Deep d = 40;</code>
+       */
+      public proto_message.Message.DeepOrBuilder getDOrBuilder() {
+        if (dBuilder_ != null) {
+          return dBuilder_.getMessageOrBuilder();
+        } else {
+          return d_ == null ?
+              proto_message.Message.Deep.getDefaultInstance() : d_;
+        }
+      }
+      /**
+       * <pre>
+       * here to test that we stop extracting after a certain depth
+       * </pre>
+       *
+       * <code>.proto_message.Deep d = 40;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilderV3<
+          proto_message.Message.Deep, proto_message.Message.Deep.Builder, proto_message.Message.DeepOrBuilder> 
+          getDFieldBuilder() {
+        if (dBuilder_ == null) {
+          dBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+              proto_message.Message.Deep, proto_message.Message.Deep.Builder, proto_message.Message.DeepOrBuilder>(
+                  getD(),
+                  getParentForChildren(),
+                  isClean());
+          d_ = null;
+        }
+        return dBuilder_;
       }
       @java.lang.Override
       public final Builder setUnknownFields(
@@ -3974,6 +5399,6506 @@ proto_message.Message.Person defaultValue);
 
   }
 
+  public interface DeepOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:proto_message.Deep)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <code>.proto_message.Deep.A x = 1;</code>
+     * @return Whether the x field is set.
+     */
+    boolean hasX();
+    /**
+     * <code>.proto_message.Deep.A x = 1;</code>
+     * @return The x.
+     */
+    proto_message.Message.Deep.A getX();
+    /**
+     * <code>.proto_message.Deep.A x = 1;</code>
+     */
+    proto_message.Message.Deep.AOrBuilder getXOrBuilder();
+  }
+  /**
+   * Protobuf type {@code proto_message.Deep}
+   */
+  public static final class Deep extends
+      com.google.protobuf.GeneratedMessageV3 implements
+      // @@protoc_insertion_point(message_implements:proto_message.Deep)
+      DeepOrBuilder {
+  private static final long serialVersionUID = 0L;
+    // Use Deep.newBuilder() to construct.
+    private Deep(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
+      super(builder);
+    }
+    private Deep() {
+    }
+
+    @java.lang.Override
+    @SuppressWarnings({"unused"})
+    protected java.lang.Object newInstance(
+        UnusedPrivateParameter unused) {
+      return new Deep();
+    }
+
+    @java.lang.Override
+    public final com.google.protobuf.UnknownFieldSet
+    getUnknownFields() {
+      return this.unknownFields;
+    }
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return proto_message.Message.internal_static_proto_message_Deep_descriptor;
+    }
+
+    @java.lang.Override
+    protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return proto_message.Message.internal_static_proto_message_Deep_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              proto_message.Message.Deep.class, proto_message.Message.Deep.Builder.class);
+    }
+
+    public interface AOrBuilder extends
+        // @@protoc_insertion_point(interface_extends:proto_message.Deep.A)
+        com.google.protobuf.MessageOrBuilder {
+
+      /**
+       * <code>.proto_message.Deep.B x = 1;</code>
+       * @return Whether the x field is set.
+       */
+      boolean hasX();
+      /**
+       * <code>.proto_message.Deep.B x = 1;</code>
+       * @return The x.
+       */
+      proto_message.Message.Deep.B getX();
+      /**
+       * <code>.proto_message.Deep.B x = 1;</code>
+       */
+      proto_message.Message.Deep.BOrBuilder getXOrBuilder();
+    }
+    /**
+     * Protobuf type {@code proto_message.Deep.A}
+     */
+    public static final class A extends
+        com.google.protobuf.GeneratedMessageV3 implements
+        // @@protoc_insertion_point(message_implements:proto_message.Deep.A)
+        AOrBuilder {
+    private static final long serialVersionUID = 0L;
+      // Use A.newBuilder() to construct.
+      private A(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
+        super(builder);
+      }
+      private A() {
+      }
+
+      @java.lang.Override
+      @SuppressWarnings({"unused"})
+      protected java.lang.Object newInstance(
+          UnusedPrivateParameter unused) {
+        return new A();
+      }
+
+      @java.lang.Override
+      public final com.google.protobuf.UnknownFieldSet
+      getUnknownFields() {
+        return this.unknownFields;
+      }
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return proto_message.Message.internal_static_proto_message_Deep_A_descriptor;
+      }
+
+      @java.lang.Override
+      protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return proto_message.Message.internal_static_proto_message_Deep_A_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                proto_message.Message.Deep.A.class, proto_message.Message.Deep.A.Builder.class);
+      }
+
+      public static final int X_FIELD_NUMBER = 1;
+      private proto_message.Message.Deep.B x_;
+      /**
+       * <code>.proto_message.Deep.B x = 1;</code>
+       * @return Whether the x field is set.
+       */
+      @java.lang.Override
+      public boolean hasX() {
+        return x_ != null;
+      }
+      /**
+       * <code>.proto_message.Deep.B x = 1;</code>
+       * @return The x.
+       */
+      @java.lang.Override
+      public proto_message.Message.Deep.B getX() {
+        return x_ == null ? proto_message.Message.Deep.B.getDefaultInstance() : x_;
+      }
+      /**
+       * <code>.proto_message.Deep.B x = 1;</code>
+       */
+      @java.lang.Override
+      public proto_message.Message.Deep.BOrBuilder getXOrBuilder() {
+        return getX();
+      }
+
+      private byte memoizedIsInitialized = -1;
+      @java.lang.Override
+      public final boolean isInitialized() {
+        byte isInitialized = memoizedIsInitialized;
+        if (isInitialized == 1) return true;
+        if (isInitialized == 0) return false;
+
+        memoizedIsInitialized = 1;
+        return true;
+      }
+
+      @java.lang.Override
+      public void writeTo(com.google.protobuf.CodedOutputStream output)
+                          throws java.io.IOException {
+        if (x_ != null) {
+          output.writeMessage(1, getX());
+        }
+        getUnknownFields().writeTo(output);
+      }
+
+      @java.lang.Override
+      public int getSerializedSize() {
+        int size = memoizedSize;
+        if (size != -1) return size;
+
+        size = 0;
+        if (x_ != null) {
+          size += com.google.protobuf.CodedOutputStream
+            .computeMessageSize(1, getX());
+        }
+        size += getUnknownFields().getSerializedSize();
+        memoizedSize = size;
+        return size;
+      }
+
+      @java.lang.Override
+      public boolean equals(final java.lang.Object obj) {
+        if (obj == this) {
+         return true;
+        }
+        if (!(obj instanceof proto_message.Message.Deep.A)) {
+          return super.equals(obj);
+        }
+        proto_message.Message.Deep.A other = (proto_message.Message.Deep.A) obj;
+
+        if (hasX() != other.hasX()) return false;
+        if (hasX()) {
+          if (!getX()
+              .equals(other.getX())) return false;
+        }
+        if (!getUnknownFields().equals(other.getUnknownFields())) return false;
+        return true;
+      }
+
+      @java.lang.Override
+      public int hashCode() {
+        if (memoizedHashCode != 0) {
+          return memoizedHashCode;
+        }
+        int hash = 41;
+        hash = (19 * hash) + getDescriptor().hashCode();
+        if (hasX()) {
+          hash = (37 * hash) + X_FIELD_NUMBER;
+          hash = (53 * hash) + getX().hashCode();
+        }
+        hash = (29 * hash) + getUnknownFields().hashCode();
+        memoizedHashCode = hash;
+        return hash;
+      }
+
+      public static proto_message.Message.Deep.A parseFrom(
+          java.nio.ByteBuffer data)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return PARSER.parseFrom(data);
+      }
+      public static proto_message.Message.Deep.A parseFrom(
+          java.nio.ByteBuffer data,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return PARSER.parseFrom(data, extensionRegistry);
+      }
+      public static proto_message.Message.Deep.A parseFrom(
+          com.google.protobuf.ByteString data)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return PARSER.parseFrom(data);
+      }
+      public static proto_message.Message.Deep.A parseFrom(
+          com.google.protobuf.ByteString data,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return PARSER.parseFrom(data, extensionRegistry);
+      }
+      public static proto_message.Message.Deep.A parseFrom(byte[] data)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return PARSER.parseFrom(data);
+      }
+      public static proto_message.Message.Deep.A parseFrom(
+          byte[] data,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return PARSER.parseFrom(data, extensionRegistry);
+      }
+      public static proto_message.Message.Deep.A parseFrom(java.io.InputStream input)
+          throws java.io.IOException {
+        return com.google.protobuf.GeneratedMessageV3
+            .parseWithIOException(PARSER, input);
+      }
+      public static proto_message.Message.Deep.A parseFrom(
+          java.io.InputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        return com.google.protobuf.GeneratedMessageV3
+            .parseWithIOException(PARSER, input, extensionRegistry);
+      }
+      public static proto_message.Message.Deep.A parseDelimitedFrom(java.io.InputStream input)
+          throws java.io.IOException {
+        return com.google.protobuf.GeneratedMessageV3
+            .parseDelimitedWithIOException(PARSER, input);
+      }
+      public static proto_message.Message.Deep.A parseDelimitedFrom(
+          java.io.InputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        return com.google.protobuf.GeneratedMessageV3
+            .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+      }
+      public static proto_message.Message.Deep.A parseFrom(
+          com.google.protobuf.CodedInputStream input)
+          throws java.io.IOException {
+        return com.google.protobuf.GeneratedMessageV3
+            .parseWithIOException(PARSER, input);
+      }
+      public static proto_message.Message.Deep.A parseFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        return com.google.protobuf.GeneratedMessageV3
+            .parseWithIOException(PARSER, input, extensionRegistry);
+      }
+
+      @java.lang.Override
+      public Builder newBuilderForType() { return newBuilder(); }
+      public static Builder newBuilder() {
+        return DEFAULT_INSTANCE.toBuilder();
+      }
+      public static Builder newBuilder(proto_message.Message.Deep.A prototype) {
+        return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+      }
+      @java.lang.Override
+      public Builder toBuilder() {
+        return this == DEFAULT_INSTANCE
+            ? new Builder() : new Builder().mergeFrom(this);
+      }
+
+      @java.lang.Override
+      protected Builder newBuilderForType(
+          com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+        Builder builder = new Builder(parent);
+        return builder;
+      }
+      /**
+       * Protobuf type {@code proto_message.Deep.A}
+       */
+      public static final class Builder extends
+          com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
+          // @@protoc_insertion_point(builder_implements:proto_message.Deep.A)
+          proto_message.Message.Deep.AOrBuilder {
+        public static final com.google.protobuf.Descriptors.Descriptor
+            getDescriptor() {
+          return proto_message.Message.internal_static_proto_message_Deep_A_descriptor;
+        }
+
+        @java.lang.Override
+        protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+            internalGetFieldAccessorTable() {
+          return proto_message.Message.internal_static_proto_message_Deep_A_fieldAccessorTable
+              .ensureFieldAccessorsInitialized(
+                  proto_message.Message.Deep.A.class, proto_message.Message.Deep.A.Builder.class);
+        }
+
+        // Construct using proto_message.Message.Deep.A.newBuilder()
+        private Builder() {
+
+        }
+
+        private Builder(
+            com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+          super(parent);
+
+        }
+        @java.lang.Override
+        public Builder clear() {
+          super.clear();
+          if (xBuilder_ == null) {
+            x_ = null;
+          } else {
+            x_ = null;
+            xBuilder_ = null;
+          }
+          return this;
+        }
+
+        @java.lang.Override
+        public com.google.protobuf.Descriptors.Descriptor
+            getDescriptorForType() {
+          return proto_message.Message.internal_static_proto_message_Deep_A_descriptor;
+        }
+
+        @java.lang.Override
+        public proto_message.Message.Deep.A getDefaultInstanceForType() {
+          return proto_message.Message.Deep.A.getDefaultInstance();
+        }
+
+        @java.lang.Override
+        public proto_message.Message.Deep.A build() {
+          proto_message.Message.Deep.A result = buildPartial();
+          if (!result.isInitialized()) {
+            throw newUninitializedMessageException(result);
+          }
+          return result;
+        }
+
+        @java.lang.Override
+        public proto_message.Message.Deep.A buildPartial() {
+          proto_message.Message.Deep.A result = new proto_message.Message.Deep.A(this);
+          if (xBuilder_ == null) {
+            result.x_ = x_;
+          } else {
+            result.x_ = xBuilder_.build();
+          }
+          onBuilt();
+          return result;
+        }
+
+        @java.lang.Override
+        public Builder clone() {
+          return super.clone();
+        }
+        @java.lang.Override
+        public Builder setField(
+            com.google.protobuf.Descriptors.FieldDescriptor field,
+            java.lang.Object value) {
+          return super.setField(field, value);
+        }
+        @java.lang.Override
+        public Builder clearField(
+            com.google.protobuf.Descriptors.FieldDescriptor field) {
+          return super.clearField(field);
+        }
+        @java.lang.Override
+        public Builder clearOneof(
+            com.google.protobuf.Descriptors.OneofDescriptor oneof) {
+          return super.clearOneof(oneof);
+        }
+        @java.lang.Override
+        public Builder setRepeatedField(
+            com.google.protobuf.Descriptors.FieldDescriptor field,
+            int index, java.lang.Object value) {
+          return super.setRepeatedField(field, index, value);
+        }
+        @java.lang.Override
+        public Builder addRepeatedField(
+            com.google.protobuf.Descriptors.FieldDescriptor field,
+            java.lang.Object value) {
+          return super.addRepeatedField(field, value);
+        }
+        @java.lang.Override
+        public Builder mergeFrom(com.google.protobuf.Message other) {
+          if (other instanceof proto_message.Message.Deep.A) {
+            return mergeFrom((proto_message.Message.Deep.A)other);
+          } else {
+            super.mergeFrom(other);
+            return this;
+          }
+        }
+
+        public Builder mergeFrom(proto_message.Message.Deep.A other) {
+          if (other == proto_message.Message.Deep.A.getDefaultInstance()) return this;
+          if (other.hasX()) {
+            mergeX(other.getX());
+          }
+          this.mergeUnknownFields(other.getUnknownFields());
+          onChanged();
+          return this;
+        }
+
+        @java.lang.Override
+        public final boolean isInitialized() {
+          return true;
+        }
+
+        @java.lang.Override
+        public Builder mergeFrom(
+            com.google.protobuf.CodedInputStream input,
+            com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+            throws java.io.IOException {
+          if (extensionRegistry == null) {
+            throw new java.lang.NullPointerException();
+          }
+          try {
+            boolean done = false;
+            while (!done) {
+              int tag = input.readTag();
+              switch (tag) {
+                case 0:
+                  done = true;
+                  break;
+                case 10: {
+                  input.readMessage(
+                      getXFieldBuilder().getBuilder(),
+                      extensionRegistry);
+
+                  break;
+                } // case 10
+                default: {
+                  if (!super.parseUnknownField(input, extensionRegistry, tag)) {
+                    done = true; // was an endgroup tag
+                  }
+                  break;
+                } // default:
+              } // switch (tag)
+            } // while (!done)
+          } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+            throw e.unwrapIOException();
+          } finally {
+            onChanged();
+          } // finally
+          return this;
+        }
+
+        private proto_message.Message.Deep.B x_;
+        private com.google.protobuf.SingleFieldBuilderV3<
+            proto_message.Message.Deep.B, proto_message.Message.Deep.B.Builder, proto_message.Message.Deep.BOrBuilder> xBuilder_;
+        /**
+         * <code>.proto_message.Deep.B x = 1;</code>
+         * @return Whether the x field is set.
+         */
+        public boolean hasX() {
+          return xBuilder_ != null || x_ != null;
+        }
+        /**
+         * <code>.proto_message.Deep.B x = 1;</code>
+         * @return The x.
+         */
+        public proto_message.Message.Deep.B getX() {
+          if (xBuilder_ == null) {
+            return x_ == null ? proto_message.Message.Deep.B.getDefaultInstance() : x_;
+          } else {
+            return xBuilder_.getMessage();
+          }
+        }
+        /**
+         * <code>.proto_message.Deep.B x = 1;</code>
+         */
+        public Builder setX(proto_message.Message.Deep.B value) {
+          if (xBuilder_ == null) {
+            if (value == null) {
+              throw new NullPointerException();
+            }
+            x_ = value;
+            onChanged();
+          } else {
+            xBuilder_.setMessage(value);
+          }
+
+          return this;
+        }
+        /**
+         * <code>.proto_message.Deep.B x = 1;</code>
+         */
+        public Builder setX(
+            proto_message.Message.Deep.B.Builder builderForValue) {
+          if (xBuilder_ == null) {
+            x_ = builderForValue.build();
+            onChanged();
+          } else {
+            xBuilder_.setMessage(builderForValue.build());
+          }
+
+          return this;
+        }
+        /**
+         * <code>.proto_message.Deep.B x = 1;</code>
+         */
+        public Builder mergeX(proto_message.Message.Deep.B value) {
+          if (xBuilder_ == null) {
+            if (x_ != null) {
+              x_ =
+                proto_message.Message.Deep.B.newBuilder(x_).mergeFrom(value).buildPartial();
+            } else {
+              x_ = value;
+            }
+            onChanged();
+          } else {
+            xBuilder_.mergeFrom(value);
+          }
+
+          return this;
+        }
+        /**
+         * <code>.proto_message.Deep.B x = 1;</code>
+         */
+        public Builder clearX() {
+          if (xBuilder_ == null) {
+            x_ = null;
+            onChanged();
+          } else {
+            x_ = null;
+            xBuilder_ = null;
+          }
+
+          return this;
+        }
+        /**
+         * <code>.proto_message.Deep.B x = 1;</code>
+         */
+        public proto_message.Message.Deep.B.Builder getXBuilder() {
+          
+          onChanged();
+          return getXFieldBuilder().getBuilder();
+        }
+        /**
+         * <code>.proto_message.Deep.B x = 1;</code>
+         */
+        public proto_message.Message.Deep.BOrBuilder getXOrBuilder() {
+          if (xBuilder_ != null) {
+            return xBuilder_.getMessageOrBuilder();
+          } else {
+            return x_ == null ?
+                proto_message.Message.Deep.B.getDefaultInstance() : x_;
+          }
+        }
+        /**
+         * <code>.proto_message.Deep.B x = 1;</code>
+         */
+        private com.google.protobuf.SingleFieldBuilderV3<
+            proto_message.Message.Deep.B, proto_message.Message.Deep.B.Builder, proto_message.Message.Deep.BOrBuilder> 
+            getXFieldBuilder() {
+          if (xBuilder_ == null) {
+            xBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+                proto_message.Message.Deep.B, proto_message.Message.Deep.B.Builder, proto_message.Message.Deep.BOrBuilder>(
+                    getX(),
+                    getParentForChildren(),
+                    isClean());
+            x_ = null;
+          }
+          return xBuilder_;
+        }
+        @java.lang.Override
+        public final Builder setUnknownFields(
+            final com.google.protobuf.UnknownFieldSet unknownFields) {
+          return super.setUnknownFields(unknownFields);
+        }
+
+        @java.lang.Override
+        public final Builder mergeUnknownFields(
+            final com.google.protobuf.UnknownFieldSet unknownFields) {
+          return super.mergeUnknownFields(unknownFields);
+        }
+
+
+        // @@protoc_insertion_point(builder_scope:proto_message.Deep.A)
+      }
+
+      // @@protoc_insertion_point(class_scope:proto_message.Deep.A)
+      private static final proto_message.Message.Deep.A DEFAULT_INSTANCE;
+      static {
+        DEFAULT_INSTANCE = new proto_message.Message.Deep.A();
+      }
+
+      public static proto_message.Message.Deep.A getDefaultInstance() {
+        return DEFAULT_INSTANCE;
+      }
+
+      private static final com.google.protobuf.Parser<A>
+          PARSER = new com.google.protobuf.AbstractParser<A>() {
+        @java.lang.Override
+        public A parsePartialFrom(
+            com.google.protobuf.CodedInputStream input,
+            com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+            throws com.google.protobuf.InvalidProtocolBufferException {
+          Builder builder = newBuilder();
+          try {
+            builder.mergeFrom(input, extensionRegistry);
+          } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+            throw e.setUnfinishedMessage(builder.buildPartial());
+          } catch (com.google.protobuf.UninitializedMessageException e) {
+            throw e.asInvalidProtocolBufferException().setUnfinishedMessage(builder.buildPartial());
+          } catch (java.io.IOException e) {
+            throw new com.google.protobuf.InvalidProtocolBufferException(e)
+                .setUnfinishedMessage(builder.buildPartial());
+          }
+          return builder.buildPartial();
+        }
+      };
+
+      public static com.google.protobuf.Parser<A> parser() {
+        return PARSER;
+      }
+
+      @java.lang.Override
+      public com.google.protobuf.Parser<A> getParserForType() {
+        return PARSER;
+      }
+
+      @java.lang.Override
+      public proto_message.Message.Deep.A getDefaultInstanceForType() {
+        return DEFAULT_INSTANCE;
+      }
+
+    }
+
+    public interface BOrBuilder extends
+        // @@protoc_insertion_point(interface_extends:proto_message.Deep.B)
+        com.google.protobuf.MessageOrBuilder {
+
+      /**
+       * <code>.proto_message.Deep.C x = 1;</code>
+       * @return Whether the x field is set.
+       */
+      boolean hasX();
+      /**
+       * <code>.proto_message.Deep.C x = 1;</code>
+       * @return The x.
+       */
+      proto_message.Message.Deep.C getX();
+      /**
+       * <code>.proto_message.Deep.C x = 1;</code>
+       */
+      proto_message.Message.Deep.COrBuilder getXOrBuilder();
+    }
+    /**
+     * Protobuf type {@code proto_message.Deep.B}
+     */
+    public static final class B extends
+        com.google.protobuf.GeneratedMessageV3 implements
+        // @@protoc_insertion_point(message_implements:proto_message.Deep.B)
+        BOrBuilder {
+    private static final long serialVersionUID = 0L;
+      // Use B.newBuilder() to construct.
+      private B(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
+        super(builder);
+      }
+      private B() {
+      }
+
+      @java.lang.Override
+      @SuppressWarnings({"unused"})
+      protected java.lang.Object newInstance(
+          UnusedPrivateParameter unused) {
+        return new B();
+      }
+
+      @java.lang.Override
+      public final com.google.protobuf.UnknownFieldSet
+      getUnknownFields() {
+        return this.unknownFields;
+      }
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return proto_message.Message.internal_static_proto_message_Deep_B_descriptor;
+      }
+
+      @java.lang.Override
+      protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return proto_message.Message.internal_static_proto_message_Deep_B_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                proto_message.Message.Deep.B.class, proto_message.Message.Deep.B.Builder.class);
+      }
+
+      public static final int X_FIELD_NUMBER = 1;
+      private proto_message.Message.Deep.C x_;
+      /**
+       * <code>.proto_message.Deep.C x = 1;</code>
+       * @return Whether the x field is set.
+       */
+      @java.lang.Override
+      public boolean hasX() {
+        return x_ != null;
+      }
+      /**
+       * <code>.proto_message.Deep.C x = 1;</code>
+       * @return The x.
+       */
+      @java.lang.Override
+      public proto_message.Message.Deep.C getX() {
+        return x_ == null ? proto_message.Message.Deep.C.getDefaultInstance() : x_;
+      }
+      /**
+       * <code>.proto_message.Deep.C x = 1;</code>
+       */
+      @java.lang.Override
+      public proto_message.Message.Deep.COrBuilder getXOrBuilder() {
+        return getX();
+      }
+
+      private byte memoizedIsInitialized = -1;
+      @java.lang.Override
+      public final boolean isInitialized() {
+        byte isInitialized = memoizedIsInitialized;
+        if (isInitialized == 1) return true;
+        if (isInitialized == 0) return false;
+
+        memoizedIsInitialized = 1;
+        return true;
+      }
+
+      @java.lang.Override
+      public void writeTo(com.google.protobuf.CodedOutputStream output)
+                          throws java.io.IOException {
+        if (x_ != null) {
+          output.writeMessage(1, getX());
+        }
+        getUnknownFields().writeTo(output);
+      }
+
+      @java.lang.Override
+      public int getSerializedSize() {
+        int size = memoizedSize;
+        if (size != -1) return size;
+
+        size = 0;
+        if (x_ != null) {
+          size += com.google.protobuf.CodedOutputStream
+            .computeMessageSize(1, getX());
+        }
+        size += getUnknownFields().getSerializedSize();
+        memoizedSize = size;
+        return size;
+      }
+
+      @java.lang.Override
+      public boolean equals(final java.lang.Object obj) {
+        if (obj == this) {
+         return true;
+        }
+        if (!(obj instanceof proto_message.Message.Deep.B)) {
+          return super.equals(obj);
+        }
+        proto_message.Message.Deep.B other = (proto_message.Message.Deep.B) obj;
+
+        if (hasX() != other.hasX()) return false;
+        if (hasX()) {
+          if (!getX()
+              .equals(other.getX())) return false;
+        }
+        if (!getUnknownFields().equals(other.getUnknownFields())) return false;
+        return true;
+      }
+
+      @java.lang.Override
+      public int hashCode() {
+        if (memoizedHashCode != 0) {
+          return memoizedHashCode;
+        }
+        int hash = 41;
+        hash = (19 * hash) + getDescriptor().hashCode();
+        if (hasX()) {
+          hash = (37 * hash) + X_FIELD_NUMBER;
+          hash = (53 * hash) + getX().hashCode();
+        }
+        hash = (29 * hash) + getUnknownFields().hashCode();
+        memoizedHashCode = hash;
+        return hash;
+      }
+
+      public static proto_message.Message.Deep.B parseFrom(
+          java.nio.ByteBuffer data)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return PARSER.parseFrom(data);
+      }
+      public static proto_message.Message.Deep.B parseFrom(
+          java.nio.ByteBuffer data,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return PARSER.parseFrom(data, extensionRegistry);
+      }
+      public static proto_message.Message.Deep.B parseFrom(
+          com.google.protobuf.ByteString data)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return PARSER.parseFrom(data);
+      }
+      public static proto_message.Message.Deep.B parseFrom(
+          com.google.protobuf.ByteString data,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return PARSER.parseFrom(data, extensionRegistry);
+      }
+      public static proto_message.Message.Deep.B parseFrom(byte[] data)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return PARSER.parseFrom(data);
+      }
+      public static proto_message.Message.Deep.B parseFrom(
+          byte[] data,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return PARSER.parseFrom(data, extensionRegistry);
+      }
+      public static proto_message.Message.Deep.B parseFrom(java.io.InputStream input)
+          throws java.io.IOException {
+        return com.google.protobuf.GeneratedMessageV3
+            .parseWithIOException(PARSER, input);
+      }
+      public static proto_message.Message.Deep.B parseFrom(
+          java.io.InputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        return com.google.protobuf.GeneratedMessageV3
+            .parseWithIOException(PARSER, input, extensionRegistry);
+      }
+      public static proto_message.Message.Deep.B parseDelimitedFrom(java.io.InputStream input)
+          throws java.io.IOException {
+        return com.google.protobuf.GeneratedMessageV3
+            .parseDelimitedWithIOException(PARSER, input);
+      }
+      public static proto_message.Message.Deep.B parseDelimitedFrom(
+          java.io.InputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        return com.google.protobuf.GeneratedMessageV3
+            .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+      }
+      public static proto_message.Message.Deep.B parseFrom(
+          com.google.protobuf.CodedInputStream input)
+          throws java.io.IOException {
+        return com.google.protobuf.GeneratedMessageV3
+            .parseWithIOException(PARSER, input);
+      }
+      public static proto_message.Message.Deep.B parseFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        return com.google.protobuf.GeneratedMessageV3
+            .parseWithIOException(PARSER, input, extensionRegistry);
+      }
+
+      @java.lang.Override
+      public Builder newBuilderForType() { return newBuilder(); }
+      public static Builder newBuilder() {
+        return DEFAULT_INSTANCE.toBuilder();
+      }
+      public static Builder newBuilder(proto_message.Message.Deep.B prototype) {
+        return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+      }
+      @java.lang.Override
+      public Builder toBuilder() {
+        return this == DEFAULT_INSTANCE
+            ? new Builder() : new Builder().mergeFrom(this);
+      }
+
+      @java.lang.Override
+      protected Builder newBuilderForType(
+          com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+        Builder builder = new Builder(parent);
+        return builder;
+      }
+      /**
+       * Protobuf type {@code proto_message.Deep.B}
+       */
+      public static final class Builder extends
+          com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
+          // @@protoc_insertion_point(builder_implements:proto_message.Deep.B)
+          proto_message.Message.Deep.BOrBuilder {
+        public static final com.google.protobuf.Descriptors.Descriptor
+            getDescriptor() {
+          return proto_message.Message.internal_static_proto_message_Deep_B_descriptor;
+        }
+
+        @java.lang.Override
+        protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+            internalGetFieldAccessorTable() {
+          return proto_message.Message.internal_static_proto_message_Deep_B_fieldAccessorTable
+              .ensureFieldAccessorsInitialized(
+                  proto_message.Message.Deep.B.class, proto_message.Message.Deep.B.Builder.class);
+        }
+
+        // Construct using proto_message.Message.Deep.B.newBuilder()
+        private Builder() {
+
+        }
+
+        private Builder(
+            com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+          super(parent);
+
+        }
+        @java.lang.Override
+        public Builder clear() {
+          super.clear();
+          if (xBuilder_ == null) {
+            x_ = null;
+          } else {
+            x_ = null;
+            xBuilder_ = null;
+          }
+          return this;
+        }
+
+        @java.lang.Override
+        public com.google.protobuf.Descriptors.Descriptor
+            getDescriptorForType() {
+          return proto_message.Message.internal_static_proto_message_Deep_B_descriptor;
+        }
+
+        @java.lang.Override
+        public proto_message.Message.Deep.B getDefaultInstanceForType() {
+          return proto_message.Message.Deep.B.getDefaultInstance();
+        }
+
+        @java.lang.Override
+        public proto_message.Message.Deep.B build() {
+          proto_message.Message.Deep.B result = buildPartial();
+          if (!result.isInitialized()) {
+            throw newUninitializedMessageException(result);
+          }
+          return result;
+        }
+
+        @java.lang.Override
+        public proto_message.Message.Deep.B buildPartial() {
+          proto_message.Message.Deep.B result = new proto_message.Message.Deep.B(this);
+          if (xBuilder_ == null) {
+            result.x_ = x_;
+          } else {
+            result.x_ = xBuilder_.build();
+          }
+          onBuilt();
+          return result;
+        }
+
+        @java.lang.Override
+        public Builder clone() {
+          return super.clone();
+        }
+        @java.lang.Override
+        public Builder setField(
+            com.google.protobuf.Descriptors.FieldDescriptor field,
+            java.lang.Object value) {
+          return super.setField(field, value);
+        }
+        @java.lang.Override
+        public Builder clearField(
+            com.google.protobuf.Descriptors.FieldDescriptor field) {
+          return super.clearField(field);
+        }
+        @java.lang.Override
+        public Builder clearOneof(
+            com.google.protobuf.Descriptors.OneofDescriptor oneof) {
+          return super.clearOneof(oneof);
+        }
+        @java.lang.Override
+        public Builder setRepeatedField(
+            com.google.protobuf.Descriptors.FieldDescriptor field,
+            int index, java.lang.Object value) {
+          return super.setRepeatedField(field, index, value);
+        }
+        @java.lang.Override
+        public Builder addRepeatedField(
+            com.google.protobuf.Descriptors.FieldDescriptor field,
+            java.lang.Object value) {
+          return super.addRepeatedField(field, value);
+        }
+        @java.lang.Override
+        public Builder mergeFrom(com.google.protobuf.Message other) {
+          if (other instanceof proto_message.Message.Deep.B) {
+            return mergeFrom((proto_message.Message.Deep.B)other);
+          } else {
+            super.mergeFrom(other);
+            return this;
+          }
+        }
+
+        public Builder mergeFrom(proto_message.Message.Deep.B other) {
+          if (other == proto_message.Message.Deep.B.getDefaultInstance()) return this;
+          if (other.hasX()) {
+            mergeX(other.getX());
+          }
+          this.mergeUnknownFields(other.getUnknownFields());
+          onChanged();
+          return this;
+        }
+
+        @java.lang.Override
+        public final boolean isInitialized() {
+          return true;
+        }
+
+        @java.lang.Override
+        public Builder mergeFrom(
+            com.google.protobuf.CodedInputStream input,
+            com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+            throws java.io.IOException {
+          if (extensionRegistry == null) {
+            throw new java.lang.NullPointerException();
+          }
+          try {
+            boolean done = false;
+            while (!done) {
+              int tag = input.readTag();
+              switch (tag) {
+                case 0:
+                  done = true;
+                  break;
+                case 10: {
+                  input.readMessage(
+                      getXFieldBuilder().getBuilder(),
+                      extensionRegistry);
+
+                  break;
+                } // case 10
+                default: {
+                  if (!super.parseUnknownField(input, extensionRegistry, tag)) {
+                    done = true; // was an endgroup tag
+                  }
+                  break;
+                } // default:
+              } // switch (tag)
+            } // while (!done)
+          } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+            throw e.unwrapIOException();
+          } finally {
+            onChanged();
+          } // finally
+          return this;
+        }
+
+        private proto_message.Message.Deep.C x_;
+        private com.google.protobuf.SingleFieldBuilderV3<
+            proto_message.Message.Deep.C, proto_message.Message.Deep.C.Builder, proto_message.Message.Deep.COrBuilder> xBuilder_;
+        /**
+         * <code>.proto_message.Deep.C x = 1;</code>
+         * @return Whether the x field is set.
+         */
+        public boolean hasX() {
+          return xBuilder_ != null || x_ != null;
+        }
+        /**
+         * <code>.proto_message.Deep.C x = 1;</code>
+         * @return The x.
+         */
+        public proto_message.Message.Deep.C getX() {
+          if (xBuilder_ == null) {
+            return x_ == null ? proto_message.Message.Deep.C.getDefaultInstance() : x_;
+          } else {
+            return xBuilder_.getMessage();
+          }
+        }
+        /**
+         * <code>.proto_message.Deep.C x = 1;</code>
+         */
+        public Builder setX(proto_message.Message.Deep.C value) {
+          if (xBuilder_ == null) {
+            if (value == null) {
+              throw new NullPointerException();
+            }
+            x_ = value;
+            onChanged();
+          } else {
+            xBuilder_.setMessage(value);
+          }
+
+          return this;
+        }
+        /**
+         * <code>.proto_message.Deep.C x = 1;</code>
+         */
+        public Builder setX(
+            proto_message.Message.Deep.C.Builder builderForValue) {
+          if (xBuilder_ == null) {
+            x_ = builderForValue.build();
+            onChanged();
+          } else {
+            xBuilder_.setMessage(builderForValue.build());
+          }
+
+          return this;
+        }
+        /**
+         * <code>.proto_message.Deep.C x = 1;</code>
+         */
+        public Builder mergeX(proto_message.Message.Deep.C value) {
+          if (xBuilder_ == null) {
+            if (x_ != null) {
+              x_ =
+                proto_message.Message.Deep.C.newBuilder(x_).mergeFrom(value).buildPartial();
+            } else {
+              x_ = value;
+            }
+            onChanged();
+          } else {
+            xBuilder_.mergeFrom(value);
+          }
+
+          return this;
+        }
+        /**
+         * <code>.proto_message.Deep.C x = 1;</code>
+         */
+        public Builder clearX() {
+          if (xBuilder_ == null) {
+            x_ = null;
+            onChanged();
+          } else {
+            x_ = null;
+            xBuilder_ = null;
+          }
+
+          return this;
+        }
+        /**
+         * <code>.proto_message.Deep.C x = 1;</code>
+         */
+        public proto_message.Message.Deep.C.Builder getXBuilder() {
+          
+          onChanged();
+          return getXFieldBuilder().getBuilder();
+        }
+        /**
+         * <code>.proto_message.Deep.C x = 1;</code>
+         */
+        public proto_message.Message.Deep.COrBuilder getXOrBuilder() {
+          if (xBuilder_ != null) {
+            return xBuilder_.getMessageOrBuilder();
+          } else {
+            return x_ == null ?
+                proto_message.Message.Deep.C.getDefaultInstance() : x_;
+          }
+        }
+        /**
+         * <code>.proto_message.Deep.C x = 1;</code>
+         */
+        private com.google.protobuf.SingleFieldBuilderV3<
+            proto_message.Message.Deep.C, proto_message.Message.Deep.C.Builder, proto_message.Message.Deep.COrBuilder> 
+            getXFieldBuilder() {
+          if (xBuilder_ == null) {
+            xBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+                proto_message.Message.Deep.C, proto_message.Message.Deep.C.Builder, proto_message.Message.Deep.COrBuilder>(
+                    getX(),
+                    getParentForChildren(),
+                    isClean());
+            x_ = null;
+          }
+          return xBuilder_;
+        }
+        @java.lang.Override
+        public final Builder setUnknownFields(
+            final com.google.protobuf.UnknownFieldSet unknownFields) {
+          return super.setUnknownFields(unknownFields);
+        }
+
+        @java.lang.Override
+        public final Builder mergeUnknownFields(
+            final com.google.protobuf.UnknownFieldSet unknownFields) {
+          return super.mergeUnknownFields(unknownFields);
+        }
+
+
+        // @@protoc_insertion_point(builder_scope:proto_message.Deep.B)
+      }
+
+      // @@protoc_insertion_point(class_scope:proto_message.Deep.B)
+      private static final proto_message.Message.Deep.B DEFAULT_INSTANCE;
+      static {
+        DEFAULT_INSTANCE = new proto_message.Message.Deep.B();
+      }
+
+      public static proto_message.Message.Deep.B getDefaultInstance() {
+        return DEFAULT_INSTANCE;
+      }
+
+      private static final com.google.protobuf.Parser<B>
+          PARSER = new com.google.protobuf.AbstractParser<B>() {
+        @java.lang.Override
+        public B parsePartialFrom(
+            com.google.protobuf.CodedInputStream input,
+            com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+            throws com.google.protobuf.InvalidProtocolBufferException {
+          Builder builder = newBuilder();
+          try {
+            builder.mergeFrom(input, extensionRegistry);
+          } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+            throw e.setUnfinishedMessage(builder.buildPartial());
+          } catch (com.google.protobuf.UninitializedMessageException e) {
+            throw e.asInvalidProtocolBufferException().setUnfinishedMessage(builder.buildPartial());
+          } catch (java.io.IOException e) {
+            throw new com.google.protobuf.InvalidProtocolBufferException(e)
+                .setUnfinishedMessage(builder.buildPartial());
+          }
+          return builder.buildPartial();
+        }
+      };
+
+      public static com.google.protobuf.Parser<B> parser() {
+        return PARSER;
+      }
+
+      @java.lang.Override
+      public com.google.protobuf.Parser<B> getParserForType() {
+        return PARSER;
+      }
+
+      @java.lang.Override
+      public proto_message.Message.Deep.B getDefaultInstanceForType() {
+        return DEFAULT_INSTANCE;
+      }
+
+    }
+
+    public interface COrBuilder extends
+        // @@protoc_insertion_point(interface_extends:proto_message.Deep.C)
+        com.google.protobuf.MessageOrBuilder {
+
+      /**
+       * <code>.proto_message.Deep.D x = 1;</code>
+       * @return Whether the x field is set.
+       */
+      boolean hasX();
+      /**
+       * <code>.proto_message.Deep.D x = 1;</code>
+       * @return The x.
+       */
+      proto_message.Message.Deep.D getX();
+      /**
+       * <code>.proto_message.Deep.D x = 1;</code>
+       */
+      proto_message.Message.Deep.DOrBuilder getXOrBuilder();
+    }
+    /**
+     * Protobuf type {@code proto_message.Deep.C}
+     */
+    public static final class C extends
+        com.google.protobuf.GeneratedMessageV3 implements
+        // @@protoc_insertion_point(message_implements:proto_message.Deep.C)
+        COrBuilder {
+    private static final long serialVersionUID = 0L;
+      // Use C.newBuilder() to construct.
+      private C(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
+        super(builder);
+      }
+      private C() {
+      }
+
+      @java.lang.Override
+      @SuppressWarnings({"unused"})
+      protected java.lang.Object newInstance(
+          UnusedPrivateParameter unused) {
+        return new C();
+      }
+
+      @java.lang.Override
+      public final com.google.protobuf.UnknownFieldSet
+      getUnknownFields() {
+        return this.unknownFields;
+      }
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return proto_message.Message.internal_static_proto_message_Deep_C_descriptor;
+      }
+
+      @java.lang.Override
+      protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return proto_message.Message.internal_static_proto_message_Deep_C_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                proto_message.Message.Deep.C.class, proto_message.Message.Deep.C.Builder.class);
+      }
+
+      public static final int X_FIELD_NUMBER = 1;
+      private proto_message.Message.Deep.D x_;
+      /**
+       * <code>.proto_message.Deep.D x = 1;</code>
+       * @return Whether the x field is set.
+       */
+      @java.lang.Override
+      public boolean hasX() {
+        return x_ != null;
+      }
+      /**
+       * <code>.proto_message.Deep.D x = 1;</code>
+       * @return The x.
+       */
+      @java.lang.Override
+      public proto_message.Message.Deep.D getX() {
+        return x_ == null ? proto_message.Message.Deep.D.getDefaultInstance() : x_;
+      }
+      /**
+       * <code>.proto_message.Deep.D x = 1;</code>
+       */
+      @java.lang.Override
+      public proto_message.Message.Deep.DOrBuilder getXOrBuilder() {
+        return getX();
+      }
+
+      private byte memoizedIsInitialized = -1;
+      @java.lang.Override
+      public final boolean isInitialized() {
+        byte isInitialized = memoizedIsInitialized;
+        if (isInitialized == 1) return true;
+        if (isInitialized == 0) return false;
+
+        memoizedIsInitialized = 1;
+        return true;
+      }
+
+      @java.lang.Override
+      public void writeTo(com.google.protobuf.CodedOutputStream output)
+                          throws java.io.IOException {
+        if (x_ != null) {
+          output.writeMessage(1, getX());
+        }
+        getUnknownFields().writeTo(output);
+      }
+
+      @java.lang.Override
+      public int getSerializedSize() {
+        int size = memoizedSize;
+        if (size != -1) return size;
+
+        size = 0;
+        if (x_ != null) {
+          size += com.google.protobuf.CodedOutputStream
+            .computeMessageSize(1, getX());
+        }
+        size += getUnknownFields().getSerializedSize();
+        memoizedSize = size;
+        return size;
+      }
+
+      @java.lang.Override
+      public boolean equals(final java.lang.Object obj) {
+        if (obj == this) {
+         return true;
+        }
+        if (!(obj instanceof proto_message.Message.Deep.C)) {
+          return super.equals(obj);
+        }
+        proto_message.Message.Deep.C other = (proto_message.Message.Deep.C) obj;
+
+        if (hasX() != other.hasX()) return false;
+        if (hasX()) {
+          if (!getX()
+              .equals(other.getX())) return false;
+        }
+        if (!getUnknownFields().equals(other.getUnknownFields())) return false;
+        return true;
+      }
+
+      @java.lang.Override
+      public int hashCode() {
+        if (memoizedHashCode != 0) {
+          return memoizedHashCode;
+        }
+        int hash = 41;
+        hash = (19 * hash) + getDescriptor().hashCode();
+        if (hasX()) {
+          hash = (37 * hash) + X_FIELD_NUMBER;
+          hash = (53 * hash) + getX().hashCode();
+        }
+        hash = (29 * hash) + getUnknownFields().hashCode();
+        memoizedHashCode = hash;
+        return hash;
+      }
+
+      public static proto_message.Message.Deep.C parseFrom(
+          java.nio.ByteBuffer data)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return PARSER.parseFrom(data);
+      }
+      public static proto_message.Message.Deep.C parseFrom(
+          java.nio.ByteBuffer data,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return PARSER.parseFrom(data, extensionRegistry);
+      }
+      public static proto_message.Message.Deep.C parseFrom(
+          com.google.protobuf.ByteString data)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return PARSER.parseFrom(data);
+      }
+      public static proto_message.Message.Deep.C parseFrom(
+          com.google.protobuf.ByteString data,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return PARSER.parseFrom(data, extensionRegistry);
+      }
+      public static proto_message.Message.Deep.C parseFrom(byte[] data)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return PARSER.parseFrom(data);
+      }
+      public static proto_message.Message.Deep.C parseFrom(
+          byte[] data,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return PARSER.parseFrom(data, extensionRegistry);
+      }
+      public static proto_message.Message.Deep.C parseFrom(java.io.InputStream input)
+          throws java.io.IOException {
+        return com.google.protobuf.GeneratedMessageV3
+            .parseWithIOException(PARSER, input);
+      }
+      public static proto_message.Message.Deep.C parseFrom(
+          java.io.InputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        return com.google.protobuf.GeneratedMessageV3
+            .parseWithIOException(PARSER, input, extensionRegistry);
+      }
+      public static proto_message.Message.Deep.C parseDelimitedFrom(java.io.InputStream input)
+          throws java.io.IOException {
+        return com.google.protobuf.GeneratedMessageV3
+            .parseDelimitedWithIOException(PARSER, input);
+      }
+      public static proto_message.Message.Deep.C parseDelimitedFrom(
+          java.io.InputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        return com.google.protobuf.GeneratedMessageV3
+            .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+      }
+      public static proto_message.Message.Deep.C parseFrom(
+          com.google.protobuf.CodedInputStream input)
+          throws java.io.IOException {
+        return com.google.protobuf.GeneratedMessageV3
+            .parseWithIOException(PARSER, input);
+      }
+      public static proto_message.Message.Deep.C parseFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        return com.google.protobuf.GeneratedMessageV3
+            .parseWithIOException(PARSER, input, extensionRegistry);
+      }
+
+      @java.lang.Override
+      public Builder newBuilderForType() { return newBuilder(); }
+      public static Builder newBuilder() {
+        return DEFAULT_INSTANCE.toBuilder();
+      }
+      public static Builder newBuilder(proto_message.Message.Deep.C prototype) {
+        return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+      }
+      @java.lang.Override
+      public Builder toBuilder() {
+        return this == DEFAULT_INSTANCE
+            ? new Builder() : new Builder().mergeFrom(this);
+      }
+
+      @java.lang.Override
+      protected Builder newBuilderForType(
+          com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+        Builder builder = new Builder(parent);
+        return builder;
+      }
+      /**
+       * Protobuf type {@code proto_message.Deep.C}
+       */
+      public static final class Builder extends
+          com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
+          // @@protoc_insertion_point(builder_implements:proto_message.Deep.C)
+          proto_message.Message.Deep.COrBuilder {
+        public static final com.google.protobuf.Descriptors.Descriptor
+            getDescriptor() {
+          return proto_message.Message.internal_static_proto_message_Deep_C_descriptor;
+        }
+
+        @java.lang.Override
+        protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+            internalGetFieldAccessorTable() {
+          return proto_message.Message.internal_static_proto_message_Deep_C_fieldAccessorTable
+              .ensureFieldAccessorsInitialized(
+                  proto_message.Message.Deep.C.class, proto_message.Message.Deep.C.Builder.class);
+        }
+
+        // Construct using proto_message.Message.Deep.C.newBuilder()
+        private Builder() {
+
+        }
+
+        private Builder(
+            com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+          super(parent);
+
+        }
+        @java.lang.Override
+        public Builder clear() {
+          super.clear();
+          if (xBuilder_ == null) {
+            x_ = null;
+          } else {
+            x_ = null;
+            xBuilder_ = null;
+          }
+          return this;
+        }
+
+        @java.lang.Override
+        public com.google.protobuf.Descriptors.Descriptor
+            getDescriptorForType() {
+          return proto_message.Message.internal_static_proto_message_Deep_C_descriptor;
+        }
+
+        @java.lang.Override
+        public proto_message.Message.Deep.C getDefaultInstanceForType() {
+          return proto_message.Message.Deep.C.getDefaultInstance();
+        }
+
+        @java.lang.Override
+        public proto_message.Message.Deep.C build() {
+          proto_message.Message.Deep.C result = buildPartial();
+          if (!result.isInitialized()) {
+            throw newUninitializedMessageException(result);
+          }
+          return result;
+        }
+
+        @java.lang.Override
+        public proto_message.Message.Deep.C buildPartial() {
+          proto_message.Message.Deep.C result = new proto_message.Message.Deep.C(this);
+          if (xBuilder_ == null) {
+            result.x_ = x_;
+          } else {
+            result.x_ = xBuilder_.build();
+          }
+          onBuilt();
+          return result;
+        }
+
+        @java.lang.Override
+        public Builder clone() {
+          return super.clone();
+        }
+        @java.lang.Override
+        public Builder setField(
+            com.google.protobuf.Descriptors.FieldDescriptor field,
+            java.lang.Object value) {
+          return super.setField(field, value);
+        }
+        @java.lang.Override
+        public Builder clearField(
+            com.google.protobuf.Descriptors.FieldDescriptor field) {
+          return super.clearField(field);
+        }
+        @java.lang.Override
+        public Builder clearOneof(
+            com.google.protobuf.Descriptors.OneofDescriptor oneof) {
+          return super.clearOneof(oneof);
+        }
+        @java.lang.Override
+        public Builder setRepeatedField(
+            com.google.protobuf.Descriptors.FieldDescriptor field,
+            int index, java.lang.Object value) {
+          return super.setRepeatedField(field, index, value);
+        }
+        @java.lang.Override
+        public Builder addRepeatedField(
+            com.google.protobuf.Descriptors.FieldDescriptor field,
+            java.lang.Object value) {
+          return super.addRepeatedField(field, value);
+        }
+        @java.lang.Override
+        public Builder mergeFrom(com.google.protobuf.Message other) {
+          if (other instanceof proto_message.Message.Deep.C) {
+            return mergeFrom((proto_message.Message.Deep.C)other);
+          } else {
+            super.mergeFrom(other);
+            return this;
+          }
+        }
+
+        public Builder mergeFrom(proto_message.Message.Deep.C other) {
+          if (other == proto_message.Message.Deep.C.getDefaultInstance()) return this;
+          if (other.hasX()) {
+            mergeX(other.getX());
+          }
+          this.mergeUnknownFields(other.getUnknownFields());
+          onChanged();
+          return this;
+        }
+
+        @java.lang.Override
+        public final boolean isInitialized() {
+          return true;
+        }
+
+        @java.lang.Override
+        public Builder mergeFrom(
+            com.google.protobuf.CodedInputStream input,
+            com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+            throws java.io.IOException {
+          if (extensionRegistry == null) {
+            throw new java.lang.NullPointerException();
+          }
+          try {
+            boolean done = false;
+            while (!done) {
+              int tag = input.readTag();
+              switch (tag) {
+                case 0:
+                  done = true;
+                  break;
+                case 10: {
+                  input.readMessage(
+                      getXFieldBuilder().getBuilder(),
+                      extensionRegistry);
+
+                  break;
+                } // case 10
+                default: {
+                  if (!super.parseUnknownField(input, extensionRegistry, tag)) {
+                    done = true; // was an endgroup tag
+                  }
+                  break;
+                } // default:
+              } // switch (tag)
+            } // while (!done)
+          } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+            throw e.unwrapIOException();
+          } finally {
+            onChanged();
+          } // finally
+          return this;
+        }
+
+        private proto_message.Message.Deep.D x_;
+        private com.google.protobuf.SingleFieldBuilderV3<
+            proto_message.Message.Deep.D, proto_message.Message.Deep.D.Builder, proto_message.Message.Deep.DOrBuilder> xBuilder_;
+        /**
+         * <code>.proto_message.Deep.D x = 1;</code>
+         * @return Whether the x field is set.
+         */
+        public boolean hasX() {
+          return xBuilder_ != null || x_ != null;
+        }
+        /**
+         * <code>.proto_message.Deep.D x = 1;</code>
+         * @return The x.
+         */
+        public proto_message.Message.Deep.D getX() {
+          if (xBuilder_ == null) {
+            return x_ == null ? proto_message.Message.Deep.D.getDefaultInstance() : x_;
+          } else {
+            return xBuilder_.getMessage();
+          }
+        }
+        /**
+         * <code>.proto_message.Deep.D x = 1;</code>
+         */
+        public Builder setX(proto_message.Message.Deep.D value) {
+          if (xBuilder_ == null) {
+            if (value == null) {
+              throw new NullPointerException();
+            }
+            x_ = value;
+            onChanged();
+          } else {
+            xBuilder_.setMessage(value);
+          }
+
+          return this;
+        }
+        /**
+         * <code>.proto_message.Deep.D x = 1;</code>
+         */
+        public Builder setX(
+            proto_message.Message.Deep.D.Builder builderForValue) {
+          if (xBuilder_ == null) {
+            x_ = builderForValue.build();
+            onChanged();
+          } else {
+            xBuilder_.setMessage(builderForValue.build());
+          }
+
+          return this;
+        }
+        /**
+         * <code>.proto_message.Deep.D x = 1;</code>
+         */
+        public Builder mergeX(proto_message.Message.Deep.D value) {
+          if (xBuilder_ == null) {
+            if (x_ != null) {
+              x_ =
+                proto_message.Message.Deep.D.newBuilder(x_).mergeFrom(value).buildPartial();
+            } else {
+              x_ = value;
+            }
+            onChanged();
+          } else {
+            xBuilder_.mergeFrom(value);
+          }
+
+          return this;
+        }
+        /**
+         * <code>.proto_message.Deep.D x = 1;</code>
+         */
+        public Builder clearX() {
+          if (xBuilder_ == null) {
+            x_ = null;
+            onChanged();
+          } else {
+            x_ = null;
+            xBuilder_ = null;
+          }
+
+          return this;
+        }
+        /**
+         * <code>.proto_message.Deep.D x = 1;</code>
+         */
+        public proto_message.Message.Deep.D.Builder getXBuilder() {
+          
+          onChanged();
+          return getXFieldBuilder().getBuilder();
+        }
+        /**
+         * <code>.proto_message.Deep.D x = 1;</code>
+         */
+        public proto_message.Message.Deep.DOrBuilder getXOrBuilder() {
+          if (xBuilder_ != null) {
+            return xBuilder_.getMessageOrBuilder();
+          } else {
+            return x_ == null ?
+                proto_message.Message.Deep.D.getDefaultInstance() : x_;
+          }
+        }
+        /**
+         * <code>.proto_message.Deep.D x = 1;</code>
+         */
+        private com.google.protobuf.SingleFieldBuilderV3<
+            proto_message.Message.Deep.D, proto_message.Message.Deep.D.Builder, proto_message.Message.Deep.DOrBuilder> 
+            getXFieldBuilder() {
+          if (xBuilder_ == null) {
+            xBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+                proto_message.Message.Deep.D, proto_message.Message.Deep.D.Builder, proto_message.Message.Deep.DOrBuilder>(
+                    getX(),
+                    getParentForChildren(),
+                    isClean());
+            x_ = null;
+          }
+          return xBuilder_;
+        }
+        @java.lang.Override
+        public final Builder setUnknownFields(
+            final com.google.protobuf.UnknownFieldSet unknownFields) {
+          return super.setUnknownFields(unknownFields);
+        }
+
+        @java.lang.Override
+        public final Builder mergeUnknownFields(
+            final com.google.protobuf.UnknownFieldSet unknownFields) {
+          return super.mergeUnknownFields(unknownFields);
+        }
+
+
+        // @@protoc_insertion_point(builder_scope:proto_message.Deep.C)
+      }
+
+      // @@protoc_insertion_point(class_scope:proto_message.Deep.C)
+      private static final proto_message.Message.Deep.C DEFAULT_INSTANCE;
+      static {
+        DEFAULT_INSTANCE = new proto_message.Message.Deep.C();
+      }
+
+      public static proto_message.Message.Deep.C getDefaultInstance() {
+        return DEFAULT_INSTANCE;
+      }
+
+      private static final com.google.protobuf.Parser<C>
+          PARSER = new com.google.protobuf.AbstractParser<C>() {
+        @java.lang.Override
+        public C parsePartialFrom(
+            com.google.protobuf.CodedInputStream input,
+            com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+            throws com.google.protobuf.InvalidProtocolBufferException {
+          Builder builder = newBuilder();
+          try {
+            builder.mergeFrom(input, extensionRegistry);
+          } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+            throw e.setUnfinishedMessage(builder.buildPartial());
+          } catch (com.google.protobuf.UninitializedMessageException e) {
+            throw e.asInvalidProtocolBufferException().setUnfinishedMessage(builder.buildPartial());
+          } catch (java.io.IOException e) {
+            throw new com.google.protobuf.InvalidProtocolBufferException(e)
+                .setUnfinishedMessage(builder.buildPartial());
+          }
+          return builder.buildPartial();
+        }
+      };
+
+      public static com.google.protobuf.Parser<C> parser() {
+        return PARSER;
+      }
+
+      @java.lang.Override
+      public com.google.protobuf.Parser<C> getParserForType() {
+        return PARSER;
+      }
+
+      @java.lang.Override
+      public proto_message.Message.Deep.C getDefaultInstanceForType() {
+        return DEFAULT_INSTANCE;
+      }
+
+    }
+
+    public interface DOrBuilder extends
+        // @@protoc_insertion_point(interface_extends:proto_message.Deep.D)
+        com.google.protobuf.MessageOrBuilder {
+
+      /**
+       * <code>.proto_message.Deep.E x = 1;</code>
+       * @return Whether the x field is set.
+       */
+      boolean hasX();
+      /**
+       * <code>.proto_message.Deep.E x = 1;</code>
+       * @return The x.
+       */
+      proto_message.Message.Deep.E getX();
+      /**
+       * <code>.proto_message.Deep.E x = 1;</code>
+       */
+      proto_message.Message.Deep.EOrBuilder getXOrBuilder();
+    }
+    /**
+     * Protobuf type {@code proto_message.Deep.D}
+     */
+    public static final class D extends
+        com.google.protobuf.GeneratedMessageV3 implements
+        // @@protoc_insertion_point(message_implements:proto_message.Deep.D)
+        DOrBuilder {
+    private static final long serialVersionUID = 0L;
+      // Use D.newBuilder() to construct.
+      private D(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
+        super(builder);
+      }
+      private D() {
+      }
+
+      @java.lang.Override
+      @SuppressWarnings({"unused"})
+      protected java.lang.Object newInstance(
+          UnusedPrivateParameter unused) {
+        return new D();
+      }
+
+      @java.lang.Override
+      public final com.google.protobuf.UnknownFieldSet
+      getUnknownFields() {
+        return this.unknownFields;
+      }
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return proto_message.Message.internal_static_proto_message_Deep_D_descriptor;
+      }
+
+      @java.lang.Override
+      protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return proto_message.Message.internal_static_proto_message_Deep_D_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                proto_message.Message.Deep.D.class, proto_message.Message.Deep.D.Builder.class);
+      }
+
+      public static final int X_FIELD_NUMBER = 1;
+      private proto_message.Message.Deep.E x_;
+      /**
+       * <code>.proto_message.Deep.E x = 1;</code>
+       * @return Whether the x field is set.
+       */
+      @java.lang.Override
+      public boolean hasX() {
+        return x_ != null;
+      }
+      /**
+       * <code>.proto_message.Deep.E x = 1;</code>
+       * @return The x.
+       */
+      @java.lang.Override
+      public proto_message.Message.Deep.E getX() {
+        return x_ == null ? proto_message.Message.Deep.E.getDefaultInstance() : x_;
+      }
+      /**
+       * <code>.proto_message.Deep.E x = 1;</code>
+       */
+      @java.lang.Override
+      public proto_message.Message.Deep.EOrBuilder getXOrBuilder() {
+        return getX();
+      }
+
+      private byte memoizedIsInitialized = -1;
+      @java.lang.Override
+      public final boolean isInitialized() {
+        byte isInitialized = memoizedIsInitialized;
+        if (isInitialized == 1) return true;
+        if (isInitialized == 0) return false;
+
+        memoizedIsInitialized = 1;
+        return true;
+      }
+
+      @java.lang.Override
+      public void writeTo(com.google.protobuf.CodedOutputStream output)
+                          throws java.io.IOException {
+        if (x_ != null) {
+          output.writeMessage(1, getX());
+        }
+        getUnknownFields().writeTo(output);
+      }
+
+      @java.lang.Override
+      public int getSerializedSize() {
+        int size = memoizedSize;
+        if (size != -1) return size;
+
+        size = 0;
+        if (x_ != null) {
+          size += com.google.protobuf.CodedOutputStream
+            .computeMessageSize(1, getX());
+        }
+        size += getUnknownFields().getSerializedSize();
+        memoizedSize = size;
+        return size;
+      }
+
+      @java.lang.Override
+      public boolean equals(final java.lang.Object obj) {
+        if (obj == this) {
+         return true;
+        }
+        if (!(obj instanceof proto_message.Message.Deep.D)) {
+          return super.equals(obj);
+        }
+        proto_message.Message.Deep.D other = (proto_message.Message.Deep.D) obj;
+
+        if (hasX() != other.hasX()) return false;
+        if (hasX()) {
+          if (!getX()
+              .equals(other.getX())) return false;
+        }
+        if (!getUnknownFields().equals(other.getUnknownFields())) return false;
+        return true;
+      }
+
+      @java.lang.Override
+      public int hashCode() {
+        if (memoizedHashCode != 0) {
+          return memoizedHashCode;
+        }
+        int hash = 41;
+        hash = (19 * hash) + getDescriptor().hashCode();
+        if (hasX()) {
+          hash = (37 * hash) + X_FIELD_NUMBER;
+          hash = (53 * hash) + getX().hashCode();
+        }
+        hash = (29 * hash) + getUnknownFields().hashCode();
+        memoizedHashCode = hash;
+        return hash;
+      }
+
+      public static proto_message.Message.Deep.D parseFrom(
+          java.nio.ByteBuffer data)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return PARSER.parseFrom(data);
+      }
+      public static proto_message.Message.Deep.D parseFrom(
+          java.nio.ByteBuffer data,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return PARSER.parseFrom(data, extensionRegistry);
+      }
+      public static proto_message.Message.Deep.D parseFrom(
+          com.google.protobuf.ByteString data)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return PARSER.parseFrom(data);
+      }
+      public static proto_message.Message.Deep.D parseFrom(
+          com.google.protobuf.ByteString data,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return PARSER.parseFrom(data, extensionRegistry);
+      }
+      public static proto_message.Message.Deep.D parseFrom(byte[] data)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return PARSER.parseFrom(data);
+      }
+      public static proto_message.Message.Deep.D parseFrom(
+          byte[] data,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return PARSER.parseFrom(data, extensionRegistry);
+      }
+      public static proto_message.Message.Deep.D parseFrom(java.io.InputStream input)
+          throws java.io.IOException {
+        return com.google.protobuf.GeneratedMessageV3
+            .parseWithIOException(PARSER, input);
+      }
+      public static proto_message.Message.Deep.D parseFrom(
+          java.io.InputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        return com.google.protobuf.GeneratedMessageV3
+            .parseWithIOException(PARSER, input, extensionRegistry);
+      }
+      public static proto_message.Message.Deep.D parseDelimitedFrom(java.io.InputStream input)
+          throws java.io.IOException {
+        return com.google.protobuf.GeneratedMessageV3
+            .parseDelimitedWithIOException(PARSER, input);
+      }
+      public static proto_message.Message.Deep.D parseDelimitedFrom(
+          java.io.InputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        return com.google.protobuf.GeneratedMessageV3
+            .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+      }
+      public static proto_message.Message.Deep.D parseFrom(
+          com.google.protobuf.CodedInputStream input)
+          throws java.io.IOException {
+        return com.google.protobuf.GeneratedMessageV3
+            .parseWithIOException(PARSER, input);
+      }
+      public static proto_message.Message.Deep.D parseFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        return com.google.protobuf.GeneratedMessageV3
+            .parseWithIOException(PARSER, input, extensionRegistry);
+      }
+
+      @java.lang.Override
+      public Builder newBuilderForType() { return newBuilder(); }
+      public static Builder newBuilder() {
+        return DEFAULT_INSTANCE.toBuilder();
+      }
+      public static Builder newBuilder(proto_message.Message.Deep.D prototype) {
+        return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+      }
+      @java.lang.Override
+      public Builder toBuilder() {
+        return this == DEFAULT_INSTANCE
+            ? new Builder() : new Builder().mergeFrom(this);
+      }
+
+      @java.lang.Override
+      protected Builder newBuilderForType(
+          com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+        Builder builder = new Builder(parent);
+        return builder;
+      }
+      /**
+       * Protobuf type {@code proto_message.Deep.D}
+       */
+      public static final class Builder extends
+          com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
+          // @@protoc_insertion_point(builder_implements:proto_message.Deep.D)
+          proto_message.Message.Deep.DOrBuilder {
+        public static final com.google.protobuf.Descriptors.Descriptor
+            getDescriptor() {
+          return proto_message.Message.internal_static_proto_message_Deep_D_descriptor;
+        }
+
+        @java.lang.Override
+        protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+            internalGetFieldAccessorTable() {
+          return proto_message.Message.internal_static_proto_message_Deep_D_fieldAccessorTable
+              .ensureFieldAccessorsInitialized(
+                  proto_message.Message.Deep.D.class, proto_message.Message.Deep.D.Builder.class);
+        }
+
+        // Construct using proto_message.Message.Deep.D.newBuilder()
+        private Builder() {
+
+        }
+
+        private Builder(
+            com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+          super(parent);
+
+        }
+        @java.lang.Override
+        public Builder clear() {
+          super.clear();
+          if (xBuilder_ == null) {
+            x_ = null;
+          } else {
+            x_ = null;
+            xBuilder_ = null;
+          }
+          return this;
+        }
+
+        @java.lang.Override
+        public com.google.protobuf.Descriptors.Descriptor
+            getDescriptorForType() {
+          return proto_message.Message.internal_static_proto_message_Deep_D_descriptor;
+        }
+
+        @java.lang.Override
+        public proto_message.Message.Deep.D getDefaultInstanceForType() {
+          return proto_message.Message.Deep.D.getDefaultInstance();
+        }
+
+        @java.lang.Override
+        public proto_message.Message.Deep.D build() {
+          proto_message.Message.Deep.D result = buildPartial();
+          if (!result.isInitialized()) {
+            throw newUninitializedMessageException(result);
+          }
+          return result;
+        }
+
+        @java.lang.Override
+        public proto_message.Message.Deep.D buildPartial() {
+          proto_message.Message.Deep.D result = new proto_message.Message.Deep.D(this);
+          if (xBuilder_ == null) {
+            result.x_ = x_;
+          } else {
+            result.x_ = xBuilder_.build();
+          }
+          onBuilt();
+          return result;
+        }
+
+        @java.lang.Override
+        public Builder clone() {
+          return super.clone();
+        }
+        @java.lang.Override
+        public Builder setField(
+            com.google.protobuf.Descriptors.FieldDescriptor field,
+            java.lang.Object value) {
+          return super.setField(field, value);
+        }
+        @java.lang.Override
+        public Builder clearField(
+            com.google.protobuf.Descriptors.FieldDescriptor field) {
+          return super.clearField(field);
+        }
+        @java.lang.Override
+        public Builder clearOneof(
+            com.google.protobuf.Descriptors.OneofDescriptor oneof) {
+          return super.clearOneof(oneof);
+        }
+        @java.lang.Override
+        public Builder setRepeatedField(
+            com.google.protobuf.Descriptors.FieldDescriptor field,
+            int index, java.lang.Object value) {
+          return super.setRepeatedField(field, index, value);
+        }
+        @java.lang.Override
+        public Builder addRepeatedField(
+            com.google.protobuf.Descriptors.FieldDescriptor field,
+            java.lang.Object value) {
+          return super.addRepeatedField(field, value);
+        }
+        @java.lang.Override
+        public Builder mergeFrom(com.google.protobuf.Message other) {
+          if (other instanceof proto_message.Message.Deep.D) {
+            return mergeFrom((proto_message.Message.Deep.D)other);
+          } else {
+            super.mergeFrom(other);
+            return this;
+          }
+        }
+
+        public Builder mergeFrom(proto_message.Message.Deep.D other) {
+          if (other == proto_message.Message.Deep.D.getDefaultInstance()) return this;
+          if (other.hasX()) {
+            mergeX(other.getX());
+          }
+          this.mergeUnknownFields(other.getUnknownFields());
+          onChanged();
+          return this;
+        }
+
+        @java.lang.Override
+        public final boolean isInitialized() {
+          return true;
+        }
+
+        @java.lang.Override
+        public Builder mergeFrom(
+            com.google.protobuf.CodedInputStream input,
+            com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+            throws java.io.IOException {
+          if (extensionRegistry == null) {
+            throw new java.lang.NullPointerException();
+          }
+          try {
+            boolean done = false;
+            while (!done) {
+              int tag = input.readTag();
+              switch (tag) {
+                case 0:
+                  done = true;
+                  break;
+                case 10: {
+                  input.readMessage(
+                      getXFieldBuilder().getBuilder(),
+                      extensionRegistry);
+
+                  break;
+                } // case 10
+                default: {
+                  if (!super.parseUnknownField(input, extensionRegistry, tag)) {
+                    done = true; // was an endgroup tag
+                  }
+                  break;
+                } // default:
+              } // switch (tag)
+            } // while (!done)
+          } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+            throw e.unwrapIOException();
+          } finally {
+            onChanged();
+          } // finally
+          return this;
+        }
+
+        private proto_message.Message.Deep.E x_;
+        private com.google.protobuf.SingleFieldBuilderV3<
+            proto_message.Message.Deep.E, proto_message.Message.Deep.E.Builder, proto_message.Message.Deep.EOrBuilder> xBuilder_;
+        /**
+         * <code>.proto_message.Deep.E x = 1;</code>
+         * @return Whether the x field is set.
+         */
+        public boolean hasX() {
+          return xBuilder_ != null || x_ != null;
+        }
+        /**
+         * <code>.proto_message.Deep.E x = 1;</code>
+         * @return The x.
+         */
+        public proto_message.Message.Deep.E getX() {
+          if (xBuilder_ == null) {
+            return x_ == null ? proto_message.Message.Deep.E.getDefaultInstance() : x_;
+          } else {
+            return xBuilder_.getMessage();
+          }
+        }
+        /**
+         * <code>.proto_message.Deep.E x = 1;</code>
+         */
+        public Builder setX(proto_message.Message.Deep.E value) {
+          if (xBuilder_ == null) {
+            if (value == null) {
+              throw new NullPointerException();
+            }
+            x_ = value;
+            onChanged();
+          } else {
+            xBuilder_.setMessage(value);
+          }
+
+          return this;
+        }
+        /**
+         * <code>.proto_message.Deep.E x = 1;</code>
+         */
+        public Builder setX(
+            proto_message.Message.Deep.E.Builder builderForValue) {
+          if (xBuilder_ == null) {
+            x_ = builderForValue.build();
+            onChanged();
+          } else {
+            xBuilder_.setMessage(builderForValue.build());
+          }
+
+          return this;
+        }
+        /**
+         * <code>.proto_message.Deep.E x = 1;</code>
+         */
+        public Builder mergeX(proto_message.Message.Deep.E value) {
+          if (xBuilder_ == null) {
+            if (x_ != null) {
+              x_ =
+                proto_message.Message.Deep.E.newBuilder(x_).mergeFrom(value).buildPartial();
+            } else {
+              x_ = value;
+            }
+            onChanged();
+          } else {
+            xBuilder_.mergeFrom(value);
+          }
+
+          return this;
+        }
+        /**
+         * <code>.proto_message.Deep.E x = 1;</code>
+         */
+        public Builder clearX() {
+          if (xBuilder_ == null) {
+            x_ = null;
+            onChanged();
+          } else {
+            x_ = null;
+            xBuilder_ = null;
+          }
+
+          return this;
+        }
+        /**
+         * <code>.proto_message.Deep.E x = 1;</code>
+         */
+        public proto_message.Message.Deep.E.Builder getXBuilder() {
+          
+          onChanged();
+          return getXFieldBuilder().getBuilder();
+        }
+        /**
+         * <code>.proto_message.Deep.E x = 1;</code>
+         */
+        public proto_message.Message.Deep.EOrBuilder getXOrBuilder() {
+          if (xBuilder_ != null) {
+            return xBuilder_.getMessageOrBuilder();
+          } else {
+            return x_ == null ?
+                proto_message.Message.Deep.E.getDefaultInstance() : x_;
+          }
+        }
+        /**
+         * <code>.proto_message.Deep.E x = 1;</code>
+         */
+        private com.google.protobuf.SingleFieldBuilderV3<
+            proto_message.Message.Deep.E, proto_message.Message.Deep.E.Builder, proto_message.Message.Deep.EOrBuilder> 
+            getXFieldBuilder() {
+          if (xBuilder_ == null) {
+            xBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+                proto_message.Message.Deep.E, proto_message.Message.Deep.E.Builder, proto_message.Message.Deep.EOrBuilder>(
+                    getX(),
+                    getParentForChildren(),
+                    isClean());
+            x_ = null;
+          }
+          return xBuilder_;
+        }
+        @java.lang.Override
+        public final Builder setUnknownFields(
+            final com.google.protobuf.UnknownFieldSet unknownFields) {
+          return super.setUnknownFields(unknownFields);
+        }
+
+        @java.lang.Override
+        public final Builder mergeUnknownFields(
+            final com.google.protobuf.UnknownFieldSet unknownFields) {
+          return super.mergeUnknownFields(unknownFields);
+        }
+
+
+        // @@protoc_insertion_point(builder_scope:proto_message.Deep.D)
+      }
+
+      // @@protoc_insertion_point(class_scope:proto_message.Deep.D)
+      private static final proto_message.Message.Deep.D DEFAULT_INSTANCE;
+      static {
+        DEFAULT_INSTANCE = new proto_message.Message.Deep.D();
+      }
+
+      public static proto_message.Message.Deep.D getDefaultInstance() {
+        return DEFAULT_INSTANCE;
+      }
+
+      private static final com.google.protobuf.Parser<D>
+          PARSER = new com.google.protobuf.AbstractParser<D>() {
+        @java.lang.Override
+        public D parsePartialFrom(
+            com.google.protobuf.CodedInputStream input,
+            com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+            throws com.google.protobuf.InvalidProtocolBufferException {
+          Builder builder = newBuilder();
+          try {
+            builder.mergeFrom(input, extensionRegistry);
+          } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+            throw e.setUnfinishedMessage(builder.buildPartial());
+          } catch (com.google.protobuf.UninitializedMessageException e) {
+            throw e.asInvalidProtocolBufferException().setUnfinishedMessage(builder.buildPartial());
+          } catch (java.io.IOException e) {
+            throw new com.google.protobuf.InvalidProtocolBufferException(e)
+                .setUnfinishedMessage(builder.buildPartial());
+          }
+          return builder.buildPartial();
+        }
+      };
+
+      public static com.google.protobuf.Parser<D> parser() {
+        return PARSER;
+      }
+
+      @java.lang.Override
+      public com.google.protobuf.Parser<D> getParserForType() {
+        return PARSER;
+      }
+
+      @java.lang.Override
+      public proto_message.Message.Deep.D getDefaultInstanceForType() {
+        return DEFAULT_INSTANCE;
+      }
+
+    }
+
+    public interface EOrBuilder extends
+        // @@protoc_insertion_point(interface_extends:proto_message.Deep.E)
+        com.google.protobuf.MessageOrBuilder {
+
+      /**
+       * <code>.proto_message.Deep.F x = 1;</code>
+       * @return Whether the x field is set.
+       */
+      boolean hasX();
+      /**
+       * <code>.proto_message.Deep.F x = 1;</code>
+       * @return The x.
+       */
+      proto_message.Message.Deep.F getX();
+      /**
+       * <code>.proto_message.Deep.F x = 1;</code>
+       */
+      proto_message.Message.Deep.FOrBuilder getXOrBuilder();
+    }
+    /**
+     * Protobuf type {@code proto_message.Deep.E}
+     */
+    public static final class E extends
+        com.google.protobuf.GeneratedMessageV3 implements
+        // @@protoc_insertion_point(message_implements:proto_message.Deep.E)
+        EOrBuilder {
+    private static final long serialVersionUID = 0L;
+      // Use E.newBuilder() to construct.
+      private E(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
+        super(builder);
+      }
+      private E() {
+      }
+
+      @java.lang.Override
+      @SuppressWarnings({"unused"})
+      protected java.lang.Object newInstance(
+          UnusedPrivateParameter unused) {
+        return new E();
+      }
+
+      @java.lang.Override
+      public final com.google.protobuf.UnknownFieldSet
+      getUnknownFields() {
+        return this.unknownFields;
+      }
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return proto_message.Message.internal_static_proto_message_Deep_E_descriptor;
+      }
+
+      @java.lang.Override
+      protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return proto_message.Message.internal_static_proto_message_Deep_E_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                proto_message.Message.Deep.E.class, proto_message.Message.Deep.E.Builder.class);
+      }
+
+      public static final int X_FIELD_NUMBER = 1;
+      private proto_message.Message.Deep.F x_;
+      /**
+       * <code>.proto_message.Deep.F x = 1;</code>
+       * @return Whether the x field is set.
+       */
+      @java.lang.Override
+      public boolean hasX() {
+        return x_ != null;
+      }
+      /**
+       * <code>.proto_message.Deep.F x = 1;</code>
+       * @return The x.
+       */
+      @java.lang.Override
+      public proto_message.Message.Deep.F getX() {
+        return x_ == null ? proto_message.Message.Deep.F.getDefaultInstance() : x_;
+      }
+      /**
+       * <code>.proto_message.Deep.F x = 1;</code>
+       */
+      @java.lang.Override
+      public proto_message.Message.Deep.FOrBuilder getXOrBuilder() {
+        return getX();
+      }
+
+      private byte memoizedIsInitialized = -1;
+      @java.lang.Override
+      public final boolean isInitialized() {
+        byte isInitialized = memoizedIsInitialized;
+        if (isInitialized == 1) return true;
+        if (isInitialized == 0) return false;
+
+        memoizedIsInitialized = 1;
+        return true;
+      }
+
+      @java.lang.Override
+      public void writeTo(com.google.protobuf.CodedOutputStream output)
+                          throws java.io.IOException {
+        if (x_ != null) {
+          output.writeMessage(1, getX());
+        }
+        getUnknownFields().writeTo(output);
+      }
+
+      @java.lang.Override
+      public int getSerializedSize() {
+        int size = memoizedSize;
+        if (size != -1) return size;
+
+        size = 0;
+        if (x_ != null) {
+          size += com.google.protobuf.CodedOutputStream
+            .computeMessageSize(1, getX());
+        }
+        size += getUnknownFields().getSerializedSize();
+        memoizedSize = size;
+        return size;
+      }
+
+      @java.lang.Override
+      public boolean equals(final java.lang.Object obj) {
+        if (obj == this) {
+         return true;
+        }
+        if (!(obj instanceof proto_message.Message.Deep.E)) {
+          return super.equals(obj);
+        }
+        proto_message.Message.Deep.E other = (proto_message.Message.Deep.E) obj;
+
+        if (hasX() != other.hasX()) return false;
+        if (hasX()) {
+          if (!getX()
+              .equals(other.getX())) return false;
+        }
+        if (!getUnknownFields().equals(other.getUnknownFields())) return false;
+        return true;
+      }
+
+      @java.lang.Override
+      public int hashCode() {
+        if (memoizedHashCode != 0) {
+          return memoizedHashCode;
+        }
+        int hash = 41;
+        hash = (19 * hash) + getDescriptor().hashCode();
+        if (hasX()) {
+          hash = (37 * hash) + X_FIELD_NUMBER;
+          hash = (53 * hash) + getX().hashCode();
+        }
+        hash = (29 * hash) + getUnknownFields().hashCode();
+        memoizedHashCode = hash;
+        return hash;
+      }
+
+      public static proto_message.Message.Deep.E parseFrom(
+          java.nio.ByteBuffer data)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return PARSER.parseFrom(data);
+      }
+      public static proto_message.Message.Deep.E parseFrom(
+          java.nio.ByteBuffer data,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return PARSER.parseFrom(data, extensionRegistry);
+      }
+      public static proto_message.Message.Deep.E parseFrom(
+          com.google.protobuf.ByteString data)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return PARSER.parseFrom(data);
+      }
+      public static proto_message.Message.Deep.E parseFrom(
+          com.google.protobuf.ByteString data,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return PARSER.parseFrom(data, extensionRegistry);
+      }
+      public static proto_message.Message.Deep.E parseFrom(byte[] data)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return PARSER.parseFrom(data);
+      }
+      public static proto_message.Message.Deep.E parseFrom(
+          byte[] data,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return PARSER.parseFrom(data, extensionRegistry);
+      }
+      public static proto_message.Message.Deep.E parseFrom(java.io.InputStream input)
+          throws java.io.IOException {
+        return com.google.protobuf.GeneratedMessageV3
+            .parseWithIOException(PARSER, input);
+      }
+      public static proto_message.Message.Deep.E parseFrom(
+          java.io.InputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        return com.google.protobuf.GeneratedMessageV3
+            .parseWithIOException(PARSER, input, extensionRegistry);
+      }
+      public static proto_message.Message.Deep.E parseDelimitedFrom(java.io.InputStream input)
+          throws java.io.IOException {
+        return com.google.protobuf.GeneratedMessageV3
+            .parseDelimitedWithIOException(PARSER, input);
+      }
+      public static proto_message.Message.Deep.E parseDelimitedFrom(
+          java.io.InputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        return com.google.protobuf.GeneratedMessageV3
+            .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+      }
+      public static proto_message.Message.Deep.E parseFrom(
+          com.google.protobuf.CodedInputStream input)
+          throws java.io.IOException {
+        return com.google.protobuf.GeneratedMessageV3
+            .parseWithIOException(PARSER, input);
+      }
+      public static proto_message.Message.Deep.E parseFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        return com.google.protobuf.GeneratedMessageV3
+            .parseWithIOException(PARSER, input, extensionRegistry);
+      }
+
+      @java.lang.Override
+      public Builder newBuilderForType() { return newBuilder(); }
+      public static Builder newBuilder() {
+        return DEFAULT_INSTANCE.toBuilder();
+      }
+      public static Builder newBuilder(proto_message.Message.Deep.E prototype) {
+        return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+      }
+      @java.lang.Override
+      public Builder toBuilder() {
+        return this == DEFAULT_INSTANCE
+            ? new Builder() : new Builder().mergeFrom(this);
+      }
+
+      @java.lang.Override
+      protected Builder newBuilderForType(
+          com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+        Builder builder = new Builder(parent);
+        return builder;
+      }
+      /**
+       * Protobuf type {@code proto_message.Deep.E}
+       */
+      public static final class Builder extends
+          com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
+          // @@protoc_insertion_point(builder_implements:proto_message.Deep.E)
+          proto_message.Message.Deep.EOrBuilder {
+        public static final com.google.protobuf.Descriptors.Descriptor
+            getDescriptor() {
+          return proto_message.Message.internal_static_proto_message_Deep_E_descriptor;
+        }
+
+        @java.lang.Override
+        protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+            internalGetFieldAccessorTable() {
+          return proto_message.Message.internal_static_proto_message_Deep_E_fieldAccessorTable
+              .ensureFieldAccessorsInitialized(
+                  proto_message.Message.Deep.E.class, proto_message.Message.Deep.E.Builder.class);
+        }
+
+        // Construct using proto_message.Message.Deep.E.newBuilder()
+        private Builder() {
+
+        }
+
+        private Builder(
+            com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+          super(parent);
+
+        }
+        @java.lang.Override
+        public Builder clear() {
+          super.clear();
+          if (xBuilder_ == null) {
+            x_ = null;
+          } else {
+            x_ = null;
+            xBuilder_ = null;
+          }
+          return this;
+        }
+
+        @java.lang.Override
+        public com.google.protobuf.Descriptors.Descriptor
+            getDescriptorForType() {
+          return proto_message.Message.internal_static_proto_message_Deep_E_descriptor;
+        }
+
+        @java.lang.Override
+        public proto_message.Message.Deep.E getDefaultInstanceForType() {
+          return proto_message.Message.Deep.E.getDefaultInstance();
+        }
+
+        @java.lang.Override
+        public proto_message.Message.Deep.E build() {
+          proto_message.Message.Deep.E result = buildPartial();
+          if (!result.isInitialized()) {
+            throw newUninitializedMessageException(result);
+          }
+          return result;
+        }
+
+        @java.lang.Override
+        public proto_message.Message.Deep.E buildPartial() {
+          proto_message.Message.Deep.E result = new proto_message.Message.Deep.E(this);
+          if (xBuilder_ == null) {
+            result.x_ = x_;
+          } else {
+            result.x_ = xBuilder_.build();
+          }
+          onBuilt();
+          return result;
+        }
+
+        @java.lang.Override
+        public Builder clone() {
+          return super.clone();
+        }
+        @java.lang.Override
+        public Builder setField(
+            com.google.protobuf.Descriptors.FieldDescriptor field,
+            java.lang.Object value) {
+          return super.setField(field, value);
+        }
+        @java.lang.Override
+        public Builder clearField(
+            com.google.protobuf.Descriptors.FieldDescriptor field) {
+          return super.clearField(field);
+        }
+        @java.lang.Override
+        public Builder clearOneof(
+            com.google.protobuf.Descriptors.OneofDescriptor oneof) {
+          return super.clearOneof(oneof);
+        }
+        @java.lang.Override
+        public Builder setRepeatedField(
+            com.google.protobuf.Descriptors.FieldDescriptor field,
+            int index, java.lang.Object value) {
+          return super.setRepeatedField(field, index, value);
+        }
+        @java.lang.Override
+        public Builder addRepeatedField(
+            com.google.protobuf.Descriptors.FieldDescriptor field,
+            java.lang.Object value) {
+          return super.addRepeatedField(field, value);
+        }
+        @java.lang.Override
+        public Builder mergeFrom(com.google.protobuf.Message other) {
+          if (other instanceof proto_message.Message.Deep.E) {
+            return mergeFrom((proto_message.Message.Deep.E)other);
+          } else {
+            super.mergeFrom(other);
+            return this;
+          }
+        }
+
+        public Builder mergeFrom(proto_message.Message.Deep.E other) {
+          if (other == proto_message.Message.Deep.E.getDefaultInstance()) return this;
+          if (other.hasX()) {
+            mergeX(other.getX());
+          }
+          this.mergeUnknownFields(other.getUnknownFields());
+          onChanged();
+          return this;
+        }
+
+        @java.lang.Override
+        public final boolean isInitialized() {
+          return true;
+        }
+
+        @java.lang.Override
+        public Builder mergeFrom(
+            com.google.protobuf.CodedInputStream input,
+            com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+            throws java.io.IOException {
+          if (extensionRegistry == null) {
+            throw new java.lang.NullPointerException();
+          }
+          try {
+            boolean done = false;
+            while (!done) {
+              int tag = input.readTag();
+              switch (tag) {
+                case 0:
+                  done = true;
+                  break;
+                case 10: {
+                  input.readMessage(
+                      getXFieldBuilder().getBuilder(),
+                      extensionRegistry);
+
+                  break;
+                } // case 10
+                default: {
+                  if (!super.parseUnknownField(input, extensionRegistry, tag)) {
+                    done = true; // was an endgroup tag
+                  }
+                  break;
+                } // default:
+              } // switch (tag)
+            } // while (!done)
+          } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+            throw e.unwrapIOException();
+          } finally {
+            onChanged();
+          } // finally
+          return this;
+        }
+
+        private proto_message.Message.Deep.F x_;
+        private com.google.protobuf.SingleFieldBuilderV3<
+            proto_message.Message.Deep.F, proto_message.Message.Deep.F.Builder, proto_message.Message.Deep.FOrBuilder> xBuilder_;
+        /**
+         * <code>.proto_message.Deep.F x = 1;</code>
+         * @return Whether the x field is set.
+         */
+        public boolean hasX() {
+          return xBuilder_ != null || x_ != null;
+        }
+        /**
+         * <code>.proto_message.Deep.F x = 1;</code>
+         * @return The x.
+         */
+        public proto_message.Message.Deep.F getX() {
+          if (xBuilder_ == null) {
+            return x_ == null ? proto_message.Message.Deep.F.getDefaultInstance() : x_;
+          } else {
+            return xBuilder_.getMessage();
+          }
+        }
+        /**
+         * <code>.proto_message.Deep.F x = 1;</code>
+         */
+        public Builder setX(proto_message.Message.Deep.F value) {
+          if (xBuilder_ == null) {
+            if (value == null) {
+              throw new NullPointerException();
+            }
+            x_ = value;
+            onChanged();
+          } else {
+            xBuilder_.setMessage(value);
+          }
+
+          return this;
+        }
+        /**
+         * <code>.proto_message.Deep.F x = 1;</code>
+         */
+        public Builder setX(
+            proto_message.Message.Deep.F.Builder builderForValue) {
+          if (xBuilder_ == null) {
+            x_ = builderForValue.build();
+            onChanged();
+          } else {
+            xBuilder_.setMessage(builderForValue.build());
+          }
+
+          return this;
+        }
+        /**
+         * <code>.proto_message.Deep.F x = 1;</code>
+         */
+        public Builder mergeX(proto_message.Message.Deep.F value) {
+          if (xBuilder_ == null) {
+            if (x_ != null) {
+              x_ =
+                proto_message.Message.Deep.F.newBuilder(x_).mergeFrom(value).buildPartial();
+            } else {
+              x_ = value;
+            }
+            onChanged();
+          } else {
+            xBuilder_.mergeFrom(value);
+          }
+
+          return this;
+        }
+        /**
+         * <code>.proto_message.Deep.F x = 1;</code>
+         */
+        public Builder clearX() {
+          if (xBuilder_ == null) {
+            x_ = null;
+            onChanged();
+          } else {
+            x_ = null;
+            xBuilder_ = null;
+          }
+
+          return this;
+        }
+        /**
+         * <code>.proto_message.Deep.F x = 1;</code>
+         */
+        public proto_message.Message.Deep.F.Builder getXBuilder() {
+          
+          onChanged();
+          return getXFieldBuilder().getBuilder();
+        }
+        /**
+         * <code>.proto_message.Deep.F x = 1;</code>
+         */
+        public proto_message.Message.Deep.FOrBuilder getXOrBuilder() {
+          if (xBuilder_ != null) {
+            return xBuilder_.getMessageOrBuilder();
+          } else {
+            return x_ == null ?
+                proto_message.Message.Deep.F.getDefaultInstance() : x_;
+          }
+        }
+        /**
+         * <code>.proto_message.Deep.F x = 1;</code>
+         */
+        private com.google.protobuf.SingleFieldBuilderV3<
+            proto_message.Message.Deep.F, proto_message.Message.Deep.F.Builder, proto_message.Message.Deep.FOrBuilder> 
+            getXFieldBuilder() {
+          if (xBuilder_ == null) {
+            xBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+                proto_message.Message.Deep.F, proto_message.Message.Deep.F.Builder, proto_message.Message.Deep.FOrBuilder>(
+                    getX(),
+                    getParentForChildren(),
+                    isClean());
+            x_ = null;
+          }
+          return xBuilder_;
+        }
+        @java.lang.Override
+        public final Builder setUnknownFields(
+            final com.google.protobuf.UnknownFieldSet unknownFields) {
+          return super.setUnknownFields(unknownFields);
+        }
+
+        @java.lang.Override
+        public final Builder mergeUnknownFields(
+            final com.google.protobuf.UnknownFieldSet unknownFields) {
+          return super.mergeUnknownFields(unknownFields);
+        }
+
+
+        // @@protoc_insertion_point(builder_scope:proto_message.Deep.E)
+      }
+
+      // @@protoc_insertion_point(class_scope:proto_message.Deep.E)
+      private static final proto_message.Message.Deep.E DEFAULT_INSTANCE;
+      static {
+        DEFAULT_INSTANCE = new proto_message.Message.Deep.E();
+      }
+
+      public static proto_message.Message.Deep.E getDefaultInstance() {
+        return DEFAULT_INSTANCE;
+      }
+
+      private static final com.google.protobuf.Parser<E>
+          PARSER = new com.google.protobuf.AbstractParser<E>() {
+        @java.lang.Override
+        public E parsePartialFrom(
+            com.google.protobuf.CodedInputStream input,
+            com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+            throws com.google.protobuf.InvalidProtocolBufferException {
+          Builder builder = newBuilder();
+          try {
+            builder.mergeFrom(input, extensionRegistry);
+          } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+            throw e.setUnfinishedMessage(builder.buildPartial());
+          } catch (com.google.protobuf.UninitializedMessageException e) {
+            throw e.asInvalidProtocolBufferException().setUnfinishedMessage(builder.buildPartial());
+          } catch (java.io.IOException e) {
+            throw new com.google.protobuf.InvalidProtocolBufferException(e)
+                .setUnfinishedMessage(builder.buildPartial());
+          }
+          return builder.buildPartial();
+        }
+      };
+
+      public static com.google.protobuf.Parser<E> parser() {
+        return PARSER;
+      }
+
+      @java.lang.Override
+      public com.google.protobuf.Parser<E> getParserForType() {
+        return PARSER;
+      }
+
+      @java.lang.Override
+      public proto_message.Message.Deep.E getDefaultInstanceForType() {
+        return DEFAULT_INSTANCE;
+      }
+
+    }
+
+    public interface FOrBuilder extends
+        // @@protoc_insertion_point(interface_extends:proto_message.Deep.F)
+        com.google.protobuf.MessageOrBuilder {
+
+      /**
+       * <code>.proto_message.Deep.G x = 1;</code>
+       * @return Whether the x field is set.
+       */
+      boolean hasX();
+      /**
+       * <code>.proto_message.Deep.G x = 1;</code>
+       * @return The x.
+       */
+      proto_message.Message.Deep.G getX();
+      /**
+       * <code>.proto_message.Deep.G x = 1;</code>
+       */
+      proto_message.Message.Deep.GOrBuilder getXOrBuilder();
+    }
+    /**
+     * Protobuf type {@code proto_message.Deep.F}
+     */
+    public static final class F extends
+        com.google.protobuf.GeneratedMessageV3 implements
+        // @@protoc_insertion_point(message_implements:proto_message.Deep.F)
+        FOrBuilder {
+    private static final long serialVersionUID = 0L;
+      // Use F.newBuilder() to construct.
+      private F(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
+        super(builder);
+      }
+      private F() {
+      }
+
+      @java.lang.Override
+      @SuppressWarnings({"unused"})
+      protected java.lang.Object newInstance(
+          UnusedPrivateParameter unused) {
+        return new F();
+      }
+
+      @java.lang.Override
+      public final com.google.protobuf.UnknownFieldSet
+      getUnknownFields() {
+        return this.unknownFields;
+      }
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return proto_message.Message.internal_static_proto_message_Deep_F_descriptor;
+      }
+
+      @java.lang.Override
+      protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return proto_message.Message.internal_static_proto_message_Deep_F_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                proto_message.Message.Deep.F.class, proto_message.Message.Deep.F.Builder.class);
+      }
+
+      public static final int X_FIELD_NUMBER = 1;
+      private proto_message.Message.Deep.G x_;
+      /**
+       * <code>.proto_message.Deep.G x = 1;</code>
+       * @return Whether the x field is set.
+       */
+      @java.lang.Override
+      public boolean hasX() {
+        return x_ != null;
+      }
+      /**
+       * <code>.proto_message.Deep.G x = 1;</code>
+       * @return The x.
+       */
+      @java.lang.Override
+      public proto_message.Message.Deep.G getX() {
+        return x_ == null ? proto_message.Message.Deep.G.getDefaultInstance() : x_;
+      }
+      /**
+       * <code>.proto_message.Deep.G x = 1;</code>
+       */
+      @java.lang.Override
+      public proto_message.Message.Deep.GOrBuilder getXOrBuilder() {
+        return getX();
+      }
+
+      private byte memoizedIsInitialized = -1;
+      @java.lang.Override
+      public final boolean isInitialized() {
+        byte isInitialized = memoizedIsInitialized;
+        if (isInitialized == 1) return true;
+        if (isInitialized == 0) return false;
+
+        memoizedIsInitialized = 1;
+        return true;
+      }
+
+      @java.lang.Override
+      public void writeTo(com.google.protobuf.CodedOutputStream output)
+                          throws java.io.IOException {
+        if (x_ != null) {
+          output.writeMessage(1, getX());
+        }
+        getUnknownFields().writeTo(output);
+      }
+
+      @java.lang.Override
+      public int getSerializedSize() {
+        int size = memoizedSize;
+        if (size != -1) return size;
+
+        size = 0;
+        if (x_ != null) {
+          size += com.google.protobuf.CodedOutputStream
+            .computeMessageSize(1, getX());
+        }
+        size += getUnknownFields().getSerializedSize();
+        memoizedSize = size;
+        return size;
+      }
+
+      @java.lang.Override
+      public boolean equals(final java.lang.Object obj) {
+        if (obj == this) {
+         return true;
+        }
+        if (!(obj instanceof proto_message.Message.Deep.F)) {
+          return super.equals(obj);
+        }
+        proto_message.Message.Deep.F other = (proto_message.Message.Deep.F) obj;
+
+        if (hasX() != other.hasX()) return false;
+        if (hasX()) {
+          if (!getX()
+              .equals(other.getX())) return false;
+        }
+        if (!getUnknownFields().equals(other.getUnknownFields())) return false;
+        return true;
+      }
+
+      @java.lang.Override
+      public int hashCode() {
+        if (memoizedHashCode != 0) {
+          return memoizedHashCode;
+        }
+        int hash = 41;
+        hash = (19 * hash) + getDescriptor().hashCode();
+        if (hasX()) {
+          hash = (37 * hash) + X_FIELD_NUMBER;
+          hash = (53 * hash) + getX().hashCode();
+        }
+        hash = (29 * hash) + getUnknownFields().hashCode();
+        memoizedHashCode = hash;
+        return hash;
+      }
+
+      public static proto_message.Message.Deep.F parseFrom(
+          java.nio.ByteBuffer data)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return PARSER.parseFrom(data);
+      }
+      public static proto_message.Message.Deep.F parseFrom(
+          java.nio.ByteBuffer data,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return PARSER.parseFrom(data, extensionRegistry);
+      }
+      public static proto_message.Message.Deep.F parseFrom(
+          com.google.protobuf.ByteString data)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return PARSER.parseFrom(data);
+      }
+      public static proto_message.Message.Deep.F parseFrom(
+          com.google.protobuf.ByteString data,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return PARSER.parseFrom(data, extensionRegistry);
+      }
+      public static proto_message.Message.Deep.F parseFrom(byte[] data)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return PARSER.parseFrom(data);
+      }
+      public static proto_message.Message.Deep.F parseFrom(
+          byte[] data,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return PARSER.parseFrom(data, extensionRegistry);
+      }
+      public static proto_message.Message.Deep.F parseFrom(java.io.InputStream input)
+          throws java.io.IOException {
+        return com.google.protobuf.GeneratedMessageV3
+            .parseWithIOException(PARSER, input);
+      }
+      public static proto_message.Message.Deep.F parseFrom(
+          java.io.InputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        return com.google.protobuf.GeneratedMessageV3
+            .parseWithIOException(PARSER, input, extensionRegistry);
+      }
+      public static proto_message.Message.Deep.F parseDelimitedFrom(java.io.InputStream input)
+          throws java.io.IOException {
+        return com.google.protobuf.GeneratedMessageV3
+            .parseDelimitedWithIOException(PARSER, input);
+      }
+      public static proto_message.Message.Deep.F parseDelimitedFrom(
+          java.io.InputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        return com.google.protobuf.GeneratedMessageV3
+            .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+      }
+      public static proto_message.Message.Deep.F parseFrom(
+          com.google.protobuf.CodedInputStream input)
+          throws java.io.IOException {
+        return com.google.protobuf.GeneratedMessageV3
+            .parseWithIOException(PARSER, input);
+      }
+      public static proto_message.Message.Deep.F parseFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        return com.google.protobuf.GeneratedMessageV3
+            .parseWithIOException(PARSER, input, extensionRegistry);
+      }
+
+      @java.lang.Override
+      public Builder newBuilderForType() { return newBuilder(); }
+      public static Builder newBuilder() {
+        return DEFAULT_INSTANCE.toBuilder();
+      }
+      public static Builder newBuilder(proto_message.Message.Deep.F prototype) {
+        return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+      }
+      @java.lang.Override
+      public Builder toBuilder() {
+        return this == DEFAULT_INSTANCE
+            ? new Builder() : new Builder().mergeFrom(this);
+      }
+
+      @java.lang.Override
+      protected Builder newBuilderForType(
+          com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+        Builder builder = new Builder(parent);
+        return builder;
+      }
+      /**
+       * Protobuf type {@code proto_message.Deep.F}
+       */
+      public static final class Builder extends
+          com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
+          // @@protoc_insertion_point(builder_implements:proto_message.Deep.F)
+          proto_message.Message.Deep.FOrBuilder {
+        public static final com.google.protobuf.Descriptors.Descriptor
+            getDescriptor() {
+          return proto_message.Message.internal_static_proto_message_Deep_F_descriptor;
+        }
+
+        @java.lang.Override
+        protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+            internalGetFieldAccessorTable() {
+          return proto_message.Message.internal_static_proto_message_Deep_F_fieldAccessorTable
+              .ensureFieldAccessorsInitialized(
+                  proto_message.Message.Deep.F.class, proto_message.Message.Deep.F.Builder.class);
+        }
+
+        // Construct using proto_message.Message.Deep.F.newBuilder()
+        private Builder() {
+
+        }
+
+        private Builder(
+            com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+          super(parent);
+
+        }
+        @java.lang.Override
+        public Builder clear() {
+          super.clear();
+          if (xBuilder_ == null) {
+            x_ = null;
+          } else {
+            x_ = null;
+            xBuilder_ = null;
+          }
+          return this;
+        }
+
+        @java.lang.Override
+        public com.google.protobuf.Descriptors.Descriptor
+            getDescriptorForType() {
+          return proto_message.Message.internal_static_proto_message_Deep_F_descriptor;
+        }
+
+        @java.lang.Override
+        public proto_message.Message.Deep.F getDefaultInstanceForType() {
+          return proto_message.Message.Deep.F.getDefaultInstance();
+        }
+
+        @java.lang.Override
+        public proto_message.Message.Deep.F build() {
+          proto_message.Message.Deep.F result = buildPartial();
+          if (!result.isInitialized()) {
+            throw newUninitializedMessageException(result);
+          }
+          return result;
+        }
+
+        @java.lang.Override
+        public proto_message.Message.Deep.F buildPartial() {
+          proto_message.Message.Deep.F result = new proto_message.Message.Deep.F(this);
+          if (xBuilder_ == null) {
+            result.x_ = x_;
+          } else {
+            result.x_ = xBuilder_.build();
+          }
+          onBuilt();
+          return result;
+        }
+
+        @java.lang.Override
+        public Builder clone() {
+          return super.clone();
+        }
+        @java.lang.Override
+        public Builder setField(
+            com.google.protobuf.Descriptors.FieldDescriptor field,
+            java.lang.Object value) {
+          return super.setField(field, value);
+        }
+        @java.lang.Override
+        public Builder clearField(
+            com.google.protobuf.Descriptors.FieldDescriptor field) {
+          return super.clearField(field);
+        }
+        @java.lang.Override
+        public Builder clearOneof(
+            com.google.protobuf.Descriptors.OneofDescriptor oneof) {
+          return super.clearOneof(oneof);
+        }
+        @java.lang.Override
+        public Builder setRepeatedField(
+            com.google.protobuf.Descriptors.FieldDescriptor field,
+            int index, java.lang.Object value) {
+          return super.setRepeatedField(field, index, value);
+        }
+        @java.lang.Override
+        public Builder addRepeatedField(
+            com.google.protobuf.Descriptors.FieldDescriptor field,
+            java.lang.Object value) {
+          return super.addRepeatedField(field, value);
+        }
+        @java.lang.Override
+        public Builder mergeFrom(com.google.protobuf.Message other) {
+          if (other instanceof proto_message.Message.Deep.F) {
+            return mergeFrom((proto_message.Message.Deep.F)other);
+          } else {
+            super.mergeFrom(other);
+            return this;
+          }
+        }
+
+        public Builder mergeFrom(proto_message.Message.Deep.F other) {
+          if (other == proto_message.Message.Deep.F.getDefaultInstance()) return this;
+          if (other.hasX()) {
+            mergeX(other.getX());
+          }
+          this.mergeUnknownFields(other.getUnknownFields());
+          onChanged();
+          return this;
+        }
+
+        @java.lang.Override
+        public final boolean isInitialized() {
+          return true;
+        }
+
+        @java.lang.Override
+        public Builder mergeFrom(
+            com.google.protobuf.CodedInputStream input,
+            com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+            throws java.io.IOException {
+          if (extensionRegistry == null) {
+            throw new java.lang.NullPointerException();
+          }
+          try {
+            boolean done = false;
+            while (!done) {
+              int tag = input.readTag();
+              switch (tag) {
+                case 0:
+                  done = true;
+                  break;
+                case 10: {
+                  input.readMessage(
+                      getXFieldBuilder().getBuilder(),
+                      extensionRegistry);
+
+                  break;
+                } // case 10
+                default: {
+                  if (!super.parseUnknownField(input, extensionRegistry, tag)) {
+                    done = true; // was an endgroup tag
+                  }
+                  break;
+                } // default:
+              } // switch (tag)
+            } // while (!done)
+          } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+            throw e.unwrapIOException();
+          } finally {
+            onChanged();
+          } // finally
+          return this;
+        }
+
+        private proto_message.Message.Deep.G x_;
+        private com.google.protobuf.SingleFieldBuilderV3<
+            proto_message.Message.Deep.G, proto_message.Message.Deep.G.Builder, proto_message.Message.Deep.GOrBuilder> xBuilder_;
+        /**
+         * <code>.proto_message.Deep.G x = 1;</code>
+         * @return Whether the x field is set.
+         */
+        public boolean hasX() {
+          return xBuilder_ != null || x_ != null;
+        }
+        /**
+         * <code>.proto_message.Deep.G x = 1;</code>
+         * @return The x.
+         */
+        public proto_message.Message.Deep.G getX() {
+          if (xBuilder_ == null) {
+            return x_ == null ? proto_message.Message.Deep.G.getDefaultInstance() : x_;
+          } else {
+            return xBuilder_.getMessage();
+          }
+        }
+        /**
+         * <code>.proto_message.Deep.G x = 1;</code>
+         */
+        public Builder setX(proto_message.Message.Deep.G value) {
+          if (xBuilder_ == null) {
+            if (value == null) {
+              throw new NullPointerException();
+            }
+            x_ = value;
+            onChanged();
+          } else {
+            xBuilder_.setMessage(value);
+          }
+
+          return this;
+        }
+        /**
+         * <code>.proto_message.Deep.G x = 1;</code>
+         */
+        public Builder setX(
+            proto_message.Message.Deep.G.Builder builderForValue) {
+          if (xBuilder_ == null) {
+            x_ = builderForValue.build();
+            onChanged();
+          } else {
+            xBuilder_.setMessage(builderForValue.build());
+          }
+
+          return this;
+        }
+        /**
+         * <code>.proto_message.Deep.G x = 1;</code>
+         */
+        public Builder mergeX(proto_message.Message.Deep.G value) {
+          if (xBuilder_ == null) {
+            if (x_ != null) {
+              x_ =
+                proto_message.Message.Deep.G.newBuilder(x_).mergeFrom(value).buildPartial();
+            } else {
+              x_ = value;
+            }
+            onChanged();
+          } else {
+            xBuilder_.mergeFrom(value);
+          }
+
+          return this;
+        }
+        /**
+         * <code>.proto_message.Deep.G x = 1;</code>
+         */
+        public Builder clearX() {
+          if (xBuilder_ == null) {
+            x_ = null;
+            onChanged();
+          } else {
+            x_ = null;
+            xBuilder_ = null;
+          }
+
+          return this;
+        }
+        /**
+         * <code>.proto_message.Deep.G x = 1;</code>
+         */
+        public proto_message.Message.Deep.G.Builder getXBuilder() {
+          
+          onChanged();
+          return getXFieldBuilder().getBuilder();
+        }
+        /**
+         * <code>.proto_message.Deep.G x = 1;</code>
+         */
+        public proto_message.Message.Deep.GOrBuilder getXOrBuilder() {
+          if (xBuilder_ != null) {
+            return xBuilder_.getMessageOrBuilder();
+          } else {
+            return x_ == null ?
+                proto_message.Message.Deep.G.getDefaultInstance() : x_;
+          }
+        }
+        /**
+         * <code>.proto_message.Deep.G x = 1;</code>
+         */
+        private com.google.protobuf.SingleFieldBuilderV3<
+            proto_message.Message.Deep.G, proto_message.Message.Deep.G.Builder, proto_message.Message.Deep.GOrBuilder> 
+            getXFieldBuilder() {
+          if (xBuilder_ == null) {
+            xBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+                proto_message.Message.Deep.G, proto_message.Message.Deep.G.Builder, proto_message.Message.Deep.GOrBuilder>(
+                    getX(),
+                    getParentForChildren(),
+                    isClean());
+            x_ = null;
+          }
+          return xBuilder_;
+        }
+        @java.lang.Override
+        public final Builder setUnknownFields(
+            final com.google.protobuf.UnknownFieldSet unknownFields) {
+          return super.setUnknownFields(unknownFields);
+        }
+
+        @java.lang.Override
+        public final Builder mergeUnknownFields(
+            final com.google.protobuf.UnknownFieldSet unknownFields) {
+          return super.mergeUnknownFields(unknownFields);
+        }
+
+
+        // @@protoc_insertion_point(builder_scope:proto_message.Deep.F)
+      }
+
+      // @@protoc_insertion_point(class_scope:proto_message.Deep.F)
+      private static final proto_message.Message.Deep.F DEFAULT_INSTANCE;
+      static {
+        DEFAULT_INSTANCE = new proto_message.Message.Deep.F();
+      }
+
+      public static proto_message.Message.Deep.F getDefaultInstance() {
+        return DEFAULT_INSTANCE;
+      }
+
+      private static final com.google.protobuf.Parser<F>
+          PARSER = new com.google.protobuf.AbstractParser<F>() {
+        @java.lang.Override
+        public F parsePartialFrom(
+            com.google.protobuf.CodedInputStream input,
+            com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+            throws com.google.protobuf.InvalidProtocolBufferException {
+          Builder builder = newBuilder();
+          try {
+            builder.mergeFrom(input, extensionRegistry);
+          } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+            throw e.setUnfinishedMessage(builder.buildPartial());
+          } catch (com.google.protobuf.UninitializedMessageException e) {
+            throw e.asInvalidProtocolBufferException().setUnfinishedMessage(builder.buildPartial());
+          } catch (java.io.IOException e) {
+            throw new com.google.protobuf.InvalidProtocolBufferException(e)
+                .setUnfinishedMessage(builder.buildPartial());
+          }
+          return builder.buildPartial();
+        }
+      };
+
+      public static com.google.protobuf.Parser<F> parser() {
+        return PARSER;
+      }
+
+      @java.lang.Override
+      public com.google.protobuf.Parser<F> getParserForType() {
+        return PARSER;
+      }
+
+      @java.lang.Override
+      public proto_message.Message.Deep.F getDefaultInstanceForType() {
+        return DEFAULT_INSTANCE;
+      }
+
+    }
+
+    public interface GOrBuilder extends
+        // @@protoc_insertion_point(interface_extends:proto_message.Deep.G)
+        com.google.protobuf.MessageOrBuilder {
+
+      /**
+       * <code>.proto_message.Deep.H x = 1;</code>
+       * @return Whether the x field is set.
+       */
+      boolean hasX();
+      /**
+       * <code>.proto_message.Deep.H x = 1;</code>
+       * @return The x.
+       */
+      proto_message.Message.Deep.H getX();
+      /**
+       * <code>.proto_message.Deep.H x = 1;</code>
+       */
+      proto_message.Message.Deep.HOrBuilder getXOrBuilder();
+    }
+    /**
+     * Protobuf type {@code proto_message.Deep.G}
+     */
+    public static final class G extends
+        com.google.protobuf.GeneratedMessageV3 implements
+        // @@protoc_insertion_point(message_implements:proto_message.Deep.G)
+        GOrBuilder {
+    private static final long serialVersionUID = 0L;
+      // Use G.newBuilder() to construct.
+      private G(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
+        super(builder);
+      }
+      private G() {
+      }
+
+      @java.lang.Override
+      @SuppressWarnings({"unused"})
+      protected java.lang.Object newInstance(
+          UnusedPrivateParameter unused) {
+        return new G();
+      }
+
+      @java.lang.Override
+      public final com.google.protobuf.UnknownFieldSet
+      getUnknownFields() {
+        return this.unknownFields;
+      }
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return proto_message.Message.internal_static_proto_message_Deep_G_descriptor;
+      }
+
+      @java.lang.Override
+      protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return proto_message.Message.internal_static_proto_message_Deep_G_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                proto_message.Message.Deep.G.class, proto_message.Message.Deep.G.Builder.class);
+      }
+
+      public static final int X_FIELD_NUMBER = 1;
+      private proto_message.Message.Deep.H x_;
+      /**
+       * <code>.proto_message.Deep.H x = 1;</code>
+       * @return Whether the x field is set.
+       */
+      @java.lang.Override
+      public boolean hasX() {
+        return x_ != null;
+      }
+      /**
+       * <code>.proto_message.Deep.H x = 1;</code>
+       * @return The x.
+       */
+      @java.lang.Override
+      public proto_message.Message.Deep.H getX() {
+        return x_ == null ? proto_message.Message.Deep.H.getDefaultInstance() : x_;
+      }
+      /**
+       * <code>.proto_message.Deep.H x = 1;</code>
+       */
+      @java.lang.Override
+      public proto_message.Message.Deep.HOrBuilder getXOrBuilder() {
+        return getX();
+      }
+
+      private byte memoizedIsInitialized = -1;
+      @java.lang.Override
+      public final boolean isInitialized() {
+        byte isInitialized = memoizedIsInitialized;
+        if (isInitialized == 1) return true;
+        if (isInitialized == 0) return false;
+
+        memoizedIsInitialized = 1;
+        return true;
+      }
+
+      @java.lang.Override
+      public void writeTo(com.google.protobuf.CodedOutputStream output)
+                          throws java.io.IOException {
+        if (x_ != null) {
+          output.writeMessage(1, getX());
+        }
+        getUnknownFields().writeTo(output);
+      }
+
+      @java.lang.Override
+      public int getSerializedSize() {
+        int size = memoizedSize;
+        if (size != -1) return size;
+
+        size = 0;
+        if (x_ != null) {
+          size += com.google.protobuf.CodedOutputStream
+            .computeMessageSize(1, getX());
+        }
+        size += getUnknownFields().getSerializedSize();
+        memoizedSize = size;
+        return size;
+      }
+
+      @java.lang.Override
+      public boolean equals(final java.lang.Object obj) {
+        if (obj == this) {
+         return true;
+        }
+        if (!(obj instanceof proto_message.Message.Deep.G)) {
+          return super.equals(obj);
+        }
+        proto_message.Message.Deep.G other = (proto_message.Message.Deep.G) obj;
+
+        if (hasX() != other.hasX()) return false;
+        if (hasX()) {
+          if (!getX()
+              .equals(other.getX())) return false;
+        }
+        if (!getUnknownFields().equals(other.getUnknownFields())) return false;
+        return true;
+      }
+
+      @java.lang.Override
+      public int hashCode() {
+        if (memoizedHashCode != 0) {
+          return memoizedHashCode;
+        }
+        int hash = 41;
+        hash = (19 * hash) + getDescriptor().hashCode();
+        if (hasX()) {
+          hash = (37 * hash) + X_FIELD_NUMBER;
+          hash = (53 * hash) + getX().hashCode();
+        }
+        hash = (29 * hash) + getUnknownFields().hashCode();
+        memoizedHashCode = hash;
+        return hash;
+      }
+
+      public static proto_message.Message.Deep.G parseFrom(
+          java.nio.ByteBuffer data)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return PARSER.parseFrom(data);
+      }
+      public static proto_message.Message.Deep.G parseFrom(
+          java.nio.ByteBuffer data,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return PARSER.parseFrom(data, extensionRegistry);
+      }
+      public static proto_message.Message.Deep.G parseFrom(
+          com.google.protobuf.ByteString data)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return PARSER.parseFrom(data);
+      }
+      public static proto_message.Message.Deep.G parseFrom(
+          com.google.protobuf.ByteString data,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return PARSER.parseFrom(data, extensionRegistry);
+      }
+      public static proto_message.Message.Deep.G parseFrom(byte[] data)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return PARSER.parseFrom(data);
+      }
+      public static proto_message.Message.Deep.G parseFrom(
+          byte[] data,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return PARSER.parseFrom(data, extensionRegistry);
+      }
+      public static proto_message.Message.Deep.G parseFrom(java.io.InputStream input)
+          throws java.io.IOException {
+        return com.google.protobuf.GeneratedMessageV3
+            .parseWithIOException(PARSER, input);
+      }
+      public static proto_message.Message.Deep.G parseFrom(
+          java.io.InputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        return com.google.protobuf.GeneratedMessageV3
+            .parseWithIOException(PARSER, input, extensionRegistry);
+      }
+      public static proto_message.Message.Deep.G parseDelimitedFrom(java.io.InputStream input)
+          throws java.io.IOException {
+        return com.google.protobuf.GeneratedMessageV3
+            .parseDelimitedWithIOException(PARSER, input);
+      }
+      public static proto_message.Message.Deep.G parseDelimitedFrom(
+          java.io.InputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        return com.google.protobuf.GeneratedMessageV3
+            .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+      }
+      public static proto_message.Message.Deep.G parseFrom(
+          com.google.protobuf.CodedInputStream input)
+          throws java.io.IOException {
+        return com.google.protobuf.GeneratedMessageV3
+            .parseWithIOException(PARSER, input);
+      }
+      public static proto_message.Message.Deep.G parseFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        return com.google.protobuf.GeneratedMessageV3
+            .parseWithIOException(PARSER, input, extensionRegistry);
+      }
+
+      @java.lang.Override
+      public Builder newBuilderForType() { return newBuilder(); }
+      public static Builder newBuilder() {
+        return DEFAULT_INSTANCE.toBuilder();
+      }
+      public static Builder newBuilder(proto_message.Message.Deep.G prototype) {
+        return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+      }
+      @java.lang.Override
+      public Builder toBuilder() {
+        return this == DEFAULT_INSTANCE
+            ? new Builder() : new Builder().mergeFrom(this);
+      }
+
+      @java.lang.Override
+      protected Builder newBuilderForType(
+          com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+        Builder builder = new Builder(parent);
+        return builder;
+      }
+      /**
+       * Protobuf type {@code proto_message.Deep.G}
+       */
+      public static final class Builder extends
+          com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
+          // @@protoc_insertion_point(builder_implements:proto_message.Deep.G)
+          proto_message.Message.Deep.GOrBuilder {
+        public static final com.google.protobuf.Descriptors.Descriptor
+            getDescriptor() {
+          return proto_message.Message.internal_static_proto_message_Deep_G_descriptor;
+        }
+
+        @java.lang.Override
+        protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+            internalGetFieldAccessorTable() {
+          return proto_message.Message.internal_static_proto_message_Deep_G_fieldAccessorTable
+              .ensureFieldAccessorsInitialized(
+                  proto_message.Message.Deep.G.class, proto_message.Message.Deep.G.Builder.class);
+        }
+
+        // Construct using proto_message.Message.Deep.G.newBuilder()
+        private Builder() {
+
+        }
+
+        private Builder(
+            com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+          super(parent);
+
+        }
+        @java.lang.Override
+        public Builder clear() {
+          super.clear();
+          if (xBuilder_ == null) {
+            x_ = null;
+          } else {
+            x_ = null;
+            xBuilder_ = null;
+          }
+          return this;
+        }
+
+        @java.lang.Override
+        public com.google.protobuf.Descriptors.Descriptor
+            getDescriptorForType() {
+          return proto_message.Message.internal_static_proto_message_Deep_G_descriptor;
+        }
+
+        @java.lang.Override
+        public proto_message.Message.Deep.G getDefaultInstanceForType() {
+          return proto_message.Message.Deep.G.getDefaultInstance();
+        }
+
+        @java.lang.Override
+        public proto_message.Message.Deep.G build() {
+          proto_message.Message.Deep.G result = buildPartial();
+          if (!result.isInitialized()) {
+            throw newUninitializedMessageException(result);
+          }
+          return result;
+        }
+
+        @java.lang.Override
+        public proto_message.Message.Deep.G buildPartial() {
+          proto_message.Message.Deep.G result = new proto_message.Message.Deep.G(this);
+          if (xBuilder_ == null) {
+            result.x_ = x_;
+          } else {
+            result.x_ = xBuilder_.build();
+          }
+          onBuilt();
+          return result;
+        }
+
+        @java.lang.Override
+        public Builder clone() {
+          return super.clone();
+        }
+        @java.lang.Override
+        public Builder setField(
+            com.google.protobuf.Descriptors.FieldDescriptor field,
+            java.lang.Object value) {
+          return super.setField(field, value);
+        }
+        @java.lang.Override
+        public Builder clearField(
+            com.google.protobuf.Descriptors.FieldDescriptor field) {
+          return super.clearField(field);
+        }
+        @java.lang.Override
+        public Builder clearOneof(
+            com.google.protobuf.Descriptors.OneofDescriptor oneof) {
+          return super.clearOneof(oneof);
+        }
+        @java.lang.Override
+        public Builder setRepeatedField(
+            com.google.protobuf.Descriptors.FieldDescriptor field,
+            int index, java.lang.Object value) {
+          return super.setRepeatedField(field, index, value);
+        }
+        @java.lang.Override
+        public Builder addRepeatedField(
+            com.google.protobuf.Descriptors.FieldDescriptor field,
+            java.lang.Object value) {
+          return super.addRepeatedField(field, value);
+        }
+        @java.lang.Override
+        public Builder mergeFrom(com.google.protobuf.Message other) {
+          if (other instanceof proto_message.Message.Deep.G) {
+            return mergeFrom((proto_message.Message.Deep.G)other);
+          } else {
+            super.mergeFrom(other);
+            return this;
+          }
+        }
+
+        public Builder mergeFrom(proto_message.Message.Deep.G other) {
+          if (other == proto_message.Message.Deep.G.getDefaultInstance()) return this;
+          if (other.hasX()) {
+            mergeX(other.getX());
+          }
+          this.mergeUnknownFields(other.getUnknownFields());
+          onChanged();
+          return this;
+        }
+
+        @java.lang.Override
+        public final boolean isInitialized() {
+          return true;
+        }
+
+        @java.lang.Override
+        public Builder mergeFrom(
+            com.google.protobuf.CodedInputStream input,
+            com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+            throws java.io.IOException {
+          if (extensionRegistry == null) {
+            throw new java.lang.NullPointerException();
+          }
+          try {
+            boolean done = false;
+            while (!done) {
+              int tag = input.readTag();
+              switch (tag) {
+                case 0:
+                  done = true;
+                  break;
+                case 10: {
+                  input.readMessage(
+                      getXFieldBuilder().getBuilder(),
+                      extensionRegistry);
+
+                  break;
+                } // case 10
+                default: {
+                  if (!super.parseUnknownField(input, extensionRegistry, tag)) {
+                    done = true; // was an endgroup tag
+                  }
+                  break;
+                } // default:
+              } // switch (tag)
+            } // while (!done)
+          } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+            throw e.unwrapIOException();
+          } finally {
+            onChanged();
+          } // finally
+          return this;
+        }
+
+        private proto_message.Message.Deep.H x_;
+        private com.google.protobuf.SingleFieldBuilderV3<
+            proto_message.Message.Deep.H, proto_message.Message.Deep.H.Builder, proto_message.Message.Deep.HOrBuilder> xBuilder_;
+        /**
+         * <code>.proto_message.Deep.H x = 1;</code>
+         * @return Whether the x field is set.
+         */
+        public boolean hasX() {
+          return xBuilder_ != null || x_ != null;
+        }
+        /**
+         * <code>.proto_message.Deep.H x = 1;</code>
+         * @return The x.
+         */
+        public proto_message.Message.Deep.H getX() {
+          if (xBuilder_ == null) {
+            return x_ == null ? proto_message.Message.Deep.H.getDefaultInstance() : x_;
+          } else {
+            return xBuilder_.getMessage();
+          }
+        }
+        /**
+         * <code>.proto_message.Deep.H x = 1;</code>
+         */
+        public Builder setX(proto_message.Message.Deep.H value) {
+          if (xBuilder_ == null) {
+            if (value == null) {
+              throw new NullPointerException();
+            }
+            x_ = value;
+            onChanged();
+          } else {
+            xBuilder_.setMessage(value);
+          }
+
+          return this;
+        }
+        /**
+         * <code>.proto_message.Deep.H x = 1;</code>
+         */
+        public Builder setX(
+            proto_message.Message.Deep.H.Builder builderForValue) {
+          if (xBuilder_ == null) {
+            x_ = builderForValue.build();
+            onChanged();
+          } else {
+            xBuilder_.setMessage(builderForValue.build());
+          }
+
+          return this;
+        }
+        /**
+         * <code>.proto_message.Deep.H x = 1;</code>
+         */
+        public Builder mergeX(proto_message.Message.Deep.H value) {
+          if (xBuilder_ == null) {
+            if (x_ != null) {
+              x_ =
+                proto_message.Message.Deep.H.newBuilder(x_).mergeFrom(value).buildPartial();
+            } else {
+              x_ = value;
+            }
+            onChanged();
+          } else {
+            xBuilder_.mergeFrom(value);
+          }
+
+          return this;
+        }
+        /**
+         * <code>.proto_message.Deep.H x = 1;</code>
+         */
+        public Builder clearX() {
+          if (xBuilder_ == null) {
+            x_ = null;
+            onChanged();
+          } else {
+            x_ = null;
+            xBuilder_ = null;
+          }
+
+          return this;
+        }
+        /**
+         * <code>.proto_message.Deep.H x = 1;</code>
+         */
+        public proto_message.Message.Deep.H.Builder getXBuilder() {
+          
+          onChanged();
+          return getXFieldBuilder().getBuilder();
+        }
+        /**
+         * <code>.proto_message.Deep.H x = 1;</code>
+         */
+        public proto_message.Message.Deep.HOrBuilder getXOrBuilder() {
+          if (xBuilder_ != null) {
+            return xBuilder_.getMessageOrBuilder();
+          } else {
+            return x_ == null ?
+                proto_message.Message.Deep.H.getDefaultInstance() : x_;
+          }
+        }
+        /**
+         * <code>.proto_message.Deep.H x = 1;</code>
+         */
+        private com.google.protobuf.SingleFieldBuilderV3<
+            proto_message.Message.Deep.H, proto_message.Message.Deep.H.Builder, proto_message.Message.Deep.HOrBuilder> 
+            getXFieldBuilder() {
+          if (xBuilder_ == null) {
+            xBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+                proto_message.Message.Deep.H, proto_message.Message.Deep.H.Builder, proto_message.Message.Deep.HOrBuilder>(
+                    getX(),
+                    getParentForChildren(),
+                    isClean());
+            x_ = null;
+          }
+          return xBuilder_;
+        }
+        @java.lang.Override
+        public final Builder setUnknownFields(
+            final com.google.protobuf.UnknownFieldSet unknownFields) {
+          return super.setUnknownFields(unknownFields);
+        }
+
+        @java.lang.Override
+        public final Builder mergeUnknownFields(
+            final com.google.protobuf.UnknownFieldSet unknownFields) {
+          return super.mergeUnknownFields(unknownFields);
+        }
+
+
+        // @@protoc_insertion_point(builder_scope:proto_message.Deep.G)
+      }
+
+      // @@protoc_insertion_point(class_scope:proto_message.Deep.G)
+      private static final proto_message.Message.Deep.G DEFAULT_INSTANCE;
+      static {
+        DEFAULT_INSTANCE = new proto_message.Message.Deep.G();
+      }
+
+      public static proto_message.Message.Deep.G getDefaultInstance() {
+        return DEFAULT_INSTANCE;
+      }
+
+      private static final com.google.protobuf.Parser<G>
+          PARSER = new com.google.protobuf.AbstractParser<G>() {
+        @java.lang.Override
+        public G parsePartialFrom(
+            com.google.protobuf.CodedInputStream input,
+            com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+            throws com.google.protobuf.InvalidProtocolBufferException {
+          Builder builder = newBuilder();
+          try {
+            builder.mergeFrom(input, extensionRegistry);
+          } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+            throw e.setUnfinishedMessage(builder.buildPartial());
+          } catch (com.google.protobuf.UninitializedMessageException e) {
+            throw e.asInvalidProtocolBufferException().setUnfinishedMessage(builder.buildPartial());
+          } catch (java.io.IOException e) {
+            throw new com.google.protobuf.InvalidProtocolBufferException(e)
+                .setUnfinishedMessage(builder.buildPartial());
+          }
+          return builder.buildPartial();
+        }
+      };
+
+      public static com.google.protobuf.Parser<G> parser() {
+        return PARSER;
+      }
+
+      @java.lang.Override
+      public com.google.protobuf.Parser<G> getParserForType() {
+        return PARSER;
+      }
+
+      @java.lang.Override
+      public proto_message.Message.Deep.G getDefaultInstanceForType() {
+        return DEFAULT_INSTANCE;
+      }
+
+    }
+
+    public interface HOrBuilder extends
+        // @@protoc_insertion_point(interface_extends:proto_message.Deep.H)
+        com.google.protobuf.MessageOrBuilder {
+
+      /**
+       * <pre>
+       * extraction should stop here (max depth = 10)
+       * </pre>
+       *
+       * <code>.proto_message.Deep.I x = 1;</code>
+       * @return Whether the x field is set.
+       */
+      boolean hasX();
+      /**
+       * <pre>
+       * extraction should stop here (max depth = 10)
+       * </pre>
+       *
+       * <code>.proto_message.Deep.I x = 1;</code>
+       * @return The x.
+       */
+      proto_message.Message.Deep.I getX();
+      /**
+       * <pre>
+       * extraction should stop here (max depth = 10)
+       * </pre>
+       *
+       * <code>.proto_message.Deep.I x = 1;</code>
+       */
+      proto_message.Message.Deep.IOrBuilder getXOrBuilder();
+    }
+    /**
+     * Protobuf type {@code proto_message.Deep.H}
+     */
+    public static final class H extends
+        com.google.protobuf.GeneratedMessageV3 implements
+        // @@protoc_insertion_point(message_implements:proto_message.Deep.H)
+        HOrBuilder {
+    private static final long serialVersionUID = 0L;
+      // Use H.newBuilder() to construct.
+      private H(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
+        super(builder);
+      }
+      private H() {
+      }
+
+      @java.lang.Override
+      @SuppressWarnings({"unused"})
+      protected java.lang.Object newInstance(
+          UnusedPrivateParameter unused) {
+        return new H();
+      }
+
+      @java.lang.Override
+      public final com.google.protobuf.UnknownFieldSet
+      getUnknownFields() {
+        return this.unknownFields;
+      }
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return proto_message.Message.internal_static_proto_message_Deep_H_descriptor;
+      }
+
+      @java.lang.Override
+      protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return proto_message.Message.internal_static_proto_message_Deep_H_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                proto_message.Message.Deep.H.class, proto_message.Message.Deep.H.Builder.class);
+      }
+
+      public static final int X_FIELD_NUMBER = 1;
+      private proto_message.Message.Deep.I x_;
+      /**
+       * <pre>
+       * extraction should stop here (max depth = 10)
+       * </pre>
+       *
+       * <code>.proto_message.Deep.I x = 1;</code>
+       * @return Whether the x field is set.
+       */
+      @java.lang.Override
+      public boolean hasX() {
+        return x_ != null;
+      }
+      /**
+       * <pre>
+       * extraction should stop here (max depth = 10)
+       * </pre>
+       *
+       * <code>.proto_message.Deep.I x = 1;</code>
+       * @return The x.
+       */
+      @java.lang.Override
+      public proto_message.Message.Deep.I getX() {
+        return x_ == null ? proto_message.Message.Deep.I.getDefaultInstance() : x_;
+      }
+      /**
+       * <pre>
+       * extraction should stop here (max depth = 10)
+       * </pre>
+       *
+       * <code>.proto_message.Deep.I x = 1;</code>
+       */
+      @java.lang.Override
+      public proto_message.Message.Deep.IOrBuilder getXOrBuilder() {
+        return getX();
+      }
+
+      private byte memoizedIsInitialized = -1;
+      @java.lang.Override
+      public final boolean isInitialized() {
+        byte isInitialized = memoizedIsInitialized;
+        if (isInitialized == 1) return true;
+        if (isInitialized == 0) return false;
+
+        memoizedIsInitialized = 1;
+        return true;
+      }
+
+      @java.lang.Override
+      public void writeTo(com.google.protobuf.CodedOutputStream output)
+                          throws java.io.IOException {
+        if (x_ != null) {
+          output.writeMessage(1, getX());
+        }
+        getUnknownFields().writeTo(output);
+      }
+
+      @java.lang.Override
+      public int getSerializedSize() {
+        int size = memoizedSize;
+        if (size != -1) return size;
+
+        size = 0;
+        if (x_ != null) {
+          size += com.google.protobuf.CodedOutputStream
+            .computeMessageSize(1, getX());
+        }
+        size += getUnknownFields().getSerializedSize();
+        memoizedSize = size;
+        return size;
+      }
+
+      @java.lang.Override
+      public boolean equals(final java.lang.Object obj) {
+        if (obj == this) {
+         return true;
+        }
+        if (!(obj instanceof proto_message.Message.Deep.H)) {
+          return super.equals(obj);
+        }
+        proto_message.Message.Deep.H other = (proto_message.Message.Deep.H) obj;
+
+        if (hasX() != other.hasX()) return false;
+        if (hasX()) {
+          if (!getX()
+              .equals(other.getX())) return false;
+        }
+        if (!getUnknownFields().equals(other.getUnknownFields())) return false;
+        return true;
+      }
+
+      @java.lang.Override
+      public int hashCode() {
+        if (memoizedHashCode != 0) {
+          return memoizedHashCode;
+        }
+        int hash = 41;
+        hash = (19 * hash) + getDescriptor().hashCode();
+        if (hasX()) {
+          hash = (37 * hash) + X_FIELD_NUMBER;
+          hash = (53 * hash) + getX().hashCode();
+        }
+        hash = (29 * hash) + getUnknownFields().hashCode();
+        memoizedHashCode = hash;
+        return hash;
+      }
+
+      public static proto_message.Message.Deep.H parseFrom(
+          java.nio.ByteBuffer data)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return PARSER.parseFrom(data);
+      }
+      public static proto_message.Message.Deep.H parseFrom(
+          java.nio.ByteBuffer data,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return PARSER.parseFrom(data, extensionRegistry);
+      }
+      public static proto_message.Message.Deep.H parseFrom(
+          com.google.protobuf.ByteString data)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return PARSER.parseFrom(data);
+      }
+      public static proto_message.Message.Deep.H parseFrom(
+          com.google.protobuf.ByteString data,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return PARSER.parseFrom(data, extensionRegistry);
+      }
+      public static proto_message.Message.Deep.H parseFrom(byte[] data)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return PARSER.parseFrom(data);
+      }
+      public static proto_message.Message.Deep.H parseFrom(
+          byte[] data,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return PARSER.parseFrom(data, extensionRegistry);
+      }
+      public static proto_message.Message.Deep.H parseFrom(java.io.InputStream input)
+          throws java.io.IOException {
+        return com.google.protobuf.GeneratedMessageV3
+            .parseWithIOException(PARSER, input);
+      }
+      public static proto_message.Message.Deep.H parseFrom(
+          java.io.InputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        return com.google.protobuf.GeneratedMessageV3
+            .parseWithIOException(PARSER, input, extensionRegistry);
+      }
+      public static proto_message.Message.Deep.H parseDelimitedFrom(java.io.InputStream input)
+          throws java.io.IOException {
+        return com.google.protobuf.GeneratedMessageV3
+            .parseDelimitedWithIOException(PARSER, input);
+      }
+      public static proto_message.Message.Deep.H parseDelimitedFrom(
+          java.io.InputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        return com.google.protobuf.GeneratedMessageV3
+            .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+      }
+      public static proto_message.Message.Deep.H parseFrom(
+          com.google.protobuf.CodedInputStream input)
+          throws java.io.IOException {
+        return com.google.protobuf.GeneratedMessageV3
+            .parseWithIOException(PARSER, input);
+      }
+      public static proto_message.Message.Deep.H parseFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        return com.google.protobuf.GeneratedMessageV3
+            .parseWithIOException(PARSER, input, extensionRegistry);
+      }
+
+      @java.lang.Override
+      public Builder newBuilderForType() { return newBuilder(); }
+      public static Builder newBuilder() {
+        return DEFAULT_INSTANCE.toBuilder();
+      }
+      public static Builder newBuilder(proto_message.Message.Deep.H prototype) {
+        return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+      }
+      @java.lang.Override
+      public Builder toBuilder() {
+        return this == DEFAULT_INSTANCE
+            ? new Builder() : new Builder().mergeFrom(this);
+      }
+
+      @java.lang.Override
+      protected Builder newBuilderForType(
+          com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+        Builder builder = new Builder(parent);
+        return builder;
+      }
+      /**
+       * Protobuf type {@code proto_message.Deep.H}
+       */
+      public static final class Builder extends
+          com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
+          // @@protoc_insertion_point(builder_implements:proto_message.Deep.H)
+          proto_message.Message.Deep.HOrBuilder {
+        public static final com.google.protobuf.Descriptors.Descriptor
+            getDescriptor() {
+          return proto_message.Message.internal_static_proto_message_Deep_H_descriptor;
+        }
+
+        @java.lang.Override
+        protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+            internalGetFieldAccessorTable() {
+          return proto_message.Message.internal_static_proto_message_Deep_H_fieldAccessorTable
+              .ensureFieldAccessorsInitialized(
+                  proto_message.Message.Deep.H.class, proto_message.Message.Deep.H.Builder.class);
+        }
+
+        // Construct using proto_message.Message.Deep.H.newBuilder()
+        private Builder() {
+
+        }
+
+        private Builder(
+            com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+          super(parent);
+
+        }
+        @java.lang.Override
+        public Builder clear() {
+          super.clear();
+          if (xBuilder_ == null) {
+            x_ = null;
+          } else {
+            x_ = null;
+            xBuilder_ = null;
+          }
+          return this;
+        }
+
+        @java.lang.Override
+        public com.google.protobuf.Descriptors.Descriptor
+            getDescriptorForType() {
+          return proto_message.Message.internal_static_proto_message_Deep_H_descriptor;
+        }
+
+        @java.lang.Override
+        public proto_message.Message.Deep.H getDefaultInstanceForType() {
+          return proto_message.Message.Deep.H.getDefaultInstance();
+        }
+
+        @java.lang.Override
+        public proto_message.Message.Deep.H build() {
+          proto_message.Message.Deep.H result = buildPartial();
+          if (!result.isInitialized()) {
+            throw newUninitializedMessageException(result);
+          }
+          return result;
+        }
+
+        @java.lang.Override
+        public proto_message.Message.Deep.H buildPartial() {
+          proto_message.Message.Deep.H result = new proto_message.Message.Deep.H(this);
+          if (xBuilder_ == null) {
+            result.x_ = x_;
+          } else {
+            result.x_ = xBuilder_.build();
+          }
+          onBuilt();
+          return result;
+        }
+
+        @java.lang.Override
+        public Builder clone() {
+          return super.clone();
+        }
+        @java.lang.Override
+        public Builder setField(
+            com.google.protobuf.Descriptors.FieldDescriptor field,
+            java.lang.Object value) {
+          return super.setField(field, value);
+        }
+        @java.lang.Override
+        public Builder clearField(
+            com.google.protobuf.Descriptors.FieldDescriptor field) {
+          return super.clearField(field);
+        }
+        @java.lang.Override
+        public Builder clearOneof(
+            com.google.protobuf.Descriptors.OneofDescriptor oneof) {
+          return super.clearOneof(oneof);
+        }
+        @java.lang.Override
+        public Builder setRepeatedField(
+            com.google.protobuf.Descriptors.FieldDescriptor field,
+            int index, java.lang.Object value) {
+          return super.setRepeatedField(field, index, value);
+        }
+        @java.lang.Override
+        public Builder addRepeatedField(
+            com.google.protobuf.Descriptors.FieldDescriptor field,
+            java.lang.Object value) {
+          return super.addRepeatedField(field, value);
+        }
+        @java.lang.Override
+        public Builder mergeFrom(com.google.protobuf.Message other) {
+          if (other instanceof proto_message.Message.Deep.H) {
+            return mergeFrom((proto_message.Message.Deep.H)other);
+          } else {
+            super.mergeFrom(other);
+            return this;
+          }
+        }
+
+        public Builder mergeFrom(proto_message.Message.Deep.H other) {
+          if (other == proto_message.Message.Deep.H.getDefaultInstance()) return this;
+          if (other.hasX()) {
+            mergeX(other.getX());
+          }
+          this.mergeUnknownFields(other.getUnknownFields());
+          onChanged();
+          return this;
+        }
+
+        @java.lang.Override
+        public final boolean isInitialized() {
+          return true;
+        }
+
+        @java.lang.Override
+        public Builder mergeFrom(
+            com.google.protobuf.CodedInputStream input,
+            com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+            throws java.io.IOException {
+          if (extensionRegistry == null) {
+            throw new java.lang.NullPointerException();
+          }
+          try {
+            boolean done = false;
+            while (!done) {
+              int tag = input.readTag();
+              switch (tag) {
+                case 0:
+                  done = true;
+                  break;
+                case 10: {
+                  input.readMessage(
+                      getXFieldBuilder().getBuilder(),
+                      extensionRegistry);
+
+                  break;
+                } // case 10
+                default: {
+                  if (!super.parseUnknownField(input, extensionRegistry, tag)) {
+                    done = true; // was an endgroup tag
+                  }
+                  break;
+                } // default:
+              } // switch (tag)
+            } // while (!done)
+          } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+            throw e.unwrapIOException();
+          } finally {
+            onChanged();
+          } // finally
+          return this;
+        }
+
+        private proto_message.Message.Deep.I x_;
+        private com.google.protobuf.SingleFieldBuilderV3<
+            proto_message.Message.Deep.I, proto_message.Message.Deep.I.Builder, proto_message.Message.Deep.IOrBuilder> xBuilder_;
+        /**
+         * <pre>
+         * extraction should stop here (max depth = 10)
+         * </pre>
+         *
+         * <code>.proto_message.Deep.I x = 1;</code>
+         * @return Whether the x field is set.
+         */
+        public boolean hasX() {
+          return xBuilder_ != null || x_ != null;
+        }
+        /**
+         * <pre>
+         * extraction should stop here (max depth = 10)
+         * </pre>
+         *
+         * <code>.proto_message.Deep.I x = 1;</code>
+         * @return The x.
+         */
+        public proto_message.Message.Deep.I getX() {
+          if (xBuilder_ == null) {
+            return x_ == null ? proto_message.Message.Deep.I.getDefaultInstance() : x_;
+          } else {
+            return xBuilder_.getMessage();
+          }
+        }
+        /**
+         * <pre>
+         * extraction should stop here (max depth = 10)
+         * </pre>
+         *
+         * <code>.proto_message.Deep.I x = 1;</code>
+         */
+        public Builder setX(proto_message.Message.Deep.I value) {
+          if (xBuilder_ == null) {
+            if (value == null) {
+              throw new NullPointerException();
+            }
+            x_ = value;
+            onChanged();
+          } else {
+            xBuilder_.setMessage(value);
+          }
+
+          return this;
+        }
+        /**
+         * <pre>
+         * extraction should stop here (max depth = 10)
+         * </pre>
+         *
+         * <code>.proto_message.Deep.I x = 1;</code>
+         */
+        public Builder setX(
+            proto_message.Message.Deep.I.Builder builderForValue) {
+          if (xBuilder_ == null) {
+            x_ = builderForValue.build();
+            onChanged();
+          } else {
+            xBuilder_.setMessage(builderForValue.build());
+          }
+
+          return this;
+        }
+        /**
+         * <pre>
+         * extraction should stop here (max depth = 10)
+         * </pre>
+         *
+         * <code>.proto_message.Deep.I x = 1;</code>
+         */
+        public Builder mergeX(proto_message.Message.Deep.I value) {
+          if (xBuilder_ == null) {
+            if (x_ != null) {
+              x_ =
+                proto_message.Message.Deep.I.newBuilder(x_).mergeFrom(value).buildPartial();
+            } else {
+              x_ = value;
+            }
+            onChanged();
+          } else {
+            xBuilder_.mergeFrom(value);
+          }
+
+          return this;
+        }
+        /**
+         * <pre>
+         * extraction should stop here (max depth = 10)
+         * </pre>
+         *
+         * <code>.proto_message.Deep.I x = 1;</code>
+         */
+        public Builder clearX() {
+          if (xBuilder_ == null) {
+            x_ = null;
+            onChanged();
+          } else {
+            x_ = null;
+            xBuilder_ = null;
+          }
+
+          return this;
+        }
+        /**
+         * <pre>
+         * extraction should stop here (max depth = 10)
+         * </pre>
+         *
+         * <code>.proto_message.Deep.I x = 1;</code>
+         */
+        public proto_message.Message.Deep.I.Builder getXBuilder() {
+          
+          onChanged();
+          return getXFieldBuilder().getBuilder();
+        }
+        /**
+         * <pre>
+         * extraction should stop here (max depth = 10)
+         * </pre>
+         *
+         * <code>.proto_message.Deep.I x = 1;</code>
+         */
+        public proto_message.Message.Deep.IOrBuilder getXOrBuilder() {
+          if (xBuilder_ != null) {
+            return xBuilder_.getMessageOrBuilder();
+          } else {
+            return x_ == null ?
+                proto_message.Message.Deep.I.getDefaultInstance() : x_;
+          }
+        }
+        /**
+         * <pre>
+         * extraction should stop here (max depth = 10)
+         * </pre>
+         *
+         * <code>.proto_message.Deep.I x = 1;</code>
+         */
+        private com.google.protobuf.SingleFieldBuilderV3<
+            proto_message.Message.Deep.I, proto_message.Message.Deep.I.Builder, proto_message.Message.Deep.IOrBuilder> 
+            getXFieldBuilder() {
+          if (xBuilder_ == null) {
+            xBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+                proto_message.Message.Deep.I, proto_message.Message.Deep.I.Builder, proto_message.Message.Deep.IOrBuilder>(
+                    getX(),
+                    getParentForChildren(),
+                    isClean());
+            x_ = null;
+          }
+          return xBuilder_;
+        }
+        @java.lang.Override
+        public final Builder setUnknownFields(
+            final com.google.protobuf.UnknownFieldSet unknownFields) {
+          return super.setUnknownFields(unknownFields);
+        }
+
+        @java.lang.Override
+        public final Builder mergeUnknownFields(
+            final com.google.protobuf.UnknownFieldSet unknownFields) {
+          return super.mergeUnknownFields(unknownFields);
+        }
+
+
+        // @@protoc_insertion_point(builder_scope:proto_message.Deep.H)
+      }
+
+      // @@protoc_insertion_point(class_scope:proto_message.Deep.H)
+      private static final proto_message.Message.Deep.H DEFAULT_INSTANCE;
+      static {
+        DEFAULT_INSTANCE = new proto_message.Message.Deep.H();
+      }
+
+      public static proto_message.Message.Deep.H getDefaultInstance() {
+        return DEFAULT_INSTANCE;
+      }
+
+      private static final com.google.protobuf.Parser<H>
+          PARSER = new com.google.protobuf.AbstractParser<H>() {
+        @java.lang.Override
+        public H parsePartialFrom(
+            com.google.protobuf.CodedInputStream input,
+            com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+            throws com.google.protobuf.InvalidProtocolBufferException {
+          Builder builder = newBuilder();
+          try {
+            builder.mergeFrom(input, extensionRegistry);
+          } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+            throw e.setUnfinishedMessage(builder.buildPartial());
+          } catch (com.google.protobuf.UninitializedMessageException e) {
+            throw e.asInvalidProtocolBufferException().setUnfinishedMessage(builder.buildPartial());
+          } catch (java.io.IOException e) {
+            throw new com.google.protobuf.InvalidProtocolBufferException(e)
+                .setUnfinishedMessage(builder.buildPartial());
+          }
+          return builder.buildPartial();
+        }
+      };
+
+      public static com.google.protobuf.Parser<H> parser() {
+        return PARSER;
+      }
+
+      @java.lang.Override
+      public com.google.protobuf.Parser<H> getParserForType() {
+        return PARSER;
+      }
+
+      @java.lang.Override
+      public proto_message.Message.Deep.H getDefaultInstanceForType() {
+        return DEFAULT_INSTANCE;
+      }
+
+    }
+
+    public interface IOrBuilder extends
+        // @@protoc_insertion_point(interface_extends:proto_message.Deep.I)
+        com.google.protobuf.MessageOrBuilder {
+
+      /**
+       * <code>.proto_message.Deep.J x = 1;</code>
+       * @return Whether the x field is set.
+       */
+      boolean hasX();
+      /**
+       * <code>.proto_message.Deep.J x = 1;</code>
+       * @return The x.
+       */
+      proto_message.Message.Deep.J getX();
+      /**
+       * <code>.proto_message.Deep.J x = 1;</code>
+       */
+      proto_message.Message.Deep.JOrBuilder getXOrBuilder();
+    }
+    /**
+     * Protobuf type {@code proto_message.Deep.I}
+     */
+    public static final class I extends
+        com.google.protobuf.GeneratedMessageV3 implements
+        // @@protoc_insertion_point(message_implements:proto_message.Deep.I)
+        IOrBuilder {
+    private static final long serialVersionUID = 0L;
+      // Use I.newBuilder() to construct.
+      private I(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
+        super(builder);
+      }
+      private I() {
+      }
+
+      @java.lang.Override
+      @SuppressWarnings({"unused"})
+      protected java.lang.Object newInstance(
+          UnusedPrivateParameter unused) {
+        return new I();
+      }
+
+      @java.lang.Override
+      public final com.google.protobuf.UnknownFieldSet
+      getUnknownFields() {
+        return this.unknownFields;
+      }
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return proto_message.Message.internal_static_proto_message_Deep_I_descriptor;
+      }
+
+      @java.lang.Override
+      protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return proto_message.Message.internal_static_proto_message_Deep_I_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                proto_message.Message.Deep.I.class, proto_message.Message.Deep.I.Builder.class);
+      }
+
+      public static final int X_FIELD_NUMBER = 1;
+      private proto_message.Message.Deep.J x_;
+      /**
+       * <code>.proto_message.Deep.J x = 1;</code>
+       * @return Whether the x field is set.
+       */
+      @java.lang.Override
+      public boolean hasX() {
+        return x_ != null;
+      }
+      /**
+       * <code>.proto_message.Deep.J x = 1;</code>
+       * @return The x.
+       */
+      @java.lang.Override
+      public proto_message.Message.Deep.J getX() {
+        return x_ == null ? proto_message.Message.Deep.J.getDefaultInstance() : x_;
+      }
+      /**
+       * <code>.proto_message.Deep.J x = 1;</code>
+       */
+      @java.lang.Override
+      public proto_message.Message.Deep.JOrBuilder getXOrBuilder() {
+        return getX();
+      }
+
+      private byte memoizedIsInitialized = -1;
+      @java.lang.Override
+      public final boolean isInitialized() {
+        byte isInitialized = memoizedIsInitialized;
+        if (isInitialized == 1) return true;
+        if (isInitialized == 0) return false;
+
+        memoizedIsInitialized = 1;
+        return true;
+      }
+
+      @java.lang.Override
+      public void writeTo(com.google.protobuf.CodedOutputStream output)
+                          throws java.io.IOException {
+        if (x_ != null) {
+          output.writeMessage(1, getX());
+        }
+        getUnknownFields().writeTo(output);
+      }
+
+      @java.lang.Override
+      public int getSerializedSize() {
+        int size = memoizedSize;
+        if (size != -1) return size;
+
+        size = 0;
+        if (x_ != null) {
+          size += com.google.protobuf.CodedOutputStream
+            .computeMessageSize(1, getX());
+        }
+        size += getUnknownFields().getSerializedSize();
+        memoizedSize = size;
+        return size;
+      }
+
+      @java.lang.Override
+      public boolean equals(final java.lang.Object obj) {
+        if (obj == this) {
+         return true;
+        }
+        if (!(obj instanceof proto_message.Message.Deep.I)) {
+          return super.equals(obj);
+        }
+        proto_message.Message.Deep.I other = (proto_message.Message.Deep.I) obj;
+
+        if (hasX() != other.hasX()) return false;
+        if (hasX()) {
+          if (!getX()
+              .equals(other.getX())) return false;
+        }
+        if (!getUnknownFields().equals(other.getUnknownFields())) return false;
+        return true;
+      }
+
+      @java.lang.Override
+      public int hashCode() {
+        if (memoizedHashCode != 0) {
+          return memoizedHashCode;
+        }
+        int hash = 41;
+        hash = (19 * hash) + getDescriptor().hashCode();
+        if (hasX()) {
+          hash = (37 * hash) + X_FIELD_NUMBER;
+          hash = (53 * hash) + getX().hashCode();
+        }
+        hash = (29 * hash) + getUnknownFields().hashCode();
+        memoizedHashCode = hash;
+        return hash;
+      }
+
+      public static proto_message.Message.Deep.I parseFrom(
+          java.nio.ByteBuffer data)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return PARSER.parseFrom(data);
+      }
+      public static proto_message.Message.Deep.I parseFrom(
+          java.nio.ByteBuffer data,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return PARSER.parseFrom(data, extensionRegistry);
+      }
+      public static proto_message.Message.Deep.I parseFrom(
+          com.google.protobuf.ByteString data)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return PARSER.parseFrom(data);
+      }
+      public static proto_message.Message.Deep.I parseFrom(
+          com.google.protobuf.ByteString data,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return PARSER.parseFrom(data, extensionRegistry);
+      }
+      public static proto_message.Message.Deep.I parseFrom(byte[] data)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return PARSER.parseFrom(data);
+      }
+      public static proto_message.Message.Deep.I parseFrom(
+          byte[] data,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return PARSER.parseFrom(data, extensionRegistry);
+      }
+      public static proto_message.Message.Deep.I parseFrom(java.io.InputStream input)
+          throws java.io.IOException {
+        return com.google.protobuf.GeneratedMessageV3
+            .parseWithIOException(PARSER, input);
+      }
+      public static proto_message.Message.Deep.I parseFrom(
+          java.io.InputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        return com.google.protobuf.GeneratedMessageV3
+            .parseWithIOException(PARSER, input, extensionRegistry);
+      }
+      public static proto_message.Message.Deep.I parseDelimitedFrom(java.io.InputStream input)
+          throws java.io.IOException {
+        return com.google.protobuf.GeneratedMessageV3
+            .parseDelimitedWithIOException(PARSER, input);
+      }
+      public static proto_message.Message.Deep.I parseDelimitedFrom(
+          java.io.InputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        return com.google.protobuf.GeneratedMessageV3
+            .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+      }
+      public static proto_message.Message.Deep.I parseFrom(
+          com.google.protobuf.CodedInputStream input)
+          throws java.io.IOException {
+        return com.google.protobuf.GeneratedMessageV3
+            .parseWithIOException(PARSER, input);
+      }
+      public static proto_message.Message.Deep.I parseFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        return com.google.protobuf.GeneratedMessageV3
+            .parseWithIOException(PARSER, input, extensionRegistry);
+      }
+
+      @java.lang.Override
+      public Builder newBuilderForType() { return newBuilder(); }
+      public static Builder newBuilder() {
+        return DEFAULT_INSTANCE.toBuilder();
+      }
+      public static Builder newBuilder(proto_message.Message.Deep.I prototype) {
+        return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+      }
+      @java.lang.Override
+      public Builder toBuilder() {
+        return this == DEFAULT_INSTANCE
+            ? new Builder() : new Builder().mergeFrom(this);
+      }
+
+      @java.lang.Override
+      protected Builder newBuilderForType(
+          com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+        Builder builder = new Builder(parent);
+        return builder;
+      }
+      /**
+       * Protobuf type {@code proto_message.Deep.I}
+       */
+      public static final class Builder extends
+          com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
+          // @@protoc_insertion_point(builder_implements:proto_message.Deep.I)
+          proto_message.Message.Deep.IOrBuilder {
+        public static final com.google.protobuf.Descriptors.Descriptor
+            getDescriptor() {
+          return proto_message.Message.internal_static_proto_message_Deep_I_descriptor;
+        }
+
+        @java.lang.Override
+        protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+            internalGetFieldAccessorTable() {
+          return proto_message.Message.internal_static_proto_message_Deep_I_fieldAccessorTable
+              .ensureFieldAccessorsInitialized(
+                  proto_message.Message.Deep.I.class, proto_message.Message.Deep.I.Builder.class);
+        }
+
+        // Construct using proto_message.Message.Deep.I.newBuilder()
+        private Builder() {
+
+        }
+
+        private Builder(
+            com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+          super(parent);
+
+        }
+        @java.lang.Override
+        public Builder clear() {
+          super.clear();
+          if (xBuilder_ == null) {
+            x_ = null;
+          } else {
+            x_ = null;
+            xBuilder_ = null;
+          }
+          return this;
+        }
+
+        @java.lang.Override
+        public com.google.protobuf.Descriptors.Descriptor
+            getDescriptorForType() {
+          return proto_message.Message.internal_static_proto_message_Deep_I_descriptor;
+        }
+
+        @java.lang.Override
+        public proto_message.Message.Deep.I getDefaultInstanceForType() {
+          return proto_message.Message.Deep.I.getDefaultInstance();
+        }
+
+        @java.lang.Override
+        public proto_message.Message.Deep.I build() {
+          proto_message.Message.Deep.I result = buildPartial();
+          if (!result.isInitialized()) {
+            throw newUninitializedMessageException(result);
+          }
+          return result;
+        }
+
+        @java.lang.Override
+        public proto_message.Message.Deep.I buildPartial() {
+          proto_message.Message.Deep.I result = new proto_message.Message.Deep.I(this);
+          if (xBuilder_ == null) {
+            result.x_ = x_;
+          } else {
+            result.x_ = xBuilder_.build();
+          }
+          onBuilt();
+          return result;
+        }
+
+        @java.lang.Override
+        public Builder clone() {
+          return super.clone();
+        }
+        @java.lang.Override
+        public Builder setField(
+            com.google.protobuf.Descriptors.FieldDescriptor field,
+            java.lang.Object value) {
+          return super.setField(field, value);
+        }
+        @java.lang.Override
+        public Builder clearField(
+            com.google.protobuf.Descriptors.FieldDescriptor field) {
+          return super.clearField(field);
+        }
+        @java.lang.Override
+        public Builder clearOneof(
+            com.google.protobuf.Descriptors.OneofDescriptor oneof) {
+          return super.clearOneof(oneof);
+        }
+        @java.lang.Override
+        public Builder setRepeatedField(
+            com.google.protobuf.Descriptors.FieldDescriptor field,
+            int index, java.lang.Object value) {
+          return super.setRepeatedField(field, index, value);
+        }
+        @java.lang.Override
+        public Builder addRepeatedField(
+            com.google.protobuf.Descriptors.FieldDescriptor field,
+            java.lang.Object value) {
+          return super.addRepeatedField(field, value);
+        }
+        @java.lang.Override
+        public Builder mergeFrom(com.google.protobuf.Message other) {
+          if (other instanceof proto_message.Message.Deep.I) {
+            return mergeFrom((proto_message.Message.Deep.I)other);
+          } else {
+            super.mergeFrom(other);
+            return this;
+          }
+        }
+
+        public Builder mergeFrom(proto_message.Message.Deep.I other) {
+          if (other == proto_message.Message.Deep.I.getDefaultInstance()) return this;
+          if (other.hasX()) {
+            mergeX(other.getX());
+          }
+          this.mergeUnknownFields(other.getUnknownFields());
+          onChanged();
+          return this;
+        }
+
+        @java.lang.Override
+        public final boolean isInitialized() {
+          return true;
+        }
+
+        @java.lang.Override
+        public Builder mergeFrom(
+            com.google.protobuf.CodedInputStream input,
+            com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+            throws java.io.IOException {
+          if (extensionRegistry == null) {
+            throw new java.lang.NullPointerException();
+          }
+          try {
+            boolean done = false;
+            while (!done) {
+              int tag = input.readTag();
+              switch (tag) {
+                case 0:
+                  done = true;
+                  break;
+                case 10: {
+                  input.readMessage(
+                      getXFieldBuilder().getBuilder(),
+                      extensionRegistry);
+
+                  break;
+                } // case 10
+                default: {
+                  if (!super.parseUnknownField(input, extensionRegistry, tag)) {
+                    done = true; // was an endgroup tag
+                  }
+                  break;
+                } // default:
+              } // switch (tag)
+            } // while (!done)
+          } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+            throw e.unwrapIOException();
+          } finally {
+            onChanged();
+          } // finally
+          return this;
+        }
+
+        private proto_message.Message.Deep.J x_;
+        private com.google.protobuf.SingleFieldBuilderV3<
+            proto_message.Message.Deep.J, proto_message.Message.Deep.J.Builder, proto_message.Message.Deep.JOrBuilder> xBuilder_;
+        /**
+         * <code>.proto_message.Deep.J x = 1;</code>
+         * @return Whether the x field is set.
+         */
+        public boolean hasX() {
+          return xBuilder_ != null || x_ != null;
+        }
+        /**
+         * <code>.proto_message.Deep.J x = 1;</code>
+         * @return The x.
+         */
+        public proto_message.Message.Deep.J getX() {
+          if (xBuilder_ == null) {
+            return x_ == null ? proto_message.Message.Deep.J.getDefaultInstance() : x_;
+          } else {
+            return xBuilder_.getMessage();
+          }
+        }
+        /**
+         * <code>.proto_message.Deep.J x = 1;</code>
+         */
+        public Builder setX(proto_message.Message.Deep.J value) {
+          if (xBuilder_ == null) {
+            if (value == null) {
+              throw new NullPointerException();
+            }
+            x_ = value;
+            onChanged();
+          } else {
+            xBuilder_.setMessage(value);
+          }
+
+          return this;
+        }
+        /**
+         * <code>.proto_message.Deep.J x = 1;</code>
+         */
+        public Builder setX(
+            proto_message.Message.Deep.J.Builder builderForValue) {
+          if (xBuilder_ == null) {
+            x_ = builderForValue.build();
+            onChanged();
+          } else {
+            xBuilder_.setMessage(builderForValue.build());
+          }
+
+          return this;
+        }
+        /**
+         * <code>.proto_message.Deep.J x = 1;</code>
+         */
+        public Builder mergeX(proto_message.Message.Deep.J value) {
+          if (xBuilder_ == null) {
+            if (x_ != null) {
+              x_ =
+                proto_message.Message.Deep.J.newBuilder(x_).mergeFrom(value).buildPartial();
+            } else {
+              x_ = value;
+            }
+            onChanged();
+          } else {
+            xBuilder_.mergeFrom(value);
+          }
+
+          return this;
+        }
+        /**
+         * <code>.proto_message.Deep.J x = 1;</code>
+         */
+        public Builder clearX() {
+          if (xBuilder_ == null) {
+            x_ = null;
+            onChanged();
+          } else {
+            x_ = null;
+            xBuilder_ = null;
+          }
+
+          return this;
+        }
+        /**
+         * <code>.proto_message.Deep.J x = 1;</code>
+         */
+        public proto_message.Message.Deep.J.Builder getXBuilder() {
+          
+          onChanged();
+          return getXFieldBuilder().getBuilder();
+        }
+        /**
+         * <code>.proto_message.Deep.J x = 1;</code>
+         */
+        public proto_message.Message.Deep.JOrBuilder getXOrBuilder() {
+          if (xBuilder_ != null) {
+            return xBuilder_.getMessageOrBuilder();
+          } else {
+            return x_ == null ?
+                proto_message.Message.Deep.J.getDefaultInstance() : x_;
+          }
+        }
+        /**
+         * <code>.proto_message.Deep.J x = 1;</code>
+         */
+        private com.google.protobuf.SingleFieldBuilderV3<
+            proto_message.Message.Deep.J, proto_message.Message.Deep.J.Builder, proto_message.Message.Deep.JOrBuilder> 
+            getXFieldBuilder() {
+          if (xBuilder_ == null) {
+            xBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+                proto_message.Message.Deep.J, proto_message.Message.Deep.J.Builder, proto_message.Message.Deep.JOrBuilder>(
+                    getX(),
+                    getParentForChildren(),
+                    isClean());
+            x_ = null;
+          }
+          return xBuilder_;
+        }
+        @java.lang.Override
+        public final Builder setUnknownFields(
+            final com.google.protobuf.UnknownFieldSet unknownFields) {
+          return super.setUnknownFields(unknownFields);
+        }
+
+        @java.lang.Override
+        public final Builder mergeUnknownFields(
+            final com.google.protobuf.UnknownFieldSet unknownFields) {
+          return super.mergeUnknownFields(unknownFields);
+        }
+
+
+        // @@protoc_insertion_point(builder_scope:proto_message.Deep.I)
+      }
+
+      // @@protoc_insertion_point(class_scope:proto_message.Deep.I)
+      private static final proto_message.Message.Deep.I DEFAULT_INSTANCE;
+      static {
+        DEFAULT_INSTANCE = new proto_message.Message.Deep.I();
+      }
+
+      public static proto_message.Message.Deep.I getDefaultInstance() {
+        return DEFAULT_INSTANCE;
+      }
+
+      private static final com.google.protobuf.Parser<I>
+          PARSER = new com.google.protobuf.AbstractParser<I>() {
+        @java.lang.Override
+        public I parsePartialFrom(
+            com.google.protobuf.CodedInputStream input,
+            com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+            throws com.google.protobuf.InvalidProtocolBufferException {
+          Builder builder = newBuilder();
+          try {
+            builder.mergeFrom(input, extensionRegistry);
+          } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+            throw e.setUnfinishedMessage(builder.buildPartial());
+          } catch (com.google.protobuf.UninitializedMessageException e) {
+            throw e.asInvalidProtocolBufferException().setUnfinishedMessage(builder.buildPartial());
+          } catch (java.io.IOException e) {
+            throw new com.google.protobuf.InvalidProtocolBufferException(e)
+                .setUnfinishedMessage(builder.buildPartial());
+          }
+          return builder.buildPartial();
+        }
+      };
+
+      public static com.google.protobuf.Parser<I> parser() {
+        return PARSER;
+      }
+
+      @java.lang.Override
+      public com.google.protobuf.Parser<I> getParserForType() {
+        return PARSER;
+      }
+
+      @java.lang.Override
+      public proto_message.Message.Deep.I getDefaultInstanceForType() {
+        return DEFAULT_INSTANCE;
+      }
+
+    }
+
+    public interface JOrBuilder extends
+        // @@protoc_insertion_point(interface_extends:proto_message.Deep.J)
+        com.google.protobuf.MessageOrBuilder {
+
+      /**
+       * <code>int32 x = 1;</code>
+       * @return The x.
+       */
+      int getX();
+    }
+    /**
+     * Protobuf type {@code proto_message.Deep.J}
+     */
+    public static final class J extends
+        com.google.protobuf.GeneratedMessageV3 implements
+        // @@protoc_insertion_point(message_implements:proto_message.Deep.J)
+        JOrBuilder {
+    private static final long serialVersionUID = 0L;
+      // Use J.newBuilder() to construct.
+      private J(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
+        super(builder);
+      }
+      private J() {
+      }
+
+      @java.lang.Override
+      @SuppressWarnings({"unused"})
+      protected java.lang.Object newInstance(
+          UnusedPrivateParameter unused) {
+        return new J();
+      }
+
+      @java.lang.Override
+      public final com.google.protobuf.UnknownFieldSet
+      getUnknownFields() {
+        return this.unknownFields;
+      }
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return proto_message.Message.internal_static_proto_message_Deep_J_descriptor;
+      }
+
+      @java.lang.Override
+      protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return proto_message.Message.internal_static_proto_message_Deep_J_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                proto_message.Message.Deep.J.class, proto_message.Message.Deep.J.Builder.class);
+      }
+
+      public static final int X_FIELD_NUMBER = 1;
+      private int x_;
+      /**
+       * <code>int32 x = 1;</code>
+       * @return The x.
+       */
+      @java.lang.Override
+      public int getX() {
+        return x_;
+      }
+
+      private byte memoizedIsInitialized = -1;
+      @java.lang.Override
+      public final boolean isInitialized() {
+        byte isInitialized = memoizedIsInitialized;
+        if (isInitialized == 1) return true;
+        if (isInitialized == 0) return false;
+
+        memoizedIsInitialized = 1;
+        return true;
+      }
+
+      @java.lang.Override
+      public void writeTo(com.google.protobuf.CodedOutputStream output)
+                          throws java.io.IOException {
+        if (x_ != 0) {
+          output.writeInt32(1, x_);
+        }
+        getUnknownFields().writeTo(output);
+      }
+
+      @java.lang.Override
+      public int getSerializedSize() {
+        int size = memoizedSize;
+        if (size != -1) return size;
+
+        size = 0;
+        if (x_ != 0) {
+          size += com.google.protobuf.CodedOutputStream
+            .computeInt32Size(1, x_);
+        }
+        size += getUnknownFields().getSerializedSize();
+        memoizedSize = size;
+        return size;
+      }
+
+      @java.lang.Override
+      public boolean equals(final java.lang.Object obj) {
+        if (obj == this) {
+         return true;
+        }
+        if (!(obj instanceof proto_message.Message.Deep.J)) {
+          return super.equals(obj);
+        }
+        proto_message.Message.Deep.J other = (proto_message.Message.Deep.J) obj;
+
+        if (getX()
+            != other.getX()) return false;
+        if (!getUnknownFields().equals(other.getUnknownFields())) return false;
+        return true;
+      }
+
+      @java.lang.Override
+      public int hashCode() {
+        if (memoizedHashCode != 0) {
+          return memoizedHashCode;
+        }
+        int hash = 41;
+        hash = (19 * hash) + getDescriptor().hashCode();
+        hash = (37 * hash) + X_FIELD_NUMBER;
+        hash = (53 * hash) + getX();
+        hash = (29 * hash) + getUnknownFields().hashCode();
+        memoizedHashCode = hash;
+        return hash;
+      }
+
+      public static proto_message.Message.Deep.J parseFrom(
+          java.nio.ByteBuffer data)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return PARSER.parseFrom(data);
+      }
+      public static proto_message.Message.Deep.J parseFrom(
+          java.nio.ByteBuffer data,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return PARSER.parseFrom(data, extensionRegistry);
+      }
+      public static proto_message.Message.Deep.J parseFrom(
+          com.google.protobuf.ByteString data)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return PARSER.parseFrom(data);
+      }
+      public static proto_message.Message.Deep.J parseFrom(
+          com.google.protobuf.ByteString data,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return PARSER.parseFrom(data, extensionRegistry);
+      }
+      public static proto_message.Message.Deep.J parseFrom(byte[] data)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return PARSER.parseFrom(data);
+      }
+      public static proto_message.Message.Deep.J parseFrom(
+          byte[] data,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return PARSER.parseFrom(data, extensionRegistry);
+      }
+      public static proto_message.Message.Deep.J parseFrom(java.io.InputStream input)
+          throws java.io.IOException {
+        return com.google.protobuf.GeneratedMessageV3
+            .parseWithIOException(PARSER, input);
+      }
+      public static proto_message.Message.Deep.J parseFrom(
+          java.io.InputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        return com.google.protobuf.GeneratedMessageV3
+            .parseWithIOException(PARSER, input, extensionRegistry);
+      }
+      public static proto_message.Message.Deep.J parseDelimitedFrom(java.io.InputStream input)
+          throws java.io.IOException {
+        return com.google.protobuf.GeneratedMessageV3
+            .parseDelimitedWithIOException(PARSER, input);
+      }
+      public static proto_message.Message.Deep.J parseDelimitedFrom(
+          java.io.InputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        return com.google.protobuf.GeneratedMessageV3
+            .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+      }
+      public static proto_message.Message.Deep.J parseFrom(
+          com.google.protobuf.CodedInputStream input)
+          throws java.io.IOException {
+        return com.google.protobuf.GeneratedMessageV3
+            .parseWithIOException(PARSER, input);
+      }
+      public static proto_message.Message.Deep.J parseFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        return com.google.protobuf.GeneratedMessageV3
+            .parseWithIOException(PARSER, input, extensionRegistry);
+      }
+
+      @java.lang.Override
+      public Builder newBuilderForType() { return newBuilder(); }
+      public static Builder newBuilder() {
+        return DEFAULT_INSTANCE.toBuilder();
+      }
+      public static Builder newBuilder(proto_message.Message.Deep.J prototype) {
+        return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+      }
+      @java.lang.Override
+      public Builder toBuilder() {
+        return this == DEFAULT_INSTANCE
+            ? new Builder() : new Builder().mergeFrom(this);
+      }
+
+      @java.lang.Override
+      protected Builder newBuilderForType(
+          com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+        Builder builder = new Builder(parent);
+        return builder;
+      }
+      /**
+       * Protobuf type {@code proto_message.Deep.J}
+       */
+      public static final class Builder extends
+          com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
+          // @@protoc_insertion_point(builder_implements:proto_message.Deep.J)
+          proto_message.Message.Deep.JOrBuilder {
+        public static final com.google.protobuf.Descriptors.Descriptor
+            getDescriptor() {
+          return proto_message.Message.internal_static_proto_message_Deep_J_descriptor;
+        }
+
+        @java.lang.Override
+        protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+            internalGetFieldAccessorTable() {
+          return proto_message.Message.internal_static_proto_message_Deep_J_fieldAccessorTable
+              .ensureFieldAccessorsInitialized(
+                  proto_message.Message.Deep.J.class, proto_message.Message.Deep.J.Builder.class);
+        }
+
+        // Construct using proto_message.Message.Deep.J.newBuilder()
+        private Builder() {
+
+        }
+
+        private Builder(
+            com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+          super(parent);
+
+        }
+        @java.lang.Override
+        public Builder clear() {
+          super.clear();
+          x_ = 0;
+
+          return this;
+        }
+
+        @java.lang.Override
+        public com.google.protobuf.Descriptors.Descriptor
+            getDescriptorForType() {
+          return proto_message.Message.internal_static_proto_message_Deep_J_descriptor;
+        }
+
+        @java.lang.Override
+        public proto_message.Message.Deep.J getDefaultInstanceForType() {
+          return proto_message.Message.Deep.J.getDefaultInstance();
+        }
+
+        @java.lang.Override
+        public proto_message.Message.Deep.J build() {
+          proto_message.Message.Deep.J result = buildPartial();
+          if (!result.isInitialized()) {
+            throw newUninitializedMessageException(result);
+          }
+          return result;
+        }
+
+        @java.lang.Override
+        public proto_message.Message.Deep.J buildPartial() {
+          proto_message.Message.Deep.J result = new proto_message.Message.Deep.J(this);
+          result.x_ = x_;
+          onBuilt();
+          return result;
+        }
+
+        @java.lang.Override
+        public Builder clone() {
+          return super.clone();
+        }
+        @java.lang.Override
+        public Builder setField(
+            com.google.protobuf.Descriptors.FieldDescriptor field,
+            java.lang.Object value) {
+          return super.setField(field, value);
+        }
+        @java.lang.Override
+        public Builder clearField(
+            com.google.protobuf.Descriptors.FieldDescriptor field) {
+          return super.clearField(field);
+        }
+        @java.lang.Override
+        public Builder clearOneof(
+            com.google.protobuf.Descriptors.OneofDescriptor oneof) {
+          return super.clearOneof(oneof);
+        }
+        @java.lang.Override
+        public Builder setRepeatedField(
+            com.google.protobuf.Descriptors.FieldDescriptor field,
+            int index, java.lang.Object value) {
+          return super.setRepeatedField(field, index, value);
+        }
+        @java.lang.Override
+        public Builder addRepeatedField(
+            com.google.protobuf.Descriptors.FieldDescriptor field,
+            java.lang.Object value) {
+          return super.addRepeatedField(field, value);
+        }
+        @java.lang.Override
+        public Builder mergeFrom(com.google.protobuf.Message other) {
+          if (other instanceof proto_message.Message.Deep.J) {
+            return mergeFrom((proto_message.Message.Deep.J)other);
+          } else {
+            super.mergeFrom(other);
+            return this;
+          }
+        }
+
+        public Builder mergeFrom(proto_message.Message.Deep.J other) {
+          if (other == proto_message.Message.Deep.J.getDefaultInstance()) return this;
+          if (other.getX() != 0) {
+            setX(other.getX());
+          }
+          this.mergeUnknownFields(other.getUnknownFields());
+          onChanged();
+          return this;
+        }
+
+        @java.lang.Override
+        public final boolean isInitialized() {
+          return true;
+        }
+
+        @java.lang.Override
+        public Builder mergeFrom(
+            com.google.protobuf.CodedInputStream input,
+            com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+            throws java.io.IOException {
+          if (extensionRegistry == null) {
+            throw new java.lang.NullPointerException();
+          }
+          try {
+            boolean done = false;
+            while (!done) {
+              int tag = input.readTag();
+              switch (tag) {
+                case 0:
+                  done = true;
+                  break;
+                case 8: {
+                  x_ = input.readInt32();
+
+                  break;
+                } // case 8
+                default: {
+                  if (!super.parseUnknownField(input, extensionRegistry, tag)) {
+                    done = true; // was an endgroup tag
+                  }
+                  break;
+                } // default:
+              } // switch (tag)
+            } // while (!done)
+          } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+            throw e.unwrapIOException();
+          } finally {
+            onChanged();
+          } // finally
+          return this;
+        }
+
+        private int x_ ;
+        /**
+         * <code>int32 x = 1;</code>
+         * @return The x.
+         */
+        @java.lang.Override
+        public int getX() {
+          return x_;
+        }
+        /**
+         * <code>int32 x = 1;</code>
+         * @param value The x to set.
+         * @return This builder for chaining.
+         */
+        public Builder setX(int value) {
+          
+          x_ = value;
+          onChanged();
+          return this;
+        }
+        /**
+         * <code>int32 x = 1;</code>
+         * @return This builder for chaining.
+         */
+        public Builder clearX() {
+          
+          x_ = 0;
+          onChanged();
+          return this;
+        }
+        @java.lang.Override
+        public final Builder setUnknownFields(
+            final com.google.protobuf.UnknownFieldSet unknownFields) {
+          return super.setUnknownFields(unknownFields);
+        }
+
+        @java.lang.Override
+        public final Builder mergeUnknownFields(
+            final com.google.protobuf.UnknownFieldSet unknownFields) {
+          return super.mergeUnknownFields(unknownFields);
+        }
+
+
+        // @@protoc_insertion_point(builder_scope:proto_message.Deep.J)
+      }
+
+      // @@protoc_insertion_point(class_scope:proto_message.Deep.J)
+      private static final proto_message.Message.Deep.J DEFAULT_INSTANCE;
+      static {
+        DEFAULT_INSTANCE = new proto_message.Message.Deep.J();
+      }
+
+      public static proto_message.Message.Deep.J getDefaultInstance() {
+        return DEFAULT_INSTANCE;
+      }
+
+      private static final com.google.protobuf.Parser<J>
+          PARSER = new com.google.protobuf.AbstractParser<J>() {
+        @java.lang.Override
+        public J parsePartialFrom(
+            com.google.protobuf.CodedInputStream input,
+            com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+            throws com.google.protobuf.InvalidProtocolBufferException {
+          Builder builder = newBuilder();
+          try {
+            builder.mergeFrom(input, extensionRegistry);
+          } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+            throw e.setUnfinishedMessage(builder.buildPartial());
+          } catch (com.google.protobuf.UninitializedMessageException e) {
+            throw e.asInvalidProtocolBufferException().setUnfinishedMessage(builder.buildPartial());
+          } catch (java.io.IOException e) {
+            throw new com.google.protobuf.InvalidProtocolBufferException(e)
+                .setUnfinishedMessage(builder.buildPartial());
+          }
+          return builder.buildPartial();
+        }
+      };
+
+      public static com.google.protobuf.Parser<J> parser() {
+        return PARSER;
+      }
+
+      @java.lang.Override
+      public com.google.protobuf.Parser<J> getParserForType() {
+        return PARSER;
+      }
+
+      @java.lang.Override
+      public proto_message.Message.Deep.J getDefaultInstanceForType() {
+        return DEFAULT_INSTANCE;
+      }
+
+    }
+
+    public static final int X_FIELD_NUMBER = 1;
+    private proto_message.Message.Deep.A x_;
+    /**
+     * <code>.proto_message.Deep.A x = 1;</code>
+     * @return Whether the x field is set.
+     */
+    @java.lang.Override
+    public boolean hasX() {
+      return x_ != null;
+    }
+    /**
+     * <code>.proto_message.Deep.A x = 1;</code>
+     * @return The x.
+     */
+    @java.lang.Override
+    public proto_message.Message.Deep.A getX() {
+      return x_ == null ? proto_message.Message.Deep.A.getDefaultInstance() : x_;
+    }
+    /**
+     * <code>.proto_message.Deep.A x = 1;</code>
+     */
+    @java.lang.Override
+    public proto_message.Message.Deep.AOrBuilder getXOrBuilder() {
+      return getX();
+    }
+
+    private byte memoizedIsInitialized = -1;
+    @java.lang.Override
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    @java.lang.Override
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      if (x_ != null) {
+        output.writeMessage(1, getX());
+      }
+      getUnknownFields().writeTo(output);
+    }
+
+    @java.lang.Override
+    public int getSerializedSize() {
+      int size = memoizedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (x_ != null) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(1, getX());
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSize = size;
+      return size;
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof proto_message.Message.Deep)) {
+        return super.equals(obj);
+      }
+      proto_message.Message.Deep other = (proto_message.Message.Deep) obj;
+
+      if (hasX() != other.hasX()) return false;
+      if (hasX()) {
+        if (!getX()
+            .equals(other.getX())) return false;
+      }
+      if (!getUnknownFields().equals(other.getUnknownFields())) return false;
+      return true;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      if (hasX()) {
+        hash = (37 * hash) + X_FIELD_NUMBER;
+        hash = (53 * hash) + getX().hashCode();
+      }
+      hash = (29 * hash) + getUnknownFields().hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static proto_message.Message.Deep parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static proto_message.Message.Deep parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static proto_message.Message.Deep parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static proto_message.Message.Deep parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static proto_message.Message.Deep parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static proto_message.Message.Deep parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static proto_message.Message.Deep parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
+    }
+    public static proto_message.Message.Deep parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static proto_message.Message.Deep parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input);
+    }
+    public static proto_message.Message.Deep parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static proto_message.Message.Deep parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
+    }
+    public static proto_message.Message.Deep parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    @java.lang.Override
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(proto_message.Message.Deep prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    @java.lang.Override
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code proto_message.Deep}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:proto_message.Deep)
+        proto_message.Message.DeepOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return proto_message.Message.internal_static_proto_message_Deep_descriptor;
+      }
+
+      @java.lang.Override
+      protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return proto_message.Message.internal_static_proto_message_Deep_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                proto_message.Message.Deep.class, proto_message.Message.Deep.Builder.class);
+      }
+
+      // Construct using proto_message.Message.Deep.newBuilder()
+      private Builder() {
+
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+        super(parent);
+
+      }
+      @java.lang.Override
+      public Builder clear() {
+        super.clear();
+        if (xBuilder_ == null) {
+          x_ = null;
+        } else {
+          x_ = null;
+          xBuilder_ = null;
+        }
+        return this;
+      }
+
+      @java.lang.Override
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return proto_message.Message.internal_static_proto_message_Deep_descriptor;
+      }
+
+      @java.lang.Override
+      public proto_message.Message.Deep getDefaultInstanceForType() {
+        return proto_message.Message.Deep.getDefaultInstance();
+      }
+
+      @java.lang.Override
+      public proto_message.Message.Deep build() {
+        proto_message.Message.Deep result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      @java.lang.Override
+      public proto_message.Message.Deep buildPartial() {
+        proto_message.Message.Deep result = new proto_message.Message.Deep(this);
+        if (xBuilder_ == null) {
+          result.x_ = x_;
+        } else {
+          result.x_ = xBuilder_.build();
+        }
+        onBuilt();
+        return result;
+      }
+
+      @java.lang.Override
+      public Builder clone() {
+        return super.clone();
+      }
+      @java.lang.Override
+      public Builder setField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return super.setField(field, value);
+      }
+      @java.lang.Override
+      public Builder clearField(
+          com.google.protobuf.Descriptors.FieldDescriptor field) {
+        return super.clearField(field);
+      }
+      @java.lang.Override
+      public Builder clearOneof(
+          com.google.protobuf.Descriptors.OneofDescriptor oneof) {
+        return super.clearOneof(oneof);
+      }
+      @java.lang.Override
+      public Builder setRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          int index, java.lang.Object value) {
+        return super.setRepeatedField(field, index, value);
+      }
+      @java.lang.Override
+      public Builder addRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return super.addRepeatedField(field, value);
+      }
+      @java.lang.Override
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof proto_message.Message.Deep) {
+          return mergeFrom((proto_message.Message.Deep)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(proto_message.Message.Deep other) {
+        if (other == proto_message.Message.Deep.getDefaultInstance()) return this;
+        if (other.hasX()) {
+          mergeX(other.getX());
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        onChanged();
+        return this;
+      }
+
+      @java.lang.Override
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        if (extensionRegistry == null) {
+          throw new java.lang.NullPointerException();
+        }
+        try {
+          boolean done = false;
+          while (!done) {
+            int tag = input.readTag();
+            switch (tag) {
+              case 0:
+                done = true;
+                break;
+              case 10: {
+                input.readMessage(
+                    getXFieldBuilder().getBuilder(),
+                    extensionRegistry);
+
+                break;
+              } // case 10
+              default: {
+                if (!super.parseUnknownField(input, extensionRegistry, tag)) {
+                  done = true; // was an endgroup tag
+                }
+                break;
+              } // default:
+            } // switch (tag)
+          } // while (!done)
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.unwrapIOException();
+        } finally {
+          onChanged();
+        } // finally
+        return this;
+      }
+
+      private proto_message.Message.Deep.A x_;
+      private com.google.protobuf.SingleFieldBuilderV3<
+          proto_message.Message.Deep.A, proto_message.Message.Deep.A.Builder, proto_message.Message.Deep.AOrBuilder> xBuilder_;
+      /**
+       * <code>.proto_message.Deep.A x = 1;</code>
+       * @return Whether the x field is set.
+       */
+      public boolean hasX() {
+        return xBuilder_ != null || x_ != null;
+      }
+      /**
+       * <code>.proto_message.Deep.A x = 1;</code>
+       * @return The x.
+       */
+      public proto_message.Message.Deep.A getX() {
+        if (xBuilder_ == null) {
+          return x_ == null ? proto_message.Message.Deep.A.getDefaultInstance() : x_;
+        } else {
+          return xBuilder_.getMessage();
+        }
+      }
+      /**
+       * <code>.proto_message.Deep.A x = 1;</code>
+       */
+      public Builder setX(proto_message.Message.Deep.A value) {
+        if (xBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          x_ = value;
+          onChanged();
+        } else {
+          xBuilder_.setMessage(value);
+        }
+
+        return this;
+      }
+      /**
+       * <code>.proto_message.Deep.A x = 1;</code>
+       */
+      public Builder setX(
+          proto_message.Message.Deep.A.Builder builderForValue) {
+        if (xBuilder_ == null) {
+          x_ = builderForValue.build();
+          onChanged();
+        } else {
+          xBuilder_.setMessage(builderForValue.build());
+        }
+
+        return this;
+      }
+      /**
+       * <code>.proto_message.Deep.A x = 1;</code>
+       */
+      public Builder mergeX(proto_message.Message.Deep.A value) {
+        if (xBuilder_ == null) {
+          if (x_ != null) {
+            x_ =
+              proto_message.Message.Deep.A.newBuilder(x_).mergeFrom(value).buildPartial();
+          } else {
+            x_ = value;
+          }
+          onChanged();
+        } else {
+          xBuilder_.mergeFrom(value);
+        }
+
+        return this;
+      }
+      /**
+       * <code>.proto_message.Deep.A x = 1;</code>
+       */
+      public Builder clearX() {
+        if (xBuilder_ == null) {
+          x_ = null;
+          onChanged();
+        } else {
+          x_ = null;
+          xBuilder_ = null;
+        }
+
+        return this;
+      }
+      /**
+       * <code>.proto_message.Deep.A x = 1;</code>
+       */
+      public proto_message.Message.Deep.A.Builder getXBuilder() {
+        
+        onChanged();
+        return getXFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>.proto_message.Deep.A x = 1;</code>
+       */
+      public proto_message.Message.Deep.AOrBuilder getXOrBuilder() {
+        if (xBuilder_ != null) {
+          return xBuilder_.getMessageOrBuilder();
+        } else {
+          return x_ == null ?
+              proto_message.Message.Deep.A.getDefaultInstance() : x_;
+        }
+      }
+      /**
+       * <code>.proto_message.Deep.A x = 1;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilderV3<
+          proto_message.Message.Deep.A, proto_message.Message.Deep.A.Builder, proto_message.Message.Deep.AOrBuilder> 
+          getXFieldBuilder() {
+        if (xBuilder_ == null) {
+          xBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+              proto_message.Message.Deep.A, proto_message.Message.Deep.A.Builder, proto_message.Message.Deep.AOrBuilder>(
+                  getX(),
+                  getParentForChildren(),
+                  isClean());
+          x_ = null;
+        }
+        return xBuilder_;
+      }
+      @java.lang.Override
+      public final Builder setUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.setUnknownFields(unknownFields);
+      }
+
+      @java.lang.Override
+      public final Builder mergeUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.mergeUnknownFields(unknownFields);
+      }
+
+
+      // @@protoc_insertion_point(builder_scope:proto_message.Deep)
+    }
+
+    // @@protoc_insertion_point(class_scope:proto_message.Deep)
+    private static final proto_message.Message.Deep DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new proto_message.Message.Deep();
+    }
+
+    public static proto_message.Message.Deep getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    private static final com.google.protobuf.Parser<Deep>
+        PARSER = new com.google.protobuf.AbstractParser<Deep>() {
+      @java.lang.Override
+      public Deep parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        Builder builder = newBuilder();
+        try {
+          builder.mergeFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.setUnfinishedMessage(builder.buildPartial());
+        } catch (com.google.protobuf.UninitializedMessageException e) {
+          throw e.asInvalidProtocolBufferException().setUnfinishedMessage(builder.buildPartial());
+        } catch (java.io.IOException e) {
+          throw new com.google.protobuf.InvalidProtocolBufferException(e)
+              .setUnfinishedMessage(builder.buildPartial());
+        }
+        return builder.buildPartial();
+      }
+    };
+
+    public static com.google.protobuf.Parser<Deep> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<Deep> getParserForType() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public proto_message.Message.Deep getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
+  }
+
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_proto_message_AddressBook_descriptor;
   private static final 
@@ -3999,6 +11924,61 @@ proto_message.Message.Person defaultValue);
   private static final 
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internal_static_proto_message_Person_RecursiveField_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_proto_message_Deep_descriptor;
+  private static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_proto_message_Deep_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_proto_message_Deep_A_descriptor;
+  private static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_proto_message_Deep_A_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_proto_message_Deep_B_descriptor;
+  private static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_proto_message_Deep_B_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_proto_message_Deep_C_descriptor;
+  private static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_proto_message_Deep_C_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_proto_message_Deep_D_descriptor;
+  private static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_proto_message_Deep_D_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_proto_message_Deep_E_descriptor;
+  private static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_proto_message_Deep_E_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_proto_message_Deep_F_descriptor;
+  private static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_proto_message_Deep_F_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_proto_message_Deep_G_descriptor;
+  private static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_proto_message_Deep_G_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_proto_message_Deep_H_descriptor;
+  private static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_proto_message_Deep_H_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_proto_message_Deep_I_descriptor;
+  private static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_proto_message_Deep_I_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_proto_message_Deep_J_descriptor;
+  private static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_proto_message_Deep_J_fieldAccessorTable;
 
   public static com.google.protobuf.Descriptors.FileDescriptor
       getDescriptor() {
@@ -4008,22 +11988,40 @@ proto_message.Message.Person defaultValue);
       descriptor;
   static {
     java.lang.String[] descriptorData = {
-      "\n\rmessage.proto\022\rproto_message\"\270\001\n\013Addre" +
+      "\n\rmessage.proto\022\rproto_message\"\365\003\n\013Addre" +
       "ssBook\0226\n\006people\030\001 \003(\0132&.proto_message.A" +
       "ddressBook.PeopleEntry\022+\n\007central\030\002 \001(\0132" +
-      "\032.proto_message.PhoneNumber\032D\n\013PeopleEnt" +
-      "ry\022\013\n\003key\030\001 \001(\005\022$\n\005value\030\002 \001(\0132\025.proto_m" +
-      "essage.Person:\0028\001\"E\n\013PhoneNumber\022\016\n\006numb" +
-      "er\030\001 \001(\t\022&\n\004type\030\002 \001(\0162\030.proto_message.P" +
-      "honeType\"\367\001\n\006Person\022\014\n\004name\030\001 \001(\t\022*\n\006pho" +
-      "nes\030\004 \003(\0132\032.proto_message.PhoneNumber\022\017\n" +
-      "\007created\030\005 \001(\004\022\024\n\014last_updated\030\006 \001(\001\0225\n\007" +
-      "recurse\030\007 \001(\0132$.proto_message.Person.Rec" +
-      "ursiveField\032U\n\016RecursiveField\022\r\n\005value\030\001" +
-      " \001(\021\0224\n\006deeper\030\002 \001(\0132$.proto_message.Per" +
-      "son.RecursiveField*<\n\tPhoneType\022\017\n\013UNSPE" +
-      "CIFIED\020\000\022\n\n\006MOBILE\020\001\022\010\n\004HOME\020\002\022\010\n\004WORK\020\003" +
-      "b\006proto3"
+      "\032.proto_message.PhoneNumber\022\021\n\tmy_double" +
+      "\030\013 \001(\001\022\020\n\010my_float\030\014 \001(\002\022\020\n\010my_int64\030\r \001" +
+      "(\003\022\021\n\tmy_uint64\030\016 \001(\004\022\020\n\010my_int32\030\017 \001(\005\022" +
+      "\022\n\nmy_fixed64\030\020 \001(\006\022\022\n\nmy_fixed32\030\021 \001(\007\022" +
+      "\017\n\007my_bool\030\022 \001(\010\022\021\n\tmy_string\030\023 \001(\t\022\020\n\010m" +
+      "y_bytes\030\026 \001(\014\022\021\n\tmy_uint32\030\027 \001(\r\022\023\n\013my_s" +
+      "fixed32\030\031 \001(\017\022\023\n\013my_sfixed64\030\032 \001(\020\022\021\n\tmy" +
+      "_sint32\030\033 \001(\021\022\021\n\tmy_sint64\030\034 \001(\022\022\036\n\001d\030( " +
+      "\001(\0132\023.proto_message.Deep\032D\n\013PeopleEntry\022" +
+      "\013\n\003key\030\001 \001(\005\022$\n\005value\030\002 \001(\0132\025.proto_mess" +
+      "age.Person:\0028\001\"E\n\013PhoneNumber\022\016\n\006number\030" +
+      "\001 \001(\t\022&\n\004type\030\002 \001(\0162\030.proto_message.Phon" +
+      "eType\"\367\001\n\006Person\022\014\n\004name\030\001 \001(\t\022*\n\006phones" +
+      "\030\004 \003(\0132\032.proto_message.PhoneNumber\022\017\n\007cr" +
+      "eated\030\005 \001(\004\022\024\n\014last_updated\030\006 \001(\001\0225\n\007rec" +
+      "urse\030\007 \001(\0132$.proto_message.Person.Recurs" +
+      "iveField\032U\n\016RecursiveField\022\r\n\005value\030\001 \001(" +
+      "\021\0224\n\006deeper\030\002 \001(\0132$.proto_message.Person" +
+      ".RecursiveField\"\227\003\n\004Deep\022 \n\001x\030\001 \001(\0132\025.pr" +
+      "oto_message.Deep.A\032%\n\001A\022 \n\001x\030\001 \001(\0132\025.pro" +
+      "to_message.Deep.B\032%\n\001B\022 \n\001x\030\001 \001(\0132\025.prot" +
+      "o_message.Deep.C\032%\n\001C\022 \n\001x\030\001 \001(\0132\025.proto" +
+      "_message.Deep.D\032%\n\001D\022 \n\001x\030\001 \001(\0132\025.proto_" +
+      "message.Deep.E\032%\n\001E\022 \n\001x\030\001 \001(\0132\025.proto_m" +
+      "essage.Deep.F\032%\n\001F\022 \n\001x\030\001 \001(\0132\025.proto_me" +
+      "ssage.Deep.G\032%\n\001G\022 \n\001x\030\001 \001(\0132\025.proto_mes" +
+      "sage.Deep.H\032%\n\001H\022 \n\001x\030\001 \001(\0132\025.proto_mess" +
+      "age.Deep.I\032%\n\001I\022 \n\001x\030\001 \001(\0132\025.proto_messa" +
+      "ge.Deep.J\032\016\n\001J\022\t\n\001x\030\001 \001(\005*<\n\tPhoneType\022\017" +
+      "\n\013UNSPECIFIED\020\000\022\n\n\006MOBILE\020\001\022\010\n\004HOME\020\002\022\010\n" +
+      "\004WORK\020\003b\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -4034,7 +12032,7 @@ proto_message.Message.Person defaultValue);
     internal_static_proto_message_AddressBook_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_proto_message_AddressBook_descriptor,
-        new java.lang.String[] { "People", "Central", });
+        new java.lang.String[] { "People", "Central", "MyDouble", "MyFloat", "MyInt64", "MyUint64", "MyInt32", "MyFixed64", "MyFixed32", "MyBool", "MyString", "MyBytes", "MyUint32", "MySfixed32", "MySfixed64", "MySint32", "MySint64", "D", });
     internal_static_proto_message_AddressBook_PeopleEntry_descriptor =
       internal_static_proto_message_AddressBook_descriptor.getNestedTypes().get(0);
     internal_static_proto_message_AddressBook_PeopleEntry_fieldAccessorTable = new
@@ -4059,6 +12057,72 @@ proto_message.Message.Person defaultValue);
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_proto_message_Person_RecursiveField_descriptor,
         new java.lang.String[] { "Value", "Deeper", });
+    internal_static_proto_message_Deep_descriptor =
+      getDescriptor().getMessageTypes().get(3);
+    internal_static_proto_message_Deep_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_proto_message_Deep_descriptor,
+        new java.lang.String[] { "X", });
+    internal_static_proto_message_Deep_A_descriptor =
+      internal_static_proto_message_Deep_descriptor.getNestedTypes().get(0);
+    internal_static_proto_message_Deep_A_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_proto_message_Deep_A_descriptor,
+        new java.lang.String[] { "X", });
+    internal_static_proto_message_Deep_B_descriptor =
+      internal_static_proto_message_Deep_descriptor.getNestedTypes().get(1);
+    internal_static_proto_message_Deep_B_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_proto_message_Deep_B_descriptor,
+        new java.lang.String[] { "X", });
+    internal_static_proto_message_Deep_C_descriptor =
+      internal_static_proto_message_Deep_descriptor.getNestedTypes().get(2);
+    internal_static_proto_message_Deep_C_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_proto_message_Deep_C_descriptor,
+        new java.lang.String[] { "X", });
+    internal_static_proto_message_Deep_D_descriptor =
+      internal_static_proto_message_Deep_descriptor.getNestedTypes().get(3);
+    internal_static_proto_message_Deep_D_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_proto_message_Deep_D_descriptor,
+        new java.lang.String[] { "X", });
+    internal_static_proto_message_Deep_E_descriptor =
+      internal_static_proto_message_Deep_descriptor.getNestedTypes().get(4);
+    internal_static_proto_message_Deep_E_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_proto_message_Deep_E_descriptor,
+        new java.lang.String[] { "X", });
+    internal_static_proto_message_Deep_F_descriptor =
+      internal_static_proto_message_Deep_descriptor.getNestedTypes().get(5);
+    internal_static_proto_message_Deep_F_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_proto_message_Deep_F_descriptor,
+        new java.lang.String[] { "X", });
+    internal_static_proto_message_Deep_G_descriptor =
+      internal_static_proto_message_Deep_descriptor.getNestedTypes().get(6);
+    internal_static_proto_message_Deep_G_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_proto_message_Deep_G_descriptor,
+        new java.lang.String[] { "X", });
+    internal_static_proto_message_Deep_H_descriptor =
+      internal_static_proto_message_Deep_descriptor.getNestedTypes().get(7);
+    internal_static_proto_message_Deep_H_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_proto_message_Deep_H_descriptor,
+        new java.lang.String[] { "X", });
+    internal_static_proto_message_Deep_I_descriptor =
+      internal_static_proto_message_Deep_descriptor.getNestedTypes().get(8);
+    internal_static_proto_message_Deep_I_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_proto_message_Deep_I_descriptor,
+        new java.lang.String[] { "X", });
+    internal_static_proto_message_Deep_J_descriptor =
+      internal_static_proto_message_Deep_descriptor.getNestedTypes().get(9);
+    internal_static_proto_message_Deep_J_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_proto_message_Deep_J_descriptor,
+        new java.lang.String[] { "X", });
   }
 
   // @@protoc_insertion_point(outer_class_scope)
