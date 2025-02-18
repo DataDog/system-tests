@@ -188,7 +188,6 @@ class Test_Automated_User_Blocking:
         )
 
     @missing_feature(context.library == "java")
-    @missing_feature(context.library == "python")
     def test_user_blocking_sdk(self):
         assert self.config_state_1[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
         assert self.r_login.status_code == 200
