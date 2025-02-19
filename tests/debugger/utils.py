@@ -150,7 +150,7 @@ class _Base_Debugger_Test:
     ###### send #####
     _rc_version = 0
 
-    def send_rc_probes(self, reset: bool = True):
+    def send_rc_probes(self, *, reset: bool = True):
         _Base_Debugger_Test._rc_version += 1
 
         if reset:
@@ -167,6 +167,7 @@ class _Base_Debugger_Test:
         live_debugging_enabled: bool | None = None,
         code_origin_enabled: bool | None = None,
         dynamic_sampling_enabled: bool | None = None,
+        *,
         reset: bool = True,
     ):
         _Base_Debugger_Test._rc_version += 1
@@ -185,14 +186,14 @@ class _Base_Debugger_Test:
             )
         )
 
-    def send_rc_symdb(self, reset: bool = True):
+    def send_rc_symdb(self, *, reset: bool = True):
         _Base_Debugger_Test._rc_version += 1
         if reset:
             self.rc_states = []
 
         self.rc_states.append(remote_config.send_symdb_command(_Base_Debugger_Test._rc_version))
 
-    def send_weblog_request(self, request_path: str, reset: bool = True):
+    def send_weblog_request(self, request_path: str, *, reset: bool = True):
         if reset:
             self.weblog_responses = []
 
