@@ -320,7 +320,7 @@ tests/:
             vertx4: missing_feature
           Test_TrustBoundaryViolation_ExtendedLocation: missing_feature
           Test_TrustBoundaryViolation_StackTrace:
-            '*': bug (APPSEC-56803)
+            '*': v1.47.0
             akka-http: missing_feature
             jersey-grizzly2: missing_feature
             play: missing_feature
@@ -1543,6 +1543,10 @@ tests/:
         spring-boot-undertow: v1.38.0
         spring-boot-wildfly: v1.38.0
         uds-spring-boot: v1.33.0
+    test_debugger_inproduct_enablement.py:
+      Test_Debugger_InProduct_Enablement_Code_Origin: missing_feature
+      Test_Debugger_InProduct_Enablement_Dynamic_Instrumentation: missing_feature
+      Test_Debugger_InProduct_Enablement_Exception_Replay: missing_feature
     test_debugger_pii.py:
       Test_Debugger_PII_Redaction:
         '*': missing_feature
