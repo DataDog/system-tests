@@ -689,7 +689,7 @@ class _Scenarios:
         doc="Test scenario for checking debugger telemetry.",
         scenario_groups=[ScenarioGroup.DEBUGGER],
     )
-	
+
     fuzzer = DockerScenario("FUZZER", doc="Fake scenario for fuzzing (launch without pytest)", github_workflow=None)
 
     # Single Step Instrumentation scenarios (HOST and CONTAINER)

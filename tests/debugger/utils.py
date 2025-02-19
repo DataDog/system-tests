@@ -565,11 +565,9 @@ class _Base_Debugger_Test:
         filename = test_name + "_" + self.get_tracer()["language"] + "_" + suffix + ".json"
         return os.path.join(_CUR_DIR, "approvals", filename)
 
-
     def write_approval(self, data, test_name, suffix):
         with open(self._get_path(test_name, suffix), "w", encoding="utf-8") as f:
             json.dump(data, f, indent=2)
-
 
     def read_approval(self, test_name, suffix):
         with open(self._get_path(test_name, suffix), "r", encoding="utf-8") as f:

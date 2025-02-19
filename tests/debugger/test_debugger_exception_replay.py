@@ -3,7 +3,6 @@
 # Copyright 2021 Datadog, Inc.
 
 import tests.debugger.utils as debugger
-import os
 import re
 from utils import scenarios, features, bug, context, flaky, irrelevant
 from utils.tools import logger

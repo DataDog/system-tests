@@ -8,6 +8,7 @@ from utils import scenarios, features, missing_feature, bug, context
 
 _OVERRIDE_APROVALS = debugger.get_env_bool("DI_OVERRIDE_APPROVALS")
 
+
 @features.debugger
 @scenarios.debugger_telemetry
 class Test_Debugger_Telemetry(debugger._Base_Debugger_Test):
@@ -24,8 +25,7 @@ class Test_Debugger_Telemetry(debugger._Base_Debugger_Test):
                 Test_Debugger_Telemetry.telemetry_data = self.wait_for_telemetry(telemetry_type)
 
         self.telemetry = Test_Debugger_Telemetry.telemetry_data
-        
-        
+
     ########### assert ############
     def _assert(self, product, pattern):
         def _extract_configurations(pattern):
@@ -57,7 +57,7 @@ class Test_Debugger_Telemetry(debugger._Base_Debugger_Test):
         assert self.telemetry, f"Telemetry for {product} was not received"
 
         _validate_configurations(_extract_configurations(pattern=pattern), product=product)
-    
+
     ########### test ############
     ### Dynamic Instrumentation ###
     def setup_telemetry_di(self):
