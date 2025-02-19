@@ -25,7 +25,7 @@ ssi_tests:
         echo "step 3"
         mkdir -p "$REPORTS_PATH"
         echo "step 4"
-        cp -R logs_"${SCENARIO_SUFIX}" $REPORTS_PATH/"
+        cp -R logs_"${SCENARIO_SUFIX}" "$REPORTS_PATH/"
         echo "step 5"
         cp logs_"${SCENARIO_SUFIX}"/feature_parity.json "$REPORTS_PATH"/"${SCENARIO_SUFIX}".json
         echo "step 6"
