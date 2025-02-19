@@ -34,19 +34,20 @@ def print_aws_gitlab_pipeline(language, aws_matrix, ci_environment) -> None:
             vm_set.update(vms)
 
         for vm in vm_set:
-            result_pipeline[vm] = {}
-            result_pipeline[vm]["stage"] = scenario
-            result_pipeline[vm]["extends"] = ".base_job_onboarding_system_tests"
-            result_pipeline[vm]["variables"] = {}
-            result_pipeline[vm]["variables"]["TEST_LIBRARY"] = language
-            result_pipeline[vm]["variables"]["SCENARIO"] = scenario
-            result_pipeline[vm]["variables"]["VIRTUAL_MACHINE"] = vm
-            result_pipeline[vm]["variables"]["ONBOARDING_FILTER_ENV"] = ci_environment
-            result_pipeline[vm]["parallel"] = {"matrix": []}
+            vm_job = generate_job_unique_name(result_pipeline, vm, {})
+            result_pipeline[vm_job] = {}
+            result_pipeline[vm_job]["stage"] = scenario
+            result_pipeline[vm_job]["extends"] = ".base_job_onboarding_system_tests"
+            result_pipeline[vm_job]["variables"] = {}
+            result_pipeline[vm_job]["variables"]["TEST_LIBRARY"] = language
+            result_pipeline[vm_job]["variables"]["SCENARIO"] = scenario
+            result_pipeline[vm_job]["variables"]["VIRTUAL_MACHINE"] = vm
+            result_pipeline[vm_job]["variables"]["ONBOARDING_FILTER_ENV"] = ci_environment
+            result_pipeline[vm_job]["parallel"] = {"matrix": []}
 
             for weblog in weblogs.keys():
                 if vm in weblogs[weblog]:
-                    result_pipeline[vm]["parallel"]["matrix"].append({"WEBLOG": weblog})
+                    result_pipeline[vm_job]["parallel"]["matrix"].append({"WEBLOG": weblog})
 
     # TODO: write the gitlab pipeline
     pipeline_yml = yaml.dump(result_pipeline, sort_keys=False, default_flow_style=False)
