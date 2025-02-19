@@ -190,7 +190,7 @@ func main() {
 		if q := ctx.Query("event_user_id"); q != "" {
 			uid = q
 		}
-		appsec.TrackUserLoginSuccessEvent(ctx.Request.Context(), uid, map[string]string{"metadata0": "value0", "metadata1": "value1"})
+		appsec.TrackUserLoginSuccess(ctx.Request.Context(), uid, uid, map[string]string{"metadata0": "value0", "metadata1": "value1"})
 	})
 
 	r.GET("/user_login_failure_event", func(ctx *gin.Context) {
@@ -205,7 +205,7 @@ func main() {
 				exists = parsed
 			}
 		}
-		appsec.TrackUserLoginFailureEvent(ctx.Request.Context(), uid, exists, map[string]string{"metadata0": "value0", "metadata1": "value1"})
+		appsec.TrackUserLoginFailure(ctx.Request.Context(), uid, exists, map[string]string{"metadata0": "value0", "metadata1": "value1"})
 	})
 
 	r.GET("/custom_event", func(ctx *gin.Context) {
@@ -238,7 +238,7 @@ func main() {
 		if err != nil {
 			ctx.Writer.WriteHeader(500)
 		}
-		appsec.TrackUserLoginSuccessEvent(ctx.Request.Context(), user, map[string]string{}, tracer.WithUserSessionID(cookie.Value))
+		appsec.TrackUserLoginSuccess(ctx.Request.Context(), user, map[string]string{}, tracer.WithUserSessionID(cookie.Value))
 	})
 
 	r.GET("/inferred-proxy/span-creation", func(ctx *gin.Context) {

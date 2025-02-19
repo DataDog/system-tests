@@ -202,7 +202,7 @@ func main() {
 		if q := ctx.QueryParam("event_user_id"); q != "" {
 			uid = q
 		}
-		appsec.TrackUserLoginSuccessEvent(ctx.Request().Context(), uid, map[string]string{"metadata0": "value0", "metadata1": "value1"})
+		appsec.TrackUserLoginSuccess(ctx.Request().Context(), uid, uid, map[string]string{"metadata0": "value0", "metadata1": "value1"})
 		return nil
 	})
 
@@ -218,7 +218,7 @@ func main() {
 				exists = parsed
 			}
 		}
-		appsec.TrackUserLoginFailureEvent(ctx.Request().Context(), uid, exists, map[string]string{"metadata0": "value0", "metadata1": "value1"})
+		appsec.TrackUserLoginFailure(ctx.Request().Context(), uid, exists, map[string]string{"metadata0": "value0", "metadata1": "value1"})
 		return nil
 	})
 
@@ -261,7 +261,7 @@ func main() {
 		if err != nil {
 			return ctx.String(500, "no session cookie")
 		}
-		appsec.TrackUserLoginSuccessEvent(ctx.Request().Context(), user, map[string]string{}, tracer.WithUserSessionID(cookie.Value))
+		appsec.TrackUserLoginSuccess(ctx.Request().Context(), user, user, map[string]string{}, tracer.WithUserSessionID(cookie.Value))
 		return ctx.NoContent(200)
 	})
 
