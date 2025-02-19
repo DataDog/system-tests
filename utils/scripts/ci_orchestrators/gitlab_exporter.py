@@ -44,7 +44,12 @@ def should_run_only_defaults_vm():
         #if the commit is on different repository run default vms
         #if the is on system-tests and it's not the main branch, run default vms
         return True 
-    
+
+def is_default_machine(raw_data_virtual_machines, vm):
+    for vm_data in raw_data_virtual_machines:
+        if vm_data["name"] == vm and vm_data["default_vm"]:
+            return True
+    return False
 
 def print_aws_gitlab_pipeline(language, aws_matrix, ci_environment, raw_data_virtual_machines) -> None:
     result_pipeline = {}  # type: dict
@@ -88,9 +93,8 @@ def print_aws_gitlab_pipeline(language, aws_matrix, ci_environment, raw_data_vir
             result_pipeline[vm_job]["extends"] = ".base_job_onboarding_system_tests"
             
             # If only_defaults is True, we will set the job to manual if it's not a default VM
-            if only_defaults:
-                if not raw_data_virtual_machines[vm]["default_vm"]:
-                    result_pipeline[vm_job]["when"] = "manual"
+            if only_defaults and not is_default_machine(raw_data_virtual_machines, vm):
+                result_pipeline[vm_job]["when"] = "manual"
             
             #Job variables       
             result_pipeline[vm_job]["variables"] = {}
