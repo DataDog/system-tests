@@ -667,6 +667,8 @@ tests/:
         flask-poc: v2.11.0
         uds-flask: v2.11.0
         uwsgi-poc: v2.11.0
+    test_debugger_telemetry.py:
+      Test_Debugger_Telemetry: v2.11.0
   integrations/:
     crossed_integrations/:
       test_kafka.py:

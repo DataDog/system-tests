@@ -1,0 +1,22 @@
+[
+  [
+    "dynamicInstrumentation.enabled",
+    "env_var",
+    true
+  ],
+  [
+    "dynamicInstrumentation.redactedIdentifiers",
+    "default",
+    ""
+  ],
+  [
+    "dynamicInstrumentation.redactionExcludedIdentifiers",
+    "default",
+    ""
+  ],
+  [
+    "isTestDynamicInstrumentationEnabled",
+    "default",
+    false
+  ]
+]

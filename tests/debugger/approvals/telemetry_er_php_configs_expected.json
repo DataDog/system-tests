@@ -1,0 +1,17 @@
+[
+  [
+    "exception_replay_capture_interval_seconds",
+    "Default",
+    "3600"
+  ],
+  [
+    "exception_replay_capture_max_frames",
+    "Default",
+    "-1"
+  ],
+  [
+    "exception_replay_enabled",
+    "Default",
+    "false"
+  ]
+]

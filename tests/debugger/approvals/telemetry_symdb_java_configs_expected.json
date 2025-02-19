@@ -1,0 +1,27 @@
+[
+  [
+    "internal_force_symbol_database_upload",
+    "default",
+    "false"
+  ],
+  [
+    "symbol_database_compressed",
+    "default",
+    "true"
+  ],
+  [
+    "symbol_database_flush_threshold",
+    "default",
+    "100"
+  ],
+  [
+    "symbol_database_includes",
+    "default",
+    null
+  ],
+  [
+    "symbol_database_upload_enabled",
+    "env_var",
+    "1"
+  ]
+]

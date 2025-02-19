@@ -1,0 +1,32 @@
+[
+  [
+    "DD_SYMBOL_DATABASE_BATCH_SIZE_BYTES",
+    "default",
+    100000
+  ],
+  [
+    "DD_SYMBOL_DATABASE_BATCH_SIZE_BYTES",
+    "default",
+    100000
+  ],
+  [
+    "DD_SYMBOL_DATABASE_COMPRESSION_ENABLED",
+    "default",
+    true
+  ],
+  [
+    "DD_SYMBOL_DATABASE_COMPRESSION_ENABLED",
+    "default",
+    true
+  ],
+  [
+    "DD_SYMBOL_DATABASE_UPLOAD_ENABLED",
+    "env_var",
+    true
+  ],
+  [
+    "DD_SYMBOL_DATABASE_UPLOAD_ENABLED",
+    "env_var",
+    true
+  ]
+]

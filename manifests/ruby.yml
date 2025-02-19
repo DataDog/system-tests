@@ -407,6 +407,10 @@ tests/:
       Test_Debugger_SymDb:
         "*": irrelevant
         rails70: missing_feature (feature not implemented)
+    test_debugger_telemetry.py:
+      Test_Debugger_Telemetry:
+        "*": irrelevant
+        rails70: missing_feature (feature not implemented)
   integrations/:
     crossed_integrations/:
       test_kafka.py:
