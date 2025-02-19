@@ -1,6 +1,5 @@
 import argparse
 from collections import defaultdict
-import json
 import logging
 import os
 import sys
@@ -41,8 +40,6 @@ def main(repo_slug: str, run_id: int, output: str) -> None:
     logging.info(f"Getting workflow summary for https://github.com/{repo_slug}/actions/runs/{run_id}")
     environ = get_environ()
 
-    has_failure = False
-
     result: list[str] = []
 
     with requests.Session() as session:
@@ -57,11 +54,6 @@ def main(repo_slug: str, run_id: int, output: str) -> None:
             if job["name"] in ("all-jobs-are-green", "fancy-report"):
                 logging.info(f"Skipping job {job['name']}")
                 continue
-
-            if job["conclusion"] not in ["skipped", "success"]:
-                logging.info(f"Job {job['name']} conclusion: {job['conclusion']}")
-                logging.debug(json.dumps(job, indent=2))
-                has_failure = True
 
             if job["conclusion"] != "failure":
                 continue
@@ -86,9 +78,6 @@ def main(repo_slug: str, run_id: int, output: str) -> None:
             logging.info("Writing output to stdout")
             print("\n".join(result))
             print()
-
-    if has_failure:
-        sys.exit(1)
 
 
 if __name__ == "__main__":
