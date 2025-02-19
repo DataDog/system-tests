@@ -2,21 +2,21 @@ include:
   - remote: https://gitlab-templates.ddbuild.io/libdatadog/include/single-step-instrumentation-tests.yml
 
 stages:
-  - CONFIG
+  - AWS_SSI
 
-configure_run_aws:
+ssi_tests:
   image: registry.ddbuild.io/images/ci_docker_base
   tags: ["arch:amd64"]
-  stage: CONFIG
+  stage: AWS_SSI
   script:
-    - echo "PIPELINE READY"
+    - echo "NO AWS TESTS TO RUN"
 
 .base_job_onboarding_system_tests:
     extends: .base_job_onboarding
+    needs: []
     script:
         - ./build.sh -i runner
         - ./run.sh $SCENARIO --vm-weblog ${WEBLOG} --vm-env prod --vm-library ${TEST_LIBRARY} --vm-provider aws --vm-default-vms All --vm-only ${VM}
-
     artifacts:
         when: always
         paths:

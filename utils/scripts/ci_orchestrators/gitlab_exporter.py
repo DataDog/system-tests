@@ -54,7 +54,7 @@ def is_default_machine(raw_data_virtual_machines, vm):
 def print_aws_gitlab_pipeline(language, aws_matrix, ci_environment, raw_data_virtual_machines) -> None:
     result_pipeline = {}  # type: dict
     result_pipeline["include"] = []
-    result_pipeline["stages"] = ["CONFIG"]
+    result_pipeline["stages"] = []
     pipeline_file = ".gitlab/aws_gitlab-ci.yml"
     pipeline_data = None
     only_defaults=should_run_only_defaults_vm()
@@ -66,9 +66,12 @@ def print_aws_gitlab_pipeline(language, aws_matrix, ci_environment, raw_data_vir
         pipeline_data = yaml.load(f, Loader=yaml.FullLoader)  # noqa: S506
 
     result_pipeline["include"] = pipeline_data["include"]
+    if not aws_matrix:
+        result_pipeline["stages"].append("AWS_SSI")
+        result_pipeline["ssi_tests"] = pipeline_data["ssi_tests"]    
     # Copy the base job and default job
     result_pipeline[".base_job_onboarding_system_tests"] = pipeline_data[".base_job_onboarding_system_tests"]
-    result_pipeline["configure_run_aws"] = pipeline_data["configure_run_aws"]
+    
 
     # collect all the possible scenarios to generate unique prefixes for each scenario
     # we will add the prefix to the job name to avoid jobs with the same name and different stages

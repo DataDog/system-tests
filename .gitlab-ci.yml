@@ -22,7 +22,7 @@ compute_pipeline:
   script:
     - ./build.sh -i runner
     - source venv/bin/activate
-    - python utils/scripts/compute-workflow-parameters.py nodejs -g "onboarding" --parametric-job-count 1 --ci-environment "prod" --format gitlab > gitlab_pipeline.yml
+    - python utils/scripts/compute-workflow-parameters.py nodejs -g "ipv6" --parametric-job-count 1 --ci-environment "prod" --format gitlab > gitlab_pipeline.yml
   artifacts:
     paths:
       - gitlab_pipeline.yml
