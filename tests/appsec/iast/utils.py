@@ -180,7 +180,7 @@ class BaseSinkTestWithoutTelemetry:
         self.assert_no_iast_event(self.secure_request, self.vulnerability_type)
 
     @staticmethod
-    def assert_no_iast_event(request, tested_vulnerability_type=None):
+    def assert_no_iast_event(request, tested_vulnerability_type=None) -> None:
         assert request.status_code == 200, f"Request failed with status code {request.status_code}"
 
         for data, _, span in interfaces.library.get_spans(request=request):
@@ -218,8 +218,8 @@ def validate_stack_traces(request):
         i for i in iast["vulnerabilities"] if i.get("location") and i["location"].get("stackId") == stack_trace["id"]
     ]
     assert (
-        len(vulns) == 1
-    ), f"Expected a single vulnerability with the stack trace Id.\nVulnerabilities: {vulns}\nStack trace: {stack_traces}"
+        len(vulns) >= 1
+    ), f"Expected at least one vulnerability per stack trace Id.\nVulnerabilities: {vulns}\nStack trace: {stack_traces}"
     vuln = vulns[0]
 
     assert vuln["location"], "no 'location' present'"

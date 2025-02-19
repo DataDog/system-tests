@@ -91,7 +91,7 @@ def test_server_log_file(apm_test_server, request) -> Generator[TextIO, None, No
     with open(log_path, "w+", encoding="utf-8") as f:
         yield f
         f.seek(0)
-        request.node._report_sections.append(
+        request.node._report_sections.append(  # noqa: SLF001
             ("teardown", f"{apm_test_server.lang.capitalize()} Library Output", "".join(f.readlines()))
         )
 
@@ -144,9 +144,9 @@ class _TestAgentAPI:
         assert resp.status_code == 202
 
     @staticmethod
-    def _build_config_path_response(config: list):
+    def _build_config_path_response(config: list) -> str:
         expires_date = datetime.datetime.strftime(
-            datetime.datetime.now() + datetime.timedelta(days=1), "%Y-%m-%dT%H:%M:%SZ"
+            datetime.datetime.now(tz=datetime.UTC) + datetime.timedelta(days=1), "%Y-%m-%dT%H:%M:%SZ"
         )
         roots = [
             str(
@@ -289,9 +289,7 @@ class _TestAgentAPI:
         ignores = ignores or []
         try:
             resp = self._session.get(self._url(f"/test/session/start?test_session_token={token}"))
-            if resp.status_code != 200:
-                # The test agent returns nice error messages we can forward to the user.
-                raise RuntimeError(resp.text)
+            resp.raise_for_status()
         except Exception as e:
             raise RuntimeError(f"Could not connect to test agent: {e}") from e
         else:
@@ -304,7 +302,7 @@ class _TestAgentAPI:
                 raise RuntimeError(resp.text)
 
     def wait_for_num_traces(
-        self, num: int, clear: bool = False, wait_loops: int = 30, sort_by_start: bool = True
+        self, num: int, *, clear: bool = False, wait_loops: int = 30, sort_by_start: bool = True
     ) -> list[Trace]:
         """Wait for `num` traces to be received from the test agent.
 
@@ -335,7 +333,7 @@ class _TestAgentAPI:
         raise ValueError(f"Number ({num}) of traces not available from test agent, got {num_received}:\n{traces}")
 
     def wait_for_num_spans(
-        self, num: int, clear: bool = False, wait_loops: int = 30, sort_by_start: bool = True
+        self, num: int, *, clear: bool = False, wait_loops: int = 30, sort_by_start: bool = True
     ) -> list[Trace]:
         """Wait for `num` spans to be received from the test agent.
 
@@ -367,7 +365,7 @@ class _TestAgentAPI:
             time.sleep(0.1)
         raise ValueError(f"Number ({num}) of spans not available from test agent, got {num_received}")
 
-    def wait_for_telemetry_event(self, event_name: str, clear: bool = False, wait_loops: int = 200):
+    def wait_for_telemetry_event(self, event_name: str, *, clear: bool = False, wait_loops: int = 200):
         """Wait for and return the given telemetry event from the test agent."""
         for i in range(wait_loops):
             try:
@@ -395,6 +393,7 @@ class _TestAgentAPI:
         self,
         product: str,
         state: RemoteConfigApplyState,
+        *,
         clear: bool = False,
         wait_loops: int = 100,
         post_only: bool = False,
@@ -482,7 +481,7 @@ class _TestAgentAPI:
         if missing_capabilities:
             raise AssertionError(f"RemoteConfig capabilities missing: {missing_capabilities}")
 
-    def wait_for_tracer_flare(self, case_id: str | None = None, clear: bool = False, wait_loops: int = 100):
+    def wait_for_tracer_flare(self, case_id: str | None = None, *, clear: bool = False, wait_loops: int = 100):
         """Wait for the tracer-flare to be received by the test agent."""
         for i in range(wait_loops):
             try:
@@ -560,7 +559,7 @@ def test_agent_log_file(request) -> Generator[TextIO, None, None]:
             if "GET /test/session/apmtelemetry" in line:
                 continue
             agent_output += line
-        request.node._report_sections.append(("teardown", "Test Agent Output", agent_output))
+        request.node._report_sections.append(("teardown", "Test Agent Output", agent_output))  # noqa: SLF001
 
 
 @pytest.fixture
