@@ -24,6 +24,8 @@ def _expected_location():
         if context.weblog_variant == "express4-typescript":
             return "iast.ts"
 
+    return None
+
 
 @features.iast_sink_unvalidatedredirect
 class TestUnvalidatedRedirect(BaseSinkTestWithoutTelemetry):

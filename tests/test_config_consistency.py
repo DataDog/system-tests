@@ -640,3 +640,4 @@ def parse_log_injection_message(log_message):
             continue
         if message.get("dd") and message.get(log_injection_fields[context.library.library]["message"]) == log_message:
             return message.get("dd")
+    return None
