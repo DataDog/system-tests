@@ -21,6 +21,6 @@ stages:
 
     artifacts:
         when: always
-        path:
+        paths:
             - reports/
 
