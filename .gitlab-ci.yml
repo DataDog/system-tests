@@ -28,10 +28,16 @@ compute_pipeline:
     #- git fetch origin main  # Ensure we have the latest main branch
     #- git diff --name-only origin/main $CI_COMMIT_SHA
     #- git diff --name-only $CI_COMMIT_BEFORE_SHA $CI_COMMIT_SHA >> modified_files.txt
-    - git fetch origin main  # Ensure we have the latest main branch
-    - BASE_COMMIT=$(git merge-base origin/main $CI_COMMIT_REF_NAME)  # Find branch point
-    - echo "Branch was created from commit -> $BASE_COMMIT"
-    - git diff --name-only $BASE_COMMIT $CI_COMMIT_SHA >> modified_files.txt # Compare changes since branch creation
+    #- git fetch origin main  # Ensure we have the latest main branch
+    #- BASE_COMMIT=$(git merge-base origin/main $CI_COMMIT_REF_NAME)  # Find branch point
+    #- echo "Branch was created from commit -> $BASE_COMMIT"
+    #- git diff --name-only $BASE_COMMIT $CI_COMMIT_SHA >> modified_files.txt # Compare changes since branch creation
+    - git fetch --all  # Ensure all branches are available
+    - git branch --track $CI_COMMIT_REF_NAME origin/$CI_COMMIT_REF_NAME || true  # Track branch if not tracked
+    - git checkout $CI_COMMIT_REF_NAME  # Ensure the branch is checked out
+    - BASE_COMMIT=$(git merge-base origin/main $CI_COMMIT_REF_NAME)  # Get the base commit
+    - echo "Branch was created from commit--> $BASE_COMMIT"
+    - git diff --name-only $BASE_COMMIT $CI_COMMIT_SHA  >> modified_files.txt # List modified files
     - cat modified_files.txt
     - python utils/scripts/compute_impacted_scenario.py >> impacted_scenarios.txt
     - echo "**************** AHORA EL OTRO *************************"
