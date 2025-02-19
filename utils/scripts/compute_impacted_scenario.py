@@ -53,16 +53,25 @@ class Result:
 def main() -> None:
     result = Result()
 
-    event_name = os.environ["GITHUB_EVENT_NAME"]
-    ref = os.environ["GITHUB_REF"]
+    if "GITLAB_CI" in os.environ:
+        event_name = os.environ["CI_PIPELINE_SOURCE"]
+        ref = os.environ["CI_COMMIT_REF_NAME"]
+        print("CI_PIPELINE_SOURCE=" + event_name)
+        print("CI_COMMIT_REF_NAME=" + ref)
+        is_gilab=True
+    else:
+        event_name = os.environ["GITHUB_EVENT_NAME"]
+        ref = os.environ["GITHUB_REF"]
+        is_gilab=False
 
     if event_name == "schedule" or ref == "refs/heads/main":
         result.add_scenario_group(ScenarioGroup.ALL.value)
 
-    elif event_name == "pull_request":
-        labels = json.loads(os.environ["GITHUB_PULL_REQUEST_LABELS"])
-        label_names = [label["name"] for label in labels]
-        result.handle_labels(label_names)
+    elif event_name == "pull_request" or event_name == "push":
+        if not is_gilab:
+            labels = json.loads(os.environ["GITHUB_PULL_REQUEST_LABELS"])
+            label_names = [label["name"] for label in labels]
+            result.handle_labels(label_names)
 
         # this file is generated with
         # ./run.sh MOCK_THE_TEST --collect-only --scenario-report
