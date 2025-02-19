@@ -11,7 +11,14 @@ from utils.tools import logger
 # get the default log output
 stdout = interfaces.library_stdout if context.library != "dotnet" else interfaces.library_dotnet_managed
 runtime_metrics = {"nodejs": "runtime.node.mem.heap_total"}
-runtime_metrics_lang_map = {"dotnet": ("lang", ".NET"), "golang": ("lang", "go"), "java": (None, None), "nodejs": (None, None), "python": ("lang", "python"), "ruby": ("language", "ruby")}
+runtime_metrics_lang_map = {
+    "dotnet": ("lang", ".NET"),
+    "golang": ("lang", "go"),
+    "java": (None, None),
+    "nodejs": (None, None),
+    "python": ("lang", "python"),
+    "ruby": ("language", "ruby"),
+}
 log_injection_fields = {"nodejs": {"message": "msg"}}
 
 
