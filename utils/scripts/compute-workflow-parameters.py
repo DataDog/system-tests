@@ -16,7 +16,9 @@ class CiData:
            and is acheived by calling export(format)
     """
 
-    def __init__(self, library: str, scenarios: str, groups: str, parametric_job_count: int, ci_environment: str):
+    def __init__(
+        self, library: str, scenarios: str, groups: str, parametric_job_count: int, ci_environment: str
+    ) -> None:
         # this data struture is a dict where:
         #  the key is the workflow identifier
         #  the value is also a dict, where the key/value pair is the parameter name/value.
@@ -76,7 +78,9 @@ class CiData:
 
     def _export_gitlab(self) -> None:
         # gitlab can only handle aws_ssi right now
-        print_aws_gitlab_pipeline(self.language, self.data["aws_ssi_scenario_defs"], self.environment)
+        with open("utils/virtual_machine/virtual_machines.json", "r") as file:
+            raw_data_virtual_machines = json.load(file)["virtual_machines"]
+        print_aws_gitlab_pipeline(self.language, self.data["aws_ssi_scenario_defs"], self.environment, raw_data_virtual_machines)
 
     def _export_json(self) -> None:
         print(json.dumps(self.data))
@@ -170,5 +174,5 @@ if __name__ == "__main__":
         scenarios=args.scenarios,
         groups=args.groups,
         ci_environment=args.ci_environment,
-        parametric_job_count=args.parametric_job_count,
+        parametric_job_count=args.parametric_job_count
     ).export(args.format)
