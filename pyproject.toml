@@ -191,7 +191,6 @@ ignore = [
     "SIM117",    # 127 occurences   [ ] multiple-with-statements
     "N806",      # 76 occurences    [ ] non-lowercase-variable-in-function
     "FBT003",    # 67 occurences    [ ] boolean-positional-value-in-call
-    "D200",      # 52 occurences    [*] fits-on-one-line
     "F405",      # 43 occurences    [ ] undefined-local-with-import-star-usage
     "TRY002",    # 41 occurences    [ ] raise-vanilla-class
     "N802",      # 39 occurences    [ ] invalid-function-name
