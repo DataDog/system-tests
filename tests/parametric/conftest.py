@@ -146,7 +146,7 @@ class _TestAgentAPI:
     @staticmethod
     def _build_config_path_response(config: list) -> str:
         expires_date = datetime.datetime.strftime(
-            datetime.datetime.now() + datetime.timedelta(days=1), "%Y-%m-%dT%H:%M:%SZ"
+            datetime.datetime.now(tz=datetime.UTC) + datetime.timedelta(days=1), "%Y-%m-%dT%H:%M:%SZ"
         )
         roots = [
             str(

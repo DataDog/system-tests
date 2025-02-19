@@ -198,7 +198,6 @@ ignore = [
     "D404",      # 25 occurences    [ ] docstring-starts-with-this
     "ANN401",    # 24 occurences    [ ] any-type
     "B007",      # 23 occurences    [ ] unused-loop-control-variable
-    "DTZ005",    # 23 occurences    [ ] call-datetime-now-without-tzinfo
     "INP001",    # 22 occurences    [ ] implicit-namespace-package
     "TRY301",    # 8 occurences     [ ] raise-within-try
 

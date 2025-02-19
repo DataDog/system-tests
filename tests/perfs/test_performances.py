@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, UTC
 import json
 from os import environ
 import threading
@@ -103,9 +103,9 @@ class Test_Performances:
             try:
                 size, request = self.requests[i % len(self.requests)]
 
-                request_timestamp = datetime.now()
+                request_timestamp = datetime.now(tz=UTC)
                 r = requests.request(**request)  # noqa: S113
-                ellapsed = (datetime.now() - request_timestamp).total_seconds()
+                ellapsed = (datetime.now(tz=UTC) - request_timestamp).total_seconds()
 
                 self.results.append((i, ellapsed, r.status_code, size))
             except Exception as e:
@@ -113,7 +113,7 @@ class Test_Performances:
                 raise
 
     def watch_docker_target(self):
-        start = datetime.now()
+        start = datetime.now(tz=UTC)
         docker_client = docker.from_env()
         container_stats = docker_client.containers.get(
             f"/{scenarios.performances.weblog_container.container_name}"
@@ -122,9 +122,9 @@ class Test_Performances:
         while len(self.results) < TOTAL_REQUEST_COUNT:
             data = next(container_stats)
             memory = data["memory_stats"].get("usage", 0)
-            self.memory.append(((datetime.now() - start).total_seconds(), memory))
+            self.memory.append(((datetime.now(tz=UTC) - start).total_seconds(), memory))
 
-            print("MEM", datetime.now(), memory, flush=True)
+            print("MEM", datetime.now(tz=UTC), memory, flush=True)
 
     def test_main(self):
         """Add some tests ?"""
