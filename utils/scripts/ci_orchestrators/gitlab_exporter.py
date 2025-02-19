@@ -8,6 +8,28 @@ def generate_job_unique_name(dictionary, key, value) -> str:
     dictionary[new_key] = value
     return new_key
 
+import hashlib
+
+def _generate_unique_prefix(scenario_names, prefix_length=3):
+    unique_prefixes = {}
+    used_prefixes = set()
+
+    for scenario in scenario_names:
+        # Take the first `prefix_length` letters as the initial prefix
+        prefix = scenario[:prefix_length].upper()
+        
+        # If the prefix is already used, generate a new one
+        if prefix in used_prefixes:
+            # Use a short hash as a backup unique identifier
+            hash_suffix = hashlib.md5(scenario.encode()).hexdigest()[:2].upper()
+            prefix = prefix[:prefix_length-1] + hash_suffix  # Ensure total length is 3-4
+        
+        # Store the unique prefix
+        unique_prefixes[scenario] = prefix
+        used_prefixes.add(prefix)
+    
+    return unique_prefixes
+
 
 def print_aws_gitlab_pipeline(language, aws_matrix, ci_environment) -> None:
     result_pipeline = {}  # type: dict
@@ -24,6 +46,12 @@ def print_aws_gitlab_pipeline(language, aws_matrix, ci_environment) -> None:
     result_pipeline[".base_job_onboarding_system_tests"] = pipeline_data[".base_job_onboarding_system_tests"]
     result_pipeline["configure_run_aws"] = pipeline_data["configure_run_aws"]
 
+    # collect all the possible scenarios
+    scenarios_prefix_names = {}
+    for scenario, weblogs in aws_matrix.items():
+        scenarios_prefix_names[scenario] = ""
+    scenarios_prefix_names = _generate_unique_prefix(scenarios_prefix_names.keys())
+        
     # Create the jobs by scenario. Each job (vm) will have a parallel matrix with the weblogs
     for scenario, weblogs in aws_matrix.items():
         result_pipeline["stages"].append(scenario)
@@ -34,7 +62,7 @@ def print_aws_gitlab_pipeline(language, aws_matrix, ci_environment) -> None:
             vm_set.update(vms)
 
         for vm in vm_set:
-            vm_job = generate_job_unique_name(result_pipeline, vm, {})
+            vm_job = vm + "." + scenarios_prefix_names[scenario]
             result_pipeline[vm_job] = {}
             result_pipeline[vm_job]["stage"] = scenario
             result_pipeline[vm_job]["extends"] = ".base_job_onboarding_system_tests"
