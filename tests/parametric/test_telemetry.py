@@ -102,7 +102,7 @@ class Test_Defaults:
                 continue
             mapped_apm_telemetry_name = _mapped_telemetry_name(context, apm_telemetry_name)
 
-            cfg_item = configuration_by_name.get(apm_telemetry_name)
+            cfg_item = configuration_by_name.get(mapped_apm_telemetry_name)
             assert cfg_item is not None, f"Missing telemetry config item for '{mapped_apm_telemetry_name}'"
             if isinstance(value, tuple):
                 assert cfg_item.get("value") in value, f"Unexpected value for '{mapped_apm_telemetry_name}'"
