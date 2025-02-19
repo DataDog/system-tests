@@ -192,7 +192,6 @@ ignore = [
     "N806",      # 76 occurences    [ ] non-lowercase-variable-in-function
     "FBT003",    # 67 occurences    [ ] boolean-positional-value-in-call
     "TRY002",    # 41 occurences    [ ] raise-vanilla-class
-    "N802",      # 39 occurences    [ ] invalid-function-name
     "FBT002",    # 30 occurences    [ ] boolean-default-value-positional-argument
     "B007",      # 23 occurences    [ ] unused-loop-control-variable
     "INP001",    # 22 occurences    [ ] implicit-namespace-package
@@ -232,6 +231,9 @@ ignore = [
 ]
 "tests/parametric/*" = [
     "ANN401",    # any-type: TODO
+]
+"tests/parametric/{test_headers_baggage.py,test_headers_datadog.py,test_library_tracestats.py}" = [
+    "N802",      # invalid-function-name: some tests methods contains code with capital letters
 ]
 "utils/build/*"  = ["ALL"]
 "lib-injection/*" = ["ALL"]
