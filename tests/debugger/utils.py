@@ -386,11 +386,14 @@ class _Base_Debugger_Test:
                     probe_diagnostics[probe_id] = diagnostics
 
         for data in datas:
+            logger.debug(f"Processing data: {data['log_filename']}")
             contents = data["request"].get("content", []) or []  # Ensures contents is a list
 
             for content in contents:
-                if "content" in content:
+                if "content" in content and isinstance(content["content"], list):
+                    # content["content"] may be a dict, and not a list ?
                     for d_content in content["content"]:
+                        assert isinstance(d_content, dict), f"Unexpected content: {json.dumps(content, indent=2)}"
                         _process_debugger(d_content["debugger"])
                 elif "debugger" in content:
                     _process_debugger(content["debugger"])

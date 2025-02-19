@@ -167,6 +167,9 @@ jobs:
     - run: python utils/scripts/get-workflow-summary.py DataDog/system-tests ${{ github.run_id }} -o $GITHUB_STEP_SUMMARY
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: Fail if any job failed
+      if: needs.system_tests.result != 'success'
+      run: exit 1
 
   update-CI-visibility:
     name: Update CI Visibility Dashboard
