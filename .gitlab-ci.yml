@@ -22,6 +22,7 @@ compute_pipeline:
   script:
     - ./build.sh -i runner
     - source venv/bin/activate
+    - ./run.sh MOCK_THE_TEST --collect-only --scenario-report
     - git fetch origin ${CI_COMMIT_SHA}
     - git diff --name-only HEAD ${CI_COMMIT_SHA} >> modified_files.txt
     - cat modified_files.txt
