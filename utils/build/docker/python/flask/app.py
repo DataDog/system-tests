@@ -14,6 +14,7 @@ from moto import mock_aws
 import mock
 import urllib3
 import xmltodict
+import graphene
 
 
 if os.environ.get("INCLUDE_POSTGRES", "true") == "true":
@@ -29,10 +30,12 @@ if os.environ.get("INCLUDE_MYSQL", "true") == "true":
 from flask import Flask
 from flask import Response
 from flask import jsonify
+from flask import render_template_string
 from flask import request
 from flask import request as flask_request
 from flask_login import LoginManager
 from flask_login import login_user
+
 from iast import weak_cipher
 from iast import weak_cipher_secure_algorithm
 from iast import weak_hash
@@ -440,6 +443,30 @@ def rasp_cmdi(*args, **kwargs):
 
 
 ### END EXPLOIT PREVENTION
+
+
+@app.route("/graphql", methods=["GET", "POST"])
+def graphql_error_spans(*args, **kwargs):
+    from integrations.graphql import schema
+
+    data = request.get_json()
+
+    result = schema.execute(
+        data["query"],
+        variables=data.get("variables"),
+        operation_name=data.get("operationName"),
+    )
+
+    if result.errors:
+        return jsonify(format_error(result.errors[0])), 200
+
+    return jsonify(result.to_dict())
+
+
+def format_error(error):
+    return {
+        "message": error.message,
+    }
 
 
 @app.route("/read_file", methods=["GET"])
@@ -1210,6 +1237,20 @@ def view_iast_code_injection_secure():
     return resp
 
 
+@app.route("/iast/xss/test_insecure", methods=["POST"])
+def view_iast_xss_insecure():
+    param = flask_request.form["param"]
+
+    return render_template_string("<p>XSS: {{ param|safe }}</p>", param=param)
+
+
+@app.route("/iast/xss/test_secure", methods=["POST"])
+def view_iast_xss_secure():
+    param = flask_request.form["param"]
+
+    return render_template_string("<p>XSS: {{ param }}</p>", param=param)
+
+
 _TRACK_METADATA = {
     "metadata0": "value0",
     "metadata1": "value1",
@@ -1613,3 +1654,14 @@ def otel_drop_in_default_propagator_inject():
     opentelemetry.propagate.inject(result, opentelemetry.context.get_current())
 
     return jsonify(result)
+
+
+@app.route("/inferred-proxy/span-creation", methods=["GET"])
+def inferred_proxy_span_creation():
+    headers = flask_request.args.get("headers", {})
+    status = int(flask_request.args.get("status_code", "200"))
+
+    logging.info("Received an API Gateway request")
+    logging.info("Request headers: " + str(headers))
+
+    return Response("ok", status=status)

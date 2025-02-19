@@ -406,7 +406,7 @@ class Test_Stable_Config_Default:
 
     @pytest.mark.parametrize("library_env", [{}])
     @pytest.mark.parametrize(
-        "apm_configuration_default,expected",
+        ("apm_configuration_default", "expected"),
         [
             (
                 {"DD_PROFILING_ENABLED": True},
@@ -502,7 +502,7 @@ class Test_Stable_Config_Default:
             assert test["expected"].items() <= config.items()
 
     @pytest.mark.parametrize(
-        "name,local_cfg,library_env,fleet_cfg,expected",
+        ("name", "local_cfg", "library_env", "fleet_cfg", "expected"),
         [
             (
                 "fleet>local",

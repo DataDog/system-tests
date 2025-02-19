@@ -52,13 +52,13 @@ tests/:
         test_code_injection.py:
           TestCodeInjection: v2.20.0
           TestCodeInjection_ExtendedLocation: missing_feature
-          TestCodeInjection_StackTrace: v2.20.0
+          TestCodeInjection_StackTrace: missing_feature
         test_command_injection.py:
           TestCommandInjection:
             '*': v2.10.0
             fastapi: v2.15.0
           TestCommandInjection_ExtendedLocation: missing_feature
-          TestCommandInjection_StackTrace: v2.19.0.dev
+          TestCommandInjection_StackTrace: missing_feature
         test_email_html_injection.py:
           TestEmailHtmlInjection: missing_feature
           TestEmailHtmlInjection_ExtendedLocation: missing_feature
@@ -82,8 +82,8 @@ tests/:
           TestHeaderInjectionExclusionTransferEncoding: missing_feature
           TestHeaderInjection_ExtendedLocation: missing_feature
           TestHeaderInjection_StackTrace:
-            '*': v2.19.0.dev
-            fastapi: v2.20.0.dev
+            '*': missing_feature
+            fastapi: missing_feature
         test_hsts_missing_header.py:
           Test_HstsMissingHeader: missing_feature
           Test_HstsMissingHeader_ExtendedLocation: missing_feature
@@ -126,7 +126,7 @@ tests/:
             '*': v2.10.0
             fastapi: v2.15.0
           TestPathTraversal_ExtendedLocation: missing_feature
-          TestPathTraversal_StackTrace: v2.19.0.dev
+          TestPathTraversal_StackTrace: missing_feature
         test_reflection_injection.py:
           TestReflectionInjection: missing_feature
           TestReflectionInjection_ExtendedLocation: missing_feature
@@ -136,16 +136,15 @@ tests/:
             django-poc: v1.18.0
             fastapi: v2.15.0
             flask-poc: v1.18.0
-            pylons: missing_feature
             python3.12: v1.18.0
           TestSqlInjection_ExtendedLocation: missing_feature
-          TestSqlInjection_StackTrace: v2.19.0.dev
+          TestSqlInjection_StackTrace: missing_feature
         test_ssrf.py:
           TestSSRF:
             '*': v2.10.0
             fastapi: v2.15.0
           TestSSRF_ExtendedLocation: missing_feature
-          TestSSRF_StackTrace: v2.19.0.dev
+          TestSSRF_StackTrace: missing_feature
         test_stacktrace_leak.py:
           TestStackTraceLeak:
             '*': v3.1.0.dev
@@ -176,19 +175,19 @@ tests/:
             '*': v1.18.0
             fastapi: v2.15.0
           TestWeakCipher_ExtendedLocation: missing_feature
-          TestWeakCipher_StackTrace: v2.19.0.dev
+          TestWeakCipher_StackTrace: missing_feature
         test_weak_hash.py:
           TestDeduplication:
             '*': v1.18.0
           TestWeakHash:
             '*': v1.18.0
           TestWeakHash_ExtendedLocation: missing_feature
-          TestWeakHash_StackTrace: v2.19.0.dev
+          TestWeakHash_StackTrace: missing_feature
         test_weak_randomness.py:
           TestWeakRandomness:
             '*': v2.0.0
           TestWeakRandomness_ExtendedLocation: missing_feature
-          TestWeakRandomness_StackTrace: v2.19.0.dev
+          TestWeakRandomness_StackTrace: missing_feature
         test_xcontent_sniffing.py:
           Test_XContentSniffing: missing_feature
           Test_XContentSniffing_ExtendedLocation: missing_feature
@@ -198,7 +197,8 @@ tests/:
           TestXPathInjection_ExtendedLocation: missing_feature
           TestXPathInjection_StackTrace: missing_feature
         test_xss.py:
-          TestXSS: missing_feature
+          TestXSS:
+            '*': v3.0.0.dev
           TestXSS_ExtendedLocation: missing_feature
           TestXSS_StackTrace: missing_feature
       source/:
@@ -241,7 +241,6 @@ tests/:
           TestParameterName:
             "*": v2.20.0
             fastapi: v2.20.1
-            python3.12: bug (APPSEC-56375)
         test_parameter_value.py:
           TestParameterValue:
             '*': v2.9.0
@@ -351,7 +350,6 @@ tests/:
           django-poc: v1.1.0-rc2
           fastapi: v2.4.0
           flask-poc: v1.4.0-rc1
-          pylons: v1.1.0-rc2
           python3.12: v1.1.0-rc2
           uds-flask: v1.4.0-rc1
           uwsgi-poc: v1.16.1
@@ -363,7 +361,6 @@ tests/:
           django-poc: v1.1.0-rc2
           fastapi: v2.4.0
           flask-poc: v1.4.0-rc1
-          pylons: v1.1.0-rc2
           python3.12: v1.1.0-rc2
           uds-flask: v1.4.0-rc1
           uwsgi-poc: v1.5.2
@@ -468,6 +465,7 @@ tests/:
         '*': v1.1.0-rc2
         fastapi: v2.4.0
     test_asm_standalone.py:
+      Test_AppSecStandalone_NotEnabled: v2.12.3
       Test_AppSecStandalone_UpstreamPropagation:
         '*': v2.12.3
         uwsgi-poc: v2.17.1
@@ -641,6 +639,10 @@ tests/:
         flask-poc: v2.11.0
         uds-flask: v2.11.0
         uwsgi-poc: v2.11.0
+    test_debugger_inproduct_enablement.py:
+      Test_Debugger_InProduct_Enablement_Code_Origin: missing_feature
+      Test_Debugger_InProduct_Enablement_Dynamic_Instrumentation: missing_feature
+      Test_Debugger_InProduct_Enablement_Exception_Replay: missing_feature
     test_debugger_pii.py:
       Test_Debugger_PII_Redaction:
         '*': missing_feature
@@ -797,7 +799,15 @@ tests/:
         '*': irrelevant
         flask-poc: v2.8.0
     test_inferred_proxy.py:
-      Test_AWS_API_Gateway_Inferred_Span_Creation: missing_feature
+      Test_AWS_API_Gateway_Inferred_Span_Creation:
+        '*': irrelevant
+        flask-poc: v3.1.0
+      Test_AWS_API_Gateway_Inferred_Span_Creation_With_Distributed_Context:
+        '*': irrelevant
+        flask-poc: v3.1.0
+      Test_AWS_API_Gateway_Inferred_Span_Creation_With_Error:
+        '*': irrelevant
+        flask-poc: v3.1.0
     test_otel_drop_in.py:
       Test_Otel_Drop_In: missing_feature
   otel/:
@@ -945,8 +955,8 @@ tests/:
     Test_Config_LogInjection_Enabled: incomplete_test_app (endpoint not implemented)
     Test_Config_ObfuscationQueryStringRegexp_Configured: v2.0.0
     Test_Config_ObfuscationQueryStringRegexp_Empty: v2.15.0
-    Test_Config_RuntimeMetrics_Default: incomplete_test_app (test needs to account for python runtime metrics)
-    Test_Config_RuntimeMetrics_Enabled: incomplete_test_app (Python seems to send sketches instead of gauges/counters)
+    Test_Config_RuntimeMetrics_Default: v0.30.0
+    Test_Config_RuntimeMetrics_Enabled: v0.30.0
     Test_Config_RuntimeMetrics_Enabled_WithRuntimeId: missing_feature
     Test_Config_UnifiedServiceTagging_CustomService: v2.0.0
     Test_Config_UnifiedServiceTagging_Default: v2.0.0
@@ -959,7 +969,9 @@ tests/:
     Test_Span_Links_Flags_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
     Test_Span_Links_From_Conflicting_Contexts: v2.17.0
     Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
-  test_graphql.py: missing_feature
+  test_graphql.py:
+    Test_GraphQLQueryErrorReporting:
+      '*': missing_feature  # change this once tracer PR is released
   test_identify.py:
     Test_Basic: v1.5.0-rc1
     Test_Propagate: v1.9.0
@@ -1003,7 +1015,6 @@ tests/:
     Test_StandardTagsMethod: v1.2.1
     Test_StandardTagsRoute:
       '*': v1.6.0
-      django-py3.13: bug (APMLP-364)
     Test_StandardTagsStatusCode: v1.4.0-rc1
     Test_StandardTagsUrl:
       '*': v2.4.0

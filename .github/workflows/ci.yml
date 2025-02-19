@@ -57,7 +57,7 @@ jobs:
     - impacted_libraries
     strategy:
       matrix:
-        library: ${{ fromJson(needs.impacted_libraries.outputs.impacted_libraries) }}
+        library: ${{ fromJson(needs.impacted_libraries.outputs.libraries_with_dev) }}
       fail-fast: false
     runs-on: ubuntu-latest
     outputs:
@@ -113,10 +113,8 @@ jobs:
     - get_dev_artifacts
     strategy:
       matrix:
-        library: ${{ fromJson(needs.impacted_libraries.outputs.impacted_libraries) }}
-        version:
-        - prod
-        - dev
+        include: ${{ fromJson(needs.impacted_libraries.outputs.library_matrix) }}
+
       fail-fast: false
     uses: ./.github/workflows/system-tests.yml
     permissions:
@@ -143,7 +141,7 @@ jobs:
     - test_the_test
     - impacted_libraries
     - get_dev_artifacts  # non official set-up, this needs put this job in last
-    if: contains(needs.impacted_libraries.outputs.impacted_libraries, 'ruby')
+    if: contains(needs.impacted_libraries.outputs.library_matrix, 'ruby')
     uses: ./.github/workflows/run-docker-mode.yml
     permissions:
       packages: write
@@ -169,6 +167,9 @@ jobs:
     - run: python utils/scripts/get-workflow-summary.py DataDog/system-tests ${{ github.run_id }} -o $GITHUB_STEP_SUMMARY
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: Fail if any job failed
+      if: needs.system_tests.result != 'success'
+      run: exit 1
 
   update-CI-visibility:
     name: Update CI Visibility Dashboard

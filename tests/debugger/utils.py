@@ -69,7 +69,7 @@ class _Base_Debugger_Test:
     all_spans = []
     symbols = []
 
-    rc_state = None
+    rc_states = []
     weblog_responses = []
 
     setup_failures = []
@@ -150,12 +150,47 @@ class _Base_Debugger_Test:
     ###### send #####
     _rc_version = 0
 
-    def send_rc_probes(self):
+    def send_rc_probes(self, reset: bool = True):
         _Base_Debugger_Test._rc_version += 1
 
-        self.rc_state = remote_config.send_debugger_command(
-            probes=self.probe_definitions, version=_Base_Debugger_Test._rc_version
+        if reset:
+            self.rc_states = []
+
+        self.rc_states.append(
+            remote_config.send_debugger_command(probes=self.probe_definitions, version=_Base_Debugger_Test._rc_version)
         )
+
+    def send_rc_apm_tracing(
+        self,
+        dynamic_instrumentation_enabled: bool | None = None,
+        exception_replay_enabled: bool | None = None,
+        live_debugging_enabled: bool | None = None,
+        code_origin_enabled: bool | None = None,
+        dynamic_sampling_enabled: bool | None = None,
+        reset: bool = True,
+    ):
+        _Base_Debugger_Test._rc_version += 1
+
+        if reset:
+            self.rc_states = []
+
+        self.rc_states.append(
+            remote_config.send_apm_tracing_command(
+                dynamic_instrumentation_enabled=dynamic_instrumentation_enabled,
+                exception_replay_enabled=exception_replay_enabled,
+                live_debugging_enabled=live_debugging_enabled,
+                code_origin_enabled=code_origin_enabled,
+                dynamic_sampling_enabled=dynamic_sampling_enabled,
+                version=_Base_Debugger_Test._rc_version,
+            )
+        )
+
+    def send_rc_symdb(self, reset: bool = True):
+        _Base_Debugger_Test._rc_version += 1
+        if reset:
+            self.rc_states = []
+
+        self.rc_states.append(remote_config.send_symdb_command(_Base_Debugger_Test._rc_version))
 
     def send_weblog_request(self, request_path: str, reset: bool = True):
         if reset:
@@ -167,10 +202,14 @@ class _Base_Debugger_Test:
     _last_read = 0
 
     def wait_for_all_probes_installed(self, timeout=30):
+        self._wait_successful = False
         interfaces.agent.wait_for(lambda data: self._wait_for_all_probes(data, status="INSTALLED"), timeout=timeout)
+        return self._wait_successful
 
     def wait_for_all_probes_emitting(self, timeout=30):
+        self._wait_successful = False
         interfaces.agent.wait_for(lambda data: self._wait_for_all_probes(data, status="EMITTING"), timeout=timeout)
+        return self._wait_successful
 
     def _wait_for_all_probes(self, data, status):
         found_ids = set()
@@ -198,8 +237,6 @@ class _Base_Debugger_Test:
 
             return set(self.probe_ids).issubset(found_ids)
 
-        all_probes_ready = False
-
         log_filename_found = re.search(r"/(\d+)__", data["log_filename"])
         if not log_filename_found:
             return False
@@ -216,9 +253,9 @@ class _Base_Debugger_Test:
                 logger.debug("Probes diagnostics is empty")
                 return False
 
-            all_probes_ready = _check_all_probes_status(probe_diagnostics, status)
+            self._wait_successful = _check_all_probes_status(probe_diagnostics, status)
 
-        return all_probes_ready
+        return self._wait_successful
 
     _exception_message = None
     _snapshot_found = False
@@ -235,13 +272,15 @@ class _Base_Debugger_Test:
             logger.debug("Reading " + data["log_filename"] + ", looking for " + self._exception_message)
             contents = data["request"].get("content", []) or []
 
-            logger.debug("len is")
-            logger.debug(len(contents))
-
             for content in contents:
                 snapshot = content.get("debugger", {}).get("snapshot") or content.get("debugger.snapshot")
 
                 if not snapshot or "probe" not in snapshot:
+                    logger.debug("Snapshot doesn't have pobe")
+                    continue
+
+                if "exceptionId" not in snapshot:
+                    logger.debug("Snapshot doesnt't have exception")
                     continue
 
                 exception_message = self.get_exception_message(snapshot)
@@ -255,6 +294,40 @@ class _Base_Debugger_Test:
 
         logger.debug(f"Snapshot found: {self._snapshot_found}")
         return self._snapshot_found
+
+    def wait_for_code_origin_span(self, timeout):
+        self._span_found = False
+
+        interfaces.agent.wait_for(self._wait_for_code_origin_span, timeout=timeout)
+        return self._span_found
+
+    _last_read_span = 0
+
+    def _wait_for_code_origin_span(self, data):
+        if data["path"] == _TRACES_PATH:
+            log_filename_found = re.search(r"/(\d+)__", data["log_filename"])
+            if not log_filename_found:
+                return False
+
+            log_number = int(log_filename_found.group(1))
+            if log_number >= _Base_Debugger_Test._last_read_span:
+                _Base_Debugger_Test._last_read_span = log_number
+
+                content = data["request"]["content"]
+                if content:
+                    for payload in content["tracerPayloads"]:
+                        for chunk in payload["chunks"]:
+                            for span in chunk["spans"]:
+                                resource, resource_type = span.get("resource"), span.get("type")
+
+                                if resource == "GET /healthcheck" and resource_type == "web":
+                                    code_origin_type = span["meta"].get("_dd.code_origin.type", "")
+
+                                    if code_origin_type == "entry":
+                                        self._span_found = True
+                                        return True
+
+        return False
 
     ###### collect #####
     def collect(self):
@@ -290,38 +363,39 @@ class _Base_Debugger_Test:
     def _process_diagnostics_data(self, datas):
         probe_diagnostics = {}
 
+        def _should_update_status(current_status, new_status):
+            transitions = {
+                "RECEIVED": True,
+                "INSTALLED": new_status in ["INSTALLED", "EMITTING"],
+                "EMITTING": new_status == "EMITTING",
+            }
+            return transitions.get(current_status, False)
+
         def _process_debugger(debugger):
             if "diagnostics" in debugger:
                 diagnostics = debugger["diagnostics"]
-
                 probe_id = diagnostics["probeId"]
                 status = diagnostics["status"]
 
-                # update status
                 if probe_id in probe_diagnostics:
                     current_status = probe_diagnostics[probe_id]["status"]
-                    if (
-                        current_status == "RECEIVED"
-                        or (current_status == "INSTALLED" and status in ["INSTALLED", "EMITTING"])
-                        or (current_status == "EMITTING" and status == "EMITTING")
-                    ):
+                    if _should_update_status(current_status, status):
                         probe_diagnostics[probe_id]["status"] = status
-                # set new status
                 else:
                     probe_diagnostics[probe_id] = diagnostics
 
         for data in datas:
+            logger.debug(f"Processing data: {data['log_filename']}")
             contents = data["request"].get("content", []) or []  # Ensures contents is a list
 
             for content in contents:
-                if "content" in content:
-                    d_contents = content["content"]
-                    for d_content in d_contents:
-                        if isinstance(d_content, dict):
-                            _process_debugger(d_content["debugger"])
+                if "content" in content and isinstance(content["content"], list):
+                    # content["content"] may be a dict, and not a list ?
+                    for d_content in content["content"]:
+                        assert isinstance(d_content, dict), f"Unexpected content: {json.dumps(content, indent=2)}"
+                        _process_debugger(d_content["debugger"])
                 elif "debugger" in content:
-                    if isinstance(content, dict):
-                        _process_debugger(content["debugger"])
+                    _process_debugger(content["debugger"])
 
         return probe_diagnostics
 
@@ -347,7 +421,7 @@ class _Base_Debugger_Test:
         self.probe_snapshots = _get_snapshot_hash()
 
     def _collect_spans(self):
-        def _get_spans_hash(self):
+        def _get_spans_hash():
             agent_logs_endpoint_requests = list(interfaces.agent.get_data(_TRACES_PATH))
             span_hash = {}
 
@@ -381,7 +455,7 @@ class _Base_Debugger_Test:
 
             return span_hash
 
-        self.probe_spans = _get_spans_hash(self)
+        self.probe_spans = _get_spans_hash()
 
     def _collect_symbols(self):
         def _get_symbols():
@@ -420,22 +494,22 @@ class _Base_Debugger_Test:
 
     ###### assert #####
     def assert_rc_state_not_error(self):
-        assert self.rc_state, "RC states are empty"
+        assert self.rc_states, "RC states are empty"
 
         errors = []
-        for probe in self.probe_definitions:
-            rc_id = re.sub(r"_([a-z])", lambda match: match.group(1).upper(), probe["type"].lower()) + "_" + probe["id"]
+        for entry in self.rc_states:
+            for state in entry.values():
+                if not isinstance(state, dict) or "id" not in state:
+                    continue
 
-            logger.debug(f"Checking RC state for: {rc_id}")
+                rc_id = state["id"]
+                logger.debug(f"Checking RC state for: {rc_id}")
 
-            if rc_id not in self.rc_state:
-                errors.append(f"ID {rc_id} not found in state")
-            else:
-                apply_state = self.rc_state[rc_id]["apply_state"]
-                logger.debug(f"RC stace for {rc_id} is {apply_state}")
+                apply_state = state.get("apply_state")
+                logger.debug(f"RC state for {rc_id} is {apply_state}")
 
                 if apply_state == ApplyState.ERROR:
-                    errors.append(f"State for {rc_id} is error: {self.rc_state[rc_id]['apply_error']}")
+                    errors.append(f"State for {rc_id} is error: {state.get('apply_error')}")
 
         assert not errors, "\n".join(errors)
 

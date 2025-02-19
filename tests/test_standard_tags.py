@@ -219,7 +219,7 @@ class Test_StandardTagsRoute:
         if context.library == "python":
             if context.weblog_variant in ("flask-poc", "uwsgi-poc", "uds-flask"):
                 tags["http.route"] = "/sample_rate_route/<i>"
-            elif context.weblog_variant in ("django-poc", "python3.12"):
+            elif context.weblog_variant in ("django-poc", "python3.12", "django-py3.13"):
                 tags["http.route"] = "sample_rate_route/<int:i>"
 
         interfaces.library.add_span_tag_validation(request=self.r, tags=tags)
@@ -312,8 +312,7 @@ class Test_StandardTagsClientIp:
         assert "appsec.event" in meta
         assert "network.client.ip" in meta
         for header, value in self.FORWARD_HEADERS.items():
-            header = header.lower()
-            tag = f"http.request.headers.{header}"
+            tag = f"http.request.headers.{header.lower()}"
             assert tag in meta
             assert meta[tag] == value
 
@@ -334,8 +333,7 @@ class Test_StandardTagsClientIp:
         """Test that meta tag are correctly filled when an appsec event is present and ASM is enabled, with vendor headers"""
         meta = self._get_root_span_meta(self.request_with_attack)
         for header, value in self.FORWARD_HEADERS_VENDOR.items():
-            header = header.lower()
-            tag = f"http.request.headers.{header}"
+            tag = f"http.request.headers.{header.lower()}"
             assert tag in meta, f"missing {tag} tag"
             assert meta[tag] == value
 
