@@ -272,7 +272,8 @@ func main() {
 		if q := uquery.Get("event_user_id"); q != "" {
 			uid = q
 		}
-		appsec.TrackUserLoginSuccess(r.Context(), uid, uid, map[string]string{"metadata0": "value0", "metadata1": "value1"})
+		// TODO: Put this back to TrackUserLoginSuccess after PR merges into v2
+		appsec.TrackUserLoginSuccessEvent(r.Context(), uid, map[string]string{"metadata0": "value0", "metadata1": "value1"})
 	})
 
 	mux.HandleFunc("/user_login_failure_event", func(w http.ResponseWriter, r *http.Request) {
@@ -288,7 +289,8 @@ func main() {
 				exists = parsed
 			}
 		}
-		appsec.TrackUserLoginFailure(r.Context(), uid, exists, map[string]string{"metadata0": "value0", "metadata1": "value1"})
+		// TODO: Put this back to TrackUserLoginSuccess after PR merges into v2
+		appsec.TrackUserLoginFailureEvent(r.Context(), uid, exists, map[string]string{"metadata0": "value0", "metadata1": "value1"})
 	})
 
 	mux.HandleFunc("/custom_event", func(w http.ResponseWriter, r *http.Request) {
@@ -623,7 +625,8 @@ func main() {
 			w.WriteHeader(500)
 			w.Write([]byte("missing session cookie"))
 		}
-		appsec.TrackUserLoginSuccess(r.Context(), user, user, map[string]string{}, tracer.WithUserSessionID(cookie.Value))
+		// TODO: Put this back to TrackUserLoginSuccess after PR merges into v2
+		appsec.TrackUserLoginSuccessEvent(r.Context(), user, map[string]string{}, tracer.WithUserSessionID(cookie.Value))
 	})
 
 	mux.HandleFunc("/inferred-proxy/span-creation", func(w http.ResponseWriter, r *http.Request) {
