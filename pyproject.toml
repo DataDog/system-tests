@@ -191,26 +191,18 @@ ignore = [
     "SIM117",    # 127 occurences   [ ] multiple-with-statements
     "N806",      # 76 occurences    [ ] non-lowercase-variable-in-function
     "FBT003",    # 67 occurences    [ ] boolean-positional-value-in-call
-    "D200",      # 52 occurences    [*] fits-on-one-line
-    "F405",      # 43 occurences    [ ] undefined-local-with-import-star-usage
     "TRY002",    # 41 occurences    [ ] raise-vanilla-class
-    "N802",      # 39 occurences    [ ] invalid-function-name
     "FBT002",    # 30 occurences    [ ] boolean-default-value-positional-argument
-    "D404",      # 25 occurences    [ ] docstring-starts-with-this
-    "ANN401",    # 24 occurences    [ ] any-type
     "B007",      # 23 occurences    [ ] unused-loop-control-variable
-    "DTZ005",    # 23 occurences    [ ] call-datetime-now-without-tzinfo
     "INP001",    # 22 occurences    [ ] implicit-namespace-package
-    "SLF001",    # 12 occurences    [ ] private-member-access
-    "RUF015",    # 9 occurences     [*] unnecessary-iterable-allocation-for-first-element
     "TRY301",    # 8 occurences     [ ] raise-within-try
-    "S113",      # 5 occurences     [ ] request-without-timeout
 
     # keep those exceptions
     "C400",      # unnecessary-generator-list: explicit list is more readable for non-python users
     "C401",      # unnecessary-generator-set: explicit set is more readable for non-python users
     "C408",      # unnecessary-collection-call: explicit tuple is more readable for non-python users
     "C416",      # unnecessary-comprehension: may make the code less readable for non-python users
+    "D404",      # docstring-starts-with-this: ruff, please don't be a pain
     "FIX003",    # line-contains-xxx: freedom of speech!
     "FIX004",    # line-contains-xxx: freedom of speech!
     "PLR1730",   # if-stmt-min-max: not clear that it makes the code easier to read
@@ -220,6 +212,7 @@ ignore = [
     "RET508",    # superfluous-else-break: requires a slightly higher cognitive effort to understand the code
     "RET505",    # superfluous-else-return: requires a slightly higher cognitive effort to understand the code
     "RUF005",    # collection-literal-concatenation: more pythonic, but less clear for non python users
+    "RUF015",    # unnecessary-iterable-allocation-for-first-element: it makes the code a little bit less clear for non python users
     "S105",      # hardcoded-password-string: test code may contains weird things
     "S108",      # hardcoded-temp-file: test code may contains weird things
     "SIM108",    # if-else-block-instead-of-if-exp: ternary operator nay be harder to read on long statements
@@ -235,6 +228,12 @@ ignore = [
 ]
 "tests/test_the_test/*" = [
     "S605",      # start-process-with-a-shell: test the test needs to run shell commands
+]
+"tests/parametric/*" = [
+    "ANN401",    # any-type: TODO
+]
+"tests/parametric/{test_headers_baggage.py,test_headers_datadog.py,test_library_tracestats.py}" = [
+    "N802",      # invalid-function-name: some tests methods contains code with capital letters
 ]
 "utils/build/*"  = ["ALL"]
 "lib-injection/*" = ["ALL"]
@@ -272,7 +271,9 @@ ignore = [
     "UP031",
     "F541"
 ]
-
+"tests/auto_inject/*" = [
+    "SLF001",
+]
 "utils/onboarding/*" = [
     "ANN201",
     "DTZ006",
@@ -341,6 +342,7 @@ ignore = [
     "SIM113",
     "SIM300",
     "SIM401",  # code quality, TBD
+    "SLF001",
     "UP008",
     "UP031",
     "UP024",
