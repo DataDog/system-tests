@@ -104,7 +104,7 @@ class Test_Performances:
                 size, request = self.requests[i % len(self.requests)]
 
                 request_timestamp = datetime.now()
-                r = requests.request(**request)
+                r = requests.request(**request)  # noqa: S113
                 ellapsed = (datetime.now() - request_timestamp).total_seconds()
 
                 self.results.append((i, ellapsed, r.status_code, size))

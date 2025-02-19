@@ -202,7 +202,6 @@ ignore = [
     "INP001",    # 22 occurences    [ ] implicit-namespace-package
     "SLF001",    # 12 occurences    [ ] private-member-access
     "TRY301",    # 8 occurences     [ ] raise-within-try
-    "S113",      # 5 occurences     [ ] request-without-timeout
 
     # keep those exceptions
     "C400",      # unnecessary-generator-list: explicit list is more readable for non-python users
