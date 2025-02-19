@@ -180,7 +180,7 @@ class BaseSinkTestWithoutTelemetry:
         self.assert_no_iast_event(self.secure_request, self.vulnerability_type)
 
     @staticmethod
-    def assert_no_iast_event(request, tested_vulnerability_type=None):
+    def assert_no_iast_event(request, tested_vulnerability_type=None) -> None:
         assert request.status_code == 200, f"Request failed with status code {request.status_code}"
 
         for data, _, span in interfaces.library.get_spans(request=request):

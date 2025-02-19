@@ -192,13 +192,13 @@ class Test_Ssrf_Telemetry:
         self.r = weblog.get("/rasp/ssrf", params={"domain": "169.254.169.254"})
 
     def test_ssrf_telemetry(self):
-        series_eval = find_series(True, "appsec", "rasp.rule.eval")
+        series_eval = find_series("appsec", "rasp.rule.eval", is_metrics=True)
         assert series_eval
         assert any(validate_metric("rasp.rule.eval", "ssrf", s) for s in series_eval), [
             s.get("tags") for s in series_eval
         ]
 
-        series_match = find_series(True, "appsec", "rasp.rule.match")
+        series_match = find_series("appsec", "rasp.rule.match", is_metrics=True)
         assert series_match
         assert any(validate_metric("rasp.rule.match", "ssrf", s) for s in series_match), [
             s.get("tags") for s in series_match

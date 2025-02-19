@@ -86,7 +86,7 @@ class Test_GraphQLQueryErrorReporting:
         assert "extensions.not_captured" not in attributes
 
     @staticmethod
-    def _get_events(span):
+    def _get_events(span) -> dict:
         if "events" in span["meta"]:
             return json.loads(span["meta"]["events"])
         else:
