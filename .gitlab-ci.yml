@@ -14,11 +14,11 @@ compute_pipeline:
   image: registry.ddbuild.io/ci/libdatadog-build/system-tests:48436362
   tags: ["arch:amd64"]
   stage: compute_pipeline
-  rules:
-    - if: $CI_PIPELINE_SOURCE == "schedule"
-      when: always
-    - when: manual
-      allow_failure: true
+ # rules:
+ #   - if: $CI_PIPELINE_SOURCE == "schedule"
+ #     when: always
+ #   - when: manual
+ #     allow_failure: true
   script:
     - ./build.sh -i runner
     - source venv/bin/activate
