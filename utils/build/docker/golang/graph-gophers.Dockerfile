@@ -1,4 +1,4 @@
-FROM golang:1.22
+FROM golang:1.23
 
 # print important lib versions
 RUN go version && curl --version

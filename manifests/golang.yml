@@ -1,5 +1,5 @@
+---
 tests/:
-
   apm_tracing_e2e/:
     test_otel.py:
       Test_Otel_Span:
@@ -118,7 +118,6 @@ tests/:
           TestSSRF_StackTrace: missing_feature
         test_stacktrace_leak.py:
           TestStackTraceLeak: missing_feature
-          TestStackTraceLeak_StackTrace: missing_feature
         test_template_injection.py:
           TestTemplateInjection: missing_feature
           TestTemplateInjection_ExtendedLocation: missing_feature
@@ -493,7 +492,7 @@ tests/:
       test_kafka.py:
         Test_Kafka:
           "*": irrelevant
-          net-http: v0.1 # real version not known
+          net-http: v0.1  # real version not known
       test_kinesis.py:
         Test_Kinesis_PROPAGATION_VIA_MESSAGE_ATTRIBUTES:
           "*": irrelevant
@@ -568,7 +567,27 @@ tests/:
         net-http: missing_feature (Endpoint not implemented)
         net-http-orchestrion: missing_feature (Endpoint not implemented)
     test_inferred_proxy.py:
-      Test_AWS_API_Gateway_Inferred_Span_Creation: missing_feature
+      Test_AWS_API_Gateway_Inferred_Span_Creation:
+        "*": irrelevant
+        chi: v1.72.0
+        echo: v1.72.0
+        gin: v1.72.0
+        net-http: v1.72.0
+        net-http-orchestrion: v1.72.0
+      Test_AWS_API_Gateway_Inferred_Span_Creation_With_Distributed_Context:
+        "*": irrelevant
+        chi: v1.72.0
+        echo: v1.72.0
+        gin: v1.72.0
+        net-http: v1.72.0
+        net-http-orchestrion: v1.72.0
+      Test_AWS_API_Gateway_Inferred_Span_Creation_With_Error:
+        "*": irrelevant
+        chi: v1.72.0
+        echo: v1.72.0
+        gin: v1.72.0
+        net-http: v1.72.0
+        net-http-orchestrion: v1.72.0
     test_otel_drop_in.py:
       Test_Otel_Drop_In: missing_feature
   otel/:
@@ -607,8 +626,8 @@ tests/:
       Test_Parametric_DDTrace_Baggage: missing_feature (baggage endpoints are not implemented)
       Test_Parametric_DDTrace_Crash: missing_feature (crash endpoint is not implemented)
       Test_Parametric_DDTrace_Current_Span: missing_feature (spans are stored in a local context, there is no global current span in the go tracer)
-      Test_Parametric_OtelSpan_Set_Name: bug (APMAPI-778) # The set_name endpoint should set the resouce name (not the span name)
-      Test_Parametric_OtelSpan_Start: bug (APMAPI-778) # String attributes are incorrectly stored/serialized in a list
+      Test_Parametric_OtelSpan_Set_Name: bug (APMAPI-778)  # The set_name endpoint should set the resouce name (not the span name)
+      Test_Parametric_OtelSpan_Start: bug (APMAPI-778)  # String attributes are incorrectly stored/serialized in a list
       Test_Parametric_Otel_Baggage: missing_feature (otel baggage is not supported)
       Test_Parametric_Otel_Current_Span: missing_feature (otel current span endpoint is not defined)
     test_span_events.py: missing_feature
@@ -620,7 +639,7 @@ tests/:
       Test_TelemetryInstallSignature: missing_feature
       Test_TelemetrySCAEnvVar: v1.63.0-rc.1
     test_trace_sampling.py:
-      Test_Trace_Sampling_Basic: v1.37.0 # TODO what is the earliest version?
+      Test_Trace_Sampling_Basic: v1.37.0  # TODO what is the earliest version?
       Test_Trace_Sampling_Globs: v1.60.0
       Test_Trace_Sampling_Globs_Feb2024_Revision: v1.64.0
       Test_Trace_Sampling_Resource: v1.60.0
@@ -681,7 +700,7 @@ tests/:
     Test_Span_Links_Flags_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
     Test_Span_Links_From_Conflicting_Contexts: missing_feature
     Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
-    Test_Synthetics_APM_Datadog: bug (APMAPI-901) # the incoming headers are considered invalid
+    Test_Synthetics_APM_Datadog: bug (APMAPI-901)  # the incoming headers are considered invalid
   test_graphql.py: missing_feature
   test_identify.py:
     Test_Basic: v1.37.0

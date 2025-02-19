@@ -16,7 +16,7 @@ class TestHostAutoInjectInstallScript(base.AutoInjectBaseTest):
         reason="INPLAT-103",
     )
     @bug(
-        context.vm_name == ["Ubuntu_24_10_amd64", "Ubuntu_24_10_arm64"] and context.weblog_variant == "test-app-python",
+        context.vm_name in ["Ubuntu_24_10_amd64", "Ubuntu_24_10_arm64"] and context.weblog_variant == "test-app-python",
         reason="INPLAT-478",
     )
     @missing_feature(context.vm_os_branch == "windows", reason="Not implemented on Windows")
@@ -62,7 +62,7 @@ class TestHostAutoInjectInstallScriptProfiling(base.AutoInjectBaseTest):
         reason="PROF-11264",
     )
     @bug(
-        context.vm_name == ["Ubuntu_24_10_amd64", "Ubuntu_24_10_arm64"] and context.weblog_variant == "test-app-python",
+        context.vm_name in ["Ubuntu_24_10_amd64", "Ubuntu_24_10_arm64"] and context.weblog_variant == "test-app-python",
         reason="INPLAT-478",
     )
     @missing_feature(context.vm_os_branch == "windows", reason="Not implemented on Windows")
@@ -180,7 +180,7 @@ class TestInstallerAutoInjectManual(base.AutoInjectBaseTest):
         reason="INPLAT-103",
     )
     @bug(
-        context.vm_name == ["Ubuntu_24_10_amd64", "Ubuntu_24_10_arm64"] and context.weblog_variant == "test-app-python",
+        context.vm_name in ["Ubuntu_24_10_amd64", "Ubuntu_24_10_arm64"] and context.weblog_variant == "test-app-python",
         reason="INPLAT-478",
     )
     def test_install_uninstall(self):
@@ -210,8 +210,12 @@ class TestSimpleInstallerAutoInjectManual(base.AutoInjectBaseTest):
         reason="INPLAT-103",
     )
     @bug(
-        context.vm_name == ["Ubuntu_24_10_amd64", "Ubuntu_24_10_arm64"] and context.weblog_variant == "test-app-python",
+        context.vm_name in ["Ubuntu_24_10_amd64", "Ubuntu_24_10_arm64"] and context.weblog_variant == "test-app-python",
         reason="INPLAT-478",
+    )
+    @bug(
+        context.vm_name == "Ubuntu_24_arm64" and context.weblog_variant == "test-app-dotnet-multialpine",
+        reason="INPLAT-484",
     )
     def test_install(self):
         virtual_machine = context.scenario.virtual_machine

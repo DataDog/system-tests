@@ -219,7 +219,7 @@ class Test_StandardTagsRoute:
         if context.library == "python":
             if context.weblog_variant in ("flask-poc", "uwsgi-poc", "uds-flask"):
                 tags["http.route"] = "/sample_rate_route/<i>"
-            elif context.weblog_variant in ("django-poc", "python3.12"):
+            elif context.weblog_variant in ("django-poc", "python3.12", "django-py3.13"):
                 tags["http.route"] = "sample_rate_route/<int:i>"
 
         interfaces.library.add_span_tag_validation(request=self.r, tags=tags)

@@ -73,7 +73,7 @@ class TestAutoInjectBlockListInstallManualHost(_AutoInjectBlockListBaseTest):
         or "buildpack" in context.weblog_variant
     )
     @bug(
-        context.vm_os_branch == ["amazon_linux2", "centos_7_amd64"] and context.scenario.library == "ruby",
+        context.vm_os_branch in ["amazon_linux2", "centos_7_amd64"] and context.scenario.library == "ruby",
         reason="INPLAT-103",
     )
     @bug(

@@ -14,6 +14,7 @@ from moto import mock_aws
 import mock
 import urllib3
 import xmltodict
+import graphene
 
 
 if os.environ.get("INCLUDE_POSTGRES", "true") == "true":
@@ -29,10 +30,12 @@ if os.environ.get("INCLUDE_MYSQL", "true") == "true":
 from flask import Flask
 from flask import Response
 from flask import jsonify
+from flask import render_template_string
 from flask import request
 from flask import request as flask_request
 from flask_login import LoginManager
 from flask_login import login_user
+
 from iast import weak_cipher
 from iast import weak_cipher_secure_algorithm
 from iast import weak_hash
@@ -68,8 +71,6 @@ if os.environ.get("INCLUDE_RABBITMQ", "true") == "true":
     from integrations.messaging.rabbitmq import rabbitmq_produce
 
 import ddtrace
-from ddtrace.trace import Pin
-from ddtrace.trace import tracer
 from ddtrace.appsec import trace_utils as appsec_trace_utils
 from ddtrace.appsec.iast import ddtrace_iast_flask_patch
 from ddtrace.internal.datastreams import data_streams_processor
@@ -79,6 +80,13 @@ from ddtrace.data_streams import set_produce_checkpoint
 
 from debugger_controller import debugger_blueprint
 from exception_replay_controller import exception_replay_blueprint
+
+try:
+    from ddtrace.trace import Pin
+    from ddtrace.trace import tracer
+except ImportError:
+    from ddtrace import Pin
+    from ddtrace import tracer
 
 # Patch kombu and urllib3 since they are not patched automatically
 ddtrace.patch_all(kombu=True, urllib3=True)
@@ -435,6 +443,30 @@ def rasp_cmdi(*args, **kwargs):
 
 
 ### END EXPLOIT PREVENTION
+
+
+@app.route("/graphql", methods=["GET", "POST"])
+def graphql_error_spans(*args, **kwargs):
+    from integrations.graphql import schema
+
+    data = request.get_json()
+
+    result = schema.execute(
+        data["query"],
+        variables=data.get("variables"),
+        operation_name=data.get("operationName"),
+    )
+
+    if result.errors:
+        return jsonify(format_error(result.errors[0])), 200
+
+    return jsonify(result.to_dict())
+
+
+def format_error(error):
+    return {
+        "message": error.message,
+    }
 
 
 @app.route("/read_file", methods=["GET"])
@@ -1205,6 +1237,20 @@ def view_iast_code_injection_secure():
     return resp
 
 
+@app.route("/iast/xss/test_insecure", methods=["POST"])
+def view_iast_xss_insecure():
+    param = flask_request.form["param"]
+
+    return render_template_string("<p>XSS: {{ param|safe }}</p>", param=param)
+
+
+@app.route("/iast/xss/test_secure", methods=["POST"])
+def view_iast_xss_secure():
+    param = flask_request.form["param"]
+
+    return render_template_string("<p>XSS: {{ param }}</p>", param=param)
+
+
 _TRACK_METADATA = {
     "metadata0": "value0",
     "metadata1": "value1",
@@ -1386,6 +1432,40 @@ def test_weak_randomness_insecure():
 def test_weak_randomness_secure():
     random_secure = random.SystemRandom()
     _ = random_secure.randint(1, 100)
+    return Response("OK")
+
+
+@app.route("/iast/stack_trace_leak/test_insecure")
+def test_stacktrace_leak_insecure():
+    return Response(
+        """Traceback (most recent call last):
+File "/usr/local/lib/python3.9/site-packages/some_module.py", line 42, in process_data
+result = complex_calculation(data)
+File "/usr/local/lib/python3.9/site-packages/another_module.py", line 158, in complex_calculation
+intermediate = perform_subtask(data_slice)
+File "/usr/local/lib/python3.9/site-packages/subtask_module.py", line 27, in perform_subtask
+processed = handle_special_case(data_slice)
+File "/usr/local/lib/python3.9/site-packages/special_cases.py", line 84, in handle_special_case
+return apply_algorithm(data_slice, params)
+File "/usr/local/lib/python3.9/site-packages/algorithm_module.py", line 112, in apply_algorithm
+step_result = execute_step(data, params)
+File "/usr/local/lib/python3.9/site-packages/step_execution.py", line 55, in execute_step
+temp = pre_process(data)
+File "/usr/local/lib/python3.9/site-packages/pre_processing.py", line 33, in pre_process
+validated_data = validate_input(data)
+File "/usr/local/lib/python3.9/site-packages/validation.py", line 66, in validate_input
+check_constraints(data)
+File "/usr/local/lib/python3.9/site-packages/constraints.py", line 19, in check_constraints
+raise ValueError("Constraint violation at step 9")
+ValueError: Constraint violation at step 9
+
+Lorem Ipsum Foobar
+"""
+    )
+
+
+@app.route("/iast/stack_trace_leak/test_secure")
+def test_stacktrace_leak_secure():
     return Response("OK")
 
 
@@ -1574,3 +1654,14 @@ def otel_drop_in_default_propagator_inject():
     opentelemetry.propagate.inject(result, opentelemetry.context.get_current())
 
     return jsonify(result)
+
+
+@app.route("/inferred-proxy/span-creation", methods=["GET"])
+def inferred_proxy_span_creation():
+    headers = flask_request.args.get("headers", {})
+    status = int(flask_request.args.get("status_code", "200"))
+
+    logging.info("Received an API Gateway request")
+    logging.info("Request headers: " + str(headers))
+
+    return Response("ok", status=status)
