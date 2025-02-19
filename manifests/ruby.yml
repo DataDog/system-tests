@@ -525,7 +525,6 @@ tests/:
       Test_Partial_Flushing: missing_feature
     test_sampling_delegation.py:
       Test_Decisionless_Extraction: v2.4.0
-    test_span_events.py: missing_feature
     test_span_links.py:
       Test_Span_Links: v2.0.0
     test_telemetry.py:
@@ -602,7 +601,7 @@ tests/:
   test_graphql.py:
     Test_GraphQLQueryErrorReporting:
       "*": irrelevant
-      graphql23: missing_feature
+      graphql23: v2.11.0
   test_identify.py:
     Test_Basic: v1.0.0
     Test_Propagate: missing_feature
