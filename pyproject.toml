@@ -200,7 +200,6 @@ ignore = [
     "B007",      # 23 occurences    [ ] unused-loop-control-variable
     "DTZ005",    # 23 occurences    [ ] call-datetime-now-without-tzinfo
     "INP001",    # 22 occurences    [ ] implicit-namespace-package
-    "SLF001",    # 12 occurences    [ ] private-member-access
     "TRY301",    # 8 occurences     [ ] raise-within-try
 
     # keep those exceptions
@@ -270,7 +269,9 @@ ignore = [
     "UP031",
     "F541"
 ]
-
+"tests/auto_inject/*" = [
+    "SLF001",
+]
 "utils/onboarding/*" = [
     "ANN201",
     "DTZ006",
@@ -339,6 +340,7 @@ ignore = [
     "SIM113",
     "SIM300",
     "SIM401",  # code quality, TBD
+    "SLF001",
     "UP008",
     "UP031",
     "UP024",

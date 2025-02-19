@@ -9,7 +9,7 @@ from utils import scenarios, features, missing_feature, context, rfc, bug
 
 @features.debugger
 @scenarios.debugger_probes_snapshot
-class Test_Debugger_Probe_Snaphots(debugger._Base_Debugger_Test):
+class Test_Debugger_Probe_Snaphots(debugger.Base_Debugger_Test):
     ############ setup ############
     def _setup(self, probes_name: str, request_path: str):
         self.initialize_weblog_remote_config()
