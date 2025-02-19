@@ -138,7 +138,8 @@
                     ],
                     "dotnet": [
                         "test-app-dotnet",
-                        "test-app-dotnet-container"
+                        "test-app-dotnet-container",
+                        "test-app-dotnet-iis"
                     ],
                     "ruby": [
                         "test-app-ruby",
@@ -567,6 +568,12 @@
                 "name": "test-app-dotnet-unsupported",
                 "exact_os_branches": [
                     "ubuntu20_amd64"
+                ]
+            },
+            {
+                "name": "test-app-dotnet-iis",
+                "excluded_os_types": [
+                    "linux"
                 ]
             }
         ],
