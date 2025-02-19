@@ -201,7 +201,6 @@ ignore = [
     "DTZ005",    # 23 occurences    [ ] call-datetime-now-without-tzinfo
     "INP001",    # 22 occurences    [ ] implicit-namespace-package
     "SLF001",    # 12 occurences    [ ] private-member-access
-    "RUF015",    # 9 occurences     [*] unnecessary-iterable-allocation-for-first-element
     "TRY301",    # 8 occurences     [ ] raise-within-try
     "S113",      # 5 occurences     [ ] request-without-timeout
 
@@ -219,6 +218,7 @@ ignore = [
     "RET508",    # superfluous-else-break: requires a slightly higher cognitive effort to understand the code
     "RET505",    # superfluous-else-return: requires a slightly higher cognitive effort to understand the code
     "RUF005",    # collection-literal-concatenation: more pythonic, but less clear for non python users
+    "RUF015",    # unnecessary-iterable-allocation-for-first-element: it makes the code a little bit less clear for non python users
     "S105",      # hardcoded-password-string: test code may contains weird things
     "S108",      # hardcoded-temp-file: test code may contains weird things
     "SIM108",    # if-else-block-instead-of-if-exp: ternary operator nay be harder to read on long statements
