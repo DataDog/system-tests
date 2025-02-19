@@ -2,7 +2,7 @@ include:
   - remote: https://gitlab-templates.ddbuild.io/libdatadog/include/single-step-instrumentation-tests.yml
 stages:
   - compute_pipeline
-  - node_ssi_pipelines
+  - nodejs_ssi_pipelines
   - before_tests
 
 variables:
