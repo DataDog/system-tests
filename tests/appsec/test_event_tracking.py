@@ -44,6 +44,7 @@ class Test_UserLoginSuccessEvent:
                 "http.client_ip": "1.2.3.4",
                 "usr.id": "system_tests_user",
                 "appsec.events.users.login.success.track": "true",
+                "appsec.events.users.login.success.sdk": "true",
                 "appsec.events.users.login.success.metadata0": "value0",
                 "appsec.events.users.login.success.metadata1": "value1",
             }
@@ -97,6 +98,7 @@ class Test_UserLoginFailureEvent:
                 "http.client_ip": "1.2.3.4",
                 "appsec.events.users.login.failure.usr.id": "system_tests_user",
                 "appsec.events.users.login.failure.track": "true",
+                "appsec.events.users.login.failure.sdk": "true",
                 "appsec.events.users.login.failure.usr.exists": "true",
                 "appsec.events.users.login.failure.metadata0": "value0",
                 "appsec.events.users.login.failure.metadata1": "value1",
@@ -150,6 +152,7 @@ class Test_CustomEvent:
             expected_tags = {
                 "http.client_ip": "1.2.3.4",
                 "appsec.events.system_tests_event.track": "true",
+                "appsec.events.system_tests_event.sdk": "true",
                 "appsec.events.system_tests_event.metadata0": "value0",
                 "appsec.events.system_tests_event.metadata1": "value1",
             }
