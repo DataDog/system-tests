@@ -84,7 +84,7 @@ class TestAutoInjectBlockListInstallManualHost(_AutoInjectBlockListBaseTest):
         context.vm_name in ["Ubuntu_24_10_amd64", "Ubuntu_24_10_arm64"] and context.weblog_variant == "test-app-python",
         reason="INPLAT-478",
     )
-    def test_builtIn_block_commands(self):
+    def test_builtin_block_commands(self):
         """Check that commands are skipped from the auto injection. This commands are defined on the buildIn processes to block"""
         virtual_machine = context.scenario.virtual_machine
         logger.info(f"[{virtual_machine.get_ip()}] Executing commands that should be blocked")
@@ -110,7 +110,7 @@ class TestAutoInjectBlockListInstallManualHost(_AutoInjectBlockListBaseTest):
         context.vm_name in ["Ubuntu_24_10_amd64", "Ubuntu_24_10_arm64"] and context.weblog_variant == "test-app-python",
         reason="INPLAT-478",
     )
-    def test_builtIn_block_args(self):
+    def test_builtin_block_args(self):
         """Check that we are blocking command with args. These args are defined in the buildIn args ignore list for each language."""
         virtual_machine = context.scenario.virtual_machine
         logger.info(f"[{virtual_machine.get_ip()}] Executing test_builtIn_block_args")
@@ -138,7 +138,7 @@ class TestAutoInjectBlockListInstallManualHost(_AutoInjectBlockListBaseTest):
         context.vm_name in ["Ubuntu_24_10_amd64", "Ubuntu_24_10_arm64"] and context.weblog_variant == "test-app-python",
         reason="INPLAT-478",
     )
-    def test_builtIn_instrument_args(self):
+    def test_builtin_instrument_args(self):
         """Check that we are instrumenting the command with args that it should be instrumented. The args are not included on the buildIn args list"""
         virtual_machine = context.scenario.virtual_machine
         logger.info(f"[{virtual_machine.get_ip()}] Executing test_builtIn_instrument_args")

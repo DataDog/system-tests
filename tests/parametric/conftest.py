@@ -91,7 +91,7 @@ def test_server_log_file(apm_test_server, request) -> Generator[TextIO, None, No
     with open(log_path, "w+", encoding="utf-8") as f:
         yield f
         f.seek(0)
-        request.node._report_sections.append(
+        request.node._report_sections.append(  # noqa: SLF001
             ("teardown", f"{apm_test_server.lang.capitalize()} Library Output", "".join(f.readlines()))
         )
 
@@ -146,7 +146,7 @@ class _TestAgentAPI:
     @staticmethod
     def _build_config_path_response(config: list) -> str:
         expires_date = datetime.datetime.strftime(
-            datetime.datetime.now() + datetime.timedelta(days=1), "%Y-%m-%dT%H:%M:%SZ"
+            datetime.datetime.now(tz=datetime.UTC) + datetime.timedelta(days=1), "%Y-%m-%dT%H:%M:%SZ"
         )
         roots = [
             str(
@@ -559,7 +559,7 @@ def test_agent_log_file(request) -> Generator[TextIO, None, None]:
             if "GET /test/session/apmtelemetry" in line:
                 continue
             agent_output += line
-        request.node._report_sections.append(("teardown", "Test Agent Output", agent_output))
+        request.node._report_sections.append(("teardown", "Test Agent Output", agent_output))  # noqa: SLF001
 
 
 @pytest.fixture
