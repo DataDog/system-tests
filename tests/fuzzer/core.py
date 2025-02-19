@@ -3,6 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 import asyncio
+import aiofiles
 from datetime import datetime, timedelta
 import hashlib
 import json
@@ -375,12 +376,14 @@ class Fuzzer:
             request_as_json = json.dumps(request, indent=4)
             hashed = hashlib.md5(request_as_json.encode()).hexdigest()
 
-            with open(os.path.join("logs", f"{status}-{hashed}.json"), "w", encoding="utf-8") as f:
+            async with aiofiles.open(os.path.join("logs", f"{status}-{hashed}.json"), "w", encoding="utf-8") as f:
                 f.write(request_as_json)
 
             if response and self.enable_response_dump:
                 text = await response.text()
-                with open(os.path.join("logs", f"{status}-response-{hashed}.html"), "w", encoding="utf-8") as f:
+                async with aiofiles.open(
+                    os.path.join("logs", f"{status}-response-{hashed}.html"), "w", encoding="utf-8"
+                ) as f:
                     f.write(text)
 
     def update_backend_metrics(self, data):
