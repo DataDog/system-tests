@@ -2,22 +2,21 @@ include:
   - remote: https://gitlab-templates.ddbuild.io/libdatadog/include/single-step-instrumentation-tests.yml
 
 stages:
-  - SCENARIOS
+  - CONFIG
 
-.base_job_aws:
+configure_run_aws:
   image: registry.ddbuild.io/images/ci_docker_base
   tags: ["arch:amd64"]
+  stage: CONFIG
   script:
-    - echo "WEBLOG: $WEBLOG"
-    - echo "SCENARIO: $SCENARIO"
-    - echo "VIRTUAL_MACHINE: $VIRTUAL_MACHINE"
+    - echo "PIPELINE READY"
 
 .base_job_onboarding_system_tests:
     extends: .base_job_onboarding
     when: manual
     script:
         - ./build.sh -i runner
-        - ./run.sh $SCENARIO --vm-weblog ${WEBLOG} --vm-env prod --vm-library ${TEST_LIBRARY} --vm-provider aws --vm-default-vms All --vm-only ${VIRTUAL_MACHINE}"
+        - ./run.sh $SCENARIO --vm-weblog ${WEBLOG} --vm-env prod --vm-library ${TEST_LIBRARY} --vm-provider aws --vm-default-vms All --vm-only ${VIRTUAL_MACHINE}
 
     artifacts:
         when: always
