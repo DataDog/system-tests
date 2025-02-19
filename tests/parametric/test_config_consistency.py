@@ -391,7 +391,7 @@ SDK_DEFAULT_STABLE_CONFIG = {
 @scenarios.parametric
 @features.stable_configuration_support
 @missing_feature(
-    context.library in ["ruby", "cpp", "dotnet", "golang", "java", "nodejs", "php", "python"],
+    context.library in ["ruby", "cpp", "dotnet", "golang", "nodejs", "php", "python"],
     reason="does not support stable configurations yet",
 )
 class Test_Stable_Config_Default:
