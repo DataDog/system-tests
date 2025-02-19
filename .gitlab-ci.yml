@@ -22,6 +22,12 @@ compute_pipeline:
   script:
     - ./build.sh -i runner
     - source venv/bin/activate
+    - git fetch origin ${CI_COMMIT_SHA}
+    - git diff --name-only HEAD ${CI_COMMIT_SHA} >> modified_files.txt
+    - cat modified_files.txt
+    - python utils/scripts/compute_impacted_scenario.py >> impacted_scenarios.txt
+    - echo "**************** AHORA EL OTRO *************************"
+    - cat impacted_scenarios.txt
     - python utils/scripts/compute-workflow-parameters.py nodejs -g "ipv6" --parametric-job-count 1 --ci-environment "prod" --format gitlab > gitlab_pipeline.yml
   artifacts:
     paths:
