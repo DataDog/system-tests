@@ -1,5 +1,3 @@
-import ddtrace.auto
-
 import base64
 import json
 import logging
@@ -33,6 +31,7 @@ import xmltodict
 from starlette.middleware.sessions import SessionMiddleware
 
 import ddtrace
+from ddtrace import patch_all
 from ddtrace.appsec import trace_utils as appsec_trace_utils
 
 try:
@@ -42,7 +41,7 @@ except ImportError:
     from ddtrace import Pin
     from ddtrace import tracer
 
-
+patch_all(urllib3=True)
 tracer.trace("init.service").finish()
 logger = logging.getLogger(__name__)
 
