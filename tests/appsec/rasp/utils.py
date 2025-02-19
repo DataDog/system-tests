@@ -166,7 +166,7 @@ class Base_Rules_Version:
         """Checks data in waf.init metric to verify waf version"""
 
         min_version_array = list(map(int, self.min_version.split(".")))
-        series = find_series("appsec", "waf.init", True)
+        series = find_series("appsec", "waf.init", is_metrics=True)
         assert series
         assert any(validate_metric_tag_version("event_rules_version", min_version_array, s) for s in series)
 
@@ -180,6 +180,6 @@ class Base_WAF_Version:
         """Checks data in waf.init metric to verify waf version"""
 
         min_version_array = list(map(int, self.min_version.split(".")))
-        series = find_series("appsec", "waf.init", True)
+        series = find_series("appsec", "waf.init", is_metrics=True)
         assert series
         assert any(validate_metric_tag_version("waf_version", min_version_array, s) for s in series)
