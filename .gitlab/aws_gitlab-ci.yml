@@ -1,3 +1,6 @@
+include:
+  - remote: https://gitlab-templates.ddbuild.io/libdatadog/include/single-step-instrumentation-tests.yml
+
 stages:
   - SCENARIOS
 
@@ -9,8 +12,12 @@ stages:
     - echo "SCENARIO: $SCENARIO"
     - echo "VIRTUAL_MACHINE: $VIRTUAL_MACHINE"
 
-.base_job_onboarding_system_tests: 
-    extends: .base_job_onboarding,
+.base_job_onboarding_system_tests:
+    extends: .base_job_onboarding
+    when: manual
+    script:
+        - ./build.sh -i runner
+        - ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env prod --vm-library ${TEST_LIBRARY} --vm-provider aws --vm-default-vms All --vm-only ${VIRTUAL_MACHINE}"
     after_script: |
         SCENARIO_SUFIX=$(echo "$SCENARIO" | tr "[:upper:]" "[:lower:]")
         REPORTS_PATH="reports/"
@@ -32,9 +39,8 @@ stages:
           done
         done
         fi
-    artifacts: 
+    artifacts:
         when: always
-        path": 
+        path":
             - reports/
-        
-    
+
