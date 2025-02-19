@@ -33,7 +33,13 @@ def print_aws_gitlab_pipeline(language, aws_matrix, ci_environment) -> None:
             result_pipeline[weblog_job]["variables"]["SCENARIO"] = scenario
             result_pipeline[weblog_job]["variables"]["WEBLOG"] = weblog
             result_pipeline[weblog_job]["variables"]["ONBOARDING_FILTER_ENV"] = ci_environment
-            result_pipeline[weblog_job]["parallel"] = {"matrix": vms}
+            result_pipeline[weblog_job]["parallel"] = {"matrix": []}
+            for vm in vms:
+                result_pipeline[weblog_job]["parallel"]["matrix"].append(
+                    {
+                        "VIRTUAL_MACHINE": vm,
+                    }
+                )
 
     # TODO: write the gitlab pipeline
     pipeline_yml = yaml.dump(result_pipeline, sort_keys=False, default_flow_style=False)
