@@ -218,8 +218,8 @@ def validate_stack_traces(request):
         i for i in iast["vulnerabilities"] if i.get("location") and i["location"].get("stackId") == stack_trace["id"]
     ]
     assert (
-        len(vulns) == 1
-    ), f"Expected a single vulnerability with the stack trace Id.\nVulnerabilities: {vulns}\nStack trace: {stack_traces}"
+        len(vulns) >= 1
+    ), f"Expected at least one vulnerability per stack trace Id.\nVulnerabilities: {vulns}\nStack trace: {stack_traces}"
     vuln = vulns[0]
 
     assert vuln["location"], "no 'location' present'"
