@@ -9,7 +9,7 @@ from utils.otel_validators.validator_log import validate_log, validate_log_trace
 from utils.otel_validators.validator_metric import validate_metrics
 
 
-def _get_dd_trace_id(otel_trace_id: str, use_128_bits_trace_id: bool) -> int:
+def _get_dd_trace_id(otel_trace_id: str, *, use_128_bits_trace_id: bool) -> int:
     otel_trace_id_bytes = base64.b64decode(otel_trace_id)
     if use_128_bits_trace_id:
         return int.from_bytes(otel_trace_id_bytes, "big")
