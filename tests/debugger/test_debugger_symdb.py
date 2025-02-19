@@ -5,7 +5,6 @@
 import re
 import tests.debugger.utils as debugger
 from utils import features, scenarios, bug, context
-from utils import remote_config as rc
 
 
 @features.debugger
@@ -13,7 +12,7 @@ from utils import remote_config as rc
 class Test_Debugger_SymDb(debugger._Base_Debugger_Test):
     ############ setup ############
     def _setup(self):
-        self.rc_state = rc.send_symdb_command()
+        self.send_rc_symdb()
 
     ############ assert ############
     def _assert(self):
