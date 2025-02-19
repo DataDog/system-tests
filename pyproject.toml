@@ -125,6 +125,7 @@ ignore = [
 
     ### Ignores that will be kept for the entire project
     "ANN204", # missing-return-type-special-method
+    "ANN206", # missing-return-type-class-method
     "COM812", # ruff format recommend ignoring this
     "D100",   # Missing docstring in public module
     "D101",   # Missing docstring in public class
@@ -200,29 +201,10 @@ ignore = [
     "B007",      # 23 occurences    [ ] unused-loop-control-variable
     "DTZ005",    # 23 occurences    [ ] call-datetime-now-without-tzinfo
     "INP001",    # 22 occurences    [ ] implicit-namespace-package
-    "ANN205",    # 16 occurences    [ ] missing-return-type-static-method
-    "T201",      # 15 occurences    [*] print
-    "FBT001",    # 12 occurences    [ ] boolean-type-hint-positional-argument
     "SLF001",    # 12 occurences    [ ] private-member-access
-    "S105",      # 10 occurences    [ ] hardcoded-password-string
-    "RET503",    # 9 occurences     [*] implicit-return
-    "SIM115",    # 9 occurences     [ ] open-file-with-context-handler
     "RUF015",    # 9 occurences     [*] unnecessary-iterable-allocation-for-first-element
-    "SIM108",    # 8 occurences     [*] if-else-block-instead-of-if-exp
     "TRY301",    # 8 occurences     [ ] raise-within-try
-    "ANN206",    # 7 occurences     [ ] missing-return-type-class-method
-    "B011",      # 7 occurences     [*] assert-false
-    "PT015",     # 7 occurences     [ ] pytest-assert-always-false
-    "N815",      # 7 occurences     [ ] mixed-case-variable-in-class-scope
-    "PT006",     # 6 occurences     [*] pytest-parametrize-names-wrong-type
-    "N803",      # 6 occurences     [ ] invalid-argument-name
     "S113",      # 5 occurences     [ ] request-without-timeout
-    "PT011",     # 5 occurences     [ ] pytest-raises-too-broad
-    "E731",      # 5 occurences     [*] lambda-assignment
-    "RUF005",    # 5 occurences     [ ] collection-literal-concatenation
-    "PLW2901",   # 4 occurences     [ ] redefined-loop-name
-    "ASYNC230",  # 2 occurences     [ ] blocking-open-call-in-async-function
-    "S605",      # 2 occurences     [ ] start-process-with-a-shell
 
     # keep those exceptions
     "C400",      # unnecessary-generator-list: explicit list is more readable for non-python users
@@ -232,14 +214,27 @@ ignore = [
     "FIX003",    # line-contains-xxx: freedom of speech!
     "FIX004",    # line-contains-xxx: freedom of speech!
     "PLR1730",   # if-stmt-min-max: not clear that it makes the code easier to read
+    "PT011",     # pytest-raises-too-broad: kind of painful to fix
     "RET506",    # superfluous-else-raise: requires a slightly higher cognitive effort to understand the code
     "RET507",    # superfluous-else-continue : requires a slightly higher cognitive effort to understand the code
     "RET508",    # superfluous-else-break: requires a slightly higher cognitive effort to understand the code
     "RET505",    # superfluous-else-return: requires a slightly higher cognitive effort to understand the code
+    "RUF005",    # collection-literal-concatenation: more pythonic, but less clear for non python users
+    "S105",      # hardcoded-password-string: test code may contains weird things
     "S108",      # hardcoded-temp-file: test code may contains weird things
+    "SIM108",    # if-else-block-instead-of-if-exp: ternary operator nay be harder to read on long statements
+]
+"tests/fuzzer/*" = [
+    "T201",      # print: fuzzer use prints...
 ]
 "tests/fuzzer/request_mutator.py" = [
     "RUF001",    # ambiguous-unicode-character-string: the mutator contains weird strings on purpose
+]
+"tests/perfs/*" = [
+    "T201",      # print: perfs use prints...
+]
+"tests/test_the_test/*" = [
+    "S605",      # start-process-with-a-shell: test the test needs to run shell commands
 ]
 "utils/build/*"  = ["ALL"]
 "lib-injection/*" = ["ALL"]

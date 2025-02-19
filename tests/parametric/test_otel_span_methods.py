@@ -589,7 +589,7 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library <= "dotnet@2.41.0", reason="Implemented in 2.42.0")
     @missing_feature(context.library == "python", reason="Not implemented")
     @pytest.mark.parametrize(
-        "expected_operation_name,span_kind,attributes",
+        ("expected_operation_name", "span_kind", "attributes"),
         [
             ("http.server.request", SpanKind.SERVER, {"http.request.method": "GET"}),
             ("http.client.request", SpanKind.CLIENT, {"http.request.method": "GET"}),
@@ -667,7 +667,7 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library <= "php@0.95.0", reason="Implemented in 0.96.0")
     @missing_feature(context.library == "python", reason="Not implemented")
     @pytest.mark.parametrize(
-        "analytics_event_value,expected_metric_value",
+        ("analytics_event_value", "expected_metric_value"),
         [("true", 1), ("TRUE", 1), ("True", 1), ("false", 0), ("False", 0), ("FALSE", 0), (True, 1), (False, 0)],
     )
     def test_otel_span_basic_reserved_attributes_overrides_analytics_event(
@@ -698,7 +698,7 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library == "python", reason="Not implemented")
     @missing_feature(context.library == "python_http", reason="Not implemented")
     @pytest.mark.parametrize(
-        "analytics_event_value,expected_metric_value", [("something-else", None), ("fAlse", None), ("trUe", None)]
+        ("analytics_event_value", "expected_metric_value"), [("something-else", None), ("fAlse", None), ("trUe", None)]
     )
     def test_otel_span_strict_reserved_attributes_overrides_analytics_event(
         self, analytics_event_value: bool | str, expected_metric_value: int | None, test_agent, test_library
@@ -720,7 +720,7 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library == "python", reason="Not implemented")
     @missing_feature(context.library == "python_http", reason="Not implemented")
     @pytest.mark.parametrize(
-        "analytics_event_value,expected_metric_value", [("t", 1), ("T", 1), ("f", 0), ("F", 0), ("1", 1), ("0", 0)]
+        ("analytics_event_value", "expected_metric_value"), [("t", 1), ("T", 1), ("f", 0), ("F", 0), ("1", 1), ("0", 0)]
     )
     def test_otel_span_extended_reserved_attributes_overrides_analytics_event(
         self, analytics_event_value: bool | str, expected_metric_value: int | None, test_agent, test_library

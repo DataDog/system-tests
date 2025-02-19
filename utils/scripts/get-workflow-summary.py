@@ -40,8 +40,6 @@ def main(repo_slug: str, run_id: int, output: str) -> None:
     logging.info(f"Getting workflow summary for https://github.com/{repo_slug}/actions/runs/{run_id}")
     environ = get_environ()
 
-    has_failure = False
-
     result: list[str] = []
 
     with requests.Session() as session:
@@ -56,10 +54,6 @@ def main(repo_slug: str, run_id: int, output: str) -> None:
             if job["name"] in ("all-jobs-are-green", "fancy-report"):
                 logging.info(f"Skipping job {job['name']}")
                 continue
-
-            if job["conclusion"] not in ["skipped", "success"]:
-                logging.info(f"Job {job['name']} conclusion: {job['conclusion']}")
-                has_failure = True
 
             if job["conclusion"] != "failure":
                 continue
@@ -85,9 +79,6 @@ def main(repo_slug: str, run_id: int, output: str) -> None:
             print("\n".join(result))
             print()
 
-    if has_failure:
-        sys.exit(1)
-
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
@@ -107,7 +98,8 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
 
-    logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s", stream=sys.stderr)
+    # put back info once issue on job conclusion=None is fixed
+    logging.basicConfig(level=logging.DEBUG, format="%(levelname)s: %(message)s", stream=sys.stderr)
 
     main(
         repo_slug=args.repo_slug,
