@@ -4,7 +4,7 @@
 
 import tests.debugger.utils as debugger
 
-from utils import scenarios, features, missing_feature, context, rfc
+from utils import scenarios, features, missing_feature, context, rfc, bug
 
 
 @features.debugger
@@ -79,6 +79,7 @@ class Test_Debugger_Probe_Snaphots(debugger._Base_Debugger_Test):
     def setup_log_line_probe_snaphots(self):
         self._setup("probe_snapshot_log_line", "/debugger/log")
 
+    @bug(context.library >= "nodejs@5.37.0", reason="DEBUG-3526")
     def test_log_line_probe_snaphots(self):
         self._assert()
         self._validate_snapshots()
