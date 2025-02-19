@@ -27,7 +27,10 @@ class Test_OTelTracingE2E:
     def test_main(self):
         otel_trace_ids = set(interfaces.open_telemetry.get_otel_trace_id(request=self.r))
         assert len(otel_trace_ids) == 2
-        dd_trace_ids = [_get_dd_trace_id(otel_trace_id, self.use_128_bits_trace_id) for otel_trace_id in otel_trace_ids]
+        dd_trace_ids = [
+            _get_dd_trace_id(otel_trace_id, use_128_bits_trace_id=self.use_128_bits_trace_id)
+            for otel_trace_id in otel_trace_ids
+        ]
 
         try:
             # The 1st account has traces sent by DD Agent
@@ -151,7 +154,7 @@ class Test_OTelLogE2E:
         rid = get_rid_from_request(self.r)
         otel_trace_ids = set(interfaces.open_telemetry.get_otel_trace_id(request=self.r))
         assert len(otel_trace_ids) == 1
-        dd_trace_id = _get_dd_trace_id(list(otel_trace_ids)[0], self.use_128_bits_trace_id)
+        dd_trace_id = _get_dd_trace_id(list(otel_trace_ids)[0], use_128_bits_trace_id=self.use_128_bits_trace_id)
 
         # The 1st account has logs and traces sent by Agent
         try:
