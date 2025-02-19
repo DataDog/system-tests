@@ -23,15 +23,6 @@ compute_pipeline:
     - ./build.sh -i runner
     - source venv/bin/activate
     - ./run.sh MOCK_THE_TEST --collect-only --scenario-report
-    #- git fetch origin ${CI_COMMIT_SHA}
-    #- git diff --name-only HEAD ${CI_COMMIT_SHA} >> modified_files.txt
-    #- git fetch origin main  # Ensure we have the latest main branch
-    #- git diff --name-only origin/main $CI_COMMIT_SHA
-    #- git diff --name-only $CI_COMMIT_BEFORE_SHA $CI_COMMIT_SHA >> modified_files.txt
-    #- git fetch origin main  # Ensure we have the latest main branch
-    #- BASE_COMMIT=$(git merge-base origin/main $CI_COMMIT_REF_NAME)  # Find branch point
-    #- echo "Branch was created from commit -> $BASE_COMMIT"
-    #- git diff --name-only $BASE_COMMIT $CI_COMMIT_SHA >> modified_files.txt # Compare changes since branch creation
     - git fetch --all  # Ensure all branches are available
     - git branch --track $CI_COMMIT_REF_NAME origin/$CI_COMMIT_REF_NAME || true  # Track branch if not tracked
     - git checkout $CI_COMMIT_REF_NAME  # Ensure the branch is checked out
@@ -40,9 +31,9 @@ compute_pipeline:
     - git diff --name-only $BASE_COMMIT $CI_COMMIT_SHA  >> modified_files.txt # List modified files
     - cat modified_files.txt
     - python utils/scripts/compute_impacted_scenario.py >> impacted_scenarios.txt
-    - echo "**************** AHORA EL OTRO *************************"
     - cat impacted_scenarios.txt
-    - python utils/scripts/compute-workflow-parameters.py nodejs -g "ipv6" --parametric-job-count 1 --ci-environment "prod" --format gitlab > gitlab_pipeline.yml
+    - source impacted_scenarios.txt
+    - python utils/scripts/compute-workflow-parameters.py nodejs -s "$scenarios" -g "$scenarios_groups" --parametric-job-count 1 --ci-environment "prod" --format gitlab > gitlab_pipeline.yml
   artifacts:
     paths:
       - gitlab_pipeline.yml
