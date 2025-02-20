@@ -258,6 +258,92 @@ class HttpClientRequestArgs
     @body = params['body']
   end
 end
+  
+class SpanSetBaggageArgs
+attr_accessor :span_id, :key, :value
+
+def initialize(params)
+    @span_id = params['span_id']
+    @key = params['key']
+    @value = params['value']
+end
+end
+
+class SpanSetBaggageReturn
+def to_json(*_args)
+    {}.to_json
+end
+end
+
+class SpanGetBaggageArgs
+attr_accessor :span_id, :key
+
+def initialize(params)
+    @span_id = params['span_id']
+    @key = params['key']
+end
+end
+
+class SpanGetBaggageReturn
+attr_accessor :baggage
+
+def initialize(baggage)
+    @baggage = baggage
+end
+
+def to_json(*_args)
+    { baggage: @baggage }.to_json
+end
+end
+
+class SpanGetAllBaggageArgs
+attr_accessor :span_id
+
+def initialize(params)
+    @span_id = params['span_id']
+end
+end
+
+class SpanGetAllBaggageReturn
+attr_accessor :baggage
+
+def initialize(baggage)
+    @baggage = baggage
+end
+
+def to_json(*_args)
+    { baggage: @baggage }.to_json
+end
+end
+
+class SpanRemoveBaggageArgs
+attr_accessor :span_id, :key
+
+def initialize(params)
+    @span_id = params['span_id']
+    @key = params['key']
+end
+end
+
+class SpanRemoveBaggageReturn
+def to_json(*_args)
+    {}.to_json
+end
+end
+
+class SpanRemoveAllBaggageArgs
+attr_accessor :span_id
+
+def initialize(params)
+    @span_id = params['span_id']
+end
+end
+
+class SpanRemoveAllBaggageReturn
+def to_json(*_args)
+    {}.to_json
+end
+end
 
 class HttpClientRequestReturn
   def to_json(*_args)
@@ -584,6 +670,16 @@ class MyApp
       handle_trace_otel_set_attributes(req, res)
     when '/trace/crash'
       handle_trace_crash(req, res)
+    when '/trace/span/set_baggage'
+        handle_trace_set_baggage(req, res)
+    when '/trace/span/get_baggage'
+        handle_trace_get_baggage(req, res)
+    when '/trace/span/get_all_baggage'
+        handle_trace_get_all_baggage(req, res)
+    when '/trace/span/remove_baggage'
+        handle_trace_remove_baggage(req, res)
+    when '/trace/span/remove_all_baggage'
+        handle_trace_remove_all_baggage(req, res)
     else
       res.status = 404
       res.write('Not Found')
@@ -713,6 +809,36 @@ class MyApp
     Process.kill('SEGV', Process.pid)
     Process.wait2
   end
+
+  def handle_trace_set_baggage(req, res)
+    args = SpanSetBaggageArgs.new(JSON.parse(req.body.read))
+    Datadog::Tracing.baggage[args.key] = args.value
+    res.write(SpanSetBaggageReturn.new.to_json)
+  end
+
+    def handle_trace_get_baggage(req, res)
+        args = SpanGetBaggageArgs.new(JSON.parse(req.body.read))
+        baggage = Datadog::Tracing.baggage[args.key]
+        res.write(SpanGetBaggageReturn.new(baggage).to_json)
+    end
+
+    def handle_trace_get_all_baggage(req, res)
+        args = SpanGetAllBaggageArgs.new(JSON.parse(req.body.read))
+        baggage = Datadog::Tracing.baggage
+        res.write(SpanGetAllBaggageReturn.new(baggage).to_json)
+    end
+
+    def handle_trace_remove_baggage(req, res)
+        args = SpanRemoveBaggageArgs.new(JSON.parse(req.body.read))
+        baggage = Datadog::Tracing.baggage.delete(args.key)
+        res.write(SpanRemoveBaggageReturn.new.to_json)
+    end
+
+    def handle_trace_remove_all_baggage(req, res)
+        args = SpanRemoveAllBaggageArgs.new(JSON.parse(req.body.read))
+        baggage = Datadog::Tracing.baggage.clear
+        res.write(SpanRemoveAllBaggageReturn.new.to_json)
+    end
 
   def handle_trace_otel_start_span(req, res)
     js = JSON.parse(req.body.read)
