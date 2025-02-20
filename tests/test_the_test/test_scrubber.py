@@ -119,7 +119,7 @@ def test_pathlib():
 
 
 @scenarios.test_the_test
-@missing_feature(True, reason="Not supported")
+@missing_feature(condition=True, reason="Not supported")
 def test_os_open():
     secret = 123456789
     os.environ["KEY_SCRUBBED"] = f"{secret}"
