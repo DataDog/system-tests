@@ -165,8 +165,7 @@ class Test_CustomEvent:
             # For <custom> events, the _dd.appsec.events.<custom>.sdk tag is not required, but if
             # present, must be set to "true" (these events always come from the SDK, so there is no
             # ambiguity to resolve with automatically generated ones).
-            sdk_tag = span["meta"]["_dd.appsec.events.system_tests_event.sdk"]
-            assert sdk_tag is None or sdk_tag == "true"
+            assert span["meta"].get("_dd.appsec.events.system_tests_event.sdk", "true") == "true"
 
             return True
 
