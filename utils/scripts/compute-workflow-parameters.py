@@ -16,7 +16,15 @@ class CiData:
            and is acheived by calling export(format)
     """
 
-    def __init__(self, library: str, scenarios: str, groups: str, parametric_job_count: int, ci_environment: str):
+    def __init__(
+        self,
+        library: str,
+        scenarios: str,
+        groups: str,
+        parametric_job_count: int,
+        ci_environment: str,
+        desired_execution_time: int,
+    ):
         # this data struture is a dict where:
         #  the key is the workflow identifier
         #  the value is also a dict, where the key/value pair is the parameter name/value.
@@ -25,7 +33,7 @@ class CiData:
         self.environment = ci_environment
         scenario_map = self._get_workflow_map(scenarios.split(","), groups.split(","))
 
-        self.data |= get_endtoend_definitions(library, scenario_map, ci_environment)
+        self.data |= get_endtoend_definitions(library, scenario_map, ci_environment, desired_execution_time)
 
         self.data["parametric"] = {
             "job_count": parametric_job_count,
@@ -157,6 +165,15 @@ if __name__ == "__main__":
     parser.add_argument("--scenarios", "-s", type=str, help="Scenarios to run", default="")
     parser.add_argument("--groups", "-g", type=str, help="Scenario groups to run", default="")
 
+    # how long the workflow is expected to run
+    parser.add_argument(
+        "--desired-execution-time",
+        "-t",
+        type=int,
+        help="Expected execution time of the workflow",
+        default=-1,
+    )
+
     # workflow specific parameters
     parser.add_argument("--parametric-job-count", type=int, help="How may jobs must run parametric scenario", default=1)
 
@@ -171,4 +188,5 @@ if __name__ == "__main__":
         groups=args.groups,
         ci_environment=args.ci_environment,
         parametric_job_count=args.parametric_job_count,
+        desired_execution_time=args.desired_execution_time,
     ).export(args.format)
