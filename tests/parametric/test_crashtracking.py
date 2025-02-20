@@ -1,8 +1,8 @@
 """Test the crashtracking (RC) feature of the APM libraries."""
 
-import pytest
-import json
 import base64
+import json
+import pytest
 
 from utils import bug, context, features, scenarios
 from utils.tools import logger
@@ -12,7 +12,6 @@ from utils.tools import logger
 @features.crashtracking
 class Test_Crashtracking:
     @bug(context.library >= "ruby@2.7.2-dev", reason="APMLP-335")
-    @bug(context.library > "dotnet@3.10.1", reason="APMAPI-1177")
     @pytest.mark.parametrize("library_env", [{"DD_CRASHTRACKING_ENABLED": "true"}])
     def test_report_crash(self, test_agent, test_library):
         test_library.crash()
@@ -64,9 +63,18 @@ class Test_Crashtracking:
         if test_library.lang == "java":
             assert "severity" in tags_dict, tags_dict
             assert tags_dict["severity"] == "crash", tags_dict
-        else:  # noqa: PLR5501
+        else:
+            # those values are defined in python's module signal. But it's more clear to have this defined here
+            SIGABRT = 6
+            SIGSEGV = 11
+
             # According to the RFC, si_signo should be set to 11 for SIGSEGV
-            if "signum" not in tags_dict:
-                logger.info("signum not found in tags_dict, checking si_signo")
-                assert "si_signo" in tags_dict, "si_signo not found in tags_dict"
-                assert tags_dict["si_signo"] == "11", "si_signo value is not 11"
+            # though, it's difficult for .NET to simulate a segfault, so SIGABRT is used instead
+            expected_signal_value = f"{SIGABRT}" if test_library.lang == "dotnet" else f"{SIGSEGV}"
+
+            if "signum" in tags_dict:
+                assert tags_dict["signum"] == expected_signal_value
+            elif "si_signo" in tags_dict:
+                assert tags_dict["si_signo"] == expected_signal_value
+            else:
+                raise AssertionError("signum/si_signo not found in tags_dict")
