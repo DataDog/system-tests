@@ -16,6 +16,8 @@ from django.db import connection
 from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse
 from django.urls import path
 from django.views.decorators.csrf import csrf_exempt
+from django.shortcuts import render
+from django.utils.safestring import mark_safe
 from moto import mock_aws
 import urllib3
 from iast import (
@@ -531,6 +533,20 @@ def view_iast_ssrf_secure(request):
 
 
 @csrf_exempt
+def view_iast_xss_insecure(request):
+    param = request.POST.get("param", "")
+    # Validate the URL and enforce whitelist
+    return render(request, "index.html", {"param": mark_safe(param)})
+
+
+@csrf_exempt
+def view_iast_xss_secure(request):
+    param = request.POST.get("param", "")
+    # Validate the URL and enforce whitelist
+    return render(request, "index.html", {"param": param})
+
+
+@csrf_exempt
 def view_iast_stacktraceleak_insecure(request):
     return HttpResponse("""
   Traceback (most recent call last):
@@ -980,6 +996,8 @@ urlpatterns = [
     path("iast/path_traversal/test_secure", view_iast_path_traversal_secure),
     path("iast/ssrf/test_insecure", view_iast_ssrf_insecure),
     path("iast/ssrf/test_secure", view_iast_ssrf_secure),
+    path("iast/xss/test_insecure", view_iast_xss_insecure),
+    path("iast/xss/test_secure", view_iast_xss_secure),
     path("iast/stack_trace_leak/test_insecure", view_iast_stacktraceleak_insecure),
     path("iast/stack_trace_leak/test_secure", view_iast_stacktraceleak_secure),
     path("iast/source/body/test", view_iast_source_body),

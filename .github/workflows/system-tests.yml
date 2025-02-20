@@ -109,6 +109,7 @@ jobs:
     name: end-to-end (${{ matrix.weblogs.weblog_name }})
     needs:
       - compute_parameters
+    if: ${{ needs.compute_parameters.outputs.endtoend_defs_weblogs != '[]' }}
     strategy:
       matrix:
         weblogs: ${{ fromJson(needs.compute_parameters.outputs.endtoend_defs_weblogs) }}

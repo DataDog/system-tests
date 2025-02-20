@@ -201,7 +201,7 @@ class _BaseDatadogDbIntegrationTestClass(BaseDbIntegrationsTestClass):
         library="java",
         reason="The Java tracer normalizing the SQL by replacing literals to reduce resource-name cardinality",
     )
-    def test_NOT_obfuscate_query(self):
+    def test_not_obfuscate_query(self):
         """All queries come out without obfuscation from tracer library"""
         for db_operation, request in self.get_requests():
             span = self.get_span_from_tracer(request)

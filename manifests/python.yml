@@ -197,7 +197,8 @@ tests/:
           TestXPathInjection_ExtendedLocation: missing_feature
           TestXPathInjection_StackTrace: missing_feature
         test_xss.py:
-          TestXSS: missing_feature
+          TestXSS:
+            '*': v3.0.0.dev
           TestXSS_ExtendedLocation: missing_feature
           TestXSS_StackTrace: missing_feature
       source/:
@@ -240,7 +241,6 @@ tests/:
           TestParameterName:
             "*": v2.20.0
             fastapi: v2.20.1
-            python3.12: bug (APPSEC-56375)
         test_parameter_value.py:
           TestParameterValue:
             '*': v2.9.0
@@ -465,6 +465,7 @@ tests/:
         '*': v1.1.0-rc2
         fastapi: v2.4.0
     test_asm_standalone.py:
+      Test_AppSecStandalone_NotEnabled: v2.12.3
       Test_AppSecStandalone_UpstreamPropagation:
         '*': v2.12.3
         uwsgi-poc: v2.17.1
@@ -638,6 +639,10 @@ tests/:
         flask-poc: v2.11.0
         uds-flask: v2.11.0
         uwsgi-poc: v2.11.0
+    test_debugger_inproduct_enablement.py:
+      Test_Debugger_InProduct_Enablement_Code_Origin: missing_feature
+      Test_Debugger_InProduct_Enablement_Dynamic_Instrumentation: missing_feature
+      Test_Debugger_InProduct_Enablement_Exception_Replay: missing_feature
     test_debugger_pii.py:
       Test_Debugger_PII_Redaction:
         '*': missing_feature
@@ -950,8 +955,8 @@ tests/:
     Test_Config_LogInjection_Enabled: incomplete_test_app (endpoint not implemented)
     Test_Config_ObfuscationQueryStringRegexp_Configured: v2.0.0
     Test_Config_ObfuscationQueryStringRegexp_Empty: v2.15.0
-    Test_Config_RuntimeMetrics_Default: incomplete_test_app (test needs to account for python runtime metrics)
-    Test_Config_RuntimeMetrics_Enabled: incomplete_test_app (Python seems to send sketches instead of gauges/counters)
+    Test_Config_RuntimeMetrics_Default: v0.30.0
+    Test_Config_RuntimeMetrics_Enabled: v0.30.0
     Test_Config_RuntimeMetrics_Enabled_WithRuntimeId: missing_feature
     Test_Config_UnifiedServiceTagging_CustomService: v2.0.0
     Test_Config_UnifiedServiceTagging_Default: v2.0.0
@@ -1010,7 +1015,6 @@ tests/:
     Test_StandardTagsMethod: v1.2.1
     Test_StandardTagsRoute:
       '*': v1.6.0
-      django-py3.13: bug (APMLP-364)
     Test_StandardTagsStatusCode: v1.4.0-rc1
     Test_StandardTagsUrl:
       '*': v2.4.0
