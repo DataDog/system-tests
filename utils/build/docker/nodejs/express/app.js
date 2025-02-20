@@ -111,13 +111,8 @@ app.get('/identify', (req, res) => {
 })
 
 app.get('/session/new', (req, res) => {
+  req.session.someData = 'blabla' // needed for the session to be saved
   res.send(req.sessionID)
-})
-
-app.get('/session/user', (req, res) => {
-  const userId = req.query.sdk_user || 'sdk_user'
-  tracer.appsec.trackUserLoginSuccessEvent({ id: userId })
-  res.send('OK')
 })
 
 app.get('/status', (req, res) => {
