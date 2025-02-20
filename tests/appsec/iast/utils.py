@@ -54,7 +54,7 @@ def assert_iast_vulnerability(
         assert len(vulns) == vulnerability_count
 
 
-def assert_metric(request, metric, expected):
+def assert_metric(request, metric, *, expected: bool):
     spans_checked = 0
     metric_available = False
     for data, trace, span in interfaces.library.get_spans(request):
