@@ -18,19 +18,12 @@ ssi_tests:
         - ./build.sh -i runner
         - ./run.sh $SCENARIO --vm-weblog ${WEBLOG} --vm-env prod --vm-library ${TEST_LIBRARY} --vm-provider aws --vm-default-vms All --vm-only ${VM}
     after_script: |
-        echo "step 1"
         SCENARIO_SUFIX=$(echo "$SCENARIO" | tr "[:upper:]" "[:lower:]")
-        echo "step 2"
         REPORTS_PATH="reports/"
-        echo "step 3"
         mkdir -p "$REPORTS_PATH"
-        echo "step 4"
         cp -R logs_"${SCENARIO_SUFIX}" "$REPORTS_PATH/"
-        echo "step 5"
         cp logs_"${SCENARIO_SUFIX}"/feature_parity.json "$REPORTS_PATH"/"${SCENARIO_SUFIX}".json
-        echo "step 6"
         mv "$REPORTS_PATH"/logs_"${SCENARIO_SUFIX}" "$REPORTS_PATH"/logs_"${TEST_LIBRARY}"_"${ONBOARDING_FILTER_WEBLOG}"_"${SCENARIO_SUFIX}_${DEFAULT_VMS}"
-        echo "step 7"
         if [ "$CI_COMMIT_BRANCH" = "main" ]; then
           export FP_IMPORT_URL=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.fp-import-url --with-decryption --query "Parameter.Value" --out text)
           export FP_API_KEY=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.fp-api-key --with-decryption --query "Parameter.Value" --out text)
@@ -45,7 +38,6 @@ ssi_tests:
             done
           done
         fi
-        echi "step 8"
     artifacts:
         when: always
         paths:
