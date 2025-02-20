@@ -515,7 +515,7 @@ class RequestMutator:
     def get_random_payload(self, payload_type):
         if payload_type == "json":
             count = random.randint(1, 10)
-            return {self.get_payload_key(): self.get_payload_value(True) for _ in range(count)}
+            return {self.get_payload_key(): self.get_payload_value(allow_nested=True) for _ in range(count)}
 
         choice = random.randint(0, 50)
         if choice <= 1:
