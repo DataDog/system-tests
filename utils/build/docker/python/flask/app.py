@@ -568,14 +568,6 @@ def session_new():
     return response
 
 
-@app.route("/session/user")
-def session_user():
-    user = flask_request.args.get("sdk_user", "")
-    if user and flask_request.cookies.get("session_id", "") == MAGIC_SESSION_KEY:
-        appsec_trace_utils.track_user_login_success_event(tracer, user_id=user, session_id=f"session_{user}")
-    return Response("OK")
-
-
 @app.route("/stub_dbm")
 async def stub_dbm():
     integration = flask_request.args.get("integration")

@@ -673,14 +673,6 @@ async def session_new(request: Request):
     return response
 
 
-@app.get("/session/user")
-async def session_user(request: Request):
-    user = request.query_params.get("sdk_user", "")
-    if user and request.cookies.get("session_id", "") == MAGIC_SESSION_KEY:
-        appsec_trace_utils.track_user_login_success_event(tracer, user_id=user, session_id=f"session_{user}")
-    return PlainTextResponse("OK")
-
-
 _TRACK_CUSTOM_EVENT_NAME = "system_tests_event"
 
 

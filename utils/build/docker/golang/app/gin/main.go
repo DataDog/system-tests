@@ -232,15 +232,6 @@ func main() {
 		ctx.SetCookie("session", sessionID, 3600, "/", "", false, true)
 	})
 
-	r.GET("/session/user", func(ctx *gin.Context) {
-		user := ctx.Query("sdk_user")
-		cookie, err := ctx.Request.Cookie("session")
-		if err != nil {
-			ctx.Writer.WriteHeader(500)
-		}
-		appsec.TrackUserLoginSuccessEvent(ctx.Request.Context(), user, map[string]string{}, tracer.WithUserSessionID(cookie.Value))
-	})
-
 	r.GET("/inferred-proxy/span-creation", func(ctx *gin.Context) {
 		statusCodeStr := ctx.Query("status_code")
 		statusCode := 200

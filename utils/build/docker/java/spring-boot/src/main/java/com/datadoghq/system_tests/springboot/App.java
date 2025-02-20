@@ -221,13 +221,6 @@ public class App {
         return ResponseEntity.ok(session.getId());
     }
 
-    @GetMapping(value = "/session/user")
-    ResponseEntity<String> userSession(@RequestParam("sdk_user") final String sdkUser, final HttpServletRequest request) {
-        EventTracker tracker = datadog.trace.api.GlobalTracer.getEventTracker();
-        tracker.trackLoginSuccessEvent(sdkUser, Collections.emptyMap());
-        return ResponseEntity.ok(request.getRequestedSessionId());
-    }
-
     @RequestMapping("/status")
     ResponseEntity<String> status(@RequestParam Integer code) {
         return new ResponseEntity<>(HttpStatus.valueOf(code));
