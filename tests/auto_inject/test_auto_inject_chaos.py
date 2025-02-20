@@ -64,7 +64,7 @@ class BaseAutoInjectChaos(base.AutoInjectBaseTest):
         logger.info("Restoring installation using the command:: ")
         apm_inject_restore = f"{prefix_env} {apm_inject_restore}"
         logger.info(apm_inject_restore)
-        _, stdout, stderr = virtual_machine.ssh_config.get_ssh_connection().exec_command(apm_inject_restore)
+        _, stdout, stderr = virtual_machine.get_ssh_connection().exec_command(apm_inject_restore)
         stdout.channel.set_combine_stderr(True)
 
         # Read the output line by line

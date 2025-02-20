@@ -63,7 +63,7 @@ class AutoInjectBaseTest:
 
         command_with_env = f"{prefix_env} {command}"
 
-        with virtual_machine.ssh_config.get_ssh_connection() as ssh:
+        with virtual_machine.get_ssh_connection() as ssh:
             timeout = 120
 
             _, stdout, _ = ssh.exec_command(command_with_env, timeout=timeout + 5)

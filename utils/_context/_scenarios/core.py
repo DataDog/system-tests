@@ -63,9 +63,6 @@ class Scenario:
         # if xdist is used, this property will be set to false for sub workers
         self.is_main_worker: bool = True
 
-        # Mark the scenario as started with errors
-        self.is_started_with_errors = False
-
         assert (
             self.github_workflow in VALID_CI_WORKFLOWS
         ), f"Invalid github_workflow {self.github_workflow} for {self.name}"

@@ -21,4 +21,4 @@ demo-provision-step:
   cache: false #We don't want to cache this step, we'll always launch it
   install: 
     - os_type: linux
-      remote-command: echo "Here I can still that I want"
+      remote-command: sdfaf echo "Here I can still that I want"

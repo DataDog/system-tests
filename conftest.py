@@ -376,13 +376,6 @@ def _item_is_skipped(item):
     return any(item.iter_markers("skip"))
 
 
-def _global_error_scenario_startup(self) -> None:  # noqa: ARG001
-    raise AssertionError(
-        "There was a failure in the initialization and configuration of the scenario. "
-        "The tests are not going to be executed. Check the tests.log to get more information."
-    )
-
-
 def pytest_collection_finish(session: pytest.Session) -> None:
     if session.config.option.collectonly:
         return
@@ -406,15 +399,9 @@ def pytest_collection_finish(session: pytest.Session) -> None:
         if not item.instance:  # item is a method bounded to a class
             continue
 
-        if context.scenario.is_started_with_errors:
-            # Override only test functions (avoid overriding non-function items)
-            if hasattr(item, "obj") and callable(item.obj):
-                # All the tests method will be replaced by a method that will raise an assertion error
-                item.obj = types.MethodType(_global_error_scenario_startup, item.parent.obj)
-                continue
-
         # the test method name is like test_xxxx
         # we replace the test_ by setup_, and call it if it exists
+
         setup_method_name = f"setup_{item.name[5:]}"
 
         if not hasattr(item.instance, setup_method_name):

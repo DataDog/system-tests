@@ -79,6 +79,7 @@ class AWSPulumiProvider(VmProvider):
             )
             vm_logger(context.scenario.name, context.vm_name).exception(pulumi_command_exception)
             context.scenario.is_started_with_errors = True
+            self.vm.provision_install_error = pulumi_command_exception
             self.datadog_event_sender.sendEventToDatadog(
                 f"[E2E] Stack {self.stack_name} : error on Pulumi stack up",
                 repr(pulumi_command_exception),
@@ -93,7 +94,7 @@ class AWSPulumiProvider(VmProvider):
                 repr(pulumi_exception),
                 ["operation:up", "result:fail", f"stack:{self.stack_name}"],
             )
-            context.scenario.is_started_with_errors = True
+            self.vm.provision_install_error = pulumi_exception
 
     def get_windows_user_data(self):
         windows_user_data_path = "utils/build/virtual_machine/provisions/windows_userdata/setup_ssh.ps1"
