@@ -134,7 +134,9 @@
         "tracing": "trace_enabled",
         "tracing.distributed_tracing.propagation_extract_style": "trace_propagation_style_extract",
         "tracing.distributed_tracing.propagation_inject_style": "trace_propagation_style_inject",
-        "url": "trace_agent_url"
+        "url": "trace_agent_url",
+        "DD_TRACE_LOG_STREAM_HANDLER": "trace_log_file_stream_handler",
+        "DD_TRACE_LOG_FILE_LEVEL": "trace_log_file_level"
     },
     "prefix_block_list": [],
     "redaction_list": [],

@@ -33,7 +33,7 @@ class VagrantProvider(VmProvider):
         self.vm.ssh_config.key_filename = self.vagrant_machine.keyfile()
         self.vm.ssh_config.username = self.vagrant_machine.user()
 
-        client = self.vm.ssh_config.get_ssh_connection()
+        client = self.vm.get_ssh_connection()
 
         # Install provision on the started server
         self.install_provision(self.vm, None, client)
