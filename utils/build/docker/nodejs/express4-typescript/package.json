@@ -11,6 +11,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@types/express-session": "^1.18.1",
     "@types/ldapjs": "^3.0.6",
     "@types/passport": "^1.0.17",
     "apollo-server-express": "^3.13.0",
