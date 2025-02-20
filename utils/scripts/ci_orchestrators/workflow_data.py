@@ -71,6 +71,8 @@ def get_aws_matrix(virtual_machines_file, aws_ssi_file, scenarios: list[str], la
 
     return results
 
+def get_docker_ssi_matrix(scenarios: list[str], language: str) -> dict:
+    return {"DEMO_AWS": {"demo": ["demo"]}}
 
 def _get_endtoend_weblogs(library: str) -> list[str]:
     folder = f"utils/build/docker/{library}"

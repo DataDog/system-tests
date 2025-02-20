@@ -2,7 +2,7 @@ import argparse
 import json
 
 from utils._context._scenarios import get_all_scenarios, ScenarioGroup
-from utils.scripts.ci_orchestrators.workflow_data import get_aws_matrix, get_endtoend_definitions
+from utils.scripts.ci_orchestrators.workflow_data import get_aws_matrix, get_endtoend_definitions, get_docker_ssi_matrix
 from utils.scripts.ci_orchestrators.gitlab_exporter import print_aws_gitlab_pipeline
 
 
@@ -39,6 +39,11 @@ class CiData:
             "scenarios": scenario_map.get("libinjection", []),
             "enable": len(scenario_map["libinjection"]) > 0 and "otel" not in library,
         }
+        
+        self.data["dockerssi_scenario_defs"] = get_docker_ssi_matrix(
+            scenario_map.get("dockerssi", []),
+            library,
+        )
 
         self.data["aws_ssi_scenario_defs"] = get_aws_matrix(
             "utils/virtual_machine/virtual_machines.json",
