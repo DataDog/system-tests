@@ -884,6 +884,8 @@ tests/:
         '*': irrelevant
         express4: *ref_5_37_0
         express5: *ref_5_37_0
+    test_mongo.py:
+      Test_Mongo: incomplete_test_app (/trace/mongo endpoint not implemented in weblog)
     test_otel_drop_in.py:
       Test_Otel_Drop_In: missing_feature
   otel/:
