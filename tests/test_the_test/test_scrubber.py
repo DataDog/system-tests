@@ -58,11 +58,11 @@ def test_log_scrubber():
 @scenarios.mock_the_test
 def test_leaks():
     logger.info(os.environ)
-    print(os.environ)
+    print(os.environ)  # noqa: T201
 
 
 @scenarios.test_the_test
-@pytest.mark.parametrize("write_mode, read_mode, file_extension", [("w", "r", "txt"), ("wb", "rb", "bin")])
+@pytest.mark.parametrize(("write_mode", "read_mode", "file_extension"), [("w", "r", "txt"), ("wb", "rb", "bin")])
 def test_file_writer_scrubber(write_mode, read_mode, file_extension):
     secrets = []
 
