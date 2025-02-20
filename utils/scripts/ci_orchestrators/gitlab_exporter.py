@@ -82,6 +82,8 @@ def print_aws_gitlab_pipeline(language, aws_matrix, ci_environment, raw_data_vir
 
     # Create the jobs by scenario. Each job (vm) will have a parallel matrix with the weblogs
     for scenario, weblogs in aws_matrix.items():
+        if scenario == "DEMO_AWS": # Skip the demo scenario on the ci
+            continue
         result_pipeline["stages"].append(scenario)
 
         # Collect all unique VMs for this scenario
