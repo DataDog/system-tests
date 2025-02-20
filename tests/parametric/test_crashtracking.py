@@ -12,6 +12,7 @@ from utils.tools import logger
 @features.crashtracking
 class Test_Crashtracking:
     @bug(context.library >= "ruby@2.7.2-dev", reason="APMLP-335")
+    @bug(context.library > "dotnet@3.10.1", reason="APMAPI-1177")
     @pytest.mark.parametrize("library_env", [{"DD_CRASHTRACKING_ENABLED": "true"}])
     def test_report_crash(self, test_agent, test_library):
         test_library.crash()
@@ -46,15 +47,16 @@ class Test_Crashtracking:
             test_agent.set_trace_delay(0)
 
     def assert_crash_report(self, test_library, event):
+        logger.debug(f"event: {json.dumps(event, indent=2)}")
+
         assert isinstance(event.get("payload"), list), event.get("payload")
         assert event["payload"], event["payload"]
         assert isinstance(event["payload"][0], dict), event["payload"][0]
         assert "tags" in event["payload"][0]
 
         tags = event["payload"][0]["tags"]
-        logger.debug(f"tags: {tags}")
         tags_dict = dict(item.split(":") for item in tags.split(","))
-        logger.debug(f"tags_dict: {tags_dict}")
+        logger.debug(f"tags_dict: {json.dumps(tags_dict, indent=2)}")
 
         # Until the crash tracking RFC is out, there is no standard way to identify crash reports.
         # Most client libraries are using libdatadog so tesing signum tag would work,
@@ -62,6 +64,9 @@ class Test_Crashtracking:
         if test_library.lang == "java":
             assert "severity" in tags_dict, tags_dict
             assert tags_dict["severity"] == "crash", tags_dict
-        else:
+        else:  # noqa: PLR5501
             # According to the RFC, si_signo should be set to 11 for SIGSEGV
-            assert "signum" in tags_dict or ("si_signo" in tags_dict and tags_dict["si_signo"] == "11"), tags_dict
+            if "signum" not in tags_dict:
+                logger.info("signum not found in tags_dict, checking si_signo")
+                assert "si_signo" in tags_dict, "si_signo not found in tags_dict"
+                assert tags_dict["si_signo"] == "11", "si_signo value is not 11"
