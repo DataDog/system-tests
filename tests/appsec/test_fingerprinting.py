@@ -93,7 +93,7 @@ class Test_Fingerprinting_Session:
     def setup_session(self):
         self.r_create_session = weblog.get("/session/new")
         self.cookies = self.r_create_session.cookies
-        self.r_user = weblog.get("/identify", cookies=self.cookies)
+        self.r_user = weblog.get("/users", cookies=self.cookies)
 
     def test_session(self):
         assert self.r_create_session.status_code == 200
