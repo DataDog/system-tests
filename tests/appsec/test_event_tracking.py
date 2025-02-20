@@ -36,19 +36,20 @@ class Test_UserLoginSuccessEvent:
 
         self.r = weblog.get("/user_login_success_event", headers=headers)
 
-    @bug(context.library < "golang@1.73.0-dev", reason="Previous releases did not set the .sdk tag")
     def test_user_login_success_event(self):
         # Call the user login success SDK and validate tags
 
         def validate_user_login_success_tags(span):
             expected_tags = {
-                "_dd.appsec.events.users.login.success.sdk": "true",
                 "http.client_ip": "1.2.3.4",
                 "usr.id": "system_tests_user",
                 "appsec.events.users.login.success.track": "true",
                 "appsec.events.users.login.success.metadata0": "value0",
                 "appsec.events.users.login.success.metadata1": "value1",
             }
+            # Older Golang releases did not set the tag at all.
+            if context.library != "golang" or context.library >= "golang@1.73.0-dev":
+                expected_tags["_dd.appsec.events.users.login.failure.sdk"] = "true"
 
             for tag, expected_value in expected_tags.items():
                 assert tag in span["meta"], f"Can't find {tag} in span's meta"
@@ -91,13 +92,11 @@ class Test_UserLoginFailureEvent:
 
         self.r = weblog.get("/user_login_failure_event", headers=headers)
 
-    @bug(context.library < "golang@1.73.0-dev", reason="Previous releases did not set the .sdk tag")
     def test_user_login_failure_event(self):
         # Call the user login failure SDK and validate tags
 
         def validate_user_login_failure_tags(span):
             expected_tags = {
-                "_dd.appsec.events.users.login.failure.sdk": "true",
                 "http.client_ip": "1.2.3.4",
                 "appsec.events.users.login.failure.usr.id": "system_tests_user",
                 "appsec.events.users.login.failure.track": "true",
@@ -105,6 +104,9 @@ class Test_UserLoginFailureEvent:
                 "appsec.events.users.login.failure.metadata0": "value0",
                 "appsec.events.users.login.failure.metadata1": "value1",
             }
+            # Older Golang releases did not set the tag at all.
+            if context.library != "golang" or context.library >= "golang@1.73.0-dev":
+                expected_tags["_dd.appsec.events.users.login.failure.sdk"] = "true"
 
             for tag, expected_value in expected_tags.items():
                 assert tag in span["meta"], f"Can't find {tag} in span's meta"
