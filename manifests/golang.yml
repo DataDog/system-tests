@@ -479,6 +479,10 @@ tests/:
       Test_Debugger_Exception_Replay: missing_feature (feature not implented)
     test_debugger_expression_language.py:
       Test_Debugger_Expression_Language: missing_feature (feature not implented)
+    test_debugger_inproduct_enablement.py:
+      Test_Debugger_InProduct_Enablement_Code_Origin: missing_feature
+      Test_Debugger_InProduct_Enablement_Dynamic_Instrumentation: missing_feature
+      Test_Debugger_InProduct_Enablement_Exception_Replay: missing_feature
     test_debugger_pii.py:
       Test_Debugger_PII_Redaction: missing_feature (feature not implented)
     test_debugger_probe_snapshot.py:
@@ -688,9 +692,9 @@ tests/:
     Test_Config_ObfuscationQueryStringRegexp_Configured: v1.67.0
     Test_Config_ObfuscationQueryStringRegexp_Default: v1.67.0
     Test_Config_ObfuscationQueryStringRegexp_Empty: v1.67.0
-    Test_Config_RuntimeMetrics_Default: incomplete_test_app (test needs to account for golang runtime metrics)
-    Test_Config_RuntimeMetrics_Enabled: incomplete_test_app (should be in v1.18.0 but we're not receiving series in tests)
-    Test_Config_RuntimeMetrics_Enabled_WithRuntimeId: incomplete_test_app (should be in v1.18.0 but we're not receiving series in tests)
+    Test_Config_RuntimeMetrics_Default: v1.18.0
+    Test_Config_RuntimeMetrics_Enabled: v1.18.0
+    Test_Config_RuntimeMetrics_Enabled_WithRuntimeId: v1.18.0
     Test_Config_UnifiedServiceTagging_CustomService: v1.67.0
     Test_Config_UnifiedServiceTagging_Default: v1.67.0
   test_data_integrity.py:
