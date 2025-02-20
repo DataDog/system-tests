@@ -184,30 +184,36 @@ build() {
                 .
 
         elif [[ $IMAGE_NAME == agent ]]; then
-            if test -z "$AGENT_BASE_IMAGE"; then
-                if [ -f ./binaries/agent-image ]; then
-                    AGENT_BASE_IMAGE=$(cat ./binaries/agent-image)
-                else
-                    AGENT_BASE_IMAGE="datadog/agent"
+
+            if [ -f ./binaries/agent.tar.gz ]; then
+                echo "Loading image from binaries/agent.tar.gz"
+                docker load --input binaries/agent.tar.gz
+            else
+                if test -z "$AGENT_BASE_IMAGE"; then
+                    if [ -f ./binaries/agent-image ]; then
+                        AGENT_BASE_IMAGE=$(cat ./binaries/agent-image)
+                    else
+                        AGENT_BASE_IMAGE="datadog/agent"
+                    fi
                 fi
-            fi
 
-            echo "using $AGENT_BASE_IMAGE image for datadog agent"
+                echo "using $AGENT_BASE_IMAGE image for datadog agent"
 
-            docker buildx build \
-                --build-arg BUILDKIT_INLINE_CACHE=1 \
-                --load \
-                --progress=plain \
-                -f utils/build/docker/agent.Dockerfile \
-                -t system_tests/agent \
-		        --pull \
-                --build-arg AGENT_IMAGE="$AGENT_BASE_IMAGE" \
-                $EXTRA_DOCKER_ARGS \
-                .
+                docker buildx build \
+                    --build-arg BUILDKIT_INLINE_CACHE=1 \
+                    --load \
+                    --progress=plain \
+                    -f utils/build/docker/agent.Dockerfile \
+                    -t system_tests/agent \
+                    --pull \
+                    --build-arg AGENT_IMAGE="$AGENT_BASE_IMAGE" \
+                    $EXTRA_DOCKER_ARGS \
+                    .
 
-            if [[ $SAVE_TO_BINARIES == 1 ]]; then
-                echo "Saving image to binaries/agent.tar.gz"
-                docker save system_tests/agent | gzip > binaries/agent.tar.gz
+                if [[ $SAVE_TO_BINARIES == 1 ]]; then
+                    echo "Saving image to binaries/agent.tar.gz"
+                    docker save system_tests/agent | gzip > binaries/agent.tar.gz
+                fi
             fi
 
         elif [[ $IMAGE_NAME == weblog ]]; then
@@ -230,38 +236,46 @@ build() {
                 cd ..
             fi
 
-            DOCKERFILE=utils/build/docker/${TEST_LIBRARY}/${WEBLOG_VARIANT}.Dockerfile
+            BINARIES_FILENAME=binaries/${TEST_LIBRARY}-${WEBLOG_VARIANT}-weblog.tar.gz
 
-            docker buildx build \
-                --build-arg BUILDKIT_INLINE_CACHE=1 \
-                --load \
-                --progress=plain \
-                ${DOCKER_PLATFORM_ARGS} \
-                -f ${DOCKERFILE} \
-                --label "system-tests-library=${TEST_LIBRARY}" \
-                --label "system-tests-weblog-variant=${WEBLOG_VARIANT}" \
-                -t system_tests/weblog \
-                $CACHE_TO \
-                $CACHE_FROM \
-                $EXTRA_DOCKER_ARGS \
-                .
+            if [ -f $BINARIES_FILENAME ]; then
+                echo "Loading image from $BINARIES_FILENAME"
+                docker load --input $BINARIES_FILENAME
+            else
 
-            if test -f "binaries/waf_rule_set.json"; then
+                DOCKERFILE=utils/build/docker/${TEST_LIBRARY}/${WEBLOG_VARIANT}.Dockerfile
 
                 docker buildx build \
                     --build-arg BUILDKIT_INLINE_CACHE=1 \
                     --load \
                     --progress=plain \
                     ${DOCKER_PLATFORM_ARGS} \
-                    -f utils/build/docker/overwrite_waf_rules.Dockerfile \
+                    -f ${DOCKERFILE} \
+                    --label "system-tests-library=${TEST_LIBRARY}" \
+                    --label "system-tests-weblog-variant=${WEBLOG_VARIANT}" \
                     -t system_tests/weblog \
+                    $CACHE_TO \
+                    $CACHE_FROM \
                     $EXTRA_DOCKER_ARGS \
                     .
-            fi
 
-            if [[ $SAVE_TO_BINARIES == 1 ]]; then
-                echo "Saving image to binaries/${TEST_LIBRARY}-${WEBLOG_VARIANT}-weblog.tar.gz"
-                docker save system_tests/weblog | gzip > binaries/${TEST_LIBRARY}-${WEBLOG_VARIANT}-weblog.tar.gz
+                if test -f "binaries/waf_rule_set.json"; then
+
+                    docker buildx build \
+                        --build-arg BUILDKIT_INLINE_CACHE=1 \
+                        --load \
+                        --progress=plain \
+                        ${DOCKER_PLATFORM_ARGS} \
+                        -f utils/build/docker/overwrite_waf_rules.Dockerfile \
+                        -t system_tests/weblog \
+                        $EXTRA_DOCKER_ARGS \
+                        .
+                fi
+
+                if [[ $SAVE_TO_BINARIES == 1 ]]; then
+                    echo "Saving image to $BINARIES_FILENAME"
+                    docker save system_tests/weblog | gzip > $BINARIES_FILENAME
+                fi
             fi
         else
             echo "Don't know how to build $IMAGE_NAME"
