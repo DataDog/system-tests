@@ -1,7 +1,7 @@
 # Unless explicitly stated otherwise all files in this repository are licensed under the the Apache License Version 2.0.
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
-from utils import weblog, interfaces, features, missing_feature, context
+from utils import weblog, interfaces, features, missing_feature, context, bug
 
 HEADERS = {
     "Accept": "text/html",
@@ -36,6 +36,7 @@ class Test_UserLoginSuccessEvent:
 
         self.r = weblog.get("/user_login_success_event", headers=headers)
 
+    @bug(context.library < "golang@1.73.0-dev", reason="Previous releases did not set the .sdk tag")
     def test_user_login_success_event(self):
         # Call the user login success SDK and validate tags
 
@@ -90,6 +91,7 @@ class Test_UserLoginFailureEvent:
 
         self.r = weblog.get("/user_login_failure_event", headers=headers)
 
+    @bug(context.library < "golang@1.73.0-dev", reason="Previous releases did not set the .sdk tag")
     def test_user_login_failure_event(self):
         # Call the user login failure SDK and validate tags
 
