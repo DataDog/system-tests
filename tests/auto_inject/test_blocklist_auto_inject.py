@@ -88,7 +88,7 @@ class TestAutoInjectBlockListInstallManualHost(_AutoInjectBlockListBaseTest):
         """Check that commands are skipped from the auto injection. This commands are defined on the buildIn processes to block"""
         virtual_machine = context.scenario.virtual_machine
         logger.info(f"[{virtual_machine.get_ip()}] Executing commands that should be blocked")
-        ssh_client = virtual_machine.ssh_config.get_ssh_connection()
+        ssh_client = virtual_machine.get_ssh_connection()
         for command in self.builtin_commands_not_injected:
             local_log_file = self._execute_remote_command(ssh_client, command)
             assert command_injection_skipped(command, local_log_file), f"The command {command} was instrumented!"
@@ -116,7 +116,7 @@ class TestAutoInjectBlockListInstallManualHost(_AutoInjectBlockListBaseTest):
         logger.info(f"[{virtual_machine.get_ip()}] Executing test_builtIn_block_args")
         language = context.scenario.library.library
         if language in self.builtin_args_commands_block:
-            ssh_client = virtual_machine.ssh_config.get_ssh_connection()
+            ssh_client = virtual_machine.get_ssh_connection()
             for command in self.builtin_args_commands_block[language]:
                 local_log_file = self._execute_remote_command(ssh_client, command)
                 assert command_injection_skipped(command, local_log_file), f"The command {command} was instrumented!"
@@ -144,7 +144,7 @@ class TestAutoInjectBlockListInstallManualHost(_AutoInjectBlockListBaseTest):
         logger.info(f"[{virtual_machine.get_ip()}] Executing test_builtIn_instrument_args")
         language = context.scenario.library.library
         if language in self.builtin_args_commands_injected:
-            ssh_client = virtual_machine.ssh_config.get_ssh_connection()
+            ssh_client = virtual_machine.get_ssh_connection()
             for command in self.builtin_args_commands_injected[language]:
                 local_log_file = self._execute_remote_command(ssh_client, command)
                 assert (
