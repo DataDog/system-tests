@@ -15,7 +15,7 @@ from fastapi import Header
 from fastapi import Request
 from fastapi.responses import JSONResponse
 from fastapi.responses import HTMLResponse
-from fastapi.responses import PlainTextResponse
+from fastapi.responses import PlainTextResponse, Response
 from iast import weak_cipher
 from iast import weak_cipher_secure_algorithm
 from iast import weak_hash
@@ -31,7 +31,6 @@ import xmltodict
 from starlette.middleware.sessions import SessionMiddleware
 
 import ddtrace
-from ddtrace import patch_all
 from ddtrace.appsec import trace_utils as appsec_trace_utils
 
 try:
@@ -41,7 +40,6 @@ except ImportError:
     from ddtrace import Pin
     from ddtrace import tracer
 
-patch_all(urllib3=True)
 tracer.trace("init.service").finish()
 logger = logging.getLogger(__name__)
 
@@ -140,6 +138,8 @@ async def api_security_sampling(i):
 
 @app.get("/api_security/sampling/{status_code}", response_class=PlainTextResponse)
 async def api_security_sampling_status(status_code: int = 200):
+    if status_code == 204:
+        return Response(status_code=status_code)
     return PlainTextResponse("Hello!", status_code=status_code)
 
 
@@ -358,11 +358,15 @@ async def headers():
 
 @app.get("/status")
 async def status_code(code: int = 200):
+    if code == 204:
+        return Response(status_code=code)
     return PlainTextResponse("OK, probably", status_code=code)
 
 
 @app.get("/stats-unique")
 async def stats_unique(code: int = 200):
+    if code == 204:
+        return Response(status_code=code)
     return PlainTextResponse("OK, probably", status_code=code)
 
 
