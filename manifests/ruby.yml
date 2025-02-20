@@ -488,7 +488,7 @@ tests/:
         rails70: v2.0.0
   parametric/:
     test_128_bit_traceids.py:
-      Test_128_Bit_Traceids: v2.8.0
+      Test_128_Bit_Traceids: v1.17.0
     test_config_consistency.py:
       Test_Config_Dogstatsd: missing_feature
       Test_Config_RateLimit: v2.0.0
