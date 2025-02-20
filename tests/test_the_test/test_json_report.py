@@ -170,7 +170,7 @@ class Test_BugClass:
 
     def test_xfailed_method(self):
         """This test will be reported as xpassed"""
-        assert False
+        pytest.fail("Expected")
 
 
 @scenarios.mock_the_test

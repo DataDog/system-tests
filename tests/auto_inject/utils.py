@@ -8,7 +8,7 @@ from threading import Timer
 
 
 class AutoInjectBaseTest:
-    def _test_install(self, virtual_machine, profile: bool = False):
+    def _test_install(self, virtual_machine, *, profile: bool = False):
         """If there is a multicontainer app, we need to make a request to each app"""
 
         if virtual_machine.get_deployed_weblog().app_type == "multicontainer":
@@ -22,7 +22,7 @@ class AutoInjectBaseTest:
             vm_context_url = f"http://{virtual_machine.get_ip()}:{virtual_machine.deffault_open_port}{virtual_machine.get_deployed_weblog().app_context_url}"
             self._check_install(virtual_machine, vm_context_url, profile=profile)
 
-    def _check_install(self, virtual_machine, vm_context_url, profile: bool = False):
+    def _check_install(self, virtual_machine, vm_context_url, *, profile: bool = False):
         """We can easily install agent and lib injection software from agent installation script. Given a  sample application we can enable tracing using local environment variables.
         After starting application we can see application HTTP requests traces in the backend.
         Using the agent installation script we can install different versions of the software (release or beta) in different OS.

@@ -10,7 +10,7 @@ from tests.appsec.iast.utils import BaseSinkTest, assert_iast_vulnerability, ass
 @rfc("https://docs.google.com/document/d/1j1hp87-2wJnXUGADZxzLnvKJmaF_Gd6ZR1hPS3LVguQ/edit?pli=1&tab=t.0")
 class TestSecurityControls:
     @staticmethod
-    def assert_iast_is_enabled(request):
+    def assert_iast_is_enabled(request) -> None:
         product_enabled = False
         for _, _, span in interfaces.library.get_spans(request=request):
             # Check if the product is enabled in meta

@@ -5,6 +5,7 @@ import json
 import base64
 
 from utils import bug, context, features, scenarios
+from utils.tools import logger
 
 
 @scenarios.parametric
@@ -51,9 +52,9 @@ class Test_Crashtracking:
         assert "tags" in event["payload"][0]
 
         tags = event["payload"][0]["tags"]
-        print("tags: ", tags)
+        logger.debug(f"tags: {tags}")
         tags_dict = dict(item.split(":") for item in tags.split(","))
-        print("tags_dict: ", tags_dict)
+        logger.debug(f"tags_dict: {tags_dict}")
 
         # Until the crash tracking RFC is out, there is no standard way to identify crash reports.
         # Most client libraries are using libdatadog so tesing signum tag would work,

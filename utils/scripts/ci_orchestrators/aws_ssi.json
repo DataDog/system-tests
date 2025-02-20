@@ -138,7 +138,8 @@
                     ],
                     "dotnet": [
                         "test-app-dotnet",
-                        "test-app-dotnet-container"
+                        "test-app-dotnet-container",
+                        "test-app-dotnet-iis"
                     ],
                     "ruby": [
                         "test-app-ruby",
@@ -289,8 +290,8 @@
         "nodejs": [
             {
                 "name": "demo-app",
-                "excluded_os_branches": [
-                    "windows"
+                "exact_os_branches": [
+                    "ubuntu24"
                 ]
             },
             {
@@ -305,6 +306,10 @@
                     "rhel_7_amd64",
                     "amazon_linux2",
                     "windows"
+                ],
+                "excluded_os_names": [
+                    "Debian_11_amd64",
+                    "Debian_11_arm64"
                 ]
             },
             {
@@ -315,7 +320,12 @@
                     "ubuntu21",
                     "ubuntu20_arm64",
                     "ubuntu20_amd64",
-                    "centos_7_amd64"
+                    "centos_7_amd64",
+                    "debian"
+                ],
+                "excluded_os_names": [
+                    "Debian_12_amd64",
+                    "Debian_12_arm64"
                 ]
             },
             {
@@ -370,20 +380,28 @@
                 "name": "test-app-java",
                 "excluded_os_branches": [
                     "windows"
+                ],
+                "excluded_os_names": [
+                    "Debian_11_amd64",
+                    "Debian_11_arm64"
                 ]
             },
             {
                 "name": "test-app-java-container",
                 "excluded_os_names": [
                     "Ubuntu_23_04_arm64",
-                    "windows_server_2022_amd64"
+                    "windows_server_2022_amd64",
+                    "Debian_11_amd64",
+                    "Debian_11_arm64"
                 ]
             },
             {
                 "name": "test-app-java-alpine",
                 "excluded_os_names": [
                     "Ubuntu_23_04_arm64",
-                    "windows_server_2022_amd64"
+                    "windows_server_2022_amd64",
+                    "Debian_11_amd64",
+                    "Debian_11_arm64"
                 ]
             },
             {
@@ -393,6 +411,10 @@
                     "ubuntu22_arm64",
                     "amazon_linux2023_arm64",
                     "windows"
+                ],
+                "excluded_os_names": [
+                    "Debian_11_amd64",
+                    "Debian_11_arm64"
                 ]
             },
             {
@@ -402,7 +424,9 @@
                 ],
                 "excluded_os_names": [
                     "Ubuntu_24_10_amd64",
-                    "Ubuntu_24_10_arm64"
+                    "Ubuntu_24_10_arm64",
+                    "Debian_11_amd64",
+                    "Debian_11_arm64"
                 ]
             },
             {
@@ -412,7 +436,9 @@
                 ],
                 "excluded_os_names": [
                     "Ubuntu_24_10_amd64",
-                    "Ubuntu_24_10_arm64"
+                    "Ubuntu_24_10_arm64",
+                    "Debian_11_amd64",
+                    "Debian_11_arm64"
                 ]
             }
         ],
@@ -542,6 +568,12 @@
                 "name": "test-app-dotnet-unsupported",
                 "exact_os_branches": [
                     "ubuntu20_amd64"
+                ]
+            },
+            {
+                "name": "test-app-dotnet-iis",
+                "excluded_os_types": [
+                    "linux"
                 ]
             }
         ],
