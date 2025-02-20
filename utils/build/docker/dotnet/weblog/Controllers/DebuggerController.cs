@@ -126,5 +126,16 @@ namespace weblog
 
             return Content($"Pii is null {pii is null}. intValue is null {intValue is null}. strValue is null {strValue is null}.");
         }
+
+        [HttpGet("budgets/{loops}")]
+        [Consumes("application/json", "application/xml")]
+        public IActionResult Budgets(int loops)
+        {
+            for (int i = 0; i < loops; i++)
+            {
+                _ = i; // No-op
+            }
+            return Content("Budgets");
+        }
     }
 }
