@@ -702,6 +702,7 @@ class Test_ProductsDisabled:
         telemetry_data = interfaces.library.get_telemetry_data()
 
         for data in telemetry_data:
+            logger.debug(f"Checking {data['log_filename']}")
             data_found = True
 
             if get_request_type(data) != "app-started":
@@ -711,13 +712,20 @@ class Test_ProductsDisabled:
 
             payload = data["request"]["content"]["payload"]
 
-            assert (
-                "products" in payload
-            ), f"Product information was expected in app-started event, but was missing in {data['log_filename']}"
+            assert "products" in payload, "Product information was expected in app-started event, but was missing"
 
+            logger.debug(json.dumps(payload["products"], indent=2))
             for product, details in payload["products"].items():
+                if product == "tracers":
+                    # tracers is enabled, otherwise, nothing is reported to the agent
+                    # to be confirmed it's the good behaviour
+                    continue
+
                 assert (
-                    details.get("enabled") is False
+                    "enabled" in details
+                ), f"Product information expected to indicate {product} is disabled, but missing"
+                assert (
+                    details["enabled"] is False
                 ), f"Product information expected to indicate {product} is disabled, but found enabled"
 
         if not data_found:
