@@ -2,26 +2,41 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
+import time
 import tests.debugger.utils as debugger
-
-from utils import scenarios, features, missing_feature, context, rfc, bug
+from utils import scenarios, features, missing_feature, context, rfc
+from utils import bug
 
 
 @features.debugger
 @scenarios.debugger_probes_snapshot
-class Test_Debugger_Probe_Snaphots(debugger._Base_Debugger_Test):
+class Test_Debugger_Probe_Snaphots(debugger.Base_Debugger_Test):
     ############ setup ############
-    def _setup(self, probes_name: str, request_path: str):
+    def _setup(self, probes_name: str, request_path: str, lines=None):
         self.initialize_weblog_remote_config()
 
         ### prepare probes
         probes = debugger.read_probes(probes_name)
+        if lines is not None:
+            for probe in probes:
+                if "methodName" in probe["where"]:
+                    del probe["where"]["methodName"]
+                probe["where"]["lines"] = lines
+                probe["where"]["sourceFile"] = "ACTUAL_SOURCE_FILE"
+                probe["where"]["typeName"] = None
+
         self.set_probes(probes)
 
         ### send requests
         self.send_rc_probes()
         self.wait_for_all_probes_installed()
+
+        start_time = time.time()
         self.send_weblog_request(request_path)
+        end_time = time.time()
+        # Store the total request time for later use in debugging tests where budgets are limited by time.
+        self.total_request_time = end_time - start_time
+
         self.wait_for_all_probes_emitting()
 
     ########### assert ############
@@ -133,3 +148,33 @@ class Test_Debugger_Probe_Snaphots(debugger._Base_Debugger_Test):
                 code_origins_entry_found = code_origin_type == "entry"
 
         assert code_origins_entry_found
+
+    def setup_log_line_probe_snaphots_budgets(self):
+        self._setup(
+            "probe_snapshot_log_line_budgets",
+            "/debugger/budgets/150",
+            lines=self.method_and_language_to_line_number("Budgets", self.get_tracer()["language"]),
+        )
+
+    @features.debugger_probe_budgets
+    @missing_feature(context.library == "dotnet", reason="Probe snapshot budgets are not yet implemented")
+    @missing_feature(context.library == "nodejs", reason="Probe snapshot budgets are not yet implemented")
+    @missing_feature(context.library == "ruby", reason="Probe snapshot budgets are not yet implemented")
+    def test_log_line_probe_snaphots_budgets(self):
+        self._assert()
+        self._validate_snapshots()
+
+        snapshots_with_captures = 0
+        for _id in self.probe_ids:
+            for span in self.probe_snapshots[_id]:
+                snapshot_with_captures = span.get("debugger", {}).get("snapshot", {}).get("captures", None)
+                if snapshot_with_captures is None:
+                    continue
+
+                snapshots_with_captures += 1
+
+            # Probe budgets aren't exact and can take time to be applied, so we allow a range of 1-20 snapshots with
+            # captures for 150 requests.
+            assert (
+                1 <= snapshots_with_captures <= 20
+            ), f"Expected 1-20 snapshot with captures, got {snapshots_with_captures} in {self.total_request_time} seconds"

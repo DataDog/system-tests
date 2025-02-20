@@ -8,8 +8,13 @@
             "typeName": null,
             "sourceFile": "ACTUAL_SOURCE_FILE",
             "lines": [
-                "20"
+                "141"
             ]
-        }
+        },
+        "captureSnapshot": true,
+        "capture": {
+            "maxFieldCount": 200
+        },
+        "tags": []
     }
 ]
