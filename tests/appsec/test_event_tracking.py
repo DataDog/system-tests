@@ -150,7 +150,6 @@ class Test_CustomEvent:
 
         def validate_custom_event_tags(span):
             expected_tags = {
-                "_dd.appsec.events.system_tests_event.sdk": "true",
                 "http.client_ip": "1.2.3.4",
                 "appsec.events.system_tests_event.track": "true",
                 "appsec.events.system_tests_event.metadata0": "value0",
@@ -162,6 +161,12 @@ class Test_CustomEvent:
                 value = span["meta"][tag]
                 if value != expected_value:
                     raise Exception(f"{tag} value is '{value}', should be '{expected_value}'")
+
+            # For <custom> events, the _dd.appsec.events.<custom>.sdk tag is not required, but if
+            # present, must be set to "true" (these events always come from the SDK, so there is no
+            # ambiguity to resolve with automatically generated ones).
+            sdk_tag = span["meta"]["_dd.appsec.events.system_tests_event.sdk"]
+            assert sdk_tag is None or sdk_tag == "true"
 
             return True
 
