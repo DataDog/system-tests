@@ -268,7 +268,6 @@ class Test_Environment:
                 assert cfg_item.get("value") == environment_value, f"Unexpected value for '{mapped_apm_telemetry_name}'"
             assert cfg_item.get("origin") == "env_var", f"Unexpected origin for '{mapped_apm_telemetry_name}'"
 
-    @missing_feature(context.library == "dotnet", reason="Not implemented")
     @missing_feature(context.library == "java", reason="Not implemented")
     @missing_feature(context.library == "ruby", reason="Not implemented")
     @missing_feature(context.library == "php", reason="Not implemented")
@@ -361,7 +360,6 @@ class Test_Environment:
                     f"Could not find a metric with {dd_config} and {otel_config} in otelHiding metrics: {otelHiding}"
                 )
 
-    @missing_feature(context.library == "dotnet", reason="Not implemented")
     @missing_feature(context.library == "java", reason="Not implemented")
     @missing_feature(context.library == "ruby", reason="Not implemented")
     @missing_feature(context.library == "php", reason="Not implemented")
