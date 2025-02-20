@@ -21,6 +21,7 @@ readonly ALIAS_CACHE_TO="W" #write cache
 readonly DEFAULT_TEST_LIBRARY=nodejs
 readonly DEFAULT_BUILD_IMAGES=weblog,runner,agent
 readonly DEFAULT_DOCKER_MODE=0
+readonly DEFAULT_SAVE_TO_BINARIES=0
 
 # Define default weblog variants.
 # XXX: Avoid associative arrays for Bash 3 compatibility.
@@ -64,6 +65,7 @@ print_usage() {
     echo -e "  ${CYAN}--binary-path${NC}              Optional. Path of a directory binaries will be copied from. Should be used for local development only."
     echo -e "  ${CYAN}--binary-url${NC}               Optional. Url of the client library redistributable. Should be used for local development only."
     echo -e "  ${CYAN}--agent-base-image${NC}         Optional. Base image of docker agent to use, default: datadog/agent"
+    echo -e "  ${CYAN}--save-to-binaries${NC}         Optional. Save image in binaries folder as a tar.gz file."
     echo -e "  ${CYAN}--help${NC}                     Prints this message and exits."
     echo
     echo -e "${WHITE_BOLD}EXAMPLES${NC}"
@@ -198,10 +200,15 @@ build() {
                 --progress=plain \
                 -f utils/build/docker/agent.Dockerfile \
                 -t system_tests/agent \
-		--pull \
+		        --pull \
                 --build-arg AGENT_IMAGE="$AGENT_BASE_IMAGE" \
                 $EXTRA_DOCKER_ARGS \
                 .
+
+            if [[ $SAVE_TO_BINARIES == 1 ]]; then
+                echo "Saving image to binaries/agent.tar.gz"
+                docker save system_tests/agent | gzip > binaries/agent.tar.gz
+            fi
 
         elif [[ $IMAGE_NAME == weblog ]]; then
             clean-binaries() {
@@ -252,6 +259,10 @@ build() {
                     .
             fi
 
+            if [[ $SAVE_TO_BINARIES == 1 ]]; then
+                echo "Saving image to binaries/${TEST_LIBRARY}-${WEBLOG_VARIANT}-weblog.tar.gz"
+                docker save system_tests/weblog | gzip > binaries/${TEST_LIBRARY}-${WEBLOG_VARIANT}-weblog.tar.gz
+            fi
         else
             echo "Don't know how to build $IMAGE_NAME"
             exit 1
@@ -272,6 +283,7 @@ while [[ "$#" -gt 0 ]]; do
         -e|--extra-docker-args) EXTRA_DOCKER_ARGS="$2"; shift ;;
         -c|--cache-mode) DOCKER_CACHE_MODE="$2"; shift ;;
         -p|--docker-platform) DOCKER_PLATFORM="--platform $2"; shift ;;
+        -s|--save-to-binaries) SAVE_TO_BINARIES=1 ;;
         --binary-url) BINARY_URL="$2"; shift ;;
         --binary-path) BINARY_PATH="$2"; shift ;;
         --list-libraries) COMMAND=list-libraries ;;
@@ -289,6 +301,7 @@ DOCKER_CACHE_MODE="${DOCKER_CACHE_MODE:-}"
 EXTRA_DOCKER_ARGS="${EXTRA_DOCKER_ARGS:-}"
 DOCKER_PLATFORM="${DOCKER_PLATFORM:-}"
 DOCKER_MODE="${DOCKER_MODE:-${DEFAULT_DOCKER_MODE}}"
+SAVE_TO_BINARIES="${SAVE_TO_BINARIES:-${DEFAULT_SAVE_TO_BINARIES}}"
 BUILD_IMAGES="${BUILD_IMAGES:-${DEFAULT_BUILD_IMAGES}}"
 TEST_LIBRARY="${TEST_LIBRARY:-${DEFAULT_TEST_LIBRARY}}"
 BINARY_PATH="${BINARY_PATH:-}"
