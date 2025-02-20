@@ -78,7 +78,6 @@ class AWSPulumiProvider(VmProvider):
                 "\n \n \n ❌ ❌ ❌ Exception launching aws provision step remote command ❌ ❌ ❌ \n \n \n "
             )
             vm_logger(context.scenario.name, context.vm_name).exception(pulumi_command_exception)
-            context.scenario.is_started_with_errors = True
             self.vm.provision_install_error = pulumi_command_exception
             self.datadog_event_sender.sendEventToDatadog(
                 f"[E2E] Stack {self.stack_name} : error on Pulumi stack up",
