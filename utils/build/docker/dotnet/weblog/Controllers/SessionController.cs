@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc.ModelBinding.Binders;
 using Microsoft.AspNetCore.Routing;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Datadog.Trace.Appsec;
+using Datadog.Trace.AppSec;
 
 namespace weblog
 {
