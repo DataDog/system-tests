@@ -462,7 +462,7 @@ class Test_Stable_Configuration_Origin(StableConfigWriter):
     """Clients should report origin of configurations set by stable configuration faithfully"""
 
     @pytest.mark.parametrize(
-        "local_cfg,library_env,fleet_cfg, expected_origin",
+        ("local_cfg", "library_env", "fleet_cfg", "expected_origin"),
         [
             (
                 {"DD_LOGS_INJECTION": True, "DD_RUNTIME_METRICS_ENABLED": True, "DD_PROFILING_ENABLED": True},
@@ -508,8 +508,6 @@ class Test_Stable_Configuration_Origin(StableConfigWriter):
             telemetry_item = configuration[apm_telemetry_name]
             assert telemetry_item["origin"] == origin, f"wrong origin for {telemetry_item}"
             assert telemetry_item["value"]
-
-        assert False
 
 
 DEFAULT_ENVVARS = {
