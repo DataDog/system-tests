@@ -96,18 +96,18 @@ else
   fi
 fi
 
-# echo "Running yamlfmt checks..."
-# if ! which yamlfmt > /dev/null; then
-#   echo "yamlfmt is not installed, installing it (ETA 5s)"
-#   GOBIN=$PWD/venv/bin/ go install github.com/google/yamlfmt/cmd/yamlfmt@v0.16.0
-# fi
+ echo "Running yamlfix checks..."
+ if ! which yamlfix > /dev/null; then
+   echo "yamlfix is not installed, installing it (ETA 60s)"
+   ./build.sh -i runner > /dev/null
+ fi
 
-# echo "Running yamlfmt formatter..."
-# if [ "$COMMAND" == "fix" ]; then
-#   yamlfmt manifests/
-# else
-#   yamlfmt -lint manifests/
-# fi
+ echo "Running yamlfix formatter..."
+ if [ "$COMMAND" == "fix" ]; then
+   yamlfix manifests/
+ else
+   yamlfix --check manifests/
+ fi
 
 echo "Running yamllint checks..."
 if ! which ./venv/bin/yamllint > /dev/null; then

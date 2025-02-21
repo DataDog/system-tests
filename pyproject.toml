@@ -9,6 +9,12 @@ packages = ["tests", "utils", "manifests"]
 [tool.setuptools.dynamic]
 dependencies = {file = ["requirements.txt"]}
 
+[tool.yamlfix]
+line_length = 9001 # effectively disabled
+comments_whitelines = 0
+comments_min_spaces_from_content = 1
+quote_representation = '"'
+
 [tool.pytest.ini_options]
 addopts = "--json-report --json-report-indent=2 --color=yes --no-header --junitxml=reportJunit.xml -r Xf"
 testpaths = [
