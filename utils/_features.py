@@ -2399,6 +2399,15 @@ class _Features:
         return test_object
 
     @staticmethod
+    def debugger_probe_budgets(test_object):
+        """Probe Budgets
+
+        https://feature-parity.us1.prod.dog/#/?feature=368
+        """
+        pytest.mark.features(feature_id=368)(test_object)
+        return test_object
+
+    @staticmethod
     def otel_propagators_api(test_object):
         """OpenTelemetry Propagators API
 

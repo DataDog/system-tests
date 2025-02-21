@@ -75,3 +75,8 @@ class Capabilities(IntEnum):
     ASM_HEADER_FINGERPRINT = 35
     # 36
     ASM_RASP_CMDI = 37
+
+
+class SamplingPriority(IntEnum):
+    AUTO_KEEP = 1
+    USER_KEEP = 2

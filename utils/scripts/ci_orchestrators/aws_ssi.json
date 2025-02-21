@@ -290,8 +290,8 @@
         "nodejs": [
             {
                 "name": "demo-app",
-                "excluded_os_branches": [
-                    "windows"
+                "exact_os_branches": [
+                    "ubuntu24"
                 ]
             },
             {

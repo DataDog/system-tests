@@ -43,7 +43,7 @@ def extract_probe_ids(probes):
 
 
 def _get_path(test_name, suffix) -> str:
-    filename = test_name + "_" + _Base_Debugger_Test.tracer["language"] + "_" + suffix + ".json"
+    filename = test_name + "_" + Base_Debugger_Test.tracer["language"] + "_" + suffix + ".json"
     return os.path.join(_CUR_DIR, "approvals", filename)
 
 
@@ -57,7 +57,7 @@ def read_approval(test_name, suffix):
         return json.load(f)
 
 
-class _Base_Debugger_Test:
+class Base_Debugger_Test:
     tracer = None
 
     probe_definitions = []
@@ -87,6 +87,19 @@ class _Base_Debugger_Test:
                 self.setup_failures.append(
                     f"Failed to get /debugger/init: expected status code: 200, actual status code: {response.status_code}"
                 )
+
+    def method_and_language_to_line_number(self, method, language):
+        """method_and_language_to_line_number returns the respective line number given the method and language"""
+        return {
+            "Budgets": {"python": [142], "java": [138]},
+            "Expression": {"java": [71], "dotnet": [74], "python": [72]},
+            # The `@exception` variable is not available in the context of line probes.
+            "ExpressionException": {},
+            "ExpressionOperators": {"java": [82], "dotnet": [90], "python": [87]},
+            "StringOperations": {"java": [87], "dotnet": [97], "python": [96]},
+            "CollectionOperations": {"java": [114], "dotnet": [114], "python": [123]},
+            "Nulls": {"java": [130], "dotnet": [127], "python": [136]},
+        }.get(method, {}).get(language, [])
 
     ###### set #####
     def set_probes(self, probes):
@@ -151,13 +164,13 @@ class _Base_Debugger_Test:
     _rc_version = 0
 
     def send_rc_probes(self, *, reset: bool = True):
-        _Base_Debugger_Test._rc_version += 1
+        Base_Debugger_Test._rc_version += 1
 
         if reset:
             self.rc_states = []
 
         self.rc_states.append(
-            remote_config.send_debugger_command(probes=self.probe_definitions, version=_Base_Debugger_Test._rc_version)
+            remote_config.send_debugger_command(probes=self.probe_definitions, version=Base_Debugger_Test._rc_version)
         )
 
     def send_rc_apm_tracing(
@@ -170,7 +183,7 @@ class _Base_Debugger_Test:
         *,
         reset: bool = True,
     ):
-        _Base_Debugger_Test._rc_version += 1
+        Base_Debugger_Test._rc_version += 1
 
         if reset:
             self.rc_states = []
@@ -182,16 +195,16 @@ class _Base_Debugger_Test:
                 live_debugging_enabled=live_debugging_enabled,
                 code_origin_enabled=code_origin_enabled,
                 dynamic_sampling_enabled=dynamic_sampling_enabled,
-                version=_Base_Debugger_Test._rc_version,
+                version=Base_Debugger_Test._rc_version,
             )
         )
 
     def send_rc_symdb(self, *, reset: bool = True):
-        _Base_Debugger_Test._rc_version += 1
+        Base_Debugger_Test._rc_version += 1
         if reset:
             self.rc_states = []
 
-        self.rc_states.append(remote_config.send_symdb_command(_Base_Debugger_Test._rc_version))
+        self.rc_states.append(remote_config.send_symdb_command(Base_Debugger_Test._rc_version))
 
     def send_weblog_request(self, request_path: str, *, reset: bool = True):
         if reset:
@@ -243,8 +256,8 @@ class _Base_Debugger_Test:
             return False
 
         log_number = int(log_filename_found.group(1))
-        if log_number >= _Base_Debugger_Test._last_read:
-            _Base_Debugger_Test._last_read = log_number
+        if log_number >= Base_Debugger_Test._last_read:
+            Base_Debugger_Test._last_read = log_number
 
         if data["path"] in [_DEBUGGER_PATH, _LOGS_PATH]:
             probe_diagnostics = self._process_diagnostics_data([data])
@@ -311,8 +324,8 @@ class _Base_Debugger_Test:
                 return False
 
             log_number = int(log_filename_found.group(1))
-            if log_number >= _Base_Debugger_Test._last_read_span:
-                _Base_Debugger_Test._last_read_span = log_number
+            if log_number >= Base_Debugger_Test._last_read_span:
+                Base_Debugger_Test._last_read_span = log_number
 
                 content = data["request"]["content"]
                 if content:
@@ -475,13 +488,13 @@ class _Base_Debugger_Test:
         self.symbols = _get_symbols()
 
     def get_tracer(self):
-        if not _Base_Debugger_Test.tracer:
-            _Base_Debugger_Test.tracer = {
+        if not Base_Debugger_Test.tracer:
+            Base_Debugger_Test.tracer = {
                 "language": str(context.library).split("@")[0],
                 "tracer_version": str(context.library.version),
             }
 
-        return _Base_Debugger_Test.tracer
+        return Base_Debugger_Test.tracer
 
     def assert_setup_ok(self):
         if self.setup_failures:
