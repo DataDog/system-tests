@@ -214,42 +214,31 @@
                         "test-app-nodejs-container",
                         "test-app-nodejs",
                         "test-app-nodejs-esm",
-                        "test-app-nodejs-multicontainer",
                         "test-app-nodejs-alpine"
                     ],
                     "java": [
                         "test-app-java",
                         "test-app-java-container",
                         "test-app-java-alpine",
-                        "test-app-java-buildpack",
-                        "test-app-java-multicontainer",
-                        "test-app-java-multialpine"
+                        "test-app-java-buildpack"
                     ],
                     "python": [
                         "test-app-python",
                         "test-app-python-container",
-                        "test-app-python-alpine",
-                        "test-app-python-multicontainer",
-                        "test-app-python-multialpine"
+                        "test-app-python-alpine"
                     ],
                     "dotnet": [
                         "test-app-dotnet",
-                        "test-app-dotnet-container",
-                        "test-app-dotnet-multicontainer",
-                        "test-app-dotnet-multialpine"
+                        "test-app-dotnet-container"
                     ],
                     "ruby": [
                         "test-app-ruby",
-                        "test-app-ruby-container",
-                        "test-app-ruby-multicontainer",
-                        "test-app-ruby-multialpine"
+                        "test-app-ruby-container"
                     ],
                     "php": [
                         "test-app-php",
                         "test-app-php-container-83",
-                        "test-app-php-alpine",
-                        "test-app-php-multicontainer",
-                        "test-app-php-multialpine"
+                        "test-app-php-alpine"
                     ]
                 }
             ]

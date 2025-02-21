@@ -2,7 +2,7 @@ import argparse
 import json
 
 from utils._context._scenarios import get_all_scenarios, ScenarioGroup
-from utils.scripts.ci_orchestrators.workflow_data import get_aws_matrix, get_endtoend_definitions
+from utils.scripts.ci_orchestrators.workflow_data import get_aws_matrix, get_endtoend_definitions, get_docker_ssi_matrix
 from utils.scripts.ci_orchestrators.gitlab_exporter import print_aws_gitlab_pipeline
 
 
@@ -16,7 +16,9 @@ class CiData:
            and is acheived by calling export(format)
     """
 
-    def __init__(self, library: str, scenarios: str, groups: str, parametric_job_count: int, ci_environment: str):
+    def __init__(
+        self, library: str, scenarios: str, groups: str, parametric_job_count: int, ci_environment: str
+    ) -> None:
         # this data struture is a dict where:
         #  the key is the workflow identifier
         #  the value is also a dict, where the key/value pair is the parameter name/value.
@@ -37,6 +39,14 @@ class CiData:
             "scenarios": scenario_map.get("libinjection", []),
             "enable": len(scenario_map["libinjection"]) > 0 and "otel" not in library,
         }
+
+        self.data["dockerssi_scenario_defs"] = get_docker_ssi_matrix(
+            "utils/docker_ssi/docker_ssi_images.json",
+            "utils/docker_ssi/docker_ssi_runtimes.json",
+            "utils/scripts/ci_orchestrators/docker_ssi.json",
+            scenario_map.get("dockerssi", []),
+            library,
+        )
 
         self.data["aws_ssi_scenario_defs"] = get_aws_matrix(
             "utils/virtual_machine/virtual_machines.json",
@@ -76,7 +86,11 @@ class CiData:
 
     def _export_gitlab(self) -> None:
         # gitlab can only handle aws_ssi right now
-        print_aws_gitlab_pipeline(self.language, self.data["aws_ssi_scenario_defs"], self.environment)
+        with open("utils/virtual_machine/virtual_machines.json", "r") as file:
+            raw_data_virtual_machines = json.load(file)["virtual_machines"]
+        print_aws_gitlab_pipeline(
+            self.language, self.data["aws_ssi_scenario_defs"], self.environment, raw_data_virtual_machines
+        )
 
     def _export_json(self) -> None:
         print(json.dumps(self.data))
