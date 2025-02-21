@@ -158,7 +158,9 @@ class AWSPulumiProvider(VmProvider):
             host=ec2_server.private_ip,
             user=vm.aws_config.user,
             private_key=self.pulumi_ssh.private_key_pem,
-            dial_error_limit=30,  # 30 retries, 10 seconds per retry=5 minutes
+            # dial_error_limit=30 retries, 10 seconds per retry=5 minutes.
+            # WARNING:: If you change that, please change  the key 'error_ssh_connection' in aws_infra_exceptions.json
+            dial_error_limit=30,
             per_dial_timeout=10,
         )
         # Install provision on the started server
