@@ -132,7 +132,7 @@ jobs:
       binaries_artifact: ${{ inputs.binaries_artifact }}
       ci_environment: ${{ inputs.ci_environment }}
       skip_empty_scenarios: ${{ inputs.skip_empty_scenarios }}
-      logs_artifact_name: logs_endtoend_${{ inputs.library }}_${{ matrix.weblogs.weblog_name }}
+      logs_artifact_name: logs_endtoend_${{ inputs.library }}_${{ matrix.weblogs.weblog_name }}_${{ inputs.ci_environment }}
 
   external-processing:
     needs:
@@ -202,4 +202,4 @@ jobs:
       binaries_artifact: binaries_${{ inputs.ci_environment}}_${{ inputs.library }}_${{ matrix.weblog }}
       ci_environment: ${{ inputs.ci_environment }}
       skip_empty_scenarios: ${{ inputs.skip_empty_scenarios }}
-      logs_artifact_name: logs_endtoend_${{ inputs.library }}_${{ matrix.weblogs.weblog_name }}_${{ matrix.weblogs.weblog_name_instance }}
+      logs_artifact_name: logs_endtoend_${{ inputs.library }}_${{ matrix.weblogs.weblog_name }}_${{ inputs.ci_environment }}_${{ matrix.weblogs.weblog_name_instance }}
