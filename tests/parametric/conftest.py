@@ -3,6 +3,7 @@ from collections.abc import Generator
 import contextlib
 import dataclasses
 import os
+import shlex
 import shutil
 import json
 import subprocess
@@ -15,6 +16,7 @@ import urllib.parse
 
 import requests
 import pytest
+import yaml
 
 from utils.parametric.spec import remoteconfig
 from utils.parametric.spec.trace import V06StatsPayload
@@ -688,3 +690,15 @@ def test_library(
 
         tracer = APMLibrary(client, apm_test_server.lang)
         yield tracer
+
+
+class StableConfigWriter:
+    def write_stable_config(self, stable_config: dict, path, test_library):
+        stable_config_content = yaml.dump(stable_config)
+        self.write_stable_config_content(stable_config_content, path, test_library)
+
+    def write_stable_config_content(self, stable_config_content: str, path: str, test_library):
+        success, message = test_library.container_exec_run(
+            f'bash -c "mkdir -p {Path(path).parent!s} && printf {shlex.quote(stable_config_content)} | tee {path}"'
+        )
+        assert success, message
