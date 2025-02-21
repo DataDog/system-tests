@@ -18,6 +18,7 @@ import (
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 
 	"github.com/graphql-go/graphql"
+	"github.com/graphql-go/graphql/gqlerrors"
 	"github.com/graphql-go/handler"
 )
 
@@ -56,6 +57,11 @@ func main() {
 					},
 					Type:    graphql.NewNonNull(graphql.NewList(graphql.NewNonNull(userType))),
 					Resolve: resolveUserByName,
+				},
+				"withError": &graphql.Field{
+					Args:    graphql.FieldConfigArgument{},
+					Type:    graphql.ID,
+					Resolve: resolveWithError,
 				},
 			},
 		}),
@@ -155,4 +161,17 @@ func resolveUserByName(p graphql.ResolveParams) (any, error) {
 	}
 
 	return result, nil
+}
+
+func resolveWithError(p graphql.ResolveParams) (any, error) {
+	err := gqlerrors.NewFormattedError("test error")
+	err.Extensions = map[string]any{
+		"int":          1,
+		"float":        1.1,
+		"str":          "1",
+		"bool":         true,
+		"other":        []any{1, "foo"},
+		"not_captured": "nope",
+	}
+	return nil, err
 }
