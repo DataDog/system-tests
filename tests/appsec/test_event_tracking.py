@@ -49,7 +49,7 @@ class Test_UserLoginSuccessEvent:
             }
             # Older Golang releases did not set the tag at all.
             if context.library != "golang" or context.library >= "golang@1.73.0-dev":
-                expected_tags["_dd.appsec.events.users.login.failure.sdk"] = "true"
+                expected_tags["_dd.appsec.events.users.login.success.sdk"] = "true"
 
             for tag, expected_value in expected_tags.items():
                 assert tag in span["meta"], f"Can't find {tag} in span's meta"
