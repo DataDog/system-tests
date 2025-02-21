@@ -449,6 +449,8 @@ tests/:
     test_context_propagation.py:
       Test_Otel_Context_Propagation_Default_Propagator_Api: v3.9.0
   parametric/:
+    test_128_bit_traceids.py:
+      Test_128_Bit_Traceids: v2.42.0
     test_config_consistency.py:
       Test_Config_Dogstatsd: missing_feature (does not support hostname)
       Test_Config_RateLimit: v3.4.1
