@@ -15,7 +15,10 @@ class TestXSS(BaseSinkTestWithoutTelemetry):
     insecure_endpoint = "/iast/xss/test_insecure"
     secure_endpoint = "/iast/xss/test_secure"
     data = {"param": "param"}
-    location_map = {"java": "com.datadoghq.system_tests.iast.utils.XSSExamples"}
+    location_map = {
+        "java": "com.datadoghq.system_tests.iast.utils.XSSExamples",
+        "python": {"django-poc": "app/urls.py"},
+    }
 
 
 @rfc(

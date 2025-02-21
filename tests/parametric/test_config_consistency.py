@@ -200,7 +200,6 @@ class Test_Config_TraceAgentURL:
         ],
     )
     @missing_feature(context.library == "ruby", reason="does not support ipv6 hostname")
-    @missing_feature(context.library == "dotnet", reason="does not support ipv6 hostname")
     @missing_feature(context.library == "php", reason="does not support ipv6 hostname")
     @missing_feature(context.library == "golang", reason="does not support ipv6 hostname")
     @missing_feature(context.library == "python", reason="does not support ipv6 hostname")
@@ -395,7 +394,7 @@ class Test_Stable_Config_Default(StableConfigWriter):
 
     @pytest.mark.parametrize("library_env", [{}])
     @pytest.mark.parametrize(
-        "apm_configuration_default,expected",
+        ("apm_configuration_default", "expected"),
         [
             (
                 {"DD_PROFILING_ENABLED": True},
@@ -509,7 +508,7 @@ class Test_Stable_Config_Default(StableConfigWriter):
             assert SDK_DEFAULT_STABLE_CONFIG.items() <= config.items()
 
     @pytest.mark.parametrize(
-        "name,local_cfg,library_env,fleet_cfg,expected",
+        ("name", "local_cfg", "library_env", "fleet_cfg", "expected"),
         [
             (
                 "fleet>local",

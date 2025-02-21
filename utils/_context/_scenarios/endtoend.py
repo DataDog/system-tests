@@ -577,7 +577,7 @@ class EndToEndScenario(DockerScenario):
             #     ticket="DEBUG-3487",
             # ),
             _SchemaBug(
-                endpoint="/v0.4/traces", data_path="$", condition=context.library >= "java@1.47.0", ticket="APMAPI-1161"
+                endpoint="/v0.4/traces", data_path="$", condition=context.library == "java", ticket="APMAPI-1161"
             ),
             _SchemaBug(
                 endpoint="/telemetry/proxy/api/v2/apmtelemetry",

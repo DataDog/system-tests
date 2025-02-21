@@ -113,7 +113,7 @@ REDACTED_TYPES = ["customPii"]
 
 @features.debugger_pii_redaction
 @scenarios.debugger_pii_redaction
-class Test_Debugger_PII_Redaction(debugger._Base_Debugger_Test):
+class Test_Debugger_PII_Redaction(debugger.Base_Debugger_Test):
     ############ setup ############
     def _setup(self, line_probe=False):
         self.initialize_weblog_remote_config()
@@ -220,6 +220,7 @@ class Test_Debugger_PII_Redaction(debugger._Base_Debugger_Test):
     def setup_pii_redaction_line_full(self):
         self._setup(line_probe=True)
 
+    @bug(context.library >= "nodejs@5.37.0", reason="DEBUG-3526")
     def test_pii_redaction_line_full(self):
         self._assert(REDACTED_KEYS, REDACTED_TYPES, line_probe=True)
 

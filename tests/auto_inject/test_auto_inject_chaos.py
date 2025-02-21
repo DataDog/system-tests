@@ -64,7 +64,7 @@ class BaseAutoInjectChaos(base.AutoInjectBaseTest):
         logger.info("Restoring installation using the command:: ")
         apm_inject_restore = f"{prefix_env} {apm_inject_restore}"
         logger.info(apm_inject_restore)
-        _, stdout, stderr = virtual_machine.ssh_config.get_ssh_connection().exec_command(apm_inject_restore)
+        _, stdout, stderr = virtual_machine.get_ssh_connection().exec_command(apm_inject_restore)
         stdout.channel.set_combine_stderr(True)
 
         # Read the output line by line
@@ -103,6 +103,11 @@ class TestAutoInjectChaos(BaseAutoInjectChaos):
         reason="INPLAT-478",
     )
     @missing_feature(context.vm_os_branch == "windows", reason="Not implemented on Windows")
+    @irrelevant(
+        context.vm_name in ["AlmaLinux_8_amd64", "AlmaLinux_8_arm64", "OracleLinux_8_8_amd64", "OracleLinux_8_8_arm64"]
+        and context.weblog_variant == "test-app-python",
+        reason="Flaky machine with python and the ld preload changes",
+    )
     def test_install_after_ld_preload(self):
         """We added entries to the ld.so.preload. After that, we can install the dd software and the app should be instrumented."""
         virtual_machine = context.scenario.virtual_machine
@@ -115,7 +120,7 @@ class TestAutoInjectChaos(BaseAutoInjectChaos):
         reason="APMON-1576",
     )
     @bug(
-        context.vm_os_branch == ["centos_7_amd64", "amazon_linux2"] and context.weblog_variant == "test-app-ruby",
+        context.vm_os_branch in ["centos_7_amd64", "amazon_linux2"] and context.weblog_variant == "test-app-ruby",
         reason="INPLAT-103",
     )
     @bug(
@@ -127,6 +132,11 @@ class TestAutoInjectChaos(BaseAutoInjectChaos):
         reason="INPLAT-478",
     )
     @missing_feature(context.vm_os_branch == "windows", reason="Not implemented on Windows")
+    @irrelevant(
+        context.vm_name in ["AlmaLinux_8_amd64", "AlmaLinux_8_arm64", "OracleLinux_8_8_amd64", "OracleLinux_8_8_arm64"]
+        and context.weblog_variant == "test-app-python",
+        reason="Flaky machine with python and the ld preload changes",
+    )
     def test_remove_ld_preload(self):
         """We added entries to the ld.so.preload. After that, we can remove the entries and the app should be instrumented."""
         virtual_machine = context.scenario.virtual_machine

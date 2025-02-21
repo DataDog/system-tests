@@ -275,13 +275,13 @@ class Test_CollectRespondHeaders:
         reason="The endpoint /headers is not implemented in the weblog",
     )
     def test_header_collection(self):
-        def assertHeaderInSpanMeta(span, header):
+        def assert_header_in_span_meta(span, header):
             if header not in span["meta"]:
                 raise Exception(f"Can't find {header} in span's meta")
 
         def validate_response_headers(span):
             for header in ["content-type", "content-length", "content-language"]:
-                assertHeaderInSpanMeta(span, f"http.response.headers.{header}")
+                assert_header_in_span_meta(span, f"http.response.headers.{header}")
             return True
 
         interfaces.library.validate_spans(self.r, validate_response_headers)
@@ -301,13 +301,13 @@ class Test_CollectDefaultRequestHeader:
     def test_collect_default_request_headers(self):
         """Collect User agent and other headers and other security info when appsec is enabled."""
 
-        def assertHeaderInSpanMeta(span, header):
+        def assert_header_in_span_meta(span, header):
             if header not in span["meta"]:
                 raise Exception(f"Can't find {header} in span's meta")
 
         def validate_request_headers(span):
             for header in self.HEADERS:
-                assertHeaderInSpanMeta(span, f"http.request.headers.{header.lower()}")
+                assert_header_in_span_meta(span, f"http.request.headers.{header.lower()}")
             return True
 
         interfaces.library.validate_spans(self.r, validate_request_headers)
@@ -337,7 +337,7 @@ class Test_ExternalWafRequestsIdentification:
     def test_external_wafs_header_collection(self):
         """Collect external wafs request identifier and other security info when appsec is enabled."""
 
-        def assertHeaderInSpanMeta(span, header):
+        def assert_header_in_span_meta(span, header):
             if header not in span["meta"]:
                 raise Exception(f"Can't find {header} in span's meta")
 
@@ -352,7 +352,7 @@ class Test_ExternalWafRequestsIdentification:
                 "x-sigsci-tags",
                 "akamai-user-risk",
             ]:
-                assertHeaderInSpanMeta(span, f"http.request.headers.{header}")
+                assert_header_in_span_meta(span, f"http.request.headers.{header}")
             return True
 
         interfaces.library.validate_spans(self.r, validate_request_headers)
