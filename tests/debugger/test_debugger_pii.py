@@ -220,7 +220,6 @@ class Test_Debugger_PII_Redaction(debugger.Base_Debugger_Test):
     def setup_pii_redaction_line_full(self):
         self._setup(line_probe=True)
 
-    @bug(context.library >= "nodejs@5.37.0", reason="DEBUG-3526")
     def test_pii_redaction_line_full(self):
         self._assert(REDACTED_KEYS, REDACTED_TYPES, line_probe=True)
 
