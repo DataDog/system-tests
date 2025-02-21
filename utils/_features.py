@@ -2218,14 +2218,30 @@ class _Features:
         pytest.mark.features(feature_id=344)(test_object)
         return test_object
 
-    @staticmethod
-    def tracing_configuration_consistency(test_object):
-        """Enforces standardized behaviors for configurations across the tracing libraries.
+    # @staticmethod
+    # def tracing_configuration_consistency(test_object):
+    #     """Enforces standardized behaviors for configurations across the tracing libraries.
 
-        https://feature-parity.us1.prod.dog/#/?feature=325
-        """
-        pytest.mark.features(feature_id=325)(test_object)
-        return test_object
+    #     https://feature-parity.us1.prod.dog/#/?feature=325
+    #     """
+    #     pytest.mark.features(feature_id=325)(test_object)
+    #     return test_object
+    ### Replace config consistency with the following features
+    # @features.tracing_enablement
+    # @features.ddtrace_log_directory
+    # @features.sdk_trace_agent_connection
+    # @features.trace_rate_limiting
+    # @features.dd_tags
+    # @features.trace_http_server_error_statuses
+    # @features.trace_query_string_obfuscation
+    # @features.trace_http_client_error_statuses
+    # @features.trace_http_client_tag_query_string
+    # @features.trace_client_ip_header
+    # @features.unified_service_tagging
+    # @features.integration_enablement
+    # @features.log_injection
+    # @features.log_injection_128bit_traceid
+    # @features.runtime_metrics
 
     @staticmethod
     def ssi_guardrails(test_object):
