@@ -67,6 +67,7 @@
         "spanRemoveIntegrationFromService": "trace_remove_integration_service_names_enabled",
         "span_sampling_rules": "span_sample_rules",
         "span_sampling_rules_file": "span_sample_rules_file",
+        "telemetry_log_collection_enabled": "telemetry_log_collection_enabled",
         "telemetry.enabled": "instrumentation_telemetry_enabled",
         "telemetryEnabled": "instrumentation_telemetry_enabled",
         "trace.128_bit_traceid_generation_enabled": "trace_128_bits_id_enabled",
