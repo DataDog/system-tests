@@ -18,9 +18,17 @@ if [ -e "/binaries/dd-trace-go" ]; then
 
 elif [ -e "/binaries/golang-load-from-go-get" ]; then
     echo "Install from go get -d $(cat /binaries/golang-load-from-go-get)"
-    go get -v -d "$(cat /binaries/golang-load-from-go-get)"
-    # Pin that version with a `replace` directive so nothing else can override it.
-    go mod edit -replace "github.com/DataDog/dd-trace-go/v2=$(cat /binaries/golang-load-from-go-get)"
+    # Read the commit hash from the golang-load-from-go-get file
+    COMMIT_HASH=$(awk -F'@' '/github.com\/DataDog\/dd-trace-go\/v2/ {print $2}' /binaries/golang-load-from-go-get)
+
+    # TODO(darccio): remove @$ref on v2 release
+    for module in $(go list -m all | awk '{print $1}'); do
+      if [[ $module == github.com/DataDog/dd-trace-go/* ]]; then
+        # Use the extracted commit hash for the replacement
+        go mod edit -replace $module=$module@$COMMIT_HASH
+      fi
+    done
+fi
 
 else
     echo "Installing production dd-trace-version"
