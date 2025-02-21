@@ -1,13 +1,11 @@
 """Test configuration consistency for features across supported APM SDKs."""
 
-import shlex
 from urllib.parse import urlparse
-from pathlib import Path
 
 import pytest
-from utils import scenarios, features, context, missing_feature, irrelevant, flaky, bug
+from utils import scenarios, features, context, missing_feature, irrelevant, flaky, bug, rfc
+from .conftest import StableConfigWriter
 from utils.parametric.spec.trace import find_span_in_traces, find_only_span
-import yaml
 
 parametrize = pytest.mark.parametrize
 
@@ -390,16 +388,10 @@ SDK_DEFAULT_STABLE_CONFIG = {
 
 @scenarios.parametric
 @features.stable_configuration_support
+@rfc("https://docs.google.com/document/d/1MNI5d3g6R8uU3FEWf2e08aAsFcJDVhweCPMjQatEb0o")
 @missing_feature(context.library < "python@3.1.0", reason="Not released yet")
-class Test_Stable_Config_Default:
+class Test_Stable_Config_Default(StableConfigWriter):
     """Verify that stable config works as intended"""
-
-    def write_stable_config(self, stable_config, path, test_library):
-        stable_config_content = yaml.dump(stable_config)
-        success, message = test_library.container_exec_run(
-            f'bash -c "mkdir -p {Path(path).parent!s} && printf {shlex.quote(stable_config_content)} | tee {path}"'
-        )
-        assert success, message
 
     @pytest.mark.parametrize("library_env", [{}])
     @pytest.mark.parametrize(
@@ -504,6 +496,24 @@ class Test_Stable_Config_Default:
             assert test["expected"].items() <= config.items()
 
     @pytest.mark.parametrize(
+        "path",
+        [
+            "/etc/datadog-agent/managed/datadog-agent/stable/application_monitoring.yaml",
+            "/etc/datadog-agent/application_monitoring.yaml",
+        ],
+    )
+    def test_invalid_files(self, test_library, path, library_env):
+        with test_library:
+            self.write_stable_config_content(
+                "🤖 👾; 🤖\t\n\n --- `💣",
+                path,
+                test_library,
+            )
+            test_library.container_restart()
+            config = test_library.config()
+            assert SDK_DEFAULT_STABLE_CONFIG.items() <= config.items()
+
+    @pytest.mark.parametrize(
         ("name", "local_cfg", "library_env", "fleet_cfg", "expected"),
         [
             (
@@ -571,22 +581,25 @@ class Test_Stable_Config_Default:
     )
     def test_config_stable(self, library_env, test_agent, test_library):
         path = "/etc/datadog-agent/managed/datadog-agent/stable/application_monitoring.yaml"
-        stable_config = """
-rules:
-  - selectors:
-    - origin: environment_variables
-      matches:
-        - STABLE_CONFIG_SELECTOR=true
-      operator: equals
-    configuration:
-      DD_SERVICE: my-service
-"""
-
         with test_library:
-            success, message = test_library.container_exec_run(
-                f"bash -c \"mkdir -p {Path(path).parent!s} && printf '{stable_config}' | tee {path}\""
+            self.write_stable_config(
+                {
+                    "rules": [
+                        {
+                            "selectors": [
+                                {
+                                    "origin": "environment_variables",
+                                    "matches": ["STABLE_CONFIG_SELECTOR=true"],
+                                    "operator": "equals",
+                                }
+                            ],
+                            "configuration": {"DD_SERVICE": "my-service"},
+                        }
+                    ]
+                },
+                path,
+                test_library,
             )
-            assert success, message
             test_library.container_restart()
             config = test_library.config()
             assert (
