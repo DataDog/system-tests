@@ -27,7 +27,7 @@ namespace weblog
         {
             if (sdk_user != null)
             {
-                EventTrackingSdk.TrackUserLoginSuccessEvent(sdk_user, null);
+                EventTrackingSdk.TrackUserLoginSuccessEvent(sdk_user);
             }
 
             return Content($"Hello, set the user to {sdk_user}");
