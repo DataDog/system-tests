@@ -134,31 +134,135 @@
                 ]
             },
             {
-                "name": "tomcat-app", "supported_images":[{"name":"Tomcat_9_arm64"}]
+                "name": "tomcat-app",
+                "supported_images": [
+                    {
+                        "name": "Tomcat_9_arm64"
+                    }
+                ]
             },
             {
-                "name": "java7-app", "supported_images":[{"name":"Ubuntu_22_arm64"}]
+                "name": "java7-app",
+                "supported_images": [
+                    {
+                        "name": "Ubuntu_22_arm64"
+                    }
+                ]
             },
             {
-                "name": "websphere-app", "supported_images":[{"name":"Websphere_amd64"}]
+                "name": "websphere-app",
+                "supported_images": [
+                    {
+                        "name": "Websphere_amd64"
+                    }
+                ]
             },
             {
-                "name": "jboss-app", "supported_images":[{"name":"Wildfly_amd64"}]
+                "name": "jboss-app",
+                "supported_images": [
+                    {
+                        "name": "Wildfly_amd64"
+                    }
+                ]
             }
         ],
         "python": [
             {
-                "name": "py-app"
+                "name": "py-app",
+                "supported_images": [
+                    {
+                        "name": "Ubuntu_22_arm64",
+                        "allowed_runtime_versions": [
+                            "*"
+                        ]
+                    }
+                ]
             }
         ],
         "php": [
             {
-                "name": "php-app"
+                "name": "php-app",
+                "supported_images": [
+                    {
+                        "name": "Ubuntu_22_amd64",
+                        "allowed_runtime_versions": [
+                            "*"
+                        ]
+                    },
+                    {
+                        "name": "Ubuntu_22_arm64",
+                        "allowed_runtime_versions": [
+                            "*"
+                        ]
+                    }
+                ]
             }
         ],
         "dotnet": [
             {
-                "name": "dotnet-app"
+                "name": "dotnet-app",
+                "supported_images": [
+                    {
+                        "name": "Ubuntu_22_amd64",
+                        "allowed_runtime_versions": [
+                            "*"
+                        ]
+                    },
+                    {
+                        "name": "Ubuntu_22_arm64",
+                        "allowed_runtime_versions": [
+                            "*"
+                        ]
+                    },
+                    {
+                        "name": "OracleLinux_8_10_amd64",
+                        "allowed_runtime_versions": [
+                            "*"
+                        ]
+                    },
+                    {
+                        "name": "OracleLinux_8_10_arm64",
+                        "allowed_runtime_versions": [
+                            "*"
+                        ]
+                    },
+                    {
+                        "name": "OracleLinux_9_3_amd64",
+                        "allowed_runtime_versions": [
+                            "*"
+                        ]
+                    },
+                    {
+                        "name": "OracleLinux_9_3_arm64",
+                        "allowed_runtime_versions": [
+                            "*"
+                        ]
+                    },
+                    {
+                        "name": "AlmaLinux_8_amd64",
+                        "allowed_runtime_versions": [
+                            "*"
+                        ]
+                    },
+                    {
+                        "name": "AlmaLinux_8_arm64",
+                        "allowed_runtime_versions": [
+                            "*"
+                        ]
+                    },
+                    {
+                        "name": "AlmaLinux_9_amd64",
+                        "allowed_runtime_versions": [
+                            "*"
+                        ]
+                    },
+                    {
+                        "name": "AlmaLinux_9_arm64",
+                        "allowed_runtime_versions": [
+                            "*"
+                        ]
+                    }
+                ]
             }
         ]
     }
