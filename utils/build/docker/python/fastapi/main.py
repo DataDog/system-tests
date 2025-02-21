@@ -51,16 +51,18 @@ except ImportError:
 app = FastAPI()
 
 
-@app.middleware("http")
-async def add_process_time_header(request: Request, call_next):
-    try:
-        if request.session.get("user_id"):
-            set_user(tracer, user_id=request.session["user_id"], mode="auto")
-    except Exception:
-        # to be compatible with all tracer versions
-        pass
-    response = await call_next(request)
-    return response
+# Custom middleware support currently partial. Header propagation is not working.
+#
+# @app.middleware("http")
+# async def add_process_time_header(request: Request, call_next):
+#     try:
+#         if request.session.get("user_id"):
+#             set_user(tracer, user_id=request.session["user_id"], mode="auto")
+#     except Exception:
+#         # to be compatible with all tracer versions
+#         pass
+#     response = await call_next(request)
+#     return response
 
 
 app.add_middleware(SessionMiddleware, secret_key="just_for_tests")
