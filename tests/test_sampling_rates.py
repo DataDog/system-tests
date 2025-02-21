@@ -66,7 +66,7 @@ class Test_SamplingRates:
     @flaky(context.weblog_variant == "spring-boot-3-native", reason="APMAPI-736")
     @flaky(library="golang", reason="APMAPI-736")
     @flaky(library="ruby", reason="APMAPI-736")
-    # @flaky(library="nodejs", reason="APMAPI-1120")
+    @flaky(library="nodejs", reason="APMAPI-1120")
     def test_sampling_rates(self):
         """Basic test"""
         interfaces.library.assert_all_traces_requests_forwarded(self.paths)
