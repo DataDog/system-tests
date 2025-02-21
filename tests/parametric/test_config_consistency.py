@@ -390,10 +390,7 @@ SDK_DEFAULT_STABLE_CONFIG = {
 
 @scenarios.parametric
 @features.stable_configuration_support
-@missing_feature(
-    context.library in ["ruby", "cpp", "dotnet", "golang", "java", "nodejs", "php", "python"],
-    reason="does not support stable configurations yet",
-)
+@missing_feature(context.library < "python@3.1.0", reason="Not released yet")
 class Test_Stable_Config_Default:
     """Verify that stable config works as intended"""
 
@@ -406,9 +403,10 @@ class Test_Stable_Config_Default:
 
     @pytest.mark.parametrize("library_env", [{}])
     @pytest.mark.parametrize(
-        ("apm_configuration_default", "expected"),
+        ("name", "apm_configuration_default", "expected"),
         [
             (
+                "profiling",
                 {"DD_PROFILING_ENABLED": True},
                 {
                     **SDK_DEFAULT_STABLE_CONFIG,
@@ -416,6 +414,7 @@ class Test_Stable_Config_Default:
                 },
             ),
             (
+                "runtime_metrics",
                 {
                     "DD_RUNTIME_METRICS_ENABLED": True,
                 },
@@ -425,6 +424,7 @@ class Test_Stable_Config_Default:
                 },
             ),
             (
+                "data_streams",
                 {
                     "DD_DATA_STREAMS_ENABLED": True,
                 },
@@ -434,6 +434,7 @@ class Test_Stable_Config_Default:
                 },
             ),
             (
+                "logs_injection",
                 {
                     "DD_LOGS_INJECTION": True,
                 },
@@ -443,6 +444,7 @@ class Test_Stable_Config_Default:
                 },
             ),
         ],
+        ids=lambda name: name,
     )
     @pytest.mark.parametrize(
         "path",
@@ -451,7 +453,7 @@ class Test_Stable_Config_Default:
             "/etc/datadog-agent/application_monitoring.yaml",
         ],
     )
-    def test_default_config(self, test_library, path, library_env, apm_configuration_default, expected):
+    def test_default_config(self, test_library, path, library_env, name, apm_configuration_default, expected):
         with test_library:
             self.write_stable_config(
                 {
@@ -558,7 +560,9 @@ class Test_Stable_Config_Default:
 
             test_library.container_restart()
             config = test_library.config()
-            assert expected.items() <= config.items()
+            assert expected.items() <= config.items(), format(
+                "unexpected values for the following configurations: {}"
+            ).format([k for k in config.keys() & expected.keys() if config[k] != expected[k]])
 
     @pytest.mark.parametrize("library_env", [{"STABLE_CONFIG_SELECTOR": "true", "DD_SERVICE": "not-my-service"}])
     @missing_feature(
