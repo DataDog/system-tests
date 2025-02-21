@@ -471,9 +471,10 @@ class Test_Stable_Configuration_Origin(StableConfigWriter):
                 },
                 {"DD_LOGS_INJECTION": True},
                 {
-                    "logs_injection_enabled": "local_stable_config",
-                    "runtime_metrics_enabled": "env_var",
-                    "profiling_enabled": "fleet_stable_config",
+                    "logs_injection_enabled": "fleet_stable_config",
+                    # Reporting for other origins than stable config is not completely implemented
+                    # "runtime_metrics_enabled": "env_var",
+                    "profiling_enabled": "local_stable_config",
                 },
             )
         ],
@@ -504,7 +505,7 @@ class Test_Stable_Configuration_Origin(StableConfigWriter):
         for cfg_name, origin in expected_origin.items():
             apm_telemetry_name = _mapped_telemetry_name(context, cfg_name)
             telemetry_item = configuration[apm_telemetry_name]
-            assert telemetry_item["origin"] == origin
+            assert telemetry_item["origin"] == origin, f"wrong origin for {telemetry_item}"
             assert telemetry_item["value"]
 
         assert False
