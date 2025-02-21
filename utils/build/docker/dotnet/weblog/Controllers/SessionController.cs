@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc.ModelBinding.Binders;
 using Microsoft.AspNetCore.Routing;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Datadog.Trace;
+using Datadog.Trace.AppSec;
 
 namespace weblog
 {
@@ -27,11 +27,7 @@ namespace weblog
         {
             if (sdk_user != null)
             {
-                var userDetails = new UserDetails()
-                {
-                    Id = sdk_user,
-                };
-                Tracer.Instance.ActiveScope?.Span.SetUser(userDetails);
+                EventTrackingSdk.TrackUserLoginSuccessEvent(sdk_user);
             }
 
             return Content($"Hello, set the user to {sdk_user}");
