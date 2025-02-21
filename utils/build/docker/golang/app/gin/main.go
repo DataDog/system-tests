@@ -238,7 +238,7 @@ func main() {
 		if err != nil {
 			ctx.Writer.WriteHeader(500)
 		}
-		appsec.TrackUserLoginSuccess(ctx.Request.Context(), user, map[string]string{}, tracer.WithUserSessionID(cookie.Value))
+		appsec.TrackUserLoginSuccess(ctx.Request.Context(), user, user, map[string]string{}, tracer.WithUserSessionID(cookie.Value))
 	})
 
 	r.GET("/inferred-proxy/span-creation", func(ctx *gin.Context) {
