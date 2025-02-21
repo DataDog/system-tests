@@ -891,7 +891,7 @@ public class App {
         HashMap<String, String> request_headers = new HashMap<>();
 
         OkHttpClient client = new OkHttpClient.Builder()
-        .addNetworkInterceptor(chain -> {
+        .addNetworkInterceptor(chain -> { // Save request headers
             Request request = chain.request();
             Response response = chain.proceed(request);
             Headers finalHeaders = request.headers();
@@ -909,7 +909,10 @@ public class App {
                 .build();
 
         Response response = client.newCall(request).execute();
-        HashMap<String, String> response_headers = new HashMap<>();
+
+        // Save response headers and status code
+        int status_code = response.code();
+        HashMap<String, String> response_headers = new HashMap<String, String>();
         Headers headers = response.headers();
         for (String name : headers.names()) {
             response_headers.put(name, headers.get(name));
@@ -917,7 +920,7 @@ public class App {
 
         DistantCallResponse result = new DistantCallResponse();
         result.url = url;
-        result.status_code = response.code();
+        result.status_code = status_code;
         result.request_headers = request_headers;
         result.response_headers = response_headers;
 
