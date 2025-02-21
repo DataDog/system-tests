@@ -114,6 +114,7 @@
         "trace.http_post_data_param_allowed": "trace_http_post_data_param_allowed",
         "trace.http_url_query_param_allowed": "trace_http_url_query_param_allowed",
         "trace.measure_compile_time": "trace_measure_compile_time_enabled",
+        "trace.ignore_agent_sampling_rates": "trace_ignore_agent_sampling_rates",
         "trace.memory_limit": "trace_memory_limit",
         "trace.obfuscation_query_string_regexp": "trace_obfuscation_query_string_regexp",
         "trace.once_logs": "trace_once_logs",
