@@ -1,8 +1,6 @@
 weblog:
     name: test-app-php-multicontainer
     nginx_config: utils/build/virtual_machine/weblogs/php/test-app-php-multicontainer/nginx.conf
-    exact_os_branches: [ubuntu24]
-    excluded_os_names: [Ubuntu_24_10_amd64,Ubuntu_24_10_arm64]
     install: 
       - os_type: linux
         copy_files:

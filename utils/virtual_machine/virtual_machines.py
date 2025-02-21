@@ -107,8 +107,10 @@ class _VirtualMachine:
         self.default_vm = default_vm
         self._deployed_weblog = None
         self._vm_logs = None
+        self.provision_install_error = None
 
     def get_deployed_weblog(self):
+        self._check_provsion_install_error()
         if self._deployed_weblog is None:
             self._deployed_weblog = self._vm_provision.get_deployed_weblog()
 
@@ -123,10 +125,20 @@ class _VirtualMachine:
     def set_ip(self, ip):
         self.ssh_config.hostname = ip
 
+    def get_ssh_connection(self):
+        self._check_provsion_install_error()
+        return self.ssh_config.get_ssh_connection()
+
     def get_ip(self):
+        self._check_provsion_install_error()
         if not self.ssh_config.hostname:
             raise Exception("IP not found")
         return self.ssh_config.hostname
+
+    def _check_provsion_install_error(self):
+        assert (
+            self.provision_install_error is None
+        ), f"❌ There are previous errors in the virtual machine provisioning steps. Check the logs: {self.name}.log"
 
     def add_provision(self, provision):
         self._vm_provision = provision

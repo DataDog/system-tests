@@ -4,6 +4,7 @@ import base64
 import copy
 import json
 import time
+from collections.abc import Generator
 import uuid
 
 import pytest
@@ -544,7 +545,7 @@ class Test_TelemetrySCAEnvVar:
     """This telemetry entry has the value of DD_APPSEC_SCA_ENABLED in the library."""
 
     @staticmethod
-    def flatten_message_batch(requests):
+    def flatten_message_batch(requests) -> Generator[dict, None, None]:
         for request in requests:
             body = json.loads(base64.b64decode(request["body"]))
             if body["request_type"] == "message-batch":
@@ -559,7 +560,7 @@ class Test_TelemetrySCAEnvVar:
                 yield body
 
     @staticmethod
-    def get_app_started_configuration_by_name(test_agent, test_library):
+    def get_app_started_configuration_by_name(test_agent, test_library) -> dict | None:
         with test_library.dd_start_span("first_span"):
             pass
 
@@ -602,6 +603,7 @@ class Test_TelemetrySCAEnvVar:
             pytest.xfail(f"{outcome_value} unsupported value for {context.library}")
 
         configuration_by_name = self.get_app_started_configuration_by_name(test_agent, test_library)
+        assert configuration_by_name is not None, "Missing telemetry configuration"
 
         DD_APPSEC_SCA_ENABLED = TelemetryUtils.get_dd_appsec_sca_enabled_str(context.library)
 
@@ -619,6 +621,7 @@ class Test_TelemetrySCAEnvVar:
     )
     def test_telemetry_sca_enabled_not_propagated(self, library_env, test_agent, test_library):
         configuration_by_name = self.get_app_started_configuration_by_name(test_agent, test_library)
+        assert configuration_by_name is not None, "Missing telemetry configuration"
 
         DD_APPSEC_SCA_ENABLED = TelemetryUtils.get_dd_appsec_sca_enabled_str(context.library)
 

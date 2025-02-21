@@ -19,7 +19,6 @@ lang_variant:
 
 weblog:
     name: test-app-nodejs-16
-    excluded_os_branches: [centos_7_amd64]
     install: 
       - os_type: linux
         copy_files:

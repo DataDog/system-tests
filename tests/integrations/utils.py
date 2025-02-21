@@ -87,7 +87,7 @@ class BaseDbIntegrationsTestClass:
                 yield db_operation, request
 
     @staticmethod
-    def get_span_from_tracer(weblog_request):
+    def get_span_from_tracer(weblog_request) -> dict:
         for _, _, span in interfaces.library.get_spans(weblog_request):
             logger.info(f"Span found with trace id: {span['trace_id']} and span id: {span['span_id']}")
 
@@ -112,7 +112,7 @@ class BaseDbIntegrationsTestClass:
         raise ValueError(f"Span is not found for {weblog_request.request.url}")
 
     @staticmethod
-    def get_span_from_agent(weblog_request):
+    def get_span_from_agent(weblog_request) -> dict:
         for data, span in interfaces.agent.get_spans(weblog_request):
             logger.debug(f"Span found: trace id={span['traceID']}; span id={span['spanID']} ({data['log_filename']})")
 

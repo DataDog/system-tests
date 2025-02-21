@@ -243,11 +243,10 @@ elif [ "$TARGET" = "cpp" ]; then
     echo "Using $(cat cpp-load-from-git)"
 
 elif [ "$TARGET" = "agent" ]; then
-    echo "using dev agent is disabled"
-    # assert_version_is_dev
-    # TARGET_BRANCH="${TARGET_BRANCH:-master-py3}"
-    # echo "datadog/agent-dev:$TARGET_BRANCH" > agent-image
-    # echo "Using $(cat agent-image) image"
+    assert_version_is_dev
+    TARGET_BRANCH="${TARGET_BRANCH:-master-py3}"
+    echo "datadog/agent-dev:$TARGET_BRANCH" > agent-image
+    echo "Using $(cat agent-image) image"
 
 elif [ "$TARGET" = "nodejs" ]; then
     assert_version_is_dev

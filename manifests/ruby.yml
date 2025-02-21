@@ -487,6 +487,8 @@ tests/:
         '*': incomplete_test_app (endpoint not implemented)
         rails70: v2.0.0
   parametric/:
+    test_128_bit_traceids.py:
+      Test_128_Bit_Traceids: v1.17.0
     test_config_consistency.py:
       Test_Config_Dogstatsd: missing_feature
       Test_Config_RateLimit: v2.0.0
@@ -589,8 +591,8 @@ tests/:
     Test_Config_ObfuscationQueryStringRegexp_Configured: missing_feature
     Test_Config_ObfuscationQueryStringRegexp_Default: bug (APMAPI-1013)
     Test_Config_ObfuscationQueryStringRegexp_Empty: missing_feature (environment variable is not supported)
-    Test_Config_RuntimeMetrics_Default: incomplete_test_app (test needs to account for ruby runtime metrics)
-    Test_Config_RuntimeMetrics_Enabled: missing_feature (should be in v0.44.0 but we're not receiving series in tests)
+    Test_Config_RuntimeMetrics_Default: v0.44.0
+    Test_Config_RuntimeMetrics_Enabled: v0.44.0
     Test_Config_RuntimeMetrics_Enabled_WithRuntimeId: missing_feature
     Test_Config_UnifiedServiceTagging_CustomService: v2.0.0
     Test_Config_UnifiedServiceTagging_Default: v2.0.0

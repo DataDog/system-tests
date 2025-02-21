@@ -35,7 +35,7 @@ class AsmStandalone_UpstreamPropagation_Base(ABC):
 
     # Return a boolean indicating if the test passed
     @staticmethod
-    def _assert_tags(first_trace, span, obj, expected_tags):
+    def _assert_tags(first_trace, span, obj, expected_tags) -> None:
         def _assert_tags_value(span, obj, expected_tags):
             struct = span if obj is None else span[obj]
             for tag, value in expected_tags.items():
@@ -61,7 +61,7 @@ class AsmStandalone_UpstreamPropagation_Base(ABC):
             return False
 
     @staticmethod
-    def assert_product_is_enabled(request, product):
+    def assert_product_is_enabled(request, product) -> None:
         product_enabled = False
         tags = "_dd.iast.json" if product == "iast" else "_dd.appsec.json"
         meta_struct_key = "iast" if product == "iast" else "appsec"
