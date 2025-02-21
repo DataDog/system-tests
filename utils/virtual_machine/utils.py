@@ -91,6 +91,17 @@ def generate_gitlab_pipeline(
                 'cp logs_"${SCENARIO_SUFIX}"/feature_parity.json "$REPORTS_PATH"/"${SCENARIO_SUFIX}".json',
                 'mv "$REPORTS_PATH"/logs_"${SCENARIO_SUFIX}" "$REPORTS_PATH"/logs_"${TEST_LIBRARY}"_"${ONBOARDING_FILTER_WEBLOG}"_"${SCENARIO_SUFIX}_${DEFAULT_VMS}"',
             ],
+            "retry": {
+                "max": "2",
+                "when": [
+                    "unknown_failure",
+                    "data_integrity_failure",
+                    "runner_system_failure",
+                    "scheduler_failure",
+                    "api_failure",
+                ],
+                "exit_codes": 3,
+            },
             "artifacts": {"when": "always", "paths": ["reports/"]},
         },
         ".base_job_onboarding_one_pipeline": {
@@ -104,6 +115,17 @@ def generate_gitlab_pipeline(
                 'cp logs_"${SCENARIO_SUFIX}"/feature_parity.json "$REPORTS_PATH"/"${SCENARIO_SUFIX}".json',
                 'mv "$REPORTS_PATH"/logs_"${SCENARIO_SUFIX}" "$REPORTS_PATH"/logs_"${TEST_LIBRARY}"_"${ONBOARDING_FILTER_WEBLOG}"_"${SCENARIO_SUFIX}_${DEFAULT_VMS}"',
             ],
+            "retry": {
+                "max": "2",
+                "when": [
+                    "unknown_failure",
+                    "data_integrity_failure",
+                    "runner_system_failure",
+                    "scheduler_failure",
+                    "api_failure",
+                ],
+                "exit_codes": 3,
+            },
             "artifacts": {"when": "always", "paths": ["system-tests/reports/"]},
         },
     }
