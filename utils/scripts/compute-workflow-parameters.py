@@ -39,8 +39,11 @@ class CiData:
             "scenarios": scenario_map.get("libinjection", []),
             "enable": len(scenario_map["libinjection"]) > 0 and "otel" not in library,
         }
-        
+
         self.data["dockerssi_scenario_defs"] = get_docker_ssi_matrix(
+            "utils/docker_ssi/docker_ssi_images.json",
+            "utils/docker_ssi/docker_ssi_runtimes.json",
+            "utils/scripts/ci_orchestrators/docker_ssi.json",
             scenario_map.get("dockerssi", []),
             library,
         )
@@ -85,7 +88,9 @@ class CiData:
         # gitlab can only handle aws_ssi right now
         with open("utils/virtual_machine/virtual_machines.json", "r") as file:
             raw_data_virtual_machines = json.load(file)["virtual_machines"]
-        print_aws_gitlab_pipeline(self.language, self.data["aws_ssi_scenario_defs"], self.environment, raw_data_virtual_machines)
+        print_aws_gitlab_pipeline(
+            self.language, self.data["aws_ssi_scenario_defs"], self.environment, raw_data_virtual_machines
+        )
 
     def _export_json(self) -> None:
         print(json.dumps(self.data))
@@ -179,5 +184,5 @@ if __name__ == "__main__":
         scenarios=args.scenarios,
         groups=args.groups,
         ci_environment=args.ci_environment,
-        parametric_job_count=args.parametric_job_count
+        parametric_job_count=args.parametric_job_count,
     ).export(args.format)

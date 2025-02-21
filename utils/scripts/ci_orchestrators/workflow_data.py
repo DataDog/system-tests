@@ -71,8 +71,71 @@ def get_aws_matrix(virtual_machines_file, aws_ssi_file, scenarios: list[str], la
 
     return results
 
-def get_docker_ssi_matrix(scenarios: list[str], language: str) -> dict:
-    return {"DEMO_AWS": {"demo": ["demo"]}}
+
+def get_docker_ssi_matrix(images_file, runtimes_file, docker_ssi_file, scenarios: list[str], language: str) -> dict:
+    """Load the JSON files (the docker images and runtimes supported by the system and the scenario-weblog definition)
+    """
+    images = _load_json(images_file)
+    runtimes = _load_json(runtimes_file)
+    docker_ssi = _load_json(docker_ssi_file)
+    results = defaultdict(lambda: defaultdict(list))  # type: dict
+
+    scenario_matrix = docker_ssi.get("scenario_matrix", [])
+    weblogs_spec = docker_ssi.get("weblogs_spec", {}).get(language)
+
+    if not weblogs_spec:
+        return results
+
+    for entry in scenario_matrix:
+        applicable_scenarios = set(entry.get("scenarios", []))
+        weblogs = entry.get("weblogs", [])
+
+        for scenario in scenarios:
+            if scenario in applicable_scenarios:
+                for weblog_entry in weblogs:
+                    if language in weblog_entry:
+                        for weblog in weblog_entry[language]:
+                            weblog_spec = _get_weblog_spec(weblogs_spec, weblog)
+                            supported_images = weblog_spec.get("supported_images", [])
+
+                            for supported_image in supported_images:
+                                allowed_runtimes = []
+                                allowed_versions = supported_image.get("allowed_runtime_versions", [])
+
+                                if not allowed_versions:
+                                    allowed_runtimes.append("")
+                                elif "*" in allowed_versions:
+                                    allowed_runtimes.extend(
+                                        runtime["version"]
+                                        for runtime in runtimes["docker_ssi_runtimes"].get(language, [])
+                                    )
+                                else:
+                                    runtime_map = {
+                                        rt["version_id"]: rt["version"]
+                                        for rt in runtimes["docker_ssi_runtimes"].get(language, [])
+                                    }
+                                    for runtime_id in allowed_versions:
+                                        if runtime_id in runtime_map:
+                                            allowed_runtimes.append(runtime_map[runtime_id])
+                                        else:
+                                            raise ValueError(f"Runtime {runtime_id} not found in the runtimes file")
+
+                                image_reference = next(
+                                    (
+                                        img["image"]
+                                        for img in images["docker_ssi_images"]
+                                        if img["name"] == supported_image["name"]
+                                    ),
+                                    None,
+                                )
+
+                                if not image_reference:
+                                    raise ValueError(f"Image {supported_image['name']} not found in the images file")
+
+                                results[scenario][weblog].append({image_reference: allowed_runtimes})
+
+    return results
+
 
 def _get_endtoend_weblogs(library: str) -> list[str]:
     folder = f"utils/build/docker/{library}"

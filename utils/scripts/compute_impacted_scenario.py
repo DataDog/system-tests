@@ -58,11 +58,11 @@ def main() -> None:
         ref = os.environ["CI_COMMIT_REF_NAME"]
         print("CI_PIPELINE_SOURCE=" + event_name)
         print("CI_COMMIT_REF_NAME=" + ref)
-        is_gilab=True
+        is_gilab = True
     else:
         event_name = os.environ["GITHUB_EVENT_NAME"]
         ref = os.environ["GITHUB_REF"]
-        is_gilab=False
+        is_gilab = False
 
     if event_name == "schedule" or ref == "refs/heads/main":
         result.add_scenario_group(ScenarioGroup.ALL.value)
