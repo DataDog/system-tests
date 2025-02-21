@@ -1,0 +1,4 @@
+{
+    "IdempotentParameterMismatch": "creating EC2 Instance: IdempotentParameterMismatch",
+    "InternalError": "last error: Server.InternalError: Internal error on launch"
+}

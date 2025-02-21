@@ -18,9 +18,27 @@ def wait_backend_trace_id(trace_id, profile: bool = False, validator=None):
 
 
 def _headers():
+    """The backned can raise a 429 error if the rate limit is reached. We can use several app keys trying to avoid the rate limit."""
+    # Get the mandatory API key
+    api_key = os.getenv("DD_API_KEY_ONBOARDING")
+
+    # Collect all possible application keys
+    app_keys = [
+        os.getenv("DD_APP_KEY_ONBOARDING")  # Mandatory key
+    ] + [
+        os.getenv(f"DD_APP_KEY_ONBOARDING_{i}")
+        for i in range(2, 10)  # Optional keys
+    ]
+
+    # Filter out None values (keys that don't exist)
+    app_keys = [key for key in app_keys if key]
+
+    # Select one key randomly (uniform probability)
+    app_key = random.choice(app_keys)
+
     return {
-        "DD-API-KEY": os.getenv("DD_API_KEY_ONBOARDING"),
-        "DD-APPLICATION-KEY": os.getenv("DD_APP_KEY_ONBOARDING"),
+        "DD-API-KEY": api_key,
+        "DD-APPLICATION-KEY": app_key,
     }
 
 

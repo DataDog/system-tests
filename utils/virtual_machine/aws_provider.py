@@ -6,8 +6,7 @@ import requests
 import tempfile
 from random import randint
 from retry import retry
-
-import paramiko
+import json
 import random
 
 from pulumi import automation as auto
@@ -37,6 +36,7 @@ class AWSPulumiProvider(VmProvider):
         # Configure the ssh connection for the VMs
         self.pulumi_ssh = PulumiSSH()
         self.pulumi_ssh.load(virtual_machine)
+        self.aws_infra_exceptions = self._load_aws_infra_exceptions()
 
     def stack_up(self):
         logger.info(f"Starting AWS VM: {self.vm}")
@@ -78,12 +78,13 @@ class AWSPulumiProvider(VmProvider):
                 "\n \n \n ❌ ❌ ❌ Exception launching aws provision step remote command ❌ ❌ ❌ \n \n \n "
             )
             vm_logger(context.scenario.name, context.vm_name).exception(pulumi_command_exception)
-            self.vm.provision_install_error = pulumi_command_exception
+
             self.datadog_event_sender.sendEventToDatadog(
                 f"[E2E] Stack {self.stack_name} : error on Pulumi stack up",
                 repr(pulumi_command_exception),
                 ["operation:up", "result:fail", f"stack:{self.stack_name}"],
             )
+            self._handle_provision_error(pulumi_command_exception)
         except Exception as pulumi_exception:
             logger.stdout("❌ Exception launching aws provision infraestructure ❌ ")
             logger.stdout(f"(Please, check the log file: tests.log and search for the text chain 'Diagnostics:')")
@@ -93,7 +94,7 @@ class AWSPulumiProvider(VmProvider):
                 repr(pulumi_exception),
                 ["operation:up", "result:fail", f"stack:{self.stack_name}"],
             )
-            self.vm.provision_install_error = pulumi_exception
+            self._handle_provision_error(pulumi_exception)
 
     def get_windows_user_data(self):
         windows_user_data_path = "utils/build/virtual_machine/provisions/windows_userdata/setup_ssh.ps1"
@@ -103,6 +104,21 @@ class AWSPulumiProvider(VmProvider):
             windows_user_data_content = file.read()
 
         return windows_user_data_content
+
+    def _load_aws_infra_exceptions(self):
+        """Load the known exceptions for the AWS infraestructure."""
+        with open("utils/virtual_machine/aws_infra_exceptions.json", "r") as f:
+            return json.load(f)
+
+    def _handle_provision_error(self, exception):
+        """If the exception is known, we will raise the exception, if not,we will store it in the vm object."""
+
+        exception_message = str(exception)
+        for known_message in self.aws_infra_exceptions.values():
+            if known_message in exception_message:
+                self.stack_destroy()
+                raise exception  # Re-raise the exception if matched
+        self.vm.provision_install_error = exception
 
     def _start_vm(self, vm):
         ec2_user_data = None
@@ -142,7 +158,8 @@ class AWSPulumiProvider(VmProvider):
             host=ec2_server.private_ip,
             user=vm.aws_config.user,
             private_key=self.pulumi_ssh.private_key_pem,
-            dial_error_limit=-1,
+            dial_error_limit=30,  # 30 retries, 10 seconds per retry=5 minutes
+            per_dial_timeout=10,
         )
         # Install provision on the started server
         self.install_provision(vm, ec2_server, server_connection)
