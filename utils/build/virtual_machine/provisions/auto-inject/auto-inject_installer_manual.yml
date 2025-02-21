@@ -69,8 +69,7 @@
         exit 1
     fi
 
-     DD_REPO_URL=${DD_injection_repo_url} bash -c "install_script.sh"
-
+     DD_REPO_URL=${DD_injection_repo_url} bash -c "$(cat install_script.sh)"
 
     sudo cp /tmp/datadog-installer-*.log /var/log/datadog
 

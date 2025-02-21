@@ -21,7 +21,7 @@
         echo "Failed to connect to install.datadoghq.com the script after $MAX_RETRIES attempts"
         exit 1
     fi
-    DD_INSTALL_ONLY=true DD_INSTALLER=true bash -c "install_script.sh"
-    
+    DD_INSTALL_ONLY=true DD_INSTALLER=true  bash -c "$(cat install_script.sh)"
+
 - os_type: windows
   remote_command: echo "Unsupported step"
