@@ -19,7 +19,21 @@ _iast_security_controls_map = {
         "INPUT_VALIDATOR:*:com.datadoghq.system_tests.iast.utils.SecurityControlUtil:"
         "overloadedValidation:java.lang.Object,java.lang.String,java.lang.String:1,2"
     ),
-    "nodejs": "TODO",
+    "nodejs": (
+        "SANITIZER:COMMAND_INJECTION:iast/utils/securityControlUtil.js:sanitize;"
+        "SANITIZER:*:iast/utils/securityControlUtil.js:sanitizeForAllVulns;"
+        "SANITIZER:*:iast/utils/securityControlUtil.js:overloadedSanitize:0;"
+        "INPUT_VALIDATOR:COMMAND_INJECTION:iast/utils/securityControlUtil.js:validate;"
+        "INPUT_VALIDATOR:*:iast/utils/securityControlUtil.js:validateForAllVulns;"
+        "INPUT_VALIDATOR:*:iast/utils/securityControlUtil.js:overloadedValidation:1,2;"
+        # typescript definitions
+        "SANITIZER:COMMAND_INJECTION:dist/utils/securityControlUtil.js:sanitize;"
+        "SANITIZER:*:dist/utils/securityControlUtil.js:sanitizeForAllVulns;"
+        "SANITIZER:*:dist/utils/securityControlUtil.js:overloadedSanitize:0;"
+        "INPUT_VALIDATOR:COMMAND_INJECTION:dist/utils/securityControlUtil.js:validate;"
+        "INPUT_VALIDATOR:*:dist/utils/securityControlUtil.js:validateForAllVulns;"
+        "INPUT_VALIDATOR:*:dist/utils/securityControlUtil.js:overloadedValidation:1,2"
+    ),
     "php": "TODO",
     "python": "TODO",
     "ruby": "TODO",

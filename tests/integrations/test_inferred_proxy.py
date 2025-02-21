@@ -131,7 +131,7 @@ def get_span(interface, resource):
     return None
 
 
-def assert_api_gateway_span(testCase, span, path, status_code, is_distributed=False, is_error=False):
+def assert_api_gateway_span(test_case, span, path, status_code, is_distributed=False, is_error=False):
     assert span["name"] == "aws.apigateway", "Inferred AWS API Gateway span name should be 'aws.apigateway'"
 
     # Assertions to check if the span data contains the required keys and values.
@@ -151,13 +151,12 @@ def assert_api_gateway_span(testCase, span, path, status_code, is_distributed=Fa
         assert (
             span["service"] == "system-tests-api-gateway.com"
         ), "Inferred AWS API Gateway span expected service should equal 'system-tests-api-gateway.com'"
-    assert "span.kind" in span["meta"], "Inferred AWS API Gateway span meta should contain 'span.kind'"
-    assert (
-        span["meta"]["span.kind"] == "internal"
-    ), "Inferred AWS API Gateway span meta span.kind should equal 'internal'"
     assert "stage" in span["meta"], "Inferred AWS API Gateway span meta should contain 'stage'"
     assert span["meta"]["stage"] == "staging", "Inferred AWS API Gateway span meta expected stage to be 'staging'"
     assert "start" in span, "Inferred AWS API Gateway span should have 'startTime'"
+    assert (
+        span["metrics"]["_dd.inferred_span"] == 1
+    ), "Inferred AWS API Gateway span meta expected _dd.inferred_span = 1"
 
     # assert on HTTP tags
     assert "http.method" in span["meta"], "Inferred AWS API Gateway span meta should contain 'http.method'"
@@ -174,8 +173,8 @@ def assert_api_gateway_span(testCase, span, path, status_code, is_distributed=Fa
     if not interfaces.library.replay:
         # round the start time since we get some inconsistent errors due to how the agent rounds start times.
         assert (
-            round(span["start"], -6) == testCase.start_time_ns
-        ), f"Inferred AWS API Gateway span startTime should equal expected '{testCase.start_time_ns!s}''"
+            round(span["start"], -6) == test_case.start_time_ns
+        ), f"Inferred AWS API Gateway span startTime should equal expected '{test_case.start_time_ns!s}''"
 
     if is_distributed:
         assert span["trace_id"] == DISTRIBUTED_TRACE_ID

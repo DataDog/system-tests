@@ -16,8 +16,6 @@ RUN mkdir -p /app/utils/build/docker && ./build.sh -i runner
 COPY utils/ /app/utils/
 # tests
 COPY tests /app/tests
-COPY parametric /app/parametric
-
 
 # manifests
 COPY manifests /app/manifests

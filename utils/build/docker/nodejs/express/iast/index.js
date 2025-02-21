@@ -394,6 +394,8 @@ function initRoutes (app, tracer) {
   })
 
   require('./sources')(app, tracer)
+
+  require('./security-controls')(app, tracer)
 }
 
 module.exports = { initRoutes, initData, initMiddlewares }

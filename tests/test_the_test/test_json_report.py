@@ -143,26 +143,26 @@ class Test_Mock:
         """Mock test doc"""
         assert 1 == 1  # noqa: PLR0133
 
-    @missing_feature(True, reason="not yet done")
+    @missing_feature(condition=True, reason="not yet done")
     @features.app_client_configuration_change_event
     def test_missing_feature(self):
         raise ValueError("Should not be executed")
 
-    @irrelevant(True, reason="irrelevant")
+    @irrelevant(condition=True, reason="irrelevant")
     def test_irrelevant(self):
         raise ValueError("Should not be executed")
 
 
 @scenarios.mock_the_test
-@bug(True, reason="FAKE-001")
+@bug(condition=True, reason="FAKE-001")
 class Test_Mock2:
-    @bug(True, reason="FAKE-002")
+    @bug(condition=True, reason="FAKE-002")
     def test_skipped(self):
         raise ValueError("Should not be executed")
 
 
 @scenarios.mock_the_test
-@bug(True, reason="FAKE-001")
+@bug(condition=True, reason="FAKE-001")
 class Test_BugClass:
     def test_xpassed_method(self):
         """This test will be reported as xpassed"""
@@ -170,7 +170,7 @@ class Test_BugClass:
 
     def test_xfailed_method(self):
         """This test will be reported as xpassed"""
-        assert False
+        pytest.fail("Expected")
 
 
 @scenarios.mock_the_test
@@ -179,28 +179,28 @@ class Test_NotReleased:
         assert True
 
 
-@irrelevant(True)
+@irrelevant(condition=True)
 @scenarios.mock_the_test
 class Test_IrrelevantClass:
     def test_method(self):
         raise ValueError("Should not be executed")
 
-    @flaky(True, reason="FAKE-001")
+    @flaky(condition=True, reason="FAKE-001")
     def test_flaky_method_in_irrelevant_class(self):
         raise ValueError("Should not be executed")
 
-    @bug(True, reason="FAKE-001")
+    @bug(condition=True, reason="FAKE-001")
     def test_bug_method_in_irrelevant_class(self):
         raise ValueError("Should not be executed")
 
 
 @scenarios.mock_the_test
 class Test_Class:
-    @irrelevant(True)
+    @irrelevant(condition=True)
     def test_irrelevant_method(self):
         raise ValueError("Should not be executed")
 
-    @flaky(True, reason="FAKE-001")
+    @flaky(condition=True, reason="FAKE-001")
     def test_flaky_method(self):
         raise ValueError("Should not be executed")
 
@@ -209,18 +209,18 @@ class Test_Class:
     def test_good_method(self):
         pass
 
-    @missing_feature(True, reason="not yet done")
-    @irrelevant(True, reason="irrelevant")
+    @missing_feature(condition=True, reason="not yet done")
+    @irrelevant(condition=True, reason="irrelevant")
     def test_skipping_prio(self):
         raise ValueError("Should not be executed")
 
-    @irrelevant(True, reason="irrelevant")
-    @missing_feature(True, reason="not yet done")
+    @irrelevant(condition=True, reason="irrelevant")
+    @missing_feature(condition=True, reason="not yet done")
     def test_skipping_prio2(self):
         raise ValueError("Should not be executed")
 
 
-@flaky(True, reason="FAKE-001")
+@flaky(condition=True, reason="FAKE-001")
 @scenarios.mock_the_test
 class Test_FlakyClass:
     def test_method(self):

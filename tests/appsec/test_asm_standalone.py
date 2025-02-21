@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 from requests.structures import CaseInsensitiveDict
 
 from utils.telemetry_utils import TelemetryUtils
-from utils import context, weblog, interfaces, scenarios, features, rfc, bug, missing_feature
+from utils import context, weblog, interfaces, scenarios, features, rfc, bug, missing_feature, irrelevant
 
 
 class AsmStandalone_UpstreamPropagation_Base(ABC):
@@ -28,14 +28,14 @@ class AsmStandalone_UpstreamPropagation_Base(ABC):
     #
 
     # Enpoint that triggers an ASM event and a downstream request
-    requestdownstreamUrl = "/requestdownstream"
+    request_downstream_url = "/requestdownstream"
 
     # Tested product
     tested_product = None
 
     # Return a boolean indicating if the test passed
     @staticmethod
-    def _assert_tags(first_trace, span, obj, expected_tags):
+    def _assert_tags(first_trace, span, obj, expected_tags) -> None:
         def _assert_tags_value(span, obj, expected_tags):
             struct = span if obj is None else span[obj]
             for tag, value in expected_tags.items():
@@ -61,7 +61,7 @@ class AsmStandalone_UpstreamPropagation_Base(ABC):
             return False
 
     @staticmethod
-    def assert_product_is_enabled(request, product):
+    def assert_product_is_enabled(request, product) -> None:
         product_enabled = False
         tags = "_dd.iast.json" if product == "iast" else "_dd.appsec.json"
         meta_struct_key = "iast" if product == "iast" else "appsec"
@@ -95,7 +95,7 @@ class AsmStandalone_UpstreamPropagation_Base(ABC):
             headers = {
                 "User-Agent": "Arachni/v1",  # attack if APPSEC enabled
             }
-        self.check_r = weblog.get(self.requestdownstreamUrl, headers=headers)
+        self.check_r = weblog.get(self.request_downstream_url, headers=headers)
 
     def setup_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_minus_1(self):
         self.setup_product_is_enabled()
@@ -277,7 +277,7 @@ class AsmStandalone_UpstreamPropagation_Base(ABC):
         trace_id = 1212121212121212121
         parent_id = 34343434
         self.r = weblog.get(
-            self.requestdownstreamUrl,
+            self.request_downstream_url,
             headers={
                 "x-datadog-trace-id": str(trace_id),
                 "x-datadog-parent-id": str(parent_id),
@@ -320,7 +320,7 @@ class AsmStandalone_UpstreamPropagation_Base(ABC):
         trace_id = 1212121212121212121
         parent_id = 34343434
         self.r = weblog.get(
-            self.requestdownstreamUrl,
+            self.request_downstream_url,
             headers={
                 "x-datadog-trace-id": str(trace_id),
                 "x-datadog-parent-id": str(parent_id),
@@ -492,7 +492,7 @@ class AsmStandalone_UpstreamPropagation_Base(ABC):
         trace_id = 1212121212121212121
         parent_id = 34343434
         self.r = weblog.get(
-            self.requestdownstreamUrl,
+            self.request_downstream_url,
             headers={
                 "x-datadog-trace-id": str(trace_id),
                 "x-datadog-parent-id": str(parent_id),
@@ -533,7 +533,7 @@ class AsmStandalone_UpstreamPropagation_Base(ABC):
         trace_id = 1212121212121212121
         parent_id = 34343434
         self.r = weblog.get(
-            self.requestdownstreamUrl,
+            self.request_downstream_url,
             headers={
                 "x-datadog-trace-id": str(trace_id),
                 "x-datadog-parent-id": str(parent_id),
@@ -574,7 +574,7 @@ class AsmStandalone_UpstreamPropagation_Base(ABC):
         trace_id = 1212121212121212121
         parent_id = 34343434
         self.r = weblog.get(
-            self.requestdownstreamUrl,
+            self.request_downstream_url,
             headers={
                 "x-datadog-trace-id": str(trace_id),
                 "x-datadog-parent-id": str(parent_id),
@@ -615,7 +615,7 @@ class AsmStandalone_UpstreamPropagation_Base(ABC):
 class AppSecStandalone_UpstreamPropagation_Base(AsmStandalone_UpstreamPropagation_Base):
     """APPSEC correctly propagates AppSec events in distributing tracing."""
 
-    requestdownstreamUrl = "/requestdownstream"
+    request_downstream_url = "/requestdownstream"
 
     tested_product = "appsec"
 
@@ -653,7 +653,7 @@ class AppSecStandalone_UpstreamPropagation_Base(AsmStandalone_UpstreamPropagatio
 class IastStandalone_UpstreamPropagation_Base(AsmStandalone_UpstreamPropagation_Base):
     """IAST correctly propagates AppSec events in distributing tracing."""
 
-    requestdownstreamUrl = "/vulnerablerequestdownstream"
+    request_downstream_url = "/vulnerablerequestdownstream"
 
     tested_product = "iast"
 
@@ -769,6 +769,7 @@ class Test_AppSecStandalone_NotEnabled:
 @rfc("https://docs.google.com/document/d/12NBx-nD-IoQEMiCRnJXneq4Be7cbtSc6pJLOFUWTpNE/edit")
 @features.appsec_standalone
 @scenarios.appsec_standalone
+@irrelevant(context.library > "java@v1.46.0", reason="V2 is implemented for newer versions")
 class Test_AppSecStandalone_UpstreamPropagation(AppSecStandalone_UpstreamPropagation_Base):
     """APPSEC correctly propagates AppSec events in distributing tracing with DD_EXPERIMENTAL_APPSEC_STANDALONE_ENABLED=true."""
 
@@ -795,6 +796,7 @@ class Test_AppSecStandalone_UpstreamPropagation_V2(AppSecStandalone_UpstreamProp
 @rfc("https://docs.google.com/document/d/12NBx-nD-IoQEMiCRnJXneq4Be7cbtSc6pJLOFUWTpNE/edit")
 @features.iast_standalone
 @scenarios.iast_standalone
+@irrelevant(context.library > "java@v1.46.0", reason="V2 is implemented for newer versions")
 class Test_IastStandalone_UpstreamPropagation(IastStandalone_UpstreamPropagation_Base):
     """IAST correctly propagates AppSec events in distributing tracing with DD_EXPERIMENTAL_APPSEC_STANDALONE_ENABLED=true."""
 
@@ -821,6 +823,7 @@ class Test_IastStandalone_UpstreamPropagation_V2(IastStandalone_UpstreamPropagat
 @rfc("https://docs.google.com/document/d/12NBx-nD-IoQEMiCRnJXneq4Be7cbtSc6pJLOFUWTpNE/edit")
 @features.sca_standalone
 @scenarios.sca_standalone
+@irrelevant(context.library > "java@v1.46.0", reason="V2 is implemented for newer versions")
 class Test_SCAStandalone_Telemetry(SCAStandalone_Telemetry_Base):
     """Tracer correctly propagates SCA telemetry in distributing tracing with DD_EXPERIMENTAL_APPSEC_STANDALONE_ENABLED=true."""
 

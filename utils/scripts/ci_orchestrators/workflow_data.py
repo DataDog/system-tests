@@ -1,5 +1,7 @@
 from collections import defaultdict
 import json
+import os
+from pathlib import Path
 
 
 def _load_json(file_path) -> dict:
@@ -44,9 +46,11 @@ def get_aws_matrix(virtual_machines_file, aws_ssi_file, scenarios: list[str], la
                             excluded = set(weblog_spec.get("excluded_os_branches", []))
                             exact = set(weblog_spec.get("exact_os_branches", []))
                             excluded_names = set(weblog_spec.get("excluded_os_names", []))
+                            excludes_types = set(weblog_spec.get("excluded_os_types", []))
 
                             for vm in virtual_machines:
                                 should_add_vm = True
+                                os_type = vm["os_type"]
                                 os_branch = vm["os_branch"]
                                 os_name = vm["name"]
                                 if exact:
@@ -59,97 +63,112 @@ def get_aws_matrix(virtual_machines_file, aws_ssi_file, scenarios: list[str], la
                                 if excluded_names:
                                     if os_name in excluded_names:
                                         should_add_vm = False
-
+                                if excludes_types:
+                                    if os_type in excludes_types:
+                                        should_add_vm = False
                                 if should_add_vm:
                                     results[scenario][weblog].append(vm["name"])
 
     return results
 
 
-def _get_graphql_weblogs(library) -> list[str]:
-    weblogs = {
-        "cpp": [],
-        "dotnet": [],
-        "golang": ["gqlgen", "graph-gophers", "graphql-go"],
-        "java": [],
-        "nodejs": ["express4", "uds-express4", "express4-typescript", "express5"],
-        "php": [],
-        "python": [],
-        "ruby": ["graphql23"],
-    }  # type: dict[str, list[str]]
+def _get_endtoend_weblogs(library: str) -> list[str]:
+    folder = f"utils/build/docker/{library}"
+    result = [
+        f.replace(".Dockerfile", "")
+        for f in os.listdir(folder)
+        if f.endswith(".Dockerfile") and ".base." not in f and Path(os.path.join(folder, f)).is_file()
+    ]
 
-    return weblogs[library]
+    return sorted(result)
 
 
-def _get_endtoend_weblogs(library, ci_environment: str) -> list[str]:
-    weblogs = {
-        "cpp": ["nginx"],
-        "dotnet": ["poc", "uds"],
-        "golang": ["chi", "echo", "gin", "net-http", "uds-echo", "net-http-orchestrion"],
-        "java": [
-            "akka-http",
-            "jersey-grizzly2",
-            "play",
-            "ratpack",
-            "resteasy-netty3",
-            "spring-boot-jetty",
-            "spring-boot",
-            "spring-boot-3-native",
-            "spring-boot-openliberty",
-            "spring-boot-wildfly",
-            "spring-boot-undertow",
-            "spring-boot-payara",
-            "vertx3",
-            "vertx4",
-            "uds-spring-boot",
-        ],
-        "nodejs": ["express4", "uds-express4", "express4-typescript", "express5", "nextjs"],
-        "php": [
-            *[f"apache-mod-{v}" for v in ["7.0", "7.1", "7.2", "7.3", "7.4", "8.0", "8.1", "8.2"]],
-            *[f"apache-mod-{v}-zts" for v in ["7.0", "7.1", "7.2", "7.3", "7.4", "8.0", "8.1", "8.2"]],
-            *[f"php-fpm-{v}" for v in ["7.0", "7.1", "7.2", "7.3", "7.4", "8.0", "8.1", "8.2"]],
-        ],
-        "python": ["flask-poc", "django-poc", "uwsgi-poc", "uds-flask", "python3.12", "fastapi", "django-py3.13"],
-        "ruby": [
-            "rack",
-            "uds-sinatra",
-            *[f"sinatra{v}" for v in ["14", "20", "21", "22", "30", "31", "32", "40"]],
-            *[f"rails{v}" for v in ["42", "50", "51", "52", "60", "61", "70", "71", "72", "80"]],
-        ],
-    }  # type: dict[str, list[str]]
+def get_endtoend_definitions(library: str, scenario_map: dict, ci_environment: str) -> dict:
+    if "otel" not in library:
+        scenarios = scenario_map["endtoend"] + scenario_map["graphql"]
+    else:
+        scenarios = scenario_map["opentelemetry"]
 
-    if ci_environment != "dev":
+    unfiltered_defs = [
+        {
+            "library": library,
+            "weblog_name": weblog,
+            "scenarios": _filter_scenarios(scenarios, library, weblog, ci_environment),
+        }
+        for weblog in _get_endtoend_weblogs(library)
+    ]
+
+    filtered_defs = [weblog for weblog in unfiltered_defs if len(weblog["scenarios"]) != 0]
+
+    return {"endtoend_defs": {"weblogs": filtered_defs}}
+
+
+def _filter_scenarios(scenarios: list[str], library: str, weblog: str, ci_environment: str) -> list[str]:
+    return sorted([scenario for scenario in set(scenarios) if _is_supported(library, weblog, scenario, ci_environment)])
+
+
+def _is_supported(library: str, weblog: str, scenario: str, ci_environment: str) -> bool:
+    # this function will remove some couple scenarios/weblog that are not supported
+    if ci_environment != "dev" and library == "python" and weblog == "django-py3.13":
         # as now, django-py3.13 support is not released
-        weblogs["python"].remove("django-py3.13")
+        return False
 
-    return weblogs[library]
+    # open-telemetry-automatic
+    if scenario == "OTEL_INTEGRATIONS":
+        possible_values: tuple = (
+            ("java_otel", "spring-boot-otel"),
+            ("nodejs_otel", "express4-otel"),
+            ("python_otel", "flask-poc-otel"),
+        )
+        if (library, weblog) not in possible_values:
+            return False
 
+    # open-telemetry-manual
+    if scenario in ("OTEL_LOG_E2E", "OTEL_METRIC_E2E", "OTEL_TRACING_E2E"):
+        if (library, weblog) != ("java_otel", "spring-boot-native"):
+            return False
 
-def _get_opentelemetry_weblogs(library) -> list[str]:
-    weblogs = {
-        "cpp": [],
-        "dotnet": [],
-        "golang": [],
-        "java": ["spring-boot-otel"],
-        "nodejs": ["express4-otel"],
-        "php": [],
-        "python": ["flask-poc-otel"],
-        "ruby": [],
-    }  # type: dict[str, list[str]]
+    if scenario in ("GRAPHQL_APPSEC",):
+        possible_values: tuple = (
+            ("golang", "gqlgen"),
+            ("golang", "graph-gophers"),
+            ("golang", "graphql-go"),
+            ("ruby", "graphql23"),
+            ("nodejs", "express4"),
+            ("nodejs", "uds-express4"),
+            ("nodejs", "express4-typescript"),
+            ("nodejs", "express5"),
+        )
+        if (library, weblog) not in possible_values:
+            return False
 
-    return weblogs[library]
+    if scenario in ("PERFORMANCES",):
+        return False
 
+    if scenario == "IPV6" and library == "ruby":
+        return False
 
-def get_endtoend_matrix(language: str, scenario_map: dict, parametric_job_count: int, ci_environment: str) -> dict:
-    result = defaultdict(dict)  # type: dict[str, dict]
+    if scenario in ("CROSSED_TRACING_LIBRARIES",):
+        if weblog in ("python3.12", "django-py3.13", "spring-boot-payara"):
+            # python 3.13 issue : APMAPI-1096
+            return False
 
-    for github_workflow, scenario_list in scenario_map.items():
-        result[github_workflow]["scenarios"] = scenario_list
+    if scenario in ("APPSEC_MISSING_RULES", "APPSEC_CORRUPTED_RULES") and library == "cpp":
+        # C++ 1.2.0 freeze when the rules file is missing
+        return False
 
-    result["endtoend"]["weblogs"] = _get_endtoend_weblogs(language, ci_environment)
-    result["graphql"]["weblogs"] = _get_graphql_weblogs(language)
-    result["opentelemetry"]["weblogs"] = _get_opentelemetry_weblogs(language)
-    result["parametric"]["job_count"] = parametric_job_count
-    result["parametric"]["job_matrix"] = list(range(1, parametric_job_count + 1))
+    if weblog in ["gqlgen", "graph-gophers", "graphql-go", "graphql23"]:
+        if scenario not in ("GRAPHQL_APPSEC",):
+            return False
 
-    return result
+    # open-telemetry-manual
+    if weblog == "spring-boot-native":
+        if scenario not in ("OTEL_LOG_E2E", "OTEL_METRIC_E2E", "OTEL_TRACING_E2E"):
+            return False
+
+    # open-telemetry-automatic
+    if weblog in ["express4-otel", "flask-poc-otel", "spring-boot-otel"]:
+        if scenario not in ("OTEL_INTEGRATIONS"):
+            return False
+
+    return True

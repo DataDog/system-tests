@@ -103,7 +103,7 @@ tests/:
             '*': *ref_5_37_0
             nextjs: missing_feature
           TestCodeInjection_StackTrace:
-            '*': *ref_5_33_0
+            '*': missing_feature
             nextjs: missing_feature
         test_command_injection.py:
           TestCommandInjection:
@@ -113,7 +113,7 @@ tests/:
             '*': *ref_5_37_0
             nextjs: missing_feature
           TestCommandInjection_StackTrace:
-            '*': *ref_5_33_0
+            '*': missing_feature
             nextjs: missing_feature
         test_email_html_injection.py:
           TestEmailHtmlInjection: missing_feature
@@ -166,7 +166,7 @@ tests/:
             '*': *ref_5_37_0
             nextjs: missing_feature
           TestHeaderInjection_StackTrace:
-            '*': *ref_5_33_0
+            '*': missing_feature
             nextjs: missing_feature
         test_hsts_missing_header.py:
           Test_HstsMissingHeader:
@@ -191,7 +191,7 @@ tests/:
             '*': *ref_5_37_0
             nextjs: missing_feature
           TestInsecureCookie_StackTrace:
-            '*': *ref_5_33_0
+            '*': missing_feature
             nextjs: missing_feature
         test_ldap_injection.py:
           TestLDAPInjection:
@@ -201,7 +201,7 @@ tests/:
             '*': *ref_5_37_0
             nextjs: missing_feature
           TestLDAPInjection_StackTrace:
-            '*': *ref_5_33_0
+            '*': missing_feature
             nextjs: missing_feature
         test_no_httponly_cookie.py:
           TestNoHttponlyCookie:
@@ -214,7 +214,7 @@ tests/:
             '*': *ref_5_37_0
             nextjs: missing_feature
           TestNoHttponlyCookie_StackTrace:
-            '*': *ref_5_33_0
+            '*': missing_feature
             nextjs: missing_feature
         test_no_samesite_cookie.py:
           TestNoSamesiteCookie:
@@ -227,7 +227,7 @@ tests/:
             '*': *ref_5_37_0
             nextjs: missing_feature
           TestNoSamesiteCookie_StackTrace:
-            '*': *ref_5_33_0
+            '*': missing_feature
             nextjs: missing_feature
         test_nosql_mongodb_injection.py:
           TestNoSqlMongodbInjection:
@@ -237,7 +237,7 @@ tests/:
             '*': *ref_5_37_0
             nextjs: missing_feature
           TestNoSqlMongodbInjection_StackTrace:
-            '*': *ref_5_33_0
+            '*': missing_feature
             nextjs: missing_feature
         test_path_traversal.py:
           TestPathTraversal:
@@ -247,7 +247,7 @@ tests/:
             '*': *ref_5_37_0
             nextjs: missing_feature
           TestPathTraversal_StackTrace:
-            '*': *ref_5_33_0
+            '*': missing_feature
             nextjs: missing_feature
         test_reflection_injection.py:
           TestReflectionInjection: missing_feature
@@ -261,7 +261,7 @@ tests/:
             '*': *ref_5_37_0
             nextjs: missing_feature
           TestSqlInjection_StackTrace:
-            '*': *ref_5_33_0
+            '*': missing_feature
             nextjs: missing_feature
         test_ssrf.py:
           TestSSRF:
@@ -271,7 +271,7 @@ tests/:
             '*': *ref_5_37_0
             nextjs: missing_feature
           TestSSRF_StackTrace:
-            '*': *ref_5_33_0
+            '*': missing_feature
             nextjs: missing_feature
         test_stacktrace_leak.py:
           TestStackTraceLeak: missing_feature
@@ -294,7 +294,7 @@ tests/:
             '*': *ref_5_37_0
             nextjs: missing_feature
           TestUntrustedDeserialization_StackTrace:
-            '*': *ref_5_32_0
+            '*': missing_feature
             nextjs: missing_feature
         test_unvalidated_redirect.py:
           TestUnvalidatedHeader:
@@ -304,7 +304,7 @@ tests/:
             '*': *ref_5_37_0
             nextjs: missing_feature
           TestUnvalidatedHeader_StackTrace:
-            '*': *ref_5_33_0
+            '*': missing_feature
             nextjs: missing_feature
           TestUnvalidatedRedirect:
             '*': *ref_4_3_0
@@ -313,7 +313,7 @@ tests/:
             '*': *ref_5_37_0
             nextjs: missing_feature
           TestUnvalidatedRedirect_StackTrace:
-            '*': *ref_5_33_0
+            '*': missing_feature
             nextjs: missing_feature
         test_unvalidated_redirect_forward.py:
           TestUnvalidatedForward: missing_feature
@@ -327,7 +327,7 @@ tests/:
             '*': *ref_5_37_0
             nextjs: missing_feature
           TestWeakCipher_StackTrace:
-            '*': *ref_5_33_0
+            '*': missing_feature
             nextjs: missing_feature
         test_weak_hash.py:
           TestDeduplication:
@@ -340,7 +340,7 @@ tests/:
             '*': *ref_5_37_0
             nextjs: missing_feature
           TestWeakHash_StackTrace:
-            '*': *ref_5_33_0
+            '*': missing_feature
             nextjs: missing_feature
         test_weak_randomness.py:
           TestWeakRandomness:
@@ -350,7 +350,7 @@ tests/:
             '*': *ref_5_37_0
             nextjs: missing_feature
           TestWeakRandomness_StackTrace:
-            '*': *ref_5_33_0
+            '*': missing_feature
             nextjs: missing_feature
         test_xcontent_sniffing.py:
           Test_XContentSniffing:
@@ -421,7 +421,9 @@ tests/:
         test_uri.py:
           TestURI: missing_feature
       test_security_controls.py:
-        TestSecurityControls: missing_feature
+        TestSecurityControls:
+          '*': *ref_5_37_0
+          nextjs: missing_feature
     rasp/:
       test_cmdi.py:
         Test_Cmdi_BodyJson:
@@ -468,7 +470,7 @@ tests/:
         Test_Lfi_Rules_Version: *ref_5_26_0
         Test_Lfi_StackTrace: *ref_5_24_0
         Test_Lfi_Telemetry: *ref_5_24_0
-        Test_Lfi_Telemetry_Multiple_Exploits: missing_feature
+        Test_Lfi_Telemetry_Multiple_Exploits: *ref_5_37_0
         Test_Lfi_UrlQuery:
           '*': *ref_5_24_0
           express5: *ref_5_29_0
@@ -759,6 +761,10 @@ tests/:
       Test_Debugger_Exception_Replay: missing_feature (feature not implented)
     test_debugger_expression_language.py:
       Test_Debugger_Expression_Language: missing_feature (feature not implented)
+    test_debugger_inproduct_enablement.py:
+      Test_Debugger_InProduct_Enablement_Code_Origin: missing_feature
+      Test_Debugger_InProduct_Enablement_Dynamic_Instrumentation: missing_feature
+      Test_Debugger_InProduct_Enablement_Exception_Replay: missing_feature
     test_debugger_pii.py:
       Test_Debugger_PII_Redaction:
         '*': irrelevant
@@ -877,16 +883,16 @@ tests/:
     test_inferred_proxy.py:
       Test_AWS_API_Gateway_Inferred_Span_Creation:
         '*': irrelevant
-        express4: *ref_5_26_0
-        express5: *ref_5_26_0
+        express4: *ref_5_37_0
+        express5: *ref_5_37_0
       Test_AWS_API_Gateway_Inferred_Span_Creation_With_Distributed_Context:
         '*': irrelevant
-        express4: *ref_5_26_0
-        express5: *ref_5_26_0
+        express4: *ref_5_37_0
+        express5: *ref_5_37_0
       Test_AWS_API_Gateway_Inferred_Span_Creation_With_Error:
         '*': irrelevant
-        express4: *ref_5_26_0
-        express5: *ref_5_26_0
+        express4: *ref_5_37_0
+        express5: *ref_5_37_0
     test_otel_drop_in.py:
       Test_Otel_Drop_In: missing_feature
   otel/:
@@ -984,11 +990,11 @@ tests/:
     Test_Config_ClientIPHeaderEnabled_False: *ref_3_13_0
     Test_Config_ClientIPHeader_Configured: *ref_3_13_0
     Test_Config_ClientIPHeader_Precedence: *ref_3_19_0
-    Test_Config_ClientTagQueryString_Configured: missing_feature (adding query string to http.url is not supported)
+    Test_Config_ClientTagQueryString_Configured: *ref_5_37_0
     Test_Config_ClientTagQueryString_Empty: missing_feature (removes query strings by default)
     Test_Config_HttpClientErrorStatuses_Default: missing_feature
     Test_Config_HttpClientErrorStatuses_FeatureFlagCustom: missing_feature
-    Test_Config_HttpServerErrorStatuses_Default: missing_feature
+    Test_Config_HttpServerErrorStatuses_Default: *ref_5_37_0
     Test_Config_HttpServerErrorStatuses_FeatureFlagCustom: missing_feature
     Test_Config_IntegrationEnabled_False:
       '*': *ref_5_25_0
