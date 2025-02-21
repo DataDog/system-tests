@@ -20,6 +20,11 @@ on:
         default: 1
         required: false
         type: number
+      desired_execution_time:
+        description: "In seconds, system-tests will try to respect this time budget."
+        default: -1
+        required: false
+        type: number
       _ci_environment:
         description: "Which CI environment is running the tests, used for FPD. used internally to skip some weblogs on prod"
         default: 'custom'
@@ -52,6 +57,15 @@ on:
       endtoend_defs_weblogs:
         description: ""
         value: ${{ jobs.main.outputs.endtoend_defs_weblogs }}
+      endtoend_defs_parallel_enable:
+        description: ""
+        value: ${{ jobs.main.outputs.endtoend_defs_parallel_enable }}
+      endtoend_defs_parallel_weblog_names:
+        description: ""
+        value: ${{ jobs.main.outputs.endtoend_defs_parallel_weblog_names }}
+      endtoend_defs_parallel_weblogs:
+        description: ""
+        value: ${{ jobs.main.outputs.endtoend_defs_parallel_weblogs }}
 
 jobs:
   main:
@@ -59,6 +73,9 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       endtoend_defs_weblogs: ${{ steps.main.outputs.endtoend_defs_weblogs }}
+      endtoend_defs_parallel_enable: ${{ steps.main.outputs.endtoend_defs_parallel_enable }}
+      endtoend_defs_parallel_weblog_names: ${{ steps.main.outputs.endtoend_defs_parallel_weblog_names }}
+      endtoend_defs_parallel_weblogs: ${{ steps.main.outputs.endtoend_defs_parallel_weblogs }}
       externalprocessing_scenarios: ${{ steps.main.outputs.externalprocessing_scenarios }}
       libinjection_scenarios: ${{ steps.main.outputs.libinjection_scenarios }}
       libinjection_enable: ${{ steps.main.outputs.libinjection_enable }}
@@ -81,18 +98,17 @@ jobs:
         python utils/scripts/compute-workflow-parameters.py ${{ inputs.library }} \
           -s "${{ inputs.scenarios }}" \
           -g "${{ inputs.scenarios_groups }}" \
+          -t ${{ inputs.desired_execution_time }} \
           --parametric-job-count ${{ inputs.parametric_job_count }} \
           --ci-environment "${{ inputs._ci_environment }}" >> $GITHUB_OUTPUT
-      env:
-        PYTHONPATH: "."
     - name: log
       run: |
         source venv/bin/activate
         python utils/scripts/compute-workflow-parameters.py ${{ inputs.library }} \
           -s "${{ inputs.scenarios }}" \
           -g "${{ inputs.scenarios_groups }}" \
+          -t ${{ inputs.desired_execution_time }} \
           --parametric-job-count ${{ inputs.parametric_job_count }} \
           --ci-environment "${{ inputs._ci_environment }}" \
           --format json | jq
-      env:
-        PYTHONPATH: "."
+
