@@ -23,8 +23,8 @@ import (
 
 	"github.com/Shopify/sarama"
 
-	saramatrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/Shopify/sarama"
-	"gopkg.in/DataDog/dd-trace-go.v1/datastreams"
+	saramatrace "github.com/DataDog/dd-trace-go/contrib/Shopify/sarama/v2"
+	"github.com/DataDog/dd-trace-go/v2/datastreams"
 
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.opentelemetry.io/otel"
@@ -34,12 +34,12 @@ import (
 	"go.opentelemetry.io/otel/trace"
 	oteltrace "go.opentelemetry.io/otel/trace"
 
-	"gopkg.in/DataDog/dd-trace-go.v1/appsec"
-	httptrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/net/http"
-	ddotel "gopkg.in/DataDog/dd-trace-go.v1/ddtrace/opentelemetry"
-	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
-	ddtracer "gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
-	"gopkg.in/DataDog/dd-trace-go.v1/profiler"
+	httptrace "github.com/DataDog/dd-trace-go/contrib/net/http/v2"
+	"github.com/DataDog/dd-trace-go/v2/appsec"
+	ddotel "github.com/DataDog/dd-trace-go/v2/ddtrace/opentelemetry"
+	"github.com/DataDog/dd-trace-go/v2/ddtrace/tracer"
+	ddtracer "github.com/DataDog/dd-trace-go/v2/ddtrace/tracer"
+	"github.com/DataDog/dd-trace-go/v2/profiler"
 )
 
 func main() {
@@ -272,7 +272,7 @@ func main() {
 		if q := uquery.Get("event_user_id"); q != "" {
 			uid = q
 		}
-		appsec.TrackUserLoginSuccessEvent(r.Context(), uid, map[string]string{"metadata0": "value0", "metadata1": "value1"})
+		appsec.TrackUserLoginSuccess(r.Context(), uid, uid, map[string]string{"metadata0": "value0", "metadata1": "value1"})
 	})
 
 	mux.HandleFunc("/user_login_failure_event", func(w http.ResponseWriter, r *http.Request) {
@@ -288,7 +288,7 @@ func main() {
 				exists = parsed
 			}
 		}
-		appsec.TrackUserLoginFailureEvent(r.Context(), uid, exists, map[string]string{"metadata0": "value0", "metadata1": "value1"})
+		appsec.TrackUserLoginFailure(r.Context(), uid, exists, map[string]string{"metadata0": "value0", "metadata1": "value1"})
 	})
 
 	mux.HandleFunc("/custom_event", func(w http.ResponseWriter, r *http.Request) {
@@ -623,7 +623,7 @@ func main() {
 			w.WriteHeader(500)
 			w.Write([]byte("missing session cookie"))
 		}
-		appsec.TrackUserLoginSuccessEvent(r.Context(), user, map[string]string{}, tracer.WithUserSessionID(cookie.Value))
+		appsec.TrackUserLoginSuccess(r.Context(), user, user, map[string]string{}, tracer.WithUserSessionID(cookie.Value))
 	})
 
 	mux.HandleFunc("/inferred-proxy/span-creation", func(w http.ResponseWriter, r *http.Request) {
