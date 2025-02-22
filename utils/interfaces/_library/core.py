@@ -371,8 +371,8 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
     def validate_profiling(self, validator, *, success_by_default=False):
         self.validate(validator, path_filters="/profiling/v1/input", success_by_default=success_by_default)
 
-    def assert_trace_exists(self, request, span_type=None):
-        for _, _, span in self.get_spans(request=request):
+    def assert_trace_exists(self, request, *, span_type=None, full_trace=False):
+        for _, _, span in self.get_spans(request=request, full_trace=full_trace):
             if span_type is None or span.get("type") == span_type:
                 return
 

@@ -474,6 +474,8 @@ tests/:
         '*': irrelevant
         rails70: missing_feature (Endpoint not implemented)
     test_inferred_proxy.py: missing_feature
+    test_mongo.py:
+      Test_Mongo: bug (I'm fixing it before this PR is merged :) )
     test_otel_drop_in.py:
       Test_Otel_Drop_In: missing_feature
   k8s_lib_injection/:
