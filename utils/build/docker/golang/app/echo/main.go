@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"log"
 	"math/rand"
 	"net/http"
 	"os"
@@ -21,15 +20,23 @@ import (
 	"weblog/internal/rasp"
 
 	"github.com/labstack/echo/v4"
+	"github.com/sirupsen/logrus"
 
 	echotrace "github.com/DataDog/dd-trace-go/contrib/labstack/echo.v4/v2"
 	httptrace "github.com/DataDog/dd-trace-go/contrib/net/http/v2"
+	dd_logrus "github.com/DataDog/dd-trace-go/contrib/sirupsen/logrus/v2"
 	"github.com/DataDog/dd-trace-go/v2/appsec"
 	"github.com/DataDog/dd-trace-go/v2/ddtrace/tracer"
 	"github.com/DataDog/dd-trace-go/v2/profiler"
 )
 
 func main() {
+	logrus.SetFormatter(&logrus.JSONFormatter{})
+	logrus.SetOutput(os.Stdout)
+	logrus.SetLevel(logrus.DebugLevel)
+
+	// Add Datadog context log hook
+	logrus.AddHook(&dd_logrus.DDContextLogHook{})
 	tracer.Start()
 	defer tracer.Stop()
 
@@ -42,7 +49,7 @@ func main() {
 	)
 
 	if err != nil {
-		log.Fatal(err)
+		logrus.Fatal(err)
 	}
 	defer profiler.Stop()
 
@@ -152,7 +159,7 @@ func main() {
 		req, _ := http.NewRequestWithContext(c.Request().Context(), http.MethodGet, url, nil)
 		res, err := client.Do(req)
 		if err != nil {
-			log.Fatalln(err)
+			logrus.Fatalln(err)
 		}
 
 		defer res.Body.Close()
@@ -202,7 +209,7 @@ func main() {
 		if q := ctx.QueryParam("event_user_id"); q != "" {
 			uid = q
 		}
-		appsec.TrackUserLoginSuccess(ctx.Request().Context(), uid, uid, map[string]string{"metadata0": "value0", "metadata1": "value1"})
+		appsec.TrackUserLoginSuccessEvent(ctx.Request().Context(), uid, map[string]string{"metadata0": "value0", "metadata1": "value1"})
 		return nil
 	})
 
@@ -218,7 +225,7 @@ func main() {
 				exists = parsed
 			}
 		}
-		appsec.TrackUserLoginFailure(ctx.Request().Context(), uid, exists, map[string]string{"metadata0": "value0", "metadata1": "value1"})
+		appsec.TrackUserLoginFailureEvent(ctx.Request().Context(), uid, exists, map[string]string{"metadata0": "value0", "metadata1": "value1"})
 		return nil
 	})
 
@@ -236,7 +243,7 @@ func main() {
 		content, err := os.ReadFile(path)
 
 		if err != nil {
-			log.Fatalln(err)
+			logrus.Fatalln(err)
 			return ctx.String(500, "KO")
 		}
 
@@ -261,7 +268,7 @@ func main() {
 		if err != nil {
 			return ctx.String(500, "no session cookie")
 		}
-		appsec.TrackUserLoginSuccess(ctx.Request().Context(), user, user, map[string]string{}, tracer.WithUserSessionID(cookie.Value))
+		appsec.TrackUserLoginSuccessEvent(ctx.Request().Context(), user, map[string]string{}, tracer.WithUserSessionID(cookie.Value))
 		return ctx.NoContent(200)
 	})
 
@@ -288,6 +295,25 @@ func main() {
 		return ctx.String(statusCode, "ok")
 	})
 
+	r.GET("/log/library", func(ctx echo.Context) error {
+		reqCtx := ctx.Request()
+		msg := reqCtx.URL.Query().Get("msg")
+		if msg == "" {
+			msg = "msg"
+		}
+		switch reqCtx.URL.Query().Get("level") {
+		case "warn":
+			logrus.WithContext(reqCtx.Context()).Warn(msg)
+		case "error":
+			logrus.WithContext(reqCtx.Context()).Error(msg)
+		case "debug":
+			logrus.WithContext(reqCtx.Context()).Debug(msg)
+		default:
+			logrus.WithContext(reqCtx.Context()).Info(msg)
+		}
+		return ctx.NoContent(200)
+	})
+
 	r.Any("/rasp/lfi", echoHandleFunc(rasp.LFI))
 	r.Any("/rasp/ssrf", echoHandleFunc(rasp.SSRF))
 	r.Any("/rasp/sqli", echoHandleFunc(rasp.SQLi))
@@ -299,7 +325,7 @@ func main() {
 	go grpc.ListenAndServe()
 	go func() {
 		if err := r.Start(":7777"); !errors.Is(err, http.ErrServerClosed) {
-			log.Fatal(err)
+			logrus.Fatal(err)
 		}
 	}()
 
@@ -310,7 +336,7 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	if err := r.Shutdown(ctx); err != nil {
-		log.Fatalf("HTTP shutdown error: %v", err)
+		logrus.Fatalf("HTTP shutdown error: %v", err)
 	}
 
 }
