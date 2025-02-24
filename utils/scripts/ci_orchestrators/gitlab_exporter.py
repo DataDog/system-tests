@@ -59,10 +59,6 @@ def print_gitlab_pipeline(language, matrix_data, ci_environment) -> None:
     result_pipeline["stages"] = []
     pipeline_file = ".gitlab/aws_gitlab-ci.yml"
     pipeline_data = None
-    only_defaults = should_run_only_defaults_vm()
-    # Special filters from env variables
-    DD_INSTALLER_LIBRARY_VERSION = os.getenv("DD_INSTALLER_LIBRARY_VERSION")
-    DD_INSTALLER_INJECTOR_VERSION = os.getenv("DD_INSTALLER_INJECTOR_VERSION")
 
     with open(pipeline_file, encoding="utf-8") as f:
         pipeline_data = yaml.load(f, Loader=yaml.FullLoader)  # noqa: S506
@@ -99,35 +95,45 @@ def print_docker_ssi_gitlab_pipeline(language, docker_ssi_matrix, ci_environment
     for scenario, weblogs in docker_ssi_matrix.items():
         result_pipeline["stages"].append(scenario)
         for weblog_name, images in weblogs.items():
-            vm_job = weblog_name + "." + scenarios_prefix_names[scenario]
-            result_pipeline[vm_job] = {}
-            result_pipeline[vm_job]["stage"] = scenario
-            result_pipeline[vm_job]["extends"] = ".base_docker_ssi_job"
-            # Job variables
-            result_pipeline[vm_job]["variables"] = {}
-            result_pipeline[vm_job]["variables"]["TEST_LIBRARY"] = language
-            result_pipeline[vm_job]["variables"]["SCENARIO"] = scenario
-            result_pipeline[vm_job]["variables"]["ONBOARDING_FILTER_ENV"] = ci_environment
-            result_pipeline[vm_job]["variables"]["WEBLOG"] = weblog_name
-            custom_extra_params = ""      
-            if DD_INSTALLER_LIBRARY_VERSION:
-                result_pipeline[vm_job]["variables"]["DD_INSTALLER_LIBRARY_VERSION"] = DD_INSTALLER_LIBRARY_VERSION
-                custom_extra_params = f"--ssi-library-version {DD_INSTALLER_LIBRARY_VERSION}"
-            if DD_INSTALLER_INJECTOR_VERSION:
-                result_pipeline[vm_job]["variables"]["DD_INSTALLER_INJECTOR_VERSION"] = DD_INSTALLER_INJECTOR_VERSION
-                custom_extra_params = custom_extra_params + f"--ssi-injector-version {DD_INSTALLER_INJECTOR_VERSION}"
-            result_pipeline[vm_job]["parallel"] = {"matrix": []}       
+            #Get the different architectures
+            architectures = set()
             for image in images:
-                image_name = next(iter(image))
-                runtimes = [runtine for runtine in image[image_name]]
-                result_pipeline[vm_job]["parallel"]["matrix"].append({"IMAGE": image_name, "ARCH": image["arch"], "RUNTIME": runtimes})
+                architectures.add(image["arch"])
+                
+            for architecture in architectures:
+            
+                vm_job = weblog_name + "." + architecture  + "." + scenarios_prefix_names[scenario]
+                result_pipeline[vm_job] = {}
+                result_pipeline[vm_job]["stage"] = scenario
+                result_pipeline[vm_job]["extends"] = ".base_docker_ssi_job"
+                result_pipeline[vm_job]["runner"] = "docker" if architecture == "amd64" else "docker-arm"
+                # Job variables
+                result_pipeline[vm_job]["variables"] = {}
+                result_pipeline[vm_job]["variables"]["TEST_LIBRARY"] = language
+                result_pipeline[vm_job]["variables"]["SCENARIO"] = scenario
+                result_pipeline[vm_job]["variables"]["ONBOARDING_FILTER_ENV"] = ci_environment
+                result_pipeline[vm_job]["variables"]["WEBLOG"] = weblog_name
+                custom_extra_params = ""      
+                if DD_INSTALLER_LIBRARY_VERSION:
+                    result_pipeline[vm_job]["variables"]["DD_INSTALLER_LIBRARY_VERSION"] = DD_INSTALLER_LIBRARY_VERSION
+                    custom_extra_params = f"--ssi-library-version {DD_INSTALLER_LIBRARY_VERSION}"
+                if DD_INSTALLER_INJECTOR_VERSION:
+                    result_pipeline[vm_job]["variables"]["DD_INSTALLER_INJECTOR_VERSION"] = DD_INSTALLER_INJECTOR_VERSION
+                    custom_extra_params = custom_extra_params + f"--ssi-injector-version {DD_INSTALLER_INJECTOR_VERSION}"
+                result_pipeline[vm_job]["parallel"] = {"matrix": []}       
+                for image in images:
+                    if image["arch"] != architecture:
+                        continue
+                    image_name = next(iter(image))
+                    runtimes = [runtine for runtine in image[image_name]]
+                    result_pipeline[vm_job]["parallel"]["matrix"].append({"IMAGE": image_name, "ARCH": image["arch"], "RUNTIME": runtimes})
 
-            result_pipeline[vm_job]["script"]= [
-                "./build.sh -i runner",
-                "source venv/bin/activate",
-                "echo 'Running SSI tests'",
-                'timeout 2700s ./run.sh $SCENARIO --ssi-weblog "$WEBLOG" --ssi-library "$TEST_LIBRARY" --ssi-base-image "$IMAGE" --ssi-arch "$ARCH" --ssi-installable-runtime "$RUNTIME" --ssi-env $ONBOARDING_FILTER_ENV' + custom_extra_params + ' --report-run-url ${CI_JOB_URL} --report-environment prod'
-            ]
+                result_pipeline[vm_job]["script"]= [
+                    "./build.sh -i runner",
+                    "source venv/bin/activate",
+                    "echo 'Running SSI tests'",
+                    'timeout 2700s ./run.sh $SCENARIO --ssi-weblog "$WEBLOG" --ssi-library "$TEST_LIBRARY" --ssi-base-image "$IMAGE" --ssi-arch "$ARCH" --ssi-installable-runtime "$RUNTIME" --ssi-env $ONBOARDING_FILTER_ENV' + custom_extra_params + ' --report-run-url ${CI_JOB_URL} --report-environment prod'
+                ]
                    
 def print_aws_gitlab_pipeline(language, aws_matrix, ci_environment, result_pipeline) -> None:
     with open("utils/virtual_machine/virtual_machines.json", "r") as file:
