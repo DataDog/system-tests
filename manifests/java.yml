@@ -1676,6 +1676,8 @@ tests/:
         '*': incomplete_test_app (endpoint not implemented)
         spring-boot: v1.39.0
   parametric/:
+    test_128_bit_traceids.py:
+      Test_128_Bit_Traceids: v1.12.0
     test_config_consistency.py:
       Test_Config_Dogstatsd: missing_feature (default hostname is inconsistent)
       Test_Config_RateLimit: v1.41.1
@@ -1714,6 +1716,7 @@ tests/:
       Test_Consistent_Configs: missing_feature
       Test_Defaults: v1.31.0
       Test_Environment: v1.31.0
+      Test_Stable_Configuration_Origin: missing_feature
       Test_TelemetryInstallSignature: v1.27.0
       Test_TelemetrySCAEnvVar: v1.34.0
     test_trace_sampling.py:

@@ -228,29 +228,38 @@ class ProxyBasedInterfaceValidator(InterfaceValidator):
     def _assert_header(
         self, path_filters, request_or_response: str, header_name_pattern: str, header_value_pattern: str
     ) -> None:
-        data_found = False
+        data = list(self.get_data(path_filters))
 
-        for data in self.get_data(path_filters):
-            data_found = True
+        logger.info(
+            f"Check that {request_or_response} headers on {path_filters} "
+            f"match {header_name_pattern}={header_value_pattern}"
+        )
 
-            found = False
-
-            for header, value in data[request_or_response]["headers"]:
-                if re.fullmatch(header_name_pattern, header.lower()):
-                    if not re.fullmatch(header_value_pattern, value):
-                        logger.error(
-                            f"{request_or_response} header {header} found in "
-                            f"{data['log_filename']}, but value is {value}"
-                        )
-                    else:
-                        found = True
-                        continue
-
-            if not found:
-                raise ValueError(f"{header_name_pattern} not found (or incorrect) in {data['log_filename']}")
-
-        if not data_found:
+        if len(data) == 0:
             raise ValueError(f"No data found for {path_filters}")
+
+        error_message = ""
+        for item in data:
+            log_prefix = f"{item['log_filename']} - {request_or_response}'s header {header_name_pattern}"
+            header_values = [
+                header[1]
+                for header in item[request_or_response]["headers"]
+                if re.fullmatch(header_name_pattern, header[0].lower())
+            ]
+
+            if len(header_values) == 0:
+                error_message = f"{log_prefix}: not found"
+                logger.error(error_message)
+
+            for value in header_values:
+                if not re.fullmatch(header_value_pattern, value):
+                    error_message = f"{log_prefix}: {value} (expecting {header_value_pattern})"
+                    logger.error(error_message)
+                else:
+                    logger.debug(f"{log_prefix}: {value}")
+
+        if error_message:
+            raise AssertionError(error_message)
 
 
 class ValidationError(Exception):
