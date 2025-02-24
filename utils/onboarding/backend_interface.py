@@ -33,6 +33,7 @@ def _headers():
     # Filter out None values (keys that don't exist)
     app_keys = [key for key in app_keys if key]
 
+    logger.info(f"RMM - Using {len(app_keys)} application keys")
     # Select one key randomly (uniform probability)
     app_key = random.choice(app_keys)
 
