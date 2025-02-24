@@ -133,6 +133,7 @@ class Test_Config_ObfuscationQueryStringRegexp_Configured:
         context.library == "java" and context.weblog_variant in ("vertx3", "vertx4"),
         reason="Missing endpoint",
     )
+    @bug(context.library >= "golang@1.72.0", reason="APMAPI-1196")
     def test_query_string_obfuscation_configured_client(self):
         spans = [s for _, _, s in interfaces.library.get_spans(request=self.r, full_trace=True)]
         client_span = _get_span_by_tags(
@@ -223,6 +224,7 @@ class Test_Config_HttpClientErrorStatuses_FeatureFlagCustom:
     def setup_status_code_200(self):
         self.r = weblog.get("/make_distant_call", params={"url": "http://weblog:7777/status?code=200"})
 
+    @bug(context.library >= "golang@1.72.0", reason="APMAPI-1196")
     def test_status_code_200(self):
         assert self.r.status_code == 200
         content = json.loads(self.r.text)
@@ -238,6 +240,7 @@ class Test_Config_HttpClientErrorStatuses_FeatureFlagCustom:
     def setup_status_code_202(self):
         self.r = weblog.get("/make_distant_call", params={"url": "http://weblog:7777/status?code=202"})
 
+    @bug(context.library >= "golang@1.72.0", reason="APMAPI-1196")
     def test_status_code_202(self):
         assert self.r.status_code == 200
         content = json.loads(self.r.text)
@@ -273,6 +276,7 @@ class Test_Config_ClientTagQueryString_Configured:
     def setup_query_string_redaction(self):
         self.r = weblog.get("/make_distant_call", params={"url": "http://weblog:7777/?hi=monkey"})
 
+    @bug(context.library >= "golang@1.72.0", reason="APMAPI-1196")
     def test_query_string_redaction(self):
         trace = [span for _, _, span in interfaces.library.get_spans(self.r, full_trace=True)]
         expected_tags = {"http.url": "http://weblog:7777/"}
