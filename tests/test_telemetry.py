@@ -464,7 +464,7 @@ class Test_Telemetry:
 
         self.validate_library_telemetry_data(validator=validator, success_by_default=True)
 
-    @missing_feature(context.library in ("php", ), reason="Telemetry is not implemented yet.")
+    @missing_feature(context.library in ("php",), reason="Telemetry is not implemented yet.")
     @missing_feature(context.library < "ruby@1.22.0", reason="Telemetry V2 is not implemented yet")
     def test_app_started_client_configuration(self):
         """Assert that default and other configurations that are applied upon start time are sent with the app-started event"""
@@ -479,7 +479,7 @@ class Test_Telemetry:
             "cpp": {"trace_agent_port": trace_agent_port},
             "java": {"trace_agent_port": trace_agent_port, "telemetry_heartbeat_interval": 2},
             "ruby": {"DD_AGENT_TRANSPORT": "TCP"},
-            "golang": {"DD_APPSEC_ENABLED": True} 
+            "golang": {"DD_APPSEC_ENABLED": True}, 
         }
         configuration_map = test_configuration[context.library.library]
 
