@@ -133,7 +133,7 @@ namespace weblog
         {
             for (int i = 0; i < loops; i++)
             {
-                _ = i; // No-op
+                int j = i; // Capture snapshot here to test budgets.
             }
             return Content("Budgets");
         }
