@@ -54,18 +54,25 @@ app = FastAPI()
 
 
 # Custom middleware
+try:
+    maj, min, patch, *_ = getattr(ddtrace, "__version__", "0.0.0").split(".")
+    current_ddtrace_version = (int(maj), int(min), int(patch))
+except Exception:
+    current_ddtrace_version = (0, 0, 0)
 
+if current_ddtrace_version >= (3, 1, 0):
+    """custom middleware only supported after PR 12413"""
 
-@app.middleware("http")
-async def add_process_time_header(request: Request, call_next):
-    try:
-        if request.session.get("user_id"):
-            set_user(tracer, user_id=request.session["user_id"], mode="auto")
-    except Exception:
-        # to be compatible with all tracer versions
-        pass
-    response = await call_next(request)
-    return response
+    @app.middleware("http")
+    async def add_process_time_header(request: Request, call_next):
+        try:
+            if request.session.get("user_id"):
+                set_user(tracer, user_id=request.session["user_id"], mode="auto")
+        except Exception:
+            # to be compatible with all tracer versions
+            pass
+        response = await call_next(request)
+        return response
 
 
 app.add_middleware(SessionMiddleware, secret_key="just_for_tests")
