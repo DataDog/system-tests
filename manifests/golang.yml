@@ -421,8 +421,8 @@ tests/:
       Test_Standardization: missing_feature
       Test_StandardizationBlockMode: missing_feature
     test_metastruct.py:
-      Test_SecurityEvents_Appsec_Metastruct_Disabled: v1.72.0-dev
-      Test_SecurityEvents_Appsec_Metastruct_Enabled: v1.72.0-dev
+      Test_SecurityEvents_Appsec_Metastruct_Disabled: v1.72.0
+      Test_SecurityEvents_Appsec_Metastruct_Enabled: v1.72.0
       Test_SecurityEvents_Iast_Metastruct_Disabled: irrelevant (No IAST)
       Test_SecurityEvents_Iast_Metastruct_Enabled: irrelevant (No IAST)
     test_remote_config_rule_changes.py:
@@ -639,11 +639,11 @@ tests/:
     test_span_events.py: missing_feature
     test_span_links.py: missing_feature
     test_telemetry.py:
-      Test_Consistent_Configs: v1.72.0-dev
-      Test_Defaults: v1.72.0-dev
-      Test_Environment: v1.72.0-dev
-      Test_Stable_Configuration_Origin: missing_feature
-      Test_TelemetryInstallSignature: v1.72.0-dev
+      Test_Consistent_Configs: v1.73.0-dev
+      Test_Defaults: v1.73.0-dev
+      Test_Environment: v1.73.0-dev
+      Test_Stable_Configuration_Origin: v1.73.0-dev
+      Test_TelemetryInstallSignature: v1.73.0-dev
       Test_TelemetrySCAEnvVar: v1.63.0-rc.1
     test_trace_sampling.py:
       Test_Trace_Sampling_Basic: v1.37.0  # TODO what is the earliest version?

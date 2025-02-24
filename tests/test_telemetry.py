@@ -479,7 +479,7 @@ class Test_Telemetry:
             "cpp": {"trace_agent_port": trace_agent_port},
             "java": {"trace_agent_port": trace_agent_port, "telemetry_heartbeat_interval": 2},
             "ruby": {"DD_AGENT_TRANSPORT": "TCP"},
-            "golang": {"DD_APPSEC_ENABLED": "true"} 
+            "golang": {"DD_APPSEC_ENABLED": True} 
         }
         configuration_map = test_configuration[context.library.library]
 
@@ -576,7 +576,6 @@ class Test_APMOnboardingInstallID:
 class Test_TelemetryV2:
     """Test telemetry v2 specific constraints"""
 
-    @missing_feature(library="golang", reason="Product started missing")
     @missing_feature(library="dotnet", reason="Product started missing")
     @missing_feature(library="php", reason="Product started missing (both in libdatadog and php)")
     @missing_feature(library="python", reason="Product started missing in app-started payload")
