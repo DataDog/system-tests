@@ -939,6 +939,7 @@ tests/:
       Test_Consistent_Configs: *ref_5_25_0
       Test_Defaults: *ref_5_6_0
       Test_Environment: *ref_5_6_0
+      Test_Stable_Configuration_Origin: missing_feature
       Test_TelemetryInstallSignature: *ref_4_23_0
       Test_TelemetrySCAEnvVar: *ref_5_13_0
     test_trace_sampling.py:
