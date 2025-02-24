@@ -51,13 +51,13 @@ tests/:
       sink/:
         test_code_injection.py:
           TestCodeInjection: v2.20.0
-          TestCodeInjection_ExtendedLocation: missing_feature
+          TestCodeInjection_ExtendedLocation: v3.1.0.dev
           TestCodeInjection_StackTrace: missing_feature
         test_command_injection.py:
           TestCommandInjection:
             '*': v2.10.0
             fastapi: v2.15.0
-          TestCommandInjection_ExtendedLocation: missing_feature
+          TestCommandInjection_ExtendedLocation:  v3.1.0.dev
           TestCommandInjection_StackTrace: missing_feature
         test_email_html_injection.py:
           TestEmailHtmlInjection: missing_feature
@@ -80,7 +80,7 @@ tests/:
           TestHeaderInjectionExclusionContentEncoding: missing_feature
           TestHeaderInjectionExclusionPragma: missing_feature
           TestHeaderInjectionExclusionTransferEncoding: missing_feature
-          TestHeaderInjection_ExtendedLocation: missing_feature
+          TestHeaderInjection_ExtendedLocation: v3.1.0.dev
           TestHeaderInjection_StackTrace:
             '*': missing_feature
             fastapi: missing_feature
@@ -97,7 +97,7 @@ tests/:
             '*': v1.19.0
             fastapi: v2.16.0-dev
           TestInsecureCookieNameFilter: missing_feature
-          TestInsecureCookie_ExtendedLocation: missing_feature
+          TestInsecureCookie_ExtendedLocation: v3.1.0.dev
           TestInsecureCookie_StackTrace: missing_feature
         test_ldap_injection.py:
           TestLDAPInjection: missing_feature
@@ -108,14 +108,14 @@ tests/:
             '*': v1.19.0
             fastapi: v2.16.0-dev
           TestNoHttponlyCookieNameFilter: missing_feature
-          TestNoHttponlyCookie_ExtendedLocation: missing_feature
+          TestNoHttponlyCookie_ExtendedLocation: v3.1.0.dev
           TestNoHttponlyCookie_StackTrace: missing_feature
         test_no_samesite_cookie.py:
           TestNoSamesiteCookie:
             '*': v1.19.0
             fastapi: v2.16.0-dev
           TestNoSamesiteCookieNameFilter: missing_feature
-          TestNoSamesiteCookie_ExtendedLocation: missing_feature
+          TestNoSamesiteCookie_ExtendedLocation: v3.1.0.dev
           TestNoSamesiteCookie_StackTrace: missing_feature
         test_nosql_mongodb_injection.py:
           TestNoSqlMongodbInjection: missing_feature
@@ -125,7 +125,7 @@ tests/:
           TestPathTraversal:
             '*': v2.10.0
             fastapi: v2.15.0
-          TestPathTraversal_ExtendedLocation: missing_feature
+          TestPathTraversal_ExtendedLocation: v3.1.0.dev
           TestPathTraversal_StackTrace: missing_feature
         test_reflection_injection.py:
           TestReflectionInjection: missing_feature
@@ -137,13 +137,13 @@ tests/:
             fastapi: v2.15.0
             flask-poc: v1.18.0
             python3.12: v1.18.0
-          TestSqlInjection_ExtendedLocation: missing_feature
+          TestSqlInjection_ExtendedLocation: v3.1.0.dev
           TestSqlInjection_StackTrace: missing_feature
         test_ssrf.py:
           TestSSRF:
             '*': v2.10.0
             fastapi: v2.15.0
-          TestSSRF_ExtendedLocation: missing_feature
+          TestSSRF_ExtendedLocation: v3.1.0.dev
           TestSSRF_StackTrace: missing_feature
         test_stacktrace_leak.py:
           TestStackTraceLeak:
@@ -174,19 +174,19 @@ tests/:
           TestWeakCipher:
             '*': v1.18.0
             fastapi: v2.15.0
-          TestWeakCipher_ExtendedLocation: missing_feature
+          TestWeakCipher_ExtendedLocation: v3.1.0.dev
           TestWeakCipher_StackTrace: missing_feature
         test_weak_hash.py:
           TestDeduplication:
             '*': v1.18.0
           TestWeakHash:
             '*': v1.18.0
-          TestWeakHash_ExtendedLocation: missing_feature
+          TestWeakHash_ExtendedLocation: v3.1.0.dev
           TestWeakHash_StackTrace: missing_feature
         test_weak_randomness.py:
           TestWeakRandomness:
             '*': v2.0.0
-          TestWeakRandomness_ExtendedLocation: missing_feature
+          TestWeakRandomness_ExtendedLocation: v3.1.0.dev
           TestWeakRandomness_StackTrace: missing_feature
         test_xcontent_sniffing.py:
           Test_XContentSniffing: missing_feature
@@ -199,7 +199,7 @@ tests/:
         test_xss.py:
           TestXSS:
             '*': v3.0.0.dev
-          TestXSS_ExtendedLocation: missing_feature
+          TestXSS_ExtendedLocation: v3.1.0.dev
           TestXSS_StackTrace: missing_feature
       source/:
         test_body.py:
