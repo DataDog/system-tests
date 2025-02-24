@@ -17,11 +17,6 @@ ssi_tests:
     before_script: |
         export FP_IMPORT_URL=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.fp-import-url --with-decryption --query "Parameter.Value" --out text)
         export FP_API_KEY=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.fp-api-key --with-decryption --query "Parameter.Value" --out text)
-    script: |
-        ./build.sh -i runner
-        source venv/bin/activate
-        echo 'Running SSI tests'
-        timeout 2700s ./run.sh DOCKER_SSI --ssi-weblog "$weblog" --ssi-library "$TEST_LIBRARY" --ssi-base-image "$base_image" --ssi-arch "$arch" --ssi-installable-runtime "$installable_runtime" --ssi-env prod --ssi-provider aws --ssi-default-vms All --ssi-only "$VM" --ssi-extra-params "$extra_params" --ssi-env-vars prod --report-run-url ${CI_JOB_URL} --report-environment prod
     rules:
         - if: $PARENT_PIPELINE_SOURCE == "schedule"
           when: always
