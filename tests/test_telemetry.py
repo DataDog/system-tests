@@ -479,7 +479,7 @@ class Test_Telemetry:
             "cpp": {"trace_agent_port": trace_agent_port},
             "java": {"trace_agent_port": trace_agent_port, "telemetry_heartbeat_interval": 2},
             "ruby": {"DD_AGENT_TRANSPORT": "TCP"},
-            "golang": {"DD_APPSEC_ENABLED": True},
+            "golang": {"lambda_mode": False},
         }
         configuration_map = test_configuration[context.library.library]
 
