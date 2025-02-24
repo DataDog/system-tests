@@ -15,7 +15,8 @@ class _TestK8sLibInjectionProfiling:
         mustend = time.time() + timeout
         while time.time() < mustend:
             response = requests.get(
-                f"http://{k8s_cluster_info.cluster_host_name}:{k8s_cluster_info.get_agent_port()}/test/session/requests"
+                f"http://{k8s_cluster_info.cluster_host_name}:{k8s_cluster_info.get_agent_port()}/test/session/requests",
+                timeout=60,
             )
             for request in response.json():
                 if request["url"].endswith("/profiling/v1/input"):

@@ -13,6 +13,8 @@
         "DD_LOGS_INJECTION": "logs_injection_enabled",
         "DD_MAX_TRACES_PER_SECOND": "trace_rate_limit",
         "DD_PROFILING_ENABLED": "profiling_enabled",
+        "DD_PROFILING_PYTORCH_ENABLED": "profiling_pytorch_enabled",
+        "DD_PROFILING_PYTORCH_EVENTS_LIMIT": "profiling_pytorch_events_limit",
         "DD_PROPAGATION_STYLE_EXTRACT": "trace_propagation_style_extract",
         "DD_PROPAGATION_STYLE_INJECT": "trace_propagation_style_inject",
         "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "remote_config_poll_interval",
@@ -134,7 +136,9 @@
         "tracing": "trace_enabled",
         "tracing.distributed_tracing.propagation_extract_style": "trace_propagation_style_extract",
         "tracing.distributed_tracing.propagation_inject_style": "trace_propagation_style_inject",
-        "url": "trace_agent_url"
+        "url": "trace_agent_url",
+        "DD_TRACE_LOG_STREAM_HANDLER": "trace_log_file_stream_handler",
+        "DD_TRACE_LOG_FILE_LEVEL": "trace_log_file_level"
     },
     "prefix_block_list": [],
     "redaction_list": [],

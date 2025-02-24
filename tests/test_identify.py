@@ -5,7 +5,7 @@
 from utils import weblog, bug, context, interfaces, rfc, features, missing_feature
 
 
-def assertTagInSpanMeta(span, tag, expected):
+def assert_tag_in_span_meta(span, tag, expected):
     if tag not in span["meta"]:
         raise Exception(f"Can't find {tag} in span's meta")
 
@@ -18,10 +18,10 @@ def validate_identify_tags(tags):
     def inner_validate(span):
         for tag in tags:
             if isinstance(tags, dict):
-                assertTagInSpanMeta(span, tag, tags[tag])
+                assert_tag_in_span_meta(span, tag, tags[tag])
             else:
                 fullTag = f"usr.{tag}"
-                assertTagInSpanMeta(span, fullTag, fullTag)
+                assert_tag_in_span_meta(span, fullTag, fullTag)
         return True
 
     return inner_validate

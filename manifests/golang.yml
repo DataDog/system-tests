@@ -479,6 +479,10 @@ tests/:
       Test_Debugger_Exception_Replay: missing_feature (feature not implented)
     test_debugger_expression_language.py:
       Test_Debugger_Expression_Language: missing_feature (feature not implented)
+    test_debugger_inproduct_enablement.py:
+      Test_Debugger_InProduct_Enablement_Code_Origin: missing_feature
+      Test_Debugger_InProduct_Enablement_Dynamic_Instrumentation: missing_feature
+      Test_Debugger_InProduct_Enablement_Exception_Replay: missing_feature
     test_debugger_pii.py:
       Test_Debugger_PII_Redaction: missing_feature (feature not implented)
     test_debugger_probe_snapshot.py:
@@ -569,25 +573,25 @@ tests/:
     test_inferred_proxy.py:
       Test_AWS_API_Gateway_Inferred_Span_Creation:
         "*": irrelevant
-        chi: v1.72.0
-        echo: v1.72.0
-        gin: v1.72.0
-        net-http: v1.72.0
-        net-http-orchestrion: v1.72.0
+        chi: v1.72.1
+        echo: v1.72.1
+        gin: v1.72.1
+        net-http: v1.72.1
+        net-http-orchestrion: v1.72.1
       Test_AWS_API_Gateway_Inferred_Span_Creation_With_Distributed_Context:
         "*": irrelevant
-        chi: v1.72.0
-        echo: v1.72.0
-        gin: v1.72.0
-        net-http: v1.72.0
-        net-http-orchestrion: v1.72.0
+        chi: v1.72.1
+        echo: v1.72.1
+        gin: v1.72.1
+        net-http: v1.72.1
+        net-http-orchestrion: v1.72.1
       Test_AWS_API_Gateway_Inferred_Span_Creation_With_Error:
         "*": irrelevant
-        chi: v1.72.0
-        echo: v1.72.0
-        gin: v1.72.0
-        net-http: v1.72.0
-        net-http-orchestrion: v1.72.0
+        chi: v1.72.1
+        echo: v1.72.1
+        gin: v1.72.1
+        net-http: v1.72.1
+        net-http-orchestrion: v1.72.1
     test_otel_drop_in.py:
       Test_Otel_Drop_In: missing_feature
   otel/:
@@ -596,6 +600,8 @@ tests/:
         '*': incomplete_test_app (endpoint not implemented)
         net-http: v1.70.1
   parametric/:
+    test_128_bit_traceids.py:
+      Test_128_Bit_Traceids: v1.50.0
     test_config_consistency.py:
       Test_Config_Dogstatsd: v1.72.0-dev
       Test_Config_RateLimit: v1.67.0
@@ -636,6 +642,7 @@ tests/:
       Test_Consistent_Configs: missing_feature (APMAPI-745)
       Test_Defaults: missing_feature
       Test_Environment: missing_feature
+      Test_Stable_Configuration_Origin: missing_feature
       Test_TelemetryInstallSignature: missing_feature
       Test_TelemetrySCAEnvVar: v1.63.0-rc.1
     test_trace_sampling.py:
@@ -688,9 +695,9 @@ tests/:
     Test_Config_ObfuscationQueryStringRegexp_Configured: v1.67.0
     Test_Config_ObfuscationQueryStringRegexp_Default: v1.67.0
     Test_Config_ObfuscationQueryStringRegexp_Empty: v1.67.0
-    Test_Config_RuntimeMetrics_Default: incomplete_test_app (test needs to account for golang runtime metrics)
-    Test_Config_RuntimeMetrics_Enabled: incomplete_test_app (should be in v1.18.0 but we're not receiving series in tests)
-    Test_Config_RuntimeMetrics_Enabled_WithRuntimeId: incomplete_test_app (should be in v1.18.0 but we're not receiving series in tests)
+    Test_Config_RuntimeMetrics_Default: v1.18.0
+    Test_Config_RuntimeMetrics_Enabled: v1.18.0
+    Test_Config_RuntimeMetrics_Enabled_WithRuntimeId: v1.18.0
     Test_Config_UnifiedServiceTagging_CustomService: v1.67.0
     Test_Config_UnifiedServiceTagging_Default: v1.67.0
   test_data_integrity.py:

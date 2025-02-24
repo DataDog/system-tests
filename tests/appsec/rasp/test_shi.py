@@ -165,13 +165,13 @@ class Test_Shi_Telemetry:
         self.r = weblog.get("/rasp/shi", params={"list_dir": "$(cat /etc/passwd 1>&2 ; echo .)"})
 
     def test_shi_telemetry(self):
-        series_eval = find_series(True, "appsec", "rasp.rule.eval")
+        series_eval = find_series("appsec", "rasp.rule.eval", is_metrics=True)
         assert series_eval
         assert any(validate_metric("rasp.rule.eval", "command_injection", s) for s in series_eval), [
             s.get("tags") for s in series_eval
         ]
 
-        series_match = find_series(True, "appsec", "rasp.rule.match")
+        series_match = find_series("appsec", "rasp.rule.match", is_metrics=True)
         assert series_match
         assert any(validate_metric("rasp.rule.match", "command_injection", s) for s in series_match), [
             s.get("tags") for s in series_match
@@ -188,13 +188,13 @@ class Test_Shi_Telemetry_Variant_Tag:
         self.r = weblog.get("/rasp/shi", params={"list_dir": "$(cat /etc/passwd 1>&2 ; echo .)"})
 
     def test_shi_telemetry(self):
-        series_eval = find_series(True, "appsec", "rasp.rule.eval")
+        series_eval = find_series("appsec", "rasp.rule.eval", is_metrics=True)
         assert series_eval
         assert any(validate_metric_variant("rasp.rule.eval", "command_injection", "shell", s) for s in series_eval), [
             s.get("tags") for s in series_eval
         ]
 
-        series_match = find_series(True, "appsec", "rasp.rule.match")
+        series_match = find_series("appsec", "rasp.rule.match", is_metrics=True)
         assert series_match
         assert any(validate_metric_variant("rasp.rule.match", "command_injection", "shell", s) for s in series_match), [
             s.get("tags") for s in series_match
@@ -211,14 +211,14 @@ class Test_Shi_Capability:
         interfaces.library.assert_rc_capability(Capabilities.ASM_RASP_SHI)
 
 
-@features.rasp_local_file_inclusion
+@features.rasp_shell_injection
 class Test_Shi_Rules_Version(Base_Rules_Version):
     """Test shi min rules version"""
 
     min_version = "1.13.1"
 
 
-@features.rasp_local_file_inclusion
+@features.rasp_shell_injection
 class Test_Shi_Waf_Version(Base_WAF_Version):
     """Test shi WAF version"""
 

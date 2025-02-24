@@ -320,7 +320,7 @@ tests/:
             vertx4: missing_feature
           Test_TrustBoundaryViolation_ExtendedLocation: missing_feature
           Test_TrustBoundaryViolation_StackTrace:
-            '*': bug (APPSEC-56803)
+            '*': v1.47.0
             akka-http: missing_feature
             jersey-grizzly2: missing_feature
             play: missing_feature
@@ -1543,6 +1543,10 @@ tests/:
         spring-boot-undertow: v1.38.0
         spring-boot-wildfly: v1.38.0
         uds-spring-boot: v1.33.0
+    test_debugger_inproduct_enablement.py:
+      Test_Debugger_InProduct_Enablement_Code_Origin: missing_feature
+      Test_Debugger_InProduct_Enablement_Dynamic_Instrumentation: missing_feature
+      Test_Debugger_InProduct_Enablement_Exception_Replay: missing_feature
     test_debugger_pii.py:
       Test_Debugger_PII_Redaction:
         '*': missing_feature
@@ -1672,6 +1676,8 @@ tests/:
         '*': incomplete_test_app (endpoint not implemented)
         spring-boot: v1.39.0
   parametric/:
+    test_128_bit_traceids.py:
+      Test_128_Bit_Traceids: v1.12.0
     test_config_consistency.py:
       Test_Config_Dogstatsd: missing_feature (default hostname is inconsistent)
       Test_Config_RateLimit: v1.41.1
@@ -1710,6 +1716,7 @@ tests/:
       Test_Consistent_Configs: missing_feature
       Test_Defaults: v1.31.0
       Test_Environment: v1.31.0
+      Test_Stable_Configuration_Origin: missing_feature
       Test_TelemetryInstallSignature: v1.27.0
       Test_TelemetrySCAEnvVar: v1.34.0
     test_trace_sampling.py:
@@ -1758,7 +1765,7 @@ tests/:
       Test_NotReleased: missing_feature
   test_config_consistency.py:
     Test_Config_ClientIPHeaderEnabled_False: v1.43.0
-    Test_Config_ClientIPHeader_Configured: missing_feature
+    Test_Config_ClientIPHeader_Configured: v1.43.0
     Test_Config_ClientIPHeader_Precedence: missing_feature (does not support x-forwarded header)
     Test_Config_ClientTagQueryString_Configured:
       '*': v1.43.0
@@ -1793,7 +1800,7 @@ tests/:
     Test_Config_ObfuscationQueryStringRegexp_Configured: v1.39.0
     Test_Config_ObfuscationQueryStringRegexp_Default: v1.39.0
     Test_Config_ObfuscationQueryStringRegexp_Empty: v1.39.0
-    Test_Config_RuntimeMetrics_Default: incomplete_test_app (test needs to account for java runtime metrics)
+    Test_Config_RuntimeMetrics_Default: v0.64.0
     Test_Config_RuntimeMetrics_Enabled:
       '*': v0.64.0
       spring-boot-3-native: missing_feature (GraalVM. Tracing support only)

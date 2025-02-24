@@ -1,8 +1,6 @@
 weblog:
     name: test-app-ruby-container
     runtime_version: 3.1.3
-    #Ubuntu 21 and amazon linux 2022: https://datadoghq.atlassian.net/browse/INPLAT-183 and https://github.com/DataDog/auto_inject/pull/443
-    excluded_os_branches: [fedora]
     install:
       - os_type: linux
 
