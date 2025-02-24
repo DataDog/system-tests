@@ -2,5 +2,6 @@
     "IdempotentParameterMismatch": "creating EC2 Instance: IdempotentParameterMismatch",
     "InternalError": "last error: Server.InternalError: Internal error on launch",
     "error_ssh_connection":"error: after 30 failed attempts:",
-    "error_command": "error: Process exited with status 127"
+    "error_command": "error: Process exited with status 127",
+    "error_command_2": "syntax error: unexpected end of file"
 }
