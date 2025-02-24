@@ -14,7 +14,7 @@ elif [ -e "/binaries/golang-load-from-go-get" ]; then
 
 else
     echo "Installing production dd-trace-version"
-    go get -v -d -u gopkg.in/DataDog/dd-trace-go.v1
+    go get -v -d gopkg.in/DataDog/dd-trace-go.v1
 fi
 
 # Downloading a newer version of the tracer may require to resolve again all dependencies
