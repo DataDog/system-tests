@@ -151,6 +151,7 @@ def generate_gitlab_pipeline(
                 "allow_failure": False,
                 "needs": [],
                 "variables": {
+                    # Force gitlab to keep the exit code as 3 if the job fails with exit code 3
                     "FF_USE_NEW_BASH_EVAL_STRATEGY": "true",
                     "TEST_LIBRARY": language,
                     "SCENARIO": scenario_name,

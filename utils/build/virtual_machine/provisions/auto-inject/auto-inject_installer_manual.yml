@@ -13,7 +13,7 @@
       export DD_INSTALLER_REGISTRY_URL='install.datad0g.com'
     else 
       export DD_SITE="datadoghq.com" 
-    fiOOOO
+    fi
 
     # Environment variables for the installer
     export DD_APM_INSTRUMENTATION_ENABLED=all
