@@ -119,12 +119,7 @@ def print_docker_ssi_gitlab_pipeline(language, docker_ssi_matrix, ci_environment
             result_pipeline[vm_job]["parallel"] = {"matrix": []}       
             for image in images:
                 image_name = next(iter(image))
-                unique_name = image_name + "_" + image["arch"]
-                print("     " + unique_name)
-                runtimes = []
-                for runtime in image[image_name]:
-                    print("             " + runtime)
-                    runtimes.append(runtime)
+                runtimes = [runtine for runtine in image[image_name]]
                 result_pipeline[vm_job]["parallel"]["matrix"].append({"IMAGE": image_name, "ARCH": image["arch"], "RUNTIME": runtimes})
 
             result_pipeline[vm_job]["script"]= [
