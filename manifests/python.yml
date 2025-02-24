@@ -93,9 +93,7 @@ tests/:
           Test_InsecureAuthProtocol_ExtendedLocation: missing_feature
           Test_InsecureAuthProtocol_StackTrace: missing_feature
         test_insecure_cookie.py:
-          TestInsecureCookie:
-            '*': v1.19.0
-            fastapi: v2.16.0-dev
+          TestInsecureCookie: v3.1.0.dev (v1.19.0 or fastapi v2.16.0, but without telemetry metrics)
           TestInsecureCookieNameFilter: missing_feature
           TestInsecureCookie_ExtendedLocation: v3.1.0.dev
           TestInsecureCookie_StackTrace: missing_feature
@@ -104,16 +102,12 @@ tests/:
           TestLDAPInjection_ExtendedLocation: missing_feature
           TestLDAPInjection_StackTrace: missing_feature
         test_no_httponly_cookie.py:
-          TestNoHttponlyCookie:
-            '*': v1.19.0
-            fastapi: v2.16.0-dev
+          TestNoHttponlyCookie: v3.1.0.dev (v1.19.0 or fastapi v2.16.0, but without telemetry metrics)
           TestNoHttponlyCookieNameFilter: missing_feature
           TestNoHttponlyCookie_ExtendedLocation: v3.1.0.dev
           TestNoHttponlyCookie_StackTrace: missing_feature
         test_no_samesite_cookie.py:
-          TestNoSamesiteCookie:
-            '*': v1.19.0
-            fastapi: v2.16.0-dev
+          TestNoSamesiteCookie: v3.1.0.dev (v1.19.0 or fastapi v2.16.0, but without telemetry metrics)
           TestNoSamesiteCookieNameFilter: missing_feature
           TestNoSamesiteCookie_ExtendedLocation: v3.1.0.dev
           TestNoSamesiteCookie_StackTrace: missing_feature
