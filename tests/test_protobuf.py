@@ -1,12 +1,10 @@
 import json
 
-from utils import weblog, interfaces, scenarios, irrelevant, context, bug, features, missing_feature, flaky
-from utils.tools import logger
+from utils import weblog, interfaces, context, missing_feature
 
 
 # this test relies on the proto file at utils/build/docker/common/message.proto
 class Test_Protobuf:
-
     def setup_protobuf(self):
         self.serialization_response = weblog.get("/protobuf/serialize")
         self.deserialization_response = weblog.get(f"/protobuf/deserialize?msg={self.serialization_response.text}")
@@ -40,8 +38,7 @@ class Test_Protobuf:
             assert "schema.name" in meta
             assert "schema.operation" in meta
 
-            assert meta["schema.id"] == "14603317962659197404", \
-                meta["schema.hash_data"]
+            assert meta["schema.id"] == "14603317962659197404", meta["schema.hash_data"]
             assert meta["schema.type"] == "protobuf"
             json.loads(meta["schema.definition"])  # will throw if malformed
             assert "x-protobuf-number" in meta["schema.definition"]  # rough check that we register the protobuf numbers
