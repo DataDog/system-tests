@@ -264,7 +264,7 @@ class K8sDatadog:
         We shouldn't raise any exception here, we just log the errors.
         """
         # Export all kind cluster logs
-        if "kind" in self.k8s_cluster_info.cluster_name:
+        if "kind" in self.k8s_cluster_info.context_name:
             execute_command(f"kind export logs {self.output_folder}")
         # Get all pods
         ret = self.k8s_cluster_info.core_v1_api().list_namespaced_pod(namespace, watch=False)
