@@ -80,12 +80,6 @@ class _Scenarios:
         doc="Test W3C trace style",
     )
 
-    datadog_baggage_propagation = EndToEndScenario(
-        "DATADOG_BAGGAGE_PROPAGATION",
-        weblog_env={"DD_TRACE_PROPAGATION_STYLE": "datadog,tracecontext,baggage", "DD_TRACE_DEBUG": "true"},
-        doc="Test baggage propagation",
-    )
-
     only_baggage_propagation = EndToEndScenario(
         "ONLY_BAGGAGE_PROPAGATION",
         weblog_env={"DD_TRACE_PROPAGATION_STYLE": "baggage", "DD_TRACE_DEBUG": "true"},
