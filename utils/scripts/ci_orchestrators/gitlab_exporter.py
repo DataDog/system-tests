@@ -1,7 +1,7 @@
 import os
 import yaml
 import hashlib
-
+import json
 
 def _generate_unique_prefix(scenario_names, prefix_length=3):
     """Generate a unique prefix for each scenario name/stage"""
@@ -52,8 +52,8 @@ def is_default_machine(raw_data_virtual_machines, vm):
             return True
     return False
 
+def print_gitlab_pipeline(language, matrix_data, ci_environment) -> None:
 
-def print_aws_gitlab_pipeline(language, aws_matrix, ci_environment, raw_data_virtual_machines) -> None:
     result_pipeline = {}  # type: dict
     result_pipeline["include"] = []
     result_pipeline["stages"] = []
@@ -66,14 +66,61 @@ def print_aws_gitlab_pipeline(language, aws_matrix, ci_environment, raw_data_vir
 
     with open(pipeline_file, encoding="utf-8") as f:
         pipeline_data = yaml.load(f, Loader=yaml.FullLoader)  # noqa: S506
-
     result_pipeline["include"] = pipeline_data["include"]
-    if not aws_matrix:
-        result_pipeline["stages"].append("AWS_SSI")
+    
+    if not matrix_data["aws_ssi_scenario_defs"] and not matrix_data["dockerssi_scenario_defs"]:
+        result_pipeline["stages"].append("SSI_TESTS")
         result_pipeline["ssi_tests"] = pipeline_data["ssi_tests"]
-    # Copy the base job and default job
-    result_pipeline[".base_job_onboarding_system_tests"] = pipeline_data[".base_job_onboarding_system_tests"]
+    
+    if matrix_data["aws_ssi_scenario_defs"]:
+        # Copy the base job for the onboarding system tests
+        result_pipeline[".base_job_onboarding_system_tests"] = pipeline_data[".base_job_onboarding_system_tests"]
+        print_aws_gitlab_pipeline(language, matrix_data["aws_ssi_scenario_defs"], ci_environment, result_pipeline)
+    if matrix_data["dockerssi_scenario_defs"]:
+        # Copy the base job for the onboarding system tests
+        result_pipeline[".base_docker_ssi_job"] = pipeline_data[".base_docker_ssi_job"]
+        print_docker_ssi_gitlab_pipeline(language, matrix_data["dockerssi_scenario_defs"], ci_environment, result_pipeline)
 
+    pipeline_yml = yaml.dump(result_pipeline, sort_keys=False, default_flow_style=False)
+    print(pipeline_yml)
+
+def print_docker_ssi_gitlab_pipeline(language, docker_ssi_matrix, ci_environment, result_pipeline) -> None:
+    # collect all the possible scenarios to generate unique prefixes for each scenario
+    # we will add the prefix to the job name to avoid jobs with the same name and different stages
+    scenarios_prefix_names = {}
+    for scenario, weblogs in docker_ssi_matrix.items():
+        scenarios_prefix_names[scenario] = ""
+    scenarios_prefix_names = _generate_unique_prefix(scenarios_prefix_names.keys())
+    # Create the jobs by scenario. Each job (vm) will have a parallel matrix with the weblogs
+    for scenario, weblogs in docker_ssi_matrix.items():
+        result_pipeline["stages"].append(scenario)
+
+        # Collect all unique VMs for this scenario
+        vm_set = set()
+        for images in weblogs.values():
+            for image in images:
+                print(next(iter(image)))
+                vm_set.update(image)
+            
+            
+            
+        for vm in vm_set:
+            vm_job = vm + "." + scenarios_prefix_names[scenario]
+            result_pipeline[vm_job] = {}
+            result_pipeline[vm_job]["stage"] = scenario
+            result_pipeline[vm_job]["extends"] = ".base_docker_ssi_job"
+
+                           
+def print_aws_gitlab_pipeline(language, aws_matrix, ci_environment, result_pipeline) -> None:
+    with open("utils/virtual_machine/virtual_machines.json", "r") as file:
+        raw_data_virtual_machines = json.load(file)["virtual_machines"]   
+        
+    only_defaults = should_run_only_defaults_vm()
+    # Special filters from env variables
+    DD_INSTALLER_LIBRARY_VERSION = os.getenv("DD_INSTALLER_LIBRARY_VERSION")
+    DD_INSTALLER_INJECTOR_VERSION = os.getenv("DD_INSTALLER_INJECTOR_VERSION")
+
+  
     # collect all the possible scenarios to generate unique prefixes for each scenario
     # we will add the prefix to the job name to avoid jobs with the same name and different stages
     scenarios_prefix_names = {}
@@ -119,5 +166,3 @@ def print_aws_gitlab_pipeline(language, aws_matrix, ci_environment, raw_data_vir
                 if vm in weblogs[weblog]:
                     result_pipeline[vm_job]["parallel"]["matrix"].append({"WEBLOG": weblog})
 
-    pipeline_yml = yaml.dump(result_pipeline, sort_keys=False, default_flow_style=False)
-    print(pipeline_yml)

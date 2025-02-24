@@ -128,11 +128,18 @@ def get_docker_ssi_matrix(images_file, runtimes_file, docker_ssi_file, scenarios
                                     ),
                                     None,
                                 )
-
+                                image_arch_reference = next(
+                                    (
+                                        img["architecture"]
+                                        for img in images["docker_ssi_images"]
+                                        if img["name"] == supported_image["name"]
+                                    ),
+                                    None,
+                                )
                                 if not image_reference:
                                     raise ValueError(f"Image {supported_image['name']} not found in the images file")
 
-                                results[scenario][weblog].append({image_reference: allowed_runtimes})
+                                results[scenario][weblog].append({image_reference: allowed_runtimes, "arch":image_arch_reference})
 
     return results
 

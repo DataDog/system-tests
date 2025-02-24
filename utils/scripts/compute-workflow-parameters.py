@@ -3,7 +3,7 @@ import json
 
 from utils._context._scenarios import get_all_scenarios, ScenarioGroup
 from utils.scripts.ci_orchestrators.workflow_data import get_aws_matrix, get_endtoend_definitions, get_docker_ssi_matrix
-from utils.scripts.ci_orchestrators.gitlab_exporter import print_aws_gitlab_pipeline
+from utils.scripts.ci_orchestrators.gitlab_exporter import print_gitlab_pipeline
 
 
 class CiData:
@@ -85,11 +85,8 @@ class CiData:
         # github action is not able to handle aws_ssi, so nothing to do
 
     def _export_gitlab(self) -> None:
-        # gitlab can only handle aws_ssi right now
-        with open("utils/virtual_machine/virtual_machines.json", "r") as file:
-            raw_data_virtual_machines = json.load(file)["virtual_machines"]
-        print_aws_gitlab_pipeline(
-            self.language, self.data["aws_ssi_scenario_defs"], self.environment, raw_data_virtual_machines
+        print_gitlab_pipeline(
+            self.language, self.data, self.environment
         )
 
     def _export_json(self) -> None:
