@@ -148,12 +148,14 @@ def main() -> None:
                     r"\.github/.*": None,  # nothing to do??
                     ## .gitlab folder
                     r"\.gitlab/k8s_gitlab-ci.yml": ScenarioGroup.LIB_INJECTION,
+                    r"\.gitlab/aws_gitlab-ci.yml": ScenarioGroup.ONBOARDING,
                     ## utils/ folder
                     r"utils/interfaces/schemas.*": ScenarioGroup.END_TO_END,
                     r"utils/_context/_scenarios/open_telemetry\.py": ScenarioGroup.OPEN_TELEMETRY,
                     r"utils/scripts/compute_impacted_scenario\.py": None,
                     r"utils/scripts/check_version\.sh": None,
                     r"utils/scripts/get-nightly-logs\.py": None,
+                    r"utils/scripts/get-workflow-summary\.py": None,
                     #### Default scenario
                     r"utils/_context/_scenarios/default\.py": None,  # the default scenario is always executed
                     #### K8s lib injection
@@ -189,6 +191,8 @@ def main() -> None:
                     r"\.gitlab-ci\.yml": None,
                     r"\.shellcheck": None,
                     r"\.shellcheckrc": None,
+                    r"\.yamlfmt": None,
+                    r"\.yamllint": None,
                     r"CHANGELOG\.md": None,
                     r"LICENSE": None,
                     r"LICENSE-3rdparty\.csv": None,

@@ -156,7 +156,8 @@ class _Test_Dbm_Comment:
 
         expected_dbm_comment = f"/*dddb='{self.dddb}',dddbs='{self.dddbs}',dde='{self.dde}',ddh='{self.ddh}',ddps='{self.ddps}',ddpv='{self.ddpv}'*/ SELECT version()"
 
-        assert "status" in data and data["status"] == "ok"
+        assert "status" in data
+        assert data["status"] == "ok"
         assert "traceparent" in data["dbm_comment"]
         assert remove_traceparent(data["dbm_comment"]) == expected_dbm_comment
 

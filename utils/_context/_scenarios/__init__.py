@@ -65,7 +65,7 @@ class _Scenarios:
     profiling = ProfilingScenario("PROFILING")
 
     appsec_no_stats = EndToEndScenario(
-        "End to end tests with default value of DD_TRACE_COMPUTE_STATS",
+        name="APPSEC_NO_STATS",
         doc=(
             "End to end testing with default values. Default scenario has DD_TRACE_COMPUTE_STATS=true."
             "This scenario let that env to use its default"
@@ -162,7 +162,10 @@ class _Scenarios:
     # This GraphQL scenario can be used for any GraphQL testing, not just AppSec
     graphql_appsec = EndToEndScenario(
         "GRAPHQL_APPSEC",
-        weblog_env={"DD_APPSEC_RULES": "/appsec_blocking_rule.json"},
+        weblog_env={
+            "DD_APPSEC_RULES": "/appsec_blocking_rule.json",
+            "DD_TRACE_GRAPHQL_ERROR_EXTENSIONS": "int,float,str,bool,other",
+        },
         weblog_volumes={"./tests/appsec/blocking_rule.json": {"bind": "/appsec_blocking_rule.json", "mode": "ro"}},
         doc="AppSec tests for GraphQL integrations",
         github_workflow="graphql",
@@ -659,29 +662,47 @@ class _Scenarios:
         scenario_groups=[ScenarioGroup.DEBUGGER],
     )
 
-    fuzzer = DockerScenario("_FUZZER", doc="Fake scenario for fuzzing (launch without pytest)", github_workflow=None)
+    debugger_inproduct_enablement = EndToEndScenario(
+        "DEBUGGER_INPRODUCT_ENABLEMENT",
+        rc_api_enabled=True,
+        weblog_env={
+            "DD_APM_TRACING_ENABLED": "true",
+            "DD_REMOTE_CONFIG_ENABLED": "true",
+            "DD_INTERNAL_RCM_POLL_INTERVAL": "2000",
+        },
+        library_interface_timeout=5,
+        doc="Test scenario for checking dynamic enablement.",
+        scenario_groups=[ScenarioGroup.DEBUGGER],
+    )
+
+    fuzzer = DockerScenario("FUZZER", doc="Fake scenario for fuzzing (launch without pytest)", github_workflow=None)
 
     # Single Step Instrumentation scenarios (HOST and CONTAINER)
 
     simple_installer_auto_injection = InstallerAutoInjectionScenario(
         "SIMPLE_INSTALLER_AUTO_INJECTION",
         "Onboarding Container Single Step Instrumentation scenario (minimal test scenario)",
-        scenario_groups=[ScenarioGroup.ONBOARDING],
-        github_workflow="libinjection",
+        scenario_groups=[ScenarioGroup.ONBOARDING, ScenarioGroup.SIMPLE_ONBOARDING],
+        github_workflow="aws_ssi",
     )
-
+    multi_installer_auto_injection = InstallerAutoInjectionScenario(
+        "MULTI_INSTALLER_AUTO_INJECTION",
+        "Onboarding Container Single Step Instrumentation scenario for multicontainer apps",
+        scenario_groups=[ScenarioGroup.ONBOARDING, ScenarioGroup.SIMPLE_ONBOARDING],
+        github_workflow="aws_ssi",
+    )
     installer_auto_injection = InstallerAutoInjectionScenario(
         "INSTALLER_AUTO_INJECTION",
         doc="Installer auto injection scenario",
         scenario_groups=[ScenarioGroup.ONBOARDING],
-        github_workflow="libinjection",
+        github_workflow="aws_ssi",
     )
 
     installer_not_supported_auto_injection = InstallerAutoInjectionScenario(
         "INSTALLER_NOT_SUPPORTED_AUTO_INJECTION",
         "Onboarding host Single Step Instrumentation scenario for not supported languages",
         scenario_groups=[ScenarioGroup.ONBOARDING],
-        github_workflow="libinjection",
+        github_workflow="aws_ssi",
     )
 
     chaos_installer_auto_injection = InstallerAutoInjectionScenario(
@@ -692,9 +713,7 @@ class _Scenarios:
         ),
         vm_provision="auto-inject-ld-preload",
         scenario_groups=[ScenarioGroup.ONBOARDING],
-        github_workflow="libinjection",
-        include_amazon_linux_2023_amd64=False,  # LD library failures impact on the docker engine, causes flakiness
-        include_amazon_linux_2023_arm64=False,
+        github_workflow="aws_ssi",
     )
 
     simple_auto_injection_profiling = InstallerAutoInjectionScenario(
@@ -706,7 +725,7 @@ class _Scenarios:
             "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500",
         },
         scenario_groups=[ScenarioGroup.ONBOARDING],
-        github_workflow="libinjection",
+        github_workflow="aws_ssi",
     )
     host_auto_injection_install_script_profiling = InstallerAutoInjectionScenario(
         "HOST_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING",
@@ -718,7 +737,7 @@ class _Scenarios:
         agent_env={"DD_PROFILING_ENABLED": "auto"},
         app_env={"DD_PROFILING_UPLOAD_PERIOD": "10", "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500"},
         scenario_groups=[ScenarioGroup.ONBOARDING],
-        github_workflow="libinjection",
+        github_workflow="aws_ssi",
     )
 
     container_auto_injection_install_script_profiling = InstallerAutoInjectionScenario(
@@ -728,7 +747,15 @@ class _Scenarios:
         agent_env={"DD_PROFILING_ENABLED": "auto"},
         app_env={"DD_PROFILING_UPLOAD_PERIOD": "10", "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500"},
         scenario_groups=[ScenarioGroup.ONBOARDING],
-        github_workflow="libinjection",
+        github_workflow="aws_ssi",
+    )
+
+    demo_aws = InstallerAutoInjectionScenario(
+        "DEMO_AWS",
+        "Demo aws scenario",
+        vm_provision="demo",
+        scenario_groups=[ScenarioGroup.ONBOARDING],
+        github_workflow="aws_ssi",
     )
 
     host_auto_injection_install_script = InstallerAutoInjectionScenario(
@@ -736,7 +763,7 @@ class _Scenarios:
         "Onboarding Host Single Step Instrumentation scenario using agent auto install script",
         vm_provision="host-auto-inject-install-script",
         scenario_groups=[ScenarioGroup.ONBOARDING],
-        github_workflow="libinjection",
+        github_workflow="aws_ssi",
     )
 
     container_auto_injection_install_script = InstallerAutoInjectionScenario(
@@ -744,7 +771,7 @@ class _Scenarios:
         "Onboarding Container Single Step Instrumentation scenario using agent auto install script",
         vm_provision="container-auto-inject-install-script",
         scenario_groups=[ScenarioGroup.ONBOARDING],
-        github_workflow="libinjection",
+        github_workflow="aws_ssi",
     )
 
     local_auto_injection_install_script = InstallerAutoInjectionScenario(
@@ -755,7 +782,7 @@ class _Scenarios:
         ),
         vm_provision="local-auto-inject-install-script",
         scenario_groups=[ScenarioGroup.ONBOARDING],
-        github_workflow="libinjection",
+        github_workflow="aws_ssi",
     )
 
     lib_injection_validation = WeblogInjectionScenario(
@@ -827,6 +854,20 @@ class _Scenarios:
         doc="Enable APPSEC RASP",
         github_workflow="endtoend",
         scenario_groups=[ScenarioGroup.APPSEC, ScenarioGroup.APPSEC_RASP],
+    )
+
+    appsec_rasp_non_blocking = EndToEndScenario(
+        "APPSEC_RASP_NON_BLOCKING",
+        weblog_env={"DD_APPSEC_RASP_ENABLED": "true", "DD_APPSEC_RULES": "/appsec_rasp_non_blocking_ruleset.json"},
+        weblog_volumes={
+            "./tests/appsec/rasp/rasp_non_blocking_ruleset.json": {
+                "bind": "/appsec_rasp_non_blocking_ruleset.json",
+                "mode": "ro",
+            }
+        },
+        doc="Enable APPSEC RASP",
+        github_workflow="endtoend",
+        scenario_groups=[ScenarioGroup.APPSEC],
     )
 
     agent_not_supporting_span_events = EndToEndScenario(

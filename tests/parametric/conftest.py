@@ -1,18 +1,22 @@
 import base64
+from collections.abc import Generator
 import contextlib
 import dataclasses
 import os
+import shlex
 import shutil
 import json
 import subprocess
 import time
 import datetime
 import hashlib
-from typing import Generator, TextIO, TypedDict
+from pathlib import Path
+from typing import TextIO, TypedDict
 import urllib.parse
 
-import requests  # type: ignore
+import requests
 import pytest
+import yaml
 
 from utils.parametric.spec import remoteconfig
 from utils.parametric.spec.trace import V06StatsPayload
@@ -21,7 +25,7 @@ from utils.parametric.spec.trace import decode_v06_stats
 from utils.parametric._library_client import APMLibrary, APMLibraryClient
 
 from utils import context, scenarios
-from utils.dd_constants import RemoteConfigApplyState
+from utils.dd_constants import RemoteConfigApplyState, Capabilities
 from utils.tools import logger
 
 from utils._context._scenarios.parametric import APMLibraryTestServer
@@ -47,7 +51,7 @@ class AgentRequest(TypedDict):
 
 
 class AgentRequestV06Stats(AgentRequest):
-    body: V06StatsPayload  # type: ignore
+    body: V06StatsPayload  # type: ignore[misc]
 
 
 def pytest_configure(config):
@@ -59,7 +63,7 @@ def pytest_configure(config):
 def _request_token(request):
     token = ""
     token += request.module.__name__
-    token += ".%s" % request.cls.__name__ if request.cls else ""
+    token += f".{request.cls.__name__}" if request.cls else ""
     token += f".{request.node.name}"
     return token
 
@@ -82,31 +86,25 @@ def apm_test_server(request, library_env, test_id):
     )
 
 
-@pytest.hookimpl(hookwrapper=True)
-def pytest_runtest_makereport(item, call):
-    outcome = yield
-    outcome.get_result()
-
-
 @pytest.fixture
 def test_server_log_file(apm_test_server, request) -> Generator[TextIO, None, None]:
     log_path = f"{context.scenario.host_log_folder}/outputs/{request.cls.__name__}/{request.node.name}/server_log.log"
-    os.makedirs(os.path.dirname(log_path), exist_ok=True)
+    Path(log_path).parent.mkdir(parents=True, exist_ok=True)
     with open(log_path, "w+", encoding="utf-8") as f:
         yield f
         f.seek(0)
-        request.node._report_sections.append(
+        request.node._report_sections.append(  # noqa: SLF001
             ("teardown", f"{apm_test_server.lang.capitalize()} Library Output", "".join(f.readlines()))
         )
 
 
 class _TestAgentAPI:
-    def __init__(self, base_url: str, pytest_request: None):
+    def __init__(self, base_url: str, pytest_request: pytest.FixtureRequest):
         self._base_url = base_url
         self._session = requests.Session()
         self._pytest_request = pytest_request
-        self.log_path = f"{context.scenario.host_log_folder}/outputs/{pytest_request.cls.__name__}/{pytest_request.node.name}/agent_api.log"  # type: ignore
-        os.makedirs(os.path.dirname(self.log_path), exist_ok=True)
+        self.log_path = f"{context.scenario.host_log_folder}/outputs/{pytest_request.cls.__name__}/{pytest_request.node.name}/agent_api.log"
+        Path(self.log_path).parent.mkdir(parents=True, exist_ok=True)
 
     def _url(self, path: str) -> str:
         return urllib.parse.urljoin(self._base_url, path)
@@ -116,13 +114,13 @@ class _TestAgentAPI:
             log.write(f"\n{log_type}>>>>\n")
             log.write(json.dumps(json_trace))
 
-    def traces(self, clear=False, **kwargs):
+    def traces(self, clear=False, **kwargs) -> list[Trace]:
         resp = self._session.get(self._url("/test/session/traces"), **kwargs)
         if clear:
             self.clear()
-        json = resp.json()
-        self._write_log("traces", json)
-        return json
+        resp_json = resp.json()
+        self._write_log("traces", resp_json)
+        return resp_json
 
     def set_remote_config(self, path, payload):
         resp = self._session.post(self._url("/test/session/responses/config/path"), json={"path": path, "msg": payload})
@@ -148,9 +146,9 @@ class _TestAgentAPI:
         assert resp.status_code == 202
 
     @staticmethod
-    def _build_config_path_response(config: list):
+    def _build_config_path_response(config: list) -> str:
         expires_date = datetime.datetime.strftime(
-            datetime.datetime.now() + datetime.timedelta(days=1), "%Y-%m-%dT%H:%M:%SZ"
+            datetime.datetime.now(tz=datetime.UTC) + datetime.timedelta(days=1), "%Y-%m-%dT%H:%M:%SZ"
         )
         roots = [
             str(
@@ -218,7 +216,7 @@ class _TestAgentAPI:
         resp = self._session.post(self._url("/test/settings"), json={"trace_request_delay": delay})
         assert resp.status_code == 202
 
-    def raw_telemetry(self, clear=False, **kwargs):
+    def raw_telemetry(self, clear=False):
         raw_reqs = self.requests()
         reqs = []
         for req in raw_reqs:
@@ -236,34 +234,34 @@ class _TestAgentAPI:
 
     def tracestats(self, **kwargs):
         resp = self._session.get(self._url("/test/session/stats"), **kwargs)
-        json = resp.json()
-        self._write_log("tracestats", json)
-        return json
+        resp_json = resp.json()
+        self._write_log("tracestats", resp_json)
+        return resp_json
 
     def requests(self, **kwargs) -> list[AgentRequest]:
         resp = self._session.get(self._url("/test/session/requests"), **kwargs)
-        json = resp.json()
-        self._write_log("requests", json)
-        return json
+        resp_json = resp.json()
+        self._write_log("requests", resp_json)
+        return resp_json
 
     def rc_requests(self, post_only=False):
         reqs = self.requests()
-        rc_reqs = [r for r in reqs if r["url"].endswith("/v0.7/config") and (not (post_only) or r["method"] == "POST")]
+        rc_reqs = [r for r in reqs if r["url"].endswith("/v0.7/config") and (not post_only or r["method"] == "POST")]
         for r in rc_reqs:
             r["body"] = json.loads(base64.b64decode(r["body"]).decode("utf-8"))
         return rc_reqs
 
     def get_tracer_flares(self, **kwargs):
         resp = self._session.get(self._url("/test/session/tracerflares"), **kwargs)
-        json = resp.json()
-        self._write_log("tracerflares", json)
-        return json
+        resp_json = resp.json()
+        self._write_log("tracerflares", resp_json)
+        return resp_json
 
     def v06_stats_requests(self) -> list[AgentRequestV06Stats]:
         raw_requests = [r for r in self.requests() if "/v0.6/stats" in r["url"]]
-        requests = []
+        agent_requests = []
         for raw in raw_requests:
-            requests.append(
+            agent_requests.append(
                 AgentRequestV06Stats(
                     method=raw["method"],
                     url=raw["url"],
@@ -271,7 +269,7 @@ class _TestAgentAPI:
                     body=decode_v06_stats(base64.b64decode(raw["body"])),
                 )
             )
-        return requests
+        return agent_requests
 
     def clear(self, **kwargs) -> None:
         self._session.get(self._url("/test/session/clear"), **kwargs)
@@ -284,31 +282,29 @@ class _TestAgentAPI:
             logger.error(message)
             raise ValueError(message)
 
-        json = resp.json()
-        self._write_log("info", json)
-        return json
+        resp_json = resp.json()
+        self._write_log("info", resp_json)
+        return resp_json
 
     @contextlib.contextmanager
     def snapshot_context(self, token, ignores=None):
         ignores = ignores or []
         try:
-            resp = self._session.get(self._url("/test/session/start?test_session_token=%s" % token))
-            if resp.status_code != 200:
-                # The test agent returns nice error messages we can forward to the user.
-                raise RuntimeError(resp.text)
+            resp = self._session.get(self._url(f"/test/session/start?test_session_token={token}"))
+            resp.raise_for_status()
         except Exception as e:
             raise RuntimeError(f"Could not connect to test agent: {e}") from e
         else:
             yield self
             # Query for the results of the test.
             resp = self._session.get(
-                self._url("/test/session/snapshot?ignores=%s&test_session_token=%s" % (",".join(ignores), token))
+                self._url(f"/test/session/snapshot?ignores={','.join(ignores)}&test_session_token={token}")
             )
             if resp.status_code != 200:
                 raise RuntimeError(resp.text)
 
     def wait_for_num_traces(
-        self, num: int, clear: bool = False, wait_loops: int = 30, sort_by_start: bool = True
+        self, num: int, *, clear: bool = False, wait_loops: int = 30, sort_by_start: bool = True
     ) -> list[Trace]:
         """Wait for `num` traces to be received from the test agent.
 
@@ -317,6 +313,7 @@ class _TestAgentAPI:
         When sort_by_start=True returned traces are sorted by the span start time to simplify assertions by knowing that returned traces are in the same order as they have been created.
         """
         num_received = None
+        traces = []
         for i in range(wait_loops):
             try:
                 traces = self.traces(clear=False)
@@ -332,15 +329,13 @@ class _TestAgentAPI:
                             # The testagent may receive spans and trace chunks in any order,
                             # so we sort the spans by start time if needed
                             trace.sort(key=lambda x: x["start"])
-                        return sorted(traces, key=lambda trace: trace[0]["start"])
+                        return sorted(traces, key=lambda t: t[0]["start"])
                     return traces
             time.sleep(0.1)
-        raise ValueError(
-            "Number (%r) of traces not available from test agent, got %r:\n%r" % (num, num_received, traces)
-        )
+        raise ValueError(f"Number ({num}) of traces not available from test agent, got {num_received}:\n{traces}")
 
     def wait_for_num_spans(
-        self, num: int, clear: bool = False, wait_loops: int = 30, sort_by_start: bool = True
+        self, num: int, *, clear: bool = False, wait_loops: int = 30, sort_by_start: bool = True
     ) -> list[Trace]:
         """Wait for `num` spans to be received from the test agent.
 
@@ -367,12 +362,12 @@ class _TestAgentAPI:
                             # The testagent may receive spans and trace chunks in any order,
                             # so we sort the spans by start time if needed
                             trace.sort(key=lambda x: x["start"])
-                        return sorted(traces, key=lambda trace: trace[0]["start"])
+                        return sorted(traces, key=lambda t: t[0]["start"])
                     return traces
             time.sleep(0.1)
-        raise ValueError("Number (%r) of spans not available from test agent, got %r" % (num, num_received))
+        raise ValueError(f"Number ({num}) of spans not available from test agent, got {num_received}")
 
-    def wait_for_telemetry_event(self, event_name: str, clear: bool = False, wait_loops: int = 200):
+    def wait_for_telemetry_event(self, event_name: str, *, clear: bool = False, wait_loops: int = 200):
         """Wait for and return the given telemetry event from the test agent."""
         for i in range(wait_loops):
             try:
@@ -394,12 +389,13 @@ class _TestAgentAPI:
                                 self.clear()
                             return event
             time.sleep(0.01)
-        raise AssertionError("Telemetry event %r not found" % event_name)
+        raise AssertionError(f"Telemetry event {event_name} not found")
 
     def wait_for_rc_apply_state(
         self,
         product: str,
         state: RemoteConfigApplyState,
+        *,
         clear: bool = False,
         wait_loops: int = 100,
         post_only: bool = False,
@@ -426,7 +422,7 @@ class _TestAgentAPI:
                             logger.debug(f"Product {cfg_state['product']} does not match {product}")
                         elif cfg_state["apply_state"] != state.value:
                             if last_known_state != cfg_state["apply_state"]:
-                                # this condition prevent to spam logs, because the last knwon state
+                                # this condition prevent to spam logs, because the last known state
                                 # will probably be the same as the current state
                                 last_known_state = cfg_state["apply_state"]
                                 logger.debug(f"Apply state {cfg_state['apply_state']} does not match {state}")
@@ -436,12 +432,10 @@ class _TestAgentAPI:
                                 self.clear()
                             return cfg_state
             time.sleep(0.01)
-        raise AssertionError("No RemoteConfig apply status found, got requests %r" % rc_reqs)
+        raise AssertionError(f"No RemoteConfig apply status found, got requests {rc_reqs}")
 
-    def wait_for_rc_capabilities(self, capabilities: list[int] = [], wait_loops: int = 100):
+    def wait_for_rc_capabilities(self, wait_loops: int = 100) -> set[Capabilities]:
         """Wait for the given RemoteConfig apply state to be received by the test agent."""
-        rc_reqs = []
-        capabilities_seen = set()
         for i in range(wait_loops):
             try:
                 rc_reqs = self.rc_requests()
@@ -462,14 +456,34 @@ class _TestAgentAPI:
                         # base64-encoded string:
                         else:
                             decoded_capabilities = base64.b64decode(raw_caps)
-                        int_capabilities = int.from_bytes(decoded_capabilities, byteorder="big")
-                        capabilities_seen.add(remoteconfig.human_readable_capabilities(int_capabilities))
-                        if all((int_capabilities >> c) & 1 for c in capabilities):
-                            return int_capabilities
-            time.sleep(0.01)
-        raise AssertionError("No RemoteConfig capabilities found, got capabilites %r" % capabilities_seen)
 
-    def wait_for_tracer_flare(self, case_id: str | None = None, clear: bool = False, wait_loops: int = 100):
+                        int_capabilities = int.from_bytes(decoded_capabilities, byteorder="big")
+
+                        if int_capabilities >= (1 << 64):
+                            raise AssertionError(
+                                f"RemoteConfig capabilities should only use 64 bits, {int_capabilities}"
+                            )
+
+                        valid_bits = sum(1 << c for c in Capabilities)
+                        if int_capabilities & ~valid_bits != 0:
+                            raise AssertionError(
+                                f"RemoteConfig capabilities contains unknown bits: {bin(int_capabilities & ~valid_bits)}"
+                            )
+
+                        capabilities_seen = remoteconfig.human_readable_capabilities(int_capabilities)
+                        if len(capabilities_seen) > 0:
+                            return capabilities_seen
+            time.sleep(0.01)
+        raise AssertionError("RemoteConfig capabilities were empty")
+
+    def assert_rc_capabilities(self, expected_capabilities: set[Capabilities], wait_loops: int = 100) -> None:
+        """Wait for the given RemoteConfig apply state to be received by the test agent."""
+        seen_capabilities = self.wait_for_rc_capabilities(wait_loops)
+        missing_capabilities = expected_capabilities.difference(seen_capabilities)
+        if missing_capabilities:
+            raise AssertionError(f"RemoteConfig capabilities missing: {missing_capabilities}")
+
+    def wait_for_tracer_flare(self, case_id: str | None = None, *, clear: bool = False, wait_loops: int = 100):
         """Wait for the tracer-flare to be received by the test agent."""
         for i in range(wait_loops):
             try:
@@ -517,7 +531,7 @@ def docker_network(test_id: str) -> Generator[str, None, None]:
             network.remove()
         except:
             # It's possible (why?) of having some container not stopped.
-            # If it happen, failing here makes stdout tough to understance.
+            # If it happens, failing here makes stdout tough to understand.
             # Let's ignore this, later calls will clean the mess
             logger.info("Failed to remove network, ignoring the error")
 
@@ -531,7 +545,7 @@ def test_agent_port() -> int:
 @pytest.fixture
 def test_agent_log_file(request) -> Generator[TextIO, None, None]:
     log_path = f"{context.scenario.host_log_folder}/outputs/{request.cls.__name__}/{request.node.name}/agent_log.log"
-    os.makedirs(os.path.dirname(log_path), exist_ok=True)
+    Path(log_path).parent.mkdir(parents=True, exist_ok=True)
     with open(log_path, "w+", encoding="utf-8") as f:
         yield f
         f.seek(0)
@@ -547,7 +561,7 @@ def test_agent_log_file(request) -> Generator[TextIO, None, None]:
             if "GET /test/session/apmtelemetry" in line:
                 continue
             agent_output += line
-        request.node._report_sections.append(("teardown", "Test Agent Output", agent_output))
+        request.node._report_sections.append(("teardown", "Test Agent Output", agent_output))  # noqa: SLF001
 
 
 @pytest.fixture
@@ -564,7 +578,7 @@ def test_agent_hostname(test_agent_container_name: str) -> str:
 def test_agent(
     worker_id: str,
     docker_network: str,
-    request,
+    request: pytest.FixtureRequest,
     test_agent_container_name: str,
     test_agent_port: int,
     test_agent_log_file: TextIO,
@@ -584,14 +598,14 @@ def test_agent(
         name=test_agent_container_name,
         command=[],
         env=env,
-        volumes={f"{os.getcwd()}/snapshots": "/snapshots"},
+        volumes={f"{Path.cwd()!s}/snapshots": "/snapshots"},
         host_port=host_port,
         container_port=test_agent_port,
         log_file=test_agent_log_file,
         network=docker_network,
     ):
         client = _TestAgentAPI(base_url=f"http://localhost:{host_port}", pytest_request=request)
-        time.sleep(0.2)  # intial wait time, the trace agent takes 200ms to start
+        time.sleep(0.2)  # initial wait time, the trace agent takes 200ms to start
         for _ in range(100):
             try:
                 resp = client.info()
@@ -676,3 +690,15 @@ def test_library(
 
         tracer = APMLibrary(client, apm_test_server.lang)
         yield tracer
+
+
+class StableConfigWriter:
+    def write_stable_config(self, stable_config: dict, path, test_library):
+        stable_config_content = yaml.dump(stable_config)
+        self.write_stable_config_content(stable_config_content, path, test_library)
+
+    def write_stable_config_content(self, stable_config_content: str, path: str, test_library):
+        success, message = test_library.container_exec_run(
+            f'bash -c "mkdir -p {Path(path).parent!s} && printf {shlex.quote(stable_config_content)} | tee {path}"'
+        )
+        assert success, message

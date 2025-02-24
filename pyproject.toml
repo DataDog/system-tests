@@ -94,37 +94,37 @@ indent-style = "space"
 
 [tool.ruff.lint]
 exclude = [ 
-    "docs/*",
+    "docs/*", # ignore docs. But may be a good idea to enable rules here
+    "utils/grpc/{weblog_pb2_grpc.py,weblog_pb2.py}", # generated files
 ]
 select = ["ALL"]
 
 ignore = [
     ### TODO : remove those ignores
-    # missing-type-annotation, the ONE to remove !!
-    "ANN001",
-    "ANN003",
-    "ANN202",
-    "BLE001",  # Do not catch blind exception: `Exception`, big project to enable this
-    "C901",    # code complexity, TBD
-    "E722",    # bare except, big project to enable this
-    "PERF401", # TBD, the "good" code can be harder to read
-    "PLR0911", # too many return, may be replaced by a higher default value
-    "PLR0912", # Too many branches
-    "PLR0913", # too many arguments, may be replaced by a higher default value
-    "PLR0915", # too many statements, may be replaced by a higher default value
-    "PLR1714",
-    "PLR2004",
-    "PTH118",
-    "PTH123",  # `open()` should be replaced by `Path.open()`
-    "RUF012",
-    "S202",
-    "SIM102",
-    "SIM110",  # TBD
-    "TRY003",  # this is a full project to enable this
-
+    "ANN001",   # missing-type-function-argument: TODO, the ONE to remove !! (3075 occurences)
+    "ANN003",   # missing-type-kwargs: TODO (29 occurences)
+    "ANN202",   # missing-return-type-private-function: TODO (877 occurences)
+    "BLE001",   # blind-except: TODO big project to enable this (39 occurences)
+    "C901",     # complex-structure: TODO (52 occurences)
+    "E722",     # bare-except: TODO big project to enable this (15 occurences)
+    "PERF401",  # manual-list-comprehension: TODO TBD, the "good" code can be harder to read (13 occurences)
+    "PLR0911",  # too-many-return-statements: TODO (7 occurences)
+    "PLR0912",  # too-many-branches: TODO (17 occurences)
+    "PLR0913",  # too-many-arguments: TODO (66 occurences)
+    "PLR0915",  # too-many-statements: TODO (7 occurences)
+    "PLR1714",  # repeated-equality-comparison: TODO (20 occurences)
+    "PLR2004",  # magic-value-comparison: TODO (674 occurences)
+    "PTH118",   # os-path-join: TODO (59 occurences)
+    "PTH123",   # builtin-open: TODO (117 occurences)
+    "RUF012",   # mutable-class-default: TODO (111 occurences)
+    "S202",     # tarfile-unsafe-members: TODO (2 occurences)
+    "SIM102",   # collapsible-if: TODO (22 occurences)
+    "SIM110",   # reimplemented-builtin: TODO (7 occurences)
+    "TRY003",   # raise-vanilla-args: TODO this is a full project to enable this (254 occurences)
 
     ### Ignores that will be kept for the entire project
     "ANN204", # missing-return-type-special-method
+    "ANN206", # missing-return-type-class-method
     "COM812", # ruff format recommend ignoring this
     "D100",   # Missing docstring in public module
     "D101",   # Missing docstring in public class
@@ -168,230 +168,212 @@ ignore = [
 ]
 
 [tool.ruff.lint.per-file-ignores]
-"utils/grpc/weblog_pb2_grpc.py" = ["ALL"]
-"utils/grpc/weblog_pb2.py" = ["ALL"]
-"utils/scripts/*" = [
-    "INP001",  # this is not a package
-    "T201"     # allow print statements in scripts folder
-]
-"utils/interfaces/schemas/serve_doc.py" = [
-    "INP001", # this is not a package
-    "ANN201"
-]
-"utils/waf_rules.py" = ["N801"]  # generated file
-# TODO : remove those ignores
+# Rules for this section:
+#
+# 1. keep everything sorted alphabetically
+# 2. on each line, comment with the rule name, and a comment, either TODO, or a reason why the rule is ignored
+
+"lib-injection/*" = ["ALL"]  # TODO
 "tests/*" = [
-    # lines with [*] can be autofixed with ruff check --fix --unsafe-fixes
-    # though, each change must be reviewed
-    "ANN201",    # 2043 occurences  [ ] missing-return-type-undocumented-public-function
-    "N801",      # 492 occurences   [ ] invalid-class-name
-    "ARG002",    # 177 occurences   [ ] unused-method-argument
-    "E501",      # 159 occurences   [ ] line-too-long
-    "SIM117",    # 127 occurences   [ ] multiple-with-statements
-    "TID252",    # 77 occurences    [*] relative-imports
-    "N806",      # 76 occurences    [ ] non-lowercase-variable-in-function
-    "FBT003",    # 67 occurences    [ ] boolean-positional-value-in-call
-    "D200",      # 52 occurences    [*] fits-on-one-line
-    "F405",      # 43 occurences    [ ] undefined-local-with-import-star-usage
-    "TRY002",    # 41 occurences    [ ] raise-vanilla-class
-    "PT018",     # 39 occurences    [ ] pytest-composite-assertion
-    "N802",      # 39 occurences    [ ] invalid-function-name
-    "FBT002",    # 30 occurences    [ ] boolean-default-value-positional-argument
-    "D404",      # 25 occurences    [ ] docstring-starts-with-this
-    "ANN401",    # 24 occurences    [ ] any-type
-    "B007",      # 23 occurences    [ ] unused-loop-control-variable
-    "DTZ005",    # 23 occurences    [ ] call-datetime-now-without-tzinfo
-    "INP001",    # 22 occurences    [ ] implicit-namespace-package
-    "ARG001",    # 21 occurences    [ ] unused-function-argument
-    "UP031",     # 17 occurences    [ ] printf-string-formatting
-    "ANN205",    # 16 occurences    [ ] missing-return-type-static-method
-    "T201",      # 15 occurences    [*] print
-    "FBT001",    # 12 occurences    [ ] boolean-type-hint-positional-argument
-    "SLF001",    # 12 occurences    [ ] private-member-access
-    "SIM118",    # 12 occurences    [*] in-dict-keys
-    "UP035",     # 12 occurences    [ ] deprecated-import
-    "S105",      # 10 occurences    [ ] hardcoded-password-string
-    "B015",      # 10 occurences    [ ] useless-comparison
-    "RET503",    # 9 occurences     [*] implicit-return
-    "SIM115",    # 9 occurences     [ ] open-file-with-context-handler
-    "PGH004",    # 9 occurences     [ ] blanket-noqa
-    "RUF001",    # 9 occurences     [ ] ambiguous-unicode-character-string
-    "RUF015",    # 9 occurences     [*] unnecessary-iterable-allocation-for-first-element
-    "SIM108",    # 8 occurences     [*] if-else-block-instead-of-if-exp
-    "PTH120",    # 8 occurences     [ ] os-path-dirname
-    "PGH003",    # 8 occurences     [ ] blanket-type-ignore
-    "TRY301",    # 8 occurences     [ ] raise-within-try
-    "ANN206",    # 7 occurences     [ ] missing-return-type-class-method
-    "B011",      # 7 occurences     [*] assert-false
-    "PT015",     # 7 occurences     [ ] pytest-assert-always-false
-    "N815",      # 7 occurences     [ ] mixed-case-variable-in-class-scope
-    "PT006",     # 6 occurences     [*] pytest-parametrize-names-wrong-type
-    "RET504",    # 6 occurences     [*] unnecessary-assign
-    "N803",      # 6 occurences     [ ] invalid-argument-name
-    "E712",      # 6 occurences     [*] true-false-comparison
-    "E741",      # 6 occurences     [ ] ambiguous-variable-name
-    "S113",      # 5 occurences     [ ] request-without-timeout
-    "PT011",     # 5 occurences     [ ] pytest-raises-too-broad
-    "E731",      # 5 occurences     [*] lambda-assignment
-    "RUF005",    # 5 occurences     [ ] collection-literal-concatenation
-    "B006",      # 4 occurences     [*] mutable-argument-default
-    "PIE794",    # 4 occurences     [*] duplicate-class-field-definition
-    "PTH103",    # 4 occurences     [ ] os-makedirs
-    "PLW2901",   # 4 occurences     [ ] redefined-loop-name
-    "PTH112",    # 3 occurences     [ ] os-path-isdir
-    "RUF017",    # 3 occurences     [*] quadratic-list-summation
-    "ANN002",    # 2 occurences     [ ] missing-type-args
-    "ASYNC230",  # 2 occurences     [ ] blocking-open-call-in-async-function
-    "S605",      # 2 occurences     [ ] start-process-with-a-shell
-    "C408",      # 2 occurences     [*] unnecessary-collection-call
-    "C416",      # 2 occurences     [*] unnecessary-comprehension
-    "PIE810",    # 2 occurences     [*] multiple-starts-ends-with
-    "PTH100",    # 2 occurences     [ ] os-path-abspath
-    "PTH109",    # 2 occurences     [ ] os-getcwd
+    "ANN201",    # missing-return-type-undocumented-public-function: TODO
+    "N801",      # invalid-class-name: TODO
+    "ARG002",    # unused-method-argument: TODO
+    "E501",      # line-too-long: TODO
+    "SIM117",    # multiple-with-statements: TODO
+    "N806",      # non-lowercase-variable-in-function: TODO
+    "TRY002",    # raise-vanilla-class: TODO
+    "FBT002",    # boolean-default-value-positional-argument: TODO
+    "B007",      # unused-loop-control-variable: TODO
+    "INP001",    # implicit-namespace-package: TODO
+    "TRY301",    # raise-within-try: TODO
 
     # keep those exceptions
     "C400",      # unnecessary-generator-list: explicit list is more readable for non-python users
     "C401",      # unnecessary-generator-set: explicit set is more readable for non-python users
+    "C408",      # unnecessary-collection-call: explicit tuple is more readable for non-python users
+    "C416",      # unnecessary-comprehension: may make the code less readable for non-python users
+    "D404",      # docstring-starts-with-this: ruff, please don't be a pain
     "FIX003",    # line-contains-xxx: freedom of speech!
     "FIX004",    # line-contains-xxx: freedom of speech!
     "PLR1730",   # if-stmt-min-max: not clear that it makes the code easier to read
+    "PT011",     # pytest-raises-too-broad: kind of painful to fix
     "RET506",    # superfluous-else-raise: requires a slightly higher cognitive effort to understand the code
     "RET507",    # superfluous-else-continue : requires a slightly higher cognitive effort to understand the code
     "RET508",    # superfluous-else-break: requires a slightly higher cognitive effort to understand the code
     "RET505",    # superfluous-else-return: requires a slightly higher cognitive effort to understand the code
+    "RUF005",    # collection-literal-concatenation: more pythonic, but less clear for non python users
+    "RUF015",    # unnecessary-iterable-allocation-for-first-element: it makes the code a little bit less clear for non python users
+    "S105",      # hardcoded-password-string: test code may contains weird things
     "S108",      # hardcoded-temp-file: test code may contains weird things
+    "SIM108",    # if-else-block-instead-of-if-exp: ternary operator nay be harder to read on long statements
 ]
-"utils/build/*"  = ["ALL"]
-"lib-injection/*" = ["ALL"]
-"utils/{k8s_lib_injection/*,_context/_scenarios/k8s_lib_injection.py}" = [
-    "ANN201",
-    "TRY201",
-    "TRY002",
-    "D207",
-    "SIM115",
-    "S603",
-    "DTZ005",
-    "E501",    # line too long
-    "FBT002",  # Boolean default positional argument
-    "SLF001",
-    "RET505",
-    "TRY301",
-    "B006",
-    "SIM108",
-    "RET508",
-    "B007",
-    "E712",
-    "F541",
-    "TRY400",
-    "N818",
-    "UP004",
-    "PTH109",
-    "UP032",
-    "EM103",
-    "B904",
-    "PTH108",
-    "A002",
-    "E401",
-    "RUF012",
-    "G002",
-    "UP031",
-    "F541"
+"tests/auto_inject/*" = [
+    "SLF001",  # private-member-access: TODO
 ]
-
-"utils/onboarding/*" = [
-    "ANN201",
-    "DTZ006",
-    "DTZ005",
-    "E501",    # line too long
-    "FBT002",  # Boolean default positional argument
-    "UP017",
-    "N806",
-    "FBT001",
-    "S507",
-    "PTH102",
-    "PLR2044",
-    "N803",
-    "RET505",
+"tests/fuzzer/*" = [
+    "T201",      # print: fuzzer use prints...
 ]
-"utils/docker_ssi/*" = [
-    "ANN201",
-    "ANN205",
+"tests/fuzzer/request_mutator.py" = [
+    "RUF001",    # ambiguous-unicode-character-string: the mutator contains weird strings on purpose
+]
+"tests/parametric/*" = [
+    "ANN401",    # any-type: TODO
+]
+"tests/parametric/{test_headers_baggage.py,test_headers_datadog.py,test_library_tracestats.py}" = [
+    "N802",      # invalid-function-name: some tests methods contains code with capital letters
+]
+"tests/perfs/*" = [
+    "T201",      # print: perfs use prints...
+]
+"tests/test_the_test/*" = [
+    "S605",      # start-process-with-a-shell: test the test needs to run shell commands
 ]
 "utils/{_context/_scenarios/docker_ssi.py,docker_ssi/docker_ssi_matrix_builder.py,docker_ssi/docker_ssi_matrix_utils.py}" = [
-    "ANN201",
-    "PLR2004",
-    "E501",    # line too long
-    "SIM210",
-    "RET504",
-    "RET505",
-    "SIM108",
-    "T201",
-]
-"utils/_context/virtual_machines.py" = [
-    "ARG002",  # unused method argument
-    "FBT002",  # Boolean default positional argument
-    "N801",    # class naming
-    "S507",    # Paramiko call with policy set to automatically trust the unknown host key
-]
-"utils/virtual_machine/*" = [
-    "A002",
-    "ANN002",
-    "ANN201",
-    "ARG001",
-    "ARG002",
-    "C901",
-    "E712",
-    "E731",
-    "E501",    # line too long
-    "FBT002",  # Boolean default positional argument
-    "F541",
-    "E713",
-    "EM102",
-    "PLR0912",
-    "PLR0915",
-    "PLW1510",
-    "PTH112",
-    "PTH113",
-    "PTH116",
-    "PTH118",
-    "PTH119",
-    "RET503",
-    "RET504",
-    "RET508",
-    "RET505",
-    "RUF013",
-    "S506",
-    "S603",
-    "SIM102",
-    "SIM113",
-    "SIM300",
-    "SIM401",  # code quality, TBD
-    "UP008",
-    "UP031",
-    "UP024",
-
-    "BLE001",
-    "D207",
-    "F401",
-    "F811",
-    "F841",
-    "N802",
-    "N803",
-    "N806",
-    "PERF401",
-    "PLR2004",
-    "PTH101",
-    "PTH102",
-    "PTH109",
-    "S103",
-    "S113",
-    "S311",
-    "S602",
-    "SIM103",
-    "SIM115",
-    "SLF001",
-    "TRY002",
+    "E501",     # line-too-long: TODO
+    "T201",     # print: TODO
+    "RET504",   # unnecessary-assign: TODO
+    "RET505",   # superfluous-else-return: TODO
+    "SIM108",   # if-else-block-instead-of-if-exp: TODO
+    "SIM210",   # if-expr-with-true-false: TODO
 ]
 "utils/_features.py" = [
-    "ANN205"  #obvious decorators
+    "ANN205"  # missing-return-type-static-method: obvious decorators
 ]
+"utils/build/*"  = ["ALL"]  # mostly python weblog code. it may be a good idea to enable rules here
+"utils/docker_ssi/*" = [
+    "ANN201",  # missing-return-type-undocumented-public-function: TODO
+    "ANN205",  # issing-return-type-static-method: TODO
+]
+"utils/{k8s_lib_injection/*,_context/_scenarios/k8s_lib_injection.py}" = [
+    "ANN201",   # missing-return-type-undocumented-public-function: TODO
+    "B006",     # mutable-argument-default: TODO
+    "B007",     # unused-loop-control-variable: TODO
+    "B904",     # raise-without-from-inside-except: TODO
+    "DTZ005",   # call-datetime-now-without-tzinfo: TODO
+    "E401",     # multiple-imports-on-one-line: TODO
+    "E501",     # line-too-long: TODO
+    "E712",     # true-false-comparison: TODO
+    "F541",     # f-string-missing-placeholders: TODO
+    "FBT002",   # boolean-default-value-positional-argument: TODO
+    "RET505",   # superfluous-else-return: TODO
+    "RET508",   # superfluous-else-break: TODO
+    "SIM108",   # if-else-block-instead-of-if-exp: TODO
+    "SIM115",   # open-file-with-context-handler: TODO
+    "SLF001",   # private-member-access: TODO
+    "TRY002",   # raise-vanilla-class: TODO
+    "TRY201",   # verbose-raise: TODO
+    "TRY301",   # raise-within-try: TODO
+    "UP031",    # printf-string-formatting: TODO
+]
+"utils/interfaces/schemas/serve_doc.py" = [
+    "ANN201",  # missing-return-type-undocumented-public-function: TODO
+    "INP001", # implicit-namespace-package: this is not a package
+]
+"utils/onboarding/*" = [
+    "ANN201",  # missing-return-type-undocumented-public-function: TODO
+    "DTZ005",  # call-datetime-now-without-tzinfo: TODO
+    "DTZ006",  # call-datetime-fromtimestamp: TODO
+    "E501",    # line-too-long: TODO
+    "FBT001",  # boolean-type-hint-positional-argument: TODO
+    "FBT002",  # boolean-default-value-positional-argument: TODO
+    "N803",    # invalid-argument-name: TODO
+    "N806",    # non-lowercase-variable-in-function: TODO
+    "PLR2044", # empty-comment: TODO
+    "PTH102",  # os-mkdir: TODO
+    "RET505",  # superfluous-else-return: TODO
+    "S507",    # ssh-no-host-key-verification: TODO
+    "UP017",   # datetime-timezone-utc: TODO
+]
+"utils/scripts/*" = [
+    "INP001",  # implicit-namespace-package: this is not a package
+    "T201"     # print: allow print statements in scripts folder
+]
+"utils/virtual_machine/virtual_machines.py" = [
+    "ANN201",   # missing-return-type-undocumented-public-function: TODO
+    "ARG002",   # unused-method-argument: TODO
+    "FBT002",   # boolean-default-value-positional-argument: TODO
+    "TRY002",   # raise-vanilla-class: TODO
+]
+"utils/virtual_machine/aws_provider.py" = [
+    "ANN201",  # missing-return-type-undocumented-public-function: TODO
+    "E501",    # line-too-long: TODO
+    "F541",    # f-string-missing-placeholders: TODO
+    "RET504",  # unnecessary-assign: TODO
+    "FBT002",  # boolean-default-value-positional-argument: TODO
+    "PTH119",  # os-path-basename: TODO
+    "N806",    # non-lowercase-variable-in-function: TODO
+    "S113",    # request-without-timeout: TODO
+    "A002",    # builtin-argument-shadowing: TODO
+    "SIM115",  # open-file-with-context-handler: TODO
+    "ARG002",  # unused-method-argument: TODO
+    "PTH113",  # os-path-isfile: TODO
+    "N802",    # invalid-function-name: TODO
+    "F401",    # unused-import: TODO
+    "F841",    # unused-variable: TODO
+    "TRY002",  # raise-vanilla-class: TODO
+]
+"utils/virtual_machine/krunvm_provider.py" = [
+    "A002",    # builtin-argument-shadowing: TODO
+    "ANN002",  # missing-type-args: TODO
+    "ANN201",  # missing-return-type-undocumented-public-function: TODO
+    "ARG002",  # unused-method-argument: TODO
+    "E501",    # line-too-long: TODO
+    "F401",    # unused-import: TODO
+    "F811",    # redefined-while-unused: TODO
+    "FBT002",  # boolean-default-value-positional-argument: TODO
+    "N803",    # invalid-argument-name: TODO
+    "PLW1510", # subprocess-run-without-check: TODO
+    "PTH101",  # os-chmod: TODO
+    "PTH102",  # os-mkdir: TODO
+    "PTH109",  # os-getcwd: TODO
+    "PTH116",  # os-stat: TODO
+    "S103",    # bad-file-permissions: TODO
+    "S602",    # subprocess-popen-with-shell-equals-true: TODO
+    "SIM103",  # needless-bool: TODO
+    "SLF001",  # private-member-access: TODO
+]
+"utils/virtual_machine/utils.py" = [
+    "ANN201",  # missing-return-type-undocumented-public-function: TODO
+    "E501",    # line-too-long: TODO
+    "RET503",  # implicit-return: TODO
+    "RET504",  # unnecessary-assign: TODO
+    "SIM300",  # yoda-conditions: TODO
+]
+"utils/virtual_machine/vagrant_provider.py" = [
+    "A002",    # builtin-argument-shadowing: TODO
+    "ANN201",  # missing-return-type-undocumented-public-function: TODO
+    "ARG002",  # unused-method-argument: TODO
+    "E501",    # line-too-long: TODO
+    "F541",    # f-string-missing-placeholders: TODO
+    "FBT002",  # boolean-default-value-positional-argument: TODO
+    "PLW1510", # subprocess-run-without-check: TODO
+    "PTH113",  # os-path-isfile: TODO
+    "UP008",   # super-call-with-parameters: TODO
+    "UP024",   # os-error-alias: TODO
+    "UP031",   # printf-string-formatting: TODO
+]
+"utils/virtual_machine/virtual_machine_provider.py" = [
+    "A002",    # builtin-argument-shadowing: TODO
+    "ANN201",  # missing-return-type-undocumented-public-function: TODO
+    "ARG002",  # unused-method-argument: TODO
+    "E501",    # line-too-long: TODO
+    "E731",    # lambda-assignment: TODO
+    "F541",    # f-string-missing-placeholders: TODO
+    "FBT002",  # boolean-default-value-positional-argument: TODO
+    "PTH112",  # os-path-isdir: TODO
+    "PTH119",  # os-path-basename: TODO
+    "RET505",  # superfluous-else-return: TODO
+]
+"utils/virtual_machine/virtual_machine_provisioner.py" = [
+    "ANN201",  # missing-return-type-undocumented-public-function: TODO
+    "E501",    # line-too-long: TODO
+    "FBT002",  # boolean-default-value-positional-argument: TODO
+    "S506",    # unsafe-yaml-load: TODO
+    "SIM401",  # if-else-block-instead-of-dict-get: TODO
+]
+"utils/virtual_machine/vm_logger.py" = [
+    "ANN201",  # missing-return-type-undocumented-public-function: TODO
+    "ARG001",  # unused-function-argument: TODO
+    "FBT002",  # boolean-default-value-positional-argument: TODO
+]
+"utils/waf_rules.py" = ["N801"]  # generated file

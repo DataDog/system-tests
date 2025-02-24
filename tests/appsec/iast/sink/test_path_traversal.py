@@ -3,7 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 from utils import context, missing_feature, features, weblog, rfc
-from ..utils import BaseSinkTest, validate_stack_traces
+from tests.appsec.iast.utils import BaseSinkTest, validate_extended_location_data, validate_stack_traces
 
 
 @features.iast_sink_path_traversal
@@ -48,3 +48,17 @@ class TestPathTraversal_StackTrace:
 
     def test_stack_trace(self):
         validate_stack_traces(self.r)
+
+
+@rfc("https://docs.google.com/document/d/1R8AIuQ9_rMHBPdChCb5jRwPrg1WvIz96c_WQ3y8DWk4")
+@features.iast_extended_location
+class TestPathTraversal_ExtendedLocation:
+    """Test extended location data"""
+
+    vulnerability_type = "PATH_TRAVERSAL"
+
+    def setup_extended_location_data(self):
+        self.r = weblog.post("/iast/path_traversal/test_insecure", data={"path": "/var/log"})
+
+    def test_extended_location_data(self):
+        validate_extended_location_data(self.r, self.vulnerability_type)

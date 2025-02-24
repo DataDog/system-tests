@@ -32,7 +32,11 @@ def get_iast_event(request):
 
 
 def assert_iast_vulnerability(
-    request, vulnerability_count=None, vulnerability_type=None, expected_location=None, expected_evidence=None
+    request,
+    vulnerability_count=None,
+    vulnerability_type=None,
+    expected_location=None,
+    expected_evidence=None,
 ):
     iast = get_iast_event(request=request)
     assert iast["vulnerabilities"], "Expected at least one vulnerability"
@@ -50,7 +54,7 @@ def assert_iast_vulnerability(
         assert len(vulns) == vulnerability_count
 
 
-def assert_metric(request, metric, expected):
+def assert_metric(request, metric, *, expected: bool):
     spans_checked = 0
     metric_available = False
     for data, trace, span in interfaces.library.get_spans(request):
@@ -85,9 +89,13 @@ def get_all_iast_events():
 
 
 def get_iast_sources(iast_events):
-    sources = [event.get("sources") for event in iast_events if event.get("sources")]
+    sources: list = []
+
+    for event in iast_events:
+        sources.extend(event.get("sources", []))
+
     assert sources, "No sources found"
-    sources = sum(sources, [])  # set all the sources in a single list
+
     return sources
 
 
@@ -172,7 +180,7 @@ class BaseSinkTestWithoutTelemetry:
         self.assert_no_iast_event(self.secure_request, self.vulnerability_type)
 
     @staticmethod
-    def assert_no_iast_event(request, tested_vulnerability_type=None):
+    def assert_no_iast_event(request, tested_vulnerability_type=None) -> None:
         assert request.status_code == 200, f"Request failed with status code {request.status_code}"
 
         for data, _, span in interfaces.library.get_spans(request=request):
@@ -195,19 +203,31 @@ def validate_stack_traces(request):
     assert spans, "No root span found"
     span = spans[0]
     meta = span.get("meta", {})
-    assert "_dd.iast.json" in meta, "No iast event in root span"
-    iast = meta["_dd.iast.json"]
+    meta_struct = span.get("meta_struct", {})
+    iast = meta.get("_dd.iast.json") or meta_struct.get("iast")
+    assert iast is not None, "No iast event in root span"
     assert iast["vulnerabilities"], "Expected at least one vulnerability"
 
-    stack_trace = span["meta_struct"]["_dd.stack"]["vulnerability"][0]
-    vulns = [i for i in iast["vulnerabilities"] if i["stackId"] == stack_trace["id"]]
-    assert len(vulns) == 1, "Expected a single vulnerability with the stack trace Id"
+    assert "meta_struct" in span, "'meta_struct' not found in span"
+    assert (
+        "_dd.stack" in span["meta_struct"]
+    ), "'_dd.stack' not found in 'meta_struct'. Please check if the test should be marked as irrelevant (not expected to have a stack trace)"
+    stack_traces = span["meta_struct"]["_dd.stack"]["vulnerability"]
+    stack_trace = stack_traces[0]
+    vulns = [
+        i for i in iast["vulnerabilities"] if i.get("location") and i["location"].get("stackId") == stack_trace["id"]
+    ]
+    assert (
+        len(vulns) >= 1
+    ), f"Expected at least one vulnerability per stack trace Id.\nVulnerabilities: {vulns}\nStack trace: {stack_traces}"
     vuln = vulns[0]
 
-    assert vuln["stackId"], "no 'stack_id's present'"
+    assert vuln["location"], "no 'location' present'"
+    assert vuln["location"]["stackId"], "no 'stack_id's present'"
+    assert isinstance(vuln["location"]["stackId"], str), "'stackId' is not a string"
     assert "meta_struct" in span, "'meta_struct' not found in span"
     assert "_dd.stack" in span["meta_struct"], "'_dd.stack' not found in 'meta_struct'"
-    assert "vulnerability" in span["meta_struct"]["_dd.stack"], "'exploit' not found in '_dd.stack'"
+    assert "vulnerability" in span["meta_struct"]["_dd.stack"], "'vulnerability' not found in '_dd.stack'"
 
     assert stack_trace, "No stack traces to validate"
 
@@ -222,32 +242,128 @@ def validate_stack_traces(request):
         "ruby",
     ), "unexpected language"
 
-    # Ensure the stack ID corresponds to an appsec event
+    # Ensure the stack ID corresponds to an iast event
     assert "id" in stack_trace, "'id' not found in stack trace"
     assert "frames" in stack_trace, "'frames' not found in stack trace"
     assert len(stack_trace["frames"]) <= 32, "stack trace above size limit (32 frames)"
 
-    # Vulns without location path are not expected to have a stack trace
+    # Vulns without location are not expected to have a stack trace
     location = vuln["location"]
-    assert location is not None and "path" in location, "This vulnerability is not expected to have a stack trace"
+    assert location is not None, "This vulnerability is not expected to have a stack trace"
 
     locationFrame = None
     for frame in stack_trace["frames"]:
         # We are looking for the frame that corresponds to the location of the vulnerability, we will need to update this to cover all tracers
         # currently support: Java, Python, Node.js
         if (
-            stack_trace["language"] == "java"
-            and (
-                location["path"] in frame["class_name"]
-                and location["method"] in frame["function"]
-                and location["line"] == frame["line"]
+            (
+                stack_trace["language"] == "java"
+                and (
+                    location["path"] in frame["class_name"]
+                    and location["method"] in frame["function"]
+                    and location["line"] == frame["line"]
+                )
             )
-        ) or (
-            stack_trace["language"] in ("python", "nodejs")
-            and (frame.get("file", "").endswith(location["path"]) and location["line"] == frame["line"])
+            or (
+                stack_trace["language"] == "nodejs"
+                and (frame.get("file", "").endswith(location["path"]) and location["line"] == frame["line"])
+            )
+            or (
+                stack_trace["language"] == "dotnet"
+                # we are not able to ensure that other fields are available in location
+                and (location["method"] in frame["function"])
+            )
+            or (
+                stack_trace["language"] == "python"
+                and (
+                    frame.get("file", "").endswith(location["path"])
+                    and location["line"] == frame["line"]
+                    and ("method" in location and location["method"] == frame["function"])
+                    # classes are not in Python stack traces and don't need to match the file so we
+                    # can't check them in Python vs the frame (and some previous versions doesn't have them)
+                    # and "class_name" in location
+                )
+            )
         ):
             locationFrame = frame
     assert locationFrame is not None, "location not found in stack trace"
+
+
+def validate_extended_location_data(request, vulnerability_type, is_expected_location_required=True):
+    spans = [span for _, span in interfaces.library.get_root_spans(request=request)]
+    assert spans, "No root span found"
+    span = spans[0]
+
+    iast = span.get("meta", {}).get("_dd.iast.json")
+    assert iast, "Expected at least one vulnerability"
+    assert iast["vulnerabilities"], "Expected at least one vulnerability"
+
+    # Filter by vulnerability
+    if vulnerability_type:
+        vulns = [v for v in iast["vulnerabilities"] if not vulnerability_type or v["type"] == vulnerability_type]
+        assert vulns, f"No vulnerability of type {vulnerability_type}"
+
+    if not is_expected_location_required:
+        return
+
+    vuln = vulns[0]
+    location = vuln["location"]
+
+    # Check extended data if stack trace exists
+    if "meta_struct" in span and "_dd.stack" in span["meta_struct"]:
+        assert "vulnerability" in span["meta_struct"]["_dd.stack"], "'exploit' not found in '_dd.stack'"
+        stack_trace = span["meta_struct"]["_dd.stack"]["vulnerability"][0]
+
+        assert "language" in stack_trace
+        assert stack_trace["language"] in (
+            "php",
+            "python",
+            "nodejs",
+            "java",
+            "dotnet",
+            "go",
+            "ruby",
+        ), "unexpected language"
+        assert "frames" in stack_trace
+
+        # Verify frame matches location
+        location_match = False
+        for frame in stack_trace["frames"]:
+            if (
+                frame.get("file", "").endswith(location["path"])
+                and location["line"] == frame["line"]
+                and location.get("class", "") == frame.get("class_name", "")
+                and location.get("method", "") == frame.get("function", "")
+            ):
+                location_match = True
+                break
+
+        assert location_match, "location not found in stack trace"
+    # Check extended data if on location if stack trace do not exists
+    else:
+        assert all(field in location for field in ["path", "line"])
+
+        if context.library.library not in ("python", "nodejs"):
+            assert all(field in location for field in ["class", "method"])
+
+
+def get_hardcoded_vulnerabilities(vulnerability_type):
+    spans = [s for _, s in interfaces.library.get_root_spans()]
+    assert spans, "No spans found"
+    spans_meta = [span.get("meta") for span in spans]
+    assert spans_meta, "No spans meta found"
+    iast_events = [meta.get("_dd.iast.json") for meta in spans_meta if meta.get("_dd.iast.json")]
+    assert iast_events, "No iast events found"
+
+    vulnerabilities: list = []
+    for event in iast_events:
+        vulnerabilities.extend(event.get("vulnerabilities", []))
+
+    assert vulnerabilities, "No vulnerabilities found"
+
+    hardcoded_vulns = [vuln for vuln in vulnerabilities if vuln.get("type") == vulnerability_type]
+    assert hardcoded_vulns, "No hardcoded vulnerabilities found"
+    return hardcoded_vulns
 
 
 class BaseSinkTest(BaseSinkTestWithoutTelemetry):
@@ -365,8 +481,7 @@ class BaseSourceTest:
 
     def get_sources(self, request):
         iast = get_iast_event(request=request)
-        sources = iast["sources"]
-        return sources
+        return iast["sources"]
 
     def validate_request_reported(self, request, source_type=None):
         if source_type is None:  # allow to overwrite source_type for parameter value node's use case
@@ -467,8 +582,17 @@ class BaseTestCookieNameFilter:
         self.req3 = weblog.post(self.endpoint, data={"cookieName": cookieName3, "cookieValue": "value3"})
 
     def test_cookie_name_filter(self):
-        assert_iast_vulnerability(request=self.req1, vulnerability_count=1, vulnerability_type=self.vulnerability_type)
-        assert_iast_vulnerability(request=self.req2, vulnerability_count=1, vulnerability_type=self.vulnerability_type)
+        assert_iast_vulnerability(
+            request=self.req1,
+            vulnerability_count=1,
+            vulnerability_type=self.vulnerability_type,
+        )
+        assert_iast_vulnerability(
+            request=self.req2,
+            vulnerability_count=1,
+            vulnerability_type=self.vulnerability_type,
+        )
 
         meta, meta_struct = _get_span_meta(self.req3)
-        assert "_dd.iast.json" not in meta and "iast" not in meta_struct, "No IAST info expected in span"
+        assert "_dd.iast.json" not in meta, "No IAST info expected in span"
+        assert "iast" not in meta_struct, "No IAST info expected in span"

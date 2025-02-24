@@ -185,7 +185,7 @@ elif [ "$TARGET" = "dotnet" ]; then
 elif [ "$TARGET" = "python" ]; then
     assert_version_is_dev
 
-    TARGET_BRANCH="${TARGET_BRANCH:-3.x-staging}"
+    TARGET_BRANCH="${TARGET_BRANCH:-main}"
     echo "git+https://github.com/DataDog/dd-trace-py.git@$TARGET_BRANCH" > python-load-from-pip
     echo "Using $(cat python-load-from-pip)"
 

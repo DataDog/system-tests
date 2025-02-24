@@ -3,7 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 from utils import features, scenarios
-from ..utils import BaseSourceTest
+from tests.appsec.iast.utils import BaseSourceTest
 
 
 @scenarios.graphql_appsec

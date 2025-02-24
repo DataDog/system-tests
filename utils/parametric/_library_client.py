@@ -174,7 +174,7 @@ class APMLibraryClient:
     def span_remove_all_baggage(self, span_id: int) -> None:
         self._session.post(self._url("/trace/span/remove_all_baggage"), json={"span_id": span_id})
 
-    def span_set_metric(self, span_id: int, key: str, value: float) -> None:
+    def span_set_metric(self, span_id: int, key: str, value: float | list[int]) -> None:
         self._session.post(self._url("/trace/span/set_metric"), json={"span_id": span_id, "key": key, "value": value})
 
     def span_set_error(self, span_id: int, typestr: str, message: str, stack: str) -> None:
@@ -319,6 +319,9 @@ class APMLibraryClient:
             "dd_trace_rate_limit": config_dict.get("dd_trace_rate_limit", None),
             "dd_dogstatsd_host": config_dict.get("dd_dogstatsd_host", None),
             "dd_dogstatsd_port": config_dict.get("dd_dogstatsd_port", None),
+            "dd_logs_injection": config_dict.get("dd_logs_injection", None),
+            "dd_profiling_enabled": config_dict.get("dd_profiling_enabled", None),
+            "dd_data_streams_enabled": config_dict.get("dd_data_streams_enabled", None),
         }
 
     def otel_current_span(self) -> SpanResponse | None:
@@ -342,7 +345,7 @@ class _TestSpan:
     def set_meta(self, key: str, val):
         self._client.span_set_meta(self.span_id, key, val)
 
-    def set_metric(self, key: str, val: float):
+    def set_metric(self, key: str, val: float | list[int]):
         self._client.span_set_metric(self.span_id, key, val)
 
     def set_baggage(self, key: str, val: str):

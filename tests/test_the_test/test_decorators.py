@@ -17,15 +17,15 @@ BASE_PATH = "tests/test_the_test/test_decorators.py"
 
 def is_skipped(item, reason):
     if not hasattr(item, "pytestmark"):
-        print(f"{item} has not pytestmark attribute")
+        logger.debug(f"{item} has not pytestmark attribute")
     else:
         for mark in item.pytestmark:
             if mark.name in ("skip", "xfail"):
                 if mark.kwargs["reason"] == reason:
-                    print(f"Found expected {mark} for {item}")
+                    logger.debug(f"Found expected {mark} for {item}")
                     return True
 
-                print(f"{item} is skipped, but reason is {mark.kwargs['reason']!r} io {reason!r}")
+                logger.debug(f"{item} is skipped, but reason is {mark.kwargs['reason']!r} io {reason!r}")
 
     raise Exception(f"{item} is not skipped, or not with the good reason")
 
@@ -44,7 +44,7 @@ class Logs(list):
         self.append(line)
 
     def __str__(self):
-        return "\n".join([l.strip() for l in self])
+        return "\n".join([line.strip() for line in self])
 
 
 logs = Logs()

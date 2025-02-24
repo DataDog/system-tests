@@ -5,7 +5,7 @@
 import tests.debugger.utils as debugger
 import os
 import re
-from utils import scenarios, features, bug, context, flaky
+from utils import scenarios, features, bug, context, flaky, irrelevant
 from utils.tools import logger
 
 
@@ -24,7 +24,7 @@ _timeout_next = 30
 
 @features.debugger_exception_replay
 @scenarios.debugger_exception_replay
-class Test_Debugger_Exception_Replay(debugger._Base_Debugger_Test):
+class Test_Debugger_Exception_Replay(debugger.Base_Debugger_Test):
     snapshots = {}
     spans = {}
 
@@ -153,7 +153,7 @@ class Test_Debugger_Exception_Replay(debugger._Base_Debugger_Test):
 
             return __scrub(value)
 
-        def __scrub_dotnet(key, value, parent):
+        def __scrub_dotnet(key, value, parent):  # noqa: ARG001
             if key == "Id":
                 return "<scrubbed>"
             elif key == "StackTrace" and isinstance(value, dict):
@@ -178,7 +178,7 @@ class Test_Debugger_Exception_Replay(debugger._Base_Debugger_Test):
                 return scrubbed
             return __scrub(value)
 
-        def __scrub_python(key, value, parent):
+        def __scrub_python(key, value, parent):  # noqa: ARG001
             if key == "@exception":
                 value["fields"] = "<scrubbed>"
                 return value
@@ -199,7 +199,7 @@ class Test_Debugger_Exception_Replay(debugger._Base_Debugger_Test):
                 return scrubbed
             return __scrub(value)
 
-        def __scrub_none(key, value, parent):
+        def __scrub_none(key, value, parent):  # noqa: ARG001
             return __scrub(value)
 
         scrub_language = None
@@ -310,11 +310,8 @@ class Test_Debugger_Exception_Replay(debugger._Base_Debugger_Test):
         helper_method = "exceptionReplayRecursionHelper"
 
         def get_frames(snapshot):
-            if self.get_tracer()["language"] == "dotnet":
-                return snapshot.get("captures", {}).get("return", {}).get("throwable", {}).get("stacktrace", [])
-
-            if self.get_tracer()["language"] == "java":
-                method = snapshot.get("probe", {}).get("location", {}).get("method", "")
+            if self.get_tracer()["language"] in ["java", "dotnet"]:
+                method = snapshot.get("probe", {}).get("location", {}).get("method", None)
                 if method:
                     return [{"function": method}]
 
@@ -325,14 +322,14 @@ class Test_Debugger_Exception_Replay(debugger._Base_Debugger_Test):
 
         def check_frames(frames):
             nonlocal found_top, found_lowest
+
             for frame in frames:
-                if isinstance(frame, dict) and "function" in frame:
-                    if entry_method in frame["function"]:
-                        found_top = True
-                    if helper_method in frame["function"]:
-                        found_lowest = True
-                    if found_top and found_lowest:
-                        break
+                if entry_method == frame["function"]:
+                    found_top = True
+                if helper_method == frame["function"]:
+                    found_lowest = True
+                if found_top and found_lowest:
+                    break
 
         for snapshot in snapshots:
             check_frames(get_frames(snapshot))
@@ -348,7 +345,7 @@ class Test_Debugger_Exception_Replay(debugger._Base_Debugger_Test):
     def setup_exception_replay_simple(self):
         self._setup("/exceptionreplay/simple", "simple exception")
 
-    @bug(context.library == "dotnet", reason="DEBUG-2799")
+    @bug(context.library < "dotnet@3.10.0", reason="DEBUG-2799")
     @bug(context.library == "python", reason="DEBUG-3257")
     @bug(context.library < "java@1.46.0", reason="DEBUG-3285")
     def test_exception_replay_simple(self):
@@ -358,7 +355,7 @@ class Test_Debugger_Exception_Replay(debugger._Base_Debugger_Test):
     def setup_exception_replay_recursion_3(self):
         self._setup("/exceptionreplay/recursion?depth=3", "recursion exception depth 3")
 
-    @bug(context.library == "dotnet", reason="DEBUG-2799, DEBUG-3283")
+    @bug(context.library < "dotnet@3.10.0", reason="DEBUG-2799")
     @bug(context.library == "python", reason="DEBUG-3257, DEBUG-3282")
     @bug(context.library < "java@1.46.0", reason="DEBUG-3285")
     def test_exception_replay_recursion_3(self):
@@ -368,7 +365,8 @@ class Test_Debugger_Exception_Replay(debugger._Base_Debugger_Test):
     def setup_exception_replay_recursion_5(self):
         self._setup("/exceptionreplay/recursion?depth=5", "recursion exception depth 5")
 
-    @bug(context.library == "dotnet", reason="DEBUG-2799, DEBUG-3283")
+    @bug(context.library < "dotnet@3.10.0", reason="DEBUG-2799")
+    @bug(context.library == "dotnet", reason="DEBUG-3283")
     @bug(context.library == "python", reason="DEBUG-3257, DEBUG-3282")
     @bug(context.library < "java@1.46.0", reason="DEBUG-3285")
     def test_exception_replay_recursion_5(self):
@@ -378,7 +376,8 @@ class Test_Debugger_Exception_Replay(debugger._Base_Debugger_Test):
     def setup_exception_replay_recursion_20(self):
         self._setup("/exceptionreplay/recursion?depth=20", "recursion exception depth 20")
 
-    @bug(context.library == "dotnet", reason="DEBUG-2799, DEBUG-3283")
+    @bug(context.library < "dotnet@3.10.0", reason="DEBUG-2799")
+    @bug(context.library == "dotnet", reason="DEBUG-3283")
     @bug(context.library == "python", reason="DEBUG-3257, DEBUG-3282")
     @bug(context.library < "java@1.46.0", reason="DEBUG-3285")
     @bug(context.library == "java", reason="DEBUG-3390")
@@ -386,11 +385,20 @@ class Test_Debugger_Exception_Replay(debugger._Base_Debugger_Test):
         self._assert("exception_replay_recursion_20", ["recursion exception depth 20"])
         self._validate_recursion_snapshots(self.snapshots, 10)
 
+    def setup_exception_replay_recursion_inlined(self):
+        self._setup("/exceptionreplay/recursion_inline?depth=4", "recursion exception depth 4")
+
+    @irrelevant(context.library != "dotnet", reason="Test for specific bug in dotnet")
+    @bug(context.library == "dotnet", reason="DEBUG-3447")
+    def test_exception_replay_recursion_inlined(self):
+        self._assert("exception_replay_recursion_4", ["recursion exception depth 4"])
+        self._validate_recursion_snapshots(self.snapshots, 4)
+
     ############ Inner ############
     def setup_exception_replay_inner(self):
         self._setup("/exceptionreplay/inner", "outer exception")
 
-    @bug(context.library == "dotnet", reason="DEBUG-2799")
+    @bug(context.library < "dotnet@3.10.0", reason="DEBUG-2799")
     @bug(context.library == "python", reason="DEBUG-3256, DEBUG-3257")
     @bug(context.library < "java@1.46.0", reason="DEBUG-3285")
     def test_exception_replay_inner(self):
@@ -420,7 +428,7 @@ class Test_Debugger_Exception_Replay(debugger._Base_Debugger_Test):
 
             retries += 1
 
-    @bug(context.library == "dotnet", reason="DEBUG-2799")
+    @bug(context.library < "dotnet@3.10.0", reason="DEBUG-2799")
     @bug(context.library == "python", reason="DEBUG-3257")
     @bug(context.library < "java@1.46.0", reason="DEBUG-3285")
     def test_exception_replay_rockpaperscissors(self):
@@ -430,7 +438,7 @@ class Test_Debugger_Exception_Replay(debugger._Base_Debugger_Test):
     def setup_exception_replay_multiframe(self):
         self._setup("/exceptionreplay/multiframe", "multiple stack frames exception")
 
-    @bug(context.library == "dotnet", reason="DEBUG-2799")
+    @bug(context.library < "dotnet@3.10.0", reason="DEBUG-2799")
     @bug(context.library == "python", reason="DEBUG-3257")
     @bug(context.library < "java@1.46.0", reason="DEBUG-3285")
     def test_exception_replay_multiframe(self):
@@ -440,7 +448,6 @@ class Test_Debugger_Exception_Replay(debugger._Base_Debugger_Test):
     def setup_exception_replay_async(self):
         self._setup("/exceptionreplay/async", "async exception")
 
-    @bug(context.library == "dotnet", reason="DEBUG-2799")
     @flaky(context.library == "dotnet", reason="DEBUG-3281")
     @bug(context.library == "python", reason="DEBUG-3257")
     @bug(context.library < "java@1.46.0", reason="DEBUG-3285")

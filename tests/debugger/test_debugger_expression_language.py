@@ -10,7 +10,7 @@ from utils import scenarios, features, bug, missing_feature, context
 
 @features.debugger_expression_language
 @scenarios.debugger_expression_language
-class Test_Debugger_Expression_Language(debugger._Base_Debugger_Test):
+class Test_Debugger_Expression_Language(debugger.Base_Debugger_Test):
     message_map = {}
 
     ############ setup ############
@@ -65,7 +65,7 @@ class Test_Debugger_Expression_Language(debugger._Base_Debugger_Test):
     def setup_expression_language_access_variables(self):
         language, method = self.get_tracer()["language"], "Expression"
         message_map, probes = self._create_expression_probes(
-            methodName=method,
+            method_name=method,
             expressions=[
                 ["Accessing input", "asd", Dsl("ref", "inputValue")],
                 ["Accessing local", 3, Dsl("ref", "localValue")],
@@ -92,7 +92,7 @@ class Test_Debugger_Expression_Language(debugger._Base_Debugger_Test):
                     Dsl("index", [Dsl("getmember", [Dsl("ref", "testStruct"), "Dictionary"]), "two"]),
                 ],
             ],
-            lines=self._method_and_language_to_line_number(method, language),
+            lines=self.method_and_language_to_line_number(method, language),
         )
 
         self.message_map = message_map
@@ -103,7 +103,7 @@ class Test_Debugger_Expression_Language(debugger._Base_Debugger_Test):
 
     def setup_expression_language_contextual_variables(self):
         message_map, probes = self._create_expression_probes(
-            methodName="Expression",
+            method_name="Expression",
             expressions=[
                 ["Accessing return", ".*Great success number 3", Dsl("ref", "@return")],
                 ["Accessing duration", r"\d+(\.\d+)?", Dsl("ref", "@duration")],
@@ -122,9 +122,9 @@ class Test_Debugger_Expression_Language(debugger._Base_Debugger_Test):
     def setup_expression_language_access_exception(self):
         language, method = self.get_tracer()["language"], "ExpressionException"
         message_map, probes = self._create_expression_probes(
-            methodName=method,
+            method_name=method,
             expressions=[["Accessing exception", ".*Hello from exception", Dsl("ref", "@exception")]],
-            lines=self._method_and_language_to_line_number(method, language),
+            lines=self.method_and_language_to_line_number(method, language),
         )
 
         self.message_map = message_map
@@ -137,7 +137,7 @@ class Test_Debugger_Expression_Language(debugger._Base_Debugger_Test):
     def setup_expression_language_comparison_operators(self):
         language, method = self.get_tracer()["language"], "ExpressionOperators"
         message_map, probes = self._create_expression_probes(
-            methodName=method,
+            method_name=method,
             expressions=[
                 ["intValue eq 5", True, Dsl("eq", [Dsl("ref", "intValue"), 5])],
                 ["intValue ne 0", True, Dsl("ne", [Dsl("ref", "intValue"), 0])],
@@ -187,7 +187,7 @@ class Test_Debugger_Expression_Language(debugger._Base_Debugger_Test):
                 ["strValue le a", False, Dsl("le", [Dsl("ref", "strValue"), "a"])],
                 ["strValue ge z", False, Dsl("ge", [Dsl("ref", "strValue"), "z"])],
             ],
-            lines=self._method_and_language_to_line_number(method, language),
+            lines=self.method_and_language_to_line_number(method, language),
         )
 
         self.message_map = message_map
@@ -200,7 +200,7 @@ class Test_Debugger_Expression_Language(debugger._Base_Debugger_Test):
     def setup_expression_language_instance_of(self):
         language, method = self.get_tracer()["language"], "ExpressionOperators"
         message_map, probes = self._create_expression_probes(
-            methodName=method,
+            method_name=method,
             expressions=[
                 ["intValue instanceof int", True, Dsl("instanceof", [Dsl("ref", "intValue"), self._get_type("int")])],
                 [
@@ -240,7 +240,7 @@ class Test_Debugger_Expression_Language(debugger._Base_Debugger_Test):
                 ],
                 ["pii instanceof string", False, Dsl("instanceof", [Dsl("ref", "pii"), self._get_type("string")])],
             ],
-            lines=self._method_and_language_to_line_number(method, language),
+            lines=self.method_and_language_to_line_number(method, language),
         )
 
         self.message_map = message_map
@@ -254,7 +254,7 @@ class Test_Debugger_Expression_Language(debugger._Base_Debugger_Test):
     def setup_expression_language_logical_operators(self):
         language, method = self.get_tracer()["language"], "ExpressionOperators"
         message_map, probes = self._create_expression_probes(
-            methodName=method,
+            method_name=method,
             expressions=[
                 [
                     "intValue eq 5 and strValue ne 5",
@@ -279,7 +279,7 @@ class Test_Debugger_Expression_Language(debugger._Base_Debugger_Test):
                 ],
                 ["not intValue eq 10", False, Dsl("not", Dsl("eq", [Dsl("ref", "intValue"), 5]))],
             ],
-            lines=self._method_and_language_to_line_number(method, language),
+            lines=self.method_and_language_to_line_number(method, language),
         )
 
         self.message_map = message_map
@@ -293,7 +293,7 @@ class Test_Debugger_Expression_Language(debugger._Base_Debugger_Test):
     def setup_expression_language_string_operations(self):
         language, method = self.get_tracer()["language"], "StringOperations"
         message_map, probes = self._create_expression_probes(
-            methodName=method,
+            method_name=method,
             expressions=[
                 ##### isempty
                 ["strValue isEmpty", False, Dsl("isEmpty", Dsl("ref", "strValue"))],
@@ -327,7 +327,7 @@ class Test_Debugger_Expression_Language(debugger._Base_Debugger_Test):
                 ["emptyString matches empty", True, Dsl("matches", [Dsl("ref", "emptyString"), ""])],
                 ["emptyString matches some", False, Dsl("matches", [Dsl("ref", "emptyString"), "foo"])],
             ],
-            lines=self._method_and_language_to_line_number(method, language),
+            lines=self.method_and_language_to_line_number(method, language),
         )
 
         self.message_map = message_map
@@ -345,7 +345,7 @@ class Test_Debugger_Expression_Language(debugger._Base_Debugger_Test):
     def setup_expression_language_collection_operations(self):
         language, method = self.get_tracer()["language"], "CollectionOperations"
         message_map, probes = self._create_expression_probes(
-            methodName=method,
+            method_name=method,
             expressions=[
                 ##### len
                 ["Array0 len", 0, Dsl("len", Dsl("ref", "a0"))],
@@ -403,7 +403,7 @@ class Test_Debugger_Expression_Language(debugger._Base_Debugger_Test):
                     Dsl("len", Dsl("filter", [Dsl("ref", "l5"), Dsl("lt", [Dsl("ref", "@it"), 2])])),
                 ],
             ],
-            lines=self._method_and_language_to_line_number(method, language),
+            lines=self.method_and_language_to_line_number(method, language),
         )
 
         self.message_map = message_map
@@ -416,7 +416,7 @@ class Test_Debugger_Expression_Language(debugger._Base_Debugger_Test):
     def setup_expression_language_hash_operations(self):
         language, method = self.get_tracer()["language"], "CollectionOperations"
         message_map, probes = self._create_expression_probes(
-            methodName=method,
+            method_name=method,
             expressions=[
                 ## at the app there are 3 types of collections are created - array, list and hash.
                 ## the number at the end of variable means the length of the collection
@@ -548,7 +548,7 @@ class Test_Debugger_Expression_Language(debugger._Base_Debugger_Test):
                     ),
                 ],
             ],
-            lines=self._method_and_language_to_line_number(method, language),
+            lines=self.method_and_language_to_line_number(method, language),
         )
 
         self.message_map = message_map
@@ -563,13 +563,13 @@ class Test_Debugger_Expression_Language(debugger._Base_Debugger_Test):
     def setup_expression_language_nulls_true(self):
         language, method = self.get_tracer()["language"], "Nulls"
         message_map, probes = self._create_expression_probes(
-            methodName=method,
+            method_name=method,
             expressions=[
                 ["intValue eq null", True, Dsl("eq", [Dsl("ref", "intValue"), None])],
                 ["strValue eq null", True, Dsl("eq", [Dsl("ref", "strValue"), None])],
                 ["pii eq null", True, Dsl("eq", [Dsl("ref", "pii"), None])],
             ],
-            lines=self._method_and_language_to_line_number(method, language),
+            lines=self.method_and_language_to_line_number(method, language),
         )
 
         self.message_map = message_map
@@ -582,13 +582,13 @@ class Test_Debugger_Expression_Language(debugger._Base_Debugger_Test):
     def setup_expression_language_nulls_false(self):
         language, method = self.get_tracer()["language"], "Nulls"
         message_map, probes = self._create_expression_probes(
-            methodName=method,
+            method_name=method,
             expressions=[
                 ["intValue eq null", False, Dsl("eq", [Dsl("ref", "intValue"), None])],
                 ["strValue eq null", False, Dsl("eq", [Dsl("ref", "strValue"), None])],
                 ["pii eq null", False, Dsl("eq", [Dsl("ref", "pii"), None])],
             ],
-            lines=self._method_and_language_to_line_number(method, language),
+            lines=self.method_and_language_to_line_number(method, language),
         )
 
         self.message_map = message_map
@@ -650,19 +650,7 @@ class Test_Debugger_Expression_Language(debugger._Base_Debugger_Test):
         else:
             return "value"
 
-    def _method_and_language_to_line_number(self, method, language):
-        """_method_and_language_to_line_number returns the respective line number given the method and language"""
-        return {
-            "Expression": {"java": [71], "dotnet": [74], "python": [72]},
-            # The `@exception` variable is not available in the context of line probes.
-            "ExpressionException": {},
-            "ExpressionOperators": {"java": [82], "dotnet": [90], "python": [87]},
-            "StringOperations": {"java": [87], "dotnet": [97], "python": [96]},
-            "CollectionOperations": {"java": [114], "dotnet": [114], "python": [123]},
-            "Nulls": {"java": [130], "dotnet": [127], "python": [136]},
-        }.get(method, {}).get(language, [])
-
-    def _create_expression_probes(self, methodName, expressions, lines=[]):
+    def _create_expression_probes(self, method_name, expressions, lines=()):
         probes = []
         expected_message_map = {}
         prob_types = ["method"]
@@ -684,7 +672,7 @@ class Test_Debugger_Expression_Language(debugger._Base_Debugger_Test):
                 probe = debugger.read_probes("expression_probe_base")[0]
                 probe["id"] = debugger.generate_probe_id("log")
                 if probe_type == "method":
-                    probe["where"]["methodName"] = methodName
+                    probe["where"]["methodName"] = method_name
                 if probe_type == "line":
                     del probe["where"]["methodName"]
                     probe["where"]["lines"] = lines

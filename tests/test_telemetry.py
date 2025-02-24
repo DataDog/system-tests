@@ -109,7 +109,7 @@ class Test_Telemetry:
         self.validate_agent_telemetry_data(header_presence_validator)
         self.validate_agent_telemetry_data(header_match_validator)
 
-    @irrelevant(True, reason="cgroup in weblog is 0::/, so this test can't work")
+    @irrelevant(condition=True, reason="cgroup in weblog is 0::/, so this test can't work")
     def test_telemetry_message_has_datadog_container_id(self):
         """Test telemetry messages contain datadog-container-id"""
         interfaces.agent.assert_headers_presence(
@@ -281,7 +281,7 @@ class Test_Telemetry:
                     )
 
         if len(self.library_requests) != 0:
-            for s, r in self.library_requests.keys():
+            for s, r in self.library_requests:
                 logger.error(f"seq_id: {s}, runtime_id: {r}")
 
             raise Exception("The following telemetry messages were not forwarded by the agent")
@@ -613,7 +613,7 @@ class Test_TelemetryV2:
             with open(f"tests/telemetry_intake/static/{filename}.json", encoding="utf-8") as fh:
                 return lowercase_obj(json.load(fh))
 
-        def get_all_keys_and_values(*objs):
+        def get_all_keys_and_values(*objs: tuple[None | dict | list, ...]) -> list:
             result = []
             for obj in objs:
                 if obj is not None:
@@ -702,6 +702,7 @@ class Test_ProductsDisabled:
         telemetry_data = interfaces.library.get_telemetry_data()
 
         for data in telemetry_data:
+            logger.debug(f"Checking {data['log_filename']}")
             data_found = True
 
             if get_request_type(data) != "app-started":
@@ -711,13 +712,20 @@ class Test_ProductsDisabled:
 
             payload = data["request"]["content"]["payload"]
 
-            assert (
-                "products" in payload
-            ), f"Product information was expected in app-started event, but was missing in {data['log_filename']}"
+            assert "products" in payload, "Product information was expected in app-started event, but was missing"
 
+            logger.debug(json.dumps(payload["products"], indent=2))
             for product, details in payload["products"].items():
+                if product == "tracers":
+                    # tracers is enabled, otherwise, nothing is reported to the agent
+                    # to be confirmed it's the good behaviour
+                    continue
+
                 assert (
-                    details.get("enabled") is False
+                    "enabled" in details
+                ), f"Product information expected to indicate {product} is disabled, but missing"
+                assert (
+                    details["enabled"] is False
                 ), f"Product information expected to indicate {product} is disabled, but found enabled"
 
         if not data_found:

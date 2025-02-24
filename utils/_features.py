@@ -2292,6 +2292,15 @@ class _Features:
         return test_object
 
     @staticmethod
+    def iast_extended_location(test_object):
+        """IAST: Extended location data
+
+        https://feature-parity.us1.prod.dog/#/?feature=364
+        """
+        pytest.mark.features(feature_id=364)(test_object)
+        return test_object
+
+    @staticmethod
     def djm_ssi_k8s(test_object):
         """Data Jobs Monitoring: Java lib auto instrumentation for Spark applications on K8s.
 
@@ -2382,6 +2391,24 @@ class _Features:
         return test_object
 
     @staticmethod
+    def debugger_probe_budgets(test_object):
+        """Probe Budgets
+
+        https://feature-parity.us1.prod.dog/#/?feature=368
+        """
+        pytest.mark.features(feature_id=368)(test_object)
+        return test_object
+
+    @staticmethod
+    def debugger_symdb(test_object):
+        """Probe Budgets
+
+        https://feature-parity.us1.prod.dog/#/?feature=370
+        """
+        pytest.mark.features(feature_id=370)(test_object)
+        return test_object
+
+    @staticmethod
     def otel_propagators_api(test_object):
         """OpenTelemetry Propagators API
 
@@ -2406,6 +2433,15 @@ class _Features:
         https://feature-parity.us1.prod.dog/#/?feature=366
         """
         pytest.mark.features(feature_id=366)(test_object)
+        return test_object
+
+    @staticmethod
+    def debugger_inproduct_enablement(test_object):
+        """Dynamically enable debugger products
+
+        https://feature-parity.us1.prod.dog/#/?feature=369
+        """
+        pytest.mark.features(feature_id=369)(test_object)
         return test_object
 
 

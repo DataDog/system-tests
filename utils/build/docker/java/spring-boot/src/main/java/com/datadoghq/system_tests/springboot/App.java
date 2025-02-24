@@ -74,6 +74,11 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
+import okhttp3.Headers;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
@@ -123,7 +128,6 @@ import static com.mongodb.client.model.Filters.eq;
 import static io.opentelemetry.api.trace.SpanKind.INTERNAL;
 import static io.opentelemetry.api.trace.StatusCode.ERROR;
 import static java.time.temporal.ChronoUnit.SECONDS;
-
 
 @RestController
 @EnableAutoConfiguration(exclude = R2dbcAutoConfiguration.class)
@@ -889,30 +893,34 @@ public class App {
 
     @RequestMapping("/make_distant_call")
     DistantCallResponse make_distant_call(@RequestParam String url) throws Exception {
-        URL urlObject = new URL(url);
+        HashMap<String, String> request_headers = new HashMap<>();
 
-        HttpURLConnection con = (HttpURLConnection) urlObject.openConnection();
-        con.setRequestMethod("GET");
-
-        // Save request headers
-        HashMap<String, String> request_headers = new HashMap<String, String>();
-        for (Map.Entry<String, List<String>> header: con.getRequestProperties().entrySet()) {
-            if (header.getKey() == null) {
-                continue;
+        OkHttpClient client = new OkHttpClient.Builder()
+        .addNetworkInterceptor(chain -> { // Save request headers
+            Request request = chain.request();
+            Response response = chain.proceed(request);
+            Headers finalHeaders = request.headers();
+            for (String name : finalHeaders.names()) {
+                request_headers.put(name, finalHeaders.get(name));
             }
 
-            request_headers.put(header.getKey(), header.getValue().get(0));
-        }
+            return response;
+        })
+        .build();
+
+        Request request = new Request.Builder()
+                .url(url)
+                .get()
+                .build();
+
+        Response response = client.newCall(request).execute();
 
         // Save response headers and status code
-        int status_code = con.getResponseCode();
+        int status_code = response.code();
         HashMap<String, String> response_headers = new HashMap<String, String>();
-        for (Map.Entry<String, List<String>> header: con.getHeaderFields().entrySet()) {
-            if (header.getKey() == null) {
-                continue;
-            }
-
-            response_headers.put(header.getKey(), header.getValue().get(0));
+        Headers headers = response.headers();
+        for (String name : headers.names()) {
+            response_headers.put(name, headers.get(name));
         }
 
         DistantCallResponse result = new DistantCallResponse();

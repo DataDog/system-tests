@@ -8,14 +8,27 @@ from threading import Timer
 
 
 class AutoInjectBaseTest:
-    def _test_install(self, virtual_machine, profile: bool = False):
+    def _test_install(self, virtual_machine, *, profile: bool = False):
+        """If there is a multicontainer app, we need to make a request to each app"""
+
+        if virtual_machine.get_deployed_weblog().app_type == "multicontainer":
+            for app in virtual_machine.get_deployed_weblog().multicontainer_apps:
+                vm_context_url = (
+                    f"http://{virtual_machine.get_ip()}:{virtual_machine.deffault_open_port}{app.app_context_url}"
+                )
+                self._check_install(virtual_machine, vm_context_url, profile=profile)
+
+        else:
+            vm_context_url = f"http://{virtual_machine.get_ip()}:{virtual_machine.deffault_open_port}{virtual_machine.get_deployed_weblog().app_context_url}"
+            self._check_install(virtual_machine, vm_context_url, profile=profile)
+
+    def _check_install(self, virtual_machine, vm_context_url, *, profile: bool = False):
         """We can easily install agent and lib injection software from agent installation script. Given a  sample application we can enable tracing using local environment variables.
         After starting application we can see application HTTP requests traces in the backend.
         Using the agent installation script we can install different versions of the software (release or beta) in different OS.
         """
         vm_ip = virtual_machine.get_ip()
         vm_port = virtual_machine.deffault_open_port
-        vm_context_url = f"http://{vm_ip}:{vm_port}{virtual_machine.get_deployed_weblog().app_context_url}"
         header = "----------------------------------------------------------------------"
         vm_logger(context.scenario.name, virtual_machine.name).info(
             f"{header} \n {header}  \n  Launching the install for VM: {virtual_machine.name}  \n {header} \n {header}"
@@ -27,8 +40,9 @@ class AutoInjectBaseTest:
             request_uuid = make_internal_get_request(virtual_machine.krunvm_config.stdin, vm_port)
         else:
             logger.info(f"Waiting for weblog available [{vm_ip}:{vm_port}]")
-            wait_for_port(vm_port, vm_ip, 80.0)
+            assert wait_for_port(vm_port, vm_ip, 80), "Weblog port not reachable. Is the weblog running?"
             logger.info(f"[{vm_ip}]: Weblog app is ready!")
+            logger.info(f"Making a request to weblog [{vm_context_url}]")
             warmup_weblog(vm_context_url)
             request_uuid = make_get_request(vm_context_url)
             logger.info(f"Http request done with uuid: [{request_uuid}] for ip [{vm_ip}]")
@@ -49,7 +63,7 @@ class AutoInjectBaseTest:
 
         command_with_env = f"{prefix_env} {command}"
 
-        with virtual_machine.ssh_config.get_ssh_connection() as ssh:
+        with virtual_machine.get_ssh_connection() as ssh:
             timeout = 120
 
             _, stdout, _ = ssh.exec_command(command_with_env, timeout=timeout + 5)
@@ -99,7 +113,7 @@ class AutoInjectBaseTest:
         logger.info(f"[Uninstall {virtual_machine.name}] Start app done")
 
         request_uuids = []
-        wait_for_port(vm_port, vm_ip, 40.0)
+        assert wait_for_port(vm_port, vm_ip, 40.0), "Weblog port not reachable. Is the weblog running?"
         responseJson = warmup_weblog(f"http://{vm_ip}:{vm_port}/")
         if responseJson is not None:
             logger.info(f"There is a multicontainer app: {responseJson}")
