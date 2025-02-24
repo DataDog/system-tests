@@ -151,6 +151,7 @@ def generate_gitlab_pipeline(
                 "allow_failure": False,
                 "needs": [],
                 "variables": {
+                    "FF_USE_NEW_BASH_EVAL_STRATEGY": "true",
                     "TEST_LIBRARY": language,
                     "SCENARIO": scenario_name,
                     "WEBLOG": weblog_name,
