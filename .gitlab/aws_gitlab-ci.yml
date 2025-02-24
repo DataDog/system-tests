@@ -14,15 +14,12 @@ ssi_tests:
 
 .base_docker_ssi_job: 
     image: registry.ddbuild.io/ci/libdatadog-build/system-tests:48436362
+    needs: []
     before_script: |
         export FP_IMPORT_URL=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.fp-import-url --with-decryption --query "Parameter.Value" --out text)
         export FP_API_KEY=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.fp-api-key --with-decryption --query "Parameter.Value" --out text)
-    rules:
-        - if: $PARENT_PIPELINE_SOURCE == "schedule"
-          when: always
-        - when: manual
-          allow_failure: True
     after_script: |
+        echo "FP_IMPORT_URL: ${FP_IMPORT_URL}"
         SCENARIO_SUFIX=$(echo "DOCKER_SSI" | tr "[:upper:]" "[:lower:]")
         REPORTS_PATH="reports/"
         mkdir -p "$REPORTS_PATH"
