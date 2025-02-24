@@ -94,17 +94,26 @@ def print_docker_ssi_gitlab_pipeline(language, docker_ssi_matrix, ci_environment
     # Create the jobs by scenario. Each job (vm) will have a parallel matrix with the weblogs
     for scenario, weblogs in docker_ssi_matrix.items():
         result_pipeline["stages"].append(scenario)
-
+        #print("............")
+        #print(weblogs)
+        #print("............")
         # Collect all unique VMs for this scenario
         vm_set = set()
         for images in weblogs.values():
+            
             for image in images:
-                print(next(iter(image)))
+                print("............")
+                unique_name = str(next(iter(image)) + "_" + image["arch"])
+                print(unique_name)
+                print("............")
                 vm_set.update(image)
             
             
             
         for vm in vm_set:
+            #print("-------------")
+            #print(vm)
+            #print("-------------")
             vm_job = vm + "." + scenarios_prefix_names[scenario]
             result_pipeline[vm_job] = {}
             result_pipeline[vm_job]["stage"] = scenario

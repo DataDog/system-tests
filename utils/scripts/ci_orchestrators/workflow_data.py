@@ -120,22 +120,15 @@ def get_docker_ssi_matrix(images_file, runtimes_file, docker_ssi_file, scenarios
                                         else:
                                             raise ValueError(f"Runtime {runtime_id} not found in the runtimes file")
 
-                                image_reference = next(
+                                image_reference,image_arch_reference = next(
                                     (
-                                        img["image"]
+                                        (img["image"],img["architecture"])
                                         for img in images["docker_ssi_images"]
                                         if img["name"] == supported_image["name"]
                                     ),
                                     None,
                                 )
-                                image_arch_reference = next(
-                                    (
-                                        img["architecture"]
-                                        for img in images["docker_ssi_images"]
-                                        if img["name"] == supported_image["name"]
-                                    ),
-                                    None,
-                                )
+
                                 if not image_reference:
                                     raise ValueError(f"Image {supported_image['name']} not found in the images file")
 
