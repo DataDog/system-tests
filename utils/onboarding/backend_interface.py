@@ -18,28 +18,36 @@ def wait_backend_trace_id(trace_id, profile: bool = False, validator=None):
 
 
 def _headers():
-    """The backned can raise a 429 error if the rate limit is reached. We can use several app keys trying to avoid the rate limit."""
-    # Get the mandatory API key
+    """The backend can raise a 429 error if the rate limit is reached.
+    We can use several app keys trying to avoid the rate limit.
+    """
+    # Retrieve the mandatory API and APP keys.
     api_key = os.getenv("DD_API_KEY_ONBOARDING")
+    app_key = os.getenv("DD_APP_KEY_ONBOARDING")
 
-    # Collect all possible application keys
-    app_keys = [
-        os.getenv("DD_APP_KEY_ONBOARDING")  # Mandatory key
-    ] + [
-        os.getenv(f"DD_APP_KEY_ONBOARDING_{i}")
-        for i in range(2, 10)  # Optional keys
-    ]
+    if not api_key or not app_key:
+        raise ValueError("Mandatory API or APP key is missing.")
 
-    # Filter out None values (keys that don't exist)
-    app_keys = [key for key in app_keys if key]
+    # Start with the mandatory pair.
+    pairs = [(api_key, app_key)]
 
-    logger.info(f"RMM - Using {len(app_keys)} application keys")
-    # Select one key randomly (uniform probability)
-    app_key = random.choice(app_keys)
+    # Check for additional numbered pairs.
+    index = 2
+    while True:
+        candidate_api = os.getenv(f"DD_API_KEY_ONBOARDING_{index}")
+        candidate_app = os.getenv(f"DD_APP_KEY_ONBOARDING_{index}")
+        if candidate_api and candidate_app:
+            pairs.append((candidate_api, candidate_app))
+            index += 1
+        else:
+            break
+
+    # Randomly select one of the available pairs.
+    chosen_api, chosen_app = random.choice(pairs)
 
     return {
-        "DD-API-KEY": api_key,
-        "DD-APPLICATION-KEY": app_key,
+        "DD-API-KEY": chosen_api,
+        "DD-APPLICATION-KEY": chosen_app,
     }
 
 
