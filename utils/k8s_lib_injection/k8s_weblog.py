@@ -22,10 +22,11 @@ class K8sWeblog:
         "ruby": [{"name": "RUBYOPT", "value": " -r/datadog-lib/auto_inject"}],
     }
 
-    def __init__(self, app_image, library, library_init_image, output_folder):
+    def __init__(self, app_image, library, library_init_image, injector_image, output_folder):
         self.app_image = app_image
         self.library = library
         self.library_init_image = library_init_image
+        self.injector_image = injector_image
         self.output_folder = output_folder
 
     def configure(self, k8s_cluster_info, weblog_env=None, dd_cluster_uds=None, service_account=None):
@@ -54,7 +55,10 @@ class K8sWeblog:
                 "tags.datadoghq.com/service": "my-app",
                 "tags.datadoghq.com/version": "local",
             },
-            annotations={f"admission.datadoghq.com/{library_lib}-lib.custom-image": f"{self.library_init_image}"},
+            annotations={
+                f"admission.datadoghq.com/{library_lib}-lib.custom-image": f"{self.library_init_image}",
+                "admission.datadoghq.com/apm-inject.custom-image": f"{self.injector_image}",
+            },
         )
 
         containers = []
@@ -111,67 +115,76 @@ class K8sWeblog:
         logger.info("[Deploy weblog] Weblog pod configuration done.")
         return pod_body
 
-    def install_weblog_pod_with_admission_controller(self, namespace="default"):
-        logger.info("[Deploy weblog] Installing weblog pod using admission controller")
-        pod_body = self._get_base_weblog_pod()
-        self.k8s_cluster_info.core_v1_api().create_namespaced_pod(namespace=namespace, body=pod_body)
-        logger.info("[Deploy weblog] Weblog pod using admission controller created. Waiting for it to be ready!")
-        self.wait_for_weblog_ready_by_label_app("my-app", namespace, timeout=200)
+    def install_weblog_pod(self, namespace="default"):
+        try:
+            logger.info("[Deploy weblog] Installing weblog pod using admission controller")
+            pod_body = self._get_base_weblog_pod()
+            self.k8s_cluster_info.core_v1_api().create_namespaced_pod(namespace=namespace, body=pod_body)
+            logger.info("[Deploy weblog] Weblog pod using admission controller created. Waiting for it to be ready!")
+            self.wait_for_weblog_ready_by_label_app("my-app", namespace, timeout=200)
+        except Exception as e:
+            logger.error(f"[Deploy weblog] Error installing weblog pod: {e}")
 
-    def install_weblog_pod_without_admission_controller(self, namespace="default"):
-        pod_body = self._get_base_weblog_pod()
-        pod_body.spec.init_containers = []
-        init_container1 = client.V1Container(
-            command=["sh", "copy-lib.sh", "/datadog-lib"],
-            name="datadog-tracer-init",
-            image=self.library_init_image,
-            image_pull_policy="Always",
-            termination_message_path="/dev/termination-log",
-            termination_message_policy="File",
-            volume_mounts=[client.V1VolumeMount(mount_path="/datadog-lib", name="datadog-auto-instrumentation")],
-        )
-        pod_body.spec.init_containers.append(init_container1)
-        pod_body.spec.containers[0].env.append(client.V1EnvVar(name="DD_LOGS_INJECTION", value="true"))
-        # Env vars for manual injection. Each library has its own env vars
-        for lang_env_vars in K8sWeblog.manual_injection_props["js" if self.library == "nodejs" else self.library]:
-            pod_body.spec.containers[0].env.append(
-                client.V1EnvVar(name=lang_env_vars["name"], value=lang_env_vars["value"])
+    def install_weblog_pod_with_manual_inject(self, namespace="default"):
+        """We do our own pod mutation to inject the library manually instead of using the admission controller"""
+        try:
+            pod_body = self._get_base_weblog_pod()
+            pod_body.spec.init_containers = []
+            init_container1 = client.V1Container(
+                command=["sh", "copy-lib.sh", "/datadog-lib"],
+                name="datadog-tracer-init",
+                image=self.library_init_image,
+                image_pull_policy="Always",
+                termination_message_path="/dev/termination-log",
+                termination_message_policy="File",
+                volume_mounts=[client.V1VolumeMount(mount_path="/datadog-lib", name="datadog-auto-instrumentation")],
             )
-        # Env vars for UDS or network
-        if self.dd_cluster_uds:
-            pod_body.spec.containers[0].env.append(
-                client.V1EnvVar(name="DD_TRACE_AGENT_URL", value="unix:///var/run/datadog/apm.socket")
-            )
-        else:
-            pod_body.spec.containers[0].env.append(
-                client.V1EnvVar(
-                    name="DD_AGENT_HOST",
-                    value_from=client.V1EnvVarSource(
-                        field_ref=client.V1ObjectFieldSelector(field_path="status.hostIP")
-                    ),
+            pod_body.spec.init_containers.append(init_container1)
+            pod_body.spec.containers[0].env.append(client.V1EnvVar(name="DD_LOGS_INJECTION", value="true"))
+            # Env vars for manual injection. Each library has its own env vars
+            for lang_env_vars in K8sWeblog.manual_injection_props["js" if self.library == "nodejs" else self.library]:
+                pod_body.spec.containers[0].env.append(
+                    client.V1EnvVar(name=lang_env_vars["name"], value=lang_env_vars["value"])
                 )
-            )
-        # Volume Mounts
-        volume_mounts = []
-        volume_mounts.append(client.V1VolumeMount(mount_path="/datadog-lib", name="datadog-auto-instrumentation"))
-        if self.dd_cluster_uds:
-            volume_mounts.append(client.V1VolumeMount(mount_path="/var/run/datadog", name="datadog"))
-        pod_body.spec.containers[0].volume_mounts = volume_mounts
+            # Env vars for UDS or network
+            if self.dd_cluster_uds:
+                pod_body.spec.containers[0].env.append(
+                    client.V1EnvVar(name="DD_TRACE_AGENT_URL", value="unix:///var/run/datadog/apm.socket")
+                )
+            else:
+                pod_body.spec.containers[0].env.append(
+                    client.V1EnvVar(
+                        name="DD_AGENT_HOST",
+                        value_from=client.V1EnvVarSource(
+                            field_ref=client.V1ObjectFieldSelector(field_path="status.hostIP")
+                        ),
+                    )
+                )
+            # Volume Mounts
+            volume_mounts = []
+            volume_mounts.append(client.V1VolumeMount(mount_path="/datadog-lib", name="datadog-auto-instrumentation"))
+            if self.dd_cluster_uds:
+                volume_mounts.append(client.V1VolumeMount(mount_path="/var/run/datadog", name="datadog"))
+            pod_body.spec.containers[0].volume_mounts = volume_mounts
 
-        # Volumes
-        volumes = []
-        volumes.append(client.V1Volume(name="datadog-auto-instrumentation", empty_dir=client.V1EmptyDirVolumeSource()))
-        if self.dd_cluster_uds:
+            # Volumes
+            volumes = []
             volumes.append(
-                client.V1Volume(
-                    name="datadog",
-                    host_path=client.V1HostPathVolumeSource(path="/var/run/datadog", type="DirectoryOrCreate"),
-                )
+                client.V1Volume(name="datadog-auto-instrumentation", empty_dir=client.V1EmptyDirVolumeSource())
             )
-        pod_body.spec.volumes = volumes
+            if self.dd_cluster_uds:
+                volumes.append(
+                    client.V1Volume(
+                        name="datadog",
+                        host_path=client.V1HostPathVolumeSource(path="/var/run/datadog", type="DirectoryOrCreate"),
+                    )
+                )
+            pod_body.spec.volumes = volumes
 
-        self.k8s_cluster_info.core_v1_api().create_namespaced_pod(namespace=namespace, body=pod_body)
-        self.wait_for_weblog_ready_by_label_app("my-app", namespace, timeout=200)
+            self.k8s_cluster_info.core_v1_api().create_namespaced_pod(namespace=namespace, body=pod_body)
+            self.wait_for_weblog_ready_by_label_app("my-app", namespace, timeout=200)
+        except Exception as e:
+            logger.error(f"[Deploy weblog with manual inject] Error installing weblog pod: {e}")
 
     def wait_for_weblog_ready_by_label_app(self, app_name, namespace, timeout=60):
         logger.info(

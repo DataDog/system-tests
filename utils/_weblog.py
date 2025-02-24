@@ -18,7 +18,7 @@ from utils.tools import logger
 import utils.grpc.weblog_pb2_grpc as grpcapi
 
 # monkey patching header validation in requests module, as we want to be able to send anything to weblog
-requests.utils._validate_header_part = lambda *args, **kwargs: None  # noqa: ARG005, SLF001
+requests.utils._validate_header_part = lambda *args, **kwargs: None  # type: ignore[attr-defined]  # noqa: ARG005, SLF001
 
 
 class ResponseEncoder(json.JSONEncoder):
@@ -49,9 +49,9 @@ class GrpcResponse:
 
 class HttpRequest:
     def __init__(self, data):
-        self.headers = CaseInsensitiveDict(data.get("headers", {}))
-        self.method = data["method"]
-        self.url = data["url"]
+        self.headers: CaseInsensitiveDict = CaseInsensitiveDict(data.get("headers", {}))
+        self.method: str = data["method"]
+        self.url: str = data["url"]
         self.params = data["params"]
 
     def __repr__(self) -> str:
@@ -63,7 +63,7 @@ class HttpResponse:
         self._data = data
         self.request = HttpRequest(data["request"])
         self.status_code = data["status_code"]
-        self.headers = CaseInsensitiveDict(data.get("headers", {}))
+        self.headers: CaseInsensitiveDict = CaseInsensitiveDict(data.get("headers", {}))
         self.text = data["text"]
         self.cookies = data["cookies"]
 
@@ -143,13 +143,9 @@ class _Weblog:
         else:
             url = self._get_url(path, domain, port)
 
-        response_data = {
-            "request": {"method": method, "url": url, "headers": headers, "params": params},
-            "status_code": None,
-            "headers": {},
-            "text": None,
-            "cookies": None,
-        }
+        status_code = None
+        response_headers: CaseInsensitiveDict = CaseInsensitiveDict()
+        text = None
 
         timeout = kwargs.pop("timeout", 5)
         try:
@@ -159,18 +155,25 @@ class _Weblog:
             logger.debug(f"Sending request {rid}: {method} {url}")
 
             s = requests.Session()
-            r = s.send(r, timeout=timeout, stream=stream, allow_redirects=allow_redirects)
-            response_data["status_code"] = r.status_code
-            response_data["headers"] = r.headers
-            response_data["text"] = r.text
-            response_data["cookies"] = requests.utils.dict_from_cookiejar(s.cookies)
+            response = s.send(r, timeout=timeout, stream=stream, allow_redirects=allow_redirects)
+            status_code = response.status_code
+            response_headers = response.headers
+            text = response.text
 
         except Exception as e:
             logger.error(f"Request {rid} raise an error: {e}")
         else:
-            logger.debug(f"Request {rid}: {r.status_code}")
+            logger.debug(f"Request {rid}: {response.status_code}")
 
-        return HttpResponse(response_data)
+        return HttpResponse(
+            {
+                "request": {"method": method, "url": url, "headers": headers, "params": params},
+                "status_code": status_code,
+                "headers": response_headers,
+                "text": text,
+                "cookies": requests.utils.dict_from_cookiejar(s.cookies),
+            }
+        )
 
     def warmup_request(self, domain=None, port=None, timeout=10):
         requests.get(self._get_url("/", domain, port), timeout=timeout)
@@ -206,25 +209,21 @@ class _Weblog:
 
         logger.debug(f"Sending grpc request {rid}")
 
-        request = pb.Value(string_value=string_value)  # pylint: disable=no-member
-
-        response_data = {
-            "request": {"rid": rid, "string_value": string_value},
-        }
+        request = pb.Value(string_value=string_value)
+        response_data = None
 
         try:
             if streaming:
                 for response in _grpc_client.ServerStream(request):
-                    response_data["response"] = response.string_value
+                    response_data = response.string_value
             else:
                 response = _grpc_client.Unary(request)
-                response_data["response"] = response.string_value
+                response_data = response.string_value
 
         except Exception as e:
             logger.error(f"Request {rid} raise an error: {e}")
-            response_data["response"] = None
 
-        return GrpcResponse(response_data)
+        return GrpcResponse({"request": {"rid": rid, "string_value": string_value}, "response": response_data})
 
 
 weblog = _Weblog()

@@ -2,8 +2,8 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, missing_feature, features, rfc, weblog
-from ..utils import BaseSinkTest, validate_stack_traces
+from utils import missing_feature, features, rfc, weblog
+from tests.appsec.iast.utils import BaseSinkTest, validate_extended_location_data, validate_stack_traces
 
 
 @features.iast_sink_insecure_auth_protocol
@@ -47,3 +47,22 @@ class Test_InsecureAuthProtocol_StackTrace:
     @missing_feature(library="java", reason="Not implemented yet")
     def test_stack_trace(self):
         validate_stack_traces(self.r)
+
+
+@rfc("https://docs.google.com/document/d/1R8AIuQ9_rMHBPdChCb5jRwPrg1WvIz96c_WQ3y8DWk4")
+@features.iast_extended_location
+class Test_InsecureAuthProtocol_ExtendedLocation:
+    """Test extended location data"""
+
+    vulnerability_type = "INSECURE_AUTH_PROTOCOL"
+
+    def setup_extended_location_data(self):
+        self.r = weblog.get(
+            "/iast/insecure-auth-protocol/test_insecure",
+            headers={
+                "Authorization": 'Digest username="WATERFORD", realm="Users", nonce="c5rcvu346qavqf3hnmsrnqj5up", uri="/api/partner/validate", response="57c8d9f11ec7a2f1ab13c5e166b2c505"'
+            },
+        )
+
+    def test_extended_location_data(self):
+        validate_extended_location_data(self.r, self.vulnerability_type)

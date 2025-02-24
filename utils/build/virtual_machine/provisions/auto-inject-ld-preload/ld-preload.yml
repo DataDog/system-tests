@@ -29,3 +29,7 @@
     gcc -Wall -fPIC -shared -o main.so main.c -ldl
     sudo mv main.so /usr/local/lib/
     sudo bash -c "echo /usr/local/lib/main.so >> /etc/ld.so.preload"
+
+- os_type: windows
+  remote-command: |
+    echo "TODO. Windows is not supported for chaos testing."

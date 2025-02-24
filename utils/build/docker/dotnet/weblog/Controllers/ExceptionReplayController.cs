@@ -22,7 +22,15 @@ namespace weblog
 
         [HttpGet("recursion")]
         [Consumes("application/json", "application/xml")]
+        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.NoInlining)]
         public IActionResult exceptionReplayRecursion(int depth)
+        {
+            return exceptionReplayRecursionHelper(depth, depth);
+        }
+
+        [HttpGet("recursion_inline")]
+        [Consumes("application/json", "application/xml")]
+        public IActionResult exceptionReplayRecursion_inline(int depth)
         {
             return exceptionReplayRecursionHelper(depth, depth);
         }

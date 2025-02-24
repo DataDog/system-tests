@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+### 2025-01 (179 PR merged)
+
+* 2025-01-20 [Deserialize JSON in multipart](https://github.com/DataDog/system-tests/pull/3854) by @cbeauchesne
+* 2025-01-14 [[python] add new python weblog: django-py3.13](https://github.com/DataDog/system-tests/pull/3798) by @christophe-papazian
+* 2025-01-09 [Removes CircleCI job](https://github.com/DataDog/system-tests/pull/3792) by @cbeauchesne
+* 2025-01-03 [Add an option that skip all tests if scenario contains only xfail/skip](https://github.com/DataDog/system-tests/pull/3768) by @cbeauchesne
+* 2025-01-27 [Try to get TARGET_BRANCH from PR's title](https://github.com/DataDog/system-tests/pull/3675) by @iunanua
+* 2025-01-30 [[golang] new orchestrion go weblog](https://github.com/DataDog/system-tests/pull/3555) by @eliottness
+* 2025-01-16 [Add tests for Service Extension (Envoy External Processing)](https://github.com/DataDog/system-tests/pull/3377) by @e-n-0
 
 ### 2024-12 (138 PR merged)
 

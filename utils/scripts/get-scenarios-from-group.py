@@ -3,7 +3,7 @@ import sys
 from utils._context._scenarios import get_all_scenarios, ScenarioGroup
 
 
-def main(group_name: str):
+def main(group_name: str) -> None:
     if group_name == "TRACER_ESSENTIAL_SCENARIOS":  # legacy
         group_name = "essentials"
 

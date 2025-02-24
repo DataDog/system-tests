@@ -62,12 +62,13 @@ def main():
     network = create_network()
 
     agent = AgentContainer(host_log_folder="logs_fuzzer", use_proxy=False)
-    agent.configure(False)
+    agent.configure(replay=False)
     agent.start(network)
 
     weblog = WeblogContainer(host_log_folder="logs_fuzzer", use_proxy=False)
-    weblog.configure(False)
+    weblog.configure(replay=False)
     weblog.start(network)
+    weblog.post_start()
 
     Fuzzer(
         corpus=args.corpus,

@@ -3,7 +3,7 @@
 import contextlib
 import time
 import urllib.parse
-from typing import TypedDict
+from typing import TypedDict, NotRequired
 from collections.abc import Generator
 
 from docker.models.containers import Container
@@ -35,7 +35,7 @@ class SpanResponse(TypedDict):
 
 class Link(TypedDict):
     parent_id: int
-    attributes: dict
+    attributes: NotRequired[dict]
 
 
 class Event(TypedDict):
@@ -49,6 +49,7 @@ class APMLibraryClient:
         self._base_url = url
         self._session = requests.Session()
         self.container = container
+        self.timeout = timeout
 
         # wait for server to start
         self._wait(timeout)
@@ -69,6 +70,10 @@ class APMLibraryClient:
             self._print_logs()
             message = f"Timeout of {timeout} seconds exceeded waiting for HTTP server to start. Please check logs."
             _fail(message)
+
+    def container_restart(self):
+        self.container.restart()
+        self._wait(self.timeout)
 
     def is_alive(self) -> bool:
         self.container.reload()
@@ -96,16 +101,16 @@ class APMLibraryClient:
 
     def container_exec_run(self, command: str) -> tuple[bool, str]:
         try:
-            code, (stdout, _) = self.container.exec_run(command, demux=True)
+            code, (stdout, stderr) = self.container.exec_run(command, demux=True)
             if code is None:
                 success = False
                 message = "Exit code from command in the parametric app container is None"
-            elif stdout is None:
+            elif stderr is not None or code != 0:
                 success = False
-                message = "Stdout from command in the parametric app container is None"
+                message = f"Error code {code}: {stderr.decode()}"
             else:
                 success = True
-                message = stdout.decode()
+                message = stdout.decode() if stdout is not None else ""
         except BaseException:
             return False, "Encountered an issue running command in the parametric app container"
 
@@ -116,7 +121,7 @@ class APMLibraryClient:
         name: str,
         service: str | None = None,
         resource: str | None = None,
-        parent_id: str | None = None,
+        parent_id: str | int | None = None,
         typestr: str | None = None,
         tags: list[tuple[str, str]] | None = None,
     ):
@@ -169,7 +174,7 @@ class APMLibraryClient:
     def span_remove_all_baggage(self, span_id: int) -> None:
         self._session.post(self._url("/trace/span/remove_all_baggage"), json={"span_id": span_id})
 
-    def span_set_metric(self, span_id: int, key: str, value: float) -> None:
+    def span_set_metric(self, span_id: int, key: str, value: float | list[int]) -> None:
         self._session.post(self._url("/trace/span/set_metric"), json={"span_id": span_id, "key": key, "value": value})
 
     def span_set_error(self, span_id: int, typestr: str, message: str, stack: str) -> None:
@@ -192,13 +197,13 @@ class APMLibraryClient:
 
     def span_get_baggage(self, span_id: int, key: str) -> str:
         resp = self._session.get(self._url("/trace/span/get_baggage"), json={"span_id": span_id, "key": key})
-        resp = resp.json()
-        return resp["baggage"]
+        data = resp.json()
+        return data["baggage"]
 
     def span_get_all_baggage(self, span_id: int) -> dict:
         resp = self._session.get(self._url("/trace/span/get_all_baggage"), json={"span_id": span_id})
-        resp = resp.json()
-        return resp["baggage"]
+        data = resp.json()
+        return data["baggage"]
 
     def trace_inject_headers(self, span_id):
         resp = self._session.post(self._url("/trace/span/inject_headers"), json={"span_id": span_id})
@@ -257,7 +262,7 @@ class APMLibraryClient:
             json={"span_id": span_id, "code": code.name, "description": description},
         )
 
-    def otel_add_event(self, span_id: int, name: str, timestamp: int, attributes) -> None:
+    def otel_add_event(self, span_id: int, name: str, timestamp: int | None, attributes) -> None:
         self._session.post(
             self._url("/trace/otel/add_event"),
             json={"span_id": span_id, "name": name, "timestamp": timestamp, "attributes": attributes},
@@ -291,8 +296,8 @@ class APMLibraryClient:
         resp = self._session.post(
             self._url("/trace/otel/otel_set_baggage"), json={"span_id": span_id, "key": key, "value": value}
         )
-        resp = resp.json()
-        return resp["value"]
+        data = resp.json()
+        return data["value"]
 
     def config(self) -> dict[str, str | None]:
         resp = self._session.get(self._url("/trace/config")).json()
@@ -314,6 +319,9 @@ class APMLibraryClient:
             "dd_trace_rate_limit": config_dict.get("dd_trace_rate_limit", None),
             "dd_dogstatsd_host": config_dict.get("dd_dogstatsd_host", None),
             "dd_dogstatsd_port": config_dict.get("dd_dogstatsd_port", None),
+            "dd_logs_injection": config_dict.get("dd_logs_injection", None),
+            "dd_profiling_enabled": config_dict.get("dd_profiling_enabled", None),
+            "dd_data_streams_enabled": config_dict.get("dd_data_streams_enabled", None),
         }
 
     def otel_current_span(self) -> SpanResponse | None:
@@ -337,7 +345,7 @@ class _TestSpan:
     def set_meta(self, key: str, val):
         self._client.span_set_meta(self.span_id, key, val)
 
-    def set_metric(self, key: str, val: float):
+    def set_metric(self, key: str, val: float | list[int]):
         self._client.span_set_metric(self.span_id, key, val)
 
     def set_baggage(self, key: str, val: str):
@@ -426,13 +434,16 @@ class APMLibrary:
     def container_exec_run(self, command: str) -> tuple[bool, str]:
         return self._client.container_exec_run(command)
 
+    def container_restart(self):
+        self._client.container_restart()
+
     @contextlib.contextmanager
     def dd_start_span(
         self,
         name: str,
         service: str | None = None,
         resource: str | None = None,
-        parent_id: str | None = None,
+        parent_id: str | int | None = None,
         typestr: str | None = None,
         tags: list[tuple[str, str]] | None = None,
     ) -> Generator[_TestSpan, None, None]:

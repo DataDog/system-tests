@@ -11,7 +11,6 @@ from utils import (
     context,
     interfaces,
     irrelevant,
-    missing_feature,
     rfc,
     scenarios,
     weblog,
@@ -22,13 +21,32 @@ from utils import (
 from utils.tools import logger
 
 
+@rfc("https://docs.google.com/document/d/1bUVtEpXNTkIGvLxzkNYCxQzP2X9EK9HMBLHWXr_5KLM/edit#heading=h.vy1jegxy7cuc")
+@features.remote_config_object_supported
+class Test_NoError:
+    """A library should apply with no error all remote config payload."""
+
+    def test_no_error(self):
+        def no_error(data):
+            config_states = (
+                data.get("request", {}).get("content", {}).get("client", {}).get("state", {}).get("config_states", {})
+            )
+
+            for state in config_states:
+                error = state.get("apply_error", None)
+                if error is not None:
+                    raise Exception(f"Error in remote config application: {error}")
+
+        interfaces.library.validate_remote_configuration(no_error, success_by_default=True)
+
+
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
 @features.remote_config_object_supported
 class RemoteConfigurationFieldsBasicTests:
     """Misc tests on fields and values on remote configuration requests"""
 
     @staticmethod
-    def response_has_been_overwritten(data):
+    def response_has_been_overwritten(data) -> bool:
         # For legacy API send_sequential_commands
         for name, _ in data["response"]["headers"]:
             if name == "st-proxy-overwrite-rc-response":
@@ -55,7 +73,7 @@ class RemoteConfigurationFieldsBasicTests:
 
 
 def dict_is_included(sub_dict: dict, main_dict: dict):
-    """returns true if every field/values in sub_dict are in main_dict"""
+    """Returns true if every field/values in sub_dict are in main_dict"""
 
     for key, value in sub_dict.items():
         if key not in main_dict or value != main_dict[key]:
@@ -65,8 +83,7 @@ def dict_is_included(sub_dict: dict, main_dict: dict):
 
 
 def dict_is_in_array(needle: dict, haystack: list, allow_additional_fields=True):
-    """
-    returns true is needle is contained in haystack.
+    """Returns true is needle is contained in haystack.
     If allow_additional_field is true, needle can contains less field than the one in haystack
     """
 
@@ -159,7 +176,7 @@ def rc_check_request(data, expected, caching):
                         raise ValidationError(f"{file} should not be in cached_target_files", extra_info=content)
     except Exception as e:
         e.args += (expected.get("test_description", "No description"),)
-        raise e
+        raise
 
 
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
@@ -187,7 +204,7 @@ class Test_RemoteConfigurationUpdateSequenceFeatures(RemoteConfigurationFieldsBa
     @bug(library="golang", reason="APPSEC-56064")
     @bug(context.library < "java@1.13.0", reason="APMRP-360")
     def test_tracer_update_sequence(self):
-        """test update sequence, based on a scenario mocked in the proxy"""
+        """Test update sequence, based on a scenario mocked in the proxy"""
 
         with open("tests/remote_config/rc_expected_requests_asm_features.json", encoding="utf-8") as f:
             ASM_FEATURES_EXPECTED_REQUESTS = json.load(f)
@@ -241,6 +258,8 @@ class Test_RemoteConfigurationExtraServices:
 
                 return False
 
+            return None
+
         interfaces.library.wait_for(remote_config_asm_extra_services_available, timeout=30)
 
     def test_tracer_extra_services(self):
@@ -283,11 +302,11 @@ class Test_RemoteConfigurationUpdateSequenceLiveDebugging(RemoteConfigurationFie
 
     @bug(context.library < "java@1.13.0", reason="APMRP-360")
     def test_tracer_update_sequence(self):
-        """test update sequence, based on a scenario mocked in the proxy"""
+        """Test update sequence, based on a scenario mocked in the proxy"""
 
         # Index the request number by runtime ID so that we can support applications
         # that spawns multiple worker processes, each running its own RCM client.
-        request_number = defaultdict(int)
+        request_number: dict = defaultdict(int)
 
         with open("tests/remote_config/rc_expected_requests_live_debugging.json", encoding="utf-8") as f:
             LIVE_DEBUGGING_EXPECTED_REQUESTS = json.load(f)
@@ -337,7 +356,7 @@ class Test_RemoteConfigurationUpdateSequenceASMDD(RemoteConfigurationFieldsBasic
     @bug(context.weblog_variant == "spring-boot-openliberty", reason="APPSEC-6721")
     @bug(context.library <= "java@1.12.1", reason="APMRP-360")
     def test_tracer_update_sequence(self):
-        """test update sequence, based on a scenario mocked in the proxy"""
+        """Test update sequence, based on a scenario mocked in the proxy"""
 
         self.assert_client_fields()
 
@@ -367,8 +386,7 @@ class Test_RemoteConfigurationUpdateSequenceASMDD(RemoteConfigurationFieldsBasic
 @scenarios.remote_config_mocked_backend_asm_features_nocache
 @features.appsec_onboarding
 class Test_RemoteConfigurationUpdateSequenceFeaturesNoCache(RemoteConfigurationFieldsBasicTests):
-    """
-    Tests that over a sequence of related updates, tracers follow the RFC for the Features product
+    """Tests that over a sequence of related updates, tracers follow the RFC for the Features product
     This test is not relevant for all tracers but C++ and ruby (missing feature). It may be never used
     if those languages directly implements  cache feature.
 
@@ -385,7 +403,7 @@ class Test_RemoteConfigurationUpdateSequenceFeaturesNoCache(RemoteConfigurationF
         remote_config.send_sequential_commands(payloads)
 
     def test_tracer_update_sequence(self):
-        """test update sequence, based on a scenario mocked in the proxy"""
+        """Test update sequence, based on a scenario mocked in the proxy"""
 
         with open("tests/remote_config/rc_expected_requests_asm_features.json", encoding="utf-8") as f:
             ASM_FEATURES_EXPECTED_REQUESTS = json.load(f)
@@ -430,7 +448,7 @@ class Test_RemoteConfigurationUpdateSequenceASMDDNoCache(RemoteConfigurationFiel
         remote_config.send_sequential_commands(payloads)
 
     def test_tracer_update_sequence(self):
-        """test update sequence, based on a scenario mocked in the proxy"""
+        """Test update sequence, based on a scenario mocked in the proxy"""
 
         self.assert_client_fields()
 

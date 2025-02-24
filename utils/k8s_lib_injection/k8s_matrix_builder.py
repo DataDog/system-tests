@@ -20,9 +20,11 @@ def generate_gitlab_pipeline(languages, env):
             # Select the job based on the language
             result_pipeline["k8s_" + language] = pipeline_data["k8s_" + language]
             result_pipeline["k8s_" + language]["variables"]["ONBOARDING_FILTER_ENV"] = env
-            # Select the libray init image based on the env
+
+            # Select the libray init image and the injector based on the env
             for matrix_item in result_pipeline["k8s_" + language]["parallel"]["matrix"]:
                 seleted_matrix_item = None
+                # Select the lib init image based on the env
                 for matrix_image_item in matrix_item["K8S_LIB_INIT_IMG"]:
                     if (
                         env is None
@@ -34,6 +36,22 @@ def generate_gitlab_pipeline(languages, env):
                 if seleted_matrix_item is None:
                     raise Exception(f"Image not found for language {language} and env {env}")
                 matrix_item["K8S_LIB_INIT_IMG"] = [seleted_matrix_item]
+
+                # Select the injector image based on the env (if exists)
+                if "K8S_INJECTOR_IMG" not in matrix_item:
+                    continue
+                for matrix_image_item in matrix_item["K8S_INJECTOR_IMG"]:
+                    if (
+                        env is None
+                        or (env == "prod" and matrix_image_item.endswith("latest"))
+                        or (env == "dev" and matrix_image_item.endswith("snapshot"))
+                    ):
+                        seleted_matrix_injector_item = matrix_image_item
+                        break
+                if seleted_matrix_injector_item is None:
+                    raise Exception(f"Injector Image not found for language {language} and env {env}")
+                matrix_item["K8S_INJECTOR_IMG"] = [seleted_matrix_injector_item]
+
         else:
             raise Exception(f"Language {language} not found in the pipeline file")
     return result_pipeline

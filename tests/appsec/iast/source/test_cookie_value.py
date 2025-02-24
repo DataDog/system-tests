@@ -2,8 +2,8 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, bug, missing_feature, features
-from ..utils import BaseSourceTest
+from utils import context, missing_feature, features
+from tests.appsec.iast.utils import BaseSourceTest
 
 
 @features.iast_source_cookie_value

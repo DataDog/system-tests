@@ -55,3 +55,42 @@
     sudo mkdir -p /etc/datadog-agent/inject
     sudo cp docker_config.yaml /etc/datadog-agent/inject/docker_config.yaml
     sudo cp debug_config.yaml /etc/datadog-agent/inject/debug_config.yaml
+
+- os_type: windows
+  remote-command: |
+    Set-ExecutionPolicy Bypass -Scope Process -Force;
+    [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072;
+    $env:DD_REMOTE_UPDATES = 'true'; # Needed?
+    $env:DD_SITE = "datadoghq.com";
+
+    if ($env:DD_env -eq "dev") {
+      $env:DD_INSTALLER_REGISTRY_URL = "install.datad0g.com";
+    }
+
+    # Environment variables for the installer
+    # $env:DD_APM_INSTRUMENTATION_ENABLED = "all";
+    $env:DD_APM_INSTRUMENTATION_LIBRARIES = $env:DD_LANG;
+    $env:DD_INSTALLER_DEFAULT_PKG_INSTALL_DATADOG_AGENT = $true;
+
+    if ($env:DD_INSTALLER_LIBRARY_VERSION) {
+      $DD_LANG = $env:DD_LANG.ToUpper()
+      Set-Item -Path "Env:DD_INSTALLER_REGISTRY_URL_APM_LIBRARY_${DD_LANG}_PACKAGE" -Value "installtesting.datad0g.com"
+      Set-Item -Path "Env:DD_INSTALLER_DEFAULT_PKG_VERSION_DATADOG_APM_LIBRARY_${DD_LANG}" -Value $env:DD_INSTALLER_LIBRARY_VERSION
+    }
+
+    # if ($env:DD_INSTALLER_INJECTOR_VERSION) {
+    #   $env:DD_INSTALLER_REGISTRY_URL_APM_INJECT_PACKAGE = "installtesting.datad0g.com";
+    #   $env:DD_INSTALLER_DEFAULT_PKG_VERSION_DATADOG_APM_INJECT = $env:DD_INSTALLER_INJECTOR_VERSION;
+    # }
+
+    if ($env:DD_INSTALLER_AGENT_VERSION) {
+      $env:DD_INSTALLER_REGISTRY_URL_AGENT_PACKAGE = "installtesting.datad0g.com";
+      $env:DD_INSTALLER_DEFAULT_PKG_VERSION_DATADOG_AGENT = $env:DD_INSTALLER_AGENT_VERSION;
+    }
+
+    if ($env:DD_INSTALLER_INSTALLER_VERSION) {
+      $env:DD_INSTALLER_REGISTRY_URL_INSTALLER_PACKAGE = "installtesting.datad0g.com";
+      $env:DD_INSTALLER_DEFAULT_PKG_VERSION_DATADOG_INSTALLER = $env:DD_INSTALLER_INSTALLER_VERSION;
+    }
+
+    iex ((New-Object System.Net.WebClient).DownloadString('https://s3.amazonaws.com/dd-agent-mstesting/Install-Datadog.ps1'));

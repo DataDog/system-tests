@@ -15,7 +15,8 @@ from utils.tools import logger
 @scenarios.docker_ssi
 class TestDockerSSICrash:
     """Test the ssi in a simulated host injection environment (docker container + test agent)
-    We test scenarios when the application crashes and sends a crash report."""
+    We test scenarios when the application crashes and sends a crash report.
+    """
 
     _r = None
 

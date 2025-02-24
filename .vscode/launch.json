@@ -115,6 +115,16 @@
             "python": "${workspaceFolder}/venv/bin/python"
         },
         {
+            "name": "Run SAMPLING scenario",
+            "type": "python",
+            "request": "launch",
+            "module": "pytest",
+            "args": ["-S", "SAMPLING", "-p", "no:warnings"],
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "python": "${workspaceFolder}/venv/bin/python"
+        },
+        {
             "name": "Replay SAMPLING scenario",
             "type": "python",
             "request": "launch",
@@ -150,6 +160,16 @@
             "request": "launch",
             "module": "pytest",
             "args": ["-S", "IPV6", "-p", "no:warnings"],
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "python": "${workspaceFolder}/venv/bin/python"
+        },
+        {
+            "name": "Replay APPSEC_STANDALONE scenario",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "pytest",
+            "args": ["-S", "APPSEC_STANDALONE", "-p", "no:warnings", "--replay"],
             "console": "integratedTerminal",
             "justMyCode": true,
             "python": "${workspaceFolder}/venv/bin/python"

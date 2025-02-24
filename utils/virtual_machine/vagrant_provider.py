@@ -14,31 +14,29 @@ from utils.virtual_machine.vm_logger import vm_logger
 class VagrantProvider(VmProvider):
     def __init__(self):
         super().__init__()
-        self.vagrant_machines = []
+        self.vagrant_machine = None
         self.commander = VagrantCommander()
 
     def stack_up(self):
-        for vm in self.vms:
-            logger.stdout(f"--------- Starting Vagrant VM: {vm.name} -----------")
-            log_cm = vagrant.make_file_cm(vm.get_default_log_file())
-            v = vagrant.Vagrant(root=vm.get_log_folder(), out_cm=log_cm, err_cm=log_cm)
-            v.init(box_name=vm.vagrant_config.box_name)
-            # TODO Support for different vagrant providers. Currently only support for qemu
-            self._set_vagrant_configuration(vm)
-            v.up(provider="qemu")
-            self.vagrant_machines.append(v)
-            env.hosts = [v.user_hostname_port()]
-            env.key_filename = v.keyfile()
-            env.disable_known_hosts = True
-            logger.info(f"VMs started: {v.user_hostname_port()} - {v.keyfile()}")
-            vm.set_ip(v.hostname())
-            vm.ssh_config.key_filename = v.keyfile()
-            vm.ssh_config.username = v.user()
+        logger.stdout(f"--------- Starting Vagrant VM: {self.vm.name} -----------")
+        log_cm = vagrant.make_file_cm(f"{context.scenario.host_log_folder}/virtual_machine_{self.name}.log")
+        self.vagrant_machine = vagrant.Vagrant(root=context.scenario.host_log_folder, out_cm=log_cm, err_cm=log_cm)
+        self.vagrant_machine.init(box_name=self.vm.vagrant_config.box_name)
+        # TODO Support for different vagrant providers. Currently only support for qemu
+        self._set_vagrant_configuration(self.vm)
+        self.vagrant_machine.up(provider="qemu")
+        env.hosts = [self.vagrant_machine.user_hostname_port()]
+        env.key_filename = self.vagrant_machine.keyfile()
+        env.disable_known_hosts = True
+        logger.info(f"VM started: {self.vagrant_machine.user_hostname_port()} - {self.vagrant_machine.keyfile()}")
+        self.vm.set_ip(self.vagrant_machine.hostname())
+        self.vm.ssh_config.key_filename = self.vagrant_machine.keyfile()
+        self.vm.ssh_config.username = self.vagrant_machine.user()
 
-            client = vm.ssh_config.get_ssh_connection()
+        client = self.vm.get_ssh_connection()
 
-            # Install provision on the started server
-            self.install_provision(vm, None, client)
+        # Install provision on the started server
+        self.install_provision(self.vm, None, client)
 
     def _set_vagrant_configuration(self, vm):
         """Makes some configuration on the vagrant files
@@ -46,7 +44,7 @@ class VagrantProvider(VmProvider):
         TODO Support for different vagrant providers. Currently only support for qemu
         """
 
-        conf_file_path = f"{vm.get_log_folder()}/Vagrantfile"
+        conf_file_path = f"{context.scenario.host_log_folder}/Vagrantfile"
         vm.ssh_config.port = self._get_open_port()
         vm.deffault_open_port = self._get_open_port()
         # qe_arch = "x86_64" if vm.os_cpu == "amd64" else "aarch64"
@@ -86,10 +84,9 @@ class VagrantProvider(VmProvider):
         return port
 
     def stack_destroy(self):
-        logger.info(f"Destroying VMs: {self.vms}")
+        logger.info(f"Destroying VM: {self.vm}")
 
-        for v in self.vagrant_machines:
-            v.destroy()
+        self.vagrant_machine.destroy()
 
 
 class VagrantCommander(Commander):

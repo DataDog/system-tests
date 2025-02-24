@@ -28,7 +28,7 @@ class _BackendInterfaceValidator(ProxyBasedInterfaceValidator):
         self.library_interface = library_interface
 
     @staticmethod
-    def _get_dd_site_api_host():
+    def _get_dd_site_api_host() -> str:
         # https://docs.datadoghq.com/getting_started/site/#access-the-datadog-site
         # DD_SITE => API HOST
         # datad0g.com       => dd.datad0g.com

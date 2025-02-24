@@ -2,6 +2,7 @@ require 'json'
 
 require 'datadog/kit/appsec/events'
 require 'kafka'
+require 'opentelemetry'
 
 class SystemTestController < ApplicationController
   skip_before_action :verify_authenticity_token
@@ -249,5 +250,49 @@ class SystemTestController < ApplicationController
       k.sub(/^HTTP_/, '').split('_').map(&:capitalize).join('-')
     end
     render json: JSON.generate(request_headers), content_type: 'application/json'
+  end
+
+  def otel_drop_in_default_propagator_extract
+    # The extract operation succeeds with a custom OpenTelemetry propagator, but not with the default one.
+    # To see this, uncomment the next line, and use that propagator to do the context extraction
+    # propagator = OpenTelemetry::Context::Propagation::CompositeTextMapPropagator.compose_propagators([OpenTelemetry::Trace::Propagation::TraceContext.text_map_propagator, OpenTelemetry::Baggage::Propagation.text_map_propagator])
+    context = OpenTelemetry.propagation.extract(request.headers)
+
+    span_context = OpenTelemetry::Trace.current_span(context).context
+    
+    baggage = OpenTelemetry::Baggage.raw_entries()
+    baggage_str = ""
+    baggage.each_pair do |key, value|
+      baggage_str << value << ','
+    end
+    baggage_str.chop!
+
+    result = {}
+    result["trace_id"] = span_context.hex_trace_id.from(16).to_i(16)
+    result["span_id"] = span_context.hex_span_id.to_i(16)
+    result["tracestate"] = span_context.tracestate.to_s
+    result["baggage"] = baggage_str
+
+    render json: JSON.generate(result), content_type: 'application/json'
+  end
+
+  def otel_drop_in_default_propagator_inject
+    headers = {}
+    OpenTelemetry.propagation.inject(headers)
+    render json: JSON.generate(headers), content_type: 'application/json'
+  end
+
+  def rasp_sqli
+    user_id = params[:user_id] || request.POST && request.POST['user_id']
+    if user_id
+      User.transaction do
+        # We need to manually create the query as User.where adds parenthesis around the user_id
+        query = "SELECT * FROM users WHERE id='#{user_id}'"
+        users = User.find_by_sql(query).to_a
+        render plain: "DB request with #{users.size} results"
+      end
+    else
+      render plain: 'users not found parameter', status: 400
+    end
   end
 end

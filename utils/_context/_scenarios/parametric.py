@@ -72,12 +72,12 @@ class APMLibraryTestServer:
     container_build_context: str = "."
 
     container_port: int = 8080
-    host_port: int = None  # Will be assigned by get_host_port()
+    host_port: int | None = None  # Will be assigned by get_host_port()
 
     env: dict[str, str] = dataclasses.field(default_factory=dict)
     volumes: dict[str, str] = dataclasses.field(default_factory=dict)
 
-    container: Container = None
+    container: Container | None = None
 
 
 class ParametricScenario(Scenario):
@@ -120,7 +120,7 @@ class ParametricScenario(Scenario):
             name,
             doc=doc,
             github_workflow="parametric",
-            scenario_groups=[ScenarioGroup.ALL, ScenarioGroup.PARAMETRIC, ScenarioGroup.PARAMETRIC],
+            scenario_groups=[ScenarioGroup.ALL, ScenarioGroup.TRACER_RELEASE],
         )
         self._parametric_tests_confs = ParametricScenario.PersistentParametricTestConf(self)
 
@@ -209,13 +209,13 @@ class ParametricScenario(Scenario):
     def weblog_variant(self):
         return f"parametric-{self.library.library}"
 
-    def _build_apm_test_server_image(self) -> str:
+    def _build_apm_test_server_image(self) -> None:
         logger.stdout("Build tested container...")
 
         apm_test_server_definition: APMLibraryTestServer = self.apm_test_server_definition
 
         log_path = f"{self.host_log_folder}/outputs/docker_build_log.log"
-        Path.mkdir(os.path.dirname(log_path), exist_ok=True, parents=True)
+        Path.mkdir(Path(log_path).parent, exist_ok=True, parents=True)
 
         # Write dockerfile to the build directory
         # Note that this needs to be done as the context cannot be
@@ -227,6 +227,10 @@ class ParametricScenario(Scenario):
         with open(log_path, "w+", encoding="utf-8") as log_file:
             # Build the container
             docker = shutil.which("docker")
+
+            if docker is None:
+                raise FileNotFoundError("Docker not found in PATH")
+
             root_path = ".."
             cmd = [
                 docker,
@@ -259,7 +263,6 @@ class ParametricScenario(Scenario):
                 check=False,
             )
 
-            failure_text: str = None
             if p.returncode != 0:
                 log_file.seek(0)
                 failure_text = "".join(log_file.readlines())
@@ -298,7 +301,7 @@ class ParametricScenario(Scenario):
         log_file: TextIO,
     ) -> Generator[Container, None, None]:
         # Convert volumes to the format expected by the docker-py API
-        fixed_volumes = {}
+        fixed_volumes: dict[str, dict] = {}
         for key, value in volumes.items():
             if isinstance(value, dict):
                 fixed_volumes[key] = value
@@ -378,7 +381,7 @@ def node_library_factory() -> APMLibraryTestServer:
         with open("./binaries/nodejs-load-from-local", encoding="utf-8") as f:
             path = f.read().strip(" \r\n")
             source = os.path.join(_get_base_directory(), path)
-            volumes[os.path.abspath(source)] = "/volumes/dd-trace-js"
+            volumes[str(Path(source).resolve())] = "/volumes/dd-trace-js"
     except FileNotFoundError:
         logger.info("No local dd-trace-js found, do not mount any volume")
 
@@ -422,7 +425,7 @@ def golang_library_factory():
         container_name="go-test-library",
         container_tag="go122-test-library",
         container_img=f"""
-FROM golang:1.22
+FROM golang:1.23
 
 # install jq
 RUN apt-get update && apt-get -y install jq

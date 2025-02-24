@@ -24,7 +24,7 @@ def flatten(obj, parent_key="", sep=".") -> list:
     return result
 
 
-def main():
+def main() -> None:
     data = requests.get("https://dd-feature-parity.azurewebsites.net/statistics", timeout=10)
     values = flatten(data.json())
 

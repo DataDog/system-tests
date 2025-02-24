@@ -44,9 +44,9 @@ class _Test_RabbitMQ:
                 if (
                     queue.lower() not in span.get("resource").lower()
                     and exchange.lower() not in span.get("resource").lower()
-                    and queue.lower() not in meta.get(f"rabbitmq.routing_key", "").lower()
+                    and queue.lower() not in meta.get("rabbitmq.routing_key", "").lower()
                     # this is where we find the queue name in dotnet 👇
-                    and queue.lower() not in meta.get(f"amqp.routing_key", "").lower()
+                    and queue.lower() not in meta.get("amqp.routing_key", "").lower()
                 ):
                     continue
 
@@ -57,8 +57,7 @@ class _Test_RabbitMQ:
         return None
 
     def setup_produce(self):
-        """
-        send request A to weblog : this request will produce a RabbitMQ message
+        """Send request A to weblog : this request will produce a RabbitMQ message
         send request B to library buddy, this request will consume RabbitMQ message
         """
 
@@ -121,8 +120,7 @@ class _Test_RabbitMQ:
         assert producer_span["trace_id"] == consumer_span["trace_id"]
 
     def setup_consume(self):
-        """
-        send request A to library buddy : this request will produce a RabbitMQ message
+        """Send request A to library buddy : this request will produce a RabbitMQ message
         send request B to weblog, this request will consume RabbitMQ message
 
         request A: GET /library_buddy/produce_rabbitmq_message
@@ -188,8 +186,7 @@ class _Test_RabbitMQ:
         assert producer_span["trace_id"] == consumer_span["trace_id"]
 
     def validate_rabbitmq_spans(self, producer_interface, consumer_interface, queue, exchange):
-        """
-        Validates production/consumption of RabbitMQ message.
+        """Validates production/consumption of RabbitMQ message.
         It works the same for both test_produce and test_consume
         """
 

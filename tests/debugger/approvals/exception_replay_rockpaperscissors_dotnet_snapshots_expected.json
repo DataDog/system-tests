@@ -77,7 +77,7 @@
       {
         "function": "weblog.ExceptionReplayController.ExceptionReplayRockPaperScissors",
         "fileName": "/app/ExceptionReplayController.cs",
-        "lineNumber": 75
+        "lineNumber": 83
       },
       {
         "function": "Datadog.Trace.ClrProfiler.AutoInstrumentation.AspNetCore.BlockingMiddleware+<Invoke><scrubbed>",
@@ -91,6 +91,9 @@
         "<runtime>": "<scrubbed>"
       }
     ],
+    "exceptionHash": "3f123b08-8c82-337a-9a28-125bd42e0eaf",
+    "exceptionId": "<scrubbed>",
+    "frameIndex": "0",
     "id": "<scrubbed>",
     "timestamp": "<scrubbed>",
     "duration": "<scrubbed>",
@@ -174,7 +177,7 @@
       {
         "function": "weblog.ExceptionReplayController.ExceptionReplayRockPaperScissors",
         "fileName": "/app/ExceptionReplayController.cs",
-        "lineNumber": 75
+        "lineNumber": 83
       },
       {
         "function": "Datadog.Trace.ClrProfiler.AutoInstrumentation.AspNetCore.BlockingMiddleware+<Invoke><scrubbed>",
@@ -188,6 +191,9 @@
         "<runtime>": "<scrubbed>"
       }
     ],
+    "exceptionHash": "e6882fa3-e986-3f7f-830f-322e1881ade5",
+    "exceptionId": "<scrubbed>",
+    "frameIndex": "0",
     "id": "<scrubbed>",
     "timestamp": "<scrubbed>",
     "duration": "<scrubbed>",
@@ -271,7 +277,7 @@
       {
         "function": "weblog.ExceptionReplayController.ExceptionReplayRockPaperScissors",
         "fileName": "/app/ExceptionReplayController.cs",
-        "lineNumber": 75
+        "lineNumber": 83
       },
       {
         "function": "Datadog.Trace.ClrProfiler.AutoInstrumentation.AspNetCore.BlockingMiddleware+<Invoke><scrubbed>",
@@ -285,6 +291,9 @@
         "<runtime>": "<scrubbed>"
       }
     ],
+    "exceptionHash": "71174315-56b8-3c4b-83db-90764540ceae",
+    "exceptionId": "<scrubbed>",
+    "frameIndex": "0",
     "id": "<scrubbed>",
     "timestamp": "<scrubbed>",
     "duration": "<scrubbed>",

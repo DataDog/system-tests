@@ -16,15 +16,25 @@ on:
         default: 'custom'
         required: false
         type: string
-      _experimental_job_count:
+      job_count:
         description: "How many job should be spawned for the parametric test"
         default: 1
         required: false
         type: number
-      _experimental_job_matrix:
+      job_matrix:
         # github action syntax is not very powerfull, it require a job to compute this.
         # => save on job, by asking the caller to compute this list
-        description: "Job matrix, JSON array of number from 1 to _experimental_job_count"
+        description: "Job matrix, JSON array of number from 1 to job_count"
+        default: '[1]'
+        required: false
+        type: string
+      _experimental_job_count:
+        description: "DEPRECATED"
+        default: 1
+        required: false
+        type: number
+      _experimental_job_matrix:
+        description: "DEPRECATED"
         default: '[1]'
         required: false
         type: string
@@ -39,7 +49,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        job_instance: ${{ fromJson( inputs._experimental_job_matrix ) }}
+        job_instance: ${{ fromJson( inputs.job_matrix ) }}
     env:
       SYSTEM_TESTS_REPORT_ENVIRONMENT: ${{ inputs.ci_environment }}
       SYSTEM_TESTS_REPORT_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
@@ -57,7 +67,7 @@ jobs:
           name: ${{ inputs.binaries_artifact }}
           path: binaries/
       - name: Run PARAMETRIC scenario
-        run: ./run.sh PARAMETRIC -L ${{ inputs.library }} --splits=${{ inputs._experimental_job_count }} --group=${{ matrix.job_instance }}
+        run: ./run.sh PARAMETRIC -L ${{ inputs.library }} --splits=${{ inputs.job_count }} --group=${{ matrix.job_instance }}
       - name: Compress logs
         id: compress_logs
         if: always()

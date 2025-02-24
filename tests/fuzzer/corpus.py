@@ -5,6 +5,7 @@
 import os
 import sys
 import json
+from pathlib import Path
 from tests.fuzzer.tools.random_strings import get_random_unicode as gru
 
 
@@ -23,8 +24,7 @@ def get_attack10_corpus():
 
 
 def get_big_requests_corpus():
-    """
-    Send huge requests.
+    """Send huge requests.
 
     Should be run with -c 1
     Need a better ouput to interrpret results...
@@ -136,7 +136,7 @@ def get_big_requests_corpus():
 
 def get_saved_corpus(source):
     if source is None:
-        source = os.path.dirname(os.path.realpath(__file__))
+        source = str(Path(os.path.realpath(__file__)).parent)
         source = os.path.join(source, "corpus")
 
     result = []
@@ -163,12 +163,12 @@ def get_saved_corpus(source):
                 _load_dir(os.path.join(base_dirname, dirname))
 
             for filename in filenames:
-                if filename.endswith(".json") or filename.endswith(".dump"):
+                if filename.endswith((".json", ".dump")):
                     _load_file(os.path.join(base_dirname, filename))
 
-    if os.path.isfile(source):
+    if Path(source).is_file():
         _load_file(source)
-    elif os.path.isdir(source):
+    elif Path(source).is_dir():
         _load_dir(source)
     else:
         raise ValueError(f"{source} is not a file or a dir")

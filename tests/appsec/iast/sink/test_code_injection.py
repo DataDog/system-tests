@@ -3,7 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 from utils import context, missing_feature, features, rfc, weblog
-from ..utils import BaseSinkTest, validate_stack_traces
+from tests.appsec.iast.utils import BaseSinkTest, validate_stack_traces, validate_extended_location_data
 
 
 @features.iast_sink_code_injection
@@ -19,7 +19,7 @@ class TestCodeInjection(BaseSinkTest):
         "nodejs": {"express4": "iast/index.js", "express4-typescript": "iast.ts", "express5": "iast/index.js"},
     }
 
-    @missing_feature(library="nodejs", reason="Instrumented metric not implemented")
+    @missing_feature(context.library < "nodejs@5.34.0")
     def test_telemetry_metric_instrumented_sink(self):
         super().test_telemetry_metric_instrumented_sink()
 
@@ -36,3 +36,17 @@ class TestCodeInjection_StackTrace:
 
     def test_stack_trace(self):
         validate_stack_traces(self.r)
+
+
+@rfc("https://docs.google.com/document/d/1R8AIuQ9_rMHBPdChCb5jRwPrg1WvIz96c_WQ3y8DWk4")
+@features.iast_extended_location
+class TestCodeInjection_ExtendedLocation:
+    """Test extended location data"""
+
+    vulnerability_type = "CODE_INJECTION"
+
+    def setup_extended_location_data(self):
+        self.r = weblog.post("/iast/code_injection/test_insecure", data={"code": "1+2"})
+
+    def test_extended_location_data(self):
+        validate_extended_location_data(self.r, self.vulnerability_type)

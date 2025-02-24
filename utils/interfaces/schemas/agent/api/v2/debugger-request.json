@@ -5,7 +5,7 @@
     "type": "object",
     "properties":{
       "content": {
-        "type": "array"
+        "type": ["array", "object"]
       }
     },
     "required": ["content"]

@@ -1,10 +1,10 @@
 import base64
 import json
-from black import format_str, FileMode
+from black import format_str, FileMode, FileContent
 from utils._remote_config import RemoteConfigCommand
 
 
-def from_payload(payload):
+def from_payload(payload) -> RemoteConfigCommand:
     targets = json.loads(base64.b64decode(payload["targets"]).decode("utf-8"))
 
     result = RemoteConfigCommand(version=targets["signed"]["version"], expires=targets["signed"]["expires"])
@@ -37,7 +37,7 @@ def from_payload(payload):
     return result
 
 
-def get_python_code(command: RemoteConfigCommand):
+def get_python_code(command: RemoteConfigCommand) -> FileContent:
     kwargs = {"version": command.version}
     if command.expires != RemoteConfigCommand.expires:
         kwargs["expires"] = command.expires
@@ -52,7 +52,7 @@ def get_python_code(command: RemoteConfigCommand):
     return format_str(result, mode=FileMode(line_length=120))
 
 
-def main(filename):
+def main(filename) -> None:
     with open(filename, encoding="utf-8") as f:
         data = json.load(f)
 

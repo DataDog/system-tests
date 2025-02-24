@@ -88,7 +88,7 @@ class _TestAgentInterfaceValidator(InterfaceValidator):
 
     def get_crash_reports(self):
         logger.debug("Try to find telemetry data related to crash reports")
-        crash_reports = []
+        crash_reports: list = []
 
         for t in self.get_telemetry_logs():
             payload = t["payload"]

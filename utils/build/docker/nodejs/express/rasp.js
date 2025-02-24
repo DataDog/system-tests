@@ -149,6 +149,22 @@ function initRaspEndpoints (app) {
 
     res.send(result)
   })
+
+  app.get('/rasp/multiple', (req, res) => {
+    try {
+      statSync(req.query.file1)
+    } catch (e) {}
+
+    try {
+      statSync(req.query.file2)
+    } catch (e) {}
+
+    try {
+      statSync('../etc/passwd')
+    } catch (e) {}
+
+    res.send('OK')
+  })
 }
 
 module.exports = initRaspEndpoints

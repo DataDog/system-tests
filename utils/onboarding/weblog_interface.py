@@ -1,6 +1,7 @@
 import time
 from random import randint
 import os
+from pathlib import Path
 import requests
 
 
@@ -56,7 +57,7 @@ while true; do
   sleep 1
 done"""
     script_name = "request_weblog.sh"
-    shared_folder = os.path.dirname(os.path.abspath(stdin_file))
+    shared_folder = Path(Path(stdin_file).resolve()).parent
 
     # Write the script in the shared folder
     with open(os.path.join(shared_folder, script_name), "w", encoding="utf-8") as file:
@@ -69,9 +70,9 @@ done"""
 
     # Wait for the script to finish
     start = time.time()
-    while os.stat(stdin_file).st_size != 0 and time.time() - start < (timeout + 5):
+    while Path(stdin_file).stat().st_size != 0 and time.time() - start < (timeout + 5):
         time.sleep(1)
-    if os.stat(stdin_file).st_size != 0:
+    if Path(stdin_file).stat().st_size != 0:
         raise TimeoutError("Timed out waiting for weblog ready")
 
     return generated_uuid

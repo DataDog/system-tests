@@ -17,9 +17,11 @@ TIMESTAMP_PATTERN = re.compile(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,9}
 class Test_Profile:
     """Basic testing of profiling"""
 
+    _is_set_up = False  # used to do the setup only once
+
     @staticmethod
-    def _common_setup():
-        if hasattr(Test_Profile, "_is_set_up"):
+    def _common_setup() -> None:
+        if Test_Profile._is_set_up:
             return
 
         Test_Profile._is_set_up = True
@@ -42,7 +44,7 @@ class Test_Profile:
         interfaces.agent.validate_profiling(self._validate_data)
 
     @staticmethod
-    def _validate_data(data):
+    def _validate_data(data) -> bool:
         content = data["request"]["content"]
 
         for part in content:

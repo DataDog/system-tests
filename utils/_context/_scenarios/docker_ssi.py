@@ -1,13 +1,14 @@
 import json
-import time
 import os
+import random
+import socket
+import time
 
 import docker
 from docker.errors import BuildError
 from docker.models.networks import Network
 
-import utils.tools
-from utils import context, interfaces
+from utils import interfaces
 from utils._context.library_version import LibraryVersion, Version
 from utils._context.containers import (
     create_network,
@@ -34,7 +35,7 @@ class DockerSSIScenario(Scenario):
 
         self._weblog_injection = DockerSSIContainer(host_log_folder=self.host_log_folder)
 
-        self.agent_port = utils.tools.get_free_port()
+        self.agent_port = _get_free_port()
         self.agent_host = "localhost"
         self._agent_container = APMTestAgentContainer(host_log_folder=self.host_log_folder, agent_port=self.agent_port)
 
@@ -89,6 +90,8 @@ class DockerSSIScenario(Scenario):
         #    3.1 Install the ssi to run the auto instrumentation (allway build using the ssi installer image buit in the step 2)
         #    3.2 Build the weblog image using the ssi image built in the step 3.1
         self.ssi_image_builder = DockerSSIImageBuilder(
+            self.name,
+            self.host_log_folder,
             self._base_weblog,
             self._base_image,
             self._library,
@@ -233,6 +236,8 @@ class DockerSSIImageBuilder:
 
     def __init__(
         self,
+        scenario_name,
+        host_log_folder,
         base_weblog,
         base_image,
         library,
@@ -244,6 +249,8 @@ class DockerSSIImageBuilder:
         custom_library_version,
         custom_injector_version,
     ) -> None:
+        self.scenario_name = scenario_name
+        self.host_log_folder = host_log_folder
         self._base_weblog = base_weblog
         self._base_image = base_image
         self._library = library
@@ -441,20 +448,44 @@ class DockerSSIImageBuilder:
 
     def print_docker_build_logs(self, image_tag, build_logs):
         """Print the docker build logs to docker_build.log file"""
-        scenario_name = context.scenario.name
-        vm_logger(scenario_name, "docker_build").info("***************************************************************")
-        vm_logger(scenario_name, "docker_build").info(f"    Building docker image with tag: {image_tag}   ")
-        vm_logger(scenario_name, "docker_build").info("***************************************************************")
+        vm_logger(self.scenario_name, "docker_build", log_folder=self.host_log_folder).info(
+            "***************************************************************"
+        )
+        vm_logger(self.scenario_name, "docker_build", log_folder=self.host_log_folder).info(
+            f"    Building docker image with tag: {image_tag}   "
+        )
+        vm_logger(self.scenario_name, "docker_build", log_folder=self.host_log_folder).info(
+            "***************************************************************"
+        )
 
         for chunk in build_logs:
             if "stream" in chunk:
                 for line in chunk["stream"].splitlines():
-                    vm_logger(scenario_name, "docker_build").info(line)
+                    vm_logger(self.scenario_name, "docker_build", log_folder=self.host_log_folder).info(line)
 
     def print_docker_push_logs(self, image_tag, push_logs):
         """Print the docker push logs to docker_push.log file"""
-        scenario_name = context.scenario.name
-        vm_logger(scenario_name, "docker_push").info("***************************************************************")
-        vm_logger(scenario_name, "docker_push").info(f"    Push docker image with tag: {image_tag}   ")
-        vm_logger(scenario_name, "docker_push").info("***************************************************************")
-        vm_logger(scenario_name, "docker_push").info(push_logs)
+        vm_logger(self.scenario_name, "docker_push", log_folder=self.host_log_folder).info(
+            "***************************************************************"
+        )
+        vm_logger(self.scenario_name, "docker_push", log_folder=self.host_log_folder).info(
+            f"    Push docker image with tag: {image_tag}   "
+        )
+        vm_logger(self.scenario_name, "docker_push", log_folder=self.host_log_folder).info(
+            "***************************************************************"
+        )
+        vm_logger(self.scenario_name, "docker_push", log_folder=self.host_log_folder).info(push_logs)
+
+
+def _get_free_port():
+    last_allowed_port = 32000
+    port = random.randint(1100, last_allowed_port - 600)
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    while port <= last_allowed_port:
+        try:
+            sock.bind(("", port))
+            sock.close()
+            return port
+        except OSError:
+            port += 1
+    raise OSError("no free ports")

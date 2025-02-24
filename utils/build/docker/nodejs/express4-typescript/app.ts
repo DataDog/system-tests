@@ -7,7 +7,6 @@ const tracer = require('dd-trace').init({ debug: true, flushInterval: 5000 });
 const { promisify } = require('util')
 const app = require('express')()
 const axios = require('axios')
-const passport = require('passport')
 const { Kafka } = require("kafkajs")
 const { spawnSync } = require('child_process')
 const crypto = require('crypto')
@@ -16,7 +15,6 @@ const multer = require('multer')
 const uploadToMemory = multer({ storage: multer.memoryStorage(), limits: { fileSize: 200000 } })
 
 const iast = require('./iast')
-const di = require('./debugger')
 
 iast.initData().catch(() => {})
 
@@ -27,10 +25,8 @@ app.use(require('cookie-parser')());
 
 iast.initMiddlewares(app)
 
-require('./auth')(app, passport, tracer)
+require('./auth')(app, tracer)
 iast.initRoutes(app)
-
-di.initRoutes(app)
 
 app.get('/', (req: Request, res: Response) => {
   console.log('Received a request');
@@ -163,6 +159,8 @@ app.get("/users", (req: Request, res: Response) => {
   } else {
     user.id = 'anonymous'
   }
+
+  tracer.setUser(user)
 
   const shouldBlock = tracer.appsec.isUserBlocked(user)
   if (shouldBlock) {
@@ -327,7 +325,7 @@ require('./rasp')(app)
 
 require('./graphql')(app).then(() => {
   app.listen(7777, '0.0.0.0', () => {
-    tracer.trace('init.service', () => { })
+    tracer.trace('init.service', () => {})
     console.log('listening')
   })
 })

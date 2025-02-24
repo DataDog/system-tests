@@ -49,7 +49,7 @@ class Test_Blocking_client_ip:
         self.rm_req_block = weblog.get(headers={"X-Forwarded-For": "1.1.1.1"})
 
     def test_blocking(self):
-        """can block the request forwarded for the ip"""
+        """Can block the request forwarded for the ip"""
 
         assert self.rm_req_block.status_code == 403
         interfaces.library.assert_waf_attack(self.rm_req_block, rule="blk-001-001")
@@ -75,7 +75,7 @@ class Test_Blocking_user_id:
         self.rm_req_block = weblog.get("/users", params={"user": "blockedUser"})
 
     def test_block_user(self):
-        """can block the request from the user"""
+        """Can block the request from the user"""
 
         assert self.rm_req_block.status_code == 403
         interfaces.library.assert_waf_attack(self.rm_req_block, rule="block-users")
@@ -483,7 +483,7 @@ class Test_Blocking_request_body_multipart:
         self.rbmp_req = weblog.post("/waf", files={"foo": (None, "bsldhkuqwgervf")})
 
     def test_blocking(self):
-        """can block on server.request.body (multipart/form-data variant)"""
+        """Can block on server.request.body (multipart/form-data variant)"""
 
         interfaces.library.assert_waf_attack(self.rbmp_req, rule="tst-037-004")
         assert self.rbmp_req.status_code == 403
@@ -544,7 +544,7 @@ class Test_Blocking_response_status:
         reason="The endpoint /finger_print is not implemented in the weblog",
     )
     def test_not_found(self):
-        """can block on server.response.status"""
+        """Can block on server.response.status"""
 
         interfaces.library.assert_waf_attack(self.rnf_req, rule="tst-037-010")
         assert self.rnf_req.status_code == 403
@@ -560,9 +560,9 @@ class Test_Blocking_response_headers:
 
     def setup_blocking(self):
         if not hasattr(self, "rm_req_block1") or self.rm_req_block1 is None:
-            self.rm_req_block1 = weblog.get(f"/tag_value/anything/200?content-language=fo-fo")
+            self.rm_req_block1 = weblog.get("/tag_value/anything/200?content-language=fo-fo")
         if not hasattr(self, "rm_req_block2") or self.rm_req_block2 is None:
-            self.rm_req_block2 = weblog.get(f"/tag_value/anything/200?content-language=krypton")
+            self.rm_req_block2 = weblog.get("/tag_value/anything/200?content-language=krypton")
 
     @missing_feature(
         context.scenario is scenarios.external_processing_blocking,
@@ -576,8 +576,8 @@ class Test_Blocking_response_headers:
 
     def setup_non_blocking(self):
         self.setup_blocking()
-        self.rm_req_nonblock1 = weblog.get(f"/tag_value/anything/200?content-color=fo-fo")
-        self.rm_req_nonblock2 = weblog.get(f"/tag_value/anything/200?content-language=fr")
+        self.rm_req_nonblock1 = weblog.get("/tag_value/anything/200?content-color=fo-fo")
+        self.rm_req_nonblock2 = weblog.get("/tag_value/anything/200?content-language=fr")
 
     @missing_feature(
         context.scenario is scenarios.external_processing_blocking,
@@ -598,7 +598,7 @@ class Test_Suspicious_Request_Blocking:
 
     def setup_blocking(self):
         self.rm_req_block = weblog.get(
-            f"/tag_value/malicious-path-cGDgSRJvklxGOKMTNfQMViBPpKAvpFoc_malicious-uri-ypMrmzrWATkLrPKLblvpRGGltBSgHWrK/200?attack=malicious-query-SAGihOkuSwXXFDXNqAWJzNuZEdKNunrJ",
+            "/tag_value/malicious-path-cGDgSRJvklxGOKMTNfQMViBPpKAvpFoc_malicious-uri-ypMrmzrWATkLrPKLblvpRGGltBSgHWrK/200?attack=malicious-query-SAGihOkuSwXXFDXNqAWJzNuZEdKNunrJ",
             cookies={"foo": "malicious-cookie-PwXuEQEdeAjzWpCDqAzPqiUAdXJMHwtS"},
             headers={"content-type": "text/plain", "client": "malicious-header-kCgvxrYeiwUSYkAuniuGktdvzXYEPSff"},
         )
@@ -607,6 +607,8 @@ class Test_Suspicious_Request_Blocking:
         context.library == "ruby" and context.weblog_variant == "rack",
         reason="Rack don't send anything to the server.request.path_params WAF address",
     )
+    @bug(weblog_variant="akka-http", reason="APPSEC-54985")
+    @bug(weblog_variant="spring-boot-payara", reason="APPSEC-54985")
     def test_blocking(self):
         """Test if requests that should be blocked are blocked"""
         assert self.rm_req_block.status_code == 403, self.rm_req_block.request.url
@@ -619,7 +621,7 @@ class Test_Suspicious_Request_Blocking:
             cookies={"foo": "malicious-cookie-PwXuEQEdeAjzWpCDqAzPqiUAdXJMHwtS"},
         )
         self.block_req2 = weblog.get(
-            f"/tag_value/malicious-path-cGDgSRJvklxGOKMTNfQMViBPpKAvpFoc_malicious-uri-ypMrmzrWATkLrPKLblvpRGGltBSgHWrK/200?attack=malicious-query-SAGihOkuSwXXFDXNqAWJzNuZEdKNunrJ",
+            "/tag_value/malicious-path-cGDgSRJvklxGOKMTNfQMViBPpKAvpFoc_malicious-uri-ypMrmzrWATkLrPKLblvpRGGltBSgHWrK/200?attack=malicious-query-SAGihOkuSwXXFDXNqAWJzNuZEdKNunrJ",
             cookies={"foo": "malicious-cookie-PwXuEQEdeAjzWpCDqAzPqiUAdXJMHwtS"},
             headers={"content-type": "text/plain", "client": "malicious-header-kCgvxrYeiwUSYkAuniuGktdvzXYEPSff"},
         )
@@ -628,6 +630,8 @@ class Test_Suspicious_Request_Blocking:
         context.library == "ruby" and context.weblog_variant == "rack",
         reason="Rack don't send anything to the server.request.path_params WAF address",
     )
+    @bug(weblog_variant="akka-http", reason="APPSEC-54985")
+    @bug(weblog_variant="spring-boot-payara", reason="APPSEC-54985")
     def test_blocking_before(self):
         """Test that blocked requests are blocked before being processed"""
         # first request should not block and must set the tag in span accordingly
@@ -642,7 +646,7 @@ class Test_Suspicious_Request_Blocking:
 
     def setup_blocking_without_path_params(self):
         self.rm_req_block = weblog.get(
-            f"/tag_value/path_param_malicious-uri-wX1GdUiWdVdoklf0pYBi5kQApO9i77tN/200?attack=malicious-query-T3d1nKdkTWIG03q03ix9c9UlhbGigvwQ",
+            "/tag_value/path_param_malicious-uri-wX1GdUiWdVdoklf0pYBi5kQApO9i77tN/200?attack=malicious-query-T3d1nKdkTWIG03q03ix9c9UlhbGigvwQ",
             cookies={"foo": "malicious-cookie-qU4sV2r6ac2nfETV7aJP9Fdt1NaWC9wB"},
             headers={"content-type": "text/plain", "client": "malicious-header-siDzyETAdkvKahD3PxlvIqcE0fMIVywE"},
         )
@@ -659,7 +663,7 @@ class Test_Suspicious_Request_Blocking:
             cookies={"foo": "malicious-cookie-qU4sV2r6ac2nfETV7aJP9Fdt1NaWC9wB"},
         )
         self.block_req2 = weblog.get(
-            f"/tag_value/path_param_malicious-uri-wX1GdUiWdVdoklf0pYBi5kQApO9i77tN/200?attack=malicious-query-T3d1nKdkTWIG03q03ix9c9UlhbGigvwQ",
+            "/tag_value/path_param_malicious-uri-wX1GdUiWdVdoklf0pYBi5kQApO9i77tN/200?attack=malicious-query-T3d1nKdkTWIG03q03ix9c9UlhbGigvwQ",
             cookies={"foo": "malicious-cookie-qU4sV2r6ac2nfETV7aJP9Fdt1NaWC9wB"},
             headers={"content-type": "text/plain", "client": "malicious-header-siDzyETAdkvKahD3PxlvIqcE0fMIVywE"},
         )
@@ -697,11 +701,10 @@ class Test_BlockingGraphqlResolvers:
             ),
         )
 
+    @bug(context.library < "ruby@2.10.0-dev", reason="APPSEC-56464")
     def test_request_block_attack(self):
-        assert self.r_attack.status_code == (
-            # We don't change the status code in Ruby
-            200 if context.library == "ruby" else 403
-        )
+        assert self.r_attack.status_code == 403
+
         for _, span in interfaces.library.get_root_spans(request=self.r_attack):
             meta = span.get("meta", {})
             meta_struct = span.get("meta_struct", {})
@@ -737,12 +740,10 @@ class Test_BlockingGraphqlResolvers:
             ),
         )
 
+    @bug(context.library < "ruby@2.10.0-dev", reason="APPSEC-56464")
     def test_request_block_attack_directive(self):
-        # We don't change the status code
-        assert self.r_attack.status_code == (
-            # We don't change the status code in Ruby
-            200 if context.library == "ruby" else 403
-        )
+        assert self.r_attack.status_code == 403
+
         for _, span in interfaces.library.get_root_spans(request=self.r_attack):
             meta = span.get("meta", {})
             meta_struct = span.get("meta_struct", {})

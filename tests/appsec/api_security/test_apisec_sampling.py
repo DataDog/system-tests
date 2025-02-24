@@ -1,5 +1,4 @@
 from utils import (
-    bug,
     context,
     features,
     interfaces,
@@ -16,13 +15,13 @@ import time
 
 
 def get_schema(request, address):
-    """get api security schema from spans"""
+    """Get api security schema from spans"""
     for _, _, span in interfaces.library.get_spans(request):
         meta = span.get("meta", {})
         payload = meta.get("_dd.appsec.s." + address)
         if payload is not None:
             return payload
-    return
+    return None
 
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
@@ -45,7 +44,7 @@ class Test_API_Security_Sampling_Rate:
         context.library not in ("nodejs", "python"), reason="New sampling algorithm tests have been implemented"
     )
     def test_sampling_rate(self):
-        """can provide request header schema"""
+        """Can provide request header schema"""
         N = self.N
         assert all(r.status_code == 200 for r in self.all_requests)
         s = sum(get_schema(r, "req.headers") is not None for r in self.all_requests)
@@ -117,7 +116,7 @@ class Test_API_Security_Sampling_Different_Status:
         self.all_requests = [weblog.get("/api_security/sampling/201") for _ in range(10)]
 
     def test_sampling_delay(self):
-        """can provide request header schema"""
+        """Can provide request header schema"""
 
         assert self.request1.status_code == 200
         schema1 = get_schema(self.request1, "req.headers")
@@ -146,7 +145,7 @@ class Test_API_Security_Sampling_With_Delay:
         self.request3 = weblog.get("/api_security_sampling/30")
 
     def test_sampling_delay(self):
-        """can provide request header schema"""
+        """Can provide request header schema"""
 
         assert self.request1.status_code == 200
         assert self.request2.status_code == 200

@@ -9,16 +9,17 @@ class Pii(PiiBase):
     def __init__(self):
         super().__init__()
         self._2fa = self.VALUE
-        self.accesstoken = self.VALUE
-        self.access_token = self.VALUE
+        self.ACCESSTOKEN = self.VALUE
+        self.AccessToken = self.VALUE
         self.Access_Token = self.VALUE
         self.accessToken = self.VALUE
-        self.AccessToken = self.VALUE
-        self.ACCESSTOKEN = self.VALUE
+        self.access_token = self.VALUE
+        self.accesstoken = self.VALUE
         self.aiohttpsession = self.VALUE
         self.apikey = self.VALUE
         self.apisecret = self.VALUE
         self.apisignature = self.VALUE
+        self.appkey = self.VALUE
         self.applicationkey = self.VALUE
         self.auth = self.VALUE
         self.authorization = self.VALUE
@@ -40,7 +41,6 @@ class Pii(PiiBase):
         self.dburl = self.VALUE
         self.encryptionkey = self.VALUE
         self.encryptionkeyid = self.VALUE
-        self.env = self.VALUE
         self.geolocation = self.VALUE
         self.gpgkey = self.VALUE
         self.ipaddress = self.VALUE

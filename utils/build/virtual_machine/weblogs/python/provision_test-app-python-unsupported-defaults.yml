@@ -46,7 +46,6 @@ lang_variant:
 
 weblog:
     name: test-app-python-unsupported-defaults
-    exact_os_branches: [RedHat_8_6_arm64, RedHat_8_6_amd64, centos_7_amd64, centos_8_amd64, rhel_7_amd64]
     install:
       - os_type: linux
 

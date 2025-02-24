@@ -4,7 +4,7 @@ import dictdiffer
 
 
 # Validates the JSON logs from backend and returns the OTel log trace attributes
-def validate_metrics(metrics_1: list[dict], metrics_2: list[dict], metrics_source1: str, metrics_source2: str):
+def validate_metrics(metrics_1: list[dict], metrics_2: list[dict], metrics_source1: str, metrics_source2: str) -> None:
     diff = list(dictdiffer.diff(metrics_1[0], metrics_2[0]))
     assert len(diff) == 0, f"Diff between count metrics from {metrics_source1} vs. from {metrics_source2}: {diff}"
     validate_example_counter(metrics_1[0])
@@ -18,7 +18,7 @@ def validate_metrics(metrics_1: list[dict], metrics_2: list[dict], metrics_sourc
         idx += 1
 
 
-def validate_example_counter(counter_metric: dict):
+def validate_example_counter(counter_metric: dict) -> None:
     assert len(counter_metric["series"]) == 1
     counter_series = counter_metric["series"][0]
     assert counter_series["metric"] == "example.counter"
@@ -27,7 +27,7 @@ def validate_example_counter(counter_metric: dict):
     assert counter_series["pointlist"][0][1] == 11.0
 
 
-def validate_example_histogram(histogram_metric: dict, histogram_suffix: str):
+def validate_example_histogram(histogram_metric: dict, histogram_suffix: str) -> None:
     assert len(histogram_metric["series"]) == 1
     histogram_series = histogram_metric["series"][0]
     assert histogram_series["metric"] == "example.histogram" + histogram_suffix

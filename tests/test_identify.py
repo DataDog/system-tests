@@ -5,7 +5,7 @@
 from utils import weblog, bug, context, interfaces, rfc, features, missing_feature
 
 
-def assertTagInSpanMeta(span, tag, expected):
+def assert_tag_in_span_meta(span, tag, expected):
     if tag not in span["meta"]:
         raise Exception(f"Can't find {tag} in span's meta")
 
@@ -18,10 +18,10 @@ def validate_identify_tags(tags):
     def inner_validate(span):
         for tag in tags:
             if isinstance(tags, dict):
-                assertTagInSpanMeta(span, tag, tags[tag])
+                assert_tag_in_span_meta(span, tag, tags[tag])
             else:
                 fullTag = f"usr.{tag}"
-                assertTagInSpanMeta(span, fullTag, fullTag)
+                assert_tag_in_span_meta(span, fullTag, fullTag)
         return True
 
     return inner_validate
@@ -75,7 +75,7 @@ class Test_Propagate_Legacy:
         self.r_incoming = weblog.get("/waf", headers=headers)
 
     def test_identify_tags_incoming(self):
-        """with W3C : this test expect to fail with DD_TRACE_PROPAGATION_STYLE_INJECT=W3C"""
+        """With W3C : this test expect to fail with DD_TRACE_PROPAGATION_STYLE_INJECT=W3C"""
         tagTable = {"_dd.p.usr.id": "dXNyLmlk"}
         interfaces.library.validate_spans(self.r_incoming, validate_identify_tags(tagTable))
 
@@ -100,11 +100,11 @@ class Test_Propagate:
         self.r_incoming = weblog.get("/waf", headers=headers)
 
     def test_identify_tags_incoming(self):
-        """with W3C : this test expect to fail with DD_TRACE_PROPAGATION_STYLE_INJECT=W3C"""
+        """With W3C : this test expect to fail with DD_TRACE_PROPAGATION_STYLE_INJECT=W3C"""
 
         def usr_id_not_present(span):
             if "usr.id" in span["meta"]:
-                raise Exception(f"usr.id must not be present in this span")
+                raise Exception("usr.id must not be present in this span")
             return True
 
         tagTable = {"_dd.p.usr.id": "dXNyLmlk"}

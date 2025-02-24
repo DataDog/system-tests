@@ -57,7 +57,7 @@ def _ensure_jira_ticket_as_reason(item, reason: str):
 def _add_pytest_marker(item, reason, marker):
     if inspect.isfunction(item) or inspect.isclass(item):
         if not hasattr(item, "pytestmark"):
-            item.pytestmark = []
+            item.pytestmark = []  # type: ignore[attr-defined]
 
         item.pytestmark.append(marker(reason=reason))
     else:

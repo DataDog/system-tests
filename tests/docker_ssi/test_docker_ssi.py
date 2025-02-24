@@ -9,7 +9,8 @@ from utils.tools import logger, get_rid_from_request
 class TestDockerSSIFeatures:
     """Test the ssi in a simulated host injection environment (docker container + test agent)
     We test that the injection is performed and traces and telemetry are generated.
-    If the language version is not supported, we only check that we don't break the app and telemetry is generated."""
+    If the language version is not supported, we only check that we don't break the app and telemetry is generated.
+    """
 
     _r = None
 
@@ -34,7 +35,7 @@ class TestDockerSSIFeatures:
     @irrelevant(context.library == "php" and context.installed_language_runtime < "7.0")
     @irrelevant(context.library == "nodejs" and context.installed_language_runtime < "17.0")
     def test_install_supported_runtime(self):
-        logger.info(f"Testing Docker SSI installation on supported lang runtime: {context.scenario.library.library}")
+        logger.info(f"Testing Docker SSI installation on supported lang runtime: {context.scenario.library}")
         assert self.r.status_code == 200, f"Failed to get response from {context.scenario.weblog_url}"
 
         # If the language version is supported there are traces related with the request
@@ -51,24 +52,23 @@ class TestDockerSSIFeatures:
 
     @features.ssi_guardrails
     @bug(
-        condition="centos-7" in context.scenario.weblog_variant and context.scenario.library.library == "java",
+        condition="centos-7" in context.weblog_variant and context.scenario.library == "java",
         reason="APMON-1490",
     )
     def test_install_weblog_running(self):
-        logger.info(
-            f"Testing Docker SSI installation. The weblog should be running: {context.scenario.library.library}"
-        )
+        logger.info(f"Testing Docker SSI installation. The weblog should be running: {context.scenario.library}")
         assert self.r.status_code == 200, f"Failed to get response from {context.scenario.weblog_url}"
 
     @features.ssi_guardrails
     @bug(
-        condition="centos-7" in context.scenario.weblog_variant and context.scenario.library.library == "java",
+        condition="centos-7" in context.weblog_variant and context.scenario.library == "java",
         reason="APMON-1490",
     )
     @irrelevant(context.library == "java" and context.installed_language_runtime < "1.8.0_0")
     @irrelevant(context.library == "php" and context.installed_language_runtime < "7.0")
     @irrelevant(context.library == "python" and context.installed_language_runtime < "3.7.0")
     @irrelevant(context.library == "nodejs" and context.installed_language_runtime < "17.0")
+    @bug(context.library == "python@2.19.1", reason="INPLAT-448")
     def test_telemetry(self):
         # There is telemetry data about the auto instrumentation injector. We only validate there is data
         telemetry_autoinject_data = interfaces.test_agent.get_telemetry_for_autoinject()
@@ -110,10 +110,10 @@ class TestDockerSSIFeatures:
                 inject_result = False
                 break
 
-        assert inject_result != None, "No telemetry data found for inject.success, inject.skip or inject.error"
+        assert inject_result is not None, "No telemetry data found for inject.success, inject.skip or inject.error"
 
         # The injector detected by itself that the version is not supported
-        if inject_result == False:
+        if inject_result is False:
             return
 
         # There is telemetry data about the library entrypoint. We only validate there is data

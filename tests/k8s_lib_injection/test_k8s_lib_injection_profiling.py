@@ -10,11 +10,13 @@ class _TestK8sLibInjectionProfiling:
     def _check_profiling_request_sent(self, k8s_cluster_info, timeout=90):
         """Use test agent profiling endpoint to check if the profiling data has been sent by the injectect library.
         Checks the request made to the profiling endpoint (/profiling/v1/input).
-        The profiling post data can take between 12 and 90 seconds (12 if the library supports both env vars, 90 if it supports neither."""
+        The profiling post data can take between 12 and 90 seconds (12 if the library supports both env vars, 90 if it supports neither.
+        """
         mustend = time.time() + timeout
         while time.time() < mustend:
             response = requests.get(
-                f"http://{k8s_cluster_info.cluster_host_name}:{k8s_cluster_info.get_agent_port()}/test/session/requests"
+                f"http://{k8s_cluster_info.cluster_host_name}:{k8s_cluster_info.get_agent_port()}/test/session/requests",
+                timeout=60,
             )
             for request in response.json():
                 if request["url"].endswith("/profiling/v1/input"):

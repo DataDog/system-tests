@@ -1,4 +1,4 @@
-name: onboarding
+name: system-tests-vms
 runtime:
   name: python
   options:

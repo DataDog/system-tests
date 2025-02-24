@@ -7,6 +7,7 @@ weblog_variant="spring-boot"
 scenario="DEFAULT"
 build_prefix="dd-java-agent"
 build_suffix="jar"
+test_name="tests/appsec/waf/test_addresses.py::Test_PathParams" # leave empty for all tests
 
 readonly OUTPUT_DIR=version-check-output/$library
 mkdir -p "$OUTPUT_DIR"
@@ -103,7 +104,7 @@ for v in "${versions[@]}"; do
         echo "Building $library $v $weblog_variant"
         ./build.sh --library $library --weblog-variant $weblog_variant &> /dev/null
         echo "Running $library $v $weblog_variant"
-        ./run.sh --scenario $scenario &> "$OUTPUT_DIR/$scenario/$weblog_variant/$library-$v.txt" || true
+        ./run.sh --scenario $scenario $test_name &> "$OUTPUT_DIR/$scenario/$weblog_variant/$library-$v.txt" || true
     fi
 
     declare -A seen_xpass

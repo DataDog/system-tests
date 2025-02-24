@@ -1,4 +1,5 @@
 #if DDTRACE_2_7_0_OR_GREATER
+using System;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
@@ -17,7 +18,8 @@ namespace weblog
 	    [HttpGet("new")]
         public IActionResult New()
         {
-            return Content($"Session created");
+            HttpContext.Session.Set(Guid.NewGuid().ToString(), [1, 2, 3, 4, 5]);
+            return Content(HttpContext.Session.Id);
         }
 		
         [HttpGet("user")]

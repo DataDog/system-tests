@@ -9,6 +9,7 @@ import os
 import re
 import time
 from typing import Any
+from collections.abc import Mapping
 
 import requests
 
@@ -65,7 +66,7 @@ def send_state(
 
     client_configs = raw_payload.get("client_configs", [])
 
-    current_states = {}
+    current_states: dict[str, Any] = {}
     version = None
     targets = json.loads(base64.b64decode(raw_payload["targets"]))
     version = targets["signed"]["version"]
@@ -132,7 +133,7 @@ def send_sequential_commands(commands: list[dict], *, wait_for_all_command: bool
     if not wait_for_all_command:
         return
 
-    counts_by_runtime_id = {}
+    counts_by_runtime_id: dict[str, int] = {}
 
     def all_payload_sent(data) -> bool:
         if data["path"] != "/v0.7/config":
@@ -163,17 +164,12 @@ def send_sequential_commands(commands: list[dict], *, wait_for_all_command: bool
     library.wait_for(all_payload_sent, timeout=timeout)
 
 
-def build_debugger_command(probes: list, version: int):
-    def _json_to_base64(json_object):
-        json_string = json.dumps(json_object).encode("utf-8")
-        return base64.b64encode(json_string).decode("utf-8")
+def _create_base_rcm():
+    return {"targets": "", "target_files": [], "client_configs": []}
 
-    def _sha256(value):
-        return hashlib.sha256(base64.b64decode(value)).hexdigest()
 
-    rcm = {"targets": "", "target_files": [], "client_configs": []}
-
-    signed = {
+def _create_base_signed(version: int):
+    return {
         "signed": {
             "_type": "targets",
             "custom": {"opaque_backend_state": "eyJmb28iOiAiYmFyIn0="},  # where does this come from ?
@@ -192,39 +188,127 @@ def build_debugger_command(probes: list, version: int):
         ],
     }
 
-    if probes is None:
+
+def _build_base_command(path_payloads: Mapping[str, Any], version: int):
+    """Helper function to build a remote config command with common logic.
+
+    Args:
+        path_payloads: Dictionary mapping paths to their corresponding payloads
+        version: The version number for the signed data
+
+    """
+    rcm = _create_base_rcm()
+    signed = _create_base_signed(version)
+
+    if not path_payloads:
         rcm["targets"] = _json_to_base64(signed)
-    else:
-        for probe in probes:
-            target = {"custom": {"v": 1}, "hashes": {"sha256": ""}, "length": 0}
-            target_file = {"path": "", "raw": ""}
+        return rcm
 
-            probe_64 = _json_to_base64(probe)
-            target["hashes"]["sha256"] = _sha256(probe_64)
-            target["length"] = len(json.dumps(probe).encode("utf-8"))
+    for path, payload in path_payloads.items():
+        payload_64 = _json_to_base64(payload)
+        payload_length = len(base64.b64decode(payload_64))
 
-            probe_path = re.sub(r"_([a-z])", lambda match: match.group(1).upper(), probe["type"].lower())
-            path = "datadog/2/LIVE_DEBUGGING/" + probe_path + "_" + probe["id"] + "/config"
-            signed["signed"]["targets"][path] = target
+        target = {"custom": {"v": 1}, "hashes": {"sha256": _sha256(payload_64)}, "length": payload_length}
+        signed["signed"]["targets"][path] = target
 
-            target_file["path"] = path
-            target_file["raw"] = probe_64
+        target_file = {"path": path, "raw": payload_64}
+        rcm["target_files"].append(target_file)
+        rcm["client_configs"].append(path)
 
-            rcm["target_files"].append(target_file)
-            rcm["client_configs"].append(path)
-
-        rcm["targets"] = _json_to_base64(signed)
+    rcm["targets"] = _json_to_base64(signed)
     return rcm
 
 
-def send_debugger_command(probes: list, version: int) -> dict:
+def build_debugger_command(probes: list | None, version: int):
+    if probes is None:
+        return _build_base_command({}, version)
+
+    path_payloads = {}
+    for probe in probes:
+        probe_path = re.sub(r"_([a-z])", lambda match: match.group(1).upper(), probe["type"].lower())
+        path = f"datadog/2/LIVE_DEBUGGING/{probe_path}_{probe['id']}/config"
+        path_payloads[path] = probe
+
+    return _build_base_command(path_payloads, version)
+
+
+def send_debugger_command(probes: list, version: int = 1) -> dict:
     raw_payload = build_debugger_command(probes, version)
+    return send_state(raw_payload)
+
+
+def build_symdb_command(version):
+    path_payloads = {"datadog/2/LIVE_DEBUGGING_SYMBOL_DB/symDb/config": {"upload_symbols": True}}
+    return _build_base_command(path_payloads, version)
+
+
+def send_symdb_command(version: int = 1) -> dict:
+    raw_payload = build_symdb_command(version)
+    return send_state(raw_payload)
+
+
+def build_apm_tracing_command(
+    version: int,
+    dynamic_instrumentation_enabled: bool | None = None,
+    exception_replay_enabled: bool | None = None,
+    live_debugging_enabled: bool | None = None,
+    code_origin_enabled: bool | None = None,
+    dynamic_sampling_enabled: bool | None = None,
+):
+    lib_config: dict[str, str | bool] = {
+        "library_language": "all",
+        "library_version": "latest",
+    }
+
+    lib_config["tracing_enabled"] = True
+    if dynamic_instrumentation_enabled is not None:
+        lib_config["dynamic_instrumentation_enabled"] = dynamic_instrumentation_enabled
+    if exception_replay_enabled is not None:
+        lib_config["exception_replay_enabled"] = exception_replay_enabled
+    if live_debugging_enabled is not None:
+        lib_config["live_debugging_enabled"] = live_debugging_enabled
+    if code_origin_enabled is not None:
+        lib_config["code_origin_enabled"] = code_origin_enabled
+    if dynamic_sampling_enabled is not None:
+        lib_config["dynamic_sampling_enabled"] = dynamic_sampling_enabled
+
+    config = {
+        "schema_version": "v1.0.0",
+        "action": "enable",
+        "lib_config": lib_config,
+    }
+
+    path_payloads = {"datadog/2/APM_TRACING/config_overrides/config": config}
+    return _build_base_command(path_payloads, version)
+
+
+def send_apm_tracing_command(
+    dynamic_instrumentation_enabled: bool | None = None,
+    exception_replay_enabled: bool | None = None,
+    live_debugging_enabled: bool | None = None,
+    code_origin_enabled: bool | None = None,
+    dynamic_sampling_enabled: bool | None = None,
+    version: int = 1,
+) -> dict:
+    raw_payload = build_apm_tracing_command(
+        version=version,
+        dynamic_instrumentation_enabled=dynamic_instrumentation_enabled,
+        exception_replay_enabled=exception_replay_enabled,
+        live_debugging_enabled=live_debugging_enabled,
+        code_origin_enabled=code_origin_enabled,
+        dynamic_sampling_enabled=dynamic_sampling_enabled,
+    )
+
     return send_state(raw_payload)
 
 
 def _json_to_base64(json_object):
     json_string = json.dumps(json_object, indent=2).encode("utf-8")
     return base64.b64encode(json_string).decode("utf-8")
+
+
+def _sha256(value):
+    return hashlib.sha256(base64.b64decode(value)).hexdigest()
 
 
 class ClientConfig:
@@ -244,6 +328,8 @@ class ClientConfig:
             self.raw_sha256 = hashlib.sha256(base64.b64decode(self.raw)).hexdigest()
         else:
             stored_config = self._store.get(path, None)
+            if stored_config is None:
+                raise ValueError(f"Config for {path} not found")
             self.raw_length = stored_config.raw_length
             self.raw_sha256 = stored_config.raw_sha256
 

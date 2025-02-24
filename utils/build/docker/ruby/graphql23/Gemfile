@@ -42,6 +42,7 @@ gem "bootsnap", require: false
 gem 'devise'
 
 gem 'pry'
+gem 'dogstatsd-ruby'
 gem 'ddtrace', '~> 1.0.0.a', require: 'ddtrace/auto_instrument'
 
 gem "graphql", "~> 2.3"

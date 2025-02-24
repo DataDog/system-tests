@@ -36,7 +36,7 @@ class _WafAttack:
         self.span_validator = span_validator
 
     @staticmethod
-    def _get_parameters(event):
+    def _get_parameters(event) -> list:
         result = []
 
         for parameter in event.get("rule_match", {}).get("parameters", []):

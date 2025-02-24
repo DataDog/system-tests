@@ -5,11 +5,23 @@ class SystemTestSchema < GraphQL::Schema
 
   query(Types::QueryType)
 
-  # For batch-loading (see https://graphql-ruby.org/dataloader/overview.html)
-  use GraphQL::Dataloader
+  # TODO: Tracing doesn't support the Fiber-based GraphQL::Dataloader yet
+  # use GraphQL::Dataloader
 
   # Stop validating when it encounters this many errors:
   validate_max_errors(100)
+
+  rescue_from(RuntimeError) do |err, obj, args, ctx, field|
+    # Custom extension values used for testing.
+    raise GraphQL::ExecutionError.new(err.message, extensions: {
+      int: 1,
+      float: 1.1,
+      str: '1',
+      bool: true,
+      other: [1, 'foo'],
+      not_captured: 'nope',
+    })
+  end
 
   # Relay-style Object Identification:
 

@@ -20,9 +20,7 @@ lang_variant:
 
 weblog:
     name: test-app-nodejs-unsupported-defaults
-    #All of these branches are going to install unsupported versions of nodejs
-    exact_os_branches: [ubuntu22_amd64, ubuntu22_arm64, ubuntu21, ubuntu20_arm64, ubuntu20_amd64, centos_7_amd64]
-    install: 
+    install:
       - os_type: linux
         copy_files:
           - name: copy-service
