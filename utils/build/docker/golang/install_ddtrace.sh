@@ -28,7 +28,6 @@ elif [ -e "/binaries/golang-load-from-go-get" ]; then
         go mod edit -replace $module=$module@$COMMIT_HASH
       fi
     done
-fi
 
 else
     echo "Installing production dd-trace-version"

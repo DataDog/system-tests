@@ -492,7 +492,6 @@ class Test_Config_LogInjection_Enabled:
 
     def test_log_injection_enabled(self):
         assert self.r.status_code == 200
-        pattern = get_log_regex()
         msg = parse_log_injection_message(self.message)
         assert msg is not None, "Log message with trace context not found"
         tid = parse_log_trace_id(msg)
@@ -639,18 +638,18 @@ def parse_log_injection_message(log_message):
         except json.JSONDecodeError:
             continue
         if message.get("dd") and message.get(log_injection_fields[context.library.library]["message"]) == log_message:
-            dd = message.get("dd")
-            return dd
+            return message.get("dd")
         return message
+    return None
 
 
 def parse_log_trace_id(message):
     if message.get("dd.trace_id"):
-        print("MTOFF: trace id is", message.get("dd.trace_id"))
         return message.get("dd.trace_id")
     if message.get("trace_id"):
         return message.get("trace_id")
     return None
+
 
 def parse_log_span_id(message):
     if message.get("dd.span_id"):
@@ -658,6 +657,7 @@ def parse_log_span_id(message):
     if message.get("span_id"):
         return message.get("span_id")
     return None
+
 
 def get_log_regex():
     pattern = r'"dd":\{[^}]*\}'
