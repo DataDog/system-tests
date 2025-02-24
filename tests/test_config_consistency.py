@@ -164,6 +164,7 @@ class Test_Config_ObfuscationQueryStringRegexp_Default:
         context.library == "java" and context.weblog_variant in ("vertx3", "vertx4"),
         reason="Missing endpoint",
     )
+    @bug(context.library >= "golang@1.72.0", reason="APMAPI-1196")
     def test_query_string_obfuscation_configured_client(self):
         spans = [s for _, _, s in interfaces.library.get_spans(request=self.r, full_trace=True)]
         client_span = _get_span_by_tags(
