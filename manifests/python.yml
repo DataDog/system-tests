@@ -57,7 +57,7 @@ tests/:
           TestCommandInjection:
             '*': v2.10.0
             fastapi: v2.15.0
-          TestCommandInjection_ExtendedLocation:  v3.1.0.dev
+          TestCommandInjection_ExtendedLocation: v3.1.0.dev
           TestCommandInjection_StackTrace: missing_feature
         test_email_html_injection.py:
           TestEmailHtmlInjection: missing_feature
