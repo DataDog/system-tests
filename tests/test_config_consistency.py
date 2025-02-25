@@ -668,18 +668,21 @@ def parse_log_injection_message(log_message):
             message = json.loads(data.get("message"))
         except json.JSONDecodeError:
             continue
-        if context.library == "nodejs" and message.get(log_injection_fields[context.library.library]["message"]) == log_message:
-            return message.get("dd") 
-        # For other libs
+        # APMAPI-1199
+        if (
+            context.library == "nodejs"
+            and message.get(log_injection_fields[context.library.library]["message"]) == log_message
+        ):
+            return message.get("dd")
         return message
     return None
 
 
 def parse_log_trace_id(message):
-    # TODO: update nodejs to use dd.trace_id instead of trace_id
+    # APMAPI-1199: update nodejs to use dd.trace_id instead of trace_id
     return message.get("dd.trace_id", message.get("trace_id"))
 
 
 def parse_log_span_id(message):
-    # TODO: update nodejs to use dd.span_id instead of span_id
+    # APMAPI-1199: update nodejs to use dd.span_id instead of span_id
     return message.get("dd.span_id", message.get("span_id"))
