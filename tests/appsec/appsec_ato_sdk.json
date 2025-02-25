@@ -1,0 +1,50 @@
+{
+  "version": "2.1",
+  "metadata": {
+    "rules_version": "1.2.6"
+  },
+  "rules": [
+    {
+      "id": "001_trigger_on_usr_login",
+      "name": "Trigger on usr.login",
+      "tags": {
+        "type": "security_scanner",
+        "category": "attack_attempt"
+      },
+      "conditions": [
+        {
+          "parameters": {
+            "inputs": [
+              {
+                "address": "usr.login"
+              }
+            ],
+            "regex": "login_unsafe"
+          },
+          "operator": "match_regex"
+        }
+      ]
+    },
+    {
+      "id": "002_trigger_on_usr_id",
+      "name": "Trigger on usr.id",
+      "tags": {
+        "type": "security_scanner",
+        "category": "attack_attempt"
+      },
+      "conditions": [
+        {
+          "parameters": {
+            "inputs": [
+              {
+                "address": "usr.id"
+              }
+            ],
+            "regex": "user_id_unsafe"
+          },
+          "operator": "match_regex"
+        }
+      ]
+    }
+  ]
+}
