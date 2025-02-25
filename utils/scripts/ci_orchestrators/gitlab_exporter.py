@@ -129,7 +129,7 @@ def print_k8s_gitlab_pipeline(language, k8s_matrix, ci_environment, result_pipel
         result_pipeline[job]["variables"] = {}
         result_pipeline[job]["variables"]["TEST_LIBRARY"] = language
         result_pipeline[job]["variables"]["K8S_SCENARIO"] = scenario
-        
+        result_pipeline[job]["variables"]["REPORT_ENVIRONMENT"] = ci_environment
         result_pipeline[job]["parallel"] = {"matrix": []}
         cluster_agent_versions_scenario = None
         for weblog_name, cluster_agent_versions in weblogs.items():
