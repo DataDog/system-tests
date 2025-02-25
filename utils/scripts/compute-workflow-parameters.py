@@ -61,6 +61,13 @@ class CiData:
             legacy_scenarios.update(item["scenarios"])
             legacy_weblogs.add(item["weblog_name"])
 
+        for item in self.data["endtoend_defs"]["parallel_weblog_names"]:
+            legacy_weblogs.add(item)
+
+        for item in self.data["endtoend_defs"]["parallel_weblogs"]:
+            for scenario in item["scenarios"]:
+                legacy_scenarios.add(scenario)
+
         self.data["endtoend"] = {"scenarios": sorted(legacy_scenarios), "weblogs": sorted(legacy_weblogs)}
 
     def export(self, export_format: str) -> None:
