@@ -11,6 +11,7 @@ from utils import bug
 
 logger = logging.getLogger(__name__)
 
+
 @features.debugger
 @scenarios.debugger_probes_snapshot
 class Test_Debugger_Probe_Snaphots(debugger.Base_Debugger_Test):
