@@ -6,6 +6,8 @@
       "_dd.appsec.event_rules.version": "<scrubbed>",
       "_dd.debug.error.0.frame_data.class_name": "ExceptionReplayController",
       "_dd.debug.error.0.frame_data.function": "ExceptionReplaySimple",
+      "_dd.debug.error.0.frame_data.name": "ExceptionReplaySimple",
+      "_dd.debug.error.0.no_capture_reason": "The method ExceptionReplaySimple could not be found.",
       "_dd.debug.error.0.snapshot_id": "<scrubbed>",
       "_dd.debug.error.exception_hash": "<scrubbed>",
       "_dd.debug.error.exception_id": "<scrubbed>",

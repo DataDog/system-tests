@@ -1,17 +1,15 @@
-"""
-Test the telemetry that should be emitted from the library.
-"""
+"""Test the telemetry that should be emitted from the library."""
 
 import base64
 import copy
 import json
 import time
-from typing import Any
+from collections.abc import Generator
 import uuid
 
 import pytest
-from typing import List, Optional
 
+from .conftest import StableConfigWriter
 from utils.telemetry_utils import TelemetryUtils
 from utils import context, scenarios, rfc, features, missing_feature, bug
 
@@ -44,6 +42,11 @@ telemetry_name_mapping = {
         "dotnet": "DD_DATA_STREAMS_ENABLED",
         "nodejs": "dsmEnabled",
         "python": "DD_DATA_STREAMS_ENABLED",
+    },
+    "runtime_metrics_enabled": {
+        "dotnet": "DD_RUNTIME_METRICS_ENABLED",
+        "nodejs": "runtime.metrics.enabled",
+        "python": "DD_RUNTIME_METRICS_ENABLED",
     },
 }
 
@@ -92,26 +95,27 @@ class Test_Defaults:
             # The Go tracer does not support logs injection.
             if context.library == "golang" and apm_telemetry_name in ("logs_injection_enabled",):
                 continue
-            if context.library == "cpp":
-                unsupported_fields = (
-                    "logs_injection_enabled",
-                    "trace_header_tags",
-                    "profiling_enabled",
-                    "appsec_enabled",
-                    "data_streams_enabled",
-                    "trace_sample_rate",
-                )
-                if apm_telemetry_name in unsupported_fields:
-                    continue
-            apm_telemetry_name = _mapped_telemetry_name(context, apm_telemetry_name)
+            if context.library == "cpp" and apm_telemetry_name in (
+                "logs_injection_enabled",
+                "trace_header_tags",
+                "profiling_enabled",
+                "appsec_enabled",
+                "data_streams_enabled",
+                "trace_sample_rate",
+            ):
+                continue
+            if context.library == "python" and apm_telemetry_name in ("trace_sample_rate",):
+                # DD_TRACE_SAMPLE_RATE is not supported in ddtrace>=3.x
+                continue
+            mapped_apm_telemetry_name = _mapped_telemetry_name(context, apm_telemetry_name)
 
-            cfg_item = configuration_by_name.get(apm_telemetry_name)
-            assert cfg_item is not None, "Missing telemetry config item for '{}'".format(apm_telemetry_name)
+            cfg_item = configuration_by_name.get(mapped_apm_telemetry_name)
+            assert cfg_item is not None, f"Missing telemetry config item for '{mapped_apm_telemetry_name}'"
             if isinstance(value, tuple):
-                assert cfg_item.get("value") in value, "Unexpected value for '{}'".format(apm_telemetry_name)
+                assert cfg_item.get("value") in value, f"Unexpected value for '{mapped_apm_telemetry_name}'"
             else:
-                assert cfg_item.get("value") == value, "Unexpected value for '{}'".format(apm_telemetry_name)
-            assert cfg_item.get("origin") == "default", "Unexpected origin for '{}'".format(apm_telemetry_name)
+                assert cfg_item.get("value") == value, f"Unexpected value for '{mapped_apm_telemetry_name}'"
+            assert cfg_item.get("origin") == "default", f"Unexpected origin for '{mapped_apm_telemetry_name}'"
 
 
 @scenarios.parametric
@@ -249,36 +253,33 @@ class Test_Environment:
             # The Go tracer does not support logs injection.
             if context.library == "golang" and apm_telemetry_name in ("logs_injection_enabled",):
                 continue
-            if context.library == "cpp":
-                unsupported_fields = (
-                    "logs_injection_enabled",
-                    "trace_header_tags",
-                    "profiling_enabled",
-                    "appsec_enabled",
-                    "data_streams_enabled",
-                )
-                if apm_telemetry_name in unsupported_fields:
-                    continue
+            if context.library == "cpp" and apm_telemetry_name in (
+                "logs_injection_enabled",
+                "trace_header_tags",
+                "profiling_enabled",
+                "appsec_enabled",
+                "data_streams_enabled",
+            ):
+                continue
+            if context.library == "python" and apm_telemetry_name in ("trace_sample_rate",):
+                # DD_TRACE_SAMPLE_RATE is not supported in ddtrace>=3.x
+                continue
 
-            apm_telemetry_name = _mapped_telemetry_name(context, apm_telemetry_name)
-            cfg_item = configuration_by_name.get(apm_telemetry_name)
-            assert cfg_item is not None, "Missing telemetry config item for '{}'".format(apm_telemetry_name)
+            mapped_apm_telemetry_name = _mapped_telemetry_name(context, apm_telemetry_name)
+            cfg_item = configuration_by_name.get(mapped_apm_telemetry_name)
+            assert cfg_item is not None, f"Missing telemetry config item for '{mapped_apm_telemetry_name}'"
             if isinstance(environment_value, tuple):
-                assert cfg_item.get("value") in environment_value, "Unexpected value for '{}'".format(
-                    apm_telemetry_name
-                )
+                assert cfg_item.get("value") in environment_value, f"Unexpected value for '{mapped_apm_telemetry_name}'"
             else:
-                assert cfg_item.get("value") == environment_value, "Unexpected value for '{}'".format(
-                    apm_telemetry_name
-                )
-            assert cfg_item.get("origin") == "env_var", "Unexpected origin for '{}'".format(apm_telemetry_name)
+                assert cfg_item.get("value") == environment_value, f"Unexpected value for '{mapped_apm_telemetry_name}'"
+            assert cfg_item.get("origin") == "env_var", f"Unexpected origin for '{mapped_apm_telemetry_name}'"
 
     @missing_feature(context.library == "dotnet", reason="Not implemented")
     @missing_feature(context.library == "java", reason="Not implemented")
     @missing_feature(context.library == "ruby", reason="Not implemented")
     @missing_feature(context.library == "php", reason="Not implemented")
     @missing_feature(context.library == "cpp", reason="Not implemented")
-    @missing_feature(context.library < "python@2.18.0.dev", reason="Not implemented")
+    @missing_feature(context.library == "python", reason="OTEL Sampling config is mapped to a different datadog config")
     @pytest.mark.parametrize(
         "library_env",
         [
@@ -292,6 +293,8 @@ class Test_Environment:
                 "DD_TRACE_LOG_LEVEL": "error",
                 "DD_LOG_LEVEL": "error",
                 "OTEL_LOG_LEVEL": "debug",
+                # python tracer supports DD_TRACE_SAMPLING_RULES not DD_TRACE_SAMPLE_RATE
+                "DD_TRACE_SAMPLING_RULES": '[{"sample_rate":0.5}]',
                 "DD_TRACE_SAMPLE_RATE": "0.5",
                 "OTEL_TRACES_SAMPLER": "traceidratio",
                 "OTEL_TRACES_SAMPLER_ARG": "0.1",
@@ -308,6 +311,7 @@ class Test_Environment:
             }
         ],
     )
+    @bug(context.library > "python@3.0.0", reason="APMAPI-1197")
     def test_telemetry_otel_env_hiding(self, library_env, test_agent, test_library):
         with test_library.dd_start_span("test"):
             pass
@@ -332,16 +336,21 @@ class Test_Environment:
         else:
             otelsampler_config = "otel_traces_sampler_arg"
 
-        dd_to_otel_mapping: List[List[Optional[str]]] = [
+        if context.library == "python":
+            ddsampling_config = "dd_trace_sampling_rules"
+        else:
+            ddsampling_config = "dd_trace_sample_rate"
+
+        dd_to_otel_mapping: list[list[str | None]] = [
             ["dd_trace_propagation_style", "otel_propagators"],
             ["dd_service", "otel_service_name"],
-            ["dd_trace_sample_rate", "otel_traces_sampler"],
+            [ddsampling_config, "otel_traces_sampler"],
             ["dd_trace_enabled", "otel_traces_exporter"],
             ["dd_runtime_metrics_enabled", "otel_metrics_exporter"],
             ["dd_tags", "otel_resource_attributes"],
             ["dd_trace_otel_enabled", "otel_sdk_disabled"],
             [ddlog_config, "otel_log_level"],
-            ["dd_trace_sample_rate", otelsampler_config],
+            [ddsampling_config, otelsampler_config],
         ]
 
         for dd_config, otel_config in dd_to_otel_mapping:
@@ -353,16 +362,16 @@ class Test_Environment:
                     assert metric["points"][0][1] == 1
                     break
             else:
-                assert (
-                    False
-                ), f"Could not find a metric with {dd_config} and {otel_config} in otelHiding metrics: {otelHiding}"
+                pytest.fail(
+                    f"Could not find a metric with {dd_config} and {otel_config} in otelHiding metrics: {otelHiding}"
+                )
 
     @missing_feature(context.library == "dotnet", reason="Not implemented")
     @missing_feature(context.library == "java", reason="Not implemented")
     @missing_feature(context.library == "ruby", reason="Not implemented")
     @missing_feature(context.library == "php", reason="Not implemented")
     @missing_feature(context.library == "cpp", reason="Not implemented")
-    @missing_feature(context.library < "python@2.18.0.dev", reason="Not implemented")
+    @missing_feature(context.library == "python", reason="OTEL Sampling config is mapped to a different datadog config")
     @missing_feature(
         context.library == "nodejs", reason="does not collect otel_env.invalid metrics for otel_resource_attributes"
     )
@@ -388,6 +397,7 @@ class Test_Environment:
             }
         ],
     )
+    @bug(context.library > "python@3.0.0", reason="APMAPI-1197")
     def test_telemetry_otel_env_invalid(self, library_env, test_agent, test_library):
         with test_library.dd_start_span("test"):
             pass
@@ -413,15 +423,20 @@ class Test_Environment:
         else:
             otelsampler_config = "otel_traces_sampler_arg"
 
-        dd_to_otel_mapping: List[List[Optional[str]]] = [
+        if context.library == "python":
+            ddsampling_config = "dd_trace_sampling_rules"
+        else:
+            ddsampling_config = "dd_trace_sample_rate"
+
+        dd_to_otel_mapping: list[list[str | None]] = [
             ["dd_trace_propagation_style", "otel_propagators"],
-            ["dd_trace_sample_rate", "otel_traces_sampler"],
+            [ddsampling_config, "otel_traces_sampler"],
             ["dd_trace_enabled", "otel_traces_exporter"],
             ["dd_runtime_metrics_enabled", "otel_metrics_exporter"],
             ["dd_tags", "otel_resource_attributes"],
             ["dd_trace_otel_enabled", "otel_sdk_disabled"],
             [ddlog_config, "otel_log_level"],
-            ["dd_trace_sample_rate", otelsampler_config],
+            [ddsampling_config, otelsampler_config],
             [None, "otel_logs_exporter"],
         ]
 
@@ -433,9 +448,64 @@ class Test_Environment:
                     assert metric["points"][0][1] == 1
                     break
             else:
-                assert (
-                    False
-                ), f"Could not find a metric with {dd_config} and {otel_config} in otel_invalid metrics: {otel_invalid}"
+                pytest.fail(
+                    f"Could not find a metric with {dd_config} and {otel_config} in otel_invalid metrics: {otel_invalid}"
+                )
+
+
+@scenarios.parametric
+@features.stable_configuration_support
+@rfc("https://docs.google.com/document/d/1MNI5d3g6R8uU3FEWf2e08aAsFcJDVhweCPMjQatEb0o")
+class Test_Stable_Configuration_Origin(StableConfigWriter):
+    """Clients should report origin of configurations set by stable configuration faithfully"""
+
+    @pytest.mark.parametrize(
+        ("local_cfg", "library_env", "fleet_cfg", "expected_origin"),
+        [
+            (
+                {"DD_LOGS_INJECTION": True, "DD_RUNTIME_METRICS_ENABLED": True, "DD_PROFILING_ENABLED": True},
+                {
+                    "DD_TELEMETRY_HEARTBEAT_INTERVAL": "0.1",  # Decrease the heartbeat/poll intervals to speed up the tests
+                    "DD_RUNTIME_METRICS_ENABLED": True,
+                },
+                {"DD_LOGS_INJECTION": True},
+                {
+                    "logs_injection_enabled": "fleet_stable_config",
+                    # Reporting for other origins than stable config is not completely implemented
+                    # "runtime_metrics_enabled": "env_var",
+                    "profiling_enabled": "local_stable_config",
+                },
+            )
+        ],
+    )
+    def test_stable_configuration_origin(
+        self, local_cfg, library_env, fleet_cfg, test_agent, test_library, expected_origin
+    ):
+        with test_library:
+            self.write_stable_config(
+                {
+                    "apm_configuration_default": local_cfg,
+                },
+                "/etc/datadog-agent/application_monitoring.yaml",
+                test_library,
+            )
+            self.write_stable_config(
+                {
+                    "apm_configuration_default": fleet_cfg,
+                },
+                "/etc/datadog-agent/managed/datadog-agent/stable/application_monitoring.yaml",
+                test_library,
+            )
+            test_library.container_restart()
+            test_library.dd_start_span("test")
+        event = test_agent.wait_for_telemetry_event("app-started", wait_loops=400)
+        configuration = {c["name"]: c for c in event["payload"]["configuration"]}
+
+        for cfg_name, origin in expected_origin.items():
+            apm_telemetry_name = _mapped_telemetry_name(context, cfg_name)
+            telemetry_item = configuration[apm_telemetry_name]
+            assert telemetry_item["origin"] == origin, f"wrong origin for {telemetry_item}"
+            assert telemetry_item["value"]
 
 
 DEFAULT_ENVVARS = {
@@ -448,9 +518,7 @@ DEFAULT_ENVVARS = {
 @scenarios.parametric
 @features.telemetry_app_started_event
 class Test_TelemetryInstallSignature:
-    """
-    This telemetry provides insights into how a library was installed.
-    """
+    """This telemetry provides insights into how a library was installed."""
 
     @pytest.mark.parametrize(
         "library_env",
@@ -484,7 +552,7 @@ class Test_TelemetryInstallSignature:
                 continue
             assert (
                 "install_signature" in body["payload"]
-            ), "The install signature should be included in the telemetry event, got {}".format(body)
+            ), f"The install signature should be included in the telemetry event, got {body}"
             assert (
                 "install_id" in body["payload"]["install_signature"]
             ), "The install id should be included in the telemetry event, got {}".format(
@@ -510,9 +578,8 @@ class Test_TelemetryInstallSignature:
 
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
     def test_telemetry_event_not_propagated(self, library_env, test_agent, test_library):
-        """
-        When instrumentation data is not propagated to the library
-            The telemetry event should not contain telemetry as the Agent will add it when not present.
+        """When instrumentation data is not propagated to the library
+        The telemetry event should not contain telemetry as the Agent will add it when not present.
         """
 
         # Some libraries require a first span for telemetry to be emitted.
@@ -527,19 +594,17 @@ class Test_TelemetryInstallSignature:
             if "payload" in body:
                 assert (
                     "install_signature" not in body["payload"]
-                ), "The install signature should not be included in the telemetry event, got {}".format(body)
+                ), f"The install signature should not be included in the telemetry event, got {body}"
 
 
 @rfc("https://docs.google.com/document/d/1xTLC3UEGNooZS0YOYp3swMlAhtvVn1aa639TGxHHYvg/edit")
 @scenarios.parametric
 @features.telemetry_app_started_event
 class Test_TelemetrySCAEnvVar:
-    """
-    This telemetry entry has the value of DD_APPSEC_SCA_ENABLED in the library.
-    """
+    """This telemetry entry has the value of DD_APPSEC_SCA_ENABLED in the library."""
 
     @staticmethod
-    def flatten_message_batch(requests):
+    def flatten_message_batch(requests) -> Generator[dict, None, None]:
         for request in requests:
             body = json.loads(base64.b64decode(request["body"]))
             if body["request_type"] == "message-batch":
@@ -554,7 +619,7 @@ class Test_TelemetrySCAEnvVar:
                 yield body
 
     @staticmethod
-    def get_app_started_configuration_by_name(test_agent, test_library):
+    def get_app_started_configuration_by_name(test_agent, test_library) -> dict | None:
         with test_library.dd_start_span("first_span"):
             pass
 
@@ -570,17 +635,16 @@ class Test_TelemetrySCAEnvVar:
 
             assert (
                 "configuration" in body["payload"]
-            ), "The configuration should be included in the telemetry event, got {}".format(body)
+            ), f"The configuration should be included in the telemetry event, got {body}"
 
             configuration = body["payload"]["configuration"]
 
-            configuration_by_name = {item["name"]: item for item in configuration}
-            return configuration_by_name
+            return {item["name"]: item for item in configuration}
 
         return None
 
     @pytest.mark.parametrize(
-        "library_env, specific_libraries_support, outcome_value",
+        ("library_env", "specific_libraries_support", "outcome_value"),
         [
             ({**DEFAULT_ENVVARS, "DD_APPSEC_SCA_ENABLED": "true"}, False, True),
             ({**DEFAULT_ENVVARS, "DD_APPSEC_SCA_ENABLED": "True"}, ("python", "golang"), True),
@@ -598,11 +662,12 @@ class Test_TelemetrySCAEnvVar:
             pytest.xfail(f"{outcome_value} unsupported value for {context.library}")
 
         configuration_by_name = self.get_app_started_configuration_by_name(test_agent, test_library)
+        assert configuration_by_name is not None, "Missing telemetry configuration"
 
         DD_APPSEC_SCA_ENABLED = TelemetryUtils.get_dd_appsec_sca_enabled_str(context.library)
 
         cfg_appsec_enabled = configuration_by_name.get(DD_APPSEC_SCA_ENABLED)
-        assert cfg_appsec_enabled is not None, "Missing telemetry config item for '{}'".format(DD_APPSEC_SCA_ENABLED)
+        assert cfg_appsec_enabled is not None, f"Missing telemetry config item for '{DD_APPSEC_SCA_ENABLED}'"
 
         if context.library == "java":
             outcome_value = str(outcome_value).lower()
@@ -615,14 +680,13 @@ class Test_TelemetrySCAEnvVar:
     )
     def test_telemetry_sca_enabled_not_propagated(self, library_env, test_agent, test_library):
         configuration_by_name = self.get_app_started_configuration_by_name(test_agent, test_library)
+        assert configuration_by_name is not None, "Missing telemetry configuration"
 
         DD_APPSEC_SCA_ENABLED = TelemetryUtils.get_dd_appsec_sca_enabled_str(context.library)
 
         if context.library in ("java", "nodejs", "python"):
             cfg_appsec_enabled = configuration_by_name.get(DD_APPSEC_SCA_ENABLED)
-            assert cfg_appsec_enabled is not None, "Missing telemetry config item for '{}'".format(
-                DD_APPSEC_SCA_ENABLED
-            )
+            assert cfg_appsec_enabled is not None, f"Missing telemetry config item for '{DD_APPSEC_SCA_ENABLED}'"
             assert cfg_appsec_enabled.get("value") is None
         else:
-            assert DD_APPSEC_SCA_ENABLED not in configuration_by_name.keys()
+            assert DD_APPSEC_SCA_ENABLED not in configuration_by_name

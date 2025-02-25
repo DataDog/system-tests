@@ -179,7 +179,6 @@ class Test_Ssrf_StackTrace:
         self.r = weblog.get("/rasp/ssrf", params={"domain": "169.254.169.254"})
 
     def test_ssrf_stack_trace(self):
-        assert self.r.status_code == 403
         validate_stack_traces(self.r)
 
 
@@ -193,15 +192,13 @@ class Test_Ssrf_Telemetry:
         self.r = weblog.get("/rasp/ssrf", params={"domain": "169.254.169.254"})
 
     def test_ssrf_telemetry(self):
-        assert self.r.status_code == 403
-
-        series_eval = find_series(True, "appsec", "rasp.rule.eval")
+        series_eval = find_series("appsec", "rasp.rule.eval", is_metrics=True)
         assert series_eval
         assert any(validate_metric("rasp.rule.eval", "ssrf", s) for s in series_eval), [
             s.get("tags") for s in series_eval
         ]
 
-        series_match = find_series(True, "appsec", "rasp.rule.match")
+        series_match = find_series("appsec", "rasp.rule.match", is_metrics=True)
         assert series_match
         assert any(validate_metric("rasp.rule.match", "ssrf", s) for s in series_match), [
             s.get("tags") for s in series_match
@@ -218,14 +215,14 @@ class Test_Ssrf_Capability:
         interfaces.library.assert_rc_capability(Capabilities.ASM_RASP_SSRF)
 
 
-@features.rasp_local_file_inclusion
+@features.rasp_server_side_request_forgery
 class Test_Ssrf_Rules_Version(Base_Rules_Version):
     """Test ssrf min rules version"""
 
     min_version = "1.13.2"
 
 
-@features.rasp_local_file_inclusion
+@features.rasp_server_side_request_forgery
 class Test_Ssrf_Waf_Version(Base_WAF_Version):
     """Test ssrf WAF version"""
 

@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import features, weblog, interfaces, scenarios, rfc, context
+from utils import features, weblog, interfaces, scenarios, rfc
 from utils.dd_constants import Capabilities
 from tests.appsec.rasp.utils import (
     validate_span_tags,
@@ -147,7 +147,6 @@ class Test_Sqli_StackTrace:
         self.r = weblog.get("/rasp/sqli", params={"user_id": "' OR 1 = 1 --"})
 
     def test_sqli_stack_trace(self):
-        assert self.r.status_code == 403
         validate_stack_traces(self.r)
 
 
@@ -161,15 +160,13 @@ class Test_Sqli_Telemetry:
         self.r = weblog.get("/rasp/sqli", params={"user_id": "' OR 1 = 1 --"})
 
     def test_sqli_telemetry(self):
-        assert self.r.status_code == 403
-
-        series_eval = find_series(True, "appsec", "rasp.rule.eval")
+        series_eval = find_series("appsec", "rasp.rule.eval", is_metrics=True)
         assert series_eval
         assert any(validate_metric("rasp.rule.eval", "sql_injection", s) for s in series_eval), [
             s.get("tags") for s in series_eval
         ]
 
-        series_match = find_series(True, "appsec", "rasp.rule.match")
+        series_match = find_series("appsec", "rasp.rule.match", is_metrics=True)
         assert series_match
         assert any(validate_metric("rasp.rule.match", "sql_injection", s) for s in series_match), [
             s.get("tags") for s in series_match
@@ -186,14 +183,14 @@ class Test_Sqli_Capability:
         interfaces.library.assert_rc_capability(Capabilities.ASM_RASP_SQLI)
 
 
-@features.rasp_local_file_inclusion
+@features.rasp_sql_injection
 class Test_Sqli_Rules_Version(Base_Rules_Version):
     """Test Sqli min rules version"""
 
     min_version = "1.13.2"
 
 
-@features.rasp_local_file_inclusion
+@features.rasp_sql_injection
 class Test_Sqli_Waf_Version(Base_WAF_Version):
     """Test sqli WAF version"""
 

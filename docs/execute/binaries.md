@@ -34,6 +34,12 @@ Create a file `golang-load-from-go-get` under the `binaries` directory that spec
     * `gopkg.in/DataDog/dd-trace-go.v1@v1.67.0` Test the 1.67.0 release
     * `gopkg.in/DataDog/dd-trace-go.v1@<commit_hash>` Test un-merged changes
 
+To change Orchestrion version, create a file `orchestrion-load-from-go-get` under the `binaries` directory that specifies the target build. The content of this file will be installed by the weblog or parametric app via `go get` when the test image is built.
+* Content example:
+    * `github.com/DataDog/orchestrion@main` Test the main branch
+    * `github.com/DataDog/orchestrion@v1.1.0` Test the 1.1.0 release
+    * `github.com/DataDog/orchestrion@<commit_hash>` Test un-merged changes
+
 ## Java library
 
 Follow these steps to run Parametric tests with a custom Java Tracer version:
@@ -81,7 +87,7 @@ Then run the OpenTelemetry drop-in test from the repo root folder:
 - `./build.sh java`
 - `TEST_LIBRARY=java ./run.sh INTEGRATIONS -k Test_Otel_Drop_In`
 
-## NodeJS library
+## Node.js library
 
 There are three ways to run system-tests with a custom node tracer.
 

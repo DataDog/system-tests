@@ -15,8 +15,10 @@ const { join } = require('path')
 const { Client } = require('pg')
 const { Kafka } = require('kafkajs')
 const pug = require('pug')
+const { unserialize } = require('node-serialize')
 
 const ldap = require('./integrations/ldap')
+const initSecurityControls = require('./security-controls')
 
 async function initData () {
   const query = readFileSync(join(__dirname, '..', 'resources', 'iast-data.sql')).toString()
@@ -395,6 +397,16 @@ function initSinkRoutes (app: Express): void {
     const html = fn()
     res.send(`OK:${html}`)
   })
+
+  app.get('/iast/untrusted_deserialization/test_insecure', (req: Request, res: Response) => {
+    const name = unserialize(req.query.name)
+    res.send(`OK:${name}`)
+  })
+
+  app.get('/iast/untrusted_deserialization/test_secure', (req: Request, res: Response) => {
+    const name = unserialize(JSON.stringify({ name: 'example' }))
+    res.send(`OK:${name}`)
+  })
 }
 
 function initSourceRoutes (app: Express): void {
@@ -685,6 +697,7 @@ function initSourceRoutes (app: Express): void {
 function initRoutes (app: Express): void {
   initSinkRoutes(app)
   initSourceRoutes(app)
+  initSecurityControls(app)
 }
 
 

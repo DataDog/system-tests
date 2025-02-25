@@ -62,11 +62,14 @@ HEADERS = {
     "True-Client-IP": "42.42.42.42, 43.43.43.43",
 }
 
+# when to trigger the SDK in login endpoints (before/after automated instrumentation)
+SDK_TRIGGERS = ["before", "after"]
+
 
 @rfc("https://docs.google.com/document/d/1-trUpphvyZY7k5ldjhW-MgqWl0xOm7AMEQDJEAZ63_Q/edit#heading=h.8d3o7vtyu1y1")
 @features.user_monitoring
 class Test_Login_Events:
-    "Test login success/failure use cases"
+    """Test login success/failure use cases"""
 
     # User entries in the internal DB:
     # users = [
@@ -301,7 +304,7 @@ class Test_Login_Events:
 @scenarios.appsec_auto_events_extended
 @features.user_monitoring
 class Test_Login_Events_Extended:
-    "Test login success/failure use cases"
+    """Test login success/failure use cases"""
 
     def setup_login_success_local(self):
         self.r_success = weblog.post("/login?auth=local", data=login_data(context, USER, PASSWORD))
@@ -557,7 +560,7 @@ class Test_Login_Events_Extended:
 
         def validate_login_success_headers(span):
             if span.get("parent_id") not in (0, None):
-                return
+                return None
 
             for header in HEADERS:
                 assert f"http.request.headers.{header.lower()}" in span["meta"], f"Can't find {header} in span's meta"
@@ -581,7 +584,7 @@ class Test_Login_Events_Extended:
 
         def validate_login_failure_headers(span):
             if span.get("parent_id") not in (0, None):
-                return
+                return None
 
             for header in HEADERS:
                 assert f"http.request.headers.{header.lower()}" in span["meta"], f"Can't find {header} in span's meta"
@@ -594,8 +597,7 @@ class Test_Login_Events_Extended:
 @features.user_monitoring
 @features.user_id_collection_modes
 class Test_V2_Login_Events:
-    """
-    Test login success/failure use cases
+    """Test login success/failure use cases
     By default, mode is identification
     """
 
@@ -878,11 +880,11 @@ class Test_V2_Login_Events_Anon:
             assert meta["usr.id"] == USER_HASH
 
             # deprecated
-            "appsec.events.users.login.success.username" not in meta
-            "appsec.events.users.login.success.email" not in meta
-            "usr.email" not in meta
-            "usr.username" not in meta
-            "usr.login" not in meta
+            # "appsec.events.users.login.success.username" not in meta
+            # "appsec.events.users.login.success.email" not in meta
+            # "usr.email" not in meta
+            # "usr.username" not in meta
+            # "usr.login" not in meta
 
             assert_priority(span, trace)
 
@@ -899,11 +901,11 @@ class Test_V2_Login_Events_Anon:
             assert meta["usr.id"] == USER_HASH
 
             # deprecated
-            "appsec.events.users.login.success.username" not in meta
-            "appsec.events.users.login.success.email" not in meta
-            "usr.email" not in meta
-            "usr.username" not in meta
-            "usr.login" not in meta
+            # "appsec.events.users.login.success.username" not in meta
+            # "appsec.events.users.login.success.email" not in meta
+            # "usr.email" not in meta
+            # "usr.username" not in meta
+            # "usr.login" not in meta
 
             assert_priority(span, trace)
 
@@ -1088,7 +1090,7 @@ class Test_V2_Login_Events_Anon:
 
         def validate_login_success_headers(span):
             if span.get("parent_id") not in (0, None):
-                return
+                return None
 
             for header in HEADERS:
                 assert f"http.request.headers.{header.lower()}" in span["meta"], f"Can't find {header} in span's meta"
@@ -1109,7 +1111,7 @@ class Test_V2_Login_Events_Anon:
 
         def validate_login_failure_headers(span):
             if span.get("parent_id") not in (0, None):
-                return
+                return None
 
             for header in HEADERS:
                 assert f"http.request.headers.{header.lower()}" in span["meta"], f"Can't find {header} in span's meta"
@@ -1221,17 +1223,16 @@ class Test_V2_Login_Events_RC:
         self._assert_response(self.tests[2], validate_anon)
 
 
-libs_without_user_id = []
-libs_without_user_exist = ["nodejs"]
-libs_without_user_id_on_failure = ["nodejs"]
+libs_without_user_id = ["java"]
+libs_without_user_exist = ["nodejs", "java"]
+libs_without_user_id_on_failure = ["nodejs", "java"]
 
 
 @rfc("https://docs.google.com/document/d/1RT38U6dTTcB-8muiYV4-aVDCsT_XrliyakjtAPyjUpw")
 @features.user_monitoring
 @features.user_id_collection_modes
 class Test_V3_Login_Events:
-    """
-    Test login success/failure use cases
+    """Test login success/failure use cases
     By default, mode is identification
     """
 
@@ -1393,99 +1394,118 @@ class Test_V3_Login_Events:
                 assert meta["_dd.appsec.usr.id"] == "social-security-id"
 
     def setup_login_sdk_success_local(self):
-        self.r_sdk_success = weblog.post(
-            "/login?auth=local&sdk_event=success&sdk_user=sdkUser",
-            data=login_data(context, USER, PASSWORD),
-        )
+        self.r_sdk_success = [
+            weblog.post(
+                f"/login?auth=local&sdk_trigger={trigger}&sdk_event=success&sdk_user=sdkUser",
+                data=login_data(context, USER, PASSWORD),
+            )
+            for trigger in SDK_TRIGGERS
+        ]
 
     def test_login_sdk_success_local(self):
-        assert self.r_sdk_success.status_code == 200
-        for _, trace, span in interfaces.library.get_spans(request=self.r_sdk_success):
-            assert_priority(span, trace)
-            meta = span.get("meta", {})
+        for request in self.r_sdk_success:
+            assert request.status_code == 200
+            for _, trace, span in interfaces.library.get_spans(request=request):
+                assert_priority(span, trace)
+                meta = span.get("meta", {})
 
-            # mandatory
-            assert meta["appsec.events.users.login.success.usr.login"] == "sdkUser"
-            assert meta["_dd.appsec.usr.login"] == USER
-            assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "identification"
-            assert meta["appsec.events.users.login.success.track"] == "true"
-            assert meta["_dd.appsec.events.users.login.success.sdk"] == "true"
+                # mandatory
+                assert meta["appsec.events.users.login.success.usr.login"] == "sdkUser"
+                assert meta["_dd.appsec.usr.login"] == USER
+                assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "identification"
+                assert meta["appsec.events.users.login.success.track"] == "true"
+                assert meta["_dd.appsec.events.users.login.success.sdk"] == "true"
 
-            # optional (to review for each library)
-            if context.library not in libs_without_user_id:
-                assert meta["usr.id"] == "sdkUser"
-                assert meta["_dd.appsec.usr.id"] == "social-security-id"
+                # optional (to review for each library)
+                if context.library not in libs_without_user_id:
+                    assert meta["usr.id"] == "sdkUser"
+                    assert meta["_dd.appsec.usr.id"] == "social-security-id"
 
     def setup_login_sdk_success_basic(self):
-        self.r_sdk_success = weblog.get(
-            "/login?auth=basic&sdk_event=success&sdk_user=sdkUser",
-            headers={"Authorization": BASIC_AUTH_USER_HEADER},
-        )
+        self.r_sdk_success = [
+            weblog.get(
+                f"/login?auth=basic&sdk_trigger={trigger}&sdk_event=success&sdk_user=sdkUser",
+                headers={"Authorization": BASIC_AUTH_USER_HEADER},
+            )
+            for trigger in SDK_TRIGGERS
+        ]
 
     @missing_feature(context.library == "php", reason="Basic auth not implemented")
     def test_login_sdk_success_basic(self):
-        assert self.r_sdk_success.status_code == 200
-        for _, trace, span in interfaces.library.get_spans(request=self.r_sdk_success):
-            assert_priority(span, trace)
-            meta = span.get("meta", {})
+        for request in self.r_sdk_success:
+            assert request.status_code == 200
+            for _, trace, span in interfaces.library.get_spans(request=request):
+                assert_priority(span, trace)
+                meta = span.get("meta", {})
 
-            # mandatory
-            assert meta["appsec.events.users.login.success.usr.login"] == "sdkUser"
-            assert meta["_dd.appsec.usr.login"] == USER
-            assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "identification"
-            assert meta["appsec.events.users.login.success.track"] == "true"
-            assert meta["_dd.appsec.events.users.login.success.sdk"] == "true"
+                # mandatory
+                assert meta["appsec.events.users.login.success.usr.login"] == "sdkUser"
+                assert meta["_dd.appsec.usr.login"] == USER
+                assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "identification"
+                assert meta["appsec.events.users.login.success.track"] == "true"
+                assert meta["_dd.appsec.events.users.login.success.sdk"] == "true"
 
-            # optional (to review for each library)
-            if context.library not in libs_without_user_id:
-                assert meta["usr.id"] == "sdkUser"
-                assert meta["_dd.appsec.usr.id"] == "social-security-id"
+                # optional (to review for each library)
+                if context.library not in libs_without_user_id:
+                    assert meta["usr.id"] == "sdkUser"
+                    assert meta["_dd.appsec.usr.id"] == "social-security-id"
 
     def setup_login_sdk_failure_local(self):
-        self.r_sdk_failure = weblog.post(
-            "/login?auth=local&sdk_event=failure&sdk_user=sdkUser&sdk_user_exists=true",
-            data=login_data(context, INVALID_USER, PASSWORD),
-        )
+        self.r_sdk_failure = [
+            weblog.post(
+                f"/login?auth=local&sdk_trigger={trigger}&sdk_event=failure&sdk_user=sdkUser&sdk_user_exists=true",
+                data=login_data(context, INVALID_USER, PASSWORD),
+            )
+            for trigger in SDK_TRIGGERS
+        ]
 
+    @bug(context.library < "java@1.47.0", reason="APPSEC-56744")
     def test_login_sdk_failure_local(self):
-        assert self.r_sdk_failure.status_code == 401
-        for _, trace, span in interfaces.library.get_spans(request=self.r_sdk_failure):
-            assert_priority(span, trace)
-            meta = span.get("meta", {})
+        for request in self.r_sdk_failure:
+            assert request.status_code == 401
+            for _, trace, span in interfaces.library.get_spans(request=request):
+                assert_priority(span, trace)
+                meta = span.get("meta", {})
 
-            # mandatory
-            assert meta["appsec.events.users.login.failure.usr.login"] == "sdkUser"
-            assert meta["_dd.appsec.usr.login"] == INVALID_USER
-            assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "identification"
-            assert meta["appsec.events.users.login.failure.track"] == "true"
-            assert meta["_dd.appsec.events.users.login.failure.sdk"] == "true"
-            assert meta["appsec.events.users.login.failure.usr.exists"] == "true"
+                # mandatory
+                assert meta["appsec.events.users.login.failure.usr.login"] == "sdkUser"
+                assert meta["_dd.appsec.usr.login"] == INVALID_USER
+                assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "identification"
+                assert meta["appsec.events.users.login.failure.track"] == "true"
+                assert meta["_dd.appsec.events.users.login.failure.sdk"] == "true"
+                assert meta["appsec.events.users.login.failure.usr.exists"] == "true"
 
     def setup_login_sdk_failure_basic(self):
-        self.r_sdk_failure = weblog.get(
-            "/login?auth=basic&sdk_event=failure&sdk_user=sdkUser&sdk_user_exists=true",
-            headers={"Authorization": BASIC_AUTH_INVALID_USER_HEADER},
-        )
+        self.r_sdk_failure = [
+            weblog.get(
+                f"/login?auth=basic&sdk_trigger={trigger}&sdk_event=failure&sdk_user=sdkUser&sdk_user_exists=true",
+                headers={"Authorization": BASIC_AUTH_INVALID_USER_HEADER},
+            )
+            for trigger in SDK_TRIGGERS
+        ]
 
     @missing_feature(context.library == "php", reason="Basic auth not implemented")
+    @bug(context.library < "java@1.47.0", reason="APPSEC-56744")
     def test_login_sdk_failure_basic(self):
-        assert self.r_sdk_failure.status_code == 401
-        for _, trace, span in interfaces.library.get_spans(request=self.r_sdk_failure):
-            assert_priority(span, trace)
-            meta = span.get("meta", {})
+        for request in self.r_sdk_failure:
+            assert request.status_code == 401
+            for _, trace, span in interfaces.library.get_spans(request=request):
+                assert_priority(span, trace)
+                meta = span.get("meta", {})
 
-            # mandatory
-            assert meta["appsec.events.users.login.failure.usr.login"] == "sdkUser"
-            assert meta["_dd.appsec.usr.login"] == INVALID_USER
-            assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "identification"
-            assert meta["appsec.events.users.login.failure.track"] == "true"
-            assert meta["_dd.appsec.events.users.login.failure.sdk"] == "true"
-            assert meta["appsec.events.users.login.failure.usr.exists"] == "true"
+                # mandatory
+                assert meta["appsec.events.users.login.failure.usr.login"] == "sdkUser"
+                assert meta["_dd.appsec.usr.login"] == INVALID_USER
+                assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "identification"
+                assert meta["appsec.events.users.login.failure.track"] == "true"
+                assert meta["_dd.appsec.events.users.login.failure.sdk"] == "true"
+                assert meta["appsec.events.users.login.failure.usr.exists"] == "true"
 
     def setup_signup_local(self):
         self.r_success = weblog.post("/signup", data=login_data(context, NEW_USER, PASSWORD))
 
     @missing_feature(context.library == "nodejs", reason="Signup events not implemented")
+    @missing_feature(context.library == "python", reason="Signup events not implemented")
     def test_signup_local(self):
         assert self.r_success.status_code == 200
         for _, trace, span in interfaces.library.get_spans(request=self.r_success):
@@ -1516,7 +1536,7 @@ class Test_V3_Login_Events:
 
         def validate_login_success_headers(span):
             if span.get("parent_id") not in (0, None):
-                return
+                return None
 
             for header in HEADERS:
                 assert f"http.request.headers.{header.lower()}" in span["meta"], f"Can't find {header} in span's meta"
@@ -1537,7 +1557,7 @@ class Test_V3_Login_Events:
 
         def validate_login_failure_headers(span):
             if span.get("parent_id") not in (0, None):
-                return
+                return None
 
             for header in HEADERS:
                 assert f"http.request.headers.{header.lower()}" in span["meta"], f"Can't find {header} in span's meta"
@@ -1687,99 +1707,118 @@ class Test_V3_Login_Events_Anon:
                 assert meta["_dd.appsec.usr.id"] == USER_HASH
 
     def setup_login_sdk_success_local(self):
-        self.r_sdk_success = weblog.post(
-            "/login?auth=local&sdk_event=success&sdk_user=sdkUser",
-            data=login_data(context, USER, PASSWORD),
-        )
+        self.r_sdk_success = [
+            weblog.post(
+                f"/login?auth=local&sdk_trigger={trigger}&sdk_event=success&sdk_user=sdkUser",
+                data=login_data(context, USER, PASSWORD),
+            )
+            for trigger in SDK_TRIGGERS
+        ]
 
     def test_login_sdk_success_local(self):
-        assert self.r_sdk_success.status_code == 200
-        for _, trace, span in interfaces.library.get_spans(request=self.r_sdk_success):
-            assert_priority(span, trace)
-            meta = span.get("meta", {})
+        for request in self.r_sdk_success:
+            assert request.status_code == 200
+            for _, trace, span in interfaces.library.get_spans(request=request):
+                assert_priority(span, trace)
+                meta = span.get("meta", {})
 
-            # mandatory
-            assert meta["appsec.events.users.login.success.usr.login"] == "sdkUser"
-            assert meta["_dd.appsec.usr.login"] == USERNAME_HASH
-            assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "anonymization"
-            assert meta["appsec.events.users.login.success.track"] == "true"
-            assert meta["_dd.appsec.events.users.login.success.sdk"] == "true"
+                # mandatory
+                assert meta["appsec.events.users.login.success.usr.login"] == "sdkUser"
+                assert meta["_dd.appsec.usr.login"] == USERNAME_HASH
+                assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "anonymization"
+                assert meta["appsec.events.users.login.success.track"] == "true"
+                assert meta["_dd.appsec.events.users.login.success.sdk"] == "true"
 
-            # optional (to review for each library)
-            if context.library not in libs_without_user_id:
-                assert meta["usr.id"] == "sdkUser"
-                assert meta["_dd.appsec.usr.id"] == USER_HASH
+                # optional (to review for each library)
+                if context.library not in libs_without_user_id:
+                    assert meta["usr.id"] == "sdkUser"
+                    assert meta["_dd.appsec.usr.id"] == USER_HASH
 
     def setup_login_sdk_success_basic(self):
-        self.r_sdk_success = weblog.get(
-            "/login?auth=basic&sdk_event=success&sdk_user=sdkUser",
-            headers={"Authorization": BASIC_AUTH_USER_HEADER},
-        )
+        self.r_sdk_success = [
+            weblog.get(
+                f"/login?auth=basic&sdk_trigger={trigger}&sdk_event=success&sdk_user=sdkUser",
+                headers={"Authorization": BASIC_AUTH_USER_HEADER},
+            )
+            for trigger in SDK_TRIGGERS
+        ]
 
     @missing_feature(context.library == "php", reason="Basic auth not implemented")
     def test_login_sdk_success_basic(self):
-        assert self.r_sdk_success.status_code == 200
-        for _, trace, span in interfaces.library.get_spans(request=self.r_sdk_success):
-            assert_priority(span, trace)
-            meta = span.get("meta", {})
+        for request in self.r_sdk_success:
+            assert request.status_code == 200
+            for _, trace, span in interfaces.library.get_spans(request=request):
+                assert_priority(span, trace)
+                meta = span.get("meta", {})
 
-            # mandatory
-            assert meta["appsec.events.users.login.success.usr.login"] == "sdkUser"
-            assert meta["_dd.appsec.usr.login"] == USERNAME_HASH
-            assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "anonymization"
-            assert meta["appsec.events.users.login.success.track"] == "true"
-            assert meta["_dd.appsec.events.users.login.success.sdk"] == "true"
+                # mandatory
+                assert meta["appsec.events.users.login.success.usr.login"] == "sdkUser"
+                assert meta["_dd.appsec.usr.login"] == USERNAME_HASH
+                assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "anonymization"
+                assert meta["appsec.events.users.login.success.track"] == "true"
+                assert meta["_dd.appsec.events.users.login.success.sdk"] == "true"
 
-            # optional (to review for each library)
-            if context.library not in libs_without_user_id:
-                assert meta["usr.id"] == "sdkUser"
-                assert meta["_dd.appsec.usr.id"] == USER_HASH
+                # optional (to review for each library)
+                if context.library not in libs_without_user_id:
+                    assert meta["usr.id"] == "sdkUser"
+                    assert meta["_dd.appsec.usr.id"] == USER_HASH
 
     def setup_login_sdk_failure_local(self):
-        self.r_sdk_failure = weblog.post(
-            "/login?auth=local&sdk_event=failure&sdk_user=sdkUser&sdk_user_exists=true",
-            data=login_data(context, INVALID_USER, PASSWORD),
-        )
+        self.r_sdk_failure = [
+            weblog.post(
+                f"/login?auth=local&sdk_trigger={trigger}&sdk_event=failure&sdk_user=sdkUser&sdk_user_exists=true",
+                data=login_data(context, INVALID_USER, PASSWORD),
+            )
+            for trigger in SDK_TRIGGERS
+        ]
 
+    @bug(context.library < "java@1.47.0", reason="APPSEC-56744")
     def test_login_sdk_failure_local(self):
-        assert self.r_sdk_failure.status_code == 401
-        for _, trace, span in interfaces.library.get_spans(request=self.r_sdk_failure):
-            assert_priority(span, trace)
-            meta = span.get("meta", {})
+        for request in self.r_sdk_failure:
+            assert request.status_code == 401
+            for _, trace, span in interfaces.library.get_spans(request=request):
+                assert_priority(span, trace)
+                meta = span.get("meta", {})
 
-            # mandatory
-            assert meta["appsec.events.users.login.failure.usr.login"] == "sdkUser"
-            assert meta["_dd.appsec.usr.login"] == INVALID_USER_HASH
-            assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "anonymization"
-            assert meta["appsec.events.users.login.failure.track"] == "true"
-            assert meta["_dd.appsec.events.users.login.failure.sdk"] == "true"
-            assert meta["appsec.events.users.login.failure.usr.exists"] == "true"
+                # mandatory
+                assert meta["appsec.events.users.login.failure.usr.login"] == "sdkUser"
+                assert meta["_dd.appsec.usr.login"] == INVALID_USER_HASH
+                assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "anonymization"
+                assert meta["appsec.events.users.login.failure.track"] == "true"
+                assert meta["_dd.appsec.events.users.login.failure.sdk"] == "true"
+                assert meta["appsec.events.users.login.failure.usr.exists"] == "true"
 
     def setup_login_sdk_failure_basic(self):
-        self.r_sdk_failure = weblog.get(
-            "/login?auth=basic&sdk_event=failure&sdk_user=sdkUser&sdk_user_exists=true",
-            headers={"Authorization": BASIC_AUTH_INVALID_USER_HEADER},
-        )
+        self.r_sdk_failure = [
+            weblog.get(
+                f"/login?auth=basic&sdk_trigger={trigger}&sdk_event=failure&sdk_user=sdkUser&sdk_user_exists=true",
+                headers={"Authorization": BASIC_AUTH_INVALID_USER_HEADER},
+            )
+            for trigger in SDK_TRIGGERS
+        ]
 
     @missing_feature(context.library == "php", reason="Basic auth not implemented")
+    @bug(context.library < "java@1.47.0", reason="APPSEC-56744")
     def test_login_sdk_failure_basic(self):
-        assert self.r_sdk_failure.status_code == 401
-        for _, trace, span in interfaces.library.get_spans(request=self.r_sdk_failure):
-            assert_priority(span, trace)
-            meta = span.get("meta", {})
+        for request in self.r_sdk_failure:
+            assert request.status_code == 401
+            for _, trace, span in interfaces.library.get_spans(request=request):
+                assert_priority(span, trace)
+                meta = span.get("meta", {})
 
-            # mandatory
-            assert meta["appsec.events.users.login.failure.usr.login"] == "sdkUser"
-            assert meta["_dd.appsec.usr.login"] == INVALID_USER_HASH
-            assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "anonymization"
-            assert meta["appsec.events.users.login.failure.track"] == "true"
-            assert meta["_dd.appsec.events.users.login.failure.sdk"] == "true"
-            assert meta["appsec.events.users.login.failure.usr.exists"] == "true"
+                # mandatory
+                assert meta["appsec.events.users.login.failure.usr.login"] == "sdkUser"
+                assert meta["_dd.appsec.usr.login"] == INVALID_USER_HASH
+                assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "anonymization"
+                assert meta["appsec.events.users.login.failure.track"] == "true"
+                assert meta["_dd.appsec.events.users.login.failure.sdk"] == "true"
+                assert meta["appsec.events.users.login.failure.usr.exists"] == "true"
 
     def setup_signup_local(self):
         self.r_success = weblog.post("/signup", data=login_data(context, NEW_USER, PASSWORD))
 
     @missing_feature(context.library == "nodejs", reason="Signup events not implemented")
+    @missing_feature(context.library == "python", reason="Signup events not implemented")
     def test_signup_local(self):
         assert self.r_success.status_code == 200
         for _, trace, span in interfaces.library.get_spans(request=self.r_success):
@@ -1926,14 +1965,16 @@ class Test_V3_Login_Events_Blocking:
         self.config_state_3 = rc.rc_state.set_config(*BLOCK_USER_ID).apply()
         self.r_login_blocked = weblog.post("/login?auth=local", data=login_data(context, USER, PASSWORD))
 
+    @irrelevant(context.library == "java", reason="Blocking by user ID not available in java")
     def test_login_event_blocking_auto_id(self):
         assert self.config_state_1[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
         assert self.r_login.status_code == 200
 
         assert self.config_state_2[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
         assert self.config_state_3[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
-        interfaces.library.assert_waf_attack(self.r_login_blocked, rule="block-user-id")
-        assert self.r_login_blocked.status_code == 403
+        if context.library not in libs_without_user_id:
+            interfaces.library.assert_waf_attack(self.r_login_blocked, rule="block-user-id")
+            assert self.r_login_blocked.status_code == 403
 
     def setup_login_event_blocking_auto_login(self):
         rc.rc_state.reset().apply()
@@ -1958,25 +1999,34 @@ class Test_V3_Login_Events_Blocking:
         rc.rc_state.reset().apply()
 
         self.config_state_1 = rc.rc_state.set_config(*CONFIG_ENABLED).apply()
-        self.r_login = weblog.post(
-            "/login?auth=local&sdk_event=success&sdk_user=sdkUser", data=login_data(context, UUID_USER, PASSWORD)
-        )
+        self.r_login = [
+            weblog.post(
+                f"/login?auth=local&sdk_trigger={trigger}&sdk_event=success&sdk_user=sdkUser",
+                data=login_data(context, UUID_USER, PASSWORD),
+            )
+            for trigger in SDK_TRIGGERS
+        ]
 
         self.config_state_2 = rc.rc_state.set_config(*BLOCK_USER_RULE).apply()
         self.config_state_3 = rc.rc_state.set_config(*BLOCK_USER_ID).apply()
-        self.r_login_blocked = weblog.post(
-            "/login?auth=local&sdk_event=success&sdk_user=sdkUser", data=login_data(context, UUID_USER, PASSWORD)
-        )
+        self.r_login_blocked = [
+            weblog.post(
+                f"/login?auth=local&sdk_trigger={trigger}&sdk_event=success&sdk_user=sdkUser",
+                data=login_data(context, UUID_USER, PASSWORD),
+            )
+            for trigger in SDK_TRIGGERS
+        ]
 
-    @missing_feature(context.library == "nodejs", reason="SDK blocking not implemented")
     def test_login_event_blocking_sdk(self):
         assert self.config_state_1[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
-        assert self.r_login.status_code == 200
+        for request in self.r_login:
+            assert request.status_code == 200
 
         assert self.config_state_2[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
         assert self.config_state_3[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
-        interfaces.library.assert_waf_attack(self.r_login_blocked, rule="block-user-id")
-        assert self.r_login_blocked.status_code == 403
+        for request in self.r_login_blocked:
+            interfaces.library.assert_waf_attack(request, rule="block-user-id")
+            assert request.status_code == 403
 
 
 @rfc("https://docs.google.com/document/d/1RT38U6dTTcB-8muiYV4-aVDCsT_XrliyakjtAPyjUpw")

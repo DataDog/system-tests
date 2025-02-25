@@ -7,6 +7,7 @@ import com.datadoghq.vertx3.iast.routes.IastSinkRouteProvider;
 import com.datadoghq.vertx3.iast.routes.IastSourceRouteProvider;
 import com.datadoghq.vertx3.rasp.RaspRouteProvider;
 import datadog.appsec.api.blocking.Blocking;
+import datadog.trace.api.EventTracker;
 import datadog.trace.api.interceptor.MutableSpan;
 import io.opentracing.Span;
 import io.opentracing.util.GlobalTracer;
@@ -14,6 +15,7 @@ import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpServer;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
+import io.vertx.ext.web.Session;
 import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.http.HttpClient;
@@ -24,6 +26,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.UndeclaredThrowableException;
 import java.net.http.HttpResponse;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -36,6 +40,9 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 
+import io.vertx.ext.web.handler.CookieHandler;
+import io.vertx.ext.web.handler.SessionHandler;
+import io.vertx.ext.web.sstore.LocalSessionStore;
 import okhttp3.*;
 
 public class Main {
@@ -80,14 +87,14 @@ public class Main {
                         .putHeader("content-length", "42")
                         .putHeader("content-language", "en-US")
                         .end("012345678901234567890123456789012345678901"));
-        router.routeWithRegex("/tag_value/(?<value>[^/]+)/(?<code>[0-9]+)")
+        router.route("/tag_value/:tag_value/:status_code")
                 .handler(BodyHandler.create())
                 .produces("text/plain")
                 .handler(ctx -> {
                     consumeParsedBody(ctx);
-                    setRootSpanTag("appsec.events.system_tests_appsec_event.value", ctx.pathParam("value"));
+                    setRootSpanTag("appsec.events.system_tests_appsec_event.value", ctx.pathParam("tag_value"));
                     ctx.response()
-                            .setStatusCode(Integer.parseInt(ctx.pathParam("code")))
+                            .setStatusCode(Integer.parseInt(ctx.pathParam("status_code")))
                             .end("Value tagged");
                 });
         router.getWithRegex("/params(?:/([^/]*))?(?:/([^/]*))?(?:/([^/]*))?(?:/([^/]*))?(?:/([^/]*))?")
@@ -241,6 +248,24 @@ public class Main {
                     setRootSpanTag("service", serviceName);
                     ctx.response().end("ok");
                 });
+        Router sessionRouter = Router.router(vertx);
+        sessionRouter.get().handler(CookieHandler.create());
+        sessionRouter.get().handler(SessionHandler.create(LocalSessionStore.create(vertx)));
+        sessionRouter.get("/new")
+                .handler(ctx -> {
+                    final Session session = ctx.session();
+                    ctx.response().end(session.id());
+                });
+        sessionRouter.get("/user")
+                .handler(ctx -> {
+                    final Session session = ctx.session();
+                    final String sdkUser = ctx.request().getParam("sdk_user");
+                    EventTracker tracker = datadog.trace.api.GlobalTracer.getEventTracker();
+                    tracker.trackLoginSuccessEvent(sdkUser, Collections.emptyMap());
+                    ctx.response().end(session.id());
+                });
+        router.mountSubRouter("/session", sessionRouter);
+
 
         iastRouteProviders().forEach(provider -> provider.accept(router));
         raspRouteProviders().forEach(provider -> provider.accept(router));

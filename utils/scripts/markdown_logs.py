@@ -1,18 +1,19 @@
-import os
-import json
 import collections
+import json
+import os
+from pathlib import Path
 
 
-def table_row(*args):
+def table_row(*args: str) -> None:
     print(f"| {' | '.join(args)} |")
 
 
-def main():
-    result = {}
+def main() -> None:
+    result: dict[str, dict[str, int]] = {}
     all_outcomes = {"passed": "✅", "xpassed": "🍇", "skipped": "⏸️", "failed": "❌"}
 
     for x in os.listdir("."):
-        if x.startswith("logs") and os.path.isfile(f"{x}/report.json"):
+        if x.startswith("logs") and Path(f"{x}/report.json").is_file():
             result[x] = collections.defaultdict(int)
             with open(f"{x}/report.json") as f:
                 data = json.load(f)

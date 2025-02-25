@@ -5,7 +5,7 @@
 import datetime
 import time
 
-from utils import weblog, context, interfaces, rfc, bug, scenarios, flaky, features
+from utils import weblog, context, interfaces, rfc, bug, scenarios, features
 from utils.tools import logger
 
 
@@ -20,29 +20,28 @@ class Test_Main:
     # as sampling mechnism is very different across agent, it won't be an easy task
 
     def setup_main(self):
-        """
-        Make 5 requests per second, for 10 seconds.
+        """Make 5 requests per second, for 10 seconds.
 
         The test may be flaky if all requests takes more than 200ms, but it's very unlikely
         """
         self.requests = []
 
-        start_time = datetime.datetime.now()
+        start_time = datetime.datetime.now(tz=datetime.UTC)
 
         for i in range(10):
             for _ in range(5):
                 self.requests.append(weblog.get("/waf/", headers={"User-Agent": "Arachni/v1"}))
 
             end_time = start_time + datetime.timedelta(seconds=i + 1)
-            time.sleep(max(0, (end_time - datetime.datetime.now()).total_seconds()))
+            time.sleep(max(0, (end_time - datetime.datetime.now(tz=datetime.UTC)).total_seconds()))
 
-        logger.debug(f"Sent 50 requests in {(datetime.datetime.now() - start_time).total_seconds()} s")
+        logger.debug(f"Sent 50 requests in {(datetime.datetime.now(tz=datetime.UTC) - start_time).total_seconds()} s")
 
     @bug(
         context.library > "nodejs@3.14.1" and context.library < "nodejs@4.8.0", reason="APMRP-360"
     )  # _sampling_priority_v1 is missing
     def test_main(self):
-        """send requests for 10 seconds, check that only 10-ish traces are sent, as rate limiter is set to 1/s"""
+        """Send requests for 10 seconds, check that only 10-ish traces are sent, as rate limiter is set to 1/s"""
 
         MANUAL_KEEP = 2
         trace_count = 0

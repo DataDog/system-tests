@@ -1,7 +1,7 @@
 # Unless explicitly stated otherwise all files in this repository are licensed under the the Apache License Version 2.0.
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
-from utils import weblog, context, interfaces, bug, missing_feature, rfc, features
+from utils import weblog, context, interfaces, bug, scenarios, rfc, features
 
 
 @bug(context.library == "python@1.1.0", reason="APMRP-360")
@@ -23,7 +23,7 @@ class Test_StatusCode:
 
             return True
 
-        def check_http_code(span, appsec_data):
+        def check_http_code(span, appsec_data):  # noqa: ARG001
             status_code = span["meta"]["http.status_code"]
             assert status_code == "404", f"404 should have been reported, not {status_code}"
 
@@ -51,7 +51,7 @@ class Test_Info:
 
             return True
 
-        def _check_service(span, appsec_data):
+        def _check_service(span, appsec_data):  # noqa: ARG001
             name = span.get("service")
             environment = span.get("meta", {}).get("env")
             assert name == "weblog", f"weblog should have been reported, not {name}"
@@ -65,6 +65,9 @@ class Test_Info:
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2186870984/HTTP+header+collection")
 @bug(context.library == "python@1.1.0", reason="APMRP-360")
 @features.security_events_metadata
+@features.envoy_external_processing
+@scenarios.external_processing
+@scenarios.default
 class Test_RequestHeaders:
     """Request Headers for IP resolution"""
 
@@ -101,6 +104,9 @@ class Test_RequestHeaders:
 
 
 @features.security_events_metadata
+@features.envoy_external_processing
+@scenarios.external_processing
+@scenarios.default
 class Test_TagsFromRule:
     """Tags tags from the rule"""
 
@@ -126,6 +132,9 @@ class Test_TagsFromRule:
 
 
 @features.security_events_metadata
+@features.envoy_external_processing
+@scenarios.external_processing
+@scenarios.default
 class Test_ExtraTagsFromRule:
     """Extra tags may be added to the rule match since libddwaf 1.10.0"""
 
@@ -152,6 +161,9 @@ def _get_appsec_triggers(request):
 
 
 @features.security_events_metadata
+@features.envoy_external_processing
+@scenarios.external_processing
+@scenarios.default
 class Test_AttackTimestamp:
     """Attack timestamp"""
 
@@ -159,9 +171,9 @@ class Test_AttackTimestamp:
         self.r = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1"})
 
     def test_basic(self):
-        """attack timestamp is given by start property of span"""
+        """Attack timestamp is given by start property of span"""
         spans = [span for _, _, span, _ in interfaces.library.get_appsec_events(request=self.r)]
         assert spans, "No AppSec events found"
         for span in spans:
             assert "start" in span, "span should contain start property"
-            assert isinstance(span["start"], int), f"start property should an int, not {repr(span['start'])}"
+            assert isinstance(span["start"], int), f"start property should an int, not {span['start']!r}"

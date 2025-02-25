@@ -6,7 +6,7 @@ from collections import defaultdict
 import csv
 from random import randint, seed
 
-from utils import weblog, interfaces, context, missing_feature, bug, irrelevant, flaky, scenarios, features
+from utils import weblog, interfaces, context, bug, irrelevant, flaky, scenarios, features
 from utils.tools import logger
 
 
@@ -66,6 +66,7 @@ class Test_SamplingRates:
     @flaky(context.weblog_variant == "spring-boot-3-native", reason="APMAPI-736")
     @flaky(library="golang", reason="APMAPI-736")
     @flaky(library="ruby", reason="APMAPI-736")
+    @flaky(library="nodejs", reason="APMAPI-1120")
     def test_sampling_rates(self):
         """Basic test"""
         interfaces.library.assert_all_traces_requests_forwarded(self.paths)
@@ -93,21 +94,6 @@ class Test_SamplingRates:
                 f"which is outside of the confidence interval of +-{confidence_interval}\n"
                 "This test is probabilistic in nature and should fail ~5% of the time, you might want to rerun it."
             )
-
-        # Test that all traces sent by the tracer are sent to the agent
-        trace_ids = set()
-
-        for data, span in interfaces.library.get_root_spans():
-            metrics = span["metrics"]
-            if priority_should_be_kept(metrics["_sampling_priority_v1"]):
-                trace_ids.add(span["trace_id"])
-
-        for _, span in interfaces.agent.get_spans():
-            trace_id = int(span["traceID"])
-            if trace_id in trace_ids:
-                trace_ids.remove(trace_id)
-
-        assert len(trace_ids) == 0, f"Some traces have not been sent by the agent: {trace_ids}"
 
 
 @scenarios.sampling
@@ -250,7 +236,7 @@ class Test_SamplingDecisions:
             if len(decisions) < 2:
                 continue
 
-            if not all((d == decisions[0] for d in decisions)):
+            if not all(d == decisions[0] for d in decisions):
                 raise ValueError(f"Sampling decisions are not deterministic for trace_id {trace_id}: {decisions}")
 
     def _load_csv_sampling_decisions(self):

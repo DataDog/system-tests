@@ -13,11 +13,12 @@ from .parametric import ParametricScenario
 from .performance import PerformanceScenario
 from .profiling import ProfilingScenario
 from .test_the_test import TestTheTestScenario
-from .auto_injection import InstallerAutoInjectionScenario, InstallerAutoInjectionScenarioProfiling
-from .k8s_lib_injection import KubernetesScenario, WeblogInjectionScenario, K8sScenario, K8sSparkScenario
+from .auto_injection import InstallerAutoInjectionScenario
+from .k8s_lib_injection import WeblogInjectionScenario, K8sScenario, K8sSparkScenario, K8sManualInstrumentationScenario
 from .docker_ssi import DockerSSIScenario
 from .external_processing import ExternalProcessingScenario
 from .ipv6 import IPV6Scenario
+from .appsec_low_waf_timeout import AppsecLowWafTimeout
 
 update_environ_with_local_env()
 
@@ -62,6 +63,15 @@ class _Scenarios:
     )
 
     profiling = ProfilingScenario("PROFILING")
+
+    appsec_no_stats = EndToEndScenario(
+        name="APPSEC_NO_STATS",
+        doc=(
+            "End to end testing with default values. Default scenario has DD_TRACE_COMPUTE_STATS=true."
+            "This scenario let that env to use its default"
+        ),
+        scenario_groups=[ScenarioGroup.APPSEC],
+    )
 
     sampling = EndToEndScenario(
         "SAMPLING",
@@ -155,9 +165,13 @@ class _Scenarios:
         doc="Misc tests for appsec blocking",
         scenario_groups=[ScenarioGroup.APPSEC, ScenarioGroup.ESSENTIALS],
     )
+    # This GraphQL scenario can be used for any GraphQL testing, not just AppSec
     graphql_appsec = EndToEndScenario(
         "GRAPHQL_APPSEC",
-        weblog_env={"DD_APPSEC_RULES": "/appsec_blocking_rule.json"},
+        weblog_env={
+            "DD_APPSEC_RULES": "/appsec_blocking_rule.json",
+            "DD_TRACE_GRAPHQL_ERROR_EXTENSIONS": "int,float,str,bool,other",
+        },
         weblog_volumes={"./tests/appsec/blocking_rule.json": {"bind": "/appsec_blocking_rule.json", "mode": "ro"}},
         doc="AppSec tests for GraphQL integrations",
         github_workflow="graphql",
@@ -183,12 +197,9 @@ class _Scenarios:
         doc="Disable appsec and test DBM setting integration outcome when disabled",
         scenario_groups=[ScenarioGroup.APPSEC],
     )
-    appsec_low_waf_timeout = EndToEndScenario(
-        "APPSEC_LOW_WAF_TIMEOUT",
-        weblog_env={"DD_APPSEC_WAF_TIMEOUT": "1"},
-        doc="Appsec with a very low WAF timeout",
-        scenario_groups=[ScenarioGroup.APPSEC],
-    )
+
+    appsec_low_waf_timeout = AppsecLowWafTimeout("APPSEC_LOW_WAF_TIMEOUT")
+
     appsec_custom_obfuscation = EndToEndScenario(
         "APPSEC_CUSTOM_OBFUSCATION",
         weblog_env={
@@ -339,11 +350,36 @@ class _Scenarios:
         scenario_groups=[ScenarioGroup.APPSEC],
     )
 
+    appsec_standalone_v2 = EndToEndScenario(
+        "APPSEC_STANDALONE_V2",
+        weblog_env={
+            "DD_APPSEC_ENABLED": "true",
+            "DD_APM_TRACING_ENABLED": "false",
+            "DD_IAST_ENABLED": "false",
+        },
+        doc="Appsec standalone mode (APM opt out) V2",
+        scenario_groups=[ScenarioGroup.APPSEC],
+    )
+
     iast_standalone = EndToEndScenario(
         "IAST_STANDALONE",
         weblog_env={
             "DD_APPSEC_ENABLED": "false",
             "DD_EXPERIMENTAL_APPSEC_STANDALONE_ENABLED": "true",
+            "DD_IAST_ENABLED": "true",
+            "DD_IAST_DETECTION_MODE": "FULL",
+            "DD_IAST_DEDUPLICATION_ENABLED": "false",
+            "DD_IAST_REQUEST_SAMPLING": "100",
+        },
+        doc="Source code vulnerability standalone mode (APM opt out)",
+        scenario_groups=[ScenarioGroup.APPSEC],
+    )
+
+    iast_standalone_v2 = EndToEndScenario(
+        "IAST_STANDALONE_V2",
+        weblog_env={
+            "DD_APPSEC_ENABLED": "false",
+            "DD_APM_TRACING_ENABLED": "false",
             "DD_IAST_ENABLED": "true",
             "DD_IAST_DETECTION_MODE": "FULL",
             "DD_IAST_DEDUPLICATION_ENABLED": "false",
@@ -359,6 +395,19 @@ class _Scenarios:
             "DD_APPSEC_ENABLED": "false",
             "DD_APPSEC_SCA_ENABLED": "true",
             "DD_EXPERIMENTAL_APPSEC_STANDALONE_ENABLED": "true",
+            "DD_IAST_ENABLED": "false",
+            "DD_TELEMETRY_DEPENDENCY_RESOLUTION_PERIOD_MILLIS": "1",
+        },
+        doc="SCA standalone mode (APM opt out)",
+        scenario_groups=[ScenarioGroup.APPSEC],
+    )
+
+    sca_standalone_v2 = EndToEndScenario(
+        "SCA_STANDALONE_V2",
+        weblog_env={
+            "DD_APPSEC_ENABLED": "false",
+            "DD_APPSEC_SCA_ENABLED": "true",
+            "DD_APM_TRACING_ENABLED": "false",
             "DD_IAST_ENABLED": "false",
             "DD_TELEMETRY_DEPENDENCY_RESOLUTION_PERIOD_MILLIS": "1",
         },
@@ -494,7 +543,9 @@ class _Scenarios:
             "DD_TRACE_KAFKA_ENABLED": "false",  # most common endpoint and integration (missing for PHP).
             "DD_TRACE_KAFKAJS_ENABLED": "false",  # In Node the integration is kafkajs.
             "DD_TRACE_PDO_ENABLED": "false",  # Use PDO for PHP,
-            "DD_TRACE_PROPAGATION_STYLE_EXTRACT": "tracecontext,datadog,b3multi",
+            "DD_TRACE_PROPAGATION_STYLE_EXTRACT": "datadog,tracecontext,b3multi,baggage",
+            "DD_TRACE_PROPAGATION_BEHAVIOR_EXTRACT": "restart",
+            "DD_LOGS_INJECTION": "true",
         },
         appsec_enabled=False,  # disable ASM to test non asm client ip tagging
         iast_enabled=False,
@@ -513,7 +564,8 @@ class _Scenarios:
             "DD_TRACE_PDO_ENABLED": "true",  # Use PDO for PHP
             "DD_TRACE_CLIENT_IP_HEADER": "custom-ip-header",
             "DD_TRACE_CLIENT_IP_ENABLED": "true",
-            "DD_TRACE_PROPAGATION_STYLE_EXTRACT": "datadog,tracecontext,b3multi",
+            "DD_TRACE_PROPAGATION_STYLE_EXTRACT": "datadog,tracecontext,b3multi,baggage",
+            "DD_TRACE_PROPAGATION_BEHAVIOR_EXTRACT": "ignore",
         },
         include_kafka=True,
         include_postgres_db=True,
@@ -525,6 +577,11 @@ class _Scenarios:
         weblog_env={
             "DD_TRACE_HTTP_CLIENT_TAG_QUERY_STRING": "false",
             "DD_TRACE_CLIENT_IP_HEADER": "custom-ip-header",
+            "DD_TRACE_PROPAGATION_STYLE_EXTRACT": "datadog,tracecontext,b3multi,baggage",
+            "DD_TRACE_PROPAGATION_BEHAVIOR_EXTRACT": "restart",
+            "DD_TRACE_PROPAGATION_EXTRACT_FIRST": "true",
+            "DD_LOGS_INJECTION": "true",
+            "DD_TRACE_128_BIT_TRACEID_LOGGING_ENABLED": "false",
         },
         appsec_enabled=False,
         doc="",
@@ -549,7 +606,11 @@ class _Scenarios:
     debugger_probes_snapshot = EndToEndScenario(
         "DEBUGGER_PROBES_SNAPSHOT",
         rc_api_enabled=True,
-        weblog_env={"DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1", "DD_REMOTE_CONFIG_ENABLED": "true"},
+        weblog_env={
+            "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1",
+            "DD_REMOTE_CONFIG_ENABLED": "true",
+            "DD_CODE_ORIGIN_FOR_SPANS_ENABLED": "true",
+        },
         library_interface_timeout=5,
         doc="Test scenario for checking if debugger successfully generates snapshots for probes",
         scenario_groups=[ScenarioGroup.DEBUGGER],
@@ -592,29 +653,62 @@ class _Scenarios:
         scenario_groups=[ScenarioGroup.DEBUGGER],
     )
 
-    fuzzer = DockerScenario("_FUZZER", doc="Fake scenario for fuzzing (launch without pytest)", github_workflow=None)
+    debugger_symdb = EndToEndScenario(
+        "DEBUGGER_SYMDB",
+        rc_api_enabled=True,
+        weblog_env={
+            "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1",
+            "DD_SYMBOL_DATABASE_UPLOAD_ENABLED": "1",
+            "DD_REMOTE_CONFIG_ENABLED": "true",
+            "DD_INTERNAL_RCM_POLL_INTERVAL": "2000",
+            "DD_DEBUGGER_DIAGNOSTICS_INTERVAL": "1",
+        },
+        library_interface_timeout=5,
+        doc="Test scenario for checking symdb.",
+        scenario_groups=[ScenarioGroup.DEBUGGER],
+    )
+
+    debugger_inproduct_enablement = EndToEndScenario(
+        "DEBUGGER_INPRODUCT_ENABLEMENT",
+        rc_api_enabled=True,
+        weblog_env={
+            "DD_APM_TRACING_ENABLED": "true",
+            "DD_REMOTE_CONFIG_ENABLED": "true",
+            "DD_INTERNAL_RCM_POLL_INTERVAL": "2000",
+        },
+        library_interface_timeout=5,
+        doc="Test scenario for checking dynamic enablement.",
+        scenario_groups=[ScenarioGroup.DEBUGGER],
+    )
+
+    fuzzer = DockerScenario("FUZZER", doc="Fake scenario for fuzzing (launch without pytest)", github_workflow=None)
 
     # Single Step Instrumentation scenarios (HOST and CONTAINER)
 
     simple_installer_auto_injection = InstallerAutoInjectionScenario(
         "SIMPLE_INSTALLER_AUTO_INJECTION",
         "Onboarding Container Single Step Instrumentation scenario (minimal test scenario)",
-        scenario_groups=[ScenarioGroup.ONBOARDING],
-        github_workflow="libinjection",
+        scenario_groups=[ScenarioGroup.ONBOARDING, ScenarioGroup.SIMPLE_ONBOARDING],
+        github_workflow="aws_ssi",
     )
-
+    multi_installer_auto_injection = InstallerAutoInjectionScenario(
+        "MULTI_INSTALLER_AUTO_INJECTION",
+        "Onboarding Container Single Step Instrumentation scenario for multicontainer apps",
+        scenario_groups=[ScenarioGroup.ONBOARDING, ScenarioGroup.SIMPLE_ONBOARDING],
+        github_workflow="aws_ssi",
+    )
     installer_auto_injection = InstallerAutoInjectionScenario(
         "INSTALLER_AUTO_INJECTION",
         doc="Installer auto injection scenario",
         scenario_groups=[ScenarioGroup.ONBOARDING],
-        github_workflow="libinjection",
+        github_workflow="aws_ssi",
     )
 
     installer_not_supported_auto_injection = InstallerAutoInjectionScenario(
         "INSTALLER_NOT_SUPPORTED_AUTO_INJECTION",
         "Onboarding host Single Step Instrumentation scenario for not supported languages",
         scenario_groups=[ScenarioGroup.ONBOARDING],
-        github_workflow="libinjection",
+        github_workflow="aws_ssi",
     )
 
     chaos_installer_auto_injection = InstallerAutoInjectionScenario(
@@ -625,10 +719,10 @@ class _Scenarios:
         ),
         vm_provision="auto-inject-ld-preload",
         scenario_groups=[ScenarioGroup.ONBOARDING],
-        github_workflow="libinjection",
+        github_workflow="aws_ssi",
     )
 
-    simple_auto_injection_profiling = InstallerAutoInjectionScenarioProfiling(
+    simple_auto_injection_profiling = InstallerAutoInjectionScenario(
         "SIMPLE_AUTO_INJECTION_PROFILING",
         "Onboarding Single Step Instrumentation scenario with profiling activated by the app env var",
         app_env={
@@ -637,9 +731,9 @@ class _Scenarios:
             "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500",
         },
         scenario_groups=[ScenarioGroup.ONBOARDING],
-        github_workflow="libinjection",
+        github_workflow="aws_ssi",
     )
-    host_auto_injection_install_script_profiling = InstallerAutoInjectionScenarioProfiling(
+    host_auto_injection_install_script_profiling = InstallerAutoInjectionScenario(
         "HOST_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING",
         doc=(
             "Onboarding Host Single Step Instrumentation scenario using agent "
@@ -649,17 +743,25 @@ class _Scenarios:
         agent_env={"DD_PROFILING_ENABLED": "auto"},
         app_env={"DD_PROFILING_UPLOAD_PERIOD": "10", "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500"},
         scenario_groups=[ScenarioGroup.ONBOARDING],
-        github_workflow="libinjection",
+        github_workflow="aws_ssi",
     )
 
-    container_auto_injection_install_script_profiling = InstallerAutoInjectionScenarioProfiling(
+    container_auto_injection_install_script_profiling = InstallerAutoInjectionScenario(
         "CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING",
         "Onboarding Container Single Step Instrumentation profiling scenario using agent auto install script",
         vm_provision="container-auto-inject-install-script",
         agent_env={"DD_PROFILING_ENABLED": "auto"},
         app_env={"DD_PROFILING_UPLOAD_PERIOD": "10", "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500"},
         scenario_groups=[ScenarioGroup.ONBOARDING],
-        github_workflow="libinjection",
+        github_workflow="aws_ssi",
+    )
+
+    demo_aws = InstallerAutoInjectionScenario(
+        "DEMO_AWS",
+        "Demo aws scenario",
+        vm_provision="demo",
+        scenario_groups=[ScenarioGroup.ONBOARDING],
+        github_workflow="aws_ssi",
     )
 
     host_auto_injection_install_script = InstallerAutoInjectionScenario(
@@ -667,7 +769,7 @@ class _Scenarios:
         "Onboarding Host Single Step Instrumentation scenario using agent auto install script",
         vm_provision="host-auto-inject-install-script",
         scenario_groups=[ScenarioGroup.ONBOARDING],
-        github_workflow="libinjection",
+        github_workflow="aws_ssi",
     )
 
     container_auto_injection_install_script = InstallerAutoInjectionScenario(
@@ -675,7 +777,7 @@ class _Scenarios:
         "Onboarding Container Single Step Instrumentation scenario using agent auto install script",
         vm_provision="container-auto-inject-install-script",
         scenario_groups=[ScenarioGroup.ONBOARDING],
-        github_workflow="libinjection",
+        github_workflow="aws_ssi",
     )
 
     local_auto_injection_install_script = InstallerAutoInjectionScenario(
@@ -686,29 +788,9 @@ class _Scenarios:
         ),
         vm_provision="local-auto-inject-install-script",
         scenario_groups=[ScenarioGroup.ONBOARDING],
-        github_workflow="libinjection",
+        github_workflow="aws_ssi",
     )
 
-    k8s_library_injection_basic = KubernetesScenario(
-        "K8S_LIBRARY_INJECTION_BASIC",
-        doc=" Kubernetes Instrumentation basic scenario",
-        github_workflow="libinjection",
-        scenario_groups=[ScenarioGroup.ALL, ScenarioGroup.LIB_INJECTION],
-    )
-
-    k8s_library_injection_djm = KubernetesScenario(
-        "K8S_LIBRARY_INJECTION_DJM",
-        doc="Kubernetes Instrumentation with Data Jobs Monitoring",
-        github_workflow="libinjection",
-        scenario_groups=[ScenarioGroup.ALL, ScenarioGroup.LIB_INJECTION],
-    )
-
-    k8s_library_injection_profiling = KubernetesScenario(
-        "K8S_LIBRARY_INJECTION_PROFILING",
-        doc=" Kubernetes auto instrumentation, profiling activation",
-        github_workflow="libinjection",
-        scenario_groups=[ScenarioGroup.ALL, ScenarioGroup.LIB_INJECTION],
-    )
     lib_injection_validation = WeblogInjectionScenario(
         "LIB_INJECTION_VALIDATION",
         doc="Validates the init images without kubernetes enviroment",
@@ -724,20 +806,23 @@ class _Scenarios:
     )
 
     k8s_lib_injection = K8sScenario("K8S_LIB_INJECTION", doc="Kubernetes lib injection with admission controller")
+    k8s_lib_injection_operator = K8sScenario(
+        "K8S_LIB_INJECTION_OPERATOR",
+        doc="Use CRD Datadog Operator (uses real agent). Not configure the admission controller, the operator does it",
+        with_datadog_operator=True,
+    )
     k8s_lib_injection_uds = K8sScenario(
         "K8S_LIB_INJECTION_UDS",
         doc="Kubernetes lib injection with admission controller and uds",
         use_uds=True,
     )
-    k8s_lib_injection_no_ac = K8sScenario(
+    k8s_lib_injection_no_ac = K8sManualInstrumentationScenario(
         "K8S_LIB_INJECTION_NO_AC",
         doc="Kubernetes lib injection without admission controller",
-        with_admission_controller=False,
     )
-    k8s_lib_injection_no_ac_uds = K8sScenario(
+    k8s_lib_injection_no_ac_uds = K8sManualInstrumentationScenario(
         "K8S_LIB_INJECTION_NO_AC_UDS",
         doc="Kubernetes lib injection without admission controller and UDS",
-        with_admission_controller=False,
         use_uds=True,
     )
     k8s_lib_injection_profiling_disabled = K8sScenario(
@@ -777,6 +862,20 @@ class _Scenarios:
         scenario_groups=[ScenarioGroup.APPSEC, ScenarioGroup.APPSEC_RASP],
     )
 
+    appsec_rasp_non_blocking = EndToEndScenario(
+        "APPSEC_RASP_NON_BLOCKING",
+        weblog_env={"DD_APPSEC_RASP_ENABLED": "true", "DD_APPSEC_RULES": "/appsec_rasp_non_blocking_ruleset.json"},
+        weblog_volumes={
+            "./tests/appsec/rasp/rasp_non_blocking_ruleset.json": {
+                "bind": "/appsec_rasp_non_blocking_ruleset.json",
+                "mode": "ro",
+            }
+        },
+        doc="Enable APPSEC RASP",
+        github_workflow="endtoend",
+        scenario_groups=[ScenarioGroup.APPSEC],
+    )
+
     agent_not_supporting_span_events = EndToEndScenario(
         "AGENT_NOT_SUPPORTING_SPAN_EVENTS",
         span_events=False,
@@ -784,8 +883,34 @@ class _Scenarios:
         scenario_groups=[ScenarioGroup.INTEGRATIONS],
     )
 
-    external_processing = ExternalProcessingScenario("EXTERNAL_PROCESSING")
+    external_processing = ExternalProcessingScenario(
+        name="EXTERNAL_PROCESSING",
+        doc="Envoy + external processing",
+        rc_api_enabled=True,
+    )
+
+    external_processing_blocking = ExternalProcessingScenario(
+        name="EXTERNAL_PROCESSING_BLOCKING",
+        doc="Envoy + external processing + blocking rule file",
+        extproc_env={"DD_APPSEC_RULES": "/appsec_blocking_rule.json"},
+        extproc_volumes={"./tests/appsec/blocking_rule.json": {"bind": "/appsec_blocking_rule.json", "mode": "ro"}},
+    )
+
     ipv6 = IPV6Scenario("IPV6")
+
+    runtime_metrics_enabled = EndToEndScenario(
+        "RUNTIME_METRICS_ENABLED",
+        # Add environment variable DD_DOGSTATSD_START_DELAY=0 to avoid the default 30s startup delay in the Java tracer.
+        # That delay is used in production to reduce the impact on startup and other side-effects on various application
+        # servers. These considerations do not apply to the system-tests environment so we can reduce it to 0s.
+        weblog_env={"DD_DOGSTATSD_START_DELAY": "0"},
+        runtime_metrics_enabled=True,
+        # Disable the proxy in between weblog and the agent so that we can send metrics (via UDP) to the agent.
+        # The mitmproxy can only proxy UDP traffic by doing a host-wide transparent proxy, but we currently
+        # via specific ports. As a result, with the proxy enabled all UDP traffic is being dropped.
+        use_proxy_for_weblog=False,
+        doc="Test runtime metrics",
+    )
 
 
 scenarios = _Scenarios()

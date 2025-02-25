@@ -1,3 +1,4 @@
+---
 tests/:
   apm_tracing_e2e/:
     test_otel.py:
@@ -28,16 +29,24 @@ tests/:
       sink/:
         test_code_injection.py:
           TestCodeInjection: missing_feature
+          TestCodeInjection_ExtendedLocation: missing_feature
           TestCodeInjection_StackTrace: missing_feature
         test_command_injection.py:
           TestCommandInjection: missing_feature
+          TestCommandInjection_ExtendedLocation: missing_feature
           TestCommandInjection_StackTrace: missing_feature
+        test_email_html_injection.py:
+          TestEmailHtmlInjection: missing_feature
+          TestEmailHtmlInjection_ExtendedLocation: missing_feature
+          TestEmailHtmlInjection_StackTrace: missing_feature
         test_hardcoded_passwords.py:
           Test_HardcodedPasswords: missing_feature
+          Test_HardcodedPasswords_ExtendedLocation: missing_feature
           Test_HardcodedPasswords_StackTrace: missing_feature
         test_hardcoded_secrets.py:
           Test_HardcodedSecrets: missing_feature
           Test_HardcodedSecretsExtended: missing_feature
+          Test_HardcodedSecrets_ExtendedLocation: missing_feature
           Test_HardcodedSecrets_StackTrace: missing_feature
         test_header_injection.py:
           TestHeaderInjection: missing_feature
@@ -45,77 +54,103 @@ tests/:
           TestHeaderInjectionExclusionContentEncoding: missing_feature
           TestHeaderInjectionExclusionPragma: missing_feature
           TestHeaderInjectionExclusionTransferEncoding: missing_feature
+          TestHeaderInjection_ExtendedLocation: missing_feature
           TestHeaderInjection_StackTrace: missing_feature
         test_hsts_missing_header.py:
           Test_HstsMissingHeader: missing_feature
+          Test_HstsMissingHeader_ExtendedLocation: missing_feature
           Test_HstsMissingHeader_StackTrace: missing_feature
         test_insecure_auth_protocol.py:
           Test_InsecureAuthProtocol: missing_feature
+          Test_InsecureAuthProtocol_ExtendedLocation: missing_feature
           Test_InsecureAuthProtocol_StackTrace: missing_feature
         test_insecure_cookie.py:
           TestInsecureCookie: missing_feature
           TestInsecureCookieNameFilter: missing_feature
+          TestInsecureCookie_ExtendedLocation: missing_feature
           TestInsecureCookie_StackTrace: missing_feature
         test_ldap_injection.py:
           TestLDAPInjection: missing_feature
+          TestLDAPInjection_ExtendedLocation: missing_feature
           TestLDAPInjection_StackTrace: missing_feature
         test_no_httponly_cookie.py:
           TestNoHttponlyCookie: missing_feature
           TestNoHttponlyCookieNameFilter: missing_feature
+          TestNoHttponlyCookie_ExtendedLocation: missing_feature
           TestNoHttponlyCookie_StackTrace: missing_feature
         test_no_samesite_cookie.py:
           TestNoSamesiteCookie: missing_feature
           TestNoSamesiteCookieNameFilter: missing_feature
+          TestNoSamesiteCookie_ExtendedLocation: missing_feature
           TestNoSamesiteCookie_StackTrace: missing_feature
         test_nosql_mongodb_injection.py:
           TestNoSqlMongodbInjection: missing_feature
+          TestNoSqlMongodbInjection_ExtendedLocation: missing_feature
           TestNoSqlMongodbInjection_StackTrace: missing_feature
         test_path_traversal.py:
           TestPathTraversal: missing_feature
+          TestPathTraversal_ExtendedLocation: missing_feature
           TestPathTraversal_StackTrace: missing_feature
         test_reflection_injection.py:
           TestReflectionInjection: missing_feature
+          TestReflectionInjection_ExtendedLocation: missing_feature
           TestReflectionInjection_StackTrace: missing_feature
         test_sql_injection.py:
           TestSqlInjection: missing_feature
+          TestSqlInjection_ExtendedLocation: missing_feature
           TestSqlInjection_StackTrace: missing_feature
         test_ssrf.py:
           TestSSRF: missing_feature
+          TestSSRF_ExtendedLocation: missing_feature
           TestSSRF_StackTrace: missing_feature
+        test_stacktrace_leak.py:
+          TestStackTraceLeak: missing_feature
         test_template_injection.py:
           TestTemplateInjection: missing_feature
+          TestTemplateInjection_ExtendedLocation: missing_feature
         test_trust_boundary_violation.py:
           Test_TrustBoundaryViolation: missing_feature
+          Test_TrustBoundaryViolation_ExtendedLocation: missing_feature
           Test_TrustBoundaryViolation_StackTrace: missing_feature
         test_untrusted_deserialization.py:
           TestUntrustedDeserialization: missing_feature
+          TestUntrustedDeserialization_ExtendedLocation: missing_feature
           TestUntrustedDeserialization_StackTrace: missing_feature
         test_unvalidated_redirect.py:
           TestUnvalidatedHeader: missing_feature
+          TestUnvalidatedHeader_ExtendedLocation: missing_feature
           TestUnvalidatedHeader_StackTrace: missing_feature
           TestUnvalidatedRedirect: missing_feature
+          TestUnvalidatedRedirect_ExtendedLocation: missing_feature
           TestUnvalidatedRedirect_StackTrace: missing_feature
         test_unvalidated_redirect_forward.py:
           TestUnvalidatedForward: missing_feature
+          TestUnvalidatedForward_ExtendedLocation: missing_feature
           TestUnvalidatedForward_StackTrace: missing_feature
         test_weak_cipher.py:
           TestWeakCipher: missing_feature
+          TestWeakCipher_ExtendedLocation: missing_feature
           TestWeakCipher_StackTrace: missing_feature
         test_weak_hash.py:
           TestDeduplication: missing_feature
           TestWeakHash: missing_feature
+          TestWeakHash_ExtendedLocation: missing_feature
           TestWeakHash_StackTrace: missing_feature
         test_weak_randomness.py:
           TestWeakRandomness: missing_feature
+          TestWeakRandomness_ExtendedLocation: missing_feature
           TestWeakRandomness_StackTrace: missing_feature
         test_xcontent_sniffing.py:
           Test_XContentSniffing: missing_feature
+          Test_XContentSniffing_ExtendedLocation: missing_feature
           Test_XContentSniffing_StackTrace: missing_feature
         test_xpath_injection.py:
           TestXPathInjection: missing_feature
+          TestXPathInjection_ExtendedLocation: missing_feature
           TestXPathInjection_StackTrace: missing_feature
         test_xss.py:
           TestXSS: missing_feature
+          TestXSS_ExtendedLocation: missing_feature
           TestXSS_StackTrace: missing_feature
       source/:
         test_body.py:
@@ -148,11 +183,44 @@ tests/:
           TestSqlRow: missing_feature
         test_uri.py:
           TestURI: missing_feature
+      test_security_controls.py:
+        TestSecurityControls: missing_feature
     rasp/:
       test_cmdi.py: missing_feature
       test_lfi.py: missing_feature
       test_shi.py: missing_feature
-      test_sqli.py: missing_feature
+      test_sqli.py:
+        Test_Sqli_BodyJson:
+          "*": missing_feature
+          rails42: bug (APPSEC-56765) # ActiveRecord instrumentation with Rails < 5 and Ruby < 2.7 not working due to kwargs
+        Test_Sqli_BodyUrlEncoded:
+          "*": missing_feature
+          rails42: bug (APPSEC-56765) # ActiveRecord instrumentation with Rails < 5 and Ruby < 2.7 not working due to kwargs
+        Test_Sqli_BodyXml: irrelevant (XML not natively supported)
+        Test_Sqli_Capability:
+          "*": missing_feature
+          rails42: bug (APPSEC-56765) # ActiveRecord instrumentation with Rails < 5 and Ruby < 2.7 not working due to kwargs
+        Test_Sqli_Mandatory_SpanTags:
+          "*": missing_feature
+          rails42: bug (APPSEC-56765) # ActiveRecord instrumentation with Rails < 5 and Ruby < 2.7 not working due to kwargs
+        Test_Sqli_Optional_SpanTags:
+          "*": missing_feature
+          rails42: bug (APPSEC-56765) # ActiveRecord instrumentation with Rails < 5 and Ruby < 2.7 not working due to kwargs
+        Test_Sqli_Rules_Version:
+          "*": missing_feature
+          rails42: bug (APPSEC-56765) # ActiveRecord instrumentation with Rails < 5 and Ruby < 2.7 not working due to kwargs
+        Test_Sqli_StackTrace:
+          "*": missing_feature
+          rails42: bug (APPSEC-56765) # ActiveRecord instrumentation with Rails < 5 and Ruby < 2.7 not working due to kwargs
+        Test_Sqli_Telemetry:
+          "*": missing_feature
+          rails42: bug (APPSEC-56765) # ActiveRecord instrumentation with Rails < 5 and Ruby < 2.7 not working due to kwargs
+        Test_Sqli_UrlQuery:
+          "*": missing_feature
+          rails42: bug (APPSEC-56765) # ActiveRecord instrumentation with Rails < 5 and Ruby < 2.7 not working due to kwargs
+        Test_Sqli_Waf_Version:
+          "*": missing_feature
+          rails42: bug (APPSEC-56765) # ActiveRecord instrumentation with Rails < 5 and Ruby < 2.7 not working due to kwargs
       test_ssrf.py: missing_feature
     waf/:
       test_addresses.py:
@@ -177,7 +245,17 @@ tests/:
       test_custom_rules.py:
         Test_CustomRules: v1.12.0
       test_exclusions.py:
-        Test_Exclusions: v1.11.0
+        Test_Exclusions:
+          '*': v1.11.0
+          sinatra14: missing_feature (endpoint not implemented)
+          sinatra20: missing_feature (endpoint not implemented)
+          sinatra21: missing_feature (endpoint not implemented)
+          sinatra22: missing_feature (endpoint not implemented)
+          sinatra30: missing_feature (endpoint not implemented)
+          sinatra31: missing_feature (endpoint not implemented)
+          sinatra32: missing_feature (endpoint not implemented)
+          sinatra40: missing_feature (endpoint not implemented)
+          uds-sinatra: missing_feature (endpoint not implemented)
       test_miscs.py:
         Test_MultipleAttacks: v0.54.2
         Test_MultipleHighlight: v1.0.0.beta1
@@ -189,8 +267,11 @@ tests/:
         Test_TelemetryMetrics: missing_feature
     test_asm_standalone.py:
       Test_AppSecStandalone_UpstreamPropagation: v2.4.1-dev
+      Test_AppSecStandalone_UpstreamPropagation_V2: missing_feature
       Test_IastStandalone_UpstreamPropagation: missing_feature
+      Test_IastStandalone_UpstreamPropagation_V2: missing_feature
       Test_SCAStandalone_Telemetry: missing_feature
+      Test_SCAStandalone_Telemetry_V2: missing_feature
     test_automated_login_events.py:
       Test_Login_Events:
         '*': v1.13.0
@@ -237,8 +318,8 @@ tests/:
       Test_Blocking_request_headers: v1.0.0
       Test_Blocking_request_method: v1.12.0
       Test_Blocking_request_path_params:
-          '*': v1.0.0
-          rack: irrelevant
+        '*': v1.0.0
+        rack: irrelevant
       Test_Blocking_request_query: v1.0.0
       Test_Blocking_request_uri: v1.0.0
       Test_Blocking_response_headers: v1.0.0
@@ -267,7 +348,7 @@ tests/:
     test_identify.py:
       Test_Basic: v1.0.0
     test_ip_blocking_full_denylist.py:
-      Test_AppSecIPBlockingFullDenylist: missing_feature (Ruby supported denylists of 2500 entries but it fails to block this those 15000)
+      Test_AppSecIPBlockingFullDenylist: v2.9.0
     test_logs.py:
       Test_Standardization: missing_feature
       Test_StandardizationBlockMode: missing_feature
@@ -298,7 +379,7 @@ tests/:
       Test_ExternalWafRequestsIdentification: v1.22.0
       Test_RetainTraces: v0.54.2
     test_user_blocking_full_denylist.py:
-      Test_UserBlocking_FullDenylist: missing_feature (Ruby supported denylists of 2500 entries but it fails to block this those 15000)
+      Test_UserBlocking_FullDenylist: v2.9.0
     test_versions.py:
       Test_Events: v0.54.2
   debugger/:
@@ -306,6 +387,10 @@ tests/:
       Test_Debugger_Exception_Replay: missing_feature (feature not implemented)
     test_debugger_expression_language.py:
       Test_Debugger_Expression_Language: missing_feature (feature not implemented)
+    test_debugger_inproduct_enablement.py:
+      Test_Debugger_InProduct_Enablement_Code_Origin: missing_feature
+      Test_Debugger_InProduct_Enablement_Dynamic_Instrumentation: missing_feature
+      Test_Debugger_InProduct_Enablement_Exception_Replay: missing_feature
     test_debugger_pii.py:
       Test_Debugger_PII_Redaction:
         "*": irrelevant
@@ -318,6 +403,10 @@ tests/:
       Test_Debugger_Probe_Statuses:
         "*": irrelevant
         rails70: v2.8.0
+    test_debugger_symdb.py:
+      Test_Debugger_SymDb:
+        "*": irrelevant
+        rails70: missing_feature (feature not implemented)
   integrations/:
     crossed_integrations/:
       test_kafka.py:
@@ -384,8 +473,7 @@ tests/:
       Test_Dsm_Manual_Checkpoint_Intra_Process:
         '*': irrelevant
         rails70: missing_feature (Endpoint not implemented)
-    test_inferred_proxy.py:
-      Test_AWS_API_Gateway_Inferred_Span_Creation: missing_feature
+    test_inferred_proxy.py: missing_feature
     test_otel_drop_in.py:
       Test_Otel_Drop_In: missing_feature
   k8s_lib_injection/:
@@ -393,9 +481,14 @@ tests/:
       TestK8sLibInjectioProfilingClusterEnabled: missing_feature
       TestK8sLibInjectioProfilingClusterOverride: missing_feature
       TestK8sLibInjectioProfilingDisabledByDefault: missing_feature
-    test_k8s_manual_inject.py:
-      TestAdmisionControllerProfiling: missing_feature
+  otel/:
+    test_context_propagation.py:
+      Test_Otel_Context_Propagation_Default_Propagator_Api:
+        '*': incomplete_test_app (endpoint not implemented)
+        rails70: v2.0.0
   parametric/:
+    test_128_bit_traceids.py:
+      Test_128_Bit_Traceids: v1.17.0
     test_config_consistency.py:
       Test_Config_Dogstatsd: missing_feature
       Test_Config_RateLimit: v2.0.0
@@ -404,12 +497,14 @@ tests/:
       Test_Config_TraceEnabled: v2.0.0
       Test_Config_TraceLogDirectory: missing_feature
       Test_Config_UnifiedServiceTagging: v2.5.0
+      Test_Stable_Config_Default: missing_feature
     test_crashtracking.py:
       Test_Crashtracking: v2.3.0
     test_dynamic_configuration.py:
       TestDynamicConfigSamplingRules: v2.0.0
       TestDynamicConfigTracingEnabled: missing_feature
       TestDynamicConfigV1: bug (APMAPI-867)  # theorical version is v1.13.0
+      TestDynamicConfigV1_EmptyServiceTargets: v2.8.0  # version unknown
       TestDynamicConfigV1_ServiceTargets: missing_feature
       TestDynamicConfigV2: missing_feature
     test_headers_baggage.py:
@@ -425,10 +520,10 @@ tests/:
       Test_Parametric_DDSpan_Set_Resource: incomplete_test_app (set_resource endpoint is not supported)
       Test_Parametric_DDTrace_Baggage: missing_feature (baggage is not supported)
       Test_Parametric_DDTrace_Current_Span: incomplete_test_app (current span endpoint is not supported)
-      Test_Parametric_OtelSpan_Set_Name: bug (APMAPI-778) # set_name endpoint should set the resource name on a span (not the operation name)
+      Test_Parametric_OtelSpan_Set_Name: bug (APMAPI-778)  # set_name endpoint should set the resource name on a span (not the operation name)
       Test_Parametric_Otel_Baggage: missing_feature (otel baggage is not supported)
       Test_Parametric_Otel_Current_Span: incomplete_test_app (otel current span endpoint is not supported)
-    test_partial_flushing.py: # Not configurable in a standard way
+    test_partial_flushing.py:  # Not configurable in a standard way
       Test_Partial_Flushing: missing_feature
     test_sampling_delegation.py:
       Test_Decisionless_Extraction: v2.4.0
@@ -439,10 +534,11 @@ tests/:
       Test_Consistent_Configs: missing_feature
       Test_Defaults: missing_feature
       Test_Environment: missing_feature
+      Test_Stable_Configuration_Origin: missing_feature
       Test_TelemetryInstallSignature: missing_feature
       Test_TelemetrySCAEnvVar: v2.1.0
     test_trace_sampling.py:
-      Test_Trace_Sampling_Basic: v1.0.0 # TODO what is the earliest version?
+      Test_Trace_Sampling_Basic: v1.0.0  # TODO what is the earliest version?
       Test_Trace_Sampling_Globs: v2.0.0
       Test_Trace_Sampling_Globs_Feb2024_Revision: v2.0.0
       Test_Trace_Sampling_Resource: v2.0.0
@@ -489,22 +585,37 @@ tests/:
     Test_Config_IntegrationEnabled_True:
       '*': irrelevant (endpoint not implemented)
       rails70: v2.0.0
+    Test_Config_LogInjection_128Bit_TradeId_Default: missing_feature (not enabled by default)
+    Test_Config_LogInjection_128Bit_TradeId_Disabled: incomplete_test_app (endpoint not implemented)
+    Test_Config_LogInjection_Default: incomplete_test_app (endpoint not implemented)
+    Test_Config_LogInjection_Enabled: incomplete_test_app (endpoint not implemented)
     Test_Config_ObfuscationQueryStringRegexp_Configured: missing_feature
+    Test_Config_ObfuscationQueryStringRegexp_Default: bug (APMAPI-1013)
     Test_Config_ObfuscationQueryStringRegexp_Empty: missing_feature (environment variable is not supported)
+    Test_Config_RuntimeMetrics_Default: v0.44.0
+    Test_Config_RuntimeMetrics_Enabled: v0.44.0
+    Test_Config_RuntimeMetrics_Enabled_WithRuntimeId: missing_feature
     Test_Config_UnifiedServiceTagging_CustomService: v2.0.0
     Test_Config_UnifiedServiceTagging_Default: v2.0.0
   test_distributed.py:
     Test_DistributedHttp: missing_feature
     Test_Span_Links_Flags_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
     Test_Span_Links_From_Conflicting_Contexts: missing_feature
-    Test_Span_Links_From_Conflicting_Contexts_Datadog_Precedence: missing_feature
     Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
+  test_graphql.py:
+    Test_GraphQLQueryErrorReporting:
+      "*": irrelevant
+      graphql23: missing_feature
   test_identify.py:
     Test_Basic: v1.0.0
     Test_Propagate: missing_feature
     Test_Propagate_Legacy: missing_feature
   test_ipv6.py: missing_feature (APMAPI-869)
   test_library_conf.py:
+    Test_ExtractBehavior_Default: missing_feature (baggage should be implemented and conflicting trace contexts should generate span link)
+    Test_ExtractBehavior_Ignore: missing_feature (extract behavior not implemented)
+    Test_ExtractBehavior_Restart: missing_feature (extract behavior not implemented)
+    Test_ExtractBehavior_Restart_With_Extract_First: missing_feature (extract behavior not implemented)
     Test_HeaderTags: v1.13.0
     Test_HeaderTags_Colon_Leading: v1.13.0
     Test_HeaderTags_Colon_Trailing: v1.13.0
@@ -526,6 +637,13 @@ tests/:
     Test_Meta: v1.7.0
     Test_MetaDatadogTags: v1.9.0
     Test_MetricsStandardTags: v1.7.0
+  test_span_events.py:
+    Test_SpanEvents_WithAgentSupport:
+      "*": irrelevant
+      rack: v2.10.0
+    Test_SpanEvents_WithoutAgentSupport:
+      "*": irrelevant
+      rack: v2.10.0
   test_standard_tags.py:
     Test_StandardTagsClientIp: v1.10.1
     Test_StandardTagsMethod: v1.8.0

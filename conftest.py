@@ -1,6 +1,10 @@
 # Unless explicitly stated otherwise all files in this repository are licensed under the the Apache License Version 2.0.
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
+
+# keep this import at the top of the file
+from utils.proxy import scrubber  # noqa: F401
+
 import json
 import os
 import time
@@ -11,7 +15,7 @@ from pytest_jsonreport.plugin import JSONReport
 
 from manifests.parser.core import load as load_manifests
 from utils import context
-from utils._context._scenarios import scenarios
+from utils._context._scenarios import scenarios, Scenario
 from utils.tools import logger
 from utils.scripts.junit_report import junit_modifyreport
 from utils._context.library_version import LibraryVersion
@@ -26,7 +30,7 @@ _deselected_items = []
 setup_properties = SetupProperties()
 
 
-def pytest_addoption(parser):
+def pytest_addoption(parser) -> None:
     parser.addoption(
         "--scenario", "-S", type=str, action="store", default="DEFAULT", help="Unique identifier of scenario"
     )
@@ -36,26 +40,36 @@ def pytest_addoption(parser):
         "--force-execute", "-F", action="append", default=[], help="Item to execute, even if they are skipped"
     )
     parser.addoption("--scenario-report", action="store_true", help="Produce a report on nodeids and their scenario")
+    parser.addoption(
+        "--skip-empty-scenario",
+        action="store_true",
+        help="Skip scenario if it contains only tests marked as xfail or irrelevant",
+    )
 
     parser.addoption("--force-dd-trace-debug", action="store_true", help="Set DD_TRACE_DEBUG to true")
     parser.addoption("--force-dd-iast-debug", action="store_true", help="Set DD_IAST_DEBUG_ENABLED to true")
     # k8s scenarios mandatory parameters
+    parser.addoption("--k8s-provider", type=str, action="store", help="Set the k8s provider, like kind or minikube")
     parser.addoption("--k8s-weblog", type=str, action="store", help="Set weblog to deploy on k8s")
     parser.addoption("--k8s-library", type=str, action="store", help="Set language to test")
     parser.addoption(
         "--k8s-lib-init-img", type=str, action="store", help="Set tracers init image on the docker registry"
     )
+    parser.addoption("--k8s-injector-img", type=str, action="store", help="Set injector image on the docker registry")
     parser.addoption("--k8s-weblog-img", type=str, action="store", help="Set test app image on the docker registry")
-    parser.addoption("--k8s-cluster-version", type=str, action="store", help="Set the datadog agent version")
+    parser.addoption(
+        "--k8s-cluster-version", type=str, action="store", help="DEPRECATED. Set the datadog cluster version"
+    )
+    parser.addoption(
+        "--k8s-cluster-img", type=str, action="store", help="Set the datadog cluster image on the docker registry"
+    )
 
     # Onboarding scenarios mandatory parameters
     parser.addoption("--vm-weblog", type=str, action="store", help="Set virtual machine weblog")
     parser.addoption("--vm-library", type=str, action="store", help="Set virtual machine library to test")
     parser.addoption("--vm-env", type=str, action="store", help="Set virtual machine environment")
     parser.addoption("--vm-provider", type=str, action="store", help="Set provider for VMs")
-    parser.addoption("--vm-only-branch", type=str, action="store", help="Filter to execute only one vm branch")
     parser.addoption("--vm-only", type=str, action="store", help="Filter to execute only one vm name")
-    parser.addoption("--vm-skip-branches", type=str, action="store", help="Filter exclude vm branches")
     parser.addoption(
         "--vm-gitlab-pipeline",
         type=str,
@@ -76,6 +90,11 @@ def pytest_addoption(parser):
     parser.addoption("--ssi-library", type=str, action="store", help="Set docker ssi library to test")
     parser.addoption("--ssi-base-image", type=str, action="store", help="Set docker ssi base image to build")
     parser.addoption("--ssi-arch", type=str, action="store", help="Set docker ssi archictecture of the base image")
+    parser.addoption("--ssi-env", type=str, action="store", help="Prod or Dev (use ssi releases or snapshots)")
+    parser.addoption("--ssi-library-version", type=str, action="store", help="Optional, use custom version of library")
+    parser.addoption(
+        "--ssi-injector-version", type=str, action="store", help="Optional, use custom version of injector"
+    )
     parser.addoption(
         "--ssi-installable-runtime",
         type=str,
@@ -108,7 +127,7 @@ def pytest_addoption(parser):
     )
 
 
-def pytest_configure(config):
+def pytest_configure(config) -> None:
     if not config.option.force_dd_trace_debug and os.environ.get("SYSTEM_TESTS_FORCE_DD_TRACE_DEBUG") == "true":
         config.option.force_dd_trace_debug = True
 
@@ -122,16 +141,26 @@ def pytest_configure(config):
     if not config.option.report_run_url and "SYSTEM_TESTS_REPORT_RUN_URL" in os.environ:
         config.option.report_run_url = os.environ["SYSTEM_TESTS_REPORT_RUN_URL"]
 
+    if (
+        not config.option.skip_empty_scenario
+        and os.environ.get("SYSTEM_TESTS_SKIP_EMPTY_SCENARIO", "").lower() == "true"
+    ):
+        config.option.skip_empty_scenario = True
+
     # First of all, we must get the current scenario
+
+    current_scenario: Scenario | None = None
+
     for name in dir(scenarios):
         if name.upper() == config.option.scenario:
-            context.scenario = getattr(scenarios, name)
+            current_scenario = getattr(scenarios, name)
             break
 
-    if context.scenario is None:
+    if current_scenario is not None:
+        current_scenario.pytest_configure(config)
+        context.scenario = current_scenario
+    else:
         pytest.exit(f"Scenario {config.option.scenario} does not exist", 1)
-
-    context.scenario.pytest_configure(config)
 
     if not config.option.replay and not config.option.collectonly:
         config.option.json_report_file = f"{context.scenario.host_log_folder}/report.json"
@@ -141,7 +170,7 @@ def pytest_configure(config):
 
 
 # Called at the very begening
-def pytest_sessionstart(session):
+def pytest_sessionstart(session) -> None:
     # get the terminal to allow logging directly in stdout
     logger.terminal = session.config.pluginmanager.get_plugin("terminalreporter")
 
@@ -157,11 +186,8 @@ def pytest_sessionstart(session):
 
 # called when each test item is collected
 def _collect_item_metadata(item):
-    result = {
-        "details": None,
-        "testDeclaration": None,
-        "features": [marker.kwargs["feature_id"] for marker in item.iter_markers("features")],
-    }
+    details: str | None = None
+    test_declaration: str | None = None
 
     # get the reason form skip before xfail
     markers = [*item.iter_markers("skip"), *item.iter_markers("skipif"), *item.iter_markers("xfail")]
@@ -170,32 +196,36 @@ def _collect_item_metadata(item):
 
         if skip_reason is not None:
             # if any irrelevant declaration exists, it is the one we need to expose
-            if skip_reason.startswith("irrelevant") or result["details"] is None:
-                result["details"] = skip_reason
+            if skip_reason.startswith("irrelevant") or details is None:
+                details = skip_reason
 
-    if result["details"]:
-        logger.debug(f"{item.nodeid} => {result['details']} => skipped")
+    if details is not None:
+        logger.debug(f"{item.nodeid} => {details} => skipped")
 
-        if result["details"].startswith("irrelevant"):
-            result["testDeclaration"] = "irrelevant"
-        elif result["details"].startswith("flaky"):
-            result["testDeclaration"] = "flaky"
-        elif result["details"].startswith("bug"):
-            result["testDeclaration"] = "bug"
-        elif result["details"].startswith("incomplete_test_app"):
-            result["testDeclaration"] = "incompleteTestApp"
-        elif result["details"].startswith("missing_feature"):
-            result["testDeclaration"] = "notImplemented"
-        elif "got empty parameter set" in result["details"]:
+        if details.startswith("irrelevant"):
+            test_declaration = "irrelevant"
+        elif details.startswith("flaky"):
+            test_declaration = "flaky"
+        elif details.startswith("bug"):
+            test_declaration = "bug"
+        elif details.startswith("incomplete_test_app"):
+            test_declaration = "incompleteTestApp"
+        elif details.startswith("missing_feature"):
+            test_declaration = "notImplemented"
+        elif "got empty parameter set" in details:
             # Case of a test with no parameters. Onboarding: we removed the parameter/machine with excludedBranches
             logger.info(f"No parameters found for ${item.nodeid}")
         else:
-            raise ValueError(f"Unexpected test declaration for {item.nodeid} : {result['details']}")
+            raise ValueError(f"Unexpected test declaration for {item.nodeid} : {details}")
 
-    return result
+    return {
+        "details": details,
+        "testDeclaration": test_declaration,
+        "features": [marker.kwargs["feature_id"] for marker in item.iter_markers("features")],
+    }
 
 
-def _get_skip_reason_from_marker(marker):
+def _get_skip_reason_from_marker(marker) -> str | None:
     if marker.name == "skipif":
         if all(marker.args):
             return marker.kwargs.get("reason", "")
@@ -209,7 +239,7 @@ def _get_skip_reason_from_marker(marker):
     return None
 
 
-def pytest_pycollect_makemodule(module_path, parent):
+def pytest_pycollect_makemodule(module_path, parent) -> None:
     # As now, declaration only works for tracers at module level
 
     library = context.scenario.library.library
@@ -238,7 +268,7 @@ def pytest_pycollect_makemodule(module_path, parent):
 
 
 @pytest.hookimpl(tryfirst=True)
-def pytest_pycollect_makeitem(collector, name, obj):
+def pytest_pycollect_makeitem(collector, name, obj) -> None:
     if collector.istestclass(obj, name):
         if obj is None:
             message = f"""{collector.nodeid} is not properly collected.
@@ -259,7 +289,7 @@ def pytest_pycollect_makeitem(collector, name, obj):
                 raise ValueError(f"Unexpected error for {nodeid}.") from e
 
 
-def pytest_collection_modifyitems(session, config, items: list[pytest.Item]):
+def pytest_collection_modifyitems(session, config, items: list[pytest.Item]) -> None:
     """Unselect items that are not included in the current scenario"""
 
     logger.debug("pytest_collection_modifyitems")
@@ -272,6 +302,7 @@ def pytest_collection_modifyitems(session, config, items: list[pytest.Item]):
     def iter_markers(self, name=None):
         return (x[1] for x in self.iter_markers_with_node(name=name) if x[1].name not in ("skip", "skipif", "xfail"))
 
+    must_pass_item_count = 0
     for item in items:
         # if the item has explicit scenario markers, we use them
         # otherwise we use markers declared on its parents
@@ -302,26 +333,50 @@ def pytest_collection_modifyitems(session, config, items: list[pytest.Item]):
                     # including parent's markers) to exclude the skip, skipif and xfail markers.
                     item.iter_markers = types.MethodType(iter_markers, item)
 
+            if _item_must_pass(item):
+                must_pass_item_count += 1
+
         else:
             logger.debug(f"{item.nodeid} is not included in {context.scenario}")
             deselected.append(item)
-    items[:] = selected
-    config.hook.pytest_deselected(items=deselected)
+
+    if must_pass_item_count == 0 and session.config.option.skip_empty_scenario:
+        items[:] = []
+        config.hook.pytest_deselected(items=items)
+    else:
+        items[:] = selected
+        config.hook.pytest_deselected(items=deselected)
 
     if config.option.scenario_report:
         with open(f"{context.scenario.host_log_folder}/scenarios.json", "w", encoding="utf-8") as f:
             json.dump(all_declared_scenarios, f, indent=2)
 
 
-def pytest_deselected(items):
+def pytest_deselected(items) -> None:
     _deselected_items.extend(items)
+
+
+def _item_must_pass(item) -> bool:
+    """Returns True if the item must pass to be considered as a success"""
+
+    if any(item.iter_markers("skip")):
+        return False
+
+    if any(item.iter_markers("xfail")):
+        return False
+
+    for marker in item.iter_markers("skipif"):
+        if all(marker.args[0]):
+            return False
+
+    return True
 
 
 def _item_is_skipped(item):
     return any(item.iter_markers("skip"))
 
 
-def pytest_collection_finish(session: pytest.Session):
+def pytest_collection_finish(session: pytest.Session) -> None:
     if session.config.option.collectonly:
         return
 
@@ -382,23 +437,23 @@ def pytest_collection_finish(session: pytest.Session):
     if not session.config.option.replay:
         setup_properties.dump(context.scenario.host_log_folder)
 
-    context.scenario.post_setup()
+    context.scenario.post_setup(session)
 
 
-def pytest_runtest_call(item):
+def pytest_runtest_call(item) -> None:
     # add a log line for each request made by the setup, to help debugging
     setup_properties.log_requests(item)
 
 
 @pytest.hookimpl(optionalhook=True)
-def pytest_json_runtest_metadata(item, call):
+def pytest_json_runtest_metadata(item, call) -> None | dict:
     if call.when != "setup":
         return {}
 
     return _collect_item_metadata(item)
 
 
-def pytest_json_modifyreport(json_report):
+def pytest_json_modifyreport(json_report) -> None:
     try:
         # add usefull data for reporting
         json_report["context"] = context.serialize()
@@ -409,8 +464,12 @@ def pytest_json_modifyreport(json_report):
         logger.error("Fail to modify json report", exc_info=True)
 
 
-def pytest_sessionfinish(session, exitstatus):
+def pytest_sessionfinish(session, exitstatus) -> None:
     logger.info("Executing pytest_sessionfinish")
+
+    if session.config.option.skip_empty_scenario and exitstatus == pytest.ExitCode.NO_TESTS_COLLECTED:
+        exitstatus = pytest.ExitCode.OK
+        session.exitstatus = pytest.ExitCode.OK
 
     context.scenario.pytest_sessionfinish(session, exitstatus)
 
@@ -443,7 +502,7 @@ def pytest_sessionfinish(session, exitstatus):
             session.exitstatus = SUCCESS
 
 
-def export_feature_parity_dashboard(session, data):
+def export_feature_parity_dashboard(session, data) -> None:
     tests = [convert_test_to_feature_parity_model(test) for test in data["tests"]]
 
     result = {
@@ -465,7 +524,7 @@ def export_feature_parity_dashboard(session, data):
         json.dump(result, f, indent=2)
 
 
-def convert_test_to_feature_parity_model(test):
+def convert_test_to_feature_parity_model(test) -> dict | None:
     result = {
         "path": test["nodeid"],
         "lineNumber": test["lineno"],
@@ -481,10 +540,10 @@ def convert_test_to_feature_parity_model(test):
 
 ## Fixtures corners
 @pytest.fixture(scope="session", name="session")
-def fixture_session(request):
+def fixture_session(request) -> pytest.Session:
     return request.session
 
 
 @pytest.fixture(scope="session", name="deselected_items")
-def fixture_deselected_items():
+def fixture_deselected_items() -> list[pytest.Item]:
     return _deselected_items

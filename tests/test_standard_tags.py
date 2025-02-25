@@ -2,10 +2,13 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2022 Datadog, Inc.
 
-from utils import bug, context, interfaces, irrelevant, missing_feature, rfc, weblog, features
+from utils import bug, context, interfaces, irrelevant, missing_feature, rfc, weblog, features, scenarios
 
 
 @features.security_events_metadata
+@features.envoy_external_processing
+@scenarios.external_processing
+@scenarios.default
 class Test_StandardTagsMethod:
     """Tests to verify that libraries annotate spans with correct http.method tags"""
 
@@ -32,6 +35,9 @@ class Test_StandardTagsMethod:
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2490990623/QueryString+-+Sensitive+Data+Obfuscation")
 @features.security_events_metadata
+@features.envoy_external_processing
+@scenarios.external_processing
+@scenarios.default
 # Tests for verifying behavior when query string obfuscation is configured can be found in the Test_Config_ObfuscationQueryStringRegexp test classes
 class Test_StandardTagsUrl:
     """Tests to verify that libraries annotate spans with correct http.url tags"""
@@ -161,6 +167,9 @@ class Test_StandardTagsUrl:
 
 
 @features.security_events_metadata
+@features.envoy_external_processing
+@scenarios.external_processing
+@scenarios.default
 class Test_StandardTagsUserAgent:
     """Tests to verify that libraries annotate spans with correct http.useragent tags"""
 
@@ -200,7 +209,7 @@ class Test_StandardTagsRoute:
         if context.library == "nodejs":
             tags["http.route"] = "/sample_rate_route/:i"
         if context.library == "golang":
-            if context.weblog_variant == "net-http":
+            if "net-http" in context.weblog_variant:
                 # net/http doesn't support parametrized routes but a path catches anything down the tree.
                 tags["http.route"] = "/sample_rate_route/"
             if context.weblog_variant in ("gin", "echo", "uds-echo"):
@@ -210,7 +219,7 @@ class Test_StandardTagsRoute:
         if context.library == "python":
             if context.weblog_variant in ("flask-poc", "uwsgi-poc", "uds-flask"):
                 tags["http.route"] = "/sample_rate_route/<i>"
-            elif context.weblog_variant in ("django-poc", "python3.12"):
+            elif context.weblog_variant in ("django-poc", "python3.12", "django-py3.13"):
                 tags["http.route"] = "sample_rate_route/<int:i>"
 
         interfaces.library.add_span_tag_validation(request=self.r, tags=tags)
@@ -218,6 +227,9 @@ class Test_StandardTagsRoute:
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2118779066/Client+IP+addresses+resolution")
 @features.security_events_metadata
+@features.envoy_external_processing
+@scenarios.external_processing
+@scenarios.default
 class Test_StandardTagsClientIp:
     """Tests to verify that libraries annotate spans with correct http.client_ip tags"""
 
@@ -258,8 +270,8 @@ class Test_StandardTagsClientIp:
         for header, value in (self.FORWARD_HEADERS | self.FORWARD_HEADERS_VENDOR).items():
             self.requests_without_attack[header] = weblog.get("/waf/", headers={header: value})
 
-    def _test_client_ip(self, forward_headers):
-        for header, _ in forward_headers.items():
+    def _test_client_ip(self, forward_headers: dict[str, str]):
+        for header in forward_headers:
             request = self.requests_without_attack[header]
             meta = self._get_root_span_meta(request)
             assert "http.client_ip" in meta, f"Missing http.client_ip for {header}"
@@ -300,8 +312,7 @@ class Test_StandardTagsClientIp:
         assert "appsec.event" in meta
         assert "network.client.ip" in meta
         for header, value in self.FORWARD_HEADERS.items():
-            header = header.lower()
-            tag = f"http.request.headers.{header}"
+            tag = f"http.request.headers.{header.lower()}"
             assert tag in meta
             assert meta[tag] == value
 
@@ -322,8 +333,7 @@ class Test_StandardTagsClientIp:
         """Test that meta tag are correctly filled when an appsec event is present and ASM is enabled, with vendor headers"""
         meta = self._get_root_span_meta(self.request_with_attack)
         for header, value in self.FORWARD_HEADERS_VENDOR.items():
-            header = header.lower()
-            tag = f"http.request.headers.{header}"
+            tag = f"http.request.headers.{header.lower()}"
             assert tag in meta, f"missing {tag} tag"
             assert meta[tag] == value
 

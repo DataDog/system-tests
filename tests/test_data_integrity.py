@@ -5,8 +5,9 @@
 """Misc checks around data integrity during components' lifetime"""
 
 import string
-from utils import weblog, interfaces, context, bug, rfc, missing_feature, features
+from utils import weblog, interfaces, context, bug, rfc, irrelevant, missing_feature, features, scenarios
 from utils.tools import logger
+from utils.dd_constants import SamplingPriority
 from utils.cgroup_info import get_container_id
 
 
@@ -62,8 +63,8 @@ class Test_TraceHeaders:
                 if header.lower() == "x-datadog-trace-count":
                     try:
                         trace_count = int(value)
-                    except ValueError:
-                        raise ValueError(f"'x-datadog-trace-count' request header is not an integer: {value}")
+                    except ValueError as e:
+                        raise ValueError(f"'x-datadog-trace-count' request header is not an integer: {value}") from e
 
                     if trace_count != len(data["request"]["content"]):
                         raise ValueError("x-datadog-trace-count request header didn't match the number of traces")
@@ -145,7 +146,7 @@ class Test_LibraryHeaders:
     @missing_feature(library="ruby", reason="not implemented yet")
     @missing_feature(library="php", reason="not implemented yet")
     @missing_feature(library="cpp", reason="not implemented yet")
-    @missing_feature(library="golang", reason="not implemented yet")
+    @irrelevant(library="golang", reason="implemented but not testable")
     def test_datadog_entity_id(self):
         """Datadog-Entity-ID header is present and respect the in-<digits> format"""
 
@@ -179,20 +180,89 @@ class Test_LibraryHeaders:
 
         interfaces.library.validate(validator, success_by_default=True)
 
+    @missing_feature(library="cpp", reason="not implemented yet")
+    @missing_feature(library="dotnet", reason="not implemented yet")
+    @missing_feature(library="java", reason="not implemented yet")
+    @missing_feature(library="nodejs", reason="not implemented yet")
+    @missing_feature(library="php", reason="not implemented yet")
+    @missing_feature(library="ruby", reason="not implemented yet")
+    @missing_feature(context.library < "golang@1.73.0-dev", reason="Implemented in v1.72.0")
     def test_datadog_external_env(self):
         """Datadog-External-Env header if present is in the {prefix}-{value},... format"""
 
         def validator(data):
-            for header, value in data["request"]["headers"]:
-                if header.lower() == "datadog-external-env":
-                    assert value, "Datadog-External-Env header is empty"
-                    items = value.split(",")
-                    for item in items:
-                        assert (
-                            item[2] == "-"
-                        ), f"Datadog-External-Env item {item} is not using in the format {{prefix}}-{{value}}"
+            # Only test this when the path ens in /traces
+            if not data["path"].endswith("/traces"):
+                return
+            if _empty_request(data):
+                # Go sends an empty request content to /traces endpoint.
+                # This is a non-issue, because there are no traces to which container tags could be attached.
+                return
+            request_headers = {h[0].lower(): h[1] for h in data["request"]["headers"]}
+            if "datadog-external-env" not in request_headers:
+                raise ValueError(f"Datadog-External-ID header is missing in request {data['log_filename']}")
+            value = request_headers["datadog-external-env"]
+            items = value.split(",")
+            for item in items:
+                assert (
+                    item[2] == "-"
+                ), f"Datadog-External-Env item {item} is not using in the format {{prefix}}-{{value}}"
 
         interfaces.library.validate(validator, success_by_default=True)
+
+
+@features.data_integrity
+@scenarios.sampling
+@scenarios.default
+class Test_Agent:
+    @missing_feature(library="cpp", reason="Trace are not reported")
+    # we are not using dev agent, so activate this to see if it fails
+    # @flaky(context.agent_version > "7.62.2", reason="APMSP-1791")
+    def test_headers(self):
+        """All required headers are present in all requests sent by the agent"""
+        interfaces.library.assert_response_header(
+            path_filters=interfaces.library.trace_paths,
+            header_name_pattern="content-type",
+            header_value_pattern="application/json",
+        )
+
+    def test_agent_do_not_drop_traces(self):
+        """Agent does not drop traces"""
+
+        # get list of trace ids reported by the agent
+        trace_ids_reported_by_agent = set()
+        for _, span in interfaces.agent.get_spans():
+            trace_ids_reported_by_agent.add(int(span["traceID"]))
+
+        all_traces_are_reported = True
+        trace_ids_reported_by_tracer = set()
+        # check that all traces reported by the tracer are also reported by the agent
+        for data, span in interfaces.library.get_root_spans():
+            metrics = span["metrics"]
+            sampling_priority = metrics.get("_sampling_priority_v1")
+            if sampling_priority in (None, SamplingPriority.AUTO_KEEP, SamplingPriority.USER_KEEP):
+                trace_ids_reported_by_tracer.add(span["trace_id"])
+                if span["trace_id"] not in trace_ids_reported_by_agent:
+                    logger.error(f"Trace {span['trace_id']} has not been reported ({data['log_filename']})")
+                    all_traces_are_reported = False
+                else:
+                    logger.debug(f"Trace {span['trace_id']} has been reported ({data['log_filename']})")
+
+        if not all_traces_are_reported:
+            logger.info(f"Tracer reported {len(trace_ids_reported_by_tracer)} traces")
+            logger.info(f"Agent reported {len(trace_ids_reported_by_agent)} traces")
+            raise ValueError("Some traces have not been reported by the agent. See logs for more details")
+
+    def test_traces_coherence(self):
+        """Agent does not like incoherent data. Check that no incoherent data are coming from the tracer"""
+
+        for data, trace in interfaces.library.get_traces():
+            assert data["response"]["status_code"] == 200
+            trace_id = trace[0]["trace_id"]
+            assert isinstance(trace_id, int)
+            assert trace_id > 0
+            for span in trace:
+                assert span["trace_id"] == trace_id
 
 
 def _empty_request(data):

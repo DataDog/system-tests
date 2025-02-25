@@ -29,6 +29,7 @@ import (
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
+	otelbaggage "go.opentelemetry.io/otel/baggage"
 	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/trace"
 	oteltrace "go.opentelemetry.io/otel/trace"
@@ -537,6 +538,79 @@ func main() {
 		w.Write([]byte("ok"))
 	})
 
+	mux.HandleFunc("/otel_drop_in_default_propagator_extract", func(w http.ResponseWriter, r *http.Request) {
+		// Differing from other languages, the user must set the text map propagator because dd-trace-go
+		// doesn't automatically instrument at runtime (not including Orchestrion)
+		otel.SetTextMapPropagator(propagation.NewCompositeTextMapPropagator(propagation.TraceContext{}, propagation.Baggage{}))
+
+		httpCarrier := HttpCarrier{header: r.Header}
+
+		propagator := otel.GetTextMapPropagator()
+		ctx := propagator.Extract(r.Context(), httpCarrier)
+
+		spanContext := oteltrace.SpanContextFromContext(ctx)
+		baggage := otelbaggage.FromContext(ctx)
+
+		base := 16
+		bitSize := 64
+		result := make(map[string]any, 4)
+
+		num, err := strconv.ParseInt(spanContext.TraceID().String()[16:], base, bitSize)
+		if err == nil {
+			result["trace_id"] = num
+		}
+
+		num, err = strconv.ParseInt(spanContext.SpanID().String(), base, bitSize)
+		if err == nil {
+			result["span_id"] = num
+		}
+
+		result["tracestate"] = spanContext.TraceState().String()
+		result["baggage"] = baggage.String()
+
+		jsonData, err := json.Marshal(result)
+		if err != nil {
+			w.WriteHeader(422)
+			w.Write([]byte("failed to convert carrier to JSON"))
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(200)
+		w.Write(jsonData)
+	})
+
+	mux.HandleFunc("/otel_drop_in_default_propagator_inject", func(w http.ResponseWriter, r *http.Request) {
+		// Differing from other languages, the user must set the text map propagator because dd-trace-go
+		// doesn't automatically instrument at runtime (not including Orchestrion)
+		otel.SetTextMapPropagator(propagation.NewCompositeTextMapPropagator(propagation.TraceContext{}, propagation.Baggage{}))
+
+		ctx := context.Background()
+		p := ddotel.NewTracerProvider()
+		tracer := p.Tracer("")
+		otel.SetTracerProvider(p)
+
+		_, span := tracer.Start(ddotel.ContextWithStartOptions(ctx), "main")
+		newCtx := oteltrace.ContextWithSpan(ctx, span)
+
+		propagator := otel.GetTextMapPropagator()
+		mapCarrier := make(MapCarrier)
+		propagator.Inject(newCtx, mapCarrier)
+
+		jsonData, err := json.Marshal(mapCarrier)
+		span.End()
+
+		if err != nil {
+			w.WriteHeader(422)
+			w.Write([]byte("failed to convert carrier to JSON"))
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(200)
+		w.Write(jsonData)
+	})
+
 	mux.HandleFunc("/session/new", func(w http.ResponseWriter, r *http.Request) {
 		sessionID := strconv.Itoa(rand.Int())
 		w.Header().Add("Set-Cookie", "session="+sessionID+"; Path=/; Max-Age=3600; Secure; HttpOnly")
@@ -550,6 +624,30 @@ func main() {
 			w.Write([]byte("missing session cookie"))
 		}
 		appsec.TrackUserLoginSuccessEvent(r.Context(), user, map[string]string{}, tracer.WithUserSessionID(cookie.Value))
+	})
+
+	mux.HandleFunc("/inferred-proxy/span-creation", func(w http.ResponseWriter, r *http.Request) {
+		statusCodeStr := r.URL.Query().Get("status_code")
+		statusCode := 200
+		if statusCodeStr != "" {
+			var err error
+			statusCode, err = strconv.Atoi(statusCodeStr)
+			if err != nil {
+				statusCode = 400 // Bad request if conversion fails
+			}
+		}
+
+		// Log the request headers
+		fmt.Println("Received an API Gateway request")
+		for key, values := range r.Header {
+			for _, value := range values {
+				fmt.Printf("%s: %s\n", key, value)
+			}
+		}
+
+		// Send the response
+		w.WriteHeader(statusCode)
+		w.Write([]byte("ok"))
 	})
 
 	mux.HandleFunc("/requestdownstream", common.Requestdownstream)
@@ -596,6 +694,44 @@ func (c carrier) ForeachKey(handler func(key, val string) error) error {
 		}
 	}
 	return nil
+}
+
+type MapCarrier map[string]string
+
+func (c MapCarrier) Get(key string) string {
+	return c[key]
+}
+
+func (c MapCarrier) Set(key, val string) {
+	c[key] = val
+}
+
+func (c MapCarrier) Keys() []string {
+	keys := make([]string, 0, len(c))
+	for k := range c {
+		keys = append(keys, k)
+	}
+	return keys
+}
+
+type HttpCarrier struct {
+	header http.Header
+}
+
+func (c HttpCarrier) Get(key string) string {
+	return c.header.Get(key)
+}
+
+func (c HttpCarrier) Set(key, val string) {
+	c.header.Set(key, val)
+}
+
+func (c HttpCarrier) Keys() []string {
+	keys := make([]string, 0, len(c.header))
+	for k := range c.header {
+		keys = append(keys, k)
+	}
+	return keys
 }
 
 func write(w http.ResponseWriter, r *http.Request, d []byte) {

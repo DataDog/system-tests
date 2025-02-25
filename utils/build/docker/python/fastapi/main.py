@@ -14,27 +14,33 @@ from fastapi import Form
 from fastapi import Header
 from fastapi import Request
 from fastapi.responses import JSONResponse
-from fastapi.responses import PlainTextResponse
+from fastapi.responses import HTMLResponse
+from fastapi.responses import PlainTextResponse, Response
 from iast import weak_cipher
 from iast import weak_cipher_secure_algorithm
 from iast import weak_hash
 from iast import weak_hash_duplicates
 from iast import weak_hash_multiple
 from iast import weak_hash_secure_algorithm
+from jinja2 import Template
 import psycopg2
 from pydantic import BaseModel
 import requests
 import urllib3
 import xmltodict
+from starlette.middleware.sessions import SessionMiddleware
 
 import ddtrace
-from ddtrace import Pin
-from ddtrace import patch_all
-from ddtrace import tracer
 from ddtrace.appsec import trace_utils as appsec_trace_utils
 
+try:
+    from ddtrace.trace import Pin
+    from ddtrace.trace import tracer
+except ImportError:
+    from ddtrace import Pin
+    from ddtrace import tracer
 
-patch_all(urllib3=True)
+ddtrace.patch_all(urllib3=True)
 
 tracer.trace("init.service").finish()
 logger = logging.getLogger(__name__)
@@ -45,6 +51,31 @@ except ImportError:
     set_user = lambda *args, **kwargs: None  # noqa E731
 
 app = FastAPI()
+
+
+# Custom middleware
+try:
+    maj, min, patch, *_ = getattr(ddtrace, "__version__", "0.0.0").split(".")
+    current_ddtrace_version = (int(maj), int(min), int(patch))
+except Exception:
+    current_ddtrace_version = (0, 0, 0)
+
+if current_ddtrace_version >= (3, 1, 0):
+    """custom middleware only supported after PR 12413"""
+
+    @app.middleware("http")
+    async def add_process_time_header(request: Request, call_next):
+        try:
+            if request.session.get("user_id"):
+                set_user(tracer, user_id=request.session["user_id"], mode="auto")
+        except Exception:
+            # to be compatible with all tracer versions
+            pass
+        response = await call_next(request)
+        return response
+
+
+app.add_middleware(SessionMiddleware, secret_key="just_for_tests")
 
 POSTGRES_CONFIG = dict(
     host="postgres",
@@ -87,6 +118,26 @@ async def set_cookie(request: Request):
     )
 
 
+@app.post("/iast/header_injection/test_insecure", response_class=PlainTextResponse)
+async def iast_header_injection_insecure(request: Request):
+    form_data = await request.form()
+    header_value = form_data.get("test")
+    response = PlainTextResponse("OK")
+    # label iast_header_injection
+    response.headers["Header-Injection"] = header_value
+    return response
+
+
+@app.post("/iast/header_injection/test_secure", response_class=PlainTextResponse)
+async def iast_header_injection_secure(request: Request):
+    form_data = await request.form()
+    header_value = form_data.get("test")
+    response = PlainTextResponse("OK")
+    # label iast_header_injection
+    response.headers["Vary"] = header_value
+    return response
+
+
 @app.get("/sample_rate_route/{i}", response_class=PlainTextResponse)
 async def sample_rate(i):
     return "OK"
@@ -99,6 +150,8 @@ async def api_security_sampling(i):
 
 @app.get("/api_security/sampling/{status_code}", response_class=PlainTextResponse)
 async def api_security_sampling_status(status_code: int = 200):
+    if status_code == 204:
+        return Response(status_code=status_code)
     return PlainTextResponse("Hello!", status_code=status_code)
 
 
@@ -271,6 +324,34 @@ async def rasp_shi(request: Request):
         return PlainTextResponse(f"Shell command failure: {e!r}", status_code=201)
 
 
+@app.get("/rasp/cmdi")
+@app.post("/rasp/cmdi")
+async def rasp_cmdi(request: Request):
+    cmd = None
+    if request.method == "GET":
+        cmd = request.query_params.get("command")
+    elif request.method == "POST":
+        body = await request.body()
+        try:
+            cmd = ((await request.form()) or json.loads(body) or {}).get("command")
+        except Exception as e:
+            print(repr(e), file=sys.stderr)
+        try:
+            if cmd is None:
+                cmd = xmltodict.parse(body).get("command").get("cmd")
+        except Exception as e:
+            print(repr(e), file=sys.stderr)
+            pass
+
+    if cmd is None:
+        return PlainTextResponse("missing command parameter", status_code=400)
+    try:
+        res = subprocess.run(cmd, capture_output=True)
+        return PlainTextResponse(f"Exec command [{cmd}] with result: {res}")
+    except Exception as e:
+        return PlainTextResponse(f"Exec command [{cmd}] failure: {e!r}", status_code=201)
+
+
 ### END EXPLOIT PREVENTION
 
 
@@ -289,11 +370,15 @@ async def headers():
 
 @app.get("/status")
 async def status_code(code: int = 200):
+    if code == 204:
+        return Response(status_code=code)
     return PlainTextResponse("OK, probably", status_code=code)
 
 
 @app.get("/stats-unique")
 async def stats_unique(code: int = 200):
+    if code == 204:
+        return Response(status_code=code)
     return PlainTextResponse("OK, probably", status_code=code)
 
 
@@ -462,21 +547,28 @@ async def view_iast_source_header_value(table: typing.Annotated[str, Header()] =
     return "OK"
 
 
+@app.get("/iast/source/headername/test", response_class=PlainTextResponse)
+async def view_iast_source_header_value(request: Request):
+    table = [k for k in request.headers.keys() if k == "user"][0]
+    _sink_point_path_traversal(tainted_str=table)
+    return "OK"
+
+
 @app.get("/iast/source/parametername/test", response_class=PlainTextResponse)
 async def view_iast_source_parametername_get(request: Request):
-    param = [key for key in request.query_params if key == "user"]
+    param = [key for key in request.query_params.keys() if key == "user"]
     if param:
-        _sink_point(id=param[0])
+        _sink_point_path_traversal(param[0])
         return "OK"
     return "KO"
 
 
 @app.post("/iast/source/parametername/test", response_class=PlainTextResponse)
 async def view_iast_source_parametername_post(request: Request):
-    json_body = await request.form()
-    param = [key for key in json_body if key == "user"]
+    form_data = await request.form()
+    param = [key for key in form_data.keys() if key == "user"]
     if param:
-        _sink_point(id=param[0])
+        _sink_point_path_traversal(param[0])
         return "OK"
     return "KO"
 
@@ -568,37 +660,37 @@ async def login(request: Request):
     username = form.get("username")
     password = form.get("password")
     sdk_event = request.query_params.get("sdk_event")
-    if sdk_event:
-        sdk_user = request.query_params.get("sdk_user")
-        sdk_mail = request.query_params.get("sdk_mail")
-        sdk_user_exists = request.query_params.get("sdk_user_exists")
-        if sdk_event == "success":
-            appsec_trace_utils.track_user_login_success_event(tracer, user_id=sdk_user, email=sdk_mail)
-            return PlainTextResponse("OK")
-        elif sdk_event == "failure":
-            appsec_trace_utils.track_user_login_failure_event(
-                tracer, user_id=sdk_user, email=sdk_mail, exists=sdk_user_exists
-            )
-            return PlainTextResponse("login failure", status_code=401)
     authorisation = request.headers.get("Authorization")
     if authorisation:
         username, password = base64.b64decode(authorisation[6:]).decode().split(":")
     success, user_id = check(username, password)
     if success:
         # login_user(user)
-        appsec_trace_utils.track_user_login_success_event(tracer, user_id=user_id, login_events_mode="auto")
-        return PlainTextResponse("OK")
+        appsec_trace_utils.track_user_login_success_event(
+            tracer, user_id=user_id, login_events_mode="auto", login=username
+        )
+        request.session["user_id"] = user_id
     elif user_id:
         appsec_trace_utils.track_user_login_failure_event(
-            tracer,
-            user_id=user_id,
-            exists=True,
-            login_events_mode="auto",
+            tracer, user_id=user_id, exists=True, login_events_mode="auto", login=username
         )
     else:
         appsec_trace_utils.track_user_login_failure_event(
-            tracer, user_id=username, exists=False, login_events_mode="auto"
+            tracer, user_id=username, exists=False, login_events_mode="auto", login=username
         )
+    if sdk_event:
+        sdk_user = request.query_params.get("sdk_user")
+        sdk_mail = request.query_params.get("sdk_mail")
+        sdk_user_exists = request.query_params.get("sdk_user_exists")
+        if sdk_event == "success":
+            appsec_trace_utils.track_user_login_success_event(tracer, user_id=sdk_user, email=sdk_mail, login=sdk_user)
+            success = True
+        elif sdk_event == "failure":
+            appsec_trace_utils.track_user_login_failure_event(
+                tracer, user_id=sdk_user, email=sdk_mail, exists=sdk_user_exists, login=sdk_user
+            )
+    if success:
+        return PlainTextResponse("OK")
     return PlainTextResponse("login failure", status_code=401)
 
 
@@ -663,12 +755,47 @@ async def view_iast_ssrf_insecure(url: typing.Annotated[str, Form()]):
     return "OK"
 
 
+@app.get("/iast/stack_trace_leak/test_insecure", response_class=PlainTextResponse)
+async def stacktrace_leak_insecure(request: Request):
+    return PlainTextResponse(
+        content="""
+  Traceback (most recent call last):
+  File "/usr/local/lib/python3.9/site-packages/some_module.py", line 42, in process_data
+    result = complex_calculation(data)
+  File "/usr/local/lib/python3.9/site-packages/another_module.py", line 158, in complex_calculation
+    intermediate = perform_subtask(data_slice)
+  File "/usr/local/lib/python3.9/site-packages/subtask_module.py", line 27, in perform_subtask
+    processed = handle_special_case(data_slice)
+  File "/usr/local/lib/python3.9/site-packages/special_cases.py", line 84, in handle_special_case
+    return apply_algorithm(data_slice, params)
+  File "/usr/local/lib/python3.9/site-packages/algorithm_module.py", line 112, in apply_algorithm
+    step_result = execute_step(data, params)
+  File "/usr/local/lib/python3.9/site-packages/step_execution.py", line 55, in execute_step
+    temp = pre_process(data)
+  File "/usr/local/lib/python3.9/site-packages/pre_processing.py", line 33, in pre_process
+    validated_data = validate_input(data)
+  File "/usr/local/lib/python3.9/site-packages/validation.py", line 66, in validate_input
+    check_constraints(data)
+  File "/usr/local/lib/python3.9/site-packages/constraints.py", line 19, in check_constraints
+    raise ValueError("Constraint violation at step 9")
+ValueError: Constraint violation at step 9
+
+Lorem Ipsum Foobar
+        """
+    )
+
+
+@app.get("/iast/stack_trace_leak/test_secure", response_class=PlainTextResponse)
+async def stacktrace_leak_secure(request: Request):
+    return PlainTextResponse("OK")
+
+
 @app.post("/iast/ssrf/test_secure", response_class=PlainTextResponse)
 async def view_iast_ssrf_secure(url: typing.Annotated[str, Form()]):
     from urllib.parse import urlparse
 
     # Validate the URL and enforce whitelist
-    allowed_domains = ["example.com", "api.example.com"]
+    allowed_domains = ["example.com", "api.example.com", "www.datadoghq.com"]
     parsed_url = urlparse(str(url))
 
     if parsed_url.hostname not in allowed_domains:
@@ -793,10 +920,50 @@ async def view_cmdi_secure(cmd: typing.Annotated[str, Form()]):
 #     return "YEAH"
 
 
+@app.post("/iast/code_injection/test_insecure", response_class=PlainTextResponse)
+async def view_iast_code_injection_insecure(code: typing.Annotated[str, Form()]):
+    _ = eval(code)
+    return "OK"
+
+
+@app.post("/iast/code_injection/test_secure", response_class=PlainTextResponse)
+async def view_iast_code_injection_secure(code: typing.Annotated[str, Form()]):
+    import operator
+
+    def safe_eval(expr):
+        ops = {
+            "+": operator.add,
+            "-": operator.sub,
+            "*": operator.mul,
+            "/": operator.truediv,
+        }
+        if len(expr) != 3 or expr[1] not in ops:
+            raise ValueError("Invalid expression")
+        a, op, b = expr
+        return ops[op](float(a), float(b))
+
+    _ = safe_eval(code)
+    return "OK"
+
+
+@app.post("/iast/xss/test_insecure", response_class=PlainTextResponse)
+async def view_iast_xss_insecure(param: typing.Annotated[str, Form()]):
+    template = Template("<p>{{ param|safe }}</p>")
+    html = template.render(param=param)
+    return HTMLResponse(html)
+
+
+@app.post("/iast/xss/test_secure", response_class=PlainTextResponse)
+async def view_iast_xss_secure(param: typing.Annotated[str, Form()]):
+    template = Template("<p>{{ param }}</p>")
+    html = template.render(param=param)
+    return HTMLResponse(html)
+
+
 @app.get("/createextraservice", response_class=PlainTextResponse)
 def create_extra_service(serviceName: str = ""):
     if serviceName:
-        Pin.override(fastapi, service=serviceName, tracer=tracer)
+        Pin.override(fastapi, service=serviceName)
     return "OK"
 
 

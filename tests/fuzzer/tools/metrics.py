@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, UTC
 
 
 def get_readable_integer_value(value):
@@ -45,38 +45,28 @@ class Metric:
         self.global_value = value
 
     def observe(self):
-        """
-        Will be called before printing
-        """
+        """Will be called before printing"""
 
     def observe_global_value(self):
         self.value = self.global_value
         self.observe()
 
     def reset(self):
-        """
-        Will be called after printing
-        """
+        """Will be called after printing"""
 
     @property
     def pretty(self):
-        """
-        Will be printed
-        """
+        """Will be printed"""
         return self.format_string.format(value=str(self.value))
 
     @property
     def raw(self):
-        """
-        Will be exported for later analysis
-        """
+        """Will be exported for later analysis"""
         return self.value
 
     @property
     def is_null(self):
-        """
-        if true, will not reported in log file
-        """
+        """If true, will not reported in log file"""
         return False
 
 
@@ -114,12 +104,12 @@ class ResetedAccumulatedMetric(AccumulatedMetric):
 class RateMetric(AccumulatedMetric):
     def __init__(self, name):
         super().__init__(name)
-        self.last_observation_timestamp = datetime.now()
-        self.init_observation_timestamp = datetime.now()
+        self.last_observation_timestamp = datetime.now(tz=UTC)
+        self.init_observation_timestamp = datetime.now(tz=UTC)
         self.rate = 0
 
     def observe(self):
-        delta = datetime.now() - self.last_observation_timestamp
+        delta = datetime.now(tz=UTC) - self.last_observation_timestamp
         seconds = delta.seconds + delta.microseconds / 1000000
         self.rate = self.value / seconds
 
@@ -136,7 +126,7 @@ class RateMetric(AccumulatedMetric):
         return self.rate
 
     def reset(self):
-        self.last_observation_timestamp = datetime.now()
+        self.last_observation_timestamp = datetime.now(tz=UTC)
         self.value = 0
 
 
@@ -209,10 +199,10 @@ class SelfAccumulatedMetricWithPercent(AccumulatedMetric):
 class EllapsedMetric(Metric):
     def __init__(self, name="Ellapsed"):
         super().__init__(name)
-        self.start_time = datetime.now()
+        self.start_time = datetime.now(tz=UTC)
 
     def observe(self):
-        self.value = datetime.now() - self.start_time
+        self.value = datetime.now(tz=UTC) - self.start_time
 
 
 class PerformanceMetric(Metric):
@@ -298,14 +288,14 @@ class Report:
         self.next_report_timestamp = None
 
     def start(self):
-        self.next_report_timestamp = datetime.now()
+        self.next_report_timestamp = datetime.now(tz=UTC)
         self._compute_next_report_timestamp()
 
     def _compute_next_report_timestamp(self):
         self.next_report_timestamp += self.report_frequency
 
     def _is_report_time(self):
-        return self.next_report_timestamp < datetime.now()
+        return self.next_report_timestamp < datetime.now(tz=UTC)
 
     def get_headers(self, metrics_getter):
         return [

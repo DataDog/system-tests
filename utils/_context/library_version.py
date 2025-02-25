@@ -51,15 +51,15 @@ class Version(version_module.Version):
 
 
 class LibraryVersion:
-    known_versions = defaultdict(set)
+    known_versions: dict = defaultdict(set)
 
-    def add_known_version(self, version, library=None):
+    def add_known_version(self, version: Version | None, library: str | None = None):
         library = self.library if library is None else library
         LibraryVersion.known_versions[library].add(str(version))
 
-    def __init__(self, library, version=None):
-        self.library = None
-        self.version = None
+    def __init__(self, library: str | None, version: str | None = None):
+        self.library: str | None = None
+        self.version: Version | None = None
 
         if library is None:
             return
@@ -115,7 +115,7 @@ class LibraryVersion:
 
                     # dd-trace-rb main branch expose a version equal to the last release, so hack it:
                     # * add 1 to minor version
-                    # * and set z as prerelease if not prerelease is set, becasue z will be after any other prerelease
+                    # * and set z as prerelease if not prerelease is set, because z will be after any other prerelease
 
                     # if dd-trace-rb repo fix the underlying issue, we can remove this hack.
                     self.version = Version(
@@ -157,7 +157,7 @@ class LibraryVersion:
 
         if "@" in other:
             library, version = other.split("@", 1)
-            self.add_known_version(library=library, version=version)
+            self.add_known_version(library=library, version=Version(version))
 
             if self.library != library:
                 return False
@@ -165,12 +165,12 @@ class LibraryVersion:
             if self.version is None:
                 raise ValueError("Weblog does not provide an library version number")
 
-            return self.library == library and self.version == version
+            return self.library == library and self.version == Version(version)
 
         library = other
         return self.library == library
 
-    def _extract_members(self, other):
+    def _extract_members(self, other) -> tuple[str | None, Version | None]:
         if isinstance(other, LibraryVersion):
             return other.library, other.version
 
@@ -180,7 +180,8 @@ class LibraryVersion:
         if "@" not in other:
             raise ValueError("Can't compare version numbers without a version")
 
-        library, version = other.split("@", 1)
+        library, version_str = other.split("@", 1)
+        version = Version(version_str)
 
         if self.version is None and self.library == library:
             # the second comparizon is here because if it's not the good library,
@@ -194,19 +195,19 @@ class LibraryVersion:
 
     def __lt__(self, other):
         library, version = self._extract_members(other)
-        return self.library == library and self.version < version
+        return self.library == library and self.version and self.version < version
 
     def __le__(self, other):
         library, version = self._extract_members(other)
-        return self.library == library and self.version <= version
+        return self.library == library and self.version and self.version <= version
 
     def __gt__(self, other):
         library, version = self._extract_members(other)
-        return self.library == library and self.version > version
+        return self.library == library and self.version and self.version > version
 
     def __ge__(self, other):
         library, version = self._extract_members(other)
-        return self.library == library and self.version >= version
+        return self.library == library and self.version and self.version >= version
 
     def serialize(self):
         return {

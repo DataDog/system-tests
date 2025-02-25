@@ -30,7 +30,7 @@ class _StringLists:
     def unicode(self):
         result = []
 
-        def append(*args):
+        def append(*args: tuple):
             value = bytes(args).decode()
             result.append(value)
 
@@ -88,33 +88,33 @@ class _StringLists:
         # 11110000 1001xxxx 10xxxxxx 10xxxxxx
         for j in range(0b10010000, 0b10011111 + 1):
             for k in range(0b10000000, 0b10111111 + 1):
-                for l in range(0b10000000, 0b10111111 + 1):
-                    append(0b11110000, j, k, l)
+                for z in range(0b10000000, 0b10111111 + 1):
+                    append(0b11110000, j, k, z)
 
         # 11110000 101xxxxx 10xxxxxx 10xxxxxx
         for j in range(0b10100000, 0b10111111 + 1):
             for k in range(0b10000000, 0b10111111 + 1):
-                for l in range(0b10000000, 0b10111111 + 1):
-                    append(0b11110000, j, k, l)
+                for z in range(0b10000000, 0b10111111 + 1):
+                    append(0b11110000, j, k, z)
 
         # 11110001 10xxxxxx 10xxxxxx 10xxxxxx
         for j in range(0b10000000, 0b10111111 + 1):
             for k in range(0b10000000, 0b10111111 + 1):
-                for l in range(0b10000000, 0b10111111 + 1):
-                    append(0b11110001, j, k, l)
+                for z in range(0b10000000, 0b10111111 + 1):
+                    append(0b11110001, j, k, z)
 
         # 1111001x 10xxxxxx 10xxxxxx 10xxxxxx
         for i in range(0b11110010, 0b11110011 + 1):
             for j in range(0b10000000, 0b10111111 + 1):
                 for k in range(0b10000000, 0b10111111 + 1):
-                    for l in range(0b10000000, 0b10111111 + 1):
-                        append(i, j, k, l)
+                    for z in range(0b10000000, 0b10111111 + 1):
+                        append(i, j, k, z)
 
         # 11110100 1000xxxx 10xxxxxx 10xxxxxx
         for j in range(0b10000000, 0b10001111 + 1):
             for k in range(0b10000000, 0b10111111 + 1):
-                for l in range(0b10000000, 0b10111111 + 1):
-                    append(0b11110100, j, k, l)
+                for z in range(0b10000000, 0b10111111 + 1):
+                    append(0b11110100, j, k, z)
 
         return result
 

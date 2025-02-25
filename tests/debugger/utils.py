@@ -6,6 +6,7 @@ import json
 import re
 import os
 import os.path
+from pathlib import Path
 import uuid
 
 from utils import interfaces, remote_config, weblog, context
@@ -17,8 +18,9 @@ _CONFIG_PATH = "/v0.7/config"
 _DEBUGGER_PATH = "/api/v2/debugger"
 _LOGS_PATH = "/api/v2/logs"
 _TRACES_PATH = "/api/v0.2/traces"
+_SYMBOLS_PATH = "/symdb/v1/input"
 
-_CUR_DIR = os.path.dirname(os.path.abspath(__file__))
+_CUR_DIR = str(Path(__file__).resolve().parent)
 
 
 def read_probes(test_name: str):
@@ -40,10 +42,9 @@ def extract_probe_ids(probes):
     return []
 
 
-def _get_path(test_name, suffix):
-    filename = test_name + "_" + _Base_Debugger_Test.tracer["language"] + "_" + suffix + ".json"
-    path = os.path.join(_CUR_DIR, "approvals", filename)
-    return path
+def _get_path(test_name, suffix) -> str:
+    filename = test_name + "_" + Base_Debugger_Test.tracer["language"] + "_" + suffix + ".json"
+    return os.path.join(_CUR_DIR, "approvals", filename)
 
 
 def write_approval(data, test_name, suffix):
@@ -56,7 +57,7 @@ def read_approval(test_name, suffix):
         return json.load(f)
 
 
-class _Base_Debugger_Test:
+class Base_Debugger_Test:
     tracer = None
 
     probe_definitions = []
@@ -65,8 +66,10 @@ class _Base_Debugger_Test:
     probe_diagnostics = {}
     probe_snapshots = {}
     probe_spans = {}
+    all_spans = []
+    symbols = []
 
-    rc_state = None
+    rc_states = []
     weblog_responses = []
 
     setup_failures = []
@@ -82,9 +85,21 @@ class _Base_Debugger_Test:
                 # This should fail the test immediately but the failure is
                 # reported after all of the setup and the test are attempted
                 self.setup_failures.append(
-                    "Failed to get /debugger/init: expected status code: 200, actual status code: %d"
-                    % (response.status_code)
+                    f"Failed to get /debugger/init: expected status code: 200, actual status code: {response.status_code}"
                 )
+
+    def method_and_language_to_line_number(self, method, language):
+        """method_and_language_to_line_number returns the respective line number given the method and language"""
+        return {
+            "Budgets": {"python": [142], "java": [138]},
+            "Expression": {"java": [71], "dotnet": [74], "python": [72]},
+            # The `@exception` variable is not available in the context of line probes.
+            "ExpressionException": {},
+            "ExpressionOperators": {"java": [82], "dotnet": [90], "python": [87]},
+            "StringOperations": {"java": [87], "dotnet": [97], "python": [96]},
+            "CollectionOperations": {"java": [114], "dotnet": [114], "python": [123]},
+            "Nulls": {"java": [130], "dotnet": [127], "python": [136]},
+        }.get(method, {}).get(language, [])
 
     ###### set #####
     def set_probes(self, probes):
@@ -133,6 +148,8 @@ class _Base_Debugger_Test:
                         probe["where"]["sourceFile"] = "debugger_controller.py"
                     elif language == "ruby":
                         probe["where"]["sourceFile"] = "debugger_controller.rb"
+                    elif language == "nodejs":
+                        probe["where"]["sourceFile"] = "debugger/index.js"
                 probe["type"] = __get_probe_type(probe["id"])
 
             return probes
@@ -146,14 +163,50 @@ class _Base_Debugger_Test:
     ###### send #####
     _rc_version = 0
 
-    def send_rc_probes(self):
-        _Base_Debugger_Test._rc_version += 1
+    def send_rc_probes(self, *, reset: bool = True):
+        Base_Debugger_Test._rc_version += 1
 
-        self.rc_state = remote_config.send_debugger_command(
-            probes=self.probe_definitions, version=_Base_Debugger_Test._rc_version
+        if reset:
+            self.rc_states = []
+
+        self.rc_states.append(
+            remote_config.send_debugger_command(probes=self.probe_definitions, version=Base_Debugger_Test._rc_version)
         )
 
-    def send_weblog_request(self, request_path: str, reset: bool = True):
+    def send_rc_apm_tracing(
+        self,
+        dynamic_instrumentation_enabled: bool | None = None,
+        exception_replay_enabled: bool | None = None,
+        live_debugging_enabled: bool | None = None,
+        code_origin_enabled: bool | None = None,
+        dynamic_sampling_enabled: bool | None = None,
+        *,
+        reset: bool = True,
+    ):
+        Base_Debugger_Test._rc_version += 1
+
+        if reset:
+            self.rc_states = []
+
+        self.rc_states.append(
+            remote_config.send_apm_tracing_command(
+                dynamic_instrumentation_enabled=dynamic_instrumentation_enabled,
+                exception_replay_enabled=exception_replay_enabled,
+                live_debugging_enabled=live_debugging_enabled,
+                code_origin_enabled=code_origin_enabled,
+                dynamic_sampling_enabled=dynamic_sampling_enabled,
+                version=Base_Debugger_Test._rc_version,
+            )
+        )
+
+    def send_rc_symdb(self, *, reset: bool = True):
+        Base_Debugger_Test._rc_version += 1
+        if reset:
+            self.rc_states = []
+
+        self.rc_states.append(remote_config.send_symdb_command(Base_Debugger_Test._rc_version))
+
+    def send_weblog_request(self, request_path: str, *, reset: bool = True):
         if reset:
             self.weblog_responses = []
 
@@ -163,10 +216,14 @@ class _Base_Debugger_Test:
     _last_read = 0
 
     def wait_for_all_probes_installed(self, timeout=30):
+        self._wait_successful = False
         interfaces.agent.wait_for(lambda data: self._wait_for_all_probes(data, status="INSTALLED"), timeout=timeout)
+        return self._wait_successful
 
     def wait_for_all_probes_emitting(self, timeout=30):
+        self._wait_successful = False
         interfaces.agent.wait_for(lambda data: self._wait_for_all_probes(data, status="EMITTING"), timeout=timeout)
+        return self._wait_successful
 
     def _wait_for_all_probes(self, data, status):
         found_ids = set()
@@ -194,15 +251,13 @@ class _Base_Debugger_Test:
 
             return set(self.probe_ids).issubset(found_ids)
 
-        all_probes_ready = False
-
         log_filename_found = re.search(r"/(\d+)__", data["log_filename"])
         if not log_filename_found:
             return False
 
         log_number = int(log_filename_found.group(1))
-        if log_number >= _Base_Debugger_Test._last_read:
-            _Base_Debugger_Test._last_read = log_number
+        if log_number >= Base_Debugger_Test._last_read:
+            Base_Debugger_Test._last_read = log_number
 
         if data["path"] in [_DEBUGGER_PATH, _LOGS_PATH]:
             probe_diagnostics = self._process_diagnostics_data([data])
@@ -212,9 +267,9 @@ class _Base_Debugger_Test:
                 logger.debug("Probes diagnostics is empty")
                 return False
 
-            all_probes_ready = _check_all_probes_status(probe_diagnostics, status)
+            self._wait_successful = _check_all_probes_status(probe_diagnostics, status)
 
-        return all_probes_ready
+        return self._wait_successful
 
     _exception_message = None
     _snapshot_found = False
@@ -231,13 +286,15 @@ class _Base_Debugger_Test:
             logger.debug("Reading " + data["log_filename"] + ", looking for " + self._exception_message)
             contents = data["request"].get("content", []) or []
 
-            logger.debug("len is")
-            logger.debug(len(contents))
-
             for content in contents:
                 snapshot = content.get("debugger", {}).get("snapshot") or content.get("debugger.snapshot")
 
                 if not snapshot or "probe" not in snapshot:
+                    logger.debug("Snapshot doesn't have pobe")
+                    continue
+
+                if "exceptionId" not in snapshot:
+                    logger.debug("Snapshot doesnt't have exception")
                     continue
 
                 exception_message = self.get_exception_message(snapshot)
@@ -252,6 +309,40 @@ class _Base_Debugger_Test:
         logger.debug(f"Snapshot found: {self._snapshot_found}")
         return self._snapshot_found
 
+    def wait_for_code_origin_span(self, timeout):
+        self._span_found = False
+
+        interfaces.agent.wait_for(self._wait_for_code_origin_span, timeout=timeout)
+        return self._span_found
+
+    _last_read_span = 0
+
+    def _wait_for_code_origin_span(self, data):
+        if data["path"] == _TRACES_PATH:
+            log_filename_found = re.search(r"/(\d+)__", data["log_filename"])
+            if not log_filename_found:
+                return False
+
+            log_number = int(log_filename_found.group(1))
+            if log_number >= Base_Debugger_Test._last_read_span:
+                Base_Debugger_Test._last_read_span = log_number
+
+                content = data["request"]["content"]
+                if content:
+                    for payload in content["tracerPayloads"]:
+                        for chunk in payload["chunks"]:
+                            for span in chunk["spans"]:
+                                resource, resource_type = span.get("resource"), span.get("type")
+
+                                if resource == "GET /healthcheck" and resource_type == "web":
+                                    code_origin_type = span["meta"].get("_dd.code_origin.type", "")
+
+                                    if code_origin_type == "entry":
+                                        self._span_found = True
+                                        return True
+
+        return False
+
     ###### collect #####
     def collect(self):
         self.get_tracer()
@@ -259,6 +350,7 @@ class _Base_Debugger_Test:
         self._collect_probe_diagnostics()
         self._collect_snapshots()
         self._collect_spans()
+        self._collect_symbols()
 
     def _collect_probe_diagnostics(self):
         def _read_data():
@@ -272,12 +364,10 @@ class _Base_Debugger_Test:
                     path = _DEBUGGER_PATH
                 else:
                     path = _LOGS_PATH
-            elif context.library == "python":
-                path = _DEBUGGER_PATH
-            elif context.library == "ruby":
+            elif context.library == "python" or context.library == "ruby" or context.library == "nodejs":
                 path = _DEBUGGER_PATH
             else:
-                path = _LOGS_PATH
+                path = _LOGS_PATH  # TODO: Should the default not be _DEBUGGER_PATH?
 
             return list(interfaces.agent.get_data(path))
 
@@ -287,39 +377,39 @@ class _Base_Debugger_Test:
     def _process_diagnostics_data(self, datas):
         probe_diagnostics = {}
 
+        def _should_update_status(current_status, new_status):
+            transitions = {
+                "RECEIVED": True,
+                "INSTALLED": new_status in ["INSTALLED", "EMITTING"],
+                "EMITTING": new_status == "EMITTING",
+            }
+            return transitions.get(current_status, False)
+
         def _process_debugger(debugger):
             if "diagnostics" in debugger:
                 diagnostics = debugger["diagnostics"]
-
                 probe_id = diagnostics["probeId"]
                 status = diagnostics["status"]
 
-                # update status
                 if probe_id in probe_diagnostics:
                     current_status = probe_diagnostics[probe_id]["status"]
-                    if current_status == "RECEIVED":
+                    if _should_update_status(current_status, status):
                         probe_diagnostics[probe_id]["status"] = status
-                    elif current_status == "INSTALLED" and status in ["INSTALLED", "EMITTING"]:
-                        probe_diagnostics[probe_id]["status"] = status
-                    elif current_status == "EMITTING" and status == "EMITTING":
-                        probe_diagnostics[probe_id]["status"] = status
-                # set new status
                 else:
                     probe_diagnostics[probe_id] = diagnostics
 
         for data in datas:
+            logger.debug(f"Processing data: {data['log_filename']}")
             contents = data["request"].get("content", []) or []  # Ensures contents is a list
 
             for content in contents:
-                if "content" in content:
-                    d_contents = content["content"]
-                    for d_content in d_contents:
-                        if isinstance(d_content, dict):
-                            _process_debugger(d_content["debugger"])
-                else:
-                    if "debugger" in content:
-                        if isinstance(content, dict):
-                            _process_debugger(content["debugger"])
+                if "content" in content and isinstance(content["content"], list):
+                    # content["content"] may be a dict, and not a list ?
+                    for d_content in content["content"]:
+                        assert isinstance(d_content, dict), f"Unexpected content: {json.dumps(content, indent=2)}"
+                        _process_debugger(d_content["debugger"])
+                elif "debugger" in content:
+                    _process_debugger(content["debugger"])
 
         return probe_diagnostics
 
@@ -345,7 +435,7 @@ class _Base_Debugger_Test:
         self.probe_snapshots = _get_snapshot_hash()
 
     def _collect_spans(self):
-        def _get_spans_hash(self):
+        def _get_spans_hash():
             agent_logs_endpoint_requests = list(interfaces.agent.get_data(_TRACES_PATH))
             span_hash = {}
 
@@ -361,6 +451,7 @@ class _Base_Debugger_Test:
                     for payload in content["tracerPayloads"]:
                         for chunk in payload["chunks"]:
                             for span in chunk["spans"]:
+                                self.all_spans.append(span)
                                 is_span_decoration_method = span["name"] == "dd.dynamic.span"
                                 if is_span_decoration_method:
                                     span_hash[span["meta"]["debugger.probeid"]] = span
@@ -378,16 +469,32 @@ class _Base_Debugger_Test:
 
             return span_hash
 
-        self.probe_spans = _get_spans_hash(self)
+        self.probe_spans = _get_spans_hash()
+
+    def _collect_symbols(self):
+        def _get_symbols():
+            result = []
+            raw_data = list(interfaces.library.get_data(_SYMBOLS_PATH))
+
+            for data in raw_data:
+                if isinstance(data, dict) and "request" in data:
+                    contents = data["request"].get("content", [])
+                    for content in contents:
+                        if isinstance(content, dict) and "system-tests-filename" in content:
+                            result.append(content)
+
+            return result
+
+        self.symbols = _get_symbols()
 
     def get_tracer(self):
-        if not _Base_Debugger_Test.tracer:
-            _Base_Debugger_Test.tracer = {
+        if not Base_Debugger_Test.tracer:
+            Base_Debugger_Test.tracer = {
                 "language": str(context.library).split("@")[0],
                 "tracer_version": str(context.library.version),
             }
 
-        return _Base_Debugger_Test.tracer
+        return Base_Debugger_Test.tracer
 
     def assert_setup_ok(self):
         if self.setup_failures:
@@ -401,22 +508,22 @@ class _Base_Debugger_Test:
 
     ###### assert #####
     def assert_rc_state_not_error(self):
-        assert self.rc_state, "RC states are empty"
+        assert self.rc_states, "RC states are empty"
 
         errors = []
-        for probe in self.probe_definitions:
-            rc_id = re.sub(r"_([a-z])", lambda match: match.group(1).upper(), probe["type"].lower()) + "_" + probe["id"]
+        for entry in self.rc_states:
+            for state in entry.values():
+                if not isinstance(state, dict) or "id" not in state:
+                    continue
 
-            logger.debug(f"Checking RC state for: {rc_id}")
+                rc_id = state["id"]
+                logger.debug(f"Checking RC state for: {rc_id}")
 
-            if rc_id not in self.rc_state:
-                errors.append(f"ID {rc_id} not found in state")
-            else:
-                apply_state = self.rc_state[rc_id]["apply_state"]
-                logger.debug(f"RC stace for {rc_id} is {apply_state}")
+                apply_state = state.get("apply_state")
+                logger.debug(f"RC state for {rc_id} is {apply_state}")
 
                 if apply_state == ApplyState.ERROR:
-                    errors.append(f"State for {rc_id} is error: {self.rc_state[rc_id]['apply_error']}")
+                    errors.append(f"State for {rc_id} is error: {state.get('apply_error')}")
 
         assert not errors, "\n".join(errors)
 

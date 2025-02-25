@@ -328,6 +328,50 @@ A POST request which will receive the following JSON body:
 
 An empty GET request that will execute two database queries, one to get a username and another to do a vulnerable SELECT using the obtained username.
 
+### POST /iast/sc/*
+
+These group of endpoints should trigger vulnerabilities detected by IAST with untrusted data coming from certain sources although the data is validated or sanitized by a configured security control
+
+#### POST /iast/sc/s/configured
+
+A post request using a parameter with a value that triggers a vulnerability. The value should be sanitized by a sanitizer security control configured for this vulnerability.
+
+#### POST /sc/s/not-configured
+
+A post request using a parameter  with a value that triggers a vulnerability. The value should be sanitized by a sanitizer security control that is not configured for this vulnerability.
+
+#### POST /sc/s/all
+
+A post request using a parameter with a value that triggers a vulnerability. The value should be sanitized by a sanitizer security control configured for all vulnerabilities.
+
+#### POST /sc/iv/configured
+
+A post request using a parameter with a value that triggers a vulnerability. The value should be validated by an input validator security control configured for this vulnerability.
+
+#### POST /sc/iv/not-configured
+
+A post request using a parameter with a value that triggers a vulnerability. The value should be validated by an input validator security control that is not configured for this vulnerability.
+
+#### POST /sc/iv/all
+
+A post request using a parameter  with a value that triggers a vulnerability. The value should be validated by an input validator security control configured for all vulnerabilities.
+
+#### POST /sc/iv/overloaded/secure
+
+A post request using two parameters that triggers a vulnerability. The values should be validated by an input validator security control with an overloaded method configured for all vulnerabilities.
+
+#### POST /sc/iv/overloaded/insecure
+
+A post request using two parameters that triggers a vulnerability. The values should be validated by an input validator security control with an overloaded method configured for other method signature.
+
+#### POST /sc/s/overloaded/secure
+
+A post request using a parameter with a value that triggers a vulnerability. The value should be sanitized by a sanitizer security control with an overloaded method configured for all vulnerabilities.
+
+#### POST /sc/s/overloaded/insecure
+
+A post request using a parameter with a value that triggers a vulnerability. The value should be sanitized by a sanitizer security control with an overloaded method configured for other method signature.
+
 ### GET /make_distant_call
 
 This endpoint accept a mandatory parameter `url`. It'll make a call to these url, and should returns a JSON response :
@@ -574,6 +618,14 @@ Expected query parameters:
 This endpoint loads a module/package in applicable languages. It's mainly used for telemetry tests to verify that
 the `dependencies-loaded` event is appropriately triggered.
 
+### GET /log/library
+
+This endpoint facilitates logging a message using a logging library. It is primarily designed for testing log injection functionality. Weblog apps must log using JSON format.
+
+The following query parameters are optional:
+- `msg`: Specifies the message to be logged. If not provided, the default message "msg" will be logged.
+- `level`: Specifies the log level to be used. If not provided, the default log level is "info".
+
 ### GET /e2e_single_span
 
 This endpoint will create two spans, a parent span (which is a root-span), and a child span.
@@ -613,6 +665,7 @@ Body fields accepted in POST method:
 
 It also supports HTTP authentication by using GET method and the authorization header.
 Additionally, both methods support the following query parameters to use the sdk functions along with the authentication framework:
+- `sdk_trigger`: when to call the sdk function, `after` or `before` the automated login event (by default `after`)
 - `sdk_event`: login event type: `success` or `failure`.
 - `sdk_user`: user id to be used in the sdk call.
 - `sdk_mail`: user's mail to be used in the sdk call.
@@ -715,6 +768,17 @@ Examples:
 - `GET`: `/rasp/ssrf?user_id="' OR 1 = 1 --"`
 - `POST`: `{"user_id": "' OR 1 = 1 --"}`
 
+### \[GET\] /rasp/multiple
+The idea of this endpoint is to have an endpoint where multiple rasp operation take place. All of them will generate a MATCH on the WAF but none of them will block. The goal of this endpoint is to verify that the `rasp.rule.match` telemetry entry is updated properly. While this seems easy, the WAF requires that data given on `call` is passed as ephemeral and not as persistent.
+
+In order to make the test easier, the operation used here need to generate LFI matches. The request will have two get parameters(`file1`, `file2`) which will contain a path that needs to be used as the parameters of the choosen lfi function. Then there will be another call to the lfi function with a harcoded parameter `'../etc/passwd'`. This will make `rasp.rule.match` to be equal to 3. A code example look like:
+
+```
+lfi_operation($request->get('file1'))
+lfi_operation($request->get('file2'))
+lfi_operation('../etc/passwd') //This one is harcoded
+```
+
 ### GET /dsm/inject
 This endpoint is used to validate DSM context injection injects the correct encoding to a headers carrier.
 
@@ -811,7 +875,7 @@ c377db41-b664-4e30-af57-5df2e803bec7
 Examples:
 - `GET`: `/session/new`
 
-### \[GET\] /session/user
+### **UNUSED** \[GET\] /session/user
 
 Once a session has been established, a new call to `/session/user` must be made in order to generate a session fingerprint with the session id provided by the web client (e.g. cookie) and the user id provided as a parameter.
 

@@ -2,8 +2,8 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, missing_feature, bug, features, scenarios
-from ..utils import BaseSourceTest
+from utils import features, scenarios
+from tests.appsec.iast.utils import BaseSourceTest
 
 
 @scenarios.graphql_appsec

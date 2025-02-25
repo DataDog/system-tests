@@ -101,6 +101,11 @@ class SchemaValidator:
             return []
 
         validator = _get_schema_validator(schema_id)
+        if "content" not in data["request"]:
+            # something went wrong on the proxy side
+            # it's not the schema job to complain about it
+            return []
+
         if validator.is_valid(data["request"]["content"]):
             return []
 
@@ -117,9 +122,9 @@ def _main():
         for folder in folders:
             path = f"{folder}/interfaces/{interface}"
 
-            if not os.path.exists(path):
+            if not Path(path).exists():
                 continue
-            files = [file for file in os.listdir(path) if os.path.isfile(os.path.join(path, file))]
+            files = [file for file in os.listdir(path) if Path(os.path.join(path, file)).is_file()]
             for file in files:
                 with open(os.path.join(path, file), encoding="utf-8") as f:
                     data = json.load(f)

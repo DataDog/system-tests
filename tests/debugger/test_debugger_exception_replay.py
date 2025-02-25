@@ -5,7 +5,7 @@
 import tests.debugger.utils as debugger
 import os
 import re
-from utils import scenarios, features, bug, context, flaky
+from utils import scenarios, features, bug, context, flaky, irrelevant
 from utils.tools import logger
 
 
@@ -24,7 +24,7 @@ _timeout_next = 30
 
 @features.debugger_exception_replay
 @scenarios.debugger_exception_replay
-class Test_Debugger_Exception_Replay(debugger._Base_Debugger_Test):
+class Test_Debugger_Exception_Replay(debugger.Base_Debugger_Test):
     snapshots = {}
     spans = {}
 
@@ -57,8 +57,18 @@ class Test_Debugger_Exception_Replay(debugger._Base_Debugger_Test):
                         if expected_exception_message in self.get_exception_message(content["debugger"]["snapshot"]):
                             filtered_snapshots.append((exception_message, content["debugger"]["snapshot"]))
 
-            # Sort by exception message
-            filtered_snapshots.sort(key=lambda x: x[0])
+            # Sort by multiple criteria for consistent ordering
+            def get_sort_key(snapshot_tuple):
+                message, snapshot = snapshot_tuple
+                # Get method name from probe location if available (for Java)
+                method_name = snapshot.get("probe", {}).get("location", {}).get("method", "")
+                # Get line number from probe location
+                line_number = snapshot.get("probe", {}).get("location", {}).get("line", 0)
+                # Get stack depth as additional sorting criteria
+                stack_depth = len(snapshot.get("stack", []))
+                return (message, method_name, line_number, stack_depth)
+
+            filtered_snapshots.sort(key=get_sort_key)
 
             # Return only the snapshots
             return [snapshot for _, snapshot in filtered_snapshots]
@@ -143,7 +153,7 @@ class Test_Debugger_Exception_Replay(debugger._Base_Debugger_Test):
 
             return __scrub(value)
 
-        def __scrub_dotnet(key, value, parent):
+        def __scrub_dotnet(key, value, parent):  # noqa: ARG001
             if key == "Id":
                 return "<scrubbed>"
             elif key == "StackTrace" and isinstance(value, dict):
@@ -168,7 +178,7 @@ class Test_Debugger_Exception_Replay(debugger._Base_Debugger_Test):
                 return scrubbed
             return __scrub(value)
 
-        def __scrub_python(key, value, parent):
+        def __scrub_python(key, value, parent):  # noqa: ARG001
             if key == "@exception":
                 value["fields"] = "<scrubbed>"
                 return value
@@ -189,7 +199,7 @@ class Test_Debugger_Exception_Replay(debugger._Base_Debugger_Test):
                 return scrubbed
             return __scrub(value)
 
-        def __scrub_none(key, value, parent):
+        def __scrub_none(key, value, parent):  # noqa: ARG001
             return __scrub(value)
 
         scrub_language = None
@@ -291,19 +301,20 @@ class Test_Debugger_Exception_Replay(debugger._Base_Debugger_Test):
         self.spans = spans
         __approve(spans)
 
-    def _validate_recursion_snapshots(self, snapshots, depth):
-        # Extract depth from test name and validate snapshot count
+    def _validate_recursion_snapshots(self, snapshots, limit):
         assert (
-            len(snapshots) == depth + 1
-        ), f"Expected {depth + 1} snapshots for recursion depth {depth}, got {len(snapshots)}"
+            len(snapshots) == limit + 1
+        ), f"Expected {limit + 1} snapshots for recursion limit {limit}, got {len(snapshots)}"
 
         entry_method = "exceptionReplayRecursion"
         helper_method = "exceptionReplayRecursionHelper"
-        is_dotnet = self.get_tracer()["language"] == "dotnet"
 
         def get_frames(snapshot):
-            if is_dotnet:
-                return snapshot.get("captures", {}).get("return", {}).get("throwable", {}).get("stacktrace", [])
+            if self.get_tracer()["language"] in ["java", "dotnet"]:
+                method = snapshot.get("probe", {}).get("location", {}).get("method", None)
+                if method:
+                    return [{"function": method}]
+
             return snapshot.get("stack", [])
 
         found_top = False
@@ -311,14 +322,14 @@ class Test_Debugger_Exception_Replay(debugger._Base_Debugger_Test):
 
         def check_frames(frames):
             nonlocal found_top, found_lowest
+
             for frame in frames:
-                if isinstance(frame, dict) and "function" in frame:
-                    if entry_method in frame["function"]:
-                        found_top = True
-                    if helper_method in frame["function"]:
-                        found_lowest = True
-                    if found_top and found_lowest:
-                        break
+                if entry_method == frame["function"]:
+                    found_top = True
+                if helper_method == frame["function"]:
+                    found_lowest = True
+                if found_top and found_lowest:
+                    break
 
         for snapshot in snapshots:
             check_frames(get_frames(snapshot))
@@ -334,8 +345,9 @@ class Test_Debugger_Exception_Replay(debugger._Base_Debugger_Test):
     def setup_exception_replay_simple(self):
         self._setup("/exceptionreplay/simple", "simple exception")
 
-    @bug(context.library == "dotnet", reason="DEBUG-2799")
+    @bug(context.library < "dotnet@3.10.0", reason="DEBUG-2799")
     @bug(context.library == "python", reason="DEBUG-3257")
+    @bug(context.library < "java@1.46.0", reason="DEBUG-3285")
     def test_exception_replay_simple(self):
         self._assert("exception_replay_simple", ["simple exception"])
 
@@ -343,39 +355,52 @@ class Test_Debugger_Exception_Replay(debugger._Base_Debugger_Test):
     def setup_exception_replay_recursion_3(self):
         self._setup("/exceptionreplay/recursion?depth=3", "recursion exception depth 3")
 
-    @bug(context.library == "dotnet", reason="DEBUG-2799, DEBUG-3283")
+    @bug(context.library < "dotnet@3.10.0", reason="DEBUG-2799")
     @bug(context.library == "python", reason="DEBUG-3257, DEBUG-3282")
-    @bug(context.library == "java", reason="DEBUG-3284, DEBUG-3285")
+    @bug(context.library < "java@1.46.0", reason="DEBUG-3285")
     def test_exception_replay_recursion_3(self):
         self._assert("exception_replay_recursion_3", ["recursion exception depth 3"])
-        self._validate_recursion_snapshots(self.snapshots, 3)
+        self._validate_recursion_snapshots(self.snapshots, 4)
 
     def setup_exception_replay_recursion_5(self):
         self._setup("/exceptionreplay/recursion?depth=5", "recursion exception depth 5")
 
-    @bug(context.library == "dotnet", reason="DEBUG-2799, DEBUG-3283")
+    @bug(context.library < "dotnet@3.10.0", reason="DEBUG-2799")
+    @bug(context.library == "dotnet", reason="DEBUG-3283")
     @bug(context.library == "python", reason="DEBUG-3257, DEBUG-3282")
-    @bug(context.library == "java", reason="DEBUG-3284, DEBUG-3285")
+    @bug(context.library < "java@1.46.0", reason="DEBUG-3285")
     def test_exception_replay_recursion_5(self):
         self._assert("exception_replay_recursion_5", ["recursion exception depth 5"])
-        self._validate_recursion_snapshots(self.snapshots, 5)
+        self._validate_recursion_snapshots(self.snapshots, 6)
 
     def setup_exception_replay_recursion_20(self):
         self._setup("/exceptionreplay/recursion?depth=20", "recursion exception depth 20")
 
-    @bug(context.library == "dotnet", reason="DEBUG-2799, DEBUG-3283")
+    @bug(context.library < "dotnet@3.10.0", reason="DEBUG-2799")
+    @bug(context.library == "dotnet", reason="DEBUG-3283")
     @bug(context.library == "python", reason="DEBUG-3257, DEBUG-3282")
-    @bug(context.library == "java", reason="DEBUG-3284, DEBUG-3285")
+    @bug(context.library < "java@1.46.0", reason="DEBUG-3285")
+    @bug(context.library == "java", reason="DEBUG-3390")
     def test_exception_replay_recursion_20(self):
         self._assert("exception_replay_recursion_20", ["recursion exception depth 20"])
         self._validate_recursion_snapshots(self.snapshots, 10)
+
+    def setup_exception_replay_recursion_inlined(self):
+        self._setup("/exceptionreplay/recursion_inline?depth=4", "recursion exception depth 4")
+
+    @irrelevant(context.library != "dotnet", reason="Test for specific bug in dotnet")
+    @bug(context.library == "dotnet", reason="DEBUG-3447")
+    def test_exception_replay_recursion_inlined(self):
+        self._assert("exception_replay_recursion_4", ["recursion exception depth 4"])
+        self._validate_recursion_snapshots(self.snapshots, 4)
 
     ############ Inner ############
     def setup_exception_replay_inner(self):
         self._setup("/exceptionreplay/inner", "outer exception")
 
-    @bug(context.library == "dotnet", reason="DEBUG-2799")
+    @bug(context.library < "dotnet@3.10.0", reason="DEBUG-2799")
     @bug(context.library == "python", reason="DEBUG-3256, DEBUG-3257")
+    @bug(context.library < "java@1.46.0", reason="DEBUG-3285")
     def test_exception_replay_inner(self):
         self._assert("exception_replay_inner", ["outer exception"])
 
@@ -389,8 +414,7 @@ class Test_Debugger_Exception_Replay(debugger._Base_Debugger_Test):
         shapes = {"rock": False, "paper": False, "scissors": False}
 
         while not all(shapes.values()) and retries < _max_retries:
-            for shape in shapes.keys():
-                shape_found = shapes[shape]
+            for shape, shape_found in shapes.items():
                 logger.debug(f"{shape} found: {shape_found}, retry #{retries}")
 
                 if shape_found:
@@ -404,8 +428,9 @@ class Test_Debugger_Exception_Replay(debugger._Base_Debugger_Test):
 
             retries += 1
 
-    @bug(context.library == "dotnet", reason="DEBUG-2799")
+    @bug(context.library < "dotnet@3.10.0", reason="DEBUG-2799")
     @bug(context.library == "python", reason="DEBUG-3257")
+    @bug(context.library < "java@1.46.0", reason="DEBUG-3285")
     def test_exception_replay_rockpaperscissors(self):
         self._assert("exception_replay_rockpaperscissors", ["rock", "paper", "scissors"])
 
@@ -413,8 +438,9 @@ class Test_Debugger_Exception_Replay(debugger._Base_Debugger_Test):
     def setup_exception_replay_multiframe(self):
         self._setup("/exceptionreplay/multiframe", "multiple stack frames exception")
 
-    @bug(context.library == "dotnet", reason="DEBUG-2799")
+    @bug(context.library < "dotnet@3.10.0", reason="DEBUG-2799")
     @bug(context.library == "python", reason="DEBUG-3257")
+    @bug(context.library < "java@1.46.0", reason="DEBUG-3285")
     def test_exception_replay_multiframe(self):
         self._assert("exception_replay_multiframe", ["multiple stack frames exception"])
 
@@ -422,8 +448,8 @@ class Test_Debugger_Exception_Replay(debugger._Base_Debugger_Test):
     def setup_exception_replay_async(self):
         self._setup("/exceptionreplay/async", "async exception")
 
-    @bug(context.library == "dotnet", reason="DEBUG-2799")
     @flaky(context.library == "dotnet", reason="DEBUG-3281")
     @bug(context.library == "python", reason="DEBUG-3257")
+    @bug(context.library < "java@1.46.0", reason="DEBUG-3285")
     def test_exception_replay_async(self):
         self._assert("exception_replay_async", ["async exception"])

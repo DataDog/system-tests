@@ -1,7 +1,8 @@
 import json
 from collections import defaultdict
-from datetime import datetime, timedelta
+from datetime import timedelta
 import time
+from dateutil.parser import isoparse
 from utils import context, interfaces, missing_feature, bug, flaky, irrelevant, weblog, scenarios, features, rfc
 from utils.tools import logger
 from utils.interfaces._misc_validators import HeadersPresenceValidator, HeadersMatchValidator
@@ -108,7 +109,7 @@ class Test_Telemetry:
         self.validate_agent_telemetry_data(header_presence_validator)
         self.validate_agent_telemetry_data(header_match_validator)
 
-    @irrelevant(True, reason="cgroup in weblog is 0::/, so this test can't work")
+    @irrelevant(condition=True, reason="cgroup in weblog is 0::/, so this test can't work")
     def test_telemetry_message_has_datadog_container_id(self):
         """Test telemetry messages contain datadog-container-id"""
         interfaces.agent.assert_headers_presence(
@@ -132,13 +133,12 @@ class Test_Telemetry:
         """Test that messages are sent sequentially"""
 
         MAX_OUT_OF_ORDER_LAG = 0.3  # s
-        FMT = "%Y-%m-%dT%H:%M:%S.%f%z"
 
         telemetry_data = list(interfaces.library.get_telemetry_data(flatten_message_batches=False))
         if len(telemetry_data) == 0:
             raise ValueError("No telemetry data to validate on")
 
-        runtime_ids = set((data["request"]["content"]["runtime_id"] for data in telemetry_data))
+        runtime_ids = set(data["request"]["content"]["runtime_id"] for data in telemetry_data)
         for runtime_id in runtime_ids:
             logger.debug(f"Validating telemetry messages for runtime_id {runtime_id}")
             max_seq_id = 0
@@ -150,7 +150,7 @@ class Test_Telemetry:
                     continue
                 seq_id = data["request"]["content"]["seq_id"]
                 timestamp_start = data["request"]["timestamp_start"]
-                curr_message_time = datetime.strptime(timestamp_start, FMT)
+                curr_message_time = isoparse(timestamp_start)
                 logger.debug(f"Message at {timestamp_start.split('T')[1]} in {data['log_filename']}, seq_id: {seq_id}")
 
                 # IDs should be sent sequentially, even if there are errors
@@ -162,14 +162,13 @@ class Test_Telemetry:
                 if seq_id > max_seq_id:
                     max_seq_id = seq_id
                     received_max_time = curr_message_time
-                else:
-                    if received_max_time is not None and (curr_message_time - received_max_time) > timedelta(
-                        seconds=MAX_OUT_OF_ORDER_LAG
-                    ):
-                        raise ValueError(
-                            f"Received message with seq_id {seq_id} to far more than"
-                            f"100ms after message with seq_id {max_seq_id}"
-                        )
+                elif received_max_time is not None and (curr_message_time - received_max_time) > timedelta(
+                    seconds=MAX_OUT_OF_ORDER_LAG
+                ):
+                    raise ValueError(
+                        f"Received message with seq_id {seq_id} to far more than"
+                        f"100ms after message with seq_id {max_seq_id}"
+                    )
 
             # sort by seq_id, seq_ids is an array of (id, filename), so the key is the first element
             seq_ids.sort(key=lambda item: item[0])
@@ -205,7 +204,7 @@ class Test_Telemetry:
                 if data["response"]["status_code"] == 202:
                     count_by_runtime_id[runtime_id] += 1
 
-        assert all((count == 1 for count in count_by_runtime_id.values()))
+        assert all(count == 1 for count in count_by_runtime_id.values())
 
     @missing_feature(context.library < "ruby@1.22.0", reason="app-started not sent")
     @bug(context.library >= "dotnet@3.4.0", reason="APMAPI-728")
@@ -222,7 +221,7 @@ class Test_Telemetry:
         else:
             # In theory, app-started must have seq_id 1, but tracers may skip seq_ids if sending messages fail.
             # So we will check that app-started is the first message by seq_id, rather than strictly seq_id 1.
-            telemetry_data = list(sorted(telemetry_data, key=lambda x: x["request"]["content"]["seq_id"]))
+            telemetry_data = sorted(telemetry_data, key=lambda x: x["request"]["content"]["seq_id"])
             app_started = [d for d in telemetry_data if d["request"]["content"].get("request_type") == "app-started"]
             assert app_started, "app-started message not found"
             min_seq_id = min(d["request"]["content"]["seq_id"] for d in telemetry_data)
@@ -282,20 +281,17 @@ class Test_Telemetry:
                     )
 
         if len(self.library_requests) != 0:
-            for s, r in self.library_requests.keys():
+            for s, r in self.library_requests:
                 logger.error(f"seq_id: {s}, runtime_id: {r}")
 
             raise Exception("The following telemetry messages were not forwarded by the agent")
 
     @staticmethod
     def _get_heartbeat_delays_by_runtime() -> dict:
-        """
-        Returns a dict where :
+        """Returns a dict where :
         The key is the runtime id
         The value is a list of delay observed on this runtime id
         """
-
-        fmt = "%Y-%m-%dT%H:%M:%S.%f%z"
 
         telemetry_data = list(interfaces.library.get_telemetry_data())
         heartbeats_by_runtime = defaultdict(list)
@@ -312,12 +308,12 @@ class Test_Telemetry:
             logger.debug(f"Heartbeats for runtime {runtime_id}:")
 
             # In theory, it's sorted. Let be safe
-            heartbeats.sort(key=lambda data: datetime.strptime(data["request"]["timestamp_start"], fmt))
+            heartbeats.sort(key=lambda data: isoparse(data["request"]["timestamp_start"]))
 
             prev_message_time = None
             delays = []
             for data in heartbeats:
-                curr_message_time = datetime.strptime(data["request"]["timestamp_start"], fmt)
+                curr_message_time = isoparse(data["request"]["timestamp_start"])
                 if prev_message_time is None:
                     logger.debug(f"  * {data['log_filename']}: {curr_message_time}")
                 else:
@@ -339,8 +335,7 @@ class Test_Telemetry:
     @bug(context.library > "php@1.5.1", reason="APMAPI-971")
     @features.telemetry_heart_beat_collected
     def test_app_heartbeats_delays(self):
-        """
-        Check for telemetry heartbeat are not sent too fast/slow, regarding DD_TELEMETRY_HEARTBEAT_INTERVAL
+        """Check for telemetry heartbeat are not sent too fast/slow, regarding DD_TELEMETRY_HEARTBEAT_INTERVAL
         There are a lot of reason for individual heartbeats to be sent too slow/fast, and the subsequent ones
         to be sent too fast/slow so the RFC says that it must not drift. So we will check the average delay
         """
@@ -368,12 +363,12 @@ class Test_Telemetry:
     @irrelevant(
         library="java",
         reason="""
-        A Java application can be redeployed to the same server for many times (for the same JVM process). 
+        A Java application can be redeployed to the same server for many times (for the same JVM process).
         That means, every new deployment/reload of application will cause reloading classes/dependencies and as the result we will see duplications.
         """,
     )
     def test_app_dependencies_loaded(self):
-        """test app-dependencies-loaded requests"""
+        """Test app-dependencies-loaded requests"""
 
         test_loaded_dependencies = {
             "dotnet": {"NodaTime": False},
@@ -546,11 +541,11 @@ class Test_Telemetry:
                     dynamic_instrumentation_enabled = product["dynamic_instrumentation"]["enabled"]
                     assert (
                         appsec_enabled is True
-                    ), f"Product appsec Product profiler enabled was expected to be True, found False"
-                    assert profiler_enabled is True, f"Product profiler enabled was expected to be True, found False"
+                    ), "Product appsec Product profiler enabled was expected to be True, found False"
+                    assert profiler_enabled is True, "Product profiler enabled was expected to be True, found False"
                     assert (
                         dynamic_instrumentation_enabled is False
-                    ), f"Product dynamic_instrumentation enabled was expected to be False, found True"
+                    ), "Product dynamic_instrumentation enabled was expected to be False, found True"
 
         if app_product_change_event_found is False:
             raise Exception("app-product-change is not emitted when product change is enabled")
@@ -599,8 +594,7 @@ class Test_TelemetryV2:
 
     @bug(library="java", reason="APMAPI-969")
     def test_config_telemetry_completeness(self):
-        """
-        Assert that config telemetry is handled properly by telemetry intake
+        """Assert that config telemetry is handled properly by telemetry intake
 
         Runbook: https://github.com/DataDog/system-tests/blob/main/docs/edit/runbook.md#test_config_telemetry_completeness
         """
@@ -619,7 +613,7 @@ class Test_TelemetryV2:
             with open(f"tests/telemetry_intake/static/{filename}.json", encoding="utf-8") as fh:
                 return lowercase_obj(json.load(fh))
 
-        def get_all_keys_and_values(*objs):
+        def get_all_keys_and_values(*objs: tuple[None | dict | list, ...]) -> list:
             result = []
             for obj in objs:
                 if obj is not None:
@@ -676,7 +670,7 @@ class Test_TelemetryV2:
                 if len(missing_config_keys) != 0:
                     logger.error(json.dumps(missing_config_keys, indent=2))
                     raise ValueError(
-                        "(NOT A FLAKE) Found unexpected config telemetry keys. Runbook: https://github.com/DataDog/system-tests/blob/main/docs/edit/runbook.md#test_config_telemetry_completeness"
+                        "(NOT A FLAKE) Read this quick runbook to update allowed configs: https://github.com/DataDog/system-tests/blob/main/docs/edit/runbook.md#test_config_telemetry_completeness"
                     )
 
     @missing_feature(library="cpp")
@@ -708,6 +702,7 @@ class Test_ProductsDisabled:
         telemetry_data = interfaces.library.get_telemetry_data()
 
         for data in telemetry_data:
+            logger.debug(f"Checking {data['log_filename']}")
             data_found = True
 
             if get_request_type(data) != "app-started":
@@ -717,13 +712,20 @@ class Test_ProductsDisabled:
 
             payload = data["request"]["content"]["payload"]
 
-            assert (
-                "products" in payload
-            ), f"Product information was expected in app-started event, but was missing in {data['log_filename']}"
+            assert "products" in payload, "Product information was expected in app-started event, but was missing"
 
+            logger.debug(json.dumps(payload["products"], indent=2))
             for product, details in payload["products"].items():
+                if product == "tracers":
+                    # tracers is enabled, otherwise, nothing is reported to the agent
+                    # to be confirmed it's the good behaviour
+                    continue
+
                 assert (
-                    details.get("enabled") is False
+                    "enabled" in details
+                ), f"Product information expected to indicate {product} is disabled, but missing"
+                assert (
+                    details["enabled"] is False
                 ), f"Product information expected to indicate {product} is disabled, but found enabled"
 
         if not data_found:

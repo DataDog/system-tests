@@ -51,8 +51,18 @@ on:
         default: false
         required: false
         type: boolean
+      skip_empty_scenarios:
+        description: "Skip scenarios that contains only xfail or irrelevant tests"
+        default: false
+        required: false
+        type: boolean
+      parametric_job_count:
+        description: "How many jobs should be used to run PARAMETRIC scenario"
+        default: 1
+        required: false
+        type: number
       _experimental_parametric_job_count:
-        description: "*EXPERIMENTAL* : How many jobs should be used to run PARAMETRIC scenario"
+        description: "*DEPRECATED*"
         default: 1
         required: false
         type: number
@@ -65,38 +75,26 @@ jobs:
       library: ${{ inputs.library }}
       scenarios: ${{ inputs.scenarios }}
       scenarios_groups: ${{ inputs.scenarios_groups }}
-      _experimental_parametric_job_count: ${{ inputs._experimental_parametric_job_count }}
+      parametric_job_count: ${{ inputs.parametric_job_count }}
+      _ci_environment: ${{ inputs.ci_environment }}
 
   parametric:
     needs:
       - compute_parameters
-    if: needs.compute_parameters.outputs.parametric_scenarios != '[]'
+    if: needs.compute_parameters.outputs.parametric_enable == 'true'
     uses: ./.github/workflows/run-parametric.yml
     secrets: inherit
     with:
       library: ${{ inputs.library }}
       binaries_artifact: ${{ inputs.binaries_artifact }}
       ci_environment: ${{ inputs.ci_environment }}
-      _experimental_job_count: ${{ inputs._experimental_parametric_job_count }}
-      _experimental_job_matrix: ${{ needs.compute_parameters.outputs._experimental_parametric_job_matrix }}
-
-  graphql:
-    needs:
-      - compute_parameters
-    if: needs.compute_parameters.outputs.graphql_scenarios != '[]'
-    uses: ./.github/workflows/run-graphql.yml
-    secrets: inherit
-    with:
-      library: ${{ inputs.library }}
-      weblogs: ${{ needs.compute_parameters.outputs.graphql_weblogs }}
-      binaries_artifact: ${{ inputs.binaries_artifact }}
-      ci_environment: ${{ inputs.ci_environment }}
-      build_proxy_image: ${{ inputs.build_proxy_image }}
+      job_count: ${{ inputs.parametric_job_count }}
+      job_matrix: ${{ needs.compute_parameters.outputs.parametric_job_matrix }}
 
   lib-injection:
     needs:
       - compute_parameters
-    if: ${{ needs.compute_parameters.outputs.libinjection_scenarios != '[]' }}
+    if: ${{ needs.compute_parameters.outputs.libinjection_enable == 'true' }}
     uses: ./.github/workflows/run-lib-injection.yml
     permissions:
       contents: read
@@ -108,31 +106,26 @@ jobs:
       version: ${{ inputs.binaries_artifact == '' && 'prod' || 'dev' }}
 
   end-to-end:
+    name: end-to-end (${{ matrix.weblogs.weblog_name }})
     needs:
       - compute_parameters
-    if: ${{ needs.compute_parameters.outputs.endtoend_scenarios != '[]' }}
+    if: ${{ needs.compute_parameters.outputs.endtoend_defs_weblogs != '[]' }}
+    strategy:
+      matrix:
+        weblogs: ${{ fromJson(needs.compute_parameters.outputs.endtoend_defs_weblogs) }}
+      fail-fast: false
     uses: ./.github/workflows/run-end-to-end.yml
     secrets: inherit
     with:
-      library: ${{ inputs.library }}
+      library: ${{ matrix.weblogs.library }}
+      weblog: ${{ matrix.weblogs.weblog_name }}
+      scenarios: ${{ toJson(matrix.weblogs.scenarios) }}
       build_python_base_images: ${{ inputs.build_python_base_images }}
       build_buddies_images: ${{ inputs.build_buddies_images }}
       build_proxy_image: ${{ inputs.build_proxy_image }}
-      scenarios: ${{ needs.compute_parameters.outputs.endtoend_scenarios }}
-      weblogs: ${{ needs.compute_parameters.outputs.endtoend_weblogs }}
       binaries_artifact: ${{ inputs.binaries_artifact }}
       ci_environment: ${{ inputs.ci_environment }}
-
-  open-telemetry:
-    needs:
-      - compute_parameters
-    if: ${{ needs.compute_parameters.outputs.opentelemetry_scenarios != '[]' && inputs.binaries_artifact == '' }}
-    uses: ./.github/workflows/run-open-telemetry.yml
-    secrets: inherit
-    with:
-      library: ${{ inputs.library }}
-      weblogs: ${{ needs.compute_parameters.outputs.opentelemetry_weblogs }}
-      build_proxy_image: ${{ inputs.build_proxy_image }}
+      skip_empty_scenarios: ${{ inputs.skip_empty_scenarios }}
 
   external-processing:
     needs:

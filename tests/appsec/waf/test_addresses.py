@@ -2,6 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 import json
+import pytest
 from utils import weblog, bug, context, interfaces, irrelevant, missing_feature, rfc, scenarios, features
 from utils.tools import logger
 
@@ -102,7 +103,7 @@ class Test_Headers:
     @irrelevant(library="php", reason="PHP normalizes into dashes; additionally, matching on keys is not supported")
     @missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
     def test_specific_key2(self):
-        """attacks on specific header X_Filename, and report it"""
+        """Attacks on specific header X_Filename, and report it"""
         try:
             interfaces.library.assert_waf_attack(
                 self.r_sk_4, pattern="routing.yml", address="server.request.headers.no_cookies", key_path=["x_filename"]
@@ -338,8 +339,8 @@ class Test_gRPC:
         for r in self.requests:
             try:
                 interfaces.library.assert_waf_attack(r, address="grpc.server.request.message")
-            except:
-                raise ValueError(f"Basic attack #{self.requests.index(r)} not detected")
+            except Exception as e:
+                raise ValueError(f"Basic attack #{self.requests.index(r)} not detected") from e
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2278064284/gRPC+Protocol+Support")
@@ -348,7 +349,7 @@ class Test_FullGrpc:
     """Full gRPC support"""
 
     def test_main(self):
-        assert False, "Need to write a test"
+        pytest.fail("Need to write a test")
 
 
 @scenarios.graphql_appsec
@@ -377,7 +378,7 @@ class Test_GraphQL:
         assert self.r_no_attack.status_code == 200  # There is no attack here!
         interfaces.library.assert_no_appsec_event(self.r_no_attack)
 
-    def base_test_request_monitor_attack(self, resolversKeyPath, allResolversKeyPath):
+    def base_test_request_monitor_attack(self, resolvers_key_path, all_resolvers_key_path):
         """Verify that the request triggered a directive attack event"""
 
         assert self.r_attack.status_code == 200  # This attack is never blocking
@@ -386,7 +387,11 @@ class Test_GraphQL:
 
         try:
             interfaces.library.assert_waf_attack(
-                self.r_attack, rule="monitor-resolvers", key_path=resolversKeyPath, value="testattack", full_trace=True
+                self.r_attack,
+                rule="monitor-resolvers",
+                key_path=resolvers_key_path,
+                value="testattack",
+                full_trace=True,
             )
         except ValueError as e:
             failures.append(e)
@@ -395,7 +400,7 @@ class Test_GraphQL:
             interfaces.library.assert_waf_attack(
                 self.r_attack,
                 rule="monitor-all-resolvers",
-                key_path=allResolversKeyPath,
+                key_path=all_resolvers_key_path,
                 value="testattack",
                 full_trace=True,
             )
@@ -450,7 +455,7 @@ class Test_GrpcServerMethod:
 
     def validate_span(self, span, appsec_data):
         tag = "rpc.grpc.full_method"
-        if not tag in span["meta"]:
+        if tag not in span["meta"]:
             logger.info(f"Can't find '{tag}' in span's meta")
             return False
 

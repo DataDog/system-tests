@@ -24,6 +24,8 @@ from utils.interfaces._misc_validators import HeadersPresenceValidator
 class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
     """Validate library/agent interface"""
 
+    trace_paths = ["/v0.4/traces", "/v0.5/traces"]
+
     def __init__(self, name):
         super().__init__(name)
         self.ready = threading.Event()
@@ -47,14 +49,12 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
 
     ############################################################
     def get_traces(self, request=None):
-        paths = ["/v0.4/traces", "/v0.5/traces"]
-
         rid = get_rid_from_request(request)
 
         if rid:
             logger.debug(f"Try to find traces related to request {rid}")
 
-        for data in self.get_data(path_filters=paths):
+        for data in self.get_data(path_filters=self.trace_paths):
             traces = data["request"]["content"]
             if not traces:  # may be none
                 continue
@@ -251,7 +251,7 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
             raise ValueError("Some path has not been transmitted")
 
     def assert_trace_id_uniqueness(self):
-        trace_ids = {}
+        trace_ids: dict[int, str] = {}
 
         for data, trace in self.get_traces():
             spans = [span for span in trace if span.get("parent_id") in ("0", 0, None)]
@@ -452,7 +452,7 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
 
             trigger = triggers[0]
             obtained_rule_id = trigger["rule"]["id"]
-            assert obtained_rule_id == rule, f"incorrect rule id, expected {rule}"
+            assert obtained_rule_id == rule, f"incorrect rule id, expected {rule}, got {obtained_rule_id}"
 
             if parameters is not None:
                 rule_matches = trigger["rule_matches"]

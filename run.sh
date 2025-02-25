@@ -328,6 +328,11 @@ function main() {
         run_mode='direct'
     fi
 
+    # check if runner is installed and up to date
+    if [[ "${run_mode}" == "direct" ]] && ! is_using_nix && ! diff requirements.txt venv/requirements.txt; then
+        ./build.sh -i runner
+    fi
+
     # ensure environment
     if [[ "${run_mode}" == "docker" ]] || is_using_nix; then
         : # no venv needed
@@ -414,11 +419,6 @@ function main() {
     for scenario in "${scenarios[@]}"; do
         if [[ "${scenario}" == K8S_LIBRARY_INJECTION_* ]]; then
             pytest_numprocesses=$(nproc)
-        fi
-        if [[ "${scenario}" == *_AUTO_INJECTION ]]; then
-            pytest_numprocesses=6
-            #https://pytest-xdist.readthedocs.io/en/latest/distribution.html
-            pytest_args+=( '--dist' 'loadgroup' )
         fi
     done
 

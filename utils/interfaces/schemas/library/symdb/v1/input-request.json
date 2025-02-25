@@ -1,0 +1,100 @@
+{
+  "$id": "/library/symdb/v1/input-request.json",
+  "definitions": {
+    "scope": {
+      "type": "object",
+      "required": ["end_line", "scope_type", "start_line"],
+      "properties": {
+        "end_line": { "type": "integer" },
+        "language_specifics": { "type": ["object", "null"] },
+        "name": { "type": ["string", "null"] },
+        "scope_type": { "type": "string" },
+        "scopes": {
+          "type": ["array", "null"],
+          "items": { "$ref": "#/definitions/scope" }
+        },
+        "source_file": { "type": "string" },
+        "start_line": { "type": "integer" },
+        "symbols": {
+          "type": ["array", "null"],
+          "items": { "$ref": "#/definitions/symbol" }
+        }
+      }
+    },
+    "symbol": {
+      "type": "object",
+      "required": ["line", "name", "symbol_type", "type"],
+      "properties": {
+        "language_specifics": { "type": "object" },
+        "line": { "type": "integer" },
+        "name": { "type": "string" },
+        "symbol_type": { "type": "string" },
+        "type": { "type": ["string", "null"] }
+      }
+    },
+    "json_content": {
+      "type": "object",
+      "required": ["ddsource", "service", "runtimeId"],
+      "properties": {
+        "ddsource": { "type": "string" },
+        "service": { "type": "string" },
+        "runtimeId": { "type": "string" }
+      }
+    },
+    "gzip_content": {
+      "type": "object",
+      "required": ["env", "language", "scopes", "service", "version"],
+      "properties": {
+        "env": { "type": "string", "const": "system-tests" },
+        "language": { "type": "string" },
+        "scopes": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/scope" }
+        },
+        "service": { "type": "string", "const": "weblog" },
+        "version": { "type": "string", "const": "1.0.0" }
+      }
+    }
+  },
+  "type": "array",
+  "items": {
+    "type": "object",
+    "required": ["headers", "content"],
+    "properties": {
+      "headers": {
+        "type": "object",
+        "properties": {
+          "Content-Type": { "enum": ["application/json", "application/gzip"] },
+          "Content-Disposition": { "type": "string" }
+        },
+        "required": ["Content-Type"]
+      }
+    },
+    "allOf": [
+      {
+        "if": {
+          "properties": {
+            "headers": {
+              "properties": { "Content-Type": { "const": "application/json" } }
+            }
+          }
+        },
+        "then": {
+          "properties": { "content": { "$ref": "#/definitions/json_content" } }
+        }
+      },
+      {
+        "if": {
+          "properties": {
+            "headers": {
+              "properties": { "Content-Type": { "const": "application/gzip" } }
+            }
+          }
+        },
+        "then": {
+          "properties": { "content": { "$ref": "#/definitions/gzip_content" } }
+        }
+      }
+    ]
+  }
+}

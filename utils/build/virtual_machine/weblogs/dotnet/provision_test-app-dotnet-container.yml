@@ -1,9 +1,6 @@
 weblog:
     name: test-app-dotnet-container
     runtime_version: 7
-    # Alma Linux 8 ARM64 fails also without the SSI. It fails when we execute 'dotnet restore' in the Dockerfile
-    # Same for RedHat 8.6 ARM64 (segfault)
-    excluded_os_names: [AlmaLinux_8_arm64, RedHat_8_6_arm64]
     install: 
       - os_type: linux
         copy_files:
