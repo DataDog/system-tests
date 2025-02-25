@@ -9,8 +9,9 @@ import uuid
 
 import pytest
 
+from .conftest import StableConfigWriter
 from utils.telemetry_utils import TelemetryUtils
-from utils import context, scenarios, rfc, features, missing_feature
+from utils import context, scenarios, rfc, features, missing_feature, bug
 
 
 telemetry_name_mapping = {
@@ -41,6 +42,11 @@ telemetry_name_mapping = {
         "dotnet": "DD_DATA_STREAMS_ENABLED",
         "nodejs": "dsmEnabled",
         "python": "DD_DATA_STREAMS_ENABLED",
+    },
+    "runtime_metrics_enabled": {
+        "dotnet": "DD_RUNTIME_METRICS_ENABLED",
+        "nodejs": "runtime.metrics.enabled",
+        "python": "DD_RUNTIME_METRICS_ENABLED",
     },
 }
 
@@ -273,9 +279,7 @@ class Test_Environment:
     @missing_feature(context.library == "ruby", reason="Not implemented")
     @missing_feature(context.library == "php", reason="Not implemented")
     @missing_feature(context.library == "cpp", reason="Not implemented")
-    @missing_feature(
-        context.library <= "python@3.1.0", reason="OTEL Sampling config is mapped to a different datadog config"
-    )
+    @missing_feature(context.library == "python", reason="OTEL Sampling config is mapped to a different datadog config")
     @pytest.mark.parametrize(
         "library_env",
         [
@@ -307,6 +311,7 @@ class Test_Environment:
             }
         ],
     )
+    @bug(context.library > "python@3.0.0", reason="APMAPI-1197")
     def test_telemetry_otel_env_hiding(self, library_env, test_agent, test_library):
         with test_library.dd_start_span("test"):
             pass
@@ -366,9 +371,7 @@ class Test_Environment:
     @missing_feature(context.library == "ruby", reason="Not implemented")
     @missing_feature(context.library == "php", reason="Not implemented")
     @missing_feature(context.library == "cpp", reason="Not implemented")
-    @missing_feature(
-        context.library <= "python@3.1.0", reason="OTEL Sampling config is mapped to a different datadog config"
-    )
+    @missing_feature(context.library == "python", reason="OTEL Sampling config is mapped to a different datadog config")
     @missing_feature(
         context.library == "nodejs", reason="does not collect otel_env.invalid metrics for otel_resource_attributes"
     )
@@ -394,6 +397,7 @@ class Test_Environment:
             }
         ],
     )
+    @bug(context.library > "python@3.0.0", reason="APMAPI-1197")
     def test_telemetry_otel_env_invalid(self, library_env, test_agent, test_library):
         with test_library.dd_start_span("test"):
             pass
@@ -447,6 +451,61 @@ class Test_Environment:
                 pytest.fail(
                     f"Could not find a metric with {dd_config} and {otel_config} in otel_invalid metrics: {otel_invalid}"
                 )
+
+
+@scenarios.parametric
+@features.stable_configuration_support
+@rfc("https://docs.google.com/document/d/1MNI5d3g6R8uU3FEWf2e08aAsFcJDVhweCPMjQatEb0o")
+class Test_Stable_Configuration_Origin(StableConfigWriter):
+    """Clients should report origin of configurations set by stable configuration faithfully"""
+
+    @pytest.mark.parametrize(
+        ("local_cfg", "library_env", "fleet_cfg", "expected_origin"),
+        [
+            (
+                {"DD_LOGS_INJECTION": True, "DD_RUNTIME_METRICS_ENABLED": True, "DD_PROFILING_ENABLED": True},
+                {
+                    "DD_TELEMETRY_HEARTBEAT_INTERVAL": "0.1",  # Decrease the heartbeat/poll intervals to speed up the tests
+                    "DD_RUNTIME_METRICS_ENABLED": True,
+                },
+                {"DD_LOGS_INJECTION": True},
+                {
+                    "logs_injection_enabled": "fleet_stable_config",
+                    # Reporting for other origins than stable config is not completely implemented
+                    # "runtime_metrics_enabled": "env_var",
+                    "profiling_enabled": "local_stable_config",
+                },
+            )
+        ],
+    )
+    def test_stable_configuration_origin(
+        self, local_cfg, library_env, fleet_cfg, test_agent, test_library, expected_origin
+    ):
+        with test_library:
+            self.write_stable_config(
+                {
+                    "apm_configuration_default": local_cfg,
+                },
+                "/etc/datadog-agent/application_monitoring.yaml",
+                test_library,
+            )
+            self.write_stable_config(
+                {
+                    "apm_configuration_default": fleet_cfg,
+                },
+                "/etc/datadog-agent/managed/datadog-agent/stable/application_monitoring.yaml",
+                test_library,
+            )
+            test_library.container_restart()
+            test_library.dd_start_span("test")
+        event = test_agent.wait_for_telemetry_event("app-started", wait_loops=400)
+        configuration = {c["name"]: c for c in event["payload"]["configuration"]}
+
+        for cfg_name, origin in expected_origin.items():
+            apm_telemetry_name = _mapped_telemetry_name(context, cfg_name)
+            telemetry_item = configuration[apm_telemetry_name]
+            assert telemetry_item["origin"] == origin, f"wrong origin for {telemetry_item}"
+            assert telemetry_item["value"]
 
 
 DEFAULT_ENVVARS = {
