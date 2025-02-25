@@ -28,6 +28,18 @@ ssi_tests:
         cleaned_arch=$(echo "$ARCH" | tr -cd "[:alnum:]_")
         cleaned_runtime=$(echo "$RUNTIME" | tr -cd "[:alnum:]_")
         mv "$REPORTS_PATH"/logs_"${SCENARIO_SUFIX}" "$REPORTS_PATH"/logs_"${TEST_LIBRARY}"_"${WEBLOG}"_"${SCENARIO_SUFIX}_${cleaned_base_image}_${cleaned_arch}_${cleaned_runtime}"
+        if [ "$CI_COMMIT_BRANCH" = "main" ]; then
+          for folder in reports/logs*/ ; do
+            echo "Checking folder: ${folder}"
+            for filename in ./${folder}feature_parity.json; do
+              if [ -e ${filename} ]
+              then
+                echo "Processing report: ${filename}"
+                curl -X POST ${FP_IMPORT_URL} --fail --header "Content-Type: application/json" --header "FP_API_KEY: ${FP_API_KEY}" --data "@${filename}" --include
+              fi
+            done
+          done
+        fi
     artifacts: 
       when: always 
       paths: 
@@ -65,3 +77,49 @@ ssi_tests:
         paths:
             - reports/
 
+.k8s_lib_injection_base:
+  image: registry.ddbuild.io/ci/libdatadog-build/system-tests:48436362
+  tags: [ "runner:docker" ]
+  stage: K8S_LIB_INJECTION
+  allow_failure: false
+  variables:
+    TEST_LIBRARY: "xyz"
+    K8S_WEBLOG: "xyz"
+    K8S_WEBLOG_IMG: "xyz"
+    K8S_SCENARIO: "xyz"
+    K8S_LIB_INIT_IMG: "xyz"
+    K8S_CLUSTER_IMG: "xyz"
+    K8S_INJECTOR_IMG: "xyz"
+  before_script: |
+    export FP_IMPORT_URL=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.fp-import-url
+    --with-decryption --query "Parameter.Value" --out text)
+    export FP_API_KEY=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.fp-api-key
+    --with-decryption --query "Parameter.Value" --out text)
+    export DD_API_KEY_ONBOARDING=$(aws ssm get-parameter --region us-east-1 --name ci.${CI_PROJECT_NAME}.dd-api-key-onboarding --with-decryption --query "Parameter.Value" --out text)
+    export DD_APP_KEY_ONBOARDING=$(aws ssm get-parameter --region us-east-1 --name ci.${CI_PROJECT_NAME}.dd-app-key-onboarding --with-decryption --query "Parameter.Value" --out text)
+  script:
+    - ./build.sh -i runner # rebuild runner in case there were changes
+    - source venv/bin/activate
+    - python --version
+    - pip freeze
+    - ./run.sh ${K8S_SCENARIO} --k8s-library ${TEST_LIBRARY} --k8s-weblog ${K8S_WEBLOG} --k8s-weblog-img ${K8S_WEBLOG_IMG} --k8s-lib-init-img ${K8S_LIB_INIT_IMG} --k8s-injector-img ${K8S_INJECTOR_IMG} --k8s-cluster-img ${K8S_CLUSTER_IMG} --report-run-url $CI_JOB_URL --report-environment $ONBOARDING_FILTER_ENV
+  after_script: |
+    mkdir -p reports
+    cp -R logs_*/ reports/
+    kind delete clusters --all || true
+    if [ "$CI_COMMIT_BRANCH" = "main" ]; then
+      for folder in reports/logs*/ ; do
+        echo "Checking folder: ${folder}"
+         for filename in ./${folder}feature_parity.json; do
+           if [ -e ${filename} ]
+           then
+              echo "Processing report: ${filename}"
+             curl -X POST ${FP_IMPORT_URL} --fail --header "Content-Type: application/json" --header "FP_API_KEY: ${FP_API_KEY}" --data "@${filename}" --include
+           fi
+        done
+      done
+      fi
+  artifacts:
+    when: always
+    paths:
+      - reports/

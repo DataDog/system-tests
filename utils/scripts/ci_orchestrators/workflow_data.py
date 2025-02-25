@@ -15,7 +15,34 @@ def _get_weblog_spec(weblogs_spec, weblog_name) -> dict:
             return entry
     raise ValueError(f"Weblog variant {weblog_name} not found (please aws_ssi.json)")
 
-
+def get_k8s_matrix(k8s_ssi_file, scenarios: list[str], language: str) -> dict:
+    """ Computes the matrix "scenario" - "weblog" - "cluster agent" given a list of scenarios and a language.
+    """
+    k8s_ssi = _load_json(k8s_ssi_file)
+    cluster_agent_specs = k8s_ssi["cluster_agent_spec"]
+    
+    results = defaultdict(lambda: defaultdict(list))  # type: dict
+    scenario_matrix = k8s_ssi["scenario_matrix"]
+    for entry in scenario_matrix:
+        applicable_scenarios = entry["scenarios"]
+        weblogs = entry["weblogs"]
+        supported_cluster_agents = entry["cluster_agents"] if "cluster_agents" in entry else []
+        for scenario in scenarios:
+            if scenario in applicable_scenarios:
+                for weblog_entry in weblogs:
+                    if language in weblog_entry:
+                        for weblog in weblog_entry[language]:
+                            if supported_cluster_agents:
+                                for cluster_agent in supported_cluster_agents:
+                                    if cluster_agent in cluster_agent_specs:
+                                        results[scenario][weblog].append(cluster_agent_specs[cluster_agent])                         
+                                    else:
+                                        raise ValueError(f"Cluster agent {cluster_agent} not found in the k8s_ssi.json")
+                            else:
+                                results[scenario][weblog].append([])
+    return results
+    
+    
 def get_aws_matrix(virtual_machines_file, aws_ssi_file, scenarios: list[str], language: str) -> dict:
     """Load the json files (the virtual_machine supported by the system  and the scenario-weblog definition)
     and calculates the matrix "scenario" - "weblog" - "virtual machine" given a list of scenarios and a language.

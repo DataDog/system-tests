@@ -64,7 +64,7 @@ def print_gitlab_pipeline(language, matrix_data, ci_environment) -> None:
         pipeline_data = yaml.load(f, Loader=yaml.FullLoader)  # noqa: S506
     result_pipeline["include"] = pipeline_data["include"]
     
-    if not matrix_data["aws_ssi_scenario_defs"] and not matrix_data["dockerssi_scenario_defs"]:
+    if not matrix_data["aws_ssi_scenario_defs"] and not matrix_data["dockerssi_scenario_defs"] and not matrix_data["libinjection_scenario_defs"]:
         result_pipeline["stages"].append("SSI_TESTS")
         result_pipeline["ssi_tests"] = pipeline_data["ssi_tests"]
     
@@ -73,13 +73,23 @@ def print_gitlab_pipeline(language, matrix_data, ci_environment) -> None:
         result_pipeline[".base_job_onboarding_system_tests"] = pipeline_data[".base_job_onboarding_system_tests"]
         print_aws_gitlab_pipeline(language, matrix_data["aws_ssi_scenario_defs"], ci_environment, result_pipeline)
     if matrix_data["dockerssi_scenario_defs"]:
-        # Copy the base job for the onboarding system tests
+        # Copy the base job for the docker ssi system tests
         result_pipeline[".base_docker_ssi_job"] = pipeline_data[".base_docker_ssi_job"]
         print_docker_ssi_gitlab_pipeline(language, matrix_data["dockerssi_scenario_defs"], ci_environment, result_pipeline)
+    if matrix_data["libinjection_scenario_defs"]:
+        # Copy the base job for the k8s lib injection system tests
+        result_pipeline[".k8s_lib_injection_base"] = pipeline_data[".k8s_lib_injection_base"]
+        print_k8s_gitlab_pipeline(language, matrix_data["libinjection_scenario_defs"], ci_environment, result_pipeline)
+
 
     pipeline_yml = yaml.dump(result_pipeline, sort_keys=False, default_flow_style=False)
     print(pipeline_yml)
 
+def print_k8s_gitlab_pipeline(language, k8s_matrix, ci_environment, result_pipeline) -> None:
+    result_pipeline["stages"].append("K8S_LIB_INJECTION")
+    # Create the jobs by scenario.
+    for scenario, weblogs in k8s_matrix.items():
+        pass
 def print_docker_ssi_gitlab_pipeline(language, docker_ssi_matrix, ci_environment, result_pipeline) -> None:
     # Special filters from env variables
     DD_INSTALLER_LIBRARY_VERSION = os.getenv("DD_INSTALLER_LIBRARY_VERSION")
@@ -91,7 +101,7 @@ def print_docker_ssi_gitlab_pipeline(language, docker_ssi_matrix, ci_environment
     for scenario, weblogs in docker_ssi_matrix.items():
         scenarios_prefix_names[scenario] = ""
     scenarios_prefix_names = _generate_unique_prefix(scenarios_prefix_names.keys())
-    # Create the jobs by scenario. Each job (vm) will have a parallel matrix with the weblogs
+    # Create the jobs by scenario.
     for scenario, weblogs in docker_ssi_matrix.items():
         result_pipeline["stages"].append(scenario)
         for weblog_name, images in weblogs.items():
