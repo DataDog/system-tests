@@ -318,7 +318,7 @@ tests/:
       Test_V3_Login_Events_Blocking: v3.10.0
       Test_V3_Login_Events_RC: v3.10.0
     test_automated_user_and_session_tracking.py:
-      Test_Automated_Session_Blocking: missing_feature
+      Test_Automated_Session_Blocking: v3.11.0
       Test_Automated_User_Blocking: v3.10.0
       Test_Automated_User_Tracking: v3.10.0
     test_blocking_addresses.py:
@@ -495,6 +495,7 @@ tests/:
       Test_Consistent_Configs: missing_feature
       Test_Defaults: v2.49.0
       Test_Environment: v2.49.0
+      Test_Stable_Configuration_Origin: missing_feature
       Test_TelemetryInstallSignature: v2.45.0
       Test_TelemetrySCAEnvVar: v2.50.0
     test_trace_sampling.py:
