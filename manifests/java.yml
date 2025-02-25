@@ -50,8 +50,14 @@ tests/:
         Test_Schema_Request_Json_Body:
           '*': missing_feature
           ratpack: v1.36.0
+          spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
           vertx3: v1.36.0
-        Test_Schema_Request_Path_Parameters: missing_feature
+        Test_Schema_Request_Path_Parameters:
+          '*': v1.36.0
+          akka-http: missing_feature (path parameters not suported)
+          jersey-grizzly2: bug (APPSEC-56846)
+          resteasy-netty3: bug (APPSEC-56846)
+          spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
         Test_Schema_Request_Query_Parameters:
           '*': v1.31.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
@@ -1716,6 +1722,7 @@ tests/:
       Test_Consistent_Configs: missing_feature
       Test_Defaults: v1.31.0
       Test_Environment: v1.31.0
+      Test_Stable_Configuration_Origin: missing_feature
       Test_TelemetryInstallSignature: v1.27.0
       Test_TelemetrySCAEnvVar: v1.34.0
     test_trace_sampling.py:
