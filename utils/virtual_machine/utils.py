@@ -90,9 +90,20 @@ def generate_gitlab_pipeline(
                 'REPORTS_PATH="reports/"',
                 'mkdir -p "$REPORTS_PATH"',
                 'cp -R logs_"${SCENARIO_SUFIX}" $REPORTS_PATH/',
-                'cp logs_"${SCENARIO_SUFIX}"/feature_parity.json "$REPORTS_PATH"/"${SCENARIO_SUFIX}".json',
-                'mv "$REPORTS_PATH"/logs_"${SCENARIO_SUFIX}" "$REPORTS_PATH"/logs_"${TEST_LIBRARY}"_"${ONBOARDING_FILTER_WEBLOG}"_"${SCENARIO_SUFIX}_${DEFAULT_VMS}"',
+                'cp logs_"${SCENARIO_SUFIX}"/feature_parity.json "$REPORTS_PATH"/"${SCENARIO_SUFIX}".json || true',
+                'mv "$REPORTS_PATH"/logs_"${SCENARIO_SUFIX}" "$REPORTS_PATH"/logs_"${TEST_LIBRARY}"_"${ONBOARDING_FILTER_WEBLOG}"_"${SCENARIO_SUFIX}_${DEFAULT_VMS}" || true',
             ],
+            "retry": {
+                "max": "2",
+                "when": [
+                    "unknown_failure",
+                    "data_integrity_failure",
+                    "runner_system_failure",
+                    "scheduler_failure",
+                    "api_failure",
+                ],
+                "exit_codes": [3],
+            },
             "artifacts": {"when": "always", "paths": ["reports/"]},
         },
         ".base_job_onboarding_one_pipeline": {
@@ -103,9 +114,20 @@ def generate_gitlab_pipeline(
                 'REPORTS_PATH="reports/"',
                 'mkdir -p "$REPORTS_PATH"',
                 'cp -R logs_"${SCENARIO_SUFIX}" $REPORTS_PATH/',
-                'cp logs_"${SCENARIO_SUFIX}"/feature_parity.json "$REPORTS_PATH"/"${SCENARIO_SUFIX}".json',
-                'mv "$REPORTS_PATH"/logs_"${SCENARIO_SUFIX}" "$REPORTS_PATH"/logs_"${TEST_LIBRARY}"_"${ONBOARDING_FILTER_WEBLOG}"_"${SCENARIO_SUFIX}_${DEFAULT_VMS}"',
+                'cp logs_"${SCENARIO_SUFIX}"/feature_parity.json "$REPORTS_PATH"/"${SCENARIO_SUFIX}".json || true',
+                'mv "$REPORTS_PATH"/logs_"${SCENARIO_SUFIX}" "$REPORTS_PATH"/logs_"${TEST_LIBRARY}"_"${ONBOARDING_FILTER_WEBLOG}"_"${SCENARIO_SUFIX}_${DEFAULT_VMS}" || true',
             ],
+            "retry": {
+                "max": "2",
+                "when": [
+                    "unknown_failure",
+                    "data_integrity_failure",
+                    "runner_system_failure",
+                    "scheduler_failure",
+                    "api_failure",
+                ],
+                "exit_codes": [3],
+            },
             "artifacts": {"when": "always", "paths": ["system-tests/reports/"]},
         },
     }
@@ -131,6 +153,8 @@ def generate_gitlab_pipeline(
                 "allow_failure": False,
                 "needs": [],
                 "variables": {
+                    # Force gitlab to keep the exit code as 3 if the job fails with exit code 3
+                    "FF_USE_NEW_BASH_EVAL_STRATEGY": "true",
                     "TEST_LIBRARY": language,
                     "SCENARIO": scenario_name,
                     "WEBLOG": weblog_name,
