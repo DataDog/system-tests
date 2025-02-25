@@ -682,9 +682,5 @@ def parse_log_trace_id(message):
 
 
 def parse_log_span_id(message):
-    if message.get("dd.span_id"):
-        return message.get("dd.span_id")
-    # For Nodejs
-    if message.get("span_id"):
-        return message.get("span_id")
-    return None
+    # TODO: update nodejs to use dd.span_id instead of span_id
+    return message.get("dd.span_id", message.get("span_id"))
