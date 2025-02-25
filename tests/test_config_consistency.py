@@ -691,7 +691,7 @@ def parse_log_span_id(message):
 
 
 def get_log_regex():
-    pattern = r'"dd":\{[^}]*\}'
-    if context.library == "golang":
-        pattern = r'"dd\.[^"]+"'
+    pattern = r'"dd\.[^"]+"'
+    if context.library == "nodejs":
+        pattern = r'"dd":\{[^}]*\}'
     return pattern
