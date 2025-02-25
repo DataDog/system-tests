@@ -677,12 +677,8 @@ def parse_log_injection_message(log_message):
 
 
 def parse_log_trace_id(message):
-    if message.get("dd.trace_id"):
-        return message.get("dd.trace_id")
-    # For Nodejs
-    if message.get("trace_id"):
-        return message.get("trace_id")
-    return None
+    # TODO: update nodejs to use dd.trace_id instead of trace_id
+    return message.get("dd.trace_id", message.get("trace_id"))
 
 
 def parse_log_span_id(message):
