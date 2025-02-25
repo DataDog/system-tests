@@ -39,7 +39,7 @@ def get_k8s_matrix(k8s_ssi_file, scenarios: list[str], language: str) -> dict:
                                     else:
                                         raise ValueError(f"Cluster agent {cluster_agent} not found in the k8s_ssi.json")
                             else:
-                                results[scenario][weblog].append([])
+                                results[scenario][weblog] = []
     return results
     
     

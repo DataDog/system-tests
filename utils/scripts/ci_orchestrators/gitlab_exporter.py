@@ -3,8 +3,16 @@ import yaml
 import hashlib
 import json
 
-def _generate_unique_prefix(scenario_names, prefix_length=3):
-    """Generate a unique prefix for each scenario name/stage"""
+def _generate_unique_prefix(scenario_specs_matrix, prefix_length=3):
+    """Generate a unique prefix for each scenario name/stage
+     collect all the possible scenarios to generate unique prefixes for each scenario
+     we will add the prefix to the job name to avoid jobs with the same name and different stages """
+     
+    scenarios_prefix_names = {}
+    for scenario, weblogs in scenario_specs_matrix.items():
+        scenarios_prefix_names[scenario] = ""
+
+    scenario_names = scenarios_prefix_names.keys()
     unique_prefixes = {}
     used_prefixes = set()
 
@@ -24,7 +32,33 @@ def _generate_unique_prefix(scenario_names, prefix_length=3):
 
     return unique_prefixes
 
-
+def _get_k8s_injector_image_refs(language, ci_environment, cluster_agent_versions):
+    """Get the k8s injector  and lib init image references"""
+    k8s_lib_init_img = os.getenv("K8S_LIB_INIT_IMG")
+    k8s_injector_img = None
+    k8s_available_images = {"dev":"gcr.io/datadoghq/apm-inject:latest", "prod":"ghcr.io/datadog/apm-inject:latest_snapshot"}
+    
+    if cluster_agent_versions:
+        print(f"Cluster agent versions: {cluster_agent_versions}")
+        if os.getenv("K8S_INJECTOR_IMG"):
+            k8s_injector_img = os.getenv("K8S_INJECTOR_IMG")
+        elif "dev" == ci_environment:
+            k8s_injector_img = k8s_available_images["dev"]
+        else:
+            k8s_injector_img = k8s_available_images["prod"]
+            
+    if not k8s_lib_init_img:
+        language_img_name = "js" if language == "nodejs" else language
+        if "dev" == ci_environment:
+            language_repo_name = "js" if language == "nodejs" else language
+            language_repo_name = "py" if language == "python" else language_repo_name
+            language_repo_name = "rb" if language == "ruby" else language_repo_name
+            k8s_lib_init_img = f"ghcr.io/datadog/dd-trace-{language_repo_name}/dd-lib-{language_img_name}-init:latest_snapshot"
+        else:
+            k8s_lib_init_img = f"gcr.io/datadoghq/dd-lib-{language_img_name}-init:latest"
+    
+    return k8s_lib_init_img, k8s_injector_img
+ 
 def should_run_only_defaults_vm():
     """Default rules to run only default VMs or all VMs"""
     # Get gitlab variables from the environment
@@ -89,18 +123,39 @@ def print_k8s_gitlab_pipeline(language, k8s_matrix, ci_environment, result_pipel
     result_pipeline["stages"].append("K8S_LIB_INJECTION")
     # Create the jobs by scenario.
     for scenario, weblogs in k8s_matrix.items():
-        pass
+        job = scenario
+        result_pipeline[job] = {}
+        result_pipeline[job]["stage"] = scenario
+        result_pipeline[job]["extends"] = ".k8s_lib_injection_base"
+        # Job variables
+        result_pipeline[job]["variables"] = {}
+        result_pipeline[job]["variables"]["TEST_LIBRARY"] = language
+        result_pipeline[job]["variables"]["K8S_SCENARIO"] = scenario
+        
+        result_pipeline[job]["parallel"] = {"matrix": []}
+        cluster_agent_versions_scenario = None
+        for weblog_name, cluster_agent_versions in weblogs.items():
+            K8S_WEBLOG_IMG = os.getenv("K8S_WEBLOG_IMG", f"ghcr.io/datadog/system-tests/{weblog_name}:latest")
+            if cluster_agent_versions:  
+                result_pipeline[job]["parallel"]["matrix"].append({"K8S_WEBLOG": weblog_name,"K8S_WEBLOG_IMG":K8S_WEBLOG_IMG, "K8S_CLUSTER_IMG": cluster_agent_versions})
+                cluster_agent_versions_scenario = cluster_agent_versions
+            else:
+                result_pipeline[job]["parallel"]["matrix"].append({"K8S_WEBLOG": weblog_name,"K8S_WEBLOG_IMG":K8S_WEBLOG_IMG})
+
+        # Job variables: injector and lib_init
+        k8s_lib_init_img,k8s_injector_img = _get_k8s_injector_image_refs(language, ci_environment, cluster_agent_versions_scenario )
+        result_pipeline[job]["variables"]["K8S_LIB_INIT_IMG"] = k8s_lib_init_img
+        if k8s_injector_img:
+            #In the no admission controller scenarios we don't use the injector
+            result_pipeline[job]["variables"]["K8S_INJECTOR_IMG"] = k8s_injector_img
+       
+
 def print_docker_ssi_gitlab_pipeline(language, docker_ssi_matrix, ci_environment, result_pipeline) -> None:
     # Special filters from env variables
     DD_INSTALLER_LIBRARY_VERSION = os.getenv("DD_INSTALLER_LIBRARY_VERSION")
     DD_INSTALLER_INJECTOR_VERSION = os.getenv("DD_INSTALLER_INJECTOR_VERSION")
     
-    # collect all the possible scenarios to generate unique prefixes for each scenario
-    # we will add the prefix to the job name to avoid jobs with the same name and different stages
-    scenarios_prefix_names = {}
-    for scenario, weblogs in docker_ssi_matrix.items():
-        scenarios_prefix_names[scenario] = ""
-    scenarios_prefix_names = _generate_unique_prefix(scenarios_prefix_names.keys())
+    scenarios_prefix_names = _generate_unique_prefix(docker_ssi_matrix)
     # Create the jobs by scenario.
     for scenario, weblogs in docker_ssi_matrix.items():
         result_pipeline["stages"].append(scenario)
@@ -154,13 +209,7 @@ def print_aws_gitlab_pipeline(language, aws_matrix, ci_environment, result_pipel
     DD_INSTALLER_LIBRARY_VERSION = os.getenv("DD_INSTALLER_LIBRARY_VERSION")
     DD_INSTALLER_INJECTOR_VERSION = os.getenv("DD_INSTALLER_INJECTOR_VERSION")
 
-  
-    # collect all the possible scenarios to generate unique prefixes for each scenario
-    # we will add the prefix to the job name to avoid jobs with the same name and different stages
-    scenarios_prefix_names = {}
-    for scenario, weblogs in aws_matrix.items():
-        scenarios_prefix_names[scenario] = ""
-    scenarios_prefix_names = _generate_unique_prefix(scenarios_prefix_names.keys())
+    scenarios_prefix_names = _generate_unique_prefix(aws_matrix)
 
     # Create the jobs by scenario. Each job (vm) will have a parallel matrix with the weblogs
     for scenario, weblogs in aws_matrix.items():
@@ -199,4 +248,3 @@ def print_aws_gitlab_pipeline(language, aws_matrix, ci_environment, result_pipel
             for weblog in weblogs.keys():
                 if vm in weblogs[weblog]:
                     result_pipeline[vm_job]["parallel"]["matrix"].append({"WEBLOG": weblog})
-
