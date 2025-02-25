@@ -668,8 +668,10 @@ def parse_log_injection_message(log_message):
             message = json.loads(data.get("message"))
         except json.JSONDecodeError:
             continue
+        # For Nodejs
         if message.get("dd") and message.get(log_injection_fields[context.library.library]["message"]) == log_message:
             return message.get("dd")
+        # For other libs
         return message
     return None
 
@@ -677,6 +679,7 @@ def parse_log_injection_message(log_message):
 def parse_log_trace_id(message):
     if message.get("dd.trace_id"):
         return message.get("dd.trace_id")
+    # For Nodejs
     if message.get("trace_id"):
         return message.get("trace_id")
     return None
@@ -685,13 +688,7 @@ def parse_log_trace_id(message):
 def parse_log_span_id(message):
     if message.get("dd.span_id"):
         return message.get("dd.span_id")
+    # For Nodejs
     if message.get("span_id"):
         return message.get("span_id")
     return None
-
-
-def get_log_regex():
-    pattern = r'"dd\.[^"]+"'
-    if context.library == "nodejs":
-        pattern = r'"dd":\{[^}]*\}'
-    return pattern
