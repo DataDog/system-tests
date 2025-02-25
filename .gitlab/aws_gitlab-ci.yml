@@ -4,6 +4,7 @@ include:
 stages:
   - SSI_TESTS
   - DOCKER_SSI
+  - K8S_LIB_INJECTION
 
 ssi_tests:
   image: registry.ddbuild.io/images/ci_docker_base

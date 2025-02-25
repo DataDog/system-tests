@@ -124,7 +124,6 @@ def print_k8s_gitlab_pipeline(language, k8s_matrix, ci_environment, result_pipel
     for scenario, weblogs in k8s_matrix.items():
         job = scenario
         result_pipeline[job] = {}
-        result_pipeline[job]["stage"] = scenario
         result_pipeline[job]["extends"] = ".k8s_lib_injection_base"
         # Job variables
         result_pipeline[job]["variables"] = {}
