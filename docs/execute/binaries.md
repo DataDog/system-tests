@@ -142,9 +142,11 @@ echo “ddtrace @ git+https://github.com/DataDog/dd-trace-py.git@<name-of-your-b
 
 ## Ruby library
 
-* Create an file `ruby-load-from-bundle-add` in `binaries/`, the content will be installed by `bundle add`. Content example:
-  * `gem 'datadog', git: "https://github.com/Datadog/dd-trace-rb", branch: "master", require: 'datadog/auto_instrument'`
-2. Clone the dd-trace-rb repo inside `binaries`
+You have two ways to run system-tests with a custom Ruby Tracer version:
+
+1. Create `ruby-load-from-bundle-add` in `binaries` directory with the content that should be added to `Gemfile`. Content example:
+  * `gem 'datadog', git: 'https://github.com/Datadog/dd-trace-rb', branch: 'master', require: 'datadog/auto_instrument'`
+2. Clone the dd-trace-rb repo inside `binaries` and checkout the branch that you want to test against.
 
 ## WAF rule set
 
