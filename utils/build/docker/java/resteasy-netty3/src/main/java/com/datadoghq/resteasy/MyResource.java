@@ -112,6 +112,22 @@ public class MyResource {
     }
 
     @GET
+    @Path("/api_security/sampling/{i}")
+    public Response apiSecuritySamplingWithStatus(@PathParam("i") int i) {
+        return Response.status(i)
+                .header("content-type", "text/plain")
+                .entity("Hello!\n").build();
+    }
+
+    @GET
+    @Path("/api_security_sampling/{i}")
+    public Response apiSecuritySampling(@PathParam("i") int i) {
+        return Response.status(200)
+                .header("content-type", "text/plain")
+                .entity("Hello!\n").build();
+    }
+
+    @GET
     @Path("/params/{params: .*}")
     public String params(@PathParam("params") List<PathSegment> params) {
         return params.toString();

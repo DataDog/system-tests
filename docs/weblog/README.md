@@ -90,6 +90,8 @@ Hello world!\n
 
 This endpoint is used for API security sampling and must accept a parameter `i` as an integer.
 
+The response status code must be `i`.
+
 The response body may contain the following text:
 
 ```

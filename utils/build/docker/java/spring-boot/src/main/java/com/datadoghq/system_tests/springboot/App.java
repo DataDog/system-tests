@@ -192,6 +192,16 @@ public class App {
         return tagValue(tag_value, status_code);
     }
 
+    @GetMapping("/api_security/sampling/{i}")
+    ResponseEntity<String> apiSecuritySamplingWithStatus(@PathVariable final int i) {
+        return ResponseEntity.status(i).body("Hello!\n");
+    }
+
+    @GetMapping("/api_security_sampling/{i}")
+    ResponseEntity<String> apiSecuritySampling(@PathVariable final int i) {
+        return ResponseEntity.status(200).body("OK!\n");
+    }
+
     @RequestMapping("/waf/**")
     String waf() {
         return "Hello World!";
