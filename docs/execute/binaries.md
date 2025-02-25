@@ -148,6 +148,12 @@ You have two ways to run system-tests with a custom Ruby Tracer version:
   * `gem 'datadog', git: 'https://github.com/Datadog/dd-trace-rb', branch: 'master', require: 'datadog/auto_instrument'`
 2. Clone the dd-trace-rb repo inside `binaries` and checkout the branch that you want to test against.
 
+You can also use `utils/scripts/watch.sh` script to sync your local `dd-trace-rb` repo into the `binaries` folder:
+
+```bash
+./utils/scripts/watch.sh /path/to/dd-trace-rb
+```
+
 ## WAF rule set
 
 * copy a file `waf_rule_set` in `binaries/`
