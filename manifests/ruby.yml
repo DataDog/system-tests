@@ -395,18 +395,22 @@ tests/:
       Test_Debugger_PII_Redaction:
         "*": irrelevant
         rails70: v2.8.0
+        rails80: v2.8.0
     test_debugger_probe_snapshot.py:
       Test_Debugger_Probe_Snaphots:
         "*": irrelevant
         rails70: v2.8.0
+        rails80: v2.8.0
     test_debugger_probe_status.py:
       Test_Debugger_Probe_Statuses:
         "*": irrelevant
         rails70: v2.8.0
+        rails80: v2.8.0
     test_debugger_symdb.py:
       Test_Debugger_SymDb:
         "*": irrelevant
         rails70: missing_feature (feature not implemented)
+        rails80: missing_feature (feature not implemented)
   integrations/:
     crossed_integrations/:
       test_kafka.py:
