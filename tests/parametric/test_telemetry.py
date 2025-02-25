@@ -279,9 +279,7 @@ class Test_Environment:
     @missing_feature(context.library == "ruby", reason="Not implemented")
     @missing_feature(context.library == "php", reason="Not implemented")
     @missing_feature(context.library == "cpp", reason="Not implemented")
-    @missing_feature(
-        context.library <= "python@3.1.0", reason="OTEL Sampling config is mapped to a different datadog config"
-    )
+    @missing_feature(context.library == "python", reason="OTEL Sampling config is mapped to a different datadog config")
     @pytest.mark.parametrize(
         "library_env",
         [
@@ -373,9 +371,7 @@ class Test_Environment:
     @missing_feature(context.library == "ruby", reason="Not implemented")
     @missing_feature(context.library == "php", reason="Not implemented")
     @missing_feature(context.library == "cpp", reason="Not implemented")
-    @missing_feature(
-        context.library <= "python@3.1.0", reason="OTEL Sampling config is mapped to a different datadog config"
-    )
+    @missing_feature(context.library == "python", reason="OTEL Sampling config is mapped to a different datadog config")
     @missing_feature(
         context.library == "nodejs", reason="does not collect otel_env.invalid metrics for otel_resource_attributes"
     )
