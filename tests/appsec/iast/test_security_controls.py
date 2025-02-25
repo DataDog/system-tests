@@ -36,7 +36,7 @@ class TestSecurityControls:
     def test_vulnerability_suppression_with_an_input_validator_configured_for_a_specific_vulnerability(self):
         self.assert_iast_is_enabled(self.check_r)
         BaseSinkTest.assert_no_iast_event(self.r, "COMMAND_INJECTION")
-        assert_metric(self.r, "_dd.iast.telemetry.suppressed.vulnerabilities.command_injection", True)
+        assert_metric(self.r, "_dd.iast.telemetry.suppressed.vulnerabilities.command_injection", expected=True)
 
     def setup_no_vulnerability_suppression_with_an_input_validator_configured_for_a_different_vulnerability(self):
         self.setup_iast_is_enabled()
@@ -49,7 +49,7 @@ class TestSecurityControls:
             vulnerability_count=1,
             vulnerability_type="SQL_INJECTION",
         )
-        assert_metric(self.r, "_dd.iast.telemetry.suppressed.vulnerabilities.sql_injection", False)
+        assert_metric(self.r, "_dd.iast.telemetry.suppressed.vulnerabilities.sql_injection", expected=False)
 
     def setup_vulnerability_suppression_with_an_input_validator_configured_for_all_vulnerabilities(self):
         self.setup_iast_is_enabled()
@@ -58,7 +58,7 @@ class TestSecurityControls:
     def test_vulnerability_suppression_with_an_input_validator_configured_for_all_vulnerabilities(self):
         self.assert_iast_is_enabled(self.check_r)
         BaseSinkTest.assert_no_iast_event(self.r, "SQL_INJECTION")
-        assert_metric(self.r, "_dd.iast.telemetry.suppressed.vulnerabilities.sql_injection", True)
+        assert_metric(self.r, "_dd.iast.telemetry.suppressed.vulnerabilities.sql_injection", expected=True)
 
     def setup_vulnerability_suppression_with_an_input_validator_configured_for_an_overloaded_method_with_specific_signature(
         self,
@@ -71,7 +71,7 @@ class TestSecurityControls:
     ):
         self.assert_iast_is_enabled(self.check_r)
         BaseSinkTest.assert_no_iast_event(self.r, "SQL_INJECTION")
-        assert_metric(self.r, "_dd.iast.telemetry.suppressed.vulnerabilities.sql_injection", True)
+        assert_metric(self.r, "_dd.iast.telemetry.suppressed.vulnerabilities.sql_injection", expected=True)
 
     def setup_no_vulnerability_suppression_with_an_input_validator_configured_for_an_overloaded_method_with_specific_signature(
         self,
@@ -88,7 +88,7 @@ class TestSecurityControls:
             vulnerability_count=1,
             vulnerability_type="SQL_INJECTION",
         )
-        assert_metric(self.r, "_dd.iast.telemetry.suppressed.vulnerabilities.sql_injection", False)
+        assert_metric(self.r, "_dd.iast.telemetry.suppressed.vulnerabilities.sql_injection", expected=False)
 
     def setup_vulnerability_suppression_with_a_sanitizer_configured_for_a_specific_vulnerability(self):
         self.setup_iast_is_enabled()
@@ -97,7 +97,7 @@ class TestSecurityControls:
     def test_vulnerability_suppression_with_a_sanitizer_configured_for_a_specific_vulnerability(self):
         self.assert_iast_is_enabled(self.check_r)
         BaseSinkTest.assert_no_iast_event(self.r, "COMMAND_INJECTION")
-        assert_metric(self.r, "_dd.iast.telemetry.suppressed.vulnerabilities.command_injection", True)
+        assert_metric(self.r, "_dd.iast.telemetry.suppressed.vulnerabilities.command_injection", expected=True)
 
     def setup_no_vulnerability_suppression_with_a_sanitizer_configured_for_a_different_vulnerability(self):
         self.setup_iast_is_enabled()
@@ -110,7 +110,7 @@ class TestSecurityControls:
             vulnerability_count=1,
             vulnerability_type="SQL_INJECTION",
         )
-        assert_metric(self.r, "_dd.iast.telemetry.suppressed.vulnerabilities.sql_injection", False)
+        assert_metric(self.r, "_dd.iast.telemetry.suppressed.vulnerabilities.sql_injection", expected=False)
 
     def setup_vulnerability_suppression_with_a_sanitizer_configured_for_all_vulnerabilities(self):
         self.setup_iast_is_enabled()
@@ -119,7 +119,7 @@ class TestSecurityControls:
     def test_vulnerability_suppression_with_a_sanitizer_configured_for_all_vulnerabilities(self):
         self.assert_iast_is_enabled(self.check_r)
         BaseSinkTest.assert_no_iast_event(self.r, "SQL_INJECTION")
-        assert_metric(self.r, "_dd.iast.telemetry.suppressed.vulnerabilities.sql_injection", True)
+        assert_metric(self.r, "_dd.iast.telemetry.suppressed.vulnerabilities.sql_injection", expected=True)
 
     def setup_vulnerability_suppression_with_a_sanitizer_configured_for_an_overloaded_method_with_specific_signature(
         self,
@@ -132,7 +132,7 @@ class TestSecurityControls:
     ):
         self.assert_iast_is_enabled(self.check_r)
         BaseSinkTest.assert_no_iast_event(self.r, "COMMAND_INJECTION")
-        assert_metric(self.r, "_dd.iast.telemetry.suppressed.vulnerabilities.command_injection", True)
+        assert_metric(self.r, "_dd.iast.telemetry.suppressed.vulnerabilities.command_injection", expected=True)
 
     def setup_no_vulnerability_suppression_with_a_sanitizer_configured_for_an_overloaded_method_with_specific_signature(
         self,
@@ -150,4 +150,4 @@ class TestSecurityControls:
             vulnerability_count=1,
             vulnerability_type="COMMAND_INJECTION",
         )
-        assert_metric(self.r, "_dd.iast.telemetry.suppressed.vulnerabilities.sql_injection", False)
+        assert_metric(self.r, "_dd.iast.telemetry.suppressed.vulnerabilities.sql_injection", expected=False)

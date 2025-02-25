@@ -181,7 +181,6 @@ ignore = [
     "E501",      # line-too-long: TODO
     "SIM117",    # multiple-with-statements: TODO
     "N806",      # non-lowercase-variable-in-function: TODO
-    "FBT003",    # boolean-positional-value-in-call: TODO
     "TRY002",    # raise-vanilla-class: TODO
     "FBT002",    # boolean-default-value-positional-argument: TODO
     "B007",      # unused-loop-control-variable: TODO

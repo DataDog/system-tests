@@ -53,10 +53,6 @@ class Test_Automated_User_Tracking:
             cookies=self.r_login.cookies,
         )
 
-    @irrelevant(
-        context.library == "python" and context.weblog_variant not in ["django-poc", "python3.12", "django-py3.13"],
-        reason="no possible auto-instrumentation for python except on Django",
-    )
     def test_user_tracking_auto(self):
         assert self.r_login.status_code == 200
 
@@ -77,7 +73,6 @@ class Test_Automated_User_Tracking:
         self.r_users = weblog.get("/users?user=sdkUser", cookies=self.r_login.cookies)
 
     @missing_feature(context.library == "java")
-    @missing_feature(context.library == "python")
     def test_user_tracking_sdk_overwrite(self):
         assert self.r_login.status_code == 200
 
