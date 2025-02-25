@@ -134,3 +134,10 @@ def nulls():
         pii = Pii()
 
     return f"Pii is null {pii is None}. intValue is null {intValue is None}. strValue is null {strValue is None}."
+
+
+@debugger_blueprint.route("/budgets/<int:loops>", methods=["GET"])
+def budgets(loops):
+    for _ in range(loops):
+        pass
+    return "Budgets", 200

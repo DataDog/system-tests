@@ -181,7 +181,7 @@ jobs:
           path: artifact.tar.gz
 
   build-weblogs-k8s-lib-injection:
-    if: inputs.library == 'dotnet' || inputs.library == 'java' || inputs.library == 'python' || inputs.library == 'ruby' || inputs.library == 'nodejs'
+    if: inputs.build_lib_injection_app_images && (inputs.library == 'dotnet' || inputs.library == 'java' || inputs.library == 'python' || inputs.library == 'ruby' || inputs.library == 'nodejs')
     runs-on:
       group: "APM Larger Runners"
     permissions:
@@ -231,7 +231,6 @@ jobs:
 
       - name: Build weblog base images (PR)
         id: build
-        if: inputs.build_lib_injection_app_images
         run: |
           #Build multiplatform
           lib-injection/build/build_lib_injection_weblog.sh -w ${{ matrix.weblog }} -l ${{ inputs.library }} --push-tag ${{ env.LIBRARY_INJECTION_TEST_APP_IMAGE }} --docker-platform linux/arm64,linux/amd64

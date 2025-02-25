@@ -9,6 +9,7 @@ import os
 import re
 import time
 from typing import Any
+from collections.abc import Mapping
 
 import requests
 
@@ -188,7 +189,7 @@ def _create_base_signed(version: int):
     }
 
 
-def _build_base_command(path_payloads: dict[str, dict | list], version: int):
+def _build_base_command(path_payloads: Mapping[str, Any], version: int):
     """Helper function to build a remote config command with common logic.
 
     Args:
@@ -231,19 +232,73 @@ def build_debugger_command(probes: list | None, version: int):
     return _build_base_command(path_payloads, version)
 
 
-def build_symdb_command():
-    return _build_base_command(
-        path_payloads={"datadog/2/LIVE_DEBUGGING_SYMBOL_DB/symDb/config": {"upload_symbols": True}}, version=1
-    )
-
-
-def send_debugger_command(probes: list, version: int) -> dict:
+def send_debugger_command(probes: list, version: int = 1) -> dict:
     raw_payload = build_debugger_command(probes, version)
     return send_state(raw_payload)
 
 
-def send_symdb_command() -> dict:
-    raw_payload = build_symdb_command()
+def build_symdb_command(version):
+    path_payloads = {"datadog/2/LIVE_DEBUGGING_SYMBOL_DB/symDb/config": {"upload_symbols": True}}
+    return _build_base_command(path_payloads, version)
+
+
+def send_symdb_command(version: int = 1) -> dict:
+    raw_payload = build_symdb_command(version)
+    return send_state(raw_payload)
+
+
+def build_apm_tracing_command(
+    version: int,
+    dynamic_instrumentation_enabled: bool | None = None,
+    exception_replay_enabled: bool | None = None,
+    live_debugging_enabled: bool | None = None,
+    code_origin_enabled: bool | None = None,
+    dynamic_sampling_enabled: bool | None = None,
+):
+    lib_config: dict[str, str | bool] = {
+        "library_language": "all",
+        "library_version": "latest",
+    }
+
+    lib_config["tracing_enabled"] = True
+    if dynamic_instrumentation_enabled is not None:
+        lib_config["dynamic_instrumentation_enabled"] = dynamic_instrumentation_enabled
+    if exception_replay_enabled is not None:
+        lib_config["exception_replay_enabled"] = exception_replay_enabled
+    if live_debugging_enabled is not None:
+        lib_config["live_debugging_enabled"] = live_debugging_enabled
+    if code_origin_enabled is not None:
+        lib_config["code_origin_enabled"] = code_origin_enabled
+    if dynamic_sampling_enabled is not None:
+        lib_config["dynamic_sampling_enabled"] = dynamic_sampling_enabled
+
+    config = {
+        "schema_version": "v1.0.0",
+        "action": "enable",
+        "lib_config": lib_config,
+    }
+
+    path_payloads = {"datadog/2/APM_TRACING/config_overrides/config": config}
+    return _build_base_command(path_payloads, version)
+
+
+def send_apm_tracing_command(
+    dynamic_instrumentation_enabled: bool | None = None,
+    exception_replay_enabled: bool | None = None,
+    live_debugging_enabled: bool | None = None,
+    code_origin_enabled: bool | None = None,
+    dynamic_sampling_enabled: bool | None = None,
+    version: int = 1,
+) -> dict:
+    raw_payload = build_apm_tracing_command(
+        version=version,
+        dynamic_instrumentation_enabled=dynamic_instrumentation_enabled,
+        exception_replay_enabled=exception_replay_enabled,
+        live_debugging_enabled=live_debugging_enabled,
+        code_origin_enabled=code_origin_enabled,
+        dynamic_sampling_enabled=dynamic_sampling_enabled,
+    )
+
     return send_state(raw_payload)
 
 

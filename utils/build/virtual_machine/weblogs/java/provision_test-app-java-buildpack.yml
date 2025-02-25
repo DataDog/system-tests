@@ -13,7 +13,6 @@ lang_variant:
 weblog:
     name: test-app-java-buildpack
     runtime_version: 11
-    excluded_os_branches: [ amazon_linux2, ubuntu22_arm64, amazon_linux2023_arm64]
     install:
       - os_type: linux
         copy_files:
