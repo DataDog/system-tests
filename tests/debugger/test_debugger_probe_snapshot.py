@@ -150,6 +150,7 @@ class Test_Debugger_Probe_Snaphots(debugger.Base_Debugger_Test):
             # Web spans for the healthcheck should have code origins defined.
             resource, resource_type = span.get("resource", None), span.get("type", None)
             logger.debug(span)
+
             if resource == "GET /healthcheck" and resource_type == "web":
                 code_origin_type = span["meta"].get("_dd.code_origin.type", "")
                 code_origins_entry_found = code_origin_type == "entry"
