@@ -49,3 +49,25 @@ class BaseFullDenyListTest:
                 }
             ],
         )
+
+
+def find_series(
+    namespace,
+    metric,
+    *,
+    is_metrics: bool,
+):
+    request_type = "generate-metrics" if is_metrics else "distributions"
+    series = []
+    for data in interfaces.library.get_telemetry_data():
+        content = data["request"]["content"]
+        if content.get("request_type") != request_type:
+            continue
+        fallback_namespace = content["payload"].get("namespace")
+        for serie in content["payload"]["series"]:
+            computed_namespace = serie.get("namespace", fallback_namespace)
+            # Inject here the computed namespace considering the fallback. This simplifies later assertions.
+            serie["_computed_namespace"] = computed_namespace
+            if computed_namespace == namespace and serie["metric"] == metric:
+                series.append(serie)
+    return series
