@@ -101,10 +101,10 @@ def print_gitlab_pipeline(language, matrix_data, ci_environment) -> None:
         result_pipeline["stages"].append("SSI_TESTS")
         result_pipeline["ssi_tests"] = pipeline_data["ssi_tests"]
     
-    if matrix_data["aws_ssi_scenario_defs"]:
-        # Copy the base job for the onboarding system tests
-        result_pipeline[".base_job_onboarding_system_tests"] = pipeline_data[".base_job_onboarding_system_tests"]
-        print_aws_gitlab_pipeline(language, matrix_data["aws_ssi_scenario_defs"], ci_environment, result_pipeline)
+   # if matrix_data["aws_ssi_scenario_defs"]:
+   #     # Copy the base job for the onboarding system tests
+   #     result_pipeline[".base_job_onboarding_system_tests"] = pipeline_data[".base_job_onboarding_system_tests"]
+   #     print_aws_gitlab_pipeline(language, matrix_data["aws_ssi_scenario_defs"], ci_environment, result_pipeline)
     if matrix_data["dockerssi_scenario_defs"]:
         # Copy the base job for the docker ssi system tests
         result_pipeline[".base_docker_ssi_job"] = pipeline_data[".base_docker_ssi_job"]
