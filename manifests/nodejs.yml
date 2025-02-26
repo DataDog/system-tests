@@ -47,6 +47,7 @@ refs:
   - &ref_5_34_0 '>=5.34.0'
   - &ref_5_35_0 '>=5.35.0'
   - &ref_5_36_0 '>=5.36.0'
+  - &ref_5_37_0 '>=5.37.0'
 
 tests/:
   apm_tracing_e2e/:
@@ -978,7 +979,10 @@ tests/:
       '*': *ref_5_25_0
       express4-typescript: incomplete_test_app
       nextjs: incomplete_test_app
-    Test_Config_LogInjection_128Bit_TradeId_Default: missing_feature (disabled by default)
+    Test_Config_LogInjection_128Bit_TradeId_Default:
+      '*': *ref_5_36_0
+      express4-typescript: incomplete_test_app (endpoint not implemented)
+      nextjs: incomplete_test_app (endpoint not implemented)
     Test_Config_LogInjection_128Bit_TradeId_Disabled:
       '*': *ref_3_15_0
       express4-typescript: incomplete_test_app (endpoint not implemented)
