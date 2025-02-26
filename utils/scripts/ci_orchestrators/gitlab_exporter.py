@@ -138,7 +138,7 @@ def print_k8s_gitlab_pipeline(language, k8s_matrix, ci_environment, result_pipel
                 result_pipeline[job]["parallel"]["matrix"].append({"K8S_WEBLOG": weblog_name,"K8S_WEBLOG_IMG":K8S_WEBLOG_IMG, "K8S_CLUSTER_IMG": cluster_agent_versions})
                 cluster_agent_versions_scenario = cluster_agent_versions
             else:
-                result_pipeline[job]["parallel"]["matrix"].append({"K8S_WEBLOG": weblog_name,"K8S_WEBLOG_IMG":K8S_WEBLOG_IMG})
+                result_pipeline[job]["parallel"]["matrix"].append({"K8S_WEBLOG": weblog_name,"K8S_WEBLOG_IMG":K8S_WEBLOG_IMG, "K8S_CLUSTER_IMG": "None"})
 
         # Job variables: injector and lib_init
         k8s_lib_init_img,k8s_injector_img = _get_k8s_injector_image_refs(language, ci_environment, cluster_agent_versions_scenario )
