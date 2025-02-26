@@ -195,7 +195,7 @@ def print_docker_ssi_gitlab_pipeline(language, docker_ssi_matrix, ci_environment
                     "./build.sh -i runner",
                     "source venv/bin/activate",
                     "echo 'Running SSI tests'",
-                    'timeout 2700s ./run.sh $SCENARIO --ssi-weblog "$WEBLOG" --ssi-library "$TEST_LIBRARY" --ssi-base-image "$IMAGE" --ssi-arch "$ARCH" --ssi-installable-runtime "$RUNTIME" --ssi-env $ONBOARDING_FILTER_ENV' + custom_extra_params + ' --report-run-url ${CI_JOB_URL} --report-environment prod'
+                    'timeout 2700s ./run.sh $SCENARIO --ssi-weblog "$WEBLOG" --ssi-library "$TEST_LIBRARY" --ssi-base-image "$IMAGE" --ssi-arch "$ARCH" --ssi-installable-runtime "$RUNTIME" --ssi-env $ONBOARDING_FILTER_ENV' + custom_extra_params + ' --report-run-url ${CI_JOB_URL} --report-environment ${ci_environment}'
                 ]
                    
 def print_aws_gitlab_pipeline(language, aws_matrix, ci_environment, result_pipeline) -> None:
