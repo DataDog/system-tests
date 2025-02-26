@@ -19,7 +19,7 @@ runtime_metrics_lang_map = {
     "python": ("lang", "python"),
     "ruby": ("language", "ruby"),
 }
-# Maps language to the key that the log library used in /log/library endpoint prints a log message under
+# represents the key under which the log library used in /log/library endpoint prints a log message
 log_injection_fields = {
     "nodejs": {"message": "msg"},
     "golang": {"message": "msg"},
