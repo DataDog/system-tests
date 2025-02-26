@@ -14,11 +14,8 @@ compute_pipeline:
   image: registry.ddbuild.io/ci/libdatadog-build/system-tests:48436362
   tags: ["arch:amd64"]
   stage: compute_pipeline
- # rules:
- #   - if: $CI_PIPELINE_SOURCE == "schedule"
- #     when: always
- #   - when: manual
- #     allow_failure: true
+  variables:
+    CI_ENVIRONMENT: "prod"
   script:
     - ./build.sh -i runner
     - source venv/bin/activate
@@ -33,7 +30,7 @@ compute_pipeline:
     - python utils/scripts/compute_impacted_scenario.py >> impacted_scenarios.txt
     - cat impacted_scenarios.txt
     - source impacted_scenarios.txt
-    - python utils/scripts/compute-workflow-parameters.py nodejs -s "$scenarios" -g "$scenarios_groups" --parametric-job-count 1 --ci-environment "prod" --format gitlab > gitlab_pipeline.yml
+    - python utils/scripts/compute-workflow-parameters.py nodejs -s "$scenarios" -g "$scenarios_groups" --parametric-job-count 1 --ci-environment "${CI_ENVIRONMENT}" --format gitlab > gitlab_pipeline.yml
   artifacts:
     paths:
       - gitlab_pipeline.yml
