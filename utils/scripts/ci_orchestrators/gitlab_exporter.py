@@ -228,6 +228,8 @@ def print_aws_gitlab_pipeline(language, aws_matrix, ci_environment, result_pipel
             # If only_defaults is True, we will set the job to manual if it's not a default VM
             if only_defaults and not is_default_machine(raw_data_virtual_machines, vm):
                 result_pipeline[vm_job]["when"] = "manual"
+                #Avoid the pipeline marked as blocked
+                result_pipeline[vm_job]["allow_failure"] = "true"
 
             # Job variables
             result_pipeline[vm_job]["variables"] = {}
