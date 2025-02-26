@@ -144,7 +144,7 @@ def _split_weblogs_for_parallel_execution(
             continue
 
         # otherwise, we need to split the scenarios
-        for i, scenarios in enumerate(
+        for i, (scenarios, expected_job_time) in enumerate(
             _split_scenarios_for_parallel_execution(
                 weblog["library"],
                 weblog["weblog_name"],
@@ -159,6 +159,7 @@ def _split_weblogs_for_parallel_execution(
                     "weblog_name": weblog["weblog_name"],
                     "weblog_name_instance": i,
                     "scenarios": scenarios,
+                    "expected_job_time": expected_job_time + build_time,
                 }
             )
 
@@ -167,19 +168,19 @@ def _split_weblogs_for_parallel_execution(
 
 def _split_scenarios_for_parallel_execution(
     library: str, weblog: str, scenarios: list[str], desired_execution_time: int, run_stats: dict
-) -> list[list[str]]:
-    result: list[list[str]] = [[]]
+):
+    result: list[str] = []
     current_execution_time = 0
 
     for scenario in scenarios:
-        result[-1].append(scenario)
+        result.append(scenario)
         current_execution_time += _get_execution_time(library, weblog, scenario, run_stats)
 
         if current_execution_time > desired_execution_time:
-            result.append([])
-            current_execution_time = 0
+            yield result, current_execution_time
 
-    return result
+            result = []
+            current_execution_time = 0
 
 
 def _get_build_time(library: str, weblog: str, build_stats: dict) -> int:
