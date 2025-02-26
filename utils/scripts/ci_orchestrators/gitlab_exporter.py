@@ -36,7 +36,7 @@ def _get_k8s_injector_image_refs(language, ci_environment, cluster_agent_version
     """Get the k8s injector  and lib init image references"""
     k8s_lib_init_img = os.getenv("K8S_LIB_INIT_IMG")
     k8s_injector_img = None
-    k8s_available_images = {"dev":"gcr.io/datadoghq/apm-inject:latest", "prod":"ghcr.io/datadog/apm-inject:latest_snapshot"}
+    k8s_available_images = {"prod":"gcr.io/datadoghq/apm-inject:latest", "dev":"ghcr.io/datadog/apm-inject:latest_snapshot"}
     
     if cluster_agent_versions:
         if os.getenv("K8S_INJECTOR_IMG"):
