@@ -2,13 +2,10 @@ import pytest
 
 
 class _Features:
-    """Data source is https://dd-feature-parity.azurewebsites.net/Import/Features
+    """
+    See https://github.com/DataDog/system-tests/blob/main/docs/edit/features.md
 
-    run this command to get new features:
-
-    ```
-    PYTHONPATH=. python utils/scripts/update_features.py
-    ```
+    Data source is the feature parity dashboard https://feature-parity.us1.prod.dog/
     """
 
     @staticmethod
