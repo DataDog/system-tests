@@ -2,8 +2,7 @@ import pytest
 
 
 class _Features:
-    """
-    See https://github.com/DataDog/system-tests/blob/main/docs/edit/features.md
+    """See https://github.com/DataDog/system-tests/blob/main/docs/edit/features.md
 
     Data source is the feature parity dashboard https://feature-parity.us1.prod.dog/
     """
