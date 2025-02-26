@@ -178,10 +178,10 @@ def print_docker_ssi_gitlab_pipeline(language, docker_ssi_matrix, ci_environment
                 custom_extra_params = ""      
                 if DD_INSTALLER_LIBRARY_VERSION:
                     result_pipeline[vm_job]["variables"]["DD_INSTALLER_LIBRARY_VERSION"] = DD_INSTALLER_LIBRARY_VERSION
-                    custom_extra_params = f"--ssi-library-version {DD_INSTALLER_LIBRARY_VERSION}"
+                    custom_extra_params = f" --ssi-library-version {DD_INSTALLER_LIBRARY_VERSION}"
                 if DD_INSTALLER_INJECTOR_VERSION:
                     result_pipeline[vm_job]["variables"]["DD_INSTALLER_INJECTOR_VERSION"] = DD_INSTALLER_INJECTOR_VERSION
-                    custom_extra_params = custom_extra_params + f"--ssi-injector-version {DD_INSTALLER_INJECTOR_VERSION}"
+                    custom_extra_params = custom_extra_params + f" --ssi-injector-version {DD_INSTALLER_INJECTOR_VERSION}"
                 result_pipeline[vm_job]["parallel"] = {"matrix": []}       
                 for image in images:
                     if image["arch"] != architecture:
