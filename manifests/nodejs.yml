@@ -995,8 +995,8 @@ tests/:
       '*': *ref_5_25_0
       express4-typescript: incomplete_test_app
       nextjs: incomplete_test_app
-    Test_Config_LogInjection_128Bit_TradeId_Default: missing_feature (disabled by default)
-    Test_Config_LogInjection_128Bit_TradeId_Disabled:
+    Test_Config_LogInjection_128Bit_TraceId_Default: missing_feature (disabled by default)
+    Test_Config_LogInjection_128Bit_TraceId_Disabled:
       '*': *ref_3_15_0
       express4-typescript: incomplete_test_app (endpoint not implemented)
       nextjs: incomplete_test_app (endpoint not implemented)
