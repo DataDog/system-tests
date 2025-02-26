@@ -665,9 +665,9 @@ def get_runtime_metrics(agent):
     return runtime_metrics_gauges, runtime_metrics_sketches
 
 
-# Parses the JSON-formatted log message from stdout and returns it
-# To pass tests that use this function, ensure your library has an entry in log_injection_fields
 def parse_log_injection_message(log_message):
+    # Parses the JSON-formatted log message from stdout and returns it
+    # To pass tests that use this function, ensure your library has an entry in log_injection_fields
     for data in stdout.get_data():
         try:
             message = json.loads(data.get("message"))
