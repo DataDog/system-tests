@@ -97,7 +97,7 @@ jobs:
       job_count: ${{ inputs.parametric_job_count }}
       job_matrix: ${{ needs.compute_parameters.outputs.parametric_job_matrix }}
 
-  lib-injection:
+  lib_injection:
     needs:
       - compute_parameters
     if: ${{ needs.compute_parameters.outputs.libinjection_enable == 'true' }}
@@ -111,8 +111,8 @@ jobs:
       library: ${{ inputs.library }}
       version: ${{ inputs.binaries_artifact == '' && 'prod' || 'dev' }}
 
-  end-to-end:
-    name: end-to-end (${{ matrix.weblogs.weblog_name }})
+  end_to_end:
+    name: End-to-end (${{ matrix.weblogs.weblog_name }})
     needs:
       - compute_parameters
     if: ${{ needs.compute_parameters.outputs.endtoend_defs_weblogs != '[]' }}
@@ -134,7 +134,7 @@ jobs:
       skip_empty_scenarios: ${{ inputs.skip_empty_scenarios }}
       logs_artifact_name: logs_endtoend_${{ inputs.library }}_${{ matrix.weblogs.weblog_name }}_${{ inputs.ci_environment }}
 
-  external-processing:
+  external_processing:
     needs:
       - compute_parameters
     if: ${{ needs.compute_parameters.outputs.externalprocessing_scenarios != '[]' && inputs.library == 'golang' && inputs.binaries_artifact != ''}}
@@ -145,8 +145,8 @@ jobs:
       ci_environment: ${{ inputs.ci_environment }}
       binaries_artifact: ${{ inputs.binaries_artifact }}
 
-  build-end-to-end-parallel:
-    name: build-end-to-end (${{ matrix.weblog }})
+  build_end_to_end_parallel:
+    name: Build end-to-end (${{ matrix.weblog }})
     needs:
       - compute_parameters
     if: ${{ needs.compute_parameters.outputs.endtoend_defs_parallel_enable == 'true' }}
@@ -181,11 +181,11 @@ jobs:
           name: binaries_${{ inputs.ci_environment}}_${{ inputs.library }}_${{ matrix.weblog }}
           path: binaries/
 
-  run-end-to-end-parallel:
-    name: end-to-end (${{ matrix.weblogs.weblog_name }} / ${{ matrix.weblogs.weblog_name_instance }})
+  run_end_to_end_parallel:
+    name: End-to-end (${{ matrix.weblogs.weblog_name }} / ${{ matrix.weblogs.weblog_name_instance }})
     needs:
       - compute_parameters
-      - build-end-to-end-parallel
+      - build_end_to_end_parallel
     if: ${{ needs.compute_parameters.outputs.endtoend_defs_parallel_enable == 'true' }}
     strategy:
       matrix:
