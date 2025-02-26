@@ -143,9 +143,8 @@ def print_k8s_gitlab_pipeline(language, k8s_matrix, ci_environment, result_pipel
         # Job variables: injector and lib_init
         k8s_lib_init_img,k8s_injector_img = _get_k8s_injector_image_refs(language, ci_environment, cluster_agent_versions_scenario )
         result_pipeline[job]["variables"]["K8S_LIB_INIT_IMG"] = k8s_lib_init_img
-        if k8s_injector_img:
-            #In the no admission controller scenarios we don't use the injector
-            result_pipeline[job]["variables"]["K8S_INJECTOR_IMG"] = k8s_injector_img
+        #In the no admission controller scenarios we don't use the injector
+        result_pipeline[job]["variables"]["K8S_INJECTOR_IMG"] = k8s_injector_img if k8s_injector_img else ''
        
 
 def print_docker_ssi_gitlab_pipeline(language, docker_ssi_matrix, ci_environment, result_pipeline) -> None:
@@ -195,7 +194,7 @@ def print_docker_ssi_gitlab_pipeline(language, docker_ssi_matrix, ci_environment
                     "./build.sh -i runner",
                     "source venv/bin/activate",
                     "echo 'Running SSI tests'",
-                    'timeout 2700s ./run.sh $SCENARIO --ssi-weblog "$WEBLOG" --ssi-library "$TEST_LIBRARY" --ssi-base-image "$IMAGE" --ssi-arch "$ARCH" --ssi-installable-runtime "$RUNTIME" --ssi-env $ONBOARDING_FILTER_ENV' + custom_extra_params + ' --report-run-url ${CI_JOB_URL} --report-environment ${ci_environment}'
+                    'timeout 2700s ./run.sh $SCENARIO --ssi-weblog "$WEBLOG" --ssi-library "$TEST_LIBRARY" --ssi-base-image "$IMAGE" --ssi-arch "$ARCH" --ssi-installable-runtime "$RUNTIME" --ssi-env $ONBOARDING_FILTER_ENV' + custom_extra_params + ' --report-run-url ${CI_JOB_URL} --report-environment ' + ci_environment
                 ]
                    
 def print_aws_gitlab_pipeline(language, aws_matrix, ci_environment, result_pipeline) -> None:
