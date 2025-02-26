@@ -155,6 +155,7 @@ jobs:
     secrets: inherit
 
   all-jobs-are-green:  # if this must be renamed, you need to update utils/scripts/get-workflow-summary.py
+    name: All jobs are green
     runs-on: ubuntu-latest
     needs:
     - system_tests
