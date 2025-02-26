@@ -145,7 +145,7 @@ class Test_Lfi_Telemetry_Multiple_Exploits:
         self.r = weblog.get("/rasp/multiple", params={"file1": "../etc/passwd", "file2": "../etc/group"})
 
     def test_rasp_match_tag(self):
-        series_eval = find_series(True, "appsec", "rasp.rule.match")
+        series_eval = find_series("appsec", "rasp.rule.match", is_metrics=True)
         assert series_eval
         assert series_eval[0]["points"][0][1] == 3.0
 
@@ -174,13 +174,13 @@ class Test_Lfi_Telemetry:
         self.r = weblog.get("/rasp/lfi", params={"file": "../etc/passwd"})
 
     def test_lfi_telemetry(self):
-        series_eval = find_series(True, "appsec", "rasp.rule.eval")
+        series_eval = find_series("appsec", "rasp.rule.eval", is_metrics=True)
         assert series_eval
         assert any(validate_metric("rasp.rule.eval", "lfi", s) for s in series_eval), [
             s.get("tags") for s in series_eval
         ]
 
-        series_match = find_series(True, "appsec", "rasp.rule.match")
+        series_match = find_series("appsec", "rasp.rule.match", is_metrics=True)
         assert series_match
         assert any(validate_metric("rasp.rule.match", "lfi", s) for s in series_match), [
             s.get("tags") for s in series_match

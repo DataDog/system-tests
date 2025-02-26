@@ -76,7 +76,7 @@ class BaseDbIntegrationsTestClass:
     setup_obfuscate_query = _setup
     setup_sql_query = _setup
     setup_sql_success = _setup
-    setup_NOT_obfuscate_query = _setup
+    setup_not_obfuscate_query = _setup
 
     def get_requests(self, excluded_operations=(), operations=None):
         for db_operation, request in self.requests[self.db_service].items():
@@ -87,7 +87,7 @@ class BaseDbIntegrationsTestClass:
                 yield db_operation, request
 
     @staticmethod
-    def get_span_from_tracer(weblog_request):
+    def get_span_from_tracer(weblog_request) -> dict:
         for _, _, span in interfaces.library.get_spans(weblog_request):
             logger.info(f"Span found with trace id: {span['trace_id']} and span id: {span['span_id']}")
 
@@ -112,7 +112,7 @@ class BaseDbIntegrationsTestClass:
         raise ValueError(f"Span is not found for {weblog_request.request.url}")
 
     @staticmethod
-    def get_span_from_agent(weblog_request):
+    def get_span_from_agent(weblog_request) -> dict:
         for data, span in interfaces.agent.get_spans(weblog_request):
             logger.debug(f"Span found: trace id={span['traceID']}; span id={span['spanID']} ({data['log_filename']})")
 
@@ -209,14 +209,12 @@ def delete_sqs_queue(queue_name):
     try:
         queue_url = f"{SQS_URL}/{queue_name}"
         sqs_client = _get_aws_session().client("sqs", endpoint_url=SQS_URL)
-        delete_callable = lambda url: sqs_client.delete_queue(QueueUrl=url)
-        get_callable = lambda url: sqs_client.get_queue_attributes(QueueUrl=url)
         delete_aws_resource(
-            delete_callable,
-            queue_url,
-            "SQS Queue",
-            "AWS.SimpleQueueService.NonExistentQueue",
-            get_callable=get_callable,
+            delete_callable=lambda url: sqs_client.delete_queue(QueueUrl=url),
+            resource_identifier=queue_url,
+            resource_type="SQS Queue",
+            error_name="AWS.SimpleQueueService.NonExistentQueue",
+            get_callable=lambda url: sqs_client.get_queue_attributes(QueueUrl=url),
         )
     except botocore.exceptions.ClientError as e:
         if e.response["Error"]["Code"] in ["InvalidClientTokenId", "ExpiredToken"]:
@@ -231,9 +229,13 @@ def delete_sns_topic(topic_name):
     try:
         topic_arn = f"arn:aws:sns:us-east-1:601427279990:{topic_name}"
         sns_client = _get_aws_session().client("sns", endpoint_url=SNS_URL)
-        get_callable = lambda arn: sns_client.get_topic_attributes(TopicArn=arn)
-        delete_callable = lambda arn: sns_client.delete_topic(TopicArn=arn)
-        delete_aws_resource(delete_callable, topic_arn, "SNS Topic", "NotFound", get_callable=get_callable)
+        delete_aws_resource(
+            delete_callable=lambda arn: sns_client.delete_topic(TopicArn=arn),
+            resource_identifier=topic_arn,
+            resource_type="SNS Topic",
+            error_name="NotFound",
+            get_callable=lambda arn: sns_client.get_topic_attributes(TopicArn=arn),
+        )
     except botocore.exceptions.ClientError as e:
         if e.response["Error"]["Code"] in ["InvalidClientTokenId", "ExpiredToken"]:
             logger.stdout(scenarios.integrations_aws.AWS_BAD_CREDENTIALS_MSG)
@@ -246,8 +248,12 @@ def delete_sns_topic(topic_name):
 def delete_kinesis_stream(stream_name):
     try:
         kinesis_client = _get_aws_session().client("kinesis", endpoint_url=KINESIS_URL)
-        delete_callable = lambda name: kinesis_client.delete_stream(StreamName=name, EnforceConsumerDeletion=True)
-        delete_aws_resource(delete_callable, stream_name, "Kinesis Stream", "ResourceNotFoundException")
+        delete_aws_resource(
+            delete_callable=lambda name: kinesis_client.delete_stream(StreamName=name, EnforceConsumerDeletion=True),
+            resource_identifier=stream_name,
+            resource_type="Kinesis Stream",
+            error_name="ResourceNotFoundException",
+        )
     except botocore.exceptions.ClientError as e:
         if e.response["Error"]["Code"] in ["InvalidClientTokenId", "ExpiredToken"]:
             logger.stdout(scenarios.integrations_aws.AWS_BAD_CREDENTIALS_MSG)

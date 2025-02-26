@@ -26,16 +26,16 @@ class Test_Main:
         """
         self.requests = []
 
-        start_time = datetime.datetime.now()
+        start_time = datetime.datetime.now(tz=datetime.UTC)
 
         for i in range(10):
             for _ in range(5):
                 self.requests.append(weblog.get("/waf/", headers={"User-Agent": "Arachni/v1"}))
 
             end_time = start_time + datetime.timedelta(seconds=i + 1)
-            time.sleep(max(0, (end_time - datetime.datetime.now()).total_seconds()))
+            time.sleep(max(0, (end_time - datetime.datetime.now(tz=datetime.UTC)).total_seconds()))
 
-        logger.debug(f"Sent 50 requests in {(datetime.datetime.now() - start_time).total_seconds()} s")
+        logger.debug(f"Sent 50 requests in {(datetime.datetime.now(tz=datetime.UTC) - start_time).total_seconds()} s")
 
     @bug(
         context.library > "nodejs@3.14.1" and context.library < "nodejs@4.8.0", reason="APMRP-360"

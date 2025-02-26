@@ -186,8 +186,14 @@ elif [ "$TARGET" = "python" ]; then
     assert_version_is_dev
 
     TARGET_BRANCH="${TARGET_BRANCH:-main}"
-    echo "git+https://github.com/DataDog/dd-trace-py.git@$TARGET_BRANCH" > python-load-from-pip
-    echo "Using $(cat python-load-from-pip)"
+    rm -rf dd-trace-py/
+    git clone --depth 1 --branch $TARGET_BRANCH https://github.com/DataDog/dd-trace-py.git
+    # NB this is necessary to keep the checkout out of detached HEAD state, which setuptools_scm requires for
+    # proper version guessing
+    cd dd-trace-py
+    git checkout --detach
+    echo "Checking out the ref"
+    git log -1 --format=%H
 
 elif [ "$TARGET" = "ruby" ]; then
     assert_version_is_dev
@@ -234,11 +240,10 @@ elif [ "$TARGET" = "cpp" ]; then
     echo "Using $(cat cpp-load-from-git)"
 
 elif [ "$TARGET" = "agent" ]; then
-    echo "using dev agent is disabled"
-    # assert_version_is_dev
-    # TARGET_BRANCH="${TARGET_BRANCH:-master-py3}"
-    # echo "datadog/agent-dev:$TARGET_BRANCH" > agent-image
-    # echo "Using $(cat agent-image) image"
+    assert_version_is_dev
+    TARGET_BRANCH="${TARGET_BRANCH:-master-py3}"
+    echo "datadog/agent-dev:$TARGET_BRANCH" > agent-image
+    echo "Using $(cat agent-image) image"
 
 elif [ "$TARGET" = "nodejs" ]; then
     assert_version_is_dev

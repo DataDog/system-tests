@@ -6,6 +6,8 @@
 
 import json
 
+from utils._context.library_version import LibraryVersion
+
 
 class _Context:
     """Context is an helper class that exposes scenario properties
@@ -42,7 +44,7 @@ class _Context:
         return self._get_scenario_property("uds_socket", None)
 
     @property
-    def library(self):
+    def library(self) -> LibraryVersion | None:
         return self._get_scenario_property("library", None)
 
     @property

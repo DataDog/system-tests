@@ -53,14 +53,14 @@ object AppSecRoutes {
           }
         }
       } ~
-      path("tag_value" / Segment / """\d{3}""".r) { (value, code) =>
+      path("tag_value" / Segment / """\d{3}""".r) { (tag_value, status_code) =>
         get {
           parameter("content-language".?) { clo =>
-            setRootSpanTag("appsec.events.system_tests_appsec_event.value", value)
+            setRootSpanTag("appsec.events.system_tests_appsec_event.value", tag_value)
 
             val resp = complete(
               HttpResponse(
-                status = StatusCodes.custom(code.toInt, "some reason"),
+                status = StatusCodes.custom(status_code.toInt, "some reason"),
                 entity = HttpEntity(ContentTypes.`text/plain(UTF-8)`, "Value tagged")
               )
             )
@@ -73,10 +73,10 @@ object AppSecRoutes {
         } ~
           post {
             formFieldMap { _ =>
-              setRootSpanTag("appsec.events.system_tests_appsec_event.value", value)
+              setRootSpanTag("appsec.events.system_tests_appsec_event.value", tag_value)
               complete(
                 HttpResponse(
-                  status = StatusCodes.custom(code.toInt, "some reason"),
+                  status = StatusCodes.custom(status_code.toInt, "some reason"),
                   entity = HttpEntity(ContentTypes.`text/plain(UTF-8)`, "Value tagged")
                 )
               )

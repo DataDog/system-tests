@@ -84,14 +84,14 @@ public class Main {
                         .putHeader("content-length", "42")
                         .putHeader("content-language", "en-US")
                         .end("012345678901234567890123456789012345678901"));
-        router.routeWithRegex("/tag_value/(?<value>[^/]+)/(?<code>[0-9]+)")
+        router.route("/tag_value/:tag_value/:status_code")
                 .handler(BodyHandler.create())
                 .produces("text/plain")
                 .handler(ctx -> {
                     consumeParsedBody(ctx);
-                    setRootSpanTag("appsec.events.system_tests_appsec_event.value", ctx.pathParam("value"));
+                    setRootSpanTag("appsec.events.system_tests_appsec_event.value", ctx.pathParam("tag_value"));
                     ctx.response()
-                            .setStatusCode(Integer.parseInt(ctx.pathParam("code")))
+                            .setStatusCode(Integer.parseInt(ctx.pathParam("status_code")))
                             .end("Value tagged");
                 });
         router.getWithRegex("/params(?:/([^/]*))?(?:/([^/]*))?(?:/([^/]*))?(?:/([^/]*))?(?:/([^/]*))?")

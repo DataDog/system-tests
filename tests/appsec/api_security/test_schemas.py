@@ -15,7 +15,7 @@ from utils import (
 
 def get_schema(request, address):
     """Get api security schema from spans"""
-    for _, _, span in interfaces.library.get_spans(request):
+    for _, span in interfaces.library.get_root_spans(request):
         meta = span.get("meta", {})
         payload = meta.get("_dd.appsec.s." + address)
         if payload is not None:

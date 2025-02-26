@@ -1,10 +1,11 @@
 """Test the crashtracking (RC) feature of the APM libraries."""
 
-import pytest
-import json
 import base64
+import json
+import pytest
 
 from utils import bug, context, features, scenarios
+from utils.tools import logger
 
 
 @scenarios.parametric
@@ -45,15 +46,16 @@ class Test_Crashtracking:
             test_agent.set_trace_delay(0)
 
     def assert_crash_report(self, test_library, event):
+        logger.debug(f"event: {json.dumps(event, indent=2)}")
+
         assert isinstance(event.get("payload"), list), event.get("payload")
         assert event["payload"], event["payload"]
         assert isinstance(event["payload"][0], dict), event["payload"][0]
         assert "tags" in event["payload"][0]
 
         tags = event["payload"][0]["tags"]
-        print("tags: ", tags)
         tags_dict = dict(item.split(":") for item in tags.split(","))
-        print("tags_dict: ", tags_dict)
+        logger.debug(f"tags_dict: {json.dumps(tags_dict, indent=2)}")
 
         # Until the crash tracking RFC is out, there is no standard way to identify crash reports.
         # Most client libraries are using libdatadog so tesing signum tag would work,
@@ -62,5 +64,17 @@ class Test_Crashtracking:
             assert "severity" in tags_dict, tags_dict
             assert tags_dict["severity"] == "crash", tags_dict
         else:
+            # those values are defined in python's module signal. But it's more clear to have this defined here
+            SIGABRT = 6
+            SIGSEGV = 11
+
             # According to the RFC, si_signo should be set to 11 for SIGSEGV
-            assert "signum" in tags_dict or ("si_signo" in tags_dict and tags_dict["si_signo"] == "11"), tags_dict
+            # though, it's difficult for .NET to simulate a segfault, so SIGABRT is used instead
+            expected_signal_value = f"{SIGABRT}" if test_library.lang == "dotnet" else f"{SIGSEGV}"
+
+            if "signum" in tags_dict:
+                assert tags_dict["signum"] == expected_signal_value
+            elif "si_signo" in tags_dict:
+                assert tags_dict["si_signo"] == expected_signal_value
+            else:
+                raise AssertionError("signum/si_signo not found in tags_dict")

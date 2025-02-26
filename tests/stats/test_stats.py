@@ -1,3 +1,4 @@
+import pytest
 from utils import interfaces, weblog, features, scenarios, missing_feature, context, bug
 from utils.tools import logger
 
@@ -44,7 +45,7 @@ class Test_Client_Stats:
                 no_content_hits += s["Hits"]
                 no_content_top_hits += s["TopLevelHits"]
             else:
-                assert False, "Unexpected status code " + str(s["HTTPStatusCode"])
+                pytest.fail("Unexpected status code " + str(s["HTTPStatusCode"]))
             assert s["Service"] == "weblog", "expect weblog as service"
             assert s["Type"] == "web", "expect 'web' type"
         assert (

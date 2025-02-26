@@ -11,7 +11,14 @@ from utils.tools import logger
 # get the default log output
 stdout = interfaces.library_stdout if context.library != "dotnet" else interfaces.library_dotnet_managed
 runtime_metrics = {"nodejs": "runtime.node.mem.heap_total"}
-runtime_metrics_langs = [".NET", "go", "nodejs", "python", "ruby"]
+runtime_metrics_lang_map = {
+    "dotnet": ("lang", ".NET"),
+    "golang": ("lang", "go"),
+    "java": (None, None),
+    "nodejs": (None, None),
+    "python": ("lang", "python"),
+    "ruby": ("language", "ruby"),
+}
 log_injection_fields = {"nodejs": {"message": "msg"}}
 
 
@@ -126,6 +133,7 @@ class Test_Config_ObfuscationQueryStringRegexp_Configured:
         context.library == "java" and context.weblog_variant in ("vertx3", "vertx4"),
         reason="Missing endpoint",
     )
+    @bug(context.library >= "golang@1.72.0", reason="APMAPI-1196")
     def test_query_string_obfuscation_configured_client(self):
         spans = [s for _, _, s in interfaces.library.get_spans(request=self.r, full_trace=True)]
         client_span = _get_span_by_tags(
@@ -156,6 +164,7 @@ class Test_Config_ObfuscationQueryStringRegexp_Default:
         context.library == "java" and context.weblog_variant in ("vertx3", "vertx4"),
         reason="Missing endpoint",
     )
+    @bug(context.library >= "golang@1.72.0", reason="APMAPI-1196")
     def test_query_string_obfuscation_configured_client(self):
         spans = [s for _, _, s in interfaces.library.get_spans(request=self.r, full_trace=True)]
         client_span = _get_span_by_tags(
@@ -216,6 +225,7 @@ class Test_Config_HttpClientErrorStatuses_FeatureFlagCustom:
     def setup_status_code_200(self):
         self.r = weblog.get("/make_distant_call", params={"url": "http://weblog:7777/status?code=200"})
 
+    @bug(context.library >= "golang@1.72.0", reason="APMAPI-1196")
     def test_status_code_200(self):
         assert self.r.status_code == 200
         content = json.loads(self.r.text)
@@ -231,6 +241,7 @@ class Test_Config_HttpClientErrorStatuses_FeatureFlagCustom:
     def setup_status_code_202(self):
         self.r = weblog.get("/make_distant_call", params={"url": "http://weblog:7777/status?code=202"})
 
+    @bug(context.library >= "golang@1.72.0", reason="APMAPI-1196")
     def test_status_code_202(self):
         assert self.r.status_code == 200
         content = json.loads(self.r.text)
@@ -266,6 +277,7 @@ class Test_Config_ClientTagQueryString_Configured:
     def setup_query_string_redaction(self):
         self.r = weblog.get("/make_distant_call", params={"url": "http://weblog:7777/?hi=monkey"})
 
+    @bug(context.library >= "golang@1.72.0", reason="APMAPI-1196")
     def test_query_string_redaction(self):
         trace = [span for _, _, span in interfaces.library.get_spans(self.r, full_trace=True)]
         expected_tags = {"http.url": "http://weblog:7777/"}
@@ -569,16 +581,17 @@ class Test_Config_RuntimeMetrics_Enabled:
     def test_main(self):
         assert self.req.status_code == 200
 
-        runtime_metrics = [
-            metric
-            for _, metric in interfaces.agent.get_metrics()
-            if metric["metric"].startswith("runtime.") or metric["metric"].startswith("jvm.")
-        ]
-        assert len(runtime_metrics) > 0
+        runtime_metrics_gauges, runtime_metrics_sketches = get_runtime_metrics(interfaces.agent)
+
+        assert len(runtime_metrics_gauges) > 0 or len(runtime_metrics_sketches) > 0
+
+        runtime_metrics = runtime_metrics_gauges if len(runtime_metrics_gauges) > 0 else runtime_metrics_sketches
 
         for metric in runtime_metrics:
             tags = {tag.split(":")[0]: tag.split(":")[1] for tag in metric["tags"]}
-            assert tags.get("lang") in runtime_metrics_langs or tags.get("lang") is None
+            language_tag_key, language_tag_value = runtime_metrics_lang_map[context.library.library]
+            if language_tag_key is not None:
+                assert tags.get(language_tag_key) == language_tag_value
 
             # Test that Unified Service Tags are added to the runtime metrics
             assert tags["service"] == "weblog"
@@ -605,12 +618,11 @@ class Test_Config_RuntimeMetrics_Enabled_WithRuntimeId:
     def test_main(self):
         assert self.req.status_code == 200
 
-        runtime_metrics = [
-            metric
-            for _, metric in interfaces.agent.get_metrics()
-            if metric["metric"].startswith("runtime.") or metric["metric"].startswith("jvm.")
-        ]
-        assert len(runtime_metrics) > 0
+        runtime_metrics_gauges, runtime_metrics_sketches = get_runtime_metrics(interfaces.agent)
+
+        assert len(runtime_metrics_gauges) > 0 or len(runtime_metrics_sketches) > 0
+
+        runtime_metrics = runtime_metrics_gauges if len(runtime_metrics_gauges) > 0 else runtime_metrics_sketches
 
         for metric in runtime_metrics:
             tags = {tag.split(":")[0]: tag.split(":")[1] for tag in metric["tags"]}
@@ -624,11 +636,35 @@ class Test_Config_RuntimeMetrics_Default:
     """Verify runtime metrics are disabled by default"""
 
     # test that by default runtime metrics are disabled
-    def test_config_runtimemetrics_default(self):
-        iterations = 0
-        for data in interfaces.library.get_data("/dogstatsd/v2/proxy"):
-            iterations += 1
-        assert iterations == 0, "Runtime metrics are enabled by default"
+    def setup_main(self):
+        self.req = weblog.get("/")
+
+        # Wait for 10s to allow the tracer to send runtime metrics on the default 10s interval
+        time.sleep(10)
+
+    def test_main(self):
+        assert self.req.status_code == 200
+
+        runtime_metrics_gauges, runtime_metrics_sketches = get_runtime_metrics(interfaces.agent)
+
+        assert len(runtime_metrics_gauges) == 0
+        assert len(runtime_metrics_sketches) == 0
+
+
+def get_runtime_metrics(agent):
+    runtime_metrics_gauges = [
+        metric
+        for _, metric in agent.get_metrics()
+        if metric["metric"].startswith("runtime.") or metric["metric"].startswith("jvm.")
+    ]
+
+    runtime_metrics_sketches = [
+        metric
+        for _, metric in agent.get_sketches()
+        if metric["metric"].startswith("runtime.") or metric["metric"].startswith("jvm.")
+    ]
+
+    return runtime_metrics_gauges, runtime_metrics_sketches
 
 
 # Parse the JSON-formatted log message from stdout and return the 'dd' object
@@ -640,3 +676,4 @@ def parse_log_injection_message(log_message):
             continue
         if message.get("dd") and message.get(log_injection_fields[context.library.library]["message"]) == log_message:
             return message.get("dd")
+    return None

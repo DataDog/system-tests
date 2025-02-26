@@ -5,15 +5,15 @@
 import re
 import tests.debugger.utils as debugger
 from utils import features, scenarios, bug, context
-from utils import remote_config as rc
 
 
 @features.debugger
+@features.debugger_symdb
 @scenarios.debugger_symdb
-class Test_Debugger_SymDb(debugger._Base_Debugger_Test):
+class Test_Debugger_SymDb(debugger.Base_Debugger_Test):
     ############ setup ############
     def _setup(self):
-        self.rc_state = rc.send_symdb_command()
+        self.send_rc_symdb()
 
     ############ assert ############
     def _assert(self):

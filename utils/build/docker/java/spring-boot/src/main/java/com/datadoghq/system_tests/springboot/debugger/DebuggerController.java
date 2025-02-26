@@ -131,4 +131,12 @@ public class DebuggerController {
             ". intValue is null: " + (intValue == null) +
             ". strValue is null: " + (strValue == null) + ".";
     }
+
+    @GetMapping("/budgets/{loops}")
+    public String budgets(@PathVariable int loops) {
+        for (int i = 0; i < loops; i++) {
+            int noOp = 0; // Line probe is instrumented here.
+        }
+        return "Budgets";
+    }
 }

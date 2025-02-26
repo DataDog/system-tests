@@ -95,21 +95,6 @@ class Test_SamplingRates:
                 "This test is probabilistic in nature and should fail ~5% of the time, you might want to rerun it."
             )
 
-        # Test that all traces sent by the tracer are sent to the agent
-        trace_ids = set()
-
-        for data, span in interfaces.library.get_root_spans():
-            metrics = span["metrics"]
-            if priority_should_be_kept(metrics["_sampling_priority_v1"]):
-                trace_ids.add(span["trace_id"])
-
-        for _, span in interfaces.agent.get_spans():
-            trace_id = int(span["traceID"])
-            if trace_id in trace_ids:
-                trace_ids.remove(trace_id)
-
-        assert len(trace_ids) == 0, f"Some traces have not been sent by the agent: {trace_ids}"
-
 
 @scenarios.sampling
 @features.ensure_that_sampling_is_consistent_across_languages

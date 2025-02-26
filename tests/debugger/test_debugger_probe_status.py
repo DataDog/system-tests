@@ -9,7 +9,7 @@ from utils import scenarios, features, bug, missing_feature, context
 
 @features.debugger
 @scenarios.debugger_probes_status
-class Test_Debugger_Probe_Statuses(debugger._Base_Debugger_Test):
+class Test_Debugger_Probe_Statuses(debugger.Base_Debugger_Test):
     expected_diagnostics = {}
 
     ############ setup ############

@@ -238,6 +238,7 @@ def _retrieve_span_links(span):
                 link["flags"] = 0
             links.append(link)
         return links
+    return None
 
 
 # The Datadog specific tracecontext flags to mark flags are set

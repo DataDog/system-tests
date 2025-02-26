@@ -16,3 +16,4 @@ print(f"Message types present in protobuf descriptors: {_messages.keys()}")  # n
 
 TracePayload = _messages["datadog.trace.AgentPayload"]
 MetricPayload = _messages["datadog.agentpayload.MetricPayload"]
+SketchPayload = _messages["datadog.agentpayload.SketchPayload"]

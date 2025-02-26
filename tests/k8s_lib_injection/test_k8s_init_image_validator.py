@@ -12,7 +12,7 @@ class _BaseTestK8sInitImageValidator:
     @retry(delay=1, tries=10)
     def _get_dev_agent_traces(self):
         logger.info("[Check traces] Checking traces:")
-        response = requests.get("http://localhost:8126/test/traces")
+        response = requests.get("http://localhost:8126/test/traces", timeout=60)
         traces_json = response.json()
         assert traces_json is not None, "No traces found"
         assert len(traces_json) > 0, "No traces found"
@@ -21,7 +21,7 @@ class _BaseTestK8sInitImageValidator:
     @retry(delay=5, tries=20)
     def _check_weblog_running(self):
         logger.info("[Check traces] Checking traces:")
-        response = requests.get("http://localhost:8080")
+        response = requests.get("http://localhost:8080", timeout=60)
         assert response.status_code == 200, "Weblog not running"
         logger.info("Weblog is running")
 

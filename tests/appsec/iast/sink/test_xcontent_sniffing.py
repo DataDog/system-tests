@@ -50,4 +50,4 @@ class Test_XContentSniffing_ExtendedLocation:
         self.r = weblog.get("/iast/xcontent-missing-header/test_insecure")
 
     def test_extended_location_data(self):
-        validate_extended_location_data(self.r, self.vulnerability_type, False)
+        validate_extended_location_data(self.r, self.vulnerability_type, is_expected_location_required=False)

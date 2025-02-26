@@ -14,6 +14,7 @@ def _expected_location():
             return "com.datadoghq.vertx3.iast.routes.IastSinkRouteProvider"
         if context.weblog_variant == "vertx4":
             return "com.datadoghq.vertx4.iast.routes.IastSinkRouteProvider"
+    return None
 
 
 @features.iast_sink_unvalidatedforward

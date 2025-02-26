@@ -90,8 +90,8 @@ public class MyResource {
     }
 
     @GET
-    @Path("/tag_value/{value}/{code}")
-    public Response tagValue(@PathParam("value") String value, @PathParam("code") int code) {
+    @Path("/tag_value/{tag_value}/{status_code}")
+    public Response tagValue(@PathParam("tag_value") String value, @PathParam("status_code") int code) {
         setRootSpanTag("appsec.events.system_tests_appsec_event.value", value);
         return Response.status(code)
                 .header("content-type", "text/plain")
@@ -99,15 +99,15 @@ public class MyResource {
     }
 
     @OPTIONS
-    @Path("/tag_value/{value}/{code}")
-    public Response tagValueOptions(@PathParam("value") String value, @PathParam("code") int code) {
+    @Path("/tag_value/{tag_value}/{status_code}")
+    public Response tagValueOptions(@PathParam("tag_value") String value, @PathParam("status_code") int code) {
         return tagValue(value, code);
     }
 
     @POST
-    @Path("/tag_value/{value}/{code}")
+    @Path("/tag_value/{tag_value}/{status_code}")
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-    public Response tagValuePost(@PathParam("value") String value, @PathParam("code") int code, MultivaluedMap<String, String> form) {
+    public Response tagValuePost(@PathParam("tag_value") String value, @PathParam("status_code") int code, MultivaluedMap<String, String> form) {
         return tagValue(value, code);
     }
 

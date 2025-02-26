@@ -26,7 +26,7 @@ class TestDemoAws:
     def test_run_simple_command(self):
         """Simple demo test to run a command on the virtual machine"""
         virtual_machine = context.scenario.virtual_machine
-        ssh_client = virtual_machine.ssh_config.get_ssh_connection()
+        ssh_client = virtual_machine.get_ssh_connection()
         check_folder_command = "ls -la /"
         _, stdout, stderr = ssh_client.exec_command(check_folder_command)
 

@@ -340,6 +340,9 @@ app.get('/trace/config', (req, res) => {
       'dd_trace_rate_limit': config?.sampler?.rateLimit !== undefined ? `${config?.sampler?.rateLimit}` : 'null',
       'dd_dogstatsd_host': config?.dogstatsd?.hostname !== undefined ? `${config.dogstatsd.hostname}` : 'null',
       'dd_dogstatsd_port': config?.dogstatsd?.port !== undefined ? `${config.dogstatsd.port}` : 'null',
+      'dd_profiling_enabled': config?.profiling?.enabled !== undefined ? `${config.profiling.enabled}` : 'false',
+      'dd_data_streams_enabled': config?.dsmEnabled !== undefined ? `${config.dsmEnabled}` : 'null',
+      'dd_logs_injection': config?.logInjection !== undefined ? `${config.logInjection}` : 'null',
     }
   });
 });

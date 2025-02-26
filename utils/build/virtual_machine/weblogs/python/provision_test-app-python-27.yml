@@ -1,6 +1,5 @@
 lang_variant:
     name: Python_2.7.18
-    excluded_os_branches: [amazon_linux2, rhel_7_amd64, redhat]
     version: 2.7.18
     cache: true
     install:
@@ -26,7 +25,6 @@ lang_variant:
 
 weblog:
     name: test-app-python-27
-    excluded_os_branches: [amazon_linux2, rhel_7_amd64, redhat, ubuntu23]
     install:
       - os_type: linux
 

@@ -20,7 +20,7 @@ class Test_Profile:
     _is_set_up = False  # used to do the setup only once
 
     @staticmethod
-    def _common_setup():
+    def _common_setup() -> None:
         if Test_Profile._is_set_up:
             return
 
@@ -44,7 +44,7 @@ class Test_Profile:
         interfaces.agent.validate_profiling(self._validate_data)
 
     @staticmethod
-    def _validate_data(data):
+    def _validate_data(data) -> bool:
         content = data["request"]["content"]
 
         for part in content:

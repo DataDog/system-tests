@@ -87,6 +87,8 @@ class Test_UrlField:
                     logger.info(f"span found: {span}")
                     return "agent:8127" in span["meta"]["http.url"]
 
+            return None
+
         # check that the distant call is reported
         interfaces.library.validate_traces(self.r, validate_report)
 

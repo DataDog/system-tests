@@ -46,7 +46,7 @@ class RemoteConfigurationFieldsBasicTests:
     """Misc tests on fields and values on remote configuration requests"""
 
     @staticmethod
-    def response_has_been_overwritten(data):
+    def response_has_been_overwritten(data) -> bool:
         # For legacy API send_sequential_commands
         for name, _ in data["response"]["headers"]:
             if name == "st-proxy-overwrite-rc-response":
@@ -257,6 +257,8 @@ class Test_RemoteConfigurationExtraServices:
                         return True
 
                 return False
+
+            return None
 
         interfaces.library.wait_for(remote_config_asm_extra_services_available, timeout=30)
 

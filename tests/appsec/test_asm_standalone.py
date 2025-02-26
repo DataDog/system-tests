@@ -28,14 +28,14 @@ class AsmStandalone_UpstreamPropagation_Base(ABC):
     #
 
     # Enpoint that triggers an ASM event and a downstream request
-    requestdownstreamUrl = "/requestdownstream"
+    request_downstream_url = "/requestdownstream"
 
     # Tested product
     tested_product = None
 
     # Return a boolean indicating if the test passed
     @staticmethod
-    def _assert_tags(first_trace, span, obj, expected_tags):
+    def _assert_tags(first_trace, span, obj, expected_tags) -> None:
         def _assert_tags_value(span, obj, expected_tags):
             struct = span if obj is None else span[obj]
             for tag, value in expected_tags.items():
@@ -61,7 +61,7 @@ class AsmStandalone_UpstreamPropagation_Base(ABC):
             return False
 
     @staticmethod
-    def assert_product_is_enabled(request, product):
+    def assert_product_is_enabled(request, product) -> None:
         product_enabled = False
         tags = "_dd.iast.json" if product == "iast" else "_dd.appsec.json"
         meta_struct_key = "iast" if product == "iast" else "appsec"
@@ -95,7 +95,7 @@ class AsmStandalone_UpstreamPropagation_Base(ABC):
             headers = {
                 "User-Agent": "Arachni/v1",  # attack if APPSEC enabled
             }
-        self.check_r = weblog.get(self.requestdownstreamUrl, headers=headers)
+        self.check_r = weblog.get(self.request_downstream_url, headers=headers)
 
     def setup_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_minus_1(self):
         self.setup_product_is_enabled()
@@ -277,7 +277,7 @@ class AsmStandalone_UpstreamPropagation_Base(ABC):
         trace_id = 1212121212121212121
         parent_id = 34343434
         self.r = weblog.get(
-            self.requestdownstreamUrl,
+            self.request_downstream_url,
             headers={
                 "x-datadog-trace-id": str(trace_id),
                 "x-datadog-parent-id": str(parent_id),
@@ -320,7 +320,7 @@ class AsmStandalone_UpstreamPropagation_Base(ABC):
         trace_id = 1212121212121212121
         parent_id = 34343434
         self.r = weblog.get(
-            self.requestdownstreamUrl,
+            self.request_downstream_url,
             headers={
                 "x-datadog-trace-id": str(trace_id),
                 "x-datadog-parent-id": str(parent_id),
@@ -492,7 +492,7 @@ class AsmStandalone_UpstreamPropagation_Base(ABC):
         trace_id = 1212121212121212121
         parent_id = 34343434
         self.r = weblog.get(
-            self.requestdownstreamUrl,
+            self.request_downstream_url,
             headers={
                 "x-datadog-trace-id": str(trace_id),
                 "x-datadog-parent-id": str(parent_id),
@@ -533,7 +533,7 @@ class AsmStandalone_UpstreamPropagation_Base(ABC):
         trace_id = 1212121212121212121
         parent_id = 34343434
         self.r = weblog.get(
-            self.requestdownstreamUrl,
+            self.request_downstream_url,
             headers={
                 "x-datadog-trace-id": str(trace_id),
                 "x-datadog-parent-id": str(parent_id),
@@ -574,7 +574,7 @@ class AsmStandalone_UpstreamPropagation_Base(ABC):
         trace_id = 1212121212121212121
         parent_id = 34343434
         self.r = weblog.get(
-            self.requestdownstreamUrl,
+            self.request_downstream_url,
             headers={
                 "x-datadog-trace-id": str(trace_id),
                 "x-datadog-parent-id": str(parent_id),
@@ -615,7 +615,7 @@ class AsmStandalone_UpstreamPropagation_Base(ABC):
 class AppSecStandalone_UpstreamPropagation_Base(AsmStandalone_UpstreamPropagation_Base):
     """APPSEC correctly propagates AppSec events in distributing tracing."""
 
-    requestdownstreamUrl = "/requestdownstream"
+    request_downstream_url = "/requestdownstream"
 
     tested_product = "appsec"
 
@@ -653,7 +653,7 @@ class AppSecStandalone_UpstreamPropagation_Base(AsmStandalone_UpstreamPropagatio
 class IastStandalone_UpstreamPropagation_Base(AsmStandalone_UpstreamPropagation_Base):
     """IAST correctly propagates AppSec events in distributing tracing."""
 
-    requestdownstreamUrl = "/vulnerablerequestdownstream"
+    request_downstream_url = "/vulnerablerequestdownstream"
 
     tested_product = "iast"
 

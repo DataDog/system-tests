@@ -125,14 +125,108 @@ def get_sampled_trace(test_library, test_agent, service, name, tags=None):
 
 ENV_SAMPLING_RULE_RATE = 0.55
 
+DEFAULT_SUPPORTED_CAPABILITIES_BY_LANG: dict[str, set[Capabilities]] = {
+    "java": {
+        Capabilities.ASM_ACTIVATION,
+        Capabilities.ASM_IP_BLOCKING,
+        Capabilities.ASM_DD_RULES,
+        Capabilities.ASM_EXCLUSIONS,
+        Capabilities.ASM_REQUEST_BLOCKING,
+        Capabilities.ASM_USER_BLOCKING,
+        Capabilities.ASM_CUSTOM_RULES,
+        Capabilities.ASM_CUSTOM_BLOCKING_RESPONSE,
+        Capabilities.ASM_TRUSTED_IPS,
+        Capabilities.ASM_API_SECURITY_SAMPLE_RATE,
+        Capabilities.APM_TRACING_SAMPLE_RATE,
+        Capabilities.APM_TRACING_LOGS_INJECTION,
+        Capabilities.APM_TRACING_HTTP_HEADER_TAGS,
+        Capabilities.APM_TRACING_CUSTOM_TAGS,
+        Capabilities.ASM_EXCLUSION_DATA,
+        Capabilities.APM_TRACING_ENABLED,
+        Capabilities.APM_TRACING_DATA_STREAMS_ENABLED,
+        Capabilities.ASM_RASP_SQLI,
+        Capabilities.ASM_RASP_LFI,
+        Capabilities.ASM_RASP_SSRF,
+        Capabilities.ASM_RASP_SHI,
+        Capabilities.APM_TRACING_SAMPLE_RULES,
+        Capabilities.ASM_AUTO_USER_INSTRUM_MODE,
+        Capabilities.ASM_ENDPOINT_FINGERPRINT,
+        Capabilities.ASM_SESSION_FINGERPRINT,
+        Capabilities.ASM_NETWORK_FINGERPRINT,
+        Capabilities.ASM_HEADER_FINGERPRINT,
+        Capabilities.ASM_RASP_CMDI,
+    },
+    "nodejs": {
+        Capabilities.ASM_ACTIVATION,
+        Capabilities.APM_TRACING_SAMPLE_RATE,
+        Capabilities.APM_TRACING_LOGS_INJECTION,
+        Capabilities.APM_TRACING_HTTP_HEADER_TAGS,
+        Capabilities.APM_TRACING_CUSTOM_TAGS,
+        Capabilities.APM_TRACING_ENABLED,
+        Capabilities.APM_TRACING_SAMPLE_RULES,
+        Capabilities.ASM_AUTO_USER_INSTRUM_MODE,
+    },
+    "python": {Capabilities.APM_TRACING_ENABLED},
+    "dotnet": {
+        Capabilities.ASM_ACTIVATION,
+        Capabilities.ASM_IP_BLOCKING,
+        Capabilities.ASM_DD_RULES,
+        Capabilities.ASM_EXCLUSIONS,
+        Capabilities.ASM_REQUEST_BLOCKING,
+        Capabilities.ASM_ASM_RESPONSE_BLOCKING,
+        Capabilities.ASM_USER_BLOCKING,
+        Capabilities.ASM_CUSTOM_RULES,
+        Capabilities.ASM_CUSTOM_BLOCKING_RESPONSE,
+        Capabilities.ASM_TRUSTED_IPS,
+        Capabilities.APM_TRACING_SAMPLE_RATE,
+        Capabilities.APM_TRACING_LOGS_INJECTION,
+        Capabilities.APM_TRACING_HTTP_HEADER_TAGS,
+        Capabilities.APM_TRACING_CUSTOM_TAGS,
+        Capabilities.APM_TRACING_ENABLED,
+        Capabilities.APM_TRACING_SAMPLE_RULES,
+        Capabilities.ASM_AUTO_USER_INSTRUM_MODE,
+    },
+    "cpp": {
+        Capabilities.APM_TRACING_SAMPLE_RATE,
+        Capabilities.APM_TRACING_SAMPLE_RULES,
+        Capabilities.APM_TRACING_CUSTOM_TAGS,
+        Capabilities.APM_TRACING_ENABLED,
+    },
+    "php": {Capabilities.APM_TRACING_ENABLED},
+    "golang": {
+        Capabilities.ASM_ACTIVATION,
+        Capabilities.APM_TRACING_SAMPLE_RATE,
+        Capabilities.APM_TRACING_HTTP_HEADER_TAGS,
+        Capabilities.APM_TRACING_CUSTOM_TAGS,
+        Capabilities.APM_TRACING_ENABLED,
+        Capabilities.APM_TRACING_SAMPLE_RULES,
+    },
+    "ruby": {Capabilities.APM_TRACING_ENABLED},
+}
+
 
 @scenarios.parametric
 @features.dynamic_configuration
 class TestDynamicConfigTracingEnabled:
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    def test_default_capability_completeness(self, library_env, test_agent, test_library):
+        """Ensure the RC request contains the expected default capabilities per language, no more and no less."""
+        if context.library is not None and context.library.library is not None:
+            seen_capabilities = test_agent.wait_for_rc_capabilities()
+            expected_capabilities = DEFAULT_SUPPORTED_CAPABILITIES_BY_LANG[context.library.library]
+
+            seen_but_not_expected_capabilities = seen_capabilities.difference(expected_capabilities)
+            expected_but_not_seen_capabilities = expected_capabilities.difference(seen_capabilities)
+
+            if seen_but_not_expected_capabilities or expected_but_not_seen_capabilities:
+                raise AssertionError(
+                    f"seen_but_not_expected_capabilities={seen_but_not_expected_capabilities}; expected_but_not_seen_capabilities={expected_but_not_seen_capabilities}"
+                )
+
+    @parametrize("library_env", [{**DEFAULT_ENVVARS}])
     def test_capability_tracing_enabled(self, library_env, test_agent, test_library):
         """Ensure the RC request contains the tracing enabled capability."""
-        test_agent.wait_for_rc_capabilities([Capabilities.APM_TRACING_ENABLED])
+        test_agent.assert_rc_capabilities({Capabilities.APM_TRACING_ENABLED})
 
     @parametrize("library_env", [{**DEFAULT_ENVVARS}, {**DEFAULT_ENVVARS, "DD_TRACE_ENABLED": "false"}])
     def test_tracing_client_tracing_enabled(self, library_env, test_agent, test_library):
@@ -501,24 +595,24 @@ class TestDynamicConfigV2:
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
     def test_capability_tracing_sample_rate(self, library_env, test_agent, test_library):
         """Ensure the RC request contains the trace sampling rate capability."""
-        test_agent.wait_for_rc_capabilities([Capabilities.APM_TRACING_SAMPLE_RATE])
+        test_agent.assert_rc_capabilities({Capabilities.APM_TRACING_SAMPLE_RATE})
 
     @irrelevant(context.library in ("cpp", "golang"), reason="Tracer doesn't support automatic logs injection")
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
     def test_capability_tracing_logs_injection(self, library_env, test_agent, test_library):
         """Ensure the RC request contains the logs injection capability."""
-        test_agent.wait_for_rc_capabilities([Capabilities.APM_TRACING_LOGS_INJECTION])
+        test_agent.assert_rc_capabilities({Capabilities.APM_TRACING_LOGS_INJECTION})
 
     @irrelevant(library="cpp", reason="The CPP tracer doesn't support automatic logs injection")
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
     def test_capability_tracing_http_header_tags(self, library_env, test_agent, test_library):
         """Ensure the RC request contains the http header tags capability."""
-        test_agent.wait_for_rc_capabilities([Capabilities.APM_TRACING_HTTP_HEADER_TAGS])
+        test_agent.assert_rc_capabilities({Capabilities.APM_TRACING_HTTP_HEADER_TAGS})
 
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
     def test_capability_tracing_custom_tags(self, library_env, test_agent, test_library):
         """Ensure the RC request contains the custom tags capability."""
-        test_agent.wait_for_rc_capabilities([Capabilities.APM_TRACING_CUSTOM_TAGS])
+        test_agent.assert_rc_capabilities({Capabilities.APM_TRACING_CUSTOM_TAGS})
 
 
 @scenarios.parametric
@@ -528,7 +622,7 @@ class TestDynamicConfigSamplingRules:
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
     def test_capability_tracing_sample_rules(self, library_env, test_agent, test_library):
         """Ensure the RC request contains the trace sampling rules capability."""
-        test_agent.wait_for_rc_capabilities([Capabilities.APM_TRACING_SAMPLE_RULES])
+        test_agent.assert_rc_capabilities({Capabilities.APM_TRACING_SAMPLE_RULES})
 
     @parametrize(
         "library_env",
