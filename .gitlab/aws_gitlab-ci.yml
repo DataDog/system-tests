@@ -14,7 +14,6 @@ ssi_tests:
     - echo "NO AWS TESTS TO RUN"
 
 .base_docker_ssi_job: 
-    #image: registry.ddbuild.io/ci/libdatadog-build/system-tests:48436362
     image: registry.ddbuild.io/ci/libdatadog-build/system-tests:56995861
     needs: []
     allow_failure: false
@@ -80,14 +79,14 @@ ssi_tests:
             - reports/
 
 .k8s_lib_injection_base:
-  image: registry.ddbuild.io/ci/libdatadog-build/system-tests:48436362
+  image: registry.ddbuild.io/ci/libdatadog-build/system-tests:56995861
   tags: [ "runner:docker" ]
   needs: []
   stage: K8S_LIB_INJECTION
   allow_failure: false
   before_script: |
-    export DD_API_KEY=$(aws ssm get-parameter --region us-east-1 --name ci.${CI_PROJECT_NAME}.dd-api-key-onboarding --with-decryption --query "Parameter.Value" --out text)
-    export DD_APP_KEY=$(aws ssm get-parameter --region us-east-1 --name ci.${CI_PROJECT_NAME}.dd-app-key-onboarding --with-decryption --query "Parameter.Value" --out text)
+    export DD_API_KEY_ONBOARDING=$(aws ssm get-parameter --region us-east-1 --name ci.${CI_PROJECT_NAME}.dd-api-key-onboarding --with-decryption --query "Parameter.Value" --out text)
+    export DD_APP_KEY_ONBOARDING=$(aws ssm get-parameter --region us-east-1 --name ci.${CI_PROJECT_NAME}.dd-app-key-onboarding --with-decryption --query "Parameter.Value" --out text)
   script:
     - ./build.sh -i runner # rebuild runner in case there were changes
     - source venv/bin/activate

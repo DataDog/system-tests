@@ -109,10 +109,10 @@ def print_gitlab_pipeline(language, matrix_data, ci_environment) -> None:
         # Copy the base job for the docker ssi system tests
         result_pipeline[".base_docker_ssi_job"] = pipeline_data[".base_docker_ssi_job"]
         print_docker_ssi_gitlab_pipeline(language, matrix_data["dockerssi_scenario_defs"], ci_environment, result_pipeline)
-    #if matrix_data["libinjection_scenario_defs"]:
-    #    # Copy the base job for the k8s lib injection system tests
-    #    result_pipeline[".k8s_lib_injection_base"] = pipeline_data[".k8s_lib_injection_base"]
-    #    print_k8s_gitlab_pipeline(language, matrix_data["libinjection_scenario_defs"], ci_environment, result_pipeline)
+    if matrix_data["libinjection_scenario_defs"]:
+        # Copy the base job for the k8s lib injection system tests
+        result_pipeline[".k8s_lib_injection_base"] = pipeline_data[".k8s_lib_injection_base"]
+        print_k8s_gitlab_pipeline(language, matrix_data["libinjection_scenario_defs"], ci_environment, result_pipeline)
 
 
     pipeline_yml = yaml.dump(result_pipeline, sort_keys=False, default_flow_style=False)
@@ -144,7 +144,7 @@ def print_k8s_gitlab_pipeline(language, k8s_matrix, ci_environment, result_pipel
         k8s_lib_init_img,k8s_injector_img = _get_k8s_injector_image_refs(language, ci_environment, cluster_agent_versions_scenario )
         result_pipeline[job]["variables"]["K8S_LIB_INIT_IMG"] = k8s_lib_init_img
         #In the no admission controller scenarios we don't use the injector
-        result_pipeline[job]["variables"]["K8S_INJECTOR_IMG"] = k8s_injector_img if k8s_injector_img else ''
+        result_pipeline[job]["variables"]["K8S_INJECTOR_IMG"] = k8s_injector_img if k8s_injector_img else ' '
        
 
 def print_docker_ssi_gitlab_pipeline(language, docker_ssi_matrix, ci_environment, result_pipeline) -> None:
