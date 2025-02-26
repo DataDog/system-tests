@@ -3,6 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 from utils import weblog, interfaces, features, scenarios
+from tests.appsec.utils import find_series
 
 HEADERS = {
     "Accept": "text/html",
@@ -29,23 +30,6 @@ USER_ID_SAFE = "user_id_safe"
 USER_ID_IN_RULE = "user_id_unsafe"
 LOGIN_SAFE = "login_safe"
 LOGIN_IN_RULE = "login_unsafe"
-
-
-def find_series(namespace, metric):
-    series = []
-    request_type = "generate-metrics"
-    for data in interfaces.library.get_telemetry_data():
-        content = data["request"]["content"]
-        if content.get("request_type") != request_type:
-            continue
-        fallback_namespace = content["payload"].get("namespace")
-        for serie in content["payload"]["series"]:
-            computed_namespace = serie.get("namespace", fallback_namespace)
-            # Inject here the computed namespace considering the fallback. This simplifies later assertions.
-            serie["_computed_namespace"] = computed_namespace
-            if computed_namespace == namespace and serie["metric"] == metric:
-                series.append(serie)
-    return series
 
 
 def validate_metric_type_and_version(event_type, version, metric):
@@ -98,7 +82,7 @@ class Test_UserLoginSuccessEventV2:
 
         interfaces.library.validate_spans(self.r, self.get_user_login_success_tags_validator(LOGIN_SAFE, USER_ID_SAFE))
 
-        series = find_series("appsec", "sdk.event")
+        series = find_series("appsec", metric="sdk.event", is_metrics=True)
 
         assert series
         assert any(validate_metric_type_and_version("login_success", "v2", s) for s in series), [
@@ -123,7 +107,7 @@ class Test_UserLoginSuccessEventV2:
 
         interfaces.library.assert_waf_attack(self.r, rule="001_trigger_on_usr_login")
 
-        series = find_series("appsec", "sdk.event")
+        series = find_series("appsec", metric="sdk.event", is_metrics=True)
 
         assert series
         assert any(validate_metric_type_and_version("login_success", "v2", s) for s in series), [
@@ -148,7 +132,7 @@ class Test_UserLoginSuccessEventV2:
 
         interfaces.library.assert_waf_attack(self.r, rule="002_trigger_on_usr_id")
 
-        series = find_series("appsec", "sdk.event")
+        series = find_series("appsec", metric="sdk.event", is_metrics=True)
 
         assert series
         assert any(validate_metric_type_and_version("login_success", "v2", s) for s in series), [
@@ -215,7 +199,7 @@ class Test_UserLoginFailureEventV2:
 
         interfaces.library.validate_spans(self.r, self.get_user_login_failure_tags_validator(LOGIN_SAFE, exists=True))
 
-        series = find_series("appsec", "sdk.event")
+        series = find_series("appsec", metric="sdk.event", is_metrics=True)
 
         assert series
         assert any(validate_metric_type_and_version("login_failure", "v2", s) for s in series), [
@@ -236,7 +220,7 @@ class Test_UserLoginFailureEventV2:
 
         interfaces.library.validate_spans(self.r, self.get_user_login_failure_tags_validator(LOGIN_SAFE, exists=False))
 
-        series = find_series("appsec", "sdk.event")
+        series = find_series("appsec", metric="sdk.event", is_metrics=True)
 
         assert series
         assert any(validate_metric_type_and_version("login_failure", "v2", s) for s in series), [
@@ -261,7 +245,7 @@ class Test_UserLoginFailureEventV2:
 
         interfaces.library.assert_waf_attack(self.r, rule="001_trigger_on_usr_login")
 
-        series = find_series("appsec", "sdk.event")
+        series = find_series("appsec", metric="sdk.event", is_metrics=True)
 
         assert series
         assert any(validate_metric_type_and_version("login_failure", "v2", s) for s in series), [
