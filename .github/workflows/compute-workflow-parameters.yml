@@ -100,7 +100,8 @@ jobs:
           -g "${{ inputs.scenarios_groups }}" \
           -t ${{ inputs.desired_execution_time }} \
           --parametric-job-count ${{ inputs.parametric_job_count }} \
-          --ci-environment "${{ inputs._ci_environment }}" >> $GITHUB_OUTPUT
+          --ci-environment "${{ inputs._ci_environment }}" \
+          --output $GITHUB_OUTPUT
     - name: log
       run: |
         source venv/bin/activate

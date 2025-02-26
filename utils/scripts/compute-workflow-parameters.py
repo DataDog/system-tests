@@ -70,31 +70,41 @@ class CiData:
 
         self.data["endtoend"] = {"weblogs": sorted(legacy_weblogs), "scenarios": sorted(legacy_scenarios)}
 
-    def export(self, export_format: str) -> None:
+    def export(self, export_format: str, output: str) -> None:
         if export_format == "json":
-            self._export_json()
+            self._export(json.dumps(self.data), output)
 
         elif export_format == "github":
-            self._export_github()
+            self._export_github(output)
 
         elif export_format == "gitlab":
+            if output != "":
+                raise ValueError("Gitlab format does not support output file")
             self._export_gitlab()
         else:
             raise ValueError(f"Invalid format: {export_format}")
 
-    def _export_github(self) -> None:
+    def _export_github(self, output: str) -> None:
+        result = []
         for workflow_name, workflow in self.data.items():
             for parameter, value in workflow.items():
-                print(f"{workflow_name}_{parameter}={json.dumps(value)}")
+                result.append(f"{workflow_name}_{parameter}={json.dumps(value)}")
 
         # github action is not able to handle aws_ssi, so nothing to do
+
+        self._export("\n".join(result), output)
 
     def _export_gitlab(self) -> None:
         # gitlab can only handle aws_ssi right now
         print_aws_gitlab_pipeline(self.language, self.data["aws_ssi_scenario_defs"], self.environment)
 
-    def _export_json(self) -> None:
-        print(json.dumps(self.data))
+    @staticmethod
+    def _export(data: str, output: str) -> None:
+        if output:
+            with open(output, "w") as f:
+                f.write(data)
+        else:
+            print(data)
 
     @staticmethod
     def _get_workflow_map(scenarios, scenarios_groups) -> dict:
@@ -180,6 +190,14 @@ if __name__ == "__main__":
         help="Expected execution time of the workflow",
         default=-1,
     )
+    # how long the workflow is expected to run
+    parser.add_argument(
+        "--output",
+        "-o",
+        type=str,
+        help="file (or folder) where to write the output",
+        default="",
+    )
 
     # workflow specific parameters
     parser.add_argument("--parametric-job-count", type=int, help="How may jobs must run parametric scenario", default=1)
@@ -196,4 +214,4 @@ if __name__ == "__main__":
         ci_environment=args.ci_environment,
         parametric_job_count=args.parametric_job_count,
         desired_execution_time=args.desired_execution_time,
-    ).export(args.format)
+    ).export(export_format=args.format, output=args.output)
