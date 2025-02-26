@@ -415,7 +415,7 @@ proto_message.Message.Person defaultValue);
           java.lang.Integer, proto_message.Message.Person> defaultEntry =
               com.google.protobuf.MapEntry
               .<java.lang.Integer, proto_message.Message.Person>newDefaultInstance(
-                  proto_message.Message.internal_static_proto_message_AddressBook_PeopleEntry_descriptor, 
+                  proto_message.Message.internal_static_proto_message_AddressBook_PeopleEntry_descriptor,
                   com.google.protobuf.WireFormat.FieldType.INT32,
                   0,
                   com.google.protobuf.WireFormat.FieldType.MESSAGE,
@@ -446,7 +446,7 @@ proto_message.Message.Person defaultValue);
     @java.lang.Override
     public boolean containsPeople(
         int key) {
-      
+
       return internalGetPeople().getMap().containsKey(key);
     }
     /**
@@ -481,7 +481,7 @@ proto_message.Message.Person defaultValue);
     public proto_message.Message.Person getPeopleOrDefault(
         int key,
         proto_message.Message.Person defaultValue) {
-      
+
       java.util.Map<java.lang.Integer, proto_message.Message.Person> map =
           internalGetPeople().getMap();
       return map.containsKey(key) ? map.get(key) : defaultValue;
@@ -497,7 +497,7 @@ proto_message.Message.Person defaultValue);
 
     public proto_message.Message.Person getPeopleOrThrow(
         int key) {
-      
+
       java.util.Map<java.lang.Integer, proto_message.Message.Person> map =
           internalGetPeople().getMap();
       if (!map.containsKey(key)) {
@@ -649,7 +649,7 @@ proto_message.Message.Person defaultValue);
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         myString_ = s;
@@ -665,7 +665,7 @@ proto_message.Message.Person defaultValue);
         getMyStringBytes() {
       java.lang.Object ref = myString_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         myString_ = b;
@@ -1582,7 +1582,7 @@ proto_message.Message.Person defaultValue);
       @java.lang.Override
       public boolean containsPeople(
           int key) {
-        
+
         return internalGetPeople().getMap().containsKey(key);
       }
       /**
@@ -1617,7 +1617,7 @@ proto_message.Message.Person defaultValue);
       public proto_message.Message.Person getPeopleOrDefault(
           int key,
           proto_message.Message.Person defaultValue) {
-        
+
         java.util.Map<java.lang.Integer, proto_message.Message.Person> map =
             internalGetPeople().getMap();
         return map.containsKey(key) ? map.get(key) : defaultValue;
@@ -1633,7 +1633,7 @@ proto_message.Message.Person defaultValue);
 
       public proto_message.Message.Person getPeopleOrThrow(
           int key) {
-        
+
         java.util.Map<java.lang.Integer, proto_message.Message.Person> map =
             internalGetPeople().getMap();
         if (!map.containsKey(key)) {
@@ -1657,7 +1657,7 @@ proto_message.Message.Person defaultValue);
 
       public Builder removePeople(
           int key) {
-        
+
         internalGetMutablePeople().getMutableMap()
             .remove(key);
         return this;
@@ -1680,7 +1680,7 @@ proto_message.Message.Person defaultValue);
       public Builder putPeople(
           int key,
           proto_message.Message.Person value) {
-        
+
         if (value == null) {
   throw new NullPointerException("map value");
 }
@@ -1819,7 +1819,7 @@ proto_message.Message.Person defaultValue);
        * <code>.proto_message.PhoneNumber central = 2;</code>
        */
       public proto_message.Message.PhoneNumber.Builder getCentralBuilder() {
-        
+
         onChanged();
         return getCentralFieldBuilder().getBuilder();
       }
@@ -1846,7 +1846,7 @@ proto_message.Message.Person defaultValue);
        * <code>.proto_message.PhoneNumber central = 2;</code>
        */
       private com.google.protobuf.SingleFieldBuilderV3<
-          proto_message.Message.PhoneNumber, proto_message.Message.PhoneNumber.Builder, proto_message.Message.PhoneNumberOrBuilder> 
+          proto_message.Message.PhoneNumber, proto_message.Message.PhoneNumber.Builder, proto_message.Message.PhoneNumberOrBuilder>
           getCentralFieldBuilder() {
         if (centralBuilder_ == null) {
           centralBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
@@ -1884,7 +1884,7 @@ proto_message.Message.Person defaultValue);
        * @return This builder for chaining.
        */
       public Builder setMyDouble(double value) {
-        
+
         myDouble_ = value;
         onChanged();
         return this;
@@ -1899,7 +1899,7 @@ proto_message.Message.Person defaultValue);
        * @return This builder for chaining.
        */
       public Builder clearMyDouble() {
-        
+
         myDouble_ = 0D;
         onChanged();
         return this;
@@ -1920,7 +1920,7 @@ proto_message.Message.Person defaultValue);
        * @return This builder for chaining.
        */
       public Builder setMyFloat(float value) {
-        
+
         myFloat_ = value;
         onChanged();
         return this;
@@ -1930,7 +1930,7 @@ proto_message.Message.Person defaultValue);
        * @return This builder for chaining.
        */
       public Builder clearMyFloat() {
-        
+
         myFloat_ = 0F;
         onChanged();
         return this;
@@ -1951,7 +1951,7 @@ proto_message.Message.Person defaultValue);
        * @return This builder for chaining.
        */
       public Builder setMyInt64(long value) {
-        
+
         myInt64_ = value;
         onChanged();
         return this;
@@ -1961,7 +1961,7 @@ proto_message.Message.Person defaultValue);
        * @return This builder for chaining.
        */
       public Builder clearMyInt64() {
-        
+
         myInt64_ = 0L;
         onChanged();
         return this;
@@ -1982,7 +1982,7 @@ proto_message.Message.Person defaultValue);
        * @return This builder for chaining.
        */
       public Builder setMyUint64(long value) {
-        
+
         myUint64_ = value;
         onChanged();
         return this;
@@ -1992,7 +1992,7 @@ proto_message.Message.Person defaultValue);
        * @return This builder for chaining.
        */
       public Builder clearMyUint64() {
-        
+
         myUint64_ = 0L;
         onChanged();
         return this;
@@ -2013,7 +2013,7 @@ proto_message.Message.Person defaultValue);
        * @return This builder for chaining.
        */
       public Builder setMyInt32(int value) {
-        
+
         myInt32_ = value;
         onChanged();
         return this;
@@ -2023,7 +2023,7 @@ proto_message.Message.Person defaultValue);
        * @return This builder for chaining.
        */
       public Builder clearMyInt32() {
-        
+
         myInt32_ = 0;
         onChanged();
         return this;
@@ -2044,7 +2044,7 @@ proto_message.Message.Person defaultValue);
        * @return This builder for chaining.
        */
       public Builder setMyFixed64(long value) {
-        
+
         myFixed64_ = value;
         onChanged();
         return this;
@@ -2054,7 +2054,7 @@ proto_message.Message.Person defaultValue);
        * @return This builder for chaining.
        */
       public Builder clearMyFixed64() {
-        
+
         myFixed64_ = 0L;
         onChanged();
         return this;
@@ -2075,7 +2075,7 @@ proto_message.Message.Person defaultValue);
        * @return This builder for chaining.
        */
       public Builder setMyFixed32(int value) {
-        
+
         myFixed32_ = value;
         onChanged();
         return this;
@@ -2085,7 +2085,7 @@ proto_message.Message.Person defaultValue);
        * @return This builder for chaining.
        */
       public Builder clearMyFixed32() {
-        
+
         myFixed32_ = 0;
         onChanged();
         return this;
@@ -2106,7 +2106,7 @@ proto_message.Message.Person defaultValue);
        * @return This builder for chaining.
        */
       public Builder setMyBool(boolean value) {
-        
+
         myBool_ = value;
         onChanged();
         return this;
@@ -2116,7 +2116,7 @@ proto_message.Message.Person defaultValue);
        * @return This builder for chaining.
        */
       public Builder clearMyBool() {
-        
+
         myBool_ = false;
         onChanged();
         return this;
@@ -2147,7 +2147,7 @@ proto_message.Message.Person defaultValue);
           getMyStringBytes() {
         java.lang.Object ref = myString_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           myString_ = b;
@@ -2166,7 +2166,7 @@ proto_message.Message.Person defaultValue);
         if (value == null) {
     throw new NullPointerException();
   }
-  
+
         myString_ = value;
         onChanged();
         return this;
@@ -2176,7 +2176,7 @@ proto_message.Message.Person defaultValue);
        * @return This builder for chaining.
        */
       public Builder clearMyString() {
-        
+
         myString_ = getDefaultInstance().getMyString();
         onChanged();
         return this;
@@ -2192,7 +2192,7 @@ proto_message.Message.Person defaultValue);
     throw new NullPointerException();
   }
   checkByteStringIsUtf8(value);
-        
+
         myString_ = value;
         onChanged();
         return this;
@@ -2216,7 +2216,7 @@ proto_message.Message.Person defaultValue);
         if (value == null) {
     throw new NullPointerException();
   }
-  
+
         myBytes_ = value;
         onChanged();
         return this;
@@ -2226,7 +2226,7 @@ proto_message.Message.Person defaultValue);
        * @return This builder for chaining.
        */
       public Builder clearMyBytes() {
-        
+
         myBytes_ = getDefaultInstance().getMyBytes();
         onChanged();
         return this;
@@ -2247,7 +2247,7 @@ proto_message.Message.Person defaultValue);
        * @return This builder for chaining.
        */
       public Builder setMyUint32(int value) {
-        
+
         myUint32_ = value;
         onChanged();
         return this;
@@ -2257,7 +2257,7 @@ proto_message.Message.Person defaultValue);
        * @return This builder for chaining.
        */
       public Builder clearMyUint32() {
-        
+
         myUint32_ = 0;
         onChanged();
         return this;
@@ -2278,7 +2278,7 @@ proto_message.Message.Person defaultValue);
        * @return This builder for chaining.
        */
       public Builder setMySfixed32(int value) {
-        
+
         mySfixed32_ = value;
         onChanged();
         return this;
@@ -2288,7 +2288,7 @@ proto_message.Message.Person defaultValue);
        * @return This builder for chaining.
        */
       public Builder clearMySfixed32() {
-        
+
         mySfixed32_ = 0;
         onChanged();
         return this;
@@ -2309,7 +2309,7 @@ proto_message.Message.Person defaultValue);
        * @return This builder for chaining.
        */
       public Builder setMySfixed64(long value) {
-        
+
         mySfixed64_ = value;
         onChanged();
         return this;
@@ -2319,7 +2319,7 @@ proto_message.Message.Person defaultValue);
        * @return This builder for chaining.
        */
       public Builder clearMySfixed64() {
-        
+
         mySfixed64_ = 0L;
         onChanged();
         return this;
@@ -2340,7 +2340,7 @@ proto_message.Message.Person defaultValue);
        * @return This builder for chaining.
        */
       public Builder setMySint32(int value) {
-        
+
         mySint32_ = value;
         onChanged();
         return this;
@@ -2350,7 +2350,7 @@ proto_message.Message.Person defaultValue);
        * @return This builder for chaining.
        */
       public Builder clearMySint32() {
-        
+
         mySint32_ = 0;
         onChanged();
         return this;
@@ -2371,7 +2371,7 @@ proto_message.Message.Person defaultValue);
        * @return This builder for chaining.
        */
       public Builder setMySint64(long value) {
-        
+
         mySint64_ = value;
         onChanged();
         return this;
@@ -2381,7 +2381,7 @@ proto_message.Message.Person defaultValue);
        * @return This builder for chaining.
        */
       public Builder clearMySint64() {
-        
+
         mySint64_ = 0L;
         onChanged();
         return this;
@@ -2502,7 +2502,7 @@ proto_message.Message.Person defaultValue);
        * <code>.proto_message.Deep d = 40;</code>
        */
       public proto_message.Message.Deep.Builder getDBuilder() {
-        
+
         onChanged();
         return getDFieldBuilder().getBuilder();
       }
@@ -2529,7 +2529,7 @@ proto_message.Message.Person defaultValue);
        * <code>.proto_message.Deep d = 40;</code>
        */
       private com.google.protobuf.SingleFieldBuilderV3<
-          proto_message.Message.Deep, proto_message.Message.Deep.Builder, proto_message.Message.DeepOrBuilder> 
+          proto_message.Message.Deep, proto_message.Message.Deep.Builder, proto_message.Message.DeepOrBuilder>
           getDFieldBuilder() {
         if (dBuilder_ == null) {
           dBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
@@ -2694,7 +2694,7 @@ proto_message.Message.Person defaultValue);
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         number_ = s;
@@ -2710,7 +2710,7 @@ proto_message.Message.Person defaultValue);
         getNumberBytes() {
       java.lang.Object ref = number_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         number_ = b;
@@ -3108,7 +3108,7 @@ proto_message.Message.Person defaultValue);
           getNumberBytes() {
         java.lang.Object ref = number_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           number_ = b;
@@ -3127,7 +3127,7 @@ proto_message.Message.Person defaultValue);
         if (value == null) {
     throw new NullPointerException();
   }
-  
+
         number_ = value;
         onChanged();
         return this;
@@ -3137,7 +3137,7 @@ proto_message.Message.Person defaultValue);
        * @return This builder for chaining.
        */
       public Builder clearNumber() {
-        
+
         number_ = getDefaultInstance().getNumber();
         onChanged();
         return this;
@@ -3153,7 +3153,7 @@ proto_message.Message.Person defaultValue);
     throw new NullPointerException();
   }
   checkByteStringIsUtf8(value);
-        
+
         number_ = value;
         onChanged();
         return this;
@@ -3181,7 +3181,7 @@ proto_message.Message.Person defaultValue);
        * @return This builder for chaining.
        */
       public Builder setTypeValue(int value) {
-        
+
         type_ = value;
         onChanged();
         return this;
@@ -3213,7 +3213,7 @@ proto_message.Message.Person defaultValue);
         if (value == null) {
           throw new NullPointerException();
         }
-        
+
         type_ = value.getNumber();
         onChanged();
         return this;
@@ -3227,7 +3227,7 @@ proto_message.Message.Person defaultValue);
        * @return This builder for chaining.
        */
       public Builder clearType() {
-        
+
         type_ = 0;
         onChanged();
         return this;
@@ -3319,7 +3319,7 @@ proto_message.Message.Person defaultValue);
      *
      * <code>repeated .proto_message.PhoneNumber phones = 4;</code>
      */
-    java.util.List<proto_message.Message.PhoneNumber> 
+    java.util.List<proto_message.Message.PhoneNumber>
         getPhonesList();
     /**
      * <pre>
@@ -3344,7 +3344,7 @@ proto_message.Message.Person defaultValue);
      *
      * <code>repeated .proto_message.PhoneNumber phones = 4;</code>
      */
-    java.util.List<? extends proto_message.Message.PhoneNumberOrBuilder> 
+    java.util.List<? extends proto_message.Message.PhoneNumberOrBuilder>
         getPhonesOrBuilderList();
     /**
      * <pre>
@@ -3906,7 +3906,7 @@ proto_message.Message.Person defaultValue);
          * @return This builder for chaining.
          */
         public Builder setValue(int value) {
-          
+
           value_ = value;
           onChanged();
           return this;
@@ -3916,7 +3916,7 @@ proto_message.Message.Person defaultValue);
          * @return This builder for chaining.
          */
         public Builder clearValue() {
-          
+
           value_ = 0;
           onChanged();
           return this;
@@ -4009,7 +4009,7 @@ proto_message.Message.Person defaultValue);
          * <code>.proto_message.Person.RecursiveField deeper = 2;</code>
          */
         public proto_message.Message.Person.RecursiveField.Builder getDeeperBuilder() {
-          
+
           onChanged();
           return getDeeperFieldBuilder().getBuilder();
         }
@@ -4028,7 +4028,7 @@ proto_message.Message.Person defaultValue);
          * <code>.proto_message.Person.RecursiveField deeper = 2;</code>
          */
         private com.google.protobuf.SingleFieldBuilderV3<
-            proto_message.Message.Person.RecursiveField, proto_message.Message.Person.RecursiveField.Builder, proto_message.Message.Person.RecursiveFieldOrBuilder> 
+            proto_message.Message.Person.RecursiveField, proto_message.Message.Person.RecursiveField.Builder, proto_message.Message.Person.RecursiveFieldOrBuilder>
             getDeeperFieldBuilder() {
           if (deeperBuilder_ == null) {
             deeperBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
@@ -4116,7 +4116,7 @@ proto_message.Message.Person defaultValue);
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         name_ = s;
@@ -4132,7 +4132,7 @@ proto_message.Message.Person defaultValue);
         getNameBytes() {
       java.lang.Object ref = name_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         name_ = b;
@@ -4163,7 +4163,7 @@ proto_message.Message.Person defaultValue);
      * <code>repeated .proto_message.PhoneNumber phones = 4;</code>
      */
     @java.lang.Override
-    public java.util.List<? extends proto_message.Message.PhoneNumberOrBuilder> 
+    public java.util.List<? extends proto_message.Message.PhoneNumberOrBuilder>
         getPhonesOrBuilderList() {
       return phones_;
     }
@@ -4636,7 +4636,7 @@ proto_message.Message.Person defaultValue);
               phonesBuilder_ = null;
               phones_ = other.phones_;
               bitField0_ = (bitField0_ & ~0x00000001);
-              phonesBuilder_ = 
+              phonesBuilder_ =
                 com.google.protobuf.GeneratedMessageV3.alwaysUseFieldBuilders ?
                    getPhonesFieldBuilder() : null;
             } else {
@@ -4756,7 +4756,7 @@ proto_message.Message.Person defaultValue);
           getNameBytes() {
         java.lang.Object ref = name_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           name_ = b;
@@ -4775,7 +4775,7 @@ proto_message.Message.Person defaultValue);
         if (value == null) {
     throw new NullPointerException();
   }
-  
+
         name_ = value;
         onChanged();
         return this;
@@ -4785,7 +4785,7 @@ proto_message.Message.Person defaultValue);
        * @return This builder for chaining.
        */
       public Builder clearName() {
-        
+
         name_ = getDefaultInstance().getName();
         onChanged();
         return this;
@@ -4801,7 +4801,7 @@ proto_message.Message.Person defaultValue);
     throw new NullPointerException();
   }
   checkByteStringIsUtf8(value);
-        
+
         name_ = value;
         onChanged();
         return this;
@@ -5062,7 +5062,7 @@ proto_message.Message.Person defaultValue);
        *
        * <code>repeated .proto_message.PhoneNumber phones = 4;</code>
        */
-      public java.util.List<? extends proto_message.Message.PhoneNumberOrBuilder> 
+      public java.util.List<? extends proto_message.Message.PhoneNumberOrBuilder>
            getPhonesOrBuilderList() {
         if (phonesBuilder_ != null) {
           return phonesBuilder_.getMessageOrBuilderList();
@@ -5100,12 +5100,12 @@ proto_message.Message.Person defaultValue);
        *
        * <code>repeated .proto_message.PhoneNumber phones = 4;</code>
        */
-      public java.util.List<proto_message.Message.PhoneNumber.Builder> 
+      public java.util.List<proto_message.Message.PhoneNumber.Builder>
            getPhonesBuilderList() {
         return getPhonesFieldBuilder().getBuilderList();
       }
       private com.google.protobuf.RepeatedFieldBuilderV3<
-          proto_message.Message.PhoneNumber, proto_message.Message.PhoneNumber.Builder, proto_message.Message.PhoneNumberOrBuilder> 
+          proto_message.Message.PhoneNumber, proto_message.Message.PhoneNumber.Builder, proto_message.Message.PhoneNumberOrBuilder>
           getPhonesFieldBuilder() {
         if (phonesBuilder_ == null) {
           phonesBuilder_ = new com.google.protobuf.RepeatedFieldBuilderV3<
@@ -5134,7 +5134,7 @@ proto_message.Message.Person defaultValue);
        * @return This builder for chaining.
        */
       public Builder setCreated(long value) {
-        
+
         created_ = value;
         onChanged();
         return this;
@@ -5144,7 +5144,7 @@ proto_message.Message.Person defaultValue);
        * @return This builder for chaining.
        */
       public Builder clearCreated() {
-        
+
         created_ = 0L;
         onChanged();
         return this;
@@ -5165,7 +5165,7 @@ proto_message.Message.Person defaultValue);
        * @return This builder for chaining.
        */
       public Builder setLastUpdated(double value) {
-        
+
         lastUpdated_ = value;
         onChanged();
         return this;
@@ -5175,7 +5175,7 @@ proto_message.Message.Person defaultValue);
        * @return This builder for chaining.
        */
       public Builder clearLastUpdated() {
-        
+
         lastUpdated_ = 0D;
         onChanged();
         return this;
@@ -5296,7 +5296,7 @@ proto_message.Message.Person defaultValue);
        * <code>.proto_message.Person.RecursiveField recurse = 7;</code>
        */
       public proto_message.Message.Person.RecursiveField.Builder getRecurseBuilder() {
-        
+
         onChanged();
         return getRecurseFieldBuilder().getBuilder();
       }
@@ -5323,7 +5323,7 @@ proto_message.Message.Person defaultValue);
        * <code>.proto_message.Person.RecursiveField recurse = 7;</code>
        */
       private com.google.protobuf.SingleFieldBuilderV3<
-          proto_message.Message.Person.RecursiveField, proto_message.Message.Person.RecursiveField.Builder, proto_message.Message.Person.RecursiveFieldOrBuilder> 
+          proto_message.Message.Person.RecursiveField, proto_message.Message.Person.RecursiveField.Builder, proto_message.Message.Person.RecursiveFieldOrBuilder>
           getRecurseFieldBuilder() {
         if (recurseBuilder_ == null) {
           recurseBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
@@ -5960,7 +5960,7 @@ proto_message.Message.Person defaultValue);
          * <code>.proto_message.Deep.B x = 1;</code>
          */
         public proto_message.Message.Deep.B.Builder getXBuilder() {
-          
+
           onChanged();
           return getXFieldBuilder().getBuilder();
         }
@@ -5979,7 +5979,7 @@ proto_message.Message.Person defaultValue);
          * <code>.proto_message.Deep.B x = 1;</code>
          */
         private com.google.protobuf.SingleFieldBuilderV3<
-            proto_message.Message.Deep.B, proto_message.Message.Deep.B.Builder, proto_message.Message.Deep.BOrBuilder> 
+            proto_message.Message.Deep.B, proto_message.Message.Deep.B.Builder, proto_message.Message.Deep.BOrBuilder>
             getXFieldBuilder() {
           if (xBuilder_ == null) {
             xBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
@@ -6557,7 +6557,7 @@ proto_message.Message.Person defaultValue);
          * <code>.proto_message.Deep.C x = 1;</code>
          */
         public proto_message.Message.Deep.C.Builder getXBuilder() {
-          
+
           onChanged();
           return getXFieldBuilder().getBuilder();
         }
@@ -6576,7 +6576,7 @@ proto_message.Message.Person defaultValue);
          * <code>.proto_message.Deep.C x = 1;</code>
          */
         private com.google.protobuf.SingleFieldBuilderV3<
-            proto_message.Message.Deep.C, proto_message.Message.Deep.C.Builder, proto_message.Message.Deep.COrBuilder> 
+            proto_message.Message.Deep.C, proto_message.Message.Deep.C.Builder, proto_message.Message.Deep.COrBuilder>
             getXFieldBuilder() {
           if (xBuilder_ == null) {
             xBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
@@ -7154,7 +7154,7 @@ proto_message.Message.Person defaultValue);
          * <code>.proto_message.Deep.D x = 1;</code>
          */
         public proto_message.Message.Deep.D.Builder getXBuilder() {
-          
+
           onChanged();
           return getXFieldBuilder().getBuilder();
         }
@@ -7173,7 +7173,7 @@ proto_message.Message.Person defaultValue);
          * <code>.proto_message.Deep.D x = 1;</code>
          */
         private com.google.protobuf.SingleFieldBuilderV3<
-            proto_message.Message.Deep.D, proto_message.Message.Deep.D.Builder, proto_message.Message.Deep.DOrBuilder> 
+            proto_message.Message.Deep.D, proto_message.Message.Deep.D.Builder, proto_message.Message.Deep.DOrBuilder>
             getXFieldBuilder() {
           if (xBuilder_ == null) {
             xBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
@@ -7751,7 +7751,7 @@ proto_message.Message.Person defaultValue);
          * <code>.proto_message.Deep.E x = 1;</code>
          */
         public proto_message.Message.Deep.E.Builder getXBuilder() {
-          
+
           onChanged();
           return getXFieldBuilder().getBuilder();
         }
@@ -7770,7 +7770,7 @@ proto_message.Message.Person defaultValue);
          * <code>.proto_message.Deep.E x = 1;</code>
          */
         private com.google.protobuf.SingleFieldBuilderV3<
-            proto_message.Message.Deep.E, proto_message.Message.Deep.E.Builder, proto_message.Message.Deep.EOrBuilder> 
+            proto_message.Message.Deep.E, proto_message.Message.Deep.E.Builder, proto_message.Message.Deep.EOrBuilder>
             getXFieldBuilder() {
           if (xBuilder_ == null) {
             xBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
@@ -8348,7 +8348,7 @@ proto_message.Message.Person defaultValue);
          * <code>.proto_message.Deep.F x = 1;</code>
          */
         public proto_message.Message.Deep.F.Builder getXBuilder() {
-          
+
           onChanged();
           return getXFieldBuilder().getBuilder();
         }
@@ -8367,7 +8367,7 @@ proto_message.Message.Person defaultValue);
          * <code>.proto_message.Deep.F x = 1;</code>
          */
         private com.google.protobuf.SingleFieldBuilderV3<
-            proto_message.Message.Deep.F, proto_message.Message.Deep.F.Builder, proto_message.Message.Deep.FOrBuilder> 
+            proto_message.Message.Deep.F, proto_message.Message.Deep.F.Builder, proto_message.Message.Deep.FOrBuilder>
             getXFieldBuilder() {
           if (xBuilder_ == null) {
             xBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
@@ -8945,7 +8945,7 @@ proto_message.Message.Person defaultValue);
          * <code>.proto_message.Deep.G x = 1;</code>
          */
         public proto_message.Message.Deep.G.Builder getXBuilder() {
-          
+
           onChanged();
           return getXFieldBuilder().getBuilder();
         }
@@ -8964,7 +8964,7 @@ proto_message.Message.Person defaultValue);
          * <code>.proto_message.Deep.G x = 1;</code>
          */
         private com.google.protobuf.SingleFieldBuilderV3<
-            proto_message.Message.Deep.G, proto_message.Message.Deep.G.Builder, proto_message.Message.Deep.GOrBuilder> 
+            proto_message.Message.Deep.G, proto_message.Message.Deep.G.Builder, proto_message.Message.Deep.GOrBuilder>
             getXFieldBuilder() {
           if (xBuilder_ == null) {
             xBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
@@ -9542,7 +9542,7 @@ proto_message.Message.Person defaultValue);
          * <code>.proto_message.Deep.H x = 1;</code>
          */
         public proto_message.Message.Deep.H.Builder getXBuilder() {
-          
+
           onChanged();
           return getXFieldBuilder().getBuilder();
         }
@@ -9561,7 +9561,7 @@ proto_message.Message.Person defaultValue);
          * <code>.proto_message.Deep.H x = 1;</code>
          */
         private com.google.protobuf.SingleFieldBuilderV3<
-            proto_message.Message.Deep.H, proto_message.Message.Deep.H.Builder, proto_message.Message.Deep.HOrBuilder> 
+            proto_message.Message.Deep.H, proto_message.Message.Deep.H.Builder, proto_message.Message.Deep.HOrBuilder>
             getXFieldBuilder() {
           if (xBuilder_ == null) {
             xBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
@@ -10191,7 +10191,7 @@ proto_message.Message.Person defaultValue);
          * <code>.proto_message.Deep.I x = 1;</code>
          */
         public proto_message.Message.Deep.I.Builder getXBuilder() {
-          
+
           onChanged();
           return getXFieldBuilder().getBuilder();
         }
@@ -10218,7 +10218,7 @@ proto_message.Message.Person defaultValue);
          * <code>.proto_message.Deep.I x = 1;</code>
          */
         private com.google.protobuf.SingleFieldBuilderV3<
-            proto_message.Message.Deep.I, proto_message.Message.Deep.I.Builder, proto_message.Message.Deep.IOrBuilder> 
+            proto_message.Message.Deep.I, proto_message.Message.Deep.I.Builder, proto_message.Message.Deep.IOrBuilder>
             getXFieldBuilder() {
           if (xBuilder_ == null) {
             xBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
@@ -10796,7 +10796,7 @@ proto_message.Message.Person defaultValue);
          * <code>.proto_message.Deep.J x = 1;</code>
          */
         public proto_message.Message.Deep.J.Builder getXBuilder() {
-          
+
           onChanged();
           return getXFieldBuilder().getBuilder();
         }
@@ -10815,7 +10815,7 @@ proto_message.Message.Person defaultValue);
          * <code>.proto_message.Deep.J x = 1;</code>
          */
         private com.google.protobuf.SingleFieldBuilderV3<
-            proto_message.Message.Deep.J, proto_message.Message.Deep.J.Builder, proto_message.Message.Deep.JOrBuilder> 
+            proto_message.Message.Deep.J, proto_message.Message.Deep.J.Builder, proto_message.Message.Deep.JOrBuilder>
             getXFieldBuilder() {
           if (xBuilder_ == null) {
             xBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
@@ -11282,7 +11282,7 @@ proto_message.Message.Person defaultValue);
          * @return This builder for chaining.
          */
         public Builder setX(int value) {
-          
+
           x_ = value;
           onChanged();
           return this;
@@ -11292,7 +11292,7 @@ proto_message.Message.Person defaultValue);
          * @return This builder for chaining.
          */
         public Builder clearX() {
-          
+
           x_ = 0;
           onChanged();
           return this;
@@ -11804,7 +11804,7 @@ proto_message.Message.Person defaultValue);
        * <code>.proto_message.Deep.A x = 1;</code>
        */
       public proto_message.Message.Deep.A.Builder getXBuilder() {
-        
+
         onChanged();
         return getXFieldBuilder().getBuilder();
       }
@@ -11823,7 +11823,7 @@ proto_message.Message.Person defaultValue);
        * <code>.proto_message.Deep.A x = 1;</code>
        */
       private com.google.protobuf.SingleFieldBuilderV3<
-          proto_message.Message.Deep.A, proto_message.Message.Deep.A.Builder, proto_message.Message.Deep.AOrBuilder> 
+          proto_message.Message.Deep.A, proto_message.Message.Deep.A.Builder, proto_message.Message.Deep.AOrBuilder>
           getXFieldBuilder() {
         if (xBuilder_ == null) {
           xBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
@@ -12298,7 +12298,7 @@ proto_message.Message.Person defaultValue);
        * @return This builder for chaining.
        */
       public Builder setX(int value) {
-        
+
         x_ = value;
         onChanged();
         return this;
@@ -12308,7 +12308,7 @@ proto_message.Message.Person defaultValue);
        * @return This builder for chaining.
        */
       public Builder clearX() {
-        
+
         x_ = 0;
         onChanged();
         return this;
@@ -12379,87 +12379,87 @@ proto_message.Message.Person defaultValue);
 
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_proto_message_AddressBook_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internal_static_proto_message_AddressBook_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_proto_message_AddressBook_PeopleEntry_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internal_static_proto_message_AddressBook_PeopleEntry_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_proto_message_PhoneNumber_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internal_static_proto_message_PhoneNumber_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_proto_message_Person_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internal_static_proto_message_Person_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_proto_message_Person_RecursiveField_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internal_static_proto_message_Person_RecursiveField_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_proto_message_Deep_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internal_static_proto_message_Deep_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_proto_message_Deep_A_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internal_static_proto_message_Deep_A_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_proto_message_Deep_B_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internal_static_proto_message_Deep_B_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_proto_message_Deep_C_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internal_static_proto_message_Deep_C_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_proto_message_Deep_D_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internal_static_proto_message_Deep_D_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_proto_message_Deep_E_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internal_static_proto_message_Deep_E_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_proto_message_Deep_F_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internal_static_proto_message_Deep_F_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_proto_message_Deep_G_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internal_static_proto_message_Deep_G_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_proto_message_Deep_H_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internal_static_proto_message_Deep_H_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_proto_message_Deep_I_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internal_static_proto_message_Deep_I_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_proto_message_Deep_J_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internal_static_proto_message_Deep_J_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_proto_message_Ignored_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internal_static_proto_message_Ignored_fieldAccessorTable;
 
