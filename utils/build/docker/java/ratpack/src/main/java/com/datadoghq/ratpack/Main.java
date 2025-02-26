@@ -169,9 +169,9 @@ public class Main {
                                     response.send("application/json", r);
                                 });
                             })
-                            .path("tag_value/:value/:code", ctx -> {
-                                final String value = ctx.getPathTokens().get("value");
-                                final int code = Integer.parseInt(ctx.getPathTokens().get("code"));
+                            .path("tag_value/:tag_value/:status_code", ctx -> {
+                                final String value = ctx.getPathTokens().get("tag_value");
+                                final int code = Integer.parseInt(ctx.getPathTokens().get("status_code"));
                                 WafPostHandler.consumeParsedBody(ctx).then(v -> {
                                     setRootSpanTag("appsec.events.system_tests_appsec_event.value", value);
                                     ctx.getResponse().status(code).send("Value tagged");

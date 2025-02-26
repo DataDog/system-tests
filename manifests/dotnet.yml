@@ -318,7 +318,7 @@ tests/:
       Test_V3_Login_Events_Blocking: v3.10.0
       Test_V3_Login_Events_RC: v3.10.0
     test_automated_user_and_session_tracking.py:
-      Test_Automated_Session_Blocking: missing_feature
+      Test_Automated_Session_Blocking: v3.11.0
       Test_Automated_User_Blocking: v3.10.0
       Test_Automated_User_Tracking: v3.10.0
     test_blocking_addresses.py:
@@ -350,7 +350,7 @@ tests/:
       Test_Fingerprinting_Header_And_Network: v3.4.0
       Test_Fingerprinting_Header_Capability: v3.4.0
       Test_Fingerprinting_Network_Capability: v3.4.0
-      Test_Fingerprinting_Session: missing_feature
+      Test_Fingerprinting_Session: v3.12.0
       Test_Fingerprinting_Session_Capability: v3.4.0
     test_identify.py:
       Test_Basic: v2.7.0
