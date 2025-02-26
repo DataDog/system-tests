@@ -51,6 +51,7 @@ refs:
   - &ref_5_40_0 '>=5.40.0'
 =======
   - &ref_5_36_0 '>=5.36.0'
+  - &ref_5_37_0 '>=5.37.0'
 
 >>>>>>> 07201e906 (save changes)
 tests/:
@@ -1005,8 +1006,11 @@ tests/:
       '*': *ref_5_25_0
       express4-typescript: incomplete_test_app
       nextjs: incomplete_test_app
-    Test_Config_LogInjection_128Bit_TraceId_Default: missing_feature (disabled by default)
-    Test_Config_LogInjection_128Bit_TraceId_Disabled:
+    Test_Config_LogInjection_128Bit_TradeId_Default:
+      '*': *ref_5_36_0
+      express4-typescript: incomplete_test_app (endpoint not implemented)
+      nextjs: incomplete_test_app (endpoint not implemented)
+    Test_Config_LogInjection_128Bit_TradeId_Disabled:
       '*': *ref_3_15_0
       express4-typescript: incomplete_test_app (endpoint not implemented)
       nextjs: incomplete_test_app (endpoint not implemented)
