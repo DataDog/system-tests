@@ -11,7 +11,7 @@ import pytest
 
 from .conftest import StableConfigWriter
 from utils.telemetry_utils import TelemetryUtils
-from utils import context, scenarios, rfc, features, missing_feature, bug
+from utils import context, scenarios, rfc, features, missing_feature
 
 
 telemetry_name_mapping = {
@@ -311,7 +311,6 @@ class Test_Environment:
             }
         ],
     )
-    @bug(context.library > "python@3.0.0", reason="APMAPI-1197")
     def test_telemetry_otel_env_hiding(self, library_env, test_agent, test_library):
         with test_library.dd_start_span("test"):
             pass
@@ -397,7 +396,6 @@ class Test_Environment:
             }
         ],
     )
-    @bug(context.library > "python@3.0.0", reason="APMAPI-1197")
     def test_telemetry_otel_env_invalid(self, library_env, test_agent, test_library):
         with test_library.dd_start_span("test"):
             pass
