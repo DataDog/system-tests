@@ -1849,6 +1849,10 @@ tests/:
       spring-boot-3-native: v1.39.0
       vertx3: missing_feature (Endpoint not implemented)
       vertx4: missing_feature (Endpoint not implemented)
+  test_protobuf.py:
+    Test_Protobuf:
+      '*': missing_feature
+      spring-boot: v1.38.0
   test_sampling_rates.py:
     Test_SamplingDecisions:
       akka-http: missing_feature (Endpoint /sample_rate_route not implemented)

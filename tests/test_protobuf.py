@@ -39,7 +39,7 @@ class Test_Protobuf:
             assert "schema.name" in meta
             assert "schema.operation" in meta
 
-            assert meta["schema.id"] == "14603317962659197404", meta["schema.hash_data"]
+            assert meta["schema.id"] == "14603317962659197404", "hash should be the same across tracers"
             assert meta["schema.type"] == "protobuf"
             json.loads(meta["schema.definition"])  # will throw if malformed
             assert "x-protobuf-number" in meta["schema.definition"]  # rough check that we register the protobuf numbers
