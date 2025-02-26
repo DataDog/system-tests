@@ -68,7 +68,7 @@ class CiData:
             for scenario in item["scenarios"]:
                 legacy_scenarios.add(scenario)
 
-        self.data["endtoend"] = {"scenarios": sorted(legacy_scenarios), "weblogs": sorted(legacy_weblogs)}
+        self.data["endtoend"] = {"weblogs": sorted(legacy_weblogs), "scenarios": sorted(legacy_scenarios)}
 
     def export(self, export_format: str) -> None:
         if export_format == "json":

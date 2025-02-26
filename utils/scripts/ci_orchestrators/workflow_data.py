@@ -135,23 +135,19 @@ def _split_weblogs_for_parallel_execution(
 
         # if the anticipated time is below the desired_execution_time, we don't need to split it
         build_time = _get_build_time(weblog["library"], weblog["weblog_name"], time_stats["build"])
-        run_time = sum(
-            _get_execution_time(weblog["library"], weblog["weblog_name"], scenario, time_stats["run"])
+        scenario_times = {
+            scenario: _get_execution_time(weblog["library"], weblog["weblog_name"], scenario, time_stats["run"])
             for scenario in weblog["scenarios"]
-        )
+        }
+        run_time = sum(scenario_times.values())
+
         if build_time + run_time < desired_execution_time:
             weblogs.append(weblog)
             continue
 
         # otherwise, we need to split the scenarios
         for i, (scenarios, expected_job_time) in enumerate(
-            _split_scenarios_for_parallel_execution(
-                weblog["library"],
-                weblog["weblog_name"],
-                weblog["scenarios"],
-                desired_execution_time - build_time,
-                time_stats["run"],
-            )
+            _split_scenarios_for_parallel_execution(scenario_times, desired_execution_time - build_time)
         ):
             parallel_weblogs.append(
                 {
@@ -166,21 +162,26 @@ def _split_weblogs_for_parallel_execution(
     return weblogs, parallel_weblogs
 
 
-def _split_scenarios_for_parallel_execution(
-    library: str, weblog: str, scenarios: list[str], desired_execution_time: int, run_stats: dict
-):
-    result: list[str] = []
-    current_execution_time = 0
+def _split_scenarios_for_parallel_execution(scenario_times: dict[str, int | float], desired_execution_time: int):
+    total_execution_time = sum(scenario_times.values())
+    backpack_count = int(total_execution_time / desired_execution_time) + 1
+    backpack_average_time = total_execution_time / backpack_count
 
-    for scenario in scenarios:
-        result.append(scenario)
-        current_execution_time += _get_execution_time(library, weblog, scenario, run_stats)
+    backpack: list[str] = []
+    backpack_time = 0.0
 
-        if current_execution_time > desired_execution_time:
-            yield result, current_execution_time
+    for scenario, execution_time in scenario_times.items():
+        backpack.append(scenario)
+        backpack_time += execution_time
 
-            result = []
-            current_execution_time = 0
+        if backpack_time > backpack_average_time:
+            yield backpack, backpack_time
+
+            backpack = []
+            backpack_time = 0
+
+    if len(backpack) > 0:
+        yield backpack, backpack_time
 
 
 def _get_build_time(library: str, weblog: str, build_stats: dict) -> int:
@@ -193,7 +194,7 @@ def _get_build_time(library: str, weblog: str, build_stats: dict) -> int:
     return build_stats[library][weblog]
 
 
-def _get_execution_time(library: str, weblog: str, scenario: str, run_stats: dict) -> int:
+def _get_execution_time(library: str, weblog: str, scenario: str, run_stats: dict) -> int | float:
     if scenario not in run_stats:
         return run_stats["*"]
 
