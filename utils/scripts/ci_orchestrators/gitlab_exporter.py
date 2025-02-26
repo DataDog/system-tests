@@ -105,14 +105,14 @@ def print_gitlab_pipeline(language, matrix_data, ci_environment) -> None:
         # Copy the base job for the onboarding system tests
         result_pipeline[".base_job_onboarding_system_tests"] = pipeline_data[".base_job_onboarding_system_tests"]
         print_aws_gitlab_pipeline(language, matrix_data["aws_ssi_scenario_defs"], ci_environment, result_pipeline)
-    #if matrix_data["dockerssi_scenario_defs"]:
-    #    # Copy the base job for the docker ssi system tests
-    #    result_pipeline[".base_docker_ssi_job"] = pipeline_data[".base_docker_ssi_job"]
-    #    print_docker_ssi_gitlab_pipeline(language, matrix_data["dockerssi_scenario_defs"], ci_environment, result_pipeline)
-    #if matrix_data["libinjection_scenario_defs"]:
-    #    # Copy the base job for the k8s lib injection system tests
-    #    result_pipeline[".k8s_lib_injection_base"] = pipeline_data[".k8s_lib_injection_base"]
-    #    print_k8s_gitlab_pipeline(language, matrix_data["libinjection_scenario_defs"], ci_environment, result_pipeline)
+    if matrix_data["dockerssi_scenario_defs"]:
+        # Copy the base job for the docker ssi system tests
+        result_pipeline[".base_docker_ssi_job"] = pipeline_data[".base_docker_ssi_job"]
+        print_docker_ssi_gitlab_pipeline(language, matrix_data["dockerssi_scenario_defs"], ci_environment, result_pipeline)
+    if matrix_data["libinjection_scenario_defs"]:
+        # Copy the base job for the k8s lib injection system tests
+        result_pipeline[".k8s_lib_injection_base"] = pipeline_data[".k8s_lib_injection_base"]
+        print_k8s_gitlab_pipeline(language, matrix_data["libinjection_scenario_defs"], ci_environment, result_pipeline)
 
 
     pipeline_yml = yaml.dump(result_pipeline, sort_keys=False, default_flow_style=False)
@@ -229,7 +229,7 @@ def print_aws_gitlab_pipeline(language, aws_matrix, ci_environment, result_pipel
             if only_defaults and not is_default_machine(raw_data_virtual_machines, vm):
                 result_pipeline[vm_job]["when"] = "manual"
                 #Avoid the pipeline marked as blocked
-                result_pipeline[vm_job]["allow_failure"] = "true"
+                result_pipeline[vm_job]["allow_failure"] = True
 
             # Job variables
             result_pipeline[vm_job]["variables"] = {}
