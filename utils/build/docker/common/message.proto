@@ -1,4 +1,6 @@
-// use shell script in the same folder to regenerate the code if you change this file.
+// to regenerate the source files when modifying this, run:
+// protoc --csharp_out=../dotnet/weblog/Models/ --java_out=../java/spring-boot/src/main/java/com/datadoghq/system_tests/springboot/ message.proto
+
 // used in tests/test_protobuf.py
 
 syntax = "proto3";
