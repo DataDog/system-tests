@@ -257,8 +257,8 @@ tests/:
     Test_Config_HttpServerErrorStatuses_FeatureFlagCustom: missing_feature
     Test_Config_IntegrationEnabled_False: missing_feature
     Test_Config_IntegrationEnabled_True: missing_feature
-    Test_Config_LogInjection_128Bit_TradeId_Default: missing_feature
-    Test_Config_LogInjection_128Bit_TradeId_Disabled: missing_feature
+    Test_Config_LogInjection_128Bit_TraceId_Default: missing_feature
+    Test_Config_LogInjection_128Bit_TraceId_Disabled: missing_feature
     Test_Config_LogInjection_Default: missing_feature
     Test_Config_LogInjection_Enabled: missing_feature
     Test_Config_ObfuscationQueryStringRegexp_Configured: missing_feature
