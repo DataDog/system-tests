@@ -19,7 +19,11 @@ runtime_metrics_lang_map = {
     "python": ("lang", "python"),
     "ruby": ("language", "ruby"),
 }
-log_injection_fields = {"nodejs": {"message": "msg"}}
+# Maps language to the key that the log library used in /log/library endpoint prints a log message under
+log_injection_fields = {
+    "nodejs": {"message": "msg"},
+    "golang": {"message": "msg"},
+}
 
 
 @scenarios.default
@@ -662,17 +666,17 @@ def get_runtime_metrics(agent):
 
 
 # Parses the JSON-formatted log message from stdout and returns it
+# To pass tests that use this function, ensure your library has an entry in log_injection_fields
 def parse_log_injection_message(log_message):
     for data in stdout.get_data():
         try:
             message = json.loads(data.get("message"))
         except json.JSONDecodeError:
             continue
-        # APMAPI-1199
-        if (
-            context.library == "nodejs"
-            and message.get(log_injection_fields[context.library.library]["message"]) == log_message
-        ):
+        # Locate log with the custom message, which should have the trace ID and span ID
+        if message.get(log_injection_fields[context.library.library]["message"]) != log_message:
+            continue
+        if message.get("dd"):
             return message.get("dd")
         return message
     return None
