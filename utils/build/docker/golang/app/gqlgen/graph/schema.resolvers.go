@@ -8,7 +8,6 @@ import (
 	"context"
 	"weblog/gqlgen/graph/model"
 
-	"github.com/99designs/gqlgen/graphql"
 	"github.com/vektah/gqlparser/v2/gqlerror"
 )
 
@@ -37,7 +36,7 @@ func (r *queryResolver) UserByName(ctx context.Context, name *string) ([]*model.
 
 // WithError is the resolver for the withError field.
 func (r *queryResolver) WithError(ctx context.Context) (*string, error) {
-	graphql.AddError(ctx, &gqlerror.Error{
+	return nil, &gqlerror.Error{
 		Message: "test error",
 		Extensions: map[string]any{
 			"int":          1,
@@ -47,8 +46,7 @@ func (r *queryResolver) WithError(ctx context.Context) (*string, error) {
 			"other":        []any{1, "foo"},
 			"not_captured": "nope",
 		},
-	})
-	return nil, gqlerror.Errorf("test error")
+	}
 }
 
 // Query returns QueryResolver implementation.

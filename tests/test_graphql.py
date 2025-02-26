@@ -41,6 +41,8 @@ class Test_GraphQLQueryErrorReporting:
             span
             for _, _, span in interfaces.library.get_spans(request=self.request, full_trace=True)
             if span["name"] == "graphql.execute"
+            or (span["name"] == "graphql.query" and span["meta"]["language"] == "go" and span["meta"]["component"] == "99designs/gqlgen")
+            or (span["name"] == "graphql.request" and span["meta"]["language"] == "go" and span["meta"]["component"] == "graph-gophers/graphql-go")
         )
 
         assert len(spans) == 1
