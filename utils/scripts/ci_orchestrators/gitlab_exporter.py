@@ -109,10 +109,10 @@ def print_gitlab_pipeline(language, matrix_data, ci_environment) -> None:
         # Copy the base job for the docker ssi system tests
         result_pipeline[".base_docker_ssi_job"] = pipeline_data[".base_docker_ssi_job"]
         print_docker_ssi_gitlab_pipeline(language, matrix_data["dockerssi_scenario_defs"], ci_environment, result_pipeline)
-    if matrix_data["libinjection_scenario_defs"]:
-        # Copy the base job for the k8s lib injection system tests
-        result_pipeline[".k8s_lib_injection_base"] = pipeline_data[".k8s_lib_injection_base"]
-        print_k8s_gitlab_pipeline(language, matrix_data["libinjection_scenario_defs"], ci_environment, result_pipeline)
+    #if matrix_data["libinjection_scenario_defs"]:
+    #    # Copy the base job for the k8s lib injection system tests
+    #    result_pipeline[".k8s_lib_injection_base"] = pipeline_data[".k8s_lib_injection_base"]
+    #    print_k8s_gitlab_pipeline(language, matrix_data["libinjection_scenario_defs"], ci_environment, result_pipeline)
 
 
     pipeline_yml = yaml.dump(result_pipeline, sort_keys=False, default_flow_style=False)
