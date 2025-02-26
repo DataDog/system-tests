@@ -147,7 +147,7 @@ class Base_Debugger_Test:
                     elif language == "python":
                         probe["where"]["sourceFile"] = "debugger_controller.py"
                     elif language == "ruby":
-                        probe["where"]["sourceFile"] = "debugger_controller.rb"
+                        probe["where"]["sourceFile"] = "shared/rails/app/controllers/debugger_controller.rb"
                     elif language == "nodejs":
                         probe["where"]["sourceFile"] = "debugger/index.js"
                 probe["type"] = __get_probe_type(probe["id"])
