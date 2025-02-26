@@ -11,7 +11,7 @@ import pytest
 
 from .conftest import StableConfigWriter
 from utils.telemetry_utils import TelemetryUtils
-from utils import context, scenarios, rfc, features, missing_feature
+from utils import context, scenarios, rfc, features, missing_feature, bug
 
 
 telemetry_name_mapping = {
@@ -279,9 +279,7 @@ class Test_Environment:
     @missing_feature(context.library == "ruby", reason="Not implemented")
     @missing_feature(context.library == "php", reason="Not implemented")
     @missing_feature(context.library == "cpp", reason="Not implemented")
-    @missing_feature(
-        context.library <= "python@3.1.0", reason="OTEL Sampling config is mapped to a different datadog config"
-    )
+    @missing_feature(context.library == "python", reason="OTEL Sampling config is mapped to a different datadog config")
     @pytest.mark.parametrize(
         "library_env",
         [
@@ -313,6 +311,7 @@ class Test_Environment:
             }
         ],
     )
+    @bug(context.library > "python@3.0.0", reason="APMAPI-1197")
     def test_telemetry_otel_env_hiding(self, library_env, test_agent, test_library):
         with test_library.dd_start_span("test"):
             pass
@@ -372,9 +371,7 @@ class Test_Environment:
     @missing_feature(context.library == "ruby", reason="Not implemented")
     @missing_feature(context.library == "php", reason="Not implemented")
     @missing_feature(context.library == "cpp", reason="Not implemented")
-    @missing_feature(
-        context.library <= "python@3.1.0", reason="OTEL Sampling config is mapped to a different datadog config"
-    )
+    @missing_feature(context.library == "python", reason="OTEL Sampling config is mapped to a different datadog config")
     @missing_feature(
         context.library == "nodejs", reason="does not collect otel_env.invalid metrics for otel_resource_attributes"
     )
@@ -400,6 +397,7 @@ class Test_Environment:
             }
         ],
     )
+    @bug(context.library > "python@3.0.0", reason="APMAPI-1197")
     def test_telemetry_otel_env_invalid(self, library_env, test_agent, test_library):
         with test_library.dd_start_span("test"):
             pass
