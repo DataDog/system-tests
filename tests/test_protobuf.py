@@ -1,9 +1,10 @@
 import json
 
-from utils import weblog, interfaces, context, missing_feature
+from utils import weblog, interfaces, context, missing_feature, features
 
 
 # this test relies on the proto file at utils/build/docker/common/message.proto
+@features.datastreams_monitoring_protobuf_schema_tracking
 class Test_Protobuf:
     def setup_protobuf(self):
         self.serialization_response = weblog.get("/protobuf/serialize")

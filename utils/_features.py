@@ -2444,5 +2444,14 @@ class _Features:
         pytest.mark.features(feature_id=369)(test_object)
         return test_object
 
+    @staticmethod
+    def datastreams_monitoring_protobuf_schema_tracking(test_object):
+        """Dynamically enable debugger products
+
+        https://feature-parity.us1.prod.dog/#/?feature=371
+        """
+        pytest.mark.features(feature_id=371)(test_object)
+        return test_object
+
 
 features = _Features()
