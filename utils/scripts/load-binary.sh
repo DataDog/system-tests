@@ -188,6 +188,12 @@ elif [ "$TARGET" = "python" ]; then
     TARGET_BRANCH="${TARGET_BRANCH:-main}"
     rm -rf dd-trace-py/
     git clone --depth 1 --branch $TARGET_BRANCH https://github.com/DataDog/dd-trace-py.git
+    # NB this is necessary to keep the checkout out of detached HEAD state, which setuptools_scm requires for
+    # proper version guessing
+    cd dd-trace-py
+    git checkout --detach
+    echo "Checking out the ref"
+    git log -1 --format=%H
 
 elif [ "$TARGET" = "ruby" ]; then
     assert_version_is_dev
