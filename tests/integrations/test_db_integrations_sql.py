@@ -257,7 +257,7 @@ class Test_MySql(_BaseDatadogDbIntegrationTestClass):
         super().test_db_name()
 
     @bug(context.library < "python@2.12.2", reason="APMRP-360")
-    def test_db_user(self, excluded_operations=()):
+    def test_db_user(self):
         super().test_db_user()
 
 

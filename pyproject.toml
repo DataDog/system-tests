@@ -177,7 +177,6 @@ ignore = [
 "tests/*" = [
     "ANN201",    # missing-return-type-undocumented-public-function: TODO
     "N801",      # invalid-class-name: TODO
-    "ARG002",    # unused-method-argument: TODO
     "E501",      # line-too-long: TODO
     "SIM117",    # multiple-with-statements: TODO
     "N806",      # non-lowercase-variable-in-function: TODO
@@ -217,6 +216,7 @@ ignore = [
 ]
 "tests/parametric/*" = [
     "ANN401",    # any-type: TODO
+    "ARG002",    # unused-method-argument: TODO
 ]
 "tests/parametric/{test_headers_baggage.py,test_headers_datadog.py,test_library_tracestats.py}" = [
     "N802",      # invalid-function-name: some tests methods contains code with capital letters
