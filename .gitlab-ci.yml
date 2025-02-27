@@ -47,6 +47,9 @@ compute_pipeline:
       - nodejs_gitlab_pipeline.yml
       - java_gitlab_pipeline.yml
       - dotnet_gitlab_pipeline.yml
+      - python_gitlab_pipeline.yml
+      - php_gitlab_pipeline.yml
+      - ruby_gitlab_pipeline.yml
 
 nodejs_ssi_pipeline:
   stage: nodejs_ssi_pipelines
