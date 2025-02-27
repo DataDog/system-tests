@@ -19,7 +19,11 @@ runtime_metrics_lang_map = {
     "python": ("lang", "python"),
     "ruby": ("language", "ruby"),
 }
-log_injection_fields = {"nodejs": {"message": "msg"}}
+# represents the key under which the log library used in /log/library endpoint prints a log message
+log_injection_fields = {
+    "nodejs": {"message": "msg"},
+    "golang": {"message": "msg"},
+}
 
 
 @scenarios.default
@@ -504,12 +508,15 @@ class Test_Config_LogInjection_Enabled:
 
     def test_log_injection_enabled(self):
         assert self.r.status_code == 200
-        pattern = r'"dd":\{[^}]*\}'
-        stdout.assert_presence(pattern)
-        dd = parse_log_injection_message(self.message)
-        required_fields = ["trace_id", "span_id", "service", "version", "env"]
+        msg = parse_log_injection_message(self.message)
+        assert msg is not None, "Log message with trace context not found"
+        tid = parse_log_trace_id(msg)
+        assert tid is not None, "Expected a trace ID, but got None"
+        sid = parse_log_span_id(msg)
+        assert sid is not None, "Expected a span ID, but got None"
+        required_fields = ["service", "version", "env"]
         for field in required_fields:
-            assert field in dd, f"Missing field: {field}"
+            assert field in msg, f"Missing field: {field}"
 
 
 @rfc("https://docs.google.com/document/d/1kI-gTAKghfcwI7YzKhqRv2ExUstcHqADIWA4-TZ387o/edit#heading=h.8v16cioi7qxp")
@@ -531,7 +538,7 @@ class Test_Config_LogInjection_Default:
 @rfc("https://docs.google.com/document/d/1kI-gTAKghfcwI7YzKhqRv2ExUstcHqADIWA4-TZ387o/edit#heading=h.8v16cioi7qxp")
 @scenarios.tracing_config_nondefault
 @features.tracing_configuration_consistency
-class Test_Config_LogInjection_128Bit_TradeId_Default:
+class Test_Config_LogInjection_128Bit_TraceId_Default:
     """Verify trace IDs are logged in 128bit format when log injection is enabled"""
 
     def setup_log_injection_128bit_traceid_default(self):
@@ -540,17 +547,15 @@ class Test_Config_LogInjection_128Bit_TradeId_Default:
 
     def test_log_injection_128bit_traceid_default(self):
         assert self.r.status_code == 200
-        pattern = r'"dd":\{[^}]*\}'
-        stdout.assert_presence(pattern)
-        dd = parse_log_injection_message(self.message)
-        trace_id = dd.get("trace_id")
+        log_msg = parse_log_injection_message(self.message)
+        trace_id = parse_log_trace_id(log_msg)
         assert re.match(r"^[0-9a-f]{32}$", trace_id), f"Invalid 128-bit trace_id: {trace_id}"
 
 
 @rfc("https://docs.google.com/document/d/1kI-gTAKghfcwI7YzKhqRv2ExUstcHqADIWA4-TZ387o/edit#heading=h.8v16cioi7qxp")
 @scenarios.tracing_config_nondefault_3
 @features.tracing_configuration_consistency
-class Test_Config_LogInjection_128Bit_TradeId_Disabled:
+class Test_Config_LogInjection_128Bit_TraceId_Disabled:
     """Verify 128 bit traceid are disabled in log injection when DD_TRACE_128_BIT_TRACEID_LOGGING_ENABLED=false"""
 
     def setup_log_injection_128bit_traceid_disabled(self):
@@ -559,11 +564,9 @@ class Test_Config_LogInjection_128Bit_TradeId_Disabled:
 
     def test_log_injection_128bit_traceid_disabled(self):
         assert self.r.status_code == 200
-        pattern = r'"dd":\{[^}]*\}'
-        stdout.assert_presence(pattern)
-        dd = parse_log_injection_message(self.message)
-        trace_id = dd.get("trace_id")
-        assert re.match(r"^\d{1,20}$", trace_id), f"Invalid 64-bit trace_id: {trace_id}"
+        log_msg = parse_log_injection_message(self.message)
+        trace_id = parse_log_trace_id(log_msg)
+        assert re.match(r"^\d{1,20}$", str(trace_id)), f"Invalid 64-bit trace_id: {trace_id}"
 
 
 @rfc("https://docs.google.com/document/d/1kI-gTAKghfcwI7YzKhqRv2ExUstcHqADIWA4-TZ387o/edit#heading=h.8v16cioi7qxp")
@@ -667,13 +670,28 @@ def get_runtime_metrics(agent):
     return runtime_metrics_gauges, runtime_metrics_sketches
 
 
-# Parse the JSON-formatted log message from stdout and return the 'dd' object
 def parse_log_injection_message(log_message):
+    # Parses the JSON-formatted log message from stdout and returns it
+    # To pass tests that use this function, ensure your library has an entry in log_injection_fields
     for data in stdout.get_data():
         try:
             message = json.loads(data.get("message"))
         except json.JSONDecodeError:
             continue
-        if message.get("dd") and message.get(log_injection_fields[context.library.library]["message"]) == log_message:
+        # Locate log with the custom message, which should have the trace ID and span ID
+        if message.get(log_injection_fields[context.library.library]["message"]) != log_message:
+            continue
+        if message.get("dd"):
             return message.get("dd")
+        return message
     return None
+
+
+def parse_log_trace_id(message):
+    # APMAPI-1199: update nodejs to use dd.trace_id instead of trace_id
+    return message.get("dd.trace_id", message.get("trace_id"))
+
+
+def parse_log_span_id(message):
+    # APMAPI-1199: update nodejs to use dd.span_id instead of span_id
+    return message.get("dd.span_id", message.get("span_id"))

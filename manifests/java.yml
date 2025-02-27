@@ -83,7 +83,7 @@ tests/:
             vertx4: v1.12.0
           TestCommandInjection_ExtendedLocation: missing_feature
           TestCommandInjection_StackTrace:
-            '*': missing_feature
+            '*': 1.47.0
             play: missing_feature
             ratpack: missing_feature
             spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
@@ -1692,7 +1692,7 @@ tests/:
       Test_Config_TraceEnabled: v1.39.0
       Test_Config_TraceLogDirectory: missing_feature
       Test_Config_UnifiedServiceTagging: v1.41.1
-      Test_Stable_Config_Default: missing_feature
+      Test_Stable_Config_Default: v1.47.0
     test_crashtracking.py:
       Test_Crashtracking: v1.38.0
     test_dynamic_configuration.py:
@@ -1800,8 +1800,8 @@ tests/:
     Test_Config_IntegrationEnabled_True:
       '*': irrelevant (kafka endpoints are not implemented)
       spring-boot: v1.42.0
-    Test_Config_LogInjection_128Bit_TradeId_Default: missing_feature (disabled by default)
-    Test_Config_LogInjection_128Bit_TradeId_Disabled: incomplete_test_app (weblog endpoint not implemented)
+    Test_Config_LogInjection_128Bit_TraceId_Default: missing_feature (disabled by default)
+    Test_Config_LogInjection_128Bit_TraceId_Disabled: incomplete_test_app (weblog endpoint not implemented)
     Test_Config_LogInjection_Default: incomplete_test_app (weblog endpoint not implemented)
     Test_Config_LogInjection_Enabled: incomplete_test_app (weblog endpoint not implemented)
     Test_Config_ObfuscationQueryStringRegexp_Configured: v1.39.0
