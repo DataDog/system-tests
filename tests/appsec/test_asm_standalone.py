@@ -770,7 +770,6 @@ class Test_AppSecStandalone_NotEnabled:
 @features.appsec_standalone
 @scenarios.appsec_standalone
 @irrelevant(context.library > "java@v1.46.0", reason="V2 is implemented for newer versions")
-@irrelevant(context.library > "golang@v1.72.1", reason="V2 is implemented for newer versions")
 class Test_AppSecStandalone_UpstreamPropagation(AppSecStandalone_UpstreamPropagation_Base):
     """APPSEC correctly propagates AppSec events in distributing tracing with DD_EXPERIMENTAL_APPSEC_STANDALONE_ENABLED=true."""
 
