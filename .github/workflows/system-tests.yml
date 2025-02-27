@@ -151,7 +151,7 @@ jobs:
     name: End-to-end (${{ matrix.weblogs.weblog_name }} / ${{ matrix.weblogs.weblog_name_instance }})
     needs:
       - compute_parameters
-      - build_end_to_end_parallel
+      - build_end_to_end
     if: ${{ needs.compute_parameters.outputs.endtoend_defs_parallel_enable == 'true' }}
     strategy:
       matrix:
