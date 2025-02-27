@@ -1,6 +1,6 @@
 import json
 
-from utils import weblog, interfaces, context, missing_feature, features
+from utils import weblog, interfaces, context, missing_feature, features, bug
 
 
 # this test relies on the proto file at utils/build/docker/common/message.proto
@@ -14,6 +14,8 @@ class Test_Protobuf:
         context.library in ["ruby", "cpp", "golang", "nodejs", "php", "python"],
         reason="no schema tracking for protobuf yet",
     )
+    @bug(context.library < "dotnet@3.12.0", reason="wrong schema.name written")
+    @bug(context.library < "java@1.47.0", reason="bug on extraction of nested schemas")
     def test_protobuf(self):
         assert self.serialization_response.status_code == 200, self.serialization_response.text
         assert self.deserialization_response.status_code == 200, self.deserialization_response.text
