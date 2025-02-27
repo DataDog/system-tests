@@ -42,17 +42,8 @@ def validate_metric_type_and_version(event_type, version, metric):
 
 @features.user_monitoring
 @scenarios.appsec_ato_sdk
-class Test_UserLoginSuccessEventV2:
-    """Test for User Login Success Event SDK v2 for AppSec"""
-
-    def setup_user_login_success_safe_event(self):
-        headers = {
-            "X-Forwarded-For": "1.2.3.4",
-        }
-
-        params = {"login": LOGIN_SAFE, "user_id": USER_ID_SAFE}
-
-        self.r = weblog.get("/user_login_success_event_v2", params=params, headers=headers)
+class Test_UserLoginSuccessEventV2_Tags:
+    """Test tags created in AppSec User Login Success Event SDK v2"""
 
     def get_user_login_success_tags_validator(self, login, user_id):
         def validate(span):
@@ -77,67 +68,25 @@ class Test_UserLoginSuccessEventV2:
 
         return validate
 
-    def test_user_login_success_safe_event(self):
+    def setup_user_login_success_event(self):
+        headers = {
+            "X-Forwarded-For": "1.2.3.4",
+        }
+
+        params = {"login": LOGIN_SAFE, "user_id": USER_ID_SAFE}
+
+        self.r = weblog.get("/user_login_success_event_v2", params=params, headers=headers)
+
+    def test_user_login_success_event(self):
         # Call the user login success SDK and validate tags and metrics
 
         interfaces.library.validate_spans(self.r, self.get_user_login_success_tags_validator(LOGIN_SAFE, USER_ID_SAFE))
 
-        series = find_series("appsec", metric="sdk.event", is_metrics=True)
 
-        assert series
-        assert any(validate_metric_type_and_version("login_success", "v2", s) for s in series), [
-            s.get("tags") for s in series
-        ]
-
-    def setup_user_login_success_unsafe_login_event(self):
-        headers = {
-            "X-Forwarded-For": "1.2.3.4",
-        }
-
-        params = {"login": LOGIN_IN_RULE, "user_id": USER_ID_SAFE}
-
-        self.r = weblog.get("/user_login_success_event_v2", params=params, headers=headers)
-
-    def test_user_login_success_unsafe_login_event(self):
-        # Call the user login success SDK with unsafe login and validate tags, metrics and threat
-
-        interfaces.library.validate_spans(
-            self.r, self.get_user_login_success_tags_validator(LOGIN_IN_RULE, USER_ID_SAFE)
-        )
-
-        interfaces.library.assert_waf_attack(self.r, rule="001_trigger_on_usr_login")
-
-        series = find_series("appsec", metric="sdk.event", is_metrics=True)
-
-        assert series
-        assert any(validate_metric_type_and_version("login_success", "v2", s) for s in series), [
-            s.get("tags") for s in series
-        ]
-
-    def setup_user_login_success_unsafe_user_id_event(self):
-        headers = {
-            "X-Forwarded-For": "1.2.3.4",
-        }
-
-        params = {"login": LOGIN_SAFE, "user_id": USER_ID_IN_RULE}
-
-        self.r = weblog.get("/user_login_success_event_v2", params=params, headers=headers)
-
-    def test_user_login_success_unsafe_user_id_event(self):
-        # Call the user login success SDK with unsafe user id and validate tags, metrics and threat
-
-        interfaces.library.validate_spans(
-            self.r, self.get_user_login_success_tags_validator(LOGIN_SAFE, USER_ID_IN_RULE)
-        )
-
-        interfaces.library.assert_waf_attack(self.r, rule="002_trigger_on_usr_id")
-
-        series = find_series("appsec", metric="sdk.event", is_metrics=True)
-
-        assert series
-        assert any(validate_metric_type_and_version("login_success", "v2", s) for s in series), [
-            s.get("tags") for s in series
-        ]
+@features.user_monitoring
+@scenarios.appsec_ato_sdk
+class Test_UserLoginSuccessEventV2_HeaderCollection:
+    """Test headers are collected in AppSec User Login Success Event SDK v2"""
 
     def setup_user_login_success_header_collection(self):
         params = {"login": LOGIN_SAFE, "userid": USER_ID_SAFE}
@@ -153,6 +102,7 @@ class Test_UserLoginSuccessEventV2:
 
             for header in HEADERS:
                 assert f"http.request.headers.{header.lower()}" in span["meta"], f"Can't find {header} in span's meta"
+
             return True
 
         interfaces.library.validate_spans(self.r, validate_user_login_success_header_collection)
@@ -160,8 +110,66 @@ class Test_UserLoginSuccessEventV2:
 
 @features.user_monitoring
 @scenarios.appsec_ato_sdk
-class Test_UserLoginFailureEventV2:
-    """Test for User Failure Event SDK v2 for AppSec"""
+class Test_UserLoginSuccessEventV2_Metrics:
+    """Test metrics in AppSec User Login Success Event SDK v2"""
+
+    def setup_user_login_success_event(self):
+        params = {"login": LOGIN_SAFE, "user_id": USER_ID_SAFE}
+
+        self.r = weblog.get("/user_login_success_event_v2", params=params)
+
+    def test_user_login_success_event(self):
+        # Call the user login success SDK and validate tags and metrics
+
+        series = find_series("appsec", metric="sdk.event", is_metrics=True)
+
+        assert series
+        assert any(validate_metric_type_and_version("login_success", "v2", s) for s in series), [
+            s.get("tags") for s in series
+        ]
+
+
+@features.user_monitoring
+@scenarios.appsec_ato_sdk
+class Test_UserLoginSuccessEventV2_Libddwaf:
+    """Test libddwaf calls in AppSec User Login Success Event SDK v2"""
+
+    def setup_user_login_success_unsafe_login_success_event(self):
+        params = {"login": LOGIN_SAFE, "user_id": USER_ID_SAFE}
+
+        self.r = weblog.get("/user_login_success_event_v2", params=params)
+
+    def test_user_login_success_unsafe_login_success_event(self):
+        # Call the user login success SDK with unsafe login and validate tags, metrics and threat
+
+        interfaces.library.assert_waf_attack(self.r, rule="003_trigger_on_login_success")
+
+    def setup_user_login_success_unsafe_login_event(self):
+        params = {"login": LOGIN_IN_RULE, "user_id": USER_ID_SAFE}
+
+        self.r = weblog.get("/user_login_success_event_v2", params=params)
+
+    def test_user_login_success_unsafe_login_event(self):
+        # Call the user login success SDK with unsafe login and validate tags, metrics and threat
+
+        interfaces.library.assert_waf_attack(self.r, rule="001_trigger_on_usr_login")
+        interfaces.library.assert_waf_attack(self.r, rule="003_trigger_on_login_success")
+
+    def setup_user_login_success_unsafe_user_id_event(self):
+        params = {"login": LOGIN_SAFE, "user_id": USER_ID_IN_RULE}
+
+        self.r = weblog.get("/user_login_success_event_v2", params=params)
+
+    def test_user_login_success_unsafe_user_id_event(self):
+        # Call the user login success SDK with unsafe user id and validate tags, metrics and threat
+        interfaces.library.assert_waf_attack(self.r, rule="002_trigger_on_usr_id")
+        interfaces.library.assert_waf_attack(self.r, rule="003_trigger_on_login_success")
+
+
+@features.user_monitoring
+@scenarios.appsec_ato_sdk
+class Test_UserLoginFailureEventV2_Tags:
+    """Test created tags in AppSec User Login Failure Event SDK v2"""
 
     def get_user_login_failure_tags_validator(self, login, exists):
         def validate(span):
@@ -185,7 +193,7 @@ class Test_UserLoginFailureEventV2:
 
         return validate
 
-    def setup_user_login_failure_safe_event_exists(self):
+    def setup_user_login_failure_event_exists(self):
         headers = {
             "X-Forwarded-For": "1.2.3.4",
         }
@@ -194,19 +202,12 @@ class Test_UserLoginFailureEventV2:
 
         self.r = weblog.get("/user_login_failure_event_v2", params=params, headers=headers)
 
-    def test_user_login_failure_safe_event_exists(self):
+    def test_user_login_failure_event_exists(self):
         # Call the user login failure SDK with existing account and validate tags and metrics
 
         interfaces.library.validate_spans(self.r, self.get_user_login_failure_tags_validator(LOGIN_SAFE, exists=True))
 
-        series = find_series("appsec", metric="sdk.event", is_metrics=True)
-
-        assert series
-        assert any(validate_metric_type_and_version("login_failure", "v2", s) for s in series), [
-            s.get("tags") for s in series
-        ]
-
-    def setup_user_login_failure_safe_event_does_not_exist(self):
+    def setup_user_login_failure_event_does_not_exist(self):
         headers = {
             "X-Forwarded-For": "1.2.3.4",
         }
@@ -215,42 +216,16 @@ class Test_UserLoginFailureEventV2:
 
         self.r = weblog.get("/user_login_failure_event_v2", params=params, headers=headers)
 
-    def test_user_login_failure_safe_event_does_not_exist(self):
+    def test_user_login_failure_event_does_not_exist(self):
         # Call the user login failure SDK with account that does not exist and validate tags and metrics
 
         interfaces.library.validate_spans(self.r, self.get_user_login_failure_tags_validator(LOGIN_SAFE, exists=False))
 
-        series = find_series("appsec", metric="sdk.event", is_metrics=True)
 
-        assert series
-        assert any(validate_metric_type_and_version("login_failure", "v2", s) for s in series), [
-            s.get("tags") for s in series
-        ]
-
-    def setup_user_login_failure_unsafe_login_event(self):
-        headers = {
-            "X-Forwarded-For": "1.2.3.4",
-        }
-
-        params = {"login": LOGIN_IN_RULE, "exists": "true"}
-
-        self.r = weblog.get("/user_login_failure_event_v2", params=params, headers=headers)
-
-    def test_user_login_failure_unsafe_login_event(self):
-        # Call the user login failure SDK with unsafe login and validate tags, metrics and threat
-
-        interfaces.library.validate_spans(
-            self.r, self.get_user_login_failure_tags_validator(LOGIN_IN_RULE, exists=True)
-        )
-
-        interfaces.library.assert_waf_attack(self.r, rule="001_trigger_on_usr_login")
-
-        series = find_series("appsec", metric="sdk.event", is_metrics=True)
-
-        assert series
-        assert any(validate_metric_type_and_version("login_failure", "v2", s) for s in series), [
-            s.get("tags") for s in series
-        ]
+@features.user_monitoring
+@scenarios.appsec_ato_sdk
+class Test_UserLogiFailureEventV2_HeaderCollection:
+    """Test collected headers in AppSec User Login Failure Event SDK v2"""
 
     def setup_user_login_failure_header_collection(self):
         params = {"login": LOGIN_SAFE, "exists": "true"}
@@ -266,6 +241,54 @@ class Test_UserLoginFailureEventV2:
 
             for header in HEADERS:
                 assert f"http.request.headers.{header.lower()}" in span["meta"], f"Can't find {header} in span's meta"
+
             return True
 
         interfaces.library.validate_spans(self.r, validate_user_login_failure_header_collection)
+
+
+@features.user_monitoring
+@scenarios.appsec_ato_sdk
+class Test_UserLoginFailureEventV2_Metrics:
+    """Test metrics in AppSec User Login Failure Event SDK v2"""
+
+    def setup_user_login_failure_event(self):
+        params = {"login": LOGIN_SAFE, "exists": "true"}
+
+        self.r = weblog.get("/user_login_failure_event_v2", params=params)
+
+    def test_user_login_failure_event(self):
+        # Call the user login success SDK and validate tags and metrics
+
+        series = find_series("appsec", metric="sdk.event", is_metrics=True)
+
+        assert series
+        assert any(validate_metric_type_and_version("login_failure", "v2", s) for s in series), [
+            s.get("tags") for s in series
+        ]
+
+
+@features.user_monitoring
+@scenarios.appsec_ato_sdk
+class Test_UserLoginFailureEventV2_Libddwaf:
+    """Test libddwaf calls in AppSec User Login Failure Event SDK v2"""
+
+    def setup_user_login_failure_safe_login_event(self):
+        params = {"login": LOGIN_SAFE, "exists": "true"}
+
+        self.r = weblog.get("/user_login_failure_event_v2", params=params)
+
+    def test_user_login_failure_safe_login_event(self):
+        # Call the user login failure SDK with unsafe login and validate tags, metrics and threat
+        interfaces.library.assert_waf_attack(self.r, rule="004_trigger_on_login_failure")
+
+    def setup_user_login_failure_unsafe_login_event(self):
+        params = {"login": LOGIN_IN_RULE, "exists": "true"}
+
+        self.r = weblog.get("/user_login_failure_event_v2", params=params)
+
+    def test_user_login_failure_unsafe_login_event(self):
+        # Call the user login failure SDK with unsafe login and validate tags, metrics and threat
+
+        interfaces.library.assert_waf_attack(self.r, rule="001_trigger_on_usr_login")
+        interfaces.library.assert_waf_attack(self.r, rule="004_trigger_on_login_failure")
