@@ -5,6 +5,9 @@ stages:
   - nodejs_ssi_pipelines
   - java_ssi_pipelines
   - dotnet_ssi_pipelines
+  - python_ssi_pipelines
+  - php_ssi_pipelines
+  - ruby_ssi_pipelines
   - before_tests
 
 variables:
@@ -35,6 +38,9 @@ compute_pipeline:
     - python utils/scripts/compute-workflow-parameters.py nodejs -s "$scenarios" -g "$scenarios_groups" --parametric-job-count 1 --ci-environment "${CI_ENVIRONMENT}" --format gitlab > nodejs_gitlab_pipeline.yml
     - python utils/scripts/compute-workflow-parameters.py java -s "$scenarios" -g "$scenarios_groups" --parametric-job-count 1 --ci-environment "${CI_ENVIRONMENT}" --format gitlab > java_gitlab_pipeline.yml
     - python utils/scripts/compute-workflow-parameters.py dotnet -s "$scenarios" -g "$scenarios_groups" --parametric-job-count 1 --ci-environment "${CI_ENVIRONMENT}" --format gitlab > dotnet_gitlab_pipeline.yml
+    - python utils/scripts/compute-workflow-parameters.py python -s "$scenarios" -g "$scenarios_groups" --parametric-job-count 1 --ci-environment "${CI_ENVIRONMENT}" --format gitlab > python_gitlab_pipeline.yml
+    - python utils/scripts/compute-workflow-parameters.py php -s "$scenarios" -g "$scenarios_groups" --parametric-job-count 1 --ci-environment "${CI_ENVIRONMENT}" --format gitlab > php_gitlab_pipeline.yml
+    - python utils/scripts/compute-workflow-parameters.py ruby -s "$scenarios" -g "$scenarios_groups" --parametric-job-count 1 --ci-environment "${CI_ENVIRONMENT}" --format gitlab > ruby_gitlab_pipeline.yml
 
   artifacts:
     paths:
@@ -72,6 +78,39 @@ dotnet_ssi_pipeline:
   trigger:
     include:
       - artifact: dotnet_gitlab_pipeline.yml
+        job: compute_pipeline
+    strategy: depend
+
+python_ssi_pipeline:
+  stage: python_ssi_pipelines
+  needs: ["compute_pipeline", "dotnet_ssi_pipeline"]
+  variables:
+    PARENT_PIPELINE_SOURCE: $CI_PIPELINE_SOURCE
+  trigger:
+    include:
+      - artifact: python_gitlab_pipeline.yml
+        job: compute_pipeline
+    strategy: depend
+
+php_ssi_pipeline:
+  stage: php_ssi_pipelines
+  needs: ["compute_pipeline", "python_ssi_pipeline"]
+  variables:
+    PARENT_PIPELINE_SOURCE: $CI_PIPELINE_SOURCE
+  trigger:
+    include:
+      - artifact: php_gitlab_pipeline.yml
+        job: compute_pipeline
+    strategy: depend
+
+ruby_ssi_pipeline:
+  stage: ruby_ssi_pipelines
+  needs: ["compute_pipeline", "php_ssi_pipeline"]
+  variables:
+    PARENT_PIPELINE_SOURCE: $CI_PIPELINE_SOURCE
+  trigger:
+    include:
+      - artifact: ruby_gitlab_pipeline.yml
         job: compute_pipeline
     strategy: depend
 
