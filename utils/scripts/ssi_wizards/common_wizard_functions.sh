@@ -1,5 +1,5 @@
 #!/bin/bash
-# shellcheck disable
+# shellcheck disable=all
 #This script was generated using chatgpt
 
 # Function: Add blank lines for better UX
@@ -114,7 +114,7 @@ select_scenario() {
     while true; do
         read -p "Enter the number of the scenario you want to test: " scenario_choice
         if [[ "$scenario_choice" =~ ^[0-9]+$ ]] && (( scenario_choice >= 1 && scenario_choice <= ${#SCENARIOS[@]} )); then
-            SCENARIO="${SCENARIOS[$((scenario_choice - 1))]}"
+            export SCENARIO="${SCENARIOS[$((scenario_choice - 1))]}"
             break
         else
             echo "❌ Invalid choice. Please select a number between 1 and ${#SCENARIOS[@]}."

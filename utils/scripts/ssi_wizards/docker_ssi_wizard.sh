@@ -1,35 +1,10 @@
 #!/bin/bash
-# shellcheck disable
+# shellcheck disable=all
 #This script was generated using chatgpt
 
 source utils/scripts/ssi_wizards/common_wizard_functions.sh
 
-select_base_image_and_arch2(){
-    spacer
-    # 📌 Step 5: Extract machines/images and architectures
-    IMAGES=($(jq -r ".dockerssi_scenario_defs.\"${SCENARIO}\".\"${WEBLOG}\" | map(keys) | add | unique | .[] | select(. != \"arch\")" "$JSON_FILE"))
-    ARCHS=($(jq -r ".dockerssi_scenario_defs.\"${SCENARIO}\".\"${WEBLOG}\" | map(.arch) | unique | .[]" "$JSON_FILE"))
 
-    echo -e "${YELLOW}📌 Step: Choose a machine/image${NC}"
-    select BASE_IMAGE in "${IMAGES[@]}"; do
-        if [[ -n "$BASE_IMAGE" ]]; then
-            echo -e "${GREEN}✅ You selected: ${BASE_IMAGE}${NC}"
-            break
-        else
-            echo -e "${RED}❌ Invalid option. Please select a valid image.${NC}"
-        fi
-    done
-
-    echo -e "${YELLOW}📌 Step: Choose an architecture${NC}"
-    select ARCH in "${ARCHS[@]}"; do
-        if [[ -n "$ARCH" ]]; then
-            echo -e "${GREEN}✅ You selected: ${ARCH}${NC}"
-            break
-        else
-            echo -e "${RED}❌ Invalid option. Please select a valid architecture.${NC}"
-        fi
-    done
-}
 select_base_image_and_arch() {
     spacer
     echo -e "${YELLOW}📌 Step: Select the base image ${NC}"
@@ -40,46 +15,102 @@ select_base_image_and_arch() {
     echo ""
 
     # Extract available cluster agent (third-level keys under TEST_LIBRARY > SCENARIO > WEBLOG)
-    BASE_IMAGES=($(echo "$WORKFLOW_JSON" | python -c "
-import sys, json
-data = json.load(sys.stdin)
-base_images = data.get('$SCENARIO', {}).get('$WEBLOG', [])
-print(' '.join(base_images))
-"))
 
-    if [[ ${#CLUSTER_AGENTS[@]} -eq 0 ]]; then
-        echo "❗No cluster agents supported for:"
+
+BASE_IMAGES_RAW=$(python - <<EOF
+import json
+import sys
+
+# Read JSON from environment variable
+json_data = '''$WORKFLOW_JSON'''
+
+# Parse JSON
+data = json.loads(json_data)
+base_images = data.get('''$SCENARIO''', {}).get('''$WEBLOG''',[])
+# Extract first key and concatenate with the "arch" value
+first_keys_with_arch = [
+    f"{list(d.keys())[0]}({d.get('arch', 'N/A')})" for d in base_images
+]
+
+# Print output
+print(" ".join(first_keys_with_arch))
+EOF
+)
+    # Convert the string into an array by splitting on spaces
+    IFS=' ' read -r -a BASE_IMAGES <<< "$BASE_IMAGES_RAW"
+
+
+    if [[ ${#BASE_IMAGES[@]} -eq 0 ]]; then
+        echo "❗No base images supported for:"
         echo "   - Test Library: $TEST_LIBRARY"
         echo "   - Scenario: $SCENARIO"
         echo "   - Weblog: $WEBLOG"
+        exit 1
     else
 
-        echo "📝 Available cluster agents:"
-        for i in "${!CLUSTER_AGENTS[@]}"; do
-            echo "$(($i + 1))) ${CLUSTER_AGENTS[$i]}"
+        echo "📝 Available base images:"
+        for i in "${!BASE_IMAGES[@]}"; do
+            echo "$(($i + 1))) ${BASE_IMAGES[$i]}"
         done
 
-        # Ask the user to select a cluster agent
+        # Ask the user to select a base image
         while true; do
-            read -p "Enter the number of the cluster agent you want to use: " vm_choice
-            if [[ "$vm_choice" =~ ^[0-9]+$ ]] && (( vm_choice >= 1 && vm_choice <= ${#CLUSTER_AGENTS[@]} )); then
-                export CLUSTER_AGENT="${CLUSTER_AGENTS[$((vm_choice - 1))]}"
+            read -p "Enter the number of the base image you want to use: " vm_choice
+            if [[ "$vm_choice" =~ ^[0-9]+$ ]] && (( vm_choice >= 1 && vm_choice <= ${#BASE_IMAGES[@]} )); then
+                export BASE_IMAGE_RAW="${BASE_IMAGES[$((vm_choice - 1))]}"
                 break
             else
-                echo "❌ Invalid choice. Please select a number between 1 and ${#CLUSTER_AGENTS[@]}."
+                echo "❌ Invalid choice. Please select a number between 1 and ${#BASE_IMAGES[@]}."
             fi
         done
-        echo "✅ Selected cluster agent: $CLUSTER_AGENT"
+
+        # Extracting values using parameter expansion
+        BASE_IMAGE="${BASE_IMAGE_RAW%%(*}"  # Everything before '('
+        ARCH="${BASE_IMAGE_RAW##*(}"        # Everything after '(' and remove ')'
+
+        # Remove trailing ')'
+        ARCH="${ARCH%)}"
+
+        echo "✅ Selected base image: $BASE_IMAGE ($ARCH)"
     fi
 
 }
+
 select_runtime_version(){
-    spacer
-    # 📌 Step 7: Select Runtime Version (if available)
-    RUNTIMES=($(jq -r ".dockerssi_scenario_defs.\"${SCENARIO}\".\"${WEBLOG}\"[]
-        | select(.arch == \"${ARCH}\")
-        | select(has(\"${BASE_IMAGE}\"))
-        | .\"${BASE_IMAGE}\"[]?" "$JSON_FILE"))
+
+    output=$(python - <<EOF
+import json
+import os
+
+# Read JSON from environment variable
+json_data = os.getenv("WORKFLOW_JSON", "[]")
+# Ensure JSON is parsed correctly
+try:
+    data = json.loads(json_data)
+    data = data[os.getenv("SCENARIO", "NAIS")]
+    data = data[os.getenv("WEBLOG", "NONONON")]
+except json.JSONDecodeError:
+    print("")
+    exit(1)
+
+# Find the dictionary where "arch" matches the selected ARCH
+selected_entry = next((d for d in data if isinstance(d, dict) and d.get("arch") == "$ARCH"), None)
+
+# Extract the array from the first key (excluding "arch")
+if selected_entry:
+    first_key = next((k for k in selected_entry.keys() if k != "arch"), None)
+    result = selected_entry.get(first_key, [])
+else:
+    result = []
+
+# Print the array as a space-separated string for Bash
+print(" ".join(result))
+EOF
+)
+
+    # Convert output into an array
+    IFS=' ' read -r -a RUNTIMES <<< "$output"
+
     if [[ ${#RUNTIMES[@]} -gt 0 ]]; then
         echo -e "${YELLOW}📌 Step: Choose a runtime version ${NC}"
         select INSTALLABLE_RUNTIME in "${RUNTIMES[@]}"; do
@@ -95,6 +126,7 @@ select_runtime_version(){
         echo -e "${CYAN}ℹ️  No runtime versions available. Skipping...${NC}"
     fi
 }
+
 select_environment(){
     spacer
     # 📌 Step: Select environment
@@ -205,8 +237,8 @@ ask_for_test_language
 load_workflow_data "docker-ssi" "dockerssi_scenario_defs"
 select_scenario
 select_weblog
-#select_base_image_and_arch
-#select_runtime_version
-#select_environment
-#select_optional_params
-#run_the_tests
+select_base_image_and_arch
+select_runtime_version
+select_environment
+select_optional_params
+run_the_tests
