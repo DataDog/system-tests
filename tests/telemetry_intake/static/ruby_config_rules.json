@@ -7,6 +7,7 @@
         "DD_TRACE_PEER_SERVICE_MAPPING": "trace_peer_service_mapping",
         "DD_TRACE_REMOVE_INTEGRATION_SERVICE_NAMES_ENABLED": "trace_remove_integration_service_names_enabled",
         "agent_transport": "agent_transport",
+        "ci.enabled": "ci_enabled",
         "dd_trace_sample_rate": "trace_sample_rate",
         "peerServiceMapping": "trace_peer_service_mapping",
         "sampleRate": "trace_sample_rate",
@@ -18,7 +19,8 @@
         "trace.remove.integration-service-names.enabled": "trace_remove_integration_service_names_enabled",
         "trace.remove_integration_service_names_enabled": "trace_remove_integration_service_names_enabled",
         "trace.sample.rate": "trace_sample_rate",
-        "trace.sample_rate": "trace_sample_rate"
+        "trace.sample_rate": "trace_sample_rate",
+        "tracing.analytics.enabled": "trace_analytics_enabled"
     },
     "prefix_block_list": [],
     "redaction_list": [],

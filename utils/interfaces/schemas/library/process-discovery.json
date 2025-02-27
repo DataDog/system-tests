@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "/library/process-discovery.json",
+  "title": "Tracer Metadata",
+  "description": "Metadata format used for process discovery",
+  "type": "object",
+  "properties": {
+    "schema_version": {
+      "type": "integer",
+      "description": "Version of the schema"
+    },
+    "runtime_id": {
+      "type": "string",
+      "description": "Runtime UUID"
+    },
+    "tracer_version": {
+      "type": "string",
+      "description": "Version of the Datadog tracer library"
+    },
+    "tracer_language": {
+      "type": "string",
+      "description": "Programming language of the tracer library"
+    },
+    "hostname": {
+      "type": "string",
+      "description": "An identifier for the machine running the process"
+    },
+    "service_name": {
+      "type": "string",
+      "description": "Name of the service being instrumented"
+    },
+    "service_env": {
+      "type": "string",
+      "description": "Environment of the service being instrumented"
+    },
+    "service_version": {
+      "type": "string",
+      "description": "Version of the service being instrumented"
+    }
+  },
+  "required": [
+    "schema_version", 
+    "tracer_version",
+    "tracer_language",
+    "hostname"
+  ]
+}
+
+

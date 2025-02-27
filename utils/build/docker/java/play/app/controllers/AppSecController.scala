@@ -94,6 +94,16 @@ class AppSecController @Inject()(cc: MessagesControllerComponents, ws: WSClient,
       .as("text/plain; charset=utf-8")
   }
 
+  def apiSecuritySamplingWithStatus(code: Int) = Action { request =>
+    Results.Status(code)("Hello!\n")
+      .as("text/plain; charset=utf-8")
+  }
+
+  def apiSecuritySampling(code: Int) = Action { request =>
+    Results.Status(200)("OK!\n")
+      .as("text/plain; charset=utf-8")
+  }
+
   def params(segments: Seq[String]) = Action {
     Results.Ok(segments.toString())
   }

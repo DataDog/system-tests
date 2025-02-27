@@ -91,7 +91,7 @@ class Base_Debugger_Test:
     def method_and_language_to_line_number(self, method, language):
         """method_and_language_to_line_number returns the respective line number given the method and language"""
         return {
-            "Budgets": {"python": [142], "java": [138]},
+            "Budgets": {"java": [138], "dotnet": [136], "python": [142]},
             "Expression": {"java": [71], "dotnet": [74], "python": [72]},
             # The `@exception` variable is not available in the context of line probes.
             "ExpressionException": {},

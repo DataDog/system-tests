@@ -59,4 +59,4 @@ class Test_TrustBoundaryViolation_ExtendedLocation:
         )
 
     def test_extended_location_data(self):
-        validate_extended_location_data(self.r, self.vulnerability_type, False)
+        validate_extended_location_data(self.r, self.vulnerability_type, is_expected_location_required=True)
