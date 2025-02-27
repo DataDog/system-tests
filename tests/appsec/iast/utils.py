@@ -285,7 +285,7 @@ def validate_stack_traces(request):
     assert locationFrame is not None, "location not found in stack trace"
 
 
-def validate_extended_location_data(request, vulnerability_type, is_expected_location_required=True):
+def validate_extended_location_data(request, vulnerability_type, *, is_expected_location_required=True):
     span = interfaces.library.get_root_span(request)
     iast = span.get("meta", {}).get("_dd.iast.json")
     assert iast, "Expected at least one vulnerability"

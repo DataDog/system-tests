@@ -114,7 +114,7 @@ class _TestAgentAPI:
             log.write(f"\n{log_type}>>>>\n")
             log.write(json.dumps(json_trace))
 
-    def traces(self, clear=False, **kwargs) -> list[Trace]:
+    def traces(self, *, clear=False, **kwargs) -> list[Trace]:
         resp = self._session.get(self._url("/test/session/traces"), **kwargs)
         if clear:
             self.clear()
@@ -216,7 +216,7 @@ class _TestAgentAPI:
         resp = self._session.post(self._url("/test/settings"), json={"trace_request_delay": delay})
         assert resp.status_code == 202
 
-    def raw_telemetry(self, clear=False):
+    def raw_telemetry(self, *, clear=False):
         raw_reqs = self.requests()
         reqs = []
         for req in raw_reqs:
@@ -226,7 +226,7 @@ class _TestAgentAPI:
             self.clear()
         return reqs
 
-    def telemetry(self, clear=False, **kwargs):
+    def telemetry(self, *, clear=False, **kwargs):
         resp = self._session.get(self._url("/test/session/apmtelemetry"), **kwargs)
         if clear:
             self.clear()
@@ -244,7 +244,7 @@ class _TestAgentAPI:
         self._write_log("requests", resp_json)
         return resp_json
 
-    def rc_requests(self, post_only=False):
+    def rc_requests(self, *, post_only=False):
         reqs = self.requests()
         rc_reqs = [r for r in reqs if r["url"].endswith("/v0.7/config") and (not post_only or r["method"] == "POST")]
         for r in rc_reqs:
@@ -406,7 +406,7 @@ class _TestAgentAPI:
         last_known_state = None
         for _ in range(wait_loops):
             try:
-                rc_reqs = self.rc_requests(post_only)
+                rc_reqs = self.rc_requests(post_only=post_only)
             except requests.exceptions.RequestException:
                 logger.exception("Error getting RC requests")
             else:
