@@ -21,9 +21,6 @@
                     ],
                     "php": [
                         "php-app"
-                    ],
-                    "dotnet": [
-                        "dotnet-app"
                     ]
                 }
             ]
@@ -73,12 +70,6 @@
                     },
                     {
                         "name": "Ubuntu_16_arm64",
-                        "allowed_runtime_versions": [
-                            "*"
-                        ]
-                    },
-                    {
-                        "name": "CentOS_7_amd64",
                         "allowed_runtime_versions": [
                             "*"
                         ]
@@ -191,73 +182,6 @@
                     },
                     {
                         "name": "Ubuntu_22_arm64",
-                        "allowed_runtime_versions": [
-                            "*"
-                        ]
-                    }
-                ]
-            }
-        ],
-        "dotnet": [
-            {
-                "name": "dotnet-app",
-                "supported_images": [
-                    {
-                        "name": "Ubuntu_22_amd64",
-                        "allowed_runtime_versions": [
-                            "*"
-                        ]
-                    },
-                    {
-                        "name": "Ubuntu_22_arm64",
-                        "allowed_runtime_versions": [
-                            "*"
-                        ]
-                    },
-                    {
-                        "name": "OracleLinux_8_10_amd64",
-                        "allowed_runtime_versions": [
-                            "*"
-                        ]
-                    },
-                    {
-                        "name": "OracleLinux_8_10_arm64",
-                        "allowed_runtime_versions": [
-                            "*"
-                        ]
-                    },
-                    {
-                        "name": "OracleLinux_9_3_amd64",
-                        "allowed_runtime_versions": [
-                            "*"
-                        ]
-                    },
-                    {
-                        "name": "OracleLinux_9_3_arm64",
-                        "allowed_runtime_versions": [
-                            "*"
-                        ]
-                    },
-                    {
-                        "name": "AlmaLinux_8_amd64",
-                        "allowed_runtime_versions": [
-                            "*"
-                        ]
-                    },
-                    {
-                        "name": "AlmaLinux_8_arm64",
-                        "allowed_runtime_versions": [
-                            "*"
-                        ]
-                    },
-                    {
-                        "name": "AlmaLinux_9_amd64",
-                        "allowed_runtime_versions": [
-                            "*"
-                        ]
-                    },
-                    {
-                        "name": "AlmaLinux_9_arm64",
                         "allowed_runtime_versions": [
                             "*"
                         ]
