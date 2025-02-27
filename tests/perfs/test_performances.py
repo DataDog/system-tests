@@ -73,7 +73,7 @@ class Test_Performances:
 
         for path in TESTED_PATHS:
             for header in headers:
-                for data in datas:
+                for __ in datas:
                     for _ in range(5):
                         self.add_request(
                             {

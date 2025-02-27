@@ -181,7 +181,6 @@ ignore = [
     "SIM117",    # multiple-with-statements: TODO
     "N806",      # non-lowercase-variable-in-function: TODO
     "TRY002",    # raise-vanilla-class: TODO
-    "B007",      # unused-loop-control-variable: TODO
     "INP001",    # implicit-namespace-package: TODO
     "TRY301",    # raise-within-try: TODO
 

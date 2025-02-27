@@ -314,7 +314,7 @@ class _TestAgentAPI:
         """
         num_received = None
         traces = []
-        for i in range(wait_loops):
+        for _ in range(wait_loops):
             try:
                 traces = self.traces(clear=False)
             except requests.exceptions.RequestException:
@@ -344,7 +344,7 @@ class _TestAgentAPI:
         When sort_by_start=True returned traces are sorted by the span start time to simplify assertions by knowing that returned traces are in the same order as they have been created.
         """
         num_received = None
-        for i in range(wait_loops):
+        for _ in range(wait_loops):
             try:
                 traces = self.traces(clear=False)
             except requests.exceptions.RequestException:
@@ -369,7 +369,7 @@ class _TestAgentAPI:
 
     def wait_for_telemetry_event(self, event_name: str, *, clear: bool = False, wait_loops: int = 200):
         """Wait for and return the given telemetry event from the test agent."""
-        for i in range(wait_loops):
+        for _ in range(wait_loops):
             try:
                 events = self.telemetry(clear=False)
             except requests.exceptions.RequestException:
@@ -436,7 +436,7 @@ class _TestAgentAPI:
 
     def wait_for_rc_capabilities(self, wait_loops: int = 100) -> set[Capabilities]:
         """Wait for the given RemoteConfig apply state to be received by the test agent."""
-        for i in range(wait_loops):
+        for _ in range(wait_loops):
             try:
                 rc_reqs = self.rc_requests()
             except requests.exceptions.RequestException:
@@ -485,7 +485,7 @@ class _TestAgentAPI:
 
     def wait_for_tracer_flare(self, case_id: str | None = None, *, clear: bool = False, wait_loops: int = 100):
         """Wait for the tracer-flare to be received by the test agent."""
-        for i in range(wait_loops):
+        for _ in range(wait_loops):
             try:
                 tracer_flares = self.get_tracer_flares()
             except requests.exceptions.RequestException:

@@ -103,7 +103,7 @@ class _BaseDatadogDbIntegrationTestClass(BaseDbIntegrationsTestClass):
         """Username for accessing the database."""
         db_container = context.scenario.get_container_by_dd_integration_name(self.db_service)
 
-        for db_operation, span in self.get_spans(excluded_operations=excluded_operations):
+        for _, span in self.get_spans(excluded_operations=excluded_operations):
             assert span["meta"]["db.user"].casefold() == db_container.db_user.casefold()
 
     @missing_feature(library="python", reason="not implemented yet")
@@ -112,7 +112,7 @@ class _BaseDatadogDbIntegrationTestClass(BaseDbIntegrationsTestClass):
         """The name of the database being connected to. Database instance name. Formerly db.name"""
         db_container = context.scenario.get_container_by_dd_integration_name(self.db_service)
 
-        for db_operation, span in self.get_spans(excluded_operations=excluded_operations):
+        for _, span in self.get_spans(excluded_operations=excluded_operations):
             assert span["meta"]["db.instance"] == db_container.db_instance
 
     @missing_feature(library="python", reason="not implemented yet")
@@ -187,7 +187,7 @@ class _BaseDatadogDbIntegrationTestClass(BaseDbIntegrationsTestClass):
             assert span["meta"]["db.jdbc.driver_classname"].strip(), f"Test is failing for {db_operation}"
 
     def test_error_message(self):
-        for db_operation, span in self.get_spans(operations=["select_error"]):
+        for _, span in self.get_spans(operations=["select_error"]):
             # A string representing the error message.
             assert span["meta"]["error.message"].strip()
 
