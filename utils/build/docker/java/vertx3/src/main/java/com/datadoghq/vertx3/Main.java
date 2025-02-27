@@ -97,6 +97,21 @@ public class Main {
                             .setStatusCode(Integer.parseInt(ctx.pathParam("status_code")))
                             .end("Value tagged");
                 });
+        router.get("/api_security/sampling/:i")
+                .produces("text/plain")
+                .handler(ctx -> {
+                    ctx.response()
+                            .setStatusCode(Integer.parseInt(ctx.pathParam("i")))
+                            .end("Hello!\n");
+                });
+        router.get("/api_security_sampling/:i")
+                .produces("text/plain")
+                .handler(ctx -> {
+                    final int i = Integer.parseInt(ctx.pathParam("i"));
+                    ctx.response()
+                            .setStatusCode(200)
+                            .end("Hello!\n");
+                });
         router.getWithRegex("/params(?:/([^/]*))?(?:/([^/]*))?(?:/([^/]*))?(?:/([^/]*))?(?:/([^/]*))?")
                 .produces("text/plain")
                 .handler(ctx ->
