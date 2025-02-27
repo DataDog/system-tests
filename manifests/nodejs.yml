@@ -770,7 +770,7 @@ tests/:
     test_debugger_probe_status.py:
       Test_Debugger_Probe_Statuses:
         '*': irrelevant
-        express4: v5.32.0
+        express4: v5.35.0
     test_debugger_symdb.py:
       Test_Debugger_SymDb: missing_feature (feature not implented)
   integrations/:
