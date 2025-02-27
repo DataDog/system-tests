@@ -1,5 +1,5 @@
 #!/bin/bash
-# shellcheck disable=SC2207,SC2162,SC2206
+# shellcheck disable=SC2207,SC2162,SC2206,SC2076
 
 # Function: Add blank lines for better UX
 spacer() {
