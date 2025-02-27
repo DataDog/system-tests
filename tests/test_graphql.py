@@ -10,6 +10,21 @@ from utils import (
     features,
     scenarios,
 )
+from collections import defaultdict
+
+COMPONENT_EXCEPTIONS: defaultdict[str, defaultdict[str, dict]] = defaultdict(
+    lambda: defaultdict(lambda: {"operation_name": "graphql.execute", "has_location": True})
+)
+
+COMPONENT_EXCEPTIONS["go"]["99designs/gqlgen"] = {
+    "operation_name": "graphql.query",
+    "has_location": False,
+}
+
+COMPONENT_EXCEPTIONS["go"]["graph-gophers/graphql-go"] = {
+    "operation_name": "graphql.request",
+    "has_location": False,
+}
 
 
 @rfc("https://docs.google.com/document/d/1JjctLYE4a4EbtmnFixQt-TilltcSV69IAeiSGjcUL34")
@@ -65,9 +80,7 @@ class Test_GraphQLQueryErrorReporting:
         spans = list(
             span
             for _, _, span in interfaces.library.get_spans(request=self.request, full_trace=True)
-            if span["name"] == "graphql.execute"
-            or (span["name"] == "graphql.query" and span["meta"]["language"] == "go" and span["meta"]["component"] == "99designs/gqlgen")
-            or (span["name"] == "graphql.request" and span["meta"]["language"] == "go" and span["meta"]["component"] == "graph-gophers/graphql-go")
+            if self._is_graphql_execute_span(span)
         )
 
         assert len(spans) == 1
@@ -94,8 +107,10 @@ class Test_GraphQLQueryErrorReporting:
 
         self._assert_path(attributes)
 
-        if not self._skip_location(span):
+        if self._has_location(span):
             self._assert_location(attributes)
+        else:
+            assert "location" not in attributes
 
         assert attributes["extensions.int"]["type"] == 2
         assert attributes["extensions.int"]["int_value"] == 1
@@ -107,7 +122,7 @@ class Test_GraphQLQueryErrorReporting:
         assert attributes["extensions.str"]["string_value"] == "1"
 
         assert attributes["extensions.bool"]["type"] == 1
-        assert attributes["extensions.bool"]["bool_value"] == True
+        assert attributes["extensions.bool"]["bool_value"] == True  # noqa: E712
 
         # A list with two heterogeneous elements: [1, "foo"].
         # This test simulates an object that is not a supported scalar above (int,float,string,boolean).
@@ -122,23 +137,32 @@ class Test_GraphQLQueryErrorReporting:
         assert "extensions.not_captured" not in attributes
 
     @staticmethod
-    def _skip_location(span):
-        return span["meta"]["language"] == "go" and span["meta"]["component"] == "99designs/gqlgen"
+    def _is_graphql_execute_span(span) -> bool:
+        name = span["name"]
+        lang = span["meta"]["language"]
+        component = span["meta"]["component"]
+        return name == COMPONENT_EXCEPTIONS[lang][component]["operation_name"]
 
     @staticmethod
-    def _assert_path(attributes):
+    def _has_location(span) -> bool:
+        lang = span["meta"]["language"]
+        component = span["meta"]["component"]
+        return COMPONENT_EXCEPTIONS[lang][component]["has_location"]
+
+    @staticmethod
+    def _assert_path(attributes) -> None:
         assert attributes["path"]["type"] == 4
         path = attributes["path"]["array_value"]["values"]
-        assert path != None
+        assert path is not None
         assert len(path) == 1
         assert path[0]["type"] == 0
         assert path[0]["string_value"] == "withError"
 
     @staticmethod
-    def _assert_location(attributes):
+    def _assert_location(attributes) -> None:
         assert attributes["location"]["type"] == 4
         location = attributes["location"]["array_value"]["values"]
-        assert location != None
+        assert location is not None
         assert len(location) == 1
 
         for loc in location:
