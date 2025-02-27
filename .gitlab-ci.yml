@@ -3,6 +3,8 @@ include:
 stages:
   - compute_pipeline
   - nodejs_ssi_pipelines
+  - java_ssi_pipelines
+  - dotnet_ssi_pipelines
   - before_tests
 
 variables:
@@ -30,24 +32,46 @@ compute_pipeline:
     - python utils/scripts/compute_impacted_scenario.py >> impacted_scenarios.txt
     - cat impacted_scenarios.txt
     - source impacted_scenarios.txt
-    - python utils/scripts/compute-workflow-parameters.py nodejs -s "$scenarios" -g "$scenarios_groups" --parametric-job-count 1 --ci-environment "${CI_ENVIRONMENT}" --format gitlab > gitlab_pipeline.yml
+    - python utils/scripts/compute-workflow-parameters.py nodejs -s "$scenarios" -g "$scenarios_groups" --parametric-job-count 1 --ci-environment "${CI_ENVIRONMENT}" --format gitlab > nodejs_gitlab_pipeline.yml
+    - python utils/scripts/compute-workflow-parameters.py java -s "$scenarios" -g "$scenarios_groups" --parametric-job-count 1 --ci-environment "${CI_ENVIRONMENT}" --format gitlab > java_gitlab_pipeline.yml
+    - python utils/scripts/compute-workflow-parameters.py dotnet -s "$scenarios" -g "$scenarios_groups" --parametric-job-count 1 --ci-environment "${CI_ENVIRONMENT}" --format gitlab > dotnet_gitlab_pipeline.yml
+
   artifacts:
     paths:
-      - gitlab_pipeline.yml
+      - nodejs_gitlab_pipeline.yml
+      - java_gitlab_pipeline.yml
+      - dotnet_gitlab_pipeline.yml
 
-exec_aws_ssi_pipeline:
+nodejs_ssi_pipeline:
   stage: nodejs_ssi_pipelines
   needs: ["compute_pipeline"]
-#  rules:
-#    - if: $CI_PIPELINE_SOURCE == "schedule"
-#      when: always
-#    - when: manual
-#      allow_failure: true
   variables:
     PARENT_PIPELINE_SOURCE: $CI_PIPELINE_SOURCE
   trigger:
     include:
-      - artifact: gitlab_pipeline.yml
+      - artifact: nodejs_gitlab_pipeline.yml
+        job: compute_pipeline
+    strategy: depend
+
+java_ssi_pipeline:
+  stage: java_ssi_pipelines
+  needs: ["compute_pipeline"]
+  variables:
+    PARENT_PIPELINE_SOURCE: $CI_PIPELINE_SOURCE
+  trigger:
+    include:
+      - artifact: java_gitlab_pipeline.yml
+        job: compute_pipeline
+    strategy: depend
+
+dotnet_ssi_pipeline:
+  stage: dotnet_ssi_pipelines
+  needs: ["compute_pipeline"]
+  variables:
+    PARENT_PIPELINE_SOURCE: $CI_PIPELINE_SOURCE
+  trigger:
+    include:
+      - artifact: dotnet_gitlab_pipeline.yml
         job: compute_pipeline
     strategy: depend
 
