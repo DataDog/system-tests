@@ -2,7 +2,12 @@ import argparse
 import json
 
 from utils._context._scenarios import get_all_scenarios, ScenarioGroup
-from utils.scripts.ci_orchestrators.workflow_data import get_aws_matrix, get_endtoend_definitions, get_docker_ssi_matrix,get_k8s_matrix
+from utils.scripts.ci_orchestrators.workflow_data import (
+    get_aws_matrix,
+    get_endtoend_definitions,
+    get_docker_ssi_matrix,
+    get_k8s_matrix,
+)
 from utils.scripts.ci_orchestrators.gitlab_exporter import print_gitlab_pipeline
 
 
@@ -86,9 +91,7 @@ class CiData:
         # github action is not able to handle aws_ssi, so nothing to do
 
     def _export_gitlab(self) -> None:
-        print_gitlab_pipeline(
-            self.language, self.data, self.environment
-        )
+        print_gitlab_pipeline(self.language, self.data, self.environment)
 
     def _export_json(self) -> None:
         print(json.dumps(self.data))

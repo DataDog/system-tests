@@ -99,8 +99,8 @@ done
 spacer
 # 📌 Step 7: Select Runtime Version (if available)
 RUNTIMES=($(jq -r ".dockerssi_scenario_defs.\"${SCENARIO}\".\"${WEBLOG}\"[]
-    | select(.arch == \"${ARCH}\") 
-    | select(has(\"${BASE_IMAGE}\")) 
+    | select(.arch == \"${ARCH}\")
+    | select(has(\"${BASE_IMAGE}\"))
     | .\"${BASE_IMAGE}\"[]?" "$JSON_FILE"))
 if [[ ${#RUNTIMES[@]} -gt 0 ]]; then
     echo -e "${YELLOW}📌 Step 7: Choose a runtime version ${NC}"

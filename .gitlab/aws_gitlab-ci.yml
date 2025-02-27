@@ -13,7 +13,7 @@ ssi_tests:
   script:
     - echo "NO AWS TESTS TO RUN"
 
-.base_docker_ssi_job: 
+.base_docker_ssi_job:
     image: registry.ddbuild.io/ci/libdatadog-build/system-tests:57161036
     needs: []
     allow_failure: false
@@ -27,7 +27,7 @@ ssi_tests:
             cp -R logs_"${SCENARIO_SUFIX}" reports/
         else
             cp -R system-tests/logs_"${SCENARIO_SUFIX}" reports/
-        fi       
+        fi
         if [ "$CI_COMMIT_BRANCH" = "robertomonteromiguel/onboarding_gitlab_ci" ] && [ "$CI_PROJECT_NAME" = "system-tests" ]; then
           export FP_IMPORT_URL=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.fp-import-url --with-decryption --query "Parameter.Value" --out text)
           export FP_API_KEY=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.fp-api-key --with-decryption --query "Parameter.Value" --out text)
@@ -54,9 +54,9 @@ ssi_tests:
       #System-tests exit code 3 if there is a issue starting the scenario
       exit_codes:
         - 3
-    artifacts: 
-      when: always 
-      paths: 
+    artifacts:
+      when: always
+      paths:
         - reports/
 
 .base_job_onboarding_system_tests:
@@ -76,7 +76,7 @@ ssi_tests:
             cp -R logs_"${SCENARIO_SUFIX}" reports/
         else
             cp -R system-tests/logs_"${SCENARIO_SUFIX}" reports/
-        fi          
+        fi
         if [ "$CI_COMMIT_BRANCH" = "robertomonteromiguel/onboarding_gitlab_ci" ] && [ "$CI_PROJECT_NAME" = "system-tests" ]; then
           export FP_IMPORT_URL=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.fp-import-url --with-decryption --query "Parameter.Value" --out text)
           export FP_API_KEY=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.fp-api-key --with-decryption --query "Parameter.Value" --out text)
@@ -133,7 +133,7 @@ ssi_tests:
         cp -R logs_*/ reports/
     else
         cp -R system-tests/logs_*/ reports/
-    fi    
+    fi
     if [ "$CI_COMMIT_BRANCH" = "robertomonteromiguel/onboarding_gitlab_ci" ] && [ "$CI_PROJECT_NAME" = "system-tests" ]; then
       export FP_IMPORT_URL=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.fp-import-url --with-decryption --query "Parameter.Value" --out text)
       export FP_API_KEY=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.fp-api-key --with-decryption --query "Parameter.Value" --out text)

@@ -396,7 +396,7 @@ select_weblog() {
     echo "🔄 Fetching weblogs for the selected scenario: $SCENARIO..."
 
     # Extract available weblogs (second-level keys under the selected SCENARIO)
-    WEBLOGS=($(echo "$WORKFLOW_JSON" | python3 -c "import sys, json; data=json.load(sys.stdin); print(' '.join(data.get('$SCENARIO', {}).keys()))"))
+    WEBLOGS=($(echo "$WORKFLOW_JSON" | python -c "import sys, json; data=json.load(sys.stdin); print(' '.join(data.get('$SCENARIO', {}).keys()))"))
 
     if [[ ${#WEBLOGS[@]} -eq 0 ]]; then
         echo "❌ No weblogs found for scenario: $SCENARIO"
@@ -436,7 +436,7 @@ select_virtual_machine() {
     echo ""
 
     # Extract available virtual machines (third-level keys under TEST_LIBRARY > SCENARIO > WEBLOG)
-    VIRTUAL_MACHINES=($(echo "$WORKFLOW_JSON" | python3 -c "
+    VIRTUAL_MACHINES=($(echo "$WORKFLOW_JSON" | python -c "
 import sys, json
 data = json.load(sys.stdin)
 machines = data.get('$SCENARIO', {}).get('$WEBLOG', [])
