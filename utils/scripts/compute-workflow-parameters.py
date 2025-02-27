@@ -60,7 +60,7 @@ class CiData:
         self.data["parametric"]["scenarios"] = ["PARAMETRIC"] if self.data["parametric"]["enable"] else []
         legacy_scenarios, legacy_weblogs = set(), set()
 
-        for item in self.data["endtoend_defs"]["parallel_weblog_names"]:
+        for item in self.data["endtoend_defs"]["parallel_weblogs"]:
             legacy_weblogs.add(item)
 
         for job in self.data["endtoend_defs"]["parallel_jobs"]:

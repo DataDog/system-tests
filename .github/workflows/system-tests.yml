@@ -119,7 +119,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        weblog: ${{ fromJson(needs.compute_parameters.outputs.endtoend_defs_parallel_weblog_names) }}
+        weblog: ${{ fromJson(needs.compute_parameters.outputs.endtoend_defs_parallel_weblogs) }}
       fail-fast: false
     steps:
       - name: Checkout
@@ -148,7 +148,7 @@ jobs:
           path: binaries/
 
   run_end_to_end:
-    name: "End-to-end #${{ matrix.job.weblog_name_instance }}"
+    name: "End-to-end #${{ matrix.job.weblog_instance }}"
     needs:
       - compute_parameters
       - build_end_to_end
@@ -161,14 +161,14 @@ jobs:
     secrets: inherit
     with:
       library: ${{ matrix.job.library }}
-      weblog: ${{ matrix.job.weblog_name }}
+      weblog: ${{ matrix.job.weblog }}
       scenarios: ${{ toJson(matrix.job.scenarios) }}
       build_buddies_images: ${{ inputs.build_buddies_images }}
       build_proxy_image: ${{ inputs.build_proxy_image }}
-      binaries_artifact: binaries_${{ inputs.ci_environment}}_${{ inputs.library }}_${{ matrix.job.weblog_name }}
+      binaries_artifact: binaries_${{ inputs.ci_environment}}_${{ inputs.library }}_${{ matrix.job.weblog }}
       ci_environment: ${{ inputs.ci_environment }}
       skip_empty_scenarios: ${{ inputs.skip_empty_scenarios }}
-      logs_artifact_name: logs_endtoend_${{ inputs.library }}_${{ matrix.job.weblog_name }}_${{ inputs.ci_environment }}_${{ matrix.job.weblog_name_instance }}
+      logs_artifact_name: logs_endtoend_${{ inputs.library }}_${{ matrix.job.weblog }}_${{ inputs.ci_environment }}_${{ matrix.job.weblog_instance }}
 
   external_processing:
     needs:

@@ -57,9 +57,9 @@ on:
       endtoend_defs_parallel_enable:
         description: ""
         value: ${{ jobs.main.outputs.endtoend_defs_parallel_enable }}
-      endtoend_defs_parallel_weblog_names:
+      endtoend_defs_parallel_weblogs:
         description: ""
-        value: ${{ jobs.main.outputs.endtoend_defs_parallel_weblog_names }}
+        value: ${{ jobs.main.outputs.endtoend_defs_parallel_weblogs }}
       endtoend_defs_parallel_jobs:
         description: ""
         value: ${{ jobs.main.outputs.endtoend_defs_parallel_jobs }}
@@ -70,7 +70,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       endtoend_defs_parallel_enable: ${{ steps.main.outputs.endtoend_defs_parallel_enable }}
-      endtoend_defs_parallel_weblog_names: ${{ steps.main.outputs.endtoend_defs_parallel_weblog_names }}
+      endtoend_defs_parallel_weblogs: ${{ steps.main.outputs.endtoend_defs_parallel_weblogs }}
       endtoend_defs_parallel_jobs: ${{ steps.main.outputs.endtoend_defs_parallel_jobs }}
       externalprocessing_scenarios: ${{ steps.main.outputs.externalprocessing_scenarios }}
       libinjection_scenarios: ${{ steps.main.outputs.libinjection_scenarios }}

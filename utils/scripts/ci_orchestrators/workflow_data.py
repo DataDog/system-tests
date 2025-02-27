@@ -72,6 +72,74 @@ def get_aws_matrix(virtual_machines_file, aws_ssi_file, scenarios: list[str], la
     return results
 
 
+# End-to-end corner
+class Job:
+    """a job is a couple weblog/scenarios that will be executed in a single runner"""
+
+    def __init__(
+        self, library: str, weblog: str, weblog_instance: int, scenarios_times: dict[str, float], build_time: float
+    ):
+        self.library = library
+        self.weblog = weblog
+
+        # dict of scenario -> execution time of the scenario
+        self._scenarios_times = scenarios_times
+
+        # as a given weblog can have multiple runner executing its scenarios
+        # weblog_instance will be used to differentiate them
+        self.weblog_instance = weblog_instance
+
+        # build_time is not directly tight to the job, as another runner will execute it
+        # but it's convenient to store this info here, as we'll need it to execute the
+        # split mechanism
+        self.build_time = build_time
+
+    def serialize(self) -> dict:
+        return {
+            "library": self.library,
+            "weblog": self.weblog,
+            "scenarios": sorted(self.scenarios),
+            "weblog_instance": self.weblog_instance,
+        }
+
+    @property
+    def scenarios(self) -> tuple[str, ...]:
+        return tuple(self._scenarios_times.keys())
+
+    @property
+    def expected_job_time(self) -> float:
+        return sum(self._scenarios_times.values())
+
+    @property
+    def sort_key(self) -> tuple:
+        return (self.weblog, self.weblog_instance)
+
+    def get_scenario_time(self, scenario: str) -> float:
+        return self._scenarios_times[scenario]
+
+    def append_scenario(self, scenario: str, execution_time: float) -> None:
+        assert scenario not in self._scenarios_times
+        self._scenarios_times[scenario] = execution_time
+
+    def split_for_parallel_execution(self, desired_execution_time: float) -> list["Job"]:
+        result: list[Job] = []
+
+        for i, scenarios in enumerate(
+            _split_scenarios_for_parallel_execution(self._scenarios_times, desired_execution_time - self.build_time)
+        ):
+            result.append(
+                Job(
+                    library=self.library,
+                    weblog=self.weblog,
+                    weblog_instance=i + 1,
+                    scenarios_times={scenario: self._scenarios_times[scenario] for scenario in scenarios},
+                    build_time=self.build_time,
+                )
+            )
+
+        return result
+
+
 def _get_endtoend_weblogs(library: str) -> list[str]:
     folder = f"utils/build/docker/{library}"
     result = [
@@ -91,87 +159,74 @@ def get_endtoend_definitions(
     else:
         scenarios = scenario_map["opentelemetry"]
 
+    # get time stats
+    with open("utils/scripts/ci_orchestrators/time-stats.json", "r") as file:
+        time_stats = json.load(file)
+
     # get the list of end-to-end weblogs for the given library
     weblogs = _get_endtoend_weblogs(library)
 
-    # build a list of {weblog_name, scenarios} for each weblog
-    unfiltered_jobs = [
-        {
-            "library": library,
-            "weblog_name": weblog,
-            "scenarios": _filter_scenarios(scenarios, library, weblog, ci_environment),
+    # check that jobs can be splitted
+    assert maximum_parallel_jobs >= len(weblogs), "There are more weblogs than maximum_parallel_jobs"
+
+    # build a list of {weblog, scenarios} for each weblog, and assign it to a Job
+    jobs: list[Job] = []
+    for weblog in weblogs:
+        scenarios = _filter_scenarios(scenarios, library, weblog, ci_environment)
+        scenarios_times = {
+            scenario: _get_execution_time(library, weblog, scenario, time_stats["run"]) for scenario in scenarios
         }
-        for weblog in weblogs
-    ]
 
-    # remove weblogs with no scenarios
-    filtered_jobs = [weblog for weblog in unfiltered_jobs if len(weblog["scenarios"]) != 0]
+        if len(scenarios) > 0:  # remove weblogs with no scenarios
+            jobs.append(
+                Job(
+                    library=library,
+                    weblog=weblog,
+                    weblog_instance=1,
+                    scenarios_times=scenarios_times,
+                    build_time=_get_build_time(library, weblog, time_stats["build"]),
+                )
+            )
 
-    # split those jobs into smaller jobs
-    parallelized_jobs = _split_jobs_for_parallel_execution(
-        weblogs, filtered_jobs, desired_execution_time, maximum_parallel_jobs
-    )
+    # split those jobs into smaller jobs if needed
+
+    if desired_execution_time > 0:  # 0 or less means that user doesn't want to split jobs
+        jobs = _split_jobs_for_parallel_execution(jobs, desired_execution_time, maximum_parallel_jobs)
+
+    # sort jobs by weblog name and weblog instance
+    jobs.sort(key=lambda job: job.sort_key)
 
     return {
         "endtoend_defs": {
-            "parallel_enable": len(parallelized_jobs) > 0,
-            "parallel_weblog_names": sorted({i["weblog_name"] for i in parallelized_jobs}),
-            "parallel_jobs": sorted(
-                parallelized_jobs, key=lambda job: (job["weblog_name"], job["weblog_name_instance"])
-            ),  # TODO rename
+            "parallel_enable": len(jobs) > 0,
+            "parallel_weblogs": sorted({job.weblog for job in jobs}),
+            "parallel_jobs": [job.serialize() for job in jobs],
         }
     }
 
 
 def _split_jobs_for_parallel_execution(
-    weblogs: list[str], jobs: list[dict], desired_execution_time: float, maximum_parallel_jobs: int
-) -> list[dict]:
-    result = []
-
-    # if desired_execution_time is 0 or below, it indicates that we don't want to split the scenarios
-    if desired_execution_time <= 0:
-        desired_execution_time = float("inf")
-
-    with open("utils/scripts/ci_orchestrators/time-stats.json", "r") as file:
-        time_stats = json.load(file)
+    jobs: list[Job], desired_execution_time: float, maximum_parallel_jobs: int
+) -> list[Job]:
+    result: list[Job] = []
 
     for job in jobs:
-        build_time = _get_build_time(job["library"], job["weblog_name"], time_stats["build"])
-        scenario_times = {
-            scenario: _get_execution_time(job["library"], job["weblog_name"], scenario, time_stats["run"])
-            for scenario in job["scenarios"]
-        }
-
-        for i, (scenarios, expected_job_time) in enumerate(
-            _split_scenarios_for_parallel_execution(scenario_times, desired_execution_time - build_time)
-        ):
-            result.append(
-                {
-                    "library": job["library"],
-                    "weblog_name": job["weblog_name"],
-                    "weblog_name_instance": i,
-                    "scenarios": scenarios,
-                    "expected_job_time": expected_job_time + build_time,
-                }
-            )
-
-    assert maximum_parallel_jobs >= len(weblogs), "There are more weblogs than maximum_parallel_jobs"
+        result.extend(job.split_for_parallel_execution(desired_execution_time))
 
     while len(result) > maximum_parallel_jobs:
-        # sort jobs by their weblog_name_instance
+        # sort jobs by their weblog_instance
         # this way, we'll go through each weblog
-        for job_to_delete in sorted(result, key=lambda x: x["weblog_name_instance"], reverse=True):
-            weblog_jobs = [j for j in result if j["weblog_name"] == job_to_delete["weblog_name"]]
+        for job_to_delete in sorted(result, key=lambda job: job.weblog_instance, reverse=True):
+            weblog_jobs = [j for j in result if j.weblog == job_to_delete.weblog]
 
             result.remove(job_to_delete)
             weblog_jobs.remove(job_to_delete)
 
             # and give its scenarios to the fastest job with the same weblog
-            for scenario in job_to_delete["scenarios"]:
+            for scenario in job_to_delete.scenarios:
                 # find the fastest job with the same weblog
-                fastest_job = min(weblog_jobs, key=lambda x: x["expected_job_time"])
-                fastest_job["scenarios"].append(scenario)
-                fastest_job["expected_job_time"] += scenario_times[scenario]
+                fastest_job = min(weblog_jobs, key=lambda x: x.expected_job_time)
+                fastest_job.append_scenario(scenario, job_to_delete.get_scenario_time(scenario))
 
             if len(result) <= maximum_parallel_jobs:
                 break
@@ -192,13 +247,13 @@ def _split_scenarios_for_parallel_execution(scenario_times: dict[str, float], de
         backpack_time += execution_time
 
         if backpack_time > backpack_average_time:
-            yield backpack, backpack_time
+            yield backpack
 
             backpack = []
             backpack_time = 0
 
     if len(backpack) > 0:
-        yield backpack, backpack_time
+        yield backpack
 
 
 def _get_build_time(library: str, weblog: str, build_stats: dict) -> float:
