@@ -9,17 +9,14 @@ from utils import interfaces
 
 def validate_span_tags(request, expected_meta=(), expected_metrics=()):
     """Validate RASP span tags are added when an event is generated"""
-    spans = [s for _, s in interfaces.library.get_root_spans(request=request)]
-    assert spans, "No spans to validate"
+    span = interfaces.library.get_root_span(request)
+    meta = span["meta"]
+    for m in expected_meta:
+        assert m in meta, f"missing span meta tag `{m}` in {meta}"
 
-    for span in spans:
-        meta = span["meta"]
-        for m in expected_meta:
-            assert m in meta, f"missing span meta tag `{m}` in {meta}"
-
-        metrics = span["metrics"]
-        for m in expected_metrics:
-            assert m in metrics, f"missing span metric tag `{m}` in {metrics}"
+    metrics = span["metrics"]
+    for m in expected_metrics:
+        assert m in metrics, f"missing span metric tag `{m}` in {metrics}"
 
 
 def validate_stack_traces(request):
