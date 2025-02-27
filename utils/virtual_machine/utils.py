@@ -63,7 +63,9 @@ def generate_gitlab_pipeline(
 ):
     pipeline = {
         "include": [
-            {"remote": "https://gitlab-templates.ddbuild.io/libdatadog/include/single-step-instrumentation-tests.yml"}
+            {
+                "remote": "https://gitlab-templates.ddbuild.io/libdatadog/include-wip/robertomonteromiguel/onboarding_tests_new_aws_account/single-step-instrumentation-tests.yml"
+            }
         ],
         "variables": {
             "KUBERNETES_SERVICE_ACCOUNT_OVERWRITE": "system-tests",
@@ -163,6 +165,11 @@ def generate_gitlab_pipeline(
                 # Remove rules if you want to run the jobs when you clic on the execute button of the child pipeline
                 "rules": [rule_run, {"when": "manual", "allow_failure": True}],
                 "script": [
+                    "cat ~/.aws/config",
+                    "echo $AWS_PROFILE",
+                    "echo '--------AWS_VAULT--------'",
+                    "echo $AWS_VAULT",
+                    "echo 'AWS DONE'",
                     "./build.sh -i runner",
                     "timeout 3000 ./run.sh $SCENARIO --vm-weblog $WEBLOG --vm-env $ONBOARDING_FILTER_ENV --vm-library $TEST_LIBRARY --vm-provider aws --report-run-url $CI_JOB_URL --report-environment $ONBOARDING_FILTER_ENV --vm-default-vms All --vm-only "
                     + vm.name,
