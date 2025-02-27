@@ -19,7 +19,7 @@ runtime_metrics_lang_map = {
     "python": ("lang", "python"),
     "ruby": ("language", "ruby"),
 }
-log_injection_fields = {"nodejs": {"message": "msg"}}
+log_injection_fields = {"nodejs": {"message": "msg"}, "java": {"message": "msg"}}
 
 
 @scenarios.default
@@ -664,12 +664,22 @@ def get_runtime_metrics(agent):
 # Parses the JSON-formatted log message from stdout and returns it
 def parse_log_injection_message(log_message):
     for data in stdout.get_data():
+        # print(data)
+        logs = data.get("raw").split("\n")
+        print("logs", logs)
         try:
-            message = json.loads(data.get("message"))
+            for log in logs:
+                message = json.loads(log)
+                print("message: " , message)
+                if context.library == 'java':
+                    if message.get("mdc").get("dd") and message.get(log_injection_fields[context.library.library]["message"]) == log_message:
+                        print("JAVAVAAAA")
+                        return message.get("mdc").get("dd")
+                else:
+                    if message.get("dd") and message.get(log_injection_fields[context.library.library]["message"]) == log_message:
+                        return message.get("dd")
         except json.JSONDecodeError:
             continue
-        if message.get("dd") and message.get(log_injection_fields[context.library.library]["message"]) == log_message:
-            return message.get("dd")
         return message
     return None
 
