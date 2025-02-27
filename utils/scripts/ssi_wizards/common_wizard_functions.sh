@@ -36,7 +36,7 @@ ask_load_requirements() {
     fi
 }
 
-ask_for_test_language() {  
+ask_for_test_language() {
     spacer
     echo -e "${YELLOW}📌 Step: Choose the language to test${NC}"
     if [[ -n "$TEST_LIBRARY" ]]; then

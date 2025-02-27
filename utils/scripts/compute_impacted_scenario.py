@@ -158,6 +158,7 @@ def main() -> None:
                     ## .gitlab folder
                     r"\.gitlab/k8s_gitlab-ci.yml": ScenarioGroup.LIB_INJECTION,
                     r"\.gitlab/ssi_gitlab-ci.yml": ScenarioGroup.ONBOARDING,
+                    r"\.gitlab/aws_gitlab-ci.yml": ScenarioGroup.ONBOARDING,
                     ## utils/ folder
                     r"utils/interfaces/schemas.*": ScenarioGroup.END_TO_END,
                     r"utils/_context/_scenarios/open_telemetry\.py": ScenarioGroup.OPEN_TELEMETRY,

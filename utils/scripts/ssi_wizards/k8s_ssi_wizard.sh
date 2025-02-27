@@ -149,7 +149,7 @@ select_lib_init_and_injector(){
         if [[ "$K8S_INJECTOR_IMG" == "Use custom image" ]]; then
             read -p "Enter custom injector image: " K8S_INJECTOR_IMG
         fi
-    fi 
+    fi
 }
 
 run_the_tests(){
@@ -179,7 +179,7 @@ run_the_tests(){
         "${CMD[@]}"
     else
         echo -e "${RED}❌ Execution canceled.${NC}"
-    fi    
+    fi
 }
 welcome "K8s lib-injection Tests"
 ask_load_requirements
