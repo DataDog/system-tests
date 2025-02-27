@@ -100,6 +100,7 @@ class Job:
             "weblog": self.weblog,
             "scenarios": sorted(self.scenarios),
             "weblog_instance": self.weblog_instance,
+            "expected_job_time": self.expected_job_time + self.build_time,
         }
 
     @property
