@@ -488,6 +488,7 @@ tests/:
       Test_Parametric_OtelSpan_Set_Name: bug (APMAPI-778)  # updates the operation name of the span not the resource name
       Test_Parametric_Otel_Baggage: incomplete_test_app (otel baggage endpoints are not implemented)
       Test_Parametric_Otel_Current_Span: incomplete_test_app (otel current span endpoint are not implemented)
+    test_process_discovery.py: missing_feature
     test_span_events.py: missing_feature
     test_span_links.py: missing_feature
     test_telemetry.py:
