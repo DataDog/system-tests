@@ -1720,7 +1720,9 @@ class _Features:
         return test_object
 
     @staticmethod
-    def aws_sqs_span_creationcontext_propagation_via_xray_header_with_dd_trace(test_object):
+    def aws_sqs_span_creationcontext_propagation_via_xray_header_with_dd_trace(
+        test_object,
+    ):
         """[AWS-SQS][Span Creation][Context Propagation][AWS X-Ray] with dd-trace
 
         https://feature-parity.us1.prod.dog/#/?feature=263
@@ -1729,7 +1731,9 @@ class _Features:
         return test_object
 
     @staticmethod
-    def aws_sqs_span_creationcontext_propagation_via_message_attributes_with_dd_trace(test_object):
+    def aws_sqs_span_creationcontext_propagation_via_message_attributes_with_dd_trace(
+        test_object,
+    ):
         """[AWS-SQS][Span Creation][Context Propagation][AWS Message Attributes] with dd-trace
 
         https://feature-parity.us1.prod.dog/#/?feature=264
@@ -1792,7 +1796,9 @@ class _Features:
         return test_object
 
     @staticmethod
-    def aws_sns_span_creationcontext_propagation_via_message_attributes_with_dd_trace(test_object):
+    def aws_sns_span_creationcontext_propagation_via_message_attributes_with_dd_trace(
+        test_object,
+    ):
         """[AWS-SNS][Span Creation][Context Propagation] with dd-trace
 
         https://feature-parity.us1.prod.dog/#/?feature=271
@@ -1846,7 +1852,9 @@ class _Features:
         return test_object
 
     @staticmethod
-    def aws_kinesis_span_creationcontext_propagation_via_message_attributes_with_dd_trace(test_object):
+    def aws_kinesis_span_creationcontext_propagation_via_message_attributes_with_dd_trace(
+        test_object,
+    ):
         """[AWS-Kinesis][Span Creation][Context Propagation] with dd-trace
 
         https://feature-parity.us1.prod.dog/#/?feature=280
@@ -2429,6 +2437,15 @@ class _Features:
         https://feature-parity.us1.prod.dog/#/?feature=366
         """
         pytest.mark.features(feature_id=366)(test_object)
+        return test_object
+
+    @staticmethod
+    def process_discovery(test_object):
+        """Process Disocvery
+
+        https://feature-parity.us1.prod.dog/#/?feature=367
+        """
+        pytest.mark.features(feature_id=367)(test_object)
         return test_object
 
     @staticmethod

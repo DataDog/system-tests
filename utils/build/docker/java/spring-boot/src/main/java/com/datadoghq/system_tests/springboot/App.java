@@ -185,16 +185,16 @@ public class App {
         return "012345678901234567890123456789012345678901";
     }
 
-    @RequestMapping(value = "/tag_value/{value}/{code}", method = {RequestMethod.GET, RequestMethod.OPTIONS}, headers = "accept=*")
-    ResponseEntity<String> tagValue(@PathVariable final String value, @PathVariable final int code) {
-        setRootSpanTag("appsec.events.system_tests_appsec_event.value", value);
-        return ResponseEntity.status(code).body("Value tagged");
+    @RequestMapping(value = "/tag_value/{tag_value}/{status_code}", method = {RequestMethod.GET, RequestMethod.OPTIONS}, headers = "accept=*")
+    ResponseEntity<String> tagValue(@PathVariable final String tag_value, @PathVariable final int status_code) {
+        setRootSpanTag("appsec.events.system_tests_appsec_event.value", tag_value);
+        return ResponseEntity.status(status_code).body("Value tagged");
     }
 
-    @PostMapping(value = "/tag_value/{value}/{code}", headers = "accept=*",
+    @PostMapping(value = "/tag_value/{tag_value}/{status_code}", headers = "accept=*",
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
-    ResponseEntity<String> tagValueWithUrlencodedBody(@PathVariable final String value, @PathVariable final int code, @RequestParam MultiValueMap<String, String> body) {
-        return tagValue(value, code);
+    ResponseEntity<String> tagValueWithUrlencodedBody(@PathVariable final String tag_value, @PathVariable final int status_code, @RequestParam MultiValueMap<String, String> body) {
+        return tagValue(tag_value, status_code);
     }
 
     @RequestMapping("/waf/**")

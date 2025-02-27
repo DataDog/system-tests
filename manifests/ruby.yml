@@ -192,35 +192,35 @@ tests/:
       test_sqli.py:
         Test_Sqli_BodyJson:
           "*": missing_feature
-          rails42: bug (APPSEC-56765) # ActiveRecord instrumentation with Rails < 5 and Ruby < 2.7 not working due to kwargs
+          rails42: bug (APPSEC-56765)  # ActiveRecord instrumentation with Rails < 5 and Ruby < 2.7 not working due to kwargs
         Test_Sqli_BodyUrlEncoded:
           "*": missing_feature
-          rails42: bug (APPSEC-56765) # ActiveRecord instrumentation with Rails < 5 and Ruby < 2.7 not working due to kwargs
+          rails42: bug (APPSEC-56765)  # ActiveRecord instrumentation with Rails < 5 and Ruby < 2.7 not working due to kwargs
         Test_Sqli_BodyXml: irrelevant (XML not natively supported)
         Test_Sqli_Capability:
           "*": missing_feature
-          rails42: bug (APPSEC-56765) # ActiveRecord instrumentation with Rails < 5 and Ruby < 2.7 not working due to kwargs
+          rails42: bug (APPSEC-56765)  # ActiveRecord instrumentation with Rails < 5 and Ruby < 2.7 not working due to kwargs
         Test_Sqli_Mandatory_SpanTags:
           "*": missing_feature
-          rails42: bug (APPSEC-56765) # ActiveRecord instrumentation with Rails < 5 and Ruby < 2.7 not working due to kwargs
+          rails42: bug (APPSEC-56765)  # ActiveRecord instrumentation with Rails < 5 and Ruby < 2.7 not working due to kwargs
         Test_Sqli_Optional_SpanTags:
           "*": missing_feature
-          rails42: bug (APPSEC-56765) # ActiveRecord instrumentation with Rails < 5 and Ruby < 2.7 not working due to kwargs
+          rails42: bug (APPSEC-56765)  # ActiveRecord instrumentation with Rails < 5 and Ruby < 2.7 not working due to kwargs
         Test_Sqli_Rules_Version:
           "*": missing_feature
-          rails42: bug (APPSEC-56765) # ActiveRecord instrumentation with Rails < 5 and Ruby < 2.7 not working due to kwargs
+          rails42: bug (APPSEC-56765)  # ActiveRecord instrumentation with Rails < 5 and Ruby < 2.7 not working due to kwargs
         Test_Sqli_StackTrace:
           "*": missing_feature
-          rails42: bug (APPSEC-56765) # ActiveRecord instrumentation with Rails < 5 and Ruby < 2.7 not working due to kwargs
+          rails42: bug (APPSEC-56765)  # ActiveRecord instrumentation with Rails < 5 and Ruby < 2.7 not working due to kwargs
         Test_Sqli_Telemetry:
           "*": missing_feature
-          rails42: bug (APPSEC-56765) # ActiveRecord instrumentation with Rails < 5 and Ruby < 2.7 not working due to kwargs
+          rails42: bug (APPSEC-56765)  # ActiveRecord instrumentation with Rails < 5 and Ruby < 2.7 not working due to kwargs
         Test_Sqli_UrlQuery:
           "*": missing_feature
-          rails42: bug (APPSEC-56765) # ActiveRecord instrumentation with Rails < 5 and Ruby < 2.7 not working due to kwargs
+          rails42: bug (APPSEC-56765)  # ActiveRecord instrumentation with Rails < 5 and Ruby < 2.7 not working due to kwargs
         Test_Sqli_Waf_Version:
           "*": missing_feature
-          rails42: bug (APPSEC-56765) # ActiveRecord instrumentation with Rails < 5 and Ruby < 2.7 not working due to kwargs
+          rails42: bug (APPSEC-56765)  # ActiveRecord instrumentation with Rails < 5 and Ruby < 2.7 not working due to kwargs
       test_ssrf.py: missing_feature
     waf/:
       test_addresses.py:
@@ -525,6 +525,7 @@ tests/:
       Test_Parametric_Otel_Current_Span: incomplete_test_app (otel current span endpoint is not supported)
     test_partial_flushing.py:  # Not configurable in a standard way
       Test_Partial_Flushing: missing_feature
+    test_process_discovery.py: missing_feature
     test_sampling_delegation.py:
       Test_Decisionless_Extraction: v2.4.0
     test_span_events.py: missing_feature
@@ -585,8 +586,8 @@ tests/:
     Test_Config_IntegrationEnabled_True:
       '*': irrelevant (endpoint not implemented)
       rails70: v2.0.0
-    Test_Config_LogInjection_128Bit_TradeId_Default: missing_feature (not enabled by default)
-    Test_Config_LogInjection_128Bit_TradeId_Disabled: incomplete_test_app (endpoint not implemented)
+    Test_Config_LogInjection_128Bit_TraceId_Default: missing_feature (not enabled by default)
+    Test_Config_LogInjection_128Bit_TraceId_Disabled: incomplete_test_app (endpoint not implemented)
     Test_Config_LogInjection_Default: incomplete_test_app (endpoint not implemented)
     Test_Config_LogInjection_Enabled: incomplete_test_app (endpoint not implemented)
     Test_Config_ObfuscationQueryStringRegexp_Configured: missing_feature
