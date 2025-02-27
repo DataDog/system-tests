@@ -88,7 +88,7 @@ class Test_UserLoginSuccessEvent:
 
 
 @features.user_monitoring
-class Test_UserLoginSuccessEvent_Metric:
+class Test_UserLoginSuccessEvent_Metrics:
     """Success test for User Login Event SDK for AppSec"""
 
     def setup_user_login_success_event(self):
@@ -160,7 +160,7 @@ class Test_UserLoginFailureEvent:
 
 
 @features.user_monitoring
-class Test_UserLoginFailureEvent_Metric:
+class Test_UserLoginFailureEvent_Metrics:
     """Success test for User Login Event SDK for AppSec"""
 
     def setup_user_login_success_event(self):
@@ -211,7 +211,7 @@ class Test_CustomEvent:
 
 
 @features.user_monitoring
-class Test_CustomEvent_Metric:
+class Test_CustomEvent_Metrics:
     """Success test for User Login Event SDK for AppSec"""
 
     def setup_user_login_success_event(self):
