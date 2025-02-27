@@ -225,7 +225,7 @@ print(' '.join(cluster_agents))
         done
         echo "✅ Selected cluster agent: $CLUSTER_AGENT"
     fi
-    
+
 }
 
 # Call the function to select a cluster agent
