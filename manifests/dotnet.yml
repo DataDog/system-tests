@@ -350,7 +350,7 @@ tests/:
       Test_Fingerprinting_Header_And_Network: v3.4.0
       Test_Fingerprinting_Header_Capability: v3.4.0
       Test_Fingerprinting_Network_Capability: v3.4.0
-      Test_Fingerprinting_Session: missing_feature
+      Test_Fingerprinting_Session: v3.12.0
       Test_Fingerprinting_Session_Capability: v3.4.0
     test_identify.py:
       Test_Basic: v2.7.0
@@ -539,8 +539,8 @@ tests/:
     Test_Config_HttpServerErrorStatuses_FeatureFlagCustom: v3.5.0
     Test_Config_IntegrationEnabled_False: v3.5.0
     Test_Config_IntegrationEnabled_True: v3.5.0
-    Test_Config_LogInjection_128Bit_TradeId_Default: missing_feature (disabled by default)
-    Test_Config_LogInjection_128Bit_TradeId_Disabled: incomplete_test_app (weblog endpoint not implemented)
+    Test_Config_LogInjection_128Bit_TraceId_Default: missing_feature (disabled by default)
+    Test_Config_LogInjection_128Bit_TraceId_Disabled: incomplete_test_app (weblog endpoint not implemented)
     Test_Config_LogInjection_Default: incomplete_test_app (weblog endpoint not implemented)
     Test_Config_LogInjection_Enabled: incomplete_test_app (weblog endpoint not implemented)
     Test_Config_ObfuscationQueryStringRegexp_Configured: v3.4.1
