@@ -83,6 +83,26 @@ object AppSecRoutes {
             }
           }
       } ~
+      path("api_security/sampling" / """\d{3}""".r) { (i) =>
+        get {
+          complete(
+            HttpResponse(
+              status = StatusCodes.custom(i.toInt, "some reason"),
+              entity = HttpEntity(ContentTypes.`text/plain(UTF-8)`, "Hello!\n")
+            )
+          )
+        }
+      } ~
+      path("api_security_sampling" / """\d{2,3}""".r) { (i) =>
+        get {
+          complete(
+            HttpResponse(
+              status = StatusCodes.OK,
+              entity = HttpEntity(ContentTypes.`text/plain(UTF-8)`, "OK!\n")
+            )
+          )
+        }
+      } ~
       path("params" / Segments) { segments: Seq[String] =>
         get {
           complete(segments.toString())
