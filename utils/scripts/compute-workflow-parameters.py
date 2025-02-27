@@ -57,9 +57,6 @@ class CiData:
         self.data["graphql"] = {"scenarios": [], "weblogs": []}
         self.data["parametric"]["scenarios"] = ["PARAMETRIC"] if self.data["parametric"]["enable"] else []
         legacy_scenarios, legacy_weblogs = set(), set()
-        for item in self.data["endtoend_defs"]["weblogs"]:
-            legacy_scenarios.update(item["scenarios"])
-            legacy_weblogs.add(item["weblog_name"])
 
         for item in self.data["endtoend_defs"]["parallel_weblog_names"]:
             legacy_weblogs.add(item)

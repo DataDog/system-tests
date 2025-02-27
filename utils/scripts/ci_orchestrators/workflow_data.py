@@ -101,11 +101,10 @@ def get_endtoend_definitions(
     ]
 
     filtered_defs = [weblog for weblog in unfiltered_defs if len(weblog["scenarios"]) != 0]
-    weblogs, parallel_weblogs = _split_weblogs_for_parallel_execution(filtered_defs, desired_execution_time)
+    parallel_weblogs = _split_weblogs_for_parallel_execution(filtered_defs, desired_execution_time)
 
     return {
         "endtoend_defs": {
-            "weblogs": weblogs,
             "parallel_enable": len(parallel_weblogs) > 0,
             "parallel_weblog_names": list({i["weblog_name"] for i in parallel_weblogs}),
             "parallel_weblogs": parallel_weblogs,
@@ -113,39 +112,23 @@ def get_endtoend_definitions(
     }
 
 
-def _split_weblogs_for_parallel_execution(
-    weblogs_source: list[dict], desired_execution_time: int
-) -> tuple[list[dict], list[dict]]:
-    weblogs = []
+def _split_weblogs_for_parallel_execution(weblogs_source: list[dict], desired_execution_time: float) -> list[dict]:
     parallel_weblogs = []
+
+    # if desired_execution_time is 0 or below, it indicates that we don't want to split the scenarios
+    if desired_execution_time <= 0:
+        desired_execution_time = float("inf")
 
     with open("utils/scripts/ci_orchestrators/time-stats.json", "r") as file:
         time_stats = json.load(file)
 
     for weblog in weblogs_source:
-        # if desired_execution_time is 0 or below, it indicates that we don't want to split the scenarios
-        if desired_execution_time <= 0:
-            weblogs.append(weblog)
-            continue
-
-        # if there is only one scenario, we don't need to split it
-        if len(weblog["scenarios"]) == 1:
-            weblogs.append(weblog)
-            continue
-
-        # if the anticipated time is below the desired_execution_time, we don't need to split it
         build_time = _get_build_time(weblog["library"], weblog["weblog_name"], time_stats["build"])
         scenario_times = {
             scenario: _get_execution_time(weblog["library"], weblog["weblog_name"], scenario, time_stats["run"])
             for scenario in weblog["scenarios"]
         }
-        run_time = sum(scenario_times.values())
 
-        if build_time + run_time < desired_execution_time:
-            weblogs.append(weblog)
-            continue
-
-        # otherwise, we need to split the scenarios
         for i, (scenarios, expected_job_time) in enumerate(
             _split_scenarios_for_parallel_execution(scenario_times, desired_execution_time - build_time)
         ):
@@ -159,10 +142,10 @@ def _split_weblogs_for_parallel_execution(
                 }
             )
 
-    return weblogs, parallel_weblogs
+    return parallel_weblogs
 
 
-def _split_scenarios_for_parallel_execution(scenario_times: dict[str, int | float], desired_execution_time: int):
+def _split_scenarios_for_parallel_execution(scenario_times: dict[str, float], desired_execution_time: float):
     total_execution_time = sum(scenario_times.values())
     backpack_count = int(total_execution_time / desired_execution_time) + 1
     backpack_average_time = total_execution_time / backpack_count
@@ -184,7 +167,7 @@ def _split_scenarios_for_parallel_execution(scenario_times: dict[str, int | floa
         yield backpack, backpack_time
 
 
-def _get_build_time(library: str, weblog: str, build_stats: dict) -> int:
+def _get_build_time(library: str, weblog: str, build_stats: dict) -> float:
     if library not in build_stats:
         return build_stats["*"]
 

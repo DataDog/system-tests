@@ -111,41 +111,7 @@ jobs:
       library: ${{ inputs.library }}
       version: ${{ inputs.binaries_artifact == '' && 'prod' || 'dev' }}
 
-  end_to_end:
-    name: End-to-end (${{ matrix.weblogs.weblog_name }})
-    needs:
-      - compute_parameters
-    if: ${{ needs.compute_parameters.outputs.endtoend_defs_weblogs != '[]' }}
-    strategy:
-      matrix:
-        weblogs: ${{ fromJson(needs.compute_parameters.outputs.endtoend_defs_weblogs) }}
-      fail-fast: false
-    uses: ./.github/workflows/run-end-to-end.yml
-    secrets: inherit
-    with:
-      library: ${{ matrix.weblogs.library }}
-      weblog: ${{ matrix.weblogs.weblog_name }}
-      scenarios: ${{ toJson(matrix.weblogs.scenarios) }}
-      build_python_base_images: ${{ inputs.build_python_base_images }}
-      build_buddies_images: ${{ inputs.build_buddies_images }}
-      build_proxy_image: ${{ inputs.build_proxy_image }}
-      binaries_artifact: ${{ inputs.binaries_artifact }}
-      ci_environment: ${{ inputs.ci_environment }}
-      skip_empty_scenarios: ${{ inputs.skip_empty_scenarios }}
-      logs_artifact_name: logs_endtoend_${{ inputs.library }}_${{ matrix.weblogs.weblog_name }}_${{ inputs.ci_environment }}
-
-  external_processing:
-    needs:
-      - compute_parameters
-    if: ${{ needs.compute_parameters.outputs.externalprocessing_scenarios != '[]' && inputs.library == 'golang' && inputs.binaries_artifact != ''}}
-    uses: ./.github/workflows/run-external-processing.yml
-    secrets: inherit
-    with:
-      build_proxy_image: ${{ inputs.build_proxy_image }}
-      ci_environment: ${{ inputs.ci_environment }}
-      binaries_artifact: ${{ inputs.binaries_artifact }}
-
-  build_end_to_end_parallel:
+  build_end_to_end:
     name: Build end-to-end (${{ matrix.weblog }})
     needs:
       - compute_parameters
@@ -181,7 +147,7 @@ jobs:
           name: binaries_${{ inputs.ci_environment}}_${{ inputs.library }}_${{ matrix.weblog }}
           path: binaries/
 
-  run_end_to_end_parallel:
+  run_end_to_end:
     name: End-to-end (${{ matrix.weblogs.weblog_name }} / ${{ matrix.weblogs.weblog_name_instance }})
     needs:
       - compute_parameters
@@ -203,3 +169,14 @@ jobs:
       ci_environment: ${{ inputs.ci_environment }}
       skip_empty_scenarios: ${{ inputs.skip_empty_scenarios }}
       logs_artifact_name: logs_endtoend_${{ inputs.library }}_${{ matrix.weblogs.weblog_name }}_${{ inputs.ci_environment }}_${{ matrix.weblogs.weblog_name_instance }}
+
+  external_processing:
+    needs:
+      - compute_parameters
+    if: ${{ needs.compute_parameters.outputs.externalprocessing_scenarios != '[]' && inputs.library == 'golang' && inputs.binaries_artifact != ''}}
+    uses: ./.github/workflows/run-external-processing.yml
+    secrets: inherit
+    with:
+      build_proxy_image: ${{ inputs.build_proxy_image }}
+      ci_environment: ${{ inputs.ci_environment }}
+      binaries_artifact: ${{ inputs.binaries_artifact }}

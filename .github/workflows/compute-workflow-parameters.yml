@@ -54,9 +54,6 @@ on:
       parametric_job_matrix:
         description: ""
         value: ${{ jobs.main.outputs.parametric_job_matrix }}
-      endtoend_defs_weblogs:
-        description: ""
-        value: ${{ jobs.main.outputs.endtoend_defs_weblogs }}
       endtoend_defs_parallel_enable:
         description: ""
         value: ${{ jobs.main.outputs.endtoend_defs_parallel_enable }}
@@ -72,7 +69,6 @@ jobs:
     name: Get parameters
     runs-on: ubuntu-latest
     outputs:
-      endtoend_defs_weblogs: ${{ steps.main.outputs.endtoend_defs_weblogs }}
       endtoend_defs_parallel_enable: ${{ steps.main.outputs.endtoend_defs_parallel_enable }}
       endtoend_defs_parallel_weblog_names: ${{ steps.main.outputs.endtoend_defs_parallel_weblog_names }}
       endtoend_defs_parallel_weblogs: ${{ steps.main.outputs.endtoend_defs_parallel_weblogs }}
