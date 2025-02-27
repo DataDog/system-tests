@@ -176,23 +176,23 @@ app.get('/custom_event', (req, res) => {
   res.send('OK')
 })
 
-app.get("/user_login_success_event_v2", (req, res) => {
-  const login = req.query.login || "system_tests_login";
-  const userId = req.query.user_id || "system_tests_user_id";
+app.get('/user_login_success_event_v2', (req, res) => {
+  const login = req.query.login || 'system_tests_login'
+  const userId = req.query.user_id || 'system_tests_user_id'
 
-  tracer.appsec.v2?.trackUserLoginSuccess(login, userId, { metadata0: "value0", metadata1: "value1" });
+  tracer.appsec.v2?.trackUserLoginSuccess(login, userId, { metadata0: 'value0', metadata1: 'value1' })
 
-  res.send("OK");
-});
+  res.send('OK')
+})
 
-app.get("/user_login_failure_event_v2", (req, res) => {
-  const login = req.query.login || "system_tests_login";
-  const exists = req.query.exists?.trim() === 'true';
+app.get('/user_login_failure_event_v2', (req, res) => {
+  const login = req.query.login || 'system_tests_login'
+  const exists = req.query.exists?.trim() === 'true'
 
-  tracer.appsec.v2?.trackUserLoginFailure(login, exists, { metadata0: "value0", metadata1: "value1" });
+  tracer.appsec.v2?.trackUserLoginFailure(login, exists, { metadata0: 'value0', metadata1: 'value1' })
 
-  res.send("OK");
-});
+  res.send('OK')
+})
 
 app.get('/users', (req, res) => {
   const user = {}
