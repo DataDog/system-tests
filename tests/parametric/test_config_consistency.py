@@ -389,7 +389,6 @@ SDK_DEFAULT_STABLE_CONFIG = {
 @scenarios.parametric
 @features.stable_configuration_support
 @rfc("https://docs.google.com/document/d/1MNI5d3g6R8uU3FEWf2e08aAsFcJDVhweCPMjQatEb0o")
-@missing_feature(context.library < "python@3.1.0", reason="Not released yet")
 class Test_Stable_Config_Default(StableConfigWriter):
     """Verify that stable config works as intended"""
 

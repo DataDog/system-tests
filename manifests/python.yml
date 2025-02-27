@@ -823,6 +823,7 @@ tests/:
       Test_Config_TraceEnabled: v2.12.2
       Test_Config_TraceLogDirectory: missing_feature
       Test_Config_UnifiedServiceTagging: v2.12.2
+      Test_Stable_Config_Default: v3.1.0
     test_crashtracking.py:
       Test_Crashtracking: v2.11.2
     test_dynamic_configuration.py:
@@ -878,6 +879,7 @@ tests/:
       Test_Consistent_Configs: missing_feature
       Test_Defaults: v2.9.0
       Test_Environment: v2.8.0
+      Test_Stable_Configuration_Origin: v3.1.0
       Test_TelemetryInstallSignature: v2.5.0
       Test_TelemetrySCAEnvVar: v2.9.0
     test_trace_sampling.py:
