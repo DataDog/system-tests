@@ -33,7 +33,9 @@ class CiData:
         self.environment = ci_environment
         scenario_map = self._get_workflow_map(scenarios.split(","), groups.split(","))
 
-        self.data |= get_endtoend_definitions(library, scenario_map, ci_environment, desired_execution_time)
+        self.data |= get_endtoend_definitions(
+            library, scenario_map, ci_environment, desired_execution_time, maximum_parallel_jobs=256
+        )
 
         self.data["parametric"] = {
             "job_count": parametric_job_count,
@@ -61,8 +63,8 @@ class CiData:
         for item in self.data["endtoend_defs"]["parallel_weblog_names"]:
             legacy_weblogs.add(item)
 
-        for item in self.data["endtoend_defs"]["parallel_weblogs"]:
-            for scenario in item["scenarios"]:
+        for job in self.data["endtoend_defs"]["parallel_jobs"]:
+            for scenario in job["scenarios"]:
                 legacy_scenarios.add(scenario)
 
         self.data["endtoend"] = {"weblogs": sorted(legacy_weblogs), "scenarios": sorted(legacy_scenarios)}

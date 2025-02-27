@@ -84,36 +84,49 @@ def _get_endtoend_weblogs(library: str) -> list[str]:
 
 
 def get_endtoend_definitions(
-    library: str, scenario_map: dict, ci_environment: str, desired_execution_time: int
+    library: str, scenario_map: dict, ci_environment: str, desired_execution_time: int, maximum_parallel_jobs: int
 ) -> dict:
     if "otel" not in library:
         scenarios = scenario_map["endtoend"] + scenario_map["graphql"]
     else:
         scenarios = scenario_map["opentelemetry"]
 
-    unfiltered_defs = [
+    # get the list of end-to-end weblogs for the given library
+    weblogs = _get_endtoend_weblogs(library)
+
+    # build a list of {weblog_name, scenarios} for each weblog
+    unfiltered_jobs = [
         {
             "library": library,
             "weblog_name": weblog,
             "scenarios": _filter_scenarios(scenarios, library, weblog, ci_environment),
         }
-        for weblog in _get_endtoend_weblogs(library)
+        for weblog in weblogs
     ]
 
-    filtered_defs = [weblog for weblog in unfiltered_defs if len(weblog["scenarios"]) != 0]
-    parallel_weblogs = _split_weblogs_for_parallel_execution(filtered_defs, desired_execution_time)
+    # remove weblogs with no scenarios
+    filtered_jobs = [weblog for weblog in unfiltered_jobs if len(weblog["scenarios"]) != 0]
+
+    # split those jobs into smaller jobs
+    parallelized_jobs = _split_jobs_for_parallel_execution(
+        weblogs, filtered_jobs, desired_execution_time, maximum_parallel_jobs
+    )
 
     return {
         "endtoend_defs": {
-            "parallel_enable": len(parallel_weblogs) > 0,
-            "parallel_weblog_names": list({i["weblog_name"] for i in parallel_weblogs}),
-            "parallel_weblogs": parallel_weblogs,
+            "parallel_enable": len(parallelized_jobs) > 0,
+            "parallel_weblog_names": sorted({i["weblog_name"] for i in parallelized_jobs}),
+            "parallel_jobs": sorted(
+                parallelized_jobs, key=lambda job: (job["weblog_name"], job["weblog_name_instance"])
+            ),  # TODO rename
         }
     }
 
 
-def _split_weblogs_for_parallel_execution(weblogs_source: list[dict], desired_execution_time: float) -> list[dict]:
-    parallel_weblogs = []
+def _split_jobs_for_parallel_execution(
+    weblogs: list[str], jobs: list[dict], desired_execution_time: float, maximum_parallel_jobs: int
+) -> list[dict]:
+    result = []
 
     # if desired_execution_time is 0 or below, it indicates that we don't want to split the scenarios
     if desired_execution_time <= 0:
@@ -122,27 +135,48 @@ def _split_weblogs_for_parallel_execution(weblogs_source: list[dict], desired_ex
     with open("utils/scripts/ci_orchestrators/time-stats.json", "r") as file:
         time_stats = json.load(file)
 
-    for weblog in weblogs_source:
-        build_time = _get_build_time(weblog["library"], weblog["weblog_name"], time_stats["build"])
+    for job in jobs:
+        build_time = _get_build_time(job["library"], job["weblog_name"], time_stats["build"])
         scenario_times = {
-            scenario: _get_execution_time(weblog["library"], weblog["weblog_name"], scenario, time_stats["run"])
-            for scenario in weblog["scenarios"]
+            scenario: _get_execution_time(job["library"], job["weblog_name"], scenario, time_stats["run"])
+            for scenario in job["scenarios"]
         }
 
         for i, (scenarios, expected_job_time) in enumerate(
             _split_scenarios_for_parallel_execution(scenario_times, desired_execution_time - build_time)
         ):
-            parallel_weblogs.append(
+            result.append(
                 {
-                    "library": weblog["library"],
-                    "weblog_name": weblog["weblog_name"],
+                    "library": job["library"],
+                    "weblog_name": job["weblog_name"],
                     "weblog_name_instance": i,
                     "scenarios": scenarios,
                     "expected_job_time": expected_job_time + build_time,
                 }
             )
 
-    return parallel_weblogs
+    assert maximum_parallel_jobs >= len(weblogs), "There are more weblogs than maximum_parallel_jobs"
+
+    while len(result) > maximum_parallel_jobs:
+        # sort jobs by their weblog_name_instance
+        # this way, we'll go through each weblog
+        for job_to_delete in sorted(result, key=lambda x: x["weblog_name_instance"], reverse=True):
+            weblog_jobs = [j for j in result if j["weblog_name"] == job_to_delete["weblog_name"]]
+
+            result.remove(job_to_delete)
+            weblog_jobs.remove(job_to_delete)
+
+            # and give its scenarios to the fastest job with the same weblog
+            for scenario in job_to_delete["scenarios"]:
+                # find the fastest job with the same weblog
+                fastest_job = min(weblog_jobs, key=lambda x: x["expected_job_time"])
+                fastest_job["scenarios"].append(scenario)
+                fastest_job["expected_job_time"] += scenario_times[scenario]
+
+            if len(result) <= maximum_parallel_jobs:
+                break
+
+    return result
 
 
 def _split_scenarios_for_parallel_execution(scenario_times: dict[str, float], desired_execution_time: float):
@@ -259,3 +293,99 @@ def _is_supported(library: str, weblog: str, scenario: str, ci_environment: str)
             return False
 
     return True
+
+
+if __name__ == "__main__":
+    m = {
+        "endtoend": [
+            "AGENT_NOT_SUPPORTING_SPAN_EVENTS",
+            "APM_TRACING_E2E",
+            "APM_TRACING_E2E_OTEL",
+            "APM_TRACING_E2E_SINGLE_SPAN",
+            "APPSEC_API_SECURITY",
+            "APPSEC_API_SECURITY_NO_RESPONSE_BODY",
+            "APPSEC_API_SECURITY_RC",
+            "APPSEC_API_SECURITY_WITH_SAMPLING",
+            "APPSEC_AUTO_EVENTS_EXTENDED",
+            "APPSEC_AUTO_EVENTS_RC",
+            "APPSEC_BLOCKING",
+            "APPSEC_BLOCKING_FULL_DENYLIST",
+            "APPSEC_CORRUPTED_RULES",
+            "APPSEC_CUSTOM_OBFUSCATION",
+            "APPSEC_CUSTOM_RULES",
+            "APPSEC_LOW_WAF_TIMEOUT",
+            "APPSEC_META_STRUCT_DISABLED",
+            "APPSEC_MISSING_RULES",
+            "APPSEC_NO_STATS",
+            "APPSEC_RASP",
+            "APPSEC_RASP_NON_BLOCKING",
+            "APPSEC_RATE_LIMITER",
+            "APPSEC_REQUEST_BLOCKING",
+            "APPSEC_RULES_MONITORING_WITH_ERRORS",
+            "APPSEC_RUNTIME_ACTIVATION",
+            "APPSEC_STANDALONE",
+            "APPSEC_STANDALONE_V2",
+            "APPSEC_WAF_TELEMETRY",
+            "CROSSED_TRACING_LIBRARIES",
+            "DEBUGGER_EXCEPTION_REPLAY",
+            "DEBUGGER_EXPRESSION_LANGUAGE",
+            "DEBUGGER_INPRODUCT_ENABLEMENT",
+            "DEBUGGER_PII_REDACTION",
+            "DEBUGGER_PROBES_SNAPSHOT",
+            "DEBUGGER_PROBES_STATUS",
+            "DEBUGGER_SYMDB",
+            "DEFAULT",
+            "EVERYTHING_DISABLED",
+            "IAST_DEDUPLICATION",
+            "IAST_STANDALONE",
+            "IAST_STANDALONE_V2",
+            "INTEGRATIONS",
+            "INTEGRATIONS_AWS",
+            "IPV6",
+            "LIBRARY_CONF_CUSTOM_HEADER_TAGS",
+            "LIBRARY_CONF_CUSTOM_HEADER_TAGS_INVALID",
+            "PERFORMANCES",
+            "PROFILING",
+            "REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD",
+            "REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD_NOCACHE",
+            "REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES",
+            "REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES_NOCACHE",
+            "REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING",
+            "RUNTIME_METRICS_ENABLED",
+            "SAMPLING",
+            "SCA_STANDALONE",
+            "SCA_STANDALONE_V2",
+            "TELEMETRY_APP_STARTED_PRODUCTS_DISABLED",
+            "TELEMETRY_DEPENDENCY_LOADED_TEST_FOR_DEPENDENCY_COLLECTION_DISABLED",
+            "TELEMETRY_LOG_GENERATION_DISABLED",
+            "TELEMETRY_METRIC_GENERATION_DISABLED",
+            "TELEMETRY_METRIC_GENERATION_ENABLED",
+            "TRACE_PROPAGATION_STYLE_W3C",
+            "TRACING_CONFIG_EMPTY",
+            "TRACING_CONFIG_NONDEFAULT",
+            "TRACING_CONFIG_NONDEFAULT_2",
+            "TRACING_CONFIG_NONDEFAULT_3",
+        ],
+        "aws_ssi": [],
+        "dockerssi": ["DOCKER_SSI"],
+        "externalprocessing": [],
+        "graphql": ["GRAPHQL_APPSEC"],
+        "libinjection": [
+            "K8S_LIB_INJECTION",
+            "K8S_LIB_INJECTION_NO_AC",
+            "K8S_LIB_INJECTION_NO_AC_UDS",
+            "K8S_LIB_INJECTION_OPERATOR",
+            "K8S_LIB_INJECTION_PROFILING_DISABLED",
+            "K8S_LIB_INJECTION_PROFILING_ENABLED",
+            "K8S_LIB_INJECTION_PROFILING_OVERRIDE",
+            "K8S_LIB_INJECTION_SPARK_DJM",
+            "K8S_LIB_INJECTION_UDS",
+            "LIB_INJECTION_VALIDATION",
+            "LIB_INJECTION_VALIDATION_UNSUPPORTED_LANG",
+        ],
+        "testthetest": [],
+        "opentelemetry": ["OTEL_INTEGRATIONS", "OTEL_LOG_E2E", "OTEL_METRIC_E2E", "OTEL_TRACING_E2E"],
+        "parametric": ["PARAMETRIC"],
+    }
+
+    get_endtoend_definitions("java", m, "dev", 20, 256)

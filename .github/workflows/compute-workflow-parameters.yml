@@ -60,9 +60,9 @@ on:
       endtoend_defs_parallel_weblog_names:
         description: ""
         value: ${{ jobs.main.outputs.endtoend_defs_parallel_weblog_names }}
-      endtoend_defs_parallel_weblogs:
+      endtoend_defs_parallel_jobs:
         description: ""
-        value: ${{ jobs.main.outputs.endtoend_defs_parallel_weblogs }}
+        value: ${{ jobs.main.outputs.endtoend_defs_parallel_jobs }}
 
 jobs:
   main:
@@ -71,7 +71,7 @@ jobs:
     outputs:
       endtoend_defs_parallel_enable: ${{ steps.main.outputs.endtoend_defs_parallel_enable }}
       endtoend_defs_parallel_weblog_names: ${{ steps.main.outputs.endtoend_defs_parallel_weblog_names }}
-      endtoend_defs_parallel_weblogs: ${{ steps.main.outputs.endtoend_defs_parallel_weblogs }}
+      endtoend_defs_parallel_jobs: ${{ steps.main.outputs.endtoend_defs_parallel_jobs }}
       externalprocessing_scenarios: ${{ steps.main.outputs.externalprocessing_scenarios }}
       libinjection_scenarios: ${{ steps.main.outputs.libinjection_scenarios }}
       libinjection_enable: ${{ steps.main.outputs.libinjection_enable }}
