@@ -17,7 +17,12 @@ def get_schema(request, address):
     """Get api security schema from spans"""
     span = interfaces.library.get_root_span(request)
     meta = span.get("meta", {})
-    return meta.get("_dd.appsec.s." + address)
+    meta_key = "_dd.appsec.s." + address
+    assert meta_key in meta, f"Expected meta key {meta_key} not found in {meta}"
+    result = meta.get("_dd.appsec.s." + address)
+    assert result, f"Expected meta key {meta_key} has no value"
+    assert meta.get("http.route"), f"Schema {meta_key} found, but root span has no http.route tag"
+    return result
 
 
 # can be used to match any value in a schema
@@ -57,9 +62,8 @@ class Test_Schema_Request_Headers:
 
     def test_request_method(self):
         """Can provide request header schema"""
-        schema = get_schema(self.request, "req.headers")
         assert self.request.status_code == 200
-        assert schema
+        schema = get_schema(self.request, "req.headers")
         assert isinstance(schema, list)
         for parameter_name in ("accept-encoding", "host", "user-agent"):
             assert parameter_name in schema[0]
@@ -80,9 +84,8 @@ class Test_Schema_Request_Cookies:
     @missing_feature(context.library < "python@1.19.0.dev")
     def test_request_method(self):
         """Can provide request header schema"""
-        schema = get_schema(self.request, "req.cookies")
         assert self.request.status_code == 200
-        assert schema
+        schema = get_schema(self.request, "req.cookies")
         assert isinstance(schema, list)
         for parameter_name in ("secret", "cache"):
             assert parameter_name in schema[0]
@@ -100,9 +103,8 @@ class Test_Schema_Request_Query_Parameters:
 
     def test_request_method(self):
         """Can provide request query parameters schema"""
-        schema = get_schema(self.request, "req.query")
         assert self.request.status_code == 200
-        assert schema
+        schema = get_schema(self.request, "req.query")
         assert isinstance(schema, list)
         for parameter_name in ("x", "y", "z"):
             assert parameter_name in schema[0]
@@ -120,9 +122,8 @@ class Test_Schema_Request_Path_Parameters:
 
     def test_request_method(self):
         """Can provide request path parameters schema"""
-        schema = get_schema(self.request, "req.params")
         assert self.request.status_code == 200
-        assert schema
+        schema = get_schema(self.request, "req.params")
         assert isinstance(schema, list)
 
         for route_parameter in ("tag_value", "status_code"):
@@ -145,8 +146,8 @@ class Test_Schema_Request_Json_Body:
 
     def test_request_method(self):
         """Can provide request request body schema"""
-        schema = get_schema(self.request, "req.body")
         assert self.request.status_code == 200
+        schema = get_schema(self.request, "req.body")
         assert contains(schema, [{"main": [[[{"key": [8], "value": [16]}]], {"len": 2}], "nullable": [1]}])
 
 
@@ -170,8 +171,8 @@ class Test_Schema_Request_FormUrlEncoded_Body:
 
     def test_request_method(self):
         """Can provide request request body schema"""
-        schema = get_schema(self.request, "req.body")
         assert self.request.status_code == 200
+        schema = get_schema(self.request, "req.body")
         assert (
             contains(schema, [{"main": [[[{"key": [8], "value": [8]}]], {"len": 2}], "nullable": [8]}])
             or contains(schema, [{"main": [[[{"key": [8], "value": [16]}]], {"len": 2}], "nullable": [1]}])
@@ -201,8 +202,8 @@ class Test_Schema_Response_Headers:
 
     def test_request_method(self):
         """Can provide response header schema"""
-        schema = get_schema(self.request, "res.headers")
         assert self.request.status_code == 200
+        schema = get_schema(self.request, "res.headers")
         assert isinstance(schema, list)
         assert len(schema) == 1
         assert isinstance(schema[0], dict)
@@ -224,7 +225,6 @@ class Test_Schema_Response_Body:
     def test_request_method(self):
         """Can provide response body schema"""
         assert self.request.status_code == 200
-
         schema = get_schema(self.request, "res.body")
         assert isinstance(schema, list), f"_dd.appsec.s.res.body meta tag should be a list, got {schema}"
         assert len(schema) == 1, f"{schema} is not a list of length 1"
@@ -279,10 +279,9 @@ class Test_Scanners:
     @missing_feature(context.library < "python@1.19.0.dev")
     def test_request_method(self):
         """Can provide request header schema"""
+        assert self.request.status_code == 200
         schema_cookies = get_schema(self.request, "req.cookies")
         schema_headers = get_schema(self.request, "req.headers")
-        assert self.request.status_code == 200
-        assert schema_cookies
         assert isinstance(schema_cookies, list)
         # some tracers report headers / cookies values as lists even if there's just one element (frameworks do)
         # in this case, the second case of expected variables below would pass
