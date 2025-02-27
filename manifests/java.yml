@@ -162,7 +162,17 @@ tests/:
             spring-boot-openliberty: bug (APPSEC-51483)
             vertx3: missing_feature
             vertx4: missing_feature
-          Test_HstsMissingHeader_ExtendedLocation: missing_feature
+          Test_HstsMissingHeader_ExtendedLocation:
+            '*': v1.20.0
+            akka-http: missing_feature
+            jersey-grizzly2: missing_feature
+            play: missing_feature
+            ratpack: missing_feature
+            resteasy-netty3: missing_feature
+            spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+            spring-boot-openliberty: bug (APPSEC-51483)
+            vertx3: missing_feature
+            vertx4: missing_feature
           Test_HstsMissingHeader_StackTrace: irrelevant (not expected to have a stack trace)
         test_insecure_auth_protocol.py:
           Test_InsecureAuthProtocol:
@@ -324,7 +334,16 @@ tests/:
             spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
             vertx3: missing_feature
             vertx4: missing_feature
-          Test_TrustBoundaryViolation_ExtendedLocation: missing_feature
+          Test_TrustBoundaryViolation_ExtendedLocation:
+            '*': v1.22.0
+            akka-http: missing_feature
+            jersey-grizzly2: missing_feature
+            play: missing_feature
+            ratpack: missing_feature
+            resteasy-netty3: missing_feature
+            spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+            vertx3: missing_feature
+            vertx4: missing_feature
           Test_TrustBoundaryViolation_StackTrace:
             '*': v1.47.0
             akka-http: missing_feature
@@ -455,7 +474,17 @@ tests/:
             spring-boot-openliberty: bug (APPSEC-54981)
             vertx3: missing_feature
             vertx4: missing_feature
-          Test_XContentSniffing_ExtendedLocation: missing_feature
+          Test_XContentSniffing_ExtendedLocation:
+            '*': v1.22.0
+            akka-http: missing_feature
+            jersey-grizzly2: missing_feature
+            play: missing_feature
+            ratpack: missing_feature
+            resteasy-netty3: missing_feature
+            spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+            spring-boot-openliberty: bug (APPSEC-54981)
+            vertx3: missing_feature
+            vertx4: missing_feature
           Test_XContentSniffing_StackTrace: irrelevant (not expected to have a stack trace)
         test_xpath_injection.py:
           TestXPathInjection:
