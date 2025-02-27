@@ -186,9 +186,13 @@ public class App {
         return ResponseEntity.status(status_code).body("Value tagged");
     }
 
-    @PostMapping(value = "/tag_value/{tag_value}/{status_code}", headers = "accept=*",
-            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+    @PostMapping(value = "/tag_value/{tag_value}/{status_code}", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
     ResponseEntity<String> tagValueWithUrlencodedBody(@PathVariable final String tag_value, @PathVariable final int status_code, @RequestParam MultiValueMap<String, String> body) {
+        return tagValue(tag_value, status_code);
+    }
+
+    @PostMapping(value = "/tag_value/{tag_value}/{status_code}", consumes = MediaType.APPLICATION_JSON_VALUE)
+    ResponseEntity<String> tagValueWithJsonBody(@PathVariable final String tag_value, @PathVariable final int status_code, @RequestBody Object body) {
         return tagValue(tag_value, status_code);
     }
 
