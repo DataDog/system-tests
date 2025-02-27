@@ -45,6 +45,46 @@
           "operator": "match_regex"
         }
       ]
+    },
+    {
+      "id": "003_trigger_on_login_success",
+      "name": "Trigger on login success",
+      "tags": {
+        "type": "attack_tool",
+        "category": "attack_attempt"
+      },
+      "conditions": [
+        {
+          "parameters": {
+            "inputs": [
+              {
+                "address": "server.business_logic.users.login.success"
+              }
+            ]
+          },
+          "operator": "exists"
+        }
+      ]
+    },
+    {
+      "id": "004_trigger_on_login_failure",
+      "name": "Trigger on login failure",
+      "tags": {
+        "type": "attack_tool",
+        "category": "attack_attempt"
+      },
+      "conditions": [
+        {
+          "parameters": {
+            "inputs": [
+              {
+                "address": "server.business_logic.users.login.failure"
+              }
+            ]
+          },
+          "operator": "exists"
+        }
+      ]
     }
   ]
 }
