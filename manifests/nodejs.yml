@@ -606,11 +606,11 @@ tests/:
       Test_Basic: v2.0.0
     test_asm_standalone.py:
       Test_AppSecStandalone_NotEnabled: *ref_5_18_0
-      Test_AppSecStandalone_UpstreamPropagation: *ref_5_18_0
+      Test_AppSecStandalone_UpstreamPropagation: irrelevant (due to v2)
       Test_AppSecStandalone_UpstreamPropagation_V2: *ref_5_40_0
-      Test_IastStandalone_UpstreamPropagation: *ref_5_29_0
+      Test_IastStandalone_UpstreamPropagation: irrelevant (due to v2)
       Test_IastStandalone_UpstreamPropagation_V2: *ref_5_40_0
-      Test_SCAStandalone_Telemetry: *ref_5_18_0
+      Test_SCAStandalone_Telemetry: irrelevant (due to v2)
       Test_SCAStandalone_Telemetry_V2: *ref_5_40_0
     test_automated_login_events.py:
       Test_Login_Events: irrelevant
