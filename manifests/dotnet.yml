@@ -342,11 +342,11 @@ tests/:
       Test_NoLimitOnWafRules: v2.4.4
     test_event_tracking.py:
       Test_CustomEvent: v2.27.0
-      Test_CustomEvent_Metric: missing_feature
+      Test_CustomEvent_Metrics: missing_feature
       Test_UserLoginFailureEvent: v2.27.0
-      Test_UserLoginFailureEvent_Metric: missing_feature
+      Test_UserLoginFailureEvent_Metrics: missing_feature
       Test_UserLoginSuccessEvent: v2.27.0
-      Test_UserLoginSuccessEvent_Metric: missing_feature
+      Test_UserLoginSuccessEvent_Metrics: missing_feature
     test_event_tracking_v2.py:
       Test_UserLogiFailureEventV2_HeaderCollection: missing_feature
       Test_UserLoginFailureEventV2_Libddwaf: missing_feature
