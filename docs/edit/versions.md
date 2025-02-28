@@ -29,5 +29,5 @@ DataDog/dd-trace-rb : versions of the gem are not fully semver compatible, so sy
 
 Datadog/dd-trace-java: Use `v<next_minor_release>-SNAPSHOT` to reference the master branch. For example, if the last release was v1.46.0, you'd replace `<next_minor_release>` with `v1.47.0`. You can also get the current dev version by running `./gradlew :currentVersion` inside of the dd-trace-java repo.
 
-Datadog/dd-trace-go: The main branch's version tag is documented inside of the [`dd-trace-go/internal/version/version.go` file](https://github.com/DataDog/dd-trace-go/blob/main/internal/version/version.go#L13-L16), on the main branch: `v<next_minor_release>-dev`
+Datadog/dd-trace-go: The main branch's version tag is documented inside of the [`dd-trace-go/internal/version/version.go` file](https://github.com/DataDog/dd-trace-go/blob/main/internal/version/version.go#L13-L16), on the main branch: `v<next_minor_release>-dev`.
 
