@@ -56,12 +56,11 @@
                         "test-app-java-multialpine"
                     ],
                     "python": [
-                        "test-app-python-multicontainer",
-                        "test-app-python-multialpine"
+                        "test-app-python-container",
+                        "test-app-python-alpine"
                     ],
                     "dotnet": [
-                        "test-app-dotnet-multicontainer",
-                        "test-app-dotnet-multialpine"
+                        "test-app-dotnet-container"
                     ]
                 }
             ]
@@ -290,8 +289,8 @@
         "nodejs": [
             {
                 "name": "demo-app",
-                "excluded_os_branches": [
-                    "windows"
+                "exact_os_branches": [
+                    "ubuntu24"
                 ]
             },
             {

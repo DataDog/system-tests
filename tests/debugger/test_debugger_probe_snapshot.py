@@ -155,7 +155,6 @@ class Test_Debugger_Probe_Snaphots(debugger.Base_Debugger_Test):
         )
 
     @features.debugger_probe_budgets
-    @missing_feature(context.library == "dotnet", reason="Probe snapshot budgets are not yet implemented")
     @missing_feature(context.library == "nodejs", reason="Probe snapshot budgets are not yet implemented")
     @missing_feature(context.library == "ruby", reason="Probe snapshot budgets are not yet implemented")
     def test_log_line_probe_snaphots_budgets(self):

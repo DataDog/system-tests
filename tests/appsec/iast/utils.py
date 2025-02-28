@@ -17,9 +17,7 @@ def _get_expectation(d):
 
 
 def _get_span_meta(request):
-    spans = [span for _, span in interfaces.library.get_root_spans(request=request)]
-    assert spans, "No root span found"
-    span = spans[0]
+    span = interfaces.library.get_root_span(request)
     meta = span.get("meta", {})
     meta_struct = span.get("meta_struct", {})
     return meta, meta_struct
@@ -54,7 +52,7 @@ def assert_iast_vulnerability(
         assert len(vulns) == vulnerability_count
 
 
-def assert_metric(request, metric, expected):
+def assert_metric(request, metric, *, expected: bool):
     spans_checked = 0
     metric_available = False
     for data, trace, span in interfaces.library.get_spans(request):
@@ -199,9 +197,7 @@ class BaseSinkTestWithoutTelemetry:
 
 
 def validate_stack_traces(request):
-    spans = [span for _, span in interfaces.library.get_root_spans(request=request)]
-    assert spans, "No root span found"
-    span = spans[0]
+    span = interfaces.library.get_root_span(request)
     meta = span.get("meta", {})
     meta_struct = span.get("meta_struct", {})
     iast = meta.get("_dd.iast.json") or meta_struct.get("iast")
@@ -290,10 +286,7 @@ def validate_stack_traces(request):
 
 
 def validate_extended_location_data(request, vulnerability_type, is_expected_location_required=True):
-    spans = [span for _, span in interfaces.library.get_root_spans(request=request)]
-    assert spans, "No root span found"
-    span = spans[0]
-
+    span = interfaces.library.get_root_span(request)
     iast = span.get("meta", {}).get("_dd.iast.json")
     assert iast, "Expected at least one vulnerability"
     assert iast["vulnerabilities"], "Expected at least one vulnerability"
