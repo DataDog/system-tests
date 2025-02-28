@@ -55,7 +55,7 @@ class Test_Telemetry:
     library_requests = {}
     agent_requests = {}
 
-    def validate_library_telemetry_data(self, validator, success_by_default=False):
+    def validate_library_telemetry_data(self, validator, *, success_by_default=False):
         telemetry_data = list(interfaces.library.get_telemetry_data(flatten_message_batches=False))
 
         if len(telemetry_data) == 0 and not success_by_default:
@@ -64,7 +64,7 @@ class Test_Telemetry:
         for data in telemetry_data:
             validator(data)
 
-    def validate_agent_telemetry_data(self, validator, flatten_message_batches=True, success_by_default=False):
+    def validate_agent_telemetry_data(self, validator, *, flatten_message_batches=True, success_by_default=False):
         telemetry_data = list(interfaces.agent.get_telemetry_data(flatten_message_batches=flatten_message_batches))
 
         if len(telemetry_data) == 0 and not success_by_default:
