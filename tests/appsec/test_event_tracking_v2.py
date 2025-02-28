@@ -55,7 +55,7 @@ def validate_tags_and_metadata(span, prefix, expected_tags, metadata, unexpected
 
     return True
 
-@features.user_monitoring
+@features.event_tracking_sdk_v2
 @scenarios.appsec_ato_sdk
 class Test_UserLoginSuccessEventV2_Tags:
     """Test tags created in AppSec User Login Success Event SDK v2"""
@@ -134,7 +134,7 @@ class Test_UserLoginSuccessEventV2_Tags:
         )
 
 
-@features.user_monitoring
+@features.event_tracking_sdk_v2
 @scenarios.appsec_ato_sdk
 class Test_UserLoginSuccessEventV2_HeaderCollection:
     """Test headers are collected in AppSec User Login Success Event SDK v2"""
@@ -159,7 +159,7 @@ class Test_UserLoginSuccessEventV2_HeaderCollection:
         interfaces.library.validate_spans(self.r, validate_user_login_success_header_collection)
 
 
-@features.user_monitoring
+@features.event_tracking_sdk_v2
 @scenarios.appsec_ato_sdk
 class Test_UserLoginSuccessEventV2_Metrics:
     """Test metrics in AppSec User Login Success Event SDK v2"""
@@ -180,7 +180,7 @@ class Test_UserLoginSuccessEventV2_Metrics:
         ]
 
 
-@features.user_monitoring
+@features.event_tracking_sdk_v2
 @scenarios.appsec_ato_sdk
 class Test_UserLoginSuccessEventV2_Libddwaf:
     """Test libddwaf calls in AppSec User Login Success Event SDK v2"""
@@ -218,7 +218,7 @@ class Test_UserLoginSuccessEventV2_Libddwaf:
         interfaces.library.assert_waf_attack(self.r, rule="003_trigger_on_login_success")
 
 
-@features.user_monitoring
+@features.event_tracking_sdk_v2
 @scenarios.appsec_ato_sdk
 class Test_UserLoginFailureEventV2_Tags:
     """Test created tags in AppSec User Login Failure Event SDK v2"""
@@ -319,7 +319,7 @@ class Test_UserLoginFailureEventV2_Tags:
         )
 
 
-@features.user_monitoring
+@features.event_tracking_sdk_v2
 @scenarios.appsec_ato_sdk
 class Test_UserLogiFailureEventV2_HeaderCollection:
     """Test collected headers in AppSec User Login Failure Event SDK v2"""
@@ -344,7 +344,7 @@ class Test_UserLogiFailureEventV2_HeaderCollection:
         interfaces.library.validate_spans(self.r, validate_user_login_failure_header_collection)
 
 
-@features.user_monitoring
+@features.event_tracking_sdk_v2
 @scenarios.appsec_ato_sdk
 class Test_UserLoginFailureEventV2_Metrics:
     """Test metrics in AppSec User Login Failure Event SDK v2"""
@@ -365,7 +365,7 @@ class Test_UserLoginFailureEventV2_Metrics:
         ]
 
 
-@features.user_monitoring
+@features.event_tracking_sdk_v2
 @scenarios.appsec_ato_sdk
 class Test_UserLoginFailureEventV2_Libddwaf:
     """Test libddwaf calls in AppSec User Login Failure Event SDK v2"""
