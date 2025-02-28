@@ -2057,7 +2057,7 @@ class _Features:
 
     @staticmethod
     def sca_standalone_experimental(test_object):
-        """SCA Standalone Billing
+        """Experimental SCA Standalone Billing
 
         https://feature-parity.us1.prod.dog/#/?feature=320
         """
