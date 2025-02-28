@@ -57,7 +57,7 @@ class Test_ConfRuleSet:
         interfaces.library.assert_waf_attack(self.r_2, pattern="dedicated-value-for-testing-purpose")
 
     def test_log(self):
-        """Check if it's implemented for the weblog variant"""
+        # Check if it's implemented for the weblog variant
         if context.library == "java":
             stdout.assert_presence("AppSec is FULLY_ENABLED with powerwaf")
         """Check there is no error reported in logs"""
