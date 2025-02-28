@@ -60,7 +60,7 @@ class Test_ConfRuleSet:
         # Check if it's implemented for the weblog variant
         if context.library == "java":
             stdout.assert_presence("AppSec is FULLY_ENABLED with powerwaf")
-        """Check there is no error reported in logs"""
+        # Check there is no error reported in logs
         stdout.assert_absence("AppSec could not read the rule file")
         stdout.assert_absence("failed to parse rule")
         stdout.assert_absence("WAF initialization failed")
