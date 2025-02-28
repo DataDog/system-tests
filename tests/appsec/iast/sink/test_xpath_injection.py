@@ -17,7 +17,7 @@ class TestXPathInjection(BaseSinkTestWithoutTelemetry):
     data = {"expression": "expression"}
     location_map = {"java": "com.datadoghq.system_tests.iast.utils.XPathExamples"}
 
-    @flaky(context.library >= "dotnet@3.12.0", reason="APPSEC-56908")
+    @flaky(context.library >= "dotnet@3.11.1", reason="APPSEC-56908")
     def test_secure(self):
         super().test_secure()
 

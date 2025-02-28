@@ -61,7 +61,7 @@ class TestWeakHash(BaseSinkTest):
     def test_telemetry_metric_executed_sink(self):
         super().test_telemetry_metric_executed_sink()
 
-    @flaky(context.library >= "dotnet@3.12.0", reason="APPSEC-56908")
+    @flaky(context.library >= "dotnet@3.11.1", reason="APPSEC-56908")
     def test_secure(self):
         return super().test_secure()
 

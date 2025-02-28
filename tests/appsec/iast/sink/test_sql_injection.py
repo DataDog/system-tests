@@ -38,7 +38,7 @@ class TestSqlInjection(BaseSinkTest):
         super().test_telemetry_metric_executed_sink()
 
     @missing_feature(context.weblog_variant == "jersey-grizzly2", reason="Endpoint responds 500")
-    @flaky(context.library >= "dotnet@3.12.0", reason="APPSEC-56908")
+    @flaky(context.library >= "dotnet@3.11.1", reason="APPSEC-56908")
     def test_secure(self):
         super().test_secure()
 

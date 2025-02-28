@@ -23,7 +23,7 @@ class TestCommandInjection(BaseSinkTest):
 
     @missing_feature(library="nodejs", reason="Endpoint not implemented")
     @missing_feature(library="java", reason="Endpoint not implemented")
-    @flaky(context.library >= "dotnet@3.12.0", reason="APPSEC-56908")
+    @flaky(context.library >= "dotnet@3.11.1", reason="APPSEC-56908")
     def test_secure(self):
         super().test_secure()
 

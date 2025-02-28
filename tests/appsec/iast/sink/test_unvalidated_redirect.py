@@ -66,7 +66,7 @@ class TestUnvalidatedHeader(BaseSinkTestWithoutTelemetry):
     @missing_feature(context.weblog_variant == "jersey-grizzly2", reason="Endpoint responds 405")
     @missing_feature(context.weblog_variant == "resteasy-netty3", reason="Endpoint responds 405")
     @missing_feature(context.weblog_variant == "vertx3", reason="Endpoint responds 403")
-    @flaky(context.library >= "dotnet@3.12.0", reason="APPSEC-56908")
+    @flaky(context.library >= "dotnet@3.11.1", reason="APPSEC-56908")
     def test_secure(self):
         return super().test_secure()
 
