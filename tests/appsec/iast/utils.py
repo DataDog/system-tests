@@ -55,7 +55,7 @@ def assert_iast_vulnerability(
 def assert_metric(request, metric, *, expected: bool):
     spans_checked = 0
     metric_available = False
-    for data, trace, span in interfaces.library.get_spans(request):
+    for _, __, span in interfaces.library.get_spans(request):
         if metric in span["metrics"]:
             metric_available = True
         spans_checked += 1
@@ -181,19 +181,17 @@ class BaseSinkTestWithoutTelemetry:
     def assert_no_iast_event(request, tested_vulnerability_type=None) -> None:
         assert request.status_code == 200, f"Request failed with status code {request.status_code}"
 
-        for data, _, span in interfaces.library.get_spans(request=request):
-            logger.info(f"Looking for IAST events in {data['log_filename']}")
-            meta, meta_struct = _get_span_meta(request=request)
-            iast_json = meta.get("_dd.iast.json") if meta else meta_struct.get("iast")
-            if iast_json is not None:
-                if tested_vulnerability_type is None:
-                    logger.error(json.dumps(iast_json, indent=2))
-                    raise ValueError("Unexpected vulnerability reported")
-                elif iast_json["vulnerabilities"]:
-                    for vuln in iast_json["vulnerabilities"]:
-                        if vuln["type"] == tested_vulnerability_type:
-                            logger.error(json.dumps(iast_json, indent=2))
-                            raise ValueError(f"Unexpected vulnerability reported: {vuln['type']}")
+        meta, meta_struct = _get_span_meta(request=request)
+        iast_json = meta.get("_dd.iast.json") if meta else meta_struct.get("iast")
+        if iast_json is not None:
+            if tested_vulnerability_type is None:
+                logger.error(json.dumps(iast_json, indent=2))
+                raise ValueError("Unexpected vulnerability reported")
+            elif iast_json["vulnerabilities"]:
+                for vuln in iast_json["vulnerabilities"]:
+                    if vuln["type"] == tested_vulnerability_type:
+                        logger.error(json.dumps(iast_json, indent=2))
+                        raise ValueError(f"Unexpected vulnerability reported: {vuln['type']}")
 
 
 def validate_stack_traces(request):
@@ -285,7 +283,7 @@ def validate_stack_traces(request):
     assert locationFrame is not None, "location not found in stack trace"
 
 
-def validate_extended_location_data(request, vulnerability_type, is_expected_location_required=True):
+def validate_extended_location_data(request, vulnerability_type, *, is_expected_location_required=True):
     span = interfaces.library.get_root_span(request)
     iast = span.get("meta", {}).get("_dd.iast.json")
     assert iast, "Expected at least one vulnerability"
