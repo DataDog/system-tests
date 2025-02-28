@@ -168,9 +168,6 @@ public class WebController {
 
   @GetMapping("/log/library")
   public String logLibrary(@RequestParam String msg) {
-      // final Span span = GlobalTracer.get().activeSpan();
-      // logger.info("testing: " + span.context().toTraceId());
-      logger.info("matt li test");
       logger.info(msg);
       return "ok";
   }

@@ -523,7 +523,7 @@ class Test_Config_LogInjection_Enabled:
         required_fields = ["service", "version", "env"]
         if context.library.library == "java":
             required_fields = ["dd.service", "dd.version", "dd.env"]
-        
+
         for field in required_fields:
             assert field in msg, f"Missing field: {field}"
 
@@ -683,7 +683,7 @@ def parse_log_injection_message(log_message):
     # Parses the JSON-formatted log message from stdout and returns it
     # To pass tests that use this function, ensure your library has an entry in log_injection_fields
     for data in stdout.get_data():
-        logs = data.get("raw").split('\n')
+        logs = data.get("raw").split("\n")
         for log in logs:
             try:
                 message = json.loads(log)
