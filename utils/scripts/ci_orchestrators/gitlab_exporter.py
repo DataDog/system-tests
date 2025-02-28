@@ -223,7 +223,7 @@ def print_docker_ssi_gitlab_pipeline(language, docker_ssi_matrix, ci_environment
                     "source venv/bin/activate",
                     "echo 'Running SSI tests'",
                     (
-                        'timeout 2700s ./run.sh $SCENARIO --ssi-weblog "$WEBLOG" '
+                        'timeout 1200s ./run.sh $SCENARIO --ssi-weblog "$WEBLOG" '
                         '--ssi-library "$TEST_LIBRARY" --ssi-base-image "$IMAGE" '
                         '--ssi-arch "$ARCH" --ssi-installable-runtime "$RUNTIME" '
                         "--ssi-env $ONBOARDING_FILTER_ENV"

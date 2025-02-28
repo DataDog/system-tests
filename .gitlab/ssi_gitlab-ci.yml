@@ -52,8 +52,10 @@ ssi_tests:
         - api_failure
       #System-tests exit code 1 if there are tests failures
       #System-tests exit code 3 if there is a issue starting the scenario
+      #Timeout 124
       exit_codes:
         - 3
+        - 124
     artifacts:
       when: always
       paths:
