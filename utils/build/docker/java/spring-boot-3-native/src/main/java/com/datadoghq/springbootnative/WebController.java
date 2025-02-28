@@ -24,9 +24,14 @@ import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @RestController
 public class WebController {
+
+  private static final Logger logger = LoggerFactory.getLogger(App.class);
+
   @RequestMapping("/")
   String home() {
     return "Hello World!";
@@ -160,6 +165,17 @@ public class WebController {
 
     return result;
   }
+
+  @GetMapping("/log/library")
+  public String logLibrary(@RequestParam String msg) {
+      // final Span span = GlobalTracer.get().activeSpan();
+      // logger.info("testing: " + span.context().toTraceId());
+      logger.info("matt li test");
+      logger.info(msg);
+      return "ok";
+  }
+
+
 
   public static final class DistantCallResponse {
     public String url;
