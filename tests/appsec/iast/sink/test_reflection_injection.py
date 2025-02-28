@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import missing_feature, features, rfc, weblog
+from utils import missing_feature, features, rfc, weblog, flaky, context
 from tests.appsec.iast.utils import BaseSinkTest, validate_extended_location_data, validate_stack_traces
 
 
@@ -24,6 +24,7 @@ class TestReflectionInjection(BaseSinkTest):
     def test_telemetry_metric_executed_sink(self):
         super().test_telemetry_metric_executed_sink()
 
+    @flaky(context.library >= "dotnet@3.12.0", reason="APPSEC-56908")
     def test_secure(self):
         super().test_secure()
 

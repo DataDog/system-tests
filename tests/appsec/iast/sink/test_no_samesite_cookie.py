@@ -25,6 +25,7 @@ class TestNoSamesiteCookie(BaseSinkTest):
     }
 
     @bug(context.library < "java@1.18.3", reason="APMRP-360")
+    @flaky(context.library >= "dotnet@3.12.0", reason="APPSEC-56908")
     def test_secure(self):
         super().test_secure()
 
