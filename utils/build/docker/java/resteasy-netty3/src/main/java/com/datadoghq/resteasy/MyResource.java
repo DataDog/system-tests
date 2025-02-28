@@ -2,6 +2,7 @@ package com.datadoghq.resteasy;
 
 import com.datadoghq.system_tests.iast.utils.*;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import datadog.appsec.api.blocking.Blocking;
 import datadog.trace.api.interceptor.MutableSpan;
 import io.opentracing.Span;
@@ -107,7 +108,14 @@ public class MyResource {
     @POST
     @Path("/tag_value/{tag_value}/{status_code}")
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-    public Response tagValuePost(@PathParam("tag_value") String value, @PathParam("status_code") int code, MultivaluedMap<String, String> form) {
+    public Response tagValuePostForm(@PathParam("tag_value") String value, @PathParam("status_code") int code, MultivaluedMap<String, String> form) {
+        return tagValue(value, code);
+    }
+
+    @POST
+    @Path("/tag_value/{tag_value}/{status_code}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response tagValuePostJson(@PathParam("tag_value") String value, @PathParam("status_code") int code, JsonNode body) {
         return tagValue(value, code);
     }
 
