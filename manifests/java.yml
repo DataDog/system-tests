@@ -48,10 +48,13 @@ tests/:
           '*': v1.31.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
         Test_Schema_Request_Json_Body:
-          '*': missing_feature
-          ratpack: v1.36.0
+          '*': v1.36.0
+          akka-http: missing_feature
+          jersey-grizzly2: missing_feature
+          play: missing_feature
+          resteasy-netty3: missing_feature
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-          vertx3: v1.36.0
+          vertx4: 1.47.0
         Test_Schema_Request_Path_Parameters:
           '*': v1.36.0
           akka-http: missing_feature (path parameters not suported)

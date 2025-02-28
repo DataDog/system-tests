@@ -47,6 +47,7 @@ refs:
   - &ref_5_35_0 '>=5.35.0'
   - &ref_5_37_0 '>=5.37.0'
   - &ref_5_39_0 '>=5.39.0'
+  - &ref_5_40_0 '>=5.40.0'
 tests/:
   apm_tracing_e2e/:
     test_otel.py:
@@ -605,12 +606,12 @@ tests/:
       Test_Basic: v2.0.0
     test_asm_standalone.py:
       Test_AppSecStandalone_NotEnabled: *ref_5_18_0
-      Test_AppSecStandalone_UpstreamPropagation: *ref_5_18_0
-      Test_AppSecStandalone_UpstreamPropagation_V2: missing_feature
-      Test_IastStandalone_UpstreamPropagation: *ref_5_29_0
-      Test_IastStandalone_UpstreamPropagation_V2: missing_feature
-      Test_SCAStandalone_Telemetry: *ref_5_18_0
-      Test_SCAStandalone_Telemetry_V2: missing_feature
+      Test_AppSecStandalone_UpstreamPropagation: irrelevant (due to v2)
+      Test_AppSecStandalone_UpstreamPropagation_V2: *ref_5_40_0
+      Test_IastStandalone_UpstreamPropagation: irrelevant (due to v2)
+      Test_IastStandalone_UpstreamPropagation_V2: *ref_5_40_0
+      Test_SCAStandalone_Telemetry: irrelevant (due to v2)
+      Test_SCAStandalone_Telemetry_V2: *ref_5_40_0
     test_automated_login_events.py:
       Test_Login_Events: irrelevant
       Test_Login_Events_Extended: irrelevant
@@ -762,15 +763,15 @@ tests/:
     test_debugger_pii.py:
       Test_Debugger_PII_Redaction:
         '*': irrelevant
-        express4: v5.35.0
+        express4: v5.39.0
     test_debugger_probe_snapshot.py:
       Test_Debugger_Probe_Snaphots:
         '*': irrelevant
-        express4: v5.35.0
+        express4: v5.39.0
     test_debugger_probe_status.py:
       Test_Debugger_Probe_Statuses:
         '*': irrelevant
-        express4: v5.32.0
+        express4: v5.39.0
     test_debugger_symdb.py:
       Test_Debugger_SymDb: missing_feature (feature not implented)
   integrations/:

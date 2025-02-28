@@ -14,6 +14,7 @@ import com.datadoghq.system_tests.springboot.rabbitmq.RabbitmqConnectorForFanout
 import com.datadoghq.system_tests.springboot.rabbitmq.RabbitmqConnectorForTopicExchange;
 import com.datadoghq.system_tests.iast.utils.Utils;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
@@ -191,10 +192,24 @@ public class App {
         return ResponseEntity.status(status_code).body("Value tagged");
     }
 
-    @PostMapping(value = "/tag_value/{tag_value}/{status_code}", headers = "accept=*",
-            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+    @PostMapping(value = "/tag_value/{tag_value}/{status_code}", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
     ResponseEntity<String> tagValueWithUrlencodedBody(@PathVariable final String tag_value, @PathVariable final int status_code, @RequestParam MultiValueMap<String, String> body) {
         return tagValue(tag_value, status_code);
+    }
+
+    @PostMapping(value = "/tag_value/{tag_value}/{status_code}", consumes = MediaType.APPLICATION_JSON_VALUE)
+    ResponseEntity<String> tagValueWithJsonBody(@PathVariable final String tag_value, @PathVariable final int status_code, @RequestBody Object body) {
+        return tagValue(tag_value, status_code);
+    }
+
+    @GetMapping("/api_security/sampling/{i}")
+    ResponseEntity<String> apiSecuritySamplingWithStatus(@PathVariable final int i) {
+        return ResponseEntity.status(i).body("Hello!\n");
+    }
+
+    @GetMapping("/api_security_sampling/{i}")
+    ResponseEntity<String> apiSecuritySampling(@PathVariable final int i) {
+        return ResponseEntity.status(200).body("OK!\n");
     }
 
     @RequestMapping("/waf/**")
@@ -1028,30 +1043,32 @@ public class App {
     }
 
     @PostMapping(value = "/shell_execution", consumes = MediaType.APPLICATION_JSON_VALUE)
-    ResponseEntity<String> shellExecution(@RequestBody final ShellExecutionRequest request) throws IOException, InterruptedException {
-        Process p;
-        if (request.options.shell) {
-            throw new RuntimeException("Not implemented");
-        } else {
-            final String[] args = request.args.split("\\s+");
-            final String[] command = new String[args.length + 1];
-            command[0] = request.command;
-            System.arraycopy(args, 0, command, 1, args.length);
-            p = new ProcessBuilder(command).start();
+    ResponseEntity<String> shellExecution(@RequestBody final JsonNode request) throws IOException, InterruptedException {
+        // args can be a string or array. Just do some custom mapping here to avoid object mapping mambo.
+        if (request.get("options") != null && request.get("options").get("shell") != null && request.get("options").get("shell").asBoolean()) {
+            throw new RuntimeException("Actual shell execution is not supported");
         }
+        final String commandArg = request.get("command").asText();
+        final String[] args;
+        if (request.get("args").isTextual()) {
+            args = request.get("args").asText().split("\\s+");
+        } else if (request.get("args").isArray()) {
+            final JsonNode argsNode = request.get("args");
+            args = new String[argsNode.size()];
+            for (int i = 0; i < argsNode.size(); i++) {
+                args[i] = argsNode.get(i).asText();
+            }
+        } else {
+            throw new RuntimeException("Invalid args type");
+        }
+
+        final String[] command = new String[args.length + 1];
+        command[0] = commandArg;
+        System.arraycopy(args, 0, command, 1, args.length);
+        final Process p = new ProcessBuilder(command).start();
         p.waitFor(10, TimeUnit.SECONDS);
         final int exitCode = p.exitValue();
         return new ResponseEntity<>("OK: " + exitCode, HttpStatus.OK);
-    }
-
-    private static class ShellExecutionRequest {
-        public String command;
-        public String args;
-        public Options options;
-
-        static class Options {
-            public boolean shell;
-        }
     }
 
     @EventListener(ApplicationReadyEvent.class)
