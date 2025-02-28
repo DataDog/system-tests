@@ -1,5 +1,5 @@
 #!/bin/bash
-# shellcheck disable
+# shellcheck disable=all
 #This script was generated using chatgpt
 
 source utils/scripts/ssi_wizards/common_wizard_functions.sh
