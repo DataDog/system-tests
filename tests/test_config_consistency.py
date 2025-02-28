@@ -23,6 +23,7 @@ runtime_metrics_lang_map = {
 log_injection_fields = {
     "nodejs": {"message": "msg"},
     "golang": {"message": "msg"},
+    "java": {"message": "message"},
 }
 
 
@@ -510,11 +511,20 @@ class Test_Config_LogInjection_Enabled:
         assert self.r.status_code == 200
         msg = parse_log_injection_message(self.message)
         assert msg is not None, "Log message with trace context not found"
+
+        # dd-trace-java stores injected trace information under the "mdc" key
+        if context.library.library == "java":
+            msg = msg.get("mdc")
+
         tid = parse_log_trace_id(msg)
         assert tid is not None, "Expected a trace ID, but got None"
         sid = parse_log_span_id(msg)
         assert sid is not None, "Expected a span ID, but got None"
+
         required_fields = ["service", "version", "env"]
+        if context.library.library == "java":
+            required_fields = ["dd.service", "dd.version", "dd.env"]
+
         for field in required_fields:
             assert field in msg, f"Missing field: {field}"
 
@@ -674,16 +684,18 @@ def parse_log_injection_message(log_message):
     # Parses the JSON-formatted log message from stdout and returns it
     # To pass tests that use this function, ensure your library has an entry in log_injection_fields
     for data in stdout.get_data():
-        try:
-            message = json.loads(data.get("message"))
-        except json.JSONDecodeError:
-            continue
-        # Locate log with the custom message, which should have the trace ID and span ID
-        if message.get(log_injection_fields[context.library.library]["message"]) != log_message:
-            continue
-        if message.get("dd"):
-            return message.get("dd")
-        return message
+        logs = data.get("raw").split("\n")
+        for log in logs:
+            try:
+                message = json.loads(log)
+            except json.JSONDecodeError:
+                continue
+            # Locate log with the custom message, which should have the trace ID and span ID
+            if message.get(log_injection_fields[context.library.library]["message"]) != log_message:
+                continue
+            if message.get("dd"):
+                return message.get("dd")
+            return message
     return None
 
 
