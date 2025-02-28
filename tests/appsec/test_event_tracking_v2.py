@@ -37,10 +37,11 @@ def validate_metric_type_and_version(event_type, version, metric):
         and f"sdk_version:{version}" in metric.get("tags", ())
     )
 
+
 def validate_tags_and_metadata(span, prefix, expected_tags, metadata, unexpected_metadata):
     if metadata is not None:
         for key, value in metadata.items():
-            expected_tags[prefix + '.' + key] = value
+            expected_tags[prefix + "." + key] = value
 
     for tag, expected_value in expected_tags.items():
         assert tag in span["meta"], f"Can't find {tag} in span's meta"
@@ -50,10 +51,11 @@ def validate_tags_and_metadata(span, prefix, expected_tags, metadata, unexpected
 
     if unexpected_metadata is not None:
         for key in unexpected_metadata:
-            tag = prefix + '.' +key
+            tag = prefix + "." + key
             assert tag not in span["meta"], f"Tag {tag} found in span's meta"
 
     return True
+
 
 @features.event_tracking_sdk_v2
 @scenarios.appsec_ato_sdk
@@ -71,7 +73,9 @@ class Test_UserLoginSuccessEventV2_Tags:
                 "http.client_ip": "1.2.3.4",
             }
 
-            return validate_tags_and_metadata(span, "appsec.events.users.login.success", expected_tags, metadata, unexpected_metadata)
+            return validate_tags_and_metadata(
+                span, "appsec.events.users.login.success", expected_tags, metadata, unexpected_metadata
+            )
 
         return validate
 
@@ -233,7 +237,9 @@ class Test_UserLoginFailureEventV2_Tags:
                 "http.client_ip": "1.2.3.4",
             }
 
-            return validate_tags_and_metadata(span, "appsec.events.users.login.failure", expected_tags, metadata, unexpected_metadata)
+            return validate_tags_and_metadata(
+                span, "appsec.events.users.login.failure", expected_tags, metadata, unexpected_metadata
+            )
 
         return validate
 
