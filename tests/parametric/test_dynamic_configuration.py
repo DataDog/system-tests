@@ -232,9 +232,8 @@ class TestDynamicConfigTracingEnabled:
     def test_tracing_client_tracing_enabled(self, library_env, test_agent, test_library):
         trace_enabled_env = library_env.get("DD_TRACE_ENABLED", "true") == "true"
         if trace_enabled_env:
-            with test_library:
-                with test_library.dd_start_span("allowed"):
-                    pass
+            with test_library, test_library.dd_start_span("allowed"):
+                pass
             test_agent.wait_for_num_traces(num=1, clear=True)
             assert True, (
                 "DD_TRACE_ENABLED=true and unset results in a trace being sent."
@@ -247,9 +246,8 @@ class TestDynamicConfigTracingEnabled:
         if trace_enabled_env:
             test_agent.wait_for_telemetry_event("app-client-configuration-change", clear=True)
             test_agent.wait_for_rc_apply_state("APM_TRACING", state=RemoteConfigApplyState.ACKNOWLEDGED, clear=True)
-        with test_library:
-            with test_library.dd_start_span("disabled"):
-                pass
+        with test_library, test_library.dd_start_span("disabled"):
+            pass
         with pytest.raises(ValueError):
             test_agent.wait_for_num_traces(num=1, clear=True)
         assert True, "no traces are sent after RC response with tracing_enabled: false"
@@ -266,9 +264,8 @@ class TestDynamicConfigTracingEnabled:
             test_agent.wait_for_rc_apply_state("APM_TRACING", state=RemoteConfigApplyState.ACKNOWLEDGED, clear=True)
 
         _set_rc(test_agent, _create_rc_config({}))
-        with test_library:
-            with test_library.dd_start_span("test"):
-                pass
+        with test_library, test_library.dd_start_span("test"):
+            pass
 
         with pytest.raises(ValueError):
             test_agent.wait_for_num_traces(num=1, clear=True)
@@ -567,28 +564,34 @@ class TestDynamicConfigV2:
             expected_local_tags = dict([p.split(":") for p in library_env["DD_TAGS"].split(",")])
 
         # Ensure tags are applied from the env
-        with test_library:
-            with test_library.dd_start_span("test") as span:
-                with test_library.dd_start_span("test2", parent_id=span.span_id):
-                    pass
+        with (
+            test_library,
+            test_library.dd_start_span("test") as span,
+            test_library.dd_start_span("test2", parent_id=span.span_id),
+        ):
+            pass
         traces = test_agent.wait_for_num_traces(num=1, clear=True, sort_by_start=False)
         assert_trace_has_tags(traces[0], expected_local_tags)
 
         # Ensure local tags are overridden and RC tags applied.
         set_and_wait_rc(test_agent, config_overrides={"tracing_tags": ["rc_key1:val1", "rc_key2:val2"]})
-        with test_library:
-            with test_library.dd_start_span("test") as span:
-                with test_library.dd_start_span("test2", parent_id=span.span_id):
-                    pass
+        with (
+            test_library,
+            test_library.dd_start_span("test") as span,
+            test_library.dd_start_span("test2", parent_id=span.span_id),
+        ):
+            pass
         traces = test_agent.wait_for_num_traces(num=1, clear=True, sort_by_start=False)
         assert_trace_has_tags(traces[0], {"rc_key1": "val1", "rc_key2": "val2"})
 
         # Ensure previous tags are restored.
         set_and_wait_rc(test_agent, config_overrides={})
-        with test_library:
-            with test_library.dd_start_span("test") as span:
-                with test_library.dd_start_span("test2", parent_id=span.span_id):
-                    pass
+        with (
+            test_library,
+            test_library.dd_start_span("test") as span,
+            test_library.dd_start_span("test2", parent_id=span.span_id),
+        ):
+            pass
         traces = test_agent.wait_for_num_traces(num=1, clear=True, sort_by_start=False)
         assert_trace_has_tags(traces[0], expected_local_tags)
 

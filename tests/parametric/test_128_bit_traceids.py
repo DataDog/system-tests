@@ -386,10 +386,12 @@ class Test_128_Bit_Traceids:
     )
     def test_w3c_128_bit_propagation_tid_in_chunk_root(self, test_agent, test_library):
         """Ensure that root span contains the tid."""
-        with test_library:
-            with test_library.dd_start_span(name="parent", service="service", resource="resource") as parent:
-                with test_library.dd_start_span(name="child", service="service", parent_id=parent.span_id):
-                    pass
+        with (
+            test_library,
+            test_library.dd_start_span(name="parent", service="service", resource="resource") as parent,
+            test_library.dd_start_span(name="child", service="service", parent_id=parent.span_id),
+        ):
+            pass
 
         traces = test_agent.wait_for_num_traces(1, clear=True, sort_by_start=False)
         trace = find_trace(traces, parent.trace_id)
