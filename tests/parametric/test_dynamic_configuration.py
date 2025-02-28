@@ -55,6 +55,10 @@ def _default_config(service: str, env: str) -> dict[str, Any]:
             "tracing_service_mapping": None,
             "tracing_sampling_rules": None,
             "data_streams_enabled": None,
+            "dynamic_instrumentation_enabled": None,
+            "exception_replay_enabled": None,
+            "code_origin_enabled": None,
+            "live_debugging_enabled": None,
         },
     }
 
@@ -213,6 +217,7 @@ DEFAULT_SUPPORTED_CAPABILITIES_BY_LANG: dict[str, set[Capabilities]] = {
 @features.dynamic_configuration
 class TestDynamicConfigTracingEnabled:
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    @bug(context.library == "java", reason="APMAPI-1225")
     def test_default_capability_completeness(self, library_env, test_agent, test_library):
         """Ensure the RC request contains the expected default capabilities per language, no more and no less."""
         if context.library is not None and context.library.library is not None:
@@ -261,6 +266,7 @@ class TestDynamicConfigTracingEnabled:
     @parametrize("library_env", [{**DEFAULT_ENVVARS}, {**DEFAULT_ENVVARS, "DD_TRACE_ENABLED": "false"}])
     @irrelevant(library="golang")
     @irrelevant(library="dotnet", reason="dotnet tracer supports re-enabling over RC")
+    @bug(context.library < "java@1.47.0", reason="APMAPI-1225")
     def test_tracing_client_tracing_disable_one_way(self, library_env, test_agent, test_library):
         trace_enabled_env = library_env.get("DD_TRACE_ENABLED", "true") == "true"
 
@@ -457,6 +463,7 @@ class TestDynamicConfigV1_EmptyServiceTargets:
             ]
         ],
     )
+    @bug(context.library < "java@1.47.0", reason="APMAPI-1225")
     def test_not_match_service_target_empty_env(self, library_env, test_agent, test_library):
         """Test that the library reports a non-erroneous apply_state when DD_SERVICE or DD_ENV are empty."""
         _set_rc(test_agent, _default_config(TEST_SERVICE, TEST_ENV))
