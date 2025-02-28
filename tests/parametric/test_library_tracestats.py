@@ -354,7 +354,7 @@ class Test_Library_Tracestats:
 
         with test_library:
             # Create 10 traces to get more data
-            for i in range(10):
+            for _ in range(10):
                 with test_library.dd_start_span(name="web.request", resource="/users", service="webserver"):
                     pass
 

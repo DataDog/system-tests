@@ -223,7 +223,7 @@ class Test_Span_Sampling:
         # generate three traces before requesting them to avoid timing issues
         trace_span_ids = []
         with test_library:
-            for i in range(6):
+            for _ in range(6):
                 with test_library.dd_start_span(name="web.request", service="webserver") as s1:
                     pass
                 trace_span_ids.append((s1.trace_id, s1.span_id))
@@ -277,7 +277,7 @@ class Test_Span_Sampling:
         half do not.
         """
         # make 100 new traces, each with one span
-        for i in range(100):
+        for _ in range(100):
             with test_library:
                 with test_library.dd_start_span(name="web.request", service="webserver"):
                     pass
@@ -454,11 +454,11 @@ class Test_Span_Sampling:
         # generate spans before requesting them to avoid timing issues
         trace_and_span_ids = []
         with test_library:
-            for i in range(4):
+            for _ in range(4):
                 with test_library.dd_start_span(name="web.request", service="webserver") as s1:
                     pass
                 trace_and_span_ids.append((s1.trace_id, s1.span_id))
-            for i in range(6):
+            for _ in range(6):
                 with test_library.dd_start_span(name="web.request2", service="webserver2") as s2:
                     pass
                 trace_and_span_ids.append((s2.trace_id, s2.span_id))

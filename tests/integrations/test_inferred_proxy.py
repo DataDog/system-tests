@@ -131,7 +131,7 @@ def get_span(interface, resource):
     return None
 
 
-def assert_api_gateway_span(test_case, span, path, status_code, is_distributed=False, is_error=False):
+def assert_api_gateway_span(test_case, span, path, status_code, *, is_distributed=False, is_error=False):
     assert span["name"] == "aws.apigateway", "Inferred AWS API Gateway span name should be 'aws.apigateway'"
 
     # Assertions to check if the span data contains the required keys and values.
