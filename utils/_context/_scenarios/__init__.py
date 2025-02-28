@@ -337,18 +337,18 @@ class _Scenarios:
         "APPSEC_STANDALONE",
         weblog_env={
             "DD_APPSEC_ENABLED": "true",
-            "DD_EXPERIMENTAL_APPSEC_STANDALONE_ENABLED": "true",
+            "DD_APM_TRACING_ENABLED": "false",
             "DD_IAST_ENABLED": "false",
         },
         doc="Appsec standalone mode (APM opt out)",
         scenario_groups=[ScenarioGroup.APPSEC],
     )
 
-    appsec_standalone_v2 = EndToEndScenario(
-        "APPSEC_STANDALONE_V2",
+    appsec_standalone_experimental = EndToEndScenario(
+        "APPSEC_STANDALONE_EXPERIMENTAL",
         weblog_env={
             "DD_APPSEC_ENABLED": "true",
-            "DD_APM_TRACING_ENABLED": "false",
+            "DD_EXPERIMENTAL_APPSEC_STANDALONE_ENABLED": "true",
             "DD_IAST_ENABLED": "false",
         },
         doc="Appsec standalone mode (APM opt out) V2",
@@ -359,7 +359,7 @@ class _Scenarios:
         "IAST_STANDALONE",
         weblog_env={
             "DD_APPSEC_ENABLED": "false",
-            "DD_EXPERIMENTAL_APPSEC_STANDALONE_ENABLED": "true",
+            "DD_APM_TRACING_ENABLED": "false",
             "DD_IAST_ENABLED": "true",
             "DD_IAST_DETECTION_MODE": "FULL",
             "DD_IAST_DEDUPLICATION_ENABLED": "false",
@@ -369,11 +369,11 @@ class _Scenarios:
         scenario_groups=[ScenarioGroup.APPSEC],
     )
 
-    iast_standalone_v2 = EndToEndScenario(
-        "IAST_STANDALONE_V2",
+    iast_standalone_experimental = EndToEndScenario(
+        "IAST_STANDALONE_EXPERIMENTAL",
         weblog_env={
             "DD_APPSEC_ENABLED": "false",
-            "DD_APM_TRACING_ENABLED": "false",
+            "DD_EXPERIMENTAL_APPSEC_STANDALONE_ENABLED": "true",
             "DD_IAST_ENABLED": "true",
             "DD_IAST_DETECTION_MODE": "FULL",
             "DD_IAST_DEDUPLICATION_ENABLED": "false",
@@ -388,7 +388,7 @@ class _Scenarios:
         weblog_env={
             "DD_APPSEC_ENABLED": "false",
             "DD_APPSEC_SCA_ENABLED": "true",
-            "DD_EXPERIMENTAL_APPSEC_STANDALONE_ENABLED": "true",
+            "DD_APM_TRACING_ENABLED": "false",
             "DD_IAST_ENABLED": "false",
             "DD_TELEMETRY_DEPENDENCY_RESOLUTION_PERIOD_MILLIS": "1",
         },
@@ -396,12 +396,12 @@ class _Scenarios:
         scenario_groups=[ScenarioGroup.APPSEC],
     )
 
-    sca_standalone_v2 = EndToEndScenario(
-        "SCA_STANDALONE_V2",
+    sca_standalone_experimental = EndToEndScenario(
+        "SCA_STANDALONE_EXPERIMENTAL",
         weblog_env={
             "DD_APPSEC_ENABLED": "false",
             "DD_APPSEC_SCA_ENABLED": "true",
-            "DD_APM_TRACING_ENABLED": "false",
+            "DD_EXPERIMENTAL_APPSEC_STANDALONE_ENABLED": "true",
             "DD_IAST_ENABLED": "false",
             "DD_TELEMETRY_DEPENDENCY_RESOLUTION_PERIOD_MILLIS": "1",
         },
