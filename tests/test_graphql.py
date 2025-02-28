@@ -10,6 +10,21 @@ from utils import (
     features,
     scenarios,
 )
+from collections import defaultdict
+
+COMPONENT_EXCEPTIONS: defaultdict[str, defaultdict[str, dict]] = defaultdict(
+    lambda: defaultdict(lambda: {"operation_name": "graphql.execute", "has_location": True})
+)
+
+COMPONENT_EXCEPTIONS["go"]["99designs/gqlgen"] = {
+    "operation_name": "graphql.query",
+    "has_location": False,
+}
+
+COMPONENT_EXCEPTIONS["go"]["graph-gophers/graphql-go"] = {
+    "operation_name": "graphql.request",
+    "has_location": False,
+}
 
 
 @rfc("https://docs.google.com/document/d/1JjctLYE4a4EbtmnFixQt-TilltcSV69IAeiSGjcUL34")
@@ -65,7 +80,7 @@ class Test_GraphQLQueryErrorReporting:
         spans = list(
             span
             for _, _, span in interfaces.library.get_spans(request=self.request, full_trace=True)
-            if span["name"] == "graphql.execute"
+            if self._is_graphql_execute_span(span)
         )
 
         assert len(spans) == 1
@@ -81,22 +96,33 @@ class Test_GraphQLQueryErrorReporting:
 
         attributes = event["attributes"]
 
-        assert isinstance(attributes["message"], str)
-        assert isinstance(attributes["type"], str)
-        assert isinstance(attributes["stacktrace"], str)
+        assert attributes["message"]["type"] == 0
+        assert attributes["message"]["string_value"] == "test error"
 
-        for path in attributes["path"]:
-            assert isinstance(path, str)
+        assert attributes["type"]["type"] == 0
+        assert attributes["type"].get("string_value", "") != ""
 
-        for location in attributes["locations"]:
-            assert len(location.split(":")) == 2
-            assert location.split(":")[0].isdigit()
-            assert location.split(":")[1].isdigit()
+        assert attributes["stacktrace"]["type"] == 0
+        assert attributes["stacktrace"].get("string_value", "") != ""
 
-        assert attributes["extensions.int"] == 1
-        assert attributes["extensions.float"] == 1.1
-        assert attributes["extensions.str"] == "1"
-        assert attributes["extensions.bool"] is True
+        self._assert_path(attributes)
+
+        if self._has_location(span):
+            self._assert_location(attributes)
+        else:
+            assert "location" not in attributes
+
+        assert attributes["extensions.int"]["type"] == 2
+        assert attributes["extensions.int"]["int_value"] == 1
+
+        assert attributes["extensions.float"]["type"] == 3
+        assert attributes["extensions.float"]["double_value"] == 1.1
+
+        assert attributes["extensions.str"]["type"] == 0
+        assert attributes["extensions.str"]["string_value"] == "1"
+
+        assert attributes["extensions.bool"]["type"] == 1
+        assert attributes["extensions.bool"]["bool_value"] == True  # noqa: E712
 
         # A list with two heterogeneous elements: [1, "foo"].
         # This test simulates an object that is not a supported scalar above (int,float,string,boolean).
@@ -104,10 +130,47 @@ class Test_GraphQLQueryErrorReporting:
         # JSON serialization of the object.
         # The goal here is to display the original data with as much fidelity as possible, without allowing
         # for arbitrary nested levels inside `span_event.attributes`.
-        assert "1" in attributes["extensions.other"]
-        assert "foo" in attributes["extensions.other"]
+        assert attributes["extensions.other"]["type"] == 0
+        assert "1" in attributes["extensions.other"]["string_value"]
+        assert "foo" in attributes["extensions.other"]["string_value"]
 
         assert "extensions.not_captured" not in attributes
+
+    @staticmethod
+    def _is_graphql_execute_span(span) -> bool:
+        name = span["name"]
+        lang = span["meta"]["language"]
+        component = span["meta"]["component"]
+        return name == COMPONENT_EXCEPTIONS[lang][component]["operation_name"]
+
+    @staticmethod
+    def _has_location(span) -> bool:
+        lang = span["meta"]["language"]
+        component = span["meta"]["component"]
+        return COMPONENT_EXCEPTIONS[lang][component]["has_location"]
+
+    @staticmethod
+    def _assert_path(attributes) -> None:
+        assert attributes["path"]["type"] == 4
+        path = attributes["path"]["array_value"]["values"]
+        assert path is not None
+        assert len(path) == 1
+        assert path[0]["type"] == 0
+        assert path[0]["string_value"] == "withError"
+
+    @staticmethod
+    def _assert_location(attributes) -> None:
+        assert attributes["location"]["type"] == 4
+        location = attributes["location"]["array_value"]["values"]
+        assert location is not None
+        assert len(location) == 1
+
+        for loc in location:
+            assert loc["type"] == 0
+            loc_value = loc["string_value"]
+            assert len(loc_value.split(":")) == 2
+            assert loc_value.split(":")[0].isdigit()
+            assert loc_value.split(":")[1].isdigit()
 
     @staticmethod
     def _get_events(span) -> dict:
