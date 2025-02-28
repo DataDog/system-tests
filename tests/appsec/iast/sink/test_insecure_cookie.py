@@ -31,6 +31,7 @@ class TestInsecureCookie(BaseSinkTest):
     def setup_empty_cookie(self):
         self.request_empty_cookie = weblog.get("/iast/insecure-cookie/test_empty_cookie", data={})
 
+    @flaky(context.library >= "dotnet@3.11.1", reason="APPSEC-56908")
     def test_empty_cookie(self):
         self.assert_no_iast_event(self.request_empty_cookie)
 
