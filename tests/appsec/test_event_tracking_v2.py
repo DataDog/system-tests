@@ -37,6 +37,23 @@ def validate_metric_type_and_version(event_type, version, metric):
         and f"sdk_version:{version}" in metric.get("tags", ())
     )
 
+def validate_tags_and_metadata(span, prefix, expected_tags, metadata, unexpected_metadata):
+    if metadata is not None:
+        for key, value in metadata.items():
+            expected_tags[prefix + '.' + key] = value
+
+    for tag, expected_value in expected_tags.items():
+        assert tag in span["meta"], f"Can't find {tag} in span's meta"
+        value = span["meta"][tag]
+        if value != expected_value:
+            raise Exception(f"{tag} value is '{value}', should be '{expected_value}'")
+
+    if unexpected_metadata is not None:
+        for key in unexpected_metadata:
+            tag = prefix + '.' +key
+            assert tag not in span["meta"], f"Tag {tag} found in span's meta"
+
+    return True
 
 @features.user_monitoring
 @scenarios.appsec_ato_sdk
@@ -54,22 +71,7 @@ class Test_UserLoginSuccessEventV2_Tags:
                 "http.client_ip": "1.2.3.4",
             }
 
-            if metadata is not None:
-                for key, value in metadata.items():
-                    expected_tags["appsec.events.users.login.success." + key] = value
-
-            for tag, expected_value in expected_tags.items():
-                assert tag in span["meta"], f"Can't find {tag} in span's meta"
-                value = span["meta"][tag]
-                if value != expected_value:
-                    raise Exception(f"{tag} value is '{value}', should be '{expected_value}'")
-
-            if unexpected_metadata is not None:
-                for key in unexpected_metadata:
-                    tag = "appsec.events.users.login.success." + key
-                    assert tag not in span["meta"], f"Tag {tag} found in span's meta"
-
-            return True
+            return validate_tags_and_metadata(span, "appsec.events.users.login.success", expected_tags, metadata, unexpected_metadata)
 
         return validate
 
@@ -78,7 +80,7 @@ class Test_UserLoginSuccessEventV2_Tags:
             "X-Forwarded-For": "1.2.3.4",
         }
 
-        metadata = {"metadata0": "value0", "metadata1": "value1"}
+        metadata = {"metadata0": "value0", "metadata_number": 123, "metadata_boolean": True}
 
         data = {"login": LOGIN_SAFE, "user_id": USER_ID_SAFE, "metadata": metadata}
 
@@ -87,7 +89,7 @@ class Test_UserLoginSuccessEventV2_Tags:
     def test_user_login_success_event(self):
         # Call the user login success SDK and validate tags
 
-        metadata = {"metadata0": "value0", "metadata1": "value1"}
+        metadata = {"metadata0": "value0", "metadata_number": "123", "metadata_boolean": "true"}
 
         interfaces.library.validate_spans(
             self.r, self.get_user_login_success_tags_validator(LOGIN_SAFE, USER_ID_SAFE, metadata=metadata)
@@ -231,22 +233,7 @@ class Test_UserLoginFailureEventV2_Tags:
                 "http.client_ip": "1.2.3.4",
             }
 
-            if metadata is not None:
-                for key, value in metadata.items():
-                    expected_tags["appsec.events.users.login.failure." + key] = value
-
-            for tag, expected_value in expected_tags.items():
-                assert tag in span["meta"], f"Can't find {tag} in span's meta"
-                value = span["meta"][tag]
-                if value != expected_value:
-                    raise Exception(f"{tag} value is '{value}', should be '{expected_value}'")
-
-            if unexpected_metadata is not None:
-                for key in unexpected_metadata:
-                    tag = "appsec.events.users.login.failure." + key
-                    assert tag not in span["meta"], f"Tag {tag} found in span's meta"
-
-            return True
+            return validate_tags_and_metadata(span, "appsec.events.users.login.failure", expected_tags, metadata, unexpected_metadata)
 
         return validate
 
