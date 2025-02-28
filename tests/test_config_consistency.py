@@ -512,6 +512,7 @@ class Test_Config_LogInjection_Enabled:
         msg = parse_log_injection_message(self.message)
         assert msg is not None, "Log message with trace context not found"
 
+        # dd-trace-java stores injected trace information under the "mdc" key
         if context.library.library == "java":
             msg = msg.get("mdc")
 
@@ -699,16 +700,10 @@ def parse_log_injection_message(log_message):
 
 
 def parse_log_trace_id(message):
-    # dd-trace-java stores injected trace information under the "mdc" key
-    # if context.library.library == "java":
-    #     message = message.get("mdc")
     # APMAPI-1199: update nodejs to use dd.trace_id instead of trace_id
     return message.get("dd.trace_id", message.get("trace_id"))
 
 
 def parse_log_span_id(message):
-    # dd-trace-java stores injected trace information under the "mdc" key
-    # if context.library.library == "java":
-    #     message = message.get("mdc")
     # APMAPI-1199: update nodejs to use dd.span_id instead of span_id
     return message.get("dd.span_id", message.get("span_id"))
