@@ -526,7 +526,7 @@ class Test_Blocking_response_status:
         self.rnf_req = weblog.get(path="/finger_print")
 
     @missing_feature(
-        context.library == "java" and context.weblog_variant not in ("akka-http", "play"),
+        (context.library == "java" and context.weblog_variant == "spring-boot-openliberty"),
         reason="Happens on a subsequent WAF run",
     )
     @missing_feature(context.library == "golang", reason="No blocking on server.response.*")
