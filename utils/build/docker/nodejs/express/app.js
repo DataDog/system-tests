@@ -177,8 +177,8 @@ app.get('/custom_event', (req, res) => {
 })
 
 app.post('/user_login_success_event_v2', (req, res) => {
-  const login = req.body.login || 'system_tests_login'
-  const userId = req.body.user_id || 'system_tests_user_id'
+  const login = req.body.login
+  const userId = req.body.user_id
   const metadata = req.body.metadata
 
   tracer.appsec.v2?.trackUserLoginSuccess(login, userId, metadata)
@@ -187,7 +187,7 @@ app.post('/user_login_success_event_v2', (req, res) => {
 })
 
 app.post('/user_login_failure_event_v2', (req, res) => {
-  const login = req.body.login || 'system_tests_login'
+  const login = req.body.login
   const exists = req.body.exists?.trim() === 'true'
   const metadata = req.body.metadata
 
