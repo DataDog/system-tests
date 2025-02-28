@@ -155,6 +155,10 @@ DEFAULT_SUPPORTED_CAPABILITIES_BY_LANG: dict[str, set[Capabilities]] = {
         Capabilities.ASM_NETWORK_FINGERPRINT,
         Capabilities.ASM_HEADER_FINGERPRINT,
         Capabilities.ASM_RASP_CMDI,
+        Capabilities.APM_TRACING_ENABLE_DYNAMIC_INSTRUMENTATION,
+        Capabilities.APM_TRACING_ENABLE_EXCEPTION_REPLAY,
+        Capabilities.APM_TRACING_ENABLE_CODE_ORIGIN,
+        Capabilities.APM_TRACING_ENABLE_LIVE_DEBUGGING,
     },
     "nodejs": {
         Capabilities.ASM_ACTIVATION,
