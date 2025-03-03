@@ -764,14 +764,17 @@ tests/:
       Test_Debugger_PII_Redaction:
         '*': irrelevant
         express4: v5.39.0
+        uds-express4: v5.39.0
     test_debugger_probe_snapshot.py:
       Test_Debugger_Probe_Snaphots:
         '*': irrelevant
         express4: v5.39.0
+        uds-express4: v5.39.0
     test_debugger_probe_status.py:
       Test_Debugger_Probe_Statuses:
         '*': irrelevant
         express4: v5.39.0
+        uds-express4: v5.39.0
     test_debugger_symdb.py:
       Test_Debugger_SymDb: missing_feature (feature not implented)
   integrations/:
