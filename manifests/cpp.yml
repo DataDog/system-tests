@@ -213,12 +213,15 @@ tests/:
       Test_Parametric_Otel_Trace_Flush: missing_feature (otel api is not supported)
     test_partial_flushing.py:
       Test_Partial_Flushing: missing_feature
+    test_process_discovery.py:
+      Test_ProcessDiscovery: v1.0.1.dev
     test_sampling_delegation.py:
       Test_Decisionless_Extraction: v1.0.1.dev
     test_span_events.py: missing_feature
     test_span_links.py: missing_feature
     test_telemetry.py:
       Test_Consistent_Configs: missing_feature
+      Test_Stable_Configuration_Origin: missing_feature
       Test_TelemetryInstallSignature: missing_feature
       Test_TelemetrySCAEnvVar: missing_feature
     test_tracer.py:
@@ -256,8 +259,8 @@ tests/:
     Test_Config_HttpServerErrorStatuses_FeatureFlagCustom: missing_feature
     Test_Config_IntegrationEnabled_False: missing_feature
     Test_Config_IntegrationEnabled_True: missing_feature
-    Test_Config_LogInjection_128Bit_TradeId_Default: missing_feature
-    Test_Config_LogInjection_128Bit_TradeId_Disabled: missing_feature
+    Test_Config_LogInjection_128Bit_TraceId_Default: missing_feature
+    Test_Config_LogInjection_128Bit_TraceId_Disabled: missing_feature
     Test_Config_LogInjection_Default: missing_feature
     Test_Config_LogInjection_Enabled: missing_feature
     Test_Config_ObfuscationQueryStringRegexp_Configured: missing_feature

@@ -51,13 +51,13 @@ tests/:
       sink/:
         test_code_injection.py:
           TestCodeInjection: v2.20.0
-          TestCodeInjection_ExtendedLocation: missing_feature
+          TestCodeInjection_ExtendedLocation: v3.1.0.dev
           TestCodeInjection_StackTrace: missing_feature
         test_command_injection.py:
           TestCommandInjection:
             '*': v2.10.0
             fastapi: v2.15.0
-          TestCommandInjection_ExtendedLocation: missing_feature
+          TestCommandInjection_ExtendedLocation: v3.1.0.dev
           TestCommandInjection_StackTrace: missing_feature
         test_email_html_injection.py:
           TestEmailHtmlInjection: missing_feature
@@ -80,7 +80,7 @@ tests/:
           TestHeaderInjectionExclusionContentEncoding: missing_feature
           TestHeaderInjectionExclusionPragma: missing_feature
           TestHeaderInjectionExclusionTransferEncoding: missing_feature
-          TestHeaderInjection_ExtendedLocation: missing_feature
+          TestHeaderInjection_ExtendedLocation: v3.1.0.dev
           TestHeaderInjection_StackTrace:
             '*': missing_feature
             fastapi: missing_feature
@@ -94,10 +94,10 @@ tests/:
           Test_InsecureAuthProtocol_StackTrace: missing_feature
         test_insecure_cookie.py:
           TestInsecureCookie:
-            '*': v1.19.0
-            fastapi: v2.16.0-dev
+            '*': v1.19.0  (v3.1.0.dev, add telemetry metrics support)
+            fastapi: v2.16.0-dev (v3.1.0.dev, add telemetry metrics support)
           TestInsecureCookieNameFilter: missing_feature
-          TestInsecureCookie_ExtendedLocation: missing_feature
+          TestInsecureCookie_ExtendedLocation: v3.1.0.dev
           TestInsecureCookie_StackTrace: missing_feature
         test_ldap_injection.py:
           TestLDAPInjection: missing_feature
@@ -105,17 +105,17 @@ tests/:
           TestLDAPInjection_StackTrace: missing_feature
         test_no_httponly_cookie.py:
           TestNoHttponlyCookie:
-            '*': v1.19.0
-            fastapi: v2.16.0-dev
+            '*': v1.19.0  (v3.1.0.dev, add telemetry metrics support)
+            fastapi: v2.16.0-dev (v3.1.0.dev, add telemetry metrics support)
           TestNoHttponlyCookieNameFilter: missing_feature
-          TestNoHttponlyCookie_ExtendedLocation: missing_feature
+          TestNoHttponlyCookie_ExtendedLocation: v3.1.0.dev
           TestNoHttponlyCookie_StackTrace: missing_feature
         test_no_samesite_cookie.py:
           TestNoSamesiteCookie:
-            '*': v1.19.0
-            fastapi: v2.16.0-dev
+            '*': v1.19.0  (v3.1.0.dev, add telemetry metrics support)
+            fastapi: v2.16.0-dev (v3.1.0.dev, add telemetry metrics support)
           TestNoSamesiteCookieNameFilter: missing_feature
-          TestNoSamesiteCookie_ExtendedLocation: missing_feature
+          TestNoSamesiteCookie_ExtendedLocation: v3.1.0.dev
           TestNoSamesiteCookie_StackTrace: missing_feature
         test_nosql_mongodb_injection.py:
           TestNoSqlMongodbInjection: missing_feature
@@ -125,7 +125,7 @@ tests/:
           TestPathTraversal:
             '*': v2.10.0
             fastapi: v2.15.0
-          TestPathTraversal_ExtendedLocation: missing_feature
+          TestPathTraversal_ExtendedLocation: v3.1.0.dev
           TestPathTraversal_StackTrace: missing_feature
         test_reflection_injection.py:
           TestReflectionInjection: missing_feature
@@ -137,13 +137,13 @@ tests/:
             fastapi: v2.15.0
             flask-poc: v1.18.0
             python3.12: v1.18.0
-          TestSqlInjection_ExtendedLocation: missing_feature
+          TestSqlInjection_ExtendedLocation: v3.1.0.dev
           TestSqlInjection_StackTrace: missing_feature
         test_ssrf.py:
           TestSSRF:
             '*': v2.10.0
             fastapi: v2.15.0
-          TestSSRF_ExtendedLocation: missing_feature
+          TestSSRF_ExtendedLocation: v3.1.0.dev
           TestSSRF_StackTrace: missing_feature
         test_stacktrace_leak.py:
           TestStackTraceLeak:
@@ -174,19 +174,19 @@ tests/:
           TestWeakCipher:
             '*': v1.18.0
             fastapi: v2.15.0
-          TestWeakCipher_ExtendedLocation: missing_feature
+          TestWeakCipher_ExtendedLocation: v3.1.0.dev
           TestWeakCipher_StackTrace: missing_feature
         test_weak_hash.py:
           TestDeduplication:
             '*': v1.18.0
           TestWeakHash:
             '*': v1.18.0
-          TestWeakHash_ExtendedLocation: missing_feature
+          TestWeakHash_ExtendedLocation: v3.1.0.dev
           TestWeakHash_StackTrace: missing_feature
         test_weak_randomness.py:
           TestWeakRandomness:
             '*': v2.0.0
-          TestWeakRandomness_ExtendedLocation: missing_feature
+          TestWeakRandomness_ExtendedLocation: v3.1.0.dev
           TestWeakRandomness_StackTrace: missing_feature
         test_xcontent_sniffing.py:
           Test_XContentSniffing: missing_feature
@@ -199,7 +199,7 @@ tests/:
         test_xss.py:
           TestXSS:
             '*': v3.0.0.dev
-          TestXSS_ExtendedLocation: missing_feature
+          TestXSS_ExtendedLocation: v3.1.0.dev
           TestXSS_StackTrace: missing_feature
       source/:
         test_body.py:
@@ -466,15 +466,12 @@ tests/:
         fastapi: v2.4.0
     test_asm_standalone.py:
       Test_AppSecStandalone_NotEnabled: v2.12.3
-      Test_AppSecStandalone_UpstreamPropagation:
-        '*': v2.12.3
-        uwsgi-poc: v2.17.1
-      Test_AppSecStandalone_UpstreamPropagation_V2: missing_feature
-      Test_IastStandalone_UpstreamPropagation:
-        '*': v2.18.0.dev
-      Test_IastStandalone_UpstreamPropagation_V2: missing_feature
-      Test_SCAStandalone_Telemetry: v2.19.0.dev
-      Test_SCAStandalone_Telemetry_V2: missing_feature
+      Test_AppSecStandalone_UpstreamPropagation: irrelevant (was v2.12.3 for all, v2.17.1 for uwsgi-poc but will be replaced by V2)
+      Test_AppSecStandalone_UpstreamPropagation_V2: v3.2.0.dev
+      Test_IastStandalone_UpstreamPropagation: irrelevant (was v2.18.0.dev but will be replaced by V2)
+      Test_IastStandalone_UpstreamPropagation_V2: v3.2.0.dev
+      Test_SCAStandalone_Telemetry: irrelevant (was v2.19.0.dev but will be replaced by V2)
+      Test_SCAStandalone_Telemetry_V2: v3.2.0.dev
     test_automated_login_events.py:
       Test_Login_Events: irrelevant (was v2.10.0 but will be replaced by V2)
       Test_Login_Events_Extended: irrelevant (was v2.10.0 but will be replaced by V2)
@@ -489,7 +486,7 @@ tests/:
     test_automated_user_and_session_tracking.py:
       Test_Automated_Session_Blocking: missing_feature
       Test_Automated_User_Blocking: v3.0.0.rc
-      Test_Automated_User_Tracking: v3.0.0.rc
+      Test_Automated_User_Tracking: v3.1.0.dev
     test_blocking_addresses.py:
       Test_BlockingGraphqlResolvers: missing_feature
       Test_Blocking_client_ip:
@@ -869,6 +866,7 @@ tests/:
       Test_Parametric_Otel_Baggage: v2.16.0
     test_partial_flushing.py:
       Test_Partial_Flushing: flaky (APMAPI-734)
+    test_process_discovery.py: missing_feature
     test_sampling_delegation.py:
       Test_Decisionless_Extraction: v2.8.0
     test_sampling_span_tags.py:
@@ -882,6 +880,7 @@ tests/:
       Test_Consistent_Configs: missing_feature
       Test_Defaults: v2.9.0
       Test_Environment: v2.8.0
+      Test_Stable_Configuration_Origin: missing_feature
       Test_TelemetryInstallSignature: v2.5.0
       Test_TelemetrySCAEnvVar: v2.9.0
     test_trace_sampling.py:
@@ -949,8 +948,8 @@ tests/:
     Test_Config_IntegrationEnabled_True:
       '*': irrelevant (kafka endpoint is not implemented)
       flask-poc: v2.0.0
-    Test_Config_LogInjection_128Bit_TradeId_Default: missing_feature (not enabled by default)
-    Test_Config_LogInjection_128Bit_TradeId_Disabled: incomplete_test_app (endpoint not implemented)
+    Test_Config_LogInjection_128Bit_TraceId_Default: missing_feature (not enabled by default)
+    Test_Config_LogInjection_128Bit_TraceId_Disabled: incomplete_test_app (endpoint not implemented)
     Test_Config_LogInjection_Default: incomplete_test_app (endpoint not implemented)
     Test_Config_LogInjection_Enabled: incomplete_test_app (endpoint not implemented)
     Test_Config_ObfuscationQueryStringRegexp_Configured: v2.0.0

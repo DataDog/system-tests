@@ -74,7 +74,8 @@
         "universal_version": "universal_version_enabled",
         "url": "trace_agent_url",
         "waf_healthy": "appsec_waf_healthy",
-        "waf_supports_target": "appsec_waf_supports_target"
+        "waf_supports_target": "appsec_waf_supports_target",
+        "withenablementmode": "appsec_enablement_mode"
     },
     "prefix_block_list": [
         "agentless",
@@ -85,6 +86,7 @@
         "max_goroutines_wait",
         "mutex_profile_fraction",
         "num_custom_profiler_label_keys",
+        "osinfo_libdl_path",
         "profile_period",
         "profile_period",
         "upload_timeout",

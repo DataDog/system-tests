@@ -112,8 +112,8 @@ class _Scenarios:
 
     telemetry_log_generation_disabled = EndToEndScenario(
         "TELEMETRY_LOG_GENERATION_DISABLED",
-        weblog_env={"DD_TELEMETRY_LOGS_COLLECTION_ENABLED": "false"},
-        doc="Test env var `DD_TELEMETRY_LOGS_COLLECTION_ENABLED=false`",
+        weblog_env={"DD_TELEMETRY_LOG_COLLECTION_ENABLED": "false"},
+        doc="Test env var `DD_TELEMETRY_LOG_COLLECTION_ENABLED=false`",
         scenario_groups=[ScenarioGroup.TELEMETRY],
     )
     telemetry_metric_generation_disabled = EndToEndScenario(

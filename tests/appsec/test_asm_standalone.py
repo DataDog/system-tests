@@ -65,7 +65,7 @@ class AsmStandalone_UpstreamPropagation_Base(ABC):
         product_enabled = False
         tags = "_dd.iast.json" if product == "iast" else "_dd.appsec.json"
         meta_struct_key = "iast" if product == "iast" else "appsec"
-        for data, trace, span in interfaces.library.get_spans(request=request):
+        for _, __, span in interfaces.library.get_spans(request=request):
             # Check if the product is enabled in meta
             meta = span["meta"]
             if tags in meta:
@@ -679,7 +679,7 @@ class SCAStandalone_Telemetry_Base:
 
     def assert_standalone_is_enabled(self, request):
         # test standalone is enabled and dropping traces
-        for data, _trace, span in interfaces.library.get_spans(request):
+        for _, __, span in interfaces.library.get_spans(request):
             assert span["metrics"]["_sampling_priority_v1"] <= 0
             assert span["metrics"]["_dd.apm.enabled"] == 0
 

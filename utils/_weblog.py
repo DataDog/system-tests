@@ -164,6 +164,10 @@ class _Weblog:
             logger.error(f"Request {rid} raise an error: {e}")
         else:
             logger.debug(f"Request {rid}: {response.status_code}")
+            if response.status_code == 404:
+                logger.error(
+                    "💡 if your test is failing, you may need to add missing_feature for this weblog in manifest file."
+                )
 
         return HttpResponse(
             {

@@ -324,7 +324,7 @@ class RequestMutator:
     invalid_methods = tuple()
     invalid_header_keys = tuple()
 
-    def __init__(self, no_mutation=False):
+    def __init__(self, *, no_mutation=False):
         self.methods = tuple(method for method in self.methods if method not in self.invalid_methods)
 
         self.invalid_header_keys = tuple(key.lower() for key in self.invalid_header_keys)
@@ -530,7 +530,7 @@ class RequestMutator:
     def get_payload_key(self):
         return random.choice(data.blns)
 
-    def get_payload_value(self, allow_nested=False):
+    def get_payload_value(self, *, allow_nested=False):
         if not allow_nested:
             return random.choice(self.payload_values)
 

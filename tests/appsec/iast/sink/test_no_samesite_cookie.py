@@ -25,17 +25,19 @@ class TestNoSamesiteCookie(BaseSinkTest):
     }
 
     @bug(context.library < "java@1.18.3", reason="APMRP-360")
+    @flaky(context.library >= "dotnet@3.11.1", reason="APPSEC-56908")
     def test_secure(self):
         super().test_secure()
 
     def setup_empty_cookie(self):
         self.request_empty_cookie = weblog.get("/iast/no-samesite-cookie/test_empty_cookie", data={})
 
+    @flaky(context.library >= "dotnet@3.11.1", reason="APPSEC-56908")
     def test_empty_cookie(self):
         self.assert_no_iast_event(self.request_empty_cookie)
 
     @missing_feature(context.library < "java@1.22.0", reason="Metrics not implemented")
-    @missing_feature(library="python", reason="Metrics not implemented")
+    @missing_feature(context.library < "python@3.1.0", reason="Metrics not implemented")
     @missing_feature(library="dotnet", reason="Metrics not implemented")
     def test_telemetry_metric_instrumented_sink(self):
         super().test_telemetry_metric_instrumented_sink()
