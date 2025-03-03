@@ -202,6 +202,8 @@ def _validate_headers(headers, request_type):
     expected_language = context.library.library
     if expected_language == "java":
         expected_language = "jvm"
+    elif expected_language == "golang":
+        expected_language = "go"
 
     # empty value means we don't care about the content, but we want to check the key exists
     # a set means "any of"
