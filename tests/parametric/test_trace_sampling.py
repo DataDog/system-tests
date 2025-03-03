@@ -5,8 +5,8 @@ import random
 
 from utils.parametric.spec.trace import find_only_span, find_span_in_traces
 from utils.parametric.spec.trace import SAMPLING_PRIORITY_KEY, SAMPLING_RULE_PRIORITY_RATE
-from utils.parametric.spec.trace import MANUAL_KEEP_KEY
 from utils import rfc, scenarios, missing_feature, flaky, features, bug
+
 
 @features.trace_sampling
 @features.adaptive_sampling
