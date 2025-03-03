@@ -50,6 +50,8 @@ refs:
   - &ref_5_38_0 '>=5.38.0'
   - &ref_5_39_0 '>=5.39.0'
   - &ref_5_40_0 '>=5.40.0'
+  - &ref_5_41_0 '>=5.41.0'
+
 tests/:
   apm_tracing_e2e/:
     test_otel.py:
@@ -907,7 +909,7 @@ tests/:
     test_config_consistency.py:
       Test_Config_Dogstatsd: *ref_5_29_0
       Test_Config_RateLimit: *ref_5_25_0
-      Test_Config_Tags: *ref_5_39_0
+      Test_Config_Tags: *ref_5_41_0
       Test_Config_TraceAgentURL: *ref_5_25_0
       Test_Config_TraceEnabled: *ref_4_3_0
       Test_Config_TraceLogDirectory: missing_feature
