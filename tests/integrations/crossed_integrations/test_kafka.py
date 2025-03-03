@@ -7,7 +7,7 @@ from utils.buddies import java_buddy
 from utils.tools import logger
 
 
-class _Test_Kafka:
+class _BaseKafka:
     """Test kafka compatibility with inputted datadog tracer"""
 
     buddy = None
@@ -158,7 +158,7 @@ class _Test_Kafka:
 
 @scenarios.crossed_tracing_libraries
 @features.kafkaspan_creationcontext_propagation_with_dd_trace
-class Test_Kafka(_Test_Kafka):
+class Test_Kafka(_BaseKafka):
     buddy_interface = interfaces.java_buddy
     buddy = java_buddy
     WEBLOG_TO_BUDDY_TOPIC = "Test_Kafka_weblog_to_buddy"

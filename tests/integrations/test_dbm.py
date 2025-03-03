@@ -126,7 +126,7 @@ class Test_Dbm:
                 self._assert_span_is_tagged(span)
 
 
-class _Test_Dbm_Comment:
+class _BaseDbmComment:
     """Verify DBM comment for given integration"""
 
     integration = None
@@ -165,7 +165,7 @@ class _Test_Dbm_Comment:
 @irrelevant(condition=context.library != "python", reason="These are python only tests.")
 @features.database_monitoring_support
 @scenarios.integrations
-class Test_Dbm_Comment_Python_Psycopg(_Test_Dbm_Comment):
+class Test_Dbm_Comment_Python_Psycopg(_BaseDbmComment):
     integration = "psycopg"
     operation = "execute"
 
@@ -177,7 +177,7 @@ class Test_Dbm_Comment_Python_Psycopg(_Test_Dbm_Comment):
 @irrelevant(condition=context.library != "python", reason="These are python only tests.")
 @features.database_monitoring_support
 @scenarios.integrations
-class Test_Dbm_Comment_Batch_Python_Psycopg(_Test_Dbm_Comment):
+class Test_Dbm_Comment_Batch_Python_Psycopg(_BaseDbmComment):
     integration = "psycopg"
     operation = "executemany"
 
@@ -193,7 +193,7 @@ class Test_Dbm_Comment_Batch_Python_Psycopg(_Test_Dbm_Comment):
 @irrelevant(condition=context.library != "python", reason="These are python only tests.")
 @features.database_monitoring_support
 @scenarios.integrations
-class Test_Dbm_Comment_Python_Asyncpg(_Test_Dbm_Comment):
+class Test_Dbm_Comment_Python_Asyncpg(_BaseDbmComment):
     integration = "asyncpg"
     operation = "execute"
 
@@ -208,7 +208,7 @@ class Test_Dbm_Comment_Python_Asyncpg(_Test_Dbm_Comment):
 @irrelevant(condition=context.library != "python", reason="These are python only tests.")
 @features.database_monitoring_support
 @scenarios.integrations
-class Test_Dbm_Comment_Python_Aiomysql(_Test_Dbm_Comment):
+class Test_Dbm_Comment_Python_Aiomysql(_BaseDbmComment):
     integration = "aiomysql"
     operation = "execute"
 
@@ -220,7 +220,7 @@ class Test_Dbm_Comment_Python_Aiomysql(_Test_Dbm_Comment):
 @irrelevant(condition=context.library != "python", reason="These are python only tests.")
 @features.database_monitoring_support
 @scenarios.integrations
-class Test_Dbm_Comment_Batch_Python_Aiomysql(_Test_Dbm_Comment):
+class Test_Dbm_Comment_Batch_Python_Aiomysql(_BaseDbmComment):
     integration = "aiomysql"
     operation = "executemany"
 
@@ -232,7 +232,7 @@ class Test_Dbm_Comment_Batch_Python_Aiomysql(_Test_Dbm_Comment):
 @irrelevant(condition=context.library != "python", reason="These are python only tests.")
 @features.database_monitoring_support
 @scenarios.integrations
-class Test_Dbm_Comment_Python_MysqlConnector(_Test_Dbm_Comment):
+class Test_Dbm_Comment_Python_MysqlConnector(_BaseDbmComment):
     integration = "mysql-connector"
     operation = "execute"
 
@@ -244,7 +244,7 @@ class Test_Dbm_Comment_Python_MysqlConnector(_Test_Dbm_Comment):
 @irrelevant(condition=context.library != "python", reason="These are python only tests.")
 @features.database_monitoring_support
 @scenarios.integrations
-class Test_Dbm_Comment_Batch_Python_MysqlConnector(_Test_Dbm_Comment):
+class Test_Dbm_Comment_Batch_Python_MysqlConnector(_BaseDbmComment):
     integration = "mysql-connector"
     operation = "executemany"
 
@@ -256,7 +256,7 @@ class Test_Dbm_Comment_Batch_Python_MysqlConnector(_Test_Dbm_Comment):
 @irrelevant(condition=context.library != "python", reason="These are python only tests.")
 @features.database_monitoring_support
 @scenarios.integrations
-class Test_Dbm_Comment_Python_Mysqldb(_Test_Dbm_Comment):
+class Test_Dbm_Comment_Python_Mysqldb(_BaseDbmComment):
     integration = "mysqldb"
     operation = "execute"
 
@@ -272,7 +272,7 @@ class Test_Dbm_Comment_Python_Mysqldb(_Test_Dbm_Comment):
 @irrelevant(condition=context.library != "python", reason="These are python only tests.")
 @features.database_monitoring_support
 @scenarios.integrations
-class Test_Dbm_Comment_Batch_Python_Mysqldb(_Test_Dbm_Comment):
+class Test_Dbm_Comment_Batch_Python_Mysqldb(_BaseDbmComment):
     integration = "mysqldb"
     operation = "executemany"
 
@@ -288,7 +288,7 @@ class Test_Dbm_Comment_Batch_Python_Mysqldb(_Test_Dbm_Comment):
 @irrelevant(condition=context.library != "python", reason="These are python only tests.")
 @features.database_monitoring_support
 @scenarios.integrations
-class Test_Dbm_Comment_Python_Pymysql(_Test_Dbm_Comment):
+class Test_Dbm_Comment_Python_Pymysql(_BaseDbmComment):
     integration = "pymysql"
     operation = "execute"
 
@@ -304,7 +304,7 @@ class Test_Dbm_Comment_Python_Pymysql(_Test_Dbm_Comment):
 @irrelevant(condition=context.library != "python", reason="These are python only tests.")
 @features.database_monitoring_support
 @scenarios.integrations
-class Test_Dbm_Comment_Batch_Python_Pymysql(_Test_Dbm_Comment):
+class Test_Dbm_Comment_Batch_Python_Pymysql(_BaseDbmComment):
     integration = "pymysql"
     operation = "executemany"
 
@@ -320,7 +320,7 @@ class Test_Dbm_Comment_Batch_Python_Pymysql(_Test_Dbm_Comment):
 @irrelevant(condition=context.library != "nodejs", reason="These are nodejs only tests.")
 @features.database_monitoring_support
 @scenarios.integrations
-class Test_Dbm_Comment_NodeJS_mysql2(_Test_Dbm_Comment):
+class Test_Dbm_Comment_NodeJS_mysql2(_BaseDbmComment):
     integration = "mysql2"
     operation = "execute"
 
@@ -335,7 +335,7 @@ class Test_Dbm_Comment_NodeJS_mysql2(_Test_Dbm_Comment):
 @irrelevant(condition=context.library != "nodejs", reason="These are nodejs only tests.")
 @features.database_monitoring_support
 @scenarios.integrations
-class Test_Dbm_Comment_NodeJS_pg(_Test_Dbm_Comment):
+class Test_Dbm_Comment_NodeJS_pg(_BaseDbmComment):
     integration = "pg"
     operation = "execute"
 
