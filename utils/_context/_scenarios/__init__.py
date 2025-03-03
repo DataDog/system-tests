@@ -618,6 +618,8 @@ class _Scenarios:
             "DD_REMOTE_CONFIG_ENABLED": "true",
             "DD_DYNAMIC_INSTRUMENTATION_REDACTED_TYPES": "weblog.Models.Debugger.CustomPii,com.datadoghq.system_tests.springboot.CustomPii,CustomPii",  # noqa: E501
             "DD_DYNAMIC_INSTRUMENTATION_REDACTED_IDENTIFIERS": "customidentifier1,customidentifier2",
+            "DD_GIT_COMMIT_SHA": "a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2",
+            "DD_GIT_REPOSITORY_URL": "https://github.com/Datadog/system-tests",
         },
         library_interface_timeout=5,
         doc="Check pii redaction",
