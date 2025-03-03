@@ -408,7 +408,7 @@ tests/:
       Test_UserLoginSuccessEvent: v1.47.0
       Test_UserLoginSuccessEvent_Metrics: missing_feature
     test_event_tracking_v2.py:
-      Test_UserLogiFailureEventV2_HeaderCollection: missing_feature
+      Test_UserLoginFailureEventV2_HeaderCollection: missing_feature
       Test_UserLoginFailureEventV2_Libddwaf: missing_feature
       Test_UserLoginFailureEventV2_Metrics: missing_feature
       Test_UserLoginFailureEventV2_Tags: missing_feature

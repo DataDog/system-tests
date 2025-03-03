@@ -327,7 +327,7 @@ class Test_UserLoginFailureEventV2_Tags:
 
 @features.event_tracking_sdk_v2
 @scenarios.appsec_ato_sdk
-class Test_UserLogiFailureEventV2_HeaderCollection:
+class Test_UserLoginFailureEventV2_HeaderCollection:
     """Test collected headers in AppSec User Login Failure Event SDK v2"""
 
     def setup_user_login_failure_header_collection(self):
