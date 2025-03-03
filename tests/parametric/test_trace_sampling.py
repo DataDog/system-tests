@@ -526,9 +526,6 @@ class Test_Trace_Sampling_Tags_Feb2024_Revision:
     @pytest.mark.parametrize(
         "library_env", [tag_sampling_env("20"), tag_sampling_env("2*"), tag_sampling_env("2?"), tag_sampling_env("*")]
     )
-    @pytest.mark.parametrize(
-        "library_env", [tag_sampling_env("20"), tag_sampling_env("2*"), tag_sampling_env("2?"), tag_sampling_env("*")]
-    )
     @missing_feature(library="cpp", reason="No metric interface")
     @missing_feature(context.library < "nodejs@5.38.0", reason="Implemented in 5.38.0")
     def test_metric_matching(self, test_agent, test_library):

@@ -423,6 +423,7 @@ class Test_128_Bit_Traceids:
         assert trace_id == int("abcdefab12345678", 16)
         assert dd_p_tid == "640cfd8d00000000"
 
+    @missing_feature(context.library < "nodejs@5.38.0", reason="Implemented in 5.38.0")
     @pytest.mark.parametrize(
         "library_env",
         [{"DD_TRACE_PROPAGATION_STYLE": "tracecontext", "DD_TRACE_128_BIT_TRACEID_GENERATION_ENABLED": "false"}],
