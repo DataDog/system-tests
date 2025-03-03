@@ -201,7 +201,6 @@ tests/:
         TestSecurityControls: missing_feature
     rasp/:
       test_cmdi.py: missing_feature
-      test_shi.py: irrelevant (there is no equivalent to system(3) in go)
       test_lfi.py:
         Test_Lfi_BodyJson:
           '*': irrelevant
@@ -242,6 +241,7 @@ tests/:
         Test_Lfi_Waf_Version:
           '*': irrelevant
           net-http-orchestrion: v1.73.0-dev
+      test_shi.py: irrelevant (there is no equivalent to system(3) in go)
       test_sqli.py:
         Test_Sqli_BodyJson: v1.66.0
         Test_Sqli_BodyUrlEncoded: v1.66.0
