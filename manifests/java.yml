@@ -1828,7 +1828,7 @@ tests/:
     Test_Config_LogInjection_Default:
       '*': irrelevant (weblog endpoint not implemented)
       'spring-boot-3-native': missing_feature
-    Test_Config_LogInjection_Enabled: 
+    Test_Config_LogInjection_Enabled:
       '*': irrelevant (weblog endpoint not implemented)
       'spring-boot-3-native': missing_feature
     Test_Config_ObfuscationQueryStringRegexp_Configured: v1.39.0
