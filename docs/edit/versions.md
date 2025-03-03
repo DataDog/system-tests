@@ -19,7 +19,7 @@ Simply use `1.2.3`
 ### Activate a test for a feature just merged on a `main` branch
 
 * obviously, do not use `1.2.3`
-* less obvious, do not use `1.2.4` ! your test won't be activated. If you didn't your feature implemented correctly, or if a later PR has broken your implementation, you won't see anything before the release 😨
+* less obvious, do not use `1.2.4` ! your test won't be activated. If you didn't implement your feature correctly, or if a later PR has broken your implementation, you won't see anything before the release 😨
 * -> use `1.2.4-dev`
 
 
