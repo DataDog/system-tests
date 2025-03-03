@@ -14,6 +14,18 @@
         },
         {
             "scenarios": [
+                "K8S_AUTO_INJECTION"
+            ],
+            "weblogs": [
+                {
+                    "python": [
+                        "k8s-system-tests"
+                    ]
+                }
+            ]
+        }, 
+        {
+            "scenarios": [
                 "CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT"
             ],
             "weblogs": [
@@ -446,6 +458,17 @@
                     "Ubuntu_21_arm64",
                     "Rocky_Linux_8_amd64",
                     "Rocky_Linux_8_arm64"
+                ]
+            },
+            
+            {
+                "name": "k8s-system-tests",
+                "exact_os_branches": [
+                    "ubuntu24",
+                    "ubuntu22_amd64",
+                    "ubuntu22_arm64",
+                    "ubuntu23",
+                    "debian"
                 ]
             },
             {
