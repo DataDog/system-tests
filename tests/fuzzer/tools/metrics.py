@@ -28,6 +28,7 @@ class Metric:
         format_string=None,
         display_length=5,
         value=0,
+        *,
         has_raw_value=True,
         raw_name=None,
     ):
@@ -339,7 +340,7 @@ class Report:
     def value(self, key, value):
         self.logger.info(f"V {key}: {value}")
 
-    def pulse(self, metrics_getter, force=False):
+    def pulse(self, metrics_getter, *, force=False):
         if self._is_report_time() or force:
             metrics = metrics_getter()
 
