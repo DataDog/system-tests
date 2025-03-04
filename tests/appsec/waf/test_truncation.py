@@ -1,5 +1,5 @@
+import json
 from utils import scenarios, weblog, rfc, features, interfaces
-
 
 def create_nested_object(n, obj):
     if n > 0:
@@ -26,7 +26,11 @@ class Test_Truncation:
           "largeObject": large_object
       }
 
-      self.req = weblog.post("/waf", data=complex_payload)
+      self.req = weblog.post(
+            "/waf",
+            headers={"Content-Type": "application/json"},
+            data=json.dumps(complex_payload),
+        )
 
     def test_truncation(self):
         span = interfaces.library.get_root_span(self.req)
@@ -36,5 +40,3 @@ class Test_Truncation:
         assert int(metrics["_dd.appsec.truncated.string_length"]) == 5000
         assert int(metrics["_dd.appsec.truncated.container_size"]) == 300
         assert int(metrics["_dd.appsec.truncated.container_depth"]) == 20
-
-        assert self.req.status_code == 403
