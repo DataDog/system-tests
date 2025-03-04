@@ -11,7 +11,7 @@ variables:
     TEST: 1
 
 compute_changes_pipeline:
-  image: registry.ddbuild.io/ci/libdatadog-build/system-tests:48436362
+  image: registry.ddbuild.io/ci/libdatadog-build/system-tests:57161036
   tags: ["arch:amd64"]
   stage: compute_pipeline
   variables:

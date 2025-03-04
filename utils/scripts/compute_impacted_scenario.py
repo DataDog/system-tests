@@ -160,6 +160,7 @@ def main() -> None:
                     r"\.gitlab/ssi_gitlab-ci-template.yml": ScenarioGroup.ONBOARDING,
                     r"\.gitlab/ssi_gitlab-ci.yml": ScenarioGroup.ONBOARDING,
                     r"\.gitlab/aws_gitlab-ci.yml": ScenarioGroup.ONBOARDING,
+                    r"\.gitlab/ssi-gitlab-ci.yml": ScenarioGroup.ONBOARDING,
                     ## utils/ folder
                     r"utils/interfaces/schemas.*": ScenarioGroup.END_TO_END,
                     r"utils/_context/_scenarios/open_telemetry\.py": ScenarioGroup.OPEN_TELEMETRY,
