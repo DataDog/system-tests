@@ -15,10 +15,10 @@
 If the test contains `@scenarios.SCENARIO_NAME` such as `@scenarios.integrations`, then the `./run.sh` needs to be adjusted to the following:
 
 ```bash
-./run.sh SCENARIO_NAME tests/path_to_test.py
+./run.sh +S SCENARIO_NAME tests/path_to_test.py
 
 # Example: for @scenarios.integrations in tests/integrations/test_sql.py
-./run.sh INTEGRATIONS tests/integrations/test_sql.py
+./run.sh +S integrations tests/integrations/test_sql.py
 ```
 
 ## Run only one class, or one method
