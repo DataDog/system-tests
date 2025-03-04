@@ -26,7 +26,7 @@ def get_schema(request, address):
 @scenarios.appsec_api_security_rc
 @features.api_security_configuration
 class Test_API_Security_RC_ASM_DD_processors(BaseAppsecApiSecurityRcTest):
-    """Test API Security - Remote config ASM_DD - processors"""
+    """Test API Security - Remote config ASM_DD - processors TEST"""
 
     def setup_request_method(self):
         self.setup_scenario()
