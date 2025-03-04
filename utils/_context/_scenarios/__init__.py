@@ -112,8 +112,8 @@ class _Scenarios:
 
     telemetry_log_generation_disabled = EndToEndScenario(
         "TELEMETRY_LOG_GENERATION_DISABLED",
-        weblog_env={"DD_TELEMETRY_LOGS_COLLECTION_ENABLED": "false"},
-        doc="Test env var `DD_TELEMETRY_LOGS_COLLECTION_ENABLED=false`",
+        weblog_env={"DD_TELEMETRY_LOG_COLLECTION_ENABLED": "false"},
+        doc="Test env var `DD_TELEMETRY_LOG_COLLECTION_ENABLED=false`",
         scenario_groups=[ScenarioGroup.TELEMETRY],
     )
     telemetry_metric_generation_disabled = EndToEndScenario(
@@ -688,20 +688,20 @@ class _Scenarios:
     multi_installer_auto_injection = InstallerAutoInjectionScenario(
         "MULTI_INSTALLER_AUTO_INJECTION",
         "Onboarding Container Single Step Instrumentation scenario for multicontainer apps",
-        scenario_groups=[ScenarioGroup.ONBOARDING, ScenarioGroup.SIMPLE_ONBOARDING],
+        scenario_groups=[ScenarioGroup.ALL, ScenarioGroup.ONBOARDING, ScenarioGroup.SIMPLE_ONBOARDING],
         github_workflow="aws_ssi",
     )
     installer_auto_injection = InstallerAutoInjectionScenario(
         "INSTALLER_AUTO_INJECTION",
         doc="Installer auto injection scenario",
-        scenario_groups=[ScenarioGroup.ONBOARDING],
+        scenario_groups=[ScenarioGroup.ALL, ScenarioGroup.ONBOARDING],
         github_workflow="aws_ssi",
     )
 
     installer_not_supported_auto_injection = InstallerAutoInjectionScenario(
         "INSTALLER_NOT_SUPPORTED_AUTO_INJECTION",
         "Onboarding host Single Step Instrumentation scenario for not supported languages",
-        scenario_groups=[ScenarioGroup.ONBOARDING],
+        scenario_groups=[ScenarioGroup.ALL, ScenarioGroup.ONBOARDING],
         github_workflow="aws_ssi",
     )
 
@@ -712,7 +712,7 @@ class _Scenarios:
             "Machines with previous ld.so.preload entries. Perform chaos testing"
         ),
         vm_provision="auto-inject-ld-preload",
-        scenario_groups=[ScenarioGroup.ONBOARDING],
+        scenario_groups=[ScenarioGroup.ALL, ScenarioGroup.ONBOARDING],
         github_workflow="aws_ssi",
     )
 
@@ -724,7 +724,7 @@ class _Scenarios:
             "DD_PROFILING_UPLOAD_PERIOD": "10",
             "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500",
         },
-        scenario_groups=[ScenarioGroup.ONBOARDING],
+        scenario_groups=[ScenarioGroup.ALL, ScenarioGroup.ONBOARDING],
         github_workflow="aws_ssi",
     )
     host_auto_injection_install_script_profiling = InstallerAutoInjectionScenario(
@@ -736,7 +736,7 @@ class _Scenarios:
         vm_provision="host-auto-inject-install-script",
         agent_env={"DD_PROFILING_ENABLED": "auto"},
         app_env={"DD_PROFILING_UPLOAD_PERIOD": "10", "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500"},
-        scenario_groups=[ScenarioGroup.ONBOARDING],
+        scenario_groups=[ScenarioGroup.ALL, ScenarioGroup.ONBOARDING],
         github_workflow="aws_ssi",
     )
 
@@ -746,7 +746,7 @@ class _Scenarios:
         vm_provision="container-auto-inject-install-script",
         agent_env={"DD_PROFILING_ENABLED": "auto"},
         app_env={"DD_PROFILING_UPLOAD_PERIOD": "10", "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500"},
-        scenario_groups=[ScenarioGroup.ONBOARDING],
+        scenario_groups=[ScenarioGroup.ALL, ScenarioGroup.ONBOARDING],
         github_workflow="aws_ssi",
     )
 
@@ -762,7 +762,7 @@ class _Scenarios:
         "HOST_AUTO_INJECTION_INSTALL_SCRIPT",
         "Onboarding Host Single Step Instrumentation scenario using agent auto install script",
         vm_provision="host-auto-inject-install-script",
-        scenario_groups=[ScenarioGroup.ONBOARDING],
+        scenario_groups=[ScenarioGroup.ALL, ScenarioGroup.ONBOARDING],
         github_workflow="aws_ssi",
     )
 
@@ -770,7 +770,7 @@ class _Scenarios:
         "CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT",
         "Onboarding Container Single Step Instrumentation scenario using agent auto install script",
         vm_provision="container-auto-inject-install-script",
-        scenario_groups=[ScenarioGroup.ONBOARDING],
+        scenario_groups=[ScenarioGroup.ALL, ScenarioGroup.ONBOARDING],
         github_workflow="aws_ssi",
     )
 

@@ -186,8 +186,12 @@ elif [ "$TARGET" = "python" ]; then
     assert_version_is_dev
 
     TARGET_BRANCH="${TARGET_BRANCH:-main}"
-    echo "git+https://github.com/DataDog/dd-trace-py.git@$TARGET_BRANCH" > python-load-from-pip
-    echo "Using $(cat python-load-from-pip)"
+    rm -rf dd-trace-py/
+    # do not use `--depth 1`, setuptools_scm, does not like it
+    git clone --branch $TARGET_BRANCH https://github.com/DataDog/dd-trace-py.git
+    cd dd-trace-py
+    echo "Checking out the ref"
+    git log -1 --format=%H
 
 elif [ "$TARGET" = "ruby" ]; then
     assert_version_is_dev
