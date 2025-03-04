@@ -36,7 +36,8 @@ compute_changes_pipeline:
 trigger_ssi_pipeline:
   stage: ssi_pipeline
   trigger:
-    include: .gitlab/ssi-gitlab-ci.yml
+    include:
+      - local: .gitlab/ssi-gitlab-ci.yml
     strategy: depend  # Ensures child pipeline status affects parent pipeline.
   variables:
     scenarios: $scenarios
