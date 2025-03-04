@@ -15,12 +15,9 @@ from utils import (
 
 def get_schema(request, address):
     """Get api security schema from spans"""
-    for _, span in interfaces.library.get_root_spans(request):
-        meta = span.get("meta", {})
-        payload = meta.get("_dd.appsec.s." + address)
-        if payload is not None:
-            return payload
-    return None
+    span = interfaces.library.get_root_span(request)
+    meta = span.get("meta", {})
+    return meta.get("_dd.appsec.s." + address)
 
 
 # can be used to match any value in a schema
