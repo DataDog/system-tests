@@ -1246,7 +1246,7 @@ class _Features:
         """
         pytest.mark.features(feature_id=201)(test_object)
         return test_object
-    
+
     @staticmethod
     def appsec_truncation_action(test_object):
         """Truncation Action

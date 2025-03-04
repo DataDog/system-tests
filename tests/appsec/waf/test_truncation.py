@@ -1,10 +1,12 @@
 import json
 from utils import weblog, rfc, features, interfaces
 
+
 def create_nested_object(n, obj):
     if n > 0:
         return {"a": create_nested_object(n - 1, obj)}
     return obj
+
 
 @rfc("https://docs.google.com/document/d/1D4hkC0jwwUyeo0hEQgyKP54kM1LZU98GL8MaP60tQrA")
 @features.appsec_truncation_action
@@ -23,22 +25,18 @@ class Test_Truncation:
                 if computed_namespace == namespace and serie["metric"] in metrics:
                     series.append(serie)
         return series
-    
+
     def setup_truncation(self):
-      # Create complex data
-      long_value = "testattack" * 500
-      large_object = {}
-      for i in range(300):
-          large_object[f"key{i}"] = f"value{i}"
-      deep_object = create_nested_object(25, {"value": "a"})
+        # Create complex data
+        long_value = "testattack" * 500
+        large_object = {}
+        for i in range(300):
+            large_object[f"key{i}"] = f"value{i}"
+        deep_object = create_nested_object(25, {"value": "a"})
 
-      complex_payload = {
-          "deepObject": deep_object,
-          "longValue": long_value,
-          "largeObject": large_object
-      }
+        complex_payload = {"deepObject": deep_object, "longValue": long_value, "largeObject": large_object}
 
-      self.req = weblog.post(
+        self.req = weblog.post(
             "/waf",
             headers={"Content-Type": "application/json"},
             data=json.dumps(complex_payload),
@@ -56,20 +54,22 @@ class Test_Truncation:
         count_series = self._find_series("generate-metrics", "appsec", ["waf.input_truncated"])
         input_truncated = count_series[0] if count_series else None
 
-        assert input_truncated is not None, f"No telemetry data received for metric appsec.waf.input_truncated"
+        assert input_truncated is not None, "No telemetry data received for metric appsec.waf.input_truncated"
 
         assert input_truncated["type"] == "count"
-        assert 'truncation_reason:7' in input_truncated["tags"]
+        assert "truncation_reason:7" in input_truncated["tags"]
 
         distribution_series = self._find_series("distributions", "appsec", ["waf.truncated_value_size"])
 
-        assert len(distribution_series) == 3, f"Not all telemetry data received for metric appsec.waf.truncated_value_size"
+        assert (
+            len(distribution_series) == 3
+        ), "Not all telemetry data received for metric appsec.waf.truncated_value_size"
 
-        long_string = [d for d in distribution_series if 'truncation_reason:1' in d['tags']]
+        long_string = [d for d in distribution_series if "truncation_reason:1" in d["tags"]]
         assert long_string, "No distribution for long string truncation"
 
-        large_container = [d for d in distribution_series if 'truncation_reason:2' in d['tags']]
+        large_container = [d for d in distribution_series if "truncation_reason:2" in d["tags"]]
         assert large_container, "No distribution for large container truncation"
 
-        deep_container = [d for d in distribution_series if 'truncation_reason:4' in d['tags']]
+        deep_container = [d for d in distribution_series if "truncation_reason:4" in d["tags"]]
         assert deep_container, "No distribution for deep container truncation"
