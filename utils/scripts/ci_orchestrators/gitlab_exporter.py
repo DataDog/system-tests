@@ -95,7 +95,7 @@ def print_gitlab_pipeline(language, matrix_data, ci_environment) -> None:
     result_pipeline = {}  # type: dict
     result_pipeline["include"] = []
     result_pipeline["stages"] = []
-    pipeline_file = ".gitlab/ssi_gitlab-ci.yml"
+    pipeline_file = ".gitlab/ssi_gitlab-ci-template.yml"
     pipeline_data = None
 
     with open(pipeline_file, encoding="utf-8") as f:

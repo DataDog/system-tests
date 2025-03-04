@@ -157,6 +157,7 @@ def main() -> None:
                     r"\.github/.*": None,  # nothing to do??
                     ## .gitlab folder
                     r"\.gitlab/k8s_gitlab-ci.yml": ScenarioGroup.LIB_INJECTION,
+                    r"\.gitlab/ssi_gitlab-ci-template.yml": ScenarioGroup.ONBOARDING,
                     r"\.gitlab/ssi_gitlab-ci.yml": ScenarioGroup.ONBOARDING,
                     r"\.gitlab/aws_gitlab-ci.yml": ScenarioGroup.ONBOARDING,
                     ## utils/ folder
