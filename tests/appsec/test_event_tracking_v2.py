@@ -71,6 +71,7 @@ class Test_UserLoginSuccessEventV2_Tags:
                 "appsec.events.users.login.success.track": "true",
                 "_dd.appsec.events.users.login.success.sdk": "true",
                 "http.client_ip": "1.2.3.4",
+                "_dd.appsec.user.collection_mode": "sdk",
             }
 
             return validate_tags_and_metadata(
