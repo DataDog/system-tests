@@ -697,13 +697,7 @@ class _Scenarios:
         scenario_groups=[ScenarioGroup.ALL, ScenarioGroup.ONBOARDING],
         github_workflow="aws_ssi",
     )
-    k8s_auto_injection = InstallerAutoInjectionScenario(
-        "K8S_AUTO_INJECTION",
-        vm_provision="k8s-auto-inject",
-        doc="K8s auto injection scenario",
-        scenario_groups=[ScenarioGroup.ALL, ScenarioGroup.ONBOARDING],
-        github_workflow="aws_ssi",
-    )
+
     installer_not_supported_auto_injection = InstallerAutoInjectionScenario(
         "INSTALLER_NOT_SUPPORTED_AUTO_INJECTION",
         "Onboarding host Single Step Instrumentation scenario for not supported languages",
@@ -788,6 +782,14 @@ class _Scenarios:
         ),
         vm_provision="local-auto-inject-install-script",
         scenario_groups=[ScenarioGroup.ONBOARDING],
+        github_workflow="aws_ssi",
+    )
+
+    k8s_auto_injection = InstallerAutoInjectionScenario(
+        "K8S_AUTO_INJECTION",
+        vm_provision="k8s-auto-inject",
+        doc="K8s auto injection scenario",
+        scenario_groups=[ScenarioGroup.ALL, ScenarioGroup.ONBOARDING],
         github_workflow="aws_ssi",
     )
 
