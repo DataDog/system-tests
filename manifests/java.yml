@@ -1101,6 +1101,8 @@ tests/:
           '*': v1.12.0
           akka-http: v1.22.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+      test_truncation.py:
+        Test_Truncation: missing_feature
     test_alpha.py:
       Test_Basic:
         '*': v0.87.0

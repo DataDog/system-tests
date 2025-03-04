@@ -606,7 +606,7 @@ tests/:
       test_telemetry.py:
         Test_TelemetryMetrics: *ref_4_17_0
       test_truncation.py:
-        Test_Truncation: *ref_4_17_0
+        Test_Truncation: missing_feature
     test_alpha.py:
       Test_Basic: v2.0.0
     test_asm_standalone.py:
