@@ -1246,6 +1246,15 @@ class _Features:
         """
         pytest.mark.features(feature_id=201)(test_object)
         return test_object
+    
+    @staticmethod
+    def appsec_truncation_action(test_object):
+        """Truncation Action
+
+        https://feature-parity.us1.prod.dog/#/?feature=201
+        """
+        pytest.mark.features(feature_id=201)(test_object)
+        return test_object
 
     @staticmethod
     def appsec_client_ip_blocking(test_object):
