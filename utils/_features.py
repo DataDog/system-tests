@@ -1251,9 +1251,9 @@ class _Features:
     def appsec_truncation_action(test_object):
         """Truncation Action
 
-        https://feature-parity.us1.prod.dog/#/?feature=201
+        https://feature-parity.us1.prod.dog/#/?feature=373
         """
-        pytest.mark.features(feature_id=201)(test_object)
+        pytest.mark.features(feature_id=373)(test_object)
         return test_object
 
     @staticmethod

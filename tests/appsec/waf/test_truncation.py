@@ -1,5 +1,5 @@
 import json
-from utils import scenarios, weblog, rfc, features, interfaces
+from utils import weblog, rfc, features, interfaces
 
 def create_nested_object(n, obj):
     if n > 0:
@@ -7,7 +7,6 @@ def create_nested_object(n, obj):
     return obj
 
 @rfc("https://docs.google.com/document/d/1D4hkC0jwwUyeo0hEQgyKP54kM1LZU98GL8MaP60tQrA")
-@scenarios.appsec_blocking
 @features.appsec_truncation_action
 class Test_Truncation:
     """Test WAF truncation"""
