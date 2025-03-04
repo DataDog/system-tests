@@ -21,6 +21,8 @@ compute_pipeline:
   variables:
     CI_ENVIRONMENT: "prod"
   script:
+    - ./build.sh -i runner
+    - source venv/bin/activate
     - python utils/scripts/compute-workflow-parameters.py nodejs -s "$scenarios" -g "$scenarios_groups" --parametric-job-count 1 --ci-environment "${CI_ENVIRONMENT}" --format gitlab > nodejs_gitlab_pipeline.yml
     - python utils/scripts/compute-workflow-parameters.py java -s "$scenarios" -g "$scenarios_groups" --parametric-job-count 1 --ci-environment "${CI_ENVIRONMENT}" --format gitlab > java_gitlab_pipeline.yml
     - python utils/scripts/compute-workflow-parameters.py dotnet -s "$scenarios" -g "$scenarios_groups" --parametric-job-count 1 --ci-environment "${CI_ENVIRONMENT}" --format gitlab > dotnet_gitlab_pipeline.yml
