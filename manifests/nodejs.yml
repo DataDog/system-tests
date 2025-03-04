@@ -45,8 +45,11 @@ refs:
   - &ref_5_30_0 '>=5.30.0 || ^4.54.0'
   - &ref_5_32_0 '>=5.32.0'  # keep the anchor as we may backport stuff to v4 later
   - &ref_5_35_0 '>=5.35.0'
+  - &ref_5_36_0 '>=5.36.0'
   - &ref_5_37_0 '>=5.37.0'
+  - &ref_5_38_0 '>=5.38.0'
   - &ref_5_39_0 '>=5.39.0'
+  - &ref_5_40_0 '>=5.40.0'
   - &ref_5_41_0 '>=5.41.0'
 tests/:
   apm_tracing_e2e/:
@@ -606,12 +609,12 @@ tests/:
       Test_Basic: v2.0.0
     test_asm_standalone.py:
       Test_AppSecStandalone_NotEnabled: *ref_5_18_0
-      Test_AppSecStandalone_UpstreamPropagation: *ref_5_18_0
-      Test_AppSecStandalone_UpstreamPropagation_V2: missing_feature
-      Test_IastStandalone_UpstreamPropagation: *ref_5_29_0
-      Test_IastStandalone_UpstreamPropagation_V2: missing_feature
-      Test_SCAStandalone_Telemetry: *ref_5_18_0
-      Test_SCAStandalone_Telemetry_V2: missing_feature
+      Test_AppSecStandalone_UpstreamPropagation: irrelevant (due to v2)
+      Test_AppSecStandalone_UpstreamPropagation_V2: *ref_5_40_0
+      Test_IastStandalone_UpstreamPropagation: irrelevant (due to v2)
+      Test_IastStandalone_UpstreamPropagation_V2: *ref_5_40_0
+      Test_SCAStandalone_Telemetry: irrelevant (due to v2)
+      Test_SCAStandalone_Telemetry_V2: *ref_5_40_0
     test_automated_login_events.py:
       Test_Login_Events: irrelevant
       Test_Login_Events_Extended: irrelevant
@@ -763,15 +766,18 @@ tests/:
     test_debugger_pii.py:
       Test_Debugger_PII_Redaction:
         '*': irrelevant
-        express4: v5.35.0
+        express4: v5.39.0
+        uds-express4: v5.39.0
     test_debugger_probe_snapshot.py:
       Test_Debugger_Probe_Snaphots:
         '*': irrelevant
-        express4: v5.35.0
+        express4: v5.39.0
+        uds-express4: v5.39.0
     test_debugger_probe_status.py:
       Test_Debugger_Probe_Statuses:
         '*': irrelevant
-        express4: v5.32.0
+        express4: v5.39.0
+        uds-express4: v5.39.0
     test_debugger_symdb.py:
       Test_Debugger_SymDb: missing_feature (feature not implented)
   integrations/:
@@ -902,7 +908,7 @@ tests/:
     test_config_consistency.py:
       Test_Config_Dogstatsd: *ref_5_29_0
       Test_Config_RateLimit: *ref_5_25_0
-      Test_Config_Tags: missing_feature
+      Test_Config_Tags: *ref_5_41_0
       Test_Config_TraceAgentURL: *ref_5_25_0
       Test_Config_TraceEnabled: *ref_4_3_0
       Test_Config_TraceLogDirectory: missing_feature
@@ -936,6 +942,7 @@ tests/:
       Test_Parametric_Otel_Current_Span: incomplete_test_app (otel current_span endpoint is not supported)
     test_partial_flushing.py:
       Test_Partial_Flushing: bug (APMLP-270)
+    test_process_discovery.py: missing_feature
     test_span_events.py: missing_feature
     test_span_links.py:
       Test_Span_Links: *ref_5_3_0
@@ -949,11 +956,11 @@ tests/:
     test_trace_sampling.py:
       Test_Trace_Sampling_Basic: *ref_5_16_0  #actual version unknown
       Test_Trace_Sampling_Globs: *ref_5_16_0  #actual version unknown
-      Test_Trace_Sampling_Globs_Feb2024_Revision: missing_feature
-      Test_Trace_Sampling_Resource: missing_feature
-      Test_Trace_Sampling_Tags: missing_feature
+      Test_Trace_Sampling_Globs_Feb2024_Revision: *ref_5_38_0
+      Test_Trace_Sampling_Resource: *ref_5_38_0
+      Test_Trace_Sampling_Tags: *ref_5_38_0
       Test_Trace_Sampling_Tags_Feb2024_Revision: *ref_5_16_0  #actual version unknown
-      Test_Trace_Sampling_With_W3C: missing_feature
+      Test_Trace_Sampling_With_W3C: *ref_5_38_0
     test_tracer.py:
       Test_TracerSCITagging: *ref_3_21_0
     test_tracer_flare.py:
@@ -996,7 +1003,10 @@ tests/:
       '*': *ref_5_25_0
       express4-typescript: incomplete_test_app
       nextjs: incomplete_test_app
-    Test_Config_LogInjection_128Bit_TraceId_Default: missing_feature (disabled by default)
+    Test_Config_LogInjection_128Bit_TraceId_Default:
+      '*': *ref_5_38_0
+      express4-typescript: incomplete_test_app (endpoint not implemented)
+      nextjs: incomplete_test_app (endpoint not implemented)
     Test_Config_LogInjection_128Bit_TraceId_Disabled:
       '*': *ref_3_15_0
       express4-typescript: incomplete_test_app (endpoint not implemented)

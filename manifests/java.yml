@@ -48,10 +48,13 @@ tests/:
           '*': v1.31.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
         Test_Schema_Request_Json_Body:
-          '*': missing_feature
-          ratpack: v1.36.0
+          '*': v1.36.0
+          akka-http: missing_feature
+          jersey-grizzly2: missing_feature
+          play: missing_feature
+          resteasy-netty3: missing_feature
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-          vertx3: v1.36.0
+          vertx4: 1.47.0
         Test_Schema_Request_Path_Parameters:
           '*': v1.36.0
           akka-http: missing_feature (path parameters not suported)
@@ -162,7 +165,17 @@ tests/:
             spring-boot-openliberty: bug (APPSEC-51483)
             vertx3: missing_feature
             vertx4: missing_feature
-          Test_HstsMissingHeader_ExtendedLocation: missing_feature
+          Test_HstsMissingHeader_ExtendedLocation:
+            '*': v1.20.0
+            akka-http: missing_feature
+            jersey-grizzly2: missing_feature
+            play: missing_feature
+            ratpack: missing_feature
+            resteasy-netty3: missing_feature
+            spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+            spring-boot-openliberty: bug (APPSEC-51483)
+            vertx3: missing_feature
+            vertx4: missing_feature
           Test_HstsMissingHeader_StackTrace: irrelevant (not expected to have a stack trace)
         test_insecure_auth_protocol.py:
           Test_InsecureAuthProtocol:
@@ -455,7 +468,17 @@ tests/:
             spring-boot-openliberty: bug (APPSEC-54981)
             vertx3: missing_feature
             vertx4: missing_feature
-          Test_XContentSniffing_ExtendedLocation: missing_feature
+          Test_XContentSniffing_ExtendedLocation:
+            '*': v1.22.0
+            akka-http: missing_feature
+            jersey-grizzly2: missing_feature
+            play: missing_feature
+            ratpack: missing_feature
+            resteasy-netty3: missing_feature
+            spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+            spring-boot-openliberty: bug (APPSEC-54981)
+            vertx3: missing_feature
+            vertx4: missing_feature
           Test_XContentSniffing_StackTrace: irrelevant (not expected to have a stack trace)
         test_xpath_injection.py:
           TestXPathInjection:
@@ -651,7 +674,7 @@ tests/:
           akka-http: missing_feature (APPSEC-56196)
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
           spring-boot-payara: missing_feature (APPSEC-54966)
-          vertx4: missing_feature (APPSEC-55785)
+          vertx4: v1.47.0
         Test_Cmdi_BodyUrlEncoded:
           '*': v1.45.0
           akka-http: missing_feature (APPSEC-56196)
@@ -703,7 +726,7 @@ tests/:
           '*': v1.40.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
           spring-boot-payara: missing_feature (APPSEC-54966)
-          vertx4: missing_feature (APPSEC-55785)
+          vertx4: v1.47.0
         Test_Lfi_BodyUrlEncoded:
           '*': v1.40.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
@@ -747,7 +770,7 @@ tests/:
           '*': v1.45.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
           spring-boot-payara: missing_feature (APPSEC-54966)
-          vertx4: missing_feature (APPSEC-55785)
+          vertx4: v1.47.0
         Test_Shi_BodyUrlEncoded:
           '*': v1.45.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
@@ -793,7 +816,7 @@ tests/:
           '*': v1.39.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
           spring-boot-payara: missing_feature (APPSEC-54966)
-          vertx4: missing_feature (APPSEC-55785)
+          vertx4: v1.47.0
         Test_Sqli_BodyUrlEncoded:
           '*': v1.39.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
@@ -1716,6 +1739,7 @@ tests/:
       Test_Parametric_DDTrace_Current_Span: bug (APMAPI-778)  # Fails to retreive the current span after a span has finished
       Test_Parametric_Otel_Baggage: missing_feature (otel baggage is not supported)
       Test_Parametric_Otel_Current_Span: bug (APMAPI-778)  # Current span endpoint does not return DataDog spans created by the otel api
+    test_process_discovery.py: missing_feature
     test_span_events.py: missing_feature
     test_span_links.py: missing_feature
     test_telemetry.py:

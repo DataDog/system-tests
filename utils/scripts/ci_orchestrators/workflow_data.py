@@ -16,6 +16,33 @@ def _get_weblog_spec(weblogs_spec, weblog_name) -> dict:
     raise ValueError(f"Weblog variant {weblog_name} not found (please aws_ssi.json)")
 
 
+def get_k8s_matrix(k8s_ssi_file, scenarios: list[str], language: str) -> dict:
+    """Computes the matrix "scenario" - "weblog" - "cluster agent" given a list of scenarios and a language."""
+    k8s_ssi = _load_json(k8s_ssi_file)
+    cluster_agent_specs = k8s_ssi["cluster_agent_spec"]
+
+    results = defaultdict(lambda: defaultdict(list))  # type: dict
+    scenario_matrix = k8s_ssi["scenario_matrix"]
+    for entry in scenario_matrix:
+        applicable_scenarios = entry["scenarios"]
+        weblogs = entry["weblogs"]
+        supported_cluster_agents = entry.get("cluster_agents", [])
+        for scenario in scenarios:
+            if scenario in applicable_scenarios:
+                for weblog_entry in weblogs:
+                    if language in weblog_entry:
+                        for weblog in weblog_entry[language]:
+                            if supported_cluster_agents:
+                                for cluster_agent in supported_cluster_agents:
+                                    if cluster_agent in cluster_agent_specs:
+                                        results[scenario][weblog].append(cluster_agent_specs[cluster_agent])
+                                    else:
+                                        raise ValueError(f"Cluster agent {cluster_agent} not found in the k8s_ssi.json")
+                            else:
+                                results[scenario][weblog] = []
+    return results
+
+
 def get_aws_matrix(virtual_machines_file, aws_ssi_file, scenarios: list[str], language: str) -> dict:
     """Load the json files (the virtual_machine supported by the system  and the scenario-weblog definition)
     and calculates the matrix "scenario" - "weblog" - "virtual machine" given a list of scenarios and a language.
@@ -68,6 +95,71 @@ def get_aws_matrix(virtual_machines_file, aws_ssi_file, scenarios: list[str], la
                                         should_add_vm = False
                                 if should_add_vm:
                                     results[scenario][weblog].append(vm["name"])
+
+    return results
+
+
+def get_docker_ssi_matrix(images_file, runtimes_file, docker_ssi_file, scenarios: list[str], language: str) -> dict:
+    """Load the JSON files (the docker imgs and runtimes supported by the system and the scenario-weblog definition)"""
+    images = _load_json(images_file)
+    runtimes = _load_json(runtimes_file)
+    docker_ssi = _load_json(docker_ssi_file)
+    results = defaultdict(lambda: defaultdict(list))  # type: dict
+
+    scenario_matrix = docker_ssi.get("scenario_matrix", [])
+    weblogs_spec = docker_ssi.get("weblogs_spec", {}).get(language)
+
+    if not weblogs_spec:
+        return results
+
+    for entry in scenario_matrix:
+        applicable_scenarios = set(entry.get("scenarios", []))
+        weblogs = entry.get("weblogs", [])
+
+        for scenario in scenarios:
+            if scenario in applicable_scenarios:
+                for weblog_entry in weblogs:
+                    if language in weblog_entry:
+                        for weblog in weblog_entry[language]:
+                            weblog_spec = _get_weblog_spec(weblogs_spec, weblog)
+                            supported_images = weblog_spec.get("supported_images", [])
+
+                            for supported_image in supported_images:
+                                allowed_runtimes = []
+                                allowed_versions = supported_image.get("allowed_runtime_versions", [])
+
+                                if not allowed_versions:
+                                    allowed_runtimes.append("")
+                                elif "*" in allowed_versions:
+                                    allowed_runtimes.extend(
+                                        runtime["version"]
+                                        for runtime in runtimes["docker_ssi_runtimes"].get(language, [])
+                                    )
+                                else:
+                                    runtime_map = {
+                                        rt["version_id"]: rt["version"]
+                                        for rt in runtimes["docker_ssi_runtimes"].get(language, [])
+                                    }
+                                    for runtime_id in allowed_versions:
+                                        if runtime_id in runtime_map:
+                                            allowed_runtimes.append(runtime_map[runtime_id])
+                                        else:
+                                            raise ValueError(f"Runtime {runtime_id} not found in the runtimes file")
+
+                                image_reference, image_arch_reference = next(
+                                    (
+                                        (img["image"], img["architecture"])
+                                        for img in images["docker_ssi_images"]
+                                        if img["name"] == supported_image["name"]
+                                    ),
+                                )
+
+                                if not image_reference:
+                                    raise ValueError(f"Image {supported_image['name']} not found in the images file")
+
+                                results[scenario][weblog].append(
+                                    {image_reference: allowed_runtimes, "arch": image_arch_reference}
+                                )
 
     return results
 

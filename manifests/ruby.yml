@@ -395,18 +395,26 @@ tests/:
       Test_Debugger_PII_Redaction:
         "*": irrelevant
         rails70: v2.8.0
+        rails80: v2.8.0
+        uds-rails: v2.12.0
     test_debugger_probe_snapshot.py:
       Test_Debugger_Probe_Snaphots:
         "*": irrelevant
         rails70: v2.8.0
+        rails80: v2.8.0
+        uds-rails: v2.12.0
     test_debugger_probe_status.py:
       Test_Debugger_Probe_Statuses:
         "*": irrelevant
         rails70: v2.8.0
+        rails80: v2.8.0
+        uds-rails: v2.12.0
     test_debugger_symdb.py:
       Test_Debugger_SymDb:
         "*": irrelevant
         rails70: missing_feature (feature not implemented)
+        rails80: missing_feature (feature not implemented)
+        uds-rails: missing_feature (feature not implemented)
   integrations/:
     crossed_integrations/:
       test_kafka.py:
@@ -525,6 +533,7 @@ tests/:
       Test_Parametric_Otel_Current_Span: incomplete_test_app (otel current span endpoint is not supported)
     test_partial_flushing.py:  # Not configurable in a standard way
       Test_Partial_Flushing: missing_feature
+    test_process_discovery.py: missing_feature
     test_sampling_delegation.py:
       Test_Decisionless_Extraction: v2.4.0
     test_span_events.py: missing_feature
