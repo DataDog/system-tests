@@ -682,7 +682,7 @@ class _Scenarios:
     simple_installer_auto_injection = InstallerAutoInjectionScenario(
         "SIMPLE_INSTALLER_AUTO_INJECTION",
         "Onboarding Container Single Step Instrumentation scenario (minimal test scenario)",
-        scenario_groups=[ScenarioGroup.ONBOARDING, ScenarioGroup.SIMPLE_ONBOARDING],
+        scenario_groups=[ScenarioGroup.SIMPLE_ONBOARDING],
         github_workflow="aws_ssi",
     )
     multi_installer_auto_injection = InstallerAutoInjectionScenario(
@@ -736,7 +736,7 @@ class _Scenarios:
         vm_provision="host-auto-inject-install-script",
         agent_env={"DD_PROFILING_ENABLED": "auto"},
         app_env={"DD_PROFILING_UPLOAD_PERIOD": "10", "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500"},
-        scenario_groups=[ScenarioGroup.ALL, ScenarioGroup.ONBOARDING],
+        scenario_groups=[ScenarioGroup.ALL],
         github_workflow="aws_ssi",
     )
 
@@ -762,7 +762,7 @@ class _Scenarios:
         "HOST_AUTO_INJECTION_INSTALL_SCRIPT",
         "Onboarding Host Single Step Instrumentation scenario using agent auto install script",
         vm_provision="host-auto-inject-install-script",
-        scenario_groups=[ScenarioGroup.ALL, ScenarioGroup.ONBOARDING],
+        scenario_groups=[ScenarioGroup.ALL],
         github_workflow="aws_ssi",
     )
 
