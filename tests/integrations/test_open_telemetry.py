@@ -120,7 +120,7 @@ class _BaseOtelDbIntegrationTestClass(BaseDbIntegrationsTestClass):
 
     def test_sql_success(self):
         """We check all sql launched for the app work"""
-        for db_operation, request in self.get_requests(excluded_operations=["select_error"]):
+        for _, request in self.get_requests(excluded_operations=["select_error"]):
             span = self.get_span_from_agent(request)
             assert "error" not in span or span["error"] == 0
 

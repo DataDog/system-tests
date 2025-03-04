@@ -786,6 +786,21 @@ def login(request):
     return HttpResponse("login failure", status=401)
 
 
+@csrf_exempt
+def signup_user(request):
+    from app.models import CustomUser
+
+    try:
+        username = request.POST.get("username")
+        password = request.POST.get("password")
+        email = request.POST.get("email")
+        user = CustomUser.objects.create_user(username=username, email=email, password=password, id="new-user")
+        user.save()
+        return HttpResponse("OK")
+    except Exception as e:
+        return HttpResponse(f"signup failure {e!r}", status=400)
+
+
 MAGIC_SESSION_KEY = "random_session_id"
 
 
@@ -1019,6 +1034,7 @@ urlpatterns = [
     path("login", login),
     path("session/new", session_new),
     path("session/user", session_user),
+    path("signup", signup_user),
     path("custom_event", track_custom_event),
     path("read_file", read_file),
     path("mock_s3/put_object", s3_put_object),
