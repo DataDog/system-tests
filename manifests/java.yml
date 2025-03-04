@@ -1826,10 +1826,10 @@ tests/:
     Test_Config_LogInjection_128Bit_TraceId_Default: missing_feature (disabled by default)
     Test_Config_LogInjection_128Bit_TraceId_Disabled: incomplete_test_app (weblog endpoint not implemented)
     Test_Config_LogInjection_Default:
-      '*': irrelevant (weblog endpoint not implemented)
+      '*': incomplete_test_app (weblog endpoint not implemented)
       'spring-boot-3-native': missing_feature
     Test_Config_LogInjection_Enabled:
-      '*': irrelevant (weblog endpoint not implemented)
+      '*': incomplete_test_app (weblog endpoint not implemented)
       'spring-boot-3-native': missing_feature
     Test_Config_ObfuscationQueryStringRegexp_Configured: v1.39.0
     Test_Config_ObfuscationQueryStringRegexp_Default: v1.39.0
