@@ -25,6 +25,7 @@ compute_pipeline:
     - ./build.sh -i runner
     - source venv/bin/activate
     - ./run.sh MOCK_THE_TEST --collect-only --scenario-report
+    - git clone https://github.com/DataDog/system-tests.git original
     - git fetch --all  # Ensure all branches are available
     - git branch --track $CI_COMMIT_REF_NAME origin/$CI_COMMIT_REF_NAME || true  # Track branch if not tracked
     - git checkout $CI_COMMIT_REF_NAME  # Ensure the branch is checked out
