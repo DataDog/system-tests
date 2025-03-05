@@ -169,7 +169,7 @@ class _Features:
         return test_object
 
     @staticmethod
-    def datadog_managed_dogstatsd_client(test_object):
+    def dogstatsd_agent_connection(test_object):
         """Datadog managed Dogstatsd client
 
         https://feature-parity.us1.prod.dog/#/?feature=17
@@ -265,6 +265,14 @@ class _Features:
         https://feature-parity.us1.prod.dog/#/?feature=27
         """
         pytest.mark.features(feature_id=27)(test_object)
+        return test_object
+
+    @staticmethod
+    def inject_service_env_version_into_logs(test_object):
+        """Inject service, env, version into logs
+        https://feature-parity.us1.prod.dog/#/?feature=28
+        """
+        pytest.mark.features(feature_id=28)(test_object)
         return test_object
 
     @staticmethod
@@ -383,16 +391,6 @@ class _Features:
         """
         pytest.mark.features(feature_id=41)(test_object)
         return test_object
-
-    # Unused
-    # @staticmethod
-    # def dd_tags_space_separated_tags(test_object):
-    #     """DD_TAGS space-separated tags
-
-    #     https://feature-parity.us1.prod.dog/#/?feature=42
-    #     """
-    #     pytest.mark.features(feature_id=42)(test_object)
-    #     return test_object
 
     @staticmethod
     def report_tracer_drop_rate_ddtracer_kr(test_object):

@@ -341,7 +341,7 @@ class Test_Config_Tags:
 
 
 @scenarios.parametric
-@features.trace_agent_connection
+@features.dogstatsd_agent_connection
 class Test_Config_Dogstatsd:
     @parametrize(
         "library_env", [{"DD_AGENT_HOST": "localhost"}]

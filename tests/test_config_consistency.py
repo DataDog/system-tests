@@ -290,7 +290,7 @@ class Test_Config_ClientTagQueryString_Configured:
 
 
 @scenarios.tracing_config_nondefault_2
-@features.trace_http_client_tag_query_string
+@features.trace_client_ip_header
 class Test_Config_ClientIPHeader_Configured:
     """Verify headers containing ips are tagged when DD_TRACE_CLIENT_IP_ENABLED=true
     and DD_TRACE_CLIENT_IP_HEADER=custom-ip-header
@@ -562,6 +562,7 @@ class Test_Config_LogInjection_128Bit_TraceId_Default:
 
 @rfc("https://docs.google.com/document/d/1kI-gTAKghfcwI7YzKhqRv2ExUstcHqADIWA4-TZ387o/edit#heading=h.8v16cioi7qxp")
 @scenarios.tracing_config_nondefault_3
+@features.log_injection
 @features.log_injection_128bit_traceid
 class Test_Config_LogInjection_128Bit_TraceId_Disabled:
     """Verify 128 bit traceid are disabled in log injection when DD_TRACE_128_BIT_TRACEID_LOGGING_ENABLED=false"""
