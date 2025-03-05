@@ -22,8 +22,6 @@ compute_pipeline:
   variables:
     CI_ENVIRONMENT: "prod"
   script:
-    - ./build.sh -i runner
-    - source venv/bin/activate
     - |
       if [ -z "$SYSTEM_TESTS_SCENARIOS" ] && [ -z "$SYSTEM_TESTS_SCENARIOS_GROUPS" ]; then
         echo "❌ Both SYSTEM_TESTS_SCENARIOS and SYSTEM_TESTS_SCENARIOS_GROUPS are not defined.Computing changes..."
