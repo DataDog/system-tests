@@ -2461,6 +2461,15 @@ class _Features:
         return test_object
 
     @staticmethod
+    def trace_experimental_features(test_object):
+        """Enforces standardized behaviors for configurations across the tracing libraries.
+
+        https://feature-parity.us1.prod.dog/#/?feature=376
+        """
+        pytest.mark.features(feature_id=376)(test_object)
+        return test_object
+
+    @staticmethod
     def trace_rate_limiting(test_object):
         """Enforces standardized behaviors for configurations across the tracing libraries.
 
