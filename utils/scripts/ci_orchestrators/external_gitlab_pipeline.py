@@ -40,7 +40,7 @@ def filter_yaml(yaml_data, language) -> dict:
     allowed_jobs = {
         job_name: job_data
         for job_name, job_data in yaml_data.items()
-        if isinstance(job_data, dict) and job_data.get("stage") == language
+        if isinstance(job_data, dict) and (job_data.get("stage") == language or job_data.get("stage") == "configure")
     }
 
     # Keep only relevant sections
@@ -48,7 +48,7 @@ def filter_yaml(yaml_data, language) -> dict:
 
     # Keep only the language stage
     if "stages" in filtered_data:
-        filtered_data["stages"] = [stage for stage in yaml_data["stages"] if stage == language]
+        filtered_data["stages"] = [stage for stage in yaml_data["stages"] if stage == language or stage == "configure"]
 
     # Add the filtered jobs only for the current language
     filtered_data.update(allowed_jobs)
