@@ -116,6 +116,7 @@ class Test_Defaults:
 @rfc("https://docs.google.com/document/d/1kI-gTAKghfcwI7YzKhqRv2ExUstcHqADIWA4-TZ387o")
 # To pass this test, ensure the lang you are testing has the necessary mapping in its config_rules.json file: https://github.com/DataDog/dd-go/tree/prod/trace/apps/tracer-telemetry-intake/telemetry-payload/static
 # And replace the `missing_feature` marker under the lang's manifest file, for Test_Consistent_Configs
+@features.telemetry_configurations_collected
 class Test_Consistent_Configs:
     """Clients should report modifications to features."""
 
