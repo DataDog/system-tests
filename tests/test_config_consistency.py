@@ -584,7 +584,7 @@ class Test_Config_LogInjection_128Bit_TraceId_Disabled:
         # dd-trace-java stores injected trace information under the "mdc" key
         if context.library.library == "java":
             log_msg = log_msg.get("mdc")
-            
+
         trace_id = parse_log_trace_id(log_msg)
         assert re.match(r"^\d{1,20}$", str(trace_id)), f"Invalid 64-bit trace_id: {trace_id}"
 
