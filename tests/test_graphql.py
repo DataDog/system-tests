@@ -74,6 +74,7 @@ class Test_GraphQLQueryErrorReporting:
         events = self._get_events(span)
         graphql_events = [event for event in events if event["name"] == "dd.graphql.query.error"]
 
+
         assert len(graphql_events) == 1
         event = graphql_events[0]
 
