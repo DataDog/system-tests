@@ -55,6 +55,12 @@ compute_pipeline:
     - python utils/scripts/compute-workflow-parameters.py python -s "$scenarios" -g "$scenarios_groups" --parametric-job-count 1 --ci-environment "${CI_ENVIRONMENT}" --format gitlab
     - python utils/scripts/compute-workflow-parameters.py php -s "$scenarios" -g "$scenarios_groups" --parametric-job-count 1 --ci-environment "${CI_ENVIRONMENT}" --format gitlab
     - python utils/scripts/compute-workflow-parameters.py ruby -s "$scenarios" -g "$scenarios_groups" --parametric-job-count 1 --ci-environment "${CI_ENVIRONMENT}" --format gitlab
+    - |
+      if [ -n "$SYSTEM_TESTS_SCENARIOS" ] || [ -n "$SYSTEM_TESTS_SCENARIOS_GROUPS" ]; then
+        cp *.yml "$CI_PROJECT_DIR"
+      fi
+
+
 
   artifacts:
     paths:
