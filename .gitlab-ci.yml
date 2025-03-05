@@ -1,14 +1,14 @@
 include:
   - remote: https://gitlab-templates.ddbuild.io/libdatadog/include/single-step-instrumentation-tests.yml
 stages:
-  - compute_pipeline
-  - nodejs_ssi_pipelines
-  - java_ssi_pipelines
-  - dotnet_ssi_pipelines
-  - python_ssi_pipelines
-  - php_ssi_pipelines
-  - ruby_ssi_pipelines
-  - before_tests
+  - configure
+  - nodejs
+  - java
+  - dotnet
+  - python
+  - php
+  - ruby
+  - system-tests-utils
 
 variables:
     # Do not modify this - must be the repository name for Kubernetes gitlab runners to run
@@ -16,111 +16,119 @@ variables:
     TEST: 1
 
 compute_pipeline:
-  image: registry.ddbuild.io/ci/libdatadog-build/system-tests:48436362
+  image: registry.ddbuild.io/ci/libdatadog-build/system-tests:57161036
   tags: ["arch:amd64"]
-  stage: compute_pipeline
+  stage: configure
   variables:
     CI_ENVIRONMENT: "prod"
   script:
     - ./build.sh -i runner
     - source venv/bin/activate
-    - ./run.sh MOCK_THE_TEST --collect-only --scenario-report
-    - git clone https://github.com/DataDog/system-tests.git original
-    - git fetch --all  # Ensure all branches are available
-    - git branch --track $CI_COMMIT_REF_NAME origin/$CI_COMMIT_REF_NAME || true  # Track branch if not tracked
-    - git checkout $CI_COMMIT_REF_NAME  # Ensure the branch is checked out
-    - BASE_COMMIT=$(git merge-base origin/main $CI_COMMIT_REF_NAME)  # Get the base commit
-    - echo "Branch was created from commit--> $BASE_COMMIT"
-    - git diff --name-only $BASE_COMMIT $CI_COMMIT_SHA  >> modified_files.txt # List modified files
-    - cat modified_files.txt
-    - python utils/scripts/compute_impacted_scenario.py >> impacted_scenarios.txt
-    - cat impacted_scenarios.txt
-    - source impacted_scenarios.txt
-    - python utils/scripts/compute-workflow-parameters.py nodejs -s "$scenarios" -g "$scenarios_groups" --parametric-job-count 1 --ci-environment "${CI_ENVIRONMENT}" --format gitlab > nodejs_gitlab_pipeline.yml
-    - python utils/scripts/compute-workflow-parameters.py java -s "$scenarios" -g "$scenarios_groups" --parametric-job-count 1 --ci-environment "${CI_ENVIRONMENT}" --format gitlab > java_gitlab_pipeline.yml
-    - python utils/scripts/compute-workflow-parameters.py dotnet -s "$scenarios" -g "$scenarios_groups" --parametric-job-count 1 --ci-environment "${CI_ENVIRONMENT}" --format gitlab > dotnet_gitlab_pipeline.yml
-    - python utils/scripts/compute-workflow-parameters.py python -s "$scenarios" -g "$scenarios_groups" --parametric-job-count 1 --ci-environment "${CI_ENVIRONMENT}" --format gitlab > python_gitlab_pipeline.yml
-    - python utils/scripts/compute-workflow-parameters.py php -s "$scenarios" -g "$scenarios_groups" --parametric-job-count 1 --ci-environment "${CI_ENVIRONMENT}" --format gitlab > php_gitlab_pipeline.yml
-    - python utils/scripts/compute-workflow-parameters.py ruby -s "$scenarios" -g "$scenarios_groups" --parametric-job-count 1 --ci-environment "${CI_ENVIRONMENT}" --format gitlab > ruby_gitlab_pipeline.yml
+    - |
+      if [ -z "$SYSTEM_TESTS_SCENARIOS" ] && [ -z "$SYSTEM_TESTS_SCENARIOS_GROUPS" ]; then
+        echo "❌ Both SYSTEM_TESTS_SCENARIOS and SYSTEM_TESTS_SCENARIOS_GROUPS are not defined.Computing changes..."
+        ./run.sh MOCK_THE_TEST --collect-only --scenario-report
+        git clone https://github.com/DataDog/system-tests.git original
+        git fetch --all  # Ensure all branches are available
+        git branch --track $CI_COMMIT_REF_NAME origin/$CI_COMMIT_REF_NAME || true  # Track branch if not tracked
+        git checkout $CI_COMMIT_REF_NAME  # Ensure the branch is checked out
+        BASE_COMMIT=$(git merge-base origin/main $CI_COMMIT_REF_NAME)  # Get the base commit
+        echo "Branch was created from commit--> $BASE_COMMIT"
+        git diff --name-only $BASE_COMMIT $CI_COMMIT_SHA  >> modified_files.txt # List modified files
+        cat modified_files.txt
+        python utils/scripts/compute_impacted_scenario.py >> impacted_scenarios.txt
+        cat impacted_scenarios.txt
+        source impacted_scenarios.txt
+      else
+          echo "✅ SYSTEM_TESTS_SCENARIOS OR SYSTEM_TESTS_SCENARIOS_GROUPS are set."
+          export scenarios=$SYSTEM_TESTS_SCENARIOS
+          export scenarios_groups=$SYSTEM_TESTS_SCENARIOS_GROUPS
+      fi
+    - python utils/scripts/compute-workflow-parameters.py nodejs -s "$scenarios" -g "$scenarios_groups" --parametric-job-count 1 --ci-environment "${CI_ENVIRONMENT}" --format gitlab
+    - python utils/scripts/compute-workflow-parameters.py java -s "$scenarios" -g "$scenarios_groups" --parametric-job-count 1 --ci-environment "${CI_ENVIRONMENT}" --format gitlab
+    - python utils/scripts/compute-workflow-parameters.py dotnet -s "$scenarios" -g "$scenarios_groups" --parametric-job-count 1 --ci-environment "${CI_ENVIRONMENT}" --format gitlab
+    - python utils/scripts/compute-workflow-parameters.py python -s "$scenarios" -g "$scenarios_groups" --parametric-job-count 1 --ci-environment "${CI_ENVIRONMENT}" --format gitlab
+    - python utils/scripts/compute-workflow-parameters.py php -s "$scenarios" -g "$scenarios_groups" --parametric-job-count 1 --ci-environment "${CI_ENVIRONMENT}" --format gitlab
+    - python utils/scripts/compute-workflow-parameters.py ruby -s "$scenarios" -g "$scenarios_groups" --parametric-job-count 1 --ci-environment "${CI_ENVIRONMENT}" --format gitlab
 
   artifacts:
     paths:
-      - nodejs_gitlab_pipeline.yml
-      - java_gitlab_pipeline.yml
-      - dotnet_gitlab_pipeline.yml
-      - python_gitlab_pipeline.yml
-      - php_gitlab_pipeline.yml
-      - ruby_gitlab_pipeline.yml
+      - nodejs_ssi_gitlab_pipeline.yml
+      - java_ssi_gitlab_pipeline.yml
+      - dotnet_ssi_gitlab_pipeline.yml
+      - python_ssi_gitlab_pipeline.yml
+      - php_ssi_gitlab_pipeline.yml
+      - ruby_ssi_gitlab_pipeline.yml
 
 nodejs_ssi_pipeline:
-  stage: nodejs_ssi_pipelines
+  stage: nodejs
   needs: ["compute_pipeline"]
   allow_failure: true
   variables:
     PARENT_PIPELINE_SOURCE: $CI_PIPELINE_SOURCE
   trigger:
     include:
-      - artifact: nodejs_gitlab_pipeline.yml
+      - artifact: nodejs_ssi_gitlab_pipeline.yml
         job: compute_pipeline
     strategy: depend
 
 java_ssi_pipeline:
-  stage: java_ssi_pipelines
+  stage: java
   needs: ["compute_pipeline", "nodejs_ssi_pipeline"]
   allow_failure: true
   variables:
     PARENT_PIPELINE_SOURCE: $CI_PIPELINE_SOURCE
   trigger:
     include:
-      - artifact: java_gitlab_pipeline.yml
+      - artifact: java_ssi_gitlab_pipeline.yml
         job: compute_pipeline
     strategy: depend
 
 dotnet_ssi_pipeline:
-  stage: dotnet_ssi_pipelines
+  stage: dotnet
   needs: ["compute_pipeline", "java_ssi_pipeline"]
   allow_failure: true
   variables:
     PARENT_PIPELINE_SOURCE: $CI_PIPELINE_SOURCE
   trigger:
     include:
-      - artifact: dotnet_gitlab_pipeline.yml
+      - artifact: dotnet_ssi_gitlab_pipeline.yml
         job: compute_pipeline
     strategy: depend
 
 python_ssi_pipeline:
-  stage: python_ssi_pipelines
+  stage: python
   needs: ["compute_pipeline", "dotnet_ssi_pipeline"]
   allow_failure: true
   variables:
     PARENT_PIPELINE_SOURCE: $CI_PIPELINE_SOURCE
   trigger:
     include:
-      - artifact: python_gitlab_pipeline.yml
+      - artifact: python_ssi_gitlab_pipeline.yml
         job: compute_pipeline
     strategy: depend
 
 php_ssi_pipeline:
-  stage: php_ssi_pipelines
+  stage: php
   needs: ["compute_pipeline", "python_ssi_pipeline"]
   allow_failure: true
   variables:
     PARENT_PIPELINE_SOURCE: $CI_PIPELINE_SOURCE
   trigger:
     include:
-      - artifact: php_gitlab_pipeline.yml
+      - artifact: php_ssi_gitlab_pipeline.yml
         job: compute_pipeline
     strategy: depend
 
 ruby_ssi_pipeline:
-  stage: ruby_ssi_pipelines
+  stage: ruby
   needs: ["compute_pipeline", "php_ssi_pipeline"]
   allow_failure: true
   variables:
     PARENT_PIPELINE_SOURCE: $CI_PIPELINE_SOURCE
   trigger:
     include:
-      - artifact: ruby_gitlab_pipeline.yml
+      - artifact: ruby_ssi_gitlab_pipeline.yml
         job: compute_pipeline
     strategy: depend
 
@@ -129,7 +137,7 @@ check_merge_labels:
   image: registry.ddbuild.io/images/ci_docker_base
   tags: ["runner:docker"]
 
-  stage: before_tests
+  stage: system-tests-utils
   allow_failure: true
   before_script:
     - export GH_TOKEN=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.gh-token --with-decryption --query "Parameter.Value" --out text)
@@ -145,7 +153,7 @@ generate_system_tests_images:
   image: registry.ddbuild.io/images/ci_docker_base
   tags: ["runner:docker"]
 
-  stage: before_tests
+  stage: system-tests-utils
   allow_failure: true
   before_script:
     - export GH_TOKEN=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.gh-token --with-decryption --query "Parameter.Value" --out text)

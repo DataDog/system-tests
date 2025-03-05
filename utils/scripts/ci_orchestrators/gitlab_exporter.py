@@ -92,6 +92,11 @@ def is_default_machine(raw_data_virtual_machines, vm) -> bool:
 
 
 def print_gitlab_pipeline(language, matrix_data, ci_environment) -> None:
+    # Print all supported pipelines
+    print_ssi_gitlab_pipeline(language, matrix_data, ci_environment)
+
+
+def print_ssi_gitlab_pipeline(language, matrix_data, ci_environment) -> None:
     result_pipeline = {}  # type: dict
     result_pipeline["include"] = []
     result_pipeline["stages"] = []
@@ -136,7 +141,10 @@ def print_gitlab_pipeline(language, matrix_data, ci_environment) -> None:
         print_k8s_gitlab_pipeline(language, matrix_data["libinjection_scenario_defs"], ci_environment, result_pipeline)
 
     pipeline_yml = yaml.dump(result_pipeline, sort_keys=False, default_flow_style=False)
-    print(pipeline_yml)
+    output_file = f"{language}_ssi_gitlab_pipeline.yml"
+    with open(output_file, "w") as file:
+        file.write(pipeline_yml)
+    print("Pipeline file generated: ", output_file)
 
 
 def print_k8s_gitlab_pipeline(language, k8s_matrix, ci_environment, result_pipeline) -> None:
