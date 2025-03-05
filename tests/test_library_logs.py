@@ -59,6 +59,10 @@ class Test_NoExceptions:
             allowed_patterns += [
                 r".*class java.util.LinkedHashMap.*",
                 r".*UnknownHostException: cassandra.*",
+                # XXX: This background warning occasionally gets printed in the
+                # middle of an unrelated error, breaing multi-line log parsing,
+                # and producing spurious failures.
+                ".*Using native clock.*",
                 # AIDM-588:
                 r".*Critical issue initializing instances: javax.management.JMRuntimeException.*",
                 r".*org.datadog.jmxfetch.App.*",
