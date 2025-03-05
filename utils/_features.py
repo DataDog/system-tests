@@ -2227,11 +2227,11 @@ class _Features:
     #     pytest.mark.features(feature_id=325)(test_object)
     #     return test_object
     ### Replace config consistency with the following features
-    # @features.tracing_enablement
-    # @features.ddtrace_log_directory
-    # @features.sdk_trace_agent_connection
+    # @features.trace_enablement
+    # @features.trace_log_directory
+    # @features.trace_agent_connection
     # @features.trace_rate_limiting
-    # @features.dd_tags
+    # @features.trace_tags
     # @features.trace_http_server_error_statuses
     # @features.trace_query_string_obfuscation
     # @features.trace_http_client_error_statuses
