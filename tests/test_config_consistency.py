@@ -19,7 +19,12 @@ runtime_metrics_lang_map = {
     "python": ("lang", "python"),
     "ruby": ("language", "ruby"),
 }
-log_injection_fields = {"nodejs": {"message": "msg"}}
+# represents the key under which the log library used in /log/library endpoint prints a log message
+log_injection_fields = {
+    "nodejs": {"message": "msg"},
+    "golang": {"message": "msg"},
+    "java": {"message": "message"},
+}
 
 
 @scenarios.default
@@ -133,6 +138,7 @@ class Test_Config_ObfuscationQueryStringRegexp_Configured:
         context.library == "java" and context.weblog_variant in ("vertx3", "vertx4"),
         reason="Missing endpoint",
     )
+    @bug(context.library >= "golang@1.72.0", reason="APMAPI-1196")
     def test_query_string_obfuscation_configured_client(self):
         spans = [s for _, _, s in interfaces.library.get_spans(request=self.r, full_trace=True)]
         client_span = _get_span_by_tags(
@@ -163,6 +169,7 @@ class Test_Config_ObfuscationQueryStringRegexp_Default:
         context.library == "java" and context.weblog_variant in ("vertx3", "vertx4"),
         reason="Missing endpoint",
     )
+    @bug(context.library >= "golang@1.72.0", reason="APMAPI-1196")
     def test_query_string_obfuscation_configured_client(self):
         spans = [s for _, _, s in interfaces.library.get_spans(request=self.r, full_trace=True)]
         client_span = _get_span_by_tags(
@@ -223,6 +230,7 @@ class Test_Config_HttpClientErrorStatuses_FeatureFlagCustom:
     def setup_status_code_200(self):
         self.r = weblog.get("/make_distant_call", params={"url": "http://weblog:7777/status?code=200"})
 
+    @bug(context.library >= "golang@1.72.0", reason="APMAPI-1196")
     def test_status_code_200(self):
         assert self.r.status_code == 200
         content = json.loads(self.r.text)
@@ -238,6 +246,7 @@ class Test_Config_HttpClientErrorStatuses_FeatureFlagCustom:
     def setup_status_code_202(self):
         self.r = weblog.get("/make_distant_call", params={"url": "http://weblog:7777/status?code=202"})
 
+    @bug(context.library >= "golang@1.72.0", reason="APMAPI-1196")
     def test_status_code_202(self):
         assert self.r.status_code == 200
         content = json.loads(self.r.text)
@@ -273,6 +282,7 @@ class Test_Config_ClientTagQueryString_Configured:
     def setup_query_string_redaction(self):
         self.r = weblog.get("/make_distant_call", params={"url": "http://weblog:7777/?hi=monkey"})
 
+    @bug(context.library >= "golang@1.72.0", reason="APMAPI-1196")
     def test_query_string_redaction(self):
         trace = [span for _, _, span in interfaces.library.get_spans(self.r, full_trace=True)]
         expected_tags = {"http.url": "http://weblog:7777/"}
@@ -499,12 +509,20 @@ class Test_Config_LogInjection_Enabled:
 
     def test_log_injection_enabled(self):
         assert self.r.status_code == 200
-        pattern = r'"dd":\{[^}]*\}'
-        stdout.assert_presence(pattern)
-        dd = parse_log_injection_message(self.message)
-        required_fields = ["trace_id", "span_id", "service", "version", "env"]
+        msg = parse_log_injection_message(self.message)
+        assert msg is not None, "Log message with trace context not found"
+
+        tid = parse_log_trace_id(msg)
+        assert tid is not None, "Expected a trace ID, but got None"
+        sid = parse_log_span_id(msg)
+        assert sid is not None, "Expected a span ID, but got None"
+
+        required_fields = ["service", "version", "env"]
+        if context.library.library == "java":
+            required_fields = ["dd.service", "dd.version", "dd.env"]
+
         for field in required_fields:
-            assert field in dd, f"Missing field: {field}"
+            assert field in msg, f"Missing field: {field}"
 
 
 @rfc("https://docs.google.com/document/d/1kI-gTAKghfcwI7YzKhqRv2ExUstcHqADIWA4-TZ387o/edit#heading=h.8v16cioi7qxp")
@@ -527,7 +545,7 @@ class Test_Config_LogInjection_Default:
 @scenarios.tracing_config_nondefault
 @features.log_injection
 @features.log_injection_128bit_traceid
-class Test_Config_LogInjection_128Bit_TradeId_Default:
+class Test_Config_LogInjection_128Bit_TraceId_Default:
     """Verify trace IDs are logged in 128bit format when log injection is enabled"""
 
     def setup_log_injection_128bit_traceid_default(self):
@@ -536,17 +554,16 @@ class Test_Config_LogInjection_128Bit_TradeId_Default:
 
     def test_log_injection_128bit_traceid_default(self):
         assert self.r.status_code == 200
-        pattern = r'"dd":\{[^}]*\}'
-        stdout.assert_presence(pattern)
-        dd = parse_log_injection_message(self.message)
-        trace_id = dd.get("trace_id")
+        log_msg = parse_log_injection_message(self.message)
+
+        trace_id = parse_log_trace_id(log_msg)
         assert re.match(r"^[0-9a-f]{32}$", trace_id), f"Invalid 128-bit trace_id: {trace_id}"
 
 
 @rfc("https://docs.google.com/document/d/1kI-gTAKghfcwI7YzKhqRv2ExUstcHqADIWA4-TZ387o/edit#heading=h.8v16cioi7qxp")
 @scenarios.tracing_config_nondefault_3
 @features.log_injection_128bit_traceid
-class Test_Config_LogInjection_128Bit_TradeId_Disabled:
+class Test_Config_LogInjection_128Bit_TraceId_Disabled:
     """Verify 128 bit traceid are disabled in log injection when DD_TRACE_128_BIT_TRACEID_LOGGING_ENABLED=false"""
 
     def setup_log_injection_128bit_traceid_disabled(self):
@@ -555,11 +572,10 @@ class Test_Config_LogInjection_128Bit_TradeId_Disabled:
 
     def test_log_injection_128bit_traceid_disabled(self):
         assert self.r.status_code == 200
-        pattern = r'"dd":\{[^}]*\}'
-        stdout.assert_presence(pattern)
-        dd = parse_log_injection_message(self.message)
-        trace_id = dd.get("trace_id")
-        assert re.match(r"^\d{1,20}$", trace_id), f"Invalid 64-bit trace_id: {trace_id}"
+        log_msg = parse_log_injection_message(self.message)
+
+        trace_id = parse_log_trace_id(log_msg)
+        assert re.match(r"^\d{1,20}$", str(trace_id)), f"Invalid 64-bit trace_id: {trace_id}"
 
 
 @rfc("https://docs.google.com/document/d/1kI-gTAKghfcwI7YzKhqRv2ExUstcHqADIWA4-TZ387o/edit#heading=h.8v16cioi7qxp")
@@ -663,13 +679,33 @@ def get_runtime_metrics(agent):
     return runtime_metrics_gauges, runtime_metrics_sketches
 
 
-# Parse the JSON-formatted log message from stdout and return the 'dd' object
 def parse_log_injection_message(log_message):
+    # Parses the JSON-formatted log message from stdout and returns it
+    # To pass tests that use this function, ensure your library has an entry in log_injection_fields
     for data in stdout.get_data():
-        try:
-            message = json.loads(data.get("message"))
-        except json.JSONDecodeError:
-            continue
-        if message.get("dd") and message.get(log_injection_fields[context.library.library]["message"]) == log_message:
-            return message.get("dd")
+        logs = data.get("raw").split("\n")
+        for log in logs:
+            try:
+                message = json.loads(log)
+            except json.JSONDecodeError:
+                continue
+            # Locate log with the custom message, which should have the trace ID and span ID
+            if message.get(log_injection_fields[context.library.library]["message"]) != log_message:
+                continue
+            if message.get("dd"):
+                return message.get("dd")
+            # dd-trace-java stores injected trace information under the "mdc" key
+            if context.library.library == "java":
+                message = message.get("mdc")
+            return message
     return None
+
+
+def parse_log_trace_id(message):
+    # APMAPI-1199: update nodejs to use dd.trace_id instead of trace_id
+    return message.get("dd.trace_id", message.get("trace_id"))
+
+
+def parse_log_span_id(message):
+    # APMAPI-1199: update nodejs to use dd.span_id instead of span_id
+    return message.get("dd.span_id", message.get("span_id"))
