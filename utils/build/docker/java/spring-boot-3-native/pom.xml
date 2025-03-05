@@ -97,9 +97,11 @@
                 <version>0.10.3</version>
                 <configuration>
                     <quickBuild>true</quickBuild>
+                    <debug>true</debug>
                     <buildArgs>
-                        <arg>-g</arg>
-                        <arg>-H:-DeleteLocalSymbols</arg>
+                        <buildArg>-H:+SourceLevelDebug</buildArg>
+                        <buildArg>-H:-DeleteLocalSymbols</buildArg>
+                        <buildArg>-H:+PreserveFramePointer</buildArg>
                     </buildArgs>
                 </configuration>
             </plugin>
