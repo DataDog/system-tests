@@ -628,7 +628,6 @@ class Test_Config_RuntimeMetrics_Enabled:
 @scenarios.runtime_metrics_enabled
 @features.runtime_metrics
 @features.tracing_configuration_consistency
-@features.tracing_configuration_consistency
 class Test_Config_RuntimeMetrics_Enabled_WithRuntimeId:
     """Verify runtime metrics are enabled when DD_RUNTIME_METRICS_ENABLED=true and that they have the runtime-id tag"""
 
