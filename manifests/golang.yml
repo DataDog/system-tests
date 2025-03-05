@@ -342,8 +342,8 @@ tests/:
         echo: v1.36.0
         gin: v1.37.0
     test_asm_standalone.py:
-      Test_AppSecStandalone_UpstreamPropagation: v1.71.0
-      Test_AppSecStandalone_UpstreamPropagation_V2: missing_feature
+      Test_AppSecStandalone_UpstreamPropagation: irrelevant (v2 is implemented)
+      Test_AppSecStandalone_UpstreamPropagation_V2: v1.73.0-dev
       Test_IastStandalone_UpstreamPropagation: missing_feature
       Test_IastStandalone_UpstreamPropagation_V2: missing_feature
       Test_SCAStandalone_Telemetry: missing_feature
@@ -421,8 +421,8 @@ tests/:
       Test_Standardization: missing_feature
       Test_StandardizationBlockMode: missing_feature
     test_metastruct.py:
-      Test_SecurityEvents_Appsec_Metastruct_Disabled: v1.72.0-dev
-      Test_SecurityEvents_Appsec_Metastruct_Enabled: v1.72.0-dev
+      Test_SecurityEvents_Appsec_Metastruct_Disabled: v1.72.0
+      Test_SecurityEvents_Appsec_Metastruct_Enabled: v1.72.0
       Test_SecurityEvents_Iast_Metastruct_Disabled: irrelevant (No IAST)
       Test_SecurityEvents_Iast_Metastruct_Enabled: irrelevant (No IAST)
     test_remote_config_rule_changes.py:
@@ -573,25 +573,25 @@ tests/:
     test_inferred_proxy.py:
       Test_AWS_API_Gateway_Inferred_Span_Creation:
         "*": irrelevant
-        chi: v1.72.0
-        echo: v1.72.0
-        gin: v1.72.0
-        net-http: v1.72.0
-        net-http-orchestrion: v1.72.0
+        chi: v1.72.1
+        echo: v1.72.1
+        gin: v1.72.1
+        net-http: v1.72.1
+        net-http-orchestrion: v1.72.1
       Test_AWS_API_Gateway_Inferred_Span_Creation_With_Distributed_Context:
         "*": irrelevant
-        chi: v1.72.0
-        echo: v1.72.0
-        gin: v1.72.0
-        net-http: v1.72.0
-        net-http-orchestrion: v1.72.0
+        chi: v1.72.1
+        echo: v1.72.1
+        gin: v1.72.1
+        net-http: v1.72.1
+        net-http-orchestrion: v1.72.1
       Test_AWS_API_Gateway_Inferred_Span_Creation_With_Error:
         "*": irrelevant
-        chi: v1.72.0
-        echo: v1.72.0
-        gin: v1.72.0
-        net-http: v1.72.0
-        net-http-orchestrion: v1.72.0
+        chi: v1.72.1
+        echo: v1.72.1
+        gin: v1.72.1
+        net-http: v1.72.1
+        net-http-orchestrion: v1.72.1
     test_otel_drop_in.py:
       Test_Otel_Drop_In: missing_feature
   otel/:
@@ -600,6 +600,8 @@ tests/:
         '*': incomplete_test_app (endpoint not implemented)
         net-http: v1.70.1
   parametric/:
+    test_128_bit_traceids.py:
+      Test_128_Bit_Traceids: v1.50.0
     test_config_consistency.py:
       Test_Config_Dogstatsd: v1.72.0-dev
       Test_Config_RateLimit: v1.67.0
@@ -634,12 +636,14 @@ tests/:
       Test_Parametric_OtelSpan_Start: bug (APMAPI-778)  # String attributes are incorrectly stored/serialized in a list
       Test_Parametric_Otel_Baggage: missing_feature (otel baggage is not supported)
       Test_Parametric_Otel_Current_Span: missing_feature (otel current span endpoint is not defined)
+    test_process_discovery.py: missing_feature
     test_span_events.py: missing_feature
     test_span_links.py: missing_feature
     test_telemetry.py:
       Test_Consistent_Configs: missing_feature (APMAPI-745)
       Test_Defaults: missing_feature
       Test_Environment: missing_feature
+      Test_Stable_Configuration_Origin: missing_feature
       Test_TelemetryInstallSignature: missing_feature
       Test_TelemetrySCAEnvVar: v1.63.0-rc.1
     test_trace_sampling.py:
@@ -685,8 +689,8 @@ tests/:
       uds-echo: missing_feature
     Test_Config_IntegrationEnabled_False: irrelevant (not applicable to Go because of how they do auto instrumentation)
     Test_Config_IntegrationEnabled_True: irrelevant (not applicable to Go because of how they do auto instrumentation)
-    Test_Config_LogInjection_128Bit_TradeId_Default: missing_feature (disabled by default)
-    Test_Config_LogInjection_128Bit_TradeId_Disabled: incomplete_test_app (weblog endpoint not implemented)
+    Test_Config_LogInjection_128Bit_TraceId_Default: missing_feature (disabled by default)
+    Test_Config_LogInjection_128Bit_TraceId_Disabled: incomplete_test_app (weblog endpoint not implemented)
     Test_Config_LogInjection_Default: incomplete_test_app (weblog endpoint not implemented)
     Test_Config_LogInjection_Enabled: incomplete_test_app (weblog endpoint not implemented)
     Test_Config_ObfuscationQueryStringRegexp_Configured: v1.67.0
@@ -738,11 +742,11 @@ tests/:
     Test_StandardTagsUrl: v1.40.0
     Test_StandardTagsUserAgent: v1.39.0
   test_telemetry.py:
-    Test_DependencyEnable: missing_feature
-    Test_Log_Generation: missing_feature
-    Test_MessageBatch: missing_feature
-    Test_Metric_Generation_Disabled: missing_feature
-    Test_Metric_Generation_Enabled: missing_feature
+    Test_DependencyEnable: v1.73.0-dev
+    Test_Log_Generation: v1.73.0-dev
+    Test_MessageBatch: v1.73.0-dev
+    Test_Metric_Generation_Disabled: v1.73.0-dev
+    Test_Metric_Generation_Enabled: missing_feature (checks for metrics from the tracer)
     Test_ProductsDisabled: v1.53
     Test_Telemetry: v1.49.0
     Test_TelemetrySCAEnvVar: missing_feature

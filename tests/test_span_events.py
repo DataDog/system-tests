@@ -21,10 +21,8 @@ class Test_SpanEvents_WithAgentSupport:
     def test_v04_v07_default_format(self):
         """For traces that default to the v0.4 or v0.7 format, send events as a top-level `span_events` field"""
         interfaces.library.assert_trace_exists(self.r)
-
-        span = self._get_span(self.r)
-        meta = self._get_root_span_meta(self.r)
-
+        span = interfaces.library.get_root_span(self.r)
+        meta = span.get("meta", {})
         assert "span_events" in span
         assert "events" not in meta
 
@@ -37,20 +35,10 @@ class Test_SpanEvents_WithAgentSupport:
         given this format does not support native serialization.
         """
         interfaces.library.assert_trace_exists(self.r)
-
-        span = self._get_span(self.r)
-        meta = self._get_root_span_meta(self.r)
-
+        span = interfaces.library.get_root_span(self.r)
+        meta = span.get("meta", {})
         assert "span_events" not in span
         assert "events" in meta
-
-    def _get_root_span_meta(self, request):
-        return self._get_span(request).get("meta", {})
-
-    def _get_span(self, request):
-        root_spans = [s for _, s in interfaces.library.get_root_spans(request=request)]
-        assert len(root_spans) == 1
-        return root_spans[0]
 
 
 @features.span_events
@@ -68,17 +56,7 @@ class Test_SpanEvents_WithoutAgentSupport:
     def test_send_as_a_tag(self):
         """Send span events as the tag `events` when the agent does not support native serialization"""
         interfaces.library.assert_trace_exists(self.r)
-
-        span = self._get_span(self.r)
-        meta = self._get_root_span_meta(self.r)
-
+        span = interfaces.library.get_root_span(self.r)
+        meta = span.get("meta", {})
         assert "span_events" not in span
         assert "events" in meta
-
-    def _get_root_span_meta(self, request):
-        return self._get_span(request).get("meta", {})
-
-    def _get_span(self, request):
-        root_spans = [s for _, s in interfaces.library.get_root_spans(request=request)]
-        assert len(root_spans) == 1
-        return root_spans[0]

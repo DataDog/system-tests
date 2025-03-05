@@ -3,7 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 import tests.debugger.utils as debugger
-from utils import features, scenarios
+from utils import features, scenarios, missing_feature, context
 from utils.tools import logger
 import json
 
@@ -12,7 +12,8 @@ TIMEOUT = 5
 
 @features.debugger_inproduct_enablement
 @scenarios.debugger_inproduct_enablement
-class Test_Debugger_InProduct_Enablement_Dynamic_Instrumentation(debugger._Base_Debugger_Test):
+@missing_feature(context.library == "java", force_skip=True)
+class Test_Debugger_InProduct_Enablement_Dynamic_Instrumentation(debugger.Base_Debugger_Test):
     ############ dynamic instrumentation ############
     _probe_template = """
     {
@@ -65,7 +66,8 @@ class Test_Debugger_InProduct_Enablement_Dynamic_Instrumentation(debugger._Base_
 
 @features.debugger_inproduct_enablement
 @scenarios.debugger_inproduct_enablement
-class Test_Debugger_InProduct_Enablement_Exception_Replay(debugger._Base_Debugger_Test):
+@missing_feature(context.library == "java", force_skip=True)
+class Test_Debugger_InProduct_Enablement_Exception_Replay(debugger.Base_Debugger_Test):
     ############ exception replay ############
     _max_retries = 2
 
@@ -121,7 +123,8 @@ class Test_Debugger_InProduct_Enablement_Exception_Replay(debugger._Base_Debugge
 
 @features.debugger_inproduct_enablement
 @scenarios.debugger_inproduct_enablement
-class Test_Debugger_InProduct_Enablement_Code_Origin(debugger._Base_Debugger_Test):
+@missing_feature(context.library == "java", force_skip=True)
+class Test_Debugger_InProduct_Enablement_Code_Origin(debugger.Base_Debugger_Test):
     ########### code origin ############
     def setup_inproduct_enablement_code_origin(self):
         def _send_config(enabled=None):

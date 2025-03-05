@@ -4,7 +4,7 @@
 
 import asyncio
 import aiofiles
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, UTC
 import hashlib
 import json
 import logging
@@ -37,13 +37,13 @@ class Semaphore(asyncio.Semaphore):
 
 
 class _RequestDumper:
-    def __init__(self, name=None, enabled=True):
+    def __init__(self, name=None, *, enabled=True):
         self.enabled = enabled
         self.logger = None
         if name:
-            self.filename = f"logs/dump_{name}_{datetime.now().isoformat()}.dump"
+            self.filename = f"logs/dump_{name}_{datetime.now(tz=UTC).isoformat()}.dump"
         else:
-            self.filename = f"logs/dump_{datetime.now().isoformat()}.dump"
+            self.filename = f"logs/dump_{datetime.now(tz=UTC).isoformat()}.dump"
 
     def __call__(self, payload):
         if not self.enabled:
@@ -70,6 +70,7 @@ class Fuzzer:
         request_count=None,
         max_time=None,
         dump_on_status=("500",),
+        *,
         debug=False,
         systematic_export=False,
     ):
@@ -213,7 +214,7 @@ class Fuzzer:
             return
 
         self.report.start()
-        self.max_datetime = None if self.max_time is None else datetime.now() + timedelta(seconds=self.max_time)
+        self.max_datetime = None if self.max_time is None else datetime.now(tz=UTC) + timedelta(seconds=self.max_time)
 
         tasks = set()
 
@@ -246,7 +247,7 @@ class Fuzzer:
                 while len(self.backend_requests_stack) != 0:
                     self.update_backend_metrics(self.backend_requests_stack.pop(0))
 
-                if self.max_datetime is not None and datetime.now() > self.max_datetime:
+                if self.max_datetime is not None and datetime.now(tz=UTC) > self.max_datetime:
                     self.finished = True
 
                 if self.finished:
@@ -276,7 +277,7 @@ class Fuzzer:
 
     async def _process(self, session, request):
         resp = None
-        request_timestamp = datetime.now()
+        request_timestamp = datetime.now(tz=UTC)
         self.systematic_exporter(request)
 
         try:
@@ -334,7 +335,7 @@ class Fuzzer:
         return result
 
     async def update_metrics(self, status, request, request_timestamp, response=None):
-        ellapsed = (datetime.now() - request_timestamp).total_seconds()
+        ellapsed = (datetime.now(tz=UTC) - request_timestamp).total_seconds()
 
         byte_count = len(request["path"])
 

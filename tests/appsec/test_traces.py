@@ -275,13 +275,13 @@ class Test_CollectRespondHeaders:
         reason="The endpoint /headers is not implemented in the weblog",
     )
     def test_header_collection(self):
-        def assertHeaderInSpanMeta(span, header):
+        def assert_header_in_span_meta(span, header):
             if header not in span["meta"]:
                 raise Exception(f"Can't find {header} in span's meta")
 
         def validate_response_headers(span):
             for header in ["content-type", "content-length", "content-language"]:
-                assertHeaderInSpanMeta(span, f"http.response.headers.{header}")
+                assert_header_in_span_meta(span, f"http.response.headers.{header}")
             return True
 
         interfaces.library.validate_spans(self.r, validate_response_headers)
@@ -293,24 +293,31 @@ class Test_CollectRespondHeaders:
 @scenarios.external_processing
 @scenarios.default
 class Test_CollectDefaultRequestHeader:
-    HEADERS = ["User-Agent", "Accept", "Content-Type"]
+    HEADERS = {
+        "User-Agent": "MyBrowser",
+        "Accept": "*/*",
+        "Content-Type": "text/plain",
+    }
 
     def setup_collect_default_request_headers(self):
-        self.r = weblog.get("/headers", headers={header: "myHeaderValue" for header in self.HEADERS})
+        self.r = weblog.get("/headers", headers=self.HEADERS)
 
     def test_collect_default_request_headers(self):
         """Collect User agent and other headers and other security info when appsec is enabled."""
-
-        def assertHeaderInSpanMeta(span, header):
-            if header not in span["meta"]:
-                raise Exception(f"Can't find {header} in span's meta")
-
-        def validate_request_headers(span):
-            for header in self.HEADERS:
-                assertHeaderInSpanMeta(span, f"http.request.headers.{header.lower()}")
-            return True
-
-        interfaces.library.validate_spans(self.r, validate_request_headers)
+        if context.library != "golang":
+            # TODO(APPSEC-56898): Golang weblogs do not respond to this request.
+            assert self.r.status_code == 200
+        span = interfaces.library.get_root_span(self.r)
+        for key, value in self.HEADERS.items():
+            meta = span.get("meta", {})
+            meta_key = f"http.request.headers.{key.lower()}"
+            assert meta_key in meta
+            if key == "User-Agent":
+                # system-tests inject a request id in the user-agent, so the
+                # matching here needs to account for it.
+                assert meta[meta_key].startswith(value)
+            else:
+                assert meta[meta_key] == value
 
 
 @rfc("https://docs.google.com/document/d/1xf-s6PtSr6heZxmO_QLUtcFzY_X_rT94lRXNq6-Ghws/edit?pli=1")
@@ -337,7 +344,7 @@ class Test_ExternalWafRequestsIdentification:
     def test_external_wafs_header_collection(self):
         """Collect external wafs request identifier and other security info when appsec is enabled."""
 
-        def assertHeaderInSpanMeta(span, header):
+        def assert_header_in_span_meta(span, header):
             if header not in span["meta"]:
                 raise Exception(f"Can't find {header} in span's meta")
 
@@ -352,7 +359,7 @@ class Test_ExternalWafRequestsIdentification:
                 "x-sigsci-tags",
                 "akamai-user-risk",
             ]:
-                assertHeaderInSpanMeta(span, f"http.request.headers.{header}")
+                assert_header_in_span_meta(span, f"http.request.headers.{header}")
             return True
 
         interfaces.library.validate_spans(self.r, validate_request_headers)
