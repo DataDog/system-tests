@@ -375,7 +375,7 @@ SDK_DEFAULT_STABLE_CONFIG = {
     "dd_runtime_metrics_enabled": "false" if context.library != "java" else "true",
     "dd_profiling_enabled": "false",
     "dd_data_streams_enabled": "false",
-    "dd_logs_injection": "false" if context.library != "java" else "true",
+    "dd_logs_injection": "false",
 }
 
 
