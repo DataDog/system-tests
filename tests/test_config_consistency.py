@@ -512,10 +512,6 @@ class Test_Config_LogInjection_Enabled:
         msg = parse_log_injection_message(self.message)
         assert msg is not None, "Log message with trace context not found"
 
-        # dd-trace-java stores injected trace information under the "mdc" key
-        if context.library.library == "java":
-            msg = msg.get("mdc")
-
         tid = parse_log_trace_id(msg)
         assert tid is not None, "Expected a trace ID, but got None"
         sid = parse_log_span_id(msg)
@@ -559,10 +555,6 @@ class Test_Config_LogInjection_128Bit_TraceId_Default:
         assert self.r.status_code == 200
         log_msg = parse_log_injection_message(self.message)
 
-        # dd-trace-java stores injected trace information under the "mdc" key
-        if context.library.library == "java":
-            log_msg = log_msg.get("mdc")
-
         trace_id = parse_log_trace_id(log_msg)
         assert re.match(r"^[0-9a-f]{32}$", trace_id), f"Invalid 128-bit trace_id: {trace_id}"
 
@@ -580,10 +572,6 @@ class Test_Config_LogInjection_128Bit_TraceId_Disabled:
     def test_log_injection_128bit_traceid_disabled(self):
         assert self.r.status_code == 200
         log_msg = parse_log_injection_message(self.message)
-
-        # dd-trace-java stores injected trace information under the "mdc" key
-        if context.library.library == "java":
-            log_msg = log_msg.get("mdc")
 
         trace_id = parse_log_trace_id(log_msg)
         assert re.match(r"^\d{1,20}$", str(trace_id)), f"Invalid 64-bit trace_id: {trace_id}"
@@ -705,6 +693,9 @@ def parse_log_injection_message(log_message):
                 continue
             if message.get("dd"):
                 return message.get("dd")
+            # dd-trace-java stores injected trace information under the "mdc" key
+            if context.library.library == "java":
+                message = message.get("mdc")
             return message
     return None
 
