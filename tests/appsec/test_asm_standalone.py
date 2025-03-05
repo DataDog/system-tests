@@ -824,6 +824,7 @@ class Test_IastStandalone_UpstreamPropagation_V2(IastStandalone_UpstreamPropagat
 @features.sca_standalone
 @scenarios.sca_standalone
 @irrelevant(context.library > "java@v1.46.0", reason="V2 is implemented for newer versions")
+@bug(context.library >= "dotnet@3.12.0", reason="APPSEC-56959")
 class Test_SCAStandalone_Telemetry(SCAStandalone_Telemetry_Base):
     """Tracer correctly propagates SCA telemetry in distributing tracing with DD_EXPERIMENTAL_APPSEC_STANDALONE_ENABLED=true."""
 
