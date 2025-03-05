@@ -469,12 +469,13 @@ def graphql_error_spans(*args, **kwargs):
 def format_error(errors):
     formatted_errors = []
     for error in errors:
-        formatted_errors.append({
-            "message": error.message,
-            "extensions": error.extensions,
-        })
+        formatted_errors.append(
+            {
+                "message": error.message,
+                "extensions": error.extensions,
+            }
+        )
     return {"errors": formatted_errors}
-
 
 
 @app.route("/read_file", methods=["GET"])
