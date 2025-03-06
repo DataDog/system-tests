@@ -28,7 +28,7 @@ log_injection_fields = {
 
 
 @scenarios.default
-@features.tracing_configuration_consistency
+@features.trace_http_server_error_statuses
 class Test_Config_HttpServerErrorStatuses_Default:
     """Verify behavior of http clients and distributed traces"""
 
@@ -61,7 +61,7 @@ class Test_Config_HttpServerErrorStatuses_Default:
 
 
 @scenarios.tracing_config_nondefault
-@features.tracing_configuration_consistency
+@features.trace_http_server_error_statuses
 class Test_Config_HttpServerErrorStatuses_FeatureFlagCustom:
     """Verify behavior of http clients and distributed traces"""
 
@@ -96,7 +96,7 @@ class Test_Config_HttpServerErrorStatuses_FeatureFlagCustom:
 
 # Tests for verifying default query string obfuscation behavior can be found in the Test_StandardTagsUrl test class
 @scenarios.tracing_config_nondefault_2
-@features.tracing_configuration_consistency
+@features.trace_query_string_obfuscation
 class Test_Config_ObfuscationQueryStringRegexp_Empty:
     """Verify behavior when set to empty string"""
 
@@ -124,7 +124,7 @@ class Test_Config_ObfuscationQueryStringRegexp_Empty:
 
 
 @scenarios.tracing_config_nondefault
-@features.tracing_configuration_consistency
+@features.trace_query_string_obfuscation
 class Test_Config_ObfuscationQueryStringRegexp_Configured:
     def setup_query_string_obfuscation_configured_client(self):
         self.r = weblog.get("/make_distant_call", params={"url": "http://weblog:7777/?ssn=123-45-6789"})
@@ -155,7 +155,7 @@ class Test_Config_ObfuscationQueryStringRegexp_Configured:
         )
 
 
-@features.tracing_configuration_consistency
+@features.trace_query_string_obfuscation
 class Test_Config_ObfuscationQueryStringRegexp_Default:
     def setup_query_string_obfuscation_configured_client(self):
         self.r = weblog.get("/make_distant_call", params={"url": "http://weblog:7777/?token=value"})
@@ -187,7 +187,7 @@ class Test_Config_ObfuscationQueryStringRegexp_Default:
 
 
 @scenarios.default
-@features.tracing_configuration_consistency
+@features.trace_http_client_error_statuses
 class Test_Config_HttpClientErrorStatuses_Default:
     """Verify behavior of http clients"""
 
@@ -223,7 +223,7 @@ class Test_Config_HttpClientErrorStatuses_Default:
 
 
 @scenarios.tracing_config_nondefault
-@features.tracing_configuration_consistency
+@features.trace_http_client_error_statuses
 class Test_Config_HttpClientErrorStatuses_FeatureFlagCustom:
     """Verify behavior of http clients"""
 
@@ -261,7 +261,7 @@ class Test_Config_HttpClientErrorStatuses_FeatureFlagCustom:
 
 
 @scenarios.default
-@features.tracing_configuration_consistency
+@features.trace_http_client_tag_query_string
 class Test_Config_ClientTagQueryString_Empty:
     """Verify behavior when DD_TRACE_HTTP_CLIENT_TAG_QUERY_STRING set to empty string"""
 
@@ -275,7 +275,7 @@ class Test_Config_ClientTagQueryString_Empty:
 
 
 @scenarios.tracing_config_nondefault_3
-@features.tracing_configuration_consistency
+@features.trace_http_client_tag_query_string
 class Test_Config_ClientTagQueryString_Configured:
     """Verify behavior when DD_TRACE_HTTP_CLIENT_TAG_QUERY_STRING set to false"""
 
@@ -290,7 +290,7 @@ class Test_Config_ClientTagQueryString_Configured:
 
 
 @scenarios.tracing_config_nondefault_2
-@features.tracing_configuration_consistency
+@features.trace_client_ip_header
 class Test_Config_ClientIPHeader_Configured:
     """Verify headers containing ips are tagged when DD_TRACE_CLIENT_IP_ENABLED=true
     and DD_TRACE_CLIENT_IP_HEADER=custom-ip-header
@@ -309,7 +309,7 @@ class Test_Config_ClientIPHeader_Configured:
 
 
 @scenarios.tracing_config_nondefault_3
-@features.tracing_configuration_consistency
+@features.trace_client_ip_header
 class Test_Config_ClientIPHeaderEnabled_False:
     """Verify headers containing ips are not tagged when by default, even with DD_TRACE_CLIENT_IP_HEADER=custom-ip-header"""
 
@@ -326,7 +326,7 @@ class Test_Config_ClientIPHeaderEnabled_False:
 
 
 @scenarios.tracing_config_nondefault
-@features.tracing_configuration_consistency
+@features.trace_client_ip_header
 class Test_Config_ClientIPHeader_Precedence:
     """Verify headers containing ips are tagged when DD_TRACE_CLIENT_IP_ENABLED=true
     and headers are used to set http.client_ip in order of precedence
@@ -400,7 +400,7 @@ def _get_span_by_tags(spans, tags):
 
 
 @features.envoy_external_processing
-@features.tracing_configuration_consistency
+@features.unified_service_tagging
 @scenarios.tracing_config_nondefault
 @scenarios.external_processing
 class Test_Config_UnifiedServiceTagging_CustomService:
@@ -422,7 +422,7 @@ class Test_Config_UnifiedServiceTagging_CustomService:
 
 
 @scenarios.default
-@features.tracing_configuration_consistency
+@features.unified_service_tagging
 class Test_Config_UnifiedServiceTagging_Default:
     """Verify behavior of http clients and distributed traces"""
 
@@ -440,7 +440,7 @@ class Test_Config_UnifiedServiceTagging_Default:
 
 @rfc("https://docs.google.com/document/d/1kI-gTAKghfcwI7YzKhqRv2ExUstcHqADIWA4-TZ387o/edit#heading=h.8v16cioi7qxp")
 @scenarios.tracing_config_nondefault
-@features.tracing_configuration_consistency
+@features.integration_enablement
 class Test_Config_IntegrationEnabled_False:
     """Verify behavior of integrations automatic spans"""
 
@@ -469,7 +469,7 @@ class Test_Config_IntegrationEnabled_False:
 
 @rfc("https://docs.google.com/document/d/1kI-gTAKghfcwI7YzKhqRv2ExUstcHqADIWA4-TZ387o/edit#heading=h.8v16cioi7qxp")
 @scenarios.tracing_config_nondefault_2
-@features.tracing_configuration_consistency
+@features.integration_enablement
 class Test_Config_IntegrationEnabled_True:
     """Verify behavior of integrations automatic spans"""
 
@@ -499,7 +499,7 @@ class Test_Config_IntegrationEnabled_True:
 
 @rfc("https://docs.google.com/document/d/1kI-gTAKghfcwI7YzKhqRv2ExUstcHqADIWA4-TZ387o/edit#heading=h.8v16cioi7qxp")
 @scenarios.tracing_config_nondefault
-@features.tracing_configuration_consistency
+@features.log_injection
 class Test_Config_LogInjection_Enabled:
     """Verify log injection behavior when enabled"""
 
@@ -527,7 +527,7 @@ class Test_Config_LogInjection_Enabled:
 
 @rfc("https://docs.google.com/document/d/1kI-gTAKghfcwI7YzKhqRv2ExUstcHqADIWA4-TZ387o/edit#heading=h.8v16cioi7qxp")
 @scenarios.default
-@features.tracing_configuration_consistency
+@features.log_injection
 class Test_Config_LogInjection_Default:
     """Verify log injection is disabled by default"""
 
@@ -543,7 +543,8 @@ class Test_Config_LogInjection_Default:
 
 @rfc("https://docs.google.com/document/d/1kI-gTAKghfcwI7YzKhqRv2ExUstcHqADIWA4-TZ387o/edit#heading=h.8v16cioi7qxp")
 @scenarios.tracing_config_nondefault
-@features.tracing_configuration_consistency
+@features.log_injection
+@features.log_injection_128bit_traceid
 class Test_Config_LogInjection_128Bit_TraceId_Default:
     """Verify trace IDs are logged in 128bit format when log injection is enabled"""
 
@@ -561,7 +562,8 @@ class Test_Config_LogInjection_128Bit_TraceId_Default:
 
 @rfc("https://docs.google.com/document/d/1kI-gTAKghfcwI7YzKhqRv2ExUstcHqADIWA4-TZ387o/edit#heading=h.8v16cioi7qxp")
 @scenarios.tracing_config_nondefault_3
-@features.tracing_configuration_consistency
+@features.log_injection
+@features.log_injection_128bit_traceid
 class Test_Config_LogInjection_128Bit_TraceId_Disabled:
     """Verify 128 bit traceid are disabled in log injection when DD_TRACE_128_BIT_TRACEID_LOGGING_ENABLED=false"""
 
@@ -579,7 +581,7 @@ class Test_Config_LogInjection_128Bit_TraceId_Disabled:
 
 @rfc("https://docs.google.com/document/d/1kI-gTAKghfcwI7YzKhqRv2ExUstcHqADIWA4-TZ387o/edit#heading=h.8v16cioi7qxp")
 @scenarios.runtime_metrics_enabled
-@features.tracing_configuration_consistency
+@features.runtime_metrics
 class Test_Config_RuntimeMetrics_Enabled:
     """Verify runtime metrics are enabled when DD_RUNTIME_METRICS_ENABLED=true and that they have the proper tags"""
 
@@ -616,7 +618,7 @@ class Test_Config_RuntimeMetrics_Enabled:
 
 
 @scenarios.runtime_metrics_enabled
-@features.tracing_configuration_consistency
+@features.runtime_metrics
 class Test_Config_RuntimeMetrics_Enabled_WithRuntimeId:
     """Verify runtime metrics are enabled when DD_RUNTIME_METRICS_ENABLED=true and that they have the runtime-id tag"""
 
@@ -642,7 +644,7 @@ class Test_Config_RuntimeMetrics_Enabled_WithRuntimeId:
 
 @rfc("https://docs.google.com/document/d/1kI-gTAKghfcwI7YzKhqRv2ExUstcHqADIWA4-TZ387o/edit#heading=h.8v16cioi7qxp")
 @scenarios.default
-@features.tracing_configuration_consistency
+@features.runtime_metrics
 class Test_Config_RuntimeMetrics_Default:
     """Verify runtime metrics are disabled by default"""
 
