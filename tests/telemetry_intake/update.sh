@@ -33,9 +33,6 @@ mkdir -p "$SUBDIR"
 git sparse-checkout init --cone
 git sparse-checkout set "$SUBDIR"
 
-# This file should not exist in the output
-rm "$SUBDIR/_format.py" || (echo "Failed to navigate to $SUBDIR/_format.py" && exit 1)
-
 # Create the target directory structure
 mkdir -p "$TARGET_DIR"
 
