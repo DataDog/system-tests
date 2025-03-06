@@ -60,9 +60,6 @@ compute_pipeline:
       if [ -n "$SYSTEM_TESTS_SCENARIOS" ] || [ -n "$SYSTEM_TESTS_SCENARIOS_GROUPS" ]; then
         cp *.yml "$CI_PROJECT_DIR"
       fi
-
-
-
   artifacts:
     paths:
       - nodejs_ssi_gitlab_pipeline.yml
@@ -146,9 +143,11 @@ ruby_ssi_pipeline:
 
 check_pipeline_status:
   stage: pipeline-status
+  image: registry.ddbuild.io/images/ci_docker_base
+  tags: ["runner:docker"]
   script:
     - echo "Checking if any job failed..."
-    - if [ "$CI_JOB_STATUS" = "failed" ]; then exit 1; fi 
+    - if [ "$CI_JOB_STATUS" = "failed" ]; then exit 1; fi
   when: always
 
 check_merge_labels:

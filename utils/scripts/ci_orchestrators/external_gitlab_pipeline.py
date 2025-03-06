@@ -33,6 +33,11 @@ def main(language=None) -> None:
     print(yaml.dump(data, default_flow_style=False, sort_keys=False))
 
 
+def is_allowed_stage(stage, language) -> bool:
+    """Check if a stage is allowed based on the language."""
+    return stage in {language, "configure", "pipeline-status"}
+
+
 def filter_yaml(yaml_data, language) -> dict:
     """Filter the pipeline to run only the jobs for the specified language"""
 
@@ -40,7 +45,7 @@ def filter_yaml(yaml_data, language) -> dict:
     allowed_jobs = {
         job_name: job_data
         for job_name, job_data in yaml_data.items()
-        if isinstance(job_data, dict) and (job_data.get("stage") == language or job_data.get("stage") == "configure")
+        if isinstance(job_data, dict) and is_allowed_stage(job_data.get("stage"), language)
     }
 
     # Keep only relevant sections
@@ -48,7 +53,7 @@ def filter_yaml(yaml_data, language) -> dict:
 
     # Keep only the language stage
     if "stages" in filtered_data:
-        filtered_data["stages"] = [stage for stage in yaml_data["stages"] if stage == language or stage == "configure"]
+        filtered_data["stages"] = [stage for stage in yaml_data["stages"] if is_allowed_stage(stage, language)]
 
     # Add the filtered jobs only for the current language
     filtered_data.update(allowed_jobs)
