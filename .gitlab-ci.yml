@@ -74,7 +74,7 @@ compute_pipeline:
 nodejs_ssi_pipeline:
   stage: nodejs
   needs: ["compute_pipeline"]
-  allow_failure: true
+  allow_failure: false
   variables:
     PARENT_PIPELINE_SOURCE: $CI_PIPELINE_SOURCE
   trigger:
@@ -86,7 +86,7 @@ nodejs_ssi_pipeline:
 java_ssi_pipeline:
   stage: java
   needs: ["compute_pipeline", "nodejs_ssi_pipeline"]
-  allow_failure: true
+  allow_failure: false
   variables:
     PARENT_PIPELINE_SOURCE: $CI_PIPELINE_SOURCE
   trigger:
@@ -98,7 +98,7 @@ java_ssi_pipeline:
 dotnet_ssi_pipeline:
   stage: dotnet
   needs: ["compute_pipeline", "java_ssi_pipeline"]
-  allow_failure: true
+  allow_failure: false
   variables:
     PARENT_PIPELINE_SOURCE: $CI_PIPELINE_SOURCE
   trigger:
@@ -110,7 +110,7 @@ dotnet_ssi_pipeline:
 python_ssi_pipeline:
   stage: python
   needs: ["compute_pipeline", "dotnet_ssi_pipeline"]
-  allow_failure: true
+  allow_failure: false
   variables:
     PARENT_PIPELINE_SOURCE: $CI_PIPELINE_SOURCE
   trigger:
@@ -134,7 +134,7 @@ php_ssi_pipeline:
 ruby_ssi_pipeline:
   stage: ruby
   needs: ["compute_pipeline", "php_ssi_pipeline"]
-  allow_failure: true
+  allow_failure: false
   variables:
     PARENT_PIPELINE_SOURCE: $CI_PIPELINE_SOURCE
   trigger:
