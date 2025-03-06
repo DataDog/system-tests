@@ -86,11 +86,26 @@ class AppSecController @Inject()(cc: MessagesControllerComponents, ws: WSClient,
   }
 
   def tagValuePost(value: String, code: Int) = Action { request =>
-    request.body.asFormUrlEncoded // needs to be read, though we do nothing with it
+    // needs to be read, though we do nothing with it
+    request.body match {
+      case AnyContentAsFormUrlEncoded(data) =>
+      case AnyContentAsJson(data) =>
+      case anything =>
+    }
 
     setRootSpanTag("appsec.events.system_tests_appsec_event.value", value)
 
     Results.Status(code)("Value tagged")
+      .as("text/plain; charset=utf-8")
+  }
+
+  def apiSecuritySamplingWithStatus(code: Int) = Action { request =>
+    Results.Status(code)("Hello!\n")
+      .as("text/plain; charset=utf-8")
+  }
+
+  def apiSecuritySampling(code: Int) = Action { request =>
+    Results.Status(200)("OK!\n")
       .as("text/plain; charset=utf-8")
   }
 

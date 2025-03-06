@@ -37,7 +37,7 @@ class Semaphore(asyncio.Semaphore):
 
 
 class _RequestDumper:
-    def __init__(self, name=None, enabled=True):
+    def __init__(self, name=None, *, enabled=True):
         self.enabled = enabled
         self.logger = None
         if name:
@@ -70,6 +70,7 @@ class Fuzzer:
         request_count=None,
         max_time=None,
         dump_on_status=("500",),
+        *,
         debug=False,
         systematic_export=False,
     ):

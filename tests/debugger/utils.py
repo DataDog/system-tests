@@ -91,7 +91,7 @@ class Base_Debugger_Test:
     def method_and_language_to_line_number(self, method, language):
         """method_and_language_to_line_number returns the respective line number given the method and language"""
         return {
-            "Budgets": {"python": [142], "java": [138]},
+            "Budgets": {"java": [138], "dotnet": [136], "python": [142]},
             "Expression": {"java": [71], "dotnet": [74], "python": [72]},
             # The `@exception` variable is not available in the context of line probes.
             "ExpressionException": {},
@@ -147,7 +147,10 @@ class Base_Debugger_Test:
                     elif language == "python":
                         probe["where"]["sourceFile"] = "debugger_controller.py"
                     elif language == "ruby":
-                        probe["where"]["sourceFile"] = "debugger_controller.rb"
+                        # In docker container the controller will not have the
+                        # shared/rails prefix, this is fine because DI will
+                        # remove prefixes as part of file matching.
+                        probe["where"]["sourceFile"] = "shared/rails/app/controllers/debugger_controller.rb"
                     elif language == "nodejs":
                         probe["where"]["sourceFile"] = "debugger/index.js"
                 probe["type"] = __get_probe_type(probe["id"])

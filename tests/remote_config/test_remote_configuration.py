@@ -82,7 +82,7 @@ def dict_is_included(sub_dict: dict, main_dict: dict):
     return True
 
 
-def dict_is_in_array(needle: dict, haystack: list, allow_additional_fields=True):
+def dict_is_in_array(needle: dict, haystack: list, *, allow_additional_fields=True):
     """Returns true is needle is contained in haystack.
     If allow_additional_field is true, needle can contains less field than the one in haystack
     """

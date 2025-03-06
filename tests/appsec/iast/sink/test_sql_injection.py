@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, missing_feature, features, bug, rfc, weblog
+from utils import context, missing_feature, features, bug, rfc, weblog, flaky
 from tests.appsec.iast.utils import BaseSinkTest, validate_extended_location_data, validate_stack_traces
 
 
@@ -38,6 +38,7 @@ class TestSqlInjection(BaseSinkTest):
         super().test_telemetry_metric_executed_sink()
 
     @missing_feature(context.weblog_variant == "jersey-grizzly2", reason="Endpoint responds 500")
+    @flaky(context.library >= "dotnet@3.11.1", reason="APPSEC-56908")
     def test_secure(self):
         super().test_secure()
 

@@ -9,7 +9,7 @@ from utils import scenarios, features, bug, context, flaky, irrelevant
 from utils.tools import logger
 
 
-def get_env_bool(env_var_name, default=False):
+def get_env_bool(env_var_name, *, default=False) -> bool:
     value = os.getenv(env_var_name, str(default)).lower()
     return value in {"true", "True", "1"}
 

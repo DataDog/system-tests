@@ -263,6 +263,12 @@ class K8sDatadog:
         """Exports debug information for the test agent and the cluster_agent.
         We shouldn't raise any exception here, we just log the errors.
         """
+        # Export all kind cluster logs
+        try:
+            if "kind" in self.k8s_cluster_info.context_name:
+                execute_command(f"kind export logs {self.output_folder}/ --name {self.k8s_cluster_info.cluster_name}")
+        except Exception as e:
+            logger.error(f"Error exporting kind logs: {e}")
 
         # Get all pods
         ret = self.k8s_cluster_info.core_v1_api().list_namespaced_pod(namespace, watch=False)

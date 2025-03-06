@@ -29,10 +29,9 @@ class Test_Span_Events:
         name1 = "other_event"
         attributes1 = {"bool": False, "int": 0, "double": 0.0}
 
-        with test_library:
-            with test_library.otel_start_span("test") as s:
-                s.add_event(name0, timestamp=time0, attributes=attributes0)
-                s.add_event(name1, timestamp=time1, attributes=attributes1)
+        with test_library, test_library.otel_start_span("test") as s:
+            s.add_event(name0, timestamp=time0, attributes=attributes0)
+            s.add_event(name1, timestamp=time1, attributes=attributes1)
 
         traces = test_agent.wait_for_num_traces(1)
 
@@ -105,20 +104,19 @@ class Test_Span_Events:
         Span events with invalid attributes should be discarded.
         """
 
-        with test_library:
-            with test_library.dd_start_span("test") as s:
-                s.add_event(
-                    "name",
-                    timestamp=123,
-                    attributes={
-                        "int": 1,
-                        "invalid_arr1": [1, "a"],
-                        "invalid_arr2": [[1]],
-                        "invalid_int1": 2 << 65,
-                        "invalid_int2": -2 << 65,
-                        "string": "bar",
-                    },
-                )
+        with test_library, test_library.dd_start_span("test") as s:
+            s.add_event(
+                "name",
+                timestamp=123,
+                attributes={
+                    "int": 1,
+                    "invalid_arr1": [1, "a"],
+                    "invalid_arr2": [[1]],
+                    "invalid_int1": 2 << 65,
+                    "invalid_int2": -2 << 65,
+                    "string": "bar",
+                },
+            )
 
         traces = test_agent.wait_for_num_traces(1)
 

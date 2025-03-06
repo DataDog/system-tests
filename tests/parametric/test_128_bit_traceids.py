@@ -35,7 +35,7 @@ class Test_128_Bit_Traceids:
         assert dd_p_tid == "640cfd8d00000000"
         assert "_dd.p.tid=" + dd_p_tid in headers["x-datadog-tags"]
 
-    @missing_feature(context.library == "nodejs", reason="not implemented")
+    @missing_feature(context.library < "nodejs@5.38.0", reason="Implemented in 5.38.0")
     @missing_feature(context.library == "ruby", reason="not implemented")
     @pytest.mark.parametrize(
         "library_env",
@@ -60,7 +60,7 @@ class Test_128_Bit_Traceids:
         assert dd_p_tid is None
         assert "x-datadog-tags" not in headers or "_dd.p.tid=" not in headers["x-datadog-tags"]
 
-    @missing_feature(context.library == "nodejs", reason="not implemented")
+    @missing_feature(context.library < "nodejs@5.38.0", reason="Implemented in 5.38.0")
     @missing_feature(context.library == "ruby", reason="not implemented")
     @pytest.mark.parametrize(
         "library_env",
@@ -85,7 +85,7 @@ class Test_128_Bit_Traceids:
         assert dd_p_tid is None
         assert "x-datadog-tags" not in headers or "_dd.p.tid=" not in headers["x-datadog-tags"]
 
-    @missing_feature(context.library == "nodejs", reason="not implemented")
+    @missing_feature(context.library < "nodejs@5.38.0", reason="Implemented in 5.38.0")
     @missing_feature(context.library == "ruby", reason="not implemented")
     @pytest.mark.parametrize(
         "library_env",
@@ -386,10 +386,12 @@ class Test_128_Bit_Traceids:
     )
     def test_w3c_128_bit_propagation_tid_in_chunk_root(self, test_agent, test_library):
         """Ensure that root span contains the tid."""
-        with test_library:
-            with test_library.dd_start_span(name="parent", service="service", resource="resource") as parent:
-                with test_library.dd_start_span(name="child", service="service", parent_id=parent.span_id):
-                    pass
+        with (
+            test_library,
+            test_library.dd_start_span(name="parent", service="service", resource="resource") as parent,
+            test_library.dd_start_span(name="child", service="service", parent_id=parent.span_id),
+        ):
+            pass
 
         traces = test_agent.wait_for_num_traces(1, clear=True, sort_by_start=False)
         trace = find_trace(traces, parent.trace_id)
@@ -398,7 +400,7 @@ class Test_128_Bit_Traceids:
         tid_chunk_root = first_span["meta"].get("_dd.p.tid")
         assert tid_chunk_root is not None
 
-    @missing_feature(context.library == "nodejs", reason="not implemented")
+    @missing_feature(context.library < "nodejs@5.38.0", reason="Implemented in 5.38.0")
     @pytest.mark.parametrize(
         "library_env",
         [{"DD_TRACE_PROPAGATION_STYLE": "tracecontext", "DD_TRACE_128_BIT_TRACEID_GENERATION_ENABLED": "false"}],
@@ -421,7 +423,7 @@ class Test_128_Bit_Traceids:
         assert trace_id == int("abcdefab12345678", 16)
         assert dd_p_tid == "640cfd8d00000000"
 
-    @missing_feature(context.library == "nodejs", reason="not implemented")
+    @missing_feature(context.library < "nodejs@5.38.0", reason="Implemented in 5.38.0")
     @pytest.mark.parametrize(
         "library_env",
         [{"DD_TRACE_PROPAGATION_STYLE": "tracecontext", "DD_TRACE_128_BIT_TRACEID_GENERATION_ENABLED": "false"}],

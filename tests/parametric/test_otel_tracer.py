@@ -25,9 +25,11 @@ class Test_Otel_Tracer:
                 with test_library.otel_start_span(name="child1", parent_id=parent1.span_id) as child1:
                     assert parent1.span_context()["trace_id"] == child1.span_context()["trace_id"]
 
-            with test_library.otel_start_span("root_two") as parent2:
-                with test_library.otel_start_span(name="child2", parent_id=parent2.span_id) as child2:
-                    assert parent2.span_context()["trace_id"] == child2.span_context()["trace_id"]
+            with (
+                test_library.otel_start_span("root_two") as parent2,
+                test_library.otel_start_span(name="child2", parent_id=parent2.span_id) as child2,
+            ):
+                assert parent2.span_context()["trace_id"] == child2.span_context()["trace_id"]
 
         traces = test_agent.wait_for_num_traces(2)
         trace_one = find_trace(traces, parent1.trace_id)

@@ -48,6 +48,11 @@ Rails.application.routes.draw do
   get '/requestdownstream' => 'system_test#request_downstream'
   get '/returnheaders' => 'system_test#return_headers'
 
+  get '/debugger/init' => 'debugger#init'
+  get '/debugger/pii' => 'debugger#pii'
+  get '/debugger/log' => 'debugger#log_probe'
+  get '/debugger/mix/:string_arg/:int_arg' => 'debugger#mix_probe'
+
   get '/rasp/sqli' => 'system_test#rasp_sqli'
   post '/rasp/sqli' => 'system_test#rasp_sqli'
 end

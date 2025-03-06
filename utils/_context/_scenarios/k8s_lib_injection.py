@@ -407,7 +407,7 @@ def extract_library_version(library_init_image):
 
 def extract_injector_version(injector_image):
     """Pull the injector image and extract the version of the injector"""
-    logger.info("Get injector version")
+    logger.info(f"Get injector version from image: {injector_image}")
     try:
         injector_docker_image = get_docker_client().images.pull(injector_image)
         # TODO review this. The version is a folder name under /opt/datadog-packages/datadog-apm-inject/
