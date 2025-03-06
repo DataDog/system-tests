@@ -2010,8 +2010,8 @@ class _Features:
         return test_object
 
     @staticmethod
-    def appsec_standalone(test_object):
-        """Appsec Standalone Billing
+    def appsec_standalone_experimental(test_object):
+        """Experimental Appsec Standalone Billing
 
         https://feature-parity.us1.prod.dog/#/?feature=305
         """
@@ -2019,8 +2019,8 @@ class _Features:
         return test_object
 
     @staticmethod
-    def appsec_standalone_v2(test_object):
-        """Appsec Standalone Billing V2
+    def appsec_standalone(test_object):
+        """Appsec Standalone Billing
 
         https://feature-parity.us1.prod.dog/#/?feature=355
         """
@@ -2028,8 +2028,8 @@ class _Features:
         return test_object
 
     @staticmethod
-    def iast_standalone(test_object):
-        """Iast Standalone Billing
+    def iast_standalone_experimental(test_object):
+        """Experimental Iast Standalone Billing
 
         https://feature-parity.us1.prod.dog/#/?feature=319
         """
@@ -2037,7 +2037,7 @@ class _Features:
         return test_object
 
     @staticmethod
-    def iast_standalone_v2(test_object):
+    def iast_standalone(test_object):
         """Iast Standalone Billing V2
 
         https://feature-parity.us1.prod.dog/#/?feature=356
@@ -2046,8 +2046,8 @@ class _Features:
         return test_object
 
     @staticmethod
-    def sca_standalone(test_object):
-        """SCA Standalone Billing
+    def sca_standalone_experimental(test_object):
+        """Experimental SCA Standalone Billing
 
         https://feature-parity.us1.prod.dog/#/?feature=320
         """
@@ -2055,7 +2055,7 @@ class _Features:
         return test_object
 
     @staticmethod
-    def sca_standalone_v2(test_object):
+    def sca_standalone(test_object):
         """SCA Standalone Billing V2
 
         https://feature-parity.us1.prod.dog/#/?feature=357
