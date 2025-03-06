@@ -3,6 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 import json
+from typing import Any
 from utils import (
     interfaces,
     rfc,
@@ -114,4 +115,27 @@ class Test_GraphQLQueryErrorReporting:
         if "events" in span["meta"]:
             return json.loads(span["meta"]["events"])
         else:
-            return span["span_events"]
+            events = span["span_events"]
+            for event in events:
+                attributes = event["attributes"]
+
+                for key, value in attributes.items():
+                    attributes[key] = Test_GraphQLQueryErrorReporting._parse_event_value(value)
+
+            return events
+
+    @staticmethod
+    def _parse_event_value(value) -> int | str | bool | float | list[Any]:
+        type_ = value["type"]
+        if type_ == 0:
+            return value["string_value"]
+        elif type_ == 1:
+            return value["bool_value"]
+        elif type_ == 2:
+            return value["int_value"]
+        elif type_ == 3:
+            return value["double_value"]
+        elif type_ == 4:
+            return [Test_GraphQLQueryErrorReporting._parse_event_value(v) for v in value["array_value"]]
+        else:
+            raise ValueError(f"Unsupported span event attribute type {type_} for: {value}")

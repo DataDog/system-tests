@@ -121,7 +121,7 @@ class BaseAppsecApiSecurityRcTest:
             )
             rc_state.set_config(
                 "datadog/2/ASM_FEATURES/ASM_FEATURES-base/config",
-                {"asm": {"enabled": True}, "api_security": {"request_sample_rate": 1.0}},
+                {"asm": {"enabled": True}},
             )
 
             BaseAppsecApiSecurityRcTest.states = rc_state.apply()

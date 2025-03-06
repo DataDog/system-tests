@@ -1,0 +1,9 @@
+<configuration>
+    <appender name="JSON_CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+      <encoder class="ch.qos.logback.classic.encoder.JsonEncoder"/>
+    </appender>
+
+    <root level="info">
+        <appender-ref ref="JSON_CONSOLE"/>
+    </root>
+</configuration>

@@ -1,6 +1,7 @@
 {
     "normalization_rules": {
         "DATADOG_TRACE_AGENT_HOSTNAME": "agent_host",
+        "DD_AIOHTTP_CLIENT_DISABLE_STREAM_TIMING_FOR_MEM_LEAK": "aiohttp_client_disable_stream_timing_for_mem_leak",
         "DD_APPSEC_ENABLED": "appsec_enabled",
         "DD_CALL_BASIC_CONFIG": "dd_call_basic_config",
         "DD_DATA_STREAMS_ENABLED": "data_streams_enabled",
@@ -139,8 +140,7 @@
         "tracing": "trace_enabled",
         "tracing.distributed_tracing.propagation_extract_style": "trace_propagation_style_extract",
         "tracing.distributed_tracing.propagation_inject_style": "trace_propagation_style_inject",
-        "url": "trace_agent_url",
-        "DD_AIOHTTP_CLIENT_DISABLE_STREAM_TIMING_FOR_MEM_LEAK": "aiohttp_client_disable_stream_timing_for_mem_leak"
+        "url": "trace_agent_url"
     },
     "prefix_block_list": [],
     "redaction_list": [],
