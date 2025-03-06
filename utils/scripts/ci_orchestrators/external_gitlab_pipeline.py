@@ -30,6 +30,7 @@ def main(language=None) -> None:
     if language in ["java", "python", "nodejs", "dotnet", "ruby", "php"]:
         data = filter_yaml(data, language)
     # Print the modified YAML
+    update_needs(data)
     print(yaml.dump(data, default_flow_style=False, sort_keys=False))
 
 
@@ -59,6 +60,20 @@ def filter_yaml(yaml_data, language) -> dict:
     filtered_data.update(allowed_jobs)
 
     return filtered_data
+
+
+def update_needs(yaml_data) -> None:
+    """Update jobs that have 'needs:' containing 'compute_pipeline' and another value, keeping only ['compute_pipeline']
+    We will launch all the languges in parallel when we run system-tests in external repositories.
+    (For the system-tests repository we launch the tests sequentially for each language.)
+    """
+
+    for _job_name, job_data in yaml_data.items():  # noqa: PERF102
+        if isinstance(job_data, dict) and "needs" in job_data:
+            needs_list = job_data["needs"]
+            # Check if 'compute_pipeline' is present and there is more than one value
+            if isinstance(needs_list, list) and "compute_pipeline" in needs_list and len(needs_list) > 1:
+                job_data["needs"] = ["compute_pipeline"]  # Keep only 'compute_pipeline'
 
 
 if __name__ == "__main__":

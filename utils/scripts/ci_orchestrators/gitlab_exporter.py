@@ -262,9 +262,7 @@ def print_aws_gitlab_pipeline(language, aws_matrix, ci_environment, result_pipel
         raw_data_virtual_machines = json.load(file)["virtual_machines"]
 
     only_defaults = should_run_only_defaults_vm()
-    if only_defaults:
-        # Run all stages without wait
-        result_pipeline[".base_job_onboarding_system_tests"].pop("needs", None)
+
     # Special filters from env variables
     dd_installer_library_version = os.getenv("DD_INSTALLER_LIBRARY_VERSION")
     dd_installer_injector_version = os.getenv("DD_INSTALLER_INJECTOR_VERSION")
