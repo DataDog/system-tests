@@ -811,6 +811,7 @@ tests/:
           '*': v1.45.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
       # SQLi was introduced in v1.38.0 (with RASP disabled by default, but was flaky)
+
       test_sqli.py:
         Test_Sqli_BodyJson:
           '*': v1.39.0
@@ -1715,7 +1716,7 @@ tests/:
       Test_Config_TraceEnabled: v1.39.0
       Test_Config_TraceLogDirectory: missing_feature
       Test_Config_UnifiedServiceTagging: v1.41.1
-      Test_Stable_Config_Default: v1.47.0-SNAPSHOT
+      Test_Stable_Config_Default: missing_feature (waiting on APMAPI-298 to be merged)
     test_crashtracking.py:
       Test_Crashtracking: v1.38.0
     test_dynamic_configuration.py:
@@ -1823,8 +1824,12 @@ tests/:
     Test_Config_IntegrationEnabled_True:
       '*': irrelevant (kafka endpoints are not implemented)
       spring-boot: v1.42.0
-    Test_Config_LogInjection_128Bit_TraceId_Default: missing_feature (disabled by default)
-    Test_Config_LogInjection_128Bit_TraceId_Disabled: incomplete_test_app (weblog endpoint not implemented)
+    Test_Config_LogInjection_128Bit_TraceId_Default:
+      '*': incomplete_test_app (weblog endpoint not implemented)
+      'spring-boot-3-native': missing_feature
+    Test_Config_LogInjection_128Bit_TraceId_Disabled:
+      '*': incomplete_test_app (weblog endpoint not implemented)
+      'spring-boot-3-native': missing_feature
     Test_Config_LogInjection_Default:
       '*': incomplete_test_app (weblog endpoint not implemented)
       'spring-boot-3-native': missing_feature
