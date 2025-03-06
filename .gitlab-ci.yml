@@ -146,8 +146,9 @@ check_pipeline_status:
   image: registry.ddbuild.io/images/ci_docker_base
   tags: ["runner:docker"]
   script:
-    - echo "Checking if any job failed..."
-    - if [ "$CI_JOB_STATUS" = "failed" ]; then exit 1; fi
+    - echo "Checking if any job failed... $CI_PIPELINE_STATUS"
+    - if [ "$CI_PIPELINE_STATUS" = "failed" ]; then exit 1; fi  # ✅ Correct failure check
+
   when: always
 
 check_merge_labels:
