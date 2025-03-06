@@ -729,7 +729,7 @@ class _Scenarios:
             "DD_PROFILING_UPLOAD_PERIOD": "10",
             "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500",
         },
-        scenario_groups=[ScenarioGroup.ALL, ScenarioGroup.ONBOARDING, ScenarioGroup.SIMPLE_ONBOARDING_PROFILING],
+        scenario_groups=[ScenarioGroup.ALL, ScenarioGroup.SIMPLE_ONBOARDING_PROFILING],
         github_workflow="aws_ssi",
     )
     host_auto_injection_install_script_profiling = InstallerAutoInjectionScenario(
@@ -751,7 +751,7 @@ class _Scenarios:
         vm_provision="container-auto-inject-install-script",
         agent_env={"DD_PROFILING_ENABLED": "auto"},
         app_env={"DD_PROFILING_UPLOAD_PERIOD": "10", "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500"},
-        scenario_groups=[ScenarioGroup.ALL, ScenarioGroup.ONBOARDING],
+        scenario_groups=[ScenarioGroup.ALL],
         github_workflow="aws_ssi",
     )
 
@@ -759,7 +759,7 @@ class _Scenarios:
         "DEMO_AWS",
         "Demo aws scenario",
         vm_provision="demo",
-        scenario_groups=[ScenarioGroup.ONBOARDING],
+        scenario_groups=[],
         github_workflow="aws_ssi",
     )
 
@@ -775,7 +775,7 @@ class _Scenarios:
         "CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT",
         "Onboarding Container Single Step Instrumentation scenario using agent auto install script",
         vm_provision="container-auto-inject-install-script",
-        scenario_groups=[ScenarioGroup.ALL, ScenarioGroup.ONBOARDING],
+        scenario_groups=[ScenarioGroup.ALL],
         github_workflow="aws_ssi",
     )
 
@@ -786,7 +786,7 @@ class _Scenarios:
             "and the replace the apm-library with the uploaded tar file from binaries"
         ),
         vm_provision="local-auto-inject-install-script",
-        scenario_groups=[ScenarioGroup.ONBOARDING],
+        scenario_groups=[],
         github_workflow="aws_ssi",
     )
 
@@ -828,12 +828,14 @@ class _Scenarios:
         "K8S_LIB_INJECTION_PROFILING_DISABLED",
         doc="Kubernetes lib injection with admission controller and profiling disabled by default",
         weblog_env={"DD_PROFILING_UPLOAD_PERIOD": "10", "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500"},
+        scenario_groups=[ScenarioGroup.ALL, ScenarioGroup.LIB_INJECTION_PROFILING],
     )
     k8s_lib_injection_profiling_enabled = K8sScenario(
         "K8S_LIB_INJECTION_PROFILING_ENABLED",
         doc="Kubernetes lib injection with admission controller and profiling enaabled by cluster config",
         weblog_env={"DD_PROFILING_UPLOAD_PERIOD": "10", "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500"},
         dd_cluster_feature={"datadog.profiling.enabled": "auto"},
+        scenario_groups=[ScenarioGroup.ALL, ScenarioGroup.LIB_INJECTION_PROFILING],
     )
     k8s_lib_injection_profiling_override = K8sScenario(
         "K8S_LIB_INJECTION_PROFILING_OVERRIDE",
@@ -843,6 +845,7 @@ class _Scenarios:
             "clusterAgent.env[0].name": "DD_ADMISSION_CONTROLLER_AUTO_INSTRUMENTATION_PROFILING_ENABLED",
             "clusterAgent.env[0].value": "auto",
         },
+        scenario_groups=[ScenarioGroup.ALL, ScenarioGroup.LIB_INJECTION_PROFILING],
     )
     k8s_lib_injection_spark_djm = K8sSparkScenario("K8S_LIB_INJECTION_SPARK_DJM", doc="Kubernetes lib injection DJM")
 
