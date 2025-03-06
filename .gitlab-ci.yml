@@ -147,7 +147,7 @@ check_pipeline_status:
   tags: ["runner:docker"]
   script:
     - echo "Checking if any job failed... $CI_PIPELINE_STATUS"
-    - if [ "$CI_PIPELINE_STATUS" = "failed" ]; then exit 1; fi  # ✅ Correct failure check
+    - if [ "$CI_PIPELINE_STATUS" = "failed" ]; then exit 1; fi 
 
   when: always
 
