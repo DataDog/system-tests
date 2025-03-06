@@ -8,6 +8,7 @@ stages:
   - python
   - php
   - ruby
+  - pipeline-status
   - system-tests-utils
 
 variables:
@@ -74,7 +75,7 @@ compute_pipeline:
 nodejs_ssi_pipeline:
   stage: nodejs
   needs: ["compute_pipeline"]
-  allow_failure: false
+  allow_failure: true
   variables:
     PARENT_PIPELINE_SOURCE: $CI_PIPELINE_SOURCE
   trigger:
@@ -86,7 +87,7 @@ nodejs_ssi_pipeline:
 java_ssi_pipeline:
   stage: java
   needs: ["compute_pipeline", "nodejs_ssi_pipeline"]
-  allow_failure: false
+  allow_failure: true
   variables:
     PARENT_PIPELINE_SOURCE: $CI_PIPELINE_SOURCE
   trigger:
@@ -98,7 +99,7 @@ java_ssi_pipeline:
 dotnet_ssi_pipeline:
   stage: dotnet
   needs: ["compute_pipeline", "java_ssi_pipeline"]
-  allow_failure: false
+  allow_failure: true
   variables:
     PARENT_PIPELINE_SOURCE: $CI_PIPELINE_SOURCE
   trigger:
@@ -110,7 +111,7 @@ dotnet_ssi_pipeline:
 python_ssi_pipeline:
   stage: python
   needs: ["compute_pipeline", "dotnet_ssi_pipeline"]
-  allow_failure: false
+  allow_failure: true
   variables:
     PARENT_PIPELINE_SOURCE: $CI_PIPELINE_SOURCE
   trigger:
@@ -134,7 +135,7 @@ php_ssi_pipeline:
 ruby_ssi_pipeline:
   stage: ruby
   needs: ["compute_pipeline", "php_ssi_pipeline"]
-  allow_failure: false
+  allow_failure: true
   variables:
     PARENT_PIPELINE_SOURCE: $CI_PIPELINE_SOURCE
   trigger:
@@ -142,6 +143,13 @@ ruby_ssi_pipeline:
       - artifact: ruby_ssi_gitlab_pipeline.yml
         job: compute_pipeline
     strategy: depend
+
+check_pipeline_status:
+  stage: pipeline-status
+  script:
+    - echo "Checking if any job failed..."
+    - if [ "$CI_JOB_STATUS" = "failed" ]; then exit 1; fi 
+  when: always
 
 check_merge_labels:
   #Build docker images if it's needed. Check if the PR has the labels associated with the image build.
