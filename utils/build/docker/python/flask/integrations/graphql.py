@@ -46,7 +46,14 @@ class Query(graphene.ObjectType):
         return users
 
     def resolve_with_error(self, info):
-        raise GraphQLError("test error")
-
-
-schema = Schema(Query)
+        raise GraphQLError(
+            message="test error",
+            extensions={
+                "int": 1,
+                "float": 1.1,
+                "str": "1",
+                "bool": True,
+                "other": [1, "foo"],
+                "not_captured": "foo",
+            },
+        )
