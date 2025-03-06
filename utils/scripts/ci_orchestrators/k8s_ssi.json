@@ -85,7 +85,7 @@
     ],
     "cluster_agent_spec": {
         "latest": "gcr.io/datadoghq/cluster-agent:latest",
-        "latest_snapshot": "docker.io/datadog/cluster-agent-dev:master",
+        "latest_snapshot": "docker.io/datadog/cluster-agent-dev:master_RMM",
         "old_injection": "gcr.io/datadoghq/cluster-agent:7.56.2"
     }
 }
