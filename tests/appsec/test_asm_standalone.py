@@ -797,6 +797,7 @@ class Test_AppSecStandalone_UpstreamPropagation_V2(AppSecStandalone_UpstreamProp
 @features.iast_standalone
 @scenarios.iast_standalone
 @irrelevant(context.library > "java@v1.46.0", reason="V2 is implemented for newer versions")
+@bug(context.library >= "dotnet@3.12.0", reason="APPSEC-56959")
 class Test_IastStandalone_UpstreamPropagation(IastStandalone_UpstreamPropagation_Base):
     """IAST correctly propagates AppSec events in distributing tracing with DD_EXPERIMENTAL_APPSEC_STANDALONE_ENABLED=true."""
 
