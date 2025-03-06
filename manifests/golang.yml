@@ -342,7 +342,7 @@ tests/:
         echo: v1.36.0
         gin: v1.37.0
     test_asm_standalone.py:
-      Test_AppSecStandalone_UpstreamPropagation: v1.71.0
+      Test_AppSecStandalone_UpstreamPropagation: irrelevant (v2 is implemented)
       Test_AppSecStandalone_UpstreamPropagation_V2: missing_feature
       Test_IastStandalone_UpstreamPropagation: missing_feature
       Test_IastStandalone_UpstreamPropagation_V2: missing_feature
