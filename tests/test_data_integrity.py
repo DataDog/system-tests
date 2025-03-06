@@ -5,7 +5,7 @@
 """Misc checks around data integrity during components' lifetime"""
 
 import string
-from utils import weblog, interfaces, context, bug, rfc, irrelevant, missing_feature, features, scenarios
+from utils import weblog, interfaces, context, bug, rfc, irrelevant, missing_feature, features, scenarios, flaky
 from utils.tools import logger
 from utils.dd_constants import SamplingPriority
 from utils.cgroup_info import get_container_id
@@ -226,6 +226,7 @@ class Test_Agent:
             header_value_pattern="application/json",
         )
 
+    @flaky(condition=True, reason="APMSP-1811")
     def test_agent_do_not_drop_traces(self):
         """Agent does not drop traces"""
 

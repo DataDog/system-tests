@@ -201,6 +201,7 @@ tests/:
       Test_Parametric_DDTrace_Current_Span: incomplete_test_app (current_span endpoint is not implemented)
       Test_Parametric_DDTrace_Extract_Headers: v1.0.1.dev
       # cpp tracer does not support the OpenTelemetry API, otel parametric endpoints are not implemented
+
       Test_Parametric_OtelSpan_End: missing_feature (otel api is not supported)
       Test_Parametric_OtelSpan_Events: missing_feature (otel api is not supported)
       Test_Parametric_OtelSpan_Is_Recording: missing_feature (otel api is not supported)
@@ -213,6 +214,8 @@ tests/:
       Test_Parametric_Otel_Trace_Flush: missing_feature (otel api is not supported)
     test_partial_flushing.py:
       Test_Partial_Flushing: missing_feature
+    test_process_discovery.py:
+      Test_ProcessDiscovery: v1.0.1.dev
     test_sampling_delegation.py:
       Test_Decisionless_Extraction: v1.0.1.dev
     test_span_events.py: missing_feature
@@ -257,8 +260,8 @@ tests/:
     Test_Config_HttpServerErrorStatuses_FeatureFlagCustom: missing_feature
     Test_Config_IntegrationEnabled_False: missing_feature
     Test_Config_IntegrationEnabled_True: missing_feature
-    Test_Config_LogInjection_128Bit_TradeId_Default: missing_feature
-    Test_Config_LogInjection_128Bit_TradeId_Disabled: missing_feature
+    Test_Config_LogInjection_128Bit_TraceId_Default: missing_feature
+    Test_Config_LogInjection_128Bit_TraceId_Disabled: missing_feature
     Test_Config_LogInjection_Default: missing_feature
     Test_Config_LogInjection_Enabled: missing_feature
     Test_Config_ObfuscationQueryStringRegexp_Configured: missing_feature

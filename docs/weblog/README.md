@@ -90,6 +90,8 @@ Hello world!\n
 
 This endpoint is used for API security sampling and must accept a parameter `i` as an integer.
 
+The response status code must be `i`.
+
 The response body may contain the following text:
 
 ```
@@ -875,7 +877,7 @@ c377db41-b664-4e30-af57-5df2e803bec7
 Examples:
 - `GET`: `/session/new`
 
-### \[GET\] /session/user
+### **UNUSED** \[GET\] /session/user
 
 Once a session has been established, a new call to `/session/user` must be made in order to generate a session fingerprint with the session id provided by the web client (e.g. cookie) and the user id provided as a parameter.
 

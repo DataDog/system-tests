@@ -27,9 +27,8 @@ class Test_Config_TraceEnabled:
     @enable_tracing_enabled()
     def test_tracing_enabled(self, library_env, test_agent, test_library):
         assert library_env.get("DD_TRACE_ENABLED", "true") == "true"
-        with test_library:
-            with test_library.dd_start_span("allowed"):
-                pass
+        with test_library, test_library.dd_start_span("allowed"):
+            pass
         assert test_agent.wait_for_num_traces(
             num=1
         ), "DD_TRACE_ENABLED=true and wait_for_num_traces does not raise an exception after waiting for 1 trace."
@@ -37,9 +36,8 @@ class Test_Config_TraceEnabled:
     @enable_tracing_disabled()
     def test_tracing_disabled(self, library_env, test_agent, test_library):
         assert library_env.get("DD_TRACE_ENABLED") == "false"
-        with test_library:
-            with test_library.dd_start_span("allowed"):
-                pass
+        with test_library, test_library.dd_start_span("allowed"):
+            pass
         with pytest.raises(ValueError) as e:
             test_agent.wait_for_num_traces(num=1)
         assert e.match(".*traces not available from test agent, got 0.*")
@@ -53,9 +51,8 @@ class Test_Config_TraceLogDirectory:
         "library_env", [{"DD_TRACE_ENABLED": "true", "DD_TRACE_LOG_DIRECTORY": "/parametric-tracer-logs"}]
     )
     def test_trace_log_directory_configured_with_existing_directory(self, library_env, test_agent, test_library):
-        with test_library:
-            with test_library.dd_start_span("allowed"):
-                pass
+        with test_library, test_library.dd_start_span("allowed"):
+            pass
 
         success, message = test_library.container_exec_run("ls /parametric-tracer-logs")
         assert success, message
@@ -73,9 +70,8 @@ def set_service_version_tags():
 class Test_Config_UnifiedServiceTagging:
     @parametrize("library_env", [{}])
     def test_default_config(self, library_env, test_agent, test_library):
-        with test_library:
-            with test_library.dd_start_span(name="s1") as s1:
-                pass
+        with test_library, test_library.dd_start_span(name="s1") as s1:
+            pass
 
         traces = test_agent.wait_for_num_traces(1)
         assert len(traces) == 1
@@ -112,9 +108,8 @@ class Test_Config_UnifiedServiceTagging:
     @parametrize("library_env", [{"DD_ENV": "dev"}])
     def test_specific_env(self, library_env, test_agent, test_library):
         assert library_env.get("DD_ENV") == "dev"
-        with test_library:
-            with test_library.dd_start_span(name="s1") as s1:
-                pass
+        with test_library, test_library.dd_start_span(name="s1") as s1:
+            pass
 
         traces = test_agent.wait_for_num_traces(1)
         assert len(traces) == 1
@@ -316,9 +311,8 @@ class Test_Config_Tags:
         expected_local_tags = []
         if "DD_TAGS" in library_env:
             expected_local_tags = tag_scenarios[library_env["DD_TAGS"]]
-        with test_library:
-            with test_library.dd_start_span(name="sample_span"):
-                pass
+        with test_library, test_library.dd_start_span(name="sample_span"):
+            pass
         span = find_only_span(test_agent.wait_for_num_traces(1))
         for k, v in expected_local_tags:
             assert k in span["meta"]
@@ -336,9 +330,8 @@ class Test_Config_Tags:
         ],
     )
     def test_dd_service_override(self, library_env, test_agent, test_library):
-        with test_library:
-            with test_library.dd_start_span(name="sample_span"):
-                pass
+        with test_library, test_library.dd_start_span(name="sample_span"):
+            pass
         span = find_only_span(test_agent.wait_for_num_traces(1))
         assert span["service"] == "random-service"
         assert "env" in span["meta"]
@@ -382,7 +375,7 @@ SDK_DEFAULT_STABLE_CONFIG = {
     "dd_runtime_metrics_enabled": "false" if context.library != "java" else "true",
     "dd_profiling_enabled": "false",
     "dd_data_streams_enabled": "false",
-    "dd_logs_injection": "false" if context.library != "java" else "true",
+    "dd_logs_injection": "false",
 }
 
 
@@ -394,9 +387,10 @@ class Test_Stable_Config_Default(StableConfigWriter):
 
     @pytest.mark.parametrize("library_env", [{}])
     @pytest.mark.parametrize(
-        ("apm_configuration_default", "expected"),
+        ("name", "apm_configuration_default", "expected"),
         [
             (
+                "profiling",
                 {"DD_PROFILING_ENABLED": True},
                 {
                     **SDK_DEFAULT_STABLE_CONFIG,
@@ -404,6 +398,7 @@ class Test_Stable_Config_Default(StableConfigWriter):
                 },
             ),
             (
+                "runtime_metrics",
                 {
                     "DD_RUNTIME_METRICS_ENABLED": True,
                 },
@@ -413,6 +408,7 @@ class Test_Stable_Config_Default(StableConfigWriter):
                 },
             ),
             (
+                "data_streams",
                 {
                     "DD_DATA_STREAMS_ENABLED": True,
                 },
@@ -422,6 +418,7 @@ class Test_Stable_Config_Default(StableConfigWriter):
                 },
             ),
             (
+                "logs_injection",
                 {
                     "DD_LOGS_INJECTION": True,
                 },
@@ -431,6 +428,7 @@ class Test_Stable_Config_Default(StableConfigWriter):
                 },
             ),
         ],
+        ids=lambda name: name,
     )
     @pytest.mark.parametrize(
         "path",
@@ -439,7 +437,7 @@ class Test_Stable_Config_Default(StableConfigWriter):
             "/etc/datadog-agent/application_monitoring.yaml",
         ],
     )
-    def test_default_config(self, test_library, path, library_env, apm_configuration_default, expected):
+    def test_default_config(self, test_library, path, library_env, name, apm_configuration_default, expected):
         with test_library:
             self.write_stable_config(
                 {
@@ -564,7 +562,9 @@ class Test_Stable_Config_Default(StableConfigWriter):
 
             test_library.container_restart()
             config = test_library.config()
-            assert expected.items() <= config.items()
+            assert expected.items() <= config.items(), format(
+                "unexpected values for the following configurations: {}"
+            ).format([k for k in config.keys() & expected.keys() if config[k] != expected[k]])
 
     @pytest.mark.parametrize("library_env", [{"STABLE_CONFIG_SELECTOR": "true", "DD_SERVICE": "not-my-service"}])
     @missing_feature(

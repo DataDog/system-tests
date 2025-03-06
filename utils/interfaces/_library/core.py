@@ -94,6 +94,17 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
             if span.get("parent_id") in (0, None):
                 yield data, span
 
+    def get_root_span(self, request) -> dict:
+        """Get the root span associated with a given request. This function will fail
+        if a request is not given, if there is no root span, or if there
+        is more than one root span. For special cases, use get_root_spans.
+        """
+        assert request is not None, "A request object is mandatory"
+        spans = [s for _, s in self.get_root_spans(request=request)]
+        assert spans, "No root spans found"
+        assert len(spans) == 1, "More then one root span found"
+        return spans[0]
+
     def get_appsec_events(self, request=None, *, full_trace=False):
         for data, trace, span in self.get_spans(request=request, full_trace=full_trace):
             if "appsec" in span.get("meta_struct", {}):
