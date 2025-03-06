@@ -1039,7 +1039,7 @@ tests/:
   test_graphql.py:
     Test_GraphQLQueryErrorReporting:
       '*': irrelevant
-      express4: missing_feature
+      express4: *ref_5_37_0
   test_identify.py:
     Test_Basic: v2.4.0
     Test_Propagate: *ref_3_2_0
