@@ -215,6 +215,8 @@ def main() -> None:
                     ## Nix
                     r".*\.nix": None,
                     r"flake\.lock": None,
+                    ## Go workspaces
+                    r"go\.work": None,
                     ## few files with lot of effect
                     r"requirements\.txt": ScenarioGroup.ALL,
                     r"run\.sh": ScenarioGroup.ALL,
