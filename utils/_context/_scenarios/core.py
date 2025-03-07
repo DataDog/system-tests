@@ -18,6 +18,7 @@ class ScenarioGroup(Enum):
     INTEGRATIONS = "integrations"
     IPV6 = "ipv6"
     LIB_INJECTION = "lib-injection"
+    LIB_INJECTION_PROFILING = "lib-injection-profiling"
     OPEN_TELEMETRY = "open-telemetry"
     PROFILING = "profiling"
     SAMPLING = "sampling"
