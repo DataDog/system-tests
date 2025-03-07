@@ -460,6 +460,8 @@ tests/:
         Test_TelemetryMetrics:
           '*': v1.14.0
           fastapi: v2.4.0
+      test_truncation.py:
+        Test_Truncation: v3.3.0.dev
     test_alpha.py:
       Test_Basic:
         '*': v1.1.0-rc2
