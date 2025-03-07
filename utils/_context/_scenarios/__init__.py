@@ -875,8 +875,17 @@ class _Scenarios:
         scenario_groups=[ScenarioGroup.APPSEC],
     )
 
-    agent_not_supporting_span_events = EndToEndScenario(
-        "AGENT_NOT_SUPPORTING_SPAN_EVENTS",
+    supporting_span_events = EndToEndScenario(
+        "SUPPORTING_SPAN_EVENTS",
+        weblog_env={"DD_TRACE_NATIVE_SPAN_EVENTS": "1"},
+        span_events=True,
+        doc="The trace agent support Span Events and it is enabled through an environment variable",
+        scenario_groups=[ScenarioGroup.INTEGRATIONS],
+    )
+
+    not_supporting_span_events = EndToEndScenario(
+        "NOT_SUPPORTING_SPAN_EVENTS",
+        weblog_env={"DD_TRACE_NATIVE_SPAN_EVENTS": "0"},
         span_events=False,
         doc="The trace agent does not support Span Events as a top-level span field",
         scenario_groups=[ScenarioGroup.INTEGRATIONS],
