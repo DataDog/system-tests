@@ -1824,7 +1824,7 @@ tests/:
     Test_Config_IntegrationEnabled_True:
       '*': irrelevant (kafka endpoints are not implemented)
       spring-boot: v1.42.0
-    Test_Config_LogInjection_128Bit_TraceId_Default:
+    Test_Config_LogInjection_128Bit_TraceId_Enabled:
       '*': incomplete_test_app (weblog endpoint not implemented)
       'spring-boot-3-native': missing_feature
     Test_Config_LogInjection_128Bit_TraceId_Disabled:
