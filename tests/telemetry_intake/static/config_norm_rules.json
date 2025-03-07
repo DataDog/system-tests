@@ -1065,5 +1065,7 @@
     "universal_version": "universal_version_enabled",
     "url": "trace_agent_url",
     "version": "application_version",
+    "vertexai.spanCharLimit": "vertexai_span_char_limit",
+    "vertexai.spanPromptCompletionSampleRate": "vertexai_span_prompt_completion_sample_rate",
     "wcf_obfuscation_enabled": "trace_wcf_obfuscation_enabled"
 }
