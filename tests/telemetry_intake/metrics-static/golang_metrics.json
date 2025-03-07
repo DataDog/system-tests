@@ -1,0 +1,13 @@
+{
+    "$schema": "../schema/metrics.json",
+    "orchestrion.enabled": {
+        "data_type": "services",
+        "description": "Number of services built with Orchestrion running. Tagged with orchestrion version.",
+        "metric_type": "gauge",
+        "send_to_user": false,
+        "tags": [
+            "version"
+        ],
+        "user_tags": []
+    }
+}
