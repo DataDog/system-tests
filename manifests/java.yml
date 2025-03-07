@@ -1189,7 +1189,6 @@ tests/:
         resteasy-netty3: missing_feature (session tracking not implemented)
         spring-boot-3-native: flaky (APMAPI-979)
         spring-boot-jetty: missing_feature (session tracking not implemented)
-        spring-boot-payara: bug (APPSEC-54985)
         spring-boot-undertow: missing_feature (session tracking not implemented)
         spring-boot-wildfly: missing_feature (session tracking not implemented)
         vertx3: missing_feature (home endpoint does not use cookies)
