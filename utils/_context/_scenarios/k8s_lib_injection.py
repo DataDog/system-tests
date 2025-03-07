@@ -32,13 +32,9 @@ class K8sScenario(Scenario):
         weblog_env={},
         dd_cluster_feature={},
         with_datadog_operator=False,
+        scenario_groups=[ScenarioGroup.ALL, ScenarioGroup.LIB_INJECTION],
     ) -> None:
-        super().__init__(
-            name,
-            doc=doc,
-            github_workflow="libinjection",
-            scenario_groups=[ScenarioGroup.ALL, ScenarioGroup.LIB_INJECTION],
-        )
+        super().__init__(name, doc=doc, github_workflow="libinjection", scenario_groups=scenario_groups)
         self.use_uds = use_uds
         self.with_datadog_operator = with_datadog_operator
         self.weblog_env = weblog_env
