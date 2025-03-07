@@ -306,7 +306,7 @@ tag_scenarios: dict = {
 @scenarios.parametric
 @features.trace_global_tags
 class Test_Config_Tags:
-    @parametrize("library_env", [{"DD_TAGS": key} for key in tag_scenarios])
+    @parametrize("library_env", [{"DD_TRACE_EXPERIMENTAL_FEATURES_ENABLED": "all", "DD_TAGS": key} for key in tag_scenarios])
     def test_comma_space_tag_separation(self, library_env, test_agent, test_library):
         expected_local_tags = []
         if "DD_TAGS" in library_env:
