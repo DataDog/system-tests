@@ -79,6 +79,7 @@
     "DD_DOGSTATSD_PORT": "dogstatsd_port",
     "DD_DOGSTATSD_SOCKET": "dogstatsd_socket",
     "DD_DOGSTATSD_URL": "dogstatsd_url",
+    "DD_DOGSTATSD_HOST": "dogstatsd_host",
     "DD_DOTNET_TRACER_CONFIG_FILE": "trace_config_file",
     "DD_DYNAMIC_INSTRUMENTATION_DIAGNOSTICS_INTERVAL": "dynamic_instrumentation_diagnostics_interval",
     "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "dynamic_instrumentation_enabled",
