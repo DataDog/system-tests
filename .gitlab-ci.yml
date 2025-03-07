@@ -152,6 +152,7 @@ check_pipeline_status:
       "$CI_API_V4_URL/projects/$CI_PROJECT_ID/pipelines/$CI_PIPELINE_ID/jobs?scope=failed" | jq '. | length')
     - if [ "$FAILED_JOBS" -gt 0 ]; then
         echo "❌ A job failed, failing the pipeline!";
+        echo "Failing Jobs [$FAILED_JOBS]"
         exit 1;
       fi
   when: always
