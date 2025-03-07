@@ -84,3 +84,4 @@ tests/:
     Test_Metric_Generation_Enabled: missing_feature
     Test_ProductsDisabled: irrelevant
     Test_TelemetrySCAEnvVar: missing_feature
+    Test_Telemetry_Metrics_Schema: bug (reports unknown integration_name tag)

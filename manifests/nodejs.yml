@@ -1127,3 +1127,4 @@ tests/:
       uds-express4: *ref_3_7_0
     Test_TelemetrySCAEnvVar: missing_feature
     Test_TelemetryV2: *ref_4_21_0
+    Test_Telemetry_Metrics_Schema: bug (reports unknown otel_enabled tag)

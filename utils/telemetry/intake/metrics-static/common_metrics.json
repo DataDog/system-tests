@@ -1,0 +1,2293 @@
+{
+    "$schema": "../schema/common_metrics.json",
+    "appsec": {
+        "api_security.missing_route": {
+            "data_type": "requests",
+            "description": "Counts the number of requests in which the library was unable to obtain the HTTP route.",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "framework"
+            ],
+            "user_tags": []
+        },
+        "api_security.request.no_schema": {
+            "data_type": "requests",
+            "description": "Counts the number of requests without schema..",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "framework"
+            ],
+            "user_tags": []
+        },
+        "api_security.request.schema": {
+            "data_type": "requests",
+            "description": "Counts the number of requests in which schemas were generated.",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "framework"
+            ],
+            "user_tags": []
+        },
+        "instrum.user_auth.missing_user_id": {
+            "data_type": "events",
+            "description": "The library was unable to obtain a user ID as part of the login success or failure event. This should only be sent if the user login was also unavailable.",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "event_type",
+                "framework"
+            ],
+            "user_tags": []
+        },
+        "instrum.user_auth.missing_user_login": {
+            "data_type": "events",
+            "description": "The library was unable to obtain a user login as part of the login success, login failure or signup event.",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "event_type",
+                "framework"
+            ],
+            "user_tags": []
+        },
+        "rasp.duration": {
+            "data_type": "requests",
+            "description": "Total WAF duration in RASP calls",
+            "metric_type": "distribution",
+            "send_to_user": false,
+            "tags": [
+                "event_rules_version",
+                "waf_version"
+            ],
+            "user_tags": []
+        },
+        "rasp.duration_ext": {
+            "data_type": "requests",
+            "description": "Total WAF duration in RASP calls, including bindings",
+            "metric_type": "distribution",
+            "send_to_user": false,
+            "tags": [
+                "event_rules_version",
+                "waf_version"
+            ],
+            "user_tags": []
+        },
+        "rasp.error": {
+            "data_type": "errors",
+            "description": "Counts the number of times the WAF returned an error when evaluating a specific rule type.",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "event_rules_version",
+                "rule_type",
+                "rule_variant",
+                "waf_error",
+                "waf_version"
+            ],
+            "user_tags": []
+        },
+        "rasp.rule.eval": {
+            "data_type": "requests",
+            "description": "Counts the number of times a rule type is evaluated",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "event_rules_version",
+                "rule_type",
+                "rule_variant",
+                "waf_version"
+            ],
+            "user_tags": []
+        },
+        "rasp.rule.match": {
+            "data_type": "matches",
+            "description": "Counts the number of times a rule type has a match",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "block",
+                "event_rules_version",
+                "rule_type",
+                "rule_variant",
+                "waf_version"
+            ],
+            "user_tags": []
+        },
+        "rasp.rule.skipped": {
+            "data_type": "events",
+            "description": "Counts the number of times the evaluation of a RASP instrumentation had to be skipped due to issues related to the request lifecycle",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "reason",
+                "rule_type",
+                "rule_variant"
+            ],
+            "user_tags": []
+        },
+        "rasp.timeout": {
+            "data_type": "timeouts",
+            "description": "Counts the number of times a timeout was hit when evaluating a specific rule type",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "event_rules_version",
+                "rule_type",
+                "rule_variant",
+                "waf_version"
+            ],
+            "user_tags": []
+        },
+        "sdk.event": {
+            "data_type": "events",
+            "description": "Counts the number of times an appsec event SDK method is used to create an event",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "event_type",
+                "sdk_version"
+            ],
+            "user_tags": []
+        },
+        "waf.config_errors": {
+            "data_type": "errors",
+            "description": "Count of errors reported by the WAF on about particular config item",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "config_key",
+                "event_rules_version",
+                "scope",
+                "waf_version"
+            ],
+            "user_tags": []
+        },
+        "waf.duration": {
+            "data_type": "requests",
+            "description": "Total WAF duration",
+            "metric_type": "distribution",
+            "send_to_user": false,
+            "tags": [
+                "event_rules_version",
+                "waf_version"
+            ],
+            "user_tags": []
+        },
+        "waf.duration_ext": {
+            "data_type": "requests",
+            "description": "Total WAF duration  including bindings",
+            "metric_type": "distribution",
+            "send_to_user": false,
+            "tags": [
+                "event_rules_version",
+                "waf_version"
+            ],
+            "user_tags": []
+        },
+        "waf.error": {
+            "data_type": "errors",
+            "description": "Counts the number of times the WAF returned an error when evaluating WAF addresses",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "event_rules_version",
+                "waf_error",
+                "waf_version"
+            ],
+            "user_tags": []
+        },
+        "waf.init": {
+            "data_type": "requests",
+            "description": "Number of times we is initialized",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "event_rules_version",
+                "success",
+                "waf_version"
+            ],
+            "user_tags": []
+        },
+        "waf.input_truncated": {
+            "data_type": "truncations",
+            "description": "Count of times a WAF input was truncated",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "truncation_reason"
+            ],
+            "user_tags": []
+        },
+        "waf.requests": {
+            "data_type": "requests",
+            "description": "Requests analyzed by ddwaf",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "block_failure",
+                "event_rules_version",
+                "input_truncated",
+                "rate_limited",
+                "request_blocked",
+                "request_excluded",
+                "rule_triggered",
+                "waf_error",
+                "waf_timeout",
+                "waf_version"
+            ],
+            "user_tags": []
+        },
+        "waf.truncated_value_size": {
+            "data_type": "bytes",
+            "description": "Un-truncated size of truncated WAF inputs",
+            "metric_type": "distribution",
+            "send_to_user": false,
+            "tags": [
+                "truncation_reason"
+            ],
+            "user_tags": []
+        },
+        "waf.updates": {
+            "data_type": "requests",
+            "description": "Number of times we reload the rules (startup + Remote Configuration)",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "event_rules_version",
+                "success",
+                "waf_version"
+            ],
+            "user_tags": []
+        }
+    },
+    "civisibility": {
+        "code_coverage.errors": {
+            "data_type": "coverages",
+            "description": "The number of errors while processing code coverage",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "error_type"
+            ],
+            "user_tags": []
+        },
+        "code_coverage.files": {
+            "data_type": "files",
+            "description": "The number of files covered inside a coverage payload",
+            "metric_type": "distribution",
+            "send_to_user": false,
+            "tags": [],
+            "user_tags": []
+        },
+        "code_coverage.is_empty": {
+            "data_type": "coverages",
+            "description": "The number of successfully collected code coverages that are empty",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [],
+            "user_tags": []
+        },
+        "code_coverage_finished": {
+            "data_type": "coverages",
+            "description": "The number of code coverage sessions finished, optionally (if implementation allows) tagget by the code coverage library name  (e.g. `library:custom`, `library:jacoco`, `library:builtin`) and testing framework name (e.g. `test_framework:xunit`, `test_framework:nunit`, `test_framework:jest`)",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "library",
+                "test_framework"
+            ],
+            "user_tags": []
+        },
+        "code_coverage_started": {
+            "data_type": "coverages",
+            "description": "The number of code coverage sessions started tagged by the code coverage library name (e.g. `library:custom`, `library:jacoco`, `library:builtin`) and testing framework name (e.g. `test_framework:xunit`, `test_framework:nunit`, `test_framework:jest`)",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "library",
+                "test_framework"
+            ],
+            "user_tags": []
+        },
+        "early_flake_detection.request": {
+            "data_type": "requests",
+            "description": "This metric is deprecated in favor or known_tests.request",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "rq_compressed"
+            ],
+            "user_tags": []
+        },
+        "early_flake_detection.request_errors": {
+            "data_type": "requests",
+            "description": "This metric is deprecated in favor or known_tests.request_errors",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "error_type",
+                "status_code"
+            ],
+            "user_tags": []
+        },
+        "early_flake_detection.request_ms": {
+            "data_type": "milliseconds",
+            "description": "This metric is deprecated in favor or known_tests.request_ms",
+            "metric_type": "distribution",
+            "send_to_user": false,
+            "tags": [],
+            "user_tags": []
+        },
+        "early_flake_detection.response_bytes": {
+            "data_type": "bytes",
+            "description": "This metric is deprecated in favor or known_tests.response_bytes",
+            "metric_type": "distribution",
+            "send_to_user": false,
+            "tags": [
+                "rs_compressed"
+            ],
+            "user_tags": []
+        },
+        "early_flake_detection.response_tests": {
+            "data_type": "tests",
+            "description": "This metric is deprecated in favor or known_tests.response_tests",
+            "metric_type": "distribution",
+            "send_to_user": false,
+            "tags": [],
+            "user_tags": []
+        },
+        "endpoint_payload.bytes": {
+            "data_type": "bytes",
+            "description": "The size in bytes of the serialized payload, tagged by endpoint type (possible values are: `endpoint:test_cycle` or `endpoint:code_coverage`)",
+            "metric_type": "distribution",
+            "send_to_user": false,
+            "tags": [
+                "endpoint"
+            ],
+            "user_tags": []
+        },
+        "endpoint_payload.dropped": {
+            "data_type": "requests",
+            "description": "The number of payloads dropped after all retries, tagged by endpoint type (possible values are: `endpoint:test_cycle` or `endpoint:code_coverage`)",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "endpoint"
+            ],
+            "user_tags": []
+        },
+        "endpoint_payload.events_count": {
+            "data_type": "events",
+            "description": "The number of events included in the payload, tagged by endpoint type (possible values are: `endpoint:test_cycle` or `endpoint:code_coverage`)",
+            "metric_type": "distribution",
+            "send_to_user": false,
+            "tags": [
+                "endpoint"
+            ],
+            "user_tags": []
+        },
+        "endpoint_payload.events_serialization_ms": {
+            "data_type": "milliseconds",
+            "description": "The time it takes to serialize the payload, tagged by endpoint type (possible values are: `endpoint:test_cycle` or `endpoint:code_coverage`)",
+            "metric_type": "distribution",
+            "send_to_user": false,
+            "tags": [
+                "endpoint"
+            ],
+            "user_tags": []
+        },
+        "endpoint_payload.requests": {
+            "data_type": "requests",
+            "description": "The number of requests sent to the endpoint, regardless of success, tagged by endpoint type (possible values are: `endpoint:test_cycle` or `endpoint:code_coverage`) and a boolean flag set to true if request body is compressed",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "endpoint",
+                "rq_compressed"
+            ],
+            "user_tags": []
+        },
+        "endpoint_payload.requests_errors": {
+            "data_type": "requests",
+            "description": "The number of requests sent to the endpoint that errored, tagget by the error type (e.g. `error_type:timeout`, `error_type:network`, `error_type:status_code`) and endpoint type (possible values are: `endpoint:test_cycle` or `endpoint:code_coverage`) and status code (400,401,403,404,408,429)",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "endpoint",
+                "error_type",
+                "status_code"
+            ],
+            "user_tags": []
+        },
+        "endpoint_payload.requests_ms": {
+            "data_type": "milliseconds",
+            "description": "The time it takes to send the payload sent to the endpoint in ms, tagged by endpoint type (possible values are: `endpoint:test_cycle` or `endpoint:code_coverage`)",
+            "metric_type": "distribution",
+            "send_to_user": false,
+            "tags": [
+                "endpoint"
+            ],
+            "user_tags": []
+        },
+        "event_created": {
+            "data_type": "events",
+            "description": "The number of events created, tagged by event type (possible values are: `event_type:test`, `event_type:suite`, `event_type:module` or `event_type:session`), testing framework name (e.g. `test_framework:xunit`, `test_framework:nunit`, `test_framework:jest`) . Also, if the event_type is `session` two boolean tags will be set (has_codeowner and unsupported_ci), if the event_type is `test` a boolean `is_benchmark` flag will be set.",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "event_type",
+                "has_codeowner",
+                "is_benchmark",
+                "is_headless",
+                "is_unsupported_ci",
+                "test_framework"
+            ],
+            "user_tags": []
+        },
+        "event_finished": {
+            "data_type": "events",
+            "description": "The number of events finished, tagged by event type (possible values are: `event_type:test`, `event_type:suite`, `event_type:module` or `event_type:session`), testing framework name (e.g. `test_framework:xunit`, `test_framework:nunit`, `test_framework:jest`) . If the event_type is `session` three boolean tags will be set (`has_codeowner`, `is_unsupported_ci`, `is_headless`) and additional string tag might be set (`early_flake_detection_abort_reason` if early flakiness detection feature was aborted for that particular session; currently has only one possible value: `faulty`). If the event_type is `test` boolean `is_benchmark`, `is_new`, `is_modified`, `is_retry`, `is_rum` flags will be set (if `is_rum` is set, additional `browser_driver` tag will be added, which currently has only one possible value; if `is_new` is set, additional `early_flake_detection_abort_reason` tag will be added, which currently has only one possible value).",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "browser_driver",
+                "early_flake_detection_abort_reason",
+                "event_type",
+                "has_codeowner",
+                "has_failed_all_retries",
+                "is_attempt_to_fix",
+                "is_benchmark",
+                "is_disabled",
+                "is_headless",
+                "is_modified",
+                "is_new",
+                "is_quarantined",
+                "is_retry",
+                "is_rum",
+                "is_unsupported_ci",
+                "retry_reason",
+                "test_framework"
+            ],
+            "user_tags": []
+        },
+        "events_enqueued_for_serialization": {
+            "data_type": "events",
+            "description": "The number of events enqueued for serialization",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [],
+            "user_tags": []
+        },
+        "flaky_tests.request": {
+            "data_type": "requests",
+            "description": "The number of requests sent to the flaky tests endpoint, regardless of success. Tagged with a boolean flag set to true if request body is compressed",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "rq_compressed"
+            ],
+            "user_tags": []
+        },
+        "flaky_tests.request_errors": {
+            "data_type": "requests",
+            "description": "The number of requests sent to the flaky tests endpoint that errored, tagget by the error type  (e.g. `error_type:timeout`, `error_type:network`, `error_type:status_code_4xx_response`, `error_type:status_code_5xx_response`) and status code (400,401,403,404,408,429)",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "error_type",
+                "status_code"
+            ],
+            "user_tags": []
+        },
+        "flaky_tests.request_ms": {
+            "data_type": "milliseconds",
+            "description": "The time it takes to get the response of the flaky tests endpoint request in ms",
+            "metric_type": "distribution",
+            "send_to_user": false,
+            "tags": [],
+            "user_tags": []
+        },
+        "flaky_tests.response_bytes": {
+            "data_type": "bytes",
+            "description": "The number of bytes received from the flaky tests endpoint. Tagged with a boolean flag set to true if response body is compressed",
+            "metric_type": "distribution",
+            "send_to_user": false,
+            "tags": [
+                "rs_compressed"
+            ],
+            "user_tags": []
+        },
+        "flaky_tests.response_tests": {
+            "data_type": "tests",
+            "description": "The number of flaky tests returned by the endpoint",
+            "metric_type": "distribution",
+            "send_to_user": false,
+            "tags": [],
+            "user_tags": []
+        },
+        "git.command": {
+            "data_type": "command",
+            "description": "The number of git commands executed, tagged by command type (possible values are: `command:get_repository`, `command:get_branch`, `command:check_shallow`, `command:unshallow`, `command:get_local_commits`, `command:get_objects`, `command:pack_objects`)",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "command"
+            ],
+            "user_tags": []
+        },
+        "git.command_errors": {
+            "data_type": "command",
+            "description": "The number of git command that errored, tagged by command type (possible values are: `command:get_repository`, `command:get_branch`, `command:check_shallow`, `command:unshallow`, `command:get_local_commits`, `command:get_objects`, `command:pack_objects`) and the exit code of the command.",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "command",
+                "exit_code"
+            ],
+            "user_tags": []
+        },
+        "git.command_ms": {
+            "data_type": "milliseconds",
+            "description": "The time it takes to execute the git command, tagged by command type (possible values are: `command:get_repository`, `command:get_branch`, `command:check_shallow`, `command:unshallow`, `command:get_local_commits`, `command:get_objects`, `command:pack_objects`)",
+            "metric_type": "distribution",
+            "send_to_user": false,
+            "tags": [
+                "command"
+            ],
+            "user_tags": []
+        },
+        "git_requests.objects_pack": {
+            "data_type": "requests",
+            "description": "The number of requests sent to the git object pack endpoint, regardless of success. Tagged with a boolean flag set to true if request body is compressed",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "rq_compressed"
+            ],
+            "user_tags": []
+        },
+        "git_requests.objects_pack_bytes": {
+            "data_type": "bytes",
+            "description": "The sum of the sizes of the object pack files inside a single payload",
+            "metric_type": "distribution",
+            "send_to_user": false,
+            "tags": [],
+            "user_tags": []
+        },
+        "git_requests.objects_pack_errors": {
+            "data_type": "requests",
+            "description": "The number of git object pack requests sent to the endpoint that errored, tagget by the error type (e.g. `error_type:timeout`, `error_type:network`, `error_type:status_code_4xx_response`, `error_type:status_code_5xx_response`) and status code (400,401,403,404,408,429)",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "error_type",
+                "status_code"
+            ],
+            "user_tags": []
+        },
+        "git_requests.objects_pack_files": {
+            "data_type": "files",
+            "description": "The number of files sent in the object pack payload",
+            "metric_type": "distribution",
+            "send_to_user": false,
+            "tags": [],
+            "user_tags": []
+        },
+        "git_requests.objects_pack_ms": {
+            "data_type": "milliseconds",
+            "description": "The time it takes to get the response of the git object pack request in ms",
+            "metric_type": "distribution",
+            "send_to_user": false,
+            "tags": [],
+            "user_tags": []
+        },
+        "git_requests.search_commits": {
+            "data_type": "requests",
+            "description": "The number of requests sent to the search commit endpoint, regardless of success. Tagged with a boolean flag set to true if request body is compressed",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "rq_compressed"
+            ],
+            "user_tags": []
+        },
+        "git_requests.search_commits_errors": {
+            "data_type": "requests",
+            "description": "The number of search commit requests sent to the endpoint that errored, tagget by the error type (e.g. `error_type:timeout`, `error_type:network`, `error_type:status_code_4xx_response`, `error_type:status_code_5xx_response`) and status code (400,401,403,404,408,429)",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "error_type",
+                "status_code"
+            ],
+            "user_tags": []
+        },
+        "git_requests.search_commits_ms": {
+            "data_type": "milliseconds",
+            "description": "The time it takes to get the response of the search commit request in ms",
+            "metric_type": "distribution",
+            "send_to_user": false,
+            "tags": [],
+            "user_tags": []
+        },
+        "git_requests.settings": {
+            "data_type": "requests",
+            "description": "The number of requests sent to the settings endpoint, regardless of success. Tagged with a boolean flag set to true if request body is compressed",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "rq_compressed"
+            ],
+            "user_tags": []
+        },
+        "git_requests.settings_errors": {
+            "data_type": "requests",
+            "description": "The number of settings requests sent to the endpoint that errored, tagget by the error type  (e.g. `error_type:timeout`, `error_type:network`, `error_type:status_code_4xx_response`, `error_type:status_code_5xx_response`) and status code (400,401,403,404,408,429)",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "error_type",
+                "status_code"
+            ],
+            "user_tags": []
+        },
+        "git_requests.settings_ms": {
+            "data_type": "milliseconds",
+            "description": "The time it takes to get the response of the settings endpoint request in ms",
+            "metric_type": "distribution",
+            "send_to_user": false,
+            "tags": [],
+            "user_tags": []
+        },
+        "git_requests.settings_response": {
+            "data_type": "response",
+            "description": "The number of settings responses from the endpoint tagged with boolean flags that correspond to features enabled in the backend",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "coverage_enabled",
+                "early_flake_detection_enabled",
+                "flaky_test_retries_enabled",
+                "impacted_tests_detection_enabled",
+                "itr_enabled",
+                "itr_enabled",
+                "itrskip_enabled",
+                "known_tests_enabled",
+                "require_git",
+                "test_management_enabled"
+            ],
+            "user_tags": []
+        },
+        "impacted_tests_detection.request": {
+            "data_type": "requests",
+            "description": "The number of requests sent to the changed files endpoint, regardless of success. Tagged with a boolean flag set to true if request body is compressed",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "rq_compressed"
+            ],
+            "user_tags": []
+        },
+        "impacted_tests_detection.request_errors": {
+            "data_type": "requests",
+            "description": "The number of requests sent to the changed files endpoint that errored, tagget by the error type  (e.g. `error_type:timeout`, `error_type:network`, `error_type:status_code_4xx_response`, `error_type:status_code_5xx_response`) and status code (400,401,403,404,408,429)",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "error_type",
+                "status_code"
+            ],
+            "user_tags": []
+        },
+        "impacted_tests_detection.request_ms": {
+            "data_type": "milliseconds",
+            "description": "The time it takes to get the response of the changed files endpoint request in ms",
+            "metric_type": "distribution",
+            "send_to_user": false,
+            "tags": [],
+            "user_tags": []
+        },
+        "impacted_tests_detection.response_bytes": {
+            "data_type": "bytes",
+            "description": "The number of bytes received from the changed files endpoint. Tagged with a boolean flag set to true if response body is compressed",
+            "metric_type": "distribution",
+            "send_to_user": false,
+            "tags": [
+                "rs_compressed"
+            ],
+            "user_tags": []
+        },
+        "impacted_tests_detection.response_files": {
+            "data_type": "tests",
+            "description": "The number of changed files returned by the endpoint",
+            "metric_type": "distribution",
+            "send_to_user": false,
+            "tags": [],
+            "user_tags": []
+        },
+        "itr_forced_run": {
+            "data_type": "events",
+            "description": "The number of tests or test suites that would've been skipped by ITR but were forced to run because of their unskippable status tagged by event type (possible values are: `event_type:test`, `event_type:suite`)",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "event_type"
+            ],
+            "user_tags": []
+        },
+        "itr_skippable_tests.request": {
+            "data_type": "requests",
+            "description": "The number of requests sent to the itr skippable tests endpoint, regardless of success. Tagged with a boolean flag set to true if request body is compressed",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "rq_compressed"
+            ],
+            "user_tags": []
+        },
+        "itr_skippable_tests.request_errors": {
+            "data_type": "requests",
+            "description": "The number of itr skippable tests requests sent to the endpoint that errored, tagget by the error type  (e.g. `error_type:timeout`, `error_type:network`, `error_type:status_code_4xx_response`, `error_type:status_code_5xx_response`) and status code (400,401,403,404,408,429)",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "error_type",
+                "status_code"
+            ],
+            "user_tags": []
+        },
+        "itr_skippable_tests.request_ms": {
+            "data_type": "milliseconds",
+            "description": "The time it takes to get the response of the itr skippable tests endpoint request in ms",
+            "metric_type": "distribution",
+            "send_to_user": false,
+            "tags": [],
+            "user_tags": []
+        },
+        "itr_skippable_tests.response_bytes": {
+            "data_type": "bytes",
+            "description": "The number of bytes received by the endpoint. Tagged with a boolean flag set to true if response body is compressed",
+            "metric_type": "distribution",
+            "send_to_user": false,
+            "tags": [
+                "rs_compressed"
+            ],
+            "user_tags": []
+        },
+        "itr_skippable_tests.response_suites": {
+            "data_type": "suites",
+            "description": "The number of suites to skip returned by the endpoint",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [],
+            "user_tags": []
+        },
+        "itr_skippable_tests.response_tests": {
+            "data_type": "tests",
+            "description": "The number of tests to skip returned by the endpoint",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [],
+            "user_tags": []
+        },
+        "itr_skipped": {
+            "data_type": "events",
+            "description": "The number of tests or test suites skipped tagged by event type (possible values are: `event_type:test`, `event_type:suite`)",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "event_type"
+            ],
+            "user_tags": []
+        },
+        "itr_unskippable": {
+            "data_type": "events",
+            "description": "The number of tests or test suites that are seen as unskippable tagged by event type (possible values are: `event_type:test`, `event_type:suite`)",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "event_type"
+            ],
+            "user_tags": []
+        },
+        "known_tests.request": {
+            "data_type": "requests",
+            "description": "The number of requests sent to the known tests endpoint, regardless of success. Tagged with a boolean flag set to true if request body is compressed",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "rq_compressed"
+            ],
+            "user_tags": []
+        },
+        "known_tests.request_errors": {
+            "data_type": "requests",
+            "description": "The number of known tests requests sent to the endpoint that errored, tagget by the error type  (e.g. `error_type:timeout`, `error_type:network`, `error_type:status_code_4xx_response`, `error_type:status_code_5xx_response`) and status code (400,401,403,404,408,429)",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "error_type",
+                "status_code"
+            ],
+            "user_tags": []
+        },
+        "known_tests.request_ms": {
+            "data_type": "milliseconds",
+            "description": "The time it takes to get the response of the known tests endpoint request in ms",
+            "metric_type": "distribution",
+            "send_to_user": false,
+            "tags": [],
+            "user_tags": []
+        },
+        "known_tests.response_bytes": {
+            "data_type": "bytes",
+            "description": "The number of bytes received by the endpoint. Tagged with a boolean flag set to true if response body is compressed",
+            "metric_type": "distribution",
+            "send_to_user": false,
+            "tags": [
+                "rs_compressed"
+            ],
+            "user_tags": []
+        },
+        "known_tests.response_tests": {
+            "data_type": "tests",
+            "description": "The number of known tests returned by the endpoint",
+            "metric_type": "distribution",
+            "send_to_user": false,
+            "tags": [],
+            "user_tags": []
+        },
+        "manual_api_events": {
+            "data_type": "events",
+            "description": "The number of events created used by the manual api tagged by the event type (possible values are: `event_type:test`, `event_type:suite`, `event_type:module` or `event_type:session`)",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "event_type"
+            ],
+            "user_tags": []
+        },
+        "test_management_tests.request": {
+            "data_type": "requests",
+            "description": "The number of requests sent to the test management endpoint, regardless of success. Tagged with a boolean flag set to true if request body is compressed",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "rq_compressed"
+            ],
+            "user_tags": []
+        },
+        "test_management_tests.request_errors": {
+            "data_type": "requests",
+            "description": "The number of test management requests sent to the endpoint that errored, tagget by the error type  (e.g. `error_type:timeout`, `error_type:network`, `error_type:status_code_4xx_response`, `error_type:status_code_5xx_response`) and status code (400,401,403,404,408,429)",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "error_type",
+                "status_code"
+            ],
+            "user_tags": []
+        },
+        "test_management_tests.request_ms": {
+            "data_type": "milliseconds",
+            "description": "The time it takes to get the response of the test management endpoint request in ms",
+            "metric_type": "distribution",
+            "send_to_user": false,
+            "tags": [],
+            "user_tags": []
+        },
+        "test_management_tests.response_bytes": {
+            "data_type": "bytes",
+            "description": "The number of bytes received by the endpoint. Tagged with a boolean flag set to true if response body is compressed",
+            "metric_type": "distribution",
+            "send_to_user": false,
+            "tags": [
+                "rs_compressed"
+            ],
+            "user_tags": []
+        },
+        "test_management_tests.response_tests": {
+            "data_type": "tests",
+            "description": "The number of tests returned by the test management endpoint",
+            "metric_type": "distribution",
+            "send_to_user": false,
+            "tags": [],
+            "user_tags": []
+        },
+        "test_session": {
+            "data_type": "events",
+            "description": "The number of test sessions started. Tagged with CI provider (15 possible values) and a boolean flag set to true if the session is run by a tracer that was auto-injected, and boolean flags that correspond to features enabled in the session",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "agentless_log_submission_enabled",
+                "auto_injected",
+                "fail_fast_test_order_enabled",
+                "provider"
+            ],
+            "user_tags": []
+        },
+        "jenkins.logs.submitted": {
+            "data_type": "logs",
+            "description": "The number of log messages submitted to Jenkins plugin's writter",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [],
+            "user_tags": []
+        },
+        "jenkins.logs.dropped": {
+            "data_type": "logs",
+            "description": "The number of log messages submitted to Jenkins plugin's writter that had to be dropped",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [],
+            "user_tags": []
+        },
+        "jenkins.traces.submitted": {
+            "data_type": "logs",
+            "description": "The number of trace events submitted to Jenkins plugin's writter",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [],
+            "user_tags": []
+        },
+        "jenkins.traces.dropped": {
+            "data_type": "logs",
+            "description": "The number of trace events submitted to Jenkins plugin's writter that had to be dropped",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [],
+            "user_tags": []
+        },
+        "jenkins.http_endpoint.requests": {
+            "data_type": "requests",
+            "description": "The number of requests sent to the endpoint, regardless of success. Tagged by endpoint type (possible values are: traces, logs, metrics, events, service_checks, traces_evp, traces_apm)",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "endpoint"
+            ],
+            "user_tags": []
+        },
+        "jenkins.http_endpoint.requests_ms": {
+            "data_type": "milliseconds",
+            "description": "The time it takes to send the payload sent to the endpoint in ms. Tagged by endpoint type (possible values are: traces, logs, metrics, events, service_checks, traces_evp, traces_apm)",
+            "metric_type": "distribution",
+            "send_to_user": false,
+            "tags": [
+                "endpoint"
+            ],
+            "user_tags": []
+        },
+        "jenkins.http_endpoint.bytes": {
+            "data_type": "bytes",
+            "description": "The size in bytes of the serialized payload. Tagged by endpoint type (possible values are: traces, logs, metrics, events, service_checks, traces_evp, traces_apm)",
+            "metric_type": "distribution",
+            "send_to_user": false,
+            "tags": [
+                "endpoint"
+            ],
+            "user_tags": []
+        },
+        "jenkins.http_endpoint.events_count": {
+            "data_type": "events",
+            "description": "The number of events included in the payload. Tagged by endpoint type (possible values are: traces, logs, metrics, events, service_checks, traces_evp, traces_apm)",
+            "metric_type": "distribution",
+            "send_to_user": false,
+            "tags": [
+                "endpoint"
+            ],
+            "user_tags": []
+        },
+        "jenkins.http_endpoint.requests_errors": {
+            "data_type": "requests",
+            "description": "The number of requests sent to the endpoint that errored, tagget by the error type (e.g. `error_type:timeout`, `error_type:network`, `error_type:status_code`), status code (400,401,403,404,408,429) and endpoint type (possible values are: traces, logs, metrics, events, service_checks, traces_evp, traces_apm)",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "endpoint",
+                "error_type",
+                "status_code"
+            ],
+            "user_tags": []
+        },
+        "jenkins.http_endpoint.dropped": {
+            "data_type": "requests",
+            "description": "The number of requests dropped after all retries. Tagged by endpoint type (possible values are: traces, logs, metrics, events, service_checks, traces_evp, traces_apm)",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "endpoint"
+            ],
+            "user_tags": []
+        }
+    },
+    "general": {
+        "init_time": {
+            "aliases": [
+                "tracer_init_time"
+            ],
+            "data_type": "milliseconds",
+            "description": "The time it takes to import/initialize the tracer on startup. If this consists of multiple steps/components, tagged by the component/total e.g. `component:call_target`. Component tags will vary by language",
+            "metric_type": "distribution",
+            "send_to_user": false,
+            "tags": [
+                "component",
+                "total"
+            ],
+            "user_tags": []
+        },
+        "logs_created": {
+            "data_type": "logs",
+            "description": "The number of logs created with a given log level. Useful for calculating impact for other features (automatic sending of logs). Levels should be one of `debug`, `info`, `warn`, `error`, `critical`",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "level"
+            ],
+            "user_tags": []
+        }
+    },
+    "iast": {
+        "executed.propagation": {
+            "data_type": "call sites",
+            "description": "Number of propagation call sites executed",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [],
+            "user_tags": []
+        },
+        "executed.sink": {
+            "data_type": "call sites",
+            "description": "Number of sink call sites executed",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "vulnerability_type"
+            ],
+            "user_tags": []
+        },
+        "executed.source": {
+            "data_type": "call sites",
+            "description": "Number of source call sites executed",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "source_type"
+            ],
+            "user_tags": []
+        },
+        "executed.tainted": {
+            "data_type": "operations",
+            "description": "Number of taint operations triggered during a request",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [],
+            "user_tags": []
+        },
+        "instrumented.propagation": {
+            "data_type": "call sites",
+            "description": "Number of propagation call sites instrumented",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [],
+            "user_tags": []
+        },
+        "instrumented.sink": {
+            "data_type": "call sites",
+            "description": "Number of sink call sites instrumented",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "vulnerability_type"
+            ],
+            "user_tags": []
+        },
+        "instrumented.source": {
+            "data_type": "call sites",
+            "description": "Number of source call sites instrumented",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "source_type"
+            ],
+            "user_tags": []
+        },
+        "json.tag.size.exceeded": {
+            "data_type": "operations",
+            "description": "Number of times that _dd.iast.json tag exceeds the maximum span tag size",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [],
+            "user_tags": []
+        },
+        "request.tainted": {
+            "data_type": "values",
+            "description": "Number of tainted values at the end of a request",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [],
+            "user_tags": []
+        },
+        "suppressed.vulnerabilities": {
+            "data_type": "event",
+            "description": "Number of vulnerabilities suppressed",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "vulnerability_type"
+            ],
+            "user_tags": []
+        }
+    },
+    "mlobs": {
+        "activate_distributed_headers": {
+            "data_type": "instances",
+            "description": "The number of times a LLMObs context was manually extracted and activated from distributed request headers",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "error",
+                "error_type"
+            ]
+        },
+        "annotations": {
+            "data_type": "instances",
+            "description": "The number of times a LLMObs span was manually annotated",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "error",
+                "error_type",
+                "is_root_span",
+                "span_kind"
+            ]
+        },
+        "dropped_eval_events": {
+            "data_type": "instances",
+            "description": "The number of evaluation metric events dropped without being submitted to LLM Observability",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "error"
+            ]
+        },
+        "dropped_span_events": {
+            "data_type": "instances",
+            "description": "The number of span events dropped without being submitted to LLM Observability",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "error"
+            ]
+        },
+        "evals_submitted": {
+            "data_type": "instances",
+            "description": "The number of times a custom evaluation was submitted to LLM Observability",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "custom_joining_key",
+                "error",
+                "error_type",
+                "metric_type"
+            ]
+        },
+        "evaluators.error": {
+            "data_type": "instances",
+            "description": "The number of times an evaluator errored",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "evaluator_version",
+                "ragas_version",
+                "reason"
+            ]
+        },
+        "evaluators.init": {
+            "data_type": "instances",
+            "description": "The number of times an evaluator is initialized",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "evaluator_label",
+                "evaluator_version",
+                "ragas_version",
+                "state"
+            ]
+        },
+        "evaluators.rule_sample_rate": {
+            "data_type": "rate",
+            "description": "The sample rate for an evaluator sampling rule",
+            "metric_type": "distribution",
+            "send_to_user": false,
+            "tags": [
+                "evaluator_label",
+                "span_name"
+            ]
+        },
+        "evaluators.run": {
+            "data_type": "instances",
+            "description": "The number of times an evaluator is run on a span event",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "evaluator_label",
+                "evaluator_version",
+                "ragas_version",
+                "state"
+            ]
+        },
+        "init_time": {
+            "data_type": "milliseconds",
+            "description": "The time it takes to initialize and enable the LLMObs SDK",
+            "metric_type": "distribution",
+            "send_to_user": false,
+            "tags": [
+                "agentless",
+                "auto",
+                "error",
+                "error_type",
+                "site"
+            ]
+        },
+        "inject_distributed_headers": {
+            "data_type": "instances",
+            "description": "The number of times a LLMObs context was manually injected into distributed request headers",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "error",
+                "error_type"
+            ]
+        },
+        "product_enabled": {
+            "data_type": "instances",
+            "description": "The number of times the LLMObs SDK is initialized and enabled",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "agentless",
+                "auto",
+                "error",
+                "error_type",
+                "site"
+            ]
+        },
+        "span.finished": {
+            "data_type": "instances",
+            "description": "The number of times an LLMObs span is finished and submitted to LLM Observability",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "autoinstrumented",
+                "decorator",
+                "error",
+                "has_session_id",
+                "integration",
+                "is_root_span",
+                "model_provider",
+                "span_kind"
+            ]
+        },
+        "span.raw_size": {
+            "data_type": "bytes",
+            "description": "The size of an encoded LLMObs span after being created via manual or auto instrumentation",
+            "metric_type": "distribution",
+            "send_to_user": false,
+            "tags": [
+                "autoinstrumented",
+                "error",
+                "integration",
+                "span_kind"
+            ]
+        },
+        "span.size": {
+            "data_type": "bytes",
+            "description": "The size of an encoded LLMObs span (after truncation if applicable) submitted to LLM Observability",
+            "metric_type": "distribution",
+            "send_to_user": false,
+            "tags": [
+                "autoinstrumented",
+                "error",
+                "integration",
+                "span_kind",
+                "truncated"
+            ]
+        },
+        "span.start": {
+            "data_type": "instances",
+            "description": "The number of times an LLMObs span is created either via manual or auto instrumentation",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "autoinstrumented",
+                "integration",
+                "span_kind"
+            ]
+        },
+        "spans_exported": {
+            "data_type": "instances",
+            "description": "The number of times a LLMObs span was manually exported for eval submission",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "error",
+                "error_type",
+                "is_root_span",
+                "span_kind"
+            ]
+        },
+        "user_flush": {
+            "data_type": "instances",
+            "description": "The number of times LLMObs spans and evals were manually flushed to LLM Observability",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "error",
+                "error_type"
+            ]
+        }
+    },
+    "profilers": {
+        "profile_api.bytes": {
+            "data_type": "bytes",
+            "description": "The size of the payload sent to the endpoint in bytes",
+            "metric_type": "distribution",
+            "send_to_user": false,
+            "tags": [
+                "src_library"
+            ],
+            "user_tags": []
+        },
+        "profile_api.errors": {
+            "data_type": "requests",
+            "description": "The number of requests sent to the profile endpoint in the agent that errored, tagged by the error type (e.g. `type:timeout`, `type:network`, `type:status_code`)",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "src_library",
+                "type"
+            ],
+            "user_tags": []
+        },
+        "profile_api.ms": {
+            "data_type": "milliseconds",
+            "description": "The time it takes to flush the profile payload to the agent. Note that this is not the per profile time, this is the per payload time",
+            "metric_type": "distribution",
+            "send_to_user": false,
+            "tags": [
+                "src_library"
+            ],
+            "user_tags": []
+        },
+        "profile_api.requests": {
+            "data_type": "requests",
+            "description": "The number of requests sent to the profile endpoint in the agent, regardless of success",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "src_library"
+            ],
+            "user_tags": []
+        },
+        "profile_api.responses": {
+            "data_type": "responses",
+            "description": "The number of responses received from the profile endpoint, tagged with status code, e.g. `status_code:200`, `status_code:404`. May also use `status_code:5xx` for example as a catch-all for 2xx, 3xx, 4xx, 5xx responses",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "src_library",
+                "status_code"
+            ],
+            "user_tags": []
+        },
+        "ssi_heuristic.number_of_profiles": {
+            "data_type": "profiles",
+            "description": "The number of profiles that would have been hypothetically emitted if SSI was enabled for profiling",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "enablement_choice",
+                "has_sent_profiles",
+                "heuristic_hypothetical_decision",
+                "installation"
+            ],
+            "user_tags": []
+        },
+        "ssi_heuristic.number_of_runtime_id": {
+            "data_type": "runtimes",
+            "description": "The number of runtimes that would have been hypothetically profiled if SSI was enabled for profiling",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "enablement_choice",
+                "has_sent_profiles",
+                "heuristic_hypothetical_decision",
+                "installation"
+            ],
+            "user_tags": []
+        }
+    },
+    "rum": {
+        "injection.content_security_policy": {
+            "data_type": "instances",
+            "description": "The number of HTTP responses with Content Security Policy",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "injector_version",
+                "integration_name",
+                "integration_version",
+                "kind",
+                "reason",
+                "status"
+            ],
+            "user_tags": []
+        },
+        "injection.failed": {
+            "data_type": "instances",
+            "description": "The number of HTTP response where the injector failed to inject the SDK",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "injector_version",
+                "integration_name",
+                "integration_version",
+                "reason"
+            ],
+            "user_tags": []
+        },
+        "injection.initialization.failed": {
+            "data_type": "instances",
+            "description": "The number of failed initiliazation of the SDK injector",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "injector_version",
+                "integration_name",
+                "integration_version",
+                "reason"
+            ],
+            "user_tags": []
+        },
+        "injection.initialization.succeed": {
+            "data_type": "instances",
+            "description": "The number of successfull initiliazation of the SDK injector",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "injector_version",
+                "integration_name",
+                "integration_version"
+            ],
+            "user_tags": []
+        },
+        "injection.installation": {
+            "data_type": "instances",
+            "description": "The number of automatic installations of the RUM SDK",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "installer_version",
+                "integration_name",
+                "integration_version",
+                "reason",
+                "status"
+            ],
+            "user_tags": []
+        },
+        "injection.installation.duration": {
+            "data_type": "milliseconds",
+            "description": "The total time performing installations of the RUM SDK",
+            "metric_type": "distribution",
+            "send_to_user": false,
+            "tags": [
+                "installer_version",
+                "integration_name",
+                "integration_version",
+                "reason",
+                "status"
+            ],
+            "user_tags": []
+        },
+        "injection.ms": {
+            "data_type": "milliseconds",
+            "description": "Time it takes to inject the SDK to an HTTP response",
+            "metric_type": "distribution",
+            "send_to_user": false,
+            "tags": [
+                "injector_version",
+                "integration_name",
+                "integration_version"
+            ],
+            "user_tags": []
+        },
+        "injection.response.bytes": {
+            "data_type": "bytes",
+            "description": "The size of the HTTP response before injecting the RUM SDK",
+            "metric_type": "distribution",
+            "send_to_user": false,
+            "tags": [
+                "injector_version",
+                "integration_name",
+                "integration_version",
+                "reponse_kind"
+            ],
+            "user_tags": []
+        },
+        "injection.skipped": {
+            "data_type": "instances",
+            "description": "The number of HTTP response where the injector did not tried to inject the SDK",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "injector_version",
+                "integration_name",
+                "integration_version",
+                "reason"
+            ],
+            "user_tags": []
+        },
+        "injection.succeed": {
+            "data_type": "instances",
+            "description": "The number of HTTP response where the injector successfully inject the SDK",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "injector_version",
+                "integration_name",
+                "integration_version"
+            ],
+            "user_tags": []
+        }
+    },
+    "sidecar": {
+        "server.active_sessions": {
+            "data_type": "sessions",
+            "description": "Number of sessions active in parallel",
+            "metric_type": "gauge",
+            "send_to_user": false,
+            "tags": [],
+            "user_tags": []
+        },
+        "server.memory_usage": {
+            "data_type": "bytes",
+            "description": "Memory consumption of the sidecar",
+            "metric_type": "distribution",
+            "send_to_user": false,
+            "tags": [],
+            "user_tags": []
+        },
+        "server.submitted_payloads": {
+            "data_type": "payloads",
+            "description": "Number of payloads the sidecar has processed",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [],
+            "user_tags": []
+        }
+    },
+    "telemetry": {
+        "telemetry_api.bytes": {
+            "data_type": "bytes",
+            "description": "The size of the payload sent to the stats endpoint in bytes, tagged by the endpoint (`endpoint:agent`, `endpoint:agentless`)",
+            "metric_type": "distribution",
+            "send_to_user": false,
+            "tags": [
+                "endpoint"
+            ],
+            "user_tags": []
+        },
+        "telemetry_api.errors": {
+            "data_type": "requests",
+            "description": "The number of requests sent to the api endpoint in the agent that errored, tagged by the error type (e.g. `type:timeout`, `type:network`, `type:status_code`) and Endpoint (`endpoint:agent`, `endpoint:agentless`)",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "endpoint",
+                "type"
+            ],
+            "user_tags": []
+        },
+        "telemetry_api.ms": {
+            "data_type": "milliseconds",
+            "description": "The time it takes to send the payload sent to the endpoint in ms, tagged by the endpoint (`endpoint:agent`, `endpoint:agentless`)",
+            "metric_type": "distribution",
+            "send_to_user": false,
+            "tags": [],
+            "user_tags": []
+        },
+        "telemetry_api.requests": {
+            "data_type": "requests",
+            "description": "The number of requests sent to a telemetry endpoint, regardless of success, tagged by the endpoint (`endpoint:agent`, `endpoint:agentless`)",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "endpoint"
+            ],
+            "user_tags": []
+        },
+        "telemetry_api.responses": {
+            "data_type": "responses",
+            "description": "The number of requests sent to the api endpoint in the agent that errored, tagged by the error type (e.g. `type:timeout`, `type:network`, `type:status_code`)",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "endpoint",
+                "status_code"
+            ],
+            "user_tags": []
+        }
+    },
+    "tracers": {
+        "context_header.truncated": {
+            "data_type": "instances",
+            "description": "The number of times a context propagation header is truncated, tagged by the reason for truncation (`truncation_reason:baggage_item_count_exceeded`, `truncation_reason:baggage_byte_count_exceeded`)",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "truncation_reason"
+            ],
+            "user_tags": []
+        },
+        "context_header_style.extracted": {
+            "data_type": "instances",
+            "description": "The number of times distributed context is successfully extracted from an outgoing span, tagged by header style (`header_style:tracecontext`, `header_style:datadog`, `header_style:b3multi`, `header_style:b3single`, `header_style:baggage`)",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "header_style"
+            ],
+            "user_tags": []
+        },
+        "context_header_style.injected": {
+            "data_type": "instances",
+            "description": "The number of times distributed context is injected into an outgoing span, tagged by header style (`header_style:tracecontext`, `header_style:datadog`, `header_style:b3multi`, `header_style:b3single`, `header_style:baggage`)",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "header_style"
+            ],
+            "user_tags": []
+        },
+        "docker_lib_injection.failure": {
+            "data_type": "requests",
+            "description": "Number of failed docker lib injection",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "language",
+                "version"
+            ],
+            "user_tags": []
+        },
+        "docker_lib_injection.success": {
+            "data_type": "requests",
+            "description": "Number of successful docker lib injection",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "language",
+                "version"
+            ],
+            "user_tags": []
+        },
+        "exporter_fallback": {
+            "data_type": "instances",
+            "description": "Number of times the libdatadog trace exporter isn't used and we fallback on the previous implementation",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "reason"
+            ],
+            "user_tags": []
+        },
+        "host_lib_injection.failure": {
+            "data_type": "requests",
+            "description": "Number of failed host lib injection",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "injecter_version",
+                "injector_version",
+                "language",
+                "version"
+            ],
+            "user_tags": []
+        },
+        "host_lib_injection.success": {
+            "data_type": "requests",
+            "description": "Number of successful host lib injection",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "injecter_version",
+                "injector_version",
+                "language",
+                "version"
+            ],
+            "user_tags": []
+        },
+        "inject.error": {
+            "data_type": "requests",
+            "description": "Number of erroneous injections of APM libraries",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "injecter_version",
+                "injector_version",
+                "language",
+                "platform",
+                "reason",
+                "version"
+            ],
+            "user_tags": []
+        },
+        "inject.language_detection": {
+            "data_type": "requests",
+            "description": "Number of matches or mismatches in language detection for the injector vs agent.",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "agent_detected_language",
+                "agent_language_detection_injection_enabled",
+                "injecter_version",
+                "injector_version",
+                "language",
+                "platform",
+                "version"
+            ],
+            "user_tags": []
+        },
+        "inject.latency.baseline": {
+            "data_type": "milliseconds",
+            "description": "End to end inject time less total init_container time.",
+            "metric_type": "distribution",
+            "send_to_user": false,
+            "tags": [
+                "injecter_version",
+                "injector_version",
+                "language",
+                "num_init_containers",
+                "platform",
+                "reason",
+                "version"
+            ],
+            "user_tags": []
+        },
+        "inject.latency.end_to_end": {
+            "data_type": "milliseconds",
+            "description": "End to end inject time (including scheduling, for k8s based injection).",
+            "metric_type": "distribution",
+            "send_to_user": false,
+            "tags": [
+                "injecter_version",
+                "injector_version",
+                "language",
+                "num_init_containers",
+                "platform",
+                "reason",
+                "version"
+            ],
+            "user_tags": []
+        },
+        "inject.latency.init_container": {
+            "data_type": "milliseconds",
+            "description": "The time it takes to load finish initializing an init-container for k8s based injection",
+            "metric_type": "distribution",
+            "send_to_user": false,
+            "tags": [
+                "container_name",
+                "injecter_version",
+                "injector_version",
+                "language",
+                "platform",
+                "reason",
+                "version"
+            ],
+            "user_tags": []
+        },
+        "inject.skip": {
+            "data_type": "requests",
+            "description": "Number of skipped injections of APM libraries",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "injecter_version",
+                "injector_version",
+                "language",
+                "platform",
+                "reason",
+                "rule",
+                "version"
+            ],
+            "user_tags": []
+        },
+        "inject.success": {
+            "data_type": "requests",
+            "description": "Number of successful injections of APM libraries",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "injecter_version",
+                "injection_forced",
+                "injector_version",
+                "language",
+                "platform",
+                "reason",
+                "rule",
+                "version"
+            ],
+            "user_tags": []
+        },
+        "integration_errors": {
+            "data_type": "instances",
+            "description": "The number of errors/failures in the library integration, tagged by the integration name (e.g. `integration_name:kafka`, `integration_name:rabbitmq`) and ErrorType (e.g. `error:duck_type`, `error:runtime`). Both tags will vary by implementation language",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "error_type",
+                "integration_name"
+            ],
+            "user_tags": []
+        },
+        "k8s_lib_injection.failure": {
+            "data_type": "requests",
+            "description": "Number of failed host k8s injection",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "injecter_version",
+                "injector_version",
+                "language",
+                "version"
+            ],
+            "user_tags": []
+        },
+        "k8s_lib_injection.success": {
+            "data_type": "requests",
+            "description": "Number of successful k8s lib injection",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "injecter_version",
+                "injector_version",
+                "language",
+                "version"
+            ],
+            "user_tags": []
+        },
+        "library_entrypoint.abort": {
+            "data_type": "requests",
+            "description": "Number of injections aborted at library entrypoint due to checks not passing",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "injector_version",
+                "platform",
+                "reason",
+                "runtime_name",
+                "runtime_version"
+            ],
+            "user_tags": []
+        },
+        "library_entrypoint.abort.integration": {
+            "data_type": "requests",
+            "description": "Number of injections aborted at library entrypoint due to integration version not supported",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "injector_version",
+                "integration",
+                "integration_version",
+                "platform",
+                "runtime_name",
+                "runtime_version"
+            ],
+            "user_tags": []
+        },
+        "library_entrypoint.abort.runtime": {
+            "data_type": "requests",
+            "description": "Number of injections aborted at library entrypoint due to runtime version not supported",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "injector_version",
+                "platform",
+                "runtime_name",
+                "runtime_version"
+            ],
+            "user_tags": []
+        },
+        "library_entrypoint.complete": {
+            "data_type": "requests",
+            "description": "Number of successful library entrypoint injections",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "injection_forced",
+                "injector_version",
+                "platform",
+                "runtime_name",
+                "runtime_version"
+            ],
+            "user_tags": []
+        },
+        "library_entrypoint.error": {
+            "data_type": "requests",
+            "description": "Number of injections aborted at library entrypoint due to an error",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "error_type",
+                "injector_version",
+                "integration",
+                "integration_version",
+                "platform",
+                "runtime_name",
+                "runtime_version"
+            ],
+            "user_tags": []
+        },
+        "library_entrypoint.injector.error": {
+            "data_type": "requests",
+            "description": "Number of failed library entrypoint telemetry forwards failed in the injector",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "injector_version",
+                "platform",
+                "reason"
+            ],
+            "user_tags": []
+        },
+        "otel.env.hiding": {
+            "data_type": "configuration keys",
+            "description": "The number of Opentelemetry configuration keys, configured and supported, but overridden by its counterpart Datadog Configuration key, tagged by Datadog configuration key and Opentelemetry configuration key",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "config_datadog",
+                "config_opentelemetry"
+            ],
+            "user_tags": []
+        },
+        "otel.env.invalid": {
+            "data_type": "configuration keys",
+            "description": "The number of configured supported Opentelemetry configuration keys that we fail to map its value to the Datadog form, tagged by Datadog configuration key and Opentelemetry configuration key",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "config_datadog",
+                "config_opentelemetry"
+            ],
+            "user_tags": []
+        },
+        "otel.env.unsupported": {
+            "data_type": "configuration keys",
+            "description": "The number of unsupported (not having a mapping with any Datadog configuration key) configured Opentelemetry Configuration keys, tagged by Opentelemetry configuration key",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "config_opentelemetry"
+            ],
+            "user_tags": []
+        },
+        "public_api.called": {
+            "data_type": "invocations",
+            "description": "Number of times the named public API (i.e. from the API component) is called, tagged by the API name, version of the component, and whether injection (i.e. SSI) is enabled",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "api_version",
+                "injection_enabled",
+                "name"
+            ],
+            "user_tags": []
+        },
+        "span_pointer_calculation": {
+            "data_type": "span_pointers",
+            "description": "The number of span pointer calculations performed. Each event is tagged with the context of the calculation (e.g. `context:botocore`) and the count of span pointers that resulted from the calculation",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "context",
+                "count"
+            ],
+            "user_tags": []
+        },
+        "span_pointer_calculation.issue": {
+            "data_type": "span_pointers",
+            "description": "The number of span poitner calculations that ran into an issue. For `contexcct:botocore` we include the `operation` that was being performed and the `issue` that was actually encountered. Other contexts may have different tags",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "context",
+                "issue",
+                "operation"
+            ],
+            "user_tags": []
+        },
+        "spans_created": {
+            "aliases": [
+                "span_created"
+            ],
+            "data_type": "spans",
+            "description": "The number of spans created by the tracer, tagged by automatic integration name (e.g. `integration_name:kafka`, `integration_name:rabbitmq`) or manual API (`integration_name:datadog`, `integration_name:otel` or `integration_name:opentracing`)",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "integration_name"
+            ],
+            "user_tags": []
+        },
+        "spans_dropped": {
+            "data_type": "spans",
+            "description": "The number of spans dropped and the reason for being dropped, for example `reason:p0_drop` (the span was part of a p0 trace that was droped by the tracer), `reason:overfull_buffer` (the local buffer was full, and the span had to be dropped), `reason:serialization_error` (there was an error serializing the span and it had to be dropped)",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "reason"
+            ],
+            "user_tags": []
+        },
+        "spans_enqueued_for_serialization": {
+            "data_type": "spans",
+            "description": "The number of spans enqueued for serialization/flushing. Tagged by one of `reason:p0_keep` (the span was part of a p0 trace that was kept for sending to the agent), `reason:single_span_sampling` (the span was selected via single_span_sampling, and otherwise would have been dropped as a p0 span), or `reason:default` - The tracer is not dropping p0 spans, so the span was enqueued 'by default' for sending to the trace-agent)",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "reason"
+            ],
+            "user_tags": []
+        },
+        "spans_finished": {
+            "aliases": [
+                "span_finished"
+            ],
+            "data_type": "spans",
+            "description": "The number of spans finished, optionally (if implementation allows) tagged by automatic integration name (e.g. `integration_name:kafka`, `integration_name:rabbitmq`) or manual API (`integration_name:datadog`, `integration_name:otel` or `integration_name:opentracing`)",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "integration_name"
+            ],
+            "user_tags": []
+        },
+        "stats_api.bytes": {
+            "data_type": "bytes",
+            "description": "The size of the payload sent to the stats endpoint in bytes",
+            "metric_type": "distribution",
+            "send_to_user": false,
+            "tags": [],
+            "user_tags": []
+        },
+        "stats_api.errors": {
+            "data_type": "requests",
+            "description": "The number of requests sent to the api endpoint in the agent that errored, tagged by the error type (e.g. Timeout, NetworkError, StatusCode)",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "type"
+            ],
+            "user_tags": []
+        },
+        "stats_api.ms": {
+            "data_type": "milliseconds",
+            "description": "The time it takes to send the payload sent to the endpoint in ms",
+            "metric_type": "distribution",
+            "send_to_user": false,
+            "tags": [],
+            "user_tags": []
+        },
+        "stats_api.requests": {
+            "data_type": "requests",
+            "description": "The number of requests sent to the stats endpoint in the agent, regardless of success",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [],
+            "user_tags": []
+        },
+        "stats_api.responses": {
+            "data_type": "responses",
+            "description": "The number of responses received from the endpoint, tagged with status code, e.g. `status_code:200`, `status_code:404`. May also use `status_code:5xx` for example as a catch-all for 2xx, 3xx, 4xx, 5xx responses",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "status_code"
+            ],
+            "user_tags": []
+        },
+        "stats_buckets": {
+            "data_type": "keys",
+            "description": "The number of unique buckets created for stats aggregation",
+            "metric_type": "gauge",
+            "send_to_user": false,
+            "tags": [],
+            "user_tags": []
+        },
+        "trace_api.bytes": {
+            "data_type": "bytes",
+            "description": "The size of the payload sent to the endpoint in bytes",
+            "metric_type": "distribution",
+            "send_to_user": false,
+            "tags": [
+                "src_library"
+            ],
+            "user_tags": []
+        },
+        "trace_api.errors": {
+            "data_type": "requests",
+            "description": "The number of requests sent to the trace endpoint in the agent that errored, tagged by the error type (e.g. `type:timeout`, `type:network`, `type:status_code`)",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "src_library",
+                "type"
+            ],
+            "user_tags": []
+        },
+        "trace_api.ms": {
+            "data_type": "milliseconds",
+            "description": "The time it takes to flush the trace payload to the agent. Note that this is not the per trace time, this is the per payload time",
+            "metric_type": "distribution",
+            "send_to_user": false,
+            "tags": [
+                "src_library"
+            ],
+            "user_tags": []
+        },
+        "trace_api.requests": {
+            "data_type": "requests",
+            "description": "The number of requests sent to the trace endpoint in the agent, regardless of success",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "src_library"
+            ],
+            "user_tags": []
+        },
+        "trace_api.responses": {
+            "data_type": "responses",
+            "description": "The number of responses received from the trace endpoint, tagged with status code, e.g. `status_code:200`, `status_code:404`. May also use `status_code:5xx` for example as a catch-all for 2xx, 3xx, 4xx, 5xx responses",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "src_library",
+                "status_code"
+            ],
+            "user_tags": []
+        },
+        "trace_chunk_serialization.bytes": {
+            "data_type": "bytes",
+            "description": "The size in bytes of the serialized trace chunk",
+            "metric_type": "distribution",
+            "send_to_user": false,
+            "tags": [],
+            "user_tags": []
+        },
+        "trace_chunk_serialization.ms": {
+            "data_type": "milliseconds",
+            "description": "The time it takes to serialize a trace chunk",
+            "metric_type": "distribution",
+            "send_to_user": false,
+            "tags": [],
+            "user_tags": []
+        },
+        "trace_chunk_size": {
+            "data_type": "spans",
+            "description": "The number of spans in the trace chunk when it is enqueued",
+            "metric_type": "distribution",
+            "send_to_user": false,
+            "tags": [],
+            "user_tags": []
+        },
+        "trace_chunks_dropped": {
+            "data_type": "trace chunks",
+            "description": "the number of trace chunks dropped prior to serialization, tagged by reason. Includes traces which are dropped due to errors, overfull buffers, as well as due to sampling decision. For example `reason:p0_drop` (the span a p0 trace that was droped by the tracer), `reason:overfull_buffer` (the local buffer was full, and the trace chunk had to be dropped), `reason:serialization_error` (there was an error serializing the trace and it had to be dropped)",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "reason",
+                "src_library"
+            ],
+            "user_tags": []
+        },
+        "trace_chunks_enqueued": {
+            "data_type": "trace chunks",
+            "description": "The number of times a trace chunk is enqueued for sampling/serialization. In partial-flush scenarios, multiple trace chunks may be enququed per trace segment/local trace",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [],
+            "user_tags": []
+        },
+        "trace_chunks_enqueued_for_serialization": {
+            "data_type": "trace chunks",
+            "description": "The number of trace chunks kept for serialization. Excludes single-span sampling spans. Tagged by one of `reason:p0_keep` (the trace was a p0 trace that was kept for sending to the agent) or `reason:default` - The tracer is not dropping p0 spans, so the span was enqueued 'by default' for sending to the trace-agent)",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "reason"
+            ],
+            "user_tags": []
+        },
+        "trace_chunks_sent": {
+            "data_type": "trace chunks",
+            "description": "The number of trace chunks attempted to be sent to the backend, regardless of response",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "src_library"
+            ],
+            "user_tags": []
+        },
+        "trace_partial_flush.count": {
+            "data_type": "instances",
+            "description": "The number of times a partial flush (where a span is flushed separately from its local root span) is triggered, tagged by the reason the flush was triggered (`reason:large_trace`, `reason:single_span_ingestion`)",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "reason"
+            ],
+            "user_tags": []
+        },
+        "trace_partial_flush.spans_closed": {
+            "data_type": "spans",
+            "description": "The number of spans included in the trace chunk when partial flush is triggered",
+            "metric_type": "distribution",
+            "send_to_user": false,
+            "tags": [],
+            "user_tags": []
+        },
+        "trace_partial_flush.spans_remaining": {
+            "data_type": "spans",
+            "description": "The number of open spans remaining in the trace segment (local trace) when partial flush is triggered",
+            "metric_type": "distribution",
+            "send_to_user": false,
+            "tags": [],
+            "user_tags": []
+        },
+        "trace_segments_closed": {
+            "data_type": "trace segments",
+            "description": "The number of trace segments (local traces) closed. In non partial flush scenarios, trace_segments_closed == trace_chunks_enqueued",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [],
+            "user_tags": []
+        },
+        "trace_segments_created": {
+            "data_type": "trace segments",
+            "description": "The number of trace segments (local traces) created, tagged with new/continued depending on whether this is a new trace (no distributed context information) or continued (has distributed context).",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "new_continued"
+            ],
+            "user_tags": []
+        }
+    }
+}
