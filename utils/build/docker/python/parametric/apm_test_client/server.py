@@ -10,6 +10,7 @@ import os
 from fastapi import FastAPI
 import opentelemetry.trace
 from pydantic import BaseModel
+from urllib.parse import urlparse
 
 import opentelemetry
 from opentelemetry.trace import set_tracer_provider
@@ -130,8 +131,8 @@ def trace_config() -> TraceConfigReturn:
             "dd_version": config.version,
             "dd_trace_rate_limit": str(config._trace_rate_limit),
             "dd_trace_agent_url": config._trace_agent_url,
-            "dd_dogstatsd_host": config._stats_agent_hostname,
-            "dd_dogstatsd_port": config._stats_agent_port,
+            "dd_dogstatsd_host": urlparse(ddtrace.tracer._dogstatsd_url).hostname,
+            "dd_dogstatsd_port": urlparse(ddtrace.tracer._dogstatsd_url).port,
             "dd_logs_injection": str(config._logs_injection).lower(),
             "dd_profiling_enabled": str(profiling_config.enabled).lower(),
             "dd_data_streams_enabled": str(config._data_streams_enabled).lower(),
