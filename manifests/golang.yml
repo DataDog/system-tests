@@ -493,6 +493,8 @@ tests/:
       Test_Debugger_Probe_Statuses: missing_feature (feature not implented)
     test_debugger_symdb.py:
       Test_Debugger_SymDb: missing_feature (feature not implented)
+    test_debugger_telemetry.py:
+      Test_Debugger_Telemetry: missing_feature
   integrations/:
     crossed_integrations/:
       test_kafka.py:
