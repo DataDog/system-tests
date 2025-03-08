@@ -282,7 +282,6 @@ class Test_Config_ClientTagQueryString_Configured:
     def setup_query_string_redaction(self):
         self.r = weblog.get("/make_distant_call", params={"url": "http://weblog:7777/?hi=monkey"})
 
-    @bug(context.library >= "golang@1.72.0", reason="APMAPI-1196")
     def test_query_string_redaction(self):
         trace = [span for _, _, span in interfaces.library.get_spans(self.r, full_trace=True)]
         expected_tags = {"http.url": "http://weblog:7777/"}
