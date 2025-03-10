@@ -844,6 +844,25 @@ class _Scenarios:
             "clusterAgent.env[0].value": "auto",
         },
     )
+    k8s_lib_injection_all_namespaces = K8sScenario(
+        "K8S_LIB_INJECTION_ALL_NAMESPACES",
+        doc="",
+        dd_cluster_feature={
+            "clusterAgent.datadog_cluster_yaml.apm_config.instrumentation.enabled": "true",
+            "clusterAgent.datadog_cluster_yaml.apm_config.instrumentation.targets[0].name": "my-app",
+            "clusterAgent.datadog_cluster_yaml.apm_config.instrumentation.targets[0].podSelector.matchLabels.app": (
+                "my-app"
+            ),
+            "clusterAgent.datadog_cluster_yaml.apm_config.instrumentation.targets[0].namespaceSelector.matchNames[0]": (
+                "application"
+            ),
+            "clusterAgent.datadog_cluster_yaml.apm_config.instrumentation.targets[0].ddTraceVersions.#k8s-library#": (
+                "#k8s-lib-init-img#"
+            ),
+        },
+        weblog_namespace="application",
+        inject_by_annotations=False,
+    )
     k8s_lib_injection_spark_djm = K8sSparkScenario("K8S_LIB_INJECTION_SPARK_DJM", doc="Kubernetes lib injection DJM")
 
     docker_ssi = DockerSSIScenario(

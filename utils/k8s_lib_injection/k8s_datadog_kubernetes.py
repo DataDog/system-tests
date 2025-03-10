@@ -1,6 +1,7 @@
 import os
 import time
 import yaml
+import re
 from pathlib import Path
 from kubernetes import client, watch
 from utils.tools import logger
@@ -14,7 +15,10 @@ from retry import retry
 
 
 class K8sDatadog:
-    def __init__(self, output_folder):
+    def __init__(self, library, library_init_image, injector_image, output_folder):
+        self.library = library
+        self.library_init_image = library_init_image
+        self.injector_image = injector_image
         self.output_folder = output_folder
 
     def configure(
@@ -26,6 +30,7 @@ class K8sDatadog:
         dd_cluster_img=None,
         api_key=None,
         app_key=None,
+        inject_by_annotations=True,
     ):
         self.k8s_cluster_info = k8s_cluster_info
         self.dd_cluster_feature = dd_cluster_feature
@@ -34,7 +39,73 @@ class K8sDatadog:
         self.dd_cluster_img = dd_cluster_img
         self.api_key = api_key
         self.app_key = app_key
+        self.inject_by_annotations = inject_by_annotations
+        if not self.inject_by_annotations:
+            self.configure_inject_imgs_by_cluster_features()
         logger.info(f"K8sDatadog configured with cluster: {self.k8s_cluster_info.cluster_name}")
+
+    def configure_inject_imgs_by_cluster_features(self):
+        """We can set the injection images (lib-init and injector) as cluster configuration
+        WARN: Currently in this mechanism we can not set the registry url, only the tag
+        """
+        library_lib = "js" if self.library == "nodejs" else self.library
+        injection_images = {
+            "datadog.apm.instrumentation.injector.imageTag": self._extract_tag(self.injector_image),
+        }
+        # If in the cluster_features configured by the scenario there are not entries
+        # like "apm_config.instrumentation.targets" we can set the lib init. Both config are the same time are not compatible:
+        # failed to register APM Instrumentation webhook: failed to create auto instrumentation config:
+        #   apm_config.instrumentation.lib_versions and apm_config.instrumentation.targets are mutually exclusive and cannot be set together
+        if self._has_apm_targets(self.dd_cluster_feature):
+            # Workaround: to specify ie apm_config.instrumentation.targets[0].ddTraceVersions.python="latest" we are using a string to replace
+            # by the current library and the tag of lib-init setted by the command line. ie:
+            # "clusterAgent.datadog_cluster_yaml.apm_config.instrumentation.targets[0].ddTraceVersions.#k8s-library#": "#k8s-lib-init-img#"
+            # Replace these wildcards for the current values
+            self._replace_wildcards_apm_targets(self.dd_cluster_feature)
+        else:
+            injection_images.update(
+                {f"datadog.apm.instrumentation.libVersions.{library_lib}": self._extract_tag(self.library_init_image)}
+            )
+
+        self.dd_cluster_feature.update(injection_images)
+
+        logger.info("Injection images configured using datadog cluster agent")
+        logger.debug(self.dd_cluster_feature)
+
+    def _has_apm_targets(self, data):
+        """Check if the dictionary contains any keys starting with the target key"""
+        target_key = "clusterAgent.datadog_cluster_yaml.apm_config.instrumentation.targets"
+        return any(key.startswith(target_key) for key in data.keys())  # noqa: SIM118
+
+    def _replace_wildcards_apm_targets(self, data):
+        """Recursively replace wildcards in dictionary keys and values in-place"""
+        library_lib = "js" if self.library == "nodejs" else self.library
+        keys_to_update = list(data.keys())  # Copy keys to avoid modifying while iterating
+
+        for key in keys_to_update:
+            value = data.pop(key)  # Remove old key
+            # Replace wildcards in the key
+            new_key = key.replace("#k8s-library#", library_lib).replace(
+                "#k8s-lib-init-img#", self._extract_tag(self.library_init_image)
+            )
+
+            # Replace wildcards in the value
+            if isinstance(value, str):
+                new_value = value.replace("#k8s-library#", library_lib).replace(
+                    "#k8s-lib-init-img#", self._extract_tag(self.library_init_image)
+                )
+            elif isinstance(value, dict):
+                self.replace_wildcards(value)  # Recursive replacement for nested dictionaries
+                new_value = value
+            else:
+                new_value = value  # Keep non-string values unchanged
+
+            data[new_key] = new_value  # Assign back to the original dictionary
+
+    def _extract_tag(self, image_url):
+        """Extracts the tag from a container image URL."""
+        match = re.search(r":([^:/]+)$", image_url)
+        return match.group(1) if match else None
 
     def deploy_test_agent(self, namespace="default"):
         """Installs the test agent pod."""

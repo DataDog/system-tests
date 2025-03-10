@@ -11,6 +11,7 @@ from utils.onboarding.wait_for_tcp_port import wait_for_port
 @scenarios.k8s_lib_injection_uds
 @scenarios.k8s_lib_injection_no_ac
 @scenarios.k8s_lib_injection_no_ac_uds
+@scenarios.k8s_lib_injection_all_namespaces
 class TestK8sLibInjection:
     """Test K8s lib injection"""
 

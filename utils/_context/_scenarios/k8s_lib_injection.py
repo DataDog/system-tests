@@ -32,6 +32,8 @@ class K8sScenario(Scenario):
         weblog_env={},
         dd_cluster_feature={},
         with_datadog_operator=False,
+        weblog_namespace="default",
+        inject_by_annotations=True,
     ) -> None:
         super().__init__(
             name,
@@ -43,6 +45,14 @@ class K8sScenario(Scenario):
         self.with_datadog_operator = with_datadog_operator
         self.weblog_env = weblog_env
         self.dd_cluster_feature = dd_cluster_feature
+        self.weblog_namespace = weblog_namespace
+        # We can specify the lib-init and injector custom images by setting annotation inside the weblog pod
+        # This will override configurations setted by the cluster configuration. For example, if you
+        # disable the auto-injection by the cluster agent configuration the auto instrumentation will be
+        # executed in your pod if you setted the annotations.
+        # If you set this variables as false the lib-init and injector images will be configured by the
+        # cluster agent configuration (better way)
+        self.inject_by_annotations = inject_by_annotations
 
     def configure(self, config):
         # If we are using the datadog operator, we don't need to deploy the test agent
@@ -97,7 +107,9 @@ class K8sScenario(Scenario):
         self._sleep_mode = config.option.sleep
 
         # Prepare kubernetes datadog (manages the dd_cluster_agent and test_agent or the operator)
-        self.k8s_datadog = K8sDatadog(self.host_log_folder)
+        self.k8s_datadog = K8sDatadog(
+            self.library.library, self.k8s_lib_init_img, self.k8s_injector_img, self.host_log_folder
+        )
         self.k8s_datadog.configure(
             self.k8s_cluster_provider.get_cluster_info(),
             dd_cluster_feature=self.dd_cluster_feature,
@@ -106,6 +118,7 @@ class K8sScenario(Scenario):
             dd_cluster_img=self.k8s_cluster_img,
             api_key=self._api_key if self.with_datadog_operator else None,
             app_key=self._app_key if self.with_datadog_operator else None,
+            inject_by_annotations=self.inject_by_annotations,
         )
         # Weblog handler (the lib init and injector imgs are set in weblog/pod as annotations)
         self.test_weblog = K8sWeblog(
@@ -114,9 +127,13 @@ class K8sScenario(Scenario):
             self.k8s_lib_init_img,
             self.k8s_injector_img,
             self.host_log_folder,
+            namespace=self.weblog_namespace,
         )
         self.test_weblog.configure(
-            self.k8s_cluster_provider.get_cluster_info(), weblog_env=self.weblog_env, dd_cluster_uds=self.use_uds
+            self.k8s_cluster_provider.get_cluster_info(),
+            weblog_env=self.weblog_env,
+            dd_cluster_uds=self.use_uds,
+            inject_by_annotations=self.inject_by_annotations,
         )
 
     def print_context(self):
@@ -155,7 +172,7 @@ class K8sScenario(Scenario):
             return
         logger.info("K8sInstance Exporting debug info")
         self.k8s_datadog.export_debug_info(namespace="default")
-        self.test_weblog.export_debug_info(namespace="default")
+        self.test_weblog.export_debug_info()
         logger.info("Destroying cluster")
         self.k8s_cluster_provider.destroy_cluster()
 
