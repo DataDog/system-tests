@@ -160,7 +160,7 @@ check_pipeline_status:
      - echo "Checking if any job failed..."
      - |
        FAILED_JOBS=$(curl --header "PRIVATE-TOKEN: $CI_JOB_TOKEN" "$CI_API_V4_URL/projects/$CI_PROJECT_ID/pipelines/$CI_PIPELINE_ID/jobs?scope=failed")
-     - echo "URL "$CI_API_V4_URL/projects/$CI_PROJECT_ID/pipelines/$CI_PIPELINE_ID/jobs?scope=failed"
+     - echo "URL $CI_API_V4_URL/projects/$CI_PROJECT_ID/pipelines/$CI_PIPELINE_ID/jobs?scope=failed"
      - echo "OUTPUT  $FAILED_JOBS"
    when: always
 
