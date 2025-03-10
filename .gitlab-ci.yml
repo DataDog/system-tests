@@ -148,7 +148,7 @@ check_pipeline_status:
      - echo "Checking if any job failed..."
      - export GITLAB_TOKEN=$(aws ssm get-parameter --region us-east-1 --name "ci.$CI_PROJECT_NAME.gitlab.token" --with-decryption --query "Parameter.Value" --out text)
      - |
-       FAILED_JOBS=$(curl --header "PRIVATE-TOKEN: $CI_JOB_TOKEN" \
+       FAILED_JOBS=$(curl --header "PRIVATE-TOKEN: $GITLAB_TOKEN" \
        "$CI_API_V4_URL/projects/$CI_PROJECT_ID/pipelines/$CI_PIPELINE_ID/jobs?scope=failed" | jq '. | length')
      - if [ "$FAILED_JOBS" -gt 0 ]; then
          echo "❌ A job failed, failing the pipeline!";
