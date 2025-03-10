@@ -94,6 +94,11 @@ public class Main {
                             .setStatusCode(Integer.parseInt(ctx.pathParam("status_code")))
                             .end("Value tagged");
                 });
+        router.get("/sample_rate_route/:i")
+                .handler(ctx -> {
+                    final int i = Integer.parseInt(ctx.pathParam("i"));
+                    ctx.response().setStatusCode(200).end("OK\n");
+                });
         router.get("/api_security/sampling/:i")
                 .produces("text/plain")
                 .handler(ctx -> {

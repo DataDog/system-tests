@@ -223,6 +223,9 @@ class Test_StandardTagsRoute:
                 tags["http.route"] = "/sample_rate_route/<i>"
             elif context.weblog_variant in ("django-poc", "python3.12", "django-py3.13"):
                 tags["http.route"] = "sample_rate_route/<int:i>"
+        if context.library == "java":
+            if context.weblog_variant in ("vertx3", "vertx4"):
+                tags["http.route"] = "/sample_rate_route/:i"
 
         interfaces.library.add_span_tag_validation(request=self.r, tags=tags)
 
