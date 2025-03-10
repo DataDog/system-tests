@@ -152,20 +152,17 @@ rmm_ssi_pipeline:
   script:
     - exit 1
 
-check_pipeline_status:
-  stage: pipeline-status  
-  image: registry.ddbuild.io/images/ci_docker_base
-  tags: ["runner:docker"]
-  needs: [] 
-  script:
-    - echo "Checking if any previous job failed..."
-    - |
-      if grep -q "FATAL: exit status 1" $(find $CI_PROJECT_DIR -name "*.log" 2>/dev/null); then
-        echo "❌ At least one job failed! Failing the pipeline."
-        exit 1
-      fi
-    - echo "✅ All jobs are green!"
-  when: always  # ✅ Runs even if jobs fail
+ check_pipeline_status:
+   stage: pipeline-status
+   image: registry.ddbuild.io/images/ci_docker_base
+   tags: ["runner:docker"]
+   script:
+     - echo "Checking if any job failed..."
+     - |
+       FAILED_JOBS=$(curl --header "PRIVATE-TOKEN: $CI_JOB_TOKEN" \
+       "$CI_API_V4_URL/projects/$CI_PROJECT_ID/pipelines/$CI_PIPELINE_ID/jobs?scope=failed")
+     - echo "OUTPUT  $FAILED_JOBS"
+   when: always
 
 check_merge_labels:
   #Build docker images if it's needed. Check if the PR has the labels associated with the image build.
