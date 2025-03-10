@@ -147,7 +147,10 @@ class BaseDebuggerTest:
                     elif language == "python":
                         probe["where"]["sourceFile"] = "debugger_controller.py"
                     elif language == "ruby":
-                        probe["where"]["sourceFile"] = "debugger_controller.rb"
+                        # In docker container the controller will not have the
+                        # shared/rails prefix, this is fine because DI will
+                        # remove prefixes as part of file matching.
+                        probe["where"]["sourceFile"] = "shared/rails/app/controllers/debugger_controller.rb"
                     elif language == "nodejs":
                         probe["where"]["sourceFile"] = "debugger/index.js"
                 probe["type"] = __get_probe_type(probe["id"])
