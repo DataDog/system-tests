@@ -53,8 +53,13 @@ class Test_Truncation:
 
         waf_requests_series = self._find_series("generate-metrics", "appsec", ["waf.requests"])
         has_input_truncated = any("input_truncated:true" in series["tags"] for series in waf_requests_series)
-
         assert has_input_truncated, "Expected at least one serie to have input_truncated:true tag"
+
+        all_have_input_truncated_tag = all(
+            "input_truncated:true" in series["tags"] or "input_truncated:false" in series["tags"] 
+            for series in waf_requests_series
+        )
+        assert all_have_input_truncated_tag, "Expected all series to have input_truncated tag"
 
         count_series = self._find_series("generate-metrics", "appsec", ["waf.input_truncated"])
         input_truncated = count_series[0] if count_series else None
