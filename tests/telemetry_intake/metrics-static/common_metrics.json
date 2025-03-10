@@ -1,6 +1,36 @@
 {
     "$schema": "../schema/common_metrics.json",
     "appsec": {
+        "api_security.missing_route": {
+            "data_type": "requests",
+            "description": "Counts the number of requests in which the library was unable to obtain the HTTP route.",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "framework"
+            ],
+            "user_tags": []
+        },
+        "api_security.request.schema": {
+            "data_type": "requests",
+            "description": "Counts the number of requests in which schemas were generated.",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "framework"
+            ],
+            "user_tags": []
+        },
+        "api_security.request.no_schema": {
+            "data_type": "requests",
+            "description": "Counts the number of requests without schema..",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "framework"
+            ],
+            "user_tags": []
+        },
         "instrum.user_auth.missing_user_id": {
             "data_type": "events",
             "description": "The library was unable to obtain a user ID as part of the login success or failure event. This should only be sent if the user login was also unavailable.",
@@ -20,6 +50,20 @@
             "tags": [
                 "event_type",
                 "framework"
+            ],
+            "user_tags": []
+        },
+        "rasp.error": {
+            "data_type": "errors",
+            "description": "Counts the number of times the WAF returned an error when evaluating a specific rule type.",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "event_rules_version",
+                "rule_type",
+                "rule_variant",
+		"waf_error",
+                "waf_version"
             ],
             "user_tags": []
         },
@@ -48,6 +92,18 @@
                 "rule_variant",
                 "waf_version"
             ],
+            "user_tags": []
+        },
+        "rasp.rule.skipped": {
+            "data_type": "events",
+            "description": "Counts the number of times the evaluation of a RASP instrumentation had to be skipped due to issues related to the request lifecycle",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "reason",
+                "rule_type",
+                "rule_variant"
+	    ],
             "user_tags": []
         },
         "rasp.timeout": {
@@ -110,6 +166,18 @@
             ],
             "user_tags": []
         },
+        "waf.error": {
+            "data_type": "errors",
+            "description": "Counts the number of times the WAF returned an error when evaluating WAF addresses",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "event_rules_version",
+		"waf_error",
+                "waf_version"
+            ],
+            "user_tags": []
+        },
         "waf.init": {
             "data_type": "requests",
             "description": "Number of times we is initialized",
@@ -139,9 +207,13 @@
             "send_to_user": false,
             "tags": [
                 "event_rules_version",
+                "block_failure",
+                "input_truncated",
+                "rate_limited",
                 "request_blocked",
                 "request_excluded",
                 "rule_triggered",
+                "waf_error",
                 "waf_timeout",
                 "waf_version"
             ],
