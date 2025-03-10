@@ -51,6 +51,11 @@ class Test_Truncation:
         assert int(metrics["_dd.appsec.truncated.container_size"]) == 300
         assert int(metrics["_dd.appsec.truncated.container_depth"]) == 20
 
+        waf_requests_series = self._find_series("generate-metrics", "appsec", ["waf.requests"])
+        has_input_truncated = any("input_truncated:true" in series["tags"] for series in waf_requests_series)
+
+        assert has_input_truncated, "Expected at least one serie to have input_truncated:true tag"
+
         count_series = self._find_series("generate-metrics", "appsec", ["waf.input_truncated"])
         input_truncated = count_series[0] if count_series else None
 
