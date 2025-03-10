@@ -60,14 +60,14 @@ def validate_trace_id(span: dict, *, use_128_bits_trace_id: bool) -> None:
 
 
 def validate_server_span(span: dict) -> None:
-    expected_tags = {"name": "WebController.basic", "resource": "GET /"}
+    expected_tags = {"name": "http.server.request", "resource": "GET /"}
     expected_meta = {"http.route": "/", "http.method": "GET"}
     assert expected_tags.items() <= span.items()
     assert expected_meta.items() <= span["meta"].items()
 
 
 def validate_message_span(span: dict) -> None:
-    expected_tags = {"name": "WebController.basic.publish", "resource": "publish"}
+    expected_tags = {"name": "rabbitmq.publish", "resource": "publish"}
     expected_meta = {"messaging.operation": "publish", "messaging.system": "rabbitmq"}
     assert expected_tags.items() <= span.items()
     assert expected_meta.items() <= span["meta"].items()
