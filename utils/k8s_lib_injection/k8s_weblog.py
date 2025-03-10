@@ -70,16 +70,15 @@ class K8sWeblog:
             else {}
         )
 
+        # Pod labels
+        pod_labels = self.k8s_weblog_specs.weblog_labels
+        if self.inject_by_annotations:
+            pod_labels.update({"admission.datadoghq.com/enabled": "true"})
+
         pod_metadata = client.V1ObjectMeta(
             name=self.k8s_weblog_specs.pod_name,
             namespace=self.k8s_weblog_specs.namespace,
-            labels={
-                "admission.datadoghq.com/enabled": "true",
-                "app": "my-app",
-                #  "tags.datadoghq.com/env": "local",
-                #  "tags.datadoghq.com/service": "my-app",
-                #  "tags.datadoghq.com/version": "local",
-            },
+            labels=pod_labels,
             annotations=inject_annotations,
         )
 
@@ -87,24 +86,6 @@ class K8sWeblog:
         # Set the default environment variables for all pods
         default_pod_env = [
             client.V1EnvVar(name="SERVER_PORT", value="18080"),
-            # client.V1EnvVar(
-            #    name="DD_ENV",
-            #    value_from=client.V1EnvVarSource(
-            #        field_ref=client.V1ObjectFieldSelector(field_path="metadata.labels['tags.datadoghq.com/env']")
-            #    ),
-            # ),
-            # client.V1EnvVar(
-            #    name="DD_SERVICE",
-            #    value_from=client.V1EnvVarSource(
-            #        field_ref=client.V1ObjectFieldSelector(field_path="metadata.labels['tags.datadoghq.com/service']")
-            #    ),
-            # ),
-            # client.V1EnvVar(
-            #    name="DD_VERSION",
-            #    value_from=client.V1EnvVarSource(
-            #        field_ref=client.V1ObjectFieldSelector(field_path="metadata.labels['tags.datadoghq.com/version']")
-            #    ),
-            # ),
             client.V1EnvVar(name="DD_TRACE_DEBUG", value="1"),
             client.V1EnvVar(name="DD_APM_INSTRUMENTATION_DEBUG", value="true"),
         ]

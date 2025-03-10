@@ -236,7 +236,7 @@ class K8sManualInstrumentationScenario(Scenario):
         self._sleep_mode = config.option.sleep
 
         # Prepare kubernetes datadog (manages the dd_cluster_agent and test_agent or the operator)
-        self.k8s_datadog = K8sDatadog(self.host_log_folder)
+        self.k8s_datadog = K8sDatadog(self.library.library, self.k8s_lib_init_img, None, self.host_log_folder)
         self.k8s_datadog.configure(self.k8s_cluster_provider.get_cluster_info())
         # Weblog handler
         self.test_weblog = K8sWeblog(
@@ -268,7 +268,7 @@ class K8sManualInstrumentationScenario(Scenario):
 
     def close_targets(self):
         if not self._sleep_mode:
-            self.test_weblog.export_debug_info(namespace="default")
+            self.test_weblog.export_debug_info()
         self.k8s_cluster_provider.destroy_cluster()
 
     @property
@@ -297,9 +297,11 @@ class K8sSparkScenario(K8sScenario):
 
     def configure(self, config):
         super().configure(config)
-        self.weblog_env["LIB_INIT_IMAGE"] = self.k8s_lib_init_img
+        self.k8s_weblog_specs.weblog_env["LIB_INIT_IMAGE"] = self.k8s_lib_init_img
 
-        self.k8s_datadog = K8sDatadog(self.host_log_folder)
+        self.k8s_datadog = K8sDatadog(
+            self.library.library, self.k8s_lib_init_img, self.k8s_injector_img, self.host_log_folder
+        )
         self.k8s_datadog.configure(
             self.k8s_cluster_provider.get_cluster_info(),
             dd_cluster_feature=self.dd_cluster_feature,
