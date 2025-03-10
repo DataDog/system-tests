@@ -1914,10 +1914,7 @@ tests/:
       spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
     Test_StandardTagsMethod: v0.102.0
     Test_StandardTagsRoute:
-      '*': missing_feature
-      spring-boot: v0.102.0
-      spring-boot-jetty: v0.102.0
-      spring-boot-wildfly: v0.102.0
+      '*': v0.102.0
     Test_StandardTagsStatusCode: v0.102.0
     Test_StandardTagsUrl: v0.107.1
     Test_StandardTagsUserAgent: v0.107.1
