@@ -164,8 +164,9 @@ check_pipeline_status:
             exit 0
           fi
 
-          # Extract failing job details
-          FAILED_JOB_DETAILS=$(echo "$RESPONSE" | jq -r '.[] | "Job ID: \(.id), Name: \(.name), Status: \(.status), Stage: \(.stage), URL: '"\"$CI_PROJECT_URL/-/jobs/\(.id)\""' "')
+          # Extract failing job details (properly escaped)
+          FAILED_JOB_DETAILS=$(echo "$RESPONSE" | jq -r --arg url "$CI_PROJECT_URL" \
+            '.[] | "Job ID: \(.id), Name: \(.name), Status: \(.status), Stage: \(.stage), URL: \($url + "/-/jobs/" + (.id|tostring))"')
           
           break  # Exit loop if valid response received
         else
@@ -180,6 +181,7 @@ check_pipeline_status:
     - echo "$FAILED_JOB_DETAILS"
     - exit 1
   when: always
+
 
 check_merge_labels:
   #Build docker images if it's needed. Check if the PR has the labels associated with the image build.
