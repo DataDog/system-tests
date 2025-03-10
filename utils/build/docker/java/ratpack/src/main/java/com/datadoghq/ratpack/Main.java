@@ -177,6 +177,14 @@ public class Main {
                                     ctx.getResponse().status(code).send("Value tagged");
                                 });
                             })
+                            .get("api_security/sampling/:i", ctx -> {
+                                final int i = Integer.parseInt(ctx.getPathTokens().get("i"));
+                                ctx.getResponse().status(i).send("Hello!\n");
+                            })
+                            .get("api_security_sampling/:i", ctx -> {
+                                final int i = Integer.parseInt(ctx.getPathTokens().get("i"));
+                                ctx.getResponse().status(200).send("OK!\n");
+                            })
                             .path("waf/:params?", ctx -> {
                                 HttpMethod method = ctx.getRequest().getMethod();
                                 if (method.equals(HttpMethod.GET)) {

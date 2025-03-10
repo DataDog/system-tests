@@ -107,8 +107,31 @@ public class MyResource {
     @POST
     @Path("/tag_value/{tag_value}/{status_code}")
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-    public Response tagValuePost(@PathParam("tag_value") String value, @PathParam("status_code") int code, MultivaluedMap<String, String> form) {
+    public Response tagValuePostForm(@PathParam("tag_value") String value, @PathParam("status_code") int code, MultivaluedMap<String, String> form) {
         return tagValue(value, code);
+    }
+
+    @POST
+    @Path("/tag_value/{tag_value}/{status_code}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response tagValuePostJson(@PathParam("tag_value") String value, @PathParam("status_code") int code, JsonValue body) {
+        return tagValue(value, code);
+    }
+
+    @GET
+    @Path("/api_security/sampling/{i}")
+    public Response apiSecuritySamplingWithStatus(@PathParam("i") int i) {
+        return Response.status(i)
+                .header("content-type", "text/plain")
+                .entity("Hello!\n").build();
+    }
+
+    @GET
+    @Path("/api_security_sampling/{i}")
+    public Response apiSecuritySampling(@PathParam("i") int i) {
+        return Response.status(200)
+                .header("content-type", "text/plain")
+                .entity("Hello!\n").build();
     }
 
     @GET

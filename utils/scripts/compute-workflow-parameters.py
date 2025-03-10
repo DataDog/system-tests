@@ -2,8 +2,13 @@ import argparse
 import json
 
 from utils._context._scenarios import get_all_scenarios, ScenarioGroup
-from utils.scripts.ci_orchestrators.workflow_data import get_aws_matrix, get_endtoend_definitions
-from utils.scripts.ci_orchestrators.gitlab_exporter import print_aws_gitlab_pipeline
+from utils.scripts.ci_orchestrators.workflow_data import (
+    get_aws_matrix,
+    get_endtoend_definitions,
+    get_docker_ssi_matrix,
+    get_k8s_matrix,
+)
+from utils.scripts.ci_orchestrators.gitlab_exporter import print_gitlab_pipeline
 
 
 class CiData:
@@ -43,10 +48,19 @@ class CiData:
             "enable": len(scenario_map["parametric"]) > 0 and "otel" not in library,
         }
 
-        self.data["libinjection"] = {
-            "scenarios": scenario_map.get("libinjection", []),
-            "enable": len(scenario_map["libinjection"]) > 0 and "otel" not in library,
-        }
+        self.data["libinjection_scenario_defs"] = get_k8s_matrix(
+            "utils/scripts/ci_orchestrators/k8s_ssi.json",
+            scenario_map.get("libinjection", []),
+            library,
+        )
+
+        self.data["dockerssi_scenario_defs"] = get_docker_ssi_matrix(
+            "utils/docker_ssi/docker_ssi_images.json",
+            "utils/docker_ssi/docker_ssi_runtimes.json",
+            "utils/scripts/ci_orchestrators/docker_ssi.json",
+            scenario_map.get("dockerssi", []),
+            library,
+        )
 
         self.data["aws_ssi_scenario_defs"] = get_aws_matrix(
             "utils/virtual_machine/virtual_machines.json",
@@ -94,8 +108,7 @@ class CiData:
         self._export("\n".join(result), output)
 
     def _export_gitlab(self) -> None:
-        # gitlab can only handle aws_ssi right now
-        print_aws_gitlab_pipeline(self.language, self.data["aws_ssi_scenario_defs"], self.environment)
+        print_gitlab_pipeline(self.language, self.data, self.environment)
 
     @staticmethod
     def _export(data: str, output: str) -> None:
