@@ -155,6 +155,10 @@ check_pipeline_status:
         RESPONSE=$(curl --silent --header "PRIVATE-TOKEN: $CI_JOB_TOKEN" \
         "$CI_API_V4_URL/projects/$CI_PROJECT_ID/pipelines/$CI_PIPELINE_ID/jobs?scope=failed")
 
+        # Debugging step: print raw API response
+        echo "RAW API RESPONSE: $RESPONSE"
+        echo "$RESPONSE" | jq .
+
         # Ensure response is valid JSON before parsing
         if echo "$RESPONSE" | jq -e type > /dev/null 2>&1; then
           FAILED_JOBS=$(echo "$RESPONSE" | jq '. | length')
@@ -164,11 +168,13 @@ check_pipeline_status:
             exit 0
           fi
 
-          # Extract failing job details (ensure it's an array)
-          FAILED_JOB_DETAILS=$(echo "$RESPONSE" | jq -r --arg url "$CI_PROJECT_URL" \
-            '.[] | select(type=="object") | "Job ID: \(.id), Name: \(.name), Status: \(.status), Stage: \(.stage), URL: \($url + "/-/jobs/" + (.id|tostring))"')
-          
-          break  # Exit loop if valid response received
+          # Extract failing job details
+          FAILED_JOB_DETAILS=$(echo "$RESPONSE" | jq -r \
+            '.[] | select(.id and .name and .status and .stage) | "Job ID: \(.id), Name: \(.name), Status: \(.status), Stage: \(.stage), URL: '"\"$CI_PROJECT_URL/-/jobs/\(.id)\""' "')
+
+          if [ -n "$FAILED_JOB_DETAILS" ]; then
+            break  # Exit loop if valid response received
+          fi
         else
           echo "⚠️ Warning: Received invalid JSON response, retrying... ($i/$RETRIES)"
           sleep 5  # Wait before retrying
@@ -181,6 +187,7 @@ check_pipeline_status:
     - echo "$FAILED_JOB_DETAILS"
     - exit 1
   when: always
+
 
 check_merge_labels:
   #Build docker images if it's needed. Check if the PR has the labels associated with the image build.
