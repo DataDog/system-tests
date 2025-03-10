@@ -203,6 +203,8 @@ class Test_StandardTagsRoute:
         self.r = weblog.get("/sample_rate_route/1")
 
     def test_route(self):
+        assert self.r.status_code == 200
+
         tags = {"http.route": "/sample_rate_route/{i}"}
 
         # specify the route syntax if needed
