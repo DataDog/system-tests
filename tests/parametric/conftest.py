@@ -376,20 +376,52 @@ class _TestAgentAPI:
                 pass
             else:
                 for event in events:
-                    if event["request_type"] == "message-batch":
-                        for message in event["payload"]:
-                            if message["request_type"] == event_name:
-                                if message.get("application", {}).get("language_version") != "SIDECAR":
-                                    if clear:
-                                        self.clear()
-                                    return message
-                    elif event["request_type"] == event_name:
-                        if event.get("application", {}).get("language_version") != "SIDECAR":
-                            if clear:
-                                self.clear()
-                            return event
+                    e = self._get_telemetry_event(event, event_name)
+                    if e:
+                        if clear:
+                            self.clear()
+                        return e
             time.sleep(0.01)
         raise AssertionError(f"Telemetry event {event_name} not found")
+
+    def wait_for_telemetry_configurations(self, *, clear: bool = False, wait_loops: int = 200):
+        """Wait for and return configurations captured in telemetry event. Telemetry events can be captured in
+        app-started or app-client-configuration-change events.
+        """
+        events = []
+        configurations = []
+        for _ in range(wait_loops):
+            with contextlib.suppress(requests.exceptions.RequestException):
+                events += self.telemetry(clear=False)
+            time.sleep(0.01)
+
+        if not events:
+            raise AssertionError("Telemetry events containing configurations not found")
+
+        for event in events:
+            app_started = self._get_telemetry_event(event, "app-started")
+            config_changed = self._get_telemetry_event(event, "app-client-configuration-change")
+            for e in [app_started, config_changed]:
+                if e:
+                    configurations += e["payload"]["configuration"]
+
+        if clear:
+            self.clear()
+        configurations.sort(key=lambda x: x["name"], reverse=False)
+        return configurations
+
+    def _get_telemetry_event(self, event, event_name):
+        if not event:
+            return None
+        elif event["request_type"] == "message-batch":
+            for message in event["payload"]:
+                if message["request_type"] == event_name:
+                    if message.get("application", {}).get("language_version") != "SIDECAR":
+                        return message
+        elif event["request_type"] == event_name:
+            if event.get("application", {}).get("language_version") != "SIDECAR":
+                return event
+        return None
 
     def wait_for_rc_apply_state(
         self,

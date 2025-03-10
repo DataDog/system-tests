@@ -78,8 +78,7 @@ class Test_Defaults:
     def test_library_settings(self, library_env, test_agent, test_library):
         with test_library.dd_start_span("test"):
             pass
-        event = test_agent.wait_for_telemetry_event("app-started", wait_loops=400)
-        configuration = event["payload"]["configuration"]
+        configuration = test_agent.wait_for_telemetry_configurations(wait_loops=400)
 
         configuration_by_name = {item["name"]: item for item in configuration}
         for apm_telemetry_name, value in [
@@ -152,8 +151,7 @@ class Test_Consistent_Configs:
     def test_library_settings(self, library_env, test_agent, test_library):
         with test_library.dd_start_span("test"):
             pass
-        event = test_agent.wait_for_telemetry_event("app-started", wait_loops=400)
-        configuration = event["payload"]["configuration"]
+        configuration = test_agent.wait_for_telemetry_configurations(wait_loops=400)
         configuration_by_name = {item["name"]: item for item in configuration}
 
         # # Check that the tags name match the expected value
@@ -189,8 +187,7 @@ class Test_Consistent_Configs:
     def test_library_settings_2(self, library_env, test_agent, test_library):
         with test_library.dd_start_span("test"):
             pass
-        event = test_agent.wait_for_telemetry_event("app-started", wait_loops=400)
-        configuration = event["payload"]["configuration"]
+        configuration = test_agent.wait_for_telemetry_configurations(wait_loops=400)
         configuration_by_name = {item["name"]: item for item in configuration}
 
         assert configuration_by_name.get("DD_TRACE_LOG_DIRECTORY", {}).get("value") == "/some/temporary/directory"
@@ -230,8 +227,7 @@ class Test_Environment:
     def test_library_settings(self, library_env, test_agent, test_library):
         with test_library.dd_start_span("test"):
             pass
-        event = test_agent.wait_for_telemetry_event("app-started", wait_loops=400)
-        configuration = event["payload"]["configuration"]
+        configuration = test_agent.wait_for_telemetry_configurations(wait_loops=400)
 
         configuration_by_name = {item["name"]: item for item in configuration}
         for apm_telemetry_name, environment_value in [
@@ -496,8 +492,8 @@ class Test_Stable_Configuration_Origin(StableConfigWriter):
             )
             test_library.container_restart()
             test_library.dd_start_span("test")
-        event = test_agent.wait_for_telemetry_event("app-started", wait_loops=400)
-        configuration = {c["name"]: c for c in event["payload"]["configuration"]}
+        configuration_list = test_agent.wait_for_telemetry_configurations(wait_loops=400)
+        configuration = {c["name"]: c for c in configuration_list}
 
         for cfg_name, origin in expected_origin.items():
             apm_telemetry_name = _mapped_telemetry_name(context, cfg_name)
