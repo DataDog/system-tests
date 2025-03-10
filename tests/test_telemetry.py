@@ -971,7 +971,6 @@ class Test_Telemetry_Metrics_Schema:
                 continue
             payload = content["payload"]
             namespace = payload.get("namespace")
-            assert namespace, "Expected a namespace in generate-metrics payload"
             series = payload.get("series")
             assert series, "Expected series in generate-metrics payload"
             for s in series:
@@ -980,6 +979,7 @@ class Test_Telemetry_Metrics_Schema:
                 namespace_override = s.get("namespace")
                 if not namespace_override:
                     namespace_override = namespace
+                assert namespace, "Expected a namespace in generate-metrics payload or series"
                 tags = {t.split(":")[0] for t in s.get("tags", [])}
                 seen_metrics[namespace_override][metric_name] |= tags
 
