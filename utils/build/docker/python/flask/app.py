@@ -448,9 +448,11 @@ def rasp_cmdi(*args, **kwargs):
 
 @app.route("/graphql", methods=["GET", "POST"])
 def graphql_error_spans(*args, **kwargs):
-    from integrations.graphql import schema
+    from integrations.graphql import Query
 
     data = request.get_json()
+
+    schema = graphene.Schema(query=Query)
 
     result = schema.execute(
         data["query"],
@@ -459,15 +461,21 @@ def graphql_error_spans(*args, **kwargs):
     )
 
     if result.errors:
-        return jsonify(format_error(result.errors[0])), 200
+        return jsonify(format_error(result.errors)), 200
 
     return jsonify(result.to_dict())
 
 
-def format_error(error):
-    return {
-        "message": error.message,
-    }
+def format_error(errors):
+    formatted_errors = []
+    for error in errors:
+        formatted_errors.append(
+            {
+                "message": error.message,
+                "extensions": error.extensions,
+            }
+        )
+    return {"errors": formatted_errors}
 
 
 @app.route("/read_file", methods=["GET"])

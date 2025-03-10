@@ -231,6 +231,17 @@ tests/:
         Test_FullGrpc: missing_feature
         Test_GraphQL: v2.3.0
         Test_GrpcServerMethod: missing_feature
+        Test_Headers:
+          '*': v0.54.2  # assumed as the oldest supported version
+          sinatra14: missing_feature (endpoint not implemented)
+          sinatra20: missing_feature (endpoint not implemented)
+          sinatra21: missing_feature (endpoint not implemented)
+          sinatra22: missing_feature (endpoint not implemented)
+          sinatra30: missing_feature (endpoint not implemented)
+          sinatra31: missing_feature (endpoint not implemented)
+          sinatra32: missing_feature (endpoint not implemented)
+          sinatra40: missing_feature (endpoint not implemented)
+          uds-sinatra: missing_feature (endpoint not implemented)
         Test_PathParams:
           '*': v1.8.0
           rack: irrelevant
@@ -265,6 +276,8 @@ tests/:
         Test_NoSqli: v1.8.0
       test_telemetry.py:
         Test_TelemetryMetrics: missing_feature
+      test_truncation.py:
+        Test_Truncation: missing_feature
     test_asm_standalone.py:
       Test_AppSecStandalone_UpstreamPropagation: v2.4.1-dev
       Test_AppSecStandalone_UpstreamPropagation_V2: missing_feature
@@ -536,7 +549,6 @@ tests/:
     test_process_discovery.py: missing_feature
     test_sampling_delegation.py:
       Test_Decisionless_Extraction: v2.4.0
-    test_span_events.py: missing_feature
     test_span_links.py:
       Test_Span_Links: v2.0.0
     test_telemetry.py:
@@ -614,7 +626,7 @@ tests/:
   test_graphql.py:
     Test_GraphQLQueryErrorReporting:
       "*": irrelevant
-      graphql23: missing_feature
+      graphql23: v2.11.0
   test_identify.py:
     Test_Basic: v1.0.0
     Test_Propagate: missing_feature

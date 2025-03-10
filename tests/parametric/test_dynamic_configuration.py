@@ -506,6 +506,7 @@ class TestDynamicConfigV1_ServiceTargets:
     @bug(library="nodejs", reason="APMAPI-865")
     @irrelevant(library="java", reason="APMAPI-1003")
     @irrelevant(library="cpp", reason="APMAPI-1003")
+    @irrelevant(library="golang", reason="APMAPI-1003")
     def test_not_match_service_target(self, library_env, test_agent, test_library):
         """This is an old behavior, see APMAPI-1003
 

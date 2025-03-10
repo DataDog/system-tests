@@ -22,7 +22,7 @@ def enable_tracing_disabled():
 
 
 @scenarios.parametric
-@features.tracing_configuration_consistency
+@features.trace_enablement
 class Test_Config_TraceEnabled:
     @enable_tracing_enabled()
     def test_tracing_enabled(self, library_env, test_agent, test_library):
@@ -44,7 +44,7 @@ class Test_Config_TraceEnabled:
 
 
 @scenarios.parametric
-@features.tracing_configuration_consistency
+@features.trace_log_directory
 @missing_feature(context.library == "php", reason="Can't create /parametric-tracer-logs at build step")
 class Test_Config_TraceLogDirectory:
     @pytest.mark.parametrize(
@@ -66,7 +66,7 @@ def set_service_version_tags():
 
 
 @scenarios.parametric
-@features.tracing_configuration_consistency
+@features.unified_service_tagging
 class Test_Config_UnifiedServiceTagging:
     @parametrize("library_env", [{}])
     def test_default_config(self, library_env, test_agent, test_library):
@@ -119,7 +119,7 @@ class Test_Config_UnifiedServiceTagging:
 
 
 @scenarios.parametric
-@features.tracing_configuration_consistency
+@features.trace_agent_connection
 class Test_Config_TraceAgentURL:
     """DD_TRACE_AGENT_URL is validated using the tracer configuration.
     This approach avoids the need to modify the setup file to create additional containers at the specified URL,
@@ -209,7 +209,7 @@ class Test_Config_TraceAgentURL:
 
 
 @scenarios.parametric
-@features.tracing_configuration_consistency
+@features.trace_rate_limiting
 class Test_Config_RateLimit:
     # The default value of DD_TRACE_RATE_LIMIT is validated using the tracer configuration.
     # This approach avoids the need to create a new weblog endpoint that generates 100 traces per second,
@@ -304,7 +304,7 @@ tag_scenarios: dict = {
 
 
 @scenarios.parametric
-@features.tracing_configuration_consistency
+@features.trace_global_tags
 class Test_Config_Tags:
     @parametrize("library_env", [{"DD_TAGS": key} for key in tag_scenarios])
     def test_comma_space_tag_separation(self, library_env, test_agent, test_library):
@@ -341,7 +341,7 @@ class Test_Config_Tags:
 
 
 @scenarios.parametric
-@features.tracing_configuration_consistency
+@features.dogstatsd_agent_connection
 class Test_Config_Dogstatsd:
     @parametrize(
         "library_env", [{"DD_AGENT_HOST": "localhost"}]
@@ -375,7 +375,7 @@ SDK_DEFAULT_STABLE_CONFIG = {
     "dd_runtime_metrics_enabled": "false" if context.library != "java" else "true",
     "dd_profiling_enabled": "false",
     "dd_data_streams_enabled": "false",
-    "dd_logs_injection": "false" if context.library != "java" else "true",
+    "dd_logs_injection": "false",
 }
 
 
