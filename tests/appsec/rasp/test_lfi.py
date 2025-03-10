@@ -145,6 +145,7 @@ class Test_Lfi_Telemetry_Multiple_Exploits:
         self.r = weblog.get("/rasp/multiple", params={"file1": "../etc/passwd", "file2": "../etc/group"})
 
     def test_rasp_match_tag(self):
+        assert self.r.status_code == 200
         series_eval = find_series("appsec", "rasp.rule.match", is_metrics=True)
         assert series_eval
         assert series_eval[0]["points"][0][1] == 3.0
