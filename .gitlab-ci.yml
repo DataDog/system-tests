@@ -152,7 +152,7 @@ rmm_ssi_pipeline:
   script:
     - exit 1
 
- check_pipeline_status:
+check_pipeline_status:
    stage: pipeline-status
    image: registry.ddbuild.io/images/ci_docker_base
    tags: ["runner:docker"]
