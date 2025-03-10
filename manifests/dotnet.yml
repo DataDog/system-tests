@@ -586,6 +586,12 @@ tests/:
     Test_Profile:
       "*": v1.0  # real version not known
       uds: missing_feature (to be confirmed)
+  test_sampling_rates.py:
+    Test_SampleRateFunction: v3.11.1  # real version unknown
+    Test_SamplingDecisionAdded: v3.11.1  # real version unknown
+    Test_SamplingDecisions: bug (APMAPI-736)
+    Test_SamplingDeterminism: v3.11.1  # real version unknown
+    Test_SamplingRates: v3.11.1  # real version unknown
   test_scrubbing.py:
     Test_UrlField: v2.29.0
     Test_UrlQuery: v2.13.0

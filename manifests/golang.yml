@@ -731,6 +731,12 @@ tests/:
     Test_HeaderTags_Whitespace_Tag: v1.53.0
     Test_HeaderTags_Whitespace_Val_Long: v1.53.0
     Test_HeaderTags_Whitespace_Val_Short: v1.53.0
+  test_sampling_rates.py:
+    Test_SampleRateFunction: v1.72.1  # real version unknown
+    Test_SamplingDecisionAdded: v1.72.1  # real version unknown
+    Test_SamplingDecisions: v1.72.1  # real version unknown
+    Test_SamplingDeterminism: v1.72.1  # real version unknown
+    Test_SamplingRates: v1.36.2
   test_scrubbing.py:
     Test_UrlQuery: v1.40.0
   test_semantic_conventions.py:
