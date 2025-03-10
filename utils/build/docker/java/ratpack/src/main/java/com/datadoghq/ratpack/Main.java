@@ -177,6 +177,10 @@ public class Main {
                                     ctx.getResponse().status(code).send("Value tagged");
                                 });
                             })
+                            .get("sample_rate_route/:i", ctx -> {
+                                final int i = Integer.parseInt(ctx.getPathTokens().get("i"));
+                                ctx.getResponse().status(200).send("OK\n");
+                            })
                             .get("api_security/sampling/:i", ctx -> {
                                 final int i = Integer.parseInt(ctx.getPathTokens().get("i"));
                                 ctx.getResponse().status(i).send("Hello!\n");
