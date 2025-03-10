@@ -8,6 +8,7 @@ stages:
   - python
   - php
   - ruby
+  - rmm
   - pipeline-status
   - system-tests-utils
 
@@ -140,6 +141,17 @@ ruby_ssi_pipeline:
         job: compute_pipeline
     strategy: depend
 
+rmm_ssi_pipeline:
+  stage: rmm
+  image: registry.ddbuild.io/images/ci_docker_base
+  tags: ["runner:docker"]
+  needs: ["compute_pipeline", "ruby_ssi_pipeline"]
+  allow_failure: true
+  variables:
+    PARENT_PIPELINE_SOURCE: $CI_PIPELINE_SOURCE
+  script:
+    - exit 1
+    
 check_pipeline_status:
   stage: pipeline-status
   image: registry.ddbuild.io/images/ci_docker_base
