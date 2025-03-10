@@ -156,7 +156,7 @@ check_pipeline_status:
         "$CI_API_V4_URL/projects/$CI_PROJECT_ID/pipelines/$CI_PIPELINE_ID/jobs?scope=failed")
 
         # Ensure response is valid JSON before parsing
-        if echo "$RESPONSE" | jq empty > /dev/null 2>&1; then
+        if echo "$RESPONSE" | jq -e type > /dev/null 2>&1; then
           FAILED_JOBS=$(echo "$RESPONSE" | jq '. | length')
 
           if [ "$FAILED_JOBS" -eq 0 ]; then
@@ -164,9 +164,9 @@ check_pipeline_status:
             exit 0
           fi
 
-          # Extract failing job details (properly escaped)
+          # Extract failing job details (ensure it's an array)
           FAILED_JOB_DETAILS=$(echo "$RESPONSE" | jq -r --arg url "$CI_PROJECT_URL" \
-            '.[] | "Job ID: \(.id), Name: \(.name), Status: \(.status), Stage: \(.stage), URL: \($url + "/-/jobs/" + (.id|tostring))"')
+            '.[] | select(type=="object") | "Job ID: \(.id), Name: \(.name), Status: \(.status), Stage: \(.stage), URL: \($url + "/-/jobs/" + (.id|tostring))"')
           
           break  # Exit loop if valid response received
         else
@@ -181,7 +181,6 @@ check_pipeline_status:
     - echo "$FAILED_JOB_DETAILS"
     - exit 1
   when: always
-
 
 check_merge_labels:
   #Build docker images if it's needed. Check if the PR has the labels associated with the image build.
