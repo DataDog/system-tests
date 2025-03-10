@@ -175,8 +175,8 @@ check_pipeline_status:
       done
 
     - echo "❌ A job failed, failing the pipeline!"
-    - echo "Failing Jobs: [$FAILED_JOBS]"
-    - echo "Details of failed jobs:"
+    - echo "Failing Jobs [$FAILED_JOBS]"
+    - echo "Details of failed jobs"
     - echo "$FAILED_JOB_DETAILS"
     - exit 1
   when: always
