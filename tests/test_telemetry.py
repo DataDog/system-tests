@@ -3,6 +3,7 @@ from collections import defaultdict
 from datetime import timedelta
 import time
 from dateutil.parser import isoparse
+from pathlib import Path
 from utils import context, interfaces, missing_feature, bug, flaky, irrelevant, weblog, scenarios, features, rfc
 from utils.tools import logger
 from utils.interfaces._misc_validators import HeadersPresenceValidator, HeadersMatchValidator
@@ -939,20 +940,28 @@ class Test_Telemetry_Metrics_Schema:
                 return json.load(fh)
 
         lang = context.library.library
-        if lang == "jvm":
-            lang = "java"
+        if lang == "java":
+            lang = "jvm"
 
         # dict: namespace -> metric -> set of tags
         known_metrics = defaultdict(lambda: defaultdict(set))
-        for file_prefix in ["common", lang]:
-            with open(f"tests/telemetry_intake/metrics-static/{file_prefix}_metrics.json", encoding="utf-8") as fh:
+        with open("tests/telemetry_intake/metrics-static/common_metrics.json", encoding="utf-8") as fh:
+            data = json.load(fh)
+        for namespace, metrics in data.items():
+            if namespace == "$schema":
+                continue
+            for metric, metric_def in metrics.items():
+                tags = metric_def.get("tags", [])
+                known_metrics[namespace][metric] |= set(tags)
+        file_path = f"tests/telemetry_intake/metrics-static/{lang}_metrics.json"
+        if Path(file_path).exists():
+            with open(file_path, encoding="utf-8") as fh:
                 data = json.load(fh)
-            for namespace, metrics in data.items():
-                if namespace == "$schema":
+            for metric, metric_def in data.items():
+                if metric == "$schema":
                     continue
-                for metric, metric_def in metrics.items():
-                    tags = metric_def.get("tags", [])
-                    known_metrics[namespace][metric] |= set(tags)
+                tags = metric_def.get("tags", [])
+                known_metrics[lang][metric] |= set(tags)
 
         # dict: namespace -> metric -> set of tags
         seen_metrics = defaultdict(lambda: defaultdict(set))
@@ -968,8 +977,11 @@ class Test_Telemetry_Metrics_Schema:
             for s in series:
                 metric_name = s.get("metric")
                 assert metric_name, "Expected a metric name in generate-metrics series"
+                namespace_override = s.get("namespace")
+                if not namespace_override:
+                    namespace_override = namespace
                 tags = {t.split(":")[0] for t in s.get("tags", [])}
-                seen_metrics[namespace][metric_name] |= tags
+                seen_metrics[namespace_override][metric_name] |= tags
 
         unknown_namespaces = set()
         unknown_metrics = set()
