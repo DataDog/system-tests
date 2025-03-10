@@ -113,7 +113,7 @@ REDACTED_TYPES = ["customPii"]
 
 @features.debugger_pii_redaction
 @scenarios.debugger_pii_redaction
-class Test_Debugger_PII_Redaction(debugger.Base_Debugger_Test):
+class Test_Debugger_PII_Redaction(debugger.BaseDebuggerTest):
     ############ setup ############
     def _setup(self, *, line_probe=False):
         self.initialize_weblog_remote_config()

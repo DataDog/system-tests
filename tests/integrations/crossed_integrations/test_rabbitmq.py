@@ -7,7 +7,7 @@ from utils import interfaces, scenarios, weblog, missing_feature, features
 from utils.tools import logger
 
 
-class _Test_RabbitMQ:
+class _BaseRabbitMQ:
     """Test RabbitMQ compatibility with inputted datadog tracer"""
 
     BUDDY_TO_WEBLOG_QUEUE = None
@@ -229,7 +229,7 @@ class _Test_RabbitMQ:
 
 @scenarios.crossed_tracing_libraries
 @features.rabbitmq_span_creationcontext_propagation_with_dd_trace
-class Test_RabbitMQ_Trace_Context_Propagation(_Test_RabbitMQ):
+class Test_RabbitMQ_Trace_Context_Propagation(_BaseRabbitMQ):
     buddy_interface = interfaces.java_buddy
     buddy = java_buddy
     WEBLOG_TO_BUDDY_QUEUE = "Test_RabbitMQ_Propagation_weblog_to_buddy"
