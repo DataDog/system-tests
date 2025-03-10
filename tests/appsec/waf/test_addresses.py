@@ -133,7 +133,7 @@ class Test_Headers:
         """When a specific header key is specified in rules, other key are ignored"""
         for r in [self.r_wk_1, self.r_wk_2]:
             assert r.status_code == 200
-            spans = [span for _, _, span in interfaces.library.get_root_spans(request=r)]
+            spans = [span for _, span in interfaces.library.get_root_spans(request=r)]
             assert spans, "No spans to validate"
             assert any("_dd.appsec.enabled" in s.get("metrics", {}) for s in spans), "No appsec-enabled spans found"
         interfaces.library.assert_no_appsec_event(self.r_wk_1)
