@@ -295,4 +295,8 @@ class SystemTestController < ApplicationController
       render plain: 'users not found parameter', status: 400
     end
   end
+
+  def handle_path_params
+    render plain: 'OK'
+  end
 end

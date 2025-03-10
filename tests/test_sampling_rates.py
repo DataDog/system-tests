@@ -253,7 +253,7 @@ class Test_SamplingDecisions:
     def test_sample_rate_function(self):
         """Tests the sampling decision follows the one from the sampling function specification."""
 
-        for req, sampling_decision in self.requests_expected_decision:
+        for req, expected_sampling_decision in self.requests_expected_decision:
             # Ensure the request succeeded, any failure would make the test incorrect.
             assert req.status_code == 200, "Call to /sample_rate_route/:i failed"
 
@@ -263,8 +263,9 @@ class Test_SamplingDecisions:
                 sampling_priority = span["metrics"].get("_sampling_priority_v1")
                 logger.info(f"Trying to validate trace_id:{trace_id} from {data['log_filename']}")
                 logger.info(f"Sampling priority: {sampling_priority}")
-                assert sampling_priority is not None, "Root span has no sampling priority attached"
-                assert priority_should_be_kept(sampling_priority) is sampling_decision
+                assert sampling_priority is not None, f"trace_id={trace_id}: Root span has no sampling priority attached"
+                actual_sampling_decision = priority_should_be_kept(sampling_priority)
+                assert priority_should_be_kept(sampling_priority) is expected_sampling_decision, f"trace_id={trace_id}, sampling_priority={sampling_priority}, expected_sampling_decision={expected_sampling_decision}, actual_sampling_decision={actual_sampling_decision}"
                 break
             else:
                 raise ValueError(f"Did not receive spans for req:{req.request}")

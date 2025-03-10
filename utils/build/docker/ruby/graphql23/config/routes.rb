@@ -43,4 +43,6 @@ Rails.application.routes.draw do
   end
 
   post '/graphql', to: 'graphql#execute'
+
+  get '/sample_rate_route/:i' => 'system_test#sample_rate_route'
 end
