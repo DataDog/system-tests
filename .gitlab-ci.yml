@@ -148,7 +148,7 @@ check_pipeline_status:
     - echo "Checking if any job failed..."
     - FAILED_JOBS=$(grep -l "exit 1" /builds/$CI_PROJECT_PATH/.gitlab-ci-logs/*.log || true)
     - if [ -n "$FAILED_JOBS" ]; then
-        echo "❌ Pipeline failed: At least one job did not succeed.";
+        echo "❌ Pipeline failed At least one job did not succeed.";
         exit 1;
       fi
     - echo "✅ All previous jobs are green!"
