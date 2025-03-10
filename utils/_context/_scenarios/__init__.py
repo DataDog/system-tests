@@ -790,6 +790,14 @@ class _Scenarios:
         github_workflow="aws_ssi",
     )
 
+    k8s_auto_injection = InstallerAutoInjectionScenario(
+        "K8S_AUTO_INJECTION",
+        vm_provision="k8s-auto-inject",
+        doc="K8s auto injection scenario",
+        scenario_groups=[ScenarioGroup.ALL, ScenarioGroup.ONBOARDING],
+        github_workflow="aws_ssi",
+    )
+
     lib_injection_validation = WeblogInjectionScenario(
         "LIB_INJECTION_VALIDATION",
         doc="Validates the init images without kubernetes enviroment",
