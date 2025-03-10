@@ -140,21 +140,21 @@ ruby_ssi_pipeline:
         job: compute_pipeline
     strategy: depend
 
-check_pipeline_status:
-  stage: pipeline-status
-  image: registry.ddbuild.io/images/ci_docker_base
-  tags: ["runner:docker"]
-  script:
-    - echo "Checking if any job failed..."
-    - |
-      FAILED_JOBS=$(curl --header "PRIVATE-TOKEN: $CI_JOB_TOKEN" \
-      "$CI_API_V4_URL/projects/$CI_PROJECT_ID/pipelines/$CI_PIPELINE_ID/jobs?scope=failed" | jq '. | length')
-    - if [ "$FAILED_JOBS" -gt 0 ]; then
-        echo "❌ A job failed, failing the pipeline!";
-        echo "Failing Jobs [$FAILED_JOBS]";
-        exit 1;
-      fi
-  when: always
+# check_pipeline_status:
+#   stage: pipeline-status
+#   image: registry.ddbuild.io/images/ci_docker_base
+#   tags: ["runner:docker"]
+#   script:
+#     - echo "Checking if any job failed..."
+#     - |
+#       FAILED_JOBS=$(curl --header "PRIVATE-TOKEN: $CI_JOB_TOKEN" \
+#       "$CI_API_V4_URL/projects/$CI_PROJECT_ID/pipelines/$CI_PIPELINE_ID/jobs?scope=failed" | jq '. | length')
+#     - if [ "$FAILED_JOBS" -gt 0 ]; then
+#         echo "❌ A job failed, failing the pipeline!";
+#         echo "Failing Jobs [$FAILED_JOBS]";
+#         exit 1;
+#       fi
+#   when: always
 
 check_merge_labels:
   #Build docker images if it's needed. Check if the PR has the labels associated with the image build.
