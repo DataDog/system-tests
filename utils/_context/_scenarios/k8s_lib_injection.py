@@ -5,7 +5,7 @@ from docker.models.networks import Network
 from utils._context.library_version import LibraryVersion, Version
 
 from utils.k8s_lib_injection.k8s_datadog_kubernetes import K8sDatadog
-from utils.k8s_lib_injection.k8s_weblog import K8sWeblog
+from utils.k8s_lib_injection.k8s_weblog import K8sWeblog, K8sWeblogSpecs
 from utils.k8s_lib_injection.k8s_cluster_provider import K8sProviderFactory
 from utils._context.containers import (
     create_network,
@@ -29,10 +29,9 @@ class K8sScenario(Scenario):
         name,
         doc,
         use_uds=False,
-        weblog_env={},
         dd_cluster_feature={},
         with_datadog_operator=False,
-        weblog_namespace="default",
+        k8s_weblog_specs=None,
         inject_by_annotations=True,
     ) -> None:
         super().__init__(
@@ -43,9 +42,12 @@ class K8sScenario(Scenario):
         )
         self.use_uds = use_uds
         self.with_datadog_operator = with_datadog_operator
-        self.weblog_env = weblog_env
+        if k8s_weblog_specs is None:
+            self.k8s_weblog_specs = K8sWeblogSpecs()
+        else:
+            self.k8s_weblog_specs = k8s_weblog_specs
         self.dd_cluster_feature = dd_cluster_feature
-        self.weblog_namespace = weblog_namespace
+
         # We can specify the lib-init and injector custom images by setting annotation inside the weblog pod
         # This will override configurations setted by the cluster configuration. For example, if you
         # disable the auto-injection by the cluster agent configuration the auto instrumentation will be
@@ -127,11 +129,10 @@ class K8sScenario(Scenario):
             self.k8s_lib_init_img,
             self.k8s_injector_img,
             self.host_log_folder,
-            namespace=self.weblog_namespace,
+            k8s_weblog_specs=self.k8s_weblog_specs,
         )
         self.test_weblog.configure(
             self.k8s_cluster_provider.get_cluster_info(),
-            weblog_env=self.weblog_env,
             dd_cluster_uds=self.use_uds,
             inject_by_annotations=self.inject_by_annotations,
         )
@@ -200,7 +201,7 @@ class K8sManualInstrumentationScenario(Scenario):
     perform the auto injection
     """
 
-    def __init__(self, name, doc, use_uds=False, weblog_env={}) -> None:
+    def __init__(self, name, doc, use_uds=False, k8s_weblog_specs=None) -> None:
         super().__init__(
             name,
             doc=doc,
@@ -208,7 +209,10 @@ class K8sManualInstrumentationScenario(Scenario):
             scenario_groups=[ScenarioGroup.ALL, ScenarioGroup.LIB_INJECTION],
         )
         self.use_uds = use_uds
-        self.weblog_env = weblog_env
+        if k8s_weblog_specs is None:
+            self.k8s_weblog_specs = K8sWeblogSpecs()
+        else:
+            self.k8s_weblog_specs = k8s_weblog_specs
 
     def configure(self, config):
         self.k8s_weblog = config.option.k8s_weblog
@@ -241,10 +245,9 @@ class K8sManualInstrumentationScenario(Scenario):
             self.k8s_lib_init_img,
             None,
             self.host_log_folder,
+            k8s_weblog_specs=self.k8s_weblog_specs,
         )
-        self.test_weblog.configure(
-            self.k8s_cluster_provider.get_cluster_info(), weblog_env=self.weblog_env, dd_cluster_uds=self.use_uds
-        )
+        self.test_weblog.configure(self.k8s_cluster_provider.get_cluster_info(), dd_cluster_uds=self.use_uds)
 
     def print_context(self):
         logger.stdout(f"K8s Weblog: {self.k8s_weblog}")
@@ -285,15 +288,11 @@ class K8sSparkScenario(K8sScenario):
         name,
         doc,
         use_uds=False,
-        weblog_env={},
         dd_cluster_feature={},
+        k8s_weblog_specs=None,
     ) -> None:
         super().__init__(
-            name,
-            doc=doc,
-            use_uds=use_uds,
-            weblog_env=weblog_env,
-            dd_cluster_feature=dd_cluster_feature,
+            name, doc=doc, use_uds=use_uds, dd_cluster_feature=dd_cluster_feature, k8s_weblog_specs=k8s_weblog_specs
         )
 
     def configure(self, config):
@@ -315,10 +314,10 @@ class K8sSparkScenario(K8sScenario):
             self.k8s_lib_init_img,
             self.k8s_injector_img,
             self.host_log_folder,
+            k8s_weblog_specs=self.k8s_weblog_specs,
         )
         self.test_weblog.configure(
             self.k8s_cluster_provider.get_cluster_info(),
-            weblog_env=self.weblog_env,
             dd_cluster_uds=self.use_uds,
             service_account="spark",
         )
