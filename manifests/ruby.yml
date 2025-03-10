@@ -231,6 +231,17 @@ tests/:
         Test_FullGrpc: missing_feature
         Test_GraphQL: v2.3.0
         Test_GrpcServerMethod: missing_feature
+        Test_Headers:
+          '*': v0.54.2  # assumed as the oldest supported version
+          sinatra14: missing_feature (endpoint not implemented)
+          sinatra20: missing_feature (endpoint not implemented)
+          sinatra21: missing_feature (endpoint not implemented)
+          sinatra22: missing_feature (endpoint not implemented)
+          sinatra30: missing_feature (endpoint not implemented)
+          sinatra31: missing_feature (endpoint not implemented)
+          sinatra32: missing_feature (endpoint not implemented)
+          sinatra40: missing_feature (endpoint not implemented)
+          uds-sinatra: missing_feature (endpoint not implemented)
         Test_PathParams:
           '*': v1.8.0
           rack: irrelevant
