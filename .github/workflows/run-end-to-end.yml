@@ -51,6 +51,10 @@ on:
         default: false
         required: false
         type: boolean
+      logs_artifact_name:
+        description: "The name of the artifact to use for logs"
+        required: true
+        type: string
 
 env:
   REGISTRY: ghcr.io
@@ -371,7 +375,7 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         # log name convention to respect : logs_$SCENARIO-FAMILY_$LIBRARY_$WEBLOG_$CI-ENVIRONMENT
-        name: logs_endtoend_${{ inputs.library }}_${{ inputs.weblog }}_${{ inputs.ci_environment }}
+        name: ${{ inputs.logs_artifact_name }}
         path: artifact.tar.gz
 
     - name: Push results to Feature Parity Dashboard
