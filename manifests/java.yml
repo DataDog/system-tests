@@ -1915,6 +1915,7 @@ tests/:
     Test_StandardTagsMethod: v0.102.0
     Test_StandardTagsRoute:
       '*': v0.102.0
+      akka-http: bug (AIDM-594)
       play: bug (AIDM-593)
     Test_StandardTagsStatusCode: v0.102.0
     Test_StandardTagsUrl: v0.107.1
