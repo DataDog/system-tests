@@ -961,7 +961,7 @@ class Test_Telemetry_Metrics_Schema:
                 if metric == "$schema":
                     continue
                 tags = metric_def.get("tags", [])
-                known_metrics[lang][metric] |= set(tags)
+                known_metrics["tracers"][metric] |= set(tags)
 
         # dict: namespace -> metric -> set of tags
         seen_metrics = defaultdict(lambda: defaultdict(set))
