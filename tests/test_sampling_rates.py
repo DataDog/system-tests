@@ -6,7 +6,7 @@ from collections import defaultdict
 import csv
 from random import randint, seed
 
-from utils import weblog, interfaces, context, bug, irrelevant, flaky, scenarios, features
+from utils import weblog, interfaces, context, scenarios, features
 from utils.tools import logger
 
 
@@ -36,7 +36,7 @@ def trace_should_be_kept(sampling_rate, trace_id):
 def _spans_with_parent(traces, parent_ids):
     if not isinstance(traces, list):
         logger.error("Traces should be an array")
-        yield from []  # do notfail here, it's schema's job
+        yield from []  # do not fail here, it's schema's job
     else:
         for trace in traces:
             for span in trace:
@@ -44,8 +44,6 @@ def _spans_with_parent(traces, parent_ids):
                     yield span
 
 
-@bug(context.library >= "golang@1.35.0" and context.library < "golang@1.36.2", reason="APMRP-360")
-@bug(context.agent_version < "7.33.0", reason="APMRP-360")
 @scenarios.sampling
 @features.twl_customer_controls_ingestion_dd_trace_sampling_rules
 @features.ensure_that_sampling_is_consistent_across_languages
@@ -61,12 +59,6 @@ class Test_SamplingRates:
             self.paths.append(p)
             weblog.get(p)
 
-    @bug(context.library > "nodejs@3.14.1" and context.library < "nodejs@4.8.0", reason="APMRP-360")
-    @bug(context.library < "nodejs@5.17.0", reason="APMRP-360")  # fixed version is not known
-    @flaky(context.weblog_variant == "spring-boot-3-native", reason="APMAPI-736")
-    @flaky(library="golang", reason="APMAPI-736")
-    @flaky(library="ruby", reason="APMAPI-736")
-    @flaky(library="nodejs", reason="APMAPI-1120")
     def test_sampling_rates(self):
         """Basic test"""
         interfaces.library.assert_all_traces_requests_forwarded(self.paths)
@@ -114,16 +106,6 @@ class Test_SamplingDecisions:
         for _ in range(30):
             weblog.get(f"/sample_rate_route/{self.next_request_id()}")
 
-    @irrelevant(context.library in ("nodejs", "php", "dotnet"), reason="AIT-374")
-    @bug(context.library < "java@0.92.0", reason="APMRP-360")
-    @flaky(context.library < "python@0.57.0", reason="APMRP-360")
-    @flaky(context.library >= "java@0.98.0", reason="APMJAVA-743")
-    @flaky(
-        context.library == "ruby" and context.weblog_variant in ("sinatra14", "sinatra20", "sinatra21", "uds-sinatra"),
-        reason="APMAPI-736",
-    )
-    @bug(context.library >= "python@1.11.0rc2.dev8", reason="APMAPI-736")
-    @bug(library="golang", reason="APMAPI-736")
     def test_sampling_decision(self):
         """Verify that traces are sampled following the sample rate"""
 
@@ -157,7 +139,6 @@ class Test_SamplingDecisions:
                 headers={"x-datadog-trace-id": str(trace["trace_id"]), "x-datadog-parent-id": str(trace["parent_id"])},
             )
 
-    @bug(context.library > "nodejs@3.14.1" and context.library < "nodejs@4.8.0", reason="APMRP-360")
     def test_sampling_decision_added(self):
         """Verify that the distributed traces without sampling decisions have a sampling decision added"""
 
@@ -204,10 +185,6 @@ class Test_SamplingDecisions:
                     },
                 )
 
-    @bug(library="nodejs", reason="APMRP-258")
-    @bug(library="ruby", reason="APMRP-258")
-    @flaky(library="cpp", reason="APMAPI-736")
-    @flaky(library="golang", reason="APMAPI-736")
     def test_sampling_determinism(self):
         """Verify that the way traces are sampled are at least deterministic on trace and span id"""
 
@@ -273,10 +250,6 @@ class Test_SamplingDecisions:
             # Map request results so that the test can validate them.
             self.requests_expected_decision.append((req, sampling_decision))
 
-    @bug(library="python", reason="APMRP-259")
-    @bug(library="nodejs", reason="APMRP-258")
-    @bug(library="php", reason="APMRP-258")
-    @bug(context.library < "dotnet@2.37.0", reason="APMRP-258")
     def test_sample_rate_function(self):
         """Tests the sampling decision follows the one from the sampling function specification."""
 
@@ -288,7 +261,7 @@ class Test_SamplingDecisions:
                 # Validate the sampling decision
                 trace_id = span["trace_id"]
                 sampling_priority = span["metrics"].get("_sampling_priority_v1")
-                logger.info(f"Tring to validate trace_id:{trace_id} from {data['log_filename']}")
+                logger.info(f"Trying to validate trace_id:{trace_id} from {data['log_filename']}")
                 logger.info(f"Sampling priority: {sampling_priority}")
                 assert sampling_priority is not None, "Root span has no sampling priority attached"
                 assert priority_should_be_kept(sampling_priority) is sampling_decision

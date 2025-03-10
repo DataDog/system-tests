@@ -561,6 +561,7 @@ tests/:
     Test_Profile: missing_feature (profiling seems not to be activated)
   test_sampling_rates.py:
     Test_SamplingDecisions: v0.71.0
+    Test_SamplingRates: v1.7.2  # real version unknown
   test_scrubbing.py:
     Test_UrlQuery: v0.76.0
   test_semantic_conventions.py:
