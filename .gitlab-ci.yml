@@ -146,48 +146,13 @@ check_pipeline_status:
   tags: ["runner:docker"]
   script:
     - echo "Checking if any job failed..."
-    - |
-      RETRIES=3
-      FAILED_JOBS=0
-      FAILED_JOB_DETAILS=""
-
-      for i in $(seq 1 $RETRIES); do
-        RESPONSE=$(curl --silent --header "PRIVATE-TOKEN: $CI_JOB_TOKEN" \
-        "$CI_API_V4_URL/projects/$CI_PROJECT_ID/pipelines/$CI_PIPELINE_ID/jobs?scope=failed")
-
-        # Debugging step: print raw API response
-        echo "RAW API RESPONSE: $RESPONSE"
-        echo "$RESPONSE" | jq .
-
-        # Ensure response is valid JSON before parsing
-        if echo "$RESPONSE" | jq -e type > /dev/null 2>&1; then
-          FAILED_JOBS=$(echo "$RESPONSE" | jq '. | length')
-
-          if [ "$FAILED_JOBS" -eq 0 ]; then
-            echo "✅ No failed jobs detected."
-            exit 0
-          fi
-
-          # Extract failing job details
-          FAILED_JOB_DETAILS=$(echo "$RESPONSE" | jq -r \
-            '.[] | select(.id and .name and .status and .stage) | "Job ID: \(.id), Name: \(.name), Status: \(.status), Stage: \(.stage), URL: '"\"$CI_PROJECT_URL/-/jobs/\(.id)\""' "')
-
-          if [ -n "$FAILED_JOB_DETAILS" ]; then
-            break  # Exit loop if valid response received
-          fi
-        else
-          echo "⚠️ Warning: Received invalid JSON response, retrying... ($i/$RETRIES)"
-          sleep 5  # Wait before retrying
-        fi
-      done
-
-    - echo "❌ A job failed, failing the pipeline!"
-    - echo "Failing Jobs [$FAILED_JOBS]"
-    - echo "Details of failed jobs"
-    - echo "$FAILED_JOB_DETAILS"
-    - exit 1
+    - FAILED_JOBS=$(grep -l "exit 1" /builds/$CI_PROJECT_PATH/.gitlab-ci-logs/*.log || true)
+    - if [ -n "$FAILED_JOBS" ]; then
+        echo "❌ Pipeline failed: At least one job did not succeed.";
+        exit 1;
+      fi
+    - echo "✅ All previous jobs are green!"
   when: always
-
 
 check_merge_labels:
   #Build docker images if it's needed. Check if the PR has the labels associated with the image build.
