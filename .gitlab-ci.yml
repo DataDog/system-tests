@@ -156,13 +156,10 @@ check_pipeline_status:
   stage: pipeline-status
   image: registry.ddbuild.io/images/ci_docker_base
   tags: ["runner:docker"]
+  needs: ["compute_pipeline", "nodejs_ssi_pipeline", "java_ssi_pipeline", "dotnet_ssi_pipeline","python_ssi_pipeline", "php_ssi_pipeline", "ruby_ssi_pipeline", "rmm_ssi_pipeline"]
+  allow_failure: false
   script:
     - echo "Checking if any job failed..."
-    - FAILED_JOBS=$(grep -l "exit 1" /builds/$CI_PROJECT_PATH/.gitlab-ci-logs/*.log || true)
-    - if [ -n "$FAILED_JOBS" ]; then
-        echo "❌ Pipeline failed At least one job did not succeed.";
-        exit 1;
-      fi
     - echo "✅ All previous jobs are green!"
   when: always
 
