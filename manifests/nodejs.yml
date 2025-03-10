@@ -541,72 +541,6 @@ tests/:
           express5: *ref_5_29_0
           nextjs: missing_feature
         Test_Ssrf_Waf_Version: *ref_5_25_0
-    waf/:
-      test_addresses.py:
-        Test_BodyJson:
-          '*': v2.2.0
-          nextjs: *ref_4_17_0
-        Test_BodyRaw: missing_feature
-        Test_BodyUrlEncoded:
-          '*': v2.2.0
-          nextjs: *ref_5_3_0
-        Test_BodyXml:
-          '*': v2.2.0
-          nextjs: irrelevant  # Body xml is not converted to JSON in nextjs
-        Test_Cookies: v2.0.0
-        Test_FullGrpc: missing_feature
-        Test_GraphQL:
-          '*': *ref_4_22_0
-          express5: missing_feature  # graphql not yet compatible with express5
-          nextjs: irrelevant  # nextjs is not related with graphql
-        Test_GrpcServerMethod: missing_feature
-        Test_Headers: v2.0.0
-        Test_PathParams:
-          '*': v2.0.0
-          express5: *ref_5_29_0
-          nextjs: missing_feature
-        Test_ResponseStatus: v2.0.0
-        Test_UrlQuery:
-          '*': v2.0.0
-          nextjs: *ref_4_17_0
-        Test_UrlQueryKey:
-          '*': v2.6.0
-          nextjs: *ref_4_17_0
-        Test_UrlRaw: v2.0.0
-        Test_gRPC: missing_feature
-      test_blocking.py:
-        Test_Blocking: *ref_3_19_0
-        Test_Blocking_strip_response_headers: *ref_5_17_0
-        Test_CustomBlockingResponse: *ref_5_15_0
-      test_custom_rules.py:
-        Test_CustomRules: *ref_4_1_0
-      test_exclusions.py:
-        Test_Exclusions: *ref_3_19_0
-      test_miscs.py:
-        Test_404: v2.0.0
-        Test_CorrectOptionProcessing: *ref_3_19_0  # probably sooner, but bugged
-        Test_MultipleAttacks: v2.0.0
-        Test_MultipleHighlight: v2.0.0
-      test_reports.py:
-        Test_Monitoring: v2.8.0
-      test_rules.py:
-        Test_CommandInjection: v2.0.0
-        Test_DiscoveryScan: v2.0.0
-        Test_HttpProtocol: v2.0.0
-        Test_JavaCodeInjection: v2.0.0
-        Test_JsInjection: v2.0.0
-        Test_LFI: v2.0.0
-        Test_NoSqli: v2.0.0
-        Test_PhpCodeInjection: v2.0.0
-        Test_RFI: v2.0.0
-        Test_SQLI: v2.0.0
-        Test_SSRF: v2.0.0
-        Test_Scanners: v2.0.0
-        Test_XSS: v2.0.0
-      test_telemetry.py:
-        Test_TelemetryMetrics: *ref_4_17_0
-      test_truncation.py:
-        Test_Truncation: missing_feature
     test_alpha.py:
       Test_Basic: v2.0.0
     test_asm_standalone.py:
@@ -756,6 +690,72 @@ tests/:
         nextjs: missing_feature (block method not implemented for nextjs yet)
     test_versions.py:
       Test_Events: v2.0.0
+    waf/:
+      test_addresses.py:
+        Test_BodyJson:
+          '*': v2.2.0
+          nextjs: *ref_4_17_0
+        Test_BodyRaw: missing_feature
+        Test_BodyUrlEncoded:
+          '*': v2.2.0
+          nextjs: *ref_5_3_0
+        Test_BodyXml:
+          '*': v2.2.0
+          nextjs: irrelevant  # Body xml is not converted to JSON in nextjs
+        Test_Cookies: v2.0.0
+        Test_FullGrpc: missing_feature
+        Test_GraphQL:
+          '*': *ref_4_22_0
+          express5: missing_feature  # graphql not yet compatible with express5
+          nextjs: irrelevant  # nextjs is not related with graphql
+        Test_GrpcServerMethod: missing_feature
+        Test_Headers: v2.0.0
+        Test_PathParams:
+          '*': v2.0.0
+          express5: *ref_5_29_0
+          nextjs: missing_feature
+        Test_ResponseStatus: v2.0.0
+        Test_UrlQuery:
+          '*': v2.0.0
+          nextjs: *ref_4_17_0
+        Test_UrlQueryKey:
+          '*': v2.6.0
+          nextjs: *ref_4_17_0
+        Test_UrlRaw: v2.0.0
+        Test_gRPC: missing_feature
+      test_blocking.py:
+        Test_Blocking: *ref_3_19_0
+        Test_Blocking_strip_response_headers: *ref_5_17_0
+        Test_CustomBlockingResponse: *ref_5_15_0
+      test_custom_rules.py:
+        Test_CustomRules: *ref_4_1_0
+      test_exclusions.py:
+        Test_Exclusions: *ref_3_19_0
+      test_miscs.py:
+        Test_404: v2.0.0
+        Test_CorrectOptionProcessing: *ref_3_19_0  # probably sooner, but bugged
+        Test_MultipleAttacks: v2.0.0
+        Test_MultipleHighlight: v2.0.0
+      test_reports.py:
+        Test_Monitoring: v2.8.0
+      test_rules.py:
+        Test_CommandInjection: v2.0.0
+        Test_DiscoveryScan: v2.0.0
+        Test_HttpProtocol: v2.0.0
+        Test_JavaCodeInjection: v2.0.0
+        Test_JsInjection: v2.0.0
+        Test_LFI: v2.0.0
+        Test_NoSqli: v2.0.0
+        Test_PhpCodeInjection: v2.0.0
+        Test_RFI: v2.0.0
+        Test_SQLI: v2.0.0
+        Test_SSRF: v2.0.0
+        Test_Scanners: v2.0.0
+        Test_XSS: v2.0.0
+      test_telemetry.py:
+        Test_TelemetryMetrics: *ref_4_17_0
+      test_truncation.py:
+        Test_Truncation: missing_feature
   debugger/:
     test_debugger_exception_replay.py:
       Test_Debugger_Exception_Replay: missing_feature (feature not implented)

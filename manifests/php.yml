@@ -249,54 +249,6 @@ tests/:
         Test_Ssrf_Telemetry: v1.7.0
         Test_Ssrf_UrlQuery: v1.7.0
         Test_Ssrf_Waf_Version: v1.7.0
-    waf/:
-      test_addresses.py:
-        Test_BodyJson: v0.98.1  # TODO what is the earliest version?
-        Test_BodyRaw: v0.68.3
-        Test_BodyUrlEncoded: v0.68.3
-        Test_BodyXml: v0.98.0
-        Test_Cookies: v0.68.3
-        Test_FullGrpc: missing_feature
-        Test_GraphQL: missing_feature
-        Test_GrpcServerMethod: missing_feature
-        Test_Headers: v0.68.3
-        Test_PathParams: v0.71.0
-        Test_UrlQuery: v0.68.3
-        Test_UrlQueryKey: v0.74.0
-        Test_UrlRaw: v0.68.3  # probably sooner, but was flaky
-        Test_gRPC: missing_feature
-      test_blocking.py:
-        Test_Blocking: v0.86.0
-        Test_Blocking_strip_response_headers: missing_feature
-        Test_CustomBlockingResponse: v0.86.0
-      test_custom_rules.py:
-        Test_CustomRules: v0.87.2
-      test_exclusions.py:
-        Test_Exclusions: v0.86.0
-      test_miscs.py:
-        Test_404: v0.1.0
-        Test_CorrectOptionProcessing: v0.1.0
-        Test_MultipleAttacks: v0.1.0
-        Test_MultipleHighlight: v0.2.0
-      test_reports.py:
-        Test_Monitoring: v0.73.0
-      test_rules.py:
-        Test_CommandInjection: v0.68.3
-        Test_HttpProtocol: v0.68.3
-        Test_JavaCodeInjection: v0.68.3
-        Test_JsInjection: v0.68.3
-        Test_LFI: v0.68.3
-        Test_NoSqli: v0.68.3
-        Test_PhpCodeInjection: v0.68.3
-        Test_RFI: v0.68.3
-        Test_SQLI: v0.68.3
-        Test_SSRF: v0.68.3
-        Test_Scanners: v0.68.3
-        Test_XSS: v0.68.3
-      test_telemetry.py:
-        Test_TelemetryMetrics: missing_feature
-      test_truncation.py:
-        Test_Truncation: missing_feature
     test_asm_standalone.py:
       Test_AppSecStandalone_NotEnabled: v1.6.2
       Test_AppSecStandalone_UpstreamPropagation: v1.6.0
@@ -366,6 +318,54 @@ tests/:
       Test_ExternalWafRequestsIdentification: v1.0.0
     test_user_blocking_full_denylist.py:
       Test_UserBlocking_FullDenylist: v0.86.3
+    waf/:
+      test_addresses.py:
+        Test_BodyJson: v0.98.1  # TODO what is the earliest version?
+        Test_BodyRaw: v0.68.3
+        Test_BodyUrlEncoded: v0.68.3
+        Test_BodyXml: v0.98.0
+        Test_Cookies: v0.68.3
+        Test_FullGrpc: missing_feature
+        Test_GraphQL: missing_feature
+        Test_GrpcServerMethod: missing_feature
+        Test_Headers: v0.68.3
+        Test_PathParams: v0.71.0
+        Test_UrlQuery: v0.68.3
+        Test_UrlQueryKey: v0.74.0
+        Test_UrlRaw: v0.68.3  # probably sooner, but was flaky
+        Test_gRPC: missing_feature
+      test_blocking.py:
+        Test_Blocking: v0.86.0
+        Test_Blocking_strip_response_headers: missing_feature
+        Test_CustomBlockingResponse: v0.86.0
+      test_custom_rules.py:
+        Test_CustomRules: v0.87.2
+      test_exclusions.py:
+        Test_Exclusions: v0.86.0
+      test_miscs.py:
+        Test_404: v0.1.0
+        Test_CorrectOptionProcessing: v0.1.0
+        Test_MultipleAttacks: v0.1.0
+        Test_MultipleHighlight: v0.2.0
+      test_reports.py:
+        Test_Monitoring: v0.73.0
+      test_rules.py:
+        Test_CommandInjection: v0.68.3
+        Test_HttpProtocol: v0.68.3
+        Test_JavaCodeInjection: v0.68.3
+        Test_JsInjection: v0.68.3
+        Test_LFI: v0.68.3
+        Test_NoSqli: v0.68.3
+        Test_PhpCodeInjection: v0.68.3
+        Test_RFI: v0.68.3
+        Test_SQLI: v0.68.3
+        Test_SSRF: v0.68.3
+        Test_Scanners: v0.68.3
+        Test_XSS: v0.68.3
+      test_telemetry.py:
+        Test_TelemetryMetrics: missing_feature
+      test_truncation.py:
+        Test_Truncation: missing_feature
   debugger/:
     test_debugger_exception_replay.py:
       Test_Debugger_Exception_Replay: irrelevant

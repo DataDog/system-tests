@@ -255,50 +255,6 @@ tests/:
         Test_Ssrf_Telemetry: v2.51.0
         Test_Ssrf_UrlQuery: v2.51.0
         Test_Ssrf_Waf_Version: v3.4.1
-    waf/:
-      test_addresses.py:
-        Test_BodyJson: v2.8.0
-        Test_BodyRaw: missing_feature
-        Test_BodyUrlEncoded: v2.7.0
-        Test_BodyXml: v2.8.0
-        Test_FullGrpc: missing_feature
-        Test_GraphQL: missing_feature
-        Test_GrpcServerMethod: missing_feature
-        Test_Headers: v1.28.6
-        Test_PathParams: v2.5.1
-        Test_ResponseStatus: v2.3.0
-        Test_UrlQuery: v1.28.6
-        Test_UrlQueryKey: v2.7.0
-        Test_UrlRaw: v1.28.6
-        Test_gRPC: missing_feature
-      test_blocking.py:
-        Test_Blocking: v2.27.0
-        Test_Blocking_strip_response_headers: missing_feature
-        Test_CustomBlockingResponse: v3.10.0
-      test_custom_rules.py:
-        Test_CustomRules: v2.30.0
-      test_exclusions.py:
-        Test_Exclusions: v2.26.0
-      test_miscs.py:
-        Test_404: v1.28.6
-        Test_CorrectOptionProcessing: v1.28.6
-        Test_MultipleAttacks: v2.1.0
-        Test_MultipleHighlight: v2.3.0
-      test_reports.py:
-        Test_Monitoring: v2.9.0
-      test_rules.py:
-        Test_CommandInjection: v1.28.6
-        Test_DiscoveryScan: v2.3.0
-        Test_JavaCodeInjection: v1.28.6
-        Test_JsInjection: v1.28.6
-        Test_NoSqli: v2.12.0
-        Test_RFI: v1.28.6
-        Test_SSRF: v1.28.6
-        Test_Scanners: v1.28.6
-      test_telemetry.py:
-        Test_TelemetryMetrics: missing_feature
-      test_truncation.py:
-        Test_Truncation: missing_feature
     test_alpha.py:
       Test_Basic: v1.28.6
     test_asm_standalone.py:
@@ -393,6 +349,50 @@ tests/:
       Test_RetainTraces: v1.29.0
     test_user_blocking_full_denylist.py:
       Test_UserBlocking_FullDenylist: v2.30.0
+    waf/:
+      test_addresses.py:
+        Test_BodyJson: v2.8.0
+        Test_BodyRaw: missing_feature
+        Test_BodyUrlEncoded: v2.7.0
+        Test_BodyXml: v2.8.0
+        Test_FullGrpc: missing_feature
+        Test_GraphQL: missing_feature
+        Test_GrpcServerMethod: missing_feature
+        Test_Headers: v1.28.6
+        Test_PathParams: v2.5.1
+        Test_ResponseStatus: v2.3.0
+        Test_UrlQuery: v1.28.6
+        Test_UrlQueryKey: v2.7.0
+        Test_UrlRaw: v1.28.6
+        Test_gRPC: missing_feature
+      test_blocking.py:
+        Test_Blocking: v2.27.0
+        Test_Blocking_strip_response_headers: missing_feature
+        Test_CustomBlockingResponse: v3.10.0
+      test_custom_rules.py:
+        Test_CustomRules: v2.30.0
+      test_exclusions.py:
+        Test_Exclusions: v2.26.0
+      test_miscs.py:
+        Test_404: v1.28.6
+        Test_CorrectOptionProcessing: v1.28.6
+        Test_MultipleAttacks: v2.1.0
+        Test_MultipleHighlight: v2.3.0
+      test_reports.py:
+        Test_Monitoring: v2.9.0
+      test_rules.py:
+        Test_CommandInjection: v1.28.6
+        Test_DiscoveryScan: v2.3.0
+        Test_JavaCodeInjection: v1.28.6
+        Test_JsInjection: v1.28.6
+        Test_NoSqli: v2.12.0
+        Test_RFI: v1.28.6
+        Test_SSRF: v1.28.6
+        Test_Scanners: v1.28.6
+      test_telemetry.py:
+        Test_TelemetryMetrics: missing_feature
+      test_truncation.py:
+        Test_Truncation: missing_feature
   debugger/:
     test_debugger_exception_replay.py:
       Test_Debugger_Exception_Replay: v2.50.0

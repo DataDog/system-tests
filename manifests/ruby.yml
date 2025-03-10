@@ -222,62 +222,6 @@ tests/:
           "*": missing_feature
           rails42: bug (APPSEC-56765)  # ActiveRecord instrumentation with Rails < 5 and Ruby < 2.7 not working due to kwargs
       test_ssrf.py: missing_feature
-    waf/:
-      test_addresses.py:
-        Test_BodyJson: v1.8.0
-        Test_BodyRaw: v1.1.0
-        Test_BodyUrlEncoded: v1.8.0
-        Test_BodyXml: irrelevant (unsupported by framework)
-        Test_FullGrpc: missing_feature
-        Test_GraphQL: v2.3.0
-        Test_GrpcServerMethod: missing_feature
-        Test_Headers:
-          '*': v0.54.2  # assumed as the oldest supported version
-          sinatra14: missing_feature (endpoint not implemented)
-          sinatra20: missing_feature (endpoint not implemented)
-          sinatra21: missing_feature (endpoint not implemented)
-          sinatra22: missing_feature (endpoint not implemented)
-          sinatra30: missing_feature (endpoint not implemented)
-          sinatra31: missing_feature (endpoint not implemented)
-          sinatra32: missing_feature (endpoint not implemented)
-          sinatra40: missing_feature (endpoint not implemented)
-          uds-sinatra: missing_feature (endpoint not implemented)
-        Test_PathParams:
-          '*': v1.8.0
-          rack: irrelevant
-        Test_ResponseStatus: v1.10.0
-        Test_UrlQuery: v0.54.2
-        Test_UrlQueryKey: v1.0.0
-        Test_gRPC: missing_feature
-      test_blocking.py:
-        Test_Blocking: v1.11.0
-        Test_Blocking_strip_response_headers: v1.13.0
-        Test_CustomBlockingResponse: v1.15.0
-      test_custom_rules.py:
-        Test_CustomRules: v1.12.0
-      test_exclusions.py:
-        Test_Exclusions:
-          '*': v1.11.0
-          sinatra14: missing_feature (endpoint not implemented)
-          sinatra20: missing_feature (endpoint not implemented)
-          sinatra21: missing_feature (endpoint not implemented)
-          sinatra22: missing_feature (endpoint not implemented)
-          sinatra30: missing_feature (endpoint not implemented)
-          sinatra31: missing_feature (endpoint not implemented)
-          sinatra32: missing_feature (endpoint not implemented)
-          sinatra40: missing_feature (endpoint not implemented)
-          uds-sinatra: missing_feature (endpoint not implemented)
-      test_miscs.py:
-        Test_MultipleAttacks: v0.54.2
-        Test_MultipleHighlight: v1.0.0.beta1
-      test_reports.py:
-        Test_Monitoring: v1.8.0
-      test_rules.py:
-        Test_NoSqli: v1.8.0
-      test_telemetry.py:
-        Test_TelemetryMetrics: missing_feature
-      test_truncation.py:
-        Test_Truncation: missing_feature
     test_asm_standalone.py:
       Test_AppSecStandalone_UpstreamPropagation: v2.4.1-dev
       Test_AppSecStandalone_UpstreamPropagation_V2: missing_feature
@@ -395,6 +339,62 @@ tests/:
       Test_UserBlocking_FullDenylist: v2.9.0
     test_versions.py:
       Test_Events: v0.54.2
+    waf/:
+      test_addresses.py:
+        Test_BodyJson: v1.8.0
+        Test_BodyRaw: v1.1.0
+        Test_BodyUrlEncoded: v1.8.0
+        Test_BodyXml: irrelevant (unsupported by framework)
+        Test_FullGrpc: missing_feature
+        Test_GraphQL: v2.3.0
+        Test_GrpcServerMethod: missing_feature
+        Test_Headers:
+          '*': v0.54.2  # assumed as the oldest supported version
+          sinatra14: missing_feature (endpoint not implemented)
+          sinatra20: missing_feature (endpoint not implemented)
+          sinatra21: missing_feature (endpoint not implemented)
+          sinatra22: missing_feature (endpoint not implemented)
+          sinatra30: missing_feature (endpoint not implemented)
+          sinatra31: missing_feature (endpoint not implemented)
+          sinatra32: missing_feature (endpoint not implemented)
+          sinatra40: missing_feature (endpoint not implemented)
+          uds-sinatra: missing_feature (endpoint not implemented)
+        Test_PathParams:
+          '*': v1.8.0
+          rack: irrelevant
+        Test_ResponseStatus: v1.10.0
+        Test_UrlQuery: v0.54.2
+        Test_UrlQueryKey: v1.0.0
+        Test_gRPC: missing_feature
+      test_blocking.py:
+        Test_Blocking: v1.11.0
+        Test_Blocking_strip_response_headers: v1.13.0
+        Test_CustomBlockingResponse: v1.15.0
+      test_custom_rules.py:
+        Test_CustomRules: v1.12.0
+      test_exclusions.py:
+        Test_Exclusions:
+          '*': v1.11.0
+          sinatra14: missing_feature (endpoint not implemented)
+          sinatra20: missing_feature (endpoint not implemented)
+          sinatra21: missing_feature (endpoint not implemented)
+          sinatra22: missing_feature (endpoint not implemented)
+          sinatra30: missing_feature (endpoint not implemented)
+          sinatra31: missing_feature (endpoint not implemented)
+          sinatra32: missing_feature (endpoint not implemented)
+          sinatra40: missing_feature (endpoint not implemented)
+          uds-sinatra: missing_feature (endpoint not implemented)
+      test_miscs.py:
+        Test_MultipleAttacks: v0.54.2
+        Test_MultipleHighlight: v1.0.0.beta1
+      test_reports.py:
+        Test_Monitoring: v1.8.0
+      test_rules.py:
+        Test_NoSqli: v1.8.0
+      test_telemetry.py:
+        Test_TelemetryMetrics: missing_feature
+      test_truncation.py:
+        Test_Truncation: missing_feature
   debugger/:
     test_debugger_exception_replay.py:
       Test_Debugger_Exception_Replay: missing_feature (feature not implemented)

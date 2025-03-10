@@ -2,4 +2,4 @@ extends: relaxed
 
 rules:
     line-length: disable
-    key-ordering: disable
+    key-ordering: enable
