@@ -131,6 +131,10 @@ class Test_Headers:
     @missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
     def test_specific_wrong_key(self):
         """When a specific header key is specified in rules, other key are ignored"""
+        for r in [self.r_wk_1, self.r_wk_2]:
+            assert r.status_code == 200
+            span = interfaces.library.get_root_span(request=r)
+            assert "_dd.appsec.enabled" in span.get("metrics", {}), "No appsec-enabled spans found"
         interfaces.library.assert_no_appsec_event(self.r_wk_1)
         interfaces.library.assert_no_appsec_event(self.r_wk_2)
 
