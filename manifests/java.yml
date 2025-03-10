@@ -1863,8 +1863,12 @@ tests/:
   test_graphql.py: missing_feature
   test_identify.py:
     Test_Basic: missing_feature
-    Test_Propagate: missing_feature
-    Test_Propagate_Legacy: missing_feature
+    Test_Propagate:
+      '*': v0.111.0
+      spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+    Test_Propagate_Legacy:
+      '*': v0.111.0
+      spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
   test_ipv6.py: missing_feature (APMAPI-869)
   test_library_conf.py:
     Test_ExtractBehavior_Default: incomplete_test_app (/make_distant_call endpoint is not correctly implemented)
