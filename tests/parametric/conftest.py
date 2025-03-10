@@ -389,7 +389,7 @@ class _TestAgentAPI:
         app-started or app-client-configuration-change events.
         """
         events = []
-        configurations = []
+        configurations = {}
         for _ in range(wait_loops):
             with contextlib.suppress(requests.exceptions.RequestException):
                 events += self.telemetry(clear=False)
@@ -398,17 +398,17 @@ class _TestAgentAPI:
         if not events:
             raise AssertionError("Telemetry events containing configurations not found")
 
+        events.sort(key=lambda r: r["seq_id"])
         for event in events:
             app_started = self._get_telemetry_event(event, "app-started")
             config_changed = self._get_telemetry_event(event, "app-client-configuration-change")
             for e in [app_started, config_changed]:
                 if e:
-                    configurations += e["payload"]["configuration"]
-
+                    for config in e["payload"]["configuration"]:
+                        configurations[config["name"]] = config
         if clear:
             self.clear()
-        configurations.sort(key=lambda x: x["name"], reverse=False)
-        return configurations
+        return list(configurations.values())
 
     def _get_telemetry_event(self, event, event_name):
         if not event:
