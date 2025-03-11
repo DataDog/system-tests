@@ -130,7 +130,7 @@ def trace_config() -> TraceConfigReturn:
             "dd_env": config.env,
             "dd_version": config.version,
             "dd_trace_rate_limit": str(config._trace_rate_limit),
-            "dd_trace_agent_url": config._trace_agent_url,
+            "dd_trace_agent_url": str(ddtrace.tracer._agent_url),
             "dd_dogstatsd_host": urlparse(ddtrace.tracer._dogstatsd_url).hostname,
             "dd_dogstatsd_port": urlparse(ddtrace.tracer._dogstatsd_url).port,
             "dd_logs_injection": str(config._logs_injection).lower(),
