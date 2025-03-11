@@ -82,7 +82,7 @@ def main() -> None:
     if event_name == "schedule" or ref == "refs/heads/main":
         result.add_scenario_group(ScenarioGroup.ALL.value)
 
-    elif event_name == "pull_request" or event_name == "push":
+    elif event_name in ("pull_request", "push"):
         if not is_gilab:
             labels = json.loads(os.environ["GITHUB_PULL_REQUEST_LABELS"])
             label_names = [label["name"] for label in labels]

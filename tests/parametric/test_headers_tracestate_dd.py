@@ -267,7 +267,7 @@ class Test_Headers_Tracestate_DD:
         # Result: Origin set to header value, where invalid characters replaced by '_'
         origin = headers3["x-datadog-origin"]
         # allow implementations to split origin at the first ','
-        assert origin == "synthetics~;=web,z" or origin == "synthetics~;=web"
+        assert origin in ("synthetics~;=web,z", "synthetics~;=web")
 
         traceparent3, tracestate3 = get_tracecontext(headers3)
         dd_items3 = tracestate3["dd"].split(";")

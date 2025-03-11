@@ -183,7 +183,7 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
                 value["fields"] = "<scrubbed>"
                 return value
 
-            elif key == "exception-id" or key == "staticFields":
+            elif key in ("exception-id", "staticFields"):
                 return "<scrubbed>"
 
             elif key in ["stacktrace", "stack"]:

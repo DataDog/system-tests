@@ -17,11 +17,7 @@ class TestParameterValue(BaseSourceTest):
     ]
     # In test case in node, the value is redacted
     source_value = None if context.library.library == "nodejs" else "user"
-    source_type = (
-        "http.request.body"
-        if context.library.library == "nodejs" or context.library.library == "dotnet"
-        else "http.request.parameter"
-    )
+    source_type = "http.request.body" if context.library.library in ("nodejs", "dotnet") else "http.request.parameter"
     source_names = ["table"]
 
     # remove the base test, to handle the source_type spcial use case in node

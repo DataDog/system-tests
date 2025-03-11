@@ -241,7 +241,7 @@ class BaseDebuggerTest:
                 probe_status = probe_diagnostics[expected_id]["status"]
                 logger.debug(f"Probe {expected_id} observed status is {probe_status}")
 
-                if probe_status == status or probe_status == "ERROR":
+                if probe_status in (status, "ERROR"):
                     found_ids.add(expected_id)
                     continue
 
@@ -367,7 +367,7 @@ class BaseDebuggerTest:
                     path = _DEBUGGER_PATH
                 else:
                     path = _LOGS_PATH
-            elif context.library == "python" or context.library == "ruby" or context.library == "nodejs":
+            elif context.library in ("python", "ruby", "nodejs"):
                 path = _DEBUGGER_PATH
             else:
                 path = _LOGS_PATH  # TODO: Should the default not be _DEBUGGER_PATH?
