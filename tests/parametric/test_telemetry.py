@@ -78,9 +78,8 @@ class Test_Defaults:
     def test_library_settings(self, library_env, test_agent, test_library):
         with test_library.dd_start_span("test"):
             pass
-        configuration = test_agent.wait_for_telemetry_configurations()
 
-        configuration_by_name = {item["name"]: item for item in configuration}
+        configuration_by_name = test_agent.wait_for_telemetry_configurations()
         for apm_telemetry_name, value in [
             ("trace_sample_rate", (1.0, None, "1.0")),
             ("logs_injection_enabled", ("false", False, "true", True)),
@@ -151,9 +150,8 @@ class Test_Consistent_Configs:
     def test_library_settings(self, library_env, test_agent, test_library):
         with test_library.dd_start_span("test"):
             pass
-        configuration = test_agent.wait_for_telemetry_configurations()
-        configuration_by_name = {item["name"]: item for item in configuration}
 
+        configuration_by_name = test_agent.wait_for_telemetry_configurations()
         # # Check that the tags name match the expected value
         assert configuration_by_name.get("DD_ENV", {}).get("value") == "dev"
         assert configuration_by_name.get("DD_SERVICE", {}).get("value") == "service_test"
@@ -187,9 +185,8 @@ class Test_Consistent_Configs:
     def test_library_settings_2(self, library_env, test_agent, test_library):
         with test_library.dd_start_span("test"):
             pass
-        configuration = test_agent.wait_for_telemetry_configurations()
-        configuration_by_name = {item["name"]: item for item in configuration}
 
+        configuration_by_name = test_agent.wait_for_telemetry_configurations()
         assert configuration_by_name.get("DD_TRACE_LOG_DIRECTORY", {}).get("value") == "/some/temporary/directory"
         assert configuration_by_name.get("DD_TRACE_HTTP_CLIENT_ERROR_STATUSES", {}).get("value") == "200-250"
         assert configuration_by_name.get("DD_TRACE_HTTP_SERVER_ERROR_STATUSES", {}).get("value") == "250-200"
@@ -227,9 +224,8 @@ class Test_Environment:
     def test_library_settings(self, library_env, test_agent, test_library):
         with test_library.dd_start_span("test"):
             pass
-        configuration = test_agent.wait_for_telemetry_configurations()
 
-        configuration_by_name = {item["name"]: item for item in configuration}
+        configuration_by_name = test_agent.wait_for_telemetry_configurations()
         for apm_telemetry_name, environment_value in [
             ("trace_sample_rate", ("0.3", 0.3)),
             ("logs_injection_enabled", ("true", True)),
@@ -492,9 +488,8 @@ class Test_Stable_Configuration_Origin(StableConfigWriter):
             )
             test_library.container_restart()
             test_library.dd_start_span("test")
-        configuration_list = test_agent.wait_for_telemetry_configurations()
-        configuration = {c["name"]: c for c in configuration_list}
 
+        configuration = test_agent.wait_for_telemetry_configurations()
         for cfg_name, origin in expected_origin.items():
             apm_telemetry_name = _mapped_telemetry_name(context, cfg_name)
             telemetry_item = configuration[apm_telemetry_name]

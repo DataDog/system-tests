@@ -384,40 +384,36 @@ class _TestAgentAPI:
             time.sleep(0.01)
         raise AssertionError(f"Telemetry event {event_name} not found")
 
-    def wait_for_telemetry_configurations(self, *, clear: bool = False):
+    def wait_for_telemetry_configurations(self, *, clear: bool = False) -> dict[str, str]:
         """Waits for and returns the latest configurations captured in telemetry events.
 
         Telemetry events can be found in `app-started` or `app-client-configuration-change` events.
         The function ensures that at least one telemetry event is captured before processing.
         """
-
-        # Allow time for telemetry events to be captured
-        time.sleep(1)
-
         events = []
         configurations = {}
-
+        # Allow time for telemetry events to be captured
+        time.sleep(1)
         # Attempt to retrieve telemetry events, suppressing request-related exceptions
         with contextlib.suppress(requests.exceptions.RequestException):
             events += self.telemetry(clear=False)
-
         if not events:
-            raise AssertionError("No telemetry events containing configurations were found.")
+            raise AssertionError("No telemetry events were found. Ensure the application is sending telemetry events.")
 
         # Sort events by tracer_time to ensure configurations are processed in order
         events.sort(key=lambda r: r["tracer_time"])
-
         # Extract configuration data from relevant telemetry events
         for event in events:
             for event_type in ["app-started", "app-client-configuration-change"]:
                 telemetry_event = self._get_telemetry_event(event, event_type)
                 if telemetry_event:
                     for config in telemetry_event.get("payload", {}).get("configuration", []):
-                        # Store only the latest configuration for each name
+                        # Store only the latest configuration for each name. This is the configuration
+                        # that should be used by the application.
                         configurations[config["name"]] = config
         if clear:
             self.clear()
-        return list(configurations.values())
+        return configurations
 
     def _get_telemetry_event(self, event, request_type):
         """Extracts telemetry events from a message batch or returns the telemetry event if it
