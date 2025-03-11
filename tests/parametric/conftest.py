@@ -385,43 +385,52 @@ class _TestAgentAPI:
         raise AssertionError(f"Telemetry event {event_name} not found")
 
     def wait_for_telemetry_configurations(self, *, clear: bool = False):
-        """Wait for and return configurations captured in telemetry event. Telemetry events can be captured in
-        app-started or app-client-configuration-change events.
+        """Waits for and returns the latest configurations captured in telemetry events.
+
+        Telemetry events can be found in `app-started` or `app-client-configuration-change` events.
+        The function ensures that at least one telemetry event is captured before processing.
         """
-        # Wait 1 second for all telemetry events to be captured
+
+        # Allow time for telemetry events to be captured
         time.sleep(1)
+
         events = []
         configurations = {}
-        # Ensure at leasy one telemetry event was captured
+
+        # Attempt to retrieve telemetry events, suppressing request-related exceptions
         with contextlib.suppress(requests.exceptions.RequestException):
             events += self.telemetry(clear=False)
+
         if not events:
-            raise AssertionError("Telemetry events containing configurations not found")
-        # Sort events by tracer_time to ensure we process configurations in the effective order
+            raise AssertionError("No telemetry events containing configurations were found.")
+
+        # Sort events by tracer_time to ensure configurations are processed in order
         events.sort(key=lambda r: r["tracer_time"])
+
+        # Extract configuration data from relevant telemetry events
         for event in events:
-            # Look for app-started and app-client-configuration-change events
-            app_started = self._get_telemetry_event(event, "app-started")
-            config_changed = self._get_telemetry_event(event, "app-client-configuration-change")
-            # If we found a configuration event, add it to the configurations dict. We only want the latest
-            # configuration for each name. We do not care about the intermediate state of configurations.
-            for e in [app_started, config_changed]:
-                if e:
-                    for config in e["payload"]["configuration"]:
+            for event_type in ["app-started", "app-client-configuration-change"]:
+                telemetry_event = self._get_telemetry_event(event, event_type)
+                if telemetry_event:
+                    for config in telemetry_event.get("payload", {}).get("configuration", []):
+                        # Store only the latest configuration for each name
                         configurations[config["name"]] = config
         if clear:
             self.clear()
         return list(configurations.values())
 
-    def _get_telemetry_event(self, event, event_name):
+    def _get_telemetry_event(self, event, request_type):
+        """Extracts telemetry events from a message batch or returns the telemetry event if it
+        matches the expected request_type and was not emitted from a sidecar.
+        """
         if not event:
             return None
         elif event["request_type"] == "message-batch":
             for message in event["payload"]:
-                if message["request_type"] == event_name:
+                if message["request_type"] == request_type:
                     if message.get("application", {}).get("language_version") != "SIDECAR":
                         return message
-        elif event["request_type"] == event_name:
+        elif event["request_type"] == request_type:
             if event.get("application", {}).get("language_version") != "SIDECAR":
                 return event
         return None
