@@ -167,7 +167,7 @@ check_pipeline_status:
       for CHILD_PIPELINE in $CHILD_PIPELINES; do
         CHILD_FAILED_JOBS=$(curl --silent --header "PRIVATE-TOKEN: $GITLAB_TOKEN" \
         "$CI_API_V4_URL/projects/$CI_PROJECT_ID/pipelines/$CHILD_PIPELINE/jobs" | jq '[.[] | select(.status == "failed")] | length')
-        
+
         FAILED_CHILD_JOBS=$((FAILED_CHILD_JOBS + CHILD_FAILED_JOBS))
       done
 
