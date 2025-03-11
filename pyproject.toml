@@ -182,7 +182,6 @@ ignore = [
     "E501",      # line-too-long: TODO
     "N806",      # non-lowercase-variable-in-function: TODO
     "TRY002",    # raise-vanilla-class: TODO
-    "INP001",    # implicit-namespace-package: TODO
     "TRY301",    # raise-within-try: TODO
 
     # keep those exceptions
