@@ -384,24 +384,27 @@ class _TestAgentAPI:
             time.sleep(0.01)
         raise AssertionError(f"Telemetry event {event_name} not found")
 
-    def wait_for_telemetry_configurations(self, *, clear: bool = False, wait_loops: int = 200):
+    def wait_for_telemetry_configurations(self, *, clear: bool = False):
         """Wait for and return configurations captured in telemetry event. Telemetry events can be captured in
         app-started or app-client-configuration-change events.
         """
+        # Wait 1 second for all telemetry events to be captured
+        time.sleep(1)
         events = []
         configurations = {}
-        for _ in range(wait_loops):
-            with contextlib.suppress(requests.exceptions.RequestException):
-                events += self.telemetry(clear=False)
-            time.sleep(0.01)
-
+        # Ensure at leasy one telemetry event was captured
+        with contextlib.suppress(requests.exceptions.RequestException):
+            events += self.telemetry(clear=False)
         if not events:
             raise AssertionError("Telemetry events containing configurations not found")
-
-        events.sort(key=lambda r: r["seq_id"])
+        # Sort events by tracer_time to ensure we process configurations in the effective order
+        events.sort(key=lambda r: r["tracer_time"])
         for event in events:
+            # Look for app-started and app-client-configuration-change events
             app_started = self._get_telemetry_event(event, "app-started")
             config_changed = self._get_telemetry_event(event, "app-client-configuration-change")
+            # If we found a configuration event, add it to the configurations dict. We only want the latest
+            # configuration for each name. We do not care about the intermediate state of configurations.
             for e in [app_started, config_changed]:
                 if e:
                     for config in e["payload"]["configuration"]:

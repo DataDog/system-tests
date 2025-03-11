@@ -87,7 +87,7 @@ def set_and_wait_rc(test_agent, config_overrides: dict[str, Any]) -> dict:
     _set_rc(test_agent, rc_config)
 
     # Wait for both the telemetry event and the RC apply status.
-    test_agent.wait_for_telemetry_configurations("app-client-configuration-change", clear=True)
+    test_agent.wait_for_telemetry_event("app-client-configuration-change", clear=True)
     return test_agent.wait_for_rc_apply_state("APM_TRACING", state=RemoteConfigApplyState.ACKNOWLEDGED, clear=True)
 
 
