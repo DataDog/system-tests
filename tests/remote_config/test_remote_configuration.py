@@ -48,11 +48,7 @@ class RemoteConfigurationFieldsBasicTests:
     @staticmethod
     def response_has_been_overwritten(data) -> bool:
         # For legacy API send_sequential_commands
-        for name, _ in data["response"]["headers"]:
-            if name == "st-proxy-overwrite-rc-response":
-                return True
-
-        return False
+        return any(name == "st-proxy-overwrite-rc-response" for name, _ in data["response"]["headers"])
 
     def assert_client_fields(self):
         """Ensure that the Client field is appropriately filled out in update requests"""
@@ -75,7 +71,7 @@ class RemoteConfigurationFieldsBasicTests:
 def dict_is_included(sub_dict: dict, main_dict: dict):
     """Returns true if every field/values in sub_dict are in main_dict"""
 
-    for key, value in sub_dict.items():
+    for key, value in sub_dict.items():  # noqa: SIM110 (it's more clear like that)
         if key not in main_dict or value != main_dict[key]:
             return False
 

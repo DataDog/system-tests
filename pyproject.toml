@@ -122,7 +122,6 @@ ignore = [
     "RUF012",   # mutable-class-default: TODO (111 occurences)
     "S202",     # tarfile-unsafe-members: TODO (2 occurences)
     "SIM102",   # collapsible-if: TODO (22 occurences)
-    "SIM110",   # reimplemented-builtin: TODO (7 occurences)
     "TRY003",   # raise-vanilla-args: TODO this is a full project to enable this (254 occurences)
 
     ### Ignores that will be kept for the entire project

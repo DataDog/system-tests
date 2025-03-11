@@ -44,10 +44,7 @@ class Test_Debugger_SymDb(debugger.BaseDebuggerTest):
                 scope_type = scope.get("scope_type", "")
                 return scope_type in ["CLASS", "class", "MODULE"]
 
-            for nested_scope in scope.get("scopes", []):
-                if check_scope(nested_scope):
-                    return True
-            return False
+            return any(check_scope(nested_scope) for nested_scope in scope.get("scopes", []))
 
         for symbol in self.symbols:
             content = symbol.get("content", {})
