@@ -10,7 +10,7 @@ from utils import features, scenarios, bug, context
 @features.debugger
 @features.debugger_symdb
 @scenarios.debugger_symdb
-class Test_Debugger_SymDb(debugger.Base_Debugger_Test):
+class Test_Debugger_SymDb(debugger.BaseDebuggerTest):
     ############ setup ############
     def _setup(self):
         self.send_rc_symdb()

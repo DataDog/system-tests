@@ -78,6 +78,9 @@ line-length = 120
 indent-width = 4
 target-version = "py312"
 
+[tool.ruff.lint.pep8-naming]
+ignore-names = ["Test*", ]  # TODO : lot of renamings to do...
+
 [tool.ruff.format]
 exclude = [
     "venv/", 
@@ -91,6 +94,7 @@ indent-style = "space"
 # line-ending = "auto"
 # docstring-code-format = false
 # docstring-code-line-length = "dynamic"
+
 
 [tool.ruff.lint]
 exclude = [ 
@@ -176,7 +180,6 @@ ignore = [
 "lib-injection/*" = ["ALL"]  # TODO
 "tests/*" = [
     "ANN201",    # missing-return-type-undocumented-public-function: TODO
-    "N801",      # invalid-class-name: TODO
     "E501",      # line-too-long: TODO
     "N806",      # non-lowercase-variable-in-function: TODO
     "TRY002",    # raise-vanilla-class: TODO
@@ -374,3 +377,4 @@ ignore = [
     "FBT002",  # boolean-default-value-positional-argument: TODO
 ]
 "utils/waf_rules.py" = ["N801"]  # generated file
+
