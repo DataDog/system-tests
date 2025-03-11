@@ -3,7 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 
-class cached_property:
+class cached_property:  # noqa: N801 (used as a decorator)
     """Descriptor (non-data) for building an attribute on-demand on first use."""
 
     def __init__(self, factory):

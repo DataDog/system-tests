@@ -11,6 +11,21 @@ class Result:
         self.scenarios = {"DEFAULT"}  # always run the default scenario
         self.scenarios_groups: set[str] = set()
 
+    def add_scenario_requirement(
+        self, scenario_requirement: Scenario | ScenarioGroup | list[Scenario | ScenarioGroup] | None
+    ) -> None:
+        if scenario_requirement is None:
+            pass
+        elif isinstance(scenario_requirement, list):
+            for req in scenario_requirement:
+                self.add_scenario_requirement(req)
+        elif isinstance(scenario_requirement, Scenario):
+            self.add_scenario(scenario_requirement.name)
+        elif isinstance(scenario_requirement, ScenarioGroup):
+            self.add_scenario_group(scenario_requirement.value)
+        else:
+            raise TypeError(f"Unknown scenario requirement: {scenario_requirement}.")
+
     def add_scenario(self, scenario: str) -> None:
         if scenario == "EndToEndScenario":
             self.add_scenario_group(ScenarioGroup.END_TO_END.value)
@@ -138,7 +153,8 @@ def main() -> None:
                 # * None: no scenario will be run
                 # * a member of ScenarioGroup: the scenario group will be run
                 # * a Scenario: the scenario will be run
-                files_map = {
+                # * a list of ScenarioGroup or Scenario: all elements will be run
+                files_map: dict[str, ScenarioGroup | Scenario | list[ScenarioGroup | Scenario] | None] = {
                     ## scenarios specific folder
                     r"parametric/.*": None,  # Legacy folder
                     r"lib-injection/.*": ScenarioGroup.LIB_INJECTION,
@@ -162,6 +178,11 @@ def main() -> None:
                     ## utils/ folder
                     r"utils/interfaces/schemas.*": ScenarioGroup.END_TO_END,
                     r"utils/_context/_scenarios/open_telemetry\.py": ScenarioGroup.OPEN_TELEMETRY,
+                    r"utils/proxy/.*": [
+                        ScenarioGroup.END_TO_END,
+                        ScenarioGroup.OPEN_TELEMETRY,
+                        ScenarioGroup.EXTERNAL_PROCESSING,
+                    ],
                     r"utils/scripts/compute_impacted_scenario\.py": None,
                     r"utils/scripts/check_version\.sh": None,
                     r"utils/scripts/get-nightly-logs\.py": None,
@@ -223,14 +244,7 @@ def main() -> None:
 
                 for pattern, scenario_requirement in files_map.items():
                     if re.fullmatch(pattern, file):
-                        if scenario_requirement is None:
-                            pass
-                        elif isinstance(scenario_requirement, ScenarioGroup):
-                            result.add_scenario_group(scenario_requirement.value)
-                        elif isinstance(scenario_requirement, Scenario):
-                            result.add_scenario(scenario_requirement.name)
-                        else:
-                            raise ValueError(f"Unknown scenario requirement: {scenario_requirement}.")
+                        result.add_scenario_requirement(scenario_requirement)
 
                         # on first matching pattern, stop the loop
                         break

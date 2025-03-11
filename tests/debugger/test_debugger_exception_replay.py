@@ -24,7 +24,7 @@ _timeout_next = 30
 
 @features.debugger_exception_replay
 @scenarios.debugger_exception_replay
-class Test_Debugger_Exception_Replay(debugger.Base_Debugger_Test):
+class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
     snapshots = {}
     spans = {}
 
