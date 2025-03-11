@@ -331,9 +331,15 @@ def deserialize(data, key, content, interface, export_content_files_to: str):
             data["path"], data[key], content, interface, key, export_content_files_to
         )
     except:
-        logger.exception(f"Error while deserializing {data['log_filename']}")
+        logger.exception(f"Error while deserializing {key} in {data['log_filename']}")
         data[key]["raw_content"] = str(content)
-        data[key]["traceback"] = str(traceback.format_exc())
+        if key == "response" and data[key]["status_code"] == 500:
+            # backend may respond 500, while giving application/x-protobuf as content-type
+            # deserialize_http_message() will fail, but it cannot be considered as an
+            # internal error, we only log it, and do not store anything in traceback
+            logger.exception(f"Error 500 in {data['log_filename']}")
+        else:
+            data[key]["traceback"] = str(traceback.format_exc())
 
 
 # if __name__ == "__main__":
