@@ -54,7 +54,7 @@ tests/:
           play: missing_feature
           resteasy-netty3: missing_feature
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-          vertx4: 1.47.0
+          vertx4: v1.47.0
         Test_Schema_Request_Path_Parameters:
           '*': v1.36.0
           akka-http: missing_feature (path parameters not suported)
@@ -86,7 +86,7 @@ tests/:
             vertx4: v1.12.0
           TestCommandInjection_ExtendedLocation: missing_feature
           TestCommandInjection_StackTrace:
-            '*': 1.47.0
+            '*': v1.47.0
             play: missing_feature
             ratpack: missing_feature
             spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
@@ -1189,7 +1189,6 @@ tests/:
         resteasy-netty3: missing_feature (session tracking not implemented)
         spring-boot-3-native: flaky (APMAPI-979)
         spring-boot-jetty: missing_feature (session tracking not implemented)
-        spring-boot-payara: bug (APPSEC-54985)
         spring-boot-undertow: missing_feature (session tracking not implemented)
         spring-boot-wildfly: missing_feature (session tracking not implemented)
         vertx3: missing_feature (home endpoint does not use cookies)
