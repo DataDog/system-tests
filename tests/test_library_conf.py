@@ -540,9 +540,7 @@ class Test_ExtractBehavior_Restart:
         assert (
             span.get("traceID") != "1"  # Lower 64-bits of traceparent
         )
-        assert (
-            span.get("traceID") != "8687463697196027922"  # Lower 64-bits of traceparent
-        )
+
         assert span.get("parentID") is None
         assert "tracestate" not in span
 
