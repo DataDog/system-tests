@@ -22,8 +22,14 @@ class CiData:
     """
 
     def __init__(
-        self, library: str, scenarios: str, groups: str, parametric_job_count: int, ci_environment: str
-    ) -> None:
+        self,
+        library: str,
+        scenarios: str,
+        groups: str,
+        parametric_job_count: int,
+        ci_environment: str,
+        desired_execution_time: int,
+    ):
         # this data struture is a dict where:
         #  the key is the workflow identifier
         #  the value is also a dict, where the key/value pair is the parameter name/value.
@@ -32,7 +38,9 @@ class CiData:
         self.environment = ci_environment
         scenario_map = self._get_workflow_map(scenarios.split(","), groups.split(","))
 
-        self.data |= get_endtoend_definitions(library, scenario_map, ci_environment)
+        self.data |= get_endtoend_definitions(
+            library, scenario_map, ci_environment, desired_execution_time, maximum_parallel_jobs=256
+        )
 
         self.data["parametric"] = {
             "job_count": parametric_job_count,
@@ -65,36 +73,50 @@ class CiData:
         self.data["graphql"] = {"scenarios": [], "weblogs": []}
         self.data["parametric"]["scenarios"] = ["PARAMETRIC"] if self.data["parametric"]["enable"] else []
         legacy_scenarios, legacy_weblogs = set(), set()
-        for item in self.data["endtoend_defs"]["weblogs"]:
-            legacy_scenarios.update(item["scenarios"])
-            legacy_weblogs.add(item["weblog_name"])
 
-        self.data["endtoend"] = {"scenarios": sorted(legacy_scenarios), "weblogs": sorted(legacy_weblogs)}
+        for item in self.data["endtoend_defs"]["parallel_weblogs"]:
+            legacy_weblogs.add(item)
 
-    def export(self, export_format: str) -> None:
+        for job in self.data["endtoend_defs"]["parallel_jobs"]:
+            for scenario in job["scenarios"]:
+                legacy_scenarios.add(scenario)
+
+        self.data["endtoend"] = {"weblogs": sorted(legacy_weblogs), "scenarios": sorted(legacy_scenarios)}
+
+    def export(self, export_format: str, output: str) -> None:
         if export_format == "json":
-            self._export_json()
+            self._export(json.dumps(self.data), output)
 
         elif export_format == "github":
-            self._export_github()
+            self._export_github(output)
 
         elif export_format == "gitlab":
+            if output != "":
+                raise ValueError("Gitlab format does not support output file")
             self._export_gitlab()
         else:
             raise ValueError(f"Invalid format: {export_format}")
 
-    def _export_github(self) -> None:
+    def _export_github(self, output: str) -> None:
+        result = []
         for workflow_name, workflow in self.data.items():
             for parameter, value in workflow.items():
-                print(f"{workflow_name}_{parameter}={json.dumps(value)}")
+                result.append(f"{workflow_name}_{parameter}={json.dumps(value)}")
 
         # github action is not able to handle aws_ssi, so nothing to do
+
+        self._export("\n".join(result), output)
 
     def _export_gitlab(self) -> None:
         print_gitlab_pipeline(self.language, self.data, self.environment)
 
-    def _export_json(self) -> None:
-        print(json.dumps(self.data))
+    @staticmethod
+    def _export(data: str, output: str) -> None:
+        if output:
+            with open(output, "w") as f:
+                f.write(data)
+        else:
+            print(data)
 
     @staticmethod
     def _get_workflow_map(scenarios, scenarios_groups) -> dict:
@@ -172,6 +194,23 @@ if __name__ == "__main__":
     parser.add_argument("--scenarios", "-s", type=str, help="Scenarios to run", default="")
     parser.add_argument("--groups", "-g", type=str, help="Scenario groups to run", default="")
 
+    # how long the workflow is expected to run
+    parser.add_argument(
+        "--desired-execution-time",
+        "-t",
+        type=int,
+        help="Expected execution time of the workflow",
+        default=-1,
+    )
+    # how long the workflow is expected to run
+    parser.add_argument(
+        "--output",
+        "-o",
+        type=str,
+        help="file (or folder) where to write the output",
+        default="",
+    )
+
     # workflow specific parameters
     parser.add_argument("--parametric-job-count", type=int, help="How may jobs must run parametric scenario", default=1)
 
@@ -186,4 +225,5 @@ if __name__ == "__main__":
         groups=args.groups,
         ci_environment=args.ci_environment,
         parametric_job_count=args.parametric_job_count,
-    ).export(args.format)
+        desired_execution_time=args.desired_execution_time,
+    ).export(export_format=args.format, output=args.output)
