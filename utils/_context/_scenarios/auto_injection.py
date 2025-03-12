@@ -174,7 +174,7 @@ class _VirtualMachineScenario(Scenario):
 
     def fill_context(self):
         for key in self.virtual_machine.tested_components:
-            if key == "host" or key == "runtime_version":
+            if key in ("host", "runtime_version"):
                 continue
             self.components[key] = self.virtual_machine.tested_components[key].lstrip(" ").replace(",", "")
             if key.startswith("datadog-apm-inject") and self.components[key]:

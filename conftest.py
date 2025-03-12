@@ -365,7 +365,7 @@ def _item_must_pass(item) -> bool:
     if any(item.iter_markers("xfail")):
         return False
 
-    for marker in item.iter_markers("skipif"):
+    for marker in item.iter_markers("skipif"):  # noqa: SIM110 (it's more clear like that)
         if all(marker.args[0]):
             return False
 

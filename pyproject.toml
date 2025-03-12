@@ -116,14 +116,12 @@ ignore = [
     "PLR0912",  # too-many-branches: TODO (17 occurences)
     "PLR0913",  # too-many-arguments: TODO (66 occurences)
     "PLR0915",  # too-many-statements: TODO (7 occurences)
-    "PLR1714",  # repeated-equality-comparison: TODO (20 occurences)
     "PLR2004",  # magic-value-comparison: TODO (674 occurences)
     "PTH118",   # os-path-join: TODO (59 occurences)
     "PTH123",   # builtin-open: TODO (117 occurences)
     "RUF012",   # mutable-class-default: TODO (111 occurences)
     "S202",     # tarfile-unsafe-members: TODO (2 occurences)
     "SIM102",   # collapsible-if: TODO (22 occurences)
-    "SIM110",   # reimplemented-builtin: TODO (7 occurences)
     "TRY003",   # raise-vanilla-args: TODO this is a full project to enable this (254 occurences)
 
     ### Ignores that will be kept for the entire project
@@ -183,7 +181,6 @@ ignore = [
     "E501",      # line-too-long: TODO
     "N806",      # non-lowercase-variable-in-function: TODO
     "TRY002",    # raise-vanilla-class: TODO
-    "INP001",    # implicit-namespace-package: TODO
     "TRY301",    # raise-within-try: TODO
 
     # keep those exceptions
