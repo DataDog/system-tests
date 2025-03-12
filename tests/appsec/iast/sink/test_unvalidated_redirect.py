@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, irrelevant, features, missing_feature, rfc, weblog, flaky
+from utils import context, irrelevant, features, missing_feature, rfc, weblog
 from tests.appsec.iast.utils import BaseSinkTestWithoutTelemetry, validate_extended_location_data, validate_stack_traces
 
 
@@ -66,7 +66,6 @@ class TestUnvalidatedHeader(BaseSinkTestWithoutTelemetry):
     @missing_feature(context.weblog_variant == "jersey-grizzly2", reason="Endpoint responds 405")
     @missing_feature(context.weblog_variant == "resteasy-netty3", reason="Endpoint responds 405")
     @missing_feature(context.weblog_variant == "vertx3", reason="Endpoint responds 403")
-    @flaky(context.library >= "dotnet@3.11.1", reason="APPSEC-56908")
     def test_secure(self):
         return super().test_secure()
 

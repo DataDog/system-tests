@@ -64,11 +64,17 @@ class _Scenarios:
 
     profiling = ProfilingScenario("PROFILING")
 
-    appsec_no_stats = EndToEndScenario(
-        name="APPSEC_NO_STATS",
+    trace_stats_computation = EndToEndScenario(
+        name="TRACE_STATS_COMPUTATION",
+        # feature consistency is poorly respected here ...
+        weblog_env={
+            "DD_TRACE_STATS_COMPUTATION_ENABLED": "1",
+            "DD_TRACE_COMPUTE_STATS": "true",
+            "DD_TRACE_FEATURES": "discovery",
+        },
         doc=(
-            "End to end testing with default values. Default scenario has DD_TRACE_COMPUTE_STATS=true."
-            "This scenario let that env to use its default"
+            "End to end testing with DD_TRACE_COMPUTE_STATS=1. This feature compute stats at tracer level, and"
+            "may drop some of them"
         ),
         scenario_groups=[ScenarioGroup.APPSEC],
     )

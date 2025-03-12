@@ -245,7 +245,7 @@ def validate_stack_traces(request):
     location = vuln["location"]
     assert location is not None, "This vulnerability is not expected to have a stack trace"
 
-    locationFrame = None
+    location_frame = None
     for frame in stack_trace["frames"]:
         # We are looking for the frame that corresponds to the location of the vulnerability, we will need to update this to cover all tracers
         # currently support: Java, Python, Node.js
@@ -279,8 +279,8 @@ def validate_stack_traces(request):
                 )
             )
         ):
-            locationFrame = frame
-    assert locationFrame is not None, "location not found in stack trace"
+            location_frame = frame
+    assert location_frame is not None, "location not found in stack trace"
 
 
 def validate_extended_location_data(request, vulnerability_type, *, is_expected_location_required=True):
@@ -565,12 +565,12 @@ class BaseTestCookieNameFilter:
 
     def setup_cookie_name_filter(self):
         prefix = "0" * 36
-        cookieName1 = prefix + "name1"
-        cookieName2 = "name2"
-        cookieName3 = prefix + "name3"
-        self.req1 = weblog.post(self.endpoint, data={"cookieName": cookieName1, "cookieValue": "value1"})
-        self.req2 = weblog.post(self.endpoint, data={"cookieName": cookieName2, "cookieValue": "value2"})
-        self.req3 = weblog.post(self.endpoint, data={"cookieName": cookieName3, "cookieValue": "value3"})
+        cookie_name_1 = prefix + "name1"
+        cookie_name_2 = "name2"
+        cookie_name_3 = prefix + "name3"
+        self.req1 = weblog.post(self.endpoint, data={"cookieName": cookie_name_1, "cookieValue": "value1"})
+        self.req2 = weblog.post(self.endpoint, data={"cookieName": cookie_name_2, "cookieValue": "value2"})
+        self.req3 = weblog.post(self.endpoint, data={"cookieName": cookie_name_3, "cookieValue": "value3"})
 
     def test_cookie_name_filter(self):
         assert_iast_vulnerability(
