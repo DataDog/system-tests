@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import weblog, context, missing_feature, features, rfc, scenarios, flaky
+from utils import weblog, context, missing_feature, features, rfc, scenarios
 from tests.appsec.iast.utils import (
     BaseSinkTest,
     assert_iast_vulnerability,
@@ -60,10 +60,6 @@ class TestWeakHash(BaseSinkTest):
     @missing_feature(context.library < "dotnet@2.38.0", reason="Not implemented yet")
     def test_telemetry_metric_executed_sink(self):
         super().test_telemetry_metric_executed_sink()
-
-    @flaky(context.library >= "dotnet@3.11.1", reason="APPSEC-56908")
-    def test_secure(self):
-        return super().test_secure()
 
 
 @rfc(
