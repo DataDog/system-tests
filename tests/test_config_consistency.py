@@ -518,7 +518,7 @@ class Test_Config_LogInjection_Enabled:
         assert sid is not None, "Expected a span ID, but got None"
 
         required_fields = ["service", "version", "env"]
-        if context.library.library == "java" or context.library.library == "python":
+        if context.library.library in ("java", "python"):
             required_fields = ["dd.service", "dd.version", "dd.env"]
 
         for field in required_fields:
