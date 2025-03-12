@@ -742,7 +742,6 @@ class BaseSCAStandaloneTelemetry:
 
 @rfc("https://docs.google.com/document/d/12NBx-nD-IoQEMiCRnJXneq4Be7cbtSc6pJLOFUWTpNE/edit")
 @features.appsec_standalone
-@scenarios.appsec_no_stats
 class Test_AppSecStandalone_NotEnabled:
     """Test expected behaviour when standalone is not enabled."""
 
