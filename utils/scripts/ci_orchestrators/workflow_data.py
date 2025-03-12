@@ -464,7 +464,6 @@ if __name__ == "__main__":
             "APPSEC_LOW_WAF_TIMEOUT",
             "APPSEC_META_STRUCT_DISABLED",
             "APPSEC_MISSING_RULES",
-            "APPSEC_NO_STATS",
             "APPSEC_RASP",
             "APPSEC_RASP_NON_BLOCKING",
             "APPSEC_RATE_LIMITER",
