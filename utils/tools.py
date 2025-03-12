@@ -169,11 +169,7 @@ def nested_lookup(needle: str, heystack, *, look_in_keys=False, exact_match=Fals
         return (needle == heystack) if exact_match else (needle in heystack)
 
     if isinstance(heystack, (list, tuple)):
-        for item in heystack:
-            if nested_lookup(needle, item, look_in_keys=look_in_keys, exact_match=exact_match):
-                return True
-
-        return False
+        return any(nested_lookup(needle, item, look_in_keys=look_in_keys, exact_match=exact_match) for item in heystack)
 
     if isinstance(heystack, dict):
         for key, value in heystack.items():
