@@ -12,7 +12,7 @@ from utils import remote_config as rc
 from utils import rfc
 from utils import scenarios
 from utils import weblog
-from utils.dd_constants import Capabilities
+from utils.dd_constants import Capabilities, SamplingPriority
 
 
 def login_data(context, username, password):
@@ -1121,12 +1121,11 @@ class Test_V2_Login_Events_Anon:
 
 
 def assert_priority(span, trace):
-    MANUAL_KEEP_SAMPLING_PRIORITY = 2
     if "_sampling_priority_v1" not in span["metrics"]:
         # some tracers like java only send the priority in the first and last span of the trace
-        assert trace[0]["metrics"].get("_sampling_priority_v1") == MANUAL_KEEP_SAMPLING_PRIORITY
+        assert trace[0]["metrics"].get("_sampling_priority_v1") == SamplingPriority.USER_KEEP
     else:
-        assert span["metrics"].get("_sampling_priority_v1") == MANUAL_KEEP_SAMPLING_PRIORITY
+        assert span["metrics"].get("_sampling_priority_v1") == SamplingPriority.USER_KEEP
 
 
 @rfc("https://docs.google.com/document/d/19VHLdJLVFwRb_JrE87fmlIM5CL5LdOBv4AmLxgdo9qI/edit")

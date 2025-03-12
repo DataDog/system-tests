@@ -203,7 +203,7 @@ class Test_RemoteConfigurationUpdateSequenceFeatures(RemoteConfigurationFieldsBa
         """Test update sequence, based on a scenario mocked in the proxy"""
 
         with open("tests/remote_config/rc_expected_requests_asm_features.json", encoding="utf-8") as f:
-            ASM_FEATURES_EXPECTED_REQUESTS = json.load(f)
+            asm_features_expected_requests = json.load(f)
 
         self.assert_client_fields()
 
@@ -214,10 +214,10 @@ class Test_RemoteConfigurationUpdateSequenceFeatures(RemoteConfigurationFieldsBa
                 return False
 
             logger.info(f"validating request number {self.request_number}")
-            if self.request_number >= len(ASM_FEATURES_EXPECTED_REQUESTS):
+            if self.request_number >= len(asm_features_expected_requests):
                 return True
 
-            rc_check_request(data, ASM_FEATURES_EXPECTED_REQUESTS[self.request_number], caching=True)
+            rc_check_request(data, asm_features_expected_requests[self.request_number], caching=True)
 
             self.python_request_number += 1
             if (
@@ -305,7 +305,7 @@ class Test_RemoteConfigurationUpdateSequenceLiveDebugging(RemoteConfigurationFie
         request_number: dict = defaultdict(int)
 
         with open("tests/remote_config/rc_expected_requests_live_debugging.json", encoding="utf-8") as f:
-            LIVE_DEBUGGING_EXPECTED_REQUESTS = json.load(f)
+            live_debugging_expected_requests = json.load(f)
 
         self.assert_client_fields()
 
@@ -317,10 +317,10 @@ class Test_RemoteConfigurationUpdateSequenceLiveDebugging(RemoteConfigurationFie
 
             runtime_id = data["request"]["content"]["client"]["client_tracer"]["runtime_id"]
             logger.info(f"validating request number {request_number[runtime_id]}")
-            if request_number[runtime_id] >= len(LIVE_DEBUGGING_EXPECTED_REQUESTS):
+            if request_number[runtime_id] >= len(live_debugging_expected_requests):
                 return True
 
-            rc_check_request(data, LIVE_DEBUGGING_EXPECTED_REQUESTS[request_number[runtime_id]], caching=True)
+            rc_check_request(data, live_debugging_expected_requests[request_number[runtime_id]], caching=True)
 
             request_number[runtime_id] += 1
 
@@ -357,7 +357,7 @@ class Test_RemoteConfigurationUpdateSequenceASMDD(RemoteConfigurationFieldsBasic
         self.assert_client_fields()
 
         with open("tests/remote_config/rc_expected_requests_asm_dd.json", encoding="utf-8") as f:
-            ASM_DD_EXPECTED_REQUESTS = json.load(f)
+            asm_dd_expected_requests = json.load(f)
 
         def validate(data):
             """Helper to validate config request content"""
@@ -365,11 +365,11 @@ class Test_RemoteConfigurationUpdateSequenceASMDD(RemoteConfigurationFieldsBasic
             if not self.response_has_been_overwritten(data):
                 return False
 
-            if self.request_number >= len(ASM_DD_EXPECTED_REQUESTS):
+            if self.request_number >= len(asm_dd_expected_requests):
                 return True
 
             logger.info(f"Validating request #{self.request_number} in {data['log_filename']}")
-            rc_check_request(data, ASM_DD_EXPECTED_REQUESTS[self.request_number], caching=True)
+            rc_check_request(data, asm_dd_expected_requests[self.request_number], caching=True)
 
             self.request_number += 1
 
@@ -402,7 +402,7 @@ class Test_RemoteConfigurationUpdateSequenceFeaturesNoCache(RemoteConfigurationF
         """Test update sequence, based on a scenario mocked in the proxy"""
 
         with open("tests/remote_config/rc_expected_requests_asm_features.json", encoding="utf-8") as f:
-            ASM_FEATURES_EXPECTED_REQUESTS = json.load(f)
+            asm_features_expected_requests = json.load(f)
 
         self.assert_client_fields()
 
@@ -413,10 +413,10 @@ class Test_RemoteConfigurationUpdateSequenceFeaturesNoCache(RemoteConfigurationF
                 return False
 
             logger.info(f"validating request number {self.request_number}")
-            if self.request_number >= len(ASM_FEATURES_EXPECTED_REQUESTS):
+            if self.request_number >= len(asm_features_expected_requests):
                 return True
 
-            rc_check_request(data, ASM_FEATURES_EXPECTED_REQUESTS[self.request_number], caching=False)
+            rc_check_request(data, asm_features_expected_requests[self.request_number], caching=False)
 
             self.request_number += 1
 
@@ -449,7 +449,7 @@ class Test_RemoteConfigurationUpdateSequenceASMDDNoCache(RemoteConfigurationFiel
         self.assert_client_fields()
 
         with open("tests/remote_config/rc_expected_requests_asm_dd.json", encoding="utf-8") as f:
-            ASM_DD_EXPECTED_REQUESTS = json.load(f)
+            asm_dd_expected_requests = json.load(f)
 
         def validate(data):
             """Helper to validate config request content"""
@@ -458,10 +458,10 @@ class Test_RemoteConfigurationUpdateSequenceASMDDNoCache(RemoteConfigurationFiel
                 return False
 
             logger.info(f"validating request number {self.request_number}")
-            if self.request_number >= len(ASM_DD_EXPECTED_REQUESTS):
+            if self.request_number >= len(asm_dd_expected_requests):
                 return True
 
-            rc_check_request(data, ASM_DD_EXPECTED_REQUESTS[self.request_number], caching=False)
+            rc_check_request(data, asm_dd_expected_requests[self.request_number], caching=False)
 
             self.request_number += 1
 
