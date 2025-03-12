@@ -590,30 +590,30 @@ class Test_Headers_Tracestate_DD:
 
         # 1) Input: 32 list-members with 'dd' at the end of the tracestate string
         _, tracestate1 = get_tracecontext(headers1)
-        tracestate1String = str(tracestate1)
-        assert "key31=value31" in tracestate1String
-        assert tracestate1String.startswith("dd=")
-        assert len(tracestate1String.split(",")) == 32
+        tracestate_1_string = str(tracestate1)
+        assert "key31=value31" in tracestate_1_string
+        assert tracestate_1_string.startswith("dd=")
+        assert len(tracestate_1_string.split(",")) == 32
 
         # 2) Input: 32 list-members with 'dd' at the beginning of the tracestate string
         _, tracestate2 = get_tracecontext(headers2)
-        tracestate2String = str(tracestate2)
-        assert "key31=value31" in tracestate2String
-        assert tracestate2String.startswith("dd=")
-        assert len(tracestate2String.split(",")) == 32
+        tracestate_2_string = str(tracestate2)
+        assert "key31=value31" in tracestate_2_string
+        assert tracestate_2_string.startswith("dd=")
+        assert len(tracestate_2_string.split(",")) == 32
 
         # 3) Input: 31 list-members without 'dd' in the tracestate string
         _, tracestate3 = get_tracecontext(headers3)
-        tracestate3String = str(tracestate3)
-        assert "key31=value31" in tracestate3String
-        assert tracestate3String.startswith("dd=")
-        assert len(tracestate3String.split(",")) == 32
+        tracestate_3_string = str(tracestate3)
+        assert "key31=value31" in tracestate_3_string
+        assert tracestate_3_string.startswith("dd=")
+        assert len(tracestate_3_string.split(",")) == 32
 
         # 4) Input: No tracestate string
         _, tracestate4 = get_tracecontext(headers4)
-        tracestate4String = str(tracestate4)
-        assert tracestate4String.startswith("dd=")
-        assert len(tracestate4String.split(",")) == 1
+        tracestate_4_string = str(tracestate4)
+        assert tracestate_4_string.startswith("dd=")
+        assert len(tracestate_4_string.split(",")) == 1
 
     @temporary_enable_propagationstyle_default()
     @missing_feature(context.library < "java@1.24.0", reason="Implemented in 1.24.0")
@@ -640,7 +640,7 @@ class Test_Headers_Tracestate_DD:
 
         # 1) Input: 32 list-members without 'dd' in the tracestate string
         _, tracestate1 = get_tracecontext(headers1)
-        tracestate1String = str(tracestate1)
-        assert len(tracestate1String.split(",")) == 32
-        assert "key32=value32" not in tracestate1String
-        assert tracestate1String.startswith("dd=")
+        tracestate_1_string = str(tracestate1)
+        assert len(tracestate_1_string.split(",")) == 32
+        assert "key32=value32" not in tracestate_1_string
+        assert tracestate_1_string.startswith("dd=")

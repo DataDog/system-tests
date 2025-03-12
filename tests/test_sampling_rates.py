@@ -8,6 +8,7 @@ from random import randint, seed
 
 from utils import weblog, interfaces, context, bug, irrelevant, flaky, scenarios, features
 from utils.tools import logger
+from utils.dd_constants import SamplingPriority
 
 
 def priority_should_be_kept(sampling_priority):
@@ -15,10 +16,8 @@ def priority_should_be_kept(sampling_priority):
 
     See https://datadoghq.atlassian.net/wiki/spaces/APM/pages/2564915820/Trace+Ingestion+Mechanisms
     """
-    AUTO_KEEP = 1
-    USER_KEEP = 2
 
-    return sampling_priority in (AUTO_KEEP, USER_KEEP)
+    return sampling_priority in (SamplingPriority.AUTO_KEEP, SamplingPriority.USER_KEEP)
 
 
 def trace_should_be_kept(sampling_rate, trace_id):
@@ -27,10 +26,10 @@ def trace_should_be_kept(sampling_rate, trace_id):
     Reference algorithm described in the priority sampling RFC
     https://github.com/DataDog/architecture/blob/master/rfcs/apm/integrations/priority-sampling/rfc.md
     """
-    MODULO = 2**64
-    KNUTH_FACTOR = 1111111111111111111
+    modulo = 2**64
+    knuth_factor = 1111111111111111111
 
-    return ((trace_id * KNUTH_FACTOR) % MODULO) <= (sampling_rate * MODULO)
+    return ((trace_id * knuth_factor) % modulo) <= (sampling_rate * modulo)
 
 
 def _spans_with_parent(traces, parent_ids):

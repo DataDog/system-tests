@@ -179,7 +179,6 @@ ignore = [
 "tests/*" = [
     "ANN201",    # missing-return-type-undocumented-public-function: TODO
     "E501",      # line-too-long: TODO
-    "N806",      # non-lowercase-variable-in-function: TODO
     "TRY002",    # raise-vanilla-class: TODO
     "TRY301",    # raise-within-try: TODO
 

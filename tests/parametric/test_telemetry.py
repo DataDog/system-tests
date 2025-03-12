@@ -312,7 +312,7 @@ class Test_Environment:
 
         metrics = payload["series"]
         assert payload["namespace"] == "tracers"
-        otelHiding = [s for s in metrics if s["metric"] == "otel.env.hiding"]
+        otel_hiding = [s for s in metrics if s["metric"] == "otel.env.hiding"]
         assert not [s for s in metrics if s["metric"] == "otel.env.invalid"]
 
         if context.library == "nodejs":
@@ -345,7 +345,7 @@ class Test_Environment:
         ]
 
         for dd_config, otel_config in dd_to_otel_mapping:
-            for metric in otelHiding:
+            for metric in otel_hiding:
                 if (
                     f"config_datadog:{dd_config}" in metric["tags"]
                     and f"config_opentelemetry:{otel_config}" in metric["tags"]
@@ -354,7 +354,7 @@ class Test_Environment:
                     break
             else:
                 pytest.fail(
-                    f"Could not find a metric with {dd_config} and {otel_config} in otelHiding metrics: {otelHiding}"
+                    f"Could not find a metric with {dd_config} and {otel_config} in otelHiding metrics: {otel_hiding}"
                 )
 
     @missing_feature(context.library == "dotnet", reason="Not implemented")
@@ -653,10 +653,10 @@ class Test_TelemetrySCAEnvVar:
         configuration_by_name = self.get_app_started_configuration_by_name(test_agent, test_library)
         assert configuration_by_name is not None, "Missing telemetry configuration"
 
-        DD_APPSEC_SCA_ENABLED = TelemetryUtils.get_dd_appsec_sca_enabled_str(context.library)
+        dd_appsec_sca_enabled = TelemetryUtils.get_dd_appsec_sca_enabled_str(context.library)
 
-        cfg_appsec_enabled = configuration_by_name.get(DD_APPSEC_SCA_ENABLED)
-        assert cfg_appsec_enabled is not None, f"Missing telemetry config item for '{DD_APPSEC_SCA_ENABLED}'"
+        cfg_appsec_enabled = configuration_by_name.get(dd_appsec_sca_enabled)
+        assert cfg_appsec_enabled is not None, f"Missing telemetry config item for '{dd_appsec_sca_enabled}'"
 
         if context.library == "java":
             outcome_value = str(outcome_value).lower()
@@ -671,11 +671,11 @@ class Test_TelemetrySCAEnvVar:
         configuration_by_name = self.get_app_started_configuration_by_name(test_agent, test_library)
         assert configuration_by_name is not None, "Missing telemetry configuration"
 
-        DD_APPSEC_SCA_ENABLED = TelemetryUtils.get_dd_appsec_sca_enabled_str(context.library)
+        dd_appsec_sca_enabled = TelemetryUtils.get_dd_appsec_sca_enabled_str(context.library)
 
         if context.library in ("java", "nodejs", "python"):
-            cfg_appsec_enabled = configuration_by_name.get(DD_APPSEC_SCA_ENABLED)
-            assert cfg_appsec_enabled is not None, f"Missing telemetry config item for '{DD_APPSEC_SCA_ENABLED}'"
+            cfg_appsec_enabled = configuration_by_name.get(dd_appsec_sca_enabled)
+            assert cfg_appsec_enabled is not None, f"Missing telemetry config item for '{dd_appsec_sca_enabled}'"
             assert cfg_appsec_enabled.get("value") is None
         else:
-            assert DD_APPSEC_SCA_ENABLED not in configuration_by_name
+            assert dd_appsec_sca_enabled not in configuration_by_name
