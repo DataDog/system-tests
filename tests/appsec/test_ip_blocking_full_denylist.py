@@ -17,11 +17,11 @@ class Test_AppSecIPBlockingFullDenylist(BaseFullDenyListTest):
     """A library should block requests from up to 2500 different blocked IP addresses."""
 
     def setup_blocked_ips(self):
-        NOT_BLOCKED_IP = "42.42.42.3"
+        not_blocked_ip = "42.42.42.3"
 
         self.setup_scenario()
 
-        self.not_blocked_request = weblog.get(headers={"X-Forwarded-For": NOT_BLOCKED_IP})
+        self.not_blocked_request = weblog.get(headers={"X-Forwarded-For": not_blocked_ip})
         self.blocked_requests = [weblog.get(headers={"X-Forwarded-For": ip}) for ip in self.blocked_ips]
 
     @missing_feature(weblog_variant="spring-boot" and context.library < "java@0.111.0")

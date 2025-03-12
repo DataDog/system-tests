@@ -20,8 +20,8 @@ def validate_identify_tags(tags):
             if isinstance(tags, dict):
                 assert_tag_in_span_meta(span, tag, tags[tag])
             else:
-                fullTag = f"usr.{tag}"
-                assert_tag_in_span_meta(span, fullTag, fullTag)
+                full_tag = f"usr.{tag}"
+                assert_tag_in_span_meta(span, full_tag, full_tag)
         return True
 
     return inner_validate
@@ -67,8 +67,8 @@ class Test_Propagate_Legacy:
     @missing_feature(library="nodejs", reason="only supports incoming tags for now")
     @missing_feature(library="java", reason="only supports incoming tags for now")
     def test_identify_tags_outgoing(self):
-        tagTable = {"_dd.p.usr.id": "dXNyLmlk"}
-        interfaces.library.validate_spans(self.r_outgoing, validate_identify_tags(tagTable))
+        tag_table = {"_dd.p.usr.id": "dXNyLmlk"}
+        interfaces.library.validate_spans(self.r_outgoing, validate_identify_tags(tag_table))
 
     def setup_identify_tags_incoming(self):
         # Send a request to a generic endpoint, since any endpoint should propagate
@@ -77,8 +77,8 @@ class Test_Propagate_Legacy:
 
     def test_identify_tags_incoming(self):
         """With W3C : this test expect to fail with DD_TRACE_PROPAGATION_STYLE_INJECT=W3C"""
-        tagTable = {"_dd.p.usr.id": "dXNyLmlk"}
-        interfaces.library.validate_spans(self.r_incoming, validate_identify_tags(tagTable))
+        tag_table = {"_dd.p.usr.id": "dXNyLmlk"}
+        interfaces.library.validate_spans(self.r_incoming, validate_identify_tags(tag_table))
 
 
 @rfc("https://docs.google.com/document/d/1T3qAE5nol18psOaHESQ3r-WRiZWss9nyGmroShug8ao/edit#heading=h.3wmduzc8mwe1")
@@ -93,8 +93,8 @@ class Test_Propagate:
     @missing_feature(library="nodejs", reason="only supports incoming tags for now")
     @missing_feature(library="java", reason="only supports incoming tags for now")
     def test_identify_tags_outgoing(self):
-        tagTable = {"usr.id": "usr.id", "_dd.p.usr.id": "dXNyLmlk"}
-        interfaces.library.validate_spans(self.r_outgoing, validate_identify_tags(tagTable))
+        tag_table = {"usr.id": "usr.id", "_dd.p.usr.id": "dXNyLmlk"}
+        interfaces.library.validate_spans(self.r_outgoing, validate_identify_tags(tag_table))
 
     def setup_identify_tags_incoming(self):
         # Send a request to a generic endpoint, since any endpoint should propagate
@@ -109,6 +109,6 @@ class Test_Propagate:
                 raise Exception("usr.id must not be present in this span")
             return True
 
-        tagTable = {"_dd.p.usr.id": "dXNyLmlk"}
-        interfaces.library.validate_spans(self.r_incoming, validate_identify_tags(tagTable))
+        tag_table = {"_dd.p.usr.id": "dXNyLmlk"}
+        interfaces.library.validate_spans(self.r_incoming, validate_identify_tags(tag_table))
         interfaces.library.validate_spans(self.r_incoming, usr_id_not_present)

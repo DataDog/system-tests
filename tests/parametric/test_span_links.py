@@ -149,15 +149,15 @@ class Test_Span_Links:
         assert link.get("trace_id_high") == 1311768467284833366
 
         assert link.get("tracestate") is not None
-        tracestateArr = link["tracestate"].split(",")
-        assert len(tracestateArr) >= 2, tracestateArr
-        assert next(filter(lambda x: x.startswith("foo="), tracestateArr)) == "foo=1"
-        assert next(filter(lambda x: x.startswith("bar="), tracestateArr)) == "bar=baz"
-        if "dd=" in tracestateArr:
+        tracestate_arr = link["tracestate"].split(",")
+        assert len(tracestate_arr) >= 2, tracestate_arr
+        assert next(filter(lambda x: x.startswith("foo="), tracestate_arr)) == "foo=1"
+        assert next(filter(lambda x: x.startswith("bar="), tracestate_arr)) == "bar=baz"
+        if "dd=" in tracestate_arr:
             # ruby does not store dd members in tracestate
-            tracestateDD = next(filter(lambda x: x.startswith("dd="), tracestateArr))
-            assert "s:2" in tracestateDD
-            assert "t.dm:-4" in tracestateDD
+            tracestate_dd = next(filter(lambda x: x.startswith("dd="), tracestate_arr))
+            assert "s:2" in tracestate_dd
+            assert "t.dm:-4" in tracestate_dd
 
         # link has a sampling priority of 2, so it should be sampled
         assert link.get("flags") == 1 | TRACECONTEXT_FLAGS_SET
