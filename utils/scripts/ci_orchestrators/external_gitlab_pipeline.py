@@ -29,8 +29,10 @@ def main(language=None) -> None:
 
     if language in ["java", "python", "nodejs", "dotnet", "ruby", "php"]:
         data = filter_yaml(data, language)
-    # Print the modified YAML
+
     update_needs(data)
+
+    # Print the modified YAML
     print(yaml.dump(data, default_flow_style=False, sort_keys=False))
 
 
@@ -66,14 +68,22 @@ def update_needs(yaml_data) -> None:
     """Update jobs that have 'needs:' containing 'compute_pipeline' and another value, keeping only ['compute_pipeline']
     We will launch all the languges in parallel when we run system-tests in external repositories.
     (For the system-tests repository we launch the tests sequentially for each language.)
+    NOTE: if we are running the tests for a release, we are going to run agains all vms this can exhausted
+          the resources (aws, gitlab) let's add 5 minutes of delay for starting the next stage (for the next lang)
     """
-
+    # Check if we are generating a release
+    ci_commit_tag = os.getenv("CI_COMMIT_TAG")
+    delay_time = 5  # minutes
     for _job_name, job_data in yaml_data.items():  # noqa: PERF102
         if isinstance(job_data, dict) and "needs" in job_data:
             needs_list = job_data["needs"]
             # Check if 'compute_pipeline' is present and there is more than one value
             if isinstance(needs_list, list) and "compute_pipeline" in needs_list and len(needs_list) > 1:
                 job_data["needs"] = ["compute_pipeline"]  # Keep only 'compute_pipeline'
+                if not ci_commit_tag:  # TODO RMM remove NOT
+                    job_data["when"] = "delayed"
+                    job_data["start_in"] = f"{delay_time} minutes"
+                    delay_time = delay_time + 5
 
 
 if __name__ == "__main__":
