@@ -3,7 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 import json
 import pytest
-from utils import weblog, bug, context, interfaces, irrelevant, missing_feature, rfc, scenarios, features
+from utils import weblog, bug, context, interfaces, irrelevant, missing_feature, rfc, scenarios, features, flaky
 from utils.tools import logger
 
 
@@ -129,9 +129,11 @@ class Test_Headers:
         self.r_wk_2 = weblog.get("/waf/", headers={"not-referer": "<script >"})
 
     @missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
+    @flaky(context.library >= "dotnet@3.12.0", reason="APPSEC-56987")
     def test_specific_wrong_key(self):
         """When a specific header key is specified in rules, other key are ignored"""
         for r in [self.r_wk_1, self.r_wk_2]:
+            logger.debug(f"Testing {r.request.headers}")
             assert r.status_code == 200
             spans = [span for _, span in interfaces.library.get_root_spans(request=r)]
             assert spans, "No spans to validate"
