@@ -1005,12 +1005,12 @@ tests/:
       '*': *ref_5_25_0
       express4-typescript: incomplete_test_app
       nextjs: incomplete_test_app
+    Test_Config_LogInjection_128Bit_TraceId_Disabled:
+      '*': * ref_3_15_0
+      express4-typescript: incomplete_test_app (endpoint not implemented)
+      nextjs: incomplete_test_app (endpoint not implemented)
     Test_Config_LogInjection_128Bit_TraceId_Enabled:
       '*': *ref_5_38_0
-      express4-typescript: incomplete_test_app (endpoint not implemented)
-      nextjs: incomplete_test_app (endpoint not implemented) 
-    Test_Config_LogInjection_128Bit_TraceId_Disabled:
-      '*': *ref_3_15_0
       express4-typescript: incomplete_test_app (endpoint not implemented)
       nextjs: incomplete_test_app (endpoint not implemented)
     Test_Config_LogInjection_Default:
