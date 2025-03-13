@@ -53,7 +53,7 @@ class Test_Headers_Baggage:
         assert headers["baggage"] == "foo=bar"
 
     @irrelevant(
-        context.library in ("cpp", "goland", "java", "ruby", "php"),
+        context.library in ("cpp", "goland", "java", "ruby"),
         reason="The current default behaviour matches the future baggage disabled behaviour, so we can't activate this test without causing a false easy win",
     )
     @disable_baggage()
@@ -129,7 +129,7 @@ class Test_Headers_Baggage:
             assert span.get_baggage("serverNode") == "DF 28"
 
     @irrelevant(
-        context.library in ("cpp", "goland", "java", "ruby", "php"),
+        context.library in ("cpp", "goland", "java", "ruby"),
         reason="The current default behaviour matches the future baggage disabled behaviour, so we can't activate this test without causing a false easy win",
     )
     @disable_baggage()
@@ -181,7 +181,7 @@ class Test_Headers_Baggage:
             span.remove_baggage("userId")
             assert span.get_all_baggage() == {"serverNode": "DF 28"}
             span.remove_baggage("serverNode")
-            assert span.get_all_baggage() == {}
+            assert not span.get_all_baggage()
 
     def test_baggage_remove_all_D011(self, test_library):
         """Testing baggage API remove_all_baggage"""
@@ -189,7 +189,7 @@ class Test_Headers_Baggage:
             span.set_baggage("foo", "bar")
             span.set_baggage("baz", "qux")
             span.remove_all_baggage()
-            assert span.get_all_baggage() == {}
+            assert not span.get_all_baggage()
 
     def _assert_valid_baggage(self, test_library):
         """Helper function to confirm that a valid baggage header is set

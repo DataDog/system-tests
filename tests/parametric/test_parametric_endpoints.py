@@ -378,8 +378,8 @@ class Test_Parametric_DDTrace_Baggage:
             with test_library.dd_start_span("test_set_baggage") as s1:
                 s1.set_baggage("key", "value")
 
-            headers = test_library.dd_inject_headers(s1.span_id)
-            assert any("baggage" in header for header in headers)
+                headers = test_library.dd_inject_headers(s1.span_id)
+                assert any("baggage" in header for header in headers)
 
     def test_get_baggage(self, test_agent, test_library):
         """Validates that /trace/span/get_baggage gets a baggage item.
@@ -429,8 +429,8 @@ class Test_Parametric_DDTrace_Baggage:
                 # Remove baggage
                 s1.remove_baggage("key")
 
-            headers = test_library.dd_inject_headers(s1.span_id)
-            assert not any("baggage" in header for header in headers)
+                headers = test_library.dd_inject_headers(s1.span_id)
+                assert not any("baggage" in header for header in headers)
 
     def test_remove_all_baggage(self, test_agent, test_library):
         """Validates that /trace/span/remove_all_baggage removes all baggage items from a span.
@@ -449,9 +449,8 @@ class Test_Parametric_DDTrace_Baggage:
                 assert any("baggage" in header for header in headers)
                 s1.remove_all_baggage()
 
-            headers = test_library.dd_inject_headers(s1.span_id)
-            assert not any("baggage" in header for header in headers)
-
+                headers = test_library.dd_inject_headers(s1.span_id)
+                assert not any("baggage" in header for header in headers)
 
 @scenarios.parametric
 @features.parametric_endpoint_parity
