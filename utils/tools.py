@@ -52,7 +52,7 @@ DEBUG_LEVEL_STDOUT = 100
 class Logger(logging.Logger):
     terminal: Any
 
-    def stdout(self, message, *args, **kws) -> None:  # noqa: ANN002
+    def stdout(self, message: str, *args, **kws) -> None:  # noqa: ANN002
         if self.isEnabledFor(DEBUG_LEVEL_STDOUT):
             # Yes, logger takes its '*args' as 'args'.
             self._log(DEBUG_LEVEL_STDOUT, message, args, **kws)  # pylint: disable=protected-access
@@ -72,7 +72,7 @@ logging.getLogger("urllib3").setLevel(logging.WARNING)
 logging.addLevelName(DEBUG_LEVEL_STDOUT, "STDOUT")
 
 
-def get_logger(name="tests", *, use_stdout=False) -> Logger:
+def get_logger(name: str = "tests", *, use_stdout: bool = False) -> Logger:
     result: Logger = logging.getLogger(name)  # type: ignore[assignment]
 
     if use_stdout:
@@ -105,15 +105,7 @@ def e(message: str) -> str:
 logger = get_logger()
 
 
-def get_rid_from_request(request) -> str | None:
-    if request is None:
-        return None
-
-    user_agent = next(v for k, v in request.request.headers.items() if k.lower() == "user-agent")
-    return user_agent[-36:]
-
-
-def get_rid_from_span(span) -> str | None:
+def get_rid_from_span(span: dict) -> str | None:
     if not isinstance(span, dict):
         logger.error(f"Span should be an object, not {type(span)}")
         return None
@@ -162,7 +154,13 @@ def get_rid_from_user_agent(user_agent: str) -> str | None:
     return match.group(1)
 
 
-def nested_lookup(needle: str, heystack, *, look_in_keys=False, exact_match=False) -> bool:
+def nested_lookup(
+    needle: str,
+    heystack: str | list | tuple | dict | bool | float | None,
+    *,
+    look_in_keys: bool = False,
+    exact_match: bool = False,
+) -> bool:
     """Look for needle in heystack, heystack can be a dict or an array"""
 
     if isinstance(heystack, str):

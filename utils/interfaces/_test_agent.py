@@ -2,7 +2,7 @@ import pathlib
 import threading
 import json
 from utils.interfaces._core import InterfaceValidator
-from utils.tools import logger, get_rid_from_request
+from utils.tools import logger
 
 
 class _TestAgentInterfaceValidator(InterfaceValidator):
@@ -30,7 +30,7 @@ class _TestAgentInterfaceValidator(InterfaceValidator):
             )
 
     def get_traces(self, request=None):
-        rid = get_rid_from_request(request)
+        rid = request.get_rid() if request else None
         if not rid:
             raise ValueError("Request ID not found")
         logger.debug(f"Try to find traces related to request {rid}")
