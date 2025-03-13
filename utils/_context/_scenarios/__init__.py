@@ -229,7 +229,7 @@ class _Scenarios:
     appsec_blocking_full_denylist = EndToEndScenario(
         "APPSEC_BLOCKING_FULL_DENYLIST",
         rc_api_enabled=True,
-        weblog_env={"DD_APPSEC_RULES": None},
+        weblog_env={"DD_APPSEC_RULES": ""},
         doc="""
             The spec says that if  DD_APPSEC_RULES is defined, then rules won't be loaded from remote config.
             In this scenario, we use remote config. By the spec, whem remote config is available, rules file
@@ -244,7 +244,7 @@ class _Scenarios:
     appsec_request_blocking = EndToEndScenario(
         "APPSEC_REQUEST_BLOCKING",
         rc_api_enabled=True,
-        weblog_env={"DD_APPSEC_RULES": None},
+        weblog_env={"DD_APPSEC_RULES": ""},
         doc="",
         scenario_groups=[ScenarioGroup.APPSEC],
     )
@@ -336,7 +336,7 @@ class _Scenarios:
 
     appsec_auto_events_rc = EndToEndScenario(
         "APPSEC_AUTO_EVENTS_RC",
-        weblog_env={"DD_APPSEC_ENABLED": "true", "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": 0.5},
+        weblog_env={"DD_APPSEC_ENABLED": "true", "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "0.5"},
         rc_api_enabled=True,
         doc="""
             Scenario to test User ID collection config change via Remote config
@@ -464,7 +464,7 @@ class _Scenarios:
     remote_config_mocked_backend_asm_dd = EndToEndScenario(
         "REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD",
         rc_api_enabled=True,
-        weblog_env={"DD_APPSEC_RULES": None},
+        weblog_env={"DD_APPSEC_RULES": ""},
         doc="""
             The spec says that if DD_APPSEC_RULES is defined, then rules won't be loaded from remote config.
             In this scenario, we use remote config. By the spec, whem remote config is available, rules file
