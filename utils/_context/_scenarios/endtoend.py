@@ -242,7 +242,7 @@ class EndToEndScenario(DockerScenario):
         doc: str,
         github_workflow: str = "endtoend",
         scenario_groups: list[ScenarioGroup] | None = None,
-        weblog_env: dict[str, str] | None = None,
+        weblog_env: dict[str, str | None] | None = None,
         weblog_volumes: dict | None = None,
         agent_env: dict[str, str] | None = None,
         enable_ipv6: bool = False,
