@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+
+### 2025-02 (236 PR merged)
+
+* 2025-02-12 [Add yamlfmt + yamllint](https://github.com/DataDog/system-tests/pull/4077) by @bm1549
+* 2025-02-10 Green CI policy by @cbeauchesne
+* 2025-02-04 [Extend mypy to full project](https://github.com/DataDog/system-tests/pull/3963) by @cbeauchesned
+* SSI:
+  * Implement retry policies on Gitlab pipeline with the aim of reducing flakiness
+  * Improvements in exception handling and messages displayed to the end user
+  * Enable all new vm distros and report to feature parity dashboard
+
 ### 2025-01 (179 PR merged)
 
 * 2025-01-20 [Deserialize JSON in multipart](https://github.com/DataDog/system-tests/pull/3854) by @cbeauchesne
