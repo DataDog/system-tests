@@ -82,7 +82,7 @@ def handle_parallelism(yaml_data) -> None:
     defined_stages = yaml_data.get("stages", [])
     lang_stage_count = sum(1 for stage in defined_stages if stage in LANG_STAGES)
 
-    if lang_stage_count > 1 and not is_release:
+    if lang_stage_count > 1 and is_release:
         for stage in yaml_data["stages"]:
             if stage in LANG_STAGES:
                 job_name = f"delayed_{stage}_trigger"
@@ -95,7 +95,7 @@ def handle_parallelism(yaml_data) -> None:
             needs_list = job_data["needs"]
             # Check if 'compute_pipeline' is present and there is more than one value
             if isinstance(needs_list, list) and "compute_pipeline" in needs_list and len(needs_list) > 1:
-                if lang_stage_count > 1 and not is_release:
+                if lang_stage_count > 1 and is_release:
                     job_data["needs"] = [
                         "compute_pipeline",
                         f"delayed_{job_data['stage']}_trigger",
