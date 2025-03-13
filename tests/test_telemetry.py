@@ -533,14 +533,25 @@ class Test_Telemetry:
 
         self.validate_library_telemetry_data(validator)
 
+    @missing_feature(context.library == "dotnet", reason="Not implemented")
+    @missing_feature(context.library == "java", reason="Not implemented")
+    @missing_feature(context.library == "ruby", reason="Not implemented")
+    @missing_feature(context.library == "php", reason="Not implemented")
+    @missing_feature(context.library == "cpp", reason="Not implemented")
+    @missing_feature(context.library == "python", reason="Not implemented")
+    @missing_feature(context.library == "golang", reason="Not implemented")
     @scenarios.telemetry_app_started_config_chaining
     def test_app_started_config_chaining(self):
         """Assert that all configuration sources read at start time are sent with the app-started event"""
-        
-        trace_agent_port = scenarios.default.weblog_container.trace_agent_port
 
         test_configuration = {
-            "nodejs": {"DD_LOGS_INJECTION": [{ "origin": "code", "value": True }, { "origin": "env_var", "value": False }, { "origin": "default", "value": False }]}, # in order from highest to lowest precedence
+            "nodejs": {
+                "DD_LOGS_INJECTION": [
+                    {"origin": "code", "value": True},
+                    {"origin": "env_var", "value": False},
+                    {"origin": "default", "value": False},
+                ]
+            },  # in order from highest to lowest precedence
         }
 
         nodejs_expected_config = test_configuration["nodejs"]
@@ -565,16 +576,14 @@ class Test_Telemetry:
                         f"but found {len(actual_chain)}."
                     )
 
-                for i, (actual, expected) in enumerate(zip(actual_chain, expected_chain)):
+                for i, (actual, expected) in enumerate(zip(actual_chain, expected_chain, strict=False)):
                     if actual["origin"] != expected["origin"]:
                         raise AssertionError(
-                            f"{cnf_name}[{i}] origin expected: {expected['origin']}, "
-                            f"got: {actual['origin']}"
+                            f"{cnf_name}[{i}] origin expected: {expected['origin']}, " f"got: {actual['origin']}"
                         )
                     if actual["value"] != expected["value"]:
                         raise AssertionError(
-                            f"{cnf_name}[{i}] value expected: {expected['value']}, "
-                            f"got: {actual['value']}"
+                            f"{cnf_name}[{i}] value expected: {expected['value']}, " f"got: {actual['value']}"
                         )
 
                     if i < len(actual_chain) - 1:
@@ -586,7 +595,6 @@ class Test_Telemetry:
                             )
 
         self.validate_library_telemetry_data(validator)
-
 
     def setup_app_product_change(self):
         weblog.get("/enable_product")
