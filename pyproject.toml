@@ -228,10 +228,17 @@ ignore = [
 "tests/test_the_test/*" = [
     "S605",      # start-process-with-a-shell: test the test needs to run shell commands
 ]
-"utils/_context/*" = [
+"utils/_context/{library_version.py,containers.py}" = [
+    "ANN001",   # missing-type-function-argument: TODO
+]
+"utils/_context/_scenarios/{open_telemetry.py,integrations.py,external_processing.py}" = [
+    "ANN001",   # missing-type-function-argument: TODO
+]
+"utils/_context/_scenarios/auto_injection.py" = [
     "ANN001",   # missing-type-function-argument: TODO
 ]
 "utils/{_context/_scenarios/docker_ssi.py,docker_ssi/docker_ssi_matrix_builder.py,docker_ssi/docker_ssi_matrix_utils.py}" = [
+    "ANN001",   # missing-type-function-argument: TODO
     "E501",     # line-too-long: TODO
     "T201",     # print: TODO
     "RET504",   # unnecessary-assign: TODO

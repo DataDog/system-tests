@@ -44,7 +44,7 @@ class ExternalProcessingScenario(DockerScenario):
         self._required_containers.append(self._envoy_container)
         self._required_containers.append(self._http_app_container)
 
-    def configure(self, config):
+    def configure(self, config: pytest.Config):
         super().configure(config)
 
         interfaces.library.configure(self.host_log_folder, self.replay)

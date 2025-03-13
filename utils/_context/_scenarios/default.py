@@ -1,3 +1,4 @@
+import pytest
 from .core import ScenarioGroup
 from .endtoend import EndToEndScenario
 
@@ -55,7 +56,7 @@ class DefaultScenario(EndToEndScenario):
             doc="Default scenario, spawn tracer, the Postgres databases and agent, and run most of exisiting tests",
         )
 
-    def configure(self, config):
+    def configure(self, config: pytest.Config):
         super().configure(config)
         library = self.weblog_container.image.labels["system-tests-library"]
         value = _iast_security_controls_map[library]
