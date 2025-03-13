@@ -92,18 +92,17 @@ class Test_Span_Links:
         Testing the conversion of x-datadog-* headers to tracestate for
         representation in span links.
         """
-        with test_library:
-            with test_library.dd_start_span("root") as rs:
-                parent_id = test_library.dd_extract_headers(
-                    http_headers=[
-                        ["x-datadog-trace-id", "1234567890"],
-                        ["x-datadog-parent-id", "9876543210"],
-                        ["x-datadog-sampling-priority", "2"],
-                        ["x-datadog-origin", "synthetics"],
-                        ["x-datadog-tags", "_dd.p.dm=-4,_dd.p.tid=0000000000000010"],
-                    ]
-                )
-                rs.add_link(parent_id=parent_id, attributes={"foo": "bar"})
+        with test_library, test_library.dd_start_span("root") as rs:
+            parent_id = test_library.dd_extract_headers(
+                http_headers=[
+                    ["x-datadog-trace-id", "1234567890"],
+                    ["x-datadog-parent-id", "9876543210"],
+                    ["x-datadog-sampling-priority", "2"],
+                    ["x-datadog-origin", "synthetics"],
+                    ["x-datadog-tags", "_dd.p.dm=-4,_dd.p.tid=0000000000000010"],
+                ]
+            )
+            rs.add_link(parent_id=parent_id, attributes={"foo": "bar"})
 
         traces = test_agent.wait_for_num_traces(1)
         trace = find_trace(traces, rs.trace_id)
@@ -127,15 +126,14 @@ class Test_Span_Links:
         """Properly inject w3c distributed tracing information into span links.
         This mostly tests that the injected tracestate and flags are accurate.
         """
-        with test_library:
-            with test_library.dd_start_span("root") as rs:
-                parent_id = test_library.dd_extract_headers(
-                    http_headers=[
-                        ["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],
-                        ["tracestate", "foo=1,dd=t.dm:-4;s:2,bar=baz"],
-                    ]
-                )
-                rs.add_link(parent_id=parent_id)
+        with test_library, test_library.dd_start_span("root") as rs:
+            parent_id = test_library.dd_extract_headers(
+                http_headers=[
+                    ["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],
+                    ["tracestate", "foo=1,dd=t.dm:-4;s:2,bar=baz"],
+                ]
+            )
+            rs.add_link(parent_id=parent_id)
 
         traces = test_agent.wait_for_num_traces(1)
         trace = find_trace(traces, rs.trace_id)
@@ -151,15 +149,15 @@ class Test_Span_Links:
         assert link.get("trace_id_high") == 1311768467284833366
 
         assert link.get("tracestate") is not None
-        tracestateArr = link["tracestate"].split(",")
-        assert len(tracestateArr) >= 2, tracestateArr
-        assert next(filter(lambda x: x.startswith("foo="), tracestateArr)) == "foo=1"
-        assert next(filter(lambda x: x.startswith("bar="), tracestateArr)) == "bar=baz"
-        if "dd=" in tracestateArr:
+        tracestate_arr = link["tracestate"].split(",")
+        assert len(tracestate_arr) >= 2, tracestate_arr
+        assert next(filter(lambda x: x.startswith("foo="), tracestate_arr)) == "foo=1"
+        assert next(filter(lambda x: x.startswith("bar="), tracestate_arr)) == "bar=baz"
+        if "dd=" in tracestate_arr:
             # ruby does not store dd members in tracestate
-            tracestateDD = next(filter(lambda x: x.startswith("dd="), tracestateArr))
-            assert "s:2" in tracestateDD
-            assert "t.dm:-4" in tracestateDD
+            tracestate_dd = next(filter(lambda x: x.startswith("dd="), tracestate_arr))
+            assert "s:2" in tracestate_dd
+            assert "t.dm:-4" in tracestate_dd
 
         # link has a sampling priority of 2, so it should be sampled
         assert link.get("flags") == 1 | TRACECONTEXT_FLAGS_SET
@@ -168,9 +166,11 @@ class Test_Span_Links:
     def test_span_with_attached_links(self, test_agent, test_library):
         """Test adding a span link from a span to another span."""
         with test_library:
-            with test_library.dd_start_span("first") as s1:
-                with test_library.dd_start_span("second", parent_id=s1.span_id) as s2:
-                    pass
+            with (
+                test_library.dd_start_span("first") as s1,
+                test_library.dd_start_span("second", parent_id=s1.span_id) as s2,
+            ):
+                pass
             with test_library.dd_start_span("third") as s3:
                 s3.add_link(s1.span_id)
                 s3.add_link(s2.span_id, attributes={"bools": [True, False], "nested": [1, 2]})

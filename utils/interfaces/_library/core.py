@@ -7,7 +7,7 @@ import copy
 import json
 import threading
 
-from utils.tools import logger, get_rid_from_user_agent, get_rid_from_span, get_rid_from_request
+from utils.tools import logger, get_rid_from_user_agent, get_rid_from_span
 from utils.dd_constants import RemoteConfigApplyState, Capabilities
 from utils.interfaces._core import ProxyBasedInterfaceValidator
 from utils.interfaces._library._utils import get_trace_request_path
@@ -49,7 +49,7 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
 
     ############################################################
     def get_traces(self, request=None):
-        rid = get_rid_from_request(request)
+        rid = request.get_rid() if request else None
 
         if rid:
             logger.debug(f"Try to find traces related to request {rid}")
@@ -76,7 +76,7 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
         If request is not None and full_trace is True, all spans from a trace triggered by that
         request will be returned.
         """
-        rid = get_rid_from_request(request)
+        rid = request.get_rid() if request else None
 
         if rid:
             logger.debug(f"Try to find spans related to request {rid}")
@@ -93,6 +93,17 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
         for data, _, span in self.get_spans(request=request):
             if span.get("parent_id") in (0, None):
                 yield data, span
+
+    def get_root_span(self, request) -> dict:
+        """Get the root span associated with a given request. This function will fail
+        if a request is not given, if there is no root span, or if there
+        is more than one root span. For special cases, use get_root_spans.
+        """
+        assert request is not None, "A request object is mandatory"
+        spans = [s for _, s in self.get_root_spans(request=request)]
+        assert spans, "No root spans found"
+        assert len(spans) == 1, "More then one root span found"
+        return spans[0]
 
     def get_appsec_events(self, request=None, *, full_trace=False):
         for data, trace, span in self.get_spans(request=request, full_trace=full_trace):
@@ -112,7 +123,7 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
     def get_legacy_appsec_events(self, request=None):
         paths_with_appsec_events = ["/appsec/proxy/v1/input", "/appsec/proxy/api/v2/appsecevts"]
 
-        rid = get_rid_from_request(request)
+        rid = request.get_rid() if request else None
 
         for data in self.get_data(path_filters=paths_with_appsec_events):
             events = data["request"]["content"]["events"]
@@ -376,7 +387,7 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
             if span_type is None or span.get("type") == span_type:
                 return
 
-        raise ValueError(f"No trace has been found for request {get_rid_from_request(request)}")
+        raise ValueError(f"No trace has been found for request {request.get_rid()}")
 
     def validate_remote_configuration(self, validator, *, success_by_default=False):
         self.validate(validator, success_by_default=success_by_default, path_filters=r"/v\d+.\d+/config")

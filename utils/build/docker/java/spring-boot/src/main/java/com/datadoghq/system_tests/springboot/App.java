@@ -14,6 +14,7 @@ import com.datadoghq.system_tests.springboot.rabbitmq.RabbitmqConnectorForFanout
 import com.datadoghq.system_tests.springboot.rabbitmq.RabbitmqConnectorForTopicExchange;
 import com.datadoghq.system_tests.iast.utils.Utils;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
@@ -71,6 +72,11 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
+import okhttp3.Headers;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
@@ -118,7 +124,6 @@ import static com.mongodb.client.model.Filters.eq;
 import static io.opentelemetry.api.trace.SpanKind.INTERNAL;
 import static io.opentelemetry.api.trace.StatusCode.ERROR;
 import static java.time.temporal.ChronoUnit.SECONDS;
-
 
 @RestController
 @EnableAutoConfiguration(exclude = R2dbcAutoConfiguration.class)
@@ -176,16 +181,30 @@ public class App {
         return "012345678901234567890123456789012345678901";
     }
 
-    @RequestMapping(value = "/tag_value/{value}/{code}", method = {RequestMethod.GET, RequestMethod.OPTIONS}, headers = "accept=*")
-    ResponseEntity<String> tagValue(@PathVariable final String value, @PathVariable final int code) {
-        setRootSpanTag("appsec.events.system_tests_appsec_event.value", value);
-        return ResponseEntity.status(code).body("Value tagged");
+    @RequestMapping(value = "/tag_value/{tag_value}/{status_code}", method = {RequestMethod.GET, RequestMethod.OPTIONS}, headers = "accept=*")
+    ResponseEntity<String> tagValue(@PathVariable final String tag_value, @PathVariable final int status_code) {
+        setRootSpanTag("appsec.events.system_tests_appsec_event.value", tag_value);
+        return ResponseEntity.status(status_code).body("Value tagged");
     }
 
-    @PostMapping(value = "/tag_value/{value}/{code}", headers = "accept=*",
-            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
-    ResponseEntity<String> tagValueWithUrlencodedBody(@PathVariable final String value, @PathVariable final int code, @RequestParam MultiValueMap<String, String> body) {
-        return tagValue(value, code);
+    @PostMapping(value = "/tag_value/{tag_value}/{status_code}", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+    ResponseEntity<String> tagValueWithUrlencodedBody(@PathVariable final String tag_value, @PathVariable final int status_code, @RequestParam MultiValueMap<String, String> body) {
+        return tagValue(tag_value, status_code);
+    }
+
+    @PostMapping(value = "/tag_value/{tag_value}/{status_code}", consumes = MediaType.APPLICATION_JSON_VALUE)
+    ResponseEntity<String> tagValueWithJsonBody(@PathVariable final String tag_value, @PathVariable final int status_code, @RequestBody Object body) {
+        return tagValue(tag_value, status_code);
+    }
+
+    @GetMapping("/api_security/sampling/{i}")
+    ResponseEntity<String> apiSecuritySamplingWithStatus(@PathVariable final int i) {
+        return ResponseEntity.status(i).body("Hello!\n");
+    }
+
+    @GetMapping("/api_security_sampling/{i}")
+    ResponseEntity<String> apiSecuritySampling(@PathVariable final int i) {
+        return ResponseEntity.status(200).body("OK!\n");
     }
 
     @RequestMapping("/waf/**")
@@ -884,30 +903,34 @@ public class App {
 
     @RequestMapping("/make_distant_call")
     DistantCallResponse make_distant_call(@RequestParam String url) throws Exception {
-        URL urlObject = new URL(url);
+        HashMap<String, String> request_headers = new HashMap<>();
 
-        HttpURLConnection con = (HttpURLConnection) urlObject.openConnection();
-        con.setRequestMethod("GET");
-
-        // Save request headers
-        HashMap<String, String> request_headers = new HashMap<String, String>();
-        for (Map.Entry<String, List<String>> header: con.getRequestProperties().entrySet()) {
-            if (header.getKey() == null) {
-                continue;
+        OkHttpClient client = new OkHttpClient.Builder()
+        .addNetworkInterceptor(chain -> { // Save request headers
+            Request request = chain.request();
+            Response response = chain.proceed(request);
+            Headers finalHeaders = request.headers();
+            for (String name : finalHeaders.names()) {
+                request_headers.put(name, finalHeaders.get(name));
             }
 
-            request_headers.put(header.getKey(), header.getValue().get(0));
-        }
+            return response;
+        })
+        .build();
+
+        Request request = new Request.Builder()
+                .url(url)
+                .get()
+                .build();
+
+        Response response = client.newCall(request).execute();
 
         // Save response headers and status code
-        int status_code = con.getResponseCode();
+        int status_code = response.code();
         HashMap<String, String> response_headers = new HashMap<String, String>();
-        for (Map.Entry<String, List<String>> header: con.getHeaderFields().entrySet()) {
-            if (header.getKey() == null) {
-                continue;
-            }
-
-            response_headers.put(header.getKey(), header.getValue().get(0));
+        Headers headers = response.headers();
+        for (String name : headers.names()) {
+            response_headers.put(name, headers.get(name));
         }
 
         DistantCallResponse result = new DistantCallResponse();
@@ -1015,30 +1038,32 @@ public class App {
     }
 
     @PostMapping(value = "/shell_execution", consumes = MediaType.APPLICATION_JSON_VALUE)
-    ResponseEntity<String> shellExecution(@RequestBody final ShellExecutionRequest request) throws IOException, InterruptedException {
-        Process p;
-        if (request.options.shell) {
-            throw new RuntimeException("Not implemented");
-        } else {
-            final String[] args = request.args.split("\\s+");
-            final String[] command = new String[args.length + 1];
-            command[0] = request.command;
-            System.arraycopy(args, 0, command, 1, args.length);
-            p = new ProcessBuilder(command).start();
+    ResponseEntity<String> shellExecution(@RequestBody final JsonNode request) throws IOException, InterruptedException {
+        // args can be a string or array. Just do some custom mapping here to avoid object mapping mambo.
+        if (request.get("options") != null && request.get("options").get("shell") != null && request.get("options").get("shell").asBoolean()) {
+            throw new RuntimeException("Actual shell execution is not supported");
         }
+        final String commandArg = request.get("command").asText();
+        final String[] args;
+        if (request.get("args").isTextual()) {
+            args = request.get("args").asText().split("\\s+");
+        } else if (request.get("args").isArray()) {
+            final JsonNode argsNode = request.get("args");
+            args = new String[argsNode.size()];
+            for (int i = 0; i < argsNode.size(); i++) {
+                args[i] = argsNode.get(i).asText();
+            }
+        } else {
+            throw new RuntimeException("Invalid args type");
+        }
+
+        final String[] command = new String[args.length + 1];
+        command[0] = commandArg;
+        System.arraycopy(args, 0, command, 1, args.length);
+        final Process p = new ProcessBuilder(command).start();
         p.waitFor(10, TimeUnit.SECONDS);
         final int exitCode = p.exitValue();
         return new ResponseEntity<>("OK: " + exitCode, HttpStatus.OK);
-    }
-
-    private static class ShellExecutionRequest {
-        public String command;
-        public String args;
-        public Options options;
-
-        static class Options {
-            public boolean shell;
-        }
     }
 
     @EventListener(ApplicationReadyEvent.class)

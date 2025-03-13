@@ -127,7 +127,7 @@ def pytest_addoption(parser) -> None:
     )
 
 
-def pytest_configure(config) -> None:
+def pytest_configure(config: pytest.Config) -> None:
     if not config.option.force_dd_trace_debug and os.environ.get("SYSTEM_TESTS_FORCE_DD_TRACE_DEBUG") == "true":
         config.option.force_dd_trace_debug = True
 
@@ -365,7 +365,7 @@ def _item_must_pass(item) -> bool:
     if any(item.iter_markers("xfail")):
         return False
 
-    for marker in item.iter_markers("skipif"):
+    for marker in item.iter_markers("skipif"):  # noqa: SIM110 (it's more clear like that)
         if all(marker.args[0]):
             return False
 

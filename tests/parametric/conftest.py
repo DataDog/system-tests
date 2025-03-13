@@ -3,6 +3,7 @@ from collections.abc import Generator
 import contextlib
 import dataclasses
 import os
+import shlex
 import shutil
 import json
 import subprocess
@@ -15,6 +16,7 @@ import urllib.parse
 
 import requests
 import pytest
+import yaml
 
 from utils.parametric.spec import remoteconfig
 from utils.parametric.spec.trace import V06StatsPayload
@@ -112,7 +114,7 @@ class _TestAgentAPI:
             log.write(f"\n{log_type}>>>>\n")
             log.write(json.dumps(json_trace))
 
-    def traces(self, clear=False, **kwargs) -> list[Trace]:
+    def traces(self, *, clear=False, **kwargs) -> list[Trace]:
         resp = self._session.get(self._url("/test/session/traces"), **kwargs)
         if clear:
             self.clear()
@@ -214,7 +216,7 @@ class _TestAgentAPI:
         resp = self._session.post(self._url("/test/settings"), json={"trace_request_delay": delay})
         assert resp.status_code == 202
 
-    def raw_telemetry(self, clear=False):
+    def raw_telemetry(self, *, clear=False):
         raw_reqs = self.requests()
         reqs = []
         for req in raw_reqs:
@@ -224,7 +226,7 @@ class _TestAgentAPI:
             self.clear()
         return reqs
 
-    def telemetry(self, clear=False, **kwargs):
+    def telemetry(self, *, clear=False, **kwargs):
         resp = self._session.get(self._url("/test/session/apmtelemetry"), **kwargs)
         if clear:
             self.clear()
@@ -242,7 +244,7 @@ class _TestAgentAPI:
         self._write_log("requests", resp_json)
         return resp_json
 
-    def rc_requests(self, post_only=False):
+    def rc_requests(self, *, post_only=False):
         reqs = self.requests()
         rc_reqs = [r for r in reqs if r["url"].endswith("/v0.7/config") and (not post_only or r["method"] == "POST")]
         for r in rc_reqs:
@@ -312,7 +314,7 @@ class _TestAgentAPI:
         """
         num_received = None
         traces = []
-        for i in range(wait_loops):
+        for _ in range(wait_loops):
             try:
                 traces = self.traces(clear=False)
             except requests.exceptions.RequestException:
@@ -342,7 +344,7 @@ class _TestAgentAPI:
         When sort_by_start=True returned traces are sorted by the span start time to simplify assertions by knowing that returned traces are in the same order as they have been created.
         """
         num_received = None
-        for i in range(wait_loops):
+        for _ in range(wait_loops):
             try:
                 traces = self.traces(clear=False)
             except requests.exceptions.RequestException:
@@ -367,27 +369,67 @@ class _TestAgentAPI:
 
     def wait_for_telemetry_event(self, event_name: str, *, clear: bool = False, wait_loops: int = 200):
         """Wait for and return the given telemetry event from the test agent."""
-        for i in range(wait_loops):
+        for _ in range(wait_loops):
             try:
                 events = self.telemetry(clear=False)
             except requests.exceptions.RequestException:
                 pass
             else:
                 for event in events:
-                    if event["request_type"] == "message-batch":
-                        for message in event["payload"]:
-                            if message["request_type"] == event_name:
-                                if message.get("application", {}).get("language_version") != "SIDECAR":
-                                    if clear:
-                                        self.clear()
-                                    return message
-                    elif event["request_type"] == event_name:
-                        if event.get("application", {}).get("language_version") != "SIDECAR":
-                            if clear:
-                                self.clear()
-                            return event
+                    e = self._get_telemetry_event(event, event_name)
+                    if e:
+                        if clear:
+                            self.clear()
+                        return e
             time.sleep(0.01)
         raise AssertionError(f"Telemetry event {event_name} not found")
+
+    def wait_for_telemetry_configurations(self, *, clear: bool = False) -> dict[str, str]:
+        """Waits for and returns the latest configurations captured in telemetry events.
+
+        Telemetry events can be found in `app-started` or `app-client-configuration-change` events.
+        The function ensures that at least one telemetry event is captured before processing.
+        """
+        events = []
+        configurations = {}
+        # Allow time for telemetry events to be captured
+        time.sleep(1)
+        # Attempt to retrieve telemetry events, suppressing request-related exceptions
+        with contextlib.suppress(requests.exceptions.RequestException):
+            events += self.telemetry(clear=False)
+        if not events:
+            raise AssertionError("No telemetry events were found. Ensure the application is sending telemetry events.")
+
+        # Sort events by tracer_time to ensure configurations are processed in order
+        events.sort(key=lambda r: r["tracer_time"])
+        # Extract configuration data from relevant telemetry events
+        for event in events:
+            for event_type in ["app-started", "app-client-configuration-change"]:
+                telemetry_event = self._get_telemetry_event(event, event_type)
+                if telemetry_event:
+                    for config in telemetry_event.get("payload", {}).get("configuration", []):
+                        # Store only the latest configuration for each name. This is the configuration
+                        # that should be used by the application.
+                        configurations[config["name"]] = config
+        if clear:
+            self.clear()
+        return configurations
+
+    def _get_telemetry_event(self, event, request_type):
+        """Extracts telemetry events from a message batch or returns the telemetry event if it
+        matches the expected request_type and was not emitted from a sidecar.
+        """
+        if not event:
+            return None
+        elif event["request_type"] == "message-batch":
+            for message in event["payload"]:
+                if message["request_type"] == request_type:
+                    if message.get("application", {}).get("language_version") != "SIDECAR":
+                        return message
+        elif event["request_type"] == request_type:
+            if event.get("application", {}).get("language_version") != "SIDECAR":
+                return event
+        return None
 
     def wait_for_rc_apply_state(
         self,
@@ -404,7 +446,7 @@ class _TestAgentAPI:
         last_known_state = None
         for _ in range(wait_loops):
             try:
-                rc_reqs = self.rc_requests(post_only)
+                rc_reqs = self.rc_requests(post_only=post_only)
             except requests.exceptions.RequestException:
                 logger.exception("Error getting RC requests")
             else:
@@ -434,7 +476,7 @@ class _TestAgentAPI:
 
     def wait_for_rc_capabilities(self, wait_loops: int = 100) -> set[Capabilities]:
         """Wait for the given RemoteConfig apply state to be received by the test agent."""
-        for i in range(wait_loops):
+        for _ in range(wait_loops):
             try:
                 rc_reqs = self.rc_requests()
             except requests.exceptions.RequestException:
@@ -483,7 +525,7 @@ class _TestAgentAPI:
 
     def wait_for_tracer_flare(self, case_id: str | None = None, *, clear: bool = False, wait_loops: int = 100):
         """Wait for the tracer-flare to be received by the test agent."""
-        for i in range(wait_loops):
+        for _ in range(wait_loops):
             try:
                 tracer_flares = self.get_tracer_flares()
             except requests.exceptions.RequestException:
@@ -688,3 +730,15 @@ def test_library(
 
         tracer = APMLibrary(client, apm_test_server.lang)
         yield tracer
+
+
+class StableConfigWriter:
+    def write_stable_config(self, stable_config: dict, path, test_library):
+        stable_config_content = yaml.dump(stable_config)
+        self.write_stable_config_content(stable_config_content, path, test_library)
+
+    def write_stable_config_content(self, stable_config_content: str, path: str, test_library):
+        success, message = test_library.container_exec_run(
+            f'bash -c "mkdir -p {Path(path).parent!s} && printf {shlex.quote(stable_config_content)} | tee {path}"'
+        )
+        assert success, message

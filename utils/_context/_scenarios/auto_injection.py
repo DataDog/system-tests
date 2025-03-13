@@ -2,6 +2,7 @@ import copy
 import json
 import os
 from pathlib import Path
+import pytest
 from utils._context.library_version import LibraryVersion
 from utils.tools import logger
 from utils.onboarding.debug_vm import extract_logs_to_file
@@ -16,10 +17,10 @@ class _VirtualMachineScenario(Scenario):
 
     def __init__(
         self,
-        name,
+        name: str,
         *,
-        github_workflow,
-        doc,
+        github_workflow: str,
+        doc: str,
         vm_provision=None,
         agent_env=None,
         app_env=None,
@@ -53,7 +54,7 @@ class _VirtualMachineScenario(Scenario):
         for component in self.components:
             logger.stdout(f"{component}: {self.components[component]}")
 
-    def configure(self, config):
+    def configure(self, config: pytest.Config):
         from utils.virtual_machine.virtual_machine_provider import VmProviderFactory
         from utils.virtual_machine.virtual_machine_provisioner import provisioner
 
@@ -174,7 +175,7 @@ class _VirtualMachineScenario(Scenario):
 
     def fill_context(self):
         for key in self.virtual_machine.tested_components:
-            if key == "host" or key == "runtime_version":
+            if key in ("host", "runtime_version"):
                 continue
             self.components[key] = self.virtual_machine.tested_components[key].lstrip(" ").replace(",", "")
             if key.startswith("datadog-apm-inject") and self.components[key]:
@@ -216,7 +217,7 @@ class _VirtualMachineScenario(Scenario):
     def configuration(self):
         return self._os_configurations
 
-    def customize_feature_parity_dashboard(self, result):
+    def customize_feature_parity_dashboard(self, result: dict):
         # Customize the general report
         for test in result["tests"]:
             last_index = test["path"].rfind("::") + 2

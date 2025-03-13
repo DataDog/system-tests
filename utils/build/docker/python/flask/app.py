@@ -10,6 +10,7 @@ import threading
 import urllib.request
 
 import boto3
+import flask
 from moto import mock_aws
 import mock
 import urllib3
@@ -304,22 +305,27 @@ def waf(*args, **kwargs):
 ### BEGIN EXPLOIT PREVENTION
 
 
-@app.route("/rasp/lfi", methods=["GET", "POST"])
-def rasp_lfi(*args, **kwargs):
-    file = None
+def retrieve_arg(key: str):
+    res = None
     if request.method == "GET":
-        file = flask_request.args.get("file")
+        res = flask_request.args.get(key)
     elif request.method == "POST":
         try:
-            file = (request.form or request.json or {}).get("file")
+            res = (request.form or request.json or {}).get(key)
         except Exception as e:
             print(repr(e), file=sys.stderr)
         try:
-            if file is None:
-                file = xmltodict.parse(flask_request.data).get("file")
+            if res is None:
+                res = xmltodict.parse(flask_request.data).get(key)
         except Exception as e:
             print(repr(e), file=sys.stderr)
             pass
+    return res
+
+
+@app.route("/rasp/lfi", methods=["GET", "POST"])
+def rasp_lfi(*args, **kwargs):
+    file = retrieve_arg("file")
     if file is None:
         return Response("missing file parameter", status=400)
     try:
@@ -330,23 +336,26 @@ def rasp_lfi(*args, **kwargs):
         return f"{file} could not be open: {e!r}"
 
 
+@app.route("/rasp/multiple", methods=["GET", "POST"])
+def rasp_multiple(*args, **kwargs):
+    file1 = retrieve_arg("file1")
+    file2 = retrieve_arg("file2")
+    if file1 is None or file2 is None:
+        return Response("missing file1 or file2 parameter", status=400)
+    lengths = []
+    for file in [file1, file2, "../etc/passwd"]:
+        try:
+            with open(file, "rb") as f_in:
+                f_in.seek(0, os.SEEK_END)
+                lengths.append(f_in.tell())
+        except Exception:
+            lengths.append(0)
+    return Response(f"files open with {lengths} bytes")
+
+
 @app.route("/rasp/ssrf", methods=["GET", "POST"])
 def rasp_ssrf(*args, **kwargs):
-    domain = None
-    if request.method == "GET":
-        domain = flask_request.args.get("domain")
-    elif request.method == "POST":
-        try:
-            domain = (request.form or request.json or {}).get("domain")
-        except Exception as e:
-            print(repr(e), file=sys.stderr)
-        try:
-            if domain is None:
-                domain = xmltodict.parse(flask_request.data).get("domain")
-        except Exception as e:
-            print(repr(e), file=sys.stderr)
-            pass
-
+    domain = retrieve_arg("domain")
     if domain is None:
         return Response("missing domain parameter", status=400)
     try:
@@ -358,21 +367,7 @@ def rasp_ssrf(*args, **kwargs):
 
 @app.route("/rasp/sqli", methods=["GET", "POST"])
 def rasp_sqli(*args, **kwargs):
-    user_id = None
-    if request.method == "GET":
-        user_id = flask_request.args.get("user_id")
-    elif request.method == "POST":
-        try:
-            user_id = (request.form or request.json or {}).get("user_id")
-        except Exception as e:
-            print(repr(e), file=sys.stderr)
-        try:
-            if user_id is None:
-                user_id = xmltodict.parse(flask_request.data).get("user_id")
-        except Exception as e:
-            print(repr(e), file=sys.stderr)
-            pass
-
+    user_id = retrieve_arg("user_id")
     if user_id is None:
         return "missing user_id parameter", 400
     try:
@@ -390,21 +385,7 @@ def rasp_sqli(*args, **kwargs):
 
 @app.route("/rasp/shi", methods=["GET", "POST"])
 def rasp_shi(*args, **kwargs):
-    list_dir = None
-    if request.method == "GET":
-        list_dir = flask_request.args.get("list_dir")
-    elif request.method == "POST":
-        try:
-            list_dir = (request.form or request.json or {}).get("list_dir")
-        except Exception as e:
-            print(repr(e), file=sys.stderr)
-        try:
-            if list_dir is None:
-                list_dir = xmltodict.parse(flask_request.data).get("list_dir")
-        except Exception as e:
-            print(repr(e), file=sys.stderr)
-            pass
-
+    list_dir = retrieve_arg("list_dir")
     if list_dir is None:
         return "missing list_dir parameter", 400
     try:
@@ -447,9 +428,11 @@ def rasp_cmdi(*args, **kwargs):
 
 @app.route("/graphql", methods=["GET", "POST"])
 def graphql_error_spans(*args, **kwargs):
-    from integrations.graphql import schema
+    from integrations.graphql import Query
 
     data = request.get_json()
+
+    schema = graphene.Schema(query=Query)
 
     result = schema.execute(
         data["query"],
@@ -458,15 +441,21 @@ def graphql_error_spans(*args, **kwargs):
     )
 
     if result.errors:
-        return jsonify(format_error(result.errors[0])), 200
+        return jsonify(format_error(result.errors)), 200
 
     return jsonify(result.to_dict())
 
 
-def format_error(error):
-    return {
-        "message": error.message,
-    }
+def format_error(errors):
+    formatted_errors = []
+    for error in errors:
+        formatted_errors.append(
+            {
+                "message": error.message,
+                "extensions": error.extensions,
+            }
+        )
+    return {"errors": formatted_errors}
 
 
 @app.route("/read_file", methods=["GET"])
@@ -1274,6 +1263,17 @@ def track_user_login_failure_event():
     return Response("OK")
 
 
+@app.before_request
+def before_request():
+    try:
+        current_user = DB_USER.get(flask.session.get("login"), None)
+        if current_user:
+            set_user(ddtrace.tracer, user_id=current_user.uid, email=current_user.email, mode="auto")
+    except Exception:
+        # to be compatible with all tracer versions
+        pass
+
+
 @app.route("/login", methods=["GET", "POST"])
 def login():
     username = flask_request.form.get("username")
@@ -1288,6 +1288,7 @@ def login():
         appsec_trace_utils.track_user_login_success_event(
             tracer, user_id=user.uid, login_events_mode="auto", login=username
         )
+        flask.session["login"] = user.login
     elif user:
         appsec_trace_utils.track_user_login_failure_event(
             tracer, user_id=user.uid, exists=True, login_events_mode="auto", login=username
