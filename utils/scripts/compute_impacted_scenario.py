@@ -174,18 +174,24 @@ def main() -> None:
                     r"docs/.*": None,
                     r"lib-injection/.*": ScenarioGroup.LIB_INJECTION,
                     r"manifests/.*": None,  # already handled by the manifest comparison
-                    r"utils/_context/_scenarios/auto_injection\.py": None,  # TODO: Roberto
                     r"utils/_context/_scenarios/appsec_low_waf_timeout\.py": scenarios.appsec_low_waf_timeout,
+                    r"utils/_context/_scenarios/auto_injection\.py": ScenarioGroup.ONBOARDING,
                     r"utils/_context/_scenarios/default\.py": scenarios.default,
                     r"utils/_context/_scenarios/integrations\.py": ScenarioGroup.INTEGRATIONS,
                     r"utils/_context/_scenarios/ipv6\.py": ScenarioGroup.IPV6,
                     r"utils/_context/_scenarios/open_telemetry\.py": ScenarioGroup.OPEN_TELEMETRY,
                     r"utils/_context/_scenarios/parametric\.py": scenarios.parametric,
                     r"utils/_context/_scenarios/profiling\.py": ScenarioGroup.PROFILING,
-                    r"utils/_context/virtual_machine\.py": None,  # TODO: Roberto
+                    r"utils/_context/virtual_machine\.py": ScenarioGroup.ONBOARDING,
+                    r"utils/build/docker/java_otel/.*": ScenarioGroup.OPEN_TELEMETRY,
                     r"utils/build/docker/nodejs_otel/.*": ScenarioGroup.OPEN_TELEMETRY,
+                    r"utils/build/docker/python_otel/.*": ScenarioGroup.OPEN_TELEMETRY,
                     r"utils/build/docker/\w+/parametric/.*": scenarios.parametric,
-                    r"utils/build/virtual_machine.*": None,  # TODO: Roberto
+                    r"utils/build/docker/.*": [
+                        ScenarioGroup.END_TO_END,
+                        ScenarioGroup.OPEN_TELEMETRY,
+                    ],
+                    r"utils/build/virtual_machine.*": ScenarioGroup.DOCKER_SSI,
                     r"utils/docker_ssi/.*": ScenarioGroup.DOCKER_SSI,
                     r"utils/interfaces/schemas.*": ScenarioGroup.END_TO_END,
                     r"utils/k8s_lib_injection.*": ScenarioGroup.LIB_INJECTION,
@@ -201,7 +207,7 @@ def main() -> None:
                     r"utils/scripts/get-nightly-logs\.py": None,
                     r"utils/scripts/get-workflow-summary\.py": None,
                     r"utils/scripts/parametric/.*": scenarios.parametric,
-                    r"utils/virtual_machine.*": None,  # TODO: Roberto
+                    r"utils/virtual_machine.*": ScenarioGroup.ONBOARDING,
                     r"utils/.*": ScenarioGroup.ALL,
                     r"\.dockerignore": None,
                     r"\.gitattributes": None,
