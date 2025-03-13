@@ -1,9 +1,8 @@
 'use strict'
 
-
 const opts = {
   debug: true,
-  flushInterval: 5000,
+  flushInterval: 5000
 }
 
 if (process.env.CONFIG_CHAINING_TEST) {
