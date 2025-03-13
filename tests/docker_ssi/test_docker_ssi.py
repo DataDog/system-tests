@@ -69,6 +69,7 @@ class TestDockerSSIFeatures:
     @irrelevant(context.library == "python" and context.installed_language_runtime < "3.7.0")
     @irrelevant(context.library == "nodejs" and context.installed_language_runtime < "17.0")
     @bug(context.library == "python@2.19.1", reason="INPLAT-448")
+    @bug(context.library >= "python@3.3.0.dev", reason="INPLAT-448")
     def test_telemetry(self):
         # There is telemetry data about the auto instrumentation injector. We only validate there is data
         telemetry_autoinject_data = interfaces.test_agent.get_telemetry_for_autoinject()
