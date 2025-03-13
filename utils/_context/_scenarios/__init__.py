@@ -112,8 +112,8 @@ class _Scenarios:
 
     telemetry_log_generation_disabled = EndToEndScenario(
         "TELEMETRY_LOG_GENERATION_DISABLED",
-        weblog_env={"DD_TELEMETRY_LOGS_COLLECTION_ENABLED": "false"},
-        doc="Test env var `DD_TELEMETRY_LOGS_COLLECTION_ENABLED=false`",
+        weblog_env={"DD_TELEMETRY_LOG_COLLECTION_ENABLED": "false"},
+        doc="Test env var `DD_TELEMETRY_LOG_COLLECTION_ENABLED=false`",
         scenario_groups=[ScenarioGroup.TELEMETRY],
     )
     telemetry_metric_generation_disabled = EndToEndScenario(
@@ -272,7 +272,12 @@ class _Scenarios:
 
     appsec_api_security_rc = EndToEndScenario(
         "APPSEC_API_SECURITY_RC",
-        weblog_env={"DD_EXPERIMENTAL_API_SECURITY_ENABLED": "true", "DD_API_SECURITY_SAMPLE_DELAY": "0.0"},
+        weblog_env={
+            "DD_EXPERIMENTAL_API_SECURITY_ENABLED": "true",
+            "DD_API_SECURITY_ENABLED": "true",
+            "DD_API_SECURITY_REQUEST_SAMPLE_RATE": "1.0",
+            "DD_API_SECURITY_SAMPLE_DELAY": "0.0",
+        },
         rc_api_enabled=True,
         doc="""
             Scenario to test API Security Remote config
@@ -337,18 +342,18 @@ class _Scenarios:
         "APPSEC_STANDALONE",
         weblog_env={
             "DD_APPSEC_ENABLED": "true",
-            "DD_EXPERIMENTAL_APPSEC_STANDALONE_ENABLED": "true",
+            "DD_APM_TRACING_ENABLED": "false",
             "DD_IAST_ENABLED": "false",
         },
         doc="Appsec standalone mode (APM opt out)",
         scenario_groups=[ScenarioGroup.APPSEC],
     )
 
-    appsec_standalone_v2 = EndToEndScenario(
-        "APPSEC_STANDALONE_V2",
+    appsec_standalone_experimental = EndToEndScenario(
+        "APPSEC_STANDALONE_EXPERIMENTAL",
         weblog_env={
             "DD_APPSEC_ENABLED": "true",
-            "DD_APM_TRACING_ENABLED": "false",
+            "DD_EXPERIMENTAL_APPSEC_STANDALONE_ENABLED": "true",
             "DD_IAST_ENABLED": "false",
         },
         doc="Appsec standalone mode (APM opt out) V2",
@@ -359,7 +364,7 @@ class _Scenarios:
         "IAST_STANDALONE",
         weblog_env={
             "DD_APPSEC_ENABLED": "false",
-            "DD_EXPERIMENTAL_APPSEC_STANDALONE_ENABLED": "true",
+            "DD_APM_TRACING_ENABLED": "false",
             "DD_IAST_ENABLED": "true",
             "DD_IAST_DETECTION_MODE": "FULL",
             "DD_IAST_DEDUPLICATION_ENABLED": "false",
@@ -369,11 +374,11 @@ class _Scenarios:
         scenario_groups=[ScenarioGroup.APPSEC],
     )
 
-    iast_standalone_v2 = EndToEndScenario(
-        "IAST_STANDALONE_V2",
+    iast_standalone_experimental = EndToEndScenario(
+        "IAST_STANDALONE_EXPERIMENTAL",
         weblog_env={
             "DD_APPSEC_ENABLED": "false",
-            "DD_APM_TRACING_ENABLED": "false",
+            "DD_EXPERIMENTAL_APPSEC_STANDALONE_ENABLED": "true",
             "DD_IAST_ENABLED": "true",
             "DD_IAST_DETECTION_MODE": "FULL",
             "DD_IAST_DEDUPLICATION_ENABLED": "false",
@@ -388,7 +393,7 @@ class _Scenarios:
         weblog_env={
             "DD_APPSEC_ENABLED": "false",
             "DD_APPSEC_SCA_ENABLED": "true",
-            "DD_EXPERIMENTAL_APPSEC_STANDALONE_ENABLED": "true",
+            "DD_APM_TRACING_ENABLED": "false",
             "DD_IAST_ENABLED": "false",
             "DD_TELEMETRY_DEPENDENCY_RESOLUTION_PERIOD_MILLIS": "1",
         },
@@ -396,12 +401,12 @@ class _Scenarios:
         scenario_groups=[ScenarioGroup.APPSEC],
     )
 
-    sca_standalone_v2 = EndToEndScenario(
-        "SCA_STANDALONE_V2",
+    sca_standalone_experimental = EndToEndScenario(
+        "SCA_STANDALONE_EXPERIMENTAL",
         weblog_env={
             "DD_APPSEC_ENABLED": "false",
             "DD_APPSEC_SCA_ENABLED": "true",
-            "DD_APM_TRACING_ENABLED": "false",
+            "DD_EXPERIMENTAL_APPSEC_STANDALONE_ENABLED": "true",
             "DD_IAST_ENABLED": "false",
             "DD_TELEMETRY_DEPENDENCY_RESOLUTION_PERIOD_MILLIS": "1",
         },
@@ -682,26 +687,26 @@ class _Scenarios:
     simple_installer_auto_injection = InstallerAutoInjectionScenario(
         "SIMPLE_INSTALLER_AUTO_INJECTION",
         "Onboarding Container Single Step Instrumentation scenario (minimal test scenario)",
-        scenario_groups=[ScenarioGroup.ONBOARDING, ScenarioGroup.SIMPLE_ONBOARDING],
+        scenario_groups=[ScenarioGroup.SIMPLE_ONBOARDING],
         github_workflow="aws_ssi",
     )
     multi_installer_auto_injection = InstallerAutoInjectionScenario(
         "MULTI_INSTALLER_AUTO_INJECTION",
         "Onboarding Container Single Step Instrumentation scenario for multicontainer apps",
-        scenario_groups=[ScenarioGroup.ONBOARDING, ScenarioGroup.SIMPLE_ONBOARDING],
+        scenario_groups=[ScenarioGroup.ALL, ScenarioGroup.ONBOARDING],
         github_workflow="aws_ssi",
     )
     installer_auto_injection = InstallerAutoInjectionScenario(
         "INSTALLER_AUTO_INJECTION",
         doc="Installer auto injection scenario",
-        scenario_groups=[ScenarioGroup.ONBOARDING],
+        scenario_groups=[ScenarioGroup.ALL, ScenarioGroup.ONBOARDING],
         github_workflow="aws_ssi",
     )
 
     installer_not_supported_auto_injection = InstallerAutoInjectionScenario(
         "INSTALLER_NOT_SUPPORTED_AUTO_INJECTION",
         "Onboarding host Single Step Instrumentation scenario for not supported languages",
-        scenario_groups=[ScenarioGroup.ONBOARDING],
+        scenario_groups=[ScenarioGroup.ALL, ScenarioGroup.ONBOARDING],
         github_workflow="aws_ssi",
     )
 
@@ -712,7 +717,7 @@ class _Scenarios:
             "Machines with previous ld.so.preload entries. Perform chaos testing"
         ),
         vm_provision="auto-inject-ld-preload",
-        scenario_groups=[ScenarioGroup.ONBOARDING],
+        scenario_groups=[ScenarioGroup.ALL, ScenarioGroup.ONBOARDING],
         github_workflow="aws_ssi",
     )
 
@@ -724,7 +729,7 @@ class _Scenarios:
             "DD_PROFILING_UPLOAD_PERIOD": "10",
             "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500",
         },
-        scenario_groups=[ScenarioGroup.ONBOARDING],
+        scenario_groups=[ScenarioGroup.ALL, ScenarioGroup.ONBOARDING, ScenarioGroup.SIMPLE_ONBOARDING_PROFILING],
         github_workflow="aws_ssi",
     )
     host_auto_injection_install_script_profiling = InstallerAutoInjectionScenario(
@@ -736,7 +741,7 @@ class _Scenarios:
         vm_provision="host-auto-inject-install-script",
         agent_env={"DD_PROFILING_ENABLED": "auto"},
         app_env={"DD_PROFILING_UPLOAD_PERIOD": "10", "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500"},
-        scenario_groups=[ScenarioGroup.ONBOARDING],
+        scenario_groups=[ScenarioGroup.ALL],
         github_workflow="aws_ssi",
     )
 
@@ -746,7 +751,7 @@ class _Scenarios:
         vm_provision="container-auto-inject-install-script",
         agent_env={"DD_PROFILING_ENABLED": "auto"},
         app_env={"DD_PROFILING_UPLOAD_PERIOD": "10", "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500"},
-        scenario_groups=[ScenarioGroup.ONBOARDING],
+        scenario_groups=[ScenarioGroup.ALL, ScenarioGroup.ONBOARDING],
         github_workflow="aws_ssi",
     )
 
@@ -762,7 +767,7 @@ class _Scenarios:
         "HOST_AUTO_INJECTION_INSTALL_SCRIPT",
         "Onboarding Host Single Step Instrumentation scenario using agent auto install script",
         vm_provision="host-auto-inject-install-script",
-        scenario_groups=[ScenarioGroup.ONBOARDING],
+        scenario_groups=[ScenarioGroup.ALL],
         github_workflow="aws_ssi",
     )
 
@@ -770,7 +775,7 @@ class _Scenarios:
         "CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT",
         "Onboarding Container Single Step Instrumentation scenario using agent auto install script",
         vm_provision="container-auto-inject-install-script",
-        scenario_groups=[ScenarioGroup.ONBOARDING],
+        scenario_groups=[ScenarioGroup.ALL, ScenarioGroup.ONBOARDING],
         github_workflow="aws_ssi",
     )
 

@@ -96,18 +96,39 @@ else
   fi
 fi
 
-# echo "Running yamlfmt checks..."
-# if ! which yamlfmt > /dev/null; then
-#   echo "yamlfmt is not installed, installing it (ETA 5s)"
-#   GOBIN=$PWD/venv/bin/ go install github.com/google/yamlfmt/cmd/yamlfmt@v0.16.0
-# fi
+echo "Running yamlfmt checks..."
+if ! which yamlfmt > /dev/null; then
+  echo "yamlfmt is not installed, installing it (ETA 5s)"
+  YAMLFMT_VERSION="0.16.0"
 
-# echo "Running yamlfmt formatter..."
-# if [ "$COMMAND" == "fix" ]; then
-#   yamlfmt manifests/
-# else
-#   yamlfmt -lint manifests/
-# fi
+  YAMLFMT_OS=""
+  case "$(uname -s)" in
+    Darwin) YAMLFMT_OS="Darwin" ;;
+    Linux) YAMLFMT_OS="Linux" ;;
+    CYGWIN*|MINGW*|MSYS*) YAMLFMT_OS="Windows" ;;
+    *) echo "Unsupported OS"; return 1 ;;
+  esac
+
+  YAMLFMT_ARCH=""
+  case "$(uname -m)" in
+    arm64|aarch64) YAMLFMT_ARCH="arm64" ;;
+    x86_64) YAMLFMT_ARCH="x86_64" ;;
+    i386|i686) YAMLFMT_ARCH="i386" ;;
+    *) echo "Unsupported architecture"; return 1 ;;
+  esac
+
+  YAMLFMT_URL="https://github.com/google/yamlfmt/releases/download/v${YAMLFMT_VERSION}/yamlfmt_${YAMLFMT_VERSION}_${YAMLFMT_OS}_${YAMLFMT_ARCH}.tar.gz"
+  curl -Lo "$PWD"/venv/bin/yamlfmt.tar.gz $YAMLFMT_URL
+  tar -xzf "$PWD"/venv/bin/yamlfmt.tar.gz -C "$PWD"/venv/bin/
+  chmod +x "$PWD"/venv/bin/yamlfmt
+fi
+
+echo "Running yamlfmt formatter..."
+if [ "$COMMAND" == "fix" ]; then
+ yamlfmt manifests/
+else
+ yamlfmt -lint manifests/
+fi
 
 echo "Running yamllint checks..."
 if ! which ./venv/bin/yamllint > /dev/null; then

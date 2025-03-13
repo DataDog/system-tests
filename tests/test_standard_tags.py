@@ -338,7 +338,5 @@ class Test_StandardTagsClientIp:
             assert meta[tag] == value
 
     def _get_root_span_meta(self, request):
-        root_spans = [s for _, s in interfaces.library.get_root_spans(request=request)]
-        assert len(root_spans) == 1
-        span = root_spans[0]
+        span = interfaces.library.get_root_span(request)
         return span.get("meta", {})

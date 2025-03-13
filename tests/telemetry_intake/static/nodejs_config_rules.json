@@ -105,7 +105,9 @@
         "port": "trace_agent_port",
         "profiling.enabled": "profiling_enabled",
         "profiling.exporters": "profiling_exporters",
+        "profiling.heuristicsenabled": "profiling_heuristics_enabled",
         "profiling.sourceMap": "profiling_source_map_enabled",
+        "profiling.ssi": "profiling_ssi",
         "protocolVersion": "trace_agent_protocol_version",
         "queryStringObfuscation": "trace_obfuscation_query_string_regexp",
         "remoteConfig.enabled": "remote_config_enabled",
@@ -160,10 +162,17 @@
         "trace.telemetry_enabled": "instrumentation_telemetry_enabled",
         "traceId128BitGenerationEnabled": "trace_128_bits_id_enabled",
         "traceId128BitLoggingEnabled": "trace_128_bits_id_logging_enabled",
+        "traceremoveintegrationservicenamesenabled": "trace_remove_integration_service_names_enabled",
         "tracing": "trace_enabled",
         "url": "trace_agent_url"
     },
-    "prefix_block_list": [],
+    "prefix_block_list": [
+        "_defaults.",
+        "_env.",
+        "_options.",
+        "_remote.",
+        "isazurefunctionconsumptionplan"
+    ],
     "redaction_list": [],
     "reduce_rules": {}
 }

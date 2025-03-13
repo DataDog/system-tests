@@ -634,7 +634,7 @@
             "os_branch": "fedora",
             "os_cpu": "amd64",
             "default_vm": false,
-            "disabled": false
+            "disabled": true
         },
         {
             "name": "Fedora_37_arm64",
@@ -648,7 +648,7 @@
             "os_branch": "fedora",
             "os_cpu": "arm64",
             "default_vm": false,
-            "disabled": false
+            "disabled": true
         },
         {
             "name": "Fedora_40_amd64",

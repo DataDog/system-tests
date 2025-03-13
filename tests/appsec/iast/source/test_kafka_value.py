@@ -16,6 +16,6 @@ class TestKafkaValue(BaseSourceTest):
     source_type = "kafka.message.value"
     source_value = "hello value!"
 
-    def get_sources(self, request):
+    def get_sources(self, request):  # noqa: ARG002
         iast_event = get_all_iast_events()
         return get_iast_sources(iast_event)

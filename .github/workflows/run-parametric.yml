@@ -38,14 +38,18 @@ on:
         default: '[1]'
         required: false
         type: string
+      _experimental_runs_on:
+        description: "Runner definition"
+        default: '{ "group": "APM Larger Runners" }'
+        required: false
+        type: string
 
 env:
   REGISTRY: ghcr.io
 jobs:
 
   parametric:
-    runs-on:
-      group: "APM Larger Runners"
+    runs-on: ${{ fromJson( inputs._experimental_runs_on ) }}
     strategy:
       fail-fast: false
       matrix:

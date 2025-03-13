@@ -126,6 +126,7 @@
     "dd_profiling_apikey",
     "dependencies_available",
     "global_tag_runtime-id",
+    "llmobs.apikey",
     "profiling_api-key-file",
     "profiling_apikey_file",
     "profiling_proxy_password",
