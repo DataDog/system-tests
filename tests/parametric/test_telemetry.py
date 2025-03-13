@@ -30,7 +30,7 @@ telemetry_name_mapping = {
     },
     "logs_injection_enabled": {
         "dotnet": "DD_LOGS_INJECTION",
-        "nodejs": "DD_LOG_INJECTION",
+        "nodejs": "DD_LOGS_INJECTION",
         "python": "DD_LOGS_INJECTION",
         "php": "trace.logs_enabled",
     },

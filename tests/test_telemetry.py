@@ -487,6 +487,24 @@ class Test_Telemetry:
                 content = data["request"]["content"]
                 configurations = content["payload"]["configuration"]
                 configurations_present = []
+
+                configs_with_no_seq_id = []
+                highest_seq_by_name = {}  # for sdks sending config payloads with seq_id
+
+                for cnf in configurations:
+                    if "seq_id" in cnf:
+                        name = cnf["name"]
+                        # Track only the highest seq_id per name
+                        if name not in highest_seq_by_name or cnf["seq_id"] > highest_seq_by_name[name]["seq_id"]:
+                            highest_seq_by_name[name] = cnf
+                    else:
+                        configs_with_no_seq_id.append(cnf)
+
+                configs_with_seq_id = list(highest_seq_by_name.values())
+
+                configs_with_seq_id.sort(key=lambda x: x["seq_id"])
+                configurations = configs_with_seq_id + configs_with_no_seq_id
+
                 for cnf in configurations:
                     configuration_name = cnf["name"]
                     if context.library.name == "java":
@@ -514,6 +532,61 @@ class Test_Telemetry:
                         )
 
         self.validate_library_telemetry_data(validator)
+
+    @scenarios.telemetry_app_started_config_chaining
+    def test_app_started_config_chaining(self):
+        """Assert that all configuration sources read at start time are sent with the app-started event"""
+        
+        trace_agent_port = scenarios.default.weblog_container.trace_agent_port
+
+        test_configuration = {
+            "nodejs": {"DD_LOGS_INJECTION": [{ "origin": "code", "value": True }, { "origin": "env_var", "value": False }, { "origin": "default", "value": False }]}, # in order from highest to lowest precedence
+        }
+
+        nodejs_expected_config = test_configuration["nodejs"]
+
+        def validator(data):
+            if get_request_type(data) != "app-started":
+                return
+
+            content = data["request"]["content"]
+            configurations = content["payload"]["configuration"]
+
+            # Sort configurations by seq_id in descending order (highest first)
+            configurations.sort(key=lambda cnf: cnf["seq_id"], reverse=True)
+
+            for cnf_name, expected_chain in nodejs_expected_config.items():
+                # Filter actual entries for this configuration name
+                actual_chain = [cnf for cnf in configurations if cnf["name"] == cnf_name]
+
+                if len(actual_chain) != len(expected_chain):
+                    raise AssertionError(
+                        f"Expected {len(expected_chain)} items for config '{cnf_name}' "
+                        f"but found {len(actual_chain)}."
+                    )
+
+                for i, (actual, expected) in enumerate(zip(actual_chain, expected_chain)):
+                    if actual["origin"] != expected["origin"]:
+                        raise AssertionError(
+                            f"{cnf_name}[{i}] origin expected: {expected['origin']}, "
+                            f"got: {actual['origin']}"
+                        )
+                    if actual["value"] != expected["value"]:
+                        raise AssertionError(
+                            f"{cnf_name}[{i}] value expected: {expected['value']}, "
+                            f"got: {actual['value']}"
+                        )
+
+                    if i < len(actual_chain) - 1:
+                        next_item = actual_chain[i + 1]
+                        if not (actual["seq_id"] > next_item["seq_id"]):
+                            raise AssertionError(
+                                f"{cnf_name}[{i}] seq_id={actual['seq_id']} is not "
+                                f"greater than {cnf_name}[{i+1}] seq_id={next_item['seq_id']}."
+                            )
+
+        self.validate_library_telemetry_data(validator)
+
 
     def setup_app_product_change(self):
         weblog.get("/enable_product")

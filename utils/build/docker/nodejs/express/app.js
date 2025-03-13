@@ -1,9 +1,16 @@
 'use strict'
 
-const tracer = require('dd-trace').init({
+
+const opts = {
   debug: true,
-  flushInterval: 5000
-})
+  flushInterval: 5000,
+}
+
+if (process.env.CONFIG_CHAINING_TEST) {
+  opts.logInjection = true
+}
+
+const tracer = require('dd-trace').init(opts)
 
 const { promisify } = require('util')
 const app = require('express')()

@@ -125,6 +125,16 @@ class _Scenarios:
         scenario_groups=[scenario_groups.telemetry],
     )
 
+    telemetry_app_started_config_chaining = EndToEndScenario(
+        "TELEMETRY_APP_STARTED_CONFIG_CHAINING",
+        weblog_env={
+            "DD_LOGS_INJECTION": "false",
+            "CONFIG_CHAINING_TEST": "true",
+        },
+        doc="Test telemetry for environment variable configurations",
+        scenario_groups=[ScenarioGroup.TELEMETRY],
+    )
+
     telemetry_log_generation_disabled = EndToEndScenario(
         "TELEMETRY_LOG_GENERATION_DISABLED",
         weblog_env={"DD_TELEMETRY_LOG_COLLECTION_ENABLED": "false"},
