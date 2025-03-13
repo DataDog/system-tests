@@ -64,11 +64,17 @@ class _Scenarios:
 
     profiling = ProfilingScenario("PROFILING")
 
-    appsec_no_stats = EndToEndScenario(
-        name="APPSEC_NO_STATS",
+    trace_stats_computation = EndToEndScenario(
+        name="TRACE_STATS_COMPUTATION",
+        # feature consistency is poorly respected here ...
+        weblog_env={
+            "DD_TRACE_STATS_COMPUTATION_ENABLED": "1",
+            "DD_TRACE_COMPUTE_STATS": "true",
+            "DD_TRACE_FEATURES": "discovery",
+        },
         doc=(
-            "End to end testing with default values. Default scenario has DD_TRACE_COMPUTE_STATS=true."
-            "This scenario let that env to use its default"
+            "End to end testing with DD_TRACE_COMPUTE_STATS=1. This feature compute stats at tracer level, and"
+            "may drop some of them"
         ),
         scenario_groups=[ScenarioGroup.APPSEC],
     )
@@ -168,7 +174,7 @@ class _Scenarios:
         },
         weblog_volumes={"./tests/appsec/blocking_rule.json": {"bind": "/appsec_blocking_rule.json", "mode": "ro"}},
         doc="AppSec tests for GraphQL integrations",
-        github_workflow="graphql",
+        github_workflow="endtoend",
         scenario_groups=[ScenarioGroup.APPSEC],
     )
     appsec_rules_monitoring_with_errors = EndToEndScenario(
@@ -330,7 +336,7 @@ class _Scenarios:
 
     appsec_auto_events_rc = EndToEndScenario(
         "APPSEC_AUTO_EVENTS_RC",
-        weblog_env={"DD_APPSEC_ENABLED": "true", "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": 0.5},
+        weblog_env={"DD_APPSEC_ENABLED": "true", "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "0.5"},
         rc_api_enabled=True,
         doc="""
             Scenario to test User ID collection config change via Remote config

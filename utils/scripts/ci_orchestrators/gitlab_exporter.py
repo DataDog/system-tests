@@ -85,10 +85,7 @@ def should_run_only_defaults_vm() -> bool:
 
 
 def is_default_machine(raw_data_virtual_machines, vm) -> bool:
-    for vm_data in raw_data_virtual_machines:
-        if vm_data["name"] == vm and vm_data["default_vm"]:
-            return True
-    return False
+    return any(vm_data["name"] == vm and vm_data["default_vm"] for vm_data in raw_data_virtual_machines)
 
 
 def print_gitlab_pipeline(language, matrix_data, ci_environment) -> None:

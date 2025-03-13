@@ -5,7 +5,7 @@ from .endtoend import EndToEndScenario
 
 
 class PerformanceScenario(EndToEndScenario):
-    def __init__(self, name, doc) -> None:
+    def __init__(self, name: str, doc: str) -> None:
         super().__init__(
             name, doc=doc, appsec_enabled=self.appsec_enabled, use_proxy_for_agent=False, use_proxy_for_weblog=False
         )

@@ -120,9 +120,9 @@ class Test_Headers:
 
     def test_specific_key3(self):
         """When a specific header key is specified, other key are ignored"""
-        ADDRESS = "server.request.headers.no_cookies"
-        interfaces.library.assert_waf_attack(self.r_sk_5, address=ADDRESS, key_path=["referer"])
-        interfaces.library.assert_waf_attack(self.r_sk_6, address=ADDRESS, key_path=["referer"])
+        address = "server.request.headers.no_cookies"
+        interfaces.library.assert_waf_attack(self.r_sk_5, address=address, key_path=["referer"])
+        interfaces.library.assert_waf_attack(self.r_sk_6, address=address, key_path=["referer"])
 
     def setup_specific_wrong_key(self):
         self.r_wk_1 = weblog.get("/waf/", headers={"xfilename": "routing.yml"})
@@ -132,6 +132,7 @@ class Test_Headers:
     def test_specific_wrong_key(self):
         """When a specific header key is specified in rules, other key are ignored"""
         for r in [self.r_wk_1, self.r_wk_2]:
+            logger.debug(f"Testing {r.request.headers}")
             assert r.status_code == 200
             spans = [span for _, span in interfaces.library.get_root_spans(request=r)]
             assert spans, "No spans to validate"

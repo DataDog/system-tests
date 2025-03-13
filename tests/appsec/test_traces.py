@@ -5,6 +5,7 @@
 from utils.dd_constants import PYTHON_RELEASE_GA_1_1
 from utils import weblog, bug, context, interfaces, irrelevant, rfc, missing_feature, scenarios, features
 from utils.tools import nested_lookup
+from utils.dd_constants import SamplingPriority
 
 
 RUNTIME_FAMILIES = ["nodejs", "ruby", "jvm", "dotnet", "go", "php", "python"]
@@ -44,9 +45,10 @@ class Test_RetainTraces:
             if "_sampling_priority_v1" not in span["metrics"]:
                 raise Exception("Metric _sampling_priority_v1 should be set on traces that are manually kept")
 
-            MANUAL_KEEP = 2
-            if span["metrics"]["_sampling_priority_v1"] != MANUAL_KEEP:
-                raise Exception(f"Trace id {span['trace_id']} , sampling priority should be {MANUAL_KEEP}")
+            if span["metrics"]["_sampling_priority_v1"] != SamplingPriority.USER_KEEP:
+                raise Exception(
+                    f"Trace id {span['trace_id']} , sampling priority should be {SamplingPriority.USER_KEEP}"
+                )
 
             return True
 
