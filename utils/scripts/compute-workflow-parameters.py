@@ -70,7 +70,6 @@ class CiData:
         )
 
         # legacy part
-        self.data["graphql"] = {"scenarios": [], "weblogs": []}
         self.data["parametric"]["scenarios"] = ["PARAMETRIC"] if self.data["parametric"]["enable"] else []
         legacy_scenarios, legacy_weblogs = set(), set()
 

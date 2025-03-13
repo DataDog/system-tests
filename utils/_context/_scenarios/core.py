@@ -37,10 +37,8 @@ class ScenarioGroup(Enum):
 VALID_CI_WORKFLOWS = {
     None,
     "endtoend",
-    "graphql",
     "libinjection",
     "aws_ssi",
-    "opentelemetry",
     "parametric",
     "testthetest",
     "dockerssi",

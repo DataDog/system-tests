@@ -45,7 +45,7 @@ class OpenTelemetryScenario(DockerScenario):
         super().__init__(
             name,
             doc=doc,
-            github_workflow="opentelemetry",
+            github_workflow="endtoend",
             scenario_groups=[ScenarioGroup.ALL, ScenarioGroup.OPEN_TELEMETRY],
             use_proxy=True,
             include_postgres_db=include_postgres_db,

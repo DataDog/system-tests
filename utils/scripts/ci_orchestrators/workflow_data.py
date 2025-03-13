@@ -247,10 +247,7 @@ def _get_endtoend_weblogs(library: str) -> list[str]:
 def get_endtoend_definitions(
     library: str, scenario_map: dict, ci_environment: str, desired_execution_time: int, maximum_parallel_jobs: int
 ) -> dict:
-    if "otel" not in library:
-        scenarios = scenario_map["endtoend"] + scenario_map["graphql"]
-    else:
-        scenarios = scenario_map["opentelemetry"]
+    scenarios = scenario_map["endtoend"]
 
     # get time stats
     with open("utils/scripts/ci_orchestrators/time-stats.json", "r") as file:
