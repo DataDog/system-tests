@@ -336,7 +336,7 @@ class _Scenarios:
 
     appsec_auto_events_rc = EndToEndScenario(
         "APPSEC_AUTO_EVENTS_RC",
-        weblog_env={"DD_APPSEC_ENABLED": "true", "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": 0.5},
+        weblog_env={"DD_APPSEC_ENABLED": "true", "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "0.5"},
         rc_api_enabled=True,
         doc="""
             Scenario to test User ID collection config change via Remote config

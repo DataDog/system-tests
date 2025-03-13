@@ -56,7 +56,7 @@ class IntegrationsScenario(EndToEndScenario):
             scenario_groups=[ScenarioGroup.INTEGRATIONS, ScenarioGroup.APPSEC, ScenarioGroup.ESSENTIALS],
         )
 
-    def configure(self, config):
+    def configure(self, config: pytest.Config):
         super().configure(config)
         self.unique_id = _get_unique_id(self.host_log_folder, replay=self.replay)
 
@@ -120,7 +120,7 @@ class AWSIntegrationsScenario(EndToEndScenario):
             scenario_groups=[ScenarioGroup.INTEGRATIONS, ScenarioGroup.ESSENTIALS],
         )
 
-    def configure(self, config):
+    def configure(self, config: pytest.Config):
         super().configure(config)
         self.unique_id = _get_unique_id(self.host_log_folder, replay=self.replay)
 
@@ -150,6 +150,6 @@ class CrossedTracingLibraryScenario(EndToEndScenario):
             },
         )
 
-    def configure(self, config):
+    def configure(self, config: pytest.Config):
         super().configure(config)
         self.unique_id = _get_unique_id(self.host_log_folder, replay=self.replay)
