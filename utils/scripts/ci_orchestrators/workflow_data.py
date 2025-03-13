@@ -437,7 +437,7 @@ def _is_supported(library: str, weblog: str, scenario: str, ci_environment: str)
 
     # open-telemetry-automatic
     if weblog in ["express4-otel", "flask-poc-otel", "spring-boot-otel"]:
-        if scenario not in ("OTEL_INTEGRATIONS"):
+        if scenario not in ("OTEL_INTEGRATIONS",):
             return False
 
     return True
