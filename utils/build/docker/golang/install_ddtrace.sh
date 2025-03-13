@@ -16,12 +16,16 @@ if [ -e "/binaries/dd-trace-go" ]; then
       fi
     done
 
-elif [ -e "/binaries/golang-load-from-go-get" ]; then
+elif [ -f "/binaries/golang-load-from-go-get" ]; then
     echo "Install from go get -d $(cat /binaries/golang-load-from-go-get)"
     go get -v -d "$(cat /binaries/golang-load-from-go-get)"
     # Pin that version with a `replace` directive so nothing else can override it.
-    go mod edit -replace "github.com/DataDog/dd-trace-go/v2=$(cat /binaries/golang-load-from-go-get)"
-
+    while IFS= read -r line || [ -n "$line" ]; do
+        # Extract module path and version by splitting at '@'
+        module_path="${line%%@*}"
+        # Run go mod edit replace for each module
+        go mod edit -replace "$module_path=$line"
+    done < /binaries/golang-load-from-go-get
 else
     echo "Installing production dd-trace-version"
     # TODO(darccio): remove @$ref on v2 release
