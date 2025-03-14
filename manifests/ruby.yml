@@ -192,35 +192,35 @@ tests/:
       test_sqli.py:
         Test_Sqli_BodyJson:
           "*": missing_feature
-          rails42: bug (APPSEC-56765) # ActiveRecord instrumentation with Rails < 5 and Ruby < 2.7 not working due to kwargs
+          rails42: bug (APPSEC-56765)  # ActiveRecord instrumentation with Rails < 5 and Ruby < 2.7 not working due to kwargs
         Test_Sqli_BodyUrlEncoded:
           "*": missing_feature
-          rails42: bug (APPSEC-56765) # ActiveRecord instrumentation with Rails < 5 and Ruby < 2.7 not working due to kwargs
+          rails42: bug (APPSEC-56765)  # ActiveRecord instrumentation with Rails < 5 and Ruby < 2.7 not working due to kwargs
         Test_Sqli_BodyXml: irrelevant (XML not natively supported)
         Test_Sqli_Capability:
           "*": missing_feature
-          rails42: bug (APPSEC-56765) # ActiveRecord instrumentation with Rails < 5 and Ruby < 2.7 not working due to kwargs
+          rails42: bug (APPSEC-56765)  # ActiveRecord instrumentation with Rails < 5 and Ruby < 2.7 not working due to kwargs
         Test_Sqli_Mandatory_SpanTags:
           "*": missing_feature
-          rails42: bug (APPSEC-56765) # ActiveRecord instrumentation with Rails < 5 and Ruby < 2.7 not working due to kwargs
+          rails42: bug (APPSEC-56765)  # ActiveRecord instrumentation with Rails < 5 and Ruby < 2.7 not working due to kwargs
         Test_Sqli_Optional_SpanTags:
           "*": missing_feature
-          rails42: bug (APPSEC-56765) # ActiveRecord instrumentation with Rails < 5 and Ruby < 2.7 not working due to kwargs
+          rails42: bug (APPSEC-56765)  # ActiveRecord instrumentation with Rails < 5 and Ruby < 2.7 not working due to kwargs
         Test_Sqli_Rules_Version:
           "*": missing_feature
-          rails42: bug (APPSEC-56765) # ActiveRecord instrumentation with Rails < 5 and Ruby < 2.7 not working due to kwargs
+          rails42: bug (APPSEC-56765)  # ActiveRecord instrumentation with Rails < 5 and Ruby < 2.7 not working due to kwargs
         Test_Sqli_StackTrace:
           "*": missing_feature
-          rails42: bug (APPSEC-56765) # ActiveRecord instrumentation with Rails < 5 and Ruby < 2.7 not working due to kwargs
+          rails42: bug (APPSEC-56765)  # ActiveRecord instrumentation with Rails < 5 and Ruby < 2.7 not working due to kwargs
         Test_Sqli_Telemetry:
           "*": missing_feature
-          rails42: bug (APPSEC-56765) # ActiveRecord instrumentation with Rails < 5 and Ruby < 2.7 not working due to kwargs
+          rails42: bug (APPSEC-56765)  # ActiveRecord instrumentation with Rails < 5 and Ruby < 2.7 not working due to kwargs
         Test_Sqli_UrlQuery:
           "*": missing_feature
-          rails42: bug (APPSEC-56765) # ActiveRecord instrumentation with Rails < 5 and Ruby < 2.7 not working due to kwargs
+          rails42: bug (APPSEC-56765)  # ActiveRecord instrumentation with Rails < 5 and Ruby < 2.7 not working due to kwargs
         Test_Sqli_Waf_Version:
           "*": missing_feature
-          rails42: bug (APPSEC-56765) # ActiveRecord instrumentation with Rails < 5 and Ruby < 2.7 not working due to kwargs
+          rails42: bug (APPSEC-56765)  # ActiveRecord instrumentation with Rails < 5 and Ruby < 2.7 not working due to kwargs
       test_ssrf.py: missing_feature
     waf/:
       test_addresses.py:
@@ -231,6 +231,17 @@ tests/:
         Test_FullGrpc: missing_feature
         Test_GraphQL: v2.3.0
         Test_GrpcServerMethod: missing_feature
+        Test_Headers:
+          '*': v0.54.2  # assumed as the oldest supported version
+          sinatra14: missing_feature (endpoint not implemented)
+          sinatra20: missing_feature (endpoint not implemented)
+          sinatra21: missing_feature (endpoint not implemented)
+          sinatra22: missing_feature (endpoint not implemented)
+          sinatra30: missing_feature (endpoint not implemented)
+          sinatra31: missing_feature (endpoint not implemented)
+          sinatra32: missing_feature (endpoint not implemented)
+          sinatra40: missing_feature (endpoint not implemented)
+          uds-sinatra: missing_feature (endpoint not implemented)
         Test_PathParams:
           '*': v1.8.0
           rack: irrelevant
@@ -265,6 +276,8 @@ tests/:
         Test_NoSqli: v1.8.0
       test_telemetry.py:
         Test_TelemetryMetrics: missing_feature
+      test_truncation.py:
+        Test_Truncation: missing_feature
     test_asm_standalone.py:
       Test_AppSecStandalone_UpstreamPropagation: v2.4.1-dev
       Test_AppSecStandalone_UpstreamPropagation_V2: missing_feature
@@ -395,18 +408,26 @@ tests/:
       Test_Debugger_PII_Redaction:
         "*": irrelevant
         rails70: v2.8.0
+        rails80: v2.8.0
+        uds-rails: v2.12.0
     test_debugger_probe_snapshot.py:
       Test_Debugger_Probe_Snaphots:
         "*": irrelevant
         rails70: v2.8.0
+        rails80: v2.8.0
+        uds-rails: v2.12.0
     test_debugger_probe_status.py:
       Test_Debugger_Probe_Statuses:
         "*": irrelevant
         rails70: v2.8.0
+        rails80: v2.8.0
+        uds-rails: v2.12.0
     test_debugger_symdb.py:
       Test_Debugger_SymDb:
         "*": irrelevant
         rails70: missing_feature (feature not implemented)
+        rails80: missing_feature (feature not implemented)
+        uds-rails: missing_feature (feature not implemented)
   integrations/:
     crossed_integrations/:
       test_kafka.py:
@@ -525,15 +546,16 @@ tests/:
       Test_Parametric_Otel_Current_Span: incomplete_test_app (otel current span endpoint is not supported)
     test_partial_flushing.py:  # Not configurable in a standard way
       Test_Partial_Flushing: missing_feature
+    test_process_discovery.py: missing_feature
     test_sampling_delegation.py:
       Test_Decisionless_Extraction: v2.4.0
-    test_span_events.py: missing_feature
     test_span_links.py:
       Test_Span_Links: v2.0.0
     test_telemetry.py:
       Test_Consistent_Configs: missing_feature
       Test_Defaults: missing_feature
       Test_Environment: missing_feature
+      Test_Stable_Configuration_Origin: missing_feature
       Test_TelemetryInstallSignature: missing_feature
       Test_TelemetrySCAEnvVar: v2.1.0
     test_trace_sampling.py:
@@ -584,8 +606,8 @@ tests/:
     Test_Config_IntegrationEnabled_True:
       '*': irrelevant (endpoint not implemented)
       rails70: v2.0.0
-    Test_Config_LogInjection_128Bit_TradeId_Default: missing_feature (not enabled by default)
-    Test_Config_LogInjection_128Bit_TradeId_Disabled: incomplete_test_app (endpoint not implemented)
+    Test_Config_LogInjection_128Bit_TraceId_Default: missing_feature (not enabled by default)
+    Test_Config_LogInjection_128Bit_TraceId_Disabled: incomplete_test_app (endpoint not implemented)
     Test_Config_LogInjection_Default: incomplete_test_app (endpoint not implemented)
     Test_Config_LogInjection_Enabled: incomplete_test_app (endpoint not implemented)
     Test_Config_ObfuscationQueryStringRegexp_Configured: missing_feature
@@ -604,7 +626,7 @@ tests/:
   test_graphql.py:
     Test_GraphQLQueryErrorReporting:
       "*": irrelevant
-      graphql23: missing_feature
+      graphql23: v2.11.0
   test_identify.py:
     Test_Basic: v1.0.0
     Test_Propagate: missing_feature

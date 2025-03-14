@@ -6,7 +6,7 @@ from utils import interfaces, scenarios, weblog, missing_feature, features, cont
 from utils.tools import logger
 
 
-class _Test_Kinesis:
+class _BaseKinesis:
     """Test Kinesis compatibility with inputted datadog tracer"""
 
     BUDDY_TO_WEBLOG_STREAM = None
@@ -205,7 +205,7 @@ class _Test_Kinesis:
 
 @scenarios.crossed_tracing_libraries
 @features.aws_kinesis_span_creationcontext_propagation_via_message_attributes_with_dd_trace
-class Test_Kinesis_PROPAGATION_VIA_MESSAGE_ATTRIBUTES(_Test_Kinesis):
+class Test_Kinesis_PROPAGATION_VIA_MESSAGE_ATTRIBUTES(_BaseKinesis):
     buddy_interface = interfaces.python_buddy
     buddy = python_buddy
 

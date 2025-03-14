@@ -9,17 +9,14 @@ from utils import interfaces
 
 def validate_span_tags(request, expected_meta=(), expected_metrics=()):
     """Validate RASP span tags are added when an event is generated"""
-    spans = [s for _, s in interfaces.library.get_root_spans(request=request)]
-    assert spans, "No spans to validate"
+    span = interfaces.library.get_root_span(request)
+    meta = span["meta"]
+    for m in expected_meta:
+        assert m in meta, f"missing span meta tag `{m}` in {meta}"
 
-    for span in spans:
-        meta = span["meta"]
-        for m in expected_meta:
-            assert m in meta, f"missing span meta tag `{m}` in {meta}"
-
-        metrics = span["metrics"]
-        for m in expected_metrics:
-            assert m in metrics, f"missing span metric tag `{m}` in {metrics}"
+    metrics = span["metrics"]
+    for m in expected_metrics:
+        assert m in metrics, f"missing span metric tag `{m}` in {metrics}"
 
 
 def validate_stack_traces(request):
@@ -123,7 +120,7 @@ def _load_file(file_path):
         return json.load(f)
 
 
-class RC_CONSTANTS:
+class RemoteConfigConstants:
     CONFIG_ENABLED = (
         "datadog/2/ASM_FEATURES/asm_features_activation/config",
         {"asm": {"enabled": True}},
@@ -157,7 +154,7 @@ class RC_CONSTANTS:
     )
 
 
-class Base_Rules_Version:
+class BaseRulesVersion:
     """Test libddwaf version"""
 
     min_version = "1.13.3"
@@ -171,7 +168,7 @@ class Base_Rules_Version:
         assert any(validate_metric_tag_version("event_rules_version", min_version_array, s) for s in series)
 
 
-class Base_WAF_Version:
+class BaseWAFVersion:
     """Test libddwaf version"""
 
     min_version = "1.20.1"

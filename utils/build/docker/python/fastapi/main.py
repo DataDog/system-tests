@@ -15,7 +15,7 @@ from fastapi import Header
 from fastapi import Request
 from fastapi.responses import JSONResponse
 from fastapi.responses import HTMLResponse
-from fastapi.responses import PlainTextResponse
+from fastapi.responses import PlainTextResponse, Response
 from iast import weak_cipher
 from iast import weak_cipher_secure_algorithm
 from iast import weak_hash
@@ -28,9 +28,9 @@ from pydantic import BaseModel
 import requests
 import urllib3
 import xmltodict
+from starlette.middleware.sessions import SessionMiddleware
 
 import ddtrace
-from ddtrace import patch_all
 from ddtrace.appsec import trace_utils as appsec_trace_utils
 
 try:
@@ -40,8 +40,7 @@ except ImportError:
     from ddtrace import Pin
     from ddtrace import tracer
 
-
-patch_all(urllib3=True)
+ddtrace.patch_all(urllib3=True)
 
 tracer.trace("init.service").finish()
 logger = logging.getLogger(__name__)
@@ -52,6 +51,31 @@ except ImportError:
     set_user = lambda *args, **kwargs: None  # noqa E731
 
 app = FastAPI()
+
+
+# Custom middleware
+try:
+    maj, min, patch, *_ = getattr(ddtrace, "__version__", "0.0.0").split(".")
+    current_ddtrace_version = (int(maj), int(min), int(patch))
+except Exception:
+    current_ddtrace_version = (0, 0, 0)
+
+if current_ddtrace_version >= (3, 1, 0):
+    """custom middleware only supported after PR 12413"""
+
+    @app.middleware("http")
+    async def add_process_time_header(request: Request, call_next):
+        try:
+            if request.session.get("user_id"):
+                set_user(tracer, user_id=request.session["user_id"], mode="auto")
+        except Exception:
+            # to be compatible with all tracer versions
+            pass
+        response = await call_next(request)
+        return response
+
+
+app.add_middleware(SessionMiddleware, secret_key="just_for_tests")
 
 POSTGRES_CONFIG = dict(
     host="postgres",
@@ -126,6 +150,8 @@ async def api_security_sampling(i):
 
 @app.get("/api_security/sampling/{status_code}", response_class=PlainTextResponse)
 async def api_security_sampling_status(status_code: int = 200):
+    if status_code == 204:
+        return Response(status_code=status_code)
     return PlainTextResponse("Hello!", status_code=status_code)
 
 
@@ -175,24 +201,29 @@ async def tag_value_post(tag_value: str, status_code: int, request: Request):
 ### BEGIN EXPLOIT PREVENTION
 
 
-@app.get("/rasp/lfi")
-@app.post("/rasp/lfi")
-async def rasp_lfi(request: Request):
-    file = None
+async def retrieve_arg(request: Request, key: str):
+    data = None
     if request.method == "GET":
-        file = request.query_params.get("file")
+        data = request.query_params.get(key)
     elif request.method == "POST":
         body = await request.body()
         try:
-            file = ((await request.form()) or json.loads(body) or {}).get("file")
+            data = ((await request.form()) or json.loads(body) or {}).get(key)
         except Exception as e:
             print(repr(e), file=sys.stderr)
         try:
-            if file is None:
-                file = xmltodict.parse(body).get("file")
+            if data is None:
+                data = xmltodict.parse(body).get(key)
         except Exception as e:
             print(repr(e), file=sys.stderr)
             pass
+    return data
+
+
+@app.get("/rasp/lfi")
+@app.post("/rasp/lfi")
+async def rasp_lfi(request: Request):
+    file = await retrieve_arg(request, "file")
     if file is None:
         return PlainTextResponse("missing file parameter", status_code=400)
     try:
@@ -203,25 +234,28 @@ async def rasp_lfi(request: Request):
         return PlainTextResponse(f"{file} could not be open: {e!r}")
 
 
+@app.get("/rasp/multiple")
+@app.post("/rasp/multiple")
+async def rasp_multiple(request: Request):
+    file1 = await retrieve_arg(request, "file1")
+    file2 = await retrieve_arg(request, "file2")
+    if file1 is None or file2 is None:
+        return PlainTextResponse("missing file1 or file2 parameter", status_code=400)
+    lengths = []
+    for file in [file1, file2, "../etc/passwd"]:
+        try:
+            with open(file, "rb") as f_in:
+                f_in.seek(0, os.SEEK_END)
+                lengths.append(f_in.tell())
+        except Exception:
+            lengths.append(0)
+    return PlainTextResponse(f"files open with {lengths} bytes")
+
+
 @app.get("/rasp/ssrf")
 @app.post("/rasp/ssrf")
 async def rasp_ssrf(request: Request):
-    domain = None
-    if request.method == "GET":
-        domain = request.query_params.get("domain")
-    elif request.method == "POST":
-        body = await request.body()
-        try:
-            domain = ((await request.form()) or json.loads(body) or {}).get("domain")
-        except Exception as e:
-            print(repr(e), file=sys.stderr)
-        try:
-            if domain is None:
-                domain = xmltodict.parse(body).get("domain")
-        except Exception as e:
-            print(repr(e), file=sys.stderr)
-            pass
-
+    domain = await retrieve_arg(request, "domain")
     if domain is None:
         return PlainTextResponse("missing domain parameter", status_code=400)
     try:
@@ -237,21 +271,7 @@ async def rasp_ssrf(request: Request):
 @app.get("/rasp/sqli")
 @app.post("/rasp/sqli")
 async def rasp_sqli(request: Request):
-    user_id = None
-    if request.method == "GET":
-        user_id = request.query_params.get("user_id")
-    elif request.method == "POST":
-        body = await request.body()
-        try:
-            user_id = ((await request.form()) or json.loads(body) or {}).get("user_id")
-        except Exception as e:
-            print(repr(e), file=sys.stderr)
-        try:
-            if user_id is None:
-                user_id = xmltodict.parse(body).get("user_id")
-        except Exception as e:
-            print(repr(e), file=sys.stderr)
-            pass
+    user_id = await retrieve_arg(request, "user_id")
 
     if user_id is None:
         return PlainTextResponse("missing user_id parameter", status_code=400)
@@ -271,21 +291,7 @@ async def rasp_sqli(request: Request):
 @app.get("/rasp/shi")
 @app.post("/rasp/shi")
 async def rasp_shi(request: Request):
-    list_dir = None
-    if request.method == "GET":
-        list_dir = request.query_params.get("list_dir")
-    elif request.method == "POST":
-        body = await request.body()
-        try:
-            list_dir = ((await request.form()) or json.loads(body) or {}).get("list_dir")
-        except Exception as e:
-            print(repr(e), file=sys.stderr)
-        try:
-            if list_dir is None:
-                list_dir = xmltodict.parse(body).get("list_dir")
-        except Exception as e:
-            print(repr(e), file=sys.stderr)
-            pass
+    list_dir = await retrieve_arg(request, "list_dir")
 
     if list_dir is None:
         return PlainTextResponse("missing list_dir parameter", status_code=400)
@@ -344,11 +350,15 @@ async def headers():
 
 @app.get("/status")
 async def status_code(code: int = 200):
+    if code == 204:
+        return Response(status_code=code)
     return PlainTextResponse("OK, probably", status_code=code)
 
 
 @app.get("/stats-unique")
 async def stats_unique(code: int = 200):
+    if code == 204:
+        return Response(status_code=code)
     return PlainTextResponse("OK, probably", status_code=code)
 
 
@@ -639,6 +649,7 @@ async def login(request: Request):
         appsec_trace_utils.track_user_login_success_event(
             tracer, user_id=user_id, login_events_mode="auto", login=username
         )
+        request.session["user_id"] = user_id
     elif user_id:
         appsec_trace_utils.track_user_login_failure_event(
             tracer, user_id=user_id, exists=True, login_events_mode="auto", login=username

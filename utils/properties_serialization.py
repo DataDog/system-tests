@@ -11,7 +11,7 @@ from utils.tools import logger
 
 
 class _PropertiesEncoder(json.JSONEncoder):
-    def default(self, o):
+    def default(self, o: Any) -> Any:  # noqa: ANN401
         if isinstance(o, CaseInsensitiveDict):
             return dict(o.items())
 
@@ -30,7 +30,7 @@ class _PropertiesDecoder(json.JSONDecoder):
         json.JSONDecoder.__init__(self, object_hook=_PropertiesDecoder.from_dict)
 
     @staticmethod
-    def from_dict(d) -> Any:  # noqa: ANN401
+    def from_dict(d: dict) -> object:
         if klass := d.get("__class__"):
             if klass == "set":
                 return set(d["values"])
@@ -63,7 +63,7 @@ class SetupProperties:
                 setattr(item.instance, name, value)
 
     @staticmethod
-    def _get_properties(instance) -> dict:
+    def _get_properties(instance: object) -> dict:
         properties = {
             name: getattr(instance, name)
             for name in dir(instance)
@@ -97,7 +97,7 @@ class SetupProperties:
         if properties := self._store.get(item.nodeid):
             self._log_requests(properties)
 
-    def _log_requests(self, o) -> None:
+    def _log_requests(self, o: object) -> None:
         if isinstance(o, HttpResponse):
             logger.info(f"weblog {o.request.method} {o.request.url} -> {o.status_code}")
         elif isinstance(o, GrpcResponse):

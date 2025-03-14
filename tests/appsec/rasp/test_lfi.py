@@ -10,9 +10,9 @@ from tests.appsec.rasp.utils import (
     validate_stack_traces,
     find_series,
     validate_metric,
-    RC_CONSTANTS,
-    Base_Rules_Version,
-    Base_WAF_Version,
+    RemoteConfigConstants,
+    BaseRulesVersion,
+    BaseWAFVersion,
 )
 
 
@@ -145,6 +145,7 @@ class Test_Lfi_Telemetry_Multiple_Exploits:
         self.r = weblog.get("/rasp/multiple", params={"file1": "../etc/passwd", "file2": "../etc/group"})
 
     def test_rasp_match_tag(self):
+        assert self.r.status_code == 200
         series_eval = find_series("appsec", "rasp.rule.match", is_metrics=True)
         assert series_eval
         assert series_eval[0]["points"][0][1] == 3.0
@@ -194,17 +195,17 @@ class Test_Lfi_RC_CustomAction:
     """Local file inclusion through query parameters"""
 
     def setup_lfi_get(self):
-        self.config_state_1 = rc.rc_state.reset().set_config(*RC_CONSTANTS.CONFIG_ENABLED).apply()
-        self.config_state_1b = rc.rc_state.set_config(*RC_CONSTANTS.RULES).apply()
+        self.config_state_1 = rc.rc_state.reset().set_config(*RemoteConfigConstants.CONFIG_ENABLED).apply()
+        self.config_state_1b = rc.rc_state.set_config(*RemoteConfigConstants.RULES).apply()
         self.r1 = weblog.get("/rasp/lfi", params={"file": "../etc/passwd"})
 
-        self.config_state_2 = rc.rc_state.set_config(*RC_CONSTANTS.BLOCK_505).apply()
+        self.config_state_2 = rc.rc_state.set_config(*RemoteConfigConstants.BLOCK_505).apply()
         self.r2 = weblog.get("/rasp/lfi", params={"file": "../etc/passwd"})
 
-        self.config_state_3 = rc.rc_state.set_config(*RC_CONSTANTS.BLOCK_REDIRECT).apply()
+        self.config_state_3 = rc.rc_state.set_config(*RemoteConfigConstants.BLOCK_REDIRECT).apply()
         self.r3 = weblog.get("/rasp/lfi", params={"file": "../etc/passwd"}, allow_redirects=False)
 
-        self.config_state_4 = rc.rc_state.del_config(RC_CONSTANTS.BLOCK_REDIRECT[0]).apply()
+        self.config_state_4 = rc.rc_state.del_config(RemoteConfigConstants.BLOCK_REDIRECT[0]).apply()
         self.r4 = weblog.get("/rasp/lfi", params={"file": "../etc/passwd"})
 
         self.config_state_5 = rc.rc_state.reset().apply()
@@ -275,14 +276,14 @@ class Test_Lfi_Capability:
 
 
 @features.rasp_local_file_inclusion
-class Test_Lfi_Rules_Version(Base_Rules_Version):
+class Test_Lfi_Rules_Version(BaseRulesVersion):
     """Test lfi min rules version"""
 
     min_version = "1.13.3"
 
 
 @features.rasp_local_file_inclusion
-class Test_Lfi_Waf_Version(Base_WAF_Version):
+class Test_Lfi_Waf_Version(BaseWAFVersion):
     """Test lfi WAF version"""
 
     min_version = "1.20.1"
