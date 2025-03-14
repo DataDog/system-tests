@@ -545,7 +545,7 @@ class Test_Config_LogInjection_Default:
 @features.log_injection
 @features.log_injection_128bit_traceid
 class Test_Config_LogInjection_128Bit_TraceId_Enabled:
-    """Verify trace IDs are logged in 128bit format when log injection is enabled"""
+    """Verify trace IDs are logged in 128bit format by default when log injection is enabled"""
 
     def setup_log_injection_128bit_traceid_default(self):
         self.message = "test_weblog_log_injection"
