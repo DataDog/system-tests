@@ -20,6 +20,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <agent.path>/dd-tracer/dd-java-agent.jar</agent.path>
         <start-class>com.datadoghq.springbootnative.App</start-class>
+        <dd-trace-api.version>[1.47.1,)</dd-trace-api.version>
     </properties>
 
     <dependencies>
@@ -31,7 +32,7 @@
         <dependency>
             <groupId>com.datadoghq</groupId>
             <artifactId>dd-trace-api</artifactId>
-            <version>LATEST</version>
+            <version>${dd-trace-api.version}</version>
         </dependency>
         <dependency>
             <groupId>io.opentracing</groupId>
@@ -143,6 +144,23 @@
                     </plugin>
                 </plugins>
             </build>
+        </profile>
+        <profile>
+            <id>custom-dd-trace-api</id>
+            <activation>
+                <property>
+                    <name>customDdTraceApi</name>
+                </property>
+            </activation>
+            <dependencies>
+                <dependency>
+                    <groupId>com.datadoghq</groupId>
+                    <artifactId>dd-trace-api</artifactId>
+                    <version>dev</version>
+                    <scope>system</scope>
+                    <systemPath>${customDdTraceApi}</systemPath>
+                </dependency>
+            </dependencies>
         </profile>
     </profiles>
 </project>

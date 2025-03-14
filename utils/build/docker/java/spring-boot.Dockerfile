@@ -6,15 +6,16 @@ COPY ./utils/build/docker/java/iast-common/src /iast-common/src
 
 WORKDIR /app
 
+COPY ./utils/build/docker/java/install_*.sh binaries* /binaries/
+RUN /binaries/install_ddtrace.sh
+RUN /binaries/install_drop_in.sh
+
 COPY ./utils/build/docker/java/spring-boot/pom.xml .
 RUN mkdir /maven && mvn -Dmaven.repo.local=/maven -B dependency:go-offline
 
 COPY ./utils/build/docker/java/spring-boot/src ./src
-RUN mvn -Dmaven.repo.local=/maven package
-
-COPY ./utils/build/docker/java/install_*.sh binaries* /binaries/
-RUN /binaries/install_ddtrace.sh
-RUN /binaries/install_drop_in.sh
+COPY ./utils/build/docker/java/package_app.sh binaries* /binaries/
+RUN /binaries/package_app.sh -Ptomcat -Dmaven.repo.local=/maven package
 
 FROM eclipse-temurin:11-jre
 
