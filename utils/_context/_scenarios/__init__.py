@@ -249,6 +249,19 @@ class _Scenarios:
         scenario_groups=[ScenarioGroup.APPSEC],
     )
 
+    appsec_auto_events_blocking = EndToEndScenario(
+        "APPSEC_AUTO_EVENTS_BLOCKING",
+        rc_api_enabled=True,
+        appsec_enabled=True,
+        iast_enabled=False,
+        weblog_env={"DD_APPSEC_WAF_TIMEOUT": "10000000", "DD_APPSEC_TRACE_RATE_LIMIT": "10000"},  # 10 seconds
+        doc="""
+            A scenario with AppSec enabled and WAF configured to be able to block
+            automated events such as login or sign up.
+        """,
+        scenario_groups=[ScenarioGroup.APPSEC],
+    )
+
     appsec_runtime_activation = EndToEndScenario(
         "APPSEC_RUNTIME_ACTIVATION",
         rc_api_enabled=True,
