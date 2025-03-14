@@ -97,6 +97,18 @@ try:
 except ImportError:
     set_user = lambda *args, **kwargs: None
 
+
+logging.basicConfig(
+    level=logging.INFO,
+    format=(
+        "%(asctime)s %(levelname)s [%(name)s] [%(filename)s:%(lineno)d] "
+        "[dd.service=%(dd.service)s dd.env=%(dd.env)s dd.version=%(dd.version)s dd.trace_id=%(dd.trace_id)s dd.span_id=%(dd.span_id)s] "
+        "- %(message)s"
+    ),
+)
+
+log = logging.getLogger(__name__)
+
 POSTGRES_CONFIG = dict(
     host="postgres",
     port="5433",
@@ -1358,6 +1370,13 @@ def set_cookie():
     resp = Response("OK")
     resp.headers["Set-Cookie"] = f"{name}={value}"
     return resp
+
+
+@app.route("/log/library", methods=["GET"])
+def log_library():
+    message = flask_request.args.get("msg")
+    log.info(message)
+    return Response("OK")
 
 
 @app.route("/iast/insecure-cookie/test_insecure")
