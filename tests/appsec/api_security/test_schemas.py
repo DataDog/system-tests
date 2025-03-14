@@ -10,14 +10,19 @@ from utils import (
     scenarios,
     weblog,
     features,
+    bug,
 )
+from utils.tools import logger
 
 
 def get_schema(request, address):
     """Get api security schema from spans"""
     span = interfaces.library.get_root_span(request)
     meta = span.get("meta", {})
-    return meta.get("_dd.appsec.s." + address)
+    key = "_dd.appsec.s." + address
+    if key not in meta:
+        logger.info(f"Schema not found in span meta for {key}")
+    return meta.get(key)
 
 
 # can be used to match any value in a schema
@@ -49,6 +54,7 @@ def equal_value(t1, t2):
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
 @scenarios.appsec_api_security
 @features.api_security_schemas
+@bug(context.library > "php@1.7.2", reason="APPSEC-57006")
 class Test_Schema_Request_Headers:
     """Test API Security - Request Headers Schema"""
 
@@ -69,6 +75,7 @@ class Test_Schema_Request_Headers:
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
 @scenarios.appsec_api_security
 @features.api_security_schemas
+@bug(context.library > "php@1.7.2", reason="APPSEC-57006")
 class Test_Schema_Request_Cookies:
     """Test API Security - Request Cookies Schema"""
 
@@ -92,6 +99,7 @@ class Test_Schema_Request_Cookies:
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
 @scenarios.appsec_api_security
 @features.api_security_schemas
+@bug(context.library > "php@1.7.2", reason="APPSEC-57006")
 class Test_Schema_Request_Query_Parameters:
     """Test API Security - Request Query Parameters Schema"""
 
@@ -133,6 +141,7 @@ class Test_Schema_Request_Path_Parameters:
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
 @scenarios.appsec_api_security
 @features.api_security_schemas
+@bug(context.library > "php@1.7.2", reason="APPSEC-57006")
 class Test_Schema_Request_Json_Body:
     """Test API Security - Request Body and list length"""
 
@@ -153,6 +162,7 @@ class Test_Schema_Request_Json_Body:
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
 @scenarios.appsec_api_security
 @features.api_security_schemas
+@bug(context.library > "php@1.7.2", reason="APPSEC-57006")
 class Test_Schema_Request_FormUrlEncoded_Body:
     """Test API Security - Request Body and list length"""
 
@@ -193,6 +203,7 @@ class Test_Schema_Request_FormUrlEncoded_Body:
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
 @scenarios.appsec_api_security
 @features.api_security_schemas
+@bug(context.library > "php@1.7.2", reason="APPSEC-57006")
 class Test_Schema_Response_Headers:
     """Test API Security - Response Header Schema"""
 
@@ -212,6 +223,7 @@ class Test_Schema_Response_Headers:
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
 @scenarios.appsec_api_security
 @features.api_security_schemas
+@bug(context.library > "php@1.7.2", reason="APPSEC-57006")
 class Test_Schema_Response_Body:
     """Test API Security - Response Body Schema with urlencoded body"""
 
@@ -238,6 +250,7 @@ class Test_Schema_Response_Body:
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
 @scenarios.appsec_api_security_no_response_body
 @features.api_security_schemas
+@bug(context.library > "php@1.7.2", reason="APPSEC-57006")
 class Test_Schema_Response_Body_env_var:
     """Test API Security - Response Body Schema with urlencoded body and env var disabling response body parsing
     Check that response headers are still parsed but not response body
