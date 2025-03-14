@@ -374,12 +374,11 @@ class Test_Parametric_DDTrace_Baggage:
         - value: str
         Supported Return Values:
         """
-        with test_library:
-            with test_library.dd_start_span("test_set_baggage") as s1:
-                s1.set_baggage("key", "value")
+        with test_library.dd_start_span("test_set_baggage") as s1:
+            s1.set_baggage("key", "value")
 
-                headers = test_library.dd_inject_headers(s1.span_id)
-                assert any("baggage" in header for header in headers)
+            headers = test_library.dd_inject_headers(s1.span_id)
+            assert any("baggage" in header for header in headers)
 
     def test_get_baggage(self, test_agent, test_library):
         """Validates that /trace/span/get_baggage gets a baggage item.
@@ -420,17 +419,16 @@ class Test_Parametric_DDTrace_Baggage:
         - key: str
         Supported Return Values:
         """
-        with test_library:
-            with test_library.dd_start_span("test_remove_baggage") as s1:
-                # Set baggage
-                s1.set_baggage("key", "value")
-                headers = test_library.dd_inject_headers(s1.span_id)
-                assert any("baggage" in header for header in headers)
-                # Remove baggage
-                s1.remove_baggage("key")
+        with test_library.dd_start_span("test_remove_baggage") as s1:
+            # Set baggage
+            s1.set_baggage("key", "value")
+            headers = test_library.dd_inject_headers(s1.span_id)
+            assert any("baggage" in header for header in headers)
+            # Remove baggage
+            s1.remove_baggage("key")
 
-                headers = test_library.dd_inject_headers(s1.span_id)
-                assert not any("baggage" in header for header in headers)
+            headers = test_library.dd_inject_headers(s1.span_id)
+            assert not any("baggage" in header for header in headers)
 
     def test_remove_all_baggage(self, test_agent, test_library):
         """Validates that /trace/span/remove_all_baggage removes all baggage items from a span.
@@ -439,18 +437,18 @@ class Test_Parametric_DDTrace_Baggage:
         - span_id: Union[int, str]
         Supported Return Values:
         """
-        with test_library:
-            with test_library.dd_start_span("test_remove_baggage") as s1:
-                # Set baggage
-                s1.set_baggage("key1", "value")
-                s1.set_baggage("key2", "value")
-                # Remove all baggage
-                headers = test_library.dd_inject_headers(s1.span_id)
-                assert any("baggage" in header for header in headers)
-                s1.remove_all_baggage()
+        with test_library.dd_start_span("test_remove_baggage") as s1:
+            # Set baggage
+            s1.set_baggage("key1", "value")
+            s1.set_baggage("key2", "value")
+            # Remove all baggage
+            headers = test_library.dd_inject_headers(s1.span_id)
+            assert any("baggage" in header for header in headers)
+            s1.remove_all_baggage()
 
-                headers = test_library.dd_inject_headers(s1.span_id)
-                assert not any("baggage" in header for header in headers)
+            headers = test_library.dd_inject_headers(s1.span_id)
+            assert not any("baggage" in header for header in headers)
+
 
 @scenarios.parametric
 @features.parametric_endpoint_parity
