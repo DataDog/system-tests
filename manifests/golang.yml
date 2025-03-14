@@ -227,116 +227,6 @@ tests/:
         Test_Ssrf_Telemetry: missing_feature
         Test_Ssrf_UrlQuery: v1.65.1
         Test_Ssrf_Waf_Version: missing_feature
-    waf/:
-      test_addresses.py:
-        Test_BodyJson: v1.37.0
-        Test_BodyRaw: missing_feature
-        Test_BodyUrlEncoded: v1.37.0
-        Test_BodyXml: v1.37.0
-        Test_Cookies:
-          '*': v1.34.0
-          chi: v1.36.0
-          echo: v1.36.0
-          gin: v1.37.0
-        Test_FullGrpc: missing_feature
-        Test_GraphQL: missing_feature
-        Test_GrpcServerMethod: v1.62.0
-        Test_Headers:
-          '*': v1.34.0
-          chi: v1.36.0
-          echo: v1.36.0
-          gin: v1.37.0
-        Test_PathParams:
-          '*': v1.36.0
-          gin: v1.37.0
-          net-http: irrelevant (net-http doesn't handle path params)
-          net-http-orchestrion: irrelevant (net-http doesn't handle path params)
-        Test_ResponseStatus:
-          '*': v1.36.0
-          gin: v1.37.0
-        Test_UrlQuery:
-          '*': v1.35.0
-          gin: v1.37.0
-        Test_UrlQueryKey: v1.38.1
-        Test_UrlRaw:
-          '*': v1.34.0
-          chi: v1.36.0
-          echo: v1.36.0
-          gin: v1.37.0
-        Test_gRPC: v1.36.0
-      test_blocking.py:
-        Test_Blocking: v1.50.0-rc.1
-        Test_Blocking_strip_response_headers: missing_feature
-        Test_CustomBlockingResponse:
-          '*': v1.63.0
-      test_custom_rules.py:
-        Test_CustomRules: v1.51.0
-      test_exclusions.py:
-        Test_Exclusions: v1.53.0
-      test_miscs.py:
-        Test_404:
-          '*': v1.34.0
-          chi: v1.36.0
-          echo: v1.36.0
-          gin: v1.37.0
-        Test_CorrectOptionProcessing:
-          '*': v1.34.0
-          chi: v1.36.0
-          echo: v1.36.0
-          gin: v1.37.0
-        Test_MultipleAttacks:
-          '*': v1.35.0
-          gin: v1.37.0
-        Test_MultipleHighlight:
-          '*': v1.36.0
-          gin: v1.37.0
-      test_reports.py:
-        Test_Monitoring: v1.38.0
-      test_rules.py:
-        Test_CommandInjection:
-          '*': v1.35.0
-          gin: v1.37.0
-        Test_DiscoveryScan:
-          '*': v1.36.0
-          gin: v1.37.0
-        Test_HttpProtocol:
-          '*': v1.36.1
-          gin: v1.37.0
-        Test_JavaCodeInjection:
-          '*': v1.35.0
-          gin: v1.37.0
-        Test_JsInjection:
-          '*': v1.35.0
-          gin: v1.37.0
-        Test_LFI:
-          '*': v1.35.0
-          gin: v1.37.0
-        Test_NoSqli:
-          '*': v1.35.0
-          gin: v1.37.0
-        Test_PhpCodeInjection:
-          '*': v1.35.0
-          gin: v1.37.0
-        Test_RFI:
-          '*': v1.35.0
-          gin: v1.37.0
-        Test_SQLI:
-          '*': v1.35.0
-          gin: v1.37.0
-        Test_SSRF:
-          '*': v1.35.0
-          gin: v1.37.0
-        Test_Scanners:
-          '*': v1.35.0
-          gin: v1.37.0
-        Test_XSS:
-          '*': v1.35.0
-          echo: v1.36.0
-          gin: v1.37.0
-      test_telemetry.py:
-        Test_TelemetryMetrics: missing_feature
-      test_truncation.py:
-        Test_Truncation: missing_feature
     test_alpha.py:
       Test_Basic:
         '*': v1.34.0
@@ -476,6 +366,116 @@ tests/:
       Test_Events:
         '*': v1.36.0
         gin: v1.37.0
+    waf/:
+      test_addresses.py:
+        Test_BodyJson: v1.37.0
+        Test_BodyRaw: missing_feature
+        Test_BodyUrlEncoded: v1.37.0
+        Test_BodyXml: v1.37.0
+        Test_Cookies:
+          '*': v1.34.0
+          chi: v1.36.0
+          echo: v1.36.0
+          gin: v1.37.0
+        Test_FullGrpc: missing_feature
+        Test_GraphQL: missing_feature
+        Test_GrpcServerMethod: v1.62.0
+        Test_Headers:
+          '*': v1.34.0
+          chi: v1.36.0
+          echo: v1.36.0
+          gin: v1.37.0
+        Test_PathParams:
+          '*': v1.36.0
+          gin: v1.37.0
+          net-http: irrelevant (net-http doesn't handle path params)
+          net-http-orchestrion: irrelevant (net-http doesn't handle path params)
+        Test_ResponseStatus:
+          '*': v1.36.0
+          gin: v1.37.0
+        Test_UrlQuery:
+          '*': v1.35.0
+          gin: v1.37.0
+        Test_UrlQueryKey: v1.38.1
+        Test_UrlRaw:
+          '*': v1.34.0
+          chi: v1.36.0
+          echo: v1.36.0
+          gin: v1.37.0
+        Test_gRPC: v1.36.0
+      test_blocking.py:
+        Test_Blocking: v1.50.0-rc.1
+        Test_Blocking_strip_response_headers: missing_feature
+        Test_CustomBlockingResponse:
+          '*': v1.63.0
+      test_custom_rules.py:
+        Test_CustomRules: v1.51.0
+      test_exclusions.py:
+        Test_Exclusions: v1.53.0
+      test_miscs.py:
+        Test_404:
+          '*': v1.34.0
+          chi: v1.36.0
+          echo: v1.36.0
+          gin: v1.37.0
+        Test_CorrectOptionProcessing:
+          '*': v1.34.0
+          chi: v1.36.0
+          echo: v1.36.0
+          gin: v1.37.0
+        Test_MultipleAttacks:
+          '*': v1.35.0
+          gin: v1.37.0
+        Test_MultipleHighlight:
+          '*': v1.36.0
+          gin: v1.37.0
+      test_reports.py:
+        Test_Monitoring: v1.38.0
+      test_rules.py:
+        Test_CommandInjection:
+          '*': v1.35.0
+          gin: v1.37.0
+        Test_DiscoveryScan:
+          '*': v1.36.0
+          gin: v1.37.0
+        Test_HttpProtocol:
+          '*': v1.36.1
+          gin: v1.37.0
+        Test_JavaCodeInjection:
+          '*': v1.35.0
+          gin: v1.37.0
+        Test_JsInjection:
+          '*': v1.35.0
+          gin: v1.37.0
+        Test_LFI:
+          '*': v1.35.0
+          gin: v1.37.0
+        Test_NoSqli:
+          '*': v1.35.0
+          gin: v1.37.0
+        Test_PhpCodeInjection:
+          '*': v1.35.0
+          gin: v1.37.0
+        Test_RFI:
+          '*': v1.35.0
+          gin: v1.37.0
+        Test_SQLI:
+          '*': v1.35.0
+          gin: v1.37.0
+        Test_SSRF:
+          '*': v1.35.0
+          gin: v1.37.0
+        Test_Scanners:
+          '*': v1.35.0
+          gin: v1.37.0
+        Test_XSS:
+          '*': v1.35.0
+          echo: v1.36.0
+          gin: v1.37.0
+      test_telemetry.py:
+        Test_TelemetryMetrics: missing_feature
+      test_truncation.py:
+        Test_Truncation: missing_feature
   debugger/:
     test_debugger_exception_replay.py:
       Test_Debugger_Exception_Replay: missing_feature (feature not implented)

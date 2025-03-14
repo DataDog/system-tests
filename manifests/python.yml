@@ -330,138 +330,6 @@ tests/:
         Test_Ssrf_Telemetry: v2.10.0
         Test_Ssrf_UrlQuery: v2.10.0
         Test_Ssrf_Waf_Version: v2.15.0
-    waf/:
-      test_addresses.py:
-        Test_BodyJson:
-          '*': v1.4.0-rc1
-          fastapi: v2.4.0
-        Test_BodyRaw:
-          '*': missing_feature
-          django-poc: v1.5.2
-          fastapi: v2.4.0
-          python3.12: v1.5.2
-        Test_BodyUrlEncoded:
-          '*': v1.4.0-rc1
-          fastapi: v2.4.0
-        Test_BodyXml:
-          '*': v1.5.0-rc1
-          fastapi: v2.4.0
-        Test_Cookies:
-          django-poc: v1.1.0-rc2
-          fastapi: v2.4.0
-          flask-poc: v1.4.0-rc1
-          python3.12: v1.1.0-rc2
-          uds-flask: v1.4.0-rc1
-          uwsgi-poc: v1.16.1
-        Test_FullGrpc: missing_feature
-        Test_GraphQL: missing_feature
-        Test_GrpcServerMethod: missing_feature
-        Test_Headers: v1.6
-        Test_PathParams:
-          django-poc: v1.1.0-rc2
-          fastapi: v2.4.0
-          flask-poc: v1.4.0-rc1
-          python3.12: v1.1.0-rc2
-          uds-flask: v1.4.0-rc1
-          uwsgi-poc: v1.5.2
-        Test_ResponseStatus:
-          '*': v0.58.5
-          fastapi: v2.4.0
-        Test_UrlQuery:
-          '*': v1.2.1
-          fastapi: v2.4.0
-        Test_UrlQueryKey:
-          '*': v1.2.1
-          fastapi: v2.4.0
-        Test_UrlRaw:
-          '*': v0.58.5
-          fastapi: v2.4.0
-        Test_gRPC: missing_feature
-      test_blocking.py:
-        Test_Blocking:
-          '*': v1.16.1
-          django-poc: v1.10
-          fastapi: v2.4.0
-          flask-poc: v1.10
-        Test_Blocking_strip_response_headers: v2.10.0
-        Test_CustomBlockingResponse:
-          '*': v1.20.0
-          fastapi: v2.4.0
-      test_custom_rules.py:
-        Test_CustomRules:
-          '*': v1.16.1
-          django-poc: v1.12
-          fastapi: v2.4.0
-          flask-poc: v1.12
-      test_exclusions.py:
-        Test_Exclusions:
-          '*': v1.16.1
-          django-poc: v1.12
-          fastapi: v2.4.0
-          flask-poc: v1.12
-      test_miscs.py:
-        Test_404: v1.1.0-rc2
-        Test_CorrectOptionProcessing:
-          '*': v1.1.0
-          fastapi: v2.4.0
-        Test_MultipleAttacks:
-          '*': v1.2.1
-          fastapi: v2.4.0
-        Test_MultipleHighlight:
-          '*': v1.2.1
-          fastapi: v2.4.0
-      test_reports.py:
-        Test_Monitoring:
-          '*': v1.5.0-rc1
-          fastapi: v2.4.0
-      test_rules.py:
-        Test_CommandInjection:
-          '*': v1.2.1
-          fastapi: v2.4.0
-        Test_DiscoveryScan:
-          '*': v0.58.5
-          fastapi: v2.4.0
-        Test_HttpProtocol:
-          '*': v1.2.1
-          fastapi: v2.4.0
-        Test_JavaCodeInjection:
-          '*': v1.2.1
-          fastapi: v2.4.0
-        Test_JsInjection:
-          '*': v1.2.1
-          fastapi: v2.4.0
-        Test_LFI:
-          '*': v2.4.0
-          flask-poc: v1.5.2
-          uds-flask: v1.5.2
-          uwsgi-poc: v2.9.0
-        Test_NoSqli:
-          '*': v1.2.1
-          fastapi: v2.4.0
-        Test_PhpCodeInjection:
-          '*': v1.2.1
-          fastapi: v2.4.0
-        Test_RFI:
-          '*': v1.2.1
-          fastapi: v2.4.0
-        Test_SQLI:
-          '*': v1.3.0
-          fastapi: v2.4.0
-        Test_SSRF:
-          '*': v1.2.1
-          fastapi: v2.4.0
-        Test_Scanners:
-          '*': v1.2.1
-          fastapi: v2.4.0
-        Test_XSS:
-          '*': v1.3.0
-          fastapi: v2.4.0
-      test_telemetry.py:
-        Test_TelemetryMetrics:
-          '*': v1.14.0
-          fastapi: v2.4.0
-      test_truncation.py:
-        Test_Truncation: v3.3.0.dev
     test_alpha.py:
       Test_Basic:
         '*': v1.1.0-rc2
@@ -625,6 +493,138 @@ tests/:
       Test_UserBlocking_FullDenylist: v2.11.0
     test_versions.py:
       Test_Events: v0.58.5
+    waf/:
+      test_addresses.py:
+        Test_BodyJson:
+          '*': v1.4.0-rc1
+          fastapi: v2.4.0
+        Test_BodyRaw:
+          '*': missing_feature
+          django-poc: v1.5.2
+          fastapi: v2.4.0
+          python3.12: v1.5.2
+        Test_BodyUrlEncoded:
+          '*': v1.4.0-rc1
+          fastapi: v2.4.0
+        Test_BodyXml:
+          '*': v1.5.0-rc1
+          fastapi: v2.4.0
+        Test_Cookies:
+          django-poc: v1.1.0-rc2
+          fastapi: v2.4.0
+          flask-poc: v1.4.0-rc1
+          python3.12: v1.1.0-rc2
+          uds-flask: v1.4.0-rc1
+          uwsgi-poc: v1.16.1
+        Test_FullGrpc: missing_feature
+        Test_GraphQL: missing_feature
+        Test_GrpcServerMethod: missing_feature
+        Test_Headers: v1.6
+        Test_PathParams:
+          django-poc: v1.1.0-rc2
+          fastapi: v2.4.0
+          flask-poc: v1.4.0-rc1
+          python3.12: v1.1.0-rc2
+          uds-flask: v1.4.0-rc1
+          uwsgi-poc: v1.5.2
+        Test_ResponseStatus:
+          '*': v0.58.5
+          fastapi: v2.4.0
+        Test_UrlQuery:
+          '*': v1.2.1
+          fastapi: v2.4.0
+        Test_UrlQueryKey:
+          '*': v1.2.1
+          fastapi: v2.4.0
+        Test_UrlRaw:
+          '*': v0.58.5
+          fastapi: v2.4.0
+        Test_gRPC: missing_feature
+      test_blocking.py:
+        Test_Blocking:
+          '*': v1.16.1
+          django-poc: v1.10
+          fastapi: v2.4.0
+          flask-poc: v1.10
+        Test_Blocking_strip_response_headers: v2.10.0
+        Test_CustomBlockingResponse:
+          '*': v1.20.0
+          fastapi: v2.4.0
+      test_custom_rules.py:
+        Test_CustomRules:
+          '*': v1.16.1
+          django-poc: v1.12
+          fastapi: v2.4.0
+          flask-poc: v1.12
+      test_exclusions.py:
+        Test_Exclusions:
+          '*': v1.16.1
+          django-poc: v1.12
+          fastapi: v2.4.0
+          flask-poc: v1.12
+      test_miscs.py:
+        Test_404: v1.1.0-rc2
+        Test_CorrectOptionProcessing:
+          '*': v1.1.0
+          fastapi: v2.4.0
+        Test_MultipleAttacks:
+          '*': v1.2.1
+          fastapi: v2.4.0
+        Test_MultipleHighlight:
+          '*': v1.2.1
+          fastapi: v2.4.0
+      test_reports.py:
+        Test_Monitoring:
+          '*': v1.5.0-rc1
+          fastapi: v2.4.0
+      test_rules.py:
+        Test_CommandInjection:
+          '*': v1.2.1
+          fastapi: v2.4.0
+        Test_DiscoveryScan:
+          '*': v0.58.5
+          fastapi: v2.4.0
+        Test_HttpProtocol:
+          '*': v1.2.1
+          fastapi: v2.4.0
+        Test_JavaCodeInjection:
+          '*': v1.2.1
+          fastapi: v2.4.0
+        Test_JsInjection:
+          '*': v1.2.1
+          fastapi: v2.4.0
+        Test_LFI:
+          '*': v2.4.0
+          flask-poc: v1.5.2
+          uds-flask: v1.5.2
+          uwsgi-poc: v2.9.0
+        Test_NoSqli:
+          '*': v1.2.1
+          fastapi: v2.4.0
+        Test_PhpCodeInjection:
+          '*': v1.2.1
+          fastapi: v2.4.0
+        Test_RFI:
+          '*': v1.2.1
+          fastapi: v2.4.0
+        Test_SQLI:
+          '*': v1.3.0
+          fastapi: v2.4.0
+        Test_SSRF:
+          '*': v1.2.1
+          fastapi: v2.4.0
+        Test_Scanners:
+          '*': v1.2.1
+          fastapi: v2.4.0
+        Test_XSS:
+          '*': v1.3.0
+          fastapi: v2.4.0
+      test_telemetry.py:
+        Test_TelemetryMetrics:
+          '*': v1.14.0
+          fastapi: v2.4.0
+      test_truncation.py:
+        Test_Truncation: v3.3.0.dev
   debugger/:
     test_debugger_exception_replay.py:
       Test_Debugger_Exception_Replay:
