@@ -12,7 +12,7 @@ if [ -e "/binaries/dd-trace-go" ]; then
         replace_path=${module#"$PREFIX"}
         suffix="/v2"
         replace_path=${replace_path%"$suffix"}
-        go mod edit -replace $module=/binaries/dd-trace-go$replace_path
+        go get edit -replace $module=/binaries/dd-trace-go$replace_path
       fi
     done
 elif [ -f "/binaries/golang-load-from-go-get" ]; then
@@ -20,9 +20,7 @@ elif [ -f "/binaries/golang-load-from-go-get" ]; then
     cat /binaries/golang-load-from-go-get
     # Pin that version with a `replace` directive.
     while IFS=$'\n' read -r line || [ -n "$line" ]; do
-        # Extract module path and version by splitting at '@'
-        module_path="${line%%@*}"
-        go mod edit -replace "$module_path=$line"
+        go get -v -d $line
     done < /binaries/golang-load-from-go-get
 else
     echo "Installing production dd-trace-version"
