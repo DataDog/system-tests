@@ -14,11 +14,11 @@ RUN /binaries/install_ddtrace.sh
 COPY ./utils/build/docker/java/spring-boot-3-native/pom.xml .
 RUN /usr/share/maven/bin/mvn -P native -B dependency:go-offline
 COPY ./utils/build/docker/java/spring-boot-3-native/src ./src
-COPY ./utils/build/docker/java/package_app.sh binaries* /binaries/
+COPY ./utils/build/docker/java/maven_opts.sh binaries* /binaries/
 
 # Build native application
-RUN /binaries/package_app.sh -Pnative,with-profiling native:compile
-RUN /binaries/package_app.sh -Pnative,without-profiling native:compile
+RUN /usr/share/maven/bin/mvn $(/binaries/maven_opts.sh) -Pnative,with-profiling native:compile
+RUN /usr/share/maven/bin/mvn $(/binaries/maven_opts.sh) -Pnative,without-profiling native:compile
 
 # Just use something small with glibc and curl. ubuntu:22.04 ships no curl, rockylinux:9 does.
 # This avoids apt-get update/install, which leads to flakiness on mirror upgrades.

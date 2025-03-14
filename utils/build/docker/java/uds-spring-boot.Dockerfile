@@ -13,8 +13,8 @@ COPY ./utils/build/docker/java/spring-boot/pom.xml .
 RUN mkdir /maven && mvn -Dmaven.repo.local=/maven -B dependency:go-offline
 
 COPY ./utils/build/docker/java/spring-boot/src ./src
-COPY ./utils/build/docker/java/package_app.sh binaries* /binaries/
-RUN /binaries/package_app.sh -Ptomcat -Dmaven.repo.local=/maven package
+COPY ./utils/build/docker/java/maven_opts.sh binaries* /binaries/
+RUN mvn $(/binaries/maven_opts.sh) -Ptomcat -Dmaven.repo.local=/maven package
 
 
 FROM eclipse-temurin:11-jre

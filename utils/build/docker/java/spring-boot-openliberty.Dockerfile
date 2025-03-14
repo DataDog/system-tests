@@ -12,8 +12,8 @@ RUN /binaries/install_ddtrace.sh
 COPY ./utils/build/docker/java/spring-boot/pom.xml .
 
 COPY ./utils/build/docker/java/spring-boot/src ./src
-COPY ./utils/build/docker/java/package_app.sh binaries* /binaries/
-RUN /binaries/package_app.sh -Popenliberty package
+COPY ./utils/build/docker/java/maven_opts.sh binaries* /binaries/
+RUN mvn $(/binaries/maven_opts.sh) -Popenliberty package
 
 FROM eclipse-temurin:11-jre
 
