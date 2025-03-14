@@ -15,15 +15,13 @@ if [ -e "/binaries/dd-trace-go" ]; then
         go mod edit -replace $module=/binaries/dd-trace-go$replace_path
       fi
     done
-
 elif [ -f "/binaries/golang-load-from-go-get" ]; then
-    echo "Install from go get -d $(cat /binaries/golang-load-from-go-get)"
-    go get -v -d "$(cat /binaries/golang-load-from-go-get)"
-    # Pin that version with a `replace` directive so nothing else can override it.
+    echo "Install from go get -d"
+    cat /binaries/golang-load-from-go-get
+    # Pin that version with a `replace` directive.
     while IFS=$'\n' read -r line || [ -n "$line" ]; do
         # Extract module path and version by splitting at '@'
         module_path="${line%%@*}"
-        # Run go mod edit replace for each module
         go mod edit -replace "$module_path=$line"
     done < /binaries/golang-load-from-go-get
 else
@@ -31,7 +29,7 @@ else
     # TODO(darccio): remove @$ref on v2 release
     for module in $(go list -m all | awk '{print $1}'); do
       if [[ $module == $PREFIX* ]]; then
-        go mod edit -replace $module=$module@v2.0.0-rc.3
+        go mod edit -replace $module=$module@v2.0.0-rc.6
       fi
     done
 fi
