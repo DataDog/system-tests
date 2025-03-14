@@ -21,7 +21,7 @@ from utils.tools import logger
 from utils import interfaces
 from utils.k8s_lib_injection.k8s_weblog import K8sWeblog
 from utils.interfaces._library.core import LibraryInterfaceValidator
-from utils.interfaces import StdoutLogsInterface
+from utils.interfaces import StdoutLogsInterface, LibraryStdoutInterface
 
 # fake key of length 32
 _FAKE_DD_API_KEY = "0123456789abcdef0123456789abcdef"
@@ -630,6 +630,7 @@ class BuddyContainer(TestedContainer):
 
 class WeblogContainer(TestedContainer):
     appsec_rules_file: str | None
+    stdout_interface: LibraryStdoutInterface
     _dd_rc_tuf_root: dict = {
         "signed": {
             "_type": "root",
@@ -895,7 +896,6 @@ class WeblogContainer(TestedContainer):
 
         logger.stdout(f"Weblog variant: {self.weblog_variant}")
 
-        assert isinstance(self.stdout_interface, LibraryInterfaceValidator)
         self.stdout_interface.init_patterns(self.library)
 
     @property
