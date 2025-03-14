@@ -8,10 +8,7 @@ from utils import (
     scenarios,
     weblog,
     features,
-    bug,
-    context,
 )
-from utils.tools import logger
 from tests.appsec.api_security.utils import BaseAppsecApiSecurityRcTest
 
 
@@ -19,20 +16,15 @@ def get_schema(request, address):
     """Get api security schema from spans"""
     for _, _, span in interfaces.library.get_spans(request):
         meta = span.get("meta", {})
-        key = "_dd.appsec.s." + address
-        payload = meta.get(key)
+        payload = meta.get("_dd.appsec.s." + address)
         if payload is not None:
             return payload
-        else:
-            logger.info(f"Schema not found in span meta for {key}")
-
     return None
 
 
 @rfc("https://docs.google.com/document/d/1Ig5lna4l57-tJLMnC76noGFJaIHvudfYXdZYKz6gXUo/edit#heading=h.88xvn2cvs9dt")
 @scenarios.appsec_api_security_rc
 @features.api_security_configuration
-@bug(context.library > "php@1.7.2", reason="APPSEC-57006")
 class Test_API_Security_RC_ASM_DD_processors(BaseAppsecApiSecurityRcTest):
     """Test API Security - Remote config ASM_DD - processors"""
 
@@ -53,7 +45,6 @@ class Test_API_Security_RC_ASM_DD_processors(BaseAppsecApiSecurityRcTest):
 @rfc("https://docs.google.com/document/d/1Ig5lna4l57-tJLMnC76noGFJaIHvudfYXdZYKz6gXUo/edit#heading=h.88xvn2cvs9dt")
 @scenarios.appsec_api_security_rc
 @features.api_security_configuration
-@bug(context.library > "php@1.7.2", reason="APPSEC-57006")
 class Test_API_Security_RC_ASM_DD_scanners(BaseAppsecApiSecurityRcTest):
     """Test API Security - Remote config ASM_DD - scanners"""
 
