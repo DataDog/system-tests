@@ -20,7 +20,7 @@ elif [ -f "/binaries/golang-load-from-go-get" ]; then
     echo "Install from go get -d $(cat /binaries/golang-load-from-go-get)"
     go get -v -d "$(cat /binaries/golang-load-from-go-get)"
     # Pin that version with a `replace` directive so nothing else can override it.
-    while IFS= read -r line || [ -n "$line" ]; do
+    while IFS=$'\n' read -r line || [ -n "$line" ]; do
         # Extract module path and version by splitting at '@'
         module_path="${line%%@*}"
         # Run go mod edit replace for each module
