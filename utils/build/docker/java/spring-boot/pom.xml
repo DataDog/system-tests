@@ -44,7 +44,7 @@
         <dependency>
             <groupId>com.datadoghq</groupId>
             <artifactId>dd-trace-api</artifactId>
-            <version>LATEST</version>
+            <version>${dd-trace-api.version}</version>
         </dependency>
         <dependency>
             <groupId>io.opentelemetry</groupId>
@@ -415,6 +415,23 @@
                 </plugins>
             </build>
         </profile>
+        <profile>
+            <id>custom-dd-trace-api</id>
+            <activation>
+                <property>
+                    <name>customDdTraceApi</name>
+                </property>
+            </activation>
+            <dependencies>
+                <dependency>
+                    <groupId>com.datadoghq</groupId>
+                    <artifactId>dd-trace-api</artifactId>
+                    <version>dev</version>
+                    <scope>system</scope>
+                    <systemPath>${customDdTraceApi}</systemPath>
+                </dependency>
+            </dependencies>
+        </profile>
     </profiles>
 
     <build>
@@ -491,5 +508,6 @@
         <protobuf.version>3.25.3</protobuf.version>
         <grpc.version>1.65.1</grpc.version>
         <packaging.type>jar</packaging.type>
+        <dd-trace-api.version>[1.47.1,)</dd-trace-api.version>
 	</properties>
 </project>

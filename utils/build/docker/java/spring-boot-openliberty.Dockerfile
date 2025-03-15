@@ -6,13 +6,14 @@ COPY ./utils/build/docker/java/iast-common/src /iast-common/src
 
 WORKDIR /app
 
+COPY ./utils/build/docker/java/install_ddtrace.sh binaries* /binaries/
+RUN /binaries/install_ddtrace.sh
+
 COPY ./utils/build/docker/java/spring-boot/pom.xml .
 
 COPY ./utils/build/docker/java/spring-boot/src ./src
-RUN mvn -Popenliberty package
-
-COPY ./utils/build/docker/java/install_ddtrace.sh binaries* /binaries/
-RUN /binaries/install_ddtrace.sh
+COPY ./utils/build/docker/java/maven_opts.sh binaries* /binaries/
+RUN mvn $(/binaries/maven_opts.sh) -Popenliberty package
 
 FROM eclipse-temurin:11-jre
 

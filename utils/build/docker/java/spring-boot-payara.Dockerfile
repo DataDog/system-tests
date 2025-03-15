@@ -6,15 +6,16 @@ COPY ./utils/build/docker/java/iast-common/src /iast-common/src
 
 WORKDIR /app
 
+COPY ./utils/build/docker/java/install_ddtrace.sh binaries* /binaries/
+RUN /binaries/install_ddtrace.sh
+
 COPY ./utils/build/docker/java/spring-boot/pom.xml .
 RUN mkdir /maven && mvn -Dmaven.repo.local=/maven -Ppayara -B dependency:go-offline
 RUN mvn dependency:get -Dartifact=org.codehaus.woodstox:stax2-api:4.2.1
 
 COPY ./utils/build/docker/java/spring-boot/src ./src
-RUN mvn -Dmaven.repo.local=/maven -Ppayara package
-
-COPY ./utils/build/docker/java/install_ddtrace.sh binaries* /binaries/
-RUN /binaries/install_ddtrace.sh
+COPY ./utils/build/docker/java/maven_opts.sh binaries* /binaries/
+RUN mvn $(/binaries/maven_opts.sh) -Dmaven.repo.local=/maven -Ppayara package
 
 ARG PAYARA_VERSION=5.2022.1
 RUN curl https://nexus.payara.fish/repository/payara-community/fish/payara/extras/payara-micro/${PAYARA_VERSION}/payara-micro-${PAYARA_VERSION}.jar -o /binaries/payara-micro.jar
