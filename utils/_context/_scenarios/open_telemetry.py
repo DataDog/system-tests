@@ -79,15 +79,15 @@ class OpenTelemetryScenario(DockerScenario):
         self._check_env_vars()
         dd_site = os.environ.get("DD_SITE", "datad0g.com")
         if self.include_intake:
-            self.weblog_container.environment["OTEL_SYSTEST_INCLUDE_INTAKE"] = True
+            self.weblog_container.environment["OTEL_SYSTEST_INCLUDE_INTAKE"] = "True"
             self.weblog_container.environment["DD_API_KEY"] = os.environ.get("DD_API_KEY_2")
             self.weblog_container.environment["DD_SITE"] = dd_site
         if self.include_collector:
-            self.weblog_container.environment["OTEL_SYSTEST_INCLUDE_COLLECTOR"] = True
+            self.weblog_container.environment["OTEL_SYSTEST_INCLUDE_COLLECTOR"] = "True"
             self.collector_container.environment["DD_API_KEY"] = os.environ.get("DD_API_KEY_3")
             self.collector_container.environment["DD_SITE"] = dd_site
         if self.include_agent:
-            self.weblog_container.environment["OTEL_SYSTEST_INCLUDE_AGENT"] = True
+            self.weblog_container.environment["OTEL_SYSTEST_INCLUDE_AGENT"] = "True"
             interfaces.agent.configure(self.host_log_folder, replay=self.replay)
 
         interfaces.backend.configure(self.host_log_folder, replay=self.replay)

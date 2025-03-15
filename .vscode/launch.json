@@ -175,6 +175,16 @@
             "python": "${workspaceFolder}/venv/bin/python"
         },
         {
+            "name": "Replay REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD scenario",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "pytest",
+            "args": ["-S", "REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD", "-p", "no:warnings", "--replay"],
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "python": "${workspaceFolder}/venv/bin/python"
+        },
+        {
             "name": "Python: Current File",
             "type": "python",
             "request": "launch",

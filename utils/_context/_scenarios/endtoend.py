@@ -139,7 +139,7 @@ class DockerScenario(Scenario):
             self.components["docker.Cgroup"] = docker_info.get("CgroupVersion", None)
 
         for container in reversed(self._required_containers):
-            container.configure(self.replay)
+            container.configure(replay=self.replay)
 
     def get_container_by_dd_integration_name(self, name: str):
         for container in self._required_containers:
@@ -244,7 +244,7 @@ class EndToEndScenario(DockerScenario):
         scenario_groups: list[ScenarioGroup] | None = None,
         weblog_env: dict[str, str | None] | None = None,
         weblog_volumes: dict | None = None,
-        agent_env: dict[str, str] | None = None,
+        agent_env: dict[str, str | None] | None = None,
         enable_ipv6: bool = False,
         tracer_sampling_rate: float | None = None,
         appsec_enabled: bool = True,

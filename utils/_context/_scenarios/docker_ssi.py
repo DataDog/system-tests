@@ -119,7 +119,7 @@ class DockerSSIScenario(Scenario):
 
         for container in self._required_containers:
             try:
-                container.configure(self.replay)
+                container.configure(replay=self.replay)
             except Exception as e:
                 logger.error("Failed to configure container ", e)
                 logger.stdout("ERROR configuring container. check log file for more details")
