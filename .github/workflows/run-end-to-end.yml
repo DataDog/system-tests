@@ -319,6 +319,9 @@ jobs:
     - name: Run DEBUGGER_INPRODUCT_ENABLEMENT scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"DEBUGGER_INPRODUCT_ENABLEMENT"')
       run: ./run.sh DEBUGGER_INPRODUCT_ENABLEMENT
+    - name: Run DEBUGGER_TELEMETRY scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"DEBUGGER_TELEMETRY"')
+      run: ./run.sh DEBUGGER_TELEMETRY
     - name: Run OTEL_INTEGRATIONS scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"OTEL_INTEGRATIONS"')
       run: ./run.sh OTEL_INTEGRATIONS

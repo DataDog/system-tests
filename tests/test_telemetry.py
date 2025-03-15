@@ -572,6 +572,52 @@ class Test_APMOnboardingInstallID:
         validate_at_least_one_span_with_tag("_dd.install.type")
 
 
+def lowercase_obj(obj):
+    if isinstance(obj, dict):
+        return {k.lower() if isinstance(k, str) else k: lowercase_obj(v) for k, v in obj.items()}
+    elif isinstance(obj, list):
+        return [lowercase_obj(item) for item in obj]
+    elif isinstance(obj, str):
+        return obj.lower()
+    else:
+        return obj
+
+
+def load_telemetry_json(filename):
+    with open(f"tests/telemetry_intake/static/{filename}.json", encoding="utf-8") as fh:
+        return lowercase_obj(json.load(fh))
+
+
+def get_lang_configs():
+    lang_configs = {}
+    for lang in ["dotnet", "go", "jvm", "nodejs", "php", "python", "ruby"]:
+        lang_configs[lang] = load_telemetry_json(lang + "_config_rules")
+
+    return lang_configs
+
+
+def get_all_keys_and_values(*objs: tuple[None | dict | list, ...]) -> list:
+    result = []
+    for obj in objs:
+        if obj is not None:
+            if isinstance(obj, dict):
+                result.extend(list(obj.keys()))
+                result.extend(list(obj.values()))
+            elif isinstance(obj, list):
+                result.extend(obj)
+            else:
+                logger.error(f"Unexpected type in concat: {type(obj).__name__}")
+    return result
+
+
+def is_key_accepted_by_telemetry(key, allowed_keys, allowed_prefixes):
+    lower_key = key.lower()
+    is_allowed_key = lower_key in allowed_keys
+    is_allowed_prefix = any(lower_key.startswith(prefix) for prefix in allowed_prefixes)
+
+    return is_allowed_key or is_allowed_prefix
+
+
 @features.telemetry_api_v2_implemented
 class Test_TelemetryV2:
     """Test telemetry v2 specific constraints"""
@@ -599,47 +645,11 @@ class Test_TelemetryV2:
         Runbook: https://github.com/DataDog/system-tests/blob/main/docs/edit/runbook.md#test_config_telemetry_completeness
         """
 
-        def lowercase_obj(obj):
-            if isinstance(obj, dict):
-                return {k.lower() if isinstance(k, str) else k: lowercase_obj(v) for k, v in obj.items()}
-            elif isinstance(obj, list):
-                return [lowercase_obj(item) for item in obj]
-            elif isinstance(obj, str):
-                return obj.lower()
-            else:
-                return obj
-
-        def load_telemetry_json(filename):
-            with open(f"tests/telemetry_intake/static/{filename}.json", encoding="utf-8") as fh:
-                return lowercase_obj(json.load(fh))
-
-        def get_all_keys_and_values(*objs: tuple[None | dict | list, ...]) -> list:
-            result = []
-            for obj in objs:
-                if obj is not None:
-                    if isinstance(obj, dict):
-                        result.extend(list(obj.keys()))
-                        result.extend(list(obj.values()))
-                    elif isinstance(obj, list):
-                        result.extend(obj)
-                    else:
-                        logger.error(f"Unexpected type in concat: {type(obj).__name__}")
-            return result
-
-        def is_key_accepted_by_telemetry(key, allowed_keys, allowed_prefixes):
-            lower_key = key.lower()
-            is_allowed_key = lower_key in allowed_keys
-            is_allowed_prefix = any(lower_key.startswith(prefix) for prefix in allowed_prefixes)
-
-            return is_allowed_key or is_allowed_prefix
-
         config_norm_rules = load_telemetry_json("config_norm_rules")
         config_prefix_block_list = load_telemetry_json("config_prefix_block_list")
         config_aggregation_list = load_telemetry_json("config_aggregation_list")
 
-        lang_configs = {}
-        for lang in ["dotnet", "go", "jvm", "nodejs", "php", "python", "ruby"]:
-            lang_configs[lang] = load_telemetry_json(lang + "_config_rules")
+        lang_configs = get_lang_configs()
 
         for data in interfaces.library.get_telemetry_data(flatten_message_batches=True):
             if not is_v2_payload(data):
