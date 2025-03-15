@@ -4,7 +4,11 @@
 
 import time
 import tests.debugger.utils as debugger
+import logging
+
 from utils import scenarios, features, missing_feature, context, rfc
+
+logger = logging.getLogger(__name__)
 
 
 @features.debugger
@@ -128,7 +132,10 @@ class Test_Debugger_Probe_Snaphots(debugger.BaseDebuggerTest):
 
     @features.debugger_code_origins
     @missing_feature(context.library == "dotnet", reason="Entry spans code origins not yet implemented")
-    @missing_feature(context.library == "java", reason="Entry spans code origins not yet implemented for spring-mvc")
+    @missing_feature(
+        context.library == "java" and context.weblog_variant != "spring-boot",
+        reason="Entry spans code origins only implemented for spring-mvc",
+    )
     @missing_feature(context.library == "nodejs", reason="Entry spans code origins not yet implemented for express")
     @missing_feature(context.library == "ruby", reason="Entry spans code origins not yet implemented")
     def test_code_origin_entry_present(self):
@@ -141,6 +148,8 @@ class Test_Debugger_Probe_Snaphots(debugger.BaseDebuggerTest):
         for span in self.all_spans:
             # Web spans for the healthcheck should have code origins defined.
             resource, resource_type = span.get("resource", None), span.get("type", None)
+            logger.debug(span)
+
             if resource == "GET /healthcheck" and resource_type == "web":
                 code_origin_type = span["meta"].get("_dd.code_origin.type", "")
                 code_origins_entry_found = code_origin_type == "entry"
