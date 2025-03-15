@@ -22,11 +22,11 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"gopkg.in/DataDog/dd-trace-go.v1/appsec"
-	gintrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/gin-gonic/gin"
-	httptrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/net/http"
-	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
-	"gopkg.in/DataDog/dd-trace-go.v1/profiler"
+	gintrace "github.com/DataDog/dd-trace-go/contrib/gin-gonic/gin/v2"
+	httptrace "github.com/DataDog/dd-trace-go/contrib/net/http/v2"
+	"github.com/DataDog/dd-trace-go/v2/appsec"
+	"github.com/DataDog/dd-trace-go/v2/ddtrace/tracer"
+	"github.com/DataDog/dd-trace-go/v2/profiler"
 )
 
 func main() {
@@ -190,7 +190,7 @@ func main() {
 		if q := ctx.Query("event_user_id"); q != "" {
 			uid = q
 		}
-		appsec.TrackUserLoginSuccessEvent(ctx.Request.Context(), uid, map[string]string{"metadata0": "value0", "metadata1": "value1"})
+		appsec.TrackUserLoginSuccess(ctx.Request.Context(), uid, uid, map[string]string{"metadata0": "value0", "metadata1": "value1"})
 	})
 
 	r.GET("/user_login_failure_event", func(ctx *gin.Context) {
@@ -205,7 +205,7 @@ func main() {
 				exists = parsed
 			}
 		}
-		appsec.TrackUserLoginFailureEvent(ctx.Request.Context(), uid, exists, map[string]string{"metadata0": "value0", "metadata1": "value1"})
+		appsec.TrackUserLoginFailure(ctx.Request.Context(), uid, exists, map[string]string{"metadata0": "value0", "metadata1": "value1"})
 	})
 
 	r.GET("/custom_event", func(ctx *gin.Context) {
@@ -238,7 +238,7 @@ func main() {
 		if err != nil {
 			ctx.Writer.WriteHeader(500)
 		}
-		appsec.TrackUserLoginSuccessEvent(ctx.Request.Context(), user, map[string]string{}, tracer.WithUserSessionID(cookie.Value))
+		appsec.TrackUserLoginSuccess(ctx.Request.Context(), user, user, map[string]string{}, tracer.WithUserSessionID(cookie.Value))
 	})
 
 	r.GET("/inferred-proxy/span-creation", func(ctx *gin.Context) {
