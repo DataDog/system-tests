@@ -1,4 +1,3 @@
-import os
 import subprocess
 from utils.tools import logger
 from utils.k8s_lib_injection.k8s_command_utils import execute_command
@@ -48,7 +47,7 @@ class K8sClusterProvider:
         if self._cluster_info is None:
             raise ValueError("Cluster not configured")
 
-        self._cluster_info.docker_in_docker = "GITLAB_CI" in os.environ
+        self._cluster_info.docker_in_docker = False  # TODO RMM remove this property?
         self._cluster_info.agent_port = 8126
         self._cluster_info.weblog_port = 18080
         self._cluster_info.internal_agent_port = 8126
@@ -162,7 +161,7 @@ class K8sEKSRemoteClusterProvider(K8sClusterProvider):
         if self._cluster_info is None:
             raise ValueError("Cluster not configured")
 
-        self._cluster_info.docker_in_docker = "GITLAB_CI" in os.environ
+        self._cluster_info.docker_in_docker = False  # TODO RMM remove this property?
         self._cluster_info.agent_port = 8126
         self._cluster_info.weblog_port = 18080
         self._cluster_info.internal_agent_port = 8126
@@ -255,7 +254,7 @@ class K8sKindClusterProvider(K8sClusterProvider):
         if self._cluster_info is None:
             raise ValueError("Cluster not configured")
 
-        self._cluster_info.docker_in_docker = "GITLAB_CI" in os.environ
+        self._cluster_info.docker_in_docker = False  # TODO RMM remove this property?
         self._cluster_info.agent_port = 8127
         self._cluster_info.weblog_port = 18081
         self._cluster_info.internal_agent_port = 8126
@@ -265,16 +264,7 @@ class K8sKindClusterProvider(K8sClusterProvider):
     def ensure_cluster(self):
         logger.info("Ensuring kind cluster")
         kind_command = f"kind create cluster --image=kindest/node:v1.25.3@sha256:f52781bc0d7a19fb6c405c2af83abfeb311f130707a0e219175677e366cc45d1 --name {self.get_cluster_info().cluster_name} --config {self.get_cluster_info().cluster_template} --wait 1m"
-
-        if "GITLAB_CI" in os.environ:
-            # Kind needs to run in bridge network to communicate with the internet: https://github.com/DataDog/buildenv/blob/master/cookbooks/dd_firewall/templates/rules.erb#L96
-            new_env = os.environ.copy()
-            new_env["KIND_EXPERIMENTAL_DOCKER_NETWORK"] = "bridge"
-            execute_command(kind_command, subprocess_env=new_env)
-
-            self._setup_kind_in_gitlab()
-        else:
-            execute_command(kind_command)
+        execute_command(kind_command)
 
         # We need to configure the api after create the cluster
         self.configure_cluster_api_connection()
@@ -283,32 +273,3 @@ class K8sKindClusterProvider(K8sClusterProvider):
         logger.info("Destroying kind cluster")
         execute_command(f"kind delete cluster --name {self.get_cluster_info().cluster_name}")
         execute_command(f"docker rm -f {self.get_cluster_info().cluster_name}-control-plane")
-
-    def _setup_kind_in_gitlab(self):
-        # The build runs in a docker container:
-        #    - Docker commands are forwarded to the host.
-        #    - The kind container is a sibling to the build container
-        # Three things need to happen
-        # 1) The kind container needs to be in the bridge network to communicate with the internet: done in _ensure_cluster()
-        # 2) Kube config needs to be altered to use the correct IP of the control plane server
-        # 3) The internal ports needs to be used rather than external ports: handled in get_agent_port() and get_weblog_port()
-        correct_control_plane_ip = execute_command(
-            f"docker container inspect {self.get_cluster_info().cluster_name}-control-plane --format '{{{{.NetworkSettings.Networks.bridge.IPAddress}}}}'"
-        ).strip()
-        if not correct_control_plane_ip:
-            raise Exception("Unable to find correct control plane IP")
-        logger.debug(f"[setup_kind_in_gitlab] correct_control_plane_ip: {correct_control_plane_ip}")
-
-        control_plane_address_in_config = execute_command(
-            f'docker container inspect {self.get_cluster_info().cluster_name}-control-plane --format \'{{{{index .NetworkSettings.Ports "6443/tcp" 0 "HostIp"}}}}:{{{{index .NetworkSettings.Ports "6443/tcp" 0 "HostPort"}}}}\''
-        ).strip()
-        if not control_plane_address_in_config:
-            raise Exception("Unable to find control plane address from config")
-        logger.debug(f"[setup_kind_in_gitlab] control_plane_address_in_config: {control_plane_address_in_config}")
-
-        # Replace server config with dns name + internal port
-        execute_command(
-            f"sed -i -e 's/{control_plane_address_in_config}/{correct_control_plane_ip}:6443/g' {os.environ['HOME']}/.kube/config"
-        )
-
-        self.get_cluster_info().cluster_host_name = correct_control_plane_ip
