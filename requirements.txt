@@ -40,3 +40,7 @@ types-requests==2.31.0
 watchdog==3.0.0
 yamllint==1.35.1
 yarl==1.9.4
+
+openai>=0.27.0
+python-dotenv>=0.20.0
+rich>=13.9.4
