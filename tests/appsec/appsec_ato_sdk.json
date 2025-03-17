@@ -19,9 +19,9 @@
                 "address": "usr.login"
               }
             ],
-            "regex": "login_unsafe"
+            "list": ["login_unsafe"]
           },
-          "operator": "match_regex"
+          "operator": "exact_match"
         }
       ]
     },
@@ -40,9 +40,9 @@
                 "address": "usr.id"
               }
             ],
-            "regex": "user_id_unsafe"
+            "list": ["user_id_unsafe"]
           },
-          "operator": "match_regex"
+          "operator": "exact_match"
         }
       ]
     },
