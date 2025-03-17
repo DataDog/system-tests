@@ -396,13 +396,13 @@ class EndToEndScenario(DockerScenario):
             self.weblog_container.environment["_DD_IAST_DEBUG"] = "true"  # probably not used anymore ?
             self.weblog_container.environment["DD_IAST_DEBUG_ENABLED"] = "true"
 
-        interfaces.agent.configure(self.host_log_folder, self.replay)
-        interfaces.library.configure(self.host_log_folder, self.replay)
-        interfaces.backend.configure(self.host_log_folder, self.replay)
-        interfaces.library_dotnet_managed.configure(self.host_log_folder, self.replay)
+        interfaces.agent.configure(self.host_log_folder, replay=self.replay)
+        interfaces.library.configure(self.host_log_folder, replay=self.replay)
+        interfaces.backend.configure(self.host_log_folder, replay=self.replay)
+        interfaces.library_dotnet_managed.configure(self.host_log_folder, replay=self.replay)
 
         for container in self.buddies:
-            container.interface.configure(self.host_log_folder, self.replay)
+            container.interface.configure(self.host_log_folder, replay=self.replay)
 
         library = self.weblog_container.image.labels["system-tests-library"]
 

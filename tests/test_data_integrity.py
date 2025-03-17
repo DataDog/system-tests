@@ -29,13 +29,13 @@ class Test_TraceHeaders:
     def test_traces_header_present(self):
         """Verify that headers described in RFC are present in traces submitted to the agent"""
 
-        request_headers = [
+        request_headers = (
             "datadog-meta-tracer-version",
             "datadog-meta-lang",
             "datadog-meta-lang-interpreter",
             "datadog-meta-lang-version",
             "x-datadog-trace-count",
-        ]
+        )
 
         def check_condition(data):
             # if there is not trace, don't check anything
