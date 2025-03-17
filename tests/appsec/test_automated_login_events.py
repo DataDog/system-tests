@@ -12,7 +12,7 @@ from utils import remote_config as rc
 from utils import rfc
 from utils import scenarios
 from utils import weblog
-from utils.dd_constants import Capabilities
+from utils.dd_constants import Capabilities, SamplingPriority
 
 
 def login_data(context, username, password):
@@ -156,7 +156,7 @@ class Test_Login_Events:
         assert self.r_wrong_user_failure.status_code == 401
         for _, trace, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
             meta = span.get("meta", {})
-            if context.library != "nodejs" and context.library != "java":
+            if context.library not in ("nodejs", "java"):
                 # Currently in nodejs/java there is no way to check if the user exists upon authentication failure so
                 # this assertion is disabled for this library.
                 assert meta["appsec.events.users.login.failure.usr.exists"] == "false"
@@ -178,7 +178,7 @@ class Test_Login_Events:
         assert self.r_wrong_user_failure.status_code == 401
         for _, trace, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
             meta = span.get("meta", {})
-            if context.library != "nodejs" and context.library != "java":
+            if context.library not in ("nodejs", "java"):
                 # Currently in nodejs/java there is no way to check if the user exists upon authentication failure so
                 # this assertion is disabled for this library.
                 assert meta["appsec.events.users.login.failure.usr.exists"] == "false"
@@ -197,7 +197,7 @@ class Test_Login_Events:
         assert self.r_wrong_user_failure.status_code == 401
         for _, trace, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
             meta = span.get("meta", {})
-            if context.library != "nodejs" and context.library != "java":
+            if context.library not in ("nodejs", "java"):
                 # Currently in nodejs/java there is no way to check if the user exists upon authentication failure so
                 # this assertion is disabled for this library.
                 assert meta["appsec.events.users.login.failure.usr.exists"] == "true"
@@ -219,7 +219,7 @@ class Test_Login_Events:
         assert self.r_wrong_user_failure.status_code == 401
         for _, trace, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
             meta = span.get("meta", {})
-            if context.library != "nodejs" and context.library != "java":
+            if context.library not in ("nodejs", "java"):
                 # Currently in nodejs/java there is no way to check if the user exists upon authentication failure so
                 # this assertion is disabled for this library.
                 assert meta["appsec.events.users.login.failure.usr.exists"] == "true"
@@ -374,7 +374,7 @@ class Test_Login_Events_Extended:
         assert self.r_wrong_user_failure.status_code == 401
         for _, trace, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
             meta = span.get("meta", {})
-            if context.library != "nodejs" and context.library != "java":
+            if context.library not in ("nodejs", "java"):
                 # Currently in nodejs/java there is no way to check if the user exists upon authentication failure so
                 # this assertion is disabled for this library.
                 assert meta["appsec.events.users.login.failure.usr.exists"] == "false"
@@ -405,7 +405,7 @@ class Test_Login_Events_Extended:
         assert self.r_wrong_user_failure.status_code == 401
         for _, trace, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
             meta = span.get("meta", {})
-            if context.library != "nodejs" and context.library != "java":
+            if context.library not in ("nodejs", "java"):
                 # Currently in nodejs/java there is no way to check if the user exists upon authentication failure so
                 # this assertion is disabled for this library.
                 assert meta["appsec.events.users.login.failure.usr.exists"] == "false"
@@ -433,7 +433,7 @@ class Test_Login_Events_Extended:
         assert self.r_wrong_user_failure.status_code == 401
         for _, trace, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
             meta = span.get("meta", {})
-            if context.library == "nodejs" or context.library == "java":
+            if context.library in ("nodejs", "java"):
                 # Currently in nodejs/java there is no way to check if the user exists upon authentication failure so
                 # this assertion is disabled for this library.
                 assert meta["appsec.events.users.login.failure.usr.id"] == "test"
@@ -459,7 +459,7 @@ class Test_Login_Events_Extended:
         assert self.r_wrong_user_failure.status_code == 401
         for _, trace, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
             meta = span.get("meta", {})
-            if context.library != "nodejs" and context.library != "java":
+            if context.library not in ("nodejs", "java"):
                 # Currently in nodejs/java there is no way to check if the user exists upon authentication failure so
                 # this assertion is disabled for this library.
                 assert meta["appsec.events.users.login.failure.usr.exists"] == "true"
@@ -695,7 +695,7 @@ class Test_V2_Login_Events:
         assert self.r_wrong_user_failure.status_code == 401
         for _, trace, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
             meta = span.get("meta", {})
-            if context.library != "nodejs" and context.library != "java":
+            if context.library not in ("nodejs", "java"):
                 # Currently in nodejs/java there is no way to check if the user exists upon authentication failure so
                 # this assertion is disabled for this library.
                 assert meta["appsec.events.users.login.failure.usr.exists"] == "false"
@@ -720,7 +720,7 @@ class Test_V2_Login_Events:
         assert self.r_wrong_user_failure.status_code == 401
         for _, trace, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
             meta = span.get("meta", {})
-            if context.library != "nodejs" and context.library != "java":
+            if context.library not in ("nodejs", "java"):
                 # Currently in nodejs/java there is no way to check if the user exists upon authentication failure so
                 # this assertion is disabled for this library.
                 assert meta["appsec.events.users.login.failure.usr.exists"] == "false"
@@ -742,7 +742,7 @@ class Test_V2_Login_Events:
         assert self.r_wrong_user_failure.status_code == 401
         for _, trace, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
             meta = span.get("meta", {})
-            if context.library != "nodejs" and context.library != "java":
+            if context.library not in ("nodejs", "java"):
                 # Currently in nodejs/java there is no way to check if the user exists upon authentication failure so
                 # this assertion is disabled for this library.
                 assert meta["appsec.events.users.login.failure.usr.exists"] == "true"
@@ -773,7 +773,7 @@ class Test_V2_Login_Events:
         assert self.r_wrong_user_failure.status_code == 401
         for _, trace, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
             meta = span.get("meta", {})
-            if context.library != "nodejs" and context.library != "java":
+            if context.library not in ("nodejs", "java"):
                 # Currently in nodejs/java there is no way to check if the user exists upon authentication failure so
                 # this assertion is disabled for this library.
                 assert meta["appsec.events.users.login.failure.usr.exists"] == "true"
@@ -1121,12 +1121,11 @@ class Test_V2_Login_Events_Anon:
 
 
 def assert_priority(span, trace):
-    MANUAL_KEEP_SAMPLING_PRIORITY = 2
     if "_sampling_priority_v1" not in span["metrics"]:
         # some tracers like java only send the priority in the first and last span of the trace
-        assert trace[0]["metrics"].get("_sampling_priority_v1") == MANUAL_KEEP_SAMPLING_PRIORITY
+        assert trace[0]["metrics"].get("_sampling_priority_v1") == SamplingPriority.USER_KEEP
     else:
-        assert span["metrics"].get("_sampling_priority_v1") == MANUAL_KEEP_SAMPLING_PRIORITY
+        assert span["metrics"].get("_sampling_priority_v1") == SamplingPriority.USER_KEEP
 
 
 @rfc("https://docs.google.com/document/d/19VHLdJLVFwRb_JrE87fmlIM5CL5LdOBv4AmLxgdo9qI/edit")

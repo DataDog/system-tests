@@ -45,7 +45,7 @@ class OpenTelemetryScenario(DockerScenario):
         super().__init__(
             name,
             doc=doc,
-            github_workflow="opentelemetry",
+            github_workflow="endtoend",
             scenario_groups=[ScenarioGroup.ALL, ScenarioGroup.OPEN_TELEMETRY],
             use_proxy=True,
             include_postgres_db=include_postgres_db,
@@ -74,20 +74,20 @@ class OpenTelemetryScenario(DockerScenario):
         self.backend_interface_timeout = backend_interface_timeout
         self._require_api_key = require_api_key
 
-    def configure(self, config):
+    def configure(self, config: pytest.Config):
         super().configure(config)
         self._check_env_vars()
         dd_site = os.environ.get("DD_SITE", "datad0g.com")
         if self.include_intake:
-            self.weblog_container.environment["OTEL_SYSTEST_INCLUDE_INTAKE"] = True
+            self.weblog_container.environment["OTEL_SYSTEST_INCLUDE_INTAKE"] = "True"
             self.weblog_container.environment["DD_API_KEY"] = os.environ.get("DD_API_KEY_2")
             self.weblog_container.environment["DD_SITE"] = dd_site
         if self.include_collector:
-            self.weblog_container.environment["OTEL_SYSTEST_INCLUDE_COLLECTOR"] = True
+            self.weblog_container.environment["OTEL_SYSTEST_INCLUDE_COLLECTOR"] = "True"
             self.collector_container.environment["DD_API_KEY"] = os.environ.get("DD_API_KEY_3")
             self.collector_container.environment["DD_SITE"] = dd_site
         if self.include_agent:
-            self.weblog_container.environment["OTEL_SYSTEST_INCLUDE_AGENT"] = True
+            self.weblog_container.environment["OTEL_SYSTEST_INCLUDE_AGENT"] = "True"
             interfaces.agent.configure(self.host_log_folder, replay=self.replay)
 
         interfaces.backend.configure(self.host_log_folder, replay=self.replay)

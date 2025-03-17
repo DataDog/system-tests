@@ -132,7 +132,7 @@ class Test_Telemetry:
     def test_seq_id(self):
         """Test that messages are sent sequentially"""
 
-        MAX_OUT_OF_ORDER_LAG = 0.3  # s
+        max_out_of_order_lag = 0.3  # s
 
         telemetry_data = list(interfaces.library.get_telemetry_data(flatten_message_batches=False))
         if len(telemetry_data) == 0:
@@ -163,7 +163,7 @@ class Test_Telemetry:
                     max_seq_id = seq_id
                     received_max_time = curr_message_time
                 elif received_max_time is not None and (curr_message_time - received_max_time) > timedelta(
-                    seconds=MAX_OUT_OF_ORDER_LAG
+                    seconds=max_out_of_order_lag
                 ):
                     raise ValueError(
                         f"Received message with seq_id {seq_id} to far more than"
@@ -343,14 +343,14 @@ class Test_Telemetry:
         delays_by_runtime = self._get_heartbeat_delays_by_runtime()
 
         # This interval can't be perfeclty exact, give some room for tests
-        LOWER_LIMIT = timedelta(seconds=context.telemetry_heartbeat_interval * 0.75).total_seconds()
-        UPPER_LIMIT = timedelta(seconds=context.telemetry_heartbeat_interval * 1.5).total_seconds()
+        lower_limit = timedelta(seconds=context.telemetry_heartbeat_interval * 0.75).total_seconds()
+        upper_limit = timedelta(seconds=context.telemetry_heartbeat_interval * 1.5).total_seconds()
         expectation = f"It should be sent every {context.telemetry_heartbeat_interval}s"
 
         for delays in delays_by_runtime.values():
             average_delay = sum(delays) / len(delays)
-            assert average_delay > LOWER_LIMIT, f"Heartbeat sent too fast: {average_delay}s. {expectation}"
-            assert average_delay < UPPER_LIMIT, f"Heartbeat sent too slow: {average_delay}s. {expectation}"
+            assert average_delay > lower_limit, f"Heartbeat sent too fast: {average_delay}s. {expectation}"
+            assert average_delay < upper_limit, f"Heartbeat sent too slow: {average_delay}s. {expectation}"
 
     def setup_app_dependencies_loaded(self):
         weblog.get("/load_dependency")
@@ -806,12 +806,13 @@ class Test_Metric_Generation_Disabled:
 class Test_Metric_Generation_Enabled:
     """Assert that metrics are reported when metric generation is enabled in telemetry"""
 
+    METRIC_FLUSH_INTERVAL = 10  # This is constant by design
+
     def setup_metric_generation_enabled(self):
         weblog.get("/")
         # Wait for at least 2 metric flushes, i.e. 20s
-        METRIC_FLUSH_INTERVAL = 10  # This is constant by design
         logger.debug("Waiting 20s for metric flushes...")
-        time.sleep(METRIC_FLUSH_INTERVAL * 2)
+        time.sleep(self.METRIC_FLUSH_INTERVAL * 2)
         logger.debug("Wait complete")
 
     def test_metric_generation_enabled(self):

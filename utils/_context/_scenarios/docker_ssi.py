@@ -7,6 +7,7 @@ import time
 import docker
 from docker.errors import BuildError
 from docker.models.networks import Network
+import pytest
 
 from utils import interfaces
 from utils._context.library_version import LibraryVersion, Version
@@ -46,7 +47,7 @@ class DockerSSIScenario(Scenario):
         # scenario configuration that is going to be reported in the final report
         self._configuration = {"app_type": "docker_ssi"}
 
-    def configure(self, config):
+    def configure(self, config: pytest.Config):
         assert config.option.ssi_library, "library must be set: java,python,nodejs,dotnet,ruby,php"
 
         self._base_weblog = config.option.ssi_weblog
@@ -70,7 +71,7 @@ class DockerSSIScenario(Scenario):
         self._datadog_apm_inject_version = "v9.99.99"
         # The runtime that is installed on the base image (because we installed automatically or because the weblog contains the runtime preinstalled).
         # the language is the language used by the tested datadog library
-        self._installed_language_runtime = None
+        self._installed_language_runtime: Version | None = None
 
         logger.stdout(
             f"Configuring scenario with: Weblog: [{self._base_weblog}] Library: [{self._library}] Base Image: [{self._base_image}] Arch: [{self._arch}] Runtime: [{self._installable_runtime}] Env: {self._env}"
@@ -118,7 +119,7 @@ class DockerSSIScenario(Scenario):
 
         for container in self._required_containers:
             try:
-                container.configure(self.replay)
+                container.configure(replay=self.replay)
             except Exception as e:
                 logger.error("Failed to configure container ", e)
                 logger.stdout("ERROR configuring container. check log file for more details")
