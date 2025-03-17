@@ -283,6 +283,12 @@ tests/:
   test_ipv6.py: missing_feature (APMAPI-869)
   test_library_conf.py: irrelevant
   test_miscs.py: irrelevant
+  test_sampling_rates.py:
+    Test_SampleRateFunction: v1.0.0  # real version unknown
+    Test_SamplingDecisionAdded: v1.0.0  # real version unknown
+    Test_SamplingDecisions: v1.0.0  # real version unknown
+    Test_SamplingDeterminism: v1.0.0  # real version unknown
+    Test_SamplingRates: v1.0.0  # real version unknown
   test_scrubbing.py: irrelevant
   test_span_events.py: incomplete_test_app (Weblog `/add_event` not implemented)
   test_standard_tags.py: irrelevant

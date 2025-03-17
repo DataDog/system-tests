@@ -79,9 +79,9 @@ returned list may be empty.
 #### Response
 
 The Weblog must normally respond to all queries with an `HTTP 200` status code. The response body is a JSON-encoded
-object with the following strucutre:
+object with the following structure:
 - `data` - the response of the GraphQL query
-- `errors` - a list of errors produced while resolving the GraphQL Query (may be omitted if empty)
+- `errors` - a list of errors produced while resolving the GraphQL Query (it may be omitted if empty)
 
 > It is possible that the features being tested by certain system tests (such as those asserting request blocking
 > functionality) may cause the server to respond with a non success status code.

@@ -1894,14 +1894,20 @@ tests/:
       vertx3: missing_feature (Endpoint not implemented)
       vertx4: missing_feature (Endpoint not implemented)
   test_sampling_rates.py:
-    Test_SamplingDecisions:
-      akka-http: missing_feature (Endpoint /sample_rate_route not implemented)
-      jersey-grizzly2: missing_feature (Endpoint /sample_rate_route not implemented)
-      play: missing_feature (Endpoint /sample_rate_route not implemented)
-      ratpack: missing_feature (Endpoint /sample_rate_route not implemented)
-      resteasy-netty3: missing_feature (Endpoint /sample_rate_route not implemented)
-      vertx3: missing_feature (Endpoint /sample_rate_route not implemented)
-      vertx4: missing_feature (Endpoint /sample_rate_route not implemented)
+    Test_SampleRateFunction:
+      '*': missing_feature (Endpoint /sample_rate_route not implemented)
+      spring-boot: v0.92.0
+      spring-boot-3-native: v0.92.0
+    Test_SamplingDecisionAdded:
+      '*': missing_feature (Endpoint /sample_rate_route not implemented)
+      spring-boot: v0.92.0
+      spring-boot-3-native: v0.92.0
+    Test_SamplingDecisions: bug (APMAPI-736)
+    Test_SamplingDeterminism:
+      '*': missing_feature (Endpoint /sample_rate_route not implemented)
+      spring-boot: v0.92.0
+      spring-boot-3-native: v0.92.0
+    Test_SamplingRates: v0.92.0
   test_scrubbing.py:
     Test_UrlQuery: v0.107.1
   test_semantic_conventions.py:
