@@ -12,7 +12,7 @@ class _SeqIdLatencyValidation:
         self.max_seq_id = 0
         self.received_max_time = None
 
-    def __call__(self, data):
+    def __call__(self, data: dict):
         seq_id = data["request"]["content"]["seq_id"]
         now = time()
         if seq_id > self.max_seq_id:
@@ -32,7 +32,7 @@ class _NoSkippedSeqId:
         super().__init__()
         self.seq_ids = []
 
-    def __call__(self, data):
+    def __call__(self, data: dict):
         if 200 <= data["response"]["status_code"] < 300:
             seq_id = data["request"]["content"]["seq_id"]
             self.seq_ids.append((seq_id, data["log_filename"]))

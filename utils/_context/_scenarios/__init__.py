@@ -35,7 +35,7 @@ class _Scenarios:
         "PERFORMANCES", doc="A not very used scenario : its aim is to measure CPU and MEM usage across a basic run"
     )
     integrations = IntegrationsScenario()
-    integrations_aws = AWSIntegrationsScenario()
+    integrations_aws = AWSIntegrationsScenario("INTEGRATIONS_AWS")
     crossed_tracing_libraries = CrossedTracingLibraryScenario()
 
     otel_integrations = OpenTelemetryScenario(

@@ -228,9 +228,6 @@ ignore = [
 "tests/test_the_test/*" = [
     "S605",      # start-process-with-a-shell: test the test needs to run shell commands
 ]
-"utils/_context/_scenarios/{open_telemetry.py,integrations.py,external_processing.py}" = [
-    "ANN001",   # missing-type-function-argument: TODO
-]
 "utils/_context/_scenarios/auto_injection.py" = [
     "ANN001",   # missing-type-function-argument: TODO
 ]
@@ -256,9 +253,14 @@ ignore = [
     "ANN201",  # missing-return-type-undocumented-public-function: TODO
     "ANN205",  # issing-return-type-static-method: TODO
 ]
-"utils/interfaces/*" = [
-    "ANN001",   # missing-type-function-argument: TODO
-]
+"utils/interfaces/_agent.py" = [ "ANN001" ] # TODO
+"utils/interfaces/_backend.py" = [ "ANN001" ] # TODO
+"utils/interfaces/_logs.py" = [ "ANN001" ] # TODO
+"utils/interfaces/_misc_validators.py" = [ "ANN001" ] # TODO
+"utils/interfaces/_open_telemetry.py" = [ "ANN001" ] # TODO
+"utils/interfaces/_schemas_validators.py" = [ "ANN001" ] # TODO
+"utils/interfaces/_test_agent.py" = [ "ANN001" ] # TODO
+
 "utils/{k8s_lib_injection/*,_context/_scenarios/k8s_lib_injection.py}" = [
     "ANN001",   # missing-type-function-argument: TODO
     "ANN201",   # missing-return-type-undocumented-public-function: TODO
@@ -282,8 +284,9 @@ ignore = [
     "UP031",    # printf-string-formatting: TODO
 ]
 "utils/interfaces/schemas/serve_doc.py" = [
+    "ANN001",  # missing-type-function-argument: TODO
     "ANN201",  # missing-return-type-undocumented-public-function: TODO
-    "INP001", # implicit-namespace-package: this is not a package
+    "INP001",  # implicit-namespace-package: this is not a package
 ]
 "utils/onboarding/*" = [
     "ANN001",   # missing-type-function-argument: TODO
@@ -300,9 +303,6 @@ ignore = [
     "RET505",  # superfluous-else-return: TODO
     "S507",    # ssh-no-host-key-verification: TODO
     "UP017",   # datetime-timezone-utc: TODO
-]
-"utils/proxy/*" = [
-    "ANN001",   # missing-type-function-argument: TODO
 ]
 "utils/parametric/*" = [
     "ANN001",    # missing-type-function-argument: TODO

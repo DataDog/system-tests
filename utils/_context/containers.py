@@ -1282,8 +1282,8 @@ class ExternalProcessingContainer(TestedContainer):
     def __init__(
         self,
         host_log_folder: str,
-        env: dict[str, str | None],
-        volumes: dict[str, dict[str, str]],
+        env: dict[str, str | None] | None,
+        volumes: dict[str, dict[str, str]] | None,
     ) -> None:
         try:
             with open("binaries/golang-service-extensions-callout-image", encoding="utf-8") as f:
