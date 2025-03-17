@@ -68,3 +68,4 @@ if ($_GET['auth'] != 'local') {
 $_SERVER['REQUEST_METHOD'] === 'POST' ? handlePost() : handleGet();
 
 checkSdk();
+
