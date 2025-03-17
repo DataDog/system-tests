@@ -7,7 +7,7 @@ $statusCode = 200;
 
 if ($statusCodeStr !== '') {
     $statusCode = intval($statusCodeStr);
-    
+
     if ($statusCode == 0 && $statusCodeStr !== '0') {
         $statusCode = 400;
     }
@@ -21,6 +21,6 @@ foreach ($_SERVER as $key => $value) {
 }
 
 // Send the response
-http_response_code($statusCode); 
+http_response_code($statusCode);
 echo "ok";
 ?>
