@@ -7,7 +7,7 @@ from utils import context, interfaces, irrelevant, weblog, scenarios, features, 
 
 @rfc("https://docs.google.com/document/d/1cVod_VI7Yruq8U9dfMRFJd7npDu-uBpste2IB04GyaQ")
 @features.span_events
-@scenarios.supporting_span_events
+@scenarios.agent_supporting_span_events
 class Test_SpanEvents_WithAgentSupport:
     """Test that tracers send natively serialized span events if the agent support and serialization format support it.
     Tracers only need to test for their default serialization format (v0.4, v0.5, v0.7).
@@ -43,7 +43,7 @@ class Test_SpanEvents_WithAgentSupport:
 
 
 @features.span_events
-@scenarios.not_supporting_span_events
+@scenarios.agent_not_supporting_span_events
 class Test_SpanEvents_WithoutAgentSupport:
     """Test that tracers do not attempt to send natively serialized span events if the agent does not support it.
 
