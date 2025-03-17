@@ -228,9 +228,6 @@ ignore = [
 "tests/test_the_test/*" = [
     "S605",      # start-process-with-a-shell: test the test needs to run shell commands
 ]
-"utils/_context/{library_version.py,containers.py}" = [
-    "ANN001",   # missing-type-function-argument: TODO
-]
 "utils/_context/_scenarios/{open_telemetry.py,integrations.py,external_processing.py}" = [
     "ANN001",   # missing-type-function-argument: TODO
 ]
