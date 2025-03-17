@@ -78,6 +78,9 @@ line-length = 120
 indent-width = 4
 target-version = "py312"
 
+[tool.ruff.lint.pep8-naming]
+ignore-names = ["Test*", ]  # TODO : lot of renamings to do...
+
 [tool.ruff.format]
 exclude = [
     "venv/", 
@@ -92,6 +95,7 @@ indent-style = "space"
 # docstring-code-format = false
 # docstring-code-line-length = "dynamic"
 
+
 [tool.ruff.lint]
 exclude = [ 
     "docs/*", # ignore docs. But may be a good idea to enable rules here
@@ -101,7 +105,6 @@ select = ["ALL"]
 
 ignore = [
     ### TODO : remove those ignores
-    "ANN001",   # missing-type-function-argument: TODO, the ONE to remove !! (3075 occurences)
     "ANN003",   # missing-type-kwargs: TODO (29 occurences)
     "ANN202",   # missing-return-type-private-function: TODO (877 occurences)
     "BLE001",   # blind-except: TODO big project to enable this (39 occurences)
@@ -112,14 +115,12 @@ ignore = [
     "PLR0912",  # too-many-branches: TODO (17 occurences)
     "PLR0913",  # too-many-arguments: TODO (66 occurences)
     "PLR0915",  # too-many-statements: TODO (7 occurences)
-    "PLR1714",  # repeated-equality-comparison: TODO (20 occurences)
     "PLR2004",  # magic-value-comparison: TODO (674 occurences)
     "PTH118",   # os-path-join: TODO (59 occurences)
     "PTH123",   # builtin-open: TODO (117 occurences)
     "RUF012",   # mutable-class-default: TODO (111 occurences)
     "S202",     # tarfile-unsafe-members: TODO (2 occurences)
     "SIM102",   # collapsible-if: TODO (22 occurences)
-    "SIM110",   # reimplemented-builtin: TODO (7 occurences)
     "TRY003",   # raise-vanilla-args: TODO this is a full project to enable this (254 occurences)
 
     ### Ignores that will be kept for the entire project
@@ -173,14 +174,15 @@ ignore = [
 # 1. keep everything sorted alphabetically
 # 2. on each line, comment with the rule name, and a comment, either TODO, or a reason why the rule is ignored
 
+"conftest.py" = [
+    "ANN001",   # missing-type-function-argument: TODO
+]
 "lib-injection/*" = ["ALL"]  # TODO
 "tests/*" = [
+    "ANN001",   # missing-type-function-argument: TODO (TBD)
     "ANN201",    # missing-return-type-undocumented-public-function: TODO
-    "N801",      # invalid-class-name: TODO
     "E501",      # line-too-long: TODO
-    "N806",      # non-lowercase-variable-in-function: TODO
     "TRY002",    # raise-vanilla-class: TODO
-    "INP001",    # implicit-namespace-package: TODO
     "TRY301",    # raise-within-try: TODO
 
     # keep those exceptions
@@ -213,6 +215,7 @@ ignore = [
     "RUF001",    # ambiguous-unicode-character-string: the mutator contains weird strings on purpose
 ]
 "tests/parametric/*" = [
+    "ANN001",    # missing-type-function-argument: TODO
     "ANN401",    # any-type: TODO
     "ARG002",    # unused-method-argument: TODO
 ]
@@ -225,7 +228,11 @@ ignore = [
 "tests/test_the_test/*" = [
     "S605",      # start-process-with-a-shell: test the test needs to run shell commands
 ]
+"utils/_context/_scenarios/auto_injection.py" = [
+    "ANN001",   # missing-type-function-argument: TODO
+]
 "utils/{_context/_scenarios/docker_ssi.py,docker_ssi/docker_ssi_matrix_builder.py,docker_ssi/docker_ssi_matrix_utils.py}" = [
+    "ANN001",   # missing-type-function-argument: TODO
     "E501",     # line-too-long: TODO
     "T201",     # print: TODO
     "RET504",   # unnecessary-assign: TODO
@@ -234,14 +241,28 @@ ignore = [
     "SIM210",   # if-expr-with-true-false: TODO
 ]
 "utils/_features.py" = [
+    "ANN001", # missing-type-function-argument: obvious decorators
     "ANN205"  # missing-return-type-static-method: obvious decorators
+]
+"utils/{_decorators.py,_remote_config.py,_weblog.py}" = [
+    "ANN001",   # missing-type-function-argument: TODO
 ]
 "utils/build/*"  = ["ALL"]  # mostly python weblog code. it may be a good idea to enable rules here
 "utils/docker_ssi/*" = [
+    "ANN001",   # missing-type-function-argument: TODO
     "ANN201",  # missing-return-type-undocumented-public-function: TODO
     "ANN205",  # issing-return-type-static-method: TODO
 ]
+"utils/interfaces/_agent.py" = [ "ANN001" ] # TODO
+"utils/interfaces/_backend.py" = [ "ANN001" ] # TODO
+"utils/interfaces/_logs.py" = [ "ANN001" ] # TODO
+"utils/interfaces/_misc_validators.py" = [ "ANN001" ] # TODO
+"utils/interfaces/_open_telemetry.py" = [ "ANN001" ] # TODO
+"utils/interfaces/_schemas_validators.py" = [ "ANN001" ] # TODO
+"utils/interfaces/_test_agent.py" = [ "ANN001" ] # TODO
+
 "utils/{k8s_lib_injection/*,_context/_scenarios/k8s_lib_injection.py}" = [
+    "ANN001",   # missing-type-function-argument: TODO
     "ANN201",   # missing-return-type-undocumented-public-function: TODO
     "B006",     # mutable-argument-default: TODO
     "B007",     # unused-loop-control-variable: TODO
@@ -263,10 +284,12 @@ ignore = [
     "UP031",    # printf-string-formatting: TODO
 ]
 "utils/interfaces/schemas/serve_doc.py" = [
+    "ANN001",  # missing-type-function-argument: TODO
     "ANN201",  # missing-return-type-undocumented-public-function: TODO
-    "INP001", # implicit-namespace-package: this is not a package
+    "INP001",  # implicit-namespace-package: this is not a package
 ]
 "utils/onboarding/*" = [
+    "ANN001",   # missing-type-function-argument: TODO
     "ANN201",  # missing-return-type-undocumented-public-function: TODO
     "DTZ005",  # call-datetime-now-without-tzinfo: TODO
     "DTZ006",  # call-datetime-fromtimestamp: TODO
@@ -281,17 +304,23 @@ ignore = [
     "S507",    # ssh-no-host-key-verification: TODO
     "UP017",   # datetime-timezone-utc: TODO
 ]
+"utils/parametric/*" = [
+    "ANN001",    # missing-type-function-argument: TODO
+]
 "utils/scripts/*" = [
+    "ANN001",  # missing-type-function-argument: TODO
     "INP001",  # implicit-namespace-package: this is not a package
     "T201"     # print: allow print statements in scripts folder
 ]
 "utils/virtual_machine/virtual_machines.py" = [
+    "ANN001",   # missing-type-function-argument: TODO
     "ANN201",   # missing-return-type-undocumented-public-function: TODO
     "ARG002",   # unused-method-argument: TODO
     "FBT002",   # boolean-default-value-positional-argument: TODO
     "TRY002",   # raise-vanilla-class: TODO
 ]
 "utils/virtual_machine/aws_provider.py" = [
+    "ANN001",  # missing-type-function-argument: TODO
     "ANN201",  # missing-return-type-undocumented-public-function: TODO
     "E501",    # line-too-long: TODO
     "F541",    # f-string-missing-placeholders: TODO
@@ -310,6 +339,7 @@ ignore = [
     "TRY002",  # raise-vanilla-class: TODO
 ]
 "utils/virtual_machine/krunvm_provider.py" = [
+    "ANN001",  # missing-type-function-argument: TODO
     "A002",    # builtin-argument-shadowing: TODO
     "ANN002",  # missing-type-args: TODO
     "ANN201",  # missing-return-type-undocumented-public-function: TODO
@@ -330,6 +360,7 @@ ignore = [
     "SLF001",  # private-member-access: TODO
 ]
 "utils/virtual_machine/utils.py" = [
+    "ANN001",  # missing-type-function-argument: TODO
     "ANN201",  # missing-return-type-undocumented-public-function: TODO
     "E501",    # line-too-long: TODO
     "RET503",  # implicit-return: TODO
@@ -337,6 +368,7 @@ ignore = [
     "SIM300",  # yoda-conditions: TODO
 ]
 "utils/virtual_machine/vagrant_provider.py" = [
+    "ANN001",  # missing-type-function-argument: TODO
     "A002",    # builtin-argument-shadowing: TODO
     "ANN201",  # missing-return-type-undocumented-public-function: TODO
     "ARG002",  # unused-method-argument: TODO
@@ -350,6 +382,7 @@ ignore = [
     "UP031",   # printf-string-formatting: TODO
 ]
 "utils/virtual_machine/virtual_machine_provider.py" = [
+    "ANN001",  # missing-type-function-argument: TODO
     "A002",    # builtin-argument-shadowing: TODO
     "ANN201",  # missing-return-type-undocumented-public-function: TODO
     "ARG002",  # unused-method-argument: TODO
@@ -362,6 +395,7 @@ ignore = [
     "RET505",  # superfluous-else-return: TODO
 ]
 "utils/virtual_machine/virtual_machine_provisioner.py" = [
+    "ANN001",   # missing-type-function-argument: TODO
     "ANN201",  # missing-return-type-undocumented-public-function: TODO
     "E501",    # line-too-long: TODO
     "FBT002",  # boolean-default-value-positional-argument: TODO
@@ -369,8 +403,10 @@ ignore = [
     "SIM401",  # if-else-block-instead-of-dict-get: TODO
 ]
 "utils/virtual_machine/vm_logger.py" = [
+    "ANN001",   # missing-type-function-argument: TODO
     "ANN201",  # missing-return-type-undocumented-public-function: TODO
     "ARG001",  # unused-function-argument: TODO
     "FBT002",  # boolean-default-value-positional-argument: TODO
 ]
 "utils/waf_rules.py" = ["N801"]  # generated file
+

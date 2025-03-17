@@ -73,6 +73,7 @@ tests/:
       test_reports.py: irrelevant (ASM is not implemented in C++)
       test_rules.py: irrelevant (ASM is not implemented in C++)
       test_telemetry.py: irrelevant (ASM is not implemented in C++)
+      test_truncation.py: irrelevant (ASM is not implemented in C++)
     test_alpha.py: irrelevant (ASM is not implemented in C++)
     test_asm_standalone.py: irrelevant (ASM is not implemented in C++)
     test_automated_login_events.py: irrelevant (ASM is not implemented in C++)
@@ -260,8 +261,8 @@ tests/:
     Test_Config_HttpServerErrorStatuses_FeatureFlagCustom: missing_feature
     Test_Config_IntegrationEnabled_False: missing_feature
     Test_Config_IntegrationEnabled_True: missing_feature
-    Test_Config_LogInjection_128Bit_TraceId_Default: missing_feature
     Test_Config_LogInjection_128Bit_TraceId_Disabled: missing_feature
+    Test_Config_LogInjection_128Bit_TraceId_Enabled: missing_feature
     Test_Config_LogInjection_Default: missing_feature
     Test_Config_LogInjection_Enabled: missing_feature
     Test_Config_ObfuscationQueryStringRegexp_Configured: missing_feature
@@ -282,6 +283,12 @@ tests/:
   test_ipv6.py: missing_feature (APMAPI-869)
   test_library_conf.py: irrelevant
   test_miscs.py: irrelevant
+  test_sampling_rates.py:
+    Test_SampleRateFunction: v1.0.0  # real version unknown
+    Test_SamplingDecisionAdded: v1.0.0  # real version unknown
+    Test_SamplingDecisions: v1.0.0  # real version unknown
+    Test_SamplingDeterminism: v1.0.0  # real version unknown
+    Test_SamplingRates: v1.0.0  # real version unknown
   test_scrubbing.py: irrelevant
   test_span_events.py: incomplete_test_app (Weblog `/add_event` not implemented)
   test_standard_tags.py: irrelevant

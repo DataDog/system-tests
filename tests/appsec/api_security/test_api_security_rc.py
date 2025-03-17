@@ -9,6 +9,7 @@ from utils import (
     weblog,
     features,
 )
+from utils.tools import logger
 from tests.appsec.api_security.utils import BaseAppsecApiSecurityRcTest
 
 
@@ -16,9 +17,13 @@ def get_schema(request, address):
     """Get api security schema from spans"""
     for _, _, span in interfaces.library.get_spans(request):
         meta = span.get("meta", {})
-        payload = meta.get("_dd.appsec.s." + address)
+        key = "_dd.appsec.s." + address
+        payload = meta.get(key)
         if payload is not None:
             return payload
+        else:
+            logger.info(f"Schema not found in span meta for {key}")
+
     return None
 
 
@@ -55,7 +60,7 @@ class Test_API_Security_RC_ASM_DD_scanners(BaseAppsecApiSecurityRcTest):
     def test_request_method(self):
         """Can provide custom req.querytest schema"""
         schema = get_schema(self.request, "req.bodytest")
-        EXPECTED_MAIL_SCHEMA = [8, {"category": "pii", "type": "email"}]
+        expected_mail_schema = [8, {"category": "pii", "type": "email"}]
 
         assert self.request.status_code == 200
         assert schema
@@ -68,13 +73,13 @@ class Test_API_Security_RC_ASM_DD_scanners(BaseAppsecApiSecurityRcTest):
             # as an array of string
             assert isinstance(schema[0]["mail"][0], list)
             element = schema[0]["mail"][0][0]
-            assert len(element) == len(EXPECTED_MAIL_SCHEMA)
-            assert element[0] == EXPECTED_MAIL_SCHEMA[0]
-            assert element[1] == EXPECTED_MAIL_SCHEMA[1]
+            assert len(element) == len(expected_mail_schema)
+            assert element[0] == expected_mail_schema[0]
+            assert element[1] == expected_mail_schema[1]
         else:
             # as a string
-            assert schema[0]["mail"][0] == EXPECTED_MAIL_SCHEMA[0]
-            assert schema[0]["mail"][1] == EXPECTED_MAIL_SCHEMA[1]
+            assert schema[0]["mail"][0] == expected_mail_schema[0]
+            assert schema[0]["mail"][1] == expected_mail_schema[1]
 
 
 @rfc("https://docs.google.com/document/d/1Ig5lna4l57-tJLMnC76noGFJaIHvudfYXdZYKz6gXUo/edit#heading=h.88xvn2cvs9dt")
@@ -92,7 +97,7 @@ class Test_API_Security_RC_ASM_processor_overrides_and_custom_scanner(BaseAppsec
     def test_request_method(self):
         """Can provide custom req.querytest schema"""
         schema = get_schema(self.request, "req.bodytest")
-        EXPECTED_TESTCARD_SCHEMA = [8, {"category": "testcategory", "type": "card"}]
+        expcted_testcard_schema = [8, {"category": "testcategory", "type": "card"}]
 
         assert self.request.status_code == 200
         assert schema
@@ -107,10 +112,10 @@ class Test_API_Security_RC_ASM_processor_overrides_and_custom_scanner(BaseAppsec
             # as an array of string
             assert isinstance(schema[0]["testcard"][0], list)
             element = schema[0]["testcard"][0][0]
-            assert len(element) == len(EXPECTED_TESTCARD_SCHEMA)
-            assert element[0] == EXPECTED_TESTCARD_SCHEMA[0]
-            assert element[1] == EXPECTED_TESTCARD_SCHEMA[1]
+            assert len(element) == len(expcted_testcard_schema)
+            assert element[0] == expcted_testcard_schema[0]
+            assert element[1] == expcted_testcard_schema[1]
         else:
             # as a string
-            assert schema[0]["mail"][0] == EXPECTED_TESTCARD_SCHEMA[0]
-            assert schema[0]["mail"][1] == EXPECTED_TESTCARD_SCHEMA[1]
+            assert schema[0]["mail"][0] == expcted_testcard_schema[0]
+            assert schema[0]["mail"][1] == expcted_testcard_schema[1]

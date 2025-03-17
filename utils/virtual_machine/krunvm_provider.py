@@ -218,7 +218,7 @@ class KrunVmCommander(Commander):
             source_folder = source_folder + "/"
 
         volume_path = None
-        if destination_folder is None or destination_folder == "" or destination_folder == "/":
+        if destination_folder is None or destination_folder in ("", "/"):
             destination_folder = "/"
             volume_path = self._get_shared_folder_path(vm) + "/"
         else:

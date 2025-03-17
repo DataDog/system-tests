@@ -65,4 +65,8 @@ class GraphqlController < ApplicationController
 
     render json: { errors: [{ message: e.message, backtrace: e.backtrace }], data: {} }, status: 500
   end
+
+  def handle_path_params
+    render plain: 'OK'
+  end
 end

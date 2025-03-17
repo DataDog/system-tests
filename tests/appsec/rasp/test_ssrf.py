@@ -9,8 +9,8 @@ from tests.appsec.rasp.utils import (
     validate_stack_traces,
     find_series,
     validate_metric,
-    Base_Rules_Version,
-    Base_WAF_Version,
+    BaseRulesVersion,
+    BaseWAFVersion,
 )
 
 
@@ -216,14 +216,14 @@ class Test_Ssrf_Capability:
 
 
 @features.rasp_server_side_request_forgery
-class Test_Ssrf_Rules_Version(Base_Rules_Version):
+class Test_Ssrf_Rules_Version(BaseRulesVersion):
     """Test ssrf min rules version"""
 
     min_version = "1.13.2"
 
 
 @features.rasp_server_side_request_forgery
-class Test_Ssrf_Waf_Version(Base_WAF_Version):
+class Test_Ssrf_Waf_Version(BaseWAFVersion):
     """Test ssrf WAF version"""
 
     min_version = "1.20.1"

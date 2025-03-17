@@ -4,21 +4,20 @@
 
 from collections import defaultdict
 import re
+from typing import Union
 import semantic_version as version_module
 
 
-def _build(version):
-    if isinstance(version, str):
-        return Version(version)
-
-    if isinstance(version, Version):
-        return version
-
-    raise TypeError(version)
-
-
 class Version(version_module.Version):
-    def __init__(self, version=None, major=None, minor=None, patch=None, prerelease=None, build=None):
+    def __init__(
+        self,
+        version: str | None = None,
+        major: str | int | None = None,
+        minor: str | int | None = None,
+        patch: str | None = None,
+        prerelease: str | tuple[str, ...] | None = None,
+        build: str | None = None,
+    ):
         if version is not None:
             # remove any leading "v"
             if version.startswith("v"):
@@ -34,19 +33,19 @@ class Version(version_module.Version):
 
         super().__init__(major=major, minor=minor, patch=patch, prerelease=prerelease, build=build)
 
-    def __eq__(self, other):
+    def __eq__(self, other: object) -> bool:
         return super().__eq__(_build(other))
 
-    def __lt__(self, other):
+    def __lt__(self, other: Union[str, "Version"]):
         return super().__lt__(_build(other))
 
-    def __le__(self, other):
+    def __le__(self, other: Union[str, "Version"]):
         return super().__le__(_build(other))
 
-    def __gt__(self, other):
+    def __gt__(self, other: Union[str, "Version"]):
         return super().__gt__(_build(other))
 
-    def __ge__(self, other):
+    def __ge__(self, other: Union[str, "Version"]):
         return super().__ge__(_build(other))
 
 
@@ -148,7 +147,7 @@ class LibraryVersion:
 
         return f"{self.library}@{self.version}" if self.version else self.library
 
-    def __eq__(self, other):
+    def __eq__(self, other: object):
         if isinstance(other, LibraryVersion):
             return self.library == other.library and self.version == other.version
 
@@ -170,7 +169,7 @@ class LibraryVersion:
         library = other
         return self.library == library
 
-    def _extract_members(self, other) -> tuple[str | None, Version | None]:
+    def _extract_members(self, other: object) -> tuple[str | None, Version | None]:
         if isinstance(other, LibraryVersion):
             return other.library, other.version
 
@@ -193,19 +192,19 @@ class LibraryVersion:
         self.add_known_version(library=library, version=version)
         return library, version
 
-    def __lt__(self, other):
+    def __lt__(self, other: object):
         library, version = self._extract_members(other)
         return self.library == library and self.version and self.version < version
 
-    def __le__(self, other):
+    def __le__(self, other: object):
         library, version = self._extract_members(other)
         return self.library == library and self.version and self.version <= version
 
-    def __gt__(self, other):
+    def __gt__(self, other: object):
         library, version = self._extract_members(other)
         return self.library == library and self.version and self.version > version
 
-    def __ge__(self, other):
+    def __ge__(self, other: object):
         library, version = self._extract_members(other)
         return self.library == library and self.version and self.version >= version
 
@@ -214,6 +213,16 @@ class LibraryVersion:
             "library": self.library,
             "version": str(self.version),
         }
+
+
+def _build(version: object) -> Version:
+    if isinstance(version, str):
+        return Version(version)
+
+    if isinstance(version, Version):
+        return version
+
+    raise TypeError(version)
 
 
 if __name__ == "__main__":

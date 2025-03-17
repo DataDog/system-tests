@@ -51,6 +51,10 @@ on:
         default: false
         required: false
         type: boolean
+      logs_artifact_name:
+        description: "The name of the artifact to use for logs"
+        required: true
+        type: string
 
 env:
   REGISTRY: ghcr.io
@@ -109,9 +113,9 @@ jobs:
     - name: Run APPSEC_STANDALONE_EXPERIMENTAL scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_STANDALONE_EXPERIMENTAL"')
       run: ./run.sh APPSEC_STANDALONE_EXPERIMENTAL
-    - name: Run APPSEC_NO_STATS scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_NO_STATS"')
-      run: ./run.sh APPSEC_NO_STATS
+    - name: Run TRACE_STATS_COMPUTATION scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"TRACE_STATS_COMPUTATION"')
+      run: ./run.sh TRACE_STATS_COMPUTATION
     - name: Run IAST_STANDALONE scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"IAST_STANDALONE"')
       run: ./run.sh IAST_STANDALONE
@@ -374,7 +378,7 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         # log name convention to respect : logs_$SCENARIO-FAMILY_$LIBRARY_$WEBLOG_$CI-ENVIRONMENT
-        name: logs_endtoend_${{ inputs.library }}_${{ inputs.weblog }}_${{ inputs.ci_environment }}
+        name: ${{ inputs.logs_artifact_name }}
         path: artifact.tar.gz
 
     - name: Push results to Feature Parity Dashboard
