@@ -10,6 +10,8 @@ WORKDIR /app
 COPY ./utils/build/docker/java/spring-boot-3-native/pom.xml .
 RUN /usr/share/maven/bin/mvn -P native -B dependency:go-offline
 COPY ./utils/build/docker/java/spring-boot-3-native/src ./src
+COPY ./utils/build/docker/java/install_dd_trace_api.sh binaries* /binaries/
+RUN /binaries/install_dd_trace_api.sh
 
 # Install tracer
 COPY ./utils/build/docker/java/install_ddtrace.sh binaries* /binaries/

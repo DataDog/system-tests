@@ -9,6 +9,8 @@ WORKDIR /app
 COPY ./utils/build/docker/java/spring-boot/pom.xml .
 
 COPY ./utils/build/docker/java/spring-boot/src ./src
+COPY ./utils/build/docker/java/install_dd_trace_api.sh binaries* /binaries/
+RUN /binaries/install_dd_trace_api.sh -Dmaven.repo.local=/maven
 RUN mvn -Popenliberty package
 
 COPY ./utils/build/docker/java/install_ddtrace.sh binaries* /binaries/

@@ -10,6 +10,8 @@ COPY ./utils/build/docker/java/akka-http/pom.xml .
 RUN mkdir /maven && mvn -Dmaven.repo.local=/maven -B dependency:go-offline
 
 COPY ./utils/build/docker/java/akka-http/src ./src
+COPY ./utils/build/docker/java/install_dd_trace_api.sh binaries* /binaries/
+RUN /binaries/install_dd_trace_api.sh -Dmaven.repo.local=/maven
 RUN mvn -Dmaven.repo.local=/maven package
 
 COPY ./utils/build/docker/java/install_ddtrace.sh binaries* /binaries/

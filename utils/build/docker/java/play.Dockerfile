@@ -10,6 +10,8 @@ RUN mkdir /maven && mvn -Dmaven.repo.local=/maven -B dependency:go-offline
 COPY ./utils/build/docker/java/play/app ./app
 COPY ./utils/build/docker/java/play/conf ./conf
 COPY ./utils/build/docker/java/iast-common/src /iast-common/src
+COPY ./utils/build/docker/java/install_dd_trace_api.sh binaries* /binaries/
+RUN /binaries/install_dd_trace_api.sh -Dmaven.repo.local=/maven
 RUN mvn -Dmaven.repo.local=/maven play2:routes-compile package play2:dist-exploded
 
 COPY ./utils/build/docker/java/install_ddtrace.sh binaries* /binaries/
