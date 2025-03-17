@@ -11,13 +11,17 @@ from utils import (
     weblog,
     features,
 )
+from utils.tools import logger
 
 
 def get_schema(request, address):
     """Get api security schema from spans"""
     span = interfaces.library.get_root_span(request)
     meta = span.get("meta", {})
-    return meta.get("_dd.appsec.s." + address)
+    key = "_dd.appsec.s." + address
+    if key not in meta:
+        logger.info(f"Schema not found in span meta for {key}")
+    return meta.get(key)
 
 
 # can be used to match any value in a schema

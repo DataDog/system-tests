@@ -9,6 +9,7 @@ from utils import (
     weblog,
     features,
 )
+from utils.tools import logger
 from tests.appsec.api_security.utils import BaseAppsecApiSecurityRcTest
 
 
@@ -16,9 +17,13 @@ def get_schema(request, address):
     """Get api security schema from spans"""
     for _, _, span in interfaces.library.get_spans(request):
         meta = span.get("meta", {})
-        payload = meta.get("_dd.appsec.s." + address)
+        key = "_dd.appsec.s." + address
+        payload = meta.get(key)
         if payload is not None:
             return payload
+        else:
+            logger.info(f"Schema not found in span meta for {key}")
+
     return None
 
 
