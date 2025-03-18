@@ -157,9 +157,9 @@ check_pipeline_status:
         echo "❌ Error: Invalid JSON response from GitLab API."
         exit 1
       fi
-      echo "RMM CHECKING THE FAILED JOBS 0"
+      echo "RMM CHECKING THE FAILED JOBS paso0"
       FAILED_JOBS=$(echo "$RESPONSE" | jq '[.[] | select(.status == "failed")] | length')
-      echo "RMM CHECKING THE FAILED JOBS 1"
+      echo "RMM CHECKING THE FAILED JOBS - $FAILED_JOBS"
       echo "RMM CHECK THE CHILDPILELINE URL - $CI_API_V4_URL/projects/$CI_PROJECT_ID/pipelines/$CI_PIPELINE_ID/bridges"
       # Fetch child pipelines
       CHILD_PIPELINES=$(curl --silent --header "PRIVATE-TOKEN: $GITLAB_TOKEN" \
