@@ -344,6 +344,7 @@ tests/:
     test_customconf.py:
       Test_ConfRuleSet: v1.0.0.beta2
       Test_CorruptedRules: v1.0.0.beta2
+      Test_CorruptedRules_Telemetry: missing_feature
       Test_MissingRules: v1.0.0.beta2
       Test_NoLimitOnWafRules: v1.0.0.beta2
     test_event_tracking.py:

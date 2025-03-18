@@ -687,6 +687,7 @@ tests/:
       Test_ConfigurationVariables: v2.7.0
     test_customconf.py:
       Test_ConfRuleSet: v2.0.0
+      Test_CorruptedRules_Telemetry: missing_feature
       Test_MissingRules: v2.0.0
       Test_NoLimitOnWafRules: v2.4.0
     test_event_tracking.py:

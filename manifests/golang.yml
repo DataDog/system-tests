@@ -401,6 +401,7 @@ tests/:
     test_client_ip.py:
       Test_StandardTagsClientIp: v1.44.1
     test_customconf.py:
+      Test_CorruptedRules_Telemetry: missing_feature
       Test_NoLimitOnWafRules: v1.37.0
     test_event_tracking.py:
       Test_CustomEvent: v1.47.0
