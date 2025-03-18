@@ -45,7 +45,7 @@ class CiData:
         self.data["parametric"] = {
             "job_count": parametric_job_count,
             "job_matrix": list(range(1, parametric_job_count + 1)),
-            "enable": len(scenario_map["parametric"]) > 0 and "otel" not in library,
+            "enable": len(scenario_map["parametric"]) > 0 and "otel" not in library and "cpp_httpd" not in library,
         }
 
         self.data["libinjection_scenario_defs"] = get_k8s_matrix(
@@ -163,11 +163,12 @@ class CiData:
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(prog="get-ci-parameters", description="Get scenarios and weblogs to run")
     parser.add_argument(
-        "language",
+        "library",
         type=str,
         help="One of the supported Datadog library",
         choices=[
             "cpp",
+            "cpp_httpd",
             "dotnet",
             "python",
             "ruby",
@@ -219,7 +220,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     CiData(
-        library=args.language,
+        library=args.library,
         scenarios=args.scenarios,
         groups=args.groups,
         ci_environment=args.ci_environment,
