@@ -652,7 +652,7 @@ tests/:
   test_sampling_rates.py:
     Test_SampleRateFunction: missing_feature  # very flakey
     Test_SamplingDecisionAdded: v2.12.1  # real version unknown
-    Test_SamplingDecisions: missing_feature # very flakey
+    Test_SamplingDecisions: missing_feature  # very flakey
     Test_SamplingDeterminism: v2.12.1  # real version unknown
     Test_SamplingRates: missing_feature  # very flakey
   test_scrubbing.py:
