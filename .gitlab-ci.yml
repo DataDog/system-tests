@@ -157,7 +157,7 @@ check_pipeline_status:
 
         while true; do
           RESPONSE=$(curl --silent --header "PRIVATE-TOKEN: $GITLAB_TOKEN" "$url&page=$page&per_page=100")
-          
+
           # Validate JSON response
           if ! echo "$RESPONSE" | jq -e type > /dev/null 2>&1; then
             echo "❌ Error: Invalid JSON response from GitLab API."
