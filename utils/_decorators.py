@@ -76,6 +76,7 @@ def _expected_to_fail(condition=None, library=None, weblog_variant=None):
     if library is not None:
         if library not in (
             "cpp",
+            "cpp_httpd",
             "dotnet",
             "golang",
             "java",
@@ -181,6 +182,7 @@ def flaky(condition=None, library=None, weblog_variant=None, reason=None):
 
 def released(
     cpp=None,
+    cpp_httpd=None,
     dotnet=None,
     golang=None,
     java=None,
@@ -235,6 +237,7 @@ def released(
 
         skip_reasons = [
             compute_declaration("cpp", "cpp", cpp, context.library.version),
+            compute_declaration("cpp_httpd", "cpp_httpd", cpp_httpd, context.library.version),
             compute_declaration("dotnet", "dotnet", dotnet, context.library.version),
             compute_declaration("golang", "golang", golang, context.library.version),
             compute_declaration("java", "java", java, context.library.version),
