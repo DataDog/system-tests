@@ -220,7 +220,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     CiData(
-        library=args.language,
+        library=args.library,
         scenarios=args.scenarios,
         groups=args.groups,
         ci_environment=args.ci_environment,
