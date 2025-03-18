@@ -211,4 +211,8 @@ class SystemTestController < ApplicationController
     users = User.find_by_sql(query).to_a
     render plain: "DB request with #{users.size} results"
   end
+
+  def handle_path_params
+    render plain: 'OK'
+  end
 end

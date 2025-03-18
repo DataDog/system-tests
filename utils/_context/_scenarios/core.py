@@ -37,10 +37,8 @@ class ScenarioGroup(Enum):
 VALID_CI_WORKFLOWS = {
     None,
     "endtoend",
-    "graphql",
     "libinjection",
     "aws_ssi",
-    "opentelemetry",
     "parametric",
     "testthetest",
     "dockerssi",
@@ -49,7 +47,9 @@ VALID_CI_WORKFLOWS = {
 
 
 class Scenario:
-    def __init__(self, name, github_workflow, doc, scenario_groups=None) -> None:
+    def __init__(
+        self, name: str, github_workflow: str | None, doc: str, scenario_groups: list[ScenarioGroup] | None = None
+    ) -> None:
         self.name = name
         self.replay = False
         self.doc = doc
@@ -72,7 +72,7 @@ class Scenario:
         for group in self.scenario_groups:
             assert group in ScenarioGroup, f"Invalid scenario group {group} for {self.name}: {group}"
 
-    def _create_log_subfolder(self, subfolder, *, remove_if_exists=False):
+    def _create_log_subfolder(self, subfolder: str, *, remove_if_exists: bool = False):
         if self.replay:
             return
 
@@ -83,14 +83,14 @@ class Scenario:
 
         Path(path).mkdir(parents=True, exist_ok=True)
 
-    def __call__(self, test_object):
+    def __call__(self, test_object):  # noqa: ANN001 (tes_object can be a class or a class method)
         """Handles @scenarios.scenario_name"""
 
         pytest.mark.scenario(self.name)(test_object)
 
         return test_object
 
-    def pytest_configure(self, config):
+    def pytest_configure(self, config: pytest.Config):
         self.replay = config.option.replay
 
         # https://github.com/pytest-dev/pytest-xdist/issues/271#issuecomment-826396320
@@ -119,9 +119,9 @@ class Scenario:
 
         self.configure(config)
 
-    def configure(self, config): ...
+    def configure(self, config: pytest.Config): ...
 
-    def pytest_sessionstart(self, session):  # noqa: ARG002
+    def pytest_sessionstart(self, session: pytest.Session):  # noqa: ARG002
         """Called at the very begining of the process"""
 
         logger.terminal.write_sep("=", "test context", bold=True)
@@ -143,7 +143,7 @@ class Scenario:
     def post_setup(self, session: pytest.Session):
         """Called after test setup"""
 
-    def pytest_sessionfinish(self, session, exitstatus):
+    def pytest_sessionfinish(self, session: pytest.Session, exitstatus: int):
         """Called at the end of the process"""
 
     def close_targets(self):  # TODO remove this method
@@ -160,7 +160,7 @@ class Scenario:
     def get_junit_properties(self):
         return {"dd_tags[systest.suite.context.scenario]": self.name}
 
-    def customize_feature_parity_dashboard(self, result):
+    def customize_feature_parity_dashboard(self, result: dict):
         pass
 
     def __str__(self) -> str:

@@ -120,7 +120,7 @@ def _load_file(file_path):
         return json.load(f)
 
 
-class RC_CONSTANTS:
+class RemoteConfigConstants:
     CONFIG_ENABLED = (
         "datadog/2/ASM_FEATURES/asm_features_activation/config",
         {"asm": {"enabled": True}},
@@ -154,7 +154,7 @@ class RC_CONSTANTS:
     )
 
 
-class Base_Rules_Version:
+class BaseRulesVersion:
     """Test libddwaf version"""
 
     min_version = "1.13.3"
@@ -168,7 +168,7 @@ class Base_Rules_Version:
         assert any(validate_metric_tag_version("event_rules_version", min_version_array, s) for s in series)
 
 
-class Base_WAF_Version:
+class BaseWAFVersion:
     """Test libddwaf version"""
 
     min_version = "1.20.1"

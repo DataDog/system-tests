@@ -3,7 +3,7 @@ import os
 import time
 
 from utils import context, weblog, interfaces, scenarios, irrelevant, features
-from utils.tools import logger, get_rid_from_request
+from utils.tools import logger
 from utils.otel_validators.validator_trace import validate_all_traces
 from utils.otel_validators.validator_log import validate_log, validate_log_trace_correlation
 from utils.otel_validators.validator_metric import validate_metrics
@@ -93,7 +93,7 @@ class Test_OTelMetricE2E:
 
     def test_main(self):
         end = int(time.time())
-        rid = get_rid_from_request(self.r).lower()
+        rid = self.r.get_rid().lower()
         try:
             # The 1st account has metrics sent by DD Agent
             metrics_agent = [
@@ -151,7 +151,7 @@ class Test_OTelLogE2E:
         self.use_128_bits_trace_id = False
 
     def test_main(self):
-        rid = get_rid_from_request(self.r)
+        rid = self.r.get_rid()
         otel_trace_ids = set(interfaces.open_telemetry.get_otel_trace_id(request=self.r))
         assert len(otel_trace_ids) == 1
         dd_trace_id = _get_dd_trace_id(list(otel_trace_ids)[0], use_128_bits_trace_id=self.use_128_bits_trace_id)

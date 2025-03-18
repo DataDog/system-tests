@@ -97,6 +97,18 @@ try:
 except ImportError:
     set_user = lambda *args, **kwargs: None
 
+
+logging.basicConfig(
+    level=logging.INFO,
+    format=(
+        "%(asctime)s %(levelname)s [%(name)s] [%(filename)s:%(lineno)d] "
+        "[dd.service=%(dd.service)s dd.env=%(dd.env)s dd.version=%(dd.version)s dd.trace_id=%(dd.trace_id)s dd.span_id=%(dd.span_id)s] "
+        "- %(message)s"
+    ),
+)
+
+log = logging.getLogger(__name__)
+
 POSTGRES_CONFIG = dict(
     host="postgres",
     port="5433",
@@ -305,22 +317,27 @@ def waf(*args, **kwargs):
 ### BEGIN EXPLOIT PREVENTION
 
 
-@app.route("/rasp/lfi", methods=["GET", "POST"])
-def rasp_lfi(*args, **kwargs):
-    file = None
+def retrieve_arg(key: str):
+    res = None
     if request.method == "GET":
-        file = flask_request.args.get("file")
+        res = flask_request.args.get(key)
     elif request.method == "POST":
         try:
-            file = (request.form or request.json or {}).get("file")
+            res = (request.form or request.json or {}).get(key)
         except Exception as e:
             print(repr(e), file=sys.stderr)
         try:
-            if file is None:
-                file = xmltodict.parse(flask_request.data).get("file")
+            if res is None:
+                res = xmltodict.parse(flask_request.data).get(key)
         except Exception as e:
             print(repr(e), file=sys.stderr)
             pass
+    return res
+
+
+@app.route("/rasp/lfi", methods=["GET", "POST"])
+def rasp_lfi(*args, **kwargs):
+    file = retrieve_arg("file")
     if file is None:
         return Response("missing file parameter", status=400)
     try:
@@ -331,23 +348,26 @@ def rasp_lfi(*args, **kwargs):
         return f"{file} could not be open: {e!r}"
 
 
+@app.route("/rasp/multiple", methods=["GET", "POST"])
+def rasp_multiple(*args, **kwargs):
+    file1 = retrieve_arg("file1")
+    file2 = retrieve_arg("file2")
+    if file1 is None or file2 is None:
+        return Response("missing file1 or file2 parameter", status=400)
+    lengths = []
+    for file in [file1, file2, "../etc/passwd"]:
+        try:
+            with open(file, "rb") as f_in:
+                f_in.seek(0, os.SEEK_END)
+                lengths.append(f_in.tell())
+        except Exception:
+            lengths.append(0)
+    return Response(f"files open with {lengths} bytes")
+
+
 @app.route("/rasp/ssrf", methods=["GET", "POST"])
 def rasp_ssrf(*args, **kwargs):
-    domain = None
-    if request.method == "GET":
-        domain = flask_request.args.get("domain")
-    elif request.method == "POST":
-        try:
-            domain = (request.form or request.json or {}).get("domain")
-        except Exception as e:
-            print(repr(e), file=sys.stderr)
-        try:
-            if domain is None:
-                domain = xmltodict.parse(flask_request.data).get("domain")
-        except Exception as e:
-            print(repr(e), file=sys.stderr)
-            pass
-
+    domain = retrieve_arg("domain")
     if domain is None:
         return Response("missing domain parameter", status=400)
     try:
@@ -359,21 +379,7 @@ def rasp_ssrf(*args, **kwargs):
 
 @app.route("/rasp/sqli", methods=["GET", "POST"])
 def rasp_sqli(*args, **kwargs):
-    user_id = None
-    if request.method == "GET":
-        user_id = flask_request.args.get("user_id")
-    elif request.method == "POST":
-        try:
-            user_id = (request.form or request.json or {}).get("user_id")
-        except Exception as e:
-            print(repr(e), file=sys.stderr)
-        try:
-            if user_id is None:
-                user_id = xmltodict.parse(flask_request.data).get("user_id")
-        except Exception as e:
-            print(repr(e), file=sys.stderr)
-            pass
-
+    user_id = retrieve_arg("user_id")
     if user_id is None:
         return "missing user_id parameter", 400
     try:
@@ -391,21 +397,7 @@ def rasp_sqli(*args, **kwargs):
 
 @app.route("/rasp/shi", methods=["GET", "POST"])
 def rasp_shi(*args, **kwargs):
-    list_dir = None
-    if request.method == "GET":
-        list_dir = flask_request.args.get("list_dir")
-    elif request.method == "POST":
-        try:
-            list_dir = (request.form or request.json or {}).get("list_dir")
-        except Exception as e:
-            print(repr(e), file=sys.stderr)
-        try:
-            if list_dir is None:
-                list_dir = xmltodict.parse(flask_request.data).get("list_dir")
-        except Exception as e:
-            print(repr(e), file=sys.stderr)
-            pass
-
+    list_dir = retrieve_arg("list_dir")
     if list_dir is None:
         return "missing list_dir parameter", 400
     try:
@@ -1378,6 +1370,13 @@ def set_cookie():
     resp = Response("OK")
     resp.headers["Set-Cookie"] = f"{name}={value}"
     return resp
+
+
+@app.route("/log/library", methods=["GET"])
+def log_library():
+    message = flask_request.args.get("msg")
+    log.info(message)
+    return Response("OK")
 
 
 @app.route("/iast/insecure-cookie/test_insecure")

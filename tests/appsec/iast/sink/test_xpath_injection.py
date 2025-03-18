@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import features, weblog, rfc, context, flaky
+from utils import features, weblog, rfc
 from tests.appsec.iast.utils import BaseSinkTestWithoutTelemetry, validate_extended_location_data, validate_stack_traces
 
 
@@ -16,10 +16,6 @@ class TestXPathInjection(BaseSinkTestWithoutTelemetry):
     secure_endpoint = "/iast/xpathi/test_secure"
     data = {"expression": "expression"}
     location_map = {"java": "com.datadoghq.system_tests.iast.utils.XPathExamples"}
-
-    @flaky(context.library >= "dotnet@3.11.1", reason="APPSEC-56908")
-    def test_secure(self):
-        super().test_secure()
 
 
 @rfc(

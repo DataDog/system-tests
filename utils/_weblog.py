@@ -46,6 +46,10 @@ class GrpcResponse:
     def serialize(self) -> dict:
         return self._data | {"__class__": "GrpcResponse"}
 
+    def get_rid(self) -> str:
+        user_agent = next(v for k, v in self.request.headers.items() if k.lower() == "user-agent")
+        return user_agent[-36:]
+
 
 class HttpRequest:
     def __init__(self, data):
@@ -72,6 +76,10 @@ class HttpResponse:
 
     def __repr__(self) -> str:
         return f"HttpResponse(status_code:{self.status_code}, headers:{self.headers}, text:{self.text})"
+
+    def get_rid(self) -> str:
+        user_agent = next(v for k, v in self.request.headers.items() if k.lower() == "user-agent")
+        return user_agent[-36:]
 
 
 # TODO : this should be build by weblog container

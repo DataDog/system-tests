@@ -2,6 +2,7 @@ from utils import interfaces, bug, features, scenarios
 
 
 @features.client_side_stats_supported
+@scenarios.trace_stats_computation
 class Test_Miscs:
     @bug(library="golang", reason="APMAPI-919")
     def test_request_headers(self):
@@ -9,7 +10,7 @@ class Test_Miscs:
             "/v0.6/stats", r"content-type", r"application/msgpack(, application/msgpack)?"
         )
 
-    @scenarios.everything_disabled
+    @scenarios.default
     def test_disable(self):
         requests = list(interfaces.library.get_data("/v0.6/stats"))
         assert len(requests) == 0, "Stats should be disabled by default"

@@ -7,6 +7,7 @@ from utils.proxy import scrubber  # noqa: F401
 
 import json
 import os
+from pathlib import Path
 import time
 import types
 
@@ -127,7 +128,7 @@ def pytest_addoption(parser) -> None:
     )
 
 
-def pytest_configure(config) -> None:
+def pytest_configure(config: pytest.Config) -> None:
     if not config.option.force_dd_trace_debug and os.environ.get("SYSTEM_TESTS_FORCE_DD_TRACE_DEBUG") == "true":
         config.option.force_dd_trace_debug = True
 
@@ -239,19 +240,30 @@ def _get_skip_reason_from_marker(marker) -> str | None:
     return None
 
 
-def pytest_pycollect_makemodule(module_path, parent) -> None:
+def pytest_pycollect_makemodule(module_path: Path, parent) -> None | pytest.Module:
     # As now, declaration only works for tracers at module level
 
     library = context.scenario.library.library
 
     manifests = load_manifests()
 
-    nodeid = str(module_path.relative_to(module_path.cwd()))
+    path = module_path.relative_to(module_path.cwd())
 
-    if nodeid not in manifests or library not in manifests[nodeid]:
+    declaration: str | None = None
+    nodeid: str
+
+    # look in manifests for any declaration of this file, or on one of its parents
+    while str(path) != ".":
+        nodeid = f"{path!s}/" if path.is_dir() else str(path)
+
+        if nodeid in manifests and library in manifests[nodeid]:
+            declaration = manifests[nodeid][library]
+            break
+
+        path = path.parent
+
+    if declaration is None:
         return None
-
-    declaration: str = manifests[nodeid][library]
 
     logger.info(f"Manifest declaration found for {nodeid}: {declaration}")
 
@@ -365,7 +377,7 @@ def _item_must_pass(item) -> bool:
     if any(item.iter_markers("xfail")):
         return False
 
-    for marker in item.iter_markers("skipif"):
+    for marker in item.iter_markers("skipif"):  # noqa: SIM110 (it's more clear like that)
         if all(marker.args[0]):
             return False
 

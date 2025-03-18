@@ -6,7 +6,7 @@ from urllib.parse import urlparse
 from utils.tools import logger, get_rid_from_span
 
 
-def get_spans_related_to_rid(traces, rid):
+def get_spans_related_to_rid(traces: list, rid: str):
     if not isinstance(traces, list):
         logger.error("Traces should be an array")
         yield from []  # do notfail here, it's schema's job
@@ -17,7 +17,7 @@ def get_spans_related_to_rid(traces, rid):
                     yield span
 
 
-def get_trace_request_path(root_span):
+def get_trace_request_path(root_span: dict):
     if root_span.get("type") != "web":
         return None
 

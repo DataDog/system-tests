@@ -1006,12 +1006,12 @@ tests/:
       '*': *ref_5_25_0
       express4-typescript: incomplete_test_app
       nextjs: incomplete_test_app
-    Test_Config_LogInjection_128Bit_TraceId_Default:
-      '*': *ref_5_38_0
-      express4-typescript: incomplete_test_app (endpoint not implemented)
-      nextjs: incomplete_test_app (endpoint not implemented)
     Test_Config_LogInjection_128Bit_TraceId_Disabled:
       '*': *ref_3_15_0
+      express4-typescript: incomplete_test_app (endpoint not implemented)
+      nextjs: incomplete_test_app (endpoint not implemented)
+    Test_Config_LogInjection_128Bit_TraceId_Enabled:
+      '*': *ref_5_38_0
       express4-typescript: incomplete_test_app (endpoint not implemented)
       nextjs: incomplete_test_app (endpoint not implemented)
     Test_Config_LogInjection_Default:
@@ -1062,6 +1062,12 @@ tests/:
     Test_HeaderTags_Whitespace_Val_Short: *ref_4_11_0
   test_profiling.py:
     Test_Profile: *ref_5_16_0  #actual version unknown
+  test_sampling_rates.py:
+    Test_SampleRateFunction: bug (APMAPI-736)
+    Test_SamplingDecisionAdded: *ref_5_17_0  # real version unknown
+    Test_SamplingDecisions: bug (APMAPI-736)
+    Test_SamplingDeterminism: bug (APMAPI-736)
+    Test_SamplingRates: *ref_5_17_0  # real version unknown
   test_scrubbing.py:
     Test_UrlField: *ref_3_13_1
     Test_UrlQuery:

@@ -542,8 +542,8 @@ tests/:
     Test_Config_HttpServerErrorStatuses_FeatureFlagCustom: v3.5.0
     Test_Config_IntegrationEnabled_False: v3.5.0
     Test_Config_IntegrationEnabled_True: v3.5.0
-    Test_Config_LogInjection_128Bit_TraceId_Default: missing_feature (disabled by default)
     Test_Config_LogInjection_128Bit_TraceId_Disabled: incomplete_test_app (weblog endpoint not implemented)
+    Test_Config_LogInjection_128Bit_TraceId_Enabled: missing_feature (disabled by default)
     Test_Config_LogInjection_Default: incomplete_test_app (weblog endpoint not implemented)
     Test_Config_LogInjection_Enabled: incomplete_test_app (weblog endpoint not implemented)
     Test_Config_ObfuscationQueryStringRegexp_Configured: v3.4.1
@@ -586,6 +586,12 @@ tests/:
     Test_Profile:
       "*": v1.0  # real version not known
       uds: missing_feature (to be confirmed)
+  test_sampling_rates.py:
+    Test_SampleRateFunction: v3.11.1  # real version unknown
+    Test_SamplingDecisionAdded: v3.11.1  # real version unknown
+    Test_SamplingDecisions: bug (APMAPI-736)
+    Test_SamplingDeterminism: v3.11.1  # real version unknown
+    Test_SamplingRates: v3.11.1  # real version unknown
   test_scrubbing.py:
     Test_UrlField: v2.29.0
     Test_UrlQuery: v2.13.0
