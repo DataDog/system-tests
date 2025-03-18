@@ -142,7 +142,7 @@ class AWSPulumiProvider(VmProvider):
             tags=self._get_ec2_tags(vm),
             opts=self.pulumi_ssh.aws_key_resource,
             root_block_device={"volume_size": vm.aws_config.volume_size},
-            # iam_instance_profile=vm.aws_config.aws_infra_config.iam_instance_profile,
+            iam_instance_profile=vm.aws_config.aws_infra_config.iam_instance_profile,
             user_data=ec2_user_data,
         )
         # Store the private ip of the vm: store it in the vm object and export it. Log to vm_desc.log
