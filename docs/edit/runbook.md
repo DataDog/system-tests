@@ -8,7 +8,7 @@ Here's what you need to do!
 
 #### Summary
 
-This can be **easily fixed** in ~5 minutes
+This can be fixed with **~5 minutes of effort**.
 
 This is **caused by adding a new config option** without adding the associated config normalization rules to telemetry intake
 

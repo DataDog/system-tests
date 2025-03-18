@@ -57,7 +57,7 @@ class IntegrationsScenario(EndToEndScenario):
             scenario_groups=[ScenarioGroup.INTEGRATIONS, ScenarioGroup.APPSEC, ScenarioGroup.ESSENTIALS],
         )
 
-    def configure(self, config):
+    def configure(self, config: pytest.Config):
         super().configure(config)
         self.unique_id = _get_unique_id(self.host_log_folder, replay=self.replay)
 
@@ -95,14 +95,14 @@ class AWSIntegrationsScenario(EndToEndScenario):
 
     def __init__(
         self,
-        name="INTEGRATIONS_AWS",
+        name: str,
         *,
-        doc="Spawns tracer, and agent. Test AWS integrations.",
-        include_kafka=False,
-        include_rabbitmq=False,
-        include_buddies=False,
-        include_localstack=True,
-        include_elasticmq=True,
+        doc: str = "Spawns tracer, and agent. Test AWS integrations.",
+        include_kafka: bool = False,
+        include_rabbitmq: bool = False,
+        include_buddies: bool = False,
+        include_localstack: bool = True,
+        include_elasticmq: bool = True,
     ) -> None:
         super().__init__(
             name,
@@ -121,7 +121,7 @@ class AWSIntegrationsScenario(EndToEndScenario):
             scenario_groups=[ScenarioGroup.INTEGRATIONS, ScenarioGroup.ESSENTIALS],
         )
 
-    def configure(self, config):
+    def configure(self, config: pytest.Config):
         super().configure(config)
         self.unique_id = _get_unique_id(self.host_log_folder, replay=self.replay)
 
@@ -151,6 +151,6 @@ class CrossedTracingLibraryScenario(EndToEndScenario):
             },
         )
 
-    def configure(self, config):
+    def configure(self, config: pytest.Config):
         super().configure(config)
         self.unique_id = _get_unique_id(self.host_log_folder, replay=self.replay)

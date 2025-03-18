@@ -16,6 +16,8 @@ from django.db import connection
 from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse
 from django.urls import path
 from django.views.decorators.csrf import csrf_exempt
+from django.shortcuts import render
+from django.utils.safestring import mark_safe
 from moto import mock_aws
 import urllib3
 from iast import (
@@ -29,8 +31,13 @@ from iast import (
 
 import ddtrace
 from ddtrace import patch_all
-from ddtrace.trace import Pin, tracer
 from ddtrace.appsec import trace_utils as appsec_trace_utils
+
+try:
+    from ddtrace.trace import Pin, tracer
+except ImportError:
+    from ddtrace import tracer, Pin
+
 
 patch_all(urllib3=True)
 
@@ -148,22 +155,27 @@ def set_cookie(request):
 ### BEGIN EXPLOIT PREVENTION
 
 
-@csrf_exempt
-def rasp_lfi(request, *args, **kwargs):
-    file = None
+def retrieve_arg(request, key: str):
+    data = None
     if request.method == "GET":
-        file = request.GET.get("file")
+        data = request.GET.get(key)
     elif request.method == "POST":
         try:
-            file = (request.POST or json.loads(request.body)).get("file")
+            data = (request.POST or json.loads(request.body)).get(key)
         except Exception as e:
             print(repr(e), file=sys.stderr)
         try:
-            if file is None:
-                file = xmltodict.parse(request.body).get("file")
+            if data is None:
+                data = xmltodict.parse(request.body).get(key)
         except Exception as e:
             print(repr(e), file=sys.stderr)
             pass
+    return data
+
+
+@csrf_exempt
+def rasp_lfi(request, *args, **kwargs):
+    file = retrieve_arg(request, "file")
     if file is None:
         return HttpResponse("missing file parameter", status=400)
     try:
@@ -175,21 +187,25 @@ def rasp_lfi(request, *args, **kwargs):
 
 
 @csrf_exempt
+def rasp_multiple(request, *args, **kwargs):
+    file1 = retrieve_arg(request, "file1")
+    file2 = retrieve_arg(request, "file2")
+    if file1 is None or file2 is None:
+        return HttpResponse("missing file1 or file2 parameter", status=400)
+    lengths = []
+    for file in [file1, file2, "../etc/passwd"]:
+        try:
+            with open(file, "rb") as f_in:
+                f_in.seek(0, os.SEEK_END)
+                lengths.append(f_in.tell())
+        except Exception:
+            lengths.append(0)
+    return HttpResponse(f"files open with {lengths} bytes")
+
+
+@csrf_exempt
 def rasp_ssrf(request, *args, **kwargs):
-    domain = None
-    if request.method == "GET":
-        domain = request.GET.get("domain")
-    elif request.method == "POST":
-        try:
-            domain = (request.POST or json.loads(request.body)).get("domain")
-        except Exception as e:
-            print(repr(e), file=sys.stderr)
-        try:
-            if domain is None:
-                domain = xmltodict.parse(request.body).get("domain")
-        except Exception as e:
-            print(repr(e), file=sys.stderr)
-            pass
+    domain = retrieve_arg(request, "domain")
     if domain is None:
         return HttpResponse("missing domain parameter", status=400)
     try:
@@ -201,21 +217,7 @@ def rasp_ssrf(request, *args, **kwargs):
 
 @csrf_exempt
 def rasp_sqli(request, *args, **kwargs):
-    user_id = None
-    if request.method == "GET":
-        user_id = request.GET.get("user_id")
-    elif request.method == "POST":
-        try:
-            user_id = (request.POST or json.loads(request.body)).get("user_id")
-        except Exception as e:
-            print(repr(e), file=sys.stderr)
-        try:
-            if user_id is None:
-                user_id = xmltodict.parse(request.body).get("user_id")
-        except Exception as e:
-            print(repr(e), file=sys.stderr)
-            pass
-
+    user_id = retrieve_arg(request, "user_id")
     if user_id is None:
         return HttpResponse("missing user_id parameter", status=400)
     try:
@@ -233,21 +235,7 @@ def rasp_sqli(request, *args, **kwargs):
 
 @csrf_exempt
 def rasp_shi(request, *args, **kwargs):
-    list_dir = None
-    if request.method == "GET":
-        list_dir = request.GET.get("list_dir")
-    elif request.method == "POST":
-        try:
-            list_dir = (request.POST or json.loads(request.body)).get("list_dir")
-        except Exception as e:
-            print(repr(e), file=sys.stderr)
-        try:
-            if list_dir is None:
-                list_dir = xmltodict.parse(request.body).get("list_dir")
-        except Exception as e:
-            print(repr(e), file=sys.stderr)
-            pass
-
+    list_dir = retrieve_arg(request, "list_dir")
     if list_dir is None:
         return HttpResponse("missing list_dir parameter", status=400)
     try:
@@ -525,6 +513,53 @@ def view_iast_ssrf_secure(request):
     return HttpResponse("OK")
 
 
+@csrf_exempt
+def view_iast_xss_insecure(request):
+    param = request.POST.get("param", "")
+    # Validate the URL and enforce whitelist
+    return render(request, "index.html", {"param": mark_safe(param)})
+
+
+@csrf_exempt
+def view_iast_xss_secure(request):
+    param = request.POST.get("param", "")
+    # Validate the URL and enforce whitelist
+    return render(request, "index.html", {"param": param})
+
+
+@csrf_exempt
+def view_iast_stacktraceleak_insecure(request):
+    return HttpResponse("""
+  Traceback (most recent call last):
+  File "/usr/local/lib/python3.9/site-packages/some_module.py", line 42, in process_data
+    result = complex_calculation(data)
+  File "/usr/local/lib/python3.9/site-packages/another_module.py", line 158, in complex_calculation
+    intermediate = perform_subtask(data_slice)
+  File "/usr/local/lib/python3.9/site-packages/subtask_module.py", line 27, in perform_subtask
+    processed = handle_special_case(data_slice)
+  File "/usr/local/lib/python3.9/site-packages/special_cases.py", line 84, in handle_special_case
+    return apply_algorithm(data_slice, params)
+  File "/usr/local/lib/python3.9/site-packages/algorithm_module.py", line 112, in apply_algorithm
+    step_result = execute_step(data, params)
+  File "/usr/local/lib/python3.9/site-packages/step_execution.py", line 55, in execute_step
+    temp = pre_process(data)
+  File "/usr/local/lib/python3.9/site-packages/pre_processing.py", line 33, in pre_process
+    validated_data = validate_input(data)
+  File "/usr/local/lib/python3.9/site-packages/validation.py", line 66, in validate_input
+    check_constraints(data)
+  File "/usr/local/lib/python3.9/site-packages/constraints.py", line 19, in check_constraints
+    raise ValueError("Constraint violation at step 9")
+ValueError: Constraint violation at step 9
+
+Lorem Ipsum Foobar
+""")
+
+
+@csrf_exempt
+def view_iast_stacktraceleak_secure(request):
+    return HttpResponse("OK")
+
+
 def _sink_point_sqli(table="user", id="1"):
     sql = f"SELECT * FROM {table} WHERE id = '{id}'"
     with connection.cursor() as cursor:
@@ -732,13 +767,28 @@ def login(request):
     return HttpResponse("login failure", status=401)
 
 
+@csrf_exempt
+def signup_user(request):
+    from app.models import CustomUser
+
+    try:
+        username = request.POST.get("username")
+        password = request.POST.get("password")
+        email = request.POST.get("email")
+        user = CustomUser.objects.create_user(username=username, email=email, password=password, id="new-user")
+        user.save()
+        return HttpResponse("OK")
+    except Exception as e:
+        return HttpResponse(f"signup failure {e!r}", status=400)
+
+
 MAGIC_SESSION_KEY = "random_session_id"
 
 
 def session_new(request):
-    response = HttpResponse("OK")
-    response.set_cookie("session_id", MAGIC_SESSION_KEY)
-    return response
+    request.session.save()
+    session_id = request.session.session_key
+    return HttpResponse(session_id)
 
 
 def session_user(request):
@@ -905,6 +955,7 @@ urlpatterns = [
     path("set_cookie", set_cookie),
     path("rasp/cmdi", rasp_cmdi),
     path("rasp/lfi", rasp_lfi),
+    path("rasp/multiple", rasp_multiple),
     path("rasp/shi", rasp_shi),
     path("rasp/sqli", rasp_sqli),
     path("rasp/ssrf", rasp_ssrf),
@@ -942,6 +993,10 @@ urlpatterns = [
     path("iast/path_traversal/test_secure", view_iast_path_traversal_secure),
     path("iast/ssrf/test_insecure", view_iast_ssrf_insecure),
     path("iast/ssrf/test_secure", view_iast_ssrf_secure),
+    path("iast/xss/test_insecure", view_iast_xss_insecure),
+    path("iast/xss/test_secure", view_iast_xss_secure),
+    path("iast/stack_trace_leak/test_insecure", view_iast_stacktraceleak_insecure),
+    path("iast/stack_trace_leak/test_secure", view_iast_stacktraceleak_secure),
     path("iast/source/body/test", view_iast_source_body),
     path("iast/source/cookiename/test", view_iast_source_cookie_name),
     path("iast/source/cookievalue/test", view_iast_source_cookie_value),
@@ -961,6 +1016,7 @@ urlpatterns = [
     path("login", login),
     path("session/new", session_new),
     path("session/user", session_user),
+    path("signup", signup_user),
     path("custom_event", track_custom_event),
     path("read_file", read_file),
     path("mock_s3/put_object", s3_put_object),

@@ -42,7 +42,7 @@ To change Orchestrion version, create a file `orchestrion-load-from-go-get` unde
 
 ## Java library
 
-Follow these steps to run Parametric tests with a custom Java Tracer version:
+Follow these steps to run tests with a custom Java Tracer version:
 
 To run a custom Tracer version from a local branch:
 
@@ -64,7 +64,13 @@ By default you will be on the `master` branch, but if you'd like to run system-t
 
 Note, you should have only TWO jar files in `system-tests/binaries`. Do NOT copy sources or javadoc jars.
 
-4. Run Parametric tests from the `system-tests/parametric` folder:
+4. Build your selected weblog:
+
+```shell
+./build.sh java [--weblog-variant spring-boot]
+```
+
+5. Run tests from the `system-tests` folder:
 
 ```bash
 TEST_LIBRARY=java ./run.sh test_span_sampling.py::test_single_rule_match_span_sampling_sss001
@@ -142,9 +148,17 @@ echo “ddtrace @ git+https://github.com/DataDog/dd-trace-py.git@<name-of-your-b
 
 ## Ruby library
 
-* Create an file `ruby-load-from-bundle-add` in `binaries/`, the content will be installed by `bundle add`. Content example:
-  * `gem 'datadog', git: "https://github.com/Datadog/dd-trace-rb", branch: "master", require: 'datadog/auto_instrument'`
-2. Clone the dd-trace-rb repo inside `binaries`
+You have two ways to run system-tests with a custom Ruby Tracer version:
+
+1. Create `ruby-load-from-bundle-add` in `binaries` directory with the content that should be added to `Gemfile`. Content example:
+  * `gem 'datadog', git: 'https://github.com/Datadog/dd-trace-rb', branch: 'master', require: 'datadog/auto_instrument'`
+2. Clone the dd-trace-rb repo inside `binaries` and checkout the branch that you want to test against.
+
+You can also use `utils/scripts/watch.sh` script to sync your local `dd-trace-rb` repo into the `binaries` folder:
+
+```bash
+./utils/scripts/watch.sh /path/to/dd-trace-rb
+```
 
 ## WAF rule set
 

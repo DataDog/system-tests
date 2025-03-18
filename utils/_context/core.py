@@ -5,6 +5,9 @@
 """singleton exposing all about test context"""
 
 import json
+from typing import Any
+
+from utils._context.library_version import LibraryVersion
 
 
 class _Context:
@@ -15,7 +18,7 @@ class _Context:
 
     scenario = None  # will be set by pytest_configure
 
-    def _get_scenario_property(self, name, default):
+    def _get_scenario_property(self, name: str, default: Any) -> Any:  # noqa:ANN401
         if hasattr(self.scenario, name):
             return getattr(self.scenario, name)
 
@@ -42,7 +45,7 @@ class _Context:
         return self._get_scenario_property("uds_socket", None)
 
     @property
-    def library(self):
+    def library(self) -> LibraryVersion | None:
         return self._get_scenario_property("library", None)
 
     @property
@@ -80,6 +83,30 @@ class _Context:
     @property
     def configuration(self):
         return self._get_scenario_property("configuration", {})
+
+    @property
+    def vm_os_branch(self):
+        if not hasattr(self.scenario, "virtual_machine"):
+            return None
+
+        virtual_machine = self.scenario.virtual_machine
+        return virtual_machine.os_branch
+
+    @property
+    def vm_os_cpu(self):
+        if not hasattr(self.scenario, "virtual_machine"):
+            return None
+
+        virtual_machine = self.scenario.virtual_machine
+        return virtual_machine.os_cpu
+
+    @property
+    def vm_name(self):
+        if not hasattr(self.scenario, "virtual_machine"):
+            return None
+
+        virtual_machine = self.scenario.virtual_machine
+        return virtual_machine.name
 
     def serialize(self):
         result = {

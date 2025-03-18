@@ -9,8 +9,8 @@ from tests.appsec.rasp.utils import (
     validate_stack_traces,
     find_series,
     validate_metric_variant,
-    Base_Rules_Version,
-    Base_WAF_Version,
+    BaseRulesVersion,
+    BaseWAFVersion,
 )
 
 
@@ -179,13 +179,13 @@ class Test_Cmdi_Telemetry:
     def test_cmdi_telemetry(self):
         assert self.r.status_code == 403
 
-        series_eval = find_series(True, "appsec", "rasp.rule.eval")
+        series_eval = find_series("appsec", "rasp.rule.eval", is_metrics=True)
         assert series_eval
         assert any(validate_metric_variant("rasp.rule.eval", "command_injection", "exec", s) for s in series_eval), [
             s.get("tags") for s in series_eval
         ]
 
-        series_match = find_series(True, "appsec", "rasp.rule.match")
+        series_match = find_series("appsec", "rasp.rule.match", is_metrics=True)
         assert series_match
         assert any(validate_metric_variant("rasp.rule.match", "command_injection", "exec", s) for s in series_match), [
             s.get("tags") for s in series_match
@@ -204,13 +204,13 @@ class Test_Cmdi_Telemetry_Variant_Tag:
     def test_cmdi_telemetry(self):
         assert self.r.status_code == 403
 
-        series_eval = find_series(True, "appsec", "rasp.rule.eval")
+        series_eval = find_series("appsec", "rasp.rule.eval", is_metrics=True)
         assert series_eval
         assert any(validate_metric_variant("rasp.rule.eval", "command_injection", "exec", s) for s in series_eval), [
             s.get("tags") for s in series_eval
         ]
 
-        series_match = find_series(True, "appsec", "rasp.rule.match")
+        series_match = find_series("appsec", "rasp.rule.match", is_metrics=True)
         assert series_match
         assert any(validate_metric_variant("rasp.rule.match", "command_injection", "exec", s) for s in series_match), [
             s.get("tags") for s in series_match
@@ -228,14 +228,14 @@ class Test_Cmdi_Capability:
 
 
 @features.rasp_command_injection
-class Test_Cmdi_Rules_Version(Base_Rules_Version):
+class Test_Cmdi_Rules_Version(BaseRulesVersion):
     """Test cmdi min rules version"""
 
     min_version = "1.13.3"
 
 
 @features.rasp_command_injection
-class Test_Cmdi_Waf_Version(Base_WAF_Version):
+class Test_Cmdi_Waf_Version(BaseWAFVersion):
     """Test cmdi WAF version"""
 
     min_version = "1.21.0"

@@ -1,0 +1,6 @@
+{
+    "IdempotentParameterMismatch": "creating EC2 Instance: IdempotentParameterMismatch",
+    "InternalError": "last error: Server.InternalError: Internal error on launch",
+    "error_ssh_connection":"error: after 30 failed attempts:",
+    "error_pulumi_plugin":"error: could not read plugin"
+}

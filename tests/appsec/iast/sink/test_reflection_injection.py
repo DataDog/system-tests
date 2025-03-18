@@ -3,7 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 from utils import missing_feature, features, rfc, weblog
-from ..utils import BaseSinkTest, validate_stack_traces
+from tests.appsec.iast.utils import BaseSinkTest, validate_extended_location_data, validate_stack_traces
 
 
 @features.iast_sink_reflection_injection
@@ -24,9 +24,6 @@ class TestReflectionInjection(BaseSinkTest):
     def test_telemetry_metric_executed_sink(self):
         super().test_telemetry_metric_executed_sink()
 
-    def test_secure(self):
-        super().test_secure()
-
 
 @rfc(
     "https://docs.google.com/document/d/1ga7yCKq2htgcwgQsInYZKktV0hNlv4drY9XzSxT-o5U/edit?tab=t.0#heading=h.d0f5wzmlfhat"
@@ -40,3 +37,17 @@ class TestReflectionInjection_StackTrace:
 
     def test_stack_trace(self):
         validate_stack_traces(self.r)
+
+
+@rfc("https://docs.google.com/document/d/1R8AIuQ9_rMHBPdChCb5jRwPrg1WvIz96c_WQ3y8DWk4")
+@features.iast_extended_location
+class TestReflectionInjection_ExtendedLocation:
+    """Test extended location data"""
+
+    vulnerability_type = "REFLECTION_INJECTION"
+
+    def setup_extended_location_data(self):
+        self.r = weblog.post("/iast/reflection_injection/test_insecure", data={"param": "ReflectionInjection"})
+
+    def test_extended_location_data(self):
+        validate_extended_location_data(self.r, self.vulnerability_type)

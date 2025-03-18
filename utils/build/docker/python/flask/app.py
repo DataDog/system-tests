@@ -10,10 +10,12 @@ import threading
 import urllib.request
 
 import boto3
+import flask
 from moto import mock_aws
 import mock
 import urllib3
 import xmltodict
+import graphene
 
 
 if os.environ.get("INCLUDE_POSTGRES", "true") == "true":
@@ -29,10 +31,12 @@ if os.environ.get("INCLUDE_MYSQL", "true") == "true":
 from flask import Flask
 from flask import Response
 from flask import jsonify
+from flask import render_template_string
 from flask import request
 from flask import request as flask_request
 from flask_login import LoginManager
 from flask_login import login_user
+
 from iast import weak_cipher
 from iast import weak_cipher_secure_algorithm
 from iast import weak_hash
@@ -68,9 +72,8 @@ if os.environ.get("INCLUDE_RABBITMQ", "true") == "true":
     from integrations.messaging.rabbitmq import rabbitmq_produce
 
 import ddtrace
-from ddtrace.trace import Pin
-from ddtrace.trace import tracer
 from ddtrace.appsec import trace_utils as appsec_trace_utils
+from ddtrace.appsec.iast import ddtrace_iast_flask_patch
 from ddtrace.internal.datastreams import data_streams_processor
 from ddtrace.internal.datastreams.processor import DsmPathwayCodec
 from ddtrace.data_streams import set_consume_checkpoint
@@ -79,6 +82,13 @@ from ddtrace.data_streams import set_produce_checkpoint
 from debugger_controller import debugger_blueprint
 from exception_replay_controller import exception_replay_blueprint
 
+try:
+    from ddtrace.trace import Pin
+    from ddtrace.trace import tracer
+except ImportError:
+    from ddtrace import Pin
+    from ddtrace import tracer
+
 # Patch kombu and urllib3 since they are not patched automatically
 ddtrace.patch_all(kombu=True, urllib3=True)
 
@@ -86,6 +96,18 @@ try:
     from ddtrace.contrib.trace_utils import set_user
 except ImportError:
     set_user = lambda *args, **kwargs: None
+
+
+logging.basicConfig(
+    level=logging.INFO,
+    format=(
+        "%(asctime)s %(levelname)s [%(name)s] [%(filename)s:%(lineno)d] "
+        "[dd.service=%(dd.service)s dd.env=%(dd.env)s dd.version=%(dd.version)s dd.trace_id=%(dd.trace_id)s dd.span_id=%(dd.span_id)s] "
+        "- %(message)s"
+    ),
+)
+
+log = logging.getLogger(__name__)
 
 POSTGRES_CONFIG = dict(
     host="postgres",
@@ -112,11 +134,19 @@ del AIOMYSQL_CONFIG["database"]
 MARIADB_CONFIG = dict(AIOMYSQL_CONFIG)
 MARIADB_CONFIG["collation"] = "utf8mb4_unicode_520_ci"
 
-app = Flask(__name__)
-app.secret_key = "SECRET_FOR_TEST"
-app.config["SESSION_TYPE"] = "memcached"
-app.register_blueprint(debugger_blueprint)
-app.register_blueprint(exception_replay_blueprint)
+
+def main():
+    # IAST Flask patch
+    ddtrace_iast_flask_patch()
+    app = Flask(__name__)
+    app.secret_key = "SECRET_FOR_TEST"
+    app.config["SESSION_TYPE"] = "memcached"
+    app.register_blueprint(debugger_blueprint)
+    app.register_blueprint(exception_replay_blueprint)
+    return app
+
+
+app = main()
 login_manager = LoginManager()
 login_manager.login_view = "login"
 login_manager.init_app(app)
@@ -287,22 +317,27 @@ def waf(*args, **kwargs):
 ### BEGIN EXPLOIT PREVENTION
 
 
-@app.route("/rasp/lfi", methods=["GET", "POST"])
-def rasp_lfi(*args, **kwargs):
-    file = None
+def retrieve_arg(key: str):
+    res = None
     if request.method == "GET":
-        file = flask_request.args.get("file")
+        res = flask_request.args.get(key)
     elif request.method == "POST":
         try:
-            file = (request.form or request.json or {}).get("file")
+            res = (request.form or request.json or {}).get(key)
         except Exception as e:
             print(repr(e), file=sys.stderr)
         try:
-            if file is None:
-                file = xmltodict.parse(flask_request.data).get("file")
+            if res is None:
+                res = xmltodict.parse(flask_request.data).get(key)
         except Exception as e:
             print(repr(e), file=sys.stderr)
             pass
+    return res
+
+
+@app.route("/rasp/lfi", methods=["GET", "POST"])
+def rasp_lfi(*args, **kwargs):
+    file = retrieve_arg("file")
     if file is None:
         return Response("missing file parameter", status=400)
     try:
@@ -313,23 +348,26 @@ def rasp_lfi(*args, **kwargs):
         return f"{file} could not be open: {e!r}"
 
 
+@app.route("/rasp/multiple", methods=["GET", "POST"])
+def rasp_multiple(*args, **kwargs):
+    file1 = retrieve_arg("file1")
+    file2 = retrieve_arg("file2")
+    if file1 is None or file2 is None:
+        return Response("missing file1 or file2 parameter", status=400)
+    lengths = []
+    for file in [file1, file2, "../etc/passwd"]:
+        try:
+            with open(file, "rb") as f_in:
+                f_in.seek(0, os.SEEK_END)
+                lengths.append(f_in.tell())
+        except Exception:
+            lengths.append(0)
+    return Response(f"files open with {lengths} bytes")
+
+
 @app.route("/rasp/ssrf", methods=["GET", "POST"])
 def rasp_ssrf(*args, **kwargs):
-    domain = None
-    if request.method == "GET":
-        domain = flask_request.args.get("domain")
-    elif request.method == "POST":
-        try:
-            domain = (request.form or request.json or {}).get("domain")
-        except Exception as e:
-            print(repr(e), file=sys.stderr)
-        try:
-            if domain is None:
-                domain = xmltodict.parse(flask_request.data).get("domain")
-        except Exception as e:
-            print(repr(e), file=sys.stderr)
-            pass
-
+    domain = retrieve_arg("domain")
     if domain is None:
         return Response("missing domain parameter", status=400)
     try:
@@ -341,21 +379,7 @@ def rasp_ssrf(*args, **kwargs):
 
 @app.route("/rasp/sqli", methods=["GET", "POST"])
 def rasp_sqli(*args, **kwargs):
-    user_id = None
-    if request.method == "GET":
-        user_id = flask_request.args.get("user_id")
-    elif request.method == "POST":
-        try:
-            user_id = (request.form or request.json or {}).get("user_id")
-        except Exception as e:
-            print(repr(e), file=sys.stderr)
-        try:
-            if user_id is None:
-                user_id = xmltodict.parse(flask_request.data).get("user_id")
-        except Exception as e:
-            print(repr(e), file=sys.stderr)
-            pass
-
+    user_id = retrieve_arg("user_id")
     if user_id is None:
         return "missing user_id parameter", 400
     try:
@@ -373,21 +397,7 @@ def rasp_sqli(*args, **kwargs):
 
 @app.route("/rasp/shi", methods=["GET", "POST"])
 def rasp_shi(*args, **kwargs):
-    list_dir = None
-    if request.method == "GET":
-        list_dir = flask_request.args.get("list_dir")
-    elif request.method == "POST":
-        try:
-            list_dir = (request.form or request.json or {}).get("list_dir")
-        except Exception as e:
-            print(repr(e), file=sys.stderr)
-        try:
-            if list_dir is None:
-                list_dir = xmltodict.parse(flask_request.data).get("list_dir")
-        except Exception as e:
-            print(repr(e), file=sys.stderr)
-            pass
-
+    list_dir = retrieve_arg("list_dir")
     if list_dir is None:
         return "missing list_dir parameter", 400
     try:
@@ -426,6 +436,38 @@ def rasp_cmdi(*args, **kwargs):
 
 
 ### END EXPLOIT PREVENTION
+
+
+@app.route("/graphql", methods=["GET", "POST"])
+def graphql_error_spans(*args, **kwargs):
+    from integrations.graphql import Query
+
+    data = request.get_json()
+
+    schema = graphene.Schema(query=Query)
+
+    result = schema.execute(
+        data["query"],
+        variables=data.get("variables"),
+        operation_name=data.get("operationName"),
+    )
+
+    if result.errors:
+        return jsonify(format_error(result.errors)), 200
+
+    return jsonify(result.to_dict())
+
+
+def format_error(errors):
+    formatted_errors = []
+    for error in errors:
+        formatted_errors.append(
+            {
+                "message": error.message,
+                "extensions": error.extensions,
+            }
+        )
+    return {"errors": formatted_errors}
 
 
 @app.route("/read_file", methods=["GET"])
@@ -1196,6 +1238,20 @@ def view_iast_code_injection_secure():
     return resp
 
 
+@app.route("/iast/xss/test_insecure", methods=["POST"])
+def view_iast_xss_insecure():
+    param = flask_request.form["param"]
+
+    return render_template_string("<p>XSS: {{ param|safe }}</p>", param=param)
+
+
+@app.route("/iast/xss/test_secure", methods=["POST"])
+def view_iast_xss_secure():
+    param = flask_request.form["param"]
+
+    return render_template_string("<p>XSS: {{ param }}</p>", param=param)
+
+
 _TRACK_METADATA = {
     "metadata0": "value0",
     "metadata1": "value1",
@@ -1219,6 +1275,17 @@ def track_user_login_failure_event():
     return Response("OK")
 
 
+@app.before_request
+def before_request():
+    try:
+        current_user = DB_USER.get(flask.session.get("login"), None)
+        if current_user:
+            set_user(ddtrace.tracer, user_id=current_user.uid, email=current_user.email, mode="auto")
+    except Exception:
+        # to be compatible with all tracer versions
+        pass
+
+
 @app.route("/login", methods=["GET", "POST"])
 def login():
     username = flask_request.form.get("username")
@@ -1233,6 +1300,7 @@ def login():
         appsec_trace_utils.track_user_login_success_event(
             tracer, user_id=user.uid, login_events_mode="auto", login=username
         )
+        flask.session["login"] = user.login
     elif user:
         appsec_trace_utils.track_user_login_failure_event(
             tracer, user_id=user.uid, exists=True, login_events_mode="auto", login=username
@@ -1302,6 +1370,13 @@ def set_cookie():
     resp = Response("OK")
     resp.headers["Set-Cookie"] = f"{name}={value}"
     return resp
+
+
+@app.route("/log/library", methods=["GET"])
+def log_library():
+    message = flask_request.args.get("msg")
+    log.info(message)
+    return Response("OK")
 
 
 @app.route("/iast/insecure-cookie/test_insecure")
@@ -1377,6 +1452,40 @@ def test_weak_randomness_insecure():
 def test_weak_randomness_secure():
     random_secure = random.SystemRandom()
     _ = random_secure.randint(1, 100)
+    return Response("OK")
+
+
+@app.route("/iast/stack_trace_leak/test_insecure")
+def test_stacktrace_leak_insecure():
+    return Response(
+        """Traceback (most recent call last):
+File "/usr/local/lib/python3.9/site-packages/some_module.py", line 42, in process_data
+result = complex_calculation(data)
+File "/usr/local/lib/python3.9/site-packages/another_module.py", line 158, in complex_calculation
+intermediate = perform_subtask(data_slice)
+File "/usr/local/lib/python3.9/site-packages/subtask_module.py", line 27, in perform_subtask
+processed = handle_special_case(data_slice)
+File "/usr/local/lib/python3.9/site-packages/special_cases.py", line 84, in handle_special_case
+return apply_algorithm(data_slice, params)
+File "/usr/local/lib/python3.9/site-packages/algorithm_module.py", line 112, in apply_algorithm
+step_result = execute_step(data, params)
+File "/usr/local/lib/python3.9/site-packages/step_execution.py", line 55, in execute_step
+temp = pre_process(data)
+File "/usr/local/lib/python3.9/site-packages/pre_processing.py", line 33, in pre_process
+validated_data = validate_input(data)
+File "/usr/local/lib/python3.9/site-packages/validation.py", line 66, in validate_input
+check_constraints(data)
+File "/usr/local/lib/python3.9/site-packages/constraints.py", line 19, in check_constraints
+raise ValueError("Constraint violation at step 9")
+ValueError: Constraint violation at step 9
+
+Lorem Ipsum Foobar
+"""
+    )
+
+
+@app.route("/iast/stack_trace_leak/test_secure")
+def test_stacktrace_leak_secure():
     return Response("OK")
 
 
@@ -1565,3 +1674,14 @@ def otel_drop_in_default_propagator_inject():
     opentelemetry.propagate.inject(result, opentelemetry.context.get_current())
 
     return jsonify(result)
+
+
+@app.route("/inferred-proxy/span-creation", methods=["GET"])
+def inferred_proxy_span_creation():
+    headers = flask_request.args.get("headers", {})
+    status = int(flask_request.args.get("status_code", "200"))
+
+    logging.info("Received an API Gateway request")
+    logging.info("Request headers: " + str(headers))
+
+    return Response("ok", status=status)

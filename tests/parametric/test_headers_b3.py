@@ -87,15 +87,16 @@ class Test_Headers_B3:
             headers = test_library.dd_make_child_span_and_get_headers([])
 
         span = find_only_span(test_agent.wait_for_num_traces(1))
-        b3Arr = headers["b3"].split("-")
+        b3_arr = headers["b3"].split("-")
         logger.info(f"b3 header is {headers['b3']}")
-        b3_trace_id = b3Arr[0]
-        b3_span_id = b3Arr[1]
-        b3_sampling = b3Arr[2]
+        b3_trace_id = b3_arr[0]
+        b3_span_id = b3_arr[1]
+        b3_sampling = b3_arr[2]
 
         assert len(b3_trace_id) == 16 or len(b3_trace_id) == 32
         assert int(b3_trace_id[-16:], base=16) == span.get("trace_id")
-        assert int(b3_span_id, base=16) == span.get("span_id") and len(b3_span_id) == 16
+        assert int(b3_span_id, base=16) == span.get("span_id")
+        assert len(b3_span_id) == 16
         assert b3_sampling == "1" if span["metrics"].get(SAMPLING_PRIORITY_KEY) > 0 else "0"
         assert span["meta"].get(ORIGIN) is None
 
@@ -113,14 +114,15 @@ class Test_Headers_B3:
             )
 
         span = find_only_span(test_agent.wait_for_num_traces(1))
-        b3Arr = headers["b3"].split("-")
-        b3_trace_id = b3Arr[0]
-        b3_span_id = b3Arr[1]
-        b3_sampling = b3Arr[2]
+        b3_arr = headers["b3"].split("-")
+        b3_trace_id = b3_arr[0]
+        b3_span_id = b3_arr[1]
+        b3_sampling = b3_arr[2]
 
         assert len(b3_trace_id) == 16 or len(b3_trace_id) == 32
         assert int(b3_trace_id, base=16) == span.get("trace_id")
-        assert int(b3_span_id, base=16) == span.get("span_id") and len(b3_span_id) == 16
+        assert int(b3_span_id, base=16) == span.get("span_id")
+        assert len(b3_span_id) == 16
         assert b3_sampling == "1"
         assert span["meta"].get(ORIGIN) is None
 
@@ -139,14 +141,15 @@ class Test_Headers_B3:
         assert span.get("trace_id") != 0
         assert span.get("span_id") != 0
 
-        b3Arr = headers["b3"].split("-")
-        b3_trace_id = b3Arr[0]
-        b3_span_id = b3Arr[1]
-        b3_sampling = b3Arr[2]
+        b3_arr = headers["b3"].split("-")
+        b3_trace_id = b3_arr[0]
+        b3_span_id = b3_arr[1]
+        b3_sampling = b3_arr[2]
 
         assert len(b3_trace_id) == 16 or len(b3_trace_id) == 32
         assert int(b3_trace_id[-16:], base=16) == span.get("trace_id")
-        assert int(b3_span_id, base=16) == span.get("span_id") and len(b3_span_id) == 16
+        assert int(b3_span_id, base=16) == span.get("span_id")
+        assert len(b3_span_id) == 16
         assert b3_sampling == "1" if span["metrics"].get(SAMPLING_PRIORITY_KEY) > 0 else "0"
         assert span["meta"].get(ORIGIN) is None
 

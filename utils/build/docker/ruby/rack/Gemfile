@@ -4,4 +4,5 @@ gem 'rack-contrib'
 gem 'puma'
 gem 'pry'
 
+gem 'dogstatsd-ruby'
 gem 'ddtrace', '~> 1.0.0.a'

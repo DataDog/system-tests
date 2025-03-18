@@ -47,4 +47,9 @@ Rails.application.routes.draw do
 
   get '/requestdownstream' => 'system_test#request_downstream'
   get '/returnheaders' => 'system_test#return_headers'
+
+  get '/rasp/sqli' => 'system_test#rasp_sqli'
+  post '/rasp/sqli' => 'system_test#rasp_sqli'
+
+  get '/sample_rate_route/:i' => 'system_test#sample_rate_route'
 end

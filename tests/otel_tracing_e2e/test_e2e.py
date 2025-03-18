@@ -3,13 +3,13 @@ import os
 import time
 
 from utils import context, weblog, interfaces, scenarios, irrelevant, features
-from utils.tools import logger, get_rid_from_request
+from utils.tools import logger
 from utils.otel_validators.validator_trace import validate_all_traces
 from utils.otel_validators.validator_log import validate_log, validate_log_trace_correlation
 from utils.otel_validators.validator_metric import validate_metrics
 
 
-def _get_dd_trace_id(otel_trace_id: str, use_128_bits_trace_id: bool) -> int:
+def _get_dd_trace_id(otel_trace_id: str, *, use_128_bits_trace_id: bool) -> int:
     otel_trace_id_bytes = base64.b64decode(otel_trace_id)
     if use_128_bits_trace_id:
         return int.from_bytes(otel_trace_id_bytes, "big")
@@ -27,7 +27,10 @@ class Test_OTelTracingE2E:
     def test_main(self):
         otel_trace_ids = set(interfaces.open_telemetry.get_otel_trace_id(request=self.r))
         assert len(otel_trace_ids) == 2
-        dd_trace_ids = [_get_dd_trace_id(otel_trace_id, self.use_128_bits_trace_id) for otel_trace_id in otel_trace_ids]
+        dd_trace_ids = [
+            _get_dd_trace_id(otel_trace_id, use_128_bits_trace_id=self.use_128_bits_trace_id)
+            for otel_trace_id in otel_trace_ids
+        ]
 
         try:
             # The 1st account has traces sent by DD Agent
@@ -90,7 +93,7 @@ class Test_OTelMetricE2E:
 
     def test_main(self):
         end = int(time.time())
-        rid = get_rid_from_request(self.r).lower()
+        rid = self.r.get_rid().lower()
         try:
             # The 1st account has metrics sent by DD Agent
             metrics_agent = [
@@ -148,10 +151,10 @@ class Test_OTelLogE2E:
         self.use_128_bits_trace_id = False
 
     def test_main(self):
-        rid = get_rid_from_request(self.r)
+        rid = self.r.get_rid()
         otel_trace_ids = set(interfaces.open_telemetry.get_otel_trace_id(request=self.r))
         assert len(otel_trace_ids) == 1
-        dd_trace_id = _get_dd_trace_id(list(otel_trace_ids)[0], self.use_128_bits_trace_id)
+        dd_trace_id = _get_dd_trace_id(list(otel_trace_ids)[0], use_128_bits_trace_id=self.use_128_bits_trace_id)
 
         # The 1st account has logs and traces sent by Agent
         try:

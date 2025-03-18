@@ -110,6 +110,11 @@ app.get('/identify', (req, res) => {
   res.send('OK')
 })
 
+app.get('/session/new', (req, res) => {
+  req.session.someData = 'blabla' // needed for the session to be saved
+  res.send(req.sessionID)
+})
+
 app.get('/status', (req, res) => {
   res.status(parseInt(req.query.code)).send('OK')
 })
@@ -178,6 +183,8 @@ app.get('/users', (req, res) => {
   } else {
     user.id = 'anonymous'
   }
+
+  tracer.setUser(user)
 
   const shouldBlock = tracer.appsec.isUserBlocked(user)
   if (shouldBlock) {

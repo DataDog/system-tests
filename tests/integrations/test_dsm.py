@@ -648,16 +648,14 @@ class Test_Dsm_Manual_Checkpoint_Inter_Process:
 
 class DsmHelper:
     @staticmethod
-    def is_tags_included(actual_tags, expected_tags):
+    def is_tags_included(actual_tags, expected_tags) -> bool:
         assert isinstance(actual_tags, tuple)
         assert isinstance(expected_tags, tuple)
-        for expected_tag in expected_tags:
-            if expected_tag not in actual_tags:
-                return False
-        return True
+
+        return all(expected_tag in actual_tags for expected_tag in expected_tags)
 
     @staticmethod
-    def assert_checkpoint_presence(hash_, parent_hash, tags):
+    def assert_checkpoint_presence(hash_, parent_hash, tags) -> None:
         assert isinstance(tags, tuple)
 
         logger.info(f"Look for {hash_}, {parent_hash}, {tags}")

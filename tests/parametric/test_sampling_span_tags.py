@@ -20,11 +20,13 @@ class AnyRatio:
 
 
 def _get_spans(test_agent, test_library, child_span_tag=None):
-    with test_library:
-        with test_library.dd_start_span(name="parent", service="webserver") as ps:
-            with test_library.dd_start_span(name="child", service="webserver", parent_id=ps.span_id) as cs:
-                if child_span_tag:
-                    cs.set_meta(child_span_tag, None)
+    with (
+        test_library,
+        test_library.dd_start_span(name="parent", service="webserver") as ps,
+        test_library.dd_start_span(name="child", service="webserver", parent_id=ps.span_id) as cs,
+    ):
+        if child_span_tag:
+            cs.set_meta(child_span_tag, None)
 
     traces = test_agent.wait_for_num_spans(2, clear=True, sort_by_start=False)
 
@@ -33,11 +35,11 @@ def _get_spans(test_agent, test_library, child_span_tag=None):
     return parent_span, child_span, traces[0][0]
 
 
-def _assert_equal(elemA, elemB, description):
-    if isinstance(elemB, tuple):
-        assert elemA in elemB, f"{description}\n{elemA} not in {elemB}"
+def _assert_equal(elem_a, elem_b, description):
+    if isinstance(elem_b, tuple):
+        assert elem_a in elem_b, f"{description}\n{elem_a} not in {elem_b}"
     else:
-        assert elemA == elemB, f"{description}\n{elemA} != {elemB}"
+        assert elem_a == elem_b, f"{description}\n{elem_a} != {elem_b}"
 
 
 def _assert_sampling_tags(

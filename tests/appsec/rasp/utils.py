@@ -9,17 +9,14 @@ from utils import interfaces
 
 def validate_span_tags(request, expected_meta=(), expected_metrics=()):
     """Validate RASP span tags are added when an event is generated"""
-    spans = [s for _, s in interfaces.library.get_root_spans(request=request)]
-    assert spans, "No spans to validate"
+    span = interfaces.library.get_root_span(request)
+    meta = span["meta"]
+    for m in expected_meta:
+        assert m in meta, f"missing span meta tag `{m}` in {meta}"
 
-    for span in spans:
-        meta = span["meta"]
-        for m in expected_meta:
-            assert m in meta, f"missing span meta tag `{m}` in {meta}"
-
-        metrics = span["metrics"]
-        for m in expected_metrics:
-            assert m in metrics, f"missing span metric tag `{m}` in {metrics}"
+    metrics = span["metrics"]
+    for m in expected_metrics:
+        assert m in metrics, f"missing span metric tag `{m}` in {metrics}"
 
 
 def validate_stack_traces(request):
@@ -67,7 +64,12 @@ def validate_stack_traces(request):
             assert len(stack["frames"]) <= 32, "stack trace above size limit (32 frames)"
 
 
-def find_series(is_metrics: bool, namespace, metric):
+def find_series(
+    namespace,
+    metric,
+    *,
+    is_metrics: bool,
+):
     request_type = "generate-metrics" if is_metrics else "distributions"
     series = []
     for data in interfaces.library.get_telemetry_data():
@@ -118,7 +120,7 @@ def _load_file(file_path):
         return json.load(f)
 
 
-class RC_CONSTANTS:
+class RemoteConfigConstants:
     CONFIG_ENABLED = (
         "datadog/2/ASM_FEATURES/asm_features_activation/config",
         {"asm": {"enabled": True}},
@@ -152,7 +154,7 @@ class RC_CONSTANTS:
     )
 
 
-class Base_Rules_Version:
+class BaseRulesVersion:
     """Test libddwaf version"""
 
     min_version = "1.13.3"
@@ -161,12 +163,12 @@ class Base_Rules_Version:
         """Checks data in waf.init metric to verify waf version"""
 
         min_version_array = list(map(int, self.min_version.split(".")))
-        series = find_series(True, "appsec", "waf.init")
+        series = find_series("appsec", "waf.init", is_metrics=True)
         assert series
         assert any(validate_metric_tag_version("event_rules_version", min_version_array, s) for s in series)
 
 
-class Base_WAF_Version:
+class BaseWAFVersion:
     """Test libddwaf version"""
 
     min_version = "1.20.1"
@@ -175,6 +177,6 @@ class Base_WAF_Version:
         """Checks data in waf.init metric to verify waf version"""
 
         min_version_array = list(map(int, self.min_version.split(".")))
-        series = find_series(True, "appsec", "waf.init")
+        series = find_series("appsec", "waf.init", is_metrics=True)
         assert series
         assert any(validate_metric_tag_version("waf_version", min_version_array, s) for s in series)

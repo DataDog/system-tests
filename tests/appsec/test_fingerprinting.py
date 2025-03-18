@@ -91,9 +91,9 @@ class Test_Fingerprinting_Session:
     session_fingerprint_regex = r"ssn-[^-]*-[^-]*-[^-]*-[^-]*"
 
     def setup_session(self):
-        self.r_create_session = weblog.get("session/new")
+        self.r_create_session = weblog.get("/session/new")
         self.cookies = self.r_create_session.cookies
-        self.r_user = weblog.get("session/user?sdk_user=sdkUser", cookies=self.cookies)
+        self.r_user = weblog.get("/user_login_success_event", cookies=self.cookies)
 
     def test_session(self):
         assert self.r_create_session.status_code == 200

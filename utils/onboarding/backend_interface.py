@@ -10,15 +10,44 @@ API_HOST = "https://dd.datadoghq.com"
 
 
 def wait_backend_trace_id(trace_id, profile: bool = False, validator=None):
+    logger.info(f"Waiting for backend trace with trace_id: {trace_id}")
     runtime_id = _query_for_trace_id(trace_id, validator=validator)
+    assert runtime_id, f"Could not find runtime-id for trace_id: {trace_id}"
     if profile:
         _query_for_profile(runtime_id)
 
 
 def _headers():
+    """The backend can raise a 429 error if the rate limit is reached.
+    We can use several app keys trying to avoid the rate limit.
+    """
+    # Retrieve the mandatory API and APP keys.
+    api_key = os.getenv("DD_API_KEY_ONBOARDING")
+    app_key = os.getenv("DD_APP_KEY_ONBOARDING")
+
+    if not api_key or not app_key:
+        raise ValueError("Mandatory API or APP key is missing.")
+
+    # Start with the mandatory pair.
+    pairs = [(api_key, app_key)]
+
+    # Check for additional numbered pairs.
+    index = 2
+    while True:
+        candidate_api = os.getenv(f"DD_API_KEY_ONBOARDING_{index}")
+        candidate_app = os.getenv(f"DD_APP_KEY_ONBOARDING_{index}")
+        if candidate_api and candidate_app:
+            pairs.append((candidate_api, candidate_app))
+            index += 1
+        else:
+            break
+
+    # Randomly select one of the available pairs.
+    chosen_api, chosen_app = random.choice(pairs)
+
     return {
-        "DD-API-KEY": os.getenv("DD_API_KEY_ONBOARDING"),
-        "DD-APPLICATION-KEY": os.getenv("DD_APP_KEY_ONBOARDING"),
+        "DD-API-KEY": chosen_api,
+        "DD-APPLICATION-KEY": chosen_app,
     }
 
 

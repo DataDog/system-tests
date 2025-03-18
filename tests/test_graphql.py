@@ -3,6 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 import json
+from typing import Any
 from utils import (
     interfaces,
     rfc,
@@ -32,7 +33,32 @@ class Test_GraphQLQueryErrorReporting:
 
     def test_execute_error_span_event(self):
         """Test if the main GraphQL span contains a span event with the appropriate error information.
-        The error extensions allowed are DD_TRACE_GRAPHQL_ERROR_EXTENSIONS=int,float,str,bool,other.
+        The /graphql endpoint must support the query `query myQuery { withError }` which will return an
+        error response with the following structure:
+        {
+            "errors": [
+                {
+                    "message": <the application error message (string)>,
+                    "locations": [
+                        {
+                            "line": <line number (int)>,
+                            "column": <column number (int)>
+                        }
+                    ],
+                    "path": <path to the field in the query (array of strings)>,
+                    "extensions": {
+                        "int": 1,
+                        "float": 1.1,
+                        "str": "1",
+                        "bool": true,
+                        "other": [1, "foo"],
+                        "not_captured": <any value>
+                    }
+                }
+            ],
+            "data": <may or may not be present, GraphQL-library dependent>
+        }
+        The error extensions allowed in this test are DD_TRACE_GRAPHQL_ERROR_EXTENSIONS=int,float,str,bool,other.
         """
 
         assert self.request.status_code == 200
@@ -77,17 +103,39 @@ class Test_GraphQLQueryErrorReporting:
         # This test simulates an object that is not a supported scalar above (int,float,string,boolean).
         # This object should be serialized as a string, either using the language's default serialization or
         # JSON serialization of the object.
-        # The goal here is to display the original as well as possible in the UI, without supporting arbitrary
-        # nested levels inside `span_event.attributes`.
-        # use regex to match the list format
+        # The goal here is to display the original data with as much fidelity as possible, without allowing
+        # for arbitrary nested levels inside `span_event.attributes`.
         assert "1" in attributes["extensions.other"]
         assert "foo" in attributes["extensions.other"]
 
         assert "extensions.not_captured" not in attributes
 
     @staticmethod
-    def _get_events(span):
+    def _get_events(span) -> dict:
         if "events" in span["meta"]:
             return json.loads(span["meta"]["events"])
         else:
-            return span["span_events"]
+            events = span["span_events"]
+            for event in events:
+                attributes = event["attributes"]
+
+                for key, value in attributes.items():
+                    attributes[key] = Test_GraphQLQueryErrorReporting._parse_event_value(value)
+
+            return events
+
+    @staticmethod
+    def _parse_event_value(value) -> int | str | bool | float | list[Any]:
+        type_ = value["type"]
+        if type_ == 0:
+            return value["string_value"]
+        elif type_ == 1:
+            return value["bool_value"]
+        elif type_ == 2:
+            return value["int_value"]
+        elif type_ == 3:
+            return value["double_value"]
+        elif type_ == 4:
+            return [Test_GraphQLQueryErrorReporting._parse_event_value(v) for v in value["array_value"]]
+        else:
+            raise ValueError(f"Unsupported span event attribute type {type_} for: {value}")

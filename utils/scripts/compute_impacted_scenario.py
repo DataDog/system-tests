@@ -11,6 +11,21 @@ class Result:
         self.scenarios = {"DEFAULT"}  # always run the default scenario
         self.scenarios_groups: set[str] = set()
 
+    def add_scenario_requirement(
+        self, scenario_requirement: Scenario | ScenarioGroup | list[Scenario | ScenarioGroup] | None
+    ) -> None:
+        if scenario_requirement is None:
+            pass
+        elif isinstance(scenario_requirement, list):
+            for req in scenario_requirement:
+                self.add_scenario_requirement(req)
+        elif isinstance(scenario_requirement, Scenario):
+            self.add_scenario(scenario_requirement.name)
+        elif isinstance(scenario_requirement, ScenarioGroup):
+            self.add_scenario_group(scenario_requirement.value)
+        else:
+            raise TypeError(f"Unknown scenario requirement: {scenario_requirement}.")
+
     def add_scenario(self, scenario: str) -> None:
         if scenario == "EndToEndScenario":
             self.add_scenario_group(ScenarioGroup.END_TO_END.value)
@@ -53,16 +68,25 @@ class Result:
 def main() -> None:
     result = Result()
 
-    event_name = os.environ["GITHUB_EVENT_NAME"]
-    ref = os.environ["GITHUB_REF"]
+    if "GITLAB_CI" in os.environ:
+        event_name = os.environ["CI_PIPELINE_SOURCE"]
+        ref = os.environ["CI_COMMIT_REF_NAME"]
+        print("CI_PIPELINE_SOURCE=" + event_name)
+        print("CI_COMMIT_REF_NAME=" + ref)
+        is_gilab = True
+    else:
+        event_name = os.environ["GITHUB_EVENT_NAME"]
+        ref = os.environ["GITHUB_REF"]
+        is_gilab = False
 
     if event_name == "schedule" or ref == "refs/heads/main":
         result.add_scenario_group(ScenarioGroup.ALL.value)
 
-    elif event_name == "pull_request":
-        labels = json.loads(os.environ["GITHUB_PULL_REQUEST_LABELS"])
-        label_names = [label["name"] for label in labels]
-        result.handle_labels(label_names)
+    elif event_name in ("pull_request", "push"):
+        if not is_gilab:
+            labels = json.loads(os.environ["GITHUB_PULL_REQUEST_LABELS"])
+            label_names = [label["name"] for label in labels]
+            result.handle_labels(label_names)
 
         # this file is generated with
         # ./run.sh MOCK_THE_TEST --collect-only --scenario-report
@@ -129,94 +153,89 @@ def main() -> None:
                 # * None: no scenario will be run
                 # * a member of ScenarioGroup: the scenario group will be run
                 # * a Scenario: the scenario will be run
-                files_map = {
-                    ## scenarios specific folder
-                    r"parametric/.*": None,  # Legacy folder
-                    r"lib-injection/.*": ScenarioGroup.LIB_INJECTION,
-                    ## nothing to do folders
-                    r"manifests/.*": None,  # already handled by the manifest comparison
-                    r"docs/.*": None,  # nothing to do
-                    r"binaries/.*": None,  # nothing to do
-                    r"\.circleci/.*": None,  # nothing to do
-                    r"\.vscode/.*": None,  # nothing to do
-                    ## .github folder
-                    r"\.github/workflows/run-parametric\.yml": scenarios.parametric,
-                    r"\.github/workflows/run-lib-injection\.yml": ScenarioGroup.LIB_INJECTION,
-                    r"\.github/workflows/run-docker-ssi\.yml": ScenarioGroup.DOCKER_SSI,
-                    r"\.github/workflows/run-graphql\.yml": ScenarioGroup.GRAPHQL,
-                    r"\.github/workflows/run-open-telemetry\.yml": ScenarioGroup.OPEN_TELEMETRY,
-                    r"\.github/.*": None,  # nothing to do??
-                    ## .gitlab folder
-                    r"\.gitlab/k8s_gitlab-ci.yml": ScenarioGroup.LIB_INJECTION,
-                    ## utils/ folder
-                    r"utils/interfaces/schemas.*": ScenarioGroup.END_TO_END,
-                    r"utils/_context/_scenarios/open_telemetry\.py": ScenarioGroup.OPEN_TELEMETRY,
-                    r"utils/scripts/compute_impacted_scenario\.py": None,
-                    r"utils/scripts/check_version\.sh": None,
-                    r"utils/scripts/get-nightly-logs\.py": None,
-                    #### Default scenario
-                    r"utils/_context/_scenarios/default\.py": None,  # the default scenario is always executed
-                    #### K8s lib injection
-                    r"utils/k8s_lib_injection.*": ScenarioGroup.LIB_INJECTION,
-                    r"lib-injection.*": ScenarioGroup.LIB_INJECTION,
-                    #### Onboarding cases
-                    r"utils/onboarding.*": None,
-                    r"utils/virtual_machine.*": None,
-                    r"utils/build/virtual_machine.*": None,
-                    r"utils/_context/_scenarios/auto_injection\.py": None,
-                    r"utils/_context/virtual_machine\.py": None,
-                    #### Parametric case
-                    r"utils/build/docker/\w+/parametric/.*": scenarios.parametric,
-                    r"utils/_context/_scenarios/parametric\.py": scenarios.parametric,
-                    r"utils/parametric/.*": scenarios.parametric,
-                    r"utils/scripts/parametric/.*": scenarios.parametric,
-                    #### Docker SSI case
-                    r"utils/docker_ssi/.*": ScenarioGroup.DOCKER_SSI,
-                    ### other scenarios def
-                    r"utils/_context/_scenarios/integrations\.py": ScenarioGroup.INTEGRATIONS,
-                    r"utils/_context/_scenarios/profiling\.py": ScenarioGroup.PROFILING,
-                    r"utils/_context/_scenarios/ipv6\.py": ScenarioGroup.IPV6,
-                    r"utils/_context/_scenarios/appsec_low_waf_timeout\.py": scenarios.appsec_low_waf_timeout,
-                    ### otel weblog
-                    r"utils/build/docker/nodejs_otel/.*": ScenarioGroup.OPEN_TELEMETRY,
-                    ### else, run all
-                    r"utils/.*": ScenarioGroup.ALL,
-                    ## few files with no effect
+                # * a list of ScenarioGroup or Scenario: all elements will be run
+                #
+                # please keep this keys sorted as they would have been in a file explorer
+                files_map: dict[str, ScenarioGroup | Scenario | list[ScenarioGroup | Scenario] | None] = {
+                    r"\.circleci/.*": None,
+                    r"\.vscode/.*": None,
                     r"\.github/CODEOWNERS": None,
+                    r"\.github/workflows/run-docker-ssi\.yml": ScenarioGroup.DOCKER_SSI,
+                    r"\.github/workflows/run-end-to-end\.yml": ScenarioGroup.END_TO_END,
+                    r"\.github/workflows/run-graphql\.yml": ScenarioGroup.GRAPHQL,
+                    r"\.github/workflows/run-lib-injection\.yml": ScenarioGroup.LIB_INJECTION,
+                    r"\.github/workflows/run-open-telemetry\.yml": ScenarioGroup.OPEN_TELEMETRY,
+                    r"\.github/workflows/run-parametric\.yml": scenarios.parametric,
+                    r"\.github/.*": None,
+                    r"\.gitlab/aws_gitlab-ci.yml": ScenarioGroup.ONBOARDING,
+                    r"\.gitlab/k8s_gitlab-ci.yml": ScenarioGroup.LIB_INJECTION,
+                    r"\.gitlab/ssi_gitlab-ci.yml": ScenarioGroup.ONBOARDING,
+                    r"binaries/.*": None,
+                    r"docs/.*": None,
+                    r"lib-injection/.*": ScenarioGroup.LIB_INJECTION,
+                    r"manifests/.*": None,  # already handled by the manifest comparison
+                    r"utils/_context/_scenarios/appsec_low_waf_timeout\.py": scenarios.appsec_low_waf_timeout,
+                    r"utils/_context/_scenarios/auto_injection\.py": ScenarioGroup.ONBOARDING,
+                    r"utils/_context/_scenarios/default\.py": scenarios.default,
+                    r"utils/_context/_scenarios/integrations\.py": ScenarioGroup.INTEGRATIONS,
+                    r"utils/_context/_scenarios/ipv6\.py": ScenarioGroup.IPV6,
+                    r"utils/_context/_scenarios/open_telemetry\.py": ScenarioGroup.OPEN_TELEMETRY,
+                    r"utils/_context/_scenarios/parametric\.py": scenarios.parametric,
+                    r"utils/_context/_scenarios/profiling\.py": ScenarioGroup.PROFILING,
+                    r"utils/_context/virtual_machine\.py": ScenarioGroup.ONBOARDING,
+                    r"utils/build/docker/java_otel/.*": ScenarioGroup.OPEN_TELEMETRY,
+                    r"utils/build/docker/nodejs_otel/.*": ScenarioGroup.OPEN_TELEMETRY,
+                    r"utils/build/docker/python_otel/.*": ScenarioGroup.OPEN_TELEMETRY,
+                    r"utils/build/docker/\w+/parametric/.*": scenarios.parametric,
+                    r"utils/build/docker/.*": [
+                        ScenarioGroup.END_TO_END,
+                        ScenarioGroup.OPEN_TELEMETRY,
+                    ],
+                    r"utils/build/ssi/.*": ScenarioGroup.DOCKER_SSI,
+                    r"utils/build/virtual_machine/.*": ScenarioGroup.ONBOARDING,
+                    r"utils/docker_ssi/.*": ScenarioGroup.DOCKER_SSI,
+                    r"utils/interfaces/schemas.*": ScenarioGroup.END_TO_END,
+                    r"utils/k8s_lib_injection.*": ScenarioGroup.LIB_INJECTION,
+                    r"utils/onboarding.*": ScenarioGroup.ONBOARDING,
+                    r"utils/parametric/.*": scenarios.parametric,
+                    r"utils/proxy/.*": [
+                        ScenarioGroup.END_TO_END,
+                        ScenarioGroup.OPEN_TELEMETRY,
+                        ScenarioGroup.EXTERNAL_PROCESSING,
+                    ],
+                    r"utils/scripts/check_version\.sh": None,
+                    r"utils/scripts/compute_impacted_scenario\.py": None,
+                    r"utils/scripts/get-nightly-logs\.py": None,
+                    r"utils/scripts/get-workflow-summary\.py": None,
+                    r"utils/scripts/parametric/.*": scenarios.parametric,
+                    r"utils/virtual_machine/.*": ScenarioGroup.ONBOARDING,
+                    r"utils/.*": ScenarioGroup.ALL,
                     r"\.dockerignore": None,
                     r"\.gitattributes": None,
                     r"\.gitignore": None,
                     r"\.gitlab-ci\.yml": None,
                     r"\.shellcheck": None,
                     r"\.shellcheckrc": None,
+                    r"\.yamlfmt": None,
+                    r"\.yamllint": None,
+                    r"conftest\.py": ScenarioGroup.ALL,
                     r"CHANGELOG\.md": None,
+                    r"flake\.lock": None,
+                    r"format\.sh": None,
                     r"LICENSE": None,
                     r"LICENSE-3rdparty\.csv": None,
                     r"NOTICE": None,
                     r"Pulumi\.yaml": None,
-                    r"README\.md": None,
-                    r"format\.sh": None,
                     r"pyproject\.toml": None,
-                    r"scenario_groups\.yml": None,
-                    ## Nix
-                    r".*\.nix": None,
-                    r"flake\.lock": None,
-                    ## few files with lot of effect
+                    r"README\.md": None,
                     r"requirements\.txt": ScenarioGroup.ALL,
                     r"run\.sh": ScenarioGroup.ALL,
-                    r"conftest\.py": ScenarioGroup.ALL,
+                    r".*\.nix": None,
                 }
 
                 for pattern, scenario_requirement in files_map.items():
                     if re.fullmatch(pattern, file):
-                        if scenario_requirement is None:
-                            pass
-                        elif isinstance(scenario_requirement, ScenarioGroup):
-                            result.add_scenario_group(scenario_requirement.value)
-                        elif isinstance(scenario_requirement, Scenario):
-                            result.add_scenario(scenario_requirement.name)
-                        else:
-                            raise ValueError(f"Unknown scenario requirement: {scenario_requirement}.")
+                        result.add_scenario_requirement(scenario_requirement)
 
                         # on first matching pattern, stop the loop
                         break

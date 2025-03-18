@@ -92,6 +92,12 @@ app.get('/identify', (req: Request, res: Response) => {
   res.send('OK');
 });
 
+app.get('/session/new', (req: Request, res: Response) => {
+  // I'm using assign otherwise typescript complains about the unknnown property
+  Object.assign(req.session, { someData: 'blabla' }) // needed for the session to be saved
+  res.send(req.sessionID)
+})
+
 app.get('/status', (req: Request, res: Response) => {
   res.status(parseInt('' + req.query.code)).send('OK');
 });
@@ -159,6 +165,8 @@ app.get("/users", (req: Request, res: Response) => {
   } else {
     user.id = 'anonymous'
   }
+
+  tracer.setUser(user)
 
   const shouldBlock = tracer.appsec.isUserBlocked(user)
   if (shouldBlock) {

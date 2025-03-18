@@ -5,15 +5,15 @@
 import re
 import tests.debugger.utils as debugger
 from utils import features, scenarios, bug, context
-from utils import remote_config as rc
 
 
 @features.debugger
+@features.debugger_symdb
 @scenarios.debugger_symdb
-class Test_Debugger_SymDb(debugger._Base_Debugger_Test):
+class Test_Debugger_SymDb(debugger.BaseDebuggerTest):
     ############ setup ############
     def _setup(self):
-        self.rc_state = rc.send_symdb_command()
+        self.send_rc_symdb()
 
     ############ assert ############
     def _assert(self):
@@ -44,10 +44,7 @@ class Test_Debugger_SymDb(debugger._Base_Debugger_Test):
                 scope_type = scope.get("scope_type", "")
                 return scope_type in ["CLASS", "class", "MODULE"]
 
-            for nested_scope in scope.get("scopes", []):
-                if check_scope(nested_scope):
-                    return True
-            return False
+            return any(check_scope(nested_scope) for nested_scope in scope.get("scopes", []))
 
         for symbol in self.symbols:
             content = symbol.get("content", {})

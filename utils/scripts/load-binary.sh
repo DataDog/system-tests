@@ -186,8 +186,12 @@ elif [ "$TARGET" = "python" ]; then
     assert_version_is_dev
 
     TARGET_BRANCH="${TARGET_BRANCH:-main}"
-    echo "git+https://github.com/DataDog/dd-trace-py.git@$TARGET_BRANCH" > python-load-from-pip
-    echo "Using $(cat python-load-from-pip)"
+    rm -rf dd-trace-py/
+    # do not use `--depth 1`, setuptools_scm, does not like it
+    git clone --branch $TARGET_BRANCH https://github.com/DataDog/dd-trace-py.git
+    cd dd-trace-py
+    echo "Checking out the ref"
+    git log -1 --format=%H
 
 elif [ "$TARGET" = "ruby" ]; then
     assert_version_is_dev
@@ -210,13 +214,13 @@ elif [ "$TARGET" = "php" ]; then
 
 elif [ "$TARGET" = "golang" ]; then
     assert_version_is_dev
-    assert_target_branch_is_not_set
     rm -rf golang-load-from-go-get
 
-    # COMMIT_ID=$(curl -s 'https://api.github.com/repos/DataDog/dd-trace-go/branches/main' | jq -r .commit.sha)
+    TARGET_BRANCH="${TARGET_BRANCH:-main}"
+    COMMIT_ID=$(curl -s "https://api.github.com/repos/DataDog/dd-trace-go/branches/$TARGET_BRANCH" | jq -r .commit.sha)
 
-    echo "Using gopkg.in/DataDog/dd-trace-go.v1@main"
-    echo "gopkg.in/DataDog/dd-trace-go.v1@main" > golang-load-from-go-get
+    echo "Using gopkg.in/DataDog/dd-trace-go.v1@$TARGET_BRANCH"
+    echo "gopkg.in/DataDog/dd-trace-go.v1@$COMMIT_ID" > golang-load-from-go-get
 
     echo "Using ghcr.io/datadog/dd-trace-go/service-extensions-callout:dev"
     echo "ghcr.io/datadog/dd-trace-go/service-extensions-callout:dev" > golang-service-extensions-callout-image

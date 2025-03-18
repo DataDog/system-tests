@@ -51,21 +51,26 @@ tests/:
       sink/:
         test_code_injection.py:
           TestCodeInjection: v2.20.0
-          TestCodeInjection_StackTrace: v2.20.0
+          TestCodeInjection_ExtendedLocation: v3.1.0.dev
+          TestCodeInjection_StackTrace: missing_feature
         test_command_injection.py:
           TestCommandInjection:
             '*': v2.10.0
             fastapi: v2.15.0
-          TestCommandInjection_StackTrace: v2.19.0.dev
+          TestCommandInjection_ExtendedLocation: v3.1.0.dev
+          TestCommandInjection_StackTrace: missing_feature
         test_email_html_injection.py:
           TestEmailHtmlInjection: missing_feature
+          TestEmailHtmlInjection_ExtendedLocation: missing_feature
           TestEmailHtmlInjection_StackTrace: missing_feature
         test_hardcoded_passwords.py:
           Test_HardcodedPasswords: missing_feature
+          Test_HardcodedPasswords_ExtendedLocation: missing_feature
           Test_HardcodedPasswords_StackTrace: missing_feature
         test_hardcoded_secrets.py:
           Test_HardcodedSecrets: missing_feature
           Test_HardcodedSecretsExtended: missing_feature
+          Test_HardcodedSecrets_ExtendedLocation: missing_feature
           Test_HardcodedSecrets_StackTrace: missing_feature
         test_header_injection.py:
           TestHeaderInjection:
@@ -75,99 +80,126 @@ tests/:
           TestHeaderInjectionExclusionContentEncoding: missing_feature
           TestHeaderInjectionExclusionPragma: missing_feature
           TestHeaderInjectionExclusionTransferEncoding: missing_feature
+          TestHeaderInjection_ExtendedLocation: v3.1.0.dev
           TestHeaderInjection_StackTrace:
-            '*': v2.19.0.dev
-            fastapi: v2.20.0.dev
+            '*': missing_feature
+            fastapi: missing_feature
         test_hsts_missing_header.py:
           Test_HstsMissingHeader: missing_feature
+          Test_HstsMissingHeader_ExtendedLocation: missing_feature
           Test_HstsMissingHeader_StackTrace: missing_feature
         test_insecure_auth_protocol.py:
           Test_InsecureAuthProtocol: missing_feature
+          Test_InsecureAuthProtocol_ExtendedLocation: missing_feature
           Test_InsecureAuthProtocol_StackTrace: missing_feature
         test_insecure_cookie.py:
           TestInsecureCookie:
-            '*': v1.19.0
-            fastapi: v2.16.0-dev
+            '*': v1.19.0  (v3.1.0.dev, add telemetry metrics support)
+            fastapi: v2.16.0-dev (v3.1.0.dev, add telemetry metrics support)
           TestInsecureCookieNameFilter: missing_feature
+          TestInsecureCookie_ExtendedLocation: v3.1.0.dev
           TestInsecureCookie_StackTrace: missing_feature
         test_ldap_injection.py:
           TestLDAPInjection: missing_feature
+          TestLDAPInjection_ExtendedLocation: missing_feature
           TestLDAPInjection_StackTrace: missing_feature
         test_no_httponly_cookie.py:
           TestNoHttponlyCookie:
-            '*': v1.19.0
-            fastapi: v2.16.0-dev
+            '*': v1.19.0  (v3.1.0.dev, add telemetry metrics support)
+            fastapi: v2.16.0-dev (v3.1.0.dev, add telemetry metrics support)
           TestNoHttponlyCookieNameFilter: missing_feature
+          TestNoHttponlyCookie_ExtendedLocation: v3.1.0.dev
           TestNoHttponlyCookie_StackTrace: missing_feature
         test_no_samesite_cookie.py:
           TestNoSamesiteCookie:
-            '*': v1.19.0
-            fastapi: v2.16.0-dev
+            '*': v1.19.0  (v3.1.0.dev, add telemetry metrics support)
+            fastapi: v2.16.0-dev (v3.1.0.dev, add telemetry metrics support)
           TestNoSamesiteCookieNameFilter: missing_feature
+          TestNoSamesiteCookie_ExtendedLocation: v3.1.0.dev
           TestNoSamesiteCookie_StackTrace: missing_feature
         test_nosql_mongodb_injection.py:
           TestNoSqlMongodbInjection: missing_feature
+          TestNoSqlMongodbInjection_ExtendedLocation: missing_feature
           TestNoSqlMongodbInjection_StackTrace: missing_feature
         test_path_traversal.py:
           TestPathTraversal:
             '*': v2.10.0
             fastapi: v2.15.0
-          TestPathTraversal_StackTrace: v2.19.0.dev
+          TestPathTraversal_ExtendedLocation: v3.1.0.dev
+          TestPathTraversal_StackTrace: missing_feature
         test_reflection_injection.py:
           TestReflectionInjection: missing_feature
+          TestReflectionInjection_ExtendedLocation: missing_feature
           TestReflectionInjection_StackTrace: missing_feature
         test_sql_injection.py:
           TestSqlInjection:
             django-poc: v1.18.0
             fastapi: v2.15.0
             flask-poc: v1.18.0
-            pylons: missing_feature
             python3.12: v1.18.0
-          TestSqlInjection_StackTrace: v2.19.0.dev
+          TestSqlInjection_ExtendedLocation: v3.1.0.dev
+          TestSqlInjection_StackTrace: missing_feature
         test_ssrf.py:
           TestSSRF:
             '*': v2.10.0
             fastapi: v2.15.0
-          TestSSRF_StackTrace: v2.19.0.dev
+          TestSSRF_ExtendedLocation: v3.1.0.dev
+          TestSSRF_StackTrace: missing_feature
+        test_stacktrace_leak.py:
+          TestStackTraceLeak:
+            '*': v3.1.0.dev
         test_template_injection.py:
           TestTemplateInjection: missing_feature
+          TestTemplateInjection_ExtendedLocation: missing_feature
         test_trust_boundary_violation.py:
           Test_TrustBoundaryViolation: missing_feature
+          Test_TrustBoundaryViolation_ExtendedLocation: missing_feature
           Test_TrustBoundaryViolation_StackTrace: missing_feature
         test_untrusted_deserialization.py:
           TestUntrustedDeserialization: missing_feature
+          TestUntrustedDeserialization_ExtendedLocation: missing_feature
           TestUntrustedDeserialization_StackTrace: missing_feature
         test_unvalidated_redirect.py:
           TestUnvalidatedHeader: missing_feature
+          TestUnvalidatedHeader_ExtendedLocation: missing_feature
           TestUnvalidatedHeader_StackTrace: missing_feature
           TestUnvalidatedRedirect: missing_feature
+          TestUnvalidatedRedirect_ExtendedLocation: missing_feature
           TestUnvalidatedRedirect_StackTrace: missing_feature
         test_unvalidated_redirect_forward.py:
           TestUnvalidatedForward: missing_feature
+          TestUnvalidatedForward_ExtendedLocation: missing_feature
           TestUnvalidatedForward_StackTrace: missing_feature
         test_weak_cipher.py:
           TestWeakCipher:
             '*': v1.18.0
             fastapi: v2.15.0
-          TestWeakCipher_StackTrace: v2.19.0.dev
+          TestWeakCipher_ExtendedLocation: v3.1.0.dev
+          TestWeakCipher_StackTrace: missing_feature
         test_weak_hash.py:
           TestDeduplication:
             '*': v1.18.0
           TestWeakHash:
             '*': v1.18.0
-          TestWeakHash_StackTrace: v2.19.0.dev
+          TestWeakHash_ExtendedLocation: v3.1.0.dev
+          TestWeakHash_StackTrace: missing_feature
         test_weak_randomness.py:
           TestWeakRandomness:
             '*': v2.0.0
-          TestWeakRandomness_StackTrace: v2.19.0.dev
+          TestWeakRandomness_ExtendedLocation: v3.1.0.dev
+          TestWeakRandomness_StackTrace: missing_feature
         test_xcontent_sniffing.py:
           Test_XContentSniffing: missing_feature
+          Test_XContentSniffing_ExtendedLocation: missing_feature
           Test_XContentSniffing_StackTrace: missing_feature
         test_xpath_injection.py:
           TestXPathInjection: missing_feature
+          TestXPathInjection_ExtendedLocation: missing_feature
           TestXPathInjection_StackTrace: missing_feature
         test_xss.py:
-          TestXSS: missing_feature
+          TestXSS:
+            '*': v3.0.0.dev
+          TestXSS_ExtendedLocation: v3.1.0.dev
           TestXSS_StackTrace: missing_feature
       source/:
         test_body.py:
@@ -209,7 +241,6 @@ tests/:
           TestParameterName:
             "*": v2.20.0
             fastapi: v2.20.1
-            python3.12: bug (APPSEC-56375)
         test_parameter_value.py:
           TestParameterValue:
             '*': v2.9.0
@@ -259,6 +290,7 @@ tests/:
         Test_Lfi_Rules_Version: v2.18.0.dev
         Test_Lfi_StackTrace: v2.10.0
         Test_Lfi_Telemetry: v2.10.0
+        Test_Lfi_Telemetry_Multiple_Exploits: v2.10.0
         Test_Lfi_UrlQuery: v2.10.0
         Test_Lfi_Waf_Version: v2.15.0
       test_shi.py:
@@ -318,7 +350,6 @@ tests/:
           django-poc: v1.1.0-rc2
           fastapi: v2.4.0
           flask-poc: v1.4.0-rc1
-          pylons: v1.1.0-rc2
           python3.12: v1.1.0-rc2
           uds-flask: v1.4.0-rc1
           uwsgi-poc: v1.16.1
@@ -330,7 +361,6 @@ tests/:
           django-poc: v1.1.0-rc2
           fastapi: v2.4.0
           flask-poc: v1.4.0-rc1
-          pylons: v1.1.0-rc2
           python3.12: v1.1.0-rc2
           uds-flask: v1.4.0-rc1
           uwsgi-poc: v1.5.2
@@ -430,19 +460,20 @@ tests/:
         Test_TelemetryMetrics:
           '*': v1.14.0
           fastapi: v2.4.0
+      test_truncation.py:
+        Test_Truncation: v3.3.0.dev
     test_alpha.py:
       Test_Basic:
         '*': v1.1.0-rc2
         fastapi: v2.4.0
     test_asm_standalone.py:
-      Test_AppSecStandalone_UpstreamPropagation:
-        '*': bug (APPSEC-56142)
-      Test_AppSecStandalone_UpstreamPropagation_V2: missing_feature
-      Test_IastStandalone_UpstreamPropagation:
-        '*': v2.18.0.dev
-      Test_IastStandalone_UpstreamPropagation_V2: missing_feature
-      Test_SCAStandalone_Telemetry: v2.19.0.dev
-      Test_SCAStandalone_Telemetry_V2: missing_feature
+      Test_AppSecStandalone_NotEnabled: v2.12.3
+      Test_AppSecStandalone_UpstreamPropagation: irrelevant (was v2.12.3 for all, v2.17.1 for uwsgi-poc but will be replaced by V2)
+      Test_AppSecStandalone_UpstreamPropagation_V2: v3.2.0.dev
+      Test_IastStandalone_UpstreamPropagation: irrelevant (was v2.18.0.dev but will be replaced by V2)
+      Test_IastStandalone_UpstreamPropagation_V2: v3.2.0.dev
+      Test_SCAStandalone_Telemetry: irrelevant (was v2.19.0.dev but will be replaced by V2)
+      Test_SCAStandalone_Telemetry_V2: v3.2.0.dev
     test_automated_login_events.py:
       Test_Login_Events: irrelevant (was v2.10.0 but will be replaced by V2)
       Test_Login_Events_Extended: irrelevant (was v2.10.0 but will be replaced by V2)
@@ -455,9 +486,13 @@ tests/:
       Test_V3_Login_Events_Blocking: v2.20.0.dev
       Test_V3_Login_Events_RC: v2.11.0
     test_automated_user_and_session_tracking.py:
-      Test_Automated_Session_Blocking: missing_feature
+      Test_Automated_Session_Blocking:
+        '*': missing_feature (no auto instrumentation for session on non Django weblogs)
+        django-poc: v3.3.0.dev
+        django-py3.13: v3.3.0.dev
+        python3.12: v3.3.0.dev
       Test_Automated_User_Blocking: v3.0.0.rc
-      Test_Automated_User_Tracking: v3.0.0.rc
+      Test_Automated_User_Tracking: v3.1.0.dev
     test_blocking_addresses.py:
       Test_BlockingGraphqlResolvers: missing_feature
       Test_Blocking_client_ip:
@@ -607,6 +642,10 @@ tests/:
         flask-poc: v2.11.0
         uds-flask: v2.11.0
         uwsgi-poc: v2.11.0
+    test_debugger_inproduct_enablement.py:
+      Test_Debugger_InProduct_Enablement_Code_Origin: missing_feature
+      Test_Debugger_InProduct_Enablement_Dynamic_Instrumentation: missing_feature
+      Test_Debugger_InProduct_Enablement_Exception_Replay: missing_feature
     test_debugger_pii.py:
       Test_Debugger_PII_Redaction:
         '*': missing_feature
@@ -652,7 +691,7 @@ tests/:
       test_sqs.py:
         Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS:
           '*': irrelevant
-          flask-poc: v0.1 # actual version unknown
+          flask-poc: v0.1  # actual version unknown
         Test_SQS_PROPAGATION_VIA_MESSAGE_ATTRIBUTES:
           '*': irrelevant
           flask-poc: v2.6.0
@@ -763,7 +802,15 @@ tests/:
         '*': irrelevant
         flask-poc: v2.8.0
     test_inferred_proxy.py:
-      Test_AWS_API_Gateway_Inferred_Span_Creation: missing_feature
+      Test_AWS_API_Gateway_Inferred_Span_Creation:
+        '*': irrelevant
+        flask-poc: v3.1.0
+      Test_AWS_API_Gateway_Inferred_Span_Creation_With_Distributed_Context:
+        '*': irrelevant
+        flask-poc: v3.1.0
+      Test_AWS_API_Gateway_Inferred_Span_Creation_With_Error:
+        '*': irrelevant
+        flask-poc: v3.1.0
     test_otel_drop_in.py:
       Test_Otel_Drop_In: missing_feature
   otel/:
@@ -775,21 +822,21 @@ tests/:
     test_128_bit_traceids.py:
       Test_128_Bit_Traceids: v2.6.0
     test_config_consistency.py:
-      Test_Config_Dogstatsd: missing_feature
+      Test_Config_Dogstatsd: v3.3.0.dev
       Test_Config_RateLimit: v2.15.0
-      Test_Config_Tags: missing_feature
+      Test_Config_Tags: v3.3.0.dev
       Test_Config_TraceAgentURL: v2.0.0
       Test_Config_TraceEnabled: v2.12.2
       Test_Config_TraceLogDirectory: missing_feature
       Test_Config_UnifiedServiceTagging: v2.12.2
-      Test_Stable_Config_Default: missing_feature
+      Test_Stable_Config_Default: v3.2.0.dev
     test_crashtracking.py:
       Test_Crashtracking: v2.11.2
     test_dynamic_configuration.py:
       TestDynamicConfigSamplingRules: v2.9.0
       TestDynamicConfigTracingEnabled: flaky (APMAPI-734)
       TestDynamicConfigV1: missing_feature (failure 2.8.0)
-      TestDynamicConfigV1_EmptyServiceTargets: v2.18.1 # version unknown
+      TestDynamicConfigV1_EmptyServiceTargets: v2.18.1  # version unknown
       TestDynamicConfigV1_ServiceTargets: missing_feature (failure 2.8.0)
       TestDynamicConfigV2: flaky (APMAPI-734)
     test_headers_b3.py:
@@ -825,6 +872,7 @@ tests/:
       Test_Parametric_Otel_Baggage: v2.16.0
     test_partial_flushing.py:
       Test_Partial_Flushing: flaky (APMAPI-734)
+    test_process_discovery.py: missing_feature
     test_sampling_delegation.py:
       Test_Decisionless_Extraction: v2.8.0
     test_sampling_span_tags.py:
@@ -838,10 +886,11 @@ tests/:
       Test_Consistent_Configs: missing_feature
       Test_Defaults: v2.9.0
       Test_Environment: v2.8.0
+      Test_Stable_Configuration_Origin: v3.2.0.dev
       Test_TelemetryInstallSignature: v2.5.0
       Test_TelemetrySCAEnvVar: v2.9.0
     test_trace_sampling.py:
-      Test_Trace_Sampling_Basic: v1.9.0 # actual version unknown
+      Test_Trace_Sampling_Basic: v1.9.0  # actual version unknown
       Test_Trace_Sampling_Globs: v2.8.0
       Test_Trace_Sampling_Globs_Feb2024_Revision: v2.8.0
       Test_Trace_Sampling_Resource: v2.8.0
@@ -905,14 +954,20 @@ tests/:
     Test_Config_IntegrationEnabled_True:
       '*': irrelevant (kafka endpoint is not implemented)
       flask-poc: v2.0.0
-    Test_Config_LogInjection_128Bit_TradeId_Default: missing_feature (not enabled by default)
-    Test_Config_LogInjection_128Bit_TradeId_Disabled: incomplete_test_app (endpoint not implemented)
-    Test_Config_LogInjection_Default: incomplete_test_app (endpoint not implemented)
-    Test_Config_LogInjection_Enabled: incomplete_test_app (endpoint not implemented)
+    Test_Config_LogInjection_128Bit_TraceId_Disabled: irrelevant (python tracer does not support disabling logging 128-bit trace IDs)
+    Test_Config_LogInjection_128Bit_TraceId_Enabled:
+      '*': irrelevant (log endpoint is not implemented)
+      flask-poc: v3.0.0
+    Test_Config_LogInjection_Default:
+      '*': irrelevant (log endpoint is not implemented)
+      flask-poc: v3.0.0
+    Test_Config_LogInjection_Enabled:
+      '*': irrelevant (log endpoint is not implemented)
+      flask-poc: v3.0.0
     Test_Config_ObfuscationQueryStringRegexp_Configured: v2.0.0
     Test_Config_ObfuscationQueryStringRegexp_Empty: v2.15.0
-    Test_Config_RuntimeMetrics_Default: incomplete_test_app (test needs to account for python runtime metrics)
-    Test_Config_RuntimeMetrics_Enabled: incomplete_test_app (Python seems to send sketches instead of gauges/counters)
+    Test_Config_RuntimeMetrics_Default: v0.30.0
+    Test_Config_RuntimeMetrics_Enabled: v0.30.0
     Test_Config_RuntimeMetrics_Enabled_WithRuntimeId: missing_feature
     Test_Config_UnifiedServiceTagging_CustomService: v2.0.0
     Test_Config_UnifiedServiceTagging_Default: v2.0.0
@@ -921,11 +976,14 @@ tests/:
   test_distributed.py:
     Test_DistributedHttp:
       '*': missing_feature (Missing on weblog)
-      flask-poc: v1.5.0-rc2 # actual version unknown
+      flask-poc: v1.5.0-rc2  # actual version unknown
     Test_Span_Links_Flags_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
     Test_Span_Links_From_Conflicting_Contexts: v2.17.0
     Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
-  test_graphql.py: missing_feature
+  test_graphql.py:
+    Test_GraphQLQueryErrorReporting:
+      '*': missing_feature
+      flask-poc: v3.1.0
   test_identify.py:
     Test_Basic: v1.5.0-rc1
     Test_Propagate: v1.9.0
@@ -936,7 +994,7 @@ tests/:
     Test_ExtractBehavior_Restart: missing_feature (extract behavior not implemented)
     Test_ExtractBehavior_Restart_With_Extract_First: missing_feature (extract behavior not implemented)
     Test_HeaderTags: v0.53
-    Test_HeaderTags_Colon_Leading: v1.2.1 # actual version unknown
+    Test_HeaderTags_Colon_Leading: v1.2.1  # actual version unknown
     Test_HeaderTags_Colon_Trailing: v2.8.0
     Test_HeaderTags_DynamicConfig: flaky (APMAPI-734)
     Test_HeaderTags_Long: v1.2.1
@@ -947,11 +1005,14 @@ tests/:
     Test_HeaderTags_Whitespace_Val_Short: missing_feature
   test_profiling.py:
     Test_Profile:
-      '*': v0.1 # actual version unknown
+      '*': v0.1  # actual version unknown
       django-py3.13: missing_feature (python 3.13 not supported yet)
       python3.12: v2.1.0
   test_sampling_rates.py:
-    Test_SamplingDecisions: v2.8.0
+    Test_SampleRateFunction: bug (APMAPI-736)
+    Test_SamplingDecisionAdded: v2.8.0
+    Test_SamplingDecisions: bug (APMAPI-736)
+    Test_SamplingDeterminism: v2.8.0
     Test_SamplingRates: v2.8.0
   test_scrubbing.py:
     Test_UrlField:
@@ -969,7 +1030,6 @@ tests/:
     Test_StandardTagsMethod: v1.2.1
     Test_StandardTagsRoute:
       '*': v1.6.0
-      django-py3.13: bug (APMLP-364)
     Test_StandardTagsStatusCode: v1.4.0-rc1
     Test_StandardTagsUrl:
       '*': v2.4.0

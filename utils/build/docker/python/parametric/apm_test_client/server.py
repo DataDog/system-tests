@@ -10,6 +10,7 @@ import os
 from fastapi import FastAPI
 import opentelemetry.trace
 from pydantic import BaseModel
+from urllib.parse import urlparse
 
 import opentelemetry
 from opentelemetry.trace import set_tracer_provider
@@ -26,16 +27,23 @@ from opentelemetry.baggage import set_baggage
 from opentelemetry.baggage import get_baggage
 
 import ddtrace
-from ddtrace.trace import Span
-from ddtrace._trace.sampling_rule import SamplingRule
 from ddtrace import config
+from ddtrace.settings.profiling import config as profiling_config
 from ddtrace.contrib.trace_utils import set_http_meta
-from ddtrace.trace import Context
 from ddtrace.constants import ERROR_MSG
 from ddtrace.constants import ERROR_STACK
 from ddtrace.constants import ERROR_TYPE
 from ddtrace.propagation.http import HTTPPropagator
 from ddtrace.internal.utils.version import parse_version
+
+try:
+    from ddtrace.trace import Span
+    from ddtrace.trace import Context
+    from ddtrace._trace.sampling_rule import SamplingRule
+except ImportError:
+    from ddtrace import Span
+    from ddtrace.context import Context
+    from ddtrace.sampling_rule import SamplingRule
 
 log = logging.getLogger(__name__)
 
@@ -122,9 +130,12 @@ def trace_config() -> TraceConfigReturn:
             "dd_env": config.env,
             "dd_version": config.version,
             "dd_trace_rate_limit": str(config._trace_rate_limit),
-            "dd_trace_agent_url": config._trace_agent_url,
-            "dd_dogstatsd_host": config._stats_agent_hostname,
-            "dd_dogstatsd_port": config._stats_agent_port,
+            "dd_trace_agent_url": str(ddtrace.tracer._agent_url),
+            "dd_dogstatsd_host": urlparse(ddtrace.tracer._dogstatsd_url).hostname,
+            "dd_dogstatsd_port": urlparse(ddtrace.tracer._dogstatsd_url).port,
+            "dd_logs_injection": str(config._logs_injection).lower(),
+            "dd_profiling_enabled": str(profiling_config.enabled).lower(),
+            "dd_data_streams_enabled": str(config._data_streams_enabled).lower(),
         }
     )
 

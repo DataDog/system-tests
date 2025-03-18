@@ -7,6 +7,7 @@ import time
 
 from utils import weblog, context, interfaces, rfc, bug, scenarios, features
 from utils.tools import logger
+from utils.dd_constants import SamplingPriority
 
 
 @rfc("https://docs.google.com/document/d/1X64XQOk3N-aS_F0bJuZLkUiJqlYneDxo_b8WnkfFy_0")
@@ -26,16 +27,16 @@ class Test_Main:
         """
         self.requests = []
 
-        start_time = datetime.datetime.now()
+        start_time = datetime.datetime.now(tz=datetime.UTC)
 
         for i in range(10):
             for _ in range(5):
                 self.requests.append(weblog.get("/waf/", headers={"User-Agent": "Arachni/v1"}))
 
             end_time = start_time + datetime.timedelta(seconds=i + 1)
-            time.sleep(max(0, (end_time - datetime.datetime.now()).total_seconds()))
+            time.sleep(max(0, (end_time - datetime.datetime.now(tz=datetime.UTC)).total_seconds()))
 
-        logger.debug(f"Sent 50 requests in {(datetime.datetime.now() - start_time).total_seconds()} s")
+        logger.debug(f"Sent 50 requests in {(datetime.datetime.now(tz=datetime.UTC) - start_time).total_seconds()} s")
 
     @bug(
         context.library > "nodejs@3.14.1" and context.library < "nodejs@4.8.0", reason="APMRP-360"
@@ -43,19 +44,18 @@ class Test_Main:
     def test_main(self):
         """Send requests for 10 seconds, check that only 10-ish traces are sent, as rate limiter is set to 1/s"""
 
-        MANUAL_KEEP = 2
         trace_count = 0
 
         for r in self.requests:
             for data, _, span, _ in interfaces.library.get_appsec_events(request=r):
-                # the logic is to set MANUAL_KEEP not on all traces
+                # the logic is to set USER_KEEP not on all traces
                 # then the sampling mechism drop, or not the traces
 
                 assert (
                     "_sampling_priority_v1" in span["metrics"]
                 ), f"_sampling_priority_v1 is missing in span {span['span_id']} in {data['log_filename']}"
 
-                if span["metrics"]["_sampling_priority_v1"] == MANUAL_KEEP:
+                if span["metrics"]["_sampling_priority_v1"] == SamplingPriority.USER_KEEP:
                     trace_count += 1
 
         message = f"Sent 50 requests in 10 s. Expecting to see less than 10 events but saw {trace_count} events"

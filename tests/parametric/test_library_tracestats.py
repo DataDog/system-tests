@@ -49,9 +49,8 @@ class Test_Library_Tracestats:
         The required metrics are:
             {error_count, hit_count, ok/error latency distributions, duration}
         """
-        with test_library:
-            with test_library.dd_start_span(name="web.request", resource="/users", service="webserver"):
-                pass
+        with test_library, test_library.dd_start_span(name="web.request", resource="/users", service="webserver"):
+            pass
 
         raw_requests = test_agent.requests()
         decoded_stats_requests = test_agent.v06_stats_requests()
@@ -90,7 +89,7 @@ class Test_Library_Tracestats:
 
         decoded_request_body = decoded_stats_requests[0]["body"]
         for key in ("Hostname", "Env", "Version", "Stats"):
-            assert key in decoded_request_body, "%r should be in stats request" % key
+            assert key in decoded_request_body, f"{key} should be in stats request"
 
     @enable_tracestats()
     @missing_feature(context.library == "cpp", reason="cpp has not implemented stats computation yet")
@@ -182,22 +181,22 @@ class Test_Library_Tracestats:
         """When spans are marked as measured
         Each has stats computed for it
         """
-        with test_library:
-            with test_library.dd_start_span(name="web.request", resource="/users", service="webserver") as span:
-                # Use the same service so these spans are not top-level
-                with test_library.dd_start_span(
-                    name="child.op1", resource="", service="webserver", parent_id=span.span_id
-                ) as op1:
-                    op1.set_metric(SPAN_MEASURED_KEY, 1)
-                with test_library.dd_start_span(
-                    name="child.op2", resource="", service="webserver", parent_id=span.span_id
-                ) as op2:
-                    op2.set_metric(SPAN_MEASURED_KEY, 1)
-                # Don't measure this one to ensure no stats are computed
-                with test_library.dd_start_span(
-                    name="child.op3", resource="", service="webserver", parent_id=span.span_id
-                ):
-                    pass
+        with (
+            test_library,
+            test_library.dd_start_span(name="web.request", resource="/users", service="webserver") as span,
+        ):
+            # Use the same service so these spans are not top-level
+            with test_library.dd_start_span(
+                name="child.op1", resource="", service="webserver", parent_id=span.span_id
+            ) as op1:
+                op1.set_metric(SPAN_MEASURED_KEY, 1)
+            with test_library.dd_start_span(
+                name="child.op2", resource="", service="webserver", parent_id=span.span_id
+            ) as op2:
+                op2.set_metric(SPAN_MEASURED_KEY, 1)
+            # Don't measure this one to ensure no stats are computed
+            with test_library.dd_start_span(name="child.op3", resource="", service="webserver", parent_id=span.span_id):
+                pass
 
         requests = test_agent.v06_stats_requests()
         assert len(requests) > 0
@@ -223,20 +222,22 @@ class Test_Library_Tracestats:
         """When top level (service entry) spans are created
         Each top level span has trace stats computed for it.
         """
-        with test_library:
+        with (
+            test_library,
             # Create a top level span.
-            with test_library.dd_start_span(name="web.request", resource="/users", service="webserver") as span:
-                # Create another top level (service entry) span as a child of the web.request span.
-                with test_library.dd_start_span(
-                    name="postgres.query", resource="SELECT 1", service="postgres", parent_id=span.span_id
-                ):
-                    pass
+            test_library.dd_start_span(name="web.request", resource="/users", service="webserver") as span,
+            # Create another top level (service entry) span as a child of the web.request span.
+            test_library.dd_start_span(
+                name="postgres.query", resource="SELECT 1", service="postgres", parent_id=span.span_id
+            ),
+        ):
+            pass
 
         requests = test_agent.v06_stats_requests()
         assert len(requests) == 1, "Only one stats request is expected"
         request = requests[0]["body"]
         for key in ("Hostname", "Env", "Version", "Stats"):
-            assert key in request, "%r should be in stats request" % key
+            assert key in request, f"{key} should be in stats request"
 
         buckets = request["Stats"]
         assert len(buckets) == 1, "There should be one bucket containing the stats"
@@ -294,7 +295,7 @@ class Test_Library_Tracestats:
         assert len(requests) == 1, "Only one stats request is expected"
         request = requests[0]["body"]
         for key in ("Hostname", "Env", "Version", "Stats"):
-            assert key in request, "%r should be in stats request" % key
+            assert key in request, f"{key} should be in stats request"
 
         buckets = request["Stats"]
         assert len(buckets) == 1, "There should be one bucket containing the stats"
@@ -328,9 +329,8 @@ class Test_Library_Tracestats:
         non-P0 traces should be dropped
         trace stats should be produced
         """
-        with test_library:
-            with test_library.dd_start_span(name="web.request", resource="/users", service="webserver"):
-                pass
+        with test_library, test_library.dd_start_span(name="web.request", resource="/users", service="webserver"):
+            pass
 
         traces = test_agent.traces()
         assert len(traces) == 0, "No traces should be emitted with the sample rate set to 0"
@@ -354,7 +354,7 @@ class Test_Library_Tracestats:
 
         with test_library:
             # Create 10 traces to get more data
-            for i in range(10):
+            for _ in range(10):
                 with test_library.dd_start_span(name="web.request", resource="/users", service="webserver"):
                     pass
 
@@ -382,7 +382,7 @@ class Test_Library_Tracestats:
             assert web_stats["OkSummary"].get_quantile_value(quantile) == pytest.approx(
                 np.quantile(np_duration, quantile),
                 rel=0.01,
-            ), "Quantile mismatch for quantile %r" % quantile
+            ), f"Quantile mismatch for quantile {quantile!r}"
 
     @missing_feature(context.library == "cpp", reason="cpp has not implemented stats computation yet")
     @missing_feature(context.library == "nodejs", reason="nodejs has not implemented stats computation yet")
@@ -445,10 +445,9 @@ class Test_Library_Tracestats:
         Metrics must be computed after spans are finished, otherwise components of the aggregation key may change after
         contribution to aggregates.
         """
-        with test_library:
-            with test_library.dd_start_span(name="name", service="service", resource="resource") as span:
-                span.set_meta(key="_dd.origin", val="synthetics")
-                span.set_meta(key="http.status_code", val="200")
+        with test_library, test_library.dd_start_span(name="name", service="service", resource="resource") as span:
+            span.set_meta(key="_dd.origin", val="synthetics")
+            span.set_meta(key="http.status_code", val="200")
 
         requests = test_agent.v06_stats_requests()
         assert len(requests) == 0, "No stats were computed"

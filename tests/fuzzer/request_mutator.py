@@ -4,6 +4,7 @@
 
 import random
 import os
+from pathlib import Path
 import re
 from urllib.parse import quote
 from tests.fuzzer.tools import data
@@ -11,7 +12,7 @@ from tests.fuzzer.tools.random_strings import get_random_unicode as gru, get_ran
 
 
 def _get_data_file(name):
-    dir_path = os.path.dirname(os.path.realpath(__file__))
+    dir_path = Path(os.path.realpath(__file__)).parent
     return open(os.path.join(dir_path, "data", name), "rb").read()
 
 
@@ -224,7 +225,7 @@ class RequestMutator:
     )
     generic_header_keys = ("", "User-Agent", "Content-length", "content-type")
 
-    header_values = ["", "../", "( ) {"] + data.blns
+    header_values = ["", "../", "( ) {", *data.blns]
     user_agents = (
         "Arachni/v1.2.1",
         "md5(acunetix_wvs_security_test)",
@@ -287,20 +288,24 @@ class RequestMutator:
         "IBM850",
     )
 
-    payload_values = (
-        [None, "", 0, -1, 2**64 + 1, True, False]
-        + data.blns
-        + [
-            "ok",
-            "union select from",
-            "<vmlframe src=",
-            "http-equiv:+set-cookie",
-            "require('.')",
-            "file_0?",
-            "zlib://",
-            "1234-1234-1234-1234",
-        ]
-    )
+    payload_values = [
+        None,
+        "",
+        0,
+        -1,
+        2**64 + 1,
+        True,
+        False,
+        *data.blns,
+        "ok",
+        "union select from",
+        "<vmlframe src=",
+        "http-equiv:+set-cookie",
+        "require('.')",
+        "file_0?",
+        "zlib://",
+        "1234-1234-1234-1234",
+    ]
 
     file_data = [
         _get_data_file("image1.jpg"),
@@ -319,7 +324,7 @@ class RequestMutator:
     invalid_methods = tuple()
     invalid_header_keys = tuple()
 
-    def __init__(self, no_mutation=False):
+    def __init__(self, *, no_mutation=False):
         self.methods = tuple(method for method in self.methods if method not in self.invalid_methods)
 
         self.invalid_header_keys = tuple(key.lower() for key in self.invalid_header_keys)
@@ -510,7 +515,7 @@ class RequestMutator:
     def get_random_payload(self, payload_type):
         if payload_type == "json":
             count = random.randint(1, 10)
-            return {self.get_payload_key(): self.get_payload_value(True) for _ in range(count)}
+            return {self.get_payload_key(): self.get_payload_value(allow_nested=True) for _ in range(count)}
 
         choice = random.randint(0, 50)
         if choice <= 1:
@@ -525,7 +530,7 @@ class RequestMutator:
     def get_payload_key(self):
         return random.choice(data.blns)
 
-    def get_payload_value(self, allow_nested=False):
+    def get_payload_value(self, *, allow_nested=False):
         if not allow_nested:
             return random.choice(self.payload_values)
 

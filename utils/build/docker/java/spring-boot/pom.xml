@@ -44,7 +44,7 @@
         <dependency>
             <groupId>com.datadoghq</groupId>
             <artifactId>dd-trace-api</artifactId>
-            <version>LATEST</version>
+            <version>${dd-trace-api.version}</version>
         </dependency>
         <dependency>
             <groupId>io.opentelemetry</groupId>
@@ -155,7 +155,7 @@
         <dependency>
             <groupId>com.microsoft.sqlserver</groupId>
             <artifactId>mssql-jdbc</artifactId>
-            <version>12.2.0.jre8</version>
+            <version>12.8.1.jre8</version>
         </dependency>
 
         <dependency>
@@ -218,6 +218,11 @@
             <groupId>com.sun.mail</groupId>
             <artifactId>javax.mail</artifactId>
             <version>1.6.2</version>
+        </dependency>
+        <dependency>
+            <groupId>com.squareup.okhttp3</groupId>
+            <artifactId>okhttp</artifactId>
+            <version>4.9.3</version>
         </dependency>
     </dependencies>
 
@@ -486,5 +491,18 @@
         <protobuf.version>3.25.3</protobuf.version>
         <grpc.version>1.65.1</grpc.version>
         <packaging.type>jar</packaging.type>
-	</properties>
+        <dd-trace-api.version>[1.47.0,)</dd-trace-api.version>
+    </properties>
+    <repositories>
+        <repository>
+            <id>sonatype-snapshots</id>
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
 </project>

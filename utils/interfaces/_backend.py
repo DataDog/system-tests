@@ -11,7 +11,7 @@ import time
 import requests
 
 from utils.interfaces._core import ProxyBasedInterfaceValidator
-from utils.tools import logger, get_rid_from_span, get_rid_from_request
+from utils.tools import logger, get_rid_from_span
 
 
 class _BackendInterfaceValidator(ProxyBasedInterfaceValidator):
@@ -87,7 +87,7 @@ class _BackendInterfaceValidator(ProxyBasedInterfaceValidator):
         returning the list of traces.
         """
 
-        rid = get_rid_from_request(request)
+        rid = request.get_rid()
         traces_data = list(self._wait_for_request_traces(rid))
         traces = [self._extract_trace_from_backend_response(data["response"]) for data in traces_data]
         assert (
@@ -96,7 +96,7 @@ class _BackendInterfaceValidator(ProxyBasedInterfaceValidator):
         return traces
 
     def assert_otlp_trace_exist(
-        self, request: requests.Request, dd_trace_id: str, dd_api_key: str | None = None, dd_app_key: str | None = None
+        self, request, dd_trace_id: str, dd_api_key: str | None = None, dd_app_key: str | None = None
     ) -> dict:
         """Attempts to fetch from the backend, ALL the traces that the OpenTelemetry SDKs sent to Datadog
         during the execution of the given request.
@@ -106,7 +106,7 @@ class _BackendInterfaceValidator(ProxyBasedInterfaceValidator):
         that case you need to manually propagate the user agent to the new spans.
         """
 
-        rid = get_rid_from_request(request)
+        rid = request.get_rid()
         data = self._wait_for_trace(
             rid=rid,
             trace_id=dd_trace_id,
@@ -128,7 +128,7 @@ class _BackendInterfaceValidator(ProxyBasedInterfaceValidator):
         returning the list of span events.
         """
 
-        rid = get_rid_from_request(request)
+        rid = request.get_rid()
         query_filter = f"service:weblog @single_span:true @http.useragent:*{rid}"
         return self.assert_request_spans_exist(request, query_filter, min_spans_len, limit)
 
@@ -142,7 +142,7 @@ class _BackendInterfaceValidator(ProxyBasedInterfaceValidator):
         returning the list of span events.
         """
 
-        rid = get_rid_from_request(request)
+        rid = request.get_rid()
         if rid:
             query_filter = f"{query_filter} @http.useragent:*{rid}"
 

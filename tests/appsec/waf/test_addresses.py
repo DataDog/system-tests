@@ -2,6 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 import json
+import pytest
 from utils import weblog, bug, context, interfaces, irrelevant, missing_feature, rfc, scenarios, features
 from utils.tools import logger
 
@@ -119,9 +120,9 @@ class Test_Headers:
 
     def test_specific_key3(self):
         """When a specific header key is specified, other key are ignored"""
-        ADDRESS = "server.request.headers.no_cookies"
-        interfaces.library.assert_waf_attack(self.r_sk_5, address=ADDRESS, key_path=["referer"])
-        interfaces.library.assert_waf_attack(self.r_sk_6, address=ADDRESS, key_path=["referer"])
+        address = "server.request.headers.no_cookies"
+        interfaces.library.assert_waf_attack(self.r_sk_5, address=address, key_path=["referer"])
+        interfaces.library.assert_waf_attack(self.r_sk_6, address=address, key_path=["referer"])
 
     def setup_specific_wrong_key(self):
         self.r_wk_1 = weblog.get("/waf/", headers={"xfilename": "routing.yml"})
@@ -130,6 +131,12 @@ class Test_Headers:
     @missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
     def test_specific_wrong_key(self):
         """When a specific header key is specified in rules, other key are ignored"""
+        for r in [self.r_wk_1, self.r_wk_2]:
+            logger.debug(f"Testing {r.request.headers}")
+            assert r.status_code == 200
+            spans = [span for _, span in interfaces.library.get_root_spans(request=r)]
+            assert spans, "No spans to validate"
+            assert any("_dd.appsec.enabled" in s.get("metrics", {}) for s in spans), "No appsec-enabled spans found"
         interfaces.library.assert_no_appsec_event(self.r_wk_1)
         interfaces.library.assert_no_appsec_event(self.r_wk_2)
 
@@ -265,7 +272,7 @@ class Test_BodyXml:
     ATTACK = '<vmlframe src="xss">'
     ENCODED_ATTACK = "&lt;vmlframe src=&quot;xss&quot;&gt;"
 
-    def weblog_post(self, path="/", params=None, data=None, headers=None, **kwargs):
+    def weblog_post(self, path="/", params=None, data=None, headers=None):
         headers = headers or {}
         headers["Content-Type"] = "application/xml"
         data = f"<?xml version='1.0' encoding='utf-8'?>{data}"
@@ -348,7 +355,7 @@ class Test_FullGrpc:
     """Full gRPC support"""
 
     def test_main(self):
-        assert False, "Need to write a test"
+        pytest.fail("Need to write a test")
 
 
 @scenarios.graphql_appsec
@@ -377,7 +384,7 @@ class Test_GraphQL:
         assert self.r_no_attack.status_code == 200  # There is no attack here!
         interfaces.library.assert_no_appsec_event(self.r_no_attack)
 
-    def base_test_request_monitor_attack(self, resolversKeyPath, allResolversKeyPath):
+    def base_test_request_monitor_attack(self, resolvers_key_path, all_resolvers_key_path):
         """Verify that the request triggered a directive attack event"""
 
         assert self.r_attack.status_code == 200  # This attack is never blocking
@@ -386,7 +393,11 @@ class Test_GraphQL:
 
         try:
             interfaces.library.assert_waf_attack(
-                self.r_attack, rule="monitor-resolvers", key_path=resolversKeyPath, value="testattack", full_trace=True
+                self.r_attack,
+                rule="monitor-resolvers",
+                key_path=resolvers_key_path,
+                value="testattack",
+                full_trace=True,
             )
         except ValueError as e:
             failures.append(e)
@@ -395,7 +406,7 @@ class Test_GraphQL:
             interfaces.library.assert_waf_attack(
                 self.r_attack,
                 rule="monitor-all-resolvers",
-                key_path=allResolversKeyPath,
+                key_path=all_resolvers_key_path,
                 value="testattack",
                 full_trace=True,
             )

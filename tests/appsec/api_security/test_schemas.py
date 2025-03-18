@@ -11,16 +11,17 @@ from utils import (
     weblog,
     features,
 )
+from utils.tools import logger
 
 
 def get_schema(request, address):
     """Get api security schema from spans"""
-    for _, _, span in interfaces.library.get_spans(request):
-        meta = span.get("meta", {})
-        payload = meta.get("_dd.appsec.s." + address)
-        if payload is not None:
-            return payload
-    return None
+    span = interfaces.library.get_root_span(request)
+    meta = span.get("meta", {})
+    key = "_dd.appsec.s." + address
+    if key not in meta:
+        logger.info(f"Schema not found in span meta for {key}")
+    return meta.get(key)
 
 
 # can be used to match any value in a schema
@@ -289,7 +290,7 @@ class Test_Scanners:
         assert isinstance(schema_cookies, list)
         # some tracers report headers / cookies values as lists even if there's just one element (frameworks do)
         # in this case, the second case of expected variables below would pass
-        EXPECTED_COOKIES = [
+        expcted_cookies = [
             {
                 "SSN": [8, {"category": "pii", "type": "us_ssn"}],
                 "authorization": [8],
@@ -301,14 +302,14 @@ class Test_Scanners:
                 "mastercard": [[[8, {"card_type": "mastercard", "type": "card", "category": "payment"}]], {"len": 1}],
             },
         ]
-        EXPECTED_HEADERS = [
+        expcted_headers = [
             {"authorization": [8, {"category": "credentials", "type": "digest_auth"}]},
             {"authorization": [[[8, {"category": "credentials", "type": "digest_auth"}]], {"len": 1}]},
         ]
 
         for schema, expected in [
-            (schema_cookies[0], EXPECTED_COOKIES),
-            (schema_headers[0], EXPECTED_HEADERS),
+            (schema_cookies[0], expcted_cookies),
+            (schema_headers[0], expcted_headers),
         ]:
             for key in expected[0]:
                 assert key in schema
