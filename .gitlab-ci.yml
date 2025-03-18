@@ -148,29 +148,33 @@ check_pipeline_status:
     - echo "Checking for failed jobs in parent and child pipelines..."
     - export GITLAB_TOKEN=$(aws ssm get-parameter --region us-east-1 --name "ci.$CI_PROJECT_NAME.gitlab.token" --with-decryption --query "Parameter.Value" --out text)
     - |
+      echo "RMM THE URL - $CI_API_V4_URL/projects/$CI_PROJECT_ID/pipelines/$CI_PIPELINE_ID/jobs "
       RESPONSE=$(curl --silent --header "PRIVATE-TOKEN: $GITLAB_TOKEN" \
       "$CI_API_V4_URL/projects/$CI_PROJECT_ID/pipelines/$CI_PIPELINE_ID/jobs")
-
+      echo "RMM THE RESPONSE - $RESPONSE"
       # Validate JSON response
       if ! echo "$RESPONSE" | jq -e type > /dev/null 2>&1; then
         echo "❌ Error: Invalid JSON response from GitLab API."
         exit 1
       fi
-
+      echo "RMM CHECKING THE FAILED JOBS 0"
       FAILED_JOBS=$(echo "$RESPONSE" | jq '[.[] | select(.status == "failed")] | length')
-
+      echo "RMM CHECKING THE FAILED JOBS 1"
+      echo "RMM CHECK THE CHILDPILELINE URL - $CI_API_V4_URL/projects/$CI_PROJECT_ID/pipelines/$CI_PIPELINE_ID/bridges"
       # Fetch child pipelines
       CHILD_PIPELINES=$(curl --silent --header "PRIVATE-TOKEN: $GITLAB_TOKEN" \
       "$CI_API_V4_URL/projects/$CI_PROJECT_ID/pipelines/$CI_PIPELINE_ID/bridges" | jq -r '.[].downstream_pipeline.id')
-
+      echo "RMM CHILDPILELINE RESPONSE - $CHILD_PIPELINES"
       FAILED_CHILD_JOBS=0
       for CHILD_PIPELINE in $CHILD_PIPELINES; do
+        echo "RMM CHILDPILELINE FOR - $CI_API_V4_URL/projects/$CI_PROJECT_ID/pipelines/$CHILD_PIPELINE/jobs"
         CHILD_FAILED_JOBS=$(curl --silent --header "PRIVATE-TOKEN: $GITLAB_TOKEN" \
         "$CI_API_V4_URL/projects/$CI_PROJECT_ID/pipelines/$CHILD_PIPELINE/jobs" | jq '[.[] | select(.status == "failed")] | length')
+        echo "RMM CHILDPILELINE FOR FAILED JOBS - $CHILD_FAILED_JOBS"
 
         FAILED_CHILD_JOBS=$((FAILED_CHILD_JOBS + CHILD_FAILED_JOBS))
       done
-
+      echo "DONE"
       TOTAL_FAILED=$((FAILED_JOBS + FAILED_CHILD_JOBS))
 
       if [ "$TOTAL_FAILED" -gt 0 ]; then
