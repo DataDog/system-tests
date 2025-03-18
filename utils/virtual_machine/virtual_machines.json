@@ -290,7 +290,7 @@
             "os_branch": "amazon_linux2",
             "os_cpu": "arm64",
             "default_vm": true,
-            "disabled": true
+            "disabled": false
         },
         {
             "name": "Amazon_Linux_2023_amd64",
