@@ -44,7 +44,7 @@
         <dependency>
             <groupId>com.datadoghq</groupId>
             <artifactId>dd-trace-api</artifactId>
-            <version>LATEST</version>
+            <version>${dd-trace-api.version}</version>
         </dependency>
         <dependency>
             <groupId>io.opentelemetry</groupId>
@@ -486,5 +486,18 @@
         <protobuf.version>3.25.3</protobuf.version>
         <grpc.version>1.65.1</grpc.version>
         <packaging.type>jar</packaging.type>
-	</properties>
+        <dd-trace-api.version>[1.47.0,)</dd-trace-api.version>
+    </properties>
+    <repositories>
+        <repository>
+            <id>sonatype-snapshots</id>
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
 </project>
