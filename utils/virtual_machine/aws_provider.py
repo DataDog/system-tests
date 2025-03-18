@@ -131,6 +131,9 @@ class AWSPulumiProvider(VmProvider):
                 vm.aws_config.ami_id = ssm_parameter.value
             ec2_user_data = self.get_windows_user_data()
 
+        logger.info(
+            f"Starting VM: {vm.name} with iam_instance_profile: {vm.aws_config.aws_infra_config.iam_instance_profile}"
+        )
         # Startup VM and prepare connection
         ec2_server = aws.ec2.Instance(
             vm.name,
