@@ -486,7 +486,11 @@ tests/:
       Test_V3_Login_Events_Blocking: v2.20.0.dev
       Test_V3_Login_Events_RC: v2.11.0
     test_automated_user_and_session_tracking.py:
-      Test_Automated_Session_Blocking: missing_feature
+      Test_Automated_Session_Blocking:
+        '*': missing_feature (no auto instrumentation for session on non Django weblogs)
+        django-poc: v3.3.0.dev
+        django-py3.13: v3.3.0.dev
+        python3.12: v3.3.0.dev
       Test_Automated_User_Blocking: v3.0.0.rc
       Test_Automated_User_Tracking: v3.1.0.dev
     test_blocking_addresses.py:
