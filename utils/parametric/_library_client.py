@@ -233,13 +233,13 @@ class APMLibraryClient:
             },
         )
 
-    def span_add_event(self, span_id: int, name: str, timestamp: int, attributes: dict | None = None):
+    def span_add_event(self, span_id: int, name: str, time_unix_nano: int, attributes: dict | None = None):
         self._session.post(
             self._url("/trace/span/add_event"),
             json={
                 "span_id": span_id,
                 "name": name,
-                "timestamp": timestamp,
+                "timestamp": time_unix_nano,
                 "attributes": attributes or {},
             },
         )
@@ -432,6 +432,9 @@ class _TestSpan:
 
     def add_link(self, parent_id: int, attributes: dict | None = None):
         self._client.span_add_link(self.span_id, parent_id, attributes)
+
+    def add_event(self, name: str, time_unix_nano: int, attributes: dict | None = None):
+        self._client.span_add_event(self.span_id, name, time_unix_nano, attributes)
 
     def finish(self):
         self._client.finish_span(self.span_id)

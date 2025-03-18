@@ -459,6 +459,23 @@ class OtelSetAttributesReturn
   end
 end
 
+class TraceSpanAddEventsArgs
+  attr_accessor :span_id, :name, :timestamp, :attributes
+
+  def initialize(params)
+    @span_id = params['span_id']
+    @name = params['name']
+    @timestamp = params['timestamp']
+    @attributes = params['attributes']
+  end
+end
+
+class TraceSpanAddEventReturn
+  def to_json(*_args)
+    {}.to_json
+  end
+end
+
 def get_ddtrace_version
   Gem::Version.new(Datadog::VERSION)
 end
@@ -562,6 +579,8 @@ class MyApp
       handle_trace_span_error(req, res)
     when '/trace/span/add_link'
       handle_trace_span_add_link(req, res)
+    when '/trace/span/add_event'
+      handle_trace_span_add_event(req, res)
     when '/trace/otel/start_span'
       handle_trace_otel_start_span(req, res)
     when '/trace/otel/add_event'
@@ -708,6 +727,31 @@ class MyApp
     res.write(TraceSpanAddLinkReturn.new.to_json)
   end
 
+  def handle_trace_span_add_event(req, res)
+    args = TraceSpanAddEventsArgs.new(JSON.parse(req.body.read))
+    span = find_span(args.span_id)
+    
+    # Create a new SpanEvent with the provided parameters
+    event = Datadog::Tracing::SpanEvent.new(
+      args.name,
+      attributes: args.attributes,
+      time_unix_nano: args.timestamp * 1000
+    )
+    
+    # Add the event to the span's events array
+    span.span_events << event
+    
+    res.write(TraceSpanAddEventReturn.new.to_json)
+  end
+
+  def handle_trace_otel_add_event(req, res)
+    args = OtelAddEventArgs.new(JSON.parse(req.body.read))
+
+    span = OTEL_SPANS[args.span_id]
+    span.add_event(args.name, attributes: args.attributes, timestamp: args.timestamp)
+    res.write(OtelAddEventReturn.new.to_json)
+  end
+
   def handle_trace_crash(_req, res)
     STDOUT.puts "Crashing server..."
     Process.kill('SEGV', Process.pid)
@@ -746,17 +790,6 @@ class MyApp
 
     OTEL_SPANS[span_id_b10] = span
     res.write(OtelStartSpanReturn.new(span_id_b10, t_id).to_json)
-  end
-
-  def handle_trace_otel_add_event(req, res)
-    args = OtelAddEventArgs.new(JSON.parse(req.body.read))
-    span = OTEL_SPANS[args.span_id]
-    span.add_event(
-      args.name,
-      timestamp: otel_correct_time(args.timestamp),
-      attributes: args.attributes
-    )
-    res.write(OtelAddEventReturn.new.to_json)
   end
 
   def handle_trace_otel_record_exception(req, res)
