@@ -215,11 +215,13 @@ elif [ "$TARGET" = "php" ]; then
 elif [ "$TARGET" = "golang" ]; then
     assert_version_is_dev
     rm -rf golang-load-from-go-get
+    set -o pipefail
 
     TARGET_BRANCH="${TARGET_BRANCH:-main}"
-    COMMIT_ID=$(curl -s "https://api.github.com/repos/DataDog/dd-trace-go/branches/$TARGET_BRANCH" | jq -r .commit.sha)
+    echo "load last commit on $TARGET_BRANCH for DataDog/dd-trace-go"
+    COMMIT_ID=$(curl -sS --fail "https://api.github.com/repos/DataDog/dd-trace-go/branches/$TARGET_BRANCH" | jq -r .commit.sha)
 
-    echo "Using gopkg.in/DataDog/dd-trace-go.v1@$TARGET_BRANCH"
+    echo "Using gopkg.in/DataDog/dd-trace-go.v1@$COMMIT_ID"
     echo "gopkg.in/DataDog/dd-trace-go.v1@$COMMIT_ID" > golang-load-from-go-get
 
     echo "Using ghcr.io/datadog/dd-trace-go/service-extensions-callout:dev"
