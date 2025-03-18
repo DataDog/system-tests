@@ -1,9 +1,11 @@
+import pytest
+
 from .core import ScenarioGroup
 from .endtoend import EndToEndScenario
 
 
 class ProfilingScenario(EndToEndScenario):
-    def __init__(self, name) -> None:
+    def __init__(self, name: str) -> None:
         super().__init__(
             name,
             library_interface_timeout=160,
@@ -21,7 +23,7 @@ class ProfilingScenario(EndToEndScenario):
             require_api_key=True,  # for an unknown reason, /flush on nodejs takes days with a fake key on this scenario
         )
 
-    def configure(self, config):
+    def configure(self, config: pytest.Config):
         super().configure(config)
 
         library = self.weblog_container.image.labels["system-tests-library"]

@@ -512,6 +512,60 @@ class Test_ExtractBehavior_Restart:
         assert "_dd.p.tid=1111111111111111" not in data["request_headers"]["x-datadog-tags"]
         assert "key1=value1" in data["request_headers"]["baggage"]
 
+    def setup_multiple_tracecontexts_with_overrides(self):
+        self.r = weblog.get(
+            "/make_distant_call",
+            params={"url": "http://weblog:7777/"},
+            headers={
+                "x-datadog-trace-id": "1",
+                "x-datadog-parent-id": "1",
+                "x-datadog-sampling-priority": "2",
+                "x-datadog-tags": "_dd.p.tid=1111111111111111,_dd.p.dm=-4",
+                "traceparent": "00-11111111111111110000000000000001-1234567890123456-01",
+                "baggage": "key1=value1",
+            },
+        )
+
+    @missing_feature(
+        library="cpp",
+        reason="baggage is not implemented, also remove DD_TRACE_PROPAGATION_STYLE_EXTRACT workaround in containers.py",
+    )
+    def test_multiple_tracecontexts_with_overrides(self):
+        interfaces.library.assert_trace_exists(self.r)
+        spans = interfaces.agent.get_spans_list(self.r)
+        assert len(spans) == 1, "Agent received the incorrect amount of spans"
+
+        # Test the extracted span context
+        span = spans[0]
+        assert (
+            span.get("traceID") != "1"  # Lower 64-bits of traceparent
+        )
+
+        assert span.get("parentID") is None
+        assert "tracestate" not in span
+
+        # Test the extracted span links: One span link for the incoming (Datadog trace context).
+        # In the case that span links are generated for conflicting trace contexts, those span links
+        # are not included in the new trace context
+        span_links = retrieve_span_links(span)
+        assert len(span_links) == 1
+
+        # Assert the Datadog (restarted) span link
+        link = span_links[0]
+        assert int(link["traceID"]) == 1
+        assert int(link["spanID"]) == 1311768467284833366
+        assert int(link["traceIDHigh"]) == 1229782938247303441
+        assert link["attributes"] == {"reason": "propagation_behavior_extract", "context_headers": "datadog"}
+
+        # Test the next outbound span context
+        assert self.r.status_code == 200
+        data = json.loads(self.r.text)
+        assert data is not None
+
+        assert data["request_headers"]["x-datadog-trace-id"] != "1"
+        assert "_dd.p.tid=1111111111111111" not in data["request_headers"]["x-datadog-tags"]
+        assert "key1=value1" in data["request_headers"]["baggage"]
+
 
 @scenarios.tracing_config_nondefault_2
 @features.context_propagation_extract_behavior

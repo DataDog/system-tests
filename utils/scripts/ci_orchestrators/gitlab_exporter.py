@@ -85,13 +85,15 @@ def should_run_only_defaults_vm() -> bool:
 
 
 def is_default_machine(raw_data_virtual_machines, vm) -> bool:
-    for vm_data in raw_data_virtual_machines:
-        if vm_data["name"] == vm and vm_data["default_vm"]:
-            return True
-    return False
+    return any(vm_data["name"] == vm and vm_data["default_vm"] for vm_data in raw_data_virtual_machines)
 
 
 def print_gitlab_pipeline(language, matrix_data, ci_environment) -> None:
+    # Print all supported pipelines
+    print_ssi_gitlab_pipeline(language, matrix_data, ci_environment)
+
+
+def print_ssi_gitlab_pipeline(language, matrix_data, ci_environment) -> None:
     result_pipeline = {}  # type: dict
     result_pipeline["include"] = []
     result_pipeline["stages"] = []
@@ -136,7 +138,10 @@ def print_gitlab_pipeline(language, matrix_data, ci_environment) -> None:
         print_k8s_gitlab_pipeline(language, matrix_data["libinjection_scenario_defs"], ci_environment, result_pipeline)
 
     pipeline_yml = yaml.dump(result_pipeline, sort_keys=False, default_flow_style=False)
-    print(pipeline_yml)
+    output_file = f"{language}_ssi_gitlab_pipeline.yml"
+    with open(output_file, "w") as file:
+        file.write(pipeline_yml)
+    print("Pipeline file generated: ", output_file)
 
 
 def print_k8s_gitlab_pipeline(language, k8s_matrix, ci_environment, result_pipeline) -> None:
@@ -254,6 +259,7 @@ def print_aws_gitlab_pipeline(language, aws_matrix, ci_environment, result_pipel
         raw_data_virtual_machines = json.load(file)["virtual_machines"]
 
     only_defaults = should_run_only_defaults_vm()
+
     # Special filters from env variables
     dd_installer_library_version = os.getenv("DD_INSTALLER_LIBRARY_VERSION")
     dd_installer_injector_version = os.getenv("DD_INSTALLER_INJECTOR_VERSION")
@@ -262,8 +268,6 @@ def print_aws_gitlab_pipeline(language, aws_matrix, ci_environment, result_pipel
 
     # Create the jobs by scenario. Each job (vm) will have a parallel matrix with the weblogs
     for scenario, weblogs in aws_matrix.items():
-        if scenario == "DEMO_AWS":  # Skip the demo scenario on the ci
-            continue
         result_pipeline["stages"].append(scenario)
 
         # Collect all unique VMs for this scenario

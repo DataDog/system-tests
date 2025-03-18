@@ -36,11 +36,7 @@ class _LogsInterfaceValidator(InterfaceValidator):
         return self._new_log_line_pattern.search(line)
 
     def _is_skipped_line(self, line):
-        for pattern in self._skipped_patterns:
-            if pattern.search(line):
-                return True
-
-        return False
+        return any(pattern.search(line) for pattern in self._skipped_patterns)
 
     def _get_standardized_level(self, level):
         return level

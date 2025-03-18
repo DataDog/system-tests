@@ -54,7 +54,7 @@ tests/:
           play: missing_feature
           resteasy-netty3: missing_feature
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-          vertx4: 1.47.0
+          vertx4: v1.47.0
         Test_Schema_Request_Path_Parameters:
           '*': v1.36.0
           akka-http: missing_feature (path parameters not suported)
@@ -86,7 +86,7 @@ tests/:
             vertx4: v1.12.0
           TestCommandInjection_ExtendedLocation: missing_feature
           TestCommandInjection_StackTrace:
-            '*': 1.47.0
+            '*': v1.47.0
             play: missing_feature
             ratpack: missing_feature
             spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
@@ -1102,6 +1102,8 @@ tests/:
           '*': v1.12.0
           akka-http: v1.22.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+      test_truncation.py:
+        Test_Truncation: missing_feature
     test_alpha.py:
       Test_Basic:
         '*': v0.87.0
@@ -1187,7 +1189,6 @@ tests/:
         resteasy-netty3: missing_feature (session tracking not implemented)
         spring-boot-3-native: flaky (APMAPI-979)
         spring-boot-jetty: missing_feature (session tracking not implemented)
-        spring-boot-payara: bug (APPSEC-54985)
         spring-boot-undertow: missing_feature (session tracking not implemented)
         spring-boot-wildfly: missing_feature (session tracking not implemented)
         vertx3: missing_feature (home endpoint does not use cookies)
@@ -1824,10 +1825,10 @@ tests/:
     Test_Config_IntegrationEnabled_True:
       '*': irrelevant (kafka endpoints are not implemented)
       spring-boot: v1.42.0
-    Test_Config_LogInjection_128Bit_TraceId_Default:
+    Test_Config_LogInjection_128Bit_TraceId_Disabled:
       '*': incomplete_test_app (weblog endpoint not implemented)
       'spring-boot-3-native': missing_feature
-    Test_Config_LogInjection_128Bit_TraceId_Disabled:
+    Test_Config_LogInjection_128Bit_TraceId_Enabled:
       '*': incomplete_test_app (weblog endpoint not implemented)
       'spring-boot-3-native': missing_feature
     Test_Config_LogInjection_Default:
@@ -1862,8 +1863,12 @@ tests/:
   test_graphql.py: missing_feature
   test_identify.py:
     Test_Basic: missing_feature
-    Test_Propagate: missing_feature
-    Test_Propagate_Legacy: missing_feature
+    Test_Propagate:
+      # XXX: spring-boot-3-native would have a higher version
+      '*': v0.111.0
+    Test_Propagate_Legacy:
+      # XXX: spring-boot-3-native would have a higher version
+      '*': v0.111.0
   test_ipv6.py: missing_feature (APMAPI-869)
   test_library_conf.py:
     Test_ExtractBehavior_Default: incomplete_test_app (/make_distant_call endpoint is not correctly implemented)
@@ -1889,14 +1894,20 @@ tests/:
       vertx3: missing_feature (Endpoint not implemented)
       vertx4: missing_feature (Endpoint not implemented)
   test_sampling_rates.py:
-    Test_SamplingDecisions:
-      akka-http: missing_feature (Endpoint /sample_rate_route not implemented)
-      jersey-grizzly2: missing_feature (Endpoint /sample_rate_route not implemented)
-      play: missing_feature (Endpoint /sample_rate_route not implemented)
-      ratpack: missing_feature (Endpoint /sample_rate_route not implemented)
-      resteasy-netty3: missing_feature (Endpoint /sample_rate_route not implemented)
-      vertx3: missing_feature (Endpoint /sample_rate_route not implemented)
-      vertx4: missing_feature (Endpoint /sample_rate_route not implemented)
+    Test_SampleRateFunction:
+      '*': missing_feature (Endpoint /sample_rate_route not implemented)
+      spring-boot: v0.92.0
+      spring-boot-3-native: v0.92.0
+    Test_SamplingDecisionAdded:
+      '*': missing_feature (Endpoint /sample_rate_route not implemented)
+      spring-boot: v0.92.0
+      spring-boot-3-native: v0.92.0
+    Test_SamplingDecisions: bug (APMAPI-736)
+    Test_SamplingDeterminism:
+      '*': missing_feature (Endpoint /sample_rate_route not implemented)
+      spring-boot: v0.92.0
+      spring-boot-3-native: v0.92.0
+    Test_SamplingRates: v0.92.0
   test_scrubbing.py:
     Test_UrlQuery: v0.107.1
   test_semantic_conventions.py:
@@ -1912,10 +1923,9 @@ tests/:
       spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
     Test_StandardTagsMethod: v0.102.0
     Test_StandardTagsRoute:
-      '*': missing_feature
-      spring-boot: v0.102.0
-      spring-boot-jetty: v0.102.0
-      spring-boot-wildfly: v0.102.0
+      '*': v0.102.0
+      akka-http: bug (AIDM-594)
+      play: bug (AIDM-593)
     Test_StandardTagsStatusCode: v0.102.0
     Test_StandardTagsUrl: v0.107.1
     Test_StandardTagsUserAgent: v0.107.1

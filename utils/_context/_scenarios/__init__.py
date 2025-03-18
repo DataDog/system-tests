@@ -35,7 +35,7 @@ class _Scenarios:
         "PERFORMANCES", doc="A not very used scenario : its aim is to measure CPU and MEM usage across a basic run"
     )
     integrations = IntegrationsScenario()
-    integrations_aws = AWSIntegrationsScenario()
+    integrations_aws = AWSIntegrationsScenario("INTEGRATIONS_AWS")
     crossed_tracing_libraries = CrossedTracingLibraryScenario()
 
     otel_integrations = OpenTelemetryScenario(
@@ -64,11 +64,17 @@ class _Scenarios:
 
     profiling = ProfilingScenario("PROFILING")
 
-    appsec_no_stats = EndToEndScenario(
-        name="APPSEC_NO_STATS",
+    trace_stats_computation = EndToEndScenario(
+        name="TRACE_STATS_COMPUTATION",
+        # feature consistency is poorly respected here ...
+        weblog_env={
+            "DD_TRACE_STATS_COMPUTATION_ENABLED": "1",
+            "DD_TRACE_COMPUTE_STATS": "true",
+            "DD_TRACE_FEATURES": "discovery",
+        },
         doc=(
-            "End to end testing with default values. Default scenario has DD_TRACE_COMPUTE_STATS=true."
-            "This scenario let that env to use its default"
+            "End to end testing with DD_TRACE_COMPUTE_STATS=1. This feature compute stats at tracer level, and"
+            "may drop some of them"
         ),
         scenario_groups=[ScenarioGroup.APPSEC],
     )
@@ -168,7 +174,7 @@ class _Scenarios:
         },
         weblog_volumes={"./tests/appsec/blocking_rule.json": {"bind": "/appsec_blocking_rule.json", "mode": "ro"}},
         doc="AppSec tests for GraphQL integrations",
-        github_workflow="graphql",
+        github_workflow="endtoend",
         scenario_groups=[ScenarioGroup.APPSEC],
     )
     appsec_rules_monitoring_with_errors = EndToEndScenario(
@@ -330,7 +336,7 @@ class _Scenarios:
 
     appsec_auto_events_rc = EndToEndScenario(
         "APPSEC_AUTO_EVENTS_RC",
-        weblog_env={"DD_APPSEC_ENABLED": "true", "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": 0.5},
+        weblog_env={"DD_APPSEC_ENABLED": "true", "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "0.5"},
         rc_api_enabled=True,
         doc="""
             Scenario to test User ID collection config change via Remote config
@@ -729,7 +735,7 @@ class _Scenarios:
             "DD_PROFILING_UPLOAD_PERIOD": "10",
             "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500",
         },
-        scenario_groups=[ScenarioGroup.ALL, ScenarioGroup.ONBOARDING, ScenarioGroup.SIMPLE_ONBOARDING_PROFILING],
+        scenario_groups=[ScenarioGroup.ALL, ScenarioGroup.SIMPLE_ONBOARDING_PROFILING],
         github_workflow="aws_ssi",
     )
     host_auto_injection_install_script_profiling = InstallerAutoInjectionScenario(
@@ -751,7 +757,7 @@ class _Scenarios:
         vm_provision="container-auto-inject-install-script",
         agent_env={"DD_PROFILING_ENABLED": "auto"},
         app_env={"DD_PROFILING_UPLOAD_PERIOD": "10", "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500"},
-        scenario_groups=[ScenarioGroup.ALL, ScenarioGroup.ONBOARDING],
+        scenario_groups=[ScenarioGroup.ALL],
         github_workflow="aws_ssi",
     )
 
@@ -759,7 +765,7 @@ class _Scenarios:
         "DEMO_AWS",
         "Demo aws scenario",
         vm_provision="demo",
-        scenario_groups=[ScenarioGroup.ONBOARDING],
+        scenario_groups=[],
         github_workflow="aws_ssi",
     )
 
@@ -775,7 +781,7 @@ class _Scenarios:
         "CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT",
         "Onboarding Container Single Step Instrumentation scenario using agent auto install script",
         vm_provision="container-auto-inject-install-script",
-        scenario_groups=[ScenarioGroup.ALL, ScenarioGroup.ONBOARDING],
+        scenario_groups=[ScenarioGroup.ALL],
         github_workflow="aws_ssi",
     )
 
@@ -786,7 +792,7 @@ class _Scenarios:
             "and the replace the apm-library with the uploaded tar file from binaries"
         ),
         vm_provision="local-auto-inject-install-script",
-        scenario_groups=[ScenarioGroup.ONBOARDING],
+        scenario_groups=[],
         github_workflow="aws_ssi",
     )
 
@@ -828,12 +834,14 @@ class _Scenarios:
         "K8S_LIB_INJECTION_PROFILING_DISABLED",
         doc="Kubernetes lib injection with admission controller and profiling disabled by default",
         weblog_env={"DD_PROFILING_UPLOAD_PERIOD": "10", "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500"},
+        scenario_groups=[ScenarioGroup.ALL, ScenarioGroup.LIB_INJECTION_PROFILING],
     )
     k8s_lib_injection_profiling_enabled = K8sScenario(
         "K8S_LIB_INJECTION_PROFILING_ENABLED",
         doc="Kubernetes lib injection with admission controller and profiling enaabled by cluster config",
         weblog_env={"DD_PROFILING_UPLOAD_PERIOD": "10", "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500"},
         dd_cluster_feature={"datadog.profiling.enabled": "auto"},
+        scenario_groups=[ScenarioGroup.ALL, ScenarioGroup.LIB_INJECTION_PROFILING],
     )
     k8s_lib_injection_profiling_override = K8sScenario(
         "K8S_LIB_INJECTION_PROFILING_OVERRIDE",
@@ -843,6 +851,7 @@ class _Scenarios:
             "clusterAgent.env[0].name": "DD_ADMISSION_CONTROLLER_AUTO_INSTRUMENTATION_PROFILING_ENABLED",
             "clusterAgent.env[0].value": "auto",
         },
+        scenario_groups=[ScenarioGroup.ALL, ScenarioGroup.LIB_INJECTION_PROFILING],
     )
     k8s_lib_injection_spark_djm = K8sSparkScenario("K8S_LIB_INJECTION_SPARK_DJM", doc="Kubernetes lib injection DJM")
 

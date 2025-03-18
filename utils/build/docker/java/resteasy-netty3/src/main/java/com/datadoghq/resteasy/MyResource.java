@@ -120,6 +120,14 @@ public class MyResource {
     }
 
     @GET
+    @Path("/sample_rate_route/{i}")
+    public Response sampleRateRoute(@PathParam("i") int i) {
+        return Response.status(200)
+                .header("content-type", "text/plain")
+                .entity("OK\n").build();
+    }
+
+    @GET
     @Path("/api_security/sampling/{i}")
     public Response apiSecuritySamplingWithStatus(@PathParam("i") int i) {
         return Response.status(i)

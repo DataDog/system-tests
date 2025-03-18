@@ -7,7 +7,7 @@
 import threading
 import copy
 
-from utils.tools import logger, get_rid_from_span, get_rid_from_request
+from utils.tools import logger, get_rid_from_span
 from utils.interfaces._core import ProxyBasedInterfaceValidator
 from utils.interfaces._misc_validators import HeadersPresenceValidator, HeadersMatchValidator
 
@@ -24,7 +24,7 @@ class AgentInterfaceValidator(ProxyBasedInterfaceValidator):
         return super().ingest_file(src_path)
 
     def get_appsec_data(self, request):
-        rid = get_rid_from_request(request)
+        rid = request.get_rid()
 
         for data in self.get_data(path_filters="/api/v0.2/traces"):
             if "tracerPayloads" not in data["request"]["content"]:
@@ -90,7 +90,7 @@ class AgentInterfaceValidator(ProxyBasedInterfaceValidator):
         for _, _ in self.get_spans(request=request):
             return
 
-        raise ValueError(f"No trace has been found for request {get_rid_from_request(request)}")
+        raise ValueError(f"No trace has been found for request {request.get_rid()}")
 
     def assert_headers_presence(self, path_filter, request_headers=(), response_headers=(), check_condition=None):
         validator = HeadersPresenceValidator(request_headers, response_headers, check_condition)
@@ -124,7 +124,7 @@ class AgentInterfaceValidator(ProxyBasedInterfaceValidator):
         during that request's execution, and only return those.
         """
 
-        rid = get_rid_from_request(request)
+        rid = request.get_rid() if request else None
         if rid:
             logger.debug(f"Will try to find agent spans related to request {rid}")
 
