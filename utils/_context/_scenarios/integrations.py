@@ -38,7 +38,7 @@ class IntegrationsScenario(EndToEndScenario):
                 "DD_TRACE_INFERRED_PROXY_SERVICES_ENABLED": "true",
                 "SYSTEM_TESTS_AWS_URL": "http://localstack-main:4566",
                 "DD_IAST_CONTEXT_MODE": "GLOBAL",
-                "DD_TRACE_NATIVE_SPAN_EVENTS": "true"
+                "DD_TRACE_NATIVE_SPAN_EVENTS": "true",
             },
             include_postgres_db=True,
             include_cassandra_db=True,
