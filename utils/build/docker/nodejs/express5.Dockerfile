@@ -13,8 +13,8 @@ WORKDIR /usr/app
 
 ENV NODE_ENV=production
 
-RUN npm install
-RUN npm install "express@5.0.1"
+RUN npm install || npm install
+RUN npm install "express@5.0.1" || npm install "express@5.0.1"
 
 EXPOSE 7777
 
