@@ -375,7 +375,7 @@ SDK_DEFAULT_STABLE_CONFIG = {
     "dd_runtime_metrics_enabled": "false" if context.library != "java" else "true",
     "dd_profiling_enabled": "false",
     "dd_data_streams_enabled": "false",
-    "dd_logs_injection": "false",
+    "dd_logs_injection": "false" if context.library != "java" else "true",
 }
 
 
@@ -568,7 +568,7 @@ class Test_Stable_Config_Default(StableConfigWriter):
 
     @pytest.mark.parametrize("library_env", [{"STABLE_CONFIG_SELECTOR": "true", "DD_SERVICE": "not-my-service"}])
     @missing_feature(
-        context.library in ["ruby", "cpp", "dotnet", "golang", "java", "nodejs", "php", "python"],
+        context.library in ["ruby", "cpp", "dotnet", "golang", "nodejs", "php", "python"],
         reason="UST stable config is phase 2",
     )
     def test_config_stable(self, library_env, test_agent, test_library):
@@ -576,13 +576,14 @@ class Test_Stable_Config_Default(StableConfigWriter):
         with test_library:
             self.write_stable_config(
                 {
-                    "rules": [
+                    "apm_configuration_rules": [
                         {
                             "selectors": [
                                 {
                                     "origin": "environment_variables",
-                                    "matches": ["STABLE_CONFIG_SELECTOR=true"],
+                                    "key": "STABLE_CONFIG_SELECTOR",
                                     "operator": "equals",
+                                    "matches": ["true"],
                                 }
                             ],
                             "configuration": {"DD_SERVICE": "my-service"},
