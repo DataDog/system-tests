@@ -147,28 +147,53 @@ check_pipeline_status:
   script:
     - echo "Checking for failed jobs in parent and child pipelines..."
     - export GITLAB_TOKEN=$(aws ssm get-parameter --region us-east-1 --name "ci.$CI_PROJECT_NAME.gitlab.token" --with-decryption --query "Parameter.Value" --out text)
+
+    # Function to fetch all jobs from a paginated GitLab API endpoint
     - |
-      RESPONSE=$(curl --silent --header "PRIVATE-TOKEN: $GITLAB_TOKEN" \
-      "$CI_API_V4_URL/projects/$CI_PROJECT_ID/pipelines/$CI_PIPELINE_ID/jobs")
+      fetch_all_jobs() {
+        local url="$1"
+        local failed_count=0
+        local page=1
 
-      # Validate JSON response
-      if ! echo "$RESPONSE" | jq -e type > /dev/null 2>&1; then
-        echo "❌ Error: Invalid JSON response from GitLab API."
-        exit 1
-      fi
+        while true; do
+          RESPONSE=$(curl --silent --header "PRIVATE-TOKEN: $GITLAB_TOKEN" "$url&page=$page&per_page=100")
+          
+          # Validate JSON response
+          if ! echo "$RESPONSE" | jq -e type > /dev/null 2>&1; then
+            echo "❌ Error: Invalid JSON response from GitLab API."
+            exit 1
+          fi
 
-      FAILED_JOBS=$(echo "$RESPONSE" | jq '[.[] | select(.status == "failed")] | length')
+          # Count failed jobs on this page
+          local page_failed_jobs
+          page_failed_jobs=$(echo "$RESPONSE" | jq '[.[] | select(.status == "failed")] | length')
+          failed_count=$((failed_count + page_failed_jobs))
+
+          # Check if there are more pages (by checking if we got less than 100 results)
+          local jobs_count
+          jobs_count=$(echo "$RESPONSE" | jq 'length')
+
+          if [ "$jobs_count" -lt 100 ]; then
+            break
+          fi
+
+          ((page++))
+        done
+
+        echo "$failed_count"
+      }
+
+    # Fetch failed jobs in the parent pipeline
+    - |
+      FAILED_JOBS=$(fetch_all_jobs "$CI_API_V4_URL/projects/$CI_PROJECT_ID/pipelines/$CI_PIPELINE_ID/jobs?")
 
       # Fetch child pipelines
       CHILD_PIPELINES=$(curl --silent --header "PRIVATE-TOKEN: $GITLAB_TOKEN" \
-      "$CI_API_V4_URL/projects/$CI_PROJECT_ID/pipelines/$CI_PIPELINE_ID/bridges" | jq -r '.[].downstream_pipeline.id')
+        "$CI_API_V4_URL/projects/$CI_PROJECT_ID/pipelines/$CI_PIPELINE_ID/bridges" | jq -r '.[].downstream_pipeline.id')
 
       FAILED_CHILD_JOBS=0
       for CHILD_PIPELINE in $CHILD_PIPELINES; do
-        CHILD_FAILED_JOBS=$(curl --silent --header "PRIVATE-TOKEN: $GITLAB_TOKEN" \
-        "$CI_API_V4_URL/projects/$CI_PROJECT_ID/pipelines/$CHILD_PIPELINE/jobs" | jq '[.[] | select(.status == "failed")] | length')
-
-        FAILED_CHILD_JOBS=$((FAILED_CHILD_JOBS + CHILD_FAILED_JOBS))
+        FAILED_CHILD_JOBS=$((FAILED_CHILD_JOBS + $(fetch_all_jobs "$CI_API_V4_URL/projects/$CI_PROJECT_ID/pipelines/$CHILD_PIPELINE/jobs?")))
       done
 
       TOTAL_FAILED=$((FAILED_JOBS + FAILED_CHILD_JOBS))
@@ -180,6 +205,7 @@ check_pipeline_status:
 
     - echo "✅ All jobs and child pipelines passed!"
   when: always
+
 
 check_merge_labels:
   #Build docker images if it's needed. Check if the PR has the labels associated with the image build.
