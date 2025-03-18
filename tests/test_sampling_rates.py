@@ -70,6 +70,7 @@ class Test_SamplingRates:
             self.paths.append(p)
             weblog.get(p)
 
+    @missing_feature(library="cpp_httpd", reason="/sample_rate_route is not implemented")
     def test_sampling_rates(self):
         """Basic test"""
         interfaces.library.assert_all_traces_requests_forwarded(self.paths)
