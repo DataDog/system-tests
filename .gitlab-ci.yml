@@ -59,6 +59,9 @@ compute_pipeline:
       if [ -n "$SYSTEM_TESTS_SCENARIOS" ] || [ -n "$SYSTEM_TESTS_SCENARIOS_GROUPS" ]; then
         cp *.yml "$CI_PROJECT_DIR"
       fi
+  rules:
+    - if: '$SCHEDULED_JOB == ""'
+    - if: '$SCHEDULED_JOB == null'
   artifacts:
     paths:
       - nodejs_ssi_gitlab_pipeline.yml
@@ -180,6 +183,17 @@ check_pipeline_status:
 
     - echo "✅ All jobs and child pipelines passed!"
   when: always
+
+delete_amis:
+  #Build docker images if it's needed. Check if the PR has the labels associated with the image build.
+  extends: .base_job_onboarding
+  stage: system-tests-utils
+  allow_failure: false
+  script:
+        - ./build.sh -i runner
+        - aws-vault exec sso-apm-ecosystems-reliability-account-admin  -- python utils/scripts/pulumi_clean_up.py --component amis --ami-retention-days 0 --ami-last-launched-days 0
+  rules:
+    - if: '$SCHEDULED_JOB == "delete_amis"'
 
 check_merge_labels:
   #Build docker images if it's needed. Check if the PR has the labels associated with the image build.
