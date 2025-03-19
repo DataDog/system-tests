@@ -79,10 +79,6 @@ class TestAutoInjectBlockListInstallManualHost(_AutoInjectBlockListBaseTest):
         context.vm_os_branch == "redhat" and context.vm_os_cpu == "arm64" and context.scenario.library == "ruby",
         reason="INPLAT-103",
     )
-    @bug(
-        context.vm_name in ["Ubuntu_24_10_amd64", "Ubuntu_24_10_arm64"] and context.weblog_variant == "test-app-python",
-        reason="INPLAT-478",
-    )
     def test_builtin_block_commands(self):
         """Check that commands are skipped from the auto injection. This commands are defined on the buildIn processes to block"""
         virtual_machine = context.scenario.virtual_machine
@@ -104,10 +100,6 @@ class TestAutoInjectBlockListInstallManualHost(_AutoInjectBlockListBaseTest):
     @bug(
         context.vm_os_branch == "redhat" and context.vm_os_cpu == "arm64" and context.library == "ruby",
         reason="INPLAT-103",
-    )
-    @bug(
-        context.vm_name in ["Ubuntu_24_10_amd64", "Ubuntu_24_10_arm64"] and context.weblog_variant == "test-app-python",
-        reason="INPLAT-478",
     )
     def test_builtin_block_args(self):
         """Check that we are blocking command with args. These args are defined in the buildIn args ignore list for each language."""
@@ -132,10 +124,6 @@ class TestAutoInjectBlockListInstallManualHost(_AutoInjectBlockListBaseTest):
     @bug(
         context.vm_os_branch == "redhat" and context.vm_os_cpu == "arm64" and context.scenario.library == "ruby",
         reason="INPLAT-103",
-    )
-    @bug(
-        context.vm_name in ["Ubuntu_24_10_amd64", "Ubuntu_24_10_arm64"] and context.weblog_variant == "test-app-python",
-        reason="INPLAT-478",
     )
     def test_builtin_instrument_args(self):
         """Check that we are instrumenting the command with args that it should be instrumented. The args are not included on the buildIn args list"""

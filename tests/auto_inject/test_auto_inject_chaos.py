@@ -97,10 +97,6 @@ class TestAutoInjectChaos(BaseAutoInjectChaos):
         context.vm_name in ["Amazon_Linux_2023_amd64", "Amazon_Linux_2023_arm64"],
         reason="LD library failures impact on the docker engine, causes flakiness",
     )
-    @bug(
-        context.vm_name in ["Ubuntu_24_10_amd64", "Ubuntu_24_10_arm64"] and context.weblog_variant == "test-app-python",
-        reason="INPLAT-478",
-    )
     @missing_feature(context.vm_os_branch == "windows", reason="Not implemented on Windows")
     @irrelevant(
         context.vm_name in ["AlmaLinux_8_amd64", "AlmaLinux_8_arm64", "OracleLinux_8_8_amd64", "OracleLinux_8_8_arm64"]
@@ -125,10 +121,6 @@ class TestAutoInjectChaos(BaseAutoInjectChaos):
     @bug(
         context.vm_os_branch == "redhat" and context.vm_os_cpu == "arm64" and context.weblog_variant == "test-app-ruby",
         reason="INPLAT-103",
-    )
-    @bug(
-        context.vm_name in ["Ubuntu_24_10_amd64", "Ubuntu_24_10_arm64"] and context.weblog_variant == "test-app-python",
-        reason="INPLAT-478",
     )
     @missing_feature(context.vm_os_branch == "windows", reason="Not implemented on Windows")
     @irrelevant(
