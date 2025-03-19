@@ -23,16 +23,16 @@ _TELEMETRY_PATH = "/api/v2/apmtelemetry"
 _CUR_DIR = str(Path(__file__).resolve().parent)
 
 
-def read_probes(test_name: str):
+def read_probes(test_name: str) -> list:
     with open(os.path.join(_CUR_DIR, "probes/", test_name + ".json"), "r", encoding="utf-8") as f:
         return json.load(f)
 
 
-def generate_probe_id(probe_type: str):
+def generate_probe_id(probe_type: str) -> str:
     return probe_type + str(uuid.uuid4())[len(probe_type) :]
 
 
-def extract_probe_ids(probes):
+def extract_probe_ids(probes) -> list:
     if probes:
         if isinstance(probes, dict):
             return list(probes.keys())
@@ -47,12 +47,12 @@ def _get_path(test_name, suffix) -> str:
     return os.path.join(_CUR_DIR, "approvals", filename)
 
 
-def write_approval(data, test_name, suffix):
+def write_approval(data, test_name, suffix) -> None:
     with open(_get_path(test_name, suffix), "w", encoding="utf-8") as f:
         json.dump(data, f, indent=2)
 
 
-def read_approval(test_name, suffix):
+def read_approval(test_name, suffix) -> dict:
     with open(_get_path(test_name, suffix), "r", encoding="utf-8") as f:
         return json.load(f)
 
@@ -79,7 +79,7 @@ class BaseDebuggerTest:
 
     setup_failures = []
 
-    def initialize_weblog_remote_config(self):
+    def initialize_weblog_remote_config(self) -> None:
         if self.get_tracer()["language"] == "ruby":
             # Ruby tracer initializes remote configuration client from
             # middleware that is only invoked during request processing.
@@ -93,7 +93,7 @@ class BaseDebuggerTest:
                     f"Failed to get /debugger/init: expected status code: 200, actual status code: {response.status_code}"
                 )
 
-    def method_and_language_to_line_number(self, method, language):
+    def method_and_language_to_line_number(self, method, language) -> dict:
         """method_and_language_to_line_number returns the respective line number given the method and language"""
         return {
             "Budgets": {"java": [138], "dotnet": [136], "python": [142]},
@@ -107,7 +107,7 @@ class BaseDebuggerTest:
         }.get(method, {}).get(language, [])
 
     ###### set #####
-    def set_probes(self, probes):
+    def set_probes(self, probes) -> None:
         def _enrich_probes(probes):
             def __get_probe_type(probe_id):
                 if probe_id.startswith("log"):
@@ -171,7 +171,7 @@ class BaseDebuggerTest:
     ###### send #####
     _rc_version = 0
 
-    def send_rc_probes(self, *, reset: bool = True):
+    def send_rc_probes(self, *, reset: bool = True) -> None:
         BaseDebuggerTest._rc_version += 1
 
         if reset:
@@ -190,7 +190,7 @@ class BaseDebuggerTest:
         dynamic_sampling_enabled: bool | None = None,
         *,
         reset: bool = True,
-    ):
+    ) -> None:
         BaseDebuggerTest._rc_version += 1
 
         if reset:
@@ -207,14 +207,14 @@ class BaseDebuggerTest:
             )
         )
 
-    def send_rc_symdb(self, *, reset: bool = True):
+    def send_rc_symdb(self, *, reset: bool = True) -> None:
         BaseDebuggerTest._rc_version += 1
         if reset:
             self.rc_states = []
 
         self.rc_states.append(remote_config.send_symdb_command(BaseDebuggerTest._rc_version))
 
-    def send_weblog_request(self, request_path: str, *, reset: bool = True):
+    def send_weblog_request(self, request_path: str, *, reset: bool = True) -> None:
         if reset:
             self.weblog_responses = []
 
@@ -223,12 +223,12 @@ class BaseDebuggerTest:
     ###### wait for #####
     _last_read = 0
 
-    def wait_for_all_probes_installed(self, timeout=30):
+    def wait_for_all_probes_installed(self, timeout=30) -> None:
         self._wait_successful = False
         interfaces.agent.wait_for(lambda data: self._wait_for_all_probes(data, status="INSTALLED"), timeout=timeout)
         return self._wait_successful
 
-    def wait_for_all_probes_emitting(self, timeout=30):
+    def wait_for_all_probes_emitting(self, timeout=30) -> None:
         self._wait_successful = False
         interfaces.agent.wait_for(lambda data: self._wait_for_all_probes(data, status="EMITTING"), timeout=timeout)
         return self._wait_successful
@@ -282,7 +282,7 @@ class BaseDebuggerTest:
     _exception_message = None
     _snapshot_found = False
 
-    def wait_for_exception_snapshot_received(self, exception_message, timeout):
+    def wait_for_exception_snapshot_received(self, exception_message, timeout) -> None:
         self._exception_message = exception_message
         self._snapshot_found = False
 
@@ -317,7 +317,7 @@ class BaseDebuggerTest:
         logger.debug(f"Snapshot found: {self._snapshot_found}")
         return self._snapshot_found
 
-    def wait_for_code_origin_span(self, timeout):
+    def wait_for_code_origin_span(self, timeout) -> None:
         self._span_found = False
 
         interfaces.agent.wait_for(self._wait_for_code_origin_span, timeout=timeout)
@@ -379,7 +379,7 @@ class BaseDebuggerTest:
         return False
 
     ###### collect #####
-    def collect(self):
+    def collect(self) -> None:
         self.get_tracer()
 
         self._collect_probe_diagnostics()
@@ -522,7 +522,7 @@ class BaseDebuggerTest:
 
         self.symbols = _get_symbols()
 
-    def get_tracer(self):
+    def get_tracer(self) -> dict[str, str]:
         if not BaseDebuggerTest.tracer:
             BaseDebuggerTest.tracer = {
                 "language": str(context.library).split("@")[0],
@@ -531,18 +531,18 @@ class BaseDebuggerTest:
 
         return BaseDebuggerTest.tracer
 
-    def assert_setup_ok(self):
+    def assert_setup_ok(self) -> None:
         if self.setup_failures:
             assert "\n".join(self.setup_failures) is None
 
-    def get_exception_message(self, snapshot):
+    def get_exception_message(self, snapshot) -> str:
         if self.get_tracer()["language"] == "python":
             return next(iter(snapshot["captures"]["lines"].values()))["throwable"]["message"].lower()
         else:
             return snapshot["captures"]["return"]["throwable"]["message"].lower()
 
     ###### assert #####
-    def assert_rc_state_not_error(self):
+    def assert_rc_state_not_error(self) -> None:
         assert self.rc_states, "RC states are empty"
 
         errors = []
@@ -562,7 +562,7 @@ class BaseDebuggerTest:
 
         assert not errors, "\n".join(errors)
 
-    def assert_all_probes_are_emitting(self):
+    def assert_all_probes_are_emitting(self) -> None:
         expected = self.probe_ids
         received = extract_probe_ids(self.probe_diagnostics)
 
@@ -587,7 +587,7 @@ class BaseDebuggerTest:
 
         assert not errors, f"The following probes are not emitting: {errors}"
 
-    def assert_all_weblog_responses_ok(self, expected_code=200):
+    def assert_all_weblog_responses_ok(self, expected_code=200) -> None:
         assert len(self.weblog_responses) > 0, "No responses available."
 
         for respone in self.weblog_responses:

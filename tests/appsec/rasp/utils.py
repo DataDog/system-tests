@@ -7,7 +7,7 @@ import json
 from utils import interfaces
 
 
-def validate_span_tags(request, expected_meta=(), expected_metrics=()):
+def validate_span_tags(request, expected_meta=(), expected_metrics=()) -> None:
     """Validate RASP span tags are added when an event is generated"""
     span = interfaces.library.get_root_span(request)
     meta = span["meta"]
@@ -19,7 +19,7 @@ def validate_span_tags(request, expected_meta=(), expected_metrics=()):
         assert m in metrics, f"missing span metric tag `{m}` in {metrics}"
 
 
-def validate_stack_traces(request):
+def validate_stack_traces(request) -> None:
     events = list(interfaces.library.get_appsec_events(request=request))
     assert len(events) != 0, "No appsec event has been reported"
 
@@ -69,7 +69,7 @@ def find_series(
     metric,
     *,
     is_metrics: bool,
-):
+) -> list:
     request_type = "generate-metrics" if is_metrics else "distributions"
     series = []
     for data in interfaces.library.get_telemetry_data():
@@ -86,7 +86,7 @@ def find_series(
     return series
 
 
-def validate_metric(name, metric_type, metric):
+def validate_metric(name, metric_type, metric) -> None:
     return (
         metric.get("metric") == name
         and metric.get("type") == "count"
@@ -95,7 +95,7 @@ def validate_metric(name, metric_type, metric):
     )
 
 
-def validate_metric_variant(name, metric_type, variant, metric):
+def validate_metric_variant(name, metric_type, variant, metric) -> bool:
     return (
         metric.get("metric") == name
         and metric.get("type") == "count"
@@ -105,7 +105,7 @@ def validate_metric_variant(name, metric_type, variant, metric):
     )
 
 
-def validate_metric_tag_version(tag_prefix, min_version, metric):
+def validate_metric_tag_version(tag_prefix, min_version, metric) -> bool:
     for tag in metric["tags"]:
         if tag.startswith(tag_prefix + ":"):
             version_str = tag.split(":")[1]
@@ -159,7 +159,7 @@ class BaseRulesVersion:
 
     min_version = "1.13.3"
 
-    def test_min_version(self):
+    def test_min_version(self) -> None:
         """Checks data in waf.init metric to verify waf version"""
 
         min_version_array = list(map(int, self.min_version.split(".")))
@@ -173,7 +173,7 @@ class BaseWAFVersion:
 
     min_version = "1.20.1"
 
-    def test_min_version(self):
+    def test_min_version(self) -> None:
         """Checks data in waf.init metric to verify waf version"""
 
         min_version_array = list(map(int, self.min_version.split(".")))
