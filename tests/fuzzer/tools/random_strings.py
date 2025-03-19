@@ -124,11 +124,11 @@ get_random_unicode = string_lists.get_random_unicode
 get_random_unicode_char = string_lists.get_random_unicode_char
 
 
-def get_random_latin1(min_length=0, max_length=255):
+def get_random_latin1(min_length=0, max_length=255) -> str:
     length = random.randint(min_length, max_length)
     return "".join(random.choices(string_lists.latin1, k=length))
 
 
-def get_random_string(population, min_length=0, max_length=255):
+def get_random_string(population: list[str], min_length: int = 0, max_length: int = 255) -> str:
     length = random.randint(min_length, max_length)
     return "".join(random.choices(population, k=length))

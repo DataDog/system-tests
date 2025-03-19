@@ -47,7 +47,7 @@ class AutoInjectBaseTest:
             logger.info(f"Http request done with uuid: [{request_uuid}] for ip [{vm_ip}]")
         wait_backend_trace_id(request_uuid, profile=profile)
 
-    def close_channel(self, channel):
+    def close_channel(self, channel) -> None:
         try:
             if not channel.eof_received:
                 channel.close()
