@@ -456,7 +456,7 @@ tests/:
     test_config_consistency.py:
       Test_Config_Dogstatsd: missing_feature (does not support hostname)
       Test_Config_RateLimit: v3.4.1
-      Test_Config_Tags: missing_feature
+      Test_Config_Tags: v3.12.0
       Test_Config_TraceAgentURL: v3.4.1
       Test_Config_TraceEnabled: v3.3.0
       Test_Config_TraceLogDirectory: v3.3.0
