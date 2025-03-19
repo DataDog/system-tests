@@ -285,7 +285,7 @@ class Test_Debugger_Expression_Language(debugger.BaseDebuggerTest):
         self.message_map = message_map
         self._setup(probes, "/debugger/expression/operators?intValue=5&floatValue=3.14&strValue=haha")
 
-    @bug(context.library >= "dotnet@3.5.0", reason="DEBUG-3115")
+    @bug(context.library == "dotnet@3.5.0", reason="DEBUG-3115")
     def test_expression_language_logical_operators(self):
         self._assert(expected_response=200)
 
@@ -409,7 +409,6 @@ class Test_Debugger_Expression_Language(debugger.BaseDebuggerTest):
         self.message_map = message_map
         self._setup(probes, "/debugger/expression/collections")
 
-    @bug(library="dotnet", reason="DEBUG-2602")
     def test_expression_language_collection_operations(self):
         self._assert(expected_response=200)
 

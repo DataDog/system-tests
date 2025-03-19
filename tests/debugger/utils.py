@@ -448,6 +448,12 @@ class BaseDebuggerTest:
             else:
                 span_decoration_line_key = "_dd.di.spandecorationargsandlocals.probe_id"
 
+            exception_id_key = None
+            if self.get_tracer()["language"] == "python":
+                exception_id_key = "_dd.debug.error.exception_capture_id"
+            else:
+                exception_id_key = "_dd.debug.error.exception_id"
+
             for request in agent_logs_endpoint_requests:
                 content = request["request"]["content"]
                 if content:
@@ -465,9 +471,9 @@ class BaseDebuggerTest:
                                     span_hash[span["meta"][span_decoration_line_key]] = span
                                     continue
 
-                                is_exception_replay = "_dd.debug.error.exception_id" in span["meta"]
+                                is_exception_replay = exception_id_key in span["meta"]
                                 if is_exception_replay:
-                                    span_hash[span["meta"]["_dd.debug.error.exception_id"]] = span
+                                    span_hash[span["meta"][exception_id_key]] = span
                                     continue
 
             return span_hash
