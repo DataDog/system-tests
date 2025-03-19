@@ -38,7 +38,7 @@ class TestSimpleInstallerAutoInjectManualProfiling(base.AutoInjectBaseTest):
         context.vm_os_cpu == "arm64" and context.weblog_variant in ["test-app-dotnet", "test-app-dotnet-container"],
         reason="PROF-10783",
     )
-    @bug(
+    @irrelevant(
         context.vm_name in ["Ubuntu_24_amd64", "Ubuntu_24_arm64"] and context.weblog_variant == "test-app-nodejs",
         reason="PROF-11264",
     )
@@ -57,7 +57,7 @@ class TestHostAutoInjectInstallScriptProfiling(base.AutoInjectBaseTest):
         context.vm_os_cpu == "arm64" and context.weblog_variant == "test-app-dotnet",
         reason="PROF-10783",
     )
-    @bug(
+    @irrelevant(
         context.vm_name in ["Ubuntu_24_amd64", "Ubuntu_24_arm64"] and context.weblog_variant == "test-app-nodejs",
         reason="PROF-11264",
     )
