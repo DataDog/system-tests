@@ -10,9 +10,9 @@ package common
 import (
 	"net/http"
 
-	httptrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/net/http"
+	httptrace "github.com/DataDog/dd-trace-go/contrib/net/http/v2"
 )
 
 func httpClient() *http.Client {
-	return httptrace.WrapClient(http.DefaultClient, httptrace.RTWithPropagation(true))
+	return httptrace.WrapClient(http.DefaultClient, httptrace.WithPropagation(true))
 }
