@@ -17,7 +17,7 @@ from typing import Any
 
 import pytest
 
-from utils.tools import logger
+from utils._logger import logger
 from utils.interfaces._schemas_validators import SchemaValidator, SchemaError
 
 

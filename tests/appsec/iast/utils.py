@@ -1,6 +1,5 @@
 import json
-from utils import weblog, interfaces, context
-from utils.tools import logger
+from utils import weblog, interfaces, context, logger
 
 
 def _get_expectation(d):

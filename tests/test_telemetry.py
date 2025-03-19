@@ -3,8 +3,7 @@ from collections import defaultdict
 from datetime import timedelta
 import time
 from dateutil.parser import isoparse
-from utils import context, interfaces, missing_feature, bug, flaky, irrelevant, weblog, scenarios, features, rfc
-from utils.tools import logger
+from utils import context, interfaces, missing_feature, bug, flaky, irrelevant, weblog, scenarios, features, rfc, logger
 from utils.interfaces._misc_validators import HeadersPresenceValidator, HeadersMatchValidator
 
 INTAKE_TELEMETRY_PATH = "/api/v2/apmtelemetry"

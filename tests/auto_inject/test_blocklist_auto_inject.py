@@ -1,8 +1,7 @@
 import uuid
 from scp import SCPClient
 
-from utils import scenarios, context, features, irrelevant, bug
-from utils.tools import logger
+from utils import scenarios, context, features, irrelevant, bug, logger
 from utils.onboarding.injection_log_parser import command_injection_skipped
 
 
