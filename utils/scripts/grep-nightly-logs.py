@@ -25,7 +25,7 @@ def get_environ() -> dict[str, str]:
     return environ
 
 
-def get_json(url, headers=None, params=None) -> Any:  # noqa: ANN401
+def get_json(url: str, headers: dict | None = None, params: dict | None = None) -> Any:  # noqa: ANN401
     response = requests.get(url, headers=headers, params=params, timeout=30)
     response.raise_for_status()
     return response.json()

@@ -32,7 +32,6 @@ tests/:
         Test_API_Security_RC_ASM_DD_scanners:
           '*': v1.38.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-        Test_API_Security_RC_ASM_processor_overrides_and_custom_scanner: irrelevant (waf does not support it yet)
       test_apisec_sampling.py: missing_feature
       test_schemas.py:
         Test_Scanners:
@@ -1378,6 +1377,7 @@ tests/:
         akka-http: v1.22.0
         play: v1.22.0
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+      Test_CorruptedRules_Telemetry: missing_feature
       Test_MissingRules:
         '*': v0.93.0
         akka-http: v1.22.0
