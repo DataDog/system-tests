@@ -3,7 +3,7 @@ from utils import remote_config
 from utils.dd_constants import RemoteConfigApplyState
 
 
-def find_series(request_type, namespace, metrics) -> list:
+def find_series(request_type: str, namespace: str, metrics: list[str]) -> list:
     series = []
     for data in interfaces.library.get_telemetry_data():
         content = data["request"]["content"]
