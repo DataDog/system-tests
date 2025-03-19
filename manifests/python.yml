@@ -563,6 +563,7 @@ tests/:
         fastapi: v2.4.0
     test_customconf.py:
       Test_ConfRuleSet: v1.1.0-rc2
+      Test_CorruptedRules_Telemetry: missing_feature
       Test_NoLimitOnWafRules: v1.1.0-rc2
     test_event_tracking.py:
       Test_CustomEvent: v1.10.0

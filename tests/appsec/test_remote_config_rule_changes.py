@@ -4,6 +4,7 @@
 
 import re
 
+from tests.appsec.utils import find_series
 from utils import context
 from utils import bug
 from utils import features
@@ -139,19 +140,6 @@ class Test_UpdateRuleFileWithRemoteConfig:
     Also test the span tags and telemetry data for the rule version.
     """
 
-    def _find_series(self, request_type, namespace, metrics):
-        series = []
-        for data in interfaces.library.get_telemetry_data():
-            content = data["request"]["content"]
-            if content.get("request_type") != request_type:
-                continue
-            fallback_namespace = content["payload"].get("namespace")
-            for serie in content["payload"]["series"]:
-                computed_namespace = serie.get("namespace", fallback_namespace)
-                if computed_namespace == namespace and serie["metric"] in metrics:
-                    series.append(serie)
-        return series
-
     def setup_update_rules(self):
         self.config_state_1 = rc.rc_state.reset().set_config(*CONFIG_ENABLED).apply()
         self.response_1 = weblog.get("/waf/", headers={"User-Agent": "dd-test-scanner-log-block"})
@@ -232,7 +220,7 @@ class Test_UpdateRuleFileWithRemoteConfig:
         assert self.config_state_5[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
 
         # Check for rule version in telemetry
-        series = self._find_series("generate-metrics", "appsec", ["waf.requests", "waf.init", "waf.requests"])
+        series = find_series("generate-metrics", "appsec", ["waf.requests", "waf.init", "waf.requests"])
         rule_versions = set()
         for s in series:
             for t in s.get("tags", ()):
