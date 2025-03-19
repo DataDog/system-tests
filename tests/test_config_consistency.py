@@ -5,8 +5,7 @@
 import re
 import json
 import time
-from utils import weblog, interfaces, scenarios, features, rfc, irrelevant, context, bug, missing_feature
-from utils.tools import logger
+from utils import weblog, interfaces, scenarios, features, rfc, irrelevant, context, bug, missing_feature, logger
 
 # get the default log output
 stdout = interfaces.library_stdout if context.library != "dotnet" else interfaces.library_dotnet_managed

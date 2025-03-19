@@ -7,7 +7,7 @@
 from collections import Counter
 from collections.abc import Callable
 from utils.interfaces._library.appsec_data import rule_id_to_type
-from utils.tools import logger
+from utils._logger import logger
 
 
 class _WafAttack:

@@ -16,7 +16,7 @@ import requests
 from utils._context.core import context
 from utils.dd_constants import RemoteConfigApplyState as ApplyState
 from utils.interfaces import library
-from utils.tools import logger
+from utils._logger import logger
 from utils._context.containers import ProxyContainer
 
 

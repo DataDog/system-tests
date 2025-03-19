@@ -17,7 +17,7 @@ from pytest_jsonreport.plugin import JSONReport
 from manifests.parser.core import load as load_manifests
 from utils import context
 from utils._context._scenarios import scenarios, Scenario
-from utils.tools import logger
+from utils._logger import logger
 from utils.scripts.junit_report import junit_modifyreport
 from utils._context.library_version import LibraryVersion
 from utils._decorators import released, configure as configure_decorators

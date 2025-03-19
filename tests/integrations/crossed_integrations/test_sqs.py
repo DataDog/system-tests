@@ -2,8 +2,7 @@ from __future__ import annotations
 import json
 
 from utils.buddies import python_buddy, java_buddy
-from utils import interfaces, scenarios, weblog, missing_feature, features, context, irrelevant
-from utils.tools import logger
+from utils import interfaces, scenarios, weblog, missing_feature, features, context, irrelevant, logger
 
 
 class _BaseSQS:

@@ -6,7 +6,7 @@
 
 import threading
 
-from utils.tools import logger
+from utils._logger import logger
 from utils.interfaces._core import ProxyBasedInterfaceValidator
 
 

@@ -2,7 +2,7 @@ import pathlib
 import threading
 import json
 from utils.interfaces._core import InterfaceValidator
-from utils.tools import logger
+from utils._logger import logger
 
 
 class _TestAgentInterfaceValidator(InterfaceValidator):

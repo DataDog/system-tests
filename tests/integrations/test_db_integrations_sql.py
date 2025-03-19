@@ -2,8 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, bug, missing_feature, irrelevant, scenarios, features
-from utils.tools import logger
+from utils import context, bug, missing_feature, irrelevant, scenarios, features, logger
 
 from .utils import BaseDbIntegrationsTestClass
 

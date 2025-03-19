@@ -8,8 +8,7 @@ from collections.abc import Callable
 import boto3
 import botocore.exceptions
 
-from utils import weblog, interfaces, scenarios
-from utils.tools import logger
+from utils import weblog, interfaces, scenarios, logger
 
 
 class BaseDbIntegrationsTestClass:

@@ -20,7 +20,7 @@ from utils._context.containers import (
 )
 from utils.docker_ssi.docker_ssi_matrix_utils import resolve_runtime_version
 from utils.docker_ssi.docker_ssi_definitions import SupportedImages
-from utils.tools import logger
+from utils._logger import logger
 from utils.virtual_machine.vm_logger import vm_logger
 
 from .core import Scenario

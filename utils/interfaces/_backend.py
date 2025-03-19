@@ -11,7 +11,8 @@ import time
 import requests
 
 from utils.interfaces._core import ProxyBasedInterfaceValidator
-from utils.tools import logger, get_rid_from_span
+from utils.tools import get_rid_from_span
+from utils._logger import logger
 
 
 class _BackendInterfaceValidator(ProxyBasedInterfaceValidator):

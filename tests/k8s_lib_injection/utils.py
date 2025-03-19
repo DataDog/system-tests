@@ -1,7 +1,7 @@
 import time
 
 import requests
-from utils.tools import logger
+from utils import logger
 
 
 def get_dev_agent_traces(k8s_cluster_info, retry=10):

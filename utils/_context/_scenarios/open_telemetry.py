@@ -5,7 +5,7 @@ import pytest
 from watchdog.observers.polling import PollingObserver
 from watchdog.events import FileSystemEventHandler, FileSystemEvent
 
-from utils.tools import logger
+from utils._logger import logger
 from utils import interfaces
 from utils.interfaces._core import ProxyBasedInterfaceValidator
 from utils._context.library_version import Version
