@@ -698,7 +698,7 @@ class _Scenarios:
         },
         library_interface_timeout=5,
         doc="Test scenario for checking debugger telemetry.",
-        scenario_groups=[ScenarioGroup.DEBUGGER],
+        scenario_groups=[ScenarioGroup.DEBUGGER, ScenarioGroup.TELEMETRY],
     )
 
     fuzzer = DockerScenario("FUZZER", doc="Fake scenario for fuzzing (launch without pytest)", github_workflow=None)

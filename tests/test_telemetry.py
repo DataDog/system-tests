@@ -6,6 +6,7 @@ from dateutil.parser import isoparse
 from utils import context, interfaces, missing_feature, bug, flaky, irrelevant, weblog, scenarios, features, rfc
 from utils.tools import logger
 from utils.interfaces._misc_validators import HeadersPresenceValidator, HeadersMatchValidator
+from utils.telemetry import get_lang_configs, load_telemetry_json
 
 INTAKE_TELEMETRY_PATH = "/api/v2/apmtelemetry"
 AGENT_TELEMETRY_PATH = "/telemetry/proxy/api/v2/apmtelemetry"
@@ -569,30 +570,6 @@ class Test_APMOnboardingInstallID:
         validate_at_least_one_span_with_tag("_dd.install.id")
         validate_at_least_one_span_with_tag("_dd.install.time")
         validate_at_least_one_span_with_tag("_dd.install.type")
-
-
-def lowercase_obj(obj):
-    if isinstance(obj, dict):
-        return {k.lower() if isinstance(k, str) else k: lowercase_obj(v) for k, v in obj.items()}
-    elif isinstance(obj, list):
-        return [lowercase_obj(item) for item in obj]
-    elif isinstance(obj, str):
-        return obj.lower()
-    else:
-        return obj
-
-
-def load_telemetry_json(filename):
-    with open(f"tests/telemetry_intake/static/{filename}.json", encoding="utf-8") as fh:
-        return lowercase_obj(json.load(fh))
-
-
-def get_lang_configs():
-    lang_configs = {}
-    for lang in ["dotnet", "go", "jvm", "nodejs", "php", "python", "ruby"]:
-        lang_configs[lang] = load_telemetry_json(lang + "_config_rules")
-
-    return lang_configs
 
 
 def get_all_keys_and_values(*objs: tuple[None | dict | list, ...]) -> list:

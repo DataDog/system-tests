@@ -5,7 +5,7 @@
 import tests.debugger.utils as debugger
 from utils import scenarios, features, missing_feature, context
 from utils.tools import logger
-from tests.test_telemetry import load_telemetry_json, get_lang_configs
+from utils.telemetry import load_telemetry_json, get_lang_configs
 
 ALLOWED_ORIGINS = {"env_var", "code", "dd_config", "remote_config", "app.config", "default", "unknown"}
 
