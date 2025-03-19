@@ -11,6 +11,7 @@ RUNTIME_LANGUAGE_MAP = {
     "nodejs": "javascript",
     "golang": "go",
     "java": "jvm",
+    "cpp_httpd": "cpp",
 }
 
 """
@@ -150,6 +151,7 @@ class Test_Meta:
     """meta object in spans respect all conventions"""
 
     @bug(library="cpp", reason="APMAPI-924")
+    @bug(library="cpp_httpd", reason="APMAPI-924")
     @bug(library="php", reason="APMAPI-924")
     def test_meta_span_kind(self):
         """Validates that traces from an http framework carry a span.kind meta tag, with value server or client"""
@@ -168,6 +170,7 @@ class Test_Meta:
 
         interfaces.library.validate_spans(validator=validator)
 
+    @missing_feature(library="cpp_httpd", reason="For some reason, span type is server i/o web")
     @bug(library="ruby", reason="APMAPI-922")
     @bug(context.library < "golang@1.69.0-dev", reason="APMRP-360")
     @bug(context.library < "php@0.68.2", reason="APMRP-360")
@@ -190,6 +193,7 @@ class Test_Meta:
 
         interfaces.library.validate_spans(validator=validator)
 
+    @missing_feature(library="cpp_httpd", reason="For some reason, span type is server i/o web")
     def test_meta_http_status_code(self):
         """Validates that traces from an http framework carry a http.status_code meta tag, formatted as a int"""
 
@@ -208,6 +212,7 @@ class Test_Meta:
 
         interfaces.library.validate_spans(validator=validator)
 
+    @missing_feature(library="cpp_httpd", reason="For some reason, span type is server i/o web")
     def test_meta_http_method(self):
         """Validates that traces from an http framework carry a http.method meta tag, with a legal HTTP method"""
 

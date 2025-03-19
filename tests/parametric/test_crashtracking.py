@@ -65,8 +65,8 @@ class Test_Crashtracking:
             assert tags_dict["severity"] == "crash", tags_dict
         else:
             # those values are defined in python's module signal. But it's more clear to have this defined here
-            SIGABRT = 6
-            SIGSEGV = 11
+            SIGABRT = 6  # noqa: N806
+            SIGSEGV = 11  # noqa: N806
 
             # According to the RFC, si_signo should be set to 11 for SIGSEGV
             # though, it's difficult for .NET to simulate a segfault, so SIGABRT is used instead

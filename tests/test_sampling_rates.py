@@ -5,9 +5,12 @@
 from collections import defaultdict
 import csv
 from random import randint, seed
+from typing import Any
+from collections.abc import Generator
 
-from utils import weblog, interfaces, context, bug, irrelevant, flaky, scenarios, features
+from utils import weblog, interfaces, context, scenarios, features, missing_feature
 from utils.tools import logger
+from utils.dd_constants import SamplingPriority
 
 
 def priority_should_be_kept(sampling_priority):
@@ -15,10 +18,8 @@ def priority_should_be_kept(sampling_priority):
 
     See https://datadoghq.atlassian.net/wiki/spaces/APM/pages/2564915820/Trace+Ingestion+Mechanisms
     """
-    AUTO_KEEP = 1
-    USER_KEEP = 2
 
-    return sampling_priority in (AUTO_KEEP, USER_KEEP)
+    return sampling_priority in (SamplingPriority.AUTO_KEEP, SamplingPriority.USER_KEEP)
 
 
 def trace_should_be_kept(sampling_rate, trace_id):
@@ -27,16 +28,16 @@ def trace_should_be_kept(sampling_rate, trace_id):
     Reference algorithm described in the priority sampling RFC
     https://github.com/DataDog/architecture/blob/master/rfcs/apm/integrations/priority-sampling/rfc.md
     """
-    MODULO = 2**64
-    KNUTH_FACTOR = 1111111111111111111
+    modulo = 2**64
+    knuth_factor = 1111111111111111111
 
-    return ((trace_id * KNUTH_FACTOR) % MODULO) <= (sampling_rate * MODULO)
+    return ((trace_id * knuth_factor) % modulo) <= (sampling_rate * modulo)
 
 
 def _spans_with_parent(traces, parent_ids):
     if not isinstance(traces, list):
         logger.error("Traces should be an array")
-        yield from []  # do notfail here, it's schema's job
+        yield from []  # do not fail here, it's schema's job
     else:
         for trace in traces:
             for span in trace:
@@ -44,8 +45,16 @@ def _spans_with_parent(traces, parent_ids):
                     yield span
 
 
-@bug(context.library >= "golang@1.35.0" and context.library < "golang@1.36.2", reason="APMRP-360")
-@bug(context.agent_version < "7.33.0", reason="APMRP-360")
+def generate_request_id() -> Generator[int, Any, Any]:
+    i = 0
+    while True:
+        i += 1
+        yield i
+
+
+request_id_gen = generate_request_id()
+
+
 @scenarios.sampling
 @features.twl_customer_controls_ingestion_dd_trace_sampling_rules
 @features.ensure_that_sampling_is_consistent_across_languages
@@ -61,12 +70,7 @@ class Test_SamplingRates:
             self.paths.append(p)
             weblog.get(p)
 
-    @bug(context.library > "nodejs@3.14.1" and context.library < "nodejs@4.8.0", reason="APMRP-360")
-    @bug(context.library < "nodejs@5.17.0", reason="APMRP-360")  # fixed version is not known
-    @flaky(context.weblog_variant == "spring-boot-3-native", reason="APMAPI-736")
-    @flaky(library="golang", reason="APMAPI-736")
-    @flaky(library="ruby", reason="APMAPI-736")
-    @flaky(library="nodejs", reason="APMAPI-1120")
+    @missing_feature(library="cpp_httpd", reason="/sample_rate_route is not implemented")
     def test_sampling_rates(self):
         """Basic test"""
         interfaces.library.assert_all_traces_requests_forwarded(self.paths)
@@ -101,37 +105,19 @@ class Test_SamplingRates:
 class Test_SamplingDecisions:
     """Sampling configuration"""
 
-    rid = 0
-
-    @classmethod
-    def next_request_id(cls):
-        rid = cls.rid
-        cls.rid += 1
-        return rid
-
     def setup_sampling_decision(self):
         # Generate enough traces to have a high chance to catch sampling problems
         for _ in range(30):
-            weblog.get(f"/sample_rate_route/{self.next_request_id()}")
+            weblog.get(f"/sample_rate_route/{next(request_id_gen)}")
 
-    @irrelevant(context.library in ("nodejs", "php", "dotnet"), reason="AIT-374")
-    @bug(context.library < "java@0.92.0", reason="APMRP-360")
-    @flaky(context.library < "python@0.57.0", reason="APMRP-360")
-    @flaky(context.library >= "java@0.98.0", reason="APMJAVA-743")
-    @flaky(
-        context.library == "ruby" and context.weblog_variant in ("sinatra14", "sinatra20", "sinatra21", "uds-sinatra"),
-        reason="APMAPI-736",
-    )
-    @bug(context.library >= "python@1.11.0rc2.dev8", reason="APMAPI-736")
-    @bug(library="golang", reason="APMAPI-736")
     def test_sampling_decision(self):
         """Verify that traces are sampled following the sample rate"""
 
-        def validator(data, root_span):
+        def validator(datum, root_span):
             sampling_priority = root_span["metrics"].get("_sampling_priority_v1")
             if sampling_priority is None:
                 raise ValueError(
-                    f"Message: {data['log_filename']}:"
+                    f"Message: {datum['log_filename']}:"
                     "Metric _sampling_priority_v1 should be set on traces that with sampling decision"
                 )
 
@@ -146,6 +132,10 @@ class Test_SamplingDecisions:
         for data, span in interfaces.library.get_root_spans():
             validator(data, span)
 
+
+@scenarios.sampling
+@features.ensure_that_sampling_is_consistent_across_languages
+class Test_SamplingDecisionAdded:
     def setup_sampling_decision_added(self):
         seed(1)  # stay deterministic
 
@@ -153,11 +143,10 @@ class Test_SamplingDecisions:
 
         for trace in self.traces:
             weblog.get(
-                f"/sample_rate_route/{self.next_request_id()}",
+                f"/sample_rate_route/{next(request_id_gen)}",
                 headers={"x-datadog-trace-id": str(trace["trace_id"]), "x-datadog-parent-id": str(trace["parent_id"])},
             )
 
-    @bug(context.library > "nodejs@3.14.1" and context.library < "nodejs@4.8.0", reason="APMRP-360")
     def test_sampling_decision_added(self):
         """Verify that the distributed traces without sampling decisions have a sampling decision added"""
 
@@ -186,6 +175,10 @@ class Test_SamplingDecisions:
         if len(spans) != len(traces):
             raise ValueError(f"Didn't see all requests, expecting {len(traces)}, saw {len(spans)}")
 
+
+@scenarios.sampling
+@features.ensure_that_sampling_is_consistent_across_languages
+class Test_SamplingDeterminism:
     def setup_sampling_determinism(self):
         seed(0)  # stay deterministic
 
@@ -197,17 +190,13 @@ class Test_SamplingDecisions:
         for _ in range(2):
             for trace in self.traces_determinism:
                 weblog.get(
-                    f"/sample_rate_route/{self.next_request_id()}",
+                    f"/sample_rate_route/{next(request_id_gen)}",
                     headers={
                         "x-datadog-trace-id": str(trace["trace_id"]),
                         "x-datadog-parent-id": str(trace["parent_id"]),
                     },
                 )
 
-    @bug(library="nodejs", reason="APMRP-258")
-    @bug(library="ruby", reason="APMRP-258")
-    @flaky(library="cpp", reason="APMAPI-736")
-    @flaky(library="golang", reason="APMAPI-736")
     def test_sampling_determinism(self):
         """Verify that the way traces are sampled are at least deterministic on trace and span id"""
 
@@ -239,7 +228,12 @@ class Test_SamplingDecisions:
             if not all(d == decisions[0] for d in decisions):
                 raise ValueError(f"Sampling decisions are not deterministic for trace_id {trace_id}: {decisions}")
 
-    def _load_csv_sampling_decisions(self):
+
+@scenarios.sampling
+@features.ensure_that_sampling_is_consistent_across_languages
+class Test_SampleRateFunction:
+    @staticmethod
+    def _load_csv_sampling_decisions() -> list[tuple[int, float, int]]:
         cases = []
         with open("tests/fixtures/sampling_rates.csv", newline="", encoding="utf-8") as csv_file:
             r = csv.reader(csv_file)
@@ -267,20 +261,17 @@ class Test_SamplingDecisions:
             parent_id = trace_id
             # Each request hits a different URL to help troubleshooting, it isn't required for the test.
             req = weblog.get(
-                f"/sample_rate_route/{self.next_request_id()}",
+                f"/sample_rate_route/{next(request_id_gen)}",
                 headers={"x-datadog-trace-id": str(trace_id), "x-datadog-parent-id": str(parent_id)},
             )
             # Map request results so that the test can validate them.
             self.requests_expected_decision.append((req, sampling_decision))
 
-    @bug(library="python", reason="APMRP-259")
-    @bug(library="nodejs", reason="APMRP-258")
-    @bug(library="php", reason="APMRP-258")
-    @bug(context.library < "dotnet@2.37.0", reason="APMRP-258")
+    @missing_feature(library="cpp_httpd", reason="/sample_rate_route is not implemented")
     def test_sample_rate_function(self):
         """Tests the sampling decision follows the one from the sampling function specification."""
 
-        for req, sampling_decision in self.requests_expected_decision:
+        for req, expected_sampling_decision in self.requests_expected_decision:
             # Ensure the request succeeded, any failure would make the test incorrect.
             assert req.status_code == 200, "Call to /sample_rate_route/:i failed"
 
@@ -288,10 +279,15 @@ class Test_SamplingDecisions:
                 # Validate the sampling decision
                 trace_id = span["trace_id"]
                 sampling_priority = span["metrics"].get("_sampling_priority_v1")
-                logger.info(f"Tring to validate trace_id:{trace_id} from {data['log_filename']}")
+                logger.info(f"Trying to validate trace_id:{trace_id} from {data['log_filename']}")
                 logger.info(f"Sampling priority: {sampling_priority}")
-                assert sampling_priority is not None, "Root span has no sampling priority attached"
-                assert priority_should_be_kept(sampling_priority) is sampling_decision
+                assert (
+                    sampling_priority is not None
+                ), f"trace_id={trace_id}: Root span has no sampling priority attached"
+                actual_sampling_decision = priority_should_be_kept(sampling_priority)
+                assert (
+                    priority_should_be_kept(sampling_priority) is expected_sampling_decision
+                ), f"trace_id={trace_id}, sampling_priority={sampling_priority}, expected_sampling_decision={expected_sampling_decision}, actual_sampling_decision={actual_sampling_decision}"
                 break
             else:
                 raise ValueError(f"Did not receive spans for req:{req.request}")

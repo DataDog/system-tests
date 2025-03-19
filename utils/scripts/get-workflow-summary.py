@@ -20,7 +20,7 @@ def get_environ() -> dict[str, str]:
     return environ
 
 
-def get_jobs(session, repo_slug: str, run_id: int) -> list:
+def get_jobs(session: requests.Session, repo_slug: str, run_id: int) -> list:
     jobs = []
     params = {"per_page": 100, "page": 1}
     while True:

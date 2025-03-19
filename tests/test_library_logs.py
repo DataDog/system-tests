@@ -9,10 +9,7 @@ from re import Pattern
 
 
 def matches_any(patterns: list[Pattern], string: str):
-    for pattern in patterns:
-        if re.fullmatch(pattern, string):
-            return True
-    return False
+    return any(re.fullmatch(pattern, string) for pattern in patterns)
 
 
 @features.not_reported

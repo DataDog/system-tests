@@ -4,19 +4,19 @@ import os
 from pathlib import Path
 
 
-def _load_json(file_path) -> dict:
+def _load_json(file_path: str) -> dict:
     with open(file_path, "r") as file:
         return json.load(file)
 
 
-def _get_weblog_spec(weblogs_spec, weblog_name) -> dict:
+def _get_weblog_spec(weblogs_spec: list[dict], weblog_name: str) -> dict:
     for entry in weblogs_spec:
         if weblog_name == entry["name"]:
             return entry
     raise ValueError(f"Weblog variant {weblog_name} not found (please aws_ssi.json)")
 
 
-def get_k8s_matrix(k8s_ssi_file, scenarios: list[str], language: str) -> dict:
+def get_k8s_matrix(k8s_ssi_file: str, scenarios: list[str], language: str) -> dict:
     """Computes the matrix "scenario" - "weblog" - "cluster agent" given a list of scenarios and a language."""
     k8s_ssi = _load_json(k8s_ssi_file)
     cluster_agent_specs = k8s_ssi["cluster_agent_spec"]
@@ -43,7 +43,7 @@ def get_k8s_matrix(k8s_ssi_file, scenarios: list[str], language: str) -> dict:
     return results
 
 
-def get_aws_matrix(virtual_machines_file, aws_ssi_file, scenarios: list[str], language: str) -> dict:
+def get_aws_matrix(virtual_machines_file: str, aws_ssi_file: str, scenarios: list[str], language: str) -> dict:
     """Load the json files (the virtual_machine supported by the system  and the scenario-weblog definition)
     and calculates the matrix "scenario" - "weblog" - "virtual machine" given a list of scenarios and a language.
     """
@@ -99,7 +99,9 @@ def get_aws_matrix(virtual_machines_file, aws_ssi_file, scenarios: list[str], la
     return results
 
 
-def get_docker_ssi_matrix(images_file, runtimes_file, docker_ssi_file, scenarios: list[str], language: str) -> dict:
+def get_docker_ssi_matrix(
+    images_file: str, runtimes_file: str, docker_ssi_file: str, scenarios: list[str], language: str
+) -> dict:
     """Load the JSON files (the docker imgs and runtimes supported by the system and the scenario-weblog definition)"""
     images = _load_json(images_file)
     runtimes = _load_json(runtimes_file)
@@ -247,10 +249,7 @@ def _get_endtoend_weblogs(library: str) -> list[str]:
 def get_endtoend_definitions(
     library: str, scenario_map: dict, ci_environment: str, desired_execution_time: int, maximum_parallel_jobs: int
 ) -> dict:
-    if "otel" not in library:
-        scenarios = scenario_map["endtoend"] + scenario_map["graphql"]
-    else:
-        scenarios = scenario_map["opentelemetry"]
+    scenarios = scenario_map["endtoend"]
 
     # get time stats
     with open("utils/scripts/ci_orchestrators/time-stats.json", "r") as file:
@@ -437,7 +436,7 @@ def _is_supported(library: str, weblog: str, scenario: str, ci_environment: str)
 
     # open-telemetry-automatic
     if weblog in ["express4-otel", "flask-poc-otel", "spring-boot-otel"]:
-        if scenario not in ("OTEL_INTEGRATIONS"):
+        if scenario not in ("OTEL_INTEGRATIONS",):
             return False
 
     return True
@@ -464,7 +463,6 @@ if __name__ == "__main__":
             "APPSEC_LOW_WAF_TIMEOUT",
             "APPSEC_META_STRUCT_DISABLED",
             "APPSEC_MISSING_RULES",
-            "APPSEC_NO_STATS",
             "APPSEC_RASP",
             "APPSEC_RASP_NON_BLOCKING",
             "APPSEC_RATE_LIMITER",

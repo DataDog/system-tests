@@ -35,7 +35,7 @@ class _Scenarios:
         "PERFORMANCES", doc="A not very used scenario : its aim is to measure CPU and MEM usage across a basic run"
     )
     integrations = IntegrationsScenario()
-    integrations_aws = AWSIntegrationsScenario()
+    integrations_aws = AWSIntegrationsScenario("INTEGRATIONS_AWS")
     crossed_tracing_libraries = CrossedTracingLibraryScenario()
 
     otel_integrations = OpenTelemetryScenario(
@@ -64,11 +64,17 @@ class _Scenarios:
 
     profiling = ProfilingScenario("PROFILING")
 
-    appsec_no_stats = EndToEndScenario(
-        name="APPSEC_NO_STATS",
+    trace_stats_computation = EndToEndScenario(
+        name="TRACE_STATS_COMPUTATION",
+        # feature consistency is poorly respected here ...
+        weblog_env={
+            "DD_TRACE_STATS_COMPUTATION_ENABLED": "1",
+            "DD_TRACE_COMPUTE_STATS": "true",
+            "DD_TRACE_FEATURES": "discovery",
+        },
         doc=(
-            "End to end testing with default values. Default scenario has DD_TRACE_COMPUTE_STATS=true."
-            "This scenario let that env to use its default"
+            "End to end testing with DD_TRACE_COMPUTE_STATS=1. This feature compute stats at tracer level, and"
+            "may drop some of them"
         ),
         scenario_groups=[ScenarioGroup.APPSEC],
     )
@@ -138,7 +144,7 @@ class _Scenarios:
     )
     appsec_corrupted_rules = EndToEndScenario(
         "APPSEC_CORRUPTED_RULES",
-        weblog_env={"DD_APPSEC_RULES": "/appsec_corrupted_rules.yml"},
+        weblog_env={"DD_APPSEC_RULES": "/appsec_corrupted_rules.json"},
         weblog_volumes={
             "./tests/appsec/appsec_corrupted_rules.json": {"bind": "/appsec_corrupted_rules.json", "mode": "ro"}
         },
@@ -168,7 +174,7 @@ class _Scenarios:
         },
         weblog_volumes={"./tests/appsec/blocking_rule.json": {"bind": "/appsec_blocking_rule.json", "mode": "ro"}},
         doc="AppSec tests for GraphQL integrations",
-        github_workflow="graphql",
+        github_workflow="endtoend",
         scenario_groups=[ScenarioGroup.APPSEC],
     )
     appsec_rules_monitoring_with_errors = EndToEndScenario(
@@ -330,7 +336,7 @@ class _Scenarios:
 
     appsec_auto_events_rc = EndToEndScenario(
         "APPSEC_AUTO_EVENTS_RC",
-        weblog_env={"DD_APPSEC_ENABLED": "true", "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": 0.5},
+        weblog_env={"DD_APPSEC_ENABLED": "true", "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "0.5"},
         rc_api_enabled=True,
         doc="""
             Scenario to test User ID collection config change via Remote config
@@ -893,8 +899,17 @@ class _Scenarios:
         scenario_groups=[ScenarioGroup.APPSEC],
     )
 
+    agent_supporting_span_events = EndToEndScenario(
+        "AGENT_SUPPORTING_SPAN_EVENTS",
+        weblog_env={"DD_TRACE_NATIVE_SPAN_EVENTS": "1"},
+        span_events=True,
+        doc="The trace agent support Span Events and it is enabled through an environment variable",
+        scenario_groups=[ScenarioGroup.INTEGRATIONS],
+    )
+
     agent_not_supporting_span_events = EndToEndScenario(
         "AGENT_NOT_SUPPORTING_SPAN_EVENTS",
+        weblog_env={"DD_TRACE_NATIVE_SPAN_EVENTS": "0"},
         span_events=False,
         doc="The trace agent does not support Span Events as a top-level span field",
         scenario_groups=[ScenarioGroup.INTEGRATIONS],

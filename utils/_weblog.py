@@ -8,6 +8,7 @@ import random
 import string
 import urllib
 import re
+from typing import Any
 
 import requests
 from requests.structures import CaseInsensitiveDict
@@ -22,7 +23,7 @@ requests.utils._validate_header_part = lambda *args, **kwargs: None  # type: ign
 
 
 class ResponseEncoder(json.JSONEncoder):
-    def default(self, o):
+    def default(self, o: Any) -> Any:  # noqa: ANN401
         if isinstance(o, CaseInsensitiveDict):
             return dict(o.items())
         # Let the base class default method raise the TypeError
@@ -31,14 +32,14 @@ class ResponseEncoder(json.JSONEncoder):
 
 # some GRPC request wrapper to fit into validator model
 class GrpcRequest:
-    def __init__(self, data):
+    def __init__(self, data: dict):
         # self.content = request
         # fake the HTTP header model
         self.headers = {"user-agent": f"rid/{data['rid']}"}
 
 
 class GrpcResponse:
-    def __init__(self, data):
+    def __init__(self, data: dict):
         self._data = data
         self.request = GrpcRequest(data["request"])
         self.response = data["response"]
@@ -46,9 +47,13 @@ class GrpcResponse:
     def serialize(self) -> dict:
         return self._data | {"__class__": "GrpcResponse"}
 
+    def get_rid(self) -> str:
+        user_agent = next(v for k, v in self.request.headers.items() if k.lower() == "user-agent")
+        return user_agent[-36:]
+
 
 class HttpRequest:
-    def __init__(self, data):
+    def __init__(self, data: dict):
         self.headers: CaseInsensitiveDict = CaseInsensitiveDict(data.get("headers", {}))
         self.method: str = data["method"]
         self.url: str = data["url"]
@@ -59,7 +64,7 @@ class HttpRequest:
 
 
 class HttpResponse:
-    def __init__(self, data):
+    def __init__(self, data: dict):
         self._data = data
         self.request = HttpRequest(data["request"])
         self.status_code = data["status_code"]
@@ -72,6 +77,10 @@ class HttpResponse:
 
     def __repr__(self) -> str:
         return f"HttpResponse(status_code:{self.status_code}, headers:{self.headers}, text:{self.text})"
+
+    def get_rid(self) -> str:
+        user_agent = next(v for k, v in self.request.headers.items() if k.lower() == "user-agent")
+        return user_agent[-36:]
 
 
 # TODO : this should be build by weblog container
@@ -98,29 +107,50 @@ class _Weblog:
         else:
             self.domain = "localhost"
 
-    def get(self, path="/", params=None, headers=None, cookies=None, **kwargs):
+    def get(
+        self,
+        path: str = "/",
+        params: dict | None = None,
+        headers: dict | None = None,
+        cookies: dict | None = None,
+        **kwargs,
+    ):
         return self.request("GET", path, params=params, headers=headers, cookies=cookies, **kwargs)
 
-    def post(self, path="/", params=None, data=None, headers=None, **kwargs):
+    def post(
+        self,
+        path: str = "/",
+        params: dict | None = None,
+        data: dict | str | None = None,
+        headers: dict | None = None,
+        **kwargs,
+    ):
         return self.request("POST", path, params=params, data=data, headers=headers, **kwargs)
 
-    def trace(self, path="/", params=None, data=None, headers=None, **kwargs):
+    def trace(
+        self,
+        path: str = "/",
+        params: dict | None = None,
+        data: dict | str | None = None,
+        headers: dict | None = None,
+        **kwargs,
+    ):
         return self.request("TRACE", path, params=params, data=data, headers=headers, **kwargs)
 
     def request(
         self,
-        method,
-        path="/",
+        method: str,
+        path: str = "/",
         *,
-        params=None,
-        data=None,
-        headers=None,
-        cookies=None,
-        stream=None,
-        domain=None,
-        port=None,
-        allow_redirects=True,
-        rid_in_user_agent=True,
+        params: dict | None = None,
+        data: dict | str | None = None,
+        headers: dict | None = None,
+        cookies: dict | None = None,
+        stream: bool | None = None,
+        domain: str | None = None,
+        port: int | None = None,
+        allow_redirects: bool = True,
+        rid_in_user_agent: bool = True,
         **kwargs,
     ):
         rid = "".join(random.choices(string.ascii_uppercase, k=36))
@@ -179,10 +209,10 @@ class _Weblog:
             }
         )
 
-    def warmup_request(self, domain=None, port=None, timeout=10):
-        requests.get(self._get_url("/", domain, port), timeout=timeout)
+    def warmup_request(self, timeout: int = 10):
+        requests.get(self._get_url("/"), timeout=timeout)
 
-    def _get_url(self, path, domain=None, port=None, query=None):
+    def _get_url(self, path: str, domain: str | None = None, port: int | None = None, query: dict | None = None):
         """Return a query with the passed host"""
         # Make all absolute paths to be relative
         if path.startswith("/"):
@@ -200,7 +230,7 @@ class _Weblog:
 
         return res
 
-    def grpc(self, string_value, *, streaming=False):
+    def grpc(self, string_value: str, *, streaming: bool = False):
         rid = "".join(random.choices(string.ascii_uppercase, k=36))
 
         # We cannot set the user agent for each request. For now, start a new channel for each query
