@@ -144,7 +144,7 @@ class _Scenarios:
     )
     appsec_corrupted_rules = EndToEndScenario(
         "APPSEC_CORRUPTED_RULES",
-        weblog_env={"DD_APPSEC_RULES": "/appsec_corrupted_rules.yml"},
+        weblog_env={"DD_APPSEC_RULES": "/appsec_corrupted_rules.json"},
         weblog_volumes={
             "./tests/appsec/appsec_corrupted_rules.json": {"bind": "/appsec_corrupted_rules.json", "mode": "ro"}
         },

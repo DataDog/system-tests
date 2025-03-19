@@ -1377,6 +1377,7 @@ tests/:
         akka-http: v1.22.0
         play: v1.22.0
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+      Test_CorruptedRules_Telemetry: missing_feature
       Test_MissingRules:
         '*': v0.93.0
         akka-http: v1.22.0
