@@ -244,9 +244,6 @@ ignore = [
     "ANN001", # missing-type-function-argument: obvious decorators
     "ANN205"  # missing-return-type-static-method: obvious decorators
 ]
-"utils/_remote_config.py" = [
-    "ANN001",   # missing-type-function-argument: TODO
-]
 "utils/build/*"  = ["ALL"]  # mostly python weblog code. it may be a good idea to enable rules here
 "utils/docker_ssi/*" = [
     "ANN001",   # missing-type-function-argument: TODO
