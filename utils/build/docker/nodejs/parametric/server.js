@@ -369,7 +369,7 @@ app.post("/trace/otel/otel_set_baggage", (req, res) => {
         .createBaggage()
         .setEntry(req.body.key, { value: req.body.value });
   const context = propagation.setBaggage(ROOT_CONTEXT, bag)
-  const value = propagation.getBaggage(context).getEntry(req.body.key)
+  const value = propagation.getBaggage(context).getEntry(req.body.key).value
   res.json({ value });
 });
 
