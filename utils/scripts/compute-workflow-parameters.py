@@ -118,16 +118,16 @@ class CiData:
             print(data)
 
     @staticmethod
-    def _get_workflow_map(scenarios, scenarios_groups) -> dict:
+    def _get_workflow_map(scenario_names: list[str], scenario_group_names: list[str]) -> dict:
         """Returns a dict where:
         * the key is the workflow identifier
         * the value is a list of scenarios to run, associated to the workflow
         """
 
-        result = {}  # type: dict[str, list[str]]
+        result: dict[str, list[str]] = {}
 
-        scenarios_groups = [group.strip() for group in scenarios_groups if group.strip()]
-        scenarios = {scenario.strip(): False for scenario in scenarios if scenario.strip()}
+        scenarios_groups = [group.strip() for group in scenario_group_names if group.strip()]
+        scenarios = {scenario.strip(): False for scenario in scenario_names if scenario.strip()}
 
         for group in scenarios_groups:
             try:
@@ -153,9 +153,9 @@ class CiData:
                     result[scenario.github_workflow].append(scenario.name)
                     break
 
-        for scenario, found in scenarios.items():
+        for scenario_name, found in scenarios.items():
             if not found:
-                raise ValueError(f"Scenario {scenario} does not exists")
+                raise ValueError(f"Scenario {scenario_name} does not exists")
 
         return result
 

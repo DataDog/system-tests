@@ -4,6 +4,7 @@
 
 """Check data that are sent to logs file on weblog"""
 
+from collections.abc import Callable
 import json
 import os
 from pathlib import Path
@@ -12,33 +13,34 @@ import re
 from utils._context.core import context
 from utils._logger import logger
 from utils.interfaces._core import InterfaceValidator
+from utils._context.library_version import LibraryVersion
 
 
 class _LogsInterfaceValidator(InterfaceValidator):
-    def __init__(self, name, new_log_line_pattern=None):
+    def __init__(self, name: str, new_log_line_pattern: str | None = None):
         super().__init__(name)
 
         self._skipped_patterns = [
             re.compile(r"^\s*$"),
         ]
         self._new_log_line_pattern = re.compile(new_log_line_pattern or ".")
-        self._parsers = []
+        self._parsers: list[re.Pattern] = []
         self.timeout = 0
-        self._data_list = []
+        self._data_list: list[dict] = []
 
     def _get_files(self):
         raise NotImplementedError
 
-    def _clean_line(self, line):
+    def _clean_line(self, line: str):
         return line
 
-    def _is_new_log_line(self, line):
+    def _is_new_log_line(self, line: str):
         return self._new_log_line_pattern.search(line)
 
-    def _is_skipped_line(self, line):
+    def _is_skipped_line(self, line: str):
         return any(pattern.search(line) for pattern in self._skipped_patterns)
 
-    def _get_standardized_level(self, level):
+    def _get_standardized_level(self, level: str):
         return level
 
     def _read(self):
@@ -91,7 +93,7 @@ class _LogsInterfaceValidator(InterfaceValidator):
     def get_data(self):
         yield from self._data_list
 
-    def validate(self, validator, *, success_by_default=False):
+    def validate(self, validator: Callable, *, success_by_default: bool = False):
         for data in self.get_data():
             try:
                 if validator(data) is True:
@@ -103,17 +105,17 @@ class _LogsInterfaceValidator(InterfaceValidator):
         if not success_by_default:
             raise ValueError("Test has not been validated by any data")
 
-    def assert_presence(self, pattern, **extra_conditions):
+    def assert_presence(self, pattern: str, **extra_conditions: dict[str, str]):
         validator = _LogPresence(pattern, **extra_conditions)
         self.validate(validator.check, success_by_default=False)
 
-    def assert_absence(self, pattern, allowed_patterns=None):
+    def assert_absence(self, pattern: str, allowed_patterns: list[str] | tuple[str, ...] = ()):
         validator = _LogAbsence(pattern, allowed_patterns)
         self.validate(validator.check, success_by_default=True)
 
 
 class _StdoutLogsInterfaceValidator(_LogsInterfaceValidator):
-    def __init__(self, container_name, new_log_line_pattern=None):
+    def __init__(self, container_name: str, new_log_line_pattern: str | None = None):
         super().__init__(f"{container_name} stdout", new_log_line_pattern=new_log_line_pattern)
         self.container_name = container_name
 
@@ -129,7 +131,7 @@ class _LibraryStdout(_StdoutLogsInterfaceValidator):
         super().__init__("weblog")
         self.library = None
 
-    def init_patterns(self, library):
+    def init_patterns(self, library: LibraryVersion):
         self.library = library
         p = "(?P<{}>{})".format
 
@@ -173,13 +175,13 @@ class _LibraryStdout(_StdoutLogsInterfaceValidator):
             self._new_log_line_pattern = re.compile(r".")
             self._parsers.append(re.compile(p("message", r".*")))
 
-    def _clean_line(self, line):
+    def _clean_line(self, line: str):
         if line.startswith("weblog_1         | "):
             line = line[19:]
 
         return line
 
-    def _get_standardized_level(self, level):
+    def _get_standardized_level(self, level: str):
         if self.library == "php":
             return level.upper()
 
@@ -221,7 +223,7 @@ class _LibraryDotnetManaged(_LogsInterfaceValidator):
 
         return result
 
-    def _get_standardized_level(self, level):
+    def _get_standardized_level(self, level: str):
         return {"DBG": "DEBUG", "INF": "INFO", "ERR": "ERROR"}.get(level, level)
 
 
@@ -254,11 +256,11 @@ class _PostgresStdout(_StdoutLogsInterfaceValidator):
 
 
 class _LogPresence:
-    def __init__(self, pattern, **extra_conditions):
+    def __init__(self, pattern: str, **extra_conditions: dict[str, str]):
         self.pattern = re.compile(pattern)
         self.extra_conditions = {k: re.compile(pattern) for k, pattern in extra_conditions.items()}
 
-    def check(self, data):
+    def check(self, data: dict):
         if "message" in data and self.pattern.search(data["message"]):
             for key, extra_pattern in self.extra_conditions.items():
                 if key not in data:
@@ -280,12 +282,11 @@ class _LogPresence:
 
 
 class _LogAbsence:
-    def __init__(self, pattern, allowed_patterns=None):
+    def __init__(self, pattern: str, allowed_patterns: list[str] | tuple[str, ...] = ()):
         self.pattern = re.compile(pattern)
-        self.allowed_patterns = [re.compile(pattern) for pattern in allowed_patterns] if allowed_patterns else []
-        self.failed_logs = []
+        self.allowed_patterns = [re.compile(pattern) for pattern in allowed_patterns]
 
-    def check(self, data):
+    def check(self, data: dict):
         if self.pattern.search(data["raw"]):
             for pattern in self.allowed_patterns:
                 if pattern.search(data["raw"]):
