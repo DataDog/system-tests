@@ -9,6 +9,7 @@ import boto3
 import botocore.exceptions
 
 from utils import weblog, interfaces, scenarios, logger
+from utils._weblog import HttpResponse
 
 
 class BaseDbIntegrationsTestClass:
@@ -88,7 +89,7 @@ class BaseDbIntegrationsTestClass:
                 yield db_operation, request
 
     @staticmethod
-    def get_span_from_tracer(weblog_request) -> dict:
+    def get_span_from_tracer(weblog_request: HttpResponse) -> dict:
         for _, _, span in interfaces.library.get_spans(weblog_request):
             logger.info(f"Span found with trace id: {span['trace_id']} and span id: {span['span_id']}")
 
@@ -113,7 +114,7 @@ class BaseDbIntegrationsTestClass:
         raise ValueError(f"Span is not found for {weblog_request.request.url}")
 
     @staticmethod
-    def get_span_from_agent(weblog_request) -> dict:
+    def get_span_from_agent(weblog_request: HttpResponse) -> dict:
         for data, span in interfaces.agent.get_spans(weblog_request):
             logger.debug(f"Span found: trace id={span['traceID']}; span id={span['spanID']} ({data['log_filename']})")
 
@@ -206,7 +207,7 @@ SNS_URL = os.getenv("SYSTEM_TESTS_AWS_URL", "https://sns.us-east-1.amazonaws.com
 KINESIS_URL = os.getenv("SYSTEM_TESTS_AWS_URL", "https://kinesis.us-east-1.amazonaws.com/601427279990")
 
 
-def delete_sqs_queue(queue_name) -> None:
+def delete_sqs_queue(queue_name: str) -> None:
     try:
         queue_url = f"{SQS_URL}/{queue_name}"
         sqs_client = _get_aws_session().client("sqs", endpoint_url=SQS_URL)
@@ -226,7 +227,7 @@ def delete_sqs_queue(queue_name) -> None:
             raise
 
 
-def delete_sns_topic(topic_name) -> None:
+def delete_sns_topic(topic_name: str) -> None:
     try:
         topic_arn = f"arn:aws:sns:us-east-1:601427279990:{topic_name}"
         sns_client = _get_aws_session().client("sns", endpoint_url=SNS_URL)
@@ -246,7 +247,7 @@ def delete_sns_topic(topic_name) -> None:
             raise
 
 
-def delete_kinesis_stream(stream_name) -> None:
+def delete_kinesis_stream(stream_name: str) -> None:
     try:
         kinesis_client = _get_aws_session().client("kinesis", endpoint_url=KINESIS_URL)
         delete_aws_resource(
@@ -282,8 +283,8 @@ def fnv1_64(data: bytes) -> int:
     return fnv(data, FNV1_64_INIT, FNV_64_PRIME, 2**64)
 
 
-def compute_dsm_hash(parent_hash, tags) -> int:
-    def get_bytes(s):
+def compute_dsm_hash(parent_hash: int, tags: tuple[str, str, str]) -> int:
+    def get_bytes(s: str) -> bytes:
         return bytes(s, encoding="utf-8")
 
     b = get_bytes("weblog") + get_bytes("system-tests")
@@ -299,10 +300,10 @@ def sha_hash(checkpoint_string: str | bytes) -> bytes:
     return hashlib.md5(checkpoint_string).digest()[:8]
 
 
-def compute_dsm_hash_nodejs(parent_hash, edge_tags) -> int:
-    current_hash = sha_hash(f"{'weblog'}{'system-tests'}{''.join(edge_tags)}")
-    parent_hash_buf = struct.pack(">Q", parent_hash)
-    buf = current_hash + parent_hash_buf
+# def compute_dsm_hash_nodejs(parent_hash, edge_tags) -> int:
+#     current_hash = sha_hash(f"{'weblog'}{'system-tests'}{''.join(edge_tags)}")
+#     parent_hash_buf = struct.pack(">Q", parent_hash)
+#     buf = current_hash + parent_hash_buf
 
-    val = sha_hash(buf)
-    return int.from_bytes(val, "big")
+#     val = sha_hash(buf)
+#     return int.from_bytes(val, "big")

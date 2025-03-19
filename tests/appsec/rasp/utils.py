@@ -5,9 +5,12 @@
 import json
 
 from utils import interfaces
+from utils._weblog import HttpResponse
 
 
-def validate_span_tags(request, expected_meta=(), expected_metrics=()) -> None:
+def validate_span_tags(
+    request: HttpResponse, expected_meta: tuple[str, ...] = (), expected_metrics: tuple[str, ...] = ()
+) -> None:
     """Validate RASP span tags are added when an event is generated"""
     span = interfaces.library.get_root_span(request)
     meta = span["meta"]
@@ -19,7 +22,7 @@ def validate_span_tags(request, expected_meta=(), expected_metrics=()) -> None:
         assert m in metrics, f"missing span metric tag `{m}` in {metrics}"
 
 
-def validate_stack_traces(request) -> None:
+def validate_stack_traces(request: HttpResponse) -> None:
     events = list(interfaces.library.get_appsec_events(request=request))
     assert len(events) != 0, "No appsec event has been reported"
 
@@ -65,8 +68,8 @@ def validate_stack_traces(request) -> None:
 
 
 def find_series(
-    namespace,
-    metric,
+    namespace: str,
+    metric: str,
     *,
     is_metrics: bool,
 ) -> list:
@@ -86,7 +89,7 @@ def find_series(
     return series
 
 
-def validate_metric(name, metric_type, metric) -> None:
+def validate_metric(name: str, metric_type: str, metric: dict) -> None:
     return (
         metric.get("metric") == name
         and metric.get("type") == "count"
@@ -95,7 +98,7 @@ def validate_metric(name, metric_type, metric) -> None:
     )
 
 
-def validate_metric_variant(name, metric_type, variant, metric) -> bool:
+def validate_metric_variant(name: str, metric_type: str, variant: str, metric: dict) -> bool:
     return (
         metric.get("metric") == name
         and metric.get("type") == "count"
@@ -105,7 +108,7 @@ def validate_metric_variant(name, metric_type, variant, metric) -> bool:
     )
 
 
-def validate_metric_tag_version(tag_prefix, min_version, metric) -> bool:
+def validate_metric_tag_version(tag_prefix: str, min_version: list[int], metric: dict) -> bool:
     for tag in metric["tags"]:
         if tag.startswith(tag_prefix + ":"):
             version_str = tag.split(":")[1]
@@ -115,7 +118,7 @@ def validate_metric_tag_version(tag_prefix, min_version, metric) -> bool:
     return False
 
 
-def _load_file(file_path):
+def _load_file(file_path: str):
     with open(file_path, "r") as f:
         return json.load(f)
 
