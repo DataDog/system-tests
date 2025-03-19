@@ -2,8 +2,7 @@ import base64
 import os
 import time
 
-from utils import context, weblog, interfaces, scenarios, irrelevant, features
-from utils.tools import logger
+from utils import context, weblog, interfaces, scenarios, irrelevant, features, logger
 from utils.otel_validators.validator_trace import validate_all_traces
 from utils.otel_validators.validator_log import validate_log, validate_log_trace_correlation
 from utils.otel_validators.validator_metric import validate_metrics

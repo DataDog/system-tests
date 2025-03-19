@@ -32,7 +32,7 @@ from utils._context.containers import (
     _get_client as get_docker_client,
 )
 
-from utils.tools import logger
+from utils._logger import logger
 
 from .core import Scenario, ScenarioGroup
 

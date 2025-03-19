@@ -24,9 +24,8 @@ from utils.parametric.spec.trace import Trace
 from utils.parametric.spec.trace import decode_v06_stats
 from utils.parametric._library_client import APMLibrary, APMLibraryClient
 
-from utils import context, scenarios
+from utils import context, scenarios, logger
 from utils.dd_constants import RemoteConfigApplyState, Capabilities
-from utils.tools import logger
 
 from utils._context._scenarios.parametric import APMLibraryTestServer
 

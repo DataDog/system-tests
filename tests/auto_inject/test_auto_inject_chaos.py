@@ -1,6 +1,5 @@
 import requests
-from utils import scenarios, features, context, bug, irrelevant, missing_feature
-from utils.tools import logger
+from utils import scenarios, features, context, bug, irrelevant, missing_feature, logger
 from utils.onboarding.weblog_interface import warmup_weblog
 from utils.onboarding.wait_for_tcp_port import wait_for_port
 import tests.auto_inject.utils as base

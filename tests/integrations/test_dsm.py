@@ -8,8 +8,7 @@ import os
 
 from tests.integrations.utils import compute_dsm_hash
 
-from utils import weblog, interfaces, scenarios, irrelevant, context, bug, features, missing_feature, flaky
-from utils.tools import logger
+from utils import weblog, interfaces, scenarios, irrelevant, context, bug, features, missing_feature, flaky, logger
 
 
 # Kafka specific

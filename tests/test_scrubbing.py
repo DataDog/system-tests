@@ -3,8 +3,7 @@
 # Copyright 2022 Datadog, Inc.
 
 import re
-from utils import bug, context, interfaces, rfc, weblog, missing_feature, features, scenarios
-from utils.tools import logger
+from utils import bug, context, interfaces, rfc, weblog, missing_feature, features, scenarios, logger
 
 
 def validate_no_leak(needle, whitelist_pattern=None):

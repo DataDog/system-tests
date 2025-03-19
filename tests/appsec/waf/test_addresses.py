@@ -3,8 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 import json
 import pytest
-from utils import weblog, bug, context, interfaces, irrelevant, missing_feature, rfc, scenarios, features
-from utils.tools import logger
+from utils import weblog, bug, context, interfaces, irrelevant, missing_feature, rfc, scenarios, features, logger
 
 
 @features.appsec_request_blocking

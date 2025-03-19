@@ -5,8 +5,7 @@
 import re
 import json
 import time
-from utils import weblog, interfaces, scenarios, features, rfc, irrelevant, context, bug, missing_feature
-from utils.tools import logger
+from utils import weblog, interfaces, scenarios, features, rfc, irrelevant, context, bug, missing_feature, logger
 
 # get the default log output
 stdout = interfaces.library_stdout if context.library != "dotnet" else interfaces.library_dotnet_managed
@@ -230,7 +229,6 @@ class Test_Config_HttpClientErrorStatuses_FeatureFlagCustom:
     def setup_status_code_200(self):
         self.r = weblog.get("/make_distant_call", params={"url": "http://weblog:7777/status?code=200"})
 
-    @bug(context.library >= "golang@1.72.0", reason="APMAPI-1196")
     def test_status_code_200(self):
         assert self.r.status_code == 200
         content = json.loads(self.r.text)
@@ -246,7 +244,6 @@ class Test_Config_HttpClientErrorStatuses_FeatureFlagCustom:
     def setup_status_code_202(self):
         self.r = weblog.get("/make_distant_call", params={"url": "http://weblog:7777/status?code=202"})
 
-    @bug(context.library >= "golang@1.72.0", reason="APMAPI-1196")
     def test_status_code_202(self):
         assert self.r.status_code == 200
         content = json.loads(self.r.text)

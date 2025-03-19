@@ -1,7 +1,7 @@
 from hashlib import sha256
 from typing import NewType
 
-from utils.tools import logger
+from utils import logger
 
 
 PointerHash = NewType("PointerHash", str)

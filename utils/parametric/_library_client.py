@@ -14,7 +14,7 @@ from opentelemetry.trace import SpanKind, StatusCode
 from utils import context
 
 from utils.parametric.spec.otel_trace import OtelSpanContext
-from utils.tools import logger
+from utils._logger import logger
 
 
 def _fail(message):

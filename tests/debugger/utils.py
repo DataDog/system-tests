@@ -9,8 +9,7 @@ import os.path
 from pathlib import Path
 import uuid
 
-from utils import interfaces, remote_config, weblog, context
-from utils.tools import logger
+from utils import interfaces, remote_config, weblog, context, logger
 from utils.dd_constants import RemoteConfigApplyState as ApplyState
 
 

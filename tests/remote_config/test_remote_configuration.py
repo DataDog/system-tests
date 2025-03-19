@@ -16,9 +16,8 @@ from utils import (
     weblog,
     features,
     remote_config,
+    logger,
 )
-
-from utils.tools import logger
 
 
 @rfc("https://docs.google.com/document/d/1bUVtEpXNTkIGvLxzkNYCxQzP2X9EK9HMBLHWXr_5KLM/edit#heading=h.vy1jegxy7cuc")

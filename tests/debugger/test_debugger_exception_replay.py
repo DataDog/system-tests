@@ -5,8 +5,7 @@
 import re
 import os
 import tests.debugger.utils as debugger
-from utils import scenarios, features, bug, context, flaky, irrelevant
-from utils.tools import logger
+from utils import scenarios, features, bug, context, flaky, irrelevant, logger
 
 
 def get_env_bool(env_var_name, *, default=False) -> bool:

@@ -1,8 +1,6 @@
 from urllib.parse import urlparse
 
-from utils import scenarios, features, context, irrelevant, bug, interfaces
-from utils import weblog
-from utils.tools import logger
+from utils import scenarios, features, context, irrelevant, bug, interfaces, weblog, logger
 
 
 @scenarios.docker_ssi
