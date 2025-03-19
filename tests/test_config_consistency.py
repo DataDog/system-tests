@@ -551,11 +551,47 @@ class Test_Config_LogInjection_Default:
 class Test_Config_LogInjection_128Bit_TraceId_Enabled:
     """Verify trace IDs are logged in 128bit format by default when log injection is enabled"""
 
-    def setup_log_injection_128bit_traceid_default(self):
+    def setup_new_traceid(self):
         self.message = "test_weblog_log_injection"
         self.r = weblog.get("/log/library", params={"msg": self.message})
 
-    def test_log_injection_128bit_traceid_default(self):
+    def test_new_traceid(self):
+        assert self.r.status_code == 200
+        log_msg = parse_log_injection_message(self.message)
+
+        trace_id = parse_log_trace_id(log_msg)
+        assert re.match(r"^[0-9a-f]{32}$", trace_id), f"Invalid 128-bit trace_id: {trace_id}"
+
+    def setup_incoming_64bit_traceid(self):
+        incoming_headers = {
+            "x-datadog-trace-id": "1",
+            "x-datadog-parent-id": "1",
+            "x-datadog-sampling-priority": "2",
+            "x-datadog-tags": "_dd.p.dm=-4",
+        }
+
+        self.message = "test_weblog_log_injection"
+        self.r = weblog.get("/log/library", params={"msg": self.message}, headers=incoming_headers)
+
+    def test_incoming_64bit_traceid(self):
+        assert self.r.status_code == 200
+        log_msg = parse_log_injection_message(self.message)
+
+        trace_id = parse_log_trace_id(log_msg)
+        assert re.match(r"^\d{1,20}$", str(trace_id)), f"Invalid 64-bit trace_id: {trace_id}"
+
+    def setup_incoming_128bit_traceid(self):
+        incoming_headers = {
+            "x-datadog-trace-id": "2",
+            "x-datadog-parent-id": "2",
+            "x-datadog-sampling-priority": "2",
+            "x-datadog-tags": "_dd.p.tid=1111111111111111,_dd.p.dm=-4",
+        }
+
+        self.message = "test_weblog_log_injection"
+        self.r = weblog.get("/log/library", params={"msg": self.message}, headers=incoming_headers)
+
+    def test_incoming_128bit_traceid(self):
         assert self.r.status_code == 200
         log_msg = parse_log_injection_message(self.message)
 
@@ -573,11 +609,47 @@ class Test_Config_LogInjection_128Bit_TraceId_Enabled:
 class Test_Config_LogInjection_128Bit_TraceId_Disabled:
     """Verify 128 bit traceid are disabled in log injection when DD_TRACE_128_BIT_TRACEID_LOGGING_ENABLED=false"""
 
-    def setup_log_injection_128bit_traceid_disabled(self):
+    def setup_new_traceid(self):
         self.message = "test_weblog_log_injection"
         self.r = weblog.get("/log/library", params={"msg": self.message})
 
-    def test_log_injection_128bit_traceid_disabled(self):
+    def test_new_traceid(self):
+        assert self.r.status_code == 200
+        log_msg = parse_log_injection_message(self.message)
+
+        trace_id = parse_log_trace_id(log_msg)
+        assert re.match(r"^\d{1,20}$", str(trace_id)), f"Invalid 64-bit trace_id: {trace_id}"
+
+    def setup_incoming_64bit_traceid(self):
+        incoming_headers = {
+            "x-datadog-trace-id": "1",
+            "x-datadog-parent-id": "1",
+            "x-datadog-sampling-priority": "2",
+            "x-datadog-tags": "_dd.p.dm=-4",
+        }
+
+        self.message = "test_weblog_log_injection"
+        self.r = weblog.get("/log/library", params={"msg": self.message}, headers=incoming_headers)
+
+    def test_incoming_64bit_traceid(self):
+        assert self.r.status_code == 200
+        log_msg = parse_log_injection_message(self.message)
+
+        trace_id = parse_log_trace_id(log_msg)
+        assert re.match(r"^\d{1,20}$", str(trace_id)), f"Invalid 64-bit trace_id: {trace_id}"
+
+    def setup_incoming_128bit_traceid(self):
+        incoming_headers = {
+            "x-datadog-trace-id": "2",
+            "x-datadog-parent-id": "2",
+            "x-datadog-sampling-priority": "2",
+            "x-datadog-tags": "_dd.p.tid=1111111111111111,_dd.p.dm=-4",
+        }
+
+        self.message = "test_weblog_log_injection"
+        self.r = weblog.get("/log/library", params={"msg": self.message}, headers=incoming_headers)
+
+    def test_incoming_128bit_traceid(self):
         assert self.r.status_code == 200
         log_msg = parse_log_injection_message(self.message)
 
