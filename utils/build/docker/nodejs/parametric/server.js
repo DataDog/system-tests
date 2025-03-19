@@ -261,8 +261,6 @@ app.post('/trace/otel/end_span', (req, res) => {
   res.json({});
 });
 
-
-
 app.post('/trace/otel/flush', async (req, res) => {
   tracerProvider.forceFlush().then(function() {
     otelSpans.clear()
