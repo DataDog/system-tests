@@ -57,7 +57,7 @@ class _RequestExtractor(HTMLParser):
 _extractor = _RequestExtractor()
 
 
-def extract_requests(content, base_url, callback):
+def extract_requests(content, base_url, callback) -> None:
     _extractor.base_url = base_url
     _extractor.callback = callback
     _extractor.feed(content)

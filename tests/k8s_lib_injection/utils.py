@@ -4,7 +4,7 @@ import requests
 from utils.tools import logger
 
 
-def get_dev_agent_traces(k8s_cluster_info, retry=10):
+def get_dev_agent_traces(k8s_cluster_info, retry=10) -> list:
     """get_dev_agent_traces fetches traces from the dev agent running in the k8s cluster."""
     dev_agent_url = f"http://{k8s_cluster_info.cluster_host_name}:{k8s_cluster_info.get_agent_port()}/test/traces"
     for _ in range(retry):

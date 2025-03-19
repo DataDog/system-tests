@@ -1,9 +1,9 @@
+from collections.abc import Callable, Generator
 from functools import lru_cache
 import hashlib
 import os
 import struct
 import time
-from collections.abc import Callable
 
 import boto3
 import botocore.exceptions
@@ -78,7 +78,9 @@ class BaseDbIntegrationsTestClass:
     setup_sql_success = _setup
     setup_not_obfuscate_query = _setup
 
-    def get_requests(self, excluded_operations=(), operations=None):
+    def get_requests(
+        self, excluded_operations: tuple[str, ...] = (), operations: tuple[str, ...] | None = None
+    ) -> Generator[tuple[str, dict], None, None]:
         for db_operation, request in self.requests[self.db_service].items():
             if operations is not None and db_operation not in operations:
                 continue
@@ -167,7 +169,7 @@ def delete_aws_resource(
     resource_type: str,
     error_name: str,
     get_callable: Callable | None = None,
-):
+) -> None:
     """Generalized function to delete AWS resources.
 
     :param delete_callable: A callable to delete the AWS resource.
@@ -205,7 +207,7 @@ SNS_URL = os.getenv("SYSTEM_TESTS_AWS_URL", "https://sns.us-east-1.amazonaws.com
 KINESIS_URL = os.getenv("SYSTEM_TESTS_AWS_URL", "https://kinesis.us-east-1.amazonaws.com/601427279990")
 
 
-def delete_sqs_queue(queue_name):
+def delete_sqs_queue(queue_name) -> None:
     try:
         queue_url = f"{SQS_URL}/{queue_name}"
         sqs_client = _get_aws_session().client("sqs", endpoint_url=SQS_URL)
@@ -225,7 +227,7 @@ def delete_sqs_queue(queue_name):
             raise
 
 
-def delete_sns_topic(topic_name):
+def delete_sns_topic(topic_name) -> None:
     try:
         topic_arn = f"arn:aws:sns:us-east-1:601427279990:{topic_name}"
         sns_client = _get_aws_session().client("sns", endpoint_url=SNS_URL)
@@ -245,7 +247,7 @@ def delete_sns_topic(topic_name):
             raise
 
 
-def delete_kinesis_stream(stream_name):
+def delete_kinesis_stream(stream_name) -> None:
     try:
         kinesis_client = _get_aws_session().client("kinesis", endpoint_url=KINESIS_URL)
         delete_aws_resource(
@@ -263,8 +265,7 @@ def delete_kinesis_stream(stream_name):
             raise
 
 
-def fnv(data, hval_init, fnv_prime, fnv_size):
-    # type: (bytes, int, int, int) -> int
+def fnv(data: bytes, hval_init: int, fnv_prime: int, fnv_size: int) -> int:
     """Core FNV hash algorithm used in FNV0 and FNV1."""
     hval = hval_init
     for byte in data:
@@ -277,13 +278,12 @@ FNV_64_PRIME = 0x100000001B3
 FNV1_64_INIT = 0xCBF29CE484222325
 
 
-def fnv1_64(data):
-    # type: (bytes) -> int
+def fnv1_64(data: bytes) -> int:
     """Returns the 64 bit FNV-1 hash value for the given data."""
     return fnv(data, FNV1_64_INIT, FNV_64_PRIME, 2**64)
 
 
-def compute_dsm_hash(parent_hash, tags):
+def compute_dsm_hash(parent_hash, tags) -> int:
     def get_bytes(s):
         return bytes(s, encoding="utf-8")
 
@@ -294,13 +294,13 @@ def compute_dsm_hash(parent_hash, tags):
     return fnv1_64(struct.pack("<Q", node_hash) + struct.pack("<Q", parent_hash))
 
 
-def sha_hash(checkpoint_string):
+def sha_hash(checkpoint_string: str | bytes) -> bytes:
     if isinstance(checkpoint_string, str):
         checkpoint_string = checkpoint_string.encode("utf-8")
     return hashlib.md5(checkpoint_string).digest()[:8]
 
 
-def compute_dsm_hash_nodejs(parent_hash, edge_tags):
+def compute_dsm_hash_nodejs(parent_hash, edge_tags) -> int:
     current_hash = sha_hash(f"{'weblog'}{'system-tests'}{''.join(edge_tags)}")
     parent_hash_buf = struct.pack(">Q", parent_hash)
     buf = current_hash + parent_hash_buf
