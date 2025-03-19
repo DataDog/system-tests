@@ -1,5 +1,6 @@
 import json
 from utils import weblog, interfaces, context, logger
+from utils._weblog import HttpResponse
 
 
 def _get_expectation(d: str | dict | None) -> str | None:
@@ -15,25 +16,25 @@ def _get_expectation(d: str | dict | None) -> str | None:
     raise TypeError(f"Unsupported expectation type: {d}")
 
 
-def _get_span_meta(request):
+def _get_span_meta(request: HttpResponse):
     span = interfaces.library.get_root_span(request)
     meta = span.get("meta", {})
     meta_struct = span.get("meta_struct", {})
     return meta, meta_struct
 
 
-def get_iast_event(request) -> dict | list | None:
+def get_iast_event(request: HttpResponse) -> dict | list | None:
     meta, meta_struct = _get_span_meta(request=request)
     assert "_dd.iast.json" in meta or "iast" in meta_struct, "No IAST info found tag in span"
     return meta.get("_dd.iast.json") or meta_struct.get("iast")
 
 
 def assert_iast_vulnerability(
-    request,
-    vulnerability_count=None,
-    vulnerability_type=None,
-    expected_location=None,
-    expected_evidence=None,
+    request: HttpResponse,
+    vulnerability_count: int | None = None,
+    vulnerability_type: str | None = None,
+    expected_location: str | None = None,
+    expected_evidence: str | None = None,
 ) -> None:
     iast = get_iast_event(request=request)
     assert iast["vulnerabilities"], "Expected at least one vulnerability"
@@ -51,7 +52,7 @@ def assert_iast_vulnerability(
         assert len(vulns) == vulnerability_count
 
 
-def assert_metric(request, metric, *, expected: bool) -> None:
+def assert_metric(request: HttpResponse, metric: str, *, expected: bool) -> None:
     spans_checked = 0
     metric_available = False
     for _, __, span in interfaces.library.get_spans(request):
@@ -85,7 +86,7 @@ def get_all_iast_events() -> list:
     return iast_events
 
 
-def get_iast_sources(iast_events) -> list:
+def get_iast_sources(iast_events: list) -> list:
     sources: list = []
 
     for event in iast_events:
@@ -177,7 +178,7 @@ class BaseSinkTestWithoutTelemetry:
         self.assert_no_iast_event(self.secure_request, self.vulnerability_type)
 
     @staticmethod
-    def assert_no_iast_event(request, tested_vulnerability_type=None) -> None:
+    def assert_no_iast_event(request: HttpResponse, tested_vulnerability_type: str | None = None) -> None:
         assert request.status_code == 200, f"Request failed with status code {request.status_code}"
 
         meta, meta_struct = _get_span_meta(request=request)
@@ -193,7 +194,7 @@ class BaseSinkTestWithoutTelemetry:
                         raise ValueError(f"Unexpected vulnerability reported: {vuln['type']}")
 
 
-def validate_stack_traces(request) -> None:
+def validate_stack_traces(request: HttpResponse) -> None:
     span = interfaces.library.get_root_span(request)
     meta = span.get("meta", {})
     meta_struct = span.get("meta_struct", {})
@@ -282,7 +283,9 @@ def validate_stack_traces(request) -> None:
     assert location_frame is not None, "location not found in stack trace"
 
 
-def validate_extended_location_data(request, vulnerability_type, *, is_expected_location_required=True) -> None:
+def validate_extended_location_data(
+    request: HttpResponse, vulnerability_type: str | None, *, is_expected_location_required: bool = True
+) -> None:
     span = interfaces.library.get_root_span(request)
     iast = span.get("meta", {}).get("_dd.iast.json")
     assert iast, "Expected at least one vulnerability"
@@ -337,7 +340,7 @@ def validate_extended_location_data(request, vulnerability_type, *, is_expected_
             assert all(field in location for field in ["class", "method"])
 
 
-def get_hardcoded_vulnerabilities(vulnerability_type) -> list:
+def get_hardcoded_vulnerabilities(vulnerability_type: str) -> list:
     spans = [s for _, s in interfaces.library.get_root_spans()]
     assert spans, "No spans found"
     spans_meta = [span.get("meta") for span in spans]
@@ -469,11 +472,11 @@ class BaseSourceTest:
         if not at_least_one_success:
             raise error
 
-    def get_sources(self, request) -> list:
+    def get_sources(self, request: HttpResponse) -> list:
         iast = get_iast_event(request=request)
         return iast["sources"]
 
-    def validate_request_reported(self, request, source_type=None) -> None:
+    def validate_request_reported(self, request: HttpResponse, source_type: str | None = None) -> None:
         if source_type is None:  # allow to overwrite source_type for parameter value node's use case
             source_type = self.source_type
 
