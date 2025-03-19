@@ -82,6 +82,9 @@ nodejs_ssi_pipeline:
       - artifact: nodejs_ssi_gitlab_pipeline.yml
         job: compute_pipeline
     strategy: depend
+  rules:
+    - if: '$SCHEDULED_JOB == ""'
+    - if: '$SCHEDULED_JOB == null'
 
 java_ssi_pipeline:
   stage: java
@@ -94,6 +97,9 @@ java_ssi_pipeline:
       - artifact: java_ssi_gitlab_pipeline.yml
         job: compute_pipeline
     strategy: depend
+  rules:
+    - if: '$SCHEDULED_JOB == ""'
+    - if: '$SCHEDULED_JOB == null'
 
 dotnet_ssi_pipeline:
   stage: dotnet
@@ -106,6 +112,9 @@ dotnet_ssi_pipeline:
       - artifact: dotnet_ssi_gitlab_pipeline.yml
         job: compute_pipeline
     strategy: depend
+  rules:
+    - if: '$SCHEDULED_JOB == ""'
+    - if: '$SCHEDULED_JOB == null'
 
 python_ssi_pipeline:
   stage: python
@@ -118,6 +127,9 @@ python_ssi_pipeline:
       - artifact: python_ssi_gitlab_pipeline.yml
         job: compute_pipeline
     strategy: depend
+  rules:
+    - if: '$SCHEDULED_JOB == ""'
+    - if: '$SCHEDULED_JOB == null'
 
 php_ssi_pipeline:
   stage: php
@@ -130,6 +142,9 @@ php_ssi_pipeline:
       - artifact: php_ssi_gitlab_pipeline.yml
         job: compute_pipeline
     strategy: depend
+  rules:
+    - if: '$SCHEDULED_JOB == ""'
+    - if: '$SCHEDULED_JOB == null'
 
 ruby_ssi_pipeline:
   stage: ruby
@@ -142,6 +157,9 @@ ruby_ssi_pipeline:
       - artifact: ruby_ssi_gitlab_pipeline.yml
         job: compute_pipeline
     strategy: depend
+  rules:
+    - if: '$SCHEDULED_JOB == ""'
+    - if: '$SCHEDULED_JOB == null'
 
 check_pipeline_status:
   stage: pipeline-status
@@ -185,7 +203,6 @@ check_pipeline_status:
   when: always
 
 delete_amis:
-  #Build docker images if it's needed. Check if the PR has the labels associated with the image build.
   extends: .base_job_onboarding
   stage: system-tests-utils
   allow_failure: false
