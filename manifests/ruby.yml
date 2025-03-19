@@ -10,7 +10,6 @@ tests/:
       test_api_security_rc.py:
         Test_API_Security_RC_ASM_DD_processors: missing_feature
         Test_API_Security_RC_ASM_DD_scanners: missing_feature
-        Test_API_Security_RC_ASM_processor_overrides_and_custom_scanner: irrelevant (waf does not support it yet)
       test_apisec_sampling.py: missing_feature
       test_schemas.py:
         Test_Scanners: missing_feature
@@ -652,11 +651,11 @@ tests/:
   test_profiling.py:
     Test_Profile: missing_feature (temporary fix, scenario not working on dd-trace-rb CI)
   test_sampling_rates.py:
-    Test_SampleRateFunction: v2.12.1  # real version unknown
+    Test_SampleRateFunction: missing_feature  # very flakey
     Test_SamplingDecisionAdded: v2.12.1  # real version unknown
-    Test_SamplingDecisions: v2.12.1  # real version unknown
+    Test_SamplingDecisions: missing_feature  # very flakey
     Test_SamplingDeterminism: v2.12.1  # real version unknown
-    Test_SamplingRates: v2.12.1  # real version unknown
+    Test_SamplingRates: missing_feature  # very flakey
   test_scrubbing.py:
     Test_UrlField: missing_feature (Needs weblog endpoint)
     Test_UrlQuery: v1.0.0

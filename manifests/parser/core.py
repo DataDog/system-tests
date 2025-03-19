@@ -35,7 +35,7 @@ def _load_file(file: str):
 
 
 @lru_cache
-def load(base_dir: str = "manifests/") -> dict:
+def load(base_dir: str = "manifests/") -> dict[str, dict[str, str]]:
     """Returns a dict of nodeid, value are another dict where the key is the component
     and the value the declaration. It is meant to sent directly the value of a nodeid to @released.
 
@@ -55,6 +55,7 @@ def load(base_dir: str = "manifests/") -> dict:
     for component in (
         "agent",
         "cpp",
+        "cpp_httpd",
         "dotnet",
         "golang",
         "java",

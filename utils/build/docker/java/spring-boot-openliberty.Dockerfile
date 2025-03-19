@@ -9,10 +9,9 @@ WORKDIR /app
 COPY ./utils/build/docker/java/spring-boot/pom.xml .
 
 COPY ./utils/build/docker/java/spring-boot/src ./src
-RUN mvn -Popenliberty package
-
 COPY ./utils/build/docker/java/install_ddtrace.sh binaries* /binaries/
 RUN /binaries/install_ddtrace.sh
+RUN mvn -Popenliberty package
 
 FROM eclipse-temurin:11-jre
 
