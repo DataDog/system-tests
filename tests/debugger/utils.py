@@ -57,7 +57,7 @@ def read_approval(test_name, suffix) -> dict:
         return json.load(f)
 
 
-def get_env_bool(env_var_name, *, default=False):
+def get_env_bool(env_var_name, *, default=False) -> bool:
     value = os.getenv(env_var_name, str(default)).lower()
     return value in {"true", "True", "1"}
 
@@ -351,7 +351,7 @@ class BaseDebuggerTest:
 
         return False
 
-    def wait_for_telemetry(self, telemetry_type: str, timeout=5):
+    def wait_for_telemetry(self, telemetry_type: str, timeout=5) -> dict:
         self._telemetry = None
         interfaces.agent.wait_for(
             lambda data: self._wait_for_telemetry(data, telemetry_type=telemetry_type), timeout=timeout
@@ -599,10 +599,10 @@ class BaseDebuggerTest:
         filename = test_name + "_" + self.get_tracer()["language"] + "_" + suffix + ".json"
         return os.path.join(_CUR_DIR, "approvals", filename)
 
-    def write_approval(self, data, test_name, suffix):
+    def write_approval(self, data, test_name, suffix) -> None:
         with open(self._get_path(test_name, suffix), "w", encoding="utf-8") as f:
             json.dump(data, f, indent=2)
 
-    def read_approval(self, test_name, suffix):
+    def read_approval(self, test_name, suffix) -> dict:
         with open(self._get_path(test_name, suffix), "r", encoding="utf-8") as f:
             return json.load(f)
