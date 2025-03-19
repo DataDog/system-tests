@@ -41,8 +41,7 @@ lang_variant:
 
 weblog:
     name: test-app-nodejs
-    excluded_os_names: [Ubuntu_24_arm64, Ubuntu_24_amd64] # See https://datadoghq.atlassian.net/browse/PROF-11264
-    install:
+    install: 
       - os_type: linux
         copy_files:
           - name: copy-service
