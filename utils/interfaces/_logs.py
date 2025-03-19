@@ -159,8 +159,6 @@ class _LibraryStdout(_StdoutLogsInterfaceValidator):
             klass = p("klass", r"[\w\.$\[\]/]+")
             self._parsers.append(re.compile(rf"^{timestamp} +{level} \d -+ \[ *{thread}\] +{klass} *: *{message}"))
 
-        elif library == "dotnet":
-            self._new_log_line_pattern = re.compile(r"^\s*(info|debug|error)")
         elif library == "php":
             self._skipped_patterns += [
                 re.compile(r"^(?!\[\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3}\]\[[a-z]+\]\[\d+\])"),

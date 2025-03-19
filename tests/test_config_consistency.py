@@ -8,7 +8,7 @@ import time
 from utils import weblog, interfaces, scenarios, features, rfc, irrelevant, context, bug, missing_feature, logger
 
 # get the default log output
-stdout = interfaces.library_stdout if context.library != "dotnet" else interfaces.library_dotnet_managed
+stdout = interfaces.library_stdout
 runtime_metrics = {"nodejs": "runtime.node.mem.heap_total"}
 runtime_metrics_lang_map = {
     "dotnet": ("lang", ".NET"),
@@ -23,6 +23,7 @@ log_injection_fields = {
     "nodejs": {"message": "msg"},
     "golang": {"message": "msg"},
     "java": {"message": "message"},
+    "dotnet": {"message": "@mt"},
 }
 
 
@@ -516,6 +517,8 @@ class Test_Config_LogInjection_Enabled:
         required_fields = ["service", "version", "env"]
         if context.library.library in ("java", "python"):
             required_fields = ["dd.service", "dd.version", "dd.env"]
+        elif context.library.library == "dotnet":
+            required_fields = ["dd_service", "dd_version", "dd_env"]
 
         for field in required_fields:
             assert field in msg, f"Missing field: {field}"
@@ -534,6 +537,8 @@ class Test_Config_LogInjection_Default:
     def test_log_injection_default(self):
         assert self.r.status_code == 200
         pattern = r'"dd":\{[^}]*\}'
+        pattern = r'"dd.trace_id":\{[^}]*\}'
+        pattern = r'"dd_trace_id":\{[^}]*\}'
         stdout.assert_absence(pattern)
 
 
@@ -712,9 +717,11 @@ def parse_log_injection_message(log_message):
 
 def parse_log_trace_id(message):
     # APMAPI-1199: update nodejs to use dd.trace_id instead of trace_id
-    return message.get("dd.trace_id", message.get("trace_id"))
+    # APMAPI-1234: update dotnet to use dd.trace_id instead of dd_trace_id
+    return message.get("dd.trace_id", message.get("trace_id", message.get("dd_trace_id")))
 
 
 def parse_log_span_id(message):
     # APMAPI-1199: update nodejs to use dd.span_id instead of span_id
-    return message.get("dd.span_id", message.get("span_id"))
+    # APMAPI-1234: update dotnet to use dd.span_id instead of dd_span_id
+    return message.get("dd.span_id", message.get("span_id", message.get("dd_span_id")))
