@@ -82,7 +82,7 @@ def assert_key_order(obj: dict, path: str = "") -> None:
         if last_key.endswith("/") and not key.endswith("/"):  # transition from folder fo files, nothing to do
             pass
         elif not last_key.endswith("/") and key.endswith("/"):  # folder must be before files
-            raise ValueError(f"Folders must be placed before files at {path}/{last_key}")
+            raise ValueError(f"Folders must be placed before files at {path}{last_key}")
         else:  # otherwise, it must be sorted
             assert last_key < key, f"Order is not respected at {path} ({last_key} < {key})"
 
