@@ -216,6 +216,7 @@ delete_amis:
   rules:
     - if: '$SCHEDULED_JOB == "delete_amis"'
   after_script: echo "Finish"
+  timeout: 3h
 
 check_merge_labels:
   #Build docker images if it's needed. Check if the PR has the labels associated with the image build.
