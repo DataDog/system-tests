@@ -294,8 +294,12 @@ ignore = [
 "utils/parametric/*" = [
     "ANN001",    # missing-type-function-argument: TODO
 ]
+"utils/scripts/ci_orchestrator/gitlab_exporter.py" = [ "ANN001" ]  # missing-type-function-argument: TODO
+"utils/scripts/junit_report.py" = ["ANN001"] # missing-type-function-argument: TODO
+"utils/scripts/ssi_wizards/aws_onboarding_wizard_utils.py" = ["ANN001"] # missing-type-function-argument: TODO
+"utils/scripts/ci_orchestrators/gitlab_exporter.py" = ["ANN001"] # missing-type-function-argument: TODO
+"utils/scripts/ci_orchestrators/external_gitlab_pipeline.py" = ["ANN001"] # missing-type-function-argument: TODO
 "utils/scripts/*" = [
-    "ANN001",  # missing-type-function-argument: TODO
     "INP001",  # implicit-namespace-package: this is not a package
     "T201"     # print: allow print statements in scripts folder
 ]
