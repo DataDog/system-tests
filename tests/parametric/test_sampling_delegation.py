@@ -72,6 +72,7 @@ class Test_Decisionless_Extraction:
         (trace,) = test_agent.wait_for_num_traces(1)
         assert len(trace) == 1
         (span,) = trace
+
         # Extraction succeeded if the span produced by the tracer has the same
         # trace ID and parent ID mentioned in the headers.
         assert span["trace_id"] == trace_id
