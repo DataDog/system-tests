@@ -80,7 +80,27 @@ class Test_UserLoginSuccessEventV2_Tags:
 
         return validate
 
-    def setup_user_login_success_event(self):
+    def setup_user_login_success_event_strings_metadata(self):
+        headers = {
+            "X-Forwarded-For": "1.2.3.4",
+        }
+
+        metadata = {"metadata0": "value0", "metadata1": "value1"}
+
+        data = {"login": LOGIN_SAFE, "user_id": USER_ID_SAFE, "metadata": metadata}
+
+        self.r = weblog.post("/user_login_success_event_v2", json=data, headers=headers)
+
+    def test_user_login_success_event_strings_metadata(self):
+        # Call the user login success SDK and validate tags
+
+        metadata = {"metadata0": "value0", "metadata1": "value1"}
+
+        interfaces.library.validate_spans(
+            self.r, self.get_user_login_success_tags_validator(LOGIN_SAFE, USER_ID_SAFE, metadata=metadata)
+        )
+
+    def setup_user_login_success_event_multi_type_metadata(self):
         headers = {
             "X-Forwarded-For": "1.2.3.4",
         }
@@ -91,7 +111,7 @@ class Test_UserLoginSuccessEventV2_Tags:
 
         self.r = weblog.post("/user_login_success_event_v2", json=data, headers=headers)
 
-    def test_user_login_success_event(self):
+    def test_user_login_success_event_multi_type_metadata(self):
         # Call the user login success SDK and validate tags
 
         metadata = {"metadata0": "value0", "metadata_number": "123", "metadata_boolean": "true"}
@@ -145,7 +165,7 @@ class Test_UserLoginSuccessEventV2_HeaderCollection:
     """Test headers are collected in AppSec User Login Success Event SDK v2"""
 
     def setup_user_login_success_header_collection(self):
-        data = {"login": LOGIN_SAFE, "userid": USER_ID_SAFE}
+        data = {"login": LOGIN_SAFE, "user_id": USER_ID_SAFE}
 
         self.r = weblog.post("/user_login_success_event_v2", json=data, headers=HEADERS)
 
@@ -170,7 +190,7 @@ class Test_UserLoginSuccessEventV2_Metrics:
     """Test metrics in AppSec User Login Success Event SDK v2"""
 
     def setup_user_login_success_event(self):
-        data = {"login": LOGIN_SAFE, "userid": USER_ID_SAFE}
+        data = {"login": LOGIN_SAFE, "user_id": USER_ID_SAFE}
 
         self.r = weblog.post("/user_login_success_event_v2", json=data)
 
