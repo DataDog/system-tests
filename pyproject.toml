@@ -174,9 +174,6 @@ ignore = [
 # 1. keep everything sorted alphabetically
 # 2. on each line, comment with the rule name, and a comment, either TODO, or a reason why the rule is ignored
 
-"conftest.py" = [
-    "ANN001",   # missing-type-function-argument: TODO
-]
 "lib-injection/*" = ["ALL"]  # TODO
 "tests/*" = [
     "ANN001",   # missing-type-function-argument: TODO (TBD)
@@ -250,13 +247,6 @@ ignore = [
     "ANN201",  # missing-return-type-undocumented-public-function: TODO
     "ANN205",  # issing-return-type-static-method: TODO
 ]
-"utils/interfaces/_agent.py" = [ "ANN001" ] # TODO
-"utils/interfaces/_backend.py" = [ "ANN001" ] # TODO
-"utils/interfaces/_logs.py" = [ "ANN001" ] # TODO
-"utils/interfaces/_misc_validators.py" = [ "ANN001" ] # TODO
-"utils/interfaces/_open_telemetry.py" = [ "ANN001" ] # TODO
-"utils/interfaces/_schemas_validators.py" = [ "ANN001" ] # TODO
-"utils/interfaces/_test_agent.py" = [ "ANN001" ] # TODO
 
 "utils/{k8s_lib_injection/*,_context/_scenarios/k8s_lib_injection.py}" = [
     "ANN001",   # missing-type-function-argument: TODO
@@ -304,8 +294,12 @@ ignore = [
 "utils/parametric/*" = [
     "ANN001",    # missing-type-function-argument: TODO
 ]
+"utils/scripts/ci_orchestrator/gitlab_exporter.py" = [ "ANN001" ]  # missing-type-function-argument: TODO
+"utils/scripts/junit_report.py" = ["ANN001"] # missing-type-function-argument: TODO
+"utils/scripts/ssi_wizards/aws_onboarding_wizard_utils.py" = ["ANN001"] # missing-type-function-argument: TODO
+"utils/scripts/ci_orchestrators/gitlab_exporter.py" = ["ANN001"] # missing-type-function-argument: TODO
+"utils/scripts/ci_orchestrators/external_gitlab_pipeline.py" = ["ANN001"] # missing-type-function-argument: TODO
 "utils/scripts/*" = [
-    "ANN001",  # missing-type-function-argument: TODO
     "INP001",  # implicit-namespace-package: this is not a package
     "T201"     # print: allow print statements in scripts folder
 ]
