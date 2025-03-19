@@ -52,6 +52,7 @@ refs:
   - &ref_5_40_0 '>=5.40.0'
   - &ref_5_41_0 '>=5.41.0'
   - &ref_5_43_0 '>=5.43.0'
+  - &ref_5_44_0 '>=5.44.0'
 tests/:
   apm_tracing_e2e/:
     test_otel.py:
@@ -687,7 +688,7 @@ tests/:
       Test_ConfigurationVariables: v2.7.0
     test_customconf.py:
       Test_ConfRuleSet: v2.0.0
-      Test_CorruptedRules_Telemetry: missing_feature
+      Test_CorruptedRules_Telemetry: *ref_5_44_0
       Test_MissingRules: v2.0.0
       Test_NoLimitOnWafRules: v2.4.0
     test_event_tracking.py:
