@@ -4,8 +4,7 @@ import os
 from pathlib import Path
 import subprocess
 import pytest
-from utils import scenarios, missing_feature
-from utils.tools import logger
+from utils import scenarios, missing_feature, logger
 
 
 FILENAME = "tests/test_the_test/test_scrubber.py"

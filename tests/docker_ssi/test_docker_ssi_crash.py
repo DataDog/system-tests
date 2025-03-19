@@ -8,8 +8,7 @@ from utils import (
     context,
     interfaces,
 )
-from utils import weblog
-from utils.tools import logger
+from utils import weblog, logger
 
 
 @scenarios.docker_ssi

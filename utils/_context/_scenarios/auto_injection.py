@@ -4,7 +4,7 @@ import os
 from pathlib import Path
 import pytest
 from utils._context.library_version import LibraryVersion
-from utils.tools import logger
+from utils._logger import logger
 from utils.onboarding.debug_vm import extract_logs_to_file
 from utils.virtual_machine.utils import get_tested_apps_vms, generate_gitlab_pipeline
 from utils.virtual_machine.virtual_machines import _VirtualMachine, load_virtual_machines

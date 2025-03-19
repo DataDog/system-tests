@@ -5,7 +5,7 @@ import vagrant
 import paramiko
 from fabric.api import env
 from utils.virtual_machine.virtual_machine_provider import VmProvider, Commander
-from utils.tools import logger
+from utils._logger import logger
 from utils import context
 from scp import SCPClient
 from utils.virtual_machine.vm_logger import vm_logger

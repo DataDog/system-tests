@@ -15,7 +15,7 @@ from requests.structures import CaseInsensitiveDict
 import grpc
 import google.protobuf.struct_pb2 as pb
 
-from utils.tools import logger
+from utils._logger import logger
 import utils.grpc.weblog_pb2_grpc as grpcapi
 
 # monkey patching header validation in requests module, as we want to be able to send anything to weblog

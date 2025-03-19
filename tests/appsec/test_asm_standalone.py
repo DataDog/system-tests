@@ -4,8 +4,7 @@ from abc import ABC, abstractmethod
 from requests.structures import CaseInsensitiveDict
 
 from utils.telemetry_utils import TelemetryUtils
-from utils import context, weblog, interfaces, scenarios, features, rfc, bug, missing_feature, irrelevant
-from utils.tools import logger
+from utils import context, weblog, interfaces, scenarios, features, rfc, bug, missing_feature, irrelevant, logger
 
 
 class BaseAsmStandaloneUpstreamPropagation(ABC):

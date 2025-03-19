@@ -2,8 +2,7 @@ from __future__ import annotations
 import json
 
 from utils.buddies import python_buddy
-from utils import interfaces, scenarios, weblog, missing_feature, features, context
-from utils.tools import logger
+from utils import interfaces, scenarios, weblog, missing_feature, features, context, logger
 
 
 class _BaseKinesis:

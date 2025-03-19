@@ -8,8 +8,7 @@ from random import randint, seed
 from typing import Any
 from collections.abc import Generator
 
-from utils import weblog, interfaces, context, scenarios, features, missing_feature
-from utils.tools import logger
+from utils import weblog, interfaces, context, scenarios, features, missing_feature, logger
 from utils.dd_constants import SamplingPriority
 
 

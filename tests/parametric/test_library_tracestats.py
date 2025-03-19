@@ -9,8 +9,7 @@ import pytest
 from utils.parametric.spec.trace import SPAN_MEASURED_KEY
 from utils.parametric.spec.trace import V06StatsAggr
 from utils.parametric.spec.trace import find_root_span
-from utils import missing_feature, context, scenarios, features
-from utils.tools import logger
+from utils import missing_feature, context, scenarios, features, logger
 
 parametrize = pytest.mark.parametrize
 
