@@ -201,6 +201,9 @@ check_pipeline_status:
 
     - echo "✅ All jobs and child pipelines passed!"
   when: always
+  rules:
+    - if: '$SCHEDULED_JOB == ""'
+    - if: '$SCHEDULED_JOB == null'
 
 delete_amis:
   extends: .base_job_onboarding
@@ -208,7 +211,7 @@ delete_amis:
   allow_failure: false
   script:
         - ./build.sh -i runner
-        - aws-vault exec sso-apm-ecosystems-reliability-account-admin  -- python utils/scripts/pulumi_clean_up.py --component amis --ami-retention-days 0 --ami-last-launched-days 0
+        - python utils/scripts/pulumi_clean_up.py --component amis --ami-retention-days 0 --ami-last-launched-days 0
   rules:
     - if: '$SCHEDULED_JOB == "delete_amis"'
 
