@@ -11,7 +11,7 @@ from utils import context, scenarios
 from tests.fuzzer.core import Fuzzer
 
 
-def main():
+def main() -> None:
     context.scenario = scenarios.fuzzer
 
     parser = argparse.ArgumentParser(description="Send a bunch of requests to an url.")

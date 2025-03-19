@@ -32,7 +32,7 @@ from tests.fuzzer.tools.metrics import (
 
 class Semaphore(asyncio.Semaphore):
     @property
-    def value(self):
+    def value(self) -> int:
         return self._value
 
 
@@ -135,7 +135,7 @@ class Fuzzer:
     def _add_backend_signal(self, key, name):
         self.backend_signals[key] = ResetedAccumulatedMetric(name, raw_name="S_" + key)
 
-    async def wait_for_first_response(self):
+    async def wait_for_first_response(self) -> None:
         session = aiohttp.ClientSession(loop=self.loop)
 
         self.logger.info("Wait for a successful server response...")
@@ -161,7 +161,7 @@ class Fuzzer:
         finally:
             await session.close()
 
-    def run_forever(self):
+    def run_forever(self) -> None:
         self.logger.info("")
         self.logger.info("=" * 80)
 
@@ -170,10 +170,10 @@ class Fuzzer:
         self.logger.info("Starting event loop")
         self.loop.run_until_complete(task)
 
-    def perform_armageddon(self):
+    def perform_armageddon(self) -> None:
         self.finished = True
 
-    async def watch_docker_target(self):
+    async def watch_docker_target(self) -> None:
         while not self.finished:
             try:
                 session = aiohttp.ClientSession(
@@ -308,7 +308,7 @@ class Fuzzer:
                 resp.close()
             self.report.pulse(self.get_metrics)
 
-    def get_metrics(self):
+    def get_metrics(self) -> list:
         task_metric = Metric("Tasks")
         task_metric.update(self.max_tasks - self.sem.value)
 
@@ -334,7 +334,7 @@ class Fuzzer:
 
         return result
 
-    async def update_metrics(self, status, request, request_timestamp, response=None):
+    async def update_metrics(self, status, request, request_timestamp, response=None) -> None:
         ellapsed = (datetime.now(tz=UTC) - request_timestamp).total_seconds()
 
         byte_count = len(request["path"])
@@ -387,7 +387,7 @@ class Fuzzer:
                 ) as f:
                     f.write(text)
 
-    def update_backend_metrics(self, data):
+    def update_backend_metrics(self, data) -> None:
         path, request = data["path"], data["request"]
 
         self.backend_requests_size.update(request["length"])

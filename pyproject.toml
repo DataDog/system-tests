@@ -175,9 +175,11 @@ ignore = [
 # 2. on each line, comment with the rule name, and a comment, either TODO, or a reason why the rule is ignored
 
 "lib-injection/*" = ["ALL"]  # TODO
+"tests/*test_*.py" = [
+    "ANN201",    # missing-return-type-undocumented-public-function: allow test_method to not declare their return type
+]
 "tests/*" = [
     "ANN001",   # missing-type-function-argument: TODO (TBD)
-    "ANN201",    # missing-return-type-undocumented-public-function: TODO
     "E501",      # line-too-long: TODO
     "TRY002",    # raise-vanilla-class: TODO
     "TRY301",    # raise-within-try: TODO
