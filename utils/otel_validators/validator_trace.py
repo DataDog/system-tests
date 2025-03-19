@@ -2,7 +2,7 @@
 
 import json
 import dictdiffer
-from utils.tools import logger
+from utils._logger import logger
 
 
 # Validates traces from Agent, Collector and Backend intake OTLP ingestion paths are consistent

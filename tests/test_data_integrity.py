@@ -5,8 +5,7 @@
 """Misc checks around data integrity during components' lifetime"""
 
 import string
-from utils import weblog, interfaces, context, bug, rfc, irrelevant, missing_feature, features, scenarios, flaky
-from utils.tools import logger
+from utils import weblog, interfaces, context, bug, rfc, irrelevant, missing_feature, features, scenarios, flaky, logger
 from utils.dd_constants import SamplingPriority
 from utils.cgroup_info import get_container_id
 
@@ -25,6 +24,7 @@ class Test_TraceHeaders:
     """All required headers are present in all traces submitted to the agent"""
 
     @missing_feature(library="cpp")
+    @missing_feature(library="cpp_httpd")
     @bug(context.library <= "golang@1.37.0", reason="APMRP-360")
     def test_traces_header_present(self):
         """Verify that headers described in RFC are present in traces submitted to the agent"""
@@ -85,6 +85,7 @@ class Test_TraceHeaders:
         reason="Missing endpoint",
     )
     @missing_feature(context.library == "ruby" and context.weblog_variant != "rails70", reason="Missing endpoint")
+    @missing_feature(context.library == "cpp_httpd", reason="Missing endpoint")
     def test_trace_header_container_tags(self):
         """Datadog-Container-ID header value is right in all traces submitted to the agent"""
 
@@ -146,6 +147,7 @@ class Test_LibraryHeaders:
     @missing_feature(library="ruby", reason="not implemented yet")
     @missing_feature(library="php", reason="not implemented yet")
     @missing_feature(library="cpp", reason="not implemented yet")
+    @missing_feature(library="cpp_httpd")
     @irrelevant(library="golang", reason="implemented but not testable")
     def test_datadog_entity_id(self):
         """Datadog-Entity-ID header is present and respect the in-<digits> format"""
@@ -181,6 +183,7 @@ class Test_LibraryHeaders:
         interfaces.library.validate(validator, success_by_default=True)
 
     @missing_feature(library="cpp", reason="not implemented yet")
+    @missing_feature(library="cpp_httpd", reason="not implemented yet")
     @missing_feature(library="dotnet", reason="not implemented yet")
     @missing_feature(library="java", reason="not implemented yet")
     @missing_feature(library="nodejs", reason="not implemented yet")
@@ -216,6 +219,7 @@ class Test_LibraryHeaders:
 @scenarios.default
 class Test_Agent:
     @missing_feature(library="cpp", reason="Trace are not reported")
+    @missing_feature(library="cpp_httpd")
     # we are not using dev agent, so activate this to see if it fails
     # @flaky(context.agent_version > "7.62.2", reason="APMSP-1791")
     def test_headers(self):

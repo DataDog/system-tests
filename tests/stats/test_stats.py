@@ -1,6 +1,5 @@
 import pytest
-from utils import interfaces, weblog, features, scenarios, missing_feature, context, bug
-from utils.tools import logger
+from utils import interfaces, weblog, features, scenarios, missing_feature, context, bug, logger
 
 """
 Test scenarios we want:

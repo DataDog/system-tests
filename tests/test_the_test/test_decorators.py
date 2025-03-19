@@ -3,10 +3,9 @@ import logging
 
 import pytest
 
-from utils import irrelevant, missing_feature, flaky, rfc, context
+from utils import irrelevant, missing_feature, flaky, rfc, context, logger
 from utils._decorators import released
 from utils._context.library_version import LibraryVersion
-from utils.tools import logger
 
 
 pytestmark = pytest.mark.scenario("TEST_THE_TEST")

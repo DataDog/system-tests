@@ -7,7 +7,7 @@ from requests.structures import CaseInsensitiveDict
 
 from utils._weblog import HttpResponse, GrpcResponse, _Weblog
 from utils.interfaces._core import InterfaceValidator
-from utils.tools import logger
+from utils._logger import logger
 
 
 class _PropertiesEncoder(json.JSONEncoder):

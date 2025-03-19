@@ -9,6 +9,7 @@ from .endtoend import EndToEndScenario
 
 _iast_security_controls_map = {
     "cpp": "TODO",
+    "cpp_httpd": "TODO",
     "dotnet": "TODO",
     "golang": "TODO",
     "java": (

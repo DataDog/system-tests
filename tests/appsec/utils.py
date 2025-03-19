@@ -3,6 +3,20 @@ from utils import remote_config
 from utils.dd_constants import RemoteConfigApplyState
 
 
+def find_series(request_type, namespace, metrics):
+    series = []
+    for data in interfaces.library.get_telemetry_data():
+        content = data["request"]["content"]
+        if content.get("request_type") != request_type:
+            continue
+        fallback_namespace = content["payload"].get("namespace")
+        for serie in content["payload"]["series"]:
+            computed_namespace = serie.get("namespace", fallback_namespace)
+            if computed_namespace == namespace and serie["metric"] in metrics:
+                series.append(serie)
+    return series
+
+
 class BaseFullDenyListTest:
     states = None
 
