@@ -5,6 +5,7 @@ from requests.structures import CaseInsensitiveDict
 
 from utils.telemetry_utils import TelemetryUtils
 from utils import context, weblog, interfaces, scenarios, features, rfc, bug, missing_feature, irrelevant
+from utils.tools import logger
 
 
 class BaseAsmStandaloneUpstreamPropagation(ABC):
@@ -61,11 +62,14 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
             return False
 
     @staticmethod
-    def assert_product_is_enabled(request, product) -> None:
+    def assert_product_is_enabled(response, product) -> None:
+        assert response.status_code is not None, "Request has not being processed by HTPP app"
         product_enabled = False
         tags = "_dd.iast.json" if product == "iast" else "_dd.appsec.json"
         meta_struct_key = "iast" if product == "iast" else "appsec"
-        for _, __, span in interfaces.library.get_spans(request=request):
+        spans = list(items[2] for items in interfaces.library.get_spans(request=response))
+        logger.debug(f"Found {len(spans)} spans")
+        for span in spans:
             # Check if the product is enabled in meta
             meta = span["meta"]
             if tags in meta:
