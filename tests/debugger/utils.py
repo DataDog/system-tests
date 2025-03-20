@@ -464,9 +464,14 @@ class BaseDebuggerTest:
                                     span_hash[span["meta"][span_decoration_line_key]] = span
                                     continue
 
-                                is_exception_replay = "_dd.debug.error.exception_id" in span["meta"]
-                                if is_exception_replay:
+                                has_exception_id = "_dd.debug.error.exception_id" in span["meta"]
+                                if has_exception_id:
                                     span_hash[span["meta"]["_dd.debug.error.exception_id"]] = span
+                                    continue
+
+                                has_exception_capture_id = "_dd.debug.error.exception_capture_id" in span["meta"]
+                                if has_exception_capture_id:
+                                    span_hash[span["meta"]["_dd.debug.error.exception_capture_id"]] = span
                                     continue
 
             return span_hash
