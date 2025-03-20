@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"log"
 	"math/rand"
 	"net/http"
 	"os"
@@ -24,12 +23,20 @@ import (
 
 	gintrace "github.com/DataDog/dd-trace-go/contrib/gin-gonic/gin/v2"
 	httptrace "github.com/DataDog/dd-trace-go/contrib/net/http/v2"
+	dd_logrus "github.com/DataDog/dd-trace-go/contrib/sirupsen/logrus/v2"
 	"github.com/DataDog/dd-trace-go/v2/appsec"
 	"github.com/DataDog/dd-trace-go/v2/ddtrace/tracer"
 	"github.com/DataDog/dd-trace-go/v2/profiler"
+	"github.com/sirupsen/logrus"
 )
 
 func main() {
+	logrus.SetFormatter(&logrus.JSONFormatter{})
+	logrus.SetOutput(os.Stdout)
+	logrus.SetLevel(logrus.DebugLevel)
+
+	// Add Datadog context log hook
+	logrus.AddHook(&dd_logrus.DDContextLogHook{})
 	tracer.Start()
 	defer tracer.Stop()
 
@@ -42,7 +49,7 @@ func main() {
 	)
 
 	if err != nil {
-		log.Fatal(err)
+		logrus.Fatal(err)
 	}
 	defer profiler.Stop()
 
@@ -140,7 +147,7 @@ func main() {
 		req, _ := http.NewRequestWithContext(ctx.Request.Context(), http.MethodGet, url, nil)
 		res, err := client.Do(req)
 		if err != nil {
-			log.Fatalln(err)
+			logrus.Fatalln(err)
 		}
 
 		defer res.Body.Close()
@@ -221,7 +228,7 @@ func main() {
 		content, err := os.ReadFile(path)
 
 		if err != nil {
-			log.Fatalln(err)
+			logrus.Fatalln(err)
 			ctx.Writer.WriteHeader(500)
 		}
 		ctx.Writer.Write(content)
@@ -265,6 +272,24 @@ func main() {
 		ctx.Writer.Write([]byte("ok"))
 	})
 
+	r.GET("/log/library", func(ctx *gin.Context) {
+		msg := ctx.Query("msg")
+		if msg == "" {
+			msg = "msg"
+		}
+		switch ctx.Query("level") {
+		case "warn":
+			logrus.WithContext(ctx).Warn(msg)
+		case "error":
+			logrus.WithContext(ctx).Error(msg)
+		case "debug":
+			logrus.WithContext(ctx).Debug(msg)
+		default:
+			logrus.WithContext(ctx).Info(msg)
+		}
+		ctx.Writer.Write([]byte("OK"))
+	})
+
 	r.Any("/rasp/lfi", ginHandleFunc(rasp.LFI))
 	r.Any("/rasp/ssrf", ginHandleFunc(rasp.SSRF))
 	r.Any("/rasp/sqli", ginHandleFunc(rasp.SQLi))
@@ -281,7 +306,7 @@ func main() {
 	go grpc.ListenAndServe()
 	go func() {
 		if err := srv.ListenAndServe(); !errors.Is(err, http.ErrServerClosed) {
-			log.Fatal(err)
+			logrus.Fatal(err)
 		}
 	}()
 
@@ -292,7 +317,7 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	if err := srv.Shutdown(ctx); err != nil {
-		log.Fatalf("HTTP shutdown error: %v", err)
+		logrus.Fatalf("HTTP shutdown error: %v", err)
 	}
 }
 

@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"log"
 	"math/rand"
 	"net/http"
 	"net/http/httptest"
@@ -35,14 +34,22 @@ import (
 	oteltrace "go.opentelemetry.io/otel/trace"
 
 	httptrace "github.com/DataDog/dd-trace-go/contrib/net/http/v2"
+	dd_logrus "github.com/DataDog/dd-trace-go/contrib/sirupsen/logrus/v2"
 	"github.com/DataDog/dd-trace-go/v2/appsec"
 	ddotel "github.com/DataDog/dd-trace-go/v2/ddtrace/opentelemetry"
 	"github.com/DataDog/dd-trace-go/v2/ddtrace/tracer"
 	ddtracer "github.com/DataDog/dd-trace-go/v2/ddtrace/tracer"
 	"github.com/DataDog/dd-trace-go/v2/profiler"
+	"github.com/sirupsen/logrus"
 )
 
 func main() {
+	logrus.SetFormatter(&logrus.JSONFormatter{})
+	logrus.SetOutput(os.Stdout)
+	logrus.SetLevel(logrus.DebugLevel)
+
+	// Add Datadog context log hook
+	logrus.AddHook(&dd_logrus.DDContextLogHook{})
 	ddtracer.Start()
 	defer ddtracer.Stop()
 
@@ -55,7 +62,7 @@ func main() {
 	)
 
 	if err != nil {
-		log.Fatal(err)
+		logrus.Fatal(err)
 	}
 	defer profiler.Stop()
 
@@ -173,7 +180,7 @@ func main() {
 		req, _ := http.NewRequestWithContext(r.Context(), http.MethodGet, url, nil)
 		res, err := client.Do(req)
 		if err != nil {
-			log.Fatalln("client.Do", err)
+			logrus.Fatalln("client.Do", err)
 		}
 
 		defer res.Body.Close()
@@ -195,7 +202,7 @@ func main() {
 			ResponseHeaders map[string]string `json:"response_headers"`
 		}{URL: url, StatusCode: res.StatusCode, RequestHeaders: requestHeaders, ResponseHeaders: responseHeaders})
 		if err != nil {
-			log.Fatalln(err)
+			logrus.Fatalln(err)
 		}
 		w.Header().Set("Content-Type", "application/json")
 		w.Write(jsonResponse)
@@ -378,7 +385,7 @@ func main() {
 			// the system-tests/weblog request id and the traces/spans
 			receivedSpan.SetAttributes(tags...)
 			if receivedSpan.SpanContext().TraceID() != parentSpan.SpanContext().TraceID() {
-				log.Fatalln("error in distributed tracing: Datadog OTel API and Otel net/http package span are not connected")
+				logrus.Fatalln("error in distributed tracing: Datadog OTel API and Otel net/http package span are not connected")
 				w.WriteHeader(500)
 				return
 			}
@@ -391,14 +398,14 @@ func main() {
 		c := http.Client{Transport: otelhttp.NewTransport(nil, otelhttp.WithSpanOptions(oteltrace.WithAttributes(tags...)))}
 		req, err := http.NewRequestWithContext(parentCtx, http.MethodGet, testServer.URL, nil)
 		if err != nil {
-			log.Fatalln(err)
+			logrus.Fatalln(err)
 			w.WriteHeader(500)
 			return
 		}
 		resp, err := c.Do(req)
 		_ = resp.Body.Close() // Need to close body to cause otel span to end
 		if err != nil {
-			log.Fatalln(err)
+			logrus.Fatalln(err)
 			w.WriteHeader(500)
 			return
 		}
@@ -412,7 +419,7 @@ func main() {
 		content, err := os.ReadFile(path)
 
 		if err != nil {
-			log.Fatalln(err)
+			logrus.Fatalln(err)
 			w.WriteHeader(500)
 			return
 		}
@@ -650,6 +657,26 @@ func main() {
 		w.Write([]byte("ok"))
 	})
 
+	mux.HandleFunc("/log/library", func(w http.ResponseWriter, r *http.Request) {
+		msg := r.URL.Query().Get("msg")
+		if msg == "" {
+			msg = "msg"
+		}
+		ctx := r.Context()
+		switch r.URL.Query().Get("level") {
+		case "warn":
+			logrus.WithContext(ctx).Warn(msg)
+		case "error":
+			logrus.WithContext(ctx).Error(msg)
+		case "debug":
+			logrus.WithContext(ctx).Debug(msg)
+		default:
+			logrus.WithContext(ctx).Info(msg)
+		}
+		w.WriteHeader(200)
+		w.Write([]byte("ok"))
+	})
+
 	mux.HandleFunc("/requestdownstream", common.Requestdownstream)
 	mux.HandleFunc("/returnheaders", common.Returnheaders)
 
@@ -666,7 +693,7 @@ func main() {
 	go grpc.ListenAndServe()
 	go func() {
 		if err := srv.ListenAndServe(); !errors.Is(err, http.ErrServerClosed) {
-			log.Fatal(err)
+			logrus.Fatal(err)
 		}
 	}()
 
@@ -677,7 +704,7 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	if err := srv.Shutdown(ctx); err != nil {
-		log.Fatalf("HTTP shutdown error: %v", err)
+		logrus.Fatalf("HTTP shutdown error: %v", err)
 	}
 }
 
@@ -773,7 +800,7 @@ func kafkaProduce(topic, message string) (int32, int64, error) {
 		return 0, 0, err
 	}
 
-	log.Printf("PRODUCER SENT MESSAGE TO (partition offset): %d %d", partition, offset)
+	logrus.Printf("PRODUCER SENT MESSAGE TO (partition offset): %d %d", partition, offset)
 	return partition, offset, nil
 }
 
@@ -796,16 +823,16 @@ func kafkaConsume(topic string, timeout int64) (string, int, error) {
 
 	timeOutTimer := time.NewTimer(time.Duration(timeout) * time.Second)
 	defer timeOutTimer.Stop()
-	log.Printf("CONSUMING MESSAGES from topic: %s", topic)
+	logrus.Printf("CONSUMING MESSAGES from topic: %s", topic)
 	for {
 		select {
 		case receivedMsg := <-partitionConsumer.Messages():
 			responseOutput := fmt.Sprintf("Consumed message.\n\tOffset: %s\n\tMessage: %s\n", fmt.Sprint(receivedMsg.Offset), string(receivedMsg.Value))
-			log.Print(responseOutput)
+			logrus.Print(responseOutput)
 			return responseOutput, 200, nil
 		case <-timeOutTimer.C:
 			timedOutMessage := "TimeOut"
-			log.Print(timedOutMessage)
+			logrus.Print(timedOutMessage)
 			return timedOutMessage, 408, nil
 		}
 	}
