@@ -24,9 +24,8 @@ from utils.parametric.spec.trace import Trace
 from utils.parametric.spec.trace import decode_v06_stats
 from utils.parametric._library_client import APMLibrary, APMLibraryClient
 
-from utils import context, scenarios
+from utils import context, scenarios, logger
 from utils.dd_constants import RemoteConfigApplyState, Capabilities
-from utils.tools import logger
 
 from utils._context._scenarios.parametric import APMLibraryTestServer
 
@@ -54,7 +53,7 @@ class AgentRequestV06Stats(AgentRequest):
     body: V06StatsPayload  # type: ignore[misc]
 
 
-def pytest_configure(config):
+def pytest_configure(config) -> None:
     config.addinivalue_line(
         "markers", "snapshot(*args, **kwargs): mark test to run as a snapshot test which sends traces to the test agent"
     )
@@ -74,7 +73,7 @@ def library_env() -> dict[str, str]:
 
 
 @pytest.fixture
-def apm_test_server(request, library_env, test_id):
+def apm_test_server(request, library_env, test_id) -> APMLibraryTestServer:
     """Request level definition of the library test server with the session Docker image built"""
     apm_test_server_image = scenarios.parametric.apm_test_server_definition
     new_env = dict(library_env)
@@ -376,20 +375,60 @@ class _TestAgentAPI:
                 pass
             else:
                 for event in events:
-                    if event["request_type"] == "message-batch":
-                        for message in event["payload"]:
-                            if message["request_type"] == event_name:
-                                if message.get("application", {}).get("language_version") != "SIDECAR":
-                                    if clear:
-                                        self.clear()
-                                    return message
-                    elif event["request_type"] == event_name:
-                        if event.get("application", {}).get("language_version") != "SIDECAR":
-                            if clear:
-                                self.clear()
-                            return event
+                    e = self._get_telemetry_event(event, event_name)
+                    if e:
+                        if clear:
+                            self.clear()
+                        return e
             time.sleep(0.01)
         raise AssertionError(f"Telemetry event {event_name} not found")
+
+    def wait_for_telemetry_configurations(self, *, clear: bool = False) -> dict[str, str]:
+        """Waits for and returns the latest configurations captured in telemetry events.
+
+        Telemetry events can be found in `app-started` or `app-client-configuration-change` events.
+        The function ensures that at least one telemetry event is captured before processing.
+        """
+        events = []
+        configurations = {}
+        # Allow time for telemetry events to be captured
+        time.sleep(1)
+        # Attempt to retrieve telemetry events, suppressing request-related exceptions
+        with contextlib.suppress(requests.exceptions.RequestException):
+            events += self.telemetry(clear=False)
+        if not events:
+            raise AssertionError("No telemetry events were found. Ensure the application is sending telemetry events.")
+
+        # Sort events by tracer_time to ensure configurations are processed in order
+        events.sort(key=lambda r: r["tracer_time"])
+        # Extract configuration data from relevant telemetry events
+        for event in events:
+            for event_type in ["app-started", "app-client-configuration-change"]:
+                telemetry_event = self._get_telemetry_event(event, event_type)
+                if telemetry_event:
+                    for config in telemetry_event.get("payload", {}).get("configuration", []):
+                        # Store only the latest configuration for each name. This is the configuration
+                        # that should be used by the application.
+                        configurations[config["name"]] = config
+        if clear:
+            self.clear()
+        return configurations
+
+    def _get_telemetry_event(self, event, request_type):
+        """Extracts telemetry events from a message batch or returns the telemetry event if it
+        matches the expected request_type and was not emitted from a sidecar.
+        """
+        if not event:
+            return None
+        elif event["request_type"] == "message-batch":
+            for message in event["payload"]:
+                if message["request_type"] == request_type:
+                    if message.get("application", {}).get("language_version") != "SIDECAR":
+                        return message
+        elif event["request_type"] == request_type:
+            if event.get("application", {}).get("language_version") != "SIDECAR":
+                return event
+        return None
 
     def wait_for_rc_apply_state(
         self,
@@ -582,7 +621,7 @@ def test_agent(
     test_agent_container_name: str,
     test_agent_port: int,
     test_agent_log_file: TextIO,
-):
+) -> Generator[_TestAgentAPI, None, None]:
     env = {}
     if os.getenv("DEV_MODE") is not None:
         env["SNAPSHOT_CI"] = "0"
@@ -693,11 +732,11 @@ def test_library(
 
 
 class StableConfigWriter:
-    def write_stable_config(self, stable_config: dict, path, test_library):
+    def write_stable_config(self, stable_config: dict, path, test_library) -> None:
         stable_config_content = yaml.dump(stable_config)
         self.write_stable_config_content(stable_config_content, path, test_library)
 
-    def write_stable_config_content(self, stable_config_content: str, path: str, test_library):
+    def write_stable_config_content(self, stable_config_content: str, path: str, test_library) -> None:
         success, message = test_library.container_exec_run(
             f'bash -c "mkdir -p {Path(path).parent!s} && printf {shlex.quote(stable_config_content)} | tee {path}"'
         )

@@ -10,7 +10,6 @@ tests/:
       test_api_security_rc.py:
         Test_API_Security_RC_ASM_DD_processors: v2.6.0
         Test_API_Security_RC_ASM_DD_scanners: v2.6.0
-        Test_API_Security_RC_ASM_processor_overrides_and_custom_scanner: irrelevant (waf does not support it yet)
       test_apisec_sampling.py:
         Test_API_Security_Sampling_Different_Endpoints: v2.6.0
         Test_API_Security_Sampling_Different_Paths: v2.6.0
@@ -290,7 +289,7 @@ tests/:
         Test_Lfi_Rules_Version: v2.18.0.dev
         Test_Lfi_StackTrace: v2.10.0
         Test_Lfi_Telemetry: v2.10.0
-        Test_Lfi_Telemetry_Multiple_Exploits: missing_feature
+        Test_Lfi_Telemetry_Multiple_Exploits: v2.10.0
         Test_Lfi_UrlQuery: v2.10.0
         Test_Lfi_Waf_Version: v2.15.0
       test_shi.py:
@@ -460,6 +459,8 @@ tests/:
         Test_TelemetryMetrics:
           '*': v1.14.0
           fastapi: v2.4.0
+      test_truncation.py:
+        Test_Truncation: v3.3.0.dev
     test_alpha.py:
       Test_Basic:
         '*': v1.1.0-rc2
@@ -484,7 +485,11 @@ tests/:
       Test_V3_Login_Events_Blocking: v2.20.0.dev
       Test_V3_Login_Events_RC: v2.11.0
     test_automated_user_and_session_tracking.py:
-      Test_Automated_Session_Blocking: missing_feature
+      Test_Automated_Session_Blocking:
+        '*': missing_feature (no auto instrumentation for session on non Django weblogs)
+        django-poc: v3.3.0.dev
+        django-py3.13: v3.3.0.dev
+        python3.12: v3.3.0.dev
       Test_Automated_User_Blocking: v3.0.0.rc
       Test_Automated_User_Tracking: v3.1.0.dev
     test_blocking_addresses.py:
@@ -558,6 +563,7 @@ tests/:
         fastapi: v2.4.0
     test_customconf.py:
       Test_ConfRuleSet: v1.1.0-rc2
+      Test_CorruptedRules_Telemetry: missing_feature
       Test_NoLimitOnWafRules: v1.1.0-rc2
     test_event_tracking.py:
       Test_CustomEvent: v1.10.0
@@ -816,9 +822,9 @@ tests/:
     test_128_bit_traceids.py:
       Test_128_Bit_Traceids: v2.6.0
     test_config_consistency.py:
-      Test_Config_Dogstatsd: missing_feature
+      Test_Config_Dogstatsd: v3.3.0.dev
       Test_Config_RateLimit: v2.15.0
-      Test_Config_Tags: missing_feature
+      Test_Config_Tags: v3.3.0.dev
       Test_Config_TraceAgentURL: v2.0.0
       Test_Config_TraceEnabled: v2.12.2
       Test_Config_TraceLogDirectory: missing_feature
@@ -948,10 +954,16 @@ tests/:
     Test_Config_IntegrationEnabled_True:
       '*': irrelevant (kafka endpoint is not implemented)
       flask-poc: v2.0.0
-    Test_Config_LogInjection_128Bit_TraceId_Default: missing_feature (not enabled by default)
-    Test_Config_LogInjection_128Bit_TraceId_Disabled: incomplete_test_app (endpoint not implemented)
-    Test_Config_LogInjection_Default: incomplete_test_app (endpoint not implemented)
-    Test_Config_LogInjection_Enabled: incomplete_test_app (endpoint not implemented)
+    Test_Config_LogInjection_128Bit_TraceId_Disabled: irrelevant (python tracer does not support disabling logging 128-bit trace IDs)
+    Test_Config_LogInjection_128Bit_TraceId_Enabled:
+      '*': irrelevant (log endpoint is not implemented)
+      flask-poc: v3.0.0
+    Test_Config_LogInjection_Default:
+      '*': irrelevant (log endpoint is not implemented)
+      flask-poc: v3.0.0
+    Test_Config_LogInjection_Enabled:
+      '*': irrelevant (log endpoint is not implemented)
+      flask-poc: v3.0.0
     Test_Config_ObfuscationQueryStringRegexp_Configured: v2.0.0
     Test_Config_ObfuscationQueryStringRegexp_Empty: v2.15.0
     Test_Config_RuntimeMetrics_Default: v0.30.0
@@ -970,7 +982,8 @@ tests/:
     Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
   test_graphql.py:
     Test_GraphQLQueryErrorReporting:
-      '*': missing_feature  # change this once tracer PR is released
+      '*': missing_feature
+      flask-poc: v3.1.0
   test_identify.py:
     Test_Basic: v1.5.0-rc1
     Test_Propagate: v1.9.0
@@ -996,7 +1009,10 @@ tests/:
       django-py3.13: missing_feature (python 3.13 not supported yet)
       python3.12: v2.1.0
   test_sampling_rates.py:
-    Test_SamplingDecisions: v2.8.0
+    Test_SampleRateFunction: bug (APMAPI-736)
+    Test_SamplingDecisionAdded: v2.8.0
+    Test_SamplingDecisions: bug (APMAPI-736)
+    Test_SamplingDeterminism: v2.8.0
     Test_SamplingRates: v2.8.0
   test_scrubbing.py:
     Test_UrlField:

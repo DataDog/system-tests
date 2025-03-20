@@ -1,6 +1,5 @@
 import pytest
-from utils import interfaces, weblog, features, scenarios, missing_feature, context, bug
-from utils.tools import logger
+from utils import interfaces, weblog, features, scenarios, missing_feature, context, bug, logger
 
 """
 Test scenarios we want:
@@ -19,6 +18,7 @@ Config:
 
 
 @features.client_side_stats_supported
+@scenarios.trace_stats_computation
 class Test_Client_Stats:
     """Test client-side stats are compatible with Agent implementation"""
 
@@ -69,7 +69,7 @@ class Test_Client_Stats:
             assert s["IsTraceRoot"] == 1
             assert s["SpanKind"] == "server"
 
-    @scenarios.everything_disabled
+    @scenarios.default
     def test_disable(self):
         requests = list(interfaces.library.get_data("/v0.6/stats"))
         assert len(requests) == 0, "Stats should be disabled by default"

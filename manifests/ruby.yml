@@ -10,7 +10,6 @@ tests/:
       test_api_security_rc.py:
         Test_API_Security_RC_ASM_DD_processors: missing_feature
         Test_API_Security_RC_ASM_DD_scanners: missing_feature
-        Test_API_Security_RC_ASM_processor_overrides_and_custom_scanner: irrelevant (waf does not support it yet)
       test_apisec_sampling.py: missing_feature
       test_schemas.py:
         Test_Scanners: missing_feature
@@ -231,6 +230,17 @@ tests/:
         Test_FullGrpc: missing_feature
         Test_GraphQL: v2.3.0
         Test_GrpcServerMethod: missing_feature
+        Test_Headers:
+          '*': v0.54.2  # assumed as the oldest supported version
+          sinatra14: missing_feature (endpoint not implemented)
+          sinatra20: missing_feature (endpoint not implemented)
+          sinatra21: missing_feature (endpoint not implemented)
+          sinatra22: missing_feature (endpoint not implemented)
+          sinatra30: missing_feature (endpoint not implemented)
+          sinatra31: missing_feature (endpoint not implemented)
+          sinatra32: missing_feature (endpoint not implemented)
+          sinatra40: missing_feature (endpoint not implemented)
+          uds-sinatra: missing_feature (endpoint not implemented)
         Test_PathParams:
           '*': v1.8.0
           rack: irrelevant
@@ -265,6 +275,8 @@ tests/:
         Test_NoSqli: v1.8.0
       test_telemetry.py:
         Test_TelemetryMetrics: missing_feature
+      test_truncation.py:
+        Test_Truncation: missing_feature
     test_asm_standalone.py:
       Test_AppSecStandalone_UpstreamPropagation: v2.4.1-dev
       Test_AppSecStandalone_UpstreamPropagation_V2: missing_feature
@@ -331,6 +343,7 @@ tests/:
     test_customconf.py:
       Test_ConfRuleSet: v1.0.0.beta2
       Test_CorruptedRules: v1.0.0.beta2
+      Test_CorruptedRules_Telemetry: missing_feature
       Test_MissingRules: v1.0.0.beta2
       Test_NoLimitOnWafRules: v1.0.0.beta2
     test_event_tracking.py:
@@ -593,8 +606,8 @@ tests/:
     Test_Config_IntegrationEnabled_True:
       '*': irrelevant (endpoint not implemented)
       rails70: v2.0.0
-    Test_Config_LogInjection_128Bit_TraceId_Default: missing_feature (not enabled by default)
     Test_Config_LogInjection_128Bit_TraceId_Disabled: incomplete_test_app (endpoint not implemented)
+    Test_Config_LogInjection_128Bit_TraceId_Enabled: missing_feature (not enabled by default)
     Test_Config_LogInjection_Default: incomplete_test_app (endpoint not implemented)
     Test_Config_LogInjection_Enabled: incomplete_test_app (endpoint not implemented)
     Test_Config_ObfuscationQueryStringRegexp_Configured: missing_feature
@@ -637,7 +650,11 @@ tests/:
   test_profiling.py:
     Test_Profile: missing_feature (temporary fix, scenario not working on dd-trace-rb CI)
   test_sampling_rates.py:
-    Test_SamplingDecisions: missing_feature (Endpoint /sample_rate_route not implemented)
+    Test_SampleRateFunction: missing_feature  # very flakey
+    Test_SamplingDecisionAdded: v2.12.1  # real version unknown
+    Test_SamplingDecisions: missing_feature  # very flakey
+    Test_SamplingDeterminism: v2.12.1  # real version unknown
+    Test_SamplingRates: missing_feature  # very flakey
   test_scrubbing.py:
     Test_UrlField: missing_feature (Needs weblog endpoint)
     Test_UrlQuery: v1.0.0

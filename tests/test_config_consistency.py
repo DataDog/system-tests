@@ -5,11 +5,10 @@
 import re
 import json
 import time
-from utils import weblog, interfaces, scenarios, features, rfc, irrelevant, context, bug, missing_feature
-from utils.tools import logger
+from utils import weblog, interfaces, scenarios, features, rfc, irrelevant, context, bug, missing_feature, logger
 
 # get the default log output
-stdout = interfaces.library_stdout if context.library != "dotnet" else interfaces.library_dotnet_managed
+stdout = interfaces.library_stdout
 runtime_metrics = {"nodejs": "runtime.node.mem.heap_total"}
 runtime_metrics_lang_map = {
     "dotnet": ("lang", ".NET"),
@@ -24,6 +23,7 @@ log_injection_fields = {
     "nodejs": {"message": "msg"},
     "golang": {"message": "msg"},
     "java": {"message": "message"},
+    "dotnet": {"message": "@mt"},
 }
 
 
@@ -230,7 +230,6 @@ class Test_Config_HttpClientErrorStatuses_FeatureFlagCustom:
     def setup_status_code_200(self):
         self.r = weblog.get("/make_distant_call", params={"url": "http://weblog:7777/status?code=200"})
 
-    @bug(context.library >= "golang@1.72.0", reason="APMAPI-1196")
     def test_status_code_200(self):
         assert self.r.status_code == 200
         content = json.loads(self.r.text)
@@ -246,7 +245,6 @@ class Test_Config_HttpClientErrorStatuses_FeatureFlagCustom:
     def setup_status_code_202(self):
         self.r = weblog.get("/make_distant_call", params={"url": "http://weblog:7777/status?code=202"})
 
-    @bug(context.library >= "golang@1.72.0", reason="APMAPI-1196")
     def test_status_code_202(self):
         assert self.r.status_code == 200
         content = json.loads(self.r.text)
@@ -282,7 +280,6 @@ class Test_Config_ClientTagQueryString_Configured:
     def setup_query_string_redaction(self):
         self.r = weblog.get("/make_distant_call", params={"url": "http://weblog:7777/?hi=monkey"})
 
-    @bug(context.library >= "golang@1.72.0", reason="APMAPI-1196")
     def test_query_string_redaction(self):
         trace = [span for _, _, span in interfaces.library.get_spans(self.r, full_trace=True)]
         expected_tags = {"http.url": "http://weblog:7777/"}
@@ -504,7 +501,7 @@ class Test_Config_LogInjection_Enabled:
     """Verify log injection behavior when enabled"""
 
     def setup_log_injection_enabled(self):
-        self.message = "msg"
+        self.message = "test_weblog_log_injection"
         self.r = weblog.get("/log/library", params={"msg": self.message})
 
     def test_log_injection_enabled(self):
@@ -518,8 +515,10 @@ class Test_Config_LogInjection_Enabled:
         assert sid is not None, "Expected a span ID, but got None"
 
         required_fields = ["service", "version", "env"]
-        if context.library.library == "java":
+        if context.library.library in ("java", "python"):
             required_fields = ["dd.service", "dd.version", "dd.env"]
+        elif context.library.library == "dotnet":
+            required_fields = ["dd_service", "dd_version", "dd_env"]
 
         for field in required_fields:
             assert field in msg, f"Missing field: {field}"
@@ -532,12 +531,14 @@ class Test_Config_LogInjection_Default:
     """Verify log injection is disabled by default"""
 
     def setup_log_injection_default(self):
-        self.message = "msg"
+        self.message = "test_weblog_log_injection"
         self.r = weblog.get("/log/library", params={"msg": self.message})
 
     def test_log_injection_default(self):
         assert self.r.status_code == 200
         pattern = r'"dd":\{[^}]*\}'
+        pattern = r'"dd.trace_id":\{[^}]*\}'
+        pattern = r'"dd_trace_id":\{[^}]*\}'
         stdout.assert_absence(pattern)
 
 
@@ -545,11 +546,11 @@ class Test_Config_LogInjection_Default:
 @scenarios.tracing_config_nondefault
 @features.log_injection
 @features.log_injection_128bit_traceid
-class Test_Config_LogInjection_128Bit_TraceId_Default:
-    """Verify trace IDs are logged in 128bit format when log injection is enabled"""
+class Test_Config_LogInjection_128Bit_TraceId_Enabled:
+    """Verify trace IDs are logged in 128bit format by default when log injection is enabled"""
 
     def setup_log_injection_128bit_traceid_default(self):
-        self.message = "msg"
+        self.message = "test_weblog_log_injection"
         self.r = weblog.get("/log/library", params={"msg": self.message})
 
     def test_log_injection_128bit_traceid_default(self):
@@ -564,11 +565,14 @@ class Test_Config_LogInjection_128Bit_TraceId_Default:
 @scenarios.tracing_config_nondefault_3
 @features.log_injection
 @features.log_injection_128bit_traceid
+@irrelevant(
+    context.library == "python", reason="The Python tracer does not support disabling logging 128-bit trace IDs"
+)
 class Test_Config_LogInjection_128Bit_TraceId_Disabled:
     """Verify 128 bit traceid are disabled in log injection when DD_TRACE_128_BIT_TRACEID_LOGGING_ENABLED=false"""
 
     def setup_log_injection_128bit_traceid_disabled(self):
-        self.message = "msg"
+        self.message = "test_weblog_log_injection"
         self.r = weblog.get("/log/library", params={"msg": self.message})
 
     def test_log_injection_128bit_traceid_disabled(self):
@@ -686,6 +690,15 @@ def parse_log_injection_message(log_message):
     for data in stdout.get_data():
         logs = data.get("raw").split("\n")
         for log in logs:
+            if context.library == "python":
+                # Log Injection values are stored in the following format in python:
+                # [dd.service=service_test dd.env=system-tests dd.version=1.0.0 dd.trace_id=0 dd.span_id=0] - log message
+                extracted_log_message = next(iter(re.findall(r"\] - (.+)$", log)), "")
+                if log_message in extracted_log_message:
+                    dd_injected = re.findall(r"(dd\.[a-zA-Z0-9_]+)=([a-zA-Z0-9_]+)", log)
+                    return {key: value for key, value in dd_injected}
+                else:
+                    continue
             try:
                 message = json.loads(log)
             except json.JSONDecodeError:
@@ -704,9 +717,11 @@ def parse_log_injection_message(log_message):
 
 def parse_log_trace_id(message):
     # APMAPI-1199: update nodejs to use dd.trace_id instead of trace_id
-    return message.get("dd.trace_id", message.get("trace_id"))
+    # APMAPI-1234: update dotnet to use dd.trace_id instead of dd_trace_id
+    return message.get("dd.trace_id", message.get("trace_id", message.get("dd_trace_id")))
 
 
 def parse_log_span_id(message):
     # APMAPI-1199: update nodejs to use dd.span_id instead of span_id
-    return message.get("dd.span_id", message.get("span_id"))
+    # APMAPI-1234: update dotnet to use dd.span_id instead of dd_span_id
+    return message.get("dd.span_id", message.get("span_id", message.get("dd_span_id")))

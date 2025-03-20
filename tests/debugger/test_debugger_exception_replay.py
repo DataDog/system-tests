@@ -5,8 +5,7 @@
 import tests.debugger.utils as debugger
 import os
 import re
-from utils import scenarios, features, bug, context, flaky, irrelevant
-from utils.tools import logger
+from utils import scenarios, features, bug, context, flaky, irrelevant, logger
 
 
 def get_env_bool(env_var_name, *, default=False) -> bool:
@@ -24,7 +23,7 @@ _timeout_next = 30
 
 @features.debugger_exception_replay
 @scenarios.debugger_exception_replay
-class Test_Debugger_Exception_Replay(debugger.Base_Debugger_Test):
+class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
     snapshots = {}
     spans = {}
 
@@ -183,7 +182,7 @@ class Test_Debugger_Exception_Replay(debugger.Base_Debugger_Test):
                 value["fields"] = "<scrubbed>"
                 return value
 
-            elif key == "exception-id" or key == "staticFields":
+            elif key in ("exception-id", "staticFields"):
                 return "<scrubbed>"
 
             elif key in ["stacktrace", "stack"]:

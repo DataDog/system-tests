@@ -6,73 +6,13 @@ tests/:
     test_single_span.py:
       Test_SingleSpan: missing_feature (missing /e2e_otel_span endpoint on weblog)
   appsec/:
-    api_security/:
-      test_api_security_rc.py: irrelevant (ASM is not implemented in C++)
-      test_apisec_sampling.py: irrelevant (ASM is not implemented in C++)
-      test_schemas.py: irrelevant (ASM is not implemented in C++)
+    api_security/: irrelevant (ASM is not implemented in C++)
     iast/:
-      sink/:
-        test_code_injection.py: irrelevant (ASM is not implemented in C++)
-        test_command_injection.py: irrelevant (ASM is not implemented in C++)
-        test_email_html_injection.py: irrelevant (ASM is not implemented in C++)
-        test_hardcoded_passwords.py: irrelevant (ASM is not implemented in C++)
-        test_hardcoded_secrets.py: irrelevant (ASM is not implemented in C++)
-        test_header_injection.py: irrelevant (ASM is not implemented in C++)
-        test_hsts_missing_header.py: irrelevant (ASM is not implemented in C++)
-        test_insecure_auth_protocol.py: irrelevant (ASM is not implemented in C++)
-        test_insecure_cookie.py: irrelevant (ASM is not implemented in C++)
-        test_ldap_injection.py: irrelevant (ASM is not implemented in C++)
-        test_no_httponly_cookie.py: irrelevant (ASM is not implemented in C++)
-        test_no_samesite_cookie.py: irrelevant (ASM is not implemented in C++)
-        test_nosql_mongodb_injection.py: irrelevant (ASM is not implemented in C++)
-        test_path_traversal.py: irrelevant (ASM is not implemented in C++)
-        test_reflection_injection.py: irrelevant (ASM is not implemented in C++)
-        test_sql_injection.py: irrelevant (ASM is not implemented in C++)
-        test_ssrf.py: irrelevant (ASM is not implemented in C++)
-        test_stacktrace_leak.py: irrelevant (ASM is not implemented in C++)
-        test_template_injection.py: irrelevant (ASM is not implemented in C++)
-        test_trust_boundary_violation.py: irrelevant (ASM is not implemented in C++)
-        test_untrusted_deserialization.py: irrelevant (ASM is not implemented in C++)
-        test_unvalidated_redirect.py: irrelevant (ASM is not implemented in C++)
-        test_unvalidated_redirect_forward.py: irrelevant (ASM is not implemented in C++)
-        test_weak_cipher.py: irrelevant (ASM is not implemented in C++)
-        test_weak_hash.py: irrelevant (ASM is not implemented in C++)
-        test_weak_randomness.py: irrelevant (ASM is not implemented in C++)
-        test_xcontent_sniffing.py: irrelevant (ASM is not implemented in C++)
-        test_xpath_injection.py: irrelevant (ASM is not implemented in C++)
-        test_xss.py: irrelevant (ASM is not implemented in C++)
-      source/:
-        test_body.py: irrelevant (ASM is not implemented in C++)
-        test_cookie_name.py: irrelevant (ASM is not implemented in C++)
-        test_cookie_value.py: irrelevant (ASM is not implemented in C++)
-        test_graphql_resolver.py: irrelevant (ASM is not implemented in C++)
-        test_header_name.py: irrelevant (ASM is not implemented in C++)
-        test_header_value.py: irrelevant (ASM is not implemented in C++)
-        test_kafka_key.py: irrelevant (ASM is not implemented in C++)
-        test_kafka_value.py: irrelevant (ASM is not implemented in C++)
-        test_multipart.py: irrelevant (ASM is not implemented in C++)
-        test_parameter_name.py: irrelevant (ASM is not implemented in C++)
-        test_parameter_value.py: irrelevant (ASM is not implemented in C++)
-        test_path.py: irrelevant (ASM is not implemented in C++)
-        test_path_parameter.py: irrelevant (ASM is not implemented in C++)
-        test_sql_row.py: irrelevant (ASM is not implemented in C++)
-        test_uri.py: irrelevant (ASM is not implemented in C++)
+      sink/: irrelevant (ASM is not implemented in C++)
+      source/: irrelevant (ASM is not implemented in C++)
       test_security_controls.py: irrelevant (ASM is not implemented in C++)
-    rasp/:
-      test_cmdi.py: irrelevant (ASM is not implemented in C++)
-      test_lfi.py: irrelevant (ASM is not implemented in C++)
-      test_shi.py: irrelevant (ASM is not implemented in C++)
-      test_sqli.py: irrelevant (ASM is not implemented in C++)
-      test_ssrf.py: irrelevant (ASM is not implemented in C++)
-    waf/:
-      test_addresses.py: irrelevant (ASM is not implemented in C++)
-      test_blocking.py: irrelevant (ASM is not implemented in C++)
-      test_custom_rules.py: irrelevant (ASM is not implemented in C++)
-      test_exclusions.py: irrelevant (ASM is not implemented in C++)
-      test_miscs.py: irrelevant (ASM is not implemented in C++)
-      test_reports.py: irrelevant (ASM is not implemented in C++)
-      test_rules.py: irrelevant (ASM is not implemented in C++)
-      test_telemetry.py: irrelevant (ASM is not implemented in C++)
+    rasp/: irrelevant (ASM is not implemented in C++)
+    waf/: irrelevant (ASM is not implemented in C++)
     test_alpha.py: irrelevant (ASM is not implemented in C++)
     test_asm_standalone.py: irrelevant (ASM is not implemented in C++)
     test_automated_login_events.py: irrelevant (ASM is not implemented in C++)
@@ -260,8 +200,8 @@ tests/:
     Test_Config_HttpServerErrorStatuses_FeatureFlagCustom: missing_feature
     Test_Config_IntegrationEnabled_False: missing_feature
     Test_Config_IntegrationEnabled_True: missing_feature
-    Test_Config_LogInjection_128Bit_TraceId_Default: missing_feature
     Test_Config_LogInjection_128Bit_TraceId_Disabled: missing_feature
+    Test_Config_LogInjection_128Bit_TraceId_Enabled: missing_feature
     Test_Config_LogInjection_Default: missing_feature
     Test_Config_LogInjection_Enabled: missing_feature
     Test_Config_ObfuscationQueryStringRegexp_Configured: missing_feature
@@ -282,6 +222,12 @@ tests/:
   test_ipv6.py: missing_feature (APMAPI-869)
   test_library_conf.py: irrelevant
   test_miscs.py: irrelevant
+  test_sampling_rates.py:
+    Test_SampleRateFunction: v1.0.0  # real version unknown
+    Test_SamplingDecisionAdded: v1.0.0  # real version unknown
+    Test_SamplingDecisions: v1.0.0  # real version unknown
+    Test_SamplingDeterminism: v1.0.0  # real version unknown
+    Test_SamplingRates: v1.0.0  # real version unknown
   test_scrubbing.py: irrelevant
   test_span_events.py: incomplete_test_app (Weblog `/add_event` not implemented)
   test_standard_tags.py: irrelevant

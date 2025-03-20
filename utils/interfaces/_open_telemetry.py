@@ -6,8 +6,9 @@
 
 import threading
 
-from utils.tools import logger, get_rid_from_request
+from utils._logger import logger
 from utils.interfaces._core import ProxyBasedInterfaceValidator
+from utils._weblog import HttpResponse
 
 
 class OpenTelemetryInterfaceValidator(ProxyBasedInterfaceValidator):
@@ -17,13 +18,13 @@ class OpenTelemetryInterfaceValidator(ProxyBasedInterfaceValidator):
         super().__init__("open_telemetry")
         self.ready = threading.Event()
 
-    def ingest_file(self, src_path):
+    def ingest_file(self, src_path: str):
         self.ready.set()
         return super().ingest_file(src_path)
 
-    def get_otel_trace_id(self, request):
+    def get_otel_trace_id(self, request: HttpResponse):
         paths = ["/api/v0.2/traces", "/v1/traces"]
-        rid = get_rid_from_request(request)
+        rid = request.get_rid()
 
         if rid:
             logger.debug(f"Try to find traces related to request {rid}")

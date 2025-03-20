@@ -8,8 +8,7 @@ from utils import (
     context,
     interfaces,
 )
-from utils import weblog
-from utils.tools import logger
+from utils import weblog, logger
 
 
 @scenarios.docker_ssi
@@ -35,6 +34,7 @@ class TestDockerSSICrash:
     @bug(condition=context.library not in ("python", "nodejs", "dotnet"), reason="INPLAT-11")
     @irrelevant(context.library == "python" and context.installed_language_runtime < "3.7.0")
     @irrelevant(context.library == "nodejs" and context.installed_language_runtime < "17.0")
+    @bug(context.library >= "python@3.3.0.dev", reason="INPLAT-448")
     def test_crash(self):
         """Validate that a crash report is generated when the application crashes"""
         logger.info(f"Testing Docker SSI crash tracking: {context.scenario.library.library}")

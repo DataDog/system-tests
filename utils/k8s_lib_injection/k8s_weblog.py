@@ -1,5 +1,5 @@
 from kubernetes import client, watch
-from utils.tools import logger
+from utils._logger import logger
 from utils.k8s_lib_injection.k8s_logger import k8s_logger
 from retry import retry
 

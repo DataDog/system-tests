@@ -1,6 +1,6 @@
 import os
 import subprocess
-from utils.tools import logger
+from utils._logger import logger
 from utils.k8s_lib_injection.k8s_command_utils import execute_command
 from kubernetes import client, config
 

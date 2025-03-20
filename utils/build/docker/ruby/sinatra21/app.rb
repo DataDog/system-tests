@@ -223,3 +223,7 @@ get '/returnheaders' do
 
   headers.to_json
 end
+
+get '/sample_rate_route/:i' do
+  'OK'
+end

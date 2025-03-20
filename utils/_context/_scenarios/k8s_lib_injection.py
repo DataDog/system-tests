@@ -1,6 +1,7 @@
 import os
 
 from docker.models.networks import Network
+import pytest
 
 from utils._context.library_version import LibraryVersion, Version
 
@@ -17,7 +18,7 @@ from utils._context.containers import (
     _get_client as get_docker_client,
 )
 
-from utils.tools import logger
+from utils._logger import logger
 from .core import Scenario, ScenarioGroup
 
 
@@ -31,15 +32,11 @@ class K8sScenario(Scenario):
         use_uds=False,
         dd_cluster_feature={},
         with_datadog_operator=False,
+        scenario_groups=[ScenarioGroup.ALL, ScenarioGroup.LIB_INJECTION],
         k8s_weblog_specs=None,
         inject_by_annotations=True,
     ) -> None:
-        super().__init__(
-            name,
-            doc=doc,
-            github_workflow="libinjection",
-            scenario_groups=[ScenarioGroup.ALL, ScenarioGroup.LIB_INJECTION],
-        )
+        super().__init__(name, doc=doc, github_workflow="libinjection", scenario_groups=scenario_groups)
         self.use_uds = use_uds
         self.with_datadog_operator = with_datadog_operator
         if k8s_weblog_specs is None:
@@ -214,7 +211,7 @@ class K8sManualInstrumentationScenario(Scenario):
         else:
             self.k8s_weblog_specs = k8s_weblog_specs
 
-    def configure(self, config):
+    def configure(self, config: pytest.Config):
         self.k8s_weblog = config.option.k8s_weblog
         self.k8s_weblog_img = config.option.k8s_weblog_img
         # By default we are going to use kind cluster provider
@@ -295,7 +292,7 @@ class K8sSparkScenario(K8sScenario):
             name, doc=doc, use_uds=use_uds, dd_cluster_feature=dd_cluster_feature, k8s_weblog_specs=k8s_weblog_specs
         )
 
-    def configure(self, config):
+    def configure(self, config: pytest.Config):
         super().configure(config)
         self.k8s_weblog_specs.weblog_env["LIB_INIT_IMAGE"] = self.k8s_lib_init_img
 
@@ -354,7 +351,7 @@ class WeblogInjectionScenario(Scenario):
         self._required_containers.append(APMTestAgentContainer(host_log_folder=self.host_log_folder))
         self._required_containers.append(self._weblog_injection)
 
-    def configure(self, config):  # noqa: ARG002
+    def configure(self, config: pytest.Config):  # noqa: ARG002
         assert "TEST_LIBRARY" in os.environ, "TEST_LIBRARY must be set: java,python,nodejs,dotnet,ruby"
         self._library = LibraryVersion(os.getenv("TEST_LIBRARY"), "0.0")
 

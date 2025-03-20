@@ -1,6 +1,5 @@
-from utils import scenarios, features, context, bug
+from utils import scenarios, features, context, bug, logger
 from tests.k8s_lib_injection.utils import get_dev_agent_traces
-from utils.tools import logger
 from utils.onboarding.weblog_interface import make_get_request, warmup_weblog
 from utils.onboarding.backend_interface import wait_backend_trace_id
 from utils.onboarding.wait_for_tcp_port import wait_for_port

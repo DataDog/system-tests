@@ -1,6 +1,6 @@
 import contextlib
 import dataclasses
-from typing import TextIO
+from typing import TextIO, Any
 from collections.abc import Generator
 
 import json
@@ -19,12 +19,12 @@ from docker.models.containers import Container
 from docker.models.networks import Network
 
 from utils._context.library_version import LibraryVersion
-from utils.tools import logger
+from utils._logger import logger
 
 from .core import Scenario, ScenarioGroup
 
 
-def _fail(message):
+def _fail(message: str):
     """Used to mak a test as failed"""
     logger.error(message)
     raise Failed(message, pytrace=False) from None
@@ -89,12 +89,12 @@ class ParametricScenario(Scenario):
         each parametrized_tests_metadata on a file
         """
 
-        def __init__(self, outer_inst):
+        def __init__(self, outer_inst: "ParametricScenario"):
             self.outer_inst = outer_inst
             # To handle correctly we need to add data by default
             self.update({"scenario": outer_inst.name})
 
-        def __setitem__(self, item, value):
+        def __setitem__(self, item: Any, value: Any):  # noqa: ANN401
             super().__setitem__(item, value)
             # Append to the context file
             ctx_filename = f"{self.outer_inst.host_log_folder}/{os.environ.get('PYTEST_XDIST_WORKER')}_context.json"
@@ -115,7 +115,7 @@ class ParametricScenario(Scenario):
                         result.update(d)
             return result
 
-    def __init__(self, name, doc) -> None:
+    def __init__(self, name: str, doc: str) -> None:
         super().__init__(
             name,
             doc=doc,
@@ -128,7 +128,7 @@ class ParametricScenario(Scenario):
     def parametrized_tests_metadata(self):
         return self._parametric_tests_confs
 
-    def configure(self, config):
+    def configure(self, config: pytest.Config):
         if config.option.library:
             library = config.option.library
         elif "TEST_LIBRARY" in os.environ:
