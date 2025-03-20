@@ -497,7 +497,7 @@ class Test_Config_IntegrationEnabled_True:
 
 
 @rfc("https://docs.google.com/document/d/1kI-gTAKghfcwI7YzKhqRv2ExUstcHqADIWA4-TZ387o/edit#heading=h.8v16cioi7qxp")
-@scenarios.tracing_config_nondefault
+@scenarios.tracing_config_empty
 @features.log_injection
 class Test_Config_LogInjection_Enabled:
     """Verify log injection behavior when enabled"""
@@ -545,7 +545,7 @@ class Test_Config_LogInjection_Default:
 
 
 @rfc("https://docs.google.com/document/d/1kI-gTAKghfcwI7YzKhqRv2ExUstcHqADIWA4-TZ387o/edit#heading=h.8v16cioi7qxp")
-@scenarios.tracing_config_nondefault
+@scenarios.tracing_config_empty
 @features.log_injection
 @features.log_injection_128bit_traceid
 class Test_Config_LogInjection_128Bit_TraceId_Enabled:
@@ -600,7 +600,7 @@ class Test_Config_LogInjection_128Bit_TraceId_Enabled:
 
 
 @rfc("https://docs.google.com/document/d/1kI-gTAKghfcwI7YzKhqRv2ExUstcHqADIWA4-TZ387o/edit#heading=h.8v16cioi7qxp")
-@scenarios.tracing_config_nondefault_3
+@scenarios.tracing_config_nondefault_4
 @features.log_injection
 @features.log_injection_128bit_traceid
 @irrelevant(
