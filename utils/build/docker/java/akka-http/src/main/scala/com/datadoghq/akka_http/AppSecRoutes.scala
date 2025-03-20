@@ -25,6 +25,11 @@ import java.util
 import scala.concurrent.Future
 import scala.xml.{Elem, XML}
 
+import datadog.appsec.api.user.User.setUser
+
+import java.util.Collections.emptyMap
+import scala.jdk.CollectionConverters._
+
 object AppSecRoutes {
 
   private val cryptoExamples = new CryptoExamples()
@@ -180,6 +185,21 @@ object AppSecRoutes {
             Blocking.forUser(user).blockIfMatch()
             complete(s"Hello ${user}")
           }
+        }
+      } ~
+      path("identify") {
+        get {
+          setUser(
+            "usr.id",
+            Map.apply(
+              "email" -> "usr.email",
+              "name" -> "usr.name",
+              "session_id" -> "usr.session_id",
+              "role" -> "usr.role",
+              "scope" -> "usr.scope"
+            ).asJava
+          )
+          complete("OK")
         }
       } ~
       path("user_login_success_event") {
