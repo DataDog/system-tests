@@ -1,9 +1,8 @@
 import os
 import json
 import pytest
-from utils.tools import logger
 
-from utils import missing_feature, irrelevant, scenarios, rfc, features, bug, flaky
+from utils import missing_feature, irrelevant, scenarios, rfc, features, bug, flaky, logger
 
 pytestmark = pytest.mark.features(feature_id=666)
 

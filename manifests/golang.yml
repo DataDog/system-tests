@@ -14,7 +14,6 @@ tests/:
       test_api_security_rc.py:
         Test_API_Security_RC_ASM_DD_processors: missing_feature
         Test_API_Security_RC_ASM_DD_scanners: missing_feature
-        Test_API_Security_RC_ASM_processor_overrides_and_custom_scanner: irrelevant (waf does not support it yet)
       test_apisec_sampling.py:
         Test_API_Security_Sampling_Different_Endpoints: missing_feature
         Test_API_Security_Sampling_Different_Paths: missing_feature
@@ -401,6 +400,7 @@ tests/:
     test_client_ip.py:
       Test_StandardTagsClientIp: v1.44.1
     test_customconf.py:
+      Test_CorruptedRules_Telemetry: missing_feature
       Test_NoLimitOnWafRules: v1.37.0
     test_event_tracking.py:
       Test_CustomEvent: v1.47.0
@@ -618,7 +618,7 @@ tests/:
       TestDynamicConfigSamplingRules: v1.64.0
       TestDynamicConfigTracingEnabled: v1.61.0
       TestDynamicConfigV1: v1.59.0
-      TestDynamicConfigV1_EmptyServiceTargets: missing_feature
+      TestDynamicConfigV1_EmptyServiceTargets: v1.73.0-dev
       TestDynamicConfigV1_ServiceTargets: v1.59.0
       TestDynamicConfigV2: v1.59.0
     test_headers_baggage.py:
@@ -681,13 +681,13 @@ tests/:
     Test_Config_ClientTagQueryString_Configured: v1.72.0-dev
     Test_Config_ClientTagQueryString_Empty: v1.72.0-dev
     Test_Config_HttpClientErrorStatuses_Default: v1.69.0
-    Test_Config_HttpClientErrorStatuses_FeatureFlagCustom: v1.72.0-dev
+    Test_Config_HttpClientErrorStatuses_FeatureFlagCustom: v1.69.0
     Test_Config_HttpServerErrorStatuses_Default: v1.67.0
     Test_Config_HttpServerErrorStatuses_FeatureFlagCustom: v1.69.0
     Test_Config_IntegrationEnabled_False: irrelevant (not applicable to Go because of how they do auto instrumentation)
     Test_Config_IntegrationEnabled_True: irrelevant (not applicable to Go because of how they do auto instrumentation)
-    Test_Config_LogInjection_128Bit_TraceId_Default: missing_feature (disabled by default)
     Test_Config_LogInjection_128Bit_TraceId_Disabled: incomplete_test_app (weblog endpoint not implemented)
+    Test_Config_LogInjection_128Bit_TraceId_Enabled: missing_feature (disabled by default)
     Test_Config_LogInjection_Default: incomplete_test_app (weblog endpoint not implemented)
     Test_Config_LogInjection_Enabled: incomplete_test_app (weblog endpoint not implemented)
     Test_Config_ObfuscationQueryStringRegexp_Configured: v1.67.0
@@ -726,6 +726,12 @@ tests/:
     Test_HeaderTags_Whitespace_Tag: v1.53.0
     Test_HeaderTags_Whitespace_Val_Long: v1.53.0
     Test_HeaderTags_Whitespace_Val_Short: v1.53.0
+  test_sampling_rates.py:
+    Test_SampleRateFunction: v1.72.1  # real version unknown
+    Test_SamplingDecisionAdded: v1.72.1  # real version unknown
+    Test_SamplingDecisions: v1.72.1  # real version unknown
+    Test_SamplingDeterminism: v1.72.1  # real version unknown
+    Test_SamplingRates: v1.36.2
   test_scrubbing.py:
     Test_UrlQuery: v1.40.0
   test_semantic_conventions.py:

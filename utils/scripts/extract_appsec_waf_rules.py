@@ -6,7 +6,7 @@ from collections import defaultdict
 import requests
 
 
-def to_camel_case(str_input) -> str:
+def to_camel_case(str_input: str) -> str:
     return "".join(ele.title() for ele in str_input.split("_"))
 
 

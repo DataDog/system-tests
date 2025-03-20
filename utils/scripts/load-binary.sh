@@ -215,6 +215,7 @@ elif [ "$TARGET" = "php" ]; then
 elif [ "$TARGET" = "golang" ]; then
     assert_version_is_dev
     rm -rf golang-load-from-go-get
+    set -o pipefail
 
     # TODO(darccio): remove @$ref on v2 release
     COMMIT_ID=$(curl --silent https://api.github.com/repos/DataDog/dd-trace-go/branches/dario.castane/v2-dev | jq --raw-output '.commit.sha')
@@ -244,6 +245,11 @@ elif [ "$TARGET" = "cpp" ]; then
     TARGET_BRANCH="${TARGET_BRANCH:-main}"
     echo "https://github.com/DataDog/dd-trace-cpp@$TARGET_BRANCH" > cpp-load-from-git
     echo "Using $(cat cpp-load-from-git)"
+
+elif [ "$TARGET" = "cpp_httpd" ]; then
+    assert_version_is_dev
+    echo "Nowhere to load cpp_httpd from"
+    exit 1
 
 elif [ "$TARGET" = "agent" ]; then
     assert_version_is_dev

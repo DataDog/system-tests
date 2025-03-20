@@ -10,6 +10,7 @@ import json
 import logging
 from hashlib import md5
 import traceback
+from typing import Any
 
 import msgpack
 from requests_toolbelt.multipart.decoder import MultipartDecoder
@@ -32,11 +33,11 @@ from _decoders.protobuf_schemas import MetricPayload, TracePayload, SketchPayloa
 logger = logging.getLogger(__name__)
 
 
-def get_header_value(name, headers):
+def get_header_value(name: str, headers: list[tuple[str, str]]):
     return next((h[1] for h in headers if h[0].lower() == name.lower()), None)
 
 
-def _parse_as_unsigned_int(value, size_in_bits):
+def _parse_as_unsigned_int(value: int, size_in_bits: int) -> int:
     """Some fields in spans are decribed as a 64 bits unsigned integers, but
     java, and other languages only supports signed integer. As such, they might send trace ids as negative
     number if >2**63 -1. The agent parses it signed and interpret the bytes as unsigned. See
@@ -52,14 +53,14 @@ def _parse_as_unsigned_int(value, size_in_bits):
     return value if value >= 0 else (-value ^ (2**size_in_bits - 1)) + 1
 
 
-def _decode_unsigned_int_traces(content):
+def _decode_unsigned_int_traces(content: list):
     for span in (span for trace in content for span in trace):
         for sub_key in ("trace_id", "parent_id", "span_id"):
             if sub_key in span:
                 span[sub_key] = _parse_as_unsigned_int(span[sub_key], 64)
 
 
-def _decode_v_0_5_traces(content):
+def _decode_v_0_5_traces(content: tuple):
     # https://github.com/DataDog/architecture/blob/master/rfcs/apm/agent/v0.5-endpoint/rfc.md
     strings, payload = content
 
@@ -88,7 +89,7 @@ def _decode_v_0_5_traces(content):
     return result
 
 
-def deserialize_dd_appsec_s_meta(payload):
+def deserialize_dd_appsec_s_meta(payload: str):
     """Meta value for _dd.appsec.s.<address> are b64 - gzip - json encoded strings"""
 
     try:
@@ -98,7 +99,9 @@ def deserialize_dd_appsec_s_meta(payload):
         return json.loads(payload)
 
 
-def deserialize_http_message(path, message, content: bytes, interface, key, export_content_files_to: str):
+def deserialize_http_message(
+    path: str, message: dict, content: bytes, interface: str, key: str, export_content_files_to: str
+):
     def json_load():
         if not content:
             return None
@@ -275,7 +278,7 @@ def _deserialize_file_in_multipart_form_data(
                     f.write(content)
 
 
-def _deserialized_nested_json_from_trace_payloads(content, interface):
+def _deserialized_nested_json_from_trace_payloads(content: Any, interface: str):  # noqa: ANN401
     """Trace payload from agent and library contains strings that are json"""
 
     if interface == "agent":
@@ -290,7 +293,7 @@ def _deserialized_nested_json_from_trace_payloads(content, interface):
                 _deserialize_meta(span)
 
 
-def _deserialize_meta(span):
+def _deserialize_meta(span: dict):
     meta = span.get("meta", {})
 
     keys = ("_dd.appsec.json", "_dd.iast.json")
@@ -302,7 +305,7 @@ def _deserialize_meta(span):
             meta[key] = json.loads(meta[key])
 
 
-def _convert_bytes_values(item, path=""):
+def _convert_bytes_values(item: Any, path: str = ""):  # noqa: ANN401
     if isinstance(item, dict):
         for key in item:
             if isinstance(item[key], bytes):
@@ -325,7 +328,7 @@ def _convert_bytes_values(item, path=""):
             _convert_bytes_values(value, f"{path}[]")
 
 
-def deserialize(data, key, content, interface, export_content_files_to: str):
+def deserialize(data: dict[str, Any], key: str, content: bytes | None, interface: str, export_content_files_to: str):
     try:
         data[key]["content"] = deserialize_http_message(
             data["path"], data[key], content, interface, key, export_content_files_to

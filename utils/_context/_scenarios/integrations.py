@@ -94,14 +94,14 @@ class AWSIntegrationsScenario(EndToEndScenario):
 
     def __init__(
         self,
-        name="INTEGRATIONS_AWS",
+        name: str,
         *,
-        doc="Spawns tracer, and agent. Test AWS integrations.",
-        include_kafka=False,
-        include_rabbitmq=False,
-        include_buddies=False,
-        include_localstack=True,
-        include_elasticmq=True,
+        doc: str = "Spawns tracer, and agent. Test AWS integrations.",
+        include_kafka: bool = False,
+        include_rabbitmq: bool = False,
+        include_buddies: bool = False,
+        include_localstack: bool = True,
+        include_elasticmq: bool = True,
     ) -> None:
         super().__init__(
             name,

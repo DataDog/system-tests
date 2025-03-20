@@ -174,13 +174,12 @@ ignore = [
 # 1. keep everything sorted alphabetically
 # 2. on each line, comment with the rule name, and a comment, either TODO, or a reason why the rule is ignored
 
-"conftest.py" = [
-    "ANN001",   # missing-type-function-argument: TODO
-]
 "lib-injection/*" = ["ALL"]  # TODO
+"tests/*test_*.py" = [
+    "ANN201",    # missing-return-type-undocumented-public-function: allow test_method to not declare their return type
+    "ANN001",    # missing-type-function-argument: TODO (TBD)
+]
 "tests/*" = [
-    "ANN001",   # missing-type-function-argument: TODO (TBD)
-    "ANN201",    # missing-return-type-undocumented-public-function: TODO
     "E501",      # line-too-long: TODO
     "TRY002",    # raise-vanilla-class: TODO
     "TRY301",    # raise-within-try: TODO
@@ -206,10 +205,15 @@ ignore = [
     "SIM108",    # if-else-block-instead-of-if-exp: ternary operator nay be harder to read on long statements
 ]
 "tests/auto_inject/*" = [
+    "ANN001",  # missing-type-function-argument: TODO
     "SLF001",  # private-member-access: TODO
 ]
+"tests/debugger/utils.py" = [
+    "ANN001",  # missing-type-function-argument: TODO
+]
 "tests/fuzzer/*" = [
-    "T201",      # print: fuzzer use prints...
+    "ANN001",   # missing-type-function-argument: TODO   
+    "T201",     # print: fuzzer use prints...
 ]
 "tests/fuzzer/request_mutator.py" = [
     "RUF001",    # ambiguous-unicode-character-string: the mutator contains weird strings on purpose
@@ -223,16 +227,11 @@ ignore = [
     "N802",      # invalid-function-name: some tests methods contains code with capital letters
 ]
 "tests/perfs/*" = [
-    "T201",      # print: perfs use prints...
+    "ANN001",   # missing-type-function-argument: TODO   
+    "T201",     # print: perfs use prints...
 ]
 "tests/test_the_test/*" = [
     "S605",      # start-process-with-a-shell: test the test needs to run shell commands
-]
-"utils/_context/{library_version.py,containers.py}" = [
-    "ANN001",   # missing-type-function-argument: TODO
-]
-"utils/_context/_scenarios/{open_telemetry.py,integrations.py,external_processing.py}" = [
-    "ANN001",   # missing-type-function-argument: TODO
 ]
 "utils/_context/_scenarios/auto_injection.py" = [
     "ANN001",   # missing-type-function-argument: TODO
@@ -250,18 +249,13 @@ ignore = [
     "ANN001", # missing-type-function-argument: obvious decorators
     "ANN205"  # missing-return-type-static-method: obvious decorators
 ]
-"utils/{_decorators.py,_remote_config.py,_weblog.py}" = [
-    "ANN001",   # missing-type-function-argument: TODO
-]
 "utils/build/*"  = ["ALL"]  # mostly python weblog code. it may be a good idea to enable rules here
 "utils/docker_ssi/*" = [
     "ANN001",   # missing-type-function-argument: TODO
     "ANN201",  # missing-return-type-undocumented-public-function: TODO
     "ANN205",  # issing-return-type-static-method: TODO
 ]
-"utils/interfaces/*" = [
-    "ANN001",   # missing-type-function-argument: TODO
-]
+
 "utils/{k8s_lib_injection/*,_context/_scenarios/k8s_lib_injection.py}" = [
     "ANN001",   # missing-type-function-argument: TODO
     "ANN201",   # missing-return-type-undocumented-public-function: TODO
@@ -285,8 +279,9 @@ ignore = [
     "UP031",    # printf-string-formatting: TODO
 ]
 "utils/interfaces/schemas/serve_doc.py" = [
+    "ANN001",  # missing-type-function-argument: TODO
     "ANN201",  # missing-return-type-undocumented-public-function: TODO
-    "INP001", # implicit-namespace-package: this is not a package
+    "INP001",  # implicit-namespace-package: this is not a package
 ]
 "utils/onboarding/*" = [
     "ANN001",   # missing-type-function-argument: TODO
@@ -304,14 +299,15 @@ ignore = [
     "S507",    # ssh-no-host-key-verification: TODO
     "UP017",   # datetime-timezone-utc: TODO
 ]
-"utils/proxy/*" = [
-    "ANN001",   # missing-type-function-argument: TODO
-]
 "utils/parametric/*" = [
     "ANN001",    # missing-type-function-argument: TODO
 ]
+"utils/scripts/ci_orchestrator/gitlab_exporter.py" = [ "ANN001" ]  # missing-type-function-argument: TODO
+"utils/scripts/junit_report.py" = ["ANN001"] # missing-type-function-argument: TODO
+"utils/scripts/ssi_wizards/aws_onboarding_wizard_utils.py" = ["ANN001"] # missing-type-function-argument: TODO
+"utils/scripts/ci_orchestrators/gitlab_exporter.py" = ["ANN001"] # missing-type-function-argument: TODO
+"utils/scripts/ci_orchestrators/external_gitlab_pipeline.py" = ["ANN001"] # missing-type-function-argument: TODO
 "utils/scripts/*" = [
-    "ANN001",  # missing-type-function-argument: TODO
     "INP001",  # implicit-namespace-package: this is not a package
     "T201"     # print: allow print statements in scripts folder
 ]

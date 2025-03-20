@@ -27,7 +27,7 @@ else
     # TODO(darccio): remove @$ref on v2 release
     for module in $(go list -m all | awk '{print $1}'); do
       if [[ $module == $PREFIX* ]]; then
-        go mod edit -replace $module=$module@v2.0.0-rc.6
+        go mod edit -replace $module=$module@v2.0.0-rc.8
       fi
     done
 fi

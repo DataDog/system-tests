@@ -32,7 +32,7 @@ from utils._context.containers import (
     _get_client as get_docker_client,
 )
 
-from utils.tools import logger
+from utils._logger import logger
 
 from .core import Scenario, ScenarioGroup
 
@@ -139,7 +139,7 @@ class DockerScenario(Scenario):
             self.components["docker.Cgroup"] = docker_info.get("CgroupVersion", None)
 
         for container in reversed(self._required_containers):
-            container.configure(self.replay)
+            container.configure(replay=self.replay)
 
     def get_container_by_dd_integration_name(self, name: str):
         for container in self._required_containers:
@@ -244,7 +244,7 @@ class EndToEndScenario(DockerScenario):
         scenario_groups: list[ScenarioGroup] | None = None,
         weblog_env: dict[str, str | None] | None = None,
         weblog_volumes: dict | None = None,
-        agent_env: dict[str, str] | None = None,
+        agent_env: dict[str, str | None] | None = None,
         enable_ipv6: bool = False,
         tracer_sampling_rate: float | None = None,
         appsec_enabled: bool = True,
@@ -396,13 +396,13 @@ class EndToEndScenario(DockerScenario):
             self.weblog_container.environment["_DD_IAST_DEBUG"] = "true"  # probably not used anymore ?
             self.weblog_container.environment["DD_IAST_DEBUG_ENABLED"] = "true"
 
-        interfaces.agent.configure(self.host_log_folder, self.replay)
-        interfaces.library.configure(self.host_log_folder, self.replay)
-        interfaces.backend.configure(self.host_log_folder, self.replay)
-        interfaces.library_dotnet_managed.configure(self.host_log_folder, self.replay)
+        interfaces.agent.configure(self.host_log_folder, replay=self.replay)
+        interfaces.library.configure(self.host_log_folder, replay=self.replay)
+        interfaces.backend.configure(self.host_log_folder, replay=self.replay)
+        interfaces.library_dotnet_managed.configure(self.host_log_folder, replay=self.replay)
 
         for container in self.buddies:
-            container.interface.configure(self.host_log_folder, self.replay)
+            container.interface.configure(self.host_log_folder, replay=self.replay)
 
         library = self.weblog_container.image.labels["system-tests-library"]
 

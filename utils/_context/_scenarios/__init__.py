@@ -35,7 +35,7 @@ class _Scenarios:
         "PERFORMANCES", doc="A not very used scenario : its aim is to measure CPU and MEM usage across a basic run"
     )
     integrations = IntegrationsScenario()
-    integrations_aws = AWSIntegrationsScenario()
+    integrations_aws = AWSIntegrationsScenario("INTEGRATIONS_AWS")
     crossed_tracing_libraries = CrossedTracingLibraryScenario()
 
     otel_integrations = OpenTelemetryScenario(
@@ -144,7 +144,7 @@ class _Scenarios:
     )
     appsec_corrupted_rules = EndToEndScenario(
         "APPSEC_CORRUPTED_RULES",
-        weblog_env={"DD_APPSEC_RULES": "/appsec_corrupted_rules.yml"},
+        weblog_env={"DD_APPSEC_RULES": "/appsec_corrupted_rules.json"},
         weblog_volumes={
             "./tests/appsec/appsec_corrupted_rules.json": {"bind": "/appsec_corrupted_rules.json", "mode": "ro"}
         },
@@ -884,8 +884,17 @@ class _Scenarios:
         scenario_groups=[ScenarioGroup.APPSEC],
     )
 
+    agent_supporting_span_events = EndToEndScenario(
+        "AGENT_SUPPORTING_SPAN_EVENTS",
+        weblog_env={"DD_TRACE_NATIVE_SPAN_EVENTS": "1"},
+        span_events=True,
+        doc="The trace agent support Span Events and it is enabled through an environment variable",
+        scenario_groups=[ScenarioGroup.INTEGRATIONS],
+    )
+
     agent_not_supporting_span_events = EndToEndScenario(
         "AGENT_NOT_SUPPORTING_SPAN_EVENTS",
+        weblog_env={"DD_TRACE_NATIVE_SPAN_EVENTS": "0"},
         span_events=False,
         doc="The trace agent does not support Span Events as a top-level span field",
         scenario_groups=[ScenarioGroup.INTEGRATIONS],
