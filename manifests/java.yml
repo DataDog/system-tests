@@ -1434,7 +1434,9 @@ tests/:
         '*': v1.40.0
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
     test_identify.py:
-      Test_Basic: missing_feature
+      Test_Basic:
+        '*': v1.48.0
+        spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
     test_ip_blocking_full_denylist.py:
       Test_AppSecIPBlockingFullDenylist:
         '*': v0.111.0
@@ -1870,7 +1872,9 @@ tests/:
     Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
   test_graphql.py: missing_feature
   test_identify.py:
-    Test_Basic: missing_feature
+    Test_Basic:
+      '*': v1.48.0
+      spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
     Test_Propagate:
       # XXX: spring-boot-3-native would have a higher version
       '*': v0.111.0
