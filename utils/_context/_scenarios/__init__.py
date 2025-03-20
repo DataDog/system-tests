@@ -571,6 +571,7 @@ class _Scenarios:
             "DD_TRACE_CLIENT_IP_ENABLED": "true",
             "DD_TRACE_PROPAGATION_STYLE_EXTRACT": "datadog,tracecontext,b3multi,baggage",
             "DD_TRACE_PROPAGATION_BEHAVIOR_EXTRACT": "ignore",
+            "DD_TRACE_EXPERIMENTAL_FEATURES_ENABLED": "DD_LOGS_INJECTION",
         },
         include_kafka=True,
         include_postgres_db=True,
