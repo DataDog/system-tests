@@ -2,33 +2,29 @@
 
 set -euv
 
-# Prefix to match
-PREFIX="github.com/DataDog/dd-trace-go"
+CONTRIBS="$(go list -m all | grep github.com/DataDog/dd-trace-go | cut -f1 '-d ' | grep -v github.com/DataDog/dd-trace-go/v2)"
+MAIN_MODULE="github.com/DataDog/dd-trace-go/v2"
 
 if [ -e "/binaries/dd-trace-go" ]; then
     echo "Install from folder /binaries/dd-trace-go"
-    for module in $(go list -m all | awk '{print $1}'); do
-      if [[ $module == $PREFIX* ]]; then
-        replace_path=${module#"$PREFIX"}
-        suffix="/v2"
-        replace_path=${replace_path%"$suffix"}
-        go get edit -replace $module=/binaries/dd-trace-go$replace_path
-      fi
+    go mod edit -replace "$MAIN_MODULE=/binaries/dd-trace-go"
+    for contrib in $CONTRIBS; do
+        path="${contrib#github.com/DataDog/dd-trace-go/}"
+        path="${path%/v2}"
+        echo "Install contrib $contrib from folder /binaries/dd-trace-go/$path"
+        go mod edit -replace "github.com/DataDog/dd-trace-go/$path/v2=/binaries/dd-trace-go/$path"
     done
-elif [ -f "/binaries/golang-load-from-go-get" ]; then
-    echo "Install from go get -d"
-    cat /binaries/golang-load-from-go-get
-    # Pin that version with a `replace` directive.
-    while IFS=$'\n' read -r line || [ -n "$line" ]; do
-        go get -v -d $line
-    done < /binaries/golang-load-from-go-get
 else
     echo "Installing production dd-trace-version"
-    # TODO(darccio): remove @$ref on v2 release
-    for module in $(go list -m all | awk '{print $1}'); do
-      if [[ $module == $PREFIX* ]]; then
-        go mod edit -replace $module=$module@v2.0.0-rc.8
-      fi
+    TARGET="latest"
+    if [ -e "/binaries/golang-load-from-go-get" ]; then
+        TARGET="$(cat /binaries/golang-load-from-go-get)"
+    fi
+    echo "Install from go get -v $MAIN_MODULE@$TARGET"
+    go get -v "$MAIN_MODULE@$TARGET"
+    for contrib in $CONTRIBS; do
+        echo "Install contrib $contrib from go get -v $contrib@$TARGET"
+        go get -v "$contrib@$TARGET"
     done
 fi
 
