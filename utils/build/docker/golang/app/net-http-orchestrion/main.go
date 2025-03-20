@@ -34,6 +34,7 @@ import (
 )
 
 func main() {
+	// TODO: Update app to use logrus and create /log/library endpoint
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
