@@ -428,6 +428,10 @@ tests/:
         rails70: missing_feature (feature not implemented)
         rails80: missing_feature (feature not implemented)
         uds-rails: missing_feature (feature not implemented)
+    test_debugger_telemetry.py:
+      Test_Debugger_Telemetry:
+        "*": irrelevant
+        rails70: missing_feature (feature not implemented)
   integrations/:
     crossed_integrations/:
       test_kafka.py:
