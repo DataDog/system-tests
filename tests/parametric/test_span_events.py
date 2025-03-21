@@ -167,10 +167,10 @@ class Test_Span_Events:
         Valid attributes should be kept.
         """
 
-        with test_library, test_library.dd_start_span("test") as s:
+        with test_library, test_library.otel_start_span("test") as s:
             s.add_event(
                 "name",
-                time_unix_nano=123450,
+                timestamp=123450,
                 attributes={
                     "int": 1,
                     "invalid_arr1": [1, "a"],
