@@ -11,7 +11,7 @@ from utils import scenarios, features, bug, missing_feature, context
 @features.debugger_expression_language
 @scenarios.debugger_expression_language
 class Test_Debugger_Expression_Language(debugger.BaseDebuggerTest):
-    message_map = {}
+    message_map: dict = {}
 
     ############ setup ############
     def _setup(self, probes, request_path):
