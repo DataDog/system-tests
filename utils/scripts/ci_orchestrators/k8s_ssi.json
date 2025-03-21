@@ -16,7 +16,33 @@
             ]
         },
         {
-            "scenarios": ["K8S_LIB_INJECTION_SINGLE_SERVICE","K8S_LIB_INJECTION", "K8S_LIB_INJECTION_UDS", "K8S_LIB_INJECTION_PROFILING_DISABLED", "K8S_LIB_INJECTION_PROFILING_ENABLED", "K8S_LIB_INJECTION_PROFILING_OVERRIDE", "K8S_LIB_INJECTION_OPERATOR"],
+            "scenarios": ["K8S_LIB_INJECTION_SINGLE_SERVICE"],
+            "weblogs": [
+                {
+                    "java": [
+                        "dd-lib-java-init-test-app"
+                    ],
+                    "dotnet": [
+                        "dd-lib-dotnet-init-test-app"
+                    ],
+                    "nodejs": [
+                        "sample-app"
+                    ],
+                    "python": [
+                        "dd-lib-python-init-test-django",
+                        "dd-lib-python-init-test-django-gunicorn-alpine"
+                    ],
+                    "ruby": [
+                        "dd-lib-ruby-init-test-rails"
+                    ]
+                }
+            ],
+            "cluster_agents": [
+                "latest"
+            ]
+        },
+        {
+            "scenarios": ["K8S_LIB_INJECTION", "K8S_LIB_INJECTION_UDS", "K8S_LIB_INJECTION_PROFILING_DISABLED", "K8S_LIB_INJECTION_PROFILING_ENABLED", "K8S_LIB_INJECTION_PROFILING_OVERRIDE", "K8S_LIB_INJECTION_OPERATOR"],
             "weblogs": [
                 {
                     "java": [
