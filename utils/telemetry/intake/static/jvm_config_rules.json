@@ -715,6 +715,11 @@
         "writer_type": "writer_type"
     },
     "prefix_block_list": [
+        "git_branch",
+        "git_commit_author_",
+        "git_commit_committer_",
+        "git_commit_message",
+        "git_tag",
         "trace_aerospike",
         "trace_akka",
         "trace_amqp",
