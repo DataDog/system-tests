@@ -20,7 +20,7 @@ class FakeContainer(_TestedContainer):
 
 @scenarios.test_the_test
 def test_main():
-    events = []
+    events: list[str] = []
 
     class FakeScenario(DockerScenario):
         def __init__(self) -> None:
