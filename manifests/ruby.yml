@@ -191,35 +191,35 @@ tests/:
       test_sqli.py:
         Test_Sqli_BodyJson:
           "*": missing_feature
-          rails42: bug (APPSEC-56765) # ActiveRecord instrumentation with Rails < 5 and Ruby < 2.7 not working due to kwargs
+          rails42: bug (APPSEC-56765)  # ActiveRecord instrumentation with Rails < 5 and Ruby < 2.7 not working due to kwargs
         Test_Sqli_BodyUrlEncoded:
           "*": missing_feature
-          rails42: bug (APPSEC-56765) # ActiveRecord instrumentation with Rails < 5 and Ruby < 2.7 not working due to kwargs
+          rails42: bug (APPSEC-56765)  # ActiveRecord instrumentation with Rails < 5 and Ruby < 2.7 not working due to kwargs
         Test_Sqli_BodyXml: irrelevant (XML not natively supported)
         Test_Sqli_Capability:
           "*": missing_feature
-          rails42: bug (APPSEC-56765) # ActiveRecord instrumentation with Rails < 5 and Ruby < 2.7 not working due to kwargs
+          rails42: bug (APPSEC-56765)  # ActiveRecord instrumentation with Rails < 5 and Ruby < 2.7 not working due to kwargs
         Test_Sqli_Mandatory_SpanTags:
           "*": missing_feature
-          rails42: bug (APPSEC-56765) # ActiveRecord instrumentation with Rails < 5 and Ruby < 2.7 not working due to kwargs
+          rails42: bug (APPSEC-56765)  # ActiveRecord instrumentation with Rails < 5 and Ruby < 2.7 not working due to kwargs
         Test_Sqli_Optional_SpanTags:
           "*": missing_feature
-          rails42: bug (APPSEC-56765) # ActiveRecord instrumentation with Rails < 5 and Ruby < 2.7 not working due to kwargs
+          rails42: bug (APPSEC-56765)  # ActiveRecord instrumentation with Rails < 5 and Ruby < 2.7 not working due to kwargs
         Test_Sqli_Rules_Version:
           "*": missing_feature
-          rails42: bug (APPSEC-56765) # ActiveRecord instrumentation with Rails < 5 and Ruby < 2.7 not working due to kwargs
+          rails42: bug (APPSEC-56765)  # ActiveRecord instrumentation with Rails < 5 and Ruby < 2.7 not working due to kwargs
         Test_Sqli_StackTrace:
           "*": missing_feature
-          rails42: bug (APPSEC-56765) # ActiveRecord instrumentation with Rails < 5 and Ruby < 2.7 not working due to kwargs
+          rails42: bug (APPSEC-56765)  # ActiveRecord instrumentation with Rails < 5 and Ruby < 2.7 not working due to kwargs
         Test_Sqli_Telemetry:
           "*": missing_feature
-          rails42: bug (APPSEC-56765) # ActiveRecord instrumentation with Rails < 5 and Ruby < 2.7 not working due to kwargs
+          rails42: bug (APPSEC-56765)  # ActiveRecord instrumentation with Rails < 5 and Ruby < 2.7 not working due to kwargs
         Test_Sqli_UrlQuery:
           "*": missing_feature
-          rails42: bug (APPSEC-56765) # ActiveRecord instrumentation with Rails < 5 and Ruby < 2.7 not working due to kwargs
+          rails42: bug (APPSEC-56765)  # ActiveRecord instrumentation with Rails < 5 and Ruby < 2.7 not working due to kwargs
         Test_Sqli_Waf_Version:
           "*": missing_feature
-          rails42: bug (APPSEC-56765) # ActiveRecord instrumentation with Rails < 5 and Ruby < 2.7 not working due to kwargs
+          rails42: bug (APPSEC-56765)  # ActiveRecord instrumentation with Rails < 5 and Ruby < 2.7 not working due to kwargs
       test_ssrf.py: missing_feature
     waf/:
       test_addresses.py:
@@ -557,8 +557,8 @@ tests/:
     test_dynamic_configuration.py:
       TestDynamicConfigSamplingRules: v2.0.0
       TestDynamicConfigTracingEnabled: missing_feature
-      TestDynamicConfigV1: bug (APMAPI-867) # theorical version is v1.13.0
-      TestDynamicConfigV1_EmptyServiceTargets: v2.8.0 # version unknown
+      TestDynamicConfigV1: bug (APMAPI-867)  # theorical version is v1.13.0
+      TestDynamicConfigV1_EmptyServiceTargets: v2.8.0  # version unknown
       TestDynamicConfigV1_ServiceTargets: missing_feature
       TestDynamicConfigV2: missing_feature
     test_headers_baggage.py:
@@ -574,10 +574,10 @@ tests/:
       Test_Parametric_DDSpan_Set_Resource: incomplete_test_app (set_resource endpoint is not supported)
       Test_Parametric_DDTrace_Baggage: missing_feature (baggage is not supported)
       Test_Parametric_DDTrace_Current_Span: incomplete_test_app (current span endpoint is not supported)
-      Test_Parametric_OtelSpan_Set_Name: bug (APMAPI-778) # set_name endpoint should set the resource name on a span (not the operation name)
+      Test_Parametric_OtelSpan_Set_Name: bug (APMAPI-778)  # set_name endpoint should set the resource name on a span (not the operation name)
       Test_Parametric_Otel_Baggage: missing_feature (otel baggage is not supported)
       Test_Parametric_Otel_Current_Span: incomplete_test_app (otel current span endpoint is not supported)
-    test_partial_flushing.py: # Not configurable in a standard way
+    test_partial_flushing.py:  # Not configurable in a standard way
       Test_Partial_Flushing: missing_feature
     test_process_discovery.py: missing_feature
     test_sampling_delegation.py:
@@ -592,7 +592,7 @@ tests/:
       Test_TelemetryInstallSignature: missing_feature
       Test_TelemetrySCAEnvVar: v2.1.0
     test_trace_sampling.py:
-      Test_Trace_Sampling_Basic: v1.0.0 # TODO what is the earliest version?
+      Test_Trace_Sampling_Basic: v1.0.0  # TODO what is the earliest version?
       Test_Trace_Sampling_Globs: v2.0.0
       Test_Trace_Sampling_Globs_Feb2024_Revision: v2.0.0
       Test_Trace_Sampling_Resource: v2.0.0
@@ -673,7 +673,7 @@ tests/:
     Test_HeaderTags: v1.13.0
     Test_HeaderTags_Colon_Leading: v1.13.0
     Test_HeaderTags_Colon_Trailing: v1.13.0
-    Test_HeaderTags_DynamicConfig: bug (APMAPI-867) # theorical version is v2.0.0
+    Test_HeaderTags_DynamicConfig: bug (APMAPI-867)  # theorical version is v2.0.0
     Test_HeaderTags_Long: v1.13.0
     Test_HeaderTags_Short: v1.13.0
     Test_HeaderTags_Whitespace_Header: v1.13.0
