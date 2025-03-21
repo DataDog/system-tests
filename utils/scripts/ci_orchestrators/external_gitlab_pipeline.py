@@ -74,7 +74,7 @@ def handle_parallelism(yaml_data) -> None:
           the resources (aws, gitlab). Let's add 5 minutes of delay for starting the next stage (for the next lang)
     """
     # Check if we are generating a release
-    is_release = os.getenv("CI_COMMIT_TAG")
+    is_release = True
     # Add a delay job for each stage
     delayed = 3
 

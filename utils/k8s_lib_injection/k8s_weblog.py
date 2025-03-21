@@ -2,6 +2,7 @@ from kubernetes import client, watch
 from utils._logger import logger
 from utils.k8s_lib_injection.k8s_logger import k8s_logger
 from retry import retry
+from utils.k8s_lib_injection.k8s_command_utils import execute_command
 
 
 class K8sWeblogSpecs:
@@ -10,6 +11,15 @@ class K8sWeblogSpecs:
         self.weblog_env = weblog_env
         self.weblog_labels = weblog_labels
         self.namespace = namespace
+
+    def __repr__(self):
+        """Returns a string representation of the object with all fields."""
+        return (
+            f"K8sWeblogSpecs(pod_name='{self.pod_name}', "
+            f"weblog_env={self.weblog_env}, "
+            f"weblog_labels={self.weblog_labels}, "
+            f"namespace='{self.namespace}')"
+        )
 
 
 class K8sWeblog:
@@ -56,8 +66,8 @@ class K8sWeblog:
         """
 
         logger.info(
-            "[Deploy weblog] Creating weblog pod configuration. weblog_variant_image: [%s], library: [%s], library_init_image: [%s]"
-            % (self.app_image, self.library, self.library_init_image)
+            "[Deploy weblog] Creating weblog pod configuration. weblog_variant_image: [%s], library: [%s], library_init_image: [%s], weblog_specs: [%s]"
+            % (self.app_image, self.library, self.library_init_image, self.k8s_weblog_specs)
         )
         library_lib = "js" if self.library == "nodejs" else self.library
 
@@ -130,7 +140,9 @@ class K8sWeblog:
                 namespace=self.k8s_weblog_specs.namespace, body=pod_body
             )
             logger.info("[Deploy weblog] Weblog pod using admission controller created. Waiting for it to be ready!")
-            self.wait_for_weblog_ready_by_label_app("my-app", self.k8s_weblog_specs.namespace, timeout=200)
+            self.wait_for_weblog_ready_by_label_app(
+                self.k8s_weblog_specs.weblog_labels["app"], self.k8s_weblog_specs.namespace, timeout=200
+            )
         except Exception as e:
             logger.error(f"[Deploy weblog] Error installing weblog pod: {e}")
 
@@ -239,24 +251,37 @@ class K8sWeblog:
         # check weblog describe pod
         try:
             api_response = self.k8s_cluster_info.core_v1_api().read_namespaced_pod(
-                "my-app", namespace=self.k8s_weblog_specs.namespace
+                self.k8s_weblog_specs.pod_name, namespace=self.k8s_weblog_specs.namespace
             )
-            k8s_logger(self.output_folder, "myapp.describe").info(api_response)
+            k8s_logger(self.output_folder, f"{self.k8s_weblog_specs.pod_name}.describe").info(api_response)
         except Exception as e:
-            k8s_logger(self.output_folder, "myapp.describe").info(
+            k8s_logger(self.output_folder, f"{self.k8s_weblog_specs.pod_name}.describe").info(
                 "Exception when calling CoreV1Api->read_namespaced_pod: %s\n" % e
             )
 
         # check weblog logs for pod
         try:
             api_response = self.k8s_cluster_info.core_v1_api().read_namespaced_pod_log(
-                name="my-app", namespace=self.k8s_weblog_specs.namespace
+                name=self.k8s_weblog_specs.pod_name, namespace=self.k8s_weblog_specs.namespace
             )
-            k8s_logger(self.output_folder, "myapp.logs").info(api_response)
+            k8s_logger(self.output_folder, f"{self.k8s_weblog_specs.pod_name}.logs").info(api_response)
         except Exception as e:
-            k8s_logger(self.output_folder, "myapp.logs").info(
+            k8s_logger(self.output_folder, f"{self.k8s_weblog_specs.pod_name}.logs").info(
                 "Exception when calling CoreV1Api->read_namespaced_pod_log: %s\n" % e
             )
+
+        # check event in the app namespace
+        # Get all pods
+        ret = self.k8s_cluster_info.core_v1_api().list_namespaced_pod(self.k8s_weblog_specs.namespace, watch=False)
+        if ret is not None:
+            for i in ret.items:
+                k8s_logger(self.output_folder, self.k8s_weblog_specs.namespace + "-get.pods").info(
+                    "%s\t%s\t%s" % (i.status.pod_ip, i.metadata.namespace, i.metadata.name)
+                )
+                execute_command(
+                    f"kubectl get event -n {self.k8s_weblog_specs.namespace} --field-selector involvedObject.name={i.metadata.name}",
+                    logfile=f"{self.output_folder}/{i.metadata.name}_events.log",
+                )
 
         app_name = f"{self.library}-app"
         try:

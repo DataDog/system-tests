@@ -860,8 +860,8 @@ class _Scenarios:
             weblog_env={"DD_PROFILING_UPLOAD_PERIOD": "10", "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500"}
         ),
     )
-    k8s_lib_injection_all_namespaces = K8sScenario(
-        "K8S_LIB_INJECTION_ALL_NAMESPACES",
+    k8s_lib_injection_all_namespaces_old = K8sScenario(
+        "K8S_LIB_INJECTION_ALL_NAMESPACES_OLD",
         doc="",
         dd_cluster_feature={
             "clusterAgent.datadog_cluster_yaml.apm_config.instrumentation.enabled": "true",
@@ -878,8 +878,16 @@ class _Scenarios:
         },
         inject_by_annotations=False,
         k8s_weblog_specs=K8sWeblogSpecs(namespace="application"),
-        scenario_groups=[ScenarioGroup.ALL, ScenarioGroup.LIB_INJECTION_PROFILING],
+        scenario_groups=[ScenarioGroup.ALL, ScenarioGroup.LIB_INJECTION, ScenarioGroup.LIB_INJECTION_PROFILING],
     )
+
+    k8s_lib_injection_all_namespaces = K8sScenario(
+        "K8S_LIB_INJECTION_ALL_NAMESPACES",
+        doc="",
+        scenario_conf_file="/Users/roberto.montero/Documents/development/injector-dev/examples/single_service.yaml",
+        scenario_groups=[ScenarioGroup.ALL, ScenarioGroup.LIB_INJECTION, ScenarioGroup.LIB_INJECTION_PROFILING],
+    )
+
     k8s_lib_injection_spark_djm = K8sSparkScenario("K8S_LIB_INJECTION_SPARK_DJM", doc="Kubernetes lib injection DJM")
 
     docker_ssi = DockerSSIScenario(

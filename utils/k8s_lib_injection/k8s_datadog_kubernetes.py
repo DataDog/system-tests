@@ -1,4 +1,5 @@
 import os
+import shutil
 import time
 import yaml
 import re
@@ -12,6 +13,7 @@ from utils.k8s_lib_injection.k8s_command_utils import (
 )
 from utils.k8s_lib_injection.k8s_logger import k8s_logger
 from retry import retry
+from utils.k8s_lib_injection.k8s_injector_dev_cluster_parser import InjectorDevClusterConfigParser
 
 
 class K8sDatadog:
@@ -31,6 +33,7 @@ class K8sDatadog:
         api_key=None,
         app_key=None,
         inject_by_annotations=True,
+        scenario_conf_file=None,
     ):
         self.k8s_cluster_info = k8s_cluster_info
         self.dd_cluster_feature = dd_cluster_feature
@@ -39,6 +42,7 @@ class K8sDatadog:
         self.dd_cluster_img = dd_cluster_img
         self.api_key = api_key
         self.app_key = app_key
+        self.scenario_conf_file = scenario_conf_file
         self.inject_by_annotations = inject_by_annotations
         if not self.inject_by_annotations:
             self.configure_inject_imgs_by_cluster_features()
@@ -81,7 +85,7 @@ class K8sDatadog:
         """Recursively replace wildcards in dictionary keys and values in-place"""
         library_lib = "js" if self.library == "nodejs" else self.library
         keys_to_update = list(data.keys())  # Copy keys to avoid modifying while iterating
-
+        tracer_version_added = False
         for key in keys_to_update:
             value = data.pop(key)  # Remove old key
             # Replace wildcards in the key
@@ -99,8 +103,13 @@ class K8sDatadog:
                 new_value = value
             else:
                 new_value = value  # Keep non-string values unchanged
-
+            if f"ddTraceVersions.{library_lib}" in new_key:
+                tracer_version_added = True
             data[new_key] = new_value  # Assign back to the original dictionary
+        if not tracer_version_added:
+            data[
+                f"clusterAgent.datadog_cluster_yaml.apm_config.instrumentation.targets[0].ddTraceVersions.{library_lib}"
+            ] = self._extract_tag(self.library_init_image)
 
     def _extract_tag(self, image_url):
         """Extracts the tag from a container image URL."""
@@ -176,6 +185,20 @@ class K8sDatadog:
         self.wait_for_test_agent(namespace)
         logger.info("[Test agent] Daemonset created")
 
+    def copy_file_in_same_directory(self, file_path: str, suffix: str = "_copy"):
+        # Get directory and filename
+        dir_name, base_name = os.path.split(file_path)
+        name, ext = os.path.splitext(base_name)  # noqa: PTH122
+
+        # Create new file name with suffix
+        new_file_name = f"{name}{suffix}{ext}"
+        new_file_path = os.path.join(dir_name, new_file_name)
+
+        # Copy the file
+        shutil.copyfile(file_path, new_file_path)
+        logger.info(f"✅ File copied to: {new_file_path}")
+        return new_file_path
+
     def deploy_datadog_cluster_agent(self, namespace="default"):
         """Installs the Datadog Cluster Agent via helm for manual library injection testing.
         We enable the admission controller and wait for the datdog cluster to be ready.
@@ -204,14 +227,39 @@ class K8sDatadog:
             self.dd_cluster_feature["clusterAgent.image.tag"] = tag
             self.dd_cluster_feature["clusterAgent.image.repository"] = image_ref
 
-        helm_install_chart(
-            self.k8s_cluster_info,
-            "datadog",
-            "datadog/datadog",
-            value_file=operator_file,
-            set_dict=self.dd_cluster_feature,
-        )
+        if self.scenario_conf_file:
+            extra_properties = {}
+            # Cluster image
+            image_ref, tag = split_docker_image(self.dd_cluster_img)
+            extra_properties["clusterAgent.image.tag"] = tag
+            extra_properties["clusterAgent.image.repository"] = image_ref
+            # Injector image
+            extra_properties["datadog.apm.instrumentation.injector.imageTag"] = self._extract_tag(self.injector_image)
 
+            # Create helm values file
+            operator_file = self.copy_file_in_same_directory(operator_file)
+            parser = InjectorDevClusterConfigParser(self.scenario_conf_file)
+            parser.merge_helm_config_to_datadog_values(self.scenario_conf_file, operator_file, extra_properties)
+
+            # Update with the lib-init image
+            library_lib = "js" if self.library == "nodejs" else self.library
+            parser.update_ddtrace_versions(operator_file, library_lib, self._extract_tag(self.library_init_image))
+
+            # Apply the helm file
+            helm_install_chart(
+                self.k8s_cluster_info,
+                "datadog",
+                "datadog/datadog",
+                value_file=operator_file,
+            )
+        else:
+            helm_install_chart(
+                self.k8s_cluster_info,
+                "datadog",
+                "datadog/datadog",
+                value_file=operator_file,
+                set_dict=self.dd_cluster_feature,
+            )
         logger.info("[Deploy datadog cluster] Waiting for the cluster to be ready")
         self._wait_for_cluster_agent_ready(namespace)
 

@@ -8,6 +8,8 @@ from utils._context.library_version import LibraryVersion, Version
 from utils.k8s_lib_injection.k8s_datadog_kubernetes import K8sDatadog
 from utils.k8s_lib_injection.k8s_weblog import K8sWeblog, K8sWeblogSpecs
 from utils.k8s_lib_injection.k8s_cluster_provider import K8sProviderFactory
+from utils.k8s_lib_injection.k8s_injector_dev_cluster_parser import InjectorDevClusterConfigParser
+from utils.k8s_lib_injection.k8s_injector_dev_app_parser import InjectorDevAppConfigParser
 from utils._context.containers import (
     create_network,
     APMTestAgentContainer,
@@ -35,6 +37,7 @@ class K8sScenario(Scenario):
         scenario_groups=[ScenarioGroup.ALL, ScenarioGroup.LIB_INJECTION],
         k8s_weblog_specs=None,
         inject_by_annotations=True,
+        scenario_conf_file=None,
     ) -> None:
         super().__init__(name, doc=doc, github_workflow="libinjection", scenario_groups=scenario_groups)
         self.use_uds = use_uds
@@ -52,6 +55,9 @@ class K8sScenario(Scenario):
         # If you set this variables as false the lib-init and injector images will be configured by the
         # cluster agent configuration (better way)
         self.inject_by_annotations = inject_by_annotations
+        self.scenario_conf_file = scenario_conf_file
+        if scenario_conf_file:
+            self.inject_by_annotations = False
 
     def configure(self, config):
         # If we are using the datadog operator, we don't need to deploy the test agent
@@ -105,6 +111,15 @@ class K8sScenario(Scenario):
         # is it on sleep mode?
         self._sleep_mode = config.option.sleep
 
+        # if scenario_conf_file parse it an override the cluster features
+        if self.scenario_conf_file:
+            logger.info(f"RMM LOADING FROM CONFIG FILE: {self.scenario_conf_file}")
+            cluster_config_parser = InjectorDevClusterConfigParser(self.scenario_conf_file)
+            self.dd_cluster_feature = cluster_config_parser.generate_json_properties()
+            app_config_parser = InjectorDevAppConfigParser(self.scenario_conf_file)
+            self.k8s_weblog_specs = app_config_parser.parse_app()
+        else:
+            logger.info("RMM NO CONFIG FILE")
         # Prepare kubernetes datadog (manages the dd_cluster_agent and test_agent or the operator)
         self.k8s_datadog = K8sDatadog(
             self.library.library, self.k8s_lib_init_img, self.k8s_injector_img, self.host_log_folder
@@ -118,6 +133,7 @@ class K8sScenario(Scenario):
             api_key=self._api_key if self.with_datadog_operator else None,
             app_key=self._app_key if self.with_datadog_operator else None,
             inject_by_annotations=self.inject_by_annotations,
+            scenario_conf_file=self.scenario_conf_file,
         )
         # Weblog handler (the lib init and injector imgs are set in weblog/pod as annotations)
         self.test_weblog = K8sWeblog(
