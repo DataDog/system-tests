@@ -1741,7 +1741,7 @@ tests/:
       Test_Parametric_Otel_Baggage: missing_feature (otel baggage is not supported)
       Test_Parametric_Otel_Current_Span: bug (APMAPI-778)  # Current span endpoint does not return DataDog spans created by the otel api
     test_process_discovery.py: missing_feature
-    test_span_events.py: missing_feature
+    # test_span_events.py: missing_feature
     test_span_links.py: missing_feature
     test_telemetry.py:
       Test_Consistent_Configs: missing_feature
@@ -1913,7 +1913,7 @@ tests/:
     Test_Meta:
       play: irrelevant (top span is akka-http-server)
     Test_MetricsStandardTags: v1.3.0
-  test_span_events.py: incomplete_test_app (Weblog `/add_event` not implemented)
+  # test_span_events.py: incomplete_test_app (Weblog `/add_event` not implemented)
   test_standard_tags.py:
     Test_StandardTagsClientIp:
       '*': v0.114.0

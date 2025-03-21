@@ -138,6 +138,7 @@ class Test_Span_Events:
         assert event["attributes"].get("double") == "0.0"
         assert isinstance(event["attributes"].get("double"), str)
 
+    @irrelevant(library="java", reason="Does not support v0.7")
     @irrelevant(library="ruby", reason="Does not support v0.7")
     @pytest.mark.parametrize("library_env", [{"DD_TRACE_API_VERSION": "v0.7", "DD_TRACE_NATIVE_SPAN_EVENTS": "1"}])
     def test_span_with_event_v07(self, library_env, test_agent, test_library):

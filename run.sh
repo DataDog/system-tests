@@ -51,6 +51,10 @@ OPTIONS
     +l, ++library LIBRARY
       Inform test suite that test pertains to LIBRARY.
 
+    +n, ++num-processes N
+      Set the number of processes to use for pytest. Can also be set via
+      PYTEST_NUMPROCESSES environment variable. Defaults to 'auto'.
+
     ++
       Ignore flags after this separator. All subsequent arguments are passed
       as-is to pytest.
@@ -236,7 +240,7 @@ function main() {
     local scenario_args=()
     local libraries=()
     local pytest_args=()
-    local pytest_numprocesses='auto'
+    local pytest_numprocesses="${PYTEST_NUMPROCESSES:-auto}"
 
     ## handle environment variables
 
@@ -260,6 +264,15 @@ function main() {
                 ;;
             +d|++docker)
                 docker=1
+                ;;
+            +n|++num-processes)
+                if [[ "$#" -eq 1 ]]; then
+                  error "missing argument value for: $1"
+                  help
+                  exit 64
+                fi
+                pytest_numprocesses="$2"
+                shift
                 ;;
             +G|++scenario-group)
                 if [[ "$#" -eq 1 ]]; then
