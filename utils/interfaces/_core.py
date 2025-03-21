@@ -33,12 +33,16 @@ class InterfaceValidator:
     log_folder: str
     """ Folder where interfaces' logs are stored """
 
+    host_log_folder: str
+    """ Folder where all logs are stored """
+
     def __init__(self, name: str):
         self.name = name
 
     def configure(self, host_log_folder: str, *, replay: bool):
         self.replay = replay
         self.log_folder = f"{host_log_folder}/interfaces/{self.name}"
+        self.host_log_folder = host_log_folder
 
     def __repr__(self):
         return f"{self.__class__.__name__}('{self.name}')"
