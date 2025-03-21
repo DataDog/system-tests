@@ -6,8 +6,7 @@
 import json
 import re
 
-from utils import weblog, interfaces, context, scenarios, features, irrelevant, flaky, bug
-from utils.tools import logger
+from utils import weblog, interfaces, context, scenarios, features, irrelevant, flaky, bug, logger
 
 
 def remove_traceparent(s):

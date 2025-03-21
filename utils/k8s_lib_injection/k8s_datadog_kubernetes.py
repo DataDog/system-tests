@@ -3,7 +3,7 @@ import time
 import yaml
 from pathlib import Path
 from kubernetes import client, watch
-from utils.tools import logger
+from utils._logger import logger
 from utils.k8s_lib_injection.k8s_command_utils import (
     helm_add_repo,
     helm_install_chart,

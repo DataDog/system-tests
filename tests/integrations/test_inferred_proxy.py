@@ -1,8 +1,7 @@
 import json
 import time
 
-from utils import weblog, scenarios, features, interfaces
-from utils.tools import logger
+from utils import weblog, scenarios, features, interfaces, logger
 
 
 DISTRIBUTED_TRACE_ID = 1

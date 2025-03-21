@@ -1,5 +1,4 @@
-from utils import context, bug, features, irrelevant, missing_feature, scenarios
-from utils.tools import logger
+from utils import context, bug, features, irrelevant, missing_feature, scenarios, logger
 from .utils import BaseDbIntegrationsTestClass
 
 

@@ -343,6 +343,7 @@ tests/:
     test_customconf.py:
       Test_ConfRuleSet: v1.0.0.beta2
       Test_CorruptedRules: v1.0.0.beta2
+      Test_CorruptedRules_Telemetry: missing_feature
       Test_MissingRules: v1.0.0.beta2
       Test_NoLimitOnWafRules: v1.0.0.beta2
     test_event_tracking.py:
@@ -427,6 +428,10 @@ tests/:
         rails70: missing_feature (feature not implemented)
         rails80: missing_feature (feature not implemented)
         uds-rails: missing_feature (feature not implemented)
+    test_debugger_telemetry.py:
+      Test_Debugger_Telemetry:
+        "*": irrelevant
+        rails70: missing_feature (feature not implemented)
   integrations/:
     crossed_integrations/:
       test_kafka.py:

@@ -400,6 +400,7 @@ tests/:
     test_client_ip.py:
       Test_StandardTagsClientIp: v1.44.1
     test_customconf.py:
+      Test_CorruptedRules_Telemetry: missing_feature
       Test_NoLimitOnWafRules: v1.37.0
     test_event_tracking.py:
       Test_CustomEvent: v1.47.0
@@ -492,6 +493,8 @@ tests/:
       Test_Debugger_Probe_Statuses: missing_feature (feature not implented)
     test_debugger_symdb.py:
       Test_Debugger_SymDb: missing_feature (feature not implented)
+    test_debugger_telemetry.py:
+      Test_Debugger_Telemetry: missing_feature
   integrations/:
     crossed_integrations/:
       test_kafka.py:
@@ -680,7 +683,7 @@ tests/:
     Test_Config_ClientTagQueryString_Configured: v1.72.0-dev
     Test_Config_ClientTagQueryString_Empty: v1.72.0-dev
     Test_Config_HttpClientErrorStatuses_Default: v1.69.0
-    Test_Config_HttpClientErrorStatuses_FeatureFlagCustom: v1.72.0-dev
+    Test_Config_HttpClientErrorStatuses_FeatureFlagCustom: v1.69.0
     Test_Config_HttpServerErrorStatuses_Default: v1.67.0
     Test_Config_HttpServerErrorStatuses_FeatureFlagCustom: v1.69.0
     Test_Config_IntegrationEnabled_False: irrelevant (not applicable to Go because of how they do auto instrumentation)

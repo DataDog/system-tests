@@ -1,4 +1,4 @@
-from utils.tools import logger
+from utils._logger import logger
 
 from .core import ScenarioGroup
 from .endtoend import EndToEndScenario

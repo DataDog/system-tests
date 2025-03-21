@@ -36,6 +36,7 @@ ruff==0.8.1
 scp==0.14.5
 semantic-version==2.10.0
 setuptools==75.8.0
+types-aiofiles==24.1.0.20241221
 types-protobuf==5.29.1.20241207
 types-PyYAML==6.0.12.20241230
 types-requests==2.31.0

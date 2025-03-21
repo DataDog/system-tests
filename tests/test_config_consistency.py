@@ -5,11 +5,10 @@
 import re
 import json
 import time
-from utils import weblog, interfaces, scenarios, features, rfc, irrelevant, context, bug, missing_feature
-from utils.tools import logger
+from utils import weblog, interfaces, scenarios, features, rfc, irrelevant, context, bug, missing_feature, logger
 
 # get the default log output
-stdout = interfaces.library_stdout if context.library != "dotnet" else interfaces.library_dotnet_managed
+stdout = interfaces.library_stdout
 runtime_metrics = {"nodejs": "runtime.node.mem.heap_total"}
 runtime_metrics_lang_map = {
     "dotnet": ("lang", ".NET"),
@@ -24,6 +23,7 @@ log_injection_fields = {
     "nodejs": {"message": "msg"},
     "golang": {"message": "msg"},
     "java": {"message": "message"},
+    "dotnet": {"message": "@mt"},
 }
 
 
@@ -117,6 +117,7 @@ class Test_Config_ObfuscationQueryStringRegexp_Empty:
         self.r = weblog.get("/?application_key=value")
 
     @bug(context.library == "python", reason="APMAPI-772")
+    @bug(context.library >= "java@1.48.0" and context.weblog_variant == "spring-boot-3-native", reason="APMAPI-1251")
     def test_query_string_obfuscation_empty_server(self):
         spans = [s for _, _, s in interfaces.library.get_spans(request=self.r, full_trace=True)]
         server_span = _get_span_by_tags(spans, tags={"http.url": "http://localhost:7777/?application_key=value"})
@@ -230,7 +231,6 @@ class Test_Config_HttpClientErrorStatuses_FeatureFlagCustom:
     def setup_status_code_200(self):
         self.r = weblog.get("/make_distant_call", params={"url": "http://weblog:7777/status?code=200"})
 
-    @bug(context.library >= "golang@1.72.0", reason="APMAPI-1196")
     def test_status_code_200(self):
         assert self.r.status_code == 200
         content = json.loads(self.r.text)
@@ -246,7 +246,6 @@ class Test_Config_HttpClientErrorStatuses_FeatureFlagCustom:
     def setup_status_code_202(self):
         self.r = weblog.get("/make_distant_call", params={"url": "http://weblog:7777/status?code=202"})
 
-    @bug(context.library >= "golang@1.72.0", reason="APMAPI-1196")
     def test_status_code_202(self):
         assert self.r.status_code == 200
         content = json.loads(self.r.text)
@@ -300,6 +299,7 @@ class Test_Config_ClientIPHeader_Configured:
             "/make_distant_call", params={"url": "http://weblog:7777"}, headers={"custom-ip-header": "5.6.7.9"}
         )
 
+    @bug(context.library >= "java@1.48.0", reason="APMAPI-1251")
     def test_ip_headers_sent_in_one_request(self):
         # Ensures the header set in DD_TRACE_CLIENT_IP_HEADER takes precedence over all supported ip headers
         trace = [span for _, _, span in interfaces.library.get_spans(self.req, full_trace=True)]
@@ -379,11 +379,11 @@ def _get_span_by_tags(spans, tags):
     logger.info(f"Try to find span with metag tags {tags}")
 
     for span in spans:
+        meta = span["meta"]
+        logger.debug(f"Checking span {span['span_id']} meta:\n{'\n'.join(map(str,meta.items()))}")
         # Avoids retrieving the client span by the operation/resource name, this value varies between languages
         # Use the expected tags to identify the span
         for k, v in tags.items():
-            meta = span["meta"]
-
             if k not in meta:
                 logger.debug(f"Span {span['span_id']} does not have tag {k}")
                 break
@@ -519,6 +519,8 @@ class Test_Config_LogInjection_Enabled:
         required_fields = ["service", "version", "env"]
         if context.library.library in ("java", "python"):
             required_fields = ["dd.service", "dd.version", "dd.env"]
+        elif context.library.library == "dotnet":
+            required_fields = ["dd_service", "dd_version", "dd_env"]
 
         for field in required_fields:
             assert field in msg, f"Missing field: {field}"
@@ -537,6 +539,8 @@ class Test_Config_LogInjection_Default:
     def test_log_injection_default(self):
         assert self.r.status_code == 200
         pattern = r'"dd":\{[^}]*\}'
+        pattern = r'"dd.trace_id":\{[^}]*\}'
+        pattern = r'"dd_trace_id":\{[^}]*\}'
         stdout.assert_absence(pattern)
 
 
@@ -715,9 +719,11 @@ def parse_log_injection_message(log_message):
 
 def parse_log_trace_id(message):
     # APMAPI-1199: update nodejs to use dd.trace_id instead of trace_id
-    return message.get("dd.trace_id", message.get("trace_id"))
+    # APMAPI-1234: update dotnet to use dd.trace_id instead of dd_trace_id
+    return message.get("dd.trace_id", message.get("trace_id", message.get("dd_trace_id")))
 
 
 def parse_log_span_id(message):
     # APMAPI-1199: update nodejs to use dd.span_id instead of span_id
-    return message.get("dd.span_id", message.get("span_id"))
+    # APMAPI-1234: update dotnet to use dd.span_id instead of dd_span_id
+    return message.get("dd.span_id", message.get("span_id", message.get("dd_span_id")))

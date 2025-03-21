@@ -3,8 +3,7 @@ from __future__ import annotations
 import json
 
 from utils.buddies import java_buddy
-from utils import interfaces, scenarios, weblog, missing_feature, features
-from utils.tools import logger
+from utils import interfaces, scenarios, weblog, missing_feature, features, logger
 
 
 class _BaseRabbitMQ:
