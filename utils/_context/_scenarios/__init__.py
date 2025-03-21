@@ -881,6 +881,13 @@ class _Scenarios:
         scenario_groups=[ScenarioGroup.ALL, ScenarioGroup.LIB_INJECTION, ScenarioGroup.LIB_INJECTION_PROFILING],
     )
 
+    k8s_lib_injection_single_service = K8sScenario(
+        "K8S_LIB_INJECTION_SINGLE_SERVICE",
+        doc="",
+        scenario_conf_file="utils/build/injector-dev/single_service.yaml",
+        scenario_groups=[ScenarioGroup.ALL, ScenarioGroup.LIB_INJECTION, ScenarioGroup.LIB_INJECTION_PROFILING],
+    )
+
     k8s_lib_injection_spark_djm = K8sSparkScenario("K8S_LIB_INJECTION_SPARK_DJM", doc="Kubernetes lib injection DJM")
 
     docker_ssi = DockerSSIScenario(

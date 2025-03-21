@@ -2,6 +2,7 @@ import time
 import requests
 
 from utils import scenarios, features, bug, context
+from tests.k8s_lib_injection.utils import get_dev_agent_traces
 
 
 class _TestK8sLibInjectionProfiling:
@@ -23,6 +24,23 @@ class _TestK8sLibInjectionProfiling:
                     return True
             time.sleep(1)
         return False
+
+
+@features.k8s_admission_controller
+@scenarios.k8s_lib_injection_single_service
+class TestSingleService(_TestK8sLibInjectionProfiling):
+    """Test K8s lib injection with profiling enabled."""
+
+    def test_traces(self):
+        traces_json = get_dev_agent_traces(context.scenario.k8s_cluster_provider.get_cluster_info())
+        assert len(traces_json) > 0, "No traces found"
+
+    @bug(context.library > "python@2.12.2", reason="APMON-1496")
+    def test_profiling(self):
+        profiling_request_found = self._check_profiling_request_sent(
+            context.scenario.k8s_cluster_provider.get_cluster_info()
+        )
+        assert profiling_request_found, "No profiling request found"
 
 
 @features.k8s_admission_controller
