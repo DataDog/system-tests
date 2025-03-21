@@ -32,7 +32,7 @@ def generate_probe_id(probe_type: str) -> str:
     return probe_type + str(uuid.uuid4())[len(probe_type) :]
 
 
-def extract_probe_ids(probes) -> list:
+def extract_probe_ids(probes: dict) -> list:
     if probes:
         if isinstance(probes, dict):
             return list(probes.keys())
@@ -42,42 +42,42 @@ def extract_probe_ids(probes) -> list:
     return []
 
 
-def _get_path(test_name, suffix) -> str:
+def _get_path(test_name: str, suffix: str) -> str:
     filename = test_name + "_" + BaseDebuggerTest.tracer["language"] + "_" + suffix + ".json"
     return os.path.join(_CUR_DIR, "approvals", filename)
 
 
-def write_approval(data, test_name, suffix) -> None:
+def write_approval(data: list, test_name: str, suffix: str) -> None:
     with open(_get_path(test_name, suffix), "w", encoding="utf-8") as f:
         json.dump(data, f, indent=2)
 
 
-def read_approval(test_name, suffix) -> dict:
+def read_approval(test_name: str, suffix: str) -> dict:
     with open(_get_path(test_name, suffix), "r", encoding="utf-8") as f:
         return json.load(f)
 
 
-def get_env_bool(env_var_name, *, default=False) -> bool:
+def get_env_bool(env_var_name: str, *, default: bool = False) -> bool:
     value = os.getenv(env_var_name, str(default)).lower()
     return value in {"true", "True", "1"}
 
 
 class BaseDebuggerTest:
-    tracer = None
+    tracer: dict[str, str] = {}
 
-    probe_definitions = []
-    probe_ids = []
+    probe_definitions: list[dict] = []
+    probe_ids: list = []
 
-    probe_diagnostics = {}
-    probe_snapshots = {}
-    probe_spans = {}
-    all_spans = []
-    symbols = []
+    probe_diagnostics: dict = {}
+    probe_snapshots: dict = {}
+    probe_spans: dict = {}
+    all_spans: list = []
+    symbols: list = []
 
-    rc_states = []
-    weblog_responses = []
+    rc_states: list = []
+    weblog_responses: list = []
 
-    setup_failures = []
+    setup_failures: list = []
 
     def initialize_weblog_remote_config(self) -> None:
         if self.get_tracer()["language"] == "ruby":
@@ -93,9 +93,9 @@ class BaseDebuggerTest:
                     f"Failed to get /debugger/init: expected status code: 200, actual status code: {response.status_code}"
                 )
 
-    def method_and_language_to_line_number(self, method, language) -> dict:
+    def method_and_language_to_line_number(self, method: str, language: str) -> list:
         """method_and_language_to_line_number returns the respective line number given the method and language"""
-        return {
+        definitions: dict[str, dict[str, list[int]]] = {
             "Budgets": {"java": [138], "dotnet": [136], "python": [142]},
             "Expression": {"java": [71], "dotnet": [74], "python": [72]},
             # The `@exception` variable is not available in the context of line probes.
@@ -104,12 +104,14 @@ class BaseDebuggerTest:
             "StringOperations": {"java": [87], "dotnet": [97], "python": [96]},
             "CollectionOperations": {"java": [114], "dotnet": [114], "python": [123]},
             "Nulls": {"java": [130], "dotnet": [127], "python": [136]},
-        }.get(method, {}).get(language, [])
+        }
+
+        return definitions.get(method, {}).get(language, [])
 
     ###### set #####
-    def set_probes(self, probes) -> None:
-        def _enrich_probes(probes):
-            def __get_probe_type(probe_id):
+    def set_probes(self, probes: list[dict]) -> None:
+        def _enrich_probes(probes: list[dict]):
+            def __get_probe_type(probe_id: str):
                 if probe_id.startswith("log"):
                     return "LOG_PROBE"
                 if probe_id.startswith("metric"):
@@ -162,7 +164,7 @@ class BaseDebuggerTest:
 
             return probes
 
-        def _extract_probe_ids(probes):
+        def _extract_probe_ids(probes: list[dict]):
             return [probe["id"] for probe in probes]
 
         self.probe_definitions = _enrich_probes(probes)
@@ -223,20 +225,20 @@ class BaseDebuggerTest:
     ###### wait for #####
     _last_read = 0
 
-    def wait_for_all_probes_installed(self, timeout=30) -> None:
+    def wait_for_all_probes_installed(self, timeout: int = 30) -> bool:
         self._wait_successful = False
         interfaces.agent.wait_for(lambda data: self._wait_for_all_probes(data, status="INSTALLED"), timeout=timeout)
         return self._wait_successful
 
-    def wait_for_all_probes_emitting(self, timeout=30) -> None:
+    def wait_for_all_probes_emitting(self, timeout: int = 30) -> bool:
         self._wait_successful = False
         interfaces.agent.wait_for(lambda data: self._wait_for_all_probes(data, status="EMITTING"), timeout=timeout)
         return self._wait_successful
 
-    def _wait_for_all_probes(self, data, status):
+    def _wait_for_all_probes(self, data: dict, status: str):
         found_ids = set()
 
-        def _check_all_probes_status(probe_diagnostics, status):
+        def _check_all_probes_status(probe_diagnostics: dict, status: str):
             logger.debug(f"Waiting for these probes to be {status}: {self.probe_ids}")
 
             for expected_id in self.probe_ids:
@@ -282,14 +284,14 @@ class BaseDebuggerTest:
     _exception_message = None
     _snapshot_found = False
 
-    def wait_for_exception_snapshot_received(self, exception_message, timeout) -> None:
+    def wait_for_exception_snapshot_received(self, exception_message: str, timeout: int) -> bool:
         self._exception_message = exception_message
         self._snapshot_found = False
 
         interfaces.agent.wait_for(self._wait_for_snapshot_received, timeout=timeout)
         return self._snapshot_found
 
-    def _wait_for_snapshot_received(self, data):
+    def _wait_for_snapshot_received(self, data: dict):
         if data["path"] == _LOGS_PATH:
             logger.debug("Reading " + data["log_filename"] + ", looking for " + self._exception_message)
             contents = data["request"].get("content", []) or []
@@ -307,17 +309,17 @@ class BaseDebuggerTest:
 
                 exception_message = self.get_exception_message(snapshot)
 
-                logger.debug("Exception message is " + exception_message)
-                logger.debug("Self Exception message is " + self._exception_message)
+                logger.debug(f"Exception message is {exception_message}")
+                logger.debug(f"Self Exception message is {self._exception_message}")
 
-                if self._exception_message in exception_message:
+                if self._exception_message and self._exception_message in exception_message:
                     self._snapshot_found = True
                     break
 
         logger.debug(f"Snapshot found: {self._snapshot_found}")
         return self._snapshot_found
 
-    def wait_for_code_origin_span(self, timeout) -> None:
+    def wait_for_code_origin_span(self, timeout: int) -> bool:
         self._span_found = False
 
         interfaces.agent.wait_for(self._wait_for_code_origin_span, timeout=timeout)
@@ -325,7 +327,7 @@ class BaseDebuggerTest:
 
     _last_read_span = 0
 
-    def _wait_for_code_origin_span(self, data):
+    def _wait_for_code_origin_span(self, data: dict):
         if data["path"] == _TRACES_PATH:
             log_filename_found = re.search(r"/(\d+)__", data["log_filename"])
             if not log_filename_found:
@@ -351,14 +353,15 @@ class BaseDebuggerTest:
 
         return False
 
-    def wait_for_telemetry(self, telemetry_type: str, timeout=5) -> dict:
-        self._telemetry = None
+    def wait_for_telemetry(self, telemetry_type: str, timeout: int = 5) -> dict:
+        self._telemetry: dict | None = None
         interfaces.agent.wait_for(
             lambda data: self._wait_for_telemetry(data, telemetry_type=telemetry_type), timeout=timeout
         )
+        assert self._telemetry is not None
         return self._telemetry
 
-    def _wait_for_telemetry(self, data, telemetry_type):
+    def _wait_for_telemetry(self, data: dict, telemetry_type: str) -> bool:
         if data["path"] != _TELEMETRY_PATH:
             return False
 
@@ -409,10 +412,10 @@ class BaseDebuggerTest:
         all_data = _read_data()
         self.probe_diagnostics = self._process_diagnostics_data(all_data)
 
-    def _process_diagnostics_data(self, datas):
-        probe_diagnostics = {}
+    def _process_diagnostics_data(self, datas: list[dict]):
+        probe_diagnostics: dict = {}
 
-        def _should_update_status(current_status, new_status):
+        def _should_update_status(current_status: str, new_status: str):
             transitions = {
                 "RECEIVED": True,
                 "INSTALLED": new_status in ["INSTALLED", "EMITTING"],
@@ -420,7 +423,7 @@ class BaseDebuggerTest:
             }
             return transitions.get(current_status, False)
 
-        def _process_debugger(debugger):
+        def _process_debugger(debugger: dict):
             if "diagnostics" in debugger:
                 diagnostics = debugger["diagnostics"]
                 probe_id = diagnostics["probeId"]
@@ -451,7 +454,7 @@ class BaseDebuggerTest:
     def _collect_snapshots(self):
         def _get_snapshot_hash():
             agent_logs_endpoint_requests = list(interfaces.agent.get_data(_LOGS_PATH))
-            snapshot_hash = {}
+            snapshot_hash: dict = {}
 
             for request in agent_logs_endpoint_requests:
                 content = request["request"]["content"]
@@ -535,7 +538,7 @@ class BaseDebuggerTest:
         if self.setup_failures:
             assert "\n".join(self.setup_failures) is None
 
-    def get_exception_message(self, snapshot) -> str:
+    def get_exception_message(self, snapshot: dict) -> str:
         if self.get_tracer()["language"] == "python":
             return next(iter(snapshot["captures"]["lines"].values()))["throwable"]["message"].lower()
         else:
@@ -587,7 +590,7 @@ class BaseDebuggerTest:
 
         assert not errors, f"The following probes are not emitting: {errors}"
 
-    def assert_all_weblog_responses_ok(self, expected_code=200) -> None:
+    def assert_all_weblog_responses_ok(self, expected_code: int = 200) -> None:
         assert len(self.weblog_responses) > 0, "No responses available."
 
         for respone in self.weblog_responses:
@@ -595,14 +598,14 @@ class BaseDebuggerTest:
 
     ###### assert #####
 
-    def _get_path(self, test_name, suffix) -> str:
+    def _get_path(self, test_name: str, suffix: str) -> str:
         filename = test_name + "_" + self.get_tracer()["language"] + "_" + suffix + ".json"
         return os.path.join(_CUR_DIR, "approvals", filename)
 
-    def write_approval(self, data, test_name, suffix) -> None:
+    def write_approval(self, data: list, test_name: str, suffix: str) -> None:
         with open(self._get_path(test_name, suffix), "w", encoding="utf-8") as f:
             json.dump(data, f, indent=2)
 
-    def read_approval(self, test_name, suffix) -> dict:
+    def read_approval(self, test_name: str, suffix: str) -> dict:
         with open(self._get_path(test_name, suffix), "r", encoding="utf-8") as f:
             return json.load(f)

@@ -24,8 +24,8 @@ _timeout_next = 30
 @features.debugger_exception_replay
 @scenarios.debugger_exception_replay
 class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
-    snapshots = {}
-    spans = {}
+    snapshots: dict = {}
+    spans: dict = {}
 
     ############ setup ############
     def _setup(self, request_path, exception_message):
@@ -201,7 +201,6 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
         def __scrub_none(key, value, parent):  # noqa: ARG001
             return __scrub(value)
 
-        scrub_language = None
         if self.get_tracer()["language"] == "java":
             scrub_language = __scrub_java
         elif self.get_tracer()["language"] == "dotnet":
@@ -410,7 +409,7 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
         retries = 0
         timeout = _timeout_first
 
-        shapes = {"rock": False, "paper": False, "scissors": False}
+        shapes: dict[str, bool] = {"rock": False, "paper": False, "scissors": False}
 
         while not all(shapes.values()) and retries < _max_retries:
             for shape, shape_found in shapes.items():
