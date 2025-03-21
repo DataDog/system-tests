@@ -177,9 +177,9 @@ ignore = [
 "lib-injection/*" = ["ALL"]  # TODO
 "tests/*test_*.py" = [
     "ANN201",    # missing-return-type-undocumented-public-function: allow test_method to not declare their return type
+    "ANN001",    # missing-type-function-argument: TODO (TBD)
 ]
 "tests/*" = [
-    "ANN001",   # missing-type-function-argument: TODO (TBD)
     "E501",      # line-too-long: TODO
     "TRY002",    # raise-vanilla-class: TODO
     "TRY301",    # raise-within-try: TODO
@@ -205,10 +205,15 @@ ignore = [
     "SIM108",    # if-else-block-instead-of-if-exp: ternary operator nay be harder to read on long statements
 ]
 "tests/auto_inject/*" = [
+    "ANN001",  # missing-type-function-argument: TODO
     "SLF001",  # private-member-access: TODO
 ]
+"tests/debugger/utils.py" = [
+    "ANN001",  # missing-type-function-argument: TODO
+]
 "tests/fuzzer/*" = [
-    "T201",      # print: fuzzer use prints...
+    "ANN001",   # missing-type-function-argument: TODO   
+    "T201",     # print: fuzzer use prints...
 ]
 "tests/fuzzer/request_mutator.py" = [
     "RUF001",    # ambiguous-unicode-character-string: the mutator contains weird strings on purpose
@@ -222,7 +227,8 @@ ignore = [
     "N802",      # invalid-function-name: some tests methods contains code with capital letters
 ]
 "tests/perfs/*" = [
-    "T201",      # print: perfs use prints...
+    "ANN001",   # missing-type-function-argument: TODO   
+    "T201",     # print: perfs use prints...
 ]
 "tests/test_the_test/*" = [
     "S605",      # start-process-with-a-shell: test the test needs to run shell commands

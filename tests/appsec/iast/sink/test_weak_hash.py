@@ -11,7 +11,7 @@ from tests.appsec.iast.utils import (
 )
 
 
-def _expected_location():
+def _expected_location() -> str | None:
     if context.library.library == "java":
         return "com.datadoghq.system_tests.iast.utils.CryptoExamples"
 
@@ -32,7 +32,7 @@ def _expected_location():
     return None
 
 
-def _expected_evidence():
+def _expected_evidence() -> str:
     if context.library.library == "dotnet":
         return "MD5"
     else:
