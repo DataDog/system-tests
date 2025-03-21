@@ -517,7 +517,7 @@ class Test_Config_LogInjection_Enabled:
         assert sid is not None, "Expected a span ID, but got None"
 
         required_fields = ["service", "version", "env"]
-        if context.library.library in ("java", "python"):
+        if context.library.library in ("java", "python", "ruby"):
             required_fields = ["dd.service", "dd.version", "dd.env"]
 
         for field in required_fields:
@@ -536,8 +536,10 @@ class Test_Config_LogInjection_Default:
 
     def test_log_injection_default(self):
         assert self.r.status_code == 200
-        pattern = r'"dd":\{[^}]*\}'
-        stdout.assert_absence(pattern)
+        dd_dict_in_logs = r'"dd":\{[^}]*\}'
+        stdout.assert_absence(dd_dict_in_logs)
+        dd_key_values_in_logs = r"(?=.*(?:dd\.env|dd\.service|dd\.span_id|dd\.trace_id|dd\.version))"
+        stdout.assert_absence(dd_key_values_in_logs)
 
 
 @rfc("https://docs.google.com/document/d/1kI-gTAKghfcwI7YzKhqRv2ExUstcHqADIWA4-TZ387o/edit#heading=h.8v16cioi7qxp")
@@ -687,16 +689,17 @@ def parse_log_injection_message(log_message):
     # To pass tests that use this function, ensure your library has an entry in log_injection_fields
     for data in stdout.get_data():
         logs = data.get("raw").split("\n")
+        regex_pattern = re.compile(r'\[(?:[^\]]*\b(dd\.\w+=\S+)\b[^\]]*)+\]\s*(.*)')
         for log in logs:
-            if context.library == "python":
-                # Log Injection values are stored in the following format in python:
-                # [dd.service=service_test dd.env=system-tests dd.version=1.0.0 dd.trace_id=0 dd.span_id=0] - log message
-                extracted_log_message = next(iter(re.findall(r"\] - (.+)$", log)), "")
-                if log_message in extracted_log_message:
-                    dd_injected = re.findall(r"(dd\.[a-zA-Z0-9_]+)=([a-zA-Z0-9_]+)", log)
-                    return {key: value for key, value in dd_injected}
-                else:
-                    continue
+            if context.library in ("python", "ruby"):
+                # Extract key-value pairs and messages
+                match = regex_pattern.search(log)
+                if match:
+                    curr_message = match.group(2).strip()  # Extract message after last bracket
+                    if curr_message != log_message:
+                        continue
+                    dd_pairs = re.findall(r'dd\.\w+=\S+', match.group(0))  # Extract key-value pairs that start with dd.
+                    return {pair.split("=")[0]: pair.split("=")[1] for pair in dd_pairs}
             try:
                 message = json.loads(log)
             except json.JSONDecodeError:
