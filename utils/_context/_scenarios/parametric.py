@@ -19,7 +19,7 @@ from docker.models.containers import Container
 from docker.models.networks import Network
 
 from utils._context.library_version import LibraryVersion
-from utils.tools import logger
+from utils._logger import logger
 
 from .core import Scenario, ScenarioGroup
 

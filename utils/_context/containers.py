@@ -17,7 +17,7 @@ import requests
 
 from utils._context.library_version import LibraryVersion
 from utils.proxy.ports import ProxyPorts
-from utils.tools import logger
+from utils._logger import logger
 from utils import interfaces
 from utils.k8s_lib_injection.k8s_weblog import K8sWeblog
 from utils.interfaces._library.core import LibraryInterfaceValidator

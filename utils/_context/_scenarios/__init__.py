@@ -144,7 +144,7 @@ class _Scenarios:
     )
     appsec_corrupted_rules = EndToEndScenario(
         "APPSEC_CORRUPTED_RULES",
-        weblog_env={"DD_APPSEC_RULES": "/appsec_corrupted_rules.yml"},
+        weblog_env={"DD_APPSEC_RULES": "/appsec_corrupted_rules.json"},
         weblog_volumes={
             "./tests/appsec/appsec_corrupted_rules.json": {"bind": "/appsec_corrupted_rules.json", "mode": "ro"}
         },
@@ -246,6 +246,21 @@ class _Scenarios:
         rc_api_enabled=True,
         weblog_env={"DD_APPSEC_RULES": None},
         doc="",
+        scenario_groups=[ScenarioGroup.APPSEC],
+    )
+
+    appsec_and_rc_enabled = EndToEndScenario(
+        "APPSEC_AND_RC_ENABLED",
+        rc_api_enabled=True,
+        appsec_enabled=True,
+        iast_enabled=False,
+        weblog_env={"DD_APPSEC_WAF_TIMEOUT": "10000000", "DD_APPSEC_TRACE_RATE_LIMIT": "10000"},  # 10 seconds
+        doc="""
+            A scenario with AppSec and Remote Config enabled. In addition WAF and
+            tracer are configured to have bigger threshold.
+            This scenario should be used in most of the cases if you need
+            Remote Config and AppSec working for all libraries.
+        """,
         scenario_groups=[ScenarioGroup.APPSEC],
     )
 
@@ -686,6 +701,21 @@ class _Scenarios:
         scenario_groups=[ScenarioGroup.DEBUGGER],
     )
 
+    debugger_telemetry = EndToEndScenario(
+        "DEBUGGER_TELEMETRY",
+        rc_api_enabled=True,
+        weblog_env={
+            "DD_REMOTE_CONFIG_ENABLED": "true",
+            "DD_CODE_ORIGIN_FOR_SPANS_ENABLED": "1",
+            "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1",
+            "DD_EXCEPTION_DEBUGGING_ENABLED": "1",
+            "DD_SYMBOL_DATABASE_UPLOAD_ENABLED": "1",
+        },
+        library_interface_timeout=5,
+        doc="Test scenario for checking debugger telemetry.",
+        scenario_groups=[ScenarioGroup.DEBUGGER, ScenarioGroup.TELEMETRY],
+    )
+
     fuzzer = DockerScenario("FUZZER", doc="Fake scenario for fuzzing (launch without pytest)", github_workflow=None)
 
     # Single Step Instrumentation scenarios (HOST and CONTAINER)
@@ -884,8 +914,17 @@ class _Scenarios:
         scenario_groups=[ScenarioGroup.APPSEC],
     )
 
+    agent_supporting_span_events = EndToEndScenario(
+        "AGENT_SUPPORTING_SPAN_EVENTS",
+        weblog_env={"DD_TRACE_NATIVE_SPAN_EVENTS": "1"},
+        span_events=True,
+        doc="The trace agent support Span Events and it is enabled through an environment variable",
+        scenario_groups=[ScenarioGroup.INTEGRATIONS],
+    )
+
     agent_not_supporting_span_events = EndToEndScenario(
         "AGENT_NOT_SUPPORTING_SPAN_EVENTS",
+        weblog_env={"DD_TRACE_NATIVE_SPAN_EVENTS": "0"},
         span_events=False,
         doc="The trace agent does not support Span Events as a top-level span field",
         scenario_groups=[ScenarioGroup.INTEGRATIONS],

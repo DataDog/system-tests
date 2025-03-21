@@ -1377,6 +1377,7 @@ tests/:
         akka-http: v1.22.0
         play: v1.22.0
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+      Test_CorruptedRules_Telemetry: missing_feature
       Test_MissingRules:
         '*': v0.93.0
         akka-http: v1.22.0
@@ -1609,6 +1610,14 @@ tests/:
         uds-spring-boot: v1.38.0
     test_debugger_symdb.py:
       Test_Debugger_SymDb:
+        '*': missing_feature
+        spring-boot: v1.38.0
+        spring-boot-jetty: v1.38.0
+        spring-boot-openliberty: v1.38.0
+        spring-boot-undertow: v1.38.0
+        uds-spring-boot: v1.38.0
+    test_debugger_telemetry.py:
+      Test_Debugger_Telemetry:
         '*': missing_feature
         spring-boot: v1.38.0
         spring-boot-jetty: v1.38.0

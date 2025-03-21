@@ -2,9 +2,8 @@ from __future__ import annotations
 
 import json
 
-from utils import interfaces, scenarios, weblog, missing_feature, features
+from utils import interfaces, scenarios, weblog, missing_feature, features, logger
 from utils.buddies import java_buddy
-from utils.tools import logger
 
 
 class _BaseKafka:

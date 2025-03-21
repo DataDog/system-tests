@@ -8,7 +8,8 @@ import copy
 import json
 import threading
 
-from utils.tools import logger, get_rid_from_user_agent, get_rid_from_span
+from utils.tools import get_rid_from_user_agent, get_rid_from_span
+from utils._logger import logger
 from utils.dd_constants import RemoteConfigApplyState, Capabilities
 from utils.interfaces._core import ProxyBasedInterfaceValidator
 from utils.interfaces._library._utils import get_trace_request_path

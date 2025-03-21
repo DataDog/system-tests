@@ -4,7 +4,7 @@ from utils import remote_config
 class BaseAppsecApiSecurityRcTest:
     states = None
 
-    def setup_scenario(self):
+    def setup_scenario(self) -> None:
         if BaseAppsecApiSecurityRcTest.states is None:
             rc_state = remote_config.rc_state
             rc_state.set_config(
