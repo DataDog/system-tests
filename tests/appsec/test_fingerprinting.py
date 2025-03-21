@@ -29,12 +29,20 @@ class Test_Fingerprinting_Header_And_Network:
     def test_fingerprinting_network(self):
         assert self.r.status_code == 200
         assert self.n.status_code == 200
+
+        # Attack trace
         r_span_meta = get_span_meta(self.r)
         assert all("_dd.appsec.fp.http.network" in m for m in r_span_meta)
         for m in r_span_meta:
             fp = m["_dd.appsec.fp.http.network"]
             assert re.match(self.network_fingerprint_regex, fp), f"{fp} does not match network fingerprint regex"
-        assert all("_dd.appsec.fp.http.network" not in m for m in get_span_meta(self.n))
+
+        # Non-attack trace
+        n_span_meta = get_span_meta(self.n)
+        assert all("_dd.appsec.fp.http.network" in m for m in n_span_meta)
+        for m in n_span_meta:
+            fp = m["_dd.appsec.fp.http.network"]
+            assert re.match(self.network_fingerprint_regex, fp), f"{fp} does not match network fingerprint regex"
 
     def setup_fingerprinting_header(self):
         self.r = weblog.get("/", headers=ARACHNI_HEADERS)
@@ -43,12 +51,20 @@ class Test_Fingerprinting_Header_And_Network:
     def test_fingerprinting_header(self):
         assert self.r.status_code == 200
         assert self.n.status_code == 200
+
+        # Attack trace
         r_span_meta = get_span_meta(self.r)
         assert all("_dd.appsec.fp.http.header" in m for m in r_span_meta)
         for m in r_span_meta:
             fp = m["_dd.appsec.fp.http.header"]
             assert re.match(self.header_fingerprint_regex, fp), f"{fp} does not match header fingerprint regex"
-        assert all("_dd.appsec.fp.http.header" not in m for m in get_span_meta(self.n))
+
+        # Non-attack trace
+        n_span_meta = get_span_meta(self.n)
+        assert all("_dd.appsec.fp.http.header" in m for m in n_span_meta)
+        for m in n_span_meta:
+            fp = m["_dd.appsec.fp.http.header"]
+            assert re.match(self.header_fingerprint_regex, fp), f"{fp} does not match header fingerprint regex"
 
     def setup_fingerprinting_network_block(self):
         self.r = weblog.get("/", headers=DD_BLOCK_HEADERS)
@@ -77,13 +93,20 @@ class Test_Fingerprinting_Endpoint:
     def test_fingerprinting_endpoint(self):
         assert self.r.status_code == 200
         assert self.n.status_code == 200
+
+        # Attack trace
         r_span_meta = get_span_meta(self.r)
         assert all("_dd.appsec.fp.http.endpoint" in m for m in r_span_meta)
         for m in r_span_meta:
             fp = m["_dd.appsec.fp.http.endpoint"]
             assert re.match(self.endpoint_fingerprint_regex, fp), f"{fp} does not match endpoint fingerprint regex"
-        assert all("_dd.appsec.fp.http.endpoint" not in m for m in get_span_meta(self.n))
 
+        # Non-attack trace
+        n_span_meta = get_span_meta(self.n)
+        assert all("_dd.appsec.fp.http.endpoint" in m for m in n_span_meta)
+        for m in n_span_meta:
+            fp = m["_dd.appsec.fp.http.endpoint"]
+            assert re.match(self.endpoint_fingerprint_regex, fp), f"{fp} does not match endpoint fingerprint regex"
 
 @rfc("https://docs.google.com/document/d/1DivOa9XsCggmZVzMI57vyxH2_EBJ0-qqIkRHm_sEvSs/edit#heading=h.88xvn2cvs9dt")
 @features.fingerprinting
