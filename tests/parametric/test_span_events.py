@@ -1,7 +1,7 @@
 import json
 import pytest
 
-from utils import scenarios, features, rfc, irrelevant
+from utils import scenarios, features, rfc, irrelevant, missing_feature
 from utils.parametric.spec.trace import find_span, find_trace
 
 
@@ -146,6 +146,7 @@ class Test_Span_Events:
 
         self._test_span_with_native_event(library_env, test_agent, test_library)
 
+    @missing_feature(library="java", reason="Does not support native span events")
     @pytest.mark.parametrize("library_env", [{"DD_TRACE_API_VERSION": "v0.4", "DD_TRACE_NATIVE_SPAN_EVENTS": "1"}])
     def test_span_with_event_v04(self, library_env, test_agent, test_library):
         """Test adding a span event in the v0.4 format, which support the native attribute representation."""
@@ -161,6 +162,7 @@ class Test_Span_Events:
 
         self._test_span_with_meta_event(library_env, test_agent, test_library)
 
+    @missing_feature(library="java", reason="Does not support native span events")
     @pytest.mark.parametrize("library_env", [{"DD_TRACE_API_VERSION": "v0.4", "DD_TRACE_NATIVE_SPAN_EVENTS": "1"}])
     def test_span_with_invalid_event_attributes(self, library_env, test_agent, test_library):
         """Test adding a span event, with invalid attributes, to an active span.

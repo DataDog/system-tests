@@ -1243,6 +1243,25 @@ public class App {
         }
     }
 
+    @GetMapping("/add_event")
+    public String addEvent() {
+        Tracer tracer = GlobalOpenTelemetry.getTracer("system-tests");
+        
+        io.opentelemetry.api.trace.Span span = tracer.spanBuilder("add_event")
+            .setSpanKind(INTERNAL)
+            .startSpan();
+            
+        try (Scope scope = span.makeCurrent()) {
+            span.addEvent("test_event", Attributes.builder()
+                .put("test_key", "test_value")
+                .build());
+        } finally {
+            span.end();
+        }
+        
+        return "OK";
+    }
+
     public static void main(String[] args) {
         SpringApplication.run(App.class, args);
     }

@@ -264,10 +264,11 @@ require 'datadog/tracing/span_event'
 # /add_event
 class AddEvent
   def self.run(request)
-    Datadog::Tracing.active_span.span_events << Datadog::Tracing::SpanEvent.new(
-                'span.event', attributes: { string: 'value', int: 1 }
-              )
-
+    Datadog::Tracing.trace('add_event') do |span|
+      span.span_events << Datadog::Tracing::SpanEvent.new(
+        'span.event', attributes: { string: 'value', int: 1 }
+      )
+    end
     [200, { 'Content-Type' => 'application/json' }, ['Event added']]
   end
 end

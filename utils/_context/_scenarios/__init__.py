@@ -916,7 +916,7 @@ class _Scenarios:
 
     agent_supporting_span_events = EndToEndScenario(
         "AGENT_SUPPORTING_SPAN_EVENTS",
-        weblog_env={"DD_TRACE_NATIVE_SPAN_EVENTS": "1"},
+        weblog_env={"DD_TRACE_NATIVE_SPAN_EVENTS": "1", "DD_TRACE_OTEL_ENABLED": "true"},
         span_events=True,
         doc="The trace agent support Span Events and it is enabled through an environment variable",
         scenario_groups=[ScenarioGroup.INTEGRATIONS],
@@ -924,7 +924,7 @@ class _Scenarios:
 
     agent_not_supporting_span_events = EndToEndScenario(
         "AGENT_NOT_SUPPORTING_SPAN_EVENTS",
-        weblog_env={"DD_TRACE_NATIVE_SPAN_EVENTS": "0"},
+        weblog_env={"DD_TRACE_NATIVE_SPAN_EVENTS": "0", "DD_TRACE_OTEL_ENABLED": "true"},
         span_events=False,
         doc="The trace agent does not support Span Events as a top-level span field",
         scenario_groups=[ScenarioGroup.INTEGRATIONS],
