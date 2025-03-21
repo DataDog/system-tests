@@ -13,7 +13,7 @@ class Test_Span_Events:
         """Test adding a span event, with attributes, to an active span.
         Assumes native format where all values are serialized according to their original type.
         """
-        time0 = 123450 # microseconds
+        time0 = 123450  # microseconds
         name0 = "event_name"
         attributes0 = {
             "string": "bar",
@@ -26,7 +26,7 @@ class Test_Span_Events:
             "double_arr": [1.1, 2.2],
         }
 
-        time1 = 123451 # microseconds
+        time1 = 123451  # microseconds
         name1 = "other_event"
         attributes1 = {"bool": False, "int": 0, "double": 0.0}
 
@@ -45,7 +45,7 @@ class Test_Span_Events:
         assert len(span_events) == 2
 
         event = span_events[0]
-        assert event["time_unix_nano"] == time0 * 1000 # microseconds to nanoseconds
+        assert event["time_unix_nano"] == time0 * 1000  # microseconds to nanoseconds
         assert event["name"] == name0
         assert event["attributes"].get("string") == {"type": 0, "string_value": "bar"}
         assert event["attributes"].get("bool") == {"type": 1, "bool_value": True}
@@ -86,7 +86,7 @@ class Test_Span_Events:
         """Test adding a span event, with attributes, to an active span.
         Assumes meta format where all values are strings.
         """
-        time0 = 123450 # microseconds
+        time0 = 123450  # microseconds
         name0 = "event_name"
         attributes0 = {
             "string": "bar",
@@ -99,7 +99,7 @@ class Test_Span_Events:
             "double_arr": ["1.1", "2.2"],
         }
 
-        time1 = 123451 # microseconds
+        time1 = 123451  # microseconds
         name1 = "other_event"
         attributes1 = {"bool": "false", "int": "0", "double": "0.0"}
 
@@ -118,7 +118,7 @@ class Test_Span_Events:
         assert len(span_events) == 2
 
         event = span_events[0]
-        assert event["time_unix_nano"] == time0 * 1000 # microseconds to nanoseconds
+        assert event["time_unix_nano"] == time0 * 1000  # microseconds to nanoseconds
         assert event["name"] == name0
         assert event["attributes"].get("string") == "bar"
         assert event["attributes"].get("bool") == "true"
@@ -130,7 +130,7 @@ class Test_Span_Events:
         assert event["attributes"].get("double_arr") == ["1.1", "2.2"]
 
         event = span_events[1]
-        assert event["time_unix_nano"] == time1 * 1000 # microseconds to nanoseconds
+        assert event["time_unix_nano"] == time1 * 1000  # microseconds to nanoseconds
         assert event["name"] == name1
         assert event["attributes"].get("bool") == "false"
         assert event["attributes"].get("int") == "0"
