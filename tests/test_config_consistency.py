@@ -117,6 +117,7 @@ class Test_Config_ObfuscationQueryStringRegexp_Empty:
         self.r = weblog.get("/?application_key=value")
 
     @bug(context.library == "python", reason="APMAPI-772")
+    @bug(context.library >= "java@1.48.0" and context.weblog_variant == "spring-boot-3-native", reason="APMAPI-1251")
     def test_query_string_obfuscation_empty_server(self):
         spans = [s for _, _, s in interfaces.library.get_spans(request=self.r, full_trace=True)]
         server_span = _get_span_by_tags(spans, tags={"http.url": "http://localhost:7777/?application_key=value"})
