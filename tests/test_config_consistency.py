@@ -298,6 +298,7 @@ class Test_Config_ClientIPHeader_Configured:
             "/make_distant_call", params={"url": "http://weblog:7777"}, headers={"custom-ip-header": "5.6.7.9"}
         )
 
+    @bug(context.library >= "java@1.48.0", reason="APMAPI-1251")
     def test_ip_headers_sent_in_one_request(self):
         # Ensures the header set in DD_TRACE_CLIENT_IP_HEADER takes precedence over all supported ip headers
         trace = [span for _, _, span in interfaces.library.get_spans(self.req, full_trace=True)]
@@ -377,11 +378,11 @@ def _get_span_by_tags(spans, tags):
     logger.info(f"Try to find span with metag tags {tags}")
 
     for span in spans:
+        meta = span["meta"]
+        logger.debug(f"Checking span {span['span_id']} meta:\n{'\n'.join(map(str,meta.items()))}")
         # Avoids retrieving the client span by the operation/resource name, this value varies between languages
         # Use the expected tags to identify the span
         for k, v in tags.items():
-            meta = span["meta"]
-
             if k not in meta:
                 logger.debug(f"Span {span['span_id']} does not have tag {k}")
                 break
