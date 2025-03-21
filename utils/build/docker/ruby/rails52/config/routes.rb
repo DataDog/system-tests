@@ -29,13 +29,12 @@ Rails.application.routes.draw do
   match '/tag_value/:tag_value/:status_code' => 'system_test#tag_value', via: :options
   get '/users' => 'system_test#users'
 
-  devise_for :users
-  %i[get post].each do |request_method|
-    # We have to provide format: false to make sure the Test_DiscoveryScan test do not break
-    # https://github.com/DataDog/system-tests/blob/515310b5fb1fd0792fc283c9ee134ab3803d6e7c/tests/appsec/waf/test_rules.py#L374
-    # The test hits '/login.pwd' and expects a 404.
-    # By default rails parse format by default and consider the route to exists. We want want onlt '/login' to exists
-    send(request_method, '/login' => 'system_test#login', format: false)
+  devise_for :users, skip: :all
+  devise_scope :user do
+    get '/login' => 'login_events#create', format: false
+
+    post '/login' => 'login_events#create', format: false
+    psot '/signup' => 'signup_events#create', format: false
   end
 
   get '/requestdownstream' => 'system_test#request_downstream'
