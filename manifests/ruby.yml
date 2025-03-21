@@ -337,7 +337,7 @@ tests/:
         sinatra32: missing_feature (We do not instrument authentication frameworks that work with sinatra or rack)
         sinatra40: missing_feature (We do not instrument authentication frameworks that work with sinatra or rack)
         uds-sinatra: missing_feature (We do not instrument authentication frameworks that work with sinatra or rack)
-      Test_V3_Login_Events_Blocking: 
+      Test_V3_Login_Events_Blocking:
         "*": v2.12.0.dev
         rack: missing_feature (We do not instrument authentication frameworks that work with sinatra or rack)
         sinatra14: missing_feature (We do not instrument authentication frameworks that work with sinatra or rack)
