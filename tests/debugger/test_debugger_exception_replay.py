@@ -2,9 +2,9 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-import tests.debugger.utils as debugger
-import os
 import re
+import os
+import tests.debugger.utils as debugger
 from utils import scenarios, features, bug, context, flaky, irrelevant, logger
 
 
@@ -212,12 +212,12 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
             scrub_language = __scrub_none
 
         def __approve(snapshots):
-            debugger.write_approval(snapshots, test_name, "snapshots_received")
+            self.write_approval(snapshots, test_name, "snapshots_received")
 
             if _OVERRIDE_APROVALS:
-                debugger.write_approval(snapshots, test_name, "snapshots_expected")
+                self.write_approval(snapshots, test_name, "snapshots_expected")
 
-            expected_snapshots = debugger.read_approval(test_name, "snapshots_expected")
+            expected_snapshots = self.read_approval(test_name, "snapshots_expected")
             assert expected_snapshots == snapshots
             assert all(
                 "exceptionId" in snapshot for snapshot in snapshots
@@ -265,12 +265,12 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
             return scrubbed_spans
 
         def __approve(spans):
-            debugger.write_approval(spans, test_name, "spans_received")
+            self.write_approval(spans, test_name, "spans_received")
 
             if _OVERRIDE_APROVALS:
-                debugger.write_approval(spans, test_name, "spans_expected")
+                self.write_approval(spans, test_name, "spans_expected")
 
-            expected = debugger.read_approval(test_name, "spans_expected")
+            expected = self.read_approval(test_name, "spans_expected")
             assert expected == spans
 
             missing_keys_dict = {}
