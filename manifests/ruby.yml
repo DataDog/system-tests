@@ -353,7 +353,18 @@ tests/:
     test_automated_user_and_session_tracking.py:
       Test_Automated_Session_Blocking: missing_feature
       Test_Automated_User_Blocking: v2.12.0.dev
-      Test_Automated_User_Tracking: v2.12.0.dev
+      Test_Automated_User_Tracking:
+        "*": v2.12.0.dev
+        rack: missing_feature (We do not instrument authentication frameworks that work with sinatra or rack)
+        sinatra14: missing_feature (We do not instrument authentication frameworks that work with sinatra or rack)
+        sinatra20: missing_feature (We do not instrument authentication frameworks that work with sinatra or rack)
+        sinatra21: missing_feature (We do not instrument authentication frameworks that work with sinatra or rack)
+        sinatra22: missing_feature (We do not instrument authentication frameworks that work with sinatra or rack)
+        sinatra30: missing_feature (We do not instrument authentication frameworks that work with sinatra or rack)
+        sinatra31: missing_feature (We do not instrument authentication frameworks that work with sinatra or rack)
+        sinatra32: missing_feature (We do not instrument authentication frameworks that work with sinatra or rack)
+        sinatra40: missing_feature (We do not instrument authentication frameworks that work with sinatra or rack)
+        uds-sinatra: missing_feature (We do not instrument authentication frameworks that work with sinatra or rack)
     test_blocking_addresses.py:
       Test_BlockingGraphqlResolvers: v2.3.1-dev
       Test_Blocking_client_ip: v1.0.0
