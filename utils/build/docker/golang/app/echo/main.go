@@ -22,11 +22,11 @@ import (
 
 	"github.com/labstack/echo/v4"
 
-	"gopkg.in/DataDog/dd-trace-go.v1/appsec"
-	echotrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/labstack/echo.v4"
-	httptrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/net/http"
-	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
-	"gopkg.in/DataDog/dd-trace-go.v1/profiler"
+	echotrace "github.com/DataDog/dd-trace-go/contrib/labstack/echo.v4/v2"
+	httptrace "github.com/DataDog/dd-trace-go/contrib/net/http/v2"
+	"github.com/DataDog/dd-trace-go/v2/appsec"
+	"github.com/DataDog/dd-trace-go/v2/ddtrace/tracer"
+	"github.com/DataDog/dd-trace-go/v2/profiler"
 )
 
 func main() {
