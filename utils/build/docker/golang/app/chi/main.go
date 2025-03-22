@@ -16,19 +16,17 @@ import (
 	"syscall"
 	"time"
 
-	"weblog/internal/rasp"
-
 	"weblog/internal/common"
 	"weblog/internal/grpc"
+	"weblog/internal/rasp"
 
 	"github.com/go-chi/chi/v5"
 
-	"gopkg.in/DataDog/dd-trace-go.v1/appsec"
-	chitrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/go-chi/chi.v5"
-	httptrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/net/http"
-	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace"
-	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
-	"gopkg.in/DataDog/dd-trace-go.v1/profiler"
+	chitrace "github.com/DataDog/dd-trace-go/contrib/go-chi/chi.v5/v2"
+	httptrace "github.com/DataDog/dd-trace-go/contrib/net/http/v2"
+	"github.com/DataDog/dd-trace-go/v2/appsec"
+	"github.com/DataDog/dd-trace-go/v2/ddtrace/tracer"
+	"github.com/DataDog/dd-trace-go/v2/profiler"
 )
 
 func main() {
@@ -210,7 +208,7 @@ func main() {
 		if q := uquery.Get("event_user_id"); q != "" {
 			uid = q
 		}
-		appsec.TrackUserLoginSuccessEvent(r.Context(), uid, map[string]string{"metadata0": "value0", "metadata1": "value1"})
+		appsec.TrackUserLoginSuccess(r.Context(), uid, uid, map[string]string{"metadata0": "value0", "metadata1": "value1"})
 	})
 
 	mux.HandleFunc("/user_login_failure_event", func(w http.ResponseWriter, r *http.Request) {
@@ -226,7 +224,7 @@ func main() {
 				exists = parsed
 			}
 		}
-		appsec.TrackUserLoginFailureEvent(r.Context(), uid, exists, map[string]string{"metadata0": "value0", "metadata1": "value1"})
+		appsec.TrackUserLoginFailure(r.Context(), uid, exists, map[string]string{"metadata0": "value0", "metadata1": "value1"})
 	})
 
 	mux.HandleFunc("/custom_event", func(w http.ResponseWriter, r *http.Request) {
@@ -242,7 +240,7 @@ func main() {
 		parentName := r.URL.Query().Get("parentName")
 		childName := r.URL.Query().Get("childName")
 
-		tags := []ddtrace.StartSpanOption{}
+		tags := []tracer.StartSpanOption{}
 
 		// We need to propagate the user agent header to retain the mapping between the system-tests/weblog request id
 		// and the traces/spans that will be generated below, so that we can reference to them in our tests.
@@ -288,7 +286,7 @@ func main() {
 			w.WriteHeader(500)
 			w.Write([]byte("missing session cookie"))
 		}
-		appsec.TrackUserLoginSuccessEvent(r.Context(), user, map[string]string{}, tracer.WithUserSessionID(cookie.Value))
+		appsec.TrackUserLoginSuccess(r.Context(), user, user, map[string]string{}, tracer.WithUserSessionID(cookie.Value))
 	})
 
 	mux.HandleFunc("/rasp/lfi", rasp.LFI)
