@@ -3,6 +3,7 @@ import json
 from utils._context.header_tag_vars import VALID_CONFIGS, INVALID_CONFIGS
 from utils.proxy.ports import ProxyPorts
 from utils.tools import update_environ_with_local_env
+from utils.k8s_lib_injection.k8s_weblog import K8sWeblogSpecs
 
 from .core import Scenario, ScenarioGroup
 from .default import DefaultScenario
@@ -19,6 +20,7 @@ from .docker_ssi import DockerSSIScenario
 from .external_processing import ExternalProcessingScenario
 from .ipv6 import IPV6Scenario
 from .appsec_low_waf_timeout import AppsecLowWafTimeout
+
 
 update_environ_with_local_env()
 
@@ -863,26 +865,52 @@ class _Scenarios:
     k8s_lib_injection_profiling_disabled = K8sScenario(
         "K8S_LIB_INJECTION_PROFILING_DISABLED",
         doc="Kubernetes lib injection with admission controller and profiling disabled by default",
-        weblog_env={"DD_PROFILING_UPLOAD_PERIOD": "10", "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500"},
+        k8s_weblog_specs=K8sWeblogSpecs(
+            weblog_env={"DD_PROFILING_UPLOAD_PERIOD": "10", "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500"}
+        ),
         scenario_groups=[ScenarioGroup.ALL, ScenarioGroup.LIB_INJECTION_PROFILING],
     )
     k8s_lib_injection_profiling_enabled = K8sScenario(
         "K8S_LIB_INJECTION_PROFILING_ENABLED",
         doc="Kubernetes lib injection with admission controller and profiling enaabled by cluster config",
-        weblog_env={"DD_PROFILING_UPLOAD_PERIOD": "10", "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500"},
         dd_cluster_feature={"datadog.profiling.enabled": "auto"},
+        k8s_weblog_specs=K8sWeblogSpecs(
+            weblog_env={"DD_PROFILING_UPLOAD_PERIOD": "10", "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500"}
+        ),
         scenario_groups=[ScenarioGroup.ALL, ScenarioGroup.LIB_INJECTION_PROFILING],
     )
     k8s_lib_injection_profiling_override = K8sScenario(
         "K8S_LIB_INJECTION_PROFILING_OVERRIDE",
         doc="Kubernetes lib injection with admission controller and profiling enaabled overriting cluster config",
-        weblog_env={"DD_PROFILING_UPLOAD_PERIOD": "10", "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500"},
         dd_cluster_feature={
             "clusterAgent.env[0].name": "DD_ADMISSION_CONTROLLER_AUTO_INSTRUMENTATION_PROFILING_ENABLED",
             "clusterAgent.env[0].value": "auto",
         },
-        scenario_groups=[ScenarioGroup.ALL, ScenarioGroup.LIB_INJECTION_PROFILING],
+        k8s_weblog_specs=K8sWeblogSpecs(
+            weblog_env={"DD_PROFILING_UPLOAD_PERIOD": "10", "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500"}
+        ),
     )
+    k8s_lib_injection_all_namespaces_old = K8sScenario(
+        "K8S_LIB_INJECTION_ALL_NAMESPACES_OLD",
+        doc="",
+        dd_cluster_feature={
+            "clusterAgent.datadog_cluster_yaml.apm_config.instrumentation.enabled": "true",
+            "clusterAgent.datadog_cluster_yaml.apm_config.instrumentation.targets[0].name": "my-app",
+            "clusterAgent.datadog_cluster_yaml.apm_config.instrumentation.targets[0].podSelector.matchLabels.app": (
+                "my-app"
+            ),
+            "clusterAgent.datadog_cluster_yaml.apm_config.instrumentation.targets[0].namespaceSelector.matchNames[0]": (
+                "application"
+            ),
+            "clusterAgent.datadog_cluster_yaml.apm_config.instrumentation.targets[0].ddTraceVersions.#k8s-library#": (
+                "#k8s-lib-init-img#"
+            ),
+        },
+        inject_by_annotations=False,
+        k8s_weblog_specs=K8sWeblogSpecs(namespace="application"),
+        scenario_groups=[ScenarioGroup.ALL, ScenarioGroup.LIB_INJECTION, ScenarioGroup.LIB_INJECTION_PROFILING],
+    )
+
     k8s_lib_injection_spark_djm = K8sSparkScenario("K8S_LIB_INJECTION_SPARK_DJM", doc="Kubernetes lib injection DJM")
 
     docker_ssi = DockerSSIScenario(

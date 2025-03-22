@@ -82,7 +82,7 @@
        
     ],
     "cluster_agent_spec": {
-        "latest": "gcr.io/datadoghq/cluster-agent:latest",
+        "latest": "gcr.io/datadoghq/cluster-agent:7.64.0-rc.10",
         "old_injection": "gcr.io/datadoghq/cluster-agent:7.56.2"
     }
 }
