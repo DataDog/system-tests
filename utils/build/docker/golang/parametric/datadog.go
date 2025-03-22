@@ -11,8 +11,8 @@ import (
 	"strings"
 
 	"github.com/sirupsen/logrus"
-	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace"
-	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
+	"github.com/DataDog/dd-trace-go/v2/ddtrace"
+	"github.com/DataDog/dd-trace-go/v2/ddtrace/tracer"
 )
 
 func (s *apmClientServer) startSpanHandler(w http.ResponseWriter, r *http.Request) {

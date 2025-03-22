@@ -217,12 +217,16 @@ elif [ "$TARGET" = "golang" ]; then
     rm -rf golang-load-from-go-get
     set -o pipefail
 
-    TARGET_BRANCH="${TARGET_BRANCH:-main}"
-    echo "load last commit on $TARGET_BRANCH for DataDog/dd-trace-go"
-    COMMIT_ID=$(curl -sS --fail "https://api.github.com/repos/DataDog/dd-trace-go/branches/$TARGET_BRANCH" | jq -r .commit.sha)
+    # TODO(eliott.bouhana): change once dd-trace-go v2 is released and merged on main
+    GO_GET_TARGET="${TARGET_BRANCH:-v2-dev}"
 
-    echo "Using gopkg.in/DataDog/dd-trace-go.v1@$COMMIT_ID"
-    echo "gopkg.in/DataDog/dd-trace-go.v1@$COMMIT_ID" > golang-load-from-go-get
+    if [ "$GO_GET_TARGET" != "v2-dev" ]; then
+        echo "load last commit on $TARGET_BRANCH for DataDog/dd-trace-go"
+        GO_GET_TARGET=$(curl -sS -v --fail "https://api.github.com/repos/DataDog/dd-trace-go/branches/$TARGET_BRANCH" | jq -r .commit.sha)
+    fi
+
+    echo "Using github.com/DataDog/dd-trace-go/v2@$GO_GET_TARGET"
+    echo "$GO_GET_TARGET" > golang-load-from-go-get
 
     echo "Using ghcr.io/datadog/dd-trace-go/service-extensions-callout:dev"
     echo "ghcr.io/datadog/dd-trace-go/service-extensions-callout:dev" > golang-service-extensions-callout-image
