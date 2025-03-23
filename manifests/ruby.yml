@@ -428,6 +428,10 @@ tests/:
         rails70: missing_feature (feature not implemented)
         rails80: missing_feature (feature not implemented)
         uds-rails: missing_feature (feature not implemented)
+    test_debugger_telemetry.py:
+      Test_Debugger_Telemetry:
+        "*": irrelevant
+        rails70: missing_feature (feature not implemented)
   integrations/:
     crossed_integrations/:
       test_kafka.py:
@@ -549,6 +553,8 @@ tests/:
     test_process_discovery.py: missing_feature
     test_sampling_delegation.py:
       Test_Decisionless_Extraction: v2.4.0
+    test_span_events.py:
+      Test_Span_Events: missing_feature
     test_span_links.py:
       Test_Span_Links: v2.0.0
     test_telemetry.py:

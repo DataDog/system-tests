@@ -244,7 +244,7 @@ def _get_skip_reason_from_marker(marker: pytest.Mark) -> str | None:
 def pytest_pycollect_makemodule(module_path: Path, parent: pytest.Session) -> None | pytest.Module:
     # As now, declaration only works for tracers at module level
 
-    library = context.scenario.library.library
+    library = context.library.library
 
     manifests = load_manifests()
 
@@ -523,7 +523,7 @@ def export_feature_parity_dashboard(session: pytest.Session, data: dict) -> None
         "runDate": data["created"],
         "environment": session.config.option.report_environment or "local",
         "testSource": "systemtests",
-        "language": context.scenario.library.library,
+        "language": context.library.library,
         "variant": context.weblog_variant,
         "testedDependencies": [
             {"name": name, "version": str(version)} for name, version in context.scenario.components.items()

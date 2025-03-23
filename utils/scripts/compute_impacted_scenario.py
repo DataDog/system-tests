@@ -198,6 +198,7 @@ def main() -> None:
                     r"utils/k8s_lib_injection.*": ScenarioGroup.LIB_INJECTION,
                     r"utils/onboarding.*": ScenarioGroup.ONBOARDING,
                     r"utils/parametric/.*": scenarios.parametric,
+                    r"utils/telemetry/.*": ScenarioGroup.TELEMETRY,
                     r"utils/proxy/.*": [
                         ScenarioGroup.END_TO_END,
                         ScenarioGroup.OPEN_TELEMETRY,

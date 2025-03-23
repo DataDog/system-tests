@@ -45,25 +45,21 @@ exclude = [
     "utils/grpc/weblog_pb2.py",  # auto generated
 
     # TODO
-    "tests/fuzzer/.*",
-    "tests/test_the_test/.*",
+    "utils/_context/core.py",
     "tests/test_telemetry.py",
     "tests/appsec/.*",
-    "tests/debugger/.*",
     "tests/auto_inject/.*",
     "tests/integrations/.*",
     "tests/otel_tracing_e2e/test_e2e.py",
     "tests/k8s_lib_injection/test_k8s_init_image_validator.py",
+    "tests/k8s_lib_injection/test_k8s_lib_injection_djm.py",
+    "tests/k8s_lib_injection/test_k8s_lib_injection.py",
     "utils/_context/_scenarios/auto_injection.py",
     "utils/_context/_scenarios/k8s_lib_injection.py",
-    "utils/_context/core.py",
     "utils/_context/virtual_machines.py",
-    "utils/scripts/decode-rc.py",
     "utils/docker_ssi/.*",
     "utils/k8s_lib_injection/.*",
     "utils/onboarding/.*",
-    "utils/otel_validators/validator_trace.py",
-    "utils/proxy/_deserializer.py",
     "utils/scripts/merge_gitlab_aws_pipelines.py",
     "utils/virtual_machine/.*",
 ]
@@ -207,9 +203,6 @@ ignore = [
 "tests/auto_inject/*" = [
     "ANN001",  # missing-type-function-argument: TODO
     "SLF001",  # private-member-access: TODO
-]
-"tests/debugger/utils.py" = [
-    "ANN001",  # missing-type-function-argument: TODO
 ]
 "tests/fuzzer/*" = [
     "ANN001",   # missing-type-function-argument: TODO   

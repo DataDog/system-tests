@@ -249,6 +249,21 @@ class _Scenarios:
         scenario_groups=[ScenarioGroup.APPSEC],
     )
 
+    appsec_and_rc_enabled = EndToEndScenario(
+        "APPSEC_AND_RC_ENABLED",
+        rc_api_enabled=True,
+        appsec_enabled=True,
+        iast_enabled=False,
+        weblog_env={"DD_APPSEC_WAF_TIMEOUT": "10000000", "DD_APPSEC_TRACE_RATE_LIMIT": "10000"},  # 10 seconds
+        doc="""
+            A scenario with AppSec and Remote Config enabled. In addition WAF and
+            tracer are configured to have bigger threshold.
+            This scenario should be used in most of the cases if you need
+            Remote Config and AppSec working for all libraries.
+        """,
+        scenario_groups=[ScenarioGroup.APPSEC],
+    )
+
     appsec_runtime_activation = EndToEndScenario(
         "APPSEC_RUNTIME_ACTIVATION",
         rc_api_enabled=True,
@@ -684,6 +699,21 @@ class _Scenarios:
         library_interface_timeout=5,
         doc="Test scenario for checking dynamic enablement.",
         scenario_groups=[ScenarioGroup.DEBUGGER],
+    )
+
+    debugger_telemetry = EndToEndScenario(
+        "DEBUGGER_TELEMETRY",
+        rc_api_enabled=True,
+        weblog_env={
+            "DD_REMOTE_CONFIG_ENABLED": "true",
+            "DD_CODE_ORIGIN_FOR_SPANS_ENABLED": "1",
+            "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1",
+            "DD_EXCEPTION_DEBUGGING_ENABLED": "1",
+            "DD_SYMBOL_DATABASE_UPLOAD_ENABLED": "1",
+        },
+        library_interface_timeout=5,
+        doc="Test scenario for checking debugger telemetry.",
+        scenario_groups=[ScenarioGroup.DEBUGGER, ScenarioGroup.TELEMETRY],
     )
 
     fuzzer = DockerScenario("FUZZER", doc="Fake scenario for fuzzing (launch without pytest)", github_workflow=None)
