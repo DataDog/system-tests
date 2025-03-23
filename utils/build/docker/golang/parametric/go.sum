@@ -18,8 +18,8 @@ github.com/DataDog/datadog-agent/pkg/version v0.64.0-rc.1 h1:eg+XW2CzOwFa//bjoXi
 github.com/DataDog/datadog-agent/pkg/version v0.64.0-rc.1/go.mod h1:DgOVsfSRaNV4GZNl/qgoZjG3hJjoYUNWPPhbfTfTqtY=
 github.com/DataDog/datadog-go/v5 v5.6.0 h1:2oCLxjF/4htd55piM75baflj/KoE6VYS7alEUqFvRDw=
 github.com/DataDog/datadog-go/v5 v5.6.0/go.mod h1:K9kcYBlxkcPP8tvvjZZKs/m1edNAUFzBbdpTUKfCsuw=
-github.com/DataDog/dd-trace-go/v2 v2.0.0-rc.9 h1:lLv82c94XZmgm8+H7EXFjH8Ib0atWZNCFb0Kq0fOA+4=
-github.com/DataDog/dd-trace-go/v2 v2.0.0-rc.9/go.mod h1:xIufQxUmfBZo0m2ZCO0bYrGwzwfefrzsF/uOJNw+GJM=
+github.com/DataDog/dd-trace-go/v2 v2.0.0-rc.4.0.20250323122035-faf5ee724a25 h1:ruGxCajYwh+nWwlI3Hpi4sQ5spnMQ1fXuvnOQbyaNuQ=
+github.com/DataDog/dd-trace-go/v2 v2.0.0-rc.4.0.20250323122035-faf5ee724a25/go.mod h1:xIufQxUmfBZo0m2ZCO0bYrGwzwfefrzsF/uOJNw+GJM=
 github.com/DataDog/go-libddwaf/v3 v3.5.3 h1:UzIUhr/9SnRpDkxE18VeU6Fu4HiDv9yIR5R36N/LwVI=
 github.com/DataDog/go-libddwaf/v3 v3.5.3/go.mod h1:HoLUHdj0NybsPBth/UppTcg8/DKA4g+AXuk8cZ6nuoo=
 github.com/DataDog/go-runtime-metrics-internal v0.0.4-0.20241206090539-a14610dc22b6 h1:bpitH5JbjBhfcTG+H2RkkiUXpYa8xSuIPnyNtTaSPog=
@@ -79,6 +79,7 @@ github.com/google/gofuzz v1.0.0/go.mod h1:dBl0BpW6vV/+mYPU4Po3pmUjxk6FQPldtuIdl/
 github.com/google/gofuzz v1.2.0 h1:xRy4A+RhZaiKjJ1bPfwQ8sedCA+YS2YcCHW6ec7JMi0=
 github.com/google/gofuzz v1.2.0/go.mod h1:dBl0BpW6vV/+mYPU4Po3pmUjxk6FQPldtuIdl/M65Eg=
 github.com/google/pprof v0.0.0-20241210010833-40e02aabc2ad h1:a6HEuzUHeKH6hwfN/ZoQgRgVIWFJljSWa/zetS2WTvg=
+github.com/google/pprof v0.0.0-20241210010833-40e02aabc2ad/go.mod h1:vavhavw2zAxS5dIdcRluK6cSGGPlZynqzFM8NdvU144=
 github.com/google/uuid v1.6.0 h1:NIvaJDMOsjHA8n1jAhLSgzrAzy1Hgr+hNrb57e+94F0=
 github.com/google/uuid v1.6.0/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+yHo=
 github.com/hashicorp/go-secure-stdlib/parseutil v0.1.8 h1:iBt4Ew4XEGLfh6/bPk4rSYmuZJGizr6/x/AEizP0CQc=

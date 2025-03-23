@@ -4,15 +4,15 @@ go 1.23.0
 
 require (
 	github.com/99designs/gqlgen v0.17.36
-	github.com/DataDog/dd-trace-go/contrib/99designs/gqlgen/v2 v2.0.0-rc.9
-	github.com/DataDog/dd-trace-go/contrib/Shopify/sarama/v2 v2.0.0-rc.9
-	github.com/DataDog/dd-trace-go/contrib/database/sql/v2 v2.0.0-rc.9
-	github.com/DataDog/dd-trace-go/contrib/gin-gonic/gin/v2 v2.0.0-rc.9
-	github.com/DataDog/dd-trace-go/contrib/go-chi/chi.v5/v2 v2.0.0-rc.9
-	github.com/DataDog/dd-trace-go/contrib/google.golang.org/grpc/v2 v2.0.0-rc.9
-	github.com/DataDog/dd-trace-go/contrib/graph-gophers/graphql-go/v2 v2.0.0-rc.9
-	github.com/DataDog/dd-trace-go/contrib/graphql-go/graphql/v2 v2.0.0-rc.9
-	github.com/DataDog/dd-trace-go/contrib/labstack/echo.v4/v2 v2.0.0-rc.9
+	github.com/DataDog/dd-trace-go/contrib/99designs/gqlgen/v2 v2.0.0-rc.4.0.20250323122035-faf5ee724a25
+	github.com/DataDog/dd-trace-go/contrib/Shopify/sarama/v2 v2.0.0-rc.4.0.20250323122035-faf5ee724a25
+	github.com/DataDog/dd-trace-go/contrib/database/sql/v2 v2.0.0-rc.4.0.20250323122035-faf5ee724a25
+	github.com/DataDog/dd-trace-go/contrib/gin-gonic/gin/v2 v2.0.0-rc.4.0.20250323122035-faf5ee724a25
+	github.com/DataDog/dd-trace-go/contrib/go-chi/chi.v5/v2 v2.0.0-rc.4.0.20250323122035-faf5ee724a25
+	github.com/DataDog/dd-trace-go/contrib/google.golang.org/grpc/v2 v2.0.0-rc.4.0.20250323122035-faf5ee724a25
+	github.com/DataDog/dd-trace-go/contrib/graph-gophers/graphql-go/v2 v2.0.0-rc.4.0.20250323122035-faf5ee724a25
+	github.com/DataDog/dd-trace-go/contrib/graphql-go/graphql/v2 v2.0.0-rc.4.0.20250323122035-faf5ee724a25
+	github.com/DataDog/dd-trace-go/contrib/labstack/echo.v4/v2 v2.0.0-rc.4.0.20250323122035-faf5ee724a25
 	github.com/DataDog/dd-trace-go/contrib/net/http/v2 v2.0.0-rc.9
 	github.com/DataDog/dd-trace-go/v2 v2.0.0-rc.9
 	github.com/Shopify/sarama v1.38.1

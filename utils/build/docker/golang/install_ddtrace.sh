@@ -14,12 +14,17 @@ if [ -e "/binaries/dd-trace-go" ]; then
         echo "Install contrib $contrib from folder /binaries/dd-trace-go/$path"
         go mod edit -replace "github.com/DataDog/dd-trace-go/$path/v2=/binaries/dd-trace-go/$path"
     done
+elif [ -e "/binaries/golang-load-from-go-get" ]; then
+    echo "Install from go get"
+    while read -r line; do
+        go get -v "$line"
+        path="${line#github.com/DataDog/dd-trace-go/}"
+        version="${line##*@}"
+        path="${path%/v2@*}"
+    done < /binaries/golang-load-from-go-get
 else
     echo "Installing production dd-trace-version"
     TARGET="latest"
-    if [ -e "/binaries/golang-load-from-go-get" ]; then
-        TARGET="$(cat /binaries/golang-load-from-go-get)"
-    fi
     echo "Install from go get -v $MAIN_MODULE@$TARGET"
     go get -v "$MAIN_MODULE@$TARGET"
     for contrib in $CONTRIBS; do
