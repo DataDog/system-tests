@@ -89,22 +89,37 @@ def find_series(
     return series
 
 
-def validate_metric(name: str, metric_type: str, metric: dict) -> None:
+def validate_metric(name: str, metric_type: str, metric: dict, *, check_block_success: bool = False) -> bool:
     return (
         metric.get("metric") == name
         and metric.get("type") == "count"
         and f"rule_type:{metric_type}" in metric.get("tags", ())
         and any(s.startswith("waf_version:") for s in metric.get("tags", ()))
+        and any(s.startswith("event_rules_version:") for s in metric.get("tags", ()))
+        and (not check_block_success or "block:success" in metric.get("tags", ()))
     )
 
 
-def validate_metric_variant(name: str, metric_type: str, variant: str, metric: dict) -> bool:
+def validate_distribution(name: str, metric_type: str, metric: dict, *, check_type: bool = False) -> bool:
+    return (
+        metric.get("metric") == name
+        and (not check_type or f"rule_type:{metric_type}" in metric.get("tags", ()))
+        and any(s.startswith("waf_version:") for s in metric.get("tags", ()))
+        and any(s.startswith("event_rules_version:") for s in metric.get("tags", ()))
+    )
+
+
+def validate_metric_variant(
+    name: str, metric_type: str, variant: str, metric: dict, *, check_block_success: bool = False
+) -> bool:
     return (
         metric.get("metric") == name
         and metric.get("type") == "count"
         and f"rule_type:{metric_type}" in metric.get("tags", ())
         and f"rule_variant:{variant}" in metric.get("tags", ())
         and any(s.startswith("waf_version:") for s in metric.get("tags", ()))
+        and any(s.startswith("event_rules_version:") for s in metric.get("tags", ()))
+        and (not check_block_success or "block:success" in metric.get("tags", ()))
     )
 
 
