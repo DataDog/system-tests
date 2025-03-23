@@ -2,7 +2,7 @@
 
 set -euv
 
-CONTRIBS="$(go list -m all | grep github.com/DataDog/dd-trace-go | cut -f1 '-d ' | grep -v github.com/DataDog/dd-trace-go/v2)"
+CONTRIBS="$(go list -m all | grep github.com/DataDog/dd-trace-go/contrib | cut -f1 -d' ')"
 MAIN_MODULE="github.com/DataDog/dd-trace-go/v2"
 
 if [ -e "/binaries/dd-trace-go" ]; then
