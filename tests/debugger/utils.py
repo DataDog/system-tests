@@ -353,12 +353,11 @@ class BaseDebuggerTest:
 
         return False
 
-    def wait_for_telemetry(self, telemetry_type: str, timeout: int = 5) -> dict:
+    def wait_for_telemetry(self, telemetry_type: str, timeout: int = 5) -> dict | None:
         self._telemetry: dict | None = None
         interfaces.agent.wait_for(
             lambda data: self._wait_for_telemetry(data, telemetry_type=telemetry_type), timeout=timeout
         )
-        assert self._telemetry is not None
         return self._telemetry
 
     def _wait_for_telemetry(self, data: dict, telemetry_type: str) -> bool:
@@ -528,7 +527,7 @@ class BaseDebuggerTest:
     def get_tracer(self) -> dict[str, str]:
         if not BaseDebuggerTest.tracer:
             BaseDebuggerTest.tracer = {
-                "language": str(context.library).split("@")[0],
+                "language": context.library.library,
                 "tracer_version": str(context.library.version),
             }
 
