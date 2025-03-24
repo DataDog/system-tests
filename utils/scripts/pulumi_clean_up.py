@@ -13,7 +13,7 @@ DEFAULT_AMI_RETENTION_DAYS = 100
 DEFAULT_AMI_LAST_LAUNCHED_DAYS = 111
 
 
-def get_last_launched_time(ami_id) -> datetime:
+def get_last_launched_time(ami_id: str) -> datetime:
     """Fetches the last launched time of an AMI using AWS CLI.
     https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ami-last-launched-time.html
     Considerations: When the AMI is used to launch an instance, there is a 24-hour delay before that usage is reported.
@@ -48,7 +48,7 @@ def get_last_launched_time(ami_id) -> datetime:
     return datetime.now(UTC)
 
 
-def deregister_ami(ami_id) -> None:
+def deregister_ami(ami_id: str) -> None:
     """Deregisters an AMI using AWS CLI."""
     try:
         subprocess.run(["aws", "ec2", "deregister-image", "--image-id", ami_id], check=True)
@@ -57,7 +57,7 @@ def deregister_ami(ami_id) -> None:
         print(f"⚠️ Failed to deregister AMI {ami_id}: {e}")
 
 
-def delete_snapshot(snapshot_id) -> None:
+def delete_snapshot(snapshot_id: str) -> None:
     """Deletes a snapshot using AWS CLI."""
     try:
         subprocess.run(["aws", "ec2", "delete-snapshot", "--snapshot-id", snapshot_id], check=True)
@@ -66,14 +66,14 @@ def delete_snapshot(snapshot_id) -> None:
         print(f"⚠️ Failed to delete snapshot {snapshot_id}: {e}")
 
 
-def delete_ami(ami) -> None:
+def delete_ami(ami: aws.ec2.Ami) -> None:
     # Deregister the AMI using AWS CLI
     deregister_ami(ami.id)
 
     for block in ami.block_device_mappings:
         if "ebs" in block and "snapshot_id" in block["ebs"]:
             snapshot_id = block["ebs"]["snapshot_id"]
-            pulumi.log.info(f"🗑️ Deleting snapshot: {snapshot_id}")
+            print(f"🗑️ Deleting snapshot: {snapshot_id}")
             delete_snapshot(snapshot_id)
 
 
@@ -157,6 +157,36 @@ async def clean_up_amis_by_name() -> None:
             delete_ami(ami)
 
 
+async def clean_up_ec2_running_instances() -> None:
+    """Delete the ec2 instances that are running for more than x minutes"""
+    config = Config()
+    ec2_age_minutes = int(config.require("ec2_age_minutes"))
+    # Fetch all EC2 instances (not filtered by state)
+    instances = aws.ec2.get_instances(
+        filters=[
+            aws.ec2.GetInstancesFilterArgs(name="tag:CI", values=["system-tests"]),
+            aws.ec2.GetInstancesFilterArgs(name="instance-state-name", values=["running"]),
+        ]
+    )
+
+    now = datetime.now(UTC)
+    for instance in instances.ids:
+        instance_data = aws.ec2.get_instance(id=instance)
+        launch_time = datetime.strptime(instance_data.launch_time, "%Y-%m-%dT%H:%M:%S+00:00")  # noqa: DTZ007
+        age = now - launch_time
+
+        if age > timedelta(minutes=ec2_age_minutes):
+            print(f"Terminating instance {instance} (age: {age})")
+            aws.ec2.Instance.get(f"terminate-{instance}", id=instance).urn.apply(
+                lambda urn: pulumi.ResourceOptions(delete_before_replace=True)  # noqa: ARG005
+            )
+
+            # Deletion is done by registering the resource and letting Pulumi handle its removal
+            aws.ec2.Instance(
+                f"delete-{instance}", instance_id=instance, opts=pulumi.ResourceOptions(delete_before_replace=True)
+            )
+
+
 def create_pulumi_stack(program) -> auto.Stack:
     stack = None
     stack_name = "system-tests_onboarding_cleanup"
@@ -184,6 +214,14 @@ def clean_up_amis_by_name_stack_up(ami_name: str, ami_lang: str) -> None:
         stack.set_config("ami_name", auto.ConfigValue(ami_name))
     if ami_lang:
         stack.set_config("ami_lang", auto.ConfigValue(ami_lang))
+    up_res = stack.up(on_output=print)
+    print(f"🚀 Stack up result: {up_res}")
+    stack.destroy(on_output=print, debug=True)
+
+
+def clean_up_ec2_stack_up(ec2_age_minutes: int = 45) -> None:
+    stack = create_pulumi_stack(clean_up_ec2_running_instances)
+    stack.set_config("ec2_age_minutes", auto.ConfigValue(str(ec2_age_minutes)))
     up_res = stack.up(on_output=print)
     print(f"🚀 Stack up result: {up_res}")
     stack.destroy(on_output=print, debug=True)
