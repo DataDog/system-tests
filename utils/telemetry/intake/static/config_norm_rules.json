@@ -156,6 +156,7 @@
     "DD_INTERNAL_TELEMETRY_V2_ENABLED": "instrumentation_telemetry_v2_enabled",
     "DD_INTERNAL_WAIT_FOR_DEBUGGER_ATTACH": "internal_wait_for_debugger_attach_enabled",
     "DD_INTERNAL_WAIT_FOR_NATIVE_DEBUGGER_ATTACH": "internal_wait_for_native_debugger_attach_enabled",
+    "DD_LIVE_DEBUGGING_ENABLED": "live_debugging_enabled",
     "DD_LIB_INJECTED": "dd_lib_injected",
     "DD_LIB_INJECTION_ATTEMPTED": "dd_lib_injection_attempted",
     "DD_LOGS_DIRECT_SUBMISSION_BATCH_PERIOD_SECONDS": "logs_direct_submission_batch_period_seconds",
