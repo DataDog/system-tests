@@ -212,8 +212,8 @@ class Test_Lfi_RC_CustomAction:
         self.r5 = weblog.get("/rasp/lfi", params={"file": "../etc/passwd"})
 
     def test_lfi_get(self):
-        assert self.config_state_1[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
-        assert self.config_state_1b[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
+        assert self.config_state_1.state == rc.ApplyState.ACKNOWLEDGED
+        assert self.config_state_1b.state == rc.ApplyState.ACKNOWLEDGED
         assert self.r1.status_code == 403
         interfaces.library.assert_rasp_attack(
             self.r1,
@@ -224,7 +224,7 @@ class Test_Lfi_RC_CustomAction:
             },
         )
 
-        assert self.config_state_2[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
+        assert self.config_state_2.state == rc.ApplyState.ACKNOWLEDGED
         assert self.r2.status_code == 505
         interfaces.library.assert_rasp_attack(
             self.r2,
@@ -235,7 +235,7 @@ class Test_Lfi_RC_CustomAction:
             },
         )
 
-        assert self.config_state_3[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
+        assert self.config_state_3.state == rc.ApplyState.ACKNOWLEDGED
         assert self.r3.status_code == 302
         assert self.r3.headers["Location"] == "http://google.com"
 
@@ -248,7 +248,7 @@ class Test_Lfi_RC_CustomAction:
             },
         )
 
-        assert self.config_state_4[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
+        assert self.config_state_4.state == rc.ApplyState.ACKNOWLEDGED
         assert self.r4.status_code == 403
         interfaces.library.assert_rasp_attack(
             self.r4,
@@ -259,7 +259,7 @@ class Test_Lfi_RC_CustomAction:
             },
         )
 
-        assert self.config_state_5[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
+        assert self.config_state_5.state == rc.ApplyState.ACKNOWLEDGED
         assert self.r5.status_code == 200
 
         interfaces.library.assert_no_appsec_event(self.r5)
