@@ -827,7 +827,7 @@ class WeblogContainer(TestedContainer):
         library = self.image.labels["system-tests-library"]
 
         header_tags = ""
-        if library in ("cpp", "dotnet", "java", "python"):
+        if library in ("cpp_nginx", "cpp_httpd", "dotnet", "java", "python"):
             header_tags = "user-agent:http.request.headers.user-agent"
         elif library in ("golang", "nodejs", "php", "ruby"):
             header_tags = "user-agent"
