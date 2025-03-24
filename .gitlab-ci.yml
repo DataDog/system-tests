@@ -233,7 +233,19 @@ delete_amis_by_name_or_lang:
           echo "✅ Proceeding with AMI_NAME=$AMI_NAME, AMI_LANG=$AMI_LANG"
         - ./build.sh -i runner
         - source venv/bin/activate
-        - python utils/scripts/pulumi_clean_up.py --component amis_by_name --ami-name $AMI_NAME --ami-lang $AMI_LANG
+        - |
+          CMD="python utils/scripts/pulumi_clean_up.py --component amis_by_name"
+
+          if [ -n "$AMI_NAME" ]; then
+            CMD="$CMD --ami-name $AMI_NAME"
+          fi
+
+          if [ -n "$AMI_LANG" ]; then
+            CMD="$CMD --ami-lang $AMI_LANG"
+          fi
+
+          echo "Running: $CMD"
+          eval $CMD
   rules:
     - if: '$SCHEDULED_JOB == "delete_amis_by_name_or_lang"'
   after_script: echo "Finish"

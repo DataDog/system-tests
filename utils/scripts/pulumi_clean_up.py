@@ -6,7 +6,6 @@ import pulumi
 import pulumi_aws as aws
 from pulumi import automation as auto
 from datetime import datetime, timedelta, UTC
-from utils.tools import logger
 from pulumi import Config
 
 # Define retention settings
@@ -53,18 +52,18 @@ def deregister_ami(ami_id) -> None:
     """Deregisters an AMI using AWS CLI."""
     try:
         subprocess.run(["aws", "ec2", "deregister-image", "--image-id", ami_id], check=True)
-        pulumi.log.info(f"✅ Successfully deregistered AMI {ami_id}")
+        print(f"✅ Successfully deregistered AMI {ami_id}")
     except Exception as e:
-        pulumi.log.warn(f"⚠️ Failed to deregister AMI {ami_id}: {e}")
+        print(f"⚠️ Failed to deregister AMI {ami_id}: {e}")
 
 
 def delete_snapshot(snapshot_id) -> None:
     """Deletes a snapshot using AWS CLI."""
     try:
         subprocess.run(["aws", "ec2", "delete-snapshot", "--snapshot-id", snapshot_id], check=True)
-        pulumi.log.info(f"✅ Successfully deleted snapshot {snapshot_id}")
+        print(f"✅ Successfully deleted snapshot {snapshot_id}")
     except Exception as e:
-        pulumi.log.warn(f"⚠️ Failed to delete snapshot {snapshot_id}: {e}")
+        print(f"⚠️ Failed to delete snapshot {snapshot_id}: {e}")
 
 
 def delete_ami(ami) -> None:
@@ -220,5 +219,5 @@ if __name__ == "__main__":
     elif args.component == "amis_by_name":
         clean_up_amis_by_name_stack_up(args.ami_name, args.ami_lang)
     else:
-        logger.error(f"Invalid component: {args.component}")
+        print(f"Invalid component: {args.component}")
         raise ValueError(f"Invalid component: {args.component}")
