@@ -2,6 +2,9 @@ import os
 import argparse
 import subprocess
 import json
+from typing import Any
+from collections.abc import Callable, Coroutine
+
 import pulumi
 import pulumi_aws as aws
 from pulumi import automation as auto
@@ -205,7 +208,8 @@ async def clean_up_ec2_running_instances() -> None:
             # )
 
 
-def create_pulumi_stack(program) -> auto.Stack:
+# def create_pulumi_stack(program: Callable[[], None]) -> auto.Stack:
+def create_pulumi_stack(program: Callable[[], Coroutine[Any, Any, None]]) -> auto.Stack:
     stack = None
     stack_name = "system-tests_onboarding_cleanup"
     project_name = "system-tests-vms"
