@@ -6,7 +6,7 @@ import pytest
 from utils._context.library_version import LibraryVersion
 from utils._logger import logger
 from utils.onboarding.debug_vm import extract_logs_to_file
-from utils.virtual_machine.utils import get_tested_apps_vms, generate_gitlab_pipeline
+from utils.virtual_machine.utils import get_tested_apps_vms
 from utils.virtual_machine.virtual_machines import _VirtualMachine, load_virtual_machines
 from utils.scripts.ci_orchestrators.workflow_data import get_aws_matrix
 from .core import Scenario
@@ -73,11 +73,9 @@ class _VirtualMachineScenario(Scenario):
             raise ValueError(
                 f"Invalid value for --vm-default-vms: {self.only_default_vms}. Use 'All', 'True' or 'False'"
             )
-        # Pipeline generation mode. No run tests, no start vms
-        self.vm_gitlab_pipeline = config.option.vm_gitlab_pipeline
 
-        # TODO REMOVE THIS AFTER REMOVE THE PIPELINE GENERATION FROM THE SCENARIO.
-        # TODO we will load only the machine set by the --vm-only flag
+        # TODO RMM REMOVE THIS AFTER REMOVE THE PIPELINE GENERATION FROM THE SCENARIO.
+        # TODO RMM we will load only the machine set by the --vm-only flag
         all_vms = load_virtual_machines(self.vm_provider_id)
         supported_vm_names = get_aws_matrix(
             "utils/virtual_machine/virtual_machines.json",
@@ -93,54 +91,25 @@ class _VirtualMachineScenario(Scenario):
             ]
         logger.info(f"Supported VMs: {', '.join([vm.name for vm in supported_vms])}")
 
-        if self.vm_gitlab_pipeline:
-            # For the pipeline generation we need to caclculate the provision for each machine
-            # For cache pipelie we need to cache name and this came from the provision
-            for vm in supported_vms:
-                vm.add_provision(
-                    provisioner.get_provision(
-                        self._library.library,
-                        self._env,
-                        self._weblog,
-                        self.vm_provision_name,
-                        vm.os_type,
-                        vm.os_distro,
-                        vm.os_branch,
-                        vm.os_cpu,
-                    )
-                )
-            pipeline = generate_gitlab_pipeline(
-                config.option.vm_library,
-                self._weblog,
-                self.name,
+        assert config.option.vm_only is not None, "No VM selected to run. Use --vm-only"
+        self.virtual_machine = next((vm for vm in supported_vms if vm.name == config.option.vm_only), None)
+        assert self.virtual_machine is not None, f"VM not found: {config.option.vm_only}"
+        logger.info(f"Selected VM: {self.virtual_machine.name}")
+        self.vm_provider.configure(self.virtual_machine)
+        self.virtual_machine.add_provision(
+            provisioner.get_provision(
+                self._library.library,
                 self._env,
-                supported_vms,
-                os.getenv("DD_INSTALLER_LIBRARY_VERSION", ""),
-                os.getenv("DD_INSTALLER_INJECTOR_VERSION", ""),
-                "one-pipeline" in self.vm_gitlab_pipeline,
+                self._weblog,
+                self.vm_provision_name,
+                self.virtual_machine.os_type,
+                self.virtual_machine.os_distro,
+                self.virtual_machine.os_branch,
+                self.virtual_machine.os_cpu,
             )
-            with open(f"{self.host_log_folder}/gitlab_pipeline.yml", "w", encoding="utf-8") as f:
-                json.dump(pipeline, f, ensure_ascii=False, indent=4)
-        else:
-            assert config.option.vm_only is not None, "No VM selected to run. Use --vm-only"
-            self.virtual_machine = next((vm for vm in supported_vms if vm.name == config.option.vm_only), None)
-            assert self.virtual_machine is not None, f"VM not found: {config.option.vm_only}"
-            logger.info(f"Selected VM: {self.virtual_machine.name}")
-            self.vm_provider.configure(self.virtual_machine)
-            self.virtual_machine.add_provision(
-                provisioner.get_provision(
-                    self._library.library,
-                    self._env,
-                    self._weblog,
-                    self.vm_provision_name,
-                    self.virtual_machine.os_type,
-                    self.virtual_machine.os_distro,
-                    self.virtual_machine.os_branch,
-                    self.virtual_machine.os_cpu,
-                )
-            )
-            self.virtual_machine.add_agent_env(self.agent_env)
-            self.virtual_machine.add_app_env(self.app_env)
+        )
+        self.virtual_machine.add_agent_env(self.agent_env)
+        self.virtual_machine.add_app_env(self.app_env)
 
     def _check_test_environment(self):
         """Check if the test environment is correctly set"""

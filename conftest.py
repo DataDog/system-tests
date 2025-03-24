@@ -73,13 +73,6 @@ def pytest_addoption(parser: pytest.Parser) -> None:
     parser.addoption("--vm-provider", type=str, action="store", help="Set provider for VMs")
     parser.addoption("--vm-only", type=str, action="store", help="Filter to execute only one vm name")
     parser.addoption(
-        "--vm-gitlab-pipeline",
-        type=str,
-        action="store",
-        help="Generate pipeline for Gitlab CI. Not run the tests. Values: one-pipeline, system-tests",
-    )
-
-    parser.addoption(
         "--vm-default-vms",
         type=str,
         action="store",
