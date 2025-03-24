@@ -89,7 +89,16 @@ def find_series(
     return series
 
 
-def validate_metric(name: str, metric_type: str, metric: dict, *, check_block_success: bool = False) -> bool:
+def validate_metric(name: str, metric_type: str, metric: dict) -> bool:
+    return (
+        metric.get("metric") == name
+        and metric.get("type") == "count"
+        and f"rule_type:{metric_type}" in metric.get("tags", ())
+        and any(s.startswith("waf_version:") for s in metric.get("tags", ()))
+    )
+
+
+def validate_metric_v2(name: str, metric_type: str, metric: dict, *, check_block_success: bool = False) -> bool:
     return (
         metric.get("metric") == name
         and metric.get("type") == "count"
@@ -109,7 +118,17 @@ def validate_distribution(name: str, metric_type: str, metric: dict, *, check_ty
     )
 
 
-def validate_metric_variant(
+def validate_metric_variant(name: str, metric_type: str, variant: str, metric: dict) -> bool:
+    return (
+        metric.get("metric") == name
+        and metric.get("type") == "count"
+        and f"rule_type:{metric_type}" in metric.get("tags", ())
+        and f"rule_variant:{variant}" in metric.get("tags", ())
+        and any(s.startswith("waf_version:") for s in metric.get("tags", ()))
+    )
+
+
+def validate_metric_variant_v2(
     name: str, metric_type: str, variant: str, metric: dict, *, check_block_success: bool = False
 ) -> bool:
     return (

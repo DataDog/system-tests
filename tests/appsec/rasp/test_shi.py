@@ -11,6 +11,7 @@ from tests.appsec.rasp.utils import (
     find_series,
     validate_metric,
     validate_metric_variant,
+    validate_metric_variant_v2,
     BaseRulesVersion,
     BaseWAFVersion,
 )
@@ -193,14 +194,14 @@ class Test_Shi_Telemetry_V2:
 
         series_eval = find_series("appsec", "rasp.rule.eval", is_metrics=True)
         assert series_eval
-        assert any(validate_metric("rasp.rule.eval", "command_injection", s) for s in series_eval), [
-            s.get("tags") for s in series_eval
-        ]
+        assert any(
+            validate_metric_variant_v2("rasp.rule.eval", "command_injection", "shell", s) for s in series_eval
+        ), [s.get("tags") for s in series_eval]
 
         series_match = find_series("appsec", "rasp.rule.match", is_metrics=True)
         assert series_match
         assert any(
-            validate_metric_variant("rasp.rule.match", "command_injection", "shell", s, check_block_success=True)
+            validate_metric_variant_v2("rasp.rule.match", "command_injection", "shell", s, check_block_success=True)
             for s in series_match
         ), [s.get("tags") for s in series_match]
 
