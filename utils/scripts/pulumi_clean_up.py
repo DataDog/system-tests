@@ -163,6 +163,7 @@ async def clean_up_amis_by_name() -> None:
 
 async def clean_up_ec2_running_instances() -> None:
     """Delete the ec2 instances that are running for more than x minutes"""
+    print("🔍 Cleaning up EC2 instances")
     config = Config()
     ec2_age_minutes = int(config.require("ec2_age_minutes"))
     # Fetch all EC2 instances (not filtered by state)
@@ -175,37 +176,20 @@ async def clean_up_ec2_running_instances() -> None:
 
     now = datetime.now(UTC)
     for instance in instances.ids:
+        print("Checking instance: ", instance)
         instance_data = aws.ec2.get_instance(instance_id=instance)
-        # launch_time = datetime.strptime(instance_data.launch_time, "%Y-%m-%dT%H:%M:%SZ")
-        launch_time = datetime.strptime(instance_data.launch_time, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=UTC)
+        if instance_data.launch_time:
+            launch_time = datetime.strptime(instance_data.launch_time, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=UTC)
 
-        age = now - launch_time
+            age = now - launch_time
 
-        if age > timedelta(minutes=ec2_age_minutes):
-            pulumi.log.info(f"💀 Terminating instance {instance} (age: {age})")
-            command.local.Command(
-                f"terminate-{instance}", create=f"aws ec2 terminate-instances --instance-ids {instance} "
-            )
-            # aws.ec2.Instance.get(f"terminate-{instance}", id=instance).urn.apply(
-            #    lambda urn: pulumi.ResourceOptions(delete_before_replace=True, retain_on_delete=False)
-            # )
-            # aws.ec2.Instance(
-            #    resource_name=f"terminate-{instance}",
-            #    opts=pulumi.ResourceOptions(
-            #        import_=instance,
-            #        delete_before_replace=True,
-            #        retain_on_delete=False
-            #    )
-            # )
-            # Deletion is done by registering the resource and letting Pulumi handle its removal
-            # aws.ec2.Instance(
-            #    f"delete-{instance}", instance_id=instance, opts=pulumi.ResourceOptions(delete_before_replace=True)
-            # )
-            # aws.ec2.Instance.get(
-            #    resource_name=f"terminate-{instance}",
-            #    id=instance,
-            #    opts=pulumi.ResourceOptions(delete_before_replace=True, retain_on_delete=False)
-            # )
+            if age > timedelta(minutes=ec2_age_minutes):
+                pulumi.log.info(f"💀 Terminating instance {instance} (age: {age})")
+                command.local.Command(
+                    f"terminate-{instance}", create=f"aws ec2 terminate-instances --instance-ids {instance} "
+                )
+        else:
+            print(f"⚠️ Skipping instance {instance} — launch_time is None")
 
 
 # def create_pulumi_stack(program: Callable[[], None]) -> auto.Stack:
@@ -223,8 +207,7 @@ def clean_up_amis_stack_up(ami_retention_days: int, ami_last_launched_days: int)
     stack = create_pulumi_stack(clean_up_amis)
     stack.set_config("ami_retention_days", auto.ConfigValue(str(ami_retention_days)))
     stack.set_config("ami_last_launched_days", auto.ConfigValue(str(ami_last_launched_days)))
-    up_res = stack.up(on_output=print)
-    print(f"🚀 Stack up result: {up_res}")
+    stack.up(on_output=print)
     stack.destroy(on_output=print, debug=True)
 
 
@@ -236,16 +219,14 @@ def clean_up_amis_by_name_stack_up(ami_name: str, ami_lang: str) -> None:
         stack.set_config("ami_name", auto.ConfigValue(ami_name))
     if ami_lang:
         stack.set_config("ami_lang", auto.ConfigValue(ami_lang))
-    up_res = stack.up(on_output=print)
-    print(f"🚀 Stack up result: {up_res}")
+    stack.up(on_output=print)
     stack.destroy(on_output=print, debug=True)
 
 
 def clean_up_ec2_stack_up(ec2_age_minutes: int = 45) -> None:
     stack = create_pulumi_stack(clean_up_ec2_running_instances)
     stack.set_config("ec2_age_minutes", auto.ConfigValue(str(ec2_age_minutes)))
-    up_res = stack.up(on_output=print)
-    print(f"🚀 Stack up result: {up_res}")
+    stack.up(on_output=print)
     stack.destroy(on_output=print, debug=True)
 
 
