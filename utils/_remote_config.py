@@ -32,9 +32,22 @@ def _post(path: str, payload: list[dict] | dict) -> None:
     requests.post(f"http://{domain}:{ProxyContainer.command_host_port}{path}", data=json.dumps(payload), timeout=30)
 
 
-class RemoteConfigStateResults(dict[str, dict[str, Any]]):
-    version: int
-    state: ApplyState
+class RemoteConfigStateResults:
+    def __init__(self, version: int, state: ApplyState = ApplyState.UNKNOWN, configs: dict | None = None) -> None:
+        self.version = version
+        self.state = state
+        self.configs: dict[str, dict] = configs if configs is not None else {}
+
+    def to_json(self) -> dict:
+        return {
+            "version": self.version,
+            "state": self.state,
+            "configs": self.configs,
+        }
+
+    @staticmethod
+    def from_json(d: dict) -> "RemoteConfigStateResults":
+        return RemoteConfigStateResults(version=d["version"], state=d["state"], configs=d["configs"])
 
 
 def send_state(
@@ -67,20 +80,18 @@ def send_state(
 
     client_configs = raw_payload.get("client_configs", [])
 
-    current_states = RemoteConfigStateResults()
+    current_states = RemoteConfigStateResults(version=state_version)
     version = None
     targets = json.loads(base64.b64decode(raw_payload["targets"]))
     version = targets["signed"]["version"]
     for client_config in client_configs:
         _, _, product, config_id, _ = client_config.split("/")
-        current_states[config_id] = {
+        current_states.configs[config_id] = {
             "id": config_id,
             "product": product,
             "apply_state": ApplyState.UNKNOWN,
             "apply_error": "<No known response from the library>",
         }
-    current_states.version = state_version
-    current_states.state = ApplyState.UNKNOWN
 
     state = {}
 
@@ -101,13 +112,13 @@ def send_state(
 
         config_states = state.get("config_states", [])
         for state in config_states:
-            config_state = current_states.get(state["id"])
+            config_state = current_states.configs.get(state["id"])
             if config_state and state["product"] == config_state["product"]:
                 logger.debug(f"Remote config state: {state}")
                 config_state.update(state)
 
         if wait_for_acknowledged_status:
-            for state in current_states.values():
+            for state in current_states.configs.values():
                 if state["apply_state"] == ApplyState.UNKNOWN:
                     return False
 
@@ -232,7 +243,7 @@ def build_debugger_command(probes: list | None, version: int):
     return _build_base_command(path_payloads, version)
 
 
-def send_debugger_command(probes: list, version: int = 1) -> dict:
+def send_debugger_command(probes: list, version: int = 1) -> RemoteConfigStateResults:
     raw_payload = build_debugger_command(probes, version)
     return send_state(raw_payload)
 

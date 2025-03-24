@@ -44,8 +44,12 @@ class GrpcResponse:
         self.request = GrpcRequest(data["request"])
         self.response = data["response"]
 
-    def serialize(self) -> dict:
-        return self._data | {"__class__": "GrpcResponse"}
+    def to_json(self) -> dict:
+        return self._data
+
+    @staticmethod
+    def from_json(data: dict) -> "GrpcResponse":
+        return GrpcResponse(data)
 
     def get_rid(self) -> str:
         user_agent = next(v for k, v in self.request.headers.items() if k.lower() == "user-agent")
@@ -72,8 +76,12 @@ class HttpResponse:
         self.text = data["text"]
         self.cookies = data["cookies"]
 
-    def serialize(self) -> dict:
-        return self._data | {"__class__": "HttpResponse"}
+    def to_json(self) -> dict:
+        return self._data
+
+    @staticmethod
+    def from_json(data: dict) -> "HttpResponse":
+        return HttpResponse(data)
 
     def __repr__(self) -> str:
         return f"HttpResponse(status_code:{self.status_code}, headers:{self.headers}, text:{self.text})"
