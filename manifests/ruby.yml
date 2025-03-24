@@ -214,6 +214,7 @@ tests/:
         Test_Sqli_Telemetry:
           "*": missing_feature
           rails42: bug (APPSEC-56765)  # ActiveRecord instrumentation with Rails < 5 and Ruby < 2.7 not working due to kwargs
+        Test_Sqli_Telemetry_V2: missing_feature
         Test_Sqli_UrlQuery:
           "*": missing_feature
           rails42: bug (APPSEC-56765)  # ActiveRecord instrumentation with Rails < 5 and Ruby < 2.7 not working due to kwargs
