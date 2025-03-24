@@ -689,7 +689,7 @@ def parse_log_injection_message(log_message):
     # To pass tests that use this function, ensure your library has an entry in log_injection_fields
     for data in stdout.get_data():
         logs = data.get("raw").split("\n")
-        regex_pattern = re.compile(r'\[(?:[^\]]*\b(dd\.\w+=\S+)\b[^\]]*)+\]\s*(.*)')
+        regex_pattern = re.compile(r"\[(?:[^\]]*\b(dd\.\w+=\S+)\b[^\]]*)+\]\s*(.*)")
         for log in logs:
             if context.library in ("python", "ruby"):
                 # Extract key-value pairs and messages
@@ -698,7 +698,7 @@ def parse_log_injection_message(log_message):
                     curr_message = match.group(2).strip()  # Extract message after last bracket
                     if curr_message != log_message:
                         continue
-                    dd_pairs = re.findall(r'dd\.\w+=\S+', match.group(0))  # Extract key-value pairs that start with dd.
+                    dd_pairs = re.findall(r"dd\.\w+=\S+", match.group(0))  # Extract key-value pairs that start with dd.
                     return {pair.split("=")[0]: pair.split("=")[1] for pair in dd_pairs}
             try:
                 message = json.loads(log)
