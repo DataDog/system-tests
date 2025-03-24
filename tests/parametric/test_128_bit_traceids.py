@@ -385,7 +385,10 @@ class Test_128_Bit_Traceids:
         assert dd_p_tid == "640cfd8d00000000"
         assert propagation_error is None
 
-    @missing_feature(context.library == "ruby", reason="not implemented")
+    @irrelevant(
+        context.library == "ruby",
+        reason="ruby tracer adds trace level tags to the local root span and not the chunk root span. This inconsistency is not a bug and is expected.",
+    )
     @pytest.mark.parametrize(
         "library_env",
         [{"DD_TRACE_PROPAGATION_STYLE": "tracecontext", "DD_TRACE_128_BIT_TRACEID_GENERATION_ENABLED": "true"}],
@@ -405,6 +408,26 @@ class Test_128_Bit_Traceids:
         first_span = find_first_span_in_trace_payload(trace)
         tid_chunk_root = first_span["meta"].get("_dd.p.tid")
         assert tid_chunk_root is not None
+
+    def test_w3c_128_bit_propagation_tid_in_trace_chunk(self, test_agent, test_library):
+        """Ensure that atleast one span in the trace chunk contains the tid."""
+        with (
+            test_library,
+            test_library.dd_start_span(name="parent", service="service", resource="resource") as parent,
+            test_library.dd_start_span(name="child", service="service", parent_id=parent.span_id),
+        ):
+            pass
+
+        traces = test_agent.wait_for_num_traces(1, clear=True, sort_by_start=False)
+        trace = find_trace(traces, parent.trace_id)
+        assert len(trace) == 2
+
+        for span in trace:
+            tid = span["meta"].get("_dd.p.tid")
+            if tid is not None:
+                break
+        else:
+            raise AssertionError(f"No span in the trace chunk contains the tid: {traces}")
 
     @missing_feature(context.library < "nodejs@5.38.0", reason="Implemented in 5.38.0")
     @pytest.mark.parametrize(
