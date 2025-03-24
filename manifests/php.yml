@@ -194,6 +194,7 @@ tests/:
         Test_Cmdi_Rules_Version: v1.6.2
         Test_Cmdi_StackTrace: missing_feature
         Test_Cmdi_Telemetry: missing_feature
+        Test_Cmdi_Telemetry_V2: missing_feature
         Test_Cmdi_Telemetry_Variant_Tag: missing_feature
         Test_Cmdi_UrlQuery: missing_feature
         Test_Cmdi_Waf_Version: v1.6.2
@@ -209,6 +210,7 @@ tests/:
         Test_Lfi_StackTrace: v1.6.2
         Test_Lfi_Telemetry: v1.7.0
         Test_Lfi_Telemetry_Multiple_Exploits: v1.7.0
+        Test_Lfi_Telemetry_V2: missing_feature
         Test_Lfi_UrlQuery: v1.6.2
         Test_Lfi_Waf_Version: v1.6.2
       test_shi.py:
@@ -221,6 +223,7 @@ tests/:
         Test_Shi_Rules_Version: v1.6.2
         Test_Shi_StackTrace: missing_feature
         Test_Shi_Telemetry: missing_feature
+        Test_Shi_Telemetry_V2: missing_feature
         Test_Shi_Telemetry_Variant_Tag: missing_feature
         Test_Shi_UrlQuery: missing_feature
         Test_Shi_Waf_Version: v1.6.2
@@ -234,6 +237,7 @@ tests/:
         Test_Sqli_Rules_Version: v1.6.2
         Test_Sqli_StackTrace: missing_feature
         Test_Sqli_Telemetry: missing_feature
+        Test_Sqli_Telemetry_V2: missing_feature
         Test_Sqli_UrlQuery: missing_feature
         Test_Sqli_Waf_Version: v1.6.2
       test_ssrf.py:
@@ -246,6 +250,7 @@ tests/:
         Test_Ssrf_Rules_Version: v1.7.0
         Test_Ssrf_StackTrace: v1.7.0
         Test_Ssrf_Telemetry: v1.7.0
+        Test_Ssrf_Telemetry_V2: missing_feature
         Test_Ssrf_UrlQuery: v1.7.0
         Test_Ssrf_Waf_Version: v1.7.0
     waf/:
