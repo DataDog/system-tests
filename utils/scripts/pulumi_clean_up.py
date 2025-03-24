@@ -7,6 +7,7 @@ import pulumi_aws as aws
 from pulumi import automation as auto
 from datetime import datetime, timedelta, UTC
 from pulumi import Config
+import pulumi_command as command
 
 # Define retention settings
 DEFAULT_AMI_RETENTION_DAYS = 100
@@ -171,20 +172,37 @@ async def clean_up_ec2_running_instances() -> None:
 
     now = datetime.now(UTC)
     for instance in instances.ids:
-        instance_data = aws.ec2.get_instance(id=instance)
-        launch_time = datetime.strptime(instance_data.launch_time, "%Y-%m-%dT%H:%M:%S+00:00")  # noqa: DTZ007
+        instance_data = aws.ec2.get_instance(instance_id=instance)
+        # launch_time = datetime.strptime(instance_data.launch_time, "%Y-%m-%dT%H:%M:%SZ")
+        launch_time = datetime.strptime(instance_data.launch_time, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=UTC)
+
         age = now - launch_time
 
         if age > timedelta(minutes=ec2_age_minutes):
-            print(f"Terminating instance {instance} (age: {age})")
-            aws.ec2.Instance.get(f"terminate-{instance}", id=instance).urn.apply(
-                lambda urn: pulumi.ResourceOptions(delete_before_replace=True)  # noqa: ARG005
+            pulumi.log.info(f"💀 Terminating instance {instance} (age: {age})")
+            command.local.Command(
+                f"terminate-{instance}", create=f"aws ec2 terminate-instances --instance-ids {instance} "
             )
-
+            # aws.ec2.Instance.get(f"terminate-{instance}", id=instance).urn.apply(
+            #    lambda urn: pulumi.ResourceOptions(delete_before_replace=True, retain_on_delete=False)
+            # )
+            # aws.ec2.Instance(
+            #    resource_name=f"terminate-{instance}",
+            #    opts=pulumi.ResourceOptions(
+            #        import_=instance,
+            #        delete_before_replace=True,
+            #        retain_on_delete=False
+            #    )
+            # )
             # Deletion is done by registering the resource and letting Pulumi handle its removal
-            aws.ec2.Instance(
-                f"delete-{instance}", instance_id=instance, opts=pulumi.ResourceOptions(delete_before_replace=True)
-            )
+            # aws.ec2.Instance(
+            #    f"delete-{instance}", instance_id=instance, opts=pulumi.ResourceOptions(delete_before_replace=True)
+            # )
+            # aws.ec2.Instance.get(
+            #    resource_name=f"terminate-{instance}",
+            #    id=instance,
+            #    opts=pulumi.ResourceOptions(delete_before_replace=True, retain_on_delete=False)
+            # )
 
 
 def create_pulumi_stack(program) -> auto.Stack:
@@ -249,6 +267,13 @@ if __name__ == "__main__":
         default=DEFAULT_AMI_LAST_LAUNCHED_DAYS,
     )
 
+    parser.add_argument(
+        "--ec2-age-minutes",
+        type=int,
+        help="Delete the ec2 instances that are running for more than x minutes",
+        default=DEFAULT_AMI_RETENTION_DAYS,
+    )
+
     parser.add_argument("--ami-name", type=str, help="Part of the name that we want to delete")
     parser.add_argument("--ami-lang", type=str, help="Lang pattern to remove amis")
     args = parser.parse_args()
@@ -256,6 +281,8 @@ if __name__ == "__main__":
         clean_up_amis_stack_up(args.ami_retention_days, args.ami_last_launched_days)
     elif args.component == "amis_by_name":
         clean_up_amis_by_name_stack_up(args.ami_name, args.ami_lang)
+    elif args.component == "ec2":
+        clean_up_ec2_stack_up(args.ec2_age_minutes)
     else:
         print(f"Invalid component: {args.component}")
         raise ValueError(f"Invalid component: {args.component}")
