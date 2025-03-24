@@ -614,7 +614,6 @@ class Test_TelemetryV2:
                     "appsec" in products
                 ), "Product information is not accurately reported by telemetry on app-started event"
 
-    @bug(library="java", reason="APMAPI-969")
     def test_config_telemetry_completeness(self):
         """Assert that config telemetry is handled properly by telemetry intake
 
