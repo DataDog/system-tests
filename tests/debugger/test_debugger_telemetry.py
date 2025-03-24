@@ -12,8 +12,8 @@ ALLOWED_ORIGINS = {"env_var", "code", "dd_config", "remote_config", "app.config"
 @features.debugger
 @scenarios.debugger_telemetry
 class Test_Debugger_Telemetry(debugger.BaseDebuggerTest):
-    telemetry = None
-    telemetry_data = None
+    telemetry: dict | None
+    telemetry_data: dict | None = None
 
     ############ setup ############
     def _setup(self):
