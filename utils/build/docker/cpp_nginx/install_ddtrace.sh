@@ -43,7 +43,7 @@ FILENAME=ngx_http_datadog_module-appsec-$ARCH-$NGINX_VERSION.so
 if [ -f "$FILENAME" ]; then
   echo "Install NGINX plugin from binaries/$FILENAME"
   cp $FILENAME /usr/lib/nginx/modules/ngx_http_datadog_module.so
-  NGINX_DATADOG_VERSION="6.6.6"  # TODO : get the version from the file ?
+  NGINX_DATADOG_VERSION="v99.99.99"  # TODO: get version from the binary. Right now, use the "big-version" trick
 else
   NGINX_DATADOG_VERSION="$(get_latest_release DataDog/nginx-datadog)"
   TARBALL="$FILENAME.tgz"
@@ -53,8 +53,6 @@ else
   rm "$TARBALL"
 fi
 
-VERSION=$(strings /usr/lib/nginx/modules/ngx_http_datadog_module.so | grep -F "[dd-trace-cpp version" | sed 's/.* version \([^]]\+\).*/\1/')
-echo '{"status": "ok", "library": {"language": "cpp", "version": "'$VERSION'"}}' > /builds/healthcheck.json
-echo $VERSION > SYSTEM_TESTS_LIBRARY_VERSION
-echo "Library version : $VERSION"
+echo '{"status": "ok", "library": {"language": "cpp_nginx", "version": "'$NGINX_DATADOG_VERSION'"}}' > /builds/healthcheck.json
+cat /builds/healthcheck.json
 
