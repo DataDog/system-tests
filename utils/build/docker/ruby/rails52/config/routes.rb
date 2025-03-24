@@ -34,7 +34,7 @@ Rails.application.routes.draw do
     get '/login' => 'login_events#create', format: false
 
     post '/login' => 'login_events#create', format: false
-    psot '/signup' => 'signup_events#create', format: false
+    post '/signup' => 'signup_events#create', format: false
   end
 
   get '/requestdownstream' => 'system_test#request_downstream'
