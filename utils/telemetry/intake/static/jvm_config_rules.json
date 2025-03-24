@@ -796,6 +796,7 @@
         "trace_okhttp",
         "trace_opensearch",
         "trace_pekko",
+        "trace_play_analytics",
         "trace_powermock",
         "trace_quartz",
         "trace_rabbitmq",
