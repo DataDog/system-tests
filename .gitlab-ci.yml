@@ -1,5 +1,7 @@
 include:
-  - remote: https://gitlab-templates.ddbuild.io/libdatadog/include/single-step-instrumentation-tests.yml
+ # - remote: https://gitlab-templates.ddbuild.io/libdatadog/include/single-step-instrumentation-tests.yml
+  - remote: https://gitlab-templates.ddbuild.io/libdatadog/include-wip/robertomonteromiguel/onboarding_tests_new_aws_account/single-step-instrumentation-tests.yml
+
 stages:
   - configure
   - nodejs
@@ -217,6 +219,24 @@ delete_amis:
     - if: '$SCHEDULED_JOB == "delete_amis"'
   after_script: echo "Finish"
   timeout: 3h
+
+delete_amis_by_name_or_lang:
+  extends: .base_job_onboarding
+  stage: system-tests-utils
+  allow_failure: false
+  script:
+        - |
+          if [ -z "$AMI_NAME" ] && [ -z "$AMI_LANG" ]; then
+            echo "❌ ERROR: Either AMI_NAME or AMI_LANG must be set."
+            exit 1
+          fi
+          echo "✅ Proceeding with AMI_NAME=$AMI_NAME, AMI_LANG=$AMI_LANG"
+        - ./build.sh -i runner
+        - source venv/bin/activate
+        - python utils/scripts/pulumi_clean_up.py --component amis_by_name --ami-name $AMI_NAME --ami-lang $AMI_LANG
+  rules:
+    - if: '$SCHEDULED_JOB == "delete_amis_by_name_or_lang"'
+  after_script: echo "Finish"
 
 check_merge_labels:
   #Build docker images if it's needed. Check if the PR has the labels associated with the image build.
