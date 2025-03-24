@@ -130,10 +130,9 @@ class _VirtualMachineScenario(Scenario):
 
     def get_warmups(self):
         warmups = super().get_warmups()
-        if not self.vm_gitlab_pipeline:
-            if self.is_main_worker:
-                warmups.append(lambda: logger.terminal.write_sep("=", "Provisioning Virtual Machines", bold=True))
-                warmups.append(self.vm_provider.stack_up)
+        if self.is_main_worker:
+            warmups.append(lambda: logger.terminal.write_sep("=", "Provisioning Virtual Machines", bold=True))
+            warmups.append(self.vm_provider.stack_up)
 
             warmups.append(self.fill_context)
 
@@ -163,7 +162,7 @@ class _VirtualMachineScenario(Scenario):
         self.close_targets()
 
     def close_targets(self):
-        if self.is_main_worker and not self.vm_gitlab_pipeline:
+        if self.is_main_worker:
             # Extract logs from the VM before destroy
             if self.virtual_machine.get_vm_logs() is not None:
                 extract_logs_to_file(self.virtual_machine.get_vm_logs(), self.host_log_folder)
