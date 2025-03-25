@@ -1407,13 +1407,19 @@ tests/:
         play: v1.22.0
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
     test_fingerprinting.py:
-      Test_Fingerprinting_Endpoint:
-        '*': v1.39.0
-        spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
       Test_Fingerprinting_Endpoint_Capability:
         '*': v1.39.0
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
-      Test_Fingerprinting_Header_And_Network:
+      Test_Fingerprinting_Endpoint_Postprocessor:
+        '*': v1.39.0
+        spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
+      Test_Fingerprinting_Endpoint_Preprocessor:
+        '*': v1.39.0
+        spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
+      Test_Fingerprinting_Header_And_Network_Postprocessor:
+        '*': v1.39.0
+        spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
+      Test_Fingerprinting_Header_And_Network_Preprocessor:
         '*': v1.39.0
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
       Test_Fingerprinting_Header_Capability:
@@ -1422,7 +1428,10 @@ tests/:
       Test_Fingerprinting_Network_Capability:
         '*': v1.39.0
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
-      Test_Fingerprinting_Session:
+      Test_Fingerprinting_Session_Capability:
+        '*': v1.40.0
+        spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
+      Test_Fingerprinting_Session_Postprocessor:
         '*': v1.40.0
         akka-http: missing_feature (endpoint not implemented)
         jersey-grizzly2: missing_feature (endpoint not implemented)
@@ -1435,9 +1444,19 @@ tests/:
         spring-boot-wildfly: v1.42.0
         vertx3: v1.46.0
         vertx4: v1.46.0
-      Test_Fingerprinting_Session_Capability:
+      Test_Fingerprinting_Session_Preprocessor:
         '*': v1.40.0
+        akka-http: missing_feature (endpoint not implemented)
+        jersey-grizzly2: missing_feature (endpoint not implemented)
+        play: missing_feature (endpoint not implemented)
+        ratpack: missing_feature (endpoint not implemented)
+        resteasy-netty3: missing_feature (endpoint not implemented)
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
+        spring-boot-jetty: v1.42.0
+        spring-boot-undertow: v1.42.0
+        spring-boot-wildfly: v1.42.0
+        vertx3: v1.46.0
+        vertx4: v1.46.0
     test_identify.py:
       Test_Basic:
         '*': v1.48.0

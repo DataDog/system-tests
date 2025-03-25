@@ -19,7 +19,7 @@ def get_span_meta(r):
 @rfc("https://docs.google.com/document/d/1DivOa9XsCggmZVzMI57vyxH2_EBJ0-qqIkRHm_sEvSs/edit#heading=h.88xvn2cvs9dt")
 @features.fingerprinting
 @scenarios.appsec_fingerprint_postprocessor
-class Test_Fingerprinting_Header_And_Network:
+class Test_Fingerprinting_Header_And_Network_Postprocessor:
     network_fingerprint_regex = r"net-[^-]*-[^-]*"
     header_fingerprint_regex = r"hdr-[^-]*-[^-]*-[^-]*-[^-]*"
 
@@ -69,7 +69,7 @@ class Test_Fingerprinting_Header_And_Network:
 @rfc("https://docs.google.com/document/d/1DivOa9XsCggmZVzMI57vyxH2_EBJ0-qqIkRHm_sEvSs/edit#heading=h.88xvn2cvs9dt")
 @features.fingerprinting
 @scenarios.appsec_fingerprint_postprocessor
-class Test_Fingerprinting_Endpoint:
+class Test_Fingerprinting_Endpoint_Postprocessor:
     endpoint_fingerprint_regex = r"http-[^-]*-[^-]*-[^-]*-[^-]*"
 
     def setup_fingerprinting_endpoint(self):
@@ -90,7 +90,7 @@ class Test_Fingerprinting_Endpoint:
 @rfc("https://docs.google.com/document/d/1DivOa9XsCggmZVzMI57vyxH2_EBJ0-qqIkRHm_sEvSs/edit#heading=h.88xvn2cvs9dt")
 @features.fingerprinting
 @scenarios.appsec_fingerprint_postprocessor
-class Test_Fingerprinting_Session:
+class Test_Fingerprinting_Session_Postprocessor:
     session_fingerprint_regex = r"ssn-[^-]*-[^-]*-[^-]*-[^-]*"
 
     def setup_session(self):
@@ -109,6 +109,35 @@ class Test_Fingerprinting_Session:
             fp = m["_dd.appsec.fp.session"]
             assert re.match(self.session_fingerprint_regex, fp), f"{fp} does not match session fingerprint regex"
         assert all("_dd.appsec.fp.session" not in m for m in get_span_meta(self.n))
+
+
+@rfc("https://docs.google.com/document/d/1DivOa9XsCggmZVzMI57vyxH2_EBJ0-qqIkRHm_sEvSs/edit#heading=h.88xvn2cvs9dt")
+@features.fingerprinting
+@scenarios.appsec_fingerprint_preprocessor
+class Test_Fingerprinting_Endpoint_Preprocessor:
+    endpoint_fingerprint_regex = r"http-[^-]*-[^-]*-[^-]*-[^-]*"
+
+    def setup_fingerprinting_endpoint_blocking(self):
+        self.r = weblog.get("/?admin=true")
+
+    def test_fingerprinting_endpoint_blocking(self):
+        assert self.r.status_code == 403
+        r_span_meta = get_span_meta(self.r)
+        assert all("_dd.appsec.fp.http.endpoint" in m for m in r_span_meta)
+        for m in r_span_meta:
+            fp = m["_dd.appsec.fp.http.endpoint"]
+            assert re.match(self.endpoint_fingerprint_regex, fp), f"{fp} does not match endpoint fingerprint regex"
+
+    def setup_fingerprinting_endpoint_non_blocking(self):
+        self.r = weblog.get("/?user=true")
+
+    def test_fingerprinting_endpoint_non_blocking(self):
+        assert self.r.status_code == 200
+        r_span_meta = get_span_meta(self.r)
+        assert all("_dd.appsec.fp.http.endpoint" in m for m in r_span_meta)
+        for m in r_span_meta:
+            fp = m["_dd.appsec.fp.http.endpoint"]
+            assert re.match(self.endpoint_fingerprint_regex, fp), f"{fp} does not match endpoint fingerprint regex"
 
 
 @rfc("https://docs.google.com/document/d/1DivOa9XsCggmZVzMI57vyxH2_EBJ0-qqIkRHm_sEvSs/edit#heading=h.32nt1jz5tm2n")
