@@ -101,7 +101,7 @@ class _BaseSNS:
         """
         message = (
             "[crossed_integrations/test_sns_to_sqs.py][SNS] Hello from SNS "
-            f"[{context.library.library} weblog->{self.buddy_interface.name}] test produce at {self.unique_id}"
+            f"[{context.library.name} weblog->{self.buddy_interface.name}] test produce at {self.unique_id}"
         )
 
         self.production_response = weblog.get(
@@ -161,7 +161,7 @@ class _BaseSNS:
         """
         message = (
             "[crossed_integrations/test_sns_to_sqs.py][SNS] Hello from SNS "
-            f"[{self.buddy_interface.name}->{context.library.library} weblog] test consume at {self.unique_id}"
+            f"[{self.buddy_interface.name}->{context.library.name} weblog] test consume at {self.unique_id}"
         )
 
         self.production_response = self.buddy.get(

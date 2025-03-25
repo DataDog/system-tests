@@ -1216,7 +1216,7 @@ class WeblogInjectionInitContainer(TestedContainer):
 
     def set_environment_for_library(self, library: LibraryVersion):
         lib_inject_props = {}
-        for lang_env_vars in K8sWeblog.manual_injection_props["js" if library.library == "nodejs" else library.library]:
+        for lang_env_vars in K8sWeblog.manual_injection_props["js" if library.name == "nodejs" else library.name]:
             lib_inject_props[lang_env_vars["name"]] = lang_env_vars["value"]
         lib_inject_props["DD_AGENT_HOST"] = "ddapm-test-agent"
         lib_inject_props["DD_TRACE_DEBUG"] = "true"

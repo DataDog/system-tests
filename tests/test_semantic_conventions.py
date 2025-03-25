@@ -262,7 +262,7 @@ class Test_Meta:
 
             assert "language" in span["meta"], "Span must have a language tag set."
 
-            library = context.library.library
+            library = context.library.name
             expected_language = RUNTIME_LANGUAGE_MAP.get(library, library)
 
             actual_language = span["meta"]["language"]

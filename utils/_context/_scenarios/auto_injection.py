@@ -83,7 +83,7 @@ class _VirtualMachineScenario(Scenario):
             "utils/virtual_machine/virtual_machines.json",
             "utils/scripts/ci_orchestrators/aws_ssi.json",
             [self.name],
-            self._library.library,
+            self._library.name,
         )[self.name][self._weblog]
         logger.info(f" Supported names: {supported_vm_names} ")
         supported_vms = [vm for vm in all_vms if vm.name in supported_vm_names]
@@ -99,7 +99,7 @@ class _VirtualMachineScenario(Scenario):
             for vm in supported_vms:
                 vm.add_provision(
                     provisioner.get_provision(
-                        self._library.library,
+                        self._library.name,
                         self._env,
                         self._weblog,
                         self.vm_provision_name,
@@ -129,7 +129,7 @@ class _VirtualMachineScenario(Scenario):
             self.vm_provider.configure(self.virtual_machine)
             self.virtual_machine.add_provision(
                 provisioner.get_provision(
-                    self._library.library,
+                    self._library.name,
                     self._env,
                     self._weblog,
                     self.vm_provision_name,
@@ -150,7 +150,7 @@ class _VirtualMachineScenario(Scenario):
         assert self._weblog is not None, "Weblog is not set (use --vm-weblog)"
 
         base_folder = "utils/build/virtual_machine"
-        weblog_provision_file = f"{base_folder}/weblogs/{self._library.library}/provision_{self._weblog}.yml"
+        weblog_provision_file = f"{base_folder}/weblogs/{self._library.name}/provision_{self._weblog}.yml"
         assert Path(weblog_provision_file).is_file(), f"Weblog Provision file not found: {weblog_provision_file}"
 
         provision_file = f"{base_folder}/provisions/{self.vm_provision_name}/provision.yml"
@@ -181,7 +181,7 @@ class _VirtualMachineScenario(Scenario):
             if key.startswith("datadog-apm-inject") and self.components[key]:
                 self._datadog_apm_inject_version = f"v{self.components[key]}"
             if key.startswith("datadog-apm-library-") and self.components[key]:
-                self._library = LibraryVersion(self._library.library, self.components[key])
+                self._library = LibraryVersion(self._library.name, self.components[key])
                 # We store without the lang sufix
                 self.components["datadog-apm-library"] = self.components[key]
                 del self.components[key]

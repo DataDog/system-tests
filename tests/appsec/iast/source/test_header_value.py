@@ -11,7 +11,7 @@ class TestHeaderValue(BaseSourceTest):
     """Verify that request headers are tainted"""
 
     source_name = (
-        "HTTP_TABLE" if context.library.library == "python" and context.weblog_variant == "django-poc" else "table"
+        "HTTP_TABLE" if context.library.name == "python" and context.weblog_variant == "django-poc" else "table"
     )
 
     endpoint = "/iast/source/header/test"

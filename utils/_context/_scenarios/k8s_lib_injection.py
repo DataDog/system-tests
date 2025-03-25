@@ -107,7 +107,7 @@ class K8sScenario(Scenario):
         # Weblog handler (the lib init and injector imgs are set in weblog/pod as annotations)
         self.test_weblog = K8sWeblog(
             self.k8s_weblog_img,
-            self.library.library,
+            self.library.name,
             self.k8s_lib_init_img,
             self.k8s_injector_img,
             self.host_log_folder,
@@ -217,7 +217,7 @@ class K8sManualInstrumentationScenario(Scenario):
         # Weblog handler
         self.test_weblog = K8sWeblog(
             self.k8s_weblog_img,
-            self.library.library,
+            self.library.name,
             self.k8s_lib_init_img,
             None,
             self.host_log_folder,
@@ -291,7 +291,7 @@ class K8sSparkScenario(K8sScenario):
 
         self.test_weblog = K8sWeblog(
             self.k8s_weblog_img,
-            self.library.library,
+            self.library.name,
             self.k8s_lib_init_img,
             self.k8s_injector_img,
             self.host_log_folder,

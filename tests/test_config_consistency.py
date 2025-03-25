@@ -517,9 +517,9 @@ class Test_Config_LogInjection_Enabled:
         assert sid is not None, "Expected a span ID, but got None"
 
         required_fields = ["service", "version", "env"]
-        if context.library.library in ("java", "python"):
+        if context.library.name in ("java", "python"):
             required_fields = ["dd.service", "dd.version", "dd.env"]
-        elif context.library.library == "dotnet":
+        elif context.library.name == "dotnet":
             required_fields = ["dd_service", "dd_version", "dd_env"]
 
         for field in required_fields:
@@ -608,7 +608,7 @@ class Test_Config_RuntimeMetrics_Enabled:
 
         for metric in runtime_metrics:
             tags = {tag.split(":")[0]: tag.split(":")[1] for tag in metric["tags"]}
-            language_tag_key, language_tag_value = runtime_metrics_lang_map[context.library.library]
+            language_tag_key, language_tag_value = runtime_metrics_lang_map[context.library.name]
             if language_tag_key is not None:
                 assert tags.get(language_tag_key) == language_tag_value
 
@@ -706,12 +706,12 @@ def parse_log_injection_message(log_message):
             except json.JSONDecodeError:
                 continue
             # Locate log with the custom message, which should have the trace ID and span ID
-            if message.get(log_injection_fields[context.library.library]["message"]) != log_message:
+            if message.get(log_injection_fields[context.library.name]["message"]) != log_message:
                 continue
             if message.get("dd"):
                 return message.get("dd")
             # dd-trace-java stores injected trace information under the "mdc" key
-            if context.library.library == "java":
+            if context.library.name == "java":
                 message = message.get("mdc")
             return message
     return None

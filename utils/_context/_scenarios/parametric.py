@@ -207,7 +207,7 @@ class ParametricScenario(Scenario):
 
     @property
     def weblog_variant(self):
-        return f"parametric-{self.library.library}"
+        return f"parametric-{self.library.name}"
 
     def _build_apm_test_server_image(self) -> None:
         logger.stdout("Build tested container...")
