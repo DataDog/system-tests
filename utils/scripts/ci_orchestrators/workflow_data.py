@@ -421,7 +421,7 @@ def _is_supported(library: str, weblog: str, scenario: str, ci_environment: str)
             # python 3.13 issue : APMAPI-1096
             return False
 
-    if scenario in ("APPSEC_MISSING_RULES", "APPSEC_CORRUPTED_RULES") and library == "cpp":
+    if scenario in ("APPSEC_MISSING_RULES", "APPSEC_CORRUPTED_RULES") and library in ("cpp_nginx", "cpp_httpd"):
         # C++ 1.2.0 freeze when the rules file is missing
         return False
 

@@ -827,7 +827,7 @@ class WeblogContainer(TestedContainer):
         library = self.image.labels["system-tests-library"]
 
         header_tags = ""
-        if library in ("cpp", "dotnet", "java", "python"):
+        if library in ("cpp_nginx", "cpp_httpd", "dotnet", "java", "python"):
             header_tags = "user-agent:http.request.headers.user-agent"
         elif library in ("golang", "nodejs", "php", "ruby"):
             header_tags = "user-agent"
@@ -856,7 +856,7 @@ class WeblogContainer(TestedContainer):
         # has strict checks on tracer startup that will fail to launch the application
         # when it encounters unfamiliar configurations. Override the configuration that the cpp
         # weblog container sees so we can still run tests
-        if library in ("cpp", "cpp_httpd"):
+        if library in ("cpp_nginx", "cpp_httpd"):
             extract_config = self.environment.get("DD_TRACE_PROPAGATION_STYLE_EXTRACT")
             if extract_config and "baggage" in extract_config:
                 self.environment["DD_TRACE_PROPAGATION_STYLE_EXTRACT"] = extract_config.replace("baggage", "").strip(

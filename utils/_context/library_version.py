@@ -51,18 +51,13 @@ class Version(version_module.Version):
 
 class LibraryVersion:
     known_versions: dict = defaultdict(set)
+    version: Version
 
     def add_known_version(self, version: Version | None, library: str | None = None):
         library = self.library if library is None else library
         LibraryVersion.known_versions[library].add(str(version))
 
-    def __init__(self, library: str | None, version: str | None = None):
-        self.library: str | None = None
-        self.version: Version | None = None
-
-        if library is None:
-            return
-
+    def __init__(self, library: str, version: str = "0.0.0"):
         if "@" in library:
             raise ValueError("Library can't contains '@'")
 
@@ -136,7 +131,7 @@ class LibraryVersion:
 
             self.add_known_version(self.version)
         else:
-            self.version = None
+            self.version = Version("0.0.0")
 
     def __repr__(self):
         return f'{self.__class__.__name__}("{self.library}", "{self.version}")'

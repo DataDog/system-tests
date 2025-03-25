@@ -11,9 +11,9 @@
             ],
             "user_tags": []
         },
-        "api_security.request.schema": {
+        "api_security.request.no_schema": {
             "data_type": "requests",
-            "description": "Counts the number of requests in which schemas were generated.",
+            "description": "Counts the number of requests without schema..",
             "metric_type": "count",
             "send_to_user": false,
             "tags": [
@@ -21,9 +21,9 @@
             ],
             "user_tags": []
         },
-        "api_security.request.no_schema": {
+        "api_security.request.schema": {
             "data_type": "requests",
-            "description": "Counts the number of requests without schema..",
+            "description": "Counts the number of requests in which schemas were generated.",
             "metric_type": "count",
             "send_to_user": false,
             "tags": [
@@ -53,7 +53,7 @@
             ],
             "user_tags": []
         },
-	"rasp.duration": {
+        "rasp.duration": {
             "data_type": "requests",
             "description": "Total WAF duration in RASP calls",
             "metric_type": "distribution",
@@ -84,7 +84,7 @@
                 "event_rules_version",
                 "rule_type",
                 "rule_variant",
-		"waf_error",
+                "waf_error",
                 "waf_version"
             ],
             "user_tags": []
@@ -125,7 +125,7 @@
                 "reason",
                 "rule_type",
                 "rule_variant"
-	    ],
+            ],
             "user_tags": []
         },
         "rasp.timeout": {
@@ -194,7 +194,7 @@
             "send_to_user": false,
             "tags": [
                 "event_rules_version",
-		"waf_error",
+                "waf_error",
                 "waf_version"
             ],
             "user_tags": []
@@ -227,8 +227,8 @@
             "metric_type": "count",
             "send_to_user": false,
             "tags": [
-                "event_rules_version",
                 "block_failure",
+                "event_rules_version",
                 "input_truncated",
                 "rate_limited",
                 "request_blocked",
@@ -1050,6 +1050,58 @@
         }
     },
     "mlobs": {
+        "activate_distributed_headers": {
+            "data_type": "instances",
+            "description": "The number of times a LLMObs context was manually extracted and activated from distributed request headers",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "error",
+                "error_type"
+            ]
+        },
+        "annotations": {
+            "data_type": "instances",
+            "description": "The number of times a LLMObs span was manually annotated",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "error",
+                "error_type",
+                "is_root_span",
+                "span_kind"
+            ]
+        },
+        "dropped_eval_events": {
+            "data_type": "instances",
+            "description": "The number of evaluation metric events dropped without being submitted to LLM Observability",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "error"
+            ]
+        },
+        "dropped_span_events": {
+            "data_type": "instances",
+            "description": "The number of span events dropped without being submitted to LLM Observability",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "error"
+            ]
+        },
+        "evals_submitted": {
+            "data_type": "instances",
+            "description": "The number of times a custom evaluation was submitted to LLM Observability",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "custom_joining_key",
+                "error",
+                "error_type",
+                "metric_type"
+            ]
+        },
         "evaluators.error": {
             "data_type": "instances",
             "description": "The number of times an evaluator errored",
@@ -1095,71 +1147,6 @@
                 "state"
             ]
         },
-        "span.start": {
-            "data_type": "instances",
-            "description": "The number of times an LLMObs span is created either via manual or auto instrumentation",
-            "metric_type": "count",
-            "send_to_user": false,
-            "tags": [
-                "autoinstrumented",
-                "integration",
-                "span_kind"
-            ]
-        },
-        "span.finished": {
-            "data_type": "instances",
-            "description": "The number of times an LLMObs span is finished and submitted to LLM Observability",
-            "metric_type": "count",
-            "send_to_user": false,
-            "tags": [
-                "autoinstrumented",
-                "integration",
-                "decorator",
-                "span_kind",
-                "has_session_id",
-                "is_root_span",
-                "model_provider",
-                "error"
-            ]
-        },
-        "span.raw_size": {
-            "data_type": "bytes",
-            "description": "The size of an encoded LLMObs span after being created via manual or auto instrumentation",
-            "metric_type": "distribution",
-            "send_to_user": false,
-            "tags": [
-                "span_kind",
-                "autoinstrumented",
-                "integration",
-                "error"
-            ]
-        },
-        "span.size": {
-            "data_type": "bytes",
-            "description": "The size of an encoded LLMObs span (after truncation if applicable) submitted to LLM Observability",
-            "metric_type": "distribution",
-            "send_to_user": false,
-            "tags": [
-                "span_kind",
-                "autoinstrumented",
-                "integration",
-                "truncated",
-                "error"
-            ]
-        },
-        "product_enabled": {
-            "data_type": "instances",
-            "description": "The number of times the LLMObs SDK is initialized and enabled",
-            "metric_type": "count",
-            "send_to_user": false,
-            "tags": [
-                "agentless",
-                "site",
-                "error",
-                "error_type",
-                "auto"
-            ]
-        },
         "init_time": {
             "data_type": "milliseconds",
             "description": "The time it takes to initialize and enable the LLMObs SDK",
@@ -1167,56 +1154,10 @@
             "send_to_user": false,
             "tags": [
                 "agentless",
-                "site",
+                "auto",
                 "error",
                 "error_type",
-                "auto"
-            ]
-        },
-        "annotations": {
-            "data_type": "instances",
-            "description": "The number of times a LLMObs span was manually annotated",
-            "metric_type": "count",
-            "send_to_user": false,
-            "tags": [
-                "span_kind",
-                "is_root_span",
-                "error",
-                "error_type"
-            ]
-        },
-        "evals_submitted": {
-            "data_type": "instances",
-            "description": "The number of times a custom evaluation was submitted to LLM Observability",
-            "metric_type": "count",
-            "send_to_user": false,
-            "tags": [
-                "metric_type",
-                "custom_joining_key",
-                "error",
-                "error_type"
-            ]
-        },
-        "spans_exported": {
-            "data_type": "instances",
-            "description": "The number of times a LLMObs span was manually exported for eval submission",
-            "metric_type": "count",
-            "send_to_user": false,
-            "tags": [
-                "span_kind",
-                "is_root_span",
-                "error",
-                "error_type"
-            ]
-        },
-        "user_flush": {
-            "data_type": "instances",
-            "description": "The number of times LLMObs spans and evals were manually flushed to LLM Observability",
-            "metric_type": "count",
-            "send_to_user": false,
-            "tags": [
-                "error",
-                "error_type"
+                "site"
             ]
         },
         "inject_distributed_headers": {
@@ -1229,32 +1170,91 @@
                 "error_type"
             ]
         },
-        "activate_distributed_headers": {
+        "product_enabled": {
             "data_type": "instances",
-            "description": "The number of times a LLMObs context was manually extracted and activated from distributed request headers",
+            "description": "The number of times the LLMObs SDK is initialized and enabled",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "agentless",
+                "auto",
+                "error",
+                "error_type",
+                "site"
+            ]
+        },
+        "span.finished": {
+            "data_type": "instances",
+            "description": "The number of times an LLMObs span is finished and submitted to LLM Observability",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "autoinstrumented",
+                "decorator",
+                "error",
+                "has_session_id",
+                "integration",
+                "is_root_span",
+                "model_provider",
+                "span_kind"
+            ]
+        },
+        "span.raw_size": {
+            "data_type": "bytes",
+            "description": "The size of an encoded LLMObs span after being created via manual or auto instrumentation",
+            "metric_type": "distribution",
+            "send_to_user": false,
+            "tags": [
+                "autoinstrumented",
+                "error",
+                "integration",
+                "span_kind"
+            ]
+        },
+        "span.size": {
+            "data_type": "bytes",
+            "description": "The size of an encoded LLMObs span (after truncation if applicable) submitted to LLM Observability",
+            "metric_type": "distribution",
+            "send_to_user": false,
+            "tags": [
+                "autoinstrumented",
+                "error",
+                "integration",
+                "span_kind",
+                "truncated"
+            ]
+        },
+        "span.start": {
+            "data_type": "instances",
+            "description": "The number of times an LLMObs span is created either via manual or auto instrumentation",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "autoinstrumented",
+                "integration",
+                "span_kind"
+            ]
+        },
+        "spans_exported": {
+            "data_type": "instances",
+            "description": "The number of times a LLMObs span was manually exported for eval submission",
+            "metric_type": "count",
+            "send_to_user": false,
+            "tags": [
+                "error",
+                "error_type",
+                "is_root_span",
+                "span_kind"
+            ]
+        },
+        "user_flush": {
+            "data_type": "instances",
+            "description": "The number of times LLMObs spans and evals were manually flushed to LLM Observability",
             "metric_type": "count",
             "send_to_user": false,
             "tags": [
                 "error",
                 "error_type"
-            ]
-        },
-        "dropped_span_events": {
-            "data_type": "instances",
-            "description": "The number of span events dropped without being submitted to LLM Observability",
-            "metric_type": "count",
-            "send_to_user": false,
-            "tags": [
-                "error"
-            ]
-        },
-        "dropped_eval_events": {
-            "data_type": "instances",
-            "description": "The number of evaluation metric events dropped without being submitted to LLM Observability",
-            "metric_type": "count",
-            "send_to_user": false,
-            "tags": [
-                "error"
             ]
         }
     },

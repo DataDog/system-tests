@@ -2,7 +2,6 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from ast import literal_eval
 import base64
 import gzip
 import io
@@ -100,7 +99,7 @@ def deserialize_dd_appsec_s_meta(payload: str):
 
 
 def deserialize_http_message(
-    path: str, message: dict, content: bytes, interface: str, key: str, export_content_files_to: str
+    path: str, message: dict, content: bytes | None, interface: str, key: str, export_content_files_to: str
 ):
     def json_load():
         if not content:
@@ -158,8 +157,6 @@ def deserialize_http_message(
         return result
 
     if content_type == "application/x-protobuf":
-        # Raw data can be either a str like "b'\n\x\...'" or bytes
-        content = literal_eval(content) if isinstance(content, str) else content
         assert isinstance(content, bytes)
         dd_protocol = get_header_value("dd-protocol", message["headers"])
         if dd_protocol == "otlp" and "traces" in path:
@@ -190,7 +187,7 @@ def deserialize_http_message(
         decoded = []
         for part in MultipartDecoder(content, raw_content_type).parts:
             headers = {k.decode("utf-8"): v.decode("utf-8") for k, v in part.headers.items()}
-            item = {"headers": headers}
+            item: dict[str, Any] = {"headers": headers}
 
             content_type_part = ""
 

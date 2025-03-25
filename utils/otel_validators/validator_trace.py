@@ -31,6 +31,10 @@ def validate_trace(traces: list[dict], *, use_128_bits_trace_id: bool) -> tuple:
                 message_span = span
             else:
                 raise ValueError("Unexpected span ", span)
+
+    assert server_span is not None
+    assert message_span is not None
+
     validate_server_span(server_span)
     validate_message_span(message_span)
     validate_span_link(server_span, message_span)

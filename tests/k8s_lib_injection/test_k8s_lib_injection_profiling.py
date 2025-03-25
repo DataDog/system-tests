@@ -32,7 +32,7 @@ class TestK8sLibInjectioProfilingDisabledByDefault(_TestK8sLibInjectionProfiling
 
     def test_profiling_disabled_by_default(self):
         profiling_request_found = self._check_profiling_request_sent(
-            context.scenario.k8s_cluster_provider.get_cluster_info()
+            scenarios.k8s_lib_injection_profiling_disabled.k8s_cluster_provider.get_cluster_info()
         )
         assert not profiling_request_found, "Profiling should be disabled by default, but a profiling request was found"
 
@@ -45,7 +45,7 @@ class TestK8sLibInjectioProfilingClusterEnabled(_TestK8sLibInjectionProfiling):
     @bug(context.library > "python@2.12.2", reason="APMON-1496")
     def test_profiling_admission_controller(self):
         profiling_request_found = self._check_profiling_request_sent(
-            context.scenario.k8s_cluster_provider.get_cluster_info()
+            scenarios.k8s_lib_injection_profiling_enabled.k8s_cluster_provider.get_cluster_info()
         )
         assert profiling_request_found, "No profiling request found"
 
@@ -58,6 +58,6 @@ class TestK8sLibInjectioProfilingClusterOverride(_TestK8sLibInjectionProfiling):
     @bug(context.library > "python@2.12.2", reason="APMON-1496")
     def test_profiling_override_cluster_env(self):
         profiling_request_found = self._check_profiling_request_sent(
-            context.scenario.k8s_cluster_provider.get_cluster_info()
+            scenarios.k8s_lib_injection_profiling_override.k8s_cluster_provider.get_cluster_info()
         )
         assert profiling_request_found, "No profiling request found"

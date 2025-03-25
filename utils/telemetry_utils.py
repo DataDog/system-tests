@@ -1,3 +1,6 @@
+from utils._context.library_version import LibraryVersion
+
+
 class TelemetryUtils:
     test_loaded_dependencies = {
         "dotnet": {"NodaTime": False},
@@ -12,7 +15,7 @@ class TelemetryUtils:
         return TelemetryUtils.test_loaded_dependencies[library]
 
     @staticmethod
-    def get_dd_appsec_sca_enabled_str(library: str) -> str:
+    def get_dd_appsec_sca_enabled_str(library: LibraryVersion) -> str:
         result = "DD_APPSEC_SCA_ENABLED"
         if library == "java":
             result = "appsec_sca_enabled"

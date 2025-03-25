@@ -701,6 +701,21 @@ class _Scenarios:
         scenario_groups=[ScenarioGroup.DEBUGGER],
     )
 
+    debugger_telemetry = EndToEndScenario(
+        "DEBUGGER_TELEMETRY",
+        rc_api_enabled=True,
+        weblog_env={
+            "DD_REMOTE_CONFIG_ENABLED": "true",
+            "DD_CODE_ORIGIN_FOR_SPANS_ENABLED": "1",
+            "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1",
+            "DD_EXCEPTION_DEBUGGING_ENABLED": "1",
+            "DD_SYMBOL_DATABASE_UPLOAD_ENABLED": "1",
+        },
+        library_interface_timeout=5,
+        doc="Test scenario for checking debugger telemetry.",
+        scenario_groups=[ScenarioGroup.DEBUGGER, ScenarioGroup.TELEMETRY],
+    )
+
     fuzzer = DockerScenario("FUZZER", doc="Fake scenario for fuzzing (launch without pytest)", github_workflow=None)
 
     # Single Step Instrumentation scenarios (HOST and CONTAINER)

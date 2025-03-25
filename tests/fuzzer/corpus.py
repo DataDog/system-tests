@@ -148,7 +148,7 @@ def get_saved_corpus(source) -> list:
         elif filename.endswith(".dump"):
             with open(filename, "r", encoding="utf-8") as f:
                 for line in f:
-                    if len(line.strip() != 0):
+                    if len(line.strip()) != 0:
                         _add_request(json.loads(line))
         else:
             raise ValueError(f"{filename} file must be a .dump or a .json")

@@ -23,7 +23,7 @@ class Test_TraceUniqueness:
 class Test_TraceHeaders:
     """All required headers are present in all traces submitted to the agent"""
 
-    @missing_feature(library="cpp")
+    @missing_feature(library="cpp_nginx")
     @missing_feature(library="cpp_httpd")
     @bug(context.library <= "golang@1.37.0", reason="APMRP-360")
     def test_traces_header_present(self):
@@ -146,7 +146,7 @@ class Test_LibraryHeaders:
     @missing_feature(library="nodejs", reason="not implemented yet")
     @missing_feature(library="ruby", reason="not implemented yet")
     @missing_feature(library="php", reason="not implemented yet")
-    @missing_feature(library="cpp", reason="not implemented yet")
+    @missing_feature(library="cpp_nginx", reason="not implemented yet")
     @missing_feature(library="cpp_httpd")
     @irrelevant(library="golang", reason="implemented but not testable")
     def test_datadog_entity_id(self):
@@ -182,7 +182,7 @@ class Test_LibraryHeaders:
 
         interfaces.library.validate(validator, success_by_default=True)
 
-    @missing_feature(library="cpp", reason="not implemented yet")
+    @missing_feature(library="cpp_nginx", reason="not implemented yet")
     @missing_feature(library="cpp_httpd", reason="not implemented yet")
     @missing_feature(library="dotnet", reason="not implemented yet")
     @missing_feature(library="java", reason="not implemented yet")
@@ -218,7 +218,7 @@ class Test_LibraryHeaders:
 @scenarios.sampling
 @scenarios.default
 class Test_Agent:
-    @missing_feature(library="cpp", reason="Trace are not reported")
+    @missing_feature(library="cpp_nginx", reason="Trace are not reported")
     @missing_feature(library="cpp_httpd")
     # we are not using dev agent, so activate this to see if it fails
     # @flaky(context.agent_version > "7.62.2", reason="APMSP-1791")

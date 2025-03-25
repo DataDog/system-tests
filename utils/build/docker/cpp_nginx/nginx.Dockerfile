@@ -8,12 +8,12 @@ RUN apt-get update \
 
 RUN mkdir /builds
 
-COPY utils/build/docker/cpp/nginx/nginx.conf /etc/nginx/nginx.conf
-COPY utils/build/docker/cpp/nginx/hello.html /builds/hello.html
-COPY utils/build/docker/cpp/nginx/install_ddtrace.sh /builds/
-COPY utils/build/docker/cpp/install_ddprof.sh /builds/
-COPY utils/build/docker/cpp/nginx/app.sh /builds/
-COPY utils/build/docker/cpp/ binaries* /builds/
+COPY utils/build/docker/cpp_nginx/nginx/nginx.conf /etc/nginx/nginx.conf
+COPY utils/build/docker/cpp_nginx/nginx/hello.html /builds/hello.html
+COPY utils/build/docker/cpp_nginx/install_ddtrace.sh /builds/
+COPY utils/build/docker/cpp_nginx/install_ddprof.sh /builds/
+COPY utils/build/docker/cpp_nginx/nginx/app.sh /builds/
+COPY utils/build/docker/cpp_nginx/ binaries* /builds/
 
 WORKDIR /builds
 

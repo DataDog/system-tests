@@ -244,6 +244,11 @@ elif [ "$TARGET" = "cpp_httpd" ]; then
     echo "Nowhere to load cpp_httpd from"
     exit 1
 
+elif [ "$TARGET" = "cpp_nginx" ]; then
+    assert_version_is_dev
+    echo "Nowhere to load cpp_nginx from"
+    exit 1
+
 elif [ "$TARGET" = "agent" ]; then
     assert_version_is_dev
     TARGET_BRANCH="${TARGET_BRANCH:-master-py3}"

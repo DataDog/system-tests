@@ -10,7 +10,6 @@ import os
 from pathlib import Path
 import re
 
-from utils._context.core import context
 from utils._logger import logger
 from utils.interfaces._core import InterfaceValidator
 from utils._context.library_version import LibraryVersion
@@ -105,7 +104,7 @@ class _LogsInterfaceValidator(InterfaceValidator):
         if not success_by_default:
             raise ValueError("Test has not been validated by any data")
 
-    def assert_presence(self, pattern: str, **extra_conditions: dict[str, str]):
+    def assert_presence(self, pattern: str, **extra_conditions: str):
         validator = _LogPresence(pattern, **extra_conditions)
         self.validate(validator.check, success_by_default=False)
 
@@ -121,8 +120,8 @@ class _StdoutLogsInterfaceValidator(_LogsInterfaceValidator):
 
     def _get_files(self):
         return [
-            f"{context.scenario.host_log_folder}/docker/{self.container_name}/stdout.log",
-            f"{context.scenario.host_log_folder}/docker/{self.container_name}/stderr.log",
+            f"{self.host_log_folder}/docker/{self.container_name}/stdout.log",
+            f"{self.host_log_folder}/docker/{self.container_name}/stderr.log",
         ]
 
 
@@ -209,12 +208,12 @@ class _LibraryDotnetManaged(_LogsInterfaceValidator):
         result = []
 
         try:
-            files = os.listdir(f"{context.scenario.host_log_folder}/docker/weblog/logs/")
+            files = os.listdir(f"{self.host_log_folder}/docker/weblog/logs/")
         except FileNotFoundError:
             files = []
 
         for f in files:
-            filename = os.path.join(f"{context.scenario.host_log_folder}/docker/weblog/logs/", f)
+            filename = os.path.join(f"{self.host_log_folder}/docker/weblog/logs/", f)
 
             if Path(filename).is_file() and re.search(r"dotnet-tracer-managed-dotnet-\d+(_\d+)?.log", filename):
                 result.append(filename)
@@ -254,7 +253,7 @@ class _PostgresStdout(_StdoutLogsInterfaceValidator):
 
 
 class _LogPresence:
-    def __init__(self, pattern: str, **extra_conditions: dict[str, str]):
+    def __init__(self, pattern: str, **extra_conditions: str):
         self.pattern = re.compile(pattern)
         self.extra_conditions = {k: re.compile(pattern) for k, pattern in extra_conditions.items()}
 
@@ -299,6 +298,7 @@ class Test:
         """Test example"""
 
         from utils._context._scenarios import scenarios
+        from utils import context
 
         context.scenario = scenarios.default
 
