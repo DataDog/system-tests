@@ -5,7 +5,7 @@
   },
   "rules": [
      {
-      "id": "fpe-001-001",
+      "id": "fp-001-001",
       "name": "Block Endpoint Fingerprint",
       "tags": {
         "type": "block_fp",
@@ -20,7 +20,85 @@
                 "address": "_dd.appsec.fp.http.endpoint"
               }
             ],
-            "regex": "http-get-8a5edab2-8c6976e5-.*"
+            "regex": "http-get-8a5edab2-8c6976e5-[^-]*"
+          },
+          "operator": "match_regex"
+        }
+      ],
+      "transformers": [],
+      "on_match": [
+        "block"
+      ]
+    },
+    {
+      "id": "fp-002-001",
+      "name": "Block Network Fingerprint",
+      "tags": {
+        "type": "block_fp",
+        "category": "security_response",
+        "module": "custom-acl"
+      },
+      "conditions": [
+        {
+          "parameters": {
+            "inputs": [
+              {
+                "address": "_dd.appsec.fp.http.network"
+              }
+            ],
+            "regex": "net-2-1000100000"
+          },
+          "operator": "match_regex"
+        }
+      ],
+      "transformers": [],
+      "on_match": [
+        "block"
+      ]
+    },
+    {
+      "id": "fp-003-001",
+      "name": "Block Header Fingerprint",
+      "tags": {
+        "type": "block_fp",
+        "category": "security_response",
+        "module": "custom-acl"
+      },
+      "conditions": [
+        {
+          "parameters": {
+            "inputs": [
+              {
+                "address": "_dd.appsec.fp.http.header"
+              }
+            ],
+            "regex": "hdr-0110000100-[^-]*-[^-]*-[^-]*"
+          },
+          "operator": "match_regex"
+        }
+      ],
+      "transformers": [],
+      "on_match": [
+        "block"
+      ]
+    },
+    {
+      "id": "fp-004-001",
+      "name": "Block Session Fingerprint",
+      "tags": {
+        "type": "block_fp",
+        "category": "security_response",
+        "module": "custom-acl"
+      },
+      "conditions": [
+        {
+          "parameters": {
+            "inputs": [
+              {
+                "address": "_dd.appsec.fp.session"
+              }
+            ],
+            "regex": "ssn-[^-]*-3cb51e60-3299de94-[^-]*"
           },
           "operator": "match_regex"
         }
