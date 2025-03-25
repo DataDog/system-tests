@@ -278,7 +278,9 @@ class Test_DsmSQS:
         # we can't add the time hash to node since we can't replicate the hashing algo in python and compute a hash,
         # which changes for each run with the time stamp added
         if context.library.name != "nodejs":
-            self.queue = f"{DSM_QUEUE}_{context.library.name}_{WEBLOG_VARIANT_SANITIZED}_{scenarios.integrations_aws.unique_id}"
+            self.queue = (
+                f"{DSM_QUEUE}_{context.library.name}_{WEBLOG_VARIANT_SANITIZED}_{scenarios.integrations_aws.unique_id}"
+            )
         else:
             self.queue = f"{DSM_QUEUE}_{context.library.name}"
 
@@ -381,7 +383,9 @@ class Test_DsmKinesis:
         # we can't add the time hash to node since we can't replicate the hashing algo in python and compute a hash,
         # which changes for each run with the time stamp added
         if context.library.name != "nodejs":
-            self.stream = f"{DSM_STREAM}_{context.library.name}_{WEBLOG_VARIANT_SANITIZED}_{scenarios.integrations_aws.unique_id}"
+            self.stream = (
+                f"{DSM_STREAM}_{context.library.name}_{WEBLOG_VARIANT_SANITIZED}_{scenarios.integrations_aws.unique_id}"
+            )
         else:
             self.stream = f"{DSM_STREAM}_{context.library.name}"
 
