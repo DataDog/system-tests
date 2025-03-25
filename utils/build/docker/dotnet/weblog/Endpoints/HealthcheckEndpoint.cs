@@ -18,7 +18,7 @@ namespace weblog
                     status = "ok",
                     library = new
                     {
-                        language = "dotnet",
+                        name = "dotnet",
                         version
                     }
                 };

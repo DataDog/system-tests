@@ -74,7 +74,7 @@ class _BaseKinesis:
         """
         message = (
             "[crossed_integrations/test_kinesis.py][Kinesis] Hello from Kinesis "
-            f"[{context.library.library} weblog->{self.buddy_interface.name}] test produce at {self.unique_id}"
+            f"[{context.library.name} weblog->{self.buddy_interface.name}] test produce at {self.unique_id}"
         )
 
         self.production_response = weblog.get(
@@ -133,7 +133,7 @@ class _BaseKinesis:
         """
         message = (
             "[crossed_integrations/test_kinesis.py][Kinesis] Hello from Kinesis "
-            f"[{self.buddy_interface.name}->{context.library.library} weblog] test consume at {self.unique_id}"
+            f"[{self.buddy_interface.name}->{context.library.name} weblog] test consume at {self.unique_id}"
         )
 
         self.production_response = self.buddy.get(

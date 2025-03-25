@@ -46,7 +46,7 @@ WEBLOG_VARIANT_SANITIZED = context.weblog_variant.replace(".", "_").replace(" ",
 
 
 def get_message(test, system):
-    return f"[test_dsm.py::{test}] [{system.upper()}] Hello from {context.library.library} DSM test: {scenarios.integrations_aws.unique_id}"
+    return f"[test_dsm.py::{test}] [{system.upper()}] Hello from {context.library.name} DSM test: {scenarios.integrations_aws.unique_id}"
 
 
 @features.datastreams_monitoring_support_for_kafka
@@ -263,10 +263,12 @@ class Test_DsmSQS:
 
         # we can't add the time hash to node since we can't replicate the hashing algo in python and compute a hash,
         # which changes for each run with the time stamp added
-        if context.library.library != "nodejs":
-            self.queue = f"{DSM_QUEUE}_{context.library.library}_{WEBLOG_VARIANT_SANITIZED}_{scenarios.integrations_aws.unique_id}"
+        if context.library.name != "nodejs":
+            self.queue = (
+                f"{DSM_QUEUE}_{context.library.name}_{WEBLOG_VARIANT_SANITIZED}_{scenarios.integrations_aws.unique_id}"
+            )
         else:
-            self.queue = f"{DSM_QUEUE}_{context.library.library}"
+            self.queue = f"{DSM_QUEUE}_{context.library.name}"
 
         self.r = weblog.get(
             f"/dsm?integration=sqs&timeout=60&queue={self.queue}&message={message}", timeout=DSM_REQUEST_TIMEOUT
@@ -299,12 +301,12 @@ class Test_DsmSNS:
 
         # we can't add the time hash to node since we can't replicate the hashing algo in python and compute a hash,
         # which changes for each run with the time stamp added
-        if context.library.library != "nodejs":
-            self.topic = f"{DSM_TOPIC}_{context.library.library}_{WEBLOG_VARIANT_SANITIZED}_{scenarios.integrations_aws.unique_id}_raw"
-            self.queue = f"{DSM_QUEUE_SNS}_{context.library.library}_{WEBLOG_VARIANT_SANITIZED}_{scenarios.integrations_aws.unique_id}_raw"
+        if context.library.name != "nodejs":
+            self.topic = f"{DSM_TOPIC}_{context.library.name}_{WEBLOG_VARIANT_SANITIZED}_{scenarios.integrations_aws.unique_id}_raw"
+            self.queue = f"{DSM_QUEUE_SNS}_{context.library.name}_{WEBLOG_VARIANT_SANITIZED}_{scenarios.integrations_aws.unique_id}_raw"
         else:
-            self.topic = f"{DSM_TOPIC}_{context.library.library}_raw"
-            self.queue = f"{DSM_QUEUE_SNS}_{context.library.library}_raw"
+            self.topic = f"{DSM_TOPIC}_{context.library.name}_raw"
+            self.queue = f"{DSM_QUEUE_SNS}_{context.library.name}_raw"
 
         self.r = weblog.get(
             f"/dsm?integration=sns&timeout=60&queue={self.queue}&topic={self.topic}&message={message}",
@@ -341,10 +343,12 @@ class Test_DsmKinesis:
 
         # we can't add the time hash to node since we can't replicate the hashing algo in python and compute a hash,
         # which changes for each run with the time stamp added
-        if context.library.library != "nodejs":
-            self.stream = f"{DSM_STREAM}_{context.library.library}_{WEBLOG_VARIANT_SANITIZED}_{scenarios.integrations_aws.unique_id}"
+        if context.library.name != "nodejs":
+            self.stream = (
+                f"{DSM_STREAM}_{context.library.name}_{WEBLOG_VARIANT_SANITIZED}_{scenarios.integrations_aws.unique_id}"
+            )
         else:
-            self.stream = f"{DSM_STREAM}_{context.library.library}"
+            self.stream = f"{DSM_STREAM}_{context.library.name}"
 
         self.r = weblog.get(
             f"/dsm?integration=kinesis&timeout=60&stream={self.stream}&message={message}",
