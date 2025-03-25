@@ -12,7 +12,6 @@ from utils.tools import get_rid_from_user_agent, get_rid_from_span
 from utils._logger import logger
 from utils.dd_constants import RemoteConfigApplyState, Capabilities
 from utils.interfaces._core import ProxyBasedInterfaceValidator
-from utils.interfaces._library._utils import get_trace_request_path
 from utils.interfaces._library.appsec import _WafAttack, _ReportedHeader
 from utils.interfaces._library.miscs import _SpanTagValidator
 from utils.interfaces._library.telemetry import (
@@ -256,24 +255,6 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
                 return
 
         raise ValueError("Nothing has been reported. No request root span with has been found")
-
-    def assert_all_traces_requests_forwarded(self, paths: list[str] | set[str]):
-        # TODO : move this in test class
-        paths = set(paths)
-
-        for _, span in self.get_root_spans():
-            path = get_trace_request_path(span)
-
-            if path is None or path not in paths:
-                continue
-
-            paths.remove(path)
-
-        if len(paths) != 0:
-            for path in paths:
-                logger.error(f"A path has not been transmitted: {path}")
-
-            raise ValueError("Some path has not been transmitted")
 
     def assert_trace_id_uniqueness(self):
         trace_ids: dict[int, str] = {}
