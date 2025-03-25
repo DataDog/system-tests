@@ -884,7 +884,7 @@ class WeblogContainer(TestedContainer):
             data = json.load(f)
             lib = data["library"]
 
-        self._library = LibraryVersion(lib["language"], lib["version"])
+        self._library = LibraryVersion(lib["name"], lib["version"])
 
         logger.stdout(f"Library: {self.library}")
 
@@ -1322,7 +1322,7 @@ class ExternalProcessingContainer(TestedContainer):
             data = json.load(f)
             lib = data["library"]
 
-        self.library = LibraryVersion(lib["language"], lib["version"])
+        self.library = LibraryVersion(lib["name"], lib["version"])
 
         logger.stdout(f"Library: {self.library}")
         logger.stdout(f"Image: {self.image.name}")
