@@ -12,8 +12,8 @@ tests/:
   appsec/:
     api_security/:
       test_api_security_rc.py:
-        Test_API_Security_RC_ASM_DD_processors: missing_feature
-        Test_API_Security_RC_ASM_DD_scanners: missing_feature
+        Test_API_Security_RC_ASM_DD_processors: v1.69.0
+        Test_API_Security_RC_ASM_DD_scanners: v1.69.0
       test_apisec_sampling.py:
         Test_API_Security_Sampling_Different_Endpoints: missing_feature
         Test_API_Security_Sampling_Different_Paths: missing_feature
@@ -24,7 +24,7 @@ tests/:
           net-http-orchestrion: irrelevant (net-http doesn't handle path params)
         Test_API_Security_Sampling_With_Delay: missing_feature
       test_schemas.py:
-        Test_Scanners: missing_feature
+        Test_Scanners: v1.69.0
         Test_Schema_Request_Cookies: v1.60.0
         Test_Schema_Request_FormUrlEncoded_Body: v1.60.0
         Test_Schema_Request_Headers: v1.60.0
@@ -347,8 +347,8 @@ tests/:
       Test_AppSecStandalone_UpstreamPropagation_V2: v1.73.0-dev
       Test_IastStandalone_UpstreamPropagation: missing_feature
       Test_IastStandalone_UpstreamPropagation_V2: missing_feature
-      Test_SCAStandalone_Telemetry: missing_feature
-      Test_SCAStandalone_Telemetry_V2: missing_feature
+      Test_SCAStandalone_Telemetry: irrelevant (v2 is implemented)
+      Test_SCAStandalone_Telemetry_V2: v1.73.0-dev
     test_automated_login_events.py:
       Test_Login_Events: missing_feature
       Test_Login_Events_Extended: missing_feature
@@ -396,7 +396,7 @@ tests/:
       Test_Blocking_response_headers: missing_feature
       Test_Blocking_response_status: missing_feature
       Test_Blocking_user_id: v1.51.0
-      Test_Suspicious_Request_Blocking: missing_feature
+      Test_Suspicious_Request_Blocking: v1.50.0
     test_client_ip.py:
       Test_StandardTagsClientIp: v1.44.1
     test_customconf.py:
