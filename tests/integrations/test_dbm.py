@@ -128,13 +128,13 @@ class Test_Dbm:
 class _BaseDbmComment:
     """Verify DBM comment for given integration"""
 
-    integration = None
-    operation = None
+    integration: str | None = None
+    operation: str | None = None
 
     # declared in child classes
-    dddb = None  # db name
-    dddbs = None  # db name
-    ddh = None  # container name
+    dddb: str | None = None  # db name
+    dddbs: str | None = None  # db name
+    ddh: str | None = None  # container name
 
     # comment generic info
     dde = "system-tests"  # DD_ENV

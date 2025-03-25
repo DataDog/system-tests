@@ -1,20 +1,20 @@
 from __future__ import annotations
 import json
 
-from utils.buddies import python_buddy
+from utils.buddies import python_buddy, _Weblog as Weblog
 from utils import interfaces, scenarios, weblog, missing_feature, features, context, logger
 
 
 class _BaseSNS:
     """Test sns compatibility with inputted datadog tracer"""
 
-    BUDDY_TO_WEBLOG_QUEUE = None
-    BUDDY_TO_WEBLOG_TOPIC = None
-    WEBLOG_TO_BUDDY_QUEUE = None
-    WEBLOG_TO_BUDDY_TOPIC = None
-    buddy = None
-    buddy_interface = None
-    unique_id = None
+    BUDDY_TO_WEBLOG_QUEUE: str
+    BUDDY_TO_WEBLOG_TOPIC: str
+    WEBLOG_TO_BUDDY_QUEUE: str
+    WEBLOG_TO_BUDDY_TOPIC: str
+    buddy: Weblog
+    buddy_interface: interfaces.LibraryInterfaceValidator
+    unique_id: str
 
     @classmethod
     def get_span(cls, interface, span_kind, queue, topic, operation):
