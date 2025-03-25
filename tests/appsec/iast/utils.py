@@ -126,7 +126,7 @@ class BaseSinkTestWithoutTelemetry:
         # optimize by attaching requests to the class object, to avoid calling it several times. We can't attach them
         # to self, and we need to attach the request on class object, as there are one class instance by test case
 
-        if self.__class__.insecure_request is None:
+        if not hasattr(self.__class__, "insecure_request"):
             assert self.insecure_endpoint is not None, f"{self}.insecure_endpoint must not be None"
 
             self.__class__.insecure_request = weblog.request(
@@ -158,7 +158,7 @@ class BaseSinkTestWithoutTelemetry:
         # optimize by attaching requests to the class object, to avoid calling it several times. We can't attach them
         # to self, and we need to attach the request on class object, as there are one class instance by test case
 
-        if self.__class__.secure_request is None:
+        if not hasattr(self.__class__, "secure_request"):
             assert self.secure_endpoint is not None, f"Please set {self}.secure_endpoint"
             assert isinstance(self.secure_endpoint, str), f"Please set {self}.secure_endpoint"
 
