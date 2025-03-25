@@ -60,7 +60,6 @@ exclude = [
     "utils/docker_ssi/.*",
     "utils/k8s_lib_injection/.*",
     "utils/onboarding/.*",
-    "utils/scripts/merge_gitlab_aws_pipelines.py",
     "utils/virtual_machine/.*",
 ]
 ignore_missing_imports = true
@@ -229,7 +228,7 @@ ignore = [
 "utils/_context/_scenarios/auto_injection.py" = [
     "ANN001",   # missing-type-function-argument: TODO
 ]
-"utils/{_context/_scenarios/docker_ssi.py,docker_ssi/docker_ssi_matrix_builder.py,docker_ssi/docker_ssi_matrix_utils.py}" = [
+"utils/{_context/_scenarios/docker_ssi.py,docker_ssi/docker_ssi_matrix_utils.py}" = [
     "ANN001",   # missing-type-function-argument: TODO
     "E501",     # line-too-long: TODO
     "T201",     # print: TODO
