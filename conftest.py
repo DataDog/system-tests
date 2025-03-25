@@ -20,7 +20,7 @@ from utils import context
 from utils._context._scenarios import scenarios, Scenario
 from utils._logger import logger
 from utils.scripts.junit_report import junit_modifyreport
-from utils._context.library_version import LibraryVersion
+from utils._context.component_version import ComponentVersion
 from utils._decorators import released, configure as configure_decorators
 from utils.properties_serialization import SetupProperties
 
@@ -494,7 +494,7 @@ def pytest_sessionfinish(session: pytest.Session, exitstatus: int) -> None:
     if context.scenario.is_main_worker:
         with open(f"{context.scenario.host_log_folder}/known_versions.json", "w", encoding="utf-8") as f:
             json.dump(
-                {library: sorted(versions) for library, versions in LibraryVersion.known_versions.items()}, f, indent=2
+                {library: sorted(versions) for library, versions in ComponentVersion.known_versions.items()}, f, indent=2
             )
 
         data = session.config._json_report.report  # noqa: SLF001

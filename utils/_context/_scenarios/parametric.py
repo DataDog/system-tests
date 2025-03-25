@@ -18,7 +18,7 @@ from docker.errors import DockerException
 from docker.models.containers import Container
 from docker.models.networks import Network
 
-from utils._context.library_version import LibraryVersion
+from utils._context.component_version import ComponentVersion
 from utils._logger import logger
 
 from .core import Scenario, ScenarioGroup
@@ -173,7 +173,7 @@ class ParametricScenario(Scenario):
                 command=["cat", "SYSTEM_TESTS_LIBRARY_VERSION"],
             )
 
-        self._library = LibraryVersion(library, output.decode("utf-8"))
+        self._library = ComponentVersion(library, output.decode("utf-8"))
         logger.debug(f"Library version is {self._library}")
 
     def get_warmups(self):

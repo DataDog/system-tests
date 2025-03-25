@@ -3,7 +3,7 @@ import json
 import os
 from pathlib import Path
 import pytest
-from utils._context.library_version import LibraryVersion
+from utils._context.component_version import ComponentVersion
 from utils._logger import logger
 from utils.onboarding.debug_vm import extract_logs_to_file
 from utils.virtual_machine.utils import get_tested_apps_vms, generate_gitlab_pipeline
@@ -60,7 +60,7 @@ class _VirtualMachineScenario(Scenario):
 
         if config.option.vm_provider:
             self.vm_provider_id = config.option.vm_provider
-        self._library = LibraryVersion(config.option.vm_library, "0.0")
+        self._library = ComponentVersion(config.option.vm_library, "0.0")
         self._datadog_apm_inject_version = "v0.00.00"
         self._os_configurations = {}
         self._env = config.option.vm_env
@@ -181,7 +181,7 @@ class _VirtualMachineScenario(Scenario):
             if key.startswith("datadog-apm-inject") and self.components[key]:
                 self._datadog_apm_inject_version = f"v{self.components[key]}"
             if key.startswith("datadog-apm-library-") and self.components[key]:
-                self._library = LibraryVersion(self._library.name, self.components[key])
+                self._library = ComponentVersion(self._library.name, self.components[key])
                 # We store without the lang sufix
                 self.components["datadog-apm-library"] = self.components[key]
                 del self.components[key]

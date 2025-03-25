@@ -3,7 +3,7 @@ import os
 from docker.models.networks import Network
 import pytest
 
-from utils._context.library_version import LibraryVersion, Version
+from utils._context.component_version import ComponentVersion, Version
 
 from utils.k8s_lib_injection.k8s_datadog_kubernetes import K8sDatadog
 from utils.k8s_lib_injection.k8s_weblog import K8sWeblog
@@ -57,7 +57,7 @@ class K8sScenario(Scenario):
         self.k8s_provider_name = config.option.k8s_provider if config.option.k8s_provider else "kind"
 
         # Get Lib init version
-        self._library = LibraryVersion(
+        self._library = ComponentVersion(
             config.option.k8s_library, extract_library_version(config.option.k8s_lib_init_img)
         )
         self.k8s_lib_init_img = config.option.k8s_lib_init_img
@@ -197,7 +197,7 @@ class K8sManualInstrumentationScenario(Scenario):
         self.k8s_provider_name = config.option.k8s_provider if config.option.k8s_provider else "kind"
 
         # Get Lib init version
-        self._library = LibraryVersion(
+        self._library = ComponentVersion(
             config.option.k8s_library, extract_library_version(config.option.k8s_lib_init_img)
         )
         self.k8s_lib_init_img = config.option.k8s_lib_init_img
@@ -335,7 +335,7 @@ class WeblogInjectionScenario(Scenario):
 
     def configure(self, config: pytest.Config):  # noqa: ARG002
         assert "TEST_LIBRARY" in os.environ, "TEST_LIBRARY must be set: java,python,nodejs,dotnet,ruby"
-        self._library = LibraryVersion(os.getenv("TEST_LIBRARY"), "0.0")
+        self._library = ComponentVersion(os.getenv("TEST_LIBRARY"), "0.0")
 
         assert "LIB_INIT_IMAGE" in os.environ, "LIB_INIT_IMAGE must be set"
         self._lib_init_image = os.getenv("LIB_INIT_IMAGE")

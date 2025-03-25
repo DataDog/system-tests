@@ -49,14 +49,14 @@ class Version(version_module.Version):
         return super().__ge__(_build(other))
 
 
-class LibraryVersion:  # TODO : rename into ComponentVersion
+class ComponentVersion:
     known_versions: dict = defaultdict(set)
     version: Version
     # name: str
 
     def add_known_version(self, version: Version | None, library: str | None = None):
         library = self.name if library is None else library
-        LibraryVersion.known_versions[library].add(str(version))
+        ComponentVersion.known_versions[library].add(str(version))
 
     def __init__(self, name: str, version: str = "0.0.0"):
         if "@" in name:
@@ -144,11 +144,11 @@ class LibraryVersion:  # TODO : rename into ComponentVersion
         return f"{self.name}@{self.version}" if self.version else self.name
 
     def __eq__(self, other: object):
-        if isinstance(other, LibraryVersion):
+        if isinstance(other, ComponentVersion):
             return self.name == other.name and self.version == other.version
 
         if not isinstance(other, str):
-            raise TypeError(f"Can't compare LibraryVersion to type {type(other)}")
+            raise TypeError(f"Can't compare ComponentVersion to type {type(other)}")
 
         if "@" in other:
             library, version = other.split("@", 1)
@@ -166,11 +166,11 @@ class LibraryVersion:  # TODO : rename into ComponentVersion
         return self.name == library
 
     def _extract_members(self, other: object) -> tuple[str | None, Version | None]:
-        if isinstance(other, LibraryVersion):
+        if isinstance(other, ComponentVersion):
             return other.name, other.version
 
         if not isinstance(other, str):
-            raise TypeError(f"Can't compare LibraryVersion to type {type(other)}")
+            raise TypeError(f"Can't compare ComponentVersion to type {type(other)}")
 
         if "@" not in other:
             raise ValueError("Can't compare version numbers without a version")
@@ -222,5 +222,5 @@ def _build(version: object) -> Version:
 
 
 if __name__ == "__main__":
-    v = LibraryVersion("ruby", "  * ddtrace (0.53.0.appsec.180045)")
+    v = ComponentVersion("ruby", "  * ddtrace (0.53.0.appsec.180045)")
     assert str(v.version) == "0.53.1-appsec+180045"

@@ -15,7 +15,7 @@ from docker.models.networks import Network
 import pytest
 import requests
 
-from utils._context.library_version import LibraryVersion
+from utils._context.component_version import ComponentVersion
 from utils.proxy.ports import ProxyPorts
 from utils._logger import logger
 from utils import interfaces
@@ -581,7 +581,7 @@ class AgentContainer(TestedContainer):
         with open(self.healthcheck_log_file, encoding="utf-8") as f:
             data = json.load(f)
 
-        self.agent_version = LibraryVersion("agent", data["version"]).version
+        self.agent_version = ComponentVersion("agent", data["version"]).version
 
         logger.stdout(f"Agent: {self.agent_version}")
         logger.stdout(f"Backend: {self.dd_site}")
@@ -773,7 +773,7 @@ class WeblogContainer(TestedContainer):
         self.additional_trace_header_tags = additional_trace_header_tags
 
         self.weblog_variant = ""
-        self._library: LibraryVersion | None = None
+        self._library: ComponentVersion | None = None
 
     @property
     def trace_agent_port(self):
@@ -884,7 +884,7 @@ class WeblogContainer(TestedContainer):
             data = json.load(f)
             lib = data["library"]
 
-        self._library = LibraryVersion(lib["name"], lib["version"])
+        self._library = ComponentVersion(lib["name"], lib["version"])
 
         logger.stdout(f"Library: {self.library}")
 
@@ -899,7 +899,7 @@ class WeblogContainer(TestedContainer):
         self.stdout_interface.init_patterns(self.library)
 
     @property
-    def library(self) -> LibraryVersion:
+    def library(self) -> ComponentVersion:
         assert self._library is not None, "Library version is not set"
         return self._library
 
@@ -1214,7 +1214,7 @@ class WeblogInjectionInitContainer(TestedContainer):
             volumes={_VOLUME_INJECTOR_NAME: {"bind": "/datadog-lib", "mode": "rw"}},
         )
 
-    def set_environment_for_library(self, library: LibraryVersion):
+    def set_environment_for_library(self, library: ComponentVersion):
         lib_inject_props = {}
         for lang_env_vars in K8sWeblog.manual_injection_props["js" if library.name == "nodejs" else library.name]:
             lib_inject_props[lang_env_vars["name"]] = lang_env_vars["value"]
@@ -1277,7 +1277,7 @@ class EnvoyContainer(TestedContainer):
 
 
 class ExternalProcessingContainer(TestedContainer):
-    library: LibraryVersion
+    library: ComponentVersion
 
     def __init__(
         self,
@@ -1322,7 +1322,7 @@ class ExternalProcessingContainer(TestedContainer):
             data = json.load(f)
             lib = data["library"]
 
-        self.library = LibraryVersion(lib["name"], lib["version"])
+        self.library = ComponentVersion(lib["name"], lib["version"])
 
         logger.stdout(f"Library: {self.library}")
         logger.stdout(f"Image: {self.image.name}")
