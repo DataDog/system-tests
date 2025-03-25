@@ -40,7 +40,7 @@ function epilogue {
     echo "0.0.0" > SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION
   fi
 
-  printf '{"status":"ok","library":{"language":"cpp","version":"%s"}}' "$(< SYSTEM_TESTS_LIBRARY_VERSION)" \
+  printf '{"status":"ok","library":{"name":"cpp","version":"%s"}}' "$(< SYSTEM_TESTS_LIBRARY_VERSION)" \
     > healthcheck.json
 }
 

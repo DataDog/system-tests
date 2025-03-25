@@ -37,7 +37,15 @@ class Test_Truncation:
 
         assert int(metrics["_dd.appsec.truncated.string_length"]) == 5000
         assert int(metrics["_dd.appsec.truncated.container_size"]) == 300
-        assert int(metrics["_dd.appsec.truncated.container_depth"]) == 20
+
+        # Because finding the actual depth is non-trivial and the definition of depth could differ between libraries
+        # depending on if the addresses are counted or not, we are not asserting the exact value here.
+        # Max value of 28 is made of:
+        # * 25 "a" from create_nested_object()
+        # * 1 "deepObject" from setup_truncation()
+        # * 1 "server.request.body" address
+        # * 1 of leeway depending on how leafs of the tree are counted
+        assert 20 <= int(metrics["_dd.appsec.truncated.container_depth"]) <= 28
 
         waf_requests_series = find_series("generate-metrics", "appsec", ["waf.requests"])
         has_input_truncated = any("input_truncated:true" in series["tags"] for series in waf_requests_series)

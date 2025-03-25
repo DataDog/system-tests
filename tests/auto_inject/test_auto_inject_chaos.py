@@ -18,7 +18,7 @@ class BaseAutoInjectChaos(base.AutoInjectBaseTest):
         weblog_url = f"http://{vm_ip}:{vm_port}/"
         # Weblog start command. If it's a ruby tracer, we must to rebuild the app before restart it
         weblog_start_command = "sudo systemctl start test-app.service"
-        if context.scenario.library.library in ["ruby", "python", "dotnet"]:
+        if context.scenario.library.name in ["ruby", "python", "dotnet"]:
             weblog_start_command = virtual_machine._vm_provision.weblog_installation.remote_command
 
         # Ok the installation is done, now we can do some chaos
@@ -56,7 +56,7 @@ class BaseAutoInjectChaos(base.AutoInjectBaseTest):
         apm_inject_restore = "sudo datadog-installer apm instrument"
 
         # Env for installation command
-        prefix_env = f"DD_LANG={context.scenario.library.library}"
+        prefix_env = f"DD_LANG={context.scenario.library.name}"
         for key, value in virtual_machine._vm_provision.env.items():
             prefix_env += f" DD_{key}={value}"
 

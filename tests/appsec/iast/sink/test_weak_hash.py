@@ -12,16 +12,16 @@ from tests.appsec.iast.utils import (
 
 
 def _expected_location() -> str | None:
-    if context.library.library == "java":
+    if context.library.name == "java":
         return "com.datadoghq.system_tests.iast.utils.CryptoExamples"
 
-    if context.library.library == "nodejs":
+    if context.library.name == "nodejs":
         if context.weblog_variant in ("express4", "express5"):
             return "iast/index.js"
         if context.weblog_variant == "express4-typescript":
             return "iast.ts"
 
-    if context.library.library == "python":
+    if context.library.name == "python":
         if context.library.version >= "1.12.0":
             return "iast.py"
         # old value: absolute path
@@ -33,7 +33,7 @@ def _expected_location() -> str | None:
 
 
 def _expected_evidence() -> str:
-    if context.library.library == "dotnet":
+    if context.library.name == "dotnet":
         return "MD5"
     else:
         return "md5"

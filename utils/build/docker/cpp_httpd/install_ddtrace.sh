@@ -24,7 +24,7 @@ else
   rm "$TARBALL"
 fi
 
-echo '{"status": "ok", "library": {"language": "cpp_httpd", "version": "'"$HTTPD_DATADOG_VERSION"'"}}' > /app/healthcheck.json
+echo '{"status": "ok", "library": {"name": "cpp_httpd", "version": "'"$HTTPD_DATADOG_VERSION"'"}}' > /app/healthcheck.json
 echo "$HTTPD_DATADOG_VERSION" > SYSTEM_TESTS_LIBRARY_VERSION
 cat /app/healthcheck.json
 

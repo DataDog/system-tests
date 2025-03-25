@@ -3,7 +3,7 @@ import json
 import os
 from pathlib import Path
 import pytest
-from utils._context.library_version import LibraryVersion
+from utils._context.component_version import ComponentVersion
 from utils._logger import logger
 from utils.onboarding.debug_vm import extract_logs_to_file
 from utils.virtual_machine.utils import get_tested_apps_vms
@@ -59,7 +59,7 @@ class _VirtualMachineScenario(Scenario):
 
         if config.option.vm_provider:
             self.vm_provider_id = config.option.vm_provider
-        self._library = LibraryVersion(config.option.vm_library, "0.0")
+        self._library = ComponentVersion(config.option.vm_library, "0.0")
         self._datadog_apm_inject_version = "v0.00.00"
         self._os_configurations = {}
         self._env = config.option.vm_env
@@ -81,7 +81,7 @@ class _VirtualMachineScenario(Scenario):
         self.vm_provider.configure(self.virtual_machine)
         self.virtual_machine.add_provision(
             provisioner.get_provision(
-                self._library.library,
+                self._library.name,
                 self._env,
                 self._weblog,
                 self.vm_provision_name,
@@ -102,7 +102,7 @@ class _VirtualMachineScenario(Scenario):
         assert self._weblog is not None, "Weblog is not set (use --vm-weblog)"
 
         base_folder = "utils/build/virtual_machine"
-        weblog_provision_file = f"{base_folder}/weblogs/{self._library.library}/provision_{self._weblog}.yml"
+        weblog_provision_file = f"{base_folder}/weblogs/{self._library.name}/provision_{self._weblog}.yml"
         assert Path(weblog_provision_file).is_file(), f"Weblog Provision file not found: {weblog_provision_file}"
 
         provision_file = f"{base_folder}/provisions/{self.vm_provision_name}/provision.yml"
@@ -132,7 +132,7 @@ class _VirtualMachineScenario(Scenario):
             if key.startswith("datadog-apm-inject") and self.components[key]:
                 self._datadog_apm_inject_version = f"v{self.components[key]}"
             if key.startswith("datadog-apm-library-") and self.components[key]:
-                self._library = LibraryVersion(self._library.library, self.components[key])
+                self._library = ComponentVersion(self._library.name, self.components[key])
                 # We store without the lang sufix
                 self.components["datadog-apm-library"] = self.components[key]
                 del self.components[key]

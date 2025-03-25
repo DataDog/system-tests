@@ -7,7 +7,7 @@
 import json
 from typing import Any
 
-from utils._context.library_version import LibraryVersion
+from utils._context.component_version import ComponentVersion
 # from utils._context._scenarios.core import Scenario  # TODO : lot of revamp to come
 
 
@@ -46,7 +46,7 @@ class _Context:
         return self._get_scenario_property("uds_socket", None)
 
     @property
-    def library(self) -> LibraryVersion:
+    def library(self) -> ComponentVersion:
         result = self._get_scenario_property("library", None)
         assert result is not None
         return result

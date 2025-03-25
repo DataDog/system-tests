@@ -10,7 +10,7 @@ import pytest
 import semantic_version as semver
 
 from utils._context.core import context
-from utils._context.library_version import Version
+from utils._context.component_version import Version
 
 
 _jira_ticket_pattern = re.compile(r"([A-Z]{3,}-\d+)(, [A-Z]{3,}-\d+)*")

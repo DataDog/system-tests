@@ -5,7 +5,7 @@ import pytest
 
 from utils import irrelevant, missing_feature, flaky, rfc, logger, scenarios
 from utils._decorators import released
-from utils._context.library_version import LibraryVersion
+from utils._context.component_version import ComponentVersion
 
 
 pytestmark = pytest.mark.scenario("TEST_THE_TEST")
@@ -83,7 +83,7 @@ def test_version_range():
             pass
 
         original_library = scenarios.test_the_test.library  # not very clean, TODO: add a fixture for that purpose
-        scenarios.test_the_test.library = LibraryVersion("java", tested_version)
+        scenarios.test_the_test.library = ComponentVersion("java", tested_version)
         decorated_class = released(java=declaration)(LocalClass)
         scenarios.test_the_test.library = original_library
 

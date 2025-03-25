@@ -497,7 +497,7 @@ class Test_Config_IntegrationEnabled_True:
 
 
 @rfc("https://docs.google.com/document/d/1kI-gTAKghfcwI7YzKhqRv2ExUstcHqADIWA4-TZ387o/edit#heading=h.8v16cioi7qxp")
-@scenarios.tracing_config_nondefault
+@scenarios.tracing_config_empty
 @features.log_injection
 class Test_Config_LogInjection_Enabled:
     """Verify log injection behavior when enabled"""
@@ -517,9 +517,9 @@ class Test_Config_LogInjection_Enabled:
         assert sid is not None, "Expected a span ID, but got None"
 
         required_fields = ["service", "version", "env"]
-        if context.library.library in ("java", "python"):
+        if context.library.name in ("java", "python"):
             required_fields = ["dd.service", "dd.version", "dd.env"]
-        elif context.library.library == "dotnet":
+        elif context.library.name == "dotnet":
             required_fields = ["dd_service", "dd_version", "dd_env"]
 
         for field in required_fields:
@@ -545,17 +545,53 @@ class Test_Config_LogInjection_Default:
 
 
 @rfc("https://docs.google.com/document/d/1kI-gTAKghfcwI7YzKhqRv2ExUstcHqADIWA4-TZ387o/edit#heading=h.8v16cioi7qxp")
-@scenarios.tracing_config_nondefault
+@scenarios.tracing_config_empty
 @features.log_injection
 @features.log_injection_128bit_traceid
 class Test_Config_LogInjection_128Bit_TraceId_Enabled:
     """Verify trace IDs are logged in 128bit format by default when log injection is enabled"""
 
-    def setup_log_injection_128bit_traceid_default(self):
+    def setup_new_traceid(self):
         self.message = "test_weblog_log_injection"
         self.r = weblog.get("/log/library", params={"msg": self.message})
 
-    def test_log_injection_128bit_traceid_default(self):
+    def test_new_traceid(self):
+        assert self.r.status_code == 200
+        log_msg = parse_log_injection_message(self.message)
+
+        trace_id = parse_log_trace_id(log_msg)
+        assert re.match(r"^[0-9a-f]{32}$", trace_id), f"Invalid 128-bit trace_id: {trace_id}"
+
+    def setup_incoming_64bit_traceid(self):
+        incoming_headers = {
+            "x-datadog-trace-id": "1",
+            "x-datadog-parent-id": "1",
+            "x-datadog-sampling-priority": "2",
+            "x-datadog-tags": "_dd.p.dm=-4",
+        }
+
+        self.message = "test_weblog_log_injection"
+        self.r = weblog.get("/log/library", params={"msg": self.message}, headers=incoming_headers)
+
+    def test_incoming_64bit_traceid(self):
+        assert self.r.status_code == 200
+        log_msg = parse_log_injection_message(self.message)
+
+        trace_id = parse_log_trace_id(log_msg)
+        assert re.match(r"^\d{1,20}$", str(trace_id)), f"Invalid 64-bit trace_id: {trace_id}"
+
+    def setup_incoming_128bit_traceid(self):
+        incoming_headers = {
+            "x-datadog-trace-id": "2",
+            "x-datadog-parent-id": "2",
+            "x-datadog-sampling-priority": "2",
+            "x-datadog-tags": "_dd.p.tid=1111111111111111,_dd.p.dm=-4",
+        }
+
+        self.message = "test_weblog_log_injection"
+        self.r = weblog.get("/log/library", params={"msg": self.message}, headers=incoming_headers)
+
+    def test_incoming_128bit_traceid(self):
         assert self.r.status_code == 200
         log_msg = parse_log_injection_message(self.message)
 
@@ -564,7 +600,7 @@ class Test_Config_LogInjection_128Bit_TraceId_Enabled:
 
 
 @rfc("https://docs.google.com/document/d/1kI-gTAKghfcwI7YzKhqRv2ExUstcHqADIWA4-TZ387o/edit#heading=h.8v16cioi7qxp")
-@scenarios.tracing_config_nondefault_3
+@scenarios.tracing_config_nondefault_4
 @features.log_injection
 @features.log_injection_128bit_traceid
 @irrelevant(
@@ -573,11 +609,47 @@ class Test_Config_LogInjection_128Bit_TraceId_Enabled:
 class Test_Config_LogInjection_128Bit_TraceId_Disabled:
     """Verify 128 bit traceid are disabled in log injection when DD_TRACE_128_BIT_TRACEID_LOGGING_ENABLED=false"""
 
-    def setup_log_injection_128bit_traceid_disabled(self):
+    def setup_new_traceid(self):
         self.message = "test_weblog_log_injection"
         self.r = weblog.get("/log/library", params={"msg": self.message})
 
-    def test_log_injection_128bit_traceid_disabled(self):
+    def test_new_traceid(self):
+        assert self.r.status_code == 200
+        log_msg = parse_log_injection_message(self.message)
+
+        trace_id = parse_log_trace_id(log_msg)
+        assert re.match(r"^\d{1,20}$", str(trace_id)), f"Invalid 64-bit trace_id: {trace_id}"
+
+    def setup_incoming_64bit_traceid(self):
+        incoming_headers = {
+            "x-datadog-trace-id": "1",
+            "x-datadog-parent-id": "1",
+            "x-datadog-sampling-priority": "2",
+            "x-datadog-tags": "_dd.p.dm=-4",
+        }
+
+        self.message = "test_weblog_log_injection"
+        self.r = weblog.get("/log/library", params={"msg": self.message}, headers=incoming_headers)
+
+    def test_incoming_64bit_traceid(self):
+        assert self.r.status_code == 200
+        log_msg = parse_log_injection_message(self.message)
+
+        trace_id = parse_log_trace_id(log_msg)
+        assert re.match(r"^\d{1,20}$", str(trace_id)), f"Invalid 64-bit trace_id: {trace_id}"
+
+    def setup_incoming_128bit_traceid(self):
+        incoming_headers = {
+            "x-datadog-trace-id": "2",
+            "x-datadog-parent-id": "2",
+            "x-datadog-sampling-priority": "2",
+            "x-datadog-tags": "_dd.p.tid=1111111111111111,_dd.p.dm=-4",
+        }
+
+        self.message = "test_weblog_log_injection"
+        self.r = weblog.get("/log/library", params={"msg": self.message}, headers=incoming_headers)
+
+    def test_incoming_128bit_traceid(self):
         assert self.r.status_code == 200
         log_msg = parse_log_injection_message(self.message)
 
@@ -608,7 +680,7 @@ class Test_Config_RuntimeMetrics_Enabled:
 
         for metric in runtime_metrics:
             tags = {tag.split(":")[0]: tag.split(":")[1] for tag in metric["tags"]}
-            language_tag_key, language_tag_value = runtime_metrics_lang_map[context.library.library]
+            language_tag_key, language_tag_value = runtime_metrics_lang_map[context.library.name]
             if language_tag_key is not None:
                 assert tags.get(language_tag_key) == language_tag_value
 
@@ -706,12 +778,12 @@ def parse_log_injection_message(log_message):
             except json.JSONDecodeError:
                 continue
             # Locate log with the custom message, which should have the trace ID and span ID
-            if message.get(log_injection_fields[context.library.library]["message"]) != log_message:
+            if message.get(log_injection_fields[context.library.name]["message"]) != log_message:
                 continue
             if message.get("dd"):
                 return message.get("dd")
             # dd-trace-java stores injected trace information under the "mdc" key
-            if context.library.library == "java":
+            if context.library.name == "java":
                 message = message.get("mdc")
             return message
     return None

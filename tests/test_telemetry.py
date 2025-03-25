@@ -412,8 +412,8 @@ class Test_Telemetry:
             "ruby": {},
         }
 
-        seen_loaded_dependencies = test_loaded_dependencies[context.library.library]
-        seen_defined_dependencies = test_defined_dependencies[context.library.library]
+        seen_loaded_dependencies = test_loaded_dependencies[context.library.name]
+        seen_defined_dependencies = test_defined_dependencies[context.library.name]
 
         for data in interfaces.library.get_telemetry_data():
             content = data["request"]["content"]
@@ -480,7 +480,7 @@ class Test_Telemetry:
             "ruby": {"DD_AGENT_TRANSPORT": "TCP"},
             "golang": {"lambda_mode": False},
         }
-        configuration_map = test_configuration[context.library.library]
+        configuration_map = test_configuration[context.library.name]
 
         def validator(data):
             if get_request_type(data) == "app-started":
@@ -489,7 +489,7 @@ class Test_Telemetry:
                 configurations_present = []
                 for cnf in configurations:
                     configuration_name = cnf["name"]
-                    if context.library.library == "java":
+                    if context.library.name == "java":
                         # support for older versions of Java Tracer
                         configuration_name = configuration_name.replace(".", "_")
                     if configuration_name in configuration_map:

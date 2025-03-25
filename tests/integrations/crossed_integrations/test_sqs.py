@@ -86,7 +86,7 @@ class _BaseSQS:
         """
         message = (
             "[crossed_integrations/sqs.py][SQS] Hello from SQS "
-            f"[{context.library.library} weblog->{self.buddy_interface.name}] test produce: {self.unique_id}"
+            f"[{context.library.name} weblog->{self.buddy_interface.name}] test produce: {self.unique_id}"
         )
 
         self.production_response = weblog.get(
@@ -149,7 +149,7 @@ class _BaseSQS:
         """
         message = (
             "[crossed_integrations/test_sqs.py][SQS] Hello from SQS "
-            f"[{self.buddy_interface.name}->{context.library.library} weblog] test consume: {self.unique_id}"
+            f"[{self.buddy_interface.name}->{context.library.name} weblog] test consume: {self.unique_id}"
         )
 
         self.production_response = self.buddy.get(

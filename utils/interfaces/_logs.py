@@ -12,7 +12,7 @@ import re
 
 from utils._logger import logger
 from utils.interfaces._core import InterfaceValidator
-from utils._context.library_version import LibraryVersion
+from utils._context.component_version import ComponentVersion
 
 
 class _LogsInterfaceValidator(InterfaceValidator):
@@ -130,7 +130,7 @@ class _LibraryStdout(_StdoutLogsInterfaceValidator):
         super().__init__("weblog")
         self.library = None
 
-    def init_patterns(self, library: LibraryVersion):
+    def init_patterns(self, library: ComponentVersion):
         self.library = library
         p = "(?P<{}>{})".format
 

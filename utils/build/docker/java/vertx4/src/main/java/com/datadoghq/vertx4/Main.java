@@ -352,7 +352,7 @@ public class Main {
 
         Map<String, Object> response = new HashMap<>();
         Map<String, String> library = new HashMap<>();
-        library.put("language", "java");
+        library.put("name", "java");
         library.put("version", version);
         response.put("status", "ok");
         response.put("library", library);

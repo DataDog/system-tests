@@ -220,9 +220,9 @@ class TestDynamicConfigTracingEnabled:
     @bug(context.library == "java", reason="APMAPI-1225")
     def test_default_capability_completeness(self, library_env, test_agent, test_library):
         """Ensure the RC request contains the expected default capabilities per language, no more and no less."""
-        if context.library is not None and context.library.library is not None:
+        if context.library is not None and context.library.name is not None:
             seen_capabilities = test_agent.wait_for_rc_capabilities()
-            expected_capabilities = DEFAULT_SUPPORTED_CAPABILITIES_BY_LANG[context.library.library]
+            expected_capabilities = DEFAULT_SUPPORTED_CAPABILITIES_BY_LANG[context.library.name]
 
             seen_but_not_expected_capabilities = seen_capabilities.difference(expected_capabilities)
             expected_but_not_seen_capabilities = expected_capabilities.difference(seen_capabilities)

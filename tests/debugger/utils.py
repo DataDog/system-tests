@@ -527,7 +527,7 @@ class BaseDebuggerTest:
     def get_tracer(self) -> dict[str, str]:
         if not BaseDebuggerTest.tracer:
             BaseDebuggerTest.tracer = {
-                "language": context.library.library,
+                "language": context.library.name,
                 "tracer_version": str(context.library.version),
             }
 

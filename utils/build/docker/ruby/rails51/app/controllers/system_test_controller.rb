@@ -16,7 +16,7 @@ class SystemTestController < ApplicationController
     render json: { 
       status: 'ok',
       library: {
-        language: 'ruby',
+        name: 'ruby',
         version: version
       }
     }

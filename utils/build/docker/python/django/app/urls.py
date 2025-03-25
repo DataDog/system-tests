@@ -87,7 +87,7 @@ def healthcheck(request):
     result = {
         "status": "ok",
         "library": {
-            "language": "python",
+            "name": "python",
             "version": ddtrace.__version__,
         },
     }

@@ -724,7 +724,7 @@ class BaseSCAStandaloneTelemetry:
     def test_app_dependencies_loaded(self):
         self.assert_standalone_is_enabled(self.r)
 
-        seen_loaded_dependencies = TelemetryUtils.get_loaded_dependency(context.library.library)
+        seen_loaded_dependencies = TelemetryUtils.get_loaded_dependency(context.library.name)
 
         for data in interfaces.library.get_telemetry_data():
             content = data["request"]["content"]

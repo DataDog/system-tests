@@ -37,7 +37,7 @@ app.get('/healthcheck', (req: Request, res: Response) => {
   res.json({
     status: 'ok',
     library: {
-      language: 'nodejs',
+      name: 'nodejs',
       version: require('dd-trace/package.json').version
     }
   });
