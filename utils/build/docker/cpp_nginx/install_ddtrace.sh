@@ -36,7 +36,7 @@ function epilogue {
     ln -s nginx.conf.no-waf /etc/nginx/nginx.conf
   fi
 
-  printf '{"status":"ok","library":{"name":"cpp","version":"%s"}}' "$(< SYSTEM_TESTS_LIBRARY_VERSION)" \
+  printf '{"status":"ok","library":{"name":"cpp_nginx","version":"%s"}}' "$(< SYSTEM_TESTS_LIBRARY_VERSION)" \
     > healthcheck.json
 }
 
