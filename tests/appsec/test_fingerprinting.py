@@ -18,6 +18,7 @@ def get_span_meta(r):
 
 @rfc("https://docs.google.com/document/d/1DivOa9XsCggmZVzMI57vyxH2_EBJ0-qqIkRHm_sEvSs/edit#heading=h.88xvn2cvs9dt")
 @features.fingerprinting
+@scenarios.appsec_fingerprint_postprocessor
 class Test_Fingerprinting_Header_And_Network:
     network_fingerprint_regex = r"net-[^-]*-[^-]*"
     header_fingerprint_regex = r"hdr-[^-]*-[^-]*-[^-]*-[^-]*"
@@ -67,6 +68,7 @@ class Test_Fingerprinting_Header_And_Network:
 
 @rfc("https://docs.google.com/document/d/1DivOa9XsCggmZVzMI57vyxH2_EBJ0-qqIkRHm_sEvSs/edit#heading=h.88xvn2cvs9dt")
 @features.fingerprinting
+@scenarios.appsec_fingerprint_postprocessor
 class Test_Fingerprinting_Endpoint:
     endpoint_fingerprint_regex = r"http-[^-]*-[^-]*-[^-]*-[^-]*"
 
@@ -87,6 +89,7 @@ class Test_Fingerprinting_Endpoint:
 
 @rfc("https://docs.google.com/document/d/1DivOa9XsCggmZVzMI57vyxH2_EBJ0-qqIkRHm_sEvSs/edit#heading=h.88xvn2cvs9dt")
 @features.fingerprinting
+@scenarios.appsec_fingerprint_postprocessor
 class Test_Fingerprinting_Session:
     session_fingerprint_regex = r"ssn-[^-]*-[^-]*-[^-]*-[^-]*"
 
@@ -94,15 +97,18 @@ class Test_Fingerprinting_Session:
         self.r_create_session = weblog.get("/session/new")
         self.cookies = self.r_create_session.cookies
         self.r_user = weblog.get("/user_login_success_event", cookies=self.cookies)
+        self.n = weblog.get("/")
 
     def test_session(self):
         assert self.r_create_session.status_code == 200
         assert self.r_user.status_code == 200
+        assert self.n.status_code == 200
         r_user_span_meta = get_span_meta(self.r_user)
         assert all("_dd.appsec.fp.session" in m for m in r_user_span_meta)
         for m in r_user_span_meta:
             fp = m["_dd.appsec.fp.session"]
             assert re.match(self.session_fingerprint_regex, fp), f"{fp} does not match session fingerprint regex"
+        assert all("_dd.appsec.fp.session" not in m for m in get_span_meta(self.n))
 
 
 @rfc("https://docs.google.com/document/d/1DivOa9XsCggmZVzMI57vyxH2_EBJ0-qqIkRHm_sEvSs/edit#heading=h.32nt1jz5tm2n")

@@ -959,6 +959,39 @@ class _Scenarios:
         doc="Test runtime metrics",
     )
 
+    appsec_fingerprint_postprocessor = EndToEndScenario(
+        "APPSEC_FINGERPRINT_POSTPROCESSOR",
+        weblog_env={"DD_APPSEC_RULES": "/appsec_fingerprint_postprocessor.json"},
+        weblog_volumes={
+            "./tests/appsec/appsec_fingerprint_postprocessor.json": {
+                "bind": "/appsec_fingerprint_postprocessor.json",
+                "mode": "ro",
+            }
+        },
+        doc="""
+            Tests for appsec fingerprinting with the use of a postprocessor which is also
+            conditional on specific events such as login success / failure or the presence of
+            attacks
+        """,
+        scenario_groups=[ScenarioGroup.APPSEC, ScenarioGroup.ESSENTIALS],
+    )
+
+    appsec_fingerprint_preprocessor = EndToEndScenario(
+        "APPSEC_FINGERPRINT_PREPROCESSOR",
+        weblog_env={"DD_APPSEC_RULES": "/appsec_fingerprint_preprocessor.json"},
+        weblog_volumes={
+            "./tests/appsec/appsec_fingerprint_preprocessor.json": {
+                "bind": "/appsec_fingerprint_preprocessor.json",
+                "mode": "ro",
+            }
+        },
+        doc="""
+            Tests for appsec fingerprinting with the use of an unconditional preprocessor,
+            including the use of the new addresses for fingerprint-based blocking
+        """,
+        scenario_groups=[ScenarioGroup.APPSEC, ScenarioGroup.ESSENTIALS],
+    )
+
 
 scenarios = _Scenarios()
 
