@@ -275,7 +275,7 @@ class Test_BodyXml:
         headers = headers or {}
         headers["Content-Type"] = "application/xml"
         data = f"<?xml version='1.0' encoding='utf-8'?>{data}"
-        return weblog.post(path, params, data, headers)
+        return weblog.post(path, params=params, data=data, headers=headers)
 
     def setup_xml_attr_value(self):
         self.r_attr_1 = self.weblog_post("/waf", data='<string attack="var_dump ()" />')

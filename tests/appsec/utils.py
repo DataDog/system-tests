@@ -18,7 +18,7 @@ def find_series(request_type: str, namespace: str, metrics: list[str]) -> list:
 
 
 class BaseFullDenyListTest:
-    states = None
+    states: remote_config.RemoteConfigStateResults | None = None
 
     def setup_scenario(self) -> None:
         # Generate the list of 100 * 125 = 12500 blocked ips that are found in the
@@ -51,9 +51,10 @@ class BaseFullDenyListTest:
         self.blocked_ips = [blocked_ips[0], blocked_ips[2500], blocked_ips[-1]]
 
     def assert_protocol_is_respected(self) -> None:
+        assert self.states is not None
         interfaces.library.assert_rc_targets_version_states(targets_version=0, config_states=[])
         interfaces.library.assert_rc_targets_version_states(
-            targets_version=self.states[remote_config.RC_VERSION],
+            targets_version=self.states.version,
             config_states=[
                 {
                     "id": "ASM_DATA-base",
