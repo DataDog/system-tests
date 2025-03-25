@@ -3,8 +3,7 @@
 # Copyright 2022 Datadog, Inc.
 
 import re
-from utils import bug, context, interfaces, rfc, weblog, missing_feature, features, scenarios
-from utils.tools import logger
+from utils import bug, context, interfaces, rfc, weblog, missing_feature, features, scenarios, logger
 
 
 def validate_no_leak(needle, whitelist_pattern=None):
@@ -119,6 +118,6 @@ class Test_EnvVar:
         interfaces.agent.validate(validate_no_leak("leaked-env-var"), success_by_default=True)
 
     def test_logs(self):
-        interfaces.library_stdout.assert_absence(".*leaked-env-var.*")
-        interfaces.library_dotnet_managed.assert_absence(".*leaked-env-var.*")
-        interfaces.agent_stdout.assert_absence(".*leaked-env-var.*")
+        interfaces.library_stdout.assert_absence("leaked-env-var")
+        interfaces.library_dotnet_managed.assert_absence("leaked-env-var")
+        interfaces.agent_stdout.assert_absence("leaked-env-var")

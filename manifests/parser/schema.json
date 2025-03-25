@@ -15,12 +15,22 @@
 
   "$defs": {
     "folder_content": {
-      "type": "object",
-      "patternProperties": {
-        ".+/": { "$ref": "#/$defs/folder_content" },
-        "test_.+\\.py": { "$ref": "#/$defs/file_content" }
-      },
-      "additionalProperties": false
+      "allOf": [
+        {
+          "if": { "type": "object" },
+          "then": {
+            "patternProperties": {
+              ".+/": { "$ref": "#/$defs/folder_content" },
+              "test_.+\\.py": { "$ref": "#/$defs/file_content" }
+            },
+            "additionalProperties": false
+          }
+        },
+        {
+          "if": { "type": "string" },
+          "then": { "$ref": "#/$defs/skipped_declaration" }
+        }
+      ]
     },
 
     "file_content": {

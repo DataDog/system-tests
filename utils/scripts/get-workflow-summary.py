@@ -20,7 +20,7 @@ def get_environ() -> dict[str, str]:
     return environ
 
 
-def get_jobs(session, repo_slug: str, run_id: int) -> list:
+def get_jobs(session: requests.Session, repo_slug: str, run_id: int) -> list:
     jobs = []
     params = {"per_page": 100, "page": 1}
     while True:
@@ -51,7 +51,7 @@ def main(repo_slug: str, run_id: int, output: str) -> None:
         failing_steps = defaultdict(list)
 
         for job in jobs:
-            if job["name"] in ("all-jobs-are-green", "fancy-report"):
+            if job["name"] in ("all-jobs-are-green", "fancy-report", "All jobs are green"):
                 logging.info(f"Skipping job {job['name']}")
                 continue
 

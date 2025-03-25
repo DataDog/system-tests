@@ -2,7 +2,8 @@ import pathlib
 import threading
 import json
 from utils.interfaces._core import InterfaceValidator
-from utils.tools import logger, get_rid_from_request
+from utils._logger import logger
+from utils._weblog import HttpResponse
 
 
 class _TestAgentInterfaceValidator(InterfaceValidator):
@@ -12,7 +13,7 @@ class _TestAgentInterfaceValidator(InterfaceValidator):
         self._data_traces_list = []
         self._data_telemetry_list = []
 
-    def collect_data(self, interface_folder, agent_host="localhost", agent_port=8126):
+    def collect_data(self, interface_folder: str, agent_host: str = "localhost", agent_port: int = 8126):
         import ddapm_test_agent.client as agent_client
 
         logger.debug("Collecting data from test agent")
@@ -29,8 +30,8 @@ class _TestAgentInterfaceValidator(InterfaceValidator):
                 json.dumps(self._data_telemetry_list, indent=2), encoding="utf-8"
             )
 
-    def get_traces(self, request=None):
-        rid = get_rid_from_request(request)
+    def get_traces(self, request: HttpResponse | None = None):
+        rid = request.get_rid() if request else None
         if not rid:
             raise ValueError("Request ID not found")
         logger.debug(f"Try to find traces related to request {rid}")
@@ -43,7 +44,7 @@ class _TestAgentInterfaceValidator(InterfaceValidator):
                             return data_received
         return None
 
-    def get_telemetry_for_runtime(self, runtime_id):
+    def get_telemetry_for_runtime(self, runtime_id: str):
         logger.debug(f"Try to find telemetry data related to runtime-id {runtime_id}")
         assert runtime_id is not None, "Runtime ID not found"
         telemetry_msgs = []
@@ -53,7 +54,7 @@ class _TestAgentInterfaceValidator(InterfaceValidator):
 
         return telemetry_msgs
 
-    def get_crashlog_for_runtime(self, runtime_id):
+    def get_crashlog_for_runtime(self, runtime_id: str):
         logger.debug(f"Try to find a crashlog related to runtime-id {runtime_id}")
         assert runtime_id is not None, "Runtime ID not found"
         return [log for log in self.get_telemetry_logs() if log["runtime_id"] == runtime_id]

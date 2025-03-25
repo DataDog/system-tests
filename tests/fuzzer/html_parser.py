@@ -3,14 +3,16 @@
 # Copyright 2021 Datadog, Inc.
 
 from html.parser import HTMLParser
+from collections.abc import Callable
 
 
 class _RequestExtractor(HTMLParser):
-    def __init__(self):
+    request: dict
+
+    def __init__(self, base_url, callback: Callable):
         super().__init__()
-        self.callback = None
-        self.base_url = None
-        self.request = None
+        self.callback = callback
+        self.base_url = base_url
 
     def error(self, message):
         pass
@@ -18,7 +20,7 @@ class _RequestExtractor(HTMLParser):
     def handle_endtag(self, tag):
         if tag == "form":
             self.callback(self.request)
-            self.request = None
+            self.request = {}
 
     def handle_starttag(self, tag, attrs):
         def get_path(url_or_path):
@@ -54,10 +56,7 @@ class _RequestExtractor(HTMLParser):
                     self.callback({"method": "GET", "path": get_path(value)})
 
 
-_extractor = _RequestExtractor()
+def extract_requests(content, base_url, callback) -> None:
+    extractor = _RequestExtractor(base_url, callback)
 
-
-def extract_requests(content, base_url, callback):
-    _extractor.base_url = base_url
-    _extractor.callback = callback
-    _extractor.feed(content)
+    extractor.feed(content)

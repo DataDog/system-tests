@@ -6,7 +6,7 @@ import re
 import attr
 
 
-def get_container_id(infos) -> str | None:
+def get_container_id(infos: list) -> str | None:
     for line in infos:
         info = _CGroupInfo.from_line(line)
         if info:

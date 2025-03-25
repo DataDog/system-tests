@@ -7,7 +7,7 @@ from jsonschema import validate
 import yaml
 
 
-def _flatten(base, obj):
+def _flatten(base: str, obj: dict):
     if base.endswith(".py"):
         base += "::"
     for key, value in obj.items():
@@ -20,7 +20,7 @@ def _flatten(base, obj):
                 yield from _flatten(f"{base}{key}", value)
 
 
-def _load_file(file):
+def _load_file(file: str):
     try:
         with open(file, encoding="utf-8") as f:
             data = yaml.safe_load(f)
@@ -35,7 +35,7 @@ def _load_file(file):
 
 
 @lru_cache
-def load(base_dir="manifests/") -> dict:
+def load(base_dir: str = "manifests/") -> dict[str, dict[str, str]]:
     """Returns a dict of nodeid, value are another dict where the key is the component
     and the value the declaration. It is meant to sent directly the value of a nodeid to @released.
 
@@ -55,6 +55,8 @@ def load(base_dir="manifests/") -> dict:
     for component in (
         "agent",
         "cpp",
+        "cpp_httpd",
+        "cpp_nginx",
         "dotnet",
         "golang",
         "java",
@@ -74,14 +76,14 @@ def load(base_dir="manifests/") -> dict:
     return result
 
 
-def assert_key_order(obj: dict, path="") -> None:
+def assert_key_order(obj: dict, path: str = "") -> None:
     last_key = "/"
 
     for key, value in obj.items():
         if last_key.endswith("/") and not key.endswith("/"):  # transition from folder fo files, nothing to do
             pass
         elif not last_key.endswith("/") and key.endswith("/"):  # folder must be before files
-            raise ValueError(f"Folders must be placed before files at {path}/{last_key}")
+            raise ValueError(f"Folders must be placed before files at {path}{last_key}")
         else:  # otherwise, it must be sorted
             assert last_key < key, f"Order is not respected at {path} ({last_key} < {key})"
 

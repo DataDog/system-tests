@@ -2,11 +2,10 @@ from __future__ import annotations
 import json
 
 from utils.buddies import python_buddy
-from utils import interfaces, scenarios, weblog, missing_feature, features, context
-from utils.tools import logger
+from utils import interfaces, scenarios, weblog, missing_feature, features, context, logger
 
 
-class _Test_SNS:
+class _BaseSNS:
     """Test sns compatibility with inputted datadog tracer"""
 
     BUDDY_TO_WEBLOG_QUEUE = None
@@ -242,7 +241,7 @@ class _Test_SNS:
 
 @scenarios.crossed_tracing_libraries
 @features.aws_sns_span_creationcontext_propagation_via_message_attributes_with_dd_trace
-class Test_SNS_Propagation(_Test_SNS):
+class Test_SNS_Propagation(_BaseSNS):
     buddy_interface = interfaces.python_buddy
     buddy = python_buddy
 

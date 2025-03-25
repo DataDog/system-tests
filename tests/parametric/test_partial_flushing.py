@@ -52,18 +52,17 @@ class Test_Partial_Flushing:
         """Create a trace with a root span and a single child. Finish the child, and ensure
         partial flushing triggers.
         """
-        with test_library:
-            with test_library.dd_start_span(name="root") as parent_span:
-                with test_library.dd_start_span(name="child1", parent_id=parent_span.span_id) as child1:
-                    pass
-                partial_traces = test_agent.wait_for_num_traces(1, clear=True, wait_loops=30)
-                partial_trace = find_trace(partial_traces, parent_span.trace_id)
-                assert len(partial_trace) == 1
-                child_span = find_span(partial_trace, child1.span_id)
-                assert child_span["name"] == "child1"
-                # verify the partially flushed chunk has proper "trace level" tags
-                assert child_span["metrics"]["_sampling_priority_v1"] == 1.0
-                assert len(child_span["meta"]["_dd.p.tid"]) > 0
+        with test_library, test_library.dd_start_span(name="root") as parent_span:
+            with test_library.dd_start_span(name="child1", parent_id=parent_span.span_id) as child1:
+                pass
+            partial_traces = test_agent.wait_for_num_traces(1, clear=True, wait_loops=30)
+            partial_trace = find_trace(partial_traces, parent_span.trace_id)
+            assert len(partial_trace) == 1
+            child_span = find_span(partial_trace, child1.span_id)
+            assert child_span["name"] == "child1"
+            # verify the partially flushed chunk has proper "trace level" tags
+            assert child_span["metrics"]["_sampling_priority_v1"] == 1.0
+            assert len(child_span["meta"]["_dd.p.tid"]) > 0
 
         traces = test_agent.wait_for_num_traces(1, clear=True)
         full_trace = find_trace(traces, parent_span.trace_id)
@@ -75,15 +74,14 @@ class Test_Partial_Flushing:
         """Create a trace with a root span and one child. Finish the child, and ensure
         partial flushing does NOT trigger.
         """
-        with test_library:
-            with test_library.dd_start_span(name="root") as parent_span:
-                with test_library.dd_start_span(name="child1", parent_id=parent_span.span_id):
-                    pass
-                try:
-                    partial_traces = test_agent.wait_for_num_traces(1, clear=True)
-                    assert partial_traces is None
-                except ValueError:
-                    pass  # We expect there won't be a flush, so catch this exception
+        with test_library, test_library.dd_start_span(name="root") as parent_span:
+            with test_library.dd_start_span(name="child1", parent_id=parent_span.span_id):
+                pass
+            try:
+                partial_traces = test_agent.wait_for_num_traces(1, clear=True)
+                assert partial_traces is None
+            except ValueError:
+                pass  # We expect there won't be a flush, so catch this exception
         traces = test_agent.wait_for_num_traces(1, clear=True)
         trace = find_trace(traces, parent_span.trace_id)
         assert len(traces) == 1

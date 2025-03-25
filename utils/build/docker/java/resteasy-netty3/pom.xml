@@ -65,7 +65,7 @@
         <dependency>
             <groupId>com.datadoghq</groupId>
             <artifactId>dd-trace-api</artifactId>
-            <version>LATEST</version>
+            <version>${dd-trace-api.version}</version>
         </dependency>
         <dependency>
             <groupId>org.hsqldb</groupId>
@@ -199,7 +199,21 @@
         </plugins>
     </build>
 
+    <repositories>
+        <repository>
+            <id>sonatype-snapshots</id>
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
+
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <dd-trace-api.version>[1.47.0,)</dd-trace-api.version>
     </properties>
 </project>

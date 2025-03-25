@@ -3,7 +3,7 @@ import time
 import yaml
 from pathlib import Path
 from kubernetes import client, watch
-from utils.tools import logger
+from utils._logger import logger
 from utils.k8s_lib_injection.k8s_command_utils import (
     helm_add_repo,
     helm_install_chart,
@@ -263,6 +263,12 @@ class K8sDatadog:
         """Exports debug information for the test agent and the cluster_agent.
         We shouldn't raise any exception here, we just log the errors.
         """
+        # Export all kind cluster logs
+        try:
+            if "kind" in self.k8s_cluster_info.context_name:
+                execute_command(f"kind export logs {self.output_folder}/ --name {self.k8s_cluster_info.cluster_name}")
+        except Exception as e:
+            logger.error(f"Error exporting kind logs: {e}")
 
         # Get all pods
         ret = self.k8s_cluster_info.core_v1_api().list_namespaced_pod(namespace, watch=False)

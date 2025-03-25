@@ -203,6 +203,8 @@ class Test_StandardTagsRoute:
         self.r = weblog.get("/sample_rate_route/1")
 
     def test_route(self):
+        assert self.r.status_code == 200
+
         tags = {"http.route": "/sample_rate_route/{i}"}
 
         # specify the route syntax if needed
@@ -221,6 +223,9 @@ class Test_StandardTagsRoute:
                 tags["http.route"] = "/sample_rate_route/<i>"
             elif context.weblog_variant in ("django-poc", "python3.12", "django-py3.13"):
                 tags["http.route"] = "sample_rate_route/<int:i>"
+        if context.library == "java":
+            if context.weblog_variant in ("ratpack", "vertx3", "vertx4"):
+                tags["http.route"] = "/sample_rate_route/:i"
 
         interfaces.library.add_span_tag_validation(request=self.r, tags=tags)
 
@@ -338,7 +343,5 @@ class Test_StandardTagsClientIp:
             assert meta[tag] == value
 
     def _get_root_span_meta(self, request):
-        root_spans = [s for _, s in interfaces.library.get_root_spans(request=request)]
-        assert len(root_spans) == 1
-        span = root_spans[0]
+        span = interfaces.library.get_root_span(request)
         return span.get("meta", {})

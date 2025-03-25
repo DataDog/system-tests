@@ -6,6 +6,7 @@ RUN mkdir -p /app
 WORKDIR /app
 
 COPY utils/build/docker/ruby/rails70/ .
+COPY utils/build/docker/ruby/shared/rails/ .
 COPY utils/build/docker/ruby/install_ddtrace.sh binaries* /binaries/
 RUN /binaries/install_ddtrace.sh
 

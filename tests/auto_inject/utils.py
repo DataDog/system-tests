@@ -1,9 +1,8 @@
-from utils.tools import logger
 from utils.onboarding.weblog_interface import make_get_request, warmup_weblog, make_internal_get_request
 from utils.onboarding.backend_interface import wait_backend_trace_id
 from utils.onboarding.wait_for_tcp_port import wait_for_port
 from utils.virtual_machine.vm_logger import vm_logger
-from utils import context
+from utils import context, logger
 from threading import Timer
 
 
@@ -48,7 +47,7 @@ class AutoInjectBaseTest:
             logger.info(f"Http request done with uuid: [{request_uuid}] for ip [{vm_ip}]")
         wait_backend_trace_id(request_uuid, profile=profile)
 
-    def close_channel(self, channel):
+    def close_channel(self, channel) -> None:
         try:
             if not channel.eof_received:
                 channel.close()
@@ -114,10 +113,10 @@ class AutoInjectBaseTest:
 
         request_uuids = []
         assert wait_for_port(vm_port, vm_ip, 40.0), "Weblog port not reachable. Is the weblog running?"
-        responseJson = warmup_weblog(f"http://{vm_ip}:{vm_port}/")
-        if responseJson is not None:
-            logger.info(f"There is a multicontainer app: {responseJson}")
-            for app in responseJson["apps"]:
+        response_json = warmup_weblog(f"http://{vm_ip}:{vm_port}/")
+        if response_json is not None:
+            logger.info(f"There is a multicontainer app: {response_json}")
+            for app in response_json["apps"]:
                 logger.info(f"Making a request to weblog [http://{vm_ip}:{vm_port}{app['url']}]")
                 request_uuids.append(make_get_request(f"http://{vm_ip}:{vm_port}{app['url']}"))
         else:

@@ -12,7 +12,7 @@ from datadog_api_client.v1.model.metric_content_encoding import MetricContentEnc
 from datadog_api_client.v1.model.point import Point
 
 
-def flatten(obj, parent_key="", sep=".") -> list:
+def flatten(obj: dict, parent_key: str = "", sep: str = ".") -> list:
     result = []
     for k, v in obj.items():
         new_key = f"{parent_key}{sep}{k}" if parent_key else k

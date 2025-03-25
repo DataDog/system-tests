@@ -9,7 +9,7 @@ A scenario is the abstraction for a context to test, and anything can be defined
 from .core import Scenario
 
 class CustomScenario(Scenario):
-    def configure(self, config):
+    def configure(self, config:pytest.Config):
         """
             If needed, configure the context => mainly, only get infos from config
             At this point, logger.stdout is unavailable, so this function should not fail, unless

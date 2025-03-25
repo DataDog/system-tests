@@ -5,7 +5,7 @@ from .core import Scenario
 class TestTheTestScenario(Scenario):
     library = LibraryVersion("java", "0.66.0")
 
-    def __init__(self, name, doc) -> None:
+    def __init__(self, name: str, doc: str) -> None:
         super().__init__(name, doc=doc, github_workflow="testthetest")
         self.components["mock_comp1"] = "mock_comp1_value"
 

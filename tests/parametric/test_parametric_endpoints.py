@@ -146,9 +146,8 @@ class Test_Parametric_DDSpan_Set_Meta:
         Supported Return Values:
         """
 
-        with test_library:
-            with test_library.dd_start_span("span") as s1:
-                s1.set_meta("key", "value")
+        with test_library, test_library.dd_start_span("span") as s1:
+            s1.set_meta("key", "value")
 
         traces = test_agent.wait_for_num_traces(1)
         span = find_span_in_traces(traces, s1.trace_id, s1.span_id)
@@ -168,9 +167,8 @@ class Test_Parametric_DDSpan_Set_Metric:
         Supported Return Values:
         """
 
-        with test_library:
-            with test_library.dd_start_span("span_meta") as s1:
-                s1.set_metric("key", 1)
+        with test_library, test_library.dd_start_span("span_meta") as s1:
+            s1.set_metric("key", 1)
 
         traces = test_agent.wait_for_num_traces(1)
         span = find_span_in_traces(traces, s1.trace_id, s1.span_id)
@@ -191,9 +189,8 @@ class Test_Parametric_DDSpan_Set_Error:
         Supported Return Values:
         """
 
-        with test_library:
-            with test_library.dd_start_span("span_set_error") as s1:
-                s1.set_error("MyException", "Parametric tests rock", "fake_stacktrace")
+        with test_library, test_library.dd_start_span("span_set_error") as s1:
+            s1.set_error("MyException", "Parametric tests rock", "fake_stacktrace")
 
         traces = test_agent.wait_for_num_traces(1)
         span = find_span_in_traces(traces, s1.trace_id, s1.span_id)
@@ -214,9 +211,8 @@ class Test_Parametric_DDSpan_Set_Resource:
         - resource: str
         Supported Return Values:
         """
-        with test_library:
-            with test_library.dd_start_span("span_set_resource", "old_resource") as s1:
-                s1.set_resource("new_resource")
+        with test_library, test_library.dd_start_span("span_set_resource", "old_resource") as s1:
+            s1.set_resource("new_resource")
 
         traces = test_agent.wait_for_num_traces(1)
         span = find_span_in_traces(traces, s1.trace_id, s1.span_id)
@@ -394,12 +390,11 @@ class Test_Parametric_DDTrace_Baggage:
         Supported Return Values:
         - value: str
         """
-        with test_library:
-            with test_library.dd_start_span("test_get_baggage") as s1:
-                s1.set_baggage("key", "value")
+        with test_library, test_library.dd_start_span("test_get_baggage") as s1:
+            s1.set_baggage("key", "value")
 
-                baggage = s1.get_baggage("key")
-                assert baggage == "value"
+            baggage = s1.get_baggage("key")
+            assert baggage == "value"
 
     def test_get_all_baggage(self, test_agent, test_library):
         """Validates that /trace/span/get_all_baggage gets all baggage items.
@@ -409,14 +404,13 @@ class Test_Parametric_DDTrace_Baggage:
         Supported Return Values:
         - baggage: Dict[str, str]
         """
-        with test_library:
-            with test_library.dd_start_span("test_get_all_baggage") as s1:
-                s1.set_baggage("key1", "value")
-                s1.set_baggage("key2", "value")
+        with test_library, test_library.dd_start_span("test_get_all_baggage") as s1:
+            s1.set_baggage("key1", "value")
+            s1.set_baggage("key2", "value")
 
-                baggage = s1.get_all_baggage()
-                assert baggage["key1"] == "value"
-                assert baggage["key2"] == "value"
+            baggage = s1.get_all_baggage()
+            assert baggage["key1"] == "value"
+            assert baggage["key2"] == "value"
 
     def test_remove_baggage(self, test_agent, test_library):
         """Validates that /trace/span/remove_baggage removes a baggage item.
@@ -521,9 +515,8 @@ class Test_Parametric_OtelSpan_End:
         """
         sleep = 0.2
         t1 = time.time()
-        with test_library:
-            with test_library.otel_start_span("otel_end_span", end_on_exit=True):
-                time.sleep(sleep)
+        with test_library, test_library.otel_start_span("otel_end_span", end_on_exit=True):
+            time.sleep(sleep)
         total_time = time.time() - t1
 
         traces = test_agent.wait_for_num_traces(1)
@@ -561,9 +554,8 @@ class Test_Parametric_OtelSpan_Set_Attribute:
         - key: str
         Supported Return Values:
         """
-        with test_library:
-            with test_library.otel_start_span("otel_set_attribute") as s1:
-                s1.set_attribute("key", "value")
+        with test_library, test_library.otel_start_span("otel_set_attribute") as s1:
+            s1.set_attribute("key", "value")
 
         traces = test_agent.wait_for_num_traces(1)
         span = find_only_span(traces)
@@ -582,9 +574,8 @@ class Test_Parametric_OtelSpan_Set_Status:
         - description: str
         Supported Return Values:
         """
-        with test_library:
-            with test_library.otel_start_span("otel_set_status") as s1:
-                s1.set_status(StatusCode.ERROR, "error message")
+        with test_library, test_library.otel_start_span("otel_set_status") as s1:
+            s1.set_status(StatusCode.ERROR, "error message")
 
         traces = test_agent.wait_for_num_traces(1)
         span = find_only_span(traces)
@@ -602,9 +593,8 @@ class Test_Parametric_OtelSpan_Set_Name:
         - name: str
         Supported Return Values:
         """
-        with test_library:
-            with test_library.otel_start_span("otel_set_name") as s1:
-                s1.set_name("new_name")
+        with test_library, test_library.otel_start_span("otel_set_name") as s1:
+            s1.set_name("new_name")
 
         traces = test_agent.wait_for_num_traces(1)
         span = find_only_span(traces)
@@ -624,9 +614,8 @@ class Test_Parametric_OtelSpan_Events:
         - attributes: Optional[Dict[str, str]]
         Supported Return Values:
         """
-        with test_library:
-            with test_library.otel_start_span("otel_add_event") as s1:
-                s1.add_event("some_event", 1730393556000000, {"key": "value"})
+        with test_library, test_library.otel_start_span("otel_add_event") as s1:
+            s1.add_event("some_event", 1730393556000000, {"key": "value"})
 
         traces = test_agent.wait_for_num_traces(1)
         span = find_only_span(traces)
@@ -648,9 +637,8 @@ class Test_Parametric_OtelSpan_Events:
         - attributes: str
         Supported Return Values:
         """
-        with test_library:
-            with test_library.otel_start_span("otel_record_exception") as s1:
-                s1.record_exception("MyException Parametric tests rock", {"error.key": "value"})
+        with test_library, test_library.otel_start_span("otel_record_exception") as s1:
+            s1.record_exception("MyException Parametric tests rock", {"error.key": "value"})
 
         traces = test_agent.wait_for_num_traces(1)
         span = find_only_span(traces)
