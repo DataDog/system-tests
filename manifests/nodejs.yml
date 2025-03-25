@@ -1074,10 +1074,10 @@ tests/:
   test_profiling.py:
     Test_Profile: *ref_5_16_0  #actual version unknown
   test_sampling_rates.py:
-    Test_SampleRateFunction: bug (APMAPI-736)
+    Test_SampleRateFunction: *ref_5_17_0  # not true, but want to see error
     Test_SamplingDecisionAdded: *ref_5_17_0  # real version unknown
-    Test_SamplingDecisions: bug (APMAPI-736)
-    Test_SamplingDeterminism: bug (APMAPI-736)
+    Test_SamplingDecisions: *ref_5_17_0  # not true, but want to see error
+    Test_SamplingDeterminism: *ref_5_17_0  # not true, but want to see error
     Test_SamplingRates: *ref_5_17_0  # real version unknown
   test_scrubbing.py:
     Test_UrlField: *ref_3_13_1

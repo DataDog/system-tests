@@ -1016,9 +1016,9 @@ tests/:
       django-py3.13: missing_feature (python 3.13 not supported yet)
       python3.12: v2.1.0
   test_sampling_rates.py:
-    Test_SampleRateFunction: bug (APMAPI-736)
+    Test_SampleRateFunction: v2.8.0  # check errors
     Test_SamplingDecisionAdded: v2.8.0
-    Test_SamplingDecisions: bug (APMAPI-736)
+    Test_SamplingDecisions: v2.8.0  # check errors
     Test_SamplingDeterminism: v2.8.0
     Test_SamplingRates: v2.8.0
   test_scrubbing.py:

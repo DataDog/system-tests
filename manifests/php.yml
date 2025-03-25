@@ -568,9 +568,9 @@ tests/:
   test_profiling.py:
     Test_Profile: missing_feature (profiling seems not to be activated)
   test_sampling_rates.py:
-    Test_SampleRateFunction: bug (APMAPI-736)
+    Test_SampleRateFunction: v1.7.2  # want to see error
     Test_SamplingDecisionAdded: v1.7.2  # real version unknown
-    Test_SamplingDecisions: bug (APMAPI-736)
+    Test_SamplingDecisions: v1.7.2  # want to see error
     Test_SamplingDeterminism: v1.7.2  # real version unknown
     Test_SamplingRates: v1.7.2  # real version unknown
   test_scrubbing.py:

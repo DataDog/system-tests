@@ -1911,19 +1911,10 @@ tests/:
       vertx3: missing_feature (Endpoint not implemented)
       vertx4: missing_feature (Endpoint not implemented)
   test_sampling_rates.py:
-    Test_SampleRateFunction:
-      '*': missing_feature (Endpoint /sample_rate_route not implemented)
-      spring-boot: v0.92.0
-      spring-boot-3-native: v0.92.0
-    Test_SamplingDecisionAdded:
-      '*': missing_feature (Endpoint /sample_rate_route not implemented)
-      spring-boot: v0.92.0
-      spring-boot-3-native: v0.92.0
-    Test_SamplingDecisions: bug (APMAPI-736)
-    Test_SamplingDeterminism:
-      '*': missing_feature (Endpoint /sample_rate_route not implemented)
-      spring-boot: v0.92.0
-      spring-boot-3-native: v0.92.0
+    Test_SampleRateFunction: v0.92.0
+    Test_SamplingDecisionAdded: v0.92.0
+    Test_SamplingDecisions: v0.92.0  # not true today, but I want to see test failures
+    Test_SamplingDeterminism: v0.92.0
     Test_SamplingRates: v0.92.0
   test_scrubbing.py:
     Test_UrlQuery: v0.107.1
