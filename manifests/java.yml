@@ -707,6 +707,7 @@ tests/:
           akka-http: missing_feature (APPSEC-56196)
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
           spring-boot-payara: missing_feature (APPSEC-54966)
+        Test_Cmdi_Telemetry_V2: missing_feature
         Test_Cmdi_Telemetry_Variant_Tag:
           '*': v1.45.0
           akka-http: missing_feature (APPSEC-56196)
@@ -757,6 +758,7 @@ tests/:
           '*': v1.40.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
         Test_Lfi_Telemetry_Multiple_Exploits: missing_feature
+        Test_Lfi_Telemetry_V2: missing_feature
         Test_Lfi_UrlQuery:
           '*': v1.40.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
@@ -799,6 +801,7 @@ tests/:
         Test_Shi_Telemetry:
           '*': v1.45.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+        Test_Shi_Telemetry_V2: missing_feature
         Test_Shi_Telemetry_Variant_Tag:
           '*': v1.45.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
@@ -856,6 +859,7 @@ tests/:
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
           vertx3: v1.40.0  # issue in context propagation in 1.39.0
           vertx4: v1.40.0  # issue in context propagation in 1.39.0
+        Test_Sqli_Telemetry_V2: missing_feature
         Test_Sqli_UrlQuery:
           '*': v1.39.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
@@ -909,6 +913,7 @@ tests/:
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
           vertx3: missing_feature (APPSEC-55781)
           vertx4: missing_feature (APPSEC-55781)
+        Test_Ssrf_Telemetry_V2: missing_feature
         Test_Ssrf_UrlQuery:
           '*': v1.39.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
