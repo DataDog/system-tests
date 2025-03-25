@@ -2,6 +2,8 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2024 Datadog, Inc.
 
+
+from typing import Any
 from utils import context
 from utils import features
 from utils import interfaces
@@ -157,8 +159,8 @@ class Test_Automated_User_Blocking:
     def test_user_blocking_auto(self):
         assert self.r_login.status_code == 200
 
-        assert self.config_state_1[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
-        assert self.config_state_2[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
+        assert self.config_state_1.state == rc.ApplyState.ACKNOWLEDGED
+        assert self.config_state_2.state == rc.ApplyState.ACKNOWLEDGED
         interfaces.library.assert_waf_attack(self.r_home_blocked, rule="block-users")
         assert self.r_home_blocked.status_code == 403
 
@@ -183,8 +185,8 @@ class Test_Automated_User_Blocking:
     def test_user_blocking_sdk(self):
         assert self.r_login.status_code == 200
 
-        assert self.config_state_1[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
-        assert self.config_state_2[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
+        assert self.config_state_1.state == rc.ApplyState.ACKNOWLEDGED
+        assert self.config_state_2.state == rc.ApplyState.ACKNOWLEDGED
         assert self.r_not_blocked.status_code == 200
 
         interfaces.library.assert_waf_attack(self.r_blocked, rule="block-users")
@@ -214,7 +216,7 @@ BLOCK_SESSION = (
     },
 )
 
-BLOCK_SESSION_DATA = (
+BLOCK_SESSION_DATA: tuple[str, dict[str, Any]] = (
     "datadog/2/ASM_DATA/blocked_sessions/config",
     {
         "rules_data": [
@@ -245,10 +247,10 @@ class Test_Automated_Session_Blocking:
 
     @missing_feature(context.library == "dotnet", reason="Session ids can't be set.")
     def test_session_blocking(self):
-        assert self.config_state_1[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
+        assert self.config_state_1.state == rc.ApplyState.ACKNOWLEDGED
         assert self.r_create_session.status_code == 200
 
-        assert self.config_state_2[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
-        assert self.config_state_3[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
+        assert self.config_state_2.state == rc.ApplyState.ACKNOWLEDGED
+        assert self.config_state_3.state == rc.ApplyState.ACKNOWLEDGED
         interfaces.library.assert_waf_attack(self.r_home_blocked, pattern=self.session_id, rule="block-sessions")
         assert self.r_home_blocked.status_code == 403

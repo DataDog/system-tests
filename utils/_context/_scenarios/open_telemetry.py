@@ -8,7 +8,7 @@ from watchdog.events import FileSystemEventHandler, FileSystemEvent
 from utils._logger import logger
 from utils import interfaces
 from utils.interfaces._core import ProxyBasedInterfaceValidator
-from utils._context.library_version import Version
+from utils._context.component_version import Version
 
 from utils._context.containers import (
     AgentContainer,

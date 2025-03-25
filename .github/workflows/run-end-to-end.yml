@@ -192,6 +192,9 @@ jobs:
     - name: Run TRACING_CONFIG_NONDEFAULT_3 scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"TRACING_CONFIG_NONDEFAULT_3"')
       run: ./run.sh TRACING_CONFIG_NONDEFAULT_3
+    - name: Run TRACING_CONFIG_NONDEFAULT_4 scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"TRACING_CONFIG_NONDEFAULT_4"')
+      run: ./run.sh TRACING_CONFIG_NONDEFAULT_4
     - name: Run REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES"')
       run: ./run.sh REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES

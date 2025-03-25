@@ -225,7 +225,7 @@ class Test_TelemetryMetrics:
 def _validate_headers(headers, request_type):
     """https://github.com/DataDog/instrumentation-telemetry-api-docs/blob/main/GeneratedDocumentation/ApiDocs/v2/how-to-use.md"""
 
-    expected_language = context.library.library
+    expected_language = context.library.name
     if expected_language == "java":
         expected_language = "jvm"
 

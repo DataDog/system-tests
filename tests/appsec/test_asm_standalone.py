@@ -28,14 +28,14 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
     #
 
     # Enpoint that triggers an ASM event and a downstream request
-    request_downstream_url = "/requestdownstream"
+    request_downstream_url: str = "/requestdownstream"
 
     # Tested product
-    tested_product = None
+    tested_product: str | None = None
 
     # Return a boolean indicating if the test passed
     @staticmethod
-    def _assert_tags(first_trace, span, obj, expected_tags) -> None:
+    def _assert_tags(first_trace, span, obj, expected_tags) -> bool:
         def _assert_tags_value(span, obj, expected_tags):
             struct = span if obj is None else span[obj]
             for tag, value in expected_tags.items():
@@ -137,7 +137,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
 
         assert spans_checked == 1
         # Downstream propagation is fully disabled in this case
-        downstream_headers = CaseInsensitiveDict(json.loads(self.r.text))
+        downstream_headers: CaseInsensitiveDict = CaseInsensitiveDict(json.loads(self.r.text))
         assert "X-Datadog-Origin" not in downstream_headers
         assert "X-Datadog-Parent-Id" not in downstream_headers
         assert "X-Datadog-Tags" not in downstream_headers
@@ -181,7 +181,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
 
         assert spans_checked == 1
         # Downstream propagation is fully disabled in this case
-        downstream_headers = CaseInsensitiveDict(json.loads(self.r.text))
+        downstream_headers: CaseInsensitiveDict = CaseInsensitiveDict(json.loads(self.r.text))
         assert "X-Datadog-Origin" not in downstream_headers
         assert "X-Datadog-Parent-Id" not in downstream_headers
         assert "X-Datadog-Tags" not in downstream_headers
@@ -225,7 +225,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
 
         assert spans_checked == 1
         # Downstream propagation is fully disabled in this case
-        downstream_headers = CaseInsensitiveDict(json.loads(self.r.text))
+        downstream_headers: CaseInsensitiveDict = CaseInsensitiveDict(json.loads(self.r.text))
         assert "X-Datadog-Origin" not in downstream_headers
         assert "X-Datadog-Parent-Id" not in downstream_headers
         assert "X-Datadog-Tags" not in downstream_headers
@@ -269,7 +269,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
 
         assert spans_checked == 1
         # Downstream propagation is fully disabled in this case
-        downstream_headers = CaseInsensitiveDict(json.loads(self.r.text))
+        downstream_headers: CaseInsensitiveDict = CaseInsensitiveDict(json.loads(self.r.text))
         assert "X-Datadog-Origin" not in downstream_headers
         assert "X-Datadog-Parent-Id" not in downstream_headers
         assert "X-Datadog-Tags" not in downstream_headers
@@ -311,7 +311,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
             spans_checked += 1
 
         assert spans_checked == 1
-        downstream_headers = CaseInsensitiveDict(json.loads(self.r.text))
+        downstream_headers: CaseInsensitiveDict = CaseInsensitiveDict(json.loads(self.r.text))
         assert downstream_headers["X-Datadog-Origin"] == "rum"
         assert downstream_headers["X-Datadog-Parent-Id"] != "34343434"
         assert "_dd.p.other=1" in downstream_headers["X-Datadog-Tags"]
@@ -354,7 +354,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
             spans_checked += 1
 
         assert spans_checked == 1
-        downstream_headers = CaseInsensitiveDict(json.loads(self.r.text))
+        downstream_headers: CaseInsensitiveDict = CaseInsensitiveDict(json.loads(self.r.text))
         assert downstream_headers["X-Datadog-Origin"] == "rum"
         assert downstream_headers["X-Datadog-Parent-Id"] != "34343434"
         assert "_dd.p.other=1" in downstream_headers["X-Datadog-Tags"]
@@ -398,7 +398,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
             spans_checked += 1
 
         assert spans_checked == 1
-        downstream_headers = CaseInsensitiveDict(json.loads(self.r.text))
+        downstream_headers: CaseInsensitiveDict = CaseInsensitiveDict(json.loads(self.r.text))
         assert downstream_headers["X-Datadog-Origin"] == "rum"
         assert downstream_headers["X-Datadog-Parent-Id"] != "34343434"
         assert self.propagated_tag_and_value() in downstream_headers["X-Datadog-Tags"]
@@ -441,7 +441,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
             spans_checked += 1
 
         assert spans_checked == 1
-        downstream_headers = CaseInsensitiveDict(json.loads(self.r.text))
+        downstream_headers: CaseInsensitiveDict = CaseInsensitiveDict(json.loads(self.r.text))
         assert downstream_headers["X-Datadog-Origin"] == "rum"
         assert downstream_headers["X-Datadog-Parent-Id"] != "34343434"
         assert self.propagated_tag_and_value() in downstream_headers["X-Datadog-Tags"]
@@ -484,7 +484,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
             spans_checked += 1
 
         assert spans_checked == 1
-        downstream_headers = CaseInsensitiveDict(json.loads(self.r.text))
+        downstream_headers: CaseInsensitiveDict = CaseInsensitiveDict(json.loads(self.r.text))
         assert downstream_headers["X-Datadog-Origin"] == "rum"
         assert downstream_headers["X-Datadog-Parent-Id"] != "34343434"
         assert self.propagated_tag_and_value() in downstream_headers["X-Datadog-Tags"]
@@ -525,7 +525,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
             spans_checked += 1
 
         assert spans_checked == 1
-        downstream_headers = CaseInsensitiveDict(json.loads(self.r.text))
+        downstream_headers: CaseInsensitiveDict = CaseInsensitiveDict(json.loads(self.r.text))
         assert downstream_headers["X-Datadog-Origin"] == "rum"
         assert downstream_headers["X-Datadog-Parent-Id"] != "34343434"
         assert self.propagated_tag_and_value() in downstream_headers["X-Datadog-Tags"]
@@ -566,7 +566,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
             spans_checked += 1
 
         assert spans_checked == 1
-        downstream_headers = CaseInsensitiveDict(json.loads(self.r.text))
+        downstream_headers: CaseInsensitiveDict = CaseInsensitiveDict(json.loads(self.r.text))
         assert downstream_headers["X-Datadog-Origin"] == "rum"
         assert downstream_headers["X-Datadog-Parent-Id"] != "34343434"
         assert self.propagated_tag_and_value() in downstream_headers["X-Datadog-Tags"]
@@ -607,7 +607,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
             spans_checked += 1
 
         assert spans_checked == 1
-        downstream_headers = CaseInsensitiveDict(json.loads(self.r.text))
+        downstream_headers: CaseInsensitiveDict = CaseInsensitiveDict(json.loads(self.r.text))
         assert downstream_headers["X-Datadog-Origin"] == "rum"
         assert downstream_headers["X-Datadog-Parent-Id"] != "34343434"
         assert self.propagated_tag_and_value() in downstream_headers["X-Datadog-Tags"]
@@ -618,9 +618,8 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
 class BaseAppSecStandaloneUpstreamPropagation(BaseAsmStandaloneUpstreamPropagation):
     """APPSEC correctly propagates AppSec events in distributing tracing."""
 
-    request_downstream_url = "/requestdownstream"
-
-    tested_product = "appsec"
+    request_downstream_url: str = "/requestdownstream"
+    tested_product: str = "appsec"
 
     @bug(library="java", weblog_variant="akka-http", reason="APPSEC-55001")
     @bug(library="java", weblog_variant="jersey-grizzly2", reason="APPSEC-55001")
@@ -707,7 +706,7 @@ class BaseSCAStandaloneTelemetry:
         cfg_appsec_enabled = configuration_by_name.get(dd_appsec_sca_enabled)
         assert cfg_appsec_enabled is not None, f"Missing telemetry config item for '{dd_appsec_sca_enabled}'"
 
-        outcome_value = True
+        outcome_value: bool | str = True
         if context.library == "java":
             outcome_value = str(outcome_value).lower()
         assert cfg_appsec_enabled.get("value") == outcome_value
@@ -725,7 +724,7 @@ class BaseSCAStandaloneTelemetry:
     def test_app_dependencies_loaded(self):
         self.assert_standalone_is_enabled(self.r)
 
-        seen_loaded_dependencies = TelemetryUtils.get_loaded_dependency(context.library.library)
+        seen_loaded_dependencies = TelemetryUtils.get_loaded_dependency(context.library.name)
 
         for data in interfaces.library.get_telemetry_data():
             content = data["request"]["content"]

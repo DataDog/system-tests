@@ -47,7 +47,7 @@ exclude = [
     # TODO
     "utils/_context/core.py",
     "tests/test_telemetry.py",
-    "tests/appsec/.*",
+    "tests/appsec/iast/.*",
     "tests/auto_inject/.*",
     "tests/integrations/.*",
     "tests/otel_tracing_e2e/test_e2e.py",
@@ -60,7 +60,6 @@ exclude = [
     "utils/docker_ssi/.*",
     "utils/k8s_lib_injection/.*",
     "utils/onboarding/.*",
-    "utils/scripts/merge_gitlab_aws_pipelines.py",
     "utils/virtual_machine/.*",
 ]
 ignore_missing_imports = true
@@ -101,7 +100,6 @@ select = ["ALL"]
 
 ignore = [
     ### TODO : remove those ignores
-    "ANN003",   # missing-type-kwargs: TODO (29 occurences)
     "ANN202",   # missing-return-type-private-function: TODO (877 occurences)
     "BLE001",   # blind-except: TODO big project to enable this (39 occurences)
     "C901",     # complex-structure: TODO (52 occurences)
@@ -212,9 +210,10 @@ ignore = [
     "RUF001",    # ambiguous-unicode-character-string: the mutator contains weird strings on purpose
 ]
 "tests/parametric/*" = [
-    "ANN001",    # missing-type-function-argument: TODO
-    "ANN401",    # any-type: TODO
-    "ARG002",    # unused-method-argument: TODO
+    "ANN001",   # missing-type-function-argument: TODO
+    "ANN003",   # missing-type-kwargs: TODO
+    "ANN401",   # any-type: TODO
+    "ARG002",   # unused-method-argument: TODO
 ]
 "tests/parametric/{test_headers_baggage.py,test_headers_datadog.py,test_library_tracestats.py}" = [
     "N802",      # invalid-function-name: some tests methods contains code with capital letters
@@ -229,7 +228,7 @@ ignore = [
 "utils/_context/_scenarios/auto_injection.py" = [
     "ANN001",   # missing-type-function-argument: TODO
 ]
-"utils/{_context/_scenarios/docker_ssi.py,docker_ssi/docker_ssi_matrix_builder.py,docker_ssi/docker_ssi_matrix_utils.py}" = [
+"utils/{_context/_scenarios/docker_ssi.py,docker_ssi/docker_ssi_matrix_utils.py}" = [
     "ANN001",   # missing-type-function-argument: TODO
     "E501",     # line-too-long: TODO
     "T201",     # print: TODO
@@ -251,6 +250,7 @@ ignore = [
 
 "utils/{k8s_lib_injection/*,_context/_scenarios/k8s_lib_injection.py}" = [
     "ANN001",   # missing-type-function-argument: TODO
+    "ANN003",   # missing-type-kwargs: TODO
     "ANN201",   # missing-return-type-undocumented-public-function: TODO
     "B006",     # mutable-argument-default: TODO
     "B007",     # unused-loop-control-variable: TODO
@@ -293,7 +293,8 @@ ignore = [
     "UP017",   # datetime-timezone-utc: TODO
 ]
 "utils/parametric/*" = [
-    "ANN001",    # missing-type-function-argument: TODO
+    "ANN001",   # missing-type-function-argument: TODO
+    "ANN003",   # missing-type-kwargs: TODO
 ]
 "utils/scripts/ci_orchestrator/gitlab_exporter.py" = [ "ANN001" ]  # missing-type-function-argument: TODO
 "utils/scripts/junit_report.py" = ["ANN001"] # missing-type-function-argument: TODO
@@ -306,6 +307,7 @@ ignore = [
 ]
 "utils/virtual_machine/virtual_machines.py" = [
     "ANN001",   # missing-type-function-argument: TODO
+    "ANN003",   # missing-type-kwargs: TODO
     "ANN201",   # missing-return-type-undocumented-public-function: TODO
     "ARG002",   # unused-method-argument: TODO
     "FBT002",   # boolean-default-value-positional-argument: TODO
