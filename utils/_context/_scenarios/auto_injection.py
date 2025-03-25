@@ -8,7 +8,6 @@ from utils._logger import logger
 from utils.onboarding.debug_vm import extract_logs_to_file
 from utils.virtual_machine.utils import get_tested_apps_vms
 from utils.virtual_machine.virtual_machines import _VirtualMachine, load_virtual_machines
-from utils.scripts.ci_orchestrators.workflow_data import get_aws_matrix
 from .core import Scenario
 
 
@@ -74,25 +73,9 @@ class _VirtualMachineScenario(Scenario):
                 f"Invalid value for --vm-default-vms: {self.only_default_vms}. Use 'All', 'True' or 'False'"
             )
 
-        # TODO RMM REMOVE THIS AFTER REMOVE THE PIPELINE GENERATION FROM THE SCENARIO.
-        # TODO RMM we will load only the machine set by the --vm-only flag
         all_vms = load_virtual_machines(self.vm_provider_id)
-        supported_vm_names = get_aws_matrix(
-            "utils/virtual_machine/virtual_machines.json",
-            "utils/scripts/ci_orchestrators/aws_ssi.json",
-            [self.name],
-            self._library.library,
-        )[self.name][self._weblog]
-        logger.info(f" Supported names: {supported_vm_names} ")
-        supported_vms = [vm for vm in all_vms if vm.name in supported_vm_names]
-        if self.only_default_vms != "All":
-            supported_vms = [
-                vm for vm in supported_vms if str(vm.default_vm).casefold() == self.only_default_vms.casefold()
-            ]
-        logger.info(f"Supported VMs: {', '.join([vm.name for vm in supported_vms])}")
-
         assert config.option.vm_only is not None, "No VM selected to run. Use --vm-only"
-        self.virtual_machine = next((vm for vm in supported_vms if vm.name == config.option.vm_only), None)
+        self.virtual_machine = next((vm for vm in all_vms if vm.name == config.option.vm_only), None)
         assert self.virtual_machine is not None, f"VM not found: {config.option.vm_only}"
         logger.info(f"Selected VM: {self.virtual_machine.name}")
         self.vm_provider.configure(self.virtual_machine)
