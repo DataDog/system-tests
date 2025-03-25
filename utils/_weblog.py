@@ -142,9 +142,10 @@ class _Weblog:
         path: str = "/",
         params: dict | None = None,
         data: dict | str | bytes | None = None,
+        headers: dict | None = None,
+        *,
         json: dict | list | None = None,
         files: dict | None = None,
-        headers: dict | None = None,
         cookies: dict | None = None,
         timeout: int = 5,
     ):
@@ -166,6 +167,7 @@ class _Weblog:
         params: dict | None = None,
         data: dict | str | None = None,
         headers: dict | None = None,
+        *,
         timeout: int = 5,
     ):
         return self.request("TRACE", path, params=params, data=data, headers=headers, timeout=timeout)

@@ -6,7 +6,7 @@
     "configurations": [
         {
             "name": "Run DEFAULT scenario",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
             "module": "pytest",
             "args": ["-p", "no:warnings"],
@@ -16,7 +16,7 @@
         },
         {
             "name": "Replay DEFAULT scenario",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
             "module": "pytest",
             "args": ["-p", "no:warnings", "--replay"],
