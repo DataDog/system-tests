@@ -73,13 +73,6 @@ def pytest_addoption(parser: pytest.Parser) -> None:
     parser.addoption("--vm-provider", type=str, action="store", help="Set provider for VMs")
     parser.addoption("--vm-only", type=str, action="store", help="Filter to execute only one vm name")
     parser.addoption(
-        "--vm-gitlab-pipeline",
-        type=str,
-        action="store",
-        help="Generate pipeline for Gitlab CI. Not run the tests. Values: one-pipeline, system-tests",
-    )
-
-    parser.addoption(
         "--vm-default-vms",
         type=str,
         action="store",
@@ -329,7 +322,7 @@ def pytest_collection_modifyitems(session: pytest.Session, config: pytest.Config
         all_declared_scenarios[item.nodeid] = declared_scenarios
 
         # If we are running scenario with the option sleep, we deselect all
-        if session.config.option.sleep or session.config.option.vm_gitlab_pipeline:
+        if session.config.option.sleep:
             deselected.append(item)
             continue
 
@@ -507,12 +500,6 @@ def pytest_sessionfinish(session: pytest.Session, exitstatus: int) -> None:
             export_feature_parity_dashboard(session, data)
         except Exception:
             logger.exception("Fail to export export reports", exc_info=True)
-
-    if session.config.option.vm_gitlab_pipeline:
-        NO_TESTS_COLLECTED = 5  # noqa: N806
-        SUCCESS = 0  # noqa: N806
-        if exitstatus == NO_TESTS_COLLECTED:
-            session.exitstatus = SUCCESS
 
 
 def export_feature_parity_dashboard(session: pytest.Session, data: dict) -> None:
