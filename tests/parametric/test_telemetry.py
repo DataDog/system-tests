@@ -53,7 +53,7 @@ telemetry_name_mapping = {
 
 def _mapped_telemetry_name(context, apm_telemetry_name):
     if apm_telemetry_name in telemetry_name_mapping:
-        mapped_name = telemetry_name_mapping[apm_telemetry_name].get(context.library.library)
+        mapped_name = telemetry_name_mapping[apm_telemetry_name].get(context.library.name)
         if mapped_name is not None:
             return mapped_name
     return apm_telemetry_name
