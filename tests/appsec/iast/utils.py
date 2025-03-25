@@ -37,6 +37,7 @@ def assert_iast_vulnerability(
     expected_evidence: str | None = None,
 ) -> None:
     iast = get_iast_event(request=request)
+    assert isinstance(iast, dict)
     assert iast["vulnerabilities"], "Expected at least one vulnerability"
     vulns = iast["vulnerabilities"]
     if vulnerability_type:
@@ -98,20 +99,20 @@ def get_iast_sources(iast_events: list) -> list:
 
 
 class BaseSinkTestWithoutTelemetry:
-    vulnerability_type = None
-    http_method = None
-    insecure_endpoint = None
-    secure_endpoint = None
-    params = None
-    data = None
-    headers = None
-    secure_headers = None
-    insecure_headers = None
-    location_map = None
-    evidence_map = None
+    vulnerability_type: str | None = None
+    http_method: str
+    insecure_endpoint: str | None = None
+    secure_endpoint: str | None = None
+    params: dict | None = None
+    data: dict | None = None
+    headers: dict | None = None
+    secure_headers: dict | None = None
+    insecure_headers: dict | None = None
+    location_map: str | dict | None = None
+    evidence_map: str | dict | None = None
 
-    insecure_request = None
-    secure_request = None
+    insecure_request: HttpResponse
+    secure_request: HttpResponse
 
     @property
     def expected_location(self) -> str | None:
@@ -125,7 +126,7 @@ class BaseSinkTestWithoutTelemetry:
         # optimize by attaching requests to the class object, to avoid calling it several times. We can't attach them
         # to self, and we need to attach the request on class object, as there are one class instance by test case
 
-        if self.__class__.insecure_request is None:
+        if not hasattr(self.__class__, "insecure_request"):
             assert self.insecure_endpoint is not None, f"{self}.insecure_endpoint must not be None"
 
             self.__class__.insecure_request = weblog.request(
@@ -157,7 +158,7 @@ class BaseSinkTestWithoutTelemetry:
         # optimize by attaching requests to the class object, to avoid calling it several times. We can't attach them
         # to self, and we need to attach the request on class object, as there are one class instance by test case
 
-        if self.__class__.secure_request is None:
+        if not hasattr(self.__class__, "secure_request"):
             assert self.secure_endpoint is not None, f"Please set {self}.secure_endpoint"
             assert isinstance(self.secure_endpoint, str), f"Please set {self}.secure_endpoint"
 
@@ -424,12 +425,13 @@ class BaseSinkTest(BaseSinkTestWithoutTelemetry):
 
 
 class BaseSourceTest:
-    endpoint = None
-    requests_kwargs = None
-    source_type = None
-    source_names = None
-    source_value = None
-    requests: dict = None
+    endpoint: str
+    requests_kwargs: list[dict] | None = None
+    source_type: str | None = None
+    source_names: list[str] | None = None
+    source_value: str | None = None
+    requests: dict[str, HttpResponse]
+    store: dict[str, HttpResponse] | None = None
 
     def setup_source_reported(self) -> None:
         assert isinstance(self.requests_kwargs, list), f"{self.__class__}.requests_kwargs must be a list of dicts"
@@ -437,14 +439,14 @@ class BaseSourceTest:
         # optimize by attaching requests to the class object, to avoid calling it several times. We can't attach them
         # to self, and we need to attach the request on class object, as there are one class instance by test case
 
-        if self.__class__.requests is None:
-            self.__class__.requests = {}
+        if self.__class__.store is None:
+            self.__class__.store = {}
             for kwargs in self.requests_kwargs:
                 method = kwargs["method"]
                 # store them as method:request to allow later custom test by method
-                self.__class__.requests[method] = weblog.request(path=self.endpoint, **kwargs)
+                self.__class__.store[method] = weblog.request(path=self.endpoint, **kwargs)
 
-        self.requests = self.__class__.requests
+        self.requests = self.__class__.store
 
     def test_source_reported(self) -> None:
         for request in self.requests.values():
@@ -456,8 +458,7 @@ class BaseSourceTest:
         # to avoid false positive, we need to check that at least
         # one test is working before running the telemetry tests
 
-        at_least_one_success = False
-        error = None
+        error: Exception = Exception("No test executed")
         for method in dir(self):
             if (
                 callable(getattr(self, method))
@@ -466,14 +467,15 @@ class BaseSourceTest:
             ):
                 try:
                     getattr(self, method)()
-                    at_least_one_success = True
+                    return
                 except Exception as e:
                     error = e
-        if not at_least_one_success:
-            raise error
+
+        raise error
 
     def get_sources(self, request: HttpResponse) -> list:
         iast = get_iast_event(request=request)
+        assert isinstance(iast, dict)
         return iast["sources"]
 
     def validate_request_reported(self, request: HttpResponse, source_type: str | None = None) -> None:
@@ -562,8 +564,8 @@ class BaseSourceTest:
 
 
 class BaseTestCookieNameFilter:
-    vulnerability_type = None
-    endpoint = None
+    vulnerability_type: str | None = None
+    endpoint: str
 
     def setup_cookie_name_filter(self) -> None:
         prefix = "0" * 36
