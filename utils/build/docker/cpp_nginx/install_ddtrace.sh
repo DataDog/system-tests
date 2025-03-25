@@ -32,12 +32,8 @@ function epilogue {
   rm -f /etc/nginx/nginx.conf
   if version_first_is_greater "$module_version" "v1.1.0"; then
     ln -s nginx.conf.waf /etc/nginx/nginx.conf
-    fetch_version libddwaf > SYSTEM_TESTS_LIBDDWAF_VERSION
-    fetch_version waf_rules > SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION
   else
     ln -s nginx.conf.no-waf /etc/nginx/nginx.conf
-    echo "0.0.0" > SYSTEM_TESTS_LIBDDWAF_VERSION
-    echo "0.0.0" > SYSTEM_TESTS_APPSEC_EVENT_RULES_VERSION
   fi
 
   printf '{"status":"ok","library":{"name":"cpp","version":"%s"}}' "$(< SYSTEM_TESTS_LIBRARY_VERSION)" \
