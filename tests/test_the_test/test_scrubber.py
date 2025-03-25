@@ -4,8 +4,7 @@ import os
 from pathlib import Path
 import subprocess
 import pytest
-from utils import scenarios, missing_feature
-from utils.tools import logger
+from utils import scenarios, missing_feature, logger
 
 
 FILENAME = "tests/test_the_test/test_scrubber.py"
@@ -66,9 +65,9 @@ def test_leaks():
 def test_file_writer_scrubber(write_mode, read_mode, file_extension):
     secrets = []
 
-    for name, secret in scrubbed_names.items():
-        os.environ[name] = secret
-        secrets.append(bytearray(secret, "utf-8") if write_mode == "wb" else secret)
+    for name, value in scrubbed_names.items():
+        os.environ[name] = value
+        secrets.append(bytearray(value, "utf-8") if write_mode == "wb" else value)
 
     log_file = f"{scenarios.test_the_test.host_log_folder}/leak.{file_extension}"
     with open(log_file, write_mode) as f:

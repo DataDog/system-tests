@@ -32,7 +32,6 @@ tests/:
         Test_API_Security_RC_ASM_DD_scanners:
           '*': v1.38.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-        Test_API_Security_RC_ASM_processor_overrides_and_custom_scanner: irrelevant (waf does not support it yet)
       test_apisec_sampling.py: missing_feature
       test_schemas.py:
         Test_Scanners:
@@ -708,6 +707,7 @@ tests/:
           akka-http: missing_feature (APPSEC-56196)
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
           spring-boot-payara: missing_feature (APPSEC-54966)
+        Test_Cmdi_Telemetry_V2: missing_feature
         Test_Cmdi_Telemetry_Variant_Tag:
           '*': v1.45.0
           akka-http: missing_feature (APPSEC-56196)
@@ -758,6 +758,7 @@ tests/:
           '*': v1.40.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
         Test_Lfi_Telemetry_Multiple_Exploits: missing_feature
+        Test_Lfi_Telemetry_V2: missing_feature
         Test_Lfi_UrlQuery:
           '*': v1.40.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
@@ -800,6 +801,7 @@ tests/:
         Test_Shi_Telemetry:
           '*': v1.45.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+        Test_Shi_Telemetry_V2: missing_feature
         Test_Shi_Telemetry_Variant_Tag:
           '*': v1.45.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
@@ -857,6 +859,7 @@ tests/:
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
           vertx3: v1.40.0  # issue in context propagation in 1.39.0
           vertx4: v1.40.0  # issue in context propagation in 1.39.0
+        Test_Sqli_Telemetry_V2: missing_feature
         Test_Sqli_UrlQuery:
           '*': v1.39.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
@@ -910,6 +913,7 @@ tests/:
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
           vertx3: missing_feature (APPSEC-55781)
           vertx4: missing_feature (APPSEC-55781)
+        Test_Ssrf_Telemetry_V2: missing_feature
         Test_Ssrf_UrlQuery:
           '*': v1.39.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
@@ -1378,6 +1382,7 @@ tests/:
         akka-http: v1.22.0
         play: v1.22.0
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+      Test_CorruptedRules_Telemetry: missing_feature
       Test_MissingRules:
         '*': v0.93.0
         akka-http: v1.22.0
@@ -1434,7 +1439,9 @@ tests/:
         '*': v1.40.0
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
     test_identify.py:
-      Test_Basic: missing_feature
+      Test_Basic:
+        '*': v1.48.0
+        spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
     test_ip_blocking_full_denylist.py:
       Test_AppSecIPBlockingFullDenylist:
         '*': v0.111.0
@@ -1610,6 +1617,14 @@ tests/:
         uds-spring-boot: v1.38.0
     test_debugger_symdb.py:
       Test_Debugger_SymDb:
+        '*': missing_feature
+        spring-boot: v1.38.0
+        spring-boot-jetty: v1.38.0
+        spring-boot-openliberty: v1.38.0
+        spring-boot-undertow: v1.38.0
+        uds-spring-boot: v1.38.0
+    test_debugger_telemetry.py:
+      Test_Debugger_Telemetry:
         '*': missing_feature
         spring-boot: v1.38.0
         spring-boot-jetty: v1.38.0
@@ -1862,13 +1877,15 @@ tests/:
     Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
   test_graphql.py: missing_feature
   test_identify.py:
-    Test_Basic: missing_feature
+    Test_Basic:
+      '*': v1.48.0
+      spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
     Test_Propagate:
+      # XXX: spring-boot-3-native would have a higher version
       '*': v0.111.0
-      spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
     Test_Propagate_Legacy:
+      # XXX: spring-boot-3-native would have a higher version
       '*': v0.111.0
-      spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
   test_ipv6.py: missing_feature (APMAPI-869)
   test_library_conf.py:
     Test_ExtractBehavior_Default: incomplete_test_app (/make_distant_call endpoint is not correctly implemented)
@@ -1894,14 +1911,20 @@ tests/:
       vertx3: missing_feature (Endpoint not implemented)
       vertx4: missing_feature (Endpoint not implemented)
   test_sampling_rates.py:
-    Test_SamplingDecisions:
-      akka-http: missing_feature (Endpoint /sample_rate_route not implemented)
-      jersey-grizzly2: missing_feature (Endpoint /sample_rate_route not implemented)
-      play: missing_feature (Endpoint /sample_rate_route not implemented)
-      ratpack: missing_feature (Endpoint /sample_rate_route not implemented)
-      resteasy-netty3: missing_feature (Endpoint /sample_rate_route not implemented)
-      vertx3: missing_feature (Endpoint /sample_rate_route not implemented)
-      vertx4: missing_feature (Endpoint /sample_rate_route not implemented)
+    Test_SampleRateFunction:
+      '*': missing_feature (Endpoint /sample_rate_route not implemented)
+      spring-boot: v0.92.0
+      spring-boot-3-native: v0.92.0
+    Test_SamplingDecisionAdded:
+      '*': missing_feature (Endpoint /sample_rate_route not implemented)
+      spring-boot: v0.92.0
+      spring-boot-3-native: v0.92.0
+    Test_SamplingDecisions: bug (APMAPI-736)
+    Test_SamplingDeterminism:
+      '*': missing_feature (Endpoint /sample_rate_route not implemented)
+      spring-boot: v0.92.0
+      spring-boot-3-native: v0.92.0
+    Test_SamplingRates: v0.92.0
   test_scrubbing.py:
     Test_UrlQuery: v0.107.1
   test_semantic_conventions.py:

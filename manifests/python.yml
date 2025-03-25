@@ -10,7 +10,6 @@ tests/:
       test_api_security_rc.py:
         Test_API_Security_RC_ASM_DD_processors: v2.6.0
         Test_API_Security_RC_ASM_DD_scanners: v2.6.0
-        Test_API_Security_RC_ASM_processor_overrides_and_custom_scanner: irrelevant (waf does not support it yet)
       test_apisec_sampling.py:
         Test_API_Security_Sampling_Different_Endpoints: v2.6.0
         Test_API_Security_Sampling_Different_Paths: v2.6.0
@@ -276,6 +275,7 @@ tests/:
         Test_Cmdi_Rules_Version: v2.18.0.dev
         Test_Cmdi_StackTrace: v2.20.0.dev
         Test_Cmdi_Telemetry: v2.20.0.dev
+        Test_Cmdi_Telemetry_V2: missing_feature
         Test_Cmdi_Telemetry_Variant_Tag: v2.20.0.dev
         Test_Cmdi_UrlQuery: v2.20.0.dev
         Test_Cmdi_Waf_Version: v2.18.0.dev
@@ -291,6 +291,7 @@ tests/:
         Test_Lfi_StackTrace: v2.10.0
         Test_Lfi_Telemetry: v2.10.0
         Test_Lfi_Telemetry_Multiple_Exploits: v2.10.0
+        Test_Lfi_Telemetry_V2: missing_feature
         Test_Lfi_UrlQuery: v2.10.0
         Test_Lfi_Waf_Version: v2.15.0
       test_shi.py:
@@ -303,6 +304,7 @@ tests/:
         Test_Shi_Rules_Version: v2.15.0
         Test_Shi_StackTrace: v2.11.0-rc2
         Test_Shi_Telemetry: v2.11.0-rc2
+        Test_Shi_Telemetry_V2: missing_feature
         Test_Shi_Telemetry_Variant_Tag: v2.20.0.dev
         Test_Shi_UrlQuery: v2.11.0-rc2
         Test_Shi_Waf_Version: v2.15.0
@@ -316,6 +318,7 @@ tests/:
         Test_Sqli_Rules_Version: v2.16.0
         Test_Sqli_StackTrace: v2.10.0
         Test_Sqli_Telemetry: v2.10.0
+        Test_Sqli_Telemetry_V2: missing_feature
         Test_Sqli_UrlQuery: v2.10.0
         Test_Sqli_Waf_Version: v2.15.0
       test_ssrf.py:
@@ -328,6 +331,7 @@ tests/:
         Test_Ssrf_Rules_Version: v2.16.0
         Test_Ssrf_StackTrace: v2.10.0
         Test_Ssrf_Telemetry: v2.10.0
+        Test_Ssrf_Telemetry_V2: missing_feature
         Test_Ssrf_UrlQuery: v2.10.0
         Test_Ssrf_Waf_Version: v2.15.0
     waf/:
@@ -486,7 +490,11 @@ tests/:
       Test_V3_Login_Events_Blocking: v2.20.0.dev
       Test_V3_Login_Events_RC: v2.11.0
     test_automated_user_and_session_tracking.py:
-      Test_Automated_Session_Blocking: missing_feature
+      Test_Automated_Session_Blocking:
+        '*': missing_feature (no auto instrumentation for session on non Django weblogs)
+        django-poc: v3.3.0.dev
+        django-py3.13: v3.3.0.dev
+        python3.12: v3.3.0.dev
       Test_Automated_User_Blocking: v3.0.0.rc
       Test_Automated_User_Tracking: v3.1.0.dev
     test_blocking_addresses.py:
@@ -560,6 +568,7 @@ tests/:
         fastapi: v2.4.0
     test_customconf.py:
       Test_ConfRuleSet: v1.1.0-rc2
+      Test_CorruptedRules_Telemetry: missing_feature
       Test_NoLimitOnWafRules: v1.1.0-rc2
     test_event_tracking.py:
       Test_CustomEvent: v1.10.0
@@ -666,6 +675,8 @@ tests/:
         flask-poc: v2.11.0
         uds-flask: v2.11.0
         uwsgi-poc: v2.11.0
+    test_debugger_telemetry.py:
+      Test_Debugger_Telemetry: v2.11.0
   integrations/:
     crossed_integrations/:
       test_kafka.py:
@@ -1005,7 +1016,10 @@ tests/:
       django-py3.13: missing_feature (python 3.13 not supported yet)
       python3.12: v2.1.0
   test_sampling_rates.py:
-    Test_SamplingDecisions: v2.8.0
+    Test_SampleRateFunction: bug (APMAPI-736)
+    Test_SamplingDecisionAdded: v2.8.0
+    Test_SamplingDecisions: bug (APMAPI-736)
+    Test_SamplingDeterminism: v2.8.0
     Test_SamplingRates: v2.8.0
   test_scrubbing.py:
     Test_UrlField:

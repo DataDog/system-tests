@@ -10,12 +10,14 @@
 /utils/build/docker/python*/ @DataDog/apm-python @DataDog/asm-python @DataDog/system-tests-core
 /utils/build/docker/ruby*/ @DataDog/ruby-guild @DataDog/asm-ruby @DataDog/system-tests-core
 
+/utils/telemetry/intake/ @DataDog/apm-sdk-api @DataDog/system-tests-core
+/utils/telemetry/intake/static/ @DataDog/apm-sdk
+
 /tests/parametric/ @mabdinur @DataDog/system-tests-core @DataDog/apm-sdk-api
 /tests/otel_tracing_e2e/ @DataDog/opentelemetry @DataDog/system-tests-core
 /tests/remote_config/ @DataDog/remote-config @DataDog/system-tests-core
 /tests/appsec/ @DataDog/asm-libraries @DataDog/system-tests-core
 /tests/debugger/ @DataDog/debugger @DataDog/system-tests-core
-/tests/telemetry_intake/ @DataDog/apm-sdk-api @DataDog/system-tests-core
 /tests/test_telemetry.py @DataDog/libdatadog-telemetry @DataDog/apm-sdk-api @DataDog/system-tests-core
 /tests/serverless @DataDog/serverless @DataDog/system-tests-core
 /tests/external_processing/ @DataDog/asm-libraries @DataDog/system-tests-core
@@ -29,5 +31,4 @@
 /manifests/python.yml @DataDog/apm-python @DataDog/asm-python
 /manifests/ruby.yml @DataDog/ruby-guild @DataDog/asm-ruby
 
-# Allows everyone to easily make changes
-/tests/telemetry_intake/static/ @DataDog/apm-sdk
+

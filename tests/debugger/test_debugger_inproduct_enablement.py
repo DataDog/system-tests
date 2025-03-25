@@ -3,8 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 import tests.debugger.utils as debugger
-from utils import features, scenarios, missing_feature, context
-from utils.tools import logger
+from utils import features, scenarios, missing_feature, context, logger
 import json
 
 TIMEOUT = 5

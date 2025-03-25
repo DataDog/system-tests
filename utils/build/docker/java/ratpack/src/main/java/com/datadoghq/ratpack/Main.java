@@ -1,5 +1,8 @@
 package com.datadoghq.ratpack;
 
+import static datadog.appsec.api.user.User.setUser;
+import static java.util.Collections.emptyMap;
+
 import com.datadoghq.system_tests.iast.infra.SqlServer;
 import com.datadoghq.system_tests.iast.utils.CryptoExamples;
 import datadog.trace.api.interceptor.MutableSpan;
@@ -215,6 +218,16 @@ public class Main {
                                 }
                                 datadog.appsec.api.blocking.Blocking.forUser(user).blockIfMatch();
                                 ctx.getResponse().send("text/plain", "Hello " + user);
+                            })
+                            .get("identify", ctx -> {
+                                final Map<String, String> metadata = new HashMap<>();
+                                metadata.put("email", "usr.email");
+                                metadata.put("name", "usr.name");
+                                metadata.put("session_id", "usr.session_id");
+                                metadata.put("role", "usr.role");
+                                metadata.put("scope", "usr.scope");
+                                setUser("usr.id", metadata);
+                                ctx.getResponse().send("text/plain", "OK");
                             })
                             .get("user_login_success_event", ctx -> {
                                 MultiValueMap<String, String> qp = ctx.getRequest().getQueryParams();

@@ -33,6 +33,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import com.datadoghq.system_tests.iast.utils.CryptoExamples;
 
+import static datadog.appsec.api.user.User.setUser;
+import static java.util.Collections.emptyMap;
+
 @Path("/")
 @Produces(MediaType.TEXT_PLAIN)
 public class MyResource {
@@ -222,6 +225,19 @@ public class MyResource {
                 .forUser(user)
                 .blockIfMatch();
         return "Hello " + user;
+    }
+
+    @GET
+    @Path("/identify")
+    public String identify() {
+        final Map<String, String> metadata = new HashMap<>();
+        metadata.put("email", "usr.email");
+        metadata.put("name", "usr.name");
+        metadata.put("session_id", "usr.session_id");
+        metadata.put("role", "usr.role");
+        metadata.put("scope", "usr.scope");
+        setUser("usr.id", metadata);
+        return "OK";
     }
 
     @GET

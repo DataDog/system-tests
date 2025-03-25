@@ -12,11 +12,11 @@ class _SpanTagValidator:
 
     path_filters = ["/v0.4/traces", "/v0.5/traces"]
 
-    def __init__(self, tags, value_as_regular_expression):
+    def __init__(self, tags: dict | None, *, value_as_regular_expression: bool):
         self.tags = {} if tags is None else tags
         self.value_as_regular_expression = value_as_regular_expression
 
-    def __call__(self, span):
+    def __call__(self, span: dict):
         for tag_key in self.tags:
             if tag_key not in span["meta"]:
                 raise ValueError(f"{tag_key} tag not found in span's meta")

@@ -1,5 +1,8 @@
 package com.datadoghq.vertx4;
 
+import static datadog.appsec.api.user.User.setUser;
+import static java.util.Collections.emptyMap;
+
 import com.datadoghq.system_tests.iast.infra.LdapServer;
 import com.datadoghq.system_tests.iast.infra.SqlServer;
 import com.datadoghq.system_tests.iast.utils.CryptoExamples;
@@ -164,6 +167,16 @@ public class Main {
                     Blocking.forUser(user).blockIfMatch();
                     ctx.response().end("Hello " + user);
                 });
+        router.get("/identify").handler(ctx -> {
+            final Map<String, String> metadata = new HashMap<>();
+            metadata.put("email", "usr.email");
+            metadata.put("name", "usr.name");
+            metadata.put("session_id", "usr.session_id");
+            metadata.put("role", "usr.role");
+            metadata.put("scope", "usr.scope");
+            setUser("usr.id", metadata);
+            ctx.response().end("OK");
+        });
         router.get("/user_login_success_event")
                 .handler(ctx -> {
                     String event_user_id = ctx.request().getParam("event_user_id");
@@ -278,7 +291,7 @@ public class Main {
                     final Session session = ctx.session();
                     final String sdkUser = ctx.request().getParam("sdk_user");
                     EventTracker tracker = datadog.trace.api.GlobalTracer.getEventTracker();
-                    tracker.trackLoginSuccessEvent(sdkUser, Collections.emptyMap());
+                    tracker.trackLoginSuccessEvent(sdkUser, emptyMap());
                     ctx.response().end(session.id());
                 });
         router.get("/session/*").subRouter(sessionRouter);
