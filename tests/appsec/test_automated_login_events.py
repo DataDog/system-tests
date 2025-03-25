@@ -1195,7 +1195,7 @@ class Test_V2_Login_Events_RC:
     def _assert_response(self, test, validation):
         config_states, request = test["config_states"], test["request"]
 
-        assert config_states[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
+        assert config_states.state == rc.ApplyState.ACKNOWLEDGED
         assert request.status_code == 200
 
         spans = [s for _, _, s in interfaces.library.get_spans(request=request)]
@@ -1869,7 +1869,7 @@ class Test_V3_Login_Events_RC:
     def _assert_response(self, test, validation):
         config_state, request = test["config_state"], test["request"]
 
-        assert config_state[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
+        assert config_state.state == rc.ApplyState.ACKNOWLEDGED
         assert request.status_code == 200
 
         spans = [s for _, _, s in interfaces.library.get_spans(request=request)]
@@ -1984,8 +1984,8 @@ class Test_V3_Login_Events_Blocking:
     def test_login_event_blocking_auto_id(self):
         assert self.r_login.status_code == 200
 
-        assert self.config_state_1[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
-        assert self.config_state_2[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
+        assert self.config_state_1.state == rc.ApplyState.ACKNOWLEDGED
+        assert self.config_state_2.state == rc.ApplyState.ACKNOWLEDGED
 
         if context.library not in libs_without_user_id:
             interfaces.library.assert_waf_attack(self.r_login_blocked, rule="block-user-id")
@@ -2004,8 +2004,8 @@ class Test_V3_Login_Events_Blocking:
     def test_login_event_blocking_auto_login(self):
         assert self.r_login.status_code == 200
 
-        assert self.config_state_1[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
-        assert self.config_state_2[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
+        assert self.config_state_1.state == rc.ApplyState.ACKNOWLEDGED
+        assert self.config_state_2.state == rc.ApplyState.ACKNOWLEDGED
 
         interfaces.library.assert_waf_attack(self.r_login_blocked, rule="block-user-login")
         assert self.r_login_blocked.status_code == 403
@@ -2036,8 +2036,8 @@ class Test_V3_Login_Events_Blocking:
         for request in self.r_login:
             assert request.status_code == 200
 
-        assert self.config_state_1[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
-        assert self.config_state_2[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
+        assert self.config_state_1.state == rc.ApplyState.ACKNOWLEDGED
+        assert self.config_state_2.state == rc.ApplyState.ACKNOWLEDGED
 
         for request in self.r_login_blocked:
             interfaces.library.assert_waf_attack(request, rule="block-user-id")

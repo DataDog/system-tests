@@ -15,6 +15,7 @@ from utils import (
     weblog,
     flaky,
     features,
+    HttpResponse,
 )
 
 
@@ -89,9 +90,15 @@ class Test_Blocking_user_id:
 class Test_Blocking_request_method:
     """Test if blocking is supported on server.request.method address"""
 
+    rm_req_block: HttpResponse
+    set_req1: HttpResponse
+    block_req2: HttpResponse
+
     def setup_blocking(self):
-        if not hasattr(self, "rm_req_block") or self.rm_req_block is None:
-            self.rm_req_block = weblog.request("OPTIONS")
+        if not hasattr(Test_Blocking_request_method, "rm_req_block"):
+            Test_Blocking_request_method.rm_req_block = weblog.request("OPTIONS")
+
+        self.rm_req_block = Test_Blocking_request_method.rm_req_block
 
     def test_blocking(self):
         """Test if requests that should be blocked are blocked"""
@@ -139,12 +146,18 @@ class Test_Blocking_request_method:
 class Test_Blocking_request_uri:
     """Test if blocking is supported on server.request.uri.raw address"""
 
+    rm_req_block1: HttpResponse
+    rm_req_block2: HttpResponse
+
     def setup_blocking(self):
-        if not hasattr(self, "rm_req_block1") or self.rm_req_block1 is None:
-            self.rm_req_block1 = self.ruri_req = weblog.get("/waf/foo.git")
+        if not hasattr(Test_Blocking_request_uri, "rm_req_block1"):
+            Test_Blocking_request_uri.rm_req_block1 = weblog.get("/waf/foo.git")
         # query parameters are part of uri
-        if not hasattr(self, "rm_req_block2") or self.rm_req_block2 is None:
-            self.rm_req_block2 = weblog.get("/waf?foo=.git")
+        if not hasattr(Test_Blocking_request_uri, "rm_req_block2"):
+            Test_Blocking_request_uri.rm_req_block2 = weblog.get("/waf?foo=.git")
+
+        self.rm_req_block1 = Test_Blocking_request_uri.rm_req_block1
+        self.rm_req_block2 = Test_Blocking_request_uri.rm_req_block2
 
     def test_blocking(self):
         """Test if requests that should be blocked are blocked"""
@@ -200,11 +213,17 @@ class Test_Blocking_request_uri:
 class Test_Blocking_request_path_params:
     """Test if blocking is supported on server.request.path_params address"""
 
+    rm_req_block1: HttpResponse
+    rm_req_block2: HttpResponse
+
     def setup_blocking(self):
-        if not hasattr(self, "rm_req_block1") or self.rm_req_block1 is None:
-            self.rm_req_block1 = weblog.get("/params/AiKfOeRcvG45")
-        if not hasattr(self, "rm_req_block2") or self.rm_req_block2 is None:
-            self.rm_req_block2 = weblog.get("/waf/AiKfOeRcvG45")
+        if not hasattr(Test_Blocking_request_path_params, "rm_req_block1"):
+            Test_Blocking_request_path_params.rm_req_block1 = weblog.get("/params/AiKfOeRcvG45")
+        if not hasattr(Test_Blocking_request_path_params, "rm_req_block2"):
+            Test_Blocking_request_path_params.rm_req_block2 = weblog.get("/waf/AiKfOeRcvG45")
+
+        self.rm_req_block1 = Test_Blocking_request_path_params.rm_req_block1
+        self.rm_req_block2 = Test_Blocking_request_path_params.rm_req_block2
 
     @missing_feature(
         context.scenario is scenarios.external_processing_blocking,
@@ -260,6 +279,9 @@ class Test_Blocking_request_path_params:
 @scenarios.external_processing_blocking
 class Test_Blocking_request_query:
     """Test if blocking is supported on server.request.query address"""
+
+    rm_req_block1: HttpResponse
+    rm_req_block2: HttpResponse
 
     def setup_blocking(self):
         if not hasattr(self, "rm_req_block1") or self.rm_req_block1 is None:
@@ -317,6 +339,9 @@ class Test_Blocking_request_query:
 class Test_Blocking_request_headers:
     """Test if blocking is supported on server.request.headers.no_cookies address"""
 
+    rm_req_block1: HttpResponse
+    rm_req_block2: HttpResponse
+
     def setup_blocking(self):
         if not hasattr(self, "rm_req_block1") or self.rm_req_block1 is None:
             self.rm_req_block1 = weblog.get("/waf", headers={"foo": "asldhkuqwgervf"})
@@ -373,6 +398,9 @@ class Test_Blocking_request_headers:
 class Test_Blocking_request_cookies:
     """Test if blocking is supported on server.request.cookies address"""
 
+    rm_req_block1: HttpResponse
+    rm_req_block2: HttpResponse
+
     def setup_blocking(self):
         if not hasattr(self, "rm_req_block1") or self.rm_req_block1 is None:
             self.rm_req_block1 = weblog.get("/waf", cookies={"foo": "jdfoSDGFkivRG_234"})
@@ -426,6 +454,9 @@ class Test_Blocking_request_cookies:
 @features.appsec_request_blocking
 class Test_Blocking_request_body:
     """Test if blocking is supported on server.request.body address for urlencoded body"""
+
+    rm_req_block1: HttpResponse
+    rm_req_block2: HttpResponse
 
     def setup_blocking(self):
         if not hasattr(self, "rm_req_block1") or self.rm_req_block1 is None:
@@ -515,9 +546,15 @@ class Test_Blocking_request_body_multipart:
 class Test_Blocking_response_status:
     """Test if blocking is supported on server.response.status address"""
 
+    rm_req_block: dict[int, HttpResponse]
+
     def setup_blocking(self):
-        if not hasattr(self, "rm_req_block") or self.rm_req_block is None:
-            self.rm_req_block = {status: weblog.get(f"/tag_value/anything/{status}") for status in (415, 416, 417, 418)}
+        if not hasattr(Test_Blocking_response_status, "rm_req_block"):
+            Test_Blocking_response_status.rm_req_block = {
+                status: weblog.get(f"/tag_value/anything/{status}") for status in (415, 416, 417, 418)
+            }
+
+        self.rm_req_block = Test_Blocking_response_status.rm_req_block
 
     @missing_feature(
         context.scenario is scenarios.external_processing_blocking,
@@ -571,6 +608,9 @@ class Test_Blocking_response_status:
 @scenarios.external_processing_blocking
 class Test_Blocking_response_headers:
     """Test if blocking is supported on server.response.headers.no_cookies address"""
+
+    rm_req_block1: HttpResponse
+    rm_req_block2: HttpResponse
 
     def setup_blocking(self):
         if not hasattr(self, "rm_req_block1") or self.rm_req_block1 is None:

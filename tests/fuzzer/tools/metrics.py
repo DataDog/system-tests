@@ -132,8 +132,8 @@ class RateMetric(AccumulatedMetric):
 
 
 class AccumulatedMetricWithPercent(AccumulatedMetric):
-    def __init__(self, name, total_metric, **kwargs):
-        super().__init__(name, **kwargs)
+    def __init__(self, name, total_metric, display_length: int, raw_name: str):
+        super().__init__(name, display_length=display_length, raw_name=raw_name)
         self.total_metric = total_metric
 
     @property
@@ -158,8 +158,8 @@ class AccumulatedMetricWithPercent(AccumulatedMetric):
 
 
 class SelfAccumulatedMetricWithPercent(AccumulatedMetric):
-    def __init__(self, name, **kwargs):
-        super().__init__(name, **kwargs)
+    def __init__(self, name):
+        super().__init__(name)
         self.total = 0
         self.global_total = 0
 

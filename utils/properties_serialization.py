@@ -6,6 +6,7 @@ import pytest
 from requests.structures import CaseInsensitiveDict
 
 from utils._weblog import HttpResponse, GrpcResponse, _Weblog
+from utils._remote_config import RemoteConfigStateResults
 from utils.interfaces._core import InterfaceValidator
 from utils._logger import logger
 
@@ -15,8 +16,10 @@ class _PropertiesEncoder(json.JSONEncoder):
         if isinstance(o, CaseInsensitiveDict):
             return dict(o.items())
 
-        if isinstance(o, (HttpResponse, GrpcResponse)):
-            return o.serialize()
+        if isinstance(o, (HttpResponse, GrpcResponse, RemoteConfigStateResults)):
+            serialized = o.to_json()
+            assert "__class__" not in serialized
+            return serialized | {"__class__": o.__class__.__name__}
 
         if isinstance(o, set):
             return {"__class__": "set", "values": list(o)}
@@ -36,10 +39,13 @@ class _PropertiesDecoder(json.JSONDecoder):
                 return set(d["values"])
 
             if klass == "GrpcResponse":
-                return GrpcResponse(d)
+                return GrpcResponse.from_json(d)
 
             if klass == "HttpResponse":
-                return HttpResponse(d)
+                return HttpResponse.from_json(d)
+
+            if klass == "RemoteConfigStateResults":
+                return RemoteConfigStateResults.from_json(d)
 
         return d
 

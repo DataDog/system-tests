@@ -90,8 +90,8 @@ class Test_RemoteConfigSequence:
 
     def test_asm_switch_on_switch_off():
         # first check that both config state are ok, otherwise, next assertions will fail with cryptic messages
-        assert self.config_states_activation[remote_config.RC_STATE] == remote_config.ApplyState.ACKNOWLEDGED
-        assert self.config_states_deactivation[remote_config.RC_STATE] == remote_config.ApplyState.ACKNOWLEDGED
+        assert self.config_states_activation.state == remote_config.ApplyState.ACKNOWLEDGED
+        assert self.config_states_deactivation.state == remote_config.ApplyState.ACKNOWLEDGED
         # for non empty config, you can also check for details of files
         assert self.config_states_activation["asm_features_activation"]["apply_state"] == remote_config.ApplyState.ACKNOWLEDGED, self.config_states_activation
 

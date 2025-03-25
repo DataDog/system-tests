@@ -74,7 +74,7 @@ class BaseDebuggerTest:
     all_spans: list = []
     symbols: list = []
 
-    rc_states: list = []
+    rc_states: list[remote_config.RemoteConfigStateResults] = []
     weblog_responses: list = []
 
     setup_failures: list = []
@@ -549,8 +549,8 @@ class BaseDebuggerTest:
 
         errors = []
         for entry in self.rc_states:
-            for state in entry.values():
-                if not isinstance(state, dict) or "id" not in state:
+            for state in entry.configs.values():
+                if "id" not in state:
                     continue
 
                 rc_id = state["id"]

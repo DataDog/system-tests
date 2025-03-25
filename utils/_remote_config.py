@@ -32,13 +32,27 @@ def _post(path: str, payload: list[dict] | dict) -> None:
     requests.post(f"http://{domain}:{ProxyContainer.command_host_port}{path}", data=json.dumps(payload), timeout=30)
 
 
-RC_VERSION = "_ci_global_version"
-RC_STATE = "_ci_state"
+class RemoteConfigStateResults:
+    def __init__(self, version: int, state: ApplyState = ApplyState.UNKNOWN, configs: dict | None = None) -> None:
+        self.version = version
+        self.state = state
+        self.configs: dict[str, dict] = configs if configs is not None else {}
+
+    def to_json(self) -> dict:
+        return {
+            "version": self.version,
+            "state": self.state,
+            "configs": self.configs,
+        }
+
+    @staticmethod
+    def from_json(d: dict) -> "RemoteConfigStateResults":
+        return RemoteConfigStateResults(version=d["version"], state=d["state"], configs=d["configs"])
 
 
 def send_state(
     raw_payload: dict, *, wait_for_acknowledged_status: bool = True, state_version: int = -1
-) -> dict[str, dict[str, Any]]:
+) -> RemoteConfigStateResults:
     """Sends a remote config payload to the library and waits for the config to be applied.
     Then returns a dictionary with the state of each requested file as returned by the library.
 
@@ -66,20 +80,18 @@ def send_state(
 
     client_configs = raw_payload.get("client_configs", [])
 
-    current_states: dict[str, Any] = {}
+    current_states = RemoteConfigStateResults(version=state_version)
     version = None
     targets = json.loads(base64.b64decode(raw_payload["targets"]))
     version = targets["signed"]["version"]
     for client_config in client_configs:
         _, _, product, config_id, _ = client_config.split("/")
-        current_states[config_id] = {
+        current_states.configs[config_id] = {
             "id": config_id,
             "product": product,
             "apply_state": ApplyState.UNKNOWN,
             "apply_error": "<No known response from the library>",
         }
-    current_states[RC_VERSION] = state_version
-    current_states[RC_STATE] = ApplyState.UNKNOWN
 
     state = {}
 
@@ -92,7 +104,7 @@ def send_state(
         if len(client_configs) == 0:
             found = state["targets_version"] == state_version and state.get("config_states", []) == []
             if found:
-                current_states[RC_STATE] = ApplyState.ACKNOWLEDGED
+                current_states.state = ApplyState.ACKNOWLEDGED
             return found
 
         if state["targets_version"] != version:
@@ -100,18 +112,17 @@ def send_state(
 
         config_states = state.get("config_states", [])
         for state in config_states:
-            config_state = current_states.get(state["id"])
+            config_state = current_states.configs.get(state["id"])
             if config_state and state["product"] == config_state["product"]:
                 logger.debug(f"Remote config state: {state}")
                 config_state.update(state)
 
         if wait_for_acknowledged_status:
-            for key, state in current_states.items():
-                if key not in (RC_VERSION, RC_STATE):
-                    if state["apply_state"] == ApplyState.UNKNOWN:
-                        return False
+            for state in current_states.configs.values():
+                if state["apply_state"] == ApplyState.UNKNOWN:
+                    return False
 
-        current_states[RC_STATE] = ApplyState.ACKNOWLEDGED
+        current_states.state = ApplyState.ACKNOWLEDGED
         return True
 
     _post("/unique_command", raw_payload)
@@ -232,7 +243,7 @@ def build_debugger_command(probes: list | None, version: int):
     return _build_base_command(path_payloads, version)
 
 
-def send_debugger_command(probes: list, version: int = 1) -> dict:
+def send_debugger_command(probes: list, version: int = 1) -> RemoteConfigStateResults:
     raw_payload = build_debugger_command(probes, version)
     return send_state(raw_payload)
 
@@ -242,7 +253,7 @@ def build_symdb_command(version: int):
     return _build_base_command(path_payloads, version)
 
 
-def send_symdb_command(version: int = 1) -> dict:
+def send_symdb_command(version: int = 1) -> RemoteConfigStateResults:
     raw_payload = build_symdb_command(version)
     return send_state(raw_payload)
 
@@ -289,7 +300,7 @@ def send_apm_tracing_command(
     code_origin_enabled: bool | None = None,
     dynamic_sampling_enabled: bool | None = None,
     version: int = 1,
-) -> dict:
+) -> RemoteConfigStateResults:
     raw_payload = build_apm_tracing_command(
         version=version,
         dynamic_instrumentation_enabled=dynamic_instrumentation_enabled,
@@ -380,7 +391,7 @@ class _RemoteConfigState:
         self.expires: str = expires or _RemoteConfigState.expires
         self.opaque_backend_state = base64.b64encode(self.backend_state.encode("utf-8")).decode("utf-8")
 
-    def set_config(self, path: str, config: str, config_file_version: int | None = None) -> "_RemoteConfigState":
+    def set_config(self, path: str, config: dict, config_file_version: int | None = None) -> "_RemoteConfigState":
         """Set a file in current state."""
         client_config = ClientConfig(
             path=path,
@@ -432,7 +443,7 @@ class _RemoteConfigState:
 
         return result
 
-    def apply(self, *, wait_for_acknowledged_status: bool = True) -> dict[str, dict[str, Any]]:
+    def apply(self, *, wait_for_acknowledged_status: bool = True) -> RemoteConfigStateResults:
         self.version += 1
         command = self.to_payload()
         return send_state(
