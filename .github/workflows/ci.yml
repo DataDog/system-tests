@@ -77,10 +77,6 @@ jobs:
         run: ./utils/scripts/load-binary.sh ${{ matrix.library }}
         env:
           TARGET_BRANCH: "${{ steps.get-target-branch.outputs.target-branch }}"
-      - name: Get nginx module
-        if: matrix.library == 'cpp'
-        run: ./utils/scripts/load-binary.sh nginx
-        env:
           CIRCLECI_TOKEN: ${{ secrets.CIRCLECI_TOKEN }}
 
       - name: Get agent artifact
