@@ -73,13 +73,6 @@ def pytest_addoption(parser: pytest.Parser) -> None:
     parser.addoption("--vm-provider", type=str, action="store", help="Set provider for VMs")
     parser.addoption("--vm-only", type=str, action="store", help="Filter to execute only one vm name")
     parser.addoption(
-        "--vm-gitlab-pipeline",
-        type=str,
-        action="store",
-        help="Generate pipeline for Gitlab CI. Not run the tests. Values: one-pipeline, system-tests",
-    )
-
-    parser.addoption(
         "--vm-default-vms",
         type=str,
         action="store",
@@ -244,7 +237,7 @@ def _get_skip_reason_from_marker(marker: pytest.Mark) -> str | None:
 def pytest_pycollect_makemodule(module_path: Path, parent: pytest.Session) -> None | pytest.Module:
     # As now, declaration only works for tracers at module level
 
-    library = context.scenario.library.library
+    library = context.library.library
 
     manifests = load_manifests()
 
@@ -329,7 +322,7 @@ def pytest_collection_modifyitems(session: pytest.Session, config: pytest.Config
         all_declared_scenarios[item.nodeid] = declared_scenarios
 
         # If we are running scenario with the option sleep, we deselect all
-        if session.config.option.sleep or session.config.option.vm_gitlab_pipeline:
+        if session.config.option.sleep:
             deselected.append(item)
             continue
 
@@ -508,12 +501,6 @@ def pytest_sessionfinish(session: pytest.Session, exitstatus: int) -> None:
         except Exception:
             logger.exception("Fail to export export reports", exc_info=True)
 
-    if session.config.option.vm_gitlab_pipeline:
-        NO_TESTS_COLLECTED = 5  # noqa: N806
-        SUCCESS = 0  # noqa: N806
-        if exitstatus == NO_TESTS_COLLECTED:
-            session.exitstatus = SUCCESS
-
 
 def export_feature_parity_dashboard(session: pytest.Session, data: dict) -> None:
     tests = [convert_test_to_feature_parity_model(test) for test in data["tests"]]
@@ -523,7 +510,7 @@ def export_feature_parity_dashboard(session: pytest.Session, data: dict) -> None
         "runDate": data["created"],
         "environment": session.config.option.report_environment or "local",
         "testSource": "systemtests",
-        "language": context.scenario.library.library,
+        "language": context.library.library,
         "variant": context.weblog_variant,
         "testedDependencies": [
             {"name": name, "version": str(version)} for name, version in context.scenario.components.items()

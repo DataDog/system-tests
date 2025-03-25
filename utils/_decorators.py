@@ -81,6 +81,7 @@ def _expected_to_fail(condition: bool | None = None, library: str | None = None,
         if library not in (
             "cpp",
             "cpp_httpd",
+            "cpp_nginx",
             "dotnet",
             "golang",
             "java",
@@ -219,6 +220,7 @@ def flaky(condition: bool | None = None, library: str | None = None, weblog_vari
 def released(
     cpp: str | None = None,
     cpp_httpd: str | None = None,
+    cpp_nginx: str | None = None,
     dotnet: str | None = None,
     golang: str | None = None,
     java: str | None = None,
@@ -276,6 +278,7 @@ def released(
         skip_reasons = [
             compute_declaration("cpp", "cpp", cpp, context.library.version),
             compute_declaration("cpp_httpd", "cpp_httpd", cpp_httpd, context.library.version),
+            compute_declaration("cpp_nginx", "cpp_nginx", cpp_nginx, context.library.version),
             compute_declaration("dotnet", "dotnet", dotnet, context.library.version),
             compute_declaration("golang", "golang", golang, context.library.version),
             compute_declaration("java", "java", java, context.library.version),
