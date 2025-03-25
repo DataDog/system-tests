@@ -112,6 +112,7 @@ class TestContainerAutoInjectInstallScriptCrashTracking_NoZombieProcess(base.Aut
         ],
         reason="Zombies only appears in containers",
     )
+    @flaky(library="python", reason="APMLP-313")
     def test_crash_no_zombie(self):
         virtual_machine = context.scenario.virtual_machine
         vm_ip = virtual_machine.get_ip()
