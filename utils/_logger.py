@@ -14,10 +14,10 @@ def get_log_formatter() -> logging.Formatter:
 class Logger(logging.Logger):
     terminal: TerminalReporter
 
-    def stdout(self, message: str, *args, **kws) -> None:  # noqa: ANN002
+    def stdout(self, message: str, *args) -> None:  # noqa: ANN002
         if self.isEnabledFor(DEBUG_LEVEL_STDOUT):
             # Yes, logger takes its '*args' as 'args'.
-            self._log(DEBUG_LEVEL_STDOUT, message, args, **kws)  # pylint: disable=protected-access
+            self._log(DEBUG_LEVEL_STDOUT, message, args)  # pylint: disable=protected-access
 
             if hasattr(self, "terminal"):
                 self.terminal.write_line(message)
