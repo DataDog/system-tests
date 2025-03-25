@@ -47,7 +47,6 @@ exclude = [
     # TODO
     "utils/_context/core.py",
     "tests/test_telemetry.py",
-    "tests/appsec/iast/.*",
     "tests/auto_inject/.*",
     "tests/integrations/.*",
     "tests/otel_tracing_e2e/test_e2e.py",
