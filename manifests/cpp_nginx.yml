@@ -130,7 +130,6 @@ tests/:
   debugger/:
     test_debugger_exception_replay.py:
       Test_Debugger_Exception_Replay: irrelevant
-    test_tracer_flare.py: missing_feature
   remote_config/:
     test_remote_configuration.py:
       Test_RemoteConfigurationExtraServices: missing_feature
@@ -163,8 +162,6 @@ tests/:
     Test_Config_HttpServerErrorStatuses_FeatureFlagCustom: missing_feature
     Test_Config_IntegrationEnabled_False: missing_feature
     Test_Config_IntegrationEnabled_True: missing_feature
-    Test_Config_LogInjection_128Bit_TradeId_Default: missing_feature
-    Test_Config_LogInjection_128Bit_TradeId_Disabled: missing_feature
     Test_Config_LogInjection_Default: missing_feature
     Test_Config_LogInjection_Enabled: missing_feature
     Test_Config_ObfuscationQueryStringRegexp_Configured: missing_feature

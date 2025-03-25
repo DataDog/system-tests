@@ -186,10 +186,6 @@ class TestedContainer:
 
         logger.info(f"Start container {self.container_name}")
 
-        # the whole thing is reimplemented in python...
-        if self.healthcheck is not None:
-            self.kwargs["healthcheck"] = {"test": ["NONE"]}
-
         self._container = _get_client().containers.run(
             image=self.image.name,
             name=self.container_name,
@@ -205,6 +201,8 @@ class TestedContainer:
             user=self.user,
             cap_add=self.cap_add,
             security_opt=self.security_opt,
+            # the whole thing is reimplemented in python... TODO check if it's possible to use the builtin
+            healthcheck={"test": ["NONE"]} if self.healthcheck is not None else None,
         )
 
         self.healthy = self.wait_for_health()
