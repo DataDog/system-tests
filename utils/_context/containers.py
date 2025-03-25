@@ -1343,7 +1343,10 @@ class ExternalProcessingContainer(TestedContainer):
             data = json.load(f)
             lib = data["library"]
 
-        self.library = ComponentVersion(lib["name"], lib["version"])
+        if "language" in lib:
+            self.library = ComponentVersion(lib["language"], lib["version"])
+        else:
+            self.library = ComponentVersion(lib["name"], lib["version"])
 
         logger.stdout(f"Library: {self.library}")
         logger.stdout(f"Image: {self.image.name}")
