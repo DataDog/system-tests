@@ -2,5 +2,8 @@
     "IdempotentParameterMismatch": "creating EC2 Instance: IdempotentParameterMismatch",
     "InternalError": "last error: Server.InternalError: Internal error on launch",
     "error_ssh_connection":"error: after 30 failed attempts:",
-    "error_pulumi_plugin":"error: could not read plugin"
+    "error_pulumi_plugin":"error: could not read plugin",
+    "docker_build_error_ecr":"net/http: TLS handshake timeout",
+    "error_ecr":"error: could not create ECR",
+    "pulumi_ghcr_rate_limmit":"GitHub rate limit exceeded for https://api.github.com/repos/pulumi"
 }
