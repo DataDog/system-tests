@@ -8,7 +8,7 @@ def _get_expectation(d: str | dict | None) -> str | None:
         return d
 
     if isinstance(d, dict):
-        expected = d.get(context.library.library)
+        expected = d.get(context.library.name)
         if isinstance(expected, dict):
             expected = expected.get(context.weblog_variant)
         return expected
@@ -336,7 +336,7 @@ def validate_extended_location_data(
     else:
         assert all(field in location for field in ["path", "line"])
 
-        if context.library.library not in ("python", "nodejs"):
+        if context.library.name not in ("python", "nodejs"):
             assert all(field in location for field in ["class", "method"])
 
 
