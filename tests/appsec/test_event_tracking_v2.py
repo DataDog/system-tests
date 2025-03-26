@@ -127,7 +127,7 @@ class Test_UserLoginSuccessEventV2_Tags:
 
         data = {"login": LOGIN_SAFE, "user_id": USER_ID_SAFE}
 
-        self.r = weblog.post("/user_login_success_event_v2", data=data, headers=headers)
+        self.r = weblog.post("/user_login_success_event_v2", json=data, headers=headers)
 
     def test_user_login_success_event_no_metadata(self):
         # Call the user login success SDK with no metadata and validate tags

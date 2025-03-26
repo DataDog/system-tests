@@ -589,7 +589,7 @@ By default, the generated event has the following specification:
 
 Values can be changed with the query params called `event_name`.
 
-### GET /user_login_success_event_v2
+### POST /user_login_success_event_v2
 
 This endpoint calls the v2 of appsec event tracking SDK function used for user login success with
 the data coming in the request body.
@@ -599,7 +599,7 @@ The parameters in the body are:
 - `user_id`: String with user identifier
 - `metadata`: Objet with the metadata
 
-### GET /user_login_failure_event_v2
+### POST /user_login_failure_event_v2
 
 This endpoint calls the v2 of appsec event tracking SDK function used for user login failure with
 the data coming in the request body.
