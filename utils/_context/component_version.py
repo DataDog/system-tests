@@ -49,29 +49,25 @@ class Version(version_module.Version):
         return super().__ge__(_build(other))
 
 
-class LibraryVersion:
+class ComponentVersion:
     known_versions: dict = defaultdict(set)
+    version: Version
+    # name: str
 
     def add_known_version(self, version: Version | None, library: str | None = None):
-        library = self.library if library is None else library
-        LibraryVersion.known_versions[library].add(str(version))
+        library = self.name if library is None else library
+        ComponentVersion.known_versions[library].add(str(version))
 
-    def __init__(self, library: str | None, version: str | None = None):
-        self.library: str | None = None
-        self.version: Version | None = None
+    def __init__(self, name: str, version: str = "0.0.0"):
+        if "@" in name:
+            raise ValueError("Library's name can't contains '@'")
 
-        if library is None:
-            return
-
-        if "@" in library:
-            raise ValueError("Library can't contains '@'")
-
-        self.library = library
+        self.name = name
 
         if version:
             version = version.strip()
 
-            if library == "ruby":
+            if name == "ruby":
                 # ruby version pattern can be like
 
                 # 2.0.0.rc1 b908262
@@ -92,23 +88,23 @@ class LibraryVersion:
                 elif re.match(rf"{base}[\. ]{prerelease}", version):
                     version = re.sub(rf"({base})[\. ]({prerelease})", r"\1-\2", version)
 
-            elif library == "libddwaf":
+            elif name == "libddwaf":
                 if version.startswith("* libddwaf"):
                     version = re.sub(r"\* *libddwaf *\((.*)\)", r"\1", version)
 
-            elif library == "java":
+            elif name == "java":
                 version = version.split("~")[0]
                 version = version.replace("-SNAPSHOT", "")
 
-            elif library == "dotnet":
+            elif name == "dotnet":
                 version = re.sub(r"(datadog-dotnet-apm-)?(.*?)(\.tar\.gz)?", r"\2", version)
 
-            elif library == "php":
+            elif name == "php":
                 version = version.replace("-nightly", "")
 
             self.version = Version(version)
 
-            if library == "ruby":
+            if name == "ruby":
                 if len(self.version.build) != 0 or len(self.version.prerelease) != 0:
                     # we are not in a released version
 
@@ -136,45 +132,45 @@ class LibraryVersion:
 
             self.add_known_version(self.version)
         else:
-            self.version = None
+            self.version = Version("0.0.0")
 
     def __repr__(self):
-        return f'{self.__class__.__name__}("{self.library}", "{self.version}")'
+        return f'{self.__class__.__name__}("{self.name}", "{self.version}")'
 
     def __str__(self):
-        if not self.library:
+        if not self.name:
             return str(None)
 
-        return f"{self.library}@{self.version}" if self.version else self.library
+        return f"{self.name}@{self.version}" if self.version else self.name
 
     def __eq__(self, other: object):
-        if isinstance(other, LibraryVersion):
-            return self.library == other.library and self.version == other.version
+        if isinstance(other, ComponentVersion):
+            return self.name == other.name and self.version == other.version
 
         if not isinstance(other, str):
-            raise TypeError(f"Can't compare LibraryVersion to type {type(other)}")
+            raise TypeError(f"Can't compare ComponentVersion to type {type(other)}")
 
         if "@" in other:
             library, version = other.split("@", 1)
             self.add_known_version(library=library, version=Version(version))
 
-            if self.library != library:
+            if self.name != library:
                 return False
 
             if self.version is None:
                 raise ValueError("Weblog does not provide an library version number")
 
-            return self.library == library and self.version == Version(version)
+            return self.name == library and self.version == Version(version)
 
         library = other
-        return self.library == library
+        return self.name == library
 
     def _extract_members(self, other: object) -> tuple[str | None, Version | None]:
-        if isinstance(other, LibraryVersion):
-            return other.library, other.version
+        if isinstance(other, ComponentVersion):
+            return other.name, other.version
 
         if not isinstance(other, str):
-            raise TypeError(f"Can't compare LibraryVersion to type {type(other)}")
+            raise TypeError(f"Can't compare ComponentVersion to type {type(other)}")
 
         if "@" not in other:
             raise ValueError("Can't compare version numbers without a version")
@@ -182,7 +178,7 @@ class LibraryVersion:
         library, version_str = other.split("@", 1)
         version = Version(version_str)
 
-        if self.version is None and self.library == library:
+        if self.version is None and self.name == library:
             # the second comparizon is here because if it's not the good library,
             # the result will be always false, and nothing will be compared
             # on version. This use case ccan happens if a version is not provided
@@ -194,23 +190,23 @@ class LibraryVersion:
 
     def __lt__(self, other: object):
         library, version = self._extract_members(other)
-        return self.library == library and self.version and self.version < version
+        return self.name == library and self.version and self.version < version
 
     def __le__(self, other: object):
         library, version = self._extract_members(other)
-        return self.library == library and self.version and self.version <= version
+        return self.name == library and self.version and self.version <= version
 
     def __gt__(self, other: object):
         library, version = self._extract_members(other)
-        return self.library == library and self.version and self.version > version
+        return self.name == library and self.version and self.version > version
 
     def __ge__(self, other: object):
         library, version = self._extract_members(other)
-        return self.library == library and self.version and self.version >= version
+        return self.name == library and self.version and self.version >= version
 
     def serialize(self):
         return {
-            "library": self.library,
+            "library": self.name,
             "version": str(self.version),
         }
 
@@ -226,5 +222,5 @@ def _build(version: object) -> Version:
 
 
 if __name__ == "__main__":
-    v = LibraryVersion("ruby", "  * ddtrace (0.53.0.appsec.180045)")
+    v = ComponentVersion("ruby", "  * ddtrace (0.53.0.appsec.180045)")
     assert str(v.version) == "0.53.1-appsec+180045"

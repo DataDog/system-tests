@@ -5,7 +5,7 @@ from pathlib import Path
 import shutil
 
 import pytest
-from utils.tools import logger, get_log_formatter
+from utils._logger import logger, get_log_formatter
 
 
 class ScenarioGroup(Enum):

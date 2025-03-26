@@ -2,14 +2,8 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import (
-    interfaces,
-    rfc,
-    scenarios,
-    weblog,
-    features,
-)
-from utils.tools import logger
+from utils import interfaces, rfc, scenarios, weblog, features, logger
+
 from tests.appsec.api_security.utils import BaseAppsecApiSecurityRcTest
 
 

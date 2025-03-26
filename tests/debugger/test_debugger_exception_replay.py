@@ -2,11 +2,10 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-import tests.debugger.utils as debugger
-import os
 import re
-from utils import scenarios, features, bug, context, flaky, irrelevant
-from utils.tools import logger
+import os
+import tests.debugger.utils as debugger
+from utils import scenarios, features, bug, context, flaky, irrelevant, logger
 
 
 def get_env_bool(env_var_name, *, default=False) -> bool:
@@ -25,8 +24,8 @@ _timeout_next = 30
 @features.debugger_exception_replay
 @scenarios.debugger_exception_replay
 class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
-    snapshots = {}
-    spans = {}
+    snapshots: dict = {}
+    spans: dict = {}
 
     ############ setup ############
     def _setup(self, request_path, exception_message):
@@ -202,7 +201,6 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
         def __scrub_none(key, value, parent):  # noqa: ARG001
             return __scrub(value)
 
-        scrub_language = None
         if self.get_tracer()["language"] == "java":
             scrub_language = __scrub_java
         elif self.get_tracer()["language"] == "dotnet":
@@ -213,12 +211,12 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
             scrub_language = __scrub_none
 
         def __approve(snapshots):
-            debugger.write_approval(snapshots, test_name, "snapshots_received")
+            self.write_approval(snapshots, test_name, "snapshots_received")
 
             if _OVERRIDE_APROVALS:
-                debugger.write_approval(snapshots, test_name, "snapshots_expected")
+                self.write_approval(snapshots, test_name, "snapshots_expected")
 
-            expected_snapshots = debugger.read_approval(test_name, "snapshots_expected")
+            expected_snapshots = self.read_approval(test_name, "snapshots_expected")
             assert expected_snapshots == snapshots
             assert all(
                 "exceptionId" in snapshot for snapshot in snapshots
@@ -266,12 +264,12 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
             return scrubbed_spans
 
         def __approve(spans):
-            debugger.write_approval(spans, test_name, "spans_received")
+            self.write_approval(spans, test_name, "spans_received")
 
             if _OVERRIDE_APROVALS:
-                debugger.write_approval(spans, test_name, "spans_expected")
+                self.write_approval(spans, test_name, "spans_expected")
 
-            expected = debugger.read_approval(test_name, "spans_expected")
+            expected = self.read_approval(test_name, "spans_expected")
             assert expected == spans
 
             missing_keys_dict = {}
@@ -411,7 +409,7 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
         retries = 0
         timeout = _timeout_first
 
-        shapes = {"rock": False, "paper": False, "scissors": False}
+        shapes: dict[str, bool] = {"rock": False, "paper": False, "scissors": False}
 
         while not all(shapes.values()) and retries < _max_retries:
             for shape, shape_found in shapes.items():

@@ -3,14 +3,45 @@
 # Copyright 2021 Datadog, Inc.
 
 from collections import defaultdict
+from collections.abc import Generator
 import csv
 from random import randint, seed
 from typing import Any
-from collections.abc import Generator
+from urllib.parse import urlparse
 
-from utils import weblog, interfaces, context, scenarios, features, missing_feature
-from utils.tools import logger
+from utils import weblog, interfaces, context, scenarios, features, missing_feature, logger, flaky
 from utils.dd_constants import SamplingPriority
+
+
+def get_trace_request_path(root_span: dict) -> str | None:
+    if root_span.get("type") != "web":
+        return None
+
+    url = root_span["meta"].get("http.url")
+
+    if url is None:
+        return None
+
+    return urlparse(url).path
+
+
+def assert_all_traces_requests_forwarded(paths: list[str] | set[str]) -> None:
+    path_to_logfile = {}
+
+    for data, span in interfaces.library.get_root_spans():
+        path = get_trace_request_path(span)
+        path_to_logfile[path] = data["log_filename"]
+
+    has_error = False
+    for path in paths:
+        if path in path_to_logfile:
+            logger.debug(f"{path}: {path_to_logfile[path]}")
+        else:
+            logger.error(f"{path}: not transmitted")
+            has_error = True
+
+    if has_error:
+        raise ValueError("Some path has not been transmitted")
 
 
 def priority_should_be_kept(sampling_priority):
@@ -70,10 +101,11 @@ class Test_SamplingRates:
             self.paths.append(p)
             weblog.get(p)
 
+    @flaky(context.library == "nodejs" and context.weblog_variant in ("express4", "express5"), reason="APMAPI-1252")
     @missing_feature(library="cpp_httpd", reason="/sample_rate_route is not implemented")
     def test_sampling_rates(self):
         """Basic test"""
-        interfaces.library.assert_all_traces_requests_forwarded(self.paths)
+        assert_all_traces_requests_forwarded(self.paths)
 
         # test sampling
         sampled_count = {True: 0, False: 0}

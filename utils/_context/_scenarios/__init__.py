@@ -249,6 +249,21 @@ class _Scenarios:
         scenario_groups=[ScenarioGroup.APPSEC],
     )
 
+    appsec_and_rc_enabled = EndToEndScenario(
+        "APPSEC_AND_RC_ENABLED",
+        rc_api_enabled=True,
+        appsec_enabled=True,
+        iast_enabled=False,
+        weblog_env={"DD_APPSEC_WAF_TIMEOUT": "10000000", "DD_APPSEC_TRACE_RATE_LIMIT": "10000"},  # 10 seconds
+        doc="""
+            A scenario with AppSec and Remote Config enabled. In addition WAF and
+            tracer are configured to have bigger threshold.
+            This scenario should be used in most of the cases if you need
+            Remote Config and AppSec working for all libraries.
+        """,
+        scenario_groups=[ScenarioGroup.APPSEC],
+    )
+
     appsec_runtime_activation = EndToEndScenario(
         "APPSEC_RUNTIME_ACTIVATION",
         rc_api_enabled=True,
@@ -535,7 +550,15 @@ class _Scenarios:
         doc="Scenario with custom headers for DD_TRACE_HEADER_TAGS that libraries should reject",
     )
 
-    tracing_config_empty = EndToEndScenario("TRACING_CONFIG_EMPTY", weblog_env={}, doc="")
+    tracing_config_empty = EndToEndScenario(
+        "TRACING_CONFIG_EMPTY",
+        weblog_env={
+            # This scenario should be empty but enabling logs injection allows us to reuse this scenario for the
+            # few test cases that need it
+            "DD_LOGS_INJECTION": "true",
+        },
+        doc="",
+    )
 
     tracing_config_nondefault = EndToEndScenario(
         "TRACING_CONFIG_NONDEFAULT",
@@ -550,7 +573,6 @@ class _Scenarios:
             "DD_TRACE_PDO_ENABLED": "false",  # Use PDO for PHP,
             "DD_TRACE_PROPAGATION_STYLE_EXTRACT": "datadog,tracecontext,b3multi,baggage",
             "DD_TRACE_PROPAGATION_BEHAVIOR_EXTRACT": "restart",
-            "DD_LOGS_INJECTION": "true",
         },
         appsec_enabled=False,  # disable ASM to test non asm client ip tagging
         iast_enabled=False,
@@ -586,11 +608,19 @@ class _Scenarios:
             "DD_TRACE_PROPAGATION_BEHAVIOR_EXTRACT": "restart",
             "DD_TRACE_PROPAGATION_EXTRACT_FIRST": "true",
             "DD_LOGS_INJECTION": "true",
-            "DD_TRACE_128_BIT_TRACEID_LOGGING_ENABLED": "false",
         },
         appsec_enabled=False,
         doc="",
         scenario_groups=[ScenarioGroup.TRACING_CONFIG],
+    )
+
+    tracing_config_nondefault_4 = EndToEndScenario(
+        "TRACING_CONFIG_NONDEFAULT_4",
+        weblog_env={
+            "DD_LOGS_INJECTION": "true",
+            "DD_TRACE_128_BIT_TRACEID_LOGGING_ENABLED": "false",
+        },
+        doc="",
     )
 
     parametric = ParametricScenario("PARAMETRIC", doc="WIP")
@@ -684,6 +714,21 @@ class _Scenarios:
         library_interface_timeout=5,
         doc="Test scenario for checking dynamic enablement.",
         scenario_groups=[ScenarioGroup.DEBUGGER],
+    )
+
+    debugger_telemetry = EndToEndScenario(
+        "DEBUGGER_TELEMETRY",
+        rc_api_enabled=True,
+        weblog_env={
+            "DD_REMOTE_CONFIG_ENABLED": "true",
+            "DD_CODE_ORIGIN_FOR_SPANS_ENABLED": "1",
+            "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1",
+            "DD_EXCEPTION_DEBUGGING_ENABLED": "1",
+            "DD_SYMBOL_DATABASE_UPLOAD_ENABLED": "1",
+        },
+        library_interface_timeout=5,
+        doc="Test scenario for checking debugger telemetry.",
+        scenario_groups=[ScenarioGroup.DEBUGGER, ScenarioGroup.TELEMETRY],
     )
 
     fuzzer = DockerScenario("FUZZER", doc="Fake scenario for fuzzing (launch without pytest)", github_workflow=None)

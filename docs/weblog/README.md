@@ -831,7 +831,7 @@ Returns a JSON dict, with those values :
 {
   "status": "ok",
   "library": {
-    "language": "<language>", // one of cpp, dotnet, golang, java, nodejs, php, python, ruby
+    "name": "<library's name>", // one of cpp, cpp_nginx, cpp_httpd, dotnet, golang, java, nodejs, php, python, ruby
     "version": "1.2.3" // version of the library
   }
 }

@@ -4,7 +4,7 @@ from utils._context.containers import DummyServerContainer, ExternalProcessingCo
 from utils import interfaces
 from utils.interfaces._core import ProxyBasedInterfaceValidator
 
-from utils.tools import logger
+from utils._logger import logger
 
 from .endtoend import DockerScenario, ScenarioGroup
 
