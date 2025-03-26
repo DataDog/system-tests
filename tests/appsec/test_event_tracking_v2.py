@@ -97,7 +97,7 @@ class Test_UserLoginSuccessEventV2_Tags:
         metadata = {"metadata0": "value0", "metadata1": "value1"}
 
         interfaces.library.validate_spans(
-            self.r, self.get_user_login_success_tags_validator(LOGIN_SAFE, USER_ID_SAFE, metadata=metadata)
+            self.r, validator=self.get_user_login_success_tags_validator(LOGIN_SAFE, USER_ID_SAFE, metadata=metadata)
         )
 
     def setup_user_login_success_event_multi_type_metadata(self):
@@ -117,7 +117,7 @@ class Test_UserLoginSuccessEventV2_Tags:
         metadata = {"metadata0": "value0", "metadata_number": "123", "metadata_boolean": "true"}
 
         interfaces.library.validate_spans(
-            self.r, self.get_user_login_success_tags_validator(LOGIN_SAFE, USER_ID_SAFE, metadata=metadata)
+            self.r, validator=self.get_user_login_success_tags_validator(LOGIN_SAFE, USER_ID_SAFE, metadata=metadata)
         )
 
     def setup_user_login_success_event_no_metadata(self):
@@ -132,7 +132,7 @@ class Test_UserLoginSuccessEventV2_Tags:
     def test_user_login_success_event_no_metadata(self):
         # Call the user login success SDK with no metadata and validate tags
 
-        interfaces.library.validate_spans(self.r, self.get_user_login_success_tags_validator(LOGIN_SAFE, USER_ID_SAFE))
+        interfaces.library.validate_spans(self.r, validator=self.get_user_login_success_tags_validator(LOGIN_SAFE, USER_ID_SAFE))
 
     def setup_user_login_success_event_deep_metadata(self):
         headers = {
@@ -155,7 +155,7 @@ class Test_UserLoginSuccessEventV2_Tags:
         unexpected_metadata = ["prop1.prop2.prop3.prop4.prop5.prop6"]
 
         interfaces.library.validate_spans(
-            self.r, self.get_user_login_success_tags_validator(LOGIN_SAFE, USER_ID_SAFE, metadata, unexpected_metadata)
+            self.r, validator=self.get_user_login_success_tags_validator(LOGIN_SAFE, USER_ID_SAFE, metadata, unexpected_metadata)
         )
 
 
@@ -181,7 +181,7 @@ class Test_UserLoginSuccessEventV2_HeaderCollection:
 
             return True
 
-        interfaces.library.validate_spans(self.r, validate_user_login_success_header_collection)
+        interfaces.library.validate_spans(self.r, validator=validate_user_login_success_header_collection)
 
 
 @features.event_tracking_sdk_v2
@@ -197,7 +197,7 @@ class Test_UserLoginSuccessEventV2_Metrics:
     def test_user_login_success_event(self):
         # Call the user login success SDK and validate metrics
 
-        series = find_series("appsec", metric="sdk.event", is_metrics=True)
+        series = find_series("generate-metrics", "appsec", ["sdk.event"])
 
         assert series
         assert any(validate_metric_type_and_version("login_success", "v2", s) for s in series), [
@@ -280,7 +280,7 @@ class Test_UserLoginFailureEventV2_Tags:
         metadata = {"metadata0": "value0", "metadata1": "value1"}
 
         interfaces.library.validate_spans(
-            self.r, self.get_user_login_failure_tags_validator(LOGIN_SAFE, exists=True, metadata=metadata)
+            self.r, validator=self.get_user_login_failure_tags_validator(LOGIN_SAFE, exists=True, metadata=metadata)
         )
 
     def setup_user_login_failure_event_does_not_exist(self):
@@ -300,7 +300,7 @@ class Test_UserLoginFailureEventV2_Tags:
         metadata = {"metadata0": "value0", "metadata1": "value1"}
 
         interfaces.library.validate_spans(
-            self.r, self.get_user_login_failure_tags_validator(LOGIN_SAFE, exists=False, metadata=metadata)
+            self.r, validator=self.get_user_login_failure_tags_validator(LOGIN_SAFE, exists=False, metadata=metadata)
         )
 
     def setup_user_login_failure_event_no_metadata(self):
@@ -315,7 +315,7 @@ class Test_UserLoginFailureEventV2_Tags:
     def test_user_login_failure_event_no_metadata(self):
         # Call the user login failure SDK with no metadata and validate tags
 
-        interfaces.library.validate_spans(self.r, self.get_user_login_failure_tags_validator(LOGIN_SAFE, exists=False))
+        interfaces.library.validate_spans(self.r, validator=self.get_user_login_failure_tags_validator(LOGIN_SAFE, exists=False))
 
     def setup_user_login_failure_event_deep_metadata(self):
         headers = {
@@ -340,7 +340,7 @@ class Test_UserLoginFailureEventV2_Tags:
 
         interfaces.library.validate_spans(
             self.r,
-            self.get_user_login_failure_tags_validator(
+            validator=self.get_user_login_failure_tags_validator(
                 LOGIN_SAFE, exists=False, metadata=metadata, unexpected_metadata=unexpected_metadata
             ),
         )
@@ -368,7 +368,7 @@ class Test_UserLoginFailureEventV2_HeaderCollection:
 
             return True
 
-        interfaces.library.validate_spans(self.r, validate_user_login_failure_header_collection)
+        interfaces.library.validate_spans(self.r, validator=validate_user_login_failure_header_collection)
 
 
 @features.event_tracking_sdk_v2
@@ -384,7 +384,7 @@ class Test_UserLoginFailureEventV2_Metrics:
     def test_user_login_failure_event(self):
         # Call the user login success SDK and validate metrics
 
-        series = find_series("appsec", metric="sdk.event", is_metrics=True)
+        series = find_series("generate-metrics", "appsec", ["sdk.event"])
 
         assert series
         assert any(validate_metric_type_and_version("login_failure", "v2", s) for s in series), [

@@ -96,7 +96,7 @@ class Test_UserLoginSuccessEvent_Metrics:
 
     def test_user_login_success_event(self):
         # Call the user login success SDK and validate tags
-        series = find_series("appsec", metric="sdk.event", is_metrics=True)
+        series = find_series("generate-metrics", "appsec", ["sdk.event"])
 
         assert series
 
@@ -168,7 +168,7 @@ class Test_UserLoginFailureEvent_Metrics:
 
     def test_user_login_success_event(self):
         # Call the user login success SDK and validate tags
-        series = find_series("appsec", metric="sdk.event", is_metrics=True)
+        series = find_series("generate-metrics", "appsec", ["sdk.event"])
 
         assert series
 
@@ -219,7 +219,7 @@ class Test_CustomEvent_Metrics:
 
     def test_user_login_success_event(self):
         # Call the user login success SDK and validate tags
-        series = find_series("appsec", metric="sdk.event", is_metrics=True)
+        series = find_series("generate-metrics", "appsec", ["sdk.event"])
 
         assert series
 

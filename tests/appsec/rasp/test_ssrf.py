@@ -4,10 +4,10 @@
 
 from utils import features, weblog, interfaces, scenarios, rfc, context
 from utils.dd_constants import Capabilities
-from tests.appsec.utils import find_series
 from tests.appsec.rasp.utils import (
     validate_span_tags,
     validate_stack_traces,
+    find_series,
     validate_metric,
     BaseRulesVersion,
     BaseWAFVersion,
