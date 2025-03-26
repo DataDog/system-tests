@@ -14,7 +14,7 @@ require (
 	github.com/DataDog/dd-trace-go/contrib/graphql-go/graphql/v2 v2.0.0-rc.9.0.20250321154706-45c5fdf1ba7e
 	github.com/DataDog/dd-trace-go/contrib/labstack/echo.v4/v2 v2.0.0-rc.9.0.20250321154706-45c5fdf1ba7e
 	github.com/DataDog/dd-trace-go/contrib/net/http/v2 v2.0.0-rc.9
-	github.com/DataDog/dd-trace-go/contrib/sirupsen/logrus/v2 v2.0.0-rc.8
+	github.com/DataDog/dd-trace-go/contrib/sirupsen/logrus/v2 v2.0.0-rc.9
 	github.com/DataDog/dd-trace-go/v2 v2.0.0-rc.9.0.20250321154706-45c5fdf1ba7e
 	github.com/Shopify/sarama v1.38.1
 	github.com/gin-gonic/gin v1.9.1

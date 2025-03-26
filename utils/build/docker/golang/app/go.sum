@@ -40,8 +40,8 @@ github.com/DataDog/dd-trace-go/contrib/labstack/echo.v4/v2 v2.0.0-rc.9.0.2025032
 github.com/DataDog/dd-trace-go/contrib/labstack/echo.v4/v2 v2.0.0-rc.9.0.20250321154706-45c5fdf1ba7e/go.mod h1:oGYghIE+WuNVNdqzVNkUCzoRIiJjCNWctmYk91xtoWs=
 github.com/DataDog/dd-trace-go/contrib/net/http/v2 v2.0.0-rc.9 h1:8JLL62GV6wkKg/nv3/7UxSlJNSAvLmqK46nZXuXH54Q=
 github.com/DataDog/dd-trace-go/contrib/net/http/v2 v2.0.0-rc.9/go.mod h1:QDGFQWt8S/roztpq2nIL6EkSel0AX6r09NDeNA01NK8=
-github.com/DataDog/dd-trace-go/contrib/sirupsen/logrus/v2 v2.0.0-rc.8 h1:28m2vfCamplV3mCSByyKzPoRI8eVCLoZPDzdLdTi+a4=
-github.com/DataDog/dd-trace-go/contrib/sirupsen/logrus/v2 v2.0.0-rc.8/go.mod h1:O6Ylhn0Jzy1bz22+6I0WTYIFcvya3jxVK+nwJlkPAvw=
+github.com/DataDog/dd-trace-go/contrib/sirupsen/logrus/v2 v2.0.0-rc.9 h1:w5LmNc8veQQBGca325/anGJzZ9+Jg/fs+7Os2jyrTz4=
+github.com/DataDog/dd-trace-go/contrib/sirupsen/logrus/v2 v2.0.0-rc.9/go.mod h1:Eed34+cQJP5n+Y09jPAdLXnuXHqkjAPVKnRJ2BK0ijM=
 github.com/DataDog/dd-trace-go/instrumentation/testutils/grpc/v2 v2.0.0-rc.9 h1:z9+fBFxYlqLASoYk8AnVmtxcWWeN+ddo8lRuQjsj9+Q=
 github.com/DataDog/dd-trace-go/instrumentation/testutils/grpc/v2 v2.0.0-rc.9/go.mod h1:HxVBX5Kj/nOJfRxXael21q0yEOmikeyUQWa747sn0Zg=
 github.com/DataDog/dd-trace-go/v2 v2.0.0-rc.9.0.20250321154706-45c5fdf1ba7e h1:3sLXuQLKYYkvTpsA3K5rkwKy/eV7uMrifF4WhhRrcG0=
