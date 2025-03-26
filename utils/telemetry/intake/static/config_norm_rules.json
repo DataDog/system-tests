@@ -872,6 +872,7 @@
     "testManagementAttemptToFixRetries": "ci_visibility_test_management_attempt_to_fix_retries",
     "third_party_excludes": "third_party_detection_excludes",
     "third_party_includes": "third_party_detection_includes",
+    "third_party_shading_identifiers": "third_party_shading_identifiers",
     "trace.128_bit_traceid_generation_enabled": "trace_128_bits_id_enabled",
     "trace.128_bit_traceid_logging_enabled": "trace_128_bits_id_logging_enabled",
     "trace.agent.port": "trace_agent_port",
