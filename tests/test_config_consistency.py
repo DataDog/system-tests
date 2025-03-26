@@ -526,8 +526,10 @@ class Test_Config_LogInjection_Enabled:
             assert field in msg, f"Missing field: {field}"
 
 
+# Using TRACING_CONFIG_NONDEFAULT_2 for dd-trace-java since the default value is under the DD_TRACE_EXPERIMENTAL_FEATURES_ENABLED
+# TODO: Change scenarios back to DEFAULT once all libraries change it to true
 @rfc("https://docs.google.com/document/d/1kI-gTAKghfcwI7YzKhqRv2ExUstcHqADIWA4-TZ387o/edit#heading=h.8v16cioi7qxp")
-@scenarios.default
+@scenarios.tracing_config_nondefault_2
 @features.log_injection
 class Test_Config_LogInjection_Default:
     """Verify log injection is disabled by default"""
