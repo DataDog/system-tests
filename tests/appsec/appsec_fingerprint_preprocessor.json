@@ -98,7 +98,7 @@
                 "address": "_dd.appsec.fp.session"
               }
             ],
-            "regex": "ssn-[^-]*-3cb51e60-3299de94-[^-]*"
+            "regex": "ssn-[^-]*-3cb51e60-[^-]*-[^-]*"
           },
           "operator": "match_regex"
         }
