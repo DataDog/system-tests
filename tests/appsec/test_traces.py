@@ -5,6 +5,7 @@
 from utils.dd_constants import PYTHON_RELEASE_GA_1_1
 from utils import weblog, bug, context, interfaces, irrelevant, rfc, missing_feature, scenarios, features
 from utils.tools import nested_lookup
+from utils.dd_constants import SamplingPriority
 
 
 RUNTIME_FAMILIES = ["nodejs", "ruby", "jvm", "dotnet", "go", "php", "python"]
@@ -44,13 +45,14 @@ class Test_RetainTraces:
             if "_sampling_priority_v1" not in span["metrics"]:
                 raise Exception("Metric _sampling_priority_v1 should be set on traces that are manually kept")
 
-            MANUAL_KEEP = 2
-            if span["metrics"]["_sampling_priority_v1"] != MANUAL_KEEP:
-                raise Exception(f"Trace id {span['trace_id']} , sampling priority should be {MANUAL_KEEP}")
+            if span["metrics"]["_sampling_priority_v1"] != SamplingPriority.USER_KEEP:
+                raise Exception(
+                    f"Trace id {span['trace_id']} , sampling priority should be {SamplingPriority.USER_KEEP}"
+                )
 
             return True
 
-        interfaces.library.validate_spans(self.r, validate_appsec_event_span_tags)
+        interfaces.library.validate_spans(self.r, validator=validate_appsec_event_span_tags)
 
 
 @features.security_events_metadata
@@ -284,7 +286,7 @@ class Test_CollectRespondHeaders:
                 assert_header_in_span_meta(span, f"http.response.headers.{header}")
             return True
 
-        interfaces.library.validate_spans(self.r, validate_response_headers)
+        interfaces.library.validate_spans(self.r, validator=validate_response_headers)
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2186870984/HTTP+header+collection")
@@ -362,4 +364,4 @@ class Test_ExternalWafRequestsIdentification:
                 assert_header_in_span_meta(span, f"http.request.headers.{header}")
             return True
 
-        interfaces.library.validate_spans(self.r, validate_request_headers)
+        interfaces.library.validate_spans(self.r, validator=validate_request_headers)

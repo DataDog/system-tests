@@ -11,6 +11,7 @@ RUNTIME_LANGUAGE_MAP = {
     "nodejs": "javascript",
     "golang": "go",
     "java": "jvm",
+    "cpp_httpd": "cpp",
 }
 
 """
@@ -37,7 +38,7 @@ VARIANT_COMPONENT_MAP = {
     "jersey-grizzly2": {"jakarta-rs.request": "jakarta-rs-controller", "grizzly.request": ["grizzly", "jakarta-rs"]},
     "net-http": "net/http",
     "net-http-orchestrion": "net/http",
-    "sinatra": {"rack.request": "rack"},
+    "sinatra": {"rack.request": "rack", "sinatra.route": "sinatra", "sinatra.request": "sinatra"},
     "spring-boot": {
         "servlet.request": "tomcat-server",
         "hsqldb.query": ["java-jdbc-prepared_statement", "java-jdbc-statement"],
@@ -102,6 +103,12 @@ VARIANT_COMPONENT_MAP = {
     "uds-echo": "labstack/echo.v4",
     "uds-express4": "express",
     "uds-flask": {"flask.request": "flask"},
+    "uds-rails": {
+        "rails.action_controller": "action_pack",
+        "rails.render_template": "action_view",
+        "rack.request": "rack",
+        "sinatra.request": "sinatra",
+    },
     "uds-sinatra": {"rack.request": "rack", "sinatra.route": "sinatra", "sinatra.request": "sinatra"},
     "uds-spring-boot": {
         "servlet.request": "tomcat-server",
@@ -118,7 +125,7 @@ VARIANT_COMPONENT_MAP = {
 def get_component_name(weblog_variant, language, span_name):
     if language == "ruby":
         # strip numbers from weblog_variant so rails70 -> rails, sinatra14 -> sinatra
-        weblog_variant_stripped_name = re.sub(r"\d+", "", weblog_variant)
+        weblog_variant_stripped_name = re.sub(r"\d+$", "", weblog_variant)
         expected_component = VARIANT_COMPONENT_MAP.get(weblog_variant_stripped_name, weblog_variant_stripped_name)
     elif language == "dotnet":
         expected_component = "aspnet_core"
@@ -144,6 +151,7 @@ class Test_Meta:
     """meta object in spans respect all conventions"""
 
     @bug(library="cpp", reason="APMAPI-924")
+    @bug(library="cpp_httpd", reason="APMAPI-924")
     @bug(library="php", reason="APMAPI-924")
     def test_meta_span_kind(self):
         """Validates that traces from an http framework carry a span.kind meta tag, with value server or client"""
@@ -162,6 +170,7 @@ class Test_Meta:
 
         interfaces.library.validate_spans(validator=validator)
 
+    @missing_feature(library="cpp_httpd", reason="For some reason, span type is server i/o web")
     @bug(library="ruby", reason="APMAPI-922")
     @bug(context.library < "golang@1.69.0-dev", reason="APMRP-360")
     @bug(context.library < "php@0.68.2", reason="APMRP-360")
@@ -184,6 +193,7 @@ class Test_Meta:
 
         interfaces.library.validate_spans(validator=validator)
 
+    @missing_feature(library="cpp_httpd", reason="For some reason, span type is server i/o web")
     def test_meta_http_status_code(self):
         """Validates that traces from an http framework carry a http.status_code meta tag, formatted as a int"""
 
@@ -202,6 +212,7 @@ class Test_Meta:
 
         interfaces.library.validate_spans(validator=validator)
 
+    @missing_feature(library="cpp_httpd", reason="For some reason, span type is server i/o web")
     def test_meta_http_method(self):
         """Validates that traces from an http framework carry a http.method meta tag, with a legal HTTP method"""
 
@@ -305,7 +316,7 @@ class Test_Meta:
         assert len(list(interfaces.library.get_root_spans())) != 0, "Did not recieve any root spans to validate."
 
 
-@features.add_metadata_globally_to_all_spans_dd_tags
+@features.trace_global_tags
 class Test_MetaDatadogTags:
     """Spans carry meta tags that were set in DD_TAGS tracer environment"""
 
@@ -333,6 +344,6 @@ class Test_MetricsStandardTags:
     def test_metrics_process_id(self):
         """Validates that root spans from traces contain a process_id field"""
         spans = [s for _, s in interfaces.library.get_root_spans()]
-        assert spans, "Did not recieve any root spans to validate."
+        assert spans, "Did not receive any root spans to validate."
         for span in spans:
             assert "process_id" in span["metrics"], "Root span expect a process_id metrics tag"

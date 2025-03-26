@@ -10,7 +10,6 @@ tests/:
       test_api_security_rc.py:
         Test_API_Security_RC_ASM_DD_processors: v1.6.2
         Test_API_Security_RC_ASM_DD_scanners: v1.6.2
-        Test_API_Security_RC_ASM_processor_overrides_and_custom_scanner: irrelevant (waf does not support it yet)
       test_apisec_sampling.py: missing_feature
       test_schemas.py:
         Test_Scanners: missing_feature
@@ -295,6 +294,8 @@ tests/:
         Test_XSS: v0.68.3
       test_telemetry.py:
         Test_TelemetryMetrics: missing_feature
+      test_truncation.py:
+        Test_Truncation: missing_feature
     test_asm_standalone.py:
       Test_AppSecStandalone_NotEnabled: v1.6.2
       Test_AppSecStandalone_UpstreamPropagation: v1.6.0
@@ -327,6 +328,8 @@ tests/:
       Test_Suspicious_Request_Blocking: v1.6.2
     test_client_ip.py:
       Test_StandardTagsClientIp: v0.81.0
+    test_customconf.py:
+      Test_CorruptedRules_Telemetry: missing_feature
     test_event_tracking.py:
       Test_CustomEvent_Metrics: missing_feature
       Test_UserLoginFailureEvent_Metrics: missing_feature
@@ -532,8 +535,8 @@ tests/:
     Test_Config_HttpServerErrorStatuses_FeatureFlagCustom: missing_feature
     Test_Config_IntegrationEnabled_False: v1.4.0
     Test_Config_IntegrationEnabled_True: v1.4.0
-    Test_Config_LogInjection_128Bit_TraceId_Default: missing_feature (not enabled by default)
     Test_Config_LogInjection_128Bit_TraceId_Disabled: incomplete_test_app (endpoint not implemented)
+    Test_Config_LogInjection_128Bit_TraceId_Enabled: missing_feature (not enabled by default)
     Test_Config_LogInjection_Default: incomplete_test_app (endpoint not implemented)
     Test_Config_LogInjection_Enabled: incomplete_test_app (endpoint not implemented)
     Test_Config_ObfuscationQueryStringRegexp_Configured: v1.5.0
@@ -571,7 +574,11 @@ tests/:
   test_profiling.py:
     Test_Profile: missing_feature (profiling seems not to be activated)
   test_sampling_rates.py:
-    Test_SamplingDecisions: v0.71.0
+    Test_SampleRateFunction: bug (APMAPI-736)
+    Test_SamplingDecisionAdded: v1.7.2  # real version unknown
+    Test_SamplingDecisions: bug (APMAPI-736)
+    Test_SamplingDeterminism: v1.7.2  # real version unknown
+    Test_SamplingRates: v1.7.2  # real version unknown
   test_scrubbing.py:
     Test_UrlQuery: v0.76.0
   test_semantic_conventions.py:

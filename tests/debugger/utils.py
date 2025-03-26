@@ -43,7 +43,7 @@ def extract_probe_ids(probes):
 
 
 def _get_path(test_name, suffix) -> str:
-    filename = test_name + "_" + Base_Debugger_Test.tracer["language"] + "_" + suffix + ".json"
+    filename = test_name + "_" + BaseDebuggerTest.tracer["language"] + "_" + suffix + ".json"
     return os.path.join(_CUR_DIR, "approvals", filename)
 
 
@@ -57,7 +57,7 @@ def read_approval(test_name, suffix):
         return json.load(f)
 
 
-class Base_Debugger_Test:
+class BaseDebuggerTest:
     tracer = None
 
     probe_definitions = []
@@ -147,7 +147,10 @@ class Base_Debugger_Test:
                     elif language == "python":
                         probe["where"]["sourceFile"] = "debugger_controller.py"
                     elif language == "ruby":
-                        probe["where"]["sourceFile"] = "debugger_controller.rb"
+                        # In docker container the controller will not have the
+                        # shared/rails prefix, this is fine because DI will
+                        # remove prefixes as part of file matching.
+                        probe["where"]["sourceFile"] = "shared/rails/app/controllers/debugger_controller.rb"
                     elif language == "nodejs":
                         probe["where"]["sourceFile"] = "debugger/index.js"
                 probe["type"] = __get_probe_type(probe["id"])
@@ -164,13 +167,13 @@ class Base_Debugger_Test:
     _rc_version = 0
 
     def send_rc_probes(self, *, reset: bool = True):
-        Base_Debugger_Test._rc_version += 1
+        BaseDebuggerTest._rc_version += 1
 
         if reset:
             self.rc_states = []
 
         self.rc_states.append(
-            remote_config.send_debugger_command(probes=self.probe_definitions, version=Base_Debugger_Test._rc_version)
+            remote_config.send_debugger_command(probes=self.probe_definitions, version=BaseDebuggerTest._rc_version)
         )
 
     def send_rc_apm_tracing(
@@ -183,7 +186,7 @@ class Base_Debugger_Test:
         *,
         reset: bool = True,
     ):
-        Base_Debugger_Test._rc_version += 1
+        BaseDebuggerTest._rc_version += 1
 
         if reset:
             self.rc_states = []
@@ -195,16 +198,16 @@ class Base_Debugger_Test:
                 live_debugging_enabled=live_debugging_enabled,
                 code_origin_enabled=code_origin_enabled,
                 dynamic_sampling_enabled=dynamic_sampling_enabled,
-                version=Base_Debugger_Test._rc_version,
+                version=BaseDebuggerTest._rc_version,
             )
         )
 
     def send_rc_symdb(self, *, reset: bool = True):
-        Base_Debugger_Test._rc_version += 1
+        BaseDebuggerTest._rc_version += 1
         if reset:
             self.rc_states = []
 
-        self.rc_states.append(remote_config.send_symdb_command(Base_Debugger_Test._rc_version))
+        self.rc_states.append(remote_config.send_symdb_command(BaseDebuggerTest._rc_version))
 
     def send_weblog_request(self, request_path: str, *, reset: bool = True):
         if reset:
@@ -238,7 +241,7 @@ class Base_Debugger_Test:
                 probe_status = probe_diagnostics[expected_id]["status"]
                 logger.debug(f"Probe {expected_id} observed status is {probe_status}")
 
-                if probe_status == status or probe_status == "ERROR":
+                if probe_status in (status, "ERROR"):
                     found_ids.add(expected_id)
                     continue
 
@@ -256,8 +259,8 @@ class Base_Debugger_Test:
             return False
 
         log_number = int(log_filename_found.group(1))
-        if log_number >= Base_Debugger_Test._last_read:
-            Base_Debugger_Test._last_read = log_number
+        if log_number >= BaseDebuggerTest._last_read:
+            BaseDebuggerTest._last_read = log_number
 
         if data["path"] in [_DEBUGGER_PATH, _LOGS_PATH]:
             probe_diagnostics = self._process_diagnostics_data([data])
@@ -324,8 +327,8 @@ class Base_Debugger_Test:
                 return False
 
             log_number = int(log_filename_found.group(1))
-            if log_number >= Base_Debugger_Test._last_read_span:
-                Base_Debugger_Test._last_read_span = log_number
+            if log_number >= BaseDebuggerTest._last_read_span:
+                BaseDebuggerTest._last_read_span = log_number
 
                 content = data["request"]["content"]
                 if content:
@@ -364,7 +367,7 @@ class Base_Debugger_Test:
                     path = _DEBUGGER_PATH
                 else:
                     path = _LOGS_PATH
-            elif context.library == "python" or context.library == "ruby" or context.library == "nodejs":
+            elif context.library in ("python", "ruby", "nodejs"):
                 path = _DEBUGGER_PATH
             else:
                 path = _LOGS_PATH  # TODO: Should the default not be _DEBUGGER_PATH?
@@ -488,13 +491,13 @@ class Base_Debugger_Test:
         self.symbols = _get_symbols()
 
     def get_tracer(self):
-        if not Base_Debugger_Test.tracer:
-            Base_Debugger_Test.tracer = {
+        if not BaseDebuggerTest.tracer:
+            BaseDebuggerTest.tracer = {
                 "language": str(context.library).split("@")[0],
                 "tracer_version": str(context.library.version),
             }
 
-        return Base_Debugger_Test.tracer
+        return BaseDebuggerTest.tracer
 
     def assert_setup_ok(self):
         if self.setup_failures:

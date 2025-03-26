@@ -391,6 +391,21 @@ function main() {
                 scenarios+=(EVERYTHING_DISABLED)
                 unset "scenarios[${i}]"
                 ;;
+
+            APPSEC_STANDALONE_V2)
+                scenarios+=(APPSEC_STANDALONE)
+                unset "scenarios[${i}]"
+                ;;
+
+            IAST_STANDALONE_V2)
+                scenarios+=(IAST_STANDALONE)
+                unset "scenarios[${i}]"
+                ;;
+
+            SCA_STANDALONE_V2)
+                scenarios+=(SCA_STANDALONE)
+                unset "scenarios[${i}]"
+                ;;
         esac
     done
 

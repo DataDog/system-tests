@@ -6,7 +6,7 @@ from utils import interfaces, scenarios, weblog, missing_feature, features, cont
 from utils.tools import logger
 
 
-class _Test_SQS:
+class _BaseSQS:
     """Test sqs compatibility with inputted datadog tracer"""
 
     BUDDY_TO_WEBLOG_QUEUE = None
@@ -222,7 +222,7 @@ class _Test_SQS:
 
 @scenarios.crossed_tracing_libraries
 @features.aws_sqs_span_creationcontext_propagation_via_message_attributes_with_dd_trace
-class Test_SQS_PROPAGATION_VIA_MESSAGE_ATTRIBUTES(_Test_SQS):
+class Test_SQS_PROPAGATION_VIA_MESSAGE_ATTRIBUTES(_BaseSQS):
     buddy_interface = interfaces.python_buddy
     buddy = python_buddy
 
@@ -235,7 +235,7 @@ class Test_SQS_PROPAGATION_VIA_MESSAGE_ATTRIBUTES(_Test_SQS):
 @scenarios.crossed_tracing_libraries
 @features.aws_sqs_span_creationcontext_propagation_via_xray_header_with_dd_trace
 @irrelevant("Localstack SQS does not support AWS Xray Header parsing")
-class Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS(_Test_SQS):
+class Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS(_BaseSQS):
     buddy_interface = interfaces.java_buddy
     buddy = java_buddy
 

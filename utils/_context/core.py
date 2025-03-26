@@ -5,6 +5,7 @@
 """singleton exposing all about test context"""
 
 import json
+from typing import Any
 
 from utils._context.library_version import LibraryVersion
 
@@ -17,7 +18,7 @@ class _Context:
 
     scenario = None  # will be set by pytest_configure
 
-    def _get_scenario_property(self, name, default):
+    def _get_scenario_property(self, name: str, default: Any) -> Any:  # noqa:ANN401
         if hasattr(self.scenario, name):
             return getattr(self.scenario, name)
 

@@ -2,11 +2,12 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, interfaces, irrelevant, weblog, scenarios, features, rfc, bug
+from utils import context, interfaces, irrelevant, weblog, scenarios, features, rfc
 
 
 @rfc("https://docs.google.com/document/d/1cVod_VI7Yruq8U9dfMRFJd7npDu-uBpste2IB04GyaQ")
 @features.span_events
+@scenarios.agent_supporting_span_events
 class Test_SpanEvents_WithAgentSupport:
     """Test that tracers send natively serialized span events if the agent support and serialization format support it.
     Tracers only need to test for their default serialization format (v0.4, v0.5, v0.7).
@@ -18,7 +19,6 @@ class Test_SpanEvents_WithAgentSupport:
     def setup_v04_v07_default_format(self):
         self.r = weblog.get("/add_event")
 
-    @bug(library="ruby", reason="APMAPI-1141")
     def test_v04_v07_default_format(self):
         """For traces that default to the v0.4 or v0.7 format, send events as a top-level `span_events` field"""
         interfaces.library.assert_trace_exists(self.r)

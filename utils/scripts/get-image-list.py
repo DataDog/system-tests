@@ -39,9 +39,10 @@ if __name__ == "__main__":
         "-l",
         type=str,
         default="",
-        help="One of the supported Datadog languages",
+        help="One of the supported Datadog library",
         choices=[
             "cpp",
+            "cpp_httpd",
             "dotnet",
             "python",
             "ruby",

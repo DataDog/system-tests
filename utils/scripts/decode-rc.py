@@ -4,7 +4,7 @@ from black import format_str, FileMode, FileContent
 from utils._remote_config import RemoteConfigCommand
 
 
-def from_payload(payload) -> RemoteConfigCommand:
+def from_payload(payload: dict) -> RemoteConfigCommand:
     targets = json.loads(base64.b64decode(payload["targets"]).decode("utf-8"))
 
     result = RemoteConfigCommand(version=targets["signed"]["version"], expires=targets["signed"]["expires"])
@@ -52,7 +52,7 @@ def get_python_code(command: RemoteConfigCommand) -> FileContent:
     return format_str(result, mode=FileMode(line_length=120))
 
 
-def main(filename) -> None:
+def main(filename: str) -> None:
     with open(filename, encoding="utf-8") as f:
         data = json.load(f)
 
