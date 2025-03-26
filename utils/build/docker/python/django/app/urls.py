@@ -87,7 +87,7 @@ def healthcheck(request):
     result = {
         "status": "ok",
         "library": {
-            "language": "python",
+            "name": "python",
             "version": ddtrace.__version__,
         },
     }
@@ -786,9 +786,9 @@ MAGIC_SESSION_KEY = "random_session_id"
 
 
 def session_new(request):
-    response = HttpResponse("OK")
-    response.set_cookie("session_id", MAGIC_SESSION_KEY)
-    return response
+    request.session.save()
+    session_id = request.session.session_key
+    return HttpResponse(session_id)
 
 
 def session_user(request):

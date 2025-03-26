@@ -1,5 +1,7 @@
 package com.datadoghq.springbootnative;
 
+import static datadog.appsec.api.user.User.setUser;
+
 import org.springframework.aot.hint.annotation.RegisterReflectionForBinding;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -57,7 +59,7 @@ public class WebController {
       }
 
       Map<String, String> library = new HashMap<>();
-      library.put("language", "java");
+      library.put("name", "java");
       library.put("version", version);
 
       Map<String, Object> response = new HashMap<>();
@@ -127,6 +129,18 @@ public class WebController {
             .trackCustomEvent(eventName, METADATA);
 
     return "ok";
+  }
+
+  @GetMapping("/identify")
+  public String identify() {
+    final Map<String, String> metadata = new HashMap<>();
+    metadata.put("email", "usr.email");
+    metadata.put("name", "usr.name");
+    metadata.put("session_id", "usr.session_id");
+    metadata.put("role", "usr.role");
+    metadata.put("scope", "usr.scope");
+    setUser("usr.id", metadata);
+    return "OK";
   }
 
   @RequestMapping("/make_distant_call")

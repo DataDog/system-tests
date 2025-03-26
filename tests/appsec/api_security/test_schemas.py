@@ -2,22 +2,17 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import (
-    context,
-    interfaces,
-    missing_feature,
-    rfc,
-    scenarios,
-    weblog,
-    features,
-)
+from utils import context, interfaces, missing_feature, rfc, scenarios, weblog, features, logger
 
 
 def get_schema(request, address):
     """Get api security schema from spans"""
     span = interfaces.library.get_root_span(request)
     meta = span.get("meta", {})
-    return meta.get("_dd.appsec.s." + address)
+    key = "_dd.appsec.s." + address
+    if key not in meta:
+        logger.info(f"Schema not found in span meta for {key}")
+    return meta.get(key)
 
 
 # can be used to match any value in a schema
@@ -286,7 +281,7 @@ class Test_Scanners:
         assert isinstance(schema_cookies, list)
         # some tracers report headers / cookies values as lists even if there's just one element (frameworks do)
         # in this case, the second case of expected variables below would pass
-        expcted_cookies = [
+        expcted_cookies: list[dict] = [
             {
                 "SSN": [8, {"category": "pii", "type": "us_ssn"}],
                 "authorization": [8],
@@ -298,7 +293,7 @@ class Test_Scanners:
                 "mastercard": [[[8, {"card_type": "mastercard", "type": "card", "category": "payment"}]], {"len": 1}],
             },
         ]
-        expcted_headers = [
+        expcted_headers: list[dict] = [
             {"authorization": [8, {"category": "credentials", "type": "digest_auth"}]},
             {"authorization": [[[8, {"category": "credentials", "type": "digest_auth"}]], {"len": 1}]},
         ]

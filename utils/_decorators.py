@@ -3,11 +3,15 @@ import os
 import re
 from functools import partial
 import enum
+from types import FunctionType, MethodType
+from typing import Any
 
 import pytest
 import semantic_version as semver
 
 from utils._context.core import context
+from utils._context.component_version import Version
+
 
 _jira_ticket_pattern = re.compile(r"([A-Z]{3,}-\d+)(, [A-Z]{3,}-\d+)*")
 
@@ -30,7 +34,7 @@ class _DecoratorType(enum.StrEnum):
 # So we use a custom one, based on NPM spec, allowing pre-release versions
 class CustomParser(semver.NpmSpec.Parser):
     @classmethod
-    def range(cls, operator, target) -> semver.base.Range:
+    def range(cls, operator: Any, target: Any) -> semver.base.Range:  # noqa: ANN401
         return semver.base.Range(operator, target, prerelease_policy=semver.base.Range.PRERELEASE_ALWAYS)
 
 
@@ -41,11 +45,11 @@ class CustomSpec(semver.NpmSpec):
 _MANIFEST_ERROR_MESSAGE = "Please use manifest file, See docs/edit/manifest.md"
 
 
-def is_jira_ticket(reason: str):
+def is_jira_ticket(reason: str | None):
     return reason is not None and _jira_ticket_pattern.fullmatch(reason)
 
 
-def _ensure_jira_ticket_as_reason(item, reason: str):
+def _ensure_jira_ticket_as_reason(item: type[Any] | FunctionType | MethodType, reason: str | None):
     if not is_jira_ticket(reason):
         path = inspect.getfile(item)
         rel_path = os.path.relpath(path)
@@ -54,19 +58,19 @@ def _ensure_jira_ticket_as_reason(item, reason: str):
         pytest.exit(f"Please set a jira ticket for {nodeid}, instead of reason: {reason}", 1)
 
 
-def _add_pytest_marker(item, reason, marker):
+def _add_pytest_marker(item: type[Any] | FunctionType | MethodType, reason: str | None, marker: pytest.MarkDecorator):
     if inspect.isfunction(item) or inspect.isclass(item):
         if not hasattr(item, "pytestmark"):
             item.pytestmark = []  # type: ignore[attr-defined]
 
-        item.pytestmark.append(marker(reason=reason))
+        item.pytestmark.append(marker(reason=reason))  # type: ignore[union-attr]
     else:
         raise ValueError(f"Unexpected skipped object: {item}")
 
     return item
 
 
-def _expected_to_fail(condition=None, library=None, weblog_variant=None):
+def _expected_to_fail(condition: bool | None = None, library: str | None = None, weblog_variant: str | None = None):
     if condition is False:
         return False
 
@@ -76,6 +80,8 @@ def _expected_to_fail(condition=None, library=None, weblog_variant=None):
     if library is not None:
         if library not in (
             "cpp",
+            "cpp_httpd",
+            "cpp_nginx",
             "dotnet",
             "golang",
             "java",
@@ -95,7 +101,15 @@ def _expected_to_fail(condition=None, library=None, weblog_variant=None):
     return True
 
 
-def _decorator(function_or_class, marker, decorator_type, condition, library, weblog_variant, reason):
+def _decorator(
+    function_or_class: type[Any] | FunctionType | MethodType,
+    marker: pytest.MarkDecorator,
+    decorator_type: _DecoratorType,
+    condition: bool | None,
+    library: str | None,
+    weblog_variant: str | None,
+    reason: str | None,
+):
     expected_to_fail = _expected_to_fail(library=library, weblog_variant=weblog_variant, condition=condition)
 
     if inspect.isclass(function_or_class):
@@ -110,7 +124,14 @@ def _decorator(function_or_class, marker, decorator_type, condition, library, we
     return _add_pytest_marker(function_or_class, full_reason, marker)
 
 
-def missing_feature(condition=None, library=None, weblog_variant=None, reason=None, *, force_skip: bool = False):
+def missing_feature(
+    condition: bool | None = None,
+    library: str | None = None,
+    weblog_variant: str | None = None,
+    reason: str | None = None,
+    *,
+    force_skip: bool = False,
+):
     """decorator, allow to mark a test function/class as missing"""
     marker = pytest.mark.skip if force_skip else pytest.mark.xfail
     return partial(
@@ -124,7 +145,12 @@ def missing_feature(condition=None, library=None, weblog_variant=None, reason=No
     )
 
 
-def incomplete_test_app(condition=None, library=None, weblog_variant=None, reason=None):
+def incomplete_test_app(
+    condition: bool | None = None,
+    library: str | None = None,
+    weblog_variant: str | None = None,
+    reason: str | None = None,
+):
     """Decorator, allow to mark a test function/class as not compatible with the tested application"""
     return partial(
         _decorator,
@@ -137,7 +163,12 @@ def incomplete_test_app(condition=None, library=None, weblog_variant=None, reaso
     )
 
 
-def irrelevant(condition=None, library=None, weblog_variant=None, reason=None):
+def irrelevant(
+    condition: bool | None = None,
+    library: str | None = None,
+    weblog_variant: str | None = None,
+    reason: str | None = None,
+):
     """decorator, allow to mark a test function/class as not relevant"""
     return partial(
         _decorator,
@@ -150,7 +181,14 @@ def irrelevant(condition=None, library=None, weblog_variant=None, reason=None):
     )
 
 
-def bug(condition=None, library=None, weblog_variant=None, reason=None, *, force_skip: bool = False):
+def bug(
+    condition: bool | None = None,
+    library: str | None = None,
+    weblog_variant: str | None = None,
+    *,
+    reason: str,
+    force_skip: bool = False,
+):
     """Decorator, allow to mark a test function/class as an known bug.
     The test is executed, and if it passes, and warning is reported
     """
@@ -166,7 +204,7 @@ def bug(condition=None, library=None, weblog_variant=None, reason=None, *, force
     )
 
 
-def flaky(condition=None, library=None, weblog_variant=None, reason=None):
+def flaky(condition: bool | None = None, library: str | None = None, weblog_variant: str | None = None, *, reason: str):
     """Decorator, allow to mark a test function/class as a known bug, and skip it"""
     return partial(
         _decorator,
@@ -180,27 +218,31 @@ def flaky(condition=None, library=None, weblog_variant=None, reason=None):
 
 
 def released(
-    cpp=None,
-    dotnet=None,
-    golang=None,
-    java=None,
-    nodejs=None,
-    php=None,
-    python=None,
-    python_otel=None,
-    nodejs_otel=None,
-    ruby=None,
-    agent=None,
-    dd_apm_inject=None,
-    k8s_cluster_agent=None,
+    cpp: str | None = None,
+    cpp_httpd: str | None = None,
+    cpp_nginx: str | None = None,
+    dotnet: str | None = None,
+    golang: str | None = None,
+    java: str | None = None,
+    nodejs: str | None = None,
+    php: str | None = None,
+    python: str | None = None,
+    python_otel: str | None = None,
+    nodejs_otel: str | None = None,
+    ruby: str | None = None,
+    agent: str | None = None,
+    dd_apm_inject: str | None = None,
+    k8s_cluster_agent: str | None = None,
 ):
     """Class decorator, allow to mark a test class with a version number of a component"""
 
-    def wrapper(test_class):
+    def wrapper(test_class: type[Any]):
         if not inspect.isclass(test_class):
             raise TypeError(f"{test_class} is not a class")
 
-        def compute_declaration(only_for_library, component_name, declaration, tested_version):
+        def compute_declaration(
+            only_for_library: str, component_name: str, declaration: str | None, tested_version: Version
+        ):
             if declaration is None:
                 # nothing declared
                 return None
@@ -235,6 +277,8 @@ def released(
 
         skip_reasons = [
             compute_declaration("cpp", "cpp", cpp, context.library.version),
+            compute_declaration("cpp_httpd", "cpp_httpd", cpp_httpd, context.library.version),
+            compute_declaration("cpp_nginx", "cpp_nginx", cpp_nginx, context.library.version),
             compute_declaration("dotnet", "dotnet", dotnet, context.library.version),
             compute_declaration("golang", "golang", golang, context.library.version),
             compute_declaration("java", "java", java, context.library.version),
@@ -272,14 +316,14 @@ def released(
     return wrapper
 
 
-def rfc(link):  # noqa: ARG001
-    def wrapper(item):
+def rfc(link: str):  # noqa: ARG001
+    def wrapper(item: type[Any]):
         return item
 
     return wrapper
 
 
-def _resolve_declaration(released_declaration):
+def _resolve_declaration(released_declaration: str | dict[str, str]) -> str | None:
     """If the declaration is a dict, resolve it regarding the tested weblog"""
     if isinstance(released_declaration, str):
         return released_declaration

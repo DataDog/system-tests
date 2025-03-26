@@ -10,7 +10,7 @@ from docker.types import IPAMConfig, IPAMPool
 from watchdog.observers.polling import PollingObserver
 from watchdog.events import FileSystemEventHandler, FileSystemEvent
 
-from utils import interfaces, context
+from utils import interfaces
 from utils.interfaces._core import ProxyBasedInterfaceValidator
 from utils.buddies import BuddyHostPorts
 from utils.proxy.ports import ProxyPorts
@@ -32,7 +32,7 @@ from utils._context.containers import (
     _get_client as get_docker_client,
 )
 
-from utils.tools import logger
+from utils._logger import logger
 
 from .core import Scenario, ScenarioGroup
 
@@ -139,7 +139,7 @@ class DockerScenario(Scenario):
             self.components["docker.Cgroup"] = docker_info.get("CgroupVersion", None)
 
         for container in reversed(self._required_containers):
-            container.configure(self.replay)
+            container.configure(replay=self.replay)
 
     def get_container_by_dd_integration_name(self, name: str):
         for container in self._required_containers:
@@ -244,7 +244,7 @@ class EndToEndScenario(DockerScenario):
         scenario_groups: list[ScenarioGroup] | None = None,
         weblog_env: dict[str, str | None] | None = None,
         weblog_volumes: dict | None = None,
-        agent_env: dict[str, str] | None = None,
+        agent_env: dict[str, str | None] | None = None,
         enable_ipv6: bool = False,
         tracer_sampling_rate: float | None = None,
         appsec_enabled: bool = True,
@@ -396,13 +396,15 @@ class EndToEndScenario(DockerScenario):
             self.weblog_container.environment["_DD_IAST_DEBUG"] = "true"  # probably not used anymore ?
             self.weblog_container.environment["DD_IAST_DEBUG_ENABLED"] = "true"
 
-        interfaces.agent.configure(self.host_log_folder, self.replay)
-        interfaces.library.configure(self.host_log_folder, self.replay)
-        interfaces.backend.configure(self.host_log_folder, self.replay)
-        interfaces.library_dotnet_managed.configure(self.host_log_folder, self.replay)
+        interfaces.agent.configure(self.host_log_folder, replay=self.replay)
+        interfaces.library.configure(self.host_log_folder, replay=self.replay)
+        interfaces.backend.configure(self.host_log_folder, replay=self.replay)
+        interfaces.library_dotnet_managed.configure(self.host_log_folder, replay=self.replay)
+        interfaces.library_stdout.configure(self.host_log_folder, replay=self.replay)
+        interfaces.agent_stdout.configure(self.host_log_folder, replay=self.replay)
 
         for container in self.buddies:
-            container.interface.configure(self.host_log_folder, self.replay)
+            container.interface.configure(self.host_log_folder, replay=self.replay)
 
         library = self.weblog_container.image.labels["system-tests-library"]
 
@@ -578,50 +580,48 @@ class EndToEndScenario(DockerScenario):
             #     condition=context.library > "nodejs@5.36.0",
             #     ticket="DEBUG-3487",
             # ),
-            _SchemaBug(
-                endpoint="/v0.4/traces", data_path="$", condition=context.library == "java", ticket="APMAPI-1161"
-            ),
+            _SchemaBug(endpoint="/v0.4/traces", data_path="$", condition=self.library == "java", ticket="APMAPI-1161"),
             _SchemaBug(
                 endpoint="/telemetry/proxy/api/v2/apmtelemetry",
                 data_path="$.payload.configuration[]",
-                condition=context.library >= "nodejs@2.27.1",
+                condition=self.library >= "nodejs@2.27.1",
                 ticket="APPSEC-52805",
             ),
             _SchemaBug(
                 endpoint="/telemetry/proxy/api/v2/apmtelemetry",
                 data_path="$.payload",
-                condition=context.library < "python@v2.9.0.dev",
+                condition=self.library < "python@v2.9.0.dev",
                 ticket="APPSEC-52845",
             ),
             _SchemaBug(
                 endpoint="/telemetry/proxy/api/v2/apmtelemetry",
                 data_path="$.payload.configuration[].value",
-                condition=context.library == "golang",
+                condition=self.library == "golang",
                 ticket="APMS-12697",
             ),
             _SchemaBug(
                 endpoint="/debugger/v1/diagnostics",
                 data_path="$[].content",
-                condition=context.library < "nodejs@5.31.0",
+                condition=self.library < "nodejs@5.31.0",
                 ticket="DEBUG-2864",
             ),
             _SchemaBug(
                 endpoint="/debugger/v1/diagnostics",
                 data_path="$[].content[].debugger.diagnostics",
-                condition=context.library == "nodejs",
+                condition=self.library == "nodejs",
                 ticket="DEBUG-3245",
             ),
             _SchemaBug(
                 endpoint="/debugger/v1/input",
                 data_path="$[].debugger.snapshot.stack[].lineNumber",
-                condition=context.library in ("python@2.16.2", "python@2.16.3")
+                condition=self.library in ("python@2.16.2", "python@2.16.3")
                 and self.name == "DEBUGGER_EXPRESSION_LANGUAGE",
                 ticket="APMRP-360",
             ),
             _SchemaBug(
                 endpoint="/symdb/v1/input",
                 data_path=None,
-                condition=context.library == "dotnet" and self.name == "DEBUGGER_SYMDB",
+                condition=self.library == "dotnet" and self.name == "DEBUGGER_SYMDB",
                 ticket="DEBUG-3298",
             ),
         ]
@@ -632,20 +632,20 @@ class EndToEndScenario(DockerScenario):
             # _SchemaBug(
             #     endpoint="/api/v2/debugger",
             #     data_path="$",
-            #     condition=context.library > "nodejs@5.36.0",
+            #     condition=self.library > "nodejs@5.36.0",
             #     ticket="DEBUG-3487",
             # ),
             _SchemaBug(
                 endpoint="/api/v2/apmtelemetry",
                 data_path="$.payload.configuration[]",
-                condition=context.library >= "nodejs@2.27.1"
+                condition=self.library >= "nodejs@2.27.1"
                 or self.name in ("CROSSED_TRACING_LIBRARIES", "GRAPHQL_APPSEC"),
                 ticket="APPSEC-52805",
             ),
             _SchemaBug(
                 endpoint="/api/v2/apmtelemetry",
                 data_path="$.payload",
-                condition=context.library < "python@v2.9.0.dev",
+                condition=self.library < "python@v2.9.0.dev",
                 ticket="APPSEC-52845",
             ),
             _SchemaBug(
@@ -654,19 +654,19 @@ class EndToEndScenario(DockerScenario):
             _SchemaBug(
                 endpoint="/api/v2/apmtelemetry",
                 data_path="$.payload.configuration[].value",
-                condition=context.library == "golang",
+                condition=self.library == "golang",
                 ticket="APMS-12697",
             ),
             _SchemaBug(
                 endpoint="/api/v2/debugger",
                 data_path="$[].content",
-                condition=context.library < "nodejs@5.31.0",
+                condition=self.library < "nodejs@5.31.0",
                 ticket="DEBUG-2864",
             ),
             _SchemaBug(
                 endpoint="/api/v2/debugger",
                 data_path="$[]",
-                condition=context.library == "dotnet" and self.name == "DEBUGGER_SYMDB",
+                condition=self.library == "dotnet" and self.name == "DEBUGGER_SYMDB",
                 ticket="DEBUG-3298",
             ),
         ]
@@ -744,7 +744,7 @@ class EndToEndScenario(DockerScenario):
         result = super().get_junit_properties()
 
         result["dd_tags[systest.suite.context.agent]"] = self.agent_version
-        result["dd_tags[systest.suite.context.library.name]"] = self.library.library
+        result["dd_tags[systest.suite.context.library.name]"] = self.library.name
         result["dd_tags[systest.suite.context.library.version]"] = self.library.version
         result["dd_tags[systest.suite.context.weblog_variant]"] = self.weblog_variant
         result["dd_tags[systest.suite.context.sampling_rate]"] = self.weblog_container.tracer_sampling_rate

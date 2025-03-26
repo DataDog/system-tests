@@ -130,7 +130,7 @@ jobs:
       build_lib_injection_app_images: ${{ contains(github.event.pull_request.labels.*.name, 'build-lib-injection-app-images') }}
       parametric_job_count: ${{ matrix.version == 'dev' && 2 || 1 }}  # test both use cases
       skip_empty_scenarios: true
-      desired_execution_time: 3600  # one hour
+      desired_execution_time: 1800  # 30 minutes
 
   system_tests_docker_mode:
     name: Ruby Docker Mode

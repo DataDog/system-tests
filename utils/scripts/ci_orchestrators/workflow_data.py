@@ -4,19 +4,19 @@ import os
 from pathlib import Path
 
 
-def _load_json(file_path) -> dict:
+def _load_json(file_path: str) -> dict:
     with open(file_path, "r") as file:
         return json.load(file)
 
 
-def _get_weblog_spec(weblogs_spec, weblog_name) -> dict:
+def _get_weblog_spec(weblogs_spec: list[dict], weblog_name: str) -> dict:
     for entry in weblogs_spec:
         if weblog_name == entry["name"]:
             return entry
     raise ValueError(f"Weblog variant {weblog_name} not found (please aws_ssi.json)")
 
 
-def get_k8s_matrix(k8s_ssi_file, scenarios: list[str], language: str) -> dict:
+def get_k8s_matrix(k8s_ssi_file: str, scenarios: list[str], language: str) -> dict:
     """Computes the matrix "scenario" - "weblog" - "cluster agent" given a list of scenarios and a language."""
     k8s_ssi = _load_json(k8s_ssi_file)
     cluster_agent_specs = k8s_ssi["cluster_agent_spec"]
@@ -43,7 +43,7 @@ def get_k8s_matrix(k8s_ssi_file, scenarios: list[str], language: str) -> dict:
     return results
 
 
-def get_aws_matrix(virtual_machines_file, aws_ssi_file, scenarios: list[str], language: str) -> dict:
+def get_aws_matrix(virtual_machines_file: str, aws_ssi_file: str, scenarios: list[str], language: str) -> dict:
     """Load the json files (the virtual_machine supported by the system  and the scenario-weblog definition)
     and calculates the matrix "scenario" - "weblog" - "virtual machine" given a list of scenarios and a language.
     """
@@ -99,7 +99,9 @@ def get_aws_matrix(virtual_machines_file, aws_ssi_file, scenarios: list[str], la
     return results
 
 
-def get_docker_ssi_matrix(images_file, runtimes_file, docker_ssi_file, scenarios: list[str], language: str) -> dict:
+def get_docker_ssi_matrix(
+    images_file: str, runtimes_file: str, docker_ssi_file: str, scenarios: list[str], language: str
+) -> dict:
     """Load the JSON files (the docker imgs and runtimes supported by the system and the scenario-weblog definition)"""
     images = _load_json(images_file)
     runtimes = _load_json(runtimes_file)
@@ -262,12 +264,14 @@ def get_endtoend_definitions(
     # build a list of {weblog, scenarios} for each weblog, and assign it to a Job
     jobs: list[Job] = []
     for weblog in weblogs:
-        scenarios = _filter_scenarios(scenarios, library, weblog, ci_environment)
-        scenarios_times = {
-            scenario: _get_execution_time(library, weblog, scenario, time_stats["run"]) for scenario in scenarios
-        }
+        supported_scenarios = _filter_scenarios(scenarios, library, weblog, ci_environment)
 
-        if len(scenarios) > 0:  # remove weblogs with no scenarios
+        if len(supported_scenarios) > 0:  # remove weblogs with no scenarios
+            scenarios_times = {
+                scenario: _get_execution_time(library, weblog, scenario, time_stats["run"])
+                for scenario in supported_scenarios
+            }
+
             jobs.append(
                 Job(
                     library=library,
@@ -419,7 +423,11 @@ def _is_supported(library: str, weblog: str, scenario: str, ci_environment: str)
             # python 3.13 issue : APMAPI-1096
             return False
 
-    if scenario in ("APPSEC_MISSING_RULES", "APPSEC_CORRUPTED_RULES") and library == "cpp":
+    if scenario == "DEBUGGER_PII_REDACTION" and library == "php" and ci_environment == "dev":
+        # PHP issue DEBUG-3661
+        return False
+
+    if scenario in ("APPSEC_MISSING_RULES", "APPSEC_CORRUPTED_RULES") and library in ("cpp_nginx", "cpp_httpd"):
         # C++ 1.2.0 freeze when the rules file is missing
         return False
 
@@ -532,4 +540,4 @@ if __name__ == "__main__":
         "parametric": ["PARAMETRIC"],
     }
 
-    get_endtoend_definitions("java", m, "dev", 20, 256)
+    get_endtoend_definitions("ruby", m, "dev", 20, 256)

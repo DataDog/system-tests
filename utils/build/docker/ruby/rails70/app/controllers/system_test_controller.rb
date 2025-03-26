@@ -18,7 +18,7 @@ class SystemTestController < ApplicationController
     render json: { 
       status: 'ok',
       library: {
-        language: 'ruby',
+        name: 'ruby',
         version: version
       }
     }
@@ -294,5 +294,9 @@ class SystemTestController < ApplicationController
     else
       render plain: 'users not found parameter', status: 400
     end
+  end
+
+  def handle_path_params
+    render plain: 'OK'
   end
 end

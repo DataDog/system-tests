@@ -6,8 +6,7 @@
 import json
 import re
 
-from utils import weblog, interfaces, context, scenarios, features, irrelevant, flaky, bug
-from utils.tools import logger
+from utils import weblog, interfaces, context, scenarios, features, irrelevant, flaky, bug, logger
 
 
 def remove_traceparent(s):
@@ -22,7 +21,7 @@ class Test_Dbm:
 
     # Helper Methods
     def weblog_trace_payload(self):
-        self.library_name = context.library.library
+        self.library_name = context.library.name
         self.scenario_name = context.scenario.name
         self.requests = []
 
@@ -129,13 +128,13 @@ class Test_Dbm:
 class _BaseDbmComment:
     """Verify DBM comment for given integration"""
 
-    integration = None
-    operation = None
+    integration: str | None = None
+    operation: str | None = None
 
     # declared in child classes
-    dddb = None  # db name
-    dddbs = None  # db name
-    ddh = None  # container name
+    dddb: str | None = None  # db name
+    dddbs: str | None = None  # db name
+    ddh: str | None = None  # container name
 
     # comment generic info
     dde = "system-tests"  # DD_ENV

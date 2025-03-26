@@ -1,9 +1,8 @@
-from utils.tools import logger
 from utils.onboarding.weblog_interface import make_get_request, warmup_weblog, make_internal_get_request
 from utils.onboarding.backend_interface import wait_backend_trace_id
 from utils.onboarding.wait_for_tcp_port import wait_for_port
 from utils.virtual_machine.vm_logger import vm_logger
-from utils import context
+from utils import context, logger
 from threading import Timer
 
 
@@ -48,7 +47,7 @@ class AutoInjectBaseTest:
             logger.info(f"Http request done with uuid: [{request_uuid}] for ip [{vm_ip}]")
         wait_backend_trace_id(request_uuid, profile=profile)
 
-    def close_channel(self, channel):
+    def close_channel(self, channel) -> None:
         try:
             if not channel.eof_received:
                 channel.close()
@@ -154,10 +153,10 @@ class AutoInjectBaseTest:
         vm_logger(context.scenario.name, virtual_machine.name).info(
             f"{header} \n {header}  \n  Launching the uninstall for VM: {virtual_machine.name}  \n {header} \n {header}"
         )
-        if context.weblog_variant == f"test-app-{context.scenario.library.library}":  # Host
+        if context.weblog_variant == f"test-app-{context.scenario.library.name}":  # Host
             stop_weblog_command = "sudo systemctl kill -s SIGKILL test-app.service"
             start_weblog_command = "sudo systemctl start test-app.service"
-            if context.scenario.library.library in ["ruby", "python", "dotnet"]:
+            if context.scenario.library.name in ["ruby", "python", "dotnet"]:
                 start_weblog_command = virtual_machine._vm_provision.weblog_installation.remote_command
         else:  # Container
             stop_weblog_command = "sudo -E docker-compose -f docker-compose.yml down"
