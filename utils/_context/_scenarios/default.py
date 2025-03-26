@@ -8,7 +8,7 @@ from .endtoend import EndToEndScenario
 # RFC(https://docs.google.com/document/d/1j1hp87-2wJnXUGADZxzLnvKJmaF_Gd6ZR1hPS3LVguQ/edit?pli=1&tab=t.0)
 
 _iast_security_controls_map = {
-    "cpp": "TODO",
+    "cpp_nginx": "TODO",
     "cpp_httpd": "TODO",
     "dotnet": "TODO",
     "golang": "TODO",

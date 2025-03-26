@@ -322,7 +322,7 @@ class Test_Telemetry:
 
         return delays_by_runtime
 
-    @missing_feature(library="cpp", reason="DD_TELEMETRY_HEARTBEAT_INTERVAL not supported")
+    @missing_feature(library="cpp_nginx", reason="DD_TELEMETRY_HEARTBEAT_INTERVAL not supported")
     @missing_feature(library="cpp_httpd", reason="DD_TELEMETRY_HEARTBEAT_INTERVAL not supported")
     @flaky(context.library <= "java@1.38.1", reason="APMRP-360")
     @flaky(context.library <= "php@0.90", reason="APMRP-360")
@@ -352,7 +352,7 @@ class Test_Telemetry:
         weblog.get("/load_dependency")
 
     @irrelevant(library="php")
-    @irrelevant(library="cpp")
+    @irrelevant(library="cpp_nginx")
     @irrelevant(library="cpp_httpd")
     @irrelevant(library="golang")
     @irrelevant(library="python")
@@ -412,8 +412,8 @@ class Test_Telemetry:
             "ruby": {},
         }
 
-        seen_loaded_dependencies = test_loaded_dependencies[context.library.library]
-        seen_defined_dependencies = test_defined_dependencies[context.library.library]
+        seen_loaded_dependencies = test_loaded_dependencies[context.library.name]
+        seen_defined_dependencies = test_defined_dependencies[context.library.name]
 
         for data in interfaces.library.get_telemetry_data():
             content = data["request"]["content"]
@@ -449,7 +449,7 @@ class Test_Telemetry:
     @irrelevant(library="php")
     @irrelevant(library="java")
     @irrelevant(library="nodejs")
-    @irrelevant(library="cpp")
+    @irrelevant(library="cpp_nginx")
     @irrelevant(library="cpp_httpd")
     def test_api_still_v1(self):
         """Test that the telemetry api is still at version v1
@@ -474,13 +474,13 @@ class Test_Telemetry:
             "nodejs": {"hostname": "proxy", "port": trace_agent_port, "appsec.enabled": True},
             # to-do :need to add configuration keys once python bug is fixed
             "python": {},
-            "cpp": {"trace_agent_port": trace_agent_port},
+            "cpp_nginx": {"trace_agent_port": trace_agent_port},
             "cpp_httpd": {"trace_agent_port": trace_agent_port},
             "java": {"trace_agent_port": trace_agent_port, "telemetry_heartbeat_interval": 2},
             "ruby": {"DD_AGENT_TRANSPORT": "TCP"},
             "golang": {"lambda_mode": False},
         }
-        configuration_map = test_configuration[context.library.library]
+        configuration_map = test_configuration[context.library.name]
 
         def validator(data):
             if get_request_type(data) == "app-started":
@@ -489,7 +489,7 @@ class Test_Telemetry:
                 configurations_present = []
                 for cnf in configurations:
                     configuration_name = cnf["name"]
-                    if context.library.library == "java":
+                    if context.library.name == "java":
                         # support for older versions of Java Tracer
                         configuration_name = configuration_name.replace(".", "_")
                     if configuration_name in configuration_map:
@@ -519,7 +519,7 @@ class Test_Telemetry:
         weblog.get("/enable_product")
 
     @missing_feature(
-        context.library in ("dotnet", "nodejs", "java", "python", "golang", "cpp", "cpp_httpd", "php", "ruby"),
+        context.library in ("dotnet", "nodejs", "java", "python", "golang", "cpp_nginx", "cpp_httpd", "php", "ruby"),
         reason="Weblog GET/enable_product and app-product-change event is not implemented yet.",
     )
     def test_app_product_change(self):
@@ -600,7 +600,7 @@ class Test_TelemetryV2:
     @missing_feature(library="dotnet", reason="Product started missing")
     @missing_feature(library="php", reason="Product started missing (both in libdatadog and php)")
     @missing_feature(library="python", reason="Product started missing in app-started payload")
-    @missing_feature(library="cpp", reason="Product started missing in app-started payload")
+    @missing_feature(library="cpp_nginx", reason="Product started missing in app-started payload")
     @missing_feature(library="cpp_httpd", reason="Product started missing in app-started payload")
     def test_app_started_product_info(self):
         """Assert that product information is accurately reported by telemetry"""
@@ -614,7 +614,6 @@ class Test_TelemetryV2:
                     "appsec" in products
                 ), "Product information is not accurately reported by telemetry on app-started event"
 
-    @bug(library="java", reason="APMAPI-969")
     def test_config_telemetry_completeness(self):
         """Assert that config telemetry is handled properly by telemetry intake
 
@@ -659,7 +658,7 @@ class Test_TelemetryV2:
                         "(NOT A FLAKE) Read this quick runbook to update allowed configs: https://github.com/DataDog/system-tests/blob/main/docs/edit/runbook.md#test_config_telemetry_completeness"
                     )
 
-    @missing_feature(library="cpp")
+    @missing_feature(library="cpp_nginx")
     @missing_feature(library="cpp_httpd")
     @missing_feature(context.library < "ruby@1.22.0", reason="dd-client-library-version missing")
     @bug(context.library == "python" and context.library.version.prerelease is not None, reason="APMAPI-927")

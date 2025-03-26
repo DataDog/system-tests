@@ -37,7 +37,7 @@ class TestDockerSSICrash:
     @bug(context.library >= "python@3.0.0.dev", reason="INPLAT-448")
     def test_crash(self):
         """Validate that a crash report is generated when the application crashes"""
-        logger.info(f"Testing Docker SSI crash tracking: {context.library.library}")
+        logger.info(f"Testing Docker SSI crash tracking: {context.library.name}")
         assert (
             self.r.status_code is None
         ), f"Response from request {scenarios.docker_ssi.weblog_url + '/crashme'} was supposed to fail: {self.r}"

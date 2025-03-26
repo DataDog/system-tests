@@ -13,12 +13,12 @@ from utils._logger import logger
 class _WafAttack:
     def __init__(
         self,
-        rule: str | None = None,
+        rule: str | type | None = None,
         pattern: str | None = None,
         patterns: list[str] | None = None,
         value: str | None = None,
         address: str | None = None,
-        key_path: str | None = None,
+        key_path: str | list[str] | None = None,
         span_validator: Callable | None = None,
     ):
         # rule can be a rule id, or a rule type

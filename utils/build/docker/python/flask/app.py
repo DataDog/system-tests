@@ -268,7 +268,7 @@ def healthcheck():
     return {
         "status": "ok",
         "library": {
-            "language": "python",
+            "name": "python",
             "version": ddtrace.__version__,
         },
     }
