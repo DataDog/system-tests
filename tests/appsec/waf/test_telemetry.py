@@ -226,19 +226,21 @@ def _validate_headers(headers, request_type):
     """https://github.com/DataDog/instrumentation-telemetry-api-docs/blob/main/GeneratedDocumentation/ApiDocs/v2/how-to-use.md"""
 
     expected_language = context.library.library
-    if expected_language == "java":
-        expected_language = "jvm"
+    weblog_to_telemetry_lang = {
+        "java": "jvm",
+        "golang": "go",
+    }
 
     # empty value means we don't care about the content, but we want to check the key exists
     # a set means "any of"
     expected_headers = {
         "Content-Type": {"application/json", "application/json; charset=utf-8"},
         "DD-Telemetry-Request-Type": request_type,
-        "DD-Client-Library-Language": expected_language,
+        "DD-Client-Library-Language": weblog_to_telemetry_lang.get(expected_language) or expected_language,
         "DD-Client-Library-Version": "",
     }
 
-    if context.library == "python":
+    if expected_language in ("python", "golang"):
         # APM Python migrates Telemetry to V2
         expected_headers["DD-Telemetry-API-Version"] = "v2"
     elif context.library > "nodejs@4.20.0":
