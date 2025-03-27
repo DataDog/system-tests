@@ -3,8 +3,10 @@ import argparse
 import subprocess
 import json
 from typing import Any
-from collections.abc import Callable, Coroutine
 
+import boto3
+from botocore.exceptions import ClientError
+from collections.abc import Callable, Coroutine
 import pulumi
 import pulumi_aws as aws
 from pulumi import automation as auto
@@ -78,6 +80,26 @@ def delete_ami(ami: aws.ec2.Ami) -> None:
             snapshot_id = block["ebs"]["snapshot_id"]
             print(f"🗑️ Deleting snapshot: {snapshot_id}")
             delete_snapshot(snapshot_id)
+
+
+def get_instance_launch_time(instance_id: str, region: str = "us-east-1") -> str | None:
+    ec2 = boto3.client("ec2", region_name=region)
+
+    try:
+        response = ec2.describe_instances(InstanceIds=[instance_id])
+        reservations = response.get("Reservations", [])
+
+        if not reservations:
+            print(f"Instance {instance_id} not found.")
+            return None
+
+        instance = reservations[0]["Instances"][0]
+        launch_time = instance["LaunchTime"]  # This is a datetime object (UTC)
+        return launch_time.isoformat()
+
+    except ClientError as e:
+        print(f"Error retrieving instance: {e}")
+        return None
 
 
 async def clean_up_amis() -> None:
@@ -176,15 +198,17 @@ async def clean_up_ec2_running_instances() -> None:
     now = datetime.now(UTC)
     for instance in instances.ids:
         print("Checking instance: ", instance)
-        instance_data = await aws.ec2.get_instance(instance_id=instance)
-        print("RMM Instance data: ", str(instance_data))
-        print("RMM Instance LAUNCH TIME: ", instance_data.launch_time)
-        print("RMM Instance subnet_id: ", instance_data.subnet_id)
-        if instance_data.launch_time:
-            launch_time = datetime.strptime(instance_data.launch_time, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=UTC)
 
-            age = now - launch_time
-
+        launch_time = get_instance_launch_time(instance)
+        # instance_data = await aws.ec2.get_instance(instance_id=instance)
+        # print("RMM Instance data: ", str(instance_data))
+        print("RMM Instance LAUNCH TIME: ", launch_time)
+        # print("RMM Instance subnet_id: ", instance_data.subnet_id)
+        if launch_time:
+            # launch_time = datetime.strptime(launch_time, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=UTC)
+            # launch_time = isoparse(launch_time)
+            launch_time_parsed = datetime.strptime(launch_time, "%Y-%m-%dT%H:%M:%S%z")
+            age = now - launch_time_parsed
             if age > timedelta(minutes=ec2_age_minutes):
                 pulumi.log.info(f"💀 Terminating instance {instance} (age: {age})")
                 # command.local.Command(
