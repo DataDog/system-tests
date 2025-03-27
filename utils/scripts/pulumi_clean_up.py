@@ -178,6 +178,7 @@ async def clean_up_ec2_running_instances() -> None:
     for instance in instances.ids:
         print("Checking instance: ", instance)
         instance_data = await aws.ec2.get_instance(instance_id=instance)
+        print("RMM Instance data: ", instance_data)
         if instance_data.launch_time:
             launch_time = datetime.strptime(instance_data.launch_time, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=UTC)
 
