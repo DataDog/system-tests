@@ -488,13 +488,16 @@ class BaseDebuggerTest:
                         for chunk in payload["chunks"]:
                             for span in chunk["spans"]:
                                 self.all_spans.append(span)
-                                
+
                                 # For Python, we need to look for spans with stack trace information
                                 if self.get_tracer()["language"] == "python":
-                                    has_stack_trace = any(key.startswith("_dd.debug.error.") and key.endswith(".file") for key in span["meta"].keys())
+                                    has_stack_trace = any(
+                                        key.startswith("_dd.debug.error.") and key.endswith(".file")
+                                        for key in span["meta"]
+                                    )
                                     if has_stack_trace:
                                         # Use the first stack trace frame's snapshot_id as the key
-                                        for key in span["meta"].keys():
+                                        for key in span["meta"]:
                                             if key.startswith("_dd.debug.error.") and key.endswith(".snapshot_id"):
                                                 span_hash[span["meta"][key]] = span
                                                 break
