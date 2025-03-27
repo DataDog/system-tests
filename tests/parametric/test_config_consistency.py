@@ -530,13 +530,13 @@ class Test_Stable_Config_Default(StableConfigWriter):
                 {"DD_PROFILING_ENABLED": False},
                 {"dd_profiling_enabled": "false"},  # expected
             ),
-            # pytest.param(
-            #     "env>local",
-            #     {"DD_PROFILING_ENABLED": True},
-            #     {"DD_PROFILING_ENABLED": False},
-            #     {},
-            #     {"dd_profiling_enabled": "false"},  # expected
-            # ),
+            pytest.param(
+                "env>local",
+                {"DD_PROFILING_ENABLED": True},
+                {"DD_PROFILING_ENABLED": False},
+                {},
+                {"dd_profiling_enabled": "false"},  # expected
+            ),
             (
                 "orthogonal_priorities",
                 {"DD_PROFILING_ENABLED": True, "DD_RUNTIME_METRICS_ENABLED": True},
