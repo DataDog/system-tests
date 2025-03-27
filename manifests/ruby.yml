@@ -95,9 +95,9 @@ tests/:
           TestReflectionInjection_ExtendedLocation: missing_feature
           TestReflectionInjection_StackTrace: missing_feature
         test_sql_injection.py:
-          TestSqlInjection: v2.12.2.dev
-          TestSqlInjection_ExtendedLocation: v2.12.2.dev
-          TestSqlInjection_StackTrace: v2.12.2.dev
+          TestSqlInjection: v2.12.0.dev
+          TestSqlInjection_ExtendedLocation: v2.12.0.dev
+          TestSqlInjection_StackTrace: v2.12.0.dev
         test_ssrf.py:
           TestSSRF: missing_feature
           TestSSRF_ExtendedLocation: missing_feature
@@ -189,18 +189,98 @@ tests/:
       test_lfi.py: missing_feature
       test_shi.py: missing_feature
       test_sqli.py:
-        Test_Sqli_BodyJson: v2.12.2.dev
-        Test_Sqli_BodyUrlEncoded: v2.12.2.dev
+        Test_Sqli_BodyJson:
+          "*": v2.12.3-dev
+          sinatra14: irrelevant
+          sinatra20: irrelevant
+          sinatra21: irrelevant
+          sinatra22: irrelevant
+          sinatra30: irrelevant
+          sinatra31: irrelevant
+          sinatra32: irrelevant
+          sinatra40: irrelevant
+          uds-sinatra: irrelevant
+        Test_Sqli_BodyUrlEncoded:
+          "*": v2.12.0.dev
+          sinatra14: irrelevant
+          sinatra20: irrelevant
+          sinatra21: irrelevant
+          sinatra22: irrelevant
+          sinatra30: irrelevant
+          sinatra31: irrelevant
+          sinatra32: irrelevant
+          sinatra40: irrelevant
+          uds-sinatra: irrelevant
         Test_Sqli_BodyXml: irrelevant (XML not natively supported)
-        Test_Sqli_Capability: v2.12.2.dev
-        Test_Sqli_Mandatory_SpanTags: v2.12.2.dev
-        Test_Sqli_Optional_SpanTags: v2.12.2.dev
-        Test_Sqli_Rules_Version: v2.12.2.dev
-        Test_Sqli_StackTrace: v2.12.2.dev
-        Test_Sqli_Telemetry: v2.12.2.dev
-        Test_Sqli_Telemetry_V2: v2.12.2.dev
-        Test_Sqli_UrlQuery: v2.12.2.dev
-        Test_Sqli_Waf_Version: v2.12.2.dev
+        Test_Sqli_Capability:
+          "*": v2.12.0.dev
+          sinatra14: irrelevant
+          sinatra20: irrelevant
+          sinatra21: irrelevant
+          sinatra22: irrelevant
+          sinatra30: irrelevant
+          sinatra31: irrelevant
+          sinatra32: irrelevant
+          sinatra40: irrelevant
+          uds-sinatra: irrelevant
+        Test_Sqli_Mandatory_SpanTags:
+          "*": v2.12.0.dev
+          sinatra14: irrelevant
+          sinatra20: irrelevant
+          sinatra21: irrelevant
+          sinatra22: irrelevant
+          sinatra30: irrelevant
+          sinatra31: irrelevant
+          sinatra32: irrelevant
+          sinatra40: irrelevant
+          uds-sinatra: irrelevant
+        Test_Sqli_Optional_SpanTags:
+          "*": v2.12.0.dev
+          sinatra14: irrelevant
+          sinatra20: irrelevant
+          sinatra21: irrelevant
+          sinatra22: irrelevant
+          sinatra30: irrelevant
+          sinatra31: irrelevant
+          sinatra32: irrelevant
+          sinatra40: irrelevant
+          uds-sinatra: irrelevant
+        Test_Sqli_Rules_Version: missing_feature (relies on Telemetry V2)
+        Test_Sqli_StackTrace:
+          "*": v2.12.0.dev
+          sinatra14: irrelevant
+          sinatra20: irrelevant
+          sinatra21: irrelevant
+          sinatra22: irrelevant
+          sinatra30: irrelevant
+          sinatra31: irrelevant
+          sinatra32: irrelevant
+          sinatra40: irrelevant
+          uds-sinatra: irrelevant
+        Test_Sqli_Telemetry:
+          "*": v2.12.0.dev
+          sinatra14: irrelevant
+          sinatra20: irrelevant
+          sinatra21: irrelevant
+          sinatra22: irrelevant
+          sinatra30: irrelevant
+          sinatra31: irrelevant
+          sinatra32: irrelevant
+          sinatra40: irrelevant
+          uds-sinatra: irrelevant
+        Test_Sqli_Telemetry_V2: missing_feature
+        Test_Sqli_UrlQuery:
+          "*": v2.12.0.dev
+          sinatra14: irrelevant
+          sinatra20: irrelevant
+          sinatra21: irrelevant
+          sinatra22: irrelevant
+          sinatra30: irrelevant
+          sinatra31: irrelevant
+          sinatra32: irrelevant
+          sinatra40: irrelevant
+          uds-sinatra: irrelevant
+        Test_Sqli_Waf_Version: missing_feature (relies on Telemetry V2)
       test_ssrf.py: missing_feature
     waf/:
       test_addresses.py:
