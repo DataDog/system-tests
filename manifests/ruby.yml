@@ -95,9 +95,9 @@ tests/:
           TestReflectionInjection_ExtendedLocation: missing_feature
           TestReflectionInjection_StackTrace: missing_feature
         test_sql_injection.py:
-          TestSqlInjection: missing_feature
-          TestSqlInjection_ExtendedLocation: missing_feature
-          TestSqlInjection_StackTrace: missing_feature
+          TestSqlInjection: v2.12.2.dev
+          TestSqlInjection_ExtendedLocation: v2.12.2.dev
+          TestSqlInjection_StackTrace: v2.12.2.dev
         test_ssrf.py:
           TestSSRF: missing_feature
           TestSSRF_ExtendedLocation: missing_feature
