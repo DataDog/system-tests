@@ -1030,7 +1030,7 @@ tests/:
     Test_Meta:
       '*': v1.80.0
       django-py3.13: bug (APMLP-364)
-    Test_MetaDatadogTags: bug (APMAPI-735)
+    Test_MetaDatadogTags: v3.2.0
   test_span_events.py: incomplete_test_app (Weblog `/add_event` not implemented)
   test_standard_tags.py:
     Test_StandardTagsClientIp: v2.7.0

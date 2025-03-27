@@ -1841,16 +1841,16 @@ tests/:
       '*': irrelevant (kafka endpoints are not implemented)
       spring-boot: v1.42.0
     Test_Config_LogInjection_128Bit_TraceId_Disabled:
-      '*': incomplete_test_app (weblog endpoint not implemented)
+      '*': irrelevant (weblog endpoint not implemented)
       'spring-boot-3-native': v1.48.0
     Test_Config_LogInjection_128Bit_TraceId_Enabled:
-      '*': incomplete_test_app (weblog endpoint not implemented)
+      '*': irrelevant (weblog endpoint not implemented)
       'spring-boot-3-native': v1.48.0
     Test_Config_LogInjection_Default:
-      '*': incomplete_test_app (weblog endpoint not implemented)
+      '*': irrelevant (weblog endpoint not implemented)
       'spring-boot-3-native': v1.48.0
     Test_Config_LogInjection_Enabled:
-      '*': incomplete_test_app (weblog endpoint not implemented)
+      '*': irrelevant (weblog endpoint not implemented)
       'spring-boot-3-native': v1.48.0
     Test_Config_ObfuscationQueryStringRegexp_Configured: v1.39.0
     Test_Config_ObfuscationQueryStringRegexp_Default: v1.39.0
