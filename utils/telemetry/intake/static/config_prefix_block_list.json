@@ -135,6 +135,8 @@
     "trace.amqp_analytics_enabled",
     "trace.amqp_analytics_sample_rate",
     "trace.amqp_enabled",
+    "trace.baggage_max_bytes",
+    "trace.baggage_max_items",
     "trace.cakephp_analytics_enabled",
     "trace.cakephp_analytics_sample_rate",
     "trace.cakephp_enabled",
