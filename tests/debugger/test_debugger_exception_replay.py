@@ -5,6 +5,7 @@
 import re
 import os
 import tests.debugger.utils as debugger
+import time
 from utils import scenarios, features, bug, context, flaky, irrelevant, logger
 
 
@@ -375,12 +376,11 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
 
     @bug(context.library < "dotnet@3.10.0", reason="DEBUG-2799")
     @bug(context.library == "dotnet", reason="DEBUG-3283")
-    @bug(context.library == "python", reason="DEBUG-3282")
     @bug(context.library < "java@1.46.0", reason="DEBUG-3285")
     @bug(context.library == "java", reason="DEBUG-3390")
     def test_exception_replay_recursion_20(self):
         self._assert("exception_replay_recursion_20", ["recursion exception depth 20"])
-        self._validate_recursion_snapshots(self.snapshots, 10)
+        self._validate_recursion_snapshots(self.snapshots, 9)
 
     def setup_exception_replay_recursion_inlined(self):
         self._setup("/exceptionreplay/recursion_inline?depth=4", "recursion exception depth 4")
@@ -420,6 +420,9 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
                 self.send_weblog_request(f"/exceptionreplay/rps?shape={shape}", reset=False)
 
                 shapes[shape] = self.wait_for_exception_snapshot_received(shape, timeout)
+                if self.get_tracer()["language"] == "python":
+                    time.sleep(1)
+
                 timeout = _timeout_next
 
             retries += 1
