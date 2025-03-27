@@ -14,6 +14,7 @@ require (
 	github.com/DataDog/dd-trace-go/contrib/graphql-go/graphql/v2 v2.0.0-rc.9.0.20250321154706-45c5fdf1ba7e
 	github.com/DataDog/dd-trace-go/contrib/labstack/echo.v4/v2 v2.0.0-rc.9.0.20250321154706-45c5fdf1ba7e
 	github.com/DataDog/dd-trace-go/contrib/net/http/v2 v2.0.0-rc.9
+	github.com/DataDog/dd-trace-go/contrib/sirupsen/logrus/v2 v2.0.0-rc.9
 	github.com/DataDog/dd-trace-go/v2 v2.0.0-rc.9.0.20250321154706-45c5fdf1ba7e
 	github.com/Shopify/sarama v1.38.1
 	github.com/gin-gonic/gin v1.9.1
@@ -23,6 +24,7 @@ require (
 	github.com/graphql-go/handler v0.2.3
 	github.com/labstack/echo/v4 v4.11.1
 	github.com/mattn/go-sqlite3 v1.14.18
+	github.com/sirupsen/logrus v1.9.3
 	github.com/vektah/gqlparser/v2 v2.5.16
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.49.0
 	go.opentelemetry.io/otel v1.34.0

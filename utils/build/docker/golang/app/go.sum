@@ -40,6 +40,8 @@ github.com/DataDog/dd-trace-go/contrib/labstack/echo.v4/v2 v2.0.0-rc.9.0.2025032
 github.com/DataDog/dd-trace-go/contrib/labstack/echo.v4/v2 v2.0.0-rc.9.0.20250321154706-45c5fdf1ba7e/go.mod h1:oGYghIE+WuNVNdqzVNkUCzoRIiJjCNWctmYk91xtoWs=
 github.com/DataDog/dd-trace-go/contrib/net/http/v2 v2.0.0-rc.9 h1:8JLL62GV6wkKg/nv3/7UxSlJNSAvLmqK46nZXuXH54Q=
 github.com/DataDog/dd-trace-go/contrib/net/http/v2 v2.0.0-rc.9/go.mod h1:QDGFQWt8S/roztpq2nIL6EkSel0AX6r09NDeNA01NK8=
+github.com/DataDog/dd-trace-go/contrib/sirupsen/logrus/v2 v2.0.0-rc.9 h1:w5LmNc8veQQBGca325/anGJzZ9+Jg/fs+7Os2jyrTz4=
+github.com/DataDog/dd-trace-go/contrib/sirupsen/logrus/v2 v2.0.0-rc.9/go.mod h1:Eed34+cQJP5n+Y09jPAdLXnuXHqkjAPVKnRJ2BK0ijM=
 github.com/DataDog/dd-trace-go/instrumentation/testutils/grpc/v2 v2.0.0-rc.9 h1:z9+fBFxYlqLASoYk8AnVmtxcWWeN+ddo8lRuQjsj9+Q=
 github.com/DataDog/dd-trace-go/instrumentation/testutils/grpc/v2 v2.0.0-rc.9/go.mod h1:HxVBX5Kj/nOJfRxXael21q0yEOmikeyUQWa747sn0Zg=
 github.com/DataDog/dd-trace-go/v2 v2.0.0-rc.9.0.20250321154706-45c5fdf1ba7e h1:3sLXuQLKYYkvTpsA3K5rkwKy/eV7uMrifF4WhhRrcG0=
@@ -285,6 +287,8 @@ github.com/sergi/go-diff v1.3.1/go.mod h1:aMJSSKb2lpPvRNec0+w3fl7LP9IOFzdc9Pa4NF
 github.com/shirou/gopsutil/v4 v4.25.1 h1:QSWkTc+fu9LTAWfkZwZ6j8MSUk4A2LV7rbH0ZqmLjXs=
 github.com/shirou/gopsutil/v4 v4.25.1/go.mod h1:RoUCUpndaJFtT+2zsZzzmhvbfGoDCJ7nFXKJf8GqJbI=
 github.com/sirupsen/logrus v1.7.0/go.mod h1:yWOB1SBYBC5VeMP7gHvWumXLIWorT60ONWic61uBYv0=
+github.com/sirupsen/logrus v1.9.3 h1:dueUQJ1C2q9oE3F7wvmSGAaVtTmUizReu6fjN8uqzbQ=
+github.com/sirupsen/logrus v1.9.3/go.mod h1:naHLuLoDiP4jHNo9R0sCBMtWGeIprob74mVsIT4qYEQ=
 github.com/spaolacci/murmur3 v1.1.0 h1:7c1g84S4BPRrfL5Xrdp6fOJ206sU9y293DDHaoy0bLI=
 github.com/spaolacci/murmur3 v1.1.0/go.mod h1:JwIasOWyU6f++ZhiEuf87xNszmSA2myDM2Kzu9HwQUA=
 github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
@@ -430,6 +434,7 @@ golang.org/x/sys v0.0.0-20210510120138-977fb7262007/go.mod h1:oPkhp1MJrh7nUepCBc
 golang.org/x/sys v0.0.0-20210615035016-665e8c7367d1/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
 golang.org/x/sys v0.0.0-20220520151302-bc2c85ada10a/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
 golang.org/x/sys v0.0.0-20220627191245-f75cf1eec38b/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
+golang.org/x/sys v0.0.0-20220715151400-c0bba94af5f8/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
 golang.org/x/sys v0.0.0-20220722155257-8c9f86f7a55f/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
 golang.org/x/sys v0.0.0-20220811171246-fbc7d0a398ab/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
 golang.org/x/sys v0.1.0/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
