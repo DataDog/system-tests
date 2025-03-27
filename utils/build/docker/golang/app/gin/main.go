@@ -277,15 +277,16 @@ func main() {
 		if msg == "" {
 			msg = "msg"
 		}
+		reqCtx := ctx.Request.Context()
 		switch ctx.Query("level") {
 		case "warn":
-			logrus.WithContext(ctx).Warn(msg)
+			logrus.WithContext(reqCtx).Warn(msg)
 		case "error":
-			logrus.WithContext(ctx).Error(msg)
+			logrus.WithContext(reqCtx).Error(msg)
 		case "debug":
-			logrus.WithContext(ctx).Debug(msg)
+			logrus.WithContext(reqCtx).Debug(msg)
 		default:
-			logrus.WithContext(ctx).Info(msg)
+			logrus.WithContext(reqCtx).Info(msg)
 		}
 		ctx.Writer.Write([]byte("OK"))
 	})
