@@ -10,9 +10,9 @@ on:
     - synchronize
     - labeled
     - unlabeled
-  push:
-    branches:
-    - main
+  # push:
+  #   branches:
+  #   - main
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
