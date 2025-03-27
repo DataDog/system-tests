@@ -624,6 +624,12 @@ class EndToEndScenario(DockerScenario):
                 condition=self.library == "dotnet" and self.name == "DEBUGGER_SYMDB",
                 ticket="DEBUG-3298",
             ),
+            _SchemaBug(
+                endpoint="/telemetry/proxy/api/v2/apmtelemetry",
+                data_path="$.payload",
+                condition=self.library > "php@1.7.3",
+                ticket="APMAPI-1270",
+            ),
         ]
         self._test_schemas(session, interfaces.library, library_bugs)
 
@@ -668,6 +674,12 @@ class EndToEndScenario(DockerScenario):
                 data_path="$[]",
                 condition=self.library == "dotnet" and self.name == "DEBUGGER_SYMDB",
                 ticket="DEBUG-3298",
+            ),
+            _SchemaBug(
+                endpoint="/api/v2/apmtelemetry",
+                data_path="$.payload",
+                condition=self.library > "php@1.7.3",
+                ticket="XXX-1234",
             ),
         ]
         self._test_schemas(session, interfaces.agent, agent_bugs)
