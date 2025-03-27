@@ -7,12 +7,6 @@ import tests.auto_inject.utils as base
 @features.host_auto_installation_script
 @scenarios.host_auto_injection_install_script
 class TestHostAutoInjectInstallScript(base.AutoInjectBaseTest):
-    @bug(
-        context.vm_os_branch in ["redhat", "amazon_linux2"]
-        and context.vm_os_cpu == "arm64"
-        and context.weblog_variant == "test-app-ruby",
-        reason="INPLAT-103",
-    )
     @missing_feature(context.vm_os_branch == "windows", reason="Not implemented on Windows")
     def test_install(self):
         self._test_install(context.virtual_machine)
@@ -167,12 +161,6 @@ class TestInstallerAutoInjectManual(base.AutoInjectBaseTest):
         context.vm_name == "AlmaLinux_8_arm64" and context.weblog_variant == "test-app-python-alpine",
         reason="APMON-1576",
     )
-    @bug(
-        context.vm_os_branch in ["redhat", "amazon_linux2"]
-        and context.vm_os_cpu == "arm64"
-        and context.weblog_variant == "test-app-ruby",
-        reason="INPLAT-103",
-    )
     def test_install_uninstall(self):
         virtual_machine = context.virtual_machine
         logger.info(f"Launching test_install_uninstall for : [{virtual_machine.name}]...")
@@ -190,12 +178,6 @@ class TestSimpleInstallerAutoInjectManual(base.AutoInjectBaseTest):
     @bug(
         context.vm_name == "AlmaLinux_8_arm64" and context.weblog_variant == "test-app-python-alpine",
         reason="APMON-1576",
-    )
-    @bug(
-        context.vm_os_branch in ["redhat", "amazon_linux2"]
-        and context.vm_os_cpu == "arm64"
-        and context.weblog_variant == "test-app-ruby",
-        reason="INPLAT-103",
     )
     @bug(
         context.vm_name == "Ubuntu_24_arm64" and context.weblog_variant == "test-app-dotnet-multialpine",
