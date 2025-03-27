@@ -15,7 +15,7 @@ import scala.util.{Failure, Success, Try}
 object Main extends App {
 
   private val bindingFuture: Future[Http.ServerBinding] =
-    Http().newServerAt("0.0.0.0", 7777).bindFlow(AppSecRoutes.route ~ IastRoutes.route ~ RaspRoutes.route ~ HealthcheckRoutes.route)
+    Http().newServerAt("0.0.0.0", 7777).bindFlow(MainRoutes.route ~ AppSecRoutes.route ~ IastRoutes.route ~ RaspRoutes.route ~ HealthcheckRoutes.route)
 
   LoggerFactory.getLogger(this.getClass).info("Server online at port 7777")
 }

@@ -1,16 +1,18 @@
+import pytest
+
 from .core import ScenarioGroup
 from .endtoend import EndToEndScenario
 
 
 class AppsecLowWafTimeout(EndToEndScenario):
-    def __init__(self, name):
+    def __init__(self, name: str):
         super().__init__(
             name,
             doc="Appsec with a very low WAF timeout",
             scenario_groups=[ScenarioGroup.APPSEC],
         )
 
-    def configure(self, config):
+    def configure(self, config: pytest.Config):
         super().configure(config)
         library = self.weblog_container.image.labels["system-tests-library"]
         # python lib use milliseconds for DD_APPSEC_WAF_TIMEOUT

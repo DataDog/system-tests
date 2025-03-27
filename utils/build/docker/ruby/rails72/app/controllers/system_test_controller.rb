@@ -17,7 +17,7 @@ class SystemTestController < ApplicationController
     render json: { 
       status: 'ok',
       library: {
-        language: 'ruby',
+        name: 'ruby',
         version: version
       }
     }
@@ -277,5 +277,9 @@ class SystemTestController < ApplicationController
     query = "SELECT * FROM users WHERE id='#{params.fetch(:user_id)}'"
     users = User.find_by_sql(query).to_a
     render plain: "DB request with #{users.size} results"
+  end
+
+  def handle_path_params
+    render plain: 'OK'
   end
 end

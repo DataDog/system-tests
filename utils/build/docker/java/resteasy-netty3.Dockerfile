@@ -10,10 +10,10 @@ COPY ./utils/build/docker/java/resteasy-netty3/pom.xml .
 RUN mkdir /maven && mvn -Dmaven.repo.local=/maven -B dependency:go-offline
 
 COPY ./utils/build/docker/java/resteasy-netty3/src ./src
+COPY ./utils/build/docker/java/install_ddtrace.sh binaries* /binaries/
+RUN /binaries/install_ddtrace.sh -Dmaven.repo.local=/maven
 RUN mvn -Dmaven.repo.local=/maven package
 
-COPY ./utils/build/docker/java/install_ddtrace.sh binaries* /binaries/
-RUN /binaries/install_ddtrace.sh
 
 FROM eclipse-temurin:11-jre
 

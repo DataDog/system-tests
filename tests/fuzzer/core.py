@@ -2,8 +2,8 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-import asyncio
 import aiofiles
+import asyncio
 from datetime import datetime, timedelta, UTC
 import hashlib
 import json
@@ -32,12 +32,12 @@ from tests.fuzzer.tools.metrics import (
 
 class Semaphore(asyncio.Semaphore):
     @property
-    def value(self):
+    def value(self) -> int:
         return self._value
 
 
 class _RequestDumper:
-    def __init__(self, name=None, enabled=True):
+    def __init__(self, name=None, *, enabled=True):
         self.enabled = enabled
         self.logger = None
         if name:
@@ -70,6 +70,7 @@ class Fuzzer:
         request_count=None,
         max_time=None,
         dump_on_status=("500",),
+        *,
         debug=False,
         systematic_export=False,
     ):
@@ -95,7 +96,8 @@ class Fuzzer:
 
         self.dump_on_status = dump_on_status
         self.enable_response_dump = False
-        self.systematic_exporter = _RequestDumper() if systematic_export else lambda _: 0
+        self.systematic_export = systematic_export
+        self.request_dumper = _RequestDumper()
 
         self.total_metric = AccumulatedMetric("#", format_string="#{value}", display_length=7, has_raw_value=False)
         self.memory_metric = NumericalMetric("Mem")
@@ -134,7 +136,7 @@ class Fuzzer:
     def _add_backend_signal(self, key, name):
         self.backend_signals[key] = ResetedAccumulatedMetric(name, raw_name="S_" + key)
 
-    async def wait_for_first_response(self):
+    async def wait_for_first_response(self) -> None:
         session = aiohttp.ClientSession(loop=self.loop)
 
         self.logger.info("Wait for a successful server response...")
@@ -160,7 +162,7 @@ class Fuzzer:
         finally:
             await session.close()
 
-    def run_forever(self):
+    def run_forever(self) -> None:
         self.logger.info("")
         self.logger.info("=" * 80)
 
@@ -169,10 +171,10 @@ class Fuzzer:
         self.logger.info("Starting event loop")
         self.loop.run_until_complete(task)
 
-    def perform_armageddon(self):
+    def perform_armageddon(self) -> None:
         self.finished = True
 
-    async def watch_docker_target(self):
+    async def watch_docker_target(self) -> None:
         while not self.finished:
             try:
                 session = aiohttp.ClientSession(
@@ -277,7 +279,8 @@ class Fuzzer:
     async def _process(self, session, request):
         resp = None
         request_timestamp = datetime.now(tz=UTC)
-        self.systematic_exporter(request)
+        if self.systematic_export:
+            self.request_dumper(request)
 
         try:
             args = dict(request)
@@ -307,7 +310,7 @@ class Fuzzer:
                 resp.close()
             self.report.pulse(self.get_metrics)
 
-    def get_metrics(self):
+    def get_metrics(self) -> list:
         task_metric = Metric("Tasks")
         task_metric.update(self.max_tasks - self.sem.value)
 
@@ -333,7 +336,7 @@ class Fuzzer:
 
         return result
 
-    async def update_metrics(self, status, request, request_timestamp, response=None):
+    async def update_metrics(self, status, request, request_timestamp, response=None) -> None:
         ellapsed = (datetime.now(tz=UTC) - request_timestamp).total_seconds()
 
         byte_count = len(request["path"])
@@ -377,16 +380,16 @@ class Fuzzer:
             hashed = hashlib.md5(request_as_json.encode()).hexdigest()
 
             async with aiofiles.open(os.path.join("logs", f"{status}-{hashed}.json"), "w", encoding="utf-8") as f:
-                f.write(request_as_json)
+                await f.write(request_as_json)
 
             if response and self.enable_response_dump:
                 text = await response.text()
                 async with aiofiles.open(
                     os.path.join("logs", f"{status}-response-{hashed}.html"), "w", encoding="utf-8"
                 ) as f:
-                    f.write(text)
+                    await f.write(text)
 
-    def update_backend_metrics(self, data):
+    def update_backend_metrics(self, data) -> None:
         path, request = data["path"], data["request"]
 
         self.backend_requests_size.update(request["length"])

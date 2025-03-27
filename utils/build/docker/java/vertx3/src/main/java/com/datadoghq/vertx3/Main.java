@@ -1,5 +1,8 @@
 package com.datadoghq.vertx3;
 
+import static datadog.appsec.api.user.User.setUser;
+import static java.util.Collections.emptyMap;
+
 import com.datadoghq.system_tests.iast.infra.LdapServer;
 import com.datadoghq.system_tests.iast.infra.SqlServer;
 import com.datadoghq.system_tests.iast.utils.CryptoExamples;
@@ -97,6 +100,26 @@ public class Main {
                             .setStatusCode(Integer.parseInt(ctx.pathParam("status_code")))
                             .end("Value tagged");
                 });
+        router.get("/sample_rate_route/:i")
+                .handler(ctx -> {
+                    final int i = Integer.parseInt(ctx.pathParam("i"));
+                    ctx.response().setStatusCode(200).end("OK\n");
+                });
+        router.get("/api_security/sampling/:i")
+                .produces("text/plain")
+                .handler(ctx -> {
+                    ctx.response()
+                            .setStatusCode(Integer.parseInt(ctx.pathParam("i")))
+                            .end("Hello!\n");
+                });
+        router.get("/api_security_sampling/:i")
+                .produces("text/plain")
+                .handler(ctx -> {
+                    final int i = Integer.parseInt(ctx.pathParam("i"));
+                    ctx.response()
+                            .setStatusCode(200)
+                            .end("Hello!\n");
+                });
         router.getWithRegex("/params(?:/([^/]*))?(?:/([^/]*))?(?:/([^/]*))?(?:/([^/]*))?(?:/([^/]*))?")
                 .produces("text/plain")
                 .handler(ctx ->
@@ -147,6 +170,16 @@ public class Main {
                     Blocking.forUser(user).blockIfMatch();
                     ctx.response().end("Hello " + user);
                 });
+        router.get("/identify").handler(ctx -> {
+            final Map<String, String> metadata = new HashMap<>();
+            metadata.put("email", "usr.email");
+            metadata.put("name", "usr.name");
+            metadata.put("session_id", "usr.session_id");
+            metadata.put("role", "usr.role");
+            metadata.put("scope", "usr.scope");
+            setUser("usr.id", metadata);
+            ctx.response().end("OK");
+        });
         router.get("/user_login_success_event")
                 .handler(ctx -> {
                     String event_user_id = ctx.request().getParam("event_user_id");
@@ -261,7 +294,7 @@ public class Main {
                     final Session session = ctx.session();
                     final String sdkUser = ctx.request().getParam("sdk_user");
                     EventTracker tracker = datadog.trace.api.GlobalTracer.getEventTracker();
-                    tracker.trackLoginSuccessEvent(sdkUser, Collections.emptyMap());
+                    tracker.trackLoginSuccessEvent(sdkUser, emptyMap());
                     ctx.response().end(session.id());
                 });
         router.mountSubRouter("/session", sessionRouter);
@@ -324,7 +357,7 @@ public class Main {
 
         Map<String, Object> response = new HashMap<>();
         Map<String, String> library = new HashMap<>();
-        library.put("language", "java");
+        library.put("name", "java");
         library.put("version", version);
         response.put("status", "ok");
         response.put("library", library);

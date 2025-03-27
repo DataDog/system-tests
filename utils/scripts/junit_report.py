@@ -5,7 +5,7 @@
 import xml.etree.ElementTree as ET
 from operator import attrgetter
 
-from utils.tools import logger
+from utils._logger import logger
 
 
 def junit_modifyreport(json_report, junit_report_path, junit_properties) -> None:

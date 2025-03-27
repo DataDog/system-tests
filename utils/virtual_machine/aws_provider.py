@@ -16,7 +16,7 @@ import pulumi_aws as aws
 from pulumi import Output
 import pulumi_command as command
 
-from utils.tools import logger
+from utils._logger import logger
 from utils import context
 from utils.virtual_machine.vm_logger import vm_logger
 

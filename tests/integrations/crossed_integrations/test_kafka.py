@@ -2,18 +2,17 @@ from __future__ import annotations
 
 import json
 
-from utils import interfaces, scenarios, weblog, missing_feature, features
-from utils.buddies import java_buddy
-from utils.tools import logger
+from utils import interfaces, scenarios, weblog, missing_feature, features, logger
+from utils.buddies import java_buddy, _Weblog as Weblog
 
 
-class _Test_Kafka:
+class _BaseKafka:
     """Test kafka compatibility with inputted datadog tracer"""
 
-    buddy = None
-    WEBLOG_TO_BUDDY_TOPIC = None
-    BUDDY_TO_WEBLOG_TOPIC = None
-    buddy_interface = None
+    buddy: Weblog
+    WEBLOG_TO_BUDDY_TOPIC: str
+    BUDDY_TO_WEBLOG_TOPIC: str
+    buddy_interface: interfaces.LibraryInterfaceValidator
 
     @classmethod
     def get_span(cls, interface, span_kind, topic):
@@ -158,7 +157,7 @@ class _Test_Kafka:
 
 @scenarios.crossed_tracing_libraries
 @features.kafkaspan_creationcontext_propagation_with_dd_trace
-class Test_Kafka(_Test_Kafka):
+class Test_Kafka(_BaseKafka):
     buddy_interface = interfaces.java_buddy
     buddy = java_buddy
     WEBLOG_TO_BUDDY_TOPIC = "Test_Kafka_weblog_to_buddy"

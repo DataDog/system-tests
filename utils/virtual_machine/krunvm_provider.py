@@ -8,7 +8,7 @@ import pexpect
 import shutil
 
 from utils.virtual_machine.virtual_machine_provider import VmProvider, Commander
-from utils.tools import logger
+from utils._logger import logger
 from utils import context
 from utils.virtual_machine.vm_logger import vm_logger
 
@@ -218,7 +218,7 @@ class KrunVmCommander(Commander):
             source_folder = source_folder + "/"
 
         volume_path = None
-        if destination_folder is None or destination_folder == "" or destination_folder == "/":
+        if destination_folder is None or destination_folder in ("", "/"):
             destination_folder = "/"
             volume_path = self._get_shared_folder_path(vm) + "/"
         else:

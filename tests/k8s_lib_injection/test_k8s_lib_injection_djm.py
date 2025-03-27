@@ -1,6 +1,5 @@
 import json
-from utils import scenarios, features, context
-from utils.tools import logger
+from utils import scenarios, features, context, logger
 
 from tests.k8s_lib_injection.utils import get_dev_agent_traces
 

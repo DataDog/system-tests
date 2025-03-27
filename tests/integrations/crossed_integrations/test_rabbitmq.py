@@ -2,22 +2,21 @@ from __future__ import annotations
 
 import json
 
-from utils.buddies import java_buddy
-from utils import interfaces, scenarios, weblog, missing_feature, features
-from utils.tools import logger
+from utils.buddies import java_buddy, _Weblog as Weblog
+from utils import interfaces, scenarios, weblog, missing_feature, features, logger
 
 
-class _Test_RabbitMQ:
+class _BaseRabbitMQ:
     """Test RabbitMQ compatibility with inputted datadog tracer"""
 
-    BUDDY_TO_WEBLOG_QUEUE = None
-    WEBLOG_TO_BUDDY_QUEUE = None
-    WEBLOG_TO_BUDDY_EXCHANGE = None
-    BUDDY_TO_WEBLOG_EXCHANGE = None
-    BUDDY_TO_WEBLOG_ROUTING_KEY = None
-    WEBLOG_TO_BUDDY_ROUTING_KEY = None
-    buddy = None
-    buddy_interface = None
+    BUDDY_TO_WEBLOG_QUEUE: str
+    WEBLOG_TO_BUDDY_QUEUE: str
+    WEBLOG_TO_BUDDY_EXCHANGE: str
+    BUDDY_TO_WEBLOG_EXCHANGE: str
+    BUDDY_TO_WEBLOG_ROUTING_KEY: str
+    WEBLOG_TO_BUDDY_ROUTING_KEY: str
+    buddy: Weblog
+    buddy_interface: interfaces.LibraryInterfaceValidator
 
     @classmethod
     def get_span(cls, interface, span_kind, queue, exchange, operation):
@@ -229,7 +228,7 @@ class _Test_RabbitMQ:
 
 @scenarios.crossed_tracing_libraries
 @features.rabbitmq_span_creationcontext_propagation_with_dd_trace
-class Test_RabbitMQ_Trace_Context_Propagation(_Test_RabbitMQ):
+class Test_RabbitMQ_Trace_Context_Propagation(_BaseRabbitMQ):
     buddy_interface = interfaces.java_buddy
     buddy = java_buddy
     WEBLOG_TO_BUDDY_QUEUE = "Test_RabbitMQ_Propagation_weblog_to_buddy"

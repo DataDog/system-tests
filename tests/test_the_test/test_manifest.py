@@ -80,19 +80,23 @@ def test_content():
         component = list(manifest[nodeid])[0]  # blame the first one
 
         if "::" in nodeid:
-            file, klass = nodeid.split("::")
+            path, klass = nodeid.split("::")
         else:
-            file, klass = nodeid, None
+            path, klass = nodeid, None
 
-        try:
-            content = get_file_content(file)
-        except FileNotFoundError as e:
-            raise ValueError(f"In {component} manifest, file {file} is declared, but does not exists") from e
+        if path.endswith(".py"):
+            try:
+                content = get_file_content(path)
+            except FileNotFoundError as e:
+                raise ValueError(f"In {component} manifest, file {path} is declared, but does not exists") from e
 
-        if klass is not None:
-            assert (
-                f"class {klass}" in content
-            ), f"In {component} manifest, class {klass} is declared in {file}, but does not exists"
+            if klass is not None:
+                assert (
+                    f"class {klass}" in content
+                ), f"In {component} manifest, class {klass} is declared in {path}, but does not exists"
+
+        elif path.endswith("/"):
+            assert Path(path).is_dir(), f"In {component} manifest, folder {path} is declared, but does not exists"
 
         # check variant names
         for component, declaration in manifest[nodeid].items():

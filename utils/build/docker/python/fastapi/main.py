@@ -105,7 +105,7 @@ async def healthcheck():
     return {
         "status": "ok",
         "library": {
-            "language": "python",
+            "name": "python",
             "version": ddtrace.__version__,
         },
     }
@@ -201,24 +201,29 @@ async def tag_value_post(tag_value: str, status_code: int, request: Request):
 ### BEGIN EXPLOIT PREVENTION
 
 
-@app.get("/rasp/lfi")
-@app.post("/rasp/lfi")
-async def rasp_lfi(request: Request):
-    file = None
+async def retrieve_arg(request: Request, key: str):
+    data = None
     if request.method == "GET":
-        file = request.query_params.get("file")
+        data = request.query_params.get(key)
     elif request.method == "POST":
         body = await request.body()
         try:
-            file = ((await request.form()) or json.loads(body) or {}).get("file")
+            data = ((await request.form()) or json.loads(body) or {}).get(key)
         except Exception as e:
             print(repr(e), file=sys.stderr)
         try:
-            if file is None:
-                file = xmltodict.parse(body).get("file")
+            if data is None:
+                data = xmltodict.parse(body).get(key)
         except Exception as e:
             print(repr(e), file=sys.stderr)
             pass
+    return data
+
+
+@app.get("/rasp/lfi")
+@app.post("/rasp/lfi")
+async def rasp_lfi(request: Request):
+    file = await retrieve_arg(request, "file")
     if file is None:
         return PlainTextResponse("missing file parameter", status_code=400)
     try:
@@ -229,25 +234,28 @@ async def rasp_lfi(request: Request):
         return PlainTextResponse(f"{file} could not be open: {e!r}")
 
 
+@app.get("/rasp/multiple")
+@app.post("/rasp/multiple")
+async def rasp_multiple(request: Request):
+    file1 = await retrieve_arg(request, "file1")
+    file2 = await retrieve_arg(request, "file2")
+    if file1 is None or file2 is None:
+        return PlainTextResponse("missing file1 or file2 parameter", status_code=400)
+    lengths = []
+    for file in [file1, file2, "../etc/passwd"]:
+        try:
+            with open(file, "rb") as f_in:
+                f_in.seek(0, os.SEEK_END)
+                lengths.append(f_in.tell())
+        except Exception:
+            lengths.append(0)
+    return PlainTextResponse(f"files open with {lengths} bytes")
+
+
 @app.get("/rasp/ssrf")
 @app.post("/rasp/ssrf")
 async def rasp_ssrf(request: Request):
-    domain = None
-    if request.method == "GET":
-        domain = request.query_params.get("domain")
-    elif request.method == "POST":
-        body = await request.body()
-        try:
-            domain = ((await request.form()) or json.loads(body) or {}).get("domain")
-        except Exception as e:
-            print(repr(e), file=sys.stderr)
-        try:
-            if domain is None:
-                domain = xmltodict.parse(body).get("domain")
-        except Exception as e:
-            print(repr(e), file=sys.stderr)
-            pass
-
+    domain = await retrieve_arg(request, "domain")
     if domain is None:
         return PlainTextResponse("missing domain parameter", status_code=400)
     try:
@@ -263,21 +271,7 @@ async def rasp_ssrf(request: Request):
 @app.get("/rasp/sqli")
 @app.post("/rasp/sqli")
 async def rasp_sqli(request: Request):
-    user_id = None
-    if request.method == "GET":
-        user_id = request.query_params.get("user_id")
-    elif request.method == "POST":
-        body = await request.body()
-        try:
-            user_id = ((await request.form()) or json.loads(body) or {}).get("user_id")
-        except Exception as e:
-            print(repr(e), file=sys.stderr)
-        try:
-            if user_id is None:
-                user_id = xmltodict.parse(body).get("user_id")
-        except Exception as e:
-            print(repr(e), file=sys.stderr)
-            pass
+    user_id = await retrieve_arg(request, "user_id")
 
     if user_id is None:
         return PlainTextResponse("missing user_id parameter", status_code=400)
@@ -297,21 +291,7 @@ async def rasp_sqli(request: Request):
 @app.get("/rasp/shi")
 @app.post("/rasp/shi")
 async def rasp_shi(request: Request):
-    list_dir = None
-    if request.method == "GET":
-        list_dir = request.query_params.get("list_dir")
-    elif request.method == "POST":
-        body = await request.body()
-        try:
-            list_dir = ((await request.form()) or json.loads(body) or {}).get("list_dir")
-        except Exception as e:
-            print(repr(e), file=sys.stderr)
-        try:
-            if list_dir is None:
-                list_dir = xmltodict.parse(body).get("list_dir")
-        except Exception as e:
-            print(repr(e), file=sys.stderr)
-            pass
+    list_dir = await retrieve_arg(request, "list_dir")
 
     if list_dir is None:
         return PlainTextResponse("missing list_dir parameter", status_code=400)

@@ -1,5 +1,7 @@
 package com.datadoghq.springbootnative;
 
+import static datadog.appsec.api.user.User.setUser;
+
 import org.springframework.aot.hint.annotation.RegisterReflectionForBinding;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -24,9 +26,14 @@ import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @RestController
 public class WebController {
+
+  private static final Logger logger = LoggerFactory.getLogger(App.class);
+
   @RequestMapping("/")
   String home() {
     return "Hello World!";
@@ -52,7 +59,7 @@ public class WebController {
       }
 
       Map<String, String> library = new HashMap<>();
-      library.put("language", "java");
+      library.put("name", "java");
       library.put("version", version);
 
       Map<String, Object> response = new HashMap<>();
@@ -124,6 +131,18 @@ public class WebController {
     return "ok";
   }
 
+  @GetMapping("/identify")
+  public String identify() {
+    final Map<String, String> metadata = new HashMap<>();
+    metadata.put("email", "usr.email");
+    metadata.put("name", "usr.name");
+    metadata.put("session_id", "usr.session_id");
+    metadata.put("role", "usr.role");
+    metadata.put("scope", "usr.scope");
+    setUser("usr.id", metadata);
+    return "OK";
+  }
+
   @RequestMapping("/make_distant_call")
   DistantCallResponse make_distant_call(@RequestParam String url) throws Exception {
     URL urlObject = new URL(url);
@@ -160,6 +179,14 @@ public class WebController {
 
     return result;
   }
+
+  @GetMapping("/log/library")
+  public String logLibrary(@RequestParam String msg) {
+      logger.info(msg);
+      return "ok";
+  }
+
+
 
   public static final class DistantCallResponse {
     public String url;

@@ -1,6 +1,6 @@
 import os
 
-from utils.tools import logger
+from utils._logger import logger
 from utils.virtual_machine.vm_logger import vm_logger
 from utils import context
 

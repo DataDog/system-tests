@@ -7,17 +7,18 @@ PYTHONPATH=. python utils/interfaces/_schemas_validators.py
 """
 
 from dataclasses import dataclass
+import functools
+import json
 import os
 from pathlib import Path
-import json
 import re
-import functools
+from typing import Any
 
 from jsonschema import Draft7Validator, RefResolver, ValidationError
 from jsonschema.validators import extend
 
 
-def _is_bytes_or_string(_checker, instance):
+def _is_bytes_or_string(_checker: Any, instance: Any):  # noqa: ANN401
     return Draft7Validator.TYPE_CHECKER.is_type(instance, "string") or isinstance(instance, bytes)
 
 
@@ -58,7 +59,7 @@ def _get_schemas_store():
 
 
 @functools.lru_cache
-def _get_schema_validator(schema_id):
+def _get_schema_validator(schema_id: str):
     store = _get_schemas_store()
 
     if schema_id not in store:
@@ -86,14 +87,14 @@ class SchemaError:
 
 
 class SchemaValidator:
-    def __init__(self, interface, allowed_errors=None):
-        self.interface = interface
+    def __init__(self, interface_name: str, allowed_errors: list[str] | tuple[str, ...] = ()):
+        self.interface = interface_name
         self.allowed_errors = []
 
-        for pattern in allowed_errors or []:
+        for pattern in allowed_errors:
             self.allowed_errors.append(re.compile(pattern))
 
-    def get_errors(self, data) -> list[SchemaError]:
+    def get_errors(self, data: dict) -> list[SchemaError]:
         path = "/" if data["path"] == "" else data["path"]
         schema_id = f"/{self.interface}{path}-request.json"
 

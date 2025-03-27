@@ -1,8 +1,7 @@
 import json
 import time
 
-from utils import weblog, scenarios, features, interfaces
-from utils.tools import logger
+from utils import weblog, scenarios, features, interfaces, logger
 
 
 DISTRIBUTED_TRACE_ID = 1
@@ -131,7 +130,7 @@ def get_span(interface, resource):
     return None
 
 
-def assert_api_gateway_span(test_case, span, path, status_code, is_distributed=False, is_error=False):
+def assert_api_gateway_span(test_case, span, path, status_code, *, is_distributed=False, is_error=False):
     assert span["name"] == "aws.apigateway", "Inferred AWS API Gateway span name should be 'aws.apigateway'"
 
     # Assertions to check if the span data contains the required keys and values.
@@ -141,7 +140,7 @@ def assert_api_gateway_span(test_case, span, path, status_code, is_distributed=F
     ), "Inferred AWS API Gateway span meta should contain 'component' equal to 'aws-apigateway'"
     assert span["meta"]["component"] == "aws-apigateway", "Expected component to be 'aws-apigateway'"
 
-    if span["meta"]["language"] == "javascript":
+    if "language" in span["meta"] and span["meta"]["language"] == "javascript":
         assert "service" in span["meta"], "Inferred AWS API Gateway span meta should contain 'service'"
         assert (
             span["meta"]["service"] == "system-tests-api-gateway.com"

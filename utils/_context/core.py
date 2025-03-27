@@ -5,8 +5,10 @@
 """singleton exposing all about test context"""
 
 import json
+from typing import Any
 
-from utils._context.library_version import LibraryVersion
+from utils._context.component_version import ComponentVersion
+# from utils._context._scenarios.core import Scenario  # TODO : lot of revamp to come
 
 
 class _Context:
@@ -17,7 +19,7 @@ class _Context:
 
     scenario = None  # will be set by pytest_configure
 
-    def _get_scenario_property(self, name, default):
+    def _get_scenario_property(self, name: str, default: Any) -> Any:  # noqa:ANN401
         if hasattr(self.scenario, name):
             return getattr(self.scenario, name)
 
@@ -44,8 +46,10 @@ class _Context:
         return self._get_scenario_property("uds_socket", None)
 
     @property
-    def library(self) -> LibraryVersion | None:
-        return self._get_scenario_property("library", None)
+    def library(self) -> ComponentVersion:
+        result = self._get_scenario_property("library", None)
+        assert result is not None
+        return result
 
     @property
     def tracer_sampling_rate(self):
@@ -73,6 +77,7 @@ class _Context:
 
     @property
     def components(self):
+        assert self.scenario is not None
         return self.scenario.components
 
     @property

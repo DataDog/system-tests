@@ -17,7 +17,7 @@ object HealthcheckRoutes {
       }
 
       val library = JsObject(
-        "language" -> JsString("java"),
+        "name" -> JsString("java"),
         "version" -> JsString(version)
       )
 

@@ -5,12 +5,11 @@
 import time
 import tests.debugger.utils as debugger
 from utils import scenarios, features, missing_feature, context, rfc
-from utils import bug
 
 
 @features.debugger
 @scenarios.debugger_probes_snapshot
-class Test_Debugger_Probe_Snaphots(debugger.Base_Debugger_Test):
+class Test_Debugger_Probe_Snaphots(debugger.BaseDebuggerTest):
     ############ setup ############
     def _setup(self, probes_name: str, request_path: str, lines=None):
         self.initialize_weblog_remote_config()
@@ -94,7 +93,6 @@ class Test_Debugger_Probe_Snaphots(debugger.Base_Debugger_Test):
     def setup_log_line_probe_snaphots(self):
         self._setup("probe_snapshot_log_line", "/debugger/log")
 
-    @bug(context.library >= "nodejs@5.37.0", reason="DEBUG-3526")
     def test_log_line_probe_snaphots(self):
         self._assert()
         self._validate_snapshots()
@@ -157,7 +155,6 @@ class Test_Debugger_Probe_Snaphots(debugger.Base_Debugger_Test):
         )
 
     @features.debugger_probe_budgets
-    @missing_feature(context.library == "dotnet", reason="Probe snapshot budgets are not yet implemented")
     @missing_feature(context.library == "nodejs", reason="Probe snapshot budgets are not yet implemented")
     @missing_feature(context.library == "ruby", reason="Probe snapshot budgets are not yet implemented")
     def test_log_line_probe_snaphots_budgets(self):

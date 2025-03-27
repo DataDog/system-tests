@@ -1,9 +1,8 @@
 import os
 import json
 import pytest
-from utils.tools import logger
 
-from utils import missing_feature, irrelevant, scenarios, rfc, features, bug, flaky
+from utils import missing_feature, irrelevant, scenarios, rfc, features, bug, flaky, logger
 
 pytestmark = pytest.mark.features(feature_id=666)
 
@@ -13,6 +12,9 @@ BASE_PATH = "tests/test_the_test/test_json_report.py"
 
 @scenarios.test_the_test
 class Test_Json_Report:
+    logs: list[str]
+    report: dict
+
     @classmethod
     def setup_class(cls):
         stream = os.popen("./run.sh MOCK_THE_TEST")

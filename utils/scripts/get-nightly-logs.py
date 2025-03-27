@@ -29,7 +29,7 @@ def get_environ() -> dict[str, str]:
     return environ
 
 
-def get_json(session: requests.Session, url: str, params=None, timeout: int = 30) -> Any:  # noqa: ANN401
+def get_json(session: requests.Session, url: str, params: dict | None = None, timeout: int = 30) -> Any:  # noqa: ANN401
     response = session.get(url, params=params, timeout=timeout)
     response.raise_for_status()
     return response.json()

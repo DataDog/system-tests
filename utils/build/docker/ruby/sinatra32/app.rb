@@ -42,7 +42,7 @@ get '/healthcheck' do
   {
     status: 'ok',
     library: {
-      language: 'ruby',
+      name: 'ruby',
       version: version
     }
   }.to_json
@@ -221,4 +221,8 @@ get '/returnheaders' do
   headers = headers.transform_keys { |k| k.sub(/^HTTP_/, '').split('_').map(&:capitalize).join('-') }
 
   headers.to_json
+end
+
+get '/sample_rate_route/:i' do
+  'OK'
 end

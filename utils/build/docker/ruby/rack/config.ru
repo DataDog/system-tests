@@ -67,7 +67,7 @@ class Healthcheck
     response = {
       status: 'ok',
       library: {
-        language: 'ruby',
+        name: 'ruby',
         version: version
       }
     }
@@ -284,7 +284,7 @@ end
 app = proc do |env|
   request = Rack::Request.new(env)
 
-  if request.path == '/' || request.path =~ %r{^/waf(?:/.*|)$} || request.path =~ %r{^/params(?:/.*|)$}
+  if request.path == '/' || request.path =~ %r{^/waf(?:/.*|)$} || request.path =~ %r{^/params(?:/.*|)$} || request.path =~ %r{^/sample_rate_route(?:/.*|)$}
     # %r{^/params(?:/.*|)$} doesn't really makes sense for Rack as it does not put the
     # value anywhere for AppSec to receive it
     Hello.run

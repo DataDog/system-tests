@@ -7,9 +7,10 @@ import time
 import docker
 from docker.errors import BuildError
 from docker.models.networks import Network
+import pytest
 
 from utils import interfaces
-from utils._context.library_version import LibraryVersion, Version
+from utils._context.component_version import ComponentVersion, Version
 from utils._context.containers import (
     create_network,
     DockerSSIContainer,
@@ -19,7 +20,7 @@ from utils._context.containers import (
 )
 from utils.docker_ssi.docker_ssi_matrix_utils import resolve_runtime_version
 from utils.docker_ssi.docker_ssi_definitions import SupportedImages
-from utils.tools import logger
+from utils._logger import logger
 from utils.virtual_machine.vm_logger import vm_logger
 
 from .core import Scenario
@@ -46,7 +47,7 @@ class DockerSSIScenario(Scenario):
         # scenario configuration that is going to be reported in the final report
         self._configuration = {"app_type": "docker_ssi"}
 
-    def configure(self, config):
+    def configure(self, config: pytest.Config):
         assert config.option.ssi_library, "library must be set: java,python,nodejs,dotnet,ruby,php"
 
         self._base_weblog = config.option.ssi_weblog
@@ -66,11 +67,11 @@ class DockerSSIScenario(Scenario):
         )
         self._push_base_images = config.option.ssi_push_base_images
         self._force_build = config.option.ssi_force_build
-        self._libray_version = LibraryVersion(self._library, "v9.99.99")
+        self._libray_version = ComponentVersion(self._library, "v9.99.99")
         self._datadog_apm_inject_version = "v9.99.99"
         # The runtime that is installed on the base image (because we installed automatically or because the weblog contains the runtime preinstalled).
         # the language is the language used by the tested datadog library
-        self._installed_language_runtime = None
+        self._installed_language_runtime: Version | None = None
 
         logger.stdout(
             f"Configuring scenario with: Weblog: [{self._base_weblog}] Library: [{self._library}] Base Image: [{self._base_image}] Arch: [{self._arch}] Runtime: [{self._installable_runtime}] Env: {self._env}"
@@ -118,7 +119,7 @@ class DockerSSIScenario(Scenario):
 
         for container in self._required_containers:
             try:
-                container.configure(self.replay)
+                container.configure(replay=self.replay)
             except Exception as e:
                 logger.error("Failed to configure container ", e)
                 logger.stdout("ERROR configuring container. check log file for more details")
@@ -185,7 +186,7 @@ class DockerSSIScenario(Scenario):
                 self._datadog_apm_inject_version = f"v{json_tested_components[key].lstrip(' ')}"
             if key.startswith("datadog-apm-library-") and self.components[key]:
                 library_version_number = json_tested_components[key].lstrip(" ")
-                self._libray_version = LibraryVersion(self._library, library_version_number)
+                self._libray_version = ComponentVersion(self._library, library_version_number)
                 # We store without the lang sufix
                 self.components["datadog-apm-library"] = self.components[key]
                 del self.components[key]

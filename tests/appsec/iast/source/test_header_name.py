@@ -10,7 +10,7 @@ from tests.appsec.iast.utils import BaseSourceTest
 class TestHeaderName(BaseSourceTest):
     """Verify that request headers name are tainted"""
 
-    source_name = "User" if context.library.library == "python" else "user"
+    source_name = "User" if context.library.name == "python" else "user"
 
     endpoint = "/iast/source/headername/test"
     requests_kwargs = [{"method": "GET", "headers": {"user": "unused"}}]

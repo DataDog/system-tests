@@ -14,7 +14,7 @@ class DockerImage:
         self.internal_name = internal_name
         self.tag = tag
         self.platform = platform
-        self.runtime_versions = []
+        self.runtime_versions: list[str] = []
 
     def with_allowed_runtime_versions(self, runtime_versions):
         self.runtime_versions = runtime_versions

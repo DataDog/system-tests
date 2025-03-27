@@ -4,6 +4,7 @@
 
 """Contains base class used to validate interfaces"""
 
+from collections.abc import Callable, Iterable
 import json
 from os import listdir
 from os.path import join
@@ -12,10 +13,11 @@ import re
 import shutil
 import threading
 import time
+from typing import Any
 
 import pytest
 
-from utils.tools import logger
+from utils._logger import logger
 from utils.interfaces._schemas_validators import SchemaValidator, SchemaError
 
 
@@ -31,12 +33,16 @@ class InterfaceValidator:
     log_folder: str
     """ Folder where interfaces' logs are stored """
 
-    def __init__(self, name):
+    host_log_folder: str
+    """ Folder where all logs are stored """
+
+    def __init__(self, name: str):
         self.name = name
 
-    def configure(self, host_log_folder, replay):
+    def configure(self, host_log_folder: str, *, replay: bool):
         self.replay = replay
         self.log_folder = f"{host_log_folder}/interfaces/{self.name}"
+        self.host_log_folder = host_log_folder
 
     def __repr__(self):
         return f"{self.__class__.__name__}('{self.name}')"
@@ -48,26 +54,26 @@ class InterfaceValidator:
 class ProxyBasedInterfaceValidator(InterfaceValidator):
     """Interfaces based on proxy container"""
 
-    def __init__(self, name):
+    def __init__(self, name: str):
         super().__init__(name)
 
         self._wait_for_event = threading.Event()
-        self._wait_for_function = None
+        self._wait_for_function: Callable | None = None
 
         self._lock = threading.RLock()
-        self._data_list = []
-        self._ingested_files = set()
-        self._schema_errors = None
+        self._data_list: list[dict] = []
+        self._ingested_files: set[str] = set()
+        self._schema_errors: list[SchemaError] | None = None
 
-    def configure(self, host_log_folder, replay):
-        super().configure(host_log_folder, replay)
+    def configure(self, host_log_folder: str, *, replay: bool):
+        super().configure(host_log_folder, replay=replay)
 
         if not replay:
             shutil.rmtree(self.log_folder, ignore_errors=True)
             Path(self.log_folder).mkdir(parents=True, exist_ok=True)
             Path(self.log_folder + "/files").mkdir(parents=True, exist_ok=True)
 
-    def ingest_file(self, src_path):
+    def ingest_file(self, src_path: str):
         with self._lock:
             if src_path in self._ingested_files:
                 return
@@ -90,7 +96,7 @@ class ProxyBasedInterfaceValidator(InterfaceValidator):
         if self._wait_for_function and self._wait_for_function(data):
             self._wait_for_event.set()
 
-    def wait(self, timeout):
+    def wait(self, timeout: int):
         time.sleep(timeout)
 
     def check_deserialization_errors(self):
@@ -116,10 +122,10 @@ class ProxyBasedInterfaceValidator(InterfaceValidator):
                 self._append_data(data)
                 logger.info(f"{self.name} interface gets {file_path}")
 
-    def _append_data(self, data):
+    def _append_data(self, data: dict):
         self._data_list.append(data)
 
-    def get_data(self, path_filters: list[str] | str | None = None):
+    def get_data(self, path_filters: Iterable[str] | str | None = None):
         if path_filters is not None:
             if isinstance(path_filters, str):
                 path_filters = [path_filters]
@@ -134,7 +140,9 @@ class ProxyBasedInterfaceValidator(InterfaceValidator):
 
             yield data
 
-    def validate(self, validator, path_filters=None, *, success_by_default=False):
+    def validate(
+        self, validator: Callable, path_filters: Iterable[str] | str | None = None, *, success_by_default: bool = False
+    ):
         for data in self.get_data(path_filters=path_filters):
             try:
                 if validator(data) is True:
@@ -153,7 +161,7 @@ class ProxyBasedInterfaceValidator(InterfaceValidator):
         if not success_by_default:
             raise ValueError("Test has not been validated by any data")
 
-    def wait_for(self, wait_for_function, timeout):
+    def wait_for(self, wait_for_function: Callable, timeout: int):
         if self.replay:
             return
 
@@ -178,7 +186,7 @@ class ProxyBasedInterfaceValidator(InterfaceValidator):
 
     def get_schemas_errors(self) -> list[SchemaError]:
         if self._schema_errors is None:
-            self._schema_errors = []
+            self._schema_errors: list[SchemaError] = []
             validator = SchemaValidator(self.name)
 
             for data in self.get_data():
@@ -186,30 +194,9 @@ class ProxyBasedInterfaceValidator(InterfaceValidator):
 
         return self._schema_errors
 
-    def assert_schema_point(self, endpoint, data_path):
-        has_error = False
-
-        for error in self.get_schemas_errors():
-            if error.endpoint == endpoint and error.data_path == data_path:
-                has_error = True
-                logger.error(f"* {error.message}")
-
-        assert not has_error, f"Schema is invalid for endpoint {endpoint} on data path {data_path}"
-
-    def assert_schema_points(self, excluded_points=None):
-        has_error = False
-        excluded_points = excluded_points or []
-
-        for error in self.get_schemas_errors():
-            if (error.endpoint, error.data_path) in excluded_points:
-                continue
-
-            has_error = True
-            logger.error(f"* {error.message}")
-
-        assert not has_error, f"Schema validation failed for {self.name}"
-
-    def assert_response_header(self, path_filters, header_name_pattern: str, header_value_pattern: str) -> None:
+    def assert_response_header(
+        self, path_filters: list[str] | str, header_name_pattern: str, header_value_pattern: str
+    ) -> None:
         """Assert that a header, and its value are present in all requests for a given path
         header_name_pattern: a regular expression to match the header name (lower case)
         header_value_pattern: a regular expression to match the header value
@@ -217,7 +204,9 @@ class ProxyBasedInterfaceValidator(InterfaceValidator):
 
         self._assert_header(path_filters, "response", header_name_pattern, header_value_pattern)
 
-    def assert_request_header(self, path_filters, header_name_pattern: str, header_value_pattern: str) -> None:
+    def assert_request_header(
+        self, path_filters: list[str] | str, header_name_pattern: str, header_value_pattern: str
+    ) -> None:
         """Assert that a header, and its value are present in all requests for a given path
         header_name_pattern: a regular expression to match the header name (lower case)
         header_value_pattern: a regular expression to match the header value
@@ -226,7 +215,11 @@ class ProxyBasedInterfaceValidator(InterfaceValidator):
         self._assert_header(path_filters, "request", header_name_pattern, header_value_pattern)
 
     def _assert_header(
-        self, path_filters, request_or_response: str, header_name_pattern: str, header_value_pattern: str
+        self,
+        path_filters: list[str] | str,
+        request_or_response: str,
+        header_name_pattern: str,
+        header_value_pattern: str,
     ) -> None:
         data = list(self.get_data(path_filters))
 
@@ -263,6 +256,6 @@ class ProxyBasedInterfaceValidator(InterfaceValidator):
 
 
 class ValidationError(Exception):
-    def __init__(self, *args: object, extra_info=None) -> None:
+    def __init__(self, *args: object, extra_info: Any = None) -> None:  # noqa: ANN401
         super().__init__(*args)
         self.extra_info = extra_info

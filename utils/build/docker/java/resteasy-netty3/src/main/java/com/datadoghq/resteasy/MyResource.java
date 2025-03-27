@@ -2,6 +2,7 @@ package com.datadoghq.resteasy;
 
 import com.datadoghq.system_tests.iast.utils.*;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import datadog.appsec.api.blocking.Blocking;
 import datadog.trace.api.interceptor.MutableSpan;
 import io.opentracing.Span;
@@ -31,6 +32,9 @@ import java.nio.charset.StandardCharsets;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import com.datadoghq.system_tests.iast.utils.CryptoExamples;
+
+import static datadog.appsec.api.user.User.setUser;
+import static java.util.Collections.emptyMap;
 
 @Path("/")
 @Produces(MediaType.TEXT_PLAIN)
@@ -70,7 +74,7 @@ public class MyResource {
         }
 
         Map<String, String> library = new HashMap<>();
-        library.put("language", "java");
+        library.put("name", "java");
         library.put("version", version);
 
         Map<String, Object> response = new HashMap<>();
@@ -107,8 +111,39 @@ public class MyResource {
     @POST
     @Path("/tag_value/{tag_value}/{status_code}")
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-    public Response tagValuePost(@PathParam("tag_value") String value, @PathParam("status_code") int code, MultivaluedMap<String, String> form) {
+    public Response tagValuePostForm(@PathParam("tag_value") String value, @PathParam("status_code") int code, MultivaluedMap<String, String> form) {
         return tagValue(value, code);
+    }
+
+    @POST
+    @Path("/tag_value/{tag_value}/{status_code}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response tagValuePostJson(@PathParam("tag_value") String value, @PathParam("status_code") int code, JsonNode body) {
+        return tagValue(value, code);
+    }
+
+    @GET
+    @Path("/sample_rate_route/{i}")
+    public Response sampleRateRoute(@PathParam("i") int i) {
+        return Response.status(200)
+                .header("content-type", "text/plain")
+                .entity("OK\n").build();
+    }
+
+    @GET
+    @Path("/api_security/sampling/{i}")
+    public Response apiSecuritySamplingWithStatus(@PathParam("i") int i) {
+        return Response.status(i)
+                .header("content-type", "text/plain")
+                .entity("Hello!\n").build();
+    }
+
+    @GET
+    @Path("/api_security_sampling/{i}")
+    public Response apiSecuritySampling(@PathParam("i") int i) {
+        return Response.status(200)
+                .header("content-type", "text/plain")
+                .entity("Hello!\n").build();
     }
 
     @GET
@@ -190,6 +225,19 @@ public class MyResource {
                 .forUser(user)
                 .blockIfMatch();
         return "Hello " + user;
+    }
+
+    @GET
+    @Path("/identify")
+    public String identify() {
+        final Map<String, String> metadata = new HashMap<>();
+        metadata.put("email", "usr.email");
+        metadata.put("name", "usr.name");
+        metadata.put("session_id", "usr.session_id");
+        metadata.put("role", "usr.role");
+        metadata.put("scope", "usr.scope");
+        setUser("usr.id", metadata);
+        return "OK";
     }
 
     @GET

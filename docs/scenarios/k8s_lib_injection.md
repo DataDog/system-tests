@@ -396,4 +396,4 @@ These are the main important log/data files:
 
 You can use the *--sleep* parameter in the run command line of the scenario to keep the K8s cluster alive with all the tested components deployed.
 
-[Check the sleep parameter documentation](https://github.com/DataDog/system-tests/blob/main/docs/execute/run.md#spawn-componenents-but-do-nothing)
+[Check the sleep parameter documentation](https://github.com/DataDog/system-tests/blob/main/docs/execute/run.md#spawn-components-but-do-nothing)
