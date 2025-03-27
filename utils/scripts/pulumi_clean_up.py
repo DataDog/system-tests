@@ -167,7 +167,7 @@ async def clean_up_ec2_running_instances() -> None:
     config = Config()
     ec2_age_minutes = int(config.require("ec2_age_minutes"))
     # Fetch all EC2 instances (not filtered by state)
-    instances = aws.ec2.get_instances(
+    instances = await aws.ec2.get_instances(
         filters=[
             aws.ec2.GetInstancesFilterArgs(name="tag:CI", values=["system-tests"]),
             aws.ec2.GetInstancesFilterArgs(name="instance-state-name", values=["running"]),
@@ -177,7 +177,7 @@ async def clean_up_ec2_running_instances() -> None:
     now = datetime.now(UTC)
     for instance in instances.ids:
         print("Checking instance: ", instance)
-        instance_data = aws.ec2.get_instance(instance_id=instance)
+        instance_data = await aws.ec2.get_instance(instance_id=instance)
         if instance_data.launch_time:
             launch_time = datetime.strptime(instance_data.launch_time, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=UTC)
 
