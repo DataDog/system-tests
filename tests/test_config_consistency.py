@@ -558,7 +558,6 @@ class Test_Config_LogInjection_128Bit_TraceId_Enabled:
     def test_log_injection_128bit_traceid_default(self):
         assert self.r.status_code == 200
         log_msg = parse_log_injection_message(self.message)
-        print("MTOFF log_msg: ", log_msg)
 
         trace_id = parse_log_trace_id(log_msg)
         assert re.match(r"^[0-9a-f]{32}$", trace_id), f"Invalid 128-bit trace_id: {trace_id}"
