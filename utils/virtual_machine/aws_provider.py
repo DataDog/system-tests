@@ -509,7 +509,7 @@ class DatadogEventSender:
 
     def __init__(self):
         self.ddev_api_key = os.getenv("DDEV_API_KEY")
-        self.ci_project_name = os.getenv("CI_PROJECT_NAME")
+        self.ci_project_name = os.getenv("CI_PROJECT_NAME", "local")
 
     def sendEventToDatadog(self, title, message, tags):
         if not self.ddev_api_key:
@@ -520,10 +520,9 @@ class DatadogEventSender:
             host = "https://dddev.datadoghq.com/api/v1/events"
             headers = {"DD-API-KEY": self.ddev_api_key}
 
-            default_tags = ["repository:datadog/datadog-agent", f"test:{context.scenario.name}", "source:pulumi"]
+            default_tags = ["repository:system-tests", f"test:{context.scenario.name}", "source:pulumi"]
             default_tags = default_tags + tags
-            if self.ci_project_name is not None:
-                default_tags.append(f"ci_project_name:{self.ci_project_name}")
+            default_tags.append(f"ci_project_name:{self.ci_project_name}")
             data_to_send = {
                 "title": title,
                 "text": (message[:255] + "..") if len(message) > 255 else message,
