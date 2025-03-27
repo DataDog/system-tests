@@ -189,38 +189,18 @@ tests/:
       test_lfi.py: missing_feature
       test_shi.py: missing_feature
       test_sqli.py:
-        Test_Sqli_BodyJson:
-          "*": missing_feature
-          rails42: bug (APPSEC-56765)  # ActiveRecord instrumentation with Rails < 5 and Ruby < 2.7 not working due to kwargs
-        Test_Sqli_BodyUrlEncoded:
-          "*": missing_feature
-          rails42: bug (APPSEC-56765)  # ActiveRecord instrumentation with Rails < 5 and Ruby < 2.7 not working due to kwargs
+        Test_Sqli_BodyJson: v2.12.2.dev
+        Test_Sqli_BodyUrlEncoded: v2.12.2.dev
         Test_Sqli_BodyXml: irrelevant (XML not natively supported)
-        Test_Sqli_Capability:
-          "*": missing_feature
-          rails42: bug (APPSEC-56765)  # ActiveRecord instrumentation with Rails < 5 and Ruby < 2.7 not working due to kwargs
-        Test_Sqli_Mandatory_SpanTags:
-          "*": missing_feature
-          rails42: bug (APPSEC-56765)  # ActiveRecord instrumentation with Rails < 5 and Ruby < 2.7 not working due to kwargs
-        Test_Sqli_Optional_SpanTags:
-          "*": missing_feature
-          rails42: bug (APPSEC-56765)  # ActiveRecord instrumentation with Rails < 5 and Ruby < 2.7 not working due to kwargs
-        Test_Sqli_Rules_Version:
-          "*": missing_feature
-          rails42: bug (APPSEC-56765)  # ActiveRecord instrumentation with Rails < 5 and Ruby < 2.7 not working due to kwargs
-        Test_Sqli_StackTrace:
-          "*": missing_feature
-          rails42: bug (APPSEC-56765)  # ActiveRecord instrumentation with Rails < 5 and Ruby < 2.7 not working due to kwargs
-        Test_Sqli_Telemetry:
-          "*": missing_feature
-          rails42: bug (APPSEC-56765)  # ActiveRecord instrumentation with Rails < 5 and Ruby < 2.7 not working due to kwargs
-        Test_Sqli_Telemetry_V2: missing_feature
-        Test_Sqli_UrlQuery:
-          "*": missing_feature
-          rails42: bug (APPSEC-56765)  # ActiveRecord instrumentation with Rails < 5 and Ruby < 2.7 not working due to kwargs
-        Test_Sqli_Waf_Version:
-          "*": missing_feature
-          rails42: bug (APPSEC-56765)  # ActiveRecord instrumentation with Rails < 5 and Ruby < 2.7 not working due to kwargs
+        Test_Sqli_Capability: v2.12.2.dev
+        Test_Sqli_Mandatory_SpanTags: v2.12.2.dev
+        Test_Sqli_Optional_SpanTags: v2.12.2.dev
+        Test_Sqli_Rules_Version: v2.12.2.dev
+        Test_Sqli_StackTrace: v2.12.2.dev
+        Test_Sqli_Telemetry: v2.12.2.dev
+        Test_Sqli_Telemetry_V2: v2.12.2.dev
+        Test_Sqli_UrlQuery: v2.12.2.dev
+        Test_Sqli_Waf_Version: v2.12.2.dev
       test_ssrf.py: missing_feature
     waf/:
       test_addresses.py:
