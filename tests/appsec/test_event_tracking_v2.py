@@ -70,7 +70,6 @@ class Test_UserLoginSuccessEventV2_Tags:
                 "usr.id": user_id,
                 "appsec.events.users.login.success.track": "true",
                 "_dd.appsec.events.users.login.success.sdk": "true",
-                "http.client_ip": "1.2.3.4",
                 "_dd.appsec.user.collection_mode": "sdk",
             }
 
@@ -262,7 +261,6 @@ class Test_UserLoginFailureEventV2_Tags:
                 "appsec.events.users.login.failure.usr.exists": "true" if exists else "false",
                 "appsec.events.users.login.failure.track": "true",
                 "_dd.appsec.events.users.login.failure.sdk": "true",
-                "http.client_ip": "1.2.3.4",
             }
 
             return validate_tags_and_metadata(
