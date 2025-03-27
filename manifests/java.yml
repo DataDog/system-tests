@@ -707,6 +707,7 @@ tests/:
           akka-http: missing_feature (APPSEC-56196)
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
           spring-boot-payara: missing_feature (APPSEC-54966)
+        Test_Cmdi_Telemetry_V2: missing_feature
         Test_Cmdi_Telemetry_Variant_Tag:
           '*': v1.45.0
           akka-http: missing_feature (APPSEC-56196)
@@ -757,6 +758,7 @@ tests/:
           '*': v1.40.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
         Test_Lfi_Telemetry_Multiple_Exploits: missing_feature
+        Test_Lfi_Telemetry_V2: missing_feature
         Test_Lfi_UrlQuery:
           '*': v1.40.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
@@ -799,6 +801,7 @@ tests/:
         Test_Shi_Telemetry:
           '*': v1.45.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+        Test_Shi_Telemetry_V2: missing_feature
         Test_Shi_Telemetry_Variant_Tag:
           '*': v1.45.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
@@ -856,6 +859,7 @@ tests/:
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
           vertx3: v1.40.0  # issue in context propagation in 1.39.0
           vertx4: v1.40.0  # issue in context propagation in 1.39.0
+        Test_Sqli_Telemetry_V2: missing_feature
         Test_Sqli_UrlQuery:
           '*': v1.39.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
@@ -909,6 +913,7 @@ tests/:
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
           vertx3: missing_feature (APPSEC-55781)
           vertx4: missing_feature (APPSEC-55781)
+        Test_Ssrf_Telemetry_V2: missing_feature
         Test_Ssrf_UrlQuery:
           '*': v1.39.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
@@ -1434,7 +1439,9 @@ tests/:
         '*': v1.40.0
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
     test_identify.py:
-      Test_Basic: missing_feature
+      Test_Basic:
+        '*': v1.48.0
+        spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
     test_ip_blocking_full_denylist.py:
       Test_AppSecIPBlockingFullDenylist:
         '*': v0.111.0
@@ -1720,7 +1727,7 @@ tests/:
     test_config_consistency.py:
       Test_Config_Dogstatsd: missing_feature (default hostname is inconsistent)
       Test_Config_RateLimit: v1.41.1
-      Test_Config_Tags: missing_feature
+      Test_Config_Tags: v1.48.0
       Test_Config_TraceAgentURL: v1.41.1
       Test_Config_TraceEnabled: v1.39.0
       Test_Config_TraceLogDirectory: missing_feature
@@ -1835,16 +1842,16 @@ tests/:
       spring-boot: v1.42.0
     Test_Config_LogInjection_128Bit_TraceId_Disabled:
       '*': incomplete_test_app (weblog endpoint not implemented)
-      'spring-boot-3-native': missing_feature
+      'spring-boot-3-native': v1.48.0
     Test_Config_LogInjection_128Bit_TraceId_Enabled:
       '*': incomplete_test_app (weblog endpoint not implemented)
-      'spring-boot-3-native': missing_feature
+      'spring-boot-3-native': v1.48.0
     Test_Config_LogInjection_Default:
       '*': incomplete_test_app (weblog endpoint not implemented)
-      'spring-boot-3-native': missing_feature
+      'spring-boot-3-native': v1.48.0
     Test_Config_LogInjection_Enabled:
       '*': incomplete_test_app (weblog endpoint not implemented)
-      'spring-boot-3-native': missing_feature
+      'spring-boot-3-native': v1.48.0
     Test_Config_ObfuscationQueryStringRegexp_Configured: v1.39.0
     Test_Config_ObfuscationQueryStringRegexp_Default: v1.39.0
     Test_Config_ObfuscationQueryStringRegexp_Empty: v1.39.0
@@ -1870,7 +1877,9 @@ tests/:
     Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
   test_graphql.py: missing_feature
   test_identify.py:
-    Test_Basic: missing_feature
+    Test_Basic:
+      '*': v1.48.0
+      spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
     Test_Propagate:
       # XXX: spring-boot-3-native would have a higher version
       '*': v0.111.0

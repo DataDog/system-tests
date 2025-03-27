@@ -32,7 +32,7 @@ class Test_Performances:
         self.finished = False
 
         self.appsec = "with_appsec" if environ.get("DD_APPSEC_ENABLED") == "true" else "without_appsec"
-        self.lang = scenarios.performances.library.library
+        self.lang = scenarios.performances.library.name
 
         threads = [threading.Thread(target=self.watch_docker_target)] + [
             threading.Thread(target=self.fetch) for _ in range(MAX_CONCURRENT_REQUEST)

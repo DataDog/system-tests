@@ -42,7 +42,7 @@ get '/healthcheck' do
   {
     status: 'ok',
     library: {
-      language: 'ruby',
+      name: 'ruby',
       version: version
     }
   }.to_json

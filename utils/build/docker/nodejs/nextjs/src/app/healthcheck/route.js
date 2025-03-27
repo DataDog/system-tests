@@ -10,7 +10,7 @@ export async function GET (request) {
   return NextResponse.json({
     status: 'ok',
     library: {
-      language: 'nodejs',
+      name: 'nodejs',
       version,
     }
   }, {

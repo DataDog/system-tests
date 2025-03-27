@@ -212,6 +212,7 @@ tests/:
         Test_Sqli_Rules_Version: missing_feature
         Test_Sqli_StackTrace: v1.66.0
         Test_Sqli_Telemetry: missing_feature
+        Test_Sqli_Telemetry_V2: missing_feature
         Test_Sqli_UrlQuery: v1.66.0
         Test_Sqli_Waf_Version: missing_feature
       test_ssrf.py:
@@ -224,6 +225,7 @@ tests/:
         Test_Ssrf_Rules_Version: missing_feature
         Test_Ssrf_StackTrace: v1.65.1
         Test_Ssrf_Telemetry: missing_feature
+        Test_Ssrf_Telemetry_V2: missing_feature
         Test_Ssrf_UrlQuery: v1.65.1
         Test_Ssrf_Waf_Version: missing_feature
     waf/:
