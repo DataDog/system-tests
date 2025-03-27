@@ -13,7 +13,9 @@ LOGS_PHP=(/var/log/system-tests/appsec.log /var/log/system-tests/helper.log /var
 touch "${LOGS_PHP[@]}"
 chown www-data:www-data "${LOGS_PHP[@]}"
 
-LOGS_APACHE=(/var/log/apache2/{access.log,error.log})
+export APACHE_LOG_DIR=/var/log/system-tests/apache2
+mkdir "$APACHE_LOG_DIR"
+LOGS_APACHE=($APACHE_LOG_DIR/{access.log,error.log})
 touch "${LOGS_APACHE[@]}"
 chown root:adm "${LOGS_APACHE[@]}"
 
