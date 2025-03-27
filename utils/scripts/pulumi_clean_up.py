@@ -10,7 +10,6 @@ import pulumi_aws as aws
 from pulumi import automation as auto
 from datetime import datetime, timedelta, UTC
 from pulumi import Config
-import pulumi_command as command
 
 # Define retention settings
 DEFAULT_AMI_RETENTION_DAYS = 100
@@ -178,7 +177,9 @@ async def clean_up_ec2_running_instances() -> None:
     for instance in instances.ids:
         print("Checking instance: ", instance)
         instance_data = await aws.ec2.get_instance(instance_id=instance)
-        print("RMM Instance data: ", instance_data)
+        print("RMM Instance data: ", str(instance_data))
+        print("RMM Instance LAUNCH TIME: ", instance_data.launch_time)
+        print("RMM Instance subnet_id: ", instance_data.subnet_id)
         if instance_data.launch_time:
             launch_time = datetime.strptime(instance_data.launch_time, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=UTC)
 
@@ -186,9 +187,9 @@ async def clean_up_ec2_running_instances() -> None:
 
             if age > timedelta(minutes=ec2_age_minutes):
                 pulumi.log.info(f"💀 Terminating instance {instance} (age: {age})")
-                command.local.Command(
-                    f"terminate-{instance}", create=f"aws ec2 terminate-instances --instance-ids {instance} "
-                )
+                # command.local.Command(
+                #    f"terminate-{instance}", create=f"aws ec2 terminate-instances --instance-ids {instance} "
+                # )
         else:
             print(f"⚠️ Skipping instance {instance} — launch_time is None")
 
