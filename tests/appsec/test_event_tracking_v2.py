@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import weblog, interfaces, features, scenarios
+from utils import weblog, interfaces, features, scenarios, irrelevant
 from tests.appsec.utils import find_series
 
 HEADERS = {
@@ -111,6 +111,7 @@ class Test_UserLoginSuccessEventV2_Tags:
 
         self.r = weblog.post("/user_login_success_event_v2", json=data, headers=headers)
 
+    @irrelevant(library="golang", reason="dd-trace-go only accepts string metadata values")
     def test_user_login_success_event_multi_type_metadata(self):
         # Call the user login success SDK and validate tags
 
@@ -150,6 +151,7 @@ class Test_UserLoginSuccessEventV2_Tags:
 
         self.r = weblog.post("/user_login_success_event_v2", json=data, headers=headers)
 
+    @irrelevant(library="golang", reason="dd-trace-go only accepts string metadata values")
     def test_user_login_success_event_deep_metadata(self):
         # Call the user login success SDK with deep metadata and validate tags
         metadata = {"prop1.prop2.prop3.prop4.data1": "metavalue1", "arr.0.key": "metavalue2", "arr.1": "metavalue3"}
@@ -338,6 +340,7 @@ class Test_UserLoginFailureEventV2_Tags:
 
         self.r = weblog.post("/user_login_failure_event_v2", json=data, headers=headers)
 
+    @irrelevant(library="golang", reason="dd-trace-go only accepts string metadata values")
     def test_user_login_failure_event_deep_metadata(self):
         # Call the user login failure SDK with deep metadata and validate tags
 
