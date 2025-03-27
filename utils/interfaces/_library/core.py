@@ -3,7 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 import base64
-from collections.abc import Callable
+from collections.abc import Callable, Iterable
 import copy
 import json
 import threading
@@ -239,9 +239,9 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
 
     def assert_headers_presence(
         self,
-        path_filter: list[str] | str,
-        request_headers: tuple[str, ...] = (),
-        response_headers: tuple[str, ...] = (),
+        path_filter: Iterable[str] | str,
+        request_headers: Iterable[str] = (),
+        response_headers: Iterable[str] = (),
         check_condition: Callable | None = None,
     ):
         validator = HeadersPresenceValidator(request_headers, response_headers, check_condition)
