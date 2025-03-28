@@ -121,9 +121,11 @@ import io.opentracing.util.GlobalTracer;
 import com.datadoghq.system_tests.iast.utils.CryptoExamples;
 
 import static com.mongodb.client.model.Filters.eq;
+import static datadog.appsec.api.user.User.setUser;
 import static io.opentelemetry.api.trace.SpanKind.INTERNAL;
 import static io.opentelemetry.api.trace.StatusCode.ERROR;
 import static java.time.temporal.ChronoUnit.SECONDS;
+import static java.util.Collections.emptyMap;
 
 @RestController
 @EnableAutoConfiguration(exclude = R2dbcAutoConfiguration.class)
@@ -165,7 +167,7 @@ public class App {
         }
 
         Map<String, String> library = new HashMap<>();
-        library.put("language", "java");
+        library.put("name", "java");
         library.put("version", version);
 
         Map<String, Object> response = new HashMap<>();
@@ -243,7 +245,7 @@ public class App {
     @GetMapping(value = "/session/user")
     ResponseEntity<String> userSession(@RequestParam("sdk_user") final String sdkUser, final HttpServletRequest request) {
         EventTracker tracker = datadog.trace.api.GlobalTracer.getEventTracker();
-        tracker.trackLoginSuccessEvent(sdkUser, Collections.emptyMap());
+        tracker.trackLoginSuccessEvent(sdkUser, emptyMap());
         return ResponseEntity.ok(request.getRequestedSessionId());
     }
 
@@ -271,6 +273,18 @@ public class App {
                 .forUser(user)
                 .blockIfMatch();
         return "Hello " + user;
+    }
+
+    @GetMapping("/identify")
+    public String identify() {
+        final Map<String, String> metadata = new HashMap<>();
+        metadata.put("email", "usr.email");
+        metadata.put("name", "usr.name");
+        metadata.put("session_id", "usr.session_id");
+        metadata.put("role", "usr.role");
+        metadata.put("scope", "usr.scope");
+        setUser("usr.id", metadata);
+        return "OK";
     }
 
     @GetMapping("/user_login_success_event")

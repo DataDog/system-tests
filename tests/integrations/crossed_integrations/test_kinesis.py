@@ -1,19 +1,18 @@
 from __future__ import annotations
 import json
 
-from utils.buddies import python_buddy
-from utils import interfaces, scenarios, weblog, missing_feature, features, context
-from utils.tools import logger
+from utils.buddies import python_buddy, _Weblog as Weblog
+from utils import interfaces, scenarios, weblog, missing_feature, features, context, logger
 
 
 class _BaseKinesis:
     """Test Kinesis compatibility with inputted datadog tracer"""
 
-    BUDDY_TO_WEBLOG_STREAM = None
-    WEBLOG_TO_BUDDY_STREAM = None
-    buddy = None
-    buddy_interface = None
-    unique_id = None
+    BUDDY_TO_WEBLOG_STREAM: str
+    WEBLOG_TO_BUDDY_STREAM: str
+    buddy: Weblog
+    buddy_interface: interfaces.LibraryInterfaceValidator
+    unique_id: str
 
     @classmethod
     def get_span(cls, interface, span_kind, stream, operation):
@@ -75,7 +74,7 @@ class _BaseKinesis:
         """
         message = (
             "[crossed_integrations/test_kinesis.py][Kinesis] Hello from Kinesis "
-            f"[{context.library.library} weblog->{self.buddy_interface.name}] test produce at {self.unique_id}"
+            f"[{context.library.name} weblog->{self.buddy_interface.name}] test produce at {self.unique_id}"
         )
 
         self.production_response = weblog.get(
@@ -134,7 +133,7 @@ class _BaseKinesis:
         """
         message = (
             "[crossed_integrations/test_kinesis.py][Kinesis] Hello from Kinesis "
-            f"[{self.buddy_interface.name}->{context.library.library} weblog] test consume at {self.unique_id}"
+            f"[{self.buddy_interface.name}->{context.library.name} weblog] test consume at {self.unique_id}"
         )
 
         self.production_response = self.buddy.get(

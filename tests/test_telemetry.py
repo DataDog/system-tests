@@ -3,9 +3,9 @@ from collections import defaultdict
 from datetime import timedelta
 import time
 from dateutil.parser import isoparse
-from utils import context, interfaces, missing_feature, bug, flaky, irrelevant, weblog, scenarios, features, rfc
-from utils.tools import logger
+from utils import context, interfaces, missing_feature, bug, flaky, irrelevant, weblog, scenarios, features, rfc, logger
 from utils.interfaces._misc_validators import HeadersPresenceValidator, HeadersMatchValidator
+from utils.telemetry import get_lang_configs, load_telemetry_json
 
 INTAKE_TELEMETRY_PATH = "/api/v2/apmtelemetry"
 AGENT_TELEMETRY_PATH = "/telemetry/proxy/api/v2/apmtelemetry"
@@ -52,8 +52,8 @@ class Test_Telemetry:
     """Test that instrumentation telemetry is sent"""
 
     # containers for telemetry request to check consistency between library payloads and agent payloads
-    library_requests = {}
-    agent_requests = {}
+    library_requests: dict[tuple[str, str], dict] = {}
+    agent_requests: dict[tuple[str, str], dict] = {}
 
     def validate_library_telemetry_data(self, validator, *, success_by_default=False):
         telemetry_data = list(interfaces.library.get_telemetry_data(flatten_message_batches=False))
@@ -188,7 +188,7 @@ class Test_Telemetry:
     def test_app_started_sent_exactly_once(self):
         """Request type app-started is sent exactly once"""
 
-        count_by_runtime_id = defaultdict(lambda: 0)
+        count_by_runtime_id: dict[str, int] = defaultdict(lambda: 0)
 
         for data in interfaces.library.get_telemetry_data():
             if get_request_type(data) == "app-started":
@@ -306,7 +306,7 @@ class Test_Telemetry:
             heartbeats.sort(key=lambda data: isoparse(data["request"]["timestamp_start"]))
 
             prev_message_time = None
-            delays = []
+            delays: list[float] = []
             for data in heartbeats:
                 curr_message_time = isoparse(data["request"]["timestamp_start"])
                 if prev_message_time is None:
@@ -322,7 +322,7 @@ class Test_Telemetry:
 
         return delays_by_runtime
 
-    @missing_feature(library="cpp", reason="DD_TELEMETRY_HEARTBEAT_INTERVAL not supported")
+    @missing_feature(library="cpp_nginx", reason="DD_TELEMETRY_HEARTBEAT_INTERVAL not supported")
     @missing_feature(library="cpp_httpd", reason="DD_TELEMETRY_HEARTBEAT_INTERVAL not supported")
     @flaky(context.library <= "java@1.38.1", reason="APMRP-360")
     @flaky(context.library <= "php@0.90", reason="APMRP-360")
@@ -352,7 +352,7 @@ class Test_Telemetry:
         weblog.get("/load_dependency")
 
     @irrelevant(library="php")
-    @irrelevant(library="cpp")
+    @irrelevant(library="cpp_nginx")
     @irrelevant(library="cpp_httpd")
     @irrelevant(library="golang")
     @irrelevant(library="python")
@@ -367,14 +367,14 @@ class Test_Telemetry:
     def test_app_dependencies_loaded(self):
         """Test app-dependencies-loaded requests"""
 
-        test_loaded_dependencies = {
+        test_loaded_dependencies: dict[str, dict[str, bool]] = {
             "dotnet": {"NodaTime": False},
             "nodejs": {"glob": False},
             "java": {"httpclient": False},
             "ruby": {"bundler": False},
         }
 
-        test_defined_dependencies = {
+        test_defined_dependencies: dict[str, dict[str, bool]] = {
             "dotnet": {},
             "nodejs": {
                 "body-parser": False,
@@ -412,8 +412,8 @@ class Test_Telemetry:
             "ruby": {},
         }
 
-        seen_loaded_dependencies = test_loaded_dependencies[context.library.library]
-        seen_defined_dependencies = test_defined_dependencies[context.library.library]
+        seen_loaded_dependencies = test_loaded_dependencies[context.library.name]
+        seen_defined_dependencies = test_defined_dependencies[context.library.name]
 
         for data in interfaces.library.get_telemetry_data():
             content = data["request"]["content"]
@@ -449,7 +449,7 @@ class Test_Telemetry:
     @irrelevant(library="php")
     @irrelevant(library="java")
     @irrelevant(library="nodejs")
-    @irrelevant(library="cpp")
+    @irrelevant(library="cpp_nginx")
     @irrelevant(library="cpp_httpd")
     def test_api_still_v1(self):
         """Test that the telemetry api is still at version v1
@@ -469,18 +469,18 @@ class Test_Telemetry:
 
         trace_agent_port = scenarios.default.weblog_container.trace_agent_port
 
-        test_configuration = {
+        test_configuration: dict[str, dict] = {
             "dotnet": {},
             "nodejs": {"hostname": "proxy", "port": trace_agent_port, "appsec.enabled": True},
             # to-do :need to add configuration keys once python bug is fixed
             "python": {},
-            "cpp": {"trace_agent_port": trace_agent_port},
+            "cpp_nginx": {"trace_agent_port": trace_agent_port},
             "cpp_httpd": {"trace_agent_port": trace_agent_port},
             "java": {"trace_agent_port": trace_agent_port, "telemetry_heartbeat_interval": 2},
             "ruby": {"DD_AGENT_TRANSPORT": "TCP"},
             "golang": {"lambda_mode": False},
         }
-        configuration_map = test_configuration[context.library.library]
+        configuration_map = test_configuration[context.library.name]
 
         def validator(data):
             if get_request_type(data) == "app-started":
@@ -489,7 +489,7 @@ class Test_Telemetry:
                 configurations_present = []
                 for cnf in configurations:
                     configuration_name = cnf["name"]
-                    if context.library.library == "java":
+                    if context.library.name == "java":
                         # support for older versions of Java Tracer
                         configuration_name = configuration_name.replace(".", "_")
                     if configuration_name in configuration_map:
@@ -519,7 +519,7 @@ class Test_Telemetry:
         weblog.get("/enable_product")
 
     @missing_feature(
-        context.library in ("dotnet", "nodejs", "java", "python", "golang", "cpp", "cpp_httpd", "php", "ruby"),
+        context.library in ("dotnet", "nodejs", "java", "python", "golang", "cpp_nginx", "cpp_httpd", "php", "ruby"),
         reason="Weblog GET/enable_product and app-product-change event is not implemented yet.",
     )
     def test_app_product_change(self):
@@ -571,6 +571,28 @@ class Test_APMOnboardingInstallID:
         validate_at_least_one_span_with_tag("_dd.install.type")
 
 
+def get_all_keys_and_values(*objs: tuple[None | dict | list, ...]) -> list:
+    result = []
+    for obj in objs:
+        if obj is not None:
+            if isinstance(obj, dict):
+                result.extend(list(obj.keys()))
+                result.extend(list(obj.values()))
+            elif isinstance(obj, list):
+                result.extend(obj)
+            else:
+                logger.error(f"Unexpected type in concat: {type(obj).__name__}")
+    return result
+
+
+def is_key_accepted_by_telemetry(key, allowed_keys, allowed_prefixes):
+    lower_key = key.lower()
+    is_allowed_key = lower_key in allowed_keys
+    is_allowed_prefix = any(lower_key.startswith(prefix) for prefix in allowed_prefixes)
+
+    return is_allowed_key or is_allowed_prefix
+
+
 @features.telemetry_api_v2_implemented
 class Test_TelemetryV2:
     """Test telemetry v2 specific constraints"""
@@ -578,7 +600,7 @@ class Test_TelemetryV2:
     @missing_feature(library="dotnet", reason="Product started missing")
     @missing_feature(library="php", reason="Product started missing (both in libdatadog and php)")
     @missing_feature(library="python", reason="Product started missing in app-started payload")
-    @missing_feature(library="cpp", reason="Product started missing in app-started payload")
+    @missing_feature(library="cpp_nginx", reason="Product started missing in app-started payload")
     @missing_feature(library="cpp_httpd", reason="Product started missing in app-started payload")
     def test_app_started_product_info(self):
         """Assert that product information is accurately reported by telemetry"""
@@ -592,54 +614,17 @@ class Test_TelemetryV2:
                     "appsec" in products
                 ), "Product information is not accurately reported by telemetry on app-started event"
 
-    @bug(library="java", reason="APMAPI-969")
     def test_config_telemetry_completeness(self):
         """Assert that config telemetry is handled properly by telemetry intake
 
         Runbook: https://github.com/DataDog/system-tests/blob/main/docs/edit/runbook.md#test_config_telemetry_completeness
         """
 
-        def lowercase_obj(obj):
-            if isinstance(obj, dict):
-                return {k.lower() if isinstance(k, str) else k: lowercase_obj(v) for k, v in obj.items()}
-            elif isinstance(obj, list):
-                return [lowercase_obj(item) for item in obj]
-            elif isinstance(obj, str):
-                return obj.lower()
-            else:
-                return obj
-
-        def load_telemetry_json(filename):
-            with open(f"tests/telemetry_intake/static/{filename}.json", encoding="utf-8") as fh:
-                return lowercase_obj(json.load(fh))
-
-        def get_all_keys_and_values(*objs: tuple[None | dict | list, ...]) -> list:
-            result = []
-            for obj in objs:
-                if obj is not None:
-                    if isinstance(obj, dict):
-                        result.extend(list(obj.keys()))
-                        result.extend(list(obj.values()))
-                    elif isinstance(obj, list):
-                        result.extend(obj)
-                    else:
-                        logger.error(f"Unexpected type in concat: {type(obj).__name__}")
-            return result
-
-        def is_key_accepted_by_telemetry(key, allowed_keys, allowed_prefixes):
-            lower_key = key.lower()
-            is_allowed_key = lower_key in allowed_keys
-            is_allowed_prefix = any(lower_key.startswith(prefix) for prefix in allowed_prefixes)
-
-            return is_allowed_key or is_allowed_prefix
-
         config_norm_rules = load_telemetry_json("config_norm_rules")
         config_prefix_block_list = load_telemetry_json("config_prefix_block_list")
         config_aggregation_list = load_telemetry_json("config_aggregation_list")
 
-        lang_configs = {}
-        for lang in ["dotnet", "go", "jvm", "nodejs", "php", "python", "ruby"]:
-            lang_configs[lang] = load_telemetry_json(lang + "_config_rules")
+        lang_configs = get_lang_configs()
 
         for data in interfaces.library.get_telemetry_data(flatten_message_batches=True):
             if not is_v2_payload(data):
@@ -673,10 +658,11 @@ class Test_TelemetryV2:
                         "(NOT A FLAKE) Read this quick runbook to update allowed configs: https://github.com/DataDog/system-tests/blob/main/docs/edit/runbook.md#test_config_telemetry_completeness"
                     )
 
-    @missing_feature(library="cpp")
+    @missing_feature(library="cpp_nginx")
     @missing_feature(library="cpp_httpd")
     @missing_feature(context.library < "ruby@1.22.0", reason="dd-client-library-version missing")
     @bug(context.library == "python" and context.library.version.prerelease is not None, reason="APMAPI-927")
+    @bug(context.library > "php@1.7.3", reason="APMAPI-1270")
     def test_telemetry_v2_required_headers(self):
         """Assert library add the relevant headers to telemetry v2 payloads"""
 

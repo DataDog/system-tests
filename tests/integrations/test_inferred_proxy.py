@@ -1,8 +1,7 @@
 import json
 import time
 
-from utils import weblog, scenarios, features, interfaces
-from utils.tools import logger
+from utils import weblog, scenarios, features, interfaces, logger
 
 
 DISTRIBUTED_TRACE_ID = 1
@@ -141,7 +140,7 @@ def assert_api_gateway_span(test_case, span, path, status_code, *, is_distribute
     ), "Inferred AWS API Gateway span meta should contain 'component' equal to 'aws-apigateway'"
     assert span["meta"]["component"] == "aws-apigateway", "Expected component to be 'aws-apigateway'"
 
-    if span["meta"]["language"] == "javascript":
+    if "language" in span["meta"] and span["meta"]["language"] == "javascript":
         assert "service" in span["meta"], "Inferred AWS API Gateway span meta should contain 'service'"
         assert (
             span["meta"]["service"] == "system-tests-api-gateway.com"

@@ -24,9 +24,8 @@ from utils.parametric.spec.trace import Trace
 from utils.parametric.spec.trace import decode_v06_stats
 from utils.parametric._library_client import APMLibrary, APMLibraryClient
 
-from utils import context, scenarios
+from utils import context, scenarios, logger
 from utils.dd_constants import RemoteConfigApplyState, Capabilities
-from utils.tools import logger
 
 from utils._context._scenarios.parametric import APMLibraryTestServer
 
@@ -54,7 +53,7 @@ class AgentRequestV06Stats(AgentRequest):
     body: V06StatsPayload  # type: ignore[misc]
 
 
-def pytest_configure(config):
+def pytest_configure(config) -> None:
     config.addinivalue_line(
         "markers", "snapshot(*args, **kwargs): mark test to run as a snapshot test which sends traces to the test agent"
     )
@@ -74,7 +73,7 @@ def library_env() -> dict[str, str]:
 
 
 @pytest.fixture
-def apm_test_server(request, library_env, test_id):
+def apm_test_server(request, library_env, test_id) -> APMLibraryTestServer:
     """Request level definition of the library test server with the session Docker image built"""
     apm_test_server_image = scenarios.parametric.apm_test_server_definition
     new_env = dict(library_env)
@@ -622,7 +621,7 @@ def test_agent(
     test_agent_container_name: str,
     test_agent_port: int,
     test_agent_log_file: TextIO,
-):
+) -> Generator[_TestAgentAPI, None, None]:
     env = {}
     if os.getenv("DEV_MODE") is not None:
         env["SNAPSHOT_CI"] = "0"
@@ -733,11 +732,11 @@ def test_library(
 
 
 class StableConfigWriter:
-    def write_stable_config(self, stable_config: dict, path, test_library):
+    def write_stable_config(self, stable_config: dict, path, test_library) -> None:
         stable_config_content = yaml.dump(stable_config)
         self.write_stable_config_content(stable_config_content, path, test_library)
 
-    def write_stable_config_content(self, stable_config_content: str, path: str, test_library):
+    def write_stable_config_content(self, stable_config_content: str, path: str, test_library) -> None:
         success, message = test_library.container_exec_run(
             f'bash -c "mkdir -p {Path(path).parent!s} && printf {shlex.quote(stable_config_content)} | tee {path}"'
         )

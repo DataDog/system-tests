@@ -7,7 +7,6 @@
         "DD_DATA_STREAMS_ENABLED": "data_streams_enabled",
         "DD_DOGSTATSD_PORT": "dogstatsd_port",
         "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "dynamic_instrumentation_enabled",
-        "DD_EXCEPTION_DEBUGGING_ENABLED": "dd_exception_debugging_enabled",
         "DD_INSTRUMENTATION_TELEMETRY_ENABLED": "instrumentation_telemetry_enabled",
         "DD_INTERNAL_RCM_POLL_INTERVAL": "remote_config_poll_interval",
         "DD_LLMOBS_EVALUATOR_SAMPLING_RULES": "dd_llmobs_evaluator_sampling_rules",
