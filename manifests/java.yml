@@ -1464,21 +1464,41 @@ tests/:
         '*': v1.8.0
         play: v1.22.0
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
-      Test_UserLoginFailureEvent_Metrics: v1.48.0
+      Test_UserLoginFailureEvent_Metrics:
+        '*': v1.48.0
+        spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
       Test_UserLoginSuccessEvent:
         '*': v1.8.0
         play: v1.22.0
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
-      Test_UserLoginSuccessEvent_Metrics: v1.48.0
+      Test_UserLoginSuccessEvent_Metrics:
+        '*': v1.48.0
+        spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
     test_event_tracking_v2.py:
-      Test_UserLoginFailureEventV2_HeaderCollection: v1.48.0
-      Test_UserLoginFailureEventV2_Libddwaf: v1.48.0
-      Test_UserLoginFailureEventV2_Metrics: v1.48.0
-      Test_UserLoginFailureEventV2_Tags: v1.48.0
-      Test_UserLoginSuccessEventV2_HeaderCollection: v1.48.0
-      Test_UserLoginSuccessEventV2_Libddwaf: v1.48.0
-      Test_UserLoginSuccessEventV2_Metrics: v1.48.0
-      Test_UserLoginSuccessEventV2_Tags: v1.48.0
+      Test_UserLoginFailureEventV2_HeaderCollection:
+        '*': v1.48.0
+        spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
+      Test_UserLoginFailureEventV2_Libddwaf:
+        '*': v1.48.0
+        spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
+      Test_UserLoginFailureEventV2_Metrics:
+        '*': v1.48.0
+        spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
+      Test_UserLoginFailureEventV2_Tags:
+        '*': v1.48.0
+        spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
+      Test_UserLoginSuccessEventV2_HeaderCollection:
+        '*': v1.48.0
+        spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
+      Test_UserLoginSuccessEventV2_Libddwaf:
+        '*': v1.48.0
+        spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
+      Test_UserLoginSuccessEventV2_Metrics:
+        '*': v1.48.0
+        spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
+      Test_UserLoginSuccessEventV2_Tags:
+        '*': v1.48.0
+        spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
     test_fingerprinting.py:
       Test_Fingerprinting_Endpoint:
         '*': v1.39.0

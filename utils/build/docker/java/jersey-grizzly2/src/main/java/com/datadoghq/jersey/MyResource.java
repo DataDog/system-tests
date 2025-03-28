@@ -276,27 +276,27 @@ public class MyResource {
     @POST
     @Path("/user_login_success_event_v2")
     @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.TEXT_PLAIN)
+    @Produces(MediaType.TEXT_HTML)
     public String userLoginSuccessV2(final JsonValue body) {
         final JsonObject data = body.asJsonObject();
         final String login = data.getString("login");
         final String userId = data.getString("user_id");
         final Map<String, String> meta = asMap(data.getJsonObject("metadata"));
         EventTrackerV2.trackUserLoginSuccess(login, userId, meta);
-        return "ok";
+        return "<html><body>ok</body></html>";
     }
 
     @POST
     @Path("/user_login_failure_event_v2")
     @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.TEXT_PLAIN)
+    @Produces(MediaType.TEXT_HTML)
     public String userLoginFailureV2(final JsonValue body) {
         final JsonObject data = body.asJsonObject();
         final String login = data.getString("login");
         final boolean exists = Boolean.parseBoolean(data.getString("exists"));
         final Map<String, String> meta = asMap(data.getJsonObject("metadata"));
         EventTrackerV2.trackUserLoginFailure(login, exists, meta);
-        return "ok";
+        return "<html><body>ok</body></html>";
     }
 
     private static Map<String, String> asMap(final JsonObject object) {

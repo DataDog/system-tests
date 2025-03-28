@@ -234,7 +234,8 @@ object AppSecRoutes {
             val userId = payload.get("user_id").asText()
             val meta = objectMapper.convertValue(payload.get("metadata"), new TypeReference[Map[String, String]] {}).asJava
             EventTrackerV2.trackUserLoginSuccess(login, userId, meta)
-            complete("ok")
+            val entity = HttpEntity(ContentTypes.`text/html(UTF-8)`, "<html><body>ok</body></html>")
+            complete(StatusCodes.OK, entity)
           }
         }
       } ~
@@ -245,7 +246,8 @@ object AppSecRoutes {
             val exists = payload.get("exists").asBoolean()
             val meta = objectMapper.convertValue(payload.get("metadata"), new TypeReference[Map[String, String]] {}).asJava
             EventTrackerV2.trackUserLoginFailure(login, exists, meta)
-            complete("ok")
+            val entity = HttpEntity(ContentTypes.`text/html(UTF-8)`, "<html><body>ok</body></html>")
+            complete(StatusCodes.OK, entity)
           }
         }
       } ~
