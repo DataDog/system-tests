@@ -110,6 +110,7 @@ GEM
     nokogiri (1.14.2)
       mini_portile2 (~> 2.8.0)
       racc (~> 1.4)
+    pkg-config (1.6.0)
     puma (5.6.5)
       nio4r (~> 2.0)
     racc (1.6.2)
@@ -175,6 +176,7 @@ DEPENDENCIES
   debug
   mutex_m (~> 0.2.0)
   nokogiri
+  pkg-config
   puma (~> 5.0)
   rails (~> 7.0.3)
   sprockets-rails
