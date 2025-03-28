@@ -46,16 +46,8 @@ exclude = [
 
     # TODO
     "utils/_context/core.py",
-    "tests/test_telemetry.py",
-    "tests/auto_inject/.*",
-    "tests/otel_tracing_e2e/test_e2e.py",
-    "tests/k8s_lib_injection/test_k8s_init_image_validator.py",
-    "tests/k8s_lib_injection/test_k8s_lib_injection_djm.py",
-    "tests/k8s_lib_injection/test_k8s_lib_injection.py",
     "utils/_context/_scenarios/auto_injection.py",
     "utils/_context/_scenarios/k8s_lib_injection.py",
-    "utils/_context/virtual_machines.py",
-    "utils/docker_ssi/.*",
     "utils/k8s_lib_injection/.*",
     "utils/onboarding/.*",
     "utils/virtual_machine/.*",
