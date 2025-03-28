@@ -27,4 +27,4 @@ export -p | sed 's@declare -x@export@' | tee /dev/stderr >> /etc/apache2/envvars
 
 service apache2 start
 
-exec tail -f "${LOGS_PHP[@]}" "${LOGS_APACHE[@]}" "/var/log/system-tests/appsec.log" "/var/log/system-tests/helper.log"
+exec tail -f "${LOGS_PHP[@]}" "${LOGS_APACHE[@]}" "/var/log/system-tests/appsec.log" "/var/log/system-tests/helper.log" "/var/log/system-tests/php_error.log" "/var/log/system-tests/tracer.log"
