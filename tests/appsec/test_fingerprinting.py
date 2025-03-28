@@ -5,6 +5,7 @@ from utils import interfaces
 from utils import rfc
 from utils import scenarios
 from utils import weblog
+from utils import missing_feature
 
 ARACHNI_HEADERS = {"User-Agent": "Arachni/v1.5.1"}
 DD_BLOCK_HEADERS = {"User-Agent": "dd-test-scanner-log-block"}
