@@ -11,7 +11,7 @@ import (
 	"syscall"
 	"time"
 
-	"weblog/internal/common"
+	"systemtests.weblog/_shared/common"
 
 	graphqltrace "github.com/DataDog/dd-trace-go/contrib/graph-gophers/graphql-go/v2"
 	httptrace "github.com/DataDog/dd-trace-go/contrib/net/http/v2"

@@ -15,11 +15,12 @@ import (
 	"syscall"
 	"time"
 
-	"weblog/internal/common"
-	"weblog/internal/grpc"
-	"weblog/internal/rasp"
+	"systemtests.weblog/_shared/common"
+	"systemtests.weblog/_shared/grpc"
+	"systemtests.weblog/_shared/rasp"
 
 	"github.com/labstack/echo/v4"
+	"github.com/sirupsen/logrus"
 
 	echotrace "github.com/DataDog/dd-trace-go/contrib/labstack/echo.v4/v2"
 	httptrace "github.com/DataDog/dd-trace-go/contrib/net/http/v2"
@@ -27,7 +28,6 @@ import (
 	"github.com/DataDog/dd-trace-go/v2/appsec"
 	"github.com/DataDog/dd-trace-go/v2/ddtrace/tracer"
 	"github.com/DataDog/dd-trace-go/v2/profiler"
-	"github.com/sirupsen/logrus"
 )
 
 func main() {
@@ -37,6 +37,7 @@ func main() {
 
 	// Add Datadog context log hook
 	logrus.AddHook(&dd_logrus.DDContextLogHook{})
+
 	tracer.Start()
 	defer tracer.Stop()
 
@@ -209,8 +210,23 @@ func main() {
 		if q := ctx.QueryParam("event_user_id"); q != "" {
 			uid = q
 		}
-		appsec.TrackUserLoginSuccess(ctx.Request().Context(), uid, uid, map[string]string{"metadata0": "value0", "metadata1": "value1"})
+		appsec.TrackUserLoginSuccessEvent(ctx.Request().Context(), uid, map[string]string{"metadata0": "value0", "metadata1": "value1"})
 		return nil
+	})
+
+	r.POST("/user_login_success_event_v2", func(ctx echo.Context) error {
+		var data struct {
+			Login    string            `json:"login"`
+			UserID   string            `json:"user_id"`
+			Metadata map[string]string `json:"metadata"`
+		}
+		if err := ctx.Bind(&data); err != nil {
+			logrus.Println("error decoding request body for", ctx.Request().URL, ":", err)
+			return err
+		}
+
+		appsec.TrackUserLoginSuccess(ctx.Request().Context(), data.Login, data.UserID, data.Metadata)
+		return ctx.NoContent(http.StatusNoContent)
 	})
 
 	r.GET("/user_login_failure_event", func(ctx echo.Context) error {
@@ -225,8 +241,29 @@ func main() {
 				exists = parsed
 			}
 		}
-		appsec.TrackUserLoginFailure(ctx.Request().Context(), uid, exists, map[string]string{"metadata0": "value0", "metadata1": "value1"})
+		appsec.TrackUserLoginFailureEvent(ctx.Request().Context(), uid, exists, map[string]string{"metadata0": "value0", "metadata1": "value1"})
 		return nil
+	})
+
+	r.POST("/user_login_failure_event_v2", func(ctx echo.Context) error {
+		var data struct {
+			Login    string            `json:"login"`
+			Exists   string            `json:"exists"`
+			Metadata map[string]string `json:"metadata"`
+		}
+		if err := ctx.Bind(&data); err != nil {
+			logrus.Println("error decoding request body for ", ctx.Request().URL, ":", err)
+			return err
+		}
+
+		exists, err := strconv.ParseBool(data.Exists)
+		if err != nil {
+			logrus.Printf("error parsing exists value %q: %v\n", data.Exists, err)
+			return err
+		}
+
+		appsec.TrackUserLoginFailure(ctx.Request().Context(), data.Login, exists, data.Metadata)
+		return ctx.NoContent(http.StatusNoContent)
 	})
 
 	r.GET("/custom_event", func(ctx echo.Context) error {
@@ -268,7 +305,7 @@ func main() {
 		if err != nil {
 			return ctx.String(500, "no session cookie")
 		}
-		appsec.TrackUserLoginSuccess(ctx.Request().Context(), user, user, map[string]string{}, tracer.WithUserSessionID(cookie.Value))
+		appsec.TrackUserLoginSuccessEvent(ctx.Request().Context(), user, map[string]string{}, tracer.WithUserSessionID(cookie.Value))
 		return ctx.NoContent(200)
 	})
 

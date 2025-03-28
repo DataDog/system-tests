@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/binary"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -28,9 +29,12 @@ func (s *apmClientServer) startSpanHandler(w http.ResponseWriter, r *http.Reques
 	}
 	w.Header().Set("Content-Type", "application/json")
 
+	tIdBytes := span.Context().TraceIDBytes()
+	// convert the lower bits to a uint64
+	tId := binary.BigEndian.Uint64(tIdBytes[8:])
 	response := StartSpanReturn{
 		SpanId:  span.Context().SpanID(),
-		TraceId: span.Context().TraceIDLower(),
+		TraceId: tId,
 	}
 	if err := json.NewEncoder(w).Encode(response); err != nil {
 		http.Error(w, "Failed to encode response: "+err.Error(), http.StatusInternalServerError)
@@ -80,7 +84,7 @@ func (s *apmClientServer) spanSetMetaHandler(w http.ResponseWriter, r *http.Requ
 		http.Error(w, "Span not found", http.StatusNotFound)
 		return
 	}
-	span.SetTag(args.Key, args.InferredValue())
+	span.SetTag(args.Key, args.Value)
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
