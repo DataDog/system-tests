@@ -201,6 +201,8 @@ class TestedContainer:
             user=self.user,
             cap_add=self.cap_add,
             security_opt=self.security_opt,
+            # the whole thing is reimplemented in python... TODO check if it's possible to use the builtin
+            healthcheck={"test": ["NONE"]} if self.healthcheck is not None else None,
         )
 
         self.healthy = self.wait_for_health()
@@ -1078,9 +1080,10 @@ class LocalstackContainer(TestedContainer):
 class MySqlContainer(SqlDbTestedContainer):
     def __init__(self, host_log_folder: str) -> None:
         super().__init__(
-            image_name="mysql/mysql-server:latest",
+            image_name="mysql/mysql-server:8.0.32",
             name="mysqldb",
-            command="--default-authentication-plugin=mysql_native_password",
+            command="--lc-messages-dir=/usr/share/mysql-8.0/english "
+            "--default-authentication-plugin=mysql_native_password",
             environment={
                 "MYSQL_DATABASE": "mysql_dbname",
                 "MYSQL_USER": "mysqldb",

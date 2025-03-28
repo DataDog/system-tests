@@ -4,16 +4,23 @@ ARG NGINX_VERSION="1.25.4"
 ENV NGINX_VERSION=${NGINX_VERSION}
 
 RUN apt-get update \
- && apt-get install -y wget tar jq curl xz-utils stress-ng binutils
+ && apt-get install -y \
+    wget tar jq curl xz-utils stress-ng binutils gcc libmicrohttpd-dev \
+    procps gdb
 
-RUN mkdir /builds
+RUN mkdir /builds /binaries
 
-COPY utils/build/docker/cpp_nginx/nginx/nginx.conf /etc/nginx/nginx.conf
+COPY utils/build/docker/cpp_nginx/nginx/nginx.conf /etc/nginx/nginx.conf.no-waf
+COPY utils/build/docker/cpp_nginx/nginx/nginx-waf.conf /etc/nginx/nginx.conf.waf
 COPY utils/build/docker/cpp_nginx/nginx/hello.html /builds/hello.html
+COPY utils/build/docker/cpp_nginx/nginx/app.sh /builds/
 COPY utils/build/docker/cpp_nginx/install_ddtrace.sh /builds/
 COPY utils/build/docker/cpp_nginx/install_ddprof.sh /builds/
-COPY utils/build/docker/cpp_nginx/nginx/app.sh /builds/
 COPY utils/build/docker/cpp_nginx/ binaries* /builds/
+COPY binaries/* /binaries/
+COPY utils/build/docker/cpp_nginx/nginx/backend.c /tmp/
+
+RUN gcc -O0 -g -o /usr/local/bin/backend /tmp/backend.c -lmicrohttpd && rm /tmp/backend.c
 
 WORKDIR /builds
 
