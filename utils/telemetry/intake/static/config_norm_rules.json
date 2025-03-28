@@ -903,6 +903,8 @@
     "trace.aws-sdk.legacy.tracing.enabled": "trace_aws_sdk_legacy_tracing_enabled",
     "trace.aws-sdk.propagation.enabled": "trace_aws_sdk_propagation_enabled",
     "trace.aws.addSpanPointers": "trace_aws_add_span_pointers",
+    "trace.baggage_max_bytes": "trace_baggage_max_bytes",
+    "trace.baggage_max_items": "trace_baggage_max_items",
     "trace.beta_high_memory_pressure_percent": "trace_beta_high_memory_pressure_percent",
     "trace.bgs_connect_timeout": "trace_bgs_connect_timeout",
     "trace.bgs_timeout": "trace_bgs_timeout",
