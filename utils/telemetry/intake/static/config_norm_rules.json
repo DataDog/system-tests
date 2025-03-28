@@ -324,6 +324,8 @@
     "agent_url": "trace_agent_url",
     "analytics_enabled": "analytics_enabled",
     "api-security_sample_delay": "api_security_sample_delay",
+    "api-security_endpoint_collection_enabled": "api_security_endpoint_collection_enabled",
+    "api-security_endpoint_collection_message_limit": "api_security_endpoint_collection_message_limit",
     "apm.tracing.enabled": "apm_tracing_enabled",
     "apmTracingEnabled": "apm_tracing_enabled",
     "appsec.apiSecurity.enabled": "api_security_enabled",
