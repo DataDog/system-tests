@@ -1459,7 +1459,7 @@ tests/:
         '*': v1.8.0
         play: v1.22.0
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
-      Test_CustomEvent_Metrics: v1.48.0
+      Test_CustomEvent_Metrics: missing_feature
       Test_UserLoginFailureEvent:
         '*': v1.8.0
         play: v1.22.0
