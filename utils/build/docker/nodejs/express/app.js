@@ -141,21 +141,26 @@ app.get('/make_distant_call', (req, res) => {
 
     response.on('end', () => {
       res.json({
+        url,
         status_code: response.statusCode,
         request_headers: response.req._headers,
         response_headers: response.headers,
-        body: responseBody
+        response_body: responseBody
       })
     })
   })
 
   // Handle errors
-  request.on('error', (e) => {
-    console.error(`Problem with request: ${e.message}`)
-    res.status(500).json({ error: e.message })
+  request.on('error', (error) => {
+    console.log(error)
+    res.json({
+      url,
+      status_code: 500,
+      request_headers: null,
+      response_headers: null
+    })
   })
 
-  // End the request (send it out)
   request.end()
 })
 
