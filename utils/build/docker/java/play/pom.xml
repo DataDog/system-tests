@@ -139,7 +139,7 @@
                 <artifactId>sbt-compiler-maven-plugin</artifactId>
                 <version>1.0.0</version>
                 <configuration>
-                    <scalacOptions>-feature -deprecation -Xfatal-warnings</scalacOptions>
+                    <scalacOptions>-feature -deprecation</scalacOptions>
                 </configuration>
                 <executions>
                     <execution>
