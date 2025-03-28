@@ -13,8 +13,8 @@ import (
 )
 
 type DatadogInformations struct {
-	Language string `json:"language"`
-	Version  string `json:"version"`
+	Name    string `json:"name"`
+	Version string `json:"version"`
 }
 
 type HealtchCheck struct {
@@ -78,14 +78,13 @@ func GetHealtchCheck() (HealtchCheck, error) {
 }
 
 func GetDatadogInformations() (DatadogInformations, error) {
-
 	tracerVersion, err := os.ReadFile("SYSTEM_TESTS_LIBRARY_VERSION")
 	if err != nil {
-		return DatadogInformations{}, errors.New("Can't get SYSTEM_TESTS_LIBRARY_VERSION")
+		return DatadogInformations{}, errors.New("can't get SYSTEM_TESTS_LIBRARY_VERSION")
 	}
 
 	return DatadogInformations{
-		Language: "golang",
-		Version:  string(tracerVersion),
+		Name:    "golang",
+		Version: string(tracerVersion),
 	}, nil
 }

@@ -11,8 +11,8 @@ import (
 	"syscall"
 	"time"
 
-	"weblog/gqlgen/graph"
-	"weblog/internal/common"
+	"systemtests.weblog/_shared/common"
+	"systemtests.weblog/gqlgen/graph"
 
 	graphqltrace "github.com/DataDog/dd-trace-go/contrib/99designs/gqlgen/v2"
 	httptrace "github.com/DataDog/dd-trace-go/contrib/net/http/v2"

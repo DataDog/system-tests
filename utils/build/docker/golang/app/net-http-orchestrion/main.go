@@ -17,20 +17,20 @@ import (
 	"syscall"
 	"time"
 
-	"weblog/internal/common"
-	"weblog/internal/grpc"
-	"weblog/internal/rasp"
+	"systemtests.weblog/_shared/common"
+	"systemtests.weblog/_shared/grpc"
+	"systemtests.weblog/_shared/rasp"
 
+	"github.com/DataDog/dd-trace-go/v2/appsec"
+	"github.com/DataDog/dd-trace-go/v2/datastreams"
+	"github.com/DataDog/dd-trace-go/v2/ddtrace/opentelemetry"
+	"github.com/DataDog/dd-trace-go/v2/ddtrace/tracer"
 	"github.com/Shopify/sarama"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/trace"
-	"github.com/DataDog/dd-trace-go/v2/appsec"
-	"github.com/DataDog/dd-trace-go/v2/datastreams"
-	"github.com/DataDog/dd-trace-go/v2/ddtrace/opentelemetry"
-	"github.com/DataDog/dd-trace-go/v2/ddtrace/tracer"
 )
 
 func main() {
@@ -249,6 +249,23 @@ func main() {
 		appsec.TrackUserLoginSuccessEvent(r.Context(), uid, map[string]string{"metadata0": "value0", "metadata1": "value1"})
 	})
 
+	mux.HandleFunc("/user_login_success_event_v2", func(w http.ResponseWriter, r *http.Request) {
+		var data struct {
+			Login    string            `json:"login"`
+			UserID   string            `json:"user_id"`
+			Metadata map[string]string `json:"metadata"`
+		}
+		if err := json.NewDecoder(r.Body).Decode(&data); err != nil {
+			log.Println("error decoding request body for", r.URL, ":", err)
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte(err.Error()))
+			return
+		}
+
+		appsec.TrackUserLoginSuccess(r.Context(), data.Login, data.UserID, data.Metadata)
+		w.WriteHeader(http.StatusNoContent)
+	})
+
 	mux.HandleFunc("/user_login_failure_event", func(w http.ResponseWriter, r *http.Request) {
 		uquery := r.URL.Query()
 		uid := "system_tests_user"
@@ -263,6 +280,31 @@ func main() {
 			}
 		}
 		appsec.TrackUserLoginFailureEvent(r.Context(), uid, exists, map[string]string{"metadata0": "value0", "metadata1": "value1"})
+	})
+
+	mux.HandleFunc("/user_login_failure_event_v2", func(w http.ResponseWriter, r *http.Request) {
+		var data struct {
+			Login    string            `json:"login"`
+			Exists   string            `json:"exists"`
+			Metadata map[string]string `json:"metadata"`
+		}
+		if err := json.NewDecoder(r.Body).Decode(&data); err != nil {
+			log.Println("error decoding request body for ", r.URL, ":", err)
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte(err.Error()))
+			return
+		}
+
+		exists, err := strconv.ParseBool(data.Exists)
+		if err != nil {
+			log.Printf("error parsing exists value %q: %v\n", data.Exists, err)
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte(err.Error()))
+			return
+		}
+
+		appsec.TrackUserLoginFailure(r.Context(), data.Login, exists, data.Metadata)
+		w.WriteHeader(http.StatusNoContent)
 	})
 
 	mux.HandleFunc("/custom_event", func(w http.ResponseWriter, r *http.Request) {

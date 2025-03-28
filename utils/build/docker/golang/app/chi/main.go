@@ -16,17 +16,15 @@ import (
 	"syscall"
 	"time"
 
-	"weblog/internal/rasp"
-
-	"weblog/internal/common"
-	"weblog/internal/grpc"
+	"systemtests.weblog/_shared/common"
+	"systemtests.weblog/_shared/grpc"
+	"systemtests.weblog/_shared/rasp"
 
 	"github.com/go-chi/chi/v5"
 
 	chitrace "github.com/DataDog/dd-trace-go/contrib/go-chi/chi.v5/v2"
 	httptrace "github.com/DataDog/dd-trace-go/contrib/net/http/v2"
 	"github.com/DataDog/dd-trace-go/v2/appsec"
-	"github.com/DataDog/dd-trace-go/v2/ddtrace"
 	"github.com/DataDog/dd-trace-go/v2/ddtrace/tracer"
 	"github.com/DataDog/dd-trace-go/v2/profiler"
 )
@@ -213,6 +211,23 @@ func main() {
 		appsec.TrackUserLoginSuccessEvent(r.Context(), uid, map[string]string{"metadata0": "value0", "metadata1": "value1"})
 	})
 
+	mux.HandleFunc("/user_login_success_event_v2", func(w http.ResponseWriter, r *http.Request) {
+		var data struct {
+			Login    string            `json:"login"`
+			UserID   string            `json:"user_id"`
+			Metadata map[string]string `json:"metadata"`
+		}
+		if err := json.NewDecoder(r.Body).Decode(&data); err != nil {
+			log.Println("error decoding request body for", r.URL, ":", err)
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte(err.Error()))
+			return
+		}
+
+		appsec.TrackUserLoginSuccess(r.Context(), data.Login, data.UserID, data.Metadata)
+		w.WriteHeader(http.StatusNoContent)
+	})
+
 	mux.HandleFunc("/user_login_failure_event", func(w http.ResponseWriter, r *http.Request) {
 		uquery := r.URL.Query()
 		uid := "system_tests_user"
@@ -229,6 +244,31 @@ func main() {
 		appsec.TrackUserLoginFailureEvent(r.Context(), uid, exists, map[string]string{"metadata0": "value0", "metadata1": "value1"})
 	})
 
+	mux.HandleFunc("/user_login_failure_event_v2", func(w http.ResponseWriter, r *http.Request) {
+		var data struct {
+			Login    string            `json:"login"`
+			Exists   string            `json:"exists"`
+			Metadata map[string]string `json:"metadata"`
+		}
+		if err := json.NewDecoder(r.Body).Decode(&data); err != nil {
+			log.Println("error decoding request body for ", r.URL, ":", err)
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte(err.Error()))
+			return
+		}
+
+		exists, err := strconv.ParseBool(data.Exists)
+		if err != nil {
+			log.Printf("error parsing exists value %q: %v\n", data.Exists, err)
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte(err.Error()))
+			return
+		}
+
+		appsec.TrackUserLoginFailure(r.Context(), data.Login, exists, data.Metadata)
+		w.WriteHeader(http.StatusNoContent)
+	})
+
 	mux.HandleFunc("/custom_event", func(w http.ResponseWriter, r *http.Request) {
 		uquery := r.URL.Query()
 		name := "system_tests_event"
@@ -242,7 +282,7 @@ func main() {
 		parentName := r.URL.Query().Get("parentName")
 		childName := r.URL.Query().Get("childName")
 
-		tags := []ddtrace.StartSpanOption{}
+		tags := []tracer.StartSpanOption{}
 
 		// We need to propagate the user agent header to retain the mapping between the system-tests/weblog request id
 		// and the traces/spans that will be generated below, so that we can reference to them in our tests.

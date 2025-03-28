@@ -12,7 +12,8 @@ import (
 	httptrace "github.com/DataDog/dd-trace-go/contrib/net/http/v2"
 	"github.com/DataDog/dd-trace-go/v2/appsec"
 	"github.com/DataDog/dd-trace-go/v2/appsec/events"
-	_ "github.com/mattn/go-sqlite3"
+
+	_ "github.com/mattn/go-sqlite3" // To register the driver
 )
 
 func parseRASPRequest(r *http.Request, key string) string {
