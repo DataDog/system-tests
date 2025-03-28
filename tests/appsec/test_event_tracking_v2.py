@@ -113,6 +113,7 @@ class Test_UserLoginSuccessEventV2_Tags:
         self.r = weblog.post("/user_login_success_event_v2", json=data, headers=headers)
 
     @irrelevant(library="golang", reason="dd-trace-go only accepts string metadata values")
+    @irrelevant(library="java", reason="dd-trace-java only accepts string metadata values")
     def test_user_login_success_event_multi_type_metadata(self):
         # Call the user login success SDK and validate tags
 
@@ -142,6 +143,7 @@ class Test_UserLoginSuccessEventV2_Tags:
             self.r, validator=self.get_user_login_success_tags_validator(LOGIN_SAFE, USER_ID_SAFE)
         )
 
+    @irrelevant(library="java", reason="dd-trace-java only accepts string metadata values")
     def setup_user_login_success_event_deep_metadata(self):
         headers = {
             "X-Forwarded-For": "1.2.3.4",
@@ -157,6 +159,7 @@ class Test_UserLoginSuccessEventV2_Tags:
         self.r = weblog.post("/user_login_success_event_v2", json=data, headers=headers)
 
     @irrelevant(library="golang", reason="dd-trace-go only accepts string metadata values")
+    @irrelevant(library="java", reason="dd-trace-java only accepts string metadata values")
     def test_user_login_success_event_deep_metadata(self):
         # Call the user login success SDK with deep metadata and validate tags
 
@@ -365,6 +368,7 @@ class Test_UserLoginFailureEventV2_Tags:
         self.r = weblog.post("/user_login_failure_event_v2", json=data, headers=headers)
 
     @irrelevant(library="golang", reason="dd-trace-go only accepts string metadata values")
+    @irrelevant(library="java", reason="dd-trace-java only accepts string metadata values")
     def test_user_login_failure_event_deep_metadata(self):
         # Call the user login failure SDK with deep metadata and validate tags
 
