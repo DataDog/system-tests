@@ -2,11 +2,12 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, missing_feature, features, rfc, weblog
+from utils import context, missing_feature, features, rfc, weblog, flaky
 from tests.appsec.iast.utils import BaseSinkTest, validate_extended_location_data, validate_stack_traces
 
 
 @features.iast_sink_command_injection
+@flaky(context.library > "python@3.3.0", reason="APPSEC-57094")
 class TestCommandInjection(BaseSinkTest):
     """Test command injection detection."""
 
@@ -52,6 +53,7 @@ class TestCommandInjection_StackTrace:
 
 @rfc("https://docs.google.com/document/d/1R8AIuQ9_rMHBPdChCb5jRwPrg1WvIz96c_WQ3y8DWk4")
 @features.iast_extended_location
+@flaky(context.library > "python@3.3.0", reason="APPSEC-57094")
 class TestCommandInjection_ExtendedLocation:
     """Test extended location data"""
 
