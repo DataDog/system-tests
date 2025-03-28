@@ -17,10 +17,13 @@ use Amp\Log\StreamHandler;
 use DDTrace\Configuration;
 use Monolog\Logger;
 use Monolog\Processor\PsrLogMessageProcessor;
+use OpenTelemetry\API\Baggage\Baggage;
 use OpenTelemetry\API\Trace\Propagation\TraceContextPropagator;
 use OpenTelemetry\API\Trace\Span;
 use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\API\Trace\StatusCode;
+use OpenTelemetry\Context\Context;
+use OpenTelemetry\Context\ContextKeys;
 use OpenTelemetry\Context\ScopeInterface;
 use OpenTelemetry\SDK\Trace as SDK;
 use OpenTelemetry\SDK\Trace\TracerProvider;
@@ -121,6 +124,9 @@ $router->addRoute('POST', '/trace/span/start', new ClosureRequestHandler(functio
             $span = \DDTrace\start_trace_span();
         }
     } else {
+        if(isset($spansDistributedTracingHeaders['0'])){
+            \DDTrace\consume_distributed_tracing_headers($spansDistributedTracingHeaders['0']);
+        }
         $span = \DDTrace\start_trace_span();
     }
     $span->name = arg($req, 'name');
@@ -168,7 +174,11 @@ $router->addRoute('POST', '/trace/span/extract_headers', new ClosureRequestHandl
     };
     \DDTrace\consume_distributed_tracing_headers($callback);
     $spanID = $span->parentId ?? null;
-    $spansDistributedTracingHeaders[$spanID] = $headers;
+    if ($spanID === null && isset($headers['baggage'])) {
+        $spansDistributedTracingHeaders['0'] = $headers;
+    } else {
+        $spansDistributedTracingHeaders[$spanID] = $headers;
+    }
     return jsonResponse(["span_id" => $spanID]);
 }));
 $router->addRoute('POST', '/trace/span/set_resource', new ClosureRequestHandler(function (Request $req) use (&$spans) {
@@ -268,6 +278,37 @@ $router->addRoute('GET', '/trace/span/current', new ClosureRequestHandler(functi
     }
 
     return jsonResponse($payload);
+}));
+$router->addRoute('POST', '/trace/span/set_baggage', new ClosureRequestHandler(function (Request $req) use (&$spans) {
+    $span = $spans[arg($req, 'span_id')];
+    $key = arg($req, 'key');
+    $value = arg($req, 'value');
+    $span->baggage[$key] = $value;
+    return jsonResponse([]);
+}));
+$router->addRoute('GET', '/trace/span/get_baggage', new ClosureRequestHandler(function (Request $req) use (&$spans) {
+    $span = $spans[arg($req, 'span_id')];
+    $key = arg($req, 'key');
+    return jsonResponse([
+        'baggage' => $span->baggage[$key],
+    ]);
+}));
+$router->addRoute('GET', '/trace/span/get_all_baggage', new ClosureRequestHandler(function (Request $req) use (&$spans) {
+    $span = $spans[arg($req, 'span_id')];
+    return jsonResponse([
+        'baggage' => $span->baggage,
+    ]);
+}));
+$router->addRoute('POST', '/trace/span/remove_baggage', new ClosureRequestHandler(function (Request $req) use (&$spans) {
+    $span = $spans[arg($req, 'span_id')];
+    $key = arg($req, 'key');
+    unset($span->baggage[$key]);
+    return jsonResponse([]);
+}));
+$router->addRoute('POST', '/trace/span/remove_all_baggage', new ClosureRequestHandler(function (Request $req) use (&$spans) {
+    $span = $spans[arg($req, 'span_id')];
+    $span->baggage = [];
+    return jsonResponse([]);
 }));
 $router->addRoute('POST', '/trace/otel/start_span', new ClosureRequestHandler(function (Request $req) use (&$spans, &$otelSpans, &$scopes, &$activeSpan) {
     $name = arg($req, 'name');
@@ -484,6 +525,20 @@ $router->addRoute('POST', '/trace/otel/record_exception', new ClosureRequestHand
     }
 
     return jsonResponse([]);
+}));
+$router->addRoute('POST', '/trace/otel/otel_set_baggage', new ClosureRequestHandler(function (Request $req) use (&$otelSpans) {
+    // $spanId = arg($req, 'span_id');
+    $key = arg($req, 'key');
+    $value = arg($req, 'value');
+    $context = Context::getCurrent();
+    $baggage = Baggage::getBuilder()
+        ->set($key, $value)
+        ->build();
+    $context = $context->with(ContextKeys::baggage(), $baggage);
+
+    $retrievedValue = $baggage->getValue($key);
+
+    return jsonResponse(['value' => $retrievedValue]);
 }));
 $router->addRoute('GET', '/trace/config', new ClosureRequestHandler(function (Request $req) {
 
