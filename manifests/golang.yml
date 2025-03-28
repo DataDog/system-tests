@@ -745,7 +745,13 @@ tests/:
     Test_UrlQuery: v1.40.0
   test_semantic_conventions.py:
     Test_Meta: v1.45.0
-  test_span_events.py: incomplete_test_app (Weblog `/add_event` not implemented)
+  test_span_events.py:
+    Test_SpanEvents_WithAgentSupport:
+      "*": irrelevant
+      net-http: v1.73.0
+    Test_SpanEvents_WithoutAgentSupport:
+      "*": irrelevant
+      net-http: v1.73.0
   test_standard_tags.py:
     Test_StandardTagsClientIp: v1.46.0
     Test_StandardTagsMethod: v1.39.0
