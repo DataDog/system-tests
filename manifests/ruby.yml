@@ -612,19 +612,19 @@ tests/:
       rails70: v2.12.0
     Test_Config_IntegrationEnabled_True:
       '*': irrelevant (endpoint not implemented)
-      rails70: v2.12.0
+      rails70: v2.13.0
     Test_Config_LogInjection_128Bit_TraceId_Disabled:
       '*': irrelevant (endpoint not implemented)
-      rails70: v2.12.0
+      rails70: v2.13.0
     Test_Config_LogInjection_128Bit_TraceId_Enabled:
       '*': irrelevant (endpoint not implemented)
-      rails70: v2.12.0
+      rails70: v2.13.0
     Test_Config_LogInjection_Default:
       '*': irrelevant (endpoint not implemented)
       rails70: irrelavent (dd-trace-rb enables log injection by default, we are planning to revist this behavior in the future. This will likely be the new default)
     Test_Config_LogInjection_Enabled:
       '*': irrelevant (endpoint not implemented)
-      rails70: v2.12.0
+      rails70: v2.13.0
     Test_Config_ObfuscationQueryStringRegexp_Configured: missing_feature
     Test_Config_ObfuscationQueryStringRegexp_Default: bug (APMAPI-1013)
     Test_Config_ObfuscationQueryStringRegexp_Empty: missing_feature (environment variable is not supported)
