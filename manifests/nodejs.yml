@@ -438,16 +438,10 @@ tests/:
         Test_Cmdi_Mandatory_SpanTags: *ref_5_30_0
         Test_Cmdi_Optional_SpanTags: *ref_5_30_0
         Test_Cmdi_Rules_Version: *ref_5_30_0
-        Test_Cmdi_StackTrace:
-          '*': *ref_5_30_0
-          nextjs: missing_feature
-        Test_Cmdi_Telemetry:
-          '*': *ref_5_30_0
-          nextjs: missing_feature
+        Test_Cmdi_StackTrace: *ref_5_30_0
+        Test_Cmdi_Telemetry: *ref_5_30_0
         Test_Cmdi_Telemetry_V2: *ref_5_46_0
-        Test_Cmdi_Telemetry_Variant_Tag:
-          '*': *ref_5_30_0
-          nextjs: missing_feature
+        Test_Cmdi_Telemetry_Variant_Tag: *ref_5_30_0
         Test_Cmdi_UrlQuery:
           '*': *ref_5_30_0
           nextjs: missing_feature
