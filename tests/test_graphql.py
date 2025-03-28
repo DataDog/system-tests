@@ -140,7 +140,6 @@ class Test_GraphQLQueryErrorReporting:
     def _has_location(span) -> bool:
         lang = span["meta"]["language"]
         component = span["meta"]["component"]
-        print(lang, component)
         return COMPONENT_EXCEPTIONS[lang][component]["has_location"]
 
     @staticmethod
