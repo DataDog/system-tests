@@ -572,7 +572,7 @@ class Test_APMOnboardingInstallID:
 
 
 def get_all_keys_and_values(*objs: tuple[None | dict | list, ...]) -> list:
-    result = []
+    result: list = []
     for obj in objs:
         if obj is not None:
             if isinstance(obj, dict):

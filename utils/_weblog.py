@@ -3,6 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 import json
+from http import HTTPStatus
 import os
 import random
 import string
@@ -232,7 +233,7 @@ class _Weblog:
             logger.error(f"Request {rid} raise an error: {e}")
         else:
             logger.debug(f"Request {rid}: {response.status_code}")
-            if response.status_code == 404:
+            if response.status_code == HTTPStatus.NOT_FOUND:
                 logger.error(
                     "💡 if your test is failing, you may need to add missing_feature for this weblog in manifest file."
                 )

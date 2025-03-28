@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from http import HTTPStatus
 import os
 import sys
 import pytest
@@ -147,7 +148,7 @@ class DockerScenario(Scenario):
                 return container
         return None
 
-    def _start_interfaces_watchdog(self, interfaces: list[ProxyBasedInterfaceValidator]):
+    def start_interfaces_watchdog(self, interfaces: list[ProxyBasedInterfaceValidator]):
         class Event(FileSystemEventHandler):
             def __init__(self, interface: ProxyBasedInterfaceValidator) -> None:
                 super().__init__()
@@ -442,8 +443,8 @@ class EndToEndScenario(DockerScenario):
 
         logger.stdout("")
 
-    def _start_interface_watchdog(self):
-        super()._start_interfaces_watchdog(
+    def _start_interfaces_watchdog(self):
+        super().start_interfaces_watchdog(
             [interfaces.library, interfaces.agent] + [container.interface for container in self.buddies]
         )
 
@@ -472,7 +473,7 @@ class EndToEndScenario(DockerScenario):
         warmups = super().get_warmups()
 
         if not self.replay:
-            warmups.insert(1, self._start_interface_watchdog)
+            warmups.insert(1, self._start_interfaces_watchdog)
             warmups.append(self._get_weblog_system_info)
             warmups.append(self._wait_for_app_readiness)
             warmups.append(self._set_weblog_domain)
@@ -539,7 +540,7 @@ class EndToEndScenario(DockerScenario):
                 # for weblogs who supports it, call the flush endpoint
                 try:
                     r = weblog.get("/flush", timeout=10)
-                    assert r.status_code == 200
+                    assert r.status_code == HTTPStatus.OK
                 except:
                     self.weblog_container.healthy = False
                     logger.stdout(
