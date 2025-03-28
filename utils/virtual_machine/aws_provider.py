@@ -131,6 +131,9 @@ class AWSPulumiProvider(VmProvider):
                 vm.aws_config.ami_id = ssm_parameter.value
             ec2_user_data = self.get_windows_user_data()
 
+        logger.info(
+            f"Starting VM: {vm.name} with iam_instance_profile: {vm.aws_config.aws_infra_config.iam_instance_profile}"
+        )
         # Startup VM and prepare connection
         ec2_server = aws.ec2.Instance(
             vm.name,
@@ -506,7 +509,7 @@ class DatadogEventSender:
 
     def __init__(self):
         self.ddev_api_key = os.getenv("DDEV_API_KEY")
-        self.ci_project_name = os.getenv("CI_PROJECT_NAME")
+        self.ci_project_name = os.getenv("CI_PROJECT_NAME", "local")
 
     def sendEventToDatadog(self, title, message, tags):
         if not self.ddev_api_key:
@@ -517,10 +520,9 @@ class DatadogEventSender:
             host = "https://dddev.datadoghq.com/api/v1/events"
             headers = {"DD-API-KEY": self.ddev_api_key}
 
-            default_tags = ["repository:datadog/datadog-agent", f"test:{context.scenario.name}", "source:pulumi"]
+            default_tags = ["repository:system-tests", f"test:{context.scenario.name}", "source:pulumi"]
             default_tags = default_tags + tags
-            if self.ci_project_name is not None:
-                default_tags.append(f"ci_project_name:{self.ci_project_name}")
+            default_tags.append(f"ci_project_name:{self.ci_project_name}")
             data_to_send = {
                 "title": title,
                 "text": (message[:255] + "..") if len(message) > 255 else message,
