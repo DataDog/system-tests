@@ -884,11 +884,9 @@ tests/:
       Test_Decisionless_Extraction: v2.8.0
     test_sampling_span_tags.py:
       Test_Sampling_Span_Tags: v2.8.0
-      test_span_events.py:
-        Test_SpanEvents_WithAgentSupport:
-          "*": irrelevant
-        Test_SpanEvents_WithoutAgentSupport:
-          "*": irrelevant # TODO: update flask-poc once released
+    test_span_events.py:
+      Test_SpanEvents_WithAgentSupport: missing_feature
+      Test_SpanEvents_WithoutAgentSupport: missing_feature
     test_span_links.py:
       Test_Span_Links: v2.3.0
     test_span_sampling.py:
