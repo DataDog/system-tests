@@ -707,17 +707,17 @@ tests/:
         '*': *ref_3_13_0
         nextjs: missing_feature
     test_fingerprinting.py:
+      Test_Fingerprinting_Endpoint: *ref_5_24_0
       Test_Fingerprinting_Endpoint_Capability: *ref_5_24_0
-      Test_Fingerprinting_Endpoint_Postprocessor: *ref_5_24_0
       Test_Fingerprinting_Endpoint_Preprocessor: *ref_5_24_0
-      Test_Fingerprinting_Header_And_Network_Postprocessor: *ref_5_24_0
+      Test_Fingerprinting_Header_And_Network: *ref_5_24_0
       Test_Fingerprinting_Header_And_Network_Preprocessor: *ref_5_24_0
       Test_Fingerprinting_Header_Capability: *ref_5_24_0
       Test_Fingerprinting_Network_Capability: *ref_5_24_0
-      Test_Fingerprinting_Session_Capability: *ref_5_39_0
-      Test_Fingerprinting_Session_Postprocessor:
+      Test_Fingerprinting_Session:
         '*': *ref_5_39_0
         nextjs: missing_feature
+      Test_Fingerprinting_Session_Capability: *ref_5_39_0
       Test_Fingerprinting_Session_Preprocessor:
         '*': *ref_5_39_0
         nextjs: missing_feature

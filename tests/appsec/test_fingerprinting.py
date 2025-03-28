@@ -18,7 +18,7 @@ def get_span_meta(r):
 
 @rfc("https://docs.google.com/document/d/1DivOa9XsCggmZVzMI57vyxH2_EBJ0-qqIkRHm_sEvSs/edit#heading=h.88xvn2cvs9dt")
 @features.fingerprinting
-class Test_Fingerprinting_Header_And_Network_Postprocessor:
+class Test_Fingerprinting_Header_And_Network:
     network_fingerprint_regex = r"net-[^-]*-[^-]*"
     header_fingerprint_regex = r"hdr-[^-]*-[^-]*-[^-]*-[^-]*"
 
@@ -61,7 +61,7 @@ class Test_Fingerprinting_Header_And_Network_Postprocessor:
 
 @rfc("https://docs.google.com/document/d/1DivOa9XsCggmZVzMI57vyxH2_EBJ0-qqIkRHm_sEvSs/edit#heading=h.88xvn2cvs9dt")
 @features.fingerprinting
-class Test_Fingerprinting_Endpoint_Postprocessor:
+class Test_Fingerprinting_Endpoint:
     endpoint_fingerprint_regex = r"http-[^-]*-[^-]*-[^-]*-[^-]*"
 
     def setup_fingerprinting_endpoint(self):
@@ -78,7 +78,7 @@ class Test_Fingerprinting_Endpoint_Postprocessor:
 
 @rfc("https://docs.google.com/document/d/1DivOa9XsCggmZVzMI57vyxH2_EBJ0-qqIkRHm_sEvSs/edit#heading=h.88xvn2cvs9dt")
 @features.fingerprinting
-class Test_Fingerprinting_Session_Postprocessor:
+class Test_Fingerprinting_Session:
     session_fingerprint_regex = r"ssn-[^-]*-[^-]*-[^-]*-[^-]*"
 
     def setup_session(self):
