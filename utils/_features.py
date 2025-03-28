@@ -915,6 +915,15 @@ class _Features:
         return test_object
 
     @staticmethod
+    def event_tracking_sdk_v2(test_object):
+        """Event tracking SDK v2
+
+        https://feature-parity.us1.prod.dog/#/?feature=372
+        """
+        pytest.mark.features(feature_id=372)(test_object)
+        return test_object
+
+    @staticmethod
     def serialize_waf_rules_without_limiting_their_sizes(test_object):
         """Serialize WAF rules without limiting their sizes
 

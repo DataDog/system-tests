@@ -20,14 +20,14 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
 import akka.http.scaladsl.model.{HttpEntity, MediaTypes}
 import akka.http.scaladsl.unmarshalling.{FromEntityUnmarshaller, Unmarshaller}
+import com.fasterxml.jackson.core.`type`.TypeReference
+import datadog.appsec.api.login.EventTrackerV2
 
 import java.util
 import scala.concurrent.Future
 import scala.xml.{Elem, XML}
-
 import datadog.appsec.api.user.User.setUser
 
-import java.util.Collections.emptyMap
 import scala.jdk.CollectionConverters._
 
 object AppSecRoutes {
@@ -224,6 +224,30 @@ object AppSecRoutes {
           parameter("event_name".?("system_tests_event")) { eventName =>
             eventTracker.trackCustomEvent(eventName, metadata)
             complete("ok")
+          }
+        }
+      } ~
+      path("user_login_success_event_v2") {
+        post {
+          entity(as[JsonNode]) { payload =>
+            val login = payload.get("login").asText()
+            val userId = payload.get("user_id").asText()
+            val meta = objectMapper.convertValue(payload.get("metadata"), new TypeReference[Map[String, String]] {}).asJava
+            EventTrackerV2.trackUserLoginSuccess(login, userId, meta)
+            val entity = HttpEntity(ContentTypes.`text/html(UTF-8)`, "<html><body>ok</body></html>")
+            complete(StatusCodes.OK, entity)
+          }
+        }
+      } ~
+      path("user_login_failure_event_v2") {
+        post {
+          entity(as[JsonNode]) { payload =>
+            val login = payload.get("login").asText()
+            val exists = payload.get("exists").asBoolean()
+            val meta = objectMapper.convertValue(payload.get("metadata"), new TypeReference[Map[String, String]] {}).asJava
+            EventTrackerV2.trackUserLoginFailure(login, exists, meta)
+            val entity = HttpEntity(ContentTypes.`text/html(UTF-8)`, "<html><body>ok</body></html>")
+            complete(StatusCodes.OK, entity)
           }
         }
       } ~
