@@ -518,7 +518,7 @@ tests/:
     test_config_consistency.py:
       Test_Config_Dogstatsd: missing_feature
       Test_Config_RateLimit: v2.0.0
-      Test_Config_Tags: v2.12.0
+      Test_Config_Tags: v2.13.0
       Test_Config_TraceAgentURL: v2.5.0
       Test_Config_TraceEnabled: v2.0.0
       Test_Config_TraceLogDirectory: missing_feature
@@ -609,7 +609,7 @@ tests/:
     Test_Config_HttpServerErrorStatuses_FeatureFlagCustom: missing_feature
     Test_Config_IntegrationEnabled_False:
       '*': irrelevant (endpoint not implemented)
-      rails70: v2.12.0
+      rails70: v2.13.0
     Test_Config_IntegrationEnabled_True:
       '*': irrelevant (endpoint not implemented)
       rails70: v2.13.0
