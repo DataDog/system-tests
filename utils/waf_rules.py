@@ -6,7 +6,10 @@
 #    python utils/scripts/extract_appsec_waf_rules.py
 
 
-class security_scanner:
+from enum import StrEnum
+
+
+class security_scanner(StrEnum):
     crs_913_110 = "crs-913-110"  # Acunetix
     crs_913_120 = "crs-913-120"  # Known security scanner filename/argument
     nfd_000_001 = "nfd-000-001"  # Detect common directory discovery scans
@@ -68,7 +71,7 @@ class security_scanner:
     ua0_600_9xx = "ua0-600-9xx"  # Skipfish
 
 
-class http_protocol_violation:
+class http_protocol_violation(StrEnum):
     crs_920_260 = "crs-920-260"  # Unicode Full/Half Width Abuse Attack Attempt
     crs_921_110 = "crs-921-110"  # HTTP Request Smuggling Attack
     crs_921_140 = "crs-921-140"  # HTTP Header Injection Attack via headers
@@ -76,18 +79,18 @@ class http_protocol_violation:
     crs_943_100 = "crs-943-100"  # Possible Session Fixation Attack: Setting Cookie Values in HTML
 
 
-class lfi:
+class lfi(StrEnum):
     crs_930_100 = "crs-930-100"  # Obfuscated Path Traversal Attack (/../)
     crs_930_110 = "crs-930-110"  # Simple Path Traversal Attack (/../)
     crs_930_120 = "crs-930-120"  # OS File Access Attempt
 
 
-class rfi:
+class rfi(StrEnum):
     crs_931_110 = "crs-931-110"  # RFI: Common RFI Vulnerable Parameter Name used w/ URL Payload
     crs_931_120 = "crs-931-120"  # RFI: URL Payload Used w/Trailing Question Mark Character (?)
 
 
-class command_injection:
+class command_injection(StrEnum):
     crs_932_160 = "crs-932-160"  # Remote Command Execution: Unix Shell Code Found
     crs_932_171 = "crs-932-171"  # Remote Command Execution: Shellshock (CVE-2014-6271)
     crs_932_180 = "crs-932-180"  # Restricted File Upload Attempt
@@ -96,11 +99,11 @@ class command_injection:
     sqr_000_010 = "sqr-000-010"  # Windows: Detect attempts to timeout a shell
 
 
-class unrestricted_file_upload:
+class unrestricted_file_upload(StrEnum):
     crs_933_111 = "crs-933-111"  # PHP Injection Attack: PHP Script File Upload Found
 
 
-class php_code_injection:
+class php_code_injection(StrEnum):
     crs_933_130 = "crs-933-130"  # PHP Injection Attack: Global Variables Found
     crs_933_131 = "crs-933-131"  # PHP Injection Attack: HTTP Headers Values Found
     crs_933_140 = "crs-933-140"  # PHP Injection Attack: I/O Stream Found
@@ -110,14 +113,14 @@ class php_code_injection:
     crs_933_200 = "crs-933-200"  # PHP Injection Attack: Wrapper scheme detected
 
 
-class js_code_injection:
+class js_code_injection(StrEnum):
     crs_934_100 = "crs-934-100"  # Node.js Injection Attack
     dog_000_005 = "dog-000-005"  # Node.js: Prototype pollution through __proto__
     dog_000_006 = "dog-000-006"  # Node.js: Prototype pollution through constructor.prototype
     sqr_000_002 = "sqr-000-002"  # Server-side Javascript injection: Try to detect obvious JS injection
 
 
-class xss:
+class xss(StrEnum):
     crs_941_100 = "crs-941-100"  # XSS Attack Detected via libinjection
     crs_941_110 = "crs-941-110"  # XSS Filter - Category 1: Script Tag Vector
     crs_941_120 = "crs-941-120"  # XSS Filter - Category 2: Event Handler Vector
@@ -136,7 +139,7 @@ class xss:
     crs_941_360 = "crs-941-360"  # JSFuck / Hieroglyphy obfuscation detected
 
 
-class sql_injection:
+class sql_injection(StrEnum):
     crs_942_100 = "crs-942-100"  # SQL Injection Attack Detected via libinjection
     crs_942_160 = "crs-942-160"  # Detects blind sqli tests using sleep() or benchmark()
     crs_942_190 = "crs-942-190"  # Detects MSSQL code execution and information gathering attempts
@@ -148,13 +151,13 @@ class sql_injection:
     crs_942_500 = "crs-942-500"  # MySQL in-line comment detected
 
 
-class nosql_injection:
+class nosql_injection(StrEnum):
     crs_942_290 = "crs-942-290"  # Finds basic MongoDB SQL injection attempts
     dog_000_001 = "dog-000-001"  # Look for Cassandra injections
     sqr_000_007 = "sqr-000-007"  # NoSQL: Detect common exploitation strategy
 
 
-class java_code_injection:
+class java_code_injection(StrEnum):
     crs_944_100 = "crs-944-100"  # Remote Command Execution: Suspicious Java class detected
     crs_944_110 = "crs-944-110"  # Remote Command Execution: Java process spawn (CVE-2017-9805)
     crs_944_130 = "crs-944-130"  # Suspicious Java class detected
@@ -162,12 +165,12 @@ class java_code_injection:
     dog_000_003 = "dog-000-003"  # OGNL - Detect OGNL exploitation primitives
 
 
-class exploit_detection:
+class exploit_detection(StrEnum):
     dog_000_004 = "dog-000-004"  # Spring4Shell - Attempts to exploit the Spring4shell vulnerability
     sqr_000_017 = "sqr-000-017"  # Log4shell: Attempt to exploit log4j CVE-2021-44228
 
 
-class ssrf:
+class ssrf(StrEnum):
     sqr_000_001 = "sqr-000-001"  # SSRF: Try to access the credential manager of the main cloud services
     sqr_000_011 = "sqr-000-011"  # SSRF: Try to access internal OMI service (CVE-2021-38647)
     sqr_000_012 = "sqr-000-012"  # SSRF: Detect SSRF attempt on internal service

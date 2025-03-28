@@ -1,4 +1,4 @@
-from collections.abc import Callable, Generator
+from collections.abc import Callable, Generator, Sequence
 from functools import lru_cache
 import hashlib
 import os
@@ -8,15 +8,14 @@ import time
 import boto3
 import botocore.exceptions
 
-from utils import weblog, interfaces, scenarios, logger
-from utils._weblog import HttpResponse
+from utils import weblog, interfaces, scenarios, logger, HttpResponse
 
 
 class BaseDbIntegrationsTestClass:
     """define a setup function that perform a request to the weblog for each operation: select, update..."""
 
-    db_service = None
-    requests = {}
+    db_service: str
+    requests: dict[str, dict[str, HttpResponse]] = {}
 
     def _setup(self):
         """Make request to weblog for each operation: select, update...
@@ -79,8 +78,8 @@ class BaseDbIntegrationsTestClass:
     setup_not_obfuscate_query = _setup
 
     def get_requests(
-        self, excluded_operations: tuple[str, ...] = (), operations: tuple[str, ...] | None = None
-    ) -> Generator[tuple[str, dict], None, None]:
+        self, excluded_operations: Sequence[str] = (), operations: Sequence[str] | None = None
+    ) -> Generator[tuple[str, HttpResponse], None, None]:
         for db_operation, request in self.requests[self.db_service].items():
             if operations is not None and db_operation not in operations:
                 continue

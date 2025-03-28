@@ -12,7 +12,7 @@ from tests.appsec.iast.utils import get_hardcoded_vulnerabilities, validate_stac
 
 
 def get_expectation(d):
-    expected = d.get(context.library.library)
+    expected = d.get(context.library.name)
     if isinstance(expected, dict):
         expected = expected.get(context.weblog_variant)
     return expected
@@ -102,5 +102,5 @@ class Test_HardcodedSecrets_ExtendedLocation:
 
         assert all(field in location for field in ["path", "line"])
 
-        if context.library.library not in ("python", "nodejs"):
+        if context.library.name not in ("python", "nodejs"):
             assert all(field in location for field in ["class", "method"])

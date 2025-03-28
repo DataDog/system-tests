@@ -153,10 +153,10 @@ class AutoInjectBaseTest:
         vm_logger(context.scenario.name, virtual_machine.name).info(
             f"{header} \n {header}  \n  Launching the uninstall for VM: {virtual_machine.name}  \n {header} \n {header}"
         )
-        if context.weblog_variant == f"test-app-{context.scenario.library.library}":  # Host
+        if context.weblog_variant == f"test-app-{context.scenario.library.name}":  # Host
             stop_weblog_command = "sudo systemctl kill -s SIGKILL test-app.service"
             start_weblog_command = "sudo systemctl start test-app.service"
-            if context.scenario.library.library in ["ruby", "python", "dotnet"]:
+            if context.scenario.library.name in ["ruby", "python", "dotnet"]:
                 start_weblog_command = virtual_machine._vm_provision.weblog_installation.remote_command
         else:  # Container
             stop_weblog_command = "sudo -E docker-compose -f docker-compose.yml down"

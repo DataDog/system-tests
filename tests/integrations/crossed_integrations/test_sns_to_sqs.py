@@ -1,20 +1,20 @@
 from __future__ import annotations
 import json
 
-from utils.buddies import python_buddy
+from utils.buddies import python_buddy, _Weblog as Weblog
 from utils import interfaces, scenarios, weblog, missing_feature, features, context, logger
 
 
 class _BaseSNS:
     """Test sns compatibility with inputted datadog tracer"""
 
-    BUDDY_TO_WEBLOG_QUEUE = None
-    BUDDY_TO_WEBLOG_TOPIC = None
-    WEBLOG_TO_BUDDY_QUEUE = None
-    WEBLOG_TO_BUDDY_TOPIC = None
-    buddy = None
-    buddy_interface = None
-    unique_id = None
+    BUDDY_TO_WEBLOG_QUEUE: str
+    BUDDY_TO_WEBLOG_TOPIC: str
+    WEBLOG_TO_BUDDY_QUEUE: str
+    WEBLOG_TO_BUDDY_TOPIC: str
+    buddy: Weblog
+    buddy_interface: interfaces.LibraryInterfaceValidator
+    unique_id: str
 
     @classmethod
     def get_span(cls, interface, span_kind, queue, topic, operation):
@@ -101,7 +101,7 @@ class _BaseSNS:
         """
         message = (
             "[crossed_integrations/test_sns_to_sqs.py][SNS] Hello from SNS "
-            f"[{context.library.library} weblog->{self.buddy_interface.name}] test produce at {self.unique_id}"
+            f"[{context.library.name} weblog->{self.buddy_interface.name}] test produce at {self.unique_id}"
         )
 
         self.production_response = weblog.get(
@@ -161,7 +161,7 @@ class _BaseSNS:
         """
         message = (
             "[crossed_integrations/test_sns_to_sqs.py][SNS] Hello from SNS "
-            f"[{self.buddy_interface.name}->{context.library.library} weblog] test consume at {self.unique_id}"
+            f"[{self.buddy_interface.name}->{context.library.name} weblog] test consume at {self.unique_id}"
         )
 
         self.production_response = self.buddy.get(
