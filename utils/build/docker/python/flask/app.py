@@ -16,6 +16,7 @@ import mock
 import urllib3
 import xmltodict
 import graphene
+import datetime
 
 
 if os.environ.get("INCLUDE_POSTGRES", "true") == "true":
@@ -468,6 +469,18 @@ def format_error(errors):
             }
         )
     return {"errors": formatted_errors}
+
+@app.route("/add_event")
+def add_event():
+    span = opentelemetry.trace.get_current_span()
+    if span is not None:
+        span.add_event(
+            name="span.event",
+            attributes={"string": "value", "int": 1},
+            timestamp=datetime.utcnow()
+        )
+    return {"message": "event added", "status_code": 200}
+
 
 
 @app.route("/read_file", methods=["GET"])
