@@ -50,10 +50,13 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
 
     ############################################################
     def get_traces(self, request: HttpResponse | None = None):
-        rid = request.get_rid() if request else None
+        rid: str | None = None
 
-        if rid:
+        if request:
+            rid = request.get_rid()
             logger.debug(f"Try to find traces related to request {rid}")
+            if request.status_code is None:
+                logger.warning("Response status is none, it will very probably fail")
 
         for data in self.get_data(path_filters=self.trace_paths):
             traces = data["request"]["content"]
@@ -78,9 +81,6 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
         request will be returned.
         """
         rid = request.get_rid() if request else None
-
-        if rid:
-            logger.debug(f"Try to find spans related to request {rid}")
 
         for data, trace in self.get_traces(request=request):
             for span in trace:
