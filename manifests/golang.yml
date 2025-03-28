@@ -406,20 +406,20 @@ tests/:
       Test_NoLimitOnWafRules: v1.37.0
     test_event_tracking.py:
       Test_CustomEvent: v1.47.0
-      Test_CustomEvent_Metrics: missing_feature
+      Test_CustomEvent_Metrics: v2.1.0-dev
       Test_UserLoginFailureEvent: v1.47.0
-      Test_UserLoginFailureEvent_Metrics: missing_feature
+      Test_UserLoginFailureEvent_Metrics: v2.1.0-dev
       Test_UserLoginSuccessEvent: v1.47.0
-      Test_UserLoginSuccessEvent_Metrics: missing_feature
+      Test_UserLoginSuccessEvent_Metrics: v2.1.0-dev
     test_event_tracking_v2.py:
-      Test_UserLoginFailureEventV2_HeaderCollection: missing_feature
-      Test_UserLoginFailureEventV2_Libddwaf: missing_feature
-      Test_UserLoginFailureEventV2_Metrics: missing_feature
-      Test_UserLoginFailureEventV2_Tags: missing_feature
-      Test_UserLoginSuccessEventV2_HeaderCollection: missing_feature
-      Test_UserLoginSuccessEventV2_Libddwaf: missing_feature
-      Test_UserLoginSuccessEventV2_Metrics: missing_feature
-      Test_UserLoginSuccessEventV2_Tags: missing_feature
+      Test_UserLoginFailureEventV2_HeaderCollection: v2.1.0-dev
+      Test_UserLoginFailureEventV2_Libddwaf: v2.1.0-dev
+      Test_UserLoginFailureEventV2_Metrics: v2.1.0-dev
+      Test_UserLoginFailureEventV2_Tags: v2.1.0-dev
+      Test_UserLoginSuccessEventV2_HeaderCollection: v2.1.0-dev
+      Test_UserLoginSuccessEventV2_Libddwaf: v2.1.0-dev
+      Test_UserLoginSuccessEventV2_Metrics: v2.1.0-dev
+      Test_UserLoginSuccessEventV2_Tags: v2.1.0-dev
     test_fingerprinting.py:
       Test_Fingerprinting_Endpoint: v1.69.0
       Test_Fingerprinting_Endpoint_Capability: v1.69.0
