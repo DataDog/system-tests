@@ -93,6 +93,8 @@ class Test_UserLoginSuccessEventV2_Tags:
     def test_user_login_success_event_strings_metadata(self):
         # Call the user login success SDK and validate tags
 
+        assert self.r.status_code == 200
+
         metadata = {"metadata0": "value0", "metadata1": "value1"}
 
         interfaces.library.validate_spans(
@@ -114,6 +116,8 @@ class Test_UserLoginSuccessEventV2_Tags:
     def test_user_login_success_event_multi_type_metadata(self):
         # Call the user login success SDK and validate tags
 
+        assert self.r.status_code == 200
+
         metadata = {"metadata0": "value0", "metadata_number": "123", "metadata_boolean": "true"}
 
         interfaces.library.validate_spans(
@@ -131,6 +135,8 @@ class Test_UserLoginSuccessEventV2_Tags:
 
     def test_user_login_success_event_no_metadata(self):
         # Call the user login success SDK with no metadata and validate tags
+
+        assert self.r.status_code == 200
 
         interfaces.library.validate_spans(
             self.r, validator=self.get_user_login_success_tags_validator(LOGIN_SAFE, USER_ID_SAFE)
@@ -153,6 +159,9 @@ class Test_UserLoginSuccessEventV2_Tags:
     @irrelevant(library="golang", reason="dd-trace-go only accepts string metadata values")
     def test_user_login_success_event_deep_metadata(self):
         # Call the user login success SDK with deep metadata and validate tags
+
+        assert self.r.status_code == 200
+
         metadata = {"prop1.prop2.prop3.prop4.data1": "metavalue1", "arr.0.key": "metavalue2", "arr.1": "metavalue3"}
 
         unexpected_metadata = ["prop1.prop2.prop3.prop4.prop5.prop6"]
@@ -177,6 +186,8 @@ class Test_UserLoginSuccessEventV2_HeaderCollection:
 
     def test_user_login_success_header_collection(self):
         # Validate that all relevant headers are included on login success SDK
+
+        assert self.r.status_code == 200
 
         def validate_user_login_success_header_collection(span):
             if span.get("parent_id") not in (0, None):
@@ -203,6 +214,8 @@ class Test_UserLoginSuccessEventV2_Metrics:
     def test_user_login_success_event(self):
         # Call the user login success SDK and validate metrics
 
+        assert self.r.status_code == 200
+
         series = find_series("generate-metrics", "appsec", ["sdk.event"])
 
         assert series
@@ -224,6 +237,8 @@ class Test_UserLoginSuccessEventV2_Libddwaf:
     def test_user_login_success_unsafe_login_success_event(self):
         # Call the user login success SDK with unsafe login and validate threat
 
+        assert self.r.status_code == 200
+
         interfaces.library.assert_waf_attack(self.r, rule="003_trigger_on_login_success")
 
     def setup_user_login_success_unsafe_login_event(self):
@@ -233,6 +248,8 @@ class Test_UserLoginSuccessEventV2_Libddwaf:
 
     def test_user_login_success_unsafe_login_event(self):
         # Call the user login success SDK with unsafe login and validate threat
+
+        assert self.r.status_code == 200
 
         interfaces.library.assert_waf_attack(self.r, rule="001_trigger_on_usr_login")
         interfaces.library.assert_waf_attack(self.r, rule="003_trigger_on_login_success")
@@ -244,6 +261,8 @@ class Test_UserLoginSuccessEventV2_Libddwaf:
 
     def test_user_login_success_unsafe_user_id_event(self):
         # Call the user login success SDK with unsafe user id and validate threat
+
+        assert self.r.status_code == 200
 
         interfaces.library.assert_waf_attack(self.r, rule="002_trigger_on_usr_id")
         interfaces.library.assert_waf_attack(self.r, rule="003_trigger_on_login_success")
@@ -282,6 +301,9 @@ class Test_UserLoginFailureEventV2_Tags:
 
     def test_user_login_failure_event_exists(self):
         # Call the user login failure SDK with existing account and validate tags
+
+        assert self.r.status_code == 200
+
         metadata = {"metadata0": "value0", "metadata1": "value1"}
 
         interfaces.library.validate_spans(
@@ -302,6 +324,8 @@ class Test_UserLoginFailureEventV2_Tags:
     def test_user_login_failure_event_does_not_exist(self):
         # Call the user login failure SDK with account that does not exist and validate tags
 
+        assert self.r.status_code == 200
+
         metadata = {"metadata0": "value0", "metadata1": "value1"}
 
         interfaces.library.validate_spans(
@@ -319,6 +343,8 @@ class Test_UserLoginFailureEventV2_Tags:
 
     def test_user_login_failure_event_no_metadata(self):
         # Call the user login failure SDK with no metadata and validate tags
+
+        assert self.r.status_code == 200
 
         interfaces.library.validate_spans(
             self.r, validator=self.get_user_login_failure_tags_validator(LOGIN_SAFE, exists=False)
@@ -341,6 +367,8 @@ class Test_UserLoginFailureEventV2_Tags:
     @irrelevant(library="golang", reason="dd-trace-go only accepts string metadata values")
     def test_user_login_failure_event_deep_metadata(self):
         # Call the user login failure SDK with deep metadata and validate tags
+
+        assert self.r.status_code == 200
 
         metadata = {"prop1.prop2.prop3.prop4.data1": "metavalue1", "arr.0.key": "metavalue2", "arr.1": "metavalue3"}
 
@@ -367,6 +395,8 @@ class Test_UserLoginFailureEventV2_HeaderCollection:
     def test_user_login_failure_header_collection(self):
         # Validate that all relevant headers are included on user login failure
 
+        assert self.r.status_code == 200
+
         def validate_user_login_failure_header_collection(span):
             if span.get("parent_id") not in (0, None):
                 return None
@@ -392,6 +422,8 @@ class Test_UserLoginFailureEventV2_Metrics:
     def test_user_login_failure_event(self):
         # Call the user login success SDK and validate metrics
 
+        assert self.r.status_code == 200
+
         series = find_series("generate-metrics", "appsec", ["sdk.event"])
 
         assert series
@@ -412,6 +444,9 @@ class Test_UserLoginFailureEventV2_Libddwaf:
 
     def test_user_login_failure_safe_login_event(self):
         # Call the user login failure SDK with unsafe login and validate threat
+
+        assert self.r.status_code == 200
+
         interfaces.library.assert_waf_attack(self.r, rule="004_trigger_on_login_failure")
 
     def setup_user_login_failure_unsafe_login_event(self):
@@ -421,6 +456,8 @@ class Test_UserLoginFailureEventV2_Libddwaf:
 
     def test_user_login_failure_unsafe_login_event(self):
         # Call the user login failure SDK with unsafe login and validate threat
+
+        assert self.r.status_code == 200
 
         interfaces.library.assert_waf_attack(self.r, rule="001_trigger_on_usr_login")
         interfaces.library.assert_waf_attack(self.r, rule="004_trigger_on_login_failure")
