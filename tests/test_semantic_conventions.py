@@ -119,7 +119,6 @@ VARIANT_COMPONENT_MAP = {
     },
     "vertx3": {"netty.request": "netty", "vertx.route-handler": "vertx"},
     "vertx4": {"netty.request": "netty", "vertx.route-handler": "vertx"},
-    "envoyproxy-go-control-plane": "envoyproxy/go-control-plane",
 }
 
 
