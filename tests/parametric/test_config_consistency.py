@@ -215,7 +215,7 @@ class Test_Config_RateLimit:
     # This approach avoids the need to create a new weblog endpoint that generates 100 traces per second,
     # which would be unreliable for testing and require significant effort for each tracer's weblog application.
     # The feature is mainly tested in the second test case, where the rate limit is set to 1 to ensure it works as expected.
-    @parametrize("library_env", [{"DD_TRACE_SAMPLE_RATE": "1"}])
+    @parametrize("library_env", [{"DD_TRACE_SAMPLE_RATE": None}])
     def test_default_trace_rate_limit(self, library_env, test_agent, test_library):
         with test_library as t:
             resp = t.config()
