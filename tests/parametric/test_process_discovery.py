@@ -63,7 +63,9 @@ class Test_ProcessDiscovery:
             # assert tracer_metadata["hostname"]
             # TODO(@dmehala): how to get the version?
             # assert tracer_metadata["tracer_version"] ==
-            assert tracer_metadata["tracer_language"] == test_library.lang
+            lang = "go" if test_library.lang == "golang" else test_library.lang
+            assert tracer_metadata["tracer_language"] == lang
+
             assert tracer_metadata["service_name"] == library_env["DD_SERVICE"]
             assert tracer_metadata["service_version"] == library_env["DD_VERSION"]
             assert tracer_metadata["service_env"] == library_env["DD_ENV"]
