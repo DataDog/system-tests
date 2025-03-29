@@ -66,6 +66,8 @@ GEM
       i18n (>= 1.6, < 2)
       minitest (>= 5.1)
       tzinfo (~> 2.0)
+    base64 (0.1.2)
+    bigdecimal (1.4.4)
     builder (3.2.4)
     concurrent-ruby (1.2.0)
     crass (1.0.6)
@@ -92,7 +94,9 @@ GEM
     marcel (1.0.2)
     method_source (1.0.0)
     mini_mime (1.1.2)
+    mini_portile2 (2.8.8)
     minitest (5.17.0)
+    mutex_m (0.2.0)
     net-imap (0.3.4)
       date
       net-protocol
@@ -103,12 +107,10 @@ GEM
     net-smtp (0.3.3)
       net-protocol
     nio4r (2.5.8)
-    nokogiri (1.14.2-aarch64-linux)
+    nokogiri (1.14.2)
+      mini_portile2 (~> 2.8.0)
       racc (~> 1.4)
-    nokogiri (1.14.2-arm64-darwin)
-      racc (~> 1.4)
-    nokogiri (1.14.2-x86_64-linux)
-      racc (~> 1.4)
+    pkg-config (1.6.0)
     puma (5.6.5)
       nio4r (~> 2.0)
     racc (1.6.2)
@@ -151,9 +153,8 @@ GEM
       actionpack (>= 5.2)
       activesupport (>= 5.2)
       sprockets (>= 3.0.0)
-    sqlite3 (1.6.0-aarch64-linux)
-    sqlite3 (1.6.0-arm64-darwin)
-    sqlite3 (1.6.0-x86_64-linux)
+    sqlite3 (1.7.3)
+      mini_portile2 (~> 2.8.0)
     thor (1.2.1)
     timeout (0.3.1)
     tzinfo (2.0.6)
@@ -165,11 +166,17 @@ GEM
 
 PLATFORMS
   aarch64-linux
-  arm64-darwin-21
+  arm64-darwin
+  x86_64-darwin
   x86_64-linux
 
 DEPENDENCIES
+  base64 (~> 0.1.0)
+  bigdecimal (~> 1.2, >= 1.2.7)
   debug
+  mutex_m (~> 0.2.0)
+  nokogiri
+  pkg-config
   puma (~> 5.0)
   rails (~> 7.0.3)
   sprockets-rails
