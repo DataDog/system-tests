@@ -22,6 +22,7 @@ Rails.application.routes.draw do
   get '/status' => 'system_test#status'
   get '/read_file' => 'system_test#read_file'
   get '/make_distant_call' => 'system_test#make_distant_call'
+  get '/log/library' => 'system_test#log_library'
 
   get '/headers' => 'system_test#test_headers'
   get '/identify' => 'system_test#identify'
