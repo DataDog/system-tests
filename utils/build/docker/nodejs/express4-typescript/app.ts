@@ -1,6 +1,7 @@
 'use strict'
 
 import { Request, Response } from "express";
+import http from 'http';
 
 const tracer = require('dd-trace').init({ debug: true, flushInterval: 5000 });
 
@@ -103,28 +104,48 @@ app.get('/status', (req: Request, res: Response) => {
 });
 
 app.get("/make_distant_call", (req: Request, res: Response) => {
-  const url = req.query.url;
-  console.log(url);
+  const url = req.query.url
+  console.log(url)
 
-  axios.get(url)
-    .then((response: Response) => {
-      res.json({
-        url: url,
-        status_code: response.statusCode,
-        request_headers: null,
-        response_headers: null,
-      });
+  const parsedUrl = new URL(url as string)
+
+  const options = {
+    hostname: parsedUrl.hostname,
+    port: parsedUrl.port || 80, // Use default port if not provided
+    path: parsedUrl.pathname,
+    method: 'GET'
+  }
+
+  const request = http.request(options, (response: http.IncomingMessage) => {
+    let responseBody = ''
+    response.on('data', (chunk) => {
+      responseBody += chunk
     })
-    .catch((error: Error) => {
-      console.log(error);
+
+    response.on('end', () => {
       res.json({
-        url: url,
-        status_code: 500,
-        request_headers: null,
-        response_headers: null,
-      });
-    });
-});
+        url,
+        status_code: response.statusCode,
+        request_headers: (response as any).req._headers,
+        response_headers: response.headers,
+        response_body: responseBody
+      })
+    })
+  })
+
+  // Handle errors
+  request.on('error', (error: Error) => {
+    console.log(error)
+    res.json({
+      url,
+      status_code: 500,
+      request_headers: null,
+      response_headers: null
+    })
+  })
+
+  request.end()
+})
 
 app.get("/user_login_success_event", (req: Request, res: Response) => {
   const userId = req.query.event_user_id || "system_tests_user";
