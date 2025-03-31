@@ -257,6 +257,18 @@ class Users
   end
 end
 
+# /rasp/ssrf
+class SSRFHandler
+  def self.run(request)
+    url = URI.parse(request.params['url'])
+    url = "https://#{url}" unless url.scheme
+
+    Faraday.get(url)
+
+    [200, { 'Content-Type' => 'text/plain' }, ['']]
+  end
+end
+
 # TODO: This require shouldn't be needed. `SpanEvent` should be loaded by default.
 # TODO: This is likely a bug in the Ruby tracer.
 require 'datadog/tracing/span_event'
@@ -316,6 +328,8 @@ app = proc do |env|
     Users.run(request)
   elsif request.path == '/add_event'
     AddEvent.run(request)
+  elsif request.path == '/rasp/ssrf'
+    SSRFHandler.run(request)
   else
     NotFound.run
   end
