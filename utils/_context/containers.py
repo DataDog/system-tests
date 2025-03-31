@@ -15,7 +15,7 @@ from docker.models.networks import Network
 import pytest
 import requests
 
-from utils._context.library_version import LibraryVersion
+from utils._context.component_version import ComponentVersion
 from utils.proxy.ports import ProxyPorts
 from utils._logger import logger
 from utils import interfaces
@@ -82,13 +82,19 @@ class TestedContainer:
         name: str,
         image_name: str,
         *,
-        host_log_folder: str,
-        stdout_interface: StdoutLogsInterface | None = None,
-        environment: dict[str, str | None] | None = None,
         allow_old_container: bool = False,
+        cap_add: list[str] | None = None,
+        command: str | list[str] | None = None,
+        environment: dict[str, str | None] | None = None,
         healthcheck: dict | None = None,
+        host_log_folder: str,
         local_image_only: bool = False,
-        **kwargs,
+        ports: dict | None = None,
+        security_opt: list[str] | None = None,
+        stdout_interface: StdoutLogsInterface | None = None,
+        user: str | None = None,
+        volumes: dict | None = None,
+        working_dir: str | None = None,
     ) -> None:
         self.name = name
         self.host_project_dir = os.environ.get("SYSTEM_TESTS_HOST_PROJECT_DIR", str(Path.cwd()))
@@ -105,11 +111,32 @@ class TestedContainer:
         self.healthy: bool | None = None
 
         self.environment = environment or {}
-        self.kwargs = kwargs
+        self.volumes = volumes or {}
+        self.ports = ports or {}
         self.depends_on: list[TestedContainer] = []
         self._starting_lock = RLock()
         self._starting_thread: Thread | None = None
         self.stdout_interface = stdout_interface
+        self.working_dir = working_dir
+        self.command = command
+        self.user = user
+        self.cap_add = cap_add
+        self.security_opt = security_opt
+        self.ulimits: list | None = None
+        self.privileged = False
+
+    def enable_core_dumps(self) -> None:
+        """Modify container options to enable the possibility of core dumps"""
+
+        self.cap_add = self.cap_add if self.cap_add is not None else []
+
+        if "SYS_PTRACE" not in self.cap_add:
+            self.cap_add.append("SYS_PTRACE")
+        if "SYS_ADMIN" not in self.cap_add:
+            self.cap_add.append("SYS_ADMIN")
+
+        self.privileged = True
+        self.ulimits = [docker.types.Ulimit(name="core", soft=-1, hard=-1)]
 
     def get_image_list(self, library: str, weblog: str) -> list[str]:  # noqa: ARG002
         """Returns the image list that will be loaded to be able to run/build the container"""
@@ -182,7 +209,15 @@ class TestedContainer:
             # auto_remove=True,
             detach=True,
             network=network.name,
-            **self.kwargs,
+            volumes=self.volumes,
+            ports=self.ports,
+            working_dir=self.working_dir,
+            command=self.command,
+            user=self.user,
+            cap_add=self.cap_add,
+            security_opt=self.security_opt,
+            privileged=self.privileged,
+            ulimits=self.ulimits,
         )
 
         self.healthy = self.wait_for_health()
@@ -334,20 +369,17 @@ class TestedContainer:
         # on docker compose, volume host path can starts with a "."
         # it means the current path on host machine. It's not supported in bare docker
         # replicate this behavior here
-        if "volumes" not in self.kwargs:
-            return
-
         host_pwd = self.host_project_dir
 
         result = {}
-        for host_path, container_path in self.kwargs["volumes"].items():
+        for host_path, container_path in self.volumes.items():
             if host_path.startswith("./"):
                 corrected_host_path = f"{host_pwd}{host_path[1:]}"
                 result[corrected_host_path] = container_path
             else:
                 result[host_path] = container_path
 
-        self.kwargs["volumes"] = result
+        self.volumes = result
 
     def stop(self):
         self._starting_thread = None
@@ -415,13 +447,16 @@ class SqlDbTestedContainer(TestedContainer):
         allow_old_container: bool = False,
         healthcheck: dict | None = None,
         stdout_interface: StdoutLogsInterface | None = None,
+        command: str | None = None,
         ports: dict | None = None,
+        user: str | None = None,
+        volumes: dict | None = None,
+        cap_add: list[str] | None = None,
         db_user: str | None = None,
         db_password: str | None = None,
         db_instance: str | None = None,
         db_host: str | None = None,
         dd_integration_service: str | None = None,
-        **kwargs,
     ) -> None:
         super().__init__(
             image_name=image_name,
@@ -432,7 +467,10 @@ class SqlDbTestedContainer(TestedContainer):
             healthcheck=healthcheck,
             allow_old_container=allow_old_container,
             ports=ports,
-            **kwargs,
+            command=command,
+            user=user,
+            volumes=volumes,
+            cap_add=cap_add,
         )
         self.dd_integration_service = dd_integration_service
         self.db_user = db_user
@@ -581,7 +619,7 @@ class AgentContainer(TestedContainer):
         with open(self.healthcheck_log_file, encoding="utf-8") as f:
             data = json.load(f)
 
-        self.agent_version = LibraryVersion("agent", data["version"]).version
+        self.agent_version = ComponentVersion("agent", data["version"]).version
 
         logger.stdout(f"Agent: {self.agent_version}")
         logger.stdout(f"Backend: {self.dd_site}")
@@ -773,7 +811,7 @@ class WeblogContainer(TestedContainer):
         self.additional_trace_header_tags = additional_trace_header_tags
 
         self.weblog_variant = ""
-        self._library: LibraryVersion | None = None
+        self._library: ComponentVersion | None = None
 
     @property
     def trace_agent_port(self):
@@ -868,12 +906,15 @@ class WeblogContainer(TestedContainer):
                 with open("./binaries/nodejs-load-from-local", encoding="utf-8") as f:
                     path = f.read().strip(" \r\n")
                     path_str = str(Path(path).resolve())
-                    self.kwargs["volumes"][path_str] = {
+                    self.volumes[path_str] = {
                         "bind": "/volumes/dd-trace-js",
                         "mode": "ro",
                     }
             except Exception:
                 logger.info("No local dd-trace-js found")
+
+        if library == "php":
+            self.enable_core_dumps()
 
     def post_start(self):
         from utils import weblog
@@ -884,7 +925,7 @@ class WeblogContainer(TestedContainer):
             data = json.load(f)
             lib = data["library"]
 
-        self._library = LibraryVersion(lib["language"], lib["version"])
+        self._library = ComponentVersion(lib["name"], lib["version"])
 
         logger.stdout(f"Library: {self.library}")
 
@@ -899,7 +940,7 @@ class WeblogContainer(TestedContainer):
         self.stdout_interface.init_patterns(self.library)
 
     @property
-    def library(self) -> LibraryVersion:
+    def library(self) -> ComponentVersion:
         assert self._library is not None, "Library version is not set"
         return self._library
 
@@ -1194,7 +1235,7 @@ class MountInjectionVolume(TestedContainer):
         self.image = ImageInfo(lib_init_image, local_image_only=False)
         # .NET compatible with former folder layer
         if "dd-lib-dotnet-init" in lib_init_image:
-            self.kwargs["volumes"] = {
+            self.volumes = {
                 _VOLUME_INJECTOR_NAME: {"bind": "/datadog-init/monitoring-home", "mode": "rw"},
             }
 
@@ -1214,9 +1255,9 @@ class WeblogInjectionInitContainer(TestedContainer):
             volumes={_VOLUME_INJECTOR_NAME: {"bind": "/datadog-lib", "mode": "rw"}},
         )
 
-    def set_environment_for_library(self, library: LibraryVersion):
+    def set_environment_for_library(self, library: ComponentVersion):
         lib_inject_props = {}
-        for lang_env_vars in K8sWeblog.manual_injection_props["js" if library.library == "nodejs" else library.library]:
+        for lang_env_vars in K8sWeblog.manual_injection_props["js" if library.name == "nodejs" else library.name]:
             lib_inject_props[lang_env_vars["name"]] = lang_env_vars["value"]
         lib_inject_props["DD_AGENT_HOST"] = "ddapm-test-agent"
         lib_inject_props["DD_TRACE_DEBUG"] = "true"
@@ -1277,7 +1318,7 @@ class EnvoyContainer(TestedContainer):
 
 
 class ExternalProcessingContainer(TestedContainer):
-    library: LibraryVersion
+    library: ComponentVersion
 
     def __init__(
         self,
@@ -1322,7 +1363,10 @@ class ExternalProcessingContainer(TestedContainer):
             data = json.load(f)
             lib = data["library"]
 
-        self.library = LibraryVersion(lib["language"], lib["version"])
+        if "language" in lib:
+            self.library = ComponentVersion(lib["language"], lib["version"])
+        else:
+            self.library = ComponentVersion(lib["name"], lib["version"])
 
         logger.stdout(f"Library: {self.library}")
         logger.stdout(f"Image: {self.image.name}")

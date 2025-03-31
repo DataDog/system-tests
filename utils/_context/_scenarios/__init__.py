@@ -550,7 +550,15 @@ class _Scenarios:
         doc="Scenario with custom headers for DD_TRACE_HEADER_TAGS that libraries should reject",
     )
 
-    tracing_config_empty = EndToEndScenario("TRACING_CONFIG_EMPTY", weblog_env={}, doc="")
+    tracing_config_empty = EndToEndScenario(
+        "TRACING_CONFIG_EMPTY",
+        weblog_env={
+            # This scenario should be empty but enabling logs injection allows us to reuse this scenario for the
+            # few test cases that need it
+            "DD_LOGS_INJECTION": "true",
+        },
+        doc="",
+    )
 
     tracing_config_nondefault = EndToEndScenario(
         "TRACING_CONFIG_NONDEFAULT",
@@ -565,7 +573,6 @@ class _Scenarios:
             "DD_TRACE_PDO_ENABLED": "false",  # Use PDO for PHP,
             "DD_TRACE_PROPAGATION_STYLE_EXTRACT": "datadog,tracecontext,b3multi,baggage",
             "DD_TRACE_PROPAGATION_BEHAVIOR_EXTRACT": "restart",
-            "DD_LOGS_INJECTION": "true",
         },
         appsec_enabled=False,  # disable ASM to test non asm client ip tagging
         iast_enabled=False,
@@ -586,6 +593,7 @@ class _Scenarios:
             "DD_TRACE_CLIENT_IP_ENABLED": "true",
             "DD_TRACE_PROPAGATION_STYLE_EXTRACT": "datadog,tracecontext,b3multi,baggage",
             "DD_TRACE_PROPAGATION_BEHAVIOR_EXTRACT": "ignore",
+            "DD_TRACE_EXPERIMENTAL_FEATURES_ENABLED": "DD_LOGS_INJECTION",  # Test false default value in dd-trace-java
         },
         include_kafka=True,
         include_postgres_db=True,
@@ -601,11 +609,19 @@ class _Scenarios:
             "DD_TRACE_PROPAGATION_BEHAVIOR_EXTRACT": "restart",
             "DD_TRACE_PROPAGATION_EXTRACT_FIRST": "true",
             "DD_LOGS_INJECTION": "true",
-            "DD_TRACE_128_BIT_TRACEID_LOGGING_ENABLED": "false",
         },
         appsec_enabled=False,
         doc="",
         scenario_groups=[ScenarioGroup.TRACING_CONFIG],
+    )
+
+    tracing_config_nondefault_4 = EndToEndScenario(
+        "TRACING_CONFIG_NONDEFAULT_4",
+        weblog_env={
+            "DD_LOGS_INJECTION": "true",
+            "DD_TRACE_128_BIT_TRACEID_LOGGING_ENABLED": "false",
+        },
+        doc="",
     )
 
     parametric = ParametricScenario("PARAMETRIC", doc="WIP")

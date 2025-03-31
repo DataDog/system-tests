@@ -48,7 +48,7 @@ class AppSecController @Inject()(cc: MessagesControllerComponents, ws: WSClient,
     val response = Json.obj(
       "status" -> "ok",
       "library" -> Json.obj(
-        "language" -> "java",
+        "name" -> "java",
         "version" -> version
       )
     )

@@ -376,7 +376,7 @@ class TestDockerSSIFeatures:
 
     @features.ssi_guardrails
     def test_install_supported_runtime(self):
-        logger.info(f"Testing Docker SSI installation on supported lang runtime: {context.scenario.library.library}")
+        logger.info(f"Testing Docker SSI installation on supported lang runtime: {context.scenario.library.name}")
         assert self.r.status_code == 200, f"Failed to get response from {context.scenario.weblog_url}"
 
         # If the language version is supported there are traces related with the request

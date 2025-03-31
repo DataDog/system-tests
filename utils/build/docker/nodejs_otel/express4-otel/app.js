@@ -25,7 +25,7 @@ app.get("/healthcheck", (req, res) => {
   res.json({
     status: 'ok',
     library: {
-      language: 'nodejs_otel',
+      name: 'nodejs_otel',
       version: otel_data.version
     }
   })

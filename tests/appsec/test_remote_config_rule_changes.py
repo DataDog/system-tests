@@ -69,36 +69,36 @@ class Test_BlockingActionChangesWithRemoteConfig:
 
     def test_block_405(self):
         # normal block
-        assert self.config_state_1[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
+        assert self.config_state_1.state == rc.ApplyState.ACKNOWLEDGED
         interfaces.library.assert_waf_attack(self.response_1, rule="ua0-600-56x")
         assert self.response_1.status_code == 403
 
         # block on 405/json with RC
-        assert self.config_state_2[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
+        assert self.config_state_2.state == rc.ApplyState.ACKNOWLEDGED
         interfaces.library.assert_waf_attack(self.response_2, rule="ua0-600-56x")
         assert self.response_2.status_code == 405
         # assert self.response_2.headers["content-type"] == "application/json"
 
         # block on 505/html with RC
-        assert self.config_state_3[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
+        assert self.config_state_3.state == rc.ApplyState.ACKNOWLEDGED
         interfaces.library.assert_waf_attack(self.response_3, rule="ua0-600-56x")
         assert self.response_3.status_code == 505
         assert self.response_3.headers["content-type"].startswith("text/html")
 
         # block on 505/html with RC
-        assert self.config_state_4[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
+        assert self.config_state_4.state == rc.ApplyState.ACKNOWLEDGED
         interfaces.library.assert_waf_attack(self.response_4, rule="ua0-600-56x")
         assert self.response_4.status_code == 302
         assert self.response_4.text == "" or '<a href="http://google.com">' in self.response_4.text
         assert self.response_4.headers["location"] == "http://google.com"
 
         # ASM disabled
-        assert self.config_state_5[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
+        assert self.config_state_5.state == rc.ApplyState.ACKNOWLEDGED
         assert self.response_5.status_code == 200
         interfaces.library.assert_no_appsec_event(self.response_5)
 
 
-RULE_FILE = (
+RULE_FILE: tuple[str, dict] = (
     "datadog/2/ASM_DD/rules/config",
     {
         "version": "2.2",
@@ -175,13 +175,13 @@ class Test_UpdateRuleFileWithRemoteConfig:
 
         def validate_waf_rule_version_tag_by_rc(span, appsec_data):  # noqa: ARG001
             """Validate the mandatory event_rules.version tag is added to the request span having an attack with expected rc version"""
-            meta = span["meta"]
+            meta: dict = span["meta"]
             assert expected_rules_version_tag in meta, f"missing span meta tag `{expected_rules_version_tag}` in meta"
             assert meta[expected_rules_version_tag] == RULE_FILE[1]["metadata"]["rules_version"]
             return True
 
         # normal block
-        assert self.config_state_1[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
+        assert self.config_state_1.state == rc.ApplyState.ACKNOWLEDGED
         interfaces.library.assert_waf_attack(self.response_1, rule="ua0-600-56x")
         assert self.response_1.status_code == 403
         interfaces.library.validate_appsec(self.response_1, validate_waf_rule_version_tag)
@@ -190,7 +190,7 @@ class Test_UpdateRuleFileWithRemoteConfig:
         interfaces.library.validate_appsec(self.response_1b, validate_waf_rule_version_tag)
 
         # new rule file with only 12x
-        assert self.config_state_2[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
+        assert self.config_state_2.state == rc.ApplyState.ACKNOWLEDGED
         interfaces.library.assert_no_appsec_event(self.response_2)
         assert self.response_2.status_code == 200
         interfaces.library.assert_no_appsec_event(self.response_2)
@@ -199,7 +199,7 @@ class Test_UpdateRuleFileWithRemoteConfig:
         interfaces.library.validate_appsec(self.response_2b, validate_waf_rule_version_tag_by_rc)
 
         # block on 405/json with RC. It must not change anything for the new rule file
-        assert self.config_state_3[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
+        assert self.config_state_3.state == rc.ApplyState.ACKNOWLEDGED
         interfaces.library.assert_no_appsec_event(self.response_3)
         assert self.response_3.status_code == 200
         interfaces.library.assert_no_appsec_event(self.response_3)
@@ -208,7 +208,7 @@ class Test_UpdateRuleFileWithRemoteConfig:
         interfaces.library.validate_appsec(self.response_3b, validate_waf_rule_version_tag_by_rc)
 
         # Switch back to default rules but keep updated blocking action
-        assert self.config_state_4[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
+        assert self.config_state_4.state == rc.ApplyState.ACKNOWLEDGED
         interfaces.library.assert_waf_attack(self.response_4, rule="ua0-600-56x")
         interfaces.library.validate_appsec(self.response_4, validate_waf_rule_version_tag)
         assert self.response_4.status_code == 405
@@ -217,7 +217,7 @@ class Test_UpdateRuleFileWithRemoteConfig:
         interfaces.library.validate_appsec(self.response_4b, validate_waf_rule_version_tag)
 
         # ASM disabled
-        assert self.config_state_5[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
+        assert self.config_state_5.state == rc.ApplyState.ACKNOWLEDGED
 
         # Check for rule version in telemetry
         series = find_series("generate-metrics", "appsec", ["waf.requests", "waf.init", "waf.requests"])

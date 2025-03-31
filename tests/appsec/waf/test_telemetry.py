@@ -216,7 +216,7 @@ class Test_TelemetryMetrics:
             "request_blocked",
         }
 
-        if context.library >= "java@1.47.0":
+        if context.library >= "java@1.47.0" or context.library >= "nodejs@5.44.0":
             mandatory_tag_prefixes.update({"block_failure", "rate_limited", "input_truncated"})
 
         return mandatory_tag_prefixes
@@ -225,7 +225,7 @@ class Test_TelemetryMetrics:
 def _validate_headers(headers, request_type):
     """https://github.com/DataDog/instrumentation-telemetry-api-docs/blob/main/GeneratedDocumentation/ApiDocs/v2/how-to-use.md"""
 
-    expected_language = context.library.library
+    expected_language = context.library.name
     if expected_language == "java":
         expected_language = "jvm"
 

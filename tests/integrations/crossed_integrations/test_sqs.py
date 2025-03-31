@@ -1,18 +1,18 @@
 from __future__ import annotations
 import json
 
-from utils.buddies import python_buddy, java_buddy
+from utils.buddies import python_buddy, java_buddy, _Weblog as Weblog
 from utils import interfaces, scenarios, weblog, missing_feature, features, context, irrelevant, logger
 
 
 class _BaseSQS:
     """Test sqs compatibility with inputted datadog tracer"""
 
-    BUDDY_TO_WEBLOG_QUEUE = None
-    WEBLOG_TO_BUDDY_QUEUE = None
-    buddy = None
-    buddy_interface = None
-    unique_id = None
+    BUDDY_TO_WEBLOG_QUEUE: str
+    WEBLOG_TO_BUDDY_QUEUE: str
+    buddy: Weblog
+    buddy_interface: interfaces.LibraryInterfaceValidator
+    unique_id: str
 
     @classmethod
     def get_span(cls, interface, span_kind, queue, operation):
@@ -86,7 +86,7 @@ class _BaseSQS:
         """
         message = (
             "[crossed_integrations/sqs.py][SQS] Hello from SQS "
-            f"[{context.library.library} weblog->{self.buddy_interface.name}] test produce: {self.unique_id}"
+            f"[{context.library.name} weblog->{self.buddy_interface.name}] test produce: {self.unique_id}"
         )
 
         self.production_response = weblog.get(
@@ -149,7 +149,7 @@ class _BaseSQS:
         """
         message = (
             "[crossed_integrations/test_sqs.py][SQS] Hello from SQS "
-            f"[{self.buddy_interface.name}->{context.library.library} weblog] test consume: {self.unique_id}"
+            f"[{self.buddy_interface.name}->{context.library.name} weblog] test consume: {self.unique_id}"
         )
 
         self.production_response = self.buddy.get(
@@ -233,7 +233,7 @@ class Test_SQS_PROPAGATION_VIA_MESSAGE_ATTRIBUTES(_BaseSQS):
 
 @scenarios.crossed_tracing_libraries
 @features.aws_sqs_span_creationcontext_propagation_via_xray_header_with_dd_trace
-@irrelevant("Localstack SQS does not support AWS Xray Header parsing")
+@irrelevant(condition=True, reason="Localstack SQS does not support AWS Xray Header parsing")
 class Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS(_BaseSQS):
     buddy_interface = interfaces.java_buddy
     buddy = java_buddy

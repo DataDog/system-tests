@@ -74,7 +74,7 @@ class BaseDebuggerTest:
     all_spans: list = []
     symbols: list = []
 
-    rc_states: list = []
+    rc_states: list[remote_config.RemoteConfigStateResults] = []
     weblog_responses: list = []
 
     setup_failures: list = []
@@ -510,10 +510,15 @@ class BaseDebuggerTest:
 
     def _collect_symbols(self):
         def _get_symbols():
-            result = []
+            result: list[dict] = []
             raw_data = list(interfaces.library.get_data(_SYMBOLS_PATH))
 
+            if len(raw_data) == 0:
+                logger.info(f"No request has been sent to {_SYMBOLS_PATH}")
+                return result
+
             for data in raw_data:
+                logger.debug(f"Processing data: {data['log_filename']}")
                 if isinstance(data, dict) and "request" in data:
                     contents = data["request"].get("content", [])
                     for content in contents:
@@ -527,7 +532,7 @@ class BaseDebuggerTest:
     def get_tracer(self) -> dict[str, str]:
         if not BaseDebuggerTest.tracer:
             BaseDebuggerTest.tracer = {
-                "language": context.library.library,
+                "language": context.library.name,
                 "tracer_version": str(context.library.version),
             }
 
@@ -549,8 +554,8 @@ class BaseDebuggerTest:
 
         errors = []
         for entry in self.rc_states:
-            for state in entry.values():
-                if not isinstance(state, dict) or "id" not in state:
+            for state in entry.configs.values():
+                if "id" not in state:
                     continue
 
                 rc_id = state["id"]

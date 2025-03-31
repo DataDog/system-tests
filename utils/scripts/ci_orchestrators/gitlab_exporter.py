@@ -204,7 +204,7 @@ def print_docker_ssi_gitlab_pipeline(language, docker_ssi_matrix, ci_environment
                 result_pipeline[vm_job]["stage"] = scenario
                 result_pipeline[vm_job]["extends"] = ".base_docker_ssi_job"
                 result_pipeline[vm_job]["tags"] = [
-                    f"runner:{'docker' if architecture == 'linux/amd64' else 'docker-arm'}"
+                    f"{'docker-in-docker:amd64' if architecture == 'linux/amd64' else 'runner:docker-arm'}"
                 ]
                 # Job variables
                 result_pipeline[vm_job]["variables"] = {}
