@@ -5,7 +5,19 @@
 import re
 import json
 import time
-from utils import weblog, interfaces, scenarios, features, rfc, irrelevant, context, bug, missing_feature, logger
+from utils import (
+    weblog,
+    interfaces,
+    scenarios,
+    features,
+    rfc,
+    irrelevant,
+    context,
+    bug,
+    missing_feature,
+    logger,
+    incomplete_test_app,
+)
 
 # get the default log output
 stdout = interfaces.library_stdout
@@ -574,6 +586,9 @@ class Test_Config_LogInjection_128Bit_TraceId_Enabled:
         self.message = "test_weblog_log_injection"
         self.r = weblog.get("/log/library", params={"msg": self.message}, headers=incoming_headers)
 
+    @incomplete_test_app(
+        context.library == "ruby", reason="rails70 app does not use the incoming headers in log correlation"
+    )
     def test_incoming_64bit_traceid(self):
         assert self.r.status_code == 200
         log_msg = parse_log_injection_message(self.message)
@@ -592,7 +607,6 @@ class Test_Config_LogInjection_128Bit_TraceId_Enabled:
         self.message = "test_weblog_log_injection"
         self.r = weblog.get("/log/library", params={"msg": self.message}, headers=incoming_headers)
 
-    @bug(context.library == "ruby", reason="APMAPI-1035")
     def test_incoming_128bit_traceid(self):
         assert self.r.status_code == 200
         log_msg = parse_log_injection_message(self.message)
