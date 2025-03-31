@@ -517,7 +517,7 @@ class Test_Config_LogInjection_Enabled:
         assert sid is not None, "Expected a span ID, but got None"
 
         required_fields = ["service", "version", "env"]
-        if context.library.library in ("java", "python", "ruby"):
+        if context.library.name in ("java", "python", "ruby"):
             required_fields = ["dd.service", "dd.version", "dd.env"]
         elif context.library.name == "dotnet":
             required_fields = ["dd_service", "dd_version", "dd_env"]
