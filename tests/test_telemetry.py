@@ -52,8 +52,8 @@ class Test_Telemetry:
     """Test that instrumentation telemetry is sent"""
 
     # containers for telemetry request to check consistency between library payloads and agent payloads
-    library_requests = {}
-    agent_requests = {}
+    library_requests: dict[tuple[str, str], dict] = {}
+    agent_requests: dict[tuple[str, str], dict] = {}
 
     def validate_library_telemetry_data(self, validator, *, success_by_default=False):
         telemetry_data = list(interfaces.library.get_telemetry_data(flatten_message_batches=False))
@@ -188,7 +188,7 @@ class Test_Telemetry:
     def test_app_started_sent_exactly_once(self):
         """Request type app-started is sent exactly once"""
 
-        count_by_runtime_id = defaultdict(lambda: 0)
+        count_by_runtime_id: dict[str, int] = defaultdict(lambda: 0)
 
         for data in interfaces.library.get_telemetry_data():
             if get_request_type(data) == "app-started":
@@ -306,7 +306,7 @@ class Test_Telemetry:
             heartbeats.sort(key=lambda data: isoparse(data["request"]["timestamp_start"]))
 
             prev_message_time = None
-            delays = []
+            delays: list[float] = []
             for data in heartbeats:
                 curr_message_time = isoparse(data["request"]["timestamp_start"])
                 if prev_message_time is None:
@@ -367,14 +367,14 @@ class Test_Telemetry:
     def test_app_dependencies_loaded(self):
         """Test app-dependencies-loaded requests"""
 
-        test_loaded_dependencies = {
+        test_loaded_dependencies: dict[str, dict[str, bool]] = {
             "dotnet": {"NodaTime": False},
             "nodejs": {"glob": False},
             "java": {"httpclient": False},
             "ruby": {"bundler": False},
         }
 
-        test_defined_dependencies = {
+        test_defined_dependencies: dict[str, dict[str, bool]] = {
             "dotnet": {},
             "nodejs": {
                 "body-parser": False,
@@ -469,7 +469,7 @@ class Test_Telemetry:
 
         trace_agent_port = scenarios.default.weblog_container.trace_agent_port
 
-        test_configuration = {
+        test_configuration: dict[str, dict] = {
             "dotnet": {},
             "nodejs": {"hostname": "proxy", "port": trace_agent_port, "appsec.enabled": True},
             # to-do :need to add configuration keys once python bug is fixed
@@ -572,7 +572,7 @@ class Test_APMOnboardingInstallID:
 
 
 def get_all_keys_and_values(*objs: tuple[None | dict | list, ...]) -> list:
-    result = []
+    result: list = []
     for obj in objs:
         if obj is not None:
             if isinstance(obj, dict):
@@ -662,6 +662,7 @@ class Test_TelemetryV2:
     @missing_feature(library="cpp_httpd")
     @missing_feature(context.library < "ruby@1.22.0", reason="dd-client-library-version missing")
     @bug(context.library == "python" and context.library.version.prerelease is not None, reason="APMAPI-927")
+    @bug(context.library > "php@1.7.3", reason="APMAPI-1270")
     def test_telemetry_v2_required_headers(self):
         """Assert library add the relevant headers to telemetry v2 payloads"""
 

@@ -55,7 +55,10 @@ tests/:
         test_command_injection.py:
           TestCommandInjection:
             '*': v2.10.0
+            django-poc: bug (APPSEC-57095)
+            django-py3.13: bug (APPSEC-57095)
             fastapi: v2.15.0
+            python3.12: bug (APPSEC-57095)
           TestCommandInjection_ExtendedLocation: v3.1.0.dev
           TestCommandInjection_StackTrace: missing_feature
         test_email_html_injection.py:
@@ -579,11 +582,14 @@ tests/:
     test_fingerprinting.py:
       Test_Fingerprinting_Endpoint: v2.11.0
       Test_Fingerprinting_Endpoint_Capability: v2.11.0
+      Test_Fingerprinting_Endpoint_Preprocessor: v2.11.0
       Test_Fingerprinting_Header_And_Network: v2.11.0
+      Test_Fingerprinting_Header_And_Network_Preprocessor: v2.11.0
       Test_Fingerprinting_Header_Capability: v2.11.0
       Test_Fingerprinting_Network_Capability: v2.11.0
       Test_Fingerprinting_Session: v2.17.0.dev
       Test_Fingerprinting_Session_Capability: v2.17.0.dev
+      Test_Fingerprinting_Session_Preprocessor: v2.17.0.dev
     test_identify.py:
       Test_Basic: v1.5.0-rc1
     test_ip_blocking_full_denylist.py:
@@ -597,7 +603,7 @@ tests/:
       Test_SecurityEvents_Iast_Metastruct_Disabled: irrelevant (no fallback will be implemented)
       Test_SecurityEvents_Iast_Metastruct_Enabled: missing_feature
     test_only_python.py:
-      Test_ImportError: v2.20.0.dev
+      Test_ImportError: v3.3.0.dev (was v2.20.0.dev but a regression was introduced in v3.2/v3.1)
     test_rate_limiter.py:
       Test_Main: v2.0.0
     test_remote_config_rule_changes.py:
