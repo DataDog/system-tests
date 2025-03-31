@@ -592,6 +592,7 @@ class Test_Config_LogInjection_128Bit_TraceId_Enabled:
         self.message = "test_weblog_log_injection"
         self.r = weblog.get("/log/library", params={"msg": self.message}, headers=incoming_headers)
 
+    @bug(context.library == "ruby", reason="APMAPI-1035")
     def test_incoming_128bit_traceid(self):
         assert self.r.status_code == 200
         log_msg = parse_log_injection_message(self.message)
