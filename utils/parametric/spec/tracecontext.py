@@ -129,10 +129,10 @@ class Tracestate:
         if len(self) == 0:
             return False
         # combined header length MUST be less than or equal to 512 bytes
-        if len(self.to_string()) > 512:
+        if len(self.to_string()) > 512:  # noqa: PLR2004
             return False
         # there can be a maximum of 32 list-members in a list
-        return not len(self) > 32
+        return not len(self) > 32  # noqa: PLR2004
 
     def pop(self) -> tuple[str, str]:
         return self._traits.popitem()
@@ -147,7 +147,7 @@ def get_traceparent(headers: dict[str, str]) -> Traceparent | None:
     assert len(retval) == 1
     version, trace_id, span_id, trace_flags = retval[0][1].split("-")
 
-    if len(version) != 2 or len(trace_id) != 32 or len(span_id) != 16 or len(trace_flags) != 2:
+    if len(version) != 2 or len(trace_id) != 32 or len(span_id) != 16 or len(trace_flags) != 2:  # noqa: PLR2004
         return None
 
     if int(trace_id, 16) == 0 or int(span_id, 16) == 0:

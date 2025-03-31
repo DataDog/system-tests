@@ -6,6 +6,7 @@ import urllib.parse
 from typing import TypedDict, NotRequired
 from types import TracebackType
 from collections.abc import Generator, Iterable
+from http import HTTPStatus
 
 from docker.models.containers import Container
 import pytest
@@ -81,7 +82,7 @@ class APMLibraryClient:
         return (
             self.container.status == "running"
             and self._session.get(self._url("/non-existent-endpoint-to-ping-until-the-server-starts")).status_code
-            == 404
+            == HTTPStatus.NOT_FOUND
         )
 
     def _print_logs(self):
@@ -168,7 +169,7 @@ class APMLibraryClient:
             },
         )
 
-        if resp.status_code != 200:
+        if resp.status_code != HTTPStatus.OK:
             raise pytest.fail(f"Failed to start span: {resp.text}", pytrace=False)
 
         resp_json = resp.json()
@@ -269,10 +270,14 @@ class APMLibraryClient:
         return resp.json()["span_id"]
 
     def trace_flush(self) -> bool:
-        return (
-            self._session.post(self._url("/trace/span/flush"), json={}).status_code < 300
-            and self._session.post(self._url("/trace/stats/flush"), json={}).status_code < 300
-        )
+        r = self._session.post(self._url("/trace/span/flush"), json={})
+
+        if not HTTPStatus(r.status_code).is_success:
+            return False
+
+        r = self._session.post(self._url("/trace/stats/flush"), json={})
+
+        return HTTPStatus(r.status_code).is_success
 
     def otel_trace_start_span(
         self,

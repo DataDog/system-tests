@@ -238,7 +238,7 @@ def retrieve_span_links(span: Span) -> list:
         link = {}
         link["trace_id"] = int(json_link["trace_id"][-16:], base=16)
         link["span_id"] = int(json_link["span_id"], base=16)
-        if len(json_link["trace_id"]) > 16:
+        if len(json_link["trace_id"]) > 16:  # noqa: PLR2004
             link["trace_id_high"] = int(json_link["trace_id"][:16], base=16)
         if "attributes" in json_link:
             link["attributes"] = json_link.get("attributes")
