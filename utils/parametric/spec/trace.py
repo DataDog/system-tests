@@ -218,7 +218,7 @@ def assert_trace_has_tags(trace: Trace, tags: dict[str, int | str | float | bool
         assert_span_has_tags(span, tags)
 
 
-def retrieve_span_links(span) -> list:
+def retrieve_span_links(span: Span) -> list:
     """Retrieves span links from a span.
     raise an exception if the span links are not found, or if it's not a list
     """
@@ -254,7 +254,7 @@ def retrieve_span_links(span) -> list:
     return links
 
 
-def retrieve_span_events(span) -> list | None:
+def retrieve_span_events(span: Span) -> list | None:
     if span.get("span_events") is not None:
         return span["span_events"]
 
