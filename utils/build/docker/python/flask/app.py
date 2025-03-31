@@ -474,11 +474,8 @@ def format_error(errors):
 @app.route("/add_event")
 def add_event():
     name = request.args.get("name", "span.event")
-    
-    attributes = {
-        "string": request.args.get("string_attr", "value"),
-        "int": int(request.args.get("int_attr", 1))
-    }
+
+    attributes = {"string": request.args.get("string_attr", "value"), "int": int(request.args.get("int_attr", 1))}
 
     timestamp_str = request.args.get("timestamp")
     if timestamp_str:
