@@ -103,6 +103,10 @@ class Test_Config_ObfuscationQueryStringRegexp_Empty:
     def setup_query_string_obfuscation_empty_client(self):
         self.r = weblog.get("/make_distant_call", params={"url": "http://weblog:7777/?key=monkey"})
 
+    @bug(
+        context.library == "java" and context.weblog_variant in ("vertx3", "vertx4"),
+        reason="APMAPI-770",
+    )
     @missing_feature(context.library == "nodejs", reason="Node only obfuscates queries on the server side")
     @missing_feature(context.library < "golang@1.72.0-dev", reason="Obfuscation only occurs on server side")
     def test_query_string_obfuscation_empty_client(self):
