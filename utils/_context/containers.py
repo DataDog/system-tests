@@ -855,6 +855,10 @@ class WeblogContainer(TestedContainer):
         else:
             header_tags = ""
 
+        if library == "ruby" and "rails" in self.weblog_variant:
+            # Ensure ruby on rails apps log to stdout
+            self.environment["RAILS_LOG_TO_STDOUT"] = "true"
+
         if len(self.additional_trace_header_tags) != 0:
             header_tags += f',{",".join(self.additional_trace_header_tags)}'
 
