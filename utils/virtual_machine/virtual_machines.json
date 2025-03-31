@@ -208,7 +208,7 @@
         {
             "name": "Debian_12_amd64",
             "aws_config": {
-                "ami_id": "ami-064519b8c76274859",
+                "ami_id": "ami-0779caf41f9ba54f0",
                 "ami_instance_type": "t3.medium",
                 "user": "admin"
             },
@@ -222,7 +222,7 @@
         {
             "name": "Debian_12_arm64",
             "aws_config": {
-                "ami_id": "ami-0789039e34e739d67",
+                "ami_id": "ami-07c4edc673430f8b8",
                 "ami_instance_type": "t4g.medium",
                 "user": "admin"
             },
