@@ -5,15 +5,14 @@ set -eu
 mkdir /dd-tracer
 
 # Look for custom dd-trace-api jar in custom binaries folder
-CUSTOM_DD_TRACE_API_COUNT=$(ls /binaries/dd-trace-api*.jar | wc -l)
+CUSTOM_DD_TRACE_API_COUNT=$(find /binaries/dd-trace-api*.jar 2>/dev/null | wc -l)
 if [ "$CUSTOM_DD_TRACE_API_COUNT" = 0 ]; then
     echo "Using default dd-trace-api"
 elif [ "$CUSTOM_DD_TRACE_API_COUNT" = 1 ]; then
     [[ "$#" -eq 0 ]] && MVN_OPTS= || MVN_OPTS="$1"
-    cp $(ls /binaries/dd-trace-api*.jar) /dd-tracer/dd-trace-api.jar
-    CUSTOM_DD_TRACE_API="/dd-tracer/dd-trace-api.jar"
+    CUSTOM_DD_TRACE_API=$(find /binaries/dd-trace-api*.jar)
     echo "Using custom dd-trace-api: ${CUSTOM_DD_TRACE_API}"
-    /usr/share/maven/bin/mvn -Dfile="$CUSTOM_DD_TRACE_API" -DgroupId=com.datadoghq -DartifactId=dd-trace-api -Dversion=9999 -Dpackaging=jar $MVN_OPTS install:install-file
+    mvn -Dfile="$CUSTOM_DD_TRACE_API" -DgroupId=com.datadoghq -DartifactId=dd-trace-api -Dversion=9999 -Dpackaging=jar $MVN_OPTS install:install-file
 else
     echo "Too many dd-trace-api within binaries folder"
     exit 1
