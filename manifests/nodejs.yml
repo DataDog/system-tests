@@ -53,6 +53,7 @@ refs:
   - &ref_5_41_0 '>=5.41.0'
   - &ref_5_43_0 '>=5.43.0'
   - &ref_5_44_0 '>=5.44.0'
+  - &ref_5_46_0 '>=5.46.0'
 tests/:
   apm_tracing_e2e/:
     test_otel.py:
@@ -443,7 +444,9 @@ tests/:
         Test_Cmdi_Telemetry:
           '*': *ref_5_30_0
           nextjs: missing_feature
-        Test_Cmdi_Telemetry_V2: missing_feature
+        Test_Cmdi_Telemetry_V2:
+          '*': *ref_5_46_0
+          nextjs: missing_feature
         Test_Cmdi_Telemetry_Variant_Tag:
           '*': *ref_5_30_0
           nextjs: missing_feature
@@ -472,7 +475,9 @@ tests/:
         Test_Lfi_StackTrace: *ref_5_24_0
         Test_Lfi_Telemetry: *ref_5_24_0
         Test_Lfi_Telemetry_Multiple_Exploits: *ref_5_37_0
-        Test_Lfi_Telemetry_V2: missing_feature
+        Test_Lfi_Telemetry_V2:
+          '*': *ref_5_46_0
+          nextjs: missing_feature
         Test_Lfi_UrlQuery:
           '*': *ref_5_24_0
           express5: *ref_5_29_0
@@ -494,7 +499,9 @@ tests/:
         Test_Shi_Rules_Version: *ref_5_24_0
         Test_Shi_StackTrace: *ref_5_25_0
         Test_Shi_Telemetry: *ref_5_25_0
-        Test_Shi_Telemetry_V2: missing_feature
+        Test_Shi_Telemetry_V2:
+          '*': *ref_5_46_0
+          nextjs: missing_feature
         Test_Shi_Telemetry_Variant_Tag: *ref_5_30_0
         Test_Shi_UrlQuery:
           '*': *ref_5_25_0
@@ -517,7 +524,9 @@ tests/:
         Test_Sqli_Rules_Version: *ref_5_25_0
         Test_Sqli_StackTrace: *ref_5_23_0
         Test_Sqli_Telemetry: *ref_5_23_0
-        Test_Sqli_Telemetry_V2: missing_feature
+        Test_Sqli_Telemetry_V2:
+          '*': *ref_5_46_0
+          nextjs: missing_feature
         Test_Sqli_UrlQuery:
           '*': *ref_5_23_0
           express5: *ref_5_29_0
@@ -541,7 +550,9 @@ tests/:
         Test_Ssrf_Telemetry:
           '*': *ref_5_22_0
           express5: *ref_5_29_0  # test uses querystring
-        Test_Ssrf_Telemetry_V2: missing_feature
+        Test_Ssrf_Telemetry_V2:
+          '*': *ref_5_46_0
+          nextjs: missing_feature
         Test_Ssrf_UrlQuery:
           '*': *ref_5_20_0
           express5: *ref_5_29_0
