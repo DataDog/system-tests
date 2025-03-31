@@ -53,6 +53,6 @@ else
   rm "$TARBALL"
 fi
 
-echo '{"status": "ok", "library": {"language": "cpp_nginx", "version": "'$NGINX_DATADOG_VERSION'"}}' > /builds/healthcheck.json
+echo '{"status": "ok", "library": {"name": "cpp_nginx", "version": "'$NGINX_DATADOG_VERSION'"}}' > /builds/healthcheck.json
 cat /builds/healthcheck.json
 
