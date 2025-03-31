@@ -3,6 +3,7 @@ source 'https://rubygems.org'
 gem 'rack-contrib'
 gem 'puma'
 gem 'pry'
+gem 'faraday'
 
 gem 'dogstatsd-ruby'
 gem 'ddtrace', '~> 1.0.0.a'
