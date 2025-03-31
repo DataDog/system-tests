@@ -122,6 +122,21 @@ class TestedContainer:
         self.user = user
         self.cap_add = cap_add
         self.security_opt = security_opt
+        self.ulimits: list | None = None
+        self.privileged = False
+
+    def enable_core_dumps(self) -> None:
+        """Modify container options to enable the possibility of core dumps"""
+
+        self.cap_add = self.cap_add if self.cap_add is not None else []
+
+        if "SYS_PTRACE" not in self.cap_add:
+            self.cap_add.append("SYS_PTRACE")
+        if "SYS_ADMIN" not in self.cap_add:
+            self.cap_add.append("SYS_ADMIN")
+
+        self.privileged = True
+        self.ulimits = [docker.types.Ulimit(name="core", soft=-1, hard=-1)]
 
     def get_image_list(self, library: str, weblog: str) -> list[str]:  # noqa: ARG002
         """Returns the image list that will be loaded to be able to run/build the container"""
@@ -201,6 +216,8 @@ class TestedContainer:
             user=self.user,
             cap_add=self.cap_add,
             security_opt=self.security_opt,
+            privileged=self.privileged,
+            ulimits=self.ulimits,
         )
 
         self.healthy = self.wait_for_health()
@@ -895,6 +912,9 @@ class WeblogContainer(TestedContainer):
                     }
             except Exception:
                 logger.info("No local dd-trace-js found")
+
+        if library == "php":
+            self.enable_core_dumps()
 
     def post_start(self):
         from utils import weblog
