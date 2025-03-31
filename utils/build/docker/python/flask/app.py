@@ -472,10 +472,10 @@ def format_error(errors):
 
 
 @app.route("/add_event")
-def add_event():
+def add_event(name="span.event", attributes={"string": "value", "int": 1}, timestamp=datetime.utcnow()):
     span = opentelemetry.trace.get_current_span()
     if span is not None:
-        span.add_event(name="span.event", attributes={"string": "value", "int": 1}, timestamp=datetime.utcnow())
+        span.add_event(name=name, attributes=attributes, timestamp=timestamp)
     return {"message": "event added", "status_code": 200}
 
 
