@@ -5,6 +5,7 @@
 """Validate data flow between agent and backend"""
 
 import json
+from http import HTTPStatus
 import os
 import time
 
@@ -12,7 +13,8 @@ import requests
 
 from utils.interfaces._core import ProxyBasedInterfaceValidator
 from utils.interfaces._library.core import LibraryInterfaceValidator
-from utils.tools import logger, get_rid_from_span
+from utils.tools import get_rid_from_span
+from utils._logger import logger
 from utils._weblog import HttpResponse
 
 
@@ -198,7 +200,7 @@ class _BackendInterfaceValidator(ProxyBasedInterfaceValidator):
                 dd_app_key=dd_app_key,
             )
             status_code = data["response"]["status_code"]
-            if status_code == 429:
+            if status_code == HTTPStatus.TOO_MANY_REQUESTS:
                 # https://docs.datadoghq.com/api/latest/rate-limits/
                 logger.debug(f"Got rate limit error: {data['response']}")
                 sleep_time_s = int(data["response"]["headers"]["x-ratelimit-reset"])
@@ -229,7 +231,7 @@ class _BackendInterfaceValidator(ProxyBasedInterfaceValidator):
             host = self.dd_site_url
         r = requests.request(method, url=f"{host}{path}", headers=headers, json=json_payload, timeout=10)
 
-        if r.status_code == 403:
+        if r.status_code == HTTPStatus.FORBIDDEN:
             raise ValueError(
                 "Request to the backend returned error 403: check DD_API_KEY and DD_APP_KEY environment variables"
             )
@@ -287,9 +289,9 @@ class _BackendInterfaceValidator(ProxyBasedInterfaceValidator):
 
             # We should retry fetching from the backend as long as the response is 404.
             status_code = data["response"]["status_code"]
-            if status_code not in (404, 200):
+            if status_code not in (HTTPStatus.NOT_FOUND, HTTPStatus.OK):
                 raise ValueError(f"Backend did not provide trace: {data['path']}. Status is {status_code}.")
-            if status_code != 404:
+            if status_code != HTTPStatus.NOT_FOUND:
                 return data
 
             logger.debug(f"Sleeping {sleep_interval_s} seconds")
@@ -335,7 +337,7 @@ class _BackendInterfaceValidator(ProxyBasedInterfaceValidator):
 
             # We should retry fetching from the backend as long as the response has empty data.
             status_code = data["response"]["status_code"]
-            if status_code != 200:
+            if status_code != HTTPStatus.OK:
                 raise ValueError(f"Fetching spans from Event Platform failed: {data['path']}. Status is {status_code}.")
 
             parsed = data["response"]["content"]
@@ -397,9 +399,9 @@ class _BackendInterfaceValidator(ProxyBasedInterfaceValidator):
             )
             # We should retry fetching from the backend as long as the response is 404.
             status_code = data["response"]["status_code"]
-            if status_code not in (404, 200):
+            if status_code not in (HTTPStatus.NOT_FOUND, HTTPStatus.OK):
                 raise ValueError(f"Backend did not provide metric: {data['path']}. Status is {status_code}.")
-            if status_code != 404:
+            if status_code != HTTPStatus.NOT_FOUND:
                 resp_content = data["response"]["content"]
                 # There may be delay in metric query, retry when series are not present
                 if len(resp_content["series"]) > 0:
@@ -436,7 +438,7 @@ class _BackendInterfaceValidator(ProxyBasedInterfaceValidator):
             if status_code not in (404, 200):
                 logger.error(f"Backend response: {data['response']}")
                 raise ValueError(f"Backend did not provide logs: {data['path']}. Status is {status_code}.")
-            if status_code != 404:
+            if status_code != HTTPStatus.NOT_FOUND:
                 logs = data["response"]["content"]["data"]
                 # Log search can sometimes return wrong results. Retry if expected log is not present.
                 for log in logs:

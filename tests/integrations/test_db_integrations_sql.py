@@ -2,8 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, bug, missing_feature, irrelevant, scenarios, features
-from utils.tools import logger
+from utils import context, bug, missing_feature, irrelevant, scenarios, features, logger
 
 from .utils import BaseDbIntegrationsTestClass
 
@@ -306,7 +305,7 @@ class Test_MsSql(_BaseDatadogDbIntegrationTestClass):
             elif db_operation == "procedure":
                 # Insert and procedure:These operations also receive two parameters, but are obfuscated as only one.
                 # Node.js: The proccedure has a input parameter, but we are calling through method `execute`` and we can't see the parameters in the traces
-                expected_obfuscation_count = 0 if context.library.library == "nodejs" else 2
+                expected_obfuscation_count = 0 if context.library.name == "nodejs" else 2
             else:
                 expected_obfuscation_count = 2
 

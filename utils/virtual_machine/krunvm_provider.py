@@ -8,7 +8,7 @@ import pexpect
 import shutil
 
 from utils.virtual_machine.virtual_machine_provider import VmProvider, Commander
-from utils.tools import logger
+from utils._logger import logger
 from utils import context
 from utils.virtual_machine.vm_logger import vm_logger
 

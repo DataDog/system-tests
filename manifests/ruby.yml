@@ -214,6 +214,7 @@ tests/:
         Test_Sqli_Telemetry:
           "*": missing_feature
           rails42: bug (APPSEC-56765)  # ActiveRecord instrumentation with Rails < 5 and Ruby < 2.7 not working due to kwargs
+        Test_Sqli_Telemetry_V2: missing_feature
         Test_Sqli_UrlQuery:
           "*": missing_feature
           rails42: bug (APPSEC-56765)  # ActiveRecord instrumentation with Rails < 5 and Ruby < 2.7 not working due to kwargs
@@ -278,12 +279,12 @@ tests/:
       test_truncation.py:
         Test_Truncation: missing_feature
     test_asm_standalone.py:
-      Test_AppSecStandalone_UpstreamPropagation: v2.4.1-dev
-      Test_AppSecStandalone_UpstreamPropagation_V2: missing_feature
+      Test_AppSecStandalone_UpstreamPropagation: irrelevant
+      Test_AppSecStandalone_UpstreamPropagation_V2: v2.12.3-dev
       Test_IastStandalone_UpstreamPropagation: missing_feature
       Test_IastStandalone_UpstreamPropagation_V2: missing_feature
-      Test_SCAStandalone_Telemetry: missing_feature
-      Test_SCAStandalone_Telemetry_V2: missing_feature
+      Test_SCAStandalone_Telemetry: irrelevant
+      Test_SCAStandalone_Telemetry_V2: v2.12.3-dev
     test_automated_login_events.py:
       Test_Login_Events:
         '*': v1.13.0
@@ -353,11 +354,14 @@ tests/:
     test_fingerprinting.py:
       Test_Fingerprinting_Endpoint: missing_feature
       Test_Fingerprinting_Endpoint_Capability: missing_feature
+      Test_Fingerprinting_Endpoint_Preprocessor: missing_feature
       Test_Fingerprinting_Header_And_Network: missing_feature
+      Test_Fingerprinting_Header_And_Network_Preprocessor: missing_feature
       Test_Fingerprinting_Header_Capability: missing_feature
       Test_Fingerprinting_Network_Capability: missing_feature
       Test_Fingerprinting_Session: missing_feature
       Test_Fingerprinting_Session_Capability: missing_feature
+      Test_Fingerprinting_Session_Preprocessor: missing_feature
     test_identify.py:
       Test_Basic: v1.0.0
     test_ip_blocking_full_denylist.py:
@@ -428,6 +432,10 @@ tests/:
         rails70: missing_feature (feature not implemented)
         rails80: missing_feature (feature not implemented)
         uds-rails: missing_feature (feature not implemented)
+    test_debugger_telemetry.py:
+      Test_Debugger_Telemetry:
+        "*": irrelevant
+        rails70: missing_feature (feature not implemented)
   integrations/:
     crossed_integrations/:
       test_kafka.py:
@@ -549,6 +557,8 @@ tests/:
     test_process_discovery.py: missing_feature
     test_sampling_delegation.py:
       Test_Decisionless_Extraction: v2.4.0
+    test_span_events.py:
+      Test_Span_Events: missing_feature
     test_span_links.py:
       Test_Span_Links: v2.0.0
     test_telemetry.py:

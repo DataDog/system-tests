@@ -3,22 +3,22 @@
 # Copyright 2021 Datadog, Inc.
 
 import base64
-from collections.abc import Callable
+from collections.abc import Callable, Iterable
 import copy
 import json
 import threading
 
-from utils.tools import logger, get_rid_from_user_agent, get_rid_from_span
+from utils.tools import get_rid_from_user_agent, get_rid_from_span
+from utils._logger import logger
 from utils.dd_constants import RemoteConfigApplyState, Capabilities
 from utils.interfaces._core import ProxyBasedInterfaceValidator
-from utils.interfaces._library._utils import get_trace_request_path
 from utils.interfaces._library.appsec import _WafAttack, _ReportedHeader
 from utils.interfaces._library.miscs import _SpanTagValidator
 from utils.interfaces._library.telemetry import (
     _SeqIdLatencyValidation,
     _NoSkippedSeqId,
 )
-from utils._weblog import HttpResponse
+from utils._weblog import HttpResponse, GrpcResponse
 from utils.interfaces._misc_validators import HeadersPresenceValidator
 
 
@@ -49,11 +49,14 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
         self.wait_for(wait_function, timeout)
 
     ############################################################
-    def get_traces(self, request: HttpResponse | None = None):
-        rid = request.get_rid() if request else None
+    def get_traces(self, request: HttpResponse | GrpcResponse | None = None):
+        rid: str | None = None
 
-        if rid:
+        if request:
+            rid = request.get_rid()
             logger.debug(f"Try to find traces related to request {rid}")
+            if isinstance(request, HttpResponse) and request.status_code is None:
+                logger.warning("HTTP app failed to respond, it will very probably fail")
 
         for data in self.get_data(path_filters=self.trace_paths):
             traces = data["request"]["content"]
@@ -78,9 +81,6 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
         request will be returned.
         """
         rid = request.get_rid() if request else None
-
-        if rid:
-            logger.debug(f"Try to find spans related to request {rid}")
 
         for data, trace in self.get_traces(request=request):
             for span in trace:
@@ -239,9 +239,9 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
 
     def assert_headers_presence(
         self,
-        path_filter: list[str] | str,
-        request_headers: tuple[str, ...] = (),
-        response_headers: tuple[str, ...] = (),
+        path_filter: Iterable[str] | str,
+        request_headers: Iterable[str] = (),
+        response_headers: Iterable[str] = (),
         check_condition: Callable | None = None,
     ):
         validator = HeadersPresenceValidator(request_headers, response_headers, check_condition)
@@ -255,24 +255,6 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
                 return
 
         raise ValueError("Nothing has been reported. No request root span with has been found")
-
-    def assert_all_traces_requests_forwarded(self, paths: list[str] | set[str]):
-        # TODO : move this in test class
-        paths = set(paths)
-
-        for _, span in self.get_root_spans():
-            path = get_trace_request_path(span)
-
-            if path is None or path not in paths:
-                continue
-
-            paths.remove(path)
-
-        if len(paths) != 0:
-            for path in paths:
-                logger.error(f"A path has not been transmitted: {path}")
-
-            raise ValueError("Some path has not been transmitted")
 
     def assert_trace_id_uniqueness(self):
         trace_ids: dict[int, str] = {}
@@ -305,12 +287,12 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
     def assert_waf_attack(
         self,
         request: HttpResponse | None,
-        rule: str | None = None,
+        rule: str | type | None = None,
         pattern: str | None = None,
         value: str | None = None,
         address: str | None = None,
         patterns: list[str] | None = None,
-        key_path: str | None = None,
+        key_path: str | list[str] | None = None,
         *,
         full_trace: bool = False,
         span_validator: Callable | None = None,

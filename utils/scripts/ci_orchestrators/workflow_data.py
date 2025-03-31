@@ -264,12 +264,14 @@ def get_endtoend_definitions(
     # build a list of {weblog, scenarios} for each weblog, and assign it to a Job
     jobs: list[Job] = []
     for weblog in weblogs:
-        scenarios = _filter_scenarios(scenarios, library, weblog, ci_environment)
-        scenarios_times = {
-            scenario: _get_execution_time(library, weblog, scenario, time_stats["run"]) for scenario in scenarios
-        }
+        supported_scenarios = _filter_scenarios(scenarios, library, weblog, ci_environment)
 
-        if len(scenarios) > 0:  # remove weblogs with no scenarios
+        if len(supported_scenarios) > 0:  # remove weblogs with no scenarios
+            scenarios_times = {
+                scenario: _get_execution_time(library, weblog, scenario, time_stats["run"])
+                for scenario in supported_scenarios
+            }
+
             jobs.append(
                 Job(
                     library=library,
@@ -421,7 +423,7 @@ def _is_supported(library: str, weblog: str, scenario: str, ci_environment: str)
             # python 3.13 issue : APMAPI-1096
             return False
 
-    if scenario in ("APPSEC_MISSING_RULES", "APPSEC_CORRUPTED_RULES") and library == "cpp":
+    if scenario in ("APPSEC_MISSING_RULES", "APPSEC_CORRUPTED_RULES") and library in ("cpp_nginx", "cpp_httpd"):
         # C++ 1.2.0 freeze when the rules file is missing
         return False
 
@@ -534,4 +536,4 @@ if __name__ == "__main__":
         "parametric": ["PARAMETRIC"],
     }
 
-    get_endtoend_definitions("java", m, "dev", 20, 256)
+    get_endtoend_definitions("ruby", m, "dev", 20, 256)

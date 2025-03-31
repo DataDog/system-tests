@@ -4,7 +4,7 @@ from utils._context.containers import DummyServerContainer, ExternalProcessingCo
 from utils import interfaces
 from utils.interfaces._core import ProxyBasedInterfaceValidator
 
-from utils.tools import logger
+from utils._logger import logger
 
 from .endtoend import DockerScenario, ScenarioGroup
 
@@ -52,7 +52,7 @@ class ExternalProcessingScenario(DockerScenario):
         interfaces.agent.configure(self.host_log_folder, replay=self.replay)
 
     def _start_interfaces_watchdog(self):
-        super()._start_interfaces_watchdog([interfaces.library, interfaces.agent])
+        super().start_interfaces_watchdog([interfaces.library, interfaces.agent])
 
     def _wait_for_app_readiness(self):
         logger.debug("Wait for app readiness")

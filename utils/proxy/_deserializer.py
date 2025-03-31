@@ -2,13 +2,13 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from ast import literal_eval
 import base64
 import gzip
 import io
 import json
 import logging
 from hashlib import md5
+from http import HTTPStatus
 import traceback
 from typing import Any
 
@@ -100,7 +100,7 @@ def deserialize_dd_appsec_s_meta(payload: str):
 
 
 def deserialize_http_message(
-    path: str, message: dict, content: bytes, interface: str, key: str, export_content_files_to: str
+    path: str, message: dict, content: bytes | None, interface: str, key: str, export_content_files_to: str
 ):
     def json_load():
         if not content:
@@ -118,7 +118,7 @@ def deserialize_http_message(
         return json_load()
 
     if path == "/v0.7/config":  # Kyle, please add content-type header :)
-        if key == "response" and message["status_code"] == 404:
+        if key == "response" and message["status_code"] == HTTPStatus.NOT_FOUND:
             return content.decode(encoding="utf-8")
 
         return json_load()
@@ -158,8 +158,6 @@ def deserialize_http_message(
         return result
 
     if content_type == "application/x-protobuf":
-        # Raw data can be either a str like "b'\n\x\...'" or bytes
-        content = literal_eval(content) if isinstance(content, str) else content
         assert isinstance(content, bytes)
         dd_protocol = get_header_value("dd-protocol", message["headers"])
         if dd_protocol == "otlp" and "traces" in path:
@@ -190,7 +188,7 @@ def deserialize_http_message(
         decoded = []
         for part in MultipartDecoder(content, raw_content_type).parts:
             headers = {k.decode("utf-8"): v.decode("utf-8") for k, v in part.headers.items()}
-            item = {"headers": headers}
+            item: dict[str, Any] = {"headers": headers}
 
             content_type_part = ""
 
@@ -334,7 +332,7 @@ def deserialize(data: dict[str, Any], key: str, content: bytes | None, interface
             data["path"], data[key], content, interface, key, export_content_files_to
         )
     except:
-        if key == "response" and data[key]["status_code"] == 500:
+        if key == "response" and data[key]["status_code"] == HTTPStatus.INTERNAL_SERVER_ERROR:
             # backend may respond 500, while giving application/x-protobuf as content-type
             # deserialize_http_message() will fail, but it cannot be considered as an
             # internal error, we only log it, and do not store anything in traceback

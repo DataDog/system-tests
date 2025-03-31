@@ -8,8 +8,7 @@ import os
 
 from tests.integrations.utils import compute_dsm_hash
 
-from utils import weblog, interfaces, scenarios, irrelevant, context, bug, features, missing_feature, flaky
-from utils.tools import logger
+from utils import weblog, interfaces, scenarios, irrelevant, context, bug, features, missing_feature, flaky, logger
 
 
 # Kafka specific
@@ -47,7 +46,7 @@ WEBLOG_VARIANT_SANITIZED = context.weblog_variant.replace(".", "_").replace(" ",
 
 
 def get_message(test, system):
-    return f"[test_dsm.py::{test}] [{system.upper()}] Hello from {context.library.library} DSM test: {scenarios.integrations_aws.unique_id}"
+    return f"[test_dsm.py::{test}] [{system.upper()}] Hello from {context.library.name} DSM test: {scenarios.integrations_aws.unique_id}"
 
 
 @features.datastreams_monitoring_support_for_kafka
@@ -67,42 +66,34 @@ class Test_DsmKafka:
         # checkpoint strings (e.g. service:foo)
         # There is currently no FNV-1 library availble for node.js
         # So we are using a different algorithm for node.js for now
-        language_hashes = {
-            "nodejs": {"producer": 7021878731777772655, "consumer": 4591800307942911915},
-            # we are not using a group consumer for testing go as setup is complex, so no group edge_tag is included in hashing
-            "golang": {
-                "producer": 4463699290244539355,
-                "consumer": 13758451224913876939,
-                "edge_tags_in": ("direction:in", f"topic:{DSM_QUEUE}", "type:kafka"),
-                "edge_tags_out": ("direction:out", f"topic:{DSM_QUEUE}", "type:kafka"),
-            },
-            "default": {
-                "producer": 14216899112169674443,
-                "consumer": 4247242616665718048,
-                "edge_tags_in": (
-                    "direction:in",
-                    f"group:{DSM_CONSUMER_GROUP}",
-                    "kafka_cluster_id:5L6g3nShT-eMCtK--X86sw",
-                    f"topic:{DSM_QUEUE}",
-                    "type:kafka",
-                ),
-                "edge_tags_out": (
-                    "direction:out",
-                    "kafka_cluster_id:5L6g3nShT-eMCtK--X86sw",
-                    f"topic:{DSM_QUEUE}",
-                    "type:kafka",
-                ),
-            },
-        }
+        if context.library == "nodejs":
+            producer_hash = 7021878731777772655
+            consumer_hash = 4591800307942911915
+        elif context.library == "golang":
+            producer_hash = 4463699290244539355
+            consumer_hash = 13758451224913876939
+        else:
+            producer_hash = 14216899112169674443
+            consumer_hash = 4247242616665718048
 
-        producer_hash = language_hashes.get(context.library.library, language_hashes.get("default"))["producer"]
-        consumer_hash = language_hashes.get(context.library.library, language_hashes.get("default"))["consumer"]
-        edge_tags_out = language_hashes.get(context.library.library, language_hashes.get("default")).get(
-            "edge_tags_out", language_hashes.get("default")["edge_tags_out"]
-        )
-        edge_tags_in = language_hashes.get(context.library.library, language_hashes.get("default")).get(
-            "edge_tags_in", language_hashes.get("default")["edge_tags_in"]
-        )
+        if context.library == "golang":
+            # we are not using a group consumer for testing go as setup is complex, so no group edge_tag is included in hashing
+            edge_tags_in: tuple = ("direction:in", f"topic:{DSM_QUEUE}", "type:kafka")
+            edge_tags_out: tuple = ("direction:out", f"topic:{DSM_QUEUE}", "type:kafka")
+        else:
+            edge_tags_in: tuple = (
+                "direction:in",
+                f"group:{DSM_CONSUMER_GROUP}",
+                "kafka_cluster_id:5L6g3nShT-eMCtK--X86sw",
+                f"topic:{DSM_QUEUE}",
+                "type:kafka",
+            )
+            edge_tags_out: tuple = (
+                "direction:out",
+                "kafka_cluster_id:5L6g3nShT-eMCtK--X86sw",
+                f"topic:{DSM_QUEUE}",
+                "type:kafka",
+            )
 
         DsmHelper.assert_checkpoint_presence(hash_=producer_hash, parent_hash=0, tags=edge_tags_out)
         DsmHelper.assert_checkpoint_presence(hash_=consumer_hash, parent_hash=producer_hash, tags=edge_tags_in)
@@ -148,23 +139,17 @@ class Test_DsmRabbitmq:
         # checkpoint strings (e.g. service:foo)
         # There is currently no FNV-1 library availble for node.js
         # So we are using a different algorithm for node.js for now
-        language_hashes = {
-            "nodejs": {"producer": 5246740674878013159, "consumer": 8116149247198652772},
-            "default": {
-                "producer": 8945717757344503539,
-                "consumer": 247866491670975357,
-                "edge_tags_in": ("direction:in", f"topic:{DSM_QUEUE}", "type:rabbitmq"),
-                "edge_tags_out": ("direction:out", f"exchange:{DSM_EXCHANGE}", "has_routing_key:true", "type:rabbitmq"),
-            },
-        }
+        if context.library == "nodejs":
+            producer_hash = 5246740674878013159
+            consumer_hash = 8116149247198652772
+        else:
+            producer_hash = 8945717757344503539
+            consumer_hash = 247866491670975357
 
-        producer_hash = language_hashes.get(context.library.library, language_hashes.get("default"))["producer"]
-        consumer_hash = language_hashes.get(context.library.library, language_hashes.get("default"))["consumer"]
-        edge_tags_in = language_hashes.get("default")["edge_tags_in"]
-        edge_tags_out = language_hashes.get("default")["edge_tags_out"]
+        edge_tags_in = ("direction:in", f"topic:{DSM_QUEUE}", "type:rabbitmq")
+        edge_tags_out = ("direction:out", f"exchange:{DSM_EXCHANGE}", "has_routing_key:true", "type:rabbitmq")
 
         DsmHelper.assert_checkpoint_presence(hash_=producer_hash, parent_hash=0, tags=edge_tags_out)
-
         DsmHelper.assert_checkpoint_presence(hash_=consumer_hash, parent_hash=producer_hash, tags=edge_tags_in)
 
     def setup_dsm_rabbitmq_dotnet_legacy(self):
@@ -278,10 +263,12 @@ class Test_DsmSQS:
 
         # we can't add the time hash to node since we can't replicate the hashing algo in python and compute a hash,
         # which changes for each run with the time stamp added
-        if context.library.library != "nodejs":
-            self.queue = f"{DSM_QUEUE}_{context.library.library}_{WEBLOG_VARIANT_SANITIZED}_{scenarios.integrations_aws.unique_id}"
+        if context.library.name != "nodejs":
+            self.queue = (
+                f"{DSM_QUEUE}_{context.library.name}_{WEBLOG_VARIANT_SANITIZED}_{scenarios.integrations_aws.unique_id}"
+            )
         else:
-            self.queue = f"{DSM_QUEUE}_{context.library.library}"
+            self.queue = f"{DSM_QUEUE}_{context.library.name}"
 
         self.r = weblog.get(
             f"/dsm?integration=sqs&timeout=60&queue={self.queue}&message={message}", timeout=DSM_REQUEST_TIMEOUT
@@ -290,28 +277,15 @@ class Test_DsmSQS:
     def test_dsm_sqs(self):
         assert self.r.text == "ok"
 
-        hash_inputs = {
-            "default": {
-                "tags_out": ("direction:out", f"topic:{self.queue}", "type:sqs"),
-                "tags_in": ("direction:in", f"topic:{self.queue}", "type:sqs"),
-            },
-            "nodejs": {
-                "producer": 8993664068648876726,
-                "consumer": 8544812442360155699,
-                "tags_out": ("direction:out", f"topic:{self.queue}", "type:sqs"),
-                "tags_in": ("direction:in", f"topic:{self.queue}", "type:sqs"),
-            },
-        }
+        tags_out = ("direction:out", f"topic:{self.queue}", "type:sqs")
+        tags_in = ("direction:in", f"topic:{self.queue}", "type:sqs")
 
-        tags_in = hash_inputs.get(context.library.library, hash_inputs["default"])["tags_in"]
-        tags_out = hash_inputs.get(context.library.library, hash_inputs["default"])["tags_out"]
-
-        if context.library.library != "nodejs":
+        if context.library == "nodejs":
+            producer_hash = 8993664068648876726
+            consumer_hash = 8544812442360155699
+        else:
             producer_hash = compute_dsm_hash(0, tags_out)
             consumer_hash = compute_dsm_hash(producer_hash, tags_in)
-        else:
-            producer_hash = hash_inputs["nodejs"]["producer"]
-            consumer_hash = hash_inputs["nodejs"]["consumer"]
 
         DsmHelper.assert_checkpoint_presence(hash_=producer_hash, parent_hash=0, tags=tags_out)
         DsmHelper.assert_checkpoint_presence(hash_=consumer_hash, parent_hash=producer_hash, tags=tags_in)
@@ -327,12 +301,12 @@ class Test_DsmSNS:
 
         # we can't add the time hash to node since we can't replicate the hashing algo in python and compute a hash,
         # which changes for each run with the time stamp added
-        if context.library.library != "nodejs":
-            self.topic = f"{DSM_TOPIC}_{context.library.library}_{WEBLOG_VARIANT_SANITIZED}_{scenarios.integrations_aws.unique_id}_raw"
-            self.queue = f"{DSM_QUEUE_SNS}_{context.library.library}_{WEBLOG_VARIANT_SANITIZED}_{scenarios.integrations_aws.unique_id}_raw"
+        if context.library.name != "nodejs":
+            self.topic = f"{DSM_TOPIC}_{context.library.name}_{WEBLOG_VARIANT_SANITIZED}_{scenarios.integrations_aws.unique_id}_raw"
+            self.queue = f"{DSM_QUEUE_SNS}_{context.library.name}_{WEBLOG_VARIANT_SANITIZED}_{scenarios.integrations_aws.unique_id}_raw"
         else:
-            self.topic = f"{DSM_TOPIC}_{context.library.library}_raw"
-            self.queue = f"{DSM_QUEUE_SNS}_{context.library.library}_raw"
+            self.topic = f"{DSM_TOPIC}_{context.library.name}_raw"
+            self.queue = f"{DSM_QUEUE_SNS}_{context.library.name}_raw"
 
         self.r = weblog.get(
             f"/dsm?integration=sns&timeout=60&queue={self.queue}&topic={self.topic}&message={message}",
@@ -342,30 +316,18 @@ class Test_DsmSNS:
     def test_dsm_sns(self):
         assert self.r.text == "ok"
 
-        topic = self.topic if context.library.library == "java" else f"arn:aws:sns:us-east-1:{AWS_ACCT}:{self.topic}"
+        topic = self.topic if context.library == "java" else f"arn:aws:sns:us-east-1:{AWS_ACCT}:{self.topic}"
 
-        hash_inputs = {
-            "default": {
-                "tags_out": ("direction:out", f"topic:{topic}", "type:sns"),
-                "tags_in": ("direction:in", f"topic:{self.queue}", "type:sqs"),
-            },
-            "nodejs": {
-                "producer": 15466202493380574985 if AWS_TESTING == "remote" else 3703335291192845713,
-                "consumer": 9372735371403270535 if AWS_TESTING == "remote" else 797339341876345963,
-                "tags_out": ("direction:out", f"topic:{topic}", "type:sns"),
-                "tags_in": ("direction:in", f"topic:{self.queue}", "type:sqs"),
-            },
-        }
-
-        tags_in = hash_inputs.get(context.library.library, hash_inputs["default"])["tags_in"]
-        tags_out = hash_inputs.get(context.library.library, hash_inputs["default"])["tags_out"]
-
-        if context.library.library != "nodejs":
+        if context.library == "nodejs":
+            producer_hash = 15466202493380574985 if AWS_TESTING == "remote" else 3703335291192845713
+            consumer_hash = 9372735371403270535 if AWS_TESTING == "remote" else 797339341876345963
+            tags_out = ("direction:out", f"topic:{topic}", "type:sns")
+            tags_in = ("direction:in", f"topic:{self.queue}", "type:sqs")
+        else:
+            tags_out = ("direction:out", f"topic:{topic}", "type:sns")
+            tags_in = ("direction:in", f"topic:{self.queue}", "type:sqs")
             producer_hash = compute_dsm_hash(0, tags_out)
             consumer_hash = compute_dsm_hash(producer_hash, tags_in)
-        else:
-            producer_hash = hash_inputs["nodejs"]["producer"]
-            consumer_hash = hash_inputs["nodejs"]["consumer"]
 
         DsmHelper.assert_checkpoint_presence(hash_=producer_hash, parent_hash=0, tags=tags_out)
         DsmHelper.assert_checkpoint_presence(hash_=consumer_hash, parent_hash=producer_hash, tags=tags_in)
@@ -381,10 +343,12 @@ class Test_DsmKinesis:
 
         # we can't add the time hash to node since we can't replicate the hashing algo in python and compute a hash,
         # which changes for each run with the time stamp added
-        if context.library.library != "nodejs":
-            self.stream = f"{DSM_STREAM}_{context.library.library}_{WEBLOG_VARIANT_SANITIZED}_{scenarios.integrations_aws.unique_id}"
+        if context.library.name != "nodejs":
+            self.stream = (
+                f"{DSM_STREAM}_{context.library.name}_{WEBLOG_VARIANT_SANITIZED}_{scenarios.integrations_aws.unique_id}"
+            )
         else:
-            self.stream = f"{DSM_STREAM}_{context.library.library}"
+            self.stream = f"{DSM_STREAM}_{context.library.name}"
 
         self.r = weblog.get(
             f"/dsm?integration=kinesis&timeout=60&stream={self.stream}&message={message}",
@@ -397,27 +361,16 @@ class Test_DsmKinesis:
 
         stream_arn = f"arn:aws:kinesis:us-east-1:{AWS_ACCT}:stream/{self.stream}"
 
-        hash_inputs = {
-            "default": {
-                "tags_out": ("direction:out", f"topic:{stream_arn}", "type:kinesis"),
-                "tags_in": ("direction:in", f"topic:{stream_arn}", "type:kinesis"),
-            },
-            "nodejs": {
-                "producer": 2387568642918822206,
-                "consumer": 10101425062685840509,
-                "tags_out": ("direction:out", f"topic:{self.stream}", "type:kinesis"),
-                "tags_in": ("direction:in", f"topic:{self.stream}", "type:kinesis"),
-            },
-        }
-        tags_in = hash_inputs.get(context.library.library, hash_inputs["default"])["tags_in"]
-        tags_out = hash_inputs.get(context.library.library, hash_inputs["default"])["tags_out"]
-
-        if context.library.library != "nodejs":
+        if context.library == "nodejs":
+            tags_out = ("direction:out", f"topic:{self.stream}", "type:kinesis")
+            tags_in = ("direction:in", f"topic:{self.stream}", "type:kinesis")
+            producer_hash = 2387568642918822206
+            consumer_hash = 10101425062685840509
+        else:
+            tags_out = ("direction:out", f"topic:{stream_arn}", "type:kinesis")
+            tags_in = ("direction:in", f"topic:{stream_arn}", "type:kinesis")
             producer_hash = compute_dsm_hash(0, tags_out)
             consumer_hash = compute_dsm_hash(producer_hash, tags_in)
-        else:
-            producer_hash = hash_inputs["nodejs"]["producer"]
-            consumer_hash = hash_inputs["nodejs"]["consumer"]
 
         DsmHelper.assert_checkpoint_presence(hash_=producer_hash, parent_hash=0, tags=tags_out)
         DsmHelper.assert_checkpoint_presence(hash_=consumer_hash, parent_hash=producer_hash, tags=tags_in)
@@ -437,12 +390,11 @@ class Test_DsmContext_Injection_Base64:
     def test_dsmcontext_injection_base64(self):
         assert self.r.status_code == 200
 
-        language_hashes = {
-            # nodejs uses a different hashing algorithm and therefore has different hashes than the default
-            "nodejs": {"producer": 18431567370843181989},
-            "default": {"producer": 6031446427375485596},
-        }
-        producer_hash = language_hashes.get(context.library.library, language_hashes.get("default"))["producer"]
+        if context.library == "nodejs":
+            producer_hash = 18431567370843181989
+        else:
+            producer_hash = 6031446427375485596
+
         edge_tags = ("direction:out", "topic:dsm-injection-topic", "type:kafka")
 
         # get json carrier object
@@ -459,7 +411,7 @@ class Test_DsmContext_Injection_Base64:
 
         # nodejs uses big endian, others use little endian
         _format = "<Q"
-        if context.library.library == "nodejs":
+        if context.library == "nodejs":
             _format = ">Q"
         # decoded_pathway = struct.unpack(_format, encoded_pathway[:8])[0]
 
@@ -488,15 +440,16 @@ class Test_DsmContext_Extraction_Base64:
     def test_dsmcontext_extraction_base64(self):
         assert self.r.text == "ok"
 
-        language_hashes = {
+        if context.library == "nodejs":
             # nodejs uses a different hashing algorithm and therefore has different hashes than the default, also uses routing key since
             # it does not have access to the queue name
-            "nodejs": {"producer": 11295735785862509651, "consumer": 18410421833994263340},
-            "default": {"producer": 6031446427375485596, "consumer": 12795903374559614717},
-        }
+            consumer_hash = 18410421833994263340
+            producer_hash = 11295735785862509651
+        else:
+            consumer_hash = 12795903374559614717
+            producer_hash = 6031446427375485596
+
         edge_tags = ("direction:in", "topic:dsm-injection-topic", "type:kafka")
-        producer_hash = language_hashes.get(context.library.library, language_hashes.get("default"))["producer"]
-        consumer_hash = language_hashes.get(context.library.library, language_hashes.get("default"))["consumer"]
 
         DsmHelper.assert_checkpoint_presence(hash_=consumer_hash, parent_hash=producer_hash, tags=edge_tags)
 
@@ -529,45 +482,40 @@ class Test_Dsm_Manual_Checkpoint_Intra_Process:
         assert self.consume.status_code == 200
         assert self.consume.text == "ok"
 
-        language_hashes = {
+        if context.library == "nodejs":
             # nodejs uses a different hashing algorithm and therefore has different hashes than the default
-            "nodejs": {"producer": 16586338448658789200, "consumer": 9706550123902107656},
+            producer_hash = 16586338448658789200
+            consumer_hash = 9706550123902107656
+            parent_producer_hash = 0
+        elif context.library == "java":
             # for some reason, Java assigns earlier HTTP in checkpoint as parent
             # Parent HTTP Checkpoint: 3883033147046472598, 0, ('direction:in', 'type:http')
-            "java": {
-                "producer": 1538441441403845096,
-                "consumer": 17074055019471758954,
-                "parent": 3883033147046472598,
-                "edge_tags_out": ("direction:out", "topic:system-tests-queue", "type:dd-streams"),
-                "edge_tags_in": ("direction:in", "topic:system-tests-queue", "type:dd-streams"),
-            },
-            "default": {
-                "producer": 2925617884093644655,
-                "consumer": 9012955179260244489,
-                "edge_tags_out": (
-                    "direction:out",
-                    "manual_checkpoint:true",
-                    "topic:system-tests-queue",
-                    "type:dd-streams",
-                ),
-                "edge_tags_in": (
-                    "direction:in",
-                    "manual_checkpoint:true",
-                    "topic:system-tests-queue",
-                    "type:dd-streams",
-                ),
-            },
-        }
+            producer_hash = 1538441441403845096
+            consumer_hash = 17074055019471758954
+            parent_producer_hash = 3883033147046472598
+        else:
+            producer_hash = 2925617884093644655
+            consumer_hash = 9012955179260244489
+            parent_producer_hash = 0
 
-        producer_hash = language_hashes.get(context.library.library, language_hashes.get("default"))["producer"]
-        consumer_hash = language_hashes.get(context.library.library, language_hashes.get("default"))["consumer"]
-        parent_producer_hash = language_hashes.get(context.library.library, {}).get("parent", 0)
-        edge_tags_out = language_hashes.get(context.library.library, language_hashes.get("default")).get(
-            "edge_tags_out", language_hashes.get("default")["edge_tags_out"]
-        )
-        edge_tags_in = language_hashes.get(context.library.library, language_hashes.get("default")).get(
-            "edge_tags_in", language_hashes.get("default")["edge_tags_in"]
-        )
+        edge_tags_out: tuple
+        edge_tags_in: tuple
+        if context.library == "java":
+            edge_tags_out = ("direction:out", "topic:system-tests-queue", "type:dd-streams")
+            edge_tags_in = ("direction:in", "topic:system-tests-queue", "type:dd-streams")
+        else:
+            edge_tags_out = (
+                "direction:out",
+                "manual_checkpoint:true",
+                "topic:system-tests-queue",
+                "type:dd-streams",
+            )
+            edge_tags_in = (
+                "direction:in",
+                "manual_checkpoint:true",
+                "topic:system-tests-queue",
+                "type:dd-streams",
+            )
 
         DsmHelper.assert_checkpoint_presence(hash_=producer_hash, parent_hash=parent_producer_hash, tags=edge_tags_out)
         DsmHelper.assert_checkpoint_presence(hash_=consumer_hash, parent_hash=producer_hash, tags=edge_tags_in)
@@ -602,45 +550,41 @@ class Test_Dsm_Manual_Checkpoint_Inter_Process:
         assert self.consume_threaded.status_code == 200
         assert self.consume_threaded.text == "ok"
 
-        language_hashes = {
+        if context.library == "nodejs":
             # nodejs uses a different hashing algorithm and therefore has different hashes than the default
-            "nodejs": {"producer": 5168239543453408764, "consumer": 1957306998450816025},
+            producer_hash = 5168239543453408764
+            consumer_hash = 1957306998450816025
+            parent_producer_hash = 0
+        elif context.library == "java":
+            producer_hash = 4667583249035065277
+            consumer_hash = 2161125765733997838
+            parent_producer_hash = 3883033147046472598
+        else:
+            producer_hash = 11970957519616335697
+            consumer_hash = 14397921880946757763
+            parent_producer_hash = 0
+
+        edge_tags_out: tuple
+        edge_tags_in: tuple
+
+        if context.library == "java":
             # for some reason, Java assigns earlier HTTP in checkpoint as parent
             # Parent HTTP Checkpoint: 3883033147046472598, 0, ('direction:in', 'type:http')
-            "java": {
-                "producer": 4667583249035065277,
-                "consumer": 2161125765733997838,
-                "parent": 3883033147046472598,
-                "edge_tags_out": ("direction:out", "topic:system-tests-queue", "type:dd-streams-threaded"),
-                "edge_tags_in": ("direction:in", "topic:system-tests-queue", "type:dd-streams-threaded"),
-            },
-            "default": {
-                "producer": 11970957519616335697,
-                "consumer": 14397921880946757763,
-                "edge_tags_out": (
-                    "direction:out",
-                    "manual_checkpoint:true",
-                    "topic:system-tests-queue",
-                    "type:dd-streams-threaded",
-                ),
-                "edge_tags_in": (
-                    "direction:in",
-                    "manual_checkpoint:true",
-                    "topic:system-tests-queue",
-                    "type:dd-streams-threaded",
-                ),
-            },
-        }
-
-        producer_hash = language_hashes.get(context.library.library, language_hashes.get("default"))["producer"]
-        consumer_hash = language_hashes.get(context.library.library, language_hashes.get("default"))["consumer"]
-        parent_producer_hash = language_hashes.get(context.library.library, {}).get("parent", 0)
-        edge_tags_out = language_hashes.get(context.library.library, language_hashes.get("default")).get(
-            "edge_tags_out", language_hashes.get("default")["edge_tags_out"]
-        )
-        edge_tags_in = language_hashes.get(context.library.library, language_hashes.get("default")).get(
-            "edge_tags_in", language_hashes.get("default")["edge_tags_in"]
-        )
+            edge_tags_out = ("direction:out", "topic:system-tests-queue", "type:dd-streams-threaded")
+            edge_tags_in = ("direction:in", "topic:system-tests-queue", "type:dd-streams-threaded")
+        else:
+            edge_tags_out = (
+                "direction:out",
+                "manual_checkpoint:true",
+                "topic:system-tests-queue",
+                "type:dd-streams-threaded",
+            )
+            edge_tags_in = (
+                "direction:in",
+                "manual_checkpoint:true",
+                "topic:system-tests-queue",
+                "type:dd-streams-threaded",
+            )
 
         DsmHelper.assert_checkpoint_presence(hash_=producer_hash, parent_hash=parent_producer_hash, tags=edge_tags_out)
         DsmHelper.assert_checkpoint_presence(hash_=consumer_hash, parent_hash=producer_hash, tags=edge_tags_in)
