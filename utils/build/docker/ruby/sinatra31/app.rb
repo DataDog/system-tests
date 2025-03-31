@@ -226,3 +226,12 @@ end
 get '/sample_rate_route/:i' do
   'OK'
 end
+
+get '/rasp/ssrf' do
+  url = URI.parse(request.params['url'])
+  url = "https://#{url}" unless url.scheme
+
+  Faraday.get(url)
+
+  'OK'
+end
