@@ -18,7 +18,7 @@ from utils.interfaces._library.telemetry import (
     _SeqIdLatencyValidation,
     _NoSkippedSeqId,
 )
-from utils._weblog import HttpResponse
+from utils._weblog import HttpResponse, GrpcResponse
 from utils.interfaces._misc_validators import HeadersPresenceValidator
 
 
@@ -49,14 +49,14 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
         self.wait_for(wait_function, timeout)
 
     ############################################################
-    def get_traces(self, request: HttpResponse | None = None):
+    def get_traces(self, request: HttpResponse | GrpcResponse | None = None):
         rid: str | None = None
 
         if request:
             rid = request.get_rid()
             logger.debug(f"Try to find traces related to request {rid}")
-            if request.status_code is None:
-                logger.warning("Response status is none, it will very probably fail")
+            if isinstance(request, HttpResponse) and request.status_code is None:
+                logger.warning("HTTP app failed to respond, it will very probably fail")
 
         for data in self.get_data(path_filters=self.trace_paths):
             traces = data["request"]["content"]
