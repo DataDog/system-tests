@@ -71,7 +71,7 @@ class HttpResponse:
     def __init__(self, data: dict):
         self._data = data
         self.request = HttpRequest(data["request"])
-        self.status_code = data["status_code"]
+        self.status_code: int | None = data["status_code"]
         self.headers: CaseInsensitiveDict = CaseInsensitiveDict(data.get("headers", {}))
         self.text = data["text"]
         self.cookies = data["cookies"]

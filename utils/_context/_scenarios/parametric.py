@@ -402,7 +402,7 @@ COPY {nodejs_reldir}/*.js /usr/app/
 COPY {nodejs_reldir}/*.sh /usr/app/
 COPY {nodejs_reldir}/npm/* /usr/app/
 
-RUN npm install
+RUN npm install || npm install
 
 COPY {nodejs_reldir}/../install_ddtrace.sh binaries* /binaries/
 RUN /binaries/install_ddtrace.sh
