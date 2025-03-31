@@ -891,8 +891,10 @@ tests/:
     test_sampling_span_tags.py:
       Test_Sampling_Span_Tags: v2.8.0
     test_span_events.py:
-      Test_SpanEvents_WithAgentSupport: missing_feature
-      Test_SpanEvents_WithoutAgentSupport: missing_feature
+      Test_SpanEvents_WithAgentSupport:
+        "*": irrelevant
+      Test_SpanEvents_WithoutAgentSupport:
+        "*": irrelevant
     test_span_links.py:
       Test_Span_Links: v2.3.0
     test_span_sampling.py:
