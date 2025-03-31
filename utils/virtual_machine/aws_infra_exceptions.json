@@ -5,5 +5,11 @@
     "error_pulumi_plugin":"error: could not read plugin",
     "docker_build_error_ecr":"net/http: TLS handshake timeout",
     "error_ecr":"error: could not create ECR",
-    "pulumi_ghcr_rate_limmit":"GitHub rate limit exceeded for https://api.github.com/repos/pulumi"
-}
+    "pulumi_ghcr_rate_limmit":"GitHub rate limit exceeded for https://api.github.com/repos/pulumi",
+    "microsoft_connection_lost":"Get \"https://mcr.microsoft.com/v2/\": read tcp",
+    "public.ecr.aws_no_such_host":"dial tcp: lookup public.ecr.aws: no such host",
+    "pulumi_exited_prematurely":"pulumi-resource-aws exited prematurely",
+    "rpc_curl_connectivity_flaky":"error: RPC failed; curl 16 Error in the HTTP2 framing layer",
+    "java_build_io_error":"ERROR: Failed to create usr/lib/jvm/java-11-openjdk/jmods/java.xml.jmod: I/O error",
+    "pulumi_resource_monitor_terminated":"Exception calling application: Resource monitor has terminated, shutting down",
+    "install.datadoghq.com_not_resolve_host":"Could not resolve host: install.datadoghq.com"
