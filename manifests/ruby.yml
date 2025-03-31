@@ -99,8 +99,8 @@ tests/:
           TestSqlInjection_ExtendedLocation: missing_feature
           TestSqlInjection_StackTrace: missing_feature
         test_ssrf.py:
-          TestSSRF: v2.12.0.dev
-          TestSSRF_ExtendedLocation: v2.12.0.dev
+          TestSSRF: missing_feature
+          TestSSRF_ExtendedLocation: missing_feature
           TestSSRF_StackTrace: v2.12.0.dev
         test_stacktrace_leak.py:
           TestStackTraceLeak: missing_feature
@@ -221,7 +221,7 @@ tests/:
         Test_Sqli_Waf_Version:
           "*": missing_feature
           rails42: bug (APPSEC-56765)  # ActiveRecord instrumentation with Rails < 5 and Ruby < 2.7 not working due to kwargs
-      test_ssrf.py: missing_feature
+      test_ssrf.py: v2.12.0.dev
     waf/:
       test_addresses.py:
         Test_BodyJson: v1.8.0
