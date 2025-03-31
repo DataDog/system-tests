@@ -895,7 +895,7 @@ tests/:
         "*": irrelevant (test is only enabled with env var)
       Test_SpanEvents_WithoutAgentSupport:
         "*": irrelevant
-        flask-poc: v3.0
+        flask-poc: v3.0.0
     test_span_links.py:
       Test_Span_Links: v2.3.0
     test_span_sampling.py:
