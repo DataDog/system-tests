@@ -475,12 +475,9 @@ def format_error(errors):
 def add_event():
     span = tracer.current_root_span()
     assert span
-    print(span)
     name = "span_event"
     attributes = {"string": "value", "int": 1}
     span._add_event(name=name, attributes=attributes)
-    print(span._meta)
-    print(span._events)
     return {"message": "event added", "status_code": 200}
 
 
