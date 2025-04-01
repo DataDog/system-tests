@@ -7,7 +7,7 @@ from utils._context.component_version import ComponentVersion, Version
 
 from utils.k8s_lib_injection.k8s_datadog_kubernetes import K8sDatadog
 from utils.k8s_lib_injection.k8s_weblog import K8sWeblog
-from utils.k8s_lib_injection.k8s_cluster_provider import K8sProviderFactory
+from utils.k8s_lib_injection.k8s_cluster_provider import K8sProviderFactory, K8sClusterProvider
 from utils._context.containers import (
     create_network,
     APMTestAgentContainer,
@@ -22,7 +22,11 @@ from utils._logger import logger
 from .core import Scenario, ScenarioGroup
 
 
-class K8sScenario(Scenario):
+class K8sScenarioWithClusterProvider:
+    k8s_cluster_provider: K8sClusterProvider
+
+
+class K8sScenario(Scenario, K8sScenarioWithClusterProvider):
     """Scenario that tests kubernetes lib injection"""
 
     def __init__(
@@ -173,7 +177,7 @@ class K8sScenario(Scenario):
         return self._datadog_apm_inject_version
 
 
-class K8sManualInstrumentationScenario(Scenario):
+class K8sManualInstrumentationScenario(Scenario, K8sScenarioWithClusterProvider):
     """Scenario that applied the auto instrumentation manually
     Without using the cluster agent or the operator. We simply add volume mounts to the pods
     with the context of the lib init image, then we inject the env variables to the weblog to
