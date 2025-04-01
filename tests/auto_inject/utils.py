@@ -29,7 +29,7 @@ class AutoInjectBaseTest:
         vm_ip = virtual_machine.get_ip()
         vm_port = virtual_machine.deffault_open_port
         header = "----------------------------------------------------------------------"
-        vm_logger(context.scenario.name, virtual_machine.name).info(
+        vm_logger(context.scenario.host_log_folder, virtual_machine.name).info(
             f"{header} \n {header}  \n  Launching the install for VM: {virtual_machine.name}  \n {header} \n {header}"
         )
         if virtual_machine.krunvm_config is not None and virtual_machine.krunvm_config.stdin is not None:
@@ -78,7 +78,7 @@ class AutoInjectBaseTest:
                 if not line.startswith("export"):
                     command_output += line
             header = "*****************************************************************"
-            vm_logger(context.scenario.name, virtual_machine.name).info(
+            vm_logger(context.scenario.host_log_folder, virtual_machine.name).info(
                 f"{header} \n  - COMMAND:  \n {header} \n {command} \n\n {header} \n COMMAND OUTPUT \n\n {header} \n {command_output}"
             )
 
@@ -150,13 +150,13 @@ class AutoInjectBaseTest:
 
     def _test_uninstall(self, virtual_machine):
         header = "----------------------------------------------------------------------"
-        vm_logger(context.scenario.name, virtual_machine.name).info(
+        vm_logger(context.scenario.host_log_folder, virtual_machine.name).info(
             f"{header} \n {header}  \n  Launching the uninstall for VM: {virtual_machine.name}  \n {header} \n {header}"
         )
-        if context.weblog_variant == f"test-app-{context.scenario.library.name}":  # Host
+        if context.weblog_variant == f"test-app-{context.library.name}":  # Host
             stop_weblog_command = "sudo systemctl kill -s SIGKILL test-app.service"
             start_weblog_command = "sudo systemctl start test-app.service"
-            if context.scenario.library.name in ["ruby", "python", "dotnet"]:
+            if context.library.name in ["ruby", "python", "dotnet"]:
                 start_weblog_command = virtual_machine._vm_provision.weblog_installation.remote_command
         else:  # Container
             stop_weblog_command = "sudo -E docker-compose -f docker-compose.yml down"
