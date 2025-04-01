@@ -53,6 +53,7 @@ refs:
   - &ref_5_41_0 '>=5.41.0'
   - &ref_5_43_0 '>=5.43.0'
   - &ref_5_44_0 '>=5.44.0'
+  - &ref_5_46_0 '>=5.46.0'
 tests/:
   apm_tracing_e2e/:
     test_otel.py:
@@ -1045,6 +1046,8 @@ tests/:
     Test_Config_RuntimeMetrics_Enabled_WithRuntimeId: missing_feature
     Test_Config_UnifiedServiceTagging_CustomService: *ref_5_25_0
     Test_Config_UnifiedServiceTagging_Default: *ref_5_25_0
+  test_data_integrity.py:
+    Test_LibraryHeaders: *ref_5_46_0
   test_distributed.py:
     Test_DistributedHttp: missing_feature
     Test_Span_Links_Flags_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
