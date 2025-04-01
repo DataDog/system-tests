@@ -15,8 +15,9 @@ WORKDIR /usr/app
 
 ENV NODE_ENV=production
 
-RUN npm install
-RUN npm install "express@4.17.2" "apollo-server-express@3.13.0" "express-mongo-sanitize@2.2.0"
+RUN npm install || npm install
+RUN npm install "express@4.17.2" "apollo-server-express@3.13.0" "express-mongo-sanitize@2.2.0" \
+  || npm install "express@4.17.2" "apollo-server-express@3.13.0" "express-mongo-sanitize@2.2.0"
 
 EXPOSE 7777
 
@@ -29,11 +30,12 @@ ENV PGPORT=5433
 #ENV OTEL_BSP_MAX_QUEUE_SIZE=10000
 ENV OTEL_BSP_EXPORT_TIMEOUT=1000
 ENV OTEL_BSP_SCHEDULE_DELAY=200
-RUN npm install --save @opentelemetry/api
-RUN npm install --save @opentelemetry/auto-instrumentations-node
-RUN npm install @opentelemetry/instrumentation-mysql2
-RUN npm install @opentelemetry/otlp-exporter-base
-RUN npm install --save opentelemetry-instrumentation-mssql
+RUN npm install --save @opentelemetry/api || npm install --save @opentelemetry/api
+RUN npm install --save @opentelemetry/auto-instrumentations-node \
+  || npm install --save @opentelemetry/auto-instrumentations-node
+RUN npm install @opentelemetry/instrumentation-mysql2 || npm install @opentelemetry/instrumentation-mysql2
+RUN npm install @opentelemetry/otlp-exporter-base || npm install @opentelemetry/otlp-exporter-base
+RUN npm install --save opentelemetry-instrumentation-mssql || npm install --save opentelemetry-instrumentation-mssql
 
 # docker startup
 COPY utils/build/docker/nodejs/app.sh app.sh

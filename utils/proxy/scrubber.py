@@ -12,12 +12,14 @@ _not_secrets = {
 
 _name_filter = re.compile(r"key|token|secret|pass|docker_login", re.IGNORECASE)
 
+_MINIMUM_SECRET_LENGTH = 6  # below this size, we don't consider it a secret
+
 
 def _get_secrets() -> set[str]:
     secrets: list = [
         value.strip()
         for name, value in os.environ.items()
-        if len(value.strip()) > 6 and name not in _not_secrets and _name_filter.search(name)
+        if len(value.strip()) > _MINIMUM_SECRET_LENGTH and name not in _not_secrets and _name_filter.search(name)
     ]
     return set(secrets)
 

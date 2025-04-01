@@ -8,6 +8,7 @@ import io
 import json
 import logging
 from hashlib import md5
+from http import HTTPStatus
 import traceback
 from typing import Any
 
@@ -117,7 +118,7 @@ def deserialize_http_message(
         return json_load()
 
     if path == "/v0.7/config":  # Kyle, please add content-type header :)
-        if key == "response" and message["status_code"] == 404:
+        if key == "response" and message["status_code"] == HTTPStatus.NOT_FOUND:
             return content.decode(encoding="utf-8")
 
         return json_load()
@@ -331,7 +332,7 @@ def deserialize(data: dict[str, Any], key: str, content: bytes | None, interface
             data["path"], data[key], content, interface, key, export_content_files_to
         )
     except:
-        if key == "response" and data[key]["status_code"] == 500:
+        if key == "response" and data[key]["status_code"] == HTTPStatus.INTERNAL_SERVER_ERROR:
             # backend may respond 500, while giving application/x-protobuf as content-type
             # deserialize_http_message() will fail, but it cannot be considered as an
             # internal error, we only log it, and do not store anything in traceback

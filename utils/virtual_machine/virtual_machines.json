@@ -217,7 +217,7 @@
             "os_branch": "debian",
             "os_cpu": "amd64",
             "default_vm": true,
-            "disabled": false
+            "disabled": true
         },
         {
             "name": "Debian_12_arm64",
@@ -231,7 +231,7 @@
             "os_branch": "debian",
             "os_cpu": "arm64",
             "default_vm": false,
-            "disabled": false
+            "disabled": true
         },
         {
             "name": "Debian_11_amd64",

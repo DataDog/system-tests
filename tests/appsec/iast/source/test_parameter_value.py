@@ -21,6 +21,7 @@ class TestParameterValue(BaseSourceTest):
     source_names = ["table"]
 
     # remove the base test, to handle the source_type spcial use case in node
+    @irrelevant()
     def test_source_reported(self): ...
 
     setup_source_post_reported = BaseSourceTest.setup_source_reported
