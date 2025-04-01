@@ -41,7 +41,7 @@ class Test_SpanEvents_WithAgentSupport:
         span = interfaces.library.get_root_span(self.r)
         meta = span.get("meta", {})
         assert "span_events" not in span
-        assert "events" in meta, meta.keys()
+        assert "events" in meta
 
 
 @features.span_events
@@ -62,4 +62,4 @@ class Test_SpanEvents_WithoutAgentSupport:
         span = interfaces.library.get_root_span(self.r)
         meta = span.get("meta", {})
         assert "span_events" not in span
-        assert "events" in meta, meta.keys()
+        assert "events" in meta
