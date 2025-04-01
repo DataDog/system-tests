@@ -40,7 +40,7 @@ Rails.application.routes.draw do
   get '/requestdownstream' => 'system_test#request_downstream'
   get '/returnheaders' => 'system_test#return_headers'
 
-  namespece :rasp do
+  namespace :rasp do
     resource :sqli, only: %i[show create]
   end
 
