@@ -138,7 +138,7 @@ class K8sScenario(Scenario, K8sScenarioWithClusterProvider):
 
         if not self.with_datadog_operator:
             warmups.append(self.k8s_datadog.deploy_test_agent)
-            warmups.append(self.k8s_datadog.deploy_datadog_cluster_agent)
+            warmups.append(lambda: self.k8s_datadog.deploy_datadog_cluster_agent(self.host_log_folder))
             warmups.append(self.test_weblog.install_weblog_pod)
         else:
             warmups.append(lambda: self.k8s_datadog.deploy_datadog_operator(self.host_log_folder))
