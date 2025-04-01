@@ -2,6 +2,7 @@ import pytest
 
 from utils.parametric.spec.trace import find_first_span_in_trace_payload, find_trace, find_only_span
 from utils import missing_feature, irrelevant, context, scenarios, features
+from .conftest import APMLibrary
 
 parametrize = pytest.mark.parametrize
 POWER_2_64 = 18446744073709551616
@@ -14,16 +15,16 @@ class Test_128_Bit_Traceids:
         "library_env",
         [{"DD_TRACE_PROPAGATION_STYLE": "Datadog", "DD_TRACE_128_BIT_TRACEID_GENERATION_ENABLED": "false"}],
     )
-    def test_datadog_128_bit_propagation(self, test_agent, test_library):
+    def test_datadog_128_bit_propagation(self, test_agent, test_library: APMLibrary):
         """Ensure that external 128-bit TraceIds are properly propagated in Datadog
         headers.
         """
         with test_library:
             headers = test_library.dd_make_child_span_and_get_headers(
                 [
-                    ["x-datadog-trace-id", "1234567890123456789"],
-                    ["x-datadog-parent-id", "987654321"],
-                    ["x-datadog-tags", "_dd.p.tid=640cfd8d00000000"],
+                    ("x-datadog-trace-id", "1234567890123456789"),
+                    ("x-datadog-parent-id", "987654321"),
+                    ("x-datadog-tags", "_dd.p.tid=640cfd8d00000000"),
                 ],
             )
         span = find_only_span(test_agent.wait_for_num_traces(1))

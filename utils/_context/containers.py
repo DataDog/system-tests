@@ -2,6 +2,7 @@ import os
 import re
 import stat
 import json
+from http import HTTPStatus
 from pathlib import Path
 from subprocess import run
 import time
@@ -735,7 +736,7 @@ class WeblogContainer(TestedContainer):
         volumes = {} if volumes is None else volumes
         volumes[f"./{host_log_folder}/docker/weblog/logs/"] = {"bind": "/var/log/system-tests", "mode": "rw"}
 
-        base_environment = {
+        base_environment: dict[str, str | None] = {
             # Datadog setup
             "DD_SERVICE": "weblog",
             "DD_VERSION": "1.0.0",
@@ -1184,7 +1185,7 @@ class OpenTelemetryCollectorContainer(TestedContainer):
             try:
                 r = requests.get(f"http://{self._otel_host}:{self._otel_port}", timeout=1)
                 logger.debug(f"Healthcheck #{i} on {self._otel_host}:{self._otel_port}: {r}")
-                if r.status_code == 200:
+                if r.status_code == HTTPStatus.OK:
                     return True
             except Exception as e:
                 logger.debug(f"Healthcheck #{i} on {self._otel_host}:{self._otel_port}: {e}")
