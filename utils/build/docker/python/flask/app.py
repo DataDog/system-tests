@@ -470,27 +470,14 @@ def format_error(errors):
         )
     return {"errors": formatted_errors}
 
-
-@app.route("/add_event")
+@app.route("/add_event", methods=["GET", "POST"])
 def add_event():
-    name = request.args.get("name", "span.event")
-
-    attributes = {"string": request.args.get("string_attr", "value"), "int": int(request.args.get("int_attr", 1))}
-
-    timestamp_str = request.args.get("timestamp")
-    if timestamp_str:
-        try:
-            timestamp = datetime.fromisoformat(timestamp_str)
-        except ValueError:
-            return {"error": "Invalid timestamp format", "status_code": 400}
-    else:
-        timestamp = datetime.utcnow()
-
-    context = opentelemetry.propagate.extract(flask_request.headers, opentelemetry.context.get_current())
-    span = opentelemetry.trace.get_current_span(context)
-    if span is not None:
-        span.add_event(name=name, attributes=attributes, timestamp=timestamp)
-
+    from ddtrace._trace.span import _add_event
+    span = opentelemetry.trace.get_current_span()
+    assert span
+    name = "span_event"
+    attributes = {"string": "value", "int": 1}
+    span._add_event(name=name, attributes=attributes)
     return {"message": "event added", "status_code": 200}
 
 
