@@ -188,7 +188,6 @@ class Test_Span_Events:
         trace = find_trace(traces, s.trace_id)
         assert len(trace) == 1
         span = find_span(trace, s.span_id)
-        assert "span_events" in span
 
         span_events = span["span_events"]
 
