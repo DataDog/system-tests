@@ -105,7 +105,7 @@ def should_use_new_aws_account() -> bool:
         "dd-trace-rb",
         "auto_inject",
     ]
-    migrated_projects = [""]
+    migrated_projects = ["system-tests"]
     print(f"Checking if project [{os.getenv("CI_PROJECT_NAME")}] should run on the new AWS account")
     if os.getenv("CI_PROJECT_NAME") in all_projects:
         if os.getenv("CI_PROJECT_NAME") in migrated_projects:
