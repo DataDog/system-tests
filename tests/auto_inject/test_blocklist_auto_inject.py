@@ -72,11 +72,9 @@ class TestAutoInjectBlockListInstallManualHost(_AutoInjectBlockListBaseTest):
         or "buildpack" in context.weblog_variant
     )
     @bug(
-        context.vm_os_branch in ["amazon_linux2", "centos_7_amd64"] and context.scenario.library == "ruby",
-        reason="INPLAT-103",
-    )
-    @bug(
-        context.vm_os_branch == "redhat" and context.vm_os_cpu == "arm64" and context.scenario.library == "ruby",
+        context.vm_os_branch in ["redhat", "amazon_linux2"]
+        and context.vm_os_cpu == "arm64"
+        and context.scenario.library == "ruby",
         reason="INPLAT-103",
     )
     def test_builtin_block_commands(self):
@@ -94,11 +92,9 @@ class TestAutoInjectBlockListInstallManualHost(_AutoInjectBlockListBaseTest):
         or "buildpack" in context.weblog_variant
     )
     @bug(
-        context.vm_os_branch in ["amazon_linux2", "centos_7_amd64"] and context.scenario.library == "ruby",
-        reason="INPLAT-103",
-    )
-    @bug(
-        context.vm_os_branch == "redhat" and context.vm_os_cpu == "arm64" and context.library == "ruby",
+        context.vm_os_branch in ["redhat", "amazon_linux2"]
+        and context.vm_os_cpu == "arm64"
+        and context.library == "ruby",
         reason="INPLAT-103",
     )
     def test_builtin_block_args(self):
@@ -118,11 +114,9 @@ class TestAutoInjectBlockListInstallManualHost(_AutoInjectBlockListBaseTest):
         or "buildpack" in context.weblog_variant
     )
     @bug(
-        context.vm_os_branch in ["amazon_linux2", "centos_7_amd64"] and context.scenario.library == "ruby",
-        reason="INPLAT-103",
-    )
-    @bug(
-        context.vm_os_branch == "redhat" and context.vm_os_cpu == "arm64" and context.scenario.library == "ruby",
+        context.vm_os_branch in ["redhat", "amazon_linux2"]
+        and context.vm_os_cpu == "arm64"
+        and context.scenario.library == "ruby",
         reason="INPLAT-103",
     )
     def test_builtin_instrument_args(self):

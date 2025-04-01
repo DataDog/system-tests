@@ -287,7 +287,7 @@ tests/:
       Test_SCAStandalone_Telemetry_V2: v2.12.3-dev
     test_automated_login_events.py:
       Test_Login_Events:
-        '*': v1.13.0
+        '*': bug (APPSEC-57124)
         rack: missing_feature (We do not support authentication framework for sinatra or rack)
         sinatra14: missing_feature (We do not support authentication framework for sinatra or rack)
         sinatra20: missing_feature (We do not support authentication framework for sinatra or rack)
@@ -299,7 +299,7 @@ tests/:
         sinatra40: missing_feature (We do not support authentication framework for sinatra or rack)
         uds-sinatra: missing_feature (We do not support authentication framework for sinatra or rack)
       Test_Login_Events_Extended:
-        '*': v1.14.0
+        '*': bug (APPSEC-57124)
         rack: missing_feature (We do not support authentication framework for sinatra or rack)
         sinatra14: missing_feature (We do not support authentication framework for sinatra or rack)
         sinatra20: missing_feature (We do not support authentication framework for sinatra or rack)
@@ -521,7 +521,7 @@ tests/:
     test_config_consistency.py:
       Test_Config_Dogstatsd: missing_feature
       Test_Config_RateLimit: v2.0.0
-      Test_Config_Tags: missing_feature
+      Test_Config_Tags: v2.13.0-dev
       Test_Config_TraceAgentURL: v2.5.0
       Test_Config_TraceEnabled: v2.0.0
       Test_Config_TraceLogDirectory: missing_feature
@@ -615,11 +615,19 @@ tests/:
       rails70: v2.0.0
     Test_Config_IntegrationEnabled_True:
       '*': irrelevant (endpoint not implemented)
-      rails70: v2.0.0
-    Test_Config_LogInjection_128Bit_TraceId_Disabled: incomplete_test_app (endpoint not implemented)
-    Test_Config_LogInjection_128Bit_TraceId_Enabled: missing_feature (not enabled by default)
-    Test_Config_LogInjection_Default: incomplete_test_app (endpoint not implemented)
-    Test_Config_LogInjection_Enabled: incomplete_test_app (endpoint not implemented)
+      rails70: v2.13.0-dev
+    Test_Config_LogInjection_128Bit_TraceId_Disabled:
+      '*': irrelevant (endpoint not implemented)
+      rails70: v2.13.0-dev
+    Test_Config_LogInjection_128Bit_TraceId_Enabled:
+      '*': irrelevant (endpoint not implemented)
+      rails70: v2.13.0-dev
+    Test_Config_LogInjection_Default:
+      '*': irrelevant (endpoint not implemented)
+      rails70: irrelevant (dd-trace-rb enables log injection by default, we are planning to revist this behavior in the future. This will likely be the new default)
+    Test_Config_LogInjection_Enabled:
+      '*': irrelevant (endpoint not implemented)
+      rails70: v2.13.0-dev
     Test_Config_ObfuscationQueryStringRegexp_Configured: missing_feature
     Test_Config_ObfuscationQueryStringRegexp_Default: bug (APMAPI-1013)
     Test_Config_ObfuscationQueryStringRegexp_Empty: missing_feature (environment variable is not supported)

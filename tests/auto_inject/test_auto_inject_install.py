@@ -7,11 +7,9 @@ import tests.auto_inject.utils as base
 @scenarios.host_auto_injection_install_script
 class TestHostAutoInjectInstallScript(base.AutoInjectBaseTest):
     @bug(
-        context.vm_os_branch in ["amazon_linux2", "centos_7_amd64"] and context.weblog_variant == "test-app-ruby",
-        reason="INPLAT-103",
-    )
-    @bug(
-        context.vm_os_branch == "redhat" and context.vm_os_cpu == "arm64" and context.weblog_variant == "test-app-ruby",
+        context.vm_os_branch in ["redhat", "amazon_linux2"]
+        and context.vm_os_cpu == "arm64"
+        and context.weblog_variant == "test-app-ruby",
         reason="INPLAT-103",
     )
     @missing_feature(context.vm_os_branch == "windows", reason="Not implemented on Windows")
@@ -161,11 +159,9 @@ class TestInstallerAutoInjectManual(base.AutoInjectBaseTest):
         reason="APMON-1576",
     )
     @bug(
-        context.vm_os_branch in ["amazon_linux2", "centos_7_amd64"] and context.weblog_variant == "test-app-ruby",
-        reason="INPLAT-103",
-    )
-    @bug(
-        context.vm_os_branch == "redhat" and context.vm_os_cpu == "arm64" and context.weblog_variant == "test-app-ruby",
+        context.vm_os_branch in ["redhat", "amazon_linux2"]
+        and context.vm_os_cpu == "arm64"
+        and context.weblog_variant == "test-app-ruby",
         reason="INPLAT-103",
     )
     def test_install_uninstall(self):
@@ -187,11 +183,9 @@ class TestSimpleInstallerAutoInjectManual(base.AutoInjectBaseTest):
         reason="APMON-1576",
     )
     @bug(
-        context.vm_os_branch in ["amazon_linux2", "centos_7_amd64"] and context.weblog_variant == "test-app-ruby",
-        reason="INPLAT-103",
-    )
-    @bug(
-        context.vm_os_branch == "redhat" and context.vm_os_cpu == "arm64" and context.weblog_variant == "test-app-ruby",
+        context.vm_os_branch in ["redhat", "amazon_linux2"]
+        and context.vm_os_cpu == "arm64"
+        and context.weblog_variant == "test-app-ruby",
         reason="INPLAT-103",
     )
     @bug(

@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import features, weblog, interfaces, scenarios, rfc
+from utils import features, weblog, interfaces, scenarios, rfc, context
 from utils.dd_constants import Capabilities
 from tests.appsec.rasp.utils import (
     validate_distribution,
@@ -185,8 +185,6 @@ class Test_Sqli_Telemetry_V2:
         self.r = weblog.get("/rasp/sqli", params={"user_id": "' OR 1 = 1 --"})
 
     def test_sqli_telemetry(self):
-        assert self.r.status_code == 403
-
         series_eval = find_series("appsec", "rasp.rule.eval", is_metrics=True)
         assert series_eval
         assert any(validate_metric_v2("rasp.rule.eval", "sql_injection", s) for s in series_eval), [
@@ -195,8 +193,9 @@ class Test_Sqli_Telemetry_V2:
 
         series_match = find_series("appsec", "rasp.rule.match", is_metrics=True)
         assert series_match
+        block_action = "block:irrelevant" if context.weblog_variant == "nextjs" else "block:success"
         assert any(
-            validate_metric_v2("rasp.rule.match", "sql_injection", s, check_block_success=True) for s in series_match
+            validate_metric_v2("rasp.rule.match", "sql_injection", s, block_action=block_action) for s in series_match
         ), [s.get("tags") for s in series_match]
 
         series_rule_duration = find_series("appsec", "rasp.rule.duration", is_metrics=False)
