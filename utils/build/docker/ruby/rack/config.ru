@@ -260,7 +260,7 @@ end
 # /rasp/ssrf
 class SSRFHandler
   def self.run(request)
-    url = URI.parse(request.params['url'])
+    url = URI.parse(request.params['domain'])
     url = "https://#{url}" unless url.scheme
 
     Faraday.get(url)
