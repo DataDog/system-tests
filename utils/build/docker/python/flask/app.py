@@ -470,9 +470,11 @@ def format_error(errors):
         )
     return {"errors": formatted_errors}
 
+
 @app.route("/add_event", methods=["GET", "POST"])
 def add_event():
     from ddtrace._trace.span import _add_event
+
     span = opentelemetry.trace.get_current_span()
     assert span
     name = "span_event"
