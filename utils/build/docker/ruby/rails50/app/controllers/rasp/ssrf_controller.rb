@@ -8,7 +8,7 @@ class RASP::SSRFController < ApplicationController
   end
 
   def create
-    perform_http_request(params.fetch(:url))
+    perform_http_request(params.fetch(:domain))
 
     head :ok
   end

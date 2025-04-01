@@ -228,7 +228,7 @@ get '/sample_rate_route/:i' do
 end
 
 ssrf_handler = lambda do
-  url = URI.parse(request.params['url'])
+  url = URI.parse(request.params['domain'])
   url = "https://#{url}" unless url.scheme
 
   Faraday.get(url)
