@@ -489,21 +489,6 @@ class BaseDebuggerTest:
                             for span in chunk["spans"]:
                                 self.all_spans.append(span)
 
-                                # For Python, we need to look for spans with stack trace information
-                                if self.get_tracer()["language"] == "python":
-                                    has_stack_trace = any(
-                                        key.startswith("_dd.debug.error.") and key.endswith(".file")
-                                        for key in span["meta"]
-                                    )
-                                    if has_stack_trace:
-                                        # Use the first stack trace frame's snapshot_id as the key
-                                        for key in span["meta"]:
-                                            if key.startswith("_dd.debug.error.") and key.endswith(".snapshot_id"):
-                                                span_hash[span["meta"][key]] = span
-                                                break
-                                        continue
-
-                                # Original span filtering logic for other languages
                                 is_span_decoration_method = span["name"] == "dd.dynamic.span"
                                 if is_span_decoration_method:
                                     span_hash[span["meta"]["debugger.probeid"]] = span
@@ -521,8 +506,23 @@ class BaseDebuggerTest:
 
                                 has_exception_capture_id = "_dd.debug.error.exception_capture_id" in span["meta"]
                                 if has_exception_capture_id:
-                                    span_hash[span["meta"]["_dd.debug.error.exception_capture_id"]] = span
+                                    if self.get_tracer()["language"] == "python":
+                                        has_stack_trace = any(
+                                            key.startswith("_dd.debug.error.") and key.endswith(".file")
+                                            for key in span["meta"]
+                                        )
+
+                                        if has_stack_trace:
+                                            for key in span["meta"]:
+                                                if key.startswith("_dd.debug.error.") and key.endswith(".snapshot_id"):
+                                                    span_hash[span["meta"][key]] = span
+                                                    break
+                                            continue
+                                    else:
+                                        span_hash[span["meta"]["_dd.debug.error.exception_capture_id"]] = span
                                     continue
+
+                                # For Python, we need to look for spans with stack trace information
 
             return span_hash
 

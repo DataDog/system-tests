@@ -128,6 +128,7 @@ class Test_Debugger_Probe_Snaphots(debugger.BaseDebuggerTest):
 
     @features.debugger_code_origins
     @missing_feature(context.library == "dotnet", reason="Entry spans code origins not yet implemented")
+    @missing_feature(context.library == "java", reason="Entry spans code origins not yet implemented for spring-mvc")
     @missing_feature(context.library == "nodejs", reason="Entry spans code origins not yet implemented for express")
     @missing_feature(context.library == "ruby", reason="Entry spans code origins not yet implemented")
     def test_code_origin_entry_present(self):
