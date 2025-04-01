@@ -232,7 +232,7 @@ tests/:
         Test_GraphQL: v2.3.0
         Test_GrpcServerMethod: missing_feature
         Test_Headers:
-          '*': v0.54.2  # assumed as the oldest supported version
+          "*": v0.54.2  # assumed as the oldest supported version
           sinatra14: missing_feature (endpoint not implemented)
           sinatra20: missing_feature (endpoint not implemented)
           sinatra21: missing_feature (endpoint not implemented)
@@ -331,7 +331,18 @@ tests/:
       Test_V3_Login_Events_RC: irrelevant
     test_automated_user_and_session_tracking.py:
       Test_Automated_Session_Blocking: missing_feature
-      Test_Automated_User_Blocking: v2.12.3-dev
+      Test_Automated_User_Blocking:
+        "*": v2.12.3-dev
+        rack: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
+        sinatra14: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
+        sinatra20: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
+        sinatra21: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
+        sinatra22: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
+        sinatra30: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
+        sinatra31: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
+        sinatra32: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
+        sinatra40: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
+        uds-sinatra: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
       Test_Automated_User_Tracking:
         "*": v2.12.3-dev
         rack: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
