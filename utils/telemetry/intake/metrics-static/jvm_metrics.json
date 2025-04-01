@@ -1,0 +1,51 @@
+{
+    "$schema": "../schema/metrics.json",
+    "experimental.propagation": {
+        "data_type": "traces",
+        "description": "Number of times an experimental propagation is used",
+        "metric_type": "count",
+        "send_to_user": false,
+        "tags": [],
+        "user_tags": []
+    },
+    "queue.enqueued.spans": {
+        "data_type": "traces",
+        "description": "Counts the number of spans being queued for sending",
+        "metric_type": "count",
+        "send_to_user": false,
+        "tags": [],
+        "user_tags": []
+    },
+    "queue.max_length": {
+        "data_type": "keys",
+        "description": "Measures the maximum capacity of the traceProcessingWorker queue",
+        "metric_type": "gauge",
+        "send_to_user": false,
+        "tags": [],
+        "user_tags": []
+    },
+    "queue.partial.traces": {
+        "data_type": "traces",
+        "description": "Counts the number of dropped traces that are queued for sending tagged by sampling decision after single span sampling. NOTE: These traces are not included in queue.enqueued.traces",
+        "metric_type": "count",
+        "send_to_user": false,
+        "tags": [],
+        "user_tags": []
+    },
+    "source.mapping.limit.reached": {
+        "data_type": "traces",
+        "description": "Number of times the source mapping limit has been reached",
+        "metric_type": "count",
+        "send_to_user": false,
+        "tags": [],
+        "user_tags": []
+    },
+    "tainted.flat.mode": {
+        "data_type": "traces",
+        "description": "Number of times the tainted map has switched to flat mode",
+        "metric_type": "count",
+        "send_to_user": false,
+        "tags": [],
+        "user_tags": []
+    }
+}

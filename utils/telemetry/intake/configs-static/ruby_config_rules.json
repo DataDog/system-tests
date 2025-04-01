@@ -1,0 +1,10 @@
+{
+    "normalization_rules": {
+        "DD_AGENT_HOST": "agent_host",
+        "ci.enabled": "ci_enabled",
+        "tracing.analytics.enabled": "trace_analytics_enabled"
+    },
+    "prefix_block_list": [],
+    "redaction_list": [],
+    "reduce_rules": {}
+}

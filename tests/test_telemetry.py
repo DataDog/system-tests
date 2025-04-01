@@ -3,6 +3,7 @@ from collections import defaultdict
 from datetime import timedelta
 import time
 from dateutil.parser import isoparse
+from pathlib import Path
 from utils import context, interfaces, missing_feature, bug, flaky, irrelevant, weblog, scenarios, features, rfc, logger
 from utils.interfaces._misc_validators import HeadersPresenceValidator, HeadersMatchValidator
 from utils.telemetry import get_lang_configs, load_telemetry_json
@@ -909,3 +910,91 @@ class Test_TelemetrySCAEnvVar:
                 break
 
         assert found, f"No telemetry found for {target_service_name} on {target_request_type} with configuration appsec.sca_enabled"
+
+
+@features.telemetry_metrics_collected
+@scenarios.default
+@scenarios.appsec_rasp
+@scenarios.appsec_blocking
+class Test_Telemetry_Metrics_Schema:
+    def test_no_unexpected_telemetry_metrics(self):
+        """Assert that telemetry metrics are handled properly by telemetry intake
+
+        Runbook: https://github.com/DataDog/system-tests/blob/main/docs/edit/runbook.md#test_config_telemetry_completeness
+        """
+
+        def load_telemetry_json(filename):
+            with open(f"utils/telemetry/intake/metrics-static/{filename}.json", encoding="utf-8") as fh:
+                return json.load(fh)
+
+        lang = context.library.library
+        if lang == "java":
+            lang = "jvm"
+
+        # dict: namespace -> metric -> set of tags
+        known_metrics = defaultdict(lambda: defaultdict(set))
+        with open("utils/telemetry/intake/metrics-static/common_metrics.json", encoding="utf-8") as fh:
+            data = json.load(fh)
+        for namespace, metrics in data.items():
+            if namespace == "$schema":
+                continue
+            for metric, metric_def in metrics.items():
+                tags = metric_def.get("tags", [])
+                known_metrics[namespace][metric] |= set(tags)
+        file_path = f"utils/telemetry/intake/metrics-static/{lang}_metrics.json"
+        if Path(file_path).exists():
+            with open(file_path, encoding="utf-8") as fh:
+                data = json.load(fh)
+            for metric, metric_def in data.items():
+                if metric == "$schema":
+                    continue
+                tags = metric_def.get("tags", [])
+                known_metrics["tracers"][metric] |= set(tags)
+
+        # dict: namespace -> metric -> set of tags
+        seen_metrics = defaultdict(lambda: defaultdict(set))
+        for data in interfaces.library.get_telemetry_data(flatten_message_batches=True):
+            content = data["request"]["content"]
+            if content.get("request_type") != "generate-metrics":
+                continue
+            payload = content["payload"]
+            namespace = payload.get("namespace")
+            series = payload.get("series")
+            assert series, "Expected series in generate-metrics payload"
+            for s in series:
+                metric_name = s.get("metric")
+                assert metric_name, "Expected a metric name in generate-metrics series"
+                namespace_override = s.get("namespace")
+                if not namespace_override:
+                    namespace_override = namespace
+                assert (
+                    namespace_override
+                ), f"Expected a namespace in generate-metrics payload or series for metric {metric_name}"
+                tags = {t.split(":")[0] for t in s.get("tags", [])}
+                seen_metrics[namespace_override][metric_name] |= tags
+
+        unknown_namespaces = set()
+        unknown_metrics = set()
+        unknown_tags = set()
+        for namespace, metrics in seen_metrics.items():
+            if namespace not in known_metrics:
+                unknown_namespaces.add(namespace)
+                continue
+            for metric, tags in metrics.items():
+                if metric not in known_metrics[namespace]:
+                    unknown_metrics.add(f"{namespace}.{metric}")
+                    continue
+                known_tags = known_metrics[namespace][metric]
+                for tag in tags - known_tags:
+                    unknown_tags.add(f"{namespace}.{metric} {tag}")
+
+        for namespace in unknown_namespaces:
+            logger.error(f"Unknown namespace: {namespace}")
+        for metric in unknown_metrics:
+            logger.error(f"Unknown metric: {metric}")
+        for tag in unknown_tags:
+            logger.error(f"Unknown tag: {tag}")
+
+        assert not unknown_namespaces, "Unknown telemetry metric namespaces"
+        assert not unknown_metrics, "Unknown telemetry metric names"
+        assert not unknown_tags, "Unknown telemetry metric tags"

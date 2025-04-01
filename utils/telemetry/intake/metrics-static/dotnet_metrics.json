@@ -1,0 +1,118 @@
+{
+    "$schema": "../schema/metrics.json",
+    "direct_log_api.batch_size": {
+        "data_type": "logs",
+        "description": "The number of logs included in a payload patch, sent to the submission endpoint",
+        "metric_type": "distribution",
+        "send_to_user": false,
+        "tags": [],
+        "user_tags": []
+    },
+    "direct_log_api.bytes": {
+        "data_type": "bytes",
+        "description": "The size of the payload sent to the direct log submission endpoint in bytes, regardless of success",
+        "metric_type": "distribution",
+        "send_to_user": false,
+        "tags": [],
+        "user_tags": []
+    },
+    "direct_log_api.errors": {
+        "data_type": "requests",
+        "description": "The number of requests sent to the api endpoint that errored, tagged by the error type (e.g. Timeout, NetworkError, StatusCode)",
+        "metric_type": "count",
+        "send_to_user": false,
+        "tags": [
+            "type"
+        ],
+        "user_tags": []
+    },
+    "direct_log_api.ms": {
+        "data_type": "milliseconds",
+        "description": "The time it takes to send the payload sent to the endpoint in ms",
+        "metric_type": "distribution",
+        "send_to_user": false,
+        "tags": []
+    },
+    "direct_log_api.requests": {
+        "data_type": "requests",
+        "description": "The number of payloads sent to the endpoint",
+        "metric_type": "count",
+        "send_to_user": false,
+        "tags": [],
+        "user_tags": []
+    },
+    "direct_log_api.responses": {
+        "data_type": "responses",
+        "description": "The number of responses received from the endpoint, tagged with status code",
+        "metric_type": "count",
+        "send_to_user": false,
+        "tags": [
+            "status_code"
+        ],
+        "user_tags": []
+    },
+    "direct_log_logs": {
+        "data_type": "logs",
+        "description": "The number of logs sent to the direct log submission sink, tagged by IntegrationName. Includes only logs that were sent, not filtered logs",
+        "metric_type": "count",
+        "send_to_user": false,
+        "tags": [
+            "integration_name"
+        ],
+        "user_tags": []
+    },
+    "direct_log_queue.length": {
+        "data_type": "logs",
+        "description": "The number of logs currently enqueued to the direct log submission sink",
+        "metric_type": "gauge",
+        "send_to_user": false,
+        "tags": [],
+        "user_tags": []
+    },
+    "instrumentations": {
+        "data_type": "instances",
+        "description": "The number of profiler instrumentations created, tagged by the component (e.g. `component_name:calltarget`, `component_name:calltarget_interfaces`)",
+        "metric_type": "gauge",
+        "send_to_user": false,
+        "tags": [
+            "component_name"
+        ],
+        "user_tags": []
+    },
+    "native_init_time": {
+        "data_type": "milliseconds",
+        "description": "Essentially all the stats values available from the native profiler. We may potentially want to include these in the 'common' init_time metric - I'm not sure?",
+        "metric_type": "gauge",
+        "send_to_user": false,
+        "tags": [
+            "component_name"
+        ],
+        "user_tags": []
+    },
+    "public_api": {
+        "data_type": "invocations",
+        "description": "The number of invocations of a given public API, tagged by the name of the api ",
+        "metric_type": "count",
+        "send_to_user": false,
+        "tags": [
+            "name"
+        ],
+        "user_tags": []
+    },
+    "unsupported_custom_instrumentation_services": {
+        "data_type": "services",
+        "description": "The number of services in which the customer has installed manual instrumentation that is greater than the automatic instrumentation (and so won't work)",
+        "metric_type": "count",
+        "send_to_user": false,
+        "tags": [],
+        "user_tags": []
+    },
+    "version_conflict_tracers_created": {
+        "data_type": "traces",
+        "description": "The number of version-confict tracers created",
+        "metric_type": "count",
+        "send_to_user": false,
+        "tags": [],
+        "user_tags": []
+    }
+}

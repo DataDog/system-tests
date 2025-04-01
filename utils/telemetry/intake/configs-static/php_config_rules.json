@@ -1,0 +1,9 @@
+{
+    "normalization_rules": {
+        "telemetry_log_collection_enabled": "instrumentation_telemetry_log_collection_enabled",
+        "trace.ignore_agent_sampling_rates": "trace_ignore_agent_sampling_rates"
+    },
+    "prefix_block_list": [],
+    "redaction_list": [],
+    "reduce_rules": {}
+}
