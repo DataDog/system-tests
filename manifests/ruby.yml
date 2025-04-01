@@ -287,7 +287,7 @@ tests/:
       Test_SCAStandalone_Telemetry_V2: v2.12.3-dev
     test_automated_login_events.py:
       Test_Login_Events:
-        '*': v1.13.0
+        '*': bug (APPSEC-57124)
         rack: missing_feature (We do not support authentication framework for sinatra or rack)
         sinatra14: missing_feature (We do not support authentication framework for sinatra or rack)
         sinatra20: missing_feature (We do not support authentication framework for sinatra or rack)
@@ -299,7 +299,7 @@ tests/:
         sinatra40: missing_feature (We do not support authentication framework for sinatra or rack)
         uds-sinatra: missing_feature (We do not support authentication framework for sinatra or rack)
       Test_Login_Events_Extended:
-        '*': v1.14.0
+        '*': bug (APPSEC-57124)
         rack: missing_feature (We do not support authentication framework for sinatra or rack)
         sinatra14: missing_feature (We do not support authentication framework for sinatra or rack)
         sinatra20: missing_feature (We do not support authentication framework for sinatra or rack)
