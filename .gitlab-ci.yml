@@ -130,7 +130,7 @@ php_ssi_pipeline:
 
 ruby_ssi_pipeline:
   stage: ruby
-  needs: ["compute_pipeline", "php_ssi_pipeline"]
+  needs: ["compute_pipeline"]
   allow_failure: true
   variables:
     PARENT_PIPELINE_SOURCE: $CI_PIPELINE_SOURCE
