@@ -71,7 +71,8 @@ ignore-names = ["Test*", ]  # TODO : lot of renamings to do...
 exclude = [
     "venv/", 
     "utils/grpc/weblog_pb2_grpc.py", 
-    "utils/grpc/weblog_pb2.py", "parametric/apps", 
+    "utils/grpc/weblog_pb2.py",
+    "parametric/apps", 
     "lib-injection/build/docker/python/dd-lib-python-init-test-protobuf-old/addressbook_pb2.py"
 ]
 quote-style = "double"
@@ -201,9 +202,6 @@ ignore = [
     "RUF001",    # ambiguous-unicode-character-string: the mutator contains weird strings on purpose
 ]
 "tests/parametric/*" = [
-    "ANN001",   # missing-type-function-argument: TODO
-    "ANN003",   # missing-type-kwargs: TODO
-    "ANN401",   # any-type: TODO
     "ARG002",   # unused-method-argument: TODO
 ]
 "tests/parametric/{test_headers_baggage.py,test_headers_datadog.py,test_library_tracestats.py}" = [
@@ -284,11 +282,6 @@ ignore = [
     "RET505",  # superfluous-else-return: TODO
     "S507",    # ssh-no-host-key-verification: TODO
     "UP017",   # datetime-timezone-utc: TODO
-]
-"utils/parametric/*" = [
-    "ANN001",   # missing-type-function-argument: TODO
-    "ANN003",   # missing-type-kwargs: TODO
-    "PLR2004",  # magic-value-comparison: TODO
 ]
 "utils/scripts/ci_orchestrator/gitlab_exporter.py" = [ "ANN001" ]  # missing-type-function-argument: TODO
 "utils/scripts/junit_report.py" = ["ANN001"] # missing-type-function-argument: TODO
