@@ -227,7 +227,7 @@ get '/sample_rate_route/:i' do
   'OK'
 end
 
-get '/rasp/ssrf' do
+ssrf_handler = lambda do
   url = URI.parse(request.params['url'])
   url = "https://#{url}" unless url.scheme
 
@@ -235,3 +235,4 @@ get '/rasp/ssrf' do
 
   'OK'
 end
+get '/rasp/ssrf', &ssrf_handler
