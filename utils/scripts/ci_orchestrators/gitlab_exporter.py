@@ -93,6 +93,28 @@ def print_gitlab_pipeline(language, matrix_data, ci_environment) -> None:
     print_ssi_gitlab_pipeline(language, matrix_data, ci_environment)
 
 
+def should_use_new_aws_account() -> bool:
+    """Temporal patch to run the new AWS account system tests"""
+    all_projects = [
+        "system-tests",
+        "dd-trace-js",
+        "dd-trace-java",
+        "dd-trace-py",
+        "dd-trace-dotnet",
+        "dd-trace-php",
+        "dd-trace-rb",
+        "auto_inject",
+    ]
+    migrated_projects = [""]
+    print(f"Checking if project [{os.getenv("CI_PROJECT_NAME")}] should run on the new AWS account")
+    if os.getenv("CI_PROJECT_NAME") in all_projects:
+        if os.getenv("CI_PROJECT_NAME") in migrated_projects:
+            print(f"Project [{os.getenv('CI_PROJECT_NAME')}] is migrated, using NEW AWS account")
+            return True
+    print(f"Project [{os.getenv('CI_PROJECT_NAME')}] is NOT migrated, using OLD AWS account")
+    return False
+
+
 def print_ssi_gitlab_pipeline(language, matrix_data, ci_environment) -> None:
     result_pipeline = {}  # type: dict
     result_pipeline["include"] = []
@@ -102,7 +124,17 @@ def print_ssi_gitlab_pipeline(language, matrix_data, ci_environment) -> None:
 
     with open(pipeline_file, encoding="utf-8") as f:
         pipeline_data = yaml.load(f, Loader=yaml.FullLoader)  # noqa: S506
-    result_pipeline["include"] = pipeline_data["include"]
+
+    if should_use_new_aws_account():
+        result_pipeline["include"] = [
+            {
+                "remote": "https://gitlab-templates.ddbuild.io/libdatadog/include-wip/robertomonteromiguel/onboarding_tests_new_aws_account/single-step-instrumentation-tests.yml"
+            }
+        ]
+    else:
+        result_pipeline["include"] = [
+            {"remote": "https://gitlab-templates.ddbuild.io/libdatadog/include/single-step-instrumentation-tests.yml"}
+        ]
 
     if (
         not matrix_data["aws_ssi_scenario_defs"]
