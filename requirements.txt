@@ -11,7 +11,7 @@ kubernetes==29.0.0  #lib-injection kubernetes
 matplotlib  # for performance tests
 # mitmproxy==9.0.1  # sueful for proxy development, but failing on gitlab
 msgpack==1.0.4
-mypy==1.0.0
+mypy==1.15.0
 opentelemetry-api==1.27.0 # for parametric tests
 paramiko==3.4.1
 pexpect==4.9.0  #On Boarding requirements
