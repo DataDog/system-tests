@@ -1066,6 +1066,8 @@ tests/:
     Test_Config_RuntimeMetrics_Enabled_WithRuntimeId: missing_feature
     Test_Config_UnifiedServiceTagging_CustomService: *ref_5_25_0
     Test_Config_UnifiedServiceTagging_Default: *ref_5_25_0
+  test_data_integrity.py:
+    Test_LibraryHeaders: *ref_5_46_0
   test_distributed.py:
     Test_DistributedHttp: *ref_3_0_0
     Test_Span_Links_Flags_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
