@@ -105,13 +105,23 @@ def should_use_new_aws_account() -> bool:
         "dd-trace-rb",
         "auto_inject",
     ]
+
+    ci_commit_branch = os.getenv("CI_COMMIT_BRANCH", "")
+    ci_project_name = os.getenv("CI_PROJECT_NAME")
     migrated_projects = ["system-tests"]
-    print(f"Checking if project [{os.getenv("CI_PROJECT_NAME")}] should run on the new AWS account")
-    if os.getenv("CI_PROJECT_NAME") in all_projects:
-        if os.getenv("CI_PROJECT_NAME") in migrated_projects:
-            print(f"Project [{os.getenv('CI_PROJECT_NAME')}] is migrated, using NEW AWS account")
+    # The projects that are under migration.
+    # It's going to apply the config of the new aws account only for a specific branch
+    partially_migrated_projects = [""]
+    print(f"Checking if project [{ci_project_name}] should run on the new AWS account")
+    if ci_project_name in all_projects:
+        if ci_project_name in migrated_projects:
+            if ci_project_name in partially_migrated_projects and "montero" not in ci_commit_branch:
+                print(f"Project [{ci_project_name}] is in migration process.")
+                print(f"This branch [{ci_commit_branch}] is going to use the OLD AWS account")
+                return False
+            print(f"Project [{ci_project_name}] is migrated, using NEW AWS account")
             return True
-    print(f"Project [{os.getenv('CI_PROJECT_NAME')}] is NOT migrated, using OLD AWS account")
+    print(f"Project [{ci_project_name}] is NOT migrated, using OLD AWS account")
     return False
 
 
