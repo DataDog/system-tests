@@ -331,6 +331,7 @@ class Test_Config_Tags:
             }
         ],
     )
+    @missing_feature(context.library == "php", reason="PHP does not support setting USM from DD_TAGS")
     def test_dd_service_override(self, library_env, test_agent, test_library):
         with test_library, test_library.dd_start_span(name="sample_span"):
             pass
