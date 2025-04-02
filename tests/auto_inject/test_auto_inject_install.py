@@ -131,7 +131,7 @@ class TestContainerAutoInjectInstallScriptCrashTracking_NoZombieProcess(base.Aut
 
         # At this point, there should be no zombies and no child pids
         # but we apply a retry policy due to the app can take time to crash
-        child_pids = get_child_pids(virtual_machine).strip()
+        child_pids = ""
         for _attempt in range(5):
             child_pids = get_child_pids(virtual_machine).strip()
 
