@@ -4,7 +4,8 @@ import pytest
 import json
 import msgpack
 from jsonschema import validate as validation_jsonschema
-from utils import features, scenarios
+from utils import features, scenarios, context
+from utils._context.component_version import Version
 
 
 def find_dd_memfds(test_library, pid: int) -> list[str]:
@@ -61,11 +62,12 @@ class Test_ProcessDiscovery:
             assert tracer_metadata["schema_version"] == 1
             assert tracer_metadata["runtime_id"]
             # assert tracer_metadata["hostname"]
-            # TODO(@dmehala): how to get the version?
-            # assert tracer_metadata["tracer_version"] ==
+
             lang = "go" if test_library.lang == "golang" else test_library.lang
             assert tracer_metadata["tracer_language"] == lang
-
             assert tracer_metadata["service_name"] == library_env["DD_SERVICE"]
             assert tracer_metadata["service_version"] == library_env["DD_VERSION"]
             assert tracer_metadata["service_env"] == library_env["DD_ENV"]
+
+            version = Version(tracer_metadata["tracer_version"])
+            assert context.library.version == version
