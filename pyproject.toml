@@ -46,9 +46,7 @@ exclude = [
     "utils/grpc/weblog_pb2.py",  # auto generated
 
     # TODO
-    "utils/_context/core.py",
     "utils/_context/_scenarios/auto_injection.py",
-    "utils/_context/_scenarios/k8s_lib_injection.py",
     "utils/k8s_lib_injection/.*",
     "utils/onboarding/.*",
     "utils/virtual_machine/.*",
