@@ -16,6 +16,7 @@ import mock
 import urllib3
 import xmltodict
 import graphene
+import datetime
 
 
 if os.environ.get("INCLUDE_POSTGRES", "true") == "true":
@@ -468,6 +469,16 @@ def format_error(errors):
             }
         )
     return {"errors": formatted_errors}
+
+
+@app.route("/add_event", methods=["GET", "POST"])
+def add_event():
+    span = tracer.current_root_span()
+    assert span
+    name = "span_event"
+    attributes = {"string": "value", "int": 1}
+    span._add_event(name=name, attributes=attributes)
+    return {"message": "event added", "status_code": 200}
 
 
 @app.route("/read_file", methods=["GET"])

@@ -893,7 +893,8 @@ tests/:
       Test_Decisionless_Extraction: v2.8.0
     test_sampling_span_tags.py:
       Test_Sampling_Span_Tags: v2.8.0
-    test_span_events.py: missing_feature
+    test_span_events.py:
+      Test_Span_Events: missing_feature
     test_span_links.py:
       Test_Span_Links: v2.3.0
     test_span_sampling.py:
@@ -1040,7 +1041,13 @@ tests/:
       '*': v1.80.0
       django-py3.13: bug (APMLP-364)
     Test_MetaDatadogTags: v3.2.0
-  test_span_events.py: incomplete_test_app (Weblog `/add_event` not implemented)
+  test_span_events.py:
+    Test_SpanEvents_WithAgentSupport:
+      "*": irrelevant (endpoint not implemented)
+      flask-poc: v3.0.0
+    Test_SpanEvents_WithoutAgentSupport:
+      "*": irrelevant (endpoint not implemented)
+      flask-poc: v3.0.0
   test_standard_tags.py:
     Test_StandardTagsClientIp: v2.7.0
     Test_StandardTagsMethod: v1.2.1
