@@ -1506,7 +1506,13 @@ tests/:
       Test_Fingerprinting_Endpoint_Capability:
         '*': v1.39.0
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
+      Test_Fingerprinting_Endpoint_Preprocessor:
+        '*': v1.39.0
+        spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
       Test_Fingerprinting_Header_And_Network:
+        '*': v1.39.0
+        spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
+      Test_Fingerprinting_Header_And_Network_Preprocessor:
         '*': v1.39.0
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
       Test_Fingerprinting_Header_Capability:
@@ -1531,6 +1537,19 @@ tests/:
       Test_Fingerprinting_Session_Capability:
         '*': v1.40.0
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
+      Test_Fingerprinting_Session_Preprocessor:
+        '*': v1.40.0
+        akka-http: missing_feature (endpoint not implemented)
+        jersey-grizzly2: missing_feature (endpoint not implemented)
+        play: missing_feature (endpoint not implemented)
+        ratpack: missing_feature (endpoint not implemented)
+        resteasy-netty3: missing_feature (endpoint not implemented)
+        spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
+        spring-boot-jetty: v1.42.0
+        spring-boot-undertow: v1.42.0
+        spring-boot-wildfly: v1.42.0
+        vertx3: v1.46.0
+        vertx4: v1.46.0
     test_identify.py:
       Test_Basic:
         '*': v1.48.0
@@ -1818,7 +1837,7 @@ tests/:
     test_128_bit_traceids.py:
       Test_128_Bit_Traceids: v1.12.0
     test_config_consistency.py:
-      Test_Config_Dogstatsd: missing_feature (default hostname is inconsistent)
+      Test_Config_Dogstatsd: irrelevant (default hostname is resolved config-processing)
       Test_Config_RateLimit: v1.41.1
       Test_Config_Tags: v1.48.0
       Test_Config_TraceAgentURL: v1.41.1

@@ -5,7 +5,19 @@
 import re
 import json
 import time
-from utils import weblog, interfaces, scenarios, features, rfc, irrelevant, context, bug, missing_feature, logger
+from utils import (
+    weblog,
+    interfaces,
+    scenarios,
+    features,
+    rfc,
+    irrelevant,
+    context,
+    bug,
+    missing_feature,
+    logger,
+    incomplete_test_app,
+)
 
 # get the default log output
 stdout = interfaces.library_stdout
@@ -103,7 +115,10 @@ class Test_Config_ObfuscationQueryStringRegexp_Empty:
     def setup_query_string_obfuscation_empty_client(self):
         self.r = weblog.get("/make_distant_call", params={"url": "http://weblog:7777/?key=monkey"})
 
-    @bug(context.library == "java", reason="APMAPI-770")
+    @bug(
+        context.library == "java" and context.weblog_variant in ("vertx3", "vertx4"),
+        reason="APMAPI-770",
+    )
     @missing_feature(context.library == "nodejs", reason="Node only obfuscates queries on the server side")
     @missing_feature(context.library < "golang@1.72.0-dev", reason="Obfuscation only occurs on server side")
     def test_query_string_obfuscation_empty_client(self):
@@ -117,7 +132,6 @@ class Test_Config_ObfuscationQueryStringRegexp_Empty:
         self.r = weblog.get("/?application_key=value")
 
     @bug(context.library == "python", reason="APMAPI-772")
-    @bug(context.library >= "java@1.48.0" and context.weblog_variant == "spring-boot-3-native", reason="APMAPI-1251")
     def test_query_string_obfuscation_empty_server(self):
         spans = [s for _, _, s in interfaces.library.get_spans(request=self.r, full_trace=True)]
         server_span = _get_span_by_tags(spans, tags={"http.url": "http://localhost:7777/?application_key=value"})
@@ -299,7 +313,6 @@ class Test_Config_ClientIPHeader_Configured:
             "/make_distant_call", params={"url": "http://weblog:7777"}, headers={"custom-ip-header": "5.6.7.9"}
         )
 
-    @bug(context.library >= "java@1.48.0", reason="APMAPI-1251")
     def test_ip_headers_sent_in_one_request(self):
         # Ensures the header set in DD_TRACE_CLIENT_IP_HEADER takes precedence over all supported ip headers
         trace = [span for _, _, span in interfaces.library.get_spans(self.req, full_trace=True)]
@@ -517,7 +530,7 @@ class Test_Config_LogInjection_Enabled:
         assert sid is not None, "Expected a span ID, but got None"
 
         required_fields = ["service", "version", "env"]
-        if context.library.name in ("java", "python"):
+        if context.library.name in ("java", "python", "ruby"):
             required_fields = ["dd.service", "dd.version", "dd.env"]
         elif context.library.name == "dotnet":
             required_fields = ["dd_service", "dd_version", "dd_env"]
@@ -540,10 +553,9 @@ class Test_Config_LogInjection_Default:
 
     def test_log_injection_default(self):
         assert self.r.status_code == 200
-        pattern = r'"dd":\{[^}]*\}'
-        pattern = r'"dd.trace_id":\{[^}]*\}'
-        pattern = r'"dd_trace_id":\{[^}]*\}'
-        stdout.assert_absence(pattern)
+        stdout.assert_absence(r'"dd":\{[^}]*\}')
+        stdout.assert_absence(r'"dd.trace_id":\{[^}]*\}')
+        stdout.assert_absence(r'"dd_trace_id":\{[^}]*\}')
 
 
 @rfc("https://docs.google.com/document/d/1kI-gTAKghfcwI7YzKhqRv2ExUstcHqADIWA4-TZ387o/edit#heading=h.8v16cioi7qxp")
@@ -575,6 +587,9 @@ class Test_Config_LogInjection_128Bit_TraceId_Enabled:
         self.message = "test_weblog_log_injection"
         self.r = weblog.get("/log/library", params={"msg": self.message}, headers=incoming_headers)
 
+    @incomplete_test_app(
+        context.library == "ruby", reason="rails70 app does not use the incoming headers in log correlation"
+    )
     def test_incoming_64bit_traceid(self):
         assert self.r.status_code == 200
         log_msg = parse_log_injection_message(self.message)
@@ -765,16 +780,17 @@ def parse_log_injection_message(log_message):
     # To pass tests that use this function, ensure your library has an entry in log_injection_fields
     for data in stdout.get_data():
         logs = data.get("raw").split("\n")
+        regex_pattern = re.compile(r"\[(?:[^\]]*\b(dd\.\w+=\S+)\b[^\]]*)+\]\s*(.*)")
         for log in logs:
-            if context.library == "python":
-                # Log Injection values are stored in the following format in python:
-                # [dd.service=service_test dd.env=system-tests dd.version=1.0.0 dd.trace_id=0 dd.span_id=0] - log message
-                extracted_log_message = next(iter(re.findall(r"\] - (.+)$", log)), "")
-                if log_message in extracted_log_message:
-                    dd_injected = re.findall(r"(dd\.[a-zA-Z0-9_]+)=([a-zA-Z0-9_]+)", log)
-                    return {key: value for key, value in dd_injected}
-                else:
-                    continue
+            if context.library in ("python", "ruby"):
+                # Extract key-value pairs and messages
+                match = regex_pattern.search(log)
+                if match:
+                    curr_message = match.group(2).strip()  # Extract message after last bracket
+                    if curr_message != log_message:
+                        continue
+                    dd_pairs = re.findall(r"dd\.\w+=\S+", match.group(0))  # Extract key-value pairs that start with dd.
+                    return {pair.split("=")[0]: pair.split("=")[1] for pair in dd_pairs}
             try:
                 message = json.loads(log)
             except json.JSONDecodeError:

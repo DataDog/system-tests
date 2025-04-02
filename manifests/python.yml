@@ -594,11 +594,14 @@ tests/:
     test_fingerprinting.py:
       Test_Fingerprinting_Endpoint: v2.11.0
       Test_Fingerprinting_Endpoint_Capability: v2.11.0
+      Test_Fingerprinting_Endpoint_Preprocessor: v2.11.0
       Test_Fingerprinting_Header_And_Network: v2.11.0
+      Test_Fingerprinting_Header_And_Network_Preprocessor: v2.11.0
       Test_Fingerprinting_Header_Capability: v2.11.0
       Test_Fingerprinting_Network_Capability: v2.11.0
       Test_Fingerprinting_Session: v2.17.0.dev
       Test_Fingerprinting_Session_Capability: v2.17.0.dev
+      Test_Fingerprinting_Session_Preprocessor: v2.17.0.dev
     test_identify.py:
       Test_Basic: v1.5.0-rc1
     test_ip_blocking_full_denylist.py:
@@ -860,7 +863,7 @@ tests/:
       TestDynamicConfigV1: missing_feature (failure 2.8.0)
       TestDynamicConfigV1_EmptyServiceTargets: v2.18.1  # version unknown
       TestDynamicConfigV1_ServiceTargets: missing_feature (failure 2.8.0)
-      TestDynamicConfigV2: flaky (APMAPI-734)
+      TestDynamicConfigV2: v2.0.0
     test_headers_b3.py:
       Test_Headers_B3: v2.8.0
     test_headers_b3multi.py:
@@ -1045,7 +1048,7 @@ tests/:
     Test_Meta:
       '*': v1.80.0
       django-py3.13: bug (APMLP-364)
-    Test_MetaDatadogTags: bug (APMAPI-735)
+    Test_MetaDatadogTags: v3.2.0
   test_span_events.py: incomplete_test_app (Weblog `/add_event` not implemented)
   test_standard_tags.py:
     Test_StandardTagsClientIp: v2.7.0
