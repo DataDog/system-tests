@@ -54,25 +54,23 @@ class Test_Span_Events:
 
         assert event["attributes"].get("str_arr") == {
             "type": 4,
-            "array_value": {
-                "values": [
-                    {"type": 0, "string_value": "a"},
-                    {"type": 0, "string_value": "b"},
-                    {"type": 0, "string_value": "c"},
-                ]
-            },
+            "array_value": [
+                {"type": 0, "string_value": "a"},
+                {"type": 0, "string_value": "b"},
+                {"type": 0, "string_value": "c"},
+            ],
         }
         assert event["attributes"].get("bool_arr") == {
             "type": 4,
-            "array_value": {"values": [{"type": 1, "bool_value": True}, {"type": 1, "bool_value": False}]},
+            "array_value": [{"type": 1, "bool_value": True}, {"type": 1, "bool_value": False}],
         }
         assert event["attributes"].get("int_arr") == {
             "type": 4,
-            "array_value": {"values": [{"type": 2, "int_value": 5}, {"type": 2, "int_value": 6}]},
+            "array_value": [{"type": 2, "int_value": 5}, {"type": 2, "int_value": 6}],
         }
         assert event["attributes"].get("double_arr") == {
             "type": 4,
-            "array_value": {"values": [{"type": 3, "double_value": 1.1}, {"type": 3, "double_value": 2.2}]},
+            "array_value": [{"type": 3, "double_value": 1.1}, {"type": 3, "double_value": 2.2}],
         }
 
         event = span_events[1]
@@ -154,7 +152,7 @@ class Test_Span_Events:
         self._test_span_with_native_event(library_env, test_agent, test_library)
 
     @irrelevant(library="ruby", reason="Does not support v0.5")
-    @pytest.mark.parametrize("library_env", [{"DD_TRACE_API_VERSION": "v0.5", "DD_TRACE_NATIVE_SPAN_EVENTS": "0"}])
+    @pytest.mark.parametrize("library_env", [{"DD_TRACE_API_VERSION": "v0.5", "DD_TRACE_NATIVE_SPAN_EVENTS": "1"}])
     def test_span_with_event_v05(self, library_env, test_agent, test_library):
         """Test adding a span event in the v0.5 format, which does not support the native attribute representation.
         Thus span events are serialized as span tags, and attribute values all strings.
