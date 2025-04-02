@@ -17,7 +17,7 @@ class _BaseSNS:
     unique_id: str
 
     @classmethod
-    def get_span(cls, interface, span_kind, queue, topic, operation):
+    def get_span(cls, interface, span_kind, queue, topic, operation) -> dict | None:
         logger.debug(f"Trying to find traces with span kind: {span_kind} and queue: {queue} in {interface}")
         manual_span_found = False
 
@@ -150,6 +150,8 @@ class _BaseSNS:
         # Both producer and consumer spans should be part of the same trace
         # Different tracers can handle the exact propagation differently, so for now, this test avoids
         # asserting on direct parent/child relationships
+        assert producer_span is not None
+        assert consumer_span is not None
         assert producer_span["trace_id"] == consumer_span["trace_id"]
 
     def setup_consume(self):
@@ -211,6 +213,8 @@ class _BaseSNS:
         # Both producer and consumer spans should be part of the same trace
         # Different tracers can handle the exact propagation differently, so for now, this test avoids
         # asserting on direct parent/child relationships
+        assert producer_span is not None
+        assert consumer_span is not None
         assert producer_span["trace_id"] == consumer_span["trace_id"]
 
     def validate_sns_spans(self, producer_interface, consumer_interface, queue, topic):
