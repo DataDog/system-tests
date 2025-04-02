@@ -1,14 +1,13 @@
-from typing import Any
-
 import pytest
 
 from utils.parametric.spec.tracecontext import get_tracecontext
 from utils import bug, missing_feature, context, irrelevant, scenarios, features
+from .conftest import APMLibrary
 
 parametrize = pytest.mark.parametrize
 
 
-def enable_tracecontext() -> Any:
+def enable_tracecontext() -> pytest.MarkDecorator:
     env = {
         "DD_TRACE_PROPAGATION_STYLE_EXTRACT": "tracecontext",
         "DD_TRACE_PROPAGATION_STYLE_INJECT": "tracecontext",
@@ -16,7 +15,7 @@ def enable_tracecontext() -> Any:
     return parametrize("library_env", [env])
 
 
-def enable_datadog() -> Any:
+def enable_datadog() -> pytest.MarkDecorator:
     env = {
         "DD_TRACE_PROPAGATION_STYLE_EXTRACT": "Datadog",
         "DD_TRACE_PROPAGATION_STYLE_INJECT": "Datadog",
@@ -24,7 +23,7 @@ def enable_datadog() -> Any:
     return parametrize("library_env", [env])
 
 
-def enable_datadog_tracecontext() -> Any:
+def enable_datadog_tracecontext() -> pytest.MarkDecorator:
     env = {
         "DD_TRACE_PROPAGATION_STYLE_EXTRACT": "Datadog,tracecontext",
         "DD_TRACE_PROPAGATION_STYLE_INJECT": "Datadog,tracecontext",
@@ -32,7 +31,7 @@ def enable_datadog_tracecontext() -> Any:
     return parametrize("library_env", [env])
 
 
-def enable_tracecontext_datadog() -> Any:
+def enable_tracecontext_datadog() -> pytest.MarkDecorator:
     env = {
         "DD_TRACE_PROPAGATION_STYLE_EXTRACT": "tracecontext,Datadog",
         "DD_TRACE_PROPAGATION_STYLE_INJECT": "tracecontext,Datadog",
@@ -40,7 +39,7 @@ def enable_tracecontext_datadog() -> Any:
     return parametrize("library_env", [env])
 
 
-def enable_datadog_b3multi_tracecontext_extract_first_false() -> Any:
+def enable_datadog_b3multi_tracecontext_extract_first_false() -> pytest.MarkDecorator:
     env1 = {
         "DD_TRACE_PROPAGATION_STYLE_EXTRACT": "Datadog,b3multi,tracecontext",
         "DD_TRACE_PROPAGATION_STYLE_INJECT": "Datadog,b3multi,tracecontext",
@@ -53,7 +52,7 @@ def enable_datadog_b3multi_tracecontext_extract_first_false() -> Any:
     return parametrize("library_env", [env1, env2])
 
 
-def enable_datadog_b3multi_tracecontext_extract_first_true() -> Any:
+def enable_datadog_b3multi_tracecontext_extract_first_true() -> pytest.MarkDecorator:
     env = {
         "DD_TRACE_PROPAGATION_STYLE_EXTRACT": "Datadog,b3multi,tracecontext",
         "DD_TRACE_PROPAGATION_STYLE_INJECT": "Datadog,b3multi,tracecontext",
@@ -62,7 +61,7 @@ def enable_datadog_b3multi_tracecontext_extract_first_true() -> Any:
     return parametrize("library_env", [env])
 
 
-def enable_tracecontext_datadog_b3multi_extract_first_false() -> Any:
+def enable_tracecontext_datadog_b3multi_extract_first_false() -> pytest.MarkDecorator:
     env1 = {
         "DD_TRACE_PROPAGATION_STYLE_EXTRACT": "tracecontext,Datadog,b3multi",
         "DD_TRACE_PROPAGATION_STYLE_INJECT": "tracecontext,Datadog,b3multi",
@@ -75,7 +74,7 @@ def enable_tracecontext_datadog_b3multi_extract_first_false() -> Any:
     return parametrize("library_env", [env1, env2])
 
 
-def enable_tracecontext_datadog_b3multi_extract_first_true() -> Any:
+def enable_tracecontext_datadog_b3multi_extract_first_true() -> pytest.MarkDecorator:
     env = {
         "DD_TRACE_PROPAGATION_STYLE_EXTRACT": "tracecontext,Datadog,b3multi",
         "DD_TRACE_PROPAGATION_STYLE_INJECT": "tracecontext,Datadog,b3multi",
@@ -224,49 +223,49 @@ class Test_Headers_Precedence:
         self.test_headers_precedence_propagationstyle_tracecontext_datadog(test_agent, test_library)
 
     @enable_tracecontext_datadog()
-    def test_headers_precedence_propagationstyle_tracecontext_datadog(self, test_agent, test_library):
+    def test_headers_precedence_propagationstyle_tracecontext_datadog(self, test_agent, test_library: APMLibrary):
         with test_library:
             # 1) No headers
             headers1 = test_library.dd_make_child_span_and_get_headers([])
 
             # 2) Only tracecontext headers
             headers2 = test_library.dd_make_child_span_and_get_headers(
-                [["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"]]
+                [("traceparent", "00-12345678901234567890123456789012-1234567890123456-01")]
             )
 
             # 3) Only tracecontext headers, includes existing tracestate
             headers3 = test_library.dd_make_child_span_and_get_headers(
-                [["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"], ["tracestate", "foo=1"]]
+                [("traceparent", "00-12345678901234567890123456789012-1234567890123456-01"), ("tracestate", "foo=1")]
             )
 
             # 4) Both tracecontext and Datadog headers
             headers4 = test_library.dd_make_child_span_and_get_headers(
                 [
-                    ["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],
-                    ["tracestate", "foo=1"],
-                    ["x-datadog-trace-id", "123456789"],
-                    ["x-datadog-parent-id", "987654321"],
-                    ["x-datadog-sampling-priority", "-2"],
+                    ("traceparent", "00-12345678901234567890123456789012-1234567890123456-01"),
+                    ("tracestate", "foo=1"),
+                    ("x-datadog-trace-id", "123456789"),
+                    ("x-datadog-parent-id", "987654321"),
+                    ("x-datadog-sampling-priority", "-2"),
                 ],
             )
 
             # 5) Only Datadog headers
             headers5 = test_library.dd_make_child_span_and_get_headers(
                 [
-                    ["x-datadog-trace-id", "123456789"],
-                    ["x-datadog-parent-id", "987654321"],
-                    ["x-datadog-sampling-priority", "-2"],
+                    ("x-datadog-trace-id", "123456789"),
+                    ("x-datadog-parent-id", "987654321"),
+                    ("x-datadog-sampling-priority", "-2"),
                 ],
             )
 
             # 6) Invalid tracecontext, valid Datadog headers
             headers6 = test_library.dd_make_child_span_and_get_headers(
                 [
-                    ["traceparent", "00-12345678901234567890123456789012-0000000000000000-01"],
-                    ["tracestate", "foo=1"],
-                    ["x-datadog-trace-id", "123456789"],
-                    ["x-datadog-parent-id", "987654321"],
-                    ["x-datadog-sampling-priority", "-2"],
+                    ("traceparent", "00-12345678901234567890123456789012-0000000000000000-01"),
+                    ("tracestate", "foo=1"),
+                    ("x-datadog-trace-id", "123456789"),
+                    ("x-datadog-parent-id", "987654321"),
+                    ("x-datadog-sampling-priority", "-2"),
                 ],
             )
 
