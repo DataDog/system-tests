@@ -74,10 +74,10 @@ class AWSPulumiProvider(VmProvider):
         except pulumi.automation.errors.CommandError as pulumi_command_exception:
             logger.stdout("❌ Exception launching aws provision step remote command ❌")
             logger.stdout(f"(Please, check the log file: {context.vm_name}.log)")
-            vm_logger(context.scenario.name, context.vm_name).error(
+            vm_logger(context.scenario.host_log_folder, context.vm_name).error(
                 "\n \n \n ❌ ❌ ❌ Exception launching aws provision step remote command ❌ ❌ ❌ \n \n \n "
             )
-            vm_logger(context.scenario.name, context.vm_name).exception(pulumi_command_exception)
+            vm_logger(context.scenario.host_log_folder, context.vm_name).exception(pulumi_command_exception)
 
             self.datadog_event_sender.sendEventToDatadog(
                 f"[E2E] Stack {self.stack_name} : error on Pulumi stack up",
@@ -149,7 +149,7 @@ class AWSPulumiProvider(VmProvider):
         Output.all(vm, ec2_server.private_ip).apply(lambda args: args[0].set_ip(args[1]))
         pulumi.export("privateIp_" + vm.name, ec2_server.private_ip)
         Output.all(ec2_server.private_ip, vm.name, ec2_server.id).apply(
-            lambda args: vm_logger(context.scenario.name, "vms_desc").info(f"{args[0]}:{args[1]}:{args[2]}")
+            lambda args: vm_logger(context.scenario.host_log_folder, "vms_desc").info(f"{args[0]}:{args[1]}:{args[2]}")
         )
 
         vm.ssh_config.username = vm.aws_config.user
@@ -319,7 +319,7 @@ class AWSCommander(Commander):
         ami_name = vm.get_cache_name()
         # Ok. All third party software is installed, let's create the ami to reuse it in the future
         logger.stdout(f"Creating AMI with name [{ami_name}] from instance ")
-        vm_logger(context.scenario.name, "cache_created").info(f"[{context.scenario.name}] - [{ami_name}]")
+        vm_logger(context.scenario.host_log_folder, "cache_created").info(f"[{context.scenario.name}] - [{ami_name}]")
 
         # Expiration date for the ami
         # expiration_date = (datetime.now() + timedelta(seconds=30)).strftime("%Y-%m-%dT%H:%M:%SZ")
@@ -340,7 +340,9 @@ class AWSCommander(Commander):
             opts=pulumi.ResourceOptions(depends_on=[last_task]),
             environment=env,
         )
-        last_task.stdout.apply(lambda outputlog: vm_logger(context.scenario.name, logger_name).info(outputlog))
+        last_task.stdout.apply(
+            lambda outputlog: vm_logger(context.scenario.host_log_folder, logger_name).info(outputlog)
+        )
         return last_task
 
     def copy_file(self, id, local_path, remote_path, connection, last_task, vm=None):
@@ -379,7 +381,7 @@ class AWSCommander(Commander):
         )
         if logger_name:
             cmd_exec_install.stdout.apply(
-                lambda outputlog: vm_logger(context.scenario.name, logger_name).info(outputlog)
+                lambda outputlog: vm_logger(context.scenario.host_log_folder, logger_name).info(outputlog)
             )
         else:
             # If there isn't logger name specified, we will use the host/ip name to store all the logs of the
@@ -390,7 +392,7 @@ class AWSCommander(Commander):
             Output.all(
                 vm.name, installation_id, remote_command, cmd_exec_install.stdout, cmd_exec_install.stderr
             ).apply(
-                lambda args: vm_logger(context.scenario.name, args[0]).info(
+                lambda args: vm_logger(context.scenario.host_log_folder, args[0]).info(
                     f"{header} \n   🚀 Provision step: {args[1]} 🚀 \n      Status: ✅ SUCCESS \n {header} \n {args[2]} \n\n {header2} \n 📤 Provision step output ({args[1]}) 📤  \n {header2} \n {args[3]} \n\n {header2} \n 🚨 error output ({args[1]}) 🚨 \n {header2} \n {args[4]}"
                 )
             )
