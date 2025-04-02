@@ -616,7 +616,7 @@ class Test_TelemetryV2:
 
     @irrelevant(
         library="dotnet",
-        reason="dd-trace-dotnet already has this, will re-enable when this automatically updates the dd-go files.",
+        reason="Re-enable when this automatically updates the dd-go files.",
     )
     def test_config_telemetry_completeness(self):
         """Assert that config telemetry is handled properly by telemetry intake
