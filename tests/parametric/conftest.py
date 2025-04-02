@@ -77,7 +77,7 @@ def apm_test_server(request: pytest.FixtureRequest, library_env: dict[str, str],
     """Request level definition of the library test server with the session Docker image built"""
     apm_test_server_image = scenarios.parametric.apm_test_server_definition
     new_env = dict(library_env)
-    context.scenario.parametrized_tests_metadata[request.node.nodeid] = new_env
+    scenarios.parametric.parametrized_tests_metadata[request.node.nodeid] = new_env
 
     new_env.update(apm_test_server_image.env)
     return dataclasses.replace(
