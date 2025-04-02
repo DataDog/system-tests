@@ -13,6 +13,7 @@ from utils.parametric.spec.trace import (
     find_trace,
     find_first_span_in_trace_payload,
 )
+from .conftest import _TestAgentAPI, APMLibrary
 
 parametrize = pytest.mark.parametrize
 
@@ -31,8 +32,24 @@ DEFAULT_ENVVARS = {
 }
 
 
-def send_and_wait_trace(test_library, test_agent, **span_kwargs) -> list[Span]:
-    with test_library.dd_start_span(**span_kwargs) as s1:
+def send_and_wait_trace(
+    test_library: APMLibrary,
+    test_agent: _TestAgentAPI,
+    name: str,
+    service: str | None = None,
+    resource: str | None = None,
+    parent_id: str | int | None = None,
+    typestr: str | None = None,
+    tags: list[tuple[str, str]] | None = None,
+) -> list[Span]:
+    with test_library.dd_start_span(
+        name=name,
+        service=service,
+        resource=resource,
+        parent_id=parent_id,
+        typestr=typestr,
+        tags=tags,
+    ) as s1:
         pass
     test_library.dd_flush()
     traces = test_agent.wait_for_num_traces(num=1, clear=True, sort_by_start=False)
