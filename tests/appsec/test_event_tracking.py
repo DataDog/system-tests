@@ -2,6 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 from utils import weblog, interfaces, features, missing_feature, context
+from tests.appsec.utils import find_series
 
 HEADERS = {
     "Accept": "text/html",
@@ -23,6 +24,14 @@ HEADERS = {
     "Via": "42.42.42.42, 43.43.43.43",
     "True-Client-IP": "42.42.42.42, 43.43.43.43",
 }
+
+
+def validate_metric_type_and_version(event_type, version, metric):
+    return (
+        metric.get("type") == "count"
+        and f"event_type:{event_type}" in metric.get("tags", ())
+        and f"sdk_version:{version}" in metric.get("tags", ())
+    )
 
 
 @features.user_monitoring
@@ -79,6 +88,24 @@ class Test_UserLoginSuccessEvent:
 
 
 @features.user_monitoring
+class Test_UserLoginSuccessEvent_Metrics:
+    """Success test for User Login Event SDK for AppSec"""
+
+    def setup_user_login_success_event(self):
+        self.r = weblog.get("/user_login_success_event")
+
+    def test_user_login_success_event(self):
+        # Call the user login success SDK and validate tags
+        series = find_series("generate-metrics", "appsec", ["sdk.event"])
+
+        assert series
+
+        assert any(validate_metric_type_and_version("login_success", "v1", s) for s in series), [
+            s.get("tags") for s in series
+        ]
+
+
+@features.user_monitoring
 class Test_UserLoginFailureEvent:
     """Failure test for User Login Event SDK for AppSec"""
 
@@ -132,6 +159,24 @@ class Test_UserLoginFailureEvent:
         interfaces.library.validate_spans(self.r, validator=validate_user_login_failure_header_collection)
 
 
+@features.user_monitoring
+class Test_UserLoginFailureEvent_Metrics:
+    """Success test for User Login Event SDK for AppSec"""
+
+    def setup_user_login_success_event(self):
+        self.r = weblog.get("/user_login_failure_event")
+
+    def test_user_login_success_event(self):
+        # Call the user login success SDK and validate tags
+        series = find_series("generate-metrics", "appsec", ["sdk.event"])
+
+        assert series
+
+        assert any(validate_metric_type_and_version("login_failure", "v1", s) for s in series), [
+            s.get("tags") for s in series
+        ]
+
+
 @features.custom_business_logic_events
 class Test_CustomEvent:
     """Test for Custom Event SDK for AppSec"""
@@ -163,3 +208,19 @@ class Test_CustomEvent:
             return True
 
         interfaces.library.validate_spans(self.r, validator=validate_custom_event_tags)
+
+
+@features.user_monitoring
+class Test_CustomEvent_Metrics:
+    """Success test for User Login Event SDK for AppSec"""
+
+    def setup_user_login_success_event(self):
+        self.r = weblog.get("/custom_event")
+
+    def test_user_login_success_event(self):
+        # Call the user login success SDK and validate tags
+        series = find_series("generate-metrics", "appsec", ["sdk.event"])
+
+        assert series
+
+        assert any(validate_metric_type_and_version("custom", "v1", s) for s in series), [s.get("tags") for s in series]
