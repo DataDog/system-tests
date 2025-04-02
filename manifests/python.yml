@@ -478,7 +478,10 @@ tests/:
       Test_AppSecStandalone_UpstreamPropagation: irrelevant (was v2.12.3 for all, v2.17.1 for uwsgi-poc but will be replaced by V2)
       Test_AppSecStandalone_UpstreamPropagation_V2: v3.2.0.dev
       Test_IastStandalone_UpstreamPropagation: irrelevant (was v2.18.0.dev but will be replaced by V2)
-      Test_IastStandalone_UpstreamPropagation_V2: v3.2.0.dev
+      Test_IastStandalone_UpstreamPropagation_V2:
+        '*': v3.2.0.dev
+        flask-poc: bug (APPSEC-57145)
+        uds-flask: bug (APPSEC-57145)
       Test_SCAStandalone_Telemetry: irrelevant (was v2.19.0.dev but will be replaced by V2)
       Test_SCAStandalone_Telemetry_V2: v3.2.0.dev
     test_automated_login_events.py:
@@ -575,10 +578,22 @@ tests/:
       Test_NoLimitOnWafRules: v1.1.0-rc2
     test_event_tracking.py:
       Test_CustomEvent: v1.10.0
+      Test_CustomEvent_Metrics: missing_feature
       Test_UserLoginFailureEvent:
         '*': v2.10.0
+      Test_UserLoginFailureEvent_Metrics: missing_feature
       Test_UserLoginSuccessEvent:
         '*': v2.10.0
+      Test_UserLoginSuccessEvent_Metrics: missing_feature
+    test_event_tracking_v2.py:
+      Test_UserLoginFailureEventV2_HeaderCollection: missing_feature
+      Test_UserLoginFailureEventV2_Libddwaf: missing_feature
+      Test_UserLoginFailureEventV2_Metrics: missing_feature
+      Test_UserLoginFailureEventV2_Tags: missing_feature
+      Test_UserLoginSuccessEventV2_HeaderCollection: missing_feature
+      Test_UserLoginSuccessEventV2_Libddwaf: missing_feature
+      Test_UserLoginSuccessEventV2_Metrics: missing_feature
+      Test_UserLoginSuccessEventV2_Tags: missing_feature
     test_fingerprinting.py:
       Test_Fingerprinting_Endpoint: v2.11.0
       Test_Fingerprinting_Endpoint_Capability: v2.11.0
@@ -890,7 +905,8 @@ tests/:
       Test_Decisionless_Extraction: v2.8.0
     test_sampling_span_tags.py:
       Test_Sampling_Span_Tags: v2.8.0
-    test_span_events.py: missing_feature
+    test_span_events.py:
+      Test_Span_Events: missing_feature
     test_span_links.py:
       Test_Span_Links: v2.3.0
     test_span_sampling.py:
@@ -1037,7 +1053,13 @@ tests/:
       '*': v1.80.0
       django-py3.13: bug (APMLP-364)
     Test_MetaDatadogTags: v3.2.0
-  test_span_events.py: incomplete_test_app (Weblog `/add_event` not implemented)
+  test_span_events.py:
+    Test_SpanEvents_WithAgentSupport:
+      "*": irrelevant (endpoint not implemented)
+      flask-poc: v3.0.0
+    Test_SpanEvents_WithoutAgentSupport:
+      "*": irrelevant (endpoint not implemented)
+      flask-poc: v3.0.0
   test_standard_tags.py:
     Test_StandardTagsClientIp: v2.7.0
     Test_StandardTagsMethod: v1.2.1

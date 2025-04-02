@@ -930,6 +930,20 @@ class _Scenarios:
         scenario_groups=[ScenarioGroup.APPSEC],
     )
 
+    appsec_ato_sdk = EndToEndScenario(
+        "APPSEC_ATO_SDK",
+        weblog_env={"DD_APPSEC_ENABLED": "true", "DD_APPSEC_RULES": "/appsec_ato_sdk.json"},
+        weblog_volumes={
+            "./tests/appsec/appsec_ato_sdk.json": {
+                "bind": "/appsec_ato_sdk.json",
+                "mode": "ro",
+            }
+        },
+        doc="Rules file with unsafe login and user id",
+        github_workflow="endtoend",
+        scenario_groups=[ScenarioGroup.APPSEC],
+    )
+
     agent_supporting_span_events = EndToEndScenario(
         "AGENT_SUPPORTING_SPAN_EVENTS",
         weblog_env={"DD_TRACE_NATIVE_SPAN_EVENTS": "1"},

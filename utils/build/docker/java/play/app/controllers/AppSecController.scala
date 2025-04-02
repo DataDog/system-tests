@@ -20,6 +20,7 @@ import java.io.InputStreamReader
 import java.nio.charset.StandardCharsets
 import scala.util.{Failure, Success, Try}
 import com.datadoghq.system_tests.iast.utils.CryptoExamples
+import datadog.appsec.api.login.EventTrackerV2
 import datadog.appsec.api.user.User.setUser
 
 import scala.jdk.CollectionConverters._
@@ -214,6 +215,28 @@ class AppSecController @Inject()(cc: MessagesControllerComponents, ws: WSClient,
   def customEvent(event_name: Option[String]) = Action {
     eventTracker.trackCustomEvent(event_name.getOrElse("system_tests_event"), metadata)
     Results.Ok("ok")
+  }
+
+  def loginSuccessV2 = Action { request =>
+    request.body.asJson.map { data =>
+      val login = (data \ "login").as[String]
+      val userId = (data \ "user_id").as[String]
+      val meta = (data \ "metadata").asOpt[Map[String, String]].getOrElse(Map.empty)
+      val javaMeta = meta.asJava
+      EventTrackerV2.trackUserLoginSuccess(login, userId, javaMeta)
+    }
+    Results.Ok("OK")
+  }
+
+  def loginFailureV2 = Action { request =>
+    request.body.asJson.map { data =>
+      val login = (data \ "login").as[String]
+      val exists = (data \ "exists").as[String]
+      val meta = (data \ "metadata").asOpt[Map[String, String]].getOrElse(Map.empty)
+      val javaMeta = meta.asJava
+      EventTrackerV2.trackUserLoginFailure(login, exists.toBoolean, javaMeta)
+    }
+    Results.Ok("OK")
   }
 
   def requestdownstream =  Action.async {

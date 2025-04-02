@@ -22,6 +22,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlText;
 import com.mongodb.MongoClient;
 import com.mongodb.client.MongoCollection;
 import datadog.appsec.api.blocking.Blocking;
+import datadog.appsec.api.login.EventTrackerV2;
 import datadog.trace.api.EventTracker;
 import datadog.trace.api.Trace;
 import datadog.trace.api.experimental.*;
@@ -312,6 +313,26 @@ public class App {
         datadog.trace.api.GlobalTracer.getEventTracker()
                 .trackCustomEvent(eventName, METADATA);
 
+        return "ok";
+    }
+
+    @SuppressWarnings("unchecked")
+    @PostMapping("/user_login_success_event_v2")
+    public String userLoginSuccessV2(@RequestBody final Map<String, Object> body) {
+        final String login = body.getOrDefault("login", "system_tests_login").toString();
+        final String userId = body.getOrDefault("user_id", "system_tests_user_id").toString();
+        final Map<String, String> metadata = (Map<String, String>) body.getOrDefault("metadata", emptyMap());
+        EventTrackerV2.trackUserLoginSuccess(login, userId, metadata);
+        return "ok";
+    }
+
+    @SuppressWarnings("unchecked")
+    @PostMapping("/user_login_failure_event_v2")
+    public String userLoginFailureV2(@RequestBody final Map<String, Object> body) {
+        final String login = body.getOrDefault("login", "system_tests_login").toString();
+        final boolean exists = Boolean.parseBoolean(body.getOrDefault("exists", "true").toString());
+        final Map<String, String> metadata = (Map<String, String>) body.getOrDefault("metadata", emptyMap());
+        EventTrackerV2.trackUserLoginFailure(login, exists, metadata);
         return "ok";
     }
 

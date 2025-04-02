@@ -1,3 +1,4 @@
+import time
 from utils import scenarios, features, flaky, irrelevant, bug, context, missing_feature, logger
 from utils.onboarding.weblog_interface import warmup_weblog, get_child_pids, get_zombies, fork_and_crash
 import tests.auto_inject.utils as base
@@ -31,7 +32,7 @@ class TestSimpleInstallerAutoInjectManualProfiling(base.AutoInjectBaseTest):
         context.vm_os_cpu == "arm64" and context.weblog_variant in ["test-app-dotnet", "test-app-dotnet-container"],
         reason="PROF-10783",
     )
-    @bug(
+    @irrelevant(
         context.vm_name in ["Ubuntu_24_amd64", "Ubuntu_24_arm64"] and context.weblog_variant == "test-app-nodejs",
         reason="PROF-11264",
     )
@@ -50,7 +51,7 @@ class TestHostAutoInjectInstallScriptProfiling(base.AutoInjectBaseTest):
         context.vm_os_cpu == "arm64" and context.weblog_variant == "test-app-dotnet",
         reason="PROF-10783",
     )
-    @bug(
+    @irrelevant(
         context.vm_name in ["Ubuntu_24_amd64", "Ubuntu_24_arm64"] and context.weblog_variant == "test-app-nodejs",
         reason="PROF-11264",
     )
@@ -129,9 +130,17 @@ class TestContainerAutoInjectInstallScriptCrashTracking_NoZombieProcess(base.Aut
             raise
 
         # At this point, there should be no zombies and no child pids
-        child_pids = get_child_pids(virtual_machine).strip()
+        # but we apply a retry policy due to the app can take time to crash
+        child_pids = ""
+        for _attempt in range(5):
+            child_pids = get_child_pids(virtual_machine).strip()
 
-        if child_pids != "":
+            if child_pids == "":
+                break  # Success — exit the retry loop
+
+            time.sleep(1)
+        else:
+            logger.warning("⚠️ Still getting non-empty child_pids after 5 attempts.")
             logger.warning("Child PIDs found: " + child_pids)
             process_tree = self.execute_command(virtual_machine, "ps aux --forest")
             logger.warning("Failure process tree: " + process_tree)
