@@ -2025,7 +2025,7 @@ tests/:
   test_protobuf.py:
     Test_Protobuf:
       '*': missing_feature
-      spring-boot: v1.38.0
+      spring-boot: v1.47.0
   test_sampling_rates.py:
     Test_SampleRateFunction:
       '*': missing_feature (Endpoint /sample_rate_route not implemented)

@@ -14,8 +14,6 @@ class Test_Protobuf:
         context.library in ["ruby", "cpp", "golang", "nodejs", "php", "python"],
         reason="no schema tracking for protobuf yet",
     )
-    @missing_feature(context.library < "dotnet@3.12.0", reason="wrong schema.name written")
-    @missing_feature(context.library < "java@1.47.0", reason="bug on extraction of nested schemas")
     def test_protobuf(self):
         assert self.serialization_response.status_code == 200, self.serialization_response.text
         assert self.deserialization_response.status_code == 200, self.deserialization_response.text
