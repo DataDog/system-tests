@@ -41,7 +41,7 @@ class Test_Feature():
 
     def test_feature_detail(self):
         """ tests an awesome feature """
-        interfaces.library.validate_spans(self.r, lamda span: span["meta"]["http.method"] == "GET")
+        interfaces.library.validate_spans(self.r, validator=lamda span: span["meta"]["http.method"] == "GET")
 ```
 
 Sometimes you need to [skip a test](./skip-tests.md):
@@ -58,7 +58,7 @@ class Test_Feature():
     @bug(library="ruby", reason="APPSEC-123")
     def test_feature_detail(self):
         """ tests an awesome feature """
-        interfaces.library.validate_spans(self.r, lamda span: span["meta"]["http.method"] == "GET")
+        interfaces.library.validate_spans(self.r, validator=lamda span: span["meta"]["http.method"] == "GET")
 ```
 
 You'll need to build the images at least once, so if you haven't yet, run the `build` command. After the first build, you can just re-run the tests using the `run` command.

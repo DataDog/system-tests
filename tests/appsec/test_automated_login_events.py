@@ -12,7 +12,7 @@ from utils import remote_config as rc
 from utils import rfc
 from utils import scenarios
 from utils import weblog
-from utils.dd_constants import Capabilities
+from utils.dd_constants import Capabilities, SamplingPriority
 
 
 def login_data(context, username, password):
@@ -156,7 +156,7 @@ class Test_Login_Events:
         assert self.r_wrong_user_failure.status_code == 401
         for _, trace, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
             meta = span.get("meta", {})
-            if context.library != "nodejs" and context.library != "java":
+            if context.library not in ("nodejs", "java"):
                 # Currently in nodejs/java there is no way to check if the user exists upon authentication failure so
                 # this assertion is disabled for this library.
                 assert meta["appsec.events.users.login.failure.usr.exists"] == "false"
@@ -178,7 +178,7 @@ class Test_Login_Events:
         assert self.r_wrong_user_failure.status_code == 401
         for _, trace, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
             meta = span.get("meta", {})
-            if context.library != "nodejs" and context.library != "java":
+            if context.library not in ("nodejs", "java"):
                 # Currently in nodejs/java there is no way to check if the user exists upon authentication failure so
                 # this assertion is disabled for this library.
                 assert meta["appsec.events.users.login.failure.usr.exists"] == "false"
@@ -197,7 +197,7 @@ class Test_Login_Events:
         assert self.r_wrong_user_failure.status_code == 401
         for _, trace, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
             meta = span.get("meta", {})
-            if context.library != "nodejs" and context.library != "java":
+            if context.library not in ("nodejs", "java"):
                 # Currently in nodejs/java there is no way to check if the user exists upon authentication failure so
                 # this assertion is disabled for this library.
                 assert meta["appsec.events.users.login.failure.usr.exists"] == "true"
@@ -219,7 +219,7 @@ class Test_Login_Events:
         assert self.r_wrong_user_failure.status_code == 401
         for _, trace, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
             meta = span.get("meta", {})
-            if context.library != "nodejs" and context.library != "java":
+            if context.library not in ("nodejs", "java"):
                 # Currently in nodejs/java there is no way to check if the user exists upon authentication failure so
                 # this assertion is disabled for this library.
                 assert meta["appsec.events.users.login.failure.usr.exists"] == "true"
@@ -374,7 +374,7 @@ class Test_Login_Events_Extended:
         assert self.r_wrong_user_failure.status_code == 401
         for _, trace, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
             meta = span.get("meta", {})
-            if context.library != "nodejs" and context.library != "java":
+            if context.library not in ("nodejs", "java"):
                 # Currently in nodejs/java there is no way to check if the user exists upon authentication failure so
                 # this assertion is disabled for this library.
                 assert meta["appsec.events.users.login.failure.usr.exists"] == "false"
@@ -405,7 +405,7 @@ class Test_Login_Events_Extended:
         assert self.r_wrong_user_failure.status_code == 401
         for _, trace, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
             meta = span.get("meta", {})
-            if context.library != "nodejs" and context.library != "java":
+            if context.library not in ("nodejs", "java"):
                 # Currently in nodejs/java there is no way to check if the user exists upon authentication failure so
                 # this assertion is disabled for this library.
                 assert meta["appsec.events.users.login.failure.usr.exists"] == "false"
@@ -433,7 +433,7 @@ class Test_Login_Events_Extended:
         assert self.r_wrong_user_failure.status_code == 401
         for _, trace, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
             meta = span.get("meta", {})
-            if context.library == "nodejs" or context.library == "java":
+            if context.library in ("nodejs", "java"):
                 # Currently in nodejs/java there is no way to check if the user exists upon authentication failure so
                 # this assertion is disabled for this library.
                 assert meta["appsec.events.users.login.failure.usr.id"] == "test"
@@ -459,7 +459,7 @@ class Test_Login_Events_Extended:
         assert self.r_wrong_user_failure.status_code == 401
         for _, trace, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
             meta = span.get("meta", {})
-            if context.library != "nodejs" and context.library != "java":
+            if context.library not in ("nodejs", "java"):
                 # Currently in nodejs/java there is no way to check if the user exists upon authentication failure so
                 # this assertion is disabled for this library.
                 assert meta["appsec.events.users.login.failure.usr.exists"] == "true"
@@ -566,7 +566,7 @@ class Test_Login_Events_Extended:
                 assert f"http.request.headers.{header.lower()}" in span["meta"], f"Can't find {header} in span's meta"
             return True
 
-        interfaces.library.validate_spans(self.r_hdr_success, validate_login_success_headers)
+        interfaces.library.validate_spans(self.r_hdr_success, validator=validate_login_success_headers)
 
     def setup_login_failure_headers(self):
         self.r_hdr_failure = weblog.post(
@@ -590,7 +590,7 @@ class Test_Login_Events_Extended:
                 assert f"http.request.headers.{header.lower()}" in span["meta"], f"Can't find {header} in span's meta"
             return True
 
-        interfaces.library.validate_spans(self.r_hdr_failure, validate_login_failure_headers)
+        interfaces.library.validate_spans(self.r_hdr_failure, validator=validate_login_failure_headers)
 
 
 @rfc("https://docs.google.com/document/d/19VHLdJLVFwRb_JrE87fmlIM5CL5LdOBv4AmLxgdo9qI/edit")
@@ -695,7 +695,7 @@ class Test_V2_Login_Events:
         assert self.r_wrong_user_failure.status_code == 401
         for _, trace, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
             meta = span.get("meta", {})
-            if context.library != "nodejs" and context.library != "java":
+            if context.library not in ("nodejs", "java"):
                 # Currently in nodejs/java there is no way to check if the user exists upon authentication failure so
                 # this assertion is disabled for this library.
                 assert meta["appsec.events.users.login.failure.usr.exists"] == "false"
@@ -720,7 +720,7 @@ class Test_V2_Login_Events:
         assert self.r_wrong_user_failure.status_code == 401
         for _, trace, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
             meta = span.get("meta", {})
-            if context.library != "nodejs" and context.library != "java":
+            if context.library not in ("nodejs", "java"):
                 # Currently in nodejs/java there is no way to check if the user exists upon authentication failure so
                 # this assertion is disabled for this library.
                 assert meta["appsec.events.users.login.failure.usr.exists"] == "false"
@@ -742,7 +742,7 @@ class Test_V2_Login_Events:
         assert self.r_wrong_user_failure.status_code == 401
         for _, trace, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
             meta = span.get("meta", {})
-            if context.library != "nodejs" and context.library != "java":
+            if context.library not in ("nodejs", "java"):
                 # Currently in nodejs/java there is no way to check if the user exists upon authentication failure so
                 # this assertion is disabled for this library.
                 assert meta["appsec.events.users.login.failure.usr.exists"] == "true"
@@ -773,7 +773,7 @@ class Test_V2_Login_Events:
         assert self.r_wrong_user_failure.status_code == 401
         for _, trace, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
             meta = span.get("meta", {})
-            if context.library != "nodejs" and context.library != "java":
+            if context.library not in ("nodejs", "java"):
                 # Currently in nodejs/java there is no way to check if the user exists upon authentication failure so
                 # this assertion is disabled for this library.
                 assert meta["appsec.events.users.login.failure.usr.exists"] == "true"
@@ -1096,7 +1096,7 @@ class Test_V2_Login_Events_Anon:
                 assert f"http.request.headers.{header.lower()}" in span["meta"], f"Can't find {header} in span's meta"
             return True
 
-        interfaces.library.validate_spans(self.r_hdr_success, validate_login_success_headers)
+        interfaces.library.validate_spans(self.r_hdr_success, validator=validate_login_success_headers)
 
     def setup_login_failure_headers(self):
         self.r_hdr_failure = weblog.post(
@@ -1117,16 +1117,15 @@ class Test_V2_Login_Events_Anon:
                 assert f"http.request.headers.{header.lower()}" in span["meta"], f"Can't find {header} in span's meta"
             return True
 
-        interfaces.library.validate_spans(self.r_hdr_failure, validate_login_failure_headers)
+        interfaces.library.validate_spans(self.r_hdr_failure, validator=validate_login_failure_headers)
 
 
 def assert_priority(span, trace):
-    MANUAL_KEEP_SAMPLING_PRIORITY = 2
     if "_sampling_priority_v1" not in span["metrics"]:
         # some tracers like java only send the priority in the first and last span of the trace
-        assert trace[0]["metrics"].get("_sampling_priority_v1") == MANUAL_KEEP_SAMPLING_PRIORITY
+        assert trace[0]["metrics"].get("_sampling_priority_v1") == SamplingPriority.USER_KEEP
     else:
-        assert span["metrics"].get("_sampling_priority_v1") == MANUAL_KEEP_SAMPLING_PRIORITY
+        assert span["metrics"].get("_sampling_priority_v1") == SamplingPriority.USER_KEEP
 
 
 @rfc("https://docs.google.com/document/d/19VHLdJLVFwRb_JrE87fmlIM5CL5LdOBv4AmLxgdo9qI/edit")
@@ -1196,7 +1195,7 @@ class Test_V2_Login_Events_RC:
     def _assert_response(self, test, validation):
         config_states, request = test["config_states"], test["request"]
 
-        assert config_states[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
+        assert config_states.state == rc.ApplyState.ACKNOWLEDGED
         assert request.status_code == 200
 
         spans = [s for _, _, s in interfaces.library.get_spans(request=request)]
@@ -1550,7 +1549,7 @@ class Test_V3_Login_Events:
                 assert f"http.request.headers.{header.lower()}" in span["meta"], f"Can't find {header} in span's meta"
             return True
 
-        interfaces.library.validate_spans(self.r_hdr_success, validate_login_success_headers)
+        interfaces.library.validate_spans(self.r_hdr_success, validator=validate_login_success_headers)
 
     def setup_login_failure_headers(self):
         self.r_hdr_failure = weblog.post(
@@ -1571,7 +1570,7 @@ class Test_V3_Login_Events:
                 assert f"http.request.headers.{header.lower()}" in span["meta"], f"Can't find {header} in span's meta"
             return True
 
-        interfaces.library.validate_spans(self.r_hdr_failure, validate_login_failure_headers)
+        interfaces.library.validate_spans(self.r_hdr_failure, validator=validate_login_failure_headers)
 
 
 @rfc("https://docs.google.com/document/d/1RT38U6dTTcB-8muiYV4-aVDCsT_XrliyakjtAPyjUpw")
@@ -1870,7 +1869,7 @@ class Test_V3_Login_Events_RC:
     def _assert_response(self, test, validation):
         config_state, request = test["config_state"], test["request"]
 
-        assert config_state[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
+        assert config_state.state == rc.ApplyState.ACKNOWLEDGED
         assert request.status_code == 200
 
         spans = [s for _, _, s in interfaces.library.get_spans(request=request)]
@@ -1969,25 +1968,25 @@ BLOCK_USER_LOGIN = (
 
 @rfc("https://docs.google.com/document/d/1RT38U6dTTcB-8muiYV4-aVDCsT_XrliyakjtAPyjUpw")
 @features.user_monitoring
-@scenarios.appsec_runtime_activation
+@scenarios.appsec_and_rc_enabled
 class Test_V3_Login_Events_Blocking:
     def setup_login_event_blocking_auto_id(self):
         rc.rc_state.reset().apply()
 
-        self.config_state_1 = rc.rc_state.set_config(*CONFIG_ENABLED).apply()
         self.r_login = weblog.post("/login?auth=local", data=login_data(context, USER, PASSWORD))
 
-        self.config_state_2 = rc.rc_state.set_config(*BLOCK_USER_RULE).apply()
-        self.config_state_3 = rc.rc_state.set_config(*BLOCK_USER_ID).apply()
+        self.config_state_1 = rc.rc_state.set_config(*BLOCK_USER_RULE).apply()
+        self.config_state_2 = rc.rc_state.set_config(*BLOCK_USER_ID).apply()
+
         self.r_login_blocked = weblog.post("/login?auth=local", data=login_data(context, USER, PASSWORD))
 
     @irrelevant(context.library == "java", reason="Blocking by user ID not available in java")
     def test_login_event_blocking_auto_id(self):
-        assert self.config_state_1[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
         assert self.r_login.status_code == 200
 
-        assert self.config_state_2[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
-        assert self.config_state_3[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
+        assert self.config_state_1.state == rc.ApplyState.ACKNOWLEDGED
+        assert self.config_state_2.state == rc.ApplyState.ACKNOWLEDGED
+
         if context.library not in libs_without_user_id:
             interfaces.library.assert_waf_attack(self.r_login_blocked, rule="block-user-id")
             assert self.r_login_blocked.status_code == 403
@@ -1995,26 +1994,25 @@ class Test_V3_Login_Events_Blocking:
     def setup_login_event_blocking_auto_login(self):
         rc.rc_state.reset().apply()
 
-        self.config_state_1 = rc.rc_state.set_config(*CONFIG_ENABLED).apply()
         self.r_login = weblog.post("/login?auth=local", data=login_data(context, USER, PASSWORD))
 
-        self.config_state_2 = rc.rc_state.set_config(*BLOCK_USER_RULE).apply()
-        self.config_state_3 = rc.rc_state.set_config(*BLOCK_USER_LOGIN).apply()
+        self.config_state_1 = rc.rc_state.set_config(*BLOCK_USER_RULE).apply()
+        self.config_state_2 = rc.rc_state.set_config(*BLOCK_USER_LOGIN).apply()
+
         self.r_login_blocked = weblog.post("/login?auth=local", data=login_data(context, USER, PASSWORD))
 
     def test_login_event_blocking_auto_login(self):
-        assert self.config_state_1[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
         assert self.r_login.status_code == 200
 
-        assert self.config_state_2[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
-        assert self.config_state_3[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
+        assert self.config_state_1.state == rc.ApplyState.ACKNOWLEDGED
+        assert self.config_state_2.state == rc.ApplyState.ACKNOWLEDGED
+
         interfaces.library.assert_waf_attack(self.r_login_blocked, rule="block-user-login")
         assert self.r_login_blocked.status_code == 403
 
     def setup_login_event_blocking_sdk(self):
         rc.rc_state.reset().apply()
 
-        self.config_state_1 = rc.rc_state.set_config(*CONFIG_ENABLED).apply()
         self.r_login = [
             weblog.post(
                 f"/login?auth=local&sdk_trigger={trigger}&sdk_event=success&sdk_user=sdkUser",
@@ -2023,8 +2021,9 @@ class Test_V3_Login_Events_Blocking:
             for trigger in SDK_TRIGGERS
         ]
 
-        self.config_state_2 = rc.rc_state.set_config(*BLOCK_USER_RULE).apply()
-        self.config_state_3 = rc.rc_state.set_config(*BLOCK_USER_ID).apply()
+        self.config_state_1 = rc.rc_state.set_config(*BLOCK_USER_RULE).apply()
+        self.config_state_2 = rc.rc_state.set_config(*BLOCK_USER_ID).apply()
+
         self.r_login_blocked = [
             weblog.post(
                 f"/login?auth=local&sdk_trigger={trigger}&sdk_event=success&sdk_user=sdkUser",
@@ -2034,12 +2033,12 @@ class Test_V3_Login_Events_Blocking:
         ]
 
     def test_login_event_blocking_sdk(self):
-        assert self.config_state_1[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
         for request in self.r_login:
             assert request.status_code == 200
 
-        assert self.config_state_2[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
-        assert self.config_state_3[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
+        assert self.config_state_1.state == rc.ApplyState.ACKNOWLEDGED
+        assert self.config_state_2.state == rc.ApplyState.ACKNOWLEDGED
+
         for request in self.r_login_blocked:
             interfaces.library.assert_waf_attack(request, rule="block-user-id")
             assert request.status_code == 403

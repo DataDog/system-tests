@@ -1,9 +1,8 @@
-from utils.tools import logger
 from utils.onboarding.weblog_interface import make_get_request, warmup_weblog, make_internal_get_request
 from utils.onboarding.backend_interface import wait_backend_trace_id
 from utils.onboarding.wait_for_tcp_port import wait_for_port
 from utils.virtual_machine.vm_logger import vm_logger
-from utils import context
+from utils import context, logger
 from threading import Timer
 
 
@@ -30,7 +29,7 @@ class AutoInjectBaseTest:
         vm_ip = virtual_machine.get_ip()
         vm_port = virtual_machine.deffault_open_port
         header = "----------------------------------------------------------------------"
-        vm_logger(context.scenario.name, virtual_machine.name).info(
+        vm_logger(context.scenario.host_log_folder, virtual_machine.name).info(
             f"{header} \n {header}  \n  Launching the install for VM: {virtual_machine.name}  \n {header} \n {header}"
         )
         if virtual_machine.krunvm_config is not None and virtual_machine.krunvm_config.stdin is not None:
@@ -48,7 +47,7 @@ class AutoInjectBaseTest:
             logger.info(f"Http request done with uuid: [{request_uuid}] for ip [{vm_ip}]")
         wait_backend_trace_id(request_uuid, profile=profile)
 
-    def close_channel(self, channel):
+    def close_channel(self, channel) -> None:
         try:
             if not channel.eof_received:
                 channel.close()
@@ -79,7 +78,7 @@ class AutoInjectBaseTest:
                 if not line.startswith("export"):
                     command_output += line
             header = "*****************************************************************"
-            vm_logger(context.scenario.name, virtual_machine.name).info(
+            vm_logger(context.scenario.host_log_folder, virtual_machine.name).info(
                 f"{header} \n  - COMMAND:  \n {header} \n {command} \n\n {header} \n COMMAND OUTPUT \n\n {header} \n {command_output}"
             )
 
@@ -114,10 +113,10 @@ class AutoInjectBaseTest:
 
         request_uuids = []
         assert wait_for_port(vm_port, vm_ip, 40.0), "Weblog port not reachable. Is the weblog running?"
-        responseJson = warmup_weblog(f"http://{vm_ip}:{vm_port}/")
-        if responseJson is not None:
-            logger.info(f"There is a multicontainer app: {responseJson}")
-            for app in responseJson["apps"]:
+        response_json = warmup_weblog(f"http://{vm_ip}:{vm_port}/")
+        if response_json is not None:
+            logger.info(f"There is a multicontainer app: {response_json}")
+            for app in response_json["apps"]:
                 logger.info(f"Making a request to weblog [http://{vm_ip}:{vm_port}{app['url']}]")
                 request_uuids.append(make_get_request(f"http://{vm_ip}:{vm_port}{app['url']}"))
         else:
@@ -151,13 +150,13 @@ class AutoInjectBaseTest:
 
     def _test_uninstall(self, virtual_machine):
         header = "----------------------------------------------------------------------"
-        vm_logger(context.scenario.name, virtual_machine.name).info(
+        vm_logger(context.scenario.host_log_folder, virtual_machine.name).info(
             f"{header} \n {header}  \n  Launching the uninstall for VM: {virtual_machine.name}  \n {header} \n {header}"
         )
-        if context.weblog_variant == f"test-app-{context.scenario.library.library}":  # Host
+        if context.weblog_variant == f"test-app-{context.library.name}":  # Host
             stop_weblog_command = "sudo systemctl kill -s SIGKILL test-app.service"
             start_weblog_command = "sudo systemctl start test-app.service"
-            if context.scenario.library.library in ["ruby", "python", "dotnet"]:
+            if context.library.name in ["ruby", "python", "dotnet"]:
                 start_weblog_command = virtual_machine._vm_provision.weblog_installation.remote_command
         else:  # Container
             stop_weblog_command = "sudo -E docker-compose -f docker-compose.yml down"

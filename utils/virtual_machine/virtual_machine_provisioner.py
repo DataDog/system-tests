@@ -1,7 +1,7 @@
 import os
 import yaml
 from yamlinclude import YamlIncludeConstructor
-from utils.tools import logger
+from utils._logger import logger
 from utils.virtual_machine.utils import nginx_parser
 
 

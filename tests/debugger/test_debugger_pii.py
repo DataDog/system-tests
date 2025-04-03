@@ -9,7 +9,6 @@ from utils import (
     features,
     bug,
     missing_feature,
-    irrelevant,
     context,
 )
 
@@ -113,7 +112,7 @@ REDACTED_TYPES = ["customPii"]
 
 @features.debugger_pii_redaction
 @scenarios.debugger_pii_redaction
-class Test_Debugger_PII_Redaction(debugger.Base_Debugger_Test):
+class Test_Debugger_PII_Redaction(debugger.BaseDebuggerTest):
     ############ setup ############
     def _setup(self, *, line_probe=False):
         self.initialize_weblog_remote_config()
@@ -222,36 +221,3 @@ class Test_Debugger_PII_Redaction(debugger.Base_Debugger_Test):
 
     def test_pii_redaction_line_full(self):
         self._assert(REDACTED_KEYS, REDACTED_TYPES, line_probe=True)
-
-    ############ old versions ############
-
-    def setup_pii_redaction_java_1_33(self):
-        self._setup()
-
-    @irrelevant(context.library != "java@1.33", reason="not relevant for other version")
-    def test_pii_redaction_java_1_33(self):
-        self._assert(
-            filter(
-                [
-                    "address",
-                    "connectionstring",
-                    "connectsid",
-                    "geolocation",
-                    "ipaddress",
-                    "oauthtoken",
-                    "secretkey",
-                    "xsrf",
-                ]
-            ),
-            REDACTED_TYPES,
-        )
-
-    def setup_pii_redaction_dotnet_2_50(self):
-        self._setup()
-
-    @irrelevant(context.library != "dotnet@2.50", reason="not relevant for other version")
-    @bug(
-        context.weblog_variant == "uds" and context.library == "dotnet@2.50.0", reason="APMRP-360"
-    )  # bug with UDS protocol on this version
-    def test_pii_redaction_dotnet_2_50(self):
-        self._assert(filter(["applicationkey", "connectionstring"]), REDACTED_TYPES)

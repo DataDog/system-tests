@@ -51,6 +51,10 @@ on:
         default: false
         required: false
         type: boolean
+      logs_artifact_name:
+        description: "The name of the artifact to use for logs"
+        required: true
+        type: string
 
 env:
   REGISTRY: ghcr.io
@@ -106,24 +110,24 @@ jobs:
     - name: Run APPSEC_STANDALONE scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_STANDALONE"')
       run: ./run.sh APPSEC_STANDALONE
-    - name: Run APPSEC_STANDALONE_V2 scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_STANDALONE_V2"')
-      run: ./run.sh APPSEC_STANDALONE_V2
-    - name: Run APPSEC_NO_STATS scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_NO_STATS"')
-      run: ./run.sh APPSEC_NO_STATS
+    - name: Run APPSEC_STANDALONE_EXPERIMENTAL scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_STANDALONE_EXPERIMENTAL"')
+      run: ./run.sh APPSEC_STANDALONE_EXPERIMENTAL
+    - name: Run TRACE_STATS_COMPUTATION scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"TRACE_STATS_COMPUTATION"')
+      run: ./run.sh TRACE_STATS_COMPUTATION
     - name: Run IAST_STANDALONE scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"IAST_STANDALONE"')
       run: ./run.sh IAST_STANDALONE
-    - name: Run IAST_STANDALONE_V2 scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"IAST_STANDALONE_V2"')
-      run: ./run.sh IAST_STANDALONE_V2
+    - name: Run IAST_STANDALONE_EXPERIMENTAL scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"IAST_STANDALONE_EXPERIMENTAL"')
+      run: ./run.sh IAST_STANDALONE_EXPERIMENTAL
     - name: Run SCA_STANDALONE scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"SCA_STANDALONE"')
       run: ./run.sh SCA_STANDALONE
-    - name: Run SCA_STANDALONE_V2 scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"SCA_STANDALONE_V2"')
-      run: ./run.sh SCA_STANDALONE_V2
+    - name: Run SCA_STANDALONE_EXPERIMENTAL scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"SCA_STANDALONE_EXPERIMENTAL"')
+      run: ./run.sh SCA_STANDALONE_EXPERIMENTAL
     - name: Run IAST_DEDUPLICATION scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"IAST_DEDUPLICATION"')
       run: ./run.sh IAST_DEDUPLICATION
@@ -188,6 +192,9 @@ jobs:
     - name: Run TRACING_CONFIG_NONDEFAULT_3 scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"TRACING_CONFIG_NONDEFAULT_3"')
       run: ./run.sh TRACING_CONFIG_NONDEFAULT_3
+    - name: Run TRACING_CONFIG_NONDEFAULT_4 scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"TRACING_CONFIG_NONDEFAULT_4"')
+      run: ./run.sh TRACING_CONFIG_NONDEFAULT_4
     - name: Run REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES"')
       run: ./run.sh REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES
@@ -203,8 +210,11 @@ jobs:
     - name: Run REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD_NOCACHE scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD_NOCACHE"')
       run: ./run.sh REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD_NOCACHE
+    - name: Run AGENT_SUPPORTING_SPAN_EVENTS scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"AGENT_SUPPORTING_SPAN_EVENTS"')
+      run: ./run.sh AGENT_SUPPORTING_SPAN_EVENTS
     - name: Run AGENT_NOT_SUPPORTING_SPAN_EVENTS scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, 'AGENT_NOT_SUPPORTING_SPAN_EVENTS')
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"AGENT_NOT_SUPPORTING_SPAN_EVENTS"')
       run: ./run.sh AGENT_NOT_SUPPORTING_SPAN_EVENTS
     - name: Run APPSEC_MISSING_RULES scenario
       # C++ 1.2.0 freeze when the rules file is missing
@@ -241,6 +251,9 @@ jobs:
     - name: Run APPSEC_REQUEST_BLOCKING scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_REQUEST_BLOCKING"')
       run: ./run.sh APPSEC_REQUEST_BLOCKING
+    - name: Run APPSEC_AND_RC_ENABLED scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_AND_RC_ENABLED"')
+      run: ./run.sh APPSEC_AND_RC_ENABLED
     - name: Run APPSEC_RUNTIME_ACTIVATION scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_RUNTIME_ACTIVATION"')
       run: ./run.sh APPSEC_RUNTIME_ACTIVATION
@@ -256,6 +269,9 @@ jobs:
     - name: Run APPSEC_API_SECURITY_NO_RESPONSE_BODY scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_API_SECURITY_NO_RESPONSE_BODY"')
       run: ./run.sh APPSEC_API_SECURITY_NO_RESPONSE_BODY
+    - name: Run APPSEC_ATO_SDK scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_ATO_SDK"')
+      run: ./run.sh APPSEC_ATO_SDK
     - name: Run APPSEC_API_SECURITY_WITH_SAMPLING scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_API_SECURITY_WITH_SAMPLING"')
       run: |
@@ -315,6 +331,9 @@ jobs:
     - name: Run DEBUGGER_INPRODUCT_ENABLEMENT scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"DEBUGGER_INPRODUCT_ENABLEMENT"')
       run: ./run.sh DEBUGGER_INPRODUCT_ENABLEMENT
+    - name: Run DEBUGGER_TELEMETRY scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"DEBUGGER_TELEMETRY"')
+      run: ./run.sh DEBUGGER_TELEMETRY
     - name: Run OTEL_INTEGRATIONS scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"OTEL_INTEGRATIONS"')
       run: ./run.sh OTEL_INTEGRATIONS
@@ -355,7 +374,6 @@ jobs:
         DD_APP_KEY_2: ${{ secrets.DD_APP_KEY_2 }}
         DD_API_KEY_3: ${{ secrets.DD_API_KEY_3 }}
         DD_APP_KEY_3: ${{ secrets.DD_APP_KEY_3 }}
-
     - name: Run all scenarios in replay mode
       run: utils/scripts/replay_scenarios.sh
       env:
@@ -371,7 +389,7 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         # log name convention to respect : logs_$SCENARIO-FAMILY_$LIBRARY_$WEBLOG_$CI-ENVIRONMENT
-        name: logs_endtoend_${{ inputs.library }}_${{ inputs.weblog }}_${{ inputs.ci_environment }}
+        name: ${{ inputs.logs_artifact_name }}
         path: artifact.tar.gz
 
     - name: Push results to Feature Parity Dashboard

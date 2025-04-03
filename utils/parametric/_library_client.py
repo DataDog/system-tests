@@ -4,7 +4,9 @@ import contextlib
 import time
 import urllib.parse
 from typing import TypedDict, NotRequired
-from collections.abc import Generator
+from types import TracebackType
+from collections.abc import Generator, Iterable
+from http import HTTPStatus
 
 from docker.models.containers import Container
 import pytest
@@ -14,10 +16,10 @@ from opentelemetry.trace import SpanKind, StatusCode
 from utils import context
 
 from utils.parametric.spec.otel_trace import OtelSpanContext
-from utils.tools import logger
+from utils._logger import logger
 
 
-def _fail(message):
+def _fail(message: str):
     """Used to mak a test as failed"""
     logger.error(message)
     raise Failed(message, pytrace=False) from None
@@ -54,7 +56,7 @@ class APMLibraryClient:
         # wait for server to start
         self._wait(timeout)
 
-    def _wait(self, timeout):
+    def _wait(self, timeout: float):
         delay = 0.01
         for _ in range(int(timeout / delay)):
             try:
@@ -80,7 +82,7 @@ class APMLibraryClient:
         return (
             self.container.status == "running"
             and self._session.get(self._url("/non-existent-endpoint-to-ping-until-the-server-starts")).status_code
-            == 404
+            == HTTPStatus.NOT_FOUND
         )
 
     def _print_logs(self):
@@ -167,7 +169,7 @@ class APMLibraryClient:
             },
         )
 
-        if resp.status_code != 200:
+        if resp.status_code != HTTPStatus.OK:
             raise pytest.fail(f"Failed to start span: {resp.text}", pytrace=False)
 
         resp_json = resp.json()
@@ -188,7 +190,7 @@ class APMLibraryClient:
             json={"span_id": span_id, "resource": resource},
         )
 
-    def span_set_meta(self, span_id: int, key: str, value) -> None:
+    def span_set_meta(self, span_id: int, key: str, value: str | bool | list[str | list[str]] | None) -> None:
         self._session.post(
             self._url("/trace/span/set_meta"),
             json={"span_id": span_id, "key": key, "value": value},
@@ -233,13 +235,13 @@ class APMLibraryClient:
             },
         )
 
-    def span_add_event(self, span_id: int, name: str, timestamp: int, attributes: dict | None = None):
+    def span_add_event(self, span_id: int, name: str, time_unix_nano: int, attributes: dict | None = None):
         self._session.post(
             self._url("/trace/span/add_event"),
             json={
                 "span_id": span_id,
                 "name": name,
-                "timestamp": timestamp,
+                "timestamp": time_unix_nano,
                 "attributes": attributes or {},
             },
         )
@@ -254,13 +256,13 @@ class APMLibraryClient:
         data = resp.json()
         return data["baggage"]
 
-    def trace_inject_headers(self, span_id):
+    def trace_inject_headers(self, span_id: int):
         resp = self._session.post(self._url("/trace/span/inject_headers"), json={"span_id": span_id})
         # TODO: translate json into list within list
         # so server.xx do not have to
         return resp.json()["http_headers"]
 
-    def trace_extract_headers(self, http_headers: list[tuple[str, str]]):
+    def trace_extract_headers(self, http_headers: Iterable[tuple[str, str]]):
         resp = self._session.post(
             self._url("/trace/span/extract_headers"),
             json={"http_headers": http_headers},
@@ -268,10 +270,14 @@ class APMLibraryClient:
         return resp.json()["span_id"]
 
     def trace_flush(self) -> bool:
-        return (
-            self._session.post(self._url("/trace/span/flush"), json={}).status_code < 300
-            and self._session.post(self._url("/trace/stats/flush"), json={}).status_code < 300
-        )
+        r = self._session.post(self._url("/trace/span/flush"), json={})
+
+        if not HTTPStatus(r.status_code).is_success:
+            return False
+
+        r = self._session.post(self._url("/trace/stats/flush"), json={})
+
+        return HTTPStatus(r.status_code).is_success
 
     def otel_trace_start_span(
         self,
@@ -305,7 +311,7 @@ class APMLibraryClient:
             json={"id": span_id, "timestamp": timestamp},
         )
 
-    def otel_set_attributes(self, span_id: int, attributes) -> None:
+    def otel_set_attributes(self, span_id: int, attributes: dict) -> None:
         self._session.post(
             self._url("/trace/otel/set_attributes"),
             json={"span_id": span_id, "attributes": attributes},
@@ -320,7 +326,7 @@ class APMLibraryClient:
             json={"span_id": span_id, "code": code.name, "description": description},
         )
 
-    def otel_add_event(self, span_id: int, name: str, timestamp: int | None, attributes) -> None:
+    def otel_add_event(self, span_id: int, name: str, timestamp: int | None, attributes: dict | None) -> None:
         self._session.post(
             self._url("/trace/otel/add_event"),
             json={
@@ -331,7 +337,7 @@ class APMLibraryClient:
             },
         )
 
-    def otel_record_exception(self, span_id: int, message: str, attributes) -> None:
+    def otel_record_exception(self, span_id: int, message: str, attributes: dict | None) -> None:
         self._session.post(
             self._url("/trace/otel/record_exception"),
             json={"span_id": span_id, "message": message, "attributes": attributes},
@@ -406,7 +412,7 @@ class _TestSpan:
     def set_resource(self, resource: str):
         self._client.span_set_resource(self.span_id, resource)
 
-    def set_meta(self, key: str, val):
+    def set_meta(self, key: str, val: str | bool | list[str | list[str]] | None):
         self._client.span_set_meta(self.span_id, key, val)
 
     def set_metric(self, key: str, val: float | list[int]):
@@ -433,6 +439,9 @@ class _TestSpan:
     def add_link(self, parent_id: int, attributes: dict | None = None):
         self._client.span_add_link(self.span_id, parent_id, attributes)
 
+    def add_event(self, name: str, time_unix_nano: int, attributes: dict | None = None):
+        self._client.span_add_event(self.span_id, name, time_unix_nano, attributes)
+
     def finish(self):
         self._client.finish_span(self.span_id)
 
@@ -445,16 +454,16 @@ class _TestOtelSpan:
 
     # API methods
 
-    def set_attributes(self, attributes):
+    def set_attributes(self, attributes: dict):
         self._client.otel_set_attributes(self.span_id, attributes)
 
-    def set_attribute(self, key, value):
+    def set_attribute(self, key: str, value: str | float | list[str | float | list[str]] | None):
         self._client.otel_set_attributes(self.span_id, {key: value})
 
-    def set_name(self, name):
+    def set_name(self, name: str):
         self._client.otel_set_name(self.span_id, name)
 
-    def set_status(self, code: StatusCode, description):
+    def set_status(self, code: StatusCode, description: str):
         self._client.otel_set_status(self.span_id, code, description)
 
     def add_event(self, name: str, timestamp: int | None = None, attributes: dict | None = None):
@@ -477,20 +486,24 @@ class _TestOtelSpan:
 
 
 class APMLibrary:
-    def __init__(self, client: APMLibraryClient, lang):
+    def __init__(self, client: APMLibraryClient, lang: str):
         self._client = client
         self.lang = lang
 
     def __enter__(self) -> "APMLibrary":
         return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    def __exit__(
+        self, exc_type: type[BaseException] | None, exc_val: BaseException | None, exc_tb: TracebackType | None
+    ) -> bool | None:
         # Only attempt a flush if there was no exception raised.
         if exc_type is None:
             self.dd_flush()
             if self.lang != "cpp":
                 # C++ does not have an otel/flush endpoint
                 self.otel_flush(1)
+
+        return None
 
     def crash(self) -> None:
         self._client.crash()
@@ -526,11 +539,11 @@ class APMLibrary:
         yield span
         span.finish()
 
-    def dd_extract_headers_and_make_child_span(self, name, http_headers):
+    def dd_extract_headers_and_make_child_span(self, name: str, http_headers: Iterable[tuple[str, str]]):
         parent_id = self.dd_extract_headers(http_headers=http_headers)
         return self.dd_start_span(name=name, parent_id=parent_id)
 
-    def dd_make_child_span_and_get_headers(self, headers):
+    def dd_make_child_span_and_get_headers(self, headers: Iterable[tuple[str, str]]) -> dict[str, str]:
         with self.dd_extract_headers_and_make_child_span("name", headers) as span:
             headers = self.dd_inject_headers(span.span_id)
             return {k.lower(): v for k, v in headers}
@@ -571,10 +584,10 @@ class APMLibrary:
     def otel_is_recording(self, span_id: int) -> bool:
         return self._client.otel_is_recording(span_id)
 
-    def dd_inject_headers(self, span_id) -> list[tuple[str, str]]:
+    def dd_inject_headers(self, span_id: int) -> list[tuple[str, str]]:
         return self._client.trace_inject_headers(span_id)
 
-    def dd_extract_headers(self, http_headers: list[tuple[str, str]]) -> int:
+    def dd_extract_headers(self, http_headers: Iterable[tuple[str, str]]) -> int:
         return self._client.trace_extract_headers(http_headers)
 
     def otel_set_baggage(self, span_id: int, key: str, value: str):

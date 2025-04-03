@@ -4,10 +4,10 @@ from abc import ABC, abstractmethod
 from requests.structures import CaseInsensitiveDict
 
 from utils.telemetry_utils import TelemetryUtils
-from utils import context, weblog, interfaces, scenarios, features, rfc, bug, missing_feature, irrelevant
+from utils import context, weblog, interfaces, scenarios, features, rfc, bug, missing_feature, irrelevant, logger
 
 
-class AsmStandalone_UpstreamPropagation_Base(ABC):
+class BaseAsmStandaloneUpstreamPropagation(ABC):
     """APM correctly propagates AppSec events in distributing tracing."""
 
     # TODO downstream propagation
@@ -28,14 +28,14 @@ class AsmStandalone_UpstreamPropagation_Base(ABC):
     #
 
     # Enpoint that triggers an ASM event and a downstream request
-    request_downstream_url = "/requestdownstream"
+    request_downstream_url: str = "/requestdownstream"
 
     # Tested product
-    tested_product = None
+    tested_product: str | None = None
 
     # Return a boolean indicating if the test passed
     @staticmethod
-    def _assert_tags(first_trace, span, obj, expected_tags) -> None:
+    def _assert_tags(first_trace, span, obj, expected_tags) -> bool:
         def _assert_tags_value(span, obj, expected_tags):
             struct = span if obj is None else span[obj]
             for tag, value in expected_tags.items():
@@ -61,11 +61,14 @@ class AsmStandalone_UpstreamPropagation_Base(ABC):
             return False
 
     @staticmethod
-    def assert_product_is_enabled(request, product) -> None:
+    def assert_product_is_enabled(response, product) -> None:
+        assert response.status_code is not None, "Request has not being processed by HTPP app"
         product_enabled = False
         tags = "_dd.iast.json" if product == "iast" else "_dd.appsec.json"
         meta_struct_key = "iast" if product == "iast" else "appsec"
-        for _, __, span in interfaces.library.get_spans(request=request):
+        spans = list(items[2] for items in interfaces.library.get_spans(request=response))
+        logger.debug(f"Found {len(spans)} spans")
+        for span in spans:
             # Check if the product is enabled in meta
             meta = span["meta"]
             if tags in meta:
@@ -134,7 +137,7 @@ class AsmStandalone_UpstreamPropagation_Base(ABC):
 
         assert spans_checked == 1
         # Downstream propagation is fully disabled in this case
-        downstream_headers = CaseInsensitiveDict(json.loads(self.r.text))
+        downstream_headers: CaseInsensitiveDict = CaseInsensitiveDict(json.loads(self.r.text))
         assert "X-Datadog-Origin" not in downstream_headers
         assert "X-Datadog-Parent-Id" not in downstream_headers
         assert "X-Datadog-Tags" not in downstream_headers
@@ -178,7 +181,7 @@ class AsmStandalone_UpstreamPropagation_Base(ABC):
 
         assert spans_checked == 1
         # Downstream propagation is fully disabled in this case
-        downstream_headers = CaseInsensitiveDict(json.loads(self.r.text))
+        downstream_headers: CaseInsensitiveDict = CaseInsensitiveDict(json.loads(self.r.text))
         assert "X-Datadog-Origin" not in downstream_headers
         assert "X-Datadog-Parent-Id" not in downstream_headers
         assert "X-Datadog-Tags" not in downstream_headers
@@ -222,7 +225,7 @@ class AsmStandalone_UpstreamPropagation_Base(ABC):
 
         assert spans_checked == 1
         # Downstream propagation is fully disabled in this case
-        downstream_headers = CaseInsensitiveDict(json.loads(self.r.text))
+        downstream_headers: CaseInsensitiveDict = CaseInsensitiveDict(json.loads(self.r.text))
         assert "X-Datadog-Origin" not in downstream_headers
         assert "X-Datadog-Parent-Id" not in downstream_headers
         assert "X-Datadog-Tags" not in downstream_headers
@@ -266,7 +269,7 @@ class AsmStandalone_UpstreamPropagation_Base(ABC):
 
         assert spans_checked == 1
         # Downstream propagation is fully disabled in this case
-        downstream_headers = CaseInsensitiveDict(json.loads(self.r.text))
+        downstream_headers: CaseInsensitiveDict = CaseInsensitiveDict(json.loads(self.r.text))
         assert "X-Datadog-Origin" not in downstream_headers
         assert "X-Datadog-Parent-Id" not in downstream_headers
         assert "X-Datadog-Tags" not in downstream_headers
@@ -308,7 +311,7 @@ class AsmStandalone_UpstreamPropagation_Base(ABC):
             spans_checked += 1
 
         assert spans_checked == 1
-        downstream_headers = CaseInsensitiveDict(json.loads(self.r.text))
+        downstream_headers: CaseInsensitiveDict = CaseInsensitiveDict(json.loads(self.r.text))
         assert downstream_headers["X-Datadog-Origin"] == "rum"
         assert downstream_headers["X-Datadog-Parent-Id"] != "34343434"
         assert "_dd.p.other=1" in downstream_headers["X-Datadog-Tags"]
@@ -351,7 +354,7 @@ class AsmStandalone_UpstreamPropagation_Base(ABC):
             spans_checked += 1
 
         assert spans_checked == 1
-        downstream_headers = CaseInsensitiveDict(json.loads(self.r.text))
+        downstream_headers: CaseInsensitiveDict = CaseInsensitiveDict(json.loads(self.r.text))
         assert downstream_headers["X-Datadog-Origin"] == "rum"
         assert downstream_headers["X-Datadog-Parent-Id"] != "34343434"
         assert "_dd.p.other=1" in downstream_headers["X-Datadog-Tags"]
@@ -395,7 +398,7 @@ class AsmStandalone_UpstreamPropagation_Base(ABC):
             spans_checked += 1
 
         assert spans_checked == 1
-        downstream_headers = CaseInsensitiveDict(json.loads(self.r.text))
+        downstream_headers: CaseInsensitiveDict = CaseInsensitiveDict(json.loads(self.r.text))
         assert downstream_headers["X-Datadog-Origin"] == "rum"
         assert downstream_headers["X-Datadog-Parent-Id"] != "34343434"
         assert self.propagated_tag_and_value() in downstream_headers["X-Datadog-Tags"]
@@ -438,7 +441,7 @@ class AsmStandalone_UpstreamPropagation_Base(ABC):
             spans_checked += 1
 
         assert spans_checked == 1
-        downstream_headers = CaseInsensitiveDict(json.loads(self.r.text))
+        downstream_headers: CaseInsensitiveDict = CaseInsensitiveDict(json.loads(self.r.text))
         assert downstream_headers["X-Datadog-Origin"] == "rum"
         assert downstream_headers["X-Datadog-Parent-Id"] != "34343434"
         assert self.propagated_tag_and_value() in downstream_headers["X-Datadog-Tags"]
@@ -481,7 +484,7 @@ class AsmStandalone_UpstreamPropagation_Base(ABC):
             spans_checked += 1
 
         assert spans_checked == 1
-        downstream_headers = CaseInsensitiveDict(json.loads(self.r.text))
+        downstream_headers: CaseInsensitiveDict = CaseInsensitiveDict(json.loads(self.r.text))
         assert downstream_headers["X-Datadog-Origin"] == "rum"
         assert downstream_headers["X-Datadog-Parent-Id"] != "34343434"
         assert self.propagated_tag_and_value() in downstream_headers["X-Datadog-Tags"]
@@ -522,7 +525,7 @@ class AsmStandalone_UpstreamPropagation_Base(ABC):
             spans_checked += 1
 
         assert spans_checked == 1
-        downstream_headers = CaseInsensitiveDict(json.loads(self.r.text))
+        downstream_headers: CaseInsensitiveDict = CaseInsensitiveDict(json.loads(self.r.text))
         assert downstream_headers["X-Datadog-Origin"] == "rum"
         assert downstream_headers["X-Datadog-Parent-Id"] != "34343434"
         assert self.propagated_tag_and_value() in downstream_headers["X-Datadog-Tags"]
@@ -563,7 +566,7 @@ class AsmStandalone_UpstreamPropagation_Base(ABC):
             spans_checked += 1
 
         assert spans_checked == 1
-        downstream_headers = CaseInsensitiveDict(json.loads(self.r.text))
+        downstream_headers: CaseInsensitiveDict = CaseInsensitiveDict(json.loads(self.r.text))
         assert downstream_headers["X-Datadog-Origin"] == "rum"
         assert downstream_headers["X-Datadog-Parent-Id"] != "34343434"
         assert self.propagated_tag_and_value() in downstream_headers["X-Datadog-Tags"]
@@ -604,7 +607,7 @@ class AsmStandalone_UpstreamPropagation_Base(ABC):
             spans_checked += 1
 
         assert spans_checked == 1
-        downstream_headers = CaseInsensitiveDict(json.loads(self.r.text))
+        downstream_headers: CaseInsensitiveDict = CaseInsensitiveDict(json.loads(self.r.text))
         assert downstream_headers["X-Datadog-Origin"] == "rum"
         assert downstream_headers["X-Datadog-Parent-Id"] != "34343434"
         assert self.propagated_tag_and_value() in downstream_headers["X-Datadog-Tags"]
@@ -612,12 +615,11 @@ class AsmStandalone_UpstreamPropagation_Base(ABC):
         assert downstream_headers["X-Datadog-Trace-Id"] == "1212121212121212121"
 
 
-class AppSecStandalone_UpstreamPropagation_Base(AsmStandalone_UpstreamPropagation_Base):
+class BaseAppSecStandaloneUpstreamPropagation(BaseAsmStandaloneUpstreamPropagation):
     """APPSEC correctly propagates AppSec events in distributing tracing."""
 
-    request_downstream_url = "/requestdownstream"
-
-    tested_product = "appsec"
+    request_downstream_url: str = "/requestdownstream"
+    tested_product: str = "appsec"
 
     @bug(library="java", weblog_variant="akka-http", reason="APPSEC-55001")
     @bug(library="java", weblog_variant="jersey-grizzly2", reason="APPSEC-55001")
@@ -650,7 +652,7 @@ class AppSecStandalone_UpstreamPropagation_Base(AsmStandalone_UpstreamPropagatio
         super().test_any_upstream_propagation__with_asm_event__raises_priority_to_2__from_1()
 
 
-class IastStandalone_UpstreamPropagation_Base(AsmStandalone_UpstreamPropagation_Base):
+class BaseIastStandaloneUpstreamPropagation(BaseAsmStandaloneUpstreamPropagation):
     """IAST correctly propagates AppSec events in distributing tracing."""
 
     request_downstream_url = "/vulnerablerequestdownstream"
@@ -674,7 +676,7 @@ class IastStandalone_UpstreamPropagation_Base(AsmStandalone_UpstreamPropagation_
         super().test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_2()
 
 
-class SCAStandalone_Telemetry_Base:
+class BaseSCAStandaloneTelemetry:
     """Tracer correctly propagates SCA telemetry in distributing tracing."""
 
     def assert_standalone_is_enabled(self, request):
@@ -699,12 +701,12 @@ class SCAStandalone_Telemetry_Base:
 
         assert configuration_by_name
 
-        DD_APPSEC_SCA_ENABLED = TelemetryUtils.get_dd_appsec_sca_enabled_str(context.library)
+        dd_appsec_sca_enabled = TelemetryUtils.get_dd_appsec_sca_enabled_str(context.library)
 
-        cfg_appsec_enabled = configuration_by_name.get(DD_APPSEC_SCA_ENABLED)
-        assert cfg_appsec_enabled is not None, f"Missing telemetry config item for '{DD_APPSEC_SCA_ENABLED}'"
+        cfg_appsec_enabled = configuration_by_name.get(dd_appsec_sca_enabled)
+        assert cfg_appsec_enabled is not None, f"Missing telemetry config item for '{dd_appsec_sca_enabled}'"
 
-        outcome_value = True
+        outcome_value: bool | str = True
         if context.library == "java":
             outcome_value = str(outcome_value).lower()
         assert cfg_appsec_enabled.get("value") == outcome_value
@@ -722,7 +724,7 @@ class SCAStandalone_Telemetry_Base:
     def test_app_dependencies_loaded(self):
         self.assert_standalone_is_enabled(self.r)
 
-        seen_loaded_dependencies = TelemetryUtils.get_loaded_dependency(context.library.library)
+        seen_loaded_dependencies = TelemetryUtils.get_loaded_dependency(context.library.name)
 
         for data in interfaces.library.get_telemetry_data():
             content = data["request"]["content"]
@@ -742,7 +744,6 @@ class SCAStandalone_Telemetry_Base:
 
 @rfc("https://docs.google.com/document/d/12NBx-nD-IoQEMiCRnJXneq4Be7cbtSc6pJLOFUWTpNE/edit")
 @features.appsec_standalone
-@scenarios.appsec_no_stats
 class Test_AppSecStandalone_NotEnabled:
     """Test expected behaviour when standalone is not enabled."""
 
@@ -767,10 +768,10 @@ class Test_AppSecStandalone_NotEnabled:
 
 
 @rfc("https://docs.google.com/document/d/12NBx-nD-IoQEMiCRnJXneq4Be7cbtSc6pJLOFUWTpNE/edit")
-@features.appsec_standalone
-@scenarios.appsec_standalone
+@features.appsec_standalone_experimental
+@scenarios.appsec_standalone_experimental
 @irrelevant(context.library > "java@v1.46.0", reason="V2 is implemented for newer versions")
-class Test_AppSecStandalone_UpstreamPropagation(AppSecStandalone_UpstreamPropagation_Base):
+class Test_AppSecStandalone_UpstreamPropagation(BaseAppSecStandaloneUpstreamPropagation):
     """APPSEC correctly propagates AppSec events in distributing tracing with DD_EXPERIMENTAL_APPSEC_STANDALONE_ENABLED=true."""
 
     def propagated_tag(self):
@@ -781,9 +782,9 @@ class Test_AppSecStandalone_UpstreamPropagation(AppSecStandalone_UpstreamPropaga
 
 
 @rfc("https://docs.google.com/document/d/12NBx-nD-IoQEMiCRnJXneq4Be7cbtSc6pJLOFUWTpNE/edit")
-@features.appsec_standalone_v2
-@scenarios.appsec_standalone_v2
-class Test_AppSecStandalone_UpstreamPropagation_V2(AppSecStandalone_UpstreamPropagation_Base):
+@features.appsec_standalone
+@scenarios.appsec_standalone
+class Test_AppSecStandalone_UpstreamPropagation_V2(BaseAppSecStandaloneUpstreamPropagation):
     """APPSEC correctly propagates AppSec events in distributing tracing with DD_APM_TRACING_ENABLED=false."""
 
     def propagated_tag(self):
@@ -794,10 +795,10 @@ class Test_AppSecStandalone_UpstreamPropagation_V2(AppSecStandalone_UpstreamProp
 
 
 @rfc("https://docs.google.com/document/d/12NBx-nD-IoQEMiCRnJXneq4Be7cbtSc6pJLOFUWTpNE/edit")
-@features.iast_standalone
-@scenarios.iast_standalone
+@features.iast_standalone_experimental
+@scenarios.iast_standalone_experimental
 @irrelevant(context.library > "java@v1.46.0", reason="V2 is implemented for newer versions")
-class Test_IastStandalone_UpstreamPropagation(IastStandalone_UpstreamPropagation_Base):
+class Test_IastStandalone_UpstreamPropagation(BaseIastStandaloneUpstreamPropagation):
     """IAST correctly propagates AppSec events in distributing tracing with DD_EXPERIMENTAL_APPSEC_STANDALONE_ENABLED=true."""
 
     def propagated_tag(self):
@@ -808,9 +809,9 @@ class Test_IastStandalone_UpstreamPropagation(IastStandalone_UpstreamPropagation
 
 
 @rfc("https://docs.google.com/document/d/12NBx-nD-IoQEMiCRnJXneq4Be7cbtSc6pJLOFUWTpNE/edit")
-@features.iast_standalone_v2
-@scenarios.iast_standalone_v2
-class Test_IastStandalone_UpstreamPropagation_V2(IastStandalone_UpstreamPropagation_Base):
+@features.iast_standalone
+@scenarios.iast_standalone
+class Test_IastStandalone_UpstreamPropagation_V2(BaseIastStandaloneUpstreamPropagation):
     """IAST correctly propagates AppSec events in distributing tracing with DD_APM_TRACING_ENABLED=false."""
 
     def propagated_tag(self):
@@ -821,10 +822,10 @@ class Test_IastStandalone_UpstreamPropagation_V2(IastStandalone_UpstreamPropagat
 
 
 @rfc("https://docs.google.com/document/d/12NBx-nD-IoQEMiCRnJXneq4Be7cbtSc6pJLOFUWTpNE/edit")
-@features.sca_standalone
-@scenarios.sca_standalone
+@features.sca_standalone_experimental
+@scenarios.sca_standalone_experimental
 @irrelevant(context.library > "java@v1.46.0", reason="V2 is implemented for newer versions")
-class Test_SCAStandalone_Telemetry(SCAStandalone_Telemetry_Base):
+class Test_SCAStandalone_Telemetry(BaseSCAStandaloneTelemetry):
     """Tracer correctly propagates SCA telemetry in distributing tracing with DD_EXPERIMENTAL_APPSEC_STANDALONE_ENABLED=true."""
 
     def propagated_tag(self):
@@ -835,9 +836,9 @@ class Test_SCAStandalone_Telemetry(SCAStandalone_Telemetry_Base):
 
 
 @rfc("https://docs.google.com/document/d/12NBx-nD-IoQEMiCRnJXneq4Be7cbtSc6pJLOFUWTpNE/edit")
-@features.sca_standalone_v2
-@scenarios.sca_standalone_v2
-class Test_SCAStandalone_Telemetry_V2(SCAStandalone_Telemetry_Base):
+@features.sca_standalone
+@scenarios.sca_standalone
+class Test_SCAStandalone_Telemetry_V2(BaseSCAStandaloneTelemetry):
     """Tracer correctly propagates SCA telemetry in distributing tracing with DD_APM_TRACING_ENABLED=false."""
 
     def propagated_tag(self):

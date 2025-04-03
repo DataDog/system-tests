@@ -22,7 +22,7 @@ def enable_tracing_disabled():
 
 
 @scenarios.parametric
-@features.tracing_configuration_consistency
+@features.trace_enablement
 class Test_Config_TraceEnabled:
     @enable_tracing_enabled()
     def test_tracing_enabled(self, library_env, test_agent, test_library):
@@ -44,7 +44,7 @@ class Test_Config_TraceEnabled:
 
 
 @scenarios.parametric
-@features.tracing_configuration_consistency
+@features.trace_log_directory
 @missing_feature(context.library == "php", reason="Can't create /parametric-tracer-logs at build step")
 class Test_Config_TraceLogDirectory:
     @pytest.mark.parametrize(
@@ -66,7 +66,7 @@ def set_service_version_tags():
 
 
 @scenarios.parametric
-@features.tracing_configuration_consistency
+@features.unified_service_tagging
 class Test_Config_UnifiedServiceTagging:
     @parametrize("library_env", [{}])
     def test_default_config(self, library_env, test_agent, test_library):
@@ -119,7 +119,7 @@ class Test_Config_UnifiedServiceTagging:
 
 
 @scenarios.parametric
-@features.tracing_configuration_consistency
+@features.trace_agent_connection
 class Test_Config_TraceAgentURL:
     """DD_TRACE_AGENT_URL is validated using the tracer configuration.
     This approach avoids the need to modify the setup file to create additional containers at the specified URL,
@@ -209,7 +209,7 @@ class Test_Config_TraceAgentURL:
 
 
 @scenarios.parametric
-@features.tracing_configuration_consistency
+@features.trace_rate_limiting
 class Test_Config_RateLimit:
     # The default value of DD_TRACE_RATE_LIMIT is validated using the tracer configuration.
     # This approach avoids the need to create a new weblog endpoint that generates 100 traces per second,
@@ -304,9 +304,11 @@ tag_scenarios: dict = {
 
 
 @scenarios.parametric
-@features.tracing_configuration_consistency
+@features.trace_global_tags
 class Test_Config_Tags:
-    @parametrize("library_env", [{"DD_TAGS": key} for key in tag_scenarios])
+    @parametrize(
+        "library_env", [{"DD_TRACE_EXPERIMENTAL_FEATURES_ENABLED": "all", "DD_TAGS": key} for key in tag_scenarios]
+    )
     def test_comma_space_tag_separation(self, library_env, test_agent, test_library):
         expected_local_tags = []
         if "DD_TAGS" in library_env:
@@ -341,7 +343,7 @@ class Test_Config_Tags:
 
 
 @scenarios.parametric
-@features.tracing_configuration_consistency
+@features.dogstatsd_agent_connection
 class Test_Config_Dogstatsd:
     @parametrize(
         "library_env", [{"DD_AGENT_HOST": "localhost"}]
@@ -375,7 +377,7 @@ SDK_DEFAULT_STABLE_CONFIG = {
     "dd_runtime_metrics_enabled": "false" if context.library != "java" else "true",
     "dd_profiling_enabled": "false",
     "dd_data_streams_enabled": "false",
-    "dd_logs_injection": "false" if context.library != "java" else "true",
+    "dd_logs_injection": "false",
 }
 
 
@@ -387,9 +389,10 @@ class Test_Stable_Config_Default(StableConfigWriter):
 
     @pytest.mark.parametrize("library_env", [{}])
     @pytest.mark.parametrize(
-        ("apm_configuration_default", "expected"),
+        ("name", "apm_configuration_default", "expected"),
         [
             (
+                "profiling",
                 {"DD_PROFILING_ENABLED": True},
                 {
                     **SDK_DEFAULT_STABLE_CONFIG,
@@ -397,6 +400,7 @@ class Test_Stable_Config_Default(StableConfigWriter):
                 },
             ),
             (
+                "runtime_metrics",
                 {
                     "DD_RUNTIME_METRICS_ENABLED": True,
                 },
@@ -406,6 +410,7 @@ class Test_Stable_Config_Default(StableConfigWriter):
                 },
             ),
             (
+                "data_streams",
                 {
                     "DD_DATA_STREAMS_ENABLED": True,
                 },
@@ -415,6 +420,7 @@ class Test_Stable_Config_Default(StableConfigWriter):
                 },
             ),
             (
+                "logs_injection",
                 {
                     "DD_LOGS_INJECTION": True,
                 },
@@ -424,6 +430,7 @@ class Test_Stable_Config_Default(StableConfigWriter):
                 },
             ),
         ],
+        ids=lambda name: name,
     )
     @pytest.mark.parametrize(
         "path",
@@ -432,7 +439,7 @@ class Test_Stable_Config_Default(StableConfigWriter):
             "/etc/datadog-agent/application_monitoring.yaml",
         ],
     )
-    def test_default_config(self, test_library, path, library_env, apm_configuration_default, expected):
+    def test_default_config(self, test_library, path, library_env, name, apm_configuration_default, expected):
         with test_library:
             self.write_stable_config(
                 {
@@ -557,7 +564,9 @@ class Test_Stable_Config_Default(StableConfigWriter):
 
             test_library.container_restart()
             config = test_library.config()
-            assert expected.items() <= config.items()
+            assert expected.items() <= config.items(), format(
+                "unexpected values for the following configurations: {}"
+            ).format([k for k in config.keys() & expected.keys() if config[k] != expected[k]])
 
     @pytest.mark.parametrize("library_env", [{"STABLE_CONFIG_SELECTOR": "true", "DD_SERVICE": "not-my-service"}])
     @missing_feature(

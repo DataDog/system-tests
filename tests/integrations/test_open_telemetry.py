@@ -1,5 +1,4 @@
-from utils import context, bug, features, irrelevant, missing_feature, scenarios
-from utils.tools import logger
+from utils import context, bug, features, irrelevant, missing_feature, scenarios, logger
 from .utils import BaseDbIntegrationsTestClass
 
 
@@ -11,7 +10,7 @@ class _BaseOtelDbIntegrationTestClass(BaseDbIntegrationsTestClass):
     def test_properties(self):
         """Generic check on all operations"""
 
-        db_container = context.scenario.get_container_by_dd_integration_name(self.db_service)
+        db_container = context.get_container_by_dd_integration_name(self.db_service)
 
         for db_operation, request in self.get_requests():
             logger.info(f"Validating {self.db_service}/{db_operation}")

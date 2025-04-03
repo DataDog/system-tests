@@ -459,6 +459,23 @@ class OtelSetAttributesReturn
   end
 end
 
+class TraceSpanAddEventsArgs
+  attr_accessor :span_id, :name, :timestamp, :attributes
+
+  def initialize(params)
+    @span_id = params['span_id']
+    @name = params['name']
+    @timestamp = params['timestamp']
+    @attributes = params['attributes']
+  end
+end
+
+class TraceSpanAddEventReturn
+  def to_json(*_args)
+    {}.to_json
+  end
+end
+
 def get_ddtrace_version
   Gem::Version.new(Datadog::VERSION)
 end
@@ -562,6 +579,8 @@ class MyApp
       handle_trace_span_error(req, res)
     when '/trace/span/add_link'
       handle_trace_span_add_link(req, res)
+    when '/trace/span/add_event'
+      handle_trace_span_add_event(req, res)
     when '/trace/otel/start_span'
       handle_trace_otel_start_span(req, res)
     when '/trace/otel/add_event'
@@ -706,6 +725,23 @@ class MyApp
 
     DD_SPANS[args.span_id].links.push(link)
     res.write(TraceSpanAddLinkReturn.new.to_json)
+  end
+
+  def handle_trace_span_add_event(req, res)
+    args = TraceSpanAddEventsArgs.new(JSON.parse(req.body.read))
+    span = find_span(args.span_id)
+    
+    # Create a new SpanEvent with the provided parameters
+    event = Datadog::Tracing::SpanEvent.new(
+      args.name,
+      attributes: args.attributes,
+      time_unix_nano: args.timestamp * 1000
+    )
+    
+    # Add the event to the span's events array
+    span.span_events << event
+    
+    res.write(TraceSpanAddEventReturn.new.to_json)
   end
 
   def handle_trace_crash(_req, res)

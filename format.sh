@@ -32,6 +32,8 @@ done
 if [ ! -d "venv/" ]; then
   echo "Runner is not installed, installing it (ETA 60s)"
   ./build.sh -i runner
+elif ! diff requirements.txt venv/requirements.txt; then
+  ./build.sh -i runner
 fi
 
 source venv/bin/activate
@@ -138,6 +140,12 @@ fi
 
 if ! ./venv/bin/yamllint -s manifests/; then
   echo "yamllint checks failed. Please fix the errors above. 💥 💔 💥"
+  exit 1
+fi
+
+echo "Running parser checks..."
+if ! python ./manifests/parser/core.py; then
+  echo "Manifest parser failed. Please fix the errors above. 💥 💔 💥"
   exit 1
 fi
 

@@ -1,7 +1,7 @@
 import os
 from pathlib import Path
 import paramiko
-from utils.tools import logger
+from utils._logger import logger
 
 
 def extract_logs_to_file(logs_data, log_folder):

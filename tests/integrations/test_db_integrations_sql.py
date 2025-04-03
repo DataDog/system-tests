@@ -2,8 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, bug, missing_feature, irrelevant, scenarios, features
-from utils.tools import logger
+from utils import context, bug, missing_feature, irrelevant, scenarios, features, logger
 
 from .utils import BaseDbIntegrationsTestClass
 
@@ -61,7 +60,7 @@ class _BaseDatadogDbIntegrationTestClass(BaseDbIntegrationsTestClass):
     @irrelevant(library="java", reason="Java is using the correct span: db.instance")
     def test_db_name(self):
         """DEPRECATED!! Now it is db.instance. The name of the database being connected to. Database instance name."""
-        db_container = context.scenario.get_container_by_dd_integration_name(self.db_service)
+        db_container = context.get_container_by_dd_integration_name(self.db_service)
 
         for db_operation, span in self.get_spans():
             assert span["meta"]["db.name"] == db_container.db_instance, f"Test is failing for {db_operation}"
@@ -101,7 +100,7 @@ class _BaseDatadogDbIntegrationTestClass(BaseDbIntegrationsTestClass):
 
     def test_db_user(self, excluded_operations=()):
         """Username for accessing the database."""
-        db_container = context.scenario.get_container_by_dd_integration_name(self.db_service)
+        db_container = context.get_container_by_dd_integration_name(self.db_service)
 
         for _, span in self.get_spans(excluded_operations=excluded_operations):
             assert span["meta"]["db.user"].casefold() == db_container.db_user.casefold()
@@ -110,7 +109,7 @@ class _BaseDatadogDbIntegrationTestClass(BaseDbIntegrationsTestClass):
     @missing_feature(library="nodejs", reason="not implemented yet")
     def test_db_instance(self, excluded_operations=()):
         """The name of the database being connected to. Database instance name. Formerly db.name"""
-        db_container = context.scenario.get_container_by_dd_integration_name(self.db_service)
+        db_container = context.get_container_by_dd_integration_name(self.db_service)
 
         for _, span in self.get_spans(excluded_operations=excluded_operations):
             assert span["meta"]["db.instance"] == db_container.db_instance
@@ -161,7 +160,7 @@ class _BaseDatadogDbIntegrationTestClass(BaseDbIntegrationsTestClass):
 
     def test_db_password(self, excluded_operations=()):
         """The database password should not show in the traces"""
-        db_container = context.scenario.get_container_by_dd_integration_name(self.db_service)
+        db_container = context.get_container_by_dd_integration_name(self.db_service)
 
         for db_operation, span in self.get_spans(excluded_operations=excluded_operations):
             for key in span["meta"]:
@@ -306,7 +305,7 @@ class Test_MsSql(_BaseDatadogDbIntegrationTestClass):
             elif db_operation == "procedure":
                 # Insert and procedure:These operations also receive two parameters, but are obfuscated as only one.
                 # Node.js: The proccedure has a input parameter, but we are calling through method `execute`` and we can't see the parameters in the traces
-                expected_obfuscation_count = 0 if context.library.library == "nodejs" else 2
+                expected_obfuscation_count = 0 if context.library.name == "nodejs" else 2
             else:
                 expected_obfuscation_count = 2
 

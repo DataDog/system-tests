@@ -14,7 +14,7 @@ class _Features:
         return test_object
 
     @staticmethod
-    def add_metadata_globally_to_all_spans_dd_tags(test_object):
+    def trace_global_tags(test_object):
         """Add Metadata globally to all spans (DD_TAGS)
 
         https://feature-parity.us1.prod.dog/#/?feature=1
@@ -23,7 +23,7 @@ class _Features:
         return test_object
 
     @staticmethod
-    def change_agent_hostname_dd_agent_host(test_object):
+    def trace_agent_connection(test_object):
         """Change Agent hostname (DD_AGENT_HOST)
 
         https://feature-parity.us1.prod.dog/#/?feature=2
@@ -50,8 +50,8 @@ class _Features:
         return test_object
 
     @staticmethod
-    def manual_trace_id_injection_into_logs(test_object):
-        """Manual Trace-ID injection into Logs
+    def log_injection(test_object):
+        """Trace-ID injection into Logs
 
         https://feature-parity.us1.prod.dog/#/?feature=5
         """
@@ -165,7 +165,7 @@ class _Features:
         return test_object
 
     @staticmethod
-    def datadog_managed_dogstatsd_client(test_object):
+    def dogstatsd_agent_connection(test_object):
         """Datadog managed Dogstatsd client
 
         https://feature-parity.us1.prod.dog/#/?feature=17
@@ -266,7 +266,6 @@ class _Features:
     @staticmethod
     def inject_service_env_version_into_logs(test_object):
         """Inject service, env, version into logs
-
         https://feature-parity.us1.prod.dog/#/?feature=28
         """
         pytest.mark.features(feature_id=28)(test_object)
@@ -390,15 +389,6 @@ class _Features:
         return test_object
 
     @staticmethod
-    def dd_tags_space_separated_tags(test_object):
-        """DD_TAGS space-separated tags
-
-        https://feature-parity.us1.prod.dog/#/?feature=42
-        """
-        pytest.mark.features(feature_id=42)(test_object)
-        return test_object
-
-    @staticmethod
     def report_tracer_drop_rate_ddtracer_kr(test_object):
         """Report tracer drop rate (_dd.tracer_kr)
 
@@ -471,7 +461,7 @@ class _Features:
         return test_object
 
     @staticmethod
-    def obfuscation_of_httpurl_span_tag(test_object):
+    def trace_query_string_obfuscation(test_object):
         """Obfuscation of http.url span tag
 
         https://feature-parity.us1.prod.dog/#/?feature=51
@@ -633,7 +623,7 @@ class _Features:
         return test_object
 
     @staticmethod
-    def tracer_configurations_collected(test_object):
+    def telemetry_configurations_collected(test_object):
         """Tracer Configurations collected
 
         https://feature-parity.us1.prod.dog/#/?feature=69
@@ -804,7 +794,7 @@ class _Features:
         return test_object
 
     @staticmethod
-    def client_ip_adress_collection_dd_trace_client_ip_enabled(test_object):
+    def trace_client_ip_header(test_object):
         """Client IP adress collection (DD_TRACE_CLIENT_IP_ENABLED)
 
         https://feature-parity.us1.prod.dog/#/?feature=88
@@ -918,6 +908,15 @@ class _Features:
         https://feature-parity.us1.prod.dog/#/?feature=141
         """
         pytest.mark.features(feature_id=141)(test_object)
+        return test_object
+
+    @staticmethod
+    def event_tracking_sdk_v2(test_object):
+        """Event tracking SDK v2
+
+        https://feature-parity.us1.prod.dog/#/?feature=372
+        """
+        pytest.mark.features(feature_id=372)(test_object)
         return test_object
 
     @staticmethod
@@ -1241,6 +1240,15 @@ class _Features:
         https://feature-parity.us1.prod.dog/#/?feature=201
         """
         pytest.mark.features(feature_id=201)(test_object)
+        return test_object
+
+    @staticmethod
+    def appsec_truncation_action(test_object):
+        """Truncation Action
+
+        https://feature-parity.us1.prod.dog/#/?feature=373
+        """
+        pytest.mark.features(feature_id=373)(test_object)
         return test_object
 
     @staticmethod
@@ -2016,8 +2024,8 @@ class _Features:
         return test_object
 
     @staticmethod
-    def appsec_standalone(test_object):
-        """Appsec Standalone Billing
+    def appsec_standalone_experimental(test_object):
+        """Experimental Appsec Standalone Billing
 
         https://feature-parity.us1.prod.dog/#/?feature=305
         """
@@ -2025,8 +2033,8 @@ class _Features:
         return test_object
 
     @staticmethod
-    def appsec_standalone_v2(test_object):
-        """Appsec Standalone Billing V2
+    def appsec_standalone(test_object):
+        """Appsec Standalone Billing
 
         https://feature-parity.us1.prod.dog/#/?feature=355
         """
@@ -2034,8 +2042,8 @@ class _Features:
         return test_object
 
     @staticmethod
-    def iast_standalone(test_object):
-        """Iast Standalone Billing
+    def iast_standalone_experimental(test_object):
+        """Experimental Iast Standalone Billing
 
         https://feature-parity.us1.prod.dog/#/?feature=319
         """
@@ -2043,7 +2051,7 @@ class _Features:
         return test_object
 
     @staticmethod
-    def iast_standalone_v2(test_object):
+    def iast_standalone(test_object):
         """Iast Standalone Billing V2
 
         https://feature-parity.us1.prod.dog/#/?feature=356
@@ -2052,8 +2060,8 @@ class _Features:
         return test_object
 
     @staticmethod
-    def sca_standalone(test_object):
-        """SCA Standalone Billing
+    def sca_standalone_experimental(test_object):
+        """Experimental SCA Standalone Billing
 
         https://feature-parity.us1.prod.dog/#/?feature=320
         """
@@ -2061,7 +2069,7 @@ class _Features:
         return test_object
 
     @staticmethod
-    def sca_standalone_v2(test_object):
+    def sca_standalone(test_object):
         """SCA Standalone Billing V2
 
         https://feature-parity.us1.prod.dog/#/?feature=357
@@ -2220,15 +2228,6 @@ class _Features:
         https://feature-parity.us1.prod.dog/#/?feature=344
         """
         pytest.mark.features(feature_id=344)(test_object)
-        return test_object
-
-    @staticmethod
-    def tracing_configuration_consistency(test_object):
-        """Enforces standardized behaviors for configurations across the tracing libraries.
-
-        https://feature-parity.us1.prod.dog/#/?feature=325
-        """
-        pytest.mark.features(feature_id=325)(test_object)
         return test_object
 
     @staticmethod
@@ -2464,6 +2463,96 @@ class _Features:
         https://feature-parity.us1.prod.dog/#/?feature=371
         """
         pytest.mark.features(feature_id=371)(test_object)
+        return test_object
+
+    @staticmethod
+    def trace_enablement(test_object):
+        """Enforces standardized behaviors for configurations across the tracing libraries.
+
+        https://feature-parity.us1.prod.dog/#/?feature=374
+        """
+        pytest.mark.features(feature_id=374)(test_object)
+        return test_object
+
+    @staticmethod
+    def trace_log_directory(test_object):
+        """Enforces standardized behaviors for configurations across the tracing libraries.
+
+        https://feature-parity.us1.prod.dog/#/?feature=375
+        """
+        pytest.mark.features(feature_id=375)(test_object)
+        return test_object
+
+    @staticmethod
+    def trace_experimental_features(test_object):
+        """Enforces standardized behaviors for configurations across the tracing libraries.
+
+        https://feature-parity.us1.prod.dog/#/?feature=376
+        """
+        pytest.mark.features(feature_id=376)(test_object)
+        return test_object
+
+    @staticmethod
+    def trace_rate_limiting(test_object):
+        """Enforces standardized behaviors for configurations across the tracing libraries.
+
+        https://feature-parity.us1.prod.dog/#/?feature=377
+        """
+        pytest.mark.features(feature_id=377)(test_object)
+        return test_object
+
+    @staticmethod
+    def trace_http_server_error_statuses(test_object):
+        """Enforces standardized behaviors for configurations across the tracing libraries.
+
+        https://feature-parity.us1.prod.dog/#/?feature=378
+        """
+        pytest.mark.features(feature_id=379)(test_object)
+        return test_object
+
+    @staticmethod
+    def trace_http_client_error_statuses(test_object):
+        """Enforces standardized behaviors for configurations across the tracing libraries.
+
+        https://feature-parity.us1.prod.dog/#/?feature=381
+        """
+        pytest.mark.features(feature_id=381)(test_object)
+        return test_object
+
+    @staticmethod
+    def trace_http_client_tag_query_string(test_object):
+        """Enforces standardized behaviors for configurations across the tracing libraries.
+
+        https://feature-parity.us1.prod.dog/#/?feature=382
+        """
+        pytest.mark.features(feature_id=382)(test_object)
+        return test_object
+
+    @staticmethod
+    def unified_service_tagging(test_object):
+        """Enforces standardized behaviors for configurations across the tracing libraries.
+
+        https://feature-parity.us1.prod.dog/#/?feature=384
+        """
+        pytest.mark.features(feature_id=384)(test_object)
+        return test_object
+
+    @staticmethod
+    def integration_enablement(test_object):
+        """Enforces standardized behaviors for configurations across the tracing libraries.
+
+        https://feature-parity.us1.prod.dog/#/?feature=385
+        """
+        pytest.mark.features(feature_id=385)(test_object)
+        return test_object
+
+    @staticmethod
+    def log_injection_128bit_traceid(test_object):
+        """Enforces standardized behaviors for configurations across the tracing libraries.
+
+        https://feature-parity.us1.prod.dog/#/?feature=387
+        """
+        pytest.mark.features(feature_id=387)(test_object)
         return test_object
 
 

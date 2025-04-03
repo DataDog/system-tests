@@ -1,24 +1,24 @@
 import json
 import os
 
-from utils.tools import logger
+from utils import logger
 
 
 def run_system_tests(scenario="MOCK_THE_TEST", test_path=None, *, verbose=False, forced_test=None, xfail_strict=False):
-    cmd = ["./run.sh"]
+    cmd_parts = ["./run.sh"]
 
     if scenario:
-        cmd.append(scenario)
+        cmd_parts.append(scenario)
     if test_path:
-        cmd.append(test_path)
+        cmd_parts.append(test_path)
     if verbose:
-        cmd.append("-v")
+        cmd_parts.append("-v")
     if forced_test:
-        cmd.append(f"-F {forced_test}")
+        cmd_parts.append(f"-F {forced_test}")
     if xfail_strict:
-        cmd.append("-o xfail_strict=True")
+        cmd_parts.append("-o xfail_strict=True")
 
-    cmd = " ".join(cmd)
+    cmd = " ".join(cmd_parts)
     logger.info(cmd)
     stream = os.popen(cmd)
     output = stream.read()
