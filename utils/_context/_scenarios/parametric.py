@@ -364,7 +364,7 @@ RUN /binaries/install_ddtrace.sh
 RUN mkdir /parametric-tracer-logs
 ENV DD_PATCH_MODULES="fastapi:false,startlette:false"
 """,
-        container_cmd="ddtrace-run python3.11 -m apm_test_client".split(" "),
+        container_cmd=["ddtrace-run", "python3.11", "-m", "apm_test_client"],
         container_build_dir=python_absolute_appdir,
         container_build_context=_get_base_directory(),
         volumes={os.path.join(python_absolute_appdir, "apm_test_client"): "/app/apm_test_client"},
@@ -517,9 +517,8 @@ COPY --from=build-version-tool /app/out /app
 COPY --from=build-app /app/out /app
 
 RUN mkdir /parametric-tracer-logs
-CMD ["./ApmTestApi"]
 """,
-        container_cmd=[],
+        container_cmd=["./ApmTestApi"],
         container_build_dir=dotnet_absolute_appdir,
         container_build_context=_get_base_directory(),
     )

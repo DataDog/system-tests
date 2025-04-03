@@ -39,4 +39,5 @@ java -Xmx128M -javaagent:"${DD_JAVA_AGENT}" \
   "${DISABLED_FEATURES[@]}" \
   "${DISABLE_INTEGRATIONS[@]}" \
   "${OPTIMIZATION_OPTIONS[@]}" \
+  ${SYSTEM_TESTS_EXTRA_COMMAND_ARGUMENTS:-} \
   -jar target/dd-trace-java-client-1.0.0.jar
