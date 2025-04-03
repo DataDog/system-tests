@@ -393,9 +393,6 @@ def node_library_factory() -> APMLibraryTestServer:
 FROM node:18.10-slim
 RUN apt-get update && apt-get -y install bash curl git jq
 WORKDIR /usr/app
-COPY {nodejs_reldir}/../app.sh /usr/app/
-RUN printf 'node server.js' >> app.sh
-RUN chmod +x app.sh
 COPY {nodejs_reldir}/package.json /usr/app/
 COPY {nodejs_reldir}/package-lock.json /usr/app/
 COPY {nodejs_reldir}/*.js /usr/app/
@@ -580,7 +577,7 @@ ADD {php_reldir}/server.php .
         container_cmd=[
             "bash",
             "-c",
-            "php server.php || sleep 2s",
+            "php server.php ${SYSTEM_TESTS_EXTRA_COMMAND_ARGUMENTS:-} || sleep 2s",
         ],  # In case of crash, give time to the sidecar to upload the crash report
         container_build_dir=php_absolute_appdir,
         container_build_context=_get_base_directory(),
