@@ -600,3 +600,39 @@ class Test_Stable_Config_Default(StableConfigWriter):
             assert (
                 config["dd_service"] == "my-service"
             ), f"Service name is '{config["dd_service"]}' instead of 'my-service'"
+    @missing_feature(
+        context.library in ["ruby", "cpp", "dotnet", "golang", "nodejs", "php", "python"],
+        reason="UST stable config is phase 2",
+    )
+    @pytest.mark.parametrize(
+        "library_extra_command_arguments",
+        [
+            ["-Darg1"]
+        ],
+    )
+    def test_process_arguments(self, library_env, test_agent, test_library):
+        path = "/etc/datadog-agent/managed/datadog-agent/stable/application_monitoring.yaml"
+        with test_library:
+            self.write_stable_config(
+                {
+                    "apm_configuration_rules": [
+                        {
+                            "selectors": [
+                                {
+                                    "origin": "process_arguments",
+                                    "key": "-Darg1",
+                                    "operator": "exists",
+                                }
+                            ],
+                            "configuration": {"DD_SERVICE": "my-service"},
+                        }
+                    ]
+                },
+                path,
+                test_library,
+            )
+            test_library.container_restart()
+            config = test_library.config()
+            assert (
+                config["dd_service"] == "my-service"
+            ), f"Service name is '{config["dd_service"]}' instead of 'my-service'"
