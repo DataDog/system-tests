@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, interfaces, irrelevant, weblog, scenarios, features, rfc, bug
+from utils import context, interfaces, irrelevant, weblog, scenarios, features, rfc
 
 
 @rfc("https://docs.google.com/document/d/1cVod_VI7Yruq8U9dfMRFJd7npDu-uBpste2IB04GyaQ")
@@ -33,9 +33,7 @@ class Test_SpanEvents_WithAgentSupport:
 
     @irrelevant(context.library in ["ruby"], reason="v0.5 is not the default format")
     @irrelevant(context.library in ["nodejs"], reason="v0.5 is not the default format")
-    @bug(
-        context.library > "python@3.3.0" and context.weblog_variant in ("flask-poc", "uds-flask"), reason="APMAPI-1283"
-    )
+    @irrelevant(context.library > "python@3.3.0", reason="DD_TRACE_NATIVE_SPAN_EVENTS overrides v0.5")
     def test_v05_default_format(self):
         """For traces that default to the v0.5 format, send events as the span tag `events`
         given this format does not support native serialization.
