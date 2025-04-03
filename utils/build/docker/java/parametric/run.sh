@@ -33,6 +33,7 @@ DISABLE_INTEGRATIONS=(-Ddd.integration.servlet-request-body.enabled=false \
 OPTIMIZATION_OPTIONS=(-XX:TieredStopAtLevel=1)
 
 # Start client application
+# shellcheck disable=SC2086
 java -Xmx128M -javaagent:"${DD_JAVA_AGENT}" \
   $ENABLE_OTEL_TRACING_API \
   "${ENABLE_CRASH_TRACKING[@]}" \
