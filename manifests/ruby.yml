@@ -201,7 +201,7 @@ tests/:
           sinatra40: irrelevant
           uds-sinatra: irrelevant
         Test_Sqli_BodyUrlEncoded:
-          "*": v2.12.0.dev
+          "*": v2.13.0.dev
           sinatra14: irrelevant
           sinatra20: irrelevant
           sinatra21: irrelevant
@@ -213,7 +213,7 @@ tests/:
           uds-sinatra: irrelevant
         Test_Sqli_BodyXml: irrelevant (XML not natively supported)
         Test_Sqli_Capability:
-          "*": v2.12.0.dev
+          "*": v2.13.0.dev
           sinatra14: irrelevant
           sinatra20: irrelevant
           sinatra21: irrelevant
@@ -224,7 +224,7 @@ tests/:
           sinatra40: irrelevant
           uds-sinatra: irrelevant
         Test_Sqli_Mandatory_SpanTags:
-          "*": v2.12.0.dev
+          "*": v2.13.0.dev
           sinatra14: irrelevant
           sinatra20: irrelevant
           sinatra21: irrelevant
@@ -235,7 +235,7 @@ tests/:
           sinatra40: irrelevant
           uds-sinatra: irrelevant
         Test_Sqli_Optional_SpanTags:
-          "*": v2.12.0.dev
+          "*": v2.13.0.dev
           sinatra14: irrelevant
           sinatra20: irrelevant
           sinatra21: irrelevant
@@ -247,7 +247,7 @@ tests/:
           uds-sinatra: irrelevant
         Test_Sqli_Rules_Version: missing_feature (relies on Telemetry V2)
         Test_Sqli_StackTrace:
-          "*": v2.12.0.dev
+          "*": v2.13.0.dev
           sinatra14: irrelevant
           sinatra20: irrelevant
           sinatra21: irrelevant
@@ -258,7 +258,7 @@ tests/:
           sinatra40: irrelevant
           uds-sinatra: irrelevant
         Test_Sqli_Telemetry:
-          "*": v2.12.0.dev
+          "*": v2.13.0.dev
           sinatra14: irrelevant
           sinatra20: irrelevant
           sinatra21: irrelevant
@@ -270,7 +270,7 @@ tests/:
           uds-sinatra: irrelevant
         Test_Sqli_Telemetry_V2: missing_feature
         Test_Sqli_UrlQuery:
-          "*": v2.12.0.dev
+          "*": v2.13.0.dev
           sinatra14: irrelevant
           sinatra20: irrelevant
           sinatra21: irrelevant
