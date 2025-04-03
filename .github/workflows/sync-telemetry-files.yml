@@ -2,7 +2,7 @@ name: Update Telemetry Files from dd-go
 
 on:
   schedule:
-    - cron: '0 */6 * * *'  # Runs every 6 hours
+    - cron: '*/10 * * * *'  # Runs every 10 hours
 
   # manual button to run
   workflow_dispatch:
