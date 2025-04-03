@@ -33,7 +33,7 @@ class Test_SpanEvents_WithAgentSupport:
 
     @irrelevant(context.library in ["ruby"], reason="v0.5 is not the default format")
     @irrelevant(context.library in ["nodejs"], reason="v0.5 is not the default format")
-    @irrelevant(context.library > "python@3.3.0", reason="environment variable overrides v0.5")
+    @irrelevant(context.library > "python@3.3.0", reason="DD_TRACE_NATIVE_SPAN_EVENTS overrides v0.5")
     def test_v05_default_format(self):
         """For traces that default to the v0.5 format, send events as the span tag `events`
         given this format does not support native serialization.
