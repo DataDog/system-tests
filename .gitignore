@@ -71,3 +71,6 @@ utils/build/docker/*/parametric/Dockerfile
 
 # version check
 version-check-output/
+
+# Go
+go.work*
