@@ -217,7 +217,7 @@
             "os_branch": "debian",
             "os_cpu": "amd64",
             "default_vm": true,
-            "disabled": false
+            "disabled": true
         },
         {
             "name": "Debian_12_arm64",
@@ -231,7 +231,7 @@
             "os_branch": "debian",
             "os_cpu": "arm64",
             "default_vm": false,
-            "disabled": false
+            "disabled": true
         },
         {
             "name": "Debian_11_amd64",
@@ -482,7 +482,7 @@
             "default_vm": false,
             "disabled": false
         },
-         {
+        {
             "name": "OracleLinux_9_2_amd64",
             "aws_config": {
                 "ami_id": "ami-01453ca80e53609e3",
