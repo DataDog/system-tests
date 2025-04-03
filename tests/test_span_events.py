@@ -33,9 +33,7 @@ class Test_SpanEvents_WithAgentSupport:
 
     @irrelevant(context.library in ["ruby"], reason="v0.5 is not the default format")
     @irrelevant(context.library in ["nodejs"], reason="v0.5 is not the default format")
-    @bug(
-        context.library > "python@3.3.0" and context.weblog_variant in ("flask-poc", "uds-flask"), reason="APMAPI-1283"
-    )
+    @irrelevant(context.library > "python@3.3.0", reason="environment variable overrides v0.5")
     def test_v05_default_format(self):
         """For traces that default to the v0.5 format, send events as the span tag `events`
         given this format does not support native serialization.
