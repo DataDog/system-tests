@@ -18,7 +18,7 @@ tests/:
         Test_Schema_Request_Headers: v1.15.0
         Test_Schema_Request_Json_Body: v1.15.0
         Test_Schema_Request_Path_Parameters:
-          '*': v1.15.0
+          "*": v1.15.0
           rack: missing_feature (rack does not have path parameters support)
         Test_Schema_Request_Query_Parameters: v1.15.0
         Test_Schema_Response_Body: missing_feature
@@ -232,7 +232,7 @@ tests/:
         Test_GraphQL: v2.3.0
         Test_GrpcServerMethod: missing_feature
         Test_Headers:
-          '*': v0.54.2  # assumed as the oldest supported version
+          "*": v0.54.2  # assumed as the oldest supported version
           sinatra14: missing_feature (endpoint not implemented)
           sinatra20: missing_feature (endpoint not implemented)
           sinatra21: missing_feature (endpoint not implemented)
@@ -243,7 +243,7 @@ tests/:
           sinatra40: missing_feature (endpoint not implemented)
           uds-sinatra: missing_feature (endpoint not implemented)
         Test_PathParams:
-          '*': v1.8.0
+          "*": v1.8.0
           rack: irrelevant
         Test_ResponseStatus: v1.10.0
         Test_UrlQuery: v0.54.2
@@ -257,7 +257,7 @@ tests/:
         Test_CustomRules: v1.12.0
       test_exclusions.py:
         Test_Exclusions:
-          '*': v1.11.0
+          "*": v1.11.0
           sinatra14: missing_feature (endpoint not implemented)
           sinatra20: missing_feature (endpoint not implemented)
           sinatra21: missing_feature (endpoint not implemented)
@@ -286,42 +286,75 @@ tests/:
       Test_SCAStandalone_Telemetry: irrelevant
       Test_SCAStandalone_Telemetry_V2: v2.12.3-dev
     test_automated_login_events.py:
-      Test_Login_Events:
-        '*': bug (APPSEC-57124)
-        rack: missing_feature (We do not support authentication framework for sinatra or rack)
-        sinatra14: missing_feature (We do not support authentication framework for sinatra or rack)
-        sinatra20: missing_feature (We do not support authentication framework for sinatra or rack)
-        sinatra21: missing_feature (We do not support authentication framework for sinatra or rack)
-        sinatra22: missing_feature (We do not support authentication framework for sinatra or rack)
-        sinatra30: missing_feature (We do not support authentication framework for sinatra or rack)
-        sinatra31: missing_feature (We do not support authentication framework for sinatra or rack)
-        sinatra32: missing_feature (We do not support authentication framework for sinatra or rack)
-        sinatra40: missing_feature (We do not support authentication framework for sinatra or rack)
-        uds-sinatra: missing_feature (We do not support authentication framework for sinatra or rack)
-      Test_Login_Events_Extended:
-        '*': bug (APPSEC-57124)
-        rack: missing_feature (We do not support authentication framework for sinatra or rack)
-        sinatra14: missing_feature (We do not support authentication framework for sinatra or rack)
-        sinatra20: missing_feature (We do not support authentication framework for sinatra or rack)
-        sinatra21: missing_feature (We do not support authentication framework for sinatra or rack)
-        sinatra22: missing_feature (We do not support authentication framework for sinatra or rack)
-        sinatra30: missing_feature (We do not support authentication framework for sinatra or rack)
-        sinatra31: missing_feature (We do not support authentication framework for sinatra or rack)
-        sinatra32: missing_feature (We do not support authentication framework for sinatra or rack)
-        sinatra40: missing_feature (We do not support authentication framework for sinatra or rack)
-        uds-sinatra: missing_feature (We do not support authentication framework for sinatra or rack)
-      Test_V2_Login_Events: missing_feature
-      Test_V2_Login_Events_Anon: missing_feature
-      Test_V2_Login_Events_RC: missing_feature
+      Test_Login_Events: irrelevant
+      Test_Login_Events_Extended: irrelevant
+      Test_V2_Login_Events: irrelevant
+      Test_V2_Login_Events_Anon: irrelevant
+      Test_V2_Login_Events_RC: irrelevant
       Test_V3_Auto_User_Instrum_Mode_Capability: missing_feature
-      Test_V3_Login_Events: missing_feature
-      Test_V3_Login_Events_Anon: missing_feature
-      Test_V3_Login_Events_Blocking: missing_feature
-      Test_V3_Login_Events_RC: missing_feature
+      Test_V3_Login_Events:
+        "*": v2.12.3-dev
+        rack: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
+        sinatra14: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
+        sinatra20: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
+        sinatra21: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
+        sinatra22: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
+        sinatra30: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
+        sinatra31: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
+        sinatra32: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
+        sinatra40: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
+        uds-sinatra: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
+      Test_V3_Login_Events_Anon:
+        "*": v2.12.3-dev
+        rack: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
+        sinatra14: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
+        sinatra20: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
+        sinatra21: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
+        sinatra22: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
+        sinatra30: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
+        sinatra31: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
+        sinatra32: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
+        sinatra40: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
+        uds-sinatra: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
+      Test_V3_Login_Events_Blocking:
+        "*": v2.12.3-dev
+        rack: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
+        sinatra14: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
+        sinatra20: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
+        sinatra21: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
+        sinatra22: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
+        sinatra30: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
+        sinatra31: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
+        sinatra32: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
+        sinatra40: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
+        uds-sinatra: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
+      Test_V3_Login_Events_RC: irrelevant
     test_automated_user_and_session_tracking.py:
       Test_Automated_Session_Blocking: missing_feature
-      Test_Automated_User_Blocking: missing_feature
-      Test_Automated_User_Tracking: missing_feature
+      Test_Automated_User_Blocking:
+        "*": v2.12.3-dev
+        rack: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
+        sinatra14: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
+        sinatra20: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
+        sinatra21: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
+        sinatra22: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
+        sinatra30: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
+        sinatra31: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
+        sinatra32: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
+        sinatra40: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
+        uds-sinatra: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
+      Test_Automated_User_Tracking:
+        "*": v2.12.3-dev
+        rack: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
+        sinatra14: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
+        sinatra20: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
+        sinatra21: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
+        sinatra22: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
+        sinatra30: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
+        sinatra31: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
+        sinatra32: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
+        sinatra40: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
+        uds-sinatra: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
     test_blocking_addresses.py:
       Test_BlockingGraphqlResolvers: v2.3.1-dev
       Test_Blocking_client_ip: v1.0.0
@@ -331,7 +364,7 @@ tests/:
       Test_Blocking_request_headers: v1.0.0
       Test_Blocking_request_method: v1.12.0
       Test_Blocking_request_path_params:
-        '*': v1.0.0
+        "*": v1.0.0
         rack: irrelevant
       Test_Blocking_request_query: v1.0.0
       Test_Blocking_request_uri: v1.0.0
@@ -509,10 +542,10 @@ tests/:
         "*": irrelevant
         rails70: missing_feature (Endpoint not implemented)
       Test_Dsm_Manual_Checkpoint_Inter_Process:
-        '*': irrelevant
+        "*": irrelevant
         rails70: missing_feature (Endpoint not implemented)
       Test_Dsm_Manual_Checkpoint_Intra_Process:
-        '*': irrelevant
+        "*": irrelevant
         rails70: missing_feature (Endpoint not implemented)
     test_inferred_proxy.py: missing_feature
     test_otel_drop_in.py:
@@ -525,7 +558,7 @@ tests/:
   otel/:
     test_context_propagation.py:
       Test_Otel_Context_Propagation_Default_Propagator_Api:
-        '*': incomplete_test_app (endpoint not implemented)
+        "*": incomplete_test_app (endpoint not implemented)
         rails70: v2.0.0
   parametric/:
     test_128_bit_traceids.py:
@@ -623,7 +656,7 @@ tests/:
     Test_Config_HttpServerErrorStatuses_Default: v2.0.0
     Test_Config_HttpServerErrorStatuses_FeatureFlagCustom: missing_feature
     Test_Config_IntegrationEnabled_False:
-      '*': irrelevant (endpoint not implemented)
+      "*": irrelevant (endpoint not implemented)
       rails70: v2.0.0
     Test_Config_IntegrationEnabled_True:
       '*': irrelevant (endpoint not implemented)
@@ -703,7 +736,7 @@ tests/:
     Test_StandardTagsClientIp: v1.10.1
     Test_StandardTagsMethod: v1.8.0
     Test_StandardTagsRoute:
-      '*': missing_feature
+      "*": missing_feature
       rack: irrelevant (rack can not access route pattern)
     Test_StandardTagsStatusCode: v1.8.0
     Test_StandardTagsUrl: missing_feature
