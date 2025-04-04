@@ -29,6 +29,7 @@ from opentelemetry.baggage import get_baggage
 import ddtrace
 from ddtrace import config
 from ddtrace.settings.profiling import config as profiling_config
+from ddtrace.internal.agent import config as agent_config
 from ddtrace.contrib.trace_utils import set_http_meta
 from ddtrace.constants import ERROR_MSG
 from ddtrace.constants import ERROR_STACK
@@ -130,9 +131,9 @@ def trace_config() -> TraceConfigReturn:
             "dd_env": config.env,
             "dd_version": config.version,
             "dd_trace_rate_limit": str(config._trace_rate_limit),
-            "dd_trace_agent_url": str(ddtrace.tracer._agent_url),
-            "dd_dogstatsd_host": urlparse(ddtrace.tracer._dogstatsd_url).hostname,
-            "dd_dogstatsd_port": urlparse(ddtrace.tracer._dogstatsd_url).port,
+            "dd_trace_agent_url": agent_config.trace_agent_url,
+            "dd_dogstatsd_host": urlparse(agent_config.dogstatsd_url).hostname,
+            "dd_dogstatsd_port": urlparse(agent_config.dogstatsd_url).port,
             "dd_logs_injection": str(config._logs_injection).lower(),
             "dd_profiling_enabled": str(profiling_config.enabled).lower(),
             "dd_data_streams_enabled": str(config._data_streams_enabled).lower(),
