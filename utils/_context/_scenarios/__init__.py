@@ -96,12 +96,6 @@ class _Scenarios:
         doc="Test W3C trace style",
     )
 
-    only_baggage_propagation = EndToEndScenario(
-        "ONLY_BAGGAGE_PROPAGATION",
-        weblog_env={"DD_TRACE_PROPAGATION_STYLE": "baggage", "DD_TRACE_DEBUG": "true"},
-        doc="Test only baggage propagation",
-    )
-
     # Telemetry scenarios
     telemetry_dependency_loaded_test_for_dependency_collection_disabled = EndToEndScenario(
         "TELEMETRY_DEPENDENCY_LOADED_TEST_FOR_DEPENDENCY_COLLECTION_DISABLED",

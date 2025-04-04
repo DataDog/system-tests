@@ -85,7 +85,7 @@ class Test_Baggage_Headers_Malformed2:
             assert all(header.get("key") != "baggage" for header in headers)
 
 
-@scenarios.only_baggage_propagation
+@scenarios.default
 @features.datadog_baggage_headers
 class Test_Only_Baggage_Header:
     def setup_main(self):
@@ -136,16 +136,18 @@ class Test_Baggage_Headers_Max_Bytes:
     def setup_main(self):
         self.max_bytes = 8192
         baggage_items = {
-            "key1": "a" * (self.max_bytes // 3),
-            "key2": "b" * (self.max_bytes // 3),
-            "key3": "c" * (self.max_bytes // 3),
-            "key4": "d",
+            "key1": "a" * (self.max_bytes // 2),
+            "key2": "b" * (self.max_bytes // 2),
         }
         full_baggage_header = ",".join([f"{k}={v}" for k, v in baggage_items.items()])
         self.r = weblog.get(
             "/make_distant_call",
             params={"url": "http://weblog:7777"},
-            headers={"x-datadog-parent-id": "10", "x-datadog-trace-id": "2", "baggage": full_baggage_header},
+            headers={
+                "x-datadog-parent-id": "10",
+                "x-datadog-trace-id": "2",
+                "baggage": full_baggage_header,
+            },
         )
 
     def test_main(self):
@@ -156,6 +158,7 @@ class Test_Baggage_Headers_Max_Bytes:
         assert baggage_header_value is not None
         header_str = baggage_header_value[0] if isinstance(baggage_header_value, list) else baggage_header_value
         items = header_str.split(",")
-        assert len(items) == 2
+        # Expect only one baggage item to be injected because the full header exceeds max_bytes
+        assert len(items) == 1
         header_size = len(header_str.encode("utf-8"))
         assert header_size <= self.max_bytes
