@@ -2,13 +2,15 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import features, weblog, interfaces, scenarios, rfc
+from utils import features, weblog, interfaces, scenarios, rfc, context
 from utils.dd_constants import Capabilities
 from tests.appsec.rasp.utils import (
+    validate_distribution,
     validate_span_tags,
     validate_stack_traces,
     find_series,
     validate_metric,
+    validate_metric_v2,
     BaseRulesVersion,
     BaseWAFVersion,
 )
@@ -170,6 +172,49 @@ class Test_Sqli_Telemetry:
         assert series_match
         assert any(validate_metric("rasp.rule.match", "sql_injection", s) for s in series_match), [
             s.get("tags") for s in series_match
+        ]
+
+
+@rfc("https://docs.google.com/document/d/1D4hkC0jwwUyeo0hEQgyKP54kM1LZU98GL8MaP60tQrA")
+@features.rasp_sql_injection
+@scenarios.appsec_rasp
+class Test_Sqli_Telemetry_V2:
+    """Validate Telemetry data on exploit attempts"""
+
+    def setup_sqli_telemetry(self):
+        self.r = weblog.get("/rasp/sqli", params={"user_id": "' OR 1 = 1 --"})
+
+    def test_sqli_telemetry(self):
+        series_eval = find_series("appsec", "rasp.rule.eval", is_metrics=True)
+        assert series_eval
+        assert any(validate_metric_v2("rasp.rule.eval", "sql_injection", s) for s in series_eval), [
+            s.get("tags") for s in series_eval
+        ]
+
+        series_match = find_series("appsec", "rasp.rule.match", is_metrics=True)
+        assert series_match
+        block_action = "block:irrelevant" if context.weblog_variant == "nextjs" else "block:success"
+        assert any(
+            validate_metric_v2("rasp.rule.match", "sql_injection", s, block_action=block_action) for s in series_match
+        ), [s.get("tags") for s in series_match]
+
+        series_rule_duration = find_series("appsec", "rasp.rule.duration", is_metrics=False)
+        assert series_rule_duration
+        assert any(
+            validate_distribution("rasp.rule.duration", "sql_injection", s, check_type=True)
+            for s in series_rule_duration
+        ), [s.get("tags") for s in series_rule_duration]
+
+        series_duration = find_series("appsec", "rasp.duration", is_metrics=False)
+        assert series_duration
+        assert any(validate_distribution("rasp.duration", "sql_injection", s) for s in series_duration), [
+            s.get("tags") for s in series_duration
+        ]
+
+        series_duration_ext = find_series("appsec", "rasp.duration_ext", is_metrics=False)
+        assert series_duration_ext
+        assert any(validate_distribution("rasp.duration_ext", "sql_injection", s) for s in series_duration_ext), [
+            s.get("tags") for s in series_duration_ext
         ]
 
 

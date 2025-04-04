@@ -1,5 +1,8 @@
 package com.datadoghq.springbootnative;
 
+import static datadog.appsec.api.user.User.setUser;
+
+import datadog.appsec.api.login.EventTrackerV2;
 import org.springframework.aot.hint.annotation.RegisterReflectionForBinding;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -26,6 +29,8 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static java.util.Collections.emptyMap;
 
 @RestController
 public class WebController {
@@ -57,7 +62,7 @@ public class WebController {
       }
 
       Map<String, String> library = new HashMap<>();
-      library.put("language", "java");
+      library.put("name", "java");
       library.put("version", version);
 
       Map<String, Object> response = new HashMap<>();
@@ -127,6 +132,38 @@ public class WebController {
             .trackCustomEvent(eventName, METADATA);
 
     return "ok";
+  }
+
+  @SuppressWarnings("unchecked")
+  @PostMapping("/user_login_success_event_v2")
+  public String userLoginSuccessV2(@RequestBody final Map<String, Object> body) {
+    final String login = body.getOrDefault("login", "system_tests_login").toString();
+    final String userId = body.getOrDefault("user_id", "system_tests_user_id").toString();
+    final Map<String, String> metadata = (Map<String, String>) body.getOrDefault("metadata", emptyMap());
+    EventTrackerV2.trackUserLoginSuccess(login, userId, metadata);
+    return "ok";
+  }
+
+  @SuppressWarnings("unchecked")
+  @PostMapping("/user_login_failure_event_v2")
+  public String userLoginFailureV2(@RequestBody final Map<String, Object> body) {
+    final String login = body.getOrDefault("login", "system_tests_login").toString();
+    final boolean exists = Boolean.parseBoolean(body.getOrDefault("exists", "true").toString());
+    final Map<String, String> metadata = (Map<String, String>) body.getOrDefault("metadata", emptyMap());
+    EventTrackerV2.trackUserLoginFailure(login, exists, metadata);
+    return "ok";
+  }
+
+  @GetMapping("/identify")
+  public String identify() {
+    final Map<String, String> metadata = new HashMap<>();
+    metadata.put("email", "usr.email");
+    metadata.put("name", "usr.name");
+    metadata.put("session_id", "usr.session_id");
+    metadata.put("role", "usr.role");
+    metadata.put("scope", "usr.scope");
+    setUser("usr.id", metadata);
+    return "OK";
   }
 
   @RequestMapping("/make_distant_call")

@@ -56,6 +56,7 @@ def load(base_dir: str = "manifests/") -> dict[str, dict[str, str]]:
         "agent",
         "cpp",
         "cpp_httpd",
+        "cpp_nginx",
         "dotnet",
         "golang",
         "java",

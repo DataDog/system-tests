@@ -7,7 +7,7 @@ from tests.appsec.iast.utils import BaseSinkTestWithoutTelemetry, validate_exten
 
 
 def _expected_location():
-    if context.library.library == "java":
+    if context.library.name == "java":
         if context.weblog_variant.startswith("spring-boot"):
             return "com.datadoghq.system_tests.springboot.AppSecIast"
         if context.weblog_variant == "vertx3":

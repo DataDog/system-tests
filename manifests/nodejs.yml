@@ -53,6 +53,7 @@ refs:
   - &ref_5_41_0 '>=5.41.0'
   - &ref_5_43_0 '>=5.43.0'
   - &ref_5_44_0 '>=5.44.0'
+  - &ref_5_46_0 '>=5.46.0'
 tests/:
   apm_tracing_e2e/:
     test_otel.py:
@@ -437,15 +438,10 @@ tests/:
         Test_Cmdi_Mandatory_SpanTags: *ref_5_30_0
         Test_Cmdi_Optional_SpanTags: *ref_5_30_0
         Test_Cmdi_Rules_Version: *ref_5_30_0
-        Test_Cmdi_StackTrace:
-          '*': *ref_5_30_0
-          nextjs: missing_feature
-        Test_Cmdi_Telemetry:
-          '*': *ref_5_30_0
-          nextjs: missing_feature
-        Test_Cmdi_Telemetry_Variant_Tag:
-          '*': *ref_5_30_0
-          nextjs: missing_feature
+        Test_Cmdi_StackTrace: *ref_5_30_0
+        Test_Cmdi_Telemetry: *ref_5_30_0
+        Test_Cmdi_Telemetry_V2: *ref_5_46_0
+        Test_Cmdi_Telemetry_Variant_Tag: *ref_5_30_0
         Test_Cmdi_UrlQuery:
           '*': *ref_5_30_0
           nextjs: missing_feature
@@ -471,6 +467,7 @@ tests/:
         Test_Lfi_StackTrace: *ref_5_24_0
         Test_Lfi_Telemetry: *ref_5_24_0
         Test_Lfi_Telemetry_Multiple_Exploits: *ref_5_37_0
+        Test_Lfi_Telemetry_V2: *ref_5_46_0
         Test_Lfi_UrlQuery:
           '*': *ref_5_24_0
           express5: *ref_5_29_0
@@ -492,6 +489,7 @@ tests/:
         Test_Shi_Rules_Version: *ref_5_24_0
         Test_Shi_StackTrace: *ref_5_25_0
         Test_Shi_Telemetry: *ref_5_25_0
+        Test_Shi_Telemetry_V2: *ref_5_46_0
         Test_Shi_Telemetry_Variant_Tag: *ref_5_30_0
         Test_Shi_UrlQuery:
           '*': *ref_5_25_0
@@ -514,6 +512,7 @@ tests/:
         Test_Sqli_Rules_Version: *ref_5_25_0
         Test_Sqli_StackTrace: *ref_5_23_0
         Test_Sqli_Telemetry: *ref_5_23_0
+        Test_Sqli_Telemetry_V2: *ref_5_46_0
         Test_Sqli_UrlQuery:
           '*': *ref_5_23_0
           express5: *ref_5_29_0
@@ -537,6 +536,7 @@ tests/:
         Test_Ssrf_Telemetry:
           '*': *ref_5_22_0
           express5: *ref_5_29_0  # test uses querystring
+        Test_Ssrf_Telemetry_V2: *ref_5_46_0
         Test_Ssrf_UrlQuery:
           '*': *ref_5_20_0
           express5: *ref_5_29_0
@@ -695,22 +695,39 @@ tests/:
       Test_CustomEvent:
         '*': *ref_3_13_0
         nextjs: missing_feature
+      Test_CustomEvent_Metrics: missing_feature
       Test_UserLoginFailureEvent:
         '*': *ref_3_13_0
         nextjs: missing_feature
+      Test_UserLoginFailureEvent_Metrics: missing_feature
       Test_UserLoginSuccessEvent:
         '*': *ref_3_13_0
         nextjs: missing_feature
+      Test_UserLoginSuccessEvent_Metrics: missing_feature
+    test_event_tracking_v2.py:
+      Test_UserLoginFailureEventV2_HeaderCollection: missing_feature
+      Test_UserLoginFailureEventV2_Libddwaf: missing_feature
+      Test_UserLoginFailureEventV2_Metrics: missing_feature
+      Test_UserLoginFailureEventV2_Tags: missing_feature
+      Test_UserLoginSuccessEventV2_HeaderCollection: missing_feature
+      Test_UserLoginSuccessEventV2_Libddwaf: missing_feature
+      Test_UserLoginSuccessEventV2_Metrics: missing_feature
+      Test_UserLoginSuccessEventV2_Tags: missing_feature
     test_fingerprinting.py:
       Test_Fingerprinting_Endpoint: *ref_5_24_0
       Test_Fingerprinting_Endpoint_Capability: *ref_5_24_0
+      Test_Fingerprinting_Endpoint_Preprocessor: *ref_5_24_0
       Test_Fingerprinting_Header_And_Network: *ref_5_24_0
+      Test_Fingerprinting_Header_And_Network_Preprocessor: *ref_5_24_0
       Test_Fingerprinting_Header_Capability: *ref_5_24_0
       Test_Fingerprinting_Network_Capability: *ref_5_24_0
       Test_Fingerprinting_Session:
         '*': *ref_5_39_0
         nextjs: missing_feature
       Test_Fingerprinting_Session_Capability: *ref_5_39_0
+      Test_Fingerprinting_Session_Preprocessor:
+        '*': *ref_5_39_0
+        nextjs: missing_feature
     test_identify.py:
       Test_Basic: v2.4.0
     test_ip_blocking_full_denylist.py:
@@ -784,6 +801,11 @@ tests/:
         uds-express4: v5.39.0
     test_debugger_symdb.py:
       Test_Debugger_SymDb: missing_feature (feature not implented)
+    test_debugger_telemetry.py:
+      Test_Debugger_Telemetry:
+        '*': irrelevant
+        express4: v5.39.0
+        uds-express4: v5.39.0
   integrations/:
     crossed_integrations/:
       test_kafka.py:
@@ -933,7 +955,7 @@ tests/:
     test_otel_env_vars.py:
       Test_Otel_Env_Vars: v5.11.0  #implemented in v5.11.0, v4.35.0, &v3.56.0
     test_otel_span_with_baggage.py:
-      Test_Otel_Span_With_Baggage: missing_feature
+      Test_Otel_Span_With_Baggage: *ref_5_32_0
     test_parametric_endpoints.py:
       Test_Parametric_DDSpan_Set_Resource: incomplete_test_app (set_resource endpoint is not implemented)
       Test_Parametric_DDSpan_Start: bug (APMAPI-778)  # The resource name of the child span is overidden by the parent span.

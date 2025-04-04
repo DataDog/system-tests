@@ -2,7 +2,7 @@ import time
 import requests
 
 from utils import scenarios, features, context, missing_feature
-from tests.k8s_lib_injection.utils import get_dev_agent_traces
+from tests.k8s_lib_injection.utils import get_dev_agent_traces, get_cluster_info
 
 
 class _BaseProfiling:
@@ -33,13 +33,11 @@ class TestSingleService(_BaseProfiling):
 
     def test_traces(self):
         """Check that the app is sending traces to the APM Test Agent"""
-        traces_json = get_dev_agent_traces(context.scenario.k8s_cluster_provider.get_cluster_info())
+        traces_json = get_dev_agent_traces(get_cluster_info())
         assert len(traces_json) > 0, "No traces found"
 
     @missing_feature(context.library == "ruby", reason="Profiling not implemented for Ruby")
     def test_profiling(self):
         """Check that the app is sending profiling traces"""
-        profiling_request_found = self._check_profiling_request_sent(
-            context.scenario.k8s_cluster_provider.get_cluster_info()
-        )
+        profiling_request_found = self._check_profiling_request_sent(get_cluster_info())
         assert profiling_request_found, "No profiling request found"

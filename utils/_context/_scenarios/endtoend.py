@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from http import HTTPStatus
 import os
 import sys
 import pytest
@@ -10,7 +11,7 @@ from docker.types import IPAMConfig, IPAMPool
 from watchdog.observers.polling import PollingObserver
 from watchdog.events import FileSystemEventHandler, FileSystemEvent
 
-from utils import interfaces, context
+from utils import interfaces
 from utils.interfaces._core import ProxyBasedInterfaceValidator
 from utils.buddies import BuddyHostPorts
 from utils.proxy.ports import ProxyPorts
@@ -147,7 +148,7 @@ class DockerScenario(Scenario):
                 return container
         return None
 
-    def _start_interfaces_watchdog(self, interfaces: list[ProxyBasedInterfaceValidator]):
+    def start_interfaces_watchdog(self, interfaces: list[ProxyBasedInterfaceValidator]):
         class Event(FileSystemEventHandler):
             def __init__(self, interface: ProxyBasedInterfaceValidator) -> None:
                 super().__init__()
@@ -400,6 +401,8 @@ class EndToEndScenario(DockerScenario):
         interfaces.library.configure(self.host_log_folder, replay=self.replay)
         interfaces.backend.configure(self.host_log_folder, replay=self.replay)
         interfaces.library_dotnet_managed.configure(self.host_log_folder, replay=self.replay)
+        interfaces.library_stdout.configure(self.host_log_folder, replay=self.replay)
+        interfaces.agent_stdout.configure(self.host_log_folder, replay=self.replay)
 
         for container in self.buddies:
             container.interface.configure(self.host_log_folder, replay=self.replay)
@@ -440,8 +443,8 @@ class EndToEndScenario(DockerScenario):
 
         logger.stdout("")
 
-    def _start_interface_watchdog(self):
-        super()._start_interfaces_watchdog(
+    def _start_interfaces_watchdog(self):
+        super().start_interfaces_watchdog(
             [interfaces.library, interfaces.agent] + [container.interface for container in self.buddies]
         )
 
@@ -470,7 +473,7 @@ class EndToEndScenario(DockerScenario):
         warmups = super().get_warmups()
 
         if not self.replay:
-            warmups.insert(1, self._start_interface_watchdog)
+            warmups.insert(1, self._start_interfaces_watchdog)
             warmups.append(self._get_weblog_system_info)
             warmups.append(self._wait_for_app_readiness)
             warmups.append(self._set_weblog_domain)
@@ -537,7 +540,7 @@ class EndToEndScenario(DockerScenario):
                 # for weblogs who supports it, call the flush endpoint
                 try:
                     r = weblog.get("/flush", timeout=10)
-                    assert r.status_code == 200
+                    assert r.status_code == HTTPStatus.OK
                 except:
                     self.weblog_container.healthy = False
                     logger.stdout(
@@ -578,51 +581,55 @@ class EndToEndScenario(DockerScenario):
             #     condition=context.library > "nodejs@5.36.0",
             #     ticket="DEBUG-3487",
             # ),
-            _SchemaBug(
-                endpoint="/v0.4/traces", data_path="$", condition=context.library == "java", ticket="APMAPI-1161"
-            ),
+            _SchemaBug(endpoint="/v0.4/traces", data_path="$", condition=self.library == "java", ticket="APMAPI-1161"),
             _SchemaBug(
                 endpoint="/telemetry/proxy/api/v2/apmtelemetry",
                 data_path="$.payload.configuration[]",
-                condition=context.library >= "nodejs@2.27.1",
+                condition=self.library >= "nodejs@2.27.1",
                 ticket="APPSEC-52805",
             ),
             _SchemaBug(
                 endpoint="/telemetry/proxy/api/v2/apmtelemetry",
                 data_path="$.payload",
-                condition=context.library < "python@v2.9.0.dev",
+                condition=self.library < "python@v2.9.0.dev",
                 ticket="APPSEC-52845",
             ),
             _SchemaBug(
                 endpoint="/telemetry/proxy/api/v2/apmtelemetry",
                 data_path="$.payload.configuration[].value",
-                condition=context.library == "golang",
+                condition=self.library == "golang",
                 ticket="APMS-12697",
             ),
             _SchemaBug(
                 endpoint="/debugger/v1/diagnostics",
                 data_path="$[].content",
-                condition=context.library < "nodejs@5.31.0",
+                condition=self.library < "nodejs@5.31.0",
                 ticket="DEBUG-2864",
             ),
             _SchemaBug(
                 endpoint="/debugger/v1/diagnostics",
                 data_path="$[].content[].debugger.diagnostics",
-                condition=context.library == "nodejs",
+                condition=self.library == "nodejs",
                 ticket="DEBUG-3245",
             ),
             _SchemaBug(
                 endpoint="/debugger/v1/input",
                 data_path="$[].debugger.snapshot.stack[].lineNumber",
-                condition=context.library in ("python@2.16.2", "python@2.16.3")
+                condition=self.library in ("python@2.16.2", "python@2.16.3")
                 and self.name == "DEBUGGER_EXPRESSION_LANGUAGE",
                 ticket="APMRP-360",
             ),
             _SchemaBug(
                 endpoint="/symdb/v1/input",
                 data_path=None,
-                condition=context.library == "dotnet" and self.name == "DEBUGGER_SYMDB",
+                condition=self.library == "dotnet" and self.name == "DEBUGGER_SYMDB",
                 ticket="DEBUG-3298",
+            ),
+            _SchemaBug(
+                endpoint="/telemetry/proxy/api/v2/apmtelemetry",
+                data_path="$.payload",
+                condition=self.library > "php@1.7.3",
+                ticket="APMAPI-1270",
             ),
         ]
         self._test_schemas(session, interfaces.library, library_bugs)
@@ -632,20 +639,20 @@ class EndToEndScenario(DockerScenario):
             # _SchemaBug(
             #     endpoint="/api/v2/debugger",
             #     data_path="$",
-            #     condition=context.library > "nodejs@5.36.0",
+            #     condition=self.library > "nodejs@5.36.0",
             #     ticket="DEBUG-3487",
             # ),
             _SchemaBug(
                 endpoint="/api/v2/apmtelemetry",
                 data_path="$.payload.configuration[]",
-                condition=context.library >= "nodejs@2.27.1"
+                condition=self.library >= "nodejs@2.27.1"
                 or self.name in ("CROSSED_TRACING_LIBRARIES", "GRAPHQL_APPSEC"),
                 ticket="APPSEC-52805",
             ),
             _SchemaBug(
                 endpoint="/api/v2/apmtelemetry",
                 data_path="$.payload",
-                condition=context.library < "python@v2.9.0.dev",
+                condition=self.library < "python@v2.9.0.dev",
                 ticket="APPSEC-52845",
             ),
             _SchemaBug(
@@ -654,20 +661,26 @@ class EndToEndScenario(DockerScenario):
             _SchemaBug(
                 endpoint="/api/v2/apmtelemetry",
                 data_path="$.payload.configuration[].value",
-                condition=context.library == "golang",
+                condition=self.library == "golang",
                 ticket="APMS-12697",
             ),
             _SchemaBug(
                 endpoint="/api/v2/debugger",
                 data_path="$[].content",
-                condition=context.library < "nodejs@5.31.0",
+                condition=self.library < "nodejs@5.31.0",
                 ticket="DEBUG-2864",
             ),
             _SchemaBug(
                 endpoint="/api/v2/debugger",
                 data_path="$[]",
-                condition=context.library == "dotnet" and self.name == "DEBUGGER_SYMDB",
+                condition=self.library == "dotnet" and self.name == "DEBUGGER_SYMDB",
                 ticket="DEBUG-3298",
+            ),
+            _SchemaBug(
+                endpoint="/api/v2/apmtelemetry",
+                data_path="$.payload",
+                condition=self.library > "php@1.7.3",
+                ticket="XXX-1234",
             ),
         ]
         self._test_schemas(session, interfaces.agent, agent_bugs)
@@ -744,7 +757,7 @@ class EndToEndScenario(DockerScenario):
         result = super().get_junit_properties()
 
         result["dd_tags[systest.suite.context.agent]"] = self.agent_version
-        result["dd_tags[systest.suite.context.library.name]"] = self.library.library
+        result["dd_tags[systest.suite.context.library.name]"] = self.library.name
         result["dd_tags[systest.suite.context.library.version]"] = self.library.version
         result["dd_tags[systest.suite.context.weblog_variant]"] = self.weblog_variant
         result["dd_tags[systest.suite.context.sampling_rate]"] = self.weblog_container.tracer_sampling_rate

@@ -212,6 +212,7 @@ tests/:
         Test_Sqli_Rules_Version: missing_feature
         Test_Sqli_StackTrace: v1.66.0
         Test_Sqli_Telemetry: missing_feature
+        Test_Sqli_Telemetry_V2: missing_feature
         Test_Sqli_UrlQuery: v1.66.0
         Test_Sqli_Waf_Version: missing_feature
       test_ssrf.py:
@@ -224,6 +225,7 @@ tests/:
         Test_Ssrf_Rules_Version: missing_feature
         Test_Ssrf_StackTrace: v1.65.1
         Test_Ssrf_Telemetry: missing_feature
+        Test_Ssrf_Telemetry_V2: missing_feature
         Test_Ssrf_UrlQuery: v1.65.1
         Test_Ssrf_Waf_Version: missing_feature
     waf/:
@@ -404,16 +406,31 @@ tests/:
       Test_NoLimitOnWafRules: v1.37.0
     test_event_tracking.py:
       Test_CustomEvent: v1.47.0
+      Test_CustomEvent_Metrics: v2.1.0-dev
       Test_UserLoginFailureEvent: v1.47.0
+      Test_UserLoginFailureEvent_Metrics: v2.1.0-dev
       Test_UserLoginSuccessEvent: v1.47.0
+      Test_UserLoginSuccessEvent_Metrics: v2.1.0-dev
+    test_event_tracking_v2.py:
+      Test_UserLoginFailureEventV2_HeaderCollection: v2.1.0-dev
+      Test_UserLoginFailureEventV2_Libddwaf: v2.1.0-dev
+      Test_UserLoginFailureEventV2_Metrics: v2.1.0-dev
+      Test_UserLoginFailureEventV2_Tags: v2.1.0-dev
+      Test_UserLoginSuccessEventV2_HeaderCollection: v2.1.0-dev
+      Test_UserLoginSuccessEventV2_Libddwaf: v2.1.0-dev
+      Test_UserLoginSuccessEventV2_Metrics: v2.1.0-dev
+      Test_UserLoginSuccessEventV2_Tags: v2.1.0-dev
     test_fingerprinting.py:
       Test_Fingerprinting_Endpoint: v1.69.0
       Test_Fingerprinting_Endpoint_Capability: v1.69.0
+      Test_Fingerprinting_Endpoint_Preprocessor: v1.69.0
       Test_Fingerprinting_Header_And_Network: v1.69.0
+      Test_Fingerprinting_Header_And_Network_Preprocessor: v1.69.0
       Test_Fingerprinting_Header_Capability: v1.69.0
       Test_Fingerprinting_Network_Capability: v1.69.0
       Test_Fingerprinting_Session: v1.69.0
       Test_Fingerprinting_Session_Capability: v1.69.0
+      Test_Fingerprinting_Session_Preprocessor: v1.69.0
     test_identify.py:
       Test_Basic: v1.37.0
     test_ip_blocking_full_denylist.py:
@@ -493,6 +510,8 @@ tests/:
       Test_Debugger_Probe_Statuses: missing_feature (feature not implented)
     test_debugger_symdb.py:
       Test_Debugger_SymDb: missing_feature (feature not implented)
+    test_debugger_telemetry.py:
+      Test_Debugger_Telemetry: missing_feature
   integrations/:
     crossed_integrations/:
       test_kafka.py:

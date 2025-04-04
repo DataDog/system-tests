@@ -12,6 +12,7 @@ RUNTIME_LANGUAGE_MAP = {
     "golang": "go",
     "java": "jvm",
     "cpp_httpd": "cpp",
+    "cpp_nginx": "cpp",
 }
 
 """
@@ -150,7 +151,7 @@ def get_component_name(weblog_variant, language, span_name):
 class Test_Meta:
     """meta object in spans respect all conventions"""
 
-    @bug(library="cpp", reason="APMAPI-924")
+    @bug(library="cpp_nginx", reason="APMAPI-924")
     @bug(library="cpp_httpd", reason="APMAPI-924")
     @bug(library="php", reason="APMAPI-924")
     def test_meta_span_kind(self):
@@ -261,7 +262,7 @@ class Test_Meta:
 
             assert "language" in span["meta"], "Span must have a language tag set."
 
-            library = context.library.library
+            library = context.library.name
             expected_language = RUNTIME_LANGUAGE_MAP.get(library, library)
 
             actual_language = span["meta"]["language"]

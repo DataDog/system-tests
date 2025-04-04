@@ -194,6 +194,7 @@ tests/:
         Test_Cmdi_Rules_Version: v1.6.2
         Test_Cmdi_StackTrace: missing_feature
         Test_Cmdi_Telemetry: missing_feature
+        Test_Cmdi_Telemetry_V2: missing_feature
         Test_Cmdi_Telemetry_Variant_Tag: missing_feature
         Test_Cmdi_UrlQuery: missing_feature
         Test_Cmdi_Waf_Version: v1.6.2
@@ -209,6 +210,7 @@ tests/:
         Test_Lfi_StackTrace: v1.6.2
         Test_Lfi_Telemetry: v1.7.0
         Test_Lfi_Telemetry_Multiple_Exploits: v1.7.0
+        Test_Lfi_Telemetry_V2: missing_feature
         Test_Lfi_UrlQuery: v1.6.2
         Test_Lfi_Waf_Version: v1.6.2
       test_shi.py:
@@ -221,6 +223,7 @@ tests/:
         Test_Shi_Rules_Version: v1.6.2
         Test_Shi_StackTrace: missing_feature
         Test_Shi_Telemetry: missing_feature
+        Test_Shi_Telemetry_V2: missing_feature
         Test_Shi_Telemetry_Variant_Tag: missing_feature
         Test_Shi_UrlQuery: missing_feature
         Test_Shi_Waf_Version: v1.6.2
@@ -234,6 +237,7 @@ tests/:
         Test_Sqli_Rules_Version: v1.6.2
         Test_Sqli_StackTrace: missing_feature
         Test_Sqli_Telemetry: missing_feature
+        Test_Sqli_Telemetry_V2: missing_feature
         Test_Sqli_UrlQuery: missing_feature
         Test_Sqli_Waf_Version: v1.6.2
       test_ssrf.py:
@@ -246,6 +250,7 @@ tests/:
         Test_Ssrf_Rules_Version: v1.7.0
         Test_Ssrf_StackTrace: v1.7.0
         Test_Ssrf_Telemetry: v1.7.0
+        Test_Ssrf_Telemetry_V2: missing_feature
         Test_Ssrf_UrlQuery: v1.7.0
         Test_Ssrf_Waf_Version: v1.7.0
     waf/:
@@ -298,8 +303,8 @@ tests/:
         Test_Truncation: missing_feature
     test_asm_standalone.py:
       Test_AppSecStandalone_NotEnabled: v1.6.2
-      Test_AppSecStandalone_UpstreamPropagation: v1.6.0
-      Test_AppSecStandalone_UpstreamPropagation_V2: missing_feature
+      Test_AppSecStandalone_UpstreamPropagation: irrelevant (v2 is implemented)
+      Test_AppSecStandalone_UpstreamPropagation_V2: v1.8.0
       Test_IastStandalone_UpstreamPropagation: missing_feature
       Test_IastStandalone_UpstreamPropagation_V2: missing_feature
       Test_SCAStandalone_Telemetry: missing_feature
@@ -310,15 +315,15 @@ tests/:
       Test_V2_Login_Events: irrelevant
       Test_V2_Login_Events_Anon: irrelevant
       Test_V2_Login_Events_RC: irrelevant
-      Test_V3_Auto_User_Instrum_Mode_Capability: missing_feature
-      Test_V3_Login_Events: missing_feature
-      Test_V3_Login_Events_Anon: missing_feature
-      Test_V3_Login_Events_Blocking: missing_feature
-      Test_V3_Login_Events_RC: missing_feature
+      Test_V3_Auto_User_Instrum_Mode_Capability: v1.8.0-dev
+      Test_V3_Login_Events: v1.8.0-dev
+      Test_V3_Login_Events_Anon: v1.8.0-dev
+      Test_V3_Login_Events_Blocking: v1.8.0-dev
+      Test_V3_Login_Events_RC: v1.8.0-dev
     test_automated_user_and_session_tracking.py:
       Test_Automated_Session_Blocking: missing_feature
       Test_Automated_User_Blocking: missing_feature
-      Test_Automated_User_Tracking: missing_feature
+      Test_Automated_User_Tracking: v1.8.0-dev
     test_blocking_addresses.py:
       Test_BlockingGraphqlResolvers: missing_feature
       Test_Blocking_request_body: irrelevant (Php does not accept url encoded entries without key)
@@ -330,14 +335,30 @@ tests/:
       Test_StandardTagsClientIp: v0.81.0
     test_customconf.py:
       Test_CorruptedRules_Telemetry: missing_feature
+    test_event_tracking.py:
+      Test_CustomEvent_Metrics: missing_feature
+      Test_UserLoginFailureEvent_Metrics: missing_feature
+      Test_UserLoginSuccessEvent_Metrics: missing_feature
+    test_event_tracking_v2.py:
+      Test_UserLoginFailureEventV2_HeaderCollection: missing_feature
+      Test_UserLoginFailureEventV2_Libddwaf: missing_feature
+      Test_UserLoginFailureEventV2_Metrics: missing_feature
+      Test_UserLoginFailureEventV2_Tags: missing_feature
+      Test_UserLoginSuccessEventV2_HeaderCollection: missing_feature
+      Test_UserLoginSuccessEventV2_Libddwaf: missing_feature
+      Test_UserLoginSuccessEventV2_Metrics: missing_feature
+      Test_UserLoginSuccessEventV2_Tags: missing_feature
     test_fingerprinting.py:
       Test_Fingerprinting_Endpoint: v1.6.2
       Test_Fingerprinting_Endpoint_Capability: missing_feature
+      Test_Fingerprinting_Endpoint_Preprocessor: v1.6.2
       Test_Fingerprinting_Header_And_Network: v1.6.2
+      Test_Fingerprinting_Header_And_Network_Preprocessor: v1.6.2
       Test_Fingerprinting_Header_Capability: missing_feature
       Test_Fingerprinting_Network_Capability: missing_feature
       Test_Fingerprinting_Session: missing_feature
       Test_Fingerprinting_Session_Capability: missing_feature
+      Test_Fingerprinting_Session_Preprocessor: missing_feature
     test_identify.py:
       Test_Basic: v0.85.0
     test_logs.py:
@@ -369,21 +390,23 @@ tests/:
       Test_UserBlocking_FullDenylist: v0.86.3
   debugger/:
     test_debugger_exception_replay.py:
-      Test_Debugger_Exception_Replay: irrelevant
+      Test_Debugger_Exception_Replay: missing_feature
     test_debugger_expression_language.py:
-      Test_Debugger_Expression_Language: irrelevant
+      Test_Debugger_Expression_Language: missing_feature
     test_debugger_inproduct_enablement.py:
       Test_Debugger_InProduct_Enablement_Code_Origin: missing_feature
       Test_Debugger_InProduct_Enablement_Dynamic_Instrumentation: missing_feature
       Test_Debugger_InProduct_Enablement_Exception_Replay: missing_feature
     test_debugger_pii.py:
-      Test_Debugger_PII_Redaction: irrelevant
+      Test_Debugger_PII_Redaction: missing_feature
     test_debugger_probe_snapshot.py:
-      Test_Debugger_Probe_Snaphots: irrelevant
+      Test_Debugger_Probe_Snaphots: missing_feature
     test_debugger_probe_status.py:
-      Test_Debugger_Probe_Statuses: irrelevant
+      Test_Debugger_Probe_Statuses: missing_feature
     test_debugger_symdb.py:
-      Test_Debugger_SymDb: irrelevant
+      Test_Debugger_SymDb: missing_feature
+    test_debugger_telemetry.py:
+      Test_Debugger_Telemetry: missing_feature
   integrations/:
     crossed_integrations/:
       test_kafka.py:
@@ -419,7 +442,10 @@ tests/:
       Test_DsmSQS: missing_feature
       Test_Dsm_Manual_Checkpoint_Inter_Process: missing_feature
       Test_Dsm_Manual_Checkpoint_Intra_Process: missing_feature
-    test_inferred_proxy.py: missing_feature
+    test_inferred_proxy.py:
+      Test_AWS_API_Gateway_Inferred_Span_Creation: v1.8.0
+      Test_AWS_API_Gateway_Inferred_Span_Creation_With_Distributed_Context: v1.8.0
+      Test_AWS_API_Gateway_Inferred_Span_Creation_With_Error: v1.8.0
     test_otel_drop_in.py:
       Test_Otel_Drop_In: missing_feature
   otel/:

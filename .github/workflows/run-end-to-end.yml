@@ -192,6 +192,9 @@ jobs:
     - name: Run TRACING_CONFIG_NONDEFAULT_3 scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"TRACING_CONFIG_NONDEFAULT_3"')
       run: ./run.sh TRACING_CONFIG_NONDEFAULT_3
+    - name: Run TRACING_CONFIG_NONDEFAULT_4 scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"TRACING_CONFIG_NONDEFAULT_4"')
+      run: ./run.sh TRACING_CONFIG_NONDEFAULT_4
     - name: Run REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES"')
       run: ./run.sh REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES
@@ -248,6 +251,9 @@ jobs:
     - name: Run APPSEC_REQUEST_BLOCKING scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_REQUEST_BLOCKING"')
       run: ./run.sh APPSEC_REQUEST_BLOCKING
+    - name: Run APPSEC_AND_RC_ENABLED scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_AND_RC_ENABLED"')
+      run: ./run.sh APPSEC_AND_RC_ENABLED
     - name: Run APPSEC_RUNTIME_ACTIVATION scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_RUNTIME_ACTIVATION"')
       run: ./run.sh APPSEC_RUNTIME_ACTIVATION
@@ -263,6 +269,9 @@ jobs:
     - name: Run APPSEC_API_SECURITY_NO_RESPONSE_BODY scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_API_SECURITY_NO_RESPONSE_BODY"')
       run: ./run.sh APPSEC_API_SECURITY_NO_RESPONSE_BODY
+    - name: Run APPSEC_ATO_SDK scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_ATO_SDK"')
+      run: ./run.sh APPSEC_ATO_SDK
     - name: Run APPSEC_API_SECURITY_WITH_SAMPLING scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_API_SECURITY_WITH_SAMPLING"')
       run: |
@@ -322,6 +331,9 @@ jobs:
     - name: Run DEBUGGER_INPRODUCT_ENABLEMENT scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"DEBUGGER_INPRODUCT_ENABLEMENT"')
       run: ./run.sh DEBUGGER_INPRODUCT_ENABLEMENT
+    - name: Run DEBUGGER_TELEMETRY scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"DEBUGGER_TELEMETRY"')
+      run: ./run.sh DEBUGGER_TELEMETRY
     - name: Run OTEL_INTEGRATIONS scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"OTEL_INTEGRATIONS"')
       run: ./run.sh OTEL_INTEGRATIONS
@@ -362,7 +374,6 @@ jobs:
         DD_APP_KEY_2: ${{ secrets.DD_APP_KEY_2 }}
         DD_API_KEY_3: ${{ secrets.DD_API_KEY_3 }}
         DD_APP_KEY_3: ${{ secrets.DD_APP_KEY_3 }}
-
     - name: Run all scenarios in replay mode
       run: utils/scripts/replay_scenarios.sh
       env:

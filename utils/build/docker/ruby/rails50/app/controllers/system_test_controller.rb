@@ -16,7 +16,7 @@ class SystemTestController < ApplicationController
     render json: { 
       status: 'ok',
       library: {
-        language: 'ruby',
+        name: 'ruby',
         version: version
       }
     }
@@ -145,40 +145,6 @@ class SystemTestController < ApplicationController
     Datadog::Kit::Identity.set_user(id: user_id)
 
     render plain: 'Hello, user!'
-  end
-
-  def login
-    request.env["devise.allow_params_authentication"] = true
-
-    sdk_event = request.params[:sdk_event]
-    sdk_user = request.params[:sdk_user]
-    sdk_email = request.params[:sdk_mail]
-    sdk_exists = request.params[:sdk_user_exists]
-
-    if sdk_exists
-      sdk_exists = sdk_exists == "true"
-    end
-
-    result = request.env['warden'].authenticate({ scope: Devise.mappings[:user].name })
-
-    if sdk_event === 'failure' && sdk_user
-      metadata = {}
-      metadata[:email] = sdk_email if sdk_email
-      Datadog::Kit::AppSec::Events.track_login_failure(user_id: sdk_user, user_exists: sdk_exists, **metadata)
-    elsif sdk_event === 'success' && sdk_user
-      user = {}
-      user[:id] = sdk_user
-      user[:email] = sdk_email if sdk_email
-      Datadog::Kit::AppSec::Events.track_login_success(user: user)
-    end
-
-    unless result
-      render plain: '', status: 401
-      return
-    end
-
-
-    render plain: 'Hello, world!'
   end
 
   def request_downstream

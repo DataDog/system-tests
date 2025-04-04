@@ -3,11 +3,11 @@ import os
 from docker.models.networks import Network
 import pytest
 
-from utils._context.library_version import LibraryVersion, Version
+from utils._context.component_version import ComponentVersion, Version
 
 from utils.k8s_lib_injection.k8s_datadog_kubernetes import K8sDatadog
 from utils.k8s_lib_injection.k8s_weblog import K8sWeblog, K8sWeblogSpecs
-from utils.k8s_lib_injection.k8s_cluster_provider import K8sProviderFactory
+from utils.k8s_lib_injection.k8s_cluster_provider import K8sProviderFactory, K8sClusterProvider
 from utils.k8s_lib_injection.k8s_injector_dev_cluster_parser import InjectorDevClusterConfigParser
 from utils.k8s_lib_injection.k8s_injector_dev_app_parser import InjectorDevAppConfigParser
 from utils._context.containers import (
@@ -24,7 +24,11 @@ from utils._logger import logger
 from .core import Scenario, ScenarioGroup
 
 
-class K8sScenario(Scenario):
+class K8sScenarioWithClusterProvider:
+    k8s_cluster_provider: K8sClusterProvider
+
+
+class K8sScenario(Scenario, K8sScenarioWithClusterProvider):
     """Scenario that tests kubernetes lib injection"""
 
     def __init__(
@@ -75,7 +79,7 @@ class K8sScenario(Scenario):
         self.k8s_provider_name = config.option.k8s_provider if config.option.k8s_provider else "kind"
 
         # Get Lib init version
-        self._library = LibraryVersion(
+        self._library = ComponentVersion(
             config.option.k8s_library, extract_library_version(config.option.k8s_lib_init_img)
         )
         self.k8s_lib_init_img = config.option.k8s_lib_init_img
@@ -138,7 +142,7 @@ class K8sScenario(Scenario):
         # Weblog handler (the lib init and injector imgs are set in weblog/pod as annotations)
         self.test_weblog = K8sWeblog(
             self.k8s_weblog_img,
-            self.library.library,
+            self.library.name,
             self.k8s_lib_init_img,
             self.k8s_injector_img,
             self.host_log_folder,
@@ -168,10 +172,10 @@ class K8sScenario(Scenario):
 
         if not self.with_datadog_operator:
             warmups.append(self.k8s_datadog.deploy_test_agent)
-            warmups.append(self.k8s_datadog.deploy_datadog_cluster_agent)
+            warmups.append(lambda: self.k8s_datadog.deploy_datadog_cluster_agent(self.host_log_folder))
             warmups.append(self.test_weblog.install_weblog_pod)
         else:
-            warmups.append(self.k8s_datadog.deploy_datadog_operator)
+            warmups.append(lambda: self.k8s_datadog.deploy_datadog_operator(self.host_log_folder))
             warmups.append(self.test_weblog.install_weblog_pod)
 
         return warmups
@@ -207,7 +211,7 @@ class K8sScenario(Scenario):
         return self._datadog_apm_inject_version
 
 
-class K8sManualInstrumentationScenario(Scenario):
+class K8sManualInstrumentationScenario(Scenario, K8sScenarioWithClusterProvider):
     """Scenario that applied the auto instrumentation manually
     Without using the cluster agent or the operator. We simply add volume mounts to the pods
     with the context of the lib init image, then we inject the env variables to the weblog to
@@ -234,11 +238,11 @@ class K8sManualInstrumentationScenario(Scenario):
         self.k8s_provider_name = config.option.k8s_provider if config.option.k8s_provider else "kind"
 
         # Get Lib init version
-        self._library = LibraryVersion(
+        self._library = ComponentVersion(
             config.option.k8s_library, extract_library_version(config.option.k8s_lib_init_img)
         )
         self.k8s_lib_init_img = config.option.k8s_lib_init_img
-        self.components["library"] = self._library
+        self.components["library"] = str(self._library)
 
         # Configure the K8s cluster provider
         self.k8s_cluster_provider = K8sProviderFactory().get_provider(self.k8s_provider_name)
@@ -254,7 +258,7 @@ class K8sManualInstrumentationScenario(Scenario):
         # Weblog handler
         self.test_weblog = K8sWeblog(
             self.k8s_weblog_img,
-            self.library.library,
+            self.library.name,
             self.k8s_lib_init_img,
             None,
             self.host_log_folder,
@@ -325,7 +329,7 @@ class K8sSparkScenario(K8sScenario):
 
         self.test_weblog = K8sWeblog(
             self.k8s_weblog_img,
-            self.library.library,
+            self.library.name,
             self.k8s_lib_init_img,
             self.k8s_injector_img,
             self.host_log_folder,
@@ -343,7 +347,7 @@ class K8sSparkScenario(K8sScenario):
         warmups.append(self.k8s_cluster_provider.ensure_cluster)
         warmups.append(self.k8s_cluster_provider.create_spak_service_account)
         warmups.append(self.k8s_datadog.deploy_test_agent)
-        warmups.append(self.k8s_datadog.deploy_datadog_cluster_agent)
+        warmups.append(lambda: self.k8s_datadog.deploy_datadog_cluster_agent(self.host_log_folder))
         warmups.append(self.test_weblog.install_weblog_pod)
 
         return warmups
@@ -369,16 +373,16 @@ class WeblogInjectionScenario(Scenario):
 
     def configure(self, config: pytest.Config):  # noqa: ARG002
         assert "TEST_LIBRARY" in os.environ, "TEST_LIBRARY must be set: java,python,nodejs,dotnet,ruby"
-        self._library = LibraryVersion(os.getenv("TEST_LIBRARY"), "0.0")
+        self._library = ComponentVersion(os.environ["TEST_LIBRARY"], "0.0")
 
         assert "LIB_INIT_IMAGE" in os.environ, "LIB_INIT_IMAGE must be set"
-        self._lib_init_image = os.getenv("LIB_INIT_IMAGE")
+        self._lib_init_image = os.environ["LIB_INIT_IMAGE"]
         self._weblog_variant = os.getenv("WEBLOG_VARIANT", "")
         self._mount_injection_volume._lib_init_image(self._lib_init_image)
         self._weblog_injection.set_environment_for_library(self.library)
 
         for container in self._required_containers:
-            container.configure(self.replay)
+            container.configure(replay=self.replay)
 
     def _create_network(self):
         self._network = create_network()

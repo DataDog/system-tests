@@ -61,7 +61,7 @@ class Metric:
         return self.format_string.format(value=str(self.value))
 
     @property
-    def raw(self) -> str:
+    def raw(self) -> list | str | float | None:
         """Will be exported for later analysis"""
         return self.value
 
@@ -115,7 +115,7 @@ class RateMetric(AccumulatedMetric):
         self.rate = self.value / seconds
 
     def observe_global_value(self) -> None:
-        self.last_observation_timestamp = self.init_observation_timestamp()
+        self.last_observation_timestamp = self.init_observation_timestamp
         super().observe()
 
     @property
@@ -123,7 +123,7 @@ class RateMetric(AccumulatedMetric):
         return f"{get_readable_integer_value(self.rate)}/s"
 
     @property
-    def raw(self) -> str:
+    def raw(self) -> float:
         return self.rate
 
     def reset(self) -> None:
@@ -132,8 +132,8 @@ class RateMetric(AccumulatedMetric):
 
 
 class AccumulatedMetricWithPercent(AccumulatedMetric):
-    def __init__(self, name, total_metric, **kwargs):
-        super().__init__(name, **kwargs)
+    def __init__(self, name, total_metric, display_length: int, raw_name: str):
+        super().__init__(name, display_length=display_length, raw_name=raw_name)
         self.total_metric = total_metric
 
     @property
@@ -147,7 +147,7 @@ class AccumulatedMetricWithPercent(AccumulatedMetric):
         return f"{round(100*self.value/self.total_metric.value)}%"
 
     @property
-    def raw(self) -> float:
+    def raw(self) -> float | None:
         if self.total_metric.value == 0:
             return None
 
@@ -158,8 +158,8 @@ class AccumulatedMetricWithPercent(AccumulatedMetric):
 
 
 class SelfAccumulatedMetricWithPercent(AccumulatedMetric):
-    def __init__(self, name, **kwargs):
-        super().__init__(name, **kwargs)
+    def __init__(self, name):
+        super().__init__(name)
         self.total = 0
         self.global_total = 0
 
@@ -186,7 +186,7 @@ class SelfAccumulatedMetricWithPercent(AccumulatedMetric):
         return f"{round(100*self.value/self.total)}%"
 
     @property
-    def raw(self) -> float:
+    def raw(self) -> float | None:
         if self.total == 0:
             return None
 
@@ -286,7 +286,7 @@ class Report:
         self.metric_count = 0
         self.logger = logger
         self.report_frequency = timedelta(seconds=report_frequency)
-        self.next_report_timestamp = None
+        self.next_report_timestamp = datetime.now(tz=UTC)
 
     def start(self) -> None:
         self.next_report_timestamp = datetime.now(tz=UTC)

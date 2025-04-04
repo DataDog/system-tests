@@ -18,7 +18,7 @@ from docker.errors import DockerException
 from docker.models.containers import Container
 from docker.models.networks import Network
 
-from utils._context.library_version import LibraryVersion
+from utils._context.component_version import ComponentVersion
 from utils._logger import logger
 
 from .core import Scenario, ScenarioGroup
@@ -173,7 +173,7 @@ class ParametricScenario(Scenario):
                 command=["cat", "SYSTEM_TESTS_LIBRARY_VERSION"],
             )
 
-        self._library = LibraryVersion(library, output.decode("utf-8"))
+        self._library = ComponentVersion(library, output.decode("utf-8"))
         logger.debug(f"Library version is {self._library}")
 
     def get_warmups(self):
@@ -207,7 +207,7 @@ class ParametricScenario(Scenario):
 
     @property
     def weblog_variant(self):
-        return f"parametric-{self.library.library}"
+        return f"parametric-{self.library.name}"
 
     def _build_apm_test_server_image(self) -> None:
         logger.stdout("Build tested container...")
@@ -402,7 +402,7 @@ COPY {nodejs_reldir}/*.js /usr/app/
 COPY {nodejs_reldir}/*.sh /usr/app/
 COPY {nodejs_reldir}/npm/* /usr/app/
 
-RUN npm install
+RUN npm install || npm install
 
 COPY {nodejs_reldir}/../install_ddtrace.sh binaries* /binaries/
 RUN /binaries/install_ddtrace.sh

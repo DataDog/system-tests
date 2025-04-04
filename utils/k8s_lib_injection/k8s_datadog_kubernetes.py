@@ -199,7 +199,7 @@ class K8sDatadog:
         logger.info(f"✅ File copied to: {new_file_path}")
         return new_file_path
 
-    def deploy_datadog_cluster_agent(self, namespace="default"):
+    def deploy_datadog_cluster_agent(self, host_log_folder: str, namespace="default"):
         """Installs the Datadog Cluster Agent via helm for manual library injection testing.
         We enable the admission controller and wait for the datdog cluster to be ready.
         The Datadog Admission Controller is an important piece of the Datadog Cluster Agent.
@@ -254,6 +254,7 @@ class K8sDatadog:
             )
         else:
             helm_install_chart(
+                host_log_folder,
                 self.k8s_cluster_info,
                 "datadog",
                 "datadog/datadog",
@@ -263,7 +264,7 @@ class K8sDatadog:
         logger.info("[Deploy datadog cluster] Waiting for the cluster to be ready")
         self._wait_for_cluster_agent_ready(namespace)
 
-    def deploy_datadog_operator(self, namespace="default"):
+    def deploy_datadog_operator(self, host_log_folder: str, namespace="default"):
         """Datadog Operator is a Kubernetes Operator that enables you to deploy and configure the Datadog Agent in a Kubernetes environment.
         By using the Datadog Operator, you can use a single Custom Resource Definition (CRD) to deploy the node-based Agent,
         the Datadog Cluster Agent, and Cluster check runners.
@@ -271,6 +272,7 @@ class K8sDatadog:
         logger.info("[Deploy datadog operator] Configuring helm repository")
         helm_add_repo("datadog", "https://helm.datadoghq.com", self.k8s_cluster_info, update=True)
         helm_install_chart(
+            host_log_folder,
             self.k8s_cluster_info,
             "my-datadog-operator",
             "datadog/datadog-operator",

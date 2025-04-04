@@ -2,8 +2,10 @@ package com.datadoghq.resteasy;
 
 import com.datadoghq.system_tests.iast.utils.*;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
 import datadog.appsec.api.blocking.Blocking;
+import datadog.appsec.api.login.EventTrackerV2;
 import datadog.trace.api.interceptor.MutableSpan;
 import io.opentracing.Span;
 import io.opentracing.util.GlobalTracer;
@@ -32,6 +34,9 @@ import java.nio.charset.StandardCharsets;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import com.datadoghq.system_tests.iast.utils.CryptoExamples;
+
+import static datadog.appsec.api.user.User.setUser;
+import static java.util.Collections.emptyMap;
 
 @Path("/")
 @Produces(MediaType.TEXT_PLAIN)
@@ -71,7 +76,7 @@ public class MyResource {
         }
 
         Map<String, String> library = new HashMap<>();
-        library.put("language", "java");
+        library.put("name", "java");
         library.put("version", version);
 
         Map<String, Object> response = new HashMap<>();
@@ -225,6 +230,19 @@ public class MyResource {
     }
 
     @GET
+    @Path("/identify")
+    public String identify() {
+        final Map<String, String> metadata = new HashMap<>();
+        metadata.put("email", "usr.email");
+        metadata.put("name", "usr.name");
+        metadata.put("session_id", "usr.session_id");
+        metadata.put("role", "usr.role");
+        metadata.put("scope", "usr.scope");
+        setUser("usr.id", metadata);
+        return "OK";
+    }
+
+    @GET
     @Path("/user_login_success_event")
     @Produces({MediaType.TEXT_HTML, MediaType.TEXT_PLAIN})
     public String userLoginSuccess(@DefaultValue("system_tests_user") @QueryParam("event_user_id") String userId) {
@@ -252,6 +270,65 @@ public class MyResource {
                 .trackCustomEvent(eventName, METADATA);
 
         return "ok";
+    }
+
+    @POST
+    @Path("/user_login_success_event_v2")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces({MediaType.TEXT_HTML, MediaType.TEXT_PLAIN})
+    public String userLoginSuccessV2(final UserEventRequest request) {
+        EventTrackerV2.trackUserLoginSuccess(request.getLogin(), request.getUserId(), request.getMetadata());
+        return "ok";
+    }
+
+    @POST
+    @Path("/user_login_failure_event_v2")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces({MediaType.TEXT_HTML, MediaType.TEXT_PLAIN})
+    public String userLoginFailureV2(final UserEventRequest request) {
+        EventTrackerV2.trackUserLoginFailure(request.getLogin(), request.getExists(), request.getMetadata());
+        return "ok";
+    }
+
+    public static class UserEventRequest {
+        private String login;
+        @JsonProperty("user_id")
+        private String userId;  // Optional for failure event
+        private boolean exists; // Optional for success event
+        private Map<String, String> metadata;
+
+        // Getters and Setters
+        public String getLogin() {
+            return login;
+        }
+
+        public void setLogin(String login) {
+            this.login = login;
+        }
+
+        public String getUserId() {
+            return userId;
+        }
+
+        public void setUserId(String userId) {
+            this.userId = userId;
+        }
+
+        public boolean getExists() {
+            return exists;
+        }
+
+        public void setExists(boolean exists) {
+            this.exists = exists;
+        }
+
+        public Map<String, String> getMetadata() {
+            return metadata;
+        }
+
+        public void setMetadata(Map<String, String> metadata) {
+            this.metadata = metadata;
+        }
     }
 
     @XmlRootElement(name = "string")

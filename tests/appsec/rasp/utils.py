@@ -2,6 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
+from collections.abc import Sequence
 import json
 
 from utils import interfaces
@@ -9,7 +10,7 @@ from utils._weblog import HttpResponse
 
 
 def validate_span_tags(
-    request: HttpResponse, expected_meta: tuple[str, ...] = (), expected_metrics: tuple[str, ...] = ()
+    request: HttpResponse, expected_meta: Sequence[str] = (), expected_metrics: Sequence[str] = ()
 ) -> None:
     """Validate RASP span tags are added when an event is generated"""
     span = interfaces.library.get_root_span(request)
@@ -89,12 +90,32 @@ def find_series(
     return series
 
 
-def validate_metric(name: str, metric_type: str, metric: dict) -> None:
+def validate_metric(name: str, metric_type: str, metric: dict) -> bool:
     return (
         metric.get("metric") == name
         and metric.get("type") == "count"
         and f"rule_type:{metric_type}" in metric.get("tags", ())
         and any(s.startswith("waf_version:") for s in metric.get("tags", ()))
+    )
+
+
+def validate_metric_v2(name: str, metric_type: str, metric: dict, *, block_action: str | None = None) -> bool:
+    return (
+        metric.get("metric") == name
+        and metric.get("type") == "count"
+        and f"rule_type:{metric_type}" in metric.get("tags", ())
+        and any(s.startswith("waf_version:") for s in metric.get("tags", ()))
+        and any(s.startswith("event_rules_version:") for s in metric.get("tags", ()))
+        and (not block_action or block_action in metric.get("tags", ()))
+    )
+
+
+def validate_distribution(name: str, metric_type: str, metric: dict, *, check_type: bool = False) -> bool:
+    return (
+        metric.get("metric") == name
+        and (not check_type or f"rule_type:{metric_type}" in metric.get("tags", ()))
+        and any(s.startswith("waf_version:") for s in metric.get("tags", ()))
+        and any(s.startswith("event_rules_version:") for s in metric.get("tags", ()))
     )
 
 
@@ -105,6 +126,20 @@ def validate_metric_variant(name: str, metric_type: str, variant: str, metric: d
         and f"rule_type:{metric_type}" in metric.get("tags", ())
         and f"rule_variant:{variant}" in metric.get("tags", ())
         and any(s.startswith("waf_version:") for s in metric.get("tags", ()))
+    )
+
+
+def validate_metric_variant_v2(
+    name: str, metric_type: str, variant: str, metric: dict, *, block_action: str | None = None
+) -> bool:
+    return (
+        metric.get("metric") == name
+        and metric.get("type") == "count"
+        and f"rule_type:{metric_type}" in metric.get("tags", ())
+        and f"rule_variant:{variant}" in metric.get("tags", ())
+        and any(s.startswith("waf_version:") for s in metric.get("tags", ()))
+        and any(s.startswith("event_rules_version:") for s in metric.get("tags", ()))
+        and (not block_action or block_action in metric.get("tags", ()))
     )
 
 

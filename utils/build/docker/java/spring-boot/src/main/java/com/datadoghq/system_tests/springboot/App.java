@@ -22,6 +22,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlText;
 import com.mongodb.MongoClient;
 import com.mongodb.client.MongoCollection;
 import datadog.appsec.api.blocking.Blocking;
+import datadog.appsec.api.login.EventTrackerV2;
 import datadog.trace.api.EventTracker;
 import datadog.trace.api.Trace;
 import datadog.trace.api.experimental.*;
@@ -121,9 +122,11 @@ import io.opentracing.util.GlobalTracer;
 import com.datadoghq.system_tests.iast.utils.CryptoExamples;
 
 import static com.mongodb.client.model.Filters.eq;
+import static datadog.appsec.api.user.User.setUser;
 import static io.opentelemetry.api.trace.SpanKind.INTERNAL;
 import static io.opentelemetry.api.trace.StatusCode.ERROR;
 import static java.time.temporal.ChronoUnit.SECONDS;
+import static java.util.Collections.emptyMap;
 
 @RestController
 @EnableAutoConfiguration(exclude = R2dbcAutoConfiguration.class)
@@ -165,7 +168,7 @@ public class App {
         }
 
         Map<String, String> library = new HashMap<>();
-        library.put("language", "java");
+        library.put("name", "java");
         library.put("version", version);
 
         Map<String, Object> response = new HashMap<>();
@@ -243,7 +246,7 @@ public class App {
     @GetMapping(value = "/session/user")
     ResponseEntity<String> userSession(@RequestParam("sdk_user") final String sdkUser, final HttpServletRequest request) {
         EventTracker tracker = datadog.trace.api.GlobalTracer.getEventTracker();
-        tracker.trackLoginSuccessEvent(sdkUser, Collections.emptyMap());
+        tracker.trackLoginSuccessEvent(sdkUser, emptyMap());
         return ResponseEntity.ok(request.getRequestedSessionId());
     }
 
@@ -273,6 +276,18 @@ public class App {
         return "Hello " + user;
     }
 
+    @GetMapping("/identify")
+    public String identify() {
+        final Map<String, String> metadata = new HashMap<>();
+        metadata.put("email", "usr.email");
+        metadata.put("name", "usr.name");
+        metadata.put("session_id", "usr.session_id");
+        metadata.put("role", "usr.role");
+        metadata.put("scope", "usr.scope");
+        setUser("usr.id", metadata);
+        return "OK";
+    }
+
     @GetMapping("/user_login_success_event")
     public String userLoginSuccess(
             @RequestParam(value = "event_user_id", defaultValue = "system_tests_user") String userId) {
@@ -298,6 +313,26 @@ public class App {
         datadog.trace.api.GlobalTracer.getEventTracker()
                 .trackCustomEvent(eventName, METADATA);
 
+        return "ok";
+    }
+
+    @SuppressWarnings("unchecked")
+    @PostMapping("/user_login_success_event_v2")
+    public String userLoginSuccessV2(@RequestBody final Map<String, Object> body) {
+        final String login = body.getOrDefault("login", "system_tests_login").toString();
+        final String userId = body.getOrDefault("user_id", "system_tests_user_id").toString();
+        final Map<String, String> metadata = (Map<String, String>) body.getOrDefault("metadata", emptyMap());
+        EventTrackerV2.trackUserLoginSuccess(login, userId, metadata);
+        return "ok";
+    }
+
+    @SuppressWarnings("unchecked")
+    @PostMapping("/user_login_failure_event_v2")
+    public String userLoginFailureV2(@RequestBody final Map<String, Object> body) {
+        final String login = body.getOrDefault("login", "system_tests_login").toString();
+        final boolean exists = Boolean.parseBoolean(body.getOrDefault("exists", "true").toString());
+        final Map<String, String> metadata = (Map<String, String>) body.getOrDefault("metadata", emptyMap());
+        EventTrackerV2.trackUserLoginFailure(login, exists, metadata);
         return "ok";
     }
 

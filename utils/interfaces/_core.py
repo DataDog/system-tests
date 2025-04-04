@@ -4,7 +4,7 @@
 
 """Contains base class used to validate interfaces"""
 
-from collections.abc import Callable
+from collections.abc import Callable, Iterable
 import json
 from os import listdir
 from os.path import join
@@ -33,12 +33,16 @@ class InterfaceValidator:
     log_folder: str
     """ Folder where interfaces' logs are stored """
 
+    host_log_folder: str
+    """ Folder where all logs are stored """
+
     def __init__(self, name: str):
         self.name = name
 
     def configure(self, host_log_folder: str, *, replay: bool):
         self.replay = replay
         self.log_folder = f"{host_log_folder}/interfaces/{self.name}"
+        self.host_log_folder = host_log_folder
 
     def __repr__(self):
         return f"{self.__class__.__name__}('{self.name}')"
@@ -121,7 +125,7 @@ class ProxyBasedInterfaceValidator(InterfaceValidator):
     def _append_data(self, data: dict):
         self._data_list.append(data)
 
-    def get_data(self, path_filters: list[str] | str | None = None):
+    def get_data(self, path_filters: Iterable[str] | str | None = None):
         if path_filters is not None:
             if isinstance(path_filters, str):
                 path_filters = [path_filters]
@@ -137,7 +141,7 @@ class ProxyBasedInterfaceValidator(InterfaceValidator):
             yield data
 
     def validate(
-        self, validator: Callable, path_filters: list[str] | str | None = None, *, success_by_default: bool = False
+        self, validator: Callable, path_filters: Iterable[str] | str | None = None, *, success_by_default: bool = False
     ):
         for data in self.get_data(path_filters=path_filters):
             try:
