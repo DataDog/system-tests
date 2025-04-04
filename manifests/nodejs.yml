@@ -53,6 +53,7 @@ refs:
   - &ref_5_41_0 '>=5.41.0'
   - &ref_5_43_0 '>=5.43.0'
   - &ref_5_44_0 '>=5.44.0'
+  - &ref_5_45_0 '>=5.45.0'
   - &ref_5_46_0 '>=5.46.0'
 tests/:
   apm_tracing_e2e/:
@@ -695,15 +696,21 @@ tests/:
       Test_CustomEvent:
         '*': *ref_3_13_0
         nextjs: missing_feature
-      Test_CustomEvent_Metrics: missing_feature
+      Test_CustomEvent_Metrics:
+        '*': *ref_5_45_0
+        nextjs: missing_feature
       Test_UserLoginFailureEvent:
         '*': *ref_3_13_0
         nextjs: missing_feature
-      Test_UserLoginFailureEvent_Metrics: missing_feature
+      Test_UserLoginFailureEvent_Metrics:
+        '*': *ref_5_45_0
+        nextjs: missing_feature
       Test_UserLoginSuccessEvent:
         '*': *ref_3_13_0
         nextjs: missing_feature
-      Test_UserLoginSuccessEvent_Metrics: missing_feature
+      Test_UserLoginSuccessEvent_Metrics:
+        '*': *ref_5_45_0
+        nextjs: missing_feature
     test_event_tracking_v2.py:
       Test_UserLoginFailureEventV2_HeaderCollection: missing_feature
       Test_UserLoginFailureEventV2_Libddwaf: missing_feature
