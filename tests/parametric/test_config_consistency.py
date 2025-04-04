@@ -607,7 +607,9 @@ class Test_Stable_Config_Default(StableConfigWriter):
     )
     @pytest.mark.parametrize(
         "library_extra_command_arguments",
-        [["-Darg1"]],
+        [
+            ["-Darg1"]
+        ],  # Note: This test was written for Java, so if this arg is not compatible for other libs, we may need to dynamically set library_extra_command_arguments based on context.library.name
     )
     def test_process_arguments(self, library_env, test_agent, test_library):
         path = "/etc/datadog-agent/managed/datadog-agent/stable/application_monitoring.yaml"
