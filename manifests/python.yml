@@ -969,6 +969,8 @@ tests/:
         django-py3.13: bug (APMLP-364)
   test_baggage.py:
     Test_Baggage_Headers_Basic: v2.16.0
+      '*': irrelevant
+      fastapi: v2.4.0
     Test_Baggage_Headers_Malformed: v2.16.0
     Test_Baggage_Headers_Malformed2: v2.16.0
     Test_Baggage_Headers_Max_Bytes: v2.16.0
