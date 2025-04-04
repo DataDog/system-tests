@@ -51,9 +51,6 @@ func main() {
 	tracer.Start()
 	defer tracer.Stop()
 
-	tracer.Start()
-	defer tracer.Stop()
-
 	err := profiler.Start(
 		profiler.WithService("weblog"),
 		profiler.WithEnv("system-tests"),
