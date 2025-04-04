@@ -171,6 +171,12 @@ func main() {
 
 		client := httptrace.WrapClient(http.DefaultClient)
 		req, _ := http.NewRequestWithContext(r.Context(), http.MethodGet, url, nil)
+		// Copy headers from original request
+		for key, values := range r.Header {
+			for _, value := range values {
+				req.Header.Add(key, value)
+			}
+		}
 		res, err := client.Do(req)
 		if err != nil {
 			log.Fatalln("client.Do", err)

@@ -94,7 +94,7 @@ class VagrantCommander(Commander):
         logger.info(f"Vagrant: Execute local command: {local_command}")
 
         result = subprocess.run(local_command.split(" "), stdout=subprocess.PIPE, env=env)
-        vm_logger(context.scenario.name, logger_name).info(result.stdout)
+        vm_logger(context.scenario.host_log_folder, logger_name).info(result.stdout)
         return last_task
 
     def copy_file(self, id, local_path, remote_path, connection, last_task, vm=None):
@@ -134,12 +134,12 @@ class VagrantCommander(Commander):
                 command_output += line
 
         if logger_name:
-            vm_logger(context.scenario.name, logger_name).info(command_output)
+            vm_logger(context.scenario.host_log_folder, logger_name).info(command_output)
         else:
             # If there isn't logger name specified, we will use the host/ip name to store all the logs of the
             # same remote machine in the same log file
             header = "*****************************************************************"
-            vm_logger(context.scenario.name, vm.name).info(
+            vm_logger(context.scenario.host_log_folder, vm.name).info(
                 f"{header} \n  - COMMAND: {installation_id} \n {header} \n {remote_command} \n\n {header} \n COMMAND OUTPUT \n\n {header} \n {command_output}"
             )
 

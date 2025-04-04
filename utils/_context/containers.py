@@ -2,6 +2,7 @@ import os
 import re
 import stat
 import json
+from http import HTTPStatus
 from pathlib import Path
 from subprocess import run
 import time
@@ -443,6 +444,7 @@ class SqlDbTestedContainer(TestedContainer):
         *,
         image_name: str,
         host_log_folder: str,
+        db_user: str,
         environment: dict[str, str | None] | None = None,
         allow_old_container: bool = False,
         healthcheck: dict | None = None,
@@ -452,7 +454,6 @@ class SqlDbTestedContainer(TestedContainer):
         user: str | None = None,
         volumes: dict | None = None,
         cap_add: list[str] | None = None,
-        db_user: str | None = None,
         db_password: str | None = None,
         db_instance: str | None = None,
         db_host: str | None = None,
@@ -735,7 +736,7 @@ class WeblogContainer(TestedContainer):
         volumes = {} if volumes is None else volumes
         volumes[f"./{host_log_folder}/docker/weblog/logs/"] = {"bind": "/var/log/system-tests", "mode": "rw"}
 
-        base_environment = {
+        base_environment: dict[str, str | None] = {
             # Datadog setup
             "DD_SERVICE": "weblog",
             "DD_VERSION": "1.0.0",
@@ -871,6 +872,10 @@ class WeblogContainer(TestedContainer):
             header_tags = "user-agent"
         else:
             header_tags = ""
+
+        if library == "ruby" and "rails" in self.weblog_variant:
+            # Ensure ruby on rails apps log to stdout
+            self.environment["RAILS_LOG_TO_STDOUT"] = "true"
 
         if len(self.additional_trace_header_tags) != 0:
             header_tags += f',{",".join(self.additional_trace_header_tags)}'
@@ -1180,7 +1185,7 @@ class OpenTelemetryCollectorContainer(TestedContainer):
             try:
                 r = requests.get(f"http://{self._otel_host}:{self._otel_port}", timeout=1)
                 logger.debug(f"Healthcheck #{i} on {self._otel_host}:{self._otel_port}: {r}")
-                if r.status_code == 200:
+                if r.status_code == HTTPStatus.OK:
                     return True
             except Exception as e:
                 logger.debug(f"Healthcheck #{i} on {self._otel_host}:{self._otel_port}: {e}")
